@@ -37,40 +37,44 @@ class DatabaseOperation {
 
     async findOneAndUpdate(query, update, options = {}) {
         try {
-            return await this.schema.findOneAndUpdate(query, update, {
+            const result = await this.schema.findOneAndUpdate(query, update, {
                 new: true,
                 runValidators: true,
                 ...options
             });
+            return result;
         } catch (err) {
-            console.error(`Database operation failed: ${err.message}`);
+            console.error(`[ERROR] Database operation failed:`, err);
             throw err;
         }
     }
 
     async find(query = {}, options = {}) {
         try {
-            return await this.schema.find(query, options);
+            const result = await this.schema.find(query, options);
+            return result;
         } catch (err) {
-            console.error(`Database find operation failed: ${err.message}`);
+            console.error(`[ERROR] Database find operation failed:`, err);
             throw err;
         }
     }
 
     async countDocuments(query = {}) {
         try {
-            return await this.schema.countDocuments(query);
+            const count = await this.schema.countDocuments(query);
+            return count;
         } catch (err) {
-            console.error(`Count documents operation failed: ${err.message}`);
+            console.error(`[ERROR] Count documents operation failed:`, err);
             throw err;
         }
     }
 
     async deleteMany(query) {
         try {
-            return await this.schema.deleteMany(query);
+            const result = await this.schema.deleteMany(query);
+            return result;
         } catch (err) {
-            console.error(`Delete many operation failed: ${err.message}`);
+            console.error(`[ERROR] Delete many operation failed:`, err);
             throw err;
         }
     }
@@ -99,24 +103,18 @@ class Records extends EventEmitter {
                 }
             }
 
-            // Check cache for existing record
-            const cacheKey = `${databaseName}:${JSON.stringify(query)}`;
-            const cachedResult = cache.get(cacheKey);
-            if (cachedResult) {
-                callback(cachedResult);
-                return;
-            }
-
+            // Always perform database operation
             const document = await this.dbOperations[databaseName].findOneAndUpdate(query, update, options);
             
-            // Update cache
+            // Update cache with new document
             if (document) {
+                const cacheKey = `${databaseName}:${JSON.stringify(query)}`;
                 cache.set(cacheKey, document);
             }
 
             callback(document);
         } catch (err) {
-            console.error("Database operation failed:", err);
+            console.error(`[ERROR] Database operation failed for ${databaseName}:`, err);
             callback(null);
         }
     }
@@ -161,20 +159,80 @@ class Records extends EventEmitter {
     }
 
     // TRPG database operations
-    pushTrpgDatabaseFunction(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { trpgDatabasefunction: data.trpgDatabasefunction } }, { new: true, upsert: true }, callback);
+    async pushTrpgDatabaseFunction(databaseName, data, callback) {
+        try {
+            const query = { groupid: data.groupid };
+            const update = { $push: { trpgDatabasefunction: data.trpgDatabasefunction[0] } };
+            const options = { new: true, upsert: true };
+
+            const result = await this.updateRecord(databaseName, query, update, options, (doc) => {
+                if (doc) {
+                    callback(doc);
+                } else {
+                    callback(null);
+                }
+            });
+        } catch (err) {
+            console.error(`[ERROR] Failed to push trpgDatabaseFunction:`, err);
+            callback(null);
+        }
     }
 
-    setTrpgDatabaseFunction(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { trpgDatabasefunction: data.trpgDatabasefunction } }, { upsert: true }, callback);
+    async setTrpgDatabaseFunction(databaseName, data, callback) {
+        try {
+            const query = { groupid: data.groupid };
+            const update = { $set: { trpgDatabasefunction: data.trpgDatabasefunction } };
+            const options = { new: true, upsert: true };
+
+            const result = await this.updateRecord(databaseName, query, update, options, (doc) => {
+                if (doc) {
+                    callback(doc);
+                } else {
+                    callback(null);
+                }
+            });
+        } catch (err) {
+            console.error(`[ERROR] Failed to set trpgDatabaseFunction:`, err);
+            callback(null);
+        }
     }
 
-    pushTrpgDatabaseAllGroup(databaseName, data, callback) {
-        this.updateRecord(databaseName, {}, { $push: { trpgDatabaseAllgroup: data.trpgDatabaseAllgroup } }, { new: true, upsert: true }, callback);
+    async pushTrpgDatabaseAllGroup(databaseName, data, callback) {
+        try {
+            const query = { groupid: data.groupid };
+            const update = { $push: { trpgDatabaseAllgroup: data.trpgDatabaseAllgroup[0] } };
+            const options = { new: true, upsert: true };
+
+            const result = await this.updateRecord(databaseName, query, update, options, (doc) => {
+                if (doc) {
+                    callback(doc);
+                } else {
+                    callback(null);
+                }
+            });
+        } catch (err) {
+            console.error(`[ERROR] Failed to push trpgDatabaseAllGroup:`, err);
+            callback(null);
+        }
     }
 
-    setTrpgDatabaseAllGroup(databaseName, data, callback) {
-        this.updateRecord(databaseName, {}, { $set: { trpgDatabaseAllgroup: data.trpgDatabaseAllgroup } }, { upsert: true }, callback);
+    async setTrpgDatabaseAllGroup(databaseName, data, callback) {
+        try {
+            const query = { groupid: data.groupid };
+            const update = { $set: { trpgDatabaseAllgroup: data.trpgDatabaseAllgroup } };
+            const options = { new: true, upsert: true };
+
+            const result = await this.updateRecord(databaseName, query, update, options, (doc) => {
+                if (doc) {
+                    callback(doc);
+                } else {
+                    callback(null);
+                }
+            });
+        } catch (err) {
+            console.error(`[ERROR] Failed to set trpgDatabaseAllGroup:`, err);
+            callback(null);
+        }
     }
 
     // Group settings operations

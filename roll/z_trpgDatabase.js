@@ -14,13 +14,17 @@ const VIP = require('../modules/veryImportantPerson');
 // 常量定義
 const CACHE_TTL = {
     GROUP_CONFIG: 300,  // 群組配置緩存5分鐘
-    MEMBER_DATA: 60     // 成員數據緩存1分鐘
+    MEMBER_DATA: 60,    // 成員數據緩存1分鐘
+    DATABASE: 300       // 數據庫緩存5分鐘
 };
 
 const FUNCTION_LIMIT = [30, 200, 200, 300, 300, 300, 300, 300];
 
 // 初始化緩存
-const cache = new NodeCache({ stdTTL: CACHE_TTL.GROUP_CONFIG });
+const cache = new NodeCache({
+    stdTTL: CACHE_TTL.GROUP_CONFIG,
+    checkperiod: 120 // 每2分鐘檢查過期緩存
+});
 
 // 全局數據
 let trpgDatabasefunction = {
@@ -29,62 +33,295 @@ let trpgDatabasefunction = {
 };
 
 /**
- * 按需獲取群組數據庫
- * @returns {Promise<Array>} 群組數據庫
+ * 數據庫操作相關函數
  */
-async function getGroupDatabase() {
-    if (!trpgDatabasefunction.trpgDatabasefunction) {
-        await new Promise((resolve) => {
-            records.get('trpgDatabase', (msgs) => {
-                trpgDatabasefunction.trpgDatabasefunction = msgs;
-                resolve();
-            });
-        });
+const dbOperations = {
+    /**
+     * 批量更新緩存
+     * @param {string} groupid 群組ID
+     * @param {string} userid 用戶ID
+     * @returns {Promise<Object>} 更新後的數據
+     */
+    async updateCache(groupid, userid) {
+        try {
+            const [groupConfig, groupMembers, userInfo] = await Promise.all([
+                schema.trpgLevelSystem.findOne({ groupid }),
+                schema.trpgLevelSystemMember.find({ groupid }).sort({ EXP: -1 }),
+                schema.trpgLevelSystemMember.findOne({ groupid, userid })
+            ]);
+
+            if (groupConfig) {
+                cache.set(`group_config_${groupid}`, groupConfig, CACHE_TTL.GROUP_CONFIG);
+            }
+            if (groupMembers) {
+                cache.set(`group_members_${groupid}`, groupMembers, CACHE_TTL.MEMBER_DATA);
+            }
+            if (userInfo) {
+                cache.set(`user_${groupid}_${userid}`, userInfo, CACHE_TTL.MEMBER_DATA);
+            }
+
+            return { groupConfig, groupMembers, userInfo };
+        } catch (error) {
+            console.error('Cache update error:', error);
+            return { groupConfig: null, groupMembers: null, userInfo: null };
+        }
+    },
+
+    /**
+     * 查找群組配置
+     * @param {string} groupid 群組ID
+     * @returns {Promise<Object>} 群組配置
+     */
+    async findGp(groupid) {
+        if (!process.env.mongoURL || !groupid) return null;
+
+        const cacheKey = `group_config_${groupid}`;
+        let config = cache.get(cacheKey);
+
+        if (!config) {
+            try {
+                config = await schema.trpgLevelSystem.findOne({
+                    groupid: groupid,
+                    SwitchV2: 1
+                });
+
+                if (config) {
+                    cache.set(cacheKey, config, CACHE_TTL.GROUP_CONFIG);
+                }
+            } catch (error) {
+                console.error('Find group config error:', error);
+                return null;
+            }
+        }
+
+        return config;
+    },
+
+    /**
+     * 查找群組成員
+     * @param {string} groupid 群組ID
+     * @returns {Promise<Array>} 成員列表
+     */
+    async findGpMember(groupid) {
+        if (!process.env.mongoURL || !groupid) return null;
+
+        const cacheKey = `group_members_${groupid}`;
+        let members = cache.get(cacheKey);
+
+        if (!members) {
+            try {
+                members = await schema.trpgLevelSystemMember.find({
+                    groupid: groupid
+                }).sort({ EXP: -1 });
+
+                if (members) {
+                    cache.set(cacheKey, members, CACHE_TTL.MEMBER_DATA);
+                }
+            } catch (error) {
+                console.error('Find group members error:', error);
+                return null;
+            }
+        }
+
+        return members;
+    },
+
+    /**
+     * 查找用戶信息
+     * @param {string} groupid 群組ID
+     * @param {string} userid 用戶ID
+     * @returns {Promise<Object>} 用戶信息
+     */
+    async findUser(groupid, userid) {
+        if (!groupid || !userid) return null;
+
+        const cacheKey = `user_${groupid}_${userid}`;
+        let user = cache.get(cacheKey);
+
+        if (!user) {
+            try {
+                user = await schema.trpgLevelSystemMember.findOne({
+                    groupid: groupid,
+                    userid: userid
+                });
+
+                if (user) {
+                    cache.set(cacheKey, user, CACHE_TTL.MEMBER_DATA);
+                }
+            } catch (error) {
+                console.error('Find user error:', error);
+                return null;
+            }
+        }
+
+        return user;
+    },
+
+    /**
+     * 計算用戶排名
+     * @param {string} who 用戶ID
+     * @param {Array} data 成員數據
+     * @returns {string} 排名
+     */
+    ranking(who, data) {
+        if (!data || !Array.isArray(data)) return "0";
+        const memberMap = new Map(data.map((member, index) => [member.userid, index + 1]));
+        return memberMap.get(who) || "0";
+    },
+
+    /**
+     * 清除緩存
+     * @param {string} groupid 群組ID
+     * @param {string} userid 用戶ID
+     */
+    clearCache(groupid, userid) {
+        if (groupid) {
+            cache.del(`group_config_${groupid}`);
+            cache.del(`group_members_${groupid}`);
+        }
+        if (userid) {
+            cache.del(`user_${groupid}_${userid}`);
+        }
     }
-    return trpgDatabasefunction.trpgDatabasefunction;
-}
+};
 
 /**
- * 按需獲取全服數據庫
- * @returns {Promise<Array>} 全服數據庫
+ * 數據庫操作相關函數
  */
-async function getGlobalDatabase() {
-    if (!trpgDatabasefunction.trpgDatabaseAllgroup) {
-        await new Promise((resolve) => {
-            records.get('trpgDatabaseAllgroup', (msgs) => {
-                trpgDatabasefunction.trpgDatabaseAllgroup = msgs;
-                resolve();
+const databaseOperations = {
+    /**
+     * 按需獲取群組數據庫
+     * @returns {Promise<Array>} 群組數據庫
+     */
+    async getGroupDatabase() {
+        const cacheKey = 'group_database';
+        let database = cache.get(cacheKey);
+
+        if (!database) {
+            try {
+                database = await new Promise((resolve) => {
+                    records.get('trpgDatabase', (msgs) => {
+                        resolve(msgs);
+                    });
+                });
+                cache.set(cacheKey, database, CACHE_TTL.DATABASE);
+            } catch (error) {
+                console.error('Get group database error:', error);
+                return null;
+            }
+        }
+
+        return database;
+    },
+
+    /**
+     * 按需獲取全服數據庫
+     * @returns {Promise<Array>} 全服數據庫
+     */
+    async getGlobalDatabase() {
+        const cacheKey = 'global_database';
+        let database = cache.get(cacheKey);
+
+        if (!database) {
+            try {
+                database = await new Promise((resolve) => {
+                    records.get('trpgDatabaseAllgroup', (msgs) => {
+                        resolve(msgs);
+                    });
+                });
+                cache.set(cacheKey, database, CACHE_TTL.DATABASE);
+            } catch (error) {
+                console.error('Get global database error:', error);
+                return null;
+            }
+        }
+
+        return database;
+    },
+
+    /**
+     * 更新群組數據庫
+     * @returns {Promise<void>}
+     */
+    async updateGroupDatabase() {
+        try {
+            const database = await new Promise((resolve) => {
+                records.get('trpgDatabase', (msgs) => {
+                    resolve(msgs);
+                });
             });
-        });
+            cache.set('group_database', database, CACHE_TTL.DATABASE);
+        } catch (error) {
+            console.error('Update group database error:', error);
+        }
+    },
+
+    /**
+     * 更新全服數據庫
+     * @returns {Promise<void>}
+     */
+    async updateGlobalDatabase() {
+        try {
+            const database = await new Promise((resolve) => {
+                records.get('trpgDatabaseAllgroup', (msgs) => {
+                    resolve(msgs);
+                });
+            });
+            cache.set('global_database', database, CACHE_TTL.DATABASE);
+        } catch (error) {
+            console.error('Update global database error:', error);
+        }
+    },
+
+    /**
+     * 刪除群組所有數據
+     * @param {string} groupid 群組ID
+     * @returns {Promise<void>}
+     */
+    async deleteAllGroupData(groupid) {
+        try {
+            const database = await this.getGroupDatabase();
+            const groupData = database?.find(data => data.groupid === groupid);
+
+            if (groupData) {
+                groupData.trpgDatabasefunction = [];
+                await new Promise((resolve) => {
+                    records.setTrpgDatabaseFunction('trpgDatabase', groupData, () => {
+                        this.updateGroupDatabase();
+                        resolve();
+                    });
+                });
+            }
+        } catch (error) {
+            console.error('Delete all group data error:', error);
+        }
+    },
+
+    /**
+     * 刪除指定索引的數據
+     * @param {string} groupid 群組ID
+     * @param {number} index 索引
+     * @returns {Promise<void>}
+     */
+    async deleteGroupDataByIndex(groupid, index) {
+        try {
+            const database = await this.getGroupDatabase();
+            const groupData = database?.find(data => data.groupid === groupid);
+
+            if (groupData && index >= 0 && index < groupData.trpgDatabasefunction.length) {
+                groupData.trpgDatabasefunction.splice(index, 1);
+                await new Promise((resolve) => {
+                    records.setTrpgDatabaseFunction('trpgDatabase', groupData, () => {
+                        this.updateGroupDatabase();
+                        resolve();
+                    });
+                });
+            }
+        } catch (error) {
+            console.error('Delete group data by index error:', error);
+        }
     }
-    return trpgDatabasefunction.trpgDatabaseAllgroup;
-}
-
-/**
- * 更新群組數據庫
- * @returns {Promise<void>}
- */
-async function updateGroupDatabase() {
-    await new Promise((resolve) => {
-        records.get('trpgDatabase', (msgs) => {
-            trpgDatabasefunction.trpgDatabasefunction = msgs;
-            resolve();
-        });
-    });
-}
-
-/**
- * 更新全服數據庫
- * @returns {Promise<void>}
- */
-async function updateGlobalDatabase() {
-    await new Promise((resolve) => {
-        records.get('trpgDatabaseAllgroup', (msgs) => {
-            trpgDatabasefunction.trpgDatabaseAllgroup = msgs;
-            resolve();
-        });
-    });
-}
+};
 
 /**
  * 遊戲功能名稱
@@ -103,8 +340,8 @@ const gameType = () => 'funny:trpgDatabase:hktrpg';
  * @returns {Array} 前綴配置
  */
 const prefixs = () => [{
-    first: /(^[.]db(p|)$)/ig,
-    second: null
+        first: /(^[.]db(p|)$)/ig,
+        second: null
 }];
 
 /**
@@ -175,151 +412,6 @@ const initialize = () => trpgDatabasefunction;
 
 // 導入等級系統
 exports.z_Level_system = require('./z_Level_system');
-
-/**
- * 數據庫操作相關函數
- */
-const dbOperations = {
-    /**
-     * 批量更新緩存
-     * @param {string} groupid 群組ID
-     * @param {string} userid 用戶ID
-     * @returns {Promise<Object>} 更新後的數據
-     */
-    async updateCache(groupid, userid) {
-        const [groupConfig, groupMembers, userInfo] = await Promise.all([
-            schema.trpgLevelSystem.findOne({ groupid }),
-            schema.trpgLevelSystemMember.find({ groupid }),
-            schema.trpgLevelSystemMember.findOne({ groupid, userid })
-        ]).catch(error => {
-            console.error('Cache update error:', error);
-            return [null, null, null];
-        });
-
-        if (groupConfig) {
-            cache.set(`group_config_${groupid}`, groupConfig, CACHE_TTL.GROUP_CONFIG);
-        }
-        if (groupMembers) {
-            cache.set(`group_members_${groupid}`, groupMembers, CACHE_TTL.MEMBER_DATA);
-        }
-        if (userInfo) {
-            cache.set(`user_${groupid}_${userid}`, userInfo, CACHE_TTL.MEMBER_DATA);
-        }
-
-        return { groupConfig, groupMembers, userInfo };
-    },
-
-    /**
-     * 查找群組配置
-     * @param {string} groupid 群組ID
-     * @returns {Promise<Object>} 群組配置
-     */
-    async findGp(groupid) {
-        if (!process.env.mongoURL || !groupid) return;
-
-        const cacheKey = `group_config_${groupid}`;
-        let config = cache.get(cacheKey);
-
-        if (!config) {
-            config = await schema.trpgLevelSystem.findOne({
-                groupid: groupid,
-                SwitchV2: 1
-            }).catch(error => {
-                console.error('db #430 mongoDB error:', error.name, error.reason);
-                return null;
-            });
-
-            if (config) {
-                cache.set(cacheKey, config, CACHE_TTL.GROUP_CONFIG);
-            }
-        }
-
-        return config;
-    },
-
-    /**
-     * 查找群組成員
-     * @param {string} groupid 群組ID
-     * @returns {Promise<Array>} 成員列表
-     */
-    async findGpMember(groupid) {
-        if (!process.env.mongoURL || !groupid) return;
-
-        const cacheKey = `group_members_${groupid}`;
-        let members = cache.get(cacheKey);
-
-        if (!members) {
-            members = await schema.trpgLevelSystemMember.find({
-                groupid: groupid
-            }).sort({ EXP: -1 }).catch(error => {
-                console.error('db #443 mongoDB error:', error.name, error.reason);
-                return null;
-            });
-
-            if (members) {
-                cache.set(cacheKey, members, CACHE_TTL.MEMBER_DATA);
-            }
-        }
-
-        return members;
-    },
-
-    /**
-     * 查找用戶信息
-     * @param {string} groupid 群組ID
-     * @param {string} userid 用戶ID
-     * @returns {Promise<Object>} 用戶信息
-     */
-    async findUser(groupid, userid) {
-        if (!groupid || !userid) return;
-
-        const cacheKey = `user_${groupid}_${userid}`;
-        let user = cache.get(cacheKey);
-
-        if (!user) {
-            user = await schema.trpgLevelSystemMember.findOne({
-                groupid: groupid,
-                userid: userid
-            }).catch(error => {
-                console.error('db #454 mongoDB error:', error.name, error.reason);
-                return null;
-            });
-
-            if (user) {
-                cache.set(cacheKey, user, CACHE_TTL.MEMBER_DATA);
-            }
-        }
-
-        return user;
-    },
-
-    /**
-     * 計算用戶排名
-     * @param {string} who 用戶ID
-     * @param {Array} data 成員數據
-     * @returns {Promise<string>} 排名
-     */
-    async ranking(who, data) {
-        if (!data || !Array.isArray(data)) return "0";
-        const memberMap = new Map(data.map((member, index) => [member.userid, index + 1]));
-        return memberMap.get(who) || "0";
-    },
-
-    /**
-     * 清除緩存
-     * @param {string} groupid 群組ID
-     * @param {string} userid 用戶ID
-     */
-    clearCache(groupid, userid) {
-        if (groupid) {
-            cache.del(`group_config_${groupid}`);
-            cache.del(`group_members_${groupid}`);
-        }
-        if (userid) {
-            cache.del(`user_${groupid}_${userid}`);
-        }
-    }
-};
 
 /**
  * 異步字符串替換
@@ -394,65 +486,74 @@ function checkPermission(params) {
 }
 
 /**
- * 刪除群組所有數據
- * @param {string} groupid 群組ID
- * @returns {Promise<void>}
- */
-async function deleteAllGroupData(groupid) {
-    const groupData = trpgDatabasefunction.trpgDatabasefunction?.find(
-        data => data.groupid === groupid
-    );
-
-    if (groupData) {
-        groupData.trpgDatabasefunction = [];
-        await new Promise((resolve) => {
-            records.setTrpgDatabaseFunction('trpgDatabase', groupData, () => {
-                records.get('trpgDatabase', (msgs) => {
-                    trpgDatabasefunction.trpgDatabasefunction = msgs;
-                    resolve();
-                });
-            });
-        });
-    }
-}
-
-/**
- * 刪除指定索引的數據
- * @param {string} groupid 群組ID
- * @param {number} index 索引
- * @returns {Promise<void>}
- */
-async function deleteGroupDataByIndex(groupid, index) {
-    const groupData = trpgDatabasefunction.trpgDatabasefunction?.find(
-        data => data.groupid === groupid
-    );
-
-    if (groupData && index >= 0 && index < groupData.trpgDatabasefunction.length) {
-        groupData.trpgDatabasefunction.splice(index, 1);
-        await new Promise((resolve) => {
-            records.setTrpgDatabaseFunction('trpgDatabase', groupData, () => {
-                records.get('trpgDatabase', (msgs) => {
-                    trpgDatabasefunction.trpgDatabasefunction = msgs;
-                    resolve();
-                });
-            });
-        });
-    }
-}
-
-/**
  * 格式化數據庫列表
  * @param {Array} items 數據項列表
+ * @param {number} page 當前頁碼
+ * @param {number} pageSize 每頁數量
  * @returns {string} 格式化後的列表
  */
-function formatDatabaseList(items) {
+function formatDatabaseList(items, page = 1, pageSize = 20) {
     if (!items || items.length === 0) {
-        return '沒有已設定的關鍵字.';
+        return '📝 沒有已設定的關鍵字\n\n' +
+               '💡 使用方式:\n' +
+               '• 新增項目: .db add 標題 內容\n' +
+               '• 查看列表: .db show [頁碼]\n' +
+               '• 使用標題: .db 標題\n' +
+               '• 使用編號: .db 編號\n' +
+               '• 刪除項目: .db del 編號/all';
     }
 
-    return items.map((item, index) =>
-        `${index % 2 === 0 ? '\n' : '       '}${index}: ${item.topic}`
-    ).join('');
+    const totalPages = Math.ceil(items.length / pageSize);
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, items.length);
+    const currentItems = items.slice(startIndex, endIndex);
+
+    let output = `📚 資料庫列表 (第 ${page}/${totalPages} 頁)\n`;
+    output += '╭──────────────────────────────────────\n';
+
+    // 每行顯示2個項目
+    for (let i = 0; i < currentItems.length; i += 2) {
+        const item1 = currentItems[i];
+        const item2 = currentItems[i + 1];
+        const globalIndex1 = startIndex + i;
+        const globalIndex2 = startIndex + i + 1;
+
+        const padding1 = (globalIndex1 + 1).toString().padStart(2, '0');
+        const topic1 = item1.topic.length > 12 ? item1.topic.substring(0, 12) + '...' : item1.topic;
+
+        if (item2) {
+            const padding2 = (globalIndex2 + 1).toString().padStart(2, '0');
+            const topic2 = item2.topic.length > 12 ? item2.topic.substring(0, 12) + '...' : item2.topic;
+            output += `│ #${padding1}: ${topic1.padEnd(15)} #${padding2}: ${topic2}\n`;
+        } else {
+            output += `│ #${padding1}: ${topic1}\n`;
+        }
+    }
+
+    output += '╰──────────────────────────────────────\n';
+    output += `📊 共 ${items.length} 個關鍵字\n\n`;
+    output += `💡 使用方式:\n`;
+    output += `• 使用編號: .db 編號\n`;
+    output += `• 使用標題: .db 標題\n`;
+    output += `• 查看列表: .db show [頁碼]\n`;
+    output += `• 新增項目: .db add 標題 內容\n`;
+    output += `• 刪除項目: .db del 編號/all\n\n`;
+    output += `💡 特殊標記:\n`;
+    output += `• {br} - 換行\n`;
+    output += `• {ran:100} - 隨機1-100\n`;
+    output += `• {random:5-20} - 隨機5-20\n`;
+    output += `• {my.name} - 使用者名字\n`;
+    output += `• {my.level} - 使用者等級\n`;
+    output += `• {my.exp} - 使用者經驗值\n`;
+    output += `• {my.title} - 使用者稱號\n`;
+    output += `• {my.Ranking} - 使用者排名\n`;
+    output += `• {server.member_count} - 伺服器人數`;
+
+    if (totalPages > 1) {
+        output += `\n\n💡 使用 .db show ${page + 1} 查看下一頁`;
+    }
+
+    return output;
 }
 
 /**
@@ -516,18 +617,67 @@ function createGlobalDatabaseEntry(topic, content) {
 /**
  * 格式化全服數據庫列表
  * @param {Array} database 數據庫
+ * @param {number} page 當前頁碼
+ * @param {number} pageSize 每頁數量
  * @returns {string} 格式化後的列表
  */
-function formatGlobalDatabaseList(database) {
+function formatGlobalDatabaseList(database, page = 1, pageSize = 20) {
     if (!database || database.length === 0) {
-        return '沒有已設定的關鍵字.';
+        return '📝 沒有已設定的關鍵字';
     }
 
-    return database.map(group =>
-        group.trpgDatabaseAllgroup.map((item, index) =>
-            `${index % 2 === 0 ? '\n' : '      '}${index}: ${item.topic}`
-        ).join('')
-    ).join('');
+    const allItems = database.reduce((acc, group) => {
+        if (group.trpgDatabaseAllgroup) {
+            acc.push(...group.trpgDatabaseAllgroup);
+        }
+        return acc;
+    }, []);
+
+    if (allItems.length === 0) {
+        return '📝 沒有已設定的關鍵字';
+    }
+
+    const totalPages = Math.ceil(allItems.length / pageSize);
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, allItems.length);
+    const currentItems = allItems.slice(startIndex, endIndex);
+
+    let output = `🌐 全服資料庫列表 (第 ${page}/${totalPages} 頁)\n`;
+    output += '╭──────────────────────────────────────\n';
+
+    // 每行顯示2個項目
+    for (let i = 0; i < currentItems.length; i += 2) {
+        const item1 = currentItems[i];
+        const item2 = currentItems[i + 1];
+        const globalIndex1 = startIndex + i;
+        const globalIndex2 = startIndex + i + 1;
+
+        const padding1 = (globalIndex1 + 1).toString().padStart(2, '0');
+        const topic1 = item1.topic.length > 12 ? item1.topic.substring(0, 12) + '...' : item1.topic;
+
+        if (item2) {
+            const padding2 = (globalIndex2 + 1).toString().padStart(2, '0');
+            const topic2 = item2.topic.length > 12 ? item2.topic.substring(0, 12) + '...' : item2.topic;
+            output += `│ #${padding1}: ${topic1.padEnd(15)} #${padding2}: ${topic2}\n`;
+        } else {
+            output += `│ #${padding1}: ${topic1}\n`;
+        }
+    }
+
+    output += '╰──────────────────────────────────────\n';
+    output += `📊 共 ${allItems.length} 個關鍵字\n\n`;
+    output += `💡 使用方式:\n`;
+    output += `• 使用編號: .dbp 編號\n`;
+    output += `• 使用標題: .dbp 標題\n`;
+    output += `• 查看列表: .dbp show [頁碼]\n`;
+    output += `• 新增項目: .dbp add 標題 內容\n`;
+    output += `• 刪除項目: .dbp del 編號/all`;
+
+    if (totalPages > 1) {
+        output += `\n\n💡 使用 .dbp show ${page + 1} 查看下一頁`;
+    }
+
+    return output;
 }
 
 /**
@@ -579,8 +729,8 @@ const rollDiceCommand = async function ({
         // .DB(0) ADD(1) TOPIC(2) CONTACT(3)
         case /(^[.]db$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]): {
             // 驗證輸入
-            if (!mainMsg[2]) rply.text += ' 沒有輸入標題。\n\n';
-            if (!mainMsg[3]) rply.text += ' 沒有輸入內容。\n\n';
+            if (!mainMsg[2]) rply.text += '❌ 沒有輸入標題。\n\n';
+            if (!mainMsg[3]) rply.text += '❌ 沒有輸入內容。\n\n';
 
             // 檢查權限
             if (rply.text += checkPermission({ groupid, userrole })) {
@@ -592,18 +742,31 @@ const rollDiceCommand = async function ({
             limit = FUNCTION_LIMIT[lv];
 
             // 獲取群組數據庫
-            const database = await getGroupDatabase();
+            const database = await databaseOperations.getGroupDatabase();
             const groupData = database?.find(data => data.groupid === groupid);
 
             // 檢查是否達到上限
             if (isGroupDatabaseFull(groupData, limit)) {
-                rply.text = `關鍵字上限${limit}個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n`;
+                rply.text = `⚠️ 關鍵字已達上限 ${limit} 個\n`;
+                rply.text += `💎 支援及解鎖上限: https://www.patreon.com/HKTRPG\n\n`;
+                rply.text += `💡 使用方式:\n`;
+                rply.text += `• 使用編號: .db 編號\n`;
+                rply.text += `• 使用標題: .db 標題\n`;
+                rply.text += `• 查看列表: .db show [頁碼]\n`;
+                rply.text += `• 新增項目: .db add 標題 內容\n`;
+                rply.text += `• 刪除項目: .db del 編號/all`;
                 return rply;
             }
 
             // 檢查關鍵字是否重複
             if (isTopicExists(groupData, mainMsg[2])) {
-                rply.text = '新增失敗. 重複標題';
+                rply.text = '❌ 新增失敗: 標題重複\n\n';
+                rply.text += `💡 使用方式:\n`;
+                rply.text += `• 使用編號: .db 編號\n`;
+                rply.text += `• 使用標題: .db 標題\n`;
+                rply.text += `• 查看列表: .db show [頁碼]\n`;
+                rply.text += `• 新增項目: .db add 標題 內容\n`;
+                rply.text += `• 刪除項目: .db del 編號/all`;
                 return rply;
             }
 
@@ -617,51 +780,120 @@ const rollDiceCommand = async function ({
 
             // 保存到數據庫
             records.pushTrpgDatabaseFunction('trpgDatabase', newEntry, () => {
-                updateGroupDatabase();
+                databaseOperations.updateGroupDatabase();
             });
 
-            rply.text = '新增成功: ' + mainMsg[2];
+            // 獲取當前索引
+            const currentIndex = (groupData?.trpgDatabasefunction?.length || 0) + 1;
+
+            rply.text = `✅ 新增成功: ${mainMsg[2]}\n\n`;
+            rply.text += `💡 查看方式:\n`;
+            rply.text += `• 使用編號: .db ${currentIndex}\n`;
+            rply.text += `• 使用標題: .db ${mainMsg[2]}\n\n`;
+            rply.text += `💡 其他功能:\n`;
+            rply.text += `• 查看列表: .db show [頁碼]\n`;
+            rply.text += `• 刪除項目: .db del ${currentIndex}\n`;
+            rply.text += `• 刪除全部: .db del all`;
             return rply;
         }
-        case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]): {
-            // 檢查權限
-            if (rply.text = checkPermission({ groupid, userrole })) {
+        case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]): {
+            // 驗證輸入
+            if (!mainMsg[2]) {
+                rply.text = '❌ 請指定要刪除的標題\n\n';
+                rply.text += `💡 使用方式:\n`;
+                rply.text += `• 刪除項目: .db del 標題\n`;
+                rply.text += `• 查看列表: .db show\n`;
+                rply.text += `• 新增項目: .db add 標題 內容`;
                 return rply;
             }
-
-            // 刪除所有數據
-            await deleteAllGroupData(groupid);
-            rply.text = '刪除所有關鍵字';
-            return rply;
-        }
-        case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]): {
-            // 驗證輸入
-            if (!mainMsg[2]) rply.text += '沒有關鍵字. \n\n';
 
             // 檢查權限
             if (rply.text += checkPermission({ groupid, userrole })) {
                 return rply;
             }
 
-            // 刪除指定索引的數據
-            await deleteGroupDataByIndex(groupid, parseInt(mainMsg[2]));
-            rply.text = '刪除成功: ' + mainMsg[2];
+            // 獲取群組數據庫
+            const database = await databaseOperations.getGroupDatabase();
+            const groupData = database?.find(data => data.groupid === groupid);
+
+            // 查找要刪除的項目
+            const index = groupData?.trpgDatabasefunction?.findIndex(
+                item => item.topic.toLowerCase() === mainMsg[2].toLowerCase()
+            );
+
+            if (index === -1) {
+                rply.text = `❌ 找不到標題為 "${mainMsg[2]}" 的項目\n\n`;
+                rply.text += `💡 使用方式:\n`;
+                rply.text += `• 刪除項目: .db del 標題\n`;
+                rply.text += `• 查看列表: .db show\n`;
+                rply.text += `• 新增項目: .db add 標題 內容`;
+                return rply;
+            }
+
+            // 刪除指定標題的數據
+            await databaseOperations.deleteGroupDataByIndex(groupid, index);
+
+            rply.text = `🗑️ 已刪除標題為 "${mainMsg[2]}" 的項目\n\n`;
+            rply.text += `💡 使用方式:\n`;
+            rply.text += `• 查看列表: .db show\n`;
+            rply.text += `• 新增項目: .db add 標題 內容\n`;
+            rply.text += `• 刪除項目: .db del 標題`;
             return rply;
         }
         case /(^[.]db$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
             // 獲取群組數據庫
-            const database = await getGroupDatabase();
+            const database = await databaseOperations.getGroupDatabase();
             const groupData = database?.find(data => data.groupid === groupid);
 
             // 檢查群組
             if (!groupid) {
-                rply.text = '不在群組.';
+                rply.text = '❌ 不在群組中';
                 return rply;
             }
 
+            // 如果有標題參數,搜索並顯示該標題的內容
+            if (mainMsg[2] && !/^\d+$/.test(mainMsg[2])) {
+                const content = findTopicContent(database, mainMsg[2]);
+                if (content) {
+                    rply.text = `【${content.topic}】\n${content.contact}`;
+                    // 處理特殊標記
+                    rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
+                    return rply;
+                } else {
+                    rply.text = '沒有找到相關關鍵字';
+                    return rply;
+                }
+            }
+
+            // 獲取頁碼
+            const page = parseInt(mainMsg[2]) || 1;
+
             // 格式化並顯示列表
-            rply.text = '資料庫列表:' + formatDatabaseList(groupData?.trpgDatabasefunction);
+            rply.text = formatDatabaseList(groupData?.trpgDatabasefunction, page);
             rply.quotes = true;
+            return rply;
+        }
+        case /(^[.]db$)/i.test(mainMsg[0]) && /^\d+$/i.test(mainMsg[1]): {
+            // 檢查群組
+            if (!groupid) {
+                rply.text = '不在群組中';
+                return rply;
+            }
+
+            // 獲取群組數據庫
+            const database = await databaseOperations.getGroupDatabase();
+            const groupData = database?.find(data => data.groupid === groupid);
+
+            // 獲取指定索引的內容
+            const index = parseInt(mainMsg[1]) - 1;
+            if (groupData?.trpgDatabasefunction && index >= 0 && index < groupData.trpgDatabasefunction.length) {
+                const content = groupData.trpgDatabasefunction[index];
+                rply.text = `【${content.topic}】\n${content.contact}`;
+                // 處理特殊標記
+                rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
+            } else {
+                rply.text = '沒有找到該編號的關鍵字';
+            }
             return rply;
         }
         case /(^[.]db$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
@@ -672,7 +904,7 @@ const rollDiceCommand = async function ({
             }
 
             // 獲取群組數據庫
-            const database = await getGroupDatabase();
+            const database = await databaseOperations.getGroupDatabase();
 
             // 查找關鍵字內容
             const content = findTopicContent(database, mainMsg[1]);
@@ -690,26 +922,26 @@ const rollDiceCommand = async function ({
         case /(^[.]dbp$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]): {
             // 驗證輸入
             if (!mainMsg[2]) {
-                rply.text = '新增失敗. 沒有關鍵字.';
-                return rply;
-            }
+                rply.text = '❌ 新增失敗: 沒有關鍵字';
+                        return rply;
+                    }
             if (!mainMsg[3]) {
-                rply.text = '新增失敗. 沒有內容.';
+                rply.text = '❌ 新增失敗: 沒有內容';
                 return rply;
             }
 
             // 獲取全服數據庫
-            const database = await getGlobalDatabase();
+            const database = await databaseOperations.getGlobalDatabase();
 
             // 檢查是否達到上限
             if (isGlobalDatabaseFull(database)) {
-                rply.text = '只可以有100個關鍵字啊';
+                rply.text = '⚠️ 全服關鍵字已達上限 100 個';
                 return rply;
             }
 
             // 檢查關鍵字是否重複
             if (isGlobalTopicExists(database, mainMsg[2])) {
-                rply.text = '新增失敗. 重複關鍵字';
+                rply.text = '❌ 新增失敗: 關鍵字重複';
                 return rply;
             }
 
@@ -723,41 +955,105 @@ const rollDiceCommand = async function ({
 
             // 保存到數據庫
             records.pushTrpgDatabaseAllGroup('trpgDatabaseAllgroup', newEntry, () => {
-                updateGlobalDatabase();
+                databaseOperations.updateGlobalDatabase();
             });
 
-            rply.text = '新增成功: ' + mainMsg[2];
+            // 獲取當前索引
+            const allItems = database.reduce((acc, group) => {
+                if (group.trpgDatabaseAllgroup) {
+                    acc.push(...group.trpgDatabaseAllgroup);
+                }
+                return acc;
+            }, []);
+            const currentIndex = allItems.length + 1;
+
+            rply.text = `✅ 新增成功: ${mainMsg[2]}\n`;
+            rply.text += `💡 查看方式:\n`;
+            rply.text += `• 使用編號: .dbp ${currentIndex}\n`;
+            rply.text += `• 使用標題: .dbp ${mainMsg[2]}`;
             return rply;
         }
         case /(^[.]dbp$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
             // 獲取全服數據庫
-            const database = await getGlobalDatabase();
+            const database = await databaseOperations.getGlobalDatabase();
+
+            // 如果有標題參數,搜索並顯示該標題的內容
+            if (mainMsg[2] && !/^\d+$/.test(mainMsg[2])) {
+                const content = findGlobalTopicContent(database, mainMsg[2]);
+                if (content) {
+                    rply.text = `【${content.topic}】\n${content.contact}`;
+                    // 處理特殊標記
+                    rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
+                    return rply;
+                } else {
+                    rply.text = '沒有找到相關關鍵字';
+                    return rply;
+                }
+            }
+
+            // 獲取頁碼
+            const page = parseInt(mainMsg[2]) || 1;
 
             // 格式化並顯示列表
-            rply.text = '資料庫列表:' + formatGlobalDatabaseList(database);
+            rply.text = formatGlobalDatabaseList(database, page);
             rply.quotes = true;
             return rply;
         }
-        case /(^[.]dbp$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
-            // 獲取全服數據庫
-            const database = await getGlobalDatabase();
-
-            // 查找關鍵字內容
-            const content = findGlobalTopicContent(database, mainMsg[1]);
-
-            if (content) {
-                rply.text = `【${content.topic}】\n${content.contact}`;
-            } else {
-                rply.text = '沒有相關關鍵字.';
+        case /(^[.]dbp$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]): {
+            // 驗證輸入
+            if (!mainMsg[2]) {
+                rply.text = '❌ 請指定要刪除的標題\n\n';
+                rply.text += `💡 使用方式:\n`;
+                rply.text += `• 刪除項目: .dbp del 標題\n`;
+                rply.text += `• 查看列表: .dbp show\n`;
+                rply.text += `• 新增項目: .dbp add 標題 內容`;
+                return rply;
             }
 
-            // 處理特殊標記
-            rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
+            // 獲取全服數據庫
+            const database = await databaseOperations.getGlobalDatabase();
+
+            // 查找要刪除的項目
+            let foundGroup = null;
+            let foundIndex = -1;
+            for (const group of database) {
+                const index = group.trpgDatabaseAllgroup?.findIndex(
+                    item => item.topic.toLowerCase() === mainMsg[2].toLowerCase()
+                );
+                if (index !== -1) {
+                    foundGroup = group;
+                    foundIndex = index;
+                    break;
+                }
+            }
+
+            if (foundIndex === -1) {
+                rply.text = `❌ 找不到標題為 "${mainMsg[2]}" 的項目\n\n`;
+                rply.text += `💡 使用方式:\n`;
+                rply.text += `• 刪除項目: .dbp del 標題\n`;
+                rply.text += `• 查看列表: .dbp show\n`;
+                rply.text += `• 新增項目: .dbp add 標題 內容`;
+                return rply;
+            }
+
+            // 刪除指定標題的數據
+            foundGroup.trpgDatabaseAllgroup.splice(foundIndex, 1);
+            await new Promise((resolve) => {
+                records.setTrpgDatabaseAllGroup('trpgDatabaseAllgroup', foundGroup, () => {
+                    databaseOperations.updateGlobalDatabase();
+                    resolve();
+                });
+            });
+
+            rply.text = `🗑️ 已刪除標題為 "${mainMsg[2]}" 的項目\n\n`;
+            rply.text += `💡 使用方式:\n`;
+            rply.text += `• 查看列表: .dbp show\n`;
+            rply.text += `• 新增項目: .dbp add 標題 內容\n`;
+            rply.text += `• 刪除項目: .dbp del 標題`;
             return rply;
         }
         default:
             break;
-
     }
     async function replacer(first, second) {
         let temp = '',
@@ -851,5 +1147,6 @@ module.exports = {
     prefixs: prefixs,
     gameType: gameType,
     gameName: gameName,
-    dbOperations
+    dbOperations,
+    databaseOperations
 };

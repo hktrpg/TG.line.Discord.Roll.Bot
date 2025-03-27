@@ -155,7 +155,7 @@ const rollDiceCommand = async function ({
                 }]
             }
             if (checkifsamename == 0) {
-                records.pushtrpgDatabasefunction('trpgDatabase', temp, () => {
+                records.pushTrpgDatabaseFunction('trpgDatabase', temp, () => {
                     records.get('trpgDatabase', (msgs) => {
                         trpgDatabasefunction.trpgDatabasefunction = msgs
                     })

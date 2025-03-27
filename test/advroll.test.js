@@ -81,7 +81,7 @@ test('Test rollDiceCommand with 5B10', async () => {
     });
     expect(result.type).toBe('text');
     expect(result.text).toContain('(5B10)');
-    expect(result.text).toMatch(/\d(,\s*\d){4}/); // Should contain 5 numbers separated by commas
+    expect(result.text).toMatch(/→\s*\d+(,\s*\d+){4}/);
 });
 
 test('Test rollDiceCommand with 5U10', async () => {

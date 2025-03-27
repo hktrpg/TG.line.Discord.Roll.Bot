@@ -1,8 +1,11 @@
 "use strict";
-if (!process.env.DISCORD_CHANNEL_SECRET) {
-    return;
-}
 
+const initialize = function() {
+    if (!process.env.DISCORD_CHANNEL_SECRET) {
+        return;
+    }
+    return variables;
+}
 
 const variables = {};
 const jimp = require('jimp');
@@ -10,7 +13,7 @@ const sharp = require('sharp');
 const url = require('url');
 const path = require('path');
 const { SlashCommandBuilder } = require('discord.js');
-const axios = require('axios');
+const axios = require('axios').default;
 const fs = require('fs');
 const GeoPattern = require('geopattern');
 const { imgbox } = require("imgbox")
@@ -67,9 +70,6 @@ const getHelpMessage = function () {
 │ 　[回覆圖片或直接傳送]
 ╰──────────────`
 }
-const initialize = function () {
-    return variables;
-}
 
 const rollDiceCommand = async function ({
     inputStr,
@@ -102,11 +102,12 @@ const rollDiceCommand = async function ({
         }
         case /^\S/.test(mainMsg[1]) || !mainMsg[1]: {
             //get avatar  or reply message image
-            return await polaroidTokernMaker(discordMessage, inputStr, mainMsg, discordClient);
+            const result = await polaroidTokernMaker(discordMessage, inputStr, mainMsg, discordClient);
+            if (!result.text && !result.sendImage) {
+                result.text = `製作失敗，可能出現某些錯誤。 \n\n${getHelpMessage()}`;
+            }
+            return result;
         }
-
-
-
         default: {
             break;
         }
@@ -144,8 +145,8 @@ const uploadImage = async (discordMessage, discordClient) => {
 }
 
 const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClient) => {
+    let rply = { text: '', sendImage: '' };
     try {
-        let rply = { text: '', sendImage: '' };
         const text = await getName(discordMessage, inputStr, mainMsg)
         const avatar = await getAvatar(discordMessage, discordClient)
         if (!avatar) {
@@ -169,12 +170,13 @@ const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClien
         return rply;
     } catch (error) {
         console.error('error', error)
+        rply.text = `製作失敗，可能出現某些錯誤。 \n\n${getHelpMessage()}`
+        return rply;
     }
-    return rply;
 }
 const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClient, displaynameDiscord) => {
+    let rply = { text: '', sendImage: '' };
     try {
-        let rply = { text: '', sendImage: '' };
         const text = await getName(discordMessage, inputStr, mainMsg)
         const avatar = await getAvatar(discordMessage, discordClient)
         if (!avatar) {
@@ -182,7 +184,6 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
             return rply;
         }
         const response = await getImage(avatar);
-        // `colors` is an array of color objects
         const d = new Date();
         let time = d.getTime();
         let name = `temp_${time}_${text.text}.png`
@@ -197,7 +198,6 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
         let coloredBase = await sharp(url)
             .resize(520, 520)
             .toBuffer();
-        //https://github.com/oliver-moran/jimp/issues/231
 
         coloredBase = await maskImage(coloredBase, './assets/token/ONLINE_TOKEN_BACKGROUND_COLOR3.png');
         const circleToken2 = await sharp(coloredBase)
@@ -215,8 +215,9 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
         return rply;
     } catch (error) {
         console.error('error', error)
+        rply.text = `製作失敗，可能出現某些錯誤。 \n\n${getHelpMessage()}`
+        return rply;
     }
-    return rply;
 }
 
 async function maskImage(path, maskPath) {
@@ -228,16 +229,20 @@ async function maskImage(path, maskPath) {
 }
 
 const polaroidTokernMaker = async (discordMessage, inputStr, mainMsg, discordClient) => {
+    let rply = { text: '', sendImage: '' };
     try {
-        let rply = { text: '', sendImage: '' };
         const text = await getName(discordMessage, inputStr, mainMsg)
         const avatar = await getAvatar(discordMessage, discordClient)
         if (!avatar) {
-            rply.text = `沒有找到reply 的圖示, 請再次檢查 \n\n${getHelpMessage()}`;
+            rply.text = `製作失敗，可能出現某些錯誤。 \n\n${getHelpMessage()}`;
             return rply;
         }
 
         const response = await getImage(avatar);
+        if (!response) {
+            rply.text = `製作失敗，可能出現某些錯誤。 \n\n${getHelpMessage()}`;
+            return rply;
+        }
 
         const d = new Date();
         let time = d.getTime();
@@ -254,26 +259,33 @@ const polaroidTokernMaker = async (discordMessage, inputStr, mainMsg, discordCli
         return rply;
     } catch (error) {
         console.error('error', error)
+        rply.text = `製作失敗，可能出現某些錯誤。 \n\n${getHelpMessage()}`
+        return rply;
     }
-    return rply;
 }
 
 const getAvatar = async (discordMessage, discordClient) => {
     if (discordMessage.type === 0 && discordMessage.attachments.size === 0) {
+        if (!discordMessage.author || !discordMessage.author.displayAvatarURL) {
+            return null;
+        }
         const member = (discordMessage.guild && await discordMessage.guild.members.fetch(discordMessage.author) || discordMessage.author)
         return member.displayAvatarURL();
     }
     if (discordMessage.type === 0 && discordMessage.attachments.size > 0) {
-        const url = discordMessage.attachments.find(data => data.contentType.match(/image/i))
+        const attachmentsArray = Array.from(discordMessage.attachments.values());
+        const url = attachmentsArray.find(data => data.contentType.match(/image/i));
         return (url && url.url) || null;
     }
     //19 = reply
     if (discordMessage.type === 19) {
         const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
         const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId)
-        const url = referenceMessage.attachments.find(data => data.contentType.match(/image/i))
+        const attachmentsArray = Array.from(referenceMessage.attachments.values());
+        const url = attachmentsArray.find(data => data.contentType.match(/image/i));
         return (url && url.url) || null;
     }
+    return null;
 }
 
 const getName = async (discordMessage, inputStr) => {
@@ -293,10 +305,13 @@ const getName = async (discordMessage, inputStr) => {
 
 
 const getImage = async url => {
-    //	const response = await axios(url, { responseType: 'arraybuffer' })
-    //	const buffer64 = Buffer.from(response.data, 'binary').toString('base64')
-    //	return buffer64
-    return (await axios({ url, responseType: "arraybuffer" })).data;
+    try {
+        const response = await axios({ url, responseType: "arraybuffer" });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching image:', error);
+        return null;
+    }
 }
 const tokernMaker = async (imageLocation, name) => {
     try {
@@ -466,7 +481,12 @@ module.exports = {
     prefixs,
     gameType,
     gameName,
-    discordCommand
+    discordCommand,
+    // Export helper functions for testing
+    getAvatar,
+    getName,
+    getFileExtension,
+    colorTextBuilder
 };
 
 /**

@@ -8,7 +8,7 @@ const schema = require('./schema.js');
 const CONFIG = {
     MAX_ERR_RETRY: 3,
     RETRY_TIME: 15 * 1000,
-    MONGOD_CHECK_INTERVAL: 10 * 60 * 1000,
+    MONGOD_CHECK_INTERVAL: 10 * 60 * 1000, // 10 minutes
     MAX_ERR_RESPAWN: 10,
     LOG_FILE_SIZE: 5 * 1024 * 1024,
     MAX_LOG_FILES: 5
@@ -115,7 +115,10 @@ class DbWatchdog {
                     + currentdate.getMinutes() + ":"
                     + currentdate.getSeconds();
                 try {
-                    this.logger.info(`${datetime}  mongodbState: ${JSON.stringify(ans)}`);
+                    // Only log if there's an error or connection is not successful
+                    if (!ans.ok || ans.status !== "connected") {
+                        this.logger.error(`${datetime}  mongodbState: ${JSON.stringify(ans)}`);
+                    }
                 } catch (error) {
                     this.logger.error(`Error logging MongoDB state: ${error.message}`);
                 }

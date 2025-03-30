@@ -11,8 +11,8 @@ const regex = regextemp.replace(/^\//, '').replace(/\/g$/, '')
 //https://www.npmjs.com/package/emoji-regex
 const roleReactRegixMessage = /\[\[message\]\](.*)/is;
 const newRoleReactRegixMessageID = /\[\[messageID\]\]\s+(\d+)/is;
-const roleReactRegixDetail = new RegExp(`\\S+\\s+(\\d+)(${regex}|(<a?)?:\\w+:(\\d+>)?)`, 'g')
-const roleReactRegixDetail2 = new RegExp(`^\\S+\\s+(\\d+)(${regex}|(<a?)?:\\w+:(\\d+>)?)`)
+const roleReactRegixDetail = new RegExp(`(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d+>)?)`, 'g')
+const roleReactRegixDetail2 = new RegExp(`^(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d+>)?)`,)
 const gameName = function () {
     return '【身分組管理】.roleReact'
 }
@@ -136,33 +136,34 @@ const rollDiceCommand = async function ({
 
         case /^\.roleReact$/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]): {
             if (!mainMsg[5]) {
-                rply.text = `輸入資料失敗，
-                本功能已改版，需要自行新增信息，並把信息ID填在下面
+rply.text = `輸入資料失敗，
+本功能已改版，需要自行新增信息，並把信息ID填在下面
 
-                範例
-                .roleReact add
-                232312882291231263 🎨 
-                123123478897792323 😁 
-                [[messageID]]
-                946739512439073384
+範例
+.roleReact add
+232312882291231263 🎨 
+123123478897792323 😁 
+[[messageID]]
+946739512439073384
 
-                希望取得詳細使用說明請輸入.roleReact help 或到 https://bothelp.hktrpg.com`
+希望取得詳細使用說明請輸入.roleReact help 或到 https://bothelp.hktrpg.com`
                 rply.quotes = true;
                 return rply;
             }
             let checkName = checknewroleReact(inputStr);
             if (!checkName || !checkName.detail || !checkName.messageID || checkName.detail.length === 0) {
-                rply.text = `輸入資料失敗，
-                本功能已改版，需要自行新增信息，並把信息ID填在下面
-                
-                範例
-                .roleReact add
-                232312882291231263 🎨 
-                123123478897792323 😁 
-                [[messageID]]
-                946739512439073384
+                rply.text = `輸入格式錯誤，請確保：
+1. 每行格式為：身分組ID 表情符號
+2. 最後必須包含 [[messageID]] 和訊息ID
 
-                希望取得詳細使用說明請輸入.roleReact help 或到 https://bothelp.hktrpg.com`
+正確範例：
+.roleReact add
+232312882291231263 🎨 
+123123478897792323 😁 
+[[messageID]]
+946739512439073384
+
+希望取得詳細使用說明請輸入.roleReact help 或到 https://bothelp.hktrpg.com`
                 rply.quotes = true;
                 return rply;
             }
@@ -326,29 +327,25 @@ function checkRoleReact(inputStr) {
     return { message: message && message[1].replace(/^\n/, ''), detail };
 }
 
-/**
- * Parses role reaction configuration from input string
- * @param {string} inputStr - Input string containing role and emoji configurations
- * @returns {Object} Object containing messageID and array of role-emoji pairs
- */
+
 function checknewroleReact(inputStr) {
     let messageID = inputStr.match(newRoleReactRegixMessageID)
     inputStr = inputStr.replace(newRoleReactRegixMessageID)
     let detail = []
     let detailTemp = inputStr.match(roleReactRegixDetail);
     
+    // If no matches found, return null to indicate invalid format
     if (!detailTemp) {
         return null;
     }
 
     for (let index = 0; (index < detailTemp.length) && index < 20; index++) {
         const regDetail = detailTemp[index].match(roleReactRegixDetail2)
-        if (regDetail) {
-            detail.push({
-                roleID: regDetail[1],
-                emoji: regDetail[2]
-            })
-        }
+        if (!regDetail) continue; // Skip invalid matches
+        detail.push({
+            roleID: regDetail[1],
+            emoji: regDetail[2]
+        })
     }
     return { messageID: messageID && messageID[1].replace(/^\n/, ''), detail };
 }

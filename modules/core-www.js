@@ -197,6 +197,10 @@ www.use('/common/', express.static(process.cwd() + '/views/common/'));
 www.get('/card', (req, res) => {
     res.sendFile(process.cwd() + '/views/characterCard.html');
 });
+
+www.get('/theater', (req, res) => {
+    res.sendFile(process.cwd() + '/views/theater.html');
+});
 www.get('/publiccard', (req, res) => {
     res.sendFile(process.cwd() + '/views/characterCardPublic.html');
 });

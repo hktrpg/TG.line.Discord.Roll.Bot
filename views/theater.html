@@ -25,7 +25,12 @@
         integrity="sha512-3g+prZHHfmnvE1HBLwUnVuunaPOob7dpksI7/v6UnF/rnKGwHf/GdEq9K7iEN7qTtW+S0iivTcGpeTBqqB04wA=="
         crossorigin="anonymous" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.3.7/pixi.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pixi-filters@latest/dist/pixi-filters.js"></script>
+    <!-- Remove the problematic pixi-filters script -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/pixi-filters@latest/dist/pixi-filters.js"></script> -->
+    <!-- Add the correct version of pixi-filters -->
+    <script src="https://cdn.jsdelivr.net/npm/@pixi/filter-blur@4.1.5/dist/browser/filter-blur.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@pixi/filter-color-matrix@4.1.5/dist/browser/filter-color-matrix.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@pixi/filter-noise@4.1.5/dist/browser/filter-noise.min.js"></script>
     <!--https://blog.gtwang.org/programming/javascript-aes-symmetric-encryption-tutorial/-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/bootstrap-slider.min.js"
         integrity="sha512-f0VlzJbcEB6KiW8ZVtL+5HWPDyW1+nJEjguZ5IVnSQkvZbwBt2RfCBY0CBO1PsMAqxxrG4Di6TfsCPP3ZRwKpA=="
@@ -520,25 +525,29 @@
             dropShadowAngle: Math.PI / 6,
             dropShadowDistance: 6,
             lineJoin: 'round',
-
         });
 
         let textX = 50;
         let textY = 550;
+        let selectList; // Define selectList variable before use
+
+        // Initialize only the basic filters that are definitely available
+        const blurFilter = new PIXI.filters.BlurFilter();
+        const colorMatrixFilter = new PIXI.filters.ColorMatrixFilter();
+        const noiseFilter = new PIXI.filters.NoiseFilter();
 
         switchCard('#collapseRoll')
         const app = new PIXI.Application({
             backgroundColor: 0x1099bb,
             width: 1280,
             height: 720,
-            view: document.getElementById("main")
+            view: document.getElementById("main"),
+            powerPreference: "high-performance"
         });
         for (let i = 0; i < 2; i++) {
-            createCharacter('http://i.imgur.com/toHsfWY.png');
+            createCharacter('https://i.imgur.com/toHsfWY.png');
         }
-        createBG(
-            'https://images.mihuashi.com/2017/10/26/03/mrantfdaxgbaycgueznm2dvbqmjrc6i3/mrantfdaxgbaycgueznm2dvbqmjrc6i3.jpg'
-        );
+        createBG('https://i.imgur.com/example.jpg'); // Replace with a reliable image URL
         createDialogBox('https://i.imgur.com/maCqZFS.png');
         createText('這是測試，左鍵連點兩下是放大，加上Shift是縮小，Shift+右鍵兩下是刪除')
         app.stage.sortChildren();
@@ -547,10 +556,23 @@
 
 
         Dropzone.autoDiscover = false;
-        //  let canvas = new fabric.Canvas('canvas');
+        // Configure dropzones with proper URLs and disable auto upload
         let imgUploadBG = new Dropzone("#img-upload-BG", {
-            url: "UploadImages"
+            url: "#", // Using a dummy URL since we're handling files manually
+            autoProcessQueue: false,
+            addRemoveLinks: true
         });
+        let imgUploadCharacter = new Dropzone("#img-upload-character", {
+            url: "#", // Using a dummy URL since we're handling files manually
+            autoProcessQueue: false,
+            addRemoveLinks: true
+        });
+        let imgUploadDialogBox = new Dropzone("#img-upload-DialogBox", {
+            url: "#", // Using a dummy URL since we're handling files manually
+            autoProcessQueue: false,
+            addRemoveLinks: true
+        });
+
         let readerBG = new FileReader();
         readerBG.onload = function (event) {
             let data = event.target.result;
@@ -564,9 +586,6 @@
 
 
 
-        let imgUploadCharacter = new Dropzone("#img-upload-character", {
-            url: "UploadImagesCharacter"
-        });
         let readerCharacter = new FileReader();
         readerCharacter.onload = function (event) {
             let data = event.target.result;
@@ -579,9 +598,6 @@
         });
 
 
-        let imgUploadDialogBox = new Dropzone("#img-upload-DialogBox", {
-            url: "UploadImagesDialogBox"
-        });
         let readerDialogBox = new FileReader();
         readerDialogBox.onload = function (event) {
             let data = event.target.result;
@@ -621,14 +637,21 @@
         }
 
         function filterON() {
-            //$('input[name^="complete"]:checked').length;
-            // character.filters = [blurFilter];
             let num = $('#v-model-select-dynamic option:selected');
             let filterSelected = $('.form-check-input:checkbox:checked');
             let filters = []
             for (let index = 0; index < filterSelected.length; index++) {
-                if (filterSelected[index].value)
-                    filters.push(eval(filterSelected[index].value))
+                if (filterSelected[index].value) {
+                    switch(filterSelected[index].value) {
+                        case 'blurFilter':
+                            filters.push(blurFilter);
+                            break;
+                        case 'noiseFilter':
+                            filters.push(noiseFilter);
+                            break;
+                        // Add other filter cases as needed
+                    }
+                }
             }
             for (let index = 0; index < num.length; index++) {
                 app.stage.children[num[index].value].filters = filters
@@ -798,23 +821,32 @@
 
 
         function createBG(image) {
-            const texture = PIXI.Texture.from(
-                image
-            );
-            // create our little character friend..
+            const texture = PIXI.Texture.from(image);
+            texture.baseTexture.on('error', (error) => {
+                console.error('Error loading image:', error);
+                // Fallback to a default background color
+                const background = new PIXI.Graphics();
+                background.beginFill(0x1099bb);
+                background.drawRect(0, 0, app.screen.width, app.screen.height);
+                background.endFill();
+                background.appType = "background";
+                background.zIndex = -100;
+                app.stage.addChild(background);
+                if (selectList) selectList.updateList();
+            });
+
             const background = new PIXI.Sprite(texture);
-            let filter = new PIXI.filters.AsciiFilter();
             background.interactive = true;
             background.anchor.set(0.5);
             background.orig = texture.orig;
-            background.appType = "background"
-            background.height = app.screen.height
-            background.width = app.screen.width
-            background.x = app.screen.width * .5
-            background.y = app.screen.height * .5
+            background.appType = "background";
+            background.height = app.screen.height;
+            background.width = app.screen.width;
+            background.x = app.screen.width * .5;
+            background.y = app.screen.height * .5;
             background.zIndex = -100;
             app.stage.addChild(background);
-            if (selectList) selectList.updateList()
+            if (selectList) selectList.updateList();
         }
 
         function onDragStart(event) {
@@ -968,13 +1000,13 @@
         });
 
 
-        let selectList = Vue.createApp({
+        // Initialize selectList after all other initializations
+        selectList = Vue.createApp({
             data() {
                 return {
                     list: app.stage.children,
                     value: ''
                 }
-
             },
             methods: {
                 updateList: function () {
@@ -989,16 +1021,6 @@
                 }
             }
         }).mount('#v-model-select-dynamic')
-        const blurFilter = new PIXI.filters.BlurFilter();
-        const AsciiFilter = new PIXI.filters.AsciiFilter();
-        const BulgePinchFilter = new PIXI.filters.BulgePinchFilter();
-        const ColorReplaceFilter = new PIXI.filters.ColorReplaceFilter();
-        const DotFilter = new PIXI.filters.DotFilter();
-        const NoiseFilter = new PIXI.filters.NoiseFilter();
-        const CRTFilter = new PIXI.filters.CRTFilter();
-        const ConvolutionFilter = new PIXI.filters.ConvolutionFilter();
-        const ColorOverlayFilter = new PIXI.filters.ColorOverlayFilter();
-        //      
     </script>
     <!-- Latest compiled and minified CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />

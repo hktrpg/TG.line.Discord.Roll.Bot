@@ -11,8 +11,8 @@ const regex = regextemp.replace(/^\//, '').replace(/\/g$/, '')
 //https://www.npmjs.com/package/emoji-regex
 const roleReactRegixMessage = /\[\[message\]\](.*)/is;
 const newRoleReactRegixMessageID = /\[\[messageID\]\]\s+(\d+)/is;
-const roleReactRegixDetail = new RegExp(`(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d+>)?)`, 'g')
-const roleReactRegixDetail2 = new RegExp(`^(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d+>)?)`,)
+const roleReactRegixDetail = new RegExp(`\\S+\\s+(\\d+)(${regex}|(<a?)?:\\w+:(\\d+>)?)`, 'g')
+const roleReactRegixDetail2 = new RegExp(`^\\S+\\s+(\\d+)(${regex}|(<a?)?:\\w+:(\\d+>)?)`)
 const gameName = function () {
     return '【身分組管理】.roleReact'
 }
@@ -326,18 +326,29 @@ function checkRoleReact(inputStr) {
     return { message: message && message[1].replace(/^\n/, ''), detail };
 }
 
-
+/**
+ * Parses role reaction configuration from input string
+ * @param {string} inputStr - Input string containing role and emoji configurations
+ * @returns {Object} Object containing messageID and array of role-emoji pairs
+ */
 function checknewroleReact(inputStr) {
     let messageID = inputStr.match(newRoleReactRegixMessageID)
     inputStr = inputStr.replace(newRoleReactRegixMessageID)
     let detail = []
     let detailTemp = inputStr.match(roleReactRegixDetail);
+    
+    if (!detailTemp) {
+        return null;
+    }
+
     for (let index = 0; (index < detailTemp.length) && index < 20; index++) {
         const regDetail = detailTemp[index].match(roleReactRegixDetail2)
-        detail.push({
-            roleID: regDetail[1],
-            emoji: regDetail[2]
-        })
+        if (regDetail) {
+            detail.push({
+                roleID: regDetail[1],
+                emoji: regDetail[2]
+            })
+        }
     }
     return { messageID: messageID && messageID[1].replace(/^\n/, ''), detail };
 }

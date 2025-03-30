@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HKTRPG Story Teller</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        #story-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #story-content {
+            margin-bottom: 20px;
+            min-height: 200px;
+            border: 1px solid #ddd;
+            padding: 15px;
+        }
+        #choices-container {
+            margin-bottom: 20px;
+        }
+        .choice-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #stats-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f8f8;
+            border-radius: 4px;
+        }
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            padding: 5px 10px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-width: 80px;
+        }
+        .stat-label {
+            font-weight: bold;
+            margin-right: 5px;
+            color: #666;
+        }
+        .stat-value {
+            color: #2196F3;
+            font-weight: bold;
+        }
+        .stat-bar {
+            width: 100%;
+            height: 4px;
+            background: #e0e0e0;
+            margin-top: 2px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .stat-bar-fill {
+            height: 100%;
+            background: #4CAF50;
+            transition: width 0.3s ease;
+        }
+        #debug-container {
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            font-family: monospace;
+        }
+        #story-controls {
+            margin-bottom: 20px;
+        }
+        #story-id-input {
+            padding: 5px;
+            margin-right: 10px;
+        }
+        #story-content p {
+            margin: 0.8em 0;
+            line-height: 1.5;
+        }
+        
+        #story-content p:first-child {
+            margin-top: 0;
+        }
+        
+        #story-content p:last-child {
+            margin-bottom: 0;
+        }
+        #variables-container {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f8f8;
+            border-radius: 4px;
+        }
+        
+        .variable-item {
+            display: inline-block;
+            margin: 5px;
+            padding: 3px 8px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        
+        .error-message {
+            color: #d32f2f;
+            padding: 10px;
+            margin: 10px 0;
+            background: #ffebee;
+            border-left: 4px solid #d32f2f;
+        }
+        
+        .success-message {
+            color: #2e7d32;
+            padding: 10px;
+            margin: 10px 0;
+            background: #e8f5e9;
+            border-left: 4px solid #2e7d32;
+        }
+        .roll-result {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        .dice-roll {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .dice {
+            font-family: monospace;
+            background: #fff;
+            padding: 5px 10px;
+            border-radius: 3px;
+        }
+        
+        .result {
+            font-weight: bold;
+            color: #2196F3;
+        }
+        
+        #story-content {
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .story-block {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .text-content p {
+            margin: 0.8em 0;
+            line-height: 1.5;
+        }
+        
+        .choices {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .choices button {
+            padding: 8px 16px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .choices button:hover {
+            background-color: #45a049;
+        }
+        
+        .item-message {
+            margin: 10px 0;
+            padding: 10px;
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            color: #2e7d32;
+        }
+        
+        .inventory-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+        
+        .inventory-item {
+            display: flex;
+            align-items: center;
+            padding: 5px 10px;
+            background: #f5f5f5;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        
+        .item-name {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .item-quantity {
+            color: #666;
+            margin-right: 10px;
+        }
+        
+        .item-description {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div id="story-container">
+        <div id="story-controls">
+            <div id="story-import">
+                <textarea id="story-script" placeholder="在此貼上故事劇本..." rows="10"></textarea>
+                <button onclick="importStory()">匯入故事</button>
+            </div>
+            <div id="story-start">
+                <input type="text" id="story-id-input" placeholder="輸入故事ID">
+                <button onclick="startStory()">開始故事</button>
+                <button onclick="saveGame()">儲存遊戲</button>
+                <button onclick="loadGame()">載入遊戲</button>
+            </div>
+        </div>
+        <div id="story-display">
+            <div id="image-container"></div>
+            <div id="story-content">
+                歡迎來到 HKTRPG Story Teller
+                <br>請輸入故事ID開始遊戲
+            </div>
+            <div id="choices-container"></div>
+            <div id="stats-container"></div>
+            <div id="inventory-container"></div>
+            <div id="variables-container"></div>
+        </div>
+        <div id="debug-container"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let currentSessionId = null;
+        
+        socket.on('story-update', (data) => {
+            if (!data) return;
+            
+            // 根據更新類型處理不同的響應
+            switch (data.type) {
+                case 'import':
+                    if (data.success) {
+                        // 清空腳本輸入框
+                        document.getElementById('story-script').value = '';
+                        // 自動填充故事 ID
+                        document.getElementById('story-id-input').value = data.id;
+                        // 顯示成功消息
+                        const successMessage = `故事「${data.title}」導入成功！\n故事ID: ${data.id}\n包含 ${data.contentLength} 個節點和 ${data.labelCount} 個標籤。`;
+                        document.getElementById('story-content').innerHTML = `<p>${successMessage}</p>`;
+                        debugLog(successMessage);
+                    }
+                    break;
+                    
+                default:
+                    // 處理其他類型的更新
+                    updateStoryContent(data);
+            }
+        });
+
+        socket.on('story-error', (error) => {
+            console.error('Story error:', error);
+            const errorMessage = `錯誤：${error.message}`;
+            document.getElementById('story-content').innerHTML = `<p class="error-message">${errorMessage}</p>`;
+            debugLog(errorMessage);
+        });
+
+        function importStory() {
+            const scriptText = document.getElementById('story-script').value;
+            if (!scriptText) {
+                alert('請輸入故事劇本');
+                return;
+            }
+            
+            // 顯示正在導入的提示
+            document.getElementById('story-content').innerHTML = '<p>正在導入故事...</p>';
+            
+            socket.emit('story-command', {
+                command: 'import',
+                params: { script: scriptText }
+            });
+        }
+
+        function updateStats(stats) {
+            const statsContainer = document.getElementById('stats-container');
+            if (!statsContainer) return;
+            
+            statsContainer.innerHTML = '';
+            
+            if (!stats || Object.keys(stats).length === 0) {
+                statsContainer.innerHTML = '<p>目前沒有統計數據</p>';
+                return;
+            }
+            
+            // 動態創建統計項目
+            Object.entries(stats).forEach(([stat, value]) => {
+                const statItem = document.createElement('div');
+                statItem.className = 'stat-item';
+                
+                // 計算百分比（假設最大值為10）
+                const percentage = Math.min((value / 10) * 100, 100);
+                
+                statItem.innerHTML = `
+                    <span class="stat-label">${stat}</span>
+                    <span class="stat-value">${value}</span>
+                    <div class="stat-bar">
+                        <div class="stat-bar-fill" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+                
+                statsContainer.appendChild(statItem);
+            });
+        }
+
+        function updateStoryContent(data) {
+            const storyContent = document.getElementById('story-content');
+            
+            // 創建新的內容區塊
+            const newContent = document.createElement('div');
+            newContent.className = 'story-block';
+            
+            // 添加文本內容
+            if (data.text) {
+                const textContent = document.createElement('div');
+                textContent.className = 'text-content';
+                
+                // 分段處理文本
+                const paragraphs = [data.text];
+                if (data.roll) {
+                    paragraphs.push(`擲骰: ${data.roll.dice}\n結果: ${data.roll.result}`);
+                }
+                
+                // 添加物品獲得信息
+                if (data.itemMessages && data.itemMessages.length > 0) {
+                    paragraphs.push(...data.itemMessages);
+                }
+                
+                if (data.nextText) {
+                    paragraphs.push(data.nextText);
+                }
+                
+                textContent.innerHTML = paragraphs
+                    .filter(p => p.trim())
+                    .map(p => {
+                        if (p.startsWith('擲骰:')) {
+                            return `<div class="roll-result">
+                                <div class="dice-roll">
+                                    <span class="dice">${p}</span>
+                                </div>
+                            </div>`;
+                        } else if (p.startsWith('獲得了')) {
+                            return `<div class="item-message">
+                                <p class="item-notification">${p}</p>
+                            </div>`;
+                        }
+                        return `<p>${p}</p>`;
+                    })
+                    .join('');
+                
+                newContent.appendChild(textContent);
+            }
+            
+            // 添加選項按鈕（如果有的話）
+            if (data.choices && data.choices.length > 0) {
+                const choicesDiv = document.createElement('div');
+                choicesDiv.className = 'choices';
+                data.choices.forEach(choice => {
+                    const button = document.createElement('button');
+                    button.textContent = choice.text;
+                    button.onclick = () => makeChoice(choice.id);
+                    choicesDiv.appendChild(button);
+                });
+                newContent.appendChild(choicesDiv);
+            }
+            
+            // 添加新內容到故事區域
+            storyContent.appendChild(newContent);
+            
+            // 更新統計數據
+            if (data.stats) {
+                updateStats(data.stats);
+            }
+            
+            // 更新物品欄
+            if (data.inventory) {
+                updateInventory(data.inventory);
+            }
+            
+            // 滾動到底部
+            storyContent.scrollTop = storyContent.scrollHeight;
+        }
+
+        function startStory() {
+            const storyId = document.getElementById('story-id-input').value;
+            if (!storyId) {
+                alert('請輸入故事ID');
+                return;
+            }
+            socket.emit('story-command', {
+                command: 'start',
+                params: { storyId }
+            });
+        }
+
+        function makeChoice(choiceId) {
+            if (!choiceId) {
+                console.error('No choice ID provided');
+                return;
+            }
+            
+            socket.emit('story-command', {
+                command: 'choice',
+                params: {
+                    choiceId: choiceId,
+                    sessionId: currentSessionId
+                }
+            });
+        }
+
+        function saveGame() {
+            socket.emit('story-command', {
+                command: 'save',
+                params: { sessionId: currentSessionId }
+            });
+        }
+
+        function loadGame() {
+            const savedId = prompt('請輸入存檔ID');
+            if (savedId) {
+                socket.emit('story-command', {
+                    command: 'load',
+                    params: { sessionId: savedId }
+                });
+            }
+        }
+
+        // Debug function
+        function debugLog(message) {
+            const debugContainer = document.getElementById('debug-container');
+            debugContainer.innerHTML += `<div>${new Date().toISOString()}: ${message}</div>`;
+            debugContainer.scrollTop = debugContainer.scrollHeight;
+        }
+
+        // Connection status
+        socket.on('connect', () => {
+            debugLog('Connected to server');
+        });
+
+        socket.on('disconnect', () => {
+            debugLog('Disconnected from server');
+        });
+
+        // 添加頁面加載時的會話恢復
+        window.onload = function() {
+            const savedSessionId = localStorage.getItem('currentSessionId');
+            if (savedSessionId) {
+                currentSessionId = savedSessionId;
+                debugLog(`Restored session: ${currentSessionId}`);
+            }
+        }
+
+        // 修改選項按鈕的生成代碼
+        function updateChoices(choices) {
+            const choicesContainer = document.getElementById('choices-container');
+            choicesContainer.innerHTML = '';
+            
+            if (!choices || !choices.length) {
+                return;
+            }
+            
+            choices.forEach(choice => {
+                if (!choice.id) {
+                    console.error('Choice missing ID:', choice);
+                    return;
+                }
+                const button = document.createElement('button');
+                button.textContent = choice.text;
+                button.onclick = () => makeChoice(choice.id);
+                button.className = 'choice-button';
+                choicesContainer.appendChild(button);
+            });
+        }
+
+        // 添加更新物品欄的函數
+        function updateInventory(inventory) {
+            const inventoryContainer = document.getElementById('inventory-container');
+            if (!inventoryContainer) return;
+
+            inventoryContainer.innerHTML = '<h3>物品欄</h3>';
+            if (inventory && inventory.length > 0) {
+                const itemList = document.createElement('ul');
+                itemList.className = 'inventory-list';
+                
+                inventory.forEach(item => {
+                    const itemElement = document.createElement('li');
+                    itemElement.className = 'inventory-item';
+                    itemElement.innerHTML = `
+                        <span class="item-name">${item.itemId}</span>
+                        <span class="item-quantity">x${item.quantity}</span>
+                        ${item.description ? `<span class="item-description">${item.description}</span>` : ''}
+                    `;
+                    itemList.appendChild(itemElement);
+                });
+                
+                inventoryContainer.appendChild(itemList);
+            } else {
+                inventoryContainer.innerHTML += '<p>物品欄是空的</p>';
+            }
+        }
+    </script>
+</body>
+</html> 

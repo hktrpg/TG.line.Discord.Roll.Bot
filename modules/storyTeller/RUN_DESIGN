@@ -1,142 +1,114 @@
-== 獸人的餅乾 ==
+# The Cookie Heist
+== Chapter 1 ==
 
-[set] stealth = 10
-[set] has_key = false
-[set] has_cookie = false
-[set] guard_sleeping = false
-[set] noise = 0
-
+// Opening scene
 [text] 你是一名小偷，聽說獸人衛兵的房間裡有一罐特製餅乾。
 [text] 現在是深夜，你潛伏在獸人營地的陰影處。
 
-[show_stat] stealth
-[show_stat] noise
+// Initialize stats and variables
+[stat_modify] stealth 10
+[stat_modify] luck 5
+[var] has_key = false
+[var] cookie_jar = false
 
+// Display stats
+[stat_show] stealth, luck
+
+// Scene setup
+[image] background/camp_night.png
+[portrait] character/thief.png left
+
+// First decision
+[text] 你看到衛兵房間的門上有個鎖，但旁邊有個通風口。
 [choice]
--> 觀察獸人的房間 | observe_room
--> 直接闖入 | rush_in
+    -> 撬開門鎖 | pick_lock
+    -> 爬進通風口 | crawl_vent
+    -> 靜靜等待時機 | wait
 
-[label] observe_room
-[text] 你仔細觀察獸人的房間...
+// Pick lock branch
+[label] pick_lock
+[text] 你掏出工具，開始撬鎖。
 [roll] 1d20 + stealth
-[if] roll > 15
-    [text] 你發現獸人正在打呼，而鑰匙就掛在門邊的掛鉤上。
-    [set] guard_sleeping = true
-    [choice]
-    -> 潛入偷取鑰匙 | steal_key
-    -> 找找看有沒有其他進入方式 | find_other_way
-[else]
-    [text] 獸人似乎醒著，正在房間內走動。
-    [choice]
-    -> 等待時機 | wait_chance
-    -> 找找看有沒有其他進入方式 | find_other_way
-[endif]
-
-[label] steal_key
-[roll] 2d6
-[if] roll > 7
-    [text] 你成功無聲地取得了鑰匙！
-    [set] has_key = true
-    [modify_stat] stealth +2
-    [choice]
-    -> 使用鑰匙開門 | use_key
-    -> 先觀察一下情況 | observe_again
-[else]
-    [text] 糟糕！你不小心碰倒了旁邊的掃把！
-    [set] noise = noise + 5
-    [goto] guard_wakes_up
-[endif]
-
-[label] find_other_way
-[text] 你在房子周圍搜尋...
-[roll] 1d20
-[if] roll > 12
-    [text] 你發現後窗沒關好，有一條縫隙。
-    [choice]
-    -> 從窗戶潛入 | window_entry
-    -> 回到正門 | back_to_front
-[else]
-    [text] 似乎沒有其他方便的進入途徑。
-    [goto] back_to_front
-[endif]
-
-[label] window_entry
-[roll] 2d6 + stealth
-[if] roll > 15
-    [text] 你成功從窗戶溜了進去！
+[if] roll_result >= 15
+    [text] 鎖咔嗒一聲開了，你悄悄溜進房間。
     [goto] inside_room
 [else]
-    [text] 窗戶發出了吱呀聲...
-    [set] noise = noise + 8
-    [goto] guard_wakes_up
+    [text] 你弄出了一些噪音，一個衛兵走過來查看！
+    [stat_modify] stealth -2
+    [goto] guard_alert
 [endif]
 
-[label] inside_room
-[text] 你已經進入了房間，能看到餅乾罐就放在櫥櫃上。
-[if] noise > 5
-    [text] 但是之前發出的聲響讓獸人有些不安分...
+// Crawl vent branch
+[label] crawl_vent
+[text] 你爬進狹窄的通風口，裡面又黑又悶。
+[roll] 1d10
+[if] roll_result <= 3
+    [text] 你不小心卡住了，費了好大力氣才出來。
+    [stat_modify] luck -1
+    [goto] wait
+[else]
+    [text] 你順利通過，落在房間裡。
+    [goto] inside_room
 [endif]
 
+// Wait branch
+[label] wait
+[text] 你決定再等等看。
+[random_event] 50%
+    [text] 一個衛兵離開了崗位，機會來了！
+    [goto] pick_lock
+[end_random]
+[text] 什麼也沒發生，你還是得行動。
 [choice]
--> 快速抓取餅乾 | quick_grab
--> 放輕腳步慢慢接近 | sneak_grab
+    -> 撬開門鎖 | pick_lock
+    -> 爬進通風口 | crawl_vent
 
-[label] quick_grab
-[roll] 1d20
-[if] roll > 10
-    [text] 你一個箭步上前抓住餅乾罐！
-    [set] has_cookie = true
-    [goto] escape_attempt
+// Guard alert scenario
+[label] guard_alert
+[image] background/camp_night.png
+[portrait] npc/orc_guard.png right
+[emote] angry
+[text] "誰在那裡！"衛兵大吼，舉起武器。
+[choice]
+    -> 逃跑 | flee
+    -> 試著說服他 | persuade
+
+// Flee branch
+[label] flee
+[text] 你轉身就跑，消失在夜色中。
+[text] 可惜，餅乾沒拿到。
+[var] cookie_jar = false
+[goto] ending
+
+// Persuade branch
+[label] persuade
+[text] 你舉起雙手，試著編個故事。
+[roll] 1d20 + luck
+[if] roll_result >= 12
+    [text] "我只是迷路了！"你說。衛兵咕噥著放過你。
+    [goto] wait
 [else]
-    [goto] guard_wakes_up
+    [text] 衛兵不相信你，把你趕了出去。
+    [goto] ending
 [endif]
 
-[label] sneak_grab
-[roll] 1d20 + stealth
-[if] roll > 18
-    [text] 你小心翼翼地取得了餅乾罐。
-    [set] has_cookie = true
-    [modify_stat] stealth +3
-    [goto] escape_attempt
+// Inside the room
+[label] inside_room
+[image] background/guard_room.png
+[text] 你進了房間，看到桌上有一罐餅乾，還有一把鑰匙。
+[item_add] key 1
+[item_description] key "一把生鏽的鑰匙"
+[item_add] cookie_jar 1
+[item_description] cookie_jar "一罐特製餅乾，聞起來很香"
+[text] 你拿了東西，準備離開。
+[goto] ending
+
+// Ending
+[label] ending
+[delay] 1000
+[if] cookie_jar == true
+    [text] 你成功帶著餅乾離開，任務完成！
 [else]
-    [set] noise = noise + 3
-    [if] noise > 10
-        [goto] guard_wakes_up
-    [else]
-        [text] 地板發出輕微的嘎吱聲...
-        [choice]
-        -> 繼續嘗試 | sneak_grab
-        -> 快速抓取 | quick_grab
-    [endif]
+    [text] 你空手而歸，這次行動失敗了。
 [endif]
-
-[label] guard_wakes_up
-[text] 獸人警衛驚醒了！他怒吼著撲向你！
-[if] has_cookie
-    [choice]
-    -> 丟下餅乾逃跑 | escape_without_cookie
-    -> 拼命保住餅乾逃跑 | desperate_escape
-[else]
-    [text] 你只好狼狽逃竄...
-    [goto] game_over_fail
-[endif]
-
-[label] escape_attempt
-[text] 你得到了餅乾，現在要逃出去...
-[roll] 2d6 + stealth
-[if] roll > 12
-    [goto] game_over_success
-[else]
-    [goto] guard_wakes_up
-[endif]
-
-[label] game_over_success
-[text] 成功了！你帶著美味的獸人餅乾安全逃脫！
-[show_stat] stealth
-[save_point] mission_complete
-[clear]
-
-[label] game_over_fail
-[text] 任務失敗...也許下次應該更小心一點。
-[show_stat] stealth
-[clear]
+[save_point] mission_end

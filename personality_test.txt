@@ -1,0 +1,250 @@
+# 16型人格測試
+
+[text] 歡迎參加16型人格測試。
+[text] 這個測試將幫助你了解自己的性格類型。
+[text] 請根據你的第一直覺來回答問題。
+
+[stat_modify] E 0
+[stat_modify] I 0
+[stat_modify] S 0
+[stat_modify] N 0
+[stat_modify] T 0
+[stat_modify] F 0
+[stat_modify] J 0
+[stat_modify] P 0
+
+// E/I 維度測試
+[text] 問題1：在社交場合中...
+
+[choice]
+-> 我喜歡成為注意力的焦點 | q1_e
+-> 我更喜歡和一兩個人深入交談 | q1_i
+
+[label] q1_e
+[stat_modify] E +2
+[goto] q2_start
+
+[label] q1_i
+[stat_modify] I +2
+[goto] q2_start
+
+[label] q2_start
+[text] 問題2：當面對新環境時...
+
+[choice]
+-> 我會主動認識新朋友 | q2_e
+-> 我會先觀察一段時間 | q2_i
+
+[label] q2_e
+[stat_modify] E +2
+[goto] q3_start
+
+[label] q2_i
+[stat_modify] I +2
+[goto] q3_start
+
+// S/N 維度測試
+[label] q3_start
+[text] 問題3：在工作或學習時...
+
+[choice]
+-> 我喜歡關注具體的細節和事實 | q3_s
+-> 我更在意整體概念和可能性 | q3_n
+
+[label] q3_s
+[stat_modify] S +2
+[goto] q4_start
+
+[label] q3_n
+[stat_modify] N +2
+[goto] q4_start
+
+[label] q4_start
+[text] 問題4：當解決問題時...
+
+[choice]
+-> 我依靠過去的經驗和實踐 | q4_s
+-> 我喜歡嘗試創新的解決方案 | q4_n
+
+[label] q4_s
+[stat_modify] S +2
+[goto] q5_start
+
+[label] q4_n
+[stat_modify] N +2
+[goto] q5_start
+
+// T/F 維度測試
+[label] q5_start
+[text] 問題5：做決定時...
+
+[choice]
+-> 我會理性分析利弊 | q5_t
+-> 我會考慮對他人的影響 | q5_f
+
+[label] q5_t
+[stat_modify] T +2
+[goto] q6_start
+
+[label] q5_f
+[stat_modify] F +2
+[goto] q6_start
+
+[label] q6_start
+[text] 問題6：當朋友遇到困難時...
+
+[choice]
+-> 我會幫助他們分析問題並提供解決方案 | q6_t
+-> 我會先傾聽並給予情感支持 | q6_f
+
+[label] q6_t
+[stat_modify] T +2
+[goto] q7_start
+
+[label] q6_f
+[stat_modify] F +2
+[goto] q7_start
+
+// J/P 維度測試
+[label] q7_start
+[text] 問題7：對於計劃...
+
+[choice]
+-> 我喜歡提前安排好一切 | q7_j
+-> 我喜歡保持靈活，隨機應變 | q7_p
+
+[label] q7_j
+[stat_modify] J +2
+[goto] q8_start
+
+[label] q7_p
+[stat_modify] P +2
+[goto] q8_start
+
+[label] q8_start
+[text] 問題8：在工作環境中...
+
+[choice]
+-> 我喜歡有明確的規則和期限 | q8_j
+-> 我喜歡有彈性的時間安排 | q8_p
+
+[label] q8_j
+[stat_modify] J +2
+[goto] result
+
+[label] q8_p
+[stat_modify] P +2
+[goto] result
+
+[label] result
+[text] 讓我們看看你的性格類型...
+
+[if] E > I
+    [var] type_ei = E
+[else]
+    [var] type_ei = I
+[endif]
+
+[if] S > N
+    [var] type_sn = S
+[else]
+    [var] type_sn = N
+[endif]
+
+[if] T > F
+    [var] type_tf = T
+[else]
+    [var] type_tf = F
+[endif]
+
+[if] J > P
+    [var] type_jp = J
+[else]
+    [var] type_jp = P
+[endif]
+
+[text] 你的性格類型是：
+
+[if] type_ei == E && type_sn == S && type_tf == T && type_jp == J
+    [text] ESTJ - 管理者型
+    [text] 你是個務實的組織者，重視邏輯和秩序。
+[endif]
+
+[if] type_ei == E && type_sn == S && type_tf == T && type_jp == P
+    [text] ESTP - 冒險家型
+    [text] 你靈活機智，喜歡冒險和行動。
+[endif]
+
+[if] type_ei == E && type_sn == S && type_tf == F && type_jp == J
+    [text] ESFJ - 主人型
+    [text] 你熱心助人，重視和諧與合作。
+[endif]
+
+[if] type_ei == E && type_sn == S && type_tf == F && type_jp == P
+    [text] ESFP - 表演者型
+    [text] 你活潑開朗，喜歡與人互動。
+[endif]
+
+[if] type_ei == E && type_sn == N && type_tf == T && type_jp == J
+    [text] ENTJ - 指揮官型
+    [text] 你有領導才能，善於規劃和決策。
+[endif]
+
+[if] type_ei == E && type_sn == N && type_tf == T && type_jp == P
+    [text] ENTP - 辯論家型
+    [text] 你思維敏捷，喜歡創新和挑戰。
+[endif]
+
+[if] type_ei == E && type_sn == N && type_tf == F && type_jp == J
+    [text] ENFJ - 教導者型
+    [text] 你富有同理心，善於激勵他人。
+[endif]
+
+[if] type_ei == E && type_sn == N && type_tf == F && type_jp == P
+    [text] ENFP - 激勵者型
+    [text] 你熱情洋溢，充滿創意和可能性。
+[endif]
+
+[if] type_ei == I && type_sn == S && type_tf == T && type_jp == J
+    [text] ISTJ - 檢查者型
+    [text] 你認真負責，注重細節和可靠性。
+[endif]
+
+[if] type_ei == I && type_sn == S && type_tf == T && type_jp == P
+    [text] ISTP - 鑒賞家型
+    [text] 你善於分析，喜歡解決具體問題。
+[endif]
+
+[if] type_ei == I && type_sn == S && type_tf == F && type_jp == J
+    [text] ISFJ - 守護者型
+    [text] 你細心周到，樂於服務他人。
+[endif]
+
+[if] type_ei == I && type_sn == S && type_tf == F && type_jp == P
+    [text] ISFP - 藝術家型
+    [text] 你溫和靈活，享受當下的生活。
+[endif]
+
+[if] type_ei == I && type_sn == N && type_tf == T && type_jp == J
+    [text] INTJ - 建築師型
+    [text] 你獨立思考，善於策略規劃。
+[endif]
+
+[if] type_ei == I && type_sn == N && type_tf == T && type_jp == P
+    [text] INTP - 邏輯學家型
+    [text] 你理論創新，喜歡探索可能性。
+[endif]
+
+[if] type_ei == I && type_sn == N && type_tf == F && type_jp == J
+    [text] INFJ - 提倡者型
+    [text] 你理想主義，追求意義和成長。
+[endif]
+
+[if] type_ei == I && type_sn == N && type_tf == F && type_jp == P
+    [text] INFP - 調停者型
+    [text] 你富有同情心，重視個人價值。
+[endif]
+
+[stat_show] E,I,S,N,T,F,J,P
+
+[text] 測試結束。感謝你的參與！ 

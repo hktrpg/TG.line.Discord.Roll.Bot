@@ -475,7 +475,55 @@ const multiServer = mongoose.model('multiServer', new mongoose.Schema({
     botname: String
 }));
 
+// 修改 storyScript 的定義，從 schema 改為 model
+const storyScript = mongoose.model('storyScript', new mongoose.Schema({
+    id: String,
+    title: String,
+    content: Array,
+    variables: {
+        type: Map,
+        of: String,
+        default: new Map()
+    },
+    labels: {
+        type: Map,
+        of: Number,
+        default: new Map()
+    },
+    createdAt: Date,
+    updatedAt: Date
+}));
 
+// 遊戲日誌
+const storyLog = mongoose.model('storyLog', new mongoose.Schema({
+    sessionId: { type: String, index: true },
+    timestamp: { type: Date, default: Date.now },
+    type: String, // debug, action, error
+    content: mongoose.Schema.Types.Mixed
+}));
+
+const storyProgress = mongoose.model('storyProgress', new mongoose.Schema({
+    sessionId: { type: String, index: true }, // 遊戲session ID
+    storyId: { type: String, index: true }, // 故事ID
+    userId: { type: String, index: true }, // 玩家ID
+    groupId: String, // 群組ID
+    channelId: String, // 頻道ID
+    currentNode: String, // 當前節點
+    variables: mongoose.Schema.Types.Mixed, // 變數狀態
+    stats: mongoose.Schema.Types.Mixed, // 能力值
+    inventory: [{ // 物品欄
+        itemId: String,
+        quantity: Number
+    }],
+    savePoints: [{ // 存檔點
+        label: String,
+        state: mongoose.Schema.Types.Mixed,
+        timestamp: Date
+    }],
+    startedAt: { type: Date, default: Date.now },
+    lastUpdated: { type: Date, default: Date.now },
+    completed: { type: Boolean, default: false }
+}));
 
 const mongodbState = async () => {
     try {
@@ -526,7 +574,9 @@ module.exports = {
     randomAnsPersonal,
     translateChannel,
     bcdiceRegedit,
-    mongodbState
+    storyScript,
+    storyProgress,
+    storyLog
 }
 //const Cat = mongoose.model('Cat', { name: String });
 //const kitty = new Cat({ name: 'Zildjian' });

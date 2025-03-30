@@ -101,7 +101,7 @@ const EXPUP = require('./level').EXPUP || function () { };
 const courtMessage = require('./logs').courtMessage || function () { };
 
 const newMessage = require('./message');
-
+const discordPresenceStatus = ['online', 'idle', 'invisible', 'do not disturb']
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const shardid = client.cluster.id;
 const WebSocket = require('ws');
@@ -795,7 +795,7 @@ function z_stop(mainMsg, groupid) {
 		return false;
 }
 
-const discordPresenceStatus = ['online', 'idle', 'invisible', 'do not disturb']
+
 async function getAllshardIds() {
 	if (!client.cluster) {
 		return;

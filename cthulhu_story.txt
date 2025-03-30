@@ -1,0 +1,283 @@
+# 克蘇魯的呼喚
+
+== 第一章：調查員的覺醒 ==
+
+[text] 1926年，你是一名年輕的調查員，受僱於密斯卡托尼克大學。最近，沿海小鎮因斯茅斯發生了一系列離奇的失蹤事件。
+
+[stat_modify] sanity 50
+[stat_modify] hp 80
+[stat_modify] mp 60
+[stat_modify] str 50
+[stat_modify] int 70
+[stat_modify] luck 40
+[stat_modify] stealth 45
+
+[image] background/innsmouth_harbor.png
+[portrait] character/investigator.png left
+[emote] determined
+
+[text] 你站在因斯茅斯港口，海風中夾雜著奇怪的氣味。鎮上的居民似乎都在迴避你。
+
+[stat_show] sanity,hp,mp,str,int,luck,stealth
+
+[debug] stats_show
+[debug] log "抵達因斯茅斯"
+
+[choice]
+-> 前往酒館打聽消息 | goto_tavern
+-> 直接調查港口 | goto_harbor
+-> 拜訪當地警長 | goto_sheriff
+
+[label] goto_tavern
+[text] 酒館裡瀰漫著詭異的氣氛，幾個當地人用奇怪的眼神盯著你。
+
+[random_event] 30%
+    [text] 突然，一個醉漢衝向你，嘴裡說著難以理解的語言。
+    [stat_modify] sanity -10
+[end_random]
+
+[choice]
+-> 詢問醉漢 | ask_drunk
+-> 離開酒館 | leave_tavern
+-> 觀察其他客人 | observe_others
+
+[label] ask_drunk
+[text] 醉漢突然清醒，用一種不自然的聲音說："Y'ha-nthlei... Y'ha-nthlei..."
+
+[stat_modify] sanity -15
+[roll] 1d20 + int
+
+[if] sanity > 88
+    [text] 你勉強保持理智，注意到醉漢的脖子上有奇怪的鱗片。
+    [stat_modify] int +5
+[else]
+    [text] 你感到一陣頭暈，似乎聽到了深海中傳來的呼喚。
+    [stat_modify] sanity -10
+[endif]
+
+[goto] tavern_aftermath
+
+[label] leave_tavern
+[text] 你決定離開這個詭異的地方。
+[stat_modify] sanity +5
+[goto] tavern_aftermath
+
+[label] observe_others
+[text] 你注意到其他客人都有著相似的特徵：深陷的眼窩，不自然的動作。
+[stat_modify] sanity -10
+[stat_modify] int +5
+[goto] tavern_aftermath
+
+[label] tavern_aftermath
+[text] 酒館的經歷讓你感到不安。你必須決定下一步該怎麼做。
+
+[choice]
+-> 前往港口調查 | goto_harbor
+-> 拜訪警長 | goto_sheriff
+-> 返回旅館休息 | goto_hotel
+
+[label] goto_hotel
+[text] 你回到旅館，但無法入睡。窗外傳來奇怪的聲音。
+[stat_modify] sanity -5
+[delay] 2000
+[goto] next_morning
+
+[label] next_morning
+[text] 第二天早晨，你感覺精神稍微好了一些。
+[stat_modify] sanity +10
+[goto] morning_choice
+
+[label] morning_choice
+[text] 今天你打算...
+
+[choice]
+-> 前往港口調查 | goto_harbor
+-> 拜訪警長 | goto_sheriff
+-> 調查鎮上的圖書館 | goto_library
+
+[label] goto_library
+[text] 圖書館裡瀰漫著霉味，你找到了一些關於因斯茅斯歷史的資料。
+[stat_modify] int +10
+[item_add] history_book 1
+[item_description] history_book "一本記載因斯茅斯歷史的古籍"
+[goto] library_aftermath
+
+[label] library_aftermath
+[text] 從古籍中，你發現了一些令人不安的記載。
+
+[if] int > 80
+    [text] 你成功解讀了一些古老的文字，發現這與深潛者有關。
+    [stat_modify] sanity -15
+[else]
+    [text] 你無法完全理解這些文字，但感覺到了某種不祥的預感。
+    [stat_modify] sanity -5
+[endif]
+
+[goto] final_choice
+
+[label] goto_harbor
+[image] background/harbor_night.png
+[image_overlay] effects/fog.png 0.7
+
+[text] 港口的水面泛著詭異的綠色光芒。
+
+[roll] 1d20 + luck
+
+[if] luck > 50
+    [text] 你發現了一個奇怪的符號，似乎是某種古老的文字。
+    [stat_modify] int +5
+[else]
+    [text] 你什麼也沒發現，但感覺被什麼東西注視著。
+    [stat_modify] sanity -5
+[endif]
+
+[goto] harbor_aftermath
+
+[label] harbor_aftermath
+[text] 港口的情況讓你感到不安。
+
+[choice]
+-> 繼續調查港口 | investigate_deeper
+-> 返回鎮上 | return_to_town
+-> 等待夜晚 | wait_for_night
+
+[label] investigate_deeper
+[text] 你決定深入調查港口。
+[roll] 1d20 + stealth
+
+[if] stealth > 70
+    [text] 你發現了一些可疑的活動。
+    [stat_modify] int +10
+    [stat_modify] sanity -10
+[else]
+    [text] 你被發現了！幾個當地人向你走來。
+    [stat_modify] hp -20
+    [stat_modify] sanity -15
+[endif]
+
+[goto] final_choice
+
+[label] return_to_town
+[text] 你決定返回鎮上。
+[stat_modify] sanity +5
+[goto] final_choice
+
+[label] wait_for_night
+[text] 你決定等待夜晚降臨。
+[stat_modify] stealth +5
+[goto] final_choice
+
+[label] goto_sheriff
+[text] 警長辦公室裡瀰漫著一股魚腥味。
+
+[portrait] npc/sheriff.png right
+
+[if] str > 60
+    [text] 你注意到警長的辦公桌下藏著一個奇怪的箱子。
+    [stat_modify] int +5
+[else]
+    [text] 你感覺警長似乎在隱瞞什麼。
+    [stat_modify] sanity -5
+[endif]
+
+[var] has_evidence = false
+[var] total_clues = 0
+
+[if] has_evidence == true
+    [text] 你發現了一些重要的證據。
+[endif]
+
+[delay] 2000
+
+[save_point] chapter1_checkpoint
+
+[item_add] ancient_book 1
+[item_description] ancient_book "一本用奇怪文字寫成的古籍"
+[item_show] ancient_book
+
+[text] 夜幕降臨，你必須做出選擇。
+
+[if] sanity > 50
+    [choice]
+        -> 繼續調查 | continue_investigation
+        -> 尋求支援 | seek_help
+        -> 離開小鎮 | leave_town
+[else]
+    [choice]
+        -> 瘋狂地繼續調查 | continue_mad
+        -> 逃離小鎮 | flee_town
+[endif]
+
+[label] continue_investigation
+[text] 你決定深入調查，但代價可能是你的理智。
+
+[stat_modify] sanity -20
+[stat_modify] int +10
+
+[weather] storm
+
+[text] 暴風雨中，你似乎聽到了來自深海的呼喚...
+
+[debug] collision
+[debug] god_mode
+
+[text] 你感覺自己正在接近某個可怕的真相。
+
+[stat_show] sanity,hp,mp,str,int,luck,stealth
+
+[text] 故事未完待續...
+
+[label] seek_help
+[text] 你決定尋求支援。
+[stat_modify] sanity +10
+[text] 但當你回到鎮上時，發現所有的通訊設備都無法使用。
+[stat_modify] sanity -5
+[goto] final_choice
+
+[label] leave_town
+[text] 你決定離開這個詭異的小鎮。
+[stat_modify] sanity +10
+[text] 但當你走到鎮口時，發現所有的路都被封鎖了。
+[stat_modify] sanity -5
+[goto] final_choice
+
+[label] continue_mad
+[text] 你的理智已經瀕臨崩潰，但你仍然決定繼續調查。
+[stat_modify] sanity -30
+[stat_modify] int +20
+[goto] final_choice
+
+[label] flee_town
+[text] 你決定不顧一切地逃離這個地方。
+[stat_modify] sanity -10
+[stat_modify] hp -20
+[goto] final_choice
+
+[label] final_choice
+[text] 你必須做出最後的選擇。
+
+[choice]
+-> 面對真相 | face_truth
+-> 保持理智 | maintain_sanity
+-> 逃離一切 | escape_all
+
+[label] face_truth
+[text] 你選擇面對真相。
+[stat_modify] sanity -40
+[stat_modify] int +30
+[text] 你終於明白了因斯茅斯的秘密，但代價是永遠失去了理智。
+[text] 故事結束。
+
+[label] maintain_sanity
+[text] 你選擇保持理智。
+[stat_modify] sanity +20
+[stat_modify] int -10
+[text] 你離開了因斯茅斯，但那些可怕的記憶將永遠伴隨著你。
+[text] 故事結束。
+
+[label] escape_all
+[text] 你選擇逃離一切。
+[stat_modify] sanity +10
+[stat_modify] hp -30
+[text] 你成功逃離了因斯茅斯，但那些可怕的經歷將永遠留在你的記憶中。
+[text] 故事結束。 

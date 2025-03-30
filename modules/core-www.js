@@ -19,6 +19,8 @@ const salt = process.env.SALT;
 const crypto = require('crypto');
 const mainCharacter = require('../roll/z_character').mainCharacter;
 const fs = require('fs');
+const StoryEngine = require('../modules/storyTeller/storyEngine');
+const storyEngines = new Map();
 let options = {
     key: null,
     cert: null,
@@ -168,9 +170,16 @@ if (process.env.DISCORD_CHANNEL_SECRET) {
             res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/app/discord/', ''));
     });
 }
+
+
+www.get('/story', (req, res) => {
+    res.sendFile(process.cwd() + '/views/storyTeller.html');
+});
+
 www.get('/:xx', (req, res) => {
     res.sendFile(process.cwd() + '/views/index.html');
 });
+
 
 io.on('connection', async (socket) => {
     socket.on('getListInfo', async message => {
@@ -333,7 +342,62 @@ io.on('connection', async (socket) => {
         }
     })
 
+    socket.on('story-command', async (data) => {
+        try {
+            const { command, params } = data;
+            let engine = storyEngines.get(socket.id);
+            
+            let result;
+            switch (command) {
+                case 'import':
+                    if (!params.script) {
+                        throw new Error('No script provided');
+                    }
+                    engine = new StoryEngine(socket.id);
+                    storyEngines.set(socket.id, engine);
+                    result = await engine.importStory(params.script);
+                    // 確保發送響應
+                    socket.emit('story-update', {
+                        type: 'import',
+                        success: true,
+                        ...result
+                    });
+                    break;
+                case 'start':
+                    engine = new StoryEngine(socket.id);
+                    storyEngines.set(socket.id, engine);
+                    result = await engine.initialize(params.storyId, socket.id);
+                    break;
+                case 'choice':
+                    if (!params.choiceId) {
+                        throw new Error('Missing choice ID');
+                    }
+                    console.log(`[StoryEngine] Processing choice: ${params.choiceId}`);
+                    result = await engine._handleChoice(params.choiceId);
+                    break;
+                case 'save':
+                    result = await engine.saveGame();
+                    break;
+                case 'load':
+                    result = await engine.loadGame(params.sessionId);
+                    break;
+                default:
+                    throw new Error('Unknown command');
+            }
+            
+            socket.emit('story-update', {
+                ...result,
+                sessionId: engine.sessionId
+            });
 
+        } catch (error) {
+            console.error('Story error:', error);
+            socket.emit('story-error', {
+                message: error.message,
+                stack: error.stack
+            });
+        }
+    });
 
     // 有連線發生時增加人數
     onlineCount++;
@@ -374,6 +438,7 @@ io.on('connection', async (socket) => {
     });
 
     socket.on('disconnect', () => {
+        storyEngines.delete(socket.id);
         // 有人離線了，扣人
         onlineCount = (onlineCount < 0) ? 0 : onlineCount -= 1;
         io.emit("online", onlineCount);

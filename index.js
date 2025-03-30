@@ -96,6 +96,7 @@ class ModuleManager {
     }
 
     async loadModule(filePath, moduleName) {
+        const startTime = process.hrtime();
         try {
             if (this.loadedModules.has(moduleName)) {
                 logger.warn(`Module ${moduleName} is already loaded`);
@@ -105,12 +106,17 @@ class ModuleManager {
             const module = require(filePath);
             this.modules.set(moduleName, module);
             this.loadedModules.add(moduleName);
-            logger.info(`Successfully loaded module: ${moduleName}`);
-
+            
             // Call initialize method if available
             if (typeof module.initialize === 'function') {
+                const initStartTime = process.hrtime();
                 await module.initialize();
+                const initEndTime = process.hrtime(initStartTime);
+                logger.info(`Module ${moduleName} initialization took ${initEndTime[0]}s ${initEndTime[1] / 1000000}ms`);
             }
+
+            const endTime = process.hrtime(startTime);
+            logger.info(`Successfully loaded module: ${moduleName} (Total time: ${endTime[0]}s ${endTime[1] / 1000000}ms)`);
         } catch (err) {
             errorHandler(err, `Loading module ${moduleName}`);
             throw err;
@@ -141,14 +147,24 @@ class ModuleManager {
 async function loadModules(moduleManager) {
     try {
         const files = await fs.readdir(config.modules.directory);
-        
-        for (const file of files) {
-            if (file.match(config.modules.pattern)) {
+        const modulePromises = files
+            .filter(file => file.match(config.modules.pattern))
+            .map(async file => {
                 const moduleName = file.replace('.js', '');
                 const filePath = path.join(config.modules.directory, file);
-                await moduleManager.loadModule(filePath, moduleName);
-            }
-        }
+                try {
+                    await moduleManager.loadModule(filePath, moduleName);
+                } catch (err) {
+                    logger.error(`Failed to load module ${moduleName}:`, {
+                        error: err.message,
+                        stack: err.stack
+                    });
+                    // 不拋出錯誤，讓其他模塊繼續加載
+                }
+            });
+        
+        await Promise.all(modulePromises);
+        logger.info('All modules loaded successfully');
     } catch (err) {
         errorHandler(err, 'Reading modules directory');
         throw err;
@@ -170,11 +186,16 @@ async function gracefulShutdown(moduleManager) {
 
 // Application Initialization
 async function init() {
+    const startTime = process.hrtime();
     const moduleManager = new ModuleManager();
     
     try {
         // Load modules
+        const loadStartTime = process.hrtime();
         await loadModules(moduleManager);
+        const loadEndTime = process.hrtime(loadStartTime);
+        logger.info(`Module loading took ${loadEndTime[0]}s ${loadEndTime[1] / 1000000}ms`);
+
         logger.info('Application started successfully');
 
         // Setup shutdown handlers
@@ -214,6 +235,9 @@ async function init() {
                 gracefulShutdown(moduleManager);
             }
         });
+
+        const endTime = process.hrtime(startTime);
+        logger.info(`Total initialization took ${endTime[0]}s ${endTime[1] / 1000000}ms`);
 
     } catch (err) {
         errorHandler(err, 'Initialization');

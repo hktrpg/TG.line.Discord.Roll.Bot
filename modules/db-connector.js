@@ -17,7 +17,7 @@ const config = {
     poolSize: 10,             // 連線池大小
     minPoolSize: 2,           // 最小連線池大小
     heartbeatInterval: 10000,  // 心跳檢測間隔
-    serverSelectionTimeout: 8000,
+    serverSelectionTimeout: 5000,
     maxIdleTimeMS: 60000,     // 最大閒置時間
     w: 'majority',            // 寫入確認級別
     retryWrites: true,        // 啟用寫入重試

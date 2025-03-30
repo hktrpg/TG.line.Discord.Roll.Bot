@@ -14,10 +14,6 @@ const config = {
         level: process.env.LOG_LEVEL || 'info',
         logFile: 'app.log',
         errorFile: 'error.log'
-    },
-    restart: {
-        maxRetries: 5,
-        retryInterval: 1000
     }
 };
 
@@ -159,11 +155,8 @@ async function loadModules(moduleManager) {
     }
 }
 
-// 重啟計數器
-let restartCount = 0;
-
 // Graceful Shutdown
-async function gracefulShutdown(moduleManager, isError = false) {
+async function gracefulShutdown(moduleManager) {
     logger.info('Starting graceful shutdown...');
     
     // Unload all loaded modules
@@ -172,47 +165,7 @@ async function gracefulShutdown(moduleManager, isError = false) {
     }
 
     logger.info('Graceful shutdown completed');
-    
-    if (isError) {
-        // 檢查是否超過最大重試次數
-        if (restartCount >= config.restart.maxRetries) {
-            logger.error(`Max restart attempts (${config.restart.maxRetries}) reached. Stopping application.`);
-            process.exit(1);
-        }
-
-        // 如果是錯誤導致的關閉，則重啟應用程序
-        restartCount++;
-        logger.info(`Restarting application due to error... (Attempt ${restartCount}/${config.restart.maxRetries})`);
-        
-        try {
-            // 使用 spawn 來啟動新的進程
-            const { spawn } = require('child_process');
-            const args = process.argv.slice(1);
-            const child = spawn(process.argv[0], args, {
-                stdio: 'inherit',
-                detached: true
-            });
-            
-            // 設置子進程的錯誤處理
-            child.on('error', (err) => {
-                logger.error('Failed to restart application:', err);
-                process.exit(1);
-            });
-            
-            // 等待子進程啟動
-            child.on('spawn', () => {
-                logger.info('Application restarted successfully');
-                process.exit(0);
-            });
-        } catch (err) {
-            logger.error('Failed to restart application:', err);
-            process.exit(1);
-        }
-    } else {
-        // 正常關閉，重置重啟計數
-        restartCount = 0;
-        process.exit(0);
-    }
+    process.exit(0);
 }
 
 // Application Initialization
@@ -243,7 +196,7 @@ async function init() {
         // Handle uncaught exceptions
         process.on('uncaughtException', (err) => {
             errorHandler(err, 'Uncaught Exception');
-            gracefulShutdown(moduleManager, true);
+            gracefulShutdown(moduleManager);
         });
 
         // Handle unhandled promise rejections
@@ -258,13 +211,13 @@ async function init() {
             errorHandler(reason, 'Unhandled Promise Rejection');
             // 只有在非數據庫錯誤時才關閉應用程序
             if (!reason.message || !reason.message.includes('MongoDB')) {
-                gracefulShutdown(moduleManager, true);
+                gracefulShutdown(moduleManager);
             }
         });
 
     } catch (err) {
         errorHandler(err, 'Initialization');
-        gracefulShutdown(moduleManager, true);
+        process.exit(1);
     }
 }
 

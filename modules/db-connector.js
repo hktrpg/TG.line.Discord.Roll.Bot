@@ -62,7 +62,7 @@ function calculateBackoffTime(attempt) {
 
 // 建立連線
 async function connect(retries = 0) {
-    if (isConnected) return;
+    if (isConnected) return true;
 
     try {
         connectionAttempts++;
@@ -93,9 +93,15 @@ async function connect(retries = 0) {
         // 設置連線池監控
         setupPoolMonitoring();
 
+        return true;
     } catch (error) {
         console.error(`MongoDB Connection Error: ${error.message}`);
         isConnected = false;
+
+        // 特別處理認證錯誤
+        if (error.message.includes('bad auth') || error.message.includes('Authentication failed')) {
+            console.error('MongoDB Authentication Error: Please check your credentials');
+        }
 
         if (retries < config.maxRetries) {
             const backoffTime = calculateBackoffTime(retries);
@@ -104,7 +110,7 @@ async function connect(retries = 0) {
             return connect(retries + 1);
         }
 
-        throw new Error(`Failed to connect to MongoDB after ${config.maxRetries} retries: ${error.message}`);
+        return false;
     }
 }
 
@@ -152,39 +158,52 @@ async function restart() {
             await mongoose.connection.close();
         }
         isConnected = false;
-        await connect();
+        const success = await connect();
+        if (!success) {
+            console.error('Restart failed to establish connection');
+            return false;
+        }
+        return true;
     } catch (error) {
         console.error('Restart failed:', error);
-        throw error;
+        return false;
     }
 }
 
 // 斷線處理
-function handleDisconnect() {
+async function handleDisconnect() {
     console.log('MongoDB disconnected');
     isConnected = false;
     
     // 使用指數退避進行重試
     const backoffTime = calculateBackoffTime(connectionAttempts);
-    setTimeout(() => {
+    setTimeout(async () => {
         if (!isConnected) {
             console.log(`Attempting to reconnect after ${Math.round(backoffTime/1000)} seconds...`);
-            restart();
+            try {
+                await restart();
+            } catch (error) {
+                console.error('Reconnection attempt failed:', error);
+            }
         }
     }, backoffTime);
 }
 
 // 錯誤處理
-function handleError(error) {
+async function handleError(error) {
     console.error('MongoDB connection error:', error);
     isConnected = false;
     
     // 使用指數退避進行重試
     const backoffTime = calculateBackoffTime(connectionAttempts);
-    setTimeout(() => {
+    setTimeout(async () => {
         if (!isConnected) {
             console.log(`Attempting to recover from error after ${Math.round(backoffTime/1000)} seconds...`);
-            restart();
+            try {
+                await restart();
+            } catch (error) {
+                console.error('Recovery attempt failed:', error);
+            }
         }
     }, backoffTime);
 }
@@ -219,14 +238,55 @@ async function withTransaction(callback) {
 }
 
 // 初始連線
-(async () => {
+let retryInterval = null;
+
+async function initializeConnection() {
     try {
-        await connect();
+        const success = await connect();
+        if (!success) {
+            console.error('Failed to establish initial MongoDB connection after all retries');
+            // 設置定期重試
+            if (retryInterval) {
+                clearInterval(retryInterval);
+            }
+            retryInterval = setInterval(async () => {
+                try {
+                    const retrySuccess = await connect();
+                    if (retrySuccess) {
+                        clearInterval(retryInterval);
+                        retryInterval = null;
+                        console.log('Successfully connected to MongoDB after retries');
+                    }
+                } catch (error) {
+                    console.error('Retry connection error:', error);
+                }
+            }, config.maxRetryInterval);
+        }
     } catch (error) {
-        console.error('Initial connection failed:', error);
-        process.exit(1);
+        console.error('Initial connection error:', error);
+        // 設置定期重試
+        if (retryInterval) {
+            clearInterval(retryInterval);
+        }
+        retryInterval = setInterval(async () => {
+            try {
+                const retrySuccess = await connect();
+                if (retrySuccess) {
+                    clearInterval(retryInterval);
+                    retryInterval = null;
+                    console.log('Successfully connected to MongoDB after retries');
+                }
+            } catch (error) {
+                console.error('Retry connection error:', error);
+            }
+        }, config.maxRetryInterval);
     }
-})();
+}
+
+// 啟動初始連線
+initializeConnection().catch(error => {
+    console.error('Failed to initialize MongoDB connection:', error);
+});
 
 // 匯出
 module.exports = {

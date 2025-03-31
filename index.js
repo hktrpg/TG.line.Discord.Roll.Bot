@@ -8,11 +8,7 @@ const path = require('path');
 const config = {
     modules: {
         directory: path.join(__dirname, 'modules'),
-        pattern: /^core-.*\.js$/,
-        lazyLoading: {
-            enabled: process.env.LAZY_LOADING === 'true',
-            defaultLoad: process.env.DEFAULT_LOAD === 'true'
-        }
+        pattern: /^core-.*\.js$/
     },
     logging: {
         level: process.env.LOG_LEVEL || 'info',
@@ -106,11 +102,9 @@ class ModuleManager {
     constructor() {
         this.modules = new Map();
         this.loadedModules = new Set();
-        this.modulePaths = new Map();
-        this.lazyLoadingEnabled = config.modules.lazyLoading.enabled;
     }
 
-    async loadModule(filePath, moduleName, forceLoad = false) {
+    async loadModule(filePath, moduleName) {
         const startTime = process.hrtime();
         try {
             if (this.loadedModules.has(moduleName)) {
@@ -118,52 +112,24 @@ class ModuleManager {
                 return;
             }
 
-            // Store module path for lazy loading
-            this.modulePaths.set(moduleName, filePath);
-
-            // If lazy loading is enabled and forceLoad is false, just store the path
-            if (this.lazyLoadingEnabled && !forceLoad) {
-                logger.info(`Module ${moduleName} registered for lazy loading`);
-                return;
+            const module = require(filePath);
+            this.modules.set(moduleName, module);
+            this.loadedModules.add(moduleName);
+            
+            // Call initialize method if available
+            if (typeof module.initialize === 'function') {
+                const initStartTime = process.hrtime();
+                await module.initialize();
+                const initEndTime = process.hrtime(initStartTime);
+                logger.info(`Module ${moduleName} initialization took ${initEndTime[0]}s ${initEndTime[1] / 1000000}ms`);
             }
 
-            await this._loadModuleImplementation(filePath, moduleName, startTime);
+            const endTime = process.hrtime(startTime);
+            logger.info(`Successfully loaded module: ${moduleName} (Total time: ${endTime[0]}s ${endTime[1] / 1000000}ms)`);
         } catch (err) {
             errorHandler(err, `Loading module ${moduleName}`);
             throw err;
         }
-    }
-
-    async _loadModuleImplementation(filePath, moduleName, startTime) {
-        const module = require(filePath);
-        this.modules.set(moduleName, module);
-        this.loadedModules.add(moduleName);
-        
-        if (typeof module.initialize === 'function') {
-            const initStartTime = process.hrtime();
-            await module.initialize();
-            const initEndTime = process.hrtime(initStartTime);
-            logger.info(`Module ${moduleName} initialization took ${initEndTime[0]}s ${initEndTime[1] / 1000000}ms`);
-        }
-
-        const endTime = process.hrtime(startTime);
-        logger.info(`Successfully loaded module: ${moduleName} (Total time: ${endTime[0]}s ${endTime[1] / 1000000}ms)`);
-    }
-
-    async getModule(moduleName) {
-        // If module is already loaded, return it
-        if (this.loadedModules.has(moduleName)) {
-            return this.modules.get(moduleName);
-        }
-
-        // If lazy loading is enabled and module path exists, load it
-        if (this.lazyLoadingEnabled && this.modulePaths.has(moduleName)) {
-            const filePath = this.modulePaths.get(moduleName);
-            await this._loadModuleImplementation(filePath, moduleName, process.hrtime());
-            return this.modules.get(moduleName);
-        }
-
-        throw new Error(`Module ${moduleName} not found or not available for lazy loading`);
     }
 
     async unloadModule(moduleName) {
@@ -180,6 +146,10 @@ class ModuleManager {
             throw err;
         }
     }
+
+    getModule(moduleName) {
+        return this.modules.get(moduleName);
+    }
 }
 
 // Asynchronous Module Loading
@@ -192,19 +162,18 @@ async function loadModules(moduleManager) {
                 const moduleName = file.replace('.js', '');
                 const filePath = path.join(config.modules.directory, file);
                 try {
-                    // Force load if lazy loading is disabled or defaultLoad is true
-                    const forceLoad = !config.modules.lazyLoading.enabled || config.modules.lazyLoading.defaultLoad;
-                    await moduleManager.loadModule(filePath, moduleName, forceLoad);
+                    await moduleManager.loadModule(filePath, moduleName);
                 } catch (err) {
                     logger.error(`Failed to load module ${moduleName}:`, {
                         error: err.message,
                         stack: err.stack
                     });
+                    // 不拋出錯誤，讓其他模塊繼續加載
                 }
             });
         
         await Promise.all(modulePromises);
-        logger.info('All modules registered successfully');
+        logger.info('All modules loaded successfully');
     } catch (err) {
         errorHandler(err, 'Reading modules directory');
         throw err;

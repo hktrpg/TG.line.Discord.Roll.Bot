@@ -27,6 +27,7 @@ class Logger {
             debug: 3
         };
         this.currentLevel = this.levels[config.logging.level] || this.levels.info;
+        this.writeQueue = new Set();
     }
 
     formatMessage(level, message, meta = {}) {
@@ -36,15 +37,16 @@ class Logger {
     }
 
     async writeToFile(message, isError = false) {
-        try {
-            const file = isError ? config.logging.errorFile : config.logging.logFile;
-            await fs.appendFile(file, message + '\n', 'utf8');
-        } catch (err) {
-            console.error('Failed to write to log file:', err);
-        }
+        const file = isError ? config.logging.errorFile : config.logging.logFile;
+        const writePromise = fs.appendFile(file, message + '\n', 'utf8')
+            .catch(err => console.error('Failed to write to log file:', err))
+            .finally(() => this.writeQueue.delete(writePromise));
+        
+        this.writeQueue.add(writePromise);
+        return writePromise;
     }
 
-    error(message, meta = {}) {
+    async error(message, meta = {}) {
         if (this.currentLevel >= this.levels.error) {
             const formattedMessage = this.formatMessage('error', message, meta);
             console.error(formattedMessage);
@@ -52,7 +54,7 @@ class Logger {
         }
     }
 
-    warn(message, meta = {}) {
+    async warn(message, meta = {}) {
         if (this.currentLevel >= this.levels.warn) {
             const formattedMessage = this.formatMessage('warn', message, meta);
             console.warn(formattedMessage);
@@ -60,7 +62,7 @@ class Logger {
         }
     }
 
-    info(message, meta = {}) {
+    async info(message, meta = {}) {
         if (this.currentLevel >= this.levels.info) {
             const formattedMessage = this.formatMessage('info', message, meta);
             console.info(formattedMessage);
@@ -68,11 +70,18 @@ class Logger {
         }
     }
 
-    debug(message, meta = {}) {
+    async debug(message, meta = {}) {
         if (this.currentLevel >= this.levels.debug) {
             const formattedMessage = this.formatMessage('debug', message, meta);
             console.debug(formattedMessage);
             this.writeToFile(formattedMessage);
+        }
+    }
+
+    // 新增：等待所有日誌寫入完成
+    async flush() {
+        if (this.writeQueue.size > 0) {
+            await Promise.all(Array.from(this.writeQueue));
         }
     }
 }
@@ -175,11 +184,17 @@ async function loadModules(moduleManager) {
 async function gracefulShutdown(moduleManager) {
     logger.info('Starting graceful shutdown...');
     
-    // Unload all loaded modules
-    for (const moduleName of moduleManager.loadedModules) {
-        await moduleManager.unloadModule(moduleName);
-    }
-
+    // Unload all loaded modules in parallel
+    const unloadPromises = Array.from(moduleManager.loadedModules).map(moduleName => 
+        moduleManager.unloadModule(moduleName).catch(err => {
+            logger.error(`Failed to unload module ${moduleName}:`, {
+                error: err.message,
+                stack: err.stack
+            });
+        })
+    );
+    
+    await Promise.all(unloadPromises);
     logger.info('Graceful shutdown completed');
     process.exit(0);
 }

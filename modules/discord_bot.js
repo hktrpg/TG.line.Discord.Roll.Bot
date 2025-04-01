@@ -671,7 +671,7 @@ async function repeatMessage(discord, message) {
 	try {
 		let messageData = message.myName || message.myspeck;
 		if (!messageData) return;
-		
+
 		let text = await rollText(messageData.content);
 		//threadId: discord.channelId,
 		let obj = {
@@ -1046,7 +1046,7 @@ async function handlingResponMessage(message, answer = '') {
 		if (!trigger) return await nonDice(message)
 
 		const groupid = (message.guildId) ? message.guildId : '';
-		if ((trigger == ".me" || trigger == ".mee") && !z_stop(mainMsg, groupid)) return await __sendMeMessage({ message, inputStr, groupid })
+
 
 		let rplyVal = {};
 		const checkPrivateMsg = __privateMsg({ trigger, mainMsg, inputStr });
@@ -1093,10 +1093,9 @@ async function handlingResponMessage(message, answer = '') {
 		if (rplyVal.roleReactFlag) await roleReact(channelid, rplyVal)
 		if (rplyVal.newRoleReactFlag) await newRoleReact(message, rplyVal)
 		if (rplyVal.discordEditMessage) await handlingEditMessage(message, rplyVal)
-
-		if (rplyVal.myName) await repeatMessage(message, rplyVal);
+		if (rplyVal.myspeck) return await __sendMeMessage({ message, rplyVal, groupid })
 		if (rplyVal.myNames) await repeatMessages(message, rplyVal);
-		if (rplyVal.myspeck) await repeatMessage(message, rplyVal);
+
 
 		if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 
@@ -1529,49 +1528,15 @@ async function __handlingInteractionMessage(message) {
 	}
 }
 
-async function __sendMeMessage({ message, inputStr, groupid }) {
-	// Instead of handling .me directly, pass it through z_myname.js module
-	// This will be caught by the /^\.me$|^\.mee$/i case in z_myname.js
-	const userid = (message.author && message.author.id) || (message.user && message.user.id) || '';
-	const displayname = (message.member && message.member.user && message.member.user.tag) || (message.user && message.user.username) || '';
-	const displaynameDiscord = (message.member && message.member.user && message.member.user.username) ? message.member.user.username : '';
-	const membercount = (message.guild) ? message.guild.memberCount : 0;
-	const titleName = ((message.guild && message.guild.name) ? message.guild.name + ' ' : '') + ((message.channel && message.channel.name) ? message.channel.name : '');
-	const channelid = (message.channelId) ? message.channelId : '';
-	const userrole = __checkUserRole(groupid, message);
+async function __sendMeMessage({ message, rplyVal, groupid }) {
 
-	// Get the z_myname module
-	const zMyname = require('../roll/z_myname');
-	
-	// Process through z_myname to get the response
-	const rplyVal = await zMyname.rollDiceCommand({
-		inputStr: inputStr,
-		mainMsg: inputStr.match(/\S+/ig),
-		userid: userid,
-		botname: "Discord",
-		groupid: groupid,
-		userrole: userrole,
-		displayname: displayname,
-		channelid: channelid,
-		displaynameDiscord: displaynameDiscord,
-		membercount: membercount,
-		discordClient: client,
-		discordMessage: message,
-		titleName: titleName
-	});
-
-	// Handle the response from z_myname
-	if (rplyVal && rplyVal.myspeck) {
-		await repeatMessage(message, rplyVal);
-	} else if (rplyVal && rplyVal.text) {
-		// Fallback if myspeck is not generated
-		if (groupid) {
-			await SendToReplychannel({ replyText: rplyVal.text, channelid: message.channel.id });
-		} else {
-			SendToReply({ replyText: rplyVal.text, message });
-		}
+	console.log(rplyVal)
+	// Fallback if myspeck is not generated
+	if (groupid) {
+		await SendToReplychannel({ replyText: rplyVal.myspeck.content, channelid: message.channel.id });
+	} else {
+		SendToReply({ replyText: rplyVal.text, message });
 	}
-	
 	return;
 }
 

@@ -84,24 +84,6 @@ const errorMessage = `輸入出錯\n留意各個資料前要有空格分隔\n
 .myname 泉心造史 https://example.com/example.jpg
 `
 const initialize = function () {
-    // Ensure models are initialized
-    try {
-        const mongoose = require('mongoose');
-        // Check if MyNameRecord model exists, if not, try to initialize it
-        if (!mongoose.models.MyNameRecord) {
-            console.log('Initializing MyNameRecord model in z_myname.js');
-            // This should trigger the model to be registered if it wasn't already
-            if (schema.myNameRecord) {
-                console.log('MyNameRecord found in schema');
-            } else {
-                console.log('MyNameRecord not found in schema, may need to be created');
-            }
-        } else {
-            console.log('MyNameRecord model already exists');
-        }
-    } catch (error) {
-        console.error('Error initializing models in z_myname.js:', error);
-    }
 
     return "";
 }
@@ -134,21 +116,9 @@ const rollDiceCommand = async function ({
 
             try {
                 // Fetch the last 20 records for this group
-                console.log(`Getting history for group: ${groupid}`);
                 const history = await getGroupHistory(groupid);
-
-                // Debug check
-                console.log('Retrieved history:',
-                    history ?
-                        `Found record with ${history.records ? history.records.length : 0} entries` :
-                        'No history found');
-
                 // Format the history entries as a string
                 const formattedText = await formatHistory(history.records);
-
-                // Debug log
-                console.log('Formatted history type:', typeof formattedText);
-
                 rply.text = formattedText;
                 rply.quotes = true;
                 return rply;
@@ -372,14 +342,6 @@ const rollDiceCommand = async function ({
 // Function to save myName usage record for a group, keeping only the last 20 records
 async function saveMyNameRecord(groupID, userID, myNameID, name, imageLink, content, displaynameDiscord, displayname) {
     try {
-        console.log(`Saving record for group ${groupID}:`, {
-            userID,
-            myNameID: myNameID || 'N/A',
-            name,
-            displayname: displaynameDiscord || displayname || 'Unknown',
-            content: content.substring(0, 30) + (content.length > 30 ? '...' : '')
-        });
-
         // Check if schema.myNameRecord exists and is a valid model
         if (!schema.myNameRecord) {
             console.error('myNameRecord model not found in schema');
@@ -411,13 +373,6 @@ async function saveMyNameRecord(groupID, userID, myNameID, name, imageLink, cont
             },
             { upsert: true, new: true }
         );
-
-        if (record && record.records) {
-            console.log(`Record saved successfully. Total records: ${record.records.length}`);
-        } else {
-            console.log('Record saved but no records array returned');
-        }
-
         return record;
     } catch (error) {
         console.error('Error saving myName record:', error);
@@ -520,13 +475,6 @@ async function getGroupHistory(groupID) {
 
         // Find the record for this group
         const record = await schema.myNameRecord.findOne({ groupID }).lean();
-
-        // Debug log
-        console.log('Retrieved record:',
-            record ?
-                `Found with ${record.records ? record.records.length : 0} entries` :
-                'No record found');
-
         // If no record exists or it has no records array, return an empty array for consistent handling
         if (!record || !record.records || !Array.isArray(record.records)) {
             return { records: [] };

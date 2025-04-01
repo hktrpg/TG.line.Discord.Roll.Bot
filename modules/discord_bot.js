@@ -688,7 +688,6 @@ async function repeatMessage(discord, message) {
 }
 
 async function repeatMessages(discord, message) {
-	console.log(message)
 	try {
 		let webhook = await manageWebhook(discord);
 		for (let index = 0; index < message.myNames.length; index++) {
@@ -705,7 +704,6 @@ async function repeatMessages(discord, message) {
 		}
 
 	} catch (error) {
-		console.log(error)
 		await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 		return;
 	}
@@ -1089,7 +1087,6 @@ async function handlingResponMessage(message, answer = '') {
 			discordMessage: message,
 			titleName: titleName
 		});
-		console.log(rplyVal)
 		if (rplyVal.requestRollingCharacter) await handlingRequestRollingCharacter(message, rplyVal.requestRollingCharacter);
 		if (rplyVal.requestRolling) await handlingRequestRolling(message, rplyVal.requestRolling, displaynameDiscord);
 		if (rplyVal.buttonCreate) rplyVal.buttonCreate = await handlingButtonCreate(message, rplyVal.buttonCreate)

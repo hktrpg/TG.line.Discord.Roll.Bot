@@ -237,9 +237,15 @@ async function init() {
 
         // Handle unhandled promise rejections
         process.on('unhandledRejection', (reason, promise) => {
-            // 檢查是否為數據庫認證錯誤
-            if (reason.message && (reason.message.includes('bad auth') || reason.message.includes('Authentication failed'))) {
-                errorHandler(reason, 'Database Authentication Error');
+            // 檢查是否為數據庫相關錯誤
+            if (reason.message && (
+                reason.message.includes('MongoDB') ||
+                reason.message.includes('bad auth') ||
+                reason.message.includes('Authentication failed') ||
+                reason.message.includes('connection timed out') ||
+                reason.message.includes('MongoServerSelectionError')
+            )) {
+                errorHandler(reason, 'Database Connection Error');
                 // 不關閉應用程序，讓重連機制處理
                 return;
             }

@@ -6,16 +6,50 @@ const path = require('path');
 const util = require('util');
 const readdir = util.promisify(fs.readdir);
 
+// Create an index of available roll modules
+const rollModules = new Map();
+
+// Initialize the module index
 (async function () {
-	const files = await readdir('./roll/');
-	files.forEach((file) => {
-		const name = path.basename(file, '.js');
-		if ((name !== 'index' || name !== 'demo') && file.endsWith('.js')) {
-			exports[name] = require(path.join(__dirname, '../roll/', file));
-		}
-	});
+	try {
+		const files = await readdir('./roll/');
+		files.forEach((file) => {
+			const name = path.basename(file, '.js');
+			if ((name !== 'index' && name !== 'demo') && file.endsWith('.js')) {
+				rollModules.set(name.toLowerCase(), {
+					name,
+					path: path.join(__dirname, '../roll/', file)
+				});
+			}
+		});
+	} catch (error) {
+		console.error('Error initializing roll modules:', error);
+	}
 }());
 
+// Lazy loading function for roll modules
+function getRollModule(moduleName) {
+	if (!moduleName) return null;
+	
+	const moduleInfo = rollModules.get(moduleName.toLowerCase());
+	if (!moduleInfo) return null;
+	
+	// Only require the module when it's first accessed
+	if (!exports[moduleInfo.name]) {
+		try {
+			exports[moduleInfo.name] = require(moduleInfo.path);
+			// Special handling for z_stop module
+			if (moduleInfo.name === 'z_stop' && exports[moduleInfo.name].initialize) {
+				exports[moduleInfo.name] = exports[moduleInfo.name].initialize();
+			}
+		} catch (error) {
+			console.error(`Error loading module ${moduleInfo.name}:`, error);
+			return null;
+		}
+	}
+	
+	return exports[moduleInfo.name];
+}
 
 const schema = require('./schema.js');
 const debugMode = (process.env.DEBUG) ? true : false;
@@ -196,27 +230,29 @@ function findRollList(mainMsg) {
 	// Set default empty string for mainMsg[1] if undefined
 	if (!mainMsg[1]) mainMsg[1] = '';
 
-	const idList = Object.values(exports);
-	const findTarget = idList.find(item => {
-		if (item && item.prefixs && typeof item.prefixs === 'function') {
-			const prefixList = item.prefixs();
-			if (!Array.isArray(prefixList)) return false;
+	// Iterate through available modules
+	for (const [moduleName, moduleInfo] of rollModules) {
+		const module = getRollModule(moduleName);
+		if (!module || !module.prefixs || typeof module.prefixs !== 'function') continue;
 
-			return prefixList.some(prefix => {
-				// Check if mainMsg[0] exists and matches first prefix
-				if (!mainMsg || !mainMsg[0] || !prefix || !prefix.first) return false;
-				const firstMatch = mainMsg[0].match(prefix.first);
-				if (!firstMatch) return false;
+		const prefixList = module.prefixs();
+		if (!Array.isArray(prefixList)) continue;
 
-				// Check second prefix if it exists
-				if (prefix.second === null) return true;
-				return mainMsg[1] && mainMsg[1].match(prefix.second);
-			});
-		}
-		return false;
-	});
+		const match = prefixList.some(prefix => {
+			// Check if mainMsg[0] exists and matches first prefix
+			if (!mainMsg || !mainMsg[0] || !prefix || !prefix.first) return false;
+			const firstMatch = mainMsg[0].match(prefix.first);
+			if (!firstMatch) return false;
 
-	return findTarget;
+			// Check second prefix if it exists
+			if (prefix.second === null) return true;
+			return mainMsg[1] && mainMsg[1].match(prefix.second);
+		});
+
+		if (match) return module;
+	}
+
+	return null;
 }
 
 async function stateText() {
@@ -294,10 +330,10 @@ async function cmdfunction({ result, ...context }) {
 }
 
 function z_stop(mainMsg, groupid) {
-	const zStopData = exports.z_stop.initialize().save;
-	if (!zStopData) return false;
+	const zStopModule = getRollModule('z_stop');
+	if (!zStopModule || !zStopModule.save) return false;
 
-	const groupInfo = zStopData.find(e => e.groupid == groupid);
+	const groupInfo = zStopModule.save.find(e => e.groupid == groupid);
 	if (!groupInfo || !groupInfo.blockfunction) return false;
 
 	const match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()));

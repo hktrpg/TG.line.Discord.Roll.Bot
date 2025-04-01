@@ -27,6 +27,7 @@ class Logger {
             debug: 3
         };
         this.currentLevel = this.levels[config.logging.level] || this.levels.info;
+        this.writeQueue = new Set();
     }
 
     formatMessage(level, message, meta = {}) {
@@ -36,15 +37,16 @@ class Logger {
     }
 
     async writeToFile(message, isError = false) {
-        try {
-            const file = isError ? config.logging.errorFile : config.logging.logFile;
-            await fs.appendFile(file, message + '\n', 'utf8');
-        } catch (err) {
-            console.error('Failed to write to log file:', err);
-        }
+        const file = isError ? config.logging.errorFile : config.logging.logFile;
+        const writePromise = fs.appendFile(file, message + '\n', 'utf8')
+            .catch(err => console.error('Failed to write to log file:', err))
+            .finally(() => this.writeQueue.delete(writePromise));
+        
+        this.writeQueue.add(writePromise);
+        return writePromise;
     }
 
-    error(message, meta = {}) {
+    async error(message, meta = {}) {
         if (this.currentLevel >= this.levels.error) {
             const formattedMessage = this.formatMessage('error', message, meta);
             console.error(formattedMessage);
@@ -52,7 +54,7 @@ class Logger {
         }
     }
 
-    warn(message, meta = {}) {
+    async warn(message, meta = {}) {
         if (this.currentLevel >= this.levels.warn) {
             const formattedMessage = this.formatMessage('warn', message, meta);
             console.warn(formattedMessage);
@@ -60,7 +62,7 @@ class Logger {
         }
     }
 
-    info(message, meta = {}) {
+    async info(message, meta = {}) {
         if (this.currentLevel >= this.levels.info) {
             const formattedMessage = this.formatMessage('info', message, meta);
             console.info(formattedMessage);
@@ -68,11 +70,18 @@ class Logger {
         }
     }
 
-    debug(message, meta = {}) {
+    async debug(message, meta = {}) {
         if (this.currentLevel >= this.levels.debug) {
             const formattedMessage = this.formatMessage('debug', message, meta);
             console.debug(formattedMessage);
             this.writeToFile(formattedMessage);
+        }
+    }
+
+    // 新增：等待所有日誌寫入完成
+    async flush() {
+        if (this.writeQueue.size > 0) {
+            await Promise.all(Array.from(this.writeQueue));
         }
     }
 }
@@ -96,6 +105,7 @@ class ModuleManager {
     }
 
     async loadModule(filePath, moduleName) {
+        const startTime = process.hrtime();
         try {
             if (this.loadedModules.has(moduleName)) {
                 logger.warn(`Module ${moduleName} is already loaded`);
@@ -105,12 +115,17 @@ class ModuleManager {
             const module = require(filePath);
             this.modules.set(moduleName, module);
             this.loadedModules.add(moduleName);
-            logger.info(`Successfully loaded module: ${moduleName}`);
-
+            
             // Call initialize method if available
             if (typeof module.initialize === 'function') {
+                const initStartTime = process.hrtime();
                 await module.initialize();
+                const initEndTime = process.hrtime(initStartTime);
+                logger.info(`Module ${moduleName} initialization took ${initEndTime[0]}s ${initEndTime[1] / 1000000}ms`);
             }
+
+            const endTime = process.hrtime(startTime);
+            logger.info(`Successfully loaded module: ${moduleName} (Total time: ${endTime[0]}s ${endTime[1] / 1000000}ms)`);
         } catch (err) {
             errorHandler(err, `Loading module ${moduleName}`);
             throw err;
@@ -141,14 +156,24 @@ class ModuleManager {
 async function loadModules(moduleManager) {
     try {
         const files = await fs.readdir(config.modules.directory);
-        
-        for (const file of files) {
-            if (file.match(config.modules.pattern)) {
+        const modulePromises = files
+            .filter(file => file.match(config.modules.pattern))
+            .map(async file => {
                 const moduleName = file.replace('.js', '');
                 const filePath = path.join(config.modules.directory, file);
-                await moduleManager.loadModule(filePath, moduleName);
-            }
-        }
+                try {
+                    await moduleManager.loadModule(filePath, moduleName);
+                } catch (err) {
+                    logger.error(`Failed to load module ${moduleName}:`, {
+                        error: err.message,
+                        stack: err.stack
+                    });
+                    // 不拋出錯誤，讓其他模塊繼續加載
+                }
+            });
+        
+        await Promise.all(modulePromises);
+        logger.info('All modules loaded successfully');
     } catch (err) {
         errorHandler(err, 'Reading modules directory');
         throw err;
@@ -159,22 +184,33 @@ async function loadModules(moduleManager) {
 async function gracefulShutdown(moduleManager) {
     logger.info('Starting graceful shutdown...');
     
-    // Unload all loaded modules
-    for (const moduleName of moduleManager.loadedModules) {
-        await moduleManager.unloadModule(moduleName);
-    }
-
+    // Unload all loaded modules in parallel
+    const unloadPromises = Array.from(moduleManager.loadedModules).map(moduleName => 
+        moduleManager.unloadModule(moduleName).catch(err => {
+            logger.error(`Failed to unload module ${moduleName}:`, {
+                error: err.message,
+                stack: err.stack
+            });
+        })
+    );
+    
+    await Promise.all(unloadPromises);
     logger.info('Graceful shutdown completed');
     process.exit(0);
 }
 
 // Application Initialization
 async function init() {
+    const startTime = process.hrtime();
     const moduleManager = new ModuleManager();
     
     try {
         // Load modules
+        const loadStartTime = process.hrtime();
         await loadModules(moduleManager);
+        const loadEndTime = process.hrtime(loadStartTime);
+        logger.info(`Module loading took ${loadEndTime[0]}s ${loadEndTime[1] / 1000000}ms`);
+
         logger.info('Application started successfully');
 
         // Setup shutdown handlers
@@ -214,6 +250,9 @@ async function init() {
                 gracefulShutdown(moduleManager);
             }
         });
+
+        const endTime = process.hrtime(startTime);
+        logger.info(`Total initialization took ${endTime[0]}s ${endTime[1] / 1000000}ms`);
 
     } catch (err) {
         errorHandler(err, 'Initialization');

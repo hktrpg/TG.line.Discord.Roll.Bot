@@ -14,7 +14,21 @@ const _DEFAULT_CANDLE = '🕯️';
 const _ANIMALS = ['🐶汪汪', '🐱喵', '🐭吱吱', '🐰', '🦊', '🐻', '🐯', '🦁', '🐮', '🐷呠呠', '🐸呱呱', '🐒嘰嘰', '🐔', '🦆', '🐺', '🐝嗡嗡', '🐋🦈', '🦉', '🦄', '🦌呦呦'];
 
 class CandleChecker {
+    static #instance = null;
+
+    static getInstance(customDate = null) {
+        if (!CandleChecker.#instance) {
+            CandleChecker.#instance = new CandleChecker(customDate);
+        }
+        return CandleChecker.#instance;
+    }
+
     constructor(customDate = null) {
+        if (CandleChecker.#instance) {
+            return CandleChecker.#instance;
+        }
+        CandleChecker.#instance = this;
+
         this.monthDays = [];
         this.today = {};
         this.customDate = customDate;
@@ -29,119 +43,161 @@ class CandleChecker {
         this.#checkForCandle();
     }
 
+    #validateDate(month, day) {
+        if (month < 1 || month > 12) return false;
+        const daysInMonth = new Date(2024, month, 0).getDate();
+        return day >= 1 && day <= daysInMonth;
+    }
+
     #checkForCandle() {
         this.isCandleDay = this.monthDays.some(({ month, day }) =>
             month === this.today.Month && day === this.today.Date
-        )
+        );
         if (this.isCandleDay) {
             this.todayCandle = this.monthDays.find(({ month, day }) =>
                 month === this.today.Month && day === this.today.Date
             ).candle || _DEFAULT_CANDLE;
+        } else {
+            this.todayCandle = '';
         }
-        else this.todayCandle = '';
         console.log(`[CandleChecker] Today is ${this.today.Month}/${this.today.Date}, isCandleDay: ${this.isCandleDay}, candle: ${this.checker()}`);
     }
 
     #importDates() {
         this.monthDays = [];
-        process.env.CANDLE_DATES?.split(/\s+/).forEach((date) => {
-            const [month, day, candle] = date.split(',');
-            if (!isNaN(month) && !isNaN(day)) {
-                this.monthDays.push({ month: Number(month), day: Number(day), candle: candle || _DEFAULT_CANDLE });
-            }
-        });
+        try {
+            const dates = process.env.CANDLE_DATES?.split(/\s+/) || [];
+            dates.forEach((date) => {
+                const [month, day, candle] = date.split(',');
+                const monthNum = Number(month);
+                const dayNum = Number(day);
+
+                if (!isNaN(monthNum) && !isNaN(dayNum) && this.#validateDate(monthNum, dayNum)) {
+                    this.monthDays.push({
+                        month: monthNum,
+                        day: dayNum,
+                        candle: candle || _DEFAULT_CANDLE
+                    });
+                } else {
+                    console.warn(`[CandleChecker] Invalid date format: ${date}`);
+                }
+            });
+        } catch (error) {
+            console.error('[CandleChecker] Error importing dates:', error);
+        }
     }
 
     #getAprilFoolsAnimal(userid) {
         if (!userid) return '';
-        let sum = 0;
-        for (let i = 0; i < userid.length; i++) {
-            sum += userid.charCodeAt(i);
+        try {
+            let sum = 0;
+            for (let i = 0; i < userid.length; i++) {
+                sum += userid.charCodeAt(i);
+            }
+            return _ANIMALS[sum % _ANIMALS.length];
+        } catch (error) {
+            console.error('[CandleChecker] Error getting April Fools animal:', error);
+            return '';
         }
-        return _ANIMALS[sum % _ANIMALS.length];
     }
 
     checker(userid = null) {
-        // Check if it's April 1st and userid is provided
-        if (this.today.Month === 4 && this.today.Date === 1 && userid) {
-            return this.#getAprilFoolsAnimal(userid);
+        try {
+            // Check if it's April 1st and userid is provided
+            if (this.today.Month === 4 && this.today.Date === 1 && userid) {
+                return this.#getAprilFoolsAnimal(userid);
+            }
+            return this.todayCandle;
+        } catch (error) {
+            console.error('[CandleChecker] Error in checker:', error);
+            return '';
         }
-        return this.todayCandle;
     }
 
     #scheduleFunction() {
-        if (this.timer) {
-            clearTimeout(this.timer);
+        try {
+            if (this.timer) {
+                clearTimeout(this.timer);
+            }
+            const now = new Date();
+            const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+            const msUntilMidnight = tomorrow.getTime() - now.getTime() + 5000;
+
+            this.timer = setTimeout(() => {
+                this.#scheduleFunction();
+                this.#updateToday();
+                this.#checkForCandle();
+            }, msUntilMidnight);
+        } catch (error) {
+            console.error('[CandleChecker] Error scheduling function:', error);
         }
-        const now = new Date(); // 當前日期和時間
-        const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1); // 明天日期
-        const msUntilMidnight = tomorrow.getTime() - now.getTime() + 5000; // 距離明天 00:00 +1000 的毫秒數
-        this.timer = setTimeout(() => {
-            this.#scheduleFunction(); // 設定下一次定時任務
-            this.#updateToday(); // 更新今天的日期
-            this.#checkForCandle();// 檢查是否是指定日期，如果是的話，設定 this.isCandleDay 為 true
-        }, msUntilMidnight); // 設定定時器等待到明天 00:00+5秒 後執行
     }
 
     #updateToday() {
-        const today = this.customDate || new Date();
-        this.today = {
-            Month: today.getMonth() + 1,
-            Date: today.getDate()
+        try {
+            const today = this.customDate || new Date();
+            this.today = {
+                Month: today.getMonth() + 1,
+                Date: today.getDate()
+            };
+        } catch (error) {
+            console.error('[CandleChecker] Error updating today:', error);
         }
     }
 
     // For testing purposes
     reset(customDate = null) {
-        if (this.timer) {
-            clearTimeout(this.timer);
-            this.timer = null;
-        }
-        this.customDate = customDate;
-        this.monthDays = [];
-        this.#importDates();
-        this.#updateToday();
-        this.#checkForCandle();
-        if (!customDate) {
-            this.#scheduleFunction();
+        try {
+            if (this.timer) {
+                clearTimeout(this.timer);
+                this.timer = null;
+            }
+            this.customDate = customDate;
+            this.monthDays = [];
+            this.#importDates();
+            this.#updateToday();
+            this.#checkForCandle();
+            if (!customDate) {
+                this.#scheduleFunction();
+            }
+        } catch (error) {
+            console.error('[CandleChecker] Error in reset:', error);
         }
     }
 
     // For testing purposes
     setDate(customDate) {
-        this.customDate = customDate;
-        this.#updateToday();
-        this.#checkForCandle();
+        try {
+            this.customDate = customDate;
+            this.#updateToday();
+            this.#checkForCandle();
+        } catch (error) {
+            console.error('[CandleChecker] Error in setDate:', error);
+        }
     }
 
     // For cleanup
     cleanup() {
-        if (this.timer) {
-            clearTimeout(this.timer);
-            this.timer = null;
+        try {
+            if (this.timer) {
+                clearTimeout(this.timer);
+                this.timer = null;
+            }
+        } catch (error) {
+            console.error('[CandleChecker] Error in cleanup:', error);
         }
     }
 }
 
-// 使用方法：
-let candleChecker = new CandleChecker(); // 初始化
+// Initialize singleton instance
+let candleChecker = CandleChecker.getInstance();
 
-// 當日期改變後，使用此方法檢查今天是否是指定日期
+// Export methods
 exports.checker = (userid = null) => candleChecker.checker(userid);
-
-// For testing purposes
 exports.reset = (customDate = null) => {
     candleChecker.cleanup();
-    candleChecker = new CandleChecker(customDate);
+    candleChecker = CandleChecker.getInstance(customDate);
 };
-
-// For testing purposes
-exports.setDate = (customDate) => {
-    candleChecker.setDate(customDate);
-};
-
-// For cleanup
-exports.cleanup = () => {
-    candleChecker.cleanup();
-};
+exports.setDate = (customDate) => candleChecker.setDate(customDate);
+exports.cleanup = () => candleChecker.cleanup();
 

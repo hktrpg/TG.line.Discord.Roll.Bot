@@ -130,7 +130,7 @@ const rollDiceCommand = async function ({
             }
         }
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
-            rply.text = this.getHelpMessage();
+            rply.text = await getHelpMessage();
             rply.quotes = true;
             return rply;
         }
@@ -140,9 +140,7 @@ const rollDiceCommand = async function ({
                 let result = showNames(myNames);
                 if (typeof result == 'string') rply.text = result;
                 else rply.myNames = result;
-            }
-
-            else {
+            } else {
                 rply.text = showNamesInText(myNames);
             }
             return rply;
@@ -198,7 +196,7 @@ const rollDiceCommand = async function ({
             }
             let lv = await VIP.viplevelCheckUser(userid);
             let limit = limitAtArr[lv];
-            let myNamesLength = await schema.myName.countDocuments({ userID: userid })
+            let myNamesLength = await schema.myName.countDocuments({ userID: userid });
             if (myNamesLength >= limit) {
                 rply.text = '.myname 個人上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 rply.quotes = true;
@@ -217,17 +215,22 @@ const rollDiceCommand = async function ({
             }
             let myName = {};
             try {
-                myName = await schema.myName.findOneAndUpdate({ userID: userid, name: checkName.name }, { imageLink: checkName.imageLink, shortName: checkName.shortName }, opt)
+                myName = await schema.myName.findOneAndUpdate(
+                    { userID: userid, name: checkName.name },
+                    { imageLink: checkName.imageLink, shortName: checkName.shortName },
+                    opt
+                );
             } catch (error) {
                 rply.text = `發生了一點錯誤，請稍後再試`;
                 return rply;
             }
             rply.text = `已新增角色 - ${myName.name}`;
-            let myNames = await schema.myName.find({ userID: userid })
-
-            if (groupid) { rply.myNames = [showName(myNames, myName.name)]; }
-            else {
-                rply.text += showName(myNames, myName.name).content;
+            let myNames = await schema.myName.find({ userID: userid });
+            let nameResult = showName(myNames, myName.name);
+            if (groupid) {
+                rply.myNames = [nameResult];
+            } else {
+                rply.text += nameResult.content;
             }
             return rply;
         }

@@ -669,12 +669,15 @@ async function repeatMessage(discord, message) {
 	}
 	let webhook = await manageWebhook(discord);
 	try {
-		let text = await rollText(message.myName.content);
+		let messageData = message.myName || message.myspeck;
+		if (!messageData) return;
+		
+		let text = await rollText(messageData.content);
 		//threadId: discord.channelId,
 		let obj = {
 			content: text,
-			username: message.myName.username,
-			avatarURL: message.myName.avatarURL
+			username: messageData.username,
+			avatarURL: messageData.avatarURL
 		};
 		let pair = (webhook && webhook.isThread) ? { threadId: discord.channelId } : {};
 		await webhook.webhook.send({ ...obj, ...pair });
@@ -682,9 +685,6 @@ async function repeatMessage(discord, message) {
 		await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 		return;
 	}
-
-
-
 }
 
 async function repeatMessages(discord, message) {
@@ -1096,6 +1096,7 @@ async function handlingResponMessage(message, answer = '') {
 
 		if (rplyVal.myName) await repeatMessage(message, rplyVal);
 		if (rplyVal.myNames) await repeatMessages(message, rplyVal);
+		if (rplyVal.myspeck) await repeatMessage(message, rplyVal);
 
 		if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 
@@ -1529,15 +1530,48 @@ async function __handlingInteractionMessage(message) {
 }
 
 async function __sendMeMessage({ message, inputStr, groupid }) {
-	inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
-	if (inputStr.match(/^\s+$/)) {
-		inputStr = `.me 或 /mee 可以令HKTRPG機械人重覆你的說話\n請輸入復述內容`
+	// Instead of handling .me directly, pass it through z_myname.js module
+	// This will be caught by the /^\.me$|^\.mee$/i case in z_myname.js
+	const userid = (message.author && message.author.id) || (message.user && message.user.id) || '';
+	const displayname = (message.member && message.member.user && message.member.user.tag) || (message.user && message.user.username) || '';
+	const displaynameDiscord = (message.member && message.member.user && message.member.user.username) ? message.member.user.username : '';
+	const membercount = (message.guild) ? message.guild.memberCount : 0;
+	const titleName = ((message.guild && message.guild.name) ? message.guild.name + ' ' : '') + ((message.channel && message.channel.name) ? message.channel.name : '');
+	const channelid = (message.channelId) ? message.channelId : '';
+	const userrole = __checkUserRole(groupid, message);
+
+	// Get the z_myname module
+	const zMyname = require('../roll/z_myname');
+	
+	// Process through z_myname to get the response
+	const rplyVal = await zMyname.rollDiceCommand({
+		inputStr: inputStr,
+		mainMsg: inputStr.match(/\S+/ig),
+		userid: userid,
+		botname: "Discord",
+		groupid: groupid,
+		userrole: userrole,
+		displayname: displayname,
+		channelid: channelid,
+		displaynameDiscord: displaynameDiscord,
+		membercount: membercount,
+		discordClient: client,
+		discordMessage: message,
+		titleName: titleName
+	});
+
+	// Handle the response from z_myname
+	if (rplyVal && rplyVal.myspeck) {
+		await repeatMessage(message, rplyVal);
+	} else if (rplyVal && rplyVal.text) {
+		// Fallback if myspeck is not generated
+		if (groupid) {
+			await SendToReplychannel({ replyText: rplyVal.text, channelid: message.channel.id });
+		} else {
+			SendToReply({ replyText: rplyVal.text, message });
+		}
 	}
-	if (groupid) {
-		await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
-	} else {
-		SendToReply({ replyText: inputStr, message });
-	}
+	
 	return;
 }
 

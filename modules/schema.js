@@ -4,6 +4,7 @@ if (!process.env.mongoURL) {
 }
 
 const mongoose = require('./db-connector.js').mongoose;
+const { Schema } = mongoose;
 
 // Chat related schemas
 const chatTestSchema = mongoose.model('chattest', {
@@ -451,6 +452,22 @@ const multiServerSchema = mongoose.model('multiServer', new mongoose.Schema({
     botname: String
 }));
 
+// Schema for tracking last 20 myName usage records per group
+const myNameRecordSchema = new Schema({
+    groupID: { type: String, required: true, index: true },
+    records: [{
+        userID: { type: String, required: true },
+        myNameID: { type: Schema.Types.ObjectId, ref: 'UserName' },
+        name: { type: String, required: true },
+        imageLink: { type: String, required: true },
+        content: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now }
+    }]
+}, { timestamps: true });
+
+// First check if model already exists (to avoid model overwrite warning)
+const MyNameRecord = mongoose.models.MyNameRecord || mongoose.model('MyNameRecord', myNameRecordSchema);
+
 // MongoDB state check function
 const getMongoDBState = async () => {
     try {
@@ -503,5 +520,6 @@ module.exports = {
     randomAnsServer: randomAnswerServerSchema,
     randomAnsPersonal: randomAnswerPersonalSchema,
     translateChannel: translateChannelSchema,
-    bcdiceRegedit: bcdiceRegeditSchema
+    bcdiceRegedit: bcdiceRegeditSchema,
+    myNameRecord: MyNameRecord
 };

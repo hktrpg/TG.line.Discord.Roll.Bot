@@ -53,14 +53,6 @@ TGclient.on('text', async (ctx) => {
     }
     //指定啟動詞在第一個詞&把大階強制轉成細階
     let groupid = ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && userid && ctx.chat.id) ? ctx.chat.id : '';
-    if ((trigger == ".me" || trigger == ".mee") && !z_stop(mainMsg, groupid)) {
-        inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
-        if (inputStr.match(/^\s+$/)) {
-            inputStr = `.me 或 /mee 可以令HKTRPG機械人重覆你的說話\n請輸入復述內容`
-        }
-        SendToId(ctx.chat.id || userid, inputStr);
-        return;
-    }
     let privatemsg = 0;
 
     (function privateMsg() {
@@ -77,12 +69,12 @@ TGclient.on('text', async (ctx) => {
             inputStr = inputStr.replace(/^dddr\s+/i, '');
         }
     })();
+
     let target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
     if (!target) {
         await nonDice(ctx);
         return;
     }
-
 
     let displayname = '',
         membercount = 0,
@@ -102,7 +94,6 @@ TGclient.on('text', async (ctx) => {
         membercount = await TGclient.getChatMemberCount(ctx.chat.id).catch((error) => {
             return 0;
         });
-
     }
     //285083923223
     //userrole = 3
@@ -175,6 +166,11 @@ TGclient.on('text', async (ctx) => {
         })
 
     }
+    // Handle .me messages
+    if (rplyVal.myspeck) {
+        return await __sendMeMessage({ ctx, rplyVal, groupid });
+    }
+
     switch (true) {
         case privatemsg == 1:
             // 輸入dr  (指令) 私訊自己
@@ -457,3 +453,12 @@ bot.command('pipe', (ctx) => ctx.replyWithPhoto({
     url: 'https://picsum.photos/200/300/?random'
 }))
 */
+
+async function __sendMeMessage({ ctx, rplyVal, groupid }) {
+    if (groupid) {
+        await ctx.reply(rplyVal.myspeck.content);
+    } else {
+        SendToId(ctx.from.id, rplyVal.myspeck.content);
+    }
+    return;
+}

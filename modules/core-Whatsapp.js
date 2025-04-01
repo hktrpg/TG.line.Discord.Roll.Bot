@@ -244,6 +244,11 @@ async function processMessage(msg, groupInfo) {
 		return;
 	}
 
+	// Handle .me messages
+	if (rplyVal.myspeck) {
+		return await __sendMeMessage({ msg, rplyVal, groupid, client });
+	}
+
 	if (privatemsg > 1 && TargetGM) {
 		let groupInfo = privateMsgFinder(groupid) || [];
 		groupInfo.forEach((item) => {
@@ -300,6 +305,15 @@ async function handleReply(result, msg, client) {
 				await SendToReply(msg, rplyVal, userid);
 			break;
 	}
+}
+
+async function __sendMeMessage({ msg, rplyVal, groupid, client }) {
+	if (groupid) {
+		await msg.reply(rplyVal.myspeck.content);
+	} else {
+		await client.sendMessage(msg.from, rplyVal.myspeck.content);
+	}
+	return;
 }
 
 async function SendDR(msg, text) {

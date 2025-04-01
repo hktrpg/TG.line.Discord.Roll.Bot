@@ -275,7 +275,7 @@ client.once('ready', async () => {
 
 
 async function replilyMessage(message, result) {
-	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>${candle.checker()}\n` : '';
+	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>${candle.checker(message.member.id)}\n` : '';
 	if (result && result.text) {
 		result.text = `${displayname}${result.text}`
 		await __handlingReplyMessage(message, result);
@@ -1290,7 +1290,7 @@ async function handlingSendMessage(input) {
 			return;
 		default:
 			if (userid) {
-				sendText = `<@${userid}> ${(statue) ? statue : ''}${candle.checker()}\n${sendText}`;
+				sendText = `<@${userid}> ${(statue) ? statue : ''}${candle.checker(userid)}\n${sendText}`;
 			}
 			if (groupid) {
 				await SendToReplychannel({ replyText: sendText, channelid, quotes: quotes, buttonCreate: buttonCreate });

@@ -157,7 +157,7 @@ TGclient.on('text', async (ctx) => {
 
     //LevelUp功能
     if (groupid && rplyVal && rplyVal.LevelUp) {
-        let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}${(candle.checker()) ? ' ' + candle.checker() : ''}
+        let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}${(candle.checker(userid)) ? ' ' + candle.checker(userid) : ''}
 		${rplyVal.LevelUp}`
         SendToId(groupid, text, options);
 
@@ -218,7 +218,7 @@ TGclient.on('text', async (ctx) => {
         default:
             if (displaynamecheck && displayname) {
                 //285083923223
-                displayname = "@" + ctx.from.username + ((rplyVal.statue) ? ' ' + rplyVal.statue : '') + ((candle.checker()) ? ' ' + candle.checker() : '') + "\n";
+                displayname = "@" + ctx.from.username + ((rplyVal.statue) ? ' ' + rplyVal.statue : '') + ((candle.checker(userid)) ? ' ' + candle.checker(userid) : '') + "\n";
                 rplyVal.text = displayname + rplyVal.text;
             }
             SendToId((groupid || userid), rplyVal.text, options);

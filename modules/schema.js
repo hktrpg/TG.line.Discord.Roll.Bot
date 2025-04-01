@@ -461,6 +461,7 @@ const myNameRecordSchema = new Schema({
         name: { type: String, required: true },
         imageLink: { type: String, required: true },
         content: { type: String, required: true },
+        displayname: { type: String },
         timestamp: { type: Date, default: Date.now }
     }]
 }, { timestamps: true });

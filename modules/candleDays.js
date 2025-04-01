@@ -11,6 +11,8 @@
  * 
  */
 const _DEFAULT_CANDLE = '🕯️';
+const _ANIMALS = ['🐶汪汪', '🐱喵', '🐭吱吱', '🐰', '🦊', '🐻', '🐯', '🦁', '🐮', '🐷呠呠', '🐸呱呱', '🐒嘰嘰', '🐔', '🦆', '🐺', '🐝嗡嗡', '🐋🦈', '🦉', '🦄', '🦌呦呦'];
+
 class CandleChecker {
     constructor(customDate = null) {
         this.monthDays = [];
@@ -50,7 +52,20 @@ class CandleChecker {
         });
     }
 
-    checker() {
+    #getAprilFoolsAnimal(userid) {
+        if (!userid) return '';
+        let sum = 0;
+        for (let i = 0; i < userid.length; i++) {
+            sum += userid.charCodeAt(i);
+        }
+        return _ANIMALS[sum % _ANIMALS.length];
+    }
+
+    checker(userid = null) {
+        // Check if it's April 1st and userid is provided
+        if (this.today.Month === 4 && this.today.Date === 1 && userid) {
+            return this.#getAprilFoolsAnimal(userid);
+        }
         return this.todayCandle;
     }
 
@@ -112,7 +127,7 @@ class CandleChecker {
 let candleChecker = new CandleChecker(); // 初始化
 
 // 當日期改變後，使用此方法檢查今天是否是指定日期
-exports.checker = () => candleChecker.checker();
+exports.checker = (userid = null) => candleChecker.checker(userid);
 
 // For testing purposes
 exports.reset = (customDate = null) => {

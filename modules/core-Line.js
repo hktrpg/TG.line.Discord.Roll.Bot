@@ -257,7 +257,7 @@ let handleEvent = async function (event) {
 			if (displayname && rplyVal && rplyVal.type != 'image') {
 				//285083923223
 				displayname = "@" + displayname;
-				displayname += (candle.checker()) ? ' ' + candle.checker() : '';
+				displayname += (candle.checker(userid)) ? ' ' + candle.checker(userid) : '';
 				displayname += (rplyVal.statue) ? ' ' + rplyVal.statue + '\n' : "\n";
 				rplyVal.text = displayname + rplyVal.text;
 			}

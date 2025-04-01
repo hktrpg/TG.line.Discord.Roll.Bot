@@ -236,7 +236,7 @@ async function processMessage(msg, groupInfo) {
 	}
 
 	if (groupid && rplyVal && rplyVal.LevelUp) {
-		let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}${(candle.checker()) ? ' ' + candle.checker() : ''}
+		let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}${(candle.checker(userid)) ? ' ' + candle.checker(userid) : ''}
 		${rplyVal.LevelUp}`
 		client.sendMessage(msg.from, text);
 	}
@@ -297,7 +297,7 @@ async function handleReply(result, msg, client) {
 			if (displaynamecheck == false) {
 				await SendToId(msg.from, rplyVal, client);
 			} else
-				await SendToReply(msg, rplyVal);
+				await SendToReply(msg, rplyVal, userid);
 			break;
 	}
 }
@@ -306,7 +306,7 @@ async function SendDR(msg, text) {
 	return msg.reply(text);
 }
 
-async function SendToReply(msg, rplyVal) {
+async function SendToReply(msg, rplyVal, userid) {
 	for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
 			const imageMatch = rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i].match(imageUrl) || null;
@@ -321,7 +321,7 @@ async function SendToReply(msg, rplyVal) {
 					console.error(error);
 				}
 			}
-			msg.reply(`${(candle.checker()) ? candle.checker() + ' ' : ''}${rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]}`);
+			msg.reply(`${(candle.checker(userid)) ? candle.checker(userid) + ' ' : ''}${rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]}`);
 		}
 	}
 }

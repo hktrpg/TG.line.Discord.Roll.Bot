@@ -8,7 +8,6 @@ const TelegramBot = require('node-telegram-bot-api');
 const agenda = require('../modules/schedule')
 const rollText = require('./getRoll').rollText;
 exports.analytics = require('./analytics');
-exports.z_stop = require('../roll/z_stop');
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const TGclient = new TelegramBot(process.env.TELEGRAM_CHANNEL_SECRET, { polling: true });
 const newMessage = require('./message');
@@ -421,20 +420,6 @@ function sendNewstoAll(rply) {
     for (let index = 0; index < rply.target.length; index++) {
         SendToId(rply.target[index].userID, rply.sendNews);
     }
-}
-
-
-function z_stop(mainMsg = "", groupid = "") {
-    if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save || !mainMsg || !groupid) {
-        return false;
-    }
-    let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
-    if (!groupInfo || !groupInfo.blockfunction) return;
-    let match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()))
-    if (match) {
-        return true;
-    } else
-        return false;
 }
 
 TGclient.on('error', (error) => {

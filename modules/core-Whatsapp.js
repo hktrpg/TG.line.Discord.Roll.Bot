@@ -55,7 +55,6 @@ const normalPuppeteer = {
 const newMessage = require('./message');
 
 exports.analytics = require('./analytics');
-exports.z_stop = require('../roll/z_stop');
 const {
 	Client, LocalAuth, MessageMedia
 } = require('whatsapp-web.js');

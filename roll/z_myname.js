@@ -5,6 +5,7 @@ if (!process.env.mongoURL) {
 const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [10, 20, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema.js');
+const MAX_HISTORY_RECORDS = 20;
 const opt = {
     upsert: true,
     runValidators: true,
@@ -64,7 +65,7 @@ https://imgur.com/xxx.jpg 造
 │
 │ ■ 查看歷史:
 │ • .mehistory
-│   顯示群組最近20條.me發言記錄
+│   顯示群組最近${MAX_HISTORY_RECORDS}條.me發言記錄
 │
 │ ■ 整合擲骰:
 │ • 在訊息中使用[[指令]]
@@ -370,7 +371,7 @@ async function saveMyNameRecord(groupID, userID, myNameID, name, imageLink, cont
                     records: {
                         $each: [recordData],
                         $sort: { timestamp: -1 },
-                        $slice: 20 // Keep only the most recent 20 records
+                        $slice: MAX_HISTORY_RECORDS
                     }
                 }
             },
@@ -491,7 +492,7 @@ async function getGroupHistory(groupID) {
         });
 
         // Keep only the last 20 records
-        return { records: sortedRecords.slice(0, 20) };
+        return { records: sortedRecords.slice(0, MAX_HISTORY_RECORDS) };
     } catch (error) {
         console.error('Error getting group history:', error);
         // Return empty records object for consistent handling in case of errors

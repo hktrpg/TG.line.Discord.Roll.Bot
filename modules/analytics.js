@@ -229,6 +229,12 @@ function findRollList(mainMsg) {
 
 	// Set default empty string for mainMsg[1] if undefined
 	if (!mainMsg[1]) mainMsg[1] = '';
+	
+	// Special handling for .me and .mee commands - make sure they go to z_myname
+	if (mainMsg[0] && (mainMsg[0].toLowerCase() === '.me' || mainMsg[0].toLowerCase() === '.mee')) {
+		const zMyname = getRollModule('z_myname');
+		if (zMyname) return zMyname;
+	}
 
 	// Iterate through available modules
 	for (const [moduleName, moduleInfo] of rollModules) {

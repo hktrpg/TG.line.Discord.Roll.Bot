@@ -18,7 +18,6 @@ const fs = require('node:fs');
 const errorCount = [];
 const { rollText } = require('./getRoll');
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
-exports.z_stop = require('../roll/z_stop');
 const buttonStyles = [ButtonStyle.Danger, ButtonStyle.Primary, ButtonStyle.Secondary, ButtonStyle.Success, ButtonStyle.Danger]
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const channelFilter = channel => !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 36000;
@@ -669,12 +668,15 @@ async function repeatMessage(discord, message) {
 	}
 	let webhook = await manageWebhook(discord);
 	try {
-		let text = await rollText(message.myName.content);
+		let messageData = message.myName || message.myspeck;
+		if (!messageData) return;
+
+		let text = await rollText(messageData.content);
 		//threadId: discord.channelId,
 		let obj = {
 			content: text,
-			username: message.myName.username,
-			avatarURL: message.myName.avatarURL
+			username: messageData.username,
+			avatarURL: messageData.avatarURL
 		};
 		let pair = (webhook && webhook.isThread) ? { threadId: discord.channelId } : {};
 		await webhook.webhook.send({ ...obj, ...pair });
@@ -682,12 +684,14 @@ async function repeatMessage(discord, message) {
 		await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 		return;
 	}
-
-
-
 }
 
 async function repeatMessages(discord, message) {
+	try {
+		await discord.delete();
+	} catch (error) {
+		//error
+	}
 	try {
 		let webhook = await manageWebhook(discord);
 		for (let index = 0; index < message.myNames.length; index++) {
@@ -798,19 +802,6 @@ async function checkWakeUp() {
 			return false
 		});
 
-}
-
-function z_stop(mainMsg, groupid) {
-	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save || !mainMsg || !groupid) {
-		return false;
-	}
-	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
-	if (!groupInfo || !groupInfo.blockfunction) return;
-	let match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()))
-	if (match) {
-		return true;
-	} else
-		return false;
 }
 
 const discordPresenceStatus = ['online', 'idle', 'invisible', 'do not disturb']
@@ -1046,7 +1037,7 @@ async function handlingResponMessage(message, answer = '') {
 		if (!trigger) return await nonDice(message)
 
 		const groupid = (message.guildId) ? message.guildId : '';
-		if ((trigger == ".me" || trigger == ".mee") && !z_stop(mainMsg, groupid)) return await __sendMeMessage({ message, inputStr, groupid })
+
 
 		let rplyVal = {};
 		const checkPrivateMsg = __privateMsg({ trigger, mainMsg, inputStr });
@@ -1093,9 +1084,9 @@ async function handlingResponMessage(message, answer = '') {
 		if (rplyVal.roleReactFlag) await roleReact(channelid, rplyVal)
 		if (rplyVal.newRoleReactFlag) await newRoleReact(message, rplyVal)
 		if (rplyVal.discordEditMessage) await handlingEditMessage(message, rplyVal)
-
-		if (rplyVal.myName) await repeatMessage(message, rplyVal);
+		if (rplyVal.myspeck) return await __sendMeMessage({ message, rplyVal, groupid })
 		if (rplyVal.myNames) await repeatMessages(message, rplyVal);
+
 
 		if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 
@@ -1528,15 +1519,16 @@ async function __handlingInteractionMessage(message) {
 	}
 }
 
-async function __sendMeMessage({ message, inputStr, groupid }) {
-	inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
-	if (inputStr.match(/^\s+$/)) {
-		inputStr = `.me 或 /mee 可以令HKTRPG機械人重覆你的說話\n請輸入復述內容`
+async function __sendMeMessage({ message, rplyVal, groupid }) {
+	try {
+		await message.delete();
+	} catch (error) {
+
 	}
 	if (groupid) {
-		await SendToReplychannel({ replyText: inputStr, channelid: message.channel.id });
+		await SendToReplychannel({ replyText: rplyVal.myspeck.content, channelid: message.channel.id });
 	} else {
-		SendToReply({ replyText: inputStr, message });
+		SendToReply({ replyText: rplyVal.text, message });
 	}
 	return;
 }

@@ -14,7 +14,6 @@ const MESSAGE_SPLITOR = (/\S+/ig);
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const agenda = require('../modules/schedule');
 const rollText = require('./getRoll').rollText;
-exports.z_stop = require('../roll/z_stop');
 // create LINE SDK config from env variables
 const config = {
 	channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
@@ -59,21 +58,6 @@ let handleEvent = async function (event) {
 		trigger = mainMsg[0].toString().toLowerCase();
 	}
 	//指定啟動詞在第一個詞&把大階強制轉成細階
-	if ((trigger == ".me" || trigger == ".mee") && !z_stop(mainMsg, roomorgroupid)) {
-		inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
-		if (inputStr.match(/^\s+$/)) {
-			inputStr = `.me 或 /mee 可以令HKTRPG機械人重覆你的說話\n請輸入復述內容`
-		}
-		if (roomorgroupid) {
-			let temp = HandleMessage(inputStr);
-			client.replyMessage(event.replyToken, temp).catch((err) => {
-				console.error('#60 line err', err.statusCode);
-			});
-		} else {
-			SendToId(event.source.userId, inputStr);
-		}
-		return;
-	}
 	let privatemsg = 0;
 
 	(function privateMsg() {
@@ -118,10 +102,7 @@ let handleEvent = async function (event) {
 		} catch (error) {
 			//
 		}
-
-
 	}
-
 
 	if (event.source && event.source.groupId) {
 		try {
@@ -130,9 +111,7 @@ let handleEvent = async function (event) {
 		} catch (error) {
 			//
 		}
-
 	}
-
 
 	let rplyVal = {};
 	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
@@ -158,27 +137,27 @@ let handleEvent = async function (event) {
 				titleName: titleName
 			});
 		}
-
 	}
 
 	if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 	//LevelUp功能
+	if (rplyVal.myspeck) {
+		return await __sendMeMessage({ event, rplyVal, roomorgroupid });
+	}
 	if (!rplyVal.text && !rplyVal.LevelUp)
 		return;
 	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Line")) {
 		SendToId(userid, newMessage.firstTimeMessage());
 	}
 
-
 	if (roomorgroupid && rplyVal && rplyVal.LevelUp) {
 		if (displayname) {
 			rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text;
-			//await SendToId(roomorgroupid, "@" + displayname + ' \n' + rplyVal.LevelUp
 		} else {
-			//await SendToId(roomorgroupid, rplyVal.LevelUp)
 			rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text;
 		}
 	}
+
 	//Linecountroll++;
 	if (!rplyVal.text) {
 		return;
@@ -192,6 +171,7 @@ let handleEvent = async function (event) {
 		})
 		//當是私訊模式1-3時
 	}
+
 
 	switch (true) {
 		case privatemsg == 1:
@@ -269,25 +249,20 @@ let handleEvent = async function (event) {
 			break;
 	}
 	return;
-
-
-	//rplyVal.text
-
-
-
-	/**pushMessage
-	 * client.pushImage(USER_ID, {
-		  originalContentUrl: 'https://example.com/original.jpg',
-		  previewImageUrl: 'https://example.com/preview.jpg',
-	 });
-	 */
-	// create a echoing text message
-	//await exports.analytics.parseInput(event.message.text)
-
-	// use reply API
-	//Reply Max: 2000 characters
-
 }
+
+async function __sendMeMessage({ event, rplyVal, roomorgroupid }) {
+	if (roomorgroupid) {
+		let temp = HandleMessage(rplyVal.myspeck.content);
+		await client.replyMessage(event.replyToken, temp).catch((err) => {
+			console.error('#60 line err', err.statusCode);
+		});
+	} else {
+		SendToId(event.source.userId, rplyVal.myspeck.content);
+	}
+	return;
+}
+
 let replyMessagebyReplyToken = function (event, Reply) {
 	let temp = HandleMessage(Reply);
 	return client.replyMessage(event.replyToken, temp).catch(() => {
@@ -463,18 +438,5 @@ async function nonDice(event) {
 	//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
 
 	return null;
-}
-
-function z_stop(mainMsg, groupid) {
-	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save || !mainMsg || !groupid) {
-		return false;
-	}
-	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
-	if (!groupInfo || !groupInfo.blockfunction) return;
-	let match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()))
-	if (match) {
-		return true;
-	} else
-		return false;
 }
 

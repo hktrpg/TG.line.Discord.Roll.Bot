@@ -8,7 +8,6 @@ const TelegramBot = require('node-telegram-bot-api');
 const agenda = require('../modules/schedule')
 const rollText = require('./getRoll').rollText;
 exports.analytics = require('./analytics');
-exports.z_stop = require('../roll/z_stop');
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const TGclient = new TelegramBot(process.env.TELEGRAM_CHANNEL_SECRET, { polling: true });
 const newMessage = require('./message');
@@ -53,14 +52,6 @@ TGclient.on('text', async (ctx) => {
     }
     //指定啟動詞在第一個詞&把大階強制轉成細階
     let groupid = ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && userid && ctx.chat.id) ? ctx.chat.id : '';
-    if ((trigger == ".me" || trigger == ".mee") && !z_stop(mainMsg, groupid)) {
-        inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
-        if (inputStr.match(/^\s+$/)) {
-            inputStr = `.me 或 /mee 可以令HKTRPG機械人重覆你的說話\n請輸入復述內容`
-        }
-        SendToId(ctx.chat.id || userid, inputStr);
-        return;
-    }
     let privatemsg = 0;
 
     (function privateMsg() {
@@ -77,12 +68,12 @@ TGclient.on('text', async (ctx) => {
             inputStr = inputStr.replace(/^dddr\s+/i, '');
         }
     })();
+
     let target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
     if (!target) {
         await nonDice(ctx);
         return;
     }
-
 
     let displayname = '',
         membercount = 0,
@@ -102,7 +93,6 @@ TGclient.on('text', async (ctx) => {
         membercount = await TGclient.getChatMemberCount(ctx.chat.id).catch((error) => {
             return 0;
         });
-
     }
     //285083923223
     //userrole = 3
@@ -146,6 +136,10 @@ TGclient.on('text', async (ctx) => {
     }
 
     if (rplyVal.sendNews) sendNewstoAll(rplyVal);
+    // Handle .me messages
+    if (rplyVal.myspeck) {
+        return await __sendMeMessage({ ctx, rplyVal, userid });
+    }
     if (!rplyVal.text && !rplyVal.LevelUp)
         return;
     if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Telegram")) {
@@ -162,6 +156,7 @@ TGclient.on('text', async (ctx) => {
         SendToId(groupid, text, options);
 
     }
+
     if (!rplyVal.text) {
         return;
     }
@@ -175,6 +170,8 @@ TGclient.on('text', async (ctx) => {
         })
 
     }
+
+
     switch (true) {
         case privatemsg == 1:
             // 輸入dr  (指令) 私訊自己
@@ -425,20 +422,6 @@ function sendNewstoAll(rply) {
     }
 }
 
-
-function z_stop(mainMsg = "", groupid = "") {
-    if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save || !mainMsg || !groupid) {
-        return false;
-    }
-    let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
-    if (!groupInfo || !groupInfo.blockfunction) return;
-    let match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()))
-    if (match) {
-        return true;
-    } else
-        return false;
-}
-
 TGclient.on('error', (error) => {
     console.error('Global error handler:', error);
 });
@@ -457,3 +440,8 @@ bot.command('pipe', (ctx) => ctx.replyWithPhoto({
     url: 'https://picsum.photos/200/300/?random'
 }))
 */
+
+async function __sendMeMessage({ ctx, rplyVal, }) {
+    SendToId(ctx.chat.id || userid, rplyVal.myspeck.content);
+    return;
+}

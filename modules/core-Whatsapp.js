@@ -55,7 +55,6 @@ const normalPuppeteer = {
 const newMessage = require('./message');
 
 exports.analytics = require('./analytics');
-exports.z_stop = require('../roll/z_stop');
 const {
 	Client, LocalAuth, MessageMedia
 } = require('whatsapp-web.js');
@@ -170,9 +169,6 @@ async function processMessage(msg, groupInfo) {
 	if (mainMsg && mainMsg[0]) {
 		trigger = mainMsg[0].toString().toLowerCase();
 	}
-	if ((trigger == ".me" || trigger == ".mee") && !z_stop(mainMsg, groupid)) {
-		displaynamecheck = false;
-	}
 	let privatemsg = 0;
 
 	function privateMsg() {
@@ -240,9 +236,17 @@ async function processMessage(msg, groupInfo) {
 		${rplyVal.LevelUp}`
 		client.sendMessage(msg.from, text);
 	}
+
+
+	// Handle .me messages
+	if (rplyVal.myspeck) {
+		return await __sendMeMessage({ msg, rplyVal, groupid, client });
+	}
+
 	if (!rplyVal.text) {
 		return;
 	}
+
 
 	if (privatemsg > 1 && TargetGM) {
 		let groupInfo = privateMsgFinder(groupid) || [];
@@ -300,6 +304,15 @@ async function handleReply(result, msg, client) {
 				await SendToReply(msg, rplyVal, userid);
 			break;
 	}
+}
+
+async function __sendMeMessage({ msg, rplyVal, groupid, client }) {
+	if (groupid) {
+		await msg.reply(rplyVal.myspeck.content);
+	} else {
+		await client.sendMessage(msg.from, rplyVal.myspeck.content);
+	}
+	return;
 }
 
 async function SendDR(msg, text) {

@@ -139,7 +139,7 @@ TGclient.on('text', async (ctx) => {
     if (rplyVal.sendNews) sendNewstoAll(rplyVal);
     // Handle .me messages
     if (rplyVal.myspeck) {
-        return await __sendMeMessage({ ctx, rplyVal, groupid });
+        return await __sendMeMessage({ ctx, rplyVal, userid });
     }
     if (!rplyVal.text && !rplyVal.LevelUp)
         return;
@@ -456,11 +456,7 @@ bot.command('pipe', (ctx) => ctx.replyWithPhoto({
 }))
 */
 
-async function __sendMeMessage({ ctx, rplyVal, groupid }) {
-    if (groupid) {
-        await ctx.reply(rplyVal.myspeck.content);
-    } else {
-        SendToId(ctx.from.id, rplyVal.myspeck.content);
-    }
+async function __sendMeMessage({ ctx, rplyVal, }) {
+    SendToId(ctx.chat.id || userid, rplyVal.myspeck.content);
     return;
 }

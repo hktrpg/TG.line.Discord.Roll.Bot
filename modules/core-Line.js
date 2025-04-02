@@ -14,7 +14,6 @@ const MESSAGE_SPLITOR = (/\S+/ig);
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const agenda = require('../modules/schedule');
 const rollText = require('./getRoll').rollText;
-exports.z_stop = require('../roll/z_stop');
 // create LINE SDK config from env variables
 const config = {
 	channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
@@ -439,18 +438,5 @@ async function nonDice(event) {
 	//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
 
 	return null;
-}
-
-function z_stop(mainMsg, groupid) {
-	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save || !mainMsg || !groupid) {
-		return false;
-	}
-	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
-	if (!groupInfo || !groupInfo.blockfunction) return;
-	let match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()))
-	if (match) {
-		return true;
-	} else
-		return false;
 }
 

@@ -18,7 +18,6 @@ const fs = require('node:fs');
 const errorCount = [];
 const { rollText } = require('./getRoll');
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
-exports.z_stop = require('../roll/z_stop');
 const buttonStyles = [ButtonStyle.Danger, ButtonStyle.Primary, ButtonStyle.Secondary, ButtonStyle.Success, ButtonStyle.Danger]
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const channelFilter = channel => !channel.lastMessageId || Discord.SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 36000;
@@ -803,19 +802,6 @@ async function checkWakeUp() {
 			return false
 		});
 
-}
-
-function z_stop(mainMsg, groupid) {
-	if (!Object.keys(exports.z_stop).length || !exports.z_stop.initialize().save || !mainMsg || !groupid) {
-		return false;
-	}
-	let groupInfo = exports.z_stop.initialize().save.find(e => e.groupid == groupid)
-	if (!groupInfo || !groupInfo.blockfunction) return;
-	let match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()))
-	if (match) {
-		return true;
-	} else
-		return false;
 }
 
 const discordPresenceStatus = ['online', 'idle', 'invisible', 'do not disturb']

@@ -153,6 +153,10 @@ TGclient.on('text', async (ctx) => {
         SendToId(groupid, text, options);
 
     }
+    // Handle .me messages
+    if (rplyVal.myspeck) {
+        return await __sendMeMessage({ ctx, rplyVal, groupid });
+    }
     if (!rplyVal.text) {
         return;
     }
@@ -166,10 +170,7 @@ TGclient.on('text', async (ctx) => {
         })
 
     }
-    // Handle .me messages
-    if (rplyVal.myspeck) {
-        return await __sendMeMessage({ ctx, rplyVal, groupid });
-    }
+
 
     switch (true) {
         case privatemsg == 1:

@@ -155,6 +155,9 @@ let handleEvent = async function (event) {
 			rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text;
 		}
 	}
+	if (rplyVal.myspeck) {
+		return await __sendMeMessage({ event, rplyVal, roomorgroupid });
+	}
 	//Linecountroll++;
 	if (!rplyVal.text) {
 		return;
@@ -168,9 +171,7 @@ let handleEvent = async function (event) {
 		})
 		//當是私訊模式1-3時
 	}
-	if (rplyVal.myspeck) {
-		return await __sendMeMessage({ event, rplyVal, roomorgroupid });
-	}
+
 
 	switch (true) {
 		case privatemsg == 1:

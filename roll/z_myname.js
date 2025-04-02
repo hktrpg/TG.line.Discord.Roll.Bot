@@ -104,10 +104,6 @@ const rollDiceCommand = async function ({
         type: 'text',
         text: ''
     };
-    if (botname !== "Discord") {
-        rply.text = '此功能只能在Discord中使用';
-        return rply;
-    }
     switch (true) {
         case /^\.mehistory$/i.test(mainMsg[0]): {
             if (!groupid) {
@@ -137,6 +133,9 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\.myname+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
+            rply.text = checkBotname(botname, rply);
+            if (rply.text) return rply;
+
             let myNames = await schema.myName.find({ userID: userid });
             if (groupid) {
                 let result = showNames(myNames);
@@ -148,6 +147,8 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\.myname+$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
+            rply.text = checkBotname(botname, rply);
+            if (rply.text) return rply;
             if (!mainMsg[2] || !/\d+/i.test(mainMsg[2])) {
                 rply.text = '移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 0 / .myname delete 小雲'
                 return rply
@@ -189,6 +190,8 @@ const rollDiceCommand = async function ({
             }
         }
         case /^\.myname$/i.test(mainMsg[0]): {
+            rply.text = checkBotname(botname, rply);
+            if (rply.text) return rply;
             //.myname 泉心造史 https://example.com/example.jpg
             if (!mainMsg[2]) {
                 rply.text = errorMessage;
@@ -266,7 +269,7 @@ const rollDiceCommand = async function ({
                         // Content is the processed message without the command
                         const content = inputStr.trim();
                         // Don't await here to prevent blocking on DB operations
-                        saveMyNameRecord(channelid || groupid, userid, null, defaultMyName.name, defaultMyName.imageLink, content, displaynameDiscord, displayname)
+                        saveMyNameRecord(channelid || groupid, userid, null, defaultMyName.name, defaultMyName.imageLink, content, displaynameDiscord, displayname, botname)
                             .catch(err => console.error('Async error saving .me record:', err));
                     }
                 } catch (error) {
@@ -283,6 +286,8 @@ const rollDiceCommand = async function ({
             }
         }
         case /^\.me\S+/i.test(mainMsg[0]): {
+            rply.text = checkBotname(botname, rply);
+            if (rply.text) return rply;
             try {
                 //.meXXX handling
                 if (!mainMsg[1]) {
@@ -321,7 +326,7 @@ const rollDiceCommand = async function ({
                 try {
                     if (groupid) {
                         // Don't await here to prevent blocking on DB operations
-                        saveMyNameRecord(groupid, userid, myName._id, myName.name, myName.imageLink, messageContent, displaynameDiscord, displayname)
+                        saveMyNameRecord(channelid || groupid, userid, myName._id, myName.name, myName.imageLink, messageContent, displaynameDiscord, displayname, botname)
                             .catch(err => console.error('Async error saving .meXXX record:', err));
                     }
                 } catch (error) {
@@ -344,12 +349,15 @@ const rollDiceCommand = async function ({
 }
 
 // Function to save myName usage record for a group, keeping only the last 20 records
-async function saveMyNameRecord(groupID, userID, myNameID, name, imageLink, content, displaynameDiscord, displayname) {
+async function saveMyNameRecord(groupID, userID, myNameID, name, imageLink, content, displaynameDiscord, displayname, botname) {
     try {
         // Check if schema.myNameRecord exists and is a valid model
         if (!schema.myNameRecord) {
             console.error('myNameRecord model not found in schema');
             return null;
+        }
+        if (!botname) {
+            botname = 'Unknown';
         }
 
         // Create the record data
@@ -365,7 +373,7 @@ async function saveMyNameRecord(groupID, userID, myNameID, name, imageLink, cont
 
         // Use findOneAndUpdate with $push
         const record = await schema.myNameRecord.findOneAndUpdate(
-            { groupID },
+            { groupID, botname },
             {
                 $push: {
                     records: {
@@ -469,7 +477,7 @@ function showName(names, targetName) {
 }
 
 // Function to get the history for a group
-async function getGroupHistory(groupID) {
+async function getGroupHistory(groupID, botname) {
     try {
         // Check if the myNameRecord model exists
         if (!schema.myNameRecord) {
@@ -478,7 +486,7 @@ async function getGroupHistory(groupID) {
         }
 
         // Find the record for this group
-        const record = await schema.myNameRecord.findOne({ groupID }).lean();
+        const record = await schema.myNameRecord.findOne({ groupID, botname }).lean();
         // If no record exists or it has no records array, return an empty array for consistent handling
         if (!record || !record.records || !Array.isArray(record.records)) {
             return { records: [] };
@@ -551,6 +559,11 @@ function formatHistory(records) {
     } catch (error) {
         console.error('Error in formatHistory:', error);
         return "處理記錄時發生錯誤，請稍後再試";
+    }
+}
+function checkBotname(botname) {
+    if (botname !== "Discord") {
+        return '此功能只能在Discord中使用';
     }
 }
 

@@ -455,6 +455,7 @@ const multiServerSchema = mongoose.model('multiServer', new mongoose.Schema({
 // Schema for tracking last 20 myName usage records per group
 const myNameRecordSchema = new Schema({
     groupID: { type: String, required: true, index: true },
+    botname: { type: String, required: true },
     records: [{
         userID: { type: String, required: true },
         myNameID: { type: Schema.Types.ObjectId, ref: 'UserName' },

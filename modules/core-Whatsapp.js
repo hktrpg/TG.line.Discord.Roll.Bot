@@ -240,14 +240,17 @@ async function processMessage(msg, groupInfo) {
 		${rplyVal.LevelUp}`
 		client.sendMessage(msg.from, text);
 	}
-	if (!rplyVal.text) {
-		return;
-	}
+
 
 	// Handle .me messages
 	if (rplyVal.myspeck) {
 		return await __sendMeMessage({ msg, rplyVal, groupid, client });
 	}
+
+	if (!rplyVal.text) {
+		return;
+	}
+
 
 	if (privatemsg > 1 && TargetGM) {
 		let groupInfo = privateMsgFinder(groupid) || [];

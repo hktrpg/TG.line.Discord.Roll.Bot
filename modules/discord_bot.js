@@ -1523,7 +1523,7 @@ async function __sendMeMessage({ message, rplyVal, groupid }) {
 	try {
 		await message.delete();
 	} catch (error) {
-		console.error('Error in __sendMeMessage:', error);
+
 	}
 	if (groupid) {
 		await SendToReplychannel({ replyText: rplyVal.myspeck.content, channelid: message.channel.id });

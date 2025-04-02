@@ -689,6 +689,11 @@ async function repeatMessage(discord, message) {
 
 async function repeatMessages(discord, message) {
 	try {
+		await discord.delete();
+	} catch (error) {
+		//error
+	}
+	try {
 		let webhook = await manageWebhook(discord);
 		for (let index = 0; index < message.myNames.length; index++) {
 			const element = message.myNames[index];
@@ -1529,6 +1534,11 @@ async function __handlingInteractionMessage(message) {
 }
 
 async function __sendMeMessage({ message, rplyVal, groupid }) {
+	try {
+		await discord.delete();
+	} catch (error) {
+		//error
+	}
 	if (groupid) {
 		await SendToReplychannel({ replyText: rplyVal.myspeck.content, channelid: message.channel.id });
 	} else {

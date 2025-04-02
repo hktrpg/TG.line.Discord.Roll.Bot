@@ -170,9 +170,6 @@ async function processMessage(msg, groupInfo) {
 	if (mainMsg && mainMsg[0]) {
 		trigger = mainMsg[0].toString().toLowerCase();
 	}
-	if ((trigger == ".me" || trigger == ".mee") && !z_stop(mainMsg, groupid)) {
-		displaynamecheck = false;
-	}
 	let privatemsg = 0;
 
 	function privateMsg() {

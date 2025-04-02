@@ -95,7 +95,8 @@ const rollDiceCommand = async function ({
     botname,
     groupid,
     displayname,
-    displaynameDiscord
+    displaynameDiscord,
+    channelid
 }) {
     let rply = {
         default: 'on',
@@ -116,7 +117,7 @@ const rollDiceCommand = async function ({
 
             try {
                 // Fetch the last 20 records for this group
-                const history = await getGroupHistory(groupid);
+                const history = await getGroupHistory(channelid || groupid);
                 // Format the history entries as a string
                 const formattedText = await formatHistory(history.records);
                 rply.text = formattedText;
@@ -170,7 +171,6 @@ const rollDiceCommand = async function ({
 
             try {
                 let myNames = await schema.myName.findOneAndRemove({ userID: userid, shortName: mainMsg[2] })
-
                 if (myNames) {
                     rply.text = `移除成功，${myNames}`
                     rply.quotes = true;
@@ -265,7 +265,7 @@ const rollDiceCommand = async function ({
                         // Content is the processed message without the command
                         const content = inputStr.trim();
                         // Don't await here to prevent blocking on DB operations
-                        saveMyNameRecord(groupid, userid, null, defaultMyName.name, defaultMyName.imageLink, content, displaynameDiscord, displayname)
+                        saveMyNameRecord(channelid || groupid, userid, null, defaultMyName.name, defaultMyName.imageLink, content, displaynameDiscord, displayname)
                             .catch(err => console.error('Async error saving .me record:', err));
                     }
                 } catch (error) {

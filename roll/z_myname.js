@@ -114,7 +114,7 @@ const rollDiceCommand = async function ({
 
             try {
                 // Fetch the last 20 records for this group
-                const history = await getGroupHistory(channelid || groupid);
+                const history = await getGroupHistory(channelid || groupid, botname);
                 // Format the history entries as a string
                 const formattedText = await formatHistory(history.records);
                 rply.text = formattedText;

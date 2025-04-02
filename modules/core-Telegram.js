@@ -137,6 +137,10 @@ TGclient.on('text', async (ctx) => {
     }
 
     if (rplyVal.sendNews) sendNewstoAll(rplyVal);
+    // Handle .me messages
+    if (rplyVal.myspeck) {
+        return await __sendMeMessage({ ctx, rplyVal, groupid });
+    }
     if (!rplyVal.text && !rplyVal.LevelUp)
         return;
     if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Telegram")) {
@@ -153,10 +157,7 @@ TGclient.on('text', async (ctx) => {
         SendToId(groupid, text, options);
 
     }
-    // Handle .me messages
-    if (rplyVal.myspeck) {
-        return await __sendMeMessage({ ctx, rplyVal, groupid });
-    }
+
     if (!rplyVal.text) {
         return;
     }

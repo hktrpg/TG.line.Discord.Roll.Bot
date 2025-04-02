@@ -142,6 +142,9 @@ let handleEvent = async function (event) {
 
 	if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 	//LevelUp功能
+	if (rplyVal.myspeck) {
+		return await __sendMeMessage({ event, rplyVal, roomorgroupid });
+	}
 	if (!rplyVal.text && !rplyVal.LevelUp)
 		return;
 	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Line")) {
@@ -155,9 +158,7 @@ let handleEvent = async function (event) {
 			rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text;
 		}
 	}
-	if (rplyVal.myspeck) {
-		return await __sendMeMessage({ event, rplyVal, roomorgroupid });
-	}
+
 	//Linecountroll++;
 	if (!rplyVal.text) {
 		return;

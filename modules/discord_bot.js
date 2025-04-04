@@ -1414,6 +1414,8 @@ async function __handlingInteractionMessage(message) {
 					}
 				}
 				if (/的角色$/.test(messageContent)) {
+					//check databese for .ch forward
+					
 					try {
 						return await message.reply({ content: `${displayname}${resultText}`, ephemeral: false })
 					} catch (error) {

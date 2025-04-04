@@ -19,6 +19,8 @@ const regexRoll = new RegExp(/roll\[(.*?)\]~/, 'i');
 const regexNotes = new RegExp(/notes\[(.*?)\]~/, 'i');
 const re = new RegExp(/(.*?):(.*?)(;|$)/, 'ig');
 const regexRollDice = new RegExp(/<([^<>]*)>/, 'ig');
+// Discord message link regex: https://discord.com/channels/{guildId}/{channelId}/{messageId}
+const discordLinkRegex = new RegExp(/https:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)/, 'i');
 
 const opt = { upsert: true, runValidators: true };
 const convertRegex = str => str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
@@ -108,6 +110,11 @@ state[...]~ roll[...]~ notes[...]~
 │ • .char button [角色名]
 │   生成擲骰指令按鈕
 │
+│ ■ Discord訊息轉發:
+│ • .ch forward [discord訊息連結]
+│   轉發自己的Discord訊息
+│   只支援同一伺服器內的訊息
+│
 │ ■ 運算功能:
 │ • {變數}: 引用角色數值
 │   例: {HP} {san}
@@ -150,7 +157,7 @@ state[...]~ roll[...]~ notes[...]~
 const initialize = () => variables;
 
 // eslint-disable-next-line no-unused-vars
-const rollDiceCommand = async function ({ inputStr, mainMsg, groupid, botname, userid, channelid }) {
+const rollDiceCommand = async function ({ inputStr, mainMsg, groupid, botname, userid, channelid, discordMessage, discordClient }) {
     let rply = { default: 'on', type: 'text', text: '', characterReRoll: false, characterName: '', characterReRollName: '' };
     let filter = {};
     let docSwitch = {};
@@ -183,6 +190,9 @@ const rollDiceCommand = async function ({ inputStr, mainMsg, groupid, botname, u
         case /(^[.]char$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             return await handleDelete(mainMsg, inputStr, userid, rply);
         case /(^[.]char$)/i.test(mainMsg[0]) && /^button$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /^forward$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]):
+            console.log('forward', mainMsg, inputStr, userid, groupid, channelid, discordMessage, discordClient, rply);
+            return await handleForwardMessage(mainMsg, inputStr, userid, groupid, channelid, discordMessage, discordClient, rply);
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^button$/i.test(mainMsg[1]):
             return await handleButton(mainMsg, inputStr, userid, groupid, channelid, botname, rply);
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^set$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]) && /^\S+$/i.test(mainMsg[3]):
@@ -192,6 +202,7 @@ const rollDiceCommand = async function ({ inputStr, mainMsg, groupid, botname, u
             return await handleShowCh(mainMsg, inputStr, userid, groupid, channelid, rply);
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]):
             return await handleCh(mainMsg, inputStr, userid, groupid, channelid, rply);
+
         default:
             break;
     }
@@ -819,6 +830,126 @@ async function countNum(num) {
         result = num;
     }
     return result;
+}
+
+async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channelid, discordMessage, discordClient, rply) {
+    if (!groupid) {
+        rply.text = '此功能必須在群組中使用';
+        return rply;
+    }
+    
+    if (!discordMessage || !discordClient) {
+        rply.text = '此功能只能在Discord中使用';
+        return rply;
+    }
+    
+    const messageLink = inputStr.replace(/^\.ch\s+forward\s+/i, '').trim();
+    const matches = messageLink.match(discordLinkRegex);
+    
+    if (!matches) {
+        rply.text = '無效的Discord訊息連結格式。應為 https://discord.com/channels/{伺服器ID}/{頻道ID}/{訊息ID}';
+        return rply;
+    }
+    
+    const [, sourceGuildId, sourceChannelId, sourceMessageId] = matches;
+    
+    // Verify if the current guild is the same as the source guild to prevent cross-server access
+    if (discordMessage.guildId !== sourceGuildId) {
+        rply.text = '無法轉發來自其他伺服器的訊息';
+        return rply;
+    }
+    
+    // Check if the source channel is the same as the current channel
+    if (sourceChannelId === channelid) {
+        rply.text = '無法轉發來自同一頻道的訊息';
+        return rply;
+    }
+    
+    try {
+        // Try to fetch the source channel
+        const sourceChannel = await discordClient.channels.fetch(sourceChannelId);
+        console.log('sourceChannel', sourceChannel);
+        if (!sourceChannel) {
+            rply.text = '找不到指定的頻道';
+            return rply;
+        }
+        
+        // Try to fetch the source message
+        const sourceMessage = await sourceChannel.messages.fetch(sourceMessageId);
+        console.log('sourceMessage', sourceMessage);
+        if (!sourceMessage) {
+            rply.text = '找不到指定的訊息';
+            return rply;
+        }
+        
+        // Get the content of the message
+        const messageContent = sourceMessage.content;
+        if (!messageContent || messageContent.trim() === '') {
+            rply.text = '該訊息沒有內容可以轉發';
+            return rply;
+        }
+        
+        // Check if the message content ends with "的角色"
+        if (!messageContent.endsWith('的角色')) {
+            rply.text = '只能轉發以「的角色」結尾的訊息';
+            return rply;
+        }
+        
+        // Check for mentions in the message
+        console.log('sourceMessage.author.id', sourceMessage.author.id);
+        console.log('discordMessage.author.id', discordMessage.author.id);
+        
+        // Get all mentioned users
+        let mentionedUsers = Array.from(sourceMessage.mentions.users.entries());
+        console.log('mentionedUsers', mentionedUsers);
+        
+        // Check if the current user is mentioned in the message
+        let isMentioned = false;
+        
+        // Check if user is mentioned
+        if (mentionedUsers.length > 0) {
+            for (const [userId, user] of mentionedUsers) {
+                if (userId === discordMessage.author.id) {
+                    isMentioned = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!isMentioned) {
+            rply.text = '你只能轉發提及你的訊息';
+            return rply;
+        }
+        
+        // Get the character card name from the message content
+        const characterName = messageContent.replace(/的角色$/, '').trim();
+        
+        // Store the forwarded message in the database
+        try {
+            await schema.forwardedMessage.create({
+                userId: userid,
+                channelId: channelid, // Using channelId instead of guildId
+                sourceMessageId: sourceMessageId,
+                sourceChannelId: sourceChannelId,
+                sourceGuildId: sourceGuildId,
+                forwardedAt: new Date()
+            });
+        } catch (error) {
+            console.error('儲存轉發訊息時發生錯誤', error);
+            rply.text = '轉發訊息時發生錯誤';
+            return rply;
+        }
+        
+        // Provide an elegant response message with the character card name
+        rply.text = `✨ 已儲存「${characterName}」角色卡按鈕位置 ✨\n\n📌 當你使用該角色卡的按鈕後，所有訊息將在此頻道中發送。\n\n💡 提示：使用 .ch button 可生成角色卡按鈕`;
+        
+        return rply;
+        
+    } catch (error) {
+        console.error('處理訊息轉發時發生錯誤', error);
+        rply.text = '轉發訊息時發生錯誤: ' + error.message;
+        return rply;
+    }
 }
 
 module.exports = {

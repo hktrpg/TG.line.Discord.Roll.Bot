@@ -452,6 +452,19 @@ const multiServerSchema = mongoose.model('multiServer', new mongoose.Schema({
     botname: String
 }));
 
+// Schema for forwarded messages in character cards
+const forwardedMessageSchema = mongoose.model('forwardedMessage', new mongoose.Schema({
+    userId: { type: String, index: true },
+    channelId: { type: String, index: true }, // Target channel ID where messages will be sent
+    sourceMessageId: { type: String, index: true },
+    sourceChannelId: { type: String, index: true },
+    sourceGuildId: { type: String, index: true },
+    forwardedAt: {
+        type: Date,
+        default: Date.now
+    }
+}));
+
 // Schema for tracking last 20 myName usage records per group
 const myNameRecordSchema = new Schema({
     groupID: { type: String, required: true, index: true },
@@ -523,5 +536,6 @@ module.exports = {
     randomAnsPersonal: randomAnswerPersonalSchema,
     translateChannel: translateChannelSchema,
     bcdiceRegedit: bcdiceRegeditSchema,
-    myNameRecord: MyNameRecord
+    myNameRecord: MyNameRecord,
+    forwardedMessage: forwardedMessageSchema
 };

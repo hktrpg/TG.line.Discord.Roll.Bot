@@ -302,90 +302,78 @@ async function privateMsgFinder(channelid) {
 		return groupInfo.trpgDarkRollingfunction
 	else return [];
 }
-async function SendToId(targetid, replyText, quotes = false) {
-	let user = await client.users.fetch(targetid);
-	if (typeof replyText === "string") {
-		let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
-		for (let i = 0; i < sendText.length; i++) {
-			if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
-				try {
-					if (quotes) {
-						user.send({ embeds: await convQuotes(sendText[i]) });
-					} else { user.send(sendText[i]); }
-				}
-				catch (e) {
-					console.error('Discord GET ERROR:  SendtoID: ', e.message, replyText)
-				}
+async function sendMessage({ target, replyText, quotes = false, components = null }) {
+	if (!target) return;
+	
+	const sendText = typeof replyText === "string" 
+		? replyText.toString().match(/[\s\S]{1,2000}/g) || []
+		: [];
+		
+	// Only send first, second, and last two chunks to avoid spam
+	const chunksToSend = sendText.filter((_, i) => 
+		i === 0 || i === 1 || i === sendText.length - 1 || i === sendText.length - 2);
+		
+	for (const chunk of chunksToSend) {
+		try {
+			const messageOptions = quotes 
+				? { embeds: await convQuotes(chunk), components }
+				: { content: chunk, components };
+				
+			await target.send(messageOptions);
+		} catch (error) {
+			if (error.message !== 'Cannot send messages to this user' && 
+				error.message !== 'Missing Permissions') {
+				console.error('Discord message send error:', error.message, 'chunk:', chunk);
+			}
 		}
 	}
-	else {
-		user.send(replyText);
-	}
+}
 
+async function SendToId(targetid, replyText, quotes = false) {
+	try {
+		const user = await client.users.fetch(targetid);
+		await sendMessage({ target: user, replyText, quotes });
+	} catch (error) {
+		console.error('Discord SendToId error:', error.message);
+	}
 }
 
 async function SendToReply({ replyText = "", message, quotes = false }) {
-	let sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
-	for (let i = 0; i < sendText.length; i++) {
-		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
-			try {
-				if (quotes) {
-					message.author && message.author.send({ embeds: await convQuotes(sendText[i]) });
-				} else
-					message.author && message.author.send(sendText[i]);
-			}
-			catch (e) {
-				if (e.message !== 'Cannot send messages to this user') {
-					console.error('Discord  GET ERROR:  SendToReply: ', e.message, 'e', message, replyText)
-				}
-			}
-	}
-
-
-	return;
+	if (!message?.author) return;
+	await sendMessage({ target: message.author, replyText, quotes });
 }
+
 async function SendToReplychannel({ replyText = "", channelid = "", quotes = false, groupid = "", buttonCreate = "" }) {
 	if (!channelid) return;
+	
+	// Try to fetch the channel
 	let channel;
 	try {
 		channel = await client.channels.fetch(channelid)
 	} catch (error) {
-		null
+		// Channel not found in cache
 	}
+	
+	// If channel not found and we have a groupid, try to fetch from guild
 	if (!channel && groupid) {
 		try {
 			let guild = await client.guilds.fetch(groupid)
 			channel = await guild.channels.fetch(channelid)
 		} catch (error) {
-			null
+			// Guild or channel not found
 		}
 	}
+	
 	if (!channel) return;
-	//	console.error(`discord bot cant find channel #443 ${replyText}`)
-	const sendText = replyText.toString().match(/[\s\S]{1,2000}/g);
-	for (let i = 0; i < sendText.length; i++) {
-		if (i == 0 || i == 1 || i == sendText.length - 1 || i == sendText.length - 2)
-			try {
-				if (quotes) {
-					for (let index = 0; index < buttonCreate.length || index === 0; index++) {
-						channel.send({ embeds: await convQuotes(sendText[i]), components: buttonCreate[index] || null });
-					}
-
-				} else {
-					for (let index = 0; index < buttonCreate.length || index === 0; index++) {
-						channel.send({ content: sendText[i], components: buttonCreate[index] || null });
-					}
-				}
-				//await message.channel.send(replyText.toString().match(/[\s\S]{1,2000}/g)[i]);
-			}
-			catch (e) {
-				if (e.message !== 'Missing Permissions') {
-					console.error('Discord  GET ERROR: SendToReplychannel: ', e, replyText, channelid);
-				}
-			}
-
+	
+	// If we have button components, send each set separately
+	if (buttonCreate && buttonCreate.length) {
+		for (let index = 0; index < buttonCreate.length || index === 0; index++) {
+			await sendMessage({ target: channel, replyText: replyText, quotes: quotes, components: buttonCreate[index] || null });
+		}
+	} else {
+		await sendMessage({ target: channel, replyText: replyText, quotes: quotes });
 	}
-	return;
 }
 
 

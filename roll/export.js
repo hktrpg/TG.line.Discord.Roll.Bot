@@ -669,11 +669,33 @@ const millisToMinutesAndSeconds = (millis) => {
     return `${minutes}分鐘${(seconds < 10 ? "0" : "")}${seconds}秒`;
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('discord')
+            .setDescription('匯出頻道聊天紀錄')
+            .addStringOption(option => 
+                option.setName('format')
+                .setDescription('匯出格式')
+                .setRequired(true)
+                .addChoices(
+                    { name: 'HTML格式(含資料分析)', value: 'html' },
+                    { name: 'TXT格式(含時間戳記)', value: 'txt' },
+                    { name: 'TXT格式(不含時間戳記)', value: 'txt -withouttime' }
+                )),
+        async execute(interaction) {
+            const format = interaction.options.getString('format');
+            return `.discord ${format}`;
+        }
+    }
+];
+
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,
     getHelpMessage: getHelpMessage,
     prefixs: prefixs,
     gameType: gameType,
-    gameName: gameName
+    gameName: gameName,
+    discordCommand
 };

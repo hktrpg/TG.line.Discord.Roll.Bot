@@ -16,21 +16,7 @@ const { SlashCommandBuilder } = require('discord.js');
 const axios = require('axios').default;
 const fs = require('fs');
 const GeoPattern = require('geopattern');
-const { imgbox } = require("imgbox")
-
-// Suppress the specific deprecation warning at the module level
-const originalEmitWarning = process.emitWarning;
-process.emitWarning = (warning, ...args) => {
-    if (warning.code === 'DEP0044' && warning.message.includes('util.isArray')) {
-        return;
-    }
-    return originalEmitWarning(warning, ...args);
-};
-
-// Restore the original warning function when the module is unloaded
-process.on('exit', () => {
-    process.emitWarning = originalEmitWarning;
-});
+const { imgbox } = require("imgbox");
 
 const gameName = function () {
     return '【製作Token】.token .token2 .token3 .tokenupload'

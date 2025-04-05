@@ -417,6 +417,33 @@ const version = new Version();
  * if (botname == "Line")
 				rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik\nP.S. Line 修改政策，免費帳號的Line Bot現在有每月500次的私訊限制，超過時DR等私訊功能會失效。(可以認為這功能在Line已失效，半天已400個DR私訊要求)"
  */
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('bothelp')
+            .setDescription('HKTRPG擲骰機器人說明')
+            .addStringOption(option =>
+                option.setName('category')
+                    .setDescription('選擇要查看的說明類別')
+                    .setRequired(false)
+                    .addChoices(
+                        { name: '版本與公告', value: 'ver' },
+                        { name: '基本擲骰指令', value: 'Base' },
+                        { name: '系統擲骰指令', value: 'Dice' },
+                        { name: '輔助工具指令', value: 'Tool' },
+                        { name: '管理工具指令', value: 'admin' },
+                        { name: '娛樂功能指令', value: 'funny' },
+                        { name: '相關平台連結', value: 'link' },
+                        { name: '隱私權條款', value: 'privacy' },
+                        { name: '歷史沿革', value: 'about' }
+                    )),
+        async execute(interaction) {
+            const category = interaction.options.getString('category') || '';
+            return `bothelp ${category}`;
+        }
+    }
+];
+
 module.exports = {
 	rollDiceCommand: rollDiceCommand,
 	initialize: initialize,
@@ -424,8 +451,8 @@ module.exports = {
 	prefixs: prefixs,
 	gameType: gameType,
 	gameName: gameName,
-	Version: Version
-
+	Version: Version,
+	discordCommand
 };
 
 

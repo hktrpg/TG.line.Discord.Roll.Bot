@@ -2,7 +2,7 @@
 if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
-const { PermissionFlagsBits, PermissionsBitField } = require('discord.js');
+const { PermissionFlagsBits, SlashCommandBuilder, PermissionsBitField } = require('discord.js');
 let variables = {};
 const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60000;

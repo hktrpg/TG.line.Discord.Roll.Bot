@@ -1,6 +1,7 @@
 "use strict";
 const fs = require('node:fs');
 const axios = require('axios');
+const { SlashCommandBuilder } = require('discord.js');
 const Dice = [],
 	Tool = [],
 	admin = [],

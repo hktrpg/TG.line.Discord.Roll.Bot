@@ -197,47 +197,56 @@ https://bcdice.org/systems/
 const discordCommand = [
     {
         data: new SlashCommandBuilder()
-            .setName('bcdice擲骰')
-            .setDescription('進行BcDice擲骰')
-            .addStringOption(option => option.setName('text').setDescription('擲骰內容').setRequired(true))
-        ,
+            .setName('bcdice')
+            .setDescription('【BcDice日系擲骰系統】')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('roll')
+                    .setDescription('進行BcDice擲骰')
+                    .addStringOption(option => 
+                        option.setName('command')
+                            .setDescription('擲骰指令')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('use')
+                    .setDescription('登記使用的骰表ID')
+                    .addStringOption(option => 
+                        option.setName('system_id')
+                            .setDescription('系統ID (例如: Cthulhu, PathFinder)')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('dicehelp')
+                    .setDescription('查看當前系統說明'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('delete')
+                    .setDescription('移除使用的骰表ID')),
         async execute(interaction) {
-            const text = interaction.options.getString('text')
-            return `.bc ${text} `
-        }
-    },
-    {
-        data: new SlashCommandBuilder()
-            .setName('bcdice設定')
-            .setDescription('進行bcdice的設定(說明/登記/刪除)')
-            .addStringOption(option =>
-                option.setName('指令')
-                    .setDescription('進行bcdice的設定')
-                    .setRequired(true)
-                    .addChoices({ name: '顯示使用說明', value: 'help' },
-                        { name: '顯示BcDice骰組使用說明(登記後可使用)', value: 'dicehelp' },
-                        { name: '登記使用的骰表ID', value: 'use' },
-                        { name: '移除使用的骰表ID', value: 'delete' }))
-            .addStringOption(option => option.setName('usetext').setDescription('如登記，請在這裡填寫ID').setRequired(false))
-        ,
-        async execute(interaction) {
-            const useText = interaction.options.getString('usetext') || '';
-            const subcommand = interaction.options.getString('指令') || '';
+            const subcommand = interaction.options.getSubcommand();
+            
             switch (subcommand) {
-                case 'help':
-                    return '.bc help'
-                case 'dicehelp':
-                    return '.bc dicehelp'
-                case 'delete':
-                    return '.bc delete'
+                case 'roll':
+                    const command = interaction.options.getString('command');
+                    return `.bc ${command}`;
+                    
                 case 'use':
-                    return `.bc use ${useText} `
+                    const systemId = interaction.options.getString('system_id');
+                    return `.bc use ${systemId}`;
+                    
+                case 'dicehelp':
+                    return `.bc dicehelp`;
+                    
+                case 'delete':
+                    return `.bc delete`;
+                    
                 default:
-                    return;
+                    return '未知的子命令';
             }
         }
     }
-]
+];
 async function calldice(gameType, message) {
     try {
         const loader = new DynamicLoader();

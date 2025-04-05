@@ -7,6 +7,7 @@ if (!process.env.mongoURL) {
 const checkTools = require('../modules/check.js');
 const records = require('../modules/records.js');
 const VIP = require('../modules/veryImportantPerson');
+const { SlashCommandBuilder } = require('discord.js');
 
 let trpgCommandData = {};
 
@@ -268,8 +269,6 @@ const handleExecuteCommand = (mainMsg, groupid, response) => {
     return response;
 }
 
-
-
 const isDuplicateCommand = (topic, groupid, limit) => {
     let isDuplicate = false;
 
@@ -308,11 +307,143 @@ const updateCommandData = () => {
     });
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('cmd')
+            .setDescription('【儲存擲骰指令】管理自定義指令')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('add')
+                    .setDescription('增加新的指令組合')
+                    .addStringOption(option =>
+                        option.setName('keyword')
+                            .setDescription('關鍵字')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('command')
+                            .setDescription('指令內容')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('edit')
+                    .setDescription('修改現有指令內容')
+                    .addStringOption(option =>
+                        option.setName('keyword')
+                            .setDescription('關鍵字')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('command')
+                            .setDescription('新的指令內容')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示所有關鍵字列表'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('del')
+                    .setDescription('刪除指定/全部指令')
+                    .addStringOption(option =>
+                        option.setName('target')
+                            .setDescription('編號或輸入all刪除全部')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('execute')
+                    .setDescription('執行已儲存的指令')
+                    .addStringOption(option =>
+                        option.setName('keyword')
+                            .setDescription('關鍵字或編號')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            switch (subcommand) {
+                case 'add': {
+                    const keyword = interaction.options.getString('keyword');
+                    const command = interaction.options.getString('command');
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: `.cmd add ${keyword} ${command}`,
+                        mainMsg: ['.cmd', 'add', keyword, command],
+                        groupid: interaction.guildId,
+                        userrole: interaction.member.roles.highest.id
+                    });
+                    
+                    return result.text;
+                }
+                case 'edit': {
+                    const keyword = interaction.options.getString('keyword');
+                    const command = interaction.options.getString('command');
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: `.cmd edit ${keyword} ${command}`,
+                        mainMsg: ['.cmd', 'edit', keyword, command],
+                        groupid: interaction.guildId,
+                        userrole: interaction.member.roles.highest.id
+                    });
+                    
+                    return result.text;
+                }
+                case 'show': {
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: '.cmd show',
+                        mainMsg: ['.cmd', 'show'],
+                        groupid: interaction.guildId,
+                        userrole: interaction.member.roles.highest.id
+                    });
+                    
+                    return result.text;
+                }
+                case 'del': {
+                    const target = interaction.options.getString('target');
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: `.cmd del ${target}`,
+                        mainMsg: ['.cmd', 'del', target],
+                        groupid: interaction.guildId,
+                        userrole: interaction.member.roles.highest.id
+                    });
+                    
+                    return result.text;
+                }
+                case 'execute': {
+                    const keyword = interaction.options.getString('keyword');
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: `.cmd ${keyword}`,
+                        mainMsg: ['.cmd', keyword],
+                        groupid: interaction.guildId,
+                        userrole: interaction.member.roles.highest.id
+                    });
+                    
+                    // 如果是要執行指令，需要特殊處理
+                    if (result.cmd) {
+                        return {
+                            text: result.text,
+                            cmd: true
+                        };
+                    }
+                    
+                    return result.text;
+                }
+            }
+        }
+    }
+];
+
 module.exports = {
     rollDiceCommand,
     initialize,
     getHelpMessage,
     prefixs,
     gameType,
-    gameName
+    gameName,
+    discordCommand
 };

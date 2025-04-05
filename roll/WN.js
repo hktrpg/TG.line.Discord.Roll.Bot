@@ -287,7 +287,7 @@ const discordCommand = [
             .setName('wnmod')
             .setDescription('【魔女狩獵之夜】魔改規則擲骰')
             .addIntegerOption(option => option.setName('dice_count').setDescription('骰池數量').setRequired(true))
-            .addIntegerOption(option => option.setName('sin_value').setDescription('罪業值(成功判定值)').setRequired(false))
+            .addIntegerOption(option => option.setName('sin_value').setDescription('罪業值(成功判定值)').setRequired(true))
             .addStringOption(option => option.setName('adjustment').setDescription('調整值(如 +3, -2)').setRequired(false))
             .addBooleanOption(option => option.setName('use_dd').setDescription('是否使用成敗相抵').setRequired(false))
             .addStringOption(option => option.setName('comment').setDescription('備註').setRequired(false)),

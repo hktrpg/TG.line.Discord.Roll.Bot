@@ -3,6 +3,7 @@ if (!process.env.mongoURL) {
     return;
 }
 const VIP = require('../modules/veryImportantPerson');
+const { SlashCommandBuilder } = require('discord.js');
 const limitAtArr = [10, 20, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema.js');
 const MAX_HISTORY_RECORDS = 20;
@@ -567,11 +568,157 @@ function checkBotname(botname) {
     }
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('myname')
+            .setDescription('【角色扮演系統】管理你的角色')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('add')
+                    .setDescription('新增角色')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('角色名稱 (有空格請用""包住)')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('imageurl')
+                            .setDescription('圖片網址 (Discord或Imgur連結)')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('shortname')
+                            .setDescription('簡稱 (選填)')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示角色列表'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('delete')
+                    .setDescription('刪除指定角色')
+                    .addStringOption(option =>
+                        option.setName('identifier')
+                            .setDescription('序號或簡稱')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            switch (subcommand) {
+                case 'add': {
+                    const name = interaction.options.getString('name');
+                    const imageUrl = interaction.options.getString('imageurl');
+                    const shortName = interaction.options.getString('shortname') || '';
+                    
+                    // 構建輸入字符串
+                    let inputStr = `.myname ${name} ${imageUrl}`;
+                    if (shortName) inputStr += ` ${shortName}`;
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: inputStr,
+                        mainMsg: ['.myname', name],
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        botname: 'Discord',
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username,
+                        channelid: interaction.channelId
+                    });
+                    
+                    return result.text;
+                }
+                case 'show': {
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: '.myname show',
+                        mainMsg: ['.myname', 'show'],
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        botname: 'Discord',
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username,
+                        channelid: interaction.channelId
+                    });
+                    
+                    return result.text;
+                }
+                case 'delete': {
+                    const identifier = interaction.options.getString('identifier');
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: `.myname delete ${identifier}`,
+                        mainMsg: ['.myname', 'delete', identifier],
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        botname: 'Discord',
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username,
+                        channelid: interaction.channelId
+                    });
+                    
+                    return result.text;
+                }
+                default:
+                    return '未知的子命令';
+            }
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('me')
+            .setDescription('【角色扮演系統】以角色身分發言')
+            .addStringOption(option =>
+                option.setName('message')
+                    .setDescription('訊息內容')
+                    .setRequired(true)),
+        async execute(interaction) {
+            const message = interaction.options.getString('message');
+            
+            // 調用現有的 rollDiceCommand 函數處理
+            const result = await rollDiceCommand({
+                inputStr: `.me ${message}`,
+                mainMsg: ['.me', message],
+                groupid: interaction.guildId,
+                userid: interaction.user.id,
+                botname: 'Discord',
+                displayname: interaction.user.username,
+                displaynameDiscord: interaction.user.username,
+                channelid: interaction.channelId
+            });
+            
+            return result.text;
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('mehistory')
+            .setDescription('【角色扮演系統】顯示群組最近的.me發言記錄'),
+        async execute(interaction) {
+            // 調用現有的 rollDiceCommand 函數處理
+            const result = await rollDiceCommand({
+                inputStr: '.mehistory',
+                mainMsg: ['.mehistory'],
+                groupid: interaction.guildId,
+                userid: interaction.user.id,
+                botname: 'Discord',
+                displayname: interaction.user.username,
+                displaynameDiscord: interaction.user.username,
+                channelid: interaction.channelId
+            });
+            
+            return result.text;
+        }
+    }
+];
+
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,
     getHelpMessage: getHelpMessage,
     prefixs: prefixs,
     gameType: gameType,
-    gameName: gameName
+    gameName: gameName,
+    discordCommand: discordCommand
 };

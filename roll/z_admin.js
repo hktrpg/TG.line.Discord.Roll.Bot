@@ -20,6 +20,7 @@ const pattName = /\s+-n\s+(\S+)/ig;
 const pattNotes = /\s+-no\s+(\S+)/ig;
 const pattSwitch = /\s+-s\s+(\S+)/ig;
 const deploy = require('../modules/ds-deploy-commands.js');
+const { SlashCommandBuilder } = require('discord.js');
 //const VIP = require('../modules/veryImportantPerson');
 const gameName = function () {
     return '【Admin Tool】.admin debug state account news on'
@@ -73,7 +74,123 @@ const getHelpMessage = async function () {
 ╰──────────────`
 }
 const discordCommand = [
-
+    {
+        data: new SlashCommandBuilder()
+            .setName('admin')
+            .setDescription('【管理員工具箱】')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('state')
+                    .setDescription('檢視Rollbot運行狀態')
+            )
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('debug')
+                    .setDescription('取得群組詳細資料')
+            )
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('account')
+                    .setDescription('網頁版角色卡設定')
+                    .addStringOption(option => 
+                        option.setName('username')
+                            .setDescription('使用者名稱(4-16字元，中文、英文)')
+                            .setRequired(true))
+                    .addStringOption(option => 
+                        option.setName('password')
+                            .setDescription('密碼(6-16字元，英文字母及!@#$%^&*)')
+                            .setRequired(true))
+            ),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            // Check if user is admin for sensitive commands
+            if (interaction.user.id !== adminSecret) {
+                return '只有管理員可以使用此功能';
+            }
+            
+            switch (subcommand) {
+                case 'state':
+                    return {
+                        state: true,
+                        quotes: true
+                    };
+                    
+                case 'debug':
+                    let debugText = "Debug function" + 
+                        '\ngroupid: ' + interaction.guildId + 
+                        "\nuserid: " + interaction.user.id;
+                    
+                    debugText += '\nchannelid: ' + interaction.channelId;
+                    debugText += (interaction.member.roles.cache.size > 0) ? 
+                        '\nuserrole: ' + interaction.member.roles.cache.map(r => r.name).join(', ') : '';
+                    debugText += (interaction.client.user.username) ? 
+                        '\nbotname: ' + interaction.client.user.username : '';
+                    debugText += (interaction.user.username) ? 
+                        '\ndisplayname: ' + interaction.user.username : '';
+                    debugText += (interaction.user.username) ? 
+                        '\ndisplaynameDiscord: ' + interaction.user.username : '';
+                    debugText += (interaction.guild.memberCount) ? 
+                        '\nmembercount: ' + interaction.guild.memberCount : '';
+                    
+                    if (!password) return debugText;
+                    return 'Debug encrypt Data: \n' + encrypt(debugText);
+                    
+                case 'account':
+                    if (interaction.guildId) {
+                        return "設定帳號時，請直接和HKTRPG對話，禁止在群組中使用";
+                    }
+                    
+                    const username = interaction.options.getString('username').toLowerCase();
+                    const password = interaction.options.getString('password');
+                    
+                    if (!checkUserName(username)) {
+                        return "使用者名稱，4-16字，中英文限定，大小階相同";
+                    }
+                    
+                    if (!checkPassword(password)) {
+                        return "使用者密碼，6-16字，英文及以下符號限定!@#$%^&*";
+                    }
+                    
+                    const hash = crypto.createHmac('sha256', password)
+                        .update(salt)
+                        .digest('hex');
+                    
+                    try {
+                        const existingUser = await schema.accountPW.findOne({
+                            "userName": username
+                        });
+                        
+                        if (existingUser && existingUser.id !== interaction.user.id) {
+                            return "重覆用戶名稱";
+                        }
+                        
+                        await schema.accountPW.findOneAndUpdate({
+                            "id": interaction.user.id
+                        }, {
+                            $set: {
+                                "userName": username,
+                                "password": hash
+                            }
+                        }, {
+                            upsert: true,
+                            returnNewDocument: true
+                        });
+                        
+                        let response = "現在你的帳號是: " + username + "\n" + "密碼: " + password;
+                        response += "\n登入位置: https://card.hktrpg.com/ \n如想經網頁擲骰，可以請Admin在頻道中輸入\n.admin  allowrolling\n然後希望擲骰玩家可在該頻道輸入以下指令登記。\n.admin registerChannel";
+                        
+                        return response;
+                    } catch (error) {
+                        console.error('ACCOUNT ERROR:', error);
+                        return JSON.stringify(error);
+                    }
+                    
+                default:
+                    return '未知的子命令';
+            }
+        }
+    }
 ];
 
 const initialize = function () {

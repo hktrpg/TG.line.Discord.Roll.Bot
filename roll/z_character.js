@@ -112,7 +112,7 @@ state[...]~ roll[...]~ notes[...]~
 │
 │ ■ Discord訊息轉發:
 │ • .ch forward [discord訊息連結]
-│   轉發自己的Discord訊息
+│   將角色卡擲骰訊息轉發至指定頻道
 │   只支援同一伺服器內的訊息
 │ • .ch forward show
 │   顯示所有已設定的轉發列表
@@ -939,7 +939,7 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         }
 
         if (!isMentioned) {
-            rply.text = '你只能轉發提及你的訊息';
+            rply.text = '你只能轉發你的角色卡';
             return rply;
         }
 

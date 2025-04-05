@@ -908,7 +908,7 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         // Get the content of the message
         const messageContent = sourceMessage.content;
         if (!messageContent || messageContent.trim() === '') {
-            rply.text = '該訊息沒有內容可以轉發';
+            rply.text = '該訊息沒有角色卡';
             return rply;
         }
 
@@ -919,18 +919,26 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         }
 
         // Check for mentions in the message
-        console.log('sourceMessage.author.id', sourceMessage.author.id);
-        console.log('discordMessage.author.id', discordMessage.author.id);
+        console.log('sourceMessage.author', sourceMessage.author);
+        console.log('discordMessage.author', discordMessage.author);
+        
+
+        
+ 
 
         // Get all mentioned users
-        let mentionedUsers = Array.from(sourceMessage.mentions.users.entries());
+        let mentionedUsers = [];
+        if (sourceMessage.mentions && sourceMessage.mentions.users) {
+            mentionedUsers = Array.from(sourceMessage.mentions.users.entries());
+        }
         console.log('mentionedUsers', mentionedUsers);
 
         // Check if the current user is mentioned in the message
         let isMentioned = false;
+        let isInteractionUser = false;
 
         // Check if user is mentioned
-        if (mentionedUsers.length > 0) {
+        if (mentionedUsers.length > 0 && discordMessage.author && discordMessage.author.id) {
             for (const [userId, user] of mentionedUsers) {
                 if (userId === discordMessage.author.id) {
                     isMentioned = true;
@@ -939,13 +947,27 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
             }
         }
 
-        if (!isMentioned) {
+        // Check if user is the interaction user
+        if (sourceMessage.interaction && sourceMessage.interaction.user && sourceMessage.interaction.user.id) {
+            isInteractionUser = (sourceMessage.interaction.user.id === userid);
+        }
+        
+
+        if (!isMentioned && !isInteractionUser) {
             rply.text = '你只能轉發你的角色卡';
             return rply;
         }
 
         // Get the character card name from the message content
-        const characterName = messageContent.replace(/的角色$/, '').trim();
+        let characterName = '';
+        if (messageContent) {
+            characterName = messageContent.replace(/的角色$/, '').trim();
+        }
+        
+        if (!characterName) {
+            rply.text = '無法識別角色卡名稱，請確認訊息格式正確';
+            return rply;
+        }
 
         // Check if this character card is already assigned to a channel
         let existingForward = await schema.forwardedMessage.findOne({
@@ -964,12 +986,19 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
 
         // Store the forwarded message in the database
         try {
+            // Validate all required fields
+            if (!userid || !groupid || !channelid || !sourceMessageId || !sourceChannelId || !characterName) {
+                rply.text = '轉發訊息時缺少必要資訊，請確認所有欄位都有值';
+                return rply;
+            }
+            
             await schema.forwardedMessage.create({
                 userId: userid,
                 guildId: groupid,
                 channelId: channelid,
                 sourceMessageId: sourceMessageId,
                 sourceChannelId: sourceChannelId,
+                characterName: characterName,
                 forwardedAt: new Date(),
                 fixedId: nextFixedId
             });
@@ -1025,7 +1054,7 @@ async function handleForwardShow(mainMsg, inputStr, userid, groupid, channelid, 
             // Create the source message link using the guild ID from the schema
             const sourceMessageLink = `https://discord.com/channels/${forward.guildId}/${forward.sourceChannelId}/${forward.sourceMessageId}`;
 
-            responseText += `│ ${forward.fixedId}. 轉發至頻道: ${targetChannelId}\n`;
+            responseText += `│ ${forward.fixedId}. 「${forward.characterName}」轉發至頻道: ${targetChannelId}\n`;
             responseText += `│    ${targetChannelLink}\n`;
             responseText += `│    來源角色卡button連結: ${sourceMessageLink}\n`;
 
@@ -1070,7 +1099,7 @@ async function handleForwardDelete(mainMsg, inputStr, userid, groupid, channelid
         // Delete the forward
         await schema.forwardedMessage.deleteOne({ _id: forwardToDelete._id });
 
-        rply.text = `╭──── ✅ 刪除成功 ────\n│ 已刪除編號 ${forwardId} 的轉發\n╰─────────────────`;
+        rply.text = `╭──── ✅ 刪除成功 ────\n│ 已刪除編號 ${forwardId} 的「${forwardToDelete.characterName}」轉發\n╰─────────────────`;
         return rply;
 
     } catch (error) {

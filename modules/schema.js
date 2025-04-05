@@ -459,6 +459,7 @@ const forwardedMessageSchema = mongoose.model('forwardedMessage', new mongoose.S
     channelId: { type: String, required: true, index: true },
     sourceMessageId: { type: String, required: true, index: true },
     sourceChannelId: { type: String, required: true, index: true },
+    characterName: { type: String, required: true },
     forwardedAt: { type: Date, default: Date.now },
     fixedId: { type: Number, required: true, unique: true }
 }));

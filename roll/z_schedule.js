@@ -12,6 +12,7 @@ const agenda = require('../modules/schedule')
 const CRON_REGEX = /^(\d\d)(\d\d)((?:-([1-9]?[1-9]|((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?))){0,1})/i;
 const VALID_DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 const checkTools = require('../modules/check.js');
+const { SlashCommandBuilder } = require('discord.js');
 
 
 
@@ -502,6 +503,199 @@ function showCronJobs(jobs) {
     return reply;
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('at')
+            .setDescription('【定時任務】單次定時發送')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('schedule')
+                    .setDescription('設定單次定時任務')
+                    .addStringOption(option =>
+                        option.setName('time')
+                            .setDescription('時間 (YYYYMMDD HHMM 或 Xmins/Xhours)')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('time2')
+                            .setDescription('時間2 (若使用YYYYMMDD HHMM格式才需要)')
+                            .setRequired(false))
+                    .addStringOption(option =>
+                        option.setName('message')
+                            .setDescription('要發送的訊息')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示所有定時任務'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('delete')
+                    .setDescription('刪除定時任務')
+                    .addIntegerOption(option =>
+                        option.setName('index')
+                            .setDescription('任務序號')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            switch (subcommand) {
+                case 'schedule': {
+                    const time = interaction.options.getString('time');
+                    const time2 = interaction.options.getString('time2');
+                    const message = interaction.options.getString('message');
+                    
+                    // 構建命令
+                    let command = `.at ${time}`;
+                    if (time2) command += ` ${time2}`;
+                    command += ` ${message}`;
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: command,
+                        mainMsg: ['.at', time, time2, message],
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        userrole: interaction.member.roles.highest.id,
+                        botname: 'Discord',
+                        channelid: interaction.channelId
+                    });
+                    
+                    return result.text;
+                }
+                case 'show': {
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: '.at show',
+                        mainMsg: ['.at', 'show'],
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        userrole: interaction.member.roles.highest.id,
+                        botname: 'Discord',
+                        channelid: interaction.channelId
+                    });
+                    
+                    return result.text;
+                }
+                case 'delete': {
+                    const index = interaction.options.getInteger('index');
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: `.at delete ${index}`,
+                        mainMsg: ['.at', 'delete', index.toString()],
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        userrole: interaction.member.roles.highest.id,
+                        botname: 'Discord',
+                        channelid: interaction.channelId
+                    });
+                    
+                    return result.text;
+                }
+            }
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('cron')
+            .setDescription('【定時任務】循環定時發送')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('schedule')
+                    .setDescription('設定循環定時任務')
+                    .addStringOption(option =>
+                        option.setName('time')
+                            .setDescription('時間 (HHMM[-天數][-星期])')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('message')
+                            .setDescription('要發送的訊息')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('發送者名稱 (贊助者功能)')
+                            .setRequired(false))
+                    .addStringOption(option =>
+                        option.setName('link')
+                            .setDescription('頭像連結 (贊助者功能)')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示所有循環任務'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('delete')
+                    .setDescription('刪除循環任務')
+                    .addIntegerOption(option =>
+                        option.setName('index')
+                            .setDescription('任務序號')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            switch (subcommand) {
+                case 'schedule': {
+                    const time = interaction.options.getString('time');
+                    const message = interaction.options.getString('message');
+                    const name = interaction.options.getString('name');
+                    const link = interaction.options.getString('link');
+                    
+                    // 構建命令
+                    let command = `.cron ${time}`;
+                    if (name && link) {
+                        command += `\nname=${name}\nlink=${link}`;
+                    }
+                    command += `\n${message}`;
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: command,
+                        mainMsg: ['.cron', time, message],
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        userrole: interaction.member.roles.highest.id,
+                        botname: 'Discord',
+                        channelid: interaction.channelId
+                    });
+                    
+                    return result.text;
+                }
+                case 'show': {
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: '.cron show',
+                        mainMsg: ['.cron', 'show'],
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        userrole: interaction.member.roles.highest.id,
+                        botname: 'Discord',
+                        channelid: interaction.channelId
+                    });
+                    
+                    return result.text;
+                }
+                case 'delete': {
+                    const index = interaction.options.getInteger('index');
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: `.cron delete ${index}`,
+                        mainMsg: ['.cron', 'delete', index.toString()],
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        userrole: interaction.member.roles.highest.id,
+                        botname: 'Discord',
+                        channelid: interaction.channelId
+                    });
+                    
+                    return result.text;
+                }
+            }
+        }
+    }
+];
 
 module.exports = {
     rollDiceCommand: rollDiceCommand,
@@ -509,5 +703,6 @@ module.exports = {
     getHelpMessage: getHelpMessage,
     prefixs: prefixs,
     gameType: gameType,
-    gameName: gameName
+    gameName: gameName,
+    discordCommand: discordCommand
 };

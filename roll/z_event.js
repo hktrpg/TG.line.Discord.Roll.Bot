@@ -650,14 +650,162 @@ async function analysicDetail(data) {
     return info;
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('event')
+            .setDescription('【事件功能】管理你的事件')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('add')
+                    .setDescription('新增事件')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('事件名稱')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('chain')
+                            .setDescription('系列名稱 (選填)'))
+                    .addStringOption(option =>
+                        option.setName('exp')
+                            .setDescription('經驗值名稱 (選填)'))
+                    .addStringOption(option =>
+                        option.setName('options')
+                            .setDescription('事件選項，格式: 0:選項1;選項2 -1:選項3;選項4 1:選項5;選項6')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('delete')
+                    .setDescription('刪除事件')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('事件名稱')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示你新增的所有事件及賺取EXP')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('事件名稱 (選填，顯示指定事件詳情)')))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('useexp')
+                    .setDescription('在群組中使用賺取的EXP')),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            switch (subcommand) {
+                case 'add': {
+                    const name = interaction.options.getString('name');
+                    const chain = interaction.options.getString('chain') || '';
+                    const exp = interaction.options.getString('exp') || '';
+                    const options = interaction.options.getString('options');
+                    
+                    // 構建輸入字符串，模擬 .event add 命令
+                    let inputStr = `name:${name}\n`;
+                    if (chain) inputStr += `chain:${chain}\n`;
+                    if (exp) inputStr += `exp:${exp}\n`;
+                    inputStr += options;
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: inputStr,
+                        mainMsg: ['.event', 'add', name],
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username
+                    });
+                    
+                    return result.text;
+                }
+                case 'delete': {
+                    const name = interaction.options.getString('name');
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: name,
+                        mainMsg: ['.event', 'delete', name],
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username
+                    });
+                    
+                    return result.text;
+                }
+                case 'show': {
+                    const name = interaction.options.getString('name');
+                    
+                    // 構建命令參數
+                    const mainMsg = ['.event', 'show'];
+                    if (name) mainMsg.push(name);
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: name || '',
+                        mainMsg: mainMsg,
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username
+                    });
+                    
+                    return result.text;
+                }
+                case 'useexp': {
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: '',
+                        mainMsg: ['.event', 'useExp'],
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username
+                    });
+                    
+                    return result.text;
+                }
+                default:
+                    return '未知的子命令';
+            }
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('evt')
+            .setDescription('【事件功能】進入事件')
+            .addStringOption(option =>
+                option.setName('name')
+                    .setDescription('事件名稱、系列名稱或 random')
+                    .setRequired(true)),
+        async execute(interaction) {
+            const name = interaction.options.getString('name');
+            
+            // 調用現有的 rollDiceCommand 函數處理
+            const result = await rollDiceCommand({
+                inputStr: name,
+                mainMsg: ['.evt', name],
+                groupid: interaction.guildId,
+                userid: interaction.user.id,
+                displayname: interaction.user.username,
+                displaynameDiscord: interaction.user.username
+            });
+            
+            return result.text;
+        }
+    }
+];
 
 module.exports = {
-    rollDiceCommand: rollDiceCommand,
-    initialize: initialize,
-    getHelpMessage: getHelpMessage,
-    prefixs: prefixs,
-    gameType: gameType,
-    gameName: gameName
+    rollDiceCommand,
+    initialize,
+    getHelpMessage,
+    prefixs,
+    gameType,
+    gameName,
+    discordCommand
 };
 
 

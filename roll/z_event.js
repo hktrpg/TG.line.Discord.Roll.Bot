@@ -3,6 +3,7 @@ if (!process.env.mongoURL) {
     return;
 }
 const checkMongodb = require('../modules/dbWatchdog.js');
+const { SlashCommandBuilder } = require('discord.js');
 const debugMode = (process.env.DEBUG) ? true : false;
 let variables = {};
 const rollDice = require('./rollbase');

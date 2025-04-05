@@ -143,7 +143,22 @@ ${result[i].item.desc} \n
 }
 const pf2 = Pf2e.init();
 
-const discordCommand = []
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('pf2')
+            .setDescription('Pathfinder 2E查詢系統')
+            .addStringOption(option => 
+                option.setName('keyword')
+                    .setDescription('要查詢的關鍵字')
+                    .setRequired(true)),
+        async execute(interaction) {
+            const keyword = interaction.options.getString('keyword');
+            return `.pf2 ${keyword}`;
+        }
+    }
+];
+
 module.exports = {
     rollDiceCommand,
     initialize,

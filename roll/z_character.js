@@ -1161,6 +1161,18 @@ const discordCommand = [
                     .addStringOption(option =>
                         option.setName('link')
                             .setDescription('Discord訊息連結')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('forward_show')
+                    .setDescription('顯示所有已設定的轉發列表'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('forward_delete')
+                    .setDescription('刪除指定編號的轉發設定')
+                    .addIntegerOption(option =>
+                        option.setName('id')
+                            .setDescription('轉發編號')
                             .setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
@@ -1178,6 +1190,11 @@ const discordCommand = [
             } else if (subcommand === 'forward') {
                 const link = interaction.options.getString('link');
                 return `.ch forward ${link}`;
+            } else if (subcommand === 'forward_show') {
+                return `.ch forward show`;
+            } else if (subcommand === 'forward_delete') {
+                const id = interaction.options.getInteger('id');
+                return `.ch forward delete ${id}`;
             }
         }
     }

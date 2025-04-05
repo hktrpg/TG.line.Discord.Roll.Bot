@@ -266,11 +266,98 @@ async function showInitn(doc) {
     }
     return result;
 }
+
+const { SlashCommandBuilder } = require('discord.js');
+
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('in')
+            .setDescription('先攻表系統')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('add')
+                    .setDescription('新增角色到先攻表')
+                    .addStringOption(option => 
+                        option.setName('roll')
+                            .setDescription('擲骰或數值，如 1d20+3 或 15')
+                            .setRequired(true))
+                    .addStringOption(option => 
+                        option.setName('name')
+                            .setDescription('角色名稱(選填)')))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('remove')
+                    .setDescription('從先攻表移除角色')
+                    .addStringOption(option => 
+                        option.setName('name')
+                            .setDescription('要移除的角色名稱')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('clear')
+                    .setDescription('清空整個先攻表'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('reroll')
+                    .setDescription('重擲所有角色的先攻'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('modify')
+                    .setDescription('修改先攻值')
+                    .addStringOption(option => 
+                        option.setName('value')
+                            .setDescription('修改值，如 +3 或 -2')
+                            .setRequired(true))
+                    .addStringOption(option => 
+                        option.setName('name')
+                            .setDescription('要修改的角色名稱')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            switch (subcommand) {
+                case 'add':
+                    const roll = interaction.options.getString('roll');
+                    const name = interaction.options.getString('name');
+                    return `.in ${roll}${name ? ' ' + name : ''}`;
+                case 'remove':
+                    const removeName = interaction.options.getString('name');
+                    return `.in remove ${removeName}`;
+                case 'clear':
+                    return '.in clear';
+                case 'reroll':
+                    return '.in reroll';
+                case 'modify':
+                    const value = interaction.options.getString('value');
+                    const modifyName = interaction.options.getString('name');
+                    return `.in ${value} ${modifyName}`;
+            }
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('init')
+            .setDescription('顯示先攻表(大到小排序)'),
+        async execute() {
+            return '.init';
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('initn')
+            .setDescription('顯示先攻表(小到大排序)'),
+        async execute() {
+            return '.initn';
+        }
+    }
+];
+
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,
     getHelpMessage: getHelpMessage,
     prefixs: prefixs,
     gameType: gameType,
-    gameName: gameName
+    gameName: gameName,
+    discordCommand
 };

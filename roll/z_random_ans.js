@@ -7,6 +7,7 @@ const adminSecret = process.env.ADMIN_SECRET;
 const rollbase = require('./rollbase.js');
 const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
+const { SlashCommandBuilder } = require('discord.js');
 exports.z_Level_system = require('./z_Level_system');
 const opt = {
     upsert: true,
@@ -912,11 +913,399 @@ function escapeRegExp(target) {
         return target;
     }
 }
+
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('ra')
+            .setDescription('【自定義骰子】群組共用版')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('add')
+                    .setDescription('新增骰子')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('骰子名稱')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('options')
+                            .setDescription('選項，用空格分隔')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示骰子清單')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('骰子名稱 (選填)')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('del')
+                    .setDescription('刪除骰子')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('骰子名稱')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('roll')
+                    .setDescription('擲骰')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('骰子名稱或編號')
+                            .setRequired(true))
+                    .addIntegerOption(option =>
+                        option.setName('times')
+                            .setDescription('擲骰次數 (1-30)')
+                            .setRequired(false))
+                    .addBooleanOption(option =>
+                        option.setName('repeat')
+                            .setDescription('是否允許重複結果')
+                            .setRequired(false))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            switch (subcommand) {
+                case 'add': {
+                    const name = interaction.options.getString('name');
+                    const options = interaction.options.getString('options');
+                    
+                    // 構建輸入字符串
+                    const mainMsg = ['.ra', 'add', name, ...options.split(' ')];
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: mainMsg.join(' '),
+                        mainMsg: mainMsg,
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        userrole: interaction.member.roles.highest.id,
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username,
+                        membercount: interaction.guild.memberCount
+                    });
+                    
+                    return result.text;
+                }
+                case 'show': {
+                    const name = interaction.options.getString('name');
+                    
+                    // 構建命令參數
+                    const mainMsg = ['.ra', 'show'];
+                    if (name) mainMsg.push(name);
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: mainMsg.join(' '),
+                        mainMsg: mainMsg,
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        userrole: interaction.member.roles.highest.id,
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username,
+                        membercount: interaction.guild.memberCount
+                    });
+                    
+                    return result.text;
+                }
+                case 'del': {
+                    const name = interaction.options.getString('name');
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: `.ra del ${name}`,
+                        mainMsg: ['.ra', 'del', name],
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        userrole: interaction.member.roles.highest.id,
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username,
+                        membercount: interaction.guild.memberCount
+                    });
+                    
+                    return result.text;
+                }
+                case 'roll': {
+                    const name = interaction.options.getString('name');
+                    const times = interaction.options.getInteger('times') || 1;
+                    const repeat = interaction.options.getBoolean('repeat');
+                    
+                    // 構建命令
+                    let command = `.${repeat ? 'r' : ''}ra${times}`;
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: `${command} ${name}`,
+                        mainMsg: [command, name],
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        userrole: interaction.member.roles.highest.id,
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username,
+                        membercount: interaction.guild.memberCount
+                    });
+                    
+                    return result.text;
+                }
+            }
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('rap')
+            .setDescription('【自定義骰子】個人專用版')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('add')
+                    .setDescription('新增骰子')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('骰子名稱')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('options')
+                            .setDescription('選項，用空格分隔')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示骰子清單')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('骰子名稱 (選填)')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('del')
+                    .setDescription('刪除骰子')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('骰子名稱')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('roll')
+                    .setDescription('擲骰')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('骰子名稱或編號')
+                            .setRequired(true))
+                    .addIntegerOption(option =>
+                        option.setName('times')
+                            .setDescription('擲骰次數 (1-30)')
+                            .setRequired(false))
+                    .addBooleanOption(option =>
+                        option.setName('repeat')
+                            .setDescription('是否允許重複結果')
+                            .setRequired(false))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            switch (subcommand) {
+                case 'add': {
+                    const name = interaction.options.getString('name');
+                    const options = interaction.options.getString('options');
+                    
+                    // 構建輸入字符串
+                    const mainMsg = ['.rap', 'add', name, ...options.split(' ')];
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: mainMsg.join(' '),
+                        mainMsg: mainMsg,
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        userrole: interaction.member.roles.highest.id,
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username,
+                        membercount: interaction.guild.memberCount
+                    });
+                    
+                    return result.text;
+                }
+                case 'show': {
+                    const name = interaction.options.getString('name');
+                    
+                    // 構建命令參數
+                    const mainMsg = ['.rap', 'show'];
+                    if (name) mainMsg.push(name);
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: mainMsg.join(' '),
+                        mainMsg: mainMsg,
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        userrole: interaction.member.roles.highest.id,
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username,
+                        membercount: interaction.guild.memberCount
+                    });
+                    
+                    return result.text;
+                }
+                case 'del': {
+                    const name = interaction.options.getString('name');
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: `.rap del ${name}`,
+                        mainMsg: ['.rap', 'del', name],
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        userrole: interaction.member.roles.highest.id,
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username,
+                        membercount: interaction.guild.memberCount
+                    });
+                    
+                    return result.text;
+                }
+                case 'roll': {
+                    const name = interaction.options.getString('name');
+                    const times = interaction.options.getInteger('times') || 1;
+                    const repeat = interaction.options.getBoolean('repeat');
+                    
+                    // 構建命令
+                    let command = `.${repeat ? 'r' : ''}rap${times}`;
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: `${command} ${name}`,
+                        mainMsg: [command, name],
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        userrole: interaction.member.roles.highest.id,
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username,
+                        membercount: interaction.guild.memberCount
+                    });
+                    
+                    return result.text;
+                }
+            }
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('ras')
+            .setDescription('【自定義骰子】公開共用版')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('add')
+                    .setDescription('新增骰子')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('骰子名稱')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('options')
+                            .setDescription('選項，用空格分隔')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示骰子清單')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('骰子名稱 (選填)')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('roll')
+                    .setDescription('擲骰')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('骰子名稱或編號')
+                            .setRequired(true))
+                    .addIntegerOption(option =>
+                        option.setName('times')
+                            .setDescription('擲骰次數 (1-30)')
+                            .setRequired(false))
+                    .addBooleanOption(option =>
+                        option.setName('repeat')
+                            .setDescription('是否允許重複結果')
+                            .setRequired(false))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            switch (subcommand) {
+                case 'add': {
+                    const name = interaction.options.getString('name');
+                    const options = interaction.options.getString('options');
+                    
+                    // 構建輸入字符串
+                    const mainMsg = ['.ras', 'add', name, ...options.split(' ')];
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: mainMsg.join(' '),
+                        mainMsg: mainMsg,
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        userrole: interaction.member.roles.highest.id,
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username,
+                        membercount: interaction.guild.memberCount
+                    });
+                    
+                    return result.text;
+                }
+                case 'show': {
+                    const name = interaction.options.getString('name');
+                    
+                    // 構建命令參數
+                    const mainMsg = ['.ras', 'show'];
+                    if (name) mainMsg.push(name);
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: mainMsg.join(' '),
+                        mainMsg: mainMsg,
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        userrole: interaction.member.roles.highest.id,
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username,
+                        membercount: interaction.guild.memberCount
+                    });
+                    
+                    return result.text;
+                }
+                case 'roll': {
+                    const name = interaction.options.getString('name');
+                    const times = interaction.options.getInteger('times') || 1;
+                    const repeat = interaction.options.getBoolean('repeat');
+                    
+                    // 構建命令
+                    let command = `.${repeat ? 'r' : ''}ras${times}`;
+                    
+                    // 調用現有的 rollDiceCommand 函數處理
+                    const result = await rollDiceCommand({
+                        inputStr: `${command} ${name}`,
+                        mainMsg: [command, name],
+                        groupid: interaction.guildId,
+                        userid: interaction.user.id,
+                        userrole: interaction.member.roles.highest.id,
+                        displayname: interaction.user.username,
+                        displaynameDiscord: interaction.user.username,
+                        membercount: interaction.guild.memberCount
+                    });
+                    
+                    return result.text;
+                }
+            }
+        }
+    }
+];
+
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,
     getHelpMessage: getHelpMessage,
     prefixs: prefixs,
     gameType: gameType,
-    gameName: gameName
+    gameName: gameName,
+    discordCommand: discordCommand
 };

@@ -114,6 +114,10 @@ state[...]~ roll[...]~ notes[...]~
 │ • .ch forward [discord訊息連結]
 │   轉發自己的Discord訊息
 │   只支援同一伺服器內的訊息
+│ • .ch forward show
+│   顯示所有已設定的轉發列表
+│ • .ch forward delete [編號]
+│   刪除指定編號的轉發設定
 │
 │ ■ 運算功能:
 │ • {變數}: 引用角色數值
@@ -190,6 +194,11 @@ const rollDiceCommand = async function ({ inputStr, mainMsg, groupid, botname, u
         case /(^[.]char$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             return await handleDelete(mainMsg, inputStr, userid, rply);
         case /(^[.]char$)/i.test(mainMsg[0]) && /^button$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+            return await handleButton(mainMsg, inputStr, userid, groupid, channelid, botname, rply);
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /^forward$/i.test(mainMsg[1]) && /^show$/i.test(mainMsg[2]):
+            return await handleForwardShow(mainMsg, inputStr, userid, groupid, channelid, rply);
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /^forward$/i.test(mainMsg[1]) && /^delete$/i.test(mainMsg[2]) && /^\d+$/i.test(mainMsg[3]):
+            return await handleForwardDelete(mainMsg, inputStr, userid, groupid, channelid, rply);
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^forward$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]):
             console.log('forward', mainMsg, inputStr, userid, groupid, channelid, discordMessage, discordClient, rply);
             return await handleForwardMessage(mainMsg, inputStr, userid, groupid, channelid, discordMessage, discordClient, rply);
@@ -837,34 +846,47 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         rply.text = '此功能必須在群組中使用';
         return rply;
     }
-    
+
     if (!discordMessage || !discordClient) {
         rply.text = '此功能只能在Discord中使用';
         return rply;
     }
-    
+
+    // Check VIP level for user and group
+    let userVipLevel = await VIP.viplevelCheckUser(userid);
+    let groupVipLevel = await VIP.viplevelCheckGroup(groupid);
+    let vipLevel = Math.max(userVipLevel, groupVipLevel);
+    let limit = FUNCTION_LIMIT[vipLevel];
+
+    // Check if user has reached the limit for forwarded messages
+    let existingForwardedMessages = await schema.forwardedMessage.countDocuments({ userId: userid });
+    if (existingForwardedMessages >= limit) {
+        rply.text = `╭──── ⚠️ 角色卡轉發上限 ────\n│ ❌ 你已達到角色卡轉發上限 (${limit}張)\n│\n│ 💎 如需增加上限，請升級VIP等級\n│ 🔗 支援及解鎖上限: https://www.patreon.com/HKTRPG\n╰─────────────────`;
+        return rply;
+    }
+
     const messageLink = inputStr.replace(/^\.ch\s+forward\s+/i, '').trim();
     const matches = messageLink.match(discordLinkRegex);
-    
+
     if (!matches) {
         rply.text = '無效的Discord訊息連結格式。應為 https://discord.com/channels/{伺服器ID}/{頻道ID}/{訊息ID}';
         return rply;
     }
-    
+
     const [, sourceGuildId, sourceChannelId, sourceMessageId] = matches;
-    
+
     // Verify if the current guild is the same as the source guild to prevent cross-server access
     if (discordMessage.guildId !== sourceGuildId) {
         rply.text = '無法轉發來自其他伺服器的訊息';
         return rply;
     }
-    
+
     // Check if the source channel is the same as the current channel
     if (sourceChannelId === channelid) {
         rply.text = '無法轉發來自同一頻道的訊息';
         return rply;
     }
-    
+
     try {
         // Try to fetch the source channel
         const sourceChannel = await discordClient.channels.fetch(sourceChannelId);
@@ -873,7 +895,7 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
             rply.text = '找不到指定的頻道';
             return rply;
         }
-        
+
         // Try to fetch the source message
         const sourceMessage = await sourceChannel.messages.fetch(sourceMessageId);
         console.log('sourceMessage', sourceMessage);
@@ -881,31 +903,31 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
             rply.text = '找不到指定的訊息';
             return rply;
         }
-        
+
         // Get the content of the message
         const messageContent = sourceMessage.content;
         if (!messageContent || messageContent.trim() === '') {
             rply.text = '該訊息沒有內容可以轉發';
             return rply;
         }
-        
+
         // Check if the message content ends with "的角色"
         if (!messageContent.endsWith('的角色')) {
-            rply.text = '只能轉發以「的角色」結尾的訊息';
+            rply.text = '只能轉發「.ch button 產生的角色卡」';
             return rply;
         }
-        
+
         // Check for mentions in the message
         console.log('sourceMessage.author.id', sourceMessage.author.id);
         console.log('discordMessage.author.id', discordMessage.author.id);
-        
+
         // Get all mentioned users
         let mentionedUsers = Array.from(sourceMessage.mentions.users.entries());
         console.log('mentionedUsers', mentionedUsers);
-        
+
         // Check if the current user is mentioned in the message
         let isMentioned = false;
-        
+
         // Check if user is mentioned
         if (mentionedUsers.length > 0) {
             for (const [userId, user] of mentionedUsers) {
@@ -915,39 +937,144 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
                 }
             }
         }
-        
+
         if (!isMentioned) {
             rply.text = '你只能轉發提及你的訊息';
             return rply;
         }
-        
+
         // Get the character card name from the message content
         const characterName = messageContent.replace(/的角色$/, '').trim();
-        
+
+        // Check if this character card is already assigned to a channel
+        let existingForward = await schema.forwardedMessage.findOne({
+            userId: userid,
+            sourceMessageId: sourceMessageId
+        });
+
+        if (existingForward) {
+            rply.text = `╭──── ⚠️ 角色卡已指定 ────\n│ ❌ 「${characterName}」角色卡已經被指定到其他頻道\n│\n│ ℹ️ 每個角色卡只能指定到一個頻道\n╰─────────────────`;
+            return rply;
+        }
+
+        // Find the next available fixedId
+        const maxFixedId = await schema.forwardedMessage.findOne({ userId: userid }).sort({ fixedId: -1 });
+        const nextFixedId = maxFixedId ? maxFixedId.fixedId + 1 : 1;
+
         // Store the forwarded message in the database
         try {
             await schema.forwardedMessage.create({
                 userId: userid,
-                channelId: channelid, // Using channelId instead of guildId
+                guildId: groupid,
+                channelId: channelid,
                 sourceMessageId: sourceMessageId,
                 sourceChannelId: sourceChannelId,
-                sourceGuildId: sourceGuildId,
-                forwardedAt: new Date()
+                forwardedAt: new Date(),
+                fixedId: nextFixedId
             });
         } catch (error) {
             console.error('儲存轉發訊息時發生錯誤', error);
             rply.text = '轉發訊息時發生錯誤';
             return rply;
         }
-        
-        // Provide an elegant response message with the character card name
-        rply.text = `✨ 已儲存「${characterName}」角色卡按鈕位置 ✨\n\n📌 當你使用該角色卡的按鈕後，所有訊息將在此頻道中發送。\n\n💡 提示：使用 .ch button 可生成角色卡按鈕`;
-        
+
+        // Create the source message link
+        const sourceMessageLink = `https://discord.com/channels/${groupid}/${sourceChannelId}/${sourceMessageId}`;
+
+        // Provide an elegant response message with the character card name and source link
+        rply.text = `╭──── ✨ 角色卡按鈕位置已儲存 ────\n│ ✅ 「${characterName}」角色卡按鈕位置已儲存\n│\n│ 📌 當你使用該角色卡的按鈕後，所有訊息將在此頻道中發送\n│\n│ 💡 提示：使用 .ch button 可生成角色卡按鈕\n│\n│ 來源角色卡button連結: ${sourceMessageLink}\n╰─────────────────`;
+
         return rply;
-        
+
     } catch (error) {
         console.error('處理訊息轉發時發生錯誤', error);
         rply.text = '轉發訊息時發生錯誤: ' + error.message;
+        return rply;
+    }
+}
+
+async function handleForwardShow(mainMsg, inputStr, userid, groupid, channelid, rply) {
+    if (!groupid) {
+        rply.text = '此功能必須在群組中使用';
+        return rply;
+    }
+
+    try {
+        // Find all forwarded messages for this user
+        const forwardedMessages = await schema.forwardedMessage.find({ userId: userid }).sort({ fixedId: 1 });
+
+        if (forwardedMessages.length === 0) {
+            rply.text = `╭──── ℹ️ 角色卡轉發狀態 ────\n│ ❌ 你目前沒有轉發任何角色卡\n╰─────────────────`;
+            return rply;
+        }
+
+        // Format the response with all forwarded messages
+        let responseText = `╭──── 📋 角色卡轉發列表 ────\n`;
+
+        for (let i = 0; i < forwardedMessages.length; i++) {
+            const forward = forwardedMessages[i];
+            console.log('Forward object:', JSON.stringify(forward));
+
+            // Get the target channel ID from the schema
+            const targetChannelId = forward.channelId;
+
+            // Create the target channel link using the guild ID from the schema
+            const targetChannelLink = `https://discord.com/channels/${forward.guildId}/${targetChannelId}`;
+
+            // Create the source message link using the guild ID from the schema
+            const sourceMessageLink = `https://discord.com/channels/${forward.guildId}/${forward.sourceChannelId}/${forward.sourceMessageId}`;
+
+            responseText += `│ ${forward.fixedId}. 轉發至頻道: ${targetChannelId}\n`;
+            responseText += `│    ${targetChannelLink}\n`;
+            responseText += `│    來源角色卡button連結: ${sourceMessageLink}\n`;
+
+            if (i < forwardedMessages.length - 1) {
+                responseText += `│\n`;
+            }
+        }
+
+        responseText += `│\n│ 💡 使用 .ch forward delete [編號] 可刪除轉發\n╰─────────────────`;
+
+        rply.text = responseText;
+        return rply;
+
+    } catch (error) {
+        console.error('顯示轉發訊息時發生錯誤', error);
+        rply.text = '顯示轉發訊息時發生錯誤: ' + error.message;
+        return rply;
+    }
+}
+
+async function handleForwardDelete(mainMsg, inputStr, userid, groupid, channelid, rply) {
+    if (!groupid) {
+        rply.text = '此功能必須在群組中使用';
+        return rply;
+    }
+
+    try {
+        // Get the ID from the command
+        const forwardId = parseInt(mainMsg[3]);
+
+        // Find the forwarded message with the specified fixedId
+        const forwardToDelete = await schema.forwardedMessage.findOne({
+            userId: userid,
+            fixedId: forwardId
+        });
+
+        if (!forwardToDelete) {
+            rply.text = `╭──── ⚠️ 無效的編號 ────\n│ ❌ 找不到編號 ${forwardId} 的轉發\n╰─────────────────`;
+            return rply;
+        }
+
+        // Delete the forward
+        await schema.forwardedMessage.deleteOne({ _id: forwardToDelete._id });
+
+        rply.text = `╭──── ✅ 刪除成功 ────\n│ 已刪除編號 ${forwardId} 的轉發\n╰─────────────────`;
+        return rply;
+
+    } catch (error) {
+        console.error('刪除轉發訊息時發生錯誤', error);
+        rply.text = '刪除轉發訊息時發生錯誤: ' + error.message;
         return rply;
     }
 }

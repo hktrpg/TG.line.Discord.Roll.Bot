@@ -454,15 +454,13 @@ const multiServerSchema = mongoose.model('multiServer', new mongoose.Schema({
 
 // Schema for forwarded messages in character cards
 const forwardedMessageSchema = mongoose.model('forwardedMessage', new mongoose.Schema({
-    userId: { type: String, index: true },
-    channelId: { type: String, index: true }, // Target channel ID where messages will be sent
-    sourceMessageId: { type: String, index: true },
-    sourceChannelId: { type: String, index: true },
-    sourceGuildId: { type: String, index: true },
-    forwardedAt: {
-        type: Date,
-        default: Date.now
-    }
+    userId: { type: String, required: true, index: true },
+    guildId: { type: String, required: true, index: true },
+    channelId: { type: String, required: true, index: true },
+    sourceMessageId: { type: String, required: true, index: true },
+    sourceChannelId: { type: String, required: true, index: true },
+    forwardedAt: { type: Date, default: Date.now },
+    fixedId: { type: Number, required: true, unique: true }
 }));
 
 // Schema for tracking last 20 myName usage records per group

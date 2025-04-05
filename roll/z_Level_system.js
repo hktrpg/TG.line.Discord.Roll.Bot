@@ -4,6 +4,7 @@
 if (!process.env.mongoURL) {
     return;
 }
+const { SlashCommandBuilder } = require('discord.js');
 const checkMongodb = require('../modules/dbWatchdog.js');
 const checkTools = require('../modules/check.js');
 const tempSwitchV2 = require('../modules/level');

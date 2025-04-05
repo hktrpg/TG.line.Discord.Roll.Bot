@@ -9,6 +9,7 @@ const rollDiceCoc = require('./2_coc').rollDiceCommand;
 const rollDiceAdv = require('./0_advroll').rollDiceCommand;
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
+const { SlashCommandBuilder } = require('discord.js');
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
 const gameName = () => '【角色卡功能】 .char (add edit show delete use nonuse button) .ch (set show showall button)';
 const gameType = () => 'Tool:trpgcharacter:hktrpg';
@@ -1079,6 +1080,109 @@ async function handleForwardDelete(mainMsg, inputStr, userid, groupid, channelid
     }
 }
 
+// Discord slash commands
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('char')
+            .setDescription('【角色卡功能】管理你的角色卡')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示你的角色卡列表'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('use')
+                    .setDescription('使用指定的角色卡')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('角色卡名稱')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('nonuse')
+                    .setDescription('停用當前角色卡'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('button')
+                    .setDescription('生成角色卡按鈕')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('角色卡名稱')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+
+            if (subcommand === 'show') {
+                return `.char show`;
+            } else if (subcommand === 'use') {
+                const name = interaction.options.getString('name');
+                return `.char use ${name}`;
+            } else if (subcommand === 'nonuse') {
+                return `.char nonuse`;
+            } else if (subcommand === 'button') {
+                const name = interaction.options.getString('name');
+                return `.char button ${name}`;
+            }
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('ch')
+            .setDescription('【角色卡操作】操作當前使用的角色卡')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示當前角色卡狀態'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('showall')
+                    .setDescription('顯示當前角色卡全部內容'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('button')
+                    .setDescription('生成角色卡狀態按鈕'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('set')
+                    .setDescription('設定角色卡數值')
+                    .addStringOption(option =>
+                        option.setName('item')
+                            .setDescription('項目名稱')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('value')
+                            .setDescription('新數值')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('forward')
+                    .setDescription('轉發角色卡擲骰訊息')
+                    .addStringOption(option =>
+                        option.setName('link')
+                            .setDescription('Discord訊息連結')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+
+            if (subcommand === 'show') {
+                return `.ch show`;
+            } else if (subcommand === 'showall') {
+                return `.ch showall`;
+            } else if (subcommand === 'button') {
+                return `.ch button`;
+            } else if (subcommand === 'set') {
+                const item = interaction.options.getString('item');
+                const value = interaction.options.getString('value');
+                return `.ch set ${item} ${value}`;
+            } else if (subcommand === 'forward') {
+                const link = interaction.options.getString('link');
+                return `.ch forward ${link}`;
+            }
+        }
+    }
+];
+
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,
@@ -1086,5 +1190,6 @@ module.exports = {
     prefixs: prefixs,
     gameType: gameType,
     gameName: gameName,
-    mainCharacter: mainCharacter
+    mainCharacter: mainCharacter,
+    discordCommand: discordCommand
 };

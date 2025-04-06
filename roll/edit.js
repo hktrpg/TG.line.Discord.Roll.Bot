@@ -85,21 +85,9 @@ const discordCommand = [
     {
         data: new SlashCommandBuilder()
             .setName('edit')
-            .setDescription('修改 HKTRPG 或 Webhook 發送的訊息')
-            .addStringOption(option =>
-                option.setName('text')
-                    .setDescription('新的訊息內容 (可使用換行)')
-                    .setRequired(true)),
+            .setDescription('【舊信息修改功能】Discord限定'),
         async execute(interaction) {
-            if (!interaction.member.permissions.has('ManageMessages') &&
-                !interaction.member.permissions.has('Administrator')) {
-                return '你需要管理員或頻道管理權限才能使用此功能';
-            }
-            if (!interaction.message?.reference) {
-                return '請回覆(Reply)要修改的訊息';
-            }
-            const text = interaction.options.getString('text');
-            return `.edit ${text}`;
+            return `.edit help`;
         }
     }
 ];

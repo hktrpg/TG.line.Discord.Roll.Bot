@@ -672,8 +672,8 @@ const millisToMinutesAndSeconds = (millis) => {
 const discordCommand = [
     {
         data: new SlashCommandBuilder()
-            .setName('discord')
-            .setDescription('匯出頻道聊天紀錄')
+            .setName('export')
+            .setDescription('【聊天紀錄匯出系統】匯出Discord頻道聊天紀錄')
             .addStringOption(option => 
                 option.setName('format')
                 .setDescription('匯出格式')

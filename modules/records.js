@@ -439,6 +439,19 @@ class Records extends EventEmitter {
 
     async createForwardedMessage(data) {
         try {
+            console.log(`[DEBUG] Attempting to create forwarded message with data:`, JSON.stringify(data));
+            
+            // Check if a message with this fixedId already exists
+            const existingMessage = await this.dbOperations.forwardedMessage.schema.findOne({ fixedId: data.fixedId });
+            if (existingMessage) {
+                console.error(`[ERROR] Duplicate fixedId detected: ${data.fixedId}`);
+                console.error(`[ERROR] Existing message:`, JSON.stringify(existingMessage));
+                
+                // Get a new fixedId
+                data.fixedId = await this.getNextFixedId();
+                console.log(`[DEBUG] Adjusted fixedId to: ${data.fixedId}`);
+            }
+            
             const message = await this.dbOperations.forwardedMessage.schema.create(data);
             
             // Update cache with new message
@@ -454,11 +467,26 @@ class Records extends EventEmitter {
                     userId: message.userId,
                     sourceMessageId: message.sourceMessageId 
                 })}`, message);
+                
+                console.log(`[DEBUG] Successfully created forwarded message with fixedId: ${message.fixedId}`);
             }
             
             return message;
         } catch (err) {
             console.error(`[ERROR] Failed to create forwarded message:`, err);
+            console.error(`[ERROR] Error details:`, JSON.stringify({
+                code: err.code,
+                keyPattern: err.keyPattern,
+                keyValue: err.keyValue
+            }));
+            
+            // If it's a duplicate key error, try again with a new fixedId
+            if (err.code === 11000 && err.keyPattern && err.keyPattern.fixedId) {
+                console.log(`[DEBUG] Retrying with a new fixedId`);
+                data.fixedId = await this.getNextFixedId();
+                return this.createForwardedMessage(data);
+            }
+            
             throw err;
         }
     }
@@ -513,6 +541,27 @@ class Records extends EventEmitter {
         } catch (err) {
             console.error(`[ERROR] Failed to find forwarded messages:`, err);
             return [];
+        }
+    }
+
+    async getNextFixedId() {
+        try {
+            // Find the message with the highest fixedId
+            const highestMessage = await this.dbOperations.forwardedMessage.schema.findOne({})
+                .sort({ fixedId: -1 })
+                .limit(1);
+            
+            // If no messages exist, start with 1
+            if (!highestMessage) {
+                return 1;
+            }
+            
+            // Otherwise, increment the highest fixedId
+            return highestMessage.fixedId + 1;
+        } catch (err) {
+            console.error(`[ERROR] Failed to get next fixedId:`, err);
+            // Return a timestamp-based ID as a fallback
+            return Date.now();
         }
     }
 

@@ -969,14 +969,10 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         }
 
         // Find the next available fixedId
-        const allForwardedMessages = await records.findForwardedMessages({ userId: userid });
-        let nextFixedId = 1;
-
-        if (allForwardedMessages.length > 0) {
-            // Find the maximum fixedId among all messages
-            const maxFixedId = Math.max(...allForwardedMessages.map(msg => msg.fixedId));
-            nextFixedId = maxFixedId + 1;
-        }
+        let nextFixedId = await records.getNextFixedId();
+        
+        // Add debug logging
+        console.log(`[DEBUG] Creating forwarded message with fixedId: ${nextFixedId}`);
 
         // Store the forwarded message in the database
         try {

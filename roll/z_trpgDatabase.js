@@ -1145,16 +1145,20 @@ const discordCommand = [
     {
         data: new SlashCommandBuilder()
             .setName('db')
-            .setDescription('【資料庫功能】群組資料庫')
+            .setDescription('【資料庫功能】 管理個人資料庫')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('help')
+                    .setDescription('顯示資料庫功能說明'))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('add')
                     .setDescription('新增資料項目')
-                    .addStringOption(option =>
-                        option.setName('keyword')
+                    .addStringOption(option => 
+                        option.setName('topic')
                             .setDescription('關鍵字')
                             .setRequired(true))
-                    .addStringOption(option =>
+                    .addStringOption(option => 
                         option.setName('content')
                             .setDescription('內容')
                             .setRequired(true)))
@@ -1162,7 +1166,7 @@ const discordCommand = [
                 subcommand
                     .setName('show')
                     .setDescription('顯示資料清單')
-                    .addIntegerOption(option =>
+                    .addIntegerOption(option => 
                         option.setName('page')
                             .setDescription('頁碼')
                             .setRequired(false)))
@@ -1170,111 +1174,56 @@ const discordCommand = [
                 subcommand
                     .setName('del')
                     .setDescription('刪除指定標題')
-                    .addStringOption(option =>
-                        option.setName('keyword')
-                            .setDescription('關鍵字或all')
+                    .addStringOption(option => 
+                        option.setName('topic')
+                            .setDescription('要刪除的標題')
                             .setRequired(true)))
             .addSubcommand(subcommand =>
                 subcommand
-                    .setName('search')
-                    .setDescription('查詢資料內容')
-                    .addStringOption(option =>
-                        option.setName('keyword')
+                    .setName('get')
+                    .setDescription('顯示資料內容')
+                    .addStringOption(option => 
+                        option.setName('topic')
                             .setDescription('關鍵字或編號')
                             .setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             
-            switch (subcommand) {
-                case 'add': {
-                    const keyword = interaction.options.getString('keyword');
-                    const content = interaction.options.getString('content');
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: `.db add ${keyword} ${content}`,
-                        mainMsg: ['.db', 'add', keyword, content],
-                        groupid: interaction.guildId,
-                        userrole: interaction.member.roles.highest.id,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        membercount: interaction.guild.memberCount
-                    });
-                    
-                    return result.text;
-                }
-                case 'show': {
-                    const page = interaction.options.getInteger('page');
-                    
-                    // 構建命令參數
-                    const mainMsg = ['.db', 'show'];
-                    if (page) mainMsg.push(page.toString());
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: mainMsg.join(' '),
-                        mainMsg: mainMsg,
-                        groupid: interaction.guildId,
-                        userrole: interaction.member.roles.highest.id,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        membercount: interaction.guild.memberCount
-                    });
-                    
-                    return result.text;
-                }
-                case 'del': {
-                    const keyword = interaction.options.getString('keyword');
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: `.db del ${keyword}`,
-                        mainMsg: ['.db', 'del', keyword],
-                        groupid: interaction.guildId,
-                        userrole: interaction.member.roles.highest.id,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        membercount: interaction.guild.memberCount
-                    });
-                    
-                    return result.text;
-                }
-                case 'search': {
-                    const keyword = interaction.options.getString('keyword');
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: `.db ${keyword}`,
-                        mainMsg: ['.db', keyword],
-                        groupid: interaction.guildId,
-                        userrole: interaction.member.roles.highest.id,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        membercount: interaction.guild.memberCount
-                    });
-                    
-                    return result.text;
-                }
+            if (subcommand === 'help') {
+                return '.db help';
+            } else if (subcommand === 'add') {
+                const topic = interaction.options.getString('topic');
+                const content = interaction.options.getString('content');
+                return `.db add ${topic} ${content}`;
+            } else if (subcommand === 'show') {
+                const page = interaction.options.getInteger('page');
+                return page ? `.db show ${page}` : '.db show';
+            } else if (subcommand === 'del') {
+                const topic = interaction.options.getString('topic');
+                return `.db del ${topic}`;
+            } else if (subcommand === 'get') {
+                const topic = interaction.options.getString('topic');
+                return `.db ${topic}`;
             }
         }
     },
     {
         data: new SlashCommandBuilder()
             .setName('dbp')
-            .setDescription('【資料庫功能】全服資料庫')
+            .setDescription('【全服資料庫功能】 管理全服資料庫')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('help')
+                    .setDescription('顯示全服資料庫功能說明'))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('add')
                     .setDescription('新增全服資料項目')
-                    .addStringOption(option =>
-                        option.setName('keyword')
+                    .addStringOption(option => 
+                        option.setName('topic')
                             .setDescription('關鍵字')
                             .setRequired(true))
-                    .addStringOption(option =>
+                    .addStringOption(option => 
                         option.setName('content')
                             .setDescription('內容')
                             .setRequired(true)))
@@ -1282,103 +1231,44 @@ const discordCommand = [
                 subcommand
                     .setName('show')
                     .setDescription('顯示全服資料清單')
-                    .addIntegerOption(option =>
+                    .addIntegerOption(option => 
                         option.setName('page')
                             .setDescription('頁碼')
                             .setRequired(false)))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('del')
-                    .setDescription('刪除全服指定標題')
-                    .addStringOption(option =>
-                        option.setName('keyword')
-                            .setDescription('關鍵字')
+                    .setDescription('刪除指定全服標題')
+                    .addStringOption(option => 
+                        option.setName('topic')
+                            .setDescription('要刪除的標題')
                             .setRequired(true)))
             .addSubcommand(subcommand =>
                 subcommand
-                    .setName('search')
-                    .setDescription('查詢全服資料內容')
-                    .addStringOption(option =>
-                        option.setName('keyword')
+                    .setName('get')
+                    .setDescription('顯示全服資料內容')
+                    .addStringOption(option => 
+                        option.setName('topic')
                             .setDescription('關鍵字或編號')
                             .setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             
-            switch (subcommand) {
-                case 'add': {
-                    const keyword = interaction.options.getString('keyword');
-                    const content = interaction.options.getString('content');
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: `.dbp add ${keyword} ${content}`,
-                        mainMsg: ['.dbp', 'add', keyword, content],
-                        groupid: interaction.guildId,
-                        userrole: interaction.member.roles.highest.id,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        membercount: interaction.guild.memberCount
-                    });
-                    
-                    return result.text;
-                }
-                case 'show': {
-                    const page = interaction.options.getInteger('page');
-                    
-                    // 構建命令參數
-                    const mainMsg = ['.dbp', 'show'];
-                    if (page) mainMsg.push(page.toString());
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: mainMsg.join(' '),
-                        mainMsg: mainMsg,
-                        groupid: interaction.guildId,
-                        userrole: interaction.member.roles.highest.id,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        membercount: interaction.guild.memberCount
-                    });
-                    
-                    return result.text;
-                }
-                case 'del': {
-                    const keyword = interaction.options.getString('keyword');
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: `.dbp del ${keyword}`,
-                        mainMsg: ['.dbp', 'del', keyword],
-                        groupid: interaction.guildId,
-                        userrole: interaction.member.roles.highest.id,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        membercount: interaction.guild.memberCount
-                    });
-                    
-                    return result.text;
-                }
-                case 'search': {
-                    const keyword = interaction.options.getString('keyword');
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: `.dbp ${keyword}`,
-                        mainMsg: ['.dbp', keyword],
-                        groupid: interaction.guildId,
-                        userrole: interaction.member.roles.highest.id,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        membercount: interaction.guild.memberCount
-                    });
-                    
-                    return result.text;
-                }
+            if (subcommand === 'help') {
+                return '.dbp help';
+            } else if (subcommand === 'add') {
+                const topic = interaction.options.getString('topic');
+                const content = interaction.options.getString('content');
+                return `.dbp add ${topic} ${content}`;
+            } else if (subcommand === 'show') {
+                const page = interaction.options.getInteger('page');
+                return page ? `.dbp show ${page}` : '.dbp show';
+            } else if (subcommand === 'del') {
+                const topic = interaction.options.getString('topic');
+                return `.dbp del ${topic}`;
+            } else if (subcommand === 'get') {
+                const topic = interaction.options.getString('topic');
+                return `.dbp ${topic}`;
             }
         }
     }

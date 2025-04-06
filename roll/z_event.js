@@ -665,15 +665,16 @@ const discordCommand = [
                             .setDescription('事件名稱')
                             .setRequired(true))
                     .addStringOption(option =>
+                        option.setName('options')
+                            .setDescription('事件選項，格式: 0:選項1;選項2 -1:選項3;選項4 1:選項5;選項6')
+                            .setRequired(true))
+                    .addStringOption(option =>
                         option.setName('chain')
                             .setDescription('系列名稱 (選填)'))
                     .addStringOption(option =>
                         option.setName('exp')
                             .setDescription('經驗值名稱 (選填)'))
-                    .addStringOption(option =>
-                        option.setName('options')
-                            .setDescription('事件選項，格式: 0:選項1;選項2 -1:選項3;選項4 1:選項5;選項6')
-                            .setRequired(true)))
+            )
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('delete')

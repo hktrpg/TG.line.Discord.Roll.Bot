@@ -453,7 +453,7 @@ const discordCommand = [
 	{
 		data: new SlashCommandBuilder()
 			.setName('ccrt')
-			.setDescription('coc7版 即時型瘋狂')
+			.setDescription('克蘇魯神話TRPG Cthulhu 7th 即時型瘋狂')
 		,
 		async execute() {
 			return `ccrt`
@@ -461,7 +461,7 @@ const discordCommand = [
 	}, {
 		data: new SlashCommandBuilder()
 			.setName('ccsu')
-			.setDescription('coc7版 總結型瘋狂')
+			.setDescription('克蘇魯神話TRPG Cthulhu 7th 總結型瘋狂')
 		,
 		async execute() {
 			return `ccsu`
@@ -469,7 +469,7 @@ const discordCommand = [
 	}, {
 		data: new SlashCommandBuilder()
 			.setName('ccb')
-			.setDescription('coc6版擲骰')
+			.setDescription('克蘇魯神話TRPG Cthulhu 6th 擲骰')
 			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true)),
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
@@ -479,7 +479,7 @@ const discordCommand = [
 	}, {
 		data: new SlashCommandBuilder()
 			.setName('cc')
-			.setDescription('coc7版擲骰')
+			.setDescription('克蘇魯神話TRPG Cthulhu 7th 擲骰')
 			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true))
 			.addStringOption(option =>
 				option.setName('paney')
@@ -498,10 +498,10 @@ const discordCommand = [
 	}, {
 		data: new SlashCommandBuilder()
 			.setName('sc')
-			.setDescription('coc7版SanCheck')
+			.setDescription('克蘇魯神話TRPG Cthulhu 7th SAN值檢定')
 			.addStringOption(option => option.setName('text').setDescription('你的San值').setRequired(true))
-			.addStringOption(option => option.setName('success').setDescription('成功扣多少San'))
-			.addStringOption(option => option.setName('failure').setDescription('失敗扣多少San')),
+			.addStringOption(option => option.setName('success').setDescription('成功扣多少San').setRequired(false))
+			.addStringOption(option => option.setName('failure').setDescription('失敗扣多少San').setRequired(false)),
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
 			const success = interaction.options.getString('success')
@@ -514,19 +514,19 @@ const discordCommand = [
 	{
 		data: new SlashCommandBuilder()
 			.setName('build')
-			.setDescription('創角功能')
+			.setDescription('克蘇魯神話TRPG Cthulhu 創角功能')
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('ccpulpbuild')
-					.setDescription('pulp版創角'))
+					.setDescription('克蘇魯神話TRPG Cthulhu pulp版創角'))
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('cc6build')
-					.setDescription('coc6版創角'))
+					.setDescription('克蘇魯神話TRPG Cthulhu 6th版創角'))
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('cc7build')
-					.setDescription('coc7版創角').addStringOption(option => option.setName('age').setDescription('可選: (歲數7-89) 如果沒有會使用隨機開角')))
+					.setDescription('克蘇魯神話TRPG Cthulhu 7th版創角').addStringOption(option => option.setName('age').setDescription('可選: (歲數7-89) 如果沒有會使用隨機開角')))
 
 		,
 		async execute(interaction) {
@@ -539,7 +539,7 @@ const discordCommand = [
 	}, {
 		data: new SlashCommandBuilder()
 			.setName('dp')
-			.setDescription('coc7 成長或增強檢定')
+			.setDescription('克蘇魯神話TRPG Cthulhu 7th 成長或增強檢定')
 			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true)),
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
@@ -548,7 +548,7 @@ const discordCommand = [
 	}, {
 		data: new SlashCommandBuilder()
 			.setName('dpg')
-			.setDescription('coc7 成長檢定紀錄功能')
+			.setDescription('克蘇魯神話TRPG Cthulhu 7th 成長檢定紀錄功能')
 			.addStringOption(option =>
 				option.setName('mode')
 					.setDescription('功能')
@@ -567,21 +567,21 @@ const discordCommand = [
 	}, {
 		data: new SlashCommandBuilder()
 			.setName('cc7bg')
-			.setDescription('coc7版角色背景隨機生成'),
+			.setDescription('克蘇魯神話TRPG Cthulhu 7th版角色背景隨機生成'),
 		async execute() {
 			return `.cc7bg`
 		}
 	}, {
 		data: new SlashCommandBuilder()
 			.setName('chase')
-			.setDescription('coc7版追逐戰產生器'),
+			.setDescription('克蘇魯神話TRPG Cthulhu 7th版追逐戰產生器'),
 		async execute() {
 			return `.chase`
 		}
 	}, {
 		data: new SlashCommandBuilder()
 			.setName('cccc')
-			.setDescription('隨機產生 神話組織')
+			.setDescription('克蘇魯神話TRPG Cthulhu 隨機產生神話組織')
 		,
 		async execute() {
 			return `.cccc`
@@ -589,7 +589,7 @@ const discordCommand = [
 	}, {
 		data: new SlashCommandBuilder()
 			.setName('ccdr')
-			.setDescription('隨機產生 神話資料')
+			.setDescription('克蘇魯神話TRPG Cthulhu 隨機產生神話資料')
 		,
 		async execute() {
 			return `.ccdr`
@@ -597,7 +597,7 @@ const discordCommand = [
 	}, {
 		data: new SlashCommandBuilder()
 			.setName('ccpc')
-			.setDescription('施法推骰後果')
+			.setDescription('克蘇魯神話TRPG Cthulhu 施法推骰後果')
 		,
 		async execute() {
 			return `.ccpc`

@@ -517,13 +517,14 @@ const discordCommand = [
                             .setDescription('時間 (YYYYMMDD HHMM 或 Xmins/Xhours)')
                             .setRequired(true))
                     .addStringOption(option =>
+                        option.setName('message')
+                            .setDescription('要發送的訊息')
+                            .setRequired(true))
+                    .addStringOption(option =>
                         option.setName('time2')
                             .setDescription('時間2 (若使用YYYYMMDD HHMM格式才需要)')
                             .setRequired(false))
-                    .addStringOption(option =>
-                        option.setName('message')
-                            .setDescription('要發送的訊息')
-                            .setRequired(true)))
+            )
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('show')
@@ -538,18 +539,18 @@ const discordCommand = [
                             .setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
-            
+
             switch (subcommand) {
                 case 'schedule': {
                     const time = interaction.options.getString('time');
                     const time2 = interaction.options.getString('time2');
                     const message = interaction.options.getString('message');
-                    
+
                     // 構建命令
                     let command = `.at ${time}`;
                     if (time2) command += ` ${time2}`;
                     command += ` ${message}`;
-                    
+
                     // 調用現有的 rollDiceCommand 函數處理
                     const result = await rollDiceCommand({
                         inputStr: command,
@@ -560,7 +561,7 @@ const discordCommand = [
                         botname: 'Discord',
                         channelid: interaction.channelId
                     });
-                    
+
                     return result.text;
                 }
                 case 'show': {
@@ -574,12 +575,12 @@ const discordCommand = [
                         botname: 'Discord',
                         channelid: interaction.channelId
                     });
-                    
+
                     return result.text;
                 }
                 case 'delete': {
                     const index = interaction.options.getInteger('index');
-                    
+
                     // 調用現有的 rollDiceCommand 函數處理
                     const result = await rollDiceCommand({
                         inputStr: `.at delete ${index}`,
@@ -590,7 +591,7 @@ const discordCommand = [
                         botname: 'Discord',
                         channelid: interaction.channelId
                     });
-                    
+
                     return result.text;
                 }
             }
@@ -634,21 +635,21 @@ const discordCommand = [
                             .setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
-            
+
             switch (subcommand) {
                 case 'schedule': {
                     const time = interaction.options.getString('time');
                     const message = interaction.options.getString('message');
                     const name = interaction.options.getString('name');
                     const link = interaction.options.getString('link');
-                    
+
                     // 構建命令
                     let command = `.cron ${time}`;
                     if (name && link) {
                         command += `\nname=${name}\nlink=${link}`;
                     }
                     command += `\n${message}`;
-                    
+
                     // 調用現有的 rollDiceCommand 函數處理
                     const result = await rollDiceCommand({
                         inputStr: command,
@@ -659,7 +660,7 @@ const discordCommand = [
                         botname: 'Discord',
                         channelid: interaction.channelId
                     });
-                    
+
                     return result.text;
                 }
                 case 'show': {
@@ -673,12 +674,12 @@ const discordCommand = [
                         botname: 'Discord',
                         channelid: interaction.channelId
                     });
-                    
+
                     return result.text;
                 }
                 case 'delete': {
                     const index = interaction.options.getInteger('index');
-                    
+
                     // 調用現有的 rollDiceCommand 函數處理
                     const result = await rollDiceCommand({
                         inputStr: `.cron delete ${index}`,
@@ -689,7 +690,7 @@ const discordCommand = [
                         botname: 'Discord',
                         channelid: interaction.channelId
                     });
-                    
+
                     return result.text;
                 }
             }

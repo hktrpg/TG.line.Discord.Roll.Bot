@@ -973,7 +973,7 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
 
         // Find the next available fixedId for this user
         let nextFixedId = await records.getNextFixedIdForUser(userid);
-        
+
         // Add debug logging
         console.log(`[DEBUG] Creating forwarded message with fixedId: ${nextFixedId} for user: ${userid}`);
 
@@ -1005,7 +1005,7 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         const sourceMessageLink = `https://discord.com/channels/${groupid}/${sourceChannelId}/${sourceMessageId}`;
 
         // Provide an elegant response message with the character card name and source link
-        rply.text = `╭──── ✨ 角色卡按鈕位置已儲存 ────\n│ ✅ 「${characterName}」此角色卡按鈕位置已儲存\n│\n│ 📌 當你使用該角色卡的按鈕後，所有訊息將在此頻道中發送\n│\n│ 💡 提示：使用 .ch button 可生成角色卡按鈕\n│\n│ 來源角色卡button連結: ${sourceMessageLink}\n╰─────────────────`;
+        rply.text = `╭──── ✨ 角色卡按鈕位置已儲存 ────\n│ ✅ 「${characterName}」此角色卡按鈕位置已儲存\n│\n│ 📌 當你使用該角色卡的按鈕後，所有訊息將在此頻道中發送\n│\n│ 🔢 編號: ${nextFixedId}\n│ 🔗 來源角色卡button連結: ${sourceMessageLink}\n│\n│ 🔧 提示：使用 .ch button 可生成角色卡按鈕\n│ 🗑️ 使用 .ch forward delete ${nextFixedId} 可刪除轉發\n╰─────────────────`;
 
         return rply;
 

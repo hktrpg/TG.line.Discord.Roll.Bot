@@ -5,6 +5,7 @@ const duckImage = require("@zetetic/duckduckgo-images-api")
 const wiki = require('wikijs').default;
 const rollbase = require('./rollbase.js');
 const translate = require('@vitalets/google-translate-api').translate;
+const { SlashCommandBuilder } = require('discord.js');
 let variables = {};
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
@@ -245,6 +246,34 @@ async function searchImage(inputStr, mainMsg, safe) {
 		})
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('wiki')
+            .setDescription('搜尋維基百科條目')
+            .addStringOption(option => 
+                option.setName('entry')
+                    .setDescription('要搜尋的維基條目')
+                    .setRequired(true)),
+        async execute(interaction) {
+            const entry = interaction.options.getString('entry');
+            return `.wiki ${entry}`;
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('image')
+            .setDescription('搜尋圖片')
+            .addStringOption(option => 
+                option.setName('keyword')
+                    .setDescription('搜尋關鍵字')
+                    .setRequired(true)),
+        async execute(interaction) {
+            const keyword = interaction.options.getString('keyword');
+            return `.image ${keyword}`;
+        }
+    }
+];
 
 module.exports = {
 	rollDiceCommand: rollDiceCommand,
@@ -252,5 +281,6 @@ module.exports = {
 	getHelpMessage: getHelpMessage,
 	prefixs: prefixs,
 	gameType: gameType,
-	gameName: gameName
+	gameName: gameName,
+	discordCommand: discordCommand
 };

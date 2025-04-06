@@ -6,6 +6,7 @@ const VIP = require('../modules/veryImportantPerson');
 const FUNCTION_LIMIT = [3, 10, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema.js');
 const emojiRegex = require('emoji-regex');
+const { SlashCommandBuilder } = require('discord.js');
 let regextemp = emojiRegex().toString();
 const regex = regextemp.replace(/^\//, '').replace(/\/g$/, '')
 //https://www.npmjs.com/package/emoji-regex
@@ -414,6 +415,38 @@ function findTheNextSerial(list) {
     return serialList[list.length - 1] + 1;
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('rolereact')
+            .setDescription('【身分組管理】點擊表情符號自動分配身分組')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示現有配置')
+            )
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('delete')
+                    .setDescription('刪除指定配置')
+                    .addStringOption(option => 
+                        option.setName('serial')
+                            .setDescription('要刪除的配置序號')
+                            .setRequired(true)
+                    )
+            ),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            if (subcommand === 'show') {
+                return `.roleReact show`;
+            } else if (subcommand === 'delete') {
+                const serial = interaction.options.getString('serial');
+                return `.roleReact delete ${serial}`;
+            }
+        }
+    }
+];
 
 module.exports = {
     rollDiceCommand: rollDiceCommand,
@@ -421,7 +454,8 @@ module.exports = {
     getHelpMessage: getHelpMessage,
     prefixs: prefixs,
     gameType: gameType,
-    gameName: gameName
+    gameName: gameName,
+    discordCommand: discordCommand
 };
 
 /**

@@ -1064,21 +1064,7 @@ http://weizhinb.top/
 	
 */
 const discordCommand = [
-	{
-		data: new SlashCommandBuilder()
-			.setName('mee')
-			.setDescription('【複述功能】 /mee 模擬HKTRPG說話 ')
-			.addStringOption(option => option.setName('text').setDescription('複述內容').setRequired(true)),
-		async execute(interaction) {
-			const text = interaction.options.getString('text')
-			if (text !== null) {
-				await interaction.reply({ content: '已進行模擬HKTRPG說話', ephemeral: true }).catch();
-				return `.me ${text}`
-			}
-			else return `需要輸入內容\n 
-			例子 /mee C君殺死了NPC 村民, 受到尼什村通緝!`
-		}
-	},
+
 	{
 		data: new SlashCommandBuilder()
 			.setName('排序')

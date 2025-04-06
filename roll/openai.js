@@ -137,7 +137,33 @@ const rollDiceCommand = async function ({
     }
 }
 
-const discordCommand = []
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('ai')
+            .setDescription('OpenAI助手對話功能')
+            .addStringOption(option => 
+                option.setName('message')
+                    .setDescription('要討論的內容')
+                    .setRequired(true)),
+        async execute(interaction) {
+            return `.ai ${interaction.options.getString('message')}`;
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('tran')
+            .setDescription('OpenAI翻譯功能')
+            .addStringOption(option => 
+                option.setName('text')
+                    .setDescription('要翻譯的文字內容')
+                    .setRequired(true)),
+        async execute(interaction) {
+            return `.ait ${interaction.options.getString('text')}`;
+        }
+    }
+];
+
 module.exports = {
     rollDiceCommand,
     initialize,

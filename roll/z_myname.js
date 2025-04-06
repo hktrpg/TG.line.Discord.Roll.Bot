@@ -3,6 +3,7 @@ if (!process.env.mongoURL) {
     return;
 }
 const VIP = require('../modules/veryImportantPerson');
+const { SlashCommandBuilder } = require('discord.js');
 const limitAtArr = [10, 20, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema.js');
 const MAX_HISTORY_RECORDS = 20;
@@ -567,11 +568,107 @@ function checkBotname(botname) {
     }
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('myname')
+            .setDescription('角色扮演系統 - 角色管理')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('add')
+                    .setDescription('新增角色')
+                    .addStringOption(option => 
+                        option.setName('name')
+                            .setDescription('角色名字')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('imageurl')
+                            .setDescription('角色圖片網址')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('nickname')
+                            .setDescription('角色簡稱')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示角色列表'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('delete')
+                    .setDescription('刪除角色')
+                    .addStringOption(option =>
+                        option.setName('target')
+                            .setDescription('要刪除的角色序號或簡稱')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            if (subcommand === 'add') {
+                const name = interaction.options.getString('name');
+                const imageurl = interaction.options.getString('imageurl');
+                const nickname = interaction.options.getString('nickname') || '';
+                
+                return `.myname "${name}" ${imageurl} ${nickname}`;
+            }
+            
+            if (subcommand === 'show') {
+                return `.myname show`;
+            }
+            
+            if (subcommand === 'delete') {
+                const target = interaction.options.getString('target');
+                return `.myname delete ${target}`;
+            }
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('me')
+            .setDescription('角色扮演系統 - 以自己身分發言')
+            .addStringOption(option => 
+                option.setName('message')
+                    .setDescription('要發言的內容')
+                    .setRequired(true)),
+        async execute(interaction) {
+            const message = interaction.options.getString('message');
+            return `.me ${message}`;
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('mee')
+            .setDescription('角色扮演系統 - 以角色身分發言')
+            .addStringOption(option =>
+                option.setName('character')
+                    .setDescription('角色序號或簡稱')
+                    .setRequired(true))
+            .addStringOption(option => 
+                option.setName('message')
+                    .setDescription('要發言的內容')
+                    .setRequired(true)),
+        async execute(interaction) {
+            const character = interaction.options.getString('character');
+            const message = interaction.options.getString('message');
+            return `.me${character} ${message}`;
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('mehistory')
+            .setDescription('角色扮演系統 - 顯示群組最近發言記錄'),
+        async execute() {
+            return `.mehistory`;
+        }
+    }
+];
+
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,
     getHelpMessage: getHelpMessage,
     prefixs: prefixs,
     gameType: gameType,
-    gameName: gameName
+    gameName: gameName,
+    discordCommand: discordCommand
 };

@@ -7,6 +7,7 @@ const adminSecret = process.env.ADMIN_SECRET;
 const rollbase = require('./rollbase.js');
 const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
+const { SlashCommandBuilder } = require('discord.js');
 exports.z_Level_system = require('./z_Level_system');
 const opt = {
     upsert: true,
@@ -912,11 +913,179 @@ function escapeRegExp(target) {
         return target;
     }
 }
+
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('ra')
+            .setDescription('【群組共用骰子】 使用群組共用的自定義骰子')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('add')
+                    .setDescription('新增群組骰子')
+                    .addStringOption(option => option.setName('name').setDescription('骰子名稱').setRequired(true))
+                    .addStringOption(option => option.setName('options').setDescription('骰子選項，用空格分隔').setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示群組骰子清單')
+                    .addStringOption(option => option.setName('name').setDescription('骰子名稱，不填則顯示全部')))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('del')
+                    .setDescription('刪除群組骰子')
+                    .addStringOption(option => option.setName('name').setDescription('骰子名稱').setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('roll')
+                    .setDescription('使用群組骰子')
+                    .addStringOption(option => option.setName('name').setDescription('骰子名稱').setRequired(true))
+                    .addIntegerOption(option => option.setName('times').setDescription('擲骰次數，預設1次，最多30次').setMinValue(1).setMaxValue(30)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('rroll')
+                    .setDescription('使用群組骰子(可重複)')
+                    .addStringOption(option => option.setName('name').setDescription('骰子名稱').setRequired(true))
+                    .addIntegerOption(option => option.setName('times').setDescription('擲骰次數，預設1次，最多30次').setMinValue(1).setMaxValue(30))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            switch (subcommand) {
+                case 'add':
+                    const name = interaction.options.getString('name');
+                    const options = interaction.options.getString('options').split(' ');
+                    return `.ra add ${name} ${options.join(' ')}`;
+                case 'show':
+                    const showName = interaction.options.getString('name');
+                    return showName ? `.ra show ${showName}` : `.ra show`;
+                case 'del':
+                    const delName = interaction.options.getString('name');
+                    return `.ra del ${delName}`;
+                case 'roll':
+                    const rollName = interaction.options.getString('name');
+                    const rollTimes = interaction.options.getInteger('times') || 1;
+                    return rollTimes > 1 ? `.ra${rollTimes} ${rollName}` : `.ra ${rollName}`;
+                case 'rroll':
+                    const rrollName = interaction.options.getString('name');
+                    const rrollTimes = interaction.options.getInteger('times') || 1;
+                    return rrollTimes > 1 ? `.rra${rrollTimes} ${rrollName}` : `.rra ${rrollName}`;
+            }
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('rap')
+            .setDescription('【個人專用骰子】 使用個人專用的自定義骰子')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('add')
+                    .setDescription('新增個人骰子')
+                    .addStringOption(option => option.setName('name').setDescription('骰子名稱').setRequired(true))
+                    .addStringOption(option => option.setName('options').setDescription('骰子選項，用空格分隔').setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示個人骰子清單')
+                    .addStringOption(option => option.setName('name').setDescription('骰子名稱，不填則顯示全部')))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('del')
+                    .setDescription('刪除個人骰子')
+                    .addStringOption(option => option.setName('name').setDescription('骰子名稱').setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('roll')
+                    .setDescription('使用個人骰子')
+                    .addStringOption(option => option.setName('name').setDescription('骰子名稱').setRequired(true))
+                    .addIntegerOption(option => option.setName('times').setDescription('擲骰次數，預設1次，最多30次').setMinValue(1).setMaxValue(30)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('rroll')
+                    .setDescription('使用個人骰子(可重複)')
+                    .addStringOption(option => option.setName('name').setDescription('骰子名稱').setRequired(true))
+                    .addIntegerOption(option => option.setName('times').setDescription('擲骰次數，預設1次，最多30次').setMinValue(1).setMaxValue(30))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            switch (subcommand) {
+                case 'add':
+                    const name = interaction.options.getString('name');
+                    const options = interaction.options.getString('options').split(' ');
+                    return `.rap add ${name} ${options.join(' ')}`;
+                case 'show':
+                    const showName = interaction.options.getString('name');
+                    return showName ? `.rap show ${showName}` : `.rap show`;
+                case 'del':
+                    const delName = interaction.options.getString('name');
+                    return `.rap del ${delName}`;
+                case 'roll':
+                    const rollName = interaction.options.getString('name');
+                    const rollTimes = interaction.options.getInteger('times') || 1;
+                    return rollTimes > 1 ? `.rap${rollTimes} ${rollName}` : `.rap ${rollName}`;
+                case 'rroll':
+                    const rrollName = interaction.options.getString('name');
+                    const rrollTimes = interaction.options.getInteger('times') || 1;
+                    return rrollTimes > 1 ? `.rrap${rrollTimes} ${rrollName}` : `.rrap ${rrollName}`;
+            }
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('ras')
+            .setDescription('【全服務器骰子】 使用全服務器共用的自定義骰子')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('add')
+                    .setDescription('新增全服務器骰子')
+                    .addStringOption(option => option.setName('name').setDescription('骰子名稱').setRequired(true))
+                    .addStringOption(option => option.setName('options').setDescription('骰子選項，用空格分隔').setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示全服務器骰子清單')
+                    .addStringOption(option => option.setName('name').setDescription('骰子名稱，不填則顯示全部')))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('roll')
+                    .setDescription('使用全服務器骰子')
+                    .addStringOption(option => option.setName('name').setDescription('骰子名稱').setRequired(true))
+                    .addIntegerOption(option => option.setName('times').setDescription('擲骰次數，預設1次，最多30次').setMinValue(1).setMaxValue(30)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('rroll')
+                    .setDescription('使用全服務器骰子(可重複)')
+                    .addStringOption(option => option.setName('name').setDescription('骰子名稱').setRequired(true))
+                    .addIntegerOption(option => option.setName('times').setDescription('擲骰次數，預設1次，最多30次').setMinValue(1).setMaxValue(30))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            switch (subcommand) {
+                case 'add':
+                    const name = interaction.options.getString('name');
+                    const options = interaction.options.getString('options').split(' ');
+                    return `.ras add ${name} ${options.join(' ')}`;
+                case 'show':
+                    const showName = interaction.options.getString('name');
+                    return showName ? `.ras show ${showName}` : `.ras show`;
+                case 'roll':
+                    const rollName = interaction.options.getString('name');
+                    const rollTimes = interaction.options.getInteger('times') || 1;
+                    return rollTimes > 1 ? `.ras${rollTimes} ${rollName}` : `.ras ${rollName}`;
+                case 'rroll':
+                    const rrollName = interaction.options.getString('name');
+                    const rrollTimes = interaction.options.getInteger('times') || 1;
+                    return rrollTimes > 1 ? `.rras${rrollTimes} ${rrollName}` : `.rras ${rrollName}`;
+            }
+        }
+    }
+];
+
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,
     getHelpMessage: getHelpMessage,
     prefixs: prefixs,
     gameType: gameType,
-    gameName: gameName
+    gameName: gameName,
+    discordCommand: discordCommand
 };

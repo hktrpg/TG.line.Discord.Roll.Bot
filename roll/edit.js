@@ -66,8 +66,8 @@ const rollDiceCommand = async function ({
         }
         case /^\S/.test(mainMsg[1] || ''): {
             if (rply.text = checkTools.permissionErrMsg({
-                flag : checkTools.flag.ChkManager,
-                role : userrole
+                flag: checkTools.flag.ChkManager,
+                role: userrole
             })) {
                 return rply;
             }
@@ -85,11 +85,9 @@ const discordCommand = [
     {
         data: new SlashCommandBuilder()
             .setName('edit')
-            .setDescription('【修改舊信息】 請Reply想要修改的信息')
-            .addStringOption(option => option.setName('text').setDescription('輸入內容').setRequired(true)),
+            .setDescription('【舊信息修改功能】Discord限定'),
         async execute(interaction) {
-            const text = interaction.options.getString('text')
-            return `.edit ${text}`
+            return `.edit help`;
         }
     }
 ];

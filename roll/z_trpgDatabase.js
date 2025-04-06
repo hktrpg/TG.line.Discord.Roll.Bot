@@ -10,6 +10,7 @@ const schema = require('../modules/schema.js');
 const NodeCache = require('node-cache');
 const checkTools = require('../modules/check.js');
 const VIP = require('../modules/veryImportantPerson');
+const { SlashCommandBuilder } = require('discord.js');
 
 // 常量定義
 const CACHE_TTL = {
@@ -1140,6 +1141,139 @@ const rollDiceCommand = async function ({
     }
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('db')
+            .setDescription('【資料庫功能】 管理個人資料庫')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('help')
+                    .setDescription('顯示資料庫功能說明'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('add')
+                    .setDescription('新增資料項目')
+                    .addStringOption(option => 
+                        option.setName('topic')
+                            .setDescription('關鍵字')
+                            .setRequired(true))
+                    .addStringOption(option => 
+                        option.setName('content')
+                            .setDescription('內容')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示資料清單')
+                    .addIntegerOption(option => 
+                        option.setName('page')
+                            .setDescription('頁碼')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('del')
+                    .setDescription('刪除指定標題')
+                    .addStringOption(option => 
+                        option.setName('topic')
+                            .setDescription('要刪除的標題')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('get')
+                    .setDescription('顯示資料內容')
+                    .addStringOption(option => 
+                        option.setName('topic')
+                            .setDescription('關鍵字或編號')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            if (subcommand === 'help') {
+                return '.db help';
+            } else if (subcommand === 'add') {
+                const topic = interaction.options.getString('topic');
+                const content = interaction.options.getString('content');
+                return `.db add ${topic} ${content}`;
+            } else if (subcommand === 'show') {
+                const page = interaction.options.getInteger('page');
+                return page ? `.db show ${page}` : '.db show';
+            } else if (subcommand === 'del') {
+                const topic = interaction.options.getString('topic');
+                return `.db del ${topic}`;
+            } else if (subcommand === 'get') {
+                const topic = interaction.options.getString('topic');
+                return `.db ${topic}`;
+            }
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('dbp')
+            .setDescription('【全服資料庫功能】 管理全服資料庫')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('help')
+                    .setDescription('顯示全服資料庫功能說明'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('add')
+                    .setDescription('新增全服資料項目')
+                    .addStringOption(option => 
+                        option.setName('topic')
+                            .setDescription('關鍵字')
+                            .setRequired(true))
+                    .addStringOption(option => 
+                        option.setName('content')
+                            .setDescription('內容')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示全服資料清單')
+                    .addIntegerOption(option => 
+                        option.setName('page')
+                            .setDescription('頁碼')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('del')
+                    .setDescription('刪除指定全服標題')
+                    .addStringOption(option => 
+                        option.setName('topic')
+                            .setDescription('要刪除的標題')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('get')
+                    .setDescription('顯示全服資料內容')
+                    .addStringOption(option => 
+                        option.setName('topic')
+                            .setDescription('關鍵字或編號')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            if (subcommand === 'help') {
+                return '.dbp help';
+            } else if (subcommand === 'add') {
+                const topic = interaction.options.getString('topic');
+                const content = interaction.options.getString('content');
+                return `.dbp add ${topic} ${content}`;
+            } else if (subcommand === 'show') {
+                const page = interaction.options.getInteger('page');
+                return page ? `.dbp show ${page}` : '.dbp show';
+            } else if (subcommand === 'del') {
+                const topic = interaction.options.getString('topic');
+                return `.dbp del ${topic}`;
+            } else if (subcommand === 'get') {
+                const topic = interaction.options.getString('topic');
+                return `.dbp ${topic}`;
+            }
+        }
+    }
+];
+
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,
@@ -1148,5 +1282,6 @@ module.exports = {
     gameType: gameType,
     gameName: gameName,
     dbOperations,
-    databaseOperations
+    databaseOperations,
+    discordCommand
 };

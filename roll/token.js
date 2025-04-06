@@ -1,6 +1,6 @@
 "use strict";
 
-const initialize = function() {
+const initialize = function () {
     if (!process.env.DISCORD_CHANNEL_SECRET) {
         return;
     }
@@ -16,7 +16,7 @@ const { SlashCommandBuilder } = require('discord.js');
 const axios = require('axios').default;
 const fs = require('fs');
 const GeoPattern = require('geopattern');
-const { imgbox } = require("imgbox")
+const { imgbox } = require("imgbox");
 
 const gameName = function () {
     return '【製作Token】.token .token2 .token3 .tokenupload'
@@ -129,18 +129,20 @@ const uploadImage = async (discordMessage, discordClient) => {
         return rply;
     }
 
+    try {
+        const file = [{
+            filename: `temp_${new Date().getTime()}.${getFileExtension(avatar)}`,
+            url: avatar
+        }]
 
+        const response = await imgbox(file);
 
-    const file = [{
-        filename: `temp_${new Date().getTime()}.${getFileExtension(avatar)}`,
-        url: avatar
-    }]
-
-    const response = await imgbox(file);
-
-
-
-    rply.text = (response.ok && response.files && response.files[0].url) ? response.files[0].original_url : '上傳失敗，請檢查圖片內容\n';
+        rply.text = (response.ok && response.files && response.files[0].url) ? response.files[0].original_url : '上傳失敗，請檢查圖片內容\n';
+    } catch (error) {
+        console.error('Error uploading image:', error);
+        rply.text = '上傳失敗，請檢查圖片內容\n';
+    }
+    
     return rply;
 }
 
@@ -265,6 +267,55 @@ const polaroidTokernMaker = async (discordMessage, inputStr, mainMsg, discordCli
 }
 
 const getAvatar = async (discordMessage, discordClient) => {
+    // Handle slash command interactions
+    if (discordMessage.interaction) {
+        // Check for attachments in the interaction
+        if (discordMessage.attachments && discordMessage.attachments.size > 0) {
+            const attachmentsArray = Array.from(discordMessage.attachments.values());
+            const url = attachmentsArray.find(data => data.contentType.match(/image/i));
+            return (url && url.url) || null;
+        }
+
+        // Check for referenced message (reply)
+        if (discordMessage.reference) {
+            try {
+                const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
+                const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId);
+
+                // Check for attachments in the referenced message
+                if (referenceMessage.attachments && referenceMessage.attachments.size > 0) {
+                    const attachmentsArray = Array.from(referenceMessage.attachments.values());
+                    const url = attachmentsArray.find(data => data.contentType.match(/image/i));
+                    if (url && url.url) {
+                        return url.url;
+                    }
+                }
+
+                // Check for embeds with images in the referenced message
+                if (referenceMessage.embeds && referenceMessage.embeds.length > 0) {
+                    for (const embed of referenceMessage.embeds) {
+                        if (embed.image && embed.image.url) {
+                            return embed.image.url;
+                        }
+                        if (embed.thumbnail && embed.thumbnail.url) {
+                            return embed.thumbnail.url;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching referenced message:', error);
+            }
+        }
+
+        // Use user's avatar as fallback
+        if (discordMessage.author) {
+            return discordMessage.author.displayAvatarURL();
+        }
+
+        return null;
+    }
+
+    // Original code for regular messages
     if (discordMessage.type === 0 && discordMessage.attachments.size === 0) {
         if (!discordMessage.author || !discordMessage.author.displayAvatarURL) {
             return null;
@@ -442,7 +493,145 @@ function valueToHex(c) {
     return hex
 }
 const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('token')
+            .setDescription('【方形相片風格】製作Token')
+            .addAttachmentOption(option => option.setName('image').setDescription('上傳圖片').setRequired(true))
+            .addStringOption(option => option.setName('text').setDescription('第一行文字').setRequired(false))
+            .addStringOption(option => option.setName('text2').setDescription('第二行文字').setRequired(false)),
+        async execute(interaction) {
+            const text = interaction.options.getString('text') || '';
+            const text2 = interaction.options.getString('text2') || '';
+            const attachment = interaction.options.getAttachment('image');
 
+            // Create a message-like object for the token maker
+            const messageObj = {
+                interaction: true,
+                author: interaction.user,
+                attachments: new Map([['0', attachment]]),
+                content: `.token\n${text}\n${text2}`
+            };
+
+            // Call the token maker with the message object
+            const result = await polaroidTokernMaker(messageObj, messageObj.content, ['.token', text, text2], interaction.client);
+
+            if (result.sendImage) {
+                await interaction.reply({ files: [result.sendImage] });
+                return null;
+            } else {
+                return result.text || '製作失敗，請檢查圖片格式或內容';
+            }
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('token2')
+            .setDescription('【透明底圓形】製作Token')
+            .addAttachmentOption(option => option.setName('image').setDescription('上傳圖片').setRequired(true))
+            .addStringOption(option => option.setName('text').setDescription('第一行文字').setRequired(false))
+            .addStringOption(option => option.setName('text2').setDescription('第二行文字').setRequired(false)),
+        async execute(interaction) {
+            const text = interaction.options.getString('text') || '';
+            const text2 = interaction.options.getString('text2') || '';
+            const attachment = interaction.options.getAttachment('image');
+
+            // Create a message-like object for the token maker
+            const messageObj = {
+                interaction: true,
+                author: interaction.user,
+                attachments: new Map([['0', attachment]]),
+                content: `.token2\n${text}\n${text2}`
+            };
+
+            // Call the token maker with the message object
+            const result = await circleTokernMaker(messageObj, messageObj.content, ['.token2', text, text2], interaction.client);
+
+            if (result.sendImage) {
+                await interaction.reply({ files: [result.sendImage] });
+                return null;
+            } else {
+                return result.text || '製作失敗，請檢查圖片格式或內容';
+            }
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('token3')
+            .setDescription('【彩色邊框圓形】製作Token')
+            .addAttachmentOption(option => option.setName('image').setDescription('上傳圖片').setRequired(true))
+            .addStringOption(option => option.setName('text').setDescription('第一行文字').setRequired(false))
+            .addStringOption(option => option.setName('text2').setDescription('第二行文字').setRequired(false)),
+        async execute(interaction) {
+            const text = interaction.options.getString('text') || '';
+            const text2 = interaction.options.getString('text2') || '';
+            const attachment = interaction.options.getAttachment('image');
+
+            // Create a message-like object for the token maker
+            const messageObj = {
+                interaction: true,
+                author: interaction.user,
+                attachments: new Map([['0', attachment]]),
+                content: `.token3\n${text}\n${text2}`
+            };
+
+            // Call the token maker with the message object
+            const result = await circleTokernMaker3(messageObj, messageObj.content, ['.token3', text, text2], interaction.client, interaction.member.displayName);
+
+            if (result.sendImage) {
+                await interaction.reply({ files: [result.sendImage] });
+                return null;
+            } else {
+                return result.text || '製作失敗，請檢查圖片格式或內容';
+            }
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('tokenupload')
+            .setDescription('【圖片上傳】將圖片上傳至imgur')
+            .addAttachmentOption(option => option.setName('image').setDescription('上傳圖片').setRequired(true)),
+        async execute(interaction) {
+            try {
+                // Defer the reply to prevent timeout
+                await interaction.deferReply();
+                
+                const attachment = interaction.options.getAttachment('image');
+                
+                // Create a message-like object for the upload function
+                const messageObj = {
+                    interaction: true,
+                    author: interaction.user,
+                    attachments: new Map([['0', attachment]])
+                };
+                
+                // Call the upload function with the message object
+                const result = await uploadImage(messageObj, interaction.client);
+                
+                // Always respond to the interaction
+                if (result.text && result.text.includes('http')) {
+                    await interaction.editReply({ content: result.text });
+                } else {
+                    await interaction.editReply({ content: result.text || '上傳失敗，請檢查圖片格式或內容' });
+                }
+                return null;
+            } catch (error) {
+                console.error('Error in tokenupload command:', error);
+                try {
+                    // Try to edit the deferred reply if it exists
+                    if (interaction.deferred) {
+                        await interaction.editReply({ content: '上傳失敗，請檢查圖片格式或內容' });
+                    } else {
+                        // If not deferred, try to reply directly
+                        await interaction.reply({ content: '上傳失敗，請檢查圖片格式或內容' });
+                    }
+                } catch (replyError) {
+                    console.error('Error sending error message:', replyError);
+                }
+                return null;
+            }
+        }
+    }
 ];
 
 

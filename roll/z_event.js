@@ -3,6 +3,7 @@ if (!process.env.mongoURL) {
     return;
 }
 const checkMongodb = require('../modules/dbWatchdog.js');
+const { SlashCommandBuilder } = require('discord.js');
 const debugMode = (process.env.DEBUG) ? true : false;
 let variables = {};
 const rollDice = require('./rollbase');
@@ -650,14 +651,104 @@ async function analysicDetail(data) {
     return info;
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('event')
+            .setDescription('【事件功能】管理你的事件')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('add')
+                    .setDescription('新增事件')
+                    .addStringOption(option => 
+                        option.setName('name')
+                            .setDescription('事件名稱')
+                            .setRequired(true))
+                    .addStringOption(option => 
+                        option.setName('content')
+                            .setDescription('事件內容 (格式: 0:內容;內容 1:內容 -1:內容)')
+                            .setRequired(true))
+                    .addStringOption(option => 
+                        option.setName('chain')
+                            .setDescription('系列名稱 (選填)'))
+                    .addStringOption(option => 
+                        option.setName('exp')
+                            .setDescription('經驗值名稱 (選填)')))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('delete')
+                    .setDescription('刪除事件')
+                    .addStringOption(option => 
+                        option.setName('name')
+                            .setDescription('事件名稱')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示你新增的所有事件及賺取EXP')
+                    .addStringOption(option => 
+                        option.setName('name')
+                            .setDescription('事件名稱 (選填)')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('useexp')
+                    .setDescription('在群組中使用賺取的EXP'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('enter')
+                    .setDescription('進入事件')
+                    .addStringOption(option => 
+                        option.setName('name')
+                            .setDescription('事件名稱或系列名稱，輸入random進入隨機事件')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            switch (subcommand) {
+                case 'add': {
+                    const name = interaction.options.getString('name');
+                    const content = interaction.options.getString('content');
+                    const chain = interaction.options.getString('chain');
+                    const exp = interaction.options.getString('exp');
+                    
+                    let command = `.event add\nname:${name}`;
+                    if (chain) command += `\nchain:${chain}`;
+                    if (exp) command += `\nexp:${exp}`;
+                    command += `\n${content}`;
+                    
+                    return command;
+                }
+                case 'delete': {
+                    const name = interaction.options.getString('name');
+                    return `.event delete ${name}`;
+                }
+                case 'show': {
+                    const name = interaction.options.getString('name');
+                    return name ? `.event show ${name}` : `.event show`;
+                }
+                case 'useexp': {
+                    return `.event useExp`;
+                }
+                case 'enter': {
+                    const name = interaction.options.getString('name');
+                    return `.evt ${name}`;
+                }
+                default:
+                    return `.event help`;
+            }
+        }
+    }
+];
 
 module.exports = {
-    rollDiceCommand: rollDiceCommand,
-    initialize: initialize,
-    getHelpMessage: getHelpMessage,
-    prefixs: prefixs,
-    gameType: gameType,
-    gameName: gameName
+    rollDiceCommand,
+    initialize,
+    getHelpMessage,
+    prefixs,
+    gameType,
+    gameName,
+    discordCommand
 };
 
 

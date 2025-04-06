@@ -2,6 +2,7 @@
 let rollbase = require('./rollbase.js');
 let variables = {};
 const mathjs = require('mathjs');
+const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【命運Fate】 .4df(m|-)(加值)'
 }
@@ -86,6 +87,21 @@ const rollDiceCommand = async function ({
     }
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('4df')
+            .setDescription('擲四顆命運骰')
+            .addStringOption(option => 
+                option.setName('modifier')
+                .setDescription('修正值 (例如: 3, +3, -4, m4)')
+                .setRequired(false)),
+        async execute(interaction) {
+            const modifier = interaction.options.getString('modifier') || '';
+            return `.4df${modifier}`;
+        }
+    }
+];
 
 module.exports = {
     rollDiceCommand: rollDiceCommand,
@@ -93,5 +109,6 @@ module.exports = {
     getHelpMessage: getHelpMessage,
     prefixs: prefixs,
     gameType: gameType,
-    gameName: gameName
+    gameName: gameName,
+    discordCommand
 };

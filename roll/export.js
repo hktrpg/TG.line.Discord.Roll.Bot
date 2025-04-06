@@ -2,7 +2,7 @@
 if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
-const { PermissionFlagsBits, PermissionsBitField } = require('discord.js');
+const { PermissionFlagsBits, SlashCommandBuilder, PermissionsBitField } = require('discord.js');
 let variables = {};
 const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
 const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60000;
@@ -669,11 +669,33 @@ const millisToMinutesAndSeconds = (millis) => {
     return `${minutes}分鐘${(seconds < 10 ? "0" : "")}${seconds}秒`;
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('export')
+            .setDescription('【聊天紀錄匯出系統】匯出Discord頻道聊天紀錄')
+            .addStringOption(option => 
+                option.setName('format')
+                .setDescription('匯出格式')
+                .setRequired(true)
+                .addChoices(
+                    { name: 'HTML格式(含資料分析)', value: 'html' },
+                    { name: 'TXT格式(含時間戳記)', value: 'txt' },
+                    { name: 'TXT格式(不含時間戳記)', value: 'txt -withouttime' }
+                )),
+        async execute(interaction) {
+            const format = interaction.options.getString('format');
+            return `.discord ${format}`;
+        }
+    }
+];
+
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,
     getHelpMessage: getHelpMessage,
     prefixs: prefixs,
     gameType: gameType,
-    gameName: gameName
+    gameName: gameName,
+    discordCommand
 };

@@ -1,6 +1,7 @@
 "use strict";
 let rollbase = require('./rollbase.js');
 let variables = {};
+const { SlashCommandBuilder } = require('discord.js');
 
 const gameName = function () {
 	return '【WOD黑暗世界】.xWDy'
@@ -70,6 +71,56 @@ const rollDiceCommand = async function ({ mainMsg }) {
 	return rply;
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('wd')
+            .setDescription('世界of黑暗擲骰系統')
+            .addIntegerOption(option => 
+                option.setName('dice_count')
+                    .setDescription('要擲骰的D10數量 (1-100)')
+                    .setRequired(true)
+                    .setMinValue(1)
+                    .setMaxValue(100))
+            .addIntegerOption(option => 
+                option.setName('reroll_value')
+                    .setDescription('決定重骰的最小值 (8-10，預設為10)')
+                    .setRequired(false)
+                    .setMinValue(8)
+                    .setMaxValue(10))
+            .addIntegerOption(option => 
+                option.setName('bonus_success')
+                    .setDescription('額外成功數 (可為正負值)')
+                    .setRequired(false))
+            .addStringOption(option => 
+                option.setName('description')
+                    .setDescription('描述文字')
+                    .setRequired(false)),
+        async execute(interaction) {
+            const diceCount = interaction.options.getInteger('dice_count');
+            const rerollValue = interaction.options.getInteger('reroll_value');
+            const bonusSuccess = interaction.options.getInteger('bonus_success');
+            const description = interaction.options.getString('description');
+            
+            let command = `.${diceCount}wd`;
+            
+            if (rerollValue) {
+                command += `${rerollValue}`;
+            }
+            
+            if (bonusSuccess !== null) {
+                const sign = bonusSuccess >= 0 ? '+' : '';
+                command += `${sign}${bonusSuccess}`;
+            }
+            
+            if (description) {
+                command += ` ${description}`;
+            }
+            
+            return command;
+        }
+    }
+];
 
 module.exports = {
 	rollDiceCommand: rollDiceCommand,
@@ -77,7 +128,8 @@ module.exports = {
 	getHelpMessage: getHelpMessage,
 	prefixs: prefixs,
 	gameType: gameType,
-	gameName: gameName
+	gameName: gameName,
+	discordCommand: discordCommand
 };
 /**
  * WOD黑暗世界

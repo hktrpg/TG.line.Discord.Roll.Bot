@@ -20,6 +20,7 @@ const pattName = /\s+-n\s+(\S+)/ig;
 const pattNotes = /\s+-no\s+(\S+)/ig;
 const pattSwitch = /\s+-s\s+(\S+)/ig;
 const deploy = require('../modules/ds-deploy-commands.js');
+const { SlashCommandBuilder } = require('discord.js');
 //const VIP = require('../modules/veryImportantPerson');
 const gameName = function () {
     return '【Admin Tool】.admin debug state account news on'
@@ -73,7 +74,61 @@ const getHelpMessage = async function () {
 ╰──────────────`
 }
 const discordCommand = [
-
+    {
+        data: new SlashCommandBuilder()
+            .setName('admin')
+            .setDescription('【⚙️管理員工具箱】')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('state')
+                    .setDescription('檢視Rollbot運行狀態，顯示系統資源使用'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('debug')
+                    .setDescription('取得群組詳細資料，顯示設定狀態'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('account')
+                    .setDescription('網頁版角色卡設定')
+                    .addStringOption(option => 
+                        option.setName('username')
+                            .setDescription('使用者名稱 (4-16字元，允許中文、英文)')
+                            .setRequired(true))
+                    .addStringOption(option => 
+                        option.setName('password')
+                            .setDescription('密碼 (6-16字元，允許英文字母和特殊符號!@#$%^&*)')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('news')
+                    .setDescription('更新通知設定')
+                    .addStringOption(option => 
+                        option.setName('status')
+                            .setDescription('開啟或關閉通知')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: '開啟', value: 'on' },
+                                { name: '關閉', value: 'off' }
+                            ))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            if (subcommand === 'state') {
+                return '.admin state';
+            } else if (subcommand === 'debug') {
+                return '.admin debug';
+            } else if (subcommand === 'account') {
+                const username = interaction.options.getString('username');
+                const password = interaction.options.getString('password');
+                return `.admin account ${username} ${password}`;
+            } else if (subcommand === 'news') {
+                const status = interaction.options.getString('status');
+                return `.admin news ${status}`;
+            }
+            
+            return '無效的指令';
+        }
+    }
 ];
 
 const initialize = function () {

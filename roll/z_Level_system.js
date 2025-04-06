@@ -4,6 +4,7 @@
 if (!process.env.mongoURL) {
     return;
 }
+const { SlashCommandBuilder } = require('discord.js');
 const checkMongodb = require('../modules/dbWatchdog.js');
 const checkTools = require('../modules/check.js');
 const tempSwitchV2 = require('../modules/level');
@@ -367,8 +368,8 @@ const rollDiceCommand = async function ({
                 groupid: groupid
             }).catch(error => console.error('level_system #345 mongoDB error: ', error.name, error.reason));
             rply.text = '現在設定: ' + '\n經驗值功能: ';
-            rply.text += (doc && doc.SwitchV2) ? '啓動\n升級通知功能: ' : '關閉\n升級通知功能: ';
-            rply.text += (doc && doc.HiddenV2) ? '啓動' : '關閉';
+            rply.text += (doc && doc.SwitchV2) ? '啟動\n升級通知功能: ' : '關閉\n升級通知功能: ';
+            rply.text += (doc && doc.HiddenV2) ? '啟動' : '關閉';
             return rply;
         }
 
@@ -445,8 +446,8 @@ const rollDiceCommand = async function ({
                     return rply
             }
             rply.text = '修改成功: ' + '\n經驗值功能: ';
-            rply.text += (doc.SwitchV2) ? '啓動\n升級通知功能: ' : '關閉\n升級通知功能: ';
-            rply.text += (doc.HiddenV2) ? '啓動' : '關閉';
+            rply.text += (doc.SwitchV2) ? '啟動\n升級通知功能: ' : '關閉\n升級通知功能: ';
+            rply.text += (doc.HiddenV2) ? '啟動' : '關閉';
             return rply;
         }
 
@@ -682,6 +683,120 @@ const rollDiceCommand = async function ({
     }
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('level')
+            .setDescription('【經驗值系統】查看等級、排名和設定')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('help')
+                    .setDescription('顯示經驗值系統的幫助信息'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示現時升級語及其他語')
+                    .addStringOption(option =>
+                        option.setName('type')
+                            .setDescription('要顯示的設定類型')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: '升級通知文字', value: 'levelupword' },
+                                { name: '查詢回應文字', value: 'rankword' },
+                                { name: '稱號設定', value: 'titleword' }
+                            )))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('showme')
+                    .setDescription('查詢群組排名')
+                    .addIntegerOption(option =>
+                        option.setName('count')
+                            .setDescription('顯示前幾名 (預設5名)')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('showmetheworld')
+                    .setDescription('查詢世界排名')
+                    .addIntegerOption(option =>
+                        option.setName('count')
+                            .setDescription('顯示前幾名 (預設6名)')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('showmeattheworld')
+                    .setDescription('查詢自己的世界排名'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('config')
+                    .setDescription('設定經驗值功能')
+                    .addStringOption(option =>
+                        option.setName('setting')
+                            .setDescription('設定值: 11(開啟並顯示通知), 10(開啟但不顯示通知), 00(關閉功能)')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: '開啟並顯示通知', value: '11' },
+                                { name: '開啟但不顯示通知', value: '10' },
+                                { name: '關閉功能', value: '00' }
+                            )))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('levelupword')
+                    .setDescription('設定升級通知文字')
+                    .addStringOption(option =>
+                        option.setName('text')
+                            .setDescription('升級通知文字')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('rankword')
+                    .setDescription('設定查詢回應文字')
+                    .addStringOption(option =>
+                        option.setName('text')
+                            .setDescription('查詢回應文字')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('titleword')
+                    .setDescription('設定等級稱號')
+                    .addStringOption(option =>
+                        option.setName('titles')
+                            .setDescription('格式: -0 無名調查員 -5 調查員 -10 記者')
+                            .setRequired(false))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            switch (subcommand) {
+                case 'help':
+                    return `.level help`;
+                case 'show':
+                    const type = interaction.options.getString('type');
+                    return `.level ${type} Show`;
+                case 'showme':
+                    const count = interaction.options.getInteger('count');
+                    return count ? `.level showMe ${count}` : `.level showMe`;
+                case 'showmetheworld':
+                    const worldCount = interaction.options.getInteger('count');
+                    return worldCount ? `.level showMeTheworld ${worldCount}` : `.level showMeTheworld`;
+                case 'showmeattheworld':
+                    return `.level showMeAtTheworld`;
+                case 'config':
+                    const setting = interaction.options.getString('setting');
+                    return `.level config ${setting}`;
+                case 'levelupword':
+                    const levelUpText = interaction.options.getString('text');
+                    return levelUpText ? `.level LevelUpWord ${levelUpText}` : `.level LevelUpWord`;
+                case 'rankword':
+                    const rankText = interaction.options.getString('text');
+                    return rankText ? `.level RankWord ${rankText}` : `.level RankWord`;
+                case 'titleword':
+                    const titles = interaction.options.getString('titles');
+                    return titles ? `.level TitleWord ${titles}` : `.level TitleWord`;
+                default:
+                    return `.level help`;
+            }
+        }
+    }
+];
 
 module.exports = {
     rollDiceCommand: rollDiceCommand,
@@ -691,7 +806,8 @@ module.exports = {
     gameType: gameType,
     gameName: gameName,
     Title: Title,
-    checkTitle: checkTitle
+    checkTitle: checkTitle,
+    discordCommand: discordCommand
 };
 
 

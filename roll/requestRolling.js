@@ -100,19 +100,32 @@ const discordCommand = [
     {
         data: new SlashCommandBuilder()
             .setName('re')
-            .setDescription('要求擲骰/點擊功能')
-            .addStringOption(option => option.setName('text1').setDescription('輸入第一個擲骰內容').setRequired(true))
-            .addStringOption(option => option.setName('text2').setDescription('輸入第二個擲骰內容'))
-            .addStringOption(option => option.setName('text3').setDescription('輸入第三個擲骰內容'))
-            .addStringOption(option => option.setName('text4').setDescription('輸入第四個擲骰內容'))
-            .addStringOption(option => option.setName('text5').setDescription('輸入第五個擲骰內容')),
+            .setDescription('Discord要求擲骰/點擊功能')
+            .addStringOption(option => 
+                option.setName('text1')
+                    .setDescription('第一個選項 (例: 1d100 哈哈 或 簽到)')
+                    .setRequired(true))
+            .addStringOption(option => 
+                option.setName('text2')
+                    .setDescription('第二個選項 (例: 1d3 SC成功)')
+                    .setRequired(false))
+            .addStringOption(option => 
+                option.setName('text3')
+                    .setDescription('第三個選項 (例: 1d10 SC失敗)')
+                    .setRequired(false))
+            .addStringOption(option => 
+                option.setName('text4')
+                    .setDescription('第四個選項 (可輸入擲骰或純文字)')
+                    .setRequired(false))
+            .addStringOption(option => 
+                option.setName('text5')
+                    .setDescription('第五個選項 (可輸入擲骰或純文字)')
+                    .setRequired(false)),
         async execute(interaction) {
-            const text1 = interaction.options.getString('text1');
-            const text2 = (interaction.options.getString('text2')) ? `,${interaction.options.getString('text2')}` : '';
-            const text3 = (interaction.options.getString('text3')) ? `,${interaction.options.getString('text3')}` : '';
-            const text4 = (interaction.options.getString('text4')) ? `,${interaction.options.getString('text4')}` : '';
-            const text5 = (interaction.options.getString('text5')) ? `,${interaction.options.getString('text5')}` : '';
-            return `.re ${text1}${text2}${text3}${text4}${text5}`;
+            const options = ['text1', 'text2', 'text3', 'text4', 'text5']
+                .map(name => interaction.options.getString(name))
+                .filter(text => text);
+            return `.re ${options.join(', ')}`;
         }
     }
 ]

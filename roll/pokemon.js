@@ -456,7 +456,70 @@ function displayValue(current, total) {
     return result;
 }
 
-const discordCommand = []
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('poke')
+            .setDescription('寶可夢PokeRole查詢系統')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('mon')
+                    .setDescription('查詢寶可夢資料')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('寶可夢名稱或編號')
+                            .setRequired(true))
+                    .addBooleanOption(option =>
+                        option.setName('detail')
+                            .setDescription('是否顯示招式列表')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('move')
+                    .setDescription('查詢招式資料')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('招式名稱')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('vs')
+                    .setDescription('對戰模擬')
+                    .addStringOption(option =>
+                        option.setName('attacker')
+                            .setDescription('攻擊方(招式名稱或屬性)')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('defender')
+                            .setDescription('防守方(寶可夢名稱/編號或屬性)')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('defender_type2')
+                            .setDescription('防守方第二屬性(選填)')
+                            .setRequired(false))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            switch (subcommand) {
+                case 'mon': {
+                    const name = interaction.options.getString('name');
+                    const detail = interaction.options.getBoolean('detail');
+                    return `.poke mon ${name}${detail ? ' --d' : ''}`;
+                }
+                case 'move': {
+                    const name = interaction.options.getString('name');
+                    return `.poke move ${name}`;
+                }
+                case 'vs': {
+                    const attacker = interaction.options.getString('attacker');
+                    const defender = interaction.options.getString('defender');
+                    const defenderType2 = interaction.options.getString('defender_type2');
+                    return `.poke vs ${attacker} ${defender}${defenderType2 ? ' ' + defenderType2 : ''}`;
+                }
+            }
+        }
+    }
+];
+
 module.exports = {
     rollDiceCommand,
     initialize,

@@ -1,0 +1,240 @@
+# Discord Commands List
+
+## BCDice Commands
+/bcdice - BcDice日系擲骰系統
+  - roll: 進行BcDice擲骰
+    - command: 擲骰指令 (必填)
+
+## Call of Cthulhu Commands
+/ccrt - coc7版 即時型瘋狂
+/ccsu - coc7版 總結型瘋狂
+/cc - 一般擲骰
+/cc7 - 七版擲骰
+/ccb - 獎勵骰
+/ccn - 懲罰骰
+/cc7build - 七版人物創建
+/cc6build - 六版人物創建
+/cc7bg - 七版背景
+
+## Schedule Commands
+/at - 定時任務
+  - schedule: 設定單次定時任務
+    - time: 時間 (YYYYMMDD HHMM 或 Xmins/Xhours) (必填)
+    - message: 訊息內容 (必填)
+
+## Role Management Commands
+/rolereact - 身分組管理
+  - show: 顯示現有配置
+  - delete
+
+## Random Answer Commands
+/ra - 自定義骰子
+  - add: 新增骰子
+    - name: 骰子名稱 (必填)
+    - options: 選項，用空格分隔 (必填)
+
+## Character Commands
+/character - 角色管理
+  - create: 創建角色
+  - list: 列出角色
+  - delete: 刪除角色
+
+## Event Commands
+/event - 事件管理
+  - create: 創建事件
+  - join: 加入事件
+  - leave: 離開事件
+
+## Admin Commands
+/admin - 管理員指令
+  - ban: 封禁用戶
+  - unban: 解除封禁
+  - kick: 踢出用戶
+
+## Level System Commands
+/level - 等級系統
+  - check: 檢查等級
+  - add: 增加經驗值
+  - reset: 重置等級
+
+## Save Command
+/save - 儲存指令
+  - add: 新增儲存
+  - list: 列出儲存
+  - delete: 刪除儲存
+
+## Multi-Server Commands
+/multiserver - 多伺服器管理
+  - link: 連結伺服器
+  - unlink: 解除連結
+  - list: 列出連結
+
+## Token Commands
+/token - 代幣系統
+  - give: 給予代幣
+  - take: 扣除代幣
+  - balance: 查看餘額
+
+## Help Commands
+/help - 幫助指令
+  - command: 查看特定指令說明
+  - list: 列出所有指令
+
+## Export Commands
+/export - 匯出功能
+  - character: 匯出角色資料
+  - data: 匯出其他資料
+
+## Funny Commands
+/funny - 趣味指令
+  - roll: 隨機擲骰
+  - joke: 講笑話
+
+## Code Commands
+/code - 程式碼相關
+  - eval: 執行程式碼
+  - test: 測試程式碼
+
+## Edit Commands
+/edit - 編輯功能
+  - message: 編輯訊息
+  - role: 編輯身分組
+
+## 5E Commands
+/5e - D&D 5E系統
+  - roll: 擲骰
+  - character: 角色管理
+
+## Advanced Roll Commands
+/advroll - 進階擲骰
+  - custom: 自定義擲骰
+  - system: 系統擲骰
+
+## World of Darkness Commands
+/wod - 黑暗世界系統
+  - roll: 擲骰
+  - character: 角色管理
+
+## Pathfinder 2E Commands
+/pf2e - Pathfinder 2E系統
+  - roll: 擲骰
+  - character: 角色管理
+
+## Pokemon Commands
+/pokemon - 寶可夢系統
+  - mon: 寶可夢資料查詢
+    - name/id: 寶可夢名稱或編號
+    - --d: 顯示詳細資料
+  - move: 招式查詢
+    - name: 招式名稱
+
+## Fate Commands
+/fate - Fate系統
+  - roll: 擲骰
+  - character: 角色管理
+
+## WN Commands
+/wn - 魔女狩獵之夜系統
+  - roll: 擲骰
+  - character: 角色管理
+
+## Advanced Roll Commands
+/ca - 數學計算功能
+  - text: 計算內容 (必填)
+  - 支援: 基本運算、單位轉換、進階算式
+  - 例如: 1.2 * (2 + 4.5), 12.7米轉吋
+
+/int - 快速範圍產生器
+  - minnum: 最小值 (必填)
+  - maxnum: 最大值 (必填)
+  - 例如: 20 50 會產生20-50之間的數字
+
+## Funny Commands (娛樂功能)
+/mee - 角色扮演用訊息
+/排序 - 排序功能
+/塔羅 - 塔羅牌占卜
+
+## Code Commands
+/code - 程式碼執行系統
+  - text: 程式碼內容 (必填)
+  - 支援語言: JavaScript, Java
+  - 使用Piston API執行
+
+## Edit Commands
+/edit - 修改 HKTRPG 或 Webhook 發送的訊息
+  - text: 新的訊息內容 (必填)
+  - 需要管理員或頻道管理權限
+
+## Export Commands
+/discord - 匯出頻道聊天紀錄
+  - format: 匯出格式 (必填)
+    - html: HTML格式(含資料分析)
+    - txt: TXT格式(含時間戳記)
+    - txt -withouttime: TXT格式(不含時間戳記)
+
+## Fate Commands
+/4df - 命運骰系統
+  - modifier: 修正值 (選填)
+  - 例如: 3, +3, -4, m4
+  - 擲四顆命運骰
+
+## Help Commands
+/bothelp - HKTRPG擲骰機器人說明
+  - category: 說明類別 (選填)
+    - ver: 版本與公告
+    - Base: 基本擲骰指令
+    - Dice: 系統擲骰指令
+    - Tool: 輔助工具指令
+    - admin: 管理工具指令
+    - funny: 娛樂功能指令
+    - link: 相關平台連結
+    - privacy: 隱私權條款
+    - about: 歷史沿革
+
+## Initiative Commands
+/in - 先攻表系統
+  - add: 新增角色到先攻表
+    - roll: 擲骰或數值 (必填)
+    - name: 角色名稱 (選填)
+  - remove: 從先攻表移除角色
+    - name: 要移除的角色名稱 (必填)
+  - clear: 清空整個先攻表
+  - reroll: 重擲所有角色的先攻
+  - modify: 修改先攻值
+    - value: 修改值 (必填)
+    - name: 要修改的角色名稱 (必填)
+
+/init - 顯示先攻表(大到小排序)
+/initn - 顯示先攻表(小到大排序)
+
+## OpenAI Commands
+/ai - OpenAI助手對話功能
+  - message: 要討論的內容 (必填)
+
+/ait - OpenAI翻譯功能
+  - text: 要翻譯的文字內容 (必填)
+
+## Pathfinder 2E Commands
+/pf2 - Pathfinder 2E查詢系統
+  - keyword: 要查詢的關鍵字 (必填)
+  - 可查詢: 技能、特徵、職業等
+
+## Pokemon Commands
+/poke - 寶可夢PokeRole系統
+  - mon: 查詢寶可夢資料
+    - name: 寶可夢名稱或編號 (必填)
+    - detail: 是否顯示招式列表 (選填)
+  - move: 查詢招式資料
+    - name: 招式名稱 (必填)
+  - vs: 對戰模擬
+    - attacker: 攻擊方(招式名稱或屬性) (必填)
+    - defender: 防守方(寶可夢名稱/編號或屬性) (必填)
+    - defender_type2: 防守方第二屬性 (選填)
+
+## Request Rolling Commands
+/re - Discord要求擲骰/點擊功能
+  - text1: 第一個選項 (必填)
+  - text2-5: 額外選項 (選填)
+  - 支援擲骰格式: XdY 描述
+  - 支援純文字選項
+  - 最多可設置5個選項 

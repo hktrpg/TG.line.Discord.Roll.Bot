@@ -634,18 +634,26 @@ class Records extends EventEmitter {
 
     async getNextFixedId() {
         try {
-            // Find the message with the highest fixedId
-            const highestMessage = await this.dbOperations.forwardedMessage.schema.findOne({})
-                .sort({ fixedId: -1 })
-                .limit(1);
+            // Find all existing fixedIds
+            const messages = await this.dbOperations.forwardedMessage.schema.find({}, { fixedId: 1 })
+                .sort({ fixedId: 1 });
             
             // If no messages exist, start with 1
-            if (!highestMessage) {
+            if (!messages || messages.length === 0) {
                 return 1;
             }
             
-            // Otherwise, increment the highest fixedId
-            return highestMessage.fixedId + 1;
+            // Extract all fixedIds into an array
+            const existingIds = messages.map(msg => msg.fixedId);
+            
+            // Find the first missing ID starting from 1
+            let nextId = 1;
+            while (existingIds.includes(nextId)) {
+                nextId++;
+            }
+            
+            console.log(`[DEBUG] Next available fixedId: ${nextId}`);
+            return nextId;
         } catch (err) {
             console.error(`[ERROR] Failed to get next fixedId:`, err);
             // Return a timestamp-based ID as a fallback
@@ -655,18 +663,28 @@ class Records extends EventEmitter {
 
     async getNextFixedIdForUser(userId) {
         try {
-            // Find the message with the highest fixedId for this user
-            const highestMessage = await this.dbOperations.forwardedMessage.schema.findOne({ userId: userId })
-                .sort({ fixedId: -1 })
-                .limit(1);
+            // Find all existing fixedIds for this user
+            const messages = await this.dbOperations.forwardedMessage.schema.find(
+                { userId: userId }, 
+                { fixedId: 1 }
+            ).sort({ fixedId: 1 });
             
             // If no messages exist for this user, start with 1
-            if (!highestMessage) {
+            if (!messages || messages.length === 0) {
                 return 1;
             }
             
-            // Otherwise, increment the highest fixedId
-            return highestMessage.fixedId + 1;
+            // Extract all fixedIds into an array
+            const existingIds = messages.map(msg => msg.fixedId);
+            
+            // Find the first missing ID starting from 1
+            let nextId = 1;
+            while (existingIds.includes(nextId)) {
+                nextId++;
+            }
+            
+            console.log(`[DEBUG] Next available fixedId for user ${userId}: ${nextId}`);
+            return nextId;
         } catch (err) {
             console.error(`[ERROR] Failed to get next fixedId for user ${userId}:`, err);
             // Return a timestamp-based ID as a fallback

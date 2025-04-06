@@ -253,104 +253,24 @@ const discordCommand = [
             .setDescription('搜尋維基百科條目')
             .addStringOption(option => 
                 option.setName('entry')
-                    .setDescription('要搜尋的條目名稱')
+                    .setDescription('要搜尋的維基條目')
                     .setRequired(true)),
         async execute(interaction) {
             const entry = interaction.options.getString('entry');
-            
-            try {
-                const result = await wiki({
-                    apiUrl: 'https://zh.wikipedia.org/w/api.php'
-                }).page(entry.toLowerCase())
-                    .then(async page => {
-                        return chineseConv.tify(await page.summary());
-                    })
-                    .catch(error => {
-                        if (error == 'Error: No article found')
-                            return '沒有此條目';
-                        else {
-                            return error;
-                        }
-                    });
-                
-                return result;
-            } catch (error) {
-                console.error('Wiki search error:', error);
-                return '搜尋維基條目時發生錯誤: ' + error.message;
-            }
+            return `.wiki ${entry}`;
         }
     },
     {
         data: new SlashCommandBuilder()
             .setName('image')
-            .setDescription('從Google取得隨機圖片')
+            .setDescription('搜尋圖片')
             .addStringOption(option => 
                 option.setName('keyword')
                     .setDescription('搜尋關鍵字')
                     .setRequired(true)),
         async execute(interaction) {
             const keyword = interaction.options.getString('keyword');
-            
-            try {
-                let searchKeyword = keyword;
-                
-                // Handle yes/no special case
-                if (keyword.toLowerCase() === 'yesno') {
-                    const options = ['yes', 'no'];
-                    searchKeyword = options[rollbase.Dice(options.length) - 1] + " GIF";
-                }
-                
-                const images = await duckImage.image_search({
-                    query: searchKeyword,
-                    moderate: true
-                });
-                
-                if (images && images.length > 0 && images[0].image) {
-                    const resultIndex = rollbase.Dice(images.length) - 1;
-                    return {
-                        type: 'image',
-                        text: images[resultIndex].image
-                    };
-                } else {
-                    return '沒有找到相關圖片';
-                }
-            } catch (error) {
-                console.error('Image search error:', error);
-                return '搜尋圖片時發生錯誤: ' + error.message;
-            }
-        }
-    },
-    {
-        data: new SlashCommandBuilder()
-            .setName('tran')
-            .setDescription('翻譯文字')
-            .addStringOption(option => 
-                option.setName('text')
-                    .setDescription('要翻譯的文字')
-                    .setRequired(true))
-            .addStringOption(option => 
-                option.setName('language')
-                    .setDescription('目標語言(預設為繁體中文)')
-                    .setRequired(false)),
-        async execute(interaction) {
-            const text = interaction.options.getString('text');
-            const language = interaction.options.getString('language') || 'zh-TW';
-            
-            try {
-                // Process language code
-                let targetLang = language
-                    .replace(/簡體|簡中|簡|zh-cn/i, "zh-CN")
-                    .replace(/英文|英語|英/i, "en")
-                    .replace(/德文|德語|德/i, "de")
-                    .replace(/日文|日語|日/i, "ja");
-                
-                const result = await translate(text, { to: targetLang });
-                return result.text;
-            } catch (error) {
-                console.error('Translation error:', error);
-                return '翻譯時發生錯誤: ' + error.message + 
-                    "\n常用語言代碼: 英=en, 簡=zh-cn, 德=de, 日=ja";
-            }
+            return `.image ${keyword}`;
         }
     }
 ];

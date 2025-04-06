@@ -603,15 +603,19 @@ const discordCommand = [
                             .setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
+            
             if (subcommand === 'add') {
                 const name = interaction.options.getString('name');
                 const imageurl = interaction.options.getString('imageurl');
                 const nickname = interaction.options.getString('nickname') || '';
+                
                 return `.myname "${name}" ${imageurl} ${nickname}`;
             }
+            
             if (subcommand === 'show') {
                 return `.myname show`;
             }
+            
             if (subcommand === 'delete') {
                 const target = interaction.options.getString('target');
                 return `.myname delete ${target}`;

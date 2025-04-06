@@ -178,42 +178,43 @@ const discordCommand = [
     {
         data: new SlashCommandBuilder()
             .setName('kc')
-            .setDescription('【貓貓鬼差系統】擲骰')
-            .addIntegerOption(option => option.setName('dice_count').setDescription('骰子數量(4或5)').setRequired(false))
-            .addIntegerOption(option => option.setName('modification').setDescription('修正值(1-20)').setRequired(false))
-            .addIntegerOption(option => option.setName('target').setDescription('目標值(1-20)').setRequired(false))
-            .addStringOption(option => option.setName('comment').setDescription('描述文字').setRequired(false)),
+            .setDescription('貓貓鬼差系統 - 擲骰判定')
+            .addIntegerOption(option => 
+                option.setName('dice_count')
+                    .setDescription('骰子數量 (4或5，預設為4)')
+                    .setRequired(false)
+                    .addChoices(
+                        { name: '4顆骰子', value: 4 },
+                        { name: '5顆骰子', value: 5 }
+                    ))
+            .addIntegerOption(option => 
+                option.setName('modifier')
+                    .setDescription('修正值 (1-20)')
+                    .setRequired(false)
+                    .setMinValue(1)
+                    .setMaxValue(20))
+            .addIntegerOption(option => 
+                option.setName('target')
+                    .setDescription('目標值 (1-20)')
+                    .setRequired(false)
+                    .setMinValue(1)
+                    .setMaxValue(20)),
         async execute(interaction) {
             const diceCount = interaction.options.getInteger('dice_count') || 4;
-            const modification = interaction.options.getInteger('modification') || 0;
-            const target = interaction.options.getInteger('target') || 0;
-            const comment = interaction.options.getString('comment') || '';
+            const modifier = interaction.options.getInteger('modifier');
+            const target = interaction.options.getInteger('target');
             
-            // Validate inputs
-            if (diceCount !== 4 && diceCount !== 5) {
-                return '骰子數量必須是4或5';
+            let command = `.kc ${diceCount}D`;
+            
+            if (modifier) {
+                command += `${modifier}`;
             }
             
-            if (modification < 0 || modification > 20) {
-                return '修正值必須在0-20之間';
+            if (target) {
+                command += ` ${target}`;
             }
             
-            if (target < 0 || target > 20) {
-                return '目標值必須在0-20之間';
-            }
-            
-            // Create the command string
-            let command = `${diceCount}d${modification}`;
-            
-            // Call the compareAllValues function with the command and target/comment
-            const result = await compareAllValues(command, target.toString());
-            
-            // Add comment if provided
-            if (comment) {
-                return result + (result.includes('；') ? ' ' : '；') + comment;
-            }
-            
-            return result;
+            return command;
         }
     }
 ];

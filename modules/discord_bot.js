@@ -1414,14 +1414,44 @@ async function __handlingInteractionMessage(message) {
 					}
 				}
 				if (/的角色$/.test(messageContent)) {
-					//check databese for .ch forward
-
+					// 檢查是否有轉發設定
 					try {
-						return await message.reply({ content: `${displayname}${resultText}`, ephemeral: false })
-					} catch (error) {
-						null;
-					}
+						console.log('Checking forwarded message settings...');
+						console.log('sourceMessageId:', message.message.id);
+						
+						const forwardSetting = await schema.forwardedMessage.findOne({
+							sourceMessageId: message.message.id
+						});
+						
+						console.log('Found forward setting:', forwardSetting);
 
+						if (forwardSetting) {
+							// 有轉發設定，發送到指定頻道
+							console.log('Forwarding message to channel:', forwardSetting.channelId);
+							
+							try {
+								const targetChannel = await client.channels.fetch(forwardSetting.channelId);
+								if (targetChannel) {
+									await targetChannel.send({ content: `${displayname}${resultText}` });
+									console.log('Successfully forwarded message to channel');
+									return;
+								}
+							} catch (error) {
+								console.error('Error forwarding message:', error);
+								// 如果轉發失敗，fallback到正常reply
+								await message.reply({ content: `${displayname}${resultText}`, ephemeral: false });
+							}
+						} else {
+							// 沒有轉發設定，使用正常reply
+							console.log('No forward setting found, using normal reply');
+							await message.reply({ content: `${displayname}${resultText}`, ephemeral: false });
+						}
+					} catch (error) {
+						console.error('Error checking forwarded message:', error);
+						// 發生錯誤時，使用正常reply
+						await message.reply({ content: `${displayname}${resultText}`, ephemeral: false });
+					}
+					return;
 				}
 
 				try {

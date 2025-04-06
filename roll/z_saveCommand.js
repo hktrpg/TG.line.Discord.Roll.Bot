@@ -311,16 +311,20 @@ const discordCommand = [
     {
         data: new SlashCommandBuilder()
             .setName('cmd')
-            .setDescription('【儲存擲骰指令】管理自定義指令')
+            .setDescription('【儲存擲骰指令功能】')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('help')
+                    .setDescription('顯示儲存擲骰指令功能的說明'))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('add')
                     .setDescription('增加新的指令組合')
-                    .addStringOption(option =>
+                    .addStringOption(option => 
                         option.setName('keyword')
                             .setDescription('關鍵字')
                             .setRequired(true))
-                    .addStringOption(option =>
+                    .addStringOption(option => 
                         option.setName('command')
                             .setDescription('指令內容')
                             .setRequired(true)))
@@ -328,11 +332,11 @@ const discordCommand = [
                 subcommand
                     .setName('edit')
                     .setDescription('修改現有指令內容')
-                    .addStringOption(option =>
+                    .addStringOption(option => 
                         option.setName('keyword')
                             .setDescription('關鍵字')
                             .setRequired(true))
-                    .addStringOption(option =>
+                    .addStringOption(option => 
                         option.setName('command')
                             .setDescription('新的指令內容')
                             .setRequired(true)))
@@ -344,15 +348,15 @@ const discordCommand = [
                 subcommand
                     .setName('del')
                     .setDescription('刪除指定/全部指令')
-                    .addStringOption(option =>
+                    .addStringOption(option => 
                         option.setName('target')
-                            .setDescription('編號或輸入all刪除全部')
+                            .setDescription('編號或all')
                             .setRequired(true)))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('execute')
                     .setDescription('執行已儲存的指令')
-                    .addStringOption(option =>
+                    .addStringOption(option => 
                         option.setName('keyword')
                             .setDescription('關鍵字或編號')
                             .setRequired(true))),
@@ -360,79 +364,53 @@ const discordCommand = [
             const subcommand = interaction.options.getSubcommand();
             
             switch (subcommand) {
+                case 'help': {
+                    return `.cmd help`;
+                }
+                
                 case 'add': {
                     const keyword = interaction.options.getString('keyword');
                     const command = interaction.options.getString('command');
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: `.cmd add ${keyword} ${command}`,
-                        mainMsg: ['.cmd', 'add', keyword, command],
-                        groupid: interaction.guildId,
-                        userrole: interaction.member.roles.highest.id
-                    });
-                    
-                    return result.text;
+                    if (keyword && command) {
+                        return `.cmd add ${keyword} ${command}`;
+                    } else {
+                        return '需要輸入關鍵字和指令內容\n例如: .cmd add pc1鬥毆 cc 80 鬥毆';
+                    }
                 }
+                
                 case 'edit': {
                     const keyword = interaction.options.getString('keyword');
                     const command = interaction.options.getString('command');
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: `.cmd edit ${keyword} ${command}`,
-                        mainMsg: ['.cmd', 'edit', keyword, command],
-                        groupid: interaction.guildId,
-                        userrole: interaction.member.roles.highest.id
-                    });
-                    
-                    return result.text;
+                    if (keyword && command) {
+                        return `.cmd edit ${keyword} ${command}`;
+                    } else {
+                        return '需要輸入關鍵字和新的指令內容\n例如: .cmd edit pc1鬥毆 cc 85 鬥毆';
+                    }
                 }
-                case 'show': {
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: '.cmd show',
-                        mainMsg: ['.cmd', 'show'],
-                        groupid: interaction.guildId,
-                        userrole: interaction.member.roles.highest.id
-                    });
-                    
-                    return result.text;
-                }
+                
+                case 'show':
+                    return `.cmd show`;
+                
                 case 'del': {
                     const target = interaction.options.getString('target');
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: `.cmd del ${target}`,
-                        mainMsg: ['.cmd', 'del', target],
-                        groupid: interaction.guildId,
-                        userrole: interaction.member.roles.highest.id
-                    });
-                    
-                    return result.text;
+                    if (target) {
+                        return `.cmd del ${target}`;
+                    } else {
+                        return '需要輸入編號或all\n例如: .cmd del 1 或 .cmd del all';
+                    }
                 }
+                
                 case 'execute': {
                     const keyword = interaction.options.getString('keyword');
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: `.cmd ${keyword}`,
-                        mainMsg: ['.cmd', keyword],
-                        groupid: interaction.guildId,
-                        userrole: interaction.member.roles.highest.id
-                    });
-                    
-                    // 如果是要執行指令，需要特殊處理
-                    if (result.cmd) {
-                        return {
-                            text: result.text,
-                            cmd: true
-                        };
+                    if (keyword) {
+                        return `.cmd ${keyword}`;
+                    } else {
+                        return '需要輸入關鍵字或編號\n例如: .cmd pc1鬥毆';
                     }
-                    
-                    return result.text;
                 }
+                
+                default:
+                    return '未知的子命令';
             }
         }
     }

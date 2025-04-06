@@ -853,6 +853,9 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         return rply;
     }
 
+    // Recreate the forwardedMessage index to ensure it's using the compound index
+    await records.recreateForwardedMessageIndex();
+
     // Check VIP level for user and group
     let userVipLevel = await VIP.viplevelCheckUser(userid);
     let groupVipLevel = await VIP.viplevelCheckGroup(groupid);
@@ -964,15 +967,15 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         });
 
         if (existingForward) {
-            rply.text = `╭──── ⚠️ 角色卡已指定 ────\n│ ❌ 「${characterName}」角色卡已經被指定到其他頻道\n│\n│ ℹ️ 每個角色卡只能指定到一個頻道\n╰─────────────────`;
+            rply.text = `╭──── ⚠️ 角色卡已指定 ────\n│ ❌ 「${characterName}」此角色卡Button已經被指定到其他頻道\n│\n│ ℹ️ 每個角色卡button只能指定到一個頻道\n╰─────────────────`;
             return rply;
         }
 
-        // Find the next available fixedId
-        let nextFixedId = await records.getNextFixedId();
+        // Find the next available fixedId for this user
+        let nextFixedId = await records.getNextFixedIdForUser(userid);
         
         // Add debug logging
-        console.log(`[DEBUG] Creating forwarded message with fixedId: ${nextFixedId}`);
+        console.log(`[DEBUG] Creating forwarded message with fixedId: ${nextFixedId} for user: ${userid}`);
 
         // Store the forwarded message in the database
         try {

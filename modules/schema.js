@@ -461,7 +461,12 @@ const forwardedMessageSchema = mongoose.model('forwardedMessage', new mongoose.S
     sourceChannelId: { type: String, required: true, index: true },
     characterName: { type: String, required: true },
     forwardedAt: { type: Date, default: Date.now },
-    fixedId: { type: Number, required: true, unique: true }
+    fixedId: { type: Number, required: true }
+}, {
+    // Create a compound index to ensure fixedId is unique per user
+    indexes: [
+        { userId: 1, fixedId: 1, unique: true }
+    ]
 }));
 
 // Schema for tracking last 20 myName usage records per group

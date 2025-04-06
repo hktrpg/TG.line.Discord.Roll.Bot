@@ -152,7 +152,7 @@ const discordCommand = [
     },
     {
         data: new SlashCommandBuilder()
-            .setName('ait')
+            .setName('tran')
             .setDescription('OpenAI翻譯功能')
             .addStringOption(option => 
                 option.setName('text')

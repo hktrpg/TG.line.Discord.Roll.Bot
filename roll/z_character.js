@@ -9,6 +9,8 @@ const rollDiceCoc = require('./2_coc').rollDiceCommand;
 const rollDiceAdv = require('./0_advroll').rollDiceCommand;
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
+const records = require('../modules/records.js');
+const { SlashCommandBuilder } = require('discord.js');
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
 const gameName = () => '【角色卡功能】 .char (add edit show delete use nonuse button) .ch (set show showall button)';
 const gameType = () => 'Tool:trpgcharacter:hktrpg';
@@ -19,6 +21,8 @@ const regexRoll = new RegExp(/roll\[(.*?)\]~/, 'i');
 const regexNotes = new RegExp(/notes\[(.*?)\]~/, 'i');
 const re = new RegExp(/(.*?):(.*?)(;|$)/, 'ig');
 const regexRollDice = new RegExp(/<([^<>]*)>/, 'ig');
+// Discord message link regex: https://discord.com/channels/{guildId}/{channelId}/{messageId}
+const discordLinkRegex = new RegExp(/https:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)/, 'i');
 
 const opt = { upsert: true, runValidators: true };
 const convertRegex = str => str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
@@ -108,6 +112,15 @@ state[...]~ roll[...]~ notes[...]~
 │ • .char button [角色名]
 │   生成擲骰指令按鈕
 │
+│ ■ Discord訊息轉發:
+│ • .ch forward [discord訊息連結]
+│   將角色卡擲骰訊息轉發至指定頻道
+│   只支援同一伺服器內的訊息
+│ • .ch forward show
+│   顯示所有已設定的轉發列表
+│ • .ch forward delete [編號]
+│   刪除指定編號的轉發設定
+│
 │ ■ 運算功能:
 │ • {變數}: 引用角色數值
 │   例: {HP} {san}
@@ -150,7 +163,7 @@ state[...]~ roll[...]~ notes[...]~
 const initialize = () => variables;
 
 // eslint-disable-next-line no-unused-vars
-const rollDiceCommand = async function ({ inputStr, mainMsg, groupid, botname, userid, channelid }) {
+const rollDiceCommand = async function ({ inputStr, mainMsg, groupid, botname, userid, channelid, discordMessage, discordClient }) {
     let rply = { default: 'on', type: 'text', text: '', characterReRoll: false, characterName: '', characterReRollName: '' };
     let filter = {};
     let docSwitch = {};
@@ -183,6 +196,13 @@ const rollDiceCommand = async function ({ inputStr, mainMsg, groupid, botname, u
         case /(^[.]char$)/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
             return await handleDelete(mainMsg, inputStr, userid, rply);
         case /(^[.]char$)/i.test(mainMsg[0]) && /^button$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
+            return await handleButton(mainMsg, inputStr, userid, groupid, channelid, botname, rply);
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /^forward$/i.test(mainMsg[1]) && /^show$/i.test(mainMsg[2]):
+            return await handleForwardShow(mainMsg, inputStr, userid, groupid, channelid, rply);
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /^forward$/i.test(mainMsg[1]) && /^delete$/i.test(mainMsg[2]) && /^\d+$/i.test(mainMsg[3]):
+            return await handleForwardDelete(mainMsg, inputStr, userid, groupid, channelid, rply);
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /^forward$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]):
+            return await handleForwardMessage(mainMsg, inputStr, userid, groupid, channelid, discordMessage, discordClient, rply);
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^button$/i.test(mainMsg[1]):
             return await handleButton(mainMsg, inputStr, userid, groupid, channelid, botname, rply);
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^set$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]) && /^\S+$/i.test(mainMsg[3]):
@@ -192,6 +212,7 @@ const rollDiceCommand = async function ({ inputStr, mainMsg, groupid, botname, u
             return await handleShowCh(mainMsg, inputStr, userid, groupid, channelid, rply);
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]):
             return await handleCh(mainMsg, inputStr, userid, groupid, channelid, rply);
+
         default:
             break;
     }
@@ -821,6 +842,469 @@ async function countNum(num) {
     return result;
 }
 
+async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channelid, discordMessage, discordClient, rply) {
+    if (!groupid) {
+        rply.text = '此功能必須在群組中使用';
+        return rply;
+    }
+
+    if (!discordMessage || !discordClient) {
+        rply.text = '此功能只能在Discord中使用';
+        return rply;
+    }
+
+    // Check VIP level for user and group
+    let userVipLevel = await VIP.viplevelCheckUser(userid);
+    let groupVipLevel = await VIP.viplevelCheckGroup(groupid);
+    let vipLevel = Math.max(userVipLevel, groupVipLevel);
+    let limit = FUNCTION_LIMIT[vipLevel];
+
+    // Check if user has reached the limit for forwarded messages
+    let existingForwardedMessages = await records.countForwardedMessages({ userId: userid });
+    if (existingForwardedMessages >= limit) {
+        rply.text = `╭──── ⚠️ 角色卡轉發上限 ────\n│ ❌ 你已達到角色卡轉發上限 (${limit}張)\n│\n│ 💎 如需增加上限，請升級VIP等級\n│ 🔗 支援及解鎖上限: https://www.patreon.com/HKTRPG\n╰─────────────────`;
+        return rply;
+    }
+
+    const messageLink = inputStr.replace(/^\.ch\s+forward\s+/i, '').trim();
+    const matches = messageLink.match(discordLinkRegex);
+
+    if (!matches) {
+        rply.text = '無效的Discord訊息連結格式。應為 https://discord.com/channels/{伺服器ID}/{頻道ID}/{訊息ID}';
+        return rply;
+    }
+
+    const [, sourceGuildId, sourceChannelId, sourceMessageId] = matches;
+
+    // Verify if the current guild is the same as the source guild to prevent cross-server access
+    if (discordMessage.guildId !== sourceGuildId) {
+        rply.text = '無法轉發來自其他伺服器的訊息';
+        return rply;
+    }
+
+    // Check if the source channel is the same as the current channel
+    if (sourceChannelId === channelid) {
+        rply.text = '無法轉發來自同一頻道的訊息';
+        return rply;
+    }
+
+    try {
+        // Try to fetch the source channel
+        const sourceChannel = await discordClient.channels.fetch(sourceChannelId);
+        if (!sourceChannel) {
+            rply.text = '找不到指定的頻道';
+            return rply;
+        }
+
+        // Try to fetch the source message
+        const sourceMessage = await sourceChannel.messages.fetch(sourceMessageId);
+        if (!sourceMessage) {
+            rply.text = '找不到指定的訊息';
+            return rply;
+        }
+
+        // Get the content of the message
+        const messageContent = sourceMessage.content;
+        if (!messageContent || messageContent.trim() === '') {
+            rply.text = '該訊息沒有角色卡';
+            return rply;
+        }
+
+        // Check if the message content ends with "的角色"
+        if (!messageContent.endsWith('的角色')) {
+            rply.text = '只能轉發「.ch button 產生的角色卡」';
+            return rply;
+        }
+        // Get all mentioned users
+        let mentionedUsers = [];
+        if (sourceMessage.mentions && sourceMessage.mentions.users) {
+            mentionedUsers = Array.from(sourceMessage.mentions.users.entries());
+        }
+
+        // Check if the current user is mentioned in the message
+        let isMentioned = false;
+        let isInteractionUser = false;
+
+        // Check if user is mentioned
+        if (mentionedUsers.length > 0 && discordMessage.author && discordMessage.author.id) {
+            for (const [userId, user] of mentionedUsers) {
+                if (userId === discordMessage.author.id) {
+                    isMentioned = true;
+                    break;
+                }
+            }
+        }
+
+        // Check if user is the interaction user
+        if (sourceMessage.interaction && sourceMessage.interaction.user && sourceMessage.interaction.user.id) {
+            isInteractionUser = (sourceMessage.interaction.user.id === userid);
+        }
+
+
+        if (!isMentioned && !isInteractionUser) {
+            rply.text = '你只能轉發你的角色卡';
+            return rply;
+        }
+
+        // Get the character card name from the message content
+        let characterName = '';
+        if (messageContent) {
+            characterName = messageContent.replace(/的角色$/, '').trim();
+        }
+
+        if (!characterName) {
+            rply.text = '無法識別角色卡名稱，請確認訊息格式正確';
+            return rply;
+        }
+
+        // Check if this character card is already assigned to a channel
+        let existingForward = await records.findForwardedMessage({
+            userId: userid,
+            sourceMessageId: sourceMessageId
+        });
+
+        if (existingForward) {
+            rply.text = `╭──── ⚠️ 角色卡已指定 ────\n│ ❌ 「${characterName}」角色卡已經被指定到其他頻道\n│\n│ ℹ️ 每個角色卡只能指定到一個頻道\n╰─────────────────`;
+            return rply;
+        }
+
+        // Find the next available fixedId
+        const maxFixedId = await records.findForwardedMessage(
+            { userId: userid },
+            { sort: { fixedId: -1 } }
+        );
+        const nextFixedId = maxFixedId ? maxFixedId.fixedId + 1 : 1;
+
+        // Store the forwarded message in the database
+        try {
+            // Validate all required fields
+            if (!userid || !groupid || !channelid || !sourceMessageId || !sourceChannelId || !characterName) {
+                rply.text = '轉發訊息時缺少必要資訊，請確認所有欄位都有值';
+                return rply;
+            }
+
+            await records.createForwardedMessage({
+                userId: userid,
+                guildId: groupid,
+                channelId: channelid,
+                sourceMessageId: sourceMessageId,
+                sourceChannelId: sourceChannelId,
+                characterName: characterName,
+                forwardedAt: new Date(),
+                fixedId: nextFixedId
+            });
+        } catch (error) {
+            console.error('儲存轉發訊息時發生錯誤', error);
+            rply.text = '轉發訊息時發生錯誤';
+            return rply;
+        }
+
+        // Create the source message link
+        const sourceMessageLink = `https://discord.com/channels/${groupid}/${sourceChannelId}/${sourceMessageId}`;
+
+        // Provide an elegant response message with the character card name and source link
+        rply.text = `╭──── ✨ 角色卡按鈕位置已儲存 ────\n│ ✅ 「${characterName}」角色卡按鈕位置已儲存\n│\n│ 📌 當你使用該角色卡的按鈕後，所有訊息將在此頻道中發送\n│\n│ 💡 提示：使用 .ch button 可生成角色卡按鈕\n│\n│ 來源角色卡button連結: ${sourceMessageLink}\n╰─────────────────`;
+
+        return rply;
+
+    } catch (error) {
+        console.error('處理訊息轉發時發生錯誤', error);
+        rply.text = '轉發訊息時發生錯誤: ' + error.message;
+        return rply;
+    }
+}
+
+async function handleForwardShow(mainMsg, inputStr, userid, groupid, channelid, rply) {
+    if (!groupid) {
+        rply.text = '此功能必須在群組中使用';
+        return rply;
+    }
+
+    try {
+        // Find all forwarded messages for this user
+        const forwardedMessages = await records.findForwardedMessages({ userId: userid });
+
+        if (forwardedMessages.length === 0) {
+            rply.text = `╭──── ℹ️ 角色卡轉發狀態 ────\n│ ❌ 你目前沒有轉發任何角色卡\n╰─────────────────`;
+            return rply;
+        }
+
+        // Format the response with all forwarded messages
+        let responseText = `╭──── 📋 角色卡轉發列表 ────\n`;
+
+        for (let i = 0; i < forwardedMessages.length; i++) {
+            const forward = forwardedMessages[i];
+
+            // Get the target channel ID from the schema
+            const targetChannelId = forward.channelId;
+
+            // Create the target channel link using the guild ID from the schema
+            const targetChannelLink = `https://discord.com/channels/${forward.guildId}/${targetChannelId}`;
+
+            // Create the source message link using the guild ID from the schema
+            const sourceMessageLink = `https://discord.com/channels/${forward.guildId}/${forward.sourceChannelId}/${forward.sourceMessageId}`;
+
+            responseText += `│ ${forward.fixedId}. 「${forward.characterName}」轉發至頻道: ${targetChannelId}\n`;
+            responseText += `│    ${targetChannelLink}\n`;
+            responseText += `│    來源角色卡button連結: ${sourceMessageLink}\n`;
+
+            if (i < forwardedMessages.length - 1) {
+                responseText += `│\n`;
+            }
+        }
+
+        responseText += `│\n│ 💡 使用 .ch forward delete [編號] 可刪除轉發\n╰─────────────────`;
+
+        rply.text = responseText;
+        return rply;
+
+    } catch (error) {
+        console.error('顯示轉發訊息時發生錯誤', error);
+        rply.text = '顯示轉發訊息時發生錯誤: ' + error.message;
+        return rply;
+    }
+}
+
+async function handleForwardDelete(mainMsg, inputStr, userid, groupid, channelid, rply) {
+    if (!groupid) {
+        rply.text = '此功能必須在群組中使用';
+        return rply;
+    }
+
+    try {
+        // Get the ID from the command
+        const forwardId = parseInt(mainMsg[3]);
+
+        // Find and delete the forwarded message
+        const forwardToDelete = await records.deleteForwardedMessage({
+            userId: userid,
+            fixedId: forwardId
+        });
+
+        if (!forwardToDelete) {
+            rply.text = `╭──── ⚠️ 無效的編號 ────\n│ ❌ 找不到編號 ${forwardId} 的轉發\n╰─────────────────`;
+            return rply;
+        }
+
+        rply.text = `╭──── ✅ 刪除成功 ────\n│ 已刪除編號 ${forwardId} 的「${forwardToDelete.characterName}」轉發\n╰─────────────────`;
+        return rply;
+
+    } catch (error) {
+        console.error('刪除轉發訊息時發生錯誤', error);
+        rply.text = '刪除轉發訊息時發生錯誤: ' + error.message;
+        return rply;
+    }
+}
+
+// Discord slash commands
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('char')
+            .setDescription('【角色卡功能】管理你的角色卡')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('add')
+                    .setDescription('建立新角色卡')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('角色卡名稱')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('state')
+                            .setDescription('狀態數值 (格式: HP:15/15;MP:10/10;San:80)'))
+                    .addStringOption(option =>
+                        option.setName('roll')
+                            .setDescription('擲骰指令 (格式: 鬥毆: cc 50;射擊: cc 45)'))
+                    .addStringOption(option =>
+                        option.setName('notes')
+                            .setDescription('備註內容')))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('edit')
+                    .setDescription('修改現有角色卡')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('角色卡名稱')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('state')
+                            .setDescription('狀態數值'))
+                    .addStringOption(option =>
+                        option.setName('roll')
+                            .setDescription('擲骰指令'))
+                    .addStringOption(option =>
+                        option.setName('notes')
+                            .setDescription('備註內容')))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示角色卡列表'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show0')
+                    .setDescription('顯示角色卡0號詳細'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('use')
+                    .setDescription('使用指定的角色卡')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('角色卡名稱')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('nonuse')
+                    .setDescription('停用當前角色卡'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('delete')
+                    .setDescription('刪除指定的角色卡')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('角色卡名稱')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('button')
+                    .setDescription('生成角色卡按鈕')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('角色卡名稱')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('public')
+                    .setDescription('公開角色卡'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('unpublic')
+                    .setDescription('取消公開角色卡')),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            const name = interaction.options.getString('name');
+            const state = interaction.options.getString('state');
+            const roll = interaction.options.getString('roll');
+            const notes = interaction.options.getString('notes');
+
+            switch (subcommand) {
+                case 'add':
+                    return `.char add name[${name}]~${state ? `\nstate[${state}]~` : ''}${roll ? `\nroll[${roll}]~` : ''}${notes ? `\nnotes[${notes}]~` : ''}`;
+                case 'edit':
+                    return `.char edit name[${name}]~${state ? `\nstate[${state}]~` : ''}${roll ? `\nroll[${roll}]~` : ''}${notes ? `\nnotes[${notes}]~` : ''}`;
+                case 'show':
+                    return `.char show`;
+                case 'show0':
+                    return `.char show0`;
+                case 'use':
+                    return `.char use ${name}`;
+                case 'nonuse':
+                    return `.char nonuse`;
+                case 'delete':
+                    return `.char delete ${name}`;
+                case 'button':
+                    return `.char button ${name}`;
+                case 'public':
+                    return `.char public ${name}`;
+                case 'unpublic':
+                    return `.char unpublic ${name}`;
+            }
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('ch')
+            .setDescription('【角色卡操作】操作當前使用的角色卡')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示當前角色卡狀態'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('showall')
+                    .setDescription('顯示當前角色卡全部內容'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('button')
+                    .setDescription('生成角色卡狀態按鈕'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('set')
+                    .setDescription('設定角色卡數值')
+                    .addStringOption(option =>
+                        option.setName('item')
+                            .setDescription('項目名稱')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('value')
+                            .setDescription('新數值')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('forward')
+                    .setDescription('轉發角色卡擲骰訊息')
+                    .addStringOption(option =>
+                        option.setName('link')
+                            .setDescription('Discord訊息連結')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('forward_show')
+                    .setDescription('顯示所有已設定的轉發列表'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('forward_delete')
+                    .setDescription('刪除指定編號的轉發設定')
+                    .addIntegerOption(option =>
+                        option.setName('id')
+                            .setDescription('轉發編號')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('modify')
+                    .setDescription('修改角色卡數值')
+                    .addStringOption(option =>
+                        option.setName('item')
+                            .setDescription('項目名稱')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('operation')
+                            .setDescription('運算符號 (+/-/*//)')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('value')
+                            .setDescription('數值或擲骰指令')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            const item = interaction.options.getString('item');
+            const value = interaction.options.getString('value');
+            const operation = interaction.options.getString('operation');
+            const link = interaction.options.getString('link');
+            const id = interaction.options.getInteger('id');
+
+            switch (subcommand) {
+                case 'show':
+                    return `.ch show`;
+                case 'showall':
+                    return `.ch showall`;
+                case 'button':
+                    return `.ch button`;
+                case 'set':
+                    return `.ch set ${item} ${value}`;
+                case 'forward':
+                    return `.ch forward ${link}`;
+                case 'forward_show':
+                    return `.ch forward show`;
+                case 'forward_delete':
+                    return `.ch forward delete ${id}`;
+                case 'modify':
+                    return `.ch ${item} ${operation}${value}`;
+            }
+        }
+    }
+];
+
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,
@@ -828,5 +1312,6 @@ module.exports = {
     prefixs: prefixs,
     gameType: gameType,
     gameName: gameName,
-    mainCharacter: mainCharacter
+    mainCharacter: mainCharacter,
+    discordCommand: discordCommand
 };

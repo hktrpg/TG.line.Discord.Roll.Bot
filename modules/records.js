@@ -86,7 +86,7 @@ class Records extends EventEmitter {
         this.maxChatMessages = 100;
         this.ChatRoomModel = schema.chatRoom;
         this.dbOperations = {};
-        
+
         // Initialize database operations for each schema
         Object.keys(schema).forEach(key => {
             this.dbOperations[key] = new DatabaseOperation(schema[key]);
@@ -105,7 +105,7 @@ class Records extends EventEmitter {
 
             // Always perform database operation
             const document = await this.dbOperations[databaseName].findOneAndUpdate(query, update, options);
-            
+
             // Update cache with new document
             if (document) {
                 const cacheKey = `${databaseName}:${JSON.stringify(query)}`;
@@ -383,10 +383,10 @@ class Records extends EventEmitter {
             }
 
             const messages = await this.ChatRoomModel.find({ roomNumber });
-            
+
             // Update cache
             cache.set(cacheKey, messages);
-            
+
             callback(messages);
         } catch (err) {
             console.error('Chat room get failed:', err);
@@ -400,6 +400,129 @@ class Records extends EventEmitter {
 
     chatRoomGetMax() {
         return this.maxChatMessages;
+    }
+
+    // Forwarded message operations
+    async findForwardedMessage(query, options = {}) {
+        try {
+            // Generate cache key based on both query and options
+            const cacheKey = `forwardedMessage:${JSON.stringify(query)}:${JSON.stringify(options)}`;
+            
+            // Check cache first
+            const cachedMessage = cache.get(cacheKey);
+            if (cachedMessage) {
+                return cachedMessage;
+            }
+
+
+            // If not in cache, query the database
+            let dbQuery = this.dbOperations.forwardedMessage.schema.findOne(query);
+            
+            // Apply sort if provided
+            if (options.sort) {
+                dbQuery = dbQuery.sort(options.sort);
+            }
+
+            const message = await dbQuery;
+
+            // Update cache if message found
+            if (message) {
+                cache.set(cacheKey, message);
+            }
+
+            return message;
+        } catch (err) {
+            console.error(`[ERROR] Failed to find forwarded message:`, err);
+            return null;
+        }
+    }
+
+    async createForwardedMessage(data) {
+        try {
+            const message = await this.dbOperations.forwardedMessage.schema.create(data);
+            
+            // Update cache with new message
+            if (message) {
+                // Cache for direct sourceMessageId lookup
+                cache.set(`forwardedMessage:${JSON.stringify({ sourceMessageId: message.sourceMessageId })}`, message);
+                
+                // Cache for userId lookup
+                cache.set(`forwardedMessage:${JSON.stringify({ userId: message.userId })}`, message);
+                
+                // Cache for combined lookup
+                cache.set(`forwardedMessage:${JSON.stringify({ 
+                    userId: message.userId,
+                    sourceMessageId: message.sourceMessageId 
+                })}`, message);
+            }
+            
+            return message;
+        } catch (err) {
+            console.error(`[ERROR] Failed to create forwarded message:`, err);
+            throw err;
+        }
+    }
+
+    async deleteForwardedMessage(filter) {
+        try {
+            // First find the message to get the sourceMessageId
+            const message = await this.dbOperations.forwardedMessage.schema.findOne(filter);
+            if (!message) {
+                return null;
+            }
+
+            // Delete the message
+            const deletedMessage = await this.dbOperations.forwardedMessage.schema.findOneAndDelete(filter);
+            
+            // Clear all related caches
+            if (deletedMessage) {
+                // Clear the cache for direct sourceMessageId lookup
+                cache.del(`forwardedMessage:${JSON.stringify({ sourceMessageId: deletedMessage.sourceMessageId })}`);
+                
+                // Clear the cache for userId lookup
+                cache.del(`forwardedMessage:${JSON.stringify({ userId: deletedMessage.userId })}`);
+                
+                // Clear the cache for combined lookup
+                cache.del(`forwardedMessage:${JSON.stringify({ 
+                    userId: deletedMessage.userId,
+                    sourceMessageId: deletedMessage.sourceMessageId 
+                })}`);
+
+                // Clear any cache with sort options
+                cache.del(`forwardedMessage:${JSON.stringify({ userId: deletedMessage.userId })}:${JSON.stringify({ sort: { fixedId: -1 } })}`);
+            }
+            
+            return deletedMessage;
+        } catch (err) {
+            console.error(`[ERROR] Failed to delete forwarded message:`, err);
+            throw err;
+        }
+    }
+
+    async findForwardedMessages(filter) {
+        try {
+            const messages = await this.dbOperations.forwardedMessage.schema.find(filter).sort({ fixedId: 1 });
+
+            // Update cache for each message
+            messages.forEach(message => {
+                const cacheKey = `forwardedMessage:${message.sourceMessageId}`;
+                cache.set(cacheKey, message);
+            });
+
+            return messages;
+        } catch (err) {
+            console.error(`[ERROR] Failed to find forwarded messages:`, err);
+            return [];
+        }
+    }
+
+    async countForwardedMessages(filter) {
+        try {
+            return await this.dbOperations.forwardedMessage.schema.countDocuments(filter);
+        } catch (err) {
+            console.error(`[ERROR] Failed to count forwarded messages:`, err);
+            return 0;
+        }
     }
 }
 

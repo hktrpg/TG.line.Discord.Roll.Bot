@@ -572,22 +572,22 @@ const discordCommand = [
     {
         data: new SlashCommandBuilder()
             .setName('myname')
-            .setDescription('【角色扮演系統】管理你的角色')
+            .setDescription('角色扮演系統 - 角色管理')
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('add')
                     .setDescription('新增角色')
-                    .addStringOption(option =>
+                    .addStringOption(option => 
                         option.setName('name')
-                            .setDescription('角色名稱 (有空格請用""包住)')
+                            .setDescription('角色名字')
                             .setRequired(true))
                     .addStringOption(option =>
                         option.setName('imageurl')
-                            .setDescription('圖片網址 (Discord或Imgur連結)')
+                            .setDescription('角色圖片網址')
                             .setRequired(true))
                     .addStringOption(option =>
-                        option.setName('shortname')
-                            .setDescription('簡稱 (選填)')
+                        option.setName('nickname')
+                            .setDescription('角色簡稱')
                             .setRequired(false)))
             .addSubcommand(subcommand =>
                 subcommand
@@ -596,119 +596,65 @@ const discordCommand = [
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('delete')
-                    .setDescription('刪除指定角色')
+                    .setDescription('刪除角色')
                     .addStringOption(option =>
-                        option.setName('identifier')
-                            .setDescription('序號或簡稱')
+                        option.setName('target')
+                            .setDescription('要刪除的角色序號或簡稱')
                             .setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
-            
-            switch (subcommand) {
-                case 'add': {
-                    const name = interaction.options.getString('name');
-                    const imageUrl = interaction.options.getString('imageurl');
-                    const shortName = interaction.options.getString('shortname') || '';
-                    
-                    // 構建輸入字符串
-                    let inputStr = `.myname ${name} ${imageUrl}`;
-                    if (shortName) inputStr += ` ${shortName}`;
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: inputStr,
-                        mainMsg: ['.myname', name],
-                        groupid: interaction.guildId,
-                        userid: interaction.user.id,
-                        botname: 'Discord',
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        channelid: interaction.channelId
-                    });
-                    
-                    return result.text;
-                }
-                case 'show': {
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: '.myname show',
-                        mainMsg: ['.myname', 'show'],
-                        groupid: interaction.guildId,
-                        userid: interaction.user.id,
-                        botname: 'Discord',
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        channelid: interaction.channelId
-                    });
-                    
-                    return result.text;
-                }
-                case 'delete': {
-                    const identifier = interaction.options.getString('identifier');
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: `.myname delete ${identifier}`,
-                        mainMsg: ['.myname', 'delete', identifier],
-                        groupid: interaction.guildId,
-                        userid: interaction.user.id,
-                        botname: 'Discord',
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        channelid: interaction.channelId
-                    });
-                    
-                    return result.text;
-                }
-                default:
-                    return '未知的子命令';
+            if (subcommand === 'add') {
+                const name = interaction.options.getString('name');
+                const imageurl = interaction.options.getString('imageurl');
+                const nickname = interaction.options.getString('nickname') || '';
+                return `.myname "${name}" ${imageurl} ${nickname}`;
+            }
+            if (subcommand === 'show') {
+                return `.myname show`;
+            }
+            if (subcommand === 'delete') {
+                const target = interaction.options.getString('target');
+                return `.myname delete ${target}`;
             }
         }
     },
     {
         data: new SlashCommandBuilder()
             .setName('me')
-            .setDescription('【角色扮演系統】以角色身分發言')
-            .addStringOption(option =>
+            .setDescription('角色扮演系統 - 以自己身分發言')
+            .addStringOption(option => 
                 option.setName('message')
-                    .setDescription('訊息內容')
+                    .setDescription('要發言的內容')
                     .setRequired(true)),
         async execute(interaction) {
             const message = interaction.options.getString('message');
-            
-            // 調用現有的 rollDiceCommand 函數處理
-            const result = await rollDiceCommand({
-                inputStr: `.me ${message}`,
-                mainMsg: ['.me', message],
-                groupid: interaction.guildId,
-                userid: interaction.user.id,
-                botname: 'Discord',
-                displayname: interaction.user.username,
-                displaynameDiscord: interaction.user.username,
-                channelid: interaction.channelId
-            });
-            
-            return result.text;
+            return `.me ${message}`;
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('mee')
+            .setDescription('角色扮演系統 - 以角色身分發言')
+            .addStringOption(option =>
+                option.setName('character')
+                    .setDescription('角色序號或簡稱')
+                    .setRequired(true))
+            .addStringOption(option => 
+                option.setName('message')
+                    .setDescription('要發言的內容')
+                    .setRequired(true)),
+        async execute(interaction) {
+            const character = interaction.options.getString('character');
+            const message = interaction.options.getString('message');
+            return `.me${character} ${message}`;
         }
     },
     {
         data: new SlashCommandBuilder()
             .setName('mehistory')
-            .setDescription('【角色扮演系統】顯示群組最近的.me發言記錄'),
-        async execute(interaction) {
-            // 調用現有的 rollDiceCommand 函數處理
-            const result = await rollDiceCommand({
-                inputStr: '.mehistory',
-                mainMsg: ['.mehistory'],
-                groupid: interaction.guildId,
-                userid: interaction.user.id,
-                botname: 'Discord',
-                displayname: interaction.user.username,
-                displaynameDiscord: interaction.user.username,
-                channelid: interaction.channelId
-            });
-            
-            return result.text;
+            .setDescription('角色扮演系統 - 顯示群組最近發言記錄'),
+        async execute() {
+            return `.mehistory`;
         }
     }
 ];

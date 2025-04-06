@@ -735,7 +735,7 @@ const discordCommand = [
                     return `.evt ${name}`;
                 }
                 default:
-                    return this.getHelpMessage();
+                    return `.event help`;
             }
         }
     }

@@ -924,11 +924,14 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         // Check if the current user is mentioned in the message
         let isMentioned = false;
         let isInteractionUser = false;
+        console.log(mentionedUsers);
+        console.log(discordMessage.author);
+        console.log("sourceMessage", sourceMessage);
 
         // Check if user is mentioned
-        if (mentionedUsers.length > 0 && discordMessage.author && discordMessage.author.id) {
+        if (mentionedUsers.length > 0) {
             for (const [userId, user] of mentionedUsers) {
-                if (userId === discordMessage.author.id) {
+                if (userId === userid) {
                     isMentioned = true;
                     break;
                 }
@@ -971,7 +974,7 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         // Find the next available fixedId
         const allForwardedMessages = await records.findForwardedMessages({ userId: userid });
         let nextFixedId = 1;
-        
+
         if (allForwardedMessages.length > 0) {
             // Find the maximum fixedId among all messages
             const maxFixedId = Math.max(...allForwardedMessages.map(msg => msg.fixedId));

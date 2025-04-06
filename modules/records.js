@@ -411,10 +411,9 @@ class Records extends EventEmitter {
             // Check cache first
             const cachedMessage = cache.get(cacheKey);
             if (cachedMessage) {
-                console.log('Cache hit for:', cacheKey);
                 return cachedMessage;
             }
-            console.log('Cache miss for:', cacheKey);
+
 
             // If not in cache, query the database
             let dbQuery = this.dbOperations.forwardedMessage.schema.findOne(query);
@@ -425,12 +424,10 @@ class Records extends EventEmitter {
             }
 
             const message = await dbQuery;
-            console.log('Database query result:', message);
 
             // Update cache if message found
             if (message) {
                 cache.set(cacheKey, message);
-                console.log('Cache updated for:', cacheKey);
             }
 
             return message;

@@ -1423,16 +1423,14 @@ async function __handlingInteractionMessage(message) {
 							userId: userid,
 							sourceMessageId: message.message.id
 						});
-						
-						console.log('Found forward setting:', forwardSetting);
 
 						if (forwardSetting) {
 							// 有轉發設定，發送到指定頻道
-							
 							try {
 								const targetChannel = await client.channels.fetch(forwardSetting.channelId);
 								if (targetChannel) {
 									await targetChannel.send({ content: `<@${userid}> ${resultText}` });
+									message.deferUpdate();
 									return;
 								}
 							} catch (error) {

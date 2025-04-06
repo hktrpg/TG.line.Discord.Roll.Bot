@@ -202,7 +202,6 @@ const rollDiceCommand = async function ({ inputStr, mainMsg, groupid, botname, u
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^forward$/i.test(mainMsg[1]) && /^delete$/i.test(mainMsg[2]) && /^\d+$/i.test(mainMsg[3]):
             return await handleForwardDelete(mainMsg, inputStr, userid, groupid, channelid, rply);
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^forward$/i.test(mainMsg[1]) && /^\S+$/i.test(mainMsg[2]):
-            console.log('forward', mainMsg, inputStr, userid, groupid, channelid, discordMessage, discordClient, rply);
             return await handleForwardMessage(mainMsg, inputStr, userid, groupid, channelid, discordMessage, discordClient, rply);
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^button$/i.test(mainMsg[1]):
             return await handleButton(mainMsg, inputStr, userid, groupid, channelid, botname, rply);
@@ -892,7 +891,6 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
     try {
         // Try to fetch the source channel
         const sourceChannel = await discordClient.channels.fetch(sourceChannelId);
-        console.log('sourceChannel', sourceChannel);
         if (!sourceChannel) {
             rply.text = '找不到指定的頻道';
             return rply;
@@ -900,7 +898,6 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
 
         // Try to fetch the source message
         const sourceMessage = await sourceChannel.messages.fetch(sourceMessageId);
-        console.log('sourceMessage', sourceMessage);
         if (!sourceMessage) {
             rply.text = '找不到指定的訊息';
             return rply;
@@ -918,21 +915,11 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
             rply.text = '只能轉發「.ch button 產生的角色卡」';
             return rply;
         }
-
-        // Check for mentions in the message
-        console.log('sourceMessage.author', sourceMessage.author);
-        console.log('discordMessage.author', discordMessage.author);
-
-
-
-
-
         // Get all mentioned users
         let mentionedUsers = [];
         if (sourceMessage.mentions && sourceMessage.mentions.users) {
             mentionedUsers = Array.from(sourceMessage.mentions.users.entries());
         }
-        console.log('mentionedUsers', mentionedUsers);
 
         // Check if the current user is mentioned in the message
         let isMentioned = false;
@@ -1047,7 +1034,6 @@ async function handleForwardShow(mainMsg, inputStr, userid, groupid, channelid, 
 
         for (let i = 0; i < forwardedMessages.length; i++) {
             const forward = forwardedMessages[i];
-            console.log('Forward object:', JSON.stringify(forward));
 
             // Get the target channel ID from the schema
             const targetChannelId = forward.channelId;

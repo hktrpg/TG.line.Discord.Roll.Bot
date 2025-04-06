@@ -1418,7 +1418,6 @@ async function __handlingInteractionMessage(message) {
 					// 檢查是否有轉發設定
 					try {
 						const userid = message.user.id;
-						const displayname = message.member?.nickname || message.user.username;
 						const forwardSetting = await records.findForwardedMessage({
 							userId: userid,
 							sourceMessageId: message.message.id
@@ -1429,18 +1428,18 @@ async function __handlingInteractionMessage(message) {
 							try {
 								const targetChannel = await client.channels.fetch(forwardSetting.channelId);
 								if (targetChannel) {
-									await targetChannel.send({ content: `<@${userid}> ${resultText}` });
+									await targetChannel.send({ content: `<@${userid}>\n${resultText}` });
 									message.deferUpdate();
 									return;
 								}
 							} catch (error) {
 								console.error('Error forwarding message:', error);
 								// 如果轉發失敗，fallback到正常reply
-								await message.reply({ content: `<@${userid}> ${resultText}`, ephemeral: false });
+								await message.reply({ content: `<@${userid}> \n${resultText}`, ephemeral: false });
 							}
 						} else {
 							// 沒有轉發設定，使用正常reply
-							await message.reply({ content: `<@${userid}> ${resultText}`, ephemeral: false });
+							await message.reply({ content: `<@${userid}>\n${resultText}`, ephemeral: false });
 						}
 					} catch (error) {
 						console.error('Error checking forwarded message:', error);

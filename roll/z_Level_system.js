@@ -687,11 +687,24 @@ const discordCommand = [
     {
         data: new SlashCommandBuilder()
             .setName('level')
-            .setDescription('【經驗值系統】管理你的等級和經驗值')
+            .setDescription('【經驗值系統】查看等級、排名和設定')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('help')
+                    .setDescription('顯示經驗值系統的幫助信息'))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('show')
-                    .setDescription('查詢自己現在等級'))
+                    .setDescription('顯示現時升級語及其他語')
+                    .addStringOption(option =>
+                        option.setName('type')
+                            .setDescription('要顯示的設定類型')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: '升級通知文字', value: 'levelupword' },
+                                { name: '查詢回應文字', value: 'rankword' },
+                                { name: '稱號設定', value: 'titleword' }
+                            )))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('showme')
@@ -715,281 +728,71 @@ const discordCommand = [
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('config')
-                    .setDescription('設定經驗值系統')
+                    .setDescription('設定經驗值功能')
                     .addStringOption(option =>
                         option.setName('setting')
                             .setDescription('設定值: 11(開啟並顯示通知), 10(開啟但不顯示通知), 00(關閉功能)')
-                            .setRequired(true)))
+                            .setRequired(true)
+                            .addChoices(
+                                { name: '開啟並顯示通知', value: '11' },
+                                { name: '開啟但不顯示通知', value: '10' },
+                                { name: '關閉功能', value: '00' }
+                            )))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('levelupword')
                     .setDescription('設定升級通知文字')
                     .addStringOption(option =>
-                        option.setName('content')
-                            .setDescription('通知文字內容')
-                            .setRequired(true)))
-            .addSubcommand(subcommand =>
-                subcommand
-                    .setName('levelupword_del')
-                    .setDescription('使用預設升級通知文字'))
-            .addSubcommand(subcommand =>
-                subcommand
-                    .setName('levelupword_show')
-                    .setDescription('顯示目前升級通知文字設定'))
+                        option.setName('text')
+                            .setDescription('升級通知文字')
+                            .setRequired(false)))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('rankword')
                     .setDescription('設定查詢回應文字')
                     .addStringOption(option =>
-                        option.setName('content')
-                            .setDescription('回應文字內容')
-                            .setRequired(true)))
-            .addSubcommand(subcommand =>
-                subcommand
-                    .setName('rankword_del')
-                    .setDescription('使用預設查詢回應文字'))
-            .addSubcommand(subcommand =>
-                subcommand
-                    .setName('rankword_show')
-                    .setDescription('顯示目前查詢回應文字設定'))
+                        option.setName('text')
+                            .setDescription('查詢回應文字')
+                            .setRequired(false)))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('titleword')
                     .setDescription('設定等級稱號')
                     .addStringOption(option =>
                         option.setName('titles')
-                            .setDescription('稱號設定，格式: -0 無名調查員 -5 調查員 -10 記者')
-                            .setRequired(true)))
-            .addSubcommand(subcommand =>
-                subcommand
-                    .setName('titleword_del')
-                    .setDescription('使用預設稱號'))
-            .addSubcommand(subcommand =>
-                subcommand
-                    .setName('titleword_show')
-                    .setDescription('顯示目前稱號設定')),
+                            .setDescription('格式: -0 無名調查員 -5 調查員 -10 記者')
+                            .setRequired(false))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             
             switch (subcommand) {
-                case 'show': {
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: '',
-                        mainMsg: ['.level', 'show'],
-                        groupid: interaction.guildId,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        discordMessage: interaction
-                    });
-                    
-                    return result.text;
-                }
-                case 'showme': {
+                case 'help':
+                    return `.level help`;
+                case 'show':
+                    const type = interaction.options.getString('type');
+                    return `.level ${type} Show`;
+                case 'showme':
                     const count = interaction.options.getInteger('count');
-                    
-                    // 構建命令參數
-                    const mainMsg = ['.level', 'showMe'];
-                    if (count) mainMsg.push(count.toString());
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: count ? count.toString() : '',
-                        mainMsg: mainMsg,
-                        groupid: interaction.guildId,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        discordMessage: interaction
-                    });
-                    
-                    return result.text;
-                }
-                case 'showmetheworld': {
-                    const count = interaction.options.getInteger('count');
-                    
-                    // 構建命令參數
-                    const mainMsg = ['.level', 'showMeTheworld'];
-                    if (count) mainMsg.push(count.toString());
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: count ? count.toString() : '',
-                        mainMsg: mainMsg,
-                        groupid: interaction.guildId,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        discordMessage: interaction
-                    });
-                    
-                    return result.text;
-                }
-                case 'showmeattheworld': {
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: '',
-                        mainMsg: ['.level', 'showMeAtTheworld'],
-                        groupid: interaction.guildId,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        discordMessage: interaction
-                    });
-                    
-                    return result.text;
-                }
-                case 'config': {
+                    return count ? `.level showMe ${count}` : `.level showMe`;
+                case 'showmetheworld':
+                    const worldCount = interaction.options.getInteger('count');
+                    return worldCount ? `.level showMeTheworld ${worldCount}` : `.level showMeTheworld`;
+                case 'showmeattheworld':
+                    return `.level showMeAtTheworld`;
+                case 'config':
                     const setting = interaction.options.getString('setting');
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: '',
-                        mainMsg: ['.level', 'config', setting],
-                        groupid: interaction.guildId,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        discordMessage: interaction
-                    });
-                    
-                    return result.text;
-                }
-                case 'levelupword': {
-                    const content = interaction.options.getString('content');
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: content,
-                        mainMsg: ['.level', 'LevelUpWord'],
-                        groupid: interaction.guildId,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        discordMessage: interaction
-                    });
-                    
-                    return result.text;
-                }
-                case 'levelupword_del': {
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: '',
-                        mainMsg: ['.level', 'LevelUpWord', 'del'],
-                        groupid: interaction.guildId,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        discordMessage: interaction
-                    });
-                    
-                    return result.text;
-                }
-                case 'levelupword_show': {
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: '',
-                        mainMsg: ['.level', 'LevelUpWord', 'Show'],
-                        groupid: interaction.guildId,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        discordMessage: interaction
-                    });
-                    
-                    return result.text;
-                }
-                case 'rankword': {
-                    const content = interaction.options.getString('content');
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: content,
-                        mainMsg: ['.level', 'RankWord'],
-                        groupid: interaction.guildId,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        discordMessage: interaction
-                    });
-                    
-                    return result.text;
-                }
-                case 'rankword_del': {
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: '',
-                        mainMsg: ['.level', 'RankWord', 'del'],
-                        groupid: interaction.guildId,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        discordMessage: interaction
-                    });
-                    
-                    return result.text;
-                }
-                case 'rankword_show': {
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: '',
-                        mainMsg: ['.level', 'RankWord', 'Show'],
-                        groupid: interaction.guildId,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        discordMessage: interaction
-                    });
-                    
-                    return result.text;
-                }
-                case 'titleword': {
+                    return `.level config ${setting}`;
+                case 'levelupword':
+                    const levelUpText = interaction.options.getString('text');
+                    return levelUpText ? `.level LevelUpWord ${levelUpText}` : `.level LevelUpWord`;
+                case 'rankword':
+                    const rankText = interaction.options.getString('text');
+                    return rankText ? `.level RankWord ${rankText}` : `.level RankWord`;
+                case 'titleword':
                     const titles = interaction.options.getString('titles');
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: titles,
-                        mainMsg: ['.level', 'TitleWord'],
-                        groupid: interaction.guildId,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        discordMessage: interaction
-                    });
-                    
-                    return result.text;
-                }
-                case 'titleword_del': {
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: '',
-                        mainMsg: ['.level', 'TitleWord', 'del'],
-                        groupid: interaction.guildId,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        discordMessage: interaction
-                    });
-                    
-                    return result.text;
-                }
-                case 'titleword_show': {
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: '',
-                        mainMsg: ['.level', 'TitleWord', 'Show'],
-                        groupid: interaction.guildId,
-                        userid: interaction.user.id,
-                        displayname: interaction.user.username,
-                        displaynameDiscord: interaction.user.username,
-                        discordMessage: interaction
-                    });
-                    
-                    return result.text;
-                }
+                    return titles ? `.level TitleWord ${titles}` : `.level TitleWord`;
                 default:
-                    return '未知的子命令';
+                    return `.level help`;
             }
         }
     }

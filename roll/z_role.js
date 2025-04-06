@@ -419,81 +419,30 @@ const discordCommand = [
     {
         data: new SlashCommandBuilder()
             .setName('rolereact')
-            .setDescription('【身分組管理】表情符號自動分配身分組')
-            .addSubcommand(subcommand =>
-                subcommand
-                    .setName('add')
-                    .setDescription('新增反應配置')
-                    .addStringOption(option =>
-                        option.setName('config')
-                            .setDescription('配置內容 (格式: 身分組ID 表情符號\\n[[messageID]]\\n訊息ID)')
-                            .setRequired(true)))
+            .setDescription('【身分組管理】點擊表情符號自動分配身分組')
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('show')
-                    .setDescription('顯示現有配置'))
+                    .setDescription('顯示現有配置')
+            )
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('delete')
                     .setDescription('刪除指定配置')
-                    .addIntegerOption(option =>
+                    .addStringOption(option => 
                         option.setName('serial')
-                            .setDescription('序號')
-                            .setRequired(true))),
+                            .setDescription('要刪除的配置序號')
+                            .setRequired(true)
+                    )
+            ),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             
-            switch (subcommand) {
-                case 'add': {
-                    const config = interaction.options.getString('config');
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: `.roleReact add\n${config}`,
-                        mainMsg: ['.roleReact', 'add'],
-                        botname: 'Discord',
-                        userrole: interaction.member.roles.highest.id,
-                        groupid: interaction.guildId
-                    });
-                    
-                    // 如果需要添加反應，將相關資訊傳遞給Discord
-                    if (result.newRoleReactFlag) {
-                        return {
-                            text: result.text,
-                            newRoleReactFlag: true,
-                            newRoleReactMessageId: result.newRoleReactMessageId,
-                            newRoleReactDetail: result.newRoleReactDetail
-                        };
-                    }
-                    
-                    return result.text;
-                }
-                case 'show': {
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: '.roleReact show',
-                        mainMsg: ['.roleReact', 'show'],
-                        botname: 'Discord',
-                        userrole: interaction.member.roles.highest.id,
-                        groupid: interaction.guildId
-                    });
-                    
-                    return result.text;
-                }
-                case 'delete': {
-                    const serial = interaction.options.getInteger('serial');
-                    
-                    // 調用現有的 rollDiceCommand 函數處理
-                    const result = await rollDiceCommand({
-                        inputStr: `.roleReact delete ${serial}`,
-                        mainMsg: ['.roleReact', 'delete', serial.toString()],
-                        botname: 'Discord',
-                        userrole: interaction.member.roles.highest.id,
-                        groupid: interaction.guildId
-                    });
-                    
-                    return result.text;
-                }
+            if (subcommand === 'show') {
+                return `.roleReact show`;
+            } else if (subcommand === 'delete') {
+                const serial = interaction.options.getString('serial');
+                return `.roleReact delete ${serial}`;
             }
         }
     }

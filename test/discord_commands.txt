@@ -24,9 +24,8 @@
 
 ## Role Management Commands
 /rolereact - 身分組管理
-  - add: 新增反應配置
-    - config: 配置內容 (格式: 身分組ID 表情符號\n[[messageID]]\n訊息ID) (必填)
   - show: 顯示現有配置
+  - delete
 
 ## Random Answer Commands
 /ra - 自定義骰子

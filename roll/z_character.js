@@ -1104,8 +1104,46 @@ const discordCommand = [
             .setDescription('【角色卡功能】管理你的角色卡')
             .addSubcommand(subcommand =>
                 subcommand
+                    .setName('add')
+                    .setDescription('建立新角色卡')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('角色卡名稱')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('state')
+                            .setDescription('狀態數值 (格式: HP:15/15;MP:10/10;San:80)'))
+                    .addStringOption(option =>
+                        option.setName('roll')
+                            .setDescription('擲骰指令 (格式: 鬥毆: cc 50;射擊: cc 45)'))
+                    .addStringOption(option =>
+                        option.setName('notes')
+                            .setDescription('備註內容')))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('edit')
+                    .setDescription('修改現有角色卡')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('角色卡名稱')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('state')
+                            .setDescription('狀態數值'))
+                    .addStringOption(option =>
+                        option.setName('roll')
+                            .setDescription('擲骰指令'))
+                    .addStringOption(option =>
+                        option.setName('notes')
+                            .setDescription('備註內容')))
+            .addSubcommand(subcommand =>
+                subcommand
                     .setName('show')
-                    .setDescription('顯示你的角色卡列表'))
+                    .setDescription('顯示角色卡列表'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show0')
+                    .setDescription('顯示角色卡0號詳細'))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('use')
@@ -1120,25 +1158,56 @@ const discordCommand = [
                     .setDescription('停用當前角色卡'))
             .addSubcommand(subcommand =>
                 subcommand
+                    .setName('delete')
+                    .setDescription('刪除指定的角色卡')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('角色卡名稱')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
                     .setName('button')
                     .setDescription('生成角色卡按鈕')
                     .addStringOption(option =>
                         option.setName('name')
                             .setDescription('角色卡名稱')
-                            .setRequired(true))),
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('public')
+                    .setDescription('公開角色卡'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('unpublic')
+                    .setDescription('取消公開角色卡')),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
+            const name = interaction.options.getString('name');
+            const state = interaction.options.getString('state');
+            const roll = interaction.options.getString('roll');
+            const notes = interaction.options.getString('notes');
 
-            if (subcommand === 'show') {
-                return `.char show`;
-            } else if (subcommand === 'use') {
-                const name = interaction.options.getString('name');
-                return `.char use ${name}`;
-            } else if (subcommand === 'nonuse') {
-                return `.char nonuse`;
-            } else if (subcommand === 'button') {
-                const name = interaction.options.getString('name');
-                return `.char button ${name}`;
+            switch (subcommand) {
+                case 'add':
+                    return `.char add name[${name}]~${state ? `\nstate[${state}]~` : ''}${roll ? `\nroll[${roll}]~` : ''}${notes ? `\nnotes[${notes}]~` : ''}`;
+                case 'edit':
+                    return `.char edit name[${name}]~${state ? `\nstate[${state}]~` : ''}${roll ? `\nroll[${roll}]~` : ''}${notes ? `\nnotes[${notes}]~` : ''}`;
+                case 'show':
+                    return `.char show`;
+                case 'show0':
+                    return `.char show0`;
+                case 'use':
+                    return `.char use ${name}`;
+                case 'nonuse':
+                    return `.char nonuse`;
+                case 'delete':
+                    return `.char delete ${name}`;
+                case 'button':
+                    return `.char button ${name}`;
+                case 'public':
+                    return `.char public ${name}`;
+                case 'unpublic':
+                    return `.char unpublic ${name}`;
             }
         }
     },
@@ -1189,28 +1258,48 @@ const discordCommand = [
                     .addIntegerOption(option =>
                         option.setName('id')
                             .setDescription('轉發編號')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('modify')
+                    .setDescription('修改角色卡數值')
+                    .addStringOption(option =>
+                        option.setName('item')
+                            .setDescription('項目名稱')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('operation')
+                            .setDescription('運算符號 (+/-/*//)')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('value')
+                            .setDescription('數值或擲骰指令')
                             .setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
+            const item = interaction.options.getString('item');
+            const value = interaction.options.getString('value');
+            const operation = interaction.options.getString('operation');
+            const link = interaction.options.getString('link');
+            const id = interaction.options.getInteger('id');
 
-            if (subcommand === 'show') {
-                return `.ch show`;
-            } else if (subcommand === 'showall') {
-                return `.ch showall`;
-            } else if (subcommand === 'button') {
-                return `.ch button`;
-            } else if (subcommand === 'set') {
-                const item = interaction.options.getString('item');
-                const value = interaction.options.getString('value');
-                return `.ch set ${item} ${value}`;
-            } else if (subcommand === 'forward') {
-                const link = interaction.options.getString('link');
-                return `.ch forward ${link}`;
-            } else if (subcommand === 'forward_show') {
-                return `.ch forward show`;
-            } else if (subcommand === 'forward_delete') {
-                const id = interaction.options.getInteger('id');
-                return `.ch forward delete ${id}`;
+            switch (subcommand) {
+                case 'show':
+                    return `.ch show`;
+                case 'showall':
+                    return `.ch showall`;
+                case 'button':
+                    return `.ch button`;
+                case 'set':
+                    return `.ch set ${item} ${value}`;
+                case 'forward':
+                    return `.ch forward ${link}`;
+                case 'forward_show':
+                    return `.ch forward show`;
+                case 'forward_delete':
+                    return `.ch forward delete ${id}`;
+                case 'modify':
+                    return `.ch ${item} ${operation}${value}`;
             }
         }
     }

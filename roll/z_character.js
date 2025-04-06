@@ -945,7 +945,7 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
 
 
         if (!isMentioned && !isInteractionUser) {
-            rply.text = '你只能轉發你的角色卡';
+            rply.text = '你只能轉發你的角色卡Button';
             return rply;
         }
 
@@ -956,7 +956,7 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         }
 
         if (!characterName) {
-            rply.text = '無法識別角色卡名稱，請確認訊息格式正確';
+            rply.text = '無法識別角色卡名稱，請確認該角色卡Button訊息格式正確';
             return rply;
         }
 
@@ -981,7 +981,7 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         try {
             // Validate all required fields
             if (!userid || !groupid || !channelid || !sourceMessageId || !sourceChannelId || !characterName) {
-                rply.text = '轉發訊息時缺少必要資訊，請確認所有欄位都有值';
+                rply.text = '轉發Button時缺少必要資訊，請確認所有欄位都有值';
                 return rply;
             }
 
@@ -996,8 +996,8 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
                 fixedId: nextFixedId
             });
         } catch (error) {
-            console.error('儲存轉發訊息時發生錯誤', error);
-            rply.text = '轉發訊息時發生錯誤';
+            console.error('儲存轉發Button時發生錯誤', error);
+            rply.text = '轉發角色卡Button時發生錯誤';
             return rply;
         }
 
@@ -1005,7 +1005,7 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         const sourceMessageLink = `https://discord.com/channels/${groupid}/${sourceChannelId}/${sourceMessageId}`;
 
         // Provide an elegant response message with the character card name and source link
-        rply.text = `╭──── ✨ 角色卡按鈕位置已儲存 ────\n│ ✅ 「${characterName}」角色卡按鈕位置已儲存\n│\n│ 📌 當你使用該角色卡的按鈕後，所有訊息將在此頻道中發送\n│\n│ 💡 提示：使用 .ch button 可生成角色卡按鈕\n│\n│ 來源角色卡button連結: ${sourceMessageLink}\n╰─────────────────`;
+        rply.text = `╭──── ✨ 角色卡按鈕位置已儲存 ────\n│ ✅ 「${characterName}」此角色卡按鈕位置已儲存\n│\n│ 📌 當你使用該角色卡的按鈕後，所有訊息將在此頻道中發送\n│\n│ 💡 提示：使用 .ch button 可生成角色卡按鈕\n│\n│ 來源角色卡button連結: ${sourceMessageLink}\n╰─────────────────`;
 
         return rply;
 
@@ -1027,12 +1027,12 @@ async function handleForwardShow(mainMsg, inputStr, userid, groupid, channelid, 
         const forwardedMessages = await records.findForwardedMessages({ userId: userid });
 
         if (forwardedMessages.length === 0) {
-            rply.text = `╭──── ℹ️ 角色卡轉發狀態 ────\n│ ❌ 你目前沒有轉發任何角色卡\n╰─────────────────`;
+            rply.text = `╭──── ℹ️ 角色卡Button轉發狀態 ────\n│ ❌ 你目前沒有轉發任何角色卡\n╰─────────────────`;
             return rply;
         }
 
         // Format the response with all forwarded messages
-        let responseText = `╭──── 📋 角色卡轉發列表 ────\n`;
+        let responseText = `╭──── 📋 角色卡Button轉發列表 ────\n`;
 
         for (let i = 0; i < forwardedMessages.length; i++) {
             const forward = forwardedMessages[i];

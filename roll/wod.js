@@ -74,37 +74,50 @@ const rollDiceCommand = async function ({ mainMsg }) {
 const discordCommand = [
     {
         data: new SlashCommandBuilder()
-            .setName('wod')
-            .setDescription('【WOD黑暗世界】擲骰系統')
-            .addIntegerOption(option => option.setName('dice_count').setDescription('骰數(1-100)').setRequired(true))
-            .addIntegerOption(option => option.setName('reroll_threshold').setDescription('加骰值(8-10)').setRequired(false))
-            .addIntegerOption(option => option.setName('additional_successes').setDescription('額外成功數(可為負數)').setRequired(false))
-            .addStringOption(option => option.setName('comment').setDescription('描述文字').setRequired(false)),
+            .setName('wd')
+            .setDescription('世界of黑暗擲骰系統')
+            .addIntegerOption(option => 
+                option.setName('dice_count')
+                    .setDescription('要擲骰的D10數量 (1-100)')
+                    .setRequired(true)
+                    .setMinValue(1)
+                    .setMaxValue(100))
+            .addIntegerOption(option => 
+                option.setName('reroll_value')
+                    .setDescription('決定重骰的最小值 (8-10，預設為10)')
+                    .setRequired(false)
+                    .setMinValue(8)
+                    .setMaxValue(10))
+            .addIntegerOption(option => 
+                option.setName('bonus_success')
+                    .setDescription('額外成功數 (可為正負值)')
+                    .setRequired(false))
+            .addStringOption(option => 
+                option.setName('description')
+                    .setDescription('描述文字')
+                    .setRequired(false)),
         async execute(interaction) {
             const diceCount = interaction.options.getInteger('dice_count');
-            const rerollThreshold = interaction.options.getInteger('reroll_threshold') || 10;
-            const additionalSuccesses = interaction.options.getInteger('additional_successes') || 0;
-            const comment = interaction.options.getString('comment') || '';
+            const rerollValue = interaction.options.getInteger('reroll_value');
+            const bonusSuccess = interaction.options.getInteger('bonus_success');
+            const description = interaction.options.getString('description');
             
-            // Validate inputs
-            if (diceCount <= 0 || diceCount > 100) {
-                return '骰數必須在1-100之間';
+            let command = `.${diceCount}wd`;
+            
+            if (rerollValue) {
+                command += `${rerollValue}`;
             }
             
-            if (rerollThreshold < 8 || rerollThreshold > 10) {
-                return '加骰值必須在8-10之間';
+            if (bonusSuccess !== null) {
+                const sign = bonusSuccess >= 0 ? '+' : '';
+                command += `${sign}${bonusSuccess}`;
             }
             
-            // Create the command string
-            let command = `.${diceCount}wd${rerollThreshold}`;
-            if (additionalSuccesses !== 0) {
-                command += additionalSuccesses > 0 ? `+${additionalSuccesses}` : `${additionalSuccesses}`;
+            if (description) {
+                command += ` ${description}`;
             }
             
-            // Call the wod function with the command and comment
-            const result = await wod(command, comment);
-            
-            return result;
+            return command;
         }
     }
 ];

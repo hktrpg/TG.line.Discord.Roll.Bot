@@ -1417,9 +1417,6 @@ async function __handlingInteractionMessage(message) {
 				if (/的角色$/.test(messageContent)) {
 					// 檢查是否有轉發設定
 					try {
-						console.log('Checking forwarded message settings...');
-						console.log('sourceMessageId:', message.message.id);
-						
 						const userid = message.user.id;
 						const displayname = message.member?.nickname || message.user.username;
 						const forwardSetting = await records.findForwardedMessage({
@@ -1431,13 +1428,11 @@ async function __handlingInteractionMessage(message) {
 
 						if (forwardSetting) {
 							// 有轉發設定，發送到指定頻道
-							console.log('Forwarding message to channel:', forwardSetting.channelId);
 							
 							try {
 								const targetChannel = await client.channels.fetch(forwardSetting.channelId);
 								if (targetChannel) {
 									await targetChannel.send({ content: `<@${userid}> ${resultText}` });
-									console.log('Successfully forwarded message to channel');
 									return;
 								}
 							} catch (error) {
@@ -1447,7 +1442,6 @@ async function __handlingInteractionMessage(message) {
 							}
 						} else {
 							// 沒有轉發設定，使用正常reply
-							console.log('No forward setting found, using normal reply');
 							await message.reply({ content: `<@${userid}> ${resultText}`, ephemeral: false });
 						}
 					} catch (error) {

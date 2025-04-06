@@ -405,12 +405,16 @@ class Records extends EventEmitter {
     // Forwarded message operations
     async findForwardedMessage(query, options = {}) {
         try {
-            // Check cache first
+            // Generate cache key based on both query and options
             const cacheKey = `forwardedMessage:${JSON.stringify(query)}:${JSON.stringify(options)}`;
+            
+            // Check cache first
             const cachedMessage = cache.get(cacheKey);
             if (cachedMessage) {
+                console.log('Cache hit for:', cacheKey);
                 return cachedMessage;
             }
+            console.log('Cache miss for:', cacheKey);
 
             // If not in cache, query the database
             let dbQuery = this.dbOperations.forwardedMessage.schema.findOne(query);
@@ -421,10 +425,12 @@ class Records extends EventEmitter {
             }
 
             const message = await dbQuery;
+            console.log('Database query result:', message);
 
             // Update cache if message found
             if (message) {
                 cache.set(cacheKey, message);
+                console.log('Cache updated for:', cacheKey);
             }
 
             return message;
@@ -437,13 +443,22 @@ class Records extends EventEmitter {
     async createForwardedMessage(data) {
         try {
             const message = await this.dbOperations.forwardedMessage.schema.create(data);
-
+            
             // Update cache with new message
             if (message) {
-                const cacheKey = `forwardedMessage:${message.sourceMessageId}`;
-                cache.set(cacheKey, message);
+                // Cache for direct sourceMessageId lookup
+                cache.set(`forwardedMessage:${JSON.stringify({ sourceMessageId: message.sourceMessageId })}`, message);
+                
+                // Cache for userId lookup
+                cache.set(`forwardedMessage:${JSON.stringify({ userId: message.userId })}`, message);
+                
+                // Cache for combined lookup
+                cache.set(`forwardedMessage:${JSON.stringify({ 
+                    userId: message.userId,
+                    sourceMessageId: message.sourceMessageId 
+                })}`, message);
             }
-
+            
             return message;
         } catch (err) {
             console.error(`[ERROR] Failed to create forwarded message:`, err);
@@ -453,15 +468,34 @@ class Records extends EventEmitter {
 
     async deleteForwardedMessage(filter) {
         try {
-            const message = await this.dbOperations.forwardedMessage.schema.findOneAndDelete(filter);
-
-            // Remove from cache if message was found and deleted
-            if (message) {
-                const cacheKey = `forwardedMessage:${message.sourceMessageId}`;
-                cache.del(cacheKey);
+            // First find the message to get the sourceMessageId
+            const message = await this.dbOperations.forwardedMessage.schema.findOne(filter);
+            if (!message) {
+                return null;
             }
 
-            return message;
+            // Delete the message
+            const deletedMessage = await this.dbOperations.forwardedMessage.schema.findOneAndDelete(filter);
+            
+            // Clear all related caches
+            if (deletedMessage) {
+                // Clear the cache for direct sourceMessageId lookup
+                cache.del(`forwardedMessage:${JSON.stringify({ sourceMessageId: deletedMessage.sourceMessageId })}`);
+                
+                // Clear the cache for userId lookup
+                cache.del(`forwardedMessage:${JSON.stringify({ userId: deletedMessage.userId })}`);
+                
+                // Clear the cache for combined lookup
+                cache.del(`forwardedMessage:${JSON.stringify({ 
+                    userId: deletedMessage.userId,
+                    sourceMessageId: deletedMessage.sourceMessageId 
+                })}`);
+
+                // Clear any cache with sort options
+                cache.del(`forwardedMessage:${JSON.stringify({ userId: deletedMessage.userId })}:${JSON.stringify({ sort: { fixedId: -1 } })}`);
+            }
+            
+            return deletedMessage;
         } catch (err) {
             console.error(`[ERROR] Failed to delete forwarded message:`, err);
             throw err;

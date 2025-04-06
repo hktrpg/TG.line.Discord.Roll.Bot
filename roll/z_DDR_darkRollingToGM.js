@@ -243,192 +243,86 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
     }
 }
 
-const discordCommand = [
-    {
-        data: new SlashCommandBuilder()
-            .setName('drgm')
-            .setDescription('【暗骰GM系統】GM管理')
-            .addSubcommand(subcommand =>
-                subcommand
-                    .setName('addgm')
-                    .setDescription('註冊成為GM')
-                    .addStringOption(option => 
-                        option.setName('alias')
-                            .setDescription('GM代稱(選填)')
-                            .setRequired(false)))
-            .addSubcommand(subcommand =>
-                subcommand
-                    .setName('show')
-                    .setDescription('顯示目前GM列表'))
-            .addSubcommand(subcommand =>
-                subcommand
-                    .setName('del')
-                    .setDescription('刪除指定GM')
-                    .addStringOption(option => 
-                        option.setName('number')
-                            .setDescription('GM編號或all(刪除所有)')
-                            .setRequired(true))),
-        async execute(interaction) {
-            const subcommand = interaction.options.getSubcommand();
-            
-            // Check if user has channel manager permission
-            if (!interaction.member.permissions.has('ManageChannels')) {
-                return '只有頻道管理員可以使用此功能';
-            }
-            
-            const groupid = interaction.channelId;
-            const userid = interaction.user.id;
-            const displayname = interaction.user.username;
-            
-            switch (subcommand) {
-                case 'addgm': {
-                    const alias = interaction.options.getString('alias') || '';
-                    
-                    // Check if user is already in the GM list
-                    let checkifsamename = 0;
-                    if (trpgDarkRollingfunction.trpgDarkRollingfunction) {
-                        for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
-                            if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
-                                for (let a = 0; a < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
-                                    if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].userid == userid) {
-                                        checkifsamename = 1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    if (checkifsamename == 0) {
-                        let temp = {
-                            groupid: groupid,
-                            trpgDarkRollingfunction: [{
-                                userid: userid,
-                                diyName: alias,
-                                displayname: displayname
-                            }]
-                        };
-                        
-                        records.pushTrpgDarkRollingFunction('trpgDarkRolling', temp, () => {
-                            records.get('trpgDarkRolling', (msgs) => {
-                                trpgDarkRollingfunction.trpgDarkRollingfunction = msgs;
-                            });
-                        });
-                        
-                        return '新增成功: ' + (alias || displayname || "");
-                    } else {
-                        return '新增失敗. 你已在GM列表';
-                    }
-                }
-                
-                case 'show': {
-                    let result = '已註冊暗骰GM列表:';
-                    let found = false;
-                    
-                    if (trpgDarkRollingfunction.trpgDarkRollingfunction) {
-                        for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
-                            if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
-                                for (let a = 0; a < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
-                                    found = true;
-                                    result += "\n" + a + ": " + 
-                                        (trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName || 
-                                         trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname);
-                                }
-                            }
-                        }
-                    }
-                    
-                    if (!found) {
-                        result = '沒有已註冊的暗骰GM.';
-                    }
-                    
-                    return result;
-                }
-                
-                case 'del': {
-                    const number = interaction.options.getString('number');
-                    
-                    if (number.toLowerCase() === 'all') {
-                        // Delete all GMs
-                        for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
-                            if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
-                                let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i];
-                                temp.trpgDarkRollingfunction = [];
-                                records.setTrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
-                                    records.get('trpgDarkRolling', (msgs) => {
-                                        trpgDarkRollingfunction.trpgDarkRollingfunction = msgs;
-                                    });
-                                });
-                                return '刪除所有在表GM';
-                            }
-                        }
-                        return '沒有找到此頻道的GM列表';
-                    } else if (/^\d+$/.test(number)) {
-                        // Delete specific GM
-                        for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
-                            if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid && 
-                                parseInt(number) < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length && 
-                                parseInt(number) >= 0) {
-                                let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i];
-                                temp.trpgDarkRollingfunction.splice(parseInt(number), 1);
-                                records.setTrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
-                                    records.get('trpgDarkRolling', (msgs) => {
-                                        trpgDarkRollingfunction.trpgDarkRollingfunction = msgs;
-                                    });
-                                });
-                                return '刪除成功: ' + number;
-                            }
-                        }
-                        return '沒有找到此編號的GM';
-                    } else {
-                        return '無效的編號，請輸入數字或all';
-                    }
-                }
-                
-                default:
-                    return '未知的子命令';
-            }
-        }
-    },
-    {
-        data: new SlashCommandBuilder()
-            .setName('dr')
-            .setDescription('暗骰(結果只傳送給自己)')
-            .addStringOption(option => 
-                option.setName('command')
-                    .setDescription('擲骰指令')
-                    .setRequired(true)),
-        async execute(interaction) {
-            const command = interaction.options.getString('command');
-            return `dr ${command}`;
-        }
-    },
-    {
-        data: new SlashCommandBuilder()
-            .setName('ddr')
-            .setDescription('暗骰(結果傳送給GM和自己)')
-            .addStringOption(option => 
-                option.setName('command')
-                    .setDescription('擲骰指令')
-                    .setRequired(true)),
-        async execute(interaction) {
-            const command = interaction.options.getString('command');
-            return `ddr ${command}`;
-        }
-    },
-    {
-        data: new SlashCommandBuilder()
-            .setName('dddr')
-            .setDescription('暗骰(結果只傳送給GM)')
-            .addStringOption(option => 
-                option.setName('command')
-                    .setDescription('擲骰指令')
-                    .setRequired(true)),
-        async execute(interaction) {
-            const command = interaction.options.getString('command');
-            return `dddr ${command}`;
+const discordCommand = [{
+    data: new SlashCommandBuilder()
+        .setName('drgm')
+        .setDescription('暗骰GM功能')
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('addgm')
+                .setDescription('註冊成為GM')
+                .addStringOption(option => 
+                    option.setName('nickname')
+                    .setDescription('GM的代稱(選填)')
+                    .setRequired(false))
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('show') 
+                .setDescription('顯示目前GM列表')
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('del')
+                .setDescription('刪除GM')
+                .addStringOption(option =>
+                    option.setName('target')
+                    .setDescription('要刪除的GM編號,輸入all則清空所有')
+                    .setRequired(true))
+        ),
+    async execute(interaction) {
+        const subcommand = interaction.options.getSubcommand();
+        const nickname = interaction.options.getString('nickname');
+        const target = interaction.options.getString('target');
+        
+        switch(subcommand) {
+            case 'addgm':
+                return `.drgm addgm ${nickname || ''}`;
+            case 'show':
+                return `.drgm show`;
+            case 'del':
+                return `.drgm del ${target}`;
+            default:
+                return `.drgm help`;
         }
     }
-];
+}, {
+    data: new SlashCommandBuilder()
+        .setName('dr')
+        .setDescription('暗骰-結果只傳送給自己')
+        .addStringOption(option => 
+            option.setName('command')
+            .setDescription('要執行的指令，如 cc 80 鬥毆')
+            .setRequired(true)),
+    async execute(interaction) {
+        const command = interaction.options.getString('command');
+        return `dr ${command}`;
+    }
+}, {
+    data: new SlashCommandBuilder()
+        .setName('ddr')
+        .setDescription('暗骰-結果傳送給GM和自己')
+        .addStringOption(option => 
+            option.setName('command')
+            .setDescription('要執行的指令，如 cc 80 鬥毆')
+            .setRequired(true)),
+    async execute(interaction) {
+        const command = interaction.options.getString('command');
+        return `ddr ${command}`;
+    }
+}, {
+    data: new SlashCommandBuilder()
+        .setName('dddr')
+        .setDescription('暗骰-結果只傳送給GM')
+        .addStringOption(option => 
+            option.setName('command')
+            .setDescription('要執行的指令，如 cc 80 鬥毆')
+            .setRequired(true)),
+    async execute(interaction) {
+        const command = interaction.options.getString('command');
+        return `dddr ${command}`;
+    }
+}];
 
 module.exports = {
     rollDiceCommand: rollDiceCommand,

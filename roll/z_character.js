@@ -924,9 +924,6 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         // Check if the current user is mentioned in the message
         let isMentioned = false;
         let isInteractionUser = false;
-        console.log(mentionedUsers);
-        console.log(discordMessage.author);
-        console.log("sourceMessage", sourceMessage);
 
         // Check if user is mentioned
         if (mentionedUsers.length > 0) {

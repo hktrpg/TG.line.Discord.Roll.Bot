@@ -9,6 +9,7 @@ const rollDiceCoc = require('./2_coc').rollDiceCommand;
 const rollDiceAdv = require('./0_advroll').rollDiceCommand;
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
+const records = require('../modules/records.js');
 const { SlashCommandBuilder } = require('discord.js');
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
 const gameName = () => '【角色卡功能】 .char (add edit show delete use nonuse button) .ch (set show showall button)';
@@ -860,7 +861,7 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
     let limit = FUNCTION_LIMIT[vipLevel];
 
     // Check if user has reached the limit for forwarded messages
-    let existingForwardedMessages = await schema.forwardedMessage.countDocuments({ userId: userid });
+    let existingForwardedMessages = await records.countForwardedMessages({ userId: userid });
     if (existingForwardedMessages >= limit) {
         rply.text = `╭──── ⚠️ 角色卡轉發上限 ────\n│ ❌ 你已達到角色卡轉發上限 (${limit}張)\n│\n│ 💎 如需增加上限，請升級VIP等級\n│ 🔗 支援及解鎖上限: https://www.patreon.com/HKTRPG\n╰─────────────────`;
         return rply;
@@ -921,10 +922,10 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         // Check for mentions in the message
         console.log('sourceMessage.author', sourceMessage.author);
         console.log('discordMessage.author', discordMessage.author);
-        
 
-        
- 
+
+
+
 
         // Get all mentioned users
         let mentionedUsers = [];
@@ -951,7 +952,7 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         if (sourceMessage.interaction && sourceMessage.interaction.user && sourceMessage.interaction.user.id) {
             isInteractionUser = (sourceMessage.interaction.user.id === userid);
         }
-        
+
 
         if (!isMentioned && !isInteractionUser) {
             rply.text = '你只能轉發你的角色卡';
@@ -963,14 +964,14 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         if (messageContent) {
             characterName = messageContent.replace(/的角色$/, '').trim();
         }
-        
+
         if (!characterName) {
             rply.text = '無法識別角色卡名稱，請確認訊息格式正確';
             return rply;
         }
 
         // Check if this character card is already assigned to a channel
-        let existingForward = await schema.forwardedMessage.findOne({
+        let existingForward = await records.findForwardedMessage({
             userId: userid,
             sourceMessageId: sourceMessageId
         });
@@ -981,7 +982,10 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
         }
 
         // Find the next available fixedId
-        const maxFixedId = await schema.forwardedMessage.findOne({ userId: userid }).sort({ fixedId: -1 });
+        const maxFixedId = await records.findForwardedMessage(
+            { userId: userid },
+            { sort: { fixedId: -1 } }
+        );
         const nextFixedId = maxFixedId ? maxFixedId.fixedId + 1 : 1;
 
         // Store the forwarded message in the database
@@ -991,8 +995,8 @@ async function handleForwardMessage(mainMsg, inputStr, userid, groupid, channeli
                 rply.text = '轉發訊息時缺少必要資訊，請確認所有欄位都有值';
                 return rply;
             }
-            
-            await schema.forwardedMessage.create({
+
+            await records.createForwardedMessage({
                 userId: userid,
                 guildId: groupid,
                 channelId: channelid,
@@ -1031,7 +1035,7 @@ async function handleForwardShow(mainMsg, inputStr, userid, groupid, channelid, 
 
     try {
         // Find all forwarded messages for this user
-        const forwardedMessages = await schema.forwardedMessage.find({ userId: userid }).sort({ fixedId: 1 });
+        const forwardedMessages = await records.findForwardedMessages({ userId: userid });
 
         if (forwardedMessages.length === 0) {
             rply.text = `╭──── ℹ️ 角色卡轉發狀態 ────\n│ ❌ 你目前沒有轉發任何角色卡\n╰─────────────────`;
@@ -1085,8 +1089,8 @@ async function handleForwardDelete(mainMsg, inputStr, userid, groupid, channelid
         // Get the ID from the command
         const forwardId = parseInt(mainMsg[3]);
 
-        // Find the forwarded message with the specified fixedId
-        const forwardToDelete = await schema.forwardedMessage.findOne({
+        // Find and delete the forwarded message
+        const forwardToDelete = await records.deleteForwardedMessage({
             userId: userid,
             fixedId: forwardId
         });
@@ -1095,9 +1099,6 @@ async function handleForwardDelete(mainMsg, inputStr, userid, groupid, channelid
             rply.text = `╭──── ⚠️ 無效的編號 ────\n│ ❌ 找不到編號 ${forwardId} 的轉發\n╰─────────────────`;
             return rply;
         }
-
-        // Delete the forward
-        await schema.forwardedMessage.deleteOne({ _id: forwardToDelete._id });
 
         rply.text = `╭──── ✅ 刪除成功 ────\n│ 已刪除編號 ${forwardId} 的「${forwardToDelete.characterName}」轉發\n╰─────────────────`;
         return rply;

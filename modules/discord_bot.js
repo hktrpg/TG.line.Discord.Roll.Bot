@@ -2,6 +2,7 @@
 exports.analytics = require('./analytics');
 const debugMode = !!process.env.DEBUG;
 const schema = require('../modules/schema.js');
+const records = require('../modules/records.js');
 const isImageURL = require('image-url-validator').default;
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/igm);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
@@ -1419,7 +1420,10 @@ async function __handlingInteractionMessage(message) {
 						console.log('Checking forwarded message settings...');
 						console.log('sourceMessageId:', message.message.id);
 						
-						const forwardSetting = await schema.forwardedMessage.findOne({
+						const userid = message.user.id;
+						const displayname = message.member?.nickname || message.user.username;
+						const forwardSetting = await records.findForwardedMessage({
+							userId: userid,
 							sourceMessageId: message.message.id
 						});
 						
@@ -1432,24 +1436,24 @@ async function __handlingInteractionMessage(message) {
 							try {
 								const targetChannel = await client.channels.fetch(forwardSetting.channelId);
 								if (targetChannel) {
-									await targetChannel.send({ content: `${displayname}${resultText}` });
+									await targetChannel.send({ content: `<@${userid}> ${resultText}` });
 									console.log('Successfully forwarded message to channel');
 									return;
 								}
 							} catch (error) {
 								console.error('Error forwarding message:', error);
 								// 如果轉發失敗，fallback到正常reply
-								await message.reply({ content: `${displayname}${resultText}`, ephemeral: false });
+								await message.reply({ content: `<@${userid}> ${resultText}`, ephemeral: false });
 							}
 						} else {
 							// 沒有轉發設定，使用正常reply
 							console.log('No forward setting found, using normal reply');
-							await message.reply({ content: `${displayname}${resultText}`, ephemeral: false });
+							await message.reply({ content: `<@${userid}> ${resultText}`, ephemeral: false });
 						}
 					} catch (error) {
 						console.error('Error checking forwarded message:', error);
 						// 發生錯誤時，使用正常reply
-						await message.reply({ content: `${displayname}${resultText}`, ephemeral: false });
+						await message.reply({ content: `<@${userid}> ${resultText}`, ephemeral: false });
 					}
 					return;
 				}

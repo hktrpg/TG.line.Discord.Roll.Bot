@@ -304,24 +304,24 @@ async function privateMsgFinder(channelid) {
 }
 async function sendMessage({ target, replyText, quotes = false, components = null }) {
 	if (!target) return;
-	
-	const sendText = typeof replyText === "string" 
+
+	const sendText = typeof replyText === "string"
 		? replyText.toString().match(/[\s\S]{1,2000}/g) || []
 		: [];
-		
+
 	// Only send first, second, and last two chunks to avoid spam
-	const chunksToSend = sendText.filter((_, i) => 
+	const chunksToSend = sendText.filter((_, i) =>
 		i === 0 || i === 1 || i === sendText.length - 1 || i === sendText.length - 2);
-		
+
 	for (const chunk of chunksToSend) {
 		try {
-			const messageOptions = quotes 
+			const messageOptions = quotes
 				? { embeds: await convQuotes(chunk), components }
 				: { content: chunk, components };
-				
+
 			await target.send(messageOptions);
 		} catch (error) {
-			if (error.message !== 'Cannot send messages to this user' && 
+			if (error.message !== 'Cannot send messages to this user' &&
 				error.message !== 'Missing Permissions') {
 				console.error('Discord message send error:', error.message, 'chunk:', chunk);
 			}
@@ -345,7 +345,7 @@ async function SendToReply({ replyText = "", message, quotes = false }) {
 
 async function SendToReplychannel({ replyText = "", channelid = "", quotes = false, groupid = "", buttonCreate = "" }) {
 	if (!channelid) return;
-	
+
 	// Try to fetch the channel
 	let channel;
 	try {
@@ -353,7 +353,7 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 	} catch (error) {
 		// Channel not found in cache
 	}
-	
+
 	// If channel not found and we have a groupid, try to fetch from guild
 	if (!channel && groupid) {
 		try {
@@ -363,9 +363,9 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 			// Guild or channel not found
 		}
 	}
-	
+
 	if (!channel) return;
-	
+
 	// If we have button components, send each set separately
 	if (buttonCreate && buttonCreate.length) {
 		for (let index = 0; index < buttonCreate.length || index === 0; index++) {
@@ -1415,7 +1415,7 @@ async function __handlingInteractionMessage(message) {
 				}
 				if (/的角色$/.test(messageContent)) {
 					//check databese for .ch forward
-					
+
 					try {
 						return await message.reply({ content: `${displayname}${resultText}`, ephemeral: false })
 					} catch (error) {

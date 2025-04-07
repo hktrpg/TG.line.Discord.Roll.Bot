@@ -842,9 +842,6 @@ async function handlingButtonCreate(message, input) {
 	}
 	const arrayRow = await splitArray(5, row)
 	return arrayRow;
-	//for (let index = 0; index < arrayRow.length; index++) {
-	//	await message.reply({ content: ``, components: arrayRow[index] });
-	//}
 
 }
 
@@ -875,10 +872,19 @@ async function handlingRequestRollingCharacter(message, input) {
 			continue;
 		}
 		try {
-			if (charMode)
-				await message.reply({ content: `${characterName}的角色卡`, components: arrayRow[index] });
-			else
-				await message.reply({ content: `${characterName}的角色`, components: arrayRow[index] });
+			if (charMode) {
+				if (index == 0)
+					await message.reply({ content: `${characterName}的角色卡`, components: arrayRow[index] });
+				else {
+					await message.channel.send({ content: `${characterName}的角色`, components: arrayRow[index] });
+				}
+			}
+			else {
+				if (index == 0)
+					await message.reply({ content: `${characterName}的角色`, components: arrayRow[index] });
+				else
+					await message.channel.send({ content: `${characterName}的角色`, components: arrayRow[index] });
+			}
 		} catch (error) {
 			console.error(`error discord_bot handlingRequestRollingCharacter  #781 ${characterName} ${JSON.stringify(arrayRow)}`)
 		}

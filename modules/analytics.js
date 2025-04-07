@@ -270,6 +270,12 @@ async function stateText() {
 		.replace(' GMT+0800 (GMT+08:00)', '');
 
 	const formatNumber = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+	
+	const formatGrowth = (growth) => {
+		if (!growth) return 'N/A';
+		const num = parseFloat(growth);
+		return `${num >= 0 ? '📈' : '📉'} ${Math.abs(num)}%`;
+	};
 
 	// 使用 Promise.all 同時獲取所有統計數據
 	const [levelSystemCount, characterCardCount, userCount] = await Promise.all([
@@ -281,6 +287,11 @@ async function stateText() {
 			.catch(error => console.error('analytics #268 mongoDB error: ', error.name, error.reason))
 	]);
 
+	// Get current quarter data
+	const currentQuarter = state.statistics?.currentYear?.quarterly?.find(q => q._id === Math.ceil(new Date().getMonth() / 3)) || {};
+	const yearlyStats = state.statistics?.currentYear?.yearly || {};
+	const growthRates = state.statistics?.currentYear?.growthRate || {};
+
 	return `【📊 HKTRPG系統狀態報告】
 ╭────── ⏰時間資訊 ──────
 │ 系統啟動:
@@ -288,13 +299,37 @@ async function stateText() {
 │ 現在時間:
 │ 　• ${cleanDateTime(state.LogTime)}
 │
-├────── 🎲擲骰統計 ──────
+├────── 🎲即時擲骰統計 ──────
 │ 各平台使用次數:
 │ 　• Line　　 ${formatNumber(state.LineCountRoll)}
 │ 　• Discord　${formatNumber(state.DiscordCountRoll)}
 │ 　• Telegram ${formatNumber(state.TelegramCountRoll)}
 │ 　• Whatsapp ${formatNumber(state.WhatsappCountRoll)}
 │ 　• 網頁版　 ${formatNumber(state.WWWCountRoll)}
+│
+├────── 📈年度統計分析 ──────
+│ 本年度總計:
+│ 　• Line　　 ${formatNumber(yearlyStats.totalLineRoll || 0)}
+│ 　• Discord　${formatNumber(yearlyStats.totalDiscordRoll || 0)}
+│ 　• Telegram ${formatNumber(yearlyStats.totalTelegramRoll || 0)}
+│ 　• Whatsapp ${formatNumber(yearlyStats.totalWhatsappRoll || 0)}
+│ 　• 網頁版　 ${formatNumber(yearlyStats.totalWWWRoll || 0)}
+│
+├────── 📊成長率分析 ──────
+│ 相比去年成長:
+│ 　• Line　　 ${formatGrowth(growthRates.linegrowth)}
+│ 　• Discord　${formatGrowth(growthRates.discordgrowth)}
+│ 　• Telegram ${formatGrowth(growthRates.telegramgrowth)}
+│ 　• Whatsapp ${formatGrowth(growthRates.whatsappgrowth)}
+│ 　• 網頁版　 ${formatGrowth(growthRates.wwwgrowth)}
+│
+├────── 📅本季度統計 ──────
+│ Q${Math.ceil(new Date().getMonth() / 3)} 使用量:
+│ 　• Line　　 ${formatNumber(currentQuarter.totalLineRoll || 0)}
+│ 　• Discord　${formatNumber(currentQuarter.totalDiscordRoll || 0)}
+│ 　• Telegram ${formatNumber(currentQuarter.totalTelegramRoll || 0)}
+│ 　• Whatsapp ${formatNumber(currentQuarter.totalWhatsappRoll || 0)}
+│ 　• 網頁版　 ${formatNumber(currentQuarter.totalWWWRoll || 0)}
 │
 ├────── 📊系統數據 ──────
 │ 功能使用統計:

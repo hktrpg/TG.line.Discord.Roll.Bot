@@ -51,11 +51,142 @@ const RollingLog = {
 
 
 const getState = async function () {
+    // Get real-time data
     let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error('log # 52 mongoDB error: ', error.name, error.reason));
     if (!theNewData) return;
+    
+    // Clean up time strings
     theNewData.RealTimeRollingLogfunction.LogTime = theNewData.RealTimeRollingLogfunction.LogTime.replace(/\s+GMT.*$/, '');
     theNewData.RealTimeRollingLogfunction.StartTime = theNewData.RealTimeRollingLogfunction.StartTime.replace(/\s+GMT.*$/, '');
-    return theNewData.RealTimeRollingLogfunction;
+    
+    // Get historical data for analysis
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentQuarter = Math.floor((currentMonth - 1) / 3) + 1;
+    
+    // Get yearly data
+    const yearlyData = await schema.RollingLog.aggregate([
+        {
+            $match: {
+                "RollingLogfunction.LogTime": {
+                    $regex: `^${currentYear}`
+                }
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                totalDiscordRoll: { $sum: "$RollingLogfunction.DiscordCountRoll" },
+                totalDiscordText: { $sum: "$RollingLogfunction.DiscordCountText" },
+                totalLineRoll: { $sum: "$RollingLogfunction.LineCountRoll" },
+                totalLineText: { $sum: "$RollingLogfunction.LineCountText" },
+                totalTelegramRoll: { $sum: "$RollingLogfunction.TelegramCountRoll" },
+                totalTelegramText: { $sum: "$RollingLogfunction.TelegramCountText" },
+                totalWWWRoll: { $sum: "$RollingLogfunction.WWWCountRoll" },
+                totalWWWText: { $sum: "$RollingLogfunction.WWWCountText" },
+                totalWhatsappRoll: { $sum: "$RollingLogfunction.WhatsappCountRoll" },
+                totalWhatsappText: { $sum: "$RollingLogfunction.WhatsappCountText" },
+                totalPlurkRoll: { $sum: "$RollingLogfunction.PlurkCountRoll" },
+                totalPlurkText: { $sum: "$RollingLogfunction.PlurkCountText" }
+            }
+        }
+    ]).catch(error => console.error('log # yearly aggregation error: ', error));
+
+    // Get quarterly data
+    const quarterlyData = await schema.RollingLog.aggregate([
+        {
+            $match: {
+                "RollingLogfunction.LogTime": {
+                    $regex: `^${currentYear}-(0[1-3]|1[0-2])`
+                }
+            }
+        },
+        {
+            $group: {
+                _id: {
+                    $month: {
+                        $dateFromString: {
+                            dateString: "$RollingLogfunction.LogTime",
+                            format: "%Y-%m-%d %H:%M:%S"
+                        }
+                    }
+                },
+                discordRoll: { $sum: "$RollingLogfunction.DiscordCountRoll" },
+                lineRoll: { $sum: "$RollingLogfunction.LineCountRoll" },
+                telegramRoll: { $sum: "$RollingLogfunction.TelegramCountRoll" },
+                wwwRoll: { $sum: "$RollingLogfunction.WWWCountRoll" },
+                whatsappRoll: { $sum: "$RollingLogfunction.WhatsappCountRoll" },
+                plurkRoll: { $sum: "$RollingLogfunction.PlurkCountRoll" }
+            }
+        },
+        {
+            $group: {
+                _id: {
+                    $ceil: { $divide: ["$_id", 3] }
+                },
+                totalDiscordRoll: { $sum: "$discordRoll" },
+                totalLineRoll: { $sum: "$lineRoll" },
+                totalTelegramRoll: { $sum: "$telegramRoll" },
+                totalWWWRoll: { $sum: "$wwwRoll" },
+                totalWhatsappRoll: { $sum: "$whatsappRoll" },
+                totalPlurkRoll: { $sum: "$plurkRoll" }
+            }
+        }
+    ]).catch(error => console.error('log # quarterly aggregation error: ', error));
+
+    // Get previous year's data for comparison
+    const previousYearData = await schema.RollingLog.aggregate([
+        {
+            $match: {
+                "RollingLogfunction.LogTime": {
+                    $regex: `^${currentYear - 1}`
+                }
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                totalDiscordRoll: { $sum: "$RollingLogfunction.DiscordCountRoll" },
+                totalLineRoll: { $sum: "$RollingLogfunction.LineCountRoll" },
+                totalTelegramRoll: { $sum: "$RollingLogfunction.TelegramCountRoll" },
+                totalWWWRoll: { $sum: "$RollingLogfunction.WWWCountRoll" },
+                totalWhatsappRoll: { $sum: "$RollingLogfunction.WhatsappCountRoll" },
+                totalPlurkRoll: { $sum: "$RollingLogfunction.PlurkCountRoll" }
+            }
+        }
+    ]).catch(error => console.error('log # previous year aggregation error: ', error));
+
+    // Calculate growth rates and statistics
+    const stats = {
+        currentYear: {
+            yearly: yearlyData[0] || {},
+            quarterly: quarterlyData || [],
+            growthRate: {}
+        },
+        previousYear: previousYearData[0] || {}
+    };
+
+    // Calculate growth rates
+    if (stats.currentYear.yearly && stats.previousYear) {
+        const platforms = ['Discord', 'Line', 'Telegram', 'WWW', 'Whatsapp', 'Plurk'];
+        platforms.forEach(platform => {
+            const currentTotal = stats.currentYear.yearly[`total${platform}Roll`] || 0;
+            const previousTotal = stats.previousYear[`total${platform}Roll`] || 0;
+            if (previousTotal > 0) {
+                stats.currentYear.growthRate[`${platform.toLowerCase()}Growth`] = 
+                    ((currentTotal - previousTotal) / previousTotal * 100).toFixed(2);
+            }
+        });
+    }
+
+    // Add statistics to the real-time data
+    const enhancedData = {
+        ...theNewData.RealTimeRollingLogfunction,
+        statistics: stats
+    };
+
+    return enhancedData;
 }
 
 

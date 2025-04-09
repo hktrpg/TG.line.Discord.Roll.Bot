@@ -234,11 +234,24 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
+            // Check if there's any input to process
+            if (!mainMsg[2]) {
+                rply.text = '請提供稱號設定，格式為 \n.level TitleWord -(等級) (稱號).\n例如: -0 無名調查員 -5 調查員 -10 記者';
+                return rply;
+            }
+
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
             }).catch(error => console.error('level_system #212 mongoDB error: ', error.name, error.reason));
 
-            let temprply = setNew(inputStr, doc.Title)
+            // Add null check for doc before accessing doc.Title
+            if (!doc) {
+                doc = new schema.trpgLevelSystem({
+                    groupid: groupid
+                });
+            }
+
+            let temprply = setNew(inputStr, doc.Title || [])
 
             if (temprply.length < 1) {
                 rply.text = '新增失敗。 未有稱號輸入，格式為 \n.level TitleWord -(等級) (稱號).'
@@ -286,6 +299,13 @@ const rollDiceCommand = async function ({
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
             }).catch(error => console.error('level_system #262 mongoDB error: ', error.name, error.reason));
+            
+            if (!doc) {
+                doc = new schema.trpgLevelSystem({
+                    groupid: groupid
+                });
+            }
+            
             doc.LevelUpWord = "";
             await doc.save().catch(error => console.error('level_system #264 mongoDB error: ', error.name, error.reason));
             rply.text = "刪除升級語成功."
@@ -300,9 +320,22 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
+            // Check if there's any input to process
+            if (!mainMsg[2]) {
+                rply.text = '請提供升級通知文字，格式為 \n.level LevelUpWord [內容]\n可使用的關鍵字有: {user.name}, {user.displayName}, {user.level}, {user.title}, {user.exp}, {user.Ranking}, {user.RankingPer}, {server.member_count}';
+                return rply;
+            }
+
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
             }).catch(error => console.error('level_system #280 mongoDB error: ', error.name, error.reason));
+            
+            if (!doc) {
+                doc = new schema.trpgLevelSystem({
+                    groupid: groupid
+                });
+            }
+            
             doc.LevelUpWord = inputStr.replace(/\s?.*\s+\w+\s+/i, '');
             await doc.save().catch(error => console.error('level_system #282 mongoDB error: ', error.name, error.reason));
             rply.text = "新增升級語成功.\n" + inputStr.replace(/\s?.*\s+\w+\s+/i, '');
@@ -337,6 +370,13 @@ const rollDiceCommand = async function ({
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
             }).catch(error => console.error('level_system #314 mongoDB error: ', error.name, error.reason));
+            
+            if (!doc) {
+                doc = new schema.trpgLevelSystem({
+                    groupid: groupid
+                });
+            }
+            
             doc.RankWord = "";
             await doc.save();
             rply.text = "刪除查詢語成功."
@@ -351,9 +391,22 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
+            // Check if there's any input to process
+            if (!mainMsg[2]) {
+                rply.text = '請提供查詢回應文字，格式為 \n.level RankWord [內容]\n可使用的關鍵字有: {user.name}, {user.displayName}, {user.level}, {user.title}, {user.exp}, {user.Ranking}, {user.RankingPer}, {server.member_count}';
+                return rply;
+            }
+
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
             }).catch(error => console.error('level_system #332 mongoDB error: ', error.name, error.reason));
+            
+            if (!doc) {
+                doc = new schema.trpgLevelSystem({
+                    groupid: groupid
+                });
+            }
+            
             doc.RankWord = inputStr.replace(/\s?.*\s+\w+\s+/i, '');
             await doc.save();
             rply.text = "新增查詢語成功.\n" + inputStr.replace(/\s?.*\s+\w+\s+/i, '');

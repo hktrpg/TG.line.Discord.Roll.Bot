@@ -110,7 +110,7 @@ const rollDiceCommand = async function ({
     let newRawDate = [];
     let newValue = "";
     let lv, limit, checkUser, checkGP;
-    let channelName = discordMessage.channel.name || '';
+    let channelName = discordMessage && discordMessage.channel ? discordMessage.channel.name || '' : '';
     let date = new Date;
     let seconds = date.getSeconds();
     let minutes = date.getMinutes();
@@ -120,7 +120,12 @@ const rollDiceCommand = async function ({
     let update, gpRemainingTime, userRemainingTime;
     let theTime = new Date();
     let demoMode = false;
-    if (groupid) {
+    // Check if the message is from an interaction
+    if (discordMessage && discordMessage.isInteraction) {
+        // For slash commands, set this flag to true
+        discordMessage.isInteraction = true;
+    }
+    if (groupid && discordMessage && discordMessage.channel && discordMessage.guild && discordMessage.guild.members && discordMessage.guild.members.me) {
         hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.members.me).has(PermissionFlagsBits.ReadMessageHistory) || discordMessage.guild.members.me.permissions.has(PermissionFlagsBits.Administrator);
     }
 
@@ -364,10 +369,15 @@ const rollDiceCommand = async function ({
             }
 
 
-            discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
-            const members = discordMessage.guild.members.cache.map(member => member);
+            if (discordMessage && discordMessage.channel && typeof discordMessage.channel.send === 'function') {
+                discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
+            } else if (discordMessage && discordMessage.isInteraction) {
+                await discordMessage.reply({ content: "<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間', ephemeral: false });
+            }
+            const members = discordMessage && discordMessage.guild && discordMessage.guild.members ? 
+                discordMessage.guild.members.cache.map(member => member) : [];
             M = await lots_of_messages_getter_HTML(C, demoMode, members);
-            if (M.length == 0) {
+            if (!M || !M.sum_messages || M.sum_messages.length == 0) {
                 rply.text = "未能讀取信息";
                 return rply;
             }
@@ -496,10 +506,15 @@ const rollDiceCommand = async function ({
             }
 
             console.log('USE EXPORT TXT')
-            discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
-            const members = discordMessage.guild.members.cache.map(member => member);
+            if (discordMessage && discordMessage.channel && typeof discordMessage.channel.send === 'function') {
+                discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
+            } else if (discordMessage && discordMessage.isInteraction) {
+                await discordMessage.reply({ content: "<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間', ephemeral: false });
+            }
+            const members = discordMessage && discordMessage.guild && discordMessage.guild.members ? 
+                discordMessage.guild.members.cache.map(member => member) : [];
             M = await lots_of_messages_getter_TXT(C, demoMode, members);
-            if (M.length == 0) {
+            if (!M || !M.sum_messages || M.sum_messages.length == 0) {
                 rply.text = "未能讀取信息";
                 return rply;
             }
@@ -685,7 +700,13 @@ const discordCommand = [
                 )),
         async execute(interaction) {
             const format = interaction.options.getString('format');
-            return `.discord ${format}`;
+            // Instead of returning a command string, we'll use the interaction object
+            // and make sure to store it in discordMessage for later use
+            return {
+                inputStr: `.discord ${format}`,
+                discordMessage: interaction,
+                isInteraction: true
+            };
         }
     }
 ];

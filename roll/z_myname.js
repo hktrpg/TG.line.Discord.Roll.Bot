@@ -577,7 +577,7 @@ const discordCommand = [
                 subcommand
                     .setName('add')
                     .setDescription('新增角色')
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('name')
                             .setDescription('角色名字')
                             .setRequired(true))
@@ -603,19 +603,19 @@ const discordCommand = [
                             .setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
-            
+
             if (subcommand === 'add') {
                 const name = interaction.options.getString('name');
                 const imageurl = interaction.options.getString('imageurl');
                 const nickname = interaction.options.getString('nickname') || '';
-                
+
                 return `.myname "${name}" ${imageurl} ${nickname}`;
             }
-            
+
             if (subcommand === 'show') {
                 return `.myname show`;
             }
-            
+
             if (subcommand === 'delete') {
                 const target = interaction.options.getString('target');
                 return `.myname delete ${target}`;
@@ -626,7 +626,7 @@ const discordCommand = [
         data: new SlashCommandBuilder()
             .setName('me')
             .setDescription('角色扮演系統 - 以自己身分發言')
-            .addStringOption(option => 
+            .addStringOption(option =>
                 option.setName('message')
                     .setDescription('要發言的內容')
                     .setRequired(true)),
@@ -643,7 +643,7 @@ const discordCommand = [
                 option.setName('character')
                     .setDescription('角色序號或簡稱')
                     .setRequired(true))
-            .addStringOption(option => 
+            .addStringOption(option =>
                 option.setName('message')
                     .setDescription('要發言的內容')
                     .setRequired(true)),

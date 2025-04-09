@@ -214,15 +214,38 @@ async function replilyMessage(message, result) {
 	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>${candle.checker(message.member.id)}\n` : '';
 	if (result && result.text) {
 		result.text = `${displayname}${result.text}`
-		await __handlingReplyMessage(message, result);
+		try {
+			await __handlingReplyMessage(message, result);
+		} catch (error) {
+			console.error('Error in __handlingReplyMessage:', error);
+			// Don't try to respond to interactions that might be expired
+			if (error.code === 10062) {
+				console.error('Interaction expired, cannot reply');
+				return;
+			}
+		}
 	}
 	else {
 		try {
 			// For deferred interactions, use editReply instead of reply
 			if (message.deferred && !message.replied) {
-				return await message.editReply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true });
+				return await message.editReply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true })
+					.catch(error => {
+						if (error.code === 10062) {
+							console.error('Interaction expired, cannot edit reply');
+						} else {
+							console.error('replilyMessage error:', error);
+						}
+					});
 			} else if (!message.replied) {
-				return await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true });
+				return await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true })
+					.catch(error => {
+						if (error.code === 10062) {
+							console.error('Interaction expired, cannot reply');
+						} else {
+							console.error('replilyMessage error:', error);
+						}
+					});
 			}
 		} catch (error) {
 			console.error('replilyMessage error:', error);
@@ -1038,25 +1061,104 @@ async function handlingResponMessage(message, answer = '') {
 			discordMessage: message,
 			titleName: titleName
 		});
-		if (rplyVal.requestRollingCharacter) await handlingRequestRollingCharacter(message, rplyVal.requestRollingCharacter);
-		if (rplyVal.requestRolling) await handlingRequestRolling(message, rplyVal.requestRolling, displaynameDiscord);
-		if (rplyVal.buttonCreate) rplyVal.buttonCreate = await handlingButtonCreate(message, rplyVal.buttonCreate)
-		if (rplyVal.roleReactFlag) await roleReact(channelid, rplyVal)
-		if (rplyVal.newRoleReactFlag) await newRoleReact(message, rplyVal)
-		if (rplyVal.discordEditMessage) await handlingEditMessage(message, rplyVal)
-		if (rplyVal.myspeck) return await __sendMeMessage({ message, rplyVal, groupid })
-		if (rplyVal.myNames) await repeatMessages(message, rplyVal);
-
+		
+		// Only execute functions that require guild members if the message is in a guild
+		// and handle timeout errors gracefully
+		if (message.guild) {
+			try {
+				if (rplyVal.requestRollingCharacter) {
+					await handlingRequestRollingCharacter(message, rplyVal.requestRollingCharacter)
+						.catch(error => {
+							if (error.name === 'GuildMembersTimeout') {
+								console.error('GuildMembersTimeout: Members did not arrive in time');
+								// Send fallback message
+								message.reply('處理請求時發生超時，請稍後再試。').catch(console.error);
+							} else {
+								console.error('Error in handlingRequestRollingCharacter:', error);
+							}
+						});
+				}
+				
+				if (rplyVal.requestRolling) {
+					await handlingRequestRolling(message, rplyVal.requestRolling, displaynameDiscord)
+						.catch(error => {
+							if (error.name === 'GuildMembersTimeout') {
+								console.error('GuildMembersTimeout: Members did not arrive in time');
+								// Send fallback message
+								message.reply('處理擲骰請求時發生超時，請稍後再試。').catch(console.error);
+							} else {
+								console.error('Error in handlingRequestRolling:', error);
+							}
+						});
+				}
+				
+				if (rplyVal.buttonCreate) {
+					rplyVal.buttonCreate = await handlingButtonCreate(message, rplyVal.buttonCreate)
+						.catch(error => {
+							console.error('Error in handlingButtonCreate:', error);
+							return null;
+						});
+				}
+				
+				if (rplyVal.roleReactFlag) {
+					await roleReact(channelid, rplyVal).catch(error => {
+						console.error('Error in roleReact:', error);
+					});
+				}
+				
+				if (rplyVal.newRoleReactFlag) {
+					await newRoleReact(message, rplyVal).catch(error => {
+						console.error('Error in newRoleReact:', error);
+					});
+				}
+				
+				if (rplyVal.discordEditMessage) {
+					await handlingEditMessage(message, rplyVal).catch(error => {
+						console.error('Error in handlingEditMessage:', error);
+					});
+				}
+				
+				if (rplyVal.myspeck) {
+					return await __sendMeMessage({ message, rplyVal, groupid }).catch(error => {
+						console.error('Error in __sendMeMessage:', error);
+						return null;
+					});
+				}
+				
+				if (rplyVal.myNames) {
+					await repeatMessages(message, rplyVal).catch(error => {
+						console.error('Error in repeatMessages:', error);
+					});
+				}
+			} catch (error) {
+				console.error('Error processing message functions:', error);
+			}
+		}
 
 		if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 
-		if (rplyVal.sendImage) sendBufferImage(message, rplyVal, userid)
-		if (rplyVal.fileLink?.length > 0) sendFiles(message, rplyVal, userid)
+		if (rplyVal.sendImage) {
+			try {
+				await sendBufferImage(message, rplyVal, userid);
+			} catch (error) {
+				console.error('Error in sendBufferImage:', error);
+			}
+		}
+		
+		if (rplyVal.fileLink?.length > 0) {
+			try {
+				await sendFiles(message, rplyVal, userid);
+			} catch (error) {
+				console.error('Error in sendFiles:', error);
+			}
+		}
+		
 		if (rplyVal.respawn) respawnCluster2();
+		
 		if (!rplyVal.text && !rplyVal.LevelUp) return;
+		
 		if (process.env.mongoURL)
 			try {
-
 				const isNew = await newMessage.newUserChecker(userid, "Discord");
 				if (process.env.mongoURL && rplyVal.text && isNew) {
 					SendToId(userid, newMessage.firstTimeMessage(), true);
@@ -1066,114 +1168,162 @@ async function handlingResponMessage(message, answer = '') {
 			}
 
 		if (rplyVal.state) {
-			const [countResult, shardResult] = await Promise.all([
-				count(),
-				getAllshardIds()
-			]);
+			try {
+				const [countResult, shardResult] = await Promise.all([
+					count(),
+					getAllshardIds()
+				]);
 
-			const ping = Number(Date.now() - message.createdTimestamp);
-			const pingStatus = ping > 1000 ? '❌' : ping > 500 ? '⚠️' : '✅';
+				const ping = Number(Date.now() - message.createdTimestamp);
+				const pingStatus = ping > 1000 ? '❌' : ping > 500 ? '⚠️' : '✅';
 
-			rplyVal.text += `
-			【📊 Discord統計資訊】
-			╭────── 🌐使用統計 ──────
-			│ 群組數據:
-			│ 　• ${countResult}
-			│ 連線延遲:
-			│ 　• ${pingStatus} ${ping}ms
-			${shardResult}`;
+				rplyVal.text += `
+				【📊 Discord統計資訊】
+				╭────── 🌐使用統計 ──────
+				│ 群組數據:
+				│ 　• ${countResult}
+				│ 連線延遲:
+				│ 　• ${pingStatus} ${ping}ms
+				${shardResult}`;
+			} catch (error) {
+				console.error('Error getting statistics:', error);
+			}
 		}
-
 
 		if (groupid && rplyVal && rplyVal.LevelUp) {
-			await SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
+			try {
+				await SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
+			} catch (error) {
+				console.error('Error sending level up message:', error);
+			}
 		}
 
-		if (rplyVal.discordExport) {
-			if (message.author && typeof message.author.send === 'function') {
-				message.author.send({
-					content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄',
-					files: [
-						new AttachmentBuilder("./tmp/" + rplyVal.discordExport + '.txt')
-					]
-				}).catch(error => console.error('Failed to send DM with exported file:', error));
-			} else if (message.user && message.isInteraction) {
-				try {
-					// Defer the reply first to acknowledge the interaction
-					if (!message.deferred && !message.replied) {
-						await message.deferReply({ ephemeral: true });
-					}
-					
-					await message.user.send({
+		// Handle export functions with proper error handling
+		try {
+			if (rplyVal.discordExport) {
+				if (message.author && typeof message.author.send === 'function') {
+					message.author.send({
 						content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄',
 						files: [
 							new AttachmentBuilder("./tmp/" + rplyVal.discordExport + '.txt')
 						]
-					});
-					
-					// Now that we've deferred, use editReply instead of followUp
-					await message.editReply({ content: '已將聊天紀錄發送到您的私訊！', ephemeral: true });
-				} catch (error) {
-					console.error('Failed to send DM with exported file:', error);
-					if (message.deferred && !message.replied) {
-						await message.editReply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', ephemeral: true });
-					} else if (!message.deferred && !message.replied) {
-						await message.reply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', ephemeral: true });
+					}).catch(error => console.error('Failed to send DM with exported file:', error));
+				} else if (message.user && message.isInteraction) {
+					try {
+						// Defer the reply first to acknowledge the interaction
+						if (!message.deferred && !message.replied) {
+							await message.deferReply({ ephemeral: true }).catch(error => {
+								console.error('Error deferring reply for export:', error);
+							});
+						}
+						
+						await message.user.send({
+							content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄',
+							files: [
+								new AttachmentBuilder("./tmp/" + rplyVal.discordExport + '.txt')
+							]
+						}).catch(error => {
+							console.error('Failed to send DM with exported file:', error);
+							throw error; // Propagate for handling in catch block
+						});
+						
+						// Now that we've deferred, use editReply instead of followUp
+						if (message.deferred && !message.replied) {
+							await message.editReply({ content: '已將聊天紀錄發送到您的私訊！', ephemeral: true })
+								.catch(error => {
+									if (error.code === 10062) {
+										console.error('Interaction expired, cannot edit reply');
+									} else {
+										console.error('Error editing reply for export:', error);
+									}
+								});
+						}
+					} catch (error) {
+						console.error('Failed to send DM with exported file:', error);
+						if (message.deferred && !message.replied) {
+							await message.editReply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', ephemeral: true })
+								.catch(err => console.error('Error sending private message failure notice:', err));
+						} else if (!message.deferred && !message.replied) {
+							await message.reply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', ephemeral: true })
+								.catch(err => console.error('Error sending private message failure notice:', err));
+						}
 					}
 				}
 			}
+			
+			if (rplyVal.discordExportHtml) {
+				if (message.author && typeof message.author.send === 'function') {
+					if (!link || !mongo) {
+						message.author.send(
+							{
+								content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
+									rplyVal.discordExportHtml[1],
+								files: [
+									"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
+								]
+							}).catch(error => console.error('Failed to send DM with exported HTML file:', error));
+
+					} else {
+						message.author.send('這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
+							rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
+							link + rplyVal.discordExportHtml[0] + '.html').catch(error => console.error('Failed to send DM with HTML link:', error));
+					}
+				} else if (message.user && message.isInteraction) {
+					try {
+						// Defer the reply first to acknowledge the interaction if not already done
+						if (!message.deferred && !message.replied) {
+							await message.deferReply({ ephemeral: true }).catch(error => {
+								console.error('Error deferring reply for HTML export:', error);
+							});
+						}
+						
+						if (!link || !mongo) {
+							await message.user.send({
+								content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
+									rplyVal.discordExportHtml[1],
+								files: [
+									"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
+								]
+							}).catch(error => {
+								console.error('Failed to send DM with exported HTML file:', error);
+								throw error; // Propagate for handling in catch block
+							});
+						} else {
+							await message.user.send('這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
+								rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
+								link + rplyVal.discordExportHtml[0] + '.html').catch(error => {
+									console.error('Failed to send DM with HTML link:', error);
+									throw error; // Propagate for handling in catch block
+								});
+						}
+						
+						// Now use editReply instead of followUp
+						if (message.deferred && !message.replied) {
+							await message.editReply({ content: '已將聊天紀錄發送到您的私訊！', ephemeral: true })
+								.catch(error => {
+									if (error.code === 10062) {
+										console.error('Interaction expired, cannot edit reply');
+									} else {
+										console.error('Error editing reply for HTML export:', error);
+									}
+								});
+						}
+					} catch (error) {
+						console.error('Failed to send DM with exported HTML file:', error);
+						if (message.deferred && !message.replied) {
+							await message.editReply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', ephemeral: true })
+								.catch(err => console.error('Error sending private message failure notice:', err));
+						} else if (!message.deferred && !message.replied) {
+							await message.reply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', ephemeral: true })
+								.catch(err => console.error('Error sending private message failure notice:', err));
+						}
+					}
+				}
+			}
+		} catch (error) {
+			console.error('Error handling exports:', error);
 		}
 		
-		if (rplyVal.discordExportHtml) {
-			if (message.author && typeof message.author.send === 'function') {
-				if (!link || !mongo) {
-					message.author.send(
-						{
-							content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
-								rplyVal.discordExportHtml[1],
-							files: [
-								"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
-							]
-						}).catch(error => console.error('Failed to send DM with exported HTML file:', error));
-
-				} else {
-					message.author.send('這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
-						rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
-						link + rplyVal.discordExportHtml[0] + '.html').catch(error => console.error('Failed to send DM with HTML link:', error));
-				}
-			} else if (message.user && message.isInteraction) {
-				try {
-					// Defer the reply first to acknowledge the interaction if not already done
-					if (!message.deferred && !message.replied) {
-						await message.deferReply({ ephemeral: true });
-					}
-					
-					if (!link || !mongo) {
-						await message.user.send({
-							content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
-								rplyVal.discordExportHtml[1],
-							files: [
-								"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
-							]
-						});
-					} else {
-						await message.user.send('這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
-							rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
-							link + rplyVal.discordExportHtml[0] + '.html');
-					}
-					
-					// Now use editReply instead of followUp
-					await message.editReply({ content: '已將聊天紀錄發送到您的私訊！', ephemeral: true });
-				} catch (error) {
-					console.error('Failed to send DM with exported HTML file:', error);
-					if (message.deferred && !message.replied) {
-						await message.editReply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', ephemeral: true });
-					} else if (!message.deferred && !message.replied) {
-						await message.reply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', ephemeral: true });
-					}
-				}
-			}
-		}
 		if (!rplyVal.text) {
 			return;
 		} else return {
@@ -1193,6 +1343,17 @@ async function handlingResponMessage(message, answer = '') {
 		Message: ${error && error.message}
 		Reason: ${error && error.reason}
 		Input: ${inputStr}`);
+		
+		// For GuildMembersTimeout errors, provide a more user-friendly response
+		if (error && error.name === 'GuildMembersTimeout') {
+			try {
+				if (message && message.reply && typeof message.reply === 'function') {
+					await message.reply('處理請求時發生超時，請稍後再試。').catch(() => {});
+				}
+			} catch (replyError) {
+				console.error('Failed to send error response:', replyError);
+			}
+		}
 	}
 }
 const sendBufferImage = async (message, rplyVal, userid) => {
@@ -1469,11 +1630,20 @@ async function __handlingReplyMessage(message, result) {
 	try {
 		// Handle deferred interactions
 		if (message.deferred && !message.replied) {
-			await message.editReply({ embeds: await convQuotes(sendTexts[0]), ephemeral: false });
+			await message.editReply({ embeds: await convQuotes(sendTexts[0]), ephemeral: false })
+				.catch(error => {
+					if (error.code === 10062) {
+						console.error('Interaction expired, cannot edit reply');
+					} else {
+						console.error('Error editing deferred reply:', error);
+					}
+				});
 			
 			// Send additional messages if there are more parts
 			for (let index = 1; index < sendTexts?.length && index < 4; index++) {
-				await message.channel.send({ embeds: await convQuotes(sendTexts[index]), ephemeral: false });
+				if (!message.channel) continue;
+				await message.channel.send({ embeds: await convQuotes(sendTexts[index]), ephemeral: false })
+					.catch(error => console.error(`Error sending additional message ${index}:`, error));
 			}
 			return;
 		}
@@ -1482,16 +1652,33 @@ async function __handlingReplyMessage(message, result) {
 		for (let index = 0; index < sendTexts?.length && index < 4; index++) {
 			const sendText = sendTexts[index];
 			try {
-				if (index == 0)
-					await message.reply({ embeds: await convQuotes(sendText), ephemeral: false });
-				else
-					await message.channel.send({ embeds: await convQuotes(sendText), ephemeral: false });
+				if (index == 0) {
+					await message.reply({ embeds: await convQuotes(sendText), ephemeral: false })
+						.catch(error => {
+							if (error.code === 10062) {
+								console.error('Interaction expired, cannot reply');
+							} else {
+								throw error; // Pass to outer catch block
+							}
+						});
+				} else if (message.channel) {
+					await message.channel.send({ embeds: await convQuotes(sendText), ephemeral: false })
+						.catch(error => console.error(`Error sending message ${index}:`, error));
+				}
 			} catch (error) {
 				try {
-					await message.editReply({ embeds: await convQuotes(sendText), ephemeral: false });
+					if (message.deferred && !message.replied) {
+						await message.editReply({ embeds: await convQuotes(sendText), ephemeral: false })
+							.catch(error => {
+								if (error.code === 10062) {
+									console.error('Interaction expired, cannot edit reply');
+								} else {
+									console.error('Error editing reply:', error);
+								}
+							});
+					}
 				} catch (error) {
 					console.error('Failed to send message:', error);
-					return;
 				}
 			}
 		}
@@ -1501,18 +1688,57 @@ async function __handlingReplyMessage(message, result) {
 }
 
 async function __handlingInteractionMessage(message) {
+	// Set a timeout flag to handle potentially slow operations
+	let isInteractionExpired = false;
+	
+	// Check if interaction is still valid before processing
+	const checkInteractionValidity = async () => {
+		try {
+			// A minimal operation to test if interaction is still valid
+			if (message.deferred || message.replied) return true;
+			// For non-deferred interactions, we'll defer them with a timeout 
+			// to prevent "Unknown interaction" errors
+			await message.deferReply({ ephemeral: true }).catch(error => {
+				if (error.code === 10062) {
+					isInteractionExpired = true;
+					console.error('Interaction expired before processing');
+					return false;
+				}
+			});
+			return true;
+		} catch (error) {
+			console.error('Error checking interaction validity:', error);
+			isInteractionExpired = true;
+			return false;
+		}
+	};
+	
 	switch (true) {
 		case message.isCommand():
 			{
 				try {
+					const isValid = await checkInteractionValidity();
+					if (!isValid) return;
+					
 					const answer = await handlingCommand(message);
 					if (!answer) return;
 					
 					// Early defer for export commands
 					if (typeof answer === 'object' && answer.inputStr && 
 						answer.inputStr.startsWith('.discord') && !message.deferred && !message.replied) {
-						await message.deferReply({ ephemeral: true });
+						try {
+							await message.deferReply({ ephemeral: true });
+						} catch (error) {
+							if (error.code === 10062) {
+								console.error('Interaction expired, cannot defer for export');
+								isInteractionExpired = true;
+								return;
+							}
+						}
 					}
+					
+					// Check if interaction is still valid
+					if (isInteractionExpired) return;
 					
 					// Handle both string and object answers
 					let result;
@@ -1524,82 +1750,163 @@ async function __handlingInteractionMessage(message) {
 						result = await handlingResponMessage(message, answer);
 					}
 					
+					// Check if interaction is still valid
+					if (isInteractionExpired) return;
+					
 					return replilyMessage(message, result);
 				} catch (error) {
 					console.error('Command processing error:', error);
-					if (!message.replied && !message.deferred) {
-						await message.reply({ content: '處理命令時發生錯誤，請稍後再試。', ephemeral: true }).catch(() => {});
+					if (!isInteractionExpired && !message.replied && !message.deferred) {
+						try {
+							await message.reply({ content: '處理命令時發生錯誤，請稍後再試。', ephemeral: true }).catch(() => {});
+						} catch (replyError) {
+							if (replyError.code !== 10062) {
+								console.error('Error sending error reply:', replyError);
+							}
+						}
 					}
 				}
 			}
+			break;
 		case message.isButton():
 			{
-				const answer = handlingButtonCommand(message)
-				const result = await handlingResponMessage(message, answer);
-				const messageContent = message.message.content;
-				const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
-				const resultText = (result && result.text) || '';
-				if (/的角色卡$/.test(messageContent)) {
-					try {
-						if (resultText) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`, ephemeral: false }).catch() }
-						else {
-							return await message.reply({ content: `${displayname}沒有反應，請檢查按鈕內容`, ephemeral: true }).catch()
+				try {
+					const isValid = await checkInteractionValidity();
+					if (!isValid) return;
+					
+					const answer = handlingButtonCommand(message);
+					const result = await handlingResponMessage(message, answer);
+					const messageContent = message.message.content;
+					const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
+					const resultText = (result && result.text) || '';
+					
+					// Check if interaction is still valid
+					if (isInteractionExpired) return;
+					
+					if (/的角色卡$/.test(messageContent)) {
+						try {
+							if (resultText) { 
+								return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`, ephemeral: false })
+									.catch(error => {
+										if (error.code === 10062) {
+											console.error('Interaction expired, cannot reply to character card button');
+										} else {
+											console.error('Error replying to character card button:', error);
+										}
+									}); 
+							} else {
+								return await message.reply({ content: `${displayname}沒有反應，請檢查按鈕內容`, ephemeral: true })
+									.catch(error => {
+										if (error.code === 10062) {
+											console.error('Interaction expired, cannot reply to character card button (no response)');
+										} else {
+											console.error('Error replying to character card button (no response):', error);
+										}
+									});
+							}
+						} catch (error) {
+							console.error('Error handling character card button:', error);
 						}
-					} catch (error) {
-						console.error();
 					}
-				}
-				if (/的角色$/.test(messageContent)) {
-					// 檢查是否有轉發設定
-					try {
-						const userid = message.user.id;
-						const forwardSetting = await records.findForwardedMessage({
-							userId: userid,
-							sourceMessageId: message.message.id
-						});
+					
+					if (/的角色$/.test(messageContent)) {
+						// 檢查是否有轉發設定
+						try {
+							const userid = message.user.id;
+							const forwardSetting = await records.findForwardedMessage({
+								userId: userid,
+								sourceMessageId: message.message.id
+							});
 
-						if (forwardSetting) {
-							// 有轉發設定，發送到指定頻道
-							try {
-								const targetChannel = await client.channels.fetch(forwardSetting.channelId);
-								if (targetChannel) {
-									await targetChannel.send({ content: `<@${userid}>\n${resultText}` });
-									message.deferUpdate();
-									return;
+							if (forwardSetting) {
+								// 有轉發設定，發送到指定頻道
+								try {
+									const targetChannel = await client.channels.fetch(forwardSetting.channelId);
+									if (targetChannel) {
+										await targetChannel.send({ content: `<@${userid}>\n${resultText}` });
+										await message.deferUpdate().catch(error => {
+											if (error.code === 10062) {
+												console.error('Interaction expired, cannot defer character update');
+											} else {
+												console.error('Error deferring character update:', error);
+											}
+										});
+										return;
+									}
+								} catch (error) {
+									console.error('Error forwarding message:', error);
+									// 如果轉發失敗，fallback到正常reply
+									await message.reply({ content: `<@${userid}> \n${resultText}`, ephemeral: false })
+										.catch(error => {
+											if (error.code === 10062) {
+												console.error('Interaction expired, cannot reply after forwarding failure');
+											} else {
+												console.error('Error replying after forwarding failure:', error);
+											}
+										});
 								}
-							} catch (error) {
-								console.error('Error forwarding message:', error);
-								// 如果轉發失敗，fallback到正常reply
-								await message.reply({ content: `<@${userid}> \n${resultText}`, ephemeral: false });
+							} else {
+								// 沒有轉發設定，使用正常reply
+								await message.reply({ content: `<@${userid}>\n${resultText}`, ephemeral: false })
+									.catch(error => {
+										if (error.code === 10062) {
+											console.error('Interaction expired, cannot reply to character');
+										} else {
+											console.error('Error replying to character:', error);
+										}
+									});
+							}
+						} catch (error) {
+							console.error('Error checking forwarded message:', error);
+							// 發生錯誤時，使用正常reply
+							if (!isInteractionExpired) {
+								await message.reply({ content: `<@${userid}> ${resultText}`, ephemeral: false })
+									.catch(error => {
+										if (error.code === 10062) {
+											console.error('Interaction expired, cannot reply to character (fallback)');
+										} else {
+											console.error('Error replying to character (fallback):', error);
+										}
+									});
+							}
+						}
+						return;
+					}
+
+					try {
+						if (resultText) {
+							const content = handlingCountButton(message, 'roll');
+							// 先更新原訊息
+							await message.update({ content: content }).catch(error => {
+								if (error.code === 10062) {
+									console.error('Interaction expired, cannot update roll button content');
+								} else {
+									console.error('Error updating roll button content:', error);
+								}
+							});
+							// 再發送新訊息
+							if (!isInteractionExpired) {
+								await handlingSendMessage(result);
 							}
 						} else {
-							// 沒有轉發設定，使用正常reply
-							await message.reply({ content: `<@${userid}>\n${resultText}`, ephemeral: false });
+							const content = handlingCountButton(message, 'count');
+							await message.update({ content: content }).catch(error => {
+								if (error.code === 10062) {
+									console.error('Interaction expired, cannot update count button content');
+								} else {
+									console.error('Error updating count button content:', error);
+								}
+							});
 						}
 					} catch (error) {
-						console.error('Error checking forwarded message:', error);
-						// 發生錯誤時，使用正常reply
-						await message.reply({ content: `<@${userid}> ${resultText}`, ephemeral: false });
+						console.error('Button interaction error:', error?.message || error);
 					}
 					return;
-				}
-
-				try {
-					if (resultText) {
-						const content = handlingCountButton(message, 'roll');
-						// 先更新原訊息
-						await message.update({ content: content }).catch(() => null);
-						// 再發送新訊息
-						await handlingSendMessage(result);
-					} else {
-						const content = handlingCountButton(message, 'count');
-						await message.update({ content: content }).catch(() => null);
-					}
 				} catch (error) {
-					console.error('Button interaction error:', error?.message || error);
+					console.error('Button processing error:', error);
 				}
-				return;
 			}
+			break;
 		default:
 			break;
 	}

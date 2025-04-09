@@ -218,8 +218,14 @@ async function replilyMessage(message, result) {
 	}
 	else {
 		try {
-			return await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true })
+			// For deferred interactions, use editReply instead of reply
+			if (message.deferred && !message.replied) {
+				return await message.editReply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true });
+			} else if (!message.replied) {
+				return await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true });
+			}
 		} catch (error) {
+			console.error('replilyMessage error:', error);
 			return;
 		}
 	}
@@ -959,11 +965,34 @@ async function handlingResponMessage(message, answer = '') {
 					hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(PermissionsBitField.Flags.SEND_MESSAGES) : false;
 				}
 				 */
-		if (answer) message.content = answer;
-		inputStr = message.content || '';
+		if (answer) {
+			// Handle both string and object inputs
+			if (typeof answer === 'string') {
+				message.content = answer;
+				inputStr = message.content || '';
+			} else if (typeof answer === 'object') {
+				// If answer is an object with inputStr property, use it directly
+				if (answer.inputStr && typeof answer.inputStr === 'string') {
+					inputStr = answer.inputStr;
+				}
+				
+				// If it has a discordMessage property, use it for the message
+				if (answer.discordMessage) {
+					message = answer.discordMessage;
+				}
+				
+				// If it has an isInteraction property, pass it along
+				if (answer.isInteraction) {
+					message.isInteraction = answer.isInteraction;
+				}
+			}
+		} else {
+			inputStr = message.content || '';
+		}
+		
 		//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
 		//LINE @名字
-		let mainMsg = inputStr.match(MESSAGE_SPLITOR); //定義輸入.字串
+		let mainMsg = (typeof inputStr === 'string') ? inputStr.match(MESSAGE_SPLITOR) : []; //定義輸入.字串
 		let trigger = (mainMsg && mainMsg[0]) ? mainMsg[0].toString().toLowerCase() : '';
 		if (!trigger) return await nonDice(message)
 
@@ -973,7 +1002,7 @@ async function handlingResponMessage(message, answer = '') {
 		let rplyVal = {};
 		const checkPrivateMsg = __privateMsg({ trigger, mainMsg, inputStr });
 		inputStr = checkPrivateMsg.inputStr;
-		let target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+		let target = await exports.analytics.findRollList((typeof inputStr === 'string') ? inputStr.match(MESSAGE_SPLITOR) : []);
 		if (!target) return await nonDice(message)
 		if (!hasSendPermission) return;
 
@@ -1061,28 +1090,88 @@ async function handlingResponMessage(message, answer = '') {
 		}
 
 		if (rplyVal.discordExport) {
-			message.author.send({
-				content: '這是頻道 ' + message.channel.name + ' 的聊天紀錄',
-				files: [
-					new AttachmentBuilder("./tmp/" + rplyVal.discordExport + '.txt')
-				]
-			});
-		}
-		if (rplyVal.discordExportHtml) {
-			if (!link || !mongo) {
-				message.author.send(
-					{
-						content: '這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
-							rplyVal.discordExportHtml[1],
+			if (message.author && typeof message.author.send === 'function') {
+				message.author.send({
+					content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄',
+					files: [
+						new AttachmentBuilder("./tmp/" + rplyVal.discordExport + '.txt')
+					]
+				}).catch(error => console.error('Failed to send DM with exported file:', error));
+			} else if (message.user && message.isInteraction) {
+				try {
+					// Defer the reply first to acknowledge the interaction
+					if (!message.deferred && !message.replied) {
+						await message.deferReply({ ephemeral: true });
+					}
+					
+					await message.user.send({
+						content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄',
 						files: [
-							"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
+							new AttachmentBuilder("./tmp/" + rplyVal.discordExport + '.txt')
 						]
 					});
+					
+					// Now that we've deferred, use editReply instead of followUp
+					await message.editReply({ content: '已將聊天紀錄發送到您的私訊！', ephemeral: true });
+				} catch (error) {
+					console.error('Failed to send DM with exported file:', error);
+					if (message.deferred && !message.replied) {
+						await message.editReply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', ephemeral: true });
+					} else if (!message.deferred && !message.replied) {
+						await message.reply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', ephemeral: true });
+					}
+				}
+			}
+		}
+		
+		if (rplyVal.discordExportHtml) {
+			if (message.author && typeof message.author.send === 'function') {
+				if (!link || !mongo) {
+					message.author.send(
+						{
+							content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
+								rplyVal.discordExportHtml[1],
+							files: [
+								"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
+							]
+						}).catch(error => console.error('Failed to send DM with exported HTML file:', error));
 
-			} else {
-				message.author.send('這是頻道 ' + message.channel.name + ' 的聊天紀錄\n 密碼: ' +
-					rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
-					link + rplyVal.discordExportHtml[0] + '.html')
+				} else {
+					message.author.send('這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
+						rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
+						link + rplyVal.discordExportHtml[0] + '.html').catch(error => console.error('Failed to send DM with HTML link:', error));
+				}
+			} else if (message.user && message.isInteraction) {
+				try {
+					// Defer the reply first to acknowledge the interaction if not already done
+					if (!message.deferred && !message.replied) {
+						await message.deferReply({ ephemeral: true });
+					}
+					
+					if (!link || !mongo) {
+						await message.user.send({
+							content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
+								rplyVal.discordExportHtml[1],
+							files: [
+								"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
+							]
+						});
+					} else {
+						await message.user.send('這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
+							rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
+							link + rplyVal.discordExportHtml[0] + '.html');
+					}
+					
+					// Now use editReply instead of followUp
+					await message.editReply({ content: '已將聊天紀錄發送到您的私訊！', ephemeral: true });
+				} catch (error) {
+					console.error('Failed to send DM with exported HTML file:', error);
+					if (message.deferred && !message.replied) {
+						await message.editReply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', ephemeral: true });
+					} else if (!message.deferred && !message.replied) {
+						await message.reply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', ephemeral: true });
+					}
+				}
 			}
 		}
 		if (!rplyVal.text) {
@@ -1376,21 +1465,38 @@ function __checkUserRole(groupid, message) {
 async function __handlingReplyMessage(message, result) {
 	const text = result.text;
 	const sendTexts = text.toString().match(/[\s\S]{1,2000}/g);
-	for (let index = 0; index < sendTexts?.length && index < 4; index++) {
-		const sendText = sendTexts[index];
-		try {
-			if (index == 0)
-				await message.reply({ embeds: await convQuotes(sendText), ephemeral: false })
-			else
-				await message.channel.send({ embeds: await convQuotes(sendText), ephemeral: false })
-
-		} catch (error) {
+	
+	try {
+		// Handle deferred interactions
+		if (message.deferred && !message.replied) {
+			await message.editReply({ embeds: await convQuotes(sendTexts[0]), ephemeral: false });
+			
+			// Send additional messages if there are more parts
+			for (let index = 1; index < sendTexts?.length && index < 4; index++) {
+				await message.channel.send({ embeds: await convQuotes(sendTexts[index]), ephemeral: false });
+			}
+			return;
+		}
+		
+		// Handle normal interactions or messages
+		for (let index = 0; index < sendTexts?.length && index < 4; index++) {
+			const sendText = sendTexts[index];
 			try {
-				await message.editReply({ embeds: await convQuotes(sendText), ephemeral: false })
+				if (index == 0)
+					await message.reply({ embeds: await convQuotes(sendText), ephemeral: false });
+				else
+					await message.channel.send({ embeds: await convQuotes(sendText), ephemeral: false });
 			} catch (error) {
-				return;
+				try {
+					await message.editReply({ embeds: await convQuotes(sendText), ephemeral: false });
+				} catch (error) {
+					console.error('Failed to send message:', error);
+					return;
+				}
 			}
 		}
+	} catch (error) {
+		console.error('Error in __handlingReplyMessage:', error);
 	}
 }
 
@@ -1398,10 +1504,33 @@ async function __handlingInteractionMessage(message) {
 	switch (true) {
 		case message.isCommand():
 			{
-				const answer = await handlingCommand(message)
-				if (!answer) return;
-				const result = await handlingResponMessage(message, answer);
-				return replilyMessage(message, result)
+				try {
+					const answer = await handlingCommand(message);
+					if (!answer) return;
+					
+					// Early defer for export commands
+					if (typeof answer === 'object' && answer.inputStr && 
+						answer.inputStr.startsWith('.discord') && !message.deferred && !message.replied) {
+						await message.deferReply({ ephemeral: true });
+					}
+					
+					// Handle both string and object answers
+					let result;
+					if (typeof answer === 'object' && answer.discordMessage) {
+						// If it's already an object with discordMessage, pass it directly
+						result = await handlingResponMessage(null, answer);
+					} else {
+						// Otherwise process as normal
+						result = await handlingResponMessage(message, answer);
+					}
+					
+					return replilyMessage(message, result);
+				} catch (error) {
+					console.error('Command processing error:', error);
+					if (!message.replied && !message.deferred) {
+						await message.reply({ content: '處理命令時發生錯誤，請稍後再試。', ephemeral: true }).catch(() => {});
+					}
+				}
 			}
 		case message.isButton():
 			{

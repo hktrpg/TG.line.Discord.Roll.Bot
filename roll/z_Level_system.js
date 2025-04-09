@@ -743,6 +743,15 @@ const discordCommand = [
                     .setName('levelupword')
                     .setDescription('設定升級通知文字')
                     .addStringOption(option =>
+                        option.setName('action')
+                            .setDescription('動作: 設定文字、顯示現有設定或刪除設定')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: '設定文字', value: 'set' },
+                                { name: '顯示現有設定', value: 'show' },
+                                { name: '刪除設定', value: 'del' }
+                            ))
+                    .addStringOption(option =>
                         option.setName('text')
                             .setDescription('升級通知文字')
                             .setRequired(false)))
@@ -751,6 +760,15 @@ const discordCommand = [
                     .setName('rankword')
                     .setDescription('設定查詢回應文字')
                     .addStringOption(option =>
+                        option.setName('action')
+                            .setDescription('動作: 設定文字、顯示現有設定或刪除設定')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: '設定文字', value: 'set' },
+                                { name: '顯示現有設定', value: 'show' },
+                                { name: '刪除設定', value: 'del' }
+                            ))
+                    .addStringOption(option =>
                         option.setName('text')
                             .setDescription('查詢回應文字')
                             .setRequired(false)))
@@ -758,6 +776,15 @@ const discordCommand = [
                 subcommand
                     .setName('titleword')
                     .setDescription('設定等級稱號')
+                    .addStringOption(option =>
+                        option.setName('action')
+                            .setDescription('動作: 設定稱號、顯示現有設定或刪除設定')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: '設定稱號', value: 'set' },
+                                { name: '顯示現有設定', value: 'show' },
+                                { name: '刪除設定', value: 'del' }
+                            ))
                     .addStringOption(option =>
                         option.setName('titles')
                             .setDescription('格式: -0 無名調查員 -5 調查員 -10 記者')
@@ -783,14 +810,41 @@ const discordCommand = [
                     const setting = interaction.options.getString('setting');
                     return `.level config ${setting}`;
                 case 'levelupword':
+                    const levelUpAction = interaction.options.getString('action');
                     const levelUpText = interaction.options.getString('text');
-                    return levelUpText ? `.level LevelUpWord ${levelUpText}` : `.level LevelUpWord`;
+                    
+                    if (levelUpAction === 'show') {
+                        return `.level LevelUpWord Show`;
+                    } else if (levelUpAction === 'del') {
+                        return `.level LevelUpWord del`;
+                    } else if (levelUpAction === 'set') {
+                        return levelUpText ? `.level LevelUpWord ${levelUpText}` : `.level LevelUpWord Show`;
+                    }
+                    break;
                 case 'rankword':
+                    const rankAction = interaction.options.getString('action');
                     const rankText = interaction.options.getString('text');
-                    return rankText ? `.level RankWord ${rankText}` : `.level RankWord`;
+                    
+                    if (rankAction === 'show') {
+                        return `.level RankWord Show`;
+                    } else if (rankAction === 'del') {
+                        return `.level RankWord del`;
+                    } else if (rankAction === 'set') {
+                        return rankText ? `.level RankWord ${rankText}` : `.level RankWord Show`;
+                    }
+                    break;
                 case 'titleword':
+                    const titleAction = interaction.options.getString('action');
                     const titles = interaction.options.getString('titles');
-                    return titles ? `.level TitleWord ${titles}` : `.level TitleWord`;
+                    
+                    if (titleAction === 'show') {
+                        return `.level TitleWord Show`;
+                    } else if (titleAction === 'del') {
+                        return `.level TitleWord del`;
+                    } else if (titleAction === 'set') {
+                        return titles ? `.level TitleWord ${titles}` : `.level TitleWord Show`;
+                    }
+                    break;
                 default:
                     return `.level help`;
             }

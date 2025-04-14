@@ -1002,6 +1002,28 @@
             color: var(--color-text-secondary);
             margin-top: 0.5rem;
         }
+
+        .btn--reset {
+            background: linear-gradient(to right, #ef4444, #dc2626);
+            color: white;
+            height: 38px;
+            min-width: 100px;
+            padding: 0 1.5rem;
+            border-radius: var(--border-radius);
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .btn--reset:hover {
+            opacity: 0.7;
+        }
     </style>
 </head>
 
@@ -1127,7 +1149,7 @@
             return null;
         }
         const data = {
-            ...getDataFromUrl() || {
+            ...getDataFromUrl() || loadFromLocalStorage() || {
                 title: "TRPG 遊玩喜好卡",
                 id: "@HKTRPG",
                 nickname: "吾是 範例",
@@ -1220,6 +1242,33 @@
                 }
             }
         }
+
+        // Add local storage functions
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('namecardData', JSON.stringify(data));
+            } catch (error) {
+                console.error('Failed to save to local storage:', error);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            try {
+                const savedData = localStorage.getItem('namecardData');
+                return savedData ? JSON.parse(savedData) : null;
+            } catch (error) {
+                console.error('Failed to load from local storage:', error);
+                return null;
+            }
+        }
+
+        function resetToDefault() {
+            if (confirm('確定要還原預設資料嗎？這將清除所有已儲存的資料。')) {
+                localStorage.removeItem('namecardData');
+                location.reload();
+            }
+        }
+
         function generateShareLink() {
             try {
                 const jsonString = JSON.stringify(data);
@@ -1338,6 +1387,10 @@
                 imageCache.url = null;
             }
             data.avatar = newAvatarUrl;
+
+            // Save to local storage after updating data
+            saveToLocalStorage();
+
             isEditMode = false;
             renderApp();
         }
@@ -1695,6 +1748,9 @@
         </button>
         <button class="header-btn btn--share" onclick="generateShareLink()">
             備份連結
+        </button>
+        <button class="header-btn btn--reset" onclick="resetToDefault()">
+            還原預設
         </button>
     ` : ''}
     <button class="header-btn btn--edit" onclick="toggleEditMode()">

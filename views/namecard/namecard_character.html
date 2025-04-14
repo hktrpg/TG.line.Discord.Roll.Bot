@@ -700,6 +700,23 @@
             margin-top: 0.5rem;
             font-style: italic;
         }
+
+        /* Add style for restore button */
+        .btn-restore {
+            background: linear-gradient(to right, #EF4444, #F87171);
+            border: none;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        .btn-restore:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 
@@ -790,7 +807,7 @@
         ];
         const avatarImageUrl = "https://images2.imgbox.com/ea/b2/Bn8DmRTW_o.png";
 
-        let character = {
+        const defaultCharacter = {
             characterName: "吾是 範例",
             playerName: "範例君",
             id: "@HKTRPG",
@@ -837,8 +854,8 @@
                     { label: "資產", value: "車" }
                 ]
             },
-            diceTitle: "技能", // 新增技能標題
-            skillsTitle: "能力分析", // 新增技能類型標題
+            diceTitle: "技能",
+            skillsTitle: "能力分析",
             attributeTitle: "基本屬性",
             personalityPreferencesTitle: '性格與偏好',
             personalityPreferences: {
@@ -848,8 +865,9 @@
                     { label: '理性思維', value: 15, alternative: '情感共鳴', icon: 'fas fa-users' }
                 ]
             }
-
         };
+
+        let character = { ...defaultCharacter };
 
         document.getElementById('playerName').innerText = character.playerName;
         document.getElementById('characterName').innerText = character.characterName;
@@ -1264,7 +1282,10 @@
                 delete character.avatarTemp;
             }
 
-            // Re-render original view (using your existing code)
+            // Save to localStorage before rendering view mode
+            saveCharacterToLocalStorage();
+
+            // Re-render original view
             renderViewMode();
             isEditMode = false;
         }
@@ -1397,6 +1418,7 @@
       <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">編輯角色</button>
       <button id="exportBtn" class="btn-export" onclick="exportToPNG()">匯出 PNG</button>
       <button id="shareBtn" class="btn-backup" onclick="generateShareLink()">備份角色</button>
+      <button id="restoreBtn" class="btn-restore" onclick="restoreDefaultCharacter()">還原預設</button>
   </div>
   <div class="grid">
       <div class="column">
@@ -1885,11 +1907,40 @@
             }
         }
 
-        // NEW: On page load, if URL has shared data, update the character data accordingly
-        const sharedData = getDataFromUrl();
-        if (sharedData) {
-            character = sharedData;
-            renderViewMode();
+        // Function to save character data to localStorage
+        function saveCharacterToLocalStorage() {
+            try {
+                const dataToSave = JSON.stringify(character);
+                localStorage.setItem('characterData', dataToSave);
+                console.log('Saved to localStorage:', dataToSave);
+            } catch (error) {
+                console.error('Error saving to localStorage:', error);
+            }
+        }
+
+        // Function to load character data from localStorage
+        function loadCharacterFromLocalStorage() {
+            try {
+                const savedData = localStorage.getItem('characterData');
+                if (savedData) {
+                    const parsedData = JSON.parse(savedData);
+                    character = parsedData;
+                    console.log('Loaded from localStorage:', parsedData);
+                    return true;
+                }
+            } catch (error) {
+                console.error('Error loading from localStorage:', error);
+            }
+            return false;
+        }
+
+        // Function to restore default character data
+        function restoreDefaultCharacter() {
+            if (confirm('確定要還原預設角色資料嗎？這將清除所有目前的修改。')) {
+                character = JSON.parse(JSON.stringify(defaultCharacter)); // Deep copy
+                saveCharacterToLocalStorage();
+                renderViewMode();
+            }
         }
 
         // NEW: Helper function to render notes
@@ -1898,6 +1949,18 @@
                 `<p>${item.label}：<span style="color: var(--text-color);">${item.value}</span></p>`
             ).join('');
         }
+
+        // On page load, try to load from localStorage first, then check URL data
+        if (!loadCharacterFromLocalStorage()) {
+            const sharedData = getDataFromUrl();
+            if (sharedData) {
+                character = sharedData;
+                saveCharacterToLocalStorage();
+            } else {
+                character = JSON.parse(JSON.stringify(defaultCharacter)); // Deep copy
+            }
+        }
+        renderViewMode();
     </script>
 </body>
 

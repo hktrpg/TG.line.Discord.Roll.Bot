@@ -1,0 +1,122 @@
+{
+  "help": {
+    "title": "【Cthulhu Mythos RPG System】",
+    "basic": {
+      "title": "🎲Basic Dice Rolling",
+      "coc6": "COC 6th: ccb 80 (skill less than or equal to 80)",
+      "coc7": "COC 7th: cc 80 (skill less than or equal to 80)",
+      "bonus": "🎯Bonus Dice: cc(1~2)",
+      "bonusExample": "Example: cc1 80 one bonus die",
+      "penalty": "⚠️Penalty Dice: ccn(1~2)",
+      "penaltyExample": "Example: ccn2 80 two penalty dice",
+      "combined": "📊Combined Check:",
+      "combinedExample": [
+        "cc 80,40 Investigation,Fighting",
+        "cc1 80,40 Investigation,Fighting (bonus)",
+        "ccn1 80,40 Investigation,Fighting (penalty)"
+      ]
+    },
+    "sanity": {
+      "title": "💀Sanity Check",
+      "format": "Format: .sc (SAN value) (success)/(failure)",
+      "examples": [
+        ".sc 50",
+        ".sc 50 1/1d3+1",
+        ".sc 50 1d10/1d100"
+      ]
+    },
+    "chase": {
+      "title": "🏃Chase and Madness",
+      "chaseGenerator": "Chase Scene Generator",
+      "chaseNote": "※Using optional rules and my interpretation of the rulebook,\n※Please read Chapter 7 'Chase' in CoC 7th rulebook before use",
+      "insanityImmediate": "Immediate Insanity Check",
+      "insanityEnd": "End Phase Insanity Check"
+    },
+    "mythos": {
+      "title": "📚Mythos Related",
+      "organization": "Generate Random Mythos Organization",
+      "data": "Generate Random Mythos Data",
+      "spellResult": "Spell Pushing Consequences"
+    },
+    "character": {
+      "title": "👤Character Creation",
+      "pulp": "PULP Version Character Creation",
+      "coc6": "COC 6th Character Creation",
+      "coc7": "COC 7th Character Creation (Age 7-89)",
+      "coc7Random": "COC 7th Random Character Creation",
+      "customPoints": {
+        "title": "Custom Point Distribution:",
+        "format": ".cc7build .xyz - Custom Roll Pattern",
+        "example": "Example: .cc7build .752",
+        "explanation": [
+          "7 times: 3d6×5",
+          "5 times: (2d6+6)×5",
+          "2 times: 3d6×5"
+        ],
+        "default": "Can input just . Default is .53\nMeaning 5 times 3d6×5 and 3 times (2d6+6)×5"
+      },
+      "ageAdjustment": {
+        "young": "Age adjustment: Subtract {{amount}} points from STR or SIZ\n(Please calculate manually). Subtract 5 from EDU. Roll LUK twice and take higher.",
+        "adult": "Age adjustment: Make {{amount}} EDU improvement rolls.",
+        "middle": "Age adjustment: Subtract {{amount}} points from STR, DEX or CON\n(Please calculate manually). Subtract {{appLoss}} from APP. Make {{eduGain}} EDU improvement rolls.",
+        "old": "Age adjustment: Subtract {{amount}} points from STR, DEX or CON\n(Choose from one, two or all three)\n(Please calculate manually). Subtract {{appLoss}} from APP. Make {{eduGain}} EDU improvement rolls."
+      },
+      "attributes": {
+        "str": "STR",
+        "con": "CON",
+        "pow": "POW",
+        "dex": "DEX",
+        "app": "APP",
+        "siz": "SIZ",
+        "int": "INT",
+        "edu": "EDU",
+        "luk": "LUK"
+      },
+      "eduImprovement": {
+        "initial": "Initial EDU value",
+        "roll": "EDU improvement roll #{{count}} → {{roll}}",
+        "success": "Improved by {{amount}} points",
+        "failure": "No improvement",
+        "final": "Final EDU value"
+      }
+    },
+    "development": {
+      "title": "📈Development Related",
+      "check": "Development Check:",
+      "format": ".dp (skill%) (name)",
+      "example": "Example: .dp 50 Riding 80 Fighting 70 60",
+      "background": "Generate Random Character Background",
+      "record": {
+        "title": "📝.dp Development Record Function:",
+        "description": "Records successful rolls and critical successes/failures",
+        "commands": {
+          "start": "Start Recording Rolls",
+          "stop": "Stop Recording Rolls",
+          "show": "Show Your Roll Records",
+          "showall": "Show All Channel Roll Records",
+          "auto": "Auto Development and Clear Records",
+          "clear": "Clear Your Roll Records",
+          "clearall": "Clear All Critical Success/Failure Records"
+        }
+      }
+    }
+  },
+  "roll": {
+    "criticalSuccess": "Critical Success!",
+    "extremeSuccess": "Extreme Success",
+    "hardSuccess": "Hard Success",
+    "normalSuccess": "Success",
+    "failure": "Failure",
+    "fumble": "Fumble!",
+    "skillName": "{{name}}",
+    "rollResult": "1D100 ≦ {{target}}\nRoll: {{roll}}",
+    "sanityCheck": {
+      "title": "San Check",
+      "success": "Success!",
+      "fail": "Failure!",
+      "lossSanity": "Lost {{amount}} San points",
+      "currentSanity": "Current San is {{amount}}",
+      "noLoss": "No San loss needed"
+    }
+  }
+} 

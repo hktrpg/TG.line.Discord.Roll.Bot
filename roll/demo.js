@@ -1,6 +1,8 @@
 "use strict";
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
+const i18n = require('../modules/i18n');
+
 const gameName = function () {
     return '【Demo】'
 }
@@ -8,6 +10,7 @@ const gameName = function () {
 const gameType = function () {
     return 'Demo:Demo:hktrpg'
 }
+
 const prefixs = function () {
     //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
     //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
@@ -18,13 +21,11 @@ const prefixs = function () {
         second: /^啊$/i
     }]
 }
-const getHelpMessage = function () {
-    return `【🎯示範功能】
-╭────── ℹ️說明 ──────
-│ 只是一個Demo的第一行
-│ 只是一個Demo末行
-╰──────────────`
+
+const getHelpMessage = async function (userId) {
+    return await i18n.translate('demo:help', {}, userId);
 }
+
 const initialize = function () {
     return variables;
 }
@@ -46,18 +47,30 @@ const rollDiceCommand = async function ({
         type: 'text',
         text: ''
     };
+    
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
-            rply.text = this.getHelpMessage();
+            rply.text = await this.getHelpMessage(userid);
             rply.quotes = true;
             return rply;
         }
         case /^\d+$/i.test(mainMsg[1]): {
-            rply.text = 'Demo' + mainMsg[1] + inputStr + groupid + userid + userrole + botname + displayname + channelid + displaynameDiscord + membercount;
+            rply.text = await i18n.translate('demo:roll.result', {
+                number: mainMsg[1],
+                input: inputStr,
+                group: groupid,
+                user: userid,
+                role: userrole,
+                bot: botname,
+                name: displayname,
+                channel: channelid,
+                discordName: displaynameDiscord,
+                members: membercount
+            }, userid);
             return rply;
         }
         case /^\S/.test(mainMsg[1] || ''): {
-            rply.text = 'Demo'
+            rply.text = await i18n.translate('demo:simple', {}, userid);
             return rply;
         }
         default: {
@@ -67,6 +80,7 @@ const rollDiceCommand = async function ({
 }
 
 const discordCommand = []
+
 module.exports = {
     rollDiceCommand,
     initialize,

@@ -4,6 +4,8 @@ const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
 const checkMongodb = require('../modules/dbWatchdog.js');
 const mathjs = require('mathjs');
+const i18n = require('../modules/i18n');
+
 const gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
 }
@@ -22,71 +24,85 @@ const prefixs = function () {
 	}
 	]
 }
-const getHelpMessage = function () {
-    return `【🦑克蘇魯神話RPG系統】
-╭────── 🎲基本擲骰 ──────
-│ COC6版: ccb 80  (技能小於等於80)
-│ COC7版: cc 80   (技能小於等於80)
-│ 
-│ 🎯獎勵骰: cc(1~2) 
-│ 範例: cc1 80 一粒獎勵骰
-│ 
-│ ⚠️懲罰骰: ccn(1~2) 
-│ 範例: ccn2 80 兩粒懲罰骰
-│
-│ 📊聯合檢定:
-│ 　cc 80,40 偵查,鬥毆
-│ 　cc1 80,40 偵查,鬥毆 (獎勵骰)
-│ 　ccn1 80,40 偵查,鬥毆 (懲罰骰)
-├────── 💀理智檢定 ──────
-│ 格式: .sc (SAN值) (成功)/(失敗)
-│ 範例:
-│ 　.sc 50
-│ 　.sc 50 1/1d3+1
-│ 　.sc 50 1d10/1d100
-├────── 🏃追逐與瘋狂 ──────
-│ .chase    - 追逐戰產生器
-│ 　※使用可選規則及我對規則書之獨斷理解，
-│ 　※建議使用前詳細閱讀請詳閱CoC7Th規則書第七章「追逐」內容
-│ 
-│ ccrt     - 即時型瘋狂檢定
-│ ccsu     - 總結型瘋狂檢定
-├────── 📚神話相關 ──────
-│ .cccc    - 隨機產生神話組織
-│ .ccdr    - 隨機產生神話資料
-│ .ccpc    - 施法推骰後果判定
-├────── 👤角色創建 ──────
-│ .ccpulpbuild      - PULP版角色創建
-│ .cc6build         - COC6版角色創建
-│ .cc7build        - COC7版角色創建(限7-89歲)
-│ .cc7build random - COC7版隨機角色創建
-│ 
-│ 自由分配點數創建:
-│ .cc7build .xyz   - 自訂骰點方式
-│ 範例: .cc7build .752
-│ 　7次: 3d6×5
-│ 　5次: (2d6+6)×5
-│ 　2次: 3d6×5
-│ 可只輸入. 預設值為.53
-│ 　即5次 3d6×5 和3次(2d6+6)×5
-├────── 📈成長相關 ──────
-│ 成長檢定: 
-│ .dp (技能%) (名稱)
-│ 範例: .dp 50 騎乘 80 鬥毆 70 60
-│ 
-│ .cc7bg - 隨機產生角色背景
-│
-│ 📝.dp成長紀錄功能說明:
-│ 會記錄CC功能投擲成功和大成功大失敗的技能
-│ .dp start   - 開始記錄擲骰
-│ .dp stop    - 停止記錄擲骰
-│ .dp show    - 顯示你的擲骰紀錄
-│ .dp showall - 顯示全頻道擲骰紀錄
-│ .dp auto    - 自動成長並清除紀錄
-│ .dp clear   - 清除你的擲骰紀錄
-│ .dp clearall- 清除所有大成功大失敗紀錄
-╰──────────────`
+
+const getHelpMessage = async function (userId) {
+    try {
+        // Get the help object with namespace
+        const help = await i18n.translate('coc:help', {}, userId);
+        
+        let text = '';
+        
+        // Title
+        text += `${help.title}\n\n`;
+        
+        // Basic section
+        text += `${help.basic.title}\n`;
+        text += `${help.basic.coc6}\n`;
+        text += `${help.basic.coc7}\n`;
+        text += `${help.basic.bonus}\n`;
+        text += `${help.basic.bonusExample}\n`;
+        text += `${help.basic.penalty}\n`;
+        text += `${help.basic.penaltyExample}\n`;
+        text += `${help.basic.combined}\n`;
+        help.basic.combinedExample.forEach(example => {
+            text += `${example}\n`;
+        });
+        text += '\n';
+        
+        // Sanity section
+        text += `${help.sanity.title}\n`;
+        text += `${help.sanity.format}\n`;
+        help.sanity.examples.forEach(example => {
+            text += `${example}\n`;
+        });
+        text += '\n';
+        
+        // Chase section
+        text += `${help.chase.title}\n`;
+        text += `${help.chase.chaseGenerator}\n`;
+        text += `${help.chase.chaseNote}\n`;
+        text += `${help.chase.insanityImmediate}\n`;
+        text += `${help.chase.insanityEnd}\n\n`;
+        
+        // Mythos section
+        text += `${help.mythos.title}\n`;
+        text += `${help.mythos.organization}\n`;
+        text += `${help.mythos.data}\n`;
+        text += `${help.mythos.spellResult}\n\n`;
+        
+        // Character section
+        text += `${help.character.title}\n`;
+        text += `${help.character.pulp}\n`;
+        text += `${help.character.coc6}\n`;
+        text += `${help.character.coc7}\n`;
+        text += `${help.character.coc7Random}\n`;
+        text += `${help.character.customPoints.title}\n`;
+        text += `${help.character.customPoints.format}\n`;
+        text += `${help.character.customPoints.example}\n`;
+        help.character.customPoints.explanation.forEach(exp => {
+            text += `${exp}\n`;
+        });
+        text += `${help.character.customPoints.default}\n\n`;
+        
+        // Development section
+        text += `${help.development.title}\n`;
+        text += `${help.development.check}\n`;
+        text += `${help.development.format}\n`;
+        text += `${help.development.example}\n`;
+        text += `${help.development.background}\n`;
+        text += `${help.development.record.title}\n`;
+        text += `${help.development.record.description}\n`;
+        Object.entries(help.development.record.commands).forEach(([key, value]) => {
+            text += `.dp ${key} - ${value}\n`;
+        });
+        
+        return text;
+    } catch (err) {
+        console.error('Error in getHelpMessage:', err);
+        throw err;
+    }
 }
+
 const initialize = function () {
 	return {};
 }
@@ -110,7 +126,7 @@ const rollDiceCommand = async function ({
 	let trigger = mainMsg[0].toLowerCase();
 	switch (true) {
 		case (/^help$/i.test(mainMsg[1])): {
-			rply.text = this.getHelpMessage();
+			rply.text = await getHelpMessage(userid);
 			rply.quotes = true;
 			break;
 		}
@@ -1408,41 +1424,46 @@ async function coc7({ chack, text = "", userid, groupid, channelid, userName }) 
 	let name = text.split(',');
 	let checkNum = !check.some(i => !Number.isInteger(Number(i)));
 	if (!checkNum) return;
-	if (check.length >= 2) result += '聯合檢定\n'
+	if (check.length >= 2) result += await i18n.translate('coc:roll.combined', {}, userid);
 	for (let index = 0; index < check.length; index++) {
+		let rollResult = await i18n.translate('coc:roll.rollResult', {
+			target: check[index],
+			roll: temp
+		}, userid);
+
 		switch (true) {
 			case (temp == 1): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 恭喜！大成功！';
+				result += rollResult + ' → ' + await i18n.translate('coc:roll.criticalSuccess', {}, userid);
 				skillPerStyle = "criticalSuccess";
 				break;
 			}
 			case (temp == 100): {
-				result = '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 啊！大失敗！';
+				result = rollResult + ' → ' + await i18n.translate('coc:roll.fumble', {}, userid);
 				skillPerStyle = "fumble";
 				break;
 			}
 			case (temp >= 96 && check[index] <= 49): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 啊！大失敗！';
+				result += rollResult + ' → ' + await i18n.translate('coc:roll.fumble', {}, userid);
 				skillPerStyle = "fumble";
 				break;
 			}
 			case (temp > check[index]): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 失敗';
+				result += rollResult + ' → ' + await i18n.translate('coc:roll.failure', {}, userid);
 				skillPerStyle = "failure";
 				break;
 			}
 			case (temp <= check[index] / 5): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 極限成功';
+				result += rollResult + ' → ' + await i18n.translate('coc:roll.extremeSuccess', {}, userid);
 				skillPerStyle = "normal";
 				break;
 			}
 			case (temp <= check[index] / 2): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 困難成功';
+				result += rollResult + ' → ' + await i18n.translate('coc:roll.hardSuccess', {}, userid);
 				skillPerStyle = "normal";
 				break;
 			}
 			case (temp <= check[index]): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 通常成功';
+				result += rollResult + ' → ' + await i18n.translate('coc:roll.normalSuccess', {}, userid);
 				skillPerStyle = "normal";
 				break;
 			}
@@ -1450,14 +1471,14 @@ async function coc7({ chack, text = "", userid, groupid, channelid, userName }) 
 				break;
 		}
 
-		if (text[index]) result += '：' + (name[index] || '');
+		if (text[index]) {
+			result += '：' + await i18n.translate('coc:roll.skillName', { name: name[index] || '' }, userid);
+		}
 		result += '\n\n'
 		if (userid && groupid && skillPerStyle !== "failure") {
 			await dpRecorder({ userID: userid, groupid, channelid, skillName: name[index], skillPer: check[index], skillPerStyle, skillResult: temp, userName });
 		}
-
 	}
-
 
 	return result;
 }
@@ -1628,6 +1649,11 @@ class SanCheck {
 		this.lossSan = this.calculateLossSanity(this.rollSuccess, this.rollFail);
 		this.buttonCreate = ["ccrt", "ccsu"];
 		this.botname = botname;
+		this.userId = null;
+	}
+
+	async formatResult(key, options = {}) {
+		return await i18n.translate(`coc:roll.sanityCheck.${key}`, options, this.userId);
 	}
 
 	getSanity(mainMsg) {
@@ -1696,59 +1722,87 @@ class SanCheck {
 		this.buttonCreate.unshift("1d100", ...arr);
 		return str;
 	}
-	run() {
+	async run() {
 		if (!this.currentSan && this.botname == "Discord") return this.runDiscord();
-		if (!this.currentSan) return '請輸入正確的San值，\n格式是 .sc 50 或 .sc 50 1/3 或 .sc 50 1d3+3/1d100';
-		const diceFumble = (this.rollDice === 100) || (this.rollDice >= 96 && this.rollDice <= 100 && this.currentSan <= 49);
-		const diceSuccess = this.rollDice <= this.currentSan;
-		const diceFail = this.rollDice > this.currentSan;
+		if (!this.currentSan) return await this.formatResult('invalidSan');
 
-		if (diceFumble) {
+		const isFumble = (this.rollDice === 100) || (this.rollDice >= 96 && this.rollDice <= 100 && this.currentSan <= 49);
+		const isSuccess = this.rollDice <= this.currentSan;
+		const isFailure = this.rollDice > this.currentSan;
+
+		if (isFumble) {
 			return this.handleDiceFumble();
-		} else if (diceSuccess) {
+		} else if (isSuccess) {
 			return this.handleDiceSuccess();
-		} else if (diceFail) {
+		} else if (isFailure) {
 			return this.handleDiceLoss();
 		}
-
-		//可接受輸入: .sc 50	.sc 50 哈哈		.sc 50 1/3		.sc 50 1d3+3/1d100 
-		//scMode 代表會扣SC 或有正常輸入扣SAN的數字 
-
 	}
 
-	handleDiceFumble() {
+	async handleDiceFumble() {
+		const title = await this.formatResult('title');
+		const rollResult = await i18n.translate('coc:roll.rollResult', {
+			target: this.currentSan,
+			roll: this.rollDice
+		}, this.userId);
+		const fumble = await this.formatResult('fumble');
+
 		if (!this.scMode) {
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!`;
+			return `${title}\n${rollResult} → ${fumble}`;
 		}
 		if (this.rollFail) {
 			let updatedSan = ((this.currentSan - this.lossSan.rollFumbleLoss) < 0) ? 0 : this.currentSan - this.lossSan.rollFumbleLoss;
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!\n失去${this.rollFail}最大值 ${this.lossSan.rollFumbleLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
+			const lossSanity = await this.formatResult('lossSanity', { amount: this.lossSan.rollFumbleLoss });
+			const currentSanity = await this.formatResult('currentSanity', { amount: updatedSan });
+			return `${title}\n${rollResult} → ${fumble}\n${lossSanity}\n${currentSanity}`;
 		}
-		return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!`
+		return `${title}\n${rollResult} → ${fumble}`;
 	}
-	handleDiceSuccess() {
-		//成功
+
+	async handleDiceSuccess() {
+		const title = await this.formatResult('title');
+		const rollResult = await i18n.translate('coc:roll.rollResult', {
+			target: this.currentSan,
+			roll: this.rollDice
+		}, this.userId);
+		const success = await this.formatResult('success');
+
 		if (!this.scMode) {
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!`
+			return `${title}\n${rollResult} → ${success}`;
 		}
 		if (this.lossSan) {
 			let updatedSan = ((this.currentSan - this.lossSan.rollSuccessLoss) < 0) ? 0 : this.currentSan - this.lossSan.rollSuccessLoss;
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!\n失去${this.rollSuccess} → ${this.lossSan.rollSuccessLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
-		} else
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!\n不需要減少San`
-
+			const lossSanity = await this.formatResult('lossSanity', { amount: this.lossSan.rollSuccessLoss });
+			const currentSanity = await this.formatResult('currentSanity', { amount: updatedSan });
+			return `${title}\n${rollResult} → ${success}\n${lossSanity}\n${currentSanity}`;
+		} else {
+			const noLoss = await this.formatResult('noLoss');
+			return `${title}\n${rollResult} → ${success}\n${noLoss}`;
+		}
 	}
-	handleDiceLoss() {
+
+	async handleDiceLoss() {
+		const title = await this.formatResult('title');
+		const rollResult = await i18n.translate('coc:roll.rollResult', {
+			target: this.currentSan,
+			roll: this.rollDice
+		}, this.userId);
+		const fail = await this.formatResult('fail');
+
 		if (!this.scMode) {
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!`
+			return `${title}\n${rollResult} → ${fail}`;
 		}
 		if (this.lossSan) {
 			let updatedSan = ((this.currentSan - this.lossSan.rollFailLoss) < 0) ? 0 : this.currentSan - this.lossSan.rollFailLoss;
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!\n失去${this.rollFail} → ${this.lossSan.rollFailLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
-		} else
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!\n但不需要減少San`
-
+			const lossSanity = await this.formatResult('lossSanity', { amount: this.lossSan.rollFailLoss });
+			const currentSanity = await this.formatResult('currentSanity', { amount: updatedSan });
+			return `${title}\n${rollResult} → ${fail}\n${lossSanity}\n${currentSanity}`;
+		} else {
+			const noLoss = await this.formatResult('noLoss');
+			return `${title}\n${rollResult} → ${fail}\n${noLoss}`;
+		}
 	}
+
 	getButton() {
 		return this.buttonCreate;
 	}

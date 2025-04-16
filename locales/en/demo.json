@@ -1,0 +1,7 @@
+{
+    "help": "【🎯Demo Function】\n╭────── ℹ️Info ──────\n│ Just a Demo first line\n│ Just a Demo last line\n╰──────────────",
+    "roll": {
+        "result": "Demo {{number}} {{input}} {{group}} {{user}} {{role}} {{bot}} {{name}} {{channel}} {{discordName}} {{members}}"
+    },
+    "simple": "Demo"
+} 

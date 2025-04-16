@@ -487,6 +487,24 @@ const myNameRecordSchema = new Schema({
 // First check if model already exists (to avoid model overwrite warning)
 const MyNameRecord = mongoose.models.MyNameRecord || mongoose.model('MyNameRecord', myNameRecordSchema);
 
+// User preferences schema for i18n
+const userPreferenceSchema = mongoose.model('userPreference', new mongoose.Schema({
+    userId: { 
+        type: String, 
+        required: true, 
+        index: true 
+    },
+    language: { 
+        type: String, 
+        enum: ['zh-TW', 'en'],
+        default: 'zh-TW'
+    },
+    updatedAt: { 
+        type: Date, 
+        default: Date.now 
+    }
+}));
+
 // MongoDB state check function
 const getMongoDBState = async () => {
     try {
@@ -541,5 +559,6 @@ module.exports = {
     translateChannel: translateChannelSchema,
     bcdiceRegedit: bcdiceRegeditSchema,
     myNameRecord: MyNameRecord,
-    forwardedMessage: forwardedMessageSchema
+    forwardedMessage: forwardedMessageSchema,
+    userPreference: userPreferenceSchema
 };

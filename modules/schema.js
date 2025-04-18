@@ -465,7 +465,8 @@ const forwardedMessageSchema = mongoose.model('forwardedMessage', new mongoose.S
 }, {
     // Create a compound index to ensure fixedId is unique per user
     indexes: [
-        { userId: 1, fixedId: 1, unique: true }
+        { userId: 1, fixedId: 1, unique: true },
+        { userId: 1, sourceMessageId: 1 }
     ]
 }));
 

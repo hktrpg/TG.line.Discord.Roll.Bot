@@ -1539,57 +1539,104 @@ async function __handlingInteractionMessage(message) {
 				const messageContent = message.message.content;
 				const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
 				const resultText = (result && result.text) || '';
+
+				// Handle character card buttons
 				if (/的角色卡$/.test(messageContent)) {
 					try {
-						if (resultText) { return await message.reply({ content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`, ephemeral: false }).catch() }
-						else {
-							return await message.reply({ content: `${displayname}沒有反應，請檢查按鈕內容`, ephemeral: true }).catch()
+						if (resultText) {
+							// Check for forwarding settings
+							const forwardSetting = await records.findForwardedMessage({
+								userId: message.user.id,
+								sourceMessageId: message.message.id
+							});
+
+							if (forwardSetting) {
+								// Forward to the specified channel
+								try {
+									const targetChannel = await client.channels.fetch(forwardSetting.channelId);
+									if (targetChannel) {
+										await targetChannel.send({ 
+											content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}` 
+										});
+										await message.deferUpdate();
+										return;
+									}
+								} catch (error) {
+									console.error('Error forwarding character card message:', error);
+								}
+							}
+							// Fallback to normal reply if forwarding fails
+							return await message.reply({ 
+								content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`, 
+								ephemeral: false 
+							});
+						} else {
+							return await message.reply({ 
+								content: `${displayname}沒有反應，請檢查按鈕內容`, 
+								ephemeral: true 
+							});
 						}
 					} catch (error) {
-						console.error();
+						console.error('Error handling character card button:', error);
 					}
 				}
+
+				// Handle character buttons
 				if (/的角色$/.test(messageContent)) {
-					// 檢查是否有轉發設定
 					try {
-						const userid = message.user.id;
+						// Check for forwarding settings
 						const forwardSetting = await records.findForwardedMessage({
-							userId: userid,
+							userId: message.user.id,
 							sourceMessageId: message.message.id
 						});
 
 						if (forwardSetting) {
-							// 有轉發設定，發送到指定頻道
+							// Forward to the specified channel
 							try {
 								const targetChannel = await client.channels.fetch(forwardSetting.channelId);
 								if (targetChannel) {
-									await targetChannel.send({ content: `<@${userid}>\n${resultText}` });
-									message.deferUpdate();
+									await targetChannel.send({ content: `${displayname}${resultText}` });
+									await message.deferUpdate();
 									return;
 								}
 							} catch (error) {
-								console.error('Error forwarding message:', error);
-								// 如果轉發失敗，fallback到正常reply
-								await message.reply({ content: `<@${userid}> \n${resultText}`, ephemeral: false });
+								console.error('Error forwarding character message:', error);
 							}
-						} else {
-							// 沒有轉發設定，使用正常reply
-							await message.reply({ content: `<@${userid}>\n${resultText}`, ephemeral: false });
 						}
+						// Fallback to normal reply if forwarding fails
+						await message.reply({ content: `${displayname}${resultText}`, ephemeral: false });
 					} catch (error) {
-						console.error('Error checking forwarded message:', error);
-						// 發生錯誤時，使用正常reply
-						await message.reply({ content: `<@${userid}> ${resultText}`, ephemeral: false });
+						console.error('Error handling character button:', error);
 					}
 					return;
 				}
 
+				// Handle roll request buttons
 				try {
 					if (resultText) {
 						const content = handlingCountButton(message, 'roll');
-						// 先更新原訊息
+						// Check for forwarding settings
+						const forwardSetting = await records.findForwardedMessage({
+							userId: message.user.id,
+							sourceMessageId: message.message.id
+						});
+
+						// Update original message
 						await message.update({ content: content }).catch(() => null);
-						// 再發送新訊息
+
+						if (forwardSetting) {
+							// Forward to the specified channel
+							try {
+								const targetChannel = await client.channels.fetch(forwardSetting.channelId);
+								if (targetChannel) {
+									await targetChannel.send({ content: resultText });
+									return;
+								}
+							} catch (error) {
+								console.error('Error forwarding roll request:', error);
+							}
+						}
+						// Fallback to normal handling if forwarding fails
 						await handlingSendMessage(result);
 					} else {
 						const content = handlingCountButton(message, 'count');

@@ -1609,17 +1609,19 @@ async function __handlingReplyMessage(message, result) {
 						await message.deferReply({ ephemeral: false });
 						await message.editReply({ embeds: await convQuotes(sendText), ephemeral: false });
 					} catch (innerError) {
-						console.error('Failed to handle interaction:', innerError);
+						console.error('Failed to handle interaction:', innerError.message);
 						return;
 					}
 				} else {
-					console.error('Failed to send message:', error);
+					const userInput = message.content || message.commandName || '';
+					console.error(`Failed to send message: ${error.message} | Command: ${userInput}`);
 					return;
 				}
 			}
 		}
 	} catch (error) {
-		console.error('Error in __handlingReplyMessage:', error);
+		const userInput = message.content || message.commandName || '';
+		console.error(`Error in handling reply: ${error.message} | Command: ${userInput}`);
 	}
 }
 

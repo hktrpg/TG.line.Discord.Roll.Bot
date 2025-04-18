@@ -218,6 +218,11 @@ async function replilyMessage(message, result) {
 	}
 	else {
 		try {
+			// Check if this is an interaction that needs to be deferred
+			if (message.isInteraction && !message.deferred && !message.replied) {
+				await message.deferReply({ ephemeral: true });
+			}
+			
 			// For deferred interactions, use editReply instead of reply
 			if (message.deferred && !message.replied) {
 				return await message.editReply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true });
@@ -394,9 +399,26 @@ async function nonDice(message) {
 	try {
 		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount, "", message);
 		if (groupid && LevelUp && LevelUp.text) {
-			await SendToReplychannel(
-				{ replyText: `@${displayname} ${candle.checker()} ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, channelid: message.channel.id }
-			);
+			// Check if this is an interaction
+			if (message.isInteraction) {
+				// For interactions, we need to reply directly
+				if (!message.deferred && !message.replied) {
+					await message.reply({ 
+						content: `@${displayname} ${candle.checker()} ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, 
+						ephemeral: false 
+					});
+				} else if (message.deferred && !message.replied) {
+					await message.editReply({ 
+						content: `@${displayname} ${candle.checker()} ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, 
+						ephemeral: false 
+					});
+				}
+			} else {
+				// For regular messages, use the channel
+				await SendToReplychannel(
+					{ replyText: `@${displayname} ${candle.checker()} ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, channelid: message.channel.id }
+				);
+			}
 		}
 	} catch (error) {
 		console.error('await #534 EXPUP error', (error && error.name), (error && error.message), (error && error.reason));
@@ -1062,6 +1084,13 @@ async function handlingResponMessage(message, answer = '') {
 			inputStr = message.content || '';
 		}
 		
+		// Check if this is an interaction
+		if (message.isCommand && message.isCommand()) {
+			message.isInteraction = true;
+		} else if (message.isButton && message.isButton()) {
+			message.isInteraction = true;
+		}
+		
 		//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
 		//LINE @名字
 		let mainMsg = (typeof inputStr === 'string') ? inputStr.match(MESSAGE_SPLITOR) : []; //定義輸入.字串
@@ -1110,6 +1139,11 @@ async function handlingResponMessage(message, answer = '') {
 			discordMessage: message,
 			titleName: titleName
 		});
+		
+		// Ensure isInteraction flag is preserved
+		if (message.isInteraction) {
+			rplyVal.isInteraction = true;
+		}
 		if (rplyVal.requestRollingCharacter) await handlingRequestRollingCharacter(message, rplyVal.requestRollingCharacter);
 		if (rplyVal.requestRolling) await handlingRequestRolling(message, rplyVal.requestRolling, displaynameDiscord);
 		if (rplyVal.buttonCreate) rplyVal.buttonCreate = await handlingButtonCreate(message, rplyVal.buttonCreate)
@@ -1539,6 +1573,11 @@ async function __handlingReplyMessage(message, result) {
 	const sendTexts = text.toString().match(/[\s\S]{1,2000}/g);
 	
 	try {
+		// Check if this is an interaction that needs to be deferred
+		if (message.isInteraction && !message.deferred && !message.replied) {
+			await message.deferReply({ ephemeral: false });
+		}
+		
 		// Handle deferred interactions
 		if (message.deferred && !message.replied) {
 			await message.editReply({ embeds: await convQuotes(sendTexts[0]), ephemeral: false });
@@ -1554,14 +1593,26 @@ async function __handlingReplyMessage(message, result) {
 		for (let index = 0; index < sendTexts?.length && index < 4; index++) {
 			const sendText = sendTexts[index];
 			try {
-				if (index == 0)
-					await message.reply({ embeds: await convQuotes(sendText), ephemeral: false });
-				else
+				if (index == 0) {
+					if (message.isInteraction) {
+						await message.reply({ embeds: await convQuotes(sendText), ephemeral: false });
+					} else {
+						await message.reply({ embeds: await convQuotes(sendText), ephemeral: false });
+					}
+				} else {
 					await message.channel.send({ embeds: await convQuotes(sendText), ephemeral: false });
+				}
 			} catch (error) {
-				try {
-					await message.editReply({ embeds: await convQuotes(sendText), ephemeral: false });
-				} catch (error) {
+				// If we get an error, try to defer and then edit
+				if (error.code === 'InteractionNotReplied' && message.isInteraction) {
+					try {
+						await message.deferReply({ ephemeral: false });
+						await message.editReply({ embeds: await convQuotes(sendText), ephemeral: false });
+					} catch (innerError) {
+						console.error('Failed to handle interaction:', innerError);
+						return;
+					}
+				} else {
 					console.error('Failed to send message:', error);
 					return;
 				}
@@ -1573,6 +1624,9 @@ async function __handlingReplyMessage(message, result) {
 }
 
 async function __handlingInteractionMessage(message) {
+	// Set isInteraction flag for all interaction types
+	message.isInteraction = true;
+	
 	switch (true) {
 		case message.isCommand():
 			{

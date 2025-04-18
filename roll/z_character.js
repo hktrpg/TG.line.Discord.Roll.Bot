@@ -535,19 +535,32 @@ async function mainCharacter(doc, mainMsg, inputStr) {
         text: '',
         characterReRollName: ''
     };
+
+    // 檢查是否找到任何匹配項
+    let foundAnyMatch = false;
+    let similarItems = {
+        state: [],
+        notes: [],
+        roll: []
+    };
+
     for (let name in mainMsg) {
         let resutltState = await findObject(doc.state, mainMsg[name]);
         let resutltNotes = await findObject(doc.notes, mainMsg[name]);
         let resutltRoll = await findObject(doc.roll, mainMsg[name]);
+
         if (resutltRoll) {
             findRoll = resutltRoll;
             last = 'roll';
+            foundAnyMatch = true;
         } else if (resutltNotes) {
             last = 'notes';
             await findNotes.push(resutltNotes);
+            foundAnyMatch = true;
         } else if (resutltState) {
             last = 'state';
             await findState.push(resutltState);
+            foundAnyMatch = true;
         } else if (mainMsg[name].match(/^[+-/*]\d+/i) && last == 'state') {
             last = '';
             let res = mainMsg[name].charAt(0);
@@ -558,8 +571,72 @@ async function mainCharacter(doc, mainMsg, inputStr) {
             await findState.push(mainMsg[name]);
         } else {
             last = '';
+            // 收集相似項目
+            if (doc.state) {
+                doc.state.forEach(item => {
+                    if (item.name.toLowerCase().includes(mainMsg[name].toLowerCase())) {
+                        similarItems.state.push(item.name);
+                    }
+                });
+            }
+            if (doc.notes) {
+                doc.notes.forEach(item => {
+                    if (item.name.toLowerCase().includes(mainMsg[name].toLowerCase())) {
+                        similarItems.notes.push(item.name);
+                    }
+                });
+            }
+            if (doc.roll) {
+                doc.roll.forEach(item => {
+                    if (item.name.toLowerCase().includes(mainMsg[name].toLowerCase())) {
+                        similarItems.roll.push(item.name);
+                    }
+                });
+            }
         }
     }
+
+    // 如果沒有找到任何匹配項，生成詳細的錯誤訊息
+    if (!foundAnyMatch && mainMsg[0]) {
+        let errorMessage = `╭──── ⚠️ 找不到指定項目 ────\n`;
+        errorMessage += `│ ❌ 找不到項目: ${mainMsg[0]}\n`;
+        
+        if (similarItems.state.length > 0 || similarItems.notes.length > 0 || similarItems.roll.length > 0) {
+            errorMessage += `│\n│ 💡 相似的項目:\n`;
+            
+            if (similarItems.state.length > 0) {
+                errorMessage += `│ • 狀態項目:\n`;
+                similarItems.state.forEach(item => {
+                    errorMessage += `│   - ${item}\n`;
+                });
+            }
+            
+            if (similarItems.notes.length > 0) {
+                errorMessage += `│ • 備註項目:\n`;
+                similarItems.notes.forEach(item => {
+                    errorMessage += `│   - ${item}\n`;
+                });
+            }
+            
+            if (similarItems.roll.length > 0) {
+                errorMessage += `│ • 擲骰項目:\n`;
+                similarItems.roll.forEach(item => {
+                    errorMessage += `│   - ${item}\n`;
+                });
+            }
+        }
+        
+        errorMessage += `│\n│ 📝 使用說明:\n`;
+        errorMessage += `│ • .ch [項目] +/-[數值] 修改數值\n`;
+        errorMessage += `│ • .ch [項目] [數值] 直接設定數值\n`;
+        errorMessage += `│ • .ch show 顯示當前狀態\n`;
+        errorMessage += `│ • .ch showall 顯示所有內容\n`;
+        errorMessage += `╰─────────────────`;
+        
+        tempRply.text = errorMessage;
+        return tempRply;
+    }
+
     async function myAsyncFn(match, p1) {
         let result = await replacer(doc, p1);
         return result;
@@ -579,12 +656,27 @@ async function mainCharacter(doc, mainMsg, inputStr) {
                             doc.state[index].itemA = findState[i + 1];
                         } else {
                             try {
-                                let num = mathjs.evaluate(new String(doc.state[index].itemA) + findState[i + 1].replace('--', '-'));
-                                if (!isNaN(num)) {
-                                    doc.state[index].itemA = num;
+                                // Ensure the current value is a number
+                                const currentValue = parseFloat(doc.state[index].itemA);
+                                if (isNaN(currentValue)) {
+                                    console.error('Invalid current value:', doc.state[index].itemA);
+                                    return;
+                                }
+                                
+                                // Parse the operation value
+                                const operationValue = parseFloat(findState[i + 1].replace('--', '-'));
+                                if (isNaN(operationValue)) {
+                                    console.error('Invalid operation value:', findState[i + 1]);
+                                    return;
+                                }
+                                
+                                // Perform the operation
+                                const result = currentValue + operationValue;
+                                if (!isNaN(result)) {
+                                    doc.state[index].itemA = result;
                                 }
                             } catch (error) {
-                                console.error('error of Char:', findState[i + 1]);
+                                console.error('error of Char:', findState[i + 1], error);
                             }
                         }
                     }

@@ -830,6 +830,20 @@ ${formatGroup(groupedPing)}
 
 async function handlingButtonCreate(message, input) {
 	const buttonsNames = input;
+	
+	// Check if input is empty or not an array
+	if (!buttonsNames || !Array.isArray(buttonsNames) || buttonsNames.length === 0) {
+		// Return a default row with a single button if input is invalid
+		const defaultRow = new ActionRowBuilder()
+			.addComponents(
+				new ButtonBuilder()
+					.setCustomId('default_button')
+					.setLabel('No buttons available')
+					.setStyle(ButtonStyle.Secondary)
+			);
+		return [defaultRow];
+	}
+	
 	const row = []
 	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1;
 	for (let index = 0; index < totallyQuotient; index++) {
@@ -846,15 +860,34 @@ async function handlingButtonCreate(message, input) {
 					.setStyle(buttonsStyle(i)),
 			)
 	}
+	
+	// Ensure each row has at least one component
+	for (let i = 0; i < row.length; i++) {
+		if (!row[i].components || row[i].components.length === 0) {
+			row[i].addComponents(
+				new ButtonBuilder()
+					.setCustomId(`empty_row_${i}`)
+					.setLabel('Empty')
+					.setStyle(ButtonStyle.Secondary)
+			);
+		}
+	}
+	
 	const arrayRow = await splitArray(5, row)
 	return arrayRow;
-
 }
 
 async function handlingRequestRollingCharacter(message, input) {
 	const buttonsNames = input[0];
 	const characterName = input[1];
 	const charMode = (input[2] == 'char') ? true : false;
+	
+	// Check if buttonsNames is empty or not an array
+	if (!buttonsNames || !Array.isArray(buttonsNames) || buttonsNames.length === 0) {
+		await message.reply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
+		return;
+	}
+	
 	const row = []
 	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1;
 	for (let index = 0; index < totallyQuotient; index++) {
@@ -871,12 +904,28 @@ async function handlingRequestRollingCharacter(message, input) {
 					.setStyle(buttonsStyle(i)),
 			)
 	}
-	const arrayRow = await splitArray(5, row)
-	for (let index = 0; index < arrayRow.length; index++) {
-		if (arrayRow[0][0].components.length == 0) {
-			await message.reply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button`, })
-			continue;
+	
+	// Ensure each row has at least one component
+	for (let i = 0; i < row.length; i++) {
+		if (!row[i].components || row[i].components.length === 0) {
+			row[i].addComponents(
+				new ButtonBuilder()
+					.setCustomId(`empty_row_${i}`)
+					.setLabel('Empty')
+					.setStyle(ButtonStyle.Secondary)
+			);
 		}
+	}
+	
+	const arrayRow = await splitArray(5, row)
+	
+	// Check if the first row has components
+	if (arrayRow.length === 0 || !arrayRow[0] || !arrayRow[0][0] || !arrayRow[0][0].components || arrayRow[0][0].components.length === 0) {
+		await message.reply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
+		return;
+	}
+	
+	for (let index = 0; index < arrayRow.length; index++) {
 		try {
 			if (charMode) {
 				if (index == 0)
@@ -894,12 +943,16 @@ async function handlingRequestRollingCharacter(message, input) {
 		} catch (error) {
 			console.error(`error discord_bot handlingRequestRollingCharacter  #781 ${characterName} ${JSON.stringify(arrayRow)}`)
 		}
-
 	}
-
 }
 
 async function handlingRequestRolling(message, buttonsNames, displayname = '') {
+	// Check if buttonsNames is empty or not an array
+	if (!buttonsNames || !Array.isArray(buttonsNames) || buttonsNames.length === 0) {
+		await message.reply({ content: `${displayname}要求擲骰/點擊\n沒有可用的按鈕` });
+		return;
+	}
+	
 	const row = []
 	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1
 	for (let index = 0; index < totallyQuotient; index++) {
@@ -916,14 +969,33 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 					.setStyle(buttonsStyle(i)),
 			)
 	}
+	
+	// Ensure each row has at least one component
+	for (let i = 0; i < row.length; i++) {
+		if (!row[i].components || row[i].components.length === 0) {
+			row[i].addComponents(
+				new ButtonBuilder()
+					.setCustomId(`empty_row_${i}`)
+					.setLabel('Empty')
+					.setStyle(ButtonStyle.Secondary)
+			);
+		}
+	}
+	
 	const arrayRow = await splitArray(5, row)
+	
+	// Check if the array is empty
+	if (arrayRow.length === 0) {
+		await message.reply({ content: `${displayname}要求擲骰/點擊\n沒有可用的按鈕` });
+		return;
+	}
+	
 	for (let index = 0; index < arrayRow.length; index++) {
 		try {
 			await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] })
 		} catch (error) {
-
+			console.error(`Error in handlingRequestRolling: ${error.message}`);
 		}
-
 	}
 }
 async function splitArray(perChunk, inputArray) {

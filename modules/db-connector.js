@@ -17,7 +17,7 @@ const config = {
     poolSize: 10,             // 連線池大小
     minPoolSize: 2,           // 最小連線池大小
     heartbeatInterval: 10000,  // 心跳檢測間隔
-    serverSelectionTimeout: 5000,
+    serverSelectionTimeout: 30000,  // Increased from 5000 to 30000 (30 seconds)
     maxIdleTimeMS: 60000,     // 最大閒置時間
     w: 'majority',            // 寫入確認級別
     retryWrites: true,        // 啟用寫入重試
@@ -67,6 +67,13 @@ async function connect(retries = 0) {
     try {
         connectionAttempts++;
         console.log(`Attempting to connect to MongoDB (Attempt ${connectionAttempts})`);
+        console.log('Connection parameters:', {
+            connectTimeout: config.connectTimeout,
+            socketTimeout: config.socketTimeout,
+            serverSelectionTimeout: config.serverSelectionTimeout,
+            poolSize: config.poolSize,
+            minPoolSize: config.minPoolSize
+        });
 
         await mongoose.connect(config.mongoUrl, {
             connectTimeoutMS: config.connectTimeout,

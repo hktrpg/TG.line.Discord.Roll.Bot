@@ -1,0 +1,216 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# HKTRPG Roll Bot Documentation
+
+## Overview
+HKTRPG Roll Bot is a multi-platform TRPG (Tabletop Role-Playing Game) dice rolling bot that supports Discord, Line, Telegram, WhatsApp, and web platforms. The bot provides various features including dice rolling, character cards, experience systems, and more.
+
+## System Architecture
+
+### Core Components
+- **Multi-Platform Support**: Discord, Line, Telegram, WhatsApp, Web
+- **Database**: MongoDB with Mongoose ORM
+- **Caching**: Recachegoose for MongoDB query caching
+- **Scheduling**: Node-schedule for task scheduling
+
+### Key Modules
+1. **Platform Handlers**
+   - `core-Discord.js`: Discord bot implementation
+   - `core-Line.js`: Line bot implementation
+   - `core-Telegram.js`: Telegram bot implementation
+   - `core-Whatsapp.js`: WhatsApp bot implementation
+   - `core-www.js`: Web interface implementation
+
+2. **Core Functionality**
+   - `analytics.js`: Analytics and statistics tracking
+   - `records.js`: Database operations and record management
+   - `schema.js`: MongoDB schema definitions
+   - `db-connector.js`: Database connection management
+   - `dbWatchdog.js`: Database health monitoring
+
+3. **Roll System Modules**
+   - `rollbase.js`: Base rolling functionality
+   - `1_funny.js`: Fun dice rolling features
+   - `2_coc.js`: Call of Cthulhu system
+   - `token.js`: Token management
+   - `z_character.js`: Character management
+   - `z_Level_system.js`: Level system implementation
+   - `z_trpgDatabase.js`: TRPG database operations
+   - `z_bcdice.js`: BCDice integration
+   - Various other TRPG system implementations
+
+## Database Schema
+
+### Main Collections
+1. **Chat Related**
+   - `chattest`: Chat testing records
+   - `block`: Blocked functions per group
+   - `chatRoom`: Chat room management
+
+2. **TRPG Related**
+   - `trpgDatabase`: TRPG database entries
+   - `trpgCommand`: TRPG commands
+   - `trpgLevelSystem`: Level system configuration
+   - `trpgDarkRolling`: Dark rolling functionality
+
+3. **Character Management**
+   - `characterCard`: Character card storage
+   - `veryImportantPerson`: VIP user management
+   - `characterGpSwitch`: Character group switching
+
+4. **User Management**
+   - `accountPW`: Account password management
+   - `myName`: User name management
+   - `userName`: User name records
+
+5. **Event and Activity**
+   - `eventMember`: Event member tracking
+   - `eventList`: Event list management
+   - `agendaAtHKTRPG`: Scheduled events
+
+## Features
+
+### Dice Rolling Systems
+1. **Basic Rolling**
+   - Standard dice notation (e.g., 2d6+1)
+   - Multiple rolls (e.g., 5 3D6)
+   - D66 and D66s rolls
+   - Bonus dice (e.g., 5B10, 5B10S)
+   - Success counting (e.g., 5B10 8)
+   - Exploding dice (e.g., 5U10 8)
+
+2. **TRPG Systems Support**
+   - Call of Cthulhu (6th & 7th Edition)
+   - Dungeons & Dragons 5E
+   - Pathfinder 2E
+   - World of Darkness
+   - Fate
+   - Sword World 2.5
+   - And many more...
+
+3. **Special Features**
+   - Dark rolling (private rolls)
+   - Character cards
+   - Level system
+   - Experience tracking
+   - Event management
+   - Translation services
+   - Image search
+   - Wiki queries
+
+### Web Interface
+- Character card management
+- Dice rolling interface
+- Discord log viewer
+- Theater mode
+- Namecard system
+- Custom CSS support
+
+## Testing Framework
+
+### Test Structure
+- Comprehensive test suite for all major features
+- Platform-specific tests
+- Database operation tests
+- Dice rolling system tests
+- Character management tests
+- Event system tests
+
+### Test Categories
+1. **Core Functionality**
+   - `analytics.test.js`
+   - `rollbase.test.js`
+   - `z_trpgDatabase.test.js`
+
+2. **TRPG Systems**
+   - `coc.test.js`
+   - `funny.test.js`
+   - `wod.test.js`
+   - `fate.test.js`
+
+3. **Management Features**
+   - `z_character.test.js`
+   - `z_Level_system.test.js`
+   - `z_event.test.js`
+   - `z_admin.test.js`
+
+## Development Guidelines
+
+### Code Structure
+- Modular design with platform-specific handlers
+- Centralized database operations
+- Event-driven architecture
+- Comprehensive error handling
+
+### Best Practices
+1. **Database Operations**
+   - Use the `DatabaseOperation` class for all database operations
+   - Implement proper error handling
+   - Use caching where appropriate
+
+2. **Error Handling**
+   - Log all errors with context
+   - Implement graceful degradation
+   - Monitor database health
+
+3. **Performance**
+   - Use connection pooling
+   - Implement caching strategies
+   - Monitor query performance
+
+## Environment Setup
+
+### Required Environment Variables
+```env
+mongoURL=<MongoDB connection string>
+DISCORD_TOKEN=<Discord bot token>
+LINE_CHANNEL_ACCESS_TOKEN=<Line channel access token>
+LINE_CHANNEL_SECRET=<Line channel secret>
+TELEGRAM_TOKEN=<Telegram bot token>
+```
+
+### Dependencies
+- Node.js >= 14
+- MongoDB
+- Various platform-specific SDKs
+- See `package.json` for complete list
+
+## Deployment
+
+### Prerequisites
+1. Node.js environment
+2. MongoDB instance
+3. Platform-specific bot tokens
+4. Environment variables configured
+
+### Steps
+1. Install dependencies: `yarn install`
+2. Configure environment variables
+3. Start the bot: `yarn start`
+
+## Monitoring and Maintenance
+
+### Database Health
+- Regular connection checks
+- Automatic reconnection
+- Error logging
+- Performance monitoring
+
+### Bot Health
+- Platform-specific status monitoring
+- Error logging
+- Usage statistics
+- Performance metrics
+
+## Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Implement changes
+4. Submit a pull request
+
+## License
+MIT License - See LICENSE file for details
+

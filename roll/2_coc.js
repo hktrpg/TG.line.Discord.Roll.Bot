@@ -450,169 +450,162 @@ const rollDiceCommand = async function ({
 	return rply;
 }
 const discordCommand = [
-	{
-		data: new SlashCommandBuilder()
-			.setName('ccrt')
-			.setDescription('克蘇魯神話TRPG Cthulhu 7th 即時型瘋狂')
-		,
-		async execute() {
-			return `ccrt`
-		}
-	}, {
-		data: new SlashCommandBuilder()
-			.setName('ccsu')
-			.setDescription('克蘇魯神話TRPG Cthulhu 7th 總結型瘋狂')
-		,
-		async execute() {
-			return `ccsu`
-		}
-	}, {
-		data: new SlashCommandBuilder()
-			.setName('ccb')
-			.setDescription('克蘇魯神話TRPG Cthulhu 6th 擲骰')
-			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true)),
-		async execute(interaction) {
-			const text = interaction.options.getString('text')
-			if (text !== null)
-				return `ccb ${text}`
-		}
-	}, {
-		data: new SlashCommandBuilder()
-			.setName('cc')
-			.setDescription('克蘇魯神話TRPG Cthulhu 7th 擲骰')
-			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true))
-			.addStringOption(option =>
-				option.setName('paney')
-					.setDescription('獎勵或懲罰骰')
-					.addChoices({ name: '1粒獎勵骰', value: '1' },
-						{ name: '2粒獎勵骰', value: '2' },
-						{ name: '1粒懲罰骰', value: 'n1' },
-						{ name: '2粒懲罰骰', value: 'n2' }))
-		,
-		async execute(interaction) {
-			const text = interaction.options.getString('text')
-			const paney = interaction.options.getString('paney') || '';
-
-			return `cc${paney} ${text}`
-		}
-	}, {
-		data: new SlashCommandBuilder()
-			.setName('sc')
-			.setDescription('克蘇魯神話TRPG Cthulhu 7th SAN值檢定')
-			.addStringOption(option => option.setName('text').setDescription('你的San值').setRequired(true))
-			.addStringOption(option => option.setName('success').setDescription('成功扣多少San').setRequired(false))
-			.addStringOption(option => option.setName('failure').setDescription('失敗扣多少San').setRequired(false)),
-		async execute(interaction) {
-			const text = interaction.options.getString('text')
-			const success = interaction.options.getString('success')
-			const failure = interaction.options.getString('failure')
-			let ans = `.sc ${text}`
-			if ((success !== null) && (failure !== null)) ans = `${ans} ${success}/${failure}`
-			return ans;
-		}
-	},
-	{
-		data: new SlashCommandBuilder()
-			.setName('build')
-			.setDescription('克蘇魯神話TRPG Cthulhu 創角功能')
-			.addSubcommand(subcommand =>
-				subcommand
-					.setName('ccpulpbuild')
-					.setDescription('克蘇魯神話TRPG Cthulhu pulp版創角'))
-			.addSubcommand(subcommand =>
-				subcommand
-					.setName('cc6build')
-					.setDescription('克蘇魯神話TRPG Cthulhu 6th版創角'))
-			.addSubcommand(subcommand =>
-				subcommand
-					.setName('cc7build')
-					.setDescription('克蘇魯神話TRPG Cthulhu 7th版創角').addStringOption(option => option.setName('age').setDescription('可選: (歲數7-89) 如果沒有會使用隨機開角')))
-
-		,
-		async execute(interaction) {
-			const age = interaction.options.getString('age') || '';
-			const subcommand = interaction.options.getSubcommand()
-			if (subcommand !== null)
-				return `.${subcommand} ${age}`
-			return '.cc7build help';
-		}
-	}, {
-		data: new SlashCommandBuilder()
-			.setName('dp')
-			.setDescription('克蘇魯神話TRPG Cthulhu 7th 成長或增強檢定')
-			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true)),
-		async execute(interaction) {
-			const text = interaction.options.getString('text')
-			return `.dp ${text}`
-		}
-	}, {
-		data: new SlashCommandBuilder()
-			.setName('dpg')
-			.setDescription('克蘇魯神話TRPG Cthulhu 7th 成長檢定紀錄功能')
-			.addStringOption(option =>
-				option.setName('mode')
-					.setDescription('功能')
-					.addChoices({ name: '顯示擲骰紀錄', value: 'show' },
-						{ name: '顯示全頻道所有大成功大失敗擲骰紀錄', value: 'showall' },
-						{ name: '開啓紀錄功能', value: 'start' },
-						{ name: '停止紀錄功能', value: 'stop' },
-						{ name: '進行自動成長並清除擲骰紀錄', value: 'auto' },
-						{ name: '清除擲骰紀錄', value: 'clear' },
-						{ name: '清除擲骰紀錄包括大成功大失敗', value: 'clearall' })
-			),
-		async execute(interaction) {
-			const mode = interaction.options.getString('mode')
-			return `.dp ${mode}`
-		}
-	}, {
-		data: new SlashCommandBuilder()
-			.setName('cc7bg')
-			.setDescription('克蘇魯神話TRPG Cthulhu 7th版角色背景隨機生成'),
-		async execute() {
-			return `.cc7bg`
-		}
-	}, {
-		data: new SlashCommandBuilder()
-			.setName('chase')
-			.setDescription('克蘇魯神話TRPG Cthulhu 7th版追逐戰產生器'),
-		async execute() {
-			return `.chase`
-		}
-	}, {
-		data: new SlashCommandBuilder()
-			.setName('cccc')
-			.setDescription('克蘇魯神話TRPG Cthulhu 隨機產生神話組織')
-		,
-		async execute() {
-			return `.cccc`
-		}
-	}, {
-		data: new SlashCommandBuilder()
-			.setName('ccdr')
-			.setDescription('克蘇魯神話TRPG Cthulhu 隨機產生神話資料')
-		,
-		async execute() {
-			return `.ccdr`
-		}
-	}, {
-		data: new SlashCommandBuilder()
-			.setName('ccpc')
-			.setDescription('克蘇魯神話TRPG Cthulhu 施法推骰後果')
-		,
-		async execute() {
-			return `.ccpc`
-		}
-	}
+    {
+        data: new SlashCommandBuilder()
+            .setName('cc')
+            .setDescription('coc7版擲骰')
+            .addStringOption(option =>
+                option.setName('skill')
+                    .setDescription('技能值 (例如: 60)')
+                    .setRequired(true))
+            .addStringOption(option =>
+                option.setName('name')
+                    .setDescription('技能名稱')
+                    .setRequired(false))
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('ccb')
+            .setDescription('CoC6版擲骰')
+            .addStringOption(option =>
+                option.setName('skill')
+                    .setDescription('技能值 (例如: 60)')
+                    .setRequired(true))
+            .addStringOption(option =>
+                option.setName('name')
+                    .setDescription('技能名稱')
+                    .setRequired(false))
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('ccrt')
+            .setDescription('即時型瘋狂檢定')
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('ccsu')
+            .setDescription('總結型瘋狂檢定')
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('sc')
+            .setDescription('理智檢定')
+            .addStringOption(option =>
+                option.setName('san')
+                    .setDescription('當前SAN值')
+                    .setRequired(true))
+            .addStringOption(option =>
+                option.setName('roll')
+                    .setDescription('成功/失敗損失值 (例如: 1/1d3)')
+                    .setRequired(false))
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('build')
+            .setDescription('克蘇魯神話TRPG Cthulhu 創角功能')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('ccpulpbuild')
+                    .setDescription('克蘇魯神話TRPG Cthulhu pulp版創角'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('cc6build')
+                    .setDescription('克蘇魯神話TRPG Cthulhu 6th版創角'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('cc7build')
+                    .setDescription('克蘇魯神話TRPG Cthulhu 7th版創角')
+                    .addStringOption(option => 
+                        option.setName('age')
+                            .setDescription('可選: (歲數7-89) 如果沒有會使用隨機開角')))
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('dp')
+            .setDescription('克蘇魯神話TRPG Cthulhu 7th 成長或增強檢定')
+            .addStringOption(option => 
+                option.setName('text')
+                    .setDescription('目標技能大小及名字')
+                    .setRequired(true))
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('dpg')
+            .setDescription('克蘇魯神話TRPG Cthulhu 7th 成長檢定紀錄功能')
+            .addStringOption(option =>
+                option.setName('mode')
+                    .setDescription('功能')
+                    .addChoices(
+                        { name: '顯示擲骰紀錄', value: 'show' },
+                        { name: '顯示全頻道所有大成功大失敗擲骰紀錄', value: 'showall' },
+                        { name: '開啓紀錄功能', value: 'start' },
+                        { name: '停止紀錄功能', value: 'stop' },
+                        { name: '進行自動成長並清除擲骰紀錄', value: 'auto' },
+                        { name: '清除擲骰紀錄', value: 'clear' },
+                        { name: '清除擲骰紀錄包括大成功大失敗', value: 'clearall' }
+                    ))
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('cc7bg')
+            .setDescription('克蘇魯神話TRPG Cthulhu 7th版角色背景隨機生成')
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('chase')
+            .setDescription('克蘇魯神話TRPG Cthulhu 7th版追逐戰產生器')
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('cccc')
+            .setDescription('克蘇魯神話TRPG Cthulhu 隨機產生神話組織')
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('ccdr')
+            .setDescription('克蘇魯神話TRPG Cthulhu 隨機產生神話資料')
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('ccpc')
+            .setDescription('克蘇魯神話TRPG Cthulhu 施法推骰後果')
+    }
 ];
 
+// Command execution handlers
+const commandHandlers = {
+    build: async (interaction) => {
+        const age = interaction.options.getString('age') || '';
+        const subcommand = interaction.options.getSubcommand();
+        if (subcommand !== null) {
+            return `.${subcommand} ${age}`;
+        }
+        return '.cc7build help';
+    },
+    dp: async (interaction) => {
+        const text = interaction.options.getString('text');
+        return `.dp ${text}`;
+    },
+    dpg: async (interaction) => {
+        const mode = interaction.options.getString('mode');
+        return `.dp ${mode}`;
+    },
+    cc7bg: async () => '.cc7bg',
+    chase: async () => '.chase',
+    cccc: async () => '.cccc',
+    ccdr: async () => '.ccdr',
+    ccpc: async () => '.ccpc'
+};
+
 module.exports = {
-	rollDiceCommand,
-	initialize,
-	getHelpMessage,
-	prefixs,
-	gameType,
-	gameName,
-	discordCommand
+    rollDiceCommand,
+    initialize,
+    getHelpMessage,
+    prefixs,
+    gameType,
+    gameName,
+    discordCommand,
+    commandHandlers
 };
 
 class CreateCult {

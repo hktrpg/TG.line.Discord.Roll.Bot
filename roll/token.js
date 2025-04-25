@@ -12,7 +12,7 @@ const jimp = require('jimp');
 const sharp = require('sharp');
 const url = require('url');
 const path = require('path');
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, AttachmentBuilder } = require('discord.js');
 const axios = require('axios').default;
 const fs = require('fs');
 const GeoPattern = require('geopattern');
@@ -493,145 +493,58 @@ function valueToHex(c) {
     return hex
 }
 const discordCommand = [
-    {
-        data: new SlashCommandBuilder()
-            .setName('token')
-            .setDescription('【方形相片風格】製作Token')
-            .addAttachmentOption(option => option.setName('image').setDescription('上傳圖片').setRequired(true))
-            .addStringOption(option => option.setName('text').setDescription('第一行文字').setRequired(false))
-            .addStringOption(option => option.setName('text2').setDescription('第二行文字').setRequired(false)),
-        async execute(interaction) {
-            const text = interaction.options.getString('text') || '';
-            const text2 = interaction.options.getString('text2') || '';
-            const attachment = interaction.options.getAttachment('image');
-
-            // Create a message-like object for the token maker
-            const messageObj = {
-                interaction: true,
-                author: interaction.user,
-                attachments: new Map([['0', attachment]]),
-                content: `.token\n${text}\n${text2}`
-            };
-
-            // Call the token maker with the message object
-            const result = await polaroidTokernMaker(messageObj, messageObj.content, ['.token', text, text2], interaction.client);
-
-            if (result.sendImage) {
-                await interaction.reply({ files: [result.sendImage] });
-                return null;
-            } else {
-                return result.text || '製作失敗，請檢查圖片格式或內容';
-            }
-        }
-    },
-    {
-        data: new SlashCommandBuilder()
-            .setName('token2')
-            .setDescription('【透明底圓形】製作Token')
-            .addAttachmentOption(option => option.setName('image').setDescription('上傳圖片').setRequired(true))
-            .addStringOption(option => option.setName('text').setDescription('第一行文字').setRequired(false))
-            .addStringOption(option => option.setName('text2').setDescription('第二行文字').setRequired(false)),
-        async execute(interaction) {
-            const text = interaction.options.getString('text') || '';
-            const text2 = interaction.options.getString('text2') || '';
-            const attachment = interaction.options.getAttachment('image');
-
-            // Create a message-like object for the token maker
-            const messageObj = {
-                interaction: true,
-                author: interaction.user,
-                attachments: new Map([['0', attachment]]),
-                content: `.token2\n${text}\n${text2}`
-            };
-
-            // Call the token maker with the message object
-            const result = await circleTokernMaker(messageObj, messageObj.content, ['.token2', text, text2], interaction.client);
-
-            if (result.sendImage) {
-                await interaction.reply({ files: [result.sendImage] });
-                return null;
-            } else {
-                return result.text || '製作失敗，請檢查圖片格式或內容';
-            }
-        }
-    },
-    {
-        data: new SlashCommandBuilder()
-            .setName('token3')
-            .setDescription('【彩色邊框圓形】製作Token')
-            .addAttachmentOption(option => option.setName('image').setDescription('上傳圖片').setRequired(true))
-            .addStringOption(option => option.setName('text').setDescription('第一行文字').setRequired(false))
-            .addStringOption(option => option.setName('text2').setDescription('第二行文字').setRequired(false)),
-        async execute(interaction) {
-            const text = interaction.options.getString('text') || '';
-            const text2 = interaction.options.getString('text2') || '';
-            const attachment = interaction.options.getAttachment('image');
-
-            // Create a message-like object for the token maker
-            const messageObj = {
-                interaction: true,
-                author: interaction.user,
-                attachments: new Map([['0', attachment]]),
-                content: `.token3\n${text}\n${text2}`
-            };
-
-            // Call the token maker with the message object
-            const result = await circleTokernMaker3(messageObj, messageObj.content, ['.token3', text, text2], interaction.client, interaction.member.displayName);
-
-            if (result.sendImage) {
-                await interaction.reply({ files: [result.sendImage] });
-                return null;
-            } else {
-                return result.text || '製作失敗，請檢查圖片格式或內容';
-            }
-        }
-    },
-    {
-        data: new SlashCommandBuilder()
-            .setName('tokenupload')
-            .setDescription('【圖片上傳】將圖片上傳至imgur')
-            .addAttachmentOption(option => option.setName('image').setDescription('上傳圖片').setRequired(true)),
-        async execute(interaction) {
-            try {
-                // Defer the reply to prevent timeout
-                await interaction.deferReply();
-                
-                const attachment = interaction.options.getAttachment('image');
-                
-                // Create a message-like object for the upload function
-                const messageObj = {
-                    interaction: true,
-                    author: interaction.user,
-                    attachments: new Map([['0', attachment]])
-                };
-                
-                // Call the upload function with the message object
-                const result = await uploadImage(messageObj, interaction.client);
-                
-                // Always respond to the interaction
-                if (result.text && result.text.includes('http')) {
-                    await interaction.editReply({ content: result.text });
-                } else {
-                    await interaction.editReply({ content: result.text || '上傳失敗，請檢查圖片格式或內容' });
-                }
-                return null;
-            } catch (error) {
-                console.error('Error in tokenupload command:', error);
-                try {
-                    // Try to edit the deferred reply if it exists
-                    if (interaction.deferred) {
-                        await interaction.editReply({ content: '上傳失敗，請檢查圖片格式或內容' });
-                    } else {
-                        // If not deferred, try to reply directly
-                        await interaction.reply({ content: '上傳失敗，請檢查圖片格式或內容' });
-                    }
-                } catch (replyError) {
-                    console.error('Error sending error message:', replyError);
-                }
-                return null;
-            }
-        }
-    }
+    new SlashCommandBuilder()
+        .setName('token')
+        .setDescription('【方形相片風格】製作Token')
+        .addStringOption(option => 
+            option.setName('image')
+                .setDescription('圖片網址')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('text')
+                .setDescription('第一行文字')
+                .setRequired(false))
+        .addStringOption(option => 
+            option.setName('text2')
+                .setDescription('第二行文字')
+                .setRequired(false)),
+    new SlashCommandBuilder()
+        .setName('token2')
+        .setDescription('【透明底圓形】製作Token')
+        .addStringOption(option => 
+            option.setName('image')
+                .setDescription('圖片網址')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('text')
+                .setDescription('第一行文字')
+                .setRequired(false))
+        .addStringOption(option => 
+            option.setName('text2')
+                .setDescription('第二行文字')
+                .setRequired(false)),
+    new SlashCommandBuilder()
+        .setName('token3')
+        .setDescription('【彩色邊框圓形】製作Token')
+        .addStringOption(option => 
+            option.setName('image')
+                .setDescription('圖片網址')
+                .setRequired(true))
+        .addStringOption(option => 
+            option.setName('text')
+                .setDescription('第一行文字')
+                .setRequired(false))
+        .addStringOption(option => 
+            option.setName('text2')
+                .setDescription('第二行文字')
+                .setRequired(false)),
+    new SlashCommandBuilder()
+        .setName('tokenupload')
+        .setDescription('【上傳圖片】將圖片上傳至imgur')
+        .addStringOption(option => 
+            option.setName('image')
+                .setDescription('圖片網址')
+                .setRequired(true))
 ];
 
 

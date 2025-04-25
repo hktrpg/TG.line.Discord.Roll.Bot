@@ -484,7 +484,7 @@ function BStyleFlagSCRIPTS() {
 「做完這次任務，我就要結婚了。」', '\
 「幹完這一票我就金盆洗手了。」', '\
 「好想再試一次啊……」', '\
-「已經沒什麼好害怕的了（もう何も恐くない）」', '\
+「已經沒什麽好害怕的了（もう何も恐くない）」', '\
 「我一定會回來的（必ず帰る！）」', '\
 「差不多該走了」', '\
 「我只是希望你永遠不要忘記我。」', '\
@@ -573,7 +573,7 @@ function BStyleFlagSCRIPTS() {
 「這是你的生日禮物，很有歷史價值的」', '\
 「哇，好嘔心的液體！」', '\
 「我已經死而無憾！」', '\
-「好大件事呢，但這和我們也沒什麼關係。草」', '\
+「好大件事呢，但這和我們也沒什麽關係。草」', '\
 「回來後我會十倍奉還！」', '\
 「雷達出現巨大的影子！」「雷達故障了吧。」', '\
 「今天天氣真好，是適合出海的日子！」', '\
@@ -608,7 +608,7 @@ wwwwwwwwwwwwwwwww', '\
 一直叫，你想被淨灘嗎？', '\
 幫主你也敢嘴？', '\
 拔嘴的話，我的嘴巴會長出觸手，然後開花成四個花瓣哦 (´×`)', '\
-看看我！！我體內的怪物已經這麼大了！！', '\
+看看我！！我體內的怪物已經這麽大了！！', '\
 傳說中，凡是拔嘴過鴨嘴獸的人，有高機率在100年內死去。 \n我到底在共三小。', '\
 人類每花60秒拔嘴，就減少一分鐘的壽命。 \n我到底在共三小。', '\
 嘴被拔，就會掉。', '\
@@ -815,10 +815,10 @@ const TarotList = ["愚者 ＋\nhttps://raw.githubusercontent.com/hktrpg/TG.line
 	"權杖八 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/tarot/WANDS_08-Re.jpg",
 	"權杖九 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/tarot/WANDS_09-Re.jpg",
 	"權杖十 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/tarot/WANDS_10-Re.jpg",
-	"權杖國王 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/tarot/WANDS_KING-Re.jpg",
-	"權杖騎士 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/tarot/WANDS_KNIGHT-Re.jpg",
-	"權杖侍者 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/tarot/WANDS_PAGE-Re.jpg",
-	"權杖皇后 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/tarot/WANDS_QUEEN-Re.jpg",
+	"權杖國王 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/tarot/WANDS_KING.jpg",
+	"權杖騎士 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/tarot/WANDS_KNIGHT.jpg",
+	"權杖侍者 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/tarot/WANDS_PAGE.jpg",
+	"權杖皇后 －\nhttps://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/master/assets/tarot/WANDS_QUEEN.jpg",
 	"空白"
 ]
 
@@ -1064,400 +1064,210 @@ http://weizhinb.top/
 	
 */
 const discordCommand = [
-
-	{
-		data: new SlashCommandBuilder()
-			.setName('排序')
-			.setDescription('進行隨機排序')
-			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔 如 排序 選項A 選項B 選項C').setRequired(true))
-		,
-		async execute(interaction) {
-			const text = interaction.options.getString('text')
-			if (text !== null)
-				return `排序 ${text}`
-
-		}
-	},
-	{
-		data: new SlashCommandBuilder()
-			.setName('隨機')
-			.setDescription('進行隨機抽選')
-			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔 如 選項A 選項B 選項C').setRequired(true))
-		,
-		async execute(interaction) {
-			const text = interaction.options.getString('text')
-			if (text !== null)
-				return `隨機 ${text}`
-		}
-	},
-	{
-		data: new SlashCommandBuilder()
-			.setName('choice')
-			.setDescription('進行隨機抽選')
-			.addStringOption(option => option.setName('text').setDescription('輸入所有內容，以空格分隔 如 選項A 選項B 選項C').setRequired(true))
-		,
-		async execute(interaction) {
-			const text = interaction.options.getString('text')
-			if (text !== null)
-				return `隨機 ${text}`
-		}
-	},
-	{
-		data: new SlashCommandBuilder()
-			.setName('運勢')
-			.setDescription('進行隨機抽選')
-			.addStringOption(option => option.setName('text').setDescription('可選: 什麼的運勢'))
-		,
-		async execute(interaction) {
-			//	console.log(interaction.options.getString('text'))
-			const text = interaction.options.getString('text')
-			if (text !== null)
-				return `${text}的運勢`
-			else return `今日運勢`
-		}
-	},
-	{
-		data: new SlashCommandBuilder()
-			.setName('塔羅')
-			.setDescription('進行塔羅占卜')
-			.addStringOption(option =>
-				option.setName('category')
-					.setDescription('塔羅種類')
-					.setRequired(true)
-					.addChoices(
-						{ name: '每日塔羅(單張)', value: '每日塔羅' },
-						{ name: '大十字塔羅', value: '大十字塔羅' },
-						{ name: '時間塔羅', value: '時間塔羅' }))
-		,
-		async execute(interaction) {
-			const category = interaction.options.getString('category')
-			if (category !== null)
-				return `${category}`
-		}
-	},
-	{
-		data: new SlashCommandBuilder()
-			.setName('立flag')
-			.setDescription('立FLAG')
-			.addStringOption(option => option.setName('text').setDescription('可選: 立什麼FLAG'))
-		,
-		async execute(interaction) {
-			const text = interaction.options.getString('text')
-			if (text !== null)
-				return `${text}立FLAG`
-			else return `立FLAG`
-		}
-	},
-	{
-		data: new SlashCommandBuilder()
-			.setName('每日')
-			.setDescription('進行每日功能')
-			.addSubcommand(subcommand =>
-				subcommand
-					.setName('星座')
-					.setDescription('顯示每日星座運程')
-					.addStringOption(option =>
-						option.setName('star')
-							.setDescription('哪個星座')
-							.setRequired(true)
-							.addChoices({ name: '白羊', value: '每日白羊' },
-								{ name: '金牛', value: '每日金牛' },
-								{ name: '巨蟹', value: '每日巨蟹' },
-								{ name: '獅子', value: '每日獅子' },
-								{ name: '雙子', value: '每日雙子' },
-								{ name: '處女', value: '每日處女' },
-								{ name: '天秤', value: '每日天秤' },
-								{ name: '天蠍', value: '每日天蠍' },
-								{ name: '射手', value: '每日射手' },
-								{ name: '摩羯', value: '每日摩羯' },
-								{ name: '水瓶', value: '每日水瓶' },
-								{ name: '雙魚', value: '每日雙魚' }
-							)))
-			.addSubcommand(subcommand =>
-				subcommand
-					.setName('塔羅')
-					.setDescription('抽取一張塔羅牌'))
-			.addSubcommand(subcommand =>
-				subcommand
-					.setName('一言')
-					.setDescription('顯示一條金句'))
-			.addSubcommand(subcommand =>
-				subcommand
-					.setName('毒湯')
-					.setDescription('顯示一條有毒的雞湯'))
-			.addSubcommand(subcommand =>
-				subcommand
-					.setName('情話')
-					.setDescription('顯示一條情話'))
-			.addSubcommand(subcommand =>
-				subcommand
-					.setName('靈簽')
-					.setDescription('抽取一條觀音簽'))
-			.addSubcommand(subcommand =>
-				subcommand
-					.setName('淺草簽')
-					.setDescription('抽取一條淺草簽'))
-			.addSubcommand(subcommand =>
-				subcommand
-					.setName('大事')
-					.setDescription('顯示今天歷史上的大事'))
-			.addSubcommand(subcommand =>
-				subcommand
-					.setName('笑話')
-					.setDescription('顯示一條笑話'))
-			.addSubcommand(subcommand =>
-				subcommand
-					.setName('動漫')
-					.setDescription('顯示一條動漫金句'))
-			.addSubcommand(subcommand =>
-				subcommand
-					.setName('黃曆')
-					.setDescription('顯示今日黃曆'))
-			.addSubcommand(subcommand =>
-				subcommand
-					.setName('廢話')
-					.setDescription('生產一條你或對像的廢話').addStringOption(option => option.setName('name').setDescription('可選: 對像的名字，留白則使用你的名字')))
-
-		,
-		async execute(interaction) {
-			await interaction.deferReply({});
-			const category = interaction.options.getString('category')
-			const name = interaction.options.getString('name') || '';
-			const subcommand = interaction.options.getSubcommand()
-			const star = interaction.options.getString('star')
-			if (star !== null)
-				return `${star}`
-			if (subcommand !== null)
-				return `每日${subcommand} ${name}`
-			if (category !== null)
-				return `${category}`
-			return;
-		}
-	}
+    {
+        data: new SlashCommandBuilder()
+            .setName('mee')
+            .setDescription('複述功能')
+            .addStringOption(option =>
+                option.setName('text')
+                    .setDescription('要複述的文字')
+                    .setRequired(true))
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('排序')
+            .setDescription('隨機排序')
+            .addStringOption(option =>
+                option.setName('text')
+                    .setDescription('要排序的選項，用空格分隔')
+                    .setRequired(true))
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('隨機')
+            .setDescription('隨機選擇功能')
+            .addStringOption(option =>
+                option.setName('text')
+                    .setDescription('要選擇的選項，用空格分隔')
+                    .setRequired(true))
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('運勢')
+            .setDescription('查看運勢')
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('塔羅')
+            .setDescription('塔羅占卜')
+            .addStringOption(option =>
+                option.setName('type')
+                    .setDescription('占卜類型')
+                    .setRequired(true)
+                    .addChoices(
+                        { name: '每日塔羅', value: 'daily' },
+                        { name: '時間塔羅', value: 'time' },
+                        { name: '大十字塔羅', value: 'cross' }
+                    ))
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('立flag')
+            .setDescription('立下Flag')
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('每日')
+            .setDescription('每日功能')
+            .addStringOption(option =>
+                option.setName('type')
+                    .setDescription('功能類型')
+                    .setRequired(true)
+                    .addChoices(
+                        { name: '笑話', value: 'joke' },
+                        { name: '動漫', value: 'anime' },
+                        { name: '一言', value: 'word' },
+                        { name: '廢話', value: 'nonsense' },
+                        { name: '黃曆', value: 'almanac' },
+                        { name: '毒湯', value: 'poison' },
+                        { name: '情話', value: 'love' },
+                        { name: '靈簽', value: 'divine' },
+                        { name: '淺草簽', value: 'asakusa' },
+                        { name: '大事', value: 'event' },
+                        { name: '解答', value: 'answer' }
+                    ))
+    }
 ];
 
 
 
 class DailyFuckUp {
-	static randomSentence(list) {
-		let row = Math.floor(Math.random() * list.length);
-		return list[row];
-	}
+    static randomSentence(list) {
+        if (!list || !Array.isArray(list)) {
+            return '';
+        }
+        let row = Math.floor(Math.random() * list.length);
+        return list[row];
+    }
 
-	static randomNumber(min = 0, max = 100) {
-		let number = Math.random() * (max - min) + min;
-		return number;
-	}
+    static randomNumber(min = 0, max = 100) {
+        let number = Math.random() * (max - min) + min;
+        return number;
+    }
 
-	static genCelebrity() {
-		let quotes = DailyFuckUp.randomSentence(DailyFuckUp.celebrityQuotes)
-		quotes = quotes.replace("曾經說過", DailyFuckUp.randomSentence(DailyFuckUp.formerFuck))
-		quotes = quotes.replace("這不禁令我深思", DailyFuckUp.randomSentence(DailyFuckUp.afterFuck))
-		return quotes
-	}
+    static genCelebrity() {
+        let quotes = DailyFuckUp.randomSentence(DailyFuckUp.celebrityQuotes)
+        quotes = quotes.replace("曾經說過", DailyFuckUp.randomSentence(DailyFuckUp.formerFuck))
+        quotes = quotes.replace("這不禁令我深思", DailyFuckUp.randomSentence(DailyFuckUp.afterFuck))
+        return quotes
+    }
 
-	static genDiscuss(subject) {
-		let sentence = DailyFuckUp.randomSentence(DailyFuckUp.discuss);
-		sentence = sentence.replace(RegExp("主題", "g"), subject);
-		return sentence;
-	}
+    static genDiscuss(subject) {
+        let sentence = DailyFuckUp.randomSentence(DailyFuckUp.discuss);
+        sentence = sentence.replace(RegExp("主題", "g"), subject);
+        return sentence;
+    }
 
-	static addParagraph(chapter) {
-		if (chapter[chapter.length - 1] === " ") {
-			chapter = chapter.slice(0, -2)
-		}
-		return "　　" + chapter + "。 "
-	}
+    static addParagraph(chapter) {
+        if (chapter[chapter.length - 1] === " ") {
+            chapter = chapter.slice(0, -2)
+        }
+        return "　　" + chapter + "。 "
+    }
 
-	static generateArticles(subject) {
-		let text = []
-		let chapter = "";
-		let chapterLength = 0;
-		while (chapterLength < 300) {
-			let num = DailyFuckUp.randomNumber();
-			if (num < 5 && chapter.length > 200) {
-				chapter = DailyFuckUp.addParagraph(chapter) + "\n";;
-				text.push(chapter);
-				chapter = "";
-			} else if (num < 20) {
-				let sentence = DailyFuckUp.genCelebrity();
-				chapterLength = chapterLength + sentence.length;
-				chapter = chapter + sentence;
-			} else {
-				let sentence = DailyFuckUp.genDiscuss(subject);
-				chapterLength = chapterLength + sentence.length;
-				chapter = chapter + sentence;
-			}
-		}
-		chapter = DailyFuckUp.addParagraph(chapter);
-		text.push(chapter);
+    static generateArticles(subject) {
+        let text = []
+        let chapter = "";
+        let chapterLength = 0;
+        while (chapterLength < 300) {
+            let num = DailyFuckUp.randomNumber();
+            if (num < 5 && chapter.length > 200) {
+                chapter = DailyFuckUp.addParagraph(chapter) + "\n";;
+                text.push(chapter);
+                chapter = "";
+            } else if (num < 20) {
+                let sentence = DailyFuckUp.genCelebrity();
+                chapterLength = chapterLength + sentence.length;
+                chapter = chapter + sentence;
+            } else {
+                let sentence = DailyFuckUp.genDiscuss(subject);
+                chapterLength = chapterLength + sentence.length;
+                chapter = chapter + sentence;
+            }
+        }
+        chapter = DailyFuckUp.addParagraph(chapter);
+        text.push(chapter);
 
-		let result = text.join("\n\n").replace('。。', '。');
-		return result;
-	}
+        let result = text.join("\n\n").replace('。。', '。');
+        return result;
+    }
 
-	static discuss = [
-		"現在，解決主題的問題，是非常非常重要的。 ",
-		"主題的發生，到底需要如何做到，不主題的發生，又會如何產生。 ",
-		"主題，到底應該如何實現。 ",
-		"帶著這些問題，我們來審視一下主題。 ",
-		"所謂主題，關鍵是主題需要如何寫。 ",
-		"我們一般認為，抓住了問題的關鍵，其他一切則會迎刃而解。 ",
-		"問題的關鍵究竟為何? ",
-		"主題因何而發生?",
-		"每個人都不得不面對這些問題。 在面對這種問題時， ",
-		"一般來講，我們都必須務必慎重的考慮考慮。 ",
-		"要想清楚，主題，到底是一種怎麼樣的存在。 ",
-		"瞭解清楚主題到底是一種怎麼樣的存在，是解決一切問題的關鍵。 ",
-		"就我個人來說，主題對我的意義，不能不說非常重大。 ",
-		"本人也是經過了深思熟慮，在每個日日夜夜思考這個問題。 ",
-		"主題，發生了會如何，不發生又會如何。 ",
-		"在這種困難的抉擇下，本人思來想去，寢食難安。 ",
-		"生活中，若主題出現了，我們就不得不考慮它出現了的事實。 ",
-		"這種事實對本人來說意義重大，相信對這個世界也是有一定意義的。 ",
-		"我們都知道，只要有意義，那麼就必須慎重考慮。 ",
-		"在現今社會，一些重要的問題始終存在著。因此，我們需要關注這些問題並找到有效的解決方案。",
-		"從長遠來看，我們必須重視某些問題的影響，因為它們可能對我們的未來產生深遠的影響。",
-		"解決問題需要集中精力和全面的思考。只有這樣，才能找到最佳解決方案。",
-		"我們必須從多個角度來看待問題，因為問題的解決通常不是單一的方法。",
-		"無論面對什麼樣的問題，我們都必須保持冷靜和理性。只有這樣，我們才能找到最好的解決方案。",
-		"看似簡單的問題，有時也可能是非常複雜的。因此，我們需要投入更多的時間和精力去理解問題。",
-		"通過學習和經驗，我們可以增強解決問題的能力。這不僅可以幫助我們應對當前的問題，還可以使我們更好地應對未來的挑戰。",
-		"尋找最佳解決方案需要勇氣和創造力。我們必須敢於嘗試新的思路和方法。",
-		"某些問題可能會給我們帶來挑戰，但同時也可能帶來機會。我們需要善加利用這些機會，以創造更好的未來。",
-		"在解決問題的過程中，我們需要充分了解問題的本質和原因，以確保我們找到的解決方案是可行的。",
-		"解決問題需要有一個清晰的目標和計劃。只有這樣，我們才能更有效地實現我們的目標。",
-		"面對困難和挑戰，我們必須堅持不懈，直到找到最佳解決方案。",
-		"在解決問題的過程中，我們必須有耐心和毅力。只有這樣，我們才能成功地克服所有的障礙。",
-		"綜觀主題的歷史，我們會發現，這是一個複雜且多變的問題。",
-		"許多學者和專家已經對主題進行了深入的研究和分析，但仍有許多問題需要解決。",
-		"與主題相關的議題越來越多，因此需要更多的研究和探討。",
-		"對於主題的討論，人們常常持不同的觀點和看法，這使得解決問題變得更加困難。",
-		"面對主題，我們必須採取有效的措施，才能解決問題。",
-		"許多人對主題感到困惑和無助，需要更多的指導和支援。",
-		"主題涉及的範圍非常廣泛，需要進一步細化和區分。",
-		"對於主題的處理，我們需要更好地運用科技和創新，才能取得更好的效果。",
-		"解決主題需要全社會的參與和努力，不能單靠某一個群體或個人的力量。",
-		"主題所帶來的影響和後果是深遠的，必須慎重對待。",
-	]
+    static discuss = [
+        "現在，解決主題的問題，是非常非常重要的。 ",
+        "主題的發生，到底需要如何做到，不主題的發生，又會如何產生。 ",
+        "主題，到底應該如何實現。 ",
+        "帶著這些問題，我們來審視一下主題。 ",
+        "所謂主題，關鍵是主題需要如何寫。 ",
+        "我們一般認為，抓住了問題的關鍵，其他一切則會迎刃而解。 ",
+        "問題的關鍵究竟為何? ",
+        "主題因何而發生?",
+        "每個人都不得不面對這些問題。 在面對這種問題時， ",
+        "一般來講，我們都必須務必慎重的考慮考慮。 ",
+        "要想清楚，主題，到底是一種怎麼樣的存在。 ",
+        "瞭解清楚主題到底是一種怎麼樣的存在，是解決一切問題的關鍵。 ",
+        "就我個人來說，主題對我的意義，不能不說非常重大。 ",
+        "本人也是經過了深思熟慮，在每個日日夜夜思考這個問題。 ",
+        "主題，發生了會如何，不發生又會如何。 ",
+        "在這種困難的抉擇下，本人思來想去，寢食難安。 ",
+        "生活中，若主題出現了，我們就不得不考慮它出現了的事實。 ",
+        "這種事實對本人來說意義重大，相信對這個世界也是有一定意義的。 ",
+        "我們都知道，只要有意義，那麽就必須慎重考慮。 ",
+        "在現今社會，一些重要的問題始終存在著。因此，我們需要關注這些問題並找到有效的解決方案。",
+        "從長遠來看，我們必須重視某些問題的影響，因為它們可能對我們的未來產生深遠的影響。",
+        "解決問題需要集中精力和全面的思考。只有這樣，才能找到最佳解決方案。",
+        "我們必須從多個角度來看待問題，因為問題的解決通常不是單一的方法。",
+        "無論面對什麼樣的問題，我們都必須保持冷靜和理性。只有這樣，我們才能找到最好的解決方案。",
+        "看似簡單的問題，有時也可能是非常複雜的。因此，我們需要投入更多的時間和精力去理解問題。",
+        "通過學習和經驗，我們可以增強解決問題的能力。這不僅可以幫助我們應對當前的問題，還可以使我們更好地應對未來的挑戰。",
+        "尋找最佳解決方案需要勇氣和創造力。我們必須敢於嘗試新的思路和方法。",
+        "某些問題可能會給我們帶來挑戰，但同時也可能帶來機會。我們需要善加利用這些機會，以創造更好的未來。",
+        "在解決問題的過程中，我們需要充分了解問題的本質和原因，以確保我們找到的解決方案是可行的。",
+        "解決問題需要有一個清晰的目標和計劃。只有這樣，我們才能更有效地實現我們的目標。",
+        "面對困難和挑戰，我們必須堅持不懈，直到找到最佳解決方案。",
+        "在解決問題的過程中，我們必須有耐心和毅力。只有這樣，我們才能成功地克服所有的障礙。",
+        "綜觀主題的歷史，我們會發現，這是一個複雜且多變的問題。",
+        "許多學者和專家已經對主題進行了深入的研究和分析，但仍有許多問題需要解決。",
+        "與主題相關的議題越來越多，因此需要更多的研究和探討。",
+        "對於主題的討論，人們常常持不同的觀點和看法，這使得解決問題變得更加困難。",
+        "面對主題，我們必須採取有效的措施，才能解決問題。",
+        "許多人對主題感到困惑和無助，需要更多的指導和支援。",
+        "主題涉及的範圍非常廣泛，需要進一步細化和區分。",
+        "對於主題的處理，我們需要更好地運用科技和創新，才能取得更好的效果。",
+        "解決主題需要全社會的參與和努力，不能單靠某一個群體或個人的力量。",
+        "主題所帶來的影響和後果是深遠的，必須慎重對待。",
+    ];
 
-	static celebrityQuotes = [
-		"馬丁路德金曾經說過：“黑夜雖然會延遲，但白天一定會到來。這不禁令我深思",
-		"貝多芬曾經說過：“人生就像一首交響樂，需要高低起伏才會有美妙的旋律。這不禁令我深思",
-		"約翰·藍儂曾經說過：“生命是發生在你身上的事情，當你忙於為其餘的東西而忘了它時，它就會溜走。這不禁令我深思",
-		"艾倫·德珍尼斯曾經說過：“生命中最困難的部分是不知道該怎麼做，而最容易的部分是知道該怎麼做卻不去做。這不禁令我深思",
-		"奧斯卡·王爾德曾經說過：“人生就像一場戲劇，演員們出場、扮演角色，但當燈光熄滅時，他們又得回到現實中來。這不禁令我深思",
-		"約翰·華納克爾曾經說過：“成功不是最終目的，失敗也不是致命的，勇氣繼續前進才是最重要的。這不禁令我深思",
-		"亞伯拉罕·林肯曾經說過：“你可以愛上你的工作，也可以恨你的工作，但你必須為它付出努力。這不禁令我深思",
-		"比爾·蓋茨曾經說過：“成功不是取決於你有多聰明，而是取決於你有多認真。這不禁令我深思",
-		"納爾遜·曼德拉曾經說過：“教育是改變世界的最強大的武器。這不禁令我深思",
-		"史蒂夫·喬布斯曾經說過：“你的工作將佔用你生命中大部分時間，為什麼不要做你熱愛的工作呢？這不禁令我深思",
-		"伏爾泰曾經說過，不經巨大的困難，不會有偉大的事業。這不禁令我深思",
-		"富勒曾經說過，苦難磨鍊一些人，也毀滅另一些人。這不禁令我深思",
-		"文森特·皮爾曾經說過，改變你的想法，你就改變了自己的世界。這不禁令我深思",
-		"拿破崙·希爾曾經說過，不要等待，時機永遠不會恰到好處。這不禁令我深思",
-		"塞涅卡曾經說過，生命如同寓言，其價值不在與長短，而在與內容。這不禁令我深思",
-		"奧普拉·溫弗瑞曾經說過，你相信什麼，你就成為什麼樣的人。這不禁令我深思",
-		"呂凱特曾經說過，生命不可能有兩次，但許多人連一次也不善於度過。這不禁令我深思",
-		"莎士比亞曾經說過，人的一生是短的，但如果卑劣地過這一生，就太長了。這不禁令我深思",
-		"笛卡兒曾經說過，我的努力求學沒有得到別的好處，只不過是愈來愈發覺自己的無知。這不禁令我深思",
-		"左拉曾經說過，生活的道路一旦選定，就要勇敢地走到底，決不回頭。這不禁令我深思",
-		"米歇潘曾經說過，生命是一條艱險的峽谷，只有勇敢的人才能通過。這不禁令我深思",
-		"吉姆·羅恩曾經說過，要麼你主宰生活，要麼你被生活主宰。這不禁令我深思",
-		"日本諺語曾經說過，不幸可能成為通向幸福的橋樑。這不禁令我深思",
-		"海貝爾曾經說過，人生就是學校。在那裡，與其說好的教師是幸福，不如說好的教師是不幸。這不禁令我深思",
-		"杰納勒爾·喬治·S·巴頓曾經說過，接受挑戰，就可以享受勝利的喜悅。這不禁令我深思",
-		"德謨克利特曾經說過，節制使快樂增加並使享受加強。這不禁令我深思",
-		"裴斯泰洛齊曾經說過，今天應做的事沒有做，明天再早也是耽誤了。這不禁令我深思",
-		"歌德曾經說過，決定一個人的一生，以及整個命運的，只是一瞬之間。這不禁令我深思",
-		"卡耐基曾經說過，一個不注意小事情的人，永遠不會成就大事業。這不禁令我深思",
-		"盧梭曾經說過，浪費時間是一樁大罪過。這不禁令我深思",
-		"康德曾經說過，既然我已經踏上這條道路，那麼，任何東西都不應妨礙我沿著這條路走下去。這不禁令我深思",
-		"克勞斯·莫瑟爵士曾經說過，教育需要花費錢，而無知也是一樣。這不禁令我深思",
-		"伏爾泰曾經說過，堅持意志偉大的事業需要始終不渝的精神。這不禁令我深思",
-		"亞伯拉罕·林肯曾經說過，你活了多少歲不算什麼，重要的是你是如何度過這些歲月的。這不禁令我深思",
-		"韓非曾經說過，內外相應，言行相稱。這不禁令我深思",
-		"富蘭克林曾經說過，你熱愛生命嗎？那麼別浪費時間，因為時間是組成生命的材料。這不禁令我深思",
-		"馬爾頓曾經說過，堅強的信心，能使平凡的人做出驚人的事業。這不禁令我深思",
-		"笛卡兒曾經說過，讀一切好書，就是和許多高尚的人談話。這不禁令我深思",
-		"塞涅卡曾經說過，真正的人生，只有在經過艱難卓絕的鬥爭之後才能實現。這不禁令我深思",
-		"易卜生曾經說過，偉大的事業，需要決心，能力，組織和責任感。這不禁令我深思",
-		"歌德曾經說過，沒有人事先了解自己到底有多大的力量，直到他試過以後才知道。這不禁令我深思",
-		"達爾文曾經說過，敢於浪費哪怕一個鐘頭時間的人，說明他還不懂得珍惜生命的全部價值。這不禁令我深思",
-		"佚名曾經說過，感激每一個新的挑戰，因為它會鍛造你的意志和品格。這不禁令我深思",
-		"奧斯特洛夫斯基曾經說過，共同的事業，共同的鬥爭，可以使人們產生忍受一切的力量。　這不禁令我深思",
-		"蘇軾曾經說過，古之立大事者，不惟有超世之才，亦必有堅忍不拔之志。這不禁令我深思",
-		"王陽明曾經說過，故立志者，為學之心也；為學者，立志之事也。這不禁令我深思",
-		"歌德曾經說過，讀一本好書，就如同和一個高尚的人在交談。這不禁令我深思",
-		"烏申斯基曾經說過，學習是勞動，是充滿思想的勞動。這不禁令我深思",
-		"別林斯基曾經說過，好的書籍是最貴重的珍寶。這不禁令我深思",
-		"富蘭克林曾經說過，讀書是易事，思索是難事，但兩者缺一，便全無用處。這不禁令我深思",
-		"魯巴金曾經說過，讀書是在別人思想的幫助下，建立起自己的思想。這不禁令我深思",
-		"培根曾經說過，合理安排時間，就等於節約時間。這不禁令我深思",
-		"屠格涅夫曾經說過，你想成為幸福的人嗎？但願你首先學會吃得起苦。這不禁令我深思",
-		"莎士比亞曾經說過，拋棄時間的人，時間也拋棄他。這不禁令我深思",
-		"叔本華曾經說過，普通人只想到如何度過時間，有才能的人設法利用時間。這不禁令我深思",
-		"博曾經說過，一次失敗，只是證明我們成功的決心還夠堅強。 維這不禁令我深思",
-		"拉羅什夫科曾經說過，取得成就時堅持不懈，要比遭到失敗時頑強不屈更重要。這不禁令我深思",
-		"莎士比亞曾經說過，人的一生是短的，但如果卑劣地過這一生，就太長了。這不禁令我深思",
-		"俾斯麥曾經說過，失敗是堅忍的最後考驗。這不禁令我深思",
-		"池田大作曾經說過，不要回避苦惱和困難，挺起身來向它挑戰，進而克服它。這不禁令我深思",
-		"莎士比亞曾經說過，那腦袋裡的智慧，就像打火石里的火花一樣，不去打它是不肯出來的。這不禁令我深思",
-		"希臘曾經說過，最困難的事情就是認識自己。這不禁令我深思",
-		"黑塞曾經說過，有勇氣承擔命運這才是英雄好漢。這不禁令我深思",
-		"非洲曾經說過，最靈繁的人也看不見自己的背脊。這不禁令我深思",
-		"培根曾經說過，閱讀使人充實，會談使人敏捷，寫作使人精確。這不禁令我深思",
-		"斯賓諾莎曾經說過，最大的驕傲於最大的自卑都表示心靈的最軟弱無力。這不禁令我深思",
-		"西班牙曾經說過，自知之明是最難得的知識。這不禁令我深思",
-		"塞內加曾經說過，勇氣通往天堂，怯懦通往地獄。這不禁令我深思",
-		"赫爾普斯曾經說過，有時候讀書是一種巧妙地避開思考的方法。這不禁令我深思",
-		"笛卡兒曾經說過，閱讀一切好書如同和過去最傑出的人談話。這不禁令我深思",
-		"鄧拓曾經說過，越是沒有本領的就越加自命不凡。這不禁令我深思",
-		"愛爾蘭曾經說過，越是無能的人，越喜歡挑剔別人的錯兒。這不禁令我深思",
-		"老子曾經說過，知人者智，自知者明。勝人者有力，自勝者強。這不禁令我深思",
-		"歌德曾經說過，意志堅強的人能把世界放在手中像泥塊一樣任意揉捏。這不禁令我深思",
-		"邁克爾·F·斯特利曾經說過，最具挑戰性的挑戰莫過於提升自我。這不禁令我深思",
-		"愛迪生曾經說過，失敗也是我需要的，它和成功對我一樣有價值。這不禁令我深思",
-		"羅素·貝克曾經說過，一個人即使已登上頂峰，也仍要自強不息。這不禁令我深思",
-		"馬雲曾經說過，最大的挑戰和突破在於用人，而用人最大的突破在於信任人。這不禁令我深思",
-		"雷鋒曾經說過，自己活著，就是爲了使別人過得更美好。這不禁令我深思",
-		"布爾沃曾經說過，要掌握書，莫被書掌握；要為生而讀，莫為讀而生。這不禁令我深思",
-		"培根曾經說過，要知道對好事的稱頌過於誇大，也會招來人們的反感輕蔑和嫉妒。這不禁令我深思",
-		"莫扎特曾經說過，誰和我一樣用功，誰就會和我一樣成功。這不禁令我深思",
-		"馬克思曾經說過，一切節省，歸根到底都歸結為時間的節省。這不禁令我深思",
-		"莎士比亞曾經說過，意志命運往往背道而馳，決心到最後會全部推倒。這不禁令我深思",
-		"卡萊爾曾經說過，過去一切時代的精華盡在書中。這不禁令我深思",
-		"培根曾經說過，深窺自己的心，而後發覺一切的奇蹟在你自己。這不禁令我深思",
-		"羅曼·羅蘭曾經說過，只有把抱怨環境的心情，化為上進的力量，才是成功的保證。這不禁令我深思",
-		"孔子曾經說過，知之者不如好之者，好之者不如樂之者。這不禁令我深思",
-		"達·芬奇曾經說過，大膽和堅定的決心能夠抵得上武器的精良。這不禁令我深思",
-		"叔本華曾經說過，意志是一個強壯的盲人，倚靠在明眼的跛子肩上。這不禁令我深思",
-		"黑格爾曾經說過，只有永遠躺在泥坑裡的人，才不會再掉進坑裡。這不禁令我深思",
-		"普列姆昌德曾經說過，希望的燈一旦熄滅，生活剎那間變成了一片黑暗。這不禁令我深思",
-		"維龍曾經說過，要成功不需要什麼特別的才能，只要把你能做的小事做得好就行了。這不禁令我深思",
-		"郭沫若曾經說過，形成天才的決定因素應該是勤奮。這不禁令我深思",
-		"洛克曾經說過，學到很多東西的訣竅，就是一下子不要學很多。這不禁令我深思",
-		"西班牙曾經說過，自己的鞋子，自己知道緊在哪裡。這不禁令我深思",
-		"拉羅什福科曾經說過，我們唯一不會改正的缺點是軟弱。這不禁令我深思",
-		"亞伯拉罕·林肯曾經說過，我這個人走得很慢，但是我從不後退。這不禁令我深思",
-		"美華納曾經說過，勿問成功的秘訣為何，且盡全力做你應該做的事吧。這不禁令我深思",
-		"俾斯麥曾經說過，對於不屈不撓的人來說，沒有失敗這回事。這不禁令我深思",
-		"阿卜·日·法拉茲曾經說過，學問是異常珍貴的東西，從任何源泉吸收都不可恥。這不禁令我深思",
-		"白哲特曾經說過，堅強的信念能贏得強者的心，並使他們變得更堅強。 這不禁令我深思",
-		"查爾斯·史考伯曾經說過，一個人幾乎可以在任何他懷有無限熱忱的事情上成功。 這不禁令我深思",
-		"貝多芬曾經說過，卓越的人一大優點是：在不利與艱難的遭遇里百折不饒。這不禁令我深思",
-		"莎士比亞曾經說過，本來無望的事，大膽嘗試，往往能成功。這不禁令我深思",
-		"卡耐基曾經說過，我們若已接受最壞的，就再沒有什麼損失。這不禁令我深思",
-		"德國曾經說過，只有在人群中間，才能認識自己。這不禁令我深思",
-		"史美爾斯曾經說過，書籍把我們引入最美好的社會，使我們認識各個時代的偉大智者。這不禁令我深思",
-		"馮學峰曾經說過，當一個人用工作去迎接光明，光明很快就會來照耀著他。這不禁令我深思",
-		"吉格·金克拉曾經說過，如果你能做夢，你就能實現它。這不禁令我深思",
-	]
+    static celebrityQuotes = [
+        '馬丁路德金曾經說過："黑夜雖然會延遲，但白天一定會到來。這不禁令我深思"',
+        '貝多芬曾經說過："人生就像一首交響樂，需要高低起伏才會有美妙的旋律。這不禁令我深思"',
+        '約翰·藍儂曾經說過："生命是發生在你身上的事情，當你忙於為其餘的東西而忘了它時，它就會溜走。這不禁令我深思"',
+        '艾倫·德珍尼斯曾經說過："生命中最困難的部分是不知道該怎麼做，而最容易的部分是知道該怎麼做卻不去做。這不禁令我深思"',
+        '奧斯卡·王爾德曾經說過："人生就像一場戲劇，演員們出場、扮演角色，但當燈光熄滅時，他們又得回到現實中來。這不禁令我深思"',
+        '約翰·華納克爾曾經說過："成功不是最終目的，失敗也不是致命的，勇氣繼續前進才是最重要的。這不禁令我深思"',
+        '亞伯拉罕·林肯曾經說過："你可以愛上你的工作，也可以恨你的工作，但你必須為它付出努力。這不禁令我深思"',
+        '比爾·蓋茨曾經說過："成功不是取決於你有多聰明，而是取決於你有多認真。這不禁令我深思"',
+        '納爾遜·曼德拉曾經說過："教育是改變世界的最強大的武器。這不禁令我深思"',
+        '史蒂夫·喬布斯曾經說過："你的工作將佔用你生命中大部分時間，為什麼不要做你熱愛的工作呢？這不禁令我深思"',
+        '伏爾泰曾經說過，不經巨大的困難，不會有偉大的事業。這不禁令我深思',
+        '富勒曾經說過，苦難磨鍊一些人，也毀滅另一些人。這不禁令我深思',
+        '卡耐基曾經說過，我們若已接受最壞的，就再沒有什麽損失。這不禁令我深思',
+        '德國曾經說過，只有在人群中間，才能認識自己。這不禁令我深思',
+        '史美爾斯曾經說過，書籍把我們引入最美好的社會，使我們認識各個時代的偉大智者。這不禁令我深思'
+    ];
 
-	static afterFuck = ["這不禁令我深思。 ", "帶著這句話，我們還要更加慎重的審視這個問題： ", "這啓發了我， ", "我希望諸位也能好好地體會這句話。 ", "這句話語雖然很短，但令我浮想聯翩。 ", "無可否認，這句話帶給我們極大的啟示。", "我深深體會到這句話所蘊含的深意。", "這句話真正引起了我的共鳴。", "這句話不僅引發了我們的關注，也引起了我們的思考。", "我們需要認真對待這句話所提出的挑戰。", "這句話所傳達的信息絕對不容忽視。", "這句話令我們更加清晰地看到了問題的本質。", "這句話讓我們看到了問題的另一面。", "我深信這句話會成為我們思考的重要起點。", "我們必須從這句話中學到更多的東西。", "這句話能夠激發我們內心深處的共鳴。", "我們需要從這句話中學到一個重要的教訓。", "這句話引起了我們對問題的關注，也啟發了我們的思考。", "這句話不僅是一句警句，更是一個重要的提醒。", "這句話在我們思考的過程中發揮了重要的作用。", "這句話讓我們看到了一個全新的視角。", "這句話可以幫助我們更好地理解問題的本質。", "我們必須從這句話中吸取更多的智慧和啟示。", "這句話深刻地反映了現實的困境和挑戰。", "這句話讓我們更加明白了自己的不足之處。", "這句話揭示了問題的一個重要方面。", "這句話讓我們更加認識到自己的責任和使命。", "這句話提醒我們要時刻保持警醒和警覺。", "這句話讓我們更加堅定了自己的信念和決心。", "這句話可以幫助我們更好地理解自己和他人。", "這句話是一個重要的思想火花，可以引發更多的啟示。", "這句話可以幫助我們更好地理解自己的身份和使命。", "這句話讓我們更加明白了人生的真諦和意義。", "這句話可以激勵我們更加努力地工作和生活。", "這句話是一個非常寶貴的啟示和提醒。", "這句話讓我們看到了問題的一個新的方向和出路。", "這句話可以幫助我們更好地面對人生的挑戰和困境。", "這句話讓我們更加明白了自己的優點和不足。", "這句話是一個非常實用的工作和生活的指導原則。", "這句話可以幫助我們更好地理解人性和社會。", "這句話讓我們更加意識到自己的權利和義務。", "這句話讓我們更加了解了一個文化或一個國家的特點和價值觀。", "這句話可以啟發我們更多的創造力和想像力。", "這句話讓我們更加明白了生命的珍貴和脆弱。"]
+    static formerFuck = ["曾經說過", "在不經意間這樣說過", "事先聲明", "先說一聲", "需要先強調", "需要先說明", "需要先說明一下", "必須說明的是", "講過一個小故事", "討論過這問題", "曾經稍微講過背景", "曾經簡單提過一下", "談到這個話題", "想要先聲明的是", "在關於這個問題", "根據自己的經驗", "曾探討過這個議題", "在談論過這件事", "過交代過", "談到這個事情時，說過", "在進入正題前，曾說過", "關於這個話題，曾說過", "交代過一下", "說過自己的立場", "闡述過想法", "探討過這個問題", "談論過這個主題", "曾分析過", "提過，一下問題的重要性", "曾深入探討這個問題", "談到這個議題"];
 
-	static formerFuck = ["曾經說過", "在不經意間這樣說過", "事先聲明", "先說一聲", "需要先強調", "需要先說明", "需要先說明一下", "必須說明的是", "講過一個小故事", "討論過這問題", "曾經稍微講過背景", "曾經簡單提過一下", "談到這個話題", "想要先聲明的是", "在關於這個問題", "根據自己的經驗", "曾探討過這個議題", "在談論過這件事", "過交代過", "談到這個事情時，說過", "在進入正題前，曾說過", "關於這個話題，曾說過", "交代過一下", "說過自己的立場", "闡述過想法", "探討過這個問題", "談論過這個主題", "曾分析過", "提過，一下問題的重要性", "曾深入探討這個問題", "談到這個議題"]
-
+    static afterFuck = ["這不禁令我深思", "這讓我陷入了沈思", "這令我不禁感慨", "這令我深感憂慮", "這不得不令我深思", "這讓我想到了很多", "這引發了我的思考", "這給我很大的啟發", "這讓我有了新的認識", "這不禁讓我反思", "這給了我很大的觸動", "這讓我重新審視了問題", "這不得不讓我重新思考", "這讓我產生了新的想法", "這給了我很大的感悟"];
 }
 
 

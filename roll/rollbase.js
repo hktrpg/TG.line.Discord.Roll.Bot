@@ -340,6 +340,27 @@ const discordCommand = [
       const text = interaction.options.getString('text')
       return `${text}`
     }
+  },
+  {
+    data: new SlashCommandBuilder()
+      .setName('rr')
+      .setDescription('使用RPG Dice Roller擲骰')
+      .addStringOption(option =>
+        option.setName('notation')
+          .setDescription(' 例如: 2d(1*10), 1d(1+2+3)')
+          .setRequired(true)),
+    async execute(interaction) {
+      const notation = interaction.options.getString('notation');
+      try {
+        const roll = new DiceRoll(notation);
+        await interaction.reply(roll.output);
+      } catch (err) {
+        await interaction.reply({
+          content: `${err.name}\n${err.message}\n擲骰說明 https://dice-roller.github.io/documentation/guide/notation/dice.html#standard-d-n`,
+          ephemeral: true
+        });
+      }
+    }
   }
 ];
 module.exports = {

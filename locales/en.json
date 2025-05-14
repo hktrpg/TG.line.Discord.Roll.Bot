@@ -1,0 +1,52 @@
+{
+  "system.name": "HKTRPG Bot",
+  "system.version": "Version {{version}}",
+  "system.welcome": "Welcome to HKTRPG Bot!",
+  "system.error.general": "An error occurred",
+  "system.error.command": "Error executing command",
+  "system.error.notFound": "Command not found",
+
+  "help.title": "Help System",
+  "help.description": "Type {{prefix}}help for more information",
+  "help.usage": "Usage",
+
+  "language.available": "Available languages: {{list}}\nCurrent language: {{current}}",
+  "language.changed": "Language changed from {{from}} to {{to}}",
+  "language.notSupported": "Language '{{requested}}' is not supported. Available languages: {{list}}",
+  "language.name": "Language Settings",
+  "language.help": "【🌐Language Settings】\n╭────── ℹ️Instructions ──────\n│ View available languages:\n│ .lang list\n│ \n│ Set language:\n│ .lang [language code]\n│ or\n│ .language set [language code]\n│ Example: .lang en\n│ Example: .language set zh-tw\n│ \n│ Currently supported languages:\n│ en (English)\n│ zh-TW (繁體中文)\n│ zh-CN (简体中文)\n│ ja (日本語)\n│ ko (한국어)\n╰──────────────",
+
+  "dice.roll.result": "Roll Result",
+  "dice.roll.success": "Success!",
+  "dice.roll.failure": "Failure!",
+  "dice.roll.critical": "Critical Success!",
+  "dice.roll.fumble": "Fumble!",
+  "dice.roll.tie": "Tie!",
+
+  "dice.stats.total": "Total: {{value}}",
+  "dice.stats.average": "Average: {{value}}",
+  "dice.stats.highest": "Highest: {{value}}",
+  "dice.stats.lowest": "Lowest: {{value}}",
+
+  "CoC7.title": "Call of Cthulhu 7th Edition",
+  "CoC7.Entities.Character": "Character",
+  "CoC7.Skills.Accounting": "Accounting",
+  "CoC7.Skills.Anthropology": "Anthropology",
+  "CoC7.Characteristics.STR": "STR",
+  "CoC7.Characteristics.DEX": "DEX",
+  "CoC7.Characteristics.POW": "POW",
+  "CoC7.Characteristics.CON": "CON",
+  "CoC7.Characteristics.APP": "APP",
+  "CoC7.Characteristics.EDU": "EDU",
+  "CoC7.Characteristics.SIZ": "SIZ",
+  "CoC7.Characteristics.INT": "INT",
+  "CoC7.Characteristics.Move": "Move",
+  "CoC7.Characteristics.HP": "Hit Points",
+  "CoC7.Characteristics.MP": "Magic Points",
+  "CoC7.Characteristics.SAN": "Sanity",
+  
+  "demo.name": "Demo Module",
+  "demo.help": "Demo Help Text",
+  "demo.results.number": "Demo result: {{number}} from {{user}}",
+  "demo.results.default": "Default demo result"
+} 

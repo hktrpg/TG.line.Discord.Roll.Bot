@@ -721,6 +721,78 @@ class Records extends EventEmitter {
             return false;
         }
     }
+
+    /**
+     * Update user language preference
+     * @param {string} userId - User ID
+     * @param {string} language - Language code
+     * @returns {Promise<Object>} Updated user settings
+     */
+    async updateUserLanguage(userId, language) {
+        try {
+            // Clear the user language cache
+            const NodeCache = require('node-cache');
+            const translationCache = new NodeCache({ stdTTL: 3600 });
+            const cacheKey = `userLang:${userId}`;
+            translationCache.del(cacheKey);
+            
+            // Create schema if it doesn't exist yet
+            if (!schema.userSettings) {
+                // Add to schema collection
+                const mongoose = require('./db-connector.js').mongoose;
+                schema.userSettings = mongoose.model('userSettings', new mongoose.Schema({
+                    userId: { type: String, index: true },
+                    language: { type: String, default: 'en' }
+                }));
+            }
+            
+            // Update in database
+            const result = await schema.userSettings.findOneAndUpdate(
+                { userId },
+                { $set: { language } },
+                { upsert: true, new: true }
+            ).catch(error => {
+                console.error(`[ERROR] MongoDB error in updateUserLanguage:`, error);
+                throw error;
+            });
+            
+            return result;
+        } catch (error) {
+            console.error(`[ERROR] Failed to update user language:`, error);
+            return null;
+        }
+    }
+
+    /**
+     * Get user's preferred language
+     * @param {string} userId - User ID
+     * @param {string} defaultLang - Default language if not found
+     * @returns {Promise<string>} Language code
+     */
+    async getUserLanguage(userId, defaultLang = 'en') {
+        try {
+            // Create schema if it doesn't exist yet
+            if (!schema.userSettings) {
+                // Add to schema collection
+                const mongoose = require('./db-connector.js').mongoose;
+                schema.userSettings = mongoose.model('userSettings', new mongoose.Schema({
+                    userId: { type: String, index: true },
+                    language: { type: String, default: 'en' }
+                }));
+            }
+            
+            // Check database
+            const userSettings = await schema.userSettings.findOne({ userId }).catch(error => {
+                console.error(`[ERROR] MongoDB error in getUserLanguage:`, error);
+                return null;
+            });
+            
+            return userSettings?.language || defaultLang;
+        } catch (error) {
+            console.error(`[ERROR] Failed to get user language:`, error);
+            return defaultLang;
+        }
+    }
 }
 
 let instance;

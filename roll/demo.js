@@ -1,8 +1,10 @@
 "use strict";
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
+const i18n = require('../modules/i18n');
+
 const gameName = function () {
-    return '【Demo】'
+    return i18n.translate('demo.name');
 }
 
 const gameType = function () {
@@ -19,11 +21,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function () {
-    return `【🎯示範功能】
-╭────── ℹ️說明 ──────
-│ 只是一個Demo的第一行
-│ 只是一個Demo末行
-╰──────────────`
+    return i18n.translate('demo.help');
 }
 const initialize = function () {
     return variables;
@@ -41,6 +39,9 @@ const rollDiceCommand = async function ({
     displaynameDiscord,
     membercount
 }) {
+    // Get user's preferred language
+    const userLang = await i18n.getUserLanguage({ userid, groupid });
+    
     let rply = {
         default: 'on',
         type: 'text',
@@ -53,11 +54,16 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\d+$/i.test(mainMsg[1]): {
-            rply.text = 'Demo' + mainMsg[1] + inputStr + groupid + userid + userrole + botname + displayname + channelid + displaynameDiscord + membercount;
+            // Example of translation with variables
+            rply.text = i18n.translate('demo.results.number', {
+                language: userLang,
+                number: mainMsg[1],
+                user: displayname
+            });
             return rply;
         }
         case /^\S/.test(mainMsg[1] || ''): {
-            rply.text = 'Demo'
+            rply.text = i18n.translate('demo.results.default', { language: userLang });
             return rply;
         }
         default: {
@@ -66,7 +72,41 @@ const rollDiceCommand = async function ({
     }
 }
 
-const discordCommand = []
+const discordCommand = [{
+    data: new SlashCommandBuilder()
+        .setName('demo')
+        .setDescription('Demo command showing i18n functionality')
+        .addIntegerOption(option => 
+            option.setName('number')
+                .setDescription('A number to display')
+                .setRequired(false)),
+    
+    async execute(interaction) {
+        try {
+            const number = interaction.options.getInteger('number');
+            const userLang = await i18n.getUserLanguage({ userid: interaction.user.id });
+            
+            if (number) {
+                const response = i18n.translate('demo.results.number', {
+                    language: userLang,
+                    number: number,
+                    user: interaction.user.displayName || interaction.user.username
+                });
+                await interaction.reply({ content: response });
+            } else {
+                const response = i18n.translate('demo.help', { language: userLang });
+                await interaction.reply({ content: response });
+            }
+        } catch (error) {
+            console.error('Error in demo slash command:', error);
+            await interaction.reply({ 
+                content: 'Error processing demo command', 
+                ephemeral: true 
+            });
+        }
+    }
+}];
+
 module.exports = {
     rollDiceCommand,
     initialize,

@@ -9,9 +9,14 @@ const fetch = require('node-fetch');
 const fs = require('fs').promises;
 const fs2 = require('fs');
 const VIP = require('../modules/veryImportantPerson');
-const GPT3 = { name: "gpt-4o-mini", token: 12000, input_price: 0.0018, output_price: 0.0072 };
-const GPT4 = { name: "gpt-4o", token: 16000, input_price: 0.06, output_price: 0.18 };
-const DALLE3 = { name: "dall-e-2", price: 0.20, size1: "1024x1024", size2: "512×512" };
+
+const AI_MODELS = {
+    LOW: { name: "gemini-2.5-flash-preview-04-17", token: 12000, input_price: 0.0010, output_price: 0.0020 },
+    MEDIUM: { name: "gpt-4.1-mini-2025-04-14", token: 16000, input_price: 0.0018, output_price: 0.0072 },
+    HIGH: { name: "gpt-4.1-2025-04-14", token: 32000, input_price: 0.06, output_price: 0.18 },
+    IMAGE_LOW: { name: "dall-e-2", price: 0.20, size: "1024x1024" },
+    IMAGE_HIGH: { name: "dall-e-3", price: 0.80, size: "1024x1024", quality: "hd" }
+};
 const adminSecret = process.env.ADMIN_SECRET;
 const TRANSLATE_LIMIT_PERSONAL = [500, 100000, 150000, 150000, 150000, 150000, 150000, 150000];
 const variables = {};
@@ -29,22 +34,28 @@ const prefixs = function () {
     //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
     ///^(?=.*he)(?!.*da).*$/ig
     return [{
-        first: /^([.]ai)|(^[.]aimage)|(^[.]ait)|(^[.]ai4)|(^[.]ait4)$/i,
+        first: /^([.]ai)|(^[.]aim)|(^[.]aih)|(^[.]ait)|(^[.]aitm)|(^[.]aith)|(^[.]aimage)|(^[.]aimageh)$/i,
         second: null
     }]
 }
 const getHelpMessage = function () {
-    return `【🤖OpenAI助手】
+    return `【🤖AI助手】
 ╭────── 🗣️對話功能 ──────
-│ • .ai [訊息]
+│ • .ai [訊息] - 使用Gemini模型(默認)
+│ • .aim [訊息] - 使用GPT-4.1-mini模型(需VIP)
+│ • .aih [訊息] - 使用GPT-4.1模型(需HKTRPG管理員)
 │ • 或回覆(Reply)要討論的內容
-│ • 使用gpt-4o-mini模型
 │
 ├────── 📝翻譯功能 ──────
-│ • .ait [文字內容]
+│ • .ait [文字內容] - 使用Gemini模型翻譯
+│ • .aitm [文字內容] - 使用GPT-4.1-mini模型翻譯(需VIP)
+│ • .aith [文字內容] - 使用GPT-4.1模型翻譯(需HKTRPG管理員)
 │ • 或上傳.txt附件
-│ • 使用gpt-4o-mini進行翻譯
 │ • 轉換為正體中文
+│
+├────── 🖼️圖像生成 ──────
+│ • .aimage [描述] - 使用DALL-E-2模型(需HKTRPG管理員)
+│ • .aimageh [描述] - 使用DALL-E-3 HD模型(需HKTRPG管理員)
 │
 ├────── ⚠️使用限制 ──────
 │ 一般用戶:
@@ -52,6 +63,7 @@ const getHelpMessage = function () {
 │
 │ VIP用戶:
 │ 　• 享有更高文字上限
+│ 　• 可使用中級模型(GPT-4.1-mini)
 │
 ├────── 📌注意事項 ──────
 │ • AI翻譯需要處理時間
@@ -64,117 +76,6 @@ const initialize = function () {
     return variables;
 }
 
-const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg,
-    groupid,
-    discordMessage,
-    userid,
-    discordClient,
-    userrole,
-    botname,
-    displayname,
-    channelid,
-    displaynameDiscord,
-    membercount
-}) {
-    let rply = {
-        default: 'on',
-        type: 'text',
-        text: ''
-    };
-    switch (true) {
-        case /^.ait/i.test(mainMsg[0]): {
-            const mode = mainMsg[0].includes('4') ? GPT4 : GPT3;
-            if (mode === GPT4) {
-                if (!adminSecret) return rply;
-                if (userid !== adminSecret) return rply;
-            }
-            const { filetext, sendfile, text } = await translateAi.handleTranslate(inputStr, discordMessage, discordClient, userid, mode);
-            filetext && (rply.fileText = filetext);
-            sendfile && (rply.fileLink = [sendfile]);
-            text && (rply.text = text);
-            rply.quotes = true;
-            return rply;
-        }
-        case /^\S/.test(mainMsg[1]) && /^.aimage$/i.test(mainMsg[0]): {
-            if (!adminSecret) return rply;
-            if (userid !== adminSecret) return rply;
-            let lv = await VIP.viplevelCheckUser(userid);
-            if (lv < 1) {
-                rply.text = `這是實驗功能，現在只有VIP才能使用，\n支援HKTRPG及升級請到\nhttps://www.patreon.com/hktrpg`
-                return rply;
-            }
-
-            rply.text = await imageAi.handleImageAi(inputStr);
-            rply.quotes = true;
-            return rply;
-        }
-        case /^\S/.test(mainMsg[1]): {
-            const mode = mainMsg[0].includes('4') ? GPT4 : GPT3;
-            if (mode === GPT4) {
-                if (!adminSecret) return rply;
-                if (userid !== adminSecret) return rply;
-            }
-            if (botname === "Discord") {
-
-                const replyContent = await handleMessage.getReplyContent(discordMessage);
-                inputStr = `${replyContent}\n${inputStr.replace(/^\.ai\d?/i, '')} `;
-            }
-
-            rply.text = await chatAi.handleChatAi(inputStr, mode, userid);
-            rply.quotes = true;
-            return rply;
-        }
-        case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
-            rply.text = this.getHelpMessage();
-            rply.quotes = true;
-            return rply;
-        }
-        default: {
-            break;
-        }
-    }
-}
-
-const discordCommand = [
-    {
-        data: new SlashCommandBuilder()
-            .setName('ai')
-            .setDescription('OpenAI助手對話功能')
-            .addStringOption(option => 
-                option.setName('message')
-                    .setDescription('要討論的內容')
-                    .setRequired(true)),
-        async execute(interaction) {
-            return `.ai ${interaction.options.getString('message')}`;
-        }
-    },
-    {
-        data: new SlashCommandBuilder()
-            .setName('tran')
-            .setDescription('OpenAI翻譯功能')
-            .addStringOption(option => 
-                option.setName('text')
-                    .setDescription('要翻譯的文字內容')
-                    .setRequired(true)),
-        async execute(interaction) {
-            return `.ait ${interaction.options.getString('text')}`;
-        }
-    }
-];
-
-module.exports = {
-    rollDiceCommand,
-    initialize,
-    getHelpMessage,
-    prefixs,
-    gameType,
-    gameName,
-    discordCommand
-};
-
-
 class OpenAI {
     constructor() {
         this.apiKeys = [];
@@ -184,7 +85,7 @@ class OpenAI {
             apiKey: this.apiKeys[0]?.apiKey,
             baseURL: this.apiKeys[0]?.baseURL,
         };
-        this.model = GPT3.name;
+        this.model = AI_MODELS.LOW.name;
         if (this.apiKeys.length === 0) return;
         this.openai = new OpenAIApi(this.configuration);
         this.currentApiKeyIndex = 0;
@@ -242,38 +143,50 @@ class OpenAI {
             }, minutes * 60 * 1000); // 1 minute = 60 seconds * 1000 milliseconds
         });
     }
+    
+    async handleApiError(error, retryFunction, ...args) {
+        if (this.errorCount < (this.apiKeys.length * 5)) {
+            if (((this.errorCount !== 0) && this.errorCount % this.apiKeys.length) === 0) {
+                await this.waitMins(1);
+            }
+            await this.handleError(error);
+            return await retryFunction.apply(this, args);
+        } else {
+            this.errorCount = 0;
+            const commandType = args[0].match(/^\.(ai|ait|aimage)[mh]?/i)?.[0] || '.ai';
+            if (error instanceof OpenAIApi.APIError) {
+                return 'AI error: ' + error.status + `.\n ${args[0].replace(new RegExp(`^${commandType}`, 'i'), '')}`;
+            } else {
+                return 'AI error ' + `.\n ${args[0].replace(new RegExp(`^${commandType}`, 'i'), '')}`;
+            }
+        }
+    }
 }
 
 class ImageAi extends OpenAI {
     constructor() {
         super();
     }
-    async handleImageAi(inputStr) {
-        let input = inputStr.replace(/^\.aimage/i, '');
+    async handleImageAi(inputStr, imageModelType) {
+        let input = inputStr.replace(/^\.aimage[h]?/i, '');
         try {
-            let response = await this.openai.images.generate({
-                "model": DALLE3.name,
+            const imageConfig = {
+                "model": AI_MODELS[imageModelType].name,
                 "prompt": `${input}`,
                 "n": 1,
-                "size": DALLE3.size1,
-
-            })
-            response = await this.handleImage(response, input)
-            // if (response?.data?.error) return '可能是輸入太長了，或是有不支援的字元，請重新輸入'
+                "size": AI_MODELS[imageModelType].size
+            };
+            
+            if (imageModelType === 'IMAGE_HIGH' && AI_MODELS[imageModelType].quality) {
+                imageConfig.quality = AI_MODELS[imageModelType].quality;
+            }
+            
+            let response = await this.openai.images.generate(imageConfig);
+            response = await this.handleImage(response, input);
             this.errorCount = 0;
             return response;
         } catch (error) {
-            if (this.errorCount < (this.apiKeys.length * 5)) {
-                await super.handleError(error);
-                return await this.handleImageAi(inputStr);
-            } else {
-                this.errorCount = 0;
-                if (error instanceof OpenAIApi.APIError) {
-                    return 'AI error: ' + error.status + `.\n ${inputStr.replace(/^\.aimage/i, '')}`;
-                } else {
-                    return 'AI error ' + `.\n ${inputStr.replace(/^\.aimage/i, '')}`;
-                }
-            }
+            return await super.handleApiError(error, this.handleImageAi, inputStr, imageModelType);
         }
     }
     handleImage(data, input) {
@@ -284,7 +197,6 @@ class ImageAi extends OpenAI {
         }
         return response;
     }
-
 }
 
 class TranslateAi extends OpenAI {
@@ -383,26 +295,13 @@ class TranslateAi extends OpenAI {
             }
             return response.choices[0].message.content;
         } catch (error) {
-            if (this.errorCount < (this.apiKeys.length * 5)) {
-                if (((this.errorCount !== 0) && this.errorCount % this.apiKeys.length) === 0) {
-                    await super.waitMins(1);
-                }
-                await super.handleError(error);
-                return await this.translateChat(inputStr, mode);
-            } else {
-                this.errorCount = 0;
-                if (error instanceof OpenAIApi.APIError) {
-                    return 'AI error: ' + error.status + `.\n ${inputStr.replace(/^\.ait\d?/i, '')}`;
-                } else {
-                    return 'AI error ' + `.\n ${inputStr.replace(/^\.ait\d?/i, '')}`;
-                }
-            }
+            return await super.handleApiError(error, this.translateChat, inputStr, mode);
         }
     }
-    async translateText(translateScript, mode) {
+    async translateText(inputScript, mode) {
         let response = [];
-        for (let index = 0; index < translateScript.length; index++) {
-            let result = await this.translateChat(translateScript[index], mode);
+        for (let index = 0; index < inputScript.length; index++) {
+            let result = await this.translateChat(inputScript[index], mode);
             response.push(result);
         }
         return response;
@@ -479,7 +378,7 @@ class ChatAi extends OpenAI {
                     },
                     {
                         "role": "user",
-                        "content": `${inputStr.replace(/^\.ai\d?/i, '')}`
+                        "content": `${inputStr.replace(/^\.ai[mh]?/i, '')}`
                     }
                 ]
 
@@ -500,49 +399,248 @@ class ChatAi extends OpenAI {
             }
             return response.choices[0].message.content;
         } catch (error) {
-            if (this.errorCount < (this.apiKeys.length * 5)) {
-                await super.handleError(error);
-                return await this.handleChatAi(inputStr);
-            } else {
-                this.errorCount = 0;
-                if (error instanceof OpenAIApi.APIError) {
-                    return 'AI error: ' + error.status + `.\n ${inputStr.replace(/^\.ai\d?/i, '')}`;
-                } else {
-                    return 'AI error ' + `.\n ${inputStr.replace(/^\.ai\d?/i, '')}`;
-                }
-
-            }
+            return await super.handleApiError(error, this.handleChatAi, inputStr, mode, userid);
         }
     }
 }
 
+// Create instances AFTER all class definitions
 const openai = new OpenAI();
 const chatAi = new ChatAi();
 const imageAi = new ImageAi();
 const translateAi = new TranslateAi();
 
+class CommandHandler {
+    constructor() {
+        this.commands = {
+            ait: this.handleTranslateCommand,
+            aitm: this.handleTranslateCommand,
+            aith: this.handleTranslateCommand,
+            aimage: this.handleImageCommand,
+            aimageh: this.handleImageCommand,
+            ai: this.handleChatCommand,
+            aim: this.handleChatCommand,
+            aih: this.handleChatCommand
+        };
+    }
+
+    async processCommand(params) {
+        const { inputStr, mainMsg, groupid, discordMessage, userid, discordClient, 
+                userrole, botname, displayname, channelid, displaynameDiscord, membercount } = params;
+        
+        if (!mainMsg[0]) return { text: '' };
+        
+        const commandMatch = mainMsg[0].match(/^\.([a-zA-Z]+)/i);
+        if (!commandMatch) return { text: '' };
+        
+        const command = commandMatch[1].toLowerCase();
+        if (this.commands[command]) {
+            return await this.commands[command](params);
+        }
+        
+        if (mainMsg[1] === 'help' || !mainMsg[1]) {
+            return { text: getHelpMessage(), quotes: true };
+        }
+        
+        return { text: '' };
+    }
+    
+    async handleTranslateCommand(params) {
+        const { inputStr, mainMsg, discordMessage, discordClient, userid } = params;
+        const rply = { default: 'on', type: 'text', text: '', quotes: true };
+        
+        let modelType = 'LOW';
+        if (/^.aitm$/i.test(mainMsg[0])) {
+            let lv = await VIP.viplevelCheckUser(userid);
+            if (lv < 1) {
+                rply.text = `使用 MEDIUM 翻譯模型需要 VIP 會員，\n支援 HKTRPG 及升級請到\nhttps://www.patreon.com/hktrpg`;
+                return rply;
+            }
+            modelType = 'MEDIUM';
+        } else if (/^.aith$/i.test(mainMsg[0])) {
+            if (!adminSecret || userid !== adminSecret) {
+                rply.text = `使用 HIGH 翻譯模型需要 HKTRPG 管理員權限`;
+                return rply;
+            }
+            modelType = 'HIGH';
+        }
+        
+        const { filetext, sendfile, text } = await translateAi.handleTranslate(
+            inputStr, discordMessage, discordClient, userid, AI_MODELS[modelType]
+        );
+        
+        filetext && (rply.fileText = filetext);
+        sendfile && (rply.fileLink = [sendfile]);
+        text && (rply.text = text);
+        
+        return rply;
+    }
+    
+    async handleImageCommand(params) {
+        const { inputStr, mainMsg, userid } = params;
+        const rply = { default: 'on', type: 'text', text: '', quotes: true };
+        
+        if (!adminSecret || userid !== adminSecret) {
+            rply.text = `使用圖像生成功能需要 HKTRPG 管理員權限`;
+            return rply;
+        }
+        
+        const imageModelType = /^.aimageh$/i.test(mainMsg[0]) ? 'IMAGE_HIGH' : 'IMAGE_LOW';
+        rply.text = await imageAi.handleImageAi(inputStr, imageModelType);
+        
+        return rply;
+    }
+    
+    async handleChatCommand(params) {
+        const { inputStr, mainMsg, userid, botname, discordMessage } = params;
+        const rply = { default: 'on', type: 'text', text: '', quotes: true };
+        
+        let modelType = 'LOW';
+        if (/^.aim$/i.test(mainMsg[0])) {
+            let lv = await VIP.viplevelCheckUser(userid);
+            if (lv < 1) {
+                rply.text = `使用 MEDIUM 對話模型需要 VIP 會員，\n支援 HKTRPG 及升級請到\nhttps://www.patreon.com/hktrpg`;
+                return rply;
+            }
+            modelType = 'MEDIUM';
+        } else if (/^.aih$/i.test(mainMsg[0])) {
+            if (!adminSecret || userid !== adminSecret) {
+                rply.text = `使用 HIGH 對話模型需要 HKTRPG 管理員權限`;
+                return rply;
+            }
+            modelType = 'HIGH';
+        }
+        
+        let processedInput = inputStr;
+        if (botname === "Discord") {
+            const replyContent = await handleMessage.getReplyContent(discordMessage);
+            processedInput = `${replyContent}\n${inputStr.replace(/^\.ai[mh]?/i, '')} `;
+        }
+        
+        rply.text = await chatAi.handleChatAi(processedInput, AI_MODELS[modelType], userid);
+        return rply;
+    }
+}
+
+const commandHandler = new CommandHandler();
+
+const rollDiceCommand = async function (params) {
+    if (!process.env.OPENAI_SWITCH) return;
+    
+    // Check if there's a command match
+    const firstCmd = params.mainMsg[0];
+    if (!firstCmd || !firstCmd.match(/^\./)) return;
+    
+    if (!firstCmd.match(/^\.ai/i) && !firstCmd.match(/^\.ait/i)) return;
+    
+    return await commandHandler.processCommand(params);
+};
+
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('ai')
+            .setDescription('AI助手對話功能')
+            .addStringOption(option =>
+                option.setName('message')
+                    .setDescription('要討論的內容')
+                    .setRequired(true))
+            .addStringOption(option =>
+                option.setName('model')
+                    .setDescription('AI模型選擇')
+                    .setRequired(false)
+                    .addChoices(
+                        { name: 'Gemini (默認)', value: 'gemini' },
+                        { name: 'GPT-4.1-mini (需VIP)', value: 'gpt-mini' },
+                        { name: 'GPT-4.1 (需HKTRPG管理員)', value: 'gpt-full' }
+                    )),
+        async execute(interaction) {
+            const model = interaction.options.getString('model');
+            let prefix = '.ai';
+            if (model === 'gpt-mini') prefix = '.aim';
+            if (model === 'gpt-full') prefix = '.aih';
+            return `${prefix} ${interaction.options.getString('message')}`;
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('tran')
+            .setDescription('AI翻譯功能')
+            .addStringOption(option =>
+                option.setName('text')
+                    .setDescription('要翻譯的文字內容')
+                    .setRequired(true))
+            .addStringOption(option =>
+                option.setName('model')
+                    .setDescription('AI模型選擇')
+                    .setRequired(false)
+                    .addChoices(
+                        { name: 'Gemini (默認)', value: 'gemini' },
+                        { name: 'GPT-4.1-mini (需VIP)', value: 'gpt-mini' },
+                        { name: 'GPT-4.1 (需HKTRPG管理員)', value: 'gpt-full' }
+                    )),
+        async execute(interaction) {
+            const model = interaction.options.getString('model');
+            let prefix = '.ait';
+            if (model === 'gpt-mini') prefix = '.aitm';
+            if (model === 'gpt-full') prefix = '.aith';
+            return `${prefix} ${interaction.options.getString('text')}`;
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('image')
+            .setDescription('AI圖像生成功能 (需HKTRPG管理員)')
+            .addStringOption(option =>
+                option.setName('prompt')
+                    .setDescription('圖像描述')
+                    .setRequired(true))
+            .addStringOption(option =>
+                option.setName('model')
+                    .setDescription('圖像模型選擇')
+                    .setRequired(false)
+                    .addChoices(
+                        { name: 'DALL-E-2 (默認)', value: 'basic' },
+                        { name: 'DALL-E-3 HD', value: 'hd' }
+                    )),
+        async execute(interaction) {
+            const model = interaction.options.getString('model');
+            let prefix = '.aimage';
+            if (model === 'hd') prefix = '.aimageh';
+            return `${prefix} ${interaction.options.getString('prompt')}`;
+        }
+    }
+];
+
+module.exports = {
+    rollDiceCommand,
+    initialize,
+    getHelpMessage,
+    prefixs,
+    gameType,
+    gameName,
+    discordCommand
+};
 
 /**
  * gpt-tokenizer
  * 設計計算Token上限
- * 
+ *
  * 首先，每個Token都是由一個字元組成，所以我們先計算字元上限
  * 先將整個內容放進tokenizer
  * 如果<於token 上限，則直接回傳
  * 完成
- * 
+ *
  * 如不,
  * 進行分割，將內容分割成數個字串
  * 並將每個字串放進tokenizer
- * 
- * 
+ *
+ *
  * 分割條件
  * 1. 以句號分割
  * 2. 以逗號分割
  * 3. 以行來分割
  * 4. 以空格分割
  * 5. 以字數分割
- * 
+ *
  */
-
-

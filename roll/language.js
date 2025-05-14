@@ -116,7 +116,7 @@ const handleSetGroupCommand = async function ({ mainMsg, userid, groupid, userro
     };
 
     // Check if user has admin/manager role
-    const isAdmin = userrole === 1 || userrole === 2 || userrole === 3;
+    const isAdmin = (userrole === 3);
 
     if (!isAdmin) {
         rply.text = i18n.translate('language.adminOnly', {

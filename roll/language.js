@@ -5,6 +5,11 @@ const { SlashCommandBuilder } = require('discord.js');
 
 const gameName = function () {
     // This is called from the system without user context
+    // en: Language Settings
+    // zh-TW: 語言設定
+    // zh-CN: 语言设置
+    // ja: 言語設定
+    // ko: 언어 설정
     return i18n.translate('language.name');
 }
 
@@ -27,19 +32,19 @@ const getHelpMessage = function () {
         // If we have user context, use it
         if (this && this.userid) {
             console.log('[DEBUG] Help being shown with user context:', this.userid);
+
+            // Use the translation system with the user's context
+            return i18n.translate('language.help', {
+                userid: this.userid,
+                groupid: this.groupid
+            });
         }
     } catch (error) {
         console.error('[ERROR] Error in getHelpMessage:', error);
     }
 
-    // Just return both language versions to avoid any issues
-    // English version
-    const helpEN = "【🌐Language Settings】\n╭────── ℹ️Instructions ──────\n│ View available languages:\n│ .lang list\n│ \n│ Set language:\n│ .lang [language code]\n│ or\n│ .language set [language code]\n│ Example: .lang en\n│ Example: .language set zh-tw\n│ \n│ For admins - Set group language:\n│ .lang group [language code]\n│ Example: .lang group en\n│ \n│ Currently supported languages:\n│ en (English)\n│ zh-TW (繁體中文)\n│ zh-CN (简体中文)\n│ ja (日本語)\n│ ko (한국어)\n╰──────────────";
-
-    // Chinese version 
-    const helpZhTW = "【🌐語言設定】\n╭────── ℹ️說明 ──────\n│ 查看可用語言:\n│ .lang list\n│ \n│ 設置語言:\n│ .lang [語言代碼]\n│ 或\n│ .language set [語言代碼]\n│ 例如: .lang zh-TW\n│ 例如: .language set zh-tw\n│ \n│ 管理員功能 - 設置群組語言:\n│ .lang group [語言代碼]\n│ 例如: .lang group zh-TW\n│ \n│ 目前支持的語言:\n│ en (English)\n│ zh-TW (繁體中文)\n│ zh-CN (简体中文)\n│ ja (日本語)\n│ ko (한국어)\n╰──────────────";
-
-    return helpZhTW;
+    // If there's no user context, use the default language
+    return i18n.translate('language.help');
 }
 
 const initialize = function () {
@@ -73,14 +78,13 @@ const rollDiceCommand = async function ({
         // Make sure this is the first condition checked after getting user language
         if (!mainMsg[1] || mainMsg[1] === '' || /^help$/i.test(mainMsg[1])) {
             console.log(`[DEBUG] Showing help in language: ${currentLang}`);
-            
+
             // First try normal translation
-            rply.text = i18n.translate('language.help', { 
-                userid, 
+            rply.text = i18n.translate('language.help', {
+                userid,
                 groupid,
-                language: currentLang // Explicitly set language
             });
-            
+
             // If that fails or if we're debugging, also try direct file translation
             try {
                 const directTranslation = await i18n.directTranslate('language.help', currentLang);
@@ -91,7 +95,7 @@ const rollDiceCommand = async function ({
             } catch (err) {
                 console.error('[ERROR] Direct translation failed:', err);
             }
-            
+
             rply.quotes = true;
             return rply;
         }
@@ -113,7 +117,7 @@ const rollDiceCommand = async function ({
         if (/^group$/i.test(mainMsg[1]) && mainMsg[2]) {
             // Check if user has admin/manager role
             const isAdmin = userrole === 1 || userrole === 2 || userrole === 3;
-            
+
             if (!isAdmin) {
                 rply.text = i18n.translate('language.adminOnly', {
                     userid,
@@ -122,7 +126,7 @@ const rollDiceCommand = async function ({
                 });
                 return rply;
             }
-            
+
             if (!groupid) {
                 rply.text = i18n.translate('language.needGroup', {
                     userid,
@@ -130,22 +134,22 @@ const rollDiceCommand = async function ({
                 });
                 return rply;
             }
-            
+
             const inputLang = mainMsg[2].toLowerCase();
             if (i18n.isSupported(inputLang)) {
                 // Get properly cased language code
                 const normalizedLang = i18n.getNormalizedLanguage(inputLang);
-                
+
                 // Get current group language if any
                 const records = require('../modules/records');
                 const currentGroupLang = await records.getGroupLanguage(groupid);
-                
+
                 // Store group preference in database
                 await records.updateGroupLanguage(groupid, normalizedLang);
-                
+
                 // Clear the cache to ensure the new language is used immediately
                 i18n.clearUserCache(null, groupid);
-                
+
                 // Try normal translation first
                 rply.text = i18n.translate('language.groupChanged', {
                     userid,
@@ -154,7 +158,7 @@ const rollDiceCommand = async function ({
                     from: currentGroupLang || i18n.defaultLanguage,
                     to: normalizedLang
                 });
-                
+
                 // If the key is returned (translation not found), try direct translation
                 if (rply.text === 'language.groupChanged') {
                     try {
@@ -176,7 +180,7 @@ const rollDiceCommand = async function ({
                     requested: inputLang,
                     list: i18n.getLanguages().join(', ')
                 });
-                
+
                 // If the key is returned (translation not found), try direct translation
                 if (rply.text === 'language.notSupported') {
                     try {
@@ -216,7 +220,7 @@ const rollDiceCommand = async function ({
                     from: currentLang,
                     to: normalizedLang
                 });
-                
+
                 // If the key is returned (translation not found), try direct translation
                 if (rply.text === 'language.changed') {
                     try {
@@ -238,7 +242,7 @@ const rollDiceCommand = async function ({
                     requested: inputLang,
                     list: i18n.getLanguages().join(', ')
                 });
-                
+
                 // If the key is returned (translation not found), try direct translation
                 if (rply.text === 'language.notSupported') {
                     try {
@@ -277,7 +281,7 @@ const rollDiceCommand = async function ({
                 from: currentLang,
                 to: normalizedLang
             });
-            
+
             // If the key is returned (translation not found), try direct translation
             if (rply.text === 'language.changed') {
                 try {
@@ -299,7 +303,7 @@ const rollDiceCommand = async function ({
                 requested: inputLang,
                 list: i18n.getLanguages().join(', ')
             });
-            
+
             // If the key is returned (translation not found), try direct translation
             if (rply.text === 'language.notSupported') {
                 try {
@@ -358,19 +362,19 @@ const discordCommand = [{
         try {
             const subcommand = interaction.options.getSubcommand(false);
             const userid = interaction.user.id;
-            
+
             // Handle group language setting (admin only)
             if (subcommand === 'group') {
                 const langOption = interaction.options.getString('language');
                 const guildId = interaction.guildId;
-                
+
                 // Check if user has admin permissions
                 const member = interaction.member;
                 const hasAdminPermission = member && (
-                    member.permissions.has('ADMINISTRATOR') || 
+                    member.permissions.has('ADMINISTRATOR') ||
                     member.permissions.has('MANAGE_GUILD')
                 );
-                
+
                 if (!hasAdminPermission) {
                     await interaction.reply({
                         content: i18n.translate('language.adminOnly', { userid }),
@@ -378,7 +382,7 @@ const discordCommand = [{
                     });
                     return;
                 }
-                
+
                 if (!guildId) {
                     await interaction.reply({
                         content: i18n.translate('language.needGroup', { userid }),
@@ -386,7 +390,7 @@ const discordCommand = [{
                     });
                     return;
                 }
-                
+
                 // Check if language is supported
                 if (!i18n.isSupported(langOption)) {
                     await interaction.reply({
@@ -399,20 +403,20 @@ const discordCommand = [{
                     });
                     return;
                 }
-                
+
                 // Get current group language
                 const records = require('../modules/records');
                 const currentGroupLang = await records.getGroupLanguage(guildId);
-                
+
                 // Get properly cased language code
                 const normalizedLang = i18n.getNormalizedLanguage(langOption);
-                
+
                 // Update language
                 await records.updateGroupLanguage(guildId, normalizedLang);
-                
+
                 // Clear the cache to ensure the new language is used immediately
                 i18n.clearUserCache(null, guildId);
-                
+
                 // Respond with message in new language
                 await interaction.reply({
                     content: i18n.translate('language.groupChanged', {
@@ -424,7 +428,7 @@ const discordCommand = [{
                 });
                 return;
             }
-            
+
             // Regular user language setting (existing code)
             const langOption = interaction.options.getString('language');
 

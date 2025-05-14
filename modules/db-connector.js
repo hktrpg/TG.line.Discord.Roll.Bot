@@ -67,14 +67,6 @@ async function connect(retries = 0) {
     try {
         connectionAttempts++;
         console.log(`Attempting to connect to MongoDB (Attempt ${connectionAttempts})`);
-        console.log('Connection parameters:', {
-            connectTimeout: config.connectTimeout,
-            socketTimeout: config.socketTimeout,
-            serverSelectionTimeout: config.serverSelectionTimeout,
-            poolSize: config.poolSize,
-            minPoolSize: config.minPoolSize
-        });
-
         await mongoose.connect(config.mongoUrl, {
             connectTimeoutMS: config.connectTimeout,
             socketTimeoutMS: config.socketTimeout,

@@ -29,10 +29,6 @@ const gameType = function () {
     return 'funny:openai:hktrpg'
 }
 const prefixs = function () {
-    //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
-    //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
-    //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
-    ///^(?=.*he)(?!.*da).*$/ig
     return [{
         first: /^([.]ai)|(^[.]aim)|(^[.]aih)|(^[.]ait)|(^[.]aitm)|(^[.]aith)|(^[.]aimage)|(^[.]aimageh)$/i,
         second: null
@@ -433,13 +429,14 @@ class CommandHandler {
         const commandMatch = mainMsg[0].match(/^\.([a-zA-Z]+)/i);
         if (!commandMatch) return { text: '' };
         
+        // First check if it's a help command or empty command
+        if (mainMsg[1] === 'help' || !mainMsg[1]) {
+            return { text: getHelpMessage(), quotes: true };
+        }
+        
         const command = commandMatch[1].toLowerCase();
         if (this.commands[command]) {
             return await this.commands[command](params);
-        }
-        
-        if (mainMsg[1] === 'help' || !mainMsg[1]) {
-            return { text: getHelpMessage(), quotes: true };
         }
         
         return { text: '' };

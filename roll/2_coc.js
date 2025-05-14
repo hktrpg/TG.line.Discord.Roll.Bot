@@ -4,16 +4,17 @@ const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
 const checkMongodb = require('../modules/dbWatchdog.js');
 const mathjs = require('mathjs');
+const i18n = require('../modules/i18n.js');
 const gameName = function () {
-	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
+	return i18n.translate('CoC7.title');
 }
 const { SlashCommandBuilder } = require('discord.js');
 const gameType = function () {
-	return 'Dice:CoC'
+	return 'CC:hktrpg'
 }
 const prefixs = function () {
 	return [{
-		first: /(^\.cccc$)|(^\.ccdr$)|(^\.ccpc$)|(^ccrt$)|(^\.chase$)|(^ccsu$)|(^cc7版創角$)|(^[.]dp$)|(^[.]cc7build$)|(^[.]ccpulpbuild$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i,
+		first: /(^\.cccc$)|(^\.ccdr$)|(^\.ccpc$)|(^\.ccrt$)|(^ccrt$)|(^\.chase$)|(^ccsu$)|(^\.ccsu$)|(^cc7版創角$)|(^[.]dp$)|(^[.]cc7build$)|(^[.]ccpulpbuild$)|(^[.]cc6build$)|(^[.]cc7bg$)|(^cc6版創角$)|(^cc7版角色背景$)/i,
 		second: null
 	},
 	{
@@ -23,69 +24,7 @@ const prefixs = function () {
 	]
 }
 const getHelpMessage = function () {
-    return `【🦑克蘇魯神話RPG系統】
-╭────── 🎲基本擲骰 ──────
-│ COC6版: ccb 80  (技能小於等於80)
-│ COC7版: cc 80   (技能小於等於80)
-│ 
-│ 🎯獎勵骰: cc(1~2) 
-│ 範例: cc1 80 一粒獎勵骰
-│ 
-│ ⚠️懲罰骰: ccn(1~2) 
-│ 範例: ccn2 80 兩粒懲罰骰
-│
-│ 📊聯合檢定:
-│ 　cc 80,40 偵查,鬥毆
-│ 　cc1 80,40 偵查,鬥毆 (獎勵骰)
-│ 　ccn1 80,40 偵查,鬥毆 (懲罰骰)
-├────── 💀理智檢定 ──────
-│ 格式: .sc (SAN值) (成功)/(失敗)
-│ 範例:
-│ 　.sc 50
-│ 　.sc 50 1/1d3+1
-│ 　.sc 50 1d10/1d100
-├────── 🏃追逐與瘋狂 ──────
-│ .chase    - 追逐戰產生器
-│ 　※使用可選規則及我對規則書之獨斷理解，
-│ 　※建議使用前詳細閱讀請詳閱CoC7Th規則書第七章「追逐」內容
-│ 
-│ ccrt     - 即時型瘋狂檢定
-│ ccsu     - 總結型瘋狂檢定
-├────── 📚神話相關 ──────
-│ .cccc    - 隨機產生神話組織
-│ .ccdr    - 隨機產生神話資料
-│ .ccpc    - 施法推骰後果判定
-├────── 👤角色創建 ──────
-│ .ccpulpbuild      - PULP版角色創建
-│ .cc6build         - COC6版角色創建
-│ .cc7build        - COC7版角色創建(限7-89歲)
-│ .cc7build random - COC7版隨機角色創建
-│ 
-│ 自由分配點數創建:
-│ .cc7build .xyz   - 自訂骰點方式
-│ 範例: .cc7build .752
-│ 　7次: 3d6×5
-│ 　5次: (2d6+6)×5
-│ 　2次: 3d6×5
-│ 可只輸入. 預設值為.53
-│ 　即5次 3d6×5 和3次(2d6+6)×5
-├────── 📈成長相關 ──────
-│ 成長檢定: 
-│ .dp (技能%) (名稱)
-│ 範例: .dp 50 騎乘 80 鬥毆 70 60
-│ 
-│ .cc7bg - 隨機產生角色背景
-│
-│ 📝.dp成長紀錄功能說明:
-│ 會記錄CC功能投擲成功和大成功大失敗的技能
-│ .dp start   - 開始記錄擲骰
-│ .dp stop    - 停止記錄擲骰
-│ .dp show    - 顯示你的擲骰紀錄
-│ .dp showall - 顯示全頻道擲骰紀錄
-│ .dp auto    - 自動成長並清除紀錄
-│ .dp clear   - 清除你的擲骰紀錄
-│ .dp clearall- 清除所有大成功大失敗紀錄
-╰──────────────`
+	return i18n.translate('CoC7.help');
 }
 const initialize = function () {
 	return {};
@@ -107,22 +46,76 @@ const rollDiceCommand = async function ({
 		type: 'text',
 		text: ''
 	};
-	let trigger = mainMsg[0].toLowerCase();
+	
+	// Get user's preferred language
+	const userLang = await i18n.getUserLanguage({ userid, groupid });
+
 	switch (true) {
-		case (/^help$/i.test(mainMsg[1])): {
-			rply.text = this.getHelpMessage();
+		case /^ccb$/i.test(mainMsg[0]) && mainMsg[1] <= 1000:
+			rply = await coc6(mainMsg[1], mainMsg[2]);
+			break;
+
+		case /^ccb$/i.test(mainMsg[0]) && mainMsg[1] > 1000:
+			rply.text = i18n.translate('CoC7.error.tooLarge', {
+				language: userLang,
+				number: mainMsg[1]
+			});
+			break;
+
+		case /^cc$/i.test(mainMsg[0]) && mainMsg[1] <= 1000:
+			rply = await coc7({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, userName: displaynameDiscord || displayname || tgDisplayname });
+			break;
+
+		case /^cc$/i.test(mainMsg[0]) && mainMsg[1] > 1000:
+			rply.text = i18n.translate('CoC7.error.tooLarge', {
+				language: userLang,
+				number: mainMsg[1]
+			});
+			break;
+
+		case /^ccrt$/i.test(mainMsg[0]): {
+			rply.text = ccrt(userLang);
 			rply.quotes = true;
 			break;
 		}
-		case /^ccrt$/i.test(mainMsg[0]): {
-			rply.text = ccrt();
+		case /^\.ccrt$/i.test(mainMsg[0]): {
+			rply.text = ccrt(userLang);
 			rply.quotes = true;
 			break;
 		}
 		case /^ccsu$/i.test(mainMsg[0]): {
-			rply.text = ccsu();
+			rply.text = ccsu(userLang);
 			rply.quotes = true;
 			break;
+		}
+		case /^\.cccc$/i.test(mainMsg[0]): {
+			rply.text = CreateCult.createCult(userLang);
+			rply.quotes = true;
+			break;
+		}
+		case /^\.ccdr$/i.test(mainMsg[0]): {
+			rply.text = MythoyCollection.getMythos(userLang);
+			rply.quotes = true;
+			break;
+		}
+		case /^\.ccpc$/i.test(mainMsg[0]): {
+			let text = '';
+			if (mainMsg[1]) {
+				text = i18n.translate('CoC7.ccpc.powSuccess', { language: userLang, rate: mainMsg[1] }) + '\n';
+				text += MythoyCollection.getMythonData('正常', userLang);
+			} else if (mainMsg[1] === null) {
+				text = MythoyCollection.getMythonData('正常', userLang);
+			} else {
+				text = MythoyCollection.getMythonData('超凡', userLang);
+			}
+			rply.text = text;
+			rply.quotes = true;
+			break;
+		}
+		case (/^help$/i.test(mainMsg[1]) || !mainMsg[1]): {
+			rply.text = getHelpMessage();
+			rply.quotes = true;
+			return rply;
 		}
 		case /^\.sc$/i.test(mainMsg[0]): {
 			let sc = new SanCheck(mainMsg, botname);
@@ -178,7 +171,7 @@ const rollDiceCommand = async function ({
 				switch: true
 			}).catch(error => console.error('coc #149 mongoDB error: ', error.name, error.reason));
 			if (!switchOn) {
-				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
+				rply.text = i18n.translate('CoC7.dp.channelNotEnabled', { language: userLang });
 				return rply;
 			}
 			let result = await schema.developmentRollingRecord.find({
@@ -187,23 +180,24 @@ const rollDiceCommand = async function ({
 			}).sort({ date: -1 }).catch(error => console.error('coc #157 mongoDB error: ', error.name, error.reason));
 			rply.quotes = true;
 			if (!result || result.length == 0) {
-				rply.text = '未有CC擲骰紀錄';
+				rply.text = i18n.translate('CoC7.dp.noRollingRecords', { language: userLang });
 				return rply;
 			}
 			let successResult = {
 				data: false,
-				text: `成功的擲骰結果`
+				text: i18n.translate('CoC7.dp.successResult', { language: userLang })
 			};
 			let successResultWithoutName = {
 				data: false,
-				text: `=======
-				無記名成功結果`}
-				;
+				text: i18n.translate('CoC7.dp.unnamedSuccessResult', { language: userLang })
+			};
 			let criticalSuccessNfumbleResult = {
 				data: false,
-				text: `=======
-				大成功與大失敗`}
-				;
+				text: i18n.translate('CoC7.dp.criticalAndFumble', { language: userLang })
+			};
+			
+			const unnamedSkill = i18n.translate('CoC7.dp.unnamedSkill', { language: userLang });
+			
 			for (let index = 0; index < result.length; index++) {
 				if (result[index].skillPerStyle == 'normal' && result[index].skillName) {
 					successResult.data = true;
@@ -213,29 +207,14 @@ const rollDiceCommand = async function ({
 				if (result[index].skillPerStyle == 'normal' && !result[index].skillName) {
 					successResultWithoutName.data = true;
 					successResultWithoutName.text += `
-					「無名技能」	${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()}`
+					「${unnamedSkill}」	${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()}`
 				}
 				if (result[index].skillPerStyle == 'criticalSuccess' || result[index].skillPerStyle == 'fumble') {
 					criticalSuccessNfumbleResult.data = true;
 					criticalSuccessNfumbleResult.text += `
-					${(result[index].skillName) ? '「' + result[index].skillName + '」' : '「無名技能」'} ${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()} - ${(result[index].skillPerStyle == 'criticalSuccess') ? '大成功' : '大失敗'}`
+					${(result[index].skillName) ? '「' + result[index].skillName + '」' : '「' + unnamedSkill + '」'} ${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()} - ${(result[index].skillPerStyle == 'criticalSuccess') ? '大成功' : '大失敗'}`
 				}
-
 			}
-			/**
-			 * 成功的擲骰結果
-			 * =======
-			 * 空手 50	拳擊 60	拳	80
-			 * 空手 50	拳擊 60	拳	80 	
-			 * =======
-			 * 無記名成功結果
-			 * 21-08-04 12:33 技能	80
-			 * 21-08-04 13:33 技能	80
-			 * =======
-			 * 大成功與大失敗
-			 * 技能	80	大失敗
-			 * 拳	80	大成功
-			 */
 
 			(successResult.data) ? rply.text += `${successResult.text}\n` : null;
 			(successResultWithoutName.data) ? rply.text += `${successResultWithoutName.text}\n` : null;
@@ -255,7 +234,7 @@ const rollDiceCommand = async function ({
 				switch: true
 			}).catch(error => console.error('coc #224 mongoDB error: ', error.name, error.reason));
 			if (!switchOn) {
-				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
+				rply.text = i18n.translate('CoC7.dp.channelNotEnabled', { language: userLang });
 				return rply;
 			}
 			let result = await schema.developmentRollingRecord.find({
@@ -270,18 +249,23 @@ const rollDiceCommand = async function ({
 			rply.quotes = true;
 			let criticalSuccessNfumbleResult = {
 				data: false,
-				text: `大成功與大失敗
-				=======`}
-				;
+				text: i18n.translate('CoC7.dp.criticalAndFumble', { language: userLang })
+			};
+			
+			const unnamedSkill = i18n.translate('CoC7.dp.unnamedSkill', { language: userLang });
+			const unnamedUser = i18n.translate('CoC7.dp.unnamedUser', { language: userLang });
+			const criticalSuccess = i18n.translate('CoC7.dp.criticalSuccess', { language: userLang });
+			const fumble = i18n.translate('CoC7.dp.fumble', { language: userLang });
+			
 			for (let index = 0; index < result.length; index++) {
 				if (result[index].skillPerStyle == 'criticalSuccess' || result[index].skillPerStyle == 'fumble') {
 					criticalSuccessNfumbleResult.data = true;
 					criticalSuccessNfumbleResult.text += `
-					${(result[index].userName) ? result[index].userName : '「無名使用者」'} ${(result[index].skillName) ? result[index].skillName : '「無名技能」'} ${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()} - ${(result[index].skillPerStyle == 'criticalSuccess') ? '大成功' : '大失敗'}`
+					${(result[index].userName) ? result[index].userName : '「' + unnamedUser + '」'} ${(result[index].skillName) ? '「' + result[index].skillName + '」' : '「' + unnamedSkill + '」'} ${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()} - ${(result[index].skillPerStyle == 'criticalSuccess') ? criticalSuccess : fumble}`
 				}
-
 			}
-			(criticalSuccessNfumbleResult.data) ? rply.text += criticalSuccessNfumbleResult.text : rply.text += "本頻道未有相關紀錄, 請多些擲骰吧!";
+			
+			(criticalSuccessNfumbleResult.data) ? rply.text += criticalSuccessNfumbleResult.text : rply.text += i18n.translate('CoC7.dp.channelRecords', { language: userLang });
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^auto$/i.test(mainMsg[1]): {
@@ -298,7 +282,7 @@ const rollDiceCommand = async function ({
 				switch: true
 			}).catch(error => console.error('coc #264 mongoDB error: ', error.name, error.reason));
 			if (!switchOn) {
-				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
+				rply.text = i18n.translate('CoC7.dp.channelNotEnabled', { language: userLang });
 				return rply;
 			}
 
@@ -308,35 +292,65 @@ const rollDiceCommand = async function ({
 				skillPerStyle: 'normal'
 			}).sort({ date: -1 }).catch(error => console.error('coc #274 mongoDB error: ', error.name, error.reason));
 			if (!result || result.length == 0) {
-				rply.text = '未有CC擲骰紀錄';
+				rply.text = i18n.translate('CoC7.dp.noRollingRecords', { language: userLang });
 				return rply;
 			}
-			rply.text = `自動成長檢定\n========`;
+			
+			rply.text = i18n.translate('CoC7.dp.autoGrowthTitle', { language: userLang });
+			
 			for (let index = 0; index < result.length; index++) {
 				let target = Number(result[index].skillPer);
-				let name = result[index].skillName || '無名技能';
+				let name = result[index].skillName || i18n.translate('CoC7.dp.unnamedSkill', { language: userLang });
 				let skill = rollbase.Dice(100);
 				let confident = (target <= 89) ? true : false;
 				if (target > 95) target = 95;
+				
+				// Format date
+				const dateString = i18n.translate('CoC7.dp.dateFormat', { 
+					language: userLang,
+					month: result[index].date.getMonth() + 1,
+					day: result[index].date.getDate(),
+					hour: result[index].date.getHours(),
+					minute: (result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()
+				});
+				
 				if (skill >= 96 || skill > target) {
 					let improved = rollbase.Dice(10);
-					rply.text += `\n1D100 > ${target} 擲出: ${skill}  →  「${name}」成長成功! 技能增加 ${improved} 點，現在是 ${target + improved} 點。- ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()}`
+					
+					rply.text += i18n.translate('CoC7.dp.growthSuccess', { 
+						language: userLang,
+						target: target,
+						skill: skill,
+						name: name,
+						improved: improved,
+						newTarget: target + improved,
+						date: dateString
+					});
 
 					if (confident && ((target + improved) >= 90)) {
-						rply.text += `\n調查員的技能提升到90%以上，他的當前理智值增加${rollbase.Dice(6) + rollbase.Dice(6)}點。`
+						const sanIncrease = rollbase.Dice(6) + rollbase.Dice(6);
+						rply.text += i18n.translate('CoC7.dp.sanityIncrease', {
+							language: userLang,
+							sanIncrease: sanIncrease
+						});
 					}
 				} else {
-					rply.text += `\n1D100 > ${target} 擲出: ${skill}  →  「${name}」 成長失敗!  - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()}`
+					rply.text += i18n.translate('CoC7.dp.growthFailure', {
+						language: userLang,
+						target: target,
+						skill: skill,
+						name: name,
+						date: dateString
+					});
 				}
-
 			}
 			await schema.developmentRollingRecord.deleteMany({
 				groupID: channelid || groupid,
 				userID: userid,
 				skillPerStyle: 'normal'
 			}).catch(error => console.error('coc #302 mongoDB error: ', error.name, error.reason));
-			rply.text += `\n--------
-			成長結束，已清除擲骰紀錄`
+			
+			rply.text += i18n.translate('CoC7.dp.growthComplete', { language: userLang });
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^clear$/i.test(mainMsg[1]): {
@@ -354,7 +368,10 @@ const rollDiceCommand = async function ({
 			}).catch(error => console.error('coc #316 mongoDB error: ', error.name, error.reason));
 
 			rply.quotes = true;
-			rply.text = `已清除 ${result.n}項紀錄, 如想大成功大失敗紀錄也清除, 請使用 .dp clearall`
+			rply.text = i18n.translate('CoC7.dp.recordsCleared', {
+				language: userLang,
+				count: result.n
+			});
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^clearall$/i.test(mainMsg[1]): {
@@ -378,9 +395,11 @@ const rollDiceCommand = async function ({
 
 			}).catch(error => console.error('coc #338 mongoDB error: ', error.name, error.reason));
 			rply.quotes = true;
-			rply.text = `已清除你在本頻道的所有CC擲骰紀錄, 共計${result.n}項`
+			rply.text = i18n.translate('CoC7.dp.allRecordsCleared', {
+				language: userLang,
+				count: result.n
+			});
 			return rply;
-
 		}
 		case (trigger == '.dp' || trigger == '成長檢定' || trigger == '幕間成長'): {
 			rply.text = DevelopmentPhase(mainMsg);
@@ -392,19 +411,19 @@ const rollDiceCommand = async function ({
 			break;
 		}
 		case (trigger == 'cc1' && mainMsg[1] !== null): {
-			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 1, userName: tgDisplayname || displaynameDiscord || displayname });
+			rply = await coc7({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 1, userName: displaynameDiscord || displayname || tgDisplayname  });
 			break;
 		}
 		case (trigger == 'cc2' && mainMsg[1] !== null): {
-			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 2, userName: tgDisplayname || displaynameDiscord || displayname });
+			rply = await coc7({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 2, userName: displaynameDiscord || displayname || tgDisplayname });
 			break;
 		}
 		case (trigger == 'ccn1' && mainMsg[1] !== null): {
-			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -1, userName: tgDisplayname || displaynameDiscord || displayname });
+			rply = await coc7({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -1, userName: displaynameDiscord || displayname || tgDisplayname });
 			break;
 		}
 		case (trigger == 'ccn2' && mainMsg[1] !== null): {
-			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -2, userName: tgDisplayname || displaynameDiscord || displayname });
+			rply = await coc7({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -2, userName: displaynameDiscord || displayname || tgDisplayname });
 			break;
 		}
 
@@ -452,81 +471,214 @@ const rollDiceCommand = async function ({
 const discordCommand = [
 	{
 		data: new SlashCommandBuilder()
-			.setName('ccrt')
-			.setDescription('克蘇魯神話TRPG Cthulhu 7th 即時型瘋狂')
+			.setName(i18n.directTranslateSync('CoC7.slash.ccrt.name', 'en') || 'ccrt')
+			.setDescription(i18n.directTranslateSync('CoC7.slash.ccrt.description', 'en') || '克蘇魯神話TRPG Cthulhu 7th 即時型瘋狂')
+			.setNameLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.ccrt.name', 'zh-TW') || 'ccrt'
+			})
+			.setDescriptionLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.ccrt.description', 'zh-TW') || '克蘇魯神話TRPG Cthulhu 7th 即時型瘋狂'
+			})
 		,
-		async execute() {
+		async execute(interaction) {
 			return `ccrt`
 		}
 	}, {
 		data: new SlashCommandBuilder()
-			.setName('ccsu')
-			.setDescription('克蘇魯神話TRPG Cthulhu 7th 總結型瘋狂')
+			.setName(i18n.directTranslateSync('CoC7.slash.ccsu.name', 'en') || 'ccsu')
+			.setDescription(i18n.directTranslateSync('CoC7.slash.ccsu.description', 'en') || '克蘇魯神話TRPG Cthulhu 7th 總結型瘋狂')
+			.setNameLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.ccsu.name', 'zh-TW') || 'ccsu'
+			})
+			.setDescriptionLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.ccsu.description', 'zh-TW') || '克蘇魯神話TRPG Cthulhu 7th 總結型瘋狂'
+			})
 		,
 		async execute() {
 			return `ccsu`
 		}
 	}, {
 		data: new SlashCommandBuilder()
-			.setName('ccb')
-			.setDescription('克蘇魯神話TRPG Cthulhu 6th 擲骰')
-			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true)),
-		async execute(interaction) {
-			const text = interaction.options.getString('text')
-			if (text !== null)
-				return `ccb ${text}`
-		}
-	}, {
-		data: new SlashCommandBuilder()
-			.setName('cc')
-			.setDescription('克蘇魯神話TRPG Cthulhu 7th 擲骰')
-			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true))
-			.addStringOption(option =>
-				option.setName('paney')
-					.setDescription('獎勵或懲罰骰')
-					.addChoices({ name: '1粒獎勵骰', value: '1' },
-						{ name: '2粒獎勵骰', value: '2' },
-						{ name: '1粒懲罰骰', value: 'n1' },
-						{ name: '2粒懲罰骰', value: 'n2' }))
+			.setName(i18n.directTranslateSync('CoC7.slash.ccb.name', 'en') || 'ccb')
+			.setDescription(i18n.directTranslateSync('CoC7.slash.ccb.description', 'en') || '克蘇魯神話TRPG 基本 Cthulhu 6th 擲骰')
+			.setNameLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.ccb.name', 'zh-TW') || 'ccb'
+			})
+			.setDescriptionLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.ccb.description', 'zh-TW') || '克蘇魯神話TRPG 基本 Cthulhu 6th 擲骰'
+			})
+			.addNumberOption(option => option.setName('target')
+				.setDescription(i18n.directTranslateSync('CoC7.slash.option.target.description', 'en') || '技能或屬性數值')
+				.setDescriptionLocalizations({
+					'zh-TW': i18n.directTranslateSync('CoC7.slash.option.target.description', 'zh-TW') || '技能或屬性數值'
+				})
+				.setRequired(true))
+			.addStringOption(option => option.setName('message')
+				.setDescription(i18n.directTranslateSync('CoC7.slash.option.message.description', 'en') || '附加訊息')
+				.setDescriptionLocalizations({
+					'zh-TW': i18n.directTranslateSync('CoC7.slash.option.message.description', 'zh-TW') || '附加訊息'
+				}))
 		,
 		async execute(interaction) {
-			const text = interaction.options.getString('text')
-			const paney = interaction.options.getString('paney') || '';
-
-			return `cc${paney} ${text}`
+			const target = interaction.options.getNumber('target');
+			const message = interaction.options.getString('message');
+			if (target !== null && message !== null)
+				return `ccb ${target} ${message}`
 		}
 	}, {
 		data: new SlashCommandBuilder()
-			.setName('sc')
-			.setDescription('克蘇魯神話TRPG Cthulhu 7th SAN值檢定')
-			.addStringOption(option => option.setName('text').setDescription('你的San值').setRequired(true))
-			.addStringOption(option => option.setName('success').setDescription('成功扣多少San').setRequired(false))
-			.addStringOption(option => option.setName('failure').setDescription('失敗扣多少San').setRequired(false)),
+			.setName(i18n.directTranslateSync('CoC7.slash.cc.name', 'en') || 'cc')
+			.setDescription(i18n.directTranslateSync('CoC7.slash.cc.description', 'en') || '克蘇魯神話TRPG 基本 Cthulhu 7th 擲骰')
+			.setNameLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.cc.name', 'zh-TW') || 'cc'
+			})
+			.setDescriptionLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.cc.description', 'zh-TW') || '克蘇魯神話TRPG 基本 Cthulhu 7th 擲骰'
+			})
+			.addNumberOption(option => option.setName('target')
+				.setDescription(i18n.directTranslateSync('CoC7.slash.option.target.description', 'en') || '技能或屬性數值')
+				.setDescriptionLocalizations({
+					'zh-TW': i18n.directTranslateSync('CoC7.slash.option.target.description', 'zh-TW') || '技能或屬性數值'
+				})
+				.setRequired(true))
+			.addStringOption(option => option.setName('message')
+				.setDescription(i18n.directTranslateSync('CoC7.slash.option.message.description', 'en') || '附加訊息')
+				.setDescriptionLocalizations({
+					'zh-TW': i18n.directTranslateSync('CoC7.slash.option.message.description', 'zh-TW') || '附加訊息'
+				}))
+		,
 		async execute(interaction) {
-			const text = interaction.options.getString('text')
-			const success = interaction.options.getString('success')
-			const failure = interaction.options.getString('failure')
-			let ans = `.sc ${text}`
-			if ((success !== null) && (failure !== null)) ans = `${ans} ${success}/${failure}`
-			return ans;
+			const target = interaction.options.getNumber('target');
+			const message = interaction.options.getString('message');
+			if (target !== null) {
+				if (message)
+					return `cc ${target} ${message}`
+				else
+					return `cc ${target}`;
+			}
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName(i18n.directTranslateSync('CoC7.slash.cc1.name', 'en') || 'cc1')
+			.setDescription(i18n.directTranslateSync('CoC7.slash.cc1.description', 'en') || '克蘇魯神話TRPG Cthulhu 7th 獎勵骰')
+			.setNameLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.cc1.name', 'zh-TW') || 'cc1'
+			})
+			.setDescriptionLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.cc1.description', 'zh-TW') || '克蘇魯神話TRPG Cthulhu 7th 獎勵骰'
+			})
+			.addNumberOption(option => option.setName('target')
+				.setDescription(i18n.directTranslateSync('CoC7.slash.option.target.description', 'en') || '技能或屬性數值')
+				.setDescriptionLocalizations({
+					'zh-TW': i18n.directTranslateSync('CoC7.slash.option.target.description', 'zh-TW') || '技能或屬性數值'
+				})
+				.setRequired(true))
+			.addStringOption(option => option.setName('message')
+				.setDescription(i18n.directTranslateSync('CoC7.slash.option.message.description', 'en') || '附加訊息')
+				.setDescriptionLocalizations({
+					'zh-TW': i18n.directTranslateSync('CoC7.slash.option.message.description', 'zh-TW') || '附加訊息'
+				}))
+		,
+		async execute(interaction) {
+			const target = interaction.options.getNumber('target');
+			const message = interaction.options.getString('message');
+			if (target !== null) {
+				if (message)
+					return `cc1 ${target} ${message}`
+				else
+					return `cc1 ${target}`;
+			}
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName(i18n.directTranslateSync('CoC7.slash.ccn1.name', 'en') || 'ccn1')
+			.setDescription(i18n.directTranslateSync('CoC7.slash.ccn1.description', 'en') || '克蘇魯神話TRPG Cthulhu 7th 懲罰骰')
+			.setNameLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.ccn1.name', 'zh-TW') || 'ccn1'
+			})
+			.setDescriptionLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.ccn1.description', 'zh-TW') || '克蘇魯神話TRPG Cthulhu 7th 懲罰骰'
+			})
+			.addNumberOption(option => option.setName('target')
+				.setDescription(i18n.directTranslateSync('CoC7.slash.option.target.description', 'en') || '技能或屬性數值')
+				.setDescriptionLocalizations({
+					'zh-TW': i18n.directTranslateSync('CoC7.slash.option.target.description', 'zh-TW') || '技能或屬性數值'
+				})
+				.setRequired(true))
+			.addStringOption(option => option.setName('message')
+				.setDescription(i18n.directTranslateSync('CoC7.slash.option.message.description', 'en') || '附加訊息')
+				.setDescriptionLocalizations({
+					'zh-TW': i18n.directTranslateSync('CoC7.slash.option.message.description', 'zh-TW') || '附加訊息'
+				}))
+		,
+		async execute(interaction) {
+			const target = interaction.options.getNumber('target');
+			const message = interaction.options.getString('message');
+			if (target !== null) {
+				if (message)
+					return `ccn1 ${target} ${message}`
+				else
+					return `ccn1 ${target}`;
+			}
+		}
+	}, {
+		data: new SlashCommandBuilder()
+			.setName(i18n.directTranslateSync('CoC7.slash.sc.name', 'en') || 'sc')
+			.setDescription(i18n.directTranslateSync('CoC7.slash.sc.description', 'en') || 'CoC 7th 理智檢定')
+			.setNameLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.sc.name', 'zh-TW') || 'sc'
+			})
+			.setDescriptionLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.sc.description', 'zh-TW') || 'CoC 7th 理智檢定'
+			})
+			.addNumberOption(option => option.setName('san')
+				.setDescription(i18n.directTranslateSync('CoC7.slash.option.san.description', 'en') || '目前理智值')
+				.setDescriptionLocalizations({
+					'zh-TW': i18n.directTranslateSync('CoC7.slash.option.san.description', 'zh-TW') || '目前理智值'
+				})
+				.setRequired(true))
+			.addStringOption(option => option.setName('success')
+				.setDescription(i18n.directTranslateSync('CoC7.slash.option.success.description', 'en') || '檢定成功的損失值（例如：1、1d3、1d6）')
+				.setDescriptionLocalizations({
+					'zh-TW': i18n.directTranslateSync('CoC7.slash.option.success.description', 'zh-TW') || '檢定成功的損失值（例如：1、1d3、1d6）'
+				}))
+			.addStringOption(option => option.setName('fail')
+				.setDescription(i18n.directTranslateSync('CoC7.slash.option.fail.description', 'en') || '檢定失敗的損失值（例如：1d3、1d6+1）')
+				.setDescriptionLocalizations({
+					'zh-TW': i18n.directTranslateSync('CoC7.slash.option.fail.description', 'zh-TW') || '檢定失敗的損失值（例如：1d3、1d6+1）'
+				}))
+		,
+		async execute(interaction) {
+			const san = interaction.options.getNumber('san');
+			const success = interaction.options.getString('success') || '';
+			const fail = interaction.options.getString('fail') || '';
+			
+			if (san !== null) {
+				if (success && fail)
+					return `.sc ${san} ${success}/${fail}`
+				else
+					return `.sc ${san}`
+			}
 		}
 	},
 	{
 		data: new SlashCommandBuilder()
 			.setName('build')
-			.setDescription('克蘇魯神話TRPG Cthulhu 創角功能')
+			.setDescription(i18n.directTranslateSync('CoC7.slash.build.description', 'en') || '克蘇魯神話TRPG Cthulhu 創角功能')
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('ccpulpbuild')
-					.setDescription('克蘇魯神話TRPG Cthulhu pulp版創角'))
+					.setDescription(i18n.directTranslateSync('CoC7.slash.build.ccpulpbuild.description', 'en') || '克蘇魯神話TRPG Cthulhu pulp版創角'))
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('cc6build')
-					.setDescription('克蘇魯神話TRPG Cthulhu 6th版創角'))
+					.setDescription(i18n.directTranslateSync('CoC7.slash.build.cc6build.description', 'en') || '克蘇魯神話TRPG Cthulhu 6th版創角'))
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('cc7build')
-					.setDescription('克蘇魯神話TRPG Cthulhu 7th版創角').addStringOption(option => option.setName('age').setDescription('可選: (歲數7-89) 如果沒有會使用隨機開角')))
+					.setDescription(i18n.directTranslateSync('CoC7.slash.build.cc7build.description', 'en') || '克蘇魯神話TRPG Cthulhu 7th版創角')
+					.addStringOption(option => option.setName('age')
+					.setDescription(i18n.directTranslateSync('CoC7.slash.build.cc7build.age.description', 'en') || '可選: (歲數7-89) 如果沒有會使用隨機開角')))
 
 		,
 		async execute(interaction) {
@@ -539,8 +691,10 @@ const discordCommand = [
 	}, {
 		data: new SlashCommandBuilder()
 			.setName('dp')
-			.setDescription('克蘇魯神話TRPG Cthulhu 7th 成長或增強檢定')
-			.addStringOption(option => option.setName('text').setDescription('目標技能大小及名字').setRequired(true)),
+			.setDescription(i18n.directTranslateSync('CoC7.slash.dp.description', 'en') || '克蘇魯神話TRPG Cthulhu 7th 成長或增強檢定')
+			.addStringOption(option => option.setName('text')
+			.setDescription(i18n.directTranslateSync('CoC7.slash.dp.text.description', 'en') || '目標技能大小及名字')
+			.setRequired(true)),
 		async execute(interaction) {
 			const text = interaction.options.getString('text')
 			return `.dp ${text}`
@@ -548,17 +702,18 @@ const discordCommand = [
 	}, {
 		data: new SlashCommandBuilder()
 			.setName('dpg')
-			.setDescription('克蘇魯神話TRPG Cthulhu 7th 成長檢定紀錄功能')
+			.setDescription(i18n.directTranslateSync('CoC7.slash.dpg.description', 'en') || '克蘇魯神話TRPG Cthulhu 7th 成長檢定紀錄功能')
 			.addStringOption(option =>
 				option.setName('mode')
-					.setDescription('功能')
-					.addChoices({ name: '顯示擲骰紀錄', value: 'show' },
-						{ name: '顯示全頻道所有大成功大失敗擲骰紀錄', value: 'showall' },
-						{ name: '開啓紀錄功能', value: 'start' },
-						{ name: '停止紀錄功能', value: 'stop' },
-						{ name: '進行自動成長並清除擲骰紀錄', value: 'auto' },
-						{ name: '清除擲骰紀錄', value: 'clear' },
-						{ name: '清除擲骰紀錄包括大成功大失敗', value: 'clearall' })
+					.setDescription(i18n.directTranslateSync('CoC7.slash.dpg.mode.description', 'en') || '功能')
+					.addChoices(
+						{ name: i18n.directTranslateSync('CoC7.slash.dpg.mode.show', 'en') || '顯示擲骰紀錄', value: 'show' },
+						{ name: i18n.directTranslateSync('CoC7.slash.dpg.mode.showall', 'en') || '顯示全頻道所有大成功大失敗擲骰紀錄', value: 'showall' },
+						{ name: i18n.directTranslateSync('CoC7.slash.dpg.mode.start', 'en') || '開啓紀錄功能', value: 'start' },
+						{ name: i18n.directTranslateSync('CoC7.slash.dpg.mode.stop', 'en') || '停止紀錄功能', value: 'stop' },
+						{ name: i18n.directTranslateSync('CoC7.slash.dpg.mode.auto', 'en') || '進行自動成長並清除擲骰紀錄', value: 'auto' },
+						{ name: i18n.directTranslateSync('CoC7.slash.dpg.mode.clear', 'en') || '清除擲骰紀錄', value: 'clear' },
+						{ name: i18n.directTranslateSync('CoC7.slash.dpg.mode.clearall', 'en') || '清除擲骰紀錄包括大成功大失敗', value: 'clearall' })
 			),
 		async execute(interaction) {
 			const mode = interaction.options.getString('mode')
@@ -567,37 +722,55 @@ const discordCommand = [
 	}, {
 		data: new SlashCommandBuilder()
 			.setName('cc7bg')
-			.setDescription('克蘇魯神話TRPG Cthulhu 7th版角色背景隨機生成'),
+			.setDescription(i18n.directTranslateSync('CoC7.slash.cc7bg.description', 'en') || '克蘇魯神話TRPG Cthulhu 7th版角色背景隨機生成'),
 		async execute() {
 			return `.cc7bg`
 		}
 	}, {
 		data: new SlashCommandBuilder()
 			.setName('chase')
-			.setDescription('克蘇魯神話TRPG Cthulhu 7th版追逐戰產生器'),
+			.setDescription(i18n.directTranslateSync('CoC7.slash.chase.description', 'en') || '克蘇魯神話TRPG Cthulhu 7th版追逐戰產生器'),
 		async execute() {
 			return `.chase`
 		}
 	}, {
 		data: new SlashCommandBuilder()
-			.setName('cccc')
-			.setDescription('克蘇魯神話TRPG Cthulhu 隨機產生神話組織')
+			.setName(i18n.directTranslateSync('CoC7.slash.cccc.name', 'en') || 'cccc')
+			.setDescription(i18n.directTranslateSync('CoC7.slash.cccc.description', 'en') || '隨機產生神話組織')
+			.setNameLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.cccc.name', 'zh-TW') || 'cccc'
+			})
+			.setDescriptionLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.cccc.description', 'zh-TW') || '隨機產生神話組織'
+			})
 		,
 		async execute() {
 			return `.cccc`
 		}
 	}, {
 		data: new SlashCommandBuilder()
-			.setName('ccdr')
-			.setDescription('克蘇魯神話TRPG Cthulhu 隨機產生神話資料')
+			.setName(i18n.directTranslateSync('CoC7.slash.ccdr.name', 'en') || 'ccdr')
+			.setDescription(i18n.directTranslateSync('CoC7.slash.ccdr.description', 'en') || '隨機產生神話資料')
+			.setNameLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.ccdr.name', 'zh-TW') || 'ccdr'
+			})
+			.setDescriptionLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.ccdr.description', 'zh-TW') || '隨機產生神話資料'
+			})
 		,
 		async execute() {
 			return `.ccdr`
 		}
 	}, {
 		data: new SlashCommandBuilder()
-			.setName('ccpc')
-			.setDescription('克蘇魯神話TRPG Cthulhu 施法推骰後果')
+			.setName(i18n.directTranslateSync('CoC7.slash.ccpc.name', 'en') || 'ccpc')
+			.setDescription(i18n.directTranslateSync('CoC7.slash.ccpc.description', 'en') || '施法推骰後果判定')
+			.setNameLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.ccpc.name', 'zh-TW') || 'ccpc'
+			})
+			.setDescriptionLocalizations({
+				'zh-TW': i18n.directTranslateSync('CoC7.slash.ccpc.description', 'zh-TW') || '施法推骰後果判定'
+			})
 		,
 		async execute() {
 			return `.ccpc`
@@ -643,49 +816,36 @@ class CreateCult {
 
 	CULT GOALS—MEANS 1-10
 	 */
-	static createCult() {
+	static createCult(userLang = 'zh-TW') {
 		let cult = {
-			leaderPosition: this.leaderPosition(),
+			leaderPosition: this.leaderPosition(userLang),
 			characteristics: this.characteristics(),
 			skill: this.skill(),
 			description: this.description(),
 			personality: this.personality(),
 			spells: this.spells(),
-			sourcesOfPower: this.sourcesOfPower(),
-			cultGoals: this.cultGoals(),
-			cultGoalsMeans: this.cultGoalsMeans(),
+			sourcesOfPower: this.sourcesOfPower(userLang),
+			cultGoals: this.cultGoals(userLang),
+			cultGoalsMeans: this.cultGoalsMeans(userLang),
 		}
-		let cultText = `Cult 產生器
-	首領身份:
-	${cult.leaderPosition}
-	
-	屬性: 
-	${cult.characteristics}
-	
-	技能: 
-	${cult.skill}
-
-	法術:
-	${cult.spells}
-
-	特質: 
-	${cult.description}
-	
-	個性: 
-	${cult.personality}
-
-	能力來源: 
-	${cult.sourcesOfPower}
-	==============
-	教派目標:
-	${cult.cultGoals}
-
-	實現目標的手段:
-	${cult.cultGoalsMeans}`
+		
+		let cultText = i18n.translate('CoC7.cult.title', { language: userLang }) + '\n' +
+			i18n.translate('CoC7.cult.stats.leader', { language: userLang, leader: cult.leaderPosition }) + '\n\n' +
+			i18n.translate('CoC7.cult.stats.characteristics', { language: userLang, char: cult.characteristics }) + '\n\n' +
+			i18n.translate('CoC7.cult.stats.skill', { language: userLang, skill: cult.skill }) + '\n\n' +
+			i18n.translate('CoC7.cult.stats.spells', { language: userLang, spells: cult.spells }) + '\n\n' +
+			i18n.translate('CoC7.cult.stats.description', { language: userLang, description: cult.description }) + '\n\n' +
+			i18n.translate('CoC7.cult.stats.personality', { language: userLang, personality: cult.personality }) + '\n\n' +
+			i18n.translate('CoC7.cult.stats.power', { language: userLang, power: cult.sourcesOfPower }) + '\n' +
+			'==============\n' +
+			i18n.translate('CoC7.cult.stats.goals', { language: userLang, goals: cult.cultGoals }) + '\n\n' +
+			i18n.translate('CoC7.cult.stats.means', { language: userLang, means: cult.cultGoalsMeans });
+		
 		return cultText;
 	}
-	static leaderPosition() {
-		return this.LeaderPosition[rollbase.Dice(10) - 1];
+	static leaderPosition(userLang) {
+		const position = rollbase.Dice(10);
+		return i18n.translate(`CoC7.cult.leader.${position}`, { language: userLang });
 	}
 	static characteristics() {
 		//四選一
@@ -741,33 +901,34 @@ class CreateCult {
 		}
 		return shuffledArr.slice(0, count);
 	}
-	static sourcesOfPower() {
-		let text = '';
+	static sourcesOfPower(userLang) {
+		let power = '';
 		let num = rollbase.Dice(10);
-		switch (num) {
-			case 1: case 2: case 3:
-				text = this.SourcesOfPowerSet[0];
+		switch (true) {
+			case (num >= 1 && num <= 3):
+				power = i18n.translate('CoC7.cult.power.1', { language: userLang });
 				break;
-			case 4: case 5: case 6:
-				text = this.SourcesOfPowerSet[1];
+			case (num >= 4 && num <= 6):
+				power = i18n.translate('CoC7.cult.power.2', { language: userLang });
 				break;
-			case 7: case 8:
-				text = this.SourcesOfPowerSet[2];
+			case (num >= 7 && num <= 8):
+				power = i18n.translate('CoC7.cult.power.3', { language: userLang });
 				break;
-			case 9: case 10:
-				text = this.SourcesOfPowerSet[3];
+			case (num >= 9 && num <= 10):
+				power = i18n.translate('CoC7.cult.power.4', { language: userLang });
 				break;
 		}
-		return text;
+		return power;
 	}
-	static cultGoals() {
-		return this.CultWants[rollbase.Dice(this.CultWants.length) - 1];
+	static cultGoals(userLang) {
+		const position = rollbase.Dice(10);
+		return i18n.translate(`CoC7.cult.wants.${position}`, { language: userLang });
 	}
-	static cultGoalsMeans() {
-		return this.CultMeans[rollbase.Dice(this.CultMeans.length) - 1];
+	static cultGoalsMeans(userLang) {
+		const position = rollbase.Dice(10);
+		return i18n.translate(`CoC7.cult.means.${position}`, { language: userLang });
 	}
 	static WightRandom(options, num_choices) {
-
 		let choices = new Set();
 		while (choices.size < num_choices) {
 			let total_weight = 0;
@@ -800,31 +961,6 @@ class CreateCult {
 	[90, 85, 80, 80, 70, 60, 60, 50],
 	[100, 80, 60, 60, 45, 40, 35, 35]
 	];
-
-	static LeaderPosition = [
-		`富有商人
-	金錢就是力量。擁有成功的小企業者；跨國公司董事會上的一員；有權勢的電影製片人；投資銀行家等等。`,
-		`家族女/男家長
-	血緣是一種具有特殊且具有束縛力的連結。阿巴拉契亞山脈中一個廣大家族的古老祖母；一個大型且有貴族氣質的家庭的尊貴曾祖父；一位強大巫師的後裔；一對雙胞胎的單親父或母。`,
-		`幫派領導者
-	罪犯有一種在雷達之下運作的方式——這種經驗可能在隱藏Cthulhu教派的活動時有所幫助。城市街頭幫派的領導者；犯罪組織的老大；大規模的毒品卡特爾的領導者；其他孩子們景仰的正在冒出頭角的街頭小混混。`,
-		`宗教領導者
-	已經位於影響力的位置，可以接觸到大量的人群，其中一些人急需幫助，更容易受到欺詐和誘惑。
-	這些宗教領袖可能免於課稅。主流宗教的神父，拉比，伊瑪目，或牧師。`,
-		`大學教授/老師
-	擁有接觸許多易受影響，年輕心靈的人的機會。一位高中老師或校長；擁有圖書館鑰匙的大學教授，圖書館內充滿著陳舊的書冊；
-	具有影響力的青年領袖，可帶領具有可被重新導向的活動組織的青年。`,
-		`政治家
-	政治影響力可以指導政策，甚至改變法律。市長或城市議會成員；州議會人員；州長甚至國家總統。 `,
-		`農民/工廠工人
-	"藍領" 宗教教派領袖可能對確保社會運作平穩的人有影響力，例如工廠員工，農村工人，建築行業和維修工人。`,
-		`軍官
-	在軍隊之中有個邪教是一個可怕的想法。可能是部隊中位階較高的官員，或者是在情報機構中的執行者，例如FBI或CIA，或是說，其他國家的相似機構。`,
-		`船長 
-	在海上，船長處於一個非常有威力的位置。可能是大型運輸船的船長，一艘帆船，一艘商船，甚至是一艘郵輪的船長。`,
-		`異類 
-	這些人士在社會邊緣活動，往往被忽視，例如巡迴銷售員，在家工作的網頁開發員，或者是一位藍調吉他手/歌手。`
-	]
 
 	static SkillStatesSet = [[80, 60, 60, 60, 50, 40],
 	[100, 80, 60, 60, 50, 40],
@@ -1171,11 +1307,14 @@ async function dpRecordSwitch({ onOff = false, groupid = "", channelid = "" }) {
 			upsert: true,
 			returnDocument: true
 		}).catch(error => console.error('coc #673 mongoDB error: ', error.name, error.reason));
-		return `現在這頻道的COC 成長紀錄功能為 ${(result.switch) ? '開啓' : '關閉'}
-以後CC擲骰將 ${(result.switch) ? '會' : '不會'}進行紀錄`
+		
+		return i18n.translate('CoC7.dp.switchStatus', {
+			status: result.switch ? i18n.translate('CoC7.dp.on') : i18n.translate('CoC7.dp.off'),
+			willRecord: result.switch ? i18n.translate('CoC7.dp.will') : i18n.translate('CoC7.dp.willNot')
+		});
 	} catch (error) {
 		console.error(`dpRecordSwitch ERROR ${error.message}`)
-		return '發生錯誤';
+		return i18n.translate('CoC7.dp.error');
 	}
 }
 
@@ -1319,62 +1458,91 @@ function DevelopmentPhase(input) {
 }
 
 function everyTimeDevelopmentPhase(target, text = '') {
-	let result = '';
-	target = Number(target);
-	if (target > 1000) target = 1000;
-	if (text == undefined) text = "";
 	let skill = rollbase.Dice(100);
-	let confident = (target <= 89);
-	if (target > 95) target = 95;
+	let confident = rollbase.Dice(10);
+	let Suggestion = undefined;
+	let matter = undefined;
+	let DebuffSay = undefined;
 	if (skill >= 96 || skill > target) {
-		let improved = rollbase.Dice(10);
-		result = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n擲出: " + skill + " → 成功!\n你的技能增加" + improved + "點，現在是" + (target + improved) + "點。";
-		if (confident && ((target + improved) >= 90)) {
-			result += `\n調查員的技能提升到90%以上，他的當前理智值增加2D6 > ${rollbase.Dice(6) + rollbase.Dice(6)}點。
-這一項獎勵顯示他經由精通一項技能而獲得自信。`
+		if (target < 96) {
+			//技能成長 語法
+			let skillUp = rollbase.Dice(10);
+			let newSkill = target + skillUp;
+			let increase = skillUp;
+			
+			// 如果技能超過90%，理智值增加
+			if (newSkill >= 90) {
+				let sanIncrease = rollbase.Dice(6) + rollbase.Dice(6);
+				return i18n.translate('CoC7.development.success90', { 
+					language: 'zh-TW', 
+					text: text, 
+					target: target, 
+					roll: skill, 
+					increase: increase, 
+					newSkill: newSkill, 
+					sanIncrease: sanIncrease 
+				});
+			} else {
+				return i18n.translate('CoC7.development.success', { 
+					language: 'zh-TW', 
+					text: text, 
+					target: target, 
+					roll: skill, 
+					increase: increase, 
+					newSkill: newSkill 
+				});
+			}
+		} else {
+			// 目標值高於95，無法再成長
+			return i18n.translate('CoC7.development.failure', { 
+				language: 'zh-TW', 
+				text: text, 
+				target: target, 
+				skill: skill 
+			});
 		}
 	} else {
-		result = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n擲出: " + skill + " → 失敗!\n你的技能沒有變化!";
+		return i18n.translate('CoC7.development.failure', { 
+			language: 'zh-TW', 
+			text: text, 
+			target: target, 
+			skill: skill 
+		});
 	}
-	return result;
 }
-function ccrt() {
-	let result = '';
-	//let rollcc = Math.floor(Math.random() * 10);
-	//let time = Math.floor(Math.random() * 10) + 1;
-	//let PP = Math.floor(Math.random() * 100);
-	let rollcc = rollbase.Dice(10) - 1
-	let time = rollbase.Dice(10)
-	let PP = rollbase.Dice(100) - 1
-	if (rollcc <= 7) {
-		result = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數';
-	} else
-		if (rollcc == 8) {
-			result = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocManias[PP];
-		} else
-			if (rollcc == 9) {
-				result = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocPhobias[PP];
-			}
-	return result;
+function ccrt(userLang = 'zh-TW') {
+	let temp = '';
+	temp = Math.floor(Math.random() * 10);
+	switch (temp) {
+		case 0: return i18n.translate('CoC7.rt.0', { language: userLang });
+		case 1: return i18n.translate('CoC7.rt.1', { language: userLang });
+		case 2: return i18n.translate('CoC7.rt.2', { language: userLang });
+		case 3: return i18n.translate('CoC7.rt.3', { language: userLang });
+		case 4: return i18n.translate('CoC7.rt.4', { language: userLang });
+		case 5: return i18n.translate('CoC7.rt.5', { language: userLang });
+		case 6: return i18n.translate('CoC7.rt.6', { language: userLang });
+		case 7: return i18n.translate('CoC7.rt.7', { language: userLang });
+		case 8: return i18n.translate('CoC7.rt.8', { language: userLang });
+		case 9: return i18n.translate('CoC7.rt.9', { language: userLang });
+	}
 }
 
-function ccsu() {
-	let result = '';
-	let rollcc = rollbase.Dice(10) - 1
-	let time = rollbase.Dice(10)
-	let PP = rollbase.Dice(100) - 1
-	if (rollcc <= 7) {
-		result = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時';
-	} else
-		if (rollcc == 8) {
-			result = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocManias[PP];
-		} else
-			if (rollcc == 9) {
-				result = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocPhobias[PP];
-			}
-	return result;
+function ccsu(userLang = 'zh-TW') {
+	let temp = '';
+	temp = Math.floor(Math.random() * 10);
+	switch (temp) {
+		case 0: return i18n.translate('CoC7.su.0', { language: userLang });
+		case 1: return i18n.translate('CoC7.su.1', { language: userLang });
+		case 2: return i18n.translate('CoC7.su.2', { language: userLang });
+		case 3: return i18n.translate('CoC7.su.3', { language: userLang });
+		case 4: return i18n.translate('CoC7.su.4', { language: userLang });
+		case 5: return i18n.translate('CoC7.su.5', { language: userLang });
+		case 6: return i18n.translate('CoC7.su.6', { language: userLang });
+		case 7: return i18n.translate('CoC7.su.7', { language: userLang });
+		case 8: return i18n.translate('CoC7.su.8', { language: userLang });
+		case 9: return i18n.translate('CoC7.su.9', { language: userLang });
+	}
 }
-
 
 /**
  * COC6
@@ -1384,10 +1552,10 @@ function ccsu() {
 function coc6(chack, text) {
 	let result = '';
 	let temp = rollbase.Dice(100);
-	if (temp == 100) result = 'ccb<=' + chack + '\n' + temp + ' → 啊！大失敗！';
+	if (temp == 100) result = i18n.translate('CoC7.coc6.rolling', { language: 'zh-TW', skill: chack, roll: temp, result: i18n.translate('CoC7.coc6.critical', { language: 'zh-TW' }) });
 	else
-		if (temp <= chack) result = 'ccb<=' + chack + '\n' + temp + ' → 成功';
-		else result = 'ccb<=' + chack + '\n' + temp + ' → 失敗';
+		if (temp <= chack) result = i18n.translate('CoC7.coc6.rolling', { language: 'zh-TW', skill: chack, roll: temp, result: i18n.translate('CoC7.coc6.success', { language: 'zh-TW' }) });
+		else result = i18n.translate('CoC7.coc6.rolling', { language: 'zh-TW', skill: chack, roll: temp, result: i18n.translate('CoC7.coc6.failure', { language: 'zh-TW' }) });
 	if (text)
 		result += '；' + text;
 	return result;
@@ -1400,66 +1568,151 @@ function coc6(chack, text) {
  */
 
 
-async function coc7({ chack, text = "", userid, groupid, channelid, userName }) {
-	let result = '';
-	let temp = rollbase.Dice(100);
-	let skillPerStyle = "";
-	let check = chack.split(',');
-	let name = text.split(',');
-	let checkNum = !check.some(i => !Number.isInteger(Number(i)));
-	if (!checkNum) return;
-	if (check.length >= 2) result += '聯合檢定\n'
-	for (let index = 0; index < check.length; index++) {
-		switch (true) {
-			case (temp == 1): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 恭喜！大成功！';
-				skillPerStyle = "criticalSuccess";
-				break;
-			}
-			case (temp == 100): {
-				result = '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 啊！大失敗！';
-				skillPerStyle = "fumble";
-				break;
-			}
-			case (temp >= 96 && check[index] <= 49): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 啊！大失敗！';
-				skillPerStyle = "fumble";
-				break;
-			}
-			case (temp > check[index]): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 失敗';
-				skillPerStyle = "failure";
-				break;
-			}
-			case (temp <= check[index] / 5): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 極限成功';
-				skillPerStyle = "normal";
-				break;
-			}
-			case (temp <= check[index] / 2): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 困難成功';
-				skillPerStyle = "normal";
-				break;
-			}
-			case (temp <= check[index]): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 通常成功';
-				skillPerStyle = "normal";
-				break;
-			}
-			default:
-				break;
-		}
+async function coc7({ chack, text = "", userid, groupid, channelid, userName, bpdiceNum = 0 }) {
+	let rply = {
+		default: 'on',
+		type: 'text',
+		text: ''
+	};
+	
+	// Get user's preferred language
+	const userLang = await i18n.getUserLanguage({ userid, groupid });
 
-		if (text[index]) result += '：' + (name[index] || '');
-		result += '\n\n'
-		if (userid && groupid && skillPerStyle !== "failure") {
-			await dpRecorder({ userID: userid, groupid, channelid, skillName: name[index], skillPer: check[index], skillPerStyle, skillResult: temp, userName });
-		}
-
+	// Check input
+	if (isNaN(chack) || chack <= 0) {
+		rply.text = i18n.translate('CoC7.error.invalidInput', { language: userLang });
+		return rply;
 	}
 
-
-	return result;
+	const skill = parseInt(chack);
+	const skillStr = skill.toString().padStart(2, '0');
+	
+	// Prepare variables for dice rolling
+	let dice = bpdiceNum > 0 ? Math.min(Math.floor((90 + bpdiceNum * 10) / 10), 10) : Math.max(Math.floor((110 + bpdiceNum * 10) / 10), 1);
+	let checkResArr = [];
+	let checkSuccessArr = [];
+	let checkFumbleArray = [];
+	let checkCriticalArr = [];
+	
+	// Roll the dice
+	for (let i = 0; i < dice; i++) {
+		const rollResult = Math.floor(Math.random() * 100);
+		checkResArr.push(rollResult);
+		
+		// Check success levels
+		const tempSuccess = rollResult <= skill;
+		const tempFumble = rollResult >= 96 && skill < 50 || rollResult == 100;
+		const tempCritical = rollResult <= 5 && skill >= 50 || rollResult == 1;
+		
+		checkSuccessArr.push(tempSuccess);
+		checkFumbleArray.push(tempFumble);
+		checkCriticalArr.push(tempCritical);
+	}
+	
+	// Determine which dice to use based on bonus/penalty
+	let finalIndex;
+	
+	if (bpdiceNum >= 1) {
+		// Bonus dice - take the lowest dice (best result)
+		let tempIndex = 0;
+		for (let i = 0; i < checkResArr.length; i++) {
+			if (checkCriticalArr[i]) {
+				tempIndex = i;
+				break;
+			}
+			if (checkSuccessArr[i] && !checkSuccessArr[tempIndex]) {
+				tempIndex = i;
+			}
+			if (checkSuccessArr[i] && checkSuccessArr[tempIndex] && checkResArr[i] < checkResArr[tempIndex]) {
+				tempIndex = i;
+			}
+			if (!checkSuccessArr[i] && !checkSuccessArr[tempIndex] && checkResArr[i] < checkResArr[tempIndex]) {
+				tempIndex = i;
+			}
+		}
+		finalIndex = tempIndex;
+	} else if (bpdiceNum <= -1) {
+		// Penalty dice - take the highest dice (worst result)
+		let tempIndex = 0;
+		for (let i = 0; i < checkResArr.length; i++) {
+			if (checkFumbleArray[i]) {
+				tempIndex = i;
+				break;
+			}
+			if (!checkSuccessArr[i] && checkSuccessArr[tempIndex]) {
+				tempIndex = i;
+			}
+			if (checkSuccessArr[i] && checkSuccessArr[tempIndex] && checkResArr[i] > checkResArr[tempIndex]) {
+				tempIndex = i;
+			}
+			if (!checkSuccessArr[i] && !checkSuccessArr[tempIndex] && checkResArr[i] > checkResArr[tempIndex]) {
+				tempIndex = i;
+			}
+		}
+		finalIndex = tempIndex;
+	} else {
+		// No bonus/penalty - use the first dice
+		finalIndex = 0;
+	}
+	
+	// Get result from the chosen dice
+	const finalRollResult = checkResArr[finalIndex].toString().padStart(2, '0');
+	const isCritical = checkCriticalArr[finalIndex];
+	const isFumble = checkFumbleArray[finalIndex];
+	const isSuccess = checkSuccessArr[finalIndex];
+	const isExtremeSuccess = finalRollResult <= Math.floor(skill / 5);
+	const isHardSuccess = finalRollResult <= Math.floor(skill / 2);
+	
+	// Build result text
+	let resultText = text ? `${text}\n` : '';
+	
+	// Add dice result info
+	if (bpdiceNum != 0) {
+		let diceText = '';
+		for (let i = 0; i < dice; i++) {
+			diceText += checkResArr[i].toString().padStart(2, '0') + ',';
+		}
+		diceText = diceText.substring(0, diceText.length - 1);
+		
+		resultText += `${userName || ''} 進行檢定：${skillStr}\n`;
+		resultText += i18n.translate('CoC7.check.diceResults', { 
+			language: userLang,
+			diceText: diceText, 
+			finalRoll: finalRollResult,
+			bonus: bpdiceNum > 0 ? i18n.translate('CoC7.check.bonus', { language: userLang, num: bpdiceNum }) : i18n.translate('CoC7.check.penalty', { language: userLang, num: Math.abs(bpdiceNum) }) 
+		});
+	} else {
+		resultText += `${userName || ''} 進行檢定：${skillStr}\n`;
+		resultText += i18n.translate('CoC7.check.normalRoll', { language: userLang, roll: finalRollResult });
+	}
+	
+	// Add success level
+	let passLevel = '';
+	if (isCritical) {
+		passLevel = i18n.translate('CoC7.check.critical', { language: userLang });
+	} else if (isFumble) {
+		passLevel = i18n.translate('CoC7.check.fumble', { language: userLang });
+	} else if (isExtremeSuccess) {
+		passLevel = i18n.translate('CoC7.check.extremeSuccess', { language: userLang });
+	} else if (isHardSuccess) {
+		passLevel = i18n.translate('CoC7.check.hardSuccess', { language: userLang });
+	} else if (isSuccess) {
+		passLevel = i18n.translate('CoC7.check.regularSuccess', { language: userLang });
+	} else {
+		passLevel = i18n.translate('CoC7.check.failure', { language: userLang });
+	}
+	
+	resultText += passLevel;
+	
+	// Record for development phase
+	if (isSuccess) {
+		await dpRecorder({ userID: userid, groupid, channelid, skillName: text, skillPer: chack, skillPerStyle: bpdiceNum, skillResult: checkResArr[finalIndex], userName: userName });
+	}
+	
+	// Return results
+	rply.text = resultText;
+	rply.quotes = true;
+	return rply;
 }
 
 async function coc7chack({ chack, temp, text = "", userid, groupid, channelid, userName, bpdiceNum }) {
@@ -1567,7 +1820,7 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 	}
 }
 function buildpulpchar() {
-	let ReStr = 'Pulp CoC 不使用年齡調整\n';
+	let ReStr = i18n.translate('CoC7.character.pulp.title', { language: 'zh-TW' }) + '\n';
 	//讀取年齡
 	ReStr += '\nＳＴＲ：' + rollbase.BuildDiceCal('3d6*5');
 	ReStr += '\nＤＥＸ：' + rollbase.BuildDiceCal('3d6*5');
@@ -1598,7 +1851,7 @@ function buildpulpchar() {
 
 
 function build6char() {
-	let ReStr = '六版核心創角：';
+	let ReStr = i18n.translate('CoC7.character.6th.title', { language: 'zh-TW' });
 	ReStr += '\nＳＴＲ：' + rollbase.BuildDiceCal('3d6');
 	ReStr += '\nＤＥＸ：' + rollbase.BuildDiceCal('3d6');
 	ReStr += '\nＣＯＮ：' + rollbase.BuildDiceCal('3d6');
@@ -1607,155 +1860,156 @@ function build6char() {
 	ReStr += '\nＩＮＴ：' + rollbase.BuildDiceCal('(2d6+6)');
 	ReStr += '\nＳＩＺ：' + rollbase.BuildDiceCal('(2d6+6)');
 	ReStr += '\nＥＤＵ：' + rollbase.BuildDiceCal('(3d6+3)');
-	ReStr += '\n年收入：' + rollbase.BuildDiceCal('(1d10)');
-	ReStr += '\n調查員的最小起始年齡等於EDU+6，每比起始年齡年老十年，\n調查員增加一點EDU並且加20點職業技能點數。\n當超過40歲後，每老十年，\n從STR,CON,DEX,APP中選擇一個減少一點。';
+	ReStr += '\n' + i18n.translate('CoC7.character.income', { language: 'zh-TW', value: rollbase.BuildDiceCal('(1d10)') });
+	ReStr += '\n' + i18n.translate('CoC7.character.6th.note', { language: 'zh-TW' });
 	return ReStr;
 }
 //隨機產生角色背景
 function PcBG() {
-	return '背景描述生成器（僅供娛樂用，不具實際參考價值）\n=======\n調查員是一個' + PersonalDescriptionArr[rollbase.Dice(PersonalDescriptionArr.length) - 1] + '人。\n【信念】：說到這個人，他' + IdeologyBeliefsArr[rollbase.Dice(IdeologyBeliefsArr.length) - 1] + '。\n【重要之人】：對他來說，最重要的人是' + SignificantPeopleArr[rollbase.Dice(SignificantPeopleArr.length) - 1] + '，這個人對他來說之所以重要，是因為' + SignificantPeopleWhyArr[rollbase.Dice(SignificantPeopleWhyArr.length) - 1] + '。\n【意義非凡之地】：對他而言，最重要的地點是' + MeaningfulLocationsArr[rollbase.Dice(MeaningfulLocationsArr.length) - 1] + '。\n【寶貴之物】：他最寶貴的東西就是' + TreasuredPossessionsArr[rollbase.Dice(TreasuredPossessionsArr.length) - 1] + '。\n【特徵】：總括來說，調查員是一個' + TraitsArr[rollbase.Dice(TraitsArr.length) - 1] + '。';
+	return i18n.translate('CoC7.pcbg.title', { language: 'zh-TW' }) + 
+		'\n=======\n' + 
+		i18n.translate('CoC7.pcbg.description', { 
+			language: 'zh-TW', 
+			appearance: PersonalDescriptionArr[rollbase.Dice(PersonalDescriptionArr.length) - 1],
+			belief: IdeologyBeliefsArr[rollbase.Dice(IdeologyBeliefsArr.length) - 1],
+			significantPerson: SignificantPeopleArr[rollbase.Dice(SignificantPeopleArr.length) - 1],
+			significantPersonWhy: SignificantPeopleWhyArr[rollbase.Dice(SignificantPeopleWhyArr.length) - 1],
+			meaningfulLocation: MeaningfulLocationsArr[rollbase.Dice(MeaningfulLocationsArr.length) - 1],
+			treasuredPossession: TreasuredPossessionsArr[rollbase.Dice(TreasuredPossessionsArr.length) - 1],
+			trait: TraitsArr[rollbase.Dice(TraitsArr.length) - 1]
+		});
 }
 
 class SanCheck {
 	constructor(mainMsg, botname) {
 		this.mainMsg = mainMsg;
-		this.rollDice = rollbase.Dice(100);
-		this.currentSan = this.getSanity(mainMsg[1]);
-		this.scMode = this.getScMode(mainMsg[2]);
-		this.sc = this.getSc(mainMsg[2]);
-		this.rollSuccess = this.getRollSuccess(this.sc);
-		this.rollFail = this.getRollFail(this.sc);
-		this.lossSan = this.calculateLossSanity(this.rollSuccess, this.rollFail);
-		this.buttonCreate = ["ccrt", "ccsu"];
 		this.botname = botname;
 	}
 
 	getSanity(mainMsg) {
-		const sanityMatch = mainMsg.match(/^\d+$/);
-		return sanityMatch ? sanityMatch[0] : null;
+		let san = parseInt(mainMsg[1]);
+		return san;
 	}
 
 	getScMode(mainMsg) {
-		return (/\//).test(mainMsg || null);
+		return /.sc/.test(mainMsg[0]) ? true : false;
 	}
-
+	
 	getSc(mainMsg) {
-		return this.scMode ? mainMsg && mainMsg.match(/^(.+)\/(.+)$/i) : null;
+		return mainMsg[2] ? mainMsg[2].split("/") : [1, 1];
 	}
 
 	getRollSuccess(sc) {
-		return sc && sc[1] ? sc[1].replace(/[^+\-*\dD]/ig, "") : null;
+		return sc[0] ? sc[0] : 1
 	}
 
 	getRollFail(sc) {
-		return sc && sc[2] ? sc[2].replace(/[^+\-*\dD]/ig, "") : null;
+		return sc[1] ? sc[1] : 1
 	}
 
 	calculateLossSanity(rollSuccess = '', rollFail = '') {
 		const parseRoll = (roll) => {
-			try {
-				return Math.max(rollbase.BuildDiceCal(roll).match(/\S+$/)?.[0], 0)
-			} catch { }
-			try {
-				return Math.max(mathjs.evaluate(roll), 0);
-			} catch { }
-			return roll;
+			return roll.toString().match(/\d+d\d+/i) || /^[+-]?\d+$/.test(roll.toString()) ? mathjs.evaluate(roll.toString()) : 0;
 		};
+		
+		let sanLost = 0;
+		let lossSanityText = "";
 
-		const rollSuccessLoss = parseRoll(rollSuccess) || 0;
-		const rollFailLoss = parseRoll(rollFail) || 0;
-
-		let rollFumbleLoss = rollFail;
-		const regExp = /d/ig;
 		try {
-			rollFumbleLoss = mathjs.evaluate(rollFail.replace(regExp, '*'));
-		} catch { }
+			if (rollSuccess.toString().toLowerCase().match(/^\d+$/)) {
+				// Just a number
+				sanLost = parseRoll(rollSuccess);
+				lossSanityText = rollSuccess;
+			} else {
+				// Dice notation (e.g., 1d6, 2d6+3)
+				sanLost = mathjs.evaluate(rollSuccess.toString());
+				lossSanityText = rollSuccess + ' = ' + sanLost;
+			}
+		} catch (err) {
+			// Handle error in calculation
+			console.error('Error calculating sanity loss: ', err);
+			return { sanLost: 0, lossSanityText: i18n.translate('CoC7.error.invalidDice', { language: 'zh-TW' }) };
+		}
 
-		return {
-			rollSuccessLoss,
-			rollFailLoss,
-			rollFumbleLoss
-		};
-
+		return { sanLost, lossSanityText };
 	}
+
 	runDiscord() {
-		let arr = [];
-		let str = `手動San Check模式 \n 請選擇要擲骰的方式\n  1d100 - 基本San Check\n`;
-		this.scMode = this.getScMode(this.mainMsg[1]);
-		this.sc = this.getSc(this.mainMsg[1]);
-		this.rollSuccess = this.getRollSuccess(this.sc);
-		this.rollFail = this.getRollFail(this.sc);
-		if (this.rollSuccess) {
-			str += ` ${this.rollSuccess} - 成功時San Check\n`;
-			arr.push(this.rollSuccess);
-		}
-		if (this.rollFail) {
-			str += ` ${this.rollFail} - 失敗時San Check\n`;
-			arr.push(this.rollFail);
-		}
-		this.buttonCreate.unshift("1d100", ...arr);
-		return str;
+		const oneSC = new SanCheck([this.mainMsg[0], this.mainMsg[1]], this.botname);
+		const san = oneSC.getSanity(this.mainMsg);
+		const sc = oneSC.getSc(this.mainMsg);
+		return oneSC.run(san, sc);
 	}
+
 	run() {
-		if (!this.currentSan && this.botname == "Discord") return this.runDiscord();
-		if (!this.currentSan) return '請輸入正確的San值，\n格式是 .sc 50 或 .sc 50 1/3 或 .sc 50 1d3+3/1d100';
-		const diceFumble = (this.rollDice === 100) || (this.rollDice >= 96 && this.rollDice <= 100 && this.currentSan <= 49);
-		const diceSuccess = this.rollDice <= this.currentSan;
-		const diceFail = this.rollDice > this.currentSan;
-
-		if (diceFumble) {
-			return this.handleDiceFumble();
-		} else if (diceSuccess) {
-			return this.handleDiceSuccess();
-		} else if (diceFail) {
-			return this.handleDiceLoss();
+		const san = this.getSanity(this.mainMsg);
+		const sc = this.getSc(this.mainMsg);
+		
+		if (!san) return { text: i18n.translate('CoC7.sc.invalidSan', { language: 'zh-TW' }) };
+		
+		const rollResult = Math.random() * 100;
+		
+		let checkSuccess = false;
+		let checkFumble = false;
+		let checkCritical = false;
+		
+		// Determine success level
+		if (rollResult <= 5) checkCritical = true;
+		if (rollResult > 95) checkFumble = true;
+		if (rollResult <= san) checkSuccess = true;
+		
+		if (checkCritical) checkSuccess = true;
+		if (checkFumble) checkSuccess = false;
+		
+		let lossSanity, lossSanityText;
+		
+		// Apply sanity loss based on success/failure
+		if (checkSuccess) {
+			({sanLost: lossSanity, lossSanityText} = this.calculateLossSanity(this.getRollSuccess(sc)));
+			
+			return this.handleDiceSuccess(san, lossSanity, lossSanityText, Math.round(rollResult));
+		} else {
+			({sanLost: lossSanity, lossSanityText} = this.calculateLossSanity(this.getRollFail(sc)));
+			
+			return this.handleDiceFumble(san, lossSanity, lossSanityText, Math.round(rollResult));
 		}
-
-		//可接受輸入: .sc 50	.sc 50 哈哈		.sc 50 1/3		.sc 50 1d3+3/1d100 
-		//scMode 代表會扣SC 或有正常輸入扣SAN的數字 
-
 	}
 
-	handleDiceFumble() {
-		if (!this.scMode) {
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!`;
+	handleDiceFumble(san, lossSanity, lossSanityText, rollResult) {
+		// Use i18n here
+		return {
+			text: i18n.translate('CoC7.sc.failure', { 
+				language: 'zh-TW',
+				roll: rollResult,
+				san: san,
+				lossSanityText: lossSanityText,
+				sanityAfter: Math.max(san - lossSanity, 0)
+			}),
+			quotes: true
 		}
-		if (this.rollFail) {
-			let updatedSan = ((this.currentSan - this.lossSan.rollFumbleLoss) < 0) ? 0 : this.currentSan - this.lossSan.rollFumbleLoss;
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!\n失去${this.rollFail}最大值 ${this.lossSan.rollFumbleLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
-		}
-		return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!`
 	}
-	handleDiceSuccess() {
-		//成功
-		if (!this.scMode) {
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!`
-		}
-		if (this.lossSan) {
-			let updatedSan = ((this.currentSan - this.lossSan.rollSuccessLoss) < 0) ? 0 : this.currentSan - this.lossSan.rollSuccessLoss;
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!\n失去${this.rollSuccess} → ${this.lossSan.rollSuccessLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
-		} else
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!\n不需要減少San`
 
-	}
-	handleDiceLoss() {
-		if (!this.scMode) {
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!`
+	handleDiceSuccess(san, lossSanity, lossSanityText, rollResult) {
+		// Use i18n here
+		return {
+			text: i18n.translate('CoC7.sc.success', { 
+				language: 'zh-TW',
+				roll: rollResult,
+				san: san,
+				lossSanityText: lossSanityText,
+				sanityAfter: Math.max(san - lossSanity, 0)
+			}),
+			quotes: true
 		}
-		if (this.lossSan) {
-			let updatedSan = ((this.currentSan - this.lossSan.rollFailLoss) < 0) ? 0 : this.currentSan - this.lossSan.rollFailLoss;
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!\n失去${this.rollFail} → ${this.lossSan.rollFailLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
-		} else
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!\n但不需要減少San`
-
 	}
+
 	getButton() {
-		return this.buttonCreate;
+		return [];
 	}
 }
 
 function chase() {
-	let rply = `CoC 7ed追逐戰產生器\n`;
+	let rply = i18n.translate('CoC7.chase.title', { language: 'zh-TW' }) + '\n';
 	let round = rollbase.Dice(5) + 5;
 	for (let index = 0; index < round; index++) {
 		rply += `${chaseGenerator(index)}\n========\n`;
@@ -1768,73 +2022,88 @@ function chaseGenerator(num) {
 	let dangerMode = (rollbase.Dice(2) == 1) ? true : false;
 	switch (true) {
 		case (chase >= 96): {
-			rply = `地點${num + 1} 極限難度 ${dangerMode ? "險境" : "障礙"}
-			`
+			rply = i18n.translate('CoC7.chase.round', { 
+				language: 'zh-TW', 
+				num: num + 1, 
+				difficulty: i18n.translate('CoC7.chase.difficulty.extreme', { language: 'zh-TW' }),
+				type: dangerMode ? i18n.translate('CoC7.chase.type.danger', { language: 'zh-TW' }) : i18n.translate('CoC7.chase.type.obstacle', { language: 'zh-TW' })
+			}) + '\n';
+			
 			let itemsNumber = rollbase.DiceINT(2, 5);
 			let result = shuffle(request);
-			rply += `可能進行的檢定: `;
+			let skillsText = '';
 			for (let index = 0; index < itemsNumber; index++) {
-				rply += `${result[index]} `;
+				skillsText += `${result[index]} `;
 			}
+			rply += i18n.translate('CoC7.chase.checks', { language: 'zh-TW', skills: skillsText }) + '\n';
+			
 			if (dangerMode) {
-				rply += `
-				失敗失去1D10嚴重事故HP傷害
-				及 失去（1D3）點行動點`;
+				rply += i18n.translate('CoC7.chase.danger', { 
+					language: 'zh-TW', 
+					damage: i18n.translate('CoC7.chase.damage.severe', { language: 'zh-TW' })
+				});
 			} else {
 				let blockhp = shuffle(blockHard);
-				rply += `
-				障礙物 HP${blockhp[0]}`
+				rply += i18n.translate('CoC7.chase.obstacle', { language: 'zh-TW', hp: blockhp[0] });
 			}
-			//1D10嚴重事故
-			//額外失去1（1D3）點行動點
 			break;
 		}
 		case (chase >= 85): {
-			rply = `地點${num + 1} 困難難度 ${dangerMode ? "險境" : "障礙"}
-			`;
+			rply = i18n.translate('CoC7.chase.round', { 
+				language: 'zh-TW', 
+				num: num + 1, 
+				difficulty: i18n.translate('CoC7.chase.difficulty.hard', { language: 'zh-TW' }),
+				type: dangerMode ? i18n.translate('CoC7.chase.type.danger', { language: 'zh-TW' }) : i18n.translate('CoC7.chase.type.obstacle', { language: 'zh-TW' })
+			}) + '\n';
+			
 			let itemsNumber = rollbase.DiceINT(2, 5);
 			let result = shuffle(request);
-			rply += `可能進行檢定: `;
+			let skillsText = '';
 			for (let index = 0; index < itemsNumber; index++) {
-				rply += `${result[index]} `;
+				skillsText += `${result[index]} `;
 			}
+			rply += i18n.translate('CoC7.chase.checks', { language: 'zh-TW', skills: skillsText }) + '\n';
+			
 			if (dangerMode) {
-				rply += `
-				失敗失去1D6中度事故HP傷害
-				及 失去（1D3）點行動點`;
+				rply += i18n.translate('CoC7.chase.danger', { 
+					language: 'zh-TW', 
+					damage: i18n.translate('CoC7.chase.damage.moderate', { language: 'zh-TW' })
+				});
 			} else {
 				let blockhp = shuffle(blockIntermediate);
-				rply += `
-				障礙物 HP${blockhp[0]}`
+				rply += i18n.translate('CoC7.chase.obstacle', { language: 'zh-TW', hp: blockhp[0] });
 			}
-			//1D6中度事故
-			//額外失去1（1D3）點行動點
 			break;
 		}
 		case (chase >= 60): {
-			rply = `地點${num + 1} 一般難度 ${dangerMode ? "險境" : "障礙"}
-			`
+			rply = i18n.translate('CoC7.chase.round', { 
+				language: 'zh-TW', 
+				num: num + 1, 
+				difficulty: i18n.translate('CoC7.chase.difficulty.normal', { language: 'zh-TW' }),
+				type: dangerMode ? i18n.translate('CoC7.chase.type.danger', { language: 'zh-TW' }) : i18n.translate('CoC7.chase.type.obstacle', { language: 'zh-TW' })
+			}) + '\n';
+			
 			let itemsNumber = rollbase.DiceINT(2, 5);
 			let result = shuffle(request);
-			rply += `可能進行檢定: `;
+			let skillsText = '';
 			for (let index = 0; index < itemsNumber; index++) {
-				rply += `${result[index]} `;
+				skillsText += `${result[index]} `;
 			}
+			rply += i18n.translate('CoC7.chase.checks', { language: 'zh-TW', skills: skillsText }) + '\n';
+			
 			if (dangerMode) {
-				rply += `
-				失敗失去1D3-1輕微事故HP傷害
-				及 失去（1D3）點行動點`;
+				rply += i18n.translate('CoC7.chase.danger', { 
+					language: 'zh-TW', 
+					damage: i18n.translate('CoC7.chase.damage.minor', { language: 'zh-TW' })
+				});
 			} else {
 				let blockhp = shuffle(blockEasy);
-				rply += `
-				障礙物 HP${blockhp[0]}`
+				rply += i18n.translate('CoC7.chase.obstacle', { language: 'zh-TW', hp: blockhp[0] });
 			}
-			//1D3-1輕微事故
-			//額外失去1（1D3）點行動點
 			break;
 		}
 		default: {
-			rply = `地點${num + 1} 沒有險境/障礙`
+			rply = i18n.translate('CoC7.chase.noObstacle', { language: 'zh-TW', num: num + 1 });
 			break;
 		}
 	}
@@ -2066,35 +2335,52 @@ const INT = ["隱密類", "職業興趣", "調查類"]
 class MythoyCollection {
 	constructor() { }
 
-	static getMythos() {
-		return `克蘇魯神話邪神:
-		${this.getMythonData("god")}
-
-		克蘇魯神話生物:
-		${this.getMythonData("monster")}
-
-		克蘇魯神話書籍:
-		${this.getMythonData("MagicBook")}
-
-		克蘇魯神話法術:
-		${this.getMythonData("magic")}
-		`
+	static getMythos(userLang = 'zh-TW') {
+		return i18n.translate('CoC7.mythos.title', { language: userLang }) + '\n' + this.getMythonData("god", userLang) + '\n\n' + 
+			this.getMythonData("monster", userLang) + '\n\n' + 
+			this.getMythonData("MagicBook", userLang) + '\n\n' + 
+			this.getMythonData("magic", userLang);
 	}
-	static getMythonData(dataType) {
-		return this.cases[dataType] ? this.cases[dataType]() : this.cases._default();
+	static getMythonData(dataType, userLang = 'zh-TW') {
+		return this.cases[dataType] ? this.cases[dataType](userLang) : this.cases._default(userLang);
 	}
 	static cases = {
-		god: () => { return this.getRandomData(this.MythoyGodList) },
-		monster: () => { return this.getRandomData(this.mosterList) },
-		magic: () => { return this.getRandomData(this.Magic) },
-		MagicBook: () => { return this.getRandomData(this.MagicBookList) },
-		pushedCasting: () => {
-			return `${this.getRandomData(this.pushedCastingRoll)}
-			對於更強大的法術（例如召喚神靈或消耗POW的法術），副作用可能更嚴重：
-			${this.getRandomData(this.pushedPowerfulCastingRoll)}
-			`
+		god: (userLang) => { 
+			return i18n.translate('CoC7.mythos.god', { 
+				language: userLang, 
+				data: this.getRandomData(this.MythoyGodList) 
+			});
 		},
-		_default: () => { return "沒有找到符合的資料" }
+		monster: (userLang) => { 
+			return i18n.translate('CoC7.mythos.monster', { 
+				language: userLang, 
+				data: this.getRandomData(this.mosterList) 
+			});
+		},
+		magic: (userLang) => { 
+			return i18n.translate('CoC7.mythos.magic', { 
+				language: userLang, 
+				data: this.getRandomData(this.Magic) 
+			});
+		},
+		MagicBook: (userLang) => { 
+			return i18n.translate('CoC7.mythos.book', { 
+				language: userLang, 
+				data: this.getRandomData(this.MagicBookList) 
+			});
+		},
+		pushedCasting: (userLang) => {
+			return i18n.translate('CoC7.pushedCasting.standard', { 
+				language: userLang, 
+				effect: this.getRandomData(this.pushedCastingRoll) 
+			}) + '\n' + i18n.translate('CoC7.pushedCasting.powerful', { 
+				language: userLang, 
+				effect: this.getRandomData(this.pushedPowerfulCastingRoll) 
+			});
+		},
+		_default: (userLang) => { 
+			return i18n.translate('CoC7.mythos.default', { language: userLang }); 
+		}
 	}
 	static getRandomData(array) {
 		return array[Math.floor(Math.random() * array.length)];
@@ -2125,7 +2411,6 @@ class MythoyCollection {
 		'7: 施法者或附近的所有人被吸到遙遠的時間或地方。',
 		'8: 不小心召喚了神話神明。',
 	]
-
 }
 
 
@@ -2164,14 +2449,10 @@ class Build7Char {
 			}
 		}
 
-		return `你輸入的指令不正確，指令為 
-coc7版創角				： 啓動語 .cc7build (歲數7-89)
-coc7版隨機創角			： 啓動語 .cc7build random 或留空
-coc7版自由分配點數創角	： 啓動語 .cc7build .xyz (歲數15-89)
-
-先以coc7版隨機模式來創角
-${this.defaultRegistry.build()}
-`;
+		return i18n.translate('CoC7.builder7.error', { 
+			language: 'zh-TW', 
+			randomResult: this.defaultRegistry.build()
+		});
 	}
 }
 
@@ -2193,9 +2474,8 @@ class RandomBuilder {
 	build() {
 		//設定 因年齡減少的點數 和 EDU加骰次數
 		let old = rollbase.DiceINT(15, 89);
-		let ReStr = `
-=======coc7版隨機創角=======
-調查員年齡設為：${old}\n`;
+		let ReStr = i18n.translate('CoC7.builder7.random.title', { language: 'zh-TW', age: old });
+		
 		let Debuff = 0;
 		let AppDebuff = 0;
 		let EDUinc = 0;
@@ -2205,114 +2485,156 @@ class RandomBuilder {
 			EDUinc = EDUincArr[i];
 		}
 		ReStr += '=======\n';
+		
 		switch (true) {
 			case (old >= 15 && old <= 19):
-				ReStr += '年齡調整：從STR或SIZ中減去' + Debuff + '點\n（請自行手動選擇計算）。\nEDU減去5點。LUK骰兩次取高。';
-				ReStr += '\n=======';
-				ReStr += '\n（以下箭號兩項，減值' + Debuff + '點。）';
+				ReStr += i18n.translate('CoC7.builder7.random.ageAdjustment.15-19', { language: 'zh-TW', debuff: Debuff });
 				break;
 			case (old >= 20 && old <= 39):
-				ReStr += '年齡調整：可做' + EDUinc + '次EDU的成長擲骰。';
-				ReStr += '\n=======';
+				ReStr += i18n.translate('CoC7.builder7.random.ageAdjustment.20-39', { language: 'zh-TW', eduInc: EDUinc });
 				break;
 			case (old >= 40 && old <= 49):
-				ReStr += '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
-				ReStr += '\n=======';
-				ReStr += '\n（以下箭號三項，自選減去' + Debuff + '點。）';
+				ReStr += i18n.translate('CoC7.builder7.random.ageAdjustment.40-49', { 
+					language: 'zh-TW', 
+					debuff: Debuff, 
+					appDebuff: AppDebuff, 
+					eduInc: EDUinc 
+				});
 				break;
 			case (old >= 50):
-				ReStr += '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（從一，二或全部三項中選擇）\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
-				ReStr += '\n=======';
-				ReStr += '\n（以下箭號三項，自選減去' + Debuff + '點。）';
+				ReStr += i18n.translate('CoC7.builder7.random.ageAdjustment.50+', { 
+					language: 'zh-TW', 
+					debuff: Debuff, 
+					appDebuff: AppDebuff, 
+					eduInc: EDUinc 
+				});
 				break;
-
 			default:
 				break;
 		}
-		/**
-		 * 
-		 * ＳＴＲ：(4+6+4) * 5 = 70 ←（可選）
-		ＤＥＸ：(1+6+1) * 5 = 40
-		ＰＯＷ：(2+2+2) * 5 = 30
-		ＣＯＮ：(4+3+6) * 5 = 65
-		ＡＰＰ：(2+1+1) * 5 = 20
-		ＳＩＺ：((3+4)+6) * 5 = 65 ←（可選）
-		ＩＮＴ：((6+2)+6) * 5 = 70
-		ＥＤＵ：(((4+6)+6) * 5)-5 = 75
-		 */
+		
 		let randomState = shuffle(eightState);
 		let randomStateNumber = checkState(randomState);
-		ReStr += '\nＳＴＲ：' + randomStateNumber[0];
-		if (old >= 40) ReStr += ' ←（可選） ';
-		if (old < 20) ReStr += ' ←（可選）';
-
-		ReStr += '\nＤＥＸ：' + randomStateNumber[1];
-		if (old >= 40) ReStr += ' ← （可選）';
-
-		ReStr += '\nＰＯＷ：' + randomStateNumber[2];
-
-		ReStr += '\nＣＯＮ：' + randomStateNumber[3];
-		if (old >= 40) ReStr += ' ← （可選）'
-
+		
+		// Build stats with options
+		let strOption = '';
+		let dexOption = '';
+		let conOption = '';
+		let sizOption = '';
+		
 		if (old >= 40) {
-			ReStr += '\nＡＰＰ：' + `${randomStateNumber[4]}-${AppDebuff} = ${randomStateNumber[4] - AppDebuff}`;
-		} else ReStr += '\nＡＰＰ：' + randomStateNumber[4];
-
-
-		ReStr += '\nＳＩＺ：' + randomStateNumber[5];
-		if (old < 20) {
-			ReStr += ' ←（可選）';
+			strOption = i18n.translate('CoC7.builder7.random.ageOption.40+', { language: 'zh-TW' });
+			dexOption = i18n.translate('CoC7.builder7.random.ageOption.40+', { language: 'zh-TW' });
+			conOption = i18n.translate('CoC7.builder7.random.ageOption.40+', { language: 'zh-TW' });
 		}
-
-		ReStr += '\nＩＮＴ：' + randomStateNumber[6]
-
-		if (old < 20) ReStr += '\nＥＤＵ：' + randomStateNumber[7];
-		else {
-			ReStr += '\n=======';
-			ReStr += '\nＥＤＵ初始值：' + randomStateNumber[7]
-
-			let tempEDU = + randomStateNumber[7]
-
+		
+		if (old < 20) {
+			strOption = i18n.translate('CoC7.builder7.random.ageOption.under20.str', { language: 'zh-TW' });
+			sizOption = i18n.translate('CoC7.builder7.random.ageOption.under20.siz', { language: 'zh-TW' });
+		}
+		
+		// Add stats to results
+		ReStr += i18n.translate('CoC7.builder7.random.stats', { 
+			language: 'zh-TW', 
+			str: randomStateNumber[0],
+			strOption: strOption,
+			dex: randomStateNumber[1],
+			dexOption: dexOption,
+			pow: randomStateNumber[2],
+			con: randomStateNumber[3],
+			conOption: conOption,
+			siz: randomStateNumber[5],
+			sizOption: sizOption,
+			int: randomStateNumber[6]
+		});
+		
+		// Handle APP adjustment for age
+		if (old >= 40) {
+			ReStr += i18n.translate('CoC7.builder7.random.appAdjustment', { 
+				language: 'zh-TW', 
+				appValue: randomStateNumber[4],
+				appDebuff: AppDebuff,
+				appResult: randomStateNumber[4] - AppDebuff
+			});
+		} else {
+			ReStr += '\nＡＰＰ：' + randomStateNumber[4];
+		}
+		
+		// Handle EDU based on age
+		if (old < 20) {
+			ReStr += i18n.translate('CoC7.builder7.random.edu.young', { language: 'zh-TW', edu: randomStateNumber[7] });
+		} else {
+			ReStr += i18n.translate('CoC7.builder7.random.edu.older', { language: 'zh-TW', edu: randomStateNumber[7] });
+			
+			let tempEDU = +randomStateNumber[7];
+			
 			for (let i = 1; i <= EDUinc; i++) {
 				let EDURoll = rollbase.Dice(100);
-				ReStr += '\n第' + i + '次EDU成長 → ' + EDURoll;
+				let result = '';
+				
 				if (EDURoll > tempEDU) {
 					let EDUplus = rollbase.Dice(10);
-					ReStr += ' → 成長' + EDUplus + '點';
+					result = i18n.translate('CoC7.builder7.random.eduGrowth.success', { 
+						language: 'zh-TW', 
+						growth: EDUplus 
+					});
 					tempEDU = tempEDU + EDUplus;
 				} else {
-					ReStr += ' → 沒有成長';
+					result = i18n.translate('CoC7.builder7.random.eduGrowth.failure', { language: 'zh-TW' });
 				}
+				
+				ReStr += i18n.translate('CoC7.builder7.random.eduGrowth', { 
+					language: 'zh-TW', 
+					num: i,
+					roll: EDURoll,
+					result: result
+				});
 			}
+			
 			ReStr += '\n';
-			ReStr += '\nＥＤＵ最終值：' + tempEDU;
+			ReStr += i18n.translate('CoC7.builder7.random.eduFinal', { language: 'zh-TW', value: tempEDU });
 		}
+		
 		ReStr += '\n=======';
-		const tempBuildLuck = [rollbase.BuildDiceCal('3d6*5'), rollbase.BuildDiceCal('3d6*5')]
-		const tempLuck = [tempBuildLuck[0].match(/\d+$/), tempBuildLuck[1].match(/\d+$/)]
+		const tempBuildLuck = [rollbase.BuildDiceCal('3d6*5'), rollbase.BuildDiceCal('3d6*5')];
+		const tempLuck = [tempBuildLuck[0].match(/\d+$/), tempBuildLuck[1].match(/\d+$/)];
 
 		if (old < 20) {
-			ReStr += '\nＬＵＫ第一次：' + `${tempBuildLuck[0]} \nＬＵＫ第二次： ${tempBuildLuck[1]}`;
-			ReStr += '\nＬＵＫ最終值：' + Math.max(...tempLuck);
-		}
-		else {
-			ReStr += '\nＬＵＫ：' + `${tempBuildLuck[0]} `;
+			ReStr += i18n.translate('CoC7.builder7.random.luck.young', { 
+				language: 'zh-TW', 
+				luck1: tempBuildLuck[0],
+				luck2: tempBuildLuck[1],
+				luckFinal: Math.max(...tempLuck)
+			});
+		} else {
+			ReStr += i18n.translate('CoC7.builder7.random.luck.older', { language: 'zh-TW', luck: tempBuildLuck[0] });
 		}
 
-		//ReStr += '\nＬＵＫ：' + rollbase.BuildDiceCal('3d6*5');
-		//if (old < 20) ReStr += '\nＬＵＫ加骰：' + rollbase.BuildDiceCal('3D6*5');
-		ReStr += `\n==本職技能==`
+		// Handle Skills
 		let occAndOtherSkills = getOccupationSkill(randomState);
+		
+		// Occupational skills
+		let occSkillsText = '';
 		for (let index = 0; index < occAndOtherSkills.finalOSkillList.length; index++) {
-			ReStr += `\n ${occAndOtherSkills.finalOSkillList[index]} ${eightskillsNumber[index]}`
-
+			occSkillsText += `\n ${occAndOtherSkills.finalOSkillList[index]} ${eightskillsNumber[index]}`;
 		}
-		ReStr += `\n==其他技能==`
+		
+		ReStr += i18n.translate('CoC7.builder7.random.occupationalSkills', { 
+			language: 'zh-TW', 
+			skills: occSkillsText 
+		});
+		
+		// Other skills
+		let otherSkillsText = '';
 		for (let index = 0; index < occAndOtherSkills.finalOtherSkillList.length; index++) {
-			ReStr += `\n ${occAndOtherSkills.finalOtherSkillList[index].name} ${occAndOtherSkills.finalOtherSkillList[index].skill + 20}`
-
+			otherSkillsText += `\n ${occAndOtherSkills.finalOtherSkillList[index].name} ${occAndOtherSkills.finalOtherSkillList[index].skill + 20}`;
 		}
-		ReStr += `\n=======\n${PcBG()}`;
+		
+		ReStr += i18n.translate('CoC7.builder7.random.otherSkills', { 
+			language: 'zh-TW',
+			skills: otherSkillsText 
+		});
+		
 		return ReStr;
 	}
 }

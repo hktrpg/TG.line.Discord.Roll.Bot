@@ -43,6 +43,7 @@ This guide explains how to use and extend the internationalization system in the
 The HKTRPG bot uses a custom internationalization system built on top of i18next. This allows the bot to support multiple languages, with each user or group able to set their preferred language.
 
 Currently supported languages:
+
 - English (en)
 - Traditional Chinese (zh-TW)
 - Simplified Chinese (zh-CN)
@@ -99,13 +100,14 @@ The `translate()` method determines which language to use through the following 
 When you call `i18n.translate()` with user context parameters, this is what happens internally:
 
 1. **Check for explicit language**:
+
    ```javascript
    if (language) {
        return this._translateWithLanguage(key, language, values);
    }
    ```
-
 2. **Check for user language** (if userid is provided):
+
    - First checks the in-memory cache (`userLang:${userid}`)
    - If found in cache, uses that language immediately
    - If not in cache, defaults to system language for this request
@@ -116,14 +118,14 @@ When you call `i18n.translate()` with user context parameters, this is what happ
              translationCache.set(cacheKey, userLang, 3600); // 1 hour cache
          })
      ```
-
 3. **Check for group language** (if no user language found):
+
    - Checks in-memory cache (`groupLang:${groupid}`)
    - If found in cache, uses that language
    - If not in cache, defaults to system language for this request
    - In parallel, starts an async database lookup to update the cache
-
 4. **Last resort - default language**:
+
    - Falls back to `DEFAULT_LANGUAGE` (zh-TW)
 
 #### User Language Lookup Process
@@ -136,6 +138,7 @@ When `getUserLanguage()` is called (either directly or through `translate()`):
 4. If group has no language set, return default language
 
 This multi-layered approach ensures:
+
 - Fast response times using cached values when available
 - Correct language preferences when users change settings
 - Fallback to appropriate defaults when needed
@@ -143,6 +146,7 @@ This multi-layered approach ensures:
 #### Example Scenarios
 
 **Scenario 1**: User with personal language setting
+
 ```javascript
 // User has set English as their language
 i18n.translate('greeting', { userid: '123456789' });
@@ -150,6 +154,7 @@ i18n.translate('greeting', { userid: '123456789' });
 ```
 
 **Scenario 2**: User without setting in a group with setting
+
 ```javascript
 // User has no language setting, but group uses Chinese
 i18n.translate('greeting', { userid: '123456789', groupid: '987654321' });
@@ -157,6 +162,7 @@ i18n.translate('greeting', { userid: '123456789', groupid: '987654321' });
 ```
 
 **Scenario 3**: Override with explicit language
+
 ```javascript
 // Force Japanese regardless of user/group settings
 i18n.translate('greeting', { 
@@ -173,11 +179,12 @@ The translation system uses a sophisticated caching mechanism to provide optimal
 
 #### Cache Types
 
-1. **Translation Caches**: 
+1. **Translation Caches**:
+
    - Full language files: `translations:${language}`
    - Individual translations: `t:${language}:${key}`
-
 2. **User Preference Caches**:
+
    - User language settings: `userLang:${userid}`
    - Group language settings: `groupLang:${groupid}`
 
@@ -186,23 +193,24 @@ The translation system uses a sophisticated caching mechanism to provide optimal
 When translating with user context, the system implements several optimizations:
 
 1. **Non-blocking Language Lookup**:
+
    - If a user/group language isn't in cache, the system uses the default language immediately
    - It then initiates an asynchronous database lookup in the background
    - The result is cached for future requests
    - This prevents translation calls from being delayed by database queries
-
 2. **Parallel Processing**:
+
    ```javascript
    // This returns immediately using cached or default language
    const text = i18n.translate('key', { userid, groupid });
-   
+
    // Meanwhile, in the background:
    getUserLanguage({ userid, groupid })
        .then(userLang => { /* update cache */ })
        .catch(err => { /* handle error */ });
    ```
-
 3. **Cache Invalidation Strategy**:
+
    - User/group caches expire after 1 hour (CACHE_TTL = 3600 seconds)
    - Caches are explicitly cleared when language settings are updated
    - Translation caches have similar TTL but can be force-reloaded
@@ -346,12 +354,12 @@ const getLocalizationMap = (key) => {
         'zh-CN': 'zh-CN'  // Chinese (China)
         // Add other language mappings as needed
     };
-    
+  
     const localizationMap = {};
     i18n.getLanguages().forEach(lang => {
         // Skip languages without a Discord mapping
         if (!discordLocaleMap[lang]) return;
-        
+      
         // Get translation for this key in each language
         const translation = i18n.directTranslateSync(key, lang);
         if (translation && translation !== key) {
@@ -375,22 +383,23 @@ const command = new SlashCommandBuilder()
 Discord has specific requirements for locale codes used in localizations:
 
 1. **Use Discord's Official Locale List**: Discord only accepts specific locale codes from their supported list. Examples:
+
    - `en-US` for English (US)
    - `zh-CN` for Chinese (Simplified)
    - `zh-TW` for Chinese (Traditional)
-
 2. **Format Matters**: The format must exactly match Discord's enum values - case sensitivity matters:
+
    ```javascript
    // Correct
    'en-US': 'English translation'
-   
+
    // Wrong - will be rejected by Discord API
    'en_US': 'English translation'
    'en': 'English translation'
    'EN-US': 'English translation'
    ```
-
 3. **Mapping to Internal Codes**: You need to map your internal language codes (e.g., 'en', 'zh-TW') to Discord's locale codes (e.g., 'en-US', 'zh-TW'):
+
    ```javascript
    const discordLocaleMap = {
        'en': 'en-US',      // Map our 'en' to Discord's 'en-US'
@@ -400,8 +409,8 @@ Discord has specific requirements for locale codes used in localizations:
        'ko': 'ko'          // For future language support
    };
    ```
-
 4. **Common Discord Locale Codes**:
+
    - `en-US` - English (US)
    - `en-GB` - English (UK)
    - `zh-CN` - Chinese (Simplified)
@@ -540,7 +549,7 @@ const discordCommand = [{
 
         return command;
     })(),
-    
+  
     // Execute method to handle the command when invoked
     async execute(interaction) {
         try {
@@ -930,26 +939,27 @@ const result = i18n.translate('dice.roll.result', {
 ## Common Patterns and Best Practices
 
 1. **Use Namespaced Keys**: Structure keys using dots, e.g., `command.roll.help`
-
 2. **Handle Missing Translations**:
+
 ```javascript
 const message = i18n.translate(key, options) || fallbackText;
 ```
 
 3. **Structure Translation Files**:
+
    - Group related strings together
    - Use comments for context
    - Keep keys consistent across languages
+4. **Avoid String Concatenation**:
 
-4. **Avoid String Concatenation**: 
    - Bad: `i18n.translate('prefix') + variable + i18n.translate('suffix')`
    - Good: `i18n.translate('complete', { variable })`
-
 5. **Testing New Languages**:
+
    - Use the direct translation methods to verify keys exist
    - Test with both UI methods and API calls
-
 6. **User Context Best Practices**:
+
    - Always pass both `userid` and `groupid` when available:
      ```javascript
      i18n.translate('key', { userid, groupid, ...otherVariables });
@@ -967,13 +977,13 @@ const message = i18n.translate(key, options) || fallbackText;
    - In command handlers, get user language once at the beginning:
      ```javascript
      const userLang = await i18n.getUserLanguage({ userid, groupid });
-     
+
      // Then use it for multiple translations
      const help = i18n.translate('command.help', { language: userLang });
      const response = i18n.translate('command.response', { language: userLang });
      ```
-
 7. **Performance Considerations**:
+
    - Cache language settings after lookups when processing multiple translations
    - For batch operations affecting multiple users, consider using direct language instead of userid/groupid
    - Clear user/group caches immediately after language settings change

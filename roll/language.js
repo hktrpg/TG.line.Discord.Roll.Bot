@@ -7,9 +7,6 @@ const gameName = function () {
     // This is called from the system without user context
     // en: Language Settings
     // zh-TW: 語言設定
-    // zh-CN: 语言设置
-    // ja: 言語設定
-    // ko: 언어 설정
     return i18n.translate('language.name');
 }
 
@@ -19,7 +16,7 @@ const gameType = function () {
 
 const prefixs = function () {
     return [{
-        first: /^\.(lang|language|語言|语言)$/i,
+        first: /^\.(language)$/i,
         second: null
     }]
 }
@@ -51,6 +48,292 @@ const initialize = function () {
     return {};
 }
 
+// Handler for help command
+const handleHelpCommand = async function({ userid, groupid, currentLang }) {
+    console.log(`[DEBUG] Showing help in language: ${currentLang}`);
+    
+    const rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
+    
+    // First try normal translation
+    rply.text = i18n.translate('language.help', { 
+        userid, 
+        groupid,
+        language: currentLang // Explicitly set language
+    });
+    
+    // If that fails or if we're debugging, also try direct file translation
+    try {
+        const directTranslation = await i18n.directTranslate('language.help', currentLang);
+        if (directTranslation) {
+            console.log('[DEBUG] Using direct file translation for help');
+            rply.text = directTranslation;
+        }
+    } catch (err) {
+        console.error('[ERROR] Direct translation failed:', err);
+    }
+    
+    rply.quotes = true;
+    return rply;
+}
+
+// Handler for list command - Show supported languages and current settings
+const handleListCommand = async function({ userid, groupid, currentLang }) {
+    const langs = i18n.getLanguages();
+    
+    // Get the user's language setting
+    const userLang = await i18n.getUserLanguage({ userid, groupid });
+    
+    // Get the group's language setting if in a group
+    let groupLang = null;
+    if (groupid) {
+        groupLang = await records.getGroupLanguage(groupid);
+    }
+    
+    return {
+        default: 'on',
+        type: 'text',
+        text: i18n.translate('language.listSettings', {
+            userid,
+            groupid,
+            language: currentLang,
+            supportedList: langs.join(', '),
+            userLanguage: userLang,
+            groupLanguage: groupLang || i18n.translate('language.notSet', { language: currentLang })
+        })
+    };
+}
+
+// Handler for setting group language command
+const handleSetGroupCommand = async function({ mainMsg, userid, groupid, userrole, currentLang }) {
+    const rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
+
+    // Check if user has admin/manager role
+    const isAdmin = userrole === 1 || userrole === 2 || userrole === 3;
+    
+    if (!isAdmin) {
+        rply.text = i18n.translate('language.adminOnly', {
+            userid,
+            groupid,
+            language: currentLang
+        });
+        return rply;
+    }
+    
+    if (!groupid) {
+        rply.text = i18n.translate('language.needGroup', {
+            userid,
+            language: currentLang
+        });
+        return rply;
+    }
+    
+    const inputLang = mainMsg[2].toLowerCase();
+    if (i18n.isSupported(inputLang)) {
+        // Get properly cased language code
+        const normalizedLang = i18n.getNormalizedLanguage(inputLang);
+        
+        // Get current group language if any
+        const currentGroupLang = await records.getGroupLanguage(groupid);
+        
+        // Store group preference in database
+        await records.updateGroupLanguage(groupid, normalizedLang);
+        
+        // Clear the cache to ensure the new language is used immediately
+        i18n.clearUserCache(null, groupid);
+        
+        // Try normal translation first
+        rply.text = i18n.translate('language.groupChanged', {
+            userid,
+            groupid,
+            language: normalizedLang, // Use new language for message
+            from: currentGroupLang || i18n.defaultLanguage,
+            to: normalizedLang
+        });
+        
+        // If the key is returned (translation not found), try direct translation
+        if (rply.text === 'language.groupChanged') {
+            try {
+                const directTranslation = await i18n.directTranslate('language.groupChanged', normalizedLang);
+                if (directTranslation) {
+                    // Replace placeholders manually
+                    rply.text = directTranslation
+                        .replace('{{from}}', currentGroupLang || i18n.defaultLanguage)
+                        .replace('{{to}}', normalizedLang);
+                }
+            } catch (err) {
+                console.error('[ERROR] Direct translation failed:', err);
+            }
+        }
+    } else {
+        rply.text = i18n.translate('language.notSupported', {
+            userid,
+            groupid,
+            requested: inputLang,
+            list: i18n.getLanguages().join(', ')
+        });
+        
+        // If the key is returned (translation not found), try direct translation
+        if (rply.text === 'language.notSupported') {
+            try {
+                const directTranslation = await i18n.directTranslate('language.notSupported', currentLang);
+                if (directTranslation) {
+                    // Replace placeholders manually
+                    rply.text = directTranslation
+                        .replace('{{requested}}', inputLang)
+                        .replace('{{list}}', i18n.getLanguages().join(', '));
+                }
+            } catch (err) {
+                console.error('[ERROR] Direct translation failed:', err);
+            }
+        }
+    }
+    return rply;
+}
+
+// Handler for setting user language using the set command
+const handleSetCommand = async function({ mainMsg, userid, groupid, currentLang }) {
+    const rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
+
+    const inputLang = mainMsg[2].toLowerCase();
+    if (i18n.isSupported(inputLang)) {
+        // Get properly cased language code
+        const normalizedLang = i18n.getNormalizedLanguage(inputLang);
+
+        // Store user preference in database
+        await records.updateUserLanguage(userid, normalizedLang);
+
+        // Clear the cache to ensure the new language is used immediately
+        i18n.clearUserCache(userid);
+
+        // Try normal translation first
+        rply.text = i18n.translate('language.changed', {
+            userid,
+            groupid,
+            language: normalizedLang, // Use new language for message
+            from: currentLang,
+            to: normalizedLang
+        });
+        
+        // If the key is returned (translation not found), try direct translation
+        if (rply.text === 'language.changed') {
+            try {
+                const directTranslation = await i18n.directTranslate('language.changed', normalizedLang);
+                if (directTranslation) {
+                    // Replace placeholders manually
+                    rply.text = directTranslation
+                        .replace('{{from}}', currentLang)
+                        .replace('{{to}}', normalizedLang);
+                }
+            } catch (err) {
+                console.error('[ERROR] Direct translation failed:', err);
+            }
+        }
+    } else {
+        rply.text = i18n.translate('language.notSupported', {
+            userid,
+            groupid,
+            requested: inputLang,
+            list: i18n.getLanguages().join(', ')
+        });
+        
+        // If the key is returned (translation not found), try direct translation
+        if (rply.text === 'language.notSupported') {
+            try {
+                const directTranslation = await i18n.directTranslate('language.notSupported', currentLang);
+                if (directTranslation) {
+                    // Replace placeholders manually
+                    rply.text = directTranslation
+                        .replace('{{requested}}', inputLang)
+                        .replace('{{list}}', i18n.getLanguages().join(', '));
+                }
+            } catch (err) {
+                console.error('[ERROR] Direct translation failed:', err);
+            }
+        }
+    }
+    return rply;
+}
+
+// Handler for setting user language directly
+const handleDirectLanguageCommand = async function({ mainMsg, userid, groupid, currentLang }) {
+    const rply = {
+        default: 'on',
+        type: 'text',
+        text: ''
+    };
+
+    const inputLang = mainMsg[1].toLowerCase();
+    if (i18n.isSupported(inputLang)) {
+        // Get properly cased language code
+        const normalizedLang = i18n.getNormalizedLanguage(inputLang);
+
+        // Store user preference in database
+        await records.updateUserLanguage(userid, normalizedLang);
+
+        // Clear the cache to ensure the new language is used immediately
+        i18n.clearUserCache(userid);
+
+        // Try normal translation first
+        rply.text = i18n.translate('language.changed', {
+            userid,
+            groupid,
+            language: normalizedLang, // Use new language for message
+            from: currentLang,
+            to: normalizedLang
+        });
+        
+        // If the key is returned (translation not found), try direct translation
+        if (rply.text === 'language.changed') {
+            try {
+                const directTranslation = await i18n.directTranslate('language.changed', normalizedLang);
+                if (directTranslation) {
+                    // Replace placeholders manually
+                    rply.text = directTranslation
+                        .replace('{{from}}', currentLang)
+                        .replace('{{to}}', normalizedLang);
+                }
+            } catch (err) {
+                console.error('[ERROR] Direct translation failed:', err);
+            }
+        }
+    } else {
+        rply.text = i18n.translate('language.notSupported', {
+            userid,
+            groupid,
+            requested: inputLang,
+            list: i18n.getLanguages().join(', ')
+        });
+        
+        // If the key is returned (translation not found), try direct translation
+        if (rply.text === 'language.notSupported') {
+            try {
+                const directTranslation = await i18n.directTranslate('language.notSupported', currentLang);
+                if (directTranslation) {
+                    // Replace placeholders manually
+                    rply.text = directTranslation
+                        .replace('{{requested}}', inputLang)
+                        .replace('{{list}}', i18n.getLanguages().join(', '));
+                }
+            } catch (err) {
+                console.error('[ERROR] Direct translation failed:', err);
+            }
+        }
+    }
+    return rply;
+}
+
 const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
@@ -73,254 +356,74 @@ const rollDiceCommand = async function ({
     try {
         // Get current language for user first
         const currentLang = await i18n.getUserLanguage({ userid, groupid });
-
-        // Handle help message or empty command - pass userid directly to translate
-        // Make sure this is the first condition checked after getting user language
-        if (!mainMsg[1] || mainMsg[1] === '' || /^help$/i.test(mainMsg[1])) {
-            console.log(`[DEBUG] Showing help in language: ${currentLang}`);
-
-            // First try normal translation
-            rply.text = i18n.translate('language.help', {
-                userid,
-                groupid,
+        
+        // Check if we have any command at all
+        if (!mainMsg[1] || mainMsg[1] === '') {
+            console.log('[DEBUG] No command provided, showing help');
+            return await handleHelpCommand({ userid, groupid, currentLang });
+        }
+        
+        // Get the command and convert to lowercase
+        const command = mainMsg[1].toLowerCase();
+        console.log('[DEBUG] Command parsed:', command, 'Arguments:', mainMsg.slice(2));
+        
+        // Direct command matching instead of switch/case
+        if (command === 'help') {
+            console.log('[DEBUG] Executing help command');
+            return await handleHelpCommand({ userid, groupid, currentLang });
+        }
+        
+        if (command === 'list') {
+            console.log('[DEBUG] Executing list command');
+            return await handleListCommand({ userid, groupid, currentLang });
+        }
+        
+        if (command === 'setgroup' && mainMsg[2]) {
+            console.log('[DEBUG] Executing setgroup command');
+            return await handleSetGroupCommand({ 
+                mainMsg, 
+                userid, 
+                groupid, 
+                userrole, 
+                currentLang 
             });
-
-            // If that fails or if we're debugging, also try direct file translation
-            try {
-                const directTranslation = await i18n.directTranslate('language.help', currentLang);
-                if (directTranslation) {
-                    console.log('[DEBUG] Using direct file translation for help');
-                    rply.text = directTranslation;
-                }
-            } catch (err) {
-                console.error('[ERROR] Direct translation failed:', err);
-            }
-
-            rply.quotes = true;
-            return rply;
         }
-
-        // List available languages
-        if (/^list$/i.test(mainMsg[1])) {
-            const langs = i18n.getLanguages();
-            rply.text = i18n.translate('language.available', {
-                userid,
-                groupid,
-                language: currentLang, // Explicitly set language
-                list: langs.join(', '),
-                current: currentLang
+        
+        if (command === 'set' && mainMsg[2]) {
+            console.log('[DEBUG] Executing set command with language:', mainMsg[2]);
+            return await handleSetCommand({ 
+                mainMsg, 
+                userid, 
+                groupid, 
+                currentLang 
             });
-            return rply;
         }
-
-        // Admin command to set group language
-        if (/^group$/i.test(mainMsg[1]) && mainMsg[2]) {
-            // Check if user has admin/manager role
-            const isAdmin = userrole === 1 || userrole === 2 || userrole === 3;
-
-            if (!isAdmin) {
-                rply.text = i18n.translate('language.adminOnly', {
-                    userid,
-                    groupid,
-                    language: currentLang
-                });
-                return rply;
-            }
-
-            if (!groupid) {
-                rply.text = i18n.translate('language.needGroup', {
-                    userid,
-                    language: currentLang
-                });
-                return rply;
-            }
-
-            const inputLang = mainMsg[2].toLowerCase();
-            if (i18n.isSupported(inputLang)) {
-                // Get properly cased language code
-                const normalizedLang = i18n.getNormalizedLanguage(inputLang);
-
-                // Get current group language if any
-                const records = require('../modules/records');
-                const currentGroupLang = await records.getGroupLanguage(groupid);
-
-                // Store group preference in database
-                await records.updateGroupLanguage(groupid, normalizedLang);
-
-                // Clear the cache to ensure the new language is used immediately
-                i18n.clearUserCache(null, groupid);
-
-                // Try normal translation first
-                rply.text = i18n.translate('language.groupChanged', {
-                    userid,
-                    groupid,
-                    language: normalizedLang, // Use new language for message
-                    from: currentGroupLang || i18n.defaultLanguage,
-                    to: normalizedLang
-                });
-
-                // If the key is returned (translation not found), try direct translation
-                if (rply.text === 'language.groupChanged') {
-                    try {
-                        const directTranslation = await i18n.directTranslate('language.groupChanged', normalizedLang);
-                        if (directTranslation) {
-                            // Replace placeholders manually
-                            rply.text = directTranslation
-                                .replace('{{from}}', currentGroupLang || i18n.defaultLanguage)
-                                .replace('{{to}}', normalizedLang);
-                        }
-                    } catch (err) {
-                        console.error('[ERROR] Direct translation failed:', err);
-                    }
-                }
-            } else {
-                rply.text = i18n.translate('language.notSupported', {
-                    userid,
-                    groupid,
-                    requested: inputLang,
-                    list: i18n.getLanguages().join(', ')
-                });
-
-                // If the key is returned (translation not found), try direct translation
-                if (rply.text === 'language.notSupported') {
-                    try {
-                        const directTranslation = await i18n.directTranslate('language.notSupported', currentLang);
-                        if (directTranslation) {
-                            // Replace placeholders manually
-                            rply.text = directTranslation
-                                .replace('{{requested}}', inputLang)
-                                .replace('{{list}}', i18n.getLanguages().join(', '));
-                        }
-                    } catch (err) {
-                        console.error('[ERROR] Direct translation failed:', err);
-                    }
-                }
-            }
-            return rply;
-        }
-
-        // Support for ".language set zh-tw" format
-        if (/^set$/i.test(mainMsg[1]) && mainMsg[2]) {
-            const inputLang = mainMsg[2].toLowerCase();
-            if (i18n.isSupported(inputLang)) {
-                // Get properly cased language code
-                const normalizedLang = i18n.getNormalizedLanguage(inputLang);
-
-                // Store user preference in database
-                await records.updateUserLanguage(userid, normalizedLang);
-
-                // Clear the cache to ensure the new language is used immediately
-                i18n.clearUserCache(userid);
-
-                // Try normal translation first
-                rply.text = i18n.translate('language.changed', {
-                    userid,
-                    groupid,
-                    language: normalizedLang, // Use new language for message
-                    from: currentLang,
-                    to: normalizedLang
-                });
-
-                // If the key is returned (translation not found), try direct translation
-                if (rply.text === 'language.changed') {
-                    try {
-                        const directTranslation = await i18n.directTranslate('language.changed', normalizedLang);
-                        if (directTranslation) {
-                            // Replace placeholders manually
-                            rply.text = directTranslation
-                                .replace('{{from}}', currentLang)
-                                .replace('{{to}}', normalizedLang);
-                        }
-                    } catch (err) {
-                        console.error('[ERROR] Direct translation failed:', err);
-                    }
-                }
-            } else {
-                rply.text = i18n.translate('language.notSupported', {
-                    userid,
-                    groupid,
-                    requested: inputLang,
-                    list: i18n.getLanguages().join(', ')
-                });
-
-                // If the key is returned (translation not found), try direct translation
-                if (rply.text === 'language.notSupported') {
-                    try {
-                        const directTranslation = await i18n.directTranslate('language.notSupported', currentLang);
-                        if (directTranslation) {
-                            // Replace placeholders manually
-                            rply.text = directTranslation
-                                .replace('{{requested}}', inputLang)
-                                .replace('{{list}}', i18n.getLanguages().join(', '));
-                        }
-                    } catch (err) {
-                        console.error('[ERROR] Direct translation failed:', err);
-                    }
-                }
-            }
-            return rply;
-        }
-
-        // Original format: ".language zh-tw"
-        const inputLang = mainMsg[1].toLowerCase();
-        if (i18n.isSupported(inputLang)) {
-            // Get properly cased language code
-            const normalizedLang = i18n.getNormalizedLanguage(inputLang);
-
-            // Store user preference in database
-            await records.updateUserLanguage(userid, normalizedLang);
-
-            // Clear the cache to ensure the new language is used immediately
-            i18n.clearUserCache(userid);
-
-            // Try normal translation first
-            rply.text = i18n.translate('language.changed', {
-                userid,
-                groupid,
-                language: normalizedLang, // Use new language for message
-                from: currentLang,
-                to: normalizedLang
+        
+        if (command === 'group' && mainMsg[2]) {
+            console.log('[DEBUG] Executing group command (backward compatibility)');
+            return await handleSetGroupCommand({ 
+                mainMsg, 
+                userid, 
+                groupid, 
+                userrole, 
+                currentLang 
             });
-
-            // If the key is returned (translation not found), try direct translation
-            if (rply.text === 'language.changed') {
-                try {
-                    const directTranslation = await i18n.directTranslate('language.changed', normalizedLang);
-                    if (directTranslation) {
-                        // Replace placeholders manually
-                        rply.text = directTranslation
-                            .replace('{{from}}', currentLang)
-                            .replace('{{to}}', normalizedLang);
-                    }
-                } catch (err) {
-                    console.error('[ERROR] Direct translation failed:', err);
-                }
-            }
-        } else {
-            rply.text = i18n.translate('language.notSupported', {
-                userid,
-                groupid,
-                requested: inputLang,
-                list: i18n.getLanguages().join(', ')
-            });
-
-            // If the key is returned (translation not found), try direct translation
-            if (rply.text === 'language.notSupported') {
-                try {
-                    const directTranslation = await i18n.directTranslate('language.notSupported', currentLang);
-                    if (directTranslation) {
-                        // Replace placeholders manually
-                        rply.text = directTranslation
-                            .replace('{{requested}}', inputLang)
-                            .replace('{{list}}', i18n.getLanguages().join(', '));
-                    }
-                } catch (err) {
-                    console.error('[ERROR] Direct translation failed:', err);
-                }
-            }
         }
-
-        return rply;
+        
+        // If command is a valid language code, set it directly
+        if (i18n.isSupported(command)) {
+            console.log('[DEBUG] Setting language directly to:', command);
+            return await handleDirectLanguageCommand({ 
+                mainMsg, 
+                userid, 
+                groupid, 
+                currentLang 
+            });
+        }
+        
+        // If we get here, no command matched - show help
+        console.log('[DEBUG] No command matched, showing help');
+        return await handleHelpCommand({ userid, groupid, currentLang });
     } catch (error) {
         console.error('Error in language command:', error);
         rply.text = i18n.translate('system.error.command', { userid, groupid });
@@ -345,7 +448,7 @@ const discordCommand = [{
                 ))
         .addSubcommand(subcommand =>
             subcommand
-                .setName('group')
+                .setName('setgroup')
                 .setDescription('Set language for the entire group (admin only)')
                 .addStringOption(option =>
                     option.setName('language')
@@ -357,16 +460,20 @@ const discordCommand = [{
                             { name: '简体中文', value: 'zh-CN' },
                             { name: '日本語', value: 'ja' },
                             { name: '한국어', value: 'ko' },
-                        ))),
+                        )))
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('list')
+                .setDescription('Show supported languages and current settings')),
     async execute(interaction) {
         try {
             const subcommand = interaction.options.getSubcommand(false);
             const userid = interaction.user.id;
+            const groupid = interaction.guildId;
 
             // Handle group language setting (admin only)
-            if (subcommand === 'group') {
+            if (subcommand === 'setgroup') {
                 const langOption = interaction.options.getString('language');
-                const guildId = interaction.guildId;
 
                 // Check if user has admin permissions
                 const member = interaction.member;
@@ -383,7 +490,7 @@ const discordCommand = [{
                     return;
                 }
 
-                if (!guildId) {
+                if (!groupid) {
                     await interaction.reply({
                         content: i18n.translate('language.needGroup', { userid }),
                         ephemeral: true
@@ -405,17 +512,16 @@ const discordCommand = [{
                 }
 
                 // Get current group language
-                const records = require('../modules/records');
-                const currentGroupLang = await records.getGroupLanguage(guildId);
+                const currentGroupLang = await records.getGroupLanguage(groupid);
 
                 // Get properly cased language code
                 const normalizedLang = i18n.getNormalizedLanguage(langOption);
 
                 // Update language
-                await records.updateGroupLanguage(guildId, normalizedLang);
+                await records.updateGroupLanguage(groupid, normalizedLang);
 
                 // Clear the cache to ensure the new language is used immediately
-                i18n.clearUserCache(null, guildId);
+                i18n.clearUserCache(null, groupid);
 
                 // Respond with message in new language
                 await interaction.reply({
@@ -428,8 +534,34 @@ const discordCommand = [{
                 });
                 return;
             }
+            
+            // List available languages and settings
+            if (subcommand === 'list') {
+                // Get the user's language setting
+                const userLang = await i18n.getUserLanguage({ userid, groupid });
+                
+                // Get the group's language setting if in a group
+                let groupLang = null;
+                if (groupid) {
+                    groupLang = await records.getGroupLanguage(groupid);
+                }
+                
+                const listText = i18n.translate('language.listSettings', {
+                    userid,
+                    groupid,
+                    supportedList: i18n.getLanguages().join(', '),
+                    userLanguage: userLang,
+                    groupLanguage: groupLang || i18n.translate('language.notSet', { language: userLang })
+                });
+                
+                await interaction.reply({
+                    content: listText,
+                    ephemeral: true
+                });
+                return;
+            }
 
-            // Regular user language setting (existing code)
+            // Regular user language setting
             const langOption = interaction.options.getString('language');
 
             // If no language provided, show current language and list

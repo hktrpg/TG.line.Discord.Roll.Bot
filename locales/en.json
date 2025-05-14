@@ -14,7 +14,10 @@
   "language.changed": "Language changed from {{from}} to {{to}}",
   "language.notSupported": "Language '{{requested}}' is not supported. Available languages: {{list}}",
   "language.name": "Language Settings",
-  "language.help": "【🌐Language Settings】\n╭────── ℹ️Instructions ──────\n│ View available languages:\n│ .lang list\n│ \n│ Set language:\n│ .lang [language code]\n│ or\n│ .language set [language code]\n│ Example: .lang en\n│ Example: .language set zh-tw\n│ \n│ Currently supported languages:\n│ en (English)\n│ zh-TW (繁體中文)\n│ zh-CN (简体中文)\n│ ja (日本語)\n│ ko (한국어)\n╰──────────────",
+  "language.help": "【🌐Language Settings】\n╭────── ℹ️Instructions ──────\n│ View available languages:\n│ .lang list\n│ \n│ Set language:\n│ .lang [language code]\n│ or\n│ .language set [language code]\n│ Example: .lang en\n│ Example: .language set zh-tw\n│ \n│ For admins - Set group language:\n│ .lang group [language code]\n│ Example: .lang group en\n│ \n│ Currently supported languages:\n│ en (English)\n│ zh-TW (繁體中文)\n│ zh-CN (简体中文)\n│ ja (日本語)\n│ ko (한국어)\n╰──────────────",
+  "language.adminOnly": "Only administrators can use this command.",
+  "language.needGroup": "This command can only be used in a group.",
+  "language.groupChanged": "Group language changed from {{from}} to {{to}}",
 
   "dice.roll.result": "Roll Result",
   "dice.roll.success": "Success!",

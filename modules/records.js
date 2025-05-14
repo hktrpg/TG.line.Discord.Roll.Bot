@@ -767,7 +767,7 @@ class Records extends EventEmitter {
      * Get user's preferred language
      * @param {string} userId - User ID
      * @param {string} defaultLang - Default language if not found
-     * @returns {Promise<string>} Language code
+     * @returns {Promise<string|null>} Language code or null if not found and defaultLang is null
      */
     async getUserLanguage(userId, defaultLang = 'en') {
         try {
@@ -787,10 +787,82 @@ class Records extends EventEmitter {
                 return null;
             });
             
+            // Return user's language if found, otherwise defaultLang (which might be null)
             return userSettings?.language || defaultLang;
         } catch (error) {
             console.error(`[ERROR] Failed to get user language:`, error);
             return defaultLang;
+        }
+    }
+
+    /**
+     * Update group language preference
+     * @param {string} groupId - Group ID
+     * @param {string} language - Language code
+     * @returns {Promise<Object>} Updated group settings
+     */
+    async updateGroupLanguage(groupId, language) {
+        try {
+            // Clear the group language cache
+            const NodeCache = require('node-cache');
+            const translationCache = new NodeCache({ stdTTL: 3600 });
+            const cacheKey = `groupLang:${groupId}`;
+            translationCache.del(cacheKey);
+            
+            // Create schema if it doesn't exist yet
+            if (!schema.groupSettings) {
+                // Add to schema collection
+                const mongoose = require('./db-connector.js').mongoose;
+                schema.groupSettings = mongoose.model('groupSettings', new mongoose.Schema({
+                    groupId: { type: String, index: true },
+                    language: { type: String, default: 'en' }
+                }));
+            }
+            
+            // Update in database
+            const result = await schema.groupSettings.findOneAndUpdate(
+                { groupId },
+                { $set: { language } },
+                { upsert: true, new: true }
+            ).catch(error => {
+                console.error(`[ERROR] MongoDB error in updateGroupLanguage:`, error);
+                throw error;
+            });
+            
+            return result;
+        } catch (error) {
+            console.error(`[ERROR] Failed to update group language:`, error);
+            return null;
+        }
+    }
+
+    /**
+     * Get group's preferred language
+     * @param {string} groupId - Group ID
+     * @returns {Promise<string|null>} Language code or null if not set
+     */
+    async getGroupLanguage(groupId) {
+        try {
+            // Create schema if it doesn't exist yet
+            if (!schema.groupSettings) {
+                // Add to schema collection
+                const mongoose = require('./db-connector.js').mongoose;
+                schema.groupSettings = mongoose.model('groupSettings', new mongoose.Schema({
+                    groupId: { type: String, index: true },
+                    language: { type: String, default: 'en' }
+                }));
+            }
+            
+            // Check database
+            const groupSettings = await schema.groupSettings.findOne({ groupId }).catch(error => {
+                console.error(`[ERROR] MongoDB error in getGroupLanguage:`, error);
+                return null;
+            });
+            
+            return groupSettings?.language || null;
+        } catch (error) {
+            console.error(`[ERROR] Failed to get group language:`, error);
+            return null;
         }
     }
 }

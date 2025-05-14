@@ -21,6 +21,17 @@
   "language.listSettings": "【🌐Language Settings】\n╭───── ℹ️Current Settings ─────\n│ Your language: {{userLanguage}}\n│ Group language: {{groupLanguage}}\n│ \n│ Supported languages: {{supportedList}}\n╰──────────────",
   "language.notSet": "Not set",
 
+  "language.slash.name": "language",
+  "language.slash.description": "Set your preferred language",
+  "language.slash.option.language": "language",
+  "language.slash.option.language.description": "Language code (e.g., en, zh-TW)",
+  "language.slash.set.name": "set",
+  "language.slash.set.description": "Set your preferred language",
+  "language.slash.setgroup.name": "setgroup",
+  "language.slash.setgroup.description": "Set language for the entire group (admin only)",
+  "language.slash.list.name": "list",
+  "language.slash.list.description": "Show supported languages and current settings",
+
   "dice.roll.result": "Roll Result",
   "dice.roll.success": "Success!",
   "dice.roll.failure": "Failure!",

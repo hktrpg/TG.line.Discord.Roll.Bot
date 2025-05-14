@@ -14,13 +14,14 @@ const translationCache = new NodeCache({
 });
 
 // Available languages
-const LANGUAGES = ['en', 'zh-TW'];
+const LANGUAGES = ['en', 'zh-TW', 'zh-CN'];
 const DEFAULT_LANGUAGE = 'zh-TW';
 
 // Language code mapping for common variants
 const LANGUAGE_MAPPING = {
   'zh': 'zh-TW',  // Map generic Chinese to Traditional Chinese
-  'zh-tw': 'zh-TW' // Explicitly map lowercase variant
+  'zh-tw': 'zh-TW', // Explicitly map lowercase variant
+  'zh-cn': 'zh-CN'  // Explicitly map lowercase variant
 };
 
 class TranslationManager {

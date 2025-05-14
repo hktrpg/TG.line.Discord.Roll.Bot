@@ -21,6 +21,17 @@
   "language.listSettings": "【🌐語言設定】\n╭───── ℹ️當前設定 ─────\n│ 你的語言: {{userLanguage}}\n│ 群組語言: {{groupLanguage}}\n│ \n│ 支持的語言: {{supportedList}}\n╰──────────────",
   "language.notSet": "未設置",
 
+  "language.slash.name": "語言設定",
+  "language.slash.description": "設置您的偏好語言",
+  "language.slash.option.language": "語言",
+  "language.slash.option.language.description": "語言代碼（例如：en、zh-TW）",
+  "language.slash.set.name": "設定",
+  "language.slash.set.description": "設置您的個人語言",
+  "language.slash.setgroup.name": "設置群組",
+  "language.slash.setgroup.description": "設置整個群組的語言（僅限管理員）",
+  "language.slash.list.name": "列表",
+  "language.slash.list.description": "顯示支持的語言和當前設置",
+
   "dice.roll.result": "擲骰結果",
   "dice.roll.success": "成功！",
   "dice.roll.failure": "失敗！",

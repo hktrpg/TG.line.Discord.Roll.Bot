@@ -10,13 +10,64 @@ const fs = require('fs').promises;
 const fs2 = require('fs');
 const VIP = require('../modules/veryImportantPerson');
 
-const AI_MODELS = {
-    LOW: { name: "gemini-2.5-flash-preview-04-17", token: 12000, input_price: 0.0010, output_price: 0.0020 },
-    MEDIUM: { name: "gpt-4.1-mini-2025-04-14", token: 16000, input_price: 0.0018, output_price: 0.0072 },
-    HIGH: { name: "gpt-4.1-2025-04-14", token: 32000, input_price: 0.06, output_price: 0.18 },
-    IMAGE_LOW: { name: "dall-e-2", price: 0.20, size: "1024x1024" },
-    IMAGE_HIGH: { name: "dall-e-3", price: 0.80, size: "1024x1024", quality: "hd" }
+const AI_CONFIG = {
+    MODELS: {
+        LOW: {
+            name: "gpt-4.1-nano-2025-04-14",
+            token: 12000,
+            input_price: 0.0010,
+            output_price: 0.0020,
+            type: 'default',
+            display: 'GPT-4.1-nano (默認)',
+            prefix: {
+                chat: '.ai',
+                translate: '.ait'
+            }
+        },
+        MEDIUM: {
+            name: "gpt-4.1-mini-2025-04-14",
+            token: 16000,
+            input_price: 0.0018,
+            output_price: 0.0072,
+            type: 'vip',
+            display: 'GPT-4.1-mini (需VIP)',
+            prefix: {
+                chat: '.aim',
+                translate: '.aitm'
+            }
+        },
+        HIGH: {
+            name: "o4-mini-2025-04-16",
+            token: 32000,
+            input_price: 0.06,
+            output_price: 0.18,
+            type: 'admin',
+            display: 'O4-mini (需HKTRPG管理員)',
+            prefix: {
+                chat: '.aih',
+                translate: '.aith'
+            }
+        },
+        IMAGE_LOW: {
+            name: "dall-e-2",
+            price: 0.20,
+            size: "1024x1024",
+            type: 'basic',
+            display: 'DALL-E-2 (默認)',
+            prefix: '.aimage'
+        },
+        IMAGE_HIGH: {
+            name: "dall-e-3",
+            price: 0.80,
+            size: "1024x1024",
+            quality: "hd",
+            type: 'hd',
+            display: 'DALL-E-3 HD',
+            prefix: '.aimageh'
+        }
+    }
 };
+
 const adminSecret = process.env.ADMIN_SECRET;
 const TRANSLATE_LIMIT_PERSONAL = [500, 100000, 150000, 150000, 150000, 150000, 150000, 150000];
 const variables = {};
@@ -37,21 +88,21 @@ const prefixs = function () {
 const getHelpMessage = function () {
     return `【🤖AI助手】
 ╭────── 🗣️對話功能 ──────
-│ • .ai [訊息] - 使用Gemini模型(默認)
-│ • .aim [訊息] - 使用GPT-4.1-mini模型(需VIP)
-│ • .aih [訊息] - 使用GPT-4.1模型(需HKTRPG管理員)
+│ • ${AI_CONFIG.MODELS.LOW.prefix.chat} [訊息] - 使用${AI_CONFIG.MODELS.LOW.display}
+│ • ${AI_CONFIG.MODELS.MEDIUM.prefix.chat} [訊息] - 使用${AI_CONFIG.MODELS.MEDIUM.display}
+│ • ${AI_CONFIG.MODELS.HIGH.prefix.chat} [訊息] - 使用${AI_CONFIG.MODELS.HIGH.display}
 │ • 或回覆(Reply)要討論的內容
 │
 ├────── 📝翻譯功能 ──────
-│ • .ait [文字內容] - 使用Gemini模型翻譯
-│ • .aitm [文字內容] - 使用GPT-4.1-mini模型翻譯(需VIP)
-│ • .aith [文字內容] - 使用GPT-4.1模型翻譯(需HKTRPG管理員)
+│ • ${AI_CONFIG.MODELS.LOW.prefix.translate} [文字內容] - 使用${AI_CONFIG.MODELS.LOW.display}翻譯
+│ • ${AI_CONFIG.MODELS.MEDIUM.prefix.translate} [文字內容] - 使用${AI_CONFIG.MODELS.MEDIUM.display}翻譯
+│ • ${AI_CONFIG.MODELS.HIGH.prefix.translate} [文字內容] - 使用${AI_CONFIG.MODELS.HIGH.display}翻譯
 │ • 或上傳.txt附件
 │ • 轉換為正體中文
 │
 ├────── 🖼️圖像生成 ──────
-│ • .aimage [描述] - 使用DALL-E-2模型(需HKTRPG管理員)
-│ • .aimageh [描述] - 使用DALL-E-3 HD模型(需HKTRPG管理員)
+│ • ${AI_CONFIG.MODELS.IMAGE_LOW.prefix} [描述] - 使用${AI_CONFIG.MODELS.IMAGE_LOW.display}
+│ • ${AI_CONFIG.MODELS.IMAGE_HIGH.prefix} [描述] - 使用${AI_CONFIG.MODELS.IMAGE_HIGH.display}
 │
 ├────── ⚠️使用限制 ──────
 │ 一般用戶:
@@ -59,7 +110,7 @@ const getHelpMessage = function () {
 │
 │ VIP用戶:
 │ 　• 享有更高文字上限
-│ 　• 可使用中級模型(GPT-4.1-mini)
+│ 　• 可使用中級模型(${AI_CONFIG.MODELS.MEDIUM.display})
 │
 ├────── 📌注意事項 ──────
 │ • AI翻譯需要處理時間
@@ -81,7 +132,7 @@ class OpenAI {
             apiKey: this.apiKeys[0]?.apiKey,
             baseURL: this.apiKeys[0]?.baseURL,
         };
-        this.model = AI_MODELS.LOW.name;
+        this.model = AI_CONFIG.MODELS.LOW.name;
         if (this.apiKeys.length === 0) return;
         this.openai = new OpenAIApi(this.configuration);
         this.currentApiKeyIndex = 0;
@@ -139,7 +190,7 @@ class OpenAI {
             }, minutes * 60 * 1000); // 1 minute = 60 seconds * 1000 milliseconds
         });
     }
-    
+
     async handleApiError(error, retryFunction, ...args) {
         if (this.errorCount < (this.apiKeys.length * 5)) {
             if (((this.errorCount !== 0) && this.errorCount % this.apiKeys.length) === 0) {
@@ -167,16 +218,16 @@ class ImageAi extends OpenAI {
         let input = inputStr.replace(/^\.aimage[h]?/i, '');
         try {
             const imageConfig = {
-                "model": AI_MODELS[imageModelType].name,
+                "model": AI_CONFIG.MODELS[imageModelType].name,
                 "prompt": `${input}`,
                 "n": 1,
-                "size": AI_MODELS[imageModelType].size
+                "size": AI_CONFIG.MODELS[imageModelType].size
             };
-            
-            if (imageModelType === 'IMAGE_HIGH' && AI_MODELS[imageModelType].quality) {
-                imageConfig.quality = AI_MODELS[imageModelType].quality;
+
+            if (imageModelType === 'IMAGE_HIGH' && AI_CONFIG.MODELS[imageModelType].quality) {
+                imageConfig.quality = AI_CONFIG.MODELS[imageModelType].quality;
             }
-            
+
             let response = await this.openai.images.generate(imageConfig);
             response = await this.handleImage(response, input);
             this.errorCount = 0;
@@ -421,31 +472,31 @@ class CommandHandler {
     }
 
     async processCommand(params) {
-        const { inputStr, mainMsg, groupid, discordMessage, userid, discordClient, 
-                userrole, botname, displayname, channelid, displaynameDiscord, membercount } = params;
-        
+        const { inputStr, mainMsg, groupid, discordMessage, userid, discordClient,
+            userrole, botname, displayname, channelid, displaynameDiscord, membercount } = params;
+
         if (!mainMsg[0]) return { text: '' };
-        
+
         const commandMatch = mainMsg[0].match(/^\.([a-zA-Z]+)/i);
         if (!commandMatch) return { text: '' };
-        
+
         // First check if it's a help command or empty command
         if (mainMsg[1] === 'help' || !mainMsg[1]) {
             return { text: getHelpMessage(), quotes: true };
         }
-        
+
         const command = commandMatch[1].toLowerCase();
         if (this.commands[command]) {
             return await this.commands[command](params);
         }
-        
+
         return { text: '' };
     }
-    
+
     async handleTranslateCommand(params) {
         const { inputStr, mainMsg, discordMessage, discordClient, userid } = params;
         const rply = { default: 'on', type: 'text', text: '', quotes: true };
-        
+
         let modelType = 'LOW';
         if (/^.aitm$/i.test(mainMsg[0])) {
             let lv = await VIP.viplevelCheckUser(userid);
@@ -461,37 +512,37 @@ class CommandHandler {
             }
             modelType = 'HIGH';
         }
-        
+
         const { filetext, sendfile, text } = await translateAi.handleTranslate(
-            inputStr, discordMessage, discordClient, userid, AI_MODELS[modelType]
+            inputStr, discordMessage, discordClient, userid, AI_CONFIG.MODELS[modelType]
         );
-        
+
         filetext && (rply.fileText = filetext);
         sendfile && (rply.fileLink = [sendfile]);
         text && (rply.text = text);
-        
+
         return rply;
     }
-    
+
     async handleImageCommand(params) {
         const { inputStr, mainMsg, userid } = params;
         const rply = { default: 'on', type: 'text', text: '', quotes: true };
-        
+
         if (!adminSecret || userid !== adminSecret) {
             rply.text = `使用圖像生成功能需要 HKTRPG 管理員權限`;
             return rply;
         }
-        
+
         const imageModelType = /^.aimageh$/i.test(mainMsg[0]) ? 'IMAGE_HIGH' : 'IMAGE_LOW';
         rply.text = await imageAi.handleImageAi(inputStr, imageModelType);
-        
+
         return rply;
     }
-    
+
     async handleChatCommand(params) {
         const { inputStr, mainMsg, userid, botname, discordMessage } = params;
         const rply = { default: 'on', type: 'text', text: '', quotes: true };
-        
+
         let modelType = 'LOW';
         if (/^.aim$/i.test(mainMsg[0])) {
             let lv = await VIP.viplevelCheckUser(userid);
@@ -507,14 +558,14 @@ class CommandHandler {
             }
             modelType = 'HIGH';
         }
-        
+
         let processedInput = inputStr;
         if (botname === "Discord") {
             const replyContent = await handleMessage.getReplyContent(discordMessage);
             processedInput = `${replyContent}\n${inputStr.replace(/^\.ai[mh]?/i, '')} `;
         }
-        
-        rply.text = await chatAi.handleChatAi(processedInput, AI_MODELS[modelType], userid);
+
+        rply.text = await chatAi.handleChatAi(processedInput, AI_CONFIG.MODELS[modelType], userid);
         return rply;
     }
 }
@@ -523,13 +574,13 @@ const commandHandler = new CommandHandler();
 
 const rollDiceCommand = async function (params) {
     if (!process.env.OPENAI_SWITCH) return;
-    
+
     // Check if there's a command match
     const firstCmd = params.mainMsg[0];
     if (!firstCmd || !firstCmd.match(/^\./)) return;
-    
+
     if (!firstCmd.match(/^\.ai/i) && !firstCmd.match(/^\.ait/i)) return;
-    
+
     return await commandHandler.processCommand(params);
 };
 
@@ -547,16 +598,14 @@ const discordCommand = [
                     .setDescription('AI模型選擇')
                     .setRequired(false)
                     .addChoices(
-                        { name: 'Gemini (默認)', value: 'gemini' },
-                        { name: 'GPT-4.1-mini (需VIP)', value: 'gpt-mini' },
-                        { name: 'GPT-4.1 (需HKTRPG管理員)', value: 'gpt-full' }
+                        { name: AI_CONFIG.MODELS.LOW.display, value: AI_CONFIG.MODELS.LOW.type },
+                        { name: AI_CONFIG.MODELS.MEDIUM.display, value: AI_CONFIG.MODELS.MEDIUM.type },
+                        { name: AI_CONFIG.MODELS.HIGH.display, value: AI_CONFIG.MODELS.HIGH.type }
                     )),
         async execute(interaction) {
-            const model = interaction.options.getString('model');
-            let prefix = '.ai';
-            if (model === 'gpt-mini') prefix = '.aim';
-            if (model === 'gpt-full') prefix = '.aih';
-            return `${prefix} ${interaction.options.getString('message')}`;
+            const modelType = interaction.options.getString('model') || AI_CONFIG.MODELS.LOW.type;
+            const model = Object.values(AI_CONFIG.MODELS).find(m => m.type === modelType);
+            return `${model.prefix.chat} ${interaction.options.getString('message')}`;
         }
     },
     {
@@ -572,16 +621,14 @@ const discordCommand = [
                     .setDescription('AI模型選擇')
                     .setRequired(false)
                     .addChoices(
-                        { name: 'Gemini (默認)', value: 'gemini' },
-                        { name: 'GPT-4.1-mini (需VIP)', value: 'gpt-mini' },
-                        { name: 'GPT-4.1 (需HKTRPG管理員)', value: 'gpt-full' }
+                        { name: AI_CONFIG.MODELS.LOW.display, value: AI_CONFIG.MODELS.LOW.type },
+                        { name: AI_CONFIG.MODELS.MEDIUM.display, value: AI_CONFIG.MODELS.MEDIUM.type },
+                        { name: AI_CONFIG.MODELS.HIGH.display, value: AI_CONFIG.MODELS.HIGH.type }
                     )),
         async execute(interaction) {
-            const model = interaction.options.getString('model');
-            let prefix = '.ait';
-            if (model === 'gpt-mini') prefix = '.aitm';
-            if (model === 'gpt-full') prefix = '.aith';
-            return `${prefix} ${interaction.options.getString('text')}`;
+            const modelType = interaction.options.getString('model') || AI_CONFIG.MODELS.LOW.type;
+            const model = Object.values(AI_CONFIG.MODELS).find(m => m.type === modelType);
+            return `${model.prefix.translate} ${interaction.options.getString('text')}`;
         }
     },
     {
@@ -597,14 +644,13 @@ const discordCommand = [
                     .setDescription('圖像模型選擇')
                     .setRequired(false)
                     .addChoices(
-                        { name: 'DALL-E-2 (默認)', value: 'basic' },
-                        { name: 'DALL-E-3 HD', value: 'hd' }
+                        { name: AI_CONFIG.MODELS.IMAGE_LOW.display, value: AI_CONFIG.MODELS.IMAGE_LOW.type },
+                        { name: AI_CONFIG.MODELS.IMAGE_HIGH.display, value: AI_CONFIG.MODELS.IMAGE_HIGH.type }
                     )),
         async execute(interaction) {
-            const model = interaction.options.getString('model');
-            let prefix = '.aimage';
-            if (model === 'hd') prefix = '.aimageh';
-            return `${prefix} ${interaction.options.getString('prompt')}`;
+            const modelType = interaction.options.getString('model') || AI_CONFIG.MODELS.IMAGE_LOW.type;
+            const model = Object.values(AI_CONFIG.MODELS).find(m => m.type === modelType);
+            return `${model.prefix} ${interaction.options.getString('prompt')}`;
         }
     }
 ];

@@ -2,6 +2,9 @@
 if (!process.env.mongoURL) {
     return;
 }
+if (!process.env.DISCORD_CHANNEL_SECRET) {
+    return;
+}
 const schema = require('../modules/schema.js');
 const records = require('../modules/records.js');
 const { SlashCommandBuilder } = require('discord.js');
@@ -90,12 +93,10 @@ const rollDiceCommand = async function ({
         }
 
         case /^show$/i.test(mainMsg[1]): {
-            if (!groupid) {
-                rply.text = '此功能必須在群組中使用';
-                return rply;
-            }
-
             try {
+                // Explicitly clear the user's cached forwarded messages before fetching
+                records.clearUserForwardedMessageCache(userid);
+
                 const forwardedMessages = await records.findForwardedMessages({ userId: userid });
                 if (forwardedMessages.length === 0) {
                     rply.text = `╭──── ℹ️ 按鈕轉發狀態 ────\n│ ❌ 你目前沒有轉發任何按鈕\n╰─────────────────`;
@@ -123,14 +124,45 @@ const rollDiceCommand = async function ({
             }
         }
 
-        case /^delete\s*\d+$/i.test(mainMsg[1]): {
-            if (!groupid) {
-                rply.text = '此功能必須在群組中使用';
-                return rply;
-            }
-
+        case /^delete$/i.test(mainMsg[1]): {
             try {
-                const forwardId = parseInt(mainMsg[1].match(/\d+$/)[0]);
+                // Recreate the forwardedMessage index before deletion
+                await records.recreateForwardedMessageIndex();
+
+                // Handle case where no ID is provided (show the list)
+                if (!mainMsg[2]) {
+                    // Explicitly clear the user's cached forwarded messages before fetching
+                    records.clearUserForwardedMessageCache(userid);
+
+                    const forwardedMessages = await records.findForwardedMessages({ userId: userid });
+                    if (forwardedMessages.length === 0) {
+                        rply.text = `╭──── ℹ️ 按鈕轉發狀態 ────\n│ ❌ 你目前沒有轉發任何按鈕\n╰─────────────────`;
+                        return rply;
+                    }
+
+                    let responseText = `╭──── 📋 請選擇要刪除的轉發 ────\n`;
+                    for (let i = 0; i < forwardedMessages.length; i++) {
+                        const forward = forwardedMessages[i];
+                        const targetChannelLink = `https://discord.com/channels/${forward.guildId}/${forward.channelId}`;
+
+                        responseText += `│ ${forward.fixedId}. 「${forward.characterName}」轉發至頻道: ${forward.channelId}\n`;
+                        responseText += `│    ${targetChannelLink}\n`;
+                        if (i < forwardedMessages.length - 1) responseText += `│\n`;
+                    }
+                    responseText += `│\n│ 💡 使用 .forward delete [編號] 刪除特定轉發\n╰─────────────────`;
+                    rply.text = responseText;
+                    return rply;
+                }
+
+                // Extract the forward ID from the input
+                let forwardId;
+                if (mainMsg[2] && !isNaN(parseInt(mainMsg[2]))) {
+                    forwardId = parseInt(mainMsg[2]);
+                } else {
+                    rply.text = '無效的指令格式，請使用 .forward delete 數字';
+                    return rply;
+                }
+
                 const forwardToDelete = await records.deleteForwardedMessage({
                     userId: userid,
                     fixedId: forwardId
@@ -141,7 +173,13 @@ const rollDiceCommand = async function ({
                     return rply;
                 }
 
-                rply.text = `╭──── ✅ 刪除成功 ────\n│ 已刪除編號 ${forwardId} 的「${forwardToDelete.characterName}」轉發\n╰─────────────────`;
+                // Explicitly clear the user's cached forwarded messages
+                records.clearUserForwardedMessageCache(userid);
+
+                // Recreate the index after deletion to ensure cache is updated
+                await records.recreateForwardedMessageIndex();
+
+                rply.text = `╭──── ✅ 刪除成功 ────\n│ 已刪除編號 ${forwardId} 的「${forwardToDelete.characterName || '未知角色'}」轉發\n╰─────────────────`;
                 return rply;
             } catch (error) {
                 console.error('刪除轉發訊息時發生錯誤', error);
@@ -215,8 +253,8 @@ const rollDiceCommand = async function ({
                 }
 
                 // Check if message is a valid button message
-                if (!messageContent.endsWith('的角色') && 
-                    !messageContent.endsWith('的角色卡') && 
+                if (!messageContent.endsWith('的角色') &&
+                    !messageContent.endsWith('的角色卡') &&
                     !messageContent.match(/要求擲骰\/點擊/)) {
                     rply.text = '只能轉發角色卡按鈕或要求擲骰按鈕';
                     return rply;
@@ -330,14 +368,25 @@ const discordCommand = [
                             .setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
+            let command = null;
+
             switch (subcommand) {
                 case 'set':
-                    return `.forward ${interaction.options.getString('message_link')}`;
+                    command = `.forward ${interaction.options.getString('message_link')}`;
+                    return command;
                 case 'show':
-                    return `.forward show`;
+                    command = `.forward show`;
+                    return command;
                 case 'delete':
-                    return `.forward delete ${interaction.options.getInteger('id')}`;
+                    const id = interaction.options.getInteger('id');
+                    if (id <= 0) {
+                        await interaction.reply({ content: '請提供有效的轉發編號', ephemeral: true });
+                        return null;
+                    }
+                    command = `.forward delete ${id}`;
+                    return command;
             }
+            return null;
         }
     }
 ];

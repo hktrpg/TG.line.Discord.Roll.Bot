@@ -625,8 +625,6 @@ class Records extends EventEmitter {
             userKeys.forEach(key => {
                 cache.del(key);
             });
-            
-            console.log(`[DEBUG] Cleared ${userKeys.length} cache entries for user ${userId}`);
         } catch (err) {
             console.error(`[ERROR] Failed to clear user forwarded message cache:`, err);
         }
@@ -703,8 +701,6 @@ class Records extends EventEmitter {
 
     async recreateForwardedMessageIndex() {
         try {
-            console.log(`[DEBUG] Recreating forwardedMessage index`);
-            
             // Drop the existing index
             await this.dbOperations.forwardedMessage.schema.collection.dropIndexes();
             
@@ -714,7 +710,6 @@ class Records extends EventEmitter {
                 { unique: true }
             );
             
-            console.log(`[DEBUG] Successfully recreated forwardedMessage index`);
             return true;
         } catch (err) {
             console.error(`[ERROR] Failed to recreate forwardedMessage index:`, err);

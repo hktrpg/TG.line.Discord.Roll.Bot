@@ -23,7 +23,28 @@ async function registeredGlobalSlashCommands() {
         return "Successfully registered global commands";
     } catch (error) {
         console.error('Failed to register global commands:', error);
-        throw error;
+        
+        // Check if it's a duplicate command name error
+        if (error.code === 50035 && error.rawError?.errors && 
+            JSON.stringify(error.rawError.errors).includes('APPLICATION_COMMANDS_DUPLICATE_NAME')) {
+            
+            try {
+                // Get existing commands to compare with new ones
+                const existingCommands = await rest.get(Routes.applicationCommands(clientId))
+                    .then(data => data.map(cmd => cmd.name));
+                
+                // Find duplicates by comparing with commands array
+                const duplicates = commands
+                    .filter(cmd => existingCommands.includes(cmd.name))
+                    .map(cmd => cmd.name);
+                
+                return `Error: 發現重複的全域斜線指令名稱: ${duplicates.join(', ')}`;
+            } catch (extractErr) {
+                return `Error: 發現重複的全域斜線指令名稱，但無法確定哪些指令重複。錯誤: ${error.message}`;
+            }
+        }
+        
+        return `Failed to register global commands: ${error.message}`;
     }
 }
 
@@ -34,11 +55,69 @@ async function testRegisteredSlashCommands(guildId) {
             return "Successfully registered application commands." + (guildId);
         })
         .catch(err => {
-            console.error(err)
-            return "Error Global registered application commands." + err;
+            console.error(err);
+            // Check if it's a duplicate command name error
+            if (err.code === 50035 && err.rawError?.errors && 
+                JSON.stringify(err.rawError.errors).includes('APPLICATION_COMMANDS_DUPLICATE_NAME')) {
+                
+                // Extract command names for comparison
+                const existingCommands = [];
+                try {
+                    // Get existing commands to compare with new ones
+                    return rest.get(Routes.applicationGuildCommands(clientId, guildId))
+                        .then(data => {
+                            // Build list of existing commands
+                            data.forEach(cmd => existingCommands.push(cmd.name));
+                            
+                            // Find duplicates by comparing with commands array
+                            const duplicates = commands
+                                .filter(cmd => existingCommands.includes(cmd.name))
+                                .map(cmd => cmd.name);
+                            
+                            return `Error: 發現重複的斜線指令名稱: ${duplicates.join(', ')}`;
+                        })
+                        .catch(getErr => {
+                            return `Error: 發現重複的斜線指令名稱，但無法確定哪些指令重複。錯誤: ${err.message}`;
+                        });
+                } catch (extractErr) {
+                    return `Error: 發現重複的斜線指令名稱，但無法確定哪些指令重複。錯誤: ${err.message}`;
+                }
+            }
+            
+            return "Error Global registered application commands: " + err.message;
         });
 }
 
+function pushArraySlashCommands(arrayCommands) {
+    for (const file of arrayCommands) {
+        commands.push(file.data.toJSON());
+    }
+}
+
+// Check for duplicate command names in the commands array
+function checkDuplicateCommands() {
+    const commandNames = commands.map(cmd => cmd.name);
+    const uniqueNames = new Set(commandNames);
+    
+    if (uniqueNames.size !== commandNames.length) {
+        // Find the duplicates
+        const duplicates = commandNames.filter((name, index) => {
+            return commandNames.indexOf(name) !== index;
+        });
+        
+        // Get unique duplicates
+        const uniqueDuplicates = [...new Set(duplicates)];
+        
+        if (uniqueDuplicates.length > 0) {
+            console.warn(`Warning: Found duplicate command names: ${uniqueDuplicates.join(', ')}`);
+            return uniqueDuplicates;
+        }
+    }
+    
+    return null;
+}
+
+// Update loadingSlashCommands to check for duplicates
 async function loadingSlashCommands() {
     try {
         const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js'));
@@ -52,15 +131,16 @@ async function loadingSlashCommands() {
                 console.error(`Failed to load command from ${file}:`, error);
             }
         }
+        
+        // Check for duplicates after loading all commands
+        const duplicates = checkDuplicateCommands();
+        if (duplicates) {
+            console.warn(`Duplicate command names detected. Please fix these before registering: ${duplicates.join(', ')}`);
+        }
+        
         console.log(`Loaded ${commands.length} slash commands`);
     } catch (error) {
         console.error('Failed to load commands:', error);
-    }
-}
-
-function pushArraySlashCommands(arrayCommands) {
-    for (const file of arrayCommands) {
-        commands.push(file.data.toJSON());
     }
 }
 
@@ -80,7 +160,8 @@ function removeSlashCommands(guildId) {
 module.exports = {
     registeredGlobalSlashCommands,
     testRegisteredSlashCommands,
-    removeSlashCommands
+    removeSlashCommands,
+    checkDuplicateCommands
 };
 //https://github.com/discordjs/guide/tree/main/code-samples/creating-your-bot/command-handling
 //https://discordjs.guide/creating-your-bot/creating-commands.html#command-deployment-script

@@ -262,7 +262,7 @@ const discordCommand = [
     },
     {
         data: new SlashCommandBuilder()
-            .setName('image')
+            .setName('imagesearch')
             .setDescription('搜尋圖片')
             .addStringOption(option => 
                 option.setName('keyword')

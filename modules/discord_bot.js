@@ -222,7 +222,7 @@ async function replilyMessage(message, result) {
 			if (message.isInteraction && !message.deferred && !message.replied) {
 				await message.deferReply({ ephemeral: true });
 			}
-			
+
 			// For deferred interactions, use editReply instead of reply
 			if (message.deferred && !message.replied) {
 				return await message.editReply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true });
@@ -403,14 +403,14 @@ async function nonDice(message) {
 			if (message.isInteraction) {
 				// For interactions, we need to reply directly
 				if (!message.deferred && !message.replied) {
-					await message.reply({ 
-						content: `@${displayname} ${candle.checker()} ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, 
-						ephemeral: false 
+					await message.reply({
+						content: `@${displayname} ${candle.checker()} ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`,
+						ephemeral: false
 					});
 				} else if (message.deferred && !message.replied) {
-					await message.editReply({ 
-						content: `@${displayname} ${candle.checker()} ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`, 
-						ephemeral: false 
+					await message.editReply({
+						content: `@${displayname} ${candle.checker()} ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`,
+						ephemeral: false
 					});
 				}
 			} else {
@@ -852,7 +852,7 @@ ${formatGroup(groupedPing)}
 
 async function handlingButtonCreate(message, input) {
 	const buttonsNames = input;
-	
+
 	// Check if input is empty or not an array
 	if (!buttonsNames || !Array.isArray(buttonsNames) || buttonsNames.length === 0) {
 		// Return a default row with a single button if input is invalid
@@ -865,7 +865,7 @@ async function handlingButtonCreate(message, input) {
 			);
 		return [defaultRow];
 	}
-	
+
 	const row = []
 	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1;
 	for (let index = 0; index < totallyQuotient; index++) {
@@ -882,7 +882,7 @@ async function handlingButtonCreate(message, input) {
 					.setStyle(buttonsStyle(i)),
 			)
 	}
-	
+
 	// Ensure each row has at least one component
 	for (let i = 0; i < row.length; i++) {
 		if (!row[i].components || row[i].components.length === 0) {
@@ -894,7 +894,7 @@ async function handlingButtonCreate(message, input) {
 			);
 		}
 	}
-	
+
 	const arrayRow = await splitArray(5, row)
 	return arrayRow;
 }
@@ -903,13 +903,13 @@ async function handlingRequestRollingCharacter(message, input) {
 	const buttonsNames = input[0];
 	const characterName = input[1];
 	const charMode = (input[2] == 'char') ? true : false;
-	
+
 	// Check if buttonsNames is empty or not an array
 	if (!buttonsNames || !Array.isArray(buttonsNames) || buttonsNames.length === 0) {
 		await message.reply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
 		return;
 	}
-	
+
 	const row = []
 	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1;
 	for (let index = 0; index < totallyQuotient; index++) {
@@ -926,7 +926,7 @@ async function handlingRequestRollingCharacter(message, input) {
 					.setStyle(buttonsStyle(i)),
 			)
 	}
-	
+
 	// Ensure each row has at least one component
 	for (let i = 0; i < row.length; i++) {
 		if (!row[i].components || row[i].components.length === 0) {
@@ -938,29 +938,36 @@ async function handlingRequestRollingCharacter(message, input) {
 			);
 		}
 	}
-	
+
 	const arrayRow = await splitArray(5, row)
-	
+
 	// Check if the first row has components
 	if (arrayRow.length === 0 || !arrayRow[0] || !arrayRow[0][0] || !arrayRow[0][0].components || arrayRow[0][0].components.length === 0) {
 		await message.reply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
 		return;
 	}
-	
+
 	for (let index = 0; index < arrayRow.length; index++) {
 		try {
 			if (charMode) {
 				if (index == 0)
-					await message.reply({ content: `${characterName}的角色卡`, components: arrayRow[index] });
+					await message.reply({ content: `${characterName}的角色`, components: arrayRow[index] });
 				else {
-					await message.channel.send({ content: `${characterName}的角色`, components: arrayRow[index] });
+					if (message.isInteraction)
+						await message.followUp({ content: `${characterName}的角色`, components: arrayRow[index] });
+					else
+						await message.reply({ content: `${characterName}的角色`, components: arrayRow[index] });
 				}
 			}
 			else {
 				if (index == 0)
 					await message.reply({ content: `${characterName}的角色`, components: arrayRow[index] });
-				else
-					await message.channel.send({ content: `${characterName}的角色`, components: arrayRow[index] });
+				else {
+					if (message.isInteraction)
+						await message.followUp({ content: `${characterName}的角色`, components: arrayRow[index] });
+					else
+						await message.reply({ content: `${characterName}的角色`, components: arrayRow[index] });
+				}
 			}
 		} catch (error) {
 			console.error(`error discord_bot handlingRequestRollingCharacter  #781 ${characterName} ${JSON.stringify(arrayRow)}`)
@@ -974,7 +981,7 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 		await message.reply({ content: `${displayname}要求擲骰/點擊\n沒有可用的按鈕` });
 		return;
 	}
-	
+
 	const row = []
 	const totallyQuotient = ~~((buttonsNames.length - 1) / 5) + 1
 	for (let index = 0; index < totallyQuotient; index++) {
@@ -991,7 +998,7 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 					.setStyle(buttonsStyle(i)),
 			)
 	}
-	
+
 	// Ensure each row has at least one component
 	for (let i = 0; i < row.length; i++) {
 		if (!row[i].components || row[i].components.length === 0) {
@@ -1003,15 +1010,15 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 			);
 		}
 	}
-	
+
 	const arrayRow = await splitArray(5, row)
-	
+
 	// Check if the array is empty
 	if (arrayRow.length === 0) {
 		await message.reply({ content: `${displayname}要求擲骰/點擊\n沒有可用的按鈕` });
 		return;
 	}
-	
+
 	for (let index = 0; index < arrayRow.length; index++) {
 		try {
 			await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] })
@@ -1069,12 +1076,12 @@ async function handlingResponMessage(message, answer = '') {
 				if (answer.inputStr && typeof answer.inputStr === 'string') {
 					inputStr = answer.inputStr;
 				}
-				
+
 				// If it has a discordMessage property, use it for the message
 				if (answer.discordMessage) {
 					message = answer.discordMessage;
 				}
-				
+
 				// If it has an isInteraction property, pass it along
 				if (answer.isInteraction) {
 					message.isInteraction = answer.isInteraction;
@@ -1083,14 +1090,14 @@ async function handlingResponMessage(message, answer = '') {
 		} else {
 			inputStr = message.content || '';
 		}
-		
+
 		// Check if this is an interaction
 		if (message.isCommand && message.isCommand()) {
 			message.isInteraction = true;
 		} else if (message.isButton && message.isButton()) {
 			message.isInteraction = true;
 		}
-		
+
 		//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
 		//LINE @名字
 		let mainMsg = (typeof inputStr === 'string') ? inputStr.match(MESSAGE_SPLITOR) : []; //定義輸入.字串
@@ -1139,7 +1146,7 @@ async function handlingResponMessage(message, answer = '') {
 			discordMessage: message,
 			titleName: titleName
 		});
-		
+
 		// Ensure isInteraction flag is preserved
 		if (message.isInteraction) {
 			rplyVal.isInteraction = true;
@@ -1209,14 +1216,14 @@ async function handlingResponMessage(message, answer = '') {
 					if (!message.deferred && !message.replied) {
 						await message.deferReply({ ephemeral: true });
 					}
-					
+
 					await message.user.send({
 						content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄',
 						files: [
 							new AttachmentBuilder("./tmp/" + rplyVal.discordExport + '.txt')
 						]
 					});
-					
+
 					// Now that we've deferred, use editReply instead of followUp
 					await message.editReply({ content: '已將聊天紀錄發送到您的私訊！', ephemeral: true });
 				} catch (error) {
@@ -1229,7 +1236,7 @@ async function handlingResponMessage(message, answer = '') {
 				}
 			}
 		}
-		
+
 		if (rplyVal.discordExportHtml) {
 			if (message.author && typeof message.author.send === 'function') {
 				if (!link || !mongo) {
@@ -1253,7 +1260,7 @@ async function handlingResponMessage(message, answer = '') {
 					if (!message.deferred && !message.replied) {
 						await message.deferReply({ ephemeral: true });
 					}
-					
+
 					if (!link || !mongo) {
 						await message.user.send({
 							content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
@@ -1267,7 +1274,7 @@ async function handlingResponMessage(message, answer = '') {
 							rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
 							link + rplyVal.discordExportHtml[0] + '.html');
 					}
-					
+
 					// Now use editReply instead of followUp
 					await message.editReply({ content: '已將聊天紀錄發送到您的私訊！', ephemeral: true });
 				} catch (error) {
@@ -1571,24 +1578,24 @@ function __checkUserRole(groupid, message) {
 async function __handlingReplyMessage(message, result) {
 	const text = result.text;
 	const sendTexts = text.toString().match(/[\s\S]{1,2000}/g);
-	
+
 	try {
 		// Check if this is an interaction that needs to be deferred
 		if (message.isInteraction && !message.deferred && !message.replied) {
 			await message.deferReply({ ephemeral: false });
 		}
-		
+
 		// Handle deferred interactions
 		if (message.deferred && !message.replied) {
 			await message.editReply({ embeds: await convQuotes(sendTexts[0]), ephemeral: false });
-			
+
 			// Send additional messages if there are more parts
 			for (let index = 1; index < sendTexts?.length && index < 4; index++) {
 				await message.channel.send({ embeds: await convQuotes(sendTexts[index]), ephemeral: false });
 			}
 			return;
 		}
-		
+
 		// Handle normal interactions or messages
 		for (let index = 0; index < sendTexts?.length && index < 4; index++) {
 			const sendText = sendTexts[index];
@@ -1628,20 +1635,20 @@ async function __handlingReplyMessage(message, result) {
 async function __handlingInteractionMessage(message) {
 	// Set isInteraction flag for all interaction types
 	message.isInteraction = true;
-	
+
 	switch (true) {
 		case message.isCommand():
 			{
 				try {
 					const answer = await handlingCommand(message);
 					if (!answer) return;
-					
+
 					// Early defer for export commands
-					if (typeof answer === 'object' && answer.inputStr && 
+					if (typeof answer === 'object' && answer.inputStr &&
 						answer.inputStr.startsWith('.discord') && !message.deferred && !message.replied) {
 						await message.deferReply({ ephemeral: true });
 					}
-					
+
 					// Handle both string and object answers
 					let result;
 					if (typeof answer === 'object' && answer.discordMessage) {
@@ -1651,12 +1658,12 @@ async function __handlingInteractionMessage(message) {
 						// Otherwise process as normal
 						result = await handlingResponMessage(message, answer);
 					}
-					
+
 					return replilyMessage(message, result);
 				} catch (error) {
 					console.error('Command processing error:', error);
 					if (!message.replied && !message.deferred) {
-						await message.reply({ content: '處理命令時發生錯誤，請稍後再試。', ephemeral: true }).catch(() => {});
+						await message.reply({ content: '處理命令時發生錯誤，請稍後再試。', ephemeral: true }).catch(() => { });
 					}
 				}
 			}
@@ -1683,8 +1690,8 @@ async function __handlingInteractionMessage(message) {
 								try {
 									const targetChannel = await client.channels.fetch(forwardSetting.channelId);
 									if (targetChannel) {
-										await targetChannel.send({ 
-											content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}` 
+										await targetChannel.send({
+											content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`
 										});
 										await message.deferUpdate();
 										return;
@@ -1694,14 +1701,14 @@ async function __handlingInteractionMessage(message) {
 								}
 							}
 							// Fallback to normal reply if forwarding fails
-							return await message.reply({ 
-								content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`, 
-								ephemeral: false 
+							return await message.reply({
+								content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`,
+								ephemeral: false
 							});
 						} else {
-							return await message.reply({ 
-								content: `${displayname}沒有反應，請檢查按鈕內容`, 
-								ephemeral: true 
+							return await message.reply({
+								content: `${displayname}沒有反應，請檢查按鈕內容`,
+								ephemeral: true
 							});
 						}
 					} catch (error) {

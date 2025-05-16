@@ -407,7 +407,7 @@ class Records extends EventEmitter {
         try {
             // Generate cache key based on both query and options
             const cacheKey = `forwardedMessage:${JSON.stringify(query)}:${JSON.stringify(options)}`;
-            
+
             // Check cache first
             const cachedMessage = cache.get(cacheKey);
             if (cachedMessage) {
@@ -416,7 +416,7 @@ class Records extends EventEmitter {
 
             // If not in cache, query the database
             let dbQuery = this.dbOperations.forwardedMessage.schema.findOne(query);
-            
+
             // Apply sort if provided
             if (options.sort) {
                 dbQuery = dbQuery.sort(options.sort);
@@ -428,20 +428,20 @@ class Records extends EventEmitter {
             if (message) {
                 // Update the main cache key
                 cache.set(cacheKey, message);
-                
+
                 // Also update individual lookup caches for consistency
                 if (message.sourceMessageId) {
                     cache.set(`forwardedMessage:${JSON.stringify({ sourceMessageId: message.sourceMessageId })}`, message);
                 }
-                
+
                 if (message.userId) {
                     cache.set(`forwardedMessage:${JSON.stringify({ userId: message.userId })}`, message);
                 }
-                
+
                 if (message.userId && message.sourceMessageId) {
-                    cache.set(`forwardedMessage:${JSON.stringify({ 
+                    cache.set(`forwardedMessage:${JSON.stringify({
                         userId: message.userId,
-                        sourceMessageId: message.sourceMessageId 
+                        sourceMessageId: message.sourceMessageId
                     })}`, message);
                 }
             }
@@ -456,50 +456,50 @@ class Records extends EventEmitter {
     async createForwardedMessage(data) {
         try {
             console.log(`[DEBUG] Attempting to create forwarded message with data:`, JSON.stringify(data));
-            
+
             // Check if a message with this fixedId already exists for this user
-            const existingMessage = await this.dbOperations.forwardedMessage.schema.findOne({ 
+            const existingMessage = await this.dbOperations.forwardedMessage.schema.findOne({
                 userId: data.userId,
-                fixedId: data.fixedId 
+                fixedId: data.fixedId
             });
-            
+
             if (existingMessage) {
                 console.error(`[ERROR] Duplicate fixedId detected for user ${data.userId}: ${data.fixedId}`);
                 console.error(`[ERROR] Existing message:`, JSON.stringify(existingMessage));
-                
+
                 // Get a new fixedId for this user
                 data.fixedId = await this.getNextFixedIdForUser(data.userId);
                 console.log(`[DEBUG] Adjusted fixedId to: ${data.fixedId}`);
             }
-            
+
             const message = await this.dbOperations.forwardedMessage.schema.create(data);
-            
+
             // Update cache with new message
             if (message) {
                 // Clear any existing caches for this user to ensure consistency
                 this.clearUserForwardedMessageCache(message.userId);
-                
+
                 // Cache for direct sourceMessageId lookup
                 cache.set(`forwardedMessage:${JSON.stringify({ sourceMessageId: message.sourceMessageId })}`, message);
-                
+
                 // Cache for userId lookup
                 cache.set(`forwardedMessage:${JSON.stringify({ userId: message.userId })}`, message);
-                
+
                 // Cache for combined lookup
-                cache.set(`forwardedMessage:${JSON.stringify({ 
+                cache.set(`forwardedMessage:${JSON.stringify({
                     userId: message.userId,
-                    sourceMessageId: message.sourceMessageId 
+                    sourceMessageId: message.sourceMessageId
                 })}`, message);
-                
+
                 // Cache for the specific query that would find this message
-                cache.set(`forwardedMessage:${JSON.stringify({ 
+                cache.set(`forwardedMessage:${JSON.stringify({
                     userId: message.userId,
-                    fixedId: message.fixedId 
+                    fixedId: message.fixedId
                 })}`, message);
-                
+
                 console.log(`[DEBUG] Successfully created forwarded message with fixedId: ${message.fixedId}`);
             }
-            
+
             return message;
         } catch (err) {
             console.error(`[ERROR] Failed to create forwarded message:`, err);
@@ -508,14 +508,14 @@ class Records extends EventEmitter {
                 keyPattern: err.keyPattern,
                 keyValue: err.keyValue
             }));
-            
+
             // If it's a duplicate key error, try again with a new fixedId
             if (err.code === 11000 && err.keyPattern && err.keyPattern.fixedId) {
                 console.log(`[DEBUG] Retrying with a new fixedId for user ${data.userId}`);
                 data.fixedId = await this.getNextFixedIdForUser(data.userId);
                 return this.createForwardedMessage(data);
             }
-            
+
             throw err;
         }
     }
@@ -530,34 +530,34 @@ class Records extends EventEmitter {
 
             // Delete the message
             const deletedMessage = await this.dbOperations.forwardedMessage.schema.findOneAndDelete(filter);
-            
+
             // Clear all related caches
             if (deletedMessage) {
                 // Clear all caches for this user to ensure consistency
                 this.clearUserForwardedMessageCache(deletedMessage.userId);
-                
+
                 // Clear the cache for direct sourceMessageId lookup
                 cache.del(`forwardedMessage:${JSON.stringify({ sourceMessageId: deletedMessage.sourceMessageId })}`);
-                
+
                 // Clear the cache for userId lookup
                 cache.del(`forwardedMessage:${JSON.stringify({ userId: deletedMessage.userId })}`);
-                
+
                 // Clear the cache for combined lookup
-                cache.del(`forwardedMessage:${JSON.stringify({ 
+                cache.del(`forwardedMessage:${JSON.stringify({
                     userId: deletedMessage.userId,
-                    sourceMessageId: deletedMessage.sourceMessageId 
+                    sourceMessageId: deletedMessage.sourceMessageId
                 })}`);
-                
+
                 // Clear the cache for the specific query that would find this message
-                cache.del(`forwardedMessage:${JSON.stringify({ 
+                cache.del(`forwardedMessage:${JSON.stringify({
                     userId: deletedMessage.userId,
-                    fixedId: deletedMessage.fixedId 
+                    fixedId: deletedMessage.fixedId
                 })}`);
-                
+
                 // Clear any cache with sort options
                 cache.del(`forwardedMessage:${JSON.stringify({ userId: deletedMessage.userId })}:${JSON.stringify({ sort: { fixedId: -1 } })}`);
             }
-            
+
             return deletedMessage;
         } catch (err) {
             console.error(`[ERROR] Failed to delete forwarded message:`, err);
@@ -574,27 +574,27 @@ class Records extends EventEmitter {
                 // Update the main cache key for this query
                 const queryCacheKey = `forwardedMessage:${JSON.stringify(filter)}:${JSON.stringify({ sort: { fixedId: 1 } })}`;
                 cache.set(queryCacheKey, messages);
-                
+
                 // Update individual message caches
                 if (message.sourceMessageId) {
                     cache.set(`forwardedMessage:${JSON.stringify({ sourceMessageId: message.sourceMessageId })}`, message);
                 }
-                
+
                 if (message.userId) {
                     cache.set(`forwardedMessage:${JSON.stringify({ userId: message.userId })}`, message);
                 }
-                
+
                 if (message.userId && message.sourceMessageId) {
-                    cache.set(`forwardedMessage:${JSON.stringify({ 
+                    cache.set(`forwardedMessage:${JSON.stringify({
                         userId: message.userId,
-                        sourceMessageId: message.sourceMessageId 
+                        sourceMessageId: message.sourceMessageId
                     })}`, message);
                 }
-                
+
                 // Cache for the specific query that would find this message
-                cache.set(`forwardedMessage:${JSON.stringify({ 
+                cache.set(`forwardedMessage:${JSON.stringify({
                     userId: message.userId,
-                    fixedId: message.fixedId 
+                    fixedId: message.fixedId
                 })}`, message);
             });
 
@@ -604,13 +604,13 @@ class Records extends EventEmitter {
             return [];
         }
     }
-    
+
     // Helper method to clear all caches related to a user's forwarded messages
     clearUserForwardedMessageCache(userId) {
         try {
             // Get all cache keys
             const keys = cache.keys();
-            
+
             // Filter keys related to this user
             const userKeys = keys.filter(key => {
                 try {
@@ -620,7 +620,7 @@ class Records extends EventEmitter {
                     return false;
                 }
             });
-            
+
             // Delete all related keys
             userKeys.forEach(key => {
                 cache.del(key);
@@ -635,22 +635,21 @@ class Records extends EventEmitter {
             // Find all existing fixedIds
             const messages = await this.dbOperations.forwardedMessage.schema.find({}, { fixedId: 1 })
                 .sort({ fixedId: 1 });
-            
+
             // If no messages exist, start with 1
             if (!messages || messages.length === 0) {
                 return 1;
             }
-            
+
             // Extract all fixedIds into an array
             const existingIds = messages.map(msg => msg.fixedId);
-            
+
             // Find the first missing ID starting from 1
             let nextId = 1;
             while (existingIds.includes(nextId)) {
                 nextId++;
             }
-            
-            console.log(`[DEBUG] Next available fixedId: ${nextId}`);
+
             return nextId;
         } catch (err) {
             console.error(`[ERROR] Failed to get next fixedId:`, err);
@@ -663,25 +662,23 @@ class Records extends EventEmitter {
         try {
             // Find all existing fixedIds for this user
             const messages = await this.dbOperations.forwardedMessage.schema.find(
-                { userId: userId }, 
+                { userId: userId },
                 { fixedId: 1 }
             ).sort({ fixedId: 1 });
-            
+
             // If no messages exist for this user, start with 1
             if (!messages || messages.length === 0) {
                 return 1;
             }
-            
+
             // Extract all fixedIds into an array
             const existingIds = messages.map(msg => msg.fixedId);
-            
+
             // Find the first missing ID starting from 1
             let nextId = 1;
             while (existingIds.includes(nextId)) {
                 nextId++;
             }
-            
-            console.log(`[DEBUG] Next available fixedId for user ${userId}: ${nextId}`);
             return nextId;
         } catch (err) {
             console.error(`[ERROR] Failed to get next fixedId for user ${userId}:`, err);
@@ -703,13 +700,13 @@ class Records extends EventEmitter {
         try {
             // Drop the existing index
             await this.dbOperations.forwardedMessage.schema.collection.dropIndexes();
-            
+
             // Create the new compound index
             await this.dbOperations.forwardedMessage.schema.collection.createIndex(
-                { userId: 1, fixedId: 1 }, 
+                { userId: 1, fixedId: 1 },
                 { unique: true }
             );
-            
+
             return true;
         } catch (err) {
             console.error(`[ERROR] Failed to recreate forwardedMessage index:`, err);

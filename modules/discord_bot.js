@@ -218,16 +218,23 @@ async function replilyMessage(message, result) {
 	}
 	else {
 		try {
-			// Check if this is an interaction that needs to be deferred
-			if (message.isInteraction && !message.deferred && !message.replied) {
-				await message.deferReply({ ephemeral: true });
-			}
-
-			// For deferred interactions, use editReply instead of reply
-			if (message.deferred && !message.replied) {
-				return await message.editReply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true });
-			} else if (!message.replied) {
-				return await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true });
+			// For interactions, check status and respond appropriately
+			if (message.isInteraction) {
+				if (!message.deferred && !message.replied) {
+					// Defer the reply if we haven't responded yet
+					await message.deferReply({ ephemeral: true });
+					await message.editReply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true });
+				} else if (message.deferred && !message.replied) {
+					// If already deferred, edit the reply
+					await message.editReply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true });
+				} else if (!message.replied) {
+					// Last resort - try a direct reply
+					await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true })
+						.catch(err => console.error('Failed to reply to interaction:', err.message));
+				}
+			} else {
+				// For regular messages
+				return await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容` });
 			}
 		} catch (error) {
 			console.error('replilyMessage error:', error);
@@ -1580,49 +1587,67 @@ async function __handlingReplyMessage(message, result) {
 	const sendTexts = text.toString().match(/[\s\S]{1,2000}/g);
 
 	try {
-		// Check if this is an interaction that needs to be deferred
+		// For interactions, defer early to avoid timeout
 		if (message.isInteraction && !message.deferred && !message.replied) {
+			// Defer all interactions by default to avoid timeout issues
+			// This gives commands the full 15-minute window instead of just 3 seconds
 			await message.deferReply({ ephemeral: false });
 		}
 
-		// Handle deferred interactions
+		// For deferred interactions, use editReply for the first response
 		if (message.deferred && !message.replied) {
-			await message.editReply({ embeds: await convQuotes(sendTexts[0]), ephemeral: false });
+			try {
+				await message.editReply({ embeds: await convQuotes(sendTexts[0]) });
 
-			// Send additional messages if there are more parts
-			for (let index = 1; index < sendTexts?.length && index < 4; index++) {
-				await message.channel.send({ embeds: await convQuotes(sendTexts[index]), ephemeral: false });
+				// Send follow-up messages for additional content
+				for (let index = 1; index < sendTexts?.length && index < 4; index++) {
+					await message.followUp({ embeds: await convQuotes(sendTexts[index]) });
+				}
+			} catch (error) {
+				// If the interaction is no longer valid, log it but don't crash
+				if (error.message.includes('Unknown interaction')) {
+					console.error(`Interaction expired for command: ${message.commandName || 'unknown'}`);
+				} else {
+					throw error; // Re-throw unexpected errors
+				}
 			}
 			return;
 		}
 
-		// Handle normal interactions or messages
+		// Regular replies for non-deferred interactions
 		for (let index = 0; index < sendTexts?.length && index < 4; index++) {
 			const sendText = sendTexts[index];
 			try {
-				if (index == 0) {
+				if (index === 0) {
+					if (message.isInteraction && !message.replied) {
+						await message.reply({ embeds: await convQuotes(sendText) });
+					} else if (!message.isInteraction) {
+						await message.reply({ embeds: await convQuotes(sendText) });
+					}
+				} else {
+					// For subsequent chunks, use message.channel.send for regular messages
+					// and followUp for interactions
 					if (message.isInteraction) {
-						await message.reply({ embeds: await convQuotes(sendText), ephemeral: false });
+						await message.followUp({ embeds: await convQuotes(sendText) });
 					} else {
 						await message.reply({ embeds: await convQuotes(sendText), ephemeral: false });
 					}
-				} else {
-					await message.channel.send({ embeds: await convQuotes(sendText), ephemeral: false });
 				}
 			} catch (error) {
-				// If we get an error, try to defer and then edit
+				// Handle specific interaction errors
 				if (error.code === 'InteractionNotReplied' && message.isInteraction) {
 					try {
-						await message.deferReply({ ephemeral: false });
-						await message.editReply({ embeds: await convQuotes(sendText), ephemeral: false });
+						await message.deferReply();
+						await message.editReply({ embeds: await convQuotes(sendText) });
 					} catch (innerError) {
 						console.error('Failed to handle interaction:', innerError.message);
-						return;
 					}
+				} else if (error.message.includes('Unknown interaction')) {
+					console.error(`Interaction expired for command: ${message.commandName || 'unknown'}`);
+					break; // Stop sending more messages if the interaction is invalid
 				} else {
-					const userInput = message.content || message.commandName || '';
-					console.error(`Failed to send message: ${error.message} | Command: ${userInput}`);
-					return;
+					console.error(`Failed to send message: ${error.message}`);
+					break;
 				}
 			}
 		}
@@ -1640,6 +1665,12 @@ async function __handlingInteractionMessage(message) {
 		case message.isCommand():
 			{
 				try {
+					// Defer all commands by default - this gives them the full 15-minute window instead of just 3 seconds
+					// This is a better approach than hardcoding specific command names
+					if (!message.deferred && !message.replied) {
+						await message.deferReply({ ephemeral: false });
+					}
+
 					const answer = await handlingCommand(message);
 					if (!answer) return;
 
@@ -1653,6 +1684,7 @@ async function __handlingInteractionMessage(message) {
 					let result;
 					if (typeof answer === 'object' && answer.discordMessage) {
 						// If it's already an object with discordMessage, pass it directly
+						answer.isInteraction = true; // Ensure interaction flag is preserved
 						result = await handlingResponMessage(null, answer);
 					} else {
 						// Otherwise process as normal
@@ -1662,8 +1694,16 @@ async function __handlingInteractionMessage(message) {
 					return replilyMessage(message, result);
 				} catch (error) {
 					console.error('Command processing error:', error);
-					if (!message.replied && !message.deferred) {
-						await message.reply({ content: '處理命令時發生錯誤，請稍後再試。', ephemeral: true }).catch(() => { });
+					try {
+						// Try to respond with an error message
+						if (!message.replied && !message.deferred) {
+							await message.reply({ content: '處理命令時發生錯誤，請稍後再試。', ephemeral: true });
+						} else if (message.deferred && !message.replied) {
+							await message.editReply({ content: '處理命令時發生錯誤，請稍後再試。', ephemeral: true });
+						}
+					} catch (replyError) {
+						// If even error reporting fails, just log it
+						console.error('Failed to send error response:', replyError.message);
 					}
 				}
 			}

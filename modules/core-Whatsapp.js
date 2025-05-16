@@ -155,7 +155,7 @@ function setupAgenda(client) {
 }
 
 async function processMessage(msg, groupInfo) {
-	const inputStr = msg.body;
+	let inputStr = msg.body;
 	const mainMsg = inputStr.match(MESSAGE_SPLITOR);
 	if (!mainMsg || !mainMsg[0]) return null;
 

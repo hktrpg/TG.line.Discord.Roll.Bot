@@ -981,6 +981,21 @@ async function handlingRequestRollingCharacter(message, input) {
 	const isInteraction = message.isInteraction || message.isCommand?.() || message.isButton?.();
 	const contentPrefix = charMode ? `${characterName}的角色` : `${characterName}的角色卡`;
 	
+	// Capture command information for debugging
+	const commandInfo = {
+		type: isInteraction ? 'interaction' : 'message',
+		commandName: message.commandName || (message.content ? message.content.split(' ')[0] : 'unknown'),
+		userCommand: message.commandName || message.content || 'unknown',
+		characterName: characterName,
+		interactionState: {
+			deferred: message.deferred || false,
+			replied: message.replied || false
+		},
+		buttonCount: buttonsNames.length,
+		rowCount: arrayRow.length,
+		mode: charMode ? 'character' : 'character card'
+	};
+	
 	try {
 		// Handle first row/message
 		if (isInteraction) {
@@ -1009,7 +1024,7 @@ async function handlingRequestRollingCharacter(message, input) {
 			}
 		}
 	} catch (error) {
-		console.error(`Error in handlingRequestRollingCharacter: ${error.message} for ${characterName}`);
+		console.error(`Error in handlingRequestRollingCharacter: ${error.message} | Command: ${commandInfo.userCommand} | Mode: ${commandInfo.mode} | Row: ${arrayRow.length > 0 ? 'first' : 'unknown'} | Interaction State: ${JSON.stringify(commandInfo.interactionState)} | Button count: ${buttonsNames.length}`);
 	}
 }
 
@@ -1060,6 +1075,19 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 	// Check if this is an interaction
 	const isInteraction = message.isInteraction || (message.isCommand && message.isCommand()) || (message.isButton && message.isButton());
 	
+	// Capture command information for debugging
+	const commandInfo = {
+		type: isInteraction ? 'interaction' : 'message',
+		commandName: message.commandName || (message.content ? message.content.split(' ')[0] : 'unknown'),
+		userCommand: message.commandName || message.content || 'unknown',
+		interactionState: {
+			deferred: message.deferred || false,
+			replied: message.replied || false
+		},
+		buttonCount: buttonsNames.length,
+		rowCount: arrayRow.length
+	};
+	
 	for (let index = 0; index < arrayRow.length; index++) {
 		try {
 			if (index === 0) {
@@ -1073,7 +1101,7 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 				await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] });
 			}
 		} catch (error) {
-			console.error(`Error in handlingRequestRolling: ${error.message}`);
+			console.error(`Error in handlingRequestRolling: ${error.message} | Command: ${commandInfo.userCommand} | Row: ${index} | Interaction State: ${JSON.stringify(commandInfo.interactionState)} | Button count: ${buttonsNames.length}`);
 		}
 	}
 }
@@ -1848,7 +1876,9 @@ async function __handlingInteractionMessage(message) {
 						});
 
 						// Update original message
-						await message.update({ content: content }).catch(() => null);
+						await message.update({ content: content }).catch((updateError) => {
+							console.error(`Failed to update message: ${updateError?.message} | Button: ${message.component?.label || 'unknown'}`);
+						});
 
 						if (forwardSetting) {
 							// Forward to the specified channel
@@ -1859,17 +1889,30 @@ async function __handlingInteractionMessage(message) {
 									return;
 								}
 							} catch (error) {
-								console.error('Error forwarding roll request:', error);
+								console.error(`Error forwarding roll request: ${error.message} | Button: ${message.component?.label || 'unknown'}`);
 							}
 						}
 						// Fallback to normal handling if forwarding fails
 						await handlingSendMessage(result);
 					} else {
 						const content = handlingCountButton(message, 'count');
-						await message.update({ content: content }).catch(() => null);
+						await message.update({ content: content }).catch((updateError) => {
+							console.error(`Failed to update count button: ${updateError?.message} | Button: ${message.component?.label || 'unknown'}`);
+						});
 					}
 				} catch (error) {
-					console.error('Button interaction error:', error?.message || error);
+					const buttonLabel = message.component?.label || 'unknown';
+					const userCommand = message.message?.content || 'unknown';
+					const commandContext = {
+						buttonLabel: buttonLabel,
+						userCommand: userCommand,
+						interactionState: {
+							deferred: message.deferred || false,
+							replied: message.replied || false
+						},
+						resultTextLength: resultText ? resultText.length : 0
+					};
+					console.error(`Button interaction error: ${error?.message || error} | Command: ${userCommand} | Button: ${buttonLabel} | Context: ${JSON.stringify(commandContext)}`);
 				}
 				return;
 			}

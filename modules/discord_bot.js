@@ -928,7 +928,11 @@ async function handlingRequestRollingCharacter(message, input) {
 
 	// Check if buttonsNames is empty or not an array
 	if (!buttonsNames || !Array.isArray(buttonsNames) || buttonsNames.length === 0) {
-		await message.reply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
+		if (message.deferred && !message.replied) {
+			await message.editReply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
+		} else if (!message.replied) {
+			await message.reply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
+		}
 		return;
 	}
 
@@ -965,35 +969,47 @@ async function handlingRequestRollingCharacter(message, input) {
 
 	// Check if the first row has components
 	if (arrayRow.length === 0 || !arrayRow[0] || !arrayRow[0][0] || !arrayRow[0][0].components || arrayRow[0][0].components.length === 0) {
-		await message.reply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
+		if (message.deferred && !message.replied) {
+			await message.editReply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
+		} else if (!message.replied) {
+			await message.reply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
+		}
 		return;
 	}
 
-	for (let index = 0; index < arrayRow.length; index++) {
-		try {
-			if (charMode) {
-				if (index == 0)
-					await message.reply({ content: `${characterName}的角色`, components: arrayRow[index] });
-				else {
-					if (message.isInteraction)
-						await message.followUp({ content: `${characterName}的角色`, components: arrayRow[index] });
-					else
-						await message.reply({ content: `${characterName}的角色`, components: arrayRow[index] });
-				}
+	// Check if this is an interaction
+	const isInteraction = message.isInteraction || message.isCommand?.() || message.isButton?.();
+	const contentPrefix = charMode ? `${characterName}的角色` : `${characterName}的角色卡`;
+	
+	try {
+		// Handle first row/message
+		if (isInteraction) {
+			if (message.deferred && !message.replied) {
+				// If interaction is deferred but not replied, edit the reply
+				await message.editReply({ content: contentPrefix, components: arrayRow[0] });
+			} else if (!message.replied) {
+				// If interaction is not replied, reply
+				await message.reply({ content: contentPrefix, components: arrayRow[0] });
+			} else {
+				// If already replied, send a followUp for the first row too
+				await message.followUp({ content: contentPrefix, components: arrayRow[0] });
 			}
-			else {
-				if (index == 0)
-					await message.reply({ content: `${characterName}的角色`, components: arrayRow[index] });
-				else {
-					if (message.isInteraction)
-						await message.followUp({ content: `${characterName}的角色`, components: arrayRow[index] });
-					else
-						await message.reply({ content: `${characterName}的角色`, components: arrayRow[index] });
-				}
+			
+			// Send follow-ups for additional rows
+			for (let index = 1; index < arrayRow.length; index++) {
+				await message.followUp({ content: contentPrefix, components: arrayRow[index] });
 			}
-		} catch (error) {
-			console.error(`error discord_bot handlingRequestRollingCharacter  #781 ${characterName} ${JSON.stringify(arrayRow)}`)
+		} else {
+			// For regular messages
+			await message.reply({ content: contentPrefix, components: arrayRow[0] });
+			
+			// Send subsequent replies for additional rows
+			for (let index = 1; index < arrayRow.length; index++) {
+				await message.reply({ content: contentPrefix, components: arrayRow[index] });
+			}
 		}
+	} catch (error) {
+		console.error(`Error in handlingRequestRollingCharacter: ${error.message} for ${characterName}`);
 	}
 }
 
@@ -1041,9 +1057,21 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 		return;
 	}
 
+	// Check if this is an interaction
+	const isInteraction = message.isInteraction || (message.isCommand && message.isCommand()) || (message.isButton && message.isButton());
+	
 	for (let index = 0; index < arrayRow.length; index++) {
 		try {
-			await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] })
+			if (index === 0) {
+				// First message uses reply
+				await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] });
+			} else if (isInteraction) {
+				// Subsequent messages use followUp for interactions
+				await message.followUp({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] });
+			} else {
+				// For regular messages, we can keep using reply
+				await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] });
+			}
 		} catch (error) {
 			console.error(`Error in handlingRequestRolling: ${error.message}`);
 		}

@@ -245,6 +245,7 @@ const rollDiceCommand = async function ({
                     return rply;
                 }
 
+
                 // Get message content
                 const messageContent = sourceMessage.content;
                 if (!messageContent || messageContent.trim() === '') {
@@ -274,8 +275,15 @@ const rollDiceCommand = async function ({
                 }
 
                 if (!isMentioned && !isInteractionUser) {
-                    rply.text = '你只能轉發你的按鈕';
-                    return rply;
+                    if (sourceMessage.reference?.messageId) {
+                        const refMessage = await sourceChannel.messages.fetch(sourceMessage.reference.messageId);
+                        if (refMessage.author.id === userid) {
+                            isMentioned = true;
+                        }
+                    } else {
+                        rply.text = '你只能轉發你的按鈕';
+                        return rply;
+                    }
                 }
 
                 // Get character/button name

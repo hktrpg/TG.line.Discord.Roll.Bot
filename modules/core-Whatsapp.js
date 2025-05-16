@@ -308,7 +308,13 @@ async function handleReply(result, msg, client) {
 
 async function __sendMeMessage({ msg, rplyVal, groupid, client }) {
 	if (groupid) {
-		await msg.reply(rplyVal.myspeck.content);
+		try {
+			await msg.reply(rplyVal.myspeck.content);
+		} catch (error) {
+			console.log('[WhatsApp] Failed to reply with .me message, sending direct message instead:', error.message);
+			const chat = await msg.getChat();
+			await chat.sendMessage(rplyVal.myspeck.content);
+		}
 	} else {
 		await client.sendMessage(msg.from, rplyVal.myspeck.content);
 	}
@@ -316,25 +322,49 @@ async function __sendMeMessage({ msg, rplyVal, groupid, client }) {
 }
 
 async function SendDR(msg, text) {
-	return msg.reply(text);
+	try {
+		return await msg.reply(text);
+	} catch (error) {
+		console.log('[WhatsApp] Failed to reply, sending direct message instead:', error.message);
+		return await msg.getChat().then(chat => chat.sendMessage(text));
+	}
 }
 
 async function SendToReply(msg, rplyVal, userid) {
 	for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
+			const messageText = `${(candle.checker(userid)) ? candle.checker(userid) + ' ' : ''}${rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]}`;
 			const imageMatch = rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i].match(imageUrl) || null;
-			if (imageMatch && imageMatch.length) {
-				try {
-					let imageVaild = await isImageURL(imageMatch[0]);
-					if (imageVaild) {
-						const media = await MessageMedia.fromUrl(imageMatch[0]);
-						msg.reply(media);
+			
+			try {
+				if (imageMatch && imageMatch.length) {
+					try {
+						let imageVaild = await isImageURL(imageMatch[0]);
+						if (imageVaild) {
+							const media = await MessageMedia.fromUrl(imageMatch[0]);
+							await msg.reply(media);
+						}
+					} catch (error) {
+						console.error('[WhatsApp] Image processing error:', error.message);
 					}
-				} catch (error) {
-					console.error(error);
 				}
+				await msg.reply(messageText);
+			} catch (error) {
+				console.log('[WhatsApp] Failed to reply, sending direct message instead:', error.message);
+				const chat = await msg.getChat();
+				if (imageMatch && imageMatch.length) {
+					try {
+						let imageVaild = await isImageURL(imageMatch[0]);
+						if (imageVaild) {
+							const media = await MessageMedia.fromUrl(imageMatch[0]);
+							await chat.sendMessage(media);
+						}
+					} catch (error) {
+						console.error('[WhatsApp] Image processing error:', error.message);
+					}
+				}
+				await chat.sendMessage(messageText);
 			}
-			msg.reply(`${(candle.checker(userid)) ? candle.checker(userid) + ' ' : ''}${rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]}`);
 		}
 	}
 }

@@ -44,12 +44,12 @@
             設定
         </button>
         <label>
-            <input type="radio" name="gpListRadio" value="null" checked />
+            <input type="radio" name="gpListRadio" value="" v-model="selectedGroupId" @change="saveSelectedGroupId" checked />
             不進行群組擲骰
         </label>
         <div v-for="(gp, i) in gpList">
             <label>
-                <input type="radio" name="gpListRadio" v-bind:value="gp._id" />
+                <input type="radio" name="gpListRadio" v-bind:value="gp._id" v-model="selectedGroupId" @change="saveSelectedGroupId" />
                 編號: {{i+1}} 平台: {{gp.botname}} 群組名稱: {{gp.titleName}}
             </label>
             <button type="button" class="btn btn-danger" v-if="gp.showDeleteButton" v-on:click="confirmRemoveChannel(gp)">

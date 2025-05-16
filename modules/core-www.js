@@ -309,7 +309,39 @@ io.on('connection', async (socket) => {
         // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
         if (rplyVal && rplyVal.text) {
             socket.emit('rolling', result.characterReRollName + '：\n' + rplyVal.text + candle.checker())
-            if (message.rollTarget && message.rollTarget.id && message.rollTarget.botname && message.userName && message.userPassword && message.cardName) {
+            
+            // If a selectedGroupId is provided, use it as the target for the roll
+            if (message.selectedGroupId && message.selectedGroupId !== "") {
+                try {
+                    let filter = {
+                        userName: message.userName,
+                        password: SHA(message.userPassword),
+                    };
+                    
+                    let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error: ', error.name, error.message));
+                    if (result && result.channel) {
+                        // Find the channel with matching ID - needs to be compared as strings
+                        const targetChannel = result.channel.find(ch => ch._id && ch._id.toString() === message.selectedGroupId);
+                        if (targetChannel) {
+                            rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
+                            if (targetChannel.botname) {
+                                if (!sendTo) return;
+                                sendTo({
+                                    target: {
+                                        id: targetChannel.id,
+                                        botname: targetChannel.botname
+                                    },
+                                    text: rplyVal.text
+                                });
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error handling selectedGroupId in rolling event:', error.message);
+                }
+            }
+            // Legacy support for rollTarget
+            else if (message.rollTarget && message.rollTarget.id && message.rollTarget.botname && message.userName && message.userPassword && message.cardName) {
                 let filter = {
                     userName: message.userName,
                     password: SHA(message.userPassword),
@@ -332,13 +364,8 @@ io.on('connection', async (socket) => {
                         text: rplyVal.text
                     })
                 }
-
-
             }
-
         }
-
-
     })
 
     socket.on('removeChannel', async message => {

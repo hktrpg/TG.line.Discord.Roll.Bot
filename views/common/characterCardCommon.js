@@ -33,9 +33,30 @@ function initializeVueApps(isPublic = false) {
                         roll: [],
                         notes: [],
                         gpList: [],
+                        selectedGroupId: localStorage.getItem("selectedGroupId") || null,
                         public: isPublic,
                         deleteMode: false,
                         isPublic: isPublic
+                    }
+                },
+                mounted() {
+                    // Set the correct radio button based on saved selectedGroupId
+                    if (this.selectedGroupId && this.selectedGroupId !== "") {
+                        debugLog(`Loading saved group ID: ${this.selectedGroupId}`, 'info');
+                        this.$nextTick(() => {
+                            const radio = document.querySelector(`input[name="gpListRadio"][value="${this.selectedGroupId}"]`);
+                            if (radio) {
+                                radio.checked = true;
+                            }
+                        });
+                    } else {
+                        // Default to "no group" option
+                        this.$nextTick(() => {
+                            const radio = document.querySelector('input[name="gpListRadio"][value=""]');
+                            if (radio) {
+                                radio.checked = true;
+                            }
+                        });
                     }
                 },
                 methods: {
@@ -122,8 +143,17 @@ function initializeVueApps(isPublic = false) {
                         channel.showCancelButton = false;
                         channel.confirmDelete = false;
                     },
+                    saveSelectedGroupId() {
+                        localStorage.setItem("selectedGroupId", this.selectedGroupId || "");
+                        debugLog(`Saving selected group ID: ${this.selectedGroupId}`, 'info');
+                    },
                     rolling(name) {
                         debugLog(`Rolling for ${name}`, 'info');
+                        // Get the selected group ID from the radio button
+                        this.selectedGroupId = document.querySelector('input[name="gpListRadio"]:checked')?.value || null;
+                        // Save the selection to localStorage for persistence
+                        this.saveSelectedGroupId();
+                        
                         if (this.isPublic) {
                             socket.emit('publicRolling', {
                                 item: name,
@@ -142,6 +172,7 @@ function initializeVueApps(isPublic = false) {
                                 userName: localStorage.getItem("userName"),
                                 userPassword: localStorage.getItem("userPassword"),
                                 cardName: this.name,
+                                selectedGroupId: this.selectedGroupId,
                                 doc: {
                                     name: this.name,
                                     state: this.state,

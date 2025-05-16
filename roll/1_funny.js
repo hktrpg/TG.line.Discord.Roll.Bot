@@ -1220,7 +1220,6 @@ const discordCommand = [
 
 		,
 		async execute(interaction) {
-			await interaction.deferReply({});
 			const category = interaction.options.getString('category')
 			const name = interaction.options.getString('name') || '';
 			const subcommand = interaction.options.getSubcommand()

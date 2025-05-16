@@ -334,14 +334,18 @@ async function sendMessage({ target, replyText, quotes = false, components = nul
 
 	for (const chunk of chunksToSend) {
 		try {
+			// Ensure components is either an array or null
+			const safeComponents = Array.isArray(components) ? components : null;
+			
 			const messageOptions = quotes
-				? { embeds: await convQuotes(chunk), components }
-				: { content: chunk, components };
+				? { embeds: await convQuotes(chunk), components: safeComponents }
+				: { content: chunk, components: safeComponents };
 
 			await target.send(messageOptions);
 		} catch (error) {
 			if (error.message !== 'Cannot send messages to this user' &&
-				error.message !== 'Missing Permissions') {
+				error.message !== 'Missing Permissions' &&
+				error.message !== 'Missing Access') {
 				console.error('Discord message send error:', error.message, 'chunk:', chunk);
 			}
 		}
@@ -386,9 +390,11 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 	if (!channel) return;
 
 	// If we have button components, send each set separately
-	if (buttonCreate && buttonCreate.length) {
-		for (let index = 0; index < buttonCreate.length || index === 0; index++) {
-			await sendMessage({ target: channel, replyText: replyText, quotes: quotes, components: buttonCreate[index] || null });
+	if (buttonCreate && Array.isArray(buttonCreate) && buttonCreate.length) {
+		for (let index = 0; index < buttonCreate.length; index++) {
+			if (Array.isArray(buttonCreate[index])) {
+				await sendMessage({ target: channel, replyText: replyText, quotes: quotes, components: buttonCreate[index] });
+			}
 		}
 	} else {
 		await sendMessage({ target: channel, replyText: replyText, quotes: quotes });
@@ -870,7 +876,7 @@ async function handlingButtonCreate(message, input) {
 					.setLabel('No buttons available')
 					.setStyle(ButtonStyle.Secondary)
 			);
-		return [defaultRow];
+		return [[defaultRow]]; // Return as a nested array to match expected format
 	}
 
 	const row = []
@@ -902,8 +908,17 @@ async function handlingButtonCreate(message, input) {
 		}
 	}
 
-	const arrayRow = await splitArray(5, row)
-	return arrayRow;
+	try {
+		const result = await splitArray(5, row);
+		if (!result || !Array.isArray(result) || result.length === 0) {
+			console.error('handlingButtonCreate: splitArray returned invalid result');
+			return [[row[0]]]; // Return at least the first row if splitArray fails
+		}
+		return result;
+	} catch (error) {
+		console.error('Error in handlingButtonCreate:', error.message);
+		return [[row[0]]]; // Return at least the first row on error
+	}
 }
 
 async function handlingRequestRollingCharacter(message, input) {
@@ -1035,9 +1050,17 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 	}
 }
 async function splitArray(perChunk, inputArray) {
+	if (!Array.isArray(inputArray)) {
+		console.error('splitArray received non-array input:', typeof inputArray);
+		return [];
+	}
+	
 	let myArray = [];
 	for (let i = 0; i < inputArray.length; i += perChunk) {
-		myArray.push(inputArray.slice(i, i + perChunk));
+		const chunk = inputArray.slice(i, i + perChunk);
+		if (Array.isArray(chunk) && chunk.length > 0) {
+			myArray.push(chunk);
+		}
 	}
 	return myArray;
 }

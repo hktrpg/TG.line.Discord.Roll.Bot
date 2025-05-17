@@ -7,8 +7,30 @@ const {
 const { DiceRoller, DiceRoll } = require('@dice-roller/rpg-dice-roller');
 const random = new Random(nodeCrypto);
 const { SlashCommandBuilder } = require('discord.js');
-//value = random.integer(1, 100);
+
+// 常數定義區塊
+const DICE_LIMITS = {
+  MAX_DICE_COUNT: 1000,        // 最大骰子數量
+  MIN_DICE_COUNT: 1,           // 最小骰子數量
+  MAX_DICE_SIDES: 90000000, // 最大骰子面數
+  MIN_DICE_SIDES: 1,           // 最小骰子面數
+  MAX_EQUATION_DICE_COUNT: 200,// 算式中最大骰子數量
+  MAX_EQUATION_DICE_SIDES: 500,// 算式中最大骰子面數
+  MAX_ROLL_TIMES: 30,          // 最大擲骰次數
+  MAX_DISPLAY_LENGTH: 250      // 最大顯示長度
+};
+
+// 錯誤訊息常數
+const ERROR_MESSAGES = {
+  DICE_COUNT_LIMIT: `不支援${DICE_LIMITS.MIN_DICE_COUNT - 1}顆以下及${DICE_LIMITS.MAX_DICE_COUNT}顆以上骰子`,
+  DICE_SIDES_LIMIT: `不支援${DICE_LIMITS.MIN_DICE_SIDES - 1}以下及${DICE_LIMITS.MAX_DICE_SIDES}以上面數`,
+  DISPLAY_LIMIT: '（計算過程太長，僅顯示結果）'
+};
+
+// 基本表達式定義
 const BASIC_ROLL_REGEX = /(\d+)d(\d+)(kh|kl|dh|dl|k|)(\d+|)/i;
+
+//value = random.integer(1, 100);
 //let Sided = [];
 //Sided[10000] = [];
 const variables = {};
@@ -41,7 +63,8 @@ const prefixs = function () {
 
 ///^(?=.*he)(?!.*da).*$/ig
 const getHelpMessage = function () {
-  return `【🎲基本擲骰系統】
+  // 使用函數而非樣板字符串，確保每次調用都會獲取最新的常數值
+  const helpText = `【🎲基本擲骰系統】
 ╭────── 🎯基本格式 ──────
 │ • [骰子]d[面數][運算符][數值]
 │ • 可在指令後方空格加入描述文字
@@ -55,7 +78,7 @@ const getHelpMessage = function () {
 ├────── ✨特殊擲骰 ──────
 │ 多次擲骰:
 │ 　• [次數] [擲骰指令]
-│ 　• 最多30次
+│ 　• 最多${DICE_LIMITS.MAX_ROLL_TIMES}次
 │ 　例: 5 3D6
 │
 │ 保留/放棄骰值:
@@ -73,7 +96,9 @@ const getHelpMessage = function () {
 │
 │ • 3d6dl2
 │ 　放棄最低2顆
-╰──────────────`
+╰──────────────`;
+
+  return helpText;
 }
 const initialize = function () {
   return variables;
@@ -231,10 +256,10 @@ const BuildDiceCal = function (inputStr) {
   let equation = DiceToRoll
   while (equation.match(/\d+d\d+/i) != null) {
     let tempMatch = equation.match(/\d+d\d+/i)
-    if (tempMatch.toString().split('d')[0] > 200) return
+    if (tempMatch.toString().split('d')[0] > DICE_LIMITS.MAX_EQUATION_DICE_COUNT) return
     //不支援200D以上擲骰
 
-    if (tempMatch.toString().split('d')[1] == 1 || tempMatch.toString().split('d')[1] > 500) return;
+    if (tempMatch.toString().split('d')[1] == 1 || tempMatch.toString().split('d')[1] > DICE_LIMITS.MAX_EQUATION_DICE_SIDES) return;
     equation = equation.replace(/\d+d\d+/i, BuildRollDice(tempMatch))
   }
 
@@ -311,16 +336,18 @@ function onetimeroll(text0) {
     while (equation.match(BASIC_ROLL_REGEX) != null) {
       // let totally = 0
       let tempMatch = equation.match(BASIC_ROLL_REGEX)
-      if (tempMatch[1] > 1000 || tempMatch[1] <= 0) return '不支援零顆以下及一千顆骰以上'
-      if (tempMatch[2] < 1 || tempMatch[2] > 9000000000000000) return '不支援一以下及九千兆以上'
+      if (tempMatch[1] > DICE_LIMITS.MAX_DICE_COUNT || tempMatch[1] < DICE_LIMITS.MIN_DICE_COUNT) return ERROR_MESSAGES.DICE_COUNT_LIMIT;
+      if (tempMatch[2] < DICE_LIMITS.MIN_DICE_SIDES || tempMatch[2] > DICE_LIMITS.MAX_DICE_SIDES) return ERROR_MESSAGES.DICE_SIDES_LIMIT;
       equation = equation.replace(BASIC_ROLL_REGEX, RollDice(tempMatch))
     }
     // 計算算式
     let aaa = equation
     aaa = aaa.replace(/\[.+?\]/ig, '')
     let answer = math.evaluate(aaa.toString()).toString().replace(/true/i, "成功").replace(/false/i, "失敗");
-    if (equation.match(/[\s\S]{1,250}/g).length > 1) {
-      Str = answer + '（計算過程太長，僅顯示結果）';
+    // 使用動態生成的正則表達式
+    const displayLengthRegex = new RegExp(`[\\s\\S]{1,${DICE_LIMITS.MAX_DISPLAY_LENGTH}}`, 'g');
+    if (equation.match(displayLengthRegex).length > 1) {
+      Str = answer + ERROR_MESSAGES.DISPLAY_LIMIT;
     } else {
       Str = equation + ' = ' + answer
     }

@@ -12,7 +12,7 @@ const { SlashCommandBuilder } = require('discord.js');
 const DICE_LIMITS = {
   MAX_DICE_COUNT: 1000,        // 最大骰子數量
   MIN_DICE_COUNT: 1,           // 最小骰子數量
-  MAX_DICE_SIDES: 90000000, // 最大骰子面數
+  MAX_DICE_SIDES: 90000000,    // 最大骰子面數
   MIN_DICE_SIDES: 1,           // 最小骰子面數
   MAX_EQUATION_DICE_COUNT: 200,// 算式中最大骰子數量
   MAX_EQUATION_DICE_SIDES: 500,// 算式中最大骰子面數
@@ -27,8 +27,35 @@ const ERROR_MESSAGES = {
   DISPLAY_LIMIT: '（計算過程太長，僅顯示結果）'
 };
 
-// 基本表達式定義
-const BASIC_ROLL_REGEX = /(\d+)d(\d+)(kh|kl|dh|dl|k|)(\d+|)/i;
+// 骰子表達式定義
+const DICE_REGEX = {
+  // 基本骰子表達式: XdY 可選擇性地帶有 kh/kl/dh/dl/k 和數字修飾符
+  // 分組說明:
+  // 1 - 骰子數量 (X)
+  // 2 - 骰子面數 (Y)
+  // 3 - 修飾符類型 (kh,kl,dh,dl,k)
+  // 4 - 修飾符數值 (可為空)
+  BASIC: /(\d+)d(\d+)(kh|kl|dh|dl|k|)(\d+|)/i,
+
+  // 簡單的 d 表達式檢測
+  SIMPLE: /\d+d\d+/i,
+
+  // 數字與運算符檢測
+  VALID_CHARS: /[\d+\-*\/()d><khl=]/i,
+  VALID_CHARS_PATTERN: /\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[k]|[h]|[l]/ig,
+
+  // 小數點檢測
+  DECIMAL_POINT: /\./,
+
+  // 括號檢查正則
+  PARENTHESES: {
+    OPEN: /[(]/g,
+    CLOSE: /[)]/g
+  },
+
+  // 非數字檢測
+  NON_DIGIT: /\D/i
+};
 
 //value = random.integer(1, 100);
 //let Sided = [];
@@ -42,24 +69,105 @@ const gameName = function () {
 const gameType = function () {
   return 'dice:rollbase:hktrpg'
 }
-const TEMP_REGEX = /^(?=.*\d+d\d+)(?!.*\d+(l|h))(?!.*(k)$)(?!.*(l|h)(l|h|k|d))(?!.*(k|d)(k|d))(?!.*^[a-z])(?!.*[a-c])(?!.*[e-g])(?!.*[i-j])(?!.*[m-z])(?!.*(([d]|[+]|[-]|[*]|[/])([d]|[+]|[-]|[*]|[/])))(?!.*(^([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[)])))(?!.*([(][)]))(?!.*([<][<]))(?!.*([>][>]))(?!.*([<][>]))(?!.*([>][<]))(?!.*(\d+[d]+\d+[d]([^h|l]))|([)]\d))(?!.*(([d]|[+]|[-]|[*]|[/]|[<]|[>]|[=]|[(])$))(?!.*([@]|[!]|[#]|[$]|[%]|[&]|[_]|[~]|[`]|[']|[?]|\.))(?!.*([\u4e00-\u9fa5]))(?!.*([=].*[=]))(?!.*([+]|[-]|[*]|[/])[=])(?!.*[=]([+]|[-]|[*]|[/]|[>]|[<]))(?!.*(\d)[=](\d))(?!.*([-][>])|([-][<])|([<][-])|([>][-]))(?!.*(d)[(]).*$/ig
+
+// 正則表達式定義區塊
+// 骰子表達式 - 必須包含 "數字d數字" 格式
+const DICE_PATTERN = DICE_REGEX.SIMPLE;
+
+// 無效格式檢查 - 各種不合法的骰子表示法
+const INVALID_PATTERNS = {
+  // 骰子後接 l 或 h 沒有數字
+  UNSUPPORTED_SUFFIX: /\d+(l|h)(?!\d)/i,
+  // 單獨的 k 在結尾
+  LONELY_K: /(k)$/i,
+  // 無效的修飾詞組合
+  INVALID_MODIFIER_PAIRS: [
+    /(l|h)(l|h|k|d)/i,  // 如 hl, hk 等
+    /(k|d)(k|d)/i       // 如 kk, dd 等
+  ],
+  // 非法開頭字符
+  INVALID_START: /^[a-z]/i,
+  // 非法字母
+  INVALID_LETTERS: [
+    /[a-c]/i,
+    /[e-g]/i,
+    /[i-j]/i,
+    /[m-z]/i
+  ],
+  // 連續的運算符
+  CONSECUTIVE_OPERATORS: /(([d+\-*/])([d+\-*/]))/i,
+  // 以運算符開頭
+  STARTS_WITH_OPERATOR: /^([d+\-*/]|[<>]|[=\)])/i,
+  // 括號問題
+  BRACKET_ISSUES: [
+    /\(\)/i,     // 空括號
+    /<<|>>|<>|></i // 連續比較符號
+  ],
+  // 非法的骰子組合
+  INVALID_DICE_COMBO: /\d+d\d+d([^hl])|[)]\d/i,
+  // 以運算符結尾
+  ENDS_WITH_OPERATOR: /([d+\-*/]|[<>=\(])$/i,
+  // 特殊字符
+  SPECIAL_CHARS: /[@!#$%&_~`'?\.]/i,
+  // 中文字符
+  CHINESE_CHARS: /[\u4e00-\u9fa5]/i,
+  // 等號相關問題
+  EQUALS_ISSUES: [
+    /=[^+\-*/><\d]/i,   // 等號後面接非法字符
+    /[+\-*/]=/i,        // 運算符後直接接等號
+    /=[+\-*/><]/i,      // 等號後直接接運算符
+    /\d=\d/i            // 數字=數字，沒有運算符
+  ],
+  // 箭頭符號問題
+  ARROW_ISSUES: /-[><]|[><]-/i,
+  // d後接括號
+  D_BRACKET: /d\(/i
+};
+
+// 組合成完整的表達式檢查
+const TEMP_REGEX = new RegExp(
+  `^(?=.*${DICE_PATTERN.source})` +
+  `(?!.*${INVALID_PATTERNS.UNSUPPORTED_SUFFIX.source})` +
+  `(?!.*${INVALID_PATTERNS.LONELY_K.source})` +
+  `(?!.*${INVALID_PATTERNS.INVALID_MODIFIER_PAIRS[0].source})` +
+  `(?!.*${INVALID_PATTERNS.INVALID_MODIFIER_PAIRS[1].source})` +
+  `(?!.*${INVALID_PATTERNS.INVALID_START.source})` +
+  `(?!.*${INVALID_PATTERNS.INVALID_LETTERS[0].source})` +
+  `(?!.*${INVALID_PATTERNS.INVALID_LETTERS[1].source})` +
+  `(?!.*${INVALID_PATTERNS.INVALID_LETTERS[2].source})` +
+  `(?!.*${INVALID_PATTERNS.INVALID_LETTERS[3].source})` +
+  `(?!.*${INVALID_PATTERNS.CONSECUTIVE_OPERATORS.source})` +
+  `(?!.*${INVALID_PATTERNS.STARTS_WITH_OPERATOR.source})` +
+  `(?!.*${INVALID_PATTERNS.BRACKET_ISSUES[0].source})` +
+  `(?!.*${INVALID_PATTERNS.BRACKET_ISSUES[1].source})` +
+  `(?!.*${INVALID_PATTERNS.INVALID_DICE_COMBO.source})` +
+  `(?!.*${INVALID_PATTERNS.ENDS_WITH_OPERATOR.source})` +
+  `(?!.*${INVALID_PATTERNS.SPECIAL_CHARS.source})` +
+  `(?!.*${INVALID_PATTERNS.CHINESE_CHARS.source})` +
+  `(?!.*${INVALID_PATTERNS.EQUALS_ISSUES[0].source})` +
+  `(?!.*${INVALID_PATTERNS.EQUALS_ISSUES[1].source})` +
+  `(?!.*${INVALID_PATTERNS.EQUALS_ISSUES[2].source})` +
+  `(?!.*${INVALID_PATTERNS.EQUALS_ISSUES[3].source})` +
+  `(?!.*${INVALID_PATTERNS.ARROW_ISSUES.source})` +
+  `(?!.*${INVALID_PATTERNS.D_BRACKET.source})` +
+  `.*$`, 'i'
+);
+
 const prefixs = function () {
   return [{
     first: TEMP_REGEX,
     second: null
   },
   {
-    first: /(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i,
+    first: /(^[1-9]$)|(^[1-2][0-9]$)|(^[3][0]$)/i, // 1-30的數字
     second: TEMP_REGEX
   },
   {
-    first: /^.rr$/i,
+    first: /^.rr$/i, // .rr 指令
     second: null
   }
   ]
 }
-
-
 
 ///^(?=.*he)(?!.*da).*$/ig
 const getHelpMessage = function () {
@@ -244,9 +352,9 @@ const FunnyDice = function (diceSided) {
 
 const BuildDiceCal = function (inputStr) {
   // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
-  if (inputStr.toLowerCase().match(/\d+d\d+/i) == null) return undefined
+  if (inputStr.toLowerCase().match(DICE_REGEX.SIMPLE) == null) return undefined
   // 排除小數點
-  if (inputStr.toString().match(/\./) != null) return undefined
+  if (inputStr.toString().match(DICE_REGEX.DECIMAL_POINT) != null) return undefined
   // 先定義要輸出的Str
   let finalStr = ''
   // 一般單次擲骰
@@ -254,13 +362,13 @@ const BuildDiceCal = function (inputStr) {
   if (DiceToRoll.match('d') == null) return undefined
   // 寫出算式
   let equation = DiceToRoll
-  while (equation.match(/\d+d\d+/i) != null) {
-    let tempMatch = equation.match(/\d+d\d+/i)
+  while (equation.match(DICE_REGEX.SIMPLE) != null) {
+    let tempMatch = equation.match(DICE_REGEX.SIMPLE)
     if (tempMatch.toString().split('d')[0] > DICE_LIMITS.MAX_EQUATION_DICE_COUNT) return
     //不支援200D以上擲骰
 
     if (tempMatch.toString().split('d')[1] == 1 || tempMatch.toString().split('d')[1] > DICE_LIMITS.MAX_EQUATION_DICE_SIDES) return;
-    equation = equation.replace(/\d+d\d+/i, BuildRollDice(tempMatch))
+    equation = equation.replace(DICE_REGEX.SIMPLE, BuildRollDice(tempMatch))
   }
 
   // 計算算式
@@ -298,16 +406,17 @@ const nomalDiceRoller = function (text0, text1, text2) {
   // 再來先把第一個分段拆出來，待會判斷是否是複數擲骰
   let mutiOrNot = text0.toLowerCase()
   // 排除小數點
-  if (mutiOrNot.toString().match(/\./) != null) return
+  if (mutiOrNot.toString().match(DICE_REGEX.DECIMAL_POINT) != null) return
   // 先定義要輸出的Str
   let finalStr = ''
-  let test1 = text0.match(/[(]/g) || '';
-  let test2 = text0.match(/[)]/g) || '';
+  let test1 = text0.match(DICE_REGEX.PARENTHESES.OPEN) || '';
+  let test2 = text0.match(DICE_REGEX.PARENTHESES.CLOSE) || '';
   if (test2.length != test1.length) return;
   //d h k l 
   //for (i = 0; i < mutiOrNot; i++) {
-  if (mutiOrNot.toString().match(/\D/i) == null && text1) {
-    if (text1.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[k]|[h]|[l]/ig, '')) return;
+  if (mutiOrNot.toString().match(DICE_REGEX.NON_DIGIT) == null && text1) {
+    // 純數字，表示多次擲骰
+    if (text1.replace(DICE_REGEX.VALID_CHARS_PATTERN, '')) return;
     finalStr = text0 + '次擲骰：\n' + text1 + ' ' + (text2 || '') + '\n'
     for (let i = 0; i < mutiOrNot; i++) {
       let answer = onetimeroll(text1)
@@ -316,13 +425,13 @@ const nomalDiceRoller = function (text0, text1, text2) {
       else return;
     }
   } else {
-    if (text0.replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[k]|[h]|[l]/ig, '')) return;
+    // 非純數字，一般骰子表達式
+    if (text0.replace(DICE_REGEX.VALID_CHARS_PATTERN, '')) return;
     finalStr = text0 + '：' + (text1 || '') + '\n'
     let answer = onetimeroll(text0)
     if (answer)
       finalStr += answer;
     else return;
-
   }
   return finalStr.replace(/[*]/g, ' * ');
 }
@@ -333,12 +442,12 @@ function onetimeroll(text0) {
     let Str = ''
     // 寫出算式
     let equation = text0
-    while (equation.match(BASIC_ROLL_REGEX) != null) {
+    while (equation.match(DICE_REGEX.BASIC) != null) {
       // let totally = 0
-      let tempMatch = equation.match(BASIC_ROLL_REGEX)
+      let tempMatch = equation.match(DICE_REGEX.BASIC)
       if (tempMatch[1] > DICE_LIMITS.MAX_DICE_COUNT || tempMatch[1] < DICE_LIMITS.MIN_DICE_COUNT) return ERROR_MESSAGES.DICE_COUNT_LIMIT;
       if (tempMatch[2] < DICE_LIMITS.MIN_DICE_SIDES || tempMatch[2] > DICE_LIMITS.MAX_DICE_SIDES) return ERROR_MESSAGES.DICE_SIDES_LIMIT;
-      equation = equation.replace(BASIC_ROLL_REGEX, RollDice(tempMatch))
+      equation = equation.replace(DICE_REGEX.BASIC, RollDice(tempMatch))
     }
     // 計算算式
     let aaa = equation

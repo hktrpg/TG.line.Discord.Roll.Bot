@@ -275,7 +275,11 @@ const rollDiceCommand = function ({
  * @returns {number} 擲骰結果
  */
 const Dice = function (diceSided) {
-  return random.integer(1, Math.floor(diceSided));
+  // 使用 ~~ 替代 Math.floor 進行整數轉換，效率更高
+  const sides = ~~diceSided || 1;
+
+  // 確保 sides 至少為 1
+  return random.integer(1, Math.max(1, sides));
 }
 
 /**
@@ -285,11 +289,12 @@ const Dice = function (diceSided) {
  * @returns {number} 擲骰結果
  */
 const DiceINT = function (start, end) {
-  let points = [Math.floor(start), Math.floor(end)];
-  points.sort(function (a, b) {
-    return a - b;
-  });
-  return random.integer(points[0], points[1]);
+  // 使用更高效的方式轉換數字
+  const min = ~~start;
+  const max = ~~end;
+
+  // 直接使用 Math.min 和 Math.max 比排序更高效
+  return random.integer(Math.min(min, max), Math.max(min, max));
 }
 
 /**
@@ -316,68 +321,72 @@ const RollDice = function (inputStr) {
   //dl or dlN Drops lowest N
   let commandString = inputStr;
   //12d5kh5,12,5,kh,5
-  let finalString = '[';
-  let diceResults = [];
-  let sortedResults = [];
-  let totalValue = 0;
-  if (!commandString[1] || !commandString[2]) return;
 
-  for (let i = 0; i < commandString[1]; i++) {
-    diceResults[i] = Dice(commandString[2]);
-    sortedResults[i] = diceResults[i];
-  }
+  // 提前轉換為整數，避免重複解析
+  const diceCount = parseInt(commandString[1]);
+  const diceSides = parseInt(commandString[2]);
+
+  // 參數驗證
+  if (!diceCount || !diceSides) return;
+
+  // 使用 Array.from 一次性生成所有骰子結果
+  const diceResults = Array.from({ length: diceCount }, () => Dice(diceSides));
+
+  // 創建排序結果的副本，而不是一個一個賦值
+  const sortedResults = [...diceResults];
+
+  let totalValue = 0;
+  let keepCount = 1; // 默認保留/丟棄數量
+
+  // 處理修飾符
   if (commandString[3]) {
+    // 單獨的 k 視為 kh
     if (commandString[3].match(/^k$/i)) {
       commandString[3] = 'kh';
     }
-    //由大至細
-    sortedResults.sort(function (a, b) {
-      return b - a;
-    });
-  }
-  if (!commandString[4])
-    commandString[4] = 1;
-  switch (commandString[3].toLowerCase()) {
-    case 'kh': //khN Keeps highest N
-      for (let i = 0; i < sortedResults.length; i++) {
-        if (i < commandString[4])
-          totalValue += sortedResults[i];
-      }
-      break;
-    case 'kl': //klN Keeps lowest N
-      for (let i = 0; i < sortedResults.length; i++) {
-        if (i >= sortedResults.length - commandString[4])
-          totalValue += sortedResults[i];
-      }
-      break;
-    case 'dh': //Drops highest N
-      for (let i = 0; i < sortedResults.length; i++) {
-        if (i >= commandString[4])
-          totalValue += sortedResults[i];
-      }
-      break;
-    case 'dl': //dlN Drops lowest N
-      for (let i = 0; i < sortedResults.length; i++) {
-        if (i < sortedResults.length - commandString[4])
-          totalValue += sortedResults[i];
-      }
-      break;
-    default:
-      for (let i = 0; i < diceResults.length; i++) {
-        totalValue += diceResults[i];
-      }
-      break;
-  }
-  //totalValue += diceResults
-  //finalString = finalString + diceResults + '+'
 
-  finalString = finalString + diceResults + '+';
+    // 由大至小排序
+    sortedResults.sort((a, b) => b - a);
 
-  if (!commandString[3])
-    finalString = finalString.replace(/,/ig, '+');
-  finalString = finalString.substring(0, finalString.length - 1) + ']';
-  finalString = finalString.replace('[', totalValue + '[');
-  return finalString;
+    // 如果有指定數量，使用它
+    if (commandString[4]) {
+      keepCount = parseInt(commandString[4]);
+    }
+  }
+
+  // 根據修飾符計算總值
+  switch ((commandString[3] || '').toLowerCase()) {
+    case 'kh': // 保留最高 N 個
+      totalValue = sortedResults
+        .slice(0, keepCount)
+        .reduce((sum, val) => sum + val, 0);
+      break;
+
+    case 'kl': // 保留最低 N 個
+      totalValue = sortedResults
+        .slice(-keepCount)
+        .reduce((sum, val) => sum + val, 0);
+      break;
+
+    case 'dh': // 丟棄最高 N 個
+      totalValue = sortedResults
+        .slice(keepCount)
+        .reduce((sum, val) => sum + val, 0);
+      break;
+
+    case 'dl': // 丟棄最低 N 個
+      totalValue = sortedResults
+        .slice(0, -keepCount)
+        .reduce((sum, val) => sum + val, 0);
+      break;
+
+    default: // 無修飾符，加總所有骰子
+      totalValue = diceResults.reduce((sum, val) => sum + val, 0);
+      break;
+  }
+
+  // 使用字串模板而非多次連接，提高字串操作效率
+  return `${totalValue}[${diceResults.join('+')}]`;
 }
 
 /**
@@ -437,15 +446,20 @@ const BuildDiceCal = function (inputStr) {
  * @returns {string} 骰子結果字串
  */
 const BuildRollDice = function (inputStr) {
-  // 先把inputStr變成字串（不知道為什麼非這樣不可）
-  let commandString = inputStr.toString().toLowerCase();
-  let finalString = '(';
+  // 解析骰子參數
+  const commandString = inputStr.toString().toLowerCase();
+  const [dicePart] = commandString.split('d');
+  const diceCount = parseInt(dicePart);
+  const diceSides = parseInt(commandString.split('d')[1]);
 
-  for (let i = 1; i <= commandString.split('d')[0]; i++) {
-    finalString = finalString + Dice(commandString.split('d')[1]) + '+';
-  }
-  finalString = finalString.substring(0, finalString.length - 1) + ')';
-  return finalString;
+  // 使用 Array.from 更高效地生成骰子結果
+  const results = Array.from(
+    { length: diceCount },
+    () => Dice(diceSides)
+  );
+
+  // 使用 join 代替字串累加，效率更高
+  return `(${results.join('+')})`;
 }
 
 /**
@@ -456,38 +470,63 @@ const BuildRollDice = function (inputStr) {
  * @returns {string} 擲骰結果字串
  */
 const nomalDiceRoller = function (text0, text1, text2) {
-  // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
-  // if (inputStr.toLowerCase().match(/\d+d\d+/) == null) return undefined
-  // 再來先把第一個分段拆出來，待會判斷是否是複數擲骰
-  let multiOrNot = text0.toLowerCase();
-  // 排除小數點
-  if (multiOrNot.toString().match(DICE_REGEX.DECIMAL_POINT) != null) return;
-  // 先定義要輸出的字串
+  // 參數預處理
+  const command = text0.toLowerCase();
+
+  // 提前檢查無效輸入
+  if (command.match(DICE_REGEX.DECIMAL_POINT)) return;
+
+  // 檢查括號平衡
+  const openParenCount = (command.match(DICE_REGEX.PARENTHESES.OPEN) || []).length;
+  const closeParenCount = (command.match(DICE_REGEX.PARENTHESES.CLOSE) || []).length;
+  if (openParenCount !== closeParenCount) return;
+
+  // 檢查是否為多次擲骰（純數字）模式
+  const isMultiRoll = !command.match(DICE_REGEX.NON_DIGIT) && text1;
+
+  // 檢查輸入字符的有效性
+  const textToCheck = isMultiRoll ? text1 : command;
+  if (textToCheck.replace(DICE_REGEX.VALID_CHARS_PATTERN, '')) return;
+
+  // 生成結果
   let finalString = '';
-  let openParenCount = text0.match(DICE_REGEX.PARENTHESES.OPEN) || '';
-  let closeParenCount = text0.match(DICE_REGEX.PARENTHESES.CLOSE) || '';
-  if (closeParenCount.length != openParenCount.length) return;
-  //d h k l 
-  //for (i = 0; i < multiOrNot; i++) {
-  if (multiOrNot.toString().match(DICE_REGEX.NON_DIGIT) == null && text1) {
-    // 純數字，表示多次擲骰
-    if (text1.replace(DICE_REGEX.VALID_CHARS_PATTERN, '')) return;
-    finalString = text0 + '次擲骰：\n' + text1 + ' ' + (text2 || '') + '\n';
-    for (let i = 0; i < multiOrNot; i++) {
-      let answer = oneTimeRoll(text1);
-      if (answer)
-        finalString += i + 1 + '# ' + answer + '\n';
-      else return;
+
+  // 多次擲骰模式
+  if (isMultiRoll) {
+    const rollCount = parseInt(command);
+
+    // 超過上限檢查
+    if (rollCount > DICE_LIMITS.MAX_ROLL_TIMES) {
+      return `超過最大擲骰次數 (${DICE_LIMITS.MAX_ROLL_TIMES})`;
     }
-  } else {
-    // 非純數字，一般骰子表達式
-    if (text0.replace(DICE_REGEX.VALID_CHARS_PATTERN, '')) return;
-    finalString = text0 + '：' + (text1 || '') + '\n';
-    let answer = oneTimeRoll(text0);
-    if (answer)
-      finalString += answer;
-    else return;
+
+    const description = text2 ? ` ${text2}` : '';
+    finalString = `${command}次擲骰：\n${text1}${description}\n`;
+
+    // 使用 Array.from 替代循環效率更高
+    const results = Array.from({ length: rollCount }, (_, i) => {
+      const answer = oneTimeRoll(text1);
+      return answer ? `${i + 1}# ${answer}` : null;
+    });
+
+    // 檢查是否有無效結果
+    if (results.includes(null)) return;
+
+    // 組合結果
+    finalString += results.join('\n');
   }
+  // 一般骰子表達式
+  else {
+    const description = text1 ? ` ${text1}` : '';
+    finalString = `${command}：${description}\n`;
+
+    const answer = oneTimeRoll(command);
+    if (!answer) return;
+
+    finalString += answer;
+  }
+
+  // 使用 replace 處理乘號顯示
   return finalString.replace(/[*]/g, ' * ');
 }
 
@@ -498,28 +537,54 @@ const nomalDiceRoller = function (text0, text1, text2) {
  */
 function oneTimeRoll(text0) {
   try {
-    let resultString = '';
-    // 寫出算式
-    let equation = text0;
-    while (equation.match(DICE_REGEX.BASIC) != null) {
-      // let totally = 0
-      let tempMatch = equation.match(DICE_REGEX.BASIC);
-      if (tempMatch[1] > DICE_LIMITS.MAX_DICE_COUNT || tempMatch[1] < DICE_LIMITS.MIN_DICE_COUNT) return ERROR_MESSAGES.DICE_COUNT_LIMIT;
-      if (tempMatch[2] < DICE_LIMITS.MIN_DICE_SIDES || tempMatch[2] > DICE_LIMITS.MAX_DICE_SIDES) return ERROR_MESSAGES.DICE_SIDES_LIMIT;
-      equation = equation.replace(DICE_REGEX.BASIC, RollDice(tempMatch));
+    // 避免重複轉換
+    const input = text0.toString();
+    let equation = input;
+
+    // 預先定義正則表達式的匹配模式，減少重複創建
+    const regexBasic = DICE_REGEX.BASIC;
+    let match;
+
+    // 使用 while 循環查找所有匹配的骰子表達式
+    while ((match = regexBasic.exec(equation)) !== null) {
+      // 驗證骰子參數
+      const diceCount = parseInt(match[1]);
+      const diceSides = parseInt(match[2]);
+
+      // 檢查限制
+      if (diceCount > DICE_LIMITS.MAX_DICE_COUNT || diceCount < DICE_LIMITS.MIN_DICE_COUNT) {
+        return ERROR_MESSAGES.DICE_COUNT_LIMIT;
+      }
+      if (diceSides < DICE_LIMITS.MIN_DICE_SIDES || diceSides > DICE_LIMITS.MAX_DICE_SIDES) {
+        return ERROR_MESSAGES.DICE_SIDES_LIMIT;
+      }
+
+      // 計算骰子結果並替換
+      const result = RollDice(match);
+
+      // 使用更有效率的方式替換第一個匹配
+      equation = equation.replace(match[0], result);
+
+      // 重置正則表達式的 lastIndex 屬性，確保能匹配下一個實例
+      regexBasic.lastIndex = 0;
     }
-    // 計算算式
-    let processedEquation = equation;
-    processedEquation = processedEquation.replace(/\[.+?\]/ig, '');
-    let answer = math.evaluate(processedEquation.toString()).toString().replace(/true/i, "成功").replace(/false/i, "失敗");
-    // 使用動態生成的正則表達式
-    const displayLengthRegex = new RegExp(`[\\s\\S]{1,${DICE_LIMITS.MAX_DISPLAY_LENGTH}}`, 'g');
-    if (equation.match(displayLengthRegex).length > 1) {
-      resultString = answer + ERROR_MESSAGES.DISPLAY_LIMIT;
-    } else {
-      resultString = equation + ' = ' + answer;
+
+    // 計算最終方程式，移除骰子結果括號中的內容
+    const processedEquation = equation.replace(/\[.+?\]/ig, '');
+
+    // 使用 math.evaluate 計算結果
+    const answer = math.evaluate(processedEquation)
+      .toString()
+      .replace(/true/i, "成功")
+      .replace(/false/i, "失敗");
+
+    // 檢查方程式長度
+    if (equation.length > DICE_LIMITS.MAX_DISPLAY_LENGTH) {
+      return `${answer}${ERROR_MESSAGES.DISPLAY_LIMIT}`;
     }
-    return resultString;
+
+    // 使用模板字符串提高字串操作效率
+    return `${equation} = ${answer}`;
   } catch (error) {
     console.error('rollbase error: oneTimeRoll - inputstr', text0);
     return '';

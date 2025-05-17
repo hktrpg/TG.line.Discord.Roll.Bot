@@ -930,7 +930,7 @@ async function handlingRequestRollingCharacter(message, input) {
 	if (!buttonsNames || !Array.isArray(buttonsNames) || buttonsNames.length === 0) {
 		if (message.deferred && !message.replied) {
 			await message.editReply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
-		} else if (!message.replied) {
+		} else {
 			await message.reply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
 		}
 		return;
@@ -971,7 +971,7 @@ async function handlingRequestRollingCharacter(message, input) {
 	if (arrayRow.length === 0 || !arrayRow[0] || !arrayRow[0][0] || !arrayRow[0][0].components || arrayRow[0][0].components.length === 0) {
 		if (message.deferred && !message.replied) {
 			await message.editReply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
-		} else if (!message.replied) {
+		} else {
 			await message.reply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
 		}
 		return;
@@ -1031,7 +1031,11 @@ async function handlingRequestRollingCharacter(message, input) {
 async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 	// Check if buttonsNames is empty or not an array
 	if (!buttonsNames || !Array.isArray(buttonsNames) || buttonsNames.length === 0) {
-		await message.reply({ content: `${displayname}要求擲骰/點擊\n沒有可用的按鈕` });
+		if (message.deferred && !message.replied) {
+			await message.editReply({ content: `${displayname}要求擲骰/點擊\n沒有可用的按鈕` });
+		} else {
+			await message.reply({ content: `${displayname}要求擲骰/點擊\n沒有可用的按鈕` });
+		}
 		return;
 	}
 
@@ -1068,7 +1072,11 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 
 	// Check if the array is empty
 	if (arrayRow.length === 0) {
-		await message.reply({ content: `${displayname}要求擲骰/點擊\n沒有可用的按鈕` });
+		if (message.deferred && !message.replied) {
+			await message.editReply({ content: `${displayname}要求擲骰/點擊\n沒有可用的按鈕` });
+		} else {
+			await message.reply({ content: `${displayname}要求擲骰/點擊\n沒有可用的按鈕` });
+		}
 		return;
 	}
 
@@ -1091,8 +1099,14 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 	for (let index = 0; index < arrayRow.length; index++) {
 		try {
 			if (index === 0) {
-				// First message uses reply
-				await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] });
+				// First message - handle based on interaction state
+				if (message.deferred && !message.replied) {
+					// If deferred but not replied, use editReply for first row
+					await message.editReply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] });
+				} else {
+					// Otherwise use reply
+					await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] });
+				}
 			} else if (isInteraction) {
 				// Subsequent messages use followUp for interactions
 				await message.followUp({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] });

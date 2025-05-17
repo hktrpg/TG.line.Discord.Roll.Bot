@@ -336,7 +336,7 @@ async function sendMessage({ target, replyText, quotes = false, components = nul
 		try {
 			// Ensure components is either an array or null
 			const safeComponents = Array.isArray(components) ? components : null;
-			
+
 			const messageOptions = quotes
 				? { embeds: await convQuotes(chunk), components: safeComponents }
 				: { content: chunk, components: safeComponents };
@@ -980,7 +980,7 @@ async function handlingRequestRollingCharacter(message, input) {
 	// Check if this is an interaction
 	const isInteraction = message.isInteraction || message.isCommand?.() || message.isButton?.();
 	const contentPrefix = charMode ? `${characterName}的角色` : `${characterName}的角色卡`;
-	
+
 	// Capture command information for debugging
 	const commandInfo = {
 		type: isInteraction ? 'interaction' : 'message',
@@ -995,7 +995,7 @@ async function handlingRequestRollingCharacter(message, input) {
 		rowCount: arrayRow.length,
 		mode: charMode ? 'character' : 'character card'
 	};
-	
+
 	try {
 		// Handle first row/message
 		if (isInteraction) {
@@ -1009,7 +1009,7 @@ async function handlingRequestRollingCharacter(message, input) {
 				// If already replied, send a followUp for the first row too
 				await message.followUp({ content: contentPrefix, components: arrayRow[0] });
 			}
-			
+
 			// Send follow-ups for additional rows
 			for (let index = 1; index < arrayRow.length; index++) {
 				await message.followUp({ content: contentPrefix, components: arrayRow[index] });
@@ -1017,7 +1017,7 @@ async function handlingRequestRollingCharacter(message, input) {
 		} else {
 			// For regular messages
 			await message.reply({ content: contentPrefix, components: arrayRow[0] });
-			
+
 			// Send subsequent replies for additional rows
 			for (let index = 1; index < arrayRow.length; index++) {
 				await message.reply({ content: contentPrefix, components: arrayRow[index] });
@@ -1082,7 +1082,7 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 
 	// Check if this is an interaction
 	const isInteraction = message.isInteraction || (message.isCommand && message.isCommand()) || (message.isButton && message.isButton());
-	
+
 	// Capture command information for debugging
 	const commandInfo = {
 		type: isInteraction ? 'interaction' : 'message',
@@ -1095,7 +1095,7 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 		buttonCount: buttonsNames.length,
 		rowCount: arrayRow.length
 	};
-	
+
 	for (let index = 0; index < arrayRow.length; index++) {
 		try {
 			if (index === 0) {
@@ -1124,7 +1124,7 @@ async function splitArray(perChunk, inputArray) {
 		console.error('splitArray received non-array input:', typeof inputArray);
 		return [];
 	}
-	
+
 	let myArray = [];
 	for (let i = 0; i < inputArray.length; i += perChunk) {
 		const chunk = inputArray.slice(i, i + perChunk);
@@ -1563,7 +1563,12 @@ const connect = function () {
 };
 
 function handlingButtonCommand(message) {
-	return message.component.label || ''
+	// Safely check if component exists before accessing its label property
+	if (!message || !message.component) {
+		console.warn('Button command received with undefined component');
+		return '';
+	}
+	return message.component.label || '';
 }
 async function handlingEditMessage(message, rplyVal) {
 	try {
@@ -1684,7 +1689,16 @@ async function __handlingReplyMessage(message, result) {
 		if (message.isInteraction && !message.deferred && !message.replied) {
 			// Defer all interactions by default to avoid timeout issues
 			// This gives commands the full 15-minute window instead of just 3 seconds
-			await message.deferReply({ ephemeral: false });
+			try {
+				await message.deferReply({ ephemeral: false });
+			} catch (deferError) {
+				// If the interaction is no longer valid, log it but don't crash
+				if (deferError.code === 10062) { // Unknown interaction code
+					console.error(`Interaction expired before deferral: ${message.commandName || 'unknown'}`);
+					return; // Exit early - can't do anything with an expired interaction
+				}
+				throw deferError; // Re-throw other unexpected errors
+			}
 		}
 
 		// For deferred interactions, use editReply for the first response
@@ -1698,8 +1712,9 @@ async function __handlingReplyMessage(message, result) {
 				}
 			} catch (error) {
 				// If the interaction is no longer valid, log it but don't crash
-				if (error.message.includes('Unknown interaction')) {
+				if (error.code === 10062) {
 					console.error(`Interaction expired for command: ${message.commandName || 'unknown'}`);
+					return; // Exit early - nothing more we can do
 				} else {
 					throw error; // Re-throw unexpected errors
 				}
@@ -1733,9 +1748,13 @@ async function __handlingReplyMessage(message, result) {
 						await message.deferReply();
 						await message.editReply({ embeds: await convQuotes(sendText) });
 					} catch (innerError) {
+						if (innerError.code === 10062) {
+							console.error(`Interaction expired during reply: ${message.commandName || 'unknown'}`);
+							break; // Stop sending more messages if the interaction is invalid
+						}
 						console.error('Failed to handle interaction:', innerError.message);
 					}
-				} else if (error.message.includes('Unknown interaction')) {
+				} else if (error.code === 10062 || error.message.includes('Unknown interaction')) {
 					console.error(`Interaction expired for command: ${message.commandName || 'unknown'}`);
 					break; // Stop sending more messages if the interaction is invalid
 				} else {
@@ -1761,7 +1780,16 @@ async function __handlingInteractionMessage(message) {
 					// Defer all commands by default - this gives them the full 15-minute window instead of just 3 seconds
 					// This is a better approach than hardcoding specific command names
 					if (!message.deferred && !message.replied) {
-						await message.deferReply({ ephemeral: false });
+						try {
+							await message.deferReply({ ephemeral: false });
+						} catch (deferError) {
+							// If interaction has expired, log and return early
+							if (deferError.code === 10062) { // Unknown interaction code
+								console.error(`Interaction expired before deferral: ${message.commandName || 'unknown'}`);
+								return;
+							}
+							throw deferError; // Re-throw other errors
+						}
 					}
 
 					const answer = await handlingCommand(message);
@@ -1770,7 +1798,15 @@ async function __handlingInteractionMessage(message) {
 					// Early defer for export commands
 					if (typeof answer === 'object' && answer.inputStr &&
 						answer.inputStr.startsWith('.discord') && !message.deferred && !message.replied) {
-						await message.deferReply({ ephemeral: true });
+						try {
+							await message.deferReply({ ephemeral: true });
+						} catch (deferError) {
+							if (deferError.code === 10062) {
+								console.error(`Interaction expired before export deferral: ${message.commandName || 'unknown'}`);
+								return;
+							}
+							throw deferError;
+						}
 					}
 
 					// Handle both string and object answers
@@ -1800,18 +1836,80 @@ async function __handlingInteractionMessage(message) {
 					}
 				}
 			}
+			break; // Add break statement to avoid fall-through
 		case message.isButton():
 			{
-				const answer = handlingButtonCommand(message)
-				const result = await handlingResponMessage(message, answer);
-				const messageContent = message.message.content;
-				const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
-				const resultText = (result && result.text) || '';
+				try {
+					// Defer update to prevent "Unknown interaction" errors
+					if (!message.deferred && !message.replied) {
+						try {
+							await message.deferUpdate();
+						} catch (deferError) {
+							if (deferError.code === 10062) {
+								console.error(`Button interaction expired before processing: ${message.component?.label || 'unknown'}`);
+								return;
+							}
+							throw deferError;
+						}
+					}
 
-				// Handle character card buttons
-				if (/的角色卡$/.test(messageContent)) {
-					try {
-						if (resultText) {
+					const answer = handlingButtonCommand(message);
+					const result = await handlingResponMessage(message, answer);
+					const messageContent = message?.message?.content || '';
+					const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
+					const resultText = (result && result.text) || '';
+
+					// Handle character card buttons
+					if (/的角色卡$/.test(messageContent)) {
+						try {
+							if (resultText) {
+								// Check for forwarding settings
+								const forwardSetting = await records.findForwardedMessage({
+									userId: message.user.id,
+									sourceMessageId: message.message.id
+								});
+
+								if (forwardSetting) {
+									// Forward to the specified channel
+									try {
+										const targetChannel = await client.channels.fetch(forwardSetting.channelId);
+										if (targetChannel) {
+											await targetChannel.send({
+												content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`
+											});
+											return;
+										}
+									} catch (error) {
+										console.error('Error forwarding character card message:', error);
+									}
+								}
+								// Fallback to normal reply if forwarding fails
+								try {
+									return await message.followUp({
+										content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`,
+										ephemeral: false
+									});
+								} catch (replyError) {
+									console.error(`Failed to send character card button response: ${replyError.message}`);
+								}
+							} else {
+								try {
+									return await message.followUp({
+										content: `${displayname}沒有反應，請檢查按鈕內容`,
+										ephemeral: true
+									});
+								} catch (replyError) {
+									console.error(`Failed to send empty character card button response: ${replyError.message}`);
+								}
+							}
+						} catch (error) {
+							console.error('Error handling character card button:', error);
+						}
+					}
+
+					// Handle character buttons
+					if (/的角色$/.test(messageContent)) {
+						try {
 							// Check for forwarding settings
 							const forwardSetting = await records.findForwardedMessage({
 								userId: message.user.id,
@@ -1823,110 +1921,81 @@ async function __handlingInteractionMessage(message) {
 								try {
 									const targetChannel = await client.channels.fetch(forwardSetting.channelId);
 									if (targetChannel) {
-										await targetChannel.send({
-											content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`
-										});
-										await message.deferUpdate();
+										await targetChannel.send({ content: `${displayname}${resultText}` });
 										return;
 									}
 								} catch (error) {
-									console.error('Error forwarding character card message:', error);
+									console.error('Error forwarding character message:', error);
 								}
 							}
 							// Fallback to normal reply if forwarding fails
-							return await message.reply({
-								content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`,
-								ephemeral: false
-							});
-						} else {
-							return await message.reply({
-								content: `${displayname}沒有反應，請檢查按鈕內容`,
-								ephemeral: true
-							});
+							try {
+								await message.followUp({ content: `${displayname}${resultText}`, ephemeral: false });
+							} catch (replyError) {
+								console.error(`Failed to send character button response: ${replyError.message}`);
+							}
+						} catch (error) {
+							console.error('Error handling character button:', error);
 						}
-					} catch (error) {
-						console.error('Error handling character card button:', error);
+						return;
 					}
-				}
 
-				// Handle character buttons
-				if (/的角色$/.test(messageContent)) {
+					// Handle roll request buttons
 					try {
-						// Check for forwarding settings
-						const forwardSetting = await records.findForwardedMessage({
-							userId: message.user.id,
-							sourceMessageId: message.message.id
-						});
+						if (resultText) {
+							const content = handlingCountButton(message, 'roll');
+							// Check for forwarding settings
+							const forwardSetting = await records.findForwardedMessage({
+								userId: message.user.id,
+								sourceMessageId: message.message.id
+							});
 
-						if (forwardSetting) {
-							// Forward to the specified channel
+							// Update original message
 							try {
-								const targetChannel = await client.channels.fetch(forwardSetting.channelId);
-								if (targetChannel) {
-									await targetChannel.send({ content: `${displayname}${resultText}` });
-									await message.deferUpdate();
-									return;
+								await message.editReply({ content: content });
+							} catch (updateError) {
+								console.error(`Failed to update message: ${updateError?.message} | Button: ${message.component?.label || 'unknown'}`);
+							}
+
+							if (forwardSetting) {
+								// Forward to the specified channel
+								try {
+									const targetChannel = await client.channels.fetch(forwardSetting.channelId);
+									if (targetChannel) {
+										await targetChannel.send({ content: resultText });
+										return;
+									}
+								} catch (error) {
+									console.error(`Error forwarding roll request: ${error.message} | Button: ${message.component?.label || 'unknown'}`);
 								}
-							} catch (error) {
-								console.error('Error forwarding character message:', error);
+							}
+							// Fallback to normal handling if forwarding fails
+							await handlingSendMessage(result);
+						} else {
+							const content = handlingCountButton(message, 'count');
+							try {
+								await message.editReply({ content: content });
+							} catch (updateError) {
+								console.error(`Failed to update count button: ${updateError?.message} | Button: ${message.component?.label || 'unknown'}`);
 							}
 						}
-						// Fallback to normal reply if forwarding fails
-						await message.reply({ content: `${displayname}${resultText}`, ephemeral: false });
 					} catch (error) {
-						console.error('Error handling character button:', error);
-					}
-					return;
-				}
-
-				// Handle roll request buttons
-				try {
-					if (resultText) {
-						const content = handlingCountButton(message, 'roll');
-						// Check for forwarding settings
-						const forwardSetting = await records.findForwardedMessage({
-							userId: message.user.id,
-							sourceMessageId: message.message.id
-						});
-
-						// Update original message
-						await message.update({ content: content }).catch((updateError) => {
-							console.error(`Failed to update message: ${updateError?.message} | Button: ${message.component?.label || 'unknown'}`);
-						});
-
-						if (forwardSetting) {
-							// Forward to the specified channel
-							try {
-								const targetChannel = await client.channels.fetch(forwardSetting.channelId);
-								if (targetChannel) {
-									await targetChannel.send({ content: resultText });
-									return;
-								}
-							} catch (error) {
-								console.error(`Error forwarding roll request: ${error.message} | Button: ${message.component?.label || 'unknown'}`);
-							}
-						}
-						// Fallback to normal handling if forwarding fails
-						await handlingSendMessage(result);
-					} else {
-						const content = handlingCountButton(message, 'count');
-						await message.update({ content: content }).catch((updateError) => {
-							console.error(`Failed to update count button: ${updateError?.message} | Button: ${message.component?.label || 'unknown'}`);
-						});
+						const buttonLabel = message.component?.label || 'unknown';
+						const userCommand = message.message?.content || 'unknown';
+						const commandContext = {
+							buttonLabel: buttonLabel,
+							userCommand: userCommand,
+							interactionState: {
+								deferred: message.deferred || false,
+								replied: message.replied || false
+							},
+							resultTextLength: resultText ? resultText.length : 0
+						};
+						console.error(`Button interaction error: ${error?.message || error} | Command: ${userCommand} | Button: ${buttonLabel} | Context: ${JSON.stringify(commandContext)}`);
 					}
 				} catch (error) {
-					const buttonLabel = message.component?.label || 'unknown';
-					const userCommand = message.message?.content || 'unknown';
-					const commandContext = {
-						buttonLabel: buttonLabel,
-						userCommand: userCommand,
-						interactionState: {
-							deferred: message.deferred || false,
-							replied: message.replied || false
-						},
-						resultTextLength: resultText ? resultText.length : 0
-					};
-					console.error(`Button interaction error: ${error?.message || error} | Command: ${userCommand} | Button: ${buttonLabel} | Context: ${JSON.stringify(commandContext)}`);
+					// Global error handling for the entire button interaction block
+					console.error(`Global button interaction error: ${error?.message || error}`, error);
 				}
 				return;
 			}

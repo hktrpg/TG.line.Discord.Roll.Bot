@@ -125,6 +125,7 @@ const rollDiceCommand = async function ({
 				rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
 			if (mainMsg[0].match(/^大十字塔羅/) != null)
 				rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
+			rply.buttonCreate = ['每日塔羅', '時間塔羅', '大十字塔羅']
 			return rply;
 		case (/立flag$|^立flag/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,25}/g).length <= 1):
 			rply.text = BStyleFlagSCRIPTS();
@@ -134,9 +135,11 @@ const rollDiceCommand = async function ({
 			return rply;
 		case (/運勢$|^運勢/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,40}/g).length <= 1):
 			rply.text = randomLuck(mainMsg);
+
 			return rply;
 		case /^每日笑話$/.test(mainMsg[0]): {
 			rply.text = joke.getFunnyRandomResult();
+			
 			return rply;
 		}
 		case /^每日動漫$/.test(mainMsg[0]): {

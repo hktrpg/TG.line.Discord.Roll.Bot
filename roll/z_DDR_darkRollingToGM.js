@@ -111,9 +111,9 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //增加自定義關鍵字
             // .drgm[0] addgm[1] 代替名字[2]  
             if (rply.text = checkTools.permissionErrMsg({
-                flag : checkTools.flag.ChkChannelManager,
-                gid : groupid,
-                role : userrole
+                flag: checkTools.flag.ChkChannelManager,
+                gid: groupid,
+                role: userrole
             })) {
                 return rply;
             }
@@ -157,9 +157,9 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //刪除所有自定義關鍵字
             //
             if (rply.text = checkTools.permissionErrMsg({
-                flag : checkTools.flag.ChkChannelManager,
-                gid : groupid,
-                role : userrole
+                flag: checkTools.flag.ChkChannelManager,
+                gid: groupid,
+                role: userrole
             })) {
                 return rply;
             }
@@ -171,7 +171,7 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                 if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
                     let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
                     temp.trpgDarkRollingfunction = []
-                    records.setTrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
+                    records.setTrpgDarkRollingFunction('trpgDarkRolling', temp, () => {
                         records.get('trpgDarkRolling', (msgs) => {
                             trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
                         })
@@ -188,9 +188,9 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //
             if (!mainMsg[2]) rply.text += '沒有已註冊GM. '
             if (rply.text += checkTools.permissionErrMsg({
-                flag : checkTools.flag.ChkChannelManager,
-                gid : groupid,
-                role : userrole
+                flag: checkTools.flag.ChkChannelManager,
+                gid: groupid,
+                role: userrole
             })) {
                 return rply;
             }
@@ -200,7 +200,7 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                 if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid && mainMsg[2] < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length && mainMsg[2] >= 0) {
                     let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
                     temp.trpgDarkRollingfunction.splice(mainMsg[2], 1)
-                    records.setTrpgDarkRollingfunction('trpgDarkRolling', temp, () => {
+                    records.setTrpgDarkRollingFunction('trpgDarkRolling', temp, () => {
                         records.get('trpgDarkRolling', (msgs) => {
                             trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
                         })
@@ -251,14 +251,14 @@ const discordCommand = [{
             subcommand
                 .setName('addgm')
                 .setDescription('註冊成為GM')
-                .addStringOption(option => 
+                .addStringOption(option =>
                     option.setName('nickname')
-                    .setDescription('GM的代稱(選填)')
-                    .setRequired(false))
+                        .setDescription('GM的代稱(選填)')
+                        .setRequired(false))
         )
         .addSubcommand(subcommand =>
             subcommand
-                .setName('show') 
+                .setName('show')
                 .setDescription('顯示目前GM列表')
         )
         .addSubcommand(subcommand =>
@@ -267,15 +267,15 @@ const discordCommand = [{
                 .setDescription('刪除GM')
                 .addStringOption(option =>
                     option.setName('target')
-                    .setDescription('要刪除的GM編號,輸入all則清空所有')
-                    .setRequired(true))
+                        .setDescription('要刪除的GM編號,輸入all則清空所有')
+                        .setRequired(true))
         ),
     async execute(interaction) {
         const subcommand = interaction.options.getSubcommand();
         const nickname = interaction.options.getString('nickname');
         const target = interaction.options.getString('target');
-        
-        switch(subcommand) {
+
+        switch (subcommand) {
             case 'addgm':
                 return `.drgm addgm ${nickname || ''}`;
             case 'show':
@@ -290,10 +290,10 @@ const discordCommand = [{
     data: new SlashCommandBuilder()
         .setName('dr')
         .setDescription('暗骰-結果只傳送給自己')
-        .addStringOption(option => 
+        .addStringOption(option =>
             option.setName('command')
-            .setDescription('要執行的指令，如 cc 80 鬥毆')
-            .setRequired(true)),
+                .setDescription('要執行的指令，如 cc 80 鬥毆')
+                .setRequired(true)),
     async execute(interaction) {
         const command = interaction.options.getString('command');
         return `dr ${command}`;
@@ -302,10 +302,10 @@ const discordCommand = [{
     data: new SlashCommandBuilder()
         .setName('ddr')
         .setDescription('暗骰-結果傳送給GM和自己')
-        .addStringOption(option => 
+        .addStringOption(option =>
             option.setName('command')
-            .setDescription('要執行的指令，如 cc 80 鬥毆')
-            .setRequired(true)),
+                .setDescription('要執行的指令，如 cc 80 鬥毆')
+                .setRequired(true)),
     async execute(interaction) {
         const command = interaction.options.getString('command');
         return `ddr ${command}`;
@@ -314,10 +314,10 @@ const discordCommand = [{
     data: new SlashCommandBuilder()
         .setName('dddr')
         .setDescription('暗骰-結果只傳送給GM')
-        .addStringOption(option => 
+        .addStringOption(option =>
             option.setName('command')
-            .setDescription('要執行的指令，如 cc 80 鬥毆')
-            .setRequired(true)),
+                .setDescription('要執行的指令，如 cc 80 鬥毆')
+                .setRequired(true)),
     async execute(interaction) {
         const command = interaction.options.getString('command');
         return `dddr ${command}`;

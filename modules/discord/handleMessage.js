@@ -1,7 +1,8 @@
 "use strict";
 
 async function getReplyContent(message) {
-    if (!message.reference) return "";
+    // Check if message exists and has reference property
+    if (!message || !message.reference) return "";
 
     try {
         const referencedMessage = await message.channel.messages.fetch(message.reference.messageId);

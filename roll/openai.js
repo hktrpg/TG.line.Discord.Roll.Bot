@@ -494,7 +494,12 @@ class CommandHandler {
         const { inputStr, mainMsg, groupid, discordMessage, userid, discordClient,
             userrole, botname, displayname, channelid, displaynameDiscord, membercount } = params;
 
-        const replyMessage = await handleMessage.getReplyContent(discordMessage);
+        let replyMessage = "";
+        // Only try to get reply content if using Discord
+        if (botname === "Discord" && discordMessage) {
+            replyMessage = await handleMessage.getReplyContent(discordMessage);
+        }
+        
         if (!mainMsg[1] && replyMessage) {
             params.inputStr = `${replyMessage}`;
         } else if (mainMsg[1] === 'help' || !mainMsg[1]) {
@@ -509,8 +514,14 @@ class CommandHandler {
     }
 
     async handleTranslateCommand(params) {
-        const { inputStr, mainMsg, discordMessage, discordClient, userid } = params;
+        const { inputStr, mainMsg, discordMessage, discordClient, userid, botname } = params;
         const rply = { default: 'on', type: 'text', text: '', quotes: true };
+
+        // If not using Discord, inform the user
+        if (botname !== "Discord") {
+            rply.text = "翻譯功能目前僅支持在 Discord 平台使用。";
+            return rply;
+        }
 
         let modelType = 'LOW';
         if (/^.aitm$/i.test(mainMsg[0])) {
@@ -540,8 +551,14 @@ class CommandHandler {
     }
 
     async handleImageCommand(params) {
-        const { inputStr, mainMsg, userid } = params;
+        const { inputStr, mainMsg, userid, botname } = params;
         const rply = { default: 'on', type: 'text', text: '', quotes: true };
+
+        // If not using Discord, inform the user
+        if (botname !== "Discord") {
+            rply.text = "圖像生成功能目前僅支持在 Discord 平台使用。";
+            return rply;
+        }
 
         if (!adminSecret || userid !== adminSecret) {
             rply.text = `使用圖像生成功能需要 HKTRPG 管理員權限`;
@@ -574,9 +591,12 @@ class CommandHandler {
             modelType = 'HIGH';
         }
         let processedInput = inputStr;
-        if (botname === "Discord") {
+        // Only process Discord-specific logic if we're on Discord
+        if (botname === "Discord" && discordMessage) {
             const replyContent = await handleMessage.getReplyContent(discordMessage);
-            processedInput = `${replyContent}\n${inputStr.replace(/^\.ai[mh]?/i, '')} `;
+            if (replyContent) {
+                processedInput = `${replyContent}\n${inputStr.replace(/^\.ai[mh]?/i, '')} `;
+            }
         }
 
         rply.text = await chatAi.handleChatAi(processedInput, AI_CONFIG.MODELS[modelType], userid);

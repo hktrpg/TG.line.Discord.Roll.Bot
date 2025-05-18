@@ -573,7 +573,6 @@ class CommandHandler {
             }
             modelType = 'HIGH';
         }
-        console.log(mainMsg)
         let processedInput = inputStr;
         if (botname === "Discord") {
             const replyContent = await handleMessage.getReplyContent(discordMessage);

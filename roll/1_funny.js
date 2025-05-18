@@ -139,7 +139,7 @@ const rollDiceCommand = async function ({
 			return rply;
 		case /^每日笑話$/.test(mainMsg[0]): {
 			rply.text = joke.getFunnyRandomResult();
-			
+
 			return rply;
 		}
 		case /^每日動漫$/.test(mainMsg[0]): {
@@ -628,6 +628,8 @@ wwwwwwwwwwwwwwwww', '\
 
 function randomLuck(mainMsg) {
 	const rplyArr = ['超吉', '超級上吉', '大吉', '吉', '中吉', '小吉', '吉', '小吉', '吉', '吉', '中吉', '吉', '中吉', '吉', '中吉', '小吉', '末吉', '吉', '中吉', '小吉', '末吉', '中吉', '小吉', '小吉', '吉', '小吉', '末吉', '中吉', '小吉', '凶', '小凶', '沒凶', '大凶', '很凶', '你不要知道比較好呢', '命運在手中,何必問我'];
+
+
 	const isAllShort = mainMsg.every(msg => msg.length < 30);
 
 	if (isAllShort && mainMsg.length > 1) {
@@ -1134,11 +1136,17 @@ const discordCommand = [
 			.addStringOption(option => option.setName('text').setDescription('可輸入單一或多個目標，多個目標以空格分隔，例如：TRPG 今日 跑團'))
 		,
 		async execute(interaction) {
-			const text = interaction.options.getString('text')
-			if (text !== null) {
-				return `運勢 ${text}`
-			} else {
-				return `今日運勢`
+			//to array
+
+			const text = interaction.options.getString('text')?.trim()?.split(/\s+/)
+
+			if (!text || text.length == 0) {
+				return `運勢`
+			} else if (text.length == 1) {
+				return `${text[0]}運勢 `
+			}
+			else {
+				return `${text[0]}運勢 ${text.slice(1).join(' ')}`
 			}
 		}
 	},

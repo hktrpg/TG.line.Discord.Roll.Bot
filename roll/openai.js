@@ -97,7 +97,7 @@ const getHelpMessage = function () {
 │ • ${AI_CONFIG.MODELS.LOW.prefix.translate} [文字內容] - 使用${AI_CONFIG.MODELS.LOW.display}翻譯
 │ • ${AI_CONFIG.MODELS.MEDIUM.prefix.translate} [文字內容] - 使用${AI_CONFIG.MODELS.MEDIUM.display}翻譯
 │ • ${AI_CONFIG.MODELS.HIGH.prefix.translate} [文字內容] - 使用${AI_CONFIG.MODELS.HIGH.display}翻譯
-│ • 或上傳.txt附件
+│ • 或上傳.txt附件 或回覆(Reply)要翻譯的內容
 │ • 轉換為正體中文
 │
 ├────── 🖼️圖像生成 ──────
@@ -494,17 +494,13 @@ class CommandHandler {
         const { inputStr, mainMsg, groupid, discordMessage, userid, discordClient,
             userrole, botname, displayname, channelid, displaynameDiscord, membercount } = params;
 
-        if (!mainMsg[0]) return { text: '' };
-
-        const commandMatch = mainMsg[0].match(/^\.([a-zA-Z]+)/i);
-        if (!commandMatch) return { text: '' };
-
-        // First check if it's a help command or empty command
-        if (mainMsg[1] === 'help' || !mainMsg[1]) {
+        const replyMessage = await handleMessage.getReplyContent(discordMessage);
+        if (!mainMsg[1] && replyMessage) {
+            params.inputStr = `${replyMessage}`;
+        } else if (mainMsg[1] === 'help' || !mainMsg[1]) {
             return { text: getHelpMessage(), quotes: true };
         }
-
-        const command = commandMatch[1].toLowerCase();
+        const command = mainMsg[0].toLowerCase().replace(/^\./, '');
         if (this.commands[command]) {
             return await this.commands[command](params);
         }
@@ -577,7 +573,7 @@ class CommandHandler {
             }
             modelType = 'HIGH';
         }
-
+        console.log(mainMsg)
         let processedInput = inputStr;
         if (botname === "Discord") {
             const replyContent = await handleMessage.getReplyContent(discordMessage);
@@ -592,14 +588,6 @@ class CommandHandler {
 const commandHandler = new CommandHandler();
 
 const rollDiceCommand = async function (params) {
-    if (!process.env.OPENAI_SWITCH) return;
-
-    // Check if there's a command match
-    const firstCmd = params.mainMsg[0];
-    if (!firstCmd || !firstCmd.match(/^\./)) return;
-
-    if (!firstCmd.match(/^\.ai/i) && !firstCmd.match(/^\.ait/i)) return;
-
     return await commandHandler.processCommand(params);
 };
 

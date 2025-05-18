@@ -30,10 +30,10 @@ const rollModules = new Map();
 // Lazy loading function for roll modules
 function getRollModule(moduleName) {
 	if (!moduleName) return null;
-	
+
 	const moduleInfo = rollModules.get(moduleName.toLowerCase());
 	if (!moduleInfo) return null;
-	
+
 	// Only require the module when it's first accessed
 	if (!exports[moduleInfo.name]) {
 		try {
@@ -47,7 +47,7 @@ function getRollModule(moduleName) {
 			return null;
 		}
 	}
-	
+
 	return exports[moduleInfo.name];
 }
 
@@ -109,12 +109,12 @@ const parseInput = async (params) => {
 	// EXPUP 功能 + LevelUP 功能
 	if (context.groupid) {
 		let tempEXPUP = await EXPUP(
-			context.groupid, 
-			context.userid, 
-			context.displayname, 
-			context.displaynameDiscord, 
-			context.membercount, 
-			context.tgDisplayname, 
+			context.groupid,
+			context.userid,
+			context.displayname,
+			context.displaynameDiscord,
+			context.membercount,
+			context.tgDisplayname,
 			context.discordMessage
 		);
 		result.LevelUp = tempEXPUP?.text || '';
@@ -182,17 +182,18 @@ const rolldice = async (context) => {
 	if (!context.groupid) {
 		context.groupid = '';
 	}
-	
 	let target = findRollList(context.mainMsg);
 	if (!target) return null;
 	(debugMode) ? console.log('            trigger: ', context.inputStr) : '';
 
 	let rollTimes = context.inputStr.match(/^\.(\d{1,2})\s/);
+	
 	rollTimes ? rollTimes = rollTimes[1] : rollTimes = 1;
 	rollTimes > 10 ? rollTimes = 10 : null;
 	context.inputStr = context.inputStr.replace(/^\.\d{1,2}\s/, '');
 
 	context.mainMsg[0].match(/^\.(\d{1,2})$/) ? context.mainMsg.shift() : null;
+	context.mainMsg = context.mainMsg.filter(item => item !== '');
 
 	let retext = '';
 	let tempsave = {};
@@ -229,7 +230,7 @@ function findRollList(mainMsg) {
 
 	// Set default empty string for mainMsg[1] if undefined
 	if (!mainMsg[1]) mainMsg[1] = '';
-	
+
 	// Special handling for .me and .mee commands - make sure they go to z_myname
 	if (mainMsg[0] && (mainMsg[0].toLowerCase() === '.me' || mainMsg[0].toLowerCase() === '.mee')) {
 		const zMyname = getRollModule('z_myname');
@@ -312,7 +313,7 @@ async function cmdfunction({ result, ...context }) {
 	let newInputStr = result.characterReRollItem || result.text;
 	let mainMsg = newInputStr.match(MESSAGE_SPLITOR);
 	let tempResut = {};
-	
+
 	try {
 		tempResut = await rolldice(new RollContext({
 			...context,
@@ -326,7 +327,7 @@ async function cmdfunction({ result, ...context }) {
 			Botname: ${context.botname}
 			Time: ${new Date()}`);
 	}
-	
+
 	(debugMode) ? console.log('            inputStr2: ', newInputStr) : '';
 	if (typeof tempResut === 'object' && tempResut !== null) {
 		if (result.characterName) tempResut.text = `${result.characterName} 進行 ${result.characterReRollName} 擲骰\n ${tempResut.text}`

@@ -1,7 +1,7 @@
 "use strict";
 
 if (!process.env.DISCORD_CHANNEL_SECRET) {
-	return;
+    return;
 }
 
 const DELAY = Number(process.env.DISCORDDELAY) || 1000 * 7;
@@ -24,6 +24,12 @@ const clusterOptions = {
     retry: {
         attempts: MAX_RETRY_ATTEMPTS,
         delay: RETRY_DELAY
+    },
+    // Add reconnection and backoff options
+    fetchTimeout: 30000,
+    restarts: {
+        max: 5,
+        interval: 60000 * 10 // 10 minutes
     }
 };
 
@@ -44,7 +50,11 @@ manager.on('clusterCreate', shard => {
         if (event === 'death') {
             setTimeout(() => {
                 console.log(`[Cluster ${shard.id}] Attempting to respawn...`);
-                shard.respawn();
+                try {
+                    shard.respawn({ timeout: 60000 });
+                } catch (err) {
+                    console.error(`[Cluster ${shard.id}] Failed to respawn:`, err);
+                }
             }, RETRY_DELAY);
         }
     };
@@ -58,13 +68,19 @@ manager.on('clusterCreate', shard => {
 // 改進的消息處理
 manager.on("clusterCreate", cluster => {
     cluster.on("message", async message => {
-        if (message.respawn === true && message.id !== null) {
+        if (message.respawn === true && message.id !== null && message.id !== undefined) {
             console.log(`[Cluster] Respawning cluster ${message.id}`);
             try {
-                await manager.clusters.get(Number(message.id))?.respawn({
-                    delay: 100,
-                    timeout: 30000
-                });
+                const targetCluster = manager.clusters.get(Number(message.id));
+                if (targetCluster) {
+                    await targetCluster.respawn({
+                        delay: 1000,
+                        timeout: 60000
+                    });
+                    console.log(`[Cluster] Successfully respawned cluster ${message.id}`);
+                } else {
+                    console.error(`[Cluster] Cluster ${message.id} not found`);
+                }
             } catch (error) {
                 console.error(`[Cluster] Failed to respawn cluster ${message.id}:`, error);
             }
@@ -75,9 +91,9 @@ manager.on("clusterCreate", cluster => {
             console.log('[Cluster] Initiating full cluster respawn');
             try {
                 await manager.respawnAll({
-                    clusterDelay: 1000 * 60,
-                    respawnDelay: 500,
-                    timeout: 1000 * 60 * 2
+                    clusterDelay: 1000 * 60 * 2, // 2 minutes between clusters
+                    respawnDelay: 5000,          // 5 seconds
+                    timeout: 1000 * 60 * 5       // 5 minutes timeout
                 });
             } catch (error) {
                 console.error('[Cluster] Failed to respawn all clusters:', error);
@@ -105,16 +121,23 @@ if (agenda) {
 // 心跳管理
 manager.extend(
     new HeartbeatManager({
-        interval: 2000,
-        maxMissedHeartbeats: 10,
+        interval: 5000,           // Increased interval
+        maxMissedHeartbeats: 5,   // Decreased tolerance
         onMissedHeartbeat: (cluster) => {
             console.warn(`[Heartbeat] Cluster ${cluster.id} missed a heartbeat`);
+        },
+        onClusterReady: (cluster) => {
+            console.log(`[Heartbeat] Cluster ${cluster.id} is now ready and sending heartbeats`);
         }
     })
 );
 
 // 啟動叢集
-manager.spawn({ timeout: -1, delay: DELAY }).catch(error => {
+manager.spawn({
+    timeout: -1,
+    delay: DELAY,
+    amount: 'auto'
+}).catch(error => {
     console.error('[Cluster] Failed to spawn clusters:', error);
     process.exit(1);
 });

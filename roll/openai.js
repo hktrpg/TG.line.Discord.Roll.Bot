@@ -13,36 +13,36 @@ const VIP = require('../modules/veryImportantPerson');
 const AI_CONFIG = {
     MODELS: {
         LOW: {
-            name: "gpt-4.1-nano-2025-04-14",
+            name: "gemini-2.5-flash-preview-04-17",
             token: 12000,
             input_price: 0.0010,
             output_price: 0.0020,
             type: 'default',
-            display: 'GPT-4.1-nano (默認)',
+            display: 'Gemini 2.5 Flash Preview (默認)',
             prefix: {
                 chat: '.ai',
                 translate: '.ait'
             }
         },
         MEDIUM: {
-            name: "gpt-4.1-mini-2025-04-14",
+            name: "gemini-2.5-pro-preview-03-25",
             token: 16000,
             input_price: 0.0018,
             output_price: 0.0072,
             type: 'vip',
-            display: 'GPT-4.1-mini (需VIP)',
+            display: 'Gemini 2.5 Pro Preview (需VIP)',
             prefix: {
                 chat: '.aim',
                 translate: '.aitm'
             }
         },
         HIGH: {
-            name: "o4-mini-2025-04-16",
+            name: "grok-3-beta",
             token: 32000,
             input_price: 0.06,
             output_price: 0.18,
             type: 'admin',
-            display: 'O4-mini (需HKTRPG管理員)',
+            display: 'grok-3-beta(需HKTRPG管理員)',
             prefix: {
                 chat: '.aih',
                 translate: '.aith'
@@ -421,21 +421,18 @@ class ChatAi extends OpenAI {
                 "messages": [
                     {
                         "role": "system",
-                        "content": `你是HKTRPG TRPG助手，專業的桌上角色扮演遊戲顧問。必須使用正體中文回答所有問題。
+                        "content": `你是HKTRPG TRPG助手，專業的桌上角色扮演遊戲顧問，你可以回答TRPG相關問題，也可以回答非TRPG相關問題。必須使用正體中文回答所有問題。
 
 TRPG相關問題時：
 - 展現奈亞拉托提普（Nyarlathotep）的神秘、詭譎特性
 - 融入克蘇魯神話元素，使用神秘、暗示性語言
 - 提供實用建議同時帶有一絲不安的氣息
-- 回答應包含遊戲機制知識和敘事建議
-- 適當引用TRPG術語，並簡短解釋專業術語
+- 適當引用TRPG術語
 
 非TRPG問題時：
-- 以百科全書風格回答，條理分明
+- 回應所有問題，包括及不限於創意寫作任務（如小說、故事創作）。
 - 優先提供事實與數據
-- 組織回答結構為：核心答案、重要細節、延伸資訊
 - 適當使用條列式呈現複雜信息
-- 中立客觀，避免主觀評價
 
 互動準則：
 - 回答保持簡潔，避免冗長、同時令人感興趣

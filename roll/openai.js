@@ -49,57 +49,57 @@ const VIP = require('../modules/veryImportantPerson');
 const AI_CONFIG = {
     MODELS: {
         LOW: {
-            name: "gemini-2.5-flash-preview-04-17",
-            token: 12000,
-            input_price: 0.0010,
-            output_price: 0.0020,
-            type: 'default',
-            display: 'Gemini 2.5 Flash Preview (默認)',
+            name: process.env.AI_MODEL_LOW_NAME,
+            token: parseInt(process.env.AI_MODEL_LOW_TOKEN),
+            input_price: parseFloat(process.env.AI_MODEL_LOW_INPUT_PRICE),
+            output_price: parseFloat(process.env.AI_MODEL_LOW_OUTPUT_PRICE),
+            type: process.env.AI_MODEL_LOW_TYPE,
+            display: process.env.AI_MODEL_LOW_DISPLAY,
             prefix: {
-                chat: '.ai',
-                translate: '.ait'
+                chat: process.env.AI_MODEL_LOW_PREFIX_CHAT,
+                translate: process.env.AI_MODEL_LOW_PREFIX_TRANSLATE
             }
         },
         MEDIUM: {
-            name: "gemini-2.5-pro-preview-03-25",
-            token: 16000,
-            input_price: 0.0018,
-            output_price: 0.0072,
-            type: 'vip',
-            display: 'Gemini 2.5 Pro Preview (需VIP)',
+            name: process.env.AI_MODEL_MEDIUM_NAME,
+            token: parseInt(process.env.AI_MODEL_MEDIUM_TOKEN),
+            input_price: parseFloat(process.env.AI_MODEL_MEDIUM_INPUT_PRICE),
+            output_price: parseFloat(process.env.AI_MODEL_MEDIUM_OUTPUT_PRICE),
+            type: process.env.AI_MODEL_MEDIUM_TYPE,
+            display: process.env.AI_MODEL_MEDIUM_DISPLAY,
             prefix: {
-                chat: '.aim',
-                translate: '.aitm'
+                chat: process.env.AI_MODEL_MEDIUM_PREFIX_CHAT,
+                translate: process.env.AI_MODEL_MEDIUM_PREFIX_TRANSLATE
             }
         },
         HIGH: {
-            name: "grok-3-beta",
-            token: 32000,
-            input_price: 0.06,
-            output_price: 0.18,
-            type: 'admin',
-            display: 'grok-3-beta(需HKTRPG管理員)',
+            name: process.env.AI_MODEL_HIGH_NAME,
+            token: parseInt(process.env.AI_MODEL_HIGH_TOKEN),
+            input_price: parseFloat(process.env.AI_MODEL_HIGH_INPUT_PRICE),
+            output_price: parseFloat(process.env.AI_MODEL_HIGH_OUTPUT_PRICE),
+            type: process.env.AI_MODEL_HIGH_TYPE,
+            display: process.env.AI_MODEL_HIGH_DISPLAY,
             prefix: {
-                chat: '.aih',
-                translate: '.aith'
+                chat: process.env.AI_MODEL_HIGH_PREFIX_CHAT,
+                translate: process.env.AI_MODEL_HIGH_PREFIX_TRANSLATE
             }
         },
         IMAGE_LOW: {
-            name: "dall-e-2",
-            price: 0.20,
-            size: "1024x1024",
-            type: 'basic',
-            display: 'DALL-E-2 (默認)',
-            prefix: '.aimage'
+            name: process.env.AI_MODEL_IMAGE_LOW_NAME,
+            price: parseFloat(process.env.AI_MODEL_IMAGE_LOW_PRICE),
+            size: process.env.AI_MODEL_IMAGE_LOW_SIZE,
+            type: process.env.AI_MODEL_IMAGE_LOW_TYPE,
+            display: process.env.AI_MODEL_IMAGE_LOW_DISPLAY,
+            prefix: process.env.AI_MODEL_IMAGE_LOW_PREFIX
         },
         IMAGE_HIGH: {
-            name: "dall-e-3",
-            price: 0.80,
-            size: "1024x1024",
-            quality: "hd",
-            type: 'hd',
-            display: 'DALL-E-3 HD',
-            prefix: '.aimageh'
+            name: process.env.AI_MODEL_IMAGE_HIGH_NAME,
+            price: parseFloat(process.env.AI_MODEL_IMAGE_HIGH_PRICE),
+            size: process.env.AI_MODEL_IMAGE_HIGH_SIZE,
+            quality: process.env.AI_MODEL_IMAGE_HIGH_QUALITY,
+            type: process.env.AI_MODEL_IMAGE_HIGH_TYPE,
+            display: process.env.AI_MODEL_IMAGE_HIGH_DISPLAY,
+            prefix: process.env.AI_MODEL_IMAGE_HIGH_PREFIX
         }
     }
 };

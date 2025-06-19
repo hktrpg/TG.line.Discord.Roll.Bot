@@ -101,6 +101,31 @@ const AI_CONFIG = {
             display: process.env.AI_MODEL_IMAGE_HIGH_DISPLAY,
             prefix: process.env.AI_MODEL_IMAGE_HIGH_PREFIX
         }
+    },
+    RETRY: {
+        // Maximum retry attempts per API key set
+        MAX_RETRIES_PER_KEYSET: 5,
+        // Rate limit (429) retry settings
+        RATE_LIMIT: {
+            BASE_DELAY: 10,           // Base delay in seconds for rate limit
+            MAX_DELAY: 60,           // Maximum delay in seconds
+            EXPONENTIAL_BASE: 2      // Exponential backoff base
+        },
+        // Server error (5xx) retry settings
+        SERVER_ERROR: {
+            BASE_DELAY: 5,           // Base delay in seconds
+            INCREMENT: 10,          // Delay increment per retry
+            MAX_DELAY: 15            // Maximum delay in seconds
+        },
+        // General retry settings
+        GENERAL: {
+            DEFAULT_DELAY: 5,        // Default delay for other errors
+            KEYSET_CYCLE_DELAY: 60   // Delay when cycling through all keys (in seconds)
+        },
+        // Translation specific settings
+        TRANSLATION: {
+            BATCH_DELAY: 10           // Delay between consecutive translation requests
+        }
     }
 };
 
@@ -219,6 +244,7 @@ class OpenAI {
             baseURL: this.apiKeys[this.currentApiKeyIndex].baseURL,
         });
     }
+    
     waitMins(minutes = 1) {
         return new Promise(resolve => {
             setTimeout(() => {
@@ -227,17 +253,68 @@ class OpenAI {
         });
     }
 
+    waitSeconds(seconds = 1) {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                resolve();
+            }, seconds * 1000);
+        });
+    }
+
+    getRetryDelay(error, retryCount) {
+        // Rate limit exceeded (429) - wait longer
+        if (error.status === 429) {
+            const config = AI_CONFIG.RETRY.RATE_LIMIT;
+            const exponentialDelay = Math.min(
+                config.BASE_DELAY * Math.pow(config.EXPONENTIAL_BASE, retryCount), 
+                config.MAX_DELAY
+            );
+            return exponentialDelay;
+        }
+        
+        // Server errors (5xx) - shorter retry
+        if (error.status >= 500) {
+            const config = AI_CONFIG.RETRY.SERVER_ERROR;
+            return Math.min(
+                config.BASE_DELAY + retryCount * config.INCREMENT, 
+                config.MAX_DELAY
+            );
+        }
+        
+        // Other errors - minimal delay
+        return AI_CONFIG.RETRY.GENERAL.DEFAULT_DELAY;
+    }
+
     async handleApiError(error, retryFunction, ...args) {
-        if (this.errorCount < (this.apiKeys.length * 5)) {
-            if (((this.errorCount !== 0) && this.errorCount % this.apiKeys.length) === 0) {
-                await this.waitMins(1);
+        console.log(`API Error: ${error.status} - ${error.message}, Retry count: ${this.errorCount}`);
+        
+        const maxRetries = this.apiKeys.length * AI_CONFIG.RETRY.MAX_RETRIES_PER_KEYSET;
+        
+        if (this.errorCount < maxRetries) {
+            // Calculate retry delay based on error type and retry count
+            const retryDelay = this.getRetryDelay(error, Math.floor(this.errorCount / this.apiKeys.length));
+            
+            // Special handling for rate limit errors
+            if (error.status === 429) {
+                console.log(`Rate limit exceeded. Waiting ${retryDelay} seconds before retry...`);
+                await this.waitSeconds(retryDelay);
+            } else if (((this.errorCount !== 0) && this.errorCount % this.apiKeys.length) === 0) {
+                // Original logic for cycling through all API keys
+                await this.waitSeconds(AI_CONFIG.RETRY.GENERAL.KEYSET_CYCLE_DELAY);
+            } else if (retryDelay > AI_CONFIG.RETRY.GENERAL.DEFAULT_DELAY) {
+                // Wait for calculated delay for server errors
+                await this.waitSeconds(retryDelay);
             }
+            
             await this.handleError(error);
             return await retryFunction.apply(this, args);
         } else {
             this.errorCount = 0;
             const commandType = args[0].match(/^\.(ai|ait|aimage)[mh]?/i)?.[0] || '.ai';
             if (error instanceof OpenAIApi.APIError) {
+                if (error.status === 429) {
+                    return `API 請求頻率限制已達上限，請稍後再試。\n ${args[0].replace(new RegExp(`^${commandType}`, 'i'), '')}`;
+                }
                 return 'AI error: ' + error.status + `.\n ${args[0].replace(new RegExp(`^${commandType}`, 'i'), '')}`;
             } else {
                 return 'AI error ' + `.\n ${args[0].replace(new RegExp(`^${commandType}`, 'i'), '')}`;
@@ -372,6 +449,11 @@ class TranslateAi extends OpenAI {
     async translateText(inputScript, mode) {
         let response = [];
         for (let index = 0; index < inputScript.length; index++) {
+            // Add delay between requests to avoid rate limiting
+            if (index > 0) {
+                // Wait configured delay between consecutive translation requests
+                await super.waitSeconds(AI_CONFIG.RETRY.TRANSLATION.BATCH_DELAY);
+            }
             let result = await this.translateChat(inputScript[index], mode);
             response.push(result);
         }

@@ -107,15 +107,15 @@ const AI_CONFIG = {
         MAX_RETRIES_PER_KEYSET: 5,
         // Rate limit (429) retry settings
         RATE_LIMIT: {
-            BASE_DELAY: 10,           // Base delay in seconds for rate limit
-            MAX_DELAY: 60,           // Maximum delay in seconds
+            BASE_DELAY: 60,           // Base delay in seconds for rate limit
+            MAX_DELAY: 300,           // Maximum delay in seconds
             EXPONENTIAL_BASE: 2      // Exponential backoff base
         },
         // Server error (5xx) retry settings
         SERVER_ERROR: {
-            BASE_DELAY: 5,           // Base delay in seconds
+            BASE_DELAY: 15,           // Base delay in seconds
             INCREMENT: 10,          // Delay increment per retry
-            MAX_DELAY: 15            // Maximum delay in seconds
+            MAX_DELAY: 300            // Maximum delay in seconds
         },
         // General retry settings
         GENERAL: {
@@ -124,7 +124,7 @@ const AI_CONFIG = {
         },
         // Translation specific settings
         TRANSLATION: {
-            BATCH_DELAY: 10           // Delay between consecutive translation requests
+            BATCH_DELAY: 30           // Delay between consecutive translation requests
         }
     }
 };

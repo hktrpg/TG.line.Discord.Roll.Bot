@@ -632,7 +632,8 @@ class TranslateAi extends OpenAI {
     }
     // Helper to remove <thinking>...</thinking> tags
     removeThinkingTags(text) {
-        return text.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '');
+        // Remove <thinking>...</thinking> tags and then remove empty lines
+        return text.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').replace(/^[ \t]*\n/gm, '');
     }
     async getText(str, mode, discordMessage, discordClient) {
         let text = [];
@@ -805,7 +806,8 @@ class ChatAi extends OpenAI {
     }
     // Helper to remove <thinking>...</thinking> tags
     removeThinkingTags(text) {
-        return text.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '');
+        // Remove <thinking>...</thinking> tags and then remove empty lines
+        return text.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').replace(/^[ \t]*\n/gm, '');
     }
     async handleChatAi(options) {
         try {

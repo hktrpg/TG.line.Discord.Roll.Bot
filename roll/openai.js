@@ -824,6 +824,9 @@ class ChatAi extends OpenAI {
                 "reasoning": { "exclude": true, effort: 'high', }
             });
             console.log('Full response:', JSON.stringify(response, null, 2));
+            
+            console.log('REASONING:', response.choices[0].message.reasoning);
+            console.log('CONTENT:', response.choices[0].message.content);
             this.retryManager.resetRetryCounters();
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
                 const dataStr = response.data;

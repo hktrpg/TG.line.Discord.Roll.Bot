@@ -631,6 +631,10 @@ class TranslateAi extends OpenAI {
     constructor() {
         super();
     }
+    // Helper to remove <thinking>...</thinking> tags
+    removeThinkingTags(text) {
+        return text.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '');
+    }
     async getText(str, mode, discordMessage, discordClient) {
         let text = [];
         let textLength = 0;
@@ -710,6 +714,7 @@ class TranslateAi extends OpenAI {
             console.log('CONTENT:', response.choices[0].message.content);
             this.retryManager.resetRetryCounters();
            
+            let content = '';
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
                 const dataStr = response.data;
                 const dataArray = dataStr.split('\n\n').filter(Boolean);
@@ -719,10 +724,12 @@ class TranslateAi extends OpenAI {
                     parsedData.push(obj);
                 });
                 const contents = parsedData.map((obj) => obj.choices[0].delta.content);
-                const mergedContent = contents.join('');
-                return mergedContent;
+                content = contents.join('');
+            } else {
+                content = response.choices[0].message.content;
             }
-            return response.choices[0].message.content;
+            // Remove <thinking>...</thinking> before returning
+            return this.removeThinkingTags(content);
         } catch (error) {
             return await this.handleApiError(error, this.translateChat, options);
         }
@@ -797,6 +804,10 @@ class ChatAi extends OpenAI {
     constructor() {
         super();
     }
+    // Helper to remove <thinking>...</thinking> tags
+    removeThinkingTags(text) {
+        return text.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '');
+    }
     async handleChatAi(options) {
         try {
             const { inputStr, mode, userid, modelTier } = options;
@@ -827,6 +838,7 @@ class ChatAi extends OpenAI {
             console.log('Full response:', JSON.stringify(response, null, 2));
             
             this.retryManager.resetRetryCounters();
+            let content = '';
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
                 const dataStr = response.data;
                 const dataArray = dataStr.split('\n\n').filter(Boolean);
@@ -836,10 +848,12 @@ class ChatAi extends OpenAI {
                     parsedData.push(obj);
                 });
                 const contents = parsedData.map((obj) => obj.choices[0].delta.content);
-                const mergedContent = contents.join('');
-                return mergedContent;
+                content = contents.join('');
+            } else {
+                content = response.choices[0].message.content;
             }
-            return response.choices[0].message.content;
+            // Remove <thinking>...</thinking> before returning
+            return this.removeThinkingTags(content);
         } catch (error) {
             return await this.handleApiError(error, this.handleChatAi, options);
         }

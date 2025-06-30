@@ -699,6 +699,7 @@ class TranslateAi extends OpenAI {
                 "reasoning": { "exclude": true }
             });
             this.retryManager.resetRetryCounters();
+            console.log(response)
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
                 const dataStr = response.data;
                 const dataArray = dataStr.split('\n\n').filter(Boolean);

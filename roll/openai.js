@@ -605,7 +605,9 @@ class ImageAi extends OpenAI {
             if (imageModelType === 'IMAGE_HIGH' && AI_CONFIG.MODELS[imageModelType].quality) {
                 imageConfig.quality = AI_CONFIG.MODELS[imageModelType].quality;
             }
+            console.log('Sending image generation request:', JSON.stringify(imageConfig, null, 2));
             let response = await this.openai.images.generate(imageConfig);
+            console.log('Image generation response:', JSON.stringify(response, null, 2));
             response = await this.handleImage(response, input);
             this.retryManager.resetRetryCounters();
             return response;
@@ -684,20 +686,23 @@ class TranslateAi extends OpenAI {
             }
             const modelName = currentModel.name || mode.name;
             const safeInputStr = typeof inputStr === 'string' ? inputStr : String(inputStr || '');
+            const messages = [
+                {
+                    "role": "system",
+                    "content": TRANSLATION_PROMPT
+                },
+                {
+                    "role": "user",
+                    "content": `把以下文字翻譯成正體中文\n\n\n${safeInputStr}\n`
+                }
+            ];
+            console.log('Sending translation messages:', JSON.stringify(messages, null, 2));
             let response = await this.openai.chat.completions.create({
                 "model": modelName,
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": TRANSLATION_PROMPT
-                    },
-                    {
-                        "role": "user",
-                        "content": `把以下文字翻譯成正體中文\n\n\n${safeInputStr}\n`
-                    }
-                ],
+                "messages": messages,
                 "reasoning": { "exclude": true }
             });
+            console.log('Full response:', JSON.stringify(response, null, 2));
             this.retryManager.resetRetryCounters();
            
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
@@ -797,21 +802,23 @@ class ChatAi extends OpenAI {
             const modelName = currentModel.name || mode.name;
             const safeInputStr = typeof inputStr === 'string' ? inputStr : String(inputStr || '');
             const processedContent = safeInputStr.replace(/^\.ai[mh]?/i, '');
+            const messages = [
+                {
+                    "role": "system",
+                    "content": SYSTEM_PROMPT
+                },
+                {
+                    "role": "user",
+                    "content": processedContent
+                }
+            ];
+            console.log('Sending messages:', JSON.stringify(messages, null, 2));
             let response = await this.openai.chat.completions.create({
                 "model": modelName,
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": SYSTEM_PROMPT
-                    },
-                    {
-                        "role": "user",
-                        "content": processedContent
-                    }
-                ],
+                "messages": messages,
                 "reasoning": { "exclude": true }
             });
-            console.log(response)
+            console.log('Full response:', JSON.stringify(response, null, 2));
             this.retryManager.resetRetryCounters();
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
                 const dataStr = response.data;

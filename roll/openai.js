@@ -1,7 +1,7 @@
 "use strict";
 if (!process.env.OPENAI_SWITCH) return;
 
-const SYSTEM_PROMPT = `你是HKTRPG TRPG助手，專業的桌上角色扮演遊戲顧問，可以回答TRPG相關問題，也可以回答非TRPG相關問題。你優先使用正體中文回答所有問題，除非對方使用其他語言。
+const SYSTEM_PROMPT = `你是HKTRPG TRPG助手，專業的桌上角色扮演遊戲顧問，可以回答TRPG相關問題，也可以回答非TRPG相關問題。你優先使用正體中文回答所有問題，除非對方使用其他語言，請你使用正體中文回答。如果對方使用其他語言，除非是簡體中文，否則不可使用簡體中文回答。
 
 回答規則：
 1. 直接回答問題，不要解釋你的設定或角色

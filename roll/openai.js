@@ -248,6 +248,8 @@ class RetryManager {
         return modelTier === 'LOW' && 
                errorType === 'RATE_LIMIT' && 
                RETRY_CONFIG.MODEL_CYCLING.enabled &&
+               AI_CONFIG.MODELS.LOW.models && 
+               AI_CONFIG.MODELS.LOW.models.length > 0 &&
                this.modelRetryCount < (AI_CONFIG.MODELS.LOW.models.length * RETRY_CONFIG.MODEL_CYCLING.maxRetries);
     }
 
@@ -273,7 +275,7 @@ class RetryManager {
     logRetry(error, errorType, delay, modelTier) {
         console.log(`[RETRY] ${errorType} Error: ${error.status || error.code} - ${error.message}`);
         console.log(`[RETRY] Global: ${this.globalRetryCount}, Model: ${this.modelRetryCount}, Delay: ${delay}s`);
-        if (modelTier === 'LOW') {
+        if (modelTier === 'LOW' && AI_CONFIG.MODELS.LOW.models && AI_CONFIG.MODELS.LOW.models.length > 0) {
             console.log(`[RETRY] Current LOW model: ${this.currentModelIndex + 1}/${AI_CONFIG.MODELS.LOW.models.length}`);
         }
     }
@@ -298,21 +300,21 @@ const prefixs = function () {
 }
 const getHelpMessage = function () {
     // Since models array now only contains valid models, no need to filter
-    const validLowModels = AI_CONFIG.MODELS.LOW.models;
+    const validLowModels = AI_CONFIG.MODELS.LOW.models || [];
     
-    const lowModelDisplays = validLowModels
+    const lowModelDisplays = validLowModels.length > 0 ? validLowModels
         .map((model, index) => {
             const isDefault = index === 0 ? ' (默認)' : '';
             return `${AI_CONFIG.MODELS.LOW.prefix.chat} [訊息] - 使用${model.display}${isDefault}`;
         })
-        .join('\n│ • ');
+        .join('\n│ • ') : `${AI_CONFIG.MODELS.LOW.prefix.chat} [訊息] - 使用${AI_CONFIG.MODELS.LOW.display}`;
     
-    const lowTranslateDisplays = validLowModels
+    const lowTranslateDisplays = validLowModels.length > 0 ? validLowModels
         .map((model, index) => {
             const isDefault = index === 0 ? ' (默認)' : '';
             return `${AI_CONFIG.MODELS.LOW.prefix.translate} [文字內容] - 使用${model.display}${isDefault}翻譯`;
         })
-        .join('\n│ • ');
+        .join('\n│ • ') : `${AI_CONFIG.MODELS.LOW.prefix.translate} [文字內容] - 使用${AI_CONFIG.MODELS.LOW.display}翻譯`;
 
     return `【🤖AI助手】
 ╭────── 🗣️對話功能 ──────
@@ -361,7 +363,14 @@ class OpenAI {
             apiKey: this.apiKeys[0]?.apiKey,
             baseURL: this.apiKeys[0]?.baseURL,
         };
-        this.model = AI_CONFIG.MODELS.LOW.models[0].name;
+        // Safely initialize model with fallback
+        if (AI_CONFIG.MODELS.LOW.models && AI_CONFIG.MODELS.LOW.models.length > 0) {
+            this.model = AI_CONFIG.MODELS.LOW.models[0].name;
+        } else if (AI_CONFIG.MODELS.LOW.name) {
+            this.model = AI_CONFIG.MODELS.LOW.name;
+        } else {
+            this.model = null;
+        }
         if (this.apiKeys.length === 0) return;
         this.openai = new OpenAIApi(this.configuration);
         this.currentApiKeyIndex = 0;
@@ -427,18 +436,34 @@ class OpenAI {
 
     // Get current model for specified tier
     getCurrentModel(modelTier) {
-        if (modelTier === 'LOW' && AI_CONFIG.MODELS.LOW.models) {
-            return AI_CONFIG.MODELS.LOW.models[this.retryManager.currentModelIndex];
+        if (modelTier === 'LOW' && AI_CONFIG.MODELS.LOW.models && AI_CONFIG.MODELS.LOW.models.length > 0) {
+            const model = AI_CONFIG.MODELS.LOW.models[this.retryManager.currentModelIndex];
+            if (model) {
+                return model;
+            }
         }
-        return AI_CONFIG.MODELS[modelTier];
+        const model = AI_CONFIG.MODELS[modelTier];
+        if (model) {
+            return model;
+        }
+        // Fallback to first available LOW model if the requested tier is not available
+        if (AI_CONFIG.MODELS.LOW.models && AI_CONFIG.MODELS.LOW.models.length > 0) {
+            return AI_CONFIG.MODELS.LOW.models[0];
+        }
+        // Last resort fallback
+        return null;
     }
 
     // Cycle through LOW tier models
     cycleModel() {
         this.retryManager.modelRetryCount++;
-        this.retryManager.currentModelIndex = (this.retryManager.currentModelIndex + 1) % AI_CONFIG.MODELS.LOW.models.length;
-        const currentModel = AI_CONFIG.MODELS.LOW.models[this.retryManager.currentModelIndex];
-        console.log(`[MODEL_CYCLE] Cycling to LOW model ${this.retryManager.currentModelIndex + 1}/${AI_CONFIG.MODELS.LOW.models.length}: ${currentModel.display} (${currentModel.name})`);
+        if (AI_CONFIG.MODELS.LOW.models && AI_CONFIG.MODELS.LOW.models.length > 0) {
+            this.retryManager.currentModelIndex = (this.retryManager.currentModelIndex + 1) % AI_CONFIG.MODELS.LOW.models.length;
+            const currentModel = AI_CONFIG.MODELS.LOW.models[this.retryManager.currentModelIndex];
+            if (currentModel) {
+                console.log(`[MODEL_CYCLE] Cycling to LOW model ${this.retryManager.currentModelIndex + 1}/${AI_CONFIG.MODELS.LOW.models.length}: ${currentModel.display} (${currentModel.name})`);
+            }
+        }
     }
 
     // Unified error handling with retry logic
@@ -488,7 +513,8 @@ class OpenAI {
         
         if (error instanceof OpenAIApi.APIError) {
             if (errorType === 'RATE_LIMIT') {
-                return `API 請求頻率限制已達上限，已嘗試循環所有可用資源，請稍後再試。\n循環包括：\n- API金鑰: ${this.apiKeys.length} 個\n- ${modelTier === 'LOW' ? `LOW模型: ${AI_CONFIG.MODELS.LOW.models.length} 個` : '單一模型'}\n- 全域重試: ${this.retryManager.globalRetryCount} 次\n ${cleanInput}`;
+                const lowModelCount = AI_CONFIG.MODELS.LOW.models && AI_CONFIG.MODELS.LOW.models.length > 0 ? AI_CONFIG.MODELS.LOW.models.length : 0;
+                return `API 請求頻率限制已達上限，已嘗試循環所有可用資源，請稍後再試。\n循環包括：\n- API金鑰: ${this.apiKeys.length} 個\n- ${modelTier === 'LOW' ? `LOW模型: ${lowModelCount} 個` : '單一模型'}\n- 全域重試: ${this.retryManager.globalRetryCount} 次\n ${cleanInput}`;
             }
             return `AI error: ${error.status}.\n ${cleanInput}`;
         }
@@ -540,7 +566,7 @@ class TranslateAi extends OpenAI {
         let text = [];
         let textLength = 0;
         // Handle LOW tier with multiple models
-        const splitLength = mode.models ? mode.models[0].token : mode.token;
+        const splitLength = (mode.models && mode.models.length > 0) ? mode.models[0].token : mode.token;
         str = str.replace(/^\s*\.ait\d?\s*/i, '');
         if (str.length > 0) {
             text.push(str);
@@ -588,6 +614,9 @@ class TranslateAi extends OpenAI {
         try {
             // Get the current model if it's LOW tier with multiple models
             const currentModel = this.getCurrentModel(modelTier);
+            if (!currentModel) {
+                throw new Error('No available AI model found');
+            }
             const modelName = currentModel.name || mode.name;
 
             let response = await this.openai.chat.completions.create({
@@ -602,7 +631,10 @@ class TranslateAi extends OpenAI {
                         "content": `把以下文字翻譯成正體中文\n\n
                         ${inputStr}\n`
                     }
-                ]
+                ],
+                "reasoning": {
+                    "exclude": true  // 排除 reasoning tokens，只返回主要回應
+                }
 
             })
             this.retryManager.resetCounters();
@@ -701,6 +733,9 @@ class ChatAi extends OpenAI {
         try {
             // Get the current model if it's LOW tier with multiple models
             const currentModel = this.getCurrentModel(modelTier);
+            if (!currentModel) {
+                throw new Error('No available AI model found');
+            }
             const modelName = currentModel.name || mode.name;
 
             let response = await this.openai.chat.completions.create({
@@ -714,7 +749,10 @@ class ChatAi extends OpenAI {
                         "role": "user",
                         "content": `${inputStr.replace(/^\.ai[mh]?/i, '')}`
                     }
-                ]
+                ],
+                "reasoning": {
+                    "exclude": true  // 排除 reasoning tokens，只返回主要回應
+                }
 
             })
             this.retryManager.resetCounters();

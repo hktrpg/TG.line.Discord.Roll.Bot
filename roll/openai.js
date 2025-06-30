@@ -51,7 +51,7 @@ const VIP = require('../modules/veryImportantPerson');
 const RETRY_CONFIG = {
     // Maximum retry attempts per API key set
     MAX_RETRIES_PER_KEYSET: 5,
-    
+
     // Error-specific retry settings
     ERROR_TYPES: {
         RATE_LIMIT: {
@@ -77,7 +77,7 @@ const RETRY_CONFIG = {
             noRetry: true           // Don't retry on bad requests
         }
     },
-    
+
     // General retry settings
     GENERAL: {
         defaultDelay: 5,            // Default delay for other errors
@@ -85,7 +85,7 @@ const RETRY_CONFIG = {
         batchDelay: 30,             // Delay between consecutive batch requests
         modelCycleDelay: 30         // Delay when cycling through models
     },
-    
+
     // Model cycling settings for LOW tier
     MODEL_CYCLING: {
         enabled: true,              // Enable model cycling for LOW tier
@@ -99,7 +99,7 @@ const AI_CONFIG = {
             // Dynamically create models array based on available environment variables
             models: (() => {
                 const models = [];
-                
+
                 // Always add the first model if it exists
                 if (process.env.AI_MODEL_LOW_NAME) {
                     models.push({
@@ -110,7 +110,7 @@ const AI_CONFIG = {
                         display: process.env.AI_MODEL_LOW_DISPLAY
                     });
                 }
-                
+
                 // Add second model only if it's explicitly configured
                 if (process.env.AI_MODEL_LOW_NAME_2 && process.env.AI_MODEL_LOW_NAME_2 !== process.env.AI_MODEL_LOW_NAME) {
                     models.push({
@@ -121,9 +121,9 @@ const AI_CONFIG = {
                         display: process.env.AI_MODEL_LOW_DISPLAY_2 || process.env.AI_MODEL_LOW_DISPLAY
                     });
                 }
-                
+
                 // Add third model only if it's explicitly configured and different from first two
-                if (process.env.AI_MODEL_LOW_NAME_3 && 
+                if (process.env.AI_MODEL_LOW_NAME_3 &&
                     process.env.AI_MODEL_LOW_NAME_3 !== process.env.AI_MODEL_LOW_NAME &&
                     process.env.AI_MODEL_LOW_NAME_3 !== process.env.AI_MODEL_LOW_NAME_2) {
                     models.push({
@@ -134,7 +134,7 @@ const AI_CONFIG = {
                         display: process.env.AI_MODEL_LOW_DISPLAY_3 || process.env.AI_MODEL_LOW_DISPLAY
                     });
                 }
-                
+
                 return models;
             })(),
             type: process.env.AI_MODEL_LOW_TYPE,
@@ -216,7 +216,7 @@ class RetryManager {
     // Determine error type based on status code
     getErrorType(error) {
         const status = error.status || error.code;
-        
+
         for (const [type, config] of Object.entries(RETRY_CONFIG.ERROR_TYPES)) {
             if (Array.isArray(config.status)) {
                 if (config.status.includes(status)) return { type, config };
@@ -224,7 +224,7 @@ class RetryManager {
                 return { type, config };
             }
         }
-        
+
         return { type: 'UNKNOWN', config: { baseDelay: RETRY_CONFIG.GENERAL.defaultDelay } };
     }
 
@@ -234,12 +234,12 @@ class RetryManager {
         if (!config) {
             config = RETRY_CONFIG.ERROR_TYPES[errorType];
         }
-        
+
         // If still no config, use default
         if (!config) {
             return RETRY_CONFIG.GENERAL.defaultDelay;
         }
-        
+
         switch (errorType) {
             case 'RATE_LIMIT':
                 return Math.min(
@@ -264,7 +264,6 @@ class RetryManager {
 
         // 如果所有模型都被429了，重置狀態
         if (this.rateLimitedModels.size >= AI_CONFIG.MODELS.LOW.models.length) {
-            console.log('[MODEL_CYCLE] All models are rate limited, resetting to first model');
             this.rateLimitedModels.clear();
             this.activeModelIndex = 0;
             return 0;
@@ -283,7 +282,7 @@ class RetryManager {
     // 新增：標記模型為429狀態
     markModelAsRateLimited(modelIndex) {
         this.rateLimitedModels.add(modelIndex);
-        console.log(`[MODEL_CYCLE] Model ${modelIndex + 1} marked as rate limited. Rate limited models: ${Array.from(this.rateLimitedModels).map(i => i + 1).join(', ')}`);
+        //    console.log(`[MODEL_CYCLE] Model ${modelIndex + 1} marked as rate limited. Rate limited models: ${Array.from(this.rateLimitedModels).map(i => i + 1).join(', ')}`);
     }
 
     // 新增：獲取當前活躍的模型索引
@@ -302,18 +301,18 @@ class RetryManager {
 
     // Check if should cycle models for LOW tier
     shouldCycleModel(modelTier, errorType) {
-        return modelTier === 'LOW' && 
-               errorType === 'RATE_LIMIT' && 
-               RETRY_CONFIG.MODEL_CYCLING.enabled &&
-               AI_CONFIG.MODELS.LOW.models && 
-               AI_CONFIG.MODELS.LOW.models.length > 0;
+        return modelTier === 'LOW' &&
+            errorType === 'RATE_LIMIT' &&
+            RETRY_CONFIG.MODEL_CYCLING.enabled &&
+            AI_CONFIG.MODELS.LOW.models &&
+            AI_CONFIG.MODELS.LOW.models.length > 0;
     }
 
     // Check if should continue retrying
     shouldRetry(errorType) {
         const config = RETRY_CONFIG.ERROR_TYPES[errorType];
         if (config?.noRetry) return false;
-        
+
         const maxRetries = this.getMaxRetries();
         return this.globalRetryCount < maxRetries;
     }
@@ -329,13 +328,13 @@ class RetryManager {
 
     // Log retry attempt
     logRetry(error, errorType, delay, modelTier) {
-        console.log(`[RETRY] ${errorType} Error: ${error.status || error.code} - ${error.message}`);
-        console.log(`[RETRY] Global: ${this.globalRetryCount}, Model: ${this.modelRetryCount}, Delay: ${delay}s`);
+        //    console.log(`[RETRY] ${errorType} Error: ${error.status || error.code} - ${error.message}`);
+        //    console.log(`[RETRY] Global: ${this.globalRetryCount}, Model: ${this.modelRetryCount}, Delay: ${delay}s`);
         if (modelTier === 'LOW' && AI_CONFIG.MODELS.LOW.models && AI_CONFIG.MODELS.LOW.models.length > 0) {
             const currentModel = this.getCurrentActiveModelIndex();
-            console.log(`[RETRY] Current LOW model: ${currentModel + 1}/${AI_CONFIG.MODELS.LOW.models.length}`);
+            //      console.log(`[RETRY] Current LOW model: ${currentModel + 1}/${AI_CONFIG.MODELS.LOW.models.length}`);
             if (this.rateLimitedModels.size > 0) {
-                console.log(`[RETRY] Rate limited models: ${Array.from(this.rateLimitedModels).map(i => i + 1).join(', ')}`);
+                //        console.log(`[RETRY] Rate limited models: ${Array.from(this.rateLimitedModels).map(i => i + 1).join(', ')}`);
             }
         }
     }
@@ -361,14 +360,14 @@ const prefixs = function () {
 const getHelpMessage = function () {
     // Since models array now only contains valid models, no need to filter
     const validLowModels = AI_CONFIG.MODELS.LOW.models || [];
-    
+
     const lowModelDisplays = validLowModels.length > 0 ? validLowModels
         .map((model, index) => {
             const isDefault = index === 0 ? ' (默認)' : '';
             return `${AI_CONFIG.MODELS.LOW.prefix.chat} [訊息] - 使用${model.display}${isDefault}`;
         })
         .join('\n│ • ') : `${AI_CONFIG.MODELS.LOW.prefix.chat} [訊息] - 使用${AI_CONFIG.MODELS.LOW.display}`;
-    
+
     const lowTranslateDisplays = validLowModels.length > 0 ? validLowModels
         .map((model, index) => {
             const isDefault = index === 0 ? ' (默認)' : '';
@@ -434,7 +433,7 @@ class OpenAI {
         if (this.apiKeys.length === 0) return;
         this.openai = new OpenAIApi(this.configuration);
         this.currentApiKeyIndex = 0;
-        
+
         // Initialize unified retry manager
         this.retryManager = new RetryManager();
     }
@@ -459,7 +458,7 @@ class OpenAI {
             if (eventType === 'change') {
                 let tempEnv = dotenv.config({ override: true })
                 process.env = tempEnv.parsed;
-                console.log('.env Changed')
+                //    console.log('.env Changed')
                 this.currentApiKeyIndex = 0;
                 this.retryManager.resetCounters();
                 this.addApiKey();
@@ -475,7 +474,7 @@ class OpenAI {
     // Handle API key cycling and removal
     handleApiKeyError(error) {
         const { type } = this.retryManager.getErrorType(error);
-        
+
         if (type === 'UNAUTHORIZED') {
             console.error('Removing unauthorized API key:', this.apiKeys[this.currentApiKeyIndex]);
             this.apiKeys.splice(this.currentApiKeyIndex, 1);
@@ -522,7 +521,7 @@ class OpenAI {
             // 標記當前模型為429狀態
             const currentModelIndex = this.retryManager.getCurrentActiveModelIndex();
             this.retryManager.markModelAsRateLimited(currentModelIndex);
-            
+
             // 切換到下一個可用模型
             const nextModelIndex = this.retryManager.getNextAvailableModelIndex();
             const nextModel = AI_CONFIG.MODELS.LOW.models[nextModelIndex];
@@ -536,7 +535,7 @@ class OpenAI {
     async handleApiError(error, retryFunction, options) {
         const { type: errorType, config: errorConfig } = this.retryManager.getErrorType(error);
         const modelTier = options.modelTier;
-        
+
         // Check if we should stop retrying
         if (!this.retryManager.shouldRetry(errorType)) {
             this.retryManager.resetCounters();
@@ -544,7 +543,7 @@ class OpenAI {
         }
 
         this.retryManager.globalRetryCount++;
-        
+
         // Handle model cycling for LOW tier rate limits
         if (this.retryManager.shouldCycleModel(modelTier, errorType)) {
             this.cycleModel();
@@ -553,22 +552,22 @@ class OpenAI {
             await this.retryManager.waitSeconds(modelCycleDelay);
             return await retryFunction.apply(this, [options]);
         }
-        
+
         // Handle API key cycling for non-429 errors
         this.handleApiKeyError(error);
-        
+
         // Calculate and apply retry delay
         const retryCount = Math.floor(this.retryManager.globalRetryCount / this.apiKeys.length);
         const delay = this.retryManager.calculateRetryDelay(errorType, retryCount, errorConfig);
         this.retryManager.logRetry(error, errorType, delay, modelTier);
-        
+
         // Apply additional delay for keyset cycling
         if (this.retryManager.globalRetryCount % this.apiKeys.length === 0) {
             await this.retryManager.waitSeconds(RETRY_CONFIG.GENERAL.keysetCycleDelay);
         } else {
             await this.retryManager.waitSeconds(delay);
         }
-        
+
         return await retryFunction.apply(this, [options]);
     }
 
@@ -576,7 +575,7 @@ class OpenAI {
     generateErrorMessage(error, errorType, modelTier, inputText = '') {
         const commandType = inputText.match(/^\.(ai|ait|aimage)[mh]?/i)?.[0] || '.ai';
         const cleanInput = inputText.replace(new RegExp(`^${commandType}`, 'i'), '');
-        
+
         if (error instanceof OpenAIApi.APIError) {
             if (errorType === 'RATE_LIMIT') {
                 const lowModelCount = AI_CONFIG.MODELS.LOW.models && AI_CONFIG.MODELS.LOW.models.length > 0 ? AI_CONFIG.MODELS.LOW.models.length : 0;
@@ -607,9 +606,9 @@ class ImageAi extends OpenAI {
             if (imageModelType === 'IMAGE_HIGH' && AI_CONFIG.MODELS[imageModelType].quality) {
                 imageConfig.quality = AI_CONFIG.MODELS[imageModelType].quality;
             }
-            console.log('Sending image generation request:', JSON.stringify(imageConfig, null, 2));
+            //    console.log('Sending image generation request:', JSON.stringify(imageConfig, null, 2));
             let response = await this.openai.images.generate(imageConfig);
-            console.log('Image generation response:', JSON.stringify(response, null, 2));
+            //    console.log('Image generation response:', JSON.stringify(response, null, 2));
             response = await this.handleImage(response, input);
             this.retryManager.resetRetryCounters();
             return response;
@@ -702,18 +701,18 @@ class TranslateAi extends OpenAI {
                     "content": `把以下文字翻譯成正體中文\n\n\n${safeInputStr}\n`
                 }
             ];
-            console.log('Sending translation messages:', JSON.stringify(messages, null, 2));
+            //    console.log('Sending translation messages:', JSON.stringify(messages, null, 2));
             let response = await this.openai.chat.completions.create({
                 "model": modelName,
                 "messages": messages,
                 "include_reasoning": false,
                 "reasoning": { "exclude": true, effort: 'high', }
             });
-            console.log('Full response:', JSON.stringify(response, null, 2));
-            console.log('REASONING:', response.choices[0].message.reasoning);
-            console.log('CONTENT:', response.choices[0].message.content);
+            //    console.log('Full response:', JSON.stringify(response, null, 2));
+            //    console.log('REASONING:', response.choices[0].message.reasoning);
+            //    console.log('CONTENT:', response.choices[0].message.content);
             this.retryManager.resetRetryCounters();
-           
+
             let content = '';
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
                 const dataStr = response.data;
@@ -828,15 +827,13 @@ class ChatAi extends OpenAI {
                     "content": processedContent
                 }
             ];
-            console.log('Sending messages:', JSON.stringify(messages, null, 2));
             let response = await this.openai.chat.completions.create({
                 "model": modelName,
                 "messages": messages,
                 "include_reasoning": false,
                 "reasoning": { "exclude": true, effort: 'high', }
             });
-            console.log('Full response:', JSON.stringify(response, null, 2));
-            
+
             this.retryManager.resetRetryCounters();
             let content = '';
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
@@ -889,7 +886,7 @@ class CommandHandler {
         if (botname === "Discord" && discordMessage) {
             replyMessage = await handleMessage.getReplyContent(discordMessage);
         }
-        
+
         if (!mainMsg[1] && replyMessage) {
             params.inputStr = `${replyMessage}`;
         } else if (mainMsg[1] === 'help' || !mainMsg[1]) {
@@ -980,11 +977,11 @@ class CommandHandler {
             }
             modelType = 'HIGH';
         }
-        
+
         // Ensure inputStr is a string and safely handle the replace operation
         const safeInputStr = typeof inputStr === 'string' ? inputStr : String(inputStr || '');
         let processedInput = safeInputStr;
-        
+
         // Only process Discord-specific logic if we're on Discord
         if (botname === "Discord" && discordMessage) {
             const replyContent = await handleMessage.getReplyContent(discordMessage);

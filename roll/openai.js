@@ -600,6 +600,7 @@ class ImageAi extends OpenAI {
                 "prompt": `${input}`,
                 "n": 1,
                 "size": AI_CONFIG.MODELS[imageModelType].size,
+                "include_reasoning": false,
                 "reasoning": { "exclude": true }
             };
             if (imageModelType === 'IMAGE_HIGH' && AI_CONFIG.MODELS[imageModelType].quality) {
@@ -700,6 +701,7 @@ class TranslateAi extends OpenAI {
             let response = await this.openai.chat.completions.create({
                 "model": modelName,
                 "messages": messages,
+                "include_reasoning": false,
                 "reasoning": { "exclude": true }
             });
             console.log('Full response:', JSON.stringify(response, null, 2));
@@ -816,6 +818,7 @@ class ChatAi extends OpenAI {
             let response = await this.openai.chat.completions.create({
                 "model": modelName,
                 "messages": messages,
+                "include_reasoning": false,
                 "reasoning": { "exclude": true }
             });
             console.log('Full response:', JSON.stringify(response, null, 2));

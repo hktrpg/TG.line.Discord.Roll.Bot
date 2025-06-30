@@ -601,7 +601,7 @@ class ImageAi extends OpenAI {
                 "n": 1,
                 "size": AI_CONFIG.MODELS[imageModelType].size,
                 "include_reasoning": false,
-                "reasoning": { "exclude": true }
+                "reasoning": { "exclude": true, effort: 'high', }
             };
             if (imageModelType === 'IMAGE_HIGH' && AI_CONFIG.MODELS[imageModelType].quality) {
                 imageConfig.quality = AI_CONFIG.MODELS[imageModelType].quality;
@@ -702,9 +702,11 @@ class TranslateAi extends OpenAI {
                 "model": modelName,
                 "messages": messages,
                 "include_reasoning": false,
-                "reasoning": { "exclude": true }
+                "reasoning": { "exclude": true, effort: 'high', }
             });
             console.log('Full response:', JSON.stringify(response, null, 2));
+            console.log('REASONING:', response.choices[0].message.reasoning);
+            console.log('CONTENT:', response.choices[0].message.content);
             this.retryManager.resetRetryCounters();
            
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
@@ -819,7 +821,7 @@ class ChatAi extends OpenAI {
                 "model": modelName,
                 "messages": messages,
                 "include_reasoning": false,
-                "reasoning": { "exclude": true }
+                "reasoning": { "exclude": true, effort: 'high', }
             });
             console.log('Full response:', JSON.stringify(response, null, 2));
             this.retryManager.resetRetryCounters();

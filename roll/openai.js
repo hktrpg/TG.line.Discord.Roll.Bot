@@ -216,8 +216,16 @@ class RetryManager {
     }
 
     // Calculate retry delay based on error type and attempt count
-    calculateRetryDelay(errorType, retryCount) {
-        const config = RETRY_CONFIG.ERROR_TYPES[errorType];
+    calculateRetryDelay(errorType, retryCount, config = null) {
+        // If config is not provided, try to get it from RETRY_CONFIG.ERROR_TYPES
+        if (!config) {
+            config = RETRY_CONFIG.ERROR_TYPES[errorType];
+        }
+        
+        // If still no config, use default
+        if (!config) {
+            return RETRY_CONFIG.GENERAL.defaultDelay;
+        }
         
         switch (errorType) {
             case 'RATE_LIMIT':
@@ -448,9 +456,9 @@ class OpenAI {
         // Handle model cycling for LOW tier rate limits
         if (this.retryManager.shouldCycleModel(modelTier, errorType)) {
             this.cycleModel();
-            const delay = RETRY_CONFIG.GENERAL.modelCycleDelay;
-            this.retryManager.logRetry(error, `${errorType}_MODEL_CYCLE`, delay, modelTier);
-            await this.retryManager.waitSeconds(delay);
+            const modelCycleDelay = RETRY_CONFIG.GENERAL.modelCycleDelay;
+            this.retryManager.logRetry(error, `${errorType}_MODEL_CYCLE`, modelCycleDelay, modelTier);
+            await this.retryManager.waitSeconds(modelCycleDelay);
             return await retryFunction.apply(this, [modelTier, ...args]);
         }
 
@@ -459,7 +467,7 @@ class OpenAI {
         
         // Calculate and apply retry delay
         const retryCount = Math.floor(this.retryManager.globalRetryCount / this.apiKeys.length);
-        const delay = this.retryManager.calculateRetryDelay(errorType, retryCount);
+        const delay = this.retryManager.calculateRetryDelay(errorType, retryCount, errorConfig);
         
         this.retryManager.logRetry(error, errorType, delay, modelTier);
         

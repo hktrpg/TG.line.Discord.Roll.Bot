@@ -198,6 +198,18 @@ class RetryManager {
         this.modelRetryCount = 0;
         this.currentModelIndex = 0;
         this.lastErrorType = null;
+        // 新增：追蹤每個模型的429狀態
+        this.rateLimitedModels = new Set();
+        // 新增：當前活躍的模型索引（排除已429的模型）
+        this.activeModelIndex = 0;
+    }
+
+    // 新增：只重置重試計數器，保留429狀態
+    resetRetryCounters() {
+        this.globalRetryCount = 0;
+        this.modelRetryCount = 0;
+        this.lastErrorType = null;
+        // 不重置 rateLimitedModels 和 activeModelIndex，保持429狀態
     }
 
     // Determine error type based on status code
@@ -243,14 +255,57 @@ class RetryManager {
         }
     }
 
+    // 新增：獲取下一個可用的模型索引（排除已429的模型）
+    getNextAvailableModelIndex() {
+        if (!AI_CONFIG.MODELS.LOW.models || AI_CONFIG.MODELS.LOW.models.length === 0) {
+            return 0;
+        }
+
+        // 如果所有模型都被429了，重置狀態
+        if (this.rateLimitedModels.size >= AI_CONFIG.MODELS.LOW.models.length) {
+            console.log('[MODEL_CYCLE] All models are rate limited, resetting to first model');
+            this.rateLimitedModels.clear();
+            this.activeModelIndex = 0;
+            return 0;
+        }
+
+        // 找到下一個未被429的模型
+        let nextIndex = this.activeModelIndex;
+        do {
+            nextIndex = (nextIndex + 1) % AI_CONFIG.MODELS.LOW.models.length;
+        } while (this.rateLimitedModels.has(nextIndex));
+
+        this.activeModelIndex = nextIndex;
+        return nextIndex;
+    }
+
+    // 新增：標記模型為429狀態
+    markModelAsRateLimited(modelIndex) {
+        this.rateLimitedModels.add(modelIndex);
+        console.log(`[MODEL_CYCLE] Model ${modelIndex + 1} marked as rate limited. Rate limited models: ${Array.from(this.rateLimitedModels).map(i => i + 1).join(', ')}`);
+    }
+
+    // 新增：獲取當前活躍的模型索引
+    getCurrentActiveModelIndex() {
+        if (!AI_CONFIG.MODELS.LOW.models || AI_CONFIG.MODELS.LOW.models.length === 0) {
+            return 0;
+        }
+
+        // 如果當前模型被429了，切換到下一個可用模型
+        if (this.rateLimitedModels.has(this.activeModelIndex)) {
+            this.activeModelIndex = this.getNextAvailableModelIndex();
+        }
+
+        return this.activeModelIndex;
+    }
+
     // Check if should cycle models for LOW tier
     shouldCycleModel(modelTier, errorType) {
         return modelTier === 'LOW' && 
                errorType === 'RATE_LIMIT' && 
                RETRY_CONFIG.MODEL_CYCLING.enabled &&
                AI_CONFIG.MODELS.LOW.models && 
-               AI_CONFIG.MODELS.LOW.models.length > 0 &&
-               this.modelRetryCount < (AI_CONFIG.MODELS.LOW.models.length * RETRY_CONFIG.MODEL_CYCLING.maxRetries);
+               AI_CONFIG.MODELS.LOW.models.length > 0;
     }
 
     // Check if should continue retrying
@@ -276,7 +331,11 @@ class RetryManager {
         console.log(`[RETRY] ${errorType} Error: ${error.status || error.code} - ${error.message}`);
         console.log(`[RETRY] Global: ${this.globalRetryCount}, Model: ${this.modelRetryCount}, Delay: ${delay}s`);
         if (modelTier === 'LOW' && AI_CONFIG.MODELS.LOW.models && AI_CONFIG.MODELS.LOW.models.length > 0) {
-            console.log(`[RETRY] Current LOW model: ${this.currentModelIndex + 1}/${AI_CONFIG.MODELS.LOW.models.length}`);
+            const currentModel = this.getCurrentActiveModelIndex();
+            console.log(`[RETRY] Current LOW model: ${currentModel + 1}/${AI_CONFIG.MODELS.LOW.models.length}`);
+            if (this.rateLimitedModels.size > 0) {
+                console.log(`[RETRY] Rate limited models: ${Array.from(this.rateLimitedModels).map(i => i + 1).join(', ')}`);
+            }
         }
     }
 }
@@ -437,7 +496,8 @@ class OpenAI {
     // Get current model for specified tier
     getCurrentModel(modelTier) {
         if (modelTier === 'LOW' && AI_CONFIG.MODELS.LOW.models && AI_CONFIG.MODELS.LOW.models.length > 0) {
-            const model = AI_CONFIG.MODELS.LOW.models[this.retryManager.currentModelIndex];
+            const activeModelIndex = this.retryManager.getCurrentActiveModelIndex();
+            const model = AI_CONFIG.MODELS.LOW.models[activeModelIndex];
             if (model) {
                 return model;
             }
@@ -458,22 +518,28 @@ class OpenAI {
     cycleModel() {
         this.retryManager.modelRetryCount++;
         if (AI_CONFIG.MODELS.LOW.models && AI_CONFIG.MODELS.LOW.models.length > 0) {
-            this.retryManager.currentModelIndex = (this.retryManager.currentModelIndex + 1) % AI_CONFIG.MODELS.LOW.models.length;
-            const currentModel = AI_CONFIG.MODELS.LOW.models[this.retryManager.currentModelIndex];
-            if (currentModel) {
-                console.log(`[MODEL_CYCLE] Cycling to LOW model ${this.retryManager.currentModelIndex + 1}/${AI_CONFIG.MODELS.LOW.models.length}: ${currentModel.display} (${currentModel.name})`);
+            // 標記當前模型為429狀態
+            const currentModelIndex = this.retryManager.getCurrentActiveModelIndex();
+            this.retryManager.markModelAsRateLimited(currentModelIndex);
+            
+            // 切換到下一個可用模型
+            const nextModelIndex = this.retryManager.getNextAvailableModelIndex();
+            const nextModel = AI_CONFIG.MODELS.LOW.models[nextModelIndex];
+            if (nextModel) {
+                console.log(`[MODEL_CYCLE] Cycling to LOW model ${nextModelIndex + 1}/${AI_CONFIG.MODELS.LOW.models.length}: ${nextModel.display} (${nextModel.name})`);
             }
         }
     }
 
     // Unified error handling with retry logic
-    async handleApiError(error, retryFunction, modelTier, ...args) {
+    async handleApiError(error, retryFunction, options) {
         const { type: errorType, config: errorConfig } = this.retryManager.getErrorType(error);
+        const modelTier = options.modelTier;
         
         // Check if we should stop retrying
         if (!this.retryManager.shouldRetry(errorType)) {
             this.retryManager.resetCounters();
-            return this.generateErrorMessage(error, errorType, modelTier, args[0]);
+            return this.generateErrorMessage(error, errorType, modelTier, options.inputStr || options.prompt || '');
         }
 
         this.retryManager.globalRetryCount++;
@@ -484,16 +550,15 @@ class OpenAI {
             const modelCycleDelay = RETRY_CONFIG.GENERAL.modelCycleDelay;
             this.retryManager.logRetry(error, `${errorType}_MODEL_CYCLE`, modelCycleDelay, modelTier);
             await this.retryManager.waitSeconds(modelCycleDelay);
-            return await retryFunction.apply(this, [modelTier, ...args]);
+            return await retryFunction.apply(this, [options]);
         }
-
-        // Handle API key cycling
+        
+        // Handle API key cycling for non-429 errors
         this.handleApiKeyError(error);
         
         // Calculate and apply retry delay
         const retryCount = Math.floor(this.retryManager.globalRetryCount / this.apiKeys.length);
         const delay = this.retryManager.calculateRetryDelay(errorType, retryCount, errorConfig);
-        
         this.retryManager.logRetry(error, errorType, delay, modelTier);
         
         // Apply additional delay for keyset cycling
@@ -502,8 +567,8 @@ class OpenAI {
         } else {
             await this.retryManager.waitSeconds(delay);
         }
-
-        return await retryFunction.apply(this, [modelTier, ...args]);
+        
+        return await retryFunction.apply(this, [options]);
     }
 
     // Generate error message for final failure
@@ -526,26 +591,26 @@ class ImageAi extends OpenAI {
     constructor() {
         super();
     }
-    async handleImageAi(inputStr, imageModelType) {
-        let input = inputStr.replace(/^\.aimage[h]?/i, '');
+    async handleImageAi(options) {
+        const { inputStr, imageModelType } = options;
+        let input = typeof inputStr === 'string' ? inputStr.replace(/^\.aimage[h]?/i, '') : String(inputStr || '');
         try {
             const imageConfig = {
                 "model": AI_CONFIG.MODELS[imageModelType].name,
                 "prompt": `${input}`,
                 "n": 1,
-                "size": AI_CONFIG.MODELS[imageModelType].size
+                "size": AI_CONFIG.MODELS[imageModelType].size,
+                "reasoning": { "exclude": true }
             };
-
             if (imageModelType === 'IMAGE_HIGH' && AI_CONFIG.MODELS[imageModelType].quality) {
                 imageConfig.quality = AI_CONFIG.MODELS[imageModelType].quality;
             }
-
             let response = await this.openai.images.generate(imageConfig);
             response = await this.handleImage(response, input);
-            this.retryManager.resetCounters();
+            this.retryManager.resetRetryCounters();
             return response;
         } catch (error) {
-            return await this.handleApiError(error, this.handleImageAi, imageModelType, inputStr, imageModelType);
+            return await this.handleApiError(error, this.handleImageAi, options);
         }
     }
     handleImage(data, input) {
@@ -610,15 +675,15 @@ class TranslateAi extends OpenAI {
             console.error(err);
         }
     }
-    async translateChat(inputStr, mode, modelTier = 'LOW') {
+    async translateChat(options) {
         try {
-            // Get the current model if it's LOW tier with multiple models
+            const { inputStr, mode, modelTier } = options;
             const currentModel = this.getCurrentModel(modelTier);
             if (!currentModel) {
                 throw new Error('No available AI model found');
             }
             const modelName = currentModel.name || mode.name;
-
+            const safeInputStr = typeof inputStr === 'string' ? inputStr : String(inputStr || '');
             let response = await this.openai.chat.completions.create({
                 "model": modelName,
                 "messages": [
@@ -628,22 +693,18 @@ class TranslateAi extends OpenAI {
                     },
                     {
                         "role": "user",
-                        "content": `把以下文字翻譯成正體中文\n\n
-                        ${inputStr}\n`
+                        "content": `把以下文字翻譯成正體中文\n\n\n${safeInputStr}\n`
                     }
                 ],
-                "reasoning": {
-                    "exclude": true  // 排除 reasoning tokens，只返回主要回應
-                }
-
-            })
-            this.retryManager.resetCounters();
+                "reasoning": { "exclude": true }
+            });
+            this.retryManager.resetRetryCounters();
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
                 const dataStr = response.data;
-                const dataArray = dataStr.split('\n\n').filter(Boolean); // 將字符串分割成數組
+                const dataArray = dataStr.split('\n\n').filter(Boolean);
                 const parsedData = [];
                 dataArray.forEach((str) => {
-                    const obj = JSON.parse(str.substring(6)); // 將子字符串轉換為對象
+                    const obj = JSON.parse(str.substring(6));
                     parsedData.push(obj);
                 });
                 const contents = parsedData.map((obj) => obj.choices[0].delta.content);
@@ -652,22 +713,19 @@ class TranslateAi extends OpenAI {
             }
             return response.choices[0].message.content;
         } catch (error) {
-            return await this.handleApiError(error, this.translateChat, modelTier, inputStr, mode, modelTier);
+            return await this.handleApiError(error, this.translateChat, options);
         }
     }
     async translateText(inputScript, mode, modelTier = 'LOW') {
         let response = [];
         for (let index = 0; index < inputScript.length; index++) {
-            // Add delay between requests to avoid rate limiting
             if (index > 0) {
-                // Wait configured delay between consecutive translation requests
                 await this.retryManager.waitSeconds(RETRY_CONFIG.GENERAL.batchDelay);
             }
-            let result = await this.translateChat(inputScript[index], mode, modelTier);
+            let result = await this.translateChat({ inputStr: inputScript[index], mode, modelTier });
             response.push(result);
         }
         return response;
-
     }
     async handleTranslate(inputStr, discordMessage, discordClient, userid, mode, modelTier = 'LOW') {
         let lv = await VIP.viplevelCheckUser(userid);
@@ -681,7 +739,6 @@ class TranslateAi extends OpenAI {
             return { fileText: '輸出的文字太多了，請看附件', sendfile };
         }
         return { text: response }
-
     }
     splitTextByTokens(text, inputTokenLimit) {
         const results = [];
@@ -729,15 +786,16 @@ class ChatAi extends OpenAI {
     constructor() {
         super();
     }
-    async handleChatAi(inputStr, mode, userid, modelTier = 'LOW') {
+    async handleChatAi(options) {
         try {
-            // Get the current model if it's LOW tier with multiple models
+            const { inputStr, mode, userid, modelTier } = options;
             const currentModel = this.getCurrentModel(modelTier);
             if (!currentModel) {
                 throw new Error('No available AI model found');
             }
             const modelName = currentModel.name || mode.name;
-
+            const safeInputStr = typeof inputStr === 'string' ? inputStr : String(inputStr || '');
+            const processedContent = safeInputStr.replace(/^\.ai[mh]?/i, '');
             let response = await this.openai.chat.completions.create({
                 "model": modelName,
                 "messages": [
@@ -747,22 +805,18 @@ class ChatAi extends OpenAI {
                     },
                     {
                         "role": "user",
-                        "content": `${inputStr.replace(/^\.ai[mh]?/i, '')}`
+                        "content": processedContent
                     }
                 ],
-                "reasoning": {
-                    "exclude": true  // 排除 reasoning tokens，只返回主要回應
-                }
-
-            })
-            this.retryManager.resetCounters();
-
+                "reasoning": { "exclude": true }
+            });
+            this.retryManager.resetRetryCounters();
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
                 const dataStr = response.data;
-                const dataArray = dataStr.split('\n\n').filter(Boolean); // 將字符串分割成數組
+                const dataArray = dataStr.split('\n\n').filter(Boolean);
                 const parsedData = [];
                 dataArray.forEach((str) => {
-                    const obj = JSON.parse(str.substring(6)); // 將子字符串轉換為對象
+                    const obj = JSON.parse(str.substring(6));
                     parsedData.push(obj);
                 });
                 const contents = parsedData.map((obj) => obj.choices[0].delta.content);
@@ -771,7 +825,7 @@ class ChatAi extends OpenAI {
             }
             return response.choices[0].message.content;
         } catch (error) {
-            return await this.handleApiError(error, this.handleChatAi, modelTier, inputStr, mode, userid, modelTier);
+            return await this.handleApiError(error, this.handleChatAi, options);
         }
     }
 }
@@ -872,7 +926,7 @@ class CommandHandler {
         }
 
         const imageModelType = /^.aimageh$/i.test(mainMsg[0]) ? 'IMAGE_HIGH' : 'IMAGE_LOW';
-        rply.text = await imageAi.handleImageAi(inputStr, imageModelType);
+        rply.text = await imageAi.handleImageAi({ inputStr, imageModelType });
 
         return rply;
     }
@@ -896,16 +950,20 @@ class CommandHandler {
             }
             modelType = 'HIGH';
         }
-        let processedInput = inputStr;
+        
+        // Ensure inputStr is a string and safely handle the replace operation
+        const safeInputStr = typeof inputStr === 'string' ? inputStr : String(inputStr || '');
+        let processedInput = safeInputStr;
+        
         // Only process Discord-specific logic if we're on Discord
         if (botname === "Discord" && discordMessage) {
             const replyContent = await handleMessage.getReplyContent(discordMessage);
             if (replyContent) {
-                processedInput = `${replyContent}\n${inputStr.replace(/^\.ai[mh]?/i, '')} `;
+                processedInput = `${replyContent}\n${safeInputStr.replace(/^\.ai[mh]?/i, '')} `;
             }
         }
 
-        rply.text = await chatAi.handleChatAi(processedInput, AI_CONFIG.MODELS[modelType], userid, modelType);
+        rply.text = await chatAi.handleChatAi({ inputStr: processedInput, mode: AI_CONFIG.MODELS[modelType], userid, modelTier: modelType });
         return rply;
     }
 }

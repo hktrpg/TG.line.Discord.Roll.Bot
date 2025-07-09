@@ -12,11 +12,11 @@ jest.mock('../roll/rollbase.js', () => ({
     rollDiceCommand: jest.fn()
 }));
 
-jest.mock('../roll/2_coc.js', () => ({
+jest.mock('../roll/2-coc.js', () => ({
     rollDiceCommand: jest.fn()
 }));
 
-jest.mock('../roll/0_advroll.js', () => ({
+jest.mock('../roll/0-advroll.js', () => ({
     rollDiceCommand: jest.fn()
 }));
 
@@ -65,8 +65,8 @@ jest.mock('../roll/z_character.js', () => {
 const characterModule = require('../roll/z_character.js');
 const mathjs = require('mathjs');
 const rollbase = require('../roll/rollbase.js');
-const coc = require('../roll/2_coc.js');
-const advroll = require('../roll/0_advroll.js');
+const coc = require('../roll/2-coc.js');
+const advroll = require('../roll/0-advroll.js');
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
 

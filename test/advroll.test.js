@@ -1,6 +1,6 @@
 "use strict";
 
-const advroll = require('../roll/0_advroll');
+const advroll = require('../roll/0-advroll');
 
 test('Test getHelpMessage returns correct help text', () => {
     const helpText = advroll.getHelpMessage();

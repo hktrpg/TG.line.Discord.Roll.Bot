@@ -17,7 +17,7 @@ jest.mock('discord.js', () => ({
 }));
 
 // Mock the module to be tested
-jest.mock('../roll/requestRolling.js', () => {
+jest.mock('../roll/request-rolling.js', () => {
   const mockDiscordCommand = [{
     data: { 
       name: 're',
@@ -41,7 +41,7 @@ jest.mock('../roll/requestRolling.js', () => {
 });
 
 // Import the module after mocking
-const requestRollingModule = require('../roll/requestRolling.js');
+const requestRollingModule = require('../roll/request-rolling.js');
 
 describe('Request Rolling Module Tests', () => {
   beforeEach(() => {

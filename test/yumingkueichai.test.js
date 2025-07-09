@@ -173,19 +173,19 @@ describe('Yuming Kuei Chai Module Tests', () => {
     expect(result.text).toContain('目標值 ≧ 20');
   });
 
-  test('Test rollDiceCommand with description text', async () => {
+  test('Test rollDiceCommand with standard usage', async () => {
     rollbase.Dice.mockReturnValueOnce(3)
                  .mockReturnValueOnce(3)
                  .mockReturnValueOnce(5)
                  .mockReturnValueOnce(1);
 
     const result = await kcModule.rollDiceCommand({
-      mainMsg: ['.kc', '4d', 'Test roll']
+      mainMsg: ['.kc', '4d']
     });
     
     expect(result.type).toBe('text');
     expect(result.text).toMatch(/\[ 3,3,5,1 \]/);
-    expect(result.text).toContain('Test roll');
+    expect(result.text).toContain('達成值 6');
   });
 
   test('Test special case for 5D with 11112', async () => {

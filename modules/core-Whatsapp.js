@@ -85,7 +85,14 @@ async function startUp() {
 
 		client.on('message', async msg => {
 			try {
-				if (!msg.body || msg.fromMe || msg.isForwarded) return;
+				// Validate message object
+				if (!msg || !msg.body || msg.fromMe || msg.isForwarded) return;
+				
+				// Validate required properties
+				if (!msg.from || typeof msg.getContact !== 'function') {
+					console.error('[WhatsApp] Invalid message object - missing required properties');
+					return;
+				}
 
 				// 基本訊息處理
 				const chatDetail = await client.getChatById(msg.from);
@@ -108,8 +115,16 @@ async function startUp() {
 
 		client.on('message_ack', async (msg, ack) => {
 			if (ack > 0) {
-				const chat = await msg.getChat();
-				await chat.clearMessages();
+				try {
+					if (msg && typeof msg.getChat === 'function') {
+						const chat = await msg.getChat();
+						await chat.clearMessages();
+					} else {
+						console.error('[WhatsApp] msg.getChat is not available in message_ack');
+					}
+				} catch (error) {
+					console.error('[WhatsApp] message_ack error:', error.message);
+				}
 			}
 		});
 
@@ -196,7 +211,13 @@ async function processMessage(msg, groupInfo, client) {
 	let TargetGMTempdisplayname = [];
 
 	userid = msg.author;
-	let getContact = await msg.getContact();
+	let getContact;
+	try {
+		getContact = await msg.getContact();
+	} catch (error) {
+		console.error('[WhatsApp] Failed to get contact:', error.message);
+		getContact = null;
+	}
 	displayname = (getContact && getContact.pushname) || '';
 	let rplyVal = {};
 	if (mainMsg && mainMsg[0])
@@ -313,8 +334,17 @@ async function __sendMeMessage({ msg, rplyVal, groupid, client }) {
 			await msg.reply(rplyVal.myspeck.content);
 		} catch (error) {
 			console.log('[WhatsApp] Failed to reply with .me message, sending direct message instead:', error.message);
-			const chat = await msg.getChat();
-			await chat.sendMessage(rplyVal.myspeck.content);
+			try {
+				if (msg && typeof msg.getChat === 'function') {
+					const chat = await msg.getChat();
+					await chat.sendMessage(rplyVal.myspeck.content);
+				} else {
+					console.error('[WhatsApp] msg.getChat is not available, falling back to client.sendMessage');
+					await client.sendMessage(msg.from, rplyVal.myspeck.content);
+				}
+			} catch (fallbackError) {
+				console.error('[WhatsApp] Fallback message sending failed:', fallbackError.message);
+			}
 		}
 	} else {
 		await client.sendMessage(msg.from, rplyVal.myspeck.content);
@@ -327,7 +357,17 @@ async function SendDR(msg, text) {
 		return await msg.reply(text);
 	} catch (error) {
 		console.log('[WhatsApp] Failed to reply, sending direct message instead:', error.message);
-		return await msg.getChat().then(chat => chat.sendMessage(text));
+		try {
+			if (msg && typeof msg.getChat === 'function') {
+				return await msg.getChat().then(chat => chat.sendMessage(text));
+			} else {
+				console.error('[WhatsApp] msg.getChat is not available for SendDR');
+				return null;
+			}
+		} catch (fallbackError) {
+			console.error('[WhatsApp] SendDR fallback failed:', fallbackError.message);
+			return null;
+		}
 	}
 }
 
@@ -352,19 +392,27 @@ async function SendToReply(msg, rplyVal, userid) {
 				await msg.reply(messageText);
 			} catch (error) {
 				console.log('[WhatsApp] Failed to reply, sending direct message instead:', error.message);
-				const chat = await msg.getChat();
-				if (imageMatch && imageMatch.length > 0) {
-					try {
-						let imageVaild = await isImageURL(imageMatch[0]);
-						if (imageVaild) {
-							const media = await MessageMedia.fromUrl(imageMatch[0]);
-							await chat.sendMessage(media);
+				try {
+					if (msg && typeof msg.getChat === 'function') {
+						const chat = await msg.getChat();
+						if (imageMatch && imageMatch.length > 0) {
+							try {
+								let imageVaild = await isImageURL(imageMatch[0]);
+								if (imageVaild) {
+									const media = await MessageMedia.fromUrl(imageMatch[0]);
+									await chat.sendMessage(media);
+								}
+							} catch (error) {
+								console.error('[WhatsApp] Image processing error:', error.message);
+							}
 						}
-					} catch (error) {
-						console.error('[WhatsApp] Image processing error:', error.message);
+						await chat.sendMessage(messageText);
+					} else {
+						console.error('[WhatsApp] msg.getChat is not available, cannot send fallback message');
 					}
+				} catch (fallbackError) {
+					console.error('[WhatsApp] SendToReply fallback failed:', fallbackError.message);
 				}
-				await chat.sendMessage(messageText);
 			}
 		}
 	}
@@ -379,25 +427,43 @@ function privateMsgFinder(channelid) {
 }
 
 async function SendToId(targetid, rplyVal, client) {
-	for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
-			const imageMatch = rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i].match(imageUrl) || null;
-			if (imageMatch && imageMatch.length > 0) {
-				try {
-					let imageVaild = await isImageURL(imageMatch[0]);
-					if (imageVaild) {
-						const media = await MessageMedia.fromUrl(imageMatch[0]);
-						client.sendMessage(targetid, media);
+	try {
+		if (!rplyVal || !rplyVal.text) {
+			console.error('[WhatsApp] SendToId: rplyVal or rplyVal.text is undefined');
+			return;
+		}
+
+		const textChunks = rplyVal.text.toString().match(/[\s\S]{1,2000}/g) || [];
+		
+		for (let i = 0; i < textChunks.length; i++) {
+			if (i == 0 || i == 1 || i == textChunks.length - 2 || i == textChunks.length - 1) {
+				const chunk = textChunks[i];
+				const imageMatch = chunk.match(imageUrl) || null;
+				
+				if (imageMatch && imageMatch.length > 0) {
+					try {
+						let imageVaild = await isImageURL(imageMatch[0]);
+						if (imageVaild) {
+							const media = await MessageMedia.fromUrl(imageMatch[0]);
+							await client.sendMessage(targetid, media);
+						}
+					} catch (error) {
+						console.error('[WhatsApp] SendToId image error:', error.message);
 					}
+				}
+				
+				try {
+					await client.sendMessage(targetid, chunk);
 				} catch (error) {
-					console.error(error)
+					console.error('[WhatsApp] SendToId message error:', error.message);
 				}
 			}
-			client.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
 		}
+	} catch (error) {
+		console.error('[WhatsApp] SendToId general error:', error.message);
 	}
 }
 
-process.on('unhandledRejection', () => {});
+// Unhandled rejections are handled by the main application error handler in index.js
 
 startUp();

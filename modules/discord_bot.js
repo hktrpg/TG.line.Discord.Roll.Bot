@@ -742,7 +742,6 @@ async function checkWakeUp() {
 
 }
 
-const discordPresenceStatus = ['online', 'idle', 'invisible', 'do not disturb']
 async function getAllshardIds() {
 	if (!client.cluster) return '';
 
@@ -754,20 +753,27 @@ async function getAllshardIds() {
 			client.cluster.id
 		]);
 
+		// WebSocket status mapping - Discord.js uses numeric status codes
 		const statusMap = {
-			'online': '✅在線',
-			'idle': '⚠️閒置',
-			'dnd': '🔴勿擾',
-			'offline': '❌離線',
-			'invisible': '⚫隱身'
+			0: '✅在線',     // READY
+			1: '⚫隱身',     // CONNECTING
+			2: '⚫隱身',     // RECONNECTING
+			3: '⚠️閒置',     // IDLE
+			4: '❌離線',     // NEARLY
+			5: '❌離線',     // DISCONNECTED
+			6: '❌離線',     // WAITING_FOR_GUILDS
+			7: '❌離線',     // IDENTIFYING
+			8: '❌離線'      // RESUMING
 		};
 
 		const groupSize = 5;
 		const formatNumber = num => num.toLocaleString();
 
 		// 轉換狀態和延遲
-		const onlineStatus = wsStatus.map(status =>
-			statusMap[discordPresenceStatus[status]] || status);
+		const onlineStatus = wsStatus.map(status => {
+			const mappedStatus = statusMap[status];
+			return mappedStatus ? mappedStatus : `❓未知(${status})`;
+		});
 		const pingTimes = wsPing.map(ping => {
 			const p = Math.round(ping);
 			return p > 1000 ? `❌${formatNumber(p)}` :
@@ -790,7 +796,7 @@ async function getAllshardIds() {
 				const range = `${start}-${end}`;
 
 				if (isStatus) {
-					const hasNonOnline = group.some(status => !status.includes('✅'));
+					const hasNonOnline = group.some(status => typeof status === 'string' && !status.includes('✅'));
 					const prefix = hasNonOnline ? '❗' : '│';
 					return `${prefix} 　• 群組${range}　${group.join(", ")}`;
 				}
@@ -804,7 +810,7 @@ async function getAllshardIds() {
 
 		// 統計摘要
 		const totalShards = onlineStatus.length;
-		const onlineCount = onlineStatus.filter(s => s.includes('✅')).length;
+		const onlineCount = onlineStatus.filter(s => typeof s === 'string' && s.includes('✅')).length;
 
 		return `
 ├────── 🔄分流狀態 ──────

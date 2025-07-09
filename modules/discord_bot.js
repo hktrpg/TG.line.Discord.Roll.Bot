@@ -161,7 +161,7 @@ client.once('ready', async () => {
 	client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
 	console.log(`Discord: Logged in as ${client.user.tag}!`);
 	let switchSetActivity = 0;
-	// eslint-disable-next-line no-unused-vars
+	 
 	//await sleep(6);
 	const HEARTBEAT_CHECK_INTERVAL = 1000 * 60;
 	const WARNING_THRESHOLD = 3;

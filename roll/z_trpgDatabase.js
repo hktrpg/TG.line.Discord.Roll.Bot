@@ -699,7 +699,7 @@ function findGlobalTopicContent(database, topic) {
     return null;
 }
 
-// eslint-disable-next-line no-unused-vars
+ 
 const rollDiceCommand = async function ({
     inputStr,
     mainMsg,

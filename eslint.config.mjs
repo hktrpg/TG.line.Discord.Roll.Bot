@@ -39,7 +39,18 @@ export default [
       // Unicorn rules adjustments for this project
       "unicorn/prefer-module": "off", // This project uses CommonJS
       "unicorn/prefer-top-level-await": "off", // Not applicable for CommonJS
-      "unicorn/filename-case": ["error", { "case": "kebabCase", "ignore": ["z_*.js"] }], // Allow z_ prefix files
+      "unicorn/filename-case": ["error", { 
+        "case": "kebabCase", 
+        "ignore": [
+          /^z_.*\.js$/,
+          /^candleDays\.js$/,
+          /^core-.*\.js$/,
+          /^ds-.*\.js$/,
+          /^dbWatchdog\.js$/,
+          /^getRoll\.js$/,
+          /^veryImportantPerson\.js$/
+        ]
+      }], // Allow z_ prefix and legacy files
       "unicorn/prevent-abbreviations": "off", // Allow common abbreviations in this codebase
       "unicorn/no-array-reduce": "off", // Allow reduce usage
       "unicorn/no-process-exit": "off", // Allow process.exit in this type of application
@@ -47,6 +58,9 @@ export default [
       "unicorn/no-null": "off", // Allow null usage in this codebase
       "unicorn/consistent-function-scoping": "off", // Allow flexible function scoping
       "unicorn/import-style": "off", // Allow mixed import styles
+      "unicorn/no-array-callback-reference": "off", // Allow passing functions directly to array methods
+      "unicorn/prefer-logical-operator-over-ternary": "off", // Allow ternary operators for readability
+      "unicorn/no-instanceof-builtins": "off", // Allow instanceof checks when needed
       
       // Node.js plugin adjustments
       "n/no-missing-import": "off", // Sometimes conflicts with local modules

@@ -4,8 +4,8 @@ if (!process.env.PLURK_SWITCH) {
 }
 let plurkID = '';
 const { PlurkClient } = require('plurk2');
-const EXPUP = require('./level').EXPUP || function () { };
-const courtMessage = require('./logs').courtMessage || function () { };
+const EXPUP = require('./level').EXPUP || function () {};
+const courtMessage = require('./logs').courtMessage || function () {};
 const SIX_MINUTES = 1000 * 60 * 6;
 const MESSAGE_SPLITOR = (/\S+/ig);
 const Plurk_Client = new PlurkClient(process.env.PLURK_APPKEY, process.env.PLURK_APPSECRET, process.env.PLURK_TOKENKEY, process.env.PLURK_TOKENSECRET);
@@ -15,7 +15,7 @@ Plurk_Client.request('Users/me')
         console.log(`Plurk 名稱: ${profile.full_name}`);
         plurkID = profile.id;
     })
-    .catch(err => console.error('plurk error: ', err.error_text));
+    .catch(error => console.error('plurk error:', error.error_text));
 
 
 
@@ -52,7 +52,7 @@ Plurk_Client.on('new_plurk', async response => {
     if (!message) return;
     let mainMsg = message.match(MESSAGE_SPLITOR); // 定義輸入字串
     if (mainMsg && mainMsg.length > 1) {
-        if (!mainMsg[0].match(/@HKTRPG/i)) return;
+        if (!/@HKTRPG/i.test(mainMsg[0])) return;
         mainMsg.shift();
     }
     else return;
@@ -106,7 +106,7 @@ Plurk_Client.on('new_response', async response => {
 
 
     if (mainMsg && mainMsg.length > 1) {
-        if (!mainMsg[0].match(/@HKTRPG/i)) return;
+        if (!/@HKTRPG/i.test(mainMsg[0])) return;
         mainMsg.shift();
     }
     else return;
@@ -145,8 +145,8 @@ async function sendMessage(response, rplyVal) {
     try {
         await Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[0], qualifier: 'says' })
     } catch (error) {
-        if (!error.error_text == "anti-flood-same-content")
-            console.error('plurk error: ', error.error_text);
+        if (error.error_text !== "anti-flood-same-content")
+            console.error('plurk error:', error.error_text);
     }
     return;
 

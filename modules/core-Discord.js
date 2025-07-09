@@ -26,10 +26,10 @@ const clusterOptions = {
         delay: RETRY_DELAY
     },
     // Add reconnection and backoff options
-    fetchTimeout: 30000,
+    fetchTimeout: 30_000,
     restarts: {
         max: 5,
-        interval: 60000 * 10 // 10 minutes
+        interval: 60_000 * 10 // 10 minutes
     }
 };
 
@@ -51,9 +51,9 @@ manager.on('clusterCreate', shard => {
             setTimeout(() => {
                 console.log(`[Cluster ${shard.id}] Attempting to respawn...`);
                 try {
-                    shard.respawn({ timeout: 60000 });
-                } catch (err) {
-                    console.error(`[Cluster ${shard.id}] Failed to respawn:`, err);
+                    shard.respawn({ timeout: 60_000 });
+                } catch (error_) {
+                    console.error(`[Cluster ${shard.id}] Failed to respawn:`, error_);
                 }
             }, RETRY_DELAY);
         }
@@ -75,7 +75,7 @@ manager.on("clusterCreate", cluster => {
                 if (targetCluster) {
                     await targetCluster.respawn({
                         delay: 1000,
-                        timeout: 60000
+                        timeout: 60_000
                     });
                     console.log(`[Cluster] Successfully respawned cluster ${message.id}`);
                 } else {
@@ -139,5 +139,6 @@ manager.spawn({
     amount: 'auto'
 }).catch(error => {
     console.error('[Cluster] Failed to spawn clusters:', error);
+    // eslint-disable-next-line n/no-process-exit
     process.exit(1);
 });

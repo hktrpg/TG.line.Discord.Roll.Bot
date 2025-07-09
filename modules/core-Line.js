@@ -2,12 +2,13 @@
 if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.LINE_CHANNEL_SECRET) {
 	return;
 }
-const port = process.env.LINEPORT || 20831;
+const port = process.env.LINEPORT || 20_831;
+const fs = require('fs');
 const candle = require('../modules/candleDays.js');
 const mainLine = Boolean(process.env.DISCORD_CHANNEL_SECRET);
 const lineAgenda = Boolean(process.env.LINE_AGENDA)
 exports.analytics = require('./analytics');
-const EXPUP = require('./level').EXPUP || function () { };
+const EXPUP = require('./level').EXPUP || function () {};
 const line = require('@line/bot-sdk');
 
 const MESSAGE_SPLITOR = (/\S+/ig);
@@ -20,7 +21,7 @@ const config = {
 	channelSecret: process.env.LINE_CHANNEL_SECRET,
 };
 const TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const courtMessage = require('./logs').courtMessage || function () { };
+const courtMessage = require('./logs').courtMessage || function () {};
 // create LINE SDK client
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const client = new line.Client(config);
@@ -61,15 +62,15 @@ let handleEvent = async function (event) {
 	let privatemsg = 0;
 
 	(function privateMsg() {
-		if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
+		if (/^dr$/i.test(trigger) && mainMsg && mainMsg[1]) {
 			privatemsg = 1;
 			inputStr = inputStr.replace(/^dr\s+/i, '');
 		}
-		if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
+		if (/^ddr$/i.test(trigger) && mainMsg && mainMsg[1]) {
 			privatemsg = 2;
 			inputStr = inputStr.replace(/^ddr\s+/i, '');
 		}
-		if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
+		if (/^dddr$/i.test(trigger) && mainMsg && mainMsg[1]) {
 			privatemsg = 3;
 			inputStr = inputStr.replace(/^dddr\s+/i, '');
 		}
@@ -81,7 +82,7 @@ let handleEvent = async function (event) {
 			replyMessagebyReplyToken(event, newMessage.joinMessage());
 		}
 		await nonDice(event);
-		return Promise.resolve(null);
+		return null;
 	}
 	let target = '';
 	if (inputStr) target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
@@ -99,7 +100,7 @@ let handleEvent = async function (event) {
 		try {
 			let profile = await client.getProfile(userid);
 			displayname = (profile && profile.displayName) ? profile.displayName : '';
-		} catch (error) {
+		} catch {
 			//
 		}
 	}
@@ -108,7 +109,7 @@ let handleEvent = async function (event) {
 		try {
 			let gpProfile = await client.getGroupSummary(roomorgroupid);
 			titleName = (gpProfile && gpProfile.groupName) ? gpProfile.groupName : '';
-		} catch (error) {
+		} catch {
 			//
 		}
 	}
@@ -151,11 +152,7 @@ let handleEvent = async function (event) {
 	}
 
 	if (roomorgroupid && rplyVal && rplyVal.LevelUp) {
-		if (displayname) {
-			rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text;
-		} else {
-			rplyVal.text = rplyVal.LevelUp + '\n' + rplyVal.text;
-		}
+		rplyVal.text = displayname ? rplyVal.LevelUp + '\n' + rplyVal.text : rplyVal.LevelUp + '\n' + rplyVal.text;
 	}
 
 	//Linecountroll++;
@@ -164,17 +161,17 @@ let handleEvent = async function (event) {
 	}
 	if (privatemsg > 1 && TargetGM) {
 		let groupInfo = await privateMsgFinder(roomorgroupid) || [];
-		groupInfo.forEach((item) => {
+		for (const item of groupInfo) {
 			TargetGMTempID.push(item.userid);
 			TargetGMTempdiyName.push(item.diyName);
 			TargetGMTempdisplayname.push(item.displayname);
-		})
+		}
 		//當是私訊模式1-3時
 	}
 
 
 	switch (true) {
-		case privatemsg == 1:
+		case privatemsg == 1: {
 			// 輸入dr  (指令) 私訊自己
 			if (roomorgroupid && userid)
 				if (displayname)
@@ -187,7 +184,8 @@ let handleEvent = async function (event) {
 				else
 					SendToId(userid, rplyVal.text);
 			break;
-		case privatemsg == 2:
+		}
+		case privatemsg == 2: {
 			//輸入ddr(指令) 私訊GM及自己
 			//房間訊息
 			if (roomorgroupid) {
@@ -207,13 +205,14 @@ let handleEvent = async function (event) {
 			}
 			//傳給自己
 			SendToId(userid, rplyVal.text);
-			for (let i = 0; i < TargetGMTempID.length; i++) {
-				if (userid != TargetGMTempID[i]) {
-					SendToId(TargetGMTempID[i], rplyVal.text);
+			for (const element of TargetGMTempID) {
+				if (userid != element) {
+					SendToId(element, rplyVal.text);
 				}
 			}
 			break;
-		case privatemsg == 3:
+		}
+		case privatemsg == 3: {
 			//輸入dddr(指令) 私訊GM
 			//如在房中
 			if (roomorgroupid) {
@@ -229,11 +228,12 @@ let handleEvent = async function (event) {
 			}
 			if (displayname)
 				rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
-			for (let i = 0; i < TargetGMTempID.length; i++) {
-				SendToId(TargetGMTempID[i], rplyVal.text);
+			for (const element of TargetGMTempID) {
+				SendToId(element, rplyVal.text);
 			}
 			break;
-		default:
+		}
+		default: {
 			if (displayname && rplyVal && rplyVal.type != 'image') {
 				//285083923223
 				displayname = "@" + displayname;
@@ -247,6 +247,7 @@ let handleEvent = async function (event) {
 				return replyMessagebyReplyToken(event, rplyVal);
 			}
 			break;
+		}
 	}
 	return;
 }
@@ -254,8 +255,8 @@ let handleEvent = async function (event) {
 async function __sendMeMessage({ event, rplyVal, roomorgroupid }) {
 	if (roomorgroupid) {
 		let temp = HandleMessage(rplyVal.myspeck.content);
-		await client.replyMessage(event.replyToken, temp).catch((err) => {
-			console.error('#60 line err', err.statusCode);
+		await client.replyMessage(event.replyToken, temp).catch((error) => {
+			console.error('#60 line err', error.statusCode);
 		});
 	} else {
 		SendToId(event.source.userId, rplyVal.myspeck.content);
@@ -271,8 +272,8 @@ let replyMessagebyReplyToken = function (event, Reply) {
 				type: 'text',
 				text: temp.originalContentUrl
 			};
-			client.replyMessage(event.replyToken, tempB).catch((err) => {
-				console.error('#292 line err', err.statusCode);
+			client.replyMessage(event.replyToken, tempB).catch((error) => {
+				console.error('#292 line err', error.statusCode);
 			});
 			//	}
 		}
@@ -284,7 +285,7 @@ let replyMessagebyReplyToken = function (event, Reply) {
 function HandleMessage(message) {
 	let temp = [];
 	switch (true) {
-		case message.type == 'text' && message.text != '':
+		case message.type == 'text' && message.text != '': {
 			for (let i = 0; i < message.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 				if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 1)
 					temp.push({
@@ -293,14 +294,16 @@ function HandleMessage(message) {
 					})
 			}
 			return temp;
-		case message.type == 'image' && message.text != '':
+		}
+		case message.type == 'image' && message.text != '': {
 			return {
 				"type": "image",
 				"originalContentUrl": message.text.replace('http://', 'https://'),
 				"previewImageUrl": message.text.replace('http://', 'https://')
 			};
+		}
 
-		case typeof message == 'string' || message instanceof String:
+		case typeof message == 'string': {
 			for (let i = 0; i < message.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 				if (i == 0 || i == 1 || i == message.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == message.toString().match(/[\s\S]{1,2000}/g).length - 1)
 					temp.push({
@@ -309,7 +312,8 @@ function HandleMessage(message) {
 					});
 			}
 			return temp;
-		case message.text != '':
+		}
+		case message.text != '': {
 			for (let i = 0; i < message.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 				if (i == 0 || i == 1 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == message.text.toString().match(/[\s\S]{1,2000}/g).length - 1)
 					temp.push({
@@ -318,15 +322,16 @@ function HandleMessage(message) {
 					})
 			}
 			return temp;
-		default:
+		}
+		default: {
 			break;
+		}
 	}
 }
 // listen on port
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
-const fs = require('fs');
 let options = {};
 async function read() {
 	if (!privateKey) return;
@@ -337,7 +342,7 @@ async function read() {
 			ca: (fs.readFileSync(ca)) ? fs.readFileSync(ca) : null
 		};
 	} catch (error) {
-		console.error('[error of key]: ', error)
+		console.error('[error of key]:', error)
 	}
 }
 
@@ -368,8 +373,8 @@ if (agenda && agenda.agenda && lineAgenda) {
 		)
 		try {
 			await job.remove();
-		} catch (e) {
-			console.error("LINE: Error removing job from collection:scheduleAtMessageLine", e);
+		} catch (error) {
+			console.error("LINE: Error removing job from collection:scheduleAtMessageLine", error);
 		}
 	});
 
@@ -388,8 +393,8 @@ if (agenda && agenda.agenda && lineAgenda) {
 					data.groupid, "已運行六個月, 移除此定時訊息"
 				)
 			}
-		} catch (e) {
-			console.error("Line Error removing job from collection:scheduleCronMessageLine", e);
+		} catch (error) {
+			console.error("Line Error removing job from collection:scheduleCronMessageLine", error);
 		}
 	});
 }
@@ -397,17 +402,17 @@ if (agenda && agenda.agenda && lineAgenda) {
 
 app.on('UnhandledPromiseRejection', error => {
 	// Will print "unhandledRejection err is not defined"
-	console.error('Line UnhandledPromiseRejection: ', error.message);
+	console.error('Line UnhandledPromiseRejection:', error.message);
 });
 app.on('unhandledRejection', error => {
 	// Will print "unhandledRejection err is not defined"
-	console.error('Line unhandledRejection: ', error.message);
+	console.error('Line unhandledRejection:', error.message);
 });
 function SendToId(targetid, Reply) {
 	let temp = HandleMessage(Reply);
-	client.pushMessage(targetid, temp).catch((err) => {
-		if (err.statusCode == 429) return
-		console.error('#409 line err', err.statusCode, temp);
+	client.pushMessage(targetid, temp).catch((error) => {
+		if (error.statusCode == 429) return
+		console.error('#409 line err', error.statusCode, temp);
 	});
 }
 async function privateMsgFinder(channelid) {
@@ -415,9 +420,7 @@ async function privateMsgFinder(channelid) {
 	let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
 		data.groupid == channelid
 	)
-	if (groupInfo && groupInfo.trpgDarkRollingfunction)
-		return groupInfo.trpgDarkRollingfunction
-	else return [];
+	return groupInfo && groupInfo.trpgDarkRollingfunction ? groupInfo.trpgDarkRollingfunction : [];
 }
 async function nonDice(event) {
 	await courtMessage({ result: "", botname: "Line", inputStr: "" })

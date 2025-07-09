@@ -42,7 +42,7 @@ jest.mock('../roll/z_saveCommand.js', () => {
 
 // Import dependencies
 const records = require('../modules/records.js');
-const checkTools = require('../modules/check.js');
+    const _checkTools = require('../modules/check.js');
 const VIP = require('../modules/veryImportantPerson');
 
 // Import module

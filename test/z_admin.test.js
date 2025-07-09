@@ -63,7 +63,7 @@ jest.mock('../modules/ds-deploy-commands.js', () => ({
 const adminModule = require('../roll/z_admin.js');
 const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
-const deploy = require('../modules/ds-deploy-commands.js');
+    const _deploy = require('../modules/ds-deploy-commands.js');
 
 describe('Admin Module Tests', () => {
   beforeEach(() => {

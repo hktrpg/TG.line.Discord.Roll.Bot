@@ -117,7 +117,36 @@ export default [
       "unicorn/no-null": "off",
       "unicorn/consistent-function-scoping": "off",
       "unicorn/prefer-module": "off",
-      "n/no-unpublished-require": "off"
+      "n/no-unpublished-require": "off",
+      "no-unused-vars": ["error", { 
+        "vars": "all", 
+        "args": "none", 
+        "ignoreRestSiblings": true,
+        "varsIgnorePattern": "^_",
+        "argsIgnorePattern": "^_"
+      }],
+      "unicorn/filename-case": ["error", { 
+        "case": "kebabCase", 
+        "ignore": [
+          /^z_.*\.test\.js$/,
+          /^WN\.test\.js$/,
+          /.*\.test\.js$/
+        ]
+      }]
+    }
+  },
+  {
+    files: ["views/**/*.js"],
+    rules: {
+      // Browser-specific relaxed rules
+      "unicorn/prefer-global-this": "off",
+      "unicorn/prefer-query-selector": "off",
+      "unicorn/filename-case": ["error", { 
+        "case": "kebabCase", 
+        "ignore": [
+          /^characterCardCommon\.js$/
+        ]
+      }]
     }
   }
 ];

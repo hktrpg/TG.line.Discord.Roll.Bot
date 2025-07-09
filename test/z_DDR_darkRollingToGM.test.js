@@ -16,7 +16,7 @@ jest.mock('../modules/check.js', () => ({
 
 // Mock the module
 jest.mock('../roll/z_DDR_darkRollingToGM.js', () => {
-    const records = require('../modules/records.js');
+    const _records = require('../modules/records.js');
     const checkTools = require('../modules/check.js');
     let trpgDarkRollingfunction = {};
 
@@ -98,7 +98,7 @@ jest.mock('../roll/z_DDR_darkRollingToGM.js', () => {
 });
 
 // Import dependencies
-const records = require('../modules/records.js');
+    const _records = require('../modules/records.js');
 const checkTools = require('../modules/check.js');
 
 // Import mocked module

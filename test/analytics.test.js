@@ -96,12 +96,12 @@ describe('Analytics Module Tests', () => {
 
         test('Test with null/undefined', () => {
             expect(analytics.findRollList(null)).toBeUndefined();
-            expect(analytics.findRollList(undefined)).toBeUndefined();
+            expect(analytics.findRollList()).toBeUndefined();
         });
 
         test('Test with roll times prefix', () => {
             const mainMsg = ['.3', '.help'];
-            const result = analytics.findRollList(mainMsg);
+            const _result = analytics.findRollList(mainMsg);
             // After processing, mainMsg should be modified
             expect(mainMsg[0]).toBe('.help');
         });

@@ -81,8 +81,8 @@ process.env.mongoURL = 'test_mongo_url';
 const records = require('../modules/records.js');
 const VIP = require('../modules/veryImportantPerson');
 const checkTools = require('../modules/check.js');
-const schema = require('../modules/schema.js');
-const rollbase = require('../roll/rollbase.js');
+const _schema = require('../modules/schema.js');
+const _rollbase = require('../roll/rollbase.js');
 
 // Import module
 const trpgDatabaseModule = require('../roll/z_trpgDatabase.js');

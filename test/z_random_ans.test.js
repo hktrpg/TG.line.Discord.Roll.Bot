@@ -74,10 +74,10 @@ jest.mock('../roll/z_random_ans.js', () => {
 process.env.mongoURL = 'test_mongo_url';
 
 // Import dependencies
-const schema = require('../modules/schema.js');
-const VIP = require('../modules/veryImportantPerson');
-const checkTools = require('../modules/check.js');
-const rollbase = require('../roll/rollbase.js');
+const _schema = require('../modules/schema.js');
+const _VIP = require('../modules/veryImportantPerson');
+const _checkTools = require('../modules/check.js');
+const _rollbase = require('../roll/rollbase.js');
 
 // Import module
 const randomAnsModule = require('../roll/z_random_ans.js');

@@ -10,7 +10,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node --trace-warnings index.js",
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "resolutions": {
     "nth-check": "^2.0.1",

@@ -15,9 +15,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'yarn'
       - name: Install dependencies
         run: |
           yarn install --frozen-lockfile || npm install
+      - name: Run ESLint
+        run: |
+          yarn lint || npm run lint
       - name: Run tests
         run: |
           yarn test || npm test 

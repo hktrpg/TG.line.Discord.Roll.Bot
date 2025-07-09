@@ -44,7 +44,7 @@ jest.mock('../modules/veryImportantPerson', () => ({
 jest.mock('../roll/z_character.js', () => {
     // Only create the mock if mongoURL is set
     if (!process.env.mongoURL) {
-        return undefined;
+        return;
     }
 
     const regex = /(^[.]char$)|(^[.]ch$)/ig;
@@ -62,11 +62,11 @@ jest.mock('../roll/z_character.js', () => {
 });
 
 // Import the module after mocking
+const _mathjs = require('mathjs');
 const characterModule = require('../roll/z_character.js');
-const mathjs = require('mathjs');
 const rollbase = require('../roll/rollbase.js');
-const coc = require('../roll/2-coc.js');
-const advroll = require('../roll/0-advroll.js');
+const _coc = require('../roll/2-coc.js');
+const _advroll = require('../roll/0-advroll.js');
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
 

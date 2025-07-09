@@ -188,7 +188,7 @@ function initializeVueApps(isPublic = false) {
             debugLog('Main card Vue app initialized successfully', 'info');
 
             // Initialize card list app if element exists
-            const cardListElement = document.getElementById('array-cardList');
+            const cardListElement = document.querySelector('#array-cardList');
             if (cardListElement) {
                 cardList = Vue.createApp({
                     data() {
@@ -234,9 +234,9 @@ function setupLoginForm() {
     const retryInterval = 100; // ms
 
     function trySetupLoginForm() {
-        const userNameInput = document.getElementById('userName');
-        const userPasswordInput = document.getElementById('userPassword_id');
-        const warningElement = document.getElementById('warning');
+        const userNameInput = document.querySelector('#userName');
+        const userPasswordInput = document.querySelector('#userPassword_id');
+        const warningElement = document.querySelector('#warning');
 
         if (userNameInput && userPasswordInput && warningElement) {
             // Set initial values from localStorage
@@ -293,9 +293,9 @@ function setupLoginForm() {
 
 // Login function
 function login() {
-    const userNameInput = document.getElementById('userName');
-    const userPasswordInput = document.getElementById('userPassword_id');
-    const warningElement = document.getElementById('warning');
+    const userNameInput = document.querySelector('#userName');
+    const userPasswordInput = document.querySelector('#userPassword_id');
+    const warningElement = document.querySelector('#warning');
 
     if (!userNameInput || !userPasswordInput || !warningElement) {
         debugLog('Login form elements not found', 'error');
@@ -336,7 +336,7 @@ function login() {
 
 // Logout function
 function logout() {
-    const warningElement = document.getElementById('warning');
+    const warningElement = document.querySelector('#warning');
     if (warningElement) {
         warningElement.style.display = "none";
     }
@@ -375,7 +375,7 @@ function popup(result) {
 
 function addElement(message, type, closeDelay) {
     let $cont = $("#alerts-container");
-    if ($cont.length == 0) {
+    if ($cont.length === 0) {
         $cont = $('<div id="alerts-container">')
             .css({
                 position: "fixed",
@@ -396,7 +396,7 @@ function addElement(message, type, closeDelay) {
 
     $cont.prepend(alert);
     if (closeDelay) {
-        window.setTimeout(() => alert.alert("close"), closeDelay);
+        globalThis.setTimeout(() => alert.alert("close"), closeDelay);
     }
 }
 
@@ -442,9 +442,9 @@ socket.on("updateCard", function (result) {
 });
 
 // Export functions for use in other files
-window.initializeVueApps = initializeVueApps;
-window.debugLog = debugLog;
-window.login = login;
-window.logout = logout;
-window.readme = readme;
-window.selectCard = selectCard; 
+globalThis.initializeVueApps = initializeVueApps;
+globalThis.debugLog = debugLog;
+globalThis.login = login;
+globalThis.logout = logout;
+globalThis.readme = readme;
+globalThis.selectCard = selectCard; 

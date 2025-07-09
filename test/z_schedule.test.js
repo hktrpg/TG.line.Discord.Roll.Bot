@@ -64,11 +64,11 @@ jest.mock('../roll/z_schedule.js', () => {
 process.env.mongoURL = 'test_mongo_url';
 
 // Import dependencies
+const _moment = require('moment');
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
-const checkTools = require('../modules/check.js');
+const _checkTools = require('../modules/check.js');
 const agenda = require('../modules/schedule');
-const moment = require('moment');
 
 // Import module
 const scheduleModule = require('../roll/z_schedule.js');

@@ -16,7 +16,7 @@ jest.mock('../modules/multi-server', () => ({
 }));
 
 jest.mock('../roll/rollbase.js', () => ({
-    Dice: jest.fn(() => 12345678)
+    Dice: jest.fn(() => 12_345_678)
 }));
 
 // Mock Discord.js
@@ -167,7 +167,7 @@ describe('Multi Server Module Tests', () => {
 
     test('Test create command with invalid permissions', async () => {
         mockPermissions.has.mockReturnValue(false);
-        multiServerModule.rollDiceCommand.mockResolvedValue(undefined);
+        multiServerModule.rollDiceCommand.mockResolvedValue();
 
         const result = await multiServerModule.rollDiceCommand({
             mainMsg: ['.chatroom', 'create', 'testchannel'],
@@ -197,7 +197,7 @@ describe('Multi Server Module Tests', () => {
 
     test('Test join command with invalid permissions', async () => {
         mockPermissions.has.mockReturnValue(false);
-        multiServerModule.rollDiceCommand.mockResolvedValue(undefined);
+        multiServerModule.rollDiceCommand.mockResolvedValue();
 
         const result = await multiServerModule.rollDiceCommand({
             mainMsg: ['.chatroom', 'join', 'testmultiid', 'testchannel'],
@@ -242,7 +242,7 @@ describe('Multi Server Module Tests', () => {
 
     test('Test exit command with invalid permissions', async () => {
         mockPermissions.has.mockReturnValue(false);
-        multiServerModule.rollDiceCommand.mockResolvedValue(undefined);
+        multiServerModule.rollDiceCommand.mockResolvedValue();
 
         const result = await multiServerModule.rollDiceCommand({
             mainMsg: ['.chatroom', 'exit', 'testchannel'],
@@ -254,7 +254,7 @@ describe('Multi Server Module Tests', () => {
     });
 
     test('Test create command with database error', async () => {
-        multiServerModule.rollDiceCommand.mockResolvedValue(undefined);
+        multiServerModule.rollDiceCommand.mockResolvedValue();
 
         const result = await multiServerModule.rollDiceCommand({
             mainMsg: ['.chatroom', 'create', 'testchannel'],
@@ -267,7 +267,7 @@ describe('Multi Server Module Tests', () => {
     });
 
     test('Test join command with max channels reached', async () => {
-        multiServerModule.rollDiceCommand.mockResolvedValue(undefined);
+        multiServerModule.rollDiceCommand.mockResolvedValue();
 
         const result = await multiServerModule.rollDiceCommand({
             mainMsg: ['.chatroom', 'join', 'testmultiid', 'testchannel'],

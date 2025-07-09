@@ -37,13 +37,13 @@ jest.mock('node-fetch', () => jest.fn().mockImplementation(() => ({
 
 jest.mock('fs', () => ({
   promises: {
-    writeFile: jest.fn().mockResolvedValue(undefined)
+    writeFile: jest.fn().mockResolvedValue()
   }
 }));
 
 jest.mock('fs', () => ({
   promises: {
-    writeFile: jest.fn().mockResolvedValue(undefined)
+    writeFile: jest.fn().mockResolvedValue()
   },
   watch: jest.fn(),
   existsSync: jest.fn().mockReturnValue(true)
@@ -148,7 +148,7 @@ mockOpenAiModule.rollDiceCommand = jest.fn().mockImplementation(async ({
       return rply;
     }
     case /^.ait/i.test(mainMsg[0]): {
-      const mode = mainMsg[0].includes('4') ? { name: "gpt-4o", token: 16000 } : { name: "gpt-4o-mini", token: 12000 };
+      const mode = mainMsg[0].includes('4') ? { name: "gpt-4o", token: 16_000 } : { name: "gpt-4o-mini", token: 12_000 };
       if (mode.name === "gpt-4o") {
         if (!process.env.ADMIN_SECRET) return rply;
         if (userid !== process.env.ADMIN_SECRET) return rply;
@@ -169,7 +169,7 @@ mockOpenAiModule.rollDiceCommand = jest.fn().mockImplementation(async ({
       return rply;
     }
     case /^\S/.test(mainMsg[1]): {
-      const mode = mainMsg[0].includes('4') ? { name: "gpt-4o", token: 16000 } : { name: "gpt-4o-mini", token: 12000 };
+      const mode = mainMsg[0].includes('4') ? { name: "gpt-4o", token: 16_000 } : { name: "gpt-4o-mini", token: 12_000 };
       if (mode.name === "gpt-4o") {
         if (!process.env.ADMIN_SECRET) return rply;
         if (userid !== process.env.ADMIN_SECRET) return rply;
@@ -244,7 +244,7 @@ describe('OpenAI Module Tests', () => {
     
     expect(mockHandleChatAi).toHaveBeenCalledWith(
       '.ai Tell me a story',
-      { name: "gpt-4o-mini", token: 12000 },
+      { name: "gpt-4o-mini", token: 12_000 },
       'user123'
     );
     expect(result.type).toBe('text');
@@ -272,7 +272,7 @@ describe('OpenAI Module Tests', () => {
     
     expect(mockHandleChatAi).toHaveBeenCalledWith(
       '.ai4 Advanced question',
-      { name: "gpt-4o", token: 16000 },
+      { name: "gpt-4o", token: 16_000 },
       'admin-id'
     );
     expect(result.type).toBe('text');
@@ -294,7 +294,7 @@ describe('OpenAI Module Tests', () => {
       undefined,
       undefined,
       'user123',
-      { name: "gpt-4o-mini", token: 12000 }
+      { name: "gpt-4o-mini", token: 12_000 }
     );
     expect(result.type).toBe('text');
     expect(result.text).toBe('Translated text');

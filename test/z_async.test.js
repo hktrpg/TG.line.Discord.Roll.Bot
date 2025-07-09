@@ -44,11 +44,11 @@ jest.mock('../roll/rollbase.js', () => ({
 }));
 
 // Import the module after mocking
-const asyncModule = require('../roll/z_async_test.js');
-const chineseConv = require('chinese-conv');
+const _chineseConv = require('chinese-conv');
 const duckImage = require('@zetetic/duckduckgo-images-api');
 const wiki = require('wikijs').default;
 const translate = require('@vitalets/google-translate-api').translate;
+const asyncModule = require('../roll/z_async_test.js');
 const rollbase = require('../roll/rollbase.js');
 
 describe('Async Module Tests', () => {

@@ -378,7 +378,7 @@ const discordCommand = [
                 case 'show':
                     command = `.forward show`;
                     return command;
-                case 'delete':
+                case 'delete': {
                     const id = interaction.options.getInteger('id');
                     if (id <= 0) {
                         await interaction.reply({ content: '請提供有效的轉發編號', ephemeral: true });
@@ -386,6 +386,7 @@ const discordCommand = [
                     }
                     command = `.forward delete ${id}`;
                     return command;
+                }
             }
             return null;
         }

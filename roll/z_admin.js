@@ -11,6 +11,7 @@ const password = process.env.CRYPTO_SECRET,
 //32bit ASCII
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id
+const { SlashCommandBuilder } = require('discord.js');
 const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
 const pattId = /\s+-i\s+(\S+)/ig;
@@ -20,7 +21,6 @@ const pattName = /\s+-n\s+(\S+)/ig;
 const pattNotes = /\s+-no\s+(\S+)/ig;
 const pattSwitch = /\s+-s\s+(\S+)/ig;
 const deploy = require('../modules/ds-deploy-commands.js');
-const { SlashCommandBuilder } = require('discord.js');
 //const VIP = require('../modules/veryImportantPerson');
 const gameName = function () {
     return '【Admin Tool】.admin debug state account news on'
@@ -184,33 +184,38 @@ const discordCommand = [
             const subcommand = interaction.options.getSubcommand();
             
             // 系統監控
-            if (subcommand === 'state') {
+            switch (subcommand) {
+            case 'state': {
                 return '.admin state';
-            } else if (subcommand === 'debug') {
+            }
+            case 'debug': {
                 return '.admin debug';
-            } else if (subcommand === 'mongod') {
+            }
+            case 'mongod': {
                 return '.admin mongod';
             }
-            
-            // 帳號管理
-            else if (subcommand === 'account') {
+            case 'account': {
                 const username = interaction.options.getString('username');
                 const password = interaction.options.getString('password');
                 return `.admin account ${username} ${password}`;
-            } else if (subcommand === 'registerchannel') {
+            }
+            case 'registerchannel': {
                 return '.admin registerChannel';
-            } else if (subcommand === 'unregisterchannel') {
+            }
+            case 'unregisterchannel': {
                 return '.admin unregisterChannel';
-            } else if (subcommand === 'allowrolling') {
+            }
+            case 'allowrolling': {
                 return '.admin allowrolling';
-            } else if (subcommand === 'disallowrolling') {
+            }
+            case 'disallowrolling': {
                 return '.admin disallowrolling';
             }
-            
-            // 更新通知
-            else if (subcommand === 'news') {
+            case 'news': {
                 const status = interaction.options.getString('status');
                 return `.admin news ${status}`;
+            }
+            // No default
             }
             
             return '無效的指令';
@@ -313,22 +318,23 @@ const discordCommand = [
             const subcommand = interaction.options.getSubcommand();
             
             // 系統重啟
-            if (subcommand === 'respawn') {
+            switch (subcommand) {
+            case 'respawn': {
                 const id = interaction.options.getString('id');
                 return `.root respawn ${id}`;
-            } else if (subcommand === 'respawnall') {
+            }
+            case 'respawnall': {
                 return '.root respawnall';
             }
-            
-            // VIP管理
-            else if (subcommand === 'addvipgroup') {
+            case 'addvipgroup': {
                 const id = interaction.options.getString('id');
                 const level = interaction.options.getInteger('level');
                 const name = interaction.options.getString('name');
                 const notes = interaction.options.getString('notes') || '';
                 const switch_ = interaction.options.getBoolean('switch') ?? true;
                 return `.root addVipGroup -i ${id} -l ${level} -n ${name} -no ${notes} -s ${switch_}`;
-            } else if (subcommand === 'addvipuser') {
+            }
+            case 'addvipuser': {
                 const id = interaction.options.getString('id');
                 const level = interaction.options.getInteger('level');
                 const name = interaction.options.getString('name');
@@ -336,11 +342,10 @@ const discordCommand = [
                 const switch_ = interaction.options.getBoolean('switch') ?? true;
                 return `.root addVipUser -i ${id} -l ${level} -n ${name} -no ${notes} -s ${switch_}`;
             }
-            
-            // 指令註冊
-            else if (subcommand === 'registeredglobal') {
+            case 'registeredglobal': {
                 return '.root registeredGlobal';
-            } else if (subcommand === 'testregistered') {
+            }
+            case 'testregistered': {
                 const id = interaction.options.getString('id');
                 const targetId = id || interaction.guildId;
                 if (!targetId) {
@@ -348,17 +353,15 @@ const discordCommand = [
                 }
                 return `.root testRegistered ${targetId}`;
             }
-            
-            // 加密功能
-            else if (subcommand === 'decrypt') {
+            case 'decrypt': {
                 const text = interaction.options.getString('text');
                 return `.root decrypt ${text}`;
             }
-            
-            // 發送通知
-            else if (subcommand === 'sendnews') {
+            case 'sendnews': {
                 const message = interaction.options.getString('message');
                 return `.root send News ${message}`;
+            }
+            // No default
             }
             
             return '無效的指令';
@@ -437,19 +440,20 @@ const rollDiceCommand = async function ({
                 rply.quotes = true;
                 return rply;
             case /^registerChannel$/i.test(mainMsg[1]):
-                if (rply.text = checkTools.permissionErrMsg({
+                rply.text = checkTools.permissionErrMsg({
                     flag: checkTools.flag.ChkChannel,
                     gid: groupid
-                })) {
+                });
+                if (rply.text) {
                     return rply;
                 }
                 try {
                     temp = await schema.accountPW.findOne({
                         "id": userid
                     });
-                } catch (e) {
-                    console.error('registerChannel ERROR:', e);
-                    rply.text += JSON.stringify(e);
+                } catch (error) {
+                    console.error('registerChannel ERROR:', error);
+                    rply.text += JSON.stringify(error);
                     return rply;
                 }
                 try {
@@ -457,9 +461,9 @@ const rollDiceCommand = async function ({
                         "id": userid,
                         "channel.id": channelid || groupid
                     });
-                } catch (e) {
-                    console.error('registerChannel ERROR:', e);
-                    rply.text += JSON.stringify(e);
+                } catch (error) {
+                    console.error('registerChannel ERROR:', error);
+                    rply.text += JSON.stringify(error);
                     return rply;
                 }
                 if (temp && temp2) {
@@ -491,7 +495,7 @@ const rollDiceCommand = async function ({
                             "titleName": titleName
                         }
                     });
-                    await temp.save().catch(error => console.error('admin #138 mongoDB error: ', error.name, error.reason));
+                    await temp.save().catch(error => console.error('admin #138 mongoDB error:', error.name, error.reason));
                     rply.text = "註冊成功。如果想使用角色卡，請到\nhttps://card.hktrpg.com/";
                     if (!await checkGpAllow(channelid || groupid)) {
                         rply.text += '\n此頻道並未被Admin允許經網頁擲骰，請Admin在此頻道輸入\n.admin  allowrolling';
@@ -516,9 +520,9 @@ const rollDiceCommand = async function ({
                             }
                         }
                     });
-                } catch (e) {
-                    console.error('unregisterChannel ERROR:', e);
-                    rply.text += JSON.stringify(e);
+                } catch (error) {
+                    console.error('unregisterChannel ERROR:', error);
+                    rply.text += JSON.stringify(error);
                     return rply;
                 }
                 rply.text = "已移除註冊!如果想檢查，請到\nhttps://card.hktrpg.com/"
@@ -535,9 +539,9 @@ const rollDiceCommand = async function ({
                     doc = await schema.allowRolling.findOneAndRemove({
                         "id": channelid || groupid
                     });
-                } catch (e) {
-                    console.error('disAllowrolling ERROR:', e);
-                    rply.text += JSON.stringify(e);
+                } catch (error) {
+                    console.error('disAllowrolling ERROR:', error);
+                    rply.text += JSON.stringify(error);
                     return rply;
                 }
                 rply.text = "此頻道已被Admin取消使用網頁版角色卡擲骰的權限。\n如Admin希望允許網頁擲骰，可輸入\n.admin allowrolling";
@@ -562,9 +566,9 @@ const rollDiceCommand = async function ({
                         upsert: true,
                         returnNewDocument: true
                     });
-                } catch (e) {
-                    console.error('Allowrolling ERROR:', e);
-                    rply.text += JSON.stringify(e);
+                } catch (error) {
+                    console.error('Allowrolling ERROR:', error);
+                    rply.text += JSON.stringify(error);
                     return rply;
                 }
                 rply.text = "此頻道已被Admin允許使用網頁版角色卡擲骰，希望經網頁擲骰的玩家可在此頻道輸入以下指令登記。\n.admin registerChannel\n\n如Admin希望取消本頻道的網頁擲骰許可，可輸入\n.admin disallowrolling";
@@ -598,9 +602,9 @@ const rollDiceCommand = async function ({
                     temp = await schema.accountPW.findOne({
                         "userName": name
                     });
-                } catch (e) {
-                    console.error('ACCOUNT ERROR:', e);
-                    rply.text += JSON.stringify(e);
+                } catch (error) {
+                    console.error('ACCOUNT ERROR:', error);
+                    rply.text += JSON.stringify(error);
                     return rply;
                 }
                 if (temp && temp.id != userid) {
@@ -619,9 +623,9 @@ const rollDiceCommand = async function ({
                         upsert: true,
                         returnNewDocument: true
                     });
-                } catch (e) {
-                    console.error('ACCOUNT ERROR:', e);
-                    rply.text += JSON.stringify(e);
+                } catch (error) {
+                    console.error('ACCOUNT ERROR:', error);
+                    rply.text += JSON.stringify(error);
                     return rply;
                 }
                 rply.text += "現在你的帳號是: " + name + "\n" + "密碼: " + mainMsg[3];
@@ -642,7 +646,7 @@ const rollDiceCommand = async function ({
                         rply.text = "更新成功\n你已開啓更新通知功能";
                     }
                 } catch (error) {
-                    console.error('新增VIP GET ERROR: ', error)
+                    console.error('新增VIP GET ERROR:', error)
                     rply.text = '更新失敗\n因為 ' + error.message
                 }
                 return rply;
@@ -661,7 +665,7 @@ const rollDiceCommand = async function ({
                         rply.text = "更新成功\n你已關閉更新通知功能";
                     }
                 } catch (error) {
-                    console.error('新增VIP GET ERROR: ', error)
+                    console.error('新增VIP GET ERROR:', error)
                     rply.text = '更新失敗\n因為 ' + error.message
                 }
                 return rply;
@@ -713,7 +717,7 @@ const rollDiceCommand = async function ({
                             rply.text = "更新失敗：未找到指定的群組";
                         }
                     } catch (error) {
-                        console.error('新增VIP群組錯誤: ', error);
+                        console.error('新增VIP群組錯誤:', error);
                         rply.text = '新增VIP群組失敗\n原因: ' + error.message;
                     }
                 } catch (error) {
@@ -741,7 +745,7 @@ const rollDiceCommand = async function ({
                             rply.text = "更新失敗：未找到指定的用戶";
                         }
                     } catch (error) {
-                        console.error('新增VIP用戶錯誤: ', error);
+                        console.error('新增VIP用戶錯誤:', error);
                         rply.text = '新增VIP用戶失敗\n原因: ' + error.message;
                     }
                 } catch (error) {
@@ -777,8 +781,8 @@ async function checkGpAllow(target) {
         doc = await schema.allowRolling.findOne({
             "id": target
         })
-    } catch (e) {
-        console.error('Allowrolling ERROR:', e);
+    } catch (error) {
+        console.error('Allowrolling ERROR:', error);
 
     }
     return doc;
@@ -849,7 +853,7 @@ async function store(mainMsg, mode) {
 
 function encrypt(text) {
     let iv = crypto.randomBytes(16);
-    let cipher = crypto.createCipheriv(algorithm, Buffer.from(password, 'utf-8'), iv);
+    let cipher = crypto.createCipheriv(algorithm, Buffer.from(password, 'utf8'), iv);
     let encrypted = cipher.update(text);
     encrypted = Buffer.concat([encrypted, cipher.final()]);
     return iv.toString('hex') + ':' + encrypted.toString('hex');
@@ -861,7 +865,7 @@ function decrypt(text) {
     let textParts = text.split(':');
     let iv = Buffer.from(textParts.shift(), 'hex');
     let encryptedText = Buffer.from(textParts.join(':'), 'hex');
-    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(password, 'utf-8'), iv);
+    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(password, 'utf8'), iv);
     let decrypted = decipher.update(encryptedText);
     decrypted = Buffer.concat([decrypted, decipher.final()]);
     return decrypted.toString();

@@ -4,13 +4,13 @@ if (!process.env.mongoURL) {
 }
 let variables = {};
 const mathjs = require('mathjs');
+const { SlashCommandBuilder } = require('discord.js');
+const records = require('../modules/records.js'); // eslint-disable-line no-unused-vars
+const VIP = require('../modules/veryImportantPerson');
+const schema = require('../modules/schema.js');
 const rollDice = require('./rollbase').rollDiceCommand;
 const rollDiceCoc = require('./2_coc').rollDiceCommand;
 const rollDiceAdv = require('./0_advroll').rollDiceCommand;
-const schema = require('../modules/schema.js');
-const VIP = require('../modules/veryImportantPerson');
-const records = require('../modules/records.js');
-const { SlashCommandBuilder } = require('discord.js');
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
 const gameName = () => '【角色卡功能】 .char (add edit show delete use nonuse button) .ch (set show showall button)';
 const gameType = () => 'Tool:trpgcharacter:hktrpg';
@@ -22,10 +22,10 @@ const regexNotes = new RegExp(/notes\[(.*?)\]~/, 'i');
 const re = new RegExp(/(.*?):(.*?)(;|$)/, 'ig');
 const regexRollDice = new RegExp(/<([^<>]*)>/, 'ig');
 // Discord message link regex: https://discord.com/channels/{guildId}/{channelId}/{messageId}
-const discordLinkRegex = new RegExp(/https:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)/, 'i');
+const discordLinkRegex = new RegExp(/https:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)/, 'i'); // eslint-disable-line no-unused-vars
 
 const opt = { upsert: true, runValidators: true };
-const convertRegex = str => str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+const convertRegex = str => str.replaceAll(/([.?*+^$[\]\\(){}|-])/g, String.raw`\$1`);
 
 /*
 TODO?
@@ -164,14 +164,14 @@ const initialize = () => variables;
 // eslint-disable-next-line no-unused-vars
 const rollDiceCommand = async function ({ inputStr, mainMsg, groupid, botname, userid, channelid, discordMessage, discordClient }) {
     let rply = { default: 'on', type: 'text', text: '', characterReRoll: false, characterName: '', characterReRollName: '' };
-    let filter = {};
-    let docSwitch = {};
-    let Card = {};
-    let temp;
-    let tempMain = {};
-    let lv;
-    let limit = FUNCTION_LIMIT[0];
-    let check;
+    let filter = {}; // eslint-disable-line no-unused-vars
+    let docSwitch = {}; // eslint-disable-line no-unused-vars
+    let Card = {}; // eslint-disable-line no-unused-vars
+    let temp; // eslint-disable-line no-unused-vars
+    let tempMain = {}; // eslint-disable-line no-unused-vars
+    let lv; // eslint-disable-line no-unused-vars
+    let limit = FUNCTION_LIMIT[0]; // eslint-disable-line no-unused-vars
+    let check; // eslint-disable-line no-unused-vars
 
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
@@ -236,8 +236,8 @@ async function handlePublicUnpublic(mainMsg, inputStr, userid, rply) {
 async function handleShow(mainMsg, userid, rply) {
     let filter = { id: userid };
     if (/^show\d+/i.test(mainMsg[1])) {
-        let index = parseInt(mainMsg[1].replace(/^show/i, ''));
-        let doc = await schema.characterCard.findOne(filter).skip(index).catch(error => console.error('char show0 GET ERROR: ', error));
+        let index = Number.parseInt(mainMsg[1].replace(/^show/i, ''));
+        let doc = await schema.characterCard.findOne(filter).skip(index).catch(error => console.error('char show0 GET ERROR:', error));
         if (!doc) {
             rply.text = `
 ╭──── ⚠️錯誤提示 ────
@@ -249,7 +249,7 @@ async function handleShow(mainMsg, userid, rply) {
         return rply;
     } else {
         rply.text += '╭──── 📋角色卡列表 ────\n';
-        let doc = await schema.characterCard.find(filter).catch(error => console.error('char show GET ERROR: ', error));
+        let doc = await schema.characterCard.find(filter).catch(error => console.error('char show GET ERROR:', error));
         rply.buttonCreate = [];
         rply.text += doc.reduce((text, { name }, index) => {
             rply.buttonCreate.push(`.char use ${name}`);
@@ -281,7 +281,7 @@ async function handleAddEdit(mainMsg, inputStr, userid, groupid, rply) {
     }
     let lv = await VIP.viplevelCheckUser(userid);
     let gpLv = await VIP.viplevelCheckGroup(groupid);
-    lv = (gpLv > lv) ? gpLv : lv;
+    lv = Math.max(gpLv, lv);
     let limit = FUNCTION_LIMIT[lv];
     let check = await schema.characterCard.find({ id: userid });
     if (check.length >= limit) {
@@ -299,7 +299,7 @@ async function handleAddEdit(mainMsg, inputStr, userid, groupid, rply) {
     try {
         await schema.characterCard.updateOne(filter, Card, opt);
     } catch (error) {
-        console.error('新增角色卡 GET ERROR: ', error);
+        console.error('新增角色卡 GET ERROR:', error);
         rply.text = '新增角色卡失敗\n因為 ' + error.message;
         return rply;
     }
@@ -339,7 +339,7 @@ async function handleUseNonuse(mainMsg, inputStr, userid, groupid, channelid, rp
 }
 
 async function handleDelete(mainMsg, inputStr, userid, rply) {
-    let filter = { id: userid, name: inputStr.replace(/^\.char\s+delete\s+/ig, '') };
+    let filter = { id: userid, name: inputStr.replaceAll(/^\.char\s+delete\s+/ig, '') };
     let doc = await schema.characterCard.findOne(filter);
     if (!doc) {
         rply.text = '沒有此角色卡. 注意:刪除角色卡需要名字大小寫完全相同';
@@ -367,7 +367,7 @@ async function handleButton(mainMsg, inputStr, userid, groupid, channelid, botna
         rply.text = "這是Discord限定功能";
         return rply;
     }
-    if (inputStr.match(/^\.ch\s+button/i)) {
+    if (/^\.ch\s+button/i.test(inputStr)) {
         const filter = {
             id: userid,
             gpid: channelid || groupid,
@@ -417,7 +417,7 @@ async function handleSet(mainMsg, inputStr, userid, groupid, channelid, rply) {
         rply.text = "未有登記的角色卡, \n請輸入.char use 角色卡名字  \n進行登記";
     }
     if (doc) {
-        let useTarget = new RegExp(mainMsg[0] + '\\s+' + mainMsg[1] + '\\s+' + convertRegex(mainMsg[2]));
+        let useTarget = new RegExp(mainMsg[0] + String.raw`\s+` + mainMsg[1] + String.raw`\s+` + convertRegex(mainMsg[2]));
         let useName = convertRegex(mainMsg[2]);
         let useItemA = inputStr.replace(useTarget, '').replace(/^\s+/, '');
         let useCard = [{ name: useName, itemA: useItemA.replace(/^[.]ch\s+/, '').replace(/^[.]char\s+/, '') }];
@@ -444,9 +444,9 @@ async function handleSet(mainMsg, inputStr, userid, groupid, channelid, rply) {
             }
         } catch (error) {
             console.error('doc error', doc);
-            console.error('inputSTR: ', inputStr);
+            console.error('inputSTR:', inputStr);
             console.error('doc SAVE  GET ERROR:', error);
-            console.error('更新角色卡失敗: ', error);
+            console.error('更新角色卡失敗:', error);
             rply.text = '更新角色卡失敗';
             return rply;
         }
@@ -505,7 +505,7 @@ function handleRequestRolling(doc) {
         const roll = rolls[index];
         const itemName = new RegExp(convertRegex(roll.name) + '$', 'i');
         text[index] = (roll.itemA.match(itemName)) ? `${roll.itemA}` : `${roll.itemA} [${roll.name}]`;
-        text[index] = text[index].substring(0, 80);
+        text[index] = text[index].slice(0, 80);
     }
     text.push = `.ch use ${doc.name}`;
     return text;
@@ -517,7 +517,7 @@ function handleRequestRollingChMode(doc) {
     for (let index = 0; index < rolls.length; index++) {
         const roll = rolls[index];
         text[index] = `.ch ${roll.name}`;
-        text[index] = text[index].substring(0, 80);
+        text[index] = text[index].slice(0, 80);
     }
     return text;
 }
@@ -561,37 +561,37 @@ async function mainCharacter(doc, mainMsg, inputStr) {
             last = 'state';
             await findState.push(resutltState);
             foundAnyMatch = true;
-        } else if (mainMsg[name].match(/^[+-/*]\d+/i) && last == 'state') {
+        } else if (/^[+-/*]\d+/i.test(mainMsg[name]) && last == 'state') {
             last = '';
             let res = mainMsg[name].charAt(0);
-            let number = await countNum(mainMsg[name].substring(1));
+            let number = await countNum(mainMsg[name].slice(1));
             number ? await findState.push(res + number) : null;
-        } else if (mainMsg[name].match(/^\d+$/i) && last == 'state') {
+        } else if (/^\d+$/i.test(mainMsg[name]) && last == 'state') {
             last = '';
             await findState.push(mainMsg[name]);
         } else {
             last = '';
             // 收集相似項目
             if (doc.state) {
-                doc.state.forEach(item => {
+                for (const item of doc.state) {
                     if (item.name.toLowerCase().includes(mainMsg[name].toLowerCase())) {
                         similarItems.state.push(item.name);
                     }
-                });
+                }
             }
             if (doc.notes) {
-                doc.notes.forEach(item => {
+                for (const item of doc.notes) {
                     if (item.name.toLowerCase().includes(mainMsg[name].toLowerCase())) {
                         similarItems.notes.push(item.name);
                     }
-                });
+                }
             }
             if (doc.roll) {
-                doc.roll.forEach(item => {
+                for (const item of doc.roll) {
                     if (item.name.toLowerCase().includes(mainMsg[name].toLowerCase())) {
                         similarItems.roll.push(item.name);
                     }
-                });
+                }
             }
         }
     }
@@ -606,23 +606,23 @@ async function mainCharacter(doc, mainMsg, inputStr) {
             
             if (similarItems.state.length > 0) {
                 errorMessage += `│ • 狀態項目:\n`;
-                similarItems.state.forEach(item => {
+                for (const item of similarItems.state) {
                     errorMessage += `│   - ${item}\n`;
-                });
+                }
             }
             
             if (similarItems.notes.length > 0) {
                 errorMessage += `│ • 備註項目:\n`;
-                similarItems.notes.forEach(item => {
+                for (const item of similarItems.notes) {
                     errorMessage += `│   - ${item}\n`;
-                });
+                }
             }
             
             if (similarItems.roll.length > 0) {
                 errorMessage += `│ • 擲骰項目:\n`;
-                similarItems.roll.forEach(item => {
+                for (const item of similarItems.roll) {
                     errorMessage += `│   - ${item}\n`;
-                });
+                }
             }
         }
         
@@ -652,19 +652,19 @@ async function mainCharacter(doc, mainMsg, inputStr) {
             if (typeof (findState[i]) == 'object' && typeof (findState[i + 1]) == 'string') {
                 doc.state.forEach(async (element, index) => {
                     if (element.name === findState[i].name) {
-                        if (findState[i + 1].match(/^([0-9]*[.])?[0-9]+$/i)) {
+                        if (/^([0-9]*[.])?[0-9]+$/i.test(findState[i + 1])) {
                             doc.state[index].itemA = findState[i + 1];
                         } else {
                             try {
                                 // Ensure the current value is a number
-                                const currentValue = parseFloat(doc.state[index].itemA);
+                                const currentValue = Number.parseFloat(doc.state[index].itemA);
                                 if (isNaN(currentValue)) {
                                     console.error('Invalid current value:', doc.state[index].itemA);
                                     return;
                                 }
                                 
                                 // Parse the operation value
-                                const operationValue = parseFloat(findState[i + 1].replace('--', '-'));
+                                const operationValue = Number.parseFloat(findState[i + 1].replace('--', '-'));
                                 if (isNaN(operationValue)) {
                                     console.error('Invalid operation value:', findState[i + 1]);
                                     return;
@@ -709,7 +709,7 @@ async function mainCharacter(doc, mainMsg, inputStr) {
 }
 
 async function findObject(doc, mainMsg) {
-    let re = mainMsg.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+    let re = mainMsg.replaceAll(/([.?*+^$[\]\\(){}|-])/g, String.raw`\$1`);
     let resutlt = doc.find(element => {
         if (element.name)
             return element.name.match(new RegExp('^' + re + '$', 'i'));
@@ -793,10 +793,10 @@ async function replacer(doc, match) {
 }
 
 async function analysicInputCharacterCard(inputStr) {
-    let characterName = (inputStr.match(regexName)) ? inputStr.match(regexName)[1] : '';
-    let characterStateTemp = (inputStr.match(regexState)) ? inputStr.match(regexState)[1] : '';
-    let characterRollTemp = (inputStr.match(regexRoll)) ? inputStr.match(regexRoll)[1] : '';
-    let characterNotesTemp = (inputStr.match(regexNotes)) ? inputStr.match(regexNotes)[1] : '';
+    let characterName = (regexName.test(inputStr)) ? inputStr.match(regexName)[1] : '';
+    let characterStateTemp = (regexState.test(inputStr)) ? inputStr.match(regexState)[1] : '';
+    let characterRollTemp = (regexRoll.test(inputStr)) ? inputStr.match(regexRoll)[1] : '';
+    let characterNotesTemp = (regexNotes.test(inputStr)) ? inputStr.match(regexNotes)[1] : '';
     let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : [];
     let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : [];
     let characterNotes = (characterNotesTemp) ? await analysicStr(characterNotesTemp, false, 'notes') : [];
@@ -816,13 +816,13 @@ async function analysicStr(inputStr, state, term) {
     let character = [];
     let myArray = [];
     while ((myArray = re.exec(inputStr)) !== null) {
-        if (myArray[2].match(/.*?\/.*/) && state) {
+        if (/.*?\/.*/.test(myArray[2]) && state) {
             let temp2 = /(.*)\/(.*)/.exec(myArray[2]);
             myArray[2] = temp2[1];
             myArray[3] = temp2[2];
         }
         myArray[3] = (myArray[3] == ';') ? '' : myArray[3];
-        myArray[1] = myArray[1].replace(/\s+/g, '');
+        myArray[1] = myArray[1].replaceAll(/\s+/g, '');
         if (term !== "notes") {
             myArray[2] = myArray[2].replace(/\s+[.]ch\s+/i, ' ').replace(/\s+[.]char\s+/i, ' ');
         }
@@ -847,7 +847,7 @@ async function Merge(target, source, prop, updateMode) {
     if (!target) target = [];
     if (!source) source = [];
     const mergeByProperty = (target, source, prop) => {
-        source.forEach(sourceElement => {
+        for (const sourceElement of source) {
             let targetElement = target.find(targetElement => {
                 return sourceElement[prop].match(new RegExp('^' + convertRegex(targetElement[prop]) + '$', 'i'));
             });
@@ -855,7 +855,7 @@ async function Merge(target, source, prop, updateMode) {
                 targetElement ? Object.assign(targetElement, sourceElement) : '';
             else
                 targetElement ? Object.assign(targetElement, sourceElement) : target.push(sourceElement);
-        });
+        }
     };
     mergeByProperty(target, source, prop);
     return target;
@@ -887,12 +887,12 @@ async function replacePlaceholders(mainMsg, inputStr, doc) {
             .map(text => (text ? text.match(/(\d+)(?=\D*$)/) : null))
             .filter(num => num !== null)
             .map(num => num[0]);
-        return numbers.length > 0 ? numbers[numbers.length - 1] : match;
+        return numbers.length > 0 ? numbers.at(-1) : match;
     }));
     let resultString = inputStr;
-    matches.forEach((match, index) => {
+    for (const [index, match] of matches.entries()) {
         resultString = resultString.replace(match[0], results[index]);
-    });
+    }
     return resultString;
 }
 
@@ -921,7 +921,7 @@ async function countNum(num) {
     let temp = await rollDice({ mainMsg: [num] });
     if (temp && temp.text) {
         result = temp.text.match(/[+-]?([0-9]*[.])?[0-9]+$/)[0];
-    } else if (num.match(/^[+-]?([0-9]*[.])?[0-9]+$/)) {
+    } else if (/^[+-]?([0-9]*[.])?[0-9]+$/.test(num)) {
         result = num;
     }
     return result;

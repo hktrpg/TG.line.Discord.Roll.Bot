@@ -45,14 +45,15 @@ const TRANSLATION_PROMPT = `你是一位精通台灣繁體中文的專業翻譯�
 
 – 每輪翻譯後，都要重新比對原文，找到扭曲原意，沒有在翻譯的人名後顯示名字原文的位置或者遺漏的內容，然後再補充到下一輪的翻譯當中。（Chain of Density 概念）`;
 
+const fs = require('fs').promises;
+const fs2 = require('fs');
 const { encode } = require('gpt-tokenizer');
 const OpenAIApi = require('openai');
 const dotenv = require('dotenv');
+// eslint-disable-next-line n/no-extraneous-require
+const fetch = require('node-fetch');
 const handleMessage = require('../modules/discord/handleMessage');
 dotenv.config({ override: true });
-const fetch = require('node-fetch');
-const fs = require('fs').promises;
-const fs2 = require('fs');
 const VIP = require('../modules/veryImportantPerson');
 
 // Unified Retry Configuration
@@ -186,7 +187,7 @@ const AI_CONFIG = {
         },
         IMAGE_HIGH: {
             name: process.env.AI_MODEL_IMAGE_HIGH_NAME,
-            price: parseFloat(process.env.AI_MODEL_IMAGE_HIGH_PRICE),
+            price: Number.parseFloat(process.env.AI_MODEL_IMAGE_HIGH_PRICE),
             size: process.env.AI_MODEL_IMAGE_HIGH_SIZE,
             quality: process.env.AI_MODEL_IMAGE_HIGH_QUALITY,
             type: process.env.AI_MODEL_IMAGE_HIGH_TYPE,
@@ -286,7 +287,7 @@ class RetryManager {
 }
 
 const adminSecret = process.env.ADMIN_SECRET;
-const TRANSLATE_LIMIT_PERSONAL = [500, 100000, 150000, 150000, 150000, 150000, 150000, 150000];
+const TRANSLATE_LIMIT_PERSONAL = [500, 100_000, 150_000, 150_000, 150_000, 150_000, 150_000, 150_000];
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
@@ -568,7 +569,7 @@ class TranslateAi extends OpenAI {
         if (!text || typeof text !== 'string') return text;
         
         // Remove <thinking>...</thinking> content (including nested tags and multiline)
-        return text.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
+        return text.replaceAll(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
     }
     async getText(str, mode, discordMessage, discordClient) {
         let text = [];
@@ -581,7 +582,7 @@ class TranslateAi extends OpenAI {
             textLength += str.length;
         }
         if (discordMessage?.type === 0 && discordMessage?.attachments?.size > 0) {
-            const url = Array.from(discordMessage.attachments.filter(data => data.contentType.match(/text/i))?.values());
+            const url = [...discordMessage.attachments.filter(data => data.contentType.match(/text/i))?.values()];
             for (let index = 0; index < url.length; index++) {
                 const response = await fetch(url[index].url);
                 const data = await response.text();
@@ -594,7 +595,7 @@ class TranslateAi extends OpenAI {
         if (discordMessage?.type === 19) {
             const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
             const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId)
-            const url = Array.from(referenceMessage.attachments.filter(data => data.contentType.match(/text/i))?.values());
+            const url = [...referenceMessage.attachments.filter(data => data.contentType.match(/text/i))?.values()];
             for (let index = 0; index < url.length; index++) {
                 const response = await fetch(url[index].url);
                 const data = await response.text();
@@ -614,8 +615,8 @@ class TranslateAi extends OpenAI {
             let name = `translated_${time}.txt`
             await fs.writeFile(`./temp/${name}`, data, { encoding: 'utf8' });
             return `./temp/${name}`;
-        } catch (err) {
-            console.error(err);
+        } catch (error) {
+            console.error(error);
         }
     }
     async translateChat(inputStr, mode, modelTier = 'LOW') {
@@ -648,10 +649,10 @@ class TranslateAi extends OpenAI {
                 const dataStr = response.data;
                 const dataArray = dataStr.split('\n\n').filter(Boolean); // 將字符串分割成數組
                 const parsedData = [];
-                dataArray.forEach((str) => {
-                    const obj = JSON.parse(str.substring(6)); // 將子字符串轉換為對象
+                for (const str of dataArray) {
+                    const obj = JSON.parse(str.slice(6)); // 將子字符串轉換為對象
                     parsedData.push(obj);
-                });
+                }
                 const contents = parsedData.map((obj) => obj.choices[0].delta.content);
                 const mergedContent = contents.join('');
                 return this.removeThinkingTags(mergedContent);
@@ -696,19 +697,19 @@ class TranslateAi extends OpenAI {
         while (remains.length > 0) {
             const tokens = encode(remains);
             let offset = (tokens > tokenLimit) ? remains.length : Math.floor(tokenLimit * remains.length / tokens.length);
-            let subtext = remains.substring(0, offset);
+            let subtext = remains.slice(0, Math.max(0, offset));
             // 超過token上限，試圖找到最接近而不超過上限的文字
             while (encode(subtext).length > tokenLimit && offset > 0) {
                 offset--;
-                subtext = remains.substring(0, offset);
+                subtext = remains.slice(0, Math.max(0, offset));
             }
             // 往上檢查文字結尾
             let bound = Math.min(Math.floor(offset * 1.05), remains.length);
             let found = false;
             for (let i = offset; i < bound; i++) {
-                if (remains[i].match(/[。！!]|(\. )/)) {
-                    results.push(remains.substring(0, i + 1));
-                    remains = remains.substring(i + 1);
+                if (/[。！!]|(\. )/.test(remains[i])) {
+                    results.push(remains.slice(0, Math.max(0, i + 1)));
+                    remains = remains.slice(Math.max(0, i + 1));
                     found = true;
                     break;
                 }
@@ -718,8 +719,8 @@ class TranslateAi extends OpenAI {
             if (!found) {
                 let newlineIndex = subtext.lastIndexOf('\n');
                 if (newlineIndex !== -1) {
-                    results.push(remains.substring(0, newlineIndex + 1));
-                    remains = remains.substring(newlineIndex + 1);
+                    results.push(remains.slice(0, Math.max(0, newlineIndex + 1)));
+                    remains = remains.slice(Math.max(0, newlineIndex + 1));
                 } else {
                     // 直接把整段當成一段
                     results.push(remains);
@@ -741,7 +742,7 @@ class ChatAi extends OpenAI {
         if (!text || typeof text !== 'string') return text;
         
         // Remove <thinking>...</thinking> content (including nested tags and multiline)
-        return text.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
+        return text.replaceAll(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
     }
     async handleChatAi(inputStr, mode, userid, modelTier = 'LOW') {
         try {
@@ -773,10 +774,10 @@ class ChatAi extends OpenAI {
                 const dataStr = response.data;
                 const dataArray = dataStr.split('\n\n').filter(Boolean); // 將字符串分割成數組
                 const parsedData = [];
-                dataArray.forEach((str) => {
-                    const obj = JSON.parse(str.substring(6)); // 將子字符串轉換為對象
+                for (const str of dataArray) {
+                    const obj = JSON.parse(str.slice(6)); // 將子字符串轉換為對象
                     parsedData.push(obj);
-                });
+                }
                 const contents = parsedData.map((obj) => obj.choices[0].delta.content);
                 const mergedContent = contents.join('');
                 return this.removeThinkingTags(mergedContent);
@@ -789,6 +790,7 @@ class ChatAi extends OpenAI {
 }
 
 // Create instances AFTER all class definitions
+// eslint-disable-next-line no-unused-vars
 const openai = new OpenAI();
 const chatAi = new ChatAi();
 const imageAi = new ImageAi();
@@ -809,6 +811,7 @@ class CommandHandler {
     }
 
     async processCommand(params) {
+        // eslint-disable-next-line no-unused-vars
         const { inputStr, mainMsg, groupid, discordMessage, userid, discordClient,
             userrole, botname, displayname, channelid, displaynameDiscord, membercount } = params;
 

@@ -6,9 +6,9 @@ const {
     DynamicLoader
 } = require('bcdice');
 const variables = {};
+const { SlashCommandBuilder } = require('discord.js');
 const checkTools = require('../modules/check.js');
 const schema = require('../modules/schema.js');
-const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【BcDice】.bc'
 }
@@ -116,7 +116,7 @@ const rollDiceCommand = async function ({
         }
 
         case /^dicehelp$/i.test(mainMsg[1]): {
-            let doc = await schema.bcdiceRegedit.findOne(filter).catch(err => console.error(err))
+            let doc = await schema.bcdiceRegedit.findOne(filter).catch(error => console.error(error))
             if (doc && doc.trpgId) {
                 rply.text = await callHelp(doc.trpgId) || '';
                 return rply;
@@ -128,11 +128,12 @@ const rollDiceCommand = async function ({
 
         }
         case /^use+$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
             if (!mainMsg[2]) {
@@ -144,7 +145,7 @@ const rollDiceCommand = async function ({
                 rply.text = `此骰表ID沒有回應，請檢查是不是正確\nhttps://bcdice.org/systems/\n\n使用例子: .bc use CthulhuTech`
                 return rply;
             }
-            let doc = await schema.bcdiceRegedit.findOneAndUpdate(filter, { trpgId: mainMsg[2] }, { upsert: true, returnDocument: 'after', returnNewDocument: true }).catch(err => null)
+            let doc = await schema.bcdiceRegedit.findOneAndUpdate(filter, { trpgId: mainMsg[2] }, { upsert: true, returnDocument: 'after', returnNewDocument: true }).catch(() => null)
             if (doc) rply.text = `已更新BcDice，現在此頻道正在使用 ${doc.trpgId}
 
             使用說明: \n${help}
@@ -153,21 +154,22 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^delete+$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
-            let doc = await schema.bcdiceRegedit.findOneAndDelete(filter, { returnDocument: true }).catch(err => console.error(err))
+            let doc = await schema.bcdiceRegedit.findOneAndDelete(filter, { returnDocument: true }).catch(error => console.error(error))
             if (doc) rply.text = `已刪除BcDice的設定`
             else rply.text = `刪除失敗，請以後再嘗試`
             return rply;
         }
         case /^\S/.test(mainMsg[1] || ''): {
-            let doc = await schema.bcdiceRegedit.findOne(filter).catch(err => console.error(err))
+            let doc = await schema.bcdiceRegedit.findOne(filter).catch(error => console.error(error))
             if (doc && doc.trpgId) {
                 rply.text = await calldice(doc.trpgId, inputStr.replace(/^\S+/, ''))
                 return rply;
@@ -227,13 +229,15 @@ const discordCommand = [
             const subcommand = interaction.options.getSubcommand();
             
             switch (subcommand) {
-                case 'roll':
+                case 'roll': {
                     const command = interaction.options.getString('command');
                     return `.bc ${command}`;
+                }
                     
-                case 'use':
+                case 'use': {
                     const systemId = interaction.options.getString('system_id');
                     return `.bc use ${systemId}`;
+                }
                     
                 case 'dicehelp':
                     return `.bc dicehelp`;
@@ -270,7 +274,7 @@ async function callHelp(gameType) {
         const GameSystem = await loader.dynamicLoad(gameType);
         const result = GameSystem.HELP_MESSAGE || '';
         return result;
-    } catch (error) {
+    } catch {
         return
     }
 

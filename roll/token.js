@@ -10,7 +10,6 @@ const initialize = function () {
 const variables = {};
 const fs = require('fs');
 const path = require('path');
-const url = require('url');
 const jimp = require('jimp');
 const sharp = require('sharp');
 const { SlashCommandBuilder } = require('discord.js');
@@ -160,7 +159,7 @@ const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClien
         const d = new Date();
         let time = d.getTime();
         // Sanitize filename to remove invalid characters
-        let sanitizedText = text.text.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
+        let sanitizedText = text.text.replaceAll(/[^a-zA-Z0-9]/g, '_').slice(0, 20);
         let name = `temp_${time}_${sanitizedText}.png`
 
         const token = await tokernMaker2(response, name);
@@ -191,7 +190,7 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
         const d = new Date();
         let time = d.getTime();
         // Sanitize filename to remove invalid characters
-        let sanitizedText = text.text.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
+        let sanitizedText = text.text.replaceAll(/[^a-zA-Z0-9]/g, '_').slice(0, 20);
         let name = `temp_${time}_${sanitizedText}.png`
 
         const token = await tokernMaker3(response, name);
@@ -253,7 +252,7 @@ const polaroidTokernMaker = async (discordMessage, inputStr, mainMsg, discordCli
         const d = new Date();
         let time = d.getTime();
         // Sanitize filename to remove invalid characters
-        let sanitizedText = text.text.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
+        let sanitizedText = text.text.replaceAll(/[^a-zA-Z0-9]/g, '_').slice(0, 20);
         let name = `temp_${time}_${sanitizedText}.png`
 
         const token = await tokernMaker(response, name);
@@ -480,12 +479,6 @@ async function addTextOnImage2(token, text = ' ', text2 = ' ', name) {
     } catch {
         return null;
     }
-}
-
-
-function valueToHex(c) {
-    let hex = c.toString(16);
-    return hex
 }
 const discordCommand = [
     {
@@ -778,7 +771,7 @@ function colorTextBuilder({ size, text, text2, position }) {
     return singleLine ? Buffer.from(svgScript) : Buffer.from(svgScript);
 }
 function getFileExtension(imageUrl) {
-    const parsedUrl = url.parse(imageUrl);
+    const parsedUrl = new URL(imageUrl);
     const pathname = parsedUrl.pathname;
     const extname = path.extname(pathname);
     return extname;

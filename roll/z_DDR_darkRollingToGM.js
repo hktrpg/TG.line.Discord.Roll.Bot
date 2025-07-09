@@ -110,11 +110,12 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //
             //增加自定義關鍵字
             // .drgm[0] addgm[1] 代替名字[2]  
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
@@ -156,11 +157,12 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //    
             //刪除所有自定義關鍵字
             //
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
@@ -187,11 +189,13 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //刪除GM
             //
             if (!mainMsg[2]) rply.text += '沒有已註冊GM. '
-            if (rply.text += checkTools.permissionErrMsg({
+            const permissionError = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            rply.text += permissionError;
+            if (permissionError) {
                 return rply;
             }
             if (channelid)
@@ -236,7 +240,7 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                 rply.text = '不在群組. '
             }
             //顯示GM
-            rply.text = rply.text.replace(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replace(/,/gm, ', ')
+            rply.text = rply.text.replaceAll(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replaceAll(/,/gm, ', ')
             return rply
         default:
             break;

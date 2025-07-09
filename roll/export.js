@@ -129,6 +129,7 @@ const rollDiceCommand = async function ({
         hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.members.me).has(PermissionFlagsBits.ReadMessageHistory) || discordMessage.guild.members.me.permissions.has(PermissionFlagsBits.Administrator);
     }
 
+    // eslint-disable-next-line no-unused-vars
     async function replacer(first, second) {
         let users = await discordClient.users.fetch(second);
         if (users && users.username) {
@@ -273,7 +274,7 @@ const rollDiceCommand = async function ({
                 if (member) name = member.nickname || member.displayName;
                 if (!member) name = await discordClient.users.fetch(userId).then(user => user.username).catch(() => ""); // 嘗試獲取用戶名
                 return name ? `@${name}` : match; // 如果用戶存在，返回用戶名
-            } catch (error) {
+            } catch {
                 return match; // 如果出現錯誤，返回原始的 match
             }
         }));
@@ -292,7 +293,7 @@ const rollDiceCommand = async function ({
             rply.text = await this.getHelpMessage();
             rply.quotes = true;
             return rply;
-        case /^html$/i.test(mainMsg[1]):
+        case /^html$/i.test(mainMsg[1]): {
             if (!channelid || !groupid) {
                 rply.text = "這是頻道功能，需要在頻道上使用。"
                 return rply;
@@ -442,13 +443,15 @@ const rollDiceCommand = async function ({
             rply.text += `已私訊你 頻道 ${discordMessage.channel.name} 的聊天紀錄
             你的channel 聊天紀錄 共有 ${totalSize} 項`
             return rply;
+        }
         case /^txt$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkBot,
                 gid: groupid,
                 role: userrole,
                 name: botname
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
@@ -611,6 +614,7 @@ function getAesString(data, key, iv) { //加密
 }
 
 
+// eslint-disable-next-line no-unused-vars
 function AES(key, iv, data) {
     let algo = "aes-256-cbc"; // we are using 128 bit here because of the 16 byte key. use 256 is the key is 32 byte.
     let cipher = crypto.createCipheriv(algo, Buffer.from(key, 'utf-8'), iv.slice(0, 16));

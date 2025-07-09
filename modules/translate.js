@@ -1,5 +1,7 @@
-// Module disabled - uncomment the line below to enable
-// return;
+// Module disabled
+// Original code commented out to disable translate functionality
+
+/*
 const translate = require('@vitalets/google-translate-api');
 
 const schema = require('./schema.js');
@@ -63,10 +65,12 @@ function translateSwitchOff(channelid) {
 	if (channel) channel.switch = false;
 	console.log('translateSwitchOn', channelList)
 }
+*/
 
+// Module disabled - export empty functions
 module.exports = {
-	translateChecker,
-	translateText,
-	translateSwitchOn,
-	translateSwitchOff
+	translateChecker: () => false,
+	translateText: async (inputStr) => inputStr,
+	translateSwitchOn: () => {},
+	translateSwitchOff: () => {}
 };

@@ -432,13 +432,14 @@ const rollDiceCommand = async function ({
                 if (!password) return rply;
                 rply.text = 'Debug encrypt Data: \n' + encrypt(rply.text);
                 return rply;
-            case /^mongod$/i.test(mainMsg[1]):
+            case /^mongod$/i.test(mainMsg[1]): {
                 if (!adminSecret) return rply;
                 if (userid !== adminSecret) return rply;
                 let mongod = await schema.mongodbState();
                 rply.text = JSON.stringify(mongod.connections);
                 rply.quotes = true;
                 return rply;
+            }
             case /^registerChannel$/i.test(mainMsg[1]):
                 rply.text = checkTools.permissionErrMsg({
                     flag: checkTools.flag.ChkChannel,
@@ -504,10 +505,11 @@ const rollDiceCommand = async function ({
                 }
                 return rply;
             case /^unregisterChannel$/i.test(mainMsg[1]):
-                if (rply.text = checkTools.permissionErrMsg({
+                rply.text = checkTools.permissionErrMsg({
                     flag: checkTools.flag.ChkChannel,
                     gid: groupid
-                })) {
+                });
+                if (rply.text) {
                     return rply;
                 }
                 try {
@@ -528,11 +530,12 @@ const rollDiceCommand = async function ({
                 rply.text = "已移除註冊!如果想檢查，請到\nhttps://card.hktrpg.com/"
                 return rply;
             case /^disallowrolling$/i.test(mainMsg[1]):
-                if (rply.text = checkTools.permissionErrMsg({
+                rply.text = checkTools.permissionErrMsg({
                     flag: checkTools.flag.ChkChannelAdmin,
                     gid: groupid,
                     role: userrole
-                })) {
+                });
+                if (rply.text) {
                     return rply;
                 }
                 try {
@@ -547,11 +550,12 @@ const rollDiceCommand = async function ({
                 rply.text = "此頻道已被Admin取消使用網頁版角色卡擲骰的權限。\n如Admin希望允許網頁擲骰，可輸入\n.admin allowrolling";
                 return rply;
             case /^allowrolling$/i.test(mainMsg[1]):
-                if (rply.text = checkTools.permissionErrMsg({
+                rply.text = checkTools.permissionErrMsg({
                     flag: checkTools.flag.ChkChannelAdmin,
                     gid: groupid,
                     role: userrole
-                })) {
+                });
+                if (rply.text) {
                     return rply;
                 }
                 try {
@@ -681,7 +685,7 @@ const rollDiceCommand = async function ({
             case /^registeredGlobal$/i.test(mainMsg[1]):
                 rply.text = await deploy.registeredGlobalSlashCommands();
                 return rply;
-            case /^testRegistered$/i.test(mainMsg[1]):
+            case /^testRegistered$/i.test(mainMsg[1]): {
                 const targetId = mainMsg[2] || groupid;
                 if (!targetId) {
                     rply.text = "錯誤：未提供ID且無法獲取當前群組ID";
@@ -689,6 +693,7 @@ const rollDiceCommand = async function ({
                 }
                 rply.text = await deploy.testRegisteredSlashCommands(targetId);
                 return rply;
+            }
             case /^respawn$/i.test(mainMsg[1]):
                 if (mainMsg[2] === null) return rply;
                 discordClient.cluster.send({ respawn: true, id: mainMsg[2] });
@@ -757,11 +762,12 @@ const rollDiceCommand = async function ({
                 if (!password) return rply;
                 rply.text = decrypt(mainMsg[2]);
                 return rply;
-            case /^send$/i.test(mainMsg[1]) && /^News$/i.test(mainMsg[2]):
+            case /^send$/i.test(mainMsg[1]) && /^News$/i.test(mainMsg[2]): {
                 let target = await schema.theNewsMessage.find({ botname: botname, switch: true });
                 rply.sendNews = inputStr.replace(/\s?\S+\s+\S+\s+/, '');
                 rply.target = target;
                 return rply;
+            }
             default:
                 rply.text = "無效的系統管理員指令";
                 return rply;

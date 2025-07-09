@@ -9,8 +9,8 @@ const records = require('../modules/records.js'); // eslint-disable-line no-unus
 const VIP = require('../modules/veryImportantPerson');
 const schema = require('../modules/schema.js');
 const rollDice = require('./rollbase').rollDiceCommand;
-const rollDiceCoc = require('./2_coc').rollDiceCommand;
-const rollDiceAdv = require('./0_advroll').rollDiceCommand;
+const rollDiceCoc = require('./2-coc').rollDiceCommand;
+const rollDiceAdv = require('./0-advroll').rollDiceCommand;
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
 const gameName = () => '【角色卡功能】 .char (add edit show delete use nonuse button) .ch (set show showall button)';
 const gameType = () => 'Tool:trpgcharacter:hktrpg';
@@ -504,7 +504,7 @@ function handleRequestRolling(doc) {
     for (let index = 0; index < rolls.length; index++) {
         const roll = rolls[index];
         const itemName = new RegExp(convertRegex(roll.name) + '$', 'i');
-        text[index] = (roll.itemA.match(itemName)) ? `${roll.itemA}` : `${roll.itemA} [${roll.name}]`;
+        text[index] = (itemName.test(roll.itemA)) ? `${roll.itemA}` : `${roll.itemA} [${roll.name}]`;
         text[index] = text[index].slice(0, 80);
     }
     text.push = `.ch use ${doc.name}`;
@@ -650,6 +650,7 @@ async function mainCharacter(doc, mainMsg, inputStr) {
     if (Object.keys(findState).length > 0 || Object.keys(findNotes).length > 0) {
         for (let i = 0; i < findState.length; i++) {
             if (typeof (findState[i]) == 'object' && typeof (findState[i + 1]) == 'string') {
+                // eslint-disable-next-line unicorn/no-array-for-each
                 doc.state.forEach(async (element, index) => {
                     if (element.name === findState[i].name) {
                         if (/^([0-9]*[.])?[0-9]+$/i.test(findState[i + 1])) {
@@ -658,25 +659,25 @@ async function mainCharacter(doc, mainMsg, inputStr) {
                             try {
                                 // Ensure the current value is a number
                                 const currentValue = Number.parseFloat(doc.state[index].itemA);
-                                if (isNaN(currentValue)) {
+                                if (Number.isNaN(currentValue)) {
                                     console.error('Invalid current value:', doc.state[index].itemA);
                                     return;
                                 }
                                 
                                 // Parse the operation value
                                 const operationValue = Number.parseFloat(findState[i + 1].replace('--', '-'));
-                                if (isNaN(operationValue)) {
+                                if (Number.isNaN(operationValue)) {
                                     console.error('Invalid operation value:', findState[i + 1]);
                                     return;
                                 }
                                 
                                 // Perform the operation
                                 const result = currentValue + operationValue;
-                                if (!isNaN(result)) {
+                                if (!Number.isNaN(result)) {
                                     doc.state[index].itemA = result;
                                 }
-                            } catch (error) {
-                                console.error('error of Char:', findState[i + 1], error);
+                                    } catch {
+            console.error('error of Char:', findState[i + 1]);
                             }
                         }
                     }
@@ -878,9 +879,9 @@ async function replacePlaceholders(mainMsg, inputStr, doc) {
     const results = await Promise.all(replacedMatches.map(async (match) => {
         const contentSplit = match.split(/\s+/);
         const [resultOne, resultTwo, resultThree] = await Promise.all([
-            await rollDice({ mainMsg: contentSplit, inputStr: match }),
-            await rollDiceCoc({ mainMsg: contentSplit, inputStr: match }),
-            await rollDiceAdv({ mainMsg: contentSplit, inputStr: match })
+            rollDice({ mainMsg: contentSplit, inputStr: match }),
+            rollDiceCoc({ mainMsg: contentSplit, inputStr: match }),
+            rollDiceAdv({ mainMsg: contentSplit, inputStr: match })
         ]);
         const texts = [resultOne?.text, resultTwo?.text, resultThree?.text];
         const numbers = texts
@@ -910,7 +911,7 @@ async function myAsyncFn2(match, p1) {
     let result = '';
     try {
         result = mathjs.evaluate(p1);
-    } catch (error) {
+    } catch {
         result = p1;
     }
     return result;

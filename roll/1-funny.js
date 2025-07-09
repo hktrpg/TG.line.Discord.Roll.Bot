@@ -1,5 +1,4 @@
 "use strict";
-const rollbase = require('./rollbase.js');
 let variables = {};
 const fs = require('fs');
 const { SlashCommandBuilder } = require('discord.js');
@@ -8,6 +7,7 @@ const chineseConv = require('chinese-conv'); //繁簡轉換
 const axios = require('axios');
 const cheerio = require('cheerio');
 const wiki = require('wikijs').default;
+const rollbase = require('./rollbase.js');
 const identity = 'HKTRPG (https://www.hktrpg.com; admin@hktrpg.com) wiki.js';
 const gameName = function () {
 	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日淺草簽 每日大事 每日(星座) 每日解答	立flag .me'

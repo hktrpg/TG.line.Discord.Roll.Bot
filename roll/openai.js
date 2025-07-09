@@ -52,9 +52,10 @@ const OpenAIApi = require('openai');
 const dotenv = require('dotenv');
 // eslint-disable-next-line n/no-extraneous-require
 const fetch = require('node-fetch');
-const handleMessage = require('../modules/discord/handleMessage');
+const { SlashCommandBuilder } = require('discord.js');
 dotenv.config({ override: true });
 const VIP = require('../modules/veryImportantPerson');
+const handleMessage = require('../modules/discord/handleMessage');
 
 // Unified Retry Configuration
 const RETRY_CONFIG = {
@@ -289,7 +290,6 @@ class RetryManager {
 const adminSecret = process.env.ADMIN_SECRET;
 const TRANSLATE_LIMIT_PERSONAL = [500, 100_000, 150_000, 150_000, 150_000, 150_000, 150_000, 150_000];
 const variables = {};
-const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【OpenAi】'
 }
@@ -393,7 +393,7 @@ class OpenAI {
     }
 
     watchEnvironment() {
-        fs2.watch('.env', (eventType, filename) => {
+        fs2.watch('.env', (eventType) => {
             if (eventType === 'change') {
                 let tempEnv = dotenv.config({ override: true })
                 process.env = tempEnv.parsed;
@@ -470,7 +470,7 @@ class OpenAI {
 
     // Unified error handling with retry logic
     async handleApiError(error, retryFunction, modelTier, ...args) {
-        const { type: errorType, config: errorConfig } = this.retryManager.getErrorType(error);
+        const { type: errorType } = this.retryManager.getErrorType(error);
         
         // Check if we should stop retrying
         if (!this.retryManager.shouldRetry(errorType)) {
@@ -582,7 +582,7 @@ class TranslateAi extends OpenAI {
             textLength += str.length;
         }
         if (discordMessage?.type === 0 && discordMessage?.attachments?.size > 0) {
-            const url = [...discordMessage.attachments.filter(data => data.contentType.match(/text/i))?.values()];
+            const url = [...(discordMessage.attachments.filter(data => data.contentType.match(/text/i))?.values() || [])];
             for (let index = 0; index < url.length; index++) {
                 const response = await fetch(url[index].url);
                 const data = await response.text();
@@ -595,7 +595,7 @@ class TranslateAi extends OpenAI {
         if (discordMessage?.type === 19) {
             const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
             const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId)
-            const url = [...referenceMessage.attachments.filter(data => data.contentType.match(/text/i))?.values()];
+            const url = [...(referenceMessage.attachments.filter(data => data.contentType.match(/text/i))?.values() || [])];
             for (let index = 0; index < url.length; index++) {
                 const response = await fetch(url[index].url);
                 const data = await response.text();
@@ -812,8 +812,7 @@ class CommandHandler {
 
     async processCommand(params) {
         // eslint-disable-next-line no-unused-vars
-        const { inputStr, mainMsg, groupid, discordMessage, userid, discordClient,
-            userrole, botname, displayname, channelid, displaynameDiscord, membercount } = params;
+        const { inputStr, mainMsg, groupid, discordMessage, userid, discordClient, botname } = params;
 
         let replyMessage = "";
         // Only try to get reply content if using Discord

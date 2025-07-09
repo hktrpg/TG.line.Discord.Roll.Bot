@@ -2,17 +2,17 @@
 if (!process.env.mongoURL) {
     return;
 }
+const { SlashCommandBuilder } = require('discord.js');
+const moment = require('moment');
 const VIP = require('../modules/veryImportantPerson');
 const checkMongodb = require('../modules/dbWatchdog.js');
 const FUNCTION_AT_LIMIT = [5, 25, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema')
 const FUNCTION_CRON_LIMIT = [2, 15, 30, 45, 99, 99, 99, 99];
-const moment = require('moment');
 const agenda = require('../modules/schedule')
 const CRON_REGEX = /^(\d\d)(\d\d)((?:-([1-9]?[1-9]|((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?))){0,1})/i;
 const VALID_DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 const checkTools = require('../modules/check.js');
-const { SlashCommandBuilder } = require('discord.js');
 
 
 
@@ -122,7 +122,7 @@ const rollDiceCommand = async function ({
             }
             const jobs = await agenda.agenda.jobs(
                 check
-            ).catch(error => console.error('agenda error: ', error.name, error.reason))
+            ).catch(error => console.error('agenda error:', error.name, error.reason))
             rply.text = showJobs(jobs);
             if (userrole == 3 && botname == "Discord") {
                 rply.text = `\n本頻道列表\n\n${rply.text}`
@@ -132,7 +132,7 @@ const rollDiceCommand = async function ({
                 }
                 const jobs = await agenda.agenda.jobs(
                     check
-                ).catch(error => console.error('agenda error: ', error.name, error.reason))
+                ).catch(error => console.error('agenda error:', error.name, error.reason))
                 rply.text = `本群組列表\n\n${showJobs(jobs)} \n\n${rply.text
                     } `;
             }
@@ -161,14 +161,14 @@ const rollDiceCommand = async function ({
             }
             const jobs = await agenda.agenda.jobs(
                 check
-            ).catch(error => console.error('agenda error: ', error.name, error.reason))
+            ).catch(error => console.error('agenda error:', error.name, error.reason))
             try {
                 let data = jobs[Number(mainMsg[2]) - 1];
                 await jobs[Number(mainMsg[2]) - 1].remove();
                 rply.text = `已刪除序號#${Number(mainMsg[2])} \n${data.attrs.data.replyText}`;
 
-            } catch (e) {
-                console.error("Remove at Error removing job from collection. input: ", inputStr);
+            } catch (error) {
+                console.error("Remove at Error removing job from collection. input:", inputStr, error);
                 rply.text = "找不到該序號, 請使用.at show重新檢查"
                 return rply;
             }
@@ -182,7 +182,7 @@ const rollDiceCommand = async function ({
             }
             let lv = await VIP.viplevelCheckUser(userid);
             let gpLv = await VIP.viplevelCheckGroup(groupid);
-            lv = (gpLv > lv) ? gpLv : lv;
+            lv = Math.max(gpLv, lv);
             let limit = FUNCTION_AT_LIMIT[lv];
             let check = {
                 name: differentPeformAt(botname),
@@ -190,7 +190,7 @@ const rollDiceCommand = async function ({
             }
             let checkGroupid = await schema.agendaAtHKTRPG.countDocuments(
                 check
-            ).catch(error => console.error('schedule  #171 mongoDB error: ', error.name, error.reason));
+            ).catch(error => console.error('schedule  #171 mongoDB error:', error.name, error.reason));
             if (checkGroupid >= limit) {
                 rply.text = '.at 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 return rply;
@@ -223,17 +223,18 @@ const rollDiceCommand = async function ({
             }
 
             let callBotname = differentPeformAt(botname);
-            await agenda.agenda.schedule(date, callBotname, { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid }).catch(error => console.error('agenda error: ', error.name, error.reason))
+            await agenda.agenda.schedule(date, callBotname, { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid }).catch(error => console.error('agenda error:', error.name, error.reason))
             rply.text = `已新增排定內容\n將於${date.toString().replace(/:\d+\s.*/, '')}運行`
             return rply;
         }
         case /^\.cron+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
             if (!checkMongodb.isDbOnline()) return;
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
@@ -250,7 +251,7 @@ const rollDiceCommand = async function ({
             }
             const jobs = await agenda.agenda.jobs(
                 check
-            ).catch(error => console.error('agenda error: ', error.name, error.reason))
+            ).catch(error => console.error('agenda error:', error.name, error.reason))
             rply.text = showCronJobs(jobs);
             if (userrole == 3 && botname == "Discord") {
                 rply.text = `\n本頻道列表\n\n${rply.text}`
@@ -260,18 +261,19 @@ const rollDiceCommand = async function ({
                 }
                 const jobs = await agenda.agenda.jobs(
                     check
-                ).catch(error => console.error('agenda error: ', error.name, error.reason))
+                ).catch(error => console.error('agenda error:', error.name, error.reason))
                 rply.text = `本群組列表\n\n${showCronJobs(jobs)} \n\n${rply.text
                     } `;
             }
             return rply;
         }
         case /^\.cron$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
@@ -299,8 +301,8 @@ const rollDiceCommand = async function ({
                 await jobs[Number(mainMsg[2]) - 1].remove();
                 rply.text = `已刪除序號#${Number(mainMsg[2])} \n${data.attrs.data.replyText} `;
 
-            } catch (e) {
-                console.error("Remove Cron Error removing job from collection, input: ", inputStr);
+            } catch {
+                console.error("Remove Cron Error removing job from collection, input:", inputStr);
                 rply.text = "找不到該序號, 請使用.cron show 重新檢查"
                 return rply;
             }
@@ -317,7 +319,7 @@ const rollDiceCommand = async function ({
 
             let lv = await VIP.viplevelCheckUser(userid);
             let gpLv = await VIP.viplevelCheckGroup(groupid);
-            lv = (gpLv > lv) ? gpLv : lv;
+            lv = Math.max(gpLv, lv);
             let limit = FUNCTION_CRON_LIMIT[lv];
             let check = {
                 name: differentPeformCron(botname),
@@ -325,7 +327,7 @@ const rollDiceCommand = async function ({
             }
             let checkGroupid = await schema.agendaAtHKTRPG.countDocuments(
                 check
-            ).catch(error => console.error('schedule #278 mongoDB error: ', error.name, error.reason));
+            ).catch(error => console.error('schedule #278 mongoDB error:', error.name, error.reason));
             if (checkGroupid >= limit) {
                 rply.text = '.cron 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 return rply;
@@ -358,7 +360,7 @@ const rollDiceCommand = async function ({
 
             let text = inputStr.replace(/^\s?\S+\s+\S+\s+/, '');
             // "0 6 * * *"
-            let date = `${checkTime.min} ${checkTime.hour} *${checkTime.days ? `/${checkTime.days}` : ''} * ${(checkTime.weeks.length) ? checkTime.weeks : '*'}`;
+            let date = `${checkTime.min} ${checkTime.hour} *${checkTime.days ? `/${checkTime.days}` : ''} * ${(checkTime.weeks.length > 0) ? checkTime.weeks : '*'}`;
 
             let callBotname = differentPeformCron(botname);
             const job = agenda.agenda.create(callBotname, { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, createAt: new Date(Date.now()) });
@@ -366,11 +368,11 @@ const rollDiceCommand = async function ({
 
             try {
                 await job.save();
-            } catch (error) {
+            } catch {
                 console.error("schedule #301 Error saving job to collection");
             }
 
-            rply.text = `已新增排定內容\n將於${checkTime.days ? `每隔${checkTime.days}天` : ''}  ${checkTime.weeks.length ? `每個星期的${checkTime.weeks}` : ''}${!checkTime.weeks && !checkTime.days ? `每天` : ''} ${checkTime.hour}:${checkTime.min} (24小時制)運行`
+            rply.text = `已新增排定內容\n將於${checkTime.days ? `每隔${checkTime.days}天` : ''}  ${checkTime.weeks.length > 0 ? `每個星期的${checkTime.weeks}` : ''}${!checkTime.weeks && !checkTime.days ? `每天` : ''} ${checkTime.hour}:${checkTime.min} (24小時制)運行`
             return rply;
         }
         default: {
@@ -394,8 +396,8 @@ function differentPeformAt(botname) {
     }
 }
 function getAndRemoveRoleNameAndLink(input) {
-    let roleName = input.match(/^name=(.*)\n/mi) ? input.match(/^name=(.*)\n/mi)[1] : null;
-    let imageLink = input.match(/^link=(.*)\n/mi) ? input.match(/^link=(.*)\n/mi)[1] : null;
+    let roleName = /^name=(.*)\n/mi.test(input) ? input.match(/^name=(.*)\n/mi)[1] : null;
+    let imageLink = /^link=(.*)\n/mi.test(input) ? input.match(/^link=(.*)\n/mi)[1] : null;
     return { newText: input.replace(/^link=.*\n/mi, "").replace(/^name=.*\n/im, ""), roleName, imageLink };
 }
 
@@ -425,7 +427,7 @@ function checkAtTime(first, second) {
     switch (true) {
         case /^\d+mins$/i.test(first): {
             let time = first.match(/^(\d+)mins$/i)[1];
-            if (time > 44640) time = 44640;
+            if (time > 44_640) time = 44_640;
             if (time < 1) time = 1;
             time = moment().add(time, 'minute').toDate();
             return { time: time, threeColum: false };
@@ -467,7 +469,7 @@ function checkCronTime(text) {
         min = "00";
     }
     for (let index = 0; index < VALID_DAYS.length; index++) {
-        text.toLowerCase().indexOf(VALID_DAYS[index]) >= 0 ? weeks.push(index) : null
+        text.toLowerCase().includes(VALID_DAYS[index]) ? weeks.push(index) : null
 
     }
 
@@ -583,12 +585,15 @@ const discordCommand = [
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             
-            if (subcommand === 'show') {
+            switch (subcommand) {
+            case 'show': {
                 return '.at show';
-            } else if (subcommand === 'delete') {
+            }
+            case 'delete': {
                 const id = interaction.options.getInteger('id');
                 return `.at delete ${id}`;
-            } else if (subcommand === 'datetime') {
+            }
+            case 'datetime': {
                 const date = interaction.options.getString('date');
                 const time = interaction.options.getString('time');
                 const message = interaction.options.getString('message');
@@ -602,7 +607,8 @@ const discordCommand = [
                 if (link) command += `\nlink=${link}`;
                 
                 return command;
-            } else if (subcommand === 'countdown') {
+            }
+            case 'countdown': {
                 const amount = interaction.options.getInteger('amount');
                 const unit = interaction.options.getString('unit');
                 const message = interaction.options.getString('message');
@@ -616,6 +622,8 @@ const discordCommand = [
                 if (link) command += `\nlink=${link}`;
                 
                 return command;
+            }
+            // No default
             }
         }
     },
@@ -718,12 +726,15 @@ const discordCommand = [
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             
-            if (subcommand === 'show') {
+            switch (subcommand) {
+            case 'show': {
                 return '.cron show';
-            } else if (subcommand === 'delete') {
+            }
+            case 'delete': {
                 const id = interaction.options.getInteger('id');
                 return `.cron delete ${id}`;
-            } else if (subcommand === 'daily') {
+            }
+            case 'daily': {
                 const time = interaction.options.getString('time');
                 const message = interaction.options.getString('message');
                 const dice = interaction.options.getString('dice');
@@ -736,7 +747,8 @@ const discordCommand = [
                 if (link) command += `\nlink=${link}`;
                 
                 return command;
-            } else if (subcommand === 'interval') {
+            }
+            case 'interval': {
                 const time = interaction.options.getString('time');
                 const days = interaction.options.getInteger('days');
                 const message = interaction.options.getString('message');
@@ -750,7 +762,8 @@ const discordCommand = [
                 if (link) command += `\nlink=${link}`;
                 
                 return command;
-            } else if (subcommand === 'weekly') {
+            }
+            case 'weekly': {
                 const time = interaction.options.getString('time');
                 const days = interaction.options.getString('days');
                 const message = interaction.options.getString('message');
@@ -764,6 +777,8 @@ const discordCommand = [
                 if (link) command += `\nlink=${link}`;
                 
                 return command;
+            }
+            // No default
             }
         }
     }

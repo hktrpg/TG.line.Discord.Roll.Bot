@@ -1073,7 +1073,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                             $each:
                                 [{
                                     date: Date.now(),
-                                    activityDetail: `你${Math.max(isNaN(thisMember.stopExp) ? 0 : thisMember.stopExp, times)} 次內會失去得到${expName} 的機會`
+                                    activityDetail: `你${Math.max(Number.isNaN(thisMember.stopExp) ? 0 : thisMember.stopExp, times)} 次內會失去得到${expName} 的機會`
                                 }],
                             $sort: { date: -1 },
                             $slice: 10
@@ -1082,7 +1082,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 })
 
 
-                return `你在未來${Math.max(isNaN(thisMember.stopExp) ? 0 : thisMember.stopExp, times)} 次都會失去得到${expName} 的機會`;
+                return `你在未來${Math.max(Number.isNaN(thisMember.stopExp) ? 0 : thisMember.stopExp, times)} 次都會失去得到${expName} 的機會`;
             }
 
         case -3:
@@ -1216,14 +1216,14 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                         activityList: {
                             $each: [{
                                 date: Date.now(),
-                                activityDetail: `你接下來${Math.max(thisMember.decreaseEXPTimes, times)} 次發言都會減少 ${Math.max(isNaN(thisMember.decreaseEXP) ? 0 : thisMember.decreaseEXP, exp)} ${expName}  `
+                                activityDetail: `你接下來${Math.max(thisMember.decreaseEXPTimes, times)} 次發言都會減少 ${Math.max(Number.isNaN(thisMember.decreaseEXP) ? 0 : thisMember.decreaseEXP, exp)} ${expName}  `
                             }],
                             $sort: { date: -1 },
                             $slice: 10
                         }
                     }
                 })
-                return `你在未來 ${Math.max(isNaN(thisMember.decreaseEXPTimes) ? 0 : thisMember.decreaseEXPTimes, times)} 次發言都會減少 ${Math.max(isNaN(thisMember.decreaseEXP) ? 0 : thisMember.decreaseEXP, exp)} ${expName} `;
+                return `你在未來 ${Math.max(Number.isNaN(thisMember.decreaseEXPTimes) ? 0 : thisMember.decreaseEXPTimes, times)} 次發言都會減少 ${Math.max(Number.isNaN(thisMember.decreaseEXP) ? 0 : thisMember.decreaseEXP, exp)} ${expName} `;
             }
 
         default:
@@ -1240,7 +1240,7 @@ async function calXP(eventList, thisMemberLV, type) {
         case "exp": {
             //正面事件  把負面的數字相加
             let eventPosit = eventList.detail.map(item => {
-                if (item.result < 0 && !isNaN(item.result)) {
+                if (item.result < 0 && !Number.isNaN(item.result)) {
                     return item.result;
                 } else return 0
             });
@@ -1263,7 +1263,7 @@ async function calXP(eventList, thisMemberLV, type) {
         case "expNeg": {
             //負面事件  把正面的數字相加
             let eventNeg = eventList.detail.map(item => {
-                if (item.result > 0 && !isNaN(item.result)) {
+                if (item.result > 0 && !Number.isNaN(item.result)) {
                     return item.result;
                 } else return 0
             });
@@ -1287,7 +1287,7 @@ async function calXP(eventList, thisMemberLV, type) {
         case "times": {
             let createEventerLV = await findMaxLv(eventList.userID);
             typeNumber = await rollDice.DiceINT(5, ((createEventerLV - thisMemberLV) > 0) ? Math.min(createEventerLV - thisMemberLV, 20) : 1);
-            if (isNaN(typeNumber)) typeNumber = 1;
+            if (Number.isNaN(typeNumber)) typeNumber = 1;
             if (typeNumber < 1) typeNumber = 1;
             return typeNumber;
         }

@@ -4,13 +4,13 @@ if (!process.env.mongoURL) {
 }
 
 // 導入依賴
-const rollbase = require('./rollbase.js');
+const NodeCache = require('node-cache');
+const { SlashCommandBuilder } = require('discord.js');
 const records = require('../modules/records.js');
 const schema = require('../modules/schema.js');
-const NodeCache = require('node-cache');
 const checkTools = require('../modules/check.js');
 const VIP = require('../modules/veryImportantPerson');
-const { SlashCommandBuilder } = require('discord.js');
+const rollbase = require('./rollbase.js');
 
 // 常量定義
 const CACHE_TTL = {
@@ -520,11 +520,11 @@ function formatDatabaseList(items, page = 1, pageSize = 20) {
         const globalIndex2 = startIndex + i + 1;
 
         const padding1 = (globalIndex1 + 1).toString().padStart(2, '0');
-        const topic1 = item1.topic.length > 12 ? item1.topic.substring(0, 12) + '...' : item1.topic;
+        const topic1 = item1.topic.length > 12 ? item1.topic.slice(0, 12) + '...' : item1.topic;
 
         if (item2) {
             const padding2 = (globalIndex2 + 1).toString().padStart(2, '0');
-            const topic2 = item2.topic.length > 12 ? item2.topic.substring(0, 12) + '...' : item2.topic;
+            const topic2 = item2.topic.length > 12 ? item2.topic.slice(0, 12) + '...' : item2.topic;
             output += `│ #${padding1}: ${topic1.padEnd(15)} #${padding2}: ${topic2}\n`;
         } else {
             output += `│ #${padding1}: ${topic1}\n`;
@@ -654,11 +654,11 @@ function formatGlobalDatabaseList(database, page = 1, pageSize = 20) {
         const globalIndex2 = startIndex + i + 1;
 
         const padding1 = (globalIndex1 + 1).toString().padStart(2, '0');
-        const topic1 = item1.topic.length > 12 ? item1.topic.substring(0, 12) + '...' : item1.topic;
+        const topic1 = item1.topic.length > 12 ? item1.topic.slice(0, 12) + '...' : item1.topic;
 
         if (item2) {
             const padding2 = (globalIndex2 + 1).toString().padStart(2, '0');
-            const topic2 = item2.topic.length > 12 ? item2.topic.substring(0, 12) + '...' : item2.topic;
+            const topic2 = item2.topic.length > 12 ? item2.topic.slice(0, 12) + '...' : item2.topic;
             output += `│ #${padding1}: ${topic1.padEnd(15)} #${padding2}: ${topic2}\n`;
         } else {
             output += `│ #${padding1}: ${topic1}\n`;
@@ -715,10 +715,7 @@ const rollDiceCommand = async function ({
         type: 'text',
         text: ''
     };
-    let checkifsamename = 0;
-    let checkifsamenamegroup = 0;
-    let tempshow = 0;
-    let temp2 = 0;
+
     let lv;
     let limit = FUNCTION_LIMIT[0];
     switch (true) {
@@ -734,7 +731,8 @@ const rollDiceCommand = async function ({
             if (!mainMsg[3]) rply.text += '❌ 沒有輸入內容。\n\n';
 
             // 檢查權限
-            if (rply.text += checkPermission({ groupid, userrole })) {
+            rply.text += checkPermission({ groupid, userrole });
+            if (rply.text) {
                 return rply;
             }
 
@@ -809,7 +807,8 @@ const rollDiceCommand = async function ({
             }
 
             // 檢查權限
-            if (rply.text += checkPermission({ groupid, userrole })) {
+            rply.text += checkPermission({ groupid, userrole });
+            if (rply.text) {
                 return rply;
             }
 
@@ -867,7 +866,7 @@ const rollDiceCommand = async function ({
             }
 
             // 獲取頁碼
-            const page = parseInt(mainMsg[2]) || 1;
+            const page = Number.parseInt(mainMsg[2]) || 1;
 
             // 格式化並顯示列表
             rply.text = formatDatabaseList(groupData?.trpgDatabasefunction, page);
@@ -886,7 +885,7 @@ const rollDiceCommand = async function ({
             const groupData = database?.find(data => data.groupid === groupid);
 
             // 獲取指定索引的內容
-            const index = parseInt(mainMsg[1]) - 1;
+            const index = Number.parseInt(mainMsg[1]) - 1;
             if (groupData?.trpgDatabasefunction && index >= 0 && index < groupData.trpgDatabasefunction.length) {
                 const content = groupData.trpgDatabasefunction[index];
                 rply.text = `【${content.topic}】\n${content.contact}`;
@@ -993,7 +992,7 @@ const rollDiceCommand = async function ({
             }
 
             // 獲取頁碼
-            const page = parseInt(mainMsg[2]) || 1;
+            const page = Number.parseInt(mainMsg[2]) || 1;
 
             // 格式化並顯示列表
             rply.text = formatGlobalDatabaseList(database, page);
@@ -1080,12 +1079,10 @@ const rollDiceCommand = async function ({
             case /^allgp.title$/i.test(second):
                 temp = await dbOperations.findGp(groupid);
                 if (!temp) return ' ';
-                if (temp.Title.length == 0) {
+                if (temp.Title.length === 0) {
                     temp.Title = exports.z_Level_system.Title();
                 }
-                temp2 = await temp.Title.filter(function (item) {
-                    return item;
-                });
+                temp2 = await temp.Title.filter(Boolean);
                 num = rollbase.DiceINT(0, temp2.length - 1)
                 num = (num < 1) ? 0 : num;
                 temp = temp2[num]
@@ -1093,7 +1090,7 @@ const rollDiceCommand = async function ({
             // * {allgp.title}<---隨機全GP其中一種稱號
             case /^server.member_count$/i.test(second):
                 temp = await dbOperations.findGpMember(groupid);
-                num = (temp && temp.length) ? Math.max(membercount, temp.length) : membercount;
+                num = (temp && temp.length > 0) ? Math.max(membercount, temp.length) : membercount;
                 return num || ' ';
             //  {server.member_count} 現在頻道中總人數 \
             case /^my.RankingPer$/i.test(second): {
@@ -1101,8 +1098,8 @@ const rollDiceCommand = async function ({
                 let gpMember = await dbOperations.findGpMember(groupid);
                 temp2 = await dbOperations.ranking(userid, gpMember)
                 if (!temp2) return ' ';
-                num = (temp && gpMember.length) ? Math.max(membercount, gpMember.length) : membercount;
-                temp2 = Math.ceil(temp2 / num * 10000) / 100 + '%';
+                num = (temp && gpMember.length > 0) ? Math.max(membercount, gpMember.length) : membercount;
+                temp2 = Math.ceil(temp2 / num * 10_000) / 100 + '%';
                 return temp2 || ' ';
             }
             case /^my.Ranking$/i.test(second): {
@@ -1189,21 +1186,28 @@ const discordCommand = [
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             
-            if (subcommand === 'help') {
+            switch (subcommand) {
+            case 'help': {
                 return '.db help';
-            } else if (subcommand === 'add') {
+            }
+            case 'add': {
                 const topic = interaction.options.getString('topic');
                 const content = interaction.options.getString('content');
                 return `.db add ${topic} ${content}`;
-            } else if (subcommand === 'show') {
+            }
+            case 'show': {
                 const page = interaction.options.getInteger('page');
                 return page ? `.db show ${page}` : '.db show';
-            } else if (subcommand === 'del') {
+            }
+            case 'del': {
                 const topic = interaction.options.getString('topic');
                 return `.db del ${topic}`;
-            } else if (subcommand === 'get') {
+            }
+            case 'get': {
                 const topic = interaction.options.getString('topic');
                 return `.db ${topic}`;
+            }
+            // No default
             }
         }
     },
@@ -1254,21 +1258,28 @@ const discordCommand = [
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             
-            if (subcommand === 'help') {
+            switch (subcommand) {
+            case 'help': {
                 return '.dbp help';
-            } else if (subcommand === 'add') {
+            }
+            case 'add': {
                 const topic = interaction.options.getString('topic');
                 const content = interaction.options.getString('content');
                 return `.dbp add ${topic} ${content}`;
-            } else if (subcommand === 'show') {
+            }
+            case 'show': {
                 const page = interaction.options.getInteger('page');
                 return page ? `.dbp show ${page}` : '.dbp show';
-            } else if (subcommand === 'del') {
+            }
+            case 'del': {
                 const topic = interaction.options.getString('topic');
                 return `.dbp del ${topic}`;
-            } else if (subcommand === 'get') {
+            }
+            case 'get': {
                 const topic = interaction.options.getString('topic');
                 return `.dbp ${topic}`;
+            }
+            // No default
             }
         }
     }

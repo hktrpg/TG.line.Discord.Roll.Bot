@@ -4,10 +4,10 @@ if (!process.env.mongoURL) {
     return;
 }
 
+const { SlashCommandBuilder } = require('discord.js');
 const checkTools = require('../modules/check.js');
 const records = require('../modules/records.js');
 const VIP = require('../modules/veryImportantPerson');
-const { SlashCommandBuilder } = require('discord.js');
 
 let trpgCommandData = {};
 
@@ -179,7 +179,7 @@ const handleDeleteAllCommands = (groupid, response, permissionError) => {
         return response;
     }
 
-    trpgCommandData.commands.forEach((entry) => {
+    for (const entry of trpgCommandData.commands) {
         if (entry.groupid === groupid) {
             entry.trpgCommandfunction = [];
             records.setTrpgCommandFunction('trpgCommand', entry, () => {
@@ -187,7 +187,7 @@ const handleDeleteAllCommands = (groupid, response, permissionError) => {
             });
             response.text = '已刪除所有關鍵字';
         }
-    });
+    }
     return response;
 }
 
@@ -198,9 +198,9 @@ const handleDeleteSpecificCommand = (mainMsg, groupid, response, permissionError
         return response;
     }
 
-    trpgCommandData.commands.forEach((entry) => {
+    for (const entry of trpgCommandData.commands) {
         if (entry.groupid === groupid) {
-            const index = parseInt(mainMsg[2]);
+            const index = Number.parseInt(mainMsg[2]);
             if (index >= 0 && index < entry.trpgCommandfunction.length) {
                 const target = entry.trpgCommandfunction[index]; // get target before deletion
                 entry.trpgCommandfunction.splice(index, 1);
@@ -212,7 +212,7 @@ const handleDeleteSpecificCommand = (mainMsg, groupid, response, permissionError
                 response.text = '沒有相關關鍵字. \n請使用.cmd show 顯示列表\n\n';
             }
         }
-    });
+    }
     return response;
 }
 
@@ -223,15 +223,15 @@ const handleShowCommands = (groupid, response) => {
     }
 
     let found = false;
-    trpgCommandData.commands.forEach((entry) => {
+    for (const entry of trpgCommandData.commands) {
         if (entry.groupid === groupid) {
             response.text += '資料庫列表:';
-            entry.trpgCommandfunction.forEach((cmd, index) => {
+            for (const [index, cmd] of entry.trpgCommandfunction.entries()) {
                 found = true;
                 response.text += `\n${index}: ${cmd.topic}\n${cmd.contact}\n`;
-            });
+            }
         }
-    });
+    }
 
     if (!found) response.text = '沒有已設定的關鍵字. ';
     return response;
@@ -244,18 +244,18 @@ const handleExecuteCommand = (mainMsg, groupid, response) => {
     }
 
     let found = false;
-    trpgCommandData.commands.forEach((entry) => {
+    for (const entry of trpgCommandData.commands) {
         if (entry.groupid === groupid) {
-            entry.trpgCommandfunction.forEach((cmd) => {
+            for (const cmd of entry.trpgCommandfunction) {
                 if (cmd.topic.toLowerCase() === mainMsg[1].toLowerCase()) {
                     response.text = cmd.contact;
                     response.cmd = true;
                     found = true;
                 }
-            });
+            }
 
-            if (!found && !isNaN(mainMsg[1])) {
-                const index = parseInt(mainMsg[1]);
+            if (!found && !Number.isNaN(mainMsg[1])) {
+                const index = Number.parseInt(mainMsg[1]);
                 if (index >= 0 && index < entry.trpgCommandfunction.length) {
                     response.text = entry.trpgCommandfunction[index].contact;
                     response.cmd = true;
@@ -263,22 +263,22 @@ const handleExecuteCommand = (mainMsg, groupid, response) => {
                 }
             }
         }
-    });
+    }
 
     if (!found) response.text = '沒有相關關鍵字. ';
     return response;
 }
 
-const isDuplicateCommand = (topic, groupid, limit) => {
+const isDuplicateCommand = (topic, groupid) => {
     let isDuplicate = false;
 
-    trpgCommandData.commands.forEach((entry) => {
+    for (const entry of trpgCommandData.commands) {
         if (entry.groupid === groupid) {
             if (entry.trpgCommandfunction.some(cmd => cmd.topic.toLowerCase() === topic.toLowerCase())) {
                 isDuplicate = true;
             }
         }
-    });
+    }
 
     return isDuplicate;
 }

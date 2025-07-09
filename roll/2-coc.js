@@ -1,13 +1,13 @@
 "use strict";
-const rollbase = require('./rollbase.js');
+const mathjs = require('mathjs');
+const { SlashCommandBuilder } = require('discord.js');
 const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
 const checkMongodb = require('../modules/dbWatchdog.js');
-const mathjs = require('mathjs');
+const rollbase = require('./rollbase.js');
 const gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
 }
-const { SlashCommandBuilder } = require('discord.js');
 const gameType = function () {
 	return 'Dice:CoC'
 }
@@ -1311,11 +1311,11 @@ function DevelopmentPhase(input) {
 	for (let index = 1; index < input.length; index++) {
 		let target = '',
 			text = '';
-		if (!isNaN(input[index])) {
+		if (!Number.isNaN(Number(input[index]))) {
 			target = input[index];
 		}
 		else continue;
-		if (input[index + 1] && isNaN(input[index + 1])) {
+		if (input[index + 1] && Number.isNaN(Number(input[index + 1]))) {
 			text = input[index + 1];
 			index++;
 		}
@@ -2166,7 +2166,7 @@ class Build7Char {
 
 	build(text, age) {
 		for (const [pattern, builderClass] of this.builderRegistry.builders) {
-			if (text.match(pattern)) {
+			if (pattern.test(text)) {
 				return builderClass.build(text, age);
 			}
 		}
@@ -2511,7 +2511,7 @@ class XYZBuilder {
 			ReStr += `${rollbase.BuildDiceCal('3d6*5')}\n`
 		}
 		if (this.z) ReStr += `=======\n`
-		if (this.age && !isNaN(this.age)) {
+		if (this.age && !Number.isNaN(Number(this.age))) {
 			ReStr += `${this.ageAdjustment(this.age)}`
 			//設定 因年齡減少的點數 和 EDU加骰次數
 		} else {

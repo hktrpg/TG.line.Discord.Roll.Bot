@@ -315,11 +315,12 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
@@ -362,11 +363,12 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
@@ -386,11 +388,12 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
@@ -430,11 +433,12 @@ const rollDiceCommand = async function ({
         }
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^config$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
@@ -851,38 +855,43 @@ const discordCommand = [
             switch (subcommand) {
                 case 'help':
                     return `.level help`;
-                case 'show':
+                case 'show': {
                     const type = interaction.options.getString('type');
                     return `.level ${type} Show`;
-                case 'showme':
+                }
+                case 'showme': {
                     const count = interaction.options.getInteger('count');
                     return count ? `.level showMe ${count}` : `.level showMe`;
-                case 'showmetheworld':
+                }
+                case 'showmetheworld': {
                     const worldCount = interaction.options.getInteger('count');
                     return worldCount ? `.level showMeTheworld ${worldCount}` : `.level showMeTheworld`;
+                }
                 case 'showmeattheworld':
                     return `.level showMeAtTheworld`;
-                case 'config':
+                case 'config': {
                     const setting = interaction.options.getString('setting');
                     return `.level config ${setting}`;
-                case 'levelupword':
+                }
+                case 'levelupword': {
                     const levelUpAction = interaction.options.getString('action');
                     const levelUpText = interaction.options.getString('text');
                     
                     switch (levelUpAction) {
-                    case 'show': {
-                        return `.level LevelUpWord Show`;
-                    }
-                    case 'del': {
-                        return `.level LevelUpWord del`;
-                    }
-                    case 'set': {
-                        return levelUpText ? `.level LevelUpWord ${levelUpText}` : `.level LevelUpWord Show`;
-                    }
-                    // No default
+                        case 'show': {
+                            return `.level LevelUpWord Show`;
+                        }
+                        case 'del': {
+                            return `.level LevelUpWord del`;
+                        }
+                        case 'set': {
+                            return levelUpText ? `.level LevelUpWord ${levelUpText}` : `.level LevelUpWord Show`;
+                        }
+                        // No default
                     }
                     break;
-                case 'rankword':
+                }
+                case 'rankword': {
                     const rankAction = interaction.options.getString('action');
                     const rankText = interaction.options.getString('text');
                     
@@ -899,7 +908,8 @@ const discordCommand = [
                     // No default
                     }
                     break;
-                case 'titleword':
+                }
+                case 'titleword': {
                     const titleAction = interaction.options.getString('action');
                     const titles = interaction.options.getString('titles');
                     
@@ -916,6 +926,7 @@ const discordCommand = [
                     // No default
                     }
                     break;
+                }
                 default:
                     return `.level help`;
             }

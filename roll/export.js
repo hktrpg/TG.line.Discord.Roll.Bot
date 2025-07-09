@@ -31,7 +31,6 @@ const pipeline = promisify(stream.pipeline);
 const { createWriteStream } = require('fs');
 const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 const moment = require('moment-timezone');
-const CryptoJS = require("crypto-js");
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const checkTools = require('../modules/check.js');
@@ -601,39 +600,20 @@ const rollDiceCommand = async function ({
 
 
 
-function getAesString(data, key, iv) { //加密
-    let keyy = CryptoJS.enc.Utf8.parse(key);
-    //alert(key）;
-    let ivv = CryptoJS.enc.Utf8.parse(iv);
-    let encrypted = CryptoJS.AES.encrypt(data, keyy, {
-        iv: ivv,
-        mode: CryptoJS.mode.CBC,
-        padding: CryptoJS.pad.Pkcs7
-    });
-    return encrypted.toString(); //返回的是base64格式的密文
-}
+
 
 
 // eslint-disable-next-line no-unused-vars
 function AES(key, iv, data) {
     let algo = "aes-256-cbc"; // we are using 128 bit here because of the 16 byte key. use 256 is the key is 32 byte.
-    let cipher = crypto.createCipheriv(algo, Buffer.from(key, 'utf-8'), iv.slice(0, 16));
+    let cipher = crypto.createCipheriv(algo, Buffer.from(key, 'utf8'), iv.slice(0, 16));
     // let encrypted = cipher.update(data, 'utf-8', 'base64'); // `base64` here represents output encoding
     //encrypted += cipher.final('base64');
     let encrypted = Buffer.concat([cipher.update(Buffer.from(data)), cipher.final()]);
     return encrypted;
 }
 
-function getAES(key, iv, data) { //加密
-    let encrypted = getAesString(data, key, iv); //密文
-    //    let encrypted1 = CryptoJS.enc.Utf8.parse(encrypted);
-    return encrypted;
-}
 
-function generateKey() {
-    // 生成16字節的隨機密鑰
-    return crypto.randomBytes(16).toString('hex');
-}
 
 
 function lightEncrypt(data, key) {

@@ -2,10 +2,10 @@
 if (!process.env.mongoURL) {
     return;
 }
+const { SlashCommandBuilder } = require('discord.js');
 const records = require('../modules/records.js');
 let trpgDarkRollingfunction = {};
 const checkTools = require('../modules/check.js');
-const { SlashCommandBuilder } = require('discord.js');
 records.get('trpgDarkRolling', (msgs) => {
     trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
 })
@@ -184,7 +184,7 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
 
 
             return rply;
-        case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
+        case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]): {
             //
             //刪除GM
             //
@@ -214,6 +214,7 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             }
 
             return rply;
+        }
         case /(^[.]drgm$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             //
             //顯示列表

@@ -71,9 +71,12 @@ const rollDiceCommand = async function ({
                 temp = temp.replace('-1', '－').replace('0', '▉').replace('1', '＋')
             }
             try {
+                // eslint-disable-next-line unicorn/prefer-string-replace-all
                 rply.text = 'Fate ' + inputStr.toString().replace(/\r/g, " ").replace(/\n/g, " ") + '\n' + temp + ' = ' + ans;
+                // eslint-disable-next-line unicorn/prefer-string-replace-all
                 let mod = mainMsg[0].replace(/^\.4df/ig, '').replace(/^(\d)/, '+$1').replace(/m/ig, '-').replace(/-/g, ' - ').replace(/\+/g, ' + ');
                 if (mod) {
+                    // eslint-disable-next-line unicorn/prefer-string-replace-all
                     rply.text += ` ${mod} = ${mathjs.evaluate(ans + mod)}`.replace(/\*/g, ' * ')
 
                 }

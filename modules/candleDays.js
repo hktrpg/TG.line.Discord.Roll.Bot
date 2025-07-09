@@ -23,6 +23,10 @@ class CandleChecker {
         return CandleChecker.#instance;
     }
 
+    static clearInstance() {
+        CandleChecker.#instance = null;
+    }
+
     constructor(customDate = null) {
         if (CandleChecker.#instance) {
             return CandleChecker.#instance;
@@ -196,6 +200,8 @@ let candleChecker = CandleChecker.getInstance();
 exports.checker = (userid = null) => candleChecker.checker(userid);
 exports.reset = (customDate = null) => {
     candleChecker.cleanup();
+    // Clear the static instance for testing
+    CandleChecker.clearInstance();
     candleChecker = CandleChecker.getInstance(customDate);
 };
 exports.setDate = (customDate) => candleChecker.setDate(customDate);

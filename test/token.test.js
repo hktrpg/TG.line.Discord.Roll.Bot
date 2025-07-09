@@ -54,10 +54,10 @@ jest.mock('geopattern', () => ({
 }));
 
 jest.mock('imgbox', () => ({
-  imgbox: jest.fn().mockResolvedValue({
-    ok: true,
-    files: [{ url: 'https://example.com/image.png', original_url: 'https://example.com/image.png' }]
-  })
+    imgbox: jest.fn().mockResolvedValue({
+        ok: true,
+        files: [{ url: 'https://example.com/image.png', original_url: 'https://example.com/image.png' }]
+    })
 }));
 
 // Import the module after mocking

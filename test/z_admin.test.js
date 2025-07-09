@@ -81,7 +81,7 @@ describe('Admin Module Tests', () => {
   test('Test prefixs returns correct patterns', () => {
     const patterns = adminModule.prefixs();
     expect(Array.isArray(patterns)).toBe(true);
-    expect(patterns.length).toBe(1);
+    expect(patterns.length).toBe(2);
     expect(patterns[0].first).toBeInstanceOf(RegExp);
     expect(patterns[0].first.test('.admin')).toBe(true);
     expect(patterns[0].second).toBeNull();

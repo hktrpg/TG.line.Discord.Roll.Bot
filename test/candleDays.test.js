@@ -36,51 +36,69 @@ describe('CandleDays Module Tests', () => {
         expect(result).toBe('');
     });
 
-    test('Test checker returns candle emoji on configured date', () => {
+    test('Test checker returns candle emoji on configured date', async () => {
         // Configure for February 14 with 🌷
         process.env.CANDLE_DATES = '2,14,🌷';
         candleDays.reset(new Date('2024-02-14'));
+        
+        // Add a small delay to ensure the module is properly initialized
+        await new Promise(resolve => setTimeout(resolve, 10));
         
         const result = candleDays.checker();
         expect(result).toBe('🌷');
     });
 
-    test('Test checker returns default candle emoji when no specific emoji is provided', () => {
+    test('Test checker returns default candle emoji when no specific emoji is provided', async () => {
         // Configure for December 25 without specific emoji
         process.env.CANDLE_DATES = '12,25';
         candleDays.reset(new Date('2024-12-25'));
+        
+        // Add a small delay to ensure the module is properly initialized
+        await new Promise(resolve => setTimeout(resolve, 10));
         
         const result = candleDays.checker();
         expect(result).toBe('🕯️');
     });
 
-    test('Test checker returns empty string on non-configured date', () => {
+    test('Test checker returns empty string on non-configured date', async () => {
         // Configure for different dates
         process.env.CANDLE_DATES = '2,14,🌷 12,25,🕯️';
         candleDays.reset(new Date('2024-01-01'));
+        
+        // Add a small delay to ensure the module is properly initialized
+        await new Promise(resolve => setTimeout(resolve, 10));
         
         const result = candleDays.checker();
         expect(result).toBe('');
     });
 
-    test('Test checker handles multiple configured dates', () => {
+    test('Test checker handles multiple configured dates', async () => {
         // Configure multiple dates
         process.env.CANDLE_DATES = '2,14,🌷 12,25,🎄 6,4,🎂';
         candleDays.reset(new Date('2024-12-25'));
+        
+        // Add a small delay to ensure the module is properly initialized
+        await new Promise(resolve => setTimeout(resolve, 10));
         
         const result = candleDays.checker();
         expect(result).toBe('🎄');
     });
 
-    test('Test checker updates when date changes', () => {
+    test('Test checker updates when date changes', async () => {
         process.env.CANDLE_DATES = '2,14,🌷';
         candleDays.reset(new Date('2024-02-13'));
+        
+        // Add a small delay to ensure the module is properly initialized
+        await new Promise(resolve => setTimeout(resolve, 10));
         
         // Initial check should be empty
         expect(candleDays.checker()).toBe('');
         
         // Change date to February 14
         candleDays.setDate(new Date('2024-02-14'));
+        
+        // Add a small delay to ensure the module is properly updated
+        await new Promise(resolve => setTimeout(resolve, 10));
         
         // Check should now return the candle
         expect(candleDays.checker()).toBe('🌷');

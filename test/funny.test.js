@@ -163,13 +163,13 @@ describe('Funny Module Tests', () => {
         expect(funny.discordCommand.length).toBeGreaterThan(0);
         
         // Check individual commands
-        const meeCommand = funny.discordCommand.find(cmd => cmd.data && cmd.data.name === 'mee');
-        expect(meeCommand).toBeDefined();
-        expect(meeCommand.data.description).toContain('複述功能');
-        
         const sortCommand = funny.discordCommand.find(cmd => cmd.data && cmd.data.name === '排序');
         expect(sortCommand).toBeDefined();
         expect(sortCommand.data.description).toContain('隨機排序');
+        
+        const randomCommand = funny.discordCommand.find(cmd => cmd.data && cmd.data.name === '隨機');
+        expect(randomCommand).toBeDefined();
+        expect(randomCommand.data.description).toContain('隨機抽選');
         
         const tarotCommand = funny.discordCommand.find(cmd => cmd.data && cmd.data.name === '塔羅');
         expect(tarotCommand).toBeDefined();

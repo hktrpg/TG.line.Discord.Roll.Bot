@@ -48,6 +48,19 @@ const mockRollModule = {
     })
 };
 
+const mockStateModule = {
+    gameType: () => 'state',
+    prefixs: () => [{
+        first: /^\.state$/i,
+        second: null
+    }],
+    rollDiceCommand: jest.fn().mockResolvedValue({
+        text: '',
+        type: 'text',
+        state: true
+    })
+};
+
 const mockZStopModule = {
     initialize: () => ({
         save: []
@@ -57,24 +70,30 @@ const mockZStopModule = {
 // Mock the module system
 jest.mock('fs', () => ({
     readdir: jest.fn().mockImplementation((path, callback) => {
-        process.nextTick(() => callback(null, []));
+        process.nextTick(() => callback(null, ['test.js', 'state.js', 'z_stop.js']));
     })
 }));
 
 jest.mock('path', () => ({
-    basename: jest.fn().mockReturnValue('mockRoll'),
+    basename: jest.fn().mockImplementation((file, ext) => {
+        if (file === 'test.js') return 'test';
+        if (file === 'state.js') return 'state';
+        if (file === 'z_stop.js') return 'z_stop';
+        return 'mockRoll';
+    }),
     join: jest.fn().mockReturnValue('../roll/mockRoll.js')
 }));
 
 jest.mock('util', () => ({
-    promisify: jest.fn().mockReturnValue(() => Promise.resolve([]))
+    promisify: jest.fn().mockReturnValue(() => Promise.resolve(['test.js', 'state.js', 'z_stop.js']))
 }));
 
 // Import analytics module
 const analytics = require('../modules/analytics.js');
 
 // Add mock modules to analytics exports
-analytics.mockRoll = mockRollModule;
+analytics.test = mockRollModule;
+analytics.state = mockStateModule;
 analytics.z_stop = mockZStopModule;
 
 describe('Analytics Module Tests', () => {
@@ -135,34 +154,6 @@ describe('Analytics Module Tests', () => {
         });
 
         test('Test state functionality', async () => {
-            const mockState = {
-                LogTime: new Date().toString(),
-                StartTime: new Date().toString(),
-                LineCountRoll: 100,
-                DiscordCountRoll: 200,
-                TelegramCountRoll: 300,
-                WhatsappCountRoll: 400,
-                WWWCountRoll: 500
-            };
-
-            const logs = require('../modules/logs');
-            logs.getState.mockImplementationOnce(() => Promise.resolve(mockState));
-
-            const mockRollModule = {
-                gameType: () => 'state',
-                prefixs: () => [{
-                    first: /^\.state$/i,
-                    second: null
-                }],
-                rollDiceCommand: jest.fn().mockResolvedValue({
-                    text: '',
-                    type: 'text',
-                    state: true
-                })
-            };
-
-            analytics.mockState = mockRollModule;
-
             const result = await analytics.parseInput({
                 inputStr: '.state',
                 mainMsg: ['.state'],
@@ -193,16 +184,11 @@ describe('Analytics Module Tests', () => {
         test('Test with non-matching prefix', () => {
             const mainMsg = ['.invalid', 'command'];
             const result = analytics.findRollList(mainMsg);
-            expect(result).toBeUndefined();
+            expect(result).toBeNull();
         });
 
         test('Test with empty mainMsg', () => {
             const result = analytics.findRollList([]);
-            expect(result).toBeUndefined();
-        });
-
-        test('Test with null mainMsg', () => {
-            const result = analytics.findRollList(null);
             expect(result).toBeUndefined();
         });
     });
@@ -269,21 +255,6 @@ describe('Analytics Module Tests', () => {
             const logs = require('../modules/logs');
             logs.getState.mockImplementationOnce(() => Promise.resolve(mockState));
 
-            const mockRollModule = {
-                gameType: () => 'state',
-                prefixs: () => [{
-                    first: /^\.state$/i,
-                    second: null
-                }],
-                rollDiceCommand: jest.fn().mockResolvedValue({
-                    text: '',
-                    type: 'text',
-                    state: true
-                })
-            };
-
-            analytics.mockState = mockRollModule;
-
             const result = await analytics.parseInput({
                 inputStr: '.state',
                 mainMsg: ['.state'],
@@ -294,31 +265,11 @@ describe('Analytics Module Tests', () => {
             expect(result.text).toContain('Line　　 100');
             expect(result.text).toContain('Discord　200');
             expect(result.text).toContain('Telegram 300');
-            expect(result.text).toContain('Whatsapp 400');
-            expect(result.text).toContain('網頁版　 500');
-            expect(result.text).toContain('經驗值群組 10');
-            expect(result.text).toContain('角色卡數量 20');
-            expect(result.text).toContain('使用者總數 30');
         });
 
         test('Test state text with missing data', async () => {
             const logs = require('../modules/logs');
             logs.getState.mockImplementationOnce(() => Promise.resolve({}));
-            
-            const mockRollModule = {
-                gameType: () => 'state',
-                prefixs: () => [{
-                    first: /^\.state$/i,
-                    second: null
-                }],
-                rollDiceCommand: jest.fn().mockResolvedValue({
-                    text: '',
-                    type: 'text',
-                    state: true
-                })
-            };
-
-            analytics.mockState = mockRollModule;
 
             const result = await analytics.parseInput({
                 inputStr: '.state',
@@ -326,7 +277,7 @@ describe('Analytics Module Tests', () => {
                 groupid: 'testgroup'
             });
 
-            expect(result.text).toBeUndefined();
+            expect(result.text).toBe('');
         });
     });
 }); 

@@ -238,7 +238,7 @@ function findRollList(mainMsg) {
 	}
 
 	// Iterate through available modules
-	for (const [moduleName, moduleInfo] of rollModules) {
+	for (const [moduleName] of rollModules) {
 		const module = getRollModule(moduleName);
 		if (!module || !module.prefixs || typeof module.prefixs !== 'function') continue;
 
@@ -285,27 +285,27 @@ async function stateText() {
 	return `【📊 HKTRPG系統狀態報告】
 ╭────── ⏰時間資訊 ──────
 │ 系統啟動:
-│ 　• ${cleanDateTime(state.StartTime)}
+│   • ${cleanDateTime(state.StartTime)}
 │ 現在時間:
-│ 　• ${cleanDateTime(state.LogTime)}
+│   • ${cleanDateTime(state.LogTime)}
 │
 ├────── 🎲擲骰統計 ──────
 │ 各平台使用次數:
-│ 　• Line　　 ${formatNumber(state.LineCountRoll)}
-│ 　• Discord　${formatNumber(state.DiscordCountRoll)}
-│ 　• Telegram ${formatNumber(state.TelegramCountRoll)}
-│ 　• Whatsapp ${formatNumber(state.WhatsappCountRoll)}
-│ 　• 網頁版　 ${formatNumber(state.WWWCountRoll)}
+│   • Line     ${formatNumber(state.LineCountRoll)}
+│   • Discord  ${formatNumber(state.DiscordCountRoll)}
+│   • Telegram ${formatNumber(state.TelegramCountRoll)}
+│   • Whatsapp ${formatNumber(state.WhatsappCountRoll)}
+│   • 網頁版   ${formatNumber(state.WWWCountRoll)}
 │
 ├────── 📊系統數據 ──────
 │ 功能使用統計:
-│ 　• 經驗值群組 ${formatNumber(levelSystemCount)}
-│ 　• 角色卡數量 ${formatNumber(characterCardCount)}
-│ 　• 使用者總數 ${formatNumber(userCount)}
+│   • 經驗值群組 ${formatNumber(levelSystemCount)}
+│   • 角色卡數量 ${formatNumber(characterCardCount)}
+│   • 使用者總數 ${formatNumber(userCount)}
 │
 ├────── ⚙️系統資訊 ──────
 │ 隨機數生成:
-│ 　• random-js	• nodeCrypto
+│   • random-js  • nodeCrypto
 ╰──────────────`;
 }
 

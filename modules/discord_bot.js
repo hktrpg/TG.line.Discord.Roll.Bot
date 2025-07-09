@@ -36,8 +36,8 @@ const MESSAGE_SPLITOR = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const mongo = process.env.mongoURL
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const EXPUP = require('./level').EXPUP || function () {};
-const courtMessage = require('./logs').courtMessage || function () {};
+const EXPUP = require('./level').EXPUP || function () { };
+const courtMessage = require('./logs').courtMessage || function () { };
 
 const newMessage = require('./message');
 
@@ -159,7 +159,7 @@ client.once('ready', async () => {
 	client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
 	console.log(`Discord: Logged in as ${client.user.tag}!`);
 	let switchSetActivity = 0;
-	 
+
 	//await sleep(6);
 	const HEARTBEAT_CHECK_INTERVAL = 1000 * 60;
 	const WARNING_THRESHOLD = 3;
@@ -180,7 +180,7 @@ client.once('ready', async () => {
 			console.log(`Discord Heartbeat: ID: ${isAwake.length} - ${heartbeat}... `)
 		}
 		if (heartbeat > WARNING_THRESHOLD && adminSecret) {
-			SendToId(adminSecret, `HKTRPG ID: ${wakeup.join(', ')} 可能下線了 請盡快檢查.`);
+			SendToId(adminSecret, `HKTRPG ID: ${isAwake.join(', ')} 可能下線了 請盡快檢查.`);
 		}
 		if (heartbeat > CRITICAL_THRESHOLD) {
 			if (isAwake.length > 0)
@@ -254,7 +254,7 @@ function handlingCountButton(message, mode) {
 	const regexpButton = convertRegex(`${button}`)
 	let newContent = content;
 	if (/要求擲骰\/點擊/.test(newContent)) newContent = '';
-	if (newContent.match(regexpButton)) {
+	if (regexpButton.test(newContent)) {
 		let checkRepeat = checkRepeatName(content, button, user)
 		if (!checkRepeat)
 			newContent = newContent.replace(regexpButton, `、${user} ${button}`)
@@ -267,10 +267,10 @@ function checkRepeatName(content, button, user) {
 	let flag = false;
 	const everylines = content.split(/\n/);
 	for (const line of everylines) {
-		if (line.match(convertRegex(button))) {
+		if (convertRegex(button).test(line)) {
 			let splitNames = line.split('、');
 			for (const name of splitNames) {
-				if (name.match(convertRegex(user)) || name.match(convertRegex(`${user} ${button}`))) {
+				if (convertRegex(user).test(name) || convertRegex(`${user} ${button}`).test(name)) {
 					flag = true;
 				}
 			}
@@ -371,7 +371,7 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 	let channel;
 	try {
 		channel = await client.channels.fetch(channelid)
-	} catch (error) {
+	} catch {
 		// Channel not found in cache
 	}
 
@@ -380,7 +380,7 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 		try {
 			let guild = await client.guilds.fetch(groupid)
 			channel = await guild.channels.fetch(channelid)
-		} catch (error) {
+		} catch {
 			// Guild or channel not found
 		}
 	}
@@ -614,46 +614,22 @@ async function handlingCommand(message) {
 	try {
 		const command = client.commands.get(message.commandName);
 		if (!command) return;
-		let answer = await command.execute(message).catch(error => {
+		let answer = await command.execute(message).catch(() => {
 			//console.error(error);
 			//await message.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 		})
 		return answer;
-	} catch (error) {
+	} catch {
 		return;
 	}
 
 }
-async function repeatMessage(discord, message) {
-	try {
-		await discord.delete();
-	} catch (error) {
-		//error
-	}
-	let webhook = await manageWebhook(discord);
-	try {
-		let messageData = message.myName || message.myspeck;
-		if (!messageData) return;
 
-		let text = await rollText(messageData.content);
-		//threadId: discord.channelId,
-		let obj = {
-			content: text,
-			username: messageData.username,
-			avatarURL: messageData.avatarURL
-		};
-		let pair = (webhook && webhook.isThread) ? { threadId: discord.channelId } : {};
-		await webhook.webhook.send({ ...obj, ...pair });
-	} catch (error) {
-		await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
-		return;
-	}
-}
 
 async function repeatMessages(discord, message) {
 	try {
 		await discord.delete();
-	} catch (error) {
+	} catch {
 		//error
 	}
 	try {
@@ -671,7 +647,7 @@ async function repeatMessages(discord, message) {
 
 		}
 
-	} catch (error) {
+	} catch {
 		await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 		return;
 	}
@@ -697,7 +673,7 @@ async function manageWebhook(discord) {
 			})
 		}
 		return { webhook, isThread };
-	} catch (error) {
+	} catch {
 		//	console.error(error)
 		await SendToReplychannel({ replyText: '不能新增Webhook.\n 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: (discord.channel && discord.channel.id) || discord.channelId });
 		return;
@@ -714,7 +690,7 @@ async function roleReact(channelid, message) {
 		}
 		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('discord_bot #786 mongoDB error:', error.name, error.reason))
 
-	} catch (error) {
+	} catch {
 		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限', channelid });
 		return;
 	}
@@ -732,7 +708,7 @@ async function newRoleReact(channel, message) {
 			sendMessage.react(detail[index].emoji);
 		}
 
-	} catch (error) {
+	} catch {
 		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限' });
 		return;
 	}
@@ -751,9 +727,7 @@ async function checkWakeUp() {
 				return r;
 			}, []);
 			if (indexes.length > 0) {
-				for (const index of indexes) {
-					//checkMongodb.discordClientRespawn(client, index)
-				}
+				// Would call checkMongodb.discordClientRespawn for each index if needed
 				return indexes;
 			}
 			else return true;
@@ -1425,7 +1399,7 @@ const sendFiles = async (message, rplyVal, userid) => {
 		await message.channel.send({
 			content: `<@${userid}>\n${text}`, files
 		});
-	} catch (error) {
+	} catch {
 		console.error;
 	}
 	for (let index = 0; index < rplyVal.fileLink.length; index++) {
@@ -1447,7 +1421,6 @@ async function handlingSendMessage(input) {
 	const groupid = input.groupid
 	const userid = input.userid
 	let sendText = input.text
-	const message = input.message
 	const statue = input.statue
 	const quotes = input.quotes
 	const buttonCreate = input.buttonCreate;
@@ -1671,7 +1644,7 @@ function __checkUserRole(groupid, message) {
 			return 3;
 		if (groupid && message.channel && message.channel.permissionsFor(message.member) && message.channel.permissionsFor(message.member).has(PermissionsBitField.Flags.ManageChannels)) return 2;
 		return 1;
-	} catch (error) {
+	} catch {
 		//	console.log('error', error)
 		return 1;
 	}
@@ -2005,7 +1978,7 @@ async function __handlingInteractionMessage(message) {
 async function __sendMeMessage({ message, rplyVal, groupid }) {
 	try {
 		await message.delete();
-	} catch (error) {}
+	} catch { }
 	if (groupid) {
 		await SendToReplychannel({ replyText: rplyVal.myspeck.content, channelid: message.channel.id });
 	} else {

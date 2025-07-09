@@ -1,8 +1,10 @@
 // Module disabled - uncomment the line below to enable
 // return;
-const schema = require('./schema.js');
-const channelList = [];
 const translate = require('@vitalets/google-translate-api');
+
+const schema = require('./schema.js');
+
+const channelList = [];
 (async () => {
 	try {
 		await getRecords();

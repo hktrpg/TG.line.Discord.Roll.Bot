@@ -1,21 +1,25 @@
 "use strict";
+const fs = require('node:fs');
+
+const { ClusterClient, getInfo } = require('discord-hybrid-sharding');
+const Discord = require('discord.js');
+const isImageURL = require('image-url-validator').default;
+const WebSocket = require('ws');
+
+const candle = require('../modules/candleDays.js');
+const records = require('../modules/records.js');
+const schema = require('../modules/schema.js');
+
 exports.analytics = require('./analytics');
 const debugMode = !!process.env.DEBUG;
-const schema = require('../modules/schema.js');
-const records = require('../modules/records.js');
-const isImageURL = require('image-url-validator').default;
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/igm);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
-const candle = require('../modules/candleDays.js');
-const { ClusterClient, getInfo } = require('discord-hybrid-sharding');
-const Discord = require('discord.js');
-const { Client, GatewayIntentBits, Partials, Options } = Discord;
-const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType } = Discord;
+const { Client } = Discord;
+const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType } = Discord;
 
 const multiServer = require('../modules/multi-server')
 const checkMongodb = require('../modules/dbWatchdog.js');
-const fs = require('node:fs');
 const errorCount = [];
 const { rollText } = require('./getRoll');
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
@@ -30,17 +34,15 @@ client.cluster = new ClusterClient(client);
 client.login(channelSecret);
 const MESSAGE_SPLITOR = (/\S+/ig);
 const link = process.env.WEB_LINK;
-const port = process.env.PORT || 20721;
 const mongo = process.env.mongoURL
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const EXPUP = require('./level').EXPUP || function () { };
-const courtMessage = require('./logs').courtMessage || function () { };
+const EXPUP = require('./level').EXPUP || function () {};
+const courtMessage = require('./logs').courtMessage || function () {};
 
 const newMessage = require('./message');
 
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const shardid = client.cluster.id;
-const WebSocket = require('ws');
 let ws;
 
 client.on('messageCreate', async message => {
@@ -71,7 +73,7 @@ client.on('messageCreate', async message => {
 client.on('guildCreate', async guild => {
 	try {
 		const channels = await guild.channels.fetch();
-		const keys = Array.from(channels.values());
+		const keys = [...channels.values()];
 		const channel = keys.find(channel => {
 			return channel.type === ChannelType.GuildText && channel.permissionsFor(guild.members.me).has(PermissionsBitField.Flags.SendMessages)
 		});
@@ -107,7 +109,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId })
 		.cache(30)
 		.catch(error => {
-			console.error('discord_bot #802 mongoDB error: ', error.name, error.reason)
+			console.error('discord_bot #802 mongoDB error:', error.name, error.reason)
 			checkMongodb.dbErrOccurs();
 		})
 	try {
@@ -118,12 +120,12 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		});
 		if (findEmoji) {
 			const member = await reaction.message.guild.members.fetch(user.id);
-			member.roles.add(findEmoji.roleID.replace(/\D/g, ''))
+			member.roles.add(findEmoji.roleID.replaceAll(/\D/g, ''))
 		} else {
 			reaction.users.remove(user.id);
 		}
 	} catch (error) {
-		console.error('Discord bot messageReactionAdd #249 ', (error && error.name), (error && error.message), (error && error.reason))
+		console.error('Discord bot messageReactionAdd #249', (error && error.name), (error && error.message), (error && error.reason))
 	}
 
 });
@@ -131,27 +133,23 @@ client.on('messageReactionAdd', async (reaction, user) => {
 client.on('messageReactionRemove', async (reaction, user) => {
 	if (!checkMongodb.isDbOnline()) return;
 	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error: ', error.name, error.reason))
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error:', error.name, error.reason))
 	try {
 		if (!list || list.length === 0) return;
 		const detail = list.detail;
 		for (let index = 0; index < detail.length; index++) {
 			if (detail[index].emoji === reaction.emoji.name || detail[index].emoji === `<:${reaction.emoji.name}:${reaction.emoji.id}>`) {
 				const member = await reaction.message.guild.members.fetch(user.id);
-				member.roles.remove(detail[index].roleID.replace(/\D/g, ''))
+				member.roles.remove(detail[index].roleID.replaceAll(/\D/g, ''))
 			}
 		}
 	} catch (error) {
 		if (error.message === 'Unknown Member') return;
-		console.error('Discord bot messageReactionRemove #268 ', (error && error.name), (error && error.message), (error && error.reason))
+		console.error('Discord bot messageReactionRemove #268', (error && error.name), (error && error.message), (error && error.reason))
 	}
 });
 
-const sleep = async (minutes) => {
-	await new Promise(resolve => {
-		return setTimeout(resolve, minutes * 1000 * 60);
-	});
-};
+
 
 
 client.once('ready', async () => {
@@ -187,7 +185,7 @@ client.once('ready', async () => {
 		if (heartbeat > CRITICAL_THRESHOLD) {
 			if (isAwake.length > 0)
 				for (let i = 0; i < isAwake.length; i++)
-					client.cluster.evalOnManager(`this.clusters.get(${isAwake[i]}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10000 });
+					client.cluster.evalOnManager(`this.clusters.get(${isAwake[i]}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
 		}
 
 		if (heartbeat > 20) {
@@ -206,7 +204,7 @@ client.once('ready', async () => {
 				break;
 		}
 		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
-	}, 180000);
+	}, 180_000);
 });
 
 
@@ -230,7 +228,7 @@ async function replilyMessage(message, result) {
 				} else if (!message.replied) {
 					// Last resort - try a direct reply
 					await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true })
-						.catch(err => console.error('Failed to reply to interaction:', err.message));
+						.catch(error => console.error('Failed to reply to interaction:', error.message));
 				}
 			} else {
 				// For regular messages
@@ -255,7 +253,7 @@ function handlingCountButton(message, mode) {
 	const button = `${modeString}了「${message.component.label}」`;
 	const regexpButton = convertRegex(`${button}`)
 	let newContent = content;
-	if (newContent.match(/要求擲骰\/點擊/)) newContent = '';
+	if (/要求擲骰\/點擊/.test(newContent)) newContent = '';
 	if (newContent.match(regexpButton)) {
 		let checkRepeat = checkRepeatName(content, button, user)
 		if (!checkRepeat)
@@ -289,7 +287,7 @@ async function convQuotes(text = "") {
 		//.setURL('https://discord.js.org/')
 		.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
 	const imageMatch = text.match(imageUrl) || null;
-	if (imageMatch && imageMatch.length) {
+	if (imageMatch && imageMatch.length > 0) {
 		for (let index = 0; (index < imageMatch.length) && index < 10; index++) {
 			imageMatch[index] = imageMatch[index].replace(/\s?$/, '');
 			let imageVaild = await isImageURL(imageMatch[index]);
@@ -390,7 +388,7 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 	if (!channel) return;
 
 	// If we have button components, send each set separately
-	if (buttonCreate && Array.isArray(buttonCreate) && buttonCreate.length) {
+	if (buttonCreate && Array.isArray(buttonCreate) && buttonCreate.length > 0) {
 		for (let index = 0; index < buttonCreate.length; index++) {
 			if (Array.isArray(buttonCreate[index])) {
 				await sendMessage({ target: channel, replyText: replyText, quotes: quotes, components: buttonCreate[index] });
@@ -445,15 +443,15 @@ async function nonDice(message) {
 
 function __privateMsg({ trigger, mainMsg, inputStr }) {
 	let privatemsg = 0;
-	if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
+	if (/^dr$/i.test(trigger) && mainMsg && mainMsg[1]) {
 		privatemsg = 1;
 		inputStr = inputStr.replace(/^dr\s+/i, '');
 	}
-	if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
+	if (/^ddr$/i.test(trigger) && mainMsg && mainMsg[1]) {
 		privatemsg = 2;
 		inputStr = inputStr.replace(/^ddr\s+/i, '');
 	}
-	if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
+	if (/^dddr$/i.test(trigger) && mainMsg && mainMsg[1]) {
 		privatemsg = 3;
 		inputStr = inputStr.replace(/^dddr\s+/i, '');
 	}
@@ -479,8 +477,8 @@ async function count() {
 
 		return `群組總數: ${totalGuilds.toLocaleString()}
 │ 　• 會員總數: ${totalMembers.toLocaleString()}`;
-	} catch (err) {
-		console.error(`Discord統計錯誤: ${err}`);
+	} catch (error) {
+		console.error(`Discord統計錯誤: ${error}`);
 		return '無法獲取統計資料';
 	}
 }
@@ -499,9 +497,9 @@ async function count2() {
 			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
 			return (` ${totalGuilds}群組📶-\n ${totalMembers}會員📶`);
 		})
-		.catch((err) => {
-			console.error(`disocrdbot #617 error ${err}`)
-			respawnCluster(err);
+		.catch((error) => {
+			console.error(`disocrdbot #617 error ${error}`)
+			respawnCluster(error);
 			return '🌼bothelp | hktrpg.com🍎';
 		});
 }
@@ -531,13 +529,13 @@ process.on('unhandledRejection', error => {
 
 
 function respawnCluster(err) {
-	if (!err.toString().match(/CLUSTERING_NO_CHILD_EXISTS/i)) return;
+	if (!/CLUSTERING_NO_CHILD_EXISTS/i.test(err.toString())) return;
 	let number = err.toString().match(/\d+$/i);
 	if (!errorCount[number]) errorCount[number] = 0;
 	errorCount[number]++;
 	if (errorCount[number] > 3) {
 		try {
-			client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10000 });
+			client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
 		} catch (error) {
 			console.error('respawnCluster #480 error', (error && error.name), (error && error.message), (error && error.reason));
 		}
@@ -545,7 +543,7 @@ function respawnCluster(err) {
 }
 function respawnCluster2() {
 	try {
-		client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10000 });
+		client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
 	} catch (error) {
 		console.error('respawnCluster2 error', (error && error.name), (error && error.message), (error && error.reason));
 	}
@@ -571,8 +569,8 @@ function respawnCluster2() {
 		}
 		try {
 			await job.remove();
-		} catch (e) {
-			console.error("Discord Error removing job from collection:scheduleAtMessageDiscord", e);
+		} catch (error) {
+			console.error("Discord Error removing job from collection:scheduleAtMessageDiscord", error);
 		}
 	})
 
@@ -598,8 +596,8 @@ function respawnCluster2() {
 					{ replyText: "已運行六個月, 移除此定時訊息", channelid: data.channelid, quotes: true, groupid: data.groupid }
 				)
 			}
-		} catch (e) {
-			console.error("Discord Error removing job from collection:scheduleCronMessageDiscord", e);
+		} catch (error) {
+			console.error("Discord Error removing job from collection:scheduleCronMessageDiscord", error);
 		}
 
 	})
@@ -714,7 +712,7 @@ async function roleReact(channelid, message) {
 		for (let index = 0; index < detail.length; index++) {
 			sendMessage.react(detail[index].emoji);
 		}
-		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('discord_bot #786 mongoDB error: ', error.name, error.reason))
+		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('discord_bot #786 mongoDB error:', error.name, error.reason))
 
 	} catch (error) {
 		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限', channelid });
@@ -753,9 +751,9 @@ async function checkWakeUp() {
 				return r;
 			}, []);
 			if (indexes.length > 0) {
-				indexes.forEach(index => {
+				for (const index of indexes) {
 					//checkMongodb.discordClientRespawn(client, index)
-				})
+				}
 				return indexes;
 			}
 			else return true;
@@ -764,7 +762,7 @@ async function checkWakeUp() {
 			//	else return true;
 		})
 		.catch(error => {
-			console.error(`disocrdbot #836 error `, (error && error.name), (error && error.message), (error && error.reason))
+			console.error(`disocrdbot #836 error`, (error && error.name), (error && error.message), (error && error.reason))
 			return false
 		});
 
@@ -1458,11 +1456,11 @@ async function handlingSendMessage(input) {
 	let TargetGMTempdisplayname = [];
 	if (privatemsg > 1 && TargetGM) {
 		let groupInfo = await privateMsgFinder(channelid) || [];
-		groupInfo.forEach((item) => {
+		for (const item of groupInfo) {
 			TargetGMTempID.push(item.userid);
 			TargetGMTempdiyName.push(item.diyName);
 			TargetGMTempdisplayname.push(item.displayname);
-		})
+		}
 	}
 	switch (true) {
 		case privatemsg == 1:
@@ -1527,7 +1525,7 @@ async function handlingSendMessage(input) {
 }
 
 const convertRegex = function (str = "") {
-	return new RegExp(str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1"));
+	return new RegExp(str.replaceAll(/([.?*+^$[\]\\(){}|-])/g, String.raw`\$1`));
 };
 
 const connect = function () {
@@ -1548,7 +1546,7 @@ const connect = function () {
 			}
 		}
 		catch (error) {
-			console.error(`disocrdbot #99 error `, (error && error.name), (error && error.message), (error && error.reason))
+			console.error(`disocrdbot #99 error`, (error && error.name), (error && error.message), (error && error.reason))
 		};
 		return;
 
@@ -1619,11 +1617,11 @@ if (togGGToken) {
 	this.interval = setInterval(async () => {
 		const guilds = await client.cluster.fetchClientValues("guilds.cache.size");
 		api.postStats({
-			serverCount: parseInt(guilds.reduce((a, c) => a + c, 0)),
+			serverCount: Number.parseInt(guilds.reduce((a, c) => a + c, 0)),
 			shardCount: getInfo().TOTAL_SHARDS,
 			shardId: client.cluster.id
 		});
-	}, 300000);
+	}, 300_000);
 }
 
 async function sendCronWebhook({ channelid, replyText, data }) {
@@ -1693,7 +1691,7 @@ async function __handlingReplyMessage(message, result) {
 				await message.deferReply({ ephemeral: false });
 			} catch (deferError) {
 				// If the interaction is no longer valid, log it but don't crash
-				if (deferError.code === 10062) { // Unknown interaction code
+				if (deferError.code === 10_062) { // Unknown interaction code
 					console.error(`Interaction expired before deferral: ${message.commandName || 'unknown'}`);
 					return; // Exit early - can't do anything with an expired interaction
 				}
@@ -1712,7 +1710,7 @@ async function __handlingReplyMessage(message, result) {
 				}
 			} catch (error) {
 				// If the interaction is no longer valid, log it but don't crash
-				if (error.code === 10062) {
+				if (error.code === 10_062) {
 					console.error(`Interaction expired for command: ${message.commandName || 'unknown'}`);
 					return; // Exit early - nothing more we can do
 				} else {
@@ -1748,13 +1746,13 @@ async function __handlingReplyMessage(message, result) {
 						await message.deferReply();
 						await message.editReply({ embeds: await convQuotes(sendText) });
 					} catch (innerError) {
-						if (innerError.code === 10062) {
+						if (innerError.code === 10_062) {
 							console.error(`Interaction expired during reply: ${message.commandName || 'unknown'}`);
 							break; // Stop sending more messages if the interaction is invalid
 						}
 						console.error('Failed to handle interaction:', innerError.message);
 					}
-				} else if (error.code === 10062 || error.message.includes('Unknown interaction')) {
+				} else if (error.code === 10_062 || error.message.includes('Unknown interaction')) {
 					console.error(`Interaction expired for command: ${message.commandName || 'unknown'}`);
 					break; // Stop sending more messages if the interaction is invalid
 				} else {
@@ -1784,7 +1782,7 @@ async function __handlingInteractionMessage(message) {
 							await message.deferReply({ ephemeral: false });
 						} catch (deferError) {
 							// If interaction has expired, log and return early
-							if (deferError.code === 10062) { // Unknown interaction code
+							if (deferError.code === 10_062) { // Unknown interaction code
 								console.error(`Interaction expired before deferral: ${message.commandName || 'unknown'}`);
 								return;
 							}
@@ -1801,7 +1799,7 @@ async function __handlingInteractionMessage(message) {
 						try {
 							await message.deferReply({ ephemeral: true });
 						} catch (deferError) {
-							if (deferError.code === 10062) {
+							if (deferError.code === 10_062) {
 								console.error(`Interaction expired before export deferral: ${message.commandName || 'unknown'}`);
 								return;
 							}
@@ -1845,7 +1843,7 @@ async function __handlingInteractionMessage(message) {
 						try {
 							await message.deferUpdate();
 						} catch (deferError) {
-							if (deferError.code === 10062) {
+							if (deferError.code === 10_062) {
 								console.error(`Button interaction expired before processing: ${message.component?.label || 'unknown'}`);
 								return;
 							}
@@ -2007,9 +2005,7 @@ async function __handlingInteractionMessage(message) {
 async function __sendMeMessage({ message, rplyVal, groupid }) {
 	try {
 		await message.delete();
-	} catch (error) {
-
-	}
+	} catch (error) {}
 	if (groupid) {
 		await SendToReplychannel({ replyText: rplyVal.myspeck.content, channelid: message.channel.id });
 	} else {
@@ -2019,7 +2015,7 @@ async function __sendMeMessage({ message, rplyVal, groupid }) {
 }
 
 client.on('shardDisconnect', (event, shardID) => {
-	console.log('shardDisconnect: ', event, shardID)
+	console.log('shardDisconnect:', event, shardID)
 });
 
 client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID} resumed connection and replayed ${replayed} events.`));

@@ -19,7 +19,7 @@ async function getReplyContent(message) {
         }
 
         return replyContent;
-    } catch (error) {
+    } catch {
         return "";
     }
 }

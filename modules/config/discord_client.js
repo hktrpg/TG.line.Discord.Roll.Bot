@@ -2,7 +2,7 @@ const { Options, GatewayIntentBits, Partials } = require('discord.js');
 const { getInfo } = require('discord-hybrid-sharding');
 
 const channelFilter = channel => !channel.lastMessageId || 
-    require('discord.js').SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 36000;
+    require('discord.js').SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 36_000;
 
 const clientConfig = {
     sweepers: {
@@ -30,7 +30,7 @@ const clientConfig = {
             maxSize: 200,
             // This will be configured after client is initialized
             // We can't use client.user.id here as client is not yet defined
-            keepOverLimit: (member) => false, // Will be overridden later
+            keepOverLimit: () => false, // Will be overridden later
         }, // guild.members
         GuildStickerManager: 0, // guild.stickers
         MessageManager: 200, // channel.messages
@@ -60,7 +60,7 @@ const clientConfig = {
     }),
     shards: getInfo().SHARD_LIST,  // An array of shards that will get spawned
     shardCount: getInfo().TOTAL_SHARDS, // Total number of shards
-    restRequestTimeout: 45000, // Timeout for REST requests
+    restRequestTimeout: 45_000, // Timeout for REST requests
     /**
         cacheGuilds: true,
         cacheChannels: true,

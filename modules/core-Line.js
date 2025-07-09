@@ -4,12 +4,12 @@ if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.LINE_CHANNEL_SECRET) {
 }
 const port = process.env.LINEPORT || 20_831;
 const fs = require('fs');
+const line = require('@line/bot-sdk');
 const candle = require('../modules/candleDays.js');
 const mainLine = Boolean(process.env.DISCORD_CHANNEL_SECRET);
 const lineAgenda = Boolean(process.env.LINE_AGENDA)
 exports.analytics = require('./analytics');
 const EXPUP = require('./level').EXPUP || function () {};
-const line = require('@line/bot-sdk');
 
 const MESSAGE_SPLITOR = (/\S+/ig);
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;

@@ -2,30 +2,35 @@
 if (!process.env.mongoURL) {
     return;
 }
-const express = require('express');
-const www = express();
-const helmet = require('helmet');
+const crypto = require('crypto');
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
+const path = require('path');
+
 const cors = require('cors');
+const express = require('express');
+const favicon = require('serve-favicon');
+const helmet = require('helmet');
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
-const path = require('path');
-const favicon = require('serve-favicon');
+
+const candle = require('../modules/candleDays.js');
 const cspConfig = require('../modules/config/csp.js');
+const mainCharacter = require('../roll/z_character').mainCharacter;
+const schema = require('./schema.js');
+
+const www = express();
 //const loglink = (LOGLINK) ? LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
 const LOGLINK = (process.env.LOGLINK) ? process.env.LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
-const candle = require('../modules/candleDays.js');
 const MESSAGE_SPLITOR = (/\S+/ig)
-const schema = require('./schema.js');
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
 const APIswitch = (process.env.API) ? process.env.API : null;
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
 const isMaster = (process.env.MASTER) ? process.env.MASTER : null;
 const salt = process.env.SALT;
-const crypto = require('crypto');
-const mainCharacter = require('../roll/z_character').mainCharacter;
-const fs = require('fs');
 let options = {
     key: null,
     cert: null,
@@ -71,8 +76,6 @@ const initSSL = () => {
 (async () => {
     options = initSSL();
 })();
-const http = require('http');
-const https = require('https');
 
 
 

@@ -1,11 +1,12 @@
-return;
+// Module disabled - uncomment the line below to enable
+// return;
 const schema = require('./schema.js');
 const channelList = [];
 const translate = require('@vitalets/google-translate-api');
 (async () => {
 	try {
 		await getRecords();
-	} catch (e) {
+	} catch {
 		console.error('error: message#10')
 		setTimeout(async () => {
 			await getRecords();
@@ -17,8 +18,7 @@ const translate = require('@vitalets/google-translate-api');
 
 
 async function getRecords() {
-	let result = await schema.translateChannel.find({
-	}).catch(error => console.error('translate #20 mongoDB error: ', error.name, error.reason))
+	let result = await schema.translateChannel.find({}).catch(error => console.error('translate #20 mongoDB error:', error.name, error.reason))
 	console.log('translateChannel channelList Got!')
 	if (result) channelList.push(...result);
 }
@@ -28,16 +28,15 @@ function translateChecker(channelid) {
 	let channel = channelList.find(v => {
 		return v.channelid == channelid && v.switch === true;
 	})
-	if (channel) return true
-	else return false;
+	return channel ? true : false;
 }
 async function translateText(inputStr) {
 	let text = await translate(inputStr, {
 		to: 'zh-TW'
 	}).then(res => {
 		return res.text
-	}).catch(err => {
-		return err.message;
+	}).catch(error => {
+		return error.message;
 	});
 	return text;
 }

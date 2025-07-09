@@ -1,7 +1,7 @@
 if (!process.env.mongoURL) return;
 
-const oneMinute = (process.env.DEBUG) ? 1 : 60000;
-const THIRTY_MINUTES = (process.env.DEBUG) ? 1 : 60000 * 30;
+const oneMinute = (process.env.DEBUG) ? 1 : 60_000;
+const THIRTY_MINUTES = (process.env.DEBUG) ? 1 : 60_000 * 30;
 const checkMongodb = require('./dbWatchdog.js');
 const schema = require('./schema.js');
 exports.rollbase = require('../roll/rollbase');
@@ -12,7 +12,7 @@ let tempSwitchV2 = [{ groupid: '', SwitchV2: false }];
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage) {
     if (!groupid) return;
 
-    if (retry.number >= 10 && (new Date() - retry.times) < THIRTY_MINUTES) return;
+    if (retry.number >= 10 && (Date.now() - retry.times) < THIRTY_MINUTES) return;
     if (retry.number >= 10) retry.number = 0;
 
     let reply = { text: '', status: '' };
@@ -22,7 +22,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     if (!checkMongodb.isDbOnline()) return;
 
     const gpInfo = await schema.trpgLevelSystem.findOne({ groupid, SwitchV2: true }).cache(60).catch(error => {
-        console.error('level #26 mongoDB error: ', error.name, error.reason);
+        console.error('level #26 mongoDB error:', error.name, error.reason);
         checkMongodb.dbErrOccurs();
         retry.number++;
         retry.times = new Date();
@@ -40,7 +40,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     if (!checkMongodb.isDbOnline()) return;
 
     let userInfo = await schema.trpgLevelSystemMember.findOne({ groupid, userid }).catch(error => {
-        console.error('level #46 mongoDB error: ', error.name, error.reason);
+        console.error('level #46 mongoDB error:', error.name, error.reason);
         checkMongodb.dbErrOccurs();
     });
 
@@ -54,7 +54,7 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     if (userInfo.multiEXPTimes > 0) reply.status += "🧙‍♂️🧙‍♀️";
     if (userInfo.stopExp > 0) reply.status += "☢️☣️";
 
-    if ((new Date() - userInfo.LastSpeakTime) < oneMinute) return reply;
+    if ((Date.now() - userInfo.LastSpeakTime) < oneMinute) return reply;
 
     if (userInfo.stopExp > 0) {
         userInfo.stopExp--;
@@ -63,22 +63,25 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     }
 
     let exp = await exports.rollbase.Dice(9) + 15;
-    if (isNaN(userInfo.decreaseEXPTimes)) userInfo.decreaseEXPTimes = 0;
+    if (Number.isNaN(userInfo.decreaseEXPTimes)) userInfo.decreaseEXPTimes = 0;
 
     switch (true) {
-        case (userInfo.decreaseEXPTimes > 0):
+        case (userInfo.decreaseEXPTimes > 0): {
             userInfo.EXP -= userInfo.decreaseEXP;
             userInfo.decreaseEXPTimes--;
             if (userInfo.decreaseEXPTimes === 0) userInfo.decreaseEXP = 1;
             break;
-        case (userInfo.multiEXPTimes > 0):
+        }
+        case (userInfo.multiEXPTimes > 0): {
             userInfo.EXP += userInfo.multiEXP ? exp * userInfo.multiEXP : exp;
             userInfo.multiEXPTimes--;
             if (userInfo.multiEXPTimes === 0) userInfo.multiEXP = 1;
             break;
-        default:
+        }
+        default: {
             userInfo.EXP += exp;
             break;
+        }
     }
 
     userInfo.LastSpeakTime = Date.now();
@@ -112,28 +115,28 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discor
     let usermember_count = Math.max(membercount);
 
     let docMember = await schema.trpgLevelSystemMember.find({ groupid }).sort({ EXP: -1 }).catch(error => {
-        console.error('level #120 mongoDB error: ', error.name, error.reason);
+        console.error('level #120 mongoDB error:', error.name, error.reason);
         checkMongodb.dbErrOccurs();
     });
 
     let myselfIndex = docMember.map(members => members.userid).indexOf(userInfo.userid);
     let userRanking = myselfIndex + 1;
-    let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
+    let userRankingPer = Math.ceil(userRanking / usermember_count * 10_000) / 100 + '%';
     let userTitle = await checkTitle(userlevel, gpInfo.Title);
 
     let tempUPWord = gpInfo.LevelUpWord || "恭喜 {user.displayName}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！";
-    if (tempUPWord.match(/{user.displayName}/ig)) {
+    if (/{user.displayName}/ig.test(tempUPWord)) {
         let userDisplayName = await getDisplayName(discordMessage) || username || "無名";
-        tempUPWord = tempUPWord.replace(/{user.displayName}/ig, userDisplayName);
+        tempUPWord = tempUPWord.replaceAll(/{user.displayName}/ig, userDisplayName);
     }
 
-    return tempUPWord.replace(/{user.name}/ig, username)
-        .replace(/{user.level}/ig, userlevel)
-        .replace(/{user.exp}/ig, userexp)
-        .replace(/{user.Ranking}/ig, userRanking)
-        .replace(/{user.RankingPer}/ig, userRankingPer)
-        .replace(/{server.member_count}/ig, usermember_count)
-        .replace(/{user.title}/ig, userTitle);
+    return tempUPWord.replaceAll(/{user.name}/ig, username)
+        .replaceAll(/{user.level}/ig, userlevel)
+        .replaceAll(/{user.exp}/ig, userexp)
+        .replaceAll(/{user.Ranking}/ig, userRanking)
+        .replaceAll(/{user.RankingPer}/ig, userRankingPer)
+        .replaceAll(/{server.member_count}/ig, usermember_count)
+        .replaceAll(/{user.title}/ig, userTitle);
 }
 
 async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord, tgDisplayname) {
@@ -149,7 +152,7 @@ async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord,
     };
 
     await new schema.trpgLevelSystemMember(temp).save().catch(error => {
-        console.error('level #144 mongoDB error: ', error.name, error.reason);
+        console.error('level #144 mongoDB error:', error.name, error.reason);
         checkMongodb.dbErrOccurs();
     });
 }
@@ -191,10 +194,10 @@ const checkTitle = async function (userlvl, DBTitle) {
     let temptitle = "";
 
     if (DBTitle && DBTitle.length > 0) {
-        for (let g = 0; g < DBTitle.length; g++) {
-            if (userlvl >= g && templvl <= g && DBTitle[g]) {
+        for (const [g, element] of DBTitle.entries()) {
+            if (userlvl >= g && templvl <= g && element) {
                 templvl = g;
-                temptitle = DBTitle[g];
+                temptitle = element;
             }
         }
     }

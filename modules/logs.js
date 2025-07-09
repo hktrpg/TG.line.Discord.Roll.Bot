@@ -33,17 +33,18 @@ const RollingLog = {
 (async () => {
     try {
         await getRecords();
-    } catch (e) {
-        console.error(`log error #35 ${e}`)
+    } catch (error) {
+        console.error(`log error #35 ${error}`)
         setTimeout(async () => {
             await getRecords();
         }, 100)
 
     }
     try {
-        const loopLogFiveMinutes = setInterval(saveLog, FIVE_MINUTES);
-    } catch (e) {
-        console.error(`log error #35 ${e}`)
+        // const loopLogFiveMinutes = setInterval(saveLog, FIVE_MINUTES);
+        setInterval(saveLog, FIVE_MINUTES);
+    } catch (error) {
+        console.error(`log error #35 ${error}`)
     }
 })();
 
@@ -51,7 +52,7 @@ const RollingLog = {
 
 
 const getState = async function () {
-    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error('log # 52 mongoDB error: ', error.name, error.reason));
+    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error('log # 52 mongoDB error:', error.name, error.reason));
     if (!theNewData) return;
     theNewData.RealTimeRollingLogfunction.LogTime = theNewData.RealTimeRollingLogfunction.LogTime.replace(/\s+GMT.*$/, '');
     theNewData.RealTimeRollingLogfunction.StartTime = theNewData.RealTimeRollingLogfunction.StartTime.replace(/\s+GMT.*$/, '');
@@ -91,7 +92,7 @@ async function saveLog() {
     }, {
         upsert: true
     }).catch(error => {
-        console.error('log #90 mongoDB error: ', error.name, error.reason)
+        console.error('log #90 mongoDB error:', error.name, error.reason)
         checkMongodb.dbErrOccurs();
     })
     //把擲骰的次數還原 為0
@@ -107,7 +108,7 @@ async function pushToDefiniteLog() {
     if (shardid !== 0) return;
     //更新最後的RollingLog 儲存時間
     RollingLog.LastTimeLog = Date.now();
-    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error('log #105 mongoDB error: ', error.name, error.reason));
+    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error('log #105 mongoDB error:', error.name, error.reason));
     let temp = {
         RollingLogfunction:
         {
@@ -128,14 +129,14 @@ async function pushToDefiniteLog() {
             ApiCountText: theNewData.RealTimeRollingLogfunction.ApiCountText
         }
     }
-    await schema.RollingLog.create(temp).catch(error => console.error('logs #126 mongoDB error: ', error.name, error.reason));
+    await schema.RollingLog.create(temp).catch(error => console.error('logs #126 mongoDB error:', error.name, error.reason));
     return;
 }
 
 async function getRecords() {
     if (!checkMongodb.isDbOnline()) return;
     let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => {
-        console.error('log # 131 mongoDB error: ', error.name, error.reason)
+        console.error('log # 131 mongoDB error:', error.name, error.reason)
         checkMongodb.dbErrOccurs();
     });
 
@@ -186,65 +187,81 @@ async function courtMessage({ result, botname, inputStr, shardids = 0 }) {
     if (result && result.text) {
         //SAVE THE LOG
         switch (botname) {
-            case "Line":
-                (debugMode) ? console.log('   Line \'s inputStr: ', inputStr) : '';
+            case "Line": {
+                (debugMode) ? console.log('   Line \'s inputStr:', inputStr) : '';
                 RollingLog.LineCountRoll++;
                 break;
-            case "Telegram":
-                (debugMode) ? console.log('Telegram\'s inputStr: ', inputStr) : '';
+            }
+            case "Telegram": {
+                (debugMode) ? console.log('Telegram\'s inputStr:', inputStr) : '';
                 RollingLog.TelegramCountRoll++;
                 break;
-            case "Whatsapp":
-                (debugMode) ? console.log('Whatsapp\'s inputStr: ', inputStr) : '';
+            }
+            case "Whatsapp": {
+                (debugMode) ? console.log('Whatsapp\'s inputStr:', inputStr) : '';
                 RollingLog.WhatsappCountRoll++;
                 break;
-            case "WWW":
-                (debugMode) ? console.log('     WWW\'s inputStr: ', inputStr) : '';
+            }
+            case "WWW": {
+                (debugMode) ? console.log('     WWW\'s inputStr:', inputStr) : '';
                 RollingLog.WWWCountRoll++;
                 break;
-            case "Discord":
-                (debugMode) ? console.log('Discord \'s inputStr: ', inputStr) : '';
+            }
+            case "Discord": {
+                (debugMode) ? console.log('Discord \'s inputStr:', inputStr) : '';
                 RollingLog.DiscordCountRoll++;
                 break;
-            case "Plurk":
-                (debugMode) ? console.log('Plurk \'s inputStr: ', inputStr) : '';
+            }
+            case "Plurk": {
+                (debugMode) ? console.log('Plurk \'s inputStr:', inputStr) : '';
                 RollingLog.PlurkCountRoll++;
                 break;
-            case "Api":
-                (debugMode) ? console.log('Api \'s inputStr: ', inputStr) : '';
+            }
+            case "Api": {
+                (debugMode) ? console.log('Api \'s inputStr:', inputStr) : '';
                 RollingLog.ApiCountRoll++;
                 break;
-            default:
+            }
+            default: {
                 break;
+            }
         }
 
         //await saveLog();
         return null;
     } else {
         switch (botname) {
-            case "Line":
+            case "Line": {
                 RollingLog.LineCountText++;
                 break;
-            case "Telegram":
+            }
+            case "Telegram": {
                 RollingLog.TelegramCountText++;
                 break;
-            case "Whatsapp":
+            }
+            case "Whatsapp": {
                 RollingLog.WhatsappCountText++;
                 break;
-            case "WWW":
+            }
+            case "WWW": {
                 RollingLog.WWWCountText++;
                 break;
-            case "Discord":
+            }
+            case "Discord": {
                 RollingLog.DiscordCountText++;
                 break;
-            case "Plurk":
+            }
+            case "Plurk": {
                 RollingLog.PlurkCountText++;
                 break;
-            case "Api":
+            }
+            case "Api": {
                 RollingLog.ApiCountText++;
                 break;
-            default:
+            }
+            default: {
                 break;
+            }
         }
     }
     return null;

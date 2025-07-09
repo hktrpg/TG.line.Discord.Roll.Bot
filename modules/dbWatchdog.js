@@ -1,7 +1,7 @@
 "use strict";
-const winston = require('winston');
 const path = require('path');
-const { format } = require('logform');
+const winston = require('winston');
+const { format } = winston;
 const schema = require('./schema.js');
 
 // 常數配置
@@ -88,8 +88,8 @@ class DbWatchdog {
             );
 
             this.__dbErrorReset();
-        } catch (err) {
-            console.error('dbConnectionError updateRecords #36 error: ', err.name);
+        } catch (error) {
+            console.error('dbConnectionError updateRecords #36 error:', error.name);
             this.dbErrOccurs();
         }
     }

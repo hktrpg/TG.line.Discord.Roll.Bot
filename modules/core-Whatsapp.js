@@ -19,18 +19,21 @@ if (process.env.BROADCAST) {
 	});
 }
 
-const rollText = require('./getRoll').rollText;
+const qrcode = require('qrcode-terminal');
+const {
+	Client, LocalAuth, MessageMedia
+} = require('whatsapp-web.js');
+const isImageURL = require('image-url-validator').default;
 const candle = require('../modules/candleDays.js');
 const agenda = require('../modules/schedule')
-const qrcode = require('qrcode-terminal');
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const isHeroku = (process.env._ && process.env._.indexOf("heroku")) > 0 ? true : false;
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const schema = require('../modules/schema');
-const opt = {
-	upsert: true,
-	runValidators: true
-}
+// const schema = require('../modules/schema');
+// const opt = {
+// 	upsert: true,
+// 	runValidators: true
+// }
 const herokuPuppeteer = {
 	headless: true,
 	'executablePath': '/app/.apt/usr/bin/google-chrome-stable'
@@ -46,7 +49,7 @@ const normalPuppeteer = {
 		'--disable-gpu'
 	],
 	'executablePath': process.platform === 'win32'
-		? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+		? String.raw`C:\Program Files\Google\Chrome\Application\chrome.exe`
 		: (process.platform === 'linux'
 			? '/usr/bin/google-chrome'
 			: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
@@ -55,10 +58,7 @@ const normalPuppeteer = {
 const newMessage = require('./message');
 
 exports.analytics = require('./analytics');
-const {
-	Client, LocalAuth, MessageMedia
-} = require('whatsapp-web.js');
-const isImageURL = require('image-url-validator').default;
+const rollText = require('./getRoll').rollText;
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)$/i);
 const MESSAGE_SPLITOR = (/\S+/ig);
 
@@ -69,9 +69,9 @@ async function startUp() {
 			puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer
 		});
 
-		client.initialize().catch(err => {
-			console.error('[WhatsApp Init Error]', err);
-			if (err.message.includes('Failed to launch')) {
+		client.initialize().catch(error => {
+			console.error('[WhatsApp Init Error]', error);
+			if (error.message.includes('Failed to launch')) {
 				console.log('請確認已安裝 Google Chrome，或手動設定 Chrome 路徑');
 			}
 		});
@@ -95,14 +95,14 @@ async function startUp() {
 				} : null;
 
 				// 分析訊息內容
-				const result = await processMessage(msg, groupInfo);
+				const result = await processMessage(msg, groupInfo, client);
 				if (!result) return;
 
 				// 發送回覆
 				await handleReply(result, msg, client);
 
-			} catch (err) {
-				console.error('[WhatsApp Message Error]', err);
+			} catch (error) {
+				console.error('[WhatsApp Message Error]', error);
 			}
 		});
 
@@ -120,8 +120,8 @@ async function startUp() {
 		});
 
 		setupAgenda(client);
-	} catch (err) {
-		console.error('[WhatsApp StartUp Error]', err);
+	} catch (error) {
+		console.error('[WhatsApp StartUp Error]', error);
 	}
 }
 
@@ -134,8 +134,8 @@ function setupAgenda(client) {
 			const text = await rollText(replyText);
 			await SendToId(groupid, { text: text }, client);
 			await job.remove();
-		} catch (err) {
-			console.error("Schedule Error:", err);
+		} catch (error) {
+			console.error("Schedule Error:", error);
 		}
 	});
 
@@ -148,13 +148,13 @@ function setupAgenda(client) {
 				await job.remove();
 				await SendToId(groupid, { text: "已運行六個月, 移除此定時訊息" }, client);
 			}
-		} catch (err) {
-			console.error("Schedule Error:", err);
+		} catch (error) {
+			console.error("Schedule Error:", error);
 		}
 	});
 }
 
-async function processMessage(msg, groupInfo) {
+async function processMessage(msg, groupInfo, client) {
 	let inputStr = msg.body;
 	const mainMsg = inputStr.match(MESSAGE_SPLITOR);
 	if (!mainMsg || !mainMsg[0]) return null;
@@ -172,15 +172,15 @@ async function processMessage(msg, groupInfo) {
 	let privatemsg = 0;
 
 	function privateMsg() {
-		if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
+		if (/^dr$/i.test(trigger) && mainMsg && mainMsg[1]) {
 			privatemsg = 1;
 			inputStr = inputStr.replace(/^dr\s+/i, '');
 		}
-		if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
+		if (/^ddr$/i.test(trigger) && mainMsg && mainMsg[1]) {
 			privatemsg = 2;
 			inputStr = inputStr.replace(/^ddr\s+/i, '');
 		}
-		if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
+		if (/^dddr$/i.test(trigger) && mainMsg && mainMsg[1]) {
 			privatemsg = 3;
 			inputStr = inputStr.replace(/^dddr\s+/i, '');
 		}
@@ -250,11 +250,11 @@ async function processMessage(msg, groupInfo) {
 
 	if (privatemsg > 1 && TargetGM) {
 		let groupInfo = privateMsgFinder(groupid) || [];
-		groupInfo.forEach((item) => {
+		for (const item of groupInfo) {
 			TargetGMTempID.push(item.userid);
 			TargetGMTempdiyName.push(item.diyName);
 			TargetGMTempdisplayname.push(item.displayname);
-		})
+		}
 	}
 	return { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid, displaynamecheck };
 }
@@ -262,14 +262,15 @@ async function processMessage(msg, groupInfo) {
 async function handleReply(result, msg, client) {
 	const { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid, displaynamecheck } = result;
 	switch (true) {
-		case privatemsg == 1:
+		case privatemsg == 1: {
 			if (groupid) {
 				SendDR(msg, "@" + displayname + '暗骰給自己');
 			}
 			rplyVal.text = "@" + displayname + "的暗骰\n" + rplyVal.text
 			await SendToId(userid, rplyVal, client);
 			break;
-		case privatemsg == 2:
+		}
+		case privatemsg == 2: {
 			if (groupid) {
 				let targetGMNameTemp = "";
 				for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -279,12 +280,13 @@ async function handleReply(result, msg, client) {
 			}
 			rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
 			await SendToId(msg.from, rplyVal, client);
-			for (let i = 0; i < TargetGMTempID.length; i++) {
-				if (userid != TargetGMTempID[i])
-					await SendToId(TargetGMTempID[i], rplyVal, client);
+			for (const element of TargetGMTempID) {
+				if (userid != element)
+					await SendToId(element, rplyVal, client);
 			}
 			break;
-		case privatemsg == 3:
+		}
+		case privatemsg == 3: {
 			if (groupid) {
 				let targetGMNameTemp = "";
 				for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -293,16 +295,15 @@ async function handleReply(result, msg, client) {
 				SendDR(msg, "@" + displayname + '暗骰進行中 \n目標: ' + targetGMNameTemp);
 			}
 			rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
-			for (let i = 0; i < TargetGMTempID.length; i++) {
-				await SendToId(TargetGMTempID[i], rplyVal, client);
+			for (const element of TargetGMTempID) {
+				await SendToId(element, rplyVal, client);
 			}
 			break;
-		default:
-			if (displaynamecheck == false) {
-				await SendToId(msg.from, rplyVal, client);
-			} else
-				await SendToReply(msg, rplyVal, userid);
+		}
+		default: {
+			await (displaynamecheck == false ? SendToId(msg.from, rplyVal, client) : SendToReply(msg, rplyVal, userid));
 			break;
+		}
 	}
 }
 
@@ -337,7 +338,7 @@ async function SendToReply(msg, rplyVal, userid) {
 			const imageMatch = rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i].match(imageUrl) || null;
 			
 			try {
-				if (imageMatch && imageMatch.length) {
+				if (imageMatch && imageMatch.length > 0) {
 					try {
 						let imageVaild = await isImageURL(imageMatch[0]);
 						if (imageVaild) {
@@ -352,7 +353,7 @@ async function SendToReply(msg, rplyVal, userid) {
 			} catch (error) {
 				console.log('[WhatsApp] Failed to reply, sending direct message instead:', error.message);
 				const chat = await msg.getChat();
-				if (imageMatch && imageMatch.length) {
+				if (imageMatch && imageMatch.length > 0) {
 					try {
 						let imageVaild = await isImageURL(imageMatch[0]);
 						if (imageVaild) {
@@ -374,16 +375,14 @@ function privateMsgFinder(channelid) {
 	let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
 		data.groupid == channelid
 	)
-	if (groupInfo && groupInfo.trpgDarkRollingfunction)
-		return groupInfo.trpgDarkRollingfunction
-	else return [];
+	return groupInfo && groupInfo.trpgDarkRollingfunction ? groupInfo.trpgDarkRollingfunction : [];
 }
 
 async function SendToId(targetid, rplyVal, client) {
 	for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
 		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
 			const imageMatch = rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i].match(imageUrl) || null;
-			if (imageMatch && imageMatch.length) {
+			if (imageMatch && imageMatch.length > 0) {
 				try {
 					let imageVaild = await isImageURL(imageMatch[0]);
 					if (imageVaild) {
@@ -399,6 +398,6 @@ async function SendToId(targetid, rplyVal, client) {
 	}
 }
 
-process.on('unhandledRejection', () => { });
+process.on('unhandledRejection', () => {});
 
 startUp();

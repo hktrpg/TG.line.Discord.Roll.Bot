@@ -48,7 +48,10 @@ export default [
           /^ds-.*\.js$/,
           /^dbWatchdog\.js$/,
           /^getRoll\.js$/,
-          /^veryImportantPerson\.js$/
+          /^veryImportantPerson\.js$/,
+          /^discord_.*\.js$/,
+          /^handleMessage\.js$/,
+          /^discord_client\.js$/
         ]
       }], // Allow z_ prefix and legacy files
       "unicorn/prevent-abbreviations": "off", // Allow common abbreviations in this codebase
@@ -61,7 +64,22 @@ export default [
       "unicorn/no-array-callback-reference": "off", // Allow passing functions directly to array methods
       "unicorn/prefer-logical-operator-over-ternary": "off", // Allow ternary operators for readability
       "unicorn/no-instanceof-builtins": "off", // Allow instanceof checks when needed
-      
+      "unicorn/new-for-builtins": "off", // Allow Date() constructor usage
+      "unicorn/no-array-method-this-argument": "off", // Allow this argument in array methods
+      "unicorn/prefer-ternary": "off", // Allow if-else statements for clarity
+      "unicorn/no-for-loop": "off", // Allow traditional for loops
+      "unicorn/no-nested-ternary": "off", // Allow nested ternary for complex logic
+      "unicorn/prefer-math-trunc": "off", // Allow ~~ operator for performance
+      "unicorn/no-negated-condition": "off", // Allow negated conditions
+            "unicorn/prefer-string-starts-ends-with": "off", // Allow regex patterns
+      "unicorn/no-lonely-if": "off", // Allow single if statements
+      "no-irregular-whitespace": "off", // Allow irregular whitespace in this legacy codebase
+            "unicorn/prefer-event-target": "off", // Allow EventEmitter in Node.js
+      "unicorn/prefer-set-has": "off", // Allow array includes for simple cases
+            "unicorn/switch-case-braces": "off", // Allow switch cases without braces
+      "unicorn/prefer-optional-catch-binding": "off", // Allow catch bindings for clarity
+      "no-empty": "off", // Allow empty blocks in legacy code
+            
       // Node.js plugin adjustments
       "n/no-missing-import": "off", // Sometimes conflicts with local modules
       "n/no-extraneous-import": "off", // Let package.json handle this

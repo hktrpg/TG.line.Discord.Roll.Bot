@@ -105,20 +105,35 @@ describe('CandleDays Module Tests', () => {
     });
 
     test('Test checker handles invalid date format gracefully', () => {
+        // Mock console.warn to suppress expected warning messages
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+        
         // Configure with invalid date format
         process.env.CANDLE_DATES = 'invalid,14,🌷';
         candleDays.reset(new Date('2024-02-14'));
         
         const result = candleDays.checker();
         expect(result).toBe('');
+        
+        // Verify that the warning was called with the expected message
+        expect(warnSpy).toHaveBeenCalledWith('[CandleChecker] Invalid date format: invalid,14,🌷');
+        
+        // Restore console.warn
+        warnSpy.mockRestore();
     });
 
     test('Test checker handles empty date configuration', () => {
+        // Mock console.warn to suppress expected warning messages
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+        
         // Configure with empty string
         process.env.CANDLE_DATES = '';
         candleDays.reset(new Date('2024-02-14'));
         
         const result = candleDays.checker();
         expect(result).toBe('');
+        
+        // Restore console.warn (no warning expected for empty string)
+        warnSpy.mockRestore();
     });
 }); 

@@ -103,9 +103,9 @@ const AI_CONFIG = {
                 if (process.env.AI_MODEL_LOW_NAME) {
                     models.push({
                         name: process.env.AI_MODEL_LOW_NAME,
-                        token: parseInt(process.env.AI_MODEL_LOW_TOKEN),
-                        input_price: parseFloat(process.env.AI_MODEL_LOW_INPUT_PRICE),
-                        output_price: parseFloat(process.env.AI_MODEL_LOW_OUTPUT_PRICE),
+                        token: Number.parseInt(process.env.AI_MODEL_LOW_TOKEN),
+                        input_price: Number.parseFloat(process.env.AI_MODEL_LOW_INPUT_PRICE),
+                        output_price: Number.parseFloat(process.env.AI_MODEL_LOW_OUTPUT_PRICE),
                         display: process.env.AI_MODEL_LOW_DISPLAY
                     });
                 }
@@ -114,9 +114,9 @@ const AI_CONFIG = {
                 if (process.env.AI_MODEL_LOW_NAME_2 && process.env.AI_MODEL_LOW_NAME_2 !== process.env.AI_MODEL_LOW_NAME) {
                     models.push({
                         name: process.env.AI_MODEL_LOW_NAME_2,
-                        token: parseInt(process.env.AI_MODEL_LOW_TOKEN_2 || process.env.AI_MODEL_LOW_TOKEN),
-                        input_price: parseFloat(process.env.AI_MODEL_LOW_INPUT_PRICE_2 || process.env.AI_MODEL_LOW_INPUT_PRICE),
-                        output_price: parseFloat(process.env.AI_MODEL_LOW_OUTPUT_PRICE_2 || process.env.AI_MODEL_LOW_OUTPUT_PRICE),
+                        token: Number.parseInt(process.env.AI_MODEL_LOW_TOKEN_2 || process.env.AI_MODEL_LOW_TOKEN),
+                        input_price: Number.parseFloat(process.env.AI_MODEL_LOW_INPUT_PRICE_2 || process.env.AI_MODEL_LOW_INPUT_PRICE),
+                        output_price: Number.parseFloat(process.env.AI_MODEL_LOW_OUTPUT_PRICE_2 || process.env.AI_MODEL_LOW_OUTPUT_PRICE),
                         display: process.env.AI_MODEL_LOW_DISPLAY_2 || process.env.AI_MODEL_LOW_DISPLAY
                     });
                 }
@@ -127,9 +127,9 @@ const AI_CONFIG = {
                     process.env.AI_MODEL_LOW_NAME_3 !== process.env.AI_MODEL_LOW_NAME_2) {
                     models.push({
                         name: process.env.AI_MODEL_LOW_NAME_3,
-                        token: parseInt(process.env.AI_MODEL_LOW_TOKEN_3 || process.env.AI_MODEL_LOW_TOKEN),
-                        input_price: parseFloat(process.env.AI_MODEL_LOW_INPUT_PRICE_3 || process.env.AI_MODEL_LOW_INPUT_PRICE),
-                        output_price: parseFloat(process.env.AI_MODEL_LOW_OUTPUT_PRICE_3 || process.env.AI_MODEL_LOW_OUTPUT_PRICE),
+                        token: Number.parseInt(process.env.AI_MODEL_LOW_TOKEN_3 || process.env.AI_MODEL_LOW_TOKEN),
+                        input_price: Number.parseFloat(process.env.AI_MODEL_LOW_INPUT_PRICE_3 || process.env.AI_MODEL_LOW_INPUT_PRICE),
+                        output_price: Number.parseFloat(process.env.AI_MODEL_LOW_OUTPUT_PRICE_3 || process.env.AI_MODEL_LOW_OUTPUT_PRICE),
                         display: process.env.AI_MODEL_LOW_DISPLAY_3 || process.env.AI_MODEL_LOW_DISPLAY
                     });
                 }
@@ -145,9 +145,9 @@ const AI_CONFIG = {
         },
         MEDIUM: {
             name: process.env.AI_MODEL_MEDIUM_NAME,
-            token: parseInt(process.env.AI_MODEL_MEDIUM_TOKEN),
-            input_price: parseFloat(process.env.AI_MODEL_MEDIUM_INPUT_PRICE),
-            output_price: parseFloat(process.env.AI_MODEL_MEDIUM_OUTPUT_PRICE),
+            token: Number.parseInt(process.env.AI_MODEL_MEDIUM_TOKEN),
+            input_price: Number.parseFloat(process.env.AI_MODEL_MEDIUM_INPUT_PRICE),
+            output_price: Number.parseFloat(process.env.AI_MODEL_MEDIUM_OUTPUT_PRICE),
             type: process.env.AI_MODEL_MEDIUM_TYPE,
             display: process.env.AI_MODEL_MEDIUM_DISPLAY,
             prefix: {
@@ -157,9 +157,9 @@ const AI_CONFIG = {
         },
         HIGH: {
             name: process.env.AI_MODEL_HIGH_NAME,
-            token: parseInt(process.env.AI_MODEL_HIGH_TOKEN),
-            input_price: parseFloat(process.env.AI_MODEL_HIGH_INPUT_PRICE),
-            output_price: parseFloat(process.env.AI_MODEL_HIGH_OUTPUT_PRICE),
+            token: Number.parseInt(process.env.AI_MODEL_HIGH_TOKEN),
+            input_price: Number.parseFloat(process.env.AI_MODEL_HIGH_INPUT_PRICE),
+            output_price: Number.parseFloat(process.env.AI_MODEL_HIGH_OUTPUT_PRICE),
             type: process.env.AI_MODEL_HIGH_TYPE,
             display: process.env.AI_MODEL_HIGH_DISPLAY,
             prefix: {
@@ -169,7 +169,7 @@ const AI_CONFIG = {
         },
         IMAGE_LOW: {
             name: process.env.AI_MODEL_IMAGE_LOW_NAME,
-            price: parseFloat(process.env.AI_MODEL_IMAGE_LOW_PRICE),
+            price: Number.parseFloat(process.env.AI_MODEL_IMAGE_LOW_PRICE),
             size: process.env.AI_MODEL_IMAGE_LOW_SIZE,
             type: process.env.AI_MODEL_IMAGE_LOW_TYPE,
             display: process.env.AI_MODEL_IMAGE_LOW_DISPLAY,
@@ -218,6 +218,11 @@ class RetryManager {
     // Calculate retry delay based on error type and attempt count
     calculateRetryDelay(errorType, retryCount) {
         const config = RETRY_CONFIG.ERROR_TYPES[errorType];
+        
+        // Handle undefined config for unknown error types
+        if (!config) {
+            return RETRY_CONFIG.GENERAL.defaultDelay;
+        }
         
         switch (errorType) {
             case 'RATE_LIMIT':
@@ -419,18 +424,38 @@ class OpenAI {
 
     // Get current model for specified tier
     getCurrentModel(modelTier) {
-        if (modelTier === 'LOW' && AI_CONFIG.MODELS.LOW.models) {
-            return AI_CONFIG.MODELS.LOW.models[this.retryManager.currentModelIndex];
+        if (modelTier === 'LOW' && AI_CONFIG.MODELS.LOW.models && AI_CONFIG.MODELS.LOW.models.length > 0) {
+            // Ensure the index is within bounds
+            const validIndex = this.retryManager.currentModelIndex % AI_CONFIG.MODELS.LOW.models.length;
+            const model = AI_CONFIG.MODELS.LOW.models[validIndex];
+            if (model) {
+                return model;
+            }
+            // Fallback to first model if current index is invalid
+            console.warn(`[MODEL_CYCLE] Invalid model index ${this.retryManager.currentModelIndex}, falling back to first model`);
+            this.retryManager.currentModelIndex = 0;
+            return AI_CONFIG.MODELS.LOW.models[0];
         }
         return AI_CONFIG.MODELS[modelTier];
     }
 
     // Cycle through LOW tier models
     cycleModel() {
+        if (!AI_CONFIG.MODELS.LOW.models || AI_CONFIG.MODELS.LOW.models.length === 0) {
+            console.error('[MODEL_CYCLE] No LOW models available for cycling');
+            return;
+        }
+        
         this.retryManager.modelRetryCount++;
         this.retryManager.currentModelIndex = (this.retryManager.currentModelIndex + 1) % AI_CONFIG.MODELS.LOW.models.length;
         const currentModel = AI_CONFIG.MODELS.LOW.models[this.retryManager.currentModelIndex];
-        console.log(`[MODEL_CYCLE] Cycling to LOW model ${this.retryManager.currentModelIndex + 1}/${AI_CONFIG.MODELS.LOW.models.length}: ${currentModel.display} (${currentModel.name})`);
+        
+        if (currentModel) {
+            console.log(`[MODEL_CYCLE] Cycling to LOW model ${this.retryManager.currentModelIndex + 1}/${AI_CONFIG.MODELS.LOW.models.length}: ${currentModel.display} (${currentModel.name})`);
+        } else {
+            console.error(`[MODEL_CYCLE] Invalid model at index ${this.retryManager.currentModelIndex}`);
+            this.retryManager.currentModelIndex = 0; // Reset to first model
+        }
     }
 
     // Unified error handling with retry logic
@@ -451,7 +476,7 @@ class OpenAI {
             const delay = RETRY_CONFIG.GENERAL.modelCycleDelay;
             this.retryManager.logRetry(error, `${errorType}_MODEL_CYCLE`, delay, modelTier);
             await this.retryManager.waitSeconds(delay);
-            return await retryFunction.apply(this, [modelTier, ...args]);
+            return await retryFunction.apply(this, args);
         }
 
         // Handle API key cycling
@@ -470,7 +495,7 @@ class OpenAI {
             await this.retryManager.waitSeconds(delay);
         }
 
-        return await retryFunction.apply(this, [modelTier, ...args]);
+        return await retryFunction.apply(this, args);
     }
 
     // Generate error message for final failure
@@ -511,7 +536,7 @@ class ImageAi extends OpenAI {
             this.retryManager.resetCounters();
             return response;
         } catch (error) {
-            return await this.handleApiError(error, this.handleImageAi, imageModelType, inputStr, imageModelType);
+            return await this.handleApiError(error, this.handleImageAi, imageModelType, inputStr);
         }
     }
     handleImage(data, input) {
@@ -580,6 +605,10 @@ class TranslateAi extends OpenAI {
         try {
             // Get the current model if it's LOW tier with multiple models
             const currentModel = this.getCurrentModel(modelTier);
+            if (!currentModel) {
+                console.error(`[TRANSLATE_AI] No valid model found for tier ${modelTier}`);
+                return `無法找到有效的 ${modelTier} 模型，請稍後再試。`;
+            }
             const modelName = currentModel.name || mode.name;
 
             let response = await this.openai.chat.completions.create({
@@ -612,7 +641,7 @@ class TranslateAi extends OpenAI {
             }
             return response.choices[0].message.content;
         } catch (error) {
-            return await this.handleApiError(error, this.translateChat, modelTier, inputStr, mode, modelTier);
+            return await this.handleApiError(error, this.translateChat, modelTier, inputStr, mode);
         }
     }
     async translateText(inputScript, mode, modelTier = 'LOW') {
@@ -693,6 +722,10 @@ class ChatAi extends OpenAI {
         try {
             // Get the current model if it's LOW tier with multiple models
             const currentModel = this.getCurrentModel(modelTier);
+            if (!currentModel) {
+                console.error(`[CHAT_AI] No valid model found for tier ${modelTier}`);
+                return `無法找到有效的 ${modelTier} 模型，請稍後再試。`;
+            }
             const modelName = currentModel.name || mode.name;
 
             let response = await this.openai.chat.completions.create({
@@ -725,7 +758,7 @@ class ChatAi extends OpenAI {
             }
             return response.choices[0].message.content;
         } catch (error) {
-            return await this.handleApiError(error, this.handleChatAi, modelTier, inputStr, mode, userid, modelTier);
+            return await this.handleApiError(error, this.handleChatAi, modelTier, inputStr, mode, userid);
         }
     }
 }

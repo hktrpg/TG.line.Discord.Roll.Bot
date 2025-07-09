@@ -2,9 +2,9 @@
 if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
+const { SlashCommandBuilder } = require('discord.js');
 const checkTools = require('../modules/check.js');
 const variables = {};
-const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【舊信息修改功能】Discord限定'
 }
@@ -65,10 +65,11 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^\S/.test(mainMsg[1] || ''): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkManager,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
@@ -86,7 +87,7 @@ const discordCommand = [
         data: new SlashCommandBuilder()
             .setName('edit')
             .setDescription('【舊信息修改功能】Discord限定'),
-        async execute(interaction) {
+        async execute() {
             return `.edit help`;
         }
     }

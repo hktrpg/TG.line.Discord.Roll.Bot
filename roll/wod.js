@@ -1,7 +1,7 @@
 "use strict";
+const { SlashCommandBuilder } = require('discord.js');
 let rollbase = require('./rollbase.js');
 let variables = {};
-const { SlashCommandBuilder } = require('discord.js');
 
 const gameName = function () {
 	return '【WOD黑暗世界】.xWDy'

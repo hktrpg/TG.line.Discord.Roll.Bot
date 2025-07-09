@@ -1,7 +1,7 @@
 "use strict";
+const { SlashCommandBuilder } = require('discord.js');
 let rollbase = require('./rollbase.js');
 let variables = {};
-const { SlashCommandBuilder } = require('discord.js');
 
 const gameName = function () {
     return '【貓貓鬼差】.kc xDy z'
@@ -81,7 +81,7 @@ const rollDiceCommand = async function ({
             rply.text = await this.getHelpMessage();
             return rply;
         case /^(|4|5)d+((\d+)|)$/i.test(mainMsg[1]):
-            rply.text = await compareAllValues(mainMsg[1], "" || mainMsg[2])
+            rply.text = await compareAllValues(mainMsg[1], mainMsg[2] || "")
             return rply;
         default:
             break;
@@ -168,7 +168,7 @@ async function compareAllValues(triggermsg, msg) {
     if (first == true) {
         result += "失敗"
     }
-    if (isNaN(z)) {
+    if (Number.isNaN(z)) {
         result += "；" + z
     }
     return result;

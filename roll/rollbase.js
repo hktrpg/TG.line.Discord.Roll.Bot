@@ -4,7 +4,7 @@ const {
   Random,
   nodeCrypto
 } = require("random-js");
-const { DiceRoller, DiceRoll } = require('@dice-roller/rpg-dice-roller');
+const { DiceRoll } = require('@dice-roller/rpg-dice-roller');
 const random = new Random(nodeCrypto);
 const { SlashCommandBuilder } = require('discord.js');
 
@@ -12,7 +12,7 @@ const { SlashCommandBuilder } = require('discord.js');
 const DICE_LIMITS = {
   MAX_DICE_COUNT: 1000,        // 最大骰子數量
   MIN_DICE_COUNT: 1,           // 最小骰子數量
-  MAX_DICE_SIDES: 90000000,    // 最大骰子面數
+  MAX_DICE_SIDES: 90_000_000,    // 最大骰子面數
   MIN_DICE_SIDES: 1,           // 最小骰子面數
   MAX_EQUATION_DICE_COUNT: 200,// 算式中最大骰子數量
   MAX_EQUATION_DICE_SIDES: 500,// 算式中最大骰子面數
@@ -41,7 +41,7 @@ const DICE_REGEX = {
   SIMPLE: /\d+d\d+/i,
 
   // 數字與運算符檢測
-  VALID_CHARS: /[\d+\-*\/()d><khl=]/i,
+  VALID_CHARS: /[\d+\-*/()d><khl=]/i,
   VALID_CHARS_PATTERN: /\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[k]|[h]|[l]/ig,
 
   // 小數點檢測
@@ -105,7 +105,7 @@ const INVALID_PATTERNS = {
   // 連續的運算符
   CONSECUTIVE_OPERATORS: /(([d+\-*/])([d+\-*/]))/i,
   // 以運算符開頭
-  STARTS_WITH_OPERATOR: /^([d+\-*/]|[<>]|[=\)])/i,
+  STARTS_WITH_OPERATOR: /^([d+\-*/]|[<>]|[=)])/i,
   // 括號問題
   BRACKET_ISSUES: [
     /\(\)/i,     // 空括號
@@ -114,11 +114,11 @@ const INVALID_PATTERNS = {
   // 非法的骰子組合
   INVALID_DICE_COMBO: /\d+d\d+d([^hl])|[)]\d/i,
   // 以運算符結尾
-  ENDS_WITH_OPERATOR: /([d+\-*/]|[<>=\(])$/i,
+  ENDS_WITH_OPERATOR: /([d+\-*/]|[<>=(])$/i,
   // 特殊字符
-  SPECIAL_CHARS: /[@!#$%&_~`'?\.]/i,
+  SPECIAL_CHARS: /[@!#$%&_~`'?.]/i,
   // 中文字符
-  CHINESE_CHARS: /[\u4e00-\u9fa5]/i,
+  CHINESE_CHARS: /[\u4E00-\u9FA5]/i,
   // 等號相關問題
   EQUALS_ISSUES: [
     /=[^+\-*/><\d]/i,   // 等號後面接非法字符
@@ -251,8 +251,8 @@ const rollDiceCommand = function ({
         try {
           const roll = new DiceRoll(inputStr.replace(/^[.]rr\s+/i, ''));
           reply.text = roll.output;
-        } catch (err) {
-          reply.text += `${err.name}  \n ${err.message}`;
+        } catch (error) {
+          reply.text += `${error.name}  \n ${error.message}`;
           reply.text += `\n 擲骰說明 https://dice-roller.github.io/documentation/guide/notation/dice.html#standard-d-n`
         }
 
@@ -263,7 +263,7 @@ const rollDiceCommand = function ({
       try {
         reply.text = nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2]);
         return reply;
-      } catch (error) {
+      } catch {
         return reply;
       }
   }
@@ -323,8 +323,8 @@ const RollDice = function (inputStr) {
   //12d5kh5,12,5,kh,5
 
   // 提前轉換為整數，避免重複解析
-  const diceCount = parseInt(commandString[1]);
-  const diceSides = parseInt(commandString[2]);
+  const diceCount = Number.parseInt(commandString[1]);
+  const diceSides = Number.parseInt(commandString[2]);
 
   // 參數驗證
   if (!diceCount || !diceSides) return;
@@ -341,7 +341,7 @@ const RollDice = function (inputStr) {
   // 處理修飾符
   if (commandString[3]) {
     // 單獨的 k 視為 kh
-    if (commandString[3].match(/^k$/i)) {
+    if (/^k$/i.test(commandString[3])) {
       commandString[3] = 'kh';
     }
 
@@ -350,7 +350,7 @@ const RollDice = function (inputStr) {
 
     // 如果有指定數量，使用它
     if (commandString[4]) {
-      keepCount = parseInt(commandString[4]);
+      keepCount = Number.parseInt(commandString[4]);
     }
   }
 
@@ -414,14 +414,14 @@ const shuffleTarget = function (target) {
  */
 const BuildDiceCal = function (inputStr) {
   // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
-  if (inputStr.toLowerCase().match(DICE_REGEX.SIMPLE) == null) return undefined;
+  if (inputStr.toLowerCase().match(DICE_REGEX.SIMPLE) == null) return;
   // 排除小數點
-  if (inputStr.toString().match(DICE_REGEX.DECIMAL_POINT) != null) return undefined;
+  if (inputStr.toString().match(DICE_REGEX.DECIMAL_POINT) != null) return;
   // 先定義要輸出的字串
   let finalString = '';
   // 一般單次擲骰
   let diceToRoll = inputStr.toString().toLowerCase();
-  if (diceToRoll.match('d') == null) return undefined;
+  if (diceToRoll.match('d') == null) return;
   // 寫出算式
   let equation = diceToRoll;
   while (equation.match(DICE_REGEX.SIMPLE) != null) {
@@ -449,8 +449,8 @@ const BuildRollDice = function (inputStr) {
   // 解析骰子參數
   const commandString = inputStr.toString().toLowerCase();
   const [dicePart] = commandString.split('d');
-  const diceCount = parseInt(dicePart);
-  const diceSides = parseInt(commandString.split('d')[1]);
+  const diceCount = Number.parseInt(dicePart);
+  const diceSides = Number.parseInt(commandString.split('d')[1]);
 
   // 使用 Array.from 更高效地生成骰子結果
   const results = Array.from(
@@ -474,7 +474,7 @@ const nomalDiceRoller = function (text0, text1, text2) {
   const command = text0.toLowerCase();
 
   // 提前檢查無效輸入
-  if (command.match(DICE_REGEX.DECIMAL_POINT)) return;
+  if (DICE_REGEX.DECIMAL_POINT.test(command)) return;
 
   // 檢查括號平衡
   const openParenCount = (command.match(DICE_REGEX.PARENTHESES.OPEN) || []).length;
@@ -482,18 +482,18 @@ const nomalDiceRoller = function (text0, text1, text2) {
   if (openParenCount !== closeParenCount) return;
 
   // 檢查是否為多次擲骰（純數字）模式
-  const isMultiRoll = !command.match(DICE_REGEX.NON_DIGIT) && text1;
+  const isMultiRoll = !DICE_REGEX.NON_DIGIT.test(command) && text1;
 
   // 檢查輸入字符的有效性
   const textToCheck = isMultiRoll ? text1 : command;
-  if (textToCheck.replace(DICE_REGEX.VALID_CHARS_PATTERN, '')) return;
+  if (textToCheck.replaceAll(DICE_REGEX.VALID_CHARS_PATTERN, '')) return;
 
   // 生成結果
   let finalString = '';
 
   // 多次擲骰模式
   if (isMultiRoll) {
-    const rollCount = parseInt(command);
+    const rollCount = Number.parseInt(command);
 
     // 超過上限檢查
     if (rollCount > DICE_LIMITS.MAX_ROLL_TIMES) {
@@ -527,7 +527,7 @@ const nomalDiceRoller = function (text0, text1, text2) {
   }
 
   // 使用 replace 處理乘號顯示
-  return finalString.replace(/[*]/g, ' * ');
+  return finalString.replaceAll(/[*]/g, ' * ');
 }
 
 /**
@@ -548,8 +548,8 @@ function oneTimeRoll(text0) {
     // 使用 while 循環查找所有匹配的骰子表達式
     while ((match = regexBasic.exec(equation)) !== null) {
       // 驗證骰子參數
-      const diceCount = parseInt(match[1]);
-      const diceSides = parseInt(match[2]);
+      const diceCount = Number.parseInt(match[1]);
+      const diceSides = Number.parseInt(match[2]);
 
       // 檢查限制
       if (diceCount > DICE_LIMITS.MAX_DICE_COUNT || diceCount < DICE_LIMITS.MIN_DICE_COUNT) {
@@ -570,7 +570,7 @@ function oneTimeRoll(text0) {
     }
 
     // 計算最終方程式，移除骰子結果括號中的內容
-    const processedEquation = equation.replace(/\[.+?\]/ig, '');
+    const processedEquation = equation.replaceAll(/\[.+?\]/ig, '');
 
     // 使用 math.evaluate 計算結果
     const answer = math.evaluate(processedEquation)
@@ -585,7 +585,7 @@ function oneTimeRoll(text0) {
 
     // 使用模板字符串提高字串操作效率
     return `${equation} = ${answer}`;
-  } catch (error) {
+  } catch {
     console.error('rollbase error: oneTimeRoll - inputstr', text0);
     return '';
   }
@@ -614,9 +614,9 @@ const discordCommand = [
       try {
         const roll = new DiceRoll(notation);
         await interaction.reply(roll.output);
-      } catch (err) {
+      } catch (error) {
         await interaction.reply({
-          content: `${err.name}\n${err.message}\n擲骰說明 https://dice-roller.github.io/documentation/guide/notation/dice.html#standard-d-n`,
+          content: `${error.name}\n${error.message}\n擲骰說明 https://dice-roller.github.io/documentation/guide/notation/dice.html#standard-d-n`,
           ephemeral: true
         });
       }

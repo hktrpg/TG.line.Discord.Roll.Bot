@@ -2,11 +2,9 @@
 if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
-const { PermissionFlagsBits, SlashCommandBuilder, PermissionsBitField } = require('discord.js');
 let variables = {};
-const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
-const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60000;
-const checkTools = require('../modules/check.js');
+const oneMinuts = (process.env.DEBUG) ? 1 : 60_000;
+const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60_000;
 const crypto = require('crypto');
 const gameName = function () {
     return '【Discord 頻道輸出工具】'
@@ -15,7 +13,6 @@ const opt = {
     upsert: true,
     runValidators: true
 }
-const VIP = require('../modules/veryImportantPerson');
 const FUNCTION_LIMIT = (process.env.DEBUG) ? [99, 99, 99, 40, 40, 99, 99, 99] : [1, 20, 40, 40, 40, 99, 99, 99];
 /**
  * 因為資源限制，
@@ -27,14 +24,17 @@ const FUNCTION_LIMIT = (process.env.DEBUG) ? [99, 99, 99, 40, 40, 99, 99, 99] : 
  * 只有一分鐘限制
  * 
  */
-const schema = require('../modules/schema.js');
 const fs = require('fs').promises;
 const stream = require('stream');
 const { promisify } = require('util');
 const pipeline = promisify(stream.pipeline);
 const { createWriteStream } = require('fs');
+const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 const moment = require('moment-timezone');
 const CryptoJS = require("crypto-js");
+const schema = require('../modules/schema.js');
+const VIP = require('../modules/veryImportantPerson');
+const checkTools = require('../modules/check.js');
 const gameType = function () {
     return 'Tool:Export:hktrpg'
 }
@@ -151,7 +151,7 @@ const rollDiceCommand = async function ({
                 options.before = last_id;
             }
             const messages = await channel.messages.fetch(options);
-            totalSize += (messages.size) ? messages.size : 0;
+            totalSize += Math.max(messages.size, 0);
 
             for (const element of messages.values()) {
                 let temp;
@@ -203,13 +203,13 @@ const rollDiceCommand = async function ({
                 options.before = last_id;
             }
             const messages = await channel.messages.fetch(options);
-            totalSize += (messages.size) ? messages.size : 0;
+            totalSize += Math.max(messages.size, 0);
 
             for (const element of messages.values()) {
                 let temp;
                 const content = await replaceMentions(element.content, members);
                 const processedEmbeds = await Promise.all(
-                    (element.embeds && element.embeds.length) ? element.embeds.map(async embed => {
+                    (element.embeds && element.embeds.length > 0) ? element.embeds.map(async embed => {
                         if (embed.description) {
                             return await replaceMentions(embed.description, members);
                         }
@@ -223,7 +223,7 @@ const rollDiceCommand = async function ({
                         contact: content,
                         userName: element.author.username,
                         isbot: element.author.bot,
-                        attachments: (element.attachments && element.attachments.size) ? element.attachments.map(attachment => attachment.proxyURL) : [],
+                        attachments: (element.attachments && element.attachments.size > 0) ? element.attachments.map(attachment => attachment.proxyURL) : [],
                         embeds: processedEmbeds
                     };
                 } else if (element.interaction && element.interaction.commandName) {
@@ -232,7 +232,7 @@ const rollDiceCommand = async function ({
                         contact: (element.interaction.nickname || element.interaction.user.username) + '使用' + element.interaction.commandName + "\n",
                         userName: '系統信息',
                         isbot: true,
-                        attachments: (element.attachments && element.attachments.size) ? element.attachments.map(attachment => attachment.proxyURL) : [],
+                        attachments: (element.attachments && element.attachments.size > 0) ? element.attachments.map(attachment => attachment.proxyURL) : [],
                         embeds: processedEmbeds
                     };
                 }
@@ -279,9 +279,9 @@ const rollDiceCommand = async function ({
         }));
 
         let replacedContent = content;
-        matches.forEach((match, index) => {
+        for (const [index, match] of matches.entries()) {
             replacedContent = replacedContent.replace(match, replacements[index]);
-        });
+        }
 
         return replacedContent;
     }
@@ -377,7 +377,7 @@ const rollDiceCommand = async function ({
             const members = discordMessage && discordMessage.guild && discordMessage.guild.members ? 
                 discordMessage.guild.members.cache.map(member => member) : [];
             M = await lots_of_messages_getter_HTML(C, demoMode, members);
-            if (!M || !M.sum_messages || M.sum_messages.length == 0) {
+            if (!M || !M.sum_messages || M.sum_messages.length === 0) {
                 rply.text = "未能讀取信息";
                 return rply;
             }
@@ -416,7 +416,7 @@ const rollDiceCommand = async function ({
                 if (error && error.code === 'ENOENT')
                     await fs.mkdir(dir);
             }
-            data = await fs.readFile(__dirname + '/../views/discordLog.html', 'utf-8')
+            data = await fs.readFile(__dirname + '/../views/discordLog.html', 'utf8')
             // 在 rollDiceCommand 中使用
             let key = makeid(16); // 使用16位元的金鑰
             let randomLink = makeid(7);
@@ -428,8 +428,7 @@ const rollDiceCommand = async function ({
             let tempB = key;
             const writeStream = createWriteStream(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html');
             const contentStream = new stream.Readable();
-            contentStream.push(newValue);
-            contentStream.push(null);
+            contentStream.push(newValue, null);
 
             await pipeline(
                 contentStream,
@@ -461,14 +460,14 @@ const rollDiceCommand = async function ({
 
             lv = await VIP.viplevelCheckUser(userid);
             let gpLv = await VIP.viplevelCheckGroup(groupid);
-            lv = (gpLv > lv) ? gpLv : lv;
+            lv = Math.max(gpLv, lv);
             limit = FUNCTION_LIMIT[lv];
             checkUser = await schema.exportUser.findOne({
                 userID: userid
-            }).catch(error => console.error('export #372 mongoDB error: ', error.name, error.reason));
+            }).catch(error => console.error('export #372 mongoDB error:', error.name, error.reason));
             checkGP = await schema.exportGp.findOne({
                 groupID: userid
-            }).catch(error => console.error('export #375 mongoDB error: ', error.name, error.reason));
+            }).catch(error => console.error('export #375 mongoDB error:', error.name, error.reason));
             gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 120;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
             userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
@@ -499,7 +498,7 @@ const rollDiceCommand = async function ({
                     groupID: userid
                 }, {
                     lastActiveAt: new Date()
-                }, opt).catch(error => console.error('export #408 mongoDB error: ', error.name, error.reason));
+                }, opt).catch(error => console.error('export #408 mongoDB error:', error.name, error.reason));
             } else {
                 checkGP.lastActiveAt = theTime;
                 await checkGP.save();
@@ -514,7 +513,7 @@ const rollDiceCommand = async function ({
             const members = discordMessage && discordMessage.guild && discordMessage.guild.members ? 
                 discordMessage.guild.members.cache.map(member => member) : [];
             M = await lots_of_messages_getter_TXT(C, demoMode, members);
-            if (!M || !M.sum_messages || M.sum_messages.length == 0) {
+            if (!M || !M.sum_messages || M.sum_messages.length === 0) {
                 rply.text = "未能讀取信息";
                 return rply;
             }
@@ -524,7 +523,7 @@ const rollDiceCommand = async function ({
                 }, {
                     lastActiveAt: new Date(),
                     times: 1
-                }, opt).catch(error => console.error('export #428 mongoDB error: ', error.name, error.reason));
+                }, opt).catch(error => console.error('export #428 mongoDB error:', error.name, error.reason));
             } else {
                 if (userRemainingTime && userRemainingTime > 0) {
                     update = {
@@ -542,7 +541,7 @@ const rollDiceCommand = async function ({
                 if (update)
                     await schema.exportUser.updateOne({
                         userID: userid
-                    }, update, opt).catch(error => console.error('export #446 mongoDB error: ', error.name, error.reason));
+                    }, update, opt).catch(error => console.error('export #446 mongoDB error:', error.name, error.reason));
             }
             totalSize = M.totalSize;
             M = M.sum_messages;
@@ -573,8 +572,8 @@ const rollDiceCommand = async function ({
                     }
                     line += M[index].userName + '\t' + dateObj + '\n';
                     line += (M[index].contact) ? (M[index].contact) + '\n' : '';
-                    line += (M[index].embeds.length) ? `${M[index].embeds.join('\n')}` : '';
-                    line += (M[index].attachments.length) ? `${M[index].attachments.join('\n')}` : '';
+                    line += (M[index].embeds.length > 0) ? `${M[index].embeds.join('\n')}` : '';
+                    line += (M[index].attachments.length > 0) ? `${M[index].attachments.join('\n')}` : '';
                     line += '\n';
                 }
                 contentStream.push(line);
@@ -657,9 +656,9 @@ function lightEncrypt(data, key) {
 
         // 轉換為 base64
         return encrypted.toString('base64');
-    } catch (e) {
-        console.error('Encryption error:', e);
-        throw e;
+    } catch (error) {
+        console.error('Encryption error:', error);
+        throw error;
     }
 }
 
@@ -677,8 +676,8 @@ function makeid(length) {
 }
 const millisToMinutesAndSeconds = (millis) => {
     millis = millis * -1;
-    let minutes = Math.floor(millis / 60000);
-    let seconds = ((millis % 60000) / 1000).toFixed(0);
+    let minutes = Math.floor(millis / 60_000);
+    let seconds = ((millis % 60_000) / 1000).toFixed(0);
     //ES6 interpolated literals/template literals 
     //If seconds is less than 10 put a zero in front.
     return `${minutes}分鐘${(seconds < 10 ? "0" : "")}${seconds}秒`;

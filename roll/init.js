@@ -3,10 +3,11 @@ if (!process.env.mongoURL) {
     return;
 }
 const math = require('mathjs')
+const { SlashCommandBuilder } = require('discord.js');
 const schema = require('../modules/schema.js');
 const rollDice = require('./rollbase').rollDiceCommand;
 const convertRegex = function (str) {
-    return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+    return str.replaceAll(/([.?*+^$[\]\\(){}|-])/g, String.raw`\$1`);
 };
 const gameName = function () {
     return '【先攻表功能】 .in (remove clear reroll) .init'
@@ -167,13 +168,13 @@ const rollDiceCommand = async function ({
                     await temp.save();
                 } catch (error) {
                     rply.text = "先攻表更新失敗，\n" + error;
-                    console.error('init #154 mongoDB error: ', error.name, error.reason)
+                    console.error('init #154 mongoDB error:', error.name, error.reason)
                     return rply;
                 }
                 rply.text = name + ' 的先攻值是 ' + Number(result);
                 return rply;
             }
-            objIndex = temp.list.findIndex((obj => obj.name.toLowerCase() == name.toLowerCase())) >= 0 ? temp.list.findIndex((obj => obj.name.toLowerCase() == name.toLowerCase())) : temp.list.length || 0;
+            objIndex = temp.list.some((obj => obj.name.toLowerCase() == name.toLowerCase()))  ? temp.list.findIndex((obj => obj.name.toLowerCase() == name.toLowerCase())) : temp.list.length || 0;
             temp.list.set(Number(objIndex), {
                 name: (temp.list[objIndex] && temp.list[objIndex].name) || name,
                 result: Number(result),
@@ -222,7 +223,7 @@ async function countInit(num) {
     })
     if (temp && temp.text) {
         result = temp.text.match(/[+-]?([0-9]*[.])?[0-9]+$/)[0];
-    } else if (num.match(/^[+-]?([0-9]*[.])?[0-9]+$/)) {
+    } else if (/^[+-]?([0-9]*[.])?[0-9]+$/.test(num)) {
         result = num;
     }
     return result;
@@ -267,7 +268,6 @@ async function showInitn(doc) {
     return result;
 }
 
-const { SlashCommandBuilder } = require('discord.js');
 
 const discordCommand = [
     {
@@ -316,21 +316,24 @@ const discordCommand = [
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             switch (subcommand) {
-                case 'add':
+                case 'add': {
                     const roll = interaction.options.getString('roll');
                     const name = interaction.options.getString('name');
                     return `.in ${roll}${name ? ' ' + name : ''}`;
-                case 'remove':
+                }
+                case 'remove': {
                     const removeName = interaction.options.getString('name');
                     return `.in remove ${removeName}`;
+                }
                 case 'clear':
                     return '.in clear';
                 case 'reroll':
                     return '.in reroll';
-                case 'modify':
+                case 'modify': {
                     const value = interaction.options.getString('value');
                     const modifyName = interaction.options.getString('name');
                     return `.in ${value} ${modifyName}`;
+                }
             }
         }
     },

@@ -1,8 +1,8 @@
 "use strict";
+const { SlashCommandBuilder } = require('discord.js');
+const mathjs = require('mathjs');
 let rollbase = require('./rollbase.js');
 let variables = {};
-const mathjs = require('mathjs');
-const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【命運Fate】 .4df(m|-)(加值)'
 }

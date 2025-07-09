@@ -78,6 +78,7 @@ export default [
       "unicorn/prefer-set-has": "off", // Allow array includes for simple cases
             "unicorn/switch-case-braces": "off", // Allow switch cases without braces
       "unicorn/prefer-optional-catch-binding": "off", // Allow catch bindings for clarity
+      "unicorn/empty-brace-spaces": "off", // Allow spaces in empty braces to work with formatters
       "no-empty": "off", // Allow empty blocks in legacy code
             
       // Node.js plugin adjustments

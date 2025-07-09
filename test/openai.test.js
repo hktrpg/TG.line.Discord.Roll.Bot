@@ -2,10 +2,10 @@
 
 // Mock external dependencies
 jest.mock('gpt-tokenizer', () => ({
-  encode: jest.fn().mockImplementation(text => {
-    // Simple mock implementation - roughly one token per 4 chars
-    return Math.ceil(text.length / 4);
-  })
+    encode: jest.fn().mockImplementation(text => {
+        // Simple mock implementation - roughly one token per 4 chars
+        return Math.ceil(text.length / 4);
+    })
 }));
 
 jest.mock('openai', () => {

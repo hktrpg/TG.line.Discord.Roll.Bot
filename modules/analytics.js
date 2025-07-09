@@ -264,7 +264,7 @@ function findRollList(mainMsg) {
 
 async function stateText() {
 	let state = await getState() || '';
-	if (!Object.keys(state).length || !state.LogTime) return;
+	if (!Object.keys(state).length || !state.LogTime) return '';
 
 	const cleanDateTime = (dateStr) => dateStr
 		.replace(' GMT+0800 (Hong Kong Standard Time)', '')

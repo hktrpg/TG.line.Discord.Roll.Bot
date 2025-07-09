@@ -235,7 +235,7 @@ describe('Rollbase Module Tests', () => {
   test('Test Discord command structure', () => {
     expect(rollbaseModule.discordCommand).toBeDefined();
     expect(Array.isArray(rollbaseModule.discordCommand)).toBe(true);
-    expect(rollbaseModule.discordCommand.length).toBe(1);
+    expect(rollbaseModule.discordCommand.length).toBe(2);
     
     const cmd = rollbaseModule.discordCommand[0];
     expect(cmd.data).toBeDefined();

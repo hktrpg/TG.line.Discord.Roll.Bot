@@ -12,7 +12,8 @@ jest.mock('discord.js', () => ({
   SlashCommandBuilder: jest.fn().mockImplementation(() => ({
     setName: jest.fn().mockReturnThis(),
     setDescription: jest.fn().mockReturnThis(),
-    addStringOption: jest.fn().mockReturnThis()
+    addStringOption: jest.fn().mockReturnThis(),
+    addAttachmentOption: jest.fn().mockReturnThis()
   }))
 }));
 
@@ -54,10 +55,10 @@ jest.mock('geopattern', () => ({
 }));
 
 jest.mock('imgbox', () => ({
-  imgbox: jest.fn().mockResolvedValue({
-    ok: true,
-    files: [{ url: 'https://example.com/image.png', original_url: 'https://example.com/image.png' }]
-  })
+    imgbox: jest.fn().mockResolvedValue({
+        ok: true,
+        files: [{ url: 'https://example.com/image.png', original_url: 'https://example.com/image.png' }]
+    })
 }));
 
 // Import the module after mocking

@@ -12,7 +12,8 @@ jest.mock('discord.js', () => ({
   SlashCommandBuilder: jest.fn().mockImplementation(() => ({
     setName: jest.fn().mockReturnThis(),
     setDescription: jest.fn().mockReturnThis(),
-    addStringOption: jest.fn().mockReturnThis()
+    addStringOption: jest.fn().mockReturnThis(),
+    addAttachmentOption: jest.fn().mockReturnThis()
   }))
 }));
 

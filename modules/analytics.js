@@ -1,9 +1,9 @@
 "use strict";
 // Load `*.js` under roll directory as properties
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
-const fs = require('fs');
-const path = require('path');
-const util = require('util');
+const fs = require('node:fs');
+const path = require('node:path');
+const util = require('node:util');
 const readdir = util.promisify(fs.readdir);
 
 // Create an index of available roll modules
@@ -13,7 +13,7 @@ const rollModules = new Map();
 (async function () {
 	try {
 		const files = await readdir('./roll/');
-		files.forEach((file) => {
+		for (const file of files) {
 			const name = path.basename(file, '.js');
 			if ((name !== 'index' && name !== 'demo') && file.endsWith('.js')) {
 				rollModules.set(name.toLowerCase(), {
@@ -21,7 +21,7 @@ const rollModules = new Map();
 					path: path.join(__dirname, '../roll/', file)
 				});
 			}
-		});
+		}
 	} catch (error) {
 		console.error('Error initializing roll modules:', error);
 	}
@@ -54,9 +54,9 @@ function getRollModule(moduleName) {
 const schema = require('./schema.js');
 const debugMode = (process.env.DEBUG) ? true : false;
 const MESSAGE_SPLITOR = (/\S+/ig);
-const courtMessage = require('./logs').courtMessage || function () { };
-const getState = require('./logs').getState || function () { };
-const EXPUP = require('./level').EXPUP || function () { };
+const courtMessage = require('./logs').courtMessage || function () {};
+const getState = require('./logs').getState || function () {};
+const EXPUP = require('./level').EXPUP || function () {};
 
 // 創建一個統一的上下文類來管理參數
 class RollContext {
@@ -74,7 +74,7 @@ class RollContext {
 		this.discordMessage = params.discordMessage || null;
 		this.titleName = params.titleName || '';
 		this.tgDisplayname = params.tgDisplayname || '';
-		this.mainMsg = this.inputStr.replace(/^\s/g, '').match(MESSAGE_SPLITOR);
+		this.mainMsg = this.inputStr.replaceAll(/^\s/g, '').match(MESSAGE_SPLITOR);
 	}
 
 	toParams() {
@@ -184,7 +184,7 @@ const rolldice = async (context) => {
 	}
 	let target = findRollList(context.mainMsg);
 	if (!target) return null;
-	(debugMode) ? console.log('            trigger: ', context.inputStr) : '';
+	(debugMode) ? console.log('            trigger:', context.inputStr) : '';
 
 	let rollTimes = context.inputStr.match(/^\.(\d{1,2})\s/);
 	
@@ -192,7 +192,7 @@ const rolldice = async (context) => {
 	rollTimes > 10 ? rollTimes = 10 : null;
 	context.inputStr = context.inputStr.replace(/^\.\d{1,2}\s/, '');
 
-	context.mainMsg[0].match(/^\.(\d{1,2})$/) ? context.mainMsg.shift() : null;
+	/^\.(\d{1,2})$/.test(context.mainMsg[0]) ? context.mainMsg.shift() : null;
 	context.mainMsg = context.mainMsg.filter(item => item !== '');
 
 	let retext = '';
@@ -201,7 +201,7 @@ const rolldice = async (context) => {
 		if (rollTimes > 1 && /^dice|^funny/i.test(target.gameType())) {
 			let result = await target.rollDiceCommand(context.toParams());
 			if (result && result.text) {
-				retext += `#${index + 1}： ${result.text.replace(/\n/g, '')}\n`;
+				retext += `#${index + 1}： ${result.text.replaceAll('\n', '')}\n`;
 				tempsave = result;
 			}
 		} else {
@@ -224,7 +224,7 @@ function findRollList(mainMsg) {
 	if (!mainMsg || !Array.isArray(mainMsg) || mainMsg.length === 0) return;
 
 	// Check if first element matches pattern and shift if true
-	if (mainMsg[0] && mainMsg[0].match(/^\.(\d{1,2})$/)) {
+	if (mainMsg[0] && /^\.(\d{1,2})$/.test(mainMsg[0])) {
 		mainMsg.shift();
 	}
 
@@ -264,22 +264,22 @@ function findRollList(mainMsg) {
 
 async function stateText() {
 	let state = await getState() || '';
-	if (!Object.keys(state).length || !state.LogTime) return '';
+	if (Object.keys(state).length === 0 || !state.LogTime) return '';
 
 	const cleanDateTime = (dateStr) => dateStr
 		.replace(' GMT+0800 (Hong Kong Standard Time)', '')
 		.replace(' GMT+0800 (GMT+08:00)', '');
 
-	const formatNumber = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+	const formatNumber = (num) => num.toString().replaceAll(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 	// 使用 Promise.all 同時獲取所有統計數據
 	const [levelSystemCount, characterCardCount, userCount] = await Promise.all([
 		schema.trpgLevelSystem.countDocuments({ Switch: '1' })
-			.catch(error => console.error('analytics #266 mongoDB error: ', error.name, error.reason)),
+			.catch(error => console.error('analytics #266 mongoDB error:', error.name, error.reason)),
 		schema.characterCard.countDocuments({})
-			.catch(error => console.error('analytics #267 mongoDB error: ', error.name, error.reason)),
+			.catch(error => console.error('analytics #267 mongoDB error:', error.name, error.reason)),
 		schema.firstTimeMessage.countDocuments({})
-			.catch(error => console.error('analytics #268 mongoDB error: ', error.name, error.reason))
+			.catch(error => console.error('analytics #268 mongoDB error:', error.name, error.reason))
 	]);
 
 	return `【📊 HKTRPG系統狀態報告】
@@ -328,7 +328,7 @@ async function cmdfunction({ result, ...context }) {
 			Time: ${new Date()}`);
 	}
 
-	(debugMode) ? console.log('            inputStr2: ', newInputStr) : '';
+	(debugMode) ? console.log('            inputStr2:', newInputStr) : '';
 	if (typeof tempResut === 'object' && tempResut !== null) {
 		if (result.characterName) tempResut.text = `${result.characterName} 進行 ${result.characterReRollName} 擲骰\n ${tempResut.text}`
 		return tempResut;

@@ -32,7 +32,7 @@ jest.mock('mathjs', () => ({
 // Mock random-js
 jest.mock('random-js', () => ({
   Random: jest.fn().mockImplementation(() => ({
-    integer: jest.fn().mockImplementation((min, max) => {
+    integer: jest.fn().mockImplementation(() => {
       // Always return 4 for dice rolls for predictable tests
       return 4;
     }),

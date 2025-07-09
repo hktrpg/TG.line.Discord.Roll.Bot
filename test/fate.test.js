@@ -10,8 +10,8 @@ jest.mock('mathjs', () => ({
 }));
 
 // Import dependencies after mocking
-const rollbase = require('../roll/rollbase.js');
 const mathjs = require('mathjs');
+const rollbase = require('../roll/rollbase.js');
 
 // Create a mock fate module for testing
 const mockFateModule = {
@@ -87,18 +87,32 @@ describe('Fate Module Tests', () => {
                             const random = (rollbase.Dice(3) - 2); // Maps to -1, 0, or +1
                             ans += random;
                             // Convert to symbols
-                            if (random === -1) temp += '－';
-                            else if (random === 0) temp += '▉';
-                            else if (random === 1) temp += '＋';
+                            switch (random) {
+                            case -1: {
+                            temp += '－';
+                            break;
+                            }
+                            case 0: {
+                            temp += '▉';
+                            break;
+                            }
+                            case 1: {
+                            temp += '＋';
+                            // No default
+                            }
+                            break;
+                            }
                         }
                         
                         rply.text = 'Fate ' + inputStr + '\n' + temp + ' = ' + ans;
                         
                         // Handle modifiers
+                        // eslint-disable-next-line unicorn/prefer-string-replace-all -- Node.js 14 doesn't support replaceAll
                         let mod = mainMsg[0].replace(/^\.4df/ig, '').replace(/^(\d)/, '+$1').replace(/m/ig, '-').replace(/-/g, ' - ').replace(/\+/g, ' + ');
                         if (mod) {
                             // Calculate with modifier
                             let result = mathjs.evaluate(ans + mod);
+                            // eslint-disable-next-line unicorn/prefer-string-replace-all -- Node.js 14 doesn't support replaceAll
                             rply.text += ` ${mod} = ${result}`.replace(/\*/g, ' * ');
                         }
                     } catch (error) {

@@ -75,7 +75,7 @@ jest.mock('fs', () => ({
 }));
 
 jest.mock('path', () => ({
-    basename: jest.fn().mockImplementation((file, ext) => {
+    basename: jest.fn().mockImplementation((file) => {
         if (file === 'test.js') return 'test';
         if (file === 'state.js') return 'state';
         if (file === 'z_stop.js') return 'z_stop';
@@ -150,6 +150,7 @@ describe('Analytics Module Tests', () => {
                 groupid: 'testgroup'
             });
 
+            expect(result).toBeDefined();
             expect(mockRollModule.rollDiceCommand).toHaveBeenCalled();
         });
 
@@ -235,6 +236,7 @@ describe('Analytics Module Tests', () => {
                 groupid: 'testgroup'
             });
 
+            expect(result).toBeDefined();
             expect(result.text).toBe('');
             expect(result.type).toBe('text');
         });

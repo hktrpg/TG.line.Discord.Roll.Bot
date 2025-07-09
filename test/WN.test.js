@@ -6,12 +6,11 @@ jest.mock('../roll/rollbase.js', () => ({
   Dice: jest.fn().mockReturnValue(4)
 }));
 
-const mathjs = require('mathjs');
 jest.mock('mathjs', () => ({
   evaluate: jest.fn().mockImplementation((expr) => {
     try {
       return eval(expr);
-    } catch (error) {
+    } catch {
       return expr;
     }
   })

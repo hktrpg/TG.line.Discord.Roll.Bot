@@ -75,7 +75,7 @@ describe('Edit Module Tests', () => {
                 return rply;
             }
             
-            return undefined;
+            return;
         });
     });
 

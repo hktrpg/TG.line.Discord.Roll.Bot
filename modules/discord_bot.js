@@ -3,7 +3,7 @@ const fs = require('node:fs');
 
 const { ClusterClient, getInfo } = require('discord-hybrid-sharding');
 const Discord = require('discord.js');
-const isImageURL = require('image-url-validator').default;
+const { verifyImageURL } = require('verify-image-url');
 const WebSocket = require('ws');
 
 const candle = require('../modules/candleDays.js');
@@ -290,8 +290,8 @@ async function convQuotes(text = "") {
 	if (imageMatch && imageMatch.length > 0) {
 		for (let index = 0; (index < imageMatch.length) && index < 10; index++) {
 			imageMatch[index] = imageMatch[index].replace(/\s?$/, '');
-			let imageVaild = await isImageURL(imageMatch[index]);
-			if (imageVaild) {
+			let imageVaild = await verifyImageURL(imageMatch[index]);
+			if (imageVaild.isImage) {
 				let imageEmbed = new EmbedBuilder().setURL('https://www.patreon.com/HKTRPG').setImage(imageMatch[index]);
 				if (imageMatch.length === 1) embed.setImage(imageMatch[index]);
 				else embeds.push(imageEmbed);

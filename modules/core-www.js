@@ -109,7 +109,12 @@ function createWebServer(options = {}, www) {
 const server = createWebServer(options, www);
 
 // 初始化 Socket.IO (只有在 server 存在時)
-const io = server ? require('socket.io')(server) : null;
+const io = server ? require('socket.io')(server, {
+	cors: {
+		origin: "*",
+		methods: ["GET", "POST"]
+	}
+}) : null;
 
 // 加入線上人數計數
 let onlineCount = 0;

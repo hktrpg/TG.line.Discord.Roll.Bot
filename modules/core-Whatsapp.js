@@ -23,7 +23,7 @@ const qrcode = require('qrcode-terminal');
 const {
 	Client, LocalAuth, MessageMedia
 } = require('whatsapp-web.js');
-const isImageURL = require('image-url-validator').default;
+const { verifyImageURL } = require('verify-image-url');
 const candle = require('../modules/candleDays.js');
 const agenda = require('../modules/schedule')
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
@@ -372,47 +372,26 @@ async function SendDR(msg, text) {
 }
 
 async function SendToReply(msg, rplyVal, userid) {
-	for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
-			const messageText = `${(candle.checker(userid)) ? candle.checker(userid) + ' ' : ''}${rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]}`;
-			const imageMatch = rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i].match(imageUrl) || null;
-			
-			try {
-				if (imageMatch && imageMatch.length > 0) {
-					try {
-						let imageVaild = await isImageURL(imageMatch[0]);
-						if (imageVaild) {
-							const media = await MessageMedia.fromUrl(imageMatch[0]);
-							await msg.reply(media);
-						}
-					} catch (error) {
-						console.error('[WhatsApp] Image processing error:', error.message);
-					}
-				}
-				await msg.reply(messageText);
-			} catch (error) {
-				console.log('[WhatsApp] Failed to reply, sending direct message instead:', error.message);
-				try {
-					if (msg && typeof msg.getChat === 'function') {
-						const chat = await msg.getChat();
-						if (imageMatch && imageMatch.length > 0) {
-							try {
-								let imageVaild = await isImageURL(imageMatch[0]);
-								if (imageVaild) {
-									const media = await MessageMedia.fromUrl(imageMatch[0]);
-									await chat.sendMessage(media);
-								}
-							} catch (error) {
-								console.error('[WhatsApp] Image processing error:', error.message);
-							}
-						}
-						await chat.sendMessage(messageText);
-					} else {
-						console.error('[WhatsApp] msg.getChat is not available, cannot send fallback message');
-					}
-				} catch (fallbackError) {
-					console.error('[WhatsApp] SendToReply fallback failed:', fallbackError.message);
-				}
+	if (rplyVal.text) msg.reply(rplyVal.text.replaceAll('\\n', '\n'));
+
+	if (rplyVal.image) {
+		const imageMatch = rplyVal.image.match(imageUrl);
+		if (imageMatch && imageMatch[0]) {
+			const { isImage: imageVaild } = await verifyImageURL(imageMatch[0]);
+			if (imageVaild) {
+				let media = await MessageMedia.fromUrl(imageMatch[0]);
+				msg.reply(media);
+			}
+		}
+	}
+
+	if (rplyVal.buttons) {
+		const imageMatch = (rplyVal.buttons[0].img) ? rplyVal.buttons[0].img.match(imageUrl) : '';
+		if (imageMatch && imageMatch[0]) {
+			const { isImage: imageVaild } = await verifyImageURL(imageMatch[0]);
+			if (imageVaild) {
+				let media = await MessageMedia.fromUrl(imageMatch[0]);
+				msg.reply(media, undefined, { caption: rplyVal.buttons[0].text });
 			}
 		}
 	}
@@ -427,40 +406,51 @@ function privateMsgFinder(channelid) {
 }
 
 async function SendToId(targetid, rplyVal, client) {
-	try {
-		if (!rplyVal || !rplyVal.text) {
-			console.error('[WhatsApp] SendToId: rplyVal or rplyVal.text is undefined');
-			return;
-		}
-
-		const textChunks = rplyVal.text.toString().match(/[\s\S]{1,2000}/g) || [];
-		
-		for (let i = 0; i < textChunks.length; i++) {
-			if (i == 0 || i == 1 || i == textChunks.length - 2 || i == textChunks.length - 1) {
-				const chunk = textChunks[i];
-				const imageMatch = chunk.match(imageUrl) || null;
-				
-				if (imageMatch && imageMatch.length > 0) {
-					try {
-						let imageVaild = await isImageURL(imageMatch[0]);
-						if (imageVaild) {
-							const media = await MessageMedia.fromUrl(imageMatch[0]);
-							await client.sendMessage(targetid, media);
-						}
-					} catch (error) {
-						console.error('[WhatsApp] SendToId image error:', error.message);
-					}
-				}
-				
-				try {
-					await client.sendMessage(targetid, chunk);
-				} catch (error) {
-					console.error('[WhatsApp] SendToId message error:', error.message);
-				}
+	if (rplyVal.image) {
+		const imageMatch = rplyVal.image.match(imageUrl);
+		if (imageMatch && imageMatch[0]) {
+			const { isImage: imageVaild } = await verifyImageURL(imageMatch[0]);
+			if (imageVaild) {
+				let media = await MessageMedia.fromUrl(imageMatch[0]);
+				client.sendMessage(targetid, media);
 			}
 		}
-	} catch (error) {
-		console.error('[WhatsApp] SendToId general error:', error.message);
+	} else if (rplyVal.text) {
+		try {
+			if (!rplyVal || !rplyVal.text) {
+				console.error('[WhatsApp] SendToId: rplyVal or rplyVal.text is undefined');
+				return;
+			}
+
+			const textChunks = rplyVal.text.toString().match(/[\s\S]{1,2000}/g) || [];
+			
+			for (let i = 0; i < textChunks.length; i++) {
+				if (i == 0 || i == 1 || i == textChunks.length - 2 || i == textChunks.length - 1) {
+					const chunk = textChunks[i];
+					const imageMatch = chunk.match(imageUrl) || null;
+					
+					if (imageMatch && imageMatch.length > 0) {
+						try {
+							const { isImage: imageVaild } = await verifyImageURL(imageMatch[0]);
+							if (imageVaild) {
+								const media = await MessageMedia.fromUrl(imageMatch[0]);
+								client.sendMessage(targetid, media);
+							}
+						} catch (error) {
+							console.error('[WhatsApp] SendToId image error:', error.message);
+						}
+					}
+					
+					try {
+						client.sendMessage(targetid, chunk);
+					} catch (error) {
+						console.error('[WhatsApp] SendToId message error:', error.message);
+					}
+				}
+			}
+		} catch (error) {
+			console.error('[WhatsApp] SendToId general error:', error.message);
+		}
 	}
 }
 

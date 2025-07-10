@@ -65,7 +65,7 @@
     "plurk2": "https://github.com/zeteticl/node-plurk2.git#master",
     "qrcode-terminal": "^0.12.0",
     "random-js": "^2.1.0",
-    "rate-limiter-flexible": "^2.2.3",
+    "rate-limiter-flexible": "^7.1.1",
     "recachegoose": "^9.1.0",
     "request": "^2.88.2",
     "serve-favicon": "^2.5.0",

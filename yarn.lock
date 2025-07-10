@@ -7273,10 +7273,10 @@ range-parser@~1.2.1:
   resolved "https://registry.npmjs.org/range-parser/-/range-parser-1.2.1.tgz"
   integrity sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==
 
-rate-limiter-flexible@^2.2.3:
-  version "2.4.2"
-  resolved "https://registry.npmjs.org/rate-limiter-flexible/-/rate-limiter-flexible-2.4.2.tgz"
-  integrity sha512-rMATGGOdO1suFyf/mI5LYhts71g1sbdhmd6YvdiXO2gJnd42Tt6QS4JUKJKSWVVkMtBacm6l40FR7Trjo6Iruw==
+rate-limiter-flexible@^7.1.1:
+  version "7.1.1"
+  resolved "https://registry.yarnpkg.com/rate-limiter-flexible/-/rate-limiter-flexible-7.1.1.tgz#539cbb9948b5d097c561731cc7ed2623742daeff"
+  integrity sha512-lsYRcqRSJrKBNt6pMzBJTiCJP5KnwsGWdObMZxd19JFUJRntM+yuHs4/2bs6NZweSLgpsDcykvzyQaumoslWQg==
 
 raw-body@2.5.2, raw-body@^2.5.2:
   version "2.5.2"

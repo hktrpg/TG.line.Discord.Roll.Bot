@@ -1,5 +1,4 @@
 "use strict";
-const rollbase = require('./rollbase.js');
 let variables = {};
 const fs = require('fs');
 const { SlashCommandBuilder } = require('discord.js');
@@ -8,6 +7,7 @@ const chineseConv = require('chinese-conv'); //繁簡轉換
 const axios = require('axios');
 const cheerio = require('cheerio');
 const wiki = require('wikijs').default;
+const rollbase = require('./rollbase.js');
 const identity = 'HKTRPG (https://www.hktrpg.com; admin@hktrpg.com) wiki.js';
 const gameName = function () {
 	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日淺草簽 每日大事 每日(星座) 每日解答	立flag .me'
@@ -312,6 +312,7 @@ class FunnyRandom {
 /**
  * .ME
  */
+// eslint-disable-next-line no-unused-vars
 function me(inputStr) {
 	return inputStr.replace(/^[.]re/i, '');
 }
@@ -333,7 +334,7 @@ class TwelveAstro {
 			if (this.Astro[astroCode]) {
 				return this.returnStr(this.Astro[astroCode], name);
 			} else return;
-		} catch (error) {
+		} catch {
 			return;
 		}
 	}
@@ -1048,7 +1049,7 @@ async function axiosDaily(url) {
 async function fetchData(url) {
 	let reply = '';
 	try {
-		const response = await axios.get(encodeURI(url), { timeout: 20000 });
+		const response = await axios.get(encodeURI(url), { timeout: 20_000 });
 		const json = analyzeResponse(response);
 		reply += `${json.title ? json.title + '\n' : ''}`
 		reply += `${json.text && json.text !== '获取成功' ? json.text + '\n' : ''}`
@@ -1058,7 +1059,7 @@ async function fetchData(url) {
 		reply = chineseConv.tify(reply);
 		reply += `${json.image ? json.image + '\n' : ''}`
 		reply += `${json.data && json.data.image ? json.data.image + '\n' : ''}`
-		reply = reply.replace(/\\r/g, '\n').replace(/\\n/g, '\n')
+		reply = reply.replaceAll(String.raw`\r`, '\n').replaceAll(String.raw`\n`, '\n')
 		return reply || '沒有結果，請檢查內容'
 	} catch (error) {
 		if (error.code !== 'ETIMEDOUT' || error.code !== 'ECONNABORTED' || error.code !== 'ECONNRESET' || error.code !== 'undefined') {
@@ -1140,7 +1141,7 @@ const discordCommand = [
 
 			const text = interaction.options.getString('text')?.trim()?.split(/\s+/)
 
-			if (!text || text.length == 0) {
+			if (!text || text.length === 0) {
 				return `運勢`
 			} else if (text.length == 1) {
 				return `${text[0]}運勢 `
@@ -1271,38 +1272,38 @@ const discordCommand = [
 
 
 
-class DailyFuckUp {
-	static randomSentence(list) {
+const DailyFuckUp = {
+	randomSentence(list) {
 		let row = Math.floor(Math.random() * list.length);
 		return list[row];
-	}
+	},
 
-	static randomNumber(min = 0, max = 100) {
+	randomNumber(min = 0, max = 100) {
 		let number = Math.random() * (max - min) + min;
 		return number;
-	}
+	},
 
-	static genCelebrity() {
+	genCelebrity() {
 		let quotes = DailyFuckUp.randomSentence(DailyFuckUp.celebrityQuotes)
 		quotes = quotes.replace("曾經說過", DailyFuckUp.randomSentence(DailyFuckUp.formerFuck))
 		quotes = quotes.replace("這不禁令我深思", DailyFuckUp.randomSentence(DailyFuckUp.afterFuck))
 		return quotes
-	}
+	},
 
-	static genDiscuss(subject) {
+	genDiscuss(subject) {
 		let sentence = DailyFuckUp.randomSentence(DailyFuckUp.discuss);
-		sentence = sentence.replace(RegExp("主題", "g"), subject);
+		sentence = sentence.replaceAll(RegExp("主題", "g"), subject);
 		return sentence;
-	}
+	},
 
-	static addParagraph(chapter) {
-		if (chapter[chapter.length - 1] === " ") {
+	addParagraph(chapter) {
+		if (chapter.at(-1) === " ") {
 			chapter = chapter.slice(0, -2)
 		}
 		return "　　" + chapter + "。 "
-	}
+	},
 
-	static generateArticles(subject) {
+	generateArticles(subject) {
 		let text = []
 		let chapter = "";
 		let chapterLength = 0;
@@ -1327,9 +1328,9 @@ class DailyFuckUp {
 
 		let result = text.join("\n\n").replace('。。', '。');
 		return result;
-	}
+	},
 
-	static discuss = [
+	discuss : [
 		"現在，解決主題的問題，是非常非常重要的。 ",
 		"主題的發生，到底需要如何做到，不主題的發生，又會如何產生。 ",
 		"主題，到底應該如何實現。 ",
@@ -1372,9 +1373,9 @@ class DailyFuckUp {
 		"對於主題的處理，我們需要更好地運用科技和創新，才能取得更好的效果。",
 		"解決主題需要全社會的參與和努力，不能單靠某一個群體或個人的力量。",
 		"主題所帶來的影響和後果是深遠的，必須慎重對待。",
-	]
+	],
 
-	static celebrityQuotes = [
+	celebrityQuotes : [
 		"馬丁路德金曾經說過：黑夜雖然會延遲，但白天一定會到來。這不禁令我深思",
 		"貝多芬曾經說過：人生就像一首交響樂，需要高低起伏才會有美妙的旋律。這不禁令我深思",
 		"約翰·藍儂曾經說過：生命是發生在你身上的事情，當你忙於為其餘的東西而忘了它時，它就會溜走。這不禁令我深思",
@@ -1485,13 +1486,13 @@ class DailyFuckUp {
 		"史美爾斯曾經說過，書籍把我們引入最美好的社會，使我們認識各個時代的偉大智者。這不禁令我深思",
 		"馮學峰曾經說過，當一個人用工作去迎接光明，光明很快就會來照耀著他。這不禁令我深思",
 		"吉格·金克拉曾經說過，如果你能做夢，你就能實現它。這不禁令我深思",
-	]
+	],
 
-	static afterFuck = ["這不禁令我深思。 ", "帶著這句話，我們還要更加慎重的審視這個問題： ", "這啟發了我， ", "我希望諸位也能好好地體會這句話。 ", "這句話語雖然很短，但令我浮想聯翩。 ", "無可否認，這句話帶給我們極大的啟示。", "我深深體會到這句話所蘊含的深意。", "這句話真正引起了我的共鳴。", "這句話不僅引發了我們的關注，也引起了我們的思考。", "我們需要認真對待這句話所提出的挑戰。", "這句話所傳達的信息絕對不容忽視。", "這句話令我們更加清晰地看到了問題的本質。", "這句話讓我們看到了問題的另一面。", "我深信這句話會成為我們思考的重要起點。", "我們必須從這句話中學到更多的東西。", "這句話能夠激發我們內心深處的共鳴。", "我們需要從這句話中學到一個重要的教訓。", "這句話引起了我們對問題的關注，也啟發了我們的思考。", "這句話不僅是一句警句，更是一個重要的提醒。", "這句話在我們思考的過程中發揮了重要的作用。", "這句話讓我們看到了一個全新的視角。", "這句話可以幫助我們更好地理解問題的本質。", "我們必須從這句話中吸取更多的智慧和啟示。", "這句話深刻地反映了現實的困境和挑戰。", "這句話讓我們更加明白了自己的不足之處。", "這句話揭示了問題的一個重要方面。", "這句話讓我們更加認識到自己的責任和使命。", "這句話提醒我們要時刻保持警醒和警覺。", "這句話讓我們更加堅定了自己的信念和決心。", "這句話可以幫助我們更好地理解自己和他人。", "這句話是一個重要的思想火花，可以引發更多的啟示。", "這句話可以幫助我們更好地理解自己的身份和使命。", "這句話讓我們更加明白了人生的真諦和意義。", "這句話可以激勵我們更加努力地工作和生活。", "這句話是一個非常寶貴的啟示和提醒。", "這句話讓我們看到了問題的一個新的方向和出路。", "這句話可以幫助我們更好地面對人生的挑戰和困境。", "這句話讓我們更加明白了自己的優點和不足。", "這句話是一個非常實用的工作和生活的指導原則。", "這句話可以幫助我們更好地理解人性和社會。", "這句話讓我們更加意識到自己的權利和義務。", "這句話讓我們更加了解了一個文化或一個國家的特點和價值觀。", "這句話可以啟發我們更多的創造力和想像力。", "這句話讓我們更加明白了生命的珍貴和脆弱。"]
+	afterFuck : ["這不禁令我深思。 ", "帶著這句話，我們還要更加慎重的審視這個問題： ", "這啟發了我， ", "我希望諸位也能好好地體會這句話。 ", "這句話語雖然很短，但令我浮想聯翩。 ", "無可否認，這句話帶給我們極大的啟示。", "我深深體會到這句話所蘊含的深意。", "這句話真正引起了我的共鳴。", "這句話不僅引發了我們的關注，也引起了我們的思考。", "我們需要認真對待這句話所提出的挑戰。", "這句話所傳達的信息絕對不容忽視。", "這句話令我們更加清晰地看到了問題的本質。", "這句話讓我們看到了問題的另一面。", "我深信這句話會成為我們思考的重要起點。", "我們必須從這句話中學到更多的東西。", "這句話能夠激發我們內心深處的共鳴。", "我們需要從這句話中學到一個重要的教訓。", "這句話引起了我們對問題的關注，也啟發了我們的思考。", "這句話不僅是一句警句，更是一個重要的提醒。", "這句話在我們思考的過程中發揮了重要的作用。", "這句話讓我們看到了一個全新的視角。", "這句話可以幫助我們更好地理解問題的本質。", "我們必須從這句話中吸取更多的智慧和啟示。", "這句話深刻地反映了現實的困境和挑戰。", "這句話讓我們更加明白了自己的不足之處。", "這句話揭示了問題的一個重要方面。", "這句話讓我們更加認識到自己的責任和使命。", "這句話提醒我們要時刻保持警醒和警覺。", "這句話讓我們更加堅定了自己的信念和決心。", "這句話可以幫助我們更好地理解自己和他人。", "這句話是一個重要的思想火花，可以引發更多的啟示。", "這句話可以幫助我們更好地理解自己的身份和使命。", "這句話讓我們更加明白了人生的真諦和意義。", "這句話可以激勵我們更加努力地工作和生活。", "這句話是一個非常寶貴的啟示和提醒。", "這句話讓我們看到了問題的一個新的方向和出路。", "這句話可以幫助我們更好地面對人生的挑戰和困境。", "這句話讓我們更加明白了自己的優點和不足。", "這句話是一個非常實用的工作和生活的指導原則。", "這句話可以幫助我們更好地理解人性和社會。", "這句話讓我們更加意識到自己的權利和義務。", "這句話讓我們更加了解了一個文化或一個國家的特點和價值觀。", "這句話可以啟發我們更多的創造力和想像力。", "這句話讓我們更加明白了生命的珍貴和脆弱。"],
 
-	static formerFuck = ["曾經說過", "在不經意間這樣說過", "事先聲明", "先說一聲", "需要先強調", "需要先說明", "需要先說明一下", "必須說明的是", "講過一個小故事", "討論過這問題", "曾經稍微講過背景", "曾經簡單提過一下", "談到這個話題", "想要先聲明的是", "在關於這個問題", "根據自己的經驗", "曾探討過這個議題", "在談論過這件事", "過交代過", "談到這個事情時，說過", "在進入正題前，曾說過", "關於這個話題，曾說過", "交代過一下", "說過自己的立場", "闡述過想法", "探討過這個問題", "談論過這個主題", "曾分析過", "提過，一下問題的重要性", "曾深入探討這個問題", "談到這個議題"]
+	formerFuck : ["曾經說過", "在不經意間這樣說過", "事先聲明", "先說一聲", "需要先強調", "需要先說明", "需要先說明一下", "必須說明的是", "講過一個小故事", "討論過這問題", "曾經稍微講過背景", "曾經簡單提過一下", "談到這個話題", "想要先聲明的是", "在關於這個問題", "根據自己的經驗", "曾探討過這個議題", "在談論過這件事", "過交代過", "談到這個事情時，說過", "在進入正題前，曾說過", "關於這個話題，曾說過", "交代過一下", "說過自己的立場", "闡述過想法", "探討過這個問題", "談論過這個主題", "曾分析過", "提過，一下問題的重要性", "曾深入探討這個問題", "談到這個議題"],
 
-}
+};
 
 
 

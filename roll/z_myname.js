@@ -2,8 +2,8 @@
 if (!process.env.mongoURL) {
     return;
 }
-const VIP = require('../modules/veryImportantPerson');
 const { SlashCommandBuilder } = require('discord.js');
+const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [10, 20, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema.js');
 const MAX_HISTORY_RECORDS = 20;
@@ -16,7 +16,7 @@ const gameName = function () {
     return '【你的名字】.myname / .me .me1 .me泉心'
 }
 const convertRegex = function (str) {
-    return str.toString().replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+    return str.toString().replaceAll(/([.?*+^$[\]\\(){}|-])/g, String.raw`\$1`);
 };
 const gameType = function () {
     return 'Tool:myname:hktrpg'
@@ -154,7 +154,7 @@ const rollDiceCommand = async function ({
                 rply.text = '移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 0 / .myname delete 小雲'
                 return rply
             }
-            if (mainMsg[2].match(/\d+/)) {
+            if (/\d+/.test(mainMsg[2])) {
                 try {
                     let myNames = await schema.myName.find({ userID: userid })
                     let result = await myNames[mainMsg[2] - 1].deleteOne();
@@ -165,7 +165,7 @@ const rollDiceCommand = async function ({
                         rply.text = '移除出錯\n移除角色指令為 .myname delete (序號 或 名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
                         return rply
                     }
-                } catch (error) {
+                } catch {
                     //   console.error("移除角色失敗, inputStr: ", inputStr);
                     rply.text = '移除出錯\n移除角色指令為 .myname delete (序號 或 名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
                     return rply
@@ -183,7 +183,7 @@ const rollDiceCommand = async function ({
                     rply.quotes = true;
                     return rply
                 }
-            } catch (error) {
+            } catch {
                 //   console.error("移除角色失敗, inputStr: ", inputStr);
                 rply.text = '移除出錯\n移除角色指令為 .myname delete (序號/名字縮寫) \n 如 .myname delete 1 / .myname delete 小雲\n序號請使用.myname show 查詢'
                 rply.quotes = true;
@@ -213,7 +213,7 @@ const rollDiceCommand = async function ({
                 rply.quotes = true;
                 return rply;
             }
-            if (!checkName.imageLink.match(/^http/i)) {
+            if (!/^http/i.test(checkName.imageLink)) {
                 rply.text = `輸入出錯\n 圖示link 必須符合 http/https 開頭`;
                 rply.quotes = true;
                 return rply;
@@ -225,7 +225,7 @@ const rollDiceCommand = async function ({
                     { imageLink: checkName.imageLink, shortName: checkName.shortName },
                     opt
                 );
-            } catch (error) {
+            } catch {
                 rply.text = `發生了一點錯誤，請稍後再試`;
                 return rply;
             }
@@ -250,7 +250,7 @@ const rollDiceCommand = async function ({
             try {
                 // Process the input by removing the command prefix
                 inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
-                if (inputStr.match(/^\s*$/)) {
+                if (/^\s*$/.test(inputStr)) {
                     rply.text = `.me 或 .mee 可以令HKTRPG機械人重覆你的說話\n請輸入復述內容`
                     rply.quotes = true;
                     return rply;
@@ -271,7 +271,7 @@ const rollDiceCommand = async function ({
                         const content = inputStr.trim();
                         // Don't await here to prevent blocking on DB operations
                         saveMyNameRecord(channelid || groupid, userid, null, defaultMyName.name, defaultMyName.imageLink, content, displaynameDiscord, displayname, botname)
-                            .catch(err => console.error('Async error saving .me record:', err));
+                            .catch(error => console.error('Async error saving .me record:', error));
                     }
                 } catch (error) {
                     console.error('Error saving .me record:', error);
@@ -328,7 +328,7 @@ const rollDiceCommand = async function ({
                     if (groupid) {
                         // Don't await here to prevent blocking on DB operations
                         saveMyNameRecord(channelid || groupid, userid, myName._id, myName.name, myName.imageLink, messageContent, displaynameDiscord, displayname, botname)
-                            .catch(err => console.error('Async error saving .meXXX record:', err));
+                            .catch(error => console.error('Async error saving .meXXX record:', error));
                     }
                 } catch (error) {
                     console.error('Error saving .meXXX record:', error);
@@ -413,20 +413,20 @@ function checkMyName(inputStr) {
     try {
         let name = inputStr.replace(/^\s?\S+\s+/, '');
         let finalName = {}
-        if (name.match(/^".*"/)) {
+        if (/^".*"/.test(name)) {
             finalName = name.match(/"(.*)"\s+(\S+)\s*(\S*)/)
         } else {
             finalName = name.match(/^(\S+)\s+(\S+)\s*(\S*)/)
         }
         return { name: finalName[1], imageLink: finalName[2], shortName: finalName[3] };
-    } catch (err) {
+    } catch {
         return {}
     }
 }
 
 function checkMeName(inputStr) {
     let name = inputStr.replace(/^\.me/i, '');
-    if (name.match(/^\d+$/)) {
+    if (/^\d+$/.test(name)) {
         name = Number(name)
     }
     return name;
@@ -538,12 +538,12 @@ function formatHistory(records) {
                 // Convert string timestamp to Date if needed
                 if (record.timestamp) {
                     const timestamp = new Date(record.timestamp);
-                    if (!isNaN(timestamp.getTime())) {
+                    if (!Number.isNaN(timestamp.getTime())) {
                         time = formatter.format(timestamp);
                     }
                 }
-            } catch (e) {
-                console.error('Error formatting timestamp:', e);
+            } catch (error) {
+                console.error('Error formatting timestamp:', error);
             }
 
             // Format the record with more details

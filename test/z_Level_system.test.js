@@ -66,7 +66,7 @@ process.env.mongoURL = 'test_mongo_url';
 
 // Import dependencies
 const schema = require('../modules/schema.js');
-const checkTools = require('../modules/check.js');
+    const _checkTools = require('../modules/check.js');
 
 // Import module
 const levelModule = require('../roll/z_Level_system.js');

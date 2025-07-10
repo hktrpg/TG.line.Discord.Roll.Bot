@@ -3,22 +3,22 @@
 // Requirements
 const mongoose = require('mongoose');
 const cachegoose = require('recachegoose');
-const schedule = require('node-schedule');
+// const schedule = require('node-schedule');
 
 // 配置參數
 const config = {
     mongoUrl: process.env.mongoURL,
     maxRetries: 5,
     baseRetryInterval: 1000,  // 基礎重試間隔
-    maxRetryInterval: 30000,  // 最大重試間隔
+    maxRetryInterval: 30_000,  // 最大重試間隔
     restartTime: '30 04 */3 * *',
-    connectTimeout: 120000,    // 2 minutes
-    socketTimeout: 120000,     // 2 minutes
+    connectTimeout: 120_000,    // 2 minutes
+    socketTimeout: 120_000,     // 2 minutes
     poolSize: 10,             // 連線池大小
     minPoolSize: 2,           // 最小連線池大小
-    heartbeatInterval: 10000,  // 心跳檢測間隔
-    serverSelectionTimeout: 30000,  // Increased from 5000 to 30000 (30 seconds)
-    maxIdleTimeMS: 60000,     // 最大閒置時間
+    heartbeatInterval: 10_000,  // 心跳檢測間隔
+    serverSelectionTimeout: 30_000,  // Increased from 5000 to 30000 (30 seconds)
+    maxIdleTimeMS: 60_000,     // 最大閒置時間
     w: 'majority',            // 寫入確認級別
     retryWrites: true,        // 啟用寫入重試
     autoIndex: true,          // 自動建立索引
@@ -34,7 +34,7 @@ if (!config.mongoUrl) {
 // 連線狀態
 let isConnected = false;
 let connectionAttempts = 0;
-const master = require.main?.filename.includes('index');
+// const master = require.main?.filename.includes('index');
 
 // MongoDB 配置
 mongoose.set('strictQuery', false);
@@ -208,7 +208,7 @@ async function handleError(error) {
 }
 
 // 定期重新連線
-const restartMongo = schedule.scheduleJob(config.restartTime, restart);
+// const restartMongo = schedule.scheduleJob(config.restartTime, restart);
 
 // 健康檢查
 function checkHealth() {

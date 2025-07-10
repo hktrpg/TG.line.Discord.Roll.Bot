@@ -55,15 +55,7 @@ const initialize = function () {
 
 const rollDiceCommand = async function ({
     inputStr,
-    mainMsg,
-    groupid,
-    userid,
-    userrole,
-    botname,
-    displayname,
-    channelid,
-    displaynameDiscord,
-    membercount
+    mainMsg
 }) {
     let rply = {
         default: 'on',
@@ -87,12 +79,12 @@ const rollDiceCommand = async function ({
     }
 }
 function handleRequestRolling(text) {
-    text = text.replace(/^\.re\s+/i, '').replace(/[\r\n]/gm, '').split(',')
+    text = text.replace(/^\.re\s+/i, '').replaceAll(/[\r\n]/gm, '').split(',')
     text.splice(10);
     for (let index = 0; index < text.length; index++) {
-        text[index] = text[index].substring(0, 80);
+        text[index] = text[index].slice(0, 80);
     }
-    text = text.filter(n => n)
+    text = text.filter(Boolean)
     return text;
 }
 
@@ -124,7 +116,7 @@ const discordCommand = [
         async execute(interaction) {
             const options = ['text1', 'text2', 'text3', 'text4', 'text5']
                 .map(name => interaction.options.getString(name))
-                .filter(text => text);
+                .filter(Boolean);
             return `.re ${options.join(', ')}`;
         }
     }

@@ -58,7 +58,7 @@ jest.mock('../assets/pokemon/pokedex-kanto.js', () => ({
       type: ['Psychic'],
       info: {
         category: '基因寶可夢',
-        height: 2.0,
+        height: 2,
         weight: 122,
         image: 'images/pokemon/150.png'
       },
@@ -110,8 +110,8 @@ jest.mock('../assets/pokemon/moves-fire.js', () => ({
 }), { virtual: true });
 
 // Import dependencies after mocking
+    const _fs = require('fs');
 const mathjs = require('mathjs');
-const fs = require('fs');
 
 // Mock the module to be tested
 jest.mock('../roll/pokemon.js', () => {
@@ -591,7 +591,7 @@ describe('Pokemon Module Tests', () => {
   test('Test invalid command returns undefined', async () => {
     pokemonModule.rollDiceCommand.mockImplementation(({ mainMsg }) => {
       if (mainMsg[1] === 'invalid_command') {
-        return undefined;
+        return;
       }
       return null;
     });

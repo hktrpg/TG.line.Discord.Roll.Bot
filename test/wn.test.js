@@ -6,19 +6,18 @@ jest.mock('../roll/rollbase.js', () => ({
   Dice: jest.fn().mockReturnValue(4)
 }));
 
-const mathjs = require('mathjs');
 jest.mock('mathjs', () => ({
   evaluate: jest.fn().mockImplementation((expr) => {
     try {
       return eval(expr);
-    } catch (error) {
+    } catch {
       return expr;
     }
   })
 }));
 
 // Import the module after mocking
-const wnModule = require('../roll/WN.js');
+const wnModule = require('../roll/wn.js');
 
 describe('Witch Hunting Night Module Tests', () => {
   beforeEach(() => {

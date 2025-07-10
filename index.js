@@ -32,14 +32,14 @@ class Logger {
 
     formatMessage(level, message, meta = {}) {
         const timestamp = new Date().toISOString();
-        const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
+        const metaStr = Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
         return `[${timestamp}] [${level.toUpperCase()}] ${message}${metaStr}`;
     }
 
     async writeToFile(message, isError = false) {
         const file = isError ? config.logging.errorFile : config.logging.logFile;
         const writePromise = fs.appendFile(file, message + '\n', 'utf8')
-            .catch(err => console.error('Failed to write to log file:', err))
+            .catch(error => console.error('Failed to write to log file:', error))
             .finally(() => this.writeQueue.delete(writePromise));
         
         this.writeQueue.add(writePromise);
@@ -81,7 +81,7 @@ class Logger {
     // 新增：等待所有日誌寫入完成
     async flush() {
         if (this.writeQueue.size > 0) {
-            await Promise.all(Array.from(this.writeQueue));
+            await Promise.all(this.writeQueue);
         }
     }
 }
@@ -121,14 +121,14 @@ class ModuleManager {
                 const initStartTime = process.hrtime();
                 await module.initialize();
                 const initEndTime = process.hrtime(initStartTime);
-                logger.info(`Module ${moduleName} initialization took ${initEndTime[0]}s ${initEndTime[1] / 1000000}ms`);
+                logger.info(`Module ${moduleName} initialization took ${initEndTime[0]}s ${initEndTime[1] / 1_000_000}ms`);
             }
 
             const endTime = process.hrtime(startTime);
-            logger.info(`Successfully loaded module: ${moduleName} (Total time: ${endTime[0]}s ${endTime[1] / 1000000}ms)`);
-        } catch (err) {
-            errorHandler(err, `Loading module ${moduleName}`);
-            throw err;
+            logger.info(`Successfully loaded module: ${moduleName} (Total time: ${endTime[0]}s ${endTime[1] / 1_000_000}ms)`);
+        } catch (error) {
+            errorHandler(error, `Loading module ${moduleName}`);
+            throw error;
         }
     }
 
@@ -141,9 +141,9 @@ class ModuleManager {
             this.modules.delete(moduleName);
             this.loadedModules.delete(moduleName);
             logger.info(`Successfully unloaded module: ${moduleName}`);
-        } catch (err) {
-            errorHandler(err, `Unloading module ${moduleName}`);
-            throw err;
+        } catch (error) {
+            errorHandler(error, `Unloading module ${moduleName}`);
+            throw error;
         }
     }
 
@@ -163,10 +163,10 @@ async function loadModules(moduleManager) {
                 const filePath = path.join(config.modules.directory, file);
                 try {
                     await moduleManager.loadModule(filePath, moduleName);
-                } catch (err) {
+                } catch (error) {
                     logger.error(`Failed to load module ${moduleName}:`, {
-                        error: err.message,
-                        stack: err.stack
+                        error: error.message,
+                        stack: error.stack
                     });
                     // 不拋出錯誤，讓其他模塊繼續加載
                 }
@@ -174,9 +174,9 @@ async function loadModules(moduleManager) {
         
         await Promise.all(modulePromises);
         logger.info('All modules loaded successfully');
-    } catch (err) {
-        errorHandler(err, 'Reading modules directory');
-        throw err;
+    } catch (error) {
+        errorHandler(error, 'Reading modules directory');
+        throw error;
     }
 }
 
@@ -185,17 +185,21 @@ async function gracefulShutdown(moduleManager) {
     logger.info('Starting graceful shutdown...');
     
     // Unload all loaded modules in parallel
-    const unloadPromises = Array.from(moduleManager.loadedModules).map(moduleName => 
-        moduleManager.unloadModule(moduleName).catch(err => {
+    const unloadPromises = [...moduleManager.loadedModules].map(moduleName => 
+        moduleManager.unloadModule(moduleName).catch(error => {
             logger.error(`Failed to unload module ${moduleName}:`, {
-                error: err.message,
-                stack: err.stack
+                error: error.message,
+                stack: error.stack
             });
         })
     );
     
     await Promise.all(unloadPromises);
     logger.info('Graceful shutdown completed');
+    
+    // Flush any pending logs before exit
+    await logger.flush();
+    // eslint-disable-next-line n/no-process-exit
     process.exit(0);
 }
 
@@ -209,7 +213,7 @@ async function init() {
         const loadStartTime = process.hrtime();
         await loadModules(moduleManager);
         const loadEndTime = process.hrtime(loadStartTime);
-        logger.info(`Module loading took ${loadEndTime[0]}s ${loadEndTime[1] / 1000000}ms`);
+        logger.info(`Module loading took ${loadEndTime[0]}s ${loadEndTime[1] / 1_000_000}ms`);
 
         logger.info('Application started successfully');
 
@@ -236,7 +240,7 @@ async function init() {
         });
 
         // Handle unhandled promise rejections
-        process.on('unhandledRejection', (reason, promise) => {
+        process.on('unhandledRejection', (reason) => {
             // 檢查是否為數據庫相關錯誤
             if (reason.message && (
                 reason.message.includes('MongoDB') ||
@@ -258,11 +262,13 @@ async function init() {
         });
 
         const endTime = process.hrtime(startTime);
-        logger.info(`Total initialization took ${endTime[0]}s ${endTime[1] / 1000000}ms`);
+        logger.info(`Total initialization took ${endTime[0]}s ${endTime[1] / 1_000_000}ms`);
 
-    } catch (err) {
-        errorHandler(err, 'Initialization');
-        process.exit(1);
+    } catch (error) {
+        errorHandler(error, 'Initialization');
+        // Flush logs before throwing error
+        await logger.flush();
+        throw new Error(`Application initialization failed: ${error.message}`);
     }
 }
 

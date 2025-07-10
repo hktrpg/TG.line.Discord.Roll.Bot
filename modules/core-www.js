@@ -2,30 +2,35 @@
 if (!process.env.mongoURL) {
     return;
 }
-const express = require('express');
-const www = express();
-const helmet = require('helmet');
+const crypto = require('crypto');
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
+const path = require('path');
+
 const cors = require('cors');
+const express = require('express');
+const favicon = require('serve-favicon');
+const helmet = require('helmet');
 const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
-const path = require('path');
-const favicon = require('serve-favicon');
+
+const candle = require('../modules/candleDays.js');
 const cspConfig = require('../modules/config/csp.js');
+const mainCharacter = require('../roll/z_character').mainCharacter;
+const schema = require('./schema.js');
+
+const www = express();
 //const loglink = (LOGLINK) ? LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
 const LOGLINK = (process.env.LOGLINK) ? process.env.LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
-const candle = require('../modules/candleDays.js');
 const MESSAGE_SPLITOR = (/\S+/ig)
-const schema = require('./schema.js');
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
 const APIswitch = (process.env.API) ? process.env.API : null;
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
 const isMaster = (process.env.MASTER) ? process.env.MASTER : null;
 const salt = process.env.SALT;
-const crypto = require('crypto');
-const mainCharacter = require('../roll/z_character').mainCharacter;
-const fs = require('fs');
 let options = {
     key: null,
     cert: null,
@@ -36,7 +41,7 @@ let options = {
 const rateLimitConfig = {
     chatRoom: { points: 90, duration: 60 },
     card: { points: 20, duration: 60 },
-    api: { points: 10000, duration: 10 }
+    api: { points: 10_000, duration: 10 }
 };
 
 const rateLimits = Object.entries(rateLimitConfig).reduce((acc, [key, config]) => {
@@ -71,8 +76,6 @@ const initSSL = () => {
 (async () => {
     options = initSSL();
 })();
-const http = require('http');
-const https = require('https');
 
 
 
@@ -84,7 +87,7 @@ process.on('uncaughtException', (warning) => {
 });
 
 const records = require('./records.js');
-const port = process.env.WWWPORT || 20721;
+const port = process.env.WWWPORT || 20_721;
 const channelKeyword = '';
 exports.analytics = require('./analytics');
 
@@ -104,8 +107,9 @@ function createWebServer(options = {}, www) {
     return server;
 }
 const server = createWebServer(options, www);
-const io = require('socket.io')(server);
 
+// 初始化 Socket.IO (只有在 server 存在時)
+const io = server ? require('socket.io')(server) : null;
 
 // 加入線上人數計數
 let onlineCount = 0;
@@ -124,7 +128,7 @@ www.use(cors({
         'Authorization'
     ],
     credentials: true,
-    maxAge: 86400,
+    maxAge: 86_400,
     optionsSuccessStatus: 200
 }));
 
@@ -143,7 +147,7 @@ www.get('/api', async (req, res) => {
         !req || !req.query || !req.query.msg
     ) {
         res.writeHead(200, { 'Content-type': 'application/json' })
-        res.end('{"message":"welcome to HKTRPG API.\\n To use, please enter the content in query: msg \\n like https://api.hktrpg.com?msg=1d100\\n command bothelp for tutorials."}')
+        res.end(String.raw`{"message":"welcome to HKTRPG API.\n To use, please enter the content in query: msg \n like https://api.hktrpg.com?msg=1d100\n command bothelp for tutorials."}`)
         return;
     }
 
@@ -214,7 +218,7 @@ www.get('/player', (req, res) => {
 
 
 www.get('/log/:id', (req, res) => {
-    if (req.originalUrl.match(/html$/)) {
+    if (req.originalUrl.endsWith('html')) {
         //if can't find the file, send error.html
         if (!fs.existsSync(LOGLINK + req.params.id)) {
             res.sendFile(process.cwd() + '/views/includes/error.html');
@@ -233,7 +237,9 @@ www.get('/:xx', (req, res) => {
     res.sendFile(process.cwd() + '/views/index.html');
 });
 
-io.on('connection', async (socket) => {
+// Socket.IO 連接處理 (只有在 server 存在時)
+if (io) {
+    io.on('connection', async (socket) => {
     socket.on('getListInfo', async message => {
         if (await limitRaterCard(socket.handshake.address)) return;
         //回傳 message 給發送訊息的 Client
@@ -241,12 +247,12 @@ io.on('connection', async (socket) => {
             userName: message.userName,
             password: SHA(message.userPassword)
         }
-        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #144 mongoDB error: ', error.name, error.reason));
+        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #144 mongoDB error:', error.name, error.reason));
         let temp;
         if (doc && doc.id) {
             temp = await schema.characterCard.find({
                 id: doc.id
-            }).catch(error => console.error('www #149 mongoDB error: ', error.name, error.reason));
+            }).catch(error => console.error('www #149 mongoDB error:', error.name, error.reason));
         }
         let id = [];
         if (doc && doc.channel) {
@@ -270,7 +276,7 @@ io.on('connection', async (socket) => {
                 temp
             })
         } catch (error) {
-            console.error('www #170 mongoDB error: ', error.name, error.reason)
+            console.error('www #170 mongoDB error:', error.name, error.reason)
         }
 
     })
@@ -318,7 +324,7 @@ io.on('connection', async (socket) => {
                         password: SHA(message.userPassword),
                     };
                     
-                    let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error: ', error.name, error.message));
+                    let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error:', error.name, error.message));
                     if (result && result.channel) {
                         // Find the channel with matching ID - needs to be compared as strings
                         const targetChannel = result.channel.find(ch => ch._id && ch._id.toString() === message.selectedGroupId);
@@ -348,13 +354,13 @@ io.on('connection', async (socket) => {
                     "channel.id": message.rollTarget.id,
                     "channel.botname": message.rollTarget.botname
                 }
-                let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error: ', error.name, error.reason));
+                let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error:', error.name, error.reason));
                 if (!result) return;
                 let filter2 = {
                     "botname": message.rollTarget.botname,
                     "id": message.rollTarget.id
                 }
-                let allowRollingResult = await schema.allowRolling.findOne(filter2).catch(error => console.error('www #220 mongoDB error: ', error.name, error.reason));
+                let allowRollingResult = await schema.allowRolling.findOne(filter2).catch(error => console.error('www #220 mongoDB error:', error.name, error.reason));
                 if (!allowRollingResult) return;
                 rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
                 if (message.rollTarget.botname) {
@@ -383,8 +389,8 @@ io.on('connection', async (socket) => {
                     }
                 }
             });
-        } catch (e) {
-            console.error('core-www ERROR:', e);
+        } catch (error) {
+            console.error('core-www ERROR:', error);
         }
 
     })
@@ -396,7 +402,7 @@ io.on('connection', async (socket) => {
             userName: message.userName,
             password: SHA(message.userPassword)
         }
-        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #246 mongoDB error: ', error.name, error.reason));
+        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #246 mongoDB error:', error.name, error.reason));
         let temp;
         if (doc && doc.id) {
             message.card.state = checkNullItem(message.card.state);
@@ -412,7 +418,7 @@ io.on('connection', async (socket) => {
                     roll: message.card.roll,
                     notes: message.card.notes,
                 }
-            }).catch(error => console.error('www #262 mongoDB error: ', error.name, error.reason));
+            }).catch(error => console.error('www #262 mongoDB error:', error.name, error.reason));
         }
         if (temp) {
             socket.emit('updateCard', true)
@@ -467,10 +473,11 @@ io.on('connection', async (socket) => {
         io.emit("online", onlineCount);
     });
 });
+}
 
 records.on("new_message", async (message) => {
     // 廣播訊息到聊天室
-    if (message.msg && message.name.match(/^HKTRPG/ig)) {
+    if (message.msg && /^HKTRPG/ig.test(message.name)) {
         return;
     }
 
@@ -549,7 +556,7 @@ let sendTo;
 if (isMaster) {
     const WebSocket = require('ws');
     const wss = new WebSocket.Server({
-        port: 53589,
+        port: 53_589,
         verifyClient: (info) => {
             return info.req.socket.remoteAddress === "::ffff:127.0.0.1";
         }
@@ -559,8 +566,8 @@ if (isMaster) {
         ws.on('message', function incoming(message) {
             try {
                 console.log('received: %s', message);
-            } catch (err) {
-                console.error('WebSocket message error:', err);
+            } catch (error) {
+                console.error('WebSocket message error:', error);
             }
         });
 
@@ -570,17 +577,17 @@ if (isMaster) {
                 message: params
             });
 
-            wss.clients.forEach(function each(client) {
+            for (const client of wss.clients) {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(payload);
                 }
-            });
+            }
         }
     });
 }
 
 function jsonEscape(str) {
-    return str.replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t");
+    return str.replaceAll('\n', String.raw`\n`).replaceAll('\r', String.raw`\r`).replaceAll('\t', String.raw`\t`);
 }
 module.exports = {
     app: www

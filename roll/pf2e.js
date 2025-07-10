@@ -46,16 +46,7 @@ const initialize = function () {
 }
 
 const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg,
-    groupid,
-    userid,
-    userrole,
-    botname,
-    displayname,
-    channelid,
-    displaynameDiscord,
-    membercount
+    mainMsg
 }) {
     let rply = {
         default: 'on',
@@ -95,7 +86,7 @@ class Pf2e {
         let data = [];
         for (let i = 0; i < datalink.length; i++) {
             let temp = require(datalink[i]);
-            data = data.concat(Pf2e.objectToArray(temp.helpdoc))
+            data = [...data, ...Pf2e.objectToArray(temp.helpdoc)]
         }
 
         return new Pf2e(data);

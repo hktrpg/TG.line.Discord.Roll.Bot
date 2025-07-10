@@ -1,13 +1,13 @@
 "use strict";
-const rollbase = require('./rollbase.js');
+const mathjs = require('mathjs');
+const { SlashCommandBuilder } = require('discord.js');
 const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
 const checkMongodb = require('../modules/dbWatchdog.js');
-const mathjs = require('mathjs');
+const rollbase = require('./rollbase.js');
 const gameName = function () {
 	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
 }
-const { SlashCommandBuilder } = require('discord.js');
 const gameType = function () {
 	return 'Dice:CoC'
 }
@@ -142,11 +142,12 @@ const rollDiceCommand = async function ({
 		}
 		//DevelopmentPhase幕間成長指令開始於此
 		case /^\.dp$/i.test(mainMsg[0]) && /^start$/i.test(mainMsg[1]): {
-			if (rply.text = checkTools.permissionErrMsg({
+			rply.text = checkTools.permissionErrMsg({
 				flag: checkTools.flag.ChkChannelAdmin,
 				gid: groupid,
 				role: userrole
-			})) {
+			});
+			if (rply.text) {
 				return rply;
 			}
 			rply.text = await dpRecordSwitch({ onOff: true, groupid, channelid });
@@ -154,11 +155,12 @@ const rollDiceCommand = async function ({
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^stop$/i.test(mainMsg[1]): {
-			if (rply.text = checkTools.permissionErrMsg({
+			rply.text = checkTools.permissionErrMsg({
 				flag: checkTools.flag.ChkChannelAdmin,
 				gid: groupid,
 				role: userrole
-			})) {
+			});
+			if (rply.text) {
 				return rply;
 			}
 			rply.text = await dpRecordSwitch({ onOff: false, groupid, channelid });
@@ -166,17 +168,18 @@ const rollDiceCommand = async function ({
 			break;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-			if (rply.text = checkTools.permissionErrMsg({
+			rply.text = checkTools.permissionErrMsg({
 				flag: checkTools.flag.ChkChannel,
 				gid: groupid
-			})) {
+			});
+			if (rply.text) {
 				return rply;
 			}
 
 			let switchOn = await schema.developmentConductor.findOne({
 				groupID: channelid || groupid,
 				switch: true
-			}).catch(error => console.error('coc #149 mongoDB error: ', error.name, error.reason));
+			}).catch(error => console.error('coc #149 mongoDB error:', error.name, error.reason));
 			if (!switchOn) {
 				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
 				return rply;
@@ -184,9 +187,9 @@ const rollDiceCommand = async function ({
 			let result = await schema.developmentRollingRecord.find({
 				groupID: channelid || groupid,
 				userID: userid,
-			}).sort({ date: -1 }).catch(error => console.error('coc #157 mongoDB error: ', error.name, error.reason));
+			}).sort({ date: -1 }).catch(error => console.error('coc #157 mongoDB error:', error.name, error.reason));
 			rply.quotes = true;
-			if (!result || result.length == 0) {
+			if (!result || result.length === 0) {
 				rply.text = '未有CC擲骰紀錄';
 				return rply;
 			}
@@ -244,16 +247,17 @@ const rollDiceCommand = async function ({
 		}
 
 		case /^\.dp$/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]): {
-			if (rply.text = checkTools.permissionErrMsg({
+			rply.text = checkTools.permissionErrMsg({
 				flag: checkTools.flag.ChkChannel,
 				gid: groupid,
-			})) {
+			});
+			if (rply.text) {
 				return rply;
 			}
 			let switchOn = await schema.developmentConductor.findOne({
 				groupID: channelid || groupid,
 				switch: true
-			}).catch(error => console.error('coc #224 mongoDB error: ', error.name, error.reason));
+			}).catch(error => console.error('coc #224 mongoDB error:', error.name, error.reason));
 			if (!switchOn) {
 				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
 				return rply;
@@ -266,7 +270,7 @@ const rollDiceCommand = async function ({
 				}, {
 					skillPerStyle: 'fumble'
 				}]
-			}).sort({ userName: -1 }).catch(error => console.error('coc #237 mongoDB error: ', error.name, error.reason));
+			}).sort({ userName: -1 }).catch(error => console.error('coc #237 mongoDB error:', error.name, error.reason));
 			rply.quotes = true;
 			let criticalSuccessNfumbleResult = {
 				data: false,
@@ -286,17 +290,18 @@ const rollDiceCommand = async function ({
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^auto$/i.test(mainMsg[1]): {
 			rply.quotes = true;
-			if (rply.text = checkTools.permissionErrMsg({
+			rply.text = checkTools.permissionErrMsg({
 				flag: checkTools.flag.ChkChannel,
 				gid: groupid,
-			})) {
+			});
+			if (rply.text) {
 				return rply;
 			}
 
 			let switchOn = await schema.developmentConductor.findOne({
 				groupID: channelid || groupid,
 				switch: true
-			}).catch(error => console.error('coc #264 mongoDB error: ', error.name, error.reason));
+			}).catch(error => console.error('coc #264 mongoDB error:', error.name, error.reason));
 			if (!switchOn) {
 				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
 				return rply;
@@ -306,8 +311,8 @@ const rollDiceCommand = async function ({
 				groupID: channelid || groupid,
 				userID: userid,
 				skillPerStyle: 'normal'
-			}).sort({ date: -1 }).catch(error => console.error('coc #274 mongoDB error: ', error.name, error.reason));
-			if (!result || result.length == 0) {
+			}).sort({ date: -1 }).catch(error => console.error('coc #274 mongoDB error:', error.name, error.reason));
+			if (!result || result.length === 0) {
 				rply.text = '未有CC擲骰紀錄';
 				return rply;
 			}
@@ -334,16 +339,17 @@ const rollDiceCommand = async function ({
 				groupID: channelid || groupid,
 				userID: userid,
 				skillPerStyle: 'normal'
-			}).catch(error => console.error('coc #302 mongoDB error: ', error.name, error.reason));
+			}).catch(error => console.error('coc #302 mongoDB error:', error.name, error.reason));
 			rply.text += `\n--------
 			成長結束，已清除擲骰紀錄`
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^clear$/i.test(mainMsg[1]): {
-			if (rply.text = checkTools.permissionErrMsg({
+			rply.text = checkTools.permissionErrMsg({
 				flag: checkTools.flag.ChkChannel,
 				gid: groupid,
-			})) {
+			});
+			if (rply.text) {
 				return rply;
 			}
 
@@ -351,17 +357,18 @@ const rollDiceCommand = async function ({
 				groupID: channelid || groupid,
 				userID: userid,
 				skillPerStyle: 'normal'
-			}).catch(error => console.error('coc #316 mongoDB error: ', error.name, error.reason));
+			}).catch(error => console.error('coc #316 mongoDB error:', error.name, error.reason));
 
 			rply.quotes = true;
 			rply.text = `已清除 ${result.n}項紀錄, 如想大成功大失敗紀錄也清除, 請使用 .dp clearall`
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^clearall$/i.test(mainMsg[1]): {
-			if (rply.text = checkTools.permissionErrMsg({
+			rply.text = checkTools.permissionErrMsg({
 				flag: checkTools.flag.ChkChannel,
 				gid: groupid,
-			})) {
+			});
+			if (rply.text) {
 				return rply;
 			}
 
@@ -376,7 +383,7 @@ const rollDiceCommand = async function ({
 					skillPerStyle: 'normal'
 				}]
 
-			}).catch(error => console.error('coc #338 mongoDB error: ', error.name, error.reason));
+			}).catch(error => console.error('coc #338 mongoDB error:', error.name, error.reason));
 			rply.quotes = true;
 			rply.text = `已清除你在本頻道的所有CC擲骰紀錄, 共計${result.n}項`
 			return rply;
@@ -409,12 +416,12 @@ const rollDiceCommand = async function ({
 		}
 
 		case /(^cc7版創角$)|(^[.]cc7build$)/i.test(mainMsg[0]): {
-			rply.text = builder.build(mainMsg[1] || 'random', mainMsg[2]).replace(/\*5/ig, ' * 5').trim();
+			rply.text = builder.build(mainMsg[1] || 'random', mainMsg[2]).replaceAll(/\*5/ig, ' * 5').trim();
 			rply.quotes = true;
 			break;
 		}
 		case /(^ccpulp版創角$)|(^[.]ccpulpbuild$)/i.test(mainMsg[0]): {
-			rply.text = (buildpulpchar(mainMsg[1])).replace(/\*5/ig, ' * 5');
+			rply.text = (buildpulpchar(mainMsg[1])).replaceAll(/\*5/ig, ' * 5');
 			rply.quotes = true;
 			break;
 		}
@@ -734,7 +741,7 @@ class CreateCult {
 		return text;
 	}
 	static getLeaderMythonList(count) {
-		const shuffledArr = MythoyCollection.Magic.slice();
+		const shuffledArr = [...MythoyCollection.Magic];
 		for (let i = shuffledArr.length - 1; i > 0; i--) {
 			const j = Math.floor(Math.random() * (i + 1));
 			[shuffledArr[i], shuffledArr[j]] = [shuffledArr[j], shuffledArr[i]];
@@ -784,7 +791,7 @@ class CreateCult {
 				rnd -= options[j];
 			}
 		}
-		return Array.from(choices);
+		return [...choices];
 	}
 	static FisherYates(arr) {
 		for (let j = arr.length - 1; j > 0; j--) {
@@ -1170,7 +1177,7 @@ async function dpRecordSwitch({ onOff = false, groupid = "", channelid = "" }) {
 			new: true,
 			upsert: true,
 			returnDocument: true
-		}).catch(error => console.error('coc #673 mongoDB error: ', error.name, error.reason));
+		}).catch(error => console.error('coc #673 mongoDB error:', error.name, error.reason));
 		return `現在這頻道的COC 成長紀錄功能為 ${(result.switch) ? '開啓' : '關閉'}
 以後CC擲骰將 ${(result.switch) ? '會' : '不會'}進行紀錄`
 	} catch (error) {
@@ -1186,7 +1193,7 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 			groupID: channelid || groupid,
 			switch: true
 		}).catch(error => {
-			console.error('coc #687 mongoDB error: ', error.name, error.reason)
+			console.error('coc #687 mongoDB error:', error.name, error.reason)
 			checkMongodb.dbErrOccurs();
 		});
 		if (!result) return;
@@ -1211,7 +1218,7 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 					new: true,
 					upsert: true,
 					returnDocument: true
-				}).catch(error => console.error('coc #710 mongoDB error: ', error.name, error.reason));
+				}).catch(error => console.error('coc #710 mongoDB error:', error.name, error.reason));
 		} else {
 			await schema.developmentRollingRecord.create({
 				groupID: channelid || groupid,
@@ -1221,24 +1228,24 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 				date: Date.now(),
 				skillPer: skillPer,
 				skillResult: skillResult
-			}).catch(error => console.error('coc #720 mongoDB error: ', error.name, error.reason));
+			}).catch(error => console.error('coc #720 mongoDB error:', error.name, error.reason));
 			let countNumber = await schema.developmentRollingRecord.find({
 				groupID: channelid || groupid,
 				userID: userID,
 				skillName: "",
 				skillPerStyle: 'normal',
-			}).countDocuments().catch(error => console.error('coc #726 mongoDB error: ', error.name, error.reason));
+			}).countDocuments().catch(error => console.error('coc #726 mongoDB error:', error.name, error.reason));
 			if (countNumber > 10) {
 				let moreThanTen = await schema.developmentRollingRecord.find({
 					groupID: channelid || groupid,
 					userID: userID,
 					skillName: "",
 					skillPerStyle: 'normal',
-				}).sort({ date: 1 }).limit(countNumber - 10).catch(error => console.error('coc #733 mongoDB error: ', error.name, error.reason));
+				}).sort({ date: 1 }).limit(countNumber - 10).catch(error => console.error('coc #733 mongoDB error:', error.name, error.reason));
 
-				moreThanTen.forEach(async function (doc) {
-					await schema.developmentRollingRecord.deleteOne({ _id: doc._id }).catch(error => console.error('coc #736 mongoDB error: ', error.name, error.reason));
-				})
+				for (const doc of moreThanTen) {
+					await schema.developmentRollingRecord.deleteOne({ _id: doc._id }).catch(error => console.error('coc #736 mongoDB error:', error.name, error.reason));
+				}
 			}
 
 		}
@@ -1258,22 +1265,22 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 				skillPer: skillPer,
 				skillResult: skillResult,
 				userName: userName
-			}).catch(error => console.error('coc #757 mongoDB error: ', error.name, error.reason));
+			}).catch(error => console.error('coc #757 mongoDB error:', error.name, error.reason));
 			let countNumber = await schema.developmentRollingRecord.find({
 				groupID: channelid || groupid,
 				userID: userID,
 				skillPerStyle: skillPerStyle,
-			}).countDocuments().catch(error => console.error('coc #762 mongoDB error: ', error.name, error.reason));
+			}).countDocuments().catch(error => console.error('coc #762 mongoDB error:', error.name, error.reason));
 			if (countNumber > 10) {
 				let moreThanTen = await schema.developmentRollingRecord.find({
 					groupID: channelid || groupid,
 					userID: userID,
 					skillPerStyle: skillPerStyle,
-				}).sort({ date: 1 }).limit(countNumber - 10).catch(error => console.error('coc #768 mongoDB error: ', error.name, error.reason));
+				}).sort({ date: 1 }).limit(countNumber - 10).catch(error => console.error('coc #768 mongoDB error:', error.name, error.reason));
 
-				moreThanTen.forEach(async function (doc) {
-					await schema.developmentRollingRecord.deleteOne({ _id: doc._id }).catch(error => console.error('coc #771 mongoDB error: ', error.name, error.reason));
-				})
+				for (const doc of moreThanTen) {
+					await schema.developmentRollingRecord.deleteOne({ _id: doc._id }).catch(error => console.error('coc #771 mongoDB error:', error.name, error.reason));
+				}
 			}
 		}
 
@@ -1304,11 +1311,11 @@ function DevelopmentPhase(input) {
 	for (let index = 1; index < input.length; index++) {
 		let target = '',
 			text = '';
-		if (!isNaN(input[index])) {
+		if (!Number.isNaN(Number(input[index]))) {
 			target = input[index];
 		}
 		else continue;
-		if (input[index + 1] && isNaN(input[index + 1])) {
+		if (input[index + 1] && Number.isNaN(Number(input[index + 1]))) {
 			text = input[index + 1];
 			index++;
 		}
@@ -1527,10 +1534,10 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 			for (let i = 0; i <= bpdiceNum; i++) {
 				let temp = rollbase.Dice(10);
 				let temp2 = temp.toString() + temp0.toString();
-				if (temp2 > 100) temp2 = parseInt(temp2) - 100;
+				if (temp2 > 100) temp2 = Number.parseInt(temp2) - 100;
 				countStr = countStr + temp2 + '、';
 			}
-			countStr = countStr.substring(0, countStr.length - 1)
+			countStr = countStr.slice(0, Math.max(0, countStr.length - 1))
 			let countArr = countStr.split('、');
 
 
@@ -1548,10 +1555,10 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 			for (let i = 0; i <= Math.abs(bpdiceNum); i++) {
 				let temp = rollbase.Dice(10);
 				let temp2 = temp.toString() + temp0.toString();
-				if (temp2 > 100) temp2 = parseInt(temp2) - 100;
+				if (temp2 > 100) temp2 = Number.parseInt(temp2) - 100;
 				countStr = countStr + temp2 + '、';
 			}
-			countStr = countStr.substring(0, countStr.length - 1)
+			countStr = countStr.slice(0, Math.max(0, countStr.length - 1))
 			let countArr = countStr.split('、');
 
 			for (let index = 0; index < check.length; index++) {
@@ -1644,11 +1651,11 @@ class SanCheck {
 	}
 
 	getRollSuccess(sc) {
-		return sc && sc[1] ? sc[1].replace(/[^+\-*\dD]/ig, "") : null;
+		return sc && sc[1] ? sc[1].replaceAll(/[^+\-*\dD]/ig, "") : null;
 	}
 
 	getRollFail(sc) {
-		return sc && sc[2] ? sc[2].replace(/[^+\-*\dD]/ig, "") : null;
+		return sc && sc[2] ? sc[2].replaceAll(/[^+\-*\dD]/ig, "") : null;
 	}
 
 	calculateLossSanity(rollSuccess = '', rollFail = '') {
@@ -1668,7 +1675,7 @@ class SanCheck {
 		let rollFumbleLoss = rollFail;
 		const regExp = /d/ig;
 		try {
-			rollFumbleLoss = mathjs.evaluate(rollFail.replace(regExp, '*'));
+			rollFumbleLoss = mathjs.evaluate(rollFail.replaceAll(regExp, '*'));
 		} catch { }
 
 		return {
@@ -1721,7 +1728,7 @@ class SanCheck {
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!`;
 		}
 		if (this.rollFail) {
-			let updatedSan = ((this.currentSan - this.lossSan.rollFumbleLoss) < 0) ? 0 : this.currentSan - this.lossSan.rollFumbleLoss;
+			let updatedSan = Math.max(this.currentSan - this.lossSan.rollFumbleLoss, 0);
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!\n失去${this.rollFail}最大值 ${this.lossSan.rollFumbleLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
 		}
 		return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!`
@@ -1732,7 +1739,7 @@ class SanCheck {
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!`
 		}
 		if (this.lossSan) {
-			let updatedSan = ((this.currentSan - this.lossSan.rollSuccessLoss) < 0) ? 0 : this.currentSan - this.lossSan.rollSuccessLoss;
+			let updatedSan = Math.max(this.currentSan - this.lossSan.rollSuccessLoss, 0);
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!\n失去${this.rollSuccess} → ${this.lossSan.rollSuccessLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
 		} else
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!\n不需要減少San`
@@ -1743,7 +1750,7 @@ class SanCheck {
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!`
 		}
 		if (this.lossSan) {
-			let updatedSan = ((this.currentSan - this.lossSan.rollFailLoss) < 0) ? 0 : this.currentSan - this.lossSan.rollFailLoss;
+			let updatedSan = Math.max(this.currentSan - this.lossSan.rollFailLoss, 0);
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!\n失去${this.rollFail} → ${this.lossSan.rollFailLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
 		} else
 			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!\n但不需要減少San`
@@ -1906,21 +1913,21 @@ function getOccupationSkill(state) {
 			finalOSkillList.push("信譽");
 			continue;
 		}
-		sortSkillList.forEach(v => {
+		for (const v of sortSkillList) {
 			if (v.name == skillResult[i]) {
 				finalOSkillList.push(v.sort[0].name);
 				v.sort.shift();
 			}
-		})
+		}
 
 	}
 
 
 	let tempOtherSkillList = [];
-	sortSkillList.forEach(element => {
+	for (const element of sortSkillList) {
 		tempOtherSkillList.push(element.sort)
-	});
-	let tempFinalOtherSkillList = shuffle([...tempOtherSkillList.flat()])
+	}
+	let tempFinalOtherSkillList = shuffle(tempOtherSkillList.flat())
 	let finalOtherSkillList = []
 	for (let index = 0; index < 4; index++) {
 		finalOtherSkillList.push(tempFinalOtherSkillList[index]);
@@ -2055,14 +2062,14 @@ const 醫療類 = [
 	{ name: "藥學", skill: 1 },
 	{ name: "催眠", skill: 1 }
 ]
-const STR = ["戰鬥類", "醫療類"]
-const DEX = ["移動類", "隱密類"]
-const POW = ["職業興趣", "學問類"]
-const CON = ["移動類", "戰鬥類"]
-const APP = ["語言類", "交際類"]
-const EDU = ["調查類", "醫療類", "學問類"]
-const SIZ = ["戰鬥類", "交際類"]
-const INT = ["隱密類", "職業興趣", "調查類"]
+const STR = ["戰鬥類", "醫療類"] // eslint-disable-line no-unused-vars
+const DEX = ["移動類", "隱密類"] // eslint-disable-line no-unused-vars
+const POW = ["職業興趣", "學問類"] // eslint-disable-line no-unused-vars
+const CON = ["移動類", "戰鬥類"] // eslint-disable-line no-unused-vars
+const APP = ["語言類", "交際類"] // eslint-disable-line no-unused-vars
+const EDU = ["調查類", "醫療類", "學問類"] // eslint-disable-line no-unused-vars
+const SIZ = ["戰鬥類", "交際類"] // eslint-disable-line no-unused-vars
+const INT = ["隱密類", "職業興趣", "調查類"] // eslint-disable-line no-unused-vars
 class MythoyCollection {
 	constructor() { }
 
@@ -2159,7 +2166,7 @@ class Build7Char {
 
 	build(text, age) {
 		for (const [pattern, builderClass] of this.builderRegistry.builders) {
-			if (text.match(pattern)) {
+			if (pattern.test(text)) {
 				return builderClass.build(text, age);
 			}
 		}
@@ -2325,7 +2332,7 @@ class AgeBuilder {
 	build(text) {
 		let old = "";
 		let ReStr = "調查員年齡設為：";
-		if (text) old = text.replace(/\D/g, '');
+		if (text) old = text.replaceAll(/\D/g, '');
 		if (old) {
 			ReStr += old + '\n';
 		}
@@ -2504,7 +2511,7 @@ class XYZBuilder {
 			ReStr += `${rollbase.BuildDiceCal('3d6*5')}\n`
 		}
 		if (this.z) ReStr += `=======\n`
-		if (this.age && !isNaN(this.age)) {
+		if (this.age && !Number.isNaN(Number(this.age))) {
 			ReStr += `${this.ageAdjustment(this.age)}`
 			//設定 因年齡減少的點數 和 EDU加骰次數
 		} else {

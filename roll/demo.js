@@ -1,6 +1,5 @@
 "use strict";
 const variables = {};
-const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【Demo】'
 }

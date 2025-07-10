@@ -1,7 +1,8 @@
 "use strict";
+const { SlashCommandBuilder } = require('discord.js');
+const mathjs = require('mathjs')
 const rollbase = require('./rollbase.js');
 let variables = {};
-const mathjs = require('mathjs')
 const gameName = function () {
     return '【魔女狩獵之夜】.wn xDn+-y'
 }
@@ -80,7 +81,7 @@ const rollDiceCommand = async function ({ mainMsg }) {
             rply.quotes = true;
             return rply;
         case /^\d/i.test(mainMsg[1]):
-            if (mainMsg[1].replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[@]/ig, '')) return;
+            if (mainMsg[1].replaceAll(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[@]/ig, '')) return;
 
             rply.text = await WN(mainMsg[1]).then(async (result) => {
                 return await WN2(result, mainMsg[2])
@@ -112,22 +113,22 @@ async function WN(message) {
     let tempmessage = message;
     let regex = /^(\d+)/ig
     key[0] = tempmessage.match(regex) || 1
-    tempmessage = tempmessage.replace(regex, '')
+    tempmessage = tempmessage.replaceAll(regex, '')
     let regex1 = /^([@]|[d])/ig
     key[1] = tempmessage.match(regex1) || 'd'
-    tempmessage = tempmessage.replace(regex1, '')
+    tempmessage = tempmessage.replaceAll(regex1, '')
     let regex999 = /\d+d\d+/ig;
     while (tempmessage.match(regex999) != null) {
         // let totally = 0
         let tempMatch = tempmessage.match(regex999)
         if (tempMatch[1] > 1000 || tempMatch[1] <= 0) return
-        if (tempMatch[2] < 1 || tempMatch[2] > 9000000000000000) return
+        if (tempMatch[2] < 1 || tempMatch[2] > 9_000_000_000_000_000) return
         tempmessage = tempmessage.replace(/\d+d\d+/i, await Dice(tempmessage.match(/\d+d\d+/i)));
     }
 
     let regex2 = /d/ig
     key[2] = tempmessage.match(regex2) || ''
-    tempmessage = tempmessage.replace(regex2, '')
+    tempmessage = tempmessage.replaceAll(regex2, '')
     let regex3 = /^\d+/
     key[3] = tempmessage.match(regex3) || '4'
     tempmessage = tempmessage.replace(regex3, '')
@@ -179,7 +180,7 @@ async function WN2(key, message) {
     let tempAdj = ''
     try {
         tempAdj = mathjs.evaluate(Adjustment)
-    } catch (error) {
+    } catch {
         tempAdj = Adjustment
     }
     if (tempAdj)
@@ -196,8 +197,6 @@ async function WN2(key, message) {
     //6@6-5D
     //6D6D>3-5 -> X 成功
 }
-
-const { SlashCommandBuilder } = require('discord.js');
 
 const discordCommand = [
     {
@@ -226,14 +225,7 @@ const discordCommand = [
             // Create the command string
             let command = `${diceCount}D${sinValue}${adjustment}`;
             
-            // Create a message-like object for the dice roller
-            const messageObj = {
-                interaction: true,
-                author: interaction.user,
-                content: `.wn ${command}`
-            };
-            
-            // Call the dice roller with the message object
+            // Call the dice roller
             const result = await WN(command).then(async (result) => {
                 return await WN2(result, comment);
             });
@@ -267,14 +259,7 @@ const discordCommand = [
             // Create the command string
             let command = `${diceCount}DD${sinValue}${adjustment}`;
             
-            // Create a message-like object for the dice roller
-            const messageObj = {
-                interaction: true,
-                author: interaction.user,
-                content: `.wn ${command}`
-            };
-            
-            // Call the dice roller with the message object
+            // Call the dice roller
             const result = await WN(command).then(async (result) => {
                 return await WN2(result, comment);
             });
@@ -310,14 +295,7 @@ const discordCommand = [
             // Create the command string
             let command = `${diceCount}@${useDD ? 'D' : ''}${sinValue}${adjustment}`;
             
-            // Create a message-like object for the dice roller
-            const messageObj = {
-                interaction: true,
-                author: interaction.user,
-                content: `.wn ${command}`
-            };
-            
-            // Call the dice roller with the message object
+            // Call the dice roller
             const result = await WN(command).then(async (result) => {
                 return await WN2(result, comment);
             });

@@ -64,7 +64,7 @@ process.env.mongoURL = 'test_mongo_url';
 process.env.DEBUG = 'true';
 
 // Import dependencies
-const dbWatchdog = require('../modules/dbWatchdog.js');
+    const _dbWatchdog = require('../modules/dbWatchdog.js');
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const rollDice = require('../roll/rollbase');

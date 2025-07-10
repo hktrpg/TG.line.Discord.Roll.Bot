@@ -3,8 +3,9 @@ if (!process.env.TELEGRAM_CHANNEL_SECRET) {
     return;
 }
 process.env.NTBA_FIX_319 = 1;
-const candle = require('../modules/candleDays.js');
 const TelegramBot = require('node-telegram-bot-api');
+const WebSocket = require('ws');
+const candle = require('../modules/candleDays.js');
 const agenda = require('../modules/schedule')
 const rollText = require('./getRoll').rollText;
 exports.analytics = require('./analytics');
@@ -20,10 +21,8 @@ let robotName = ""
 
 
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const EXPUP = require('./level').EXPUP || function () {
-};
-const courtMessage = require('./logs').courtMessage || function () {
-};
+const EXPUP = require('./level').EXPUP || function () {};
+const courtMessage = require('./logs').courtMessage || function () {};
 
 TGclient.on('text', async (ctx) => {
     if (ctx.from.is_bot) return;
@@ -41,7 +40,7 @@ TGclient.on('text', async (ctx) => {
         options.message_thread_id = ctx.message_thread_id;
     }
     if (inputStr) {
-        if (robotName && inputStr.match(/^[/]/))
+        if (robotName && /^[/]/.test(inputStr))
             inputStr = inputStr
                 .replace(new RegExp('@' + robotName + '$', 'i'), '')
                 .replace(new RegExp('^/', 'i'), '');
@@ -55,15 +54,15 @@ TGclient.on('text', async (ctx) => {
     let privatemsg = 0;
 
     (function privateMsg() {
-        if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
+        if (/^dr$/i.test(trigger) && mainMsg && mainMsg[1]) {
             privatemsg = 1;
             inputStr = inputStr.replace(/^dr\s+/i, '');
         }
-        if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
+        if (/^ddr$/i.test(trigger) && mainMsg && mainMsg[1]) {
             privatemsg = 2;
             inputStr = inputStr.replace(/^ddr\s+/i, '');
         }
-        if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
+        if (/^dddr$/i.test(trigger) && mainMsg && mainMsg[1]) {
             privatemsg = 3;
             inputStr = inputStr.replace(/^dddr\s+/i, '');
         }
@@ -90,7 +89,7 @@ TGclient.on('text', async (ctx) => {
     let userrole = 1;
     //頻道人數
     if (ctx.chat && ctx.chat.id) {
-        membercount = await TGclient.getChatMemberCount(ctx.chat.id).catch((error) => {
+        membercount = await TGclient.getChatMemberCount(ctx.chat.id).catch(() => {
             return 0;
         });
     }
@@ -163,17 +162,17 @@ TGclient.on('text', async (ctx) => {
     //TGcountroll++;
     if (privatemsg > 1 && TargetGM) {
         let groupInfo = await privateMsgFinder(groupid) || [];
-        groupInfo.forEach((item) => {
+        for (const item of groupInfo) {
             TargetGMTempID.push(item.userid);
             TargetGMTempdiyName.push(item.diyName);
             TargetGMTempdisplayname.push(item.displayname);
-        })
+        }
 
     }
 
 
     switch (true) {
-        case privatemsg == 1:
+        case privatemsg == 1: {
             // 輸入dr  (指令) 私訊自己
             //
             if (ctx.chat.type != 'private') {
@@ -182,7 +181,8 @@ TGclient.on('text', async (ctx) => {
             rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
             SendToId(userid, rplyVal.text, options);
             break;
-        case privatemsg == 2:
+        }
+        case privatemsg == 2: {
             //輸入ddr(指令) 私訊GM及自己
             if (ctx.chat.type != 'private') {
                 let targetGMNameTemp = "";
@@ -193,12 +193,13 @@ TGclient.on('text', async (ctx) => {
             }
             rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
             SendToId(userid, rplyVal.text);
-            for (let i = 0; i < TargetGMTempID.length; i++) {
-                if (userid != TargetGMTempID[i])
-                    SendToId(TargetGMTempID[i], rplyVal.text);
+            for (const element of TargetGMTempID) {
+                if (userid != element)
+                    SendToId(element, rplyVal.text);
             }
             break;
-        case privatemsg == 3:
+        }
+        case privatemsg == 3: {
             //輸入dddr(指令) 私訊GM
             if (ctx.chat.type != 'private') {
                 let targetGMNameTemp = "";
@@ -208,11 +209,12 @@ TGclient.on('text', async (ctx) => {
                 SendToId(groupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp, options);
             }
             rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
-            for (let i = 0; i < TargetGMTempID.length; i++) {
-                SendToId(TargetGMTempID[i], rplyVal.text);
+            for (const element of TargetGMTempID) {
+                SendToId(element, rplyVal.text);
             }
             break;
-        default:
+        }
+        default: {
             if (displaynamecheck && displayname) {
                 //285083923223
                 displayname = "@" + ctx.from.username + ((rplyVal.statue) ? ' ' + rplyVal.statue : '') + ((candle.checker(userid)) ? ' ' + candle.checker(userid) : '') + "\n";
@@ -220,6 +222,7 @@ TGclient.on('text', async (ctx) => {
             }
             SendToId((groupid || userid), rplyVal.text, options);
             break;
+        }
     }
 
 })
@@ -240,7 +243,6 @@ function SendToId(targetid, text, options) {
 }
 
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
-const WebSocket = require('ws');
 let ws;
 let connect = function () {
     ws = new WebSocket('ws://127.0.0.1:53589');
@@ -289,7 +291,7 @@ async function nonDice(ctx) {
                 membercount = null;
             let tgDisplayname = (ctx.from.first_name) ? ctx.from.first_name : '';
             if (ctx.chat && ctx.chat.id) {
-                membercount = await TGclient.getChatMemberCount(ctx.chat.id).catch((error) => {
+                membercount = await TGclient.getChatMemberCount(ctx.chat.id).catch(() => {
                     return 0;
                 });
 
@@ -363,9 +365,7 @@ async function privateMsgFinder(groupid) {
     let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
         data.groupid == groupid
     )
-    if (groupInfo && groupInfo.trpgDarkRollingfunction)
-        return groupInfo.trpgDarkRollingfunction
-    else return [];
+    return groupInfo && groupInfo.trpgDarkRollingfunction ? groupInfo.trpgDarkRollingfunction : [];
 }
 
 if (agenda && agenda.agenda) {
@@ -379,8 +379,8 @@ if (agenda && agenda.agenda) {
         )
         try {
             await job.remove();
-        } catch (e) {
-            console.error("TG Error removing job from collection:scheduleAtMessageTelegram", e);
+        } catch (error) {
+            console.error("TG Error removing job from collection:scheduleAtMessageTelegram", error);
         }
 
     });
@@ -399,8 +399,8 @@ if (agenda && agenda.agenda) {
                     data.groupid, "已運行六個月, 移除此定時訊息"
                 )
             }
-        } catch (e) {
-            console.error("Error removing job from collection:scheduleCronMessageTelegram", e);
+        } catch (error) {
+            console.error("Error removing job from collection:scheduleCronMessageTelegram", error);
         }
 
     });
@@ -409,8 +409,7 @@ if (agenda && agenda.agenda) {
 
 
 async function isAdmin(gpId, chatid) {
-    let member = await TGclient.getChatMember(gpId, chatid).catch((error) => {
-    });
+    let member = await TGclient.getChatMember(gpId, chatid).catch(() => {});
     if (member?.status === "creator") return true
     if (member?.status === "administrator") return true
     return false;
@@ -442,6 +441,6 @@ bot.command('pipe', (ctx) => ctx.replyWithPhoto({
 */
 
 async function __sendMeMessage({ ctx, rplyVal, }) {
-    SendToId(ctx.chat.id || userid, rplyVal.myspeck.content);
+    SendToId(ctx.chat.id || ctx.from.id, rplyVal.myspeck.content);
     return;
 }

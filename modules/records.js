@@ -4,9 +4,9 @@ const {
     EventEmitter
 } = require("events");
 require('events').EventEmitter.defaultMaxListeners = Infinity;
-const schema = require('./schema.js');
 const NodeCache = require('node-cache');
 const { validate } = require('jsonschema');
+const schema = require('./schema.js');
 
 // Cache configuration
 const CACHE_TTL = 300; // 5 minutes
@@ -43,9 +43,9 @@ class DatabaseOperation {
                 ...options
             });
             return result;
-        } catch (err) {
-            console.error(`[ERROR] Database operation failed:`, err);
-            throw err;
+        } catch (error) {
+            console.error(`[ERROR] Database operation failed:`, error);
+            throw error;
         }
     }
 
@@ -53,9 +53,9 @@ class DatabaseOperation {
         try {
             const result = await this.schema.find(query, options);
             return result;
-        } catch (err) {
-            console.error(`[ERROR] Database find operation failed:`, err);
-            throw err;
+        } catch (error) {
+            console.error(`[ERROR] Database find operation failed:`, error);
+            throw error;
         }
     }
 
@@ -63,9 +63,9 @@ class DatabaseOperation {
         try {
             const count = await this.schema.countDocuments(query);
             return count;
-        } catch (err) {
-            console.error(`[ERROR] Count documents operation failed:`, err);
-            throw err;
+        } catch (error) {
+            console.error(`[ERROR] Count documents operation failed:`, error);
+            throw error;
         }
     }
 
@@ -73,9 +73,9 @@ class DatabaseOperation {
         try {
             const result = await this.schema.deleteMany(query);
             return result;
-        } catch (err) {
-            console.error(`[ERROR] Delete many operation failed:`, err);
-            throw err;
+        } catch (error) {
+            console.error(`[ERROR] Delete many operation failed:`, error);
+            throw error;
         }
     }
 }
@@ -88,9 +88,9 @@ class Records extends EventEmitter {
         this.dbOperations = {};
 
         // Initialize database operations for each schema
-        Object.keys(schema).forEach(key => {
+        for (const key of Object.keys(schema)) {
             this.dbOperations[key] = new DatabaseOperation(schema[key]);
-        });
+        }
     }
 
     async updateRecord(databaseName, query, update, options, callback) {
@@ -113,8 +113,8 @@ class Records extends EventEmitter {
             }
 
             callback(document);
-        } catch (err) {
-            console.error(`[ERROR] Database operation failed for ${databaseName}:`, err);
+        } catch (error) {
+            console.error(`[ERROR] Database operation failed for ${databaseName}:`, error);
             callback(null);
         }
     }
@@ -152,8 +152,8 @@ class Records extends EventEmitter {
                 const documents = await schema[target].find({});
                 callback(documents);
             }
-        } catch (err) {
-            console.error(`Failed to get documents from ${target}:`, err);
+        } catch (error) {
+            console.error(`Failed to get documents from ${target}:`, error);
             callback([]);
         }
     }
@@ -172,8 +172,8 @@ class Records extends EventEmitter {
                     callback(null);
                 }
             });
-        } catch (err) {
-            console.error(`[ERROR] Failed to push trpgDatabaseFunction:`, err);
+        } catch (error) {
+            console.error(`[ERROR] Failed to push trpgDatabaseFunction:`, error);
             callback(null);
         }
     }
@@ -191,8 +191,8 @@ class Records extends EventEmitter {
                     callback(null);
                 }
             });
-        } catch (err) {
-            console.error(`[ERROR] Failed to set trpgDatabaseFunction:`, err);
+        } catch (error) {
+            console.error(`[ERROR] Failed to set trpgDatabaseFunction:`, error);
             callback(null);
         }
     }
@@ -210,8 +210,8 @@ class Records extends EventEmitter {
                     callback(null);
                 }
             });
-        } catch (err) {
-            console.error(`[ERROR] Failed to push trpgDatabaseAllGroup:`, err);
+        } catch (error) {
+            console.error(`[ERROR] Failed to push trpgDatabaseAllGroup:`, error);
             callback(null);
         }
     }
@@ -229,8 +229,8 @@ class Records extends EventEmitter {
                     callback(null);
                 }
             });
-        } catch (err) {
-            console.error(`[ERROR] Failed to set trpgDatabaseAllGroup:`, err);
+        } catch (error) {
+            console.error(`[ERROR] Failed to set trpgDatabaseAllGroup:`, error);
             callback(null);
         }
     }
@@ -366,9 +366,9 @@ class Records extends EventEmitter {
                 'roomNumber': message.roomNumber,
                 time: { $lt: oldestMessages[overflowCount - 1].time }
             });
-        } catch (err) {
-            console.error('Chat room push failed:', err);
-            throw err;
+        } catch (error) {
+            console.error('Chat room push failed:', error);
+            throw error;
         }
     }
 
@@ -388,8 +388,8 @@ class Records extends EventEmitter {
             cache.set(cacheKey, messages);
 
             callback(messages);
-        } catch (err) {
-            console.error('Chat room get failed:', err);
+        } catch (error) {
+            console.error('Chat room get failed:', error);
             callback([]);
         }
     }
@@ -447,8 +447,8 @@ class Records extends EventEmitter {
             }
 
             return message;
-        } catch (err) {
-            console.error(`[ERROR] Failed to find forwarded message:`, err);
+        } catch (error) {
+            console.error(`[ERROR] Failed to find forwarded message:`, error);
             return null;
         }
     }
@@ -501,22 +501,22 @@ class Records extends EventEmitter {
             }
 
             return message;
-        } catch (err) {
-            console.error(`[ERROR] Failed to create forwarded message:`, err);
+        } catch (error) {
+            console.error(`[ERROR] Failed to create forwarded message:`, error);
             console.error(`[ERROR] Error details:`, JSON.stringify({
-                code: err.code,
-                keyPattern: err.keyPattern,
-                keyValue: err.keyValue
+                code: error.code,
+                keyPattern: error.keyPattern,
+                keyValue: error.keyValue
             }));
 
             // If it's a duplicate key error, try again with a new fixedId
-            if (err.code === 11000 && err.keyPattern && err.keyPattern.fixedId) {
+            if (error.code === 11_000 && error.keyPattern && error.keyPattern.fixedId) {
                 console.log(`[DEBUG] Retrying with a new fixedId for user ${data.userId}`);
                 data.fixedId = await this.getNextFixedIdForUser(data.userId);
                 return this.createForwardedMessage(data);
             }
 
-            throw err;
+            throw error;
         }
     }
 
@@ -559,9 +559,9 @@ class Records extends EventEmitter {
             }
 
             return deletedMessage;
-        } catch (err) {
-            console.error(`[ERROR] Failed to delete forwarded message:`, err);
-            throw err;
+        } catch (error) {
+            console.error(`[ERROR] Failed to delete forwarded message:`, error);
+            throw error;
         }
     }
 
@@ -570,7 +570,7 @@ class Records extends EventEmitter {
             const messages = await this.dbOperations.forwardedMessage.schema.find(filter).sort({ fixedId: 1 });
 
             // Update cache for each message
-            messages.forEach(message => {
+            for (const message of messages) {
                 // Update the main cache key for this query
                 const queryCacheKey = `forwardedMessage:${JSON.stringify(filter)}:${JSON.stringify({ sort: { fixedId: 1 } })}`;
                 cache.set(queryCacheKey, messages);
@@ -596,11 +596,11 @@ class Records extends EventEmitter {
                     userId: message.userId,
                     fixedId: message.fixedId
                 })}`, message);
-            });
+            }
 
             return messages;
-        } catch (err) {
-            console.error(`[ERROR] Failed to find forwarded messages:`, err);
+        } catch (error) {
+            console.error(`[ERROR] Failed to find forwarded messages:`, error);
             return [];
         }
     }
@@ -616,17 +616,17 @@ class Records extends EventEmitter {
                 try {
                     const keyData = JSON.parse(key.replace('forwardedMessage:', ''));
                     return keyData.userId === userId;
-                } catch (e) {
+                } catch {
                     return false;
                 }
             });
 
             // Delete all related keys
-            userKeys.forEach(key => {
+            for (const key of userKeys) {
                 cache.del(key);
-            });
-        } catch (err) {
-            console.error(`[ERROR] Failed to clear user forwarded message cache:`, err);
+            }
+        } catch (error) {
+            console.error(`[ERROR] Failed to clear user forwarded message cache:`, error);
         }
     }
 
@@ -642,17 +642,17 @@ class Records extends EventEmitter {
             }
 
             // Extract all fixedIds into an array
-            const existingIds = messages.map(msg => msg.fixedId);
+            const existingIds = new Set(messages.map(msg => msg.fixedId));
 
             // Find the first missing ID starting from 1
             let nextId = 1;
-            while (existingIds.includes(nextId)) {
+            while (existingIds.has(nextId)) {
                 nextId++;
             }
 
             return nextId;
-        } catch (err) {
-            console.error(`[ERROR] Failed to get next fixedId:`, err);
+        } catch (error) {
+            console.error(`[ERROR] Failed to get next fixedId:`, error);
             // Return a timestamp-based ID as a fallback
             return Date.now();
         }
@@ -672,16 +672,16 @@ class Records extends EventEmitter {
             }
 
             // Extract all fixedIds into an array
-            const existingIds = messages.map(msg => msg.fixedId);
+            const existingIds = new Set(messages.map(msg => msg.fixedId));
 
             // Find the first missing ID starting from 1
             let nextId = 1;
-            while (existingIds.includes(nextId)) {
+            while (existingIds.has(nextId)) {
                 nextId++;
             }
             return nextId;
-        } catch (err) {
-            console.error(`[ERROR] Failed to get next fixedId for user ${userId}:`, err);
+        } catch (error) {
+            console.error(`[ERROR] Failed to get next fixedId for user ${userId}:`, error);
             // Return a timestamp-based ID as a fallback
             return Date.now();
         }
@@ -690,8 +690,8 @@ class Records extends EventEmitter {
     async countForwardedMessages(filter) {
         try {
             return await this.dbOperations.forwardedMessage.schema.countDocuments(filter);
-        } catch (err) {
-            console.error(`[ERROR] Failed to count forwarded messages:`, err);
+        } catch (error) {
+            console.error(`[ERROR] Failed to count forwarded messages:`, error);
             return 0;
         }
     }
@@ -708,8 +708,8 @@ class Records extends EventEmitter {
             );
 
             return true;
-        } catch (err) {
-            console.error(`[ERROR] Failed to recreate forwardedMessage index:`, err);
+        } catch (error) {
+            console.error(`[ERROR] Failed to recreate forwardedMessage index:`, error);
             return false;
         }
     }

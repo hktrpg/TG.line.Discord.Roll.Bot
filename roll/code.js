@@ -1,7 +1,6 @@
 "use strict";
 const variables = {};
 const axios = require('axios');
-const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【.code [語言] [指令]】'
 }
@@ -51,15 +50,7 @@ const initialize = function () {
 
 const rollDiceCommand = async function ({
     inputStr,
-    mainMsg,
-    groupid,
-    userid,
-    userrole,
-    botname,
-    displayname,
-    channelid,
-    displaynameDiscord,
-    membercount
+    mainMsg
 }) {
     let rply = {
         default: 'on',
@@ -100,7 +91,7 @@ class Piston {
         this.url = "https://emkc.org/api/v2/piston/execute";
         this.args = [];
         this.stdin = '';
-        this.compile_timeout = 10000;
+        this.compile_timeout = 10_000;
         this.run_timeout = 3000;
         this.compile_memory_limit = -1;
         this.run_memory_limit = -1;

@@ -3,15 +3,15 @@
 let chineseConv = require('chinese-conv'); //繁簡轉換
 const duckImage = require("@zetetic/duckduckgo-images-api")
 const wiki = require('wikijs').default;
-const rollbase = require('./rollbase.js');
 const translate = require('@vitalets/google-translate-api').translate;
 const { SlashCommandBuilder } = require('discord.js');
 let variables = {};
-const schema = require('../modules/schema.js');
-const VIP = require('../modules/veryImportantPerson');
-const translateChannel = require('../modules/translate');
-const FUNCTION_LIMIT = [0, 2, 4, 6, 8, 9, 9, 9];
-const opt = {
+const schema = require('../modules/schema.js'); // eslint-disable-line no-unused-vars
+const VIP = require('../modules/veryImportantPerson'); // eslint-disable-line no-unused-vars
+const translateChannel = require('../modules/translate'); // eslint-disable-line no-unused-vars
+const rollbase = require('./rollbase.js');
+const FUNCTION_LIMIT = [0, 2, 4, 6, 8, 9, 9, 9]; // eslint-disable-line no-unused-vars
+const opt = { // eslint-disable-line no-unused-vars
 	upsert: true,
 	runValidators: true
 }
@@ -93,10 +93,10 @@ const initialize = function () {
 const rollDiceCommand = async function ({
 	inputStr,
 	mainMsg,
-	groupid,
-	channelid,
-	botname,
-	userrole
+	groupid, // eslint-disable-line no-unused-vars
+	channelid, // eslint-disable-line no-unused-vars
+	botname, // eslint-disable-line no-unused-vars
+	userrole // eslint-disable-line no-unused-vars
 }) {
 	let rply = {
 		default: 'on',
@@ -131,8 +131,8 @@ const rollDiceCommand = async function ({
 				to: 'zh-TW'
 			}).then(res => {
 				return res.text
-			}).catch(err => {
-				return err.message;
+			}).catch(error => {
+				return error.message;
 			});
 			return rply;
 		/**
@@ -190,16 +190,16 @@ const rollDiceCommand = async function ({
 				to: test[1].replace(/簡體|簡中|簡|zh-cn/, "zh-CN").replace(/英文|英語|英/, "en").replace(/德文|德語|德/, "de").replace(/日文|日語|日/, "ja")
 			}).then(res => {
 				return res.text
-			}).catch(err => {
-				console.error('tran error:', err.message)
-				return err.message + "\n常用語言代碼: 英=en, 簡=zh-cn, 德=de, 日=ja\n例子: .tran.英\n.tran.日\n.tran.de";
+			}).catch(error => {
+				console.error('tran error:', error.message)
+				return error.message + "\n常用語言代碼: 英=en, 簡=zh-cn, 德=de, 日=ja\n例子: .tran.英\n.tran.日\n.tran.de";
 			});
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]image$/i.test(mainMsg[0]):
 			try {
 				rply.text = await searchImage(inputStr, mainMsg, true)
 				rply.type = 'image'
-			} catch (error) {
+			} catch {
 				console.error('.image error #108')
 				return rply;
 			}
@@ -210,7 +210,7 @@ const rollDiceCommand = async function ({
 			try {
 				rply.text = await searchImage(inputStr, mainMsg, false)
 				rply.type = 'image'
-			} catch (error) {
+			} catch {
 				console.error('.image error #119')
 				return rply;
 			}
@@ -223,7 +223,7 @@ const rollDiceCommand = async function ({
 async function searchImage(inputStr, mainMsg, safe) {
 	let keyword = inputStr.replace(mainMsg[0] + " ", "")
 	//let page = Math.floor((Math.random() * (10)) * 10) + 1;
-	if (mainMsg[1].match(/^yesno$/i)) {
+	if (/^yesno$/i.test(mainMsg[1])) {
 		//隨機YES NO
 		let A = ['yes', 'no']
 		keyword = A[rollbase.Dice(A.length) - 1] + " GIF";
@@ -241,8 +241,8 @@ async function searchImage(inputStr, mainMsg, safe) {
 				return '沒有結果'
 			}
 
-		}).catch(err => {
-			console.error('duckImage error: ', err & err.respone && err.respone.statusText)
+		}).catch(error => {
+			console.error('duckImage error:', error & error.respone && error.respone.statusText)
 		})
 }
 

@@ -4,7 +4,7 @@
 jest.mock('../roll/z_bcdice.js', () => {
     // Only create mock if mongoURL is set
     if (!process.env.mongoURL) {
-        return undefined;
+        return;
     }
 
     return {
@@ -62,8 +62,8 @@ jest.mock('../modules/schema.js', () => ({
 process.env.mongoURL = 'test_mongo_url';
 
 // Import modules
-const bcdiceModule = require('../roll/z_bcdice.js');
 const { DynamicLoader } = require('bcdice');
+const bcdiceModule = require('../roll/z_bcdice.js');
 const checkTools = require('../modules/check.js');
 const schema = require('../modules/schema.js');
 

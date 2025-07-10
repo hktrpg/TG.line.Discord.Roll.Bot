@@ -93,12 +93,10 @@ const mockExportModule = {
 };
 
 // Import dependencies after mocks are set up
+const fs = require('fs').promises;
 const checkTools = require('../modules/check.js');
 const VIP = require('../modules/veryImportantPerson');
 const schema = require('../modules/schema.js');
-const fs = require('fs').promises;
-const { createWriteStream } = require('fs');
-const stream = require('stream');
 
 describe('Export Module Tests', () => {
     // Setup mock Discord objects
@@ -152,7 +150,7 @@ describe('Export Module Tests', () => {
         
         // Mock file system operations
         fs.access.mockResolvedValue(true);
-        fs.mkdir.mockResolvedValue(undefined);
+        fs.mkdir.mockResolvedValue();
         fs.readFile.mockResolvedValue('<h1>聊天紀錄</h1>\naesData = []');
         
         // Mock Discord client behaviors
@@ -191,9 +189,7 @@ describe('Export Module Tests', () => {
         
         // Setup rollDiceCommand implementation
         mockExportModule.rollDiceCommand.mockImplementation(async ({
-            inputStr,
             mainMsg,
-            discordClient,
             discordMessage,
             channelid,
             groupid,
@@ -209,12 +205,13 @@ describe('Export Module Tests', () => {
             
             // Simulate the module's behavior
             switch (true) {
-                case /^help$/i.test(mainMsg[1]):
+                case /^help$/i.test(mainMsg[1]): {
                     rply.text = await mockExportModule.getHelpMessage();
                     rply.quotes = true;
                     return rply;
+                }
                     
-                case /^html$/i.test(mainMsg[1]):
+                case /^html$/i.test(mainMsg[1]): {
                     // Check for Discord-specific functionality
                     if (!channelid || !groupid) {
                         rply.text = "這是頻道功能，需要在頻道上使用。";
@@ -251,8 +248,9 @@ describe('Export Module Tests', () => {
                     ];
                     rply.text = `已私訊你 頻道 ${discordMessage.channel.name} 的聊天紀錄\n你的channel 聊天紀錄 共有 10 項`;
                     return rply;
+                }
                     
-                case /^txt$/i.test(mainMsg[1]):
+                case /^txt$/i.test(mainMsg[1]): {
                     // Check permissions via the check tool
                     const permCheck = checkTools.permissionErrMsg();
                     if (permCheck) {
@@ -272,9 +270,10 @@ describe('Export Module Tests', () => {
                     rply.discordExport = channelid + '_123456';
                     rply.text = `已私訊你 頻道 ${discordMessage.channel.name} 的聊天紀錄\n你的channel聊天紀錄 共有 10 項`;
                     return rply;
+                }
                     
                 default:
-                    return undefined;
+                    return;
             }
         });
     });

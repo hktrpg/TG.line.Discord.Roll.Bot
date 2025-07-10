@@ -1,6 +1,6 @@
 "use strict";
-const { REST, Routes } = require('discord.js');
 const fs = require('node:fs');
+const { REST, Routes } = require('discord.js');
 const clientId = process.env.DISCORD_CHANNEL_CLIENTID || "544561773488111636";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 
@@ -25,7 +25,7 @@ async function registeredGlobalSlashCommands() {
         console.error('Failed to register global commands:', error);
         
         // Check if it's a duplicate command name error
-        if (error.code === 50035 && error.rawError?.errors && 
+        if (error.code === 50_035 && error.rawError?.errors && 
             JSON.stringify(error.rawError.errors).includes('APPLICATION_COMMANDS_DUPLICATE_NAME')) {
             
             try {
@@ -39,7 +39,7 @@ async function registeredGlobalSlashCommands() {
                     .map(cmd => cmd.name);
                 
                 return `Error: 發現重複的全域斜線指令名稱: ${duplicates.join(', ')}`;
-            } catch (extractErr) {
+            } catch {
                 return `Error: 發現重複的全域斜線指令名稱，但無法確定哪些指令重複。錯誤: ${error.message}`;
             }
         }
@@ -54,11 +54,11 @@ async function testRegisteredSlashCommands(guildId) {
             console.log('Successfully registered application commands.')
             return "Successfully registered application commands." + (guildId);
         })
-        .catch(err => {
-            console.error(err);
+        .catch(error => {
+            console.error(error);
             // Check if it's a duplicate command name error
-            if (err.code === 50035 && err.rawError?.errors && 
-                JSON.stringify(err.rawError.errors).includes('APPLICATION_COMMANDS_DUPLICATE_NAME')) {
+            if (error.code === 50_035 && error.rawError?.errors && 
+                JSON.stringify(error.rawError.errors).includes('APPLICATION_COMMANDS_DUPLICATE_NAME')) {
                 
                 // Extract command names for comparison
                 const existingCommands = [];
@@ -67,7 +67,7 @@ async function testRegisteredSlashCommands(guildId) {
                     return rest.get(Routes.applicationGuildCommands(clientId, guildId))
                         .then(data => {
                             // Build list of existing commands
-                            data.forEach(cmd => existingCommands.push(cmd.name));
+                            for (const cmd of data) existingCommands.push(cmd.name);
                             
                             // Find duplicates by comparing with commands array
                             const duplicates = commands
@@ -76,15 +76,15 @@ async function testRegisteredSlashCommands(guildId) {
                             
                             return `Error: 發現重複的斜線指令名稱: ${duplicates.join(', ')}`;
                         })
-                        .catch(getErr => {
-                            return `Error: 發現重複的斜線指令名稱，但無法確定哪些指令重複。錯誤: ${err.message}`;
+                        .catch(() => {
+                            return `Error: 發現重複的斜線指令名稱，但無法確定哪些指令重複。錯誤: ${error.message}`;
                         });
-                } catch (extractErr) {
-                    return `Error: 發現重複的斜線指令名稱，但無法確定哪些指令重複。錯誤: ${err.message}`;
+                } catch {
+                    return `Error: 發現重複的斜線指令名稱，但無法確定哪些指令重複。錯誤: ${error.message}`;
                 }
             }
             
-            return "Error Global registered application commands: " + err.message;
+            return "Error Global registered application commands: " + error.message;
         });
 }
 

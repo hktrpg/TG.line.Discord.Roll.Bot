@@ -1,12 +1,12 @@
 "use strict";
 
-const funny = require('../roll/1_funny');
+const funny = require('../roll/1-funny');
 const rollbase = require('../roll/rollbase');
 
 // Mock rollbase.Dice to return predictable values for testing
 jest.mock('../roll/rollbase', () => ({
     Dice: jest.fn(),
-    shuffleTarget: jest.fn(arr => ['魔術師 ＋', '力量 ＋', '隱者 ＋'])
+    shuffleTarget: jest.fn(() => ['魔術師 ＋', '力量 ＋', '隱者 ＋'])
 }));
 
 describe('Funny Module Tests', () => {

@@ -8,13 +8,12 @@ const initialize = function () {
 }
 
 const variables = {};
+const fs = require('fs');
+const path = require('path');
 const jimp = require('jimp');
 const sharp = require('sharp');
-const url = require('url');
-const path = require('path');
 const { SlashCommandBuilder } = require('discord.js');
 const axios = require('axios').default;
-const fs = require('fs');
 const GeoPattern = require('geopattern');
 const { imgbox } = require("imgbox");
 
@@ -124,14 +123,14 @@ const uploadImage = async (discordMessage, discordClient) => {
         return rply;
     }
     //reject if url  not JPEG PNGGIFAPNGTIFFMP4MPEGAVIWEBMquicktimex-matroskax-flvx-msvideox-ms-wmv
-    if (avatar && !avatar.match(/\.(jpg|jpeg|png|gif)/i)) {
+    if (avatar && !/\.(jpg|jpeg|png|gif)/i.test(avatar)) {
         rply.text = '上傳失敗，請檢查圖片格式\n 可能支持的格式\njpg|jpeg|png|gif';
         return rply;
     }
 
     try {
         const file = [{
-            filename: `temp_${new Date().getTime()}.${getFileExtension(avatar)}`,
+            filename: `temp_${Date.now()}.${getFileExtension(avatar)}`,
             url: avatar
         }]
 
@@ -159,7 +158,9 @@ const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClien
 
         const d = new Date();
         let time = d.getTime();
-        let name = `temp_${time}_${text.text}.png`
+        // Sanitize filename to remove invalid characters
+        let sanitizedText = text.text.replaceAll(/[^a-zA-Z0-9]/g, '_').slice(0, 20);
+        let name = `temp_${time}_${sanitizedText}.png`
 
         const token = await tokernMaker2(response, name);
         const circleToken = await maskImage(token, './assets/token/tokenCircleMask.png');
@@ -188,7 +189,9 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
         const response = await getImage(avatar);
         const d = new Date();
         let time = d.getTime();
-        let name = `temp_${time}_${text.text}.png`
+        // Sanitize filename to remove invalid characters
+        let sanitizedText = text.text.replaceAll(/[^a-zA-Z0-9]/g, '_').slice(0, 20);
+        let name = `temp_${time}_${sanitizedText}.png`
 
         const token = await tokernMaker3(response, name);
         const circleToken = await maskImage(token, './assets/token/tokenCircleMask3.png');
@@ -248,7 +251,9 @@ const polaroidTokernMaker = async (discordMessage, inputStr, mainMsg, discordCli
 
         const d = new Date();
         let time = d.getTime();
-        let name = `temp_${time}_${text.text}.png`
+        // Sanitize filename to remove invalid characters
+        let sanitizedText = text.text.replaceAll(/[^a-zA-Z0-9]/g, '_').slice(0, 20);
+        let name = `temp_${time}_${sanitizedText}.png`
 
         const token = await tokernMaker(response, name);
 
@@ -271,7 +276,7 @@ const getAvatar = async (discordMessage, discordClient) => {
     if (discordMessage.interaction) {
         // Check for attachments in the interaction
         if (discordMessage.attachments && discordMessage.attachments.size > 0) {
-            const attachmentsArray = Array.from(discordMessage.attachments.values());
+            const attachmentsArray = [...discordMessage.attachments.values()];
             const url = attachmentsArray.find(data => data.contentType.match(/image/i));
             return (url && url.url) || null;
         }
@@ -284,7 +289,7 @@ const getAvatar = async (discordMessage, discordClient) => {
 
                 // Check for attachments in the referenced message
                 if (referenceMessage.attachments && referenceMessage.attachments.size > 0) {
-                    const attachmentsArray = Array.from(referenceMessage.attachments.values());
+                    const attachmentsArray = [...referenceMessage.attachments.values()];
                     const url = attachmentsArray.find(data => data.contentType.match(/image/i));
                     if (url && url.url) {
                         return url.url;
@@ -324,7 +329,7 @@ const getAvatar = async (discordMessage, discordClient) => {
         return member.displayAvatarURL();
     }
     if (discordMessage.type === 0 && discordMessage.attachments.size > 0) {
-        const attachmentsArray = Array.from(discordMessage.attachments.values());
+        const attachmentsArray = [...discordMessage.attachments.values()];
         const url = attachmentsArray.find(data => data.contentType.match(/image/i));
         return (url && url.url) || null;
     }
@@ -332,7 +337,7 @@ const getAvatar = async (discordMessage, discordClient) => {
     if (discordMessage.type === 19) {
         const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
         const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId)
-        const attachmentsArray = Array.from(referenceMessage.attachments.values());
+        const attachmentsArray = [...referenceMessage.attachments.values()];
         const url = attachmentsArray.find(data => data.contentType.match(/image/i));
         return (url && url.url) || null;
     }
@@ -371,10 +376,10 @@ const tokernMaker = async (imageLocation, name) => {
         await image.toFile(`./temp/new_${name}`)
         let newImage = await sharp((`./temp/new_${name}`))
         let metadata = await newImage.metadata();
-        const width = (metadata.width < 375) ? metadata.width : 375;
-        const height = (metadata.height < 387) ? metadata.height : 387;
-        const left = ((metadata.width - 375) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.width - 375) / 2);
-        const top = ((metadata.height - 387) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.height - 387) / 2);
+        const width = Math.min(metadata.width, 375);
+        const height = Math.min(metadata.height, 387);
+        const left = ((metadata.width - 375) / 2) < 0 ? sharp.gravity.center : Number.parseInt((metadata.width - 375) / 2);
+        const top = ((metadata.height - 387) / 2) < 0 ? sharp.gravity.center : Number.parseInt((metadata.height - 387) / 2);
         newImage = await newImage.extract({ left, top, width, height }).toBuffer()
         newImage = await sharp('./views/image/ONLINE_TOKEN.png')
             .composite(
@@ -397,10 +402,10 @@ const tokernMaker2 = async (imageLocation, name) => {
         await image.toFile(`./temp/new_${name}`)
         let newImage = await sharp((`./temp/new_${name}`))
         let metadata = await newImage.metadata();
-        const width = (metadata.width < 520) ? metadata.width : 520;
-        const height = (metadata.height < 520) ? metadata.height : 520;
-        const left = ((metadata.width - 520) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.width - 520) / 2);
-        const top = ((metadata.height - 520) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.height - 520) / 2);
+        const width = Math.min(metadata.width, 520);
+        const height = Math.min(metadata.height, 520);
+        const left = ((metadata.width - 520) / 2) < 0 ? sharp.gravity.center : Number.parseInt((metadata.width - 520) / 2);
+        const top = ((metadata.height - 520) / 2) < 0 ? sharp.gravity.center : Number.parseInt((metadata.height - 520) / 2);
         newImage = await newImage.extract({ left, top, width, height }).toBuffer()
         newImage = await sharp('./views/image/ONLINE TOKEN_BASE.png')
             .composite(
@@ -422,10 +427,10 @@ const tokernMaker3 = async (imageLocation, name) => {
         await image.toFile(`./temp/new_${name}`)
         let newImage = await sharp((`./temp/new_${name}`))
         let metadata = await newImage.metadata();
-        const width = (metadata.width < 520) ? metadata.width : 520;
-        const height = (metadata.height < 520) ? metadata.height : 520;
-        const left = ((metadata.width - 520) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.width - 520) / 2);
-        const top = ((metadata.height - 520) / 2) < 0 ? sharp.gravity.center : parseInt((metadata.height - 520) / 2);
+        const width = Math.min(metadata.width, 520);
+        const height = Math.min(metadata.height, 520);
+        const left = ((metadata.width - 520) / 2) < 0 ? sharp.gravity.center : Number.parseInt((metadata.width - 520) / 2);
+        const top = ((metadata.height - 520) / 2) < 0 ? sharp.gravity.center : Number.parseInt((metadata.height - 520) / 2);
         newImage = await newImage.extract({ left, top, width, height }).toBuffer()
         newImage = await sharp('./views/image/ONLINE TOKEN_BASE.png')
             .composite(
@@ -453,7 +458,7 @@ async function addTextOnImage(token, text = '', text2 = '', name) {
             ])
         await image.toFile(`./temp/finally_${name}`)
         return true;
-    } catch (error) {
+    } catch {
         return null;
     }
 }
@@ -471,26 +476,9 @@ async function addTextOnImage2(token, text = ' ', text2 = ' ', name) {
             ])
         await image.toFile(`./temp/finally_${name}`)
         return true;
-    } catch (error) {
+    } catch {
         return null;
     }
-}
-
-function hexToRgb(hex) {
-    let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-    } : null;
-}
-
-function rgbToHex(r, g, b) {
-    return (valueToHex(r) + valueToHex(g) + valueToHex(b));
-}
-function valueToHex(c) {
-    let hex = c.toString(16);
-    return hex
 }
 const discordCommand = [
     {
@@ -783,7 +771,7 @@ function colorTextBuilder({ size, text, text2, position }) {
     return singleLine ? Buffer.from(svgScript) : Buffer.from(svgScript);
 }
 function getFileExtension(imageUrl) {
-    const parsedUrl = url.parse(imageUrl);
+    const parsedUrl = new URL(imageUrl);
     const pathname = parsedUrl.pathname;
     const extname = path.extname(pathname);
     return extname;

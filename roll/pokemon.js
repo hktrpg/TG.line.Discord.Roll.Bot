@@ -128,19 +128,19 @@ class Pokemon {
 
     static init(link) {
         let data = [];
-        require('fs').readdirSync('./assets/pokemon/').forEach(function (file) {
-            if (file.match(/\.js$/) && file.match(new RegExp('^' + link, 'i'))) {
+        for (const file of require('fs').readdirSync('./assets/pokemon/')) {
+            if (/\.js$/.test(file) && new RegExp('^' + link, 'i').test(file)) {
                 let importData = require('../assets/pokemon/' + file);
-                data = data.concat(importData.Pokedex)
+                data = [...data, ...importData.Pokedex]
             }
-        });
+        }
         return new Pokemon(data);
     }
     getVS(string) {
         if (typeof (string) === 'number') { string = ('000' + string).slice(-3) }
         let result = this.fuse.search(string, { limit: 1 })
-        if (result.length) return result[0].item;
-        return undefined;
+        if (result.length > 0) return result[0].item;
+        return;
     }
     static findTypeByCht(value) {
         for (const key in typeName) {
@@ -238,12 +238,12 @@ class Moves {
 
     static init(link) {
         let data = [];
-        require('fs').readdirSync('./assets/pokemon/').forEach(function (file) {
-            if (file.match(/\.js$/) && file.match(new RegExp('^' + link, 'i'))) {
+        for (const file of require('fs').readdirSync('./assets/pokemon/')) {
+            if (/\.js$/.test(file) && new RegExp('^' + link, 'i').test(file)) {
                 let importData = require('../assets/pokemon/' + file);
-                data = data.concat(importData.MoveList)
+                data = [...data, ...importData.MoveList]
             }
-        });
+        }
         return new Moves(data);
     }
     getVS(string) {
@@ -258,7 +258,7 @@ class Moves {
                 return key;
             }
         }
-        return undefined;
+        return;
     }
     static showMove(move) {
         let result = '';
@@ -389,18 +389,18 @@ function commandVS(mainMsg) {
             attackerType = attacker.type
         }
         let defenderType = Pokemon.findTypeByCht(mainMsg[3]);
-        let defender = (defenderType.length) ? null : pokeDex.getVS(mainMsg[3]);
+        let defender = (defenderType.length > 0) ? null : pokeDex.getVS(mainMsg[3]);
         if (defender) {
             defenderType = defender.type
         }
 
         if (mainMsg[4]) {
             let defenderType2 = Pokemon.findTypeByCht(mainMsg[4]);
-            if (defenderType2) defenderType = defenderType.concat(defenderType2);
+            if (defenderType2) defenderType = [...defenderType, ...defenderType2];
         }
-        if (!defenderType.length || !attackerType) {
+        if (defenderType.length === 0 || !attackerType) {
             rply.text += (!attackerType) ? '找不到攻方屬性，請確認名稱，你可以輸入完整招式名稱或屬性\n' : '';
-            rply.text += (!defenderType.length) ? '找不到防方屬性，請確認名稱，你可以輸入小精靈名稱，編號或屬性\n' : '';
+            rply.text += (defenderType.length === 0) ? '找不到防方屬性，請確認名稱，你可以輸入小精靈名稱，編號或屬性\n' : '';
             return rply;
 
         }
@@ -439,7 +439,7 @@ function commandVS(mainMsg) {
 防方小精靈圖片：https://github.com/hktrpg/TG.line.Discord.Roll.Bot/raw/master/assets/pokemon/${defender.info.image}
 `: '';
         return rply;
-    } catch (error) {
+    } catch {
         rply.text = `輸入錯誤，請輸入正確的招式名稱或小精靈名稱\n${getHelpMessage()}`
         return rply;
     }

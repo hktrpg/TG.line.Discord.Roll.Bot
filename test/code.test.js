@@ -1,7 +1,7 @@
 "use strict";
 
-const codeModule = require('../roll/code.js');
 const axios = require('axios');
+const codeModule = require('../roll/code.js');
 
 // Mock axios to avoid real API calls
 jest.mock('axios');

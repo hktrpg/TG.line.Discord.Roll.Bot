@@ -42,7 +42,7 @@ const mockInitModule = {
 │ 　• .in 1d3
 │ 　  (無名稱時使用發言者名稱)
 ╰──────────────`),
-    initialize: () => undefined,
+    initialize: () => {},
     rollDiceCommand: jest.fn()
 };
 
@@ -64,12 +64,17 @@ describe('Init Module Tests', () => {
         
         rollbase.rollDiceCommand.mockImplementation(({ mainMsg }) => {
             // Mock dice rolling to return predictable values
-            if (mainMsg[0] === '1d20+3') {
+            switch (mainMsg[0]) {
+            case '1d20+3': {
                 return { text: 'Result: 17[14+3]' };
-            } else if (mainMsg[0] === '1d6') {
+            }
+            case '1d6': {
                 return { text: 'Result: 4' };
-            } else if (mainMsg[0] === '2d6') {
+            }
+            case '2d6': {
                 return { text: 'Result: 7[3+4]' };
+            }
+            // No default
             }
             return null;
         });
@@ -138,7 +143,7 @@ describe('Init Module Tests', () => {
                         $pull: {
                             "list": {
                                 "name": {
-                                    $regex: new RegExp('^' + name.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1") + '$', "i")
+                                    $regex: new RegExp('^' + name.replaceAll(/([.?*+^$[\]\\(){}|-])/g, String.raw`\$1`) + '$', "i")
                                 }
                             }
                         }
@@ -232,12 +237,12 @@ describe('Init Module Tests', () => {
                     
                     return rply;
                     
-                case /(^[.]in$)/i.test(mainMsg[0]) && /^\w+/i.test(mainMsg[1]):
+                case /(^[.]in$)/i.test(mainMsg[0]) && /^\w+/i.test(mainMsg[1]): {
                     // Handle add/update initiative
                     // Mock countInit function by using rollbase
                     const diceResult = await rollbase.rollDiceCommand({ mainMsg: [mainMsg[1]] });
                     result = diceResult ? Number(diceResult.text.match(/\d+/)[0]) : 
-                             (mainMsg[1].match(/^[+-]?([0-9]*[.])?[0-9]+$/)) ? Number(mainMsg[1]) : null;
+                             (/^[+-]?([0-9]*[.])?[0-9]+$/.test(mainMsg[1])) ? Number(mainMsg[1]) : null;
                     
                     if (!result) return;
                     
@@ -269,7 +274,7 @@ describe('Init Module Tests', () => {
                     }
                     
                     // Update existing character or add new one
-                    objIndex = temp.list.findIndex((obj => obj.name.toLowerCase() == name.toLowerCase())) >= 0 ? 
+                    objIndex = temp.list.some((obj => obj.name.toLowerCase() == name.toLowerCase()))  ? 
                               temp.list.findIndex((obj => obj.name.toLowerCase() == name.toLowerCase())) : 
                               temp.list.length || 0;
                     
@@ -294,8 +299,9 @@ describe('Init Module Tests', () => {
                     
                     rply.text = temp.list[objIndex].name + ' 的先攻值是 ' + Number(result);
                     return rply;
+                }
                     
-                case /(^[.]init$)/i.test(mainMsg[0]):
+                case /(^[.]init$)/i.test(mainMsg[0]): {
                     // Handle init display (descending order)
                     temp = await schema.init.findOne({
                         "groupID": channelid || groupid
@@ -313,8 +319,9 @@ describe('Init Module Tests', () => {
                                 '└Character C - 10\n';
                     
                     return rply;
+                }
                     
-                case /(^[.]initn$)/i.test(mainMsg[0]):
+                case /(^[.]initn$)/i.test(mainMsg[0]): {
                     // Handle initn display (ascending order)
                     temp = await schema.init.findOne({
                         "groupID": channelid || groupid
@@ -332,6 +339,7 @@ describe('Init Module Tests', () => {
                                 '└Character A - 20\n';
                     
                     return rply;
+                }
                     
                 default:
                     break;

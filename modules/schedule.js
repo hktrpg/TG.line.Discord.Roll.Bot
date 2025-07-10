@@ -8,7 +8,7 @@ const Agenda = require("agenda");
 //const agenda = new Agenda({ mongo: mongoose.mongoose });
 
 // Or override the default collection name:
-const agenda = new Agenda({ db: { address: process.env.mongoURL, collection: 'agendaAtHKTRPG' }, maxConcurrency: 20000, defaultConcurrency: 2000 });
+const agenda = new Agenda({ db: { address: process.env.mongoURL, collection: 'agendaAtHKTRPG' }, maxConcurrency: 20_000, defaultConcurrency: 2000 });
 
 // or pass additional connection options:
 // const agenda = new Agenda({db: {address: mongoConnectionString, collection: 'jobCollectionName', options: {ssl: true}}});

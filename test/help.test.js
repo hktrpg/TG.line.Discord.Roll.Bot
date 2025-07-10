@@ -42,38 +42,6 @@ const mockHelpModule = {
 };
 
 describe('Help Module Tests', () => {
-    // Mock the exported modules from the help.js file
-    const mockExports = {
-        'DICE_1': { 
-            gameType: () => 'DICE:test1',
-            gameName: () => '【測試骰子1】'
-        },
-        'DICE_2': { 
-            gameType: () => 'DICE:test2',
-            gameName: () => '【測試骰子2】'
-        },
-        'Tool_1': { 
-            gameType: () => 'Tool:test1',
-            gameName: () => '【測試工具1】'
-        },
-        'admin_1': { 
-            gameType: () => 'admin:test1',
-            gameName: () => '【測試管理1】'
-        },
-        'funny_1': { 
-            gameType: () => 'funny:test1',
-            gameName: () => '【測試娛樂1】'
-        },
-        'help_1': { 
-            gameType: () => 'help:test1',
-            gameName: () => '【測試說明1】'
-        },
-        'link_1': { 
-            gameType: () => 'link:test1',
-            gameName: () => '【測試連結1】'
-        }
-    };
-
     // Mock the Version class
     class MockVersion {
         constructor() {
@@ -160,7 +128,7 @@ describe('Help Module Tests', () => {
                     rply.buttonCreate = ['bothelp Dice0', 'bothelp Dice1'];
                     return rply;
                     
-                case /^Dice\d+$/i.test(mainMsg[1]):
+                case /^Dice\d+$/i.test(mainMsg[1]): {
                     const diceNum = mainMsg[1].replace(/^Dice/i, '');
                     if (diceNum === '0') {
                         rply.text = '【測試骰子1】的說明';
@@ -168,6 +136,7 @@ describe('Help Module Tests', () => {
                         rply.text = '【測試骰子2】的說明';
                     }
                     return rply;
+                }
                     
                 case /^Tool$/i.test(mainMsg[1]):
                     rply.text = `【🛠️ 查看工具說明】
@@ -258,7 +227,7 @@ describe('Help Module Tests', () => {
                     return rply;
                     
                 default:
-                    return undefined;
+                    return;
             }
         });
     });

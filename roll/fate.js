@@ -1,8 +1,8 @@
 "use strict";
+const { SlashCommandBuilder } = require('discord.js');
+const mathjs = require('mathjs');
 let rollbase = require('./rollbase.js');
 let variables = {};
-const mathjs = require('mathjs');
-const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【命運Fate】 .4df(m|-)(加值)'
 }
@@ -71,9 +71,12 @@ const rollDiceCommand = async function ({
                 temp = temp.replace('-1', '－').replace('0', '▉').replace('1', '＋')
             }
             try {
+                // eslint-disable-next-line unicorn/prefer-string-replace-all
                 rply.text = 'Fate ' + inputStr.toString().replace(/\r/g, " ").replace(/\n/g, " ") + '\n' + temp + ' = ' + ans;
+                // eslint-disable-next-line unicorn/prefer-string-replace-all
                 let mod = mainMsg[0].replace(/^\.4df/ig, '').replace(/^(\d)/, '+$1').replace(/m/ig, '-').replace(/-/g, ' - ').replace(/\+/g, ' + ');
                 if (mod) {
+                    // eslint-disable-next-line unicorn/prefer-string-replace-all
                     rply.text += ` ${mod} = ${mathjs.evaluate(ans + mod)}`.replace(/\*/g, ' * ')
 
                 }

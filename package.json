@@ -10,7 +10,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node --trace-warnings index.js",
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "resolutions": {
     "nth-check": "^2.0.1",
@@ -89,7 +91,12 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "eslint": "^7.30.0",
+    "@eslint/js": "^9.30.1",
+    "eslint": "^9.30.1",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-n": "^17.21.0",
+    "eslint-plugin-unicorn": "^59.0.1",
+    "globals": "^16.3.0",
     "jest": "^28.1.2",
     "yarn-audit-fix": "^9.3.10"
   },

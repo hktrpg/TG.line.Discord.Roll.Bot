@@ -19,18 +19,21 @@ if (process.env.BROADCAST) {
 	});
 }
 
-const rollText = require('./getRoll').rollText;
+const qrcode = require('qrcode-terminal');
+const {
+	Client, LocalAuth, MessageMedia
+} = require('whatsapp-web.js');
+const isImageURL = require('image-url-validator').default;
 const candle = require('../modules/candleDays.js');
 const agenda = require('../modules/schedule')
-const qrcode = require('qrcode-terminal');
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const isHeroku = (process.env._ && process.env._.indexOf("heroku")) > 0 ? true : false;
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const schema = require('../modules/schema');
-const opt = {
-	upsert: true,
-	runValidators: true
-}
+// const schema = require('../modules/schema');
+// const opt = {
+// 	upsert: true,
+// 	runValidators: true
+// }
 const herokuPuppeteer = {
 	headless: true,
 	'executablePath': '/app/.apt/usr/bin/google-chrome-stable'
@@ -46,7 +49,7 @@ const normalPuppeteer = {
 		'--disable-gpu'
 	],
 	'executablePath': process.platform === 'win32'
-		? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+		? String.raw`C:\Program Files\Google\Chrome\Application\chrome.exe`
 		: (process.platform === 'linux'
 			? '/usr/bin/google-chrome'
 			: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
@@ -55,10 +58,7 @@ const normalPuppeteer = {
 const newMessage = require('./message');
 
 exports.analytics = require('./analytics');
-const {
-	Client, LocalAuth, MessageMedia
-} = require('whatsapp-web.js');
-const isImageURL = require('image-url-validator').default;
+const rollText = require('./getRoll').rollText;
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)$/i);
 const MESSAGE_SPLITOR = (/\S+/ig);
 
@@ -69,9 +69,9 @@ async function startUp() {
 			puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer
 		});
 
-		client.initialize().catch(err => {
-			console.error('[WhatsApp Init Error]', err);
-			if (err.message.includes('Failed to launch')) {
+		client.initialize().catch(error => {
+			console.error('[WhatsApp Init Error]', error);
+			if (error.message.includes('Failed to launch')) {
 				console.log('請確認已安裝 Google Chrome，或手動設定 Chrome 路徑');
 			}
 		});
@@ -85,7 +85,14 @@ async function startUp() {
 
 		client.on('message', async msg => {
 			try {
-				if (!msg.body || msg.fromMe || msg.isForwarded) return;
+				// Validate message object
+				if (!msg || !msg.body || msg.fromMe || msg.isForwarded) return;
+				
+				// Validate required properties
+				if (!msg.from || typeof msg.getContact !== 'function') {
+					console.error('[WhatsApp] Invalid message object - missing required properties');
+					return;
+				}
 
 				// 基本訊息處理
 				const chatDetail = await client.getChatById(msg.from);
@@ -95,21 +102,29 @@ async function startUp() {
 				} : null;
 
 				// 分析訊息內容
-				const result = await processMessage(msg, groupInfo);
+				const result = await processMessage(msg, groupInfo, client);
 				if (!result) return;
 
 				// 發送回覆
 				await handleReply(result, msg, client);
 
-			} catch (err) {
-				console.error('[WhatsApp Message Error]', err);
+			} catch (error) {
+				console.error('[WhatsApp Message Error]', error);
 			}
 		});
 
 		client.on('message_ack', async (msg, ack) => {
 			if (ack > 0) {
-				const chat = await msg.getChat();
-				await chat.clearMessages();
+				try {
+					if (msg && typeof msg.getChat === 'function') {
+						const chat = await msg.getChat();
+						await chat.clearMessages();
+					} else {
+						console.error('[WhatsApp] msg.getChat is not available in message_ack');
+					}
+				} catch (error) {
+					console.error('[WhatsApp] message_ack error:', error.message);
+				}
 			}
 		});
 
@@ -120,8 +135,8 @@ async function startUp() {
 		});
 
 		setupAgenda(client);
-	} catch (err) {
-		console.error('[WhatsApp StartUp Error]', err);
+	} catch (error) {
+		console.error('[WhatsApp StartUp Error]', error);
 	}
 }
 
@@ -134,8 +149,8 @@ function setupAgenda(client) {
 			const text = await rollText(replyText);
 			await SendToId(groupid, { text: text }, client);
 			await job.remove();
-		} catch (err) {
-			console.error("Schedule Error:", err);
+		} catch (error) {
+			console.error("Schedule Error:", error);
 		}
 	});
 
@@ -148,13 +163,13 @@ function setupAgenda(client) {
 				await job.remove();
 				await SendToId(groupid, { text: "已運行六個月, 移除此定時訊息" }, client);
 			}
-		} catch (err) {
-			console.error("Schedule Error:", err);
+		} catch (error) {
+			console.error("Schedule Error:", error);
 		}
 	});
 }
 
-async function processMessage(msg, groupInfo) {
+async function processMessage(msg, groupInfo, client) {
 	let inputStr = msg.body;
 	const mainMsg = inputStr.match(MESSAGE_SPLITOR);
 	if (!mainMsg || !mainMsg[0]) return null;
@@ -172,15 +187,15 @@ async function processMessage(msg, groupInfo) {
 	let privatemsg = 0;
 
 	function privateMsg() {
-		if (trigger.match(/^dr$/i) && mainMsg && mainMsg[1]) {
+		if (/^dr$/i.test(trigger) && mainMsg && mainMsg[1]) {
 			privatemsg = 1;
 			inputStr = inputStr.replace(/^dr\s+/i, '');
 		}
-		if (trigger.match(/^ddr$/i) && mainMsg && mainMsg[1]) {
+		if (/^ddr$/i.test(trigger) && mainMsg && mainMsg[1]) {
 			privatemsg = 2;
 			inputStr = inputStr.replace(/^ddr\s+/i, '');
 		}
-		if (trigger.match(/^dddr$/i) && mainMsg && mainMsg[1]) {
+		if (/^dddr$/i.test(trigger) && mainMsg && mainMsg[1]) {
 			privatemsg = 3;
 			inputStr = inputStr.replace(/^dddr\s+/i, '');
 		}
@@ -196,7 +211,13 @@ async function processMessage(msg, groupInfo) {
 	let TargetGMTempdisplayname = [];
 
 	userid = msg.author;
-	let getContact = await msg.getContact();
+	let getContact;
+	try {
+		getContact = await msg.getContact();
+	} catch (error) {
+		console.error('[WhatsApp] Failed to get contact:', error.message);
+		getContact = null;
+	}
 	displayname = (getContact && getContact.pushname) || '';
 	let rplyVal = {};
 	if (mainMsg && mainMsg[0])
@@ -250,11 +271,11 @@ async function processMessage(msg, groupInfo) {
 
 	if (privatemsg > 1 && TargetGM) {
 		let groupInfo = privateMsgFinder(groupid) || [];
-		groupInfo.forEach((item) => {
+		for (const item of groupInfo) {
 			TargetGMTempID.push(item.userid);
 			TargetGMTempdiyName.push(item.diyName);
 			TargetGMTempdisplayname.push(item.displayname);
-		})
+		}
 	}
 	return { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid, displaynamecheck };
 }
@@ -262,14 +283,15 @@ async function processMessage(msg, groupInfo) {
 async function handleReply(result, msg, client) {
 	const { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid, displaynamecheck } = result;
 	switch (true) {
-		case privatemsg == 1:
+		case privatemsg == 1: {
 			if (groupid) {
 				SendDR(msg, "@" + displayname + '暗骰給自己');
 			}
 			rplyVal.text = "@" + displayname + "的暗骰\n" + rplyVal.text
 			await SendToId(userid, rplyVal, client);
 			break;
-		case privatemsg == 2:
+		}
+		case privatemsg == 2: {
 			if (groupid) {
 				let targetGMNameTemp = "";
 				for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -279,12 +301,13 @@ async function handleReply(result, msg, client) {
 			}
 			rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
 			await SendToId(msg.from, rplyVal, client);
-			for (let i = 0; i < TargetGMTempID.length; i++) {
-				if (userid != TargetGMTempID[i])
-					await SendToId(TargetGMTempID[i], rplyVal, client);
+			for (const element of TargetGMTempID) {
+				if (userid != element)
+					await SendToId(element, rplyVal, client);
 			}
 			break;
-		case privatemsg == 3:
+		}
+		case privatemsg == 3: {
 			if (groupid) {
 				let targetGMNameTemp = "";
 				for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -293,16 +316,15 @@ async function handleReply(result, msg, client) {
 				SendDR(msg, "@" + displayname + '暗骰進行中 \n目標: ' + targetGMNameTemp);
 			}
 			rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
-			for (let i = 0; i < TargetGMTempID.length; i++) {
-				await SendToId(TargetGMTempID[i], rplyVal, client);
+			for (const element of TargetGMTempID) {
+				await SendToId(element, rplyVal, client);
 			}
 			break;
-		default:
-			if (displaynamecheck == false) {
-				await SendToId(msg.from, rplyVal, client);
-			} else
-				await SendToReply(msg, rplyVal, userid);
+		}
+		default: {
+			await (displaynamecheck == false ? SendToId(msg.from, rplyVal, client) : SendToReply(msg, rplyVal, userid));
 			break;
+		}
 	}
 }
 
@@ -312,8 +334,17 @@ async function __sendMeMessage({ msg, rplyVal, groupid, client }) {
 			await msg.reply(rplyVal.myspeck.content);
 		} catch (error) {
 			console.log('[WhatsApp] Failed to reply with .me message, sending direct message instead:', error.message);
-			const chat = await msg.getChat();
-			await chat.sendMessage(rplyVal.myspeck.content);
+			try {
+				if (msg && typeof msg.getChat === 'function') {
+					const chat = await msg.getChat();
+					await chat.sendMessage(rplyVal.myspeck.content);
+				} else {
+					console.error('[WhatsApp] msg.getChat is not available, falling back to client.sendMessage');
+					await client.sendMessage(msg.from, rplyVal.myspeck.content);
+				}
+			} catch (fallbackError) {
+				console.error('[WhatsApp] Fallback message sending failed:', fallbackError.message);
+			}
 		}
 	} else {
 		await client.sendMessage(msg.from, rplyVal.myspeck.content);
@@ -326,7 +357,17 @@ async function SendDR(msg, text) {
 		return await msg.reply(text);
 	} catch (error) {
 		console.log('[WhatsApp] Failed to reply, sending direct message instead:', error.message);
-		return await msg.getChat().then(chat => chat.sendMessage(text));
+		try {
+			if (msg && typeof msg.getChat === 'function') {
+				return await msg.getChat().then(chat => chat.sendMessage(text));
+			} else {
+				console.error('[WhatsApp] msg.getChat is not available for SendDR');
+				return null;
+			}
+		} catch (fallbackError) {
+			console.error('[WhatsApp] SendDR fallback failed:', fallbackError.message);
+			return null;
+		}
 	}
 }
 
@@ -337,7 +378,7 @@ async function SendToReply(msg, rplyVal, userid) {
 			const imageMatch = rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i].match(imageUrl) || null;
 			
 			try {
-				if (imageMatch && imageMatch.length) {
+				if (imageMatch && imageMatch.length > 0) {
 					try {
 						let imageVaild = await isImageURL(imageMatch[0]);
 						if (imageVaild) {
@@ -351,19 +392,27 @@ async function SendToReply(msg, rplyVal, userid) {
 				await msg.reply(messageText);
 			} catch (error) {
 				console.log('[WhatsApp] Failed to reply, sending direct message instead:', error.message);
-				const chat = await msg.getChat();
-				if (imageMatch && imageMatch.length) {
-					try {
-						let imageVaild = await isImageURL(imageMatch[0]);
-						if (imageVaild) {
-							const media = await MessageMedia.fromUrl(imageMatch[0]);
-							await chat.sendMessage(media);
+				try {
+					if (msg && typeof msg.getChat === 'function') {
+						const chat = await msg.getChat();
+						if (imageMatch && imageMatch.length > 0) {
+							try {
+								let imageVaild = await isImageURL(imageMatch[0]);
+								if (imageVaild) {
+									const media = await MessageMedia.fromUrl(imageMatch[0]);
+									await chat.sendMessage(media);
+								}
+							} catch (error) {
+								console.error('[WhatsApp] Image processing error:', error.message);
+							}
 						}
-					} catch (error) {
-						console.error('[WhatsApp] Image processing error:', error.message);
+						await chat.sendMessage(messageText);
+					} else {
+						console.error('[WhatsApp] msg.getChat is not available, cannot send fallback message');
 					}
+				} catch (fallbackError) {
+					console.error('[WhatsApp] SendToReply fallback failed:', fallbackError.message);
 				}
-				await chat.sendMessage(messageText);
 			}
 		}
 	}
@@ -374,31 +423,47 @@ function privateMsgFinder(channelid) {
 	let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
 		data.groupid == channelid
 	)
-	if (groupInfo && groupInfo.trpgDarkRollingfunction)
-		return groupInfo.trpgDarkRollingfunction
-	else return [];
+	return groupInfo && groupInfo.trpgDarkRollingfunction ? groupInfo.trpgDarkRollingfunction : [];
 }
 
 async function SendToId(targetid, rplyVal, client) {
-	for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
-			const imageMatch = rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i].match(imageUrl) || null;
-			if (imageMatch && imageMatch.length) {
-				try {
-					let imageVaild = await isImageURL(imageMatch[0]);
-					if (imageVaild) {
-						const media = await MessageMedia.fromUrl(imageMatch[0]);
-						client.sendMessage(targetid, media);
+	try {
+		if (!rplyVal || !rplyVal.text) {
+			console.error('[WhatsApp] SendToId: rplyVal or rplyVal.text is undefined');
+			return;
+		}
+
+		const textChunks = rplyVal.text.toString().match(/[\s\S]{1,2000}/g) || [];
+		
+		for (let i = 0; i < textChunks.length; i++) {
+			if (i == 0 || i == 1 || i == textChunks.length - 2 || i == textChunks.length - 1) {
+				const chunk = textChunks[i];
+				const imageMatch = chunk.match(imageUrl) || null;
+				
+				if (imageMatch && imageMatch.length > 0) {
+					try {
+						let imageVaild = await isImageURL(imageMatch[0]);
+						if (imageVaild) {
+							const media = await MessageMedia.fromUrl(imageMatch[0]);
+							await client.sendMessage(targetid, media);
+						}
+					} catch (error) {
+						console.error('[WhatsApp] SendToId image error:', error.message);
 					}
+				}
+				
+				try {
+					await client.sendMessage(targetid, chunk);
 				} catch (error) {
-					console.error(error)
+					console.error('[WhatsApp] SendToId message error:', error.message);
 				}
 			}
-			client.sendMessage(targetid, rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]);
 		}
+	} catch (error) {
+		console.error('[WhatsApp] SendToId general error:', error.message);
 	}
 }
 
-process.on('unhandledRejection', () => { });
+// Unhandled rejections are handled by the main application error handler in index.js
 
 startUp();

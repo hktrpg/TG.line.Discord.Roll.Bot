@@ -121,6 +121,10 @@ describe('D&D 5E Module Tests', () => {
         expect(consoleSpy).toHaveBeenCalled();
         expect(consoleSpy.mock.calls[0][0]).toContain('#5E工具 - .5ebuild - randomStats Error');
         
+        // Function should still return a result object even with error
+        expect(result).toBeDefined();
+        expect(result.type).toBe('text');
+        
         consoleSpy.mockRestore();
     });
 

@@ -1,6 +1,6 @@
 "use strict";
 
-const coc = require('../roll/2_coc.js');
+const coc = require('../roll/2-coc.js');
 const rollbase = require('../roll/rollbase.js');
 
 // Mock dependencies to avoid issues with schema.js and other modules

@@ -5,9 +5,8 @@ if (!process.env.mongoURL) {
 if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
-const schema = require('../modules/schema.js');
-const records = require('../modules/records.js');
 const { SlashCommandBuilder } = require('discord.js');
+const records = require('../modules/records.js');
 const VIP = require('../modules/veryImportantPerson');
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
 
@@ -66,16 +65,10 @@ const initialize = function () {
 }
 
 const rollDiceCommand = async function ({
-    inputStr,
     mainMsg,
     groupid,
     userid,
-    userrole,
-    botname,
-    displayname,
     channelid,
-    displaynameDiscord,
-    membercount,
     discordClient,
     discordMessage
 }) {
@@ -156,8 +149,8 @@ const rollDiceCommand = async function ({
 
                 // Extract the forward ID from the input
                 let forwardId;
-                if (mainMsg[2] && !isNaN(parseInt(mainMsg[2]))) {
-                    forwardId = parseInt(mainMsg[2]);
+                if (mainMsg[2] && !Number.isNaN(Number.parseInt(mainMsg[2]))) {
+                    forwardId = Number.parseInt(mainMsg[2]);
                 } else {
                     rply.text = '無效的指令格式，請使用 .forward delete 數字';
                     return rply;
@@ -256,7 +249,7 @@ const rollDiceCommand = async function ({
                 // Check if message is a valid button message
                 if (!messageContent.endsWith('的角色') &&
                     !messageContent.endsWith('的角色卡') &&
-                    !messageContent.match(/要求擲骰\/點擊/)) {
+                    !/要求擲骰\/點擊/.test(messageContent)) {
                     rply.text = '只能轉發角色卡按鈕或要求擲骰按鈕';
                     return rply;
                 }
@@ -266,7 +259,7 @@ const rollDiceCommand = async function ({
                 let isInteractionUser = false;
 
                 if (sourceMessage.mentions && sourceMessage.mentions.users) {
-                    isMentioned = Array.from(sourceMessage.mentions.users.entries())
+                    isMentioned = [...sourceMessage.mentions.users.entries()]
                         .some(([userId]) => userId === userid);
                 }
 
@@ -385,7 +378,7 @@ const discordCommand = [
                 case 'show':
                     command = `.forward show`;
                     return command;
-                case 'delete':
+                case 'delete': {
                     const id = interaction.options.getInteger('id');
                     if (id <= 0) {
                         await interaction.reply({ content: '請提供有效的轉發編號', ephemeral: true });
@@ -393,6 +386,7 @@ const discordCommand = [
                     }
                     command = `.forward delete ${id}`;
                     return command;
+                }
             }
             return null;
         }

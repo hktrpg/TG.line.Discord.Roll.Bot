@@ -17,7 +17,7 @@ jest.mock('discord.js', () => ({
 }));
 
 // Mock the module to be tested
-jest.mock('../roll/requestRolling.js', () => {
+jest.mock('../roll/request-rolling.js', () => {
   const mockDiscordCommand = [{
     data: { 
       name: 're',
@@ -41,7 +41,7 @@ jest.mock('../roll/requestRolling.js', () => {
 });
 
 // Import the module after mocking
-const requestRollingModule = require('../roll/requestRolling.js');
+const requestRollingModule = require('../roll/request-rolling.js');
 
 describe('Request Rolling Module Tests', () => {
   beforeEach(() => {
@@ -121,7 +121,7 @@ describe('Request Rolling Module Tests', () => {
   });
 
   test('Test rollDiceCommand with valid options', async () => {
-    requestRollingModule.rollDiceCommand.mockImplementation(({ mainMsg, inputStr }) => {
+    requestRollingModule.rollDiceCommand.mockImplementation(({ mainMsg }) => {
       if (mainMsg[0] === '.re' && mainMsg[1]) {
         return {
           default: 'on',
@@ -146,10 +146,10 @@ describe('Request Rolling Module Tests', () => {
     // Custom mock for testing truncation and limits
     requestRollingModule.rollDiceCommand.mockImplementation(({ inputStr }) => {
       if (inputStr && inputStr.includes('.re')) {
-        const text = inputStr.replace(/^\.re\s+/i, '').replace(/[\r\n]/gm, '').split(',');
+        const text = inputStr.replace(/^\.re\s+/i, '').replaceAll(/[\r\n]/gm, '').split(',');
         // Simulate the behavior of handleRequestRolling
         let processedOptions = text.slice(0, 10);
-        processedOptions = processedOptions.map(option => option.substring(0, 80));
+        processedOptions = processedOptions.map(option => option.slice(0, 80));
         processedOptions = processedOptions.filter(option => option.trim());
         
         return {
@@ -184,7 +184,7 @@ describe('Request Rolling Module Tests', () => {
   test('Test handleRequestRolling with empty options', async () => {
     requestRollingModule.rollDiceCommand.mockImplementation(({ inputStr }) => {
       if (inputStr && inputStr.includes('.re')) {
-        const text = inputStr.replace(/^\.re\s+/i, '').replace(/[\r\n]/gm, '').split(',');
+        const text = inputStr.replace(/^\.re\s+/i, '').replaceAll(/[\r\n]/gm, '').split(',');
         // Simulate the behavior of handleRequestRolling
         const filtered = text.filter(n => n.trim());
         
@@ -210,9 +210,9 @@ describe('Request Rolling Module Tests', () => {
   test('Test handleRequestRolling with newlines', async () => {
     requestRollingModule.rollDiceCommand.mockImplementation(({ inputStr }) => {
       if (inputStr && inputStr.includes('.re')) {
-        const text = inputStr.replace(/^\.re\s+/i, '').replace(/[\r\n]/gm, '').split(',');
+        const text = inputStr.replace(/^\.re\s+/i, '').replaceAll(/[\r\n]/gm, '').split(',');
         // Simulate the behavior of handleRequestRolling
-        const filtered = text.map(item => item.trim()).filter(n => n);
+        const filtered = text.map(item => item.trim()).filter(Boolean);
         
         return {
           default: 'on',

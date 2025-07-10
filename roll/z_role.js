@@ -2,15 +2,14 @@
 if (!process.env.mongoURL) {
     return;
 }
+const { SlashCommandBuilder } = require('discord.js');
+const emojiRegex = require('emoji-regex');
 const VIP = require('../modules/veryImportantPerson');
 const FUNCTION_LIMIT = [3, 10, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema.js');
-const emojiRegex = require('emoji-regex');
-const { SlashCommandBuilder } = require('discord.js');
 let regextemp = emojiRegex().toString();
 const regex = regextemp.replace(/^\//, '').replace(/\/g$/, '')
 //https://www.npmjs.com/package/emoji-regex
-const roleReactRegixMessage = /\[\[message\]\](.*)/is;
 const newRoleReactRegixMessageID = /\[\[messageID\]\]\s+(\d+)/is;
 const roleReactRegixDetail = new RegExp(`(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d+>)?)`, 'g')
 const roleReactRegixDetail2 = new RegExp(`^(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d+>)?)`,)
@@ -109,7 +108,7 @@ const rollDiceCommand = async function ({
         }
         //new Type role React
         case /^\.roleReact$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            let list = await schema.roleReact.find({ groupid: groupid }).catch(error => console.error('role #188 mongoDB error: ', error.name, error.reason));
+            let list = await schema.roleReact.find({ groupid: groupid }).catch(error => console.error('role #188 mongoDB error:', error.name, error.reason));
             rply.text = roleReactList(list);
             return rply;
         }
@@ -120,7 +119,7 @@ const rollDiceCommand = async function ({
                 return rply
             }
             try {
-                let myNames = await schema.roleReact.findOneAndRemove({ groupid: groupid, serial: mainMsg[2] }).catch(error => console.error('role #111 mongoDB error: ', error.name, error.reason));
+                let myNames = await schema.roleReact.findOneAndRemove({ groupid: groupid, serial: mainMsg[2] }).catch(error => console.error('role #111 mongoDB error:', error.name, error.reason));
                 if (myNames) {
                     rply.text = `移除成功，#${myNames.serial}\n${myNames.message}`
                     return rply
@@ -129,7 +128,7 @@ const rollDiceCommand = async function ({
                     return rply
                 }
             } catch (error) {
-                console.error("移除失敗, inputStr: ", inputStr);
+                console.error("移除失敗, inputStr:", inputStr, error);
                 rply.text = '移除出錯\n移除指令為 .roleReact delete (序號) \n 如 .roleReact delete 1 \n序號請使用.roleReact show 查詢'
                 return rply
             }
@@ -170,11 +169,11 @@ rply.text = `輸入資料失敗，
             }
 
             //已存在相同
-            let list = await schema.roleReact.findOne({ groupid: groupid, messageID: checkName.messageID }).catch(error => console.error('role #240 mongoDB error: ', error.name, error.reason));
+            let list = await schema.roleReact.findOne({ groupid: groupid, messageID: checkName.messageID }).catch(error => console.error('role #240 mongoDB error:', error.name, error.reason));
             if (list) {
                 list.detail.push.apply(list.detail, checkName.detail);
                 await list.save()
-                    .catch(error => console.error('role #244 mongoDB error: ', error.name, error.reason));
+                    .catch(error => console.error('role #244 mongoDB error:', error.name, error.reason));
                 rply.text = `已成功更新。你現在可以試試role功能\n可以使用.roleReact show /  delete 操作 ${list.serial}`
                 rply.newRoleReactFlag = true;
                 rply.newRoleReactMessageId = checkName.messageID;
@@ -185,7 +184,7 @@ rply.text = `輸入資料失敗，
             //新增新的
             let lv = await VIP.viplevelCheckGroup(groupid);
             let limit = FUNCTION_LIMIT[lv];
-            let myNamesLength = await schema.roleReact.countDocuments({ groupid: groupid }).catch(error => console.error('role #141 mongoDB error: ', error.name, error.reason));
+            let myNamesLength = await schema.roleReact.countDocuments({ groupid: groupid }).catch(error => console.error('role #141 mongoDB error:', error.name, error.reason));
             if (myNamesLength >= limit) {
                 rply.text = '.roleReact 群組上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 rply.quotes = true;
@@ -197,7 +196,7 @@ rply.text = `輸入資料失敗，
             let year = dateObj.getFullYear();
             let hour = dateObj.getHours()
             let minute = dateObj.getMinutes()
-            let listSerial = await schema.roleReact.find({ groupid: groupid }, "serial").catch(error => console.error('role #268 mongoDB error: ', error.name, error.reason));
+            let listSerial = await schema.roleReact.find({ groupid: groupid }, "serial").catch(error => console.error('role #268 mongoDB error:', error.name, error.reason));
             let serial = findTheNextSerial(listSerial);
             let myName = new schema.roleReact({
                 message: `${year}/${month}/${day}  ${hour}:${minute} - ID: ${checkName.messageID}`,
@@ -207,7 +206,7 @@ rply.text = `輸入資料失敗，
                 detail: checkName.detail
             })
             try {
-                await myName.save().catch(error => console.error('role #277 mongoDB error: ', error.name, error.reason));
+                await myName.save().catch(error => console.error('role #277 mongoDB error:', error.name, error.reason));
                 rply.text = `已成功增加。你現在可以試試role功能\n繼續用add 同樣的messageID 可以新增新的emoji 到同一信息\n刪除可以使用.roleReact delete ${serial}`
                 rply.newRoleReactFlag = true;
                 rply.newRoleReactMessageId = checkName.messageID;
@@ -312,21 +311,6 @@ rply.text = `輸入資料失敗，
  
 
 */
-
-function checkRoleReact(inputStr) {
-    let message = inputStr.match(roleReactRegixMessage)
-    inputStr = inputStr.replace(roleReactRegixMessage)
-    let detail = []
-    let detailTemp = inputStr.match(roleReactRegixDetail);
-    for (let index = 0; (index < detailTemp.length) && index < 20; index++) {
-        const regDetail = detailTemp[index].match(roleReactRegixDetail2)
-        detail.push({
-            roleID: regDetail[1],
-            emoji: regDetail[2]
-        })
-    }
-    return { message: message && message[1].replace(/^\n/, ''), detail };
-}
 
 
 function checknewroleReact(inputStr) {

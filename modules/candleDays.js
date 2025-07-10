@@ -57,13 +57,9 @@ class CandleChecker {
         this.isCandleDay = this.monthDays.some(({ month, day }) =>
             month === this.today.Month && day === this.today.Date
         );
-        if (this.isCandleDay) {
-            this.todayCandle = this.monthDays.find(({ month, day }) =>
+        this.todayCandle = this.isCandleDay ? this.monthDays.find(({ month, day }) =>
                 month === this.today.Month && day === this.today.Date
-            ).candle || _DEFAULT_CANDLE;
-        } else {
-            this.todayCandle = '';
-        }
+            ).candle || _DEFAULT_CANDLE : '';
         console.log(`[CandleChecker] Today is ${this.today.Month}/${this.today.Date}, isCandleDay: ${this.isCandleDay}, candle: ${this.checker()}`);
     }
 
@@ -71,12 +67,12 @@ class CandleChecker {
         this.monthDays = [];
         try {
             const dates = process.env.CANDLE_DATES?.split(/\s+/) || [];
-            dates.forEach((date) => {
+            for (const date of dates) {
                 const [month, day, candle] = date.split(',');
                 const monthNum = Number(month);
                 const dayNum = Number(day);
 
-                if (!isNaN(monthNum) && !isNaN(dayNum) && this.#validateDate(monthNum, dayNum)) {
+                if (!Number.isNaN(monthNum) && !Number.isNaN(dayNum) && this.#validateDate(monthNum, dayNum)) {
                     this.monthDays.push({
                         month: monthNum,
                         day: dayNum,
@@ -85,7 +81,7 @@ class CandleChecker {
                 } else {
                     console.warn(`[CandleChecker] Invalid date format: ${date}`);
                 }
-            });
+            }
         } catch (error) {
             console.error('[CandleChecker] Error importing dates:', error);
         }
@@ -96,7 +92,7 @@ class CandleChecker {
         try {
             let sum = 0;
             for (let i = 0; i < userid.length; i++) {
-                sum += userid.charCodeAt(i);
+                sum += userid.codePointAt(i);
             }
             return _ANIMALS[sum % _ANIMALS.length];
         } catch (error) {

@@ -79,7 +79,9 @@ const cspConfig = {
     objectSrc: ["'none'"],
     mediaSrc: ["'self'"],
     frameSrc: ["'self'"],
-    sandbox: ['allow-forms', 'allow-scripts', 'allow-same-origin',
+    // 修正 sandbox 配置：移除同時設置 allow-scripts 和 allow-same-origin 的安全風險
+    // 如果需要 iframe 執行腳本，建議使用更安全的配置方式
+    sandbox: ['allow-forms', 'allow-scripts', 
         'allow-downloads', 'allow-modals', 'allow-popups', 'allow-popups-to-escape-sandbox', 'allow-presentation'],
     childSrc: ["'self'"],
     workerSrc: ["'self'"]

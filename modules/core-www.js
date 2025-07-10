@@ -113,6 +113,20 @@ const io = server ? require('socket.io')(server, {
 	cors: {
 		origin: "*",
 		methods: ["GET", "POST"]
+	},
+	// 增加 Socket.IO 連接配置以改善連接穩定性
+	transports: ['websocket', 'polling'],
+	pingTimeout: 60_000,
+	pingInterval: 25_000,
+	upgradeTimeout: 30_000,
+	maxHttpBufferSize: 1_000_000,
+	allowEIO3: true,
+	// 設置連接超時
+	connectTimeout: 45_000,
+	// 處理連接錯誤
+	allowRequest: (req, callback) => {
+		// 可以在這裡添加額外的驗證邏輯
+		callback(null, true);
 	}
 }) : null;
 
@@ -244,7 +258,31 @@ www.get('/:xx', (req, res) => {
 
 // Socket.IO 連接處理 (只有在 server 存在時)
 if (io) {
+    // 增加全局錯誤處理
+    io.engine.on("connection_error", (err) => {
+        console.error('Socket.IO connection error:', {
+            req: err.req?.url,
+            code: err.code,
+            message: err.message,
+            context: err.context
+        });
+    });
+
     io.on('connection', async (socket) => {
+        console.log(`Socket connected: ${socket.id} from ${socket.handshake.address}`);
+        
+        // 增加 socket 錯誤處理
+        socket.on('error', (error) => {
+            console.error(`Socket ${socket.id} error:`, error);
+        });
+
+        socket.on('disconnect', (reason) => {
+            console.log(`Socket ${socket.id} disconnected: ${reason}`);
+            // 有人離線了，扣人
+            onlineCount = (onlineCount < 0) ? 0 : onlineCount -= 1;
+            io.emit("online", onlineCount);
+        });
+
     socket.on('getListInfo', async message => {
         if (await limitRaterCard(socket.handshake.address)) return;
         //回傳 message 給發送訊息的 Client
@@ -470,12 +508,6 @@ if (io) {
             socket.emit("chatRecord", msgs);
         });
 
-    });
-
-    socket.on('disconnect', () => {
-        // 有人離線了，扣人
-        onlineCount = (onlineCount < 0) ? 0 : onlineCount -= 1;
-        io.emit("online", onlineCount);
     });
 });
 }

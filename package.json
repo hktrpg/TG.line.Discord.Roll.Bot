@@ -69,7 +69,7 @@
     "recachegoose": "^9.1.0",
     "request": "^2.88.2",
     "serve-favicon": "^2.5.0",
-    "sharp": "0.32.6",
+    "sharp": "0.34.2",
     "socket.io": "^2.4.1",
     "socket.io-client": "^2.4.0",
     "timer": "^1.0.1",

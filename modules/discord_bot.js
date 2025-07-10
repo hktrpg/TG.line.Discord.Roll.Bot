@@ -634,6 +634,13 @@ async function repeatMessages(discord, message) {
 	}
 	try {
 		let webhook = await manageWebhook(discord);
+		
+		// Check if webhook is valid before proceeding
+		if (!webhook || !webhook.webhook) {
+			await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
+			return;
+		}
+		
 		for (let index = 0; index < message.myNames.length; index++) {
 			const element = message.myNames[index];
 			let text = await rollText(element.content);
@@ -647,7 +654,8 @@ async function repeatMessages(discord, message) {
 
 		}
 
-	} catch {
+	} catch (error) {
+		console.error('Error in repeatMessages:', error.message);
 		await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 		return;
 	}
@@ -673,10 +681,14 @@ async function manageWebhook(discord) {
 			})
 		}
 		return { webhook, isThread };
-	} catch {
-		//	console.error(error)
-		await SendToReplychannel({ replyText: '不能新增Webhook.\n 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: (discord.channel && discord.channel.id) || discord.channelId });
-		return;
+	} catch (error) {
+		console.error('manageWebhook error:', error.message);
+		try {
+			await SendToReplychannel({ replyText: '不能新增Webhook.\n 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: (discord.channel && discord.channel.id) || discord.channelId });
+		} catch (sendError) {
+			console.error('Failed to send webhook error message:', sendError.message);
+		}
+		return null; // Return null instead of undefined to make the failure explicit
 	}
 }
 
@@ -1604,14 +1616,43 @@ if (togGGToken) {
 }
 
 async function sendCronWebhook({ channelid, replyText, data }) {
-	let webhook = await manageWebhook({ channelId: channelid })
-	let obj = {
-		content: replyText,
-		username: data.roleName,
-		avatarURL: data.imageLink
-	};
-	let pair = (webhook && webhook.isThread) ? { threadId: channelid } : {};
-	await webhook.webhook.send({ ...obj, ...pair });
+	try {
+		let webhook = await manageWebhook({ channelId: channelid })
+		
+		// Check if webhook is valid before proceeding
+		if (!webhook || !webhook.webhook) {
+			console.error(`Failed to get webhook for channel ${channelid}, falling back to regular message`);
+			// Fallback to regular message sending
+			await SendToReplychannel({ 
+				replyText, 
+				channelid, 
+				quotes: true, 
+				groupid: data.groupid 
+			});
+			return;
+		}
+		
+		let obj = {
+			content: replyText,
+			username: data.roleName,
+			avatarURL: data.imageLink
+		};
+		let pair = (webhook && webhook.isThread) ? { threadId: channelid } : {};
+		await webhook.webhook.send({ ...obj, ...pair });
+	} catch (error) {
+		console.error(`Error in sendCronWebhook for channel ${channelid}:`, error.message);
+		// Fallback to regular message sending
+		try {
+			await SendToReplychannel({ 
+				replyText, 
+				channelid, 
+				quotes: true, 
+				groupid: data.groupid 
+			});
+		} catch (fallbackError) {
+			console.error(`Fallback message sending also failed for channel ${channelid}:`, fallbackError.message);
+		}
+	}
 }
 async function handlingMultiServerMessage(message) {
 	if (!process.env.mongoURL) return;
@@ -1622,9 +1663,19 @@ async function handlingMultiServerMessage(message) {
 		const sendMessage = multiServerTarget(message);
 		//	for (let index = 0; index < targetsData.length; index++) {
 		const targetData = target
-		let webhook = await manageWebhook({ channelId: targetData.channelid })
-		let pair = (webhook && webhook.isThread) ? { threadId: targetData.channelid } : {};
-		await webhook?.webhook.send({ ...sendMessage, ...pair });
+		try {
+			let webhook = await manageWebhook({ channelId: targetData.channelid })
+			
+			// Check if webhook is valid before proceeding
+			if (webhook && webhook.webhook) {
+				let pair = (webhook && webhook.isThread) ? { threadId: targetData.channelid } : {};
+				await webhook.webhook.send({ ...sendMessage, ...pair });
+			} else {
+				console.error(`Failed to get webhook for multi-server message to channel ${targetData.channelid}`);
+			}
+		} catch (error) {
+			console.error(`Error in handlingMultiServerMessage for channel ${targetData.channelid}:`, error.message);
+		}
 		//	}
 
 	}

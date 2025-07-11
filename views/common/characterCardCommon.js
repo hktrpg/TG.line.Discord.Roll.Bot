@@ -1,9 +1,42 @@
 // Common JavaScript code for character card pages
 let TITLE = "HKTRPG 角色卡";
 
-// Debug logging
+// XSS Protection function
+function sanitizeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// Simple encryption/decryption for localStorage (not cryptographically secure, but better than plain text)
+function simpleEncrypt(text) {
+    if (!text) return '';
+    return btoa(encodeURIComponent(text));
+}
+
+function simpleDecrypt(encodedText) {
+    if (!encodedText) return '';
+    try {
+        return decodeURIComponent(atob(encodedText));
+    } catch (error) {
+        console.warn('Failed to decrypt stored data:', error.message);
+        return '';
+    }
+}
+
+// Debug logging with sensitive data filtering
 function debugLog(message, type = 'info') {
-    console.log(`[${new Date().toISOString()}] [${type}] ${message}`);
+    // Filter out sensitive information
+    let filteredMessage = message;
+    if (typeof message === 'string') {
+        // Replace potential passwords, tokens, and other sensitive data
+        filteredMessage = message
+            .replaceAll(/password['":\s]*['"]\w+['"]/gi, 'password: "[REDACTED]"')
+            .replaceAll(/token['":\s]*['"]\w+['"]/gi, 'token: "[REDACTED]"')
+            .replaceAll(/userPassword['":\s]*['"]\w+['"]/gi, 'userPassword: "[REDACTED]"')
+            .replaceAll(/auth['":\s]*['"]\w+['"]/gi, 'auth: "[REDACTED]"');
+    }
+    console.log(`[${new Date().toISOString()}] [${type}] ${filteredMessage}`);
 }
 
 // Socket.io Setup
@@ -158,7 +191,7 @@ function initializeVueApps(isPublic = false) {
                             socket.emit('publicRolling', {
                                 item: name,
                                 userName: localStorage.getItem("userName"),
-                                userPassword: localStorage.getItem("userPassword"),
+                                userPassword: simpleDecrypt(localStorage.getItem("userPassword")),
                                 doc: {
                                     name: this.name,
                                     state: this.state,
@@ -170,7 +203,7 @@ function initializeVueApps(isPublic = false) {
                             socket.emit('rolling', {
                                 item: name,
                                 userName: localStorage.getItem("userName"),
-                                userPassword: localStorage.getItem("userPassword"),
+                                userPassword: simpleDecrypt(localStorage.getItem("userPassword")),
                                 cardName: this.name,
                                 selectedGroupId: this.selectedGroupId,
                                 doc: {
@@ -241,7 +274,7 @@ function setupLoginForm() {
         if (userNameInput && userPasswordInput && warningElement) {
             // Set initial values from localStorage
             const userName = localStorage.getItem("userName");
-            const userPassword = localStorage.getItem("userPassword");
+            const userPassword = simpleDecrypt(localStorage.getItem("userPassword"));
             
             if (userName) userNameInput.value = userName;
             if (userPassword) userPasswordInput.value = userPassword;
@@ -306,12 +339,12 @@ function login() {
     const userPassword = userPasswordInput.value;
 
     localStorage.setItem('userName', userName);
-    localStorage.setItem('userPassword', userPassword);
+    localStorage.setItem('userPassword', simpleEncrypt(userPassword)); // Encrypt password
 
     if (userName && userName.length >= 4 && userPassword && userPassword.length >= 6) {
         socket.emit('getListInfo', {
             userName: userName,
-            userPassword: userPassword
+            userPassword: userPassword // Use original password for transmission
         });
 
         socket.on("getListInfo", function (listInfo) {
@@ -392,7 +425,7 @@ function addElement(message, type, closeDelay) {
     let alert = $('<div>')
         .addClass("alert text-wrap text-break alert-dismissible fade show alert-" + type)
         .append($('<button type="button" class="close" data-dismiss="alert">').append("&times;"))
-        .append(message);
+        .append(sanitizeHtml(message));
 
     $cont.prepend(alert);
     if (closeDelay) {

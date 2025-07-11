@@ -887,7 +887,7 @@
 
         // 生成筆記的 HTML
         const notesHTML = character.notes.items.map(item => {
-            return `<p>${item.label}：<span style="color: var(--text-color);">${item.value}</span></p>`;
+            return `<p>${escapeHtml(item.label)}：<span style="color: var(--text-color);">${escapeHtml(item.value)}</span></p>`;
         }).join('');
         document.getElementById('notes').innerHTML = notesHTML;
 
@@ -898,18 +898,18 @@
             return `
                 <div class="status-item">
                     <i class="${item.icon} icon"></i>
-                    <span>${item.label}</span>
+                    <span>${escapeHtml(item.label)}</span>
                     <div class="progress-bar">
                         <div class="progress" style="width: ${item.value}%"></div>
                     </div>
-                    <span>${item.alternative}</span>
+                    <span>${escapeHtml(item.alternative)}</span>
                 </div>
             `;
         }).join('');
 
         // 替換原有的性格與偏好內容
         document.querySelector('.status-bars').innerHTML = `
-            <h3>${character.personalityPreferencesTitle}</h3>
+            <h3>${escapeHtml(character.personalityPreferencesTitle)}</h3>
             ${statusItemsHTML}
         `;
 
@@ -917,7 +917,7 @@
         const attributesHTML = `
             <div class="attribute-group">
                 ${Object.entries(attributes.attributesList).map(([key, value]) => {
-            return `<span class="attribute">${key}：<span style="color: var(--text-color);">${value}</span></span>`;
+            return `<span class="attribute">${escapeHtml(key)}：<span style="color: var(--text-color);">${escapeHtml(value)}</span></span>`;
         }).join('')}
             </div>
         `;
@@ -926,7 +926,7 @@
         const diceRollsHTML = `
             <div class="attribute-group">
                 ${Object.entries(character.diceRolls).map(([key, value]) => {
-            return `<span class="attribute">${key}：<span style="color: var(--text-color);">${value}</span></span>`;
+            return `<span class="attribute">${escapeHtml(key)}：<span style="color: var(--text-color);">${escapeHtml(value)}</span></span>`;
         }).join('')}
             </div>
         `;
@@ -1007,15 +1007,18 @@
             if (!Array.isArray(character.diceRolls)) {
                 character.diceRolls = Object.entries(character.diceRolls).map(([key, value]) => ({ key, value }));
             }
+            // Validate and sanitize avatar URL
+            const safeAvatarUrl = isValidUrl(avatarImageUrl) ? avatarImageUrl : '';
+            
             document.querySelector('.container').innerHTML = `
   <h2>編輯角色資料</h2>
   <div>
-    <label>角色名字: <input type="text" id="editCharacterName" value="${character.characterName}"></label>
-    <label>玩家名字: <input type="text" id="editPlayerName" value="${character.playerName}"></label>
-    <label>SNS ID: <input type="text" id="editsnsID" value="${character.id}"></label></br>
+    <label>角色名字: <input type="text" id="editCharacterName" value="${escapeHtml(character.characterName)}"></label>
+    <label>玩家名字: <input type="text" id="editPlayerName" value="${escapeHtml(character.playerName)}"></label>
+    <label>SNS ID: <input type="text" id="editsnsID" value="${escapeHtml(character.id)}"></label></br>
      <label class="avatar-label">頭像網址: 
         <input type="text" id="edit-avatar" class="avatar-input" 
-            value="${avatarImageUrl}" 
+            value="${escapeHtml(safeAvatarUrl)}" 
             placeholder="輸入圖片網址"
             onchange="previewAvatarFromUrl(this.value)">
     </label>
@@ -1024,7 +1027,7 @@
         <i class="fas fa-cloud-upload-alt"></i>
         <div class="upload-text">拖放圖片或點擊上傳</div>
         ${document.getElementById('avatarImage').src ?
-                    `<img src="${document.getElementById('avatarImage').src}" alt="預覽">` : ''}
+                    `<img src="${escapeHtml(document.getElementById('avatarImage').src)}" alt="預覽">` : ''}
     </div>
     <div class="upload-hint">* 圖片僅用於預覽和匯出，不會保存在備份連結中</div>
   </div>
@@ -1033,14 +1036,14 @@
   <div>
 
     <h3>基本屬性</h3>
- <label>基本屬性標題: <input type="text" id="editAttributeTitle" value="${character.attributeTitle}"></label><br>
+ <label>基本屬性標題: <input type="text" id="editAttributeTitle" value="${escapeHtml(character.attributeTitle)}"></label><br>
     <div id="editAttributesContainer">
       <div id="editAttributesList">
         ${character.attributes.attributesList.map(attr =>
                         `<div draggable="true" class="draggable">
-          <input type="text" class="attr-key" value="${attr.key}">
-          : <input type="text" class="attr-value" value="${attr.value}">
-          <button onclick="removeAttr('${attr.key}')" class="btn-remove">移除</button>
+          <input type="text" class="attr-key" value="${escapeHtml(attr.key)}">
+          : <input type="text" class="attr-value" value="${escapeHtml(attr.value)}">
+          <button onclick="removeAttr('${escapeHtml(attr.key)}')" class="btn-remove">移除</button>
         </div>`
                     ).join('')}
       </div>
@@ -1050,12 +1053,12 @@
   <hr>
   <div>
     <h3>能力分析</h3>
-     <label>能力分析標題: <input type="text" id="editSkillsTitle" value="${character.skillsTitle}"></label><br>
+     <label>能力分析標題: <input type="text" id="editSkillsTitle" value="${escapeHtml(character.skillsTitle)}"></label><br>
     <div id="editSkillsContainer">
       <div id="editSkillsList">
         ${character.skills.map((skill, index) =>
                         `<div draggable="true" class="draggable">
-          <input type="text" class="skill-type" value="${skill.type}">
+          <input type="text" class="skill-type" value="${escapeHtml(skill.type)}">
           <input type="number" class="skill-value" value="${skill.value}">
           <button onclick="removeSkill(${index})" class="btn-remove">移除</button>
         </div>`
@@ -1067,14 +1070,14 @@
   <hr>
   <div>
     <h3>技能</h3>
-    <label>技能標題: <input type="text" id="editDiceTitle" value="${character.diceTitle}"></label><br>
+    <label>技能標題: <input type="text" id="editDiceTitle" value="${escapeHtml(character.diceTitle)}"></label><br>
     <div id="editDiceRollsContainer">
       <div id="editDiceRollsList">
         ${character.diceRolls.map(dice =>
                         `<div draggable="true" class="draggable">
-          <input type="text" class="dice-key" value="${dice.key}">
-          : <input type="text" class="dice-value" value="${dice.value}">
-          <button onclick="removeDice('${dice.key}')" class="btn-remove">移除</button>
+          <input type="text" class="dice-key" value="${escapeHtml(dice.key)}">
+          : <input type="text" class="dice-value" value="${escapeHtml(dice.value)}">
+          <button onclick="removeDice('${escapeHtml(dice.key)}')" class="btn-remove">移除</button>
         </div>`
                     ).join('')}
       </div>
@@ -1084,13 +1087,13 @@
   <hr>
   <div>
     <h3>筆記</h3>
-    <label>筆記標題: <input type="text" id="editNotesTitle" value="${character.notes.title}"></label>
+    <label>筆記標題: <input type="text" id="editNotesTitle" value="${escapeHtml(character.notes.title)}"></label>
     <div id="editNotesItemsContainer">
       <div id="editNotesItemsList">
         ${character.notes.items.map((item, index) =>
                         `<div draggable="true" class="draggable">
-          <input type="text" class="note-label" value="${item.label}">
-          : <input type="text" class="note-value" value="${item.value}">
+          <input type="text" class="note-label" value="${escapeHtml(item.label)}">
+          : <input type="text" class="note-value" value="${escapeHtml(item.value)}">
           <button onclick="removeNote(${index})" class="btn-remove">移除</button>
         </div>`
                     ).join('')}
@@ -1101,14 +1104,14 @@
   <hr>
   <div>
     <h3>性格與偏好</h3>
-      <label>性格與偏好標題: <input type="text" id="editPersonalityTitle" value="${character.personalityPreferencesTitle}"></label>
+      <label>性格與偏好標題: <input type="text" id="editPersonalityTitle" value="${escapeHtml(character.personalityPreferencesTitle)}"></label>
     <div id="editPersonalityContainer">
       <div id="editPersonalityList">
         ${character.personalityPreferences.items.map((item, index) =>
                         `<div draggable="true" class="draggable">
-          <input type="text" class="personality-label" value="${item.label}">
+          <input type="text" class="personality-label" value="${escapeHtml(item.label)}">
           <input type="number" class="personality-value" value="${item.value}">
-          <input type="text" class="personality-alt" value="${item.alternative}">
+          <input type="text" class="personality-alt" value="${escapeHtml(item.alternative)}">
           <select class="personality-icon">
             <option value="fas fa-check" ${item.icon === 'fas fa-check' ? 'selected' : ''}>打勾</option>
             <option value="fas fa-star" ${item.icon === 'fas fa-star' ? 'selected' : ''}>星星</option>
@@ -1348,6 +1351,14 @@
         }
 
         function previewAvatarFromUrl(url) {
+            // Validate URL before processing
+            if (!isValidUrl(url)) {
+                alert('請輸入有效的圖片網址 (http://, https://, 或 data:)');
+                const input = document.getElementById('edit-avatar');
+                if (input) input.value = character.avatarTemp || '';
+                return;
+            }
+            
             const uploadZone = document.getElementById('avatarUploadZone');
             const img = document.createElement('img');
             img.onload = () => {
@@ -1411,7 +1422,8 @@
                 character.diceRolls = Object.entries(character.diceRolls).map(([key, value]) => ({ key, value }));
             }
             const container = document.querySelector('.container');
-            const avatarSrc = character.avatarUrl || character.avatarTemp || avatarImageUrl;
+            const safeAvatarSrc = isValidUrl(character.avatarUrl || character.avatarTemp || avatarImageUrl) ? 
+                                  (character.avatarUrl || character.avatarTemp || avatarImageUrl) : '';
             container.innerHTML = `
   <!-- Rebuild the view mode using updated character data -->
   <div class="header-buttons">
@@ -1423,68 +1435,68 @@
   <div class="grid">
       <div class="column">
           <div class="player-info">
-              <h2 id="characterName">${character.characterName}</h2>
+              <h2 id="characterName">${escapeHtml(character.characterName)}</h2>
               <div class="info flex-container">
                   ${character.playerName ?
-                    `<span class="flex-item${!character.id ? ' solo' : ''}" id="playerName">${character.playerName}</span>` : ''}
+                    `<span class="flex-item${!character.id ? ' solo' : ''}" id="playerName">${escapeHtml(character.playerName)}</span>` : ''}
                 ${character.id ?
-                    `<span class="flex-item${!character.playerName ? ' solo' : ''}" id="snsID">${character.id}</span>` : ''}
+                    `<span class="flex-item${!character.playerName ? ' solo' : ''}" id="snsID">${escapeHtml(character.id)}</span>` : ''}
               </div>
           </div>
           <div class="avatar-container">
-              <img id="avatarImage" src="${avatarSrc}" alt="角色頭像">
+              <img id="avatarImage" src="${escapeHtml(safeAvatarSrc)}" alt="角色頭像">
           </div>
-          <h3 id="attributeTitle">${character.attributeTitle}</h3>
+          <h3 id="attributeTitle">${escapeHtml(character.attributeTitle)}</h3>
           <div id="basic-attributes">
               <div class="attribute-group">
                   ${character.attributes.attributesList.map(attr =>
-                        `<span class="attribute">${attr.key}：<span style="color: var(--text-color);">${attr.value}</span></span>`
+                        `<span class="attribute">${escapeHtml(attr.key)}：<span style="color: var(--text-color);">${escapeHtml(attr.value)}</span></span>`
                     ).join('')}
               </div>
           </div>
       </div>
       <div class="column">
-          <h3 id="skillsTitle">${character.skillsTitle}</h3>
+          <h3 id="skillsTitle">${escapeHtml(character.skillsTitle)}</h3>
           <canvas id="skillsChart"></canvas>
           <div class="status-bars">
-              <h3>${character.personalityPreferencesTitle}</h3>
+              <h3>${escapeHtml(character.personalityPreferencesTitle)}</h3>
               ${character.personalityPreferences.items.map(item => `
                   <div class="status-item">
                       <i class="${item.icon} icon"></i>
-                      <span>${item.label}</span>
+                      <span>${escapeHtml(item.label)}</span>
                       <div class="progress-bar">
                           <div class="progress" style="width: ${item.value}%"></div>
                       </div>
-                      <span>${item.alternative}</span>
+                      <span>${escapeHtml(item.alternative)}</span>
                   </div>
               `).join('')}
           </div>
       </div>
       <div class="column">
-          <h3 id="diceTitle">${character.diceTitle}</h3>
+          <h3 id="diceTitle">${escapeHtml(character.diceTitle)}</h3>
           <div id="dice-rolls">
               <!-- Fixed dice-rolls container without invalid inline style -->
               <div class="attribute-group">
-                ${character.diceRolls.map(dice => `<span class="attribute">${dice.key}：<span style="color: var(--text-color);">${dice.value}</span></span>`).join('')}
+                ${character.diceRolls.map(dice => `<span class="attribute">${escapeHtml(dice.key)}：<span style="color: var(--text-color);">${escapeHtml(dice.value)}</span></span>`).join('')}
               </div>
           </div>
           <div class="divider"></div>
           <div class="message">
-              <h3 id="notesTitle">${character.notes.title}</h3>
+              <h3 id="notesTitle">${escapeHtml(character.notes.title)}</h3>
               <div id="notes">
                   ${renderNotes(character.notes.items.slice(0, 4))}
               </div>
           </div>
       </div>
   </div>
-  ${character.notes.items.length > 4 ? `
-      <div class="notes-overflow">
-        <div class="notes-card">
-          <h3>更多${character.notes.title}</h3>
-          <div class="notes-content">
-              ${renderNotes(character.notes.items.slice(4))}
-          </div></div>
-      </div>
+        ${character.notes.items.length > 4 ? `
+          <div class="notes-overflow">
+            <div class="notes-card">
+              <h3>更多${escapeHtml(character.notes.title)}</h3>
+              <div class="notes-content">
+                  ${renderNotes(character.notes.items.slice(4))}
+              </div></div>
+          </div>
       <div class="footer">@character.HKTRPG.com 請隨意取用</div>
   ` : ''}
         `;
@@ -1756,6 +1768,28 @@
             }
         }
 
+        // HTML escaping function to prevent XSS
+        function escapeHtml(unsafe) {
+            if (typeof unsafe !== 'string') return unsafe;
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+        
+        // URL validation function to prevent javascript: protocol injection
+        function isValidUrl(url) {
+            if (!url || typeof url !== 'string') return false;
+            try {
+                const urlObj = new URL(url);
+                return ['http:', 'https:', 'data:'].includes(urlObj.protocol);
+            } catch {
+                return false;
+            }
+        }
+        
         function getDataFromUrl() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -1946,7 +1980,7 @@
         // NEW: Helper function to render notes
         function renderNotes(notes) {
             return notes.map(item =>
-                `<p>${item.label}：<span style="color: var(--text-color);">${item.value}</span></p>`
+                `<p>${escapeHtml(item.label)}：<span style="color: var(--text-color);">${escapeHtml(item.value)}</span></p>`
             ).join('');
         }
 

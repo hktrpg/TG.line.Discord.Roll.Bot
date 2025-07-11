@@ -18,39 +18,49 @@ const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 const MESSAGE_SPLITOR = (/\S+/ig);
 
 let robotName = ""
-let firstMessageReceived = false;
+let botInitialized = false;
 
-// Cache for performance optimization
+// Cache for member counts to avoid repeated API calls
 const memberCountCache = new Map();
-const adminCache = new Map(); 
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Initialize bot info once at startup
+async function initializeBotInfo() {
+    if (!botInitialized) {
+        try {
+            const botInfo = await bot.api.getMe();
+            robotName = botInfo.username;
+            botInitialized = true;
+            console.log('🤖 Bot initialized:', robotName);
+        } catch (error) {
+            console.error('Failed to initialize bot info:', error);
+        }
+    }
+}
 
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const EXPUP = require('./level').EXPUP || function () {};
 const courtMessage = require('./logs').courtMessage || function () {};
 
+// Quick test commands for performance testing
+bot.command('ping', async (ctx) => {
+    const start = Date.now();
+    await ctx.reply('Pong! 🏓');
+    console.log(`Ping response time: ${Date.now() - start}ms`);
+});
+
+bot.command('test', async (ctx) => {
+    await ctx.reply('✅ grammY bot is working! Response time should be fast now.');
+});
+
 bot.on('message:text', async (ctx) => {
     if (ctx.from.is_bot) return;
-    
-    // Log first message to confirm migration success
-    if (!firstMessageReceived) {
-        console.log('🎉 First message received! grammY migration is working correctly');
-        firstMessageReceived = true;
-    }
-    
     let inputStr = ctx.message.text;
     let trigger = "",
         mainMsg = "",
         userid = "";
     if (!robotName) {
-        try {
-            let botInfo = await ctx.api.getMe();
-            robotName = botInfo.username;
-            console.log('Bot username retrieved:', robotName);
-        } catch (error) {
-            console.error('Failed to get bot info:', error);
-            // Continue without robot name
-        }
+        await initializeBotInfo();
     }
     if (ctx.from.id) userid = ctx.from.id;
     const options = {};
@@ -105,17 +115,17 @@ bot.on('message:text', async (ctx) => {
     //TRUE 即正常
     let displaynamecheck = true;
     let userrole = 1;
-    //頻道人數 (with caching to improve performance)
+    //頻道人數 (with cache)
     if (ctx.chat && ctx.chat.id) {
-        const chatId = ctx.chat.id.toString();
+        const chatId = ctx.chat.id;
         const cached = memberCountCache.get(chatId);
         const now = Date.now();
         
-        if (cached && (now - cached.timestamp) < CACHE_TTL) {
+        if (cached && (now - cached.timestamp) < CACHE_DURATION) {
             membercount = cached.count;
         } else {
             try {
-                membercount = await ctx.api.getChatMemberCount(ctx.chat.id);
+                membercount = await ctx.api.getChatMemberCount(chatId);
                 memberCountCache.set(chatId, { count: membercount, timestamp: now });
             } catch {
                 membercount = 0;
@@ -257,21 +267,25 @@ bot.on('message:text', async (ctx) => {
 
 })
 
-async function SendToId(targetid, text, options) {
+async function SendToId(targetid, text, options = {}) {
     try {
         const chunks = text.toString().match(/[\s\S]{1,2000}/g) || [];
+        
+        // Send all chunks in parallel for better performance
+        const promises = [];
         for (let i = 0; i < chunks.length; i++) {
             if (i == 0 || i == 1 || i == chunks.length - 2 || i == chunks.length - 1) {
-                try {
-                    await bot.api.sendMessage(targetid, chunks[i], options);
-                } catch (error) {
-                    console.error(error.error_code);
-                    console.error(error.description);
-                }
+                promises.push(
+                    bot.api.sendMessage(targetid, chunks[i], options).catch((error) => {
+                        console.error('Send message error:', error.error_code, error.description);
+                    })
+                );
             }
         }
+        
+        await Promise.all(promises);
     } catch (error) {
-        console.error('tg 277 SendToId error:', (error && (error.message || error.name)));
+        console.error('tg SendToId error:', (error && (error.message || error.name)));
     }
 }
 
@@ -323,19 +337,10 @@ async function nonDice(ctx) {
                 membercount = null;
             let tgDisplayname = (ctx.from.first_name) ? ctx.from.first_name : '';
             if (ctx.chat && ctx.chat.id) {
-                const chatId = ctx.chat.id.toString();
-                const cached = memberCountCache.get(chatId);
-                const now = Date.now();
-                
-                if (cached && (now - cached.timestamp) < CACHE_TTL) {
-                    membercount = cached.count;
-                } else {
-                    try {
-                        membercount = await ctx.api.getChatMemberCount(ctx.chat.id);
-                        memberCountCache.set(chatId, { count: membercount, timestamp: now });
-                    } catch {
-                        membercount = 0;
-                    }
+                try {
+                    membercount = await ctx.api.getChatMemberCount(ctx.chat.id);
+                } catch {
+                    membercount = 0;
                 }
             }
             let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount, tgDisplayname);
@@ -421,22 +426,12 @@ if (agenda && agenda.agenda) {
 }
 
 async function isAdmin(gpId, chatid) {
-    const cacheKey = `${gpId}_${chatid}`;
-    const cached = adminCache.get(cacheKey);
-    const now = Date.now();
-    
-    if (cached && (now - cached.timestamp) < CACHE_TTL) {
-        return cached.isAdmin;
-    }
-    
     try {
         let member = await bot.api.getChatMember(gpId, chatid);
-        const isAdminStatus = member?.status === "creator" || member?.status === "administrator";
-        adminCache.set(cacheKey, { isAdmin: isAdminStatus, timestamp: now });
-        return isAdminStatus;
+        if (member?.status === "creator") return true
+        if (member?.status === "administrator") return true
+        return false;
     } catch {
-        // Cache negative result for shorter time to retry sooner
-        adminCache.set(cacheKey, { isAdmin: false, timestamp: now });
         return false;
     }
 }
@@ -460,27 +455,16 @@ async function __sendMeMessage({ ctx, rplyVal, }) {
     return;
 }
 
-// Clear expired cache entries periodically for better memory management
-setInterval(() => {
-    const now = Date.now();
-    for (const [key, value] of memberCountCache) {
-        if (now - value.timestamp > CACHE_TTL) {
-            memberCountCache.delete(key);
-        }
-    }
-    for (const [key, value] of adminCache) {
-        if (now - value.timestamp > CACHE_TTL) {
-            adminCache.delete(key);
-        }
-    }
-}, CACHE_TTL); // Clean up every 5 minutes
-
-// Start the bot
-console.log('Starting Telegram bot with grammY...');
-bot.start().then(() => {
-    console.log('✅ Telegram bot started successfully with grammY');
-    console.log('📱 Bot is ready to receive messages');
-    console.log('⚡ Performance optimizations enabled (API call caching)');
+// Initialize bot info and start
+initializeBotInfo().then(() => {
+    console.log('Starting Telegram bot with grammY...');
+    bot.start().then(() => {
+        console.log('✅ Telegram bot started successfully with grammY');
+    }).catch((error) => {
+        console.error('❌ Failed to start Telegram bot:', error);
+    });
 }).catch((error) => {
-    console.error('❌ Failed to start Telegram bot:', error);
+    console.error('Failed to initialize bot:', error);
+    // Start anyway
+    bot.start();
 });

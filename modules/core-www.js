@@ -132,12 +132,20 @@ www.use(cors({
     optionsSuccessStatus: 200
 }));
 
-www.get('*/favicon.ico', (req, res) => {
+www.get('*/favicon.ico', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
     res.sendFile(path.join(process.cwd(), 'views/image', 'favicon.ico'));
 });
 www.use(favicon(path.join(process.cwd(), 'views/image', 'favicon.ico')));
 
-www.get('/', (req, res) => {
+www.get('/', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
     res.sendFile(process.cwd() + '/views/index.html');
 });
 www.get('/api', async (req, res) => {
@@ -187,53 +195,140 @@ www.get('/api', async (req, res) => {
 });
 
 // 將/publiccard/css/設置為靜態資源的路徑
-www.use('/:path/css/', express.static(process.cwd() + '/views/css/'));
-www.use('/css/', express.static(process.cwd() + '/views/css/'));
-// 將/publiccard/includes/設置為靜態資源的路徑
-www.use('/:path/includes/', express.static(process.cwd() + '/views/includes/'));
-www.use('/:path/scripts/', express.static(process.cwd() + '/views/scripts/'));
-www.use('/includes/', express.static(process.cwd() + '/views/includes/'));
-www.use('/scripts/', express.static(process.cwd() + '/views/scripts/'));
-// Add common files route
-www.use('/:path/common/', express.static(process.cwd() + '/views/common/'));
-www.use('/common/', express.static(process.cwd() + '/views/common/'));
+www.use('/:path/css/', async (req, res, next) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    next();
+}, express.static(process.cwd() + '/views/css/'));
 
-www.get('/card', (req, res) => {
+www.use('/css/', async (req, res, next) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    next();
+}, express.static(process.cwd() + '/views/css/'));
+
+// 將/publiccard/includes/設置為靜態資源的路徑
+www.use('/:path/includes/', async (req, res, next) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    next();
+}, express.static(process.cwd() + '/views/includes/'));
+
+www.use('/:path/scripts/', async (req, res, next) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    next();
+}, express.static(process.cwd() + '/views/scripts/'));
+
+www.use('/includes/', async (req, res, next) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    next();
+}, express.static(process.cwd() + '/views/includes/'));
+
+www.use('/scripts/', async (req, res, next) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    next();
+}, express.static(process.cwd() + '/views/scripts/'));
+
+// Add common files route
+www.use('/:path/common/', async (req, res, next) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    next();
+}, express.static(process.cwd() + '/views/common/'));
+
+www.use('/common/', async (req, res, next) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    next();
+}, express.static(process.cwd() + '/views/common/'));
+
+www.get('/card', async (req, res) => {
+    if (await checkRateLimit('card', req.ip)) {
+        res.status(429).end();
+        return;
+    }
     res.sendFile(process.cwd() + '/views/characterCard.html');
 });
-www.get('/publiccard', (req, res) => {
+www.get('/publiccard', async (req, res) => {
+    if (await checkRateLimit('card', req.ip)) {
+        res.status(429).end();
+        return;
+    }
     res.sendFile(process.cwd() + '/views/characterCardPublic.html');
 });
-www.get('/signal', (req, res) => {
+www.get('/signal', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
     res.sendFile(process.cwd() + '/views/signalToNoise.html');
 });
 
-www.get('/character', (req, res) => {
+www.get('/character', async (req, res) => {
+    if (await checkRateLimit('card', req.ip)) {
+        res.status(429).end();
+        return;
+    }
     res.sendFile(process.cwd() + '/views/namecard/namecard_character.html');
 });
-www.get('/player', (req, res) => {
+www.get('/player', async (req, res) => {
+    if (await checkRateLimit('card', req.ip)) {
+        res.status(429).end();
+        return;
+    }
     res.sendFile(process.cwd() + '/views/namecard/namecard_player.html');
 });
 
 
 
-www.get('/log/:id', (req, res) => {
+www.get('/log/:id', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    
     if (req.originalUrl.endsWith('html')) {
-        //if can't find the file, send error.html
-        if (!fs.existsSync(LOGLINK + req.params.id)) {
+        // Sanitize and validate the file path
+        const logPath = path.resolve(LOGLINK, req.params.id);
+        
+        // Ensure the resolved path is within the allowed directory and file exists
+        if (!logPath.startsWith(path.resolve(LOGLINK)) || !fs.existsSync(logPath)) {
             res.sendFile(process.cwd() + '/views/includes/error.html');
             return;
         }
-        //res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/log/', ''));
-        res.sendFile(LOGLINK + req.params.id);
-
-    }
-    else
-        //send error.html
+        
+        // Send the validated file path
+        res.sendFile(logPath);
+    } else {
+        // Send error.html for non-html requests
         res.sendFile(process.cwd() + '/views/includes/error.html');
+    }
 });
 
-www.get('/:xx', (req, res) => {
+www.get('/:xx', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
     res.sendFile(process.cwd() + '/views/index.html');
 });
 

@@ -1134,6 +1134,29 @@
         let isEditMode = false;
         let originalData = null;
         let uploadedImage = null; // 新增上傳圖片相關變數
+        
+        // HTML escaping function to prevent XSS
+        function escapeHtml(unsafe) {
+            if (typeof unsafe !== 'string') return unsafe;
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+        
+        // URL validation function to prevent javascript: protocol injection
+        function isValidUrl(url) {
+            if (!url || typeof url !== 'string') return false;
+            try {
+                const urlObj = new URL(url);
+                return ['http:', 'https:', 'data:'].includes(urlObj.protocol);
+            } catch {
+                return false;
+            }
+        }
+        
         function getDataFromUrl() {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -1141,6 +1164,10 @@
                 if (jsonData) {
                     // 先用 atob 解碼 Base64，再用 decodeURIComponent 解碼 UTF-8
                     const decodedData = JSON.parse(decodeURIComponent(atob(jsonData)));
+                    // 恢復上傳的圖片到記憶體變數
+                    if (decodedData.uploadedImage) {
+                        uploadedImage = decodedData.uploadedImage;
+                    }
                     return decodedData;
                 }
             } catch (error) {
@@ -1255,7 +1282,15 @@
         function loadFromLocalStorage() {
             try {
                 const savedData = localStorage.getItem('namecardData');
-                return savedData ? JSON.parse(savedData) : null;
+                if (savedData) {
+                    const parsedData = JSON.parse(savedData);
+                    // 恢復上傳的圖片到記憶體變數
+                    if (parsedData.uploadedImage) {
+                        uploadedImage = parsedData.uploadedImage;
+                    }
+                    return parsedData;
+                }
+                return null;
             } catch (error) {
                 console.error('Failed to load from local storage:', error);
                 return null;
@@ -1306,6 +1341,7 @@
                     data.landmines.items = originalData.landmines.items.map(item => ({ ...item }));
                     data.message.content = originalData.message.content;
                     uploadedImage = null; // 退出編輯模式時清除上傳的圖片
+                    data.uploadedImage = null; // 同時清除儲存的上傳圖片
                 }
                 originalData = null;
             }
@@ -1319,6 +1355,11 @@
             data.id = document.getElementById('edit-id').value;
             data.nickname = document.getElementById('edit-nickname').value;
             data.avatar = document.getElementById('edit-avatar').value;
+            
+            // 確保上傳的圖片被保存
+            if (uploadedImage && !data.uploadedImage) {
+                data.uploadedImage = uploadedImage;
+            }
 
             // 保存可約團時間
             data.availableTimes.slots = Array.from(document.getElementsByClassName('time-slot-edit'))
@@ -1562,7 +1603,7 @@
                 await new Promise(resolve => setTimeout(resolve, 500));
 
                 // Handle image preparation
-                let imageSource = uploadedImage;
+                let imageSource = uploadedImage || data.uploadedImage;
                 if (!imageSource) {
                     if (!imageCache.base64 || imageCache.url !== data.avatar) {
                         updateProgress(20, '載入頭像圖片...');
@@ -1676,42 +1717,56 @@
         // Update avatar image rendering in renderApp():
         function handleAvatarUrlChange(input) {
             if (input.value) {
+                // Validate URL before setting
+                if (!isValidUrl(input.value)) {
+                    alert('請輸入有效的圖片網址 (http://, https://, 或 data:)');
+                    input.value = data.avatar; // 恢復原值
+                    return;
+                }
                 uploadedImage = null; // 清除上傳的圖片
+                data.uploadedImage = null; // 清除儲存的上傳圖片
                 imageCache.base64 = null; // 清除快取
                 imageCache.url = null;
                 data.avatar = input.value;
+                // 立即保存變更
+                saveToLocalStorage();
             }
             renderApp();
         }
         function renderApp() {
             const getImageSource = () => {
                 if (uploadedImage) return uploadedImage;
+                if (data.uploadedImage) return data.uploadedImage;
                 if (imageCache.base64 && imageCache.url === data.avatar) return imageCache.base64;
                 return data.avatar;
             };
 
             // 在 avatar div 中使用新的圖片來源邏輯
+            // Safe image source handling
+            const safeImageSource = uploadedImage || data.uploadedImage || (isValidUrl(data.avatar) ? data.avatar : '');
+            const safeFallbackImage = isValidUrl(data.avatar) ? data.avatar : '';
+            
             document.getElementById('app').innerHTML = `
         <div class="header">
             <div class="avatar-section">
-                <div class="avatar ${data.avatar || uploadedImage ? '' : 'hidden'}">
-                    <img src="${getImageSource()}" 
+                <div class="avatar ${safeImageSource ? '' : 'hidden'}">
+                    <img src="${escapeHtml(safeImageSource)}" 
                          alt="Avatar" 
                          style="width: 100%; height: 100%; object-fit: cover;"
-                         onerror="this.src='${data.avatar}';">
+                         onerror="this.src='${escapeHtml(safeFallbackImage)}';">
                 </div>
                 ${isEditMode ? `
                     <div class="avatar-input-group">
                         <label class="avatar-label">頭像網址</label>
                         <input type="text" id="edit-avatar" class="avatar-input" 
-                            value="${data.avatar}" 
+                            value="${escapeHtml(data.avatar)}" 
                             onchange="handleAvatarUrlChange(this)"
                             placeholder="輸入圖片網址">
                         <div class="avatar-drop-zone" id="avatarDropZone">
                             拖曳圖片至此或點擊上傳
                             <input type="file" id="avatarInput" style="display: none" accept="image/*">
                         </div>
-                        <div class="upload-hint">※上傳的圖片僅用於匯出PNG，不會保存在備份連結中</div>
+                        <div class="upload-hint">※上傳的圖片會保存在本地，重新整理頁面後仍會顯示</div>
                     </div>
                 ` : ''}
             </div>
@@ -1720,25 +1775,25 @@
                             <div class="header-input-group">
                                 <label class="input-label">
                                     <span>標題:</span>
-                                    <input type="text" id="edit-title" class="header-input" value="${data.title}">
+                                    <input type="text" id="edit-title" class="header-input" value="${escapeHtml(data.title)}">
                                 </label>
                             </div>
                         ` : `
-                            <h1>${data.title}</h1>
+                            <h1>${escapeHtml(data.title)}</h1>
                         `}
                         ${isEditMode ? `
                             <div class="header-input-group">
                                 <label class="input-label">
                                     <span>ID:</span>
-                                    <input type="text" id="edit-id" class="header-input" value="${data.id}">
+                                    <input type="text" id="edit-id" class="header-input" value="${escapeHtml(data.id)}">
                                 </label>
                                 <label class="input-label">
                                     <span>暱稱:</span>
-                                    <input type="text" id="edit-nickname" class="header-input" value="${data.nickname}">
+                                    <input type="text" id="edit-nickname" class="header-input" value="${escapeHtml(data.nickname)}">
                                 </label>
                             </div>
                         ` : `
-                            <p style="margin-top: 0.5rem;">ID: ${data.id} | 暱稱: ${data.nickname}</p>
+                            <p style="margin-top: 0.5rem;">ID: ${escapeHtml(data.id)} | 暱稱: ${escapeHtml(data.nickname)}</p>
                         `}
                     </div>
                     <div class="header-buttons">
@@ -1764,27 +1819,27 @@
                 <section class="section">
                      <h2>
                         ${isEditMode
-                    ? `<input type="text" id="edit-availableTimes-title" class="header-input" value="${data.availableTimes.title}">`
-                    : data.availableTimes.title}
+                    ? `<input type="text" id="edit-availableTimes-title" class="header-input" value="${escapeHtml(data.availableTimes.title)}">`
+                    : escapeHtml(data.availableTimes.title)}
                     </h2>
                     <div class="time-slots">
                         ${data.availableTimes.slots.map(slot => `
                             ${isEditMode ? `
                                 <label class="time-slot">
                                     <input type="checkbox" class="time-slot-edit" 
-                                        data-text="${slot.text}"
+                                        data-text="${escapeHtml(slot.text)}"
                                         ${slot.filled ? 'checked' : ''}>
-                                    ${slot.text}
+                                    ${escapeHtml(slot.text)}
                                 </label>
                             ` : `
-                                <div class="time-slot ${slot.filled ? 'time-slot-filled' : ''}">${slot.text}</div>
+                                <div class="time-slot ${slot.filled ? 'time-slot-filled' : ''}">${escapeHtml(slot.text)}</div>
                             `}
                         `).join('')}
                     </div>
                     <h2>
                         ${isEditMode
-                    ? `<input type="text" id="edit-playStyles-title" class="header-input" value="${data.playStyles.title}">`
-                    : data.playStyles.title}
+                    ? `<input type="text" id="edit-playStyles-title" class="header-input" value="${escapeHtml(data.playStyles.title)}">`
+                    : escapeHtml(data.playStyles.title)}
                     </h2>
                     <div class="modules">
                         ${isEditMode ? `
@@ -1793,7 +1848,7 @@
                                     <button class="delete-btn" onclick="deletePlayStyle(${index})">×</button>
                                     <div class="edit-section">
                                         <label class="edit-label">遊玩方式</label>
-                                        <input type="text" class="play-style-edit edit-input" value="${style}" 
+                                        <input type="text" class="play-style-edit edit-input" value="${escapeHtml(style)}" 
                                             onchange="data.playStyles.styles[${index}] = this.value">
                                     </div>
                                 </div>
@@ -1803,15 +1858,15 @@
                             </button>
                         ` : `
                             ${data.playStyles.styles.filter(style => style.trim() !== '').map(style => `
-                                <div class="relationship-type">${style}</div>
+                                <div class="relationship-type">${escapeHtml(style)}</div>
                             `).join('')}
                         `}
                     </div>
                     
                     <h2>
                         ${isEditMode
-                    ? `<input type="text" id="edit-platforms-title" class="header-input" value="${data.platforms.title}">`
-                    : data.platforms.title}
+                    ? `<input type="text" id="edit-platforms-title" class="header-input" value="${escapeHtml(data.platforms.title)}">`
+                    : escapeHtml(data.platforms.title)}
                     </h2>
                     <div class="modules">
                         ${isEditMode ? `
@@ -1820,7 +1875,7 @@
                                     <button class="delete-btn" onclick="deletePlatform(${index})">×</button>
                                     <div class="edit-section">
                                         <label class="edit-label">平台名稱</label>
-                                        <input type="text" class="platform-edit edit-input" value="${platform}"
+                                        <input type="text" class="platform-edit edit-input" value="${escapeHtml(platform)}"
                                             onchange="data.platforms.list[${index}] = this.value">
                                     </div>
                                 </div>
@@ -1830,7 +1885,7 @@
                             </button>
                         ` : `
                             ${data.platforms.list.filter(platform => platform.trim() !== '').map(platform => `
-                                <div class="relationship-type">${platform}</div>
+                                <div class="relationship-type">${escapeHtml(platform)}</div>
                             `).join('')}
                         `}
                     </div>
@@ -1840,8 +1895,8 @@
                 <section class="section">
                     <h2>
                         ${isEditMode
-                    ? `<input type="text" id="edit-relationships-title" class="header-input" value="${data.relationships.title}">`
-                    : data.relationships.title}
+                    ? `<input type="text" id="edit-relationships-title" class="header-input" value="${escapeHtml(data.relationships.title)}">`
+                    : escapeHtml(data.relationships.title)}
                     </h2>
                     <div class="modules">
                         ${data.relationships.types.map((type, index) => `
@@ -1850,12 +1905,12 @@
                                     <button class="delete-btn" onclick="deleteRelationshipType(${index})">×</button>
                                     <div class="edit-section">
                                         <label class="edit-label">關係名稱</label>
-                                        <input type="text" class="edit-input" value="${type.text}" 
+                                        <input type="text" class="edit-input" value="${escapeHtml(type.text)}" 
                                             onchange="data.relationships.types[${index}].text = this.value">
                                     </div>
                                     <div class="edit-section">
                                         <label class="edit-label">關係程度</label>
-                                        <select class="edit-input relationship-edit" data-text="${type.text}">
+                                        <select class="edit-input relationship-edit" data-text="${escapeHtml(type.text)}">
                                             <option value="0" ${type.fill === 'filled-0' ? 'selected' : ''}>無</option>
                                             <option value="25" ${type.fill === 'filled-25' ? 'selected' : ''}>低</option>
                                             <option value="50" ${type.fill === 'filled-50' ? 'selected' : ''}>中</option>
@@ -1867,7 +1922,7 @@
                             ` : `
                                 <div class="module-item">
                                     <div class="progress-bar ${type.fill}"></div>
-                                    <span class="progress-text">${type.text}</span>
+                                    <span class="progress-text">${escapeHtml(type.text)}</span>
                                 </div>
                             `}
                         `).join('')}
@@ -1878,8 +1933,8 @@
 
                     <h2>
                         ${isEditMode
-                    ? `<input type="text" id="edit-orientations-title" class="header-input" value="${data.orientations.title}">`
-                    : data.orientations.title}
+                    ? `<input type="text" id="edit-orientations-title" class="header-input" value="${escapeHtml(data.orientations.title)}">`
+                    : escapeHtml(data.orientations.title)}
                     </h2>
                     <div class="modules">
                         ${data.orientations.types.map((orientation, index) => `
@@ -1888,13 +1943,13 @@
                                     <button class="delete-btn" onclick="deleteOrientation(${index})">×</button>
                                     <div class="edit-section">
                                         <label class="edit-label">性向名稱</label>
-                                        <input type="text" class="edit-input" value="${orientation.text}" 
+                                        <input type="text" class="edit-input" value="${escapeHtml(orientation.text)}" 
                                             onchange="data.orientations.types[${index}].text = this.value">
                                     </div>
                                     <div class="edit-section">
                                         <label class="edit-label">傾向程度</label>
                                         <input type="range" class="orientation-edit edit-slider" 
-                                            data-text="${orientation.text}"
+                                            data-text="${escapeHtml(orientation.text)}"
                                             value="${orientation.percentage}" 
                                             min="0" max="100"
                                             oninput="this.nextElementSibling.textContent = this.value + '%'">
@@ -1904,7 +1959,7 @@
                             ` : `
                                 <div class="module-item">
                                     <div class="progress-bar" style="width: ${orientation.percentage}%;"></div>
-                                    <span class="progress-text">${orientation.text}</span>
+                                    <span class="progress-text">${escapeHtml(orientation.text)}</span>
                                 </div>
                             `}
                         `).join('')}
@@ -1914,27 +1969,27 @@
                     </div>
                      <h2>
     ${isEditMode
-                    ? `<input type="text" id="edit-message-title" class="header-input" value="${data.message.title}">`
-                    : data.message.title}
+                    ? `<input type="text" id="edit-message-title" class="header-input" value="${escapeHtml(data.message.title)}">`
+                    : escapeHtml(data.message.title)}
 </h2>
 ${isEditMode ? `
     <div class="module-item editing">
         <div class="edit-section">
             <textarea class="edit-input" 
                 style="width: 100%; min-height: 100px; resize: vertical; white-space: pre-wrap;" 
-                onchange="data.message.content = this.value">${data.message.content}</textarea>
+                onchange="data.message.content = this.value">${escapeHtml(data.message.content)}</textarea>
         </div>
     </div>
 ` : `
-    <div class="module-item" style="text-align: left; padding: 1rem; white-space: pre-wrap;">${data.message.content}
+    <div class="module-item" style="text-align: left; padding: 1rem; white-space: pre-wrap;">${escapeHtml(data.message.content)}
     </div>
 `}
                 </section>
                 <section class="section">
                     <h2>
                         ${isEditMode
-                    ? `<input type="text" id="edit-preferredModules-title" class="header-input" value="${data.preferredModules.title}">`
-                    : data.preferredModules.title}
+                    ? `<input type="text" id="edit-preferredModules-title" class="header-input" value="${escapeHtml(data.preferredModules.title)}">`
+                    : escapeHtml(data.preferredModules.title)}
                     </h2>
                     <div class="modules">
                         ${data.preferredModules.modules.map((module, index) => `
@@ -1943,13 +1998,13 @@ ${isEditMode ? `
                                     <button class="delete-btn" onclick="deletePreferredModule(${index})">×</button>
                                     <div class="edit-section">
                                         <label class="edit-label">模組名稱</label>
-                                        <input type="text" class="edit-input" value="${module.text}" 
+                                        <input type="text" class="edit-input" value="${escapeHtml(module.text)}" 
                                             onchange="data.preferredModules.modules[${index}].text = this.value">
                                     </div>
                                     <div class="edit-section">
                                         <label class="edit-label">喜好程度</label>
                                         <input type="range" class="module-edit edit-slider" 
-                                            data-text="${module.text}"
+                                            data-text="${escapeHtml(module.text)}"
                                             value="${module.percentage}" 
                                             min="0" max="100"
                                             oninput="this.nextElementSibling.textContent = this.value + '%'">
@@ -1959,7 +2014,7 @@ ${isEditMode ? `
                             ` : `
                                 <div class="module-item">
                                     <div class="progress-bar" style="width: ${module.percentage}%;"></div>
-                                    <span class="progress-text">${module.text} (${module.percentage}%)</span>
+                                    <span class="progress-text">${escapeHtml(module.text)} (${module.percentage}%)</span>
                                 </div>
                             `}
                         `).join('')}
@@ -1968,11 +2023,11 @@ ${isEditMode ? `
                         </button>` : ''}
                     </div>
                     </section>
-<section class="section">
+                <section class="section">
                     <h2>
                         ${isEditMode
-                    ? `<input type="text" id="edit-landmines-title" class="header-input" value="${data.landmines.title}">`
-                    : data.landmines.title}
+                    ? `<input type="text" id="edit-landmines-title" class="header-input" value="${escapeHtml(data.landmines.title)}">`
+                    : escapeHtml(data.landmines.title)}
                     </h2>
                     <p >
                         <span style="background: var(--progress-mine);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>代表NG, 
@@ -1986,12 +2041,12 @@ ${isEditMode ? `
                                     <button class="delete-btn" onclick="deleteLandmine(${index})">×</button>
                                     <div class="edit-section">
                                         <label class="edit-label">題材名稱</label>
-                                        <input type="text" class="edit-input" value="${item.text}" 
+                                        <input type="text" class="edit-input" value="${escapeHtml(item.text)}" 
                                             onchange="data.landmines.items[${index}].text = this.value">
                                     </div>
                                     <div class="edit-section">
                                         <label class="edit-label">接受程度</label>
-                                        <select class="edit-input landmine-edit" data-text="${item.text}">
+                                        <select class="edit-input landmine-edit" data-text="${escapeHtml(item.text)}">
                                             <option value="mine-progress" ${item.type === 'mine-progress' ? 'selected' : ''}>NG</option>
                                             <option value="fine-progress" ${item.type === 'fine-progress' ? 'selected' : ''}>接受</option>
                                             <option value="like-progress" ${item.type === 'like-progress' ? 'selected' : ''}>喜愛</option>
@@ -2001,7 +2056,7 @@ ${isEditMode ? `
                             ` : `
                                 <div class="module-item">
                                     <div class="progress-bar ${item.type}" style="width: 100%;"></div>
-                                    <span class="progress-text">${item.text}</span>
+                                    <span class="progress-text">${escapeHtml(item.text)}</span>
                                 </div>
                             `}
                         `).join('')}
@@ -2174,6 +2229,8 @@ ${isEditMode ? `
             const reader = new FileReader();
             reader.onload = (e) => {
                 uploadedImage = e.target.result;
+                // 將上傳的圖片保存到 data 物件中，這樣就會被 localStorage 儲存
+                data.uploadedImage = e.target.result;
                 // 清除網址輸入
                 if (isEditMode) {
                     const avatarInput = document.getElementById('edit-avatar');
@@ -2182,6 +2239,8 @@ ${isEditMode ? `
                         data.avatar = ''; // 清除保存的網址
                     }
                 }
+                // 立即保存到 localStorage
+                saveToLocalStorage();
                 renderApp();
             };
             reader.readAsDataURL(file);

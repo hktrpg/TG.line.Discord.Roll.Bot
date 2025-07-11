@@ -10,8 +10,18 @@
  * @example 日期之間以空白隔開，可以設定多個日期，例如：CANDLE_DATES=2,14,🌷 12,25,🕯️
  * 
  */
+const crypto = require('crypto');
 const _DEFAULT_CANDLE = '🕯️';
-const _ANIMALS = ['🐶汪汪', '🐱喵', '🐭吱吱', '🐰', '🦊', '🐻', '🐯', '🦁', '🐮', '🐷呠呠', '🐸呱呱', '🐒嘰嘰', '🐔', '🦆', '🐺', '🐝嗡嗡', '🐋🦈', '🦉', '🦄', '🦌呦呦'];
+const _ANIMALS = [
+    '🐶汪汪', '🐱喵', '🐭吱吱', '🐰', '🦊', '🐻', '🐯', '🦁', '🐮', '🐷呠呠',
+    '🐸呱呱', '🐒嘰嘰', '🐔', '🦆', '🐺', '🐝嗡嗡', '🐋🦈', '🦉', '🦄', '🦌呦呦',
+    '🐘', '🦒', '🦓', '🐪', '🦏', '🦛', '🐅', '🐆', '🦘', '🐨',
+    '🐼', '🦥', '🦦', '🦨', '🦔', '🐿️', '🐇', '🐁', '🐀', '🦇',
+    '🐓咯咯', '🦃', '🦚', '🦜', '🐧', '🕊️', '🦅', '🦆嘎嘎', '🐦啾啾', '🐤嘰嘰',
+    '🐣', '🐥', '🦢', '🦩', '🐍嘶嘶', '🦎', '🐢', '🐊', '🦴', '🐙',
+    '🦑', '🦞', '🦀', '🐠', '🐟', '🐡', '🦈', '🐳噴水', '🐬', '🦭',
+    '🐌慢慢', '🦋', '🐛', '🐜', '🐝嗡嗡', '🪲', '🕷️', '🦂', '🦟嗡嗡', '🪰嗡嗡'
+];
 
 class CandleChecker {
     static #instance = null;
@@ -37,6 +47,12 @@ class CandleChecker {
         this.today = {};
         this.customDate = customDate;
         this.timer = null;
+        // Cache for today's candle to avoid repeated calculations
+        this.todayCandleCache = null;
+        this.currentYear = null;
+        // Cache for April Fools animals to avoid repeated hash calculations
+        this.aprilFoolsCache = new Map();
+
         this.#importDates();
         this.#updateToday();
         if (!customDate) {
@@ -54,12 +70,15 @@ class CandleChecker {
     }
 
     #checkForCandle() {
-        this.isCandleDay = this.monthDays.some(({ month, day }) =>
+        // Single pass through monthDays to find matching date
+        const matchingCandle = this.monthDays.find(({ month, day }) =>
             month === this.today.Month && day === this.today.Date
         );
-        this.todayCandle = this.isCandleDay ? this.monthDays.find(({ month, day }) =>
-                month === this.today.Month && day === this.today.Date
-            ).candle || _DEFAULT_CANDLE : '';
+
+        this.isCandleDay = !!matchingCandle;
+        this.todayCandle = matchingCandle ? (matchingCandle.candle || _DEFAULT_CANDLE) : '';
+        this.todayCandleCache = this.todayCandle;
+
         console.log(`[CandleChecker] Today is ${this.today.Month}/${this.today.Date}, isCandleDay: ${this.isCandleDay}, candle: ${this.checker()}`);
     }
 
@@ -88,13 +107,38 @@ class CandleChecker {
     }
 
     #getAprilFoolsAnimal(userid) {
-        if (!userid) return '';
+        if (!userid || typeof userid !== 'string') return '';
         try {
-            let sum = 0;
-            for (let i = 0; i < userid.length; i++) {
-                sum += userid.codePointAt(i);
+            // Get current year for consistent randomization within the same year
+            const year = this.customDate ? this.customDate.getFullYear() : new Date().getFullYear();
+
+            // Check cache first - key format: userid_year
+            const cacheKey = `${userid}_${year}`;
+            if (this.aprilFoolsCache.has(cacheKey)) {
+                return this.aprilFoolsCache.get(cacheKey);
             }
-            return _ANIMALS[sum % _ANIMALS.length];
+
+            // Clear cache if year changed (keep memory usage reasonable)
+            if (this.currentYear !== year) {
+                this.aprilFoolsCache.clear();
+                this.currentYear = year;
+            }
+
+            // Combine userid with year as you requested
+            const seed = `${userid}${year}`;
+
+            // Create hash and convert to integer
+            const hash = crypto.createHash('md5').update(seed.slice(0, 30)).digest('hex');
+
+            // Convert hex string to integer for modulo operation
+            const hashInt = Number.parseInt(hash.slice(0, 8), 16);
+
+            const animal = _ANIMALS[hashInt % _ANIMALS.length];
+
+            // Cache the result
+            this.aprilFoolsCache.set(cacheKey, animal);
+
+            return animal;
         } catch (error) {
             console.error('[CandleChecker] Error getting April Fools animal:', error);
             return '';
@@ -107,7 +151,8 @@ class CandleChecker {
             if (this.today.Month === 4 && this.today.Date === 1 && userid) {
                 return this.#getAprilFoolsAnimal(userid);
             }
-            return this.todayCandle;
+            // Use cached value if available
+            return this.todayCandleCache !== null ? this.todayCandleCache : this.todayCandle;
         } catch (error) {
             console.error('[CandleChecker] Error in checker:', error);
             return '';
@@ -140,6 +185,8 @@ class CandleChecker {
                 Month: today.getMonth() + 1,
                 Date: today.getDate()
             };
+            // Reset cache when date changes
+            this.todayCandleCache = null;
         } catch (error) {
             console.error('[CandleChecker] Error updating today:', error);
         }
@@ -154,6 +201,8 @@ class CandleChecker {
             }
             this.customDate = customDate;
             this.monthDays = [];
+            this.todayCandleCache = null;
+            this.aprilFoolsCache.clear();
             this.#importDates();
             this.#updateToday();
             this.#checkForCandle();
@@ -183,6 +232,7 @@ class CandleChecker {
                 clearTimeout(this.timer);
                 this.timer = null;
             }
+            this.aprilFoolsCache.clear();
         } catch (error) {
             console.error('[CandleChecker] Error in cleanup:', error);
         }

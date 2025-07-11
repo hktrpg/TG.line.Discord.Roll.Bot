@@ -1801,41 +1801,35 @@ async function __handlingInteractionMessage(message) {
 	// Set isInteraction flag for all interaction types
 	message.isInteraction = true;
 
+	// Immediately defer ALL interactions to prevent timeout
+	// This must happen within 3 seconds of receiving the interaction
+	try {
+		if (!message.deferred && !message.replied) {
+			if (message.isCommand()) {
+				await message.deferReply({ ephemeral: false });
+			} else if (message.isButton()) {
+				await message.deferUpdate();
+			} else {
+				// For other interaction types, use deferReply as fallback
+				await message.deferReply({ ephemeral: false });
+			}
+		}
+	} catch (deferError) {
+		// If interaction has already expired, log and return early
+		if (deferError.code === 10_062) { // Unknown interaction code
+			console.error(`Interaction expired before immediate deferral: ${message.commandName || message.component?.label || 'unknown'}`);
+			return;
+		}
+		console.error(`Failed to defer interaction: ${deferError.message} | Command: ${message.commandName || message.component?.label || 'unknown'}`);
+		return;
+	}
+
 	switch (true) {
 		case message.isCommand():
 			{
 				try {
-					// Defer all commands by default - this gives them the full 15-minute window instead of just 3 seconds
-					// This is a better approach than hardcoding specific command names
-					if (!message.deferred && !message.replied) {
-						try {
-							await message.deferReply({ ephemeral: false });
-						} catch (deferError) {
-							// If interaction has expired, log and return early
-							if (deferError.code === 10_062) { // Unknown interaction code
-								console.error(`Interaction expired before deferral: ${message.commandName || 'unknown'}`);
-								return;
-							}
-							throw deferError; // Re-throw other errors
-						}
-					}
-
 					const answer = await handlingCommand(message);
 					if (!answer) return;
-
-					// Early defer for export commands
-					if (typeof answer === 'object' && answer.inputStr &&
-						answer.inputStr.startsWith('.discord') && !message.deferred && !message.replied) {
-						try {
-							await message.deferReply({ ephemeral: true });
-						} catch (deferError) {
-							if (deferError.code === 10_062) {
-								console.error(`Interaction expired before export deferral: ${message.commandName || 'unknown'}`);
-								return;
-							}
-							throw deferError;
-						}
-					}
 
 					// Handle both string and object answers
 					let result;
@@ -1853,10 +1847,10 @@ async function __handlingInteractionMessage(message) {
 					console.error('Command processing error:', error);
 					try {
 						// Try to respond with an error message
-						if (!message.replied && !message.deferred) {
-							await message.reply({ content: '處理命令時發生錯誤，請稍後再試。', ephemeral: true });
-						} else if (message.deferred && !message.replied) {
+						if (message.deferred && !message.replied) {
 							await message.editReply({ content: '處理命令時發生錯誤，請稍後再試。', ephemeral: true });
+						} else if (!message.replied) {
+							await message.reply({ content: '處理命令時發生錯誤，請稍後再試。', ephemeral: true });
 						}
 					} catch (replyError) {
 						// If even error reporting fails, just log it
@@ -1868,19 +1862,6 @@ async function __handlingInteractionMessage(message) {
 		case message.isButton():
 			{
 				try {
-					// Defer update to prevent "Unknown interaction" errors
-					if (!message.deferred && !message.replied) {
-						try {
-							await message.deferUpdate();
-						} catch (deferError) {
-							if (deferError.code === 10_062) {
-								console.error(`Button interaction expired before processing: ${message.component?.label || 'unknown'}`);
-								return;
-							}
-							throw deferError;
-						}
-					}
-
 					const answer = handlingButtonCommand(message);
 					const result = await handlingResponMessage(message, answer);
 					const messageContent = message?.message?.content || '';

@@ -3,14 +3,14 @@ if (!process.env.TELEGRAM_CHANNEL_SECRET) {
     return;
 }
 process.env.NTBA_FIX_319 = 1;
-const TelegramBot = require('node-telegram-bot-api');
+const { Bot } = require('grammy');
 const WebSocket = require('ws');
 const candle = require('../modules/candleDays.js');
 const agenda = require('../modules/schedule')
 const rollText = require('./getRoll').rollText;
 exports.analytics = require('./analytics');
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
-const TGclient = new TelegramBot(process.env.TELEGRAM_CHANNEL_SECRET, { polling: true });
+const bot = new Bot(process.env.TELEGRAM_CHANNEL_SECRET);
 const newMessage = require('./message');
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 //let TGcountroll = 0;
@@ -19,25 +19,24 @@ const MESSAGE_SPLITOR = (/\S+/ig);
 
 let robotName = ""
 
-
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const EXPUP = require('./level').EXPUP || function () {};
 const courtMessage = require('./logs').courtMessage || function () {};
 
-TGclient.on('text', async (ctx) => {
+bot.on('message:text', async (ctx) => {
     if (ctx.from.is_bot) return;
-    let inputStr = ctx.text;
+    let inputStr = ctx.message.text;
     let trigger = "",
         mainMsg = "",
         userid = "";
     if (!robotName) {
-        let botInfo = await TGclient.getMe();
+        let botInfo = await ctx.api.getMe();
         robotName = botInfo.username;
     }
     if (ctx.from.id) userid = ctx.from.id;
     const options = {};
-    if (ctx.is_topic_message) {
-        options.message_thread_id = ctx.message_thread_id;
+    if (ctx.message.is_topic_message) {
+        options.message_thread_id = ctx.message.message_thread_id;
     }
     if (inputStr) {
         if (robotName && /^[/]/.test(inputStr))
@@ -89,9 +88,11 @@ TGclient.on('text', async (ctx) => {
     let userrole = 1;
     //頻道人數
     if (ctx.chat && ctx.chat.id) {
-        membercount = await TGclient.getChatMemberCount(ctx.chat.id).catch(() => {
-            return 0;
-        });
+        try {
+            membercount = await ctx.api.getChatMemberCount(ctx.chat.id);
+        } catch {
+            membercount = 0;
+        }
     }
     //285083923223
     //userrole = 3
@@ -142,10 +143,12 @@ TGclient.on('text', async (ctx) => {
     if (!rplyVal.text && !rplyVal.LevelUp)
         return;
     if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Telegram")) {
-        TGclient.sendMessage(userid, newMessage.firstTimeMessage()).catch((error) => {
-            console.error(error.code);  // => 'ETELEGRAM'
-            console.error(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
-        });
+        try {
+            await ctx.api.sendMessage(userid, newMessage.firstTimeMessage());
+        } catch (error) {
+            console.error(error.error_code);
+            console.error(error.description);
+        }
     }
 
     //LevelUp功能
@@ -169,7 +172,6 @@ TGclient.on('text', async (ctx) => {
         }
 
     }
-
 
     switch (true) {
         case privatemsg == 1: {
@@ -227,14 +229,17 @@ TGclient.on('text', async (ctx) => {
 
 })
 
-function SendToId(targetid, text, options) {
+async function SendToId(targetid, text, options) {
     try {
-        for (let i = 0; i < text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-            if (i == 0 || i == 1 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
-                TGclient.sendMessage(targetid, text.toString().match(/[\s\S]{1,2000}/g)[i], options).catch((error) => {
-                    console.error(error.code);  // => 'ETELEGRAM'
-                    console.error(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
-                });
+        const chunks = text.toString().match(/[\s\S]{1,2000}/g) || [];
+        for (let i = 0; i < chunks.length; i++) {
+            if (i == 0 || i == 1 || i == chunks.length - 2 || i == chunks.length - 1) {
+                try {
+                    await bot.api.sendMessage(targetid, chunks[i], options);
+                } catch (error) {
+                    console.error(error.error_code);
+                    console.error(error.description);
+                }
             }
         }
     } catch (error) {
@@ -255,9 +260,9 @@ let connect = function () {
         if (object.botname == 'Telegram') {
             if (!object.text) return;
             console.log('Telegram have message')
-            TGclient.sendMessage(object.target.id, object.text).catch((error) => {
-                console.error(error.code);  // => 'ETELEGRAM'
-                console.error(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
+            bot.api.sendMessage(object.target.id, object.text).catch((error) => {
+                console.error(error.error_code);
+                console.error(error.description);
             });
             return;
         }
@@ -280,7 +285,6 @@ let connect = function () {
 };
 if (process.env.BROADCAST) connect();
 
-
 async function nonDice(ctx) {
     try {
         await courtMessage({ result: "", botname: "Telegram", inputStr: "" })
@@ -291,10 +295,11 @@ async function nonDice(ctx) {
                 membercount = null;
             let tgDisplayname = (ctx.from.first_name) ? ctx.from.first_name : '';
             if (ctx.chat && ctx.chat.id) {
-                membercount = await TGclient.getChatMemberCount(ctx.chat.id).catch(() => {
-                    return 0;
-                });
-
+                try {
+                    membercount = await ctx.api.getChatMemberCount(ctx.chat.id);
+                } catch {
+                    membercount = 0;
+                }
             }
             let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount, tgDisplayname);
             if (groupid && LevelUp && LevelUp.text) {
@@ -307,58 +312,29 @@ async function nonDice(ctx) {
     }
 }
 
-
-TGclient.on('new_chat_members', async (ctx) => {
-    let newUser = await TGclient.getMe();
-    if (ctx.new_chat_member.username == newUser.username) {
+bot.on('my_chat_member', async (ctx) => {
+    const newChatMember = ctx.update.my_chat_member.new_chat_member;
+    if (newChatMember.status === 'member' || newChatMember.status === 'administrator') {
         console.log("Telegram joined");
         SendToId(ctx.chat.id, newMessage.joinMessage());
     }
 });
 
-TGclient.on('group_chat_created', async (ctx) => {
-    SendToId(ctx.chat.id, newMessage.joinMessage());
-});
-TGclient.on('supergroup_chat_created', async (ctx) => {
-    SendToId(ctx.chat.id, newMessage.joinMessage());
+// Handle media messages that don't roll dice
+bot.on(['message:audio', 'message:document', 'message:photo', 'message:sticker', 'message:video', 'message:voice'], async (ctx) => {
+    if (ctx.from.is_bot) return;
+    await nonDice(ctx);
+    return null;
 });
 
-
-TGclient.on('audio', async (ctx) => {
+// Handle forwarded messages
+bot.on('message', async (ctx) => {
     if (ctx.from.is_bot) return;
-    await nonDice(ctx);
-    return null;
+    if (ctx.message.forward_from || ctx.message.forward_from_chat) {
+        await nonDice(ctx);
+        return null;
+    }
 });
-TGclient.on('document', async (ctx) => {
-    if (ctx.from.is_bot) return;
-    await nonDice(ctx);
-    return null;
-})
-TGclient.on('photo', async (ctx) => {
-    if (ctx.from.is_bot) return;
-    await nonDice(ctx);
-    return null;
-})
-TGclient.on('sticker', async (ctx) => {
-    if (ctx.from.is_bot) return;
-    await nonDice(ctx);
-    return null;
-})
-TGclient.on('video', async (ctx) => {
-    if (ctx.from.is_bot) return;
-    await nonDice(ctx);
-    return null;
-})
-TGclient.on('voice', async (ctx) => {
-    if (ctx.from.is_bot) return;
-    await nonDice(ctx);
-    return null;
-})
-TGclient.on('forward', async (ctx) => {
-    if (ctx.from.is_bot) return;
-    await nonDice(ctx);
-    return null;
-})
 
 async function privateMsgFinder(groupid) {
     if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
@@ -407,12 +383,15 @@ if (agenda && agenda.agenda) {
 
 }
 
-
 async function isAdmin(gpId, chatid) {
-    let member = await TGclient.getChatMember(gpId, chatid).catch(() => {});
-    if (member?.status === "creator") return true
-    if (member?.status === "administrator") return true
-    return false;
+    try {
+        let member = await bot.api.getChatMember(gpId, chatid);
+        if (member?.status === "creator") return true
+        if (member?.status === "administrator") return true
+        return false;
+    } catch {
+        return false;
+    }
 }
 
 function sendNewstoAll(rply) {
@@ -421,26 +400,18 @@ function sendNewstoAll(rply) {
     }
 }
 
-TGclient.on('error', (error) => {
-    console.error('Global error handler:', error);
+// Error handling
+bot.catch((error) => {
+    const ctx = error.ctx;
+    console.error(`Error while handling update ${ctx.update.update_id}:`);
+    const e = error.error;
+    console.error('Error:', e);
 });
-
-TGclient.on('polling_error', (error) => {
-    console.error("polling_error handler:", error.code);  // => 'EFATAL'
-});
-
-TGclient.on('webhook_error', (error) => {
-    console.log("webhook_error handler:", error.code);  // => 'EPARSE'
-});
-
-
-/*
-bot.command('pipe', (ctx) => ctx.replyWithPhoto({
-    url: 'https://picsum.photos/200/300/?random'
-}))
-*/
 
 async function __sendMeMessage({ ctx, rplyVal, }) {
     SendToId(ctx.chat.id || ctx.from.id, rplyVal.myspeck.content);
     return;
 }
+
+// Start the bot
+bot.start();

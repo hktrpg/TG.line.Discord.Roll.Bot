@@ -18,10 +18,40 @@ const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 const MESSAGE_SPLITOR = (/\S+/ig);
 
 let robotName = ""
+let botInitialized = false;
+
+// Cache for member counts to avoid repeated API calls
+const memberCountCache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Initialize bot info once at startup
+async function initializeBotInfo() {
+    if (!botInitialized) {
+        try {
+            const botInfo = await bot.api.getMe();
+            robotName = botInfo.username;
+            botInitialized = true;
+            console.log('🤖 Bot initialized:', robotName);
+        } catch (error) {
+            console.error('Failed to initialize bot info:', error);
+        }
+    }
+}
 
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const EXPUP = require('./level').EXPUP || function () {};
 const courtMessage = require('./logs').courtMessage || function () {};
+
+// Quick test commands for performance testing
+bot.command('ping', async (ctx) => {
+    const start = Date.now();
+    await ctx.reply('Pong! 🏓');
+    console.log(`Ping response time: ${Date.now() - start}ms`);
+});
+
+bot.command('test', async (ctx) => {
+    await ctx.reply('✅ grammY bot is working! Response time should be fast now.');
+});
 
 bot.on('message:text', async (ctx) => {
     if (ctx.from.is_bot) return;
@@ -30,8 +60,7 @@ bot.on('message:text', async (ctx) => {
         mainMsg = "",
         userid = "";
     if (!robotName) {
-        let botInfo = await ctx.api.getMe();
-        robotName = botInfo.username;
+        await initializeBotInfo();
     }
     if (ctx.from.id) userid = ctx.from.id;
     const options = {};
@@ -86,12 +115,21 @@ bot.on('message:text', async (ctx) => {
     //TRUE 即正常
     let displaynamecheck = true;
     let userrole = 1;
-    //頻道人數
+    //頻道人數 (with cache)
     if (ctx.chat && ctx.chat.id) {
-        try {
-            membercount = await ctx.api.getChatMemberCount(ctx.chat.id);
-        } catch {
-            membercount = 0;
+        const chatId = ctx.chat.id;
+        const cached = memberCountCache.get(chatId);
+        const now = Date.now();
+        
+        if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+            membercount = cached.count;
+        } else {
+            try {
+                membercount = await ctx.api.getChatMemberCount(chatId);
+                memberCountCache.set(chatId, { count: membercount, timestamp: now });
+            } catch {
+                membercount = 0;
+            }
         }
     }
     //285083923223
@@ -229,21 +267,25 @@ bot.on('message:text', async (ctx) => {
 
 })
 
-async function SendToId(targetid, text, options) {
+async function SendToId(targetid, text, options = {}) {
     try {
         const chunks = text.toString().match(/[\s\S]{1,2000}/g) || [];
+        
+        // Send all chunks in parallel for better performance
+        const promises = [];
         for (let i = 0; i < chunks.length; i++) {
             if (i == 0 || i == 1 || i == chunks.length - 2 || i == chunks.length - 1) {
-                try {
-                    await bot.api.sendMessage(targetid, chunks[i], options);
-                } catch (error) {
-                    console.error(error.error_code);
-                    console.error(error.description);
-                }
+                promises.push(
+                    bot.api.sendMessage(targetid, chunks[i], options).catch((error) => {
+                        console.error('Send message error:', error.error_code, error.description);
+                    })
+                );
             }
         }
+        
+        await Promise.all(promises);
     } catch (error) {
-        console.error('tg 277 SendToId error:', (error && (error.message || error.name)));
+        console.error('tg SendToId error:', (error && (error.message || error.name)));
     }
 }
 
@@ -413,5 +455,16 @@ async function __sendMeMessage({ ctx, rplyVal, }) {
     return;
 }
 
-// Start the bot
-bot.start();
+// Initialize bot info and start
+initializeBotInfo().then(() => {
+    console.log('Starting Telegram bot with grammY...');
+    bot.start().then(() => {
+        console.log('✅ Telegram bot started successfully with grammY');
+    }).catch((error) => {
+        console.error('❌ Failed to start Telegram bot:', error);
+    });
+}).catch((error) => {
+    console.error('Failed to initialize bot:', error);
+    // Start anyway
+    bot.start();
+});

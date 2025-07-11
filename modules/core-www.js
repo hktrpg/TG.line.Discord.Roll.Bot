@@ -307,18 +307,21 @@ www.get('/log/:id', async (req, res) => {
     }
     
     if (req.originalUrl.endsWith('html')) {
-        //if can't find the file, send error.html
-        if (!fs.existsSync(LOGLINK + req.params.id)) {
+        // Sanitize and validate the file path
+        const logPath = path.resolve(LOGLINK, req.params.id);
+        
+        // Ensure the resolved path is within the allowed directory and file exists
+        if (!logPath.startsWith(path.resolve(LOGLINK)) || !fs.existsSync(logPath)) {
             res.sendFile(process.cwd() + '/views/includes/error.html');
             return;
         }
-        //res.sendFile(process.cwd() + '/tmp/' + req.originalUrl.replace('/log/', ''));
-        res.sendFile(LOGLINK + req.params.id);
-
-    }
-    else
-        //send error.html
+        
+        // Send the validated file path
+        res.sendFile(logPath);
+    } else {
+        // Send error.html for non-html requests
         res.sendFile(process.cwd() + '/views/includes/error.html');
+    }
 });
 
 www.get('/:xx', async (req, res) => {

@@ -11,12 +11,72 @@ const agenda = require('../modules/schedule')
 const rollText = require('./getRoll').rollText;
 exports.analytics = require('./analytics');
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
-const bot = new Telegraf(process.env.TELEGRAM_CHANNEL_SECRET);
+
+// Bot configuration with timeout settings
+const botOptions = {
+    telegram: {
+        agent: null, // Will use default agent
+        webhookReply: true,
+        apiMode: 'bot'
+    },
+    handlerTimeout: 90_000, // 90 seconds timeout for handlers
+    contextType: 'default'
+};
+
+const bot = new Telegraf(process.env.TELEGRAM_CHANNEL_SECRET, botOptions);
+
+// Configure telegram instance with timeout
+if (bot.telegram) {
+    // Override the default timeout
+    const originalCallApi = bot.telegram.callApi;
+    bot.telegram.callApi = function(method, payload = {}) {
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error(`API call timeout: ${method}`));
+            }, 30_000); // 30 seconds timeout
+            
+            originalCallApi.call(this, method, payload)
+                .then(result => {
+                    clearTimeout(timeout);
+                    resolve(result);
+                })
+                .catch(error => {
+                    clearTimeout(timeout);
+                    reject(error);
+                });
+        });
+    };
+}
+
 const newMessage = require('./message');
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 const MESSAGE_SPLITOR = (/\S+/ig);
 
 let robotName = ""
+let botReady = false;
+
+// Retry mechanism for bot initialization
+async function initializeBot(retries = 3) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            console.log(`Attempting to initialize bot (attempt ${i + 1}/${retries})...`);
+            const botInfo = await bot.telegram.getMe();
+            robotName = botInfo.username;
+            botReady = true;
+            console.log(`Bot initialized successfully: @${robotName}`);
+            return true;
+        } catch (error) {
+            console.error(`Bot initialization attempt ${i + 1} failed:`, error.message);
+            if (i === retries - 1) {
+                console.error('All initialization attempts failed. Bot will continue without initial validation.');
+                // Don't throw error, allow bot to continue
+                return false;
+            }
+            // Wait before retry
+            await new Promise(resolve => setTimeout(resolve, 5000));
+        }
+    }
+}
 
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const EXPUP = require('./level').EXPUP || function () {};
@@ -30,9 +90,14 @@ bot.on(message('text'), async (ctx) => {
         mainMsg = "",
         userid = "";
     
-    if (!robotName) {
-        let botInfo = await ctx.telegram.getMe();
-        robotName = botInfo.username;
+    if (!robotName && !botReady) {
+        try {
+            let botInfo = await ctx.telegram.getMe();
+            robotName = botInfo.username;
+            botReady = true;
+        } catch (error) {
+            console.error('Failed to get bot info in message handler:', error.message);
+        }
     }
     
     if (ctx.from.id) userid = ctx.from.id;
@@ -409,12 +474,26 @@ async function __sendMeMessage({ ctx, rplyVal }) {
     return;
 }
 
+// Start the bot with initialization
+async function startBot() {
+    try {
+        console.log('Starting Telegram bot...');
+        
+        // Try to initialize bot info first
+        await initializeBot();
+        
+        // Launch the bot
+        await bot.launch();
+        console.log('Telegram bot started successfully with Telegraf');
+    } catch (error) {
+        console.error('Failed to start Telegram bot:', error.message);
+        // Continue running even if launch fails initially
+        console.log('Bot will continue running and retry connections...');
+    }
+}
+
 // Start the bot
-bot.launch().then(() => {
-    console.log('Telegram bot started with Telegraf');
-}).catch(error => {
-    console.error('Failed to start Telegram bot:', error);
-});
+startBot();
 
 // Graceful shutdown
 process.once('SIGINT', () => bot.stop('SIGINT'));

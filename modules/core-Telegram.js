@@ -224,7 +224,7 @@ TGclient.on('message:text', (ctx) => {
                 break;
             }
         }
-    })().catch(e => console.error(`Error in message handler for ${ctx.update.update_id}:`, e));
+    })().catch(error => console.error(`Error in message handler for ${ctx.update.update_id}:`, error));
 })
 
 function SendToId(targetid, text, options) {

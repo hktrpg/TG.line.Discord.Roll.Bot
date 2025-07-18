@@ -2,15 +2,14 @@
 if (!process.env.TELEGRAM_CHANNEL_SECRET) {
     return;
 }
-process.env.NTBA_FIX_319 = 1;
-const TelegramBot = require('node-telegram-bot-api');
+const { Bot, GrammyError, HttpError } = require('grammy');
 const WebSocket = require('ws');
 const candle = require('../modules/candleDays.js');
 const agenda = require('../modules/schedule')
 const rollText = require('./getRoll').rollText;
 exports.analytics = require('./analytics');
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
-const TGclient = new TelegramBot(process.env.TELEGRAM_CHANNEL_SECRET, { polling: true });
+const TGclient = new Bot(process.env.TELEGRAM_CHANNEL_SECRET);
 const newMessage = require('./message');
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 //let TGcountroll = 0;
@@ -24,20 +23,20 @@ let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM')
 const EXPUP = require('./level').EXPUP || function () {};
 const courtMessage = require('./logs').courtMessage || function () {};
 
-TGclient.on('text', async (ctx) => {
+TGclient.on('message:text', async (ctx) => {
     if (ctx.from.is_bot) return;
-    let inputStr = ctx.text;
+    let inputStr = ctx.message.text;
     let trigger = "",
         mainMsg = "",
         userid = "";
     if (!robotName) {
-        let botInfo = await TGclient.getMe();
+        let botInfo = await TGclient.api.getMe();
         robotName = botInfo.username;
     }
     if (ctx.from.id) userid = ctx.from.id;
     const options = {};
-    if (ctx.is_topic_message) {
-        options.message_thread_id = ctx.message_thread_id;
+    if (ctx.message.is_topic_message) {
+        options.message_thread_id = ctx.message.message_thread_id;
     }
     if (inputStr) {
         if (robotName && /^[/]/.test(inputStr))
@@ -76,7 +75,7 @@ TGclient.on('text', async (ctx) => {
 
     let displayname = '',
         membercount = 0,
-        titleName = (ctx.message && ctx.chat && ctx.chat.title) ? ctx.chat.title : '';
+        titleName = (ctx.chat && ctx.chat.title) ? ctx.chat.title : '';
     let TargetGMTempID = [];
     let TargetGMTempdiyName = [];
     let TargetGMTempdisplayname = [];
@@ -89,7 +88,7 @@ TGclient.on('text', async (ctx) => {
     let userrole = 1;
     //頻道人數
     if (ctx.chat && ctx.chat.id) {
-        membercount = await TGclient.getChatMemberCount(ctx.chat.id).catch(() => {
+        membercount = await TGclient.api.getChatMemberCount(ctx.chat.id).catch(() => {
             return 0;
         });
     }
@@ -142,7 +141,7 @@ TGclient.on('text', async (ctx) => {
     if (!rplyVal.text && !rplyVal.LevelUp)
         return;
     if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Telegram")) {
-        TGclient.sendMessage(userid, newMessage.firstTimeMessage()).catch((error) => {
+        TGclient.api.sendMessage(userid, newMessage.firstTimeMessage()).catch((error) => {
             console.error(error.code);  // => 'ETELEGRAM'
             console.error(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
         });
@@ -151,7 +150,7 @@ TGclient.on('text', async (ctx) => {
     //LevelUp功能
     if (groupid && rplyVal && rplyVal.LevelUp) {
         let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}${(candle.checker(userid)) ? ' ' + candle.checker(userid) : ''}
-		${rplyVal.LevelUp}`
+\t\t${rplyVal.LevelUp}`
         SendToId(groupid, text, options);
 
     }
@@ -231,7 +230,7 @@ function SendToId(targetid, text, options) {
     try {
         for (let i = 0; i < text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
             if (i == 0 || i == 1 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
-                TGclient.sendMessage(targetid, text.toString().match(/[\s\S]{1,2000}/g)[i], options).catch((error) => {
+                TGclient.api.sendMessage(targetid, text.toString().match(/[\s\S]{1,2000}/g)[i], options).catch((error) => {
                     console.error(error.code);  // => 'ETELEGRAM'
                     console.error(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
                 });
@@ -255,7 +254,7 @@ let connect = function () {
         if (object.botname == 'Telegram') {
             if (!object.text) return;
             console.log('Telegram have message')
-            TGclient.sendMessage(object.target.id, object.text).catch((error) => {
+            TGclient.api.sendMessage(object.target.id, object.text).catch((error) => {
                 console.error(error.code);  // => 'ETELEGRAM'
                 console.error(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
             });
@@ -291,7 +290,7 @@ async function nonDice(ctx) {
                 membercount = null;
             let tgDisplayname = (ctx.from.first_name) ? ctx.from.first_name : '';
             if (ctx.chat && ctx.chat.id) {
-                membercount = await TGclient.getChatMemberCount(ctx.chat.id).catch(() => {
+                membercount = await TGclient.api.getChatMemberCount(ctx.chat.id).catch(() => {
                     return 0;
                 });
 
@@ -308,53 +307,53 @@ async function nonDice(ctx) {
 }
 
 
-TGclient.on('new_chat_members', async (ctx) => {
-    let newUser = await TGclient.getMe();
-    if (ctx.new_chat_member.username == newUser.username) {
+TGclient.on('message:new_chat_members', async (ctx) => {
+    let newUser = await TGclient.api.getMe();
+    if (ctx.message.new_chat_member.username == newUser.username) {
         console.log("Telegram joined");
         SendToId(ctx.chat.id, newMessage.joinMessage());
     }
 });
 
-TGclient.on('group_chat_created', async (ctx) => {
+TGclient.on('message:group_chat_created', async (ctx) => {
     SendToId(ctx.chat.id, newMessage.joinMessage());
 });
-TGclient.on('supergroup_chat_created', async (ctx) => {
+TGclient.on('message:supergroup_chat_created', async (ctx) => {
     SendToId(ctx.chat.id, newMessage.joinMessage());
 });
 
 
-TGclient.on('audio', async (ctx) => {
+TGclient.on('message:audio', async (ctx) => {
     if (ctx.from.is_bot) return;
     await nonDice(ctx);
     return null;
 });
-TGclient.on('document', async (ctx) => {
+TGclient.on('message:document', async (ctx) => {
     if (ctx.from.is_bot) return;
     await nonDice(ctx);
     return null;
 })
-TGclient.on('photo', async (ctx) => {
+TGclient.on('message:photo', async (ctx) => {
     if (ctx.from.is_bot) return;
     await nonDice(ctx);
     return null;
 })
-TGclient.on('sticker', async (ctx) => {
+TGclient.on('message:sticker', async (ctx) => {
     if (ctx.from.is_bot) return;
     await nonDice(ctx);
     return null;
 })
-TGclient.on('video', async (ctx) => {
+TGclient.on('message:video', async (ctx) => {
     if (ctx.from.is_bot) return;
     await nonDice(ctx);
     return null;
 })
-TGclient.on('voice', async (ctx) => {
+TGclient.on('message:voice', async (ctx) => {
     if (ctx.from.is_bot) return;
     await nonDice(ctx);
     return null;
 })
-TGclient.on('forward', async (ctx) => {
+TGclient.on('channel_post', async (ctx) => {
     if (ctx.from.is_bot) return;
     await nonDice(ctx);
     return null;
@@ -409,7 +408,7 @@ if (agenda && agenda.agenda) {
 
 
 async function isAdmin(gpId, chatid) {
-    let member = await TGclient.getChatMember(gpId, chatid).catch(() => {});
+    let member = await TGclient.api.getChatMember(gpId, chatid).catch(() => {});
     if (member?.status === "creator") return true
     if (member?.status === "administrator") return true
     return false;
@@ -421,16 +420,17 @@ function sendNewstoAll(rply) {
     }
 }
 
-TGclient.on('error', (error) => {
-    console.error('Global error handler:', error);
-});
-
-TGclient.on('polling_error', (error) => {
-    console.error("polling_error handler:", error.code);  // => 'EFATAL'
-});
-
-TGclient.on('webhook_error', (error) => {
-    console.log("webhook_error handler:", error.code);  // => 'EPARSE'
+TGclient.catch((error) => {
+    const ctx = error.ctx;
+    console.error(`Error while handling update ${ctx.update.update_id}:`);
+    const e = error.error;
+    if (e instanceof GrammyError) {
+        console.error("Error in request:", e.description);
+    } else if (e instanceof HttpError) {
+        console.error("Could not contact Telegram:", e);
+    } else {
+        console.error("Unknown error:", e);
+    }
 });
 
 
@@ -444,3 +444,5 @@ async function __sendMeMessage({ ctx, rplyVal, }) {
     SendToId(ctx.chat.id || ctx.from.id, rplyVal.myspeck.content);
     return;
 }
+
+TGclient.start();

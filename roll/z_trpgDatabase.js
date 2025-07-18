@@ -779,7 +779,19 @@ const rollDiceCommand = async function ({
 
             // 保存到數據庫
             records.pushTrpgDatabaseFunction('trpgDatabase', newEntry, () => {
-                databaseOperations.updateGroupDatabase();
+                dbOperations.updateCache(groupid);
+                // 增量 patch group_database cache
+                const cacheKey = 'group_database';
+                let database = cache.get(cacheKey);
+                if (database) {
+                    let groupData = database.find(data => data.groupid === groupid);
+                    if (groupData) {
+                        groupData.trpgDatabasefunction.push(newEntry.trpgDatabasefunction[0]);
+                    } else {
+                        database.push({ groupid, trpgDatabasefunction: [newEntry.trpgDatabasefunction[0]] });
+                    }
+                    cache.set(cacheKey, database, CACHE_TTL.DATABASE);
+                }
             });
 
             // 獲取當前索引

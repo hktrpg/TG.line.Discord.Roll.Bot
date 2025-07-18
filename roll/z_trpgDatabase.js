@@ -8,39 +8,16 @@ const { SlashCommandBuilder } = require('discord.js');
 const records = require('../modules/records.js');
 const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
-const VIP = require('../modules/veryImportantPerson');
+const VIP = require('../modules/veryImportantPerson.js');
 const rollbase = require('./rollbase.js');
 
 // 常量定義
 const FUNCTION_LIMIT = [30, 200, 200, 300, 300, 300, 300, 300];
 
-// 全局數據
-let trpgDatabasefunction = {
-    trpgDatabasefunction: null,
-    trpgDatabaseAllgroup: null
-};
-
 /**
  * 數據庫操作相關函數
  */
 const dbOperations = {
-    /**
-     * 批量更新緩存 (removed, now just fetches from db)
-     */
-    async updateCache(groupid, userid) {
-        try {
-            const [groupConfig, groupMembers, userInfo] = await Promise.all([
-                schema.trpgLevelSystem.findOne({ groupid }),
-                schema.trpgLevelSystemMember.find({ groupid }).sort({ EXP: -1 }),
-                schema.trpgLevelSystemMember.findOne({ groupid, userid })
-            ]);
-            return { groupConfig, groupMembers, userInfo };
-        } catch (error) {
-            console.error('Cache update error:', error);
-            return { groupConfig: null, groupMembers: null, userInfo: null };
-        }
-    },
-
     /**
      * 查找群組配置
      */
@@ -98,13 +75,6 @@ const dbOperations = {
         if (!data || !Array.isArray(data)) return "0";
         const memberMap = new Map(data.map((member, index) => [member.userid, index + 1]));
         return memberMap.get(who) || "0";
-    },
-
-    /**
-     * 清除緩存 (no-op)
-     */
-    clearCache() {
-        // No cache to clear
     }
 };
 
@@ -147,38 +117,6 @@ const databaseOperations = {
     },
 
     /**
-     * 更新群組數據庫
-     */
-    async updateGroupDatabase() {
-        try {
-            await new Promise((resolve) => {
-                records.get('trpgDatabase', (msgs) => {
-                    resolve(msgs);
-                });
-            });
-            // No cache to update
-        } catch (error) {
-            console.error('Update group database error:', error);
-        }
-    },
-
-    /**
-     * 更新全服數據庫
-     */
-    async updateGlobalDatabase() {
-        try {
-            await new Promise((resolve) => {
-                records.get('trpgDatabaseAllgroup', (msgs) => {
-                    resolve(msgs);
-                });
-            });
-            // No cache to update
-        } catch (error) {
-            console.error('Update global database error:', error);
-        }
-    },
-
-    /**
      * 刪除群組所有數據
      */
     async deleteAllGroupData(groupid) {
@@ -190,7 +128,6 @@ const databaseOperations = {
                 groupData.trpgDatabasefunction = [];
                 await new Promise((resolve) => {
                     records.setTrpgDatabaseFunction('trpgDatabase', groupData, () => {
-                        this.updateGroupDatabase();
                         resolve();
                     });
                 });
@@ -212,7 +149,6 @@ const databaseOperations = {
                 groupData.trpgDatabasefunction.splice(index, 1);
                 await new Promise((resolve) => {
                     records.setTrpgDatabaseFunction('trpgDatabase', groupData, () => {
-                        this.updateGroupDatabase();
                         resolve();
                     });
                 });
@@ -240,8 +176,8 @@ const gameType = () => 'funny:trpgDatabase:hktrpg';
  * @returns {Array} 前綴配置
  */
 const prefixs = () => [{
-        first: /(^[.]db(p|)$)/ig,
-        second: null
+    first: /(^[.]db(p|)$)/ig,
+    second: null
 }];
 
 /**
@@ -249,66 +185,14 @@ const prefixs = () => [{
  * @returns {Promise<string>} 幫助信息
  */
 const getHelpMessage = async () => {
-    return `【📚資料庫功能】
-╭──── 💡功能簡介 ────
-│ 資料庫可以儲存和調用自定義內容
-│ 支援文字、數字、表情符號
-│ 分為個人資料庫和全服資料庫
-│
-├──── 📝基本指令 ────
-│ • .db add 關鍵字 內容
-│   新增資料項目
-│ • .db show
-│   顯示資料清單
-│ • .db del 標題
-│   刪除指定標題
-│ • .db 關鍵字/index
-│   顯示資料內容
-│
-├──── 🌐全服指令 ────
-│ • .dbp add/show
-│   新增/顯示全服資料
-│ • .dbp newType
-│   查看特殊效果範例
-│
-├──── ✨特殊標記 ────
-│ ■ 基礎功能:
-│ • {br} - 換行
-│ • {ran:100} - 隨機1-100
-│ • {random:5-20} - 隨機5-20
-│ • {server.member_count} - 總人數
-│ • {my.name} - 使用者名字
-│
-│ ■ 等級相關(.level):
-│ • {my.level} - 等級
-│ • {my.exp} - 經驗值
-│ • {my.title} - 稱號
-│ • {my.Ranking} - 排名
-│ • {my.RankingPer} - 排名百分比
-│ • {allgp.name} - 隨機成員名
-│ • {allgp.title} - 隨機稱號
-│
-├──── 📖使用範例 ────
-│ 1. 基本資料儲存:
-│ .db add 防具表 皮甲{br}鎖甲{br}板甲
-│
-│ 2. 隨機回應:
-│ .db add 運氣 今天的運氣是{ran:100}分
-│
-│ 3. 動態資訊:
-│ .db add 伺服器 目前有{server.member_count}人
-│ {my.name}的等級是{my.level}
-├──── ⚠️注意事項 ────
-│ • 關鍵字可用中英數+表情
-│ • 未生效時用show重整
-╰──────────────`;
+    return `【📚資料庫功能】\n╭──── 💡功能簡介 ────\n│ 資料庫可以儲存和調用自定義內容\n│ 支援文字、數字、表情符號\n│ 分為個人資料庫和全服資料庫\n│\n├──── 📝基本指令 ────\n│ • .db add 關鍵字 內容\n│   新增資料項目\n│ • .db show\n│   顯示資料清單\n│ • .db del 標題\n│   刪除指定標題\n│ • .db 關鍵字/index\n│   顯示資料內容\n│\n├──── 🌐全服指令 ────\n│ • .dbp add/show\n│   新增/顯示全服資料\n│ • .dbp newType\n│   查看特殊效果範例\n│\n├──── ✨特殊標記 ────\n│ ■ 基礎功能:\n│ • {br} - 換行\n│ • {ran:100} - 隨機1-100\n│ • {random:5-20} - 隨機5-20\n│ • {server.member_count} - 總人數\n│ • {my.name} - 使用者名字\n│\n│ ■ 等級相關(.level):\n│ • {my.level} - 等級\n│ • {my.exp} - 經驗值\n│ • {my.title} - 稱號\n│ • {my.Ranking} - 排名\n│ • {my.RankingPer} - 排名百分比\n│ • {allgp.name} - 隨機成員名\n│ • {allgp.title} - 隨機稱號\n│\n├──── 📖使用範例 ────\n│ 1. 基本資料儲存:\n│ .db add 防具表 皮甲{br}鎖甲{br}板甲\n│\n│ 2. 隨機回應:\n│ .db add 運氣 今天的運氣是{ran:100}分\n│\n│ 3. 動態資訊:\n│ .db add 伺服器 目前有{server.member_count}人\n│ {my.name}的等級是{my.level}\n├──── ⚠️注意事項 ────\n│ • 關鍵字可用中英數+表情\n│ • 未生效時用show重整\n╰──────────────`;
 };
 
 /**
  * 初始化功能
  * @returns {Object} 功能配置
  */
-const initialize = () => trpgDatabasefunction;
+const initialize = () => ({});
 
 // 導入等級系統
 exports.z_Level_system = require('./z_Level_system');
@@ -395,12 +279,12 @@ function checkPermission(params) {
 function formatDatabaseList(items, page = 1, pageSize = 20) {
     if (!items || items.length === 0) {
         return '📝 沒有已設定的關鍵字\n\n' +
-               '💡 使用方式:\n' +
-               '• 新增項目: .db add 標題 內容\n' +
-               '• 查看列表: .db show [頁碼]\n' +
-               '• 使用標題: .db 標題\n' +
-               '• 使用編號: .db 編號\n' +
-               '• 刪除項目: .db del 編號/all';
+            '💡 使用方式:\n' +
+            '• 新增項目: .db add 標題 內容\n' +
+            '• 查看列表: .db show [頁碼]\n' +
+            '• 使用標題: .db 標題\n' +
+            '• 使用編號: .db 編號\n' +
+            '• 刪除項目: .db del 編號/all';
     }
 
     const totalPages = Math.ceil(items.length / pageSize);
@@ -598,7 +482,7 @@ function findGlobalTopicContent(database, topic) {
     return null;
 }
 
- 
+
 const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
@@ -677,9 +561,7 @@ const rollDiceCommand = async function ({
             const newEntry = createDatabaseEntry(groupid, mainMsg[2], content);
 
             // 保存到數據庫
-            records.pushTrpgDatabaseFunction('trpgDatabase', newEntry, () => {
-                databaseOperations.updateGroupDatabase();
-            });
+            records.pushTrpgDatabaseFunction('trpgDatabase', newEntry, () => { });
 
             // 獲取當前索引
             const currentIndex = (groupData?.trpgDatabasefunction?.length || 0) + 1;
@@ -730,7 +612,7 @@ const rollDiceCommand = async function ({
             }
 
             // 刪除指定標題的數據
-            await databaseOperations.deleteGroupDataByIndex(groupid, index);
+            await databaseOperations.deleteAllGroupData(groupid, index);
 
             rply.text = `🗑️ 已刪除標題為 "${mainMsg[2]}" 的項目\n\n`;
             rply.text += `💡 使用方式:\n`;
@@ -822,8 +704,8 @@ const rollDiceCommand = async function ({
             // 驗證輸入
             if (!mainMsg[2]) {
                 rply.text = '❌ 新增失敗: 沒有關鍵字';
-                        return rply;
-                    }
+                return rply;
+            }
             if (!mainMsg[3]) {
                 rply.text = '❌ 新增失敗: 沒有內容';
                 return rply;
@@ -853,9 +735,7 @@ const rollDiceCommand = async function ({
             const newEntry = createGlobalDatabaseEntry(mainMsg[2], content);
 
             // 保存到數據庫
-            records.pushTrpgDatabaseAllGroup('trpgDatabaseAllgroup', newEntry, () => {
-                databaseOperations.updateGlobalDatabase();
-            });
+            records.pushTrpgDatabaseAllGroup('trpgDatabaseAllgroup', newEntry, () => { });
 
             // 獲取當前索引
             const allItems = database.reduce((acc, group) => {
@@ -939,7 +819,6 @@ const rollDiceCommand = async function ({
             foundGroup.trpgDatabaseAllgroup.splice(foundIndex, 1);
             await new Promise((resolve) => {
                 records.setTrpgDatabaseAllGroup('trpgDatabaseAllgroup', foundGroup, () => {
-                    databaseOperations.updateGlobalDatabase();
                     resolve();
                 });
             });
@@ -1050,11 +929,11 @@ const discordCommand = [
                 subcommand
                     .setName('add')
                     .setDescription('新增資料項目')
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('topic')
                             .setDescription('關鍵字')
                             .setRequired(true))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('content')
                             .setDescription('內容')
                             .setRequired(true)))
@@ -1062,7 +941,7 @@ const discordCommand = [
                 subcommand
                     .setName('show')
                     .setDescription('顯示資料清單')
-                    .addIntegerOption(option => 
+                    .addIntegerOption(option =>
                         option.setName('page')
                             .setDescription('頁碼')
                             .setRequired(false)))
@@ -1070,7 +949,7 @@ const discordCommand = [
                 subcommand
                     .setName('del')
                     .setDescription('刪除指定標題')
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('topic')
                             .setDescription('要刪除的標題')
                             .setRequired(true)))
@@ -1078,35 +957,35 @@ const discordCommand = [
                 subcommand
                     .setName('get')
                     .setDescription('顯示資料內容')
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('topic')
                             .setDescription('關鍵字或編號')
                             .setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
-            
+
             switch (subcommand) {
-            case 'help': {
-                return '.db help';
-            }
-            case 'add': {
-                const topic = interaction.options.getString('topic');
-                const content = interaction.options.getString('content');
-                return `.db add ${topic} ${content}`;
-            }
-            case 'show': {
-                const page = interaction.options.getInteger('page');
-                return page ? `.db show ${page}` : '.db show';
-            }
-            case 'del': {
-                const topic = interaction.options.getString('topic');
-                return `.db del ${topic}`;
-            }
-            case 'get': {
-                const topic = interaction.options.getString('topic');
-                return `.db ${topic}`;
-            }
-            // No default
+                case 'help': {
+                    return '.db help';
+                }
+                case 'add': {
+                    const topic = interaction.options.getString('topic');
+                    const content = interaction.options.getString('content');
+                    return `.db add ${topic} ${content}`;
+                }
+                case 'show': {
+                    const page = interaction.options.getInteger('page');
+                    return page ? `.db show ${page}` : '.db show';
+                }
+                case 'del': {
+                    const topic = interaction.options.getString('topic');
+                    return `.db del ${topic}`;
+                }
+                case 'get': {
+                    const topic = interaction.options.getString('topic');
+                    return `.db ${topic}`;
+                }
+                // No default
             }
         }
     },
@@ -1122,11 +1001,11 @@ const discordCommand = [
                 subcommand
                     .setName('add')
                     .setDescription('新增全服資料項目')
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('topic')
                             .setDescription('關鍵字')
                             .setRequired(true))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('content')
                             .setDescription('內容')
                             .setRequired(true)))
@@ -1134,7 +1013,7 @@ const discordCommand = [
                 subcommand
                     .setName('show')
                     .setDescription('顯示全服資料清單')
-                    .addIntegerOption(option => 
+                    .addIntegerOption(option =>
                         option.setName('page')
                             .setDescription('頁碼')
                             .setRequired(false)))
@@ -1142,7 +1021,7 @@ const discordCommand = [
                 subcommand
                     .setName('del')
                     .setDescription('刪除指定全服標題')
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('topic')
                             .setDescription('要刪除的標題')
                             .setRequired(true)))
@@ -1150,35 +1029,35 @@ const discordCommand = [
                 subcommand
                     .setName('get')
                     .setDescription('顯示全服資料內容')
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('topic')
                             .setDescription('關鍵字或編號')
                             .setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
-            
+
             switch (subcommand) {
-            case 'help': {
-                return '.dbp help';
-            }
-            case 'add': {
-                const topic = interaction.options.getString('topic');
-                const content = interaction.options.getString('content');
-                return `.dbp add ${topic} ${content}`;
-            }
-            case 'show': {
-                const page = interaction.options.getInteger('page');
-                return page ? `.dbp show ${page}` : '.dbp show';
-            }
-            case 'del': {
-                const topic = interaction.options.getString('topic');
-                return `.dbp del ${topic}`;
-            }
-            case 'get': {
-                const topic = interaction.options.getString('topic');
-                return `.dbp ${topic}`;
-            }
-            // No default
+                case 'help': {
+                    return '.dbp help';
+                }
+                case 'add': {
+                    const topic = interaction.options.getString('topic');
+                    const content = interaction.options.getString('content');
+                    return `.dbp add ${topic} ${content}`;
+                }
+                case 'show': {
+                    const page = interaction.options.getInteger('page');
+                    return page ? `.dbp show ${page}` : '.dbp show';
+                }
+                case 'del': {
+                    const topic = interaction.options.getString('topic');
+                    return `.dbp del ${topic}`;
+                }
+                case 'get': {
+                    const topic = interaction.options.getString('topic');
+                    return `.dbp ${topic}`;
+                }
+                // No default
             }
         }
     }

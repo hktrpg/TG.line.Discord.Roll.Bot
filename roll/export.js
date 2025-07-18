@@ -315,7 +315,7 @@ const rollDiceCommand = async function ({
                 userID: userid
             });
             checkGP = await schema.exportGp.findOne({
-                groupID: userid
+                groupID: groupid
             });
             gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 5;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
@@ -359,7 +359,7 @@ const rollDiceCommand = async function ({
             console.log('USE EXPORT HTML')
             if (!checkGP) {
                 checkGP = await schema.exportGp.updateOne({
-                    groupID: userid
+                    groupID: groupid
                 }, {
                     lastActiveAt: new Date()
                 }, opt);
@@ -468,7 +468,7 @@ const rollDiceCommand = async function ({
                 userID: userid
             }).catch(error => console.error('export #372 mongoDB error:', error.name, error.reason));
             checkGP = await schema.exportGp.findOne({
-                groupID: userid
+                groupID: groupid
             }).catch(error => console.error('export #375 mongoDB error:', error.name, error.reason));
             gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 120;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
@@ -497,7 +497,7 @@ const rollDiceCommand = async function ({
 
             if (!checkGP) {
                 checkGP = await schema.exportGp.updateOne({
-                    groupID: userid
+                    groupID: groupid
                 }, {
                     lastActiveAt: new Date()
                 }, opt).catch(error => console.error('export #408 mongoDB error:', error.name, error.reason));

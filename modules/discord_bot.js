@@ -527,20 +527,20 @@ process.on('unhandledRejection', error => {
 });
 
 process.on('SIGINT', async () => {
-    console.log('Received SIGINT. Attempting graceful shutdown...');
-    try {
-        if (client) {
-            await client.destroy();
-            console.log('Discord client destroyed.');
-        }
-        console.log('Graceful shutdown complete.');
-        // eslint-disable-next-line no-process-exit
-        process.exit(0);
-    } catch (error) {
-        console.error('Error during graceful shutdown:', error);
-        // eslint-disable-next-line no-process-exit
-        process.exit(1);
-    }
+	console.log('Received SIGINT. Attempting graceful shutdown...');
+	try {
+		if (client) {
+			await client.destroy();
+			console.log('Discord client destroyed.');
+		}
+		console.log('Graceful shutdown complete.');
+		// eslint-disable-next-line n/no-process-exit
+		process.exit(0);
+	} catch (error) {
+		console.error('Error during graceful shutdown:', error);
+		// eslint-disable-next-line n/no-process-exit
+		process.exit(1);
+	}
 });
 
 function respawnCluster(err) {
@@ -649,13 +649,13 @@ async function repeatMessages(discord, message) {
 	}
 	try {
 		let webhook = await manageWebhook(discord);
-		
+
 		// Check if webhook is valid before proceeding
 		if (!webhook || !webhook.webhook) {
 			await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
 			return;
 		}
-		
+
 		for (let index = 0; index < message.myNames.length; index++) {
 			const element = message.myNames[index];
 			let text = await rollText(element.content);
@@ -1633,20 +1633,20 @@ if (togGGToken) {
 async function sendCronWebhook({ channelid, replyText, data }) {
 	try {
 		let webhook = await manageWebhook({ channelId: channelid })
-		
+
 		// Check if webhook is valid before proceeding
 		if (!webhook || !webhook.webhook) {
 			console.error(`Failed to get webhook for channel ${channelid}, falling back to regular message`);
 			// Fallback to regular message sending
-			await SendToReplychannel({ 
-				replyText, 
-				channelid, 
-				quotes: true, 
-				groupid: data.groupid 
+			await SendToReplychannel({
+				replyText,
+				channelid,
+				quotes: true,
+				groupid: data.groupid
 			});
 			return;
 		}
-		
+
 		let obj = {
 			content: replyText,
 			username: data.roleName,
@@ -1658,11 +1658,11 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 		console.error(`Error in sendCronWebhook for channel ${channelid}:`, error.message);
 		// Fallback to regular message sending
 		try {
-			await SendToReplychannel({ 
-				replyText, 
-				channelid, 
-				quotes: true, 
-				groupid: data.groupid 
+			await SendToReplychannel({
+				replyText,
+				channelid,
+				quotes: true,
+				groupid: data.groupid
 			});
 		} catch (fallbackError) {
 			console.error(`Fallback message sending also failed for channel ${channelid}:`, fallbackError.message);
@@ -1680,7 +1680,7 @@ async function handlingMultiServerMessage(message) {
 		const targetData = target
 		try {
 			let webhook = await manageWebhook({ channelId: targetData.channelid })
-			
+
 			// Check if webhook is valid before proceeding
 			if (webhook && webhook.webhook) {
 				let pair = (webhook && webhook.isThread) ? { threadId: targetData.channelid } : {};

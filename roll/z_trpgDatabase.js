@@ -558,21 +558,16 @@ function formatDatabaseList(items, page = 1, pageSize = 20) {
 }
 
 /**
- * 查找關鍵字內容
- * @param {Array} database 數據庫
+ * 查找關鍵字內容（僅查本群組）
+ * @param {Object} groupData 本群組資料
  * @param {string} topic 關鍵字
  * @returns {Object|null} 匹配的內容
  */
-function findTopicContent(database, topic) {
-    if (!database || !topic) return null;
-
-    for (const group of database) {
-        const item = group.trpgDatabasefunction.find(
-            item => item.topic.toLowerCase() === topic.toLowerCase()
-        );
-        if (item) return item;
-    }
-    return null;
+function findTopicContentByGroup(groupData, topic) {
+    if (!groupData || !groupData.trpgDatabasefunction || !topic) return null;
+    return groupData.trpgDatabasefunction.find(
+        item => item.topic.toLowerCase() === topic.toLowerCase()
+    ) || null;
 }
 
 /**
@@ -865,7 +860,7 @@ const rollDiceCommand = async function ({
 
             // 如果有標題參數,搜索並顯示該標題的內容
             if (mainMsg[2] && !/^\d+$/.test(mainMsg[2])) {
-                const content = findTopicContent(database, mainMsg[2]);
+                const content = findTopicContentByGroup(groupData, mainMsg[2]);
                 if (content) {
                     rply.text = `【${content.topic}】\n${content.contact}`;
                     // 處理特殊標記
@@ -917,9 +912,10 @@ const rollDiceCommand = async function ({
 
             // 獲取群組數據庫
             const database = await databaseOperations.getGroupDatabase();
+            const groupData = database?.find(data => data.groupid === groupid);
 
             // 查找關鍵字內容
-            const content = findTopicContent(database, mainMsg[1]);
+            const content = findTopicContentByGroup(groupData, mainMsg[1]);
 
             if (content) {
                 rply.text = `【${content.topic}】\n${content.contact}`;

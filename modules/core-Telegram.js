@@ -20,104 +20,92 @@ let robotName = ""
 
 
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const EXPUP = require('./level').EXPUP || function () {};
-const courtMessage = require('./logs').courtMessage || function () {};
+const EXPUP = require('./level').EXPUP || function () { };
+const courtMessage = require('./logs').courtMessage || function () { };
 
-TGclient.on('message:text', async (ctx) => {
+TGclient.on('message:text', (ctx) => {
     if (ctx.from.is_bot) return;
-    let inputStr = ctx.message.text;
-    let trigger = "",
-        mainMsg = "",
-        userid = "";
-    if (!robotName) {
-        let botInfo = await TGclient.api.getMe();
-        robotName = botInfo.username;
-    }
-    if (ctx.from.id) userid = ctx.from.id;
-    const options = {};
-    if (ctx.message.is_topic_message) {
-        options.message_thread_id = ctx.message.message_thread_id;
-    }
-    if (inputStr) {
-        if (robotName && /^[/]/.test(inputStr))
-            inputStr = inputStr
-                .replace(new RegExp('@' + robotName + '$', 'i'), '')
-                .replace(new RegExp('^/', 'i'), '');
-        mainMsg = inputStr.match(MESSAGE_SPLITOR); // 定義輸入字串
-    }
-    if (mainMsg && mainMsg[0]) {
-        trigger = mainMsg[0].toString().toLowerCase();
-    }
-    //指定啟動詞在第一個詞&把大階強制轉成細階
-    let groupid = ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && userid && ctx.chat.id) ? ctx.chat.id : '';
-    let privatemsg = 0;
 
-    (function privateMsg() {
-        if (/^dr$/i.test(trigger) && mainMsg && mainMsg[1]) {
-            privatemsg = 1;
-            inputStr = inputStr.replace(/^dr\s+/i, '');
+    (async () => {
+        let inputStr = ctx.message.text;
+        let trigger = "",
+            mainMsg = "",
+            userid = "";
+        if (!robotName) {
+            let botInfo = await TGclient.api.getMe();
+            robotName = botInfo.username;
         }
-        if (/^ddr$/i.test(trigger) && mainMsg && mainMsg[1]) {
-            privatemsg = 2;
-            inputStr = inputStr.replace(/^ddr\s+/i, '');
+        if (ctx.from.id) userid = ctx.from.id;
+        const options = {};
+        if (ctx.message.is_topic_message) {
+            options.message_thread_id = ctx.message.message_thread_id;
         }
-        if (/^dddr$/i.test(trigger) && mainMsg && mainMsg[1]) {
-            privatemsg = 3;
-            inputStr = inputStr.replace(/^dddr\s+/i, '');
+        if (inputStr) {
+            if (robotName && /^[/]/.test(inputStr))
+                inputStr = inputStr
+                    .replace(new RegExp('@' + robotName + '$', 'i'), '')
+                    .replace(new RegExp('^/', 'i'), '');
+            mainMsg = inputStr.match(MESSAGE_SPLITOR); // 定義輸入字串
         }
-    })();
+        if (mainMsg && mainMsg[0]) {
+            trigger = mainMsg[0].toString().toLowerCase();
+        }
+        //指定啟動詞在第一個詞&把大階強制轉成細階
+        let groupid = ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && userid && ctx.chat.id) ? ctx.chat.id : '';
+        let privatemsg = 0;
 
-    let target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
-    if (!target) {
-        await nonDice(ctx);
-        return;
-    }
+        (function privateMsg() {
+            if (/^dr$/i.test(trigger) && mainMsg && mainMsg[1]) {
+                privatemsg = 1;
+                inputStr = inputStr.replace(/^dr\s+/i, '');
+            }
+            if (/^ddr$/i.test(trigger) && mainMsg && mainMsg[1]) {
+                privatemsg = 2;
+                inputStr = inputStr.replace(/^ddr\s+/i, '');
+            }
+            if (/^dddr$/i.test(trigger) && mainMsg && mainMsg[1]) {
+                privatemsg = 3;
+                inputStr = inputStr.replace(/^dddr\s+/i, '');
+            }
+        })();
 
-    let displayname = '',
-        membercount = 0,
-        titleName = (ctx.chat && ctx.chat.title) ? ctx.chat.title : '';
-    let TargetGMTempID = [];
-    let TargetGMTempdiyName = [];
-    let TargetGMTempdisplayname = [];
-    let tgDisplayname = (ctx.from.first_name) ? ctx.from.first_name : '';
-    //得到暗骰的數據, GM的位置
-    if (ctx.from.username) displayname = ctx.from.username;
-    //是不是自己.ME 訊息
-    //TRUE 即正常
-    let displaynamecheck = true;
-    let userrole = 1;
-    //頻道人數
-    if (ctx.chat && ctx.chat.id) {
-        membercount = await TGclient.api.getChatMemberCount(ctx.chat.id).catch(() => {
-            return 0;
-        });
-    }
-    //285083923223
-    //userrole = 3
+        let target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+        if (!target) {
+            await nonDice(ctx);
+            return;
+        }
 
-    if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
-        (await isAdmin(groupid, userid)) ? userrole = 3 : null;
-    }
-    let rplyVal = {};
+        let displayname = '',
+            membercount = 0,
+            titleName = (ctx.chat && ctx.chat.title) ? ctx.chat.title : '';
+        let TargetGMTempID = [];
+        let TargetGMTempdiyName = [];
+        let TargetGMTempdisplayname = [];
+        let tgDisplayname = (ctx.from.first_name) ? ctx.from.first_name : '';
+        //得到暗骰的數據, GM的位置
+        if (ctx.from.username) displayname = ctx.from.username;
+        //是不是自己.ME 訊息
+        //TRUE 即正常
+        let displaynamecheck = true;
+        let userrole = 1;
+        //頻道人數
+        if (ctx.chat && ctx.chat.id) {
+            membercount = await TGclient.api.getChatMemberCount(ctx.chat.id).catch(() => {
+                return 0;
+            });
+        }
+        //285083923223
+        //userrole = 3
 
-    // 訊息來到後, 會自動跳到analytics.js進行骰組分析
-    // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-    if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-        mainMsg.shift();
-        rplyVal = await exports.analytics.parseInput({
-            inputStr: inputStr,
-            groupid: groupid,
-            userid: userid,
-            userrole: userrole,
-            botname: "Telegram",
-            displayname: displayname,
-            channelid: "",
-            membercount: membercount,
-            titleName: titleName,
-            tgDisplayname: tgDisplayname
-        })
-    } else {
-        if (channelKeyword == '') {
+        if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
+            (await isAdmin(groupid, userid)) ? userrole = 3 : null;
+        }
+        let rplyVal = {};
+
+        // 訊息來到後, 會自動跳到analytics.js進行骰組分析
+        // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+        if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
+            mainMsg.shift();
             rplyVal = await exports.analytics.parseInput({
                 inputStr: inputStr,
                 groupid: groupid,
@@ -130,100 +118,113 @@ TGclient.on('message:text', async (ctx) => {
                 titleName: titleName,
                 tgDisplayname: tgDisplayname
             })
-        }
-    }
-
-    if (rplyVal.sendNews) sendNewstoAll(rplyVal);
-    // Handle .me messages
-    if (rplyVal.myspeck) {
-        return await __sendMeMessage({ ctx, rplyVal, userid });
-    }
-    if (!rplyVal.text && !rplyVal.LevelUp)
-        return;
-    if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Telegram")) {
-        TGclient.api.sendMessage(userid, newMessage.firstTimeMessage()).catch((error) => {
-            console.error(error.code);  // => 'ETELEGRAM'
-            console.error(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
-        });
-    }
-
-    //LevelUp功能
-    if (groupid && rplyVal && rplyVal.LevelUp) {
-        let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}${(candle.checker(userid)) ? ' ' + candle.checker(userid) : ''}
-\t\t${rplyVal.LevelUp}`
-        SendToId(groupid, text, options);
-
-    }
-
-    if (!rplyVal.text) {
-        return;
-    }
-    //TGcountroll++;
-    if (privatemsg > 1 && TargetGM) {
-        let groupInfo = await privateMsgFinder(groupid) || [];
-        for (const item of groupInfo) {
-            TargetGMTempID.push(item.userid);
-            TargetGMTempdiyName.push(item.diyName);
-            TargetGMTempdisplayname.push(item.displayname);
-        }
-
-    }
-
-
-    switch (true) {
-        case privatemsg == 1: {
-            // 輸入dr  (指令) 私訊自己
-            //
-            if (ctx.chat.type != 'private') {
-                SendToId(groupid, "@" + displayname + ' 暗骰給自己', options);
+        } else {
+            if (channelKeyword == '') {
+                rplyVal = await exports.analytics.parseInput({
+                    inputStr: inputStr,
+                    groupid: groupid,
+                    userid: userid,
+                    userrole: userrole,
+                    botname: "Telegram",
+                    displayname: displayname,
+                    channelid: "",
+                    membercount: membercount,
+                    titleName: titleName,
+                    tgDisplayname: tgDisplayname
+                })
             }
-            rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
-            SendToId(userid, rplyVal.text, options);
-            break;
         }
-        case privatemsg == 2: {
-            //輸入ddr(指令) 私訊GM及自己
-            if (ctx.chat.type != 'private') {
-                let targetGMNameTemp = "";
-                for (let i = 0; i < TargetGMTempID.length; i++) {
-                    targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
+
+        if (rplyVal.sendNews) sendNewstoAll(rplyVal);
+        // Handle .me messages
+        if (rplyVal.myspeck) {
+            return await __sendMeMessage({ ctx, rplyVal, userid });
+        }
+        if (!rplyVal.text && !rplyVal.LevelUp)
+            return;
+        if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Telegram")) {
+            TGclient.api.sendMessage(userid, newMessage.firstTimeMessage()).catch((error) => {
+                console.error(error.code);  // => 'ETELEGRAM'
+                console.error(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
+            });
+        }
+
+        //LevelUp功能
+        if (groupid && rplyVal && rplyVal.LevelUp) {
+            let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}${(candle.checker(userid)) ? ' ' + candle.checker(userid) : ''}\n\t\t${rplyVal.LevelUp}`
+            SendToId(groupid, text, options);
+
+        }
+
+        if (!rplyVal.text) {
+            return;
+        }
+        //TGcountroll++;
+        if (privatemsg > 1 && TargetGM) {
+            let groupInfo = await privateMsgFinder(groupid) || [];
+            for (const item of groupInfo) {
+                TargetGMTempID.push(item.userid);
+                TargetGMTempdiyName.push(item.diyName);
+                TargetGMTempdisplayname.push(item.displayname);
+            }
+
+        }
+
+
+        switch (true) {
+            case privatemsg == 1: {
+                // 輸入dr  (指令) 私訊自己
+                //
+                if (ctx.chat.type != 'private') {
+                    SendToId(groupid, "@" + displayname + ' 暗骰給自己', options);
                 }
-                SendToId(groupid, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, options);
+                rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
+                SendToId(userid, rplyVal.text, options);
+                break;
             }
-            rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
-            SendToId(userid, rplyVal.text);
-            for (const element of TargetGMTempID) {
-                if (userid != element)
+            case privatemsg == 2: {
+                //輸入ddr(指令) 私訊GM及自己
+                if (ctx.chat.type != 'private') {
+                    let targetGMNameTemp = "";
+                    for (let i = 0; i < TargetGMTempID.length; i++) {
+                        targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
+                    }
+                    SendToId(groupid, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, options);
+                }
+                rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
+                SendToId(userid, rplyVal.text);
+                for (const element of TargetGMTempID) {
+                    if (userid != element)
+                        SendToId(element, rplyVal.text);
+                }
+                break;
+            }
+            case privatemsg == 3: {
+                //輸入dddr(指令) 私訊GM
+                if (ctx.chat.type != 'private') {
+                    let targetGMNameTemp = "";
+                    for (let i = 0; i < TargetGMTempID.length; i++) {
+                        targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
+                    }
+                    SendToId(groupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp, options);
+                }
+                rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
+                for (const element of TargetGMTempID) {
                     SendToId(element, rplyVal.text);
-            }
-            break;
-        }
-        case privatemsg == 3: {
-            //輸入dddr(指令) 私訊GM
-            if (ctx.chat.type != 'private') {
-                let targetGMNameTemp = "";
-                for (let i = 0; i < TargetGMTempID.length; i++) {
-                    targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
                 }
-                SendToId(groupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp, options);
+                break;
             }
-            rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
-            for (const element of TargetGMTempID) {
-                SendToId(element, rplyVal.text);
+            default: {
+                if (displaynamecheck && displayname) {
+                    //285083923223
+                    displayname = "@" + ctx.from.username + ((rplyVal.statue) ? ' ' + rplyVal.statue : '') + ((candle.checker(userid)) ? ' ' + candle.checker(userid) : '') + "\n";
+                    rplyVal.text = displayname + rplyVal.text;
+                }
+                SendToId((groupid || userid), rplyVal.text, options);
+                break;
             }
-            break;
         }
-        default: {
-            if (displaynamecheck && displayname) {
-                //285083923223
-                displayname = "@" + ctx.from.username + ((rplyVal.statue) ? ' ' + rplyVal.statue : '') + ((candle.checker(userid)) ? ' ' + candle.checker(userid) : '') + "\n";
-                rplyVal.text = displayname + rplyVal.text;
-            }
-            SendToId((groupid || userid), rplyVal.text, options);
-            break;
-        }
-    }
-
+    })().catch(e => console.error(`Error in message handler for ${ctx.update.update_id}:`, e));
 })
 
 function SendToId(targetid, text, options) {
@@ -404,11 +405,12 @@ if (agenda && agenda.agenda) {
 
     });
 
+
 }
 
 
 async function isAdmin(gpId, chatid) {
-    let member = await TGclient.api.getChatMember(gpId, chatid).catch(() => {});
+    let member = await TGclient.api.getChatMember(gpId, chatid).catch(() => { });
     if (member?.status === "creator") return true
     if (member?.status === "administrator") return true
     return false;

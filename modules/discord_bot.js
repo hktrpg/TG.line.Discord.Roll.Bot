@@ -543,6 +543,23 @@ process.on('SIGINT', async () => {
 	}
 });
 
+process.on('SIGTERM', async () => {
+	console.log('Received SIGTERM. Attempting graceful shutdown...');
+	try {
+		if (client) {
+			await client.destroy();
+			console.log('Discord client destroyed.');
+		}
+		console.log('Graceful shutdown complete.');
+		// eslint-disable-next-line n/no-process-exit
+		process.exit(0);
+	} catch (error) {
+		console.error('Error during graceful shutdown:', error);
+		// eslint-disable-next-line n/no-process-exit
+		process.exit(1);
+	}
+});
+
 function respawnCluster(err) {
 	if (!/CLUSTERING_NO_CHILD_EXISTS/i.test(err.toString())) return;
 	let number = err.toString().match(/\d+$/i);

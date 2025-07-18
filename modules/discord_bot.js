@@ -519,14 +519,29 @@ process.on('unhandledRejection', error => {
 
 
 	console.error('Discord Unhandled promise rejection:', (error));
-	process.send({
-		type: "process:msg",
-		data: "discorderror"
-	});
+	// Removed process.send as it was causing ERR_IPC_CHANNEL_CLOSED on shutdown
+	// process.send({
+	// 	type: "process:msg",
+	// 	data: "discorderror"
+	// });
 });
 
-
-
+process.on('SIGINT', async () => {
+    console.log('Received SIGINT. Attempting graceful shutdown...');
+    try {
+        if (client) {
+            await client.destroy();
+            console.log('Discord client destroyed.');
+        }
+        console.log('Graceful shutdown complete.');
+        // eslint-disable-next-line no-process-exit
+        process.exit(0);
+    } catch (error) {
+        console.error('Error during graceful shutdown:', error);
+        // eslint-disable-next-line no-process-exit
+        process.exit(1);
+    }
+});
 
 function respawnCluster(err) {
 	if (!/CLUSTERING_NO_CHILD_EXISTS/i.test(err.toString())) return;

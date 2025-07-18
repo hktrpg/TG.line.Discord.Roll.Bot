@@ -4,7 +4,6 @@ if (!process.env.mongoURL) {
 }
 
 // 導入依賴
-const NodeCache = require('node-cache');
 const { SlashCommandBuilder } = require('discord.js');
 const records = require('../modules/records.js');
 const schema = require('../modules/schema.js');
@@ -13,19 +12,7 @@ const VIP = require('../modules/veryImportantPerson');
 const rollbase = require('./rollbase.js');
 
 // 常量定義
-const CACHE_TTL = {
-    GROUP_CONFIG: 300,  // 群組配置緩存5分鐘
-    MEMBER_DATA: 60,    // 成員數據緩存1分鐘
-    DATABASE: 300       // 數據庫緩存5分鐘
-};
-
 const FUNCTION_LIMIT = [30, 200, 200, 300, 300, 300, 300, 300];
-
-// 初始化緩存
-const cache = new NodeCache({
-    stdTTL: CACHE_TTL.GROUP_CONFIG,
-    checkperiod: 120 // 每2分鐘檢查過期緩存
-});
 
 // 全局數據
 let trpgDatabasefunction = {
@@ -38,10 +25,7 @@ let trpgDatabasefunction = {
  */
 const dbOperations = {
     /**
-     * 批量更新緩存
-     * @param {string} groupid 群組ID
-     * @param {string} userid 用戶ID
-     * @returns {Promise<Object>} 更新後的數據
+     * 批量更新緩存 (removed, now just fetches from db)
      */
     async updateCache(groupid, userid) {
         try {
@@ -50,17 +34,6 @@ const dbOperations = {
                 schema.trpgLevelSystemMember.find({ groupid }).sort({ EXP: -1 }),
                 schema.trpgLevelSystemMember.findOne({ groupid, userid })
             ]);
-
-            if (groupConfig) {
-                cache.set(`group_config_${groupid}`, groupConfig, CACHE_TTL.GROUP_CONFIG);
-            }
-            if (groupMembers) {
-                cache.set(`group_members_${groupid}`, groupMembers, CACHE_TTL.MEMBER_DATA);
-            }
-            if (userInfo) {
-                cache.set(`user_${groupid}_${userid}`, userInfo, CACHE_TTL.MEMBER_DATA);
-            }
-
             return { groupConfig, groupMembers, userInfo };
         } catch (error) {
             console.error('Cache update error:', error);
@@ -70,99 +43,56 @@ const dbOperations = {
 
     /**
      * 查找群組配置
-     * @param {string} groupid 群組ID
-     * @returns {Promise<Object>} 群組配置
      */
     async findGp(groupid) {
         if (!process.env.mongoURL || !groupid) return null;
-
-        const cacheKey = `group_config_${groupid}`;
-        let config = cache.get(cacheKey);
-
-        if (!config) {
-            try {
-                config = await schema.trpgLevelSystem.findOne({
-                    groupid: groupid,
-                    SwitchV2: 1
-                });
-
-                if (config) {
-                    cache.set(cacheKey, config, CACHE_TTL.GROUP_CONFIG);
-                }
-            } catch (error) {
-                console.error('Find group config error:', error);
-                return null;
-            }
+        try {
+            const config = await schema.trpgLevelSystem.findOne({
+                groupid: groupid,
+                SwitchV2: 1
+            });
+            return config;
+        } catch (error) {
+            console.error('Find group config error:', error);
+            return null;
         }
-
-        return config;
     },
 
     /**
      * 查找群組成員
-     * @param {string} groupid 群組ID
-     * @returns {Promise<Array>} 成員列表
      */
     async findGpMember(groupid) {
         if (!process.env.mongoURL || !groupid) return null;
-
-        const cacheKey = `group_members_${groupid}`;
-        let members = cache.get(cacheKey);
-
-        if (!members) {
-            try {
-                members = await schema.trpgLevelSystemMember.find({
-                    groupid: groupid
-                }).sort({ EXP: -1 });
-
-                if (members) {
-                    cache.set(cacheKey, members, CACHE_TTL.MEMBER_DATA);
-                }
-            } catch (error) {
-                console.error('Find group members error:', error);
-                return null;
-            }
+        try {
+            const members = await schema.trpgLevelSystemMember.find({
+                groupid: groupid
+            }).sort({ EXP: -1 });
+            return members;
+        } catch (error) {
+            console.error('Find group members error:', error);
+            return null;
         }
-
-        return members;
     },
 
     /**
      * 查找用戶信息
-     * @param {string} groupid 群組ID
-     * @param {string} userid 用戶ID
-     * @returns {Promise<Object>} 用戶信息
      */
     async findUser(groupid, userid) {
         if (!groupid || !userid) return null;
-
-        const cacheKey = `user_${groupid}_${userid}`;
-        let user = cache.get(cacheKey);
-
-        if (!user) {
-            try {
-                user = await schema.trpgLevelSystemMember.findOne({
-                    groupid: groupid,
-                    userid: userid
-                });
-
-                if (user) {
-                    cache.set(cacheKey, user, CACHE_TTL.MEMBER_DATA);
-                }
-            } catch (error) {
-                console.error('Find user error:', error);
-                return null;
-            }
+        try {
+            const user = await schema.trpgLevelSystemMember.findOne({
+                groupid: groupid,
+                userid: userid
+            });
+            return user;
+        } catch (error) {
+            console.error('Find user error:', error);
+            return null;
         }
-
-        return user;
     },
 
     /**
      * 計算用戶排名
-     * @param {string} who 用戶ID
-     * @param {Array} data 成員數據
-     * @returns {string} 排名
      */
     ranking(who, data) {
         if (!data || !Array.isArray(data)) return "0";
@@ -171,18 +101,10 @@ const dbOperations = {
     },
 
     /**
-     * 清除緩存
-     * @param {string} groupid 群組ID
-     * @param {string} userid 用戶ID
+     * 清除緩存 (no-op)
      */
-    clearCache(groupid, userid) {
-        if (groupid) {
-            cache.del(`group_config_${groupid}`);
-            cache.del(`group_members_${groupid}`);
-        }
-        if (userid) {
-            cache.del(`user_${groupid}_${userid}`);
-        }
+    clearCache() {
+        // No cache to clear
     }
 };
 
@@ -192,66 +114,49 @@ const dbOperations = {
 const databaseOperations = {
     /**
      * 按需獲取群組數據庫
-     * @returns {Promise<Array>} 群組數據庫
      */
     async getGroupDatabase() {
-        const cacheKey = 'group_database';
-        let database = cache.get(cacheKey);
-
-        if (!database) {
-            try {
-                database = await new Promise((resolve) => {
-                    records.get('trpgDatabase', (msgs) => {
-                        resolve(msgs);
-                    });
-                });
-                cache.set(cacheKey, database, CACHE_TTL.DATABASE);
-            } catch (error) {
-                console.error('Get group database error:', error);
-                return null;
-            }
-        }
-
-        return database;
-    },
-
-    /**
-     * 按需獲取全服數據庫
-     * @returns {Promise<Array>} 全服數據庫
-     */
-    async getGlobalDatabase() {
-        const cacheKey = 'global_database';
-        let database = cache.get(cacheKey);
-
-        if (!database) {
-            try {
-                database = await new Promise((resolve) => {
-                    records.get('trpgDatabaseAllgroup', (msgs) => {
-                        resolve(msgs);
-                    });
-                });
-                cache.set(cacheKey, database, CACHE_TTL.DATABASE);
-            } catch (error) {
-                console.error('Get global database error:', error);
-                return null;
-            }
-        }
-
-        return database;
-    },
-
-    /**
-     * 更新群組數據庫
-     * @returns {Promise<void>}
-     */
-    async updateGroupDatabase() {
         try {
             const database = await new Promise((resolve) => {
                 records.get('trpgDatabase', (msgs) => {
                     resolve(msgs);
                 });
             });
-            cache.set('group_database', database, CACHE_TTL.DATABASE);
+            return database;
+        } catch (error) {
+            console.error('Get group database error:', error);
+            return null;
+        }
+    },
+
+    /**
+     * 按需獲取全服數據庫
+     */
+    async getGlobalDatabase() {
+        try {
+            const database = await new Promise((resolve) => {
+                records.get('trpgDatabaseAllgroup', (msgs) => {
+                    resolve(msgs);
+                });
+            });
+            return database;
+        } catch (error) {
+            console.error('Get global database error:', error);
+            return null;
+        }
+    },
+
+    /**
+     * 更新群組數據庫
+     */
+    async updateGroupDatabase() {
+        try {
+            await new Promise((resolve) => {
+                records.get('trpgDatabase', (msgs) => {
+                    resolve(msgs);
+                });
+            });
+            // No cache to update
         } catch (error) {
             console.error('Update group database error:', error);
         }
@@ -259,16 +164,15 @@ const databaseOperations = {
 
     /**
      * 更新全服數據庫
-     * @returns {Promise<void>}
      */
     async updateGlobalDatabase() {
         try {
-            const database = await new Promise((resolve) => {
+            await new Promise((resolve) => {
                 records.get('trpgDatabaseAllgroup', (msgs) => {
                     resolve(msgs);
                 });
             });
-            cache.set('global_database', database, CACHE_TTL.DATABASE);
+            // No cache to update
         } catch (error) {
             console.error('Update global database error:', error);
         }
@@ -276,8 +180,6 @@ const databaseOperations = {
 
     /**
      * 刪除群組所有數據
-     * @param {string} groupid 群組ID
-     * @returns {Promise<void>}
      */
     async deleteAllGroupData(groupid) {
         try {
@@ -300,9 +202,6 @@ const databaseOperations = {
 
     /**
      * 刪除指定索引的數據
-     * @param {string} groupid 群組ID
-     * @param {number} index 索引
-     * @returns {Promise<void>}
      */
     async deleteGroupDataByIndex(groupid, index) {
         try {

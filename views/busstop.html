@@ -45,7 +45,7 @@
 
 <body>
     <h1 id="headerTitle"></h1>
-    <div id="etaList" class="loading">正在加載到達時間資料...</div>
+    <div id="etaList" class="loading" data-status="loading">正在加載到達時間資料...</div>
 
     <script>
         // 數字轉換成中文的工具
@@ -100,7 +100,9 @@
                 const data = await response.json();
                 displayETA(data.data, route);
             } catch (error) {
-                document.getElementById('etaList').innerHTML = '<div class="error">無法加載到達時間資料，請稍後再試。</div>';
+                const etaList = document.getElementById('etaList');
+                etaList.innerHTML = '<div class="error">無法加載到達時間資料，請稍後再試。</div>';
+                etaList.setAttribute('data-status', 'error');
                 console.error('Error:', error);
             }
         }
@@ -109,7 +111,8 @@
             const etaList = document.getElementById('etaList');
             etaList.innerHTML = '';
             if (!etaData || etaData.length === 0) {
-                etaList.innerHTML = '<div class="error">沒有到達時間資料。</div>';
+                etaList.innerHTML = '<div class="error" data-status="error">沒有到達時間資料。</div>';
+                etaList.setAttribute('data-status', 'error');
                 return;
             }
 
@@ -140,6 +143,7 @@
             etaItem.className = 'eta-item';
             etaItem.textContent = message;
             etaList.appendChild(etaItem);
+            etaList.setAttribute('data-status', 'ready');
         }
 
         // 頁面加載時獲取 ETA 資料

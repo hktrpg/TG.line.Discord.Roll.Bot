@@ -114,22 +114,26 @@
             }
 
             const now = new Date();
-            const firstETA = new Date(etaData[0].eta);
-            const firstTimeDiff = Math.round((firstETA - now) / 1000 / 60); // 分鐘差
-            const cappedFirst = Math.max(0, Math.min(60, firstTimeDiff)); // 限制在 0-60 分鐘
-            const chineseFirst = numberToChinese(cappedFirst);
+            const timeDiffs = [];
 
+            // 計算所有巴士的到達時間
+            for (let i = 0; i < etaData.length; i++) {
+                const eta = new Date(etaData[i].eta);
+                const timeDiff = Math.round((eta - now) / 1000 / 60); // 分鐘差
+                const capped = Math.max(0, Math.min(60, timeDiff)); // 限制在 0-60 分鐘
+                timeDiffs.push(numberToChinese(capped));
+            }
+
+            // 根據巴士數量生成訊息
             let message;
-            if (etaData.length === 1) {
-                // 只有一班車（尾班車）
-                message = `${route} 將於${chineseFirst}分鐘後到達（尾班車）`;
+            if (timeDiffs.length === 1) {
+                message = `${route} 將於${timeDiffs[0]}分鐘後到達`;
+            } else if (timeDiffs.length === 2) {
+                message = `${route} 將於${timeDiffs[0]}和${timeDiffs[1]}分鐘後到達`;
             } else {
-                // 有兩班或以上車
-                const secondETA = new Date(etaData[1].eta);
-                const secondTimeDiff = Math.round((secondETA - now) / 1000 / 60);
-                const cappedSecond = Math.max(0, Math.min(60, secondTimeDiff));
-                const chineseSecond = numberToChinese(cappedSecond);
-                message = `${route} 將於${chineseFirst}和${chineseSecond}分鐘後到達`;
+                // 三班或以上車，用頓號分隔
+                const lastTime = timeDiffs.pop(); // 取出最後一個時間
+                message = `${route} 將於${timeDiffs.join('、')}和${lastTime}分鐘後到達`;
             }
 
             const etaItem = document.createElement('div');

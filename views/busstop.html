@@ -98,14 +98,14 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
-                displayETA(data.data);
+                displayETA(data.data, route);
             } catch (error) {
                 document.getElementById('etaList').innerHTML = '<div class="error">無法加載到達時間資料，請稍後再試。</div>';
                 console.error('Error:', error);
             }
         }
 
-        function displayETA(etaData) {
+        function displayETA(etaData, route) {
             const etaList = document.getElementById('etaList');
             etaList.innerHTML = '';
             if (!etaData || etaData.length < 2) {

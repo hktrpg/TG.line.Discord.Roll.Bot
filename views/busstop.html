@@ -108,7 +108,7 @@
         function displayETA(etaData, route) {
             const etaList = document.getElementById('etaList');
             etaList.innerHTML = '';
-            if (!etaData || etaData.length < 2) {
+            if (!etaData || etaData.length === 0) {
                 etaList.innerHTML = '<div class="error">沒有足夠的到達時間資料。</div>';
                 return;
             }

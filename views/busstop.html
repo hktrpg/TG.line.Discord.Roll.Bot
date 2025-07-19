@@ -109,20 +109,28 @@
             const etaList = document.getElementById('etaList');
             etaList.innerHTML = '';
             if (!etaData || etaData.length === 0) {
-                etaList.innerHTML = '<div class="error">沒有足夠的到達時間資料。</div>';
+                etaList.innerHTML = '<div class="error">沒有到達時間資料。</div>';
                 return;
             }
 
             const now = new Date();
             const firstETA = new Date(etaData[0].eta);
-            const secondETA = new Date(etaData[1].eta);
             const firstTimeDiff = Math.round((firstETA - now) / 1000 / 60); // 分鐘差
-            const secondTimeDiff = Math.round((secondETA - now) / 1000 / 60);
             const cappedFirst = Math.max(0, Math.min(60, firstTimeDiff)); // 限制在 0-60 分鐘
-            const cappedSecond = Math.max(0, Math.min(60, secondTimeDiff));
             const chineseFirst = numberToChinese(cappedFirst);
-            const chineseSecond = numberToChinese(cappedSecond);
-            const message = `${route} 將於${chineseFirst}和${chineseSecond}分鐘後到達`;
+
+            let message;
+            if (etaData.length === 1) {
+                // 只有一班車（尾班車）
+                message = `${route} 將於${chineseFirst}分鐘後到達（尾班車）`;
+            } else {
+                // 有兩班或以上車
+                const secondETA = new Date(etaData[1].eta);
+                const secondTimeDiff = Math.round((secondETA - now) / 1000 / 60);
+                const cappedSecond = Math.max(0, Math.min(60, secondTimeDiff));
+                const chineseSecond = numberToChinese(cappedSecond);
+                message = `${route} 將於${chineseFirst}和${chineseSecond}分鐘後到達`;
+            }
 
             const etaItem = document.createElement('div');
             etaItem.className = 'eta-item';

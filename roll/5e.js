@@ -104,7 +104,7 @@ const discordCommand = [
     {
         data: new SlashCommandBuilder()
             .setName('5ebuild')
-            .setDescription('5e屬性產生器')
+            .setDescription('DnD 5e屬性產生器')
         ,
         async execute() {
             return `.5ebuild`

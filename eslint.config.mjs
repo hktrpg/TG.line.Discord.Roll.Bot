@@ -5,6 +5,20 @@ import importPlugin from "eslint-plugin-import";
 import nPlugin from "eslint-plugin-n";
 
 export default [
+  {
+    ignores: [
+      "coverage/**",
+      "node_modules/**",
+      "dist/**",
+      "build/**",
+      "tmp/**",
+      "temp/**",
+      "*.log",
+      ".env*",
+      "*.min.js",
+      "*.bundle.js"
+    ]
+  },
   js.configs.recommended,
   unicorn.configs["flat/recommended"],
   nPlugin.configs["flat/recommended"],

@@ -300,6 +300,6 @@ describe('Call of Cthulhu Module Tests', () => {
         
         const ccCommand = coc.discordCommand.find(cmd => cmd.data && cmd.data.name === 'cc');
         expect(ccCommand).toBeDefined();
-        expect(ccCommand.data.description).toContain('克蘇魯神話TRPG Cthulhu 7th 擲骰');
+        expect(ccCommand.data.description).toContain('克蘇魯神話TRPG CoC 7th 擲骰');
     });
 }); 

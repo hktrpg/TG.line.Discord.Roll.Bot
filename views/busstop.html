@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle"> 巴士到達時間</title>
+    <style>
+        body {
+            font-family: Arial, 'Noto Sans HK', sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        #etaList {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .eta-item {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .loading,
+        .error {
+            text-align: center;
+            color: #555;
+        }
+
+        .error {
+            color: #d32f2f;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 id="headerTitle"></h1>
+    <div id="etaList" class="loading">正在加載到達時間資料...</div>
+
+    <script>
+        // 數字轉換成中文的工具
+        function numberToChinese(num) {
+            if (num < 0 || num > 60) return '無效數字';
+            if (num === 0) return '零';
+
+            const chineseDigits = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+            const chineseTens = ['十', '二十', '三十', '四十', '五十', '六十'];
+
+            if (num < 10) return chineseDigits[num];
+            if (num === 10) return chineseTens[0];
+            if (num < 20) return chineseTens[0] + (num % 10 === 0 ? '' : chineseDigits[num % 10]);
+
+            const ten = Math.floor(num / 10);
+            const one = num % 10;
+            return chineseTens[ten - 1] + (one === 0 ? '' : chineseDigits[one]);
+        }
+
+        // 從網址參數中提取站點和路線號
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                stop: params.get('stop'),
+                route: params.get('route'),
+                direction: params.get('direction') || '1'
+            };
+        }
+
+        async function fetchBusETA() {
+            try {
+                // 從網址參數獲取站點和路線
+                const { stop, route, direction } = getQueryParams();
+
+                // 檢查必要參數是否存在
+                if (!stop || !route || !direction) {
+                    document.getElementById('etaList').innerHTML = '<div class="error">錯誤：缺少必要參數。請提供 stop、route 和 direction 參數。</div>';
+                    return;
+                }
+
+                const apiUrl = `https://data.etabus.gov.hk/v1/transport/kmb/eta/${stop}/${route}/${direction}`;
+
+                // 更新頁面標題和標頭
+                const titleText = `${route} 巴士到達時間`;
+                document.getElementById('pageTitle').textContent = titleText;
+                //document.getElementById('headerTitle').textContent = titleText;
+
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                displayETA(data.data, route);
+            } catch (error) {
+                document.getElementById('etaList').innerHTML = '<div class="error">無法加載到達時間資料，請稍後再試。</div>';
+                console.error('Error:', error);
+            }
+        }
+
+        function displayETA(etaData, route) {
+            const etaList = document.getElementById('etaList');
+            etaList.innerHTML = '';
+            if (!etaData || etaData.length < 2) {
+                etaList.innerHTML = '<div class="error">沒有足夠的到達時間資料。</div>';
+                return;
+            }
+
+            const now = new Date();
+            const firstETA = new Date(etaData[0].eta);
+            const secondETA = new Date(etaData[1].eta);
+            const firstTimeDiff = Math.round((firstETA - now) / 1000 / 60); // 分鐘差
+            const secondTimeDiff = Math.round((secondETA - now) / 1000 / 60);
+            const cappedFirst = Math.max(0, Math.min(60, firstTimeDiff)); // 限制在 0-60 分鐘
+            const cappedSecond = Math.max(0, Math.min(60, secondTimeDiff));
+            const chineseFirst = numberToChinese(cappedFirst);
+            const chineseSecond = numberToChinese(cappedSecond);
+            const message = `${route} 將於${chineseFirst}和${chineseSecond}分鐘後到達`;
+
+            const etaItem = document.createElement('div');
+            etaItem.className = 'eta-item';
+            etaItem.textContent = message;
+            etaList.appendChild(etaItem);
+        }
+
+        // 頁面加載時獲取 ETA 資料
+        fetchBusETA();
+    </script>
+</body>
+
+</html>

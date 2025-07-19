@@ -298,6 +298,14 @@ www.get('/player', async (req, res) => {
     res.sendFile(process.cwd() + '/views/namecard/namecard_player.html');
 });
 
+www.get('/busstop', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    res.sendFile(process.cwd() + '/views/busstop.html');
+});
+
 
 
 www.get('/log/:id', async (req, res) => {

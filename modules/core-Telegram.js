@@ -145,7 +145,7 @@ TGclient.on('message:text', (ctx) => {
         if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Telegram")) {
             TGclient.api.sendMessage(userid, newMessage.firstTimeMessage()).catch((error) => {
                 console.error(error.code);  // => 'ETELEGRAM'
-                console.error(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
+                console.error(error.response?.body || error.message); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
             });
         }
 
@@ -233,7 +233,7 @@ function SendToId(targetid, text, options) {
             if (i == 0 || i == 1 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
                 TGclient.api.sendMessage(targetid, text.toString().match(/[\s\S]{1,2000}/g)[i], options).catch((error) => {
                     console.error(error.code);  // => 'ETELEGRAM'
-                    console.error(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
+                    console.error(error.response?.body || error.message); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
                 });
             }
         }
@@ -257,7 +257,7 @@ let connect = function () {
             console.log('Telegram have message')
             TGclient.api.sendMessage(object.target.id, object.text).catch((error) => {
                 console.error(error.code);  // => 'ETELEGRAM'
-                console.error(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
+                console.error(error.response?.body || error.message); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
             });
             return;
         }

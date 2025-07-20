@@ -45,7 +45,7 @@
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
     "discord-hybrid-sharding": "^2.2.6",
-    "discord.js": "14.11",
+    "discord.js": "^14.21.0",
     "dotenv": "^17.2.0",
     "emoji-regex": "^10.0.0",
     "events": "^3.3.0",

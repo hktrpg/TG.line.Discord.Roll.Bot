@@ -500,10 +500,14 @@ if (io) {
 
     socket.on('updateCard', async message => {
         if (await limitRaterCard(socket.handshake.address)) return;
+
+        // Decode password from Base64
+        const decodedPassword = Buffer.from(message.userPassword, 'base64').toString('utf8');
+
         //回傳 message 給發送訊息的 Client
         let filter = {
             userName: message.userName,
-            password: SHA(message.userPassword)
+            password: SHA(decodedPassword) // Use decoded password
         }
         let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #246 mongoDB error:', error.name, error.reason));
         let temp;

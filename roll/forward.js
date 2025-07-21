@@ -9,6 +9,7 @@ const { SlashCommandBuilder } = require('discord.js');
 const records = require('../modules/records.js');
 const VIP = require('../modules/veryImportantPerson');
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
+const { MessageFlags } = require('discord.js');
 
 const gameName = function () {
     return '【Discord按鈕轉發功能】'
@@ -381,7 +382,7 @@ const discordCommand = [
                 case 'delete': {
                     const id = interaction.options.getInteger('id');
                     if (id <= 0) {
-                        await interaction.reply({ content: '請提供有效的轉發編號', ephemeral: true });
+                        await interaction.reply({ content: '請提供有效的轉發編號', flags: MessageFlags.Ephemeral });
                         return null;
                     }
                     command = `.forward delete ${id}`;

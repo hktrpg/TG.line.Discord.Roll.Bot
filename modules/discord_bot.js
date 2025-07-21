@@ -232,7 +232,7 @@ async function replilyMessage(message, result) {
 				}
 			} else {
 				// For regular messages
-				return await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容` });
+				return await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, flags: MessageFlags.Ephemeral });
 			}
 		} catch (error) {
 			console.error('replilyMessage error:', error);
@@ -645,8 +645,6 @@ async function handlingCommand(message) {
 		const command = client.commands.get(message.commandName);
 		if (!command) return;
 		let answer = await command.execute(message).catch(() => {
-			//console.error(error);
-			//await message.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 		})
 		return answer;
 	} catch {
@@ -1748,7 +1746,7 @@ async function __handlingReplyMessage(message, result) {
 			// Defer all interactions by default to avoid timeout issues
 			// This gives commands the full 15-minute window instead of just 3 seconds
 			try {
-				await message.deferReply({ ephemeral: false });
+				await message.deferReply();
 			} catch (deferError) {
 				// If the interaction is no longer valid, log it but don't crash
 				if (deferError.code === 10_062) { // Unknown interaction code
@@ -1796,7 +1794,7 @@ async function __handlingReplyMessage(message, result) {
 					if (message.isInteraction) {
 						await message.followUp({ embeds: await convQuotes(sendText) });
 					} else {
-						await message.reply({ embeds: await convQuotes(sendText), ephemeral: false });
+						await message.reply({ embeds: await convQuotes(sendText) });
 					}
 				}
 			} catch (error) {
@@ -1836,12 +1834,12 @@ async function __handlingInteractionMessage(message) {
 	try {
 		if (!message.deferred && !message.replied) {
 			if (message.isCommand()) {
-				await message.deferReply({ ephemeral: false });
+				await message.deferReply();
 			} else if (message.isButton()) {
 				await message.deferUpdate();
 			} else {
 				// For other interaction types, use deferReply as fallback
-				await message.deferReply({ ephemeral: false });
+				await message.deferReply();
 			}
 		}
 	} catch (deferError) {
@@ -1926,7 +1924,7 @@ async function __handlingInteractionMessage(message) {
 								try {
 									return await message.followUp({
 										content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`,
-										ephemeral: false
+										flags: MessageFlags.Ephemeral
 									});
 								} catch (replyError) {
 									console.error(`Failed to send character card button response: ${replyError.message}`);
@@ -1935,7 +1933,7 @@ async function __handlingInteractionMessage(message) {
 								try {
 									return await message.followUp({
 										content: `${displayname}沒有反應，請檢查按鈕內容`,
-										ephemeral: true
+										flags: MessageFlags.Ephemeral
 									});
 								} catch (replyError) {
 									console.error(`Failed to send empty character card button response: ${replyError.message}`);
@@ -1969,7 +1967,7 @@ async function __handlingInteractionMessage(message) {
 							}
 							// Fallback to normal reply if forwarding fails
 							try {
-								await message.followUp({ content: `${displayname}${resultText}`, ephemeral: false });
+								await message.followUp({ content: `${displayname}${resultText}`, flags: MessageFlags.Ephemeral });
 							} catch (replyError) {
 								console.error(`Failed to send character button response: ${replyError.message}`);
 							}

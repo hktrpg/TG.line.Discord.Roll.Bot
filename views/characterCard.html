@@ -77,9 +77,30 @@
 
         // Update card function
         function updateCard() {
+            const userName = localStorage.getItem("userName");
+            const userPassword = localStorage.getItem("userPassword");
+
+            if (!userName || !userPassword) {
+                debugLog('User not logged in, cannot update card', 'error');
+                return;
+            }
+
+            const data = {
+                userName: userName,
+                userPassword: userPassword,
+                card: {
+                    _id: card._id,
+                    id: card.id,
+                    state: card.state,
+                    roll: card.roll,
+                    notes: card.notes,
+                    public: card.public
+                }
+            };
+
             debugLog(`Attempting to update card with data:`);
             // debugLog(JSON.stringify(data, null, 2));
-            socket.emit('updateCard', updateData);
+            socket.emit('updateCard', data);
         }
 
         // Export updateCard function

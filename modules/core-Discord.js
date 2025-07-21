@@ -142,3 +142,19 @@ manager.spawn({
     // eslint-disable-next-line n/no-process-exit
     process.exit(1);
 });
+
+// Export the manager for graceful shutdown
+module.exports = {
+    initialize: async () => {
+        // Any initialization logic if needed
+    },
+    shutdown: async () => {
+        console.log('[Discord] Shutting down Discord clusters...');
+        try {
+            await manager.shutdown();
+            console.log('[Discord] Discord clusters shut down successfully.');
+        } catch (error) {
+            console.error('[Discord] Error during Discord cluster shutdown:', error);
+        }
+    }
+};

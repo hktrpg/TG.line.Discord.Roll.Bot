@@ -7,6 +7,7 @@ const {
 const { DiceRoll } = require('@dice-roller/rpg-dice-roller');
 const random = new Random(nodeCrypto);
 const { SlashCommandBuilder } = require('discord.js');
+const { MessageFlags } = require('discord.js');
 
 // 常數定義區塊
 const DICE_LIMITS = {
@@ -617,7 +618,7 @@ const discordCommand = [
       } catch (error) {
         await interaction.reply({
           content: `${error.name}\n${error.message}\n擲骰說明 https://dice-roller.github.io/documentation/guide/notation/dice.html#standard-d-n`,
-          ephemeral: true
+          flags: MessageFlags.Ephemeral
         });
       }
     }

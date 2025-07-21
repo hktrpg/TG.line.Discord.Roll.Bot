@@ -16,7 +16,7 @@ const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/igm);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const { Client } = Discord;
-const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType } = Discord;
+const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType, MessageFlags } = Discord;
 
 const multiServer = require('../modules/multi-server')
 const checkMongodb = require('../modules/dbWatchdog.js');
@@ -220,19 +220,19 @@ async function replilyMessage(message, result) {
 			if (message.isInteraction) {
 				if (!message.deferred && !message.replied) {
 					// Defer the reply if we haven't responded yet
-					await message.deferReply({ ephemeral: true });
-					await message.editReply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true });
+					await message.deferReply({ flags: MessageFlags.Ephemeral });
+					await message.editReply({ content: `${displayname}指令沒有得到回應，請檢查內容`, flags: MessageFlags.Ephemeral });
 				} else if (message.deferred && !message.replied) {
 					// If already deferred, edit the reply
-					await message.editReply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true });
+					await message.editReply({ content: `${displayname}指令沒有得到回應，請檢查內容`, flags: MessageFlags.Ephemeral });
 				} else if (!message.replied) {
 					// Last resort - try a direct reply
-					await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, ephemeral: true })
+					await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, flags: MessageFlags.Ephemeral })
 						.catch(error => console.error('Failed to reply to interaction:', error.message));
 				}
 			} else {
 				// For regular messages
-				return await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容` });
+				return await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, flags: MessageFlags.Ephemeral });
 			}
 		} catch (error) {
 			console.error('replilyMessage error:', error);
@@ -415,13 +415,11 @@ async function nonDice(message) {
 				// For interactions, we need to reply directly
 				if (!message.deferred && !message.replied) {
 					await message.reply({
-						content: `@${displayname} ${candle.checker()} ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`,
-						ephemeral: false
+						content: `@${displayname} ${candle.checker()} ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`
 					});
 				} else if (message.deferred && !message.replied) {
 					await message.editReply({
-						content: `@${displayname} ${candle.checker()} ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`,
-						ephemeral: false
+						content: `@${displayname} ${candle.checker()} ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`
 					});
 				}
 			} else {
@@ -647,8 +645,6 @@ async function handlingCommand(message) {
 		const command = client.commands.get(message.commandName);
 		if (!command) return;
 		let answer = await command.execute(message).catch(() => {
-			//console.error(error);
-			//await message.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 		})
 		return answer;
 	} catch {
@@ -1336,7 +1332,7 @@ async function handlingResponMessage(message, answer = '') {
 				try {
 					// Defer the reply first to acknowledge the interaction
 					if (!message.deferred && !message.replied) {
-						await message.deferReply({ ephemeral: true });
+						await message.deferReply({ flags: MessageFlags.Ephemeral });
 					}
 
 					await message.user.send({
@@ -1347,13 +1343,13 @@ async function handlingResponMessage(message, answer = '') {
 					});
 
 					// Now that we've deferred, use editReply instead of followUp
-					await message.editReply({ content: '已將聊天紀錄發送到您的私訊！', ephemeral: true });
+					await message.editReply({ content: '已將聊天紀錄發送到您的私訊！', flags: MessageFlags.Ephemeral });
 				} catch (error) {
 					console.error('Failed to send DM with exported file:', error);
 					if (message.deferred && !message.replied) {
-						await message.editReply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', ephemeral: true });
+						await message.editReply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', flags: MessageFlags.Ephemeral });
 					} else if (!message.deferred && !message.replied) {
-						await message.reply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', ephemeral: true });
+						await message.reply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', flags: MessageFlags.Ephemeral });
 					}
 				}
 			}
@@ -1380,7 +1376,7 @@ async function handlingResponMessage(message, answer = '') {
 				try {
 					// Defer the reply first to acknowledge the interaction if not already done
 					if (!message.deferred && !message.replied) {
-						await message.deferReply({ ephemeral: true });
+						await message.deferReply({ flags: MessageFlags.Ephemeral });
 					}
 
 					if (!link || !mongo) {
@@ -1398,13 +1394,13 @@ async function handlingResponMessage(message, answer = '') {
 					}
 
 					// Now use editReply instead of followUp
-					await message.editReply({ content: '已將聊天紀錄發送到您的私訊！', ephemeral: true });
+					await message.editReply({ content: '已將聊天紀錄發送到您的私訊！', flags: MessageFlags.Ephemeral });
 				} catch (error) {
 					console.error('Failed to send DM with exported HTML file:', error);
 					if (message.deferred && !message.replied) {
-						await message.editReply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', ephemeral: true });
+						await message.editReply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', flags: MessageFlags.Ephemeral });
 					} else if (!message.deferred && !message.replied) {
-						await message.reply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', ephemeral: true });
+						await message.reply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', flags: MessageFlags.Ephemeral });
 					}
 				}
 			}
@@ -1750,7 +1746,7 @@ async function __handlingReplyMessage(message, result) {
 			// Defer all interactions by default to avoid timeout issues
 			// This gives commands the full 15-minute window instead of just 3 seconds
 			try {
-				await message.deferReply({ ephemeral: false });
+				await message.deferReply();
 			} catch (deferError) {
 				// If the interaction is no longer valid, log it but don't crash
 				if (deferError.code === 10_062) { // Unknown interaction code
@@ -1798,7 +1794,7 @@ async function __handlingReplyMessage(message, result) {
 					if (message.isInteraction) {
 						await message.followUp({ embeds: await convQuotes(sendText) });
 					} else {
-						await message.reply({ embeds: await convQuotes(sendText), ephemeral: false });
+						await message.reply({ embeds: await convQuotes(sendText) });
 					}
 				}
 			} catch (error) {
@@ -1838,12 +1834,12 @@ async function __handlingInteractionMessage(message) {
 	try {
 		if (!message.deferred && !message.replied) {
 			if (message.isCommand()) {
-				await message.deferReply({ ephemeral: false });
+				await message.deferReply();
 			} else if (message.isButton()) {
 				await message.deferUpdate();
 			} else {
 				// For other interaction types, use deferReply as fallback
-				await message.deferReply({ ephemeral: false });
+				await message.deferReply();
 			}
 		}
 	} catch (deferError) {
@@ -1880,9 +1876,9 @@ async function __handlingInteractionMessage(message) {
 					try {
 						// Try to respond with an error message
 						if (message.deferred && !message.replied) {
-							await message.editReply({ content: '處理命令時發生錯誤，請稍後再試。', ephemeral: true });
+							await message.editReply({ content: '處理命令時發生錯誤，請稍後再試。', flags: MessageFlags.Ephemeral });
 						} else if (!message.replied) {
-							await message.reply({ content: '處理命令時發生錯誤，請稍後再試。', ephemeral: true });
+							await message.reply({ content: '處理命令時發生錯誤，請稍後再試。', flags: MessageFlags.Ephemeral });
 						}
 					} catch (replyError) {
 						// If even error reporting fails, just log it
@@ -1928,7 +1924,7 @@ async function __handlingInteractionMessage(message) {
 								try {
 									return await message.followUp({
 										content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`,
-										ephemeral: false
+										flags: MessageFlags.Ephemeral
 									});
 								} catch (replyError) {
 									console.error(`Failed to send character card button response: ${replyError.message}`);
@@ -1937,7 +1933,7 @@ async function __handlingInteractionMessage(message) {
 								try {
 									return await message.followUp({
 										content: `${displayname}沒有反應，請檢查按鈕內容`,
-										ephemeral: true
+										flags: MessageFlags.Ephemeral
 									});
 								} catch (replyError) {
 									console.error(`Failed to send empty character card button response: ${replyError.message}`);
@@ -1971,7 +1967,7 @@ async function __handlingInteractionMessage(message) {
 							}
 							// Fallback to normal reply if forwarding fails
 							try {
-								await message.followUp({ content: `${displayname}${resultText}`, ephemeral: false });
+								await message.followUp({ content: `${displayname}${resultText}`, flags: MessageFlags.Ephemeral });
 							} catch (replyError) {
 								console.error(`Failed to send character button response: ${replyError.message}`);
 							}

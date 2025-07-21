@@ -29,7 +29,7 @@ const stream = require('stream');
 const { promisify } = require('util');
 const pipeline = promisify(stream.pipeline);
 const { createWriteStream } = require('fs');
-const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
+const { PermissionFlagsBits, SlashCommandBuilder, MessageFlags } = require('discord.js');
 const moment = require('moment-timezone');
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
@@ -372,7 +372,7 @@ const rollDiceCommand = async function ({
             if (discordMessage && discordMessage.channel && typeof discordMessage.channel.send === 'function') {
                 discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
             } else if (discordMessage && discordMessage.isInteraction) {
-                await discordMessage.reply({ content: "<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間', ephemeral: false });
+                await discordMessage.reply({ content: "<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間' });
             }
             const members = discordMessage && discordMessage.guild && discordMessage.guild.members ? 
                 discordMessage.guild.members.cache.map(member => member) : [];
@@ -510,7 +510,7 @@ const rollDiceCommand = async function ({
             if (discordMessage && discordMessage.channel && typeof discordMessage.channel.send === 'function') {
                 discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
             } else if (discordMessage && discordMessage.isInteraction) {
-                await discordMessage.reply({ content: "<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間', ephemeral: false });
+                await discordMessage.reply({ content: "<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間' });
             }
             const members = discordMessage && discordMessage.guild && discordMessage.guild.members ? 
                 discordMessage.guild.members.cache.map(member => member) : [];

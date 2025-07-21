@@ -77,22 +77,8 @@
 
         // Update card function
         function updateCard() {
-            debugLog('Attempting to update card with data:', 'info');
-            const updateData = {
-                userName: localStorage.getItem("userName"),
-                userPassword: localStorage.getItem("userPassword"),
-                card: {
-                    _id: card._id,
-                    id: card.id,
-                    state: card.state,
-                    roll: card.roll,
-                    notes: card.notes,
-                    public: card.public
-                }
-            };
-            debugLog('Card ID:', card.id, 'info');
-            debugLog('Card _ID:', card._id, 'info');
-            debugLog(JSON.stringify(updateData, null, 2), 'info');
+            debugLog(`Attempting to update card with data:`);
+            // debugLog(JSON.stringify(data, null, 2));
             socket.emit('updateCard', updateData);
         }
 

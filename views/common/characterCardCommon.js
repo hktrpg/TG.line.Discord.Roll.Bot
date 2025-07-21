@@ -398,10 +398,10 @@ $(function () {
 function popup(result) {
     debugLog(`Showing popup with result: ${result}`, 'info');
     if (result) {
-        addElement("<strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。", "success", 5000);
+        addElement("更新成功! 你可以在聊天平台上使用新資料了。", "success", 5000);
         debugLog('Success alert shown', 'info');
     } else {
-        addElement("<strong>更新失敗!</strong> 請檢查或向HKTRPG回報。", "danger", 5000);
+        addElement("更新失敗! 請檢查或向HKTRPG回報。", "danger", 5000);
         debugLog('Error alert shown', 'info');
     }
 }

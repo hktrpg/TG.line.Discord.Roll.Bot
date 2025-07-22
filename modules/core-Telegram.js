@@ -19,8 +19,8 @@ let robotName = ""
 
 
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const EXPUP = require('./level').EXPUP || function () {};
-const courtMessage = require('./logs').courtMessage || function () {};
+const EXPUP = require('./level').EXPUP || function () { };
+const courtMessage = require('./logs').courtMessage || function () { };
 
 TGclient.on('text', async (ctx) => {
     if (ctx.from.is_bot) return;
@@ -407,7 +407,7 @@ if (agenda && agenda.agenda) {
 
 
 async function isAdmin(gpId, chatid) {
-    let member = await TGclient.getChatMember(gpId, chatid).catch(() => {});
+    let member = await TGclient.getChatMember(gpId, chatid).catch(() => { });
     if (member?.status === "creator") return true
     if (member?.status === "administrator") return true
     return false;
@@ -424,7 +424,7 @@ TGclient.on('error', (error) => {
 });
 
 TGclient.on('polling_error', (error) => {
-    console.error("polling_error handler:", error.code);  // => 'EFATAL'
+    console.error("polling_error handler:", error.code, error.message, error.response && error.response.body, error.stack);
 });
 
 TGclient.on('webhook_error', (error) => {
@@ -442,3 +442,4 @@ async function __sendMeMessage({ ctx, rplyVal, }) {
     SendToId(ctx.chat.id || ctx.from.id, rplyVal.myspeck.content);
     return;
 }
+

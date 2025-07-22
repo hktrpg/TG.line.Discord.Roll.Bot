@@ -1,4 +1,6 @@
 "use strict";
+require('dns').setDefaultResultOrder('ipv4first');
+
 if (!process.env.TELEGRAM_CHANNEL_SECRET) {
     return;
 }
@@ -9,7 +11,51 @@ const agenda = require('../modules/schedule')
 const rollText = require('./getRoll').rollText;
 exports.analytics = require('./analytics');
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
-const TGclient = new Bot(process.env.TELEGRAM_CHANNEL_SECRET);
+let TGclient;
+
+// 嘗試自動偵測 SOCKS5 代理
+let useSocksProxy = false;
+let agent;
+const socksProxyUrl = process.env.SOCKS5 || 'socks5h://127.0.0.1:1080';
+try {
+    // 僅在有 socks-proxy-agent 套件時才 require
+    const net = require('net');
+    const { SocksProxyAgent } = require('socks-proxy-agent');
+    const proxy = new URL(socksProxyUrl);
+    // 檢查本地 1080 port 是否有服務
+    if (proxy.hostname === '127.0.0.1' && proxy.port === '1080') {
+        const sock = net.createConnection({ host: '127.0.0.1', port: 1080 });
+        sock.setTimeout(500);
+        sock.on('connect', () => {
+            useSocksProxy = true;
+            sock.destroy();
+        });
+        sock.on('timeout', () => sock.destroy());
+        sock.on('error', () => sock.destroy());
+    } else {
+        useSocksProxy = true;
+    }
+    if (useSocksProxy || process.env.SOCKS5) {
+        agent = new SocksProxyAgent(socksProxyUrl);
+        TGclient = new Bot(process.env.TELEGRAM_CHANNEL_SECRET, {
+            client: {
+                baseFetchConfig: {
+                    agent,
+                    compress: true
+                },
+                timeoutSeconds: 30
+            }
+        });
+        console.log('[Telegram] Using SOCKS5 proxy:', socksProxyUrl);
+    }
+} catch (error) {
+    console.error('[Telegram] Error initializing SOCKS5 proxy:', error);
+}
+if (!TGclient) {
+    TGclient = new Bot(process.env.TELEGRAM_CHANNEL_SECRET);
+    console.log('[Telegram] No SOCKS5 proxy, using direct connection');
+}
+
 const newMessage = require('./message');
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 //let TGcountroll = 0;

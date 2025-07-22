@@ -466,4 +466,7 @@ async function __sendMeMessage({ ctx, rplyVal, }) {
     return;
 }
 
-TGclient.start();
+TGclient.start({
+    onStart: () => console.log('🔐Telegram Bot started!!!'),
+    polling: true
+});

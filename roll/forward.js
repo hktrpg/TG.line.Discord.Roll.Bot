@@ -5,11 +5,10 @@ if (!process.env.mongoURL) {
 if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const records = require('../modules/records.js');
 const VIP = require('../modules/veryImportantPerson');
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
-const { MessageFlags } = require('discord.js');
 
 const gameName = function () {
     return '【Discord按鈕轉發功能】'

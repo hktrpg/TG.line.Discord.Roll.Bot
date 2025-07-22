@@ -29,7 +29,7 @@ const stream = require('stream');
 const { promisify } = require('util');
 const pipeline = promisify(stream.pipeline);
 const { createWriteStream } = require('fs');
-const { PermissionFlagsBits, SlashCommandBuilder, MessageFlags } = require('discord.js');
+const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 const moment = require('moment-timezone');
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
@@ -374,7 +374,7 @@ const rollDiceCommand = async function ({
             } else if (discordMessage && discordMessage.isInteraction) {
                 await discordMessage.reply({ content: "<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間' });
             }
-            const members = discordMessage && discordMessage.guild && discordMessage.guild.members ? 
+            const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
                 discordMessage.guild.members.cache.map(member => member) : [];
             M = await lots_of_messages_getter_HTML(C, demoMode, members);
             if (!M || !M.sum_messages || M.sum_messages.length === 0) {
@@ -512,7 +512,7 @@ const rollDiceCommand = async function ({
             } else if (discordMessage && discordMessage.isInteraction) {
                 await discordMessage.reply({ content: "<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間' });
             }
-            const members = discordMessage && discordMessage.guild && discordMessage.guild.members ? 
+            const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
                 discordMessage.guild.members.cache.map(member => member) : [];
             M = await lots_of_messages_getter_TXT(C, demoMode, members);
             if (!M || !M.sum_messages || M.sum_messages.length === 0) {
@@ -672,15 +672,15 @@ const discordCommand = [
         data: new SlashCommandBuilder()
             .setName('export')
             .setDescription('【聊天紀錄匯出系統】匯出Discord頻道聊天紀錄')
-            .addStringOption(option => 
+            .addStringOption(option =>
                 option.setName('format')
-                .setDescription('匯出格式')
-                .setRequired(true)
-                .addChoices(
-                    { name: 'HTML格式(含資料分析)', value: 'html' },
-                    { name: 'TXT格式(含時間戳記)', value: 'txt' },
-                    { name: 'TXT格式(不含時間戳記)', value: 'txt -withouttime' }
-                )),
+                    .setDescription('匯出格式')
+                    .setRequired(true)
+                    .addChoices(
+                        { name: 'HTML格式(含資料分析)', value: 'html' },
+                        { name: 'TXT格式(含時間戳記)', value: 'txt' },
+                        { name: 'TXT格式(不含時間戳記)', value: 'txt -withouttime' }
+                    )),
         async execute(interaction) {
             const format = interaction.options.getString('format');
             // Instead of returning a command string, we'll use the interaction object

@@ -430,8 +430,8 @@ TGclient.on('webhook_error', (error) => {
     console.log("webhook_error handler:", error.code);  // => 'EPARSE'
 });
 
-process.on('unhandledRejection', () => {
-    //console.error('[UNHANDLED REJECTION]', reason);
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('[UNHANDLED REJECTION]', reason);
     // Optionally: process.exit(1); // to crash on fatal errors
 });
 /*

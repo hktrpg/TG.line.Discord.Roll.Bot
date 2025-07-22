@@ -423,8 +423,7 @@ TGclient.on('error', (error) => {
     console.error('Global error handler:', error);
 });
 
-TGclient.on('polling_error', (error) => {
-    console.error("polling_error handler:", error.code, error.message, error.response && error.response.body, error.stack);
+TGclient.on('polling_error', () => {
 });
 
 TGclient.on('webhook_error', (error) => {

@@ -12,8 +12,6 @@ const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const TGclient = new Bot(process.env.TELEGRAM_CHANNEL_SECRET);
 const newMessage = require('./message');
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
-//let TGcountroll = 0;
-//let TGcounttext = 0;
 const MESSAGE_SPLITOR = (/\S+/ig);
 
 let robotName = ""
@@ -432,12 +430,6 @@ TGclient.catch((error) => {
     }
 });
 
-
-/*
-bot.command('pipe', (ctx) => ctx.replyWithPhoto({
-    url: 'https://picsum.photos/200/300/?random'
-}))
-*/
 
 async function __sendMeMessage({ ctx, rplyVal, }) {
     SendToId(ctx.chat.id || ctx.from.id, rplyVal.myspeck.content);

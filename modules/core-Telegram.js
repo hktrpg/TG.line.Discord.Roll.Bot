@@ -420,18 +420,19 @@ function sendNewstoAll(rply) {
 }
 
 TGclient.on('error', (error) => {
-    console.error('Global error handler:', error);
+    console.error('Global error handler:', error.code);
 });
 
-TGclient.on('polling_error', () => {
+TGclient.on('polling_error', (error) => {
+    console.error('polling_error handler:', error.code);
 });
 
 TGclient.on('webhook_error', (error) => {
     console.log("webhook_error handler:", error.code);  // => 'EPARSE'
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('[UNHANDLED REJECTION]', reason);
+process.on('unhandledRejection', (error) => {
+    console.error('[UNHANDLED REJECTION]', error.code);
     // Optionally: process.exit(1); // to crash on fatal errors
 });
 /*

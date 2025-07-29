@@ -509,6 +509,10 @@ const rollDiceCommand = async function ({
         // .DB(0) ADD(1) TOPIC(2) CONTACT(3)
         case /(^[.]db$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]): {
             // 驗證輸入
+            if (!groupid) {
+                rply.text = '❌ 不在群組中';
+                return rply;
+            }
             if (!mainMsg[2]) rply.text += '❌ 沒有輸入標題。\n\n';
             if (!mainMsg[3]) rply.text += '❌ 沒有輸入內容。\n\n';
 
@@ -576,6 +580,10 @@ const rollDiceCommand = async function ({
         }
         case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]): {
             // 驗證輸入
+            if (!groupid) {
+                rply.text = '❌ 不在群組中';
+                return rply;
+            }
             if (!mainMsg[2]) {
                 rply.text = '❌ 請指定要刪除的標題或編號\n\n';
                 rply.text += `💡 使用方式:\n`;
@@ -637,15 +645,16 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]db$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
+            if (!groupid) {
+                rply.text = '❌ 不在群組中';
+                return rply;
+            }
             // 獲取群組數據庫
             const database = await databaseOperations.getGroupDatabase();
             const groupData = database?.find(data => data.groupid === groupid);
 
             // 檢查群組
-            if (!groupid) {
-                rply.text = '❌ 不在群組中';
-                return rply;
-            }
+
 
             // 如果有標題參數,搜索並顯示該標題的內容
             if (mainMsg[2] && !/^\d+$/.test(mainMsg[2])) {

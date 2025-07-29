@@ -13,10 +13,10 @@ const opt = {
     upsert: true,
     runValidators: true
 }
-const FUNCTION_LIMIT = (process.env.DEBUG) ? [99, 99, 99, 40, 40, 99, 99, 99] : [1, 20, 40, 40, 40, 99, 99, 99];
+const FUNCTION_LIMIT = (process.env.DEBUG) ? [99, 99, 99, 99, 99, 99, 99, 99] : [1, 20, 40, 40, 40, 99, 99, 99];
 /**
  * 因為資源限制，
- * 每個guild 5分鐘可以使用一次,
+ * 每個guild 120分鐘可以使用一次,
  * 每個ACC可以一星期一次
  * 
  *  
@@ -108,7 +108,7 @@ const rollDiceCommand = async function ({
     let totalSize = 0;
     let newRawDate = [];
     let newValue = "";
-    let lv, limit, checkUser, checkGP;
+    let limit, checkUser, checkGP;
     let channelName = discordMessage && discordMessage.channel ? discordMessage.channel.name || '' : '';
     let date = new Date;
     let seconds = date.getSeconds();
@@ -245,7 +245,7 @@ const rollDiceCommand = async function ({
                 break;
             }
             if (demo) {
-                if (totalSize >= 400) {
+                if (totalSize >= 500) {
                     break;
                 }
             }
@@ -309,15 +309,16 @@ const rollDiceCommand = async function ({
                 rply.text = "這是Discord限定功能"
                 return rply;
             }
-            lv = await VIP.viplevelCheckUser(userid);
-            limit = FUNCTION_LIMIT[lv];
+            let lv = await VIP.viplevelCheckUser(userid);
+
+            let limit = FUNCTION_LIMIT[lv];
             checkUser = await schema.exportUser.findOne({
                 userID: userid
             });
             checkGP = await schema.exportGp.findOne({
                 groupID: groupid
             });
-            gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 5;
+            gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 120;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
             userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
             try {
@@ -334,12 +335,14 @@ const rollDiceCommand = async function ({
                 rply.text = `此群組的冷卻時間未過，冷卻剩餘 ${millisToMinutesAndSeconds(gpRemainingTime)} 時間`;
                 return rply;
             }
+
             if (userRemainingTime < 0 && checkUser && checkUser.times >= limit) {
                 rply.text = `你每星期完整下載聊天紀錄的上限為 ${limit} 次，
-                冷卻剩餘 ${millisToMinutesAndSeconds(userRemainingTime)} 時間，
-                現在正處於Demo模式，可以輸出500條信息。
-
-                支援及解鎖上限 https://www.patreon.com/HKTRPG`;
+冷卻剩餘 ${millisToMinutesAndSeconds(userRemainingTime)} 時間，
+現在正處於Demo模式，可以輸出500條信息，
+                
+支援及解鎖上限 https://www.patreon.com/HKTRPG
+`;
                 demoMode = true;
             }
             /**
@@ -460,7 +463,7 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
-            lv = await VIP.viplevelCheckUser(userid);
+            let lv = await VIP.viplevelCheckUser(userid);
             let gpLv = await VIP.viplevelCheckGroup(groupid);
             lv = Math.max(gpLv, lv);
             limit = FUNCTION_LIMIT[lv];
@@ -486,13 +489,15 @@ const rollDiceCommand = async function ({
                 rply.text = "此群組的冷卻時間未過，冷卻剩餘" + millisToMinutesAndSeconds(gpRemainingTime) + '時間';
                 return rply;
             }
+
             if (userRemainingTime < 0 && checkUser && checkUser.times >= limit) {
                 rply.text = `你每星期完整下載聊天紀錄的上限為 ${limit} 次，
-                    冷卻剩餘 ${millisToMinutesAndSeconds(userRemainingTime)} 時間，
-                    現在正處於Demo模式，可以輸出500條信息，
+冷卻剩餘 ${millisToMinutesAndSeconds(userRemainingTime)} 時間，
+現在正處於Demo模式，可以輸出500條信息，
                     
-                    支援及解鎖上限 https://www.patreon.com/HKTRPG`;
-                return rply;
+支援及解鎖上限 https://www.patreon.com/HKTRPG
+                    `;
+                demoMode = true;
             }
 
             if (!checkGP) {
@@ -659,12 +664,25 @@ function makeid(length) {
     return result;
 }
 const millisToMinutesAndSeconds = (millis) => {
-    millis = millis * -1;
-    let minutes = Math.floor(millis / 60_000);
+    // Only negate if the value is negative (user is still in cooldown)
+    if (millis < 0) {
+        millis = millis * -1;
+    }
+    let days = Math.floor(millis / (24 * 60 * 60 * 1000));
+    let hours = Math.floor((millis % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+    let minutes = Math.floor((millis % (60 * 60 * 1000)) / 60_000);
     let seconds = ((millis % 60_000) / 1000).toFixed(0);
-    //ES6 interpolated literals/template literals 
-    //If seconds is less than 10 put a zero in front.
-    return `${minutes}分鐘${(seconds < 10 ? "0" : "")}${seconds}秒`;
+
+    let result = '';
+    if (days > 0) {
+        result += `${days}天`;
+    }
+    if (hours > 0 || days > 0) {
+        result += `${hours}小時`;
+    }
+    result += `${minutes}分鐘${(seconds < 10 ? "0" : "")}${seconds}秒`;
+
+    return result;
 }
 
 const discordCommand = [

@@ -1,3 +1,4 @@
+/* eslint-disable n/no-process-exit */
 "use strict";
 const fs = require('node:fs');
 
@@ -568,7 +569,7 @@ process.on('SIGINT', async () => {
     shutdownTimeout = setTimeout(() => {
         console.log('[Discord Bot] Force shutdown after timeout');
         process.exit(1);
-    }, 15000); // 15 second timeout
+    }, 15_000); // 15 second timeout
     
     await gracefulShutdown();
 });
@@ -579,7 +580,7 @@ process.on('SIGTERM', async () => {
     shutdownTimeout = setTimeout(() => {
         console.log('[Discord Bot] Force shutdown after timeout');
         process.exit(1);
-    }, 15000); // 15 second timeout
+    }, 15_000); // 15 second timeout
     
     await gracefulShutdown();
 });

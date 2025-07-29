@@ -1,3 +1,4 @@
+/* eslint-disable n/no-process-exit */
 "use strict";
 
 if (!process.env.DISCORD_CHANNEL_SECRET) {
@@ -186,7 +187,7 @@ process.on('SIGTERM', async () => {
     shutdownTimeout = setTimeout(() => {
         console.log('[Cluster] Force shutdown after timeout');
         process.exit(1);
-    }, 30000); // 30 second timeout
+    }, 30_000); // 30 second timeout
     
     await gracefulShutdown();
 });
@@ -197,7 +198,7 @@ process.on('SIGINT', async () => {
     shutdownTimeout = setTimeout(() => {
         console.log('[Cluster] Force shutdown after timeout');
         process.exit(1);
-    }, 30000); // 30 second timeout
+    }, 30_000); // 30 second timeout
     
     await gracefulShutdown();
 });
@@ -209,6 +210,5 @@ manager.spawn({
     amount: 'auto'
 }).catch(error => {
     console.error('[Cluster] Failed to spawn clusters:', error);
-    // eslint-disable-next-line n/no-process-exit
     process.exit(1);
 });

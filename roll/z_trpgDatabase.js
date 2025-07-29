@@ -794,11 +794,6 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]dbp$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
-            // 檢查群組
-            if (!groupid) {
-                rply.text = '不在群組中.';
-                return rply;
-            }
 
             // 獲取全服數據庫
             const database = await databaseOperations.getGlobalDatabase();

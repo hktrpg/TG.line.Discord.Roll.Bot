@@ -524,38 +524,64 @@ process.on('unhandledRejection', error => {
 	// });
 });
 
+// Global variables to track shutdown status
+let isShuttingDown = false;
+let shutdownTimeout = null;
+
+// Graceful shutdown function
+async function gracefulShutdown() {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+    
+    console.log('[Discord Bot] Starting graceful shutdown...');
+    
+    // Clear shutdown timeout
+    if (shutdownTimeout) {
+        clearTimeout(shutdownTimeout);
+    }
+    
+    try {
+        // Close WebSocket connection
+        if (ws) {
+            console.log('[Discord Bot] Closing WebSocket connection...');
+            ws.close();
+        }
+        
+        // Destroy Discord client
+        if (client) {
+            console.log('[Discord Bot] Destroying Discord client...');
+            await client.destroy();
+            console.log('[Discord Bot] Discord client destroyed.');
+        }
+        
+        console.log('[Discord Bot] Graceful shutdown completed');
+        process.exit(0);
+    } catch (error) {
+        console.error('[Discord Bot] Error during shutdown:', error);
+        process.exit(1);
+    }
+}
+
 process.on('SIGINT', async () => {
-	console.log('Received SIGINT. Attempting graceful shutdown...');
-	try {
-		if (client) {
-			await client.destroy();
-			console.log('Discord client destroyed.');
-		}
-		console.log('Graceful shutdown complete.');
-		// eslint-disable-next-line n/no-process-exit
-		process.exit(0);
-	} catch (error) {
-		console.error('Error during graceful shutdown:', error);
-		// eslint-disable-next-line n/no-process-exit
-		process.exit(1);
-	}
+    console.log('[Discord Bot] Received SIGINT signal');
+    // Set force shutdown timeout
+    shutdownTimeout = setTimeout(() => {
+        console.log('[Discord Bot] Force shutdown after timeout');
+        process.exit(1);
+    }, 15000); // 15 second timeout
+    
+    await gracefulShutdown();
 });
 
 process.on('SIGTERM', async () => {
-	console.log('Received SIGTERM. Attempting graceful shutdown...');
-	try {
-		if (client) {
-			await client.destroy();
-			console.log('Discord client destroyed.');
-		}
-		console.log('Graceful shutdown complete.');
-		// eslint-disable-next-line n/no-process-exit
-		process.exit(0);
-	} catch (error) {
-		console.error('Error during graceful shutdown:', error);
-		// eslint-disable-next-line n/no-process-exit
-		process.exit(1);
-	}
+    console.log('[Discord Bot] Received SIGTERM signal');
+    // Set force shutdown timeout
+    shutdownTimeout = setTimeout(() => {
+        console.log('[Discord Bot] Force shutdown after timeout');
+        process.exit(1);
+    }, 15000); // 15 second timeout
+    
+    await gracefulShutdown();
 });
 
 function respawnCluster(err) {

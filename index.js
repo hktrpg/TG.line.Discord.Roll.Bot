@@ -217,9 +217,17 @@ async function init() {
 
         logger.info('Application started successfully');
 
-        // Setup shutdown handlers
-        process.on('SIGTERM', () => gracefulShutdown(moduleManager));
-        process.on('SIGINT', () => gracefulShutdown(moduleManager));
+        // Setup shutdown handlers with delay to allow Discord modules to handle their own shutdown
+        process.on('SIGTERM', () => {
+            logger.info('Received SIGTERM signal, starting graceful shutdown...');
+            // Give Discord modules time to handle their own shutdown
+            setTimeout(() => gracefulShutdown(moduleManager), 5000);
+        });
+        process.on('SIGINT', () => {
+            logger.info('Received SIGINT signal, starting graceful shutdown...');
+            // Give Discord modules time to handle their own shutdown
+            setTimeout(() => gracefulShutdown(moduleManager), 5000);
+        });
 
         // Handle process warnings
         process.on('warning', (warning) => {

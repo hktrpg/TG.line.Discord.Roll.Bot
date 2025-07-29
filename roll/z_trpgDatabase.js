@@ -185,7 +185,7 @@ const prefixs = () => [{
  * @returns {Promise<string>} 幫助信息
  */
 const getHelpMessage = async () => {
-    return `【📚資料庫功能】\n╭──── 💡功能簡介 ────\n│ 資料庫可以儲存和調用自定義內容\n│ 支援文字、數字、表情符號\n│ 分為個人資料庫和全服資料庫\n│\n├──── 📝基本指令 ────\n│ • .db add 關鍵字 內容\n│   新增資料項目\n│ • .db show\n│   顯示資料清單\n│ • .db del 標題\n│   刪除指定標題\n│ • .db 關鍵字/index\n│   顯示資料內容\n│\n├──── 🌐全服指令 ────\n│ • .dbp add/show\n│   新增/顯示全服資料\n│ • .dbp newType\n│   查看特殊效果範例\n│\n├──── ✨特殊標記 ────\n│ ■ 基礎功能:\n│ • {br} - 換行\n│ • {ran:100} - 隨機1-100\n│ • {random:5-20} - 隨機5-20\n│ • {server.member_count} - 總人數\n│ • {my.name} - 使用者名字\n│\n│ ■ 等級相關(.level):\n│ • {my.level} - 等級\n│ • {my.exp} - 經驗值\n│ • {my.title} - 稱號\n│ • {my.Ranking} - 排名\n│ • {my.RankingPer} - 排名百分比\n│ • {allgp.name} - 隨機成員名\n│ • {allgp.title} - 隨機稱號\n│\n├──── 📖使用範例 ────\n│ 1. 基本資料儲存:\n│ .db add 防具表 皮甲{br}鎖甲{br}板甲\n│\n│ 2. 隨機回應:\n│ .db add 運氣 今天的運氣是{ran:100}分\n│\n│ 3. 動態資訊:\n│ .db add 伺服器 目前有{server.member_count}人\n│ {my.name}的等級是{my.level}\n├──── ⚠️注意事項 ────\n│ • 關鍵字可用中英數+表情\n│ • 未生效時用show重整\n╰──────────────`;
+    return `【📚資料庫功能】\n╭──── 💡功能簡介 ────\n│ 資料庫可以儲存和調用自定義內容\n│ 支援文字、數字、表情符號\n│ 分為個人資料庫和全服資料庫\n│\n├──── 📝基本指令 ────\n│ • .db add 關鍵字 內容\n│   新增資料項目\n│ • .db show\n│   顯示資料清單\n│ • .db del 標題\n│   刪除指定標題\n│ • .db 關鍵字/index\n│   顯示資料內容\n│\n├──── 🌐全服指令 ────\n│ • .dbp add/show\n│   新增/顯示全服資料\n│ • .dbp 關鍵字/編號\n│   顯示全服資料內容\n│ • .dbp newType\n│   查看特殊效果範例\n│\n├──── ✨特殊標記 ────\n│ ■ 基礎功能:\n│ • {br} - 換行\n│ • {ran:100} - 隨機1-100\n│ • {random:5-20} - 隨機5-20\n│ • {server.member_count} - 總人數\n│ • {my.name} - 使用者名字\n│\n│ ■ 等級相關(.level):\n│ • {my.level} - 等級\n│ • {my.exp} - 經驗值\n│ • {my.title} - 稱號\n│ • {my.Ranking} - 排名\n│ • {my.RankingPer} - 排名百分比\n│ • {allgp.name} - 隨機成員名\n│ • {allgp.title} - 隨機稱號\n│\n├──── 📖使用範例 ────\n│ 1. 基本資料儲存:\n│ .db add 防具表 皮甲{br}鎖甲{br}板甲\n│\n│ 2. 隨機回應:\n│ .db add 運氣 今天的運氣是{ran:100}分\n│\n│ 3. 動態資訊:\n│ .db add 伺服器 目前有{server.member_count}人\n│ {my.name}的等級是{my.level}\n├──── ⚠️注意事項 ────\n│ • 關鍵字可用中英數+表情\n│ • 未生效時用show重整\n╰──────────────`;
 };
 
 /**
@@ -284,7 +284,7 @@ function formatDatabaseList(items, page = 1, pageSize = 20) {
             '• 查看列表: .db show [頁碼]\n' +
             '• 使用標題: .db 標題\n' +
             '• 使用編號: .db 編號\n' +
-            '• 刪除項目: .db del 編號/all';
+            '• 刪除項目: .db del 標題/編號';
     }
 
     const totalPages = Math.ceil(items.length / pageSize);
@@ -321,7 +321,7 @@ function formatDatabaseList(items, page = 1, pageSize = 20) {
     output += `• 使用標題: .db 標題\n`;
     output += `• 查看列表: .db show [頁碼]\n`;
     output += `• 新增項目: .db add 標題 內容\n`;
-    output += `• 刪除項目: .db del 編號/all\n\n`;
+    output += `• 刪除項目: .db del 標題/編號\n\n`;
     output += `💡 特殊標記:\n`;
     output += `• {br} - 換行\n`;
     output += `• {ran:100} - 隨機1-100\n`;
@@ -454,8 +454,7 @@ function formatGlobalDatabaseList(database, page = 1, pageSize = 20) {
     output += `• 使用編號: .dbp 編號\n`;
     output += `• 使用標題: .dbp 標題\n`;
     output += `• 查看列表: .dbp show [頁碼]\n`;
-    output += `• 新增項目: .dbp add 標題 內容\n`;
-    output += `• 刪除項目: .dbp del 編號/all`;
+    output += `• 新增項目: .dbp add 標題 內容`;
 
     if (totalPages > 1) {
         output += `\n\n💡 使用 .dbp show ${page + 1} 查看下一頁`;
@@ -536,7 +535,7 @@ const rollDiceCommand = async function ({
                 rply.text += `• 使用標題: .db 標題\n`;
                 rply.text += `• 查看列表: .db show [頁碼]\n`;
                 rply.text += `• 新增項目: .db add 標題 內容\n`;
-                rply.text += `• 刪除項目: .db del 編號/all`;
+                rply.text += `• 刪除項目: .db del 標題/編號`;
                 return rply;
             }
 
@@ -548,7 +547,7 @@ const rollDiceCommand = async function ({
                 rply.text += `• 使用標題: .db 標題\n`;
                 rply.text += `• 查看列表: .db show [頁碼]\n`;
                 rply.text += `• 新增項目: .db add 標題 內容\n`;
-                rply.text += `• 刪除項目: .db del 編號/all`;
+                rply.text += `• 刪除項目: .db del 標題/編號`;
                 return rply;
             }
 
@@ -572,16 +571,16 @@ const rollDiceCommand = async function ({
             rply.text += `• 使用標題: .db ${mainMsg[2]}\n\n`;
             rply.text += `💡 其他功能:\n`;
             rply.text += `• 查看列表: .db show [頁碼]\n`;
-            rply.text += `• 刪除項目: .db del ${currentIndex}\n`;
-            rply.text += `• 刪除全部: .db del all`;
+            rply.text += `• 刪除項目: .db del ${currentIndex}`;
             return rply;
         }
         case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]): {
             // 驗證輸入
             if (!mainMsg[2]) {
-                rply.text = '❌ 請指定要刪除的標題\n\n';
+                rply.text = '❌ 請指定要刪除的標題或編號\n\n';
                 rply.text += `💡 使用方式:\n`;
                 rply.text += `• 刪除項目: .db del 標題\n`;
+                rply.text += `• 刪除編號: .db del 編號\n`;
                 rply.text += `• 查看列表: .db show\n`;
                 rply.text += `• 新增項目: .db add 標題 內容`;
                 return rply;
@@ -597,28 +596,44 @@ const rollDiceCommand = async function ({
             const database = await databaseOperations.getGroupDatabase();
             const groupData = database?.find(data => data.groupid === groupid);
 
-            // 查找要刪除的項目
-            const index = groupData?.trpgDatabasefunction?.findIndex(
-                item => item.topic.toLowerCase() === mainMsg[2].toLowerCase()
-            );
+            let targetIndex = -1;
+            let targetTopic = '';
 
-            if (index === -1) {
+            // 檢查是否為數字編號
+            if (/^\d+$/.test(mainMsg[2])) {
+                const numberIndex = Number.parseInt(mainMsg[2]) - 1;
+                if (groupData?.trpgDatabasefunction && numberIndex >= 0 && numberIndex < groupData.trpgDatabasefunction.length) {
+                    targetIndex = numberIndex;
+                    targetTopic = groupData.trpgDatabasefunction[numberIndex].topic;
+                }
+            } else {
+                // 查找要刪除的項目（按標題）
+                targetIndex = groupData?.trpgDatabasefunction?.findIndex(
+                    item => item.topic.toLowerCase() === mainMsg[2].toLowerCase()
+                );
+                if (targetIndex !== -1) {
+                    targetTopic = groupData.trpgDatabasefunction[targetIndex].topic;
+                }
+            }
+
+            if (targetIndex === -1) {
                 rply.text = `❌ 找不到標題為 "${mainMsg[2]}" 的項目\n\n`;
                 rply.text += `💡 使用方式:\n`;
                 rply.text += `• 刪除項目: .db del 標題\n`;
+                rply.text += `• 刪除編號: .db del 編號\n`;
                 rply.text += `• 查看列表: .db show\n`;
                 rply.text += `• 新增項目: .db add 標題 內容`;
                 return rply;
             }
 
-            // 刪除指定標題的數據
-            await databaseOperations.deleteAllGroupData(groupid, index);
+            // 刪除指定索引的數據
+            await databaseOperations.deleteGroupDataByIndex(groupid, targetIndex);
 
-            rply.text = `🗑️ 已刪除標題為 "${mainMsg[2]}" 的項目\n\n`;
+            rply.text = `🗑️ 已刪除標題為 "${targetTopic}" 的項目\n\n`;
             rply.text += `💡 使用方式:\n`;
             rply.text += `• 查看列表: .db show\n`;
             rply.text += `• 新增項目: .db add 標題 內容\n`;
-            rply.text += `• 刪除項目: .db del 標題`;
+            rply.text += `• 刪除項目: .db del 標題/編號`;
             return rply;
         }
         case /(^[.]db$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
@@ -778,58 +793,130 @@ const rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         }
-        case /(^[.]dbp$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]): {
-            // 驗證輸入
-            if (!mainMsg[2]) {
-                rply.text = '❌ 請指定要刪除的標題\n\n';
-                rply.text += `💡 使用方式:\n`;
-                rply.text += `• 刪除項目: .dbp del 標題\n`;
-                rply.text += `• 查看列表: .dbp show\n`;
-                rply.text += `• 新增項目: .dbp add 標題 內容`;
+        case /(^[.]dbp$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
+            // 檢查群組
+            if (!groupid) {
+                rply.text = '不在群組中.';
                 return rply;
             }
 
             // 獲取全服數據庫
             const database = await databaseOperations.getGlobalDatabase();
 
-            // 查找要刪除的項目
-            let foundGroup = null;
-            let foundIndex = -1;
-            for (const group of database) {
-                const index = group.trpgDatabaseAllgroup?.findIndex(
-                    item => item.topic.toLowerCase() === mainMsg[2].toLowerCase()
-                );
-                if (index !== -1) {
-                    foundGroup = group;
-                    foundIndex = index;
-                    break;
+            // 檢查是否為數字編號
+            if (/^\d+$/.test(mainMsg[1])) {
+                const numberIndex = Number.parseInt(mainMsg[1]) - 1;
+                const allItems = database.reduce((acc, group) => {
+                    if (group.trpgDatabaseAllgroup) {
+                        acc.push(...group.trpgDatabaseAllgroup);
+                    }
+                    return acc;
+                }, []);
+
+                if (numberIndex >= 0 && numberIndex < allItems.length) {
+                    const content = allItems[numberIndex];
+                    rply.text = `【${content.topic}】\n${content.contact}`;
+                } else {
+                    rply.text = '沒有找到該編號的關鍵字';
+                }
+            } else {
+                // 查找關鍵字內容
+                const content = findGlobalTopicContent(database, mainMsg[1]);
+
+                if (content) {
+                    rply.text = `【${content.topic}】\n${content.contact}`;
+                } else {
+                    rply.text = '沒有相關關鍵字.';
                 }
             }
 
-            if (foundIndex === -1) {
-                rply.text = `❌ 找不到標題為 "${mainMsg[2]}" 的項目\n\n`;
-                rply.text += `💡 使用方式:\n`;
-                rply.text += `• 刪除項目: .dbp del 標題\n`;
-                rply.text += `• 查看列表: .dbp show\n`;
-                rply.text += `• 新增項目: .dbp add 標題 內容`;
-                return rply;
-            }
-
-            // 刪除指定標題的數據
-            foundGroup.trpgDatabaseAllgroup.splice(foundIndex, 1);
-            await new Promise((resolve) => {
-                records.setTrpgDatabaseAllGroup('trpgDatabaseAllgroup', foundGroup, () => {
-                    resolve();
-                });
-            });
-
-            rply.text = `🗑️ 已刪除標題為 "${mainMsg[2]}" 的項目\n\n`;
-            rply.text += `💡 使用方式:\n`;
-            rply.text += `• 查看列表: .dbp show\n`;
-            rply.text += `• 新增項目: .dbp add 標題 內容\n`;
-            rply.text += `• 刪除項目: .dbp del 標題`;
+            // 處理特殊標記
+            rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
             return rply;
         }
+        // case /(^[.]dbp$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]): {
+        //     // 驗證輸入
+        //     if (!mainMsg[2]) {
+        //         rply.text = '❌ 請指定要刪除的標題或編號\n\n';
+        //         rply.text += `💡 使用方式:\n`;
+        //         rply.text += `• 刪除項目: .dbp del 標題\n`;
+        //         rply.text += `• 刪除編號: .dbp del 編號\n`;
+        //         rply.text += `• 查看列表: .dbp show\n`;
+        //         rply.text += `• 新增項目: .dbp add 標題 內容`;
+        //         return rply;
+        //     }
+
+        //     // 獲取全服數據庫
+        //     const database = await databaseOperations.getGlobalDatabase();
+
+        //     let foundGroup = null;
+        //     let foundIndex = -1;
+        //     let targetTopic = '';
+
+        //     // 檢查是否為數字編號
+        //     if (/^\d+$/.test(mainMsg[2])) {
+        //         const numberIndex = Number.parseInt(mainMsg[2]) - 1;
+        //         const allItems = database.reduce((acc, group) => {
+        //             if (group.trpgDatabaseAllgroup) {
+        //                 acc.push(...group.trpgDatabaseAllgroup);
+        //             }
+        //             return acc;
+        //         }, []);
+
+        //         if (numberIndex >= 0 && numberIndex < allItems.length) {
+        //             targetTopic = allItems[numberIndex].topic;
+        //             // 找到對應的群組和索引
+        //             for (const group of database) {
+        //                 const index = group.trpgDatabaseAllgroup?.findIndex(
+        //                     item => item.topic === targetTopic
+        //                 );
+        //                 if (index !== -1) {
+        //                     foundGroup = group;
+        //                     foundIndex = index;
+        //                     break;
+        //                 }
+        //             }
+        //         }
+        //     } else {
+        //         // 查找要刪除的項目（按標題）
+        //         for (const group of database) {
+        //             const index = group.trpgDatabaseAllgroup?.findIndex(
+        //                 item => item.topic.toLowerCase() === mainMsg[2].toLowerCase()
+        //             );
+        //             if (index !== -1) {
+        //                 foundGroup = group;
+        //                 foundIndex = index;
+        //                 targetTopic = group.trpgDatabaseAllgroup[index].topic;
+        //                 break;
+        //             }
+        //         }
+        //     }
+
+        //     if (foundIndex === -1) {
+        //         rply.text = `❌ 找不到標題為 "${mainMsg[2]}" 的項目\n\n`;
+        //         rply.text += `💡 使用方式:\n`;
+        //         rply.text += `• 刪除項目: .dbp del 標題\n`;
+        //         rply.text += `• 刪除編號: .dbp del 編號\n`;
+        //         rply.text += `• 查看列表: .dbp show\n`;
+        //         rply.text += `• 新增項目: .dbp add 標題 內容`;
+        //         return rply;
+        //     }
+
+        //     // 刪除指定標題的數據
+        //     foundGroup.trpgDatabaseAllgroup.splice(foundIndex, 1);
+        //     await new Promise((resolve) => {
+        //         records.setTrpgDatabaseAllGroup('trpgDatabaseAllgroup', foundGroup, () => {
+        //             resolve();
+        //         });
+        //     });
+
+        //     rply.text = `🗑️ 已刪除標題為 "${targetTopic}" 的項目\n\n`;
+        //     rply.text += `💡 使用方式:\n`;
+        //     rply.text += `• 查看列表: .dbp show\n`;
+        //     rply.text += `• 新增項目: .dbp add 標題 內容\n`;
+        //     rply.text += `• 刪除項目: .dbp del 標題/編號`;
+        //     return rply;
+        // }
         default:
             break;
     }
@@ -1017,14 +1104,14 @@ const discordCommand = [
                         option.setName('page')
                             .setDescription('頁碼')
                             .setRequired(false)))
-            .addSubcommand(subcommand =>
-                subcommand
-                    .setName('del')
-                    .setDescription('刪除指定全服標題')
-                    .addStringOption(option =>
-                        option.setName('topic')
-                            .setDescription('要刪除的標題')
-                            .setRequired(true)))
+            // .addSubcommand(subcommand =>
+            //     subcommand
+            //         .setName('del')
+            //         .setDescription('刪除指定全服標題')
+            //         .addStringOption(option =>
+            //             option.setName('topic')
+            //                 .setDescription('要刪除的標題')
+            //                 .setRequired(true)))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('get')
@@ -1049,10 +1136,10 @@ const discordCommand = [
                     const page = interaction.options.getInteger('page');
                     return page ? `.dbp show ${page}` : '.dbp show';
                 }
-                case 'del': {
-                    const topic = interaction.options.getString('topic');
-                    return `.dbp del ${topic}`;
-                }
+                // case 'del': {
+                //     const topic = interaction.options.getString('topic');
+                //     return `.dbp del ${topic}`;
+                // }
                 case 'get': {
                     const topic = interaction.options.getString('topic');
                     return `.dbp ${topic}`;

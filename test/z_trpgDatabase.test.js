@@ -292,21 +292,7 @@ describe('TRPG Database Module Tests', () => {
         expect(result.text).toBe('刪除成功: 1');
     });
 
-    test('Test db del all command', async () => {
-        trpgDatabaseModule.rollDiceCommand.mockResolvedValue({
-            type: 'text',
-            text: '刪除所有關鍵字'
-        });
 
-        const result = await trpgDatabaseModule.rollDiceCommand({
-            mainMsg: ['.db', 'del', 'all'],
-            groupid: 'testgroup',
-            userrole: 1
-        });
-
-        expect(result.type).toBe('text');
-        expect(result.text).toBe('刪除所有關鍵字');
-    });
 
     test('Test dbp add command', async () => {
         trpgDatabaseModule.rollDiceCommand.mockResolvedValue({

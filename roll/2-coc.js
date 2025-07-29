@@ -112,7 +112,7 @@ const rollDiceCommand = async function ({
 		case (/^help$/i.test(mainMsg[1])): {
 			rply.text = this.getHelpMessage();
 			rply.quotes = true;
-			break;
+			return rply;
 		}
 		case /^ccrt$/i.test(mainMsg[0]): {
 			rply.text = ccrt();

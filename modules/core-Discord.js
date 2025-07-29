@@ -1,3 +1,4 @@
+/* eslint-disable n/no-process-exit */
 "use strict";
 
 if (!process.env.DISCORD_CHANNEL_SECRET) {
@@ -13,14 +14,49 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
 require("./ds-deploy-commands");
 
-// 配置選項
+// Global variables to track shutdown status
+let isShuttingDown = false;
+let shutdownTimeout = null;
+
+// Graceful shutdown function
+async function gracefulShutdown() {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+    
+    console.log('[Cluster] Starting graceful shutdown...');
+    
+    // Clear shutdown timeout
+    if (shutdownTimeout) {
+        clearTimeout(shutdownTimeout);
+    }
+    
+    try {
+        // Stop heartbeat manager
+        if (manager.heartbeat) {
+            console.log('[Cluster] Stopping heartbeat manager...');
+            manager.heartbeat.stop();
+        }
+        
+        // Destroy all clusters
+        console.log('[Cluster] Destroying all clusters...');
+        await manager.destroy();
+        
+        console.log('[Cluster] Graceful shutdown completed');
+        process.exit(0);
+    } catch (error) {
+        console.error('[Cluster] Error during shutdown:', error);
+        process.exit(1);
+    }
+}
+
+// Configuration options
 const clusterOptions = {
     token: channelSecret,
     shardsPerClusters: 2,
     totalShards: 'auto',
     mode: 'process',
     spawnTimeout: -1,
-    respawn: true,
+    respawn: false, // Disable auto respawn, manually controlled
     retry: {
         attempts: MAX_RETRY_ATTEMPTS,
         delay: RETRY_DELAY
@@ -35,7 +71,7 @@ const clusterOptions = {
 
 const manager = new ClusterManager('./modules/discord_bot.js', clusterOptions);
 
-// 改進的事件處理
+// Improved event handling
 manager.on('clusterCreate', shard => {
     console.log(`[Cluster] Launched cluster #${shard.id}`);
 
@@ -45,15 +81,20 @@ manager.on('clusterCreate', shard => {
     });
 
     const errorHandler = (event, error) => {
+        // Don't handle errors if shutting down
+        if (isShuttingDown) return;
+        
         console.error(`[Cluster ${shard.id}] ${event}:`, error);
-        // 添加重試邏輯
+        // Add retry logic
         if (event === 'death') {
             setTimeout(() => {
-                console.log(`[Cluster ${shard.id}] Attempting to respawn...`);
-                try {
-                    shard.respawn({ timeout: 60_000 });
-                } catch (error_) {
-                    console.error(`[Cluster ${shard.id}] Failed to respawn:`, error_);
+                if (!isShuttingDown) {
+                    console.log(`[Cluster ${shard.id}] Attempting to respawn...`);
+                    try {
+                        shard.respawn({ timeout: 60_000 });
+                    } catch (error_) {
+                        console.error(`[Cluster ${shard.id}] Failed to respawn:`, error_);
+                    }
                 }
             }, RETRY_DELAY);
         }
@@ -65,9 +106,12 @@ manager.on('clusterCreate', shard => {
     shard.on('error', (error) => errorHandler('Error', error));
 });
 
-// 改進的消息處理
+// Improved message handling
 manager.on("clusterCreate", cluster => {
     cluster.on("message", async message => {
+        // Don't handle respawn messages if shutting down
+        if (isShuttingDown) return;
+        
         if (message.respawn === true && message.id !== null && message.id !== undefined) {
             console.log(`[Cluster] Respawning cluster ${message.id}`);
             try {
@@ -102,9 +146,11 @@ manager.on("clusterCreate", cluster => {
     });
 });
 
-// 改進的排程任務
+// Improved scheduled tasks
 if (agenda) {
     agenda.define('dailyDiscordMaintenance', async () => {
+        if (isShuttingDown) return;
+        
         console.log('[Schedule] Running daily Discord maintenance');
         try {
             await manager.respawnAll({
@@ -118,13 +164,15 @@ if (agenda) {
     });
 }
 
-// 心跳管理
+// Heartbeat management
 manager.extend(
     new HeartbeatManager({
         interval: 5000,           // Increased interval
         maxMissedHeartbeats: 5,   // Decreased tolerance
         onMissedHeartbeat: (cluster) => {
-            console.warn(`[Heartbeat] Cluster ${cluster.id} missed a heartbeat`);
+            if (!isShuttingDown) {
+                console.warn(`[Heartbeat] Cluster ${cluster.id} missed a heartbeat`);
+            }
         },
         onClusterReady: (cluster) => {
             console.log(`[Heartbeat] Cluster ${cluster.id} is now ready and sending heartbeats`);
@@ -132,13 +180,35 @@ manager.extend(
     })
 );
 
-// 啟動叢集
+// Process signal handling
+process.on('SIGTERM', async () => {
+    console.log('[Cluster] Received SIGTERM signal');
+    // Set force shutdown timeout
+    shutdownTimeout = setTimeout(() => {
+        console.log('[Cluster] Force shutdown after timeout');
+        process.exit(1);
+    }, 30_000); // 30 second timeout
+    
+    await gracefulShutdown();
+});
+
+process.on('SIGINT', async () => {
+    console.log('[Cluster] Received SIGINT signal');
+    // Set force shutdown timeout
+    shutdownTimeout = setTimeout(() => {
+        console.log('[Cluster] Force shutdown after timeout');
+        process.exit(1);
+    }, 30_000); // 30 second timeout
+    
+    await gracefulShutdown();
+});
+
+// Start clusters
 manager.spawn({
     timeout: -1,
     delay: DELAY,
     amount: 'auto'
 }).catch(error => {
     console.error('[Cluster] Failed to spawn clusters:', error);
-    // eslint-disable-next-line n/no-process-exit
     process.exit(1);
 });

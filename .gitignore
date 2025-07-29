@@ -78,3 +78,4 @@ temp/
 dist/
 
 *.dev.js
+ecosystem.config.js

@@ -455,8 +455,6 @@ class Records extends EventEmitter {
 
     async createForwardedMessage(data) {
         try {
-            console.log(`[DEBUG] Attempting to create forwarded message with data:`, JSON.stringify(data));
-
             // Check if a message with this fixedId already exists for this user
             const existingMessage = await this.dbOperations.forwardedMessage.schema.findOne({
                 userId: data.userId,

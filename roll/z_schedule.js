@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prefer-string-replace-all */
 "use strict";
 if (!process.env.mongoURL) {
     return;
@@ -396,9 +397,30 @@ function differentPeformAt(botname) {
     }
 }
 function getAndRemoveRoleNameAndLink(input) {
-    let roleName = /^name=(.*)\n/mi.test(input) ? input.match(/^name=(.*)\n/mi)[1] : null;
-    let imageLink = /^link=(.*)\n/mi.test(input) ? input.match(/^link=(.*)\n/mi)[1] : null;
-    return { newText: input.replace(/^link=.*\n/mi, "").replace(/^name=.*\n/im, ""), roleName, imageLink };
+    // More flexible regex to match name= and link= anywhere in the input
+    let roleName = null;
+    let imageLink = null;
+    
+    // Try to find name= parameter
+    const nameMatch = input.match(/name\s*=\s*([^\n\r]+)/i);
+    if (nameMatch) {
+        roleName = nameMatch[1].trim();
+    }
+    
+    // Try to find link= parameter
+    const linkMatch = input.match(/link\s*=\s*([^\n\r]+)/i);
+    if (linkMatch) {
+        imageLink = linkMatch[1].trim();
+    }
+    
+    // Remove the name= and link= lines from the input
+    let newText = input
+        .replace(/^name\s*=\s*[^\n\r]*\n?/gim, '')
+        .replace(/^link\s*=\s*[^\n\r]*\n?/gim, '')
+        .replace(/\n\s*\n/g, '\n') 
+        .trim();
+    
+    return { newText, roleName, imageLink };
 }
 
 function differentPeformCron(botname) {

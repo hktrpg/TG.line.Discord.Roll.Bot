@@ -718,7 +718,25 @@ async function repeatMessages(discord, message) {
 }
 async function manageWebhook(discord) {
 	try {
-		const channel = await client.channels.fetch(discord.channelId);
+		// First try to fetch the channel from cache
+		let channel = client.channels.cache.get(discord.channelId);
+		
+		// If not in cache, try to fetch it
+		if (!channel) {
+			try {
+				channel = await client.channels.fetch(discord.channelId);
+			} catch (fetchError) {
+				console.error(`Failed to fetch channel ${discord.channelId}:`, fetchError.message);
+				return null;
+			}
+		}
+		
+		// Check if channel exists and bot has access
+		if (!channel) {
+			console.error(`Channel ${discord.channelId} not found or bot doesn't have access`);
+			return null;
+		}
+		
 		const isThread = channel && channel.isThread();
 		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
 		let webhook = webhooks.find(v => {
@@ -728,12 +746,17 @@ async function manageWebhook(discord) {
 		//type Channel Follower
 		//'Incoming'
 		if (!webhook) {
-			const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
-			await hooks.createWebhook({ name: "HKTRPG .me Function", avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
-			webhooks = await channel.fetchWebhooks();
-			webhook = webhooks.find(v => {
-				return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
-			})
+			try {
+				const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
+				await hooks.createWebhook({ name: "HKTRPG .me Function", avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
+				webhooks = await channel.fetchWebhooks();
+				webhook = webhooks.find(v => {
+					return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+				})
+			} catch (createError) {
+				console.error(`Failed to create webhook for channel ${discord.channelId}:`, createError.message);
+				return null;
+			}
 		}
 		return { webhook, isThread };
 	} catch (error) {

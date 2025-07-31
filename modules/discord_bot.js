@@ -613,7 +613,6 @@ function respawnCluster2() {
 		//const date = new Date(2012, 11, 21, 5, 30, 0);
 		//const date = new Date(Date.now() + 5000);
 		//指定時間一次	
-		//if (shardids !== 0) return;
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
 		if ((/<@\S+>/g).test(text)) quotes = false;
@@ -622,13 +621,69 @@ function respawnCluster2() {
 				{ replyText: text, channelid: data.channelid, quotes: quotes, groupid: data.groupid }
 			)
 		else {
-			// Use the same approach as myname system instead of sendCronWebhook
+			// Try to send webhook message
 			try {
-				let webhook = await manageWebhook({ channelId: data.channelid });
-
-				// Check if webhook is valid before proceeding
-				if (!webhook || !webhook.webhook) {
-					console.error(`Failed to get webhook for channel ${data.channelid}, falling back to regular message`);
+				console.log(`Attempting to send webhook message for channel ${data.channelid}`);
+				
+				// Try to get the channel on the current shard
+				const channel = await client.channels.fetch(data.channelid);
+				if (channel) {
+					console.log(`Channel found on current shard, attempting webhook send`);
+					
+					const isThread = channel && channel.isThread();
+					console.log(`Channel found, isThread: ${isThread}`);
+					
+					// Try to get webhooks
+					let webhooks;
+					try {
+						webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
+						console.log(`Found ${webhooks.size} webhooks`);
+					} catch (webhookError) {
+						console.log(`Webhook fetch failed: ${webhookError.message}`);
+						throw webhookError;
+					}
+					
+					let webhook = webhooks.find(v => {
+						return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+					});
+					
+					// Create webhook if not found
+					if (!webhook) {
+						console.log(`No webhook found, creating new one`);
+						try {
+							const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
+							await hooks.createWebhook({ 
+								name: "HKTRPG .me Function", 
+								avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" 
+							});
+							webhooks = await channel.fetchWebhooks();
+							webhook = webhooks.find(v => {
+								return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+							});
+							console.log(`Created webhook: ${webhook ? 'success' : 'failed'}`);
+						} catch (createError) {
+							console.log(`Webhook creation failed: ${createError.message}`);
+							throw createError;
+						}
+					}
+					
+					if (!webhook) {
+						console.log(`No webhook available after creation attempt`);
+						throw new Error('No webhook available');
+					}
+					
+					// Send the message
+					let obj = {
+						content: text,
+						username: data.roleName,
+						avatarURL: data.imageLink
+					};
+					let pair = (webhook && isThread) ? { threadId: data.channelid } : {};
+					await webhook.send({ ...obj, ...pair });
+					
+					console.log(`Successfully sent webhook message`);
+				} else {
+					console.log(`Channel not found on current shard, falling back to regular message`);
 					// Fallback to regular message sending
 					await SendToReplychannel({
 						replyText: text,
@@ -636,16 +691,7 @@ function respawnCluster2() {
 						quotes: quotes,
 						groupid: data.groupid
 					});
-					return;
 				}
-
-				let obj = {
-					content: text,
-					username: data.roleName,
-					avatarURL: data.imageLink
-				};
-				let pair = (webhook && webhook.isThread) ? { threadId: data.channelid } : {};
-				await webhook.webhook.send({ ...obj, ...pair });
 			} catch (error) {
 				console.error(`Error in scheduleAtMessageDiscord for channel ${data.channelid}:`, error.message);
 				// Fallback to regular message sending
@@ -657,16 +703,17 @@ function respawnCluster2() {
 						groupid: data.groupid
 					});
 				} catch (fallbackError) {
-					console.error(`Fallback message sending also failed for channel ${data.channelid}:`, fallbackError.message);
+					console.error(`Fallback also failed:`, fallbackError.message);
 				}
 			}
 		}
+		
 		try {
 			await job.remove();
 		} catch (error) {
 			console.error("Discord Error removing job from collection:scheduleAtMessageDiscord", error);
 		}
-	})
+	});
 
 	agenda.define("scheduleCronMessageDiscord", async (job) => {
 		//const date = new Date(2012, 11, 21, 5, 30, 0);
@@ -681,13 +728,69 @@ function respawnCluster2() {
 				{ replyText: text, channelid: data.channelid, quotes: quotes, groupid: data.groupid }
 			)
 		else {
-			// Use the same approach as myname system instead of sendCronWebhook
+			// Try to send webhook message
 			try {
-				let webhook = await manageWebhook({ channelId: data.channelid });
-
-				// Check if webhook is valid before proceeding
-				if (!webhook || !webhook.webhook) {
-					console.error(`Failed to get webhook for channel ${data.channelid}, falling back to regular message`);
+				console.log(`Attempting to send webhook message for channel ${data.channelid} (cron)`);
+				
+				// Try to get the channel on the current shard
+				const channel = await client.channels.fetch(data.channelid);
+				if (channel) {
+					console.log(`Channel found on current shard, attempting webhook send (cron)`);
+					
+					const isThread = channel && channel.isThread();
+					console.log(`Channel found, isThread: ${isThread} (cron)`);
+					
+					// Try to get webhooks
+					let webhooks;
+					try {
+						webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
+						console.log(`Found ${webhooks.size} webhooks (cron)`);
+					} catch (webhookError) {
+						console.log(`Webhook fetch failed: ${webhookError.message} (cron)`);
+						throw webhookError;
+					}
+					
+					let webhook = webhooks.find(v => {
+						return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+					});
+					
+					// Create webhook if not found
+					if (!webhook) {
+						console.log(`No webhook found, creating new one (cron)`);
+						try {
+							const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
+							await hooks.createWebhook({ 
+								name: "HKTRPG .me Function", 
+								avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" 
+							});
+							webhooks = await channel.fetchWebhooks();
+							webhook = webhooks.find(v => {
+								return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+							});
+							console.log(`Created webhook: ${webhook ? 'success' : 'failed'} (cron)`);
+						} catch (createError) {
+							console.log(`Webhook creation failed: ${createError.message} (cron)`);
+							throw createError;
+						}
+					}
+					
+					if (!webhook) {
+						console.log(`No webhook available after creation attempt (cron)`);
+						throw new Error('No webhook available');
+					}
+					
+					// Send the message
+					let obj = {
+						content: text,
+						username: data.roleName,
+						avatarURL: data.imageLink
+					};
+					let pair = (webhook && isThread) ? { threadId: data.channelid } : {};
+					await webhook.send({ ...obj, ...pair });
+					
+					console.log(`Successfully sent webhook message (cron)`);
+				} else {
+					console.log(`Channel not found on current shard, falling back to regular message (cron)`);
 					// Fallback to regular message sending
 					await SendToReplychannel({
 						replyText: text,
@@ -695,16 +798,7 @@ function respawnCluster2() {
 						quotes: quotes,
 						groupid: data.groupid
 					});
-					return;
 				}
-
-				let obj = {
-					content: text,
-					username: data.roleName,
-					avatarURL: data.imageLink
-				};
-				let pair = (webhook && webhook.isThread) ? { threadId: data.channelid } : {};
-				await webhook.webhook.send({ ...obj, ...pair });
 			} catch (error) {
 				console.error(`Error in scheduleCronMessageDiscord for channel ${data.channelid}:`, error.message);
 				// Fallback to regular message sending
@@ -716,7 +810,7 @@ function respawnCluster2() {
 						groupid: data.groupid
 					});
 				} catch (fallbackError) {
-					console.error(`Fallback message sending also failed for channel ${data.channelid}:`, fallbackError.message);
+					console.error(`Fallback also failed:`, fallbackError.message);
 				}
 			}
 		}

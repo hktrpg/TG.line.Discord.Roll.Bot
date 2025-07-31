@@ -211,16 +211,22 @@ const rollDiceCommand = async function ({
                     rply.text = `.at裡的角色發言功能只供Patreoner使用，請支持伺服器運作，或自建Server\nhttps://www.patreon.com/HKTRPG`;
                     return rply;
                 }
-                if (!roleName.roleName || !roleName.imageLink) {
-                    rply.text = `請完整設定名字和圖片網址
-                    格式為
-                    .at 時間
-                    name=名字
-                    link=www.sample.com/sample.jpg
-                    XXXXXX信息一堆`;
+                // Validate that both name and link are provided and not empty
+                if (!roleName.roleName || roleName.roleName.trim() === '') {
+                    rply.text = `請完整設定名字和圖片網址\nname= 不能為空`;
                     return rply;
                 }
-
+                
+                if (!roleName.imageLink || roleName.imageLink.trim() === '') {
+                    rply.text = `請完整設定名字和圖片網址\nlink= 不能為空`;
+                    return rply;
+                }
+                
+                // Validate that link starts with http:// or https://
+                if (!/^https?:\/\//i.test(roleName.imageLink)) {
+                    rply.text = `請完整設定名字和圖片網址\nlink= 必須以 http:// 或 https:// 開頭`;
+                    return rply;
+                }
             }
 
             let callBotname = differentPeformAt(botname);
@@ -346,16 +352,23 @@ const rollDiceCommand = async function ({
                     rply.text = `.cron裡的角色發言功能只供Patreoner使用，請支持伺服器運作，或自建Server\nhttps://www.patreon.com/HKTRPG`;
                     return rply;
                 }
-                if (!roleName.roleName || !roleName.imageLink) {
-                    rply.text = `請完整設定名字和圖片網址
-                    格式為
-                    .cron 時間
-                    name=名字
-                    link=www.sample.com/sample.jpg
-                    XXXXXX信息一堆`;
+                
+                // Validate that both name and link are provided and not empty
+                if (!roleName.roleName || roleName.roleName.trim() === '') {
+                    rply.text = `請完整設定名字和圖片網址\nname= 不能為空`;
                     return rply;
                 }
-
+                
+                if (!roleName.imageLink || roleName.imageLink.trim() === '') {
+                    rply.text = `請完整設定名字和圖片網址\nlink= 不能為空`;
+                    return rply;
+                }
+                
+                // Validate that link starts with http:// or https://
+                if (!/^https?:\/\//i.test(roleName.imageLink)) {
+                    rply.text = `請完整設定名字和圖片網址\nlink= 必須以 http:// 或 https:// 開頭`;
+                    return rply;
+                }
             }
 
 
@@ -401,24 +414,37 @@ function getAndRemoveRoleNameAndLink(input) {
     let roleName = null;
     let imageLink = null;
     
-    // Try to find name= parameter
-    const nameMatch = input.match(/name\s*=\s*([^\n\r]+)/i);
-    if (nameMatch) {
-        roleName = nameMatch[1].trim();
+    // Split input into lines and process each line
+    const lines = input.split('\n');
+    const processedLines = [];
+    
+    for (const line of lines) {
+        const trimmedLine = line.trim();
+        
+        // Check for name= parameter
+        if (/^name\s*=/i.test(trimmedLine)) {
+            const nameValue = trimmedLine.replace(/^name\s*=\s*/i, '').trim();
+            if (nameValue) {
+                roleName = nameValue;
+            }
+            continue; // Skip this line in output
+        }
+        
+        // Check for link= parameter
+        if (/^link\s*=/i.test(trimmedLine)) {
+            const linkValue = trimmedLine.replace(/^link\s*=\s*/i, '').trim();
+            if (linkValue) {
+                imageLink = linkValue;
+            }
+            continue; // Skip this line in output
+        }
+        
+        // Keep non-parameter lines
+        processedLines.push(line);
     }
     
-    // Try to find link= parameter
-    const linkMatch = input.match(/link\s*=\s*([^\n\r]+)/i);
-    if (linkMatch) {
-        imageLink = linkMatch[1].trim();
-    }
-    
-    // Remove the name= and link= lines from the input
-    let newText = input
-        .replace(/^name\s*=\s*[^\n\r]*\n?/gim, '')
-        .replace(/^link\s*=\s*[^\n\r]*\n?/gim, '')
-        .replace(/\n\s*\n/g, '\n') 
-        .trim();
+    // Join remaining lines and clean up
+    let newText = processedLines.join('\n').replace(/\n\s*\n/g, '\n').trim();
     
     return { newText, roleName, imageLink };
 }

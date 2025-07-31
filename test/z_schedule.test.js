@@ -440,4 +440,76 @@ Test message`,
         expect(result.type).toBe('text');
         expect(result.text).toContain('只供Patreoner使用');
     });
+
+    test('Test empty name parameter validation', async () => {
+        VIP.viplevelCheckUser.mockResolvedValue(1);
+
+        scheduleModule.rollDiceCommand.mockResolvedValue({
+            type: 'text',
+            text: '請完整設定名字和圖片網址\nname= 不能為空'
+        });
+
+        const result = await scheduleModule.rollDiceCommand({
+            mainMsg: ['.at', '1mins'],
+            inputStr: `.at 1mins
+name=
+link=https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png
+測試`,
+            groupid: 'testgroup',
+            botname: 'Discord',
+            channelid: 'testchannel',
+            userid: 'testuser'
+        });
+
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('name= 不能為空');
+    });
+
+    test('Test invalid link format validation', async () => {
+        VIP.viplevelCheckUser.mockResolvedValue(1);
+
+        scheduleModule.rollDiceCommand.mockResolvedValue({
+            type: 'text',
+            text: '請完整設定名字和圖片網址\nlink= 必須以 http:// 或 https:// 開頭'
+        });
+
+        const result = await scheduleModule.rollDiceCommand({
+            mainMsg: ['.at', '1mins'],
+            inputStr: `.at 1mins
+name=Sad
+link=htt
+測試`,
+            groupid: 'testgroup',
+            botname: 'Discord',
+            channelid: 'testchannel',
+            userid: 'testuser'
+        });
+
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('link= 必須以 http:// 或 https:// 開頭');
+    });
+
+    test('Test empty link parameter validation', async () => {
+        VIP.viplevelCheckUser.mockResolvedValue(1);
+
+        scheduleModule.rollDiceCommand.mockResolvedValue({
+            type: 'text',
+            text: '請完整設定名字和圖片網址\nlink= 不能為空'
+        });
+
+        const result = await scheduleModule.rollDiceCommand({
+            mainMsg: ['.at', '1mins'],
+            inputStr: `.at 1mins
+name=Sad
+link=
+測試`,
+            groupid: 'testgroup',
+            botname: 'Discord',
+            channelid: 'testchannel',
+            userid: 'testuser'
+        });
+
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('link= 不能為空');
+    });
 }); 

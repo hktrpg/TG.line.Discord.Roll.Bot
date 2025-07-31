@@ -185,8 +185,11 @@ manager.on("clusterCreate", cluster => {
                             return { success: false, error: webhookError.message };
                         }
 
+                        console.log(`[Cluster] Searching through ${webhooks.size} webhooks for channel ${channel.id}`);
                         let webhook = webhooks.find(v => {
-                            return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+                            const matches = (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+                            console.log(`[Cluster] Checking webhook ${v.id}: channelId=${v.channelId}, matches=${matches}`);
+                            return matches;
                         });
                         console.log(`[Cluster] Webhook search: found ${webhook ? 'webhook' : 'no webhook'}, channel.parentId=${channel.parentId}, channel.id=${channel.id}`);
                         if (webhook) {
@@ -199,17 +202,42 @@ manager.on("clusterCreate", cluster => {
                             try {
                                 const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
                                 console.log(`[Cluster] Creating webhook for ${isThread ? 'thread' : 'channel'}, parentId: ${channel.parentId}, channelId: ${channel.id}`);
-                                await hooks.createWebhook({ 
+                                
+                                // Validate the hooks object before creating webhook
+                                if (!hooks) {
+                                    console.log(`[Cluster] Failed to get hooks object for webhook creation`);
+                                    return { success: false, error: 'Failed to get hooks object' };
+                                }
+                                
+                                console.log(`[Cluster] Hooks object details:`, {
+                                    id: hooks.id,
+                                    type: hooks.type,
+                                    guildId: hooks.guildId
+                                });
+                                
+                                console.log(`[Cluster] Creating webhook with name: "HKTRPG .me Function"`);
+                                const createdWebhook = await hooks.createWebhook({ 
                                     name: "HKTRPG .me Function", 
                                     avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" 
                                 });
+                                console.log(`[Cluster] Webhook created successfully:`, {
+                                    id: createdWebhook.id,
+                                    channelId: createdWebhook.channelId,
+                                    name: createdWebhook.name
+                                });
                                 webhooks = await channel.fetchWebhooks();
+                                console.log(`[Cluster] Fetched ${webhooks.size} webhooks after creation`);
+                                
                                 webhook = webhooks.find(v => {
                                     return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
                                 });
                                 console.log(`[Cluster] Created webhook: ${webhook ? 'success' : 'failed'}`);
                                 if (webhook) {
                                     console.log(`[Cluster] Webhook details: channelId=${webhook.channelId}, id=${webhook.id}, name=${webhook.name}`);
+                                } else {
+                                    console.log(`[Cluster] No webhook found after creation. Available webhooks:`, 
+                                        [...webhooks.values()].map(w => ({ id: w.id, channelId: w.channelId, name: w.name }))
+                                    );
                                 }
                             } catch (createError) {
                                 console.log(`[Cluster] Webhook creation failed: ${createError.message}`);
@@ -244,6 +272,13 @@ manager.on("clusterCreate", cluster => {
                             webhookChannelId: webhook.channelId,
                             isThread: isThread
                         });
+                        
+                        // Validate webhook before sending
+                        if (!webhook.channelId) {
+                            console.log(`[Cluster] Webhook has no channelId:`, webhook);
+                            return { success: false, error: 'Webhook has no channel ID' };
+                        }
+                        
                         await webhook.send({ ...obj, ...pair });
 
                         console.log(`[Cluster] Successfully sent webhook message`);

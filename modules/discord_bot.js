@@ -1695,10 +1695,73 @@ if (togGGToken) {
 
 async function sendCronWebhook({ channelid, replyText, data }) {
 	try {
-		let webhook = await manageWebhook({ channelId: channelid })
+		// First try to fetch the channel from cache
+		let channel = client.channels.cache.get(channelid);
+		
+		// If not in cache, try to fetch it
+		if (!channel) {
+			try {
+				channel = await client.channels.fetch(channelid);
+			} catch (fetchError) {
+				console.error(`Failed to fetch channel ${channelid}:`, fetchError.message);
+				// Fallback to regular message sending
+				await SendToReplychannel({
+					replyText,
+					channelid,
+					quotes: true,
+					groupid: data.groupid
+				});
+				return;
+			}
+		}
+		
+		// Check if channel exists and bot has access
+		if (!channel) {
+			console.error(`Channel ${channelid} not found or bot doesn't have access`);
+			// Fallback to regular message sending
+			await SendToReplychannel({
+				replyText,
+				channelid,
+				quotes: true,
+				groupid: data.groupid
+			});
+			return;
+		}
+
+		// Try to get or create webhook
+		const isThread = channel && channel.isThread();
+		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
+		let webhook = webhooks.find(v => {
+			return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+		});
+
+		// If no webhook exists, try to create one
+		if (!webhook) {
+			try {
+				const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
+				await hooks.createWebhook({ 
+					name: "HKTRPG Schedule Function", 
+					avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" 
+				});
+				webhooks = await channel.fetchWebhooks();
+				webhook = webhooks.find(v => {
+					return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+				});
+			} catch (createError) {
+				console.error(`Failed to create webhook for channel ${channelid}:`, createError.message);
+				// Fallback to regular message sending
+				await SendToReplychannel({
+					replyText,
+					channelid,
+					quotes: true,
+					groupid: data.groupid
+				});
+				return;
+			}
+		}
 
 		// Check if webhook is valid before proceeding
-		if (!webhook || !webhook.webhook) {
+		if (!webhook) {
 			console.error(`Failed to get webhook for channel ${channelid}, falling back to regular message`);
 			// Fallback to regular message sending
 			await SendToReplychannel({
@@ -1710,13 +1773,14 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 			return;
 		}
 
+		// Send message via webhook
 		let obj = {
 			content: replyText,
 			username: data.roleName,
 			avatarURL: data.imageLink
 		};
-		let pair = (webhook && webhook.isThread) ? { threadId: channelid } : {};
-		await webhook.webhook.send({ ...obj, ...pair });
+		let pair = isThread ? { threadId: channelid } : {};
+		await webhook.send({ ...obj, ...pair });
 	} catch (error) {
 		console.error(`Error in sendCronWebhook for channel ${channelid}:`, error.message);
 		// Fallback to regular message sending
@@ -1742,12 +1806,54 @@ async function handlingMultiServerMessage(message) {
 		//	for (let index = 0; index < targetsData.length; index++) {
 		const targetData = target
 		try {
-			let webhook = await manageWebhook({ channelId: targetData.channelid })
+			// First try to fetch the channel from cache
+			let channel = client.channels.cache.get(targetData.channelid);
+			
+			// If not in cache, try to fetch it
+			if (!channel) {
+				try {
+					channel = await client.channels.fetch(targetData.channelid);
+				} catch (fetchError) {
+					console.error(`Failed to fetch channel ${targetData.channelid}:`, fetchError.message);
+					return;
+				}
+			}
+			
+			// Check if channel exists and bot has access
+			if (!channel) {
+				console.error(`Channel ${targetData.channelid} not found or bot doesn't have access`);
+				return;
+			}
+
+			// Try to get or create webhook
+			const isThread = channel && channel.isThread();
+			let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
+			let webhook = webhooks.find(v => {
+				return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+			});
+
+			// If no webhook exists, try to create one
+			if (!webhook) {
+				try {
+					const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
+					await hooks.createWebhook({ 
+						name: "HKTRPG Multi-Server Function", 
+						avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" 
+					});
+					webhooks = await channel.fetchWebhooks();
+					webhook = webhooks.find(v => {
+						return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+					});
+				} catch (createError) {
+					console.error(`Failed to create webhook for channel ${targetData.channelid}:`, createError.message);
+					return;
+				}
+			}
 
 			// Check if webhook is valid before proceeding
-			if (webhook && webhook.webhook) {
-				let pair = (webhook && webhook.isThread) ? { threadId: targetData.channelid } : {};
-				await webhook.webhook.send({ ...sendMessage, ...pair });
+			if (webhook) {
+				let pair = isThread ? { threadId: targetData.channelid } : {};
+				await webhook.send({ ...sendMessage, ...pair });
 			} else {
 				console.error(`Failed to get webhook for multi-server message to channel ${targetData.channelid}`);
 			}

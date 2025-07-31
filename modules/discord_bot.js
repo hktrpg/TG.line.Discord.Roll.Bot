@@ -627,10 +627,34 @@ function respawnCluster2() {
 				
 				// Try to find the channel across all shards
 				const channelResult = await findChannelAcrossShards(data.channelid);
-				if (channelResult && channelResult.channel) {
-					const channel = channelResult.channel;
+				if (channelResult && (channelResult.channel || channelResult.foundOnShard)) {
 					console.log(`Channel found on shard ${channelResult.shardId}, attempting webhook send`);
 					
+					// If channel is on a different shard, send the webhook request to that shard
+					if (channelResult.foundOnShard && !channelResult.channel) {
+						console.log(`Channel found on different shard ${channelResult.shardId}, sending webhook request to that shard`);
+						
+						// Send the webhook request to the specific shard
+						const result = await client.cluster.send({ 
+							type: 'sendWebhookMessage',
+							channelId: data.channelid,
+							text: text,
+							roleName: data.roleName,
+							imageLink: data.imageLink,
+							groupid: data.groupid
+						}, { shard: channelResult.shardId });
+						
+						if (result && result.success) {
+							console.log(`Successfully sent webhook message via shard ${channelResult.shardId}`);
+							return;
+						} else {
+							console.log(`Failed to send webhook via shard ${channelResult.shardId}, falling back to regular message`);
+							throw new Error('Webhook send failed on target shard');
+						}
+					}
+					
+					// If channel is on current shard, proceed with normal webhook logic
+					const channel = channelResult.channel;
 					const isThread = channel && channel.isThread();
 					console.log(`Channel found, isThread: ${isThread}`);
 					
@@ -735,10 +759,34 @@ function respawnCluster2() {
 				
 				// Try to find the channel across all shards
 				const channelResult = await findChannelAcrossShards(data.channelid);
-				if (channelResult && channelResult.channel) {
-					const channel = channelResult.channel;
+				if (channelResult && (channelResult.channel || channelResult.foundOnShard)) {
 					console.log(`Channel found on shard ${channelResult.shardId}, attempting webhook send (cron)`);
 					
+					// If channel is on a different shard, send the webhook request to that shard
+					if (channelResult.foundOnShard && !channelResult.channel) {
+						console.log(`Channel found on different shard ${channelResult.shardId}, sending webhook request to that shard (cron)`);
+						
+						// Send the webhook request to the specific shard
+						const result = await client.cluster.send({ 
+							type: 'sendWebhookMessage',
+							channelId: data.channelid,
+							text: text,
+							roleName: data.roleName,
+							imageLink: data.imageLink,
+							groupid: data.groupid
+						}, { shard: channelResult.shardId });
+						
+						if (result && result.success) {
+							console.log(`Successfully sent webhook message via shard ${channelResult.shardId} (cron)`);
+							return;
+						} else {
+							console.log(`Failed to send webhook via shard ${channelResult.shardId}, falling back to regular message (cron)`);
+							throw new Error('Webhook send failed on target shard');
+						}
+					}
+					
+					// If channel is on current shard, proceed with normal webhook logic
+					const channel = channelResult.channel;
 					const isThread = channel && channel.isThread();
 					console.log(`Channel found, isThread: ${isThread} (cron)`);
 					
@@ -2310,16 +2358,16 @@ async function findChannelAcrossShards(channelId) {
 		const foundShard = results.find(result => result.found);
 		if (foundShard) {
 			console.log(`Channel ${channelId} found on shard ${foundShard.shardId}`);
-			// Fetch the channel from the correct shard
-			const channel = await client.cluster.broadcastEval(async (c, { channelId }) => {
-				try {
-					return await c.channels.fetch(channelId);
-				} catch {
-					return null;
-				}
-			}, { context: { channelId }, shard: foundShard.shardId });
 			
-			return { channel: channel[0], shardId: foundShard.shardId };
+			// Instead of trying to fetch the channel across shards (which doesn't work well),
+			// we'll return the shard information and let the calling function handle it
+			// by using the cluster's send method to the specific shard
+			return { 
+				channel: null, 
+				shardId: foundShard.shardId,
+				channelId: channelId,
+				foundOnShard: true 
+			};
 		}
 		
 		console.log(`Channel ${channelId} not found on any shard`);

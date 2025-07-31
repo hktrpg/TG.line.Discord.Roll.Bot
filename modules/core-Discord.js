@@ -143,6 +143,75 @@ manager.on("clusterCreate", cluster => {
                 console.error('[Cluster] Failed to respawn all clusters:', error);
             }
         }
+
+        // Handle webhook message sending across shards
+        if (message.type === 'sendWebhookMessage') {
+            console.log(`[Cluster] Received webhook message request for channel ${message.channelId}`);
+            try {
+                const channel = await cluster.client.channels.fetch(message.channelId);
+                if (!channel) {
+                    console.log(`[Cluster] Channel ${message.channelId} not found on this shard`);
+                    return { success: false, error: 'Channel not found' };
+                }
+
+                const isThread = channel.isThread();
+                console.log(`[Cluster] Channel found, isThread: ${isThread}`);
+
+                // Try to get webhooks
+                let webhooks;
+                try {
+                    webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
+                    console.log(`[Cluster] Found ${webhooks.size} webhooks`);
+                } catch (webhookError) {
+                    console.log(`[Cluster] Webhook fetch failed: ${webhookError.message}`);
+                    return { success: false, error: webhookError.message };
+                }
+
+                let webhook = webhooks.find(v => {
+                    return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+                });
+
+                // Create webhook if not found
+                if (!webhook) {
+                    console.log(`[Cluster] No webhook found, creating new one`);
+                    try {
+                        const hooks = isThread ? await cluster.client.channels.fetch(channel.parentId) : channel;
+                        await hooks.createWebhook({ 
+                            name: "HKTRPG .me Function", 
+                            avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" 
+                        });
+                        webhooks = await channel.fetchWebhooks();
+                        webhook = webhooks.find(v => {
+                            return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+                        });
+                        console.log(`[Cluster] Created webhook: ${webhook ? 'success' : 'failed'}`);
+                    } catch (createError) {
+                        console.log(`[Cluster] Webhook creation failed: ${createError.message}`);
+                        return { success: false, error: createError.message };
+                    }
+                }
+
+                if (!webhook) {
+                    console.log(`[Cluster] No webhook available after creation attempt`);
+                    return { success: false, error: 'No webhook available' };
+                }
+
+                // Send the message
+                let obj = {
+                    content: message.text,
+                    username: message.roleName,
+                    avatarURL: message.imageLink
+                };
+                let pair = (webhook && isThread) ? { threadId: message.channelId } : {};
+                await webhook.send({ ...obj, ...pair });
+
+                console.log(`[Cluster] Successfully sent webhook message`);
+                return { success: true };
+            } catch (error) {
+                console.error(`[Cluster] Error sending webhook message: ${error.message}`);
+                return { success: false, error: error.message };
+            }
+        }
     });
 });
 

@@ -641,7 +641,8 @@ function respawnCluster2() {
 							text: text,
 							roleName: data.roleName,
 							imageLink: data.imageLink,
-							groupid: data.groupid
+							groupid: data.groupid,
+							shardId: channelResult.shardId
 						}, { shard: channelResult.shardId });
 						
 						if (result && result.success) {
@@ -773,7 +774,8 @@ function respawnCluster2() {
 							text: text,
 							roleName: data.roleName,
 							imageLink: data.imageLink,
-							groupid: data.groupid
+							groupid: data.groupid,
+							shardId: channelResult.shardId
 						}, { shard: channelResult.shardId });
 						
 						if (result && result.success) {

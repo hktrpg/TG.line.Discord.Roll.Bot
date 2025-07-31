@@ -22,25 +22,25 @@ let shutdownTimeout = null;
 async function gracefulShutdown() {
     if (isShuttingDown) return;
     isShuttingDown = true;
-    
+
     console.log('[Cluster] Starting graceful shutdown...');
-    
+
     // Clear shutdown timeout
     if (shutdownTimeout) {
         clearTimeout(shutdownTimeout);
     }
-    
+
     try {
         // Stop heartbeat manager
         if (manager.heartbeat) {
             console.log('[Cluster] Stopping heartbeat manager...');
             manager.heartbeat.stop();
         }
-        
+
         // Destroy all clusters
         console.log('[Cluster] Destroying all clusters...');
         await manager.destroy();
-        
+
         console.log('[Cluster] Graceful shutdown completed');
         process.exit(0);
     } catch (error) {
@@ -83,7 +83,7 @@ manager.on('clusterCreate', shard => {
     const errorHandler = (event, error) => {
         // Don't handle errors if shutting down
         if (isShuttingDown) return;
-        
+
         console.error(`[Cluster ${shard.id}] ${event}:`, error);
         // Add retry logic
         if (event === 'death') {
@@ -111,7 +111,7 @@ manager.on("clusterCreate", cluster => {
     cluster.on("message", async message => {
         // Don't handle respawn messages if shutting down
         if (isShuttingDown) return;
-        
+
         if (message.respawn === true && message.id !== null && message.id !== undefined) {
             console.log(`[Cluster] Respawning cluster ${message.id}`);
             try {
@@ -135,7 +135,7 @@ manager.on("clusterCreate", cluster => {
             console.log('[Cluster] Initiating full cluster respawn');
             try {
                 await manager.respawnAll({
-                    clusterDelay: 1000 * 60 * 2, // 2 minutes between clusters
+                    clusterDelay: 1000,
                     respawnDelay: 5000,          // 5 seconds
                     timeout: 1000 * 60 * 5       // 5 minutes timeout
                 });
@@ -150,7 +150,7 @@ manager.on("clusterCreate", cluster => {
 if (agenda) {
     agenda.define('dailyDiscordMaintenance', async () => {
         if (isShuttingDown) return;
-        
+
         console.log('[Schedule] Running daily Discord maintenance');
         try {
             await manager.respawnAll({
@@ -188,7 +188,7 @@ process.on('SIGTERM', async () => {
         console.log('[Cluster] Force shutdown after timeout');
         process.exit(1);
     }, 30_000); // 30 second timeout
-    
+
     await gracefulShutdown();
 });
 
@@ -199,7 +199,7 @@ process.on('SIGINT', async () => {
         console.log('[Cluster] Force shutdown after timeout');
         process.exit(1);
     }, 30_000); // 30 second timeout
-    
+
     await gracefulShutdown();
 });
 

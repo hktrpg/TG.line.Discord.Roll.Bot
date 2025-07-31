@@ -163,7 +163,9 @@ manager.on("clusterCreate", cluster => {
                 }
 
                 // Send the webhook request to the target cluster
-                const result = await targetCluster.eval(async (client, { channelId, text, roleName, imageLink }) => {
+                const result = await targetCluster.eval(async (client, context) => {
+                    console.log(`[Cluster] Received context:`, context);
+                    const { channelId, text, roleName, imageLink } = context;
                     try {
                         console.log(`[Cluster] Processing webhook request for channelId: ${channelId}`);
                         const channel = await client.channels.fetch(channelId);

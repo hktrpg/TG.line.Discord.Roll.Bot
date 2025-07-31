@@ -792,10 +792,25 @@ async function repeatMessages(discord, message) {
 }
 async function manageWebhook(discord) {
 	try {
-		// First try to fetch the channel from cache
 		const channel = await client.channels.fetch(discord.channelId);
 		
 		const isThread = channel && channel.isThread();
+		console.log("TRY fetchWebhooks")
+		
+		try{
+			channel.guild.fetchWebhooks() 
+		} catch (error) {
+			console.error('channel.guild.fetchWebhooks error:', error.message);
+			
+		}
+		try {
+			await channel.fetchWebhooks();
+		} catch (error) {
+			console.error('channel.fetchWebhooks error:', error.message);
+	
+		}
+	
+			
 		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
 		let webhook = webhooks.find(v => {
 			return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;

@@ -531,58 +531,58 @@ let shutdownTimeout = null;
 
 // Graceful shutdown function
 async function gracefulShutdown() {
-    if (isShuttingDown) return;
-    isShuttingDown = true;
-    
-    console.log('[Discord Bot] Starting graceful shutdown...');
-    
-    // Clear shutdown timeout
-    if (shutdownTimeout) {
-        clearTimeout(shutdownTimeout);
-    }
-    
-    try {
-        // Close WebSocket connection
-        if (ws) {
-            console.log('[Discord Bot] Closing WebSocket connection...');
-            ws.close();
-        }
-        
-        // Destroy Discord client
-        if (client) {
-            console.log('[Discord Bot] Destroying Discord client...');
-            await client.destroy();
-            console.log('[Discord Bot] Discord client destroyed.');
-        }
-        
-        console.log('[Discord Bot] Graceful shutdown completed');
-        process.exit(0);
-    } catch (error) {
-        console.error('[Discord Bot] Error during shutdown:', error);
-        process.exit(1);
-    }
+	if (isShuttingDown) return;
+	isShuttingDown = true;
+
+	console.log('[Discord Bot] Starting graceful shutdown...');
+
+	// Clear shutdown timeout
+	if (shutdownTimeout) {
+		clearTimeout(shutdownTimeout);
+	}
+
+	try {
+		// Close WebSocket connection
+		if (ws) {
+			console.log('[Discord Bot] Closing WebSocket connection...');
+			ws.close();
+		}
+
+		// Destroy Discord client
+		if (client) {
+			console.log('[Discord Bot] Destroying Discord client...');
+			await client.destroy();
+			console.log('[Discord Bot] Discord client destroyed.');
+		}
+
+		console.log('[Discord Bot] Graceful shutdown completed');
+		process.exit(0);
+	} catch (error) {
+		console.error('[Discord Bot] Error during shutdown:', error);
+		process.exit(1);
+	}
 }
 
 process.on('SIGINT', async () => {
-    console.log('[Discord Bot] Received SIGINT signal');
-    // Set force shutdown timeout
-    shutdownTimeout = setTimeout(() => {
-        console.log('[Discord Bot] Force shutdown after timeout');
-        process.exit(1);
-    }, 15_000); // 15 second timeout
-    
-    await gracefulShutdown();
+	console.log('[Discord Bot] Received SIGINT signal');
+	// Set force shutdown timeout
+	shutdownTimeout = setTimeout(() => {
+		console.log('[Discord Bot] Force shutdown after timeout');
+		process.exit(1);
+	}, 15_000); // 15 second timeout
+
+	await gracefulShutdown();
 });
 
 process.on('SIGTERM', async () => {
-    console.log('[Discord Bot] Received SIGTERM signal');
-    // Set force shutdown timeout
-    shutdownTimeout = setTimeout(() => {
-        console.log('[Discord Bot] Force shutdown after timeout');
-        process.exit(1);
-    }, 15_000); // 15 second timeout
-    
-    await gracefulShutdown();
+	console.log('[Discord Bot] Received SIGTERM signal');
+	// Set force shutdown timeout
+	shutdownTimeout = setTimeout(() => {
+		console.log('[Discord Bot] Force shutdown after timeout');
+		process.exit(1);
+	}, 15_000); // 15 second timeout
+
+	await gracefulShutdown();
 });
 
 function respawnCluster(err) {
@@ -793,29 +793,37 @@ async function repeatMessages(discord, message) {
 async function manageWebhook(discord) {
 	try {
 		const channel = await client.channels.fetch(discord.channelId);
-		
+
 		const isThread = channel && channel.isThread();
 		console.log("TRY fetchWebhooks")
-		
-		try{
-			channel.guild.fetchWebhooks() 
+
+		try {
+			let webhooks = await channel.guild.fetchWebhooks()
+			let webhook = webhooks.find(v => {
+				return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+			})
+			console.log("webhook1:", webhook)
 		} catch (error) {
 			console.error('channel.guild.fetchWebhooks error:', error.message);
-			
+
 		}
 		try {
-			await channel.fetchWebhooks();
+			let webhooks = await channel.fetchWebhooks();
+			let webhook = webhooks.find(v => {
+				return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+			})
+			console.log("webhook2:", webhook)
 		} catch (error) {
 			console.error('channel.fetchWebhooks error:', error.message);
-	
+
 		}
-	
-			
+
+
 		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
 		let webhook = webhooks.find(v => {
 			return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
 		})
-
+		console.log("webhook:", webhook)
 		//type Channel Follower
 		//'Incoming'
 		if (!webhook) {

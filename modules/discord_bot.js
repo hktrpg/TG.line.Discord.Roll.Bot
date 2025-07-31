@@ -704,6 +704,13 @@ function respawnCluster2() {
 						username: data.roleName,
 						avatarURL: data.imageLink
 					};
+					
+					// Validate channelid before using it
+					if (isThread && (!data.channelid || data.channelid === 'undefined')) {
+						console.log(`Invalid channelid for thread: ${data.channelid}`);
+						throw new Error('Invalid channel ID for thread');
+					}
+					
 					let pair = (webhook && isThread) ? { threadId: data.channelid } : {};
 					await webhook.send({ ...obj, ...pair });
 					
@@ -837,6 +844,13 @@ function respawnCluster2() {
 						username: data.roleName,
 						avatarURL: data.imageLink
 					};
+					
+					// Validate channelid before using it
+					if (isThread && (!data.channelid || data.channelid === 'undefined')) {
+						console.log(`Invalid channelid for thread (cron): ${data.channelid}`);
+						throw new Error('Invalid channel ID for thread');
+					}
+					
 					let pair = (webhook && isThread) ? { threadId: data.channelid } : {};
 					await webhook.send({ ...obj, ...pair });
 					
@@ -1935,6 +1949,12 @@ async function handlingMultiServerMessage(message) {
 
 			// Check if webhook is valid before proceeding
 			if (webhook && webhook.webhook) {
+				// Validate channelid before using it
+				if (webhook.isThread && (!targetData.channelid || targetData.channelid === 'undefined')) {
+					console.log(`Invalid channelid for thread (multi-server): ${targetData.channelid}`);
+					throw new Error('Invalid channel ID for thread');
+				}
+				
 				let pair = (webhook && webhook.isThread) ? { threadId: targetData.channelid } : {};
 				await webhook.webhook.send({ ...sendMessage, ...pair });
 			} else {

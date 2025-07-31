@@ -147,6 +147,13 @@ manager.on("clusterCreate", cluster => {
         // Handle webhook message sending across shards
         if (message.type === 'sendWebhookMessage') {
             console.log(`[Cluster] Received webhook message request for channel ${message.channelId}`);
+            console.log(`[Cluster] Message details:`, {
+                channelId: message.channelId,
+                text: message.text ? 'present' : 'missing',
+                roleName: message.roleName,
+                imageLink: message.imageLink,
+                shardId: message.shardId
+            });
             try {
                 // Forward the message to the target cluster for processing
                 const targetCluster = manager.clusters.get(Number(message.shardId));
@@ -158,6 +165,7 @@ manager.on("clusterCreate", cluster => {
                 // Send the webhook request to the target cluster
                 const result = await targetCluster.eval(async (client, { channelId, text, roleName, imageLink }) => {
                     try {
+                        console.log(`[Cluster] Processing webhook request for channelId: ${channelId}`);
                         const channel = await client.channels.fetch(channelId);
                         if (!channel) {
                             console.log(`[Cluster] Channel ${channelId} not found on this shard`);
@@ -180,12 +188,17 @@ manager.on("clusterCreate", cluster => {
                         let webhook = webhooks.find(v => {
                             return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
                         });
+                        console.log(`[Cluster] Webhook search: found ${webhook ? 'webhook' : 'no webhook'}, channel.parentId=${channel.parentId}, channel.id=${channel.id}`);
+                        if (webhook) {
+                            console.log(`[Cluster] Found webhook: channelId=${webhook.channelId}, id=${webhook.id}`);
+                        }
 
                         // Create webhook if not found
                         if (!webhook) {
                             console.log(`[Cluster] No webhook found, creating new one`);
                             try {
                                 const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
+                                console.log(`[Cluster] Creating webhook for ${isThread ? 'thread' : 'channel'}, parentId: ${channel.parentId}, channelId: ${channel.id}`);
                                 await hooks.createWebhook({ 
                                     name: "HKTRPG .me Function", 
                                     avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" 
@@ -195,6 +208,9 @@ manager.on("clusterCreate", cluster => {
                                     return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
                                 });
                                 console.log(`[Cluster] Created webhook: ${webhook ? 'success' : 'failed'}`);
+                                if (webhook) {
+                                    console.log(`[Cluster] Webhook details: channelId=${webhook.channelId}, id=${webhook.id}, name=${webhook.name}`);
+                                }
                             } catch (createError) {
                                 console.log(`[Cluster] Webhook creation failed: ${createError.message}`);
                                 return { success: false, error: createError.message };
@@ -212,7 +228,22 @@ manager.on("clusterCreate", cluster => {
                             username: roleName,
                             avatarURL: imageLink
                         };
+                        
+                        // Validate channelId before using it
+                        if (isThread && (!channelId || channelId === 'undefined')) {
+                            console.log(`[Cluster] Invalid channelId for thread: ${channelId}`);
+                            return { success: false, error: 'Invalid channel ID for thread' };
+                        }
+                        
                         let pair = (webhook && isThread) ? { threadId: channelId } : {};
+                        console.log(`[Cluster] Sending webhook with:`, {
+                            content: obj.content ? 'present' : 'missing',
+                            username: obj.username,
+                            avatarURL: obj.avatarURL,
+                            threadId: pair.threadId,
+                            webhookChannelId: webhook.channelId,
+                            isThread: isThread
+                        });
                         await webhook.send({ ...obj, ...pair });
 
                         console.log(`[Cluster] Successfully sent webhook message`);
@@ -227,6 +258,13 @@ manager.on("clusterCreate", cluster => {
                     roleName: message.roleName, 
                     imageLink: message.imageLink 
                 }});
+                
+                console.log(`[Cluster] Sent eval with context:`, {
+                    channelId: message.channelId,
+                    text: message.text ? 'present' : 'missing',
+                    roleName: message.roleName,
+                    imageLink: message.imageLink
+                });
 
                 return result;
             } catch (error) {

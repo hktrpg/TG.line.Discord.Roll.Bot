@@ -17,7 +17,7 @@ const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/igm);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const adminSecret = process.env.ADMIN_SECRET || '';
 const { Client } = Discord;
-const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType, MessageFlags } = Discord;
+const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType, MessageFlags, WebhookClient } = Discord;
 
 const multiServer = require('../modules/multi-server')
 const checkMongodb = require('../modules/dbWatchdog.js');
@@ -1671,31 +1671,67 @@ if (togGGToken) {
 }
 
 async function sendCronWebhook({ channelid, replyText, data }) {
+	console.log(`[Shard ${client.cluster.id}] Starting sendCronWebhook for channel ${channelid}`);
 	try {
-		let webhook = await manageWebhook({ channelId: channelid })
+		const webhookData = await client.cluster.broadcastEval(
+			async (c, { channelId }) => {
+				const channel = await c.channels.fetch(channelId).catch(() => null);
+				if (!channel) return null;
 
-		// Check if webhook is valid before proceeding
-		if (!webhook || !webhook.webhook) {
-			console.error(`Failed to get webhook for channel ${channelid}, falling back to regular message`);
-			// Fallback to regular message sending
-			await SendToReplychannel({
-				replyText,
-				channelid,
-				quotes: true,
-				groupid: data.groupid
-			});
+				const isThread = channel.isThread();
+				const targetChannel = isThread ? await c.channels.fetch(channel.parentId).catch(() => null) : channel;
+				if (!targetChannel) return null;
+
+				let webhooks = await targetChannel.fetchWebhooks().catch(() => []);
+				let webhook = webhooks.find(wh => wh.owner.id === c.user.id);
+
+				if (!webhook) {
+					try {
+						webhook = await targetChannel.createWebhook({
+							name: "HKTRPG .me Function",
+							avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png"
+						});
+					} catch (error) {
+						console.error(`[Shard ${c.cluster.id}] Failed to create webhook in channel ${targetChannel.id}: ${error.message}`);
+						return null;
+					}
+				}
+				return {
+					id: webhook.id,
+					token: webhook.token,
+					isThread: isThread,
+					threadId: isThread ? channelId : null
+				};
+			},
+			{ context: { channelId: channelid } }
+		);
+
+		const validWebhookData = webhookData.find(Boolean);
+
+		if (!validWebhookData) {
+			console.error(`[Shard ${client.cluster.id}] Could not find or create a webhook for channel ${channelid} on any shard. Falling back to regular message.`);
+			await SendToReplychannel({ replyText, channelid, quotes: true, groupid: data.groupid });
 			return;
 		}
 
-		let obj = {
+		console.log(`[Shard ${client.cluster.id}] Found webhook ${validWebhookData.id} for channel ${channelid}. Sending message.`);
+		const webhookClient = new WebhookClient({ id: validWebhookData.id, token: validWebhookData.token });
+
+		const messageOptions = {
 			content: replyText,
 			username: data.roleName,
-			avatarURL: data.imageLink
+			avatarURL: data.imageLink,
 		};
-		let pair = (webhook && webhook.isThread) ? { threadId: channelid } : {};
-		await webhook.webhook.send({ ...obj, ...pair });
+
+		if (validWebhookData.isThread) {
+			messageOptions.threadId = validWebhookData.threadId;
+		}
+
+		await webhookClient.send(messageOptions);
+		console.log(`[Shard ${client.cluster.id}] Successfully sent message via webhook to channel ${channelid}.`);
+
 	} catch (error) {
-		console.error(`Error in sendCronWebhook for channel ${channelid}:`, error.message);
+		console.error(`[Shard ${client.cluster.id}] Error in sendCronWebhook for channel ${channelid}: ${error.message}`, error.stack);
 		// Fallback to regular message sending
 		try {
 			await SendToReplychannel({
@@ -1705,7 +1741,7 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 				groupid: data.groupid
 			});
 		} catch (fallbackError) {
-			console.error(`Fallback message sending also failed for channel ${channelid}:`, fallbackError.message);
+			console.error(`[Shard ${client.cluster.id}] Fallback message sending also failed for channel ${channelid}: ${fallbackError.message}`);
 		}
 	}
 }

@@ -1691,8 +1691,8 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 							name: "HKTRPG .me Function",
 							avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png"
 						});
-					} catch (err) {
-						console.error(`[Shard ${c.cluster.id}] Failed to create webhook in channel ${targetChannel.id}: ${err.message}`);
+					} catch (error) {
+						console.error(`[Shard ${c.cluster.id}] Failed to create webhook in channel ${targetChannel.id}: ${error.message}`);
 						return null;
 					}
 				}

@@ -224,7 +224,9 @@ const rollDiceCommand = async function ({
 
             let callBotname = differentPeformAt(botname);
             await agenda.agenda.schedule(date, callBotname, { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid }).catch(error => console.error('agenda error:', error.name, error.reason))
-            rply.text = `已新增排定內容\n將於${date.toString().replace(/:\d+\s.*/, '')}運行`
+            rply.text = `已新增排定內容
+執行時間: ${moment(date).format('YYYY-MM-DD HH:mm')}
+訊息內容: ${text}`
             return rply;
         }
         case /^\.cron+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {

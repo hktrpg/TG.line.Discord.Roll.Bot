@@ -372,7 +372,22 @@ const rollDiceCommand = async function ({
                 console.error("schedule #301 Error saving job to collection");
             }
 
-            rply.text = `已新增排定內容\n將於${checkTime.days ? `每隔${checkTime.days}天` : ''}  ${checkTime.weeks.length > 0 ? `每個星期的${checkTime.weeks}` : ''}${!checkTime.weeks && !checkTime.days ? `每天` : ''} ${checkTime.hour}:${checkTime.min} (24小時制)運行`
+            const weekDayNames = checkTime.weeks.map(d => VALID_DAYS[d]);
+            
+            let scheduleTextParts = [];
+            if (checkTime.days) {
+                scheduleTextParts.push(`每隔${checkTime.days}天`);
+            }
+            if (weekDayNames.length > 0) {
+                scheduleTextParts.push(`每個星期的 ${weekDayNames.join(',')}`);
+            }
+
+            let scheduleText = scheduleTextParts.join(' ');
+            if (!scheduleText) {
+                scheduleText = '每天';
+            }
+
+            rply.text = `已新增排定內容\n將於 ${scheduleText} ${checkTime.hour}:${checkTime.min} (24小時制)運行`;
             return rply;
         }
         default: {

@@ -1706,7 +1706,7 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 			{ context: { channelId: channelid } }
 		);
 
-		const validWebhookData = webhookData.find(d => d);
+		const validWebhookData = webhookData.find(Boolean);
 
 		if (!validWebhookData) {
 			console.error(`[Shard ${client.cluster.id}] Could not find or create a webhook for channel ${channelid} on any shard. Falling back to regular message.`);

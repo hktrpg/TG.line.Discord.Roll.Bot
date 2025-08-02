@@ -531,58 +531,58 @@ let shutdownTimeout = null;
 
 // Graceful shutdown function
 async function gracefulShutdown() {
-    if (isShuttingDown) return;
-    isShuttingDown = true;
-    
-    console.log('[Discord Bot] Starting graceful shutdown...');
-    
-    // Clear shutdown timeout
-    if (shutdownTimeout) {
-        clearTimeout(shutdownTimeout);
-    }
-    
-    try {
-        // Close WebSocket connection
-        if (ws) {
-            console.log('[Discord Bot] Closing WebSocket connection...');
-            ws.close();
-        }
-        
-        // Destroy Discord client
-        if (client) {
-            console.log('[Discord Bot] Destroying Discord client...');
-            await client.destroy();
-            console.log('[Discord Bot] Discord client destroyed.');
-        }
-        
-        console.log('[Discord Bot] Graceful shutdown completed');
-        process.exit(0);
-    } catch (error) {
-        console.error('[Discord Bot] Error during shutdown:', error);
-        process.exit(1);
-    }
+	if (isShuttingDown) return;
+	isShuttingDown = true;
+
+	console.log('[Discord Bot] Starting graceful shutdown...');
+
+	// Clear shutdown timeout
+	if (shutdownTimeout) {
+		clearTimeout(shutdownTimeout);
+	}
+
+	try {
+		// Close WebSocket connection
+		if (ws) {
+			console.log('[Discord Bot] Closing WebSocket connection...');
+			ws.close();
+		}
+
+		// Destroy Discord client
+		if (client) {
+			console.log('[Discord Bot] Destroying Discord client...');
+			await client.destroy();
+			console.log('[Discord Bot] Discord client destroyed.');
+		}
+
+		console.log('[Discord Bot] Graceful shutdown completed');
+		process.exit(0);
+	} catch (error) {
+		console.error('[Discord Bot] Error during shutdown:', error);
+		process.exit(1);
+	}
 }
 
 process.on('SIGINT', async () => {
-    console.log('[Discord Bot] Received SIGINT signal');
-    // Set force shutdown timeout
-    shutdownTimeout = setTimeout(() => {
-        console.log('[Discord Bot] Force shutdown after timeout');
-        process.exit(1);
-    }, 15_000); // 15 second timeout
-    
-    await gracefulShutdown();
+	console.log('[Discord Bot] Received SIGINT signal');
+	// Set force shutdown timeout
+	shutdownTimeout = setTimeout(() => {
+		console.log('[Discord Bot] Force shutdown after timeout');
+		process.exit(1);
+	}, 15_000); // 15 second timeout
+
+	await gracefulShutdown();
 });
 
 process.on('SIGTERM', async () => {
-    console.log('[Discord Bot] Received SIGTERM signal');
-    // Set force shutdown timeout
-    shutdownTimeout = setTimeout(() => {
-        console.log('[Discord Bot] Force shutdown after timeout');
-        process.exit(1);
-    }, 15_000); // 15 second timeout
-    
-    await gracefulShutdown();
+	console.log('[Discord Bot] Received SIGTERM signal');
+	// Set force shutdown timeout
+	shutdownTimeout = setTimeout(() => {
+		console.log('[Discord Bot] Force shutdown after timeout');
+		process.exit(1);
+	}, 15_000); // 15 second timeout
+
+	await gracefulShutdown();
 });
 
 function respawnCluster(err) {
@@ -1986,8 +1986,7 @@ async function __handlingInteractionMessage(message) {
 								// Fallback to normal reply if forwarding fails
 								try {
 									return await message.followUp({
-										content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`,
-										flags: MessageFlags.Ephemeral
+										content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`
 									});
 								} catch (replyError) {
 									console.error(`Failed to send character card button response: ${replyError.message}`);
@@ -2030,7 +2029,7 @@ async function __handlingInteractionMessage(message) {
 							}
 							// Fallback to normal reply if forwarding fails
 							try {
-								await message.followUp({ content: `${displayname}${resultText}`, flags: MessageFlags.Ephemeral });
+								await message.followUp({ content: `${displayname}${resultText}` });
 							} catch (replyError) {
 								console.error(`Failed to send character button response: ${replyError.message}`);
 							}

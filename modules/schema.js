@@ -314,10 +314,14 @@ const exportUserSchema = mongoose.model('exportUser', new mongoose.Schema({
 
 const initSchema = mongoose.model('init', new mongoose.Schema({
     groupID: { type: String, index: true },
+    active: { type: Boolean, default: false },
+    turn: { type: Number, default: 0 },
+    round: { type: Number, default: 0 },
     list: [{
         name: String,
         result: Number,
-        formula: String
+        formula: String,
+        status: String
     }]
 }));
 

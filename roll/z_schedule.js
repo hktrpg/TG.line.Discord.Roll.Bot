@@ -504,7 +504,7 @@ function showJobs(jobs) {
     if (jobs && jobs.length > 0) {
         for (let index = 0; index < jobs.length; index++) {
             let job = jobs[index];
-            reply += `序號#${index + 1} 下次運行時間 ${job.attrs.nextRunAt.toString().replace(/:\d+\s.*/, '')}\n${job.attrs.data.replyText}\n`;
+            reply += `序號#${index + 1} 下次運行時間 ${job.attrs.nextRunAt.toString().replace(/:\d+\s.*/, '')}\n${job.attrs.data.replyText}\n\n`;
         }
     } else reply = "沒有找到定時任務"
     return reply;
@@ -539,7 +539,7 @@ function showCronJobs(jobs) {
                 scheduleText = '每天';
             }
 
-            reply += `序號#${index + 1} 創建時間 ${createAt ? new Date(createAt).toString().replace(/:\d+\s.*/, '') : '未知'}\n運行資訊: ${scheduleText} ${hour}:${min}\n${job.attrs.data.replyText}\n`;
+            reply += `序號#${index + 1} 創建時間 ${createAt ? new Date(createAt).toString().replace(/:\d+\s.*/, '') : '未知'}\n運行資訊: ${scheduleText} ${hour}:${min}\n${job.attrs.data.replyText}\n\n`;
         }
     } else reply = "沒有找到定時任務"
     return reply;

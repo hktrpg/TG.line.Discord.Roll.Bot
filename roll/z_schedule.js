@@ -125,16 +125,16 @@ const rollDiceCommand = async function ({
             ).catch(error => console.error('agenda error:', error.name, error.reason))
             rply.text = showJobs(jobs);
             if (userrole == 3 && botname == "Discord") {
-                rply.text = `\n本頻道列表\n\n${rply.text}`
-                check = {
+                const groupJobsText = rply.text;
+                const channelCheck = {
                     name: differentPeformAt(botname),
+                    "data.channelid": channelid,
                     "data.groupid": groupid
-                }
-                const jobs = await agenda.agenda.jobs(
-                    check
-                ).catch(error => console.error('agenda error:', error.name, error.reason))
-                rply.text = `本群組列表\n\n${showJobs(jobs)} \n\n${rply.text
-                    } `;
+                };
+                const channelJobs = await agenda.agenda.jobs(channelCheck)
+                    .catch(error => console.error('agenda error:', error.name, error.reason));
+                const channelJobsText = showJobs(channelJobs);
+                rply.text = `本群組列表\n\n${groupJobsText}\n\n本頻道列表\n\n${channelJobsText}`;
             }
             return rply;
         }
@@ -256,16 +256,16 @@ const rollDiceCommand = async function ({
             ).catch(error => console.error('agenda error:', error.name, error.reason))
             rply.text = showCronJobs(jobs);
             if (userrole == 3 && botname == "Discord") {
-                rply.text = `\n本頻道列表\n\n${rply.text}`
-                check = {
+                const groupJobsText = rply.text;
+                const channelCheck = {
                     name: differentPeformCron(botname),
+                    "data.channelid": channelid,
                     "data.groupid": groupid
-                }
-                const jobs = await agenda.agenda.jobs(
-                    check
-                ).catch(error => console.error('agenda error:', error.name, error.reason))
-                rply.text = `本群組列表\n\n${showCronJobs(jobs)} \n\n${rply.text
-                    } `;
+                };
+                const channelJobs = await agenda.agenda.jobs(channelCheck)
+                    .catch(error => console.error('agenda error:', error.name, error.reason));
+                const channelJobsText = showCronJobs(channelJobs);
+                rply.text = `本群組列表\n\n${groupJobsText}\n\n本頻道列表\n\n${channelJobsText}`;
             }
             return rply;
         }

@@ -134,7 +134,11 @@ const rollDiceCommand = async function ({
                 const channelJobs = await agenda.agenda.jobs(channelCheck)
                     .catch(error => console.error('agenda error:', error.name, error.reason));
                 const channelJobsText = showJobs(channelJobs);
-                rply.text = `本群組列表\n\n${groupJobsText}\n\n本頻道列表\n\n${channelJobsText}`;
+                rply.text = `【本群組列表】\n\n${groupJobsText}\n\n【本頻道列表】\n\n${channelJobsText}`;
+            } else if (botname == "Discord" && userrole < 3) {
+                rply.text = `【本頻道列表】\n\n${rply.text}`;
+            } else {
+                rply.text = `【本群組列表】\n\n${rply.text}`;
             }
             return rply;
         }
@@ -265,7 +269,11 @@ const rollDiceCommand = async function ({
                 const channelJobs = await agenda.agenda.jobs(channelCheck)
                     .catch(error => console.error('agenda error:', error.name, error.reason));
                 const channelJobsText = showCronJobs(channelJobs);
-                rply.text = `本群組列表\n\n${groupJobsText}\n\n本頻道列表\n\n${channelJobsText}`;
+                rply.text = `【本群組列表】\n\n${groupJobsText}\n\n【本頻道列表】\n\n${channelJobsText}`;
+            } else if (botname == "Discord" && userrole < 3) {
+                rply.text = `【本頻道列表】\n\n${rply.text}`;
+            } else {
+                rply.text = `【本群組列表】\n\n${rply.text}`;
             }
             return rply;
         }

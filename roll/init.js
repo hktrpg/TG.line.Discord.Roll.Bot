@@ -428,9 +428,75 @@ const discordCommand = [
     {
         data: new SlashCommandBuilder()
             .setName('init')
-            .setDescription('顯示先攻表(大到小排序)'),
-        async execute() {
-            return '.init';
+            .setDescription('先攻表相關指令')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示先攻表(大到小排序)'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('start')
+                    .setDescription('開始戰鬥輪'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('next')
+                    .setDescription('進入下一回合'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('end')
+                    .setDescription('結束戰鬥輪'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('jump')
+                    .setDescription('跳至指定角色')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('角色名稱')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('stats')
+                    .setDescription('為角色附加狀態')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('角色名稱')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('status')
+                            .setDescription('狀態內容 (留空以清除)')))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('round')
+                    .setDescription('設定當前回合數')
+                    .addIntegerOption(option =>
+                        option.setName('number')
+                            .setDescription('回合數')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            switch (subcommand) {
+                case 'show':
+                    return '.init';
+                case 'start':
+                    return '.init start';
+                case 'next':
+                    return '.init next';
+                case 'end':
+                    return '.init end';
+                case 'jump': {
+                    const name = interaction.options.getString('name');
+                    return `.init ${name}`;
+                }
+                case 'stats': {
+                    const name = interaction.options.getString('name');
+                    const status = interaction.options.getString('status');
+                    return `.init stats ${name}${status ? ' ' + status : ''}`;
+                }
+                case 'round': {
+                    const number = interaction.options.getInteger('number');
+                    return `.init round ${number}`;
+                }
+            }
         }
     },
     {

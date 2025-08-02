@@ -125,16 +125,20 @@ const rollDiceCommand = async function ({
             ).catch(error => console.error('agenda error:', error.name, error.reason))
             rply.text = showJobs(jobs);
             if (userrole == 3 && botname == "Discord") {
-                rply.text = `\n本頻道列表\n\n${rply.text}`
-                check = {
+                const groupJobsText = rply.text;
+                const channelCheck = {
                     name: differentPeformAt(botname),
+                    "data.channelid": channelid,
                     "data.groupid": groupid
-                }
-                const jobs = await agenda.agenda.jobs(
-                    check
-                ).catch(error => console.error('agenda error:', error.name, error.reason))
-                rply.text = `本群組列表\n\n${showJobs(jobs)} \n\n${rply.text
-                    } `;
+                };
+                const channelJobs = await agenda.agenda.jobs(channelCheck)
+                    .catch(error => console.error('agenda error:', error.name, error.reason));
+                const channelJobsText = showJobs(channelJobs);
+                rply.text = `【本群組列表】\n${groupJobsText}\n\n【本頻道列表】\n${channelJobsText}`;
+            } else if (botname == "Discord" && userrole < 3) {
+                rply.text = `【本頻道列表】\n${rply.text}`;
+            } else {
+                rply.text = `【本群組列表】\n${rply.text}`;
             }
             return rply;
         }
@@ -256,16 +260,20 @@ const rollDiceCommand = async function ({
             ).catch(error => console.error('agenda error:', error.name, error.reason))
             rply.text = showCronJobs(jobs);
             if (userrole == 3 && botname == "Discord") {
-                rply.text = `\n本頻道列表\n\n${rply.text}`
-                check = {
+                const groupJobsText = rply.text;
+                const channelCheck = {
                     name: differentPeformCron(botname),
+                    "data.channelid": channelid,
                     "data.groupid": groupid
-                }
-                const jobs = await agenda.agenda.jobs(
-                    check
-                ).catch(error => console.error('agenda error:', error.name, error.reason))
-                rply.text = `本群組列表\n\n${showCronJobs(jobs)} \n\n${rply.text
-                    } `;
+                };
+                const channelJobs = await agenda.agenda.jobs(channelCheck)
+                    .catch(error => console.error('agenda error:', error.name, error.reason));
+                const channelJobsText = showCronJobs(channelJobs);
+                rply.text = `【本群組列表】\n${groupJobsText}\n\n【本頻道列表】\n${channelJobsText}`;
+            } else if (botname == "Discord" && userrole < 3) {
+                rply.text = `【本頻道列表】\n${rply.text}`;
+            } else {
+                rply.text = `【本群組列表】\n${rply.text}`;
             }
             return rply;
         }
@@ -504,7 +512,7 @@ function showJobs(jobs) {
     if (jobs && jobs.length > 0) {
         for (let index = 0; index < jobs.length; index++) {
             let job = jobs[index];
-            reply += `序號#${index + 1} 下次運行時間 ${job.attrs.nextRunAt.toString().replace(/:\d+\s.*/, '')}\n${job.attrs.data.replyText}\n`;
+            reply += `序號#${index + 1} 下次運行時間 ${job.attrs.nextRunAt.toString().replace(/:\d+\s.*/, '')}\n${job.attrs.data.replyText}\n\n`;
         }
     } else reply = "沒有找到定時任務"
     return reply;
@@ -539,7 +547,7 @@ function showCronJobs(jobs) {
                 scheduleText = '每天';
             }
 
-            reply += `序號#${index + 1} 創建時間 ${createAt ? new Date(createAt).toString().replace(/:\d+\s.*/, '') : '未知'}\n運行資訊: ${scheduleText} ${hour}:${min}\n${job.attrs.data.replyText}\n`;
+            reply += `序號#${index + 1} 創建時間 ${createAt ? new Date(createAt).toString().replace(/:\d+\s.*/, '') : '未知'}\n運行資訊: ${scheduleText} ${hour}:${min}\n${job.attrs.data.replyText}\n\n`;
         }
     } else reply = "沒有找到定時任務"
     return reply;

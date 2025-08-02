@@ -375,7 +375,7 @@ const rollDiceCommand = async function ({
             }
 
             const weekDayNames = checkTime.weeks.map(d => VALID_DAYS[d]);
-            
+
             let scheduleTextParts = [];
             if (checkTime.days) {
                 scheduleTextParts.push(`每隔${checkTime.days}天`);
@@ -515,7 +515,7 @@ function showCronJobs(jobs) {
         for (let index = 0; index < jobs.length; index++) {
             let job = jobs[index];
             let createAt = job.attrs.data.createAt;
-            
+
             const cronParts = job.attrs.repeatInterval.split(' ');
             const min = cronParts[0];
             const hour = cronParts[1];
@@ -523,14 +523,14 @@ function showCronJobs(jobs) {
             const dayOfWeek = cronParts[4];
 
             let scheduleText = '';
-            
+
             const daysIntervalMatch = dayOfMonth.match(/\*\/(\d+)/);
             if (daysIntervalMatch) {
                 scheduleText += `每隔${daysIntervalMatch[1]}天`;
             }
 
             if (dayOfWeek !== '*') {
-                const weekDays = dayOfWeek.split(',').map(d => VALID_DAYS[parseInt(d, 10)]).join(',');
+                const weekDays = dayOfWeek.split(',').map(d => VALID_DAYS[Number.parseInt(d, 10)]).join(',');
                 if (scheduleText) scheduleText += ' ';
                 scheduleText += `每個星期的 ${weekDays}`;
             }
@@ -554,27 +554,27 @@ const discordCommand = [
                 subcommand
                     .setName('datetime')
                     .setDescription('指定時間發送訊息')
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('date')
                             .setDescription('日期 (YYYYMMDD)')
                             .setRequired(true))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('time')
                             .setDescription('時間 (HHMM)')
                             .setRequired(true))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('message')
                             .setDescription('要發送的訊息內容')
                             .setRequired(true))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('dice')
                             .setDescription('骰子指令 (使用[[]]包覆)')
                             .setRequired(false))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('name')
                             .setDescription('發送者名稱 (僅限Patreoner)')
                             .setRequired(false))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('link')
                             .setDescription('頭像連結網址 (僅限Patreoner)')
                             .setRequired(false)))
@@ -582,11 +582,11 @@ const discordCommand = [
                 subcommand
                     .setName('countdown')
                     .setDescription('計時模式發送訊息')
-                    .addIntegerOption(option => 
+                    .addIntegerOption(option =>
                         option.setName('amount')
                             .setDescription('倒數時間')
                             .setRequired(true))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('unit')
                             .setDescription('單位 (mins/hours)')
                             .setRequired(true)
@@ -594,19 +594,19 @@ const discordCommand = [
                                 { name: '分鐘', value: 'mins' },
                                 { name: '小時', value: 'hours' }
                             ))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('message')
                             .setDescription('要發送的訊息內容')
                             .setRequired(true))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('dice')
                             .setDescription('骰子指令 (使用[[]]包覆)')
                             .setRequired(false))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('name')
                             .setDescription('發送者名稱 (僅限Patreoner)')
                             .setRequired(false))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('link')
                             .setDescription('頭像連結網址 (僅限Patreoner)')
                             .setRequired(false)))
@@ -618,52 +618,52 @@ const discordCommand = [
                 subcommand
                     .setName('delete')
                     .setDescription('刪除定時任務')
-                    .addIntegerOption(option => 
+                    .addIntegerOption(option =>
                         option.setName('id')
                             .setDescription('要刪除的任務序號')
                             .setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
-            
+
             switch (subcommand) {
-            case 'show': {
-                return '.at show';
-            }
-            case 'delete': {
-                const id = interaction.options.getInteger('id');
-                return `.at delete ${id}`;
-            }
-            case 'datetime': {
-                const date = interaction.options.getString('date');
-                const time = interaction.options.getString('time');
-                const message = interaction.options.getString('message');
-                const dice = interaction.options.getString('dice');
-                const name = interaction.options.getString('name');
-                const link = interaction.options.getString('link');
-                
-                let command = `.at ${date} ${time} ${message}`;
-                if (dice) command += ` ${dice}`;
-                if (name) command += `\nname=${name}`;
-                if (link) command += `\nlink=${link}`;
-                
-                return command;
-            }
-            case 'countdown': {
-                const amount = interaction.options.getInteger('amount');
-                const unit = interaction.options.getString('unit');
-                const message = interaction.options.getString('message');
-                const dice = interaction.options.getString('dice');
-                const name = interaction.options.getString('name');
-                const link = interaction.options.getString('link');
-                
-                let command = `.at ${amount}${unit} ${message}`;
-                if (dice) command += ` ${dice}`;
-                if (name) command += `\nname=${name}`;
-                if (link) command += `\nlink=${link}`;
-                
-                return command;
-            }
-            // No default
+                case 'show': {
+                    return '.at show';
+                }
+                case 'delete': {
+                    const id = interaction.options.getInteger('id');
+                    return `.at delete ${id}`;
+                }
+                case 'datetime': {
+                    const date = interaction.options.getString('date');
+                    const time = interaction.options.getString('time');
+                    const message = interaction.options.getString('message');
+                    const dice = interaction.options.getString('dice');
+                    const name = interaction.options.getString('name');
+                    const link = interaction.options.getString('link');
+
+                    let command = `.at ${date} ${time} ${message}`;
+                    if (dice) command += ` ${dice}`;
+                    if (name) command += `\nname=${name}`;
+                    if (link) command += `\nlink=${link}`;
+
+                    return command;
+                }
+                case 'countdown': {
+                    const amount = interaction.options.getInteger('amount');
+                    const unit = interaction.options.getString('unit');
+                    const message = interaction.options.getString('message');
+                    const dice = interaction.options.getString('dice');
+                    const name = interaction.options.getString('name');
+                    const link = interaction.options.getString('link');
+
+                    let command = `.at ${amount}${unit} ${message}`;
+                    if (dice) command += ` ${dice}`;
+                    if (name) command += `\nname=${name}`;
+                    if (link) command += `\nlink=${link}`;
+
+                    return command;
+                }
+                // No default
             }
         }
     },
@@ -675,23 +675,23 @@ const discordCommand = [
                 subcommand
                     .setName('daily')
                     .setDescription('每天定時發送訊息')
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('time')
                             .setDescription('時間 (HHMM)')
                             .setRequired(true))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('message')
                             .setDescription('要發送的訊息內容')
                             .setRequired(true))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('dice')
                             .setDescription('骰子指令 (使用[[]]包覆)')
                             .setRequired(false))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('name')
                             .setDescription('發送者名稱 (僅限Patreoner)')
                             .setRequired(false))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('link')
                             .setDescription('頭像連結網址 (僅限Patreoner)')
                             .setRequired(false)))
@@ -699,27 +699,27 @@ const discordCommand = [
                 subcommand
                     .setName('interval')
                     .setDescription('間隔天數發送訊息')
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('time')
                             .setDescription('時間 (HHMM)')
                             .setRequired(true))
-                    .addIntegerOption(option => 
+                    .addIntegerOption(option =>
                         option.setName('days')
                             .setDescription('間隔天數')
                             .setRequired(true))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('message')
                             .setDescription('要發送的訊息內容')
                             .setRequired(true))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('dice')
                             .setDescription('骰子指令 (使用[[]]包覆)')
                             .setRequired(false))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('name')
                             .setDescription('發送者名稱 (僅限Patreoner)')
                             .setRequired(false))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('link')
                             .setDescription('頭像連結網址 (僅限Patreoner)')
                             .setRequired(false)))
@@ -727,27 +727,27 @@ const discordCommand = [
                 subcommand
                     .setName('weekly')
                     .setDescription('指定星期發送訊息')
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('time')
                             .setDescription('時間 (HHMM)')
                             .setRequired(true))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('days')
                             .setDescription('星期 (例如: wed-mon)')
                             .setRequired(true))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('message')
                             .setDescription('要發送的訊息內容')
                             .setRequired(true))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('dice')
                             .setDescription('骰子指令 (使用[[]]包覆)')
                             .setRequired(false))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('name')
                             .setDescription('發送者名稱 (僅限Patreoner)')
                             .setRequired(false))
-                    .addStringOption(option => 
+                    .addStringOption(option =>
                         option.setName('link')
                             .setDescription('頭像連結網址 (僅限Patreoner)')
                             .setRequired(false)))
@@ -759,66 +759,66 @@ const discordCommand = [
                 subcommand
                     .setName('delete')
                     .setDescription('刪除定時任務')
-                    .addIntegerOption(option => 
+                    .addIntegerOption(option =>
                         option.setName('id')
                             .setDescription('要刪除的任務序號')
                             .setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
-            
+
             switch (subcommand) {
-            case 'show': {
-                return '.cron show';
-            }
-            case 'delete': {
-                const id = interaction.options.getInteger('id');
-                return `.cron delete ${id}`;
-            }
-            case 'daily': {
-                const time = interaction.options.getString('time');
-                const message = interaction.options.getString('message');
-                const dice = interaction.options.getString('dice');
-                const name = interaction.options.getString('name');
-                const link = interaction.options.getString('link');
-                
-                let command = `.cron ${time} ${message}`;
-                if (dice) command += ` ${dice}`;
-                if (name) command += `\nname=${name}`;
-                if (link) command += `\nlink=${link}`;
-                
-                return command;
-            }
-            case 'interval': {
-                const time = interaction.options.getString('time');
-                const days = interaction.options.getInteger('days');
-                const message = interaction.options.getString('message');
-                const dice = interaction.options.getString('dice');
-                const name = interaction.options.getString('name');
-                const link = interaction.options.getString('link');
-                
-                let command = `.cron ${time}-${days} ${message}`;
-                if (dice) command += ` ${dice}`;
-                if (name) command += `\nname=${name}`;
-                if (link) command += `\nlink=${link}`;
-                
-                return command;
-            }
-            case 'weekly': {
-                const time = interaction.options.getString('time');
-                const days = interaction.options.getString('days');
-                const message = interaction.options.getString('message');
-                const dice = interaction.options.getString('dice');
-                const name = interaction.options.getString('name');
-                const link = interaction.options.getString('link');
-                
-                let command = `.cron ${time}-${days} ${message}`;
-                if (dice) command += ` ${dice}`;
-                if (name) command += `\nname=${name}`;
-                if (link) command += `\nlink=${link}`;
-                
-                return command;
-            }
-            // No default
+                case 'show': {
+                    return '.cron show';
+                }
+                case 'delete': {
+                    const id = interaction.options.getInteger('id');
+                    return `.cron delete ${id}`;
+                }
+                case 'daily': {
+                    const time = interaction.options.getString('time');
+                    const message = interaction.options.getString('message');
+                    const dice = interaction.options.getString('dice');
+                    const name = interaction.options.getString('name');
+                    const link = interaction.options.getString('link');
+
+                    let command = `.cron ${time} ${message}`;
+                    if (dice) command += ` ${dice}`;
+                    if (name) command += `\nname=${name}`;
+                    if (link) command += `\nlink=${link}`;
+
+                    return command;
+                }
+                case 'interval': {
+                    const time = interaction.options.getString('time');
+                    const days = interaction.options.getInteger('days');
+                    const message = interaction.options.getString('message');
+                    const dice = interaction.options.getString('dice');
+                    const name = interaction.options.getString('name');
+                    const link = interaction.options.getString('link');
+
+                    let command = `.cron ${time}-${days} ${message}`;
+                    if (dice) command += ` ${dice}`;
+                    if (name) command += `\nname=${name}`;
+                    if (link) command += `\nlink=${link}`;
+
+                    return command;
+                }
+                case 'weekly': {
+                    const time = interaction.options.getString('time');
+                    const days = interaction.options.getString('days');
+                    const message = interaction.options.getString('message');
+                    const dice = interaction.options.getString('dice');
+                    const name = interaction.options.getString('name');
+                    const link = interaction.options.getString('link');
+
+                    let command = `.cron ${time}-${days} ${message}`;
+                    if (dice) command += ` ${dice}`;
+                    if (name) command += `\nname=${name}`;
+                    if (link) command += `\nlink=${link}`;
+
+                    return command;
+                }
+                // No default
             }
         }
     }

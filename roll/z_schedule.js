@@ -224,7 +224,9 @@ const rollDiceCommand = async function ({
 
             let callBotname = differentPeformAt(botname);
             await agenda.agenda.schedule(date, callBotname, { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid }).catch(error => console.error('agenda error:', error.name, error.reason))
-            rply.text = `已新增排定內容\n將於${date.toString().replace(/:\d+\s.*/, '')}運行`
+            rply.text = `已新增排定內容
+執行時間: ${moment(date).format('YYYY-MM-DD HH:mm')}
+訊息內容: ${text}`
             return rply;
         }
         case /^\.cron+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
@@ -372,7 +374,22 @@ const rollDiceCommand = async function ({
                 console.error("schedule #301 Error saving job to collection");
             }
 
-            rply.text = `已新增排定內容\n將於${checkTime.days ? `每隔${checkTime.days}天` : ''}  ${checkTime.weeks.length > 0 ? `每個星期的${checkTime.weeks}` : ''}${!checkTime.weeks && !checkTime.days ? `每天` : ''} ${checkTime.hour}:${checkTime.min} (24小時制)運行`
+            const weekDayNames = checkTime.weeks.map(d => VALID_DAYS[d]);
+            
+            let scheduleTextParts = [];
+            if (checkTime.days) {
+                scheduleTextParts.push(`每隔${checkTime.days}天`);
+            }
+            if (weekDayNames.length > 0) {
+                scheduleTextParts.push(`每個星期的 ${weekDayNames.join(',')}`);
+            }
+
+            let scheduleText = scheduleTextParts.join(' ');
+            if (!scheduleText) {
+                scheduleText = '每天';
+            }
+
+            rply.text = `已新增排定內容\n將於 ${scheduleText} ${checkTime.hour}:${checkTime.min} (24小時制)運行`;
             return rply;
         }
         default: {
@@ -498,8 +515,31 @@ function showCronJobs(jobs) {
         for (let index = 0; index < jobs.length; index++) {
             let job = jobs[index];
             let createAt = job.attrs.data.createAt;
-            let time = job.attrs.repeatInterval.match(/^(\d+) (\d+)/);
-            reply += `序號#${index + 1} 創建時間 ${createAt.toString().replace(/:\d+\s.*/, '')}\n每天運行時間 ${(time && time[2]) || 'error'} ${(time && time[1]) || 'error'}\n${job.attrs.data.replyText}\n`;
+            
+            const cronParts = job.attrs.repeatInterval.split(' ');
+            const min = cronParts[0];
+            const hour = cronParts[1];
+            const dayOfMonth = cronParts[2];
+            const dayOfWeek = cronParts[4];
+
+            let scheduleText = '';
+            
+            const daysIntervalMatch = dayOfMonth.match(/\*\/(\d+)/);
+            if (daysIntervalMatch) {
+                scheduleText += `每隔${daysIntervalMatch[1]}天`;
+            }
+
+            if (dayOfWeek !== '*') {
+                const weekDays = dayOfWeek.split(',').map(d => VALID_DAYS[parseInt(d, 10)]).join(',');
+                if (scheduleText) scheduleText += ' ';
+                scheduleText += `每個星期的 ${weekDays}`;
+            }
+
+            if (!scheduleText) {
+                scheduleText = '每天';
+            }
+
+            reply += `序號#${index + 1} 創建時間 ${createAt ? new Date(createAt).toString().replace(/:\d+\s.*/, '') : '未知'}\n運行資訊: ${scheduleText} ${hour}:${min}\n${job.attrs.data.replyText}\n`;
         }
     } else reply = "沒有找到定時任務"
     return reply;

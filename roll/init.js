@@ -333,7 +333,7 @@ async function showInit(doc) {
         }
         result += '\n';
     }
-    result += '\n可用的指令: \n.init next\n.init stats [角色] [狀態]';
+    result += '\n指令提示: \n.init next\n.init stats [角色] [狀態]';
     return result;
 }
 async function showInitn(doc) {

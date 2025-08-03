@@ -49,7 +49,7 @@ const getHelpMessage = async function () {
 │ 	• .in clear
 │ 	  (清空整個先攻表)
 │
-├────── ⚙️回合功能 ──────
+├────── ⭕回合功能 ──────
 │ • .init start - 開始戰鬥輪
 │ • .init next - 進入下一回合
 │ • .init [角色名稱] - 跳至指定角色

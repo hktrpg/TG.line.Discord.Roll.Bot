@@ -43,7 +43,7 @@ async function gracefulShutdown() {
         
         // Destroy all clusters
         console.log('[Cluster] Destroying all clusters...');
-        await manager.destroy();
+        await manager.kill();
         
         console.log('[Cluster] Graceful shutdown completed');
         process.exit(0);

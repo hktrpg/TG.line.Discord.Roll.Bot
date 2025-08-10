@@ -504,6 +504,33 @@ const getMongoDBState = async () => {
     }
 };
 
+const storyTellerRoundSchema = mongoose.model('storyTellerRound', new mongoose.Schema({
+    groupID: { type: String, index: true },
+    roundNumber: { type: Number, index: true },
+    story: String,
+    createdAt: { type: Date, default: Date.now }
+}, {
+    timestamps: true
+}));
+const storyTellerScriptSchema = mongoose.model('storyTellerScript', new mongoose.Schema({
+    groupID: { type: String, index: true },
+    story: String,
+    createdAt: { type: Date, default: Date.now }
+}, {
+    timestamps: true
+}));
+
+const storyTellerScriptCollectionSchema = mongoose.model('storyTellerScriptCollection', new mongoose.Schema({
+    groupID: { type: String, index: true },
+    script: String,
+    createdAt: { type: Date, default: Date.now }
+}, {
+    timestamps: true
+}));
+
+
+
+
 module.exports = {
     mongodbState: getMongoDBState,
     randomAns: randomAnswerSchema,

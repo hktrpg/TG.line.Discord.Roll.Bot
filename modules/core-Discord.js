@@ -34,7 +34,11 @@ async function gracefulShutdown() {
         // Stop heartbeat manager
         if (manager.heartbeat) {
             console.log('[Cluster] Stopping heartbeat manager...');
-            manager.heartbeat.stop();
+            try {
+                manager.heartbeat.stop();
+            } catch (e) {
+                console.warn(`[Cluster] A non-critical error occurred while stopping the heartbeat manager: ${e.message}. Shutdown will continue.`);
+            }
         }
         
         // Destroy all clusters

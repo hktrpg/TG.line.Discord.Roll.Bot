@@ -165,12 +165,18 @@ client.once('ready', async () => {
 	const HEARTBEAT_CHECK_INTERVAL = 1000 * 60;
 	const WARNING_THRESHOLD = 3;
 	const CRITICAL_THRESHOLD = 5;
+	const GRACE_PERIOD = (Number(process.env.DISCORD_STARTUP_GRACE_PERIOD) || 6) * 60 * 1000;
 	const restartServer = () => {
 		require('child_process').exec('sudo reboot');
 	}
 	let heartbeat = 0;
 	console.log('Discord Heartbeat: Ready...')
 	setInterval(async () => {
+		if (Date.now() - client.readyTimestamp < GRACE_PERIOD) {
+			console.log('Discord Heartbeat: In startup grace period...');
+			heartbeat = 0;
+			return;
+		}
 		const isAwake = await checkWakeUp();
 		if (isAwake === true) {
 			heartbeat = 0;

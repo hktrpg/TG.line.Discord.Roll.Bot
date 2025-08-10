@@ -36,8 +36,8 @@ async function gracefulShutdown() {
             console.log('[Cluster] Stopping heartbeat manager...');
             try {
                 manager.heartbeat.stop();
-            } catch (e) {
-                console.warn(`[Cluster] A non-critical error occurred while stopping the heartbeat manager: ${e.message}. Shutdown will continue.`);
+            } catch (error) {
+                console.warn(`[Cluster] A non-critical error occurred while stopping the heartbeat manager: ${error.message}. Shutdown will continue.`);
             }
         }
         
@@ -89,7 +89,7 @@ manager.on('clusterCreate', shard => {
         // Ensure all clusters have been created before checking if they are ready
         if (shard.manager.clusters.size !== shard.manager.totalClusters) return;
 
-        const allReady = Array.from(shard.manager.clusters.values()).every(c => c.ready);
+        const allReady = [...shard.manager.clusters.values()].every(c => c.ready);
 
         if (allReady) {
             heartbeatStarted = true;

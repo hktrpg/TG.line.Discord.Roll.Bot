@@ -162,21 +162,47 @@ client.once('ready', async () => {
 	let switchSetActivity = 0;
 
 	//await sleep(6);
+	// eslint-disable-next-line no-unused-vars
+	const refreshId2 = setInterval(async () => {
+		switch (switchSetActivity % 2) {
+			case 1:
+				client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
+				break;
+			default:
+				client.user.setActivity(await count2());
+				break;
+		}
+		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
+	}, 180_000);
+});
+
+
+let heartbeatInterval = null;
+client.cluster.on('message', message => {
+	if (message?.type === 'startHeartbeat') {
+		if (client.cluster.id === 0) {
+			console.log('[Cluster 0] Received startHeartbeat signal. Starting heartbeat monitor.');
+			startHeartbeatMonitor();
+		}
+	}
+});
+
+function startHeartbeatMonitor() {
+	if (heartbeatInterval) {
+		clearInterval(heartbeatInterval);
+	}
+
 	const HEARTBEAT_CHECK_INTERVAL = 1000 * 60;
 	const WARNING_THRESHOLD = 3;
 	const CRITICAL_THRESHOLD = 5;
-	const GRACE_PERIOD = (Number(process.env.DISCORD_STARTUP_GRACE_PERIOD) || 6) * 60 * 1000;
 	const restartServer = () => {
 		require('child_process').exec('sudo reboot');
 	}
 	let heartbeat = 0;
-	console.log('Discord Heartbeat: Ready...')
-	setInterval(async () => {
-		if (Date.now() - client.readyTimestamp < GRACE_PERIOD) {
-			console.log('Discord Heartbeat: In startup grace period...');
-			heartbeat = 0;
-			return;
-		}
+	
+	console.log('Discord Heartbeat Monitor Started on Cluster 0.');
+
+	heartbeatInterval = setInterval(async () => {
 		const isAwake = await checkWakeUp();
 		if (isAwake === true) {
 			heartbeat = 0;
@@ -202,26 +228,11 @@ client.once('ready', async () => {
 			}
 		}
 
-
 		if (heartbeat > 20) {
 			restartServer();
 		}
-
 	}, HEARTBEAT_CHECK_INTERVAL);
-	// eslint-disable-next-line no-unused-vars
-	const refreshId2 = setInterval(async () => {
-		switch (switchSetActivity % 2) {
-			case 1:
-				client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
-				break;
-			default:
-				client.user.setActivity(await count2());
-				break;
-		}
-		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
-	}, 180_000);
-});
-
+}
 
 async function replilyMessage(message, result) {
 	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>${candle.checker(message.member.id)}\n` : '';

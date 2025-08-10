@@ -89,7 +89,7 @@ manager.on('clusterCreate', shard => {
         // Ensure all clusters have been created before checking if they are ready
         if (shard.manager.clusters.size !== shard.manager.totalClusters) return;
 
-        const allReady = shard.manager.clusters.every(c => c.ready);
+        const allReady = Array.from(shard.manager.clusters.values()).every(c => c.ready);
 
         if (allReady) {
             heartbeatStarted = true;

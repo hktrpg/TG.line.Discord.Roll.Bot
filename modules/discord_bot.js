@@ -172,22 +172,30 @@ client.once('ready', async () => {
 	console.log('Discord Heartbeat: Ready...')
 	setInterval(async () => {
 		const isAwake = await checkWakeUp();
-		if (isAwake) {
+		if (isAwake === true) {
 			heartbeat = 0;
 			return;
 		}
-		if (!isAwake || isAwake.length > 0) {
-			heartbeat++;
-			console.log(`Discord Heartbeat: ID: ${isAwake.length} - ${heartbeat}... `)
+
+		heartbeat++;
+
+		if (Array.isArray(isAwake) && isAwake.length > 0) {
+			console.log(`Discord Heartbeat: Down Shards: ${isAwake.join(',')} - Heartbeat: ${heartbeat}`);
+			if (heartbeat > WARNING_THRESHOLD && adminSecret) {
+				SendToId(adminSecret, `HKTRPG ID: ${isAwake.join(', ')} 可能下線了 請盡快檢查.`);
+			}
+			if (heartbeat > CRITICAL_THRESHOLD) {
+				for (const shardId of isAwake) {
+					client.cluster.evalOnManager(`this.clusters.get(${shardId}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
+				}
+			}
+		} else {
+			console.log(`Discord Heartbeat: checkWakeUp failed. Heartbeat: ${heartbeat}`);
+			if (heartbeat > WARNING_THRESHOLD && adminSecret) {
+				SendToId(adminSecret, 'HKTRPG Heartbeat check failed. 可能有部份服務下線了 請盡快檢查.');
+			}
 		}
-		if (heartbeat > WARNING_THRESHOLD && adminSecret) {
-			SendToId(adminSecret, `HKTRPG ID: ${isAwake.join(', ')} 可能下線了 請盡快檢查.`);
-		}
-		if (heartbeat > CRITICAL_THRESHOLD) {
-			if (isAwake.length > 0)
-				for (let i = 0; i < isAwake.length; i++)
-					client.cluster.evalOnManager(`this.clusters.get(${isAwake[i]}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
-		}
+
 
 		if (heartbeat > 20) {
 			restartServer();

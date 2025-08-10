@@ -34,12 +34,16 @@ async function gracefulShutdown() {
         // Stop heartbeat manager
         if (manager.heartbeat) {
             console.log('[Cluster] Stopping heartbeat manager...');
-            manager.heartbeat.stop();
+            try {
+                manager.heartbeat.stop();
+            } catch (error) {
+                console.warn(`[Cluster] A non-critical error occurred while stopping the heartbeat manager: ${error.message}. Shutdown will continue.`);
+            }
         }
         
         // Destroy all clusters
         console.log('[Cluster] Destroying all clusters...');
-        await manager.destroy();
+        await manager.kill();
         
         console.log('[Cluster] Graceful shutdown completed');
         process.exit(0);
@@ -72,12 +76,26 @@ const clusterOptions = {
 const manager = new ClusterManager('./modules/discord_bot.js', clusterOptions);
 
 // Improved event handling
+let heartbeatStarted = false;
 manager.on('clusterCreate', shard => {
     console.log(`[Cluster] Launched cluster #${shard.id}`);
 
     shard.on('ready', () => {
         const maxShard = Math.ceil(shard.manager.totalShards / 3);
         console.log(`[Cluster ${shard.id}] Ready with ${shard.manager.totalShards} total shards. Max shards per cluster: ${maxShard}`);
+
+        if (heartbeatStarted) return;
+
+        // Ensure all clusters have been created before checking if they are ready
+        if (shard.manager.clusters.size !== shard.manager.totalClusters) return;
+
+        const allReady = [...shard.manager.clusters.values()].every(c => c.ready);
+
+        if (allReady) {
+            heartbeatStarted = true;
+            console.log('[Cluster] All clusters are ready. Broadcasting startHeartbeat message.');
+            shard.manager.broadcast({ type: 'startHeartbeat' });
+        }
     });
 
     const errorHandler = (event, error) => {

@@ -200,7 +200,7 @@ https://line.me/R/ti/p/svMLqy9Mik`
         case /(^[.]init$)/i.test(mainMsg[0]):
             temp = await schema.init.findOne({ "groupID": channelid || groupid });
             if (!temp) {
-                rply.text = "找不到先攻表, 請用 .in [角色] [先攻值] 新增角色";
+                rply.text = "找不到先攻表, 請用 .in [先攻值] [角色] 新增角色";
                 return rply;
             }
             if (/^start$/i.test(mainMsg[1]) || /^next$/i.test(mainMsg[1]) && !temp.active) {

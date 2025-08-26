@@ -159,7 +159,10 @@ https://line.me/R/ti/p/svMLqy9Mik`
             return rply;
         case /(^[.]in$)/i.test(mainMsg[0]) && /^\w+/i.test(mainMsg[1]):
             result = await countInit(mainMsg[1]);
-            if (!result) return;
+            if (!result) {
+                rply.text = "新增角色方式\n.in [擲骰公式/先攻值] [角色名稱(選填)] ";
+                return rply;
+            }
             temp = await schema.init.findOne({
                 "groupID": channelid || groupid,
             });
@@ -200,7 +203,7 @@ https://line.me/R/ti/p/svMLqy9Mik`
         case /(^[.]init$)/i.test(mainMsg[0]):
             temp = await schema.init.findOne({ "groupID": channelid || groupid });
             if (!temp) {
-                rply.text = "找不到先攻表, 請用 .in [角色] [先攻值] 新增角色";
+                rply.text = "先攻表未有角色, 新增角色方式\n.in [擲骰公式/先攻值] [角色名稱(選填)]";
                 return rply;
             }
             if (/^start$/i.test(mainMsg[1]) || /^next$/i.test(mainMsg[1]) && !temp.active) {

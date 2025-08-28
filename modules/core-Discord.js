@@ -22,29 +22,52 @@ let shutdownTimeout = null;
 async function gracefulShutdown() {
     if (isShuttingDown) return;
     isShuttingDown = true;
-    
+
     console.log('[Cluster] Starting graceful shutdown...');
-    
+
     // Clear shutdown timeout
     if (shutdownTimeout) {
         clearTimeout(shutdownTimeout);
     }
-    
+
     try {
         // Stop heartbeat manager
         if (manager.heartbeat) {
             console.log('[Cluster] Stopping heartbeat manager...');
             try {
-                manager.heartbeat.stop();
+                const hb = manager.heartbeat;
+                if (hb && hb.clusters && typeof hb.clusters.values === 'function') {
+                    for (const instance of hb.clusters.values()) {
+                        try { instance.stop(); } catch (error) { void error; }
+                    }
+                    try { hb.clusters.clear(); } catch (error) { void error; }
+                }
             } catch (error) {
                 console.warn(`[Cluster] A non-critical error occurred while stopping the heartbeat manager: ${error.message}. Shutdown will continue.`);
             }
         }
-        
-        // Destroy all clusters
-        console.log('[Cluster] Destroying all clusters...');
-        await manager.kill();
-        
+
+        // Notify clusters and destroy client instances
+        console.log('[Cluster] Notifying clusters and destroying clients...');
+        try {
+            manager.triggerMaintenance('Shutting down');
+        } catch (error) {
+            console.warn(`[Cluster] maintenance trigger failed: ${error.message}`);
+        }
+
+        try {
+            await manager.broadcastEval(async (client) => {
+                try {
+                    if (client && typeof client.destroy === 'function') {
+                        await client.destroy();
+                    }
+                } catch (error) { void error; }
+                process.exit(0);
+            }, { timeout: 15_000 });
+        } catch (error) {
+            console.warn('[Cluster] broadcastEval during shutdown encountered an error:', error);
+        }
+
         console.log('[Cluster] Graceful shutdown completed');
         process.exit(0);
     } catch (error) {
@@ -101,7 +124,7 @@ manager.on('clusterCreate', shard => {
     const errorHandler = (event, error) => {
         // Don't handle errors if shutting down
         if (isShuttingDown) return;
-        
+
         console.error(`[Cluster ${shard.id}] ${event}:`, error);
         // Add retry logic
         if (event === 'death') {
@@ -129,7 +152,7 @@ manager.on("clusterCreate", cluster => {
     cluster.on("message", async message => {
         // Don't handle respawn messages if shutting down
         if (isShuttingDown) return;
-        
+
         if (message.respawn === true && message.id !== null && message.id !== undefined) {
             console.log(`[Cluster] Respawning cluster ${message.id}`);
             try {
@@ -168,7 +191,7 @@ manager.on("clusterCreate", cluster => {
 if (agenda) {
     agenda.define('dailyDiscordMaintenance', async () => {
         if (isShuttingDown) return;
-        
+
         console.log('[Schedule] Running daily Discord maintenance');
         try {
             await manager.respawnAll({
@@ -206,7 +229,7 @@ process.on('SIGTERM', async () => {
         console.log('[Cluster] Force shutdown after timeout');
         process.exit(1);
     }, 30_000); // 30 second timeout
-    
+
     await gracefulShutdown();
 });
 
@@ -217,7 +240,7 @@ process.on('SIGINT', async () => {
         console.log('[Cluster] Force shutdown after timeout');
         process.exit(1);
     }, 30_000); // 30 second timeout
-    
+
     await gracefulShutdown();
 });
 

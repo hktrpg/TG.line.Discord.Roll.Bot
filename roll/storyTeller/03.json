@@ -1,0 +1,595 @@
+{
+  "title": "貓咪的一天",
+  "type": "story",
+  "introduction": "歡迎來到「貓咪的一天」！在故事開始前，請先完成一些設定。",
+  "coverImage": "https://example.com/cover.png",
+  "playerVariables": [
+    {
+      "key": "cat_name",
+      "prompt": "1. 請輸入你的貓咪名字：",
+      "placeholder": "例如：橘子、Mochi、小黑"
+    },
+    {
+      "key": "owner_name",
+      "prompt": "2. 請輸入主人的名字：",
+      "placeholder": "例如：小明、艾蜜莉、阿傑"
+    }
+  ],
+  "variables": [
+    {
+      "key": "rain",
+      "label": "下雨",
+      "min": 0,
+      "max": 1
+    }
+  ],
+  "speakers": [
+    {
+      "key": "cat",
+      "name": "{cat_name}",
+      "image": "https://example.com/speakers/cat.png"
+    },
+    {
+      "key": "owner",
+      "name": "{owner_name}",
+      "image": "https://example.com/speakers/owner.png"
+    }
+  ],
+  "gameStats": [
+    {
+      "key": "Cuteness",
+      "label": "萌度 (Cuteness)",
+      "min": 1,
+      "max": 10
+    },
+    {
+      "key": "Energy",
+      "label": "活力 (Energy)",
+      "min": 1,
+      "max": 10
+    },
+    {
+      "key": "Mischief",
+      "label": "淘氣度 (Mischief)",
+      "min": 1,
+      "max": 10
+    }
+  ],
+  "ownerId": "1234567890",
+  "initialPage": "0",
+  "pages": {
+    "0": {
+      "id": "0",
+      "title": "角色創造",
+      "content": [
+        {
+          "text": "設定完成！現在，讓我們來看看 {cat_name} 今天的狀態...\n\n*(系統會為你隨機生成 1-10 的數值)*\n\n- **萌度 (Cuteness):** {Cuteness}\n- **活力 (Energy):** {Energy}\n- **淘氣度 (Mischief):** {Mischief}\n\n這些數值將會悄悄影響 {cat_name} 在今天冒險中的某些遭遇和结局喔！"
+        }
+      ],
+      "choices": [
+        {
+          "text": "準備好了嗎？",
+          "action": "1"
+        }
+      ]
+    },
+    "1": {
+      "id": "1",
+      "title": "貓咪的一天",
+      "image": "https://example.com/cat-intro.jpg",
+      "alt": "封面圖片",
+      "content": [
+        {
+          "text": "早安！我是一隻叫做「{cat_name}」的貓。今天陽光正好，從窗戶灑進溫暖的客廳。我的主人 {owner_name} 剛剛出門上班，留給我一整棟房子。\n我打了個哈欠，感覺體內的活力指數是... **(活力: {Energy})**。今天該做些什麼好呢？\n\n我坐在地毯中央，搖了搖尾巴，思考著今天的貓生方向。"
+        ,
+          "speaker": "cat"
+        },
+        {
+          "text": "突然下起雨來...",
+          "randomChance": 0.3,
+          "setVariables": {
+            "rain": 1
+          }
+        }
+      ],
+      "choices": [
+        {
+          "text": "開始今天的貓生！",
+          "action": "2"
+        }
+      ]
+    },
+    "2": {
+      "id": "2",
+      "title": "決定今天要做什麼",
+      "content": [
+        {
+          "text": "我的腦中浮現了三個選項："
+        }
+      ],
+      "choices": [
+        {
+          "text": "A) 懶洋洋地度過這一天，賣個萌，觀察家裡有趣的小東西。(畢竟今天活力不太夠，還是省點力氣吧。)",
+          "action": "3",
+          "statChanges": {
+            "Cuteness": 1,
+            "Energy": 1,
+            "Mischief": -1
+          },
+          "condition": "Energy < 5"
+        },
+        {
+          "text": "A) 懶洋洋地度過這一天，賣個萌，觀察家裡有趣的小東西。",
+          "action": "3",
+          "statChanges": {
+            "Cuteness": 1,
+            "Energy": 1,
+            "Mischief": -1
+          },
+          "condition": "Energy >= 5"
+        },
+        {
+          "text": "B) 今天想當個「魔法小幫手」！偷偷用我的方式幫忙做家事，給 {owner_name} 一個驚喜。",
+          "action": "11",
+          "statChanges": {
+            "Cuteness": 1,
+            "Energy": -1,
+            "Mischief": -1
+          }
+        },
+        {
+          "text": "C) 管他的！今天本貓最大！我要把這個家變成我的遊樂園！(我感覺體內的活力指數正在爆表！)",
+          "action": "18",
+          "statChanges": {
+            "Mischief": 2,
+            "Energy": -1
+          },
+          "condition": "Energy > 7"
+        },
+        {
+          "text": "C) 管他的！今天本貓最大！我要把這個家變成我的遊樂園！",
+          "action": "18",
+          "statChanges": {
+            "Mischief": 2,
+            "Energy": -1
+          },
+          "condition": "Energy <= 7"
+        }
+      ]
+    },
+    "3": {
+      "id": "3",
+      "title": "路線A：可愛風",
+      "content": [
+        {
+          "text": "我選了最舒服的選項。我打了個大大的哈欠，伸展了一下筋骨，然後跳上我最愛的窗台。這裡陽光最充足，還能看到窗外飛過的小鳥。我瞇起眼睛，感受著暖意，看著窗外的世界，一切都好平靜。"
+        ,
+          "speaker": "cat"
+        }
+      ],
+      "choices": [
+        {
+          "text": "把視線移回室內",
+          "action": "4"
+        },
+        {
+          "text": "繼續在窗邊昏昏欲睡",
+          "action": "8"
+        }
+      ]
+    },
+    "4": {
+      "id": "4",
+      "title": "路線A：可愛風",
+      "content": [
+        {
+          "text": "我的視線從窗外移回室內，注意到沙發底下有一團輕飄飄的灰色毛球——是灰塵！它看起來像一隻膽小的老鼠。我的狩獵本能被激發了！"
+        }
+      ],
+      "choices": [
+        {
+          "text": "A) 衝過去跟它玩一場！",
+          "action": "5",
+          "statChanges": {
+            "Energy": -1,
+            "Cuteness": 1,
+            "Mischief": 1
+          }
+        },
+        {
+          "text": "B) 算了，還是曬太陽比較重要。",
+          "action": "6",
+          "statChanges": {
+            "Energy": 1,
+            "Cuteness": 1
+          }
+        }
+      ]
+    },
+    "5": {
+      "id": "5",
+      "title": "路線A：可愛風",
+      "content": [
+        {
+          "text": "我壓低身體，悄悄地接近那團灰塵。就在最佳時機，我猛地撲了過去！用爪子把它撥來撥去，追著它在家裡跑了好幾圈，玩得不亦樂乎。"
+        },
+        {
+          "text": "\n(我不只追著它，還故意把它撥到 {owner_name} 的拖鞋上當作裝飾。)",
+          "condition": "Mischief > 6"
+        }
+      ],
+      "choices": [
+        {
+          "text": "然後...",
+          "action": "7"
+        }
+      ]
+    },
+    "6": {
+      "id": "6",
+      "title": "路線A：可愛風",
+      "content": [
+        {
+          "text": "我只是瞥了那團灰塵一眼，懶洋洋地翻了個身，繼續享受我的日光浴。當一隻貓，就是要學會放空，沒什麼比這個更重要了。"
+        ,
+          "speaker": "cat"
+        }
+      ],
+      "choices": [
+        {
+          "text": "然後...",
+          "action": "7"
+        }
+      ]
+    },
+    "7": {
+      "id": "7",
+      "title": "結局",
+      "isEnding": true,
+      "endings": [
+        {
+          "condition": "Cuteness > 8",
+          "text": "傍晚，{owner_name} 回來了。他看到我可愛地睡在窗邊（或是在追逐灰塵後疲倦地躺著），忍不住笑了。\n他看起來被我的睡臉徹底融化了，忍不住抱起來緊緊地親了好幾口，還給了我雙倍的肉泥作為獎勵！\n\n今天也是和平又幸福的一天。\n\n**【可愛風結局 - 主人覺得你好可愛】**"
+        },
+        {
+          "condition": "true",
+          "text": "傍晚，{owner_name} 回來了。他看到我可愛地睡在窗邊（或是在追逐灰塵後疲倦地躺著），忍不住笑了。\n他走過來摸摸我的頭，還給了我最喜歡的肉泥作為獎勵。\n\n今天也是和平又幸福的一天。\n\n**【可愛風結局 - 主人覺得你好可愛】**"
+        }
+      ],
+      "choices": [
+        {
+          "text": "回到開頭",
+          "action": "0"
+        },
+        {
+          "text": "結束遊戲",
+          "action": "END"
+        }
+      ]
+    },
+    "8": {
+      "id": "8",
+      "title": "路線A：可愛風",
+      "content": [
+        {
+          "text": "正當我昏昏欲睡時，一隻討厭的蒼蠅飛了進來，嗡嗡作響，打擾了我的清靜。牠停在了電視旁邊的一個小裝飾品上。"
+        }
+      ],
+      "choices": [
+        {
+          "text": "A) 跳過去抓住牠！順便來個小小惡作劇。",
+          "action": "9",
+          "statChanges": {
+            "Mischief": 2,
+            "Energy": -1
+          }
+        },
+        {
+          "text": "B) 太麻煩了，用眼神殺死牠就好。",
+          "action": "10",
+          "statChanges": {
+            "Cuteness": 1
+          }
+        }
+      ]
+    },
+    "9": {
+      "id": "9",
+      "title": "路線A：可愛風",
+      "content": [
+        {
+          "text": "我決定給這隻蒼蠅一點顏色瞧瞧！我算準距離，奮力一跳！雖然沒抓到蒼蠅，但我的爪子「不小心」揮到了那個小裝飾品。咚！它掉到地毯上，沒摔壞。"
+        },
+        {
+          "text": "\n(它掉下去的時候，還順便把旁邊的一支筆也掃了下去，製造出更大的聲響！)",
+          "condition": "Mischief > 7"
+        },
+        {
+          "text": "\n\n我裝作沒事的樣子，舔了舔爪子。"
+        }
+      ],
+      "choices": [
+        {
+          "text": "等主人回來...",
+          "action": "10"
+        }
+      ]
+    },
+    "10": {
+      "id": "10",
+      "title": "結局",
+      "isEnding": true,
+      "content": [
+        {
+          "text": "{owner_name} 回來後，發現裝飾品掉在地上，又看到我一臉無辜的樣子。他笑了笑，把它撿起來，說：「你這個小搗蛋鬼，{cat_name}。」然後把我抱起來，親了一下。我的惡作劇成功了！\n\n**【可愛風結局 - 主人的原諒】**"
+        }
+      ],
+      "choices": [
+        {
+          "text": "回到開頭",
+          "action": "0"
+        },
+        {
+          "text": "結束遊戲",
+          "action": "END"
+        }
+      ]
+    },
+    "11": {
+      "id": "11",
+      "title": "路線B：魔幻風",
+      "content": [
+        {
+          "text": "沒錯！今天我要當一隻會做家事的魔法貓咪！首先，從清潔開始吧。我看見書架上好像有點灰塵，就決定從那裡下手。我跳上書架，準備用我柔軟的尾巴當作除塵撣。"
+        }
+      ],
+      "choices": [
+        {
+          "text": "開始打掃",
+          "action": "12",
+          "statChanges": {
+            "Energy": -1,
+            "Cuteness": 1
+          }
+        }
+      ]
+    },
+    "12": {
+      "id": "12",
+      "title": "路線B：魔幻風",
+      "content": [
+        {
+          "text": "我優雅地用尾巴掃過一層層的書，灰塵果然都被我掃掉了。正當我得意的時候，我看到書架頂端有一個閃閃發亮的東西，好像是 {owner_name} 放的水晶球。我的好奇心完全被吸引了過去。"
+        }
+      ],
+      "choices": [
+        {
+          "text": "靠近看看",
+          "action": "13"
+        }
+      ]
+    },
+    "13": {
+      "id": "13",
+      "title": "路線B：魔幻風",
+      "content": [
+        {
+          "text": "我小心翼翼地往上爬，想看清楚那個亮晶晶的東西是什麼。就在我快要碰到它的時候，腳下一滑，「哐啷！」一聲，旁邊的花瓶被我撞倒，摔在地上碎成了好幾片。"
+        },
+        {
+          "text": "\n(我撞擊的力道太大了，花瓶不但摔得粉碎，還把旁邊的一小疊書也弄倒了，場面一片混亂。)",
+          "condition": "Energy > 8"
+        },
+        {
+          "text": "\n\n天啊，我闖禍了！"
+        }
+      ],
+      "choices": [
+        {
+          "text": "...",
+          "action": "14"
+        }
+      ]
+    },
+    "14": {
+      "id": "14",
+      "title": "路線B：魔幻風",
+      "image": "https://example.com/broken-vase.jpg",
+      "alt": "打破花瓶場景",
+      "content": [
+        {
+          "text": "看著地上的碎片，我心裡好慌張。我該怎麼辦？"
+        }
+      ],
+      "choices": [
+        {
+          "text": "A) 光明正大地承認錯誤！坐在碎片旁邊，等 {owner_name} 回來。",
+          "action": "15",
+          "statChanges": {
+            "Cuteness": 1,
+            "Mischief": -1
+          }
+        },
+        {
+          "text": "B) 趕快藏起來！把證據消滅掉。",
+          "action": "16",
+          "statChanges": {
+            "Mischief": 1
+          }
+        }
+      ]
+    },
+    "15": {
+      "id": "15",
+      "title": "結局",
+      "isEnding": true,
+      "endings": [
+        {
+          "condition": "Cuteness >= 5",
+          "text": "我決定當一隻誠實的貓。我靜靜地坐在花瓶碎片旁邊，低下頭，用最無辜、最愧疚的眼神等著 {owner_name}。\n{owner_name} 回來看到這一幕，先是驚訝，但馬上就明白了。他嘆了口氣，走過來摸摸我，溫柔地說：「沒事，還好你 {cat_name} 沒有受傷。」\n\n**【魔幻風結局 - 誠實獲得原諒】**"
+        },
+        {
+          "condition": "true",
+          "text": "我決定當一隻誠實的貓。我靜靜地坐在花瓶碎片旁邊，低下頭，用最無辜、最愧疚的眼神等著 {owner_name}。\n{owner_name} 回來看到這一幕，他嘆了口氣，表情有點無奈，走過來摸摸我，說：「下次要小心一點，知道嗎？還好你沒有受傷。」\n\n**【魔幻風結局 - 誠實獲得原諒】**"
+        }
+      ],
+      "choices": [
+        {
+          "text": "回到開頭",
+          "action": "0"
+        },
+        {
+          "text": "結束遊戲",
+          "action": "END"
+        }
+      ]
+    },
+    "16": {
+      "id": "16",
+      "title": "路線B：魔幻風",
+      "content": [
+        {
+          "text": "不行，不能被發現！我用我的小肉掌，努力把大塊的碎片推進沙發底下。至於小碎片……我盡力了。然後我跑到貓抓板上，裝作什麼事都沒發生過的樣子。"
+        }
+      ],
+      "choices": [
+        {
+          "text": "等主人回來...",
+          "action": "17"
+        }
+      ]
+    },
+    "17": {
+      "id": "17",
+      "title": "結局",
+      "isEnding": true,
+      "content": [
+        {
+          "text": "{owner_name} 回來後，並沒有立刻發現。直到大掃除的時候，他才在沙發下找到那些碎片。他很疑惑，但完全沒懷疑到我頭上。我從遠處看著，心裡偷偷吐了吐舌頭。任務……算是成功了吧？\n\n**【魔幻風結局 - 主人不知道】**"
+        }
+      ],
+      "choices": [
+        {
+          "text": "回到開頭",
+          "action": "0"
+        },
+        {
+          "text": "結束遊戲",
+          "action": "END"
+        }
+      ]
+    },
+    "18": {
+      "id": "18",
+      "title": "路線C：放任自己",
+      "content": [
+        {
+          "text": "今天，我不想再當乖貓了！我要釋放我內心的野性！我的第一個目標是……廁所裡的衛生紙！我衝進廁所，用爪子勾住衛生紙，然後頭也不回地往客廳衝！"
+        }
+      ],
+      "choices": [
+        {
+          "text": "繼續！",
+          "action": "19",
+          "statChanges": {
+            "Energy": -1,
+            "Mischief": 2
+          }
+        }
+      ]
+    },
+    "19": {
+      "id": "19",
+      "title": "路線C：放任自己",
+      "content": [
+        {
+          "text": "白色的衛生紙像一條長長的尾巴，跟著我跑遍了整個家。客廳、沙發、桌子底下，到處都是「白雪皚皚」的景象。"
+        },
+        {
+          "text": "\n(我甚至跳上窗簾，把衛生紙掛了上去，像瀑布一樣！這才是藝術！)",
+          "condition": "Energy > 8"
+        },
+        {
+          "text": "\n\n看著我的傑作，我滿意地喵了一聲。下一個目標呢？"
+        }
+      ],
+      "choices": [
+        {
+          "text": "下一個目標：沙發！",
+          "action": "20"
+        }
+      ]
+    },
+    "20": {
+      "id": "20",
+      "title": "路線C：放任自己",
+      "content": [
+        {
+          "text": "沒錯，就是那個看起來很貴的沙發！我的爪子早就癢得不行了。我跳上沙發，盡情地伸出爪子，在扶手上留下一道又一道的藝術刻印。真是太舒壓了！"
+        }
+      ],
+      "choices": [
+        {
+          "text": "還不夠！繼續破壞！",
+          "action": "21",
+          "statChanges": {
+            "Mischief": 2
+          }
+        }
+      ]
+    },
+    "21": {
+      "id": "21",
+      "title": "路線C：放任自己",
+      "content": [
+        {
+          "text": "破壞是會上癮的！我又跳上桌子，把上面的筆、遙控器、任何我看不順眼的東西，一個一個推到地上。清脆的掉落聲真是全世界最美妙的音樂！"
+        }
+      ],
+      "choices": [
+        {
+          "text": "等著看主人回來的反應...",
+          "action": "22",
+          "statChanges": {
+            "Mischief": 1,
+            "Energy": -1
+          }
+        }
+      ]
+    },
+    "22": {
+      "id": "22",
+      "title": "結局",
+      "isEnding": true,
+      "content": [
+        {
+          "text": "{owner_name} 回來了。他打開門，看到滿屋子的狼藉，整個人都石化了。他看著我，我又看著他。"
+        }
+      ],
+      "endings": [
+        {
+          "condition": "Cuteness > 8",
+          "text": "我立刻使出我的終極大絕招——翻身露出肚子，用最無辜的眼神看著他。{owner_name} 和我對視了十秒，最終還是投降了。他嘆著氣開始收拾，一邊唸著：「真是拿你 {cat_name} 沒辦法。」\n\n**【放任風結局 - 靠賣萌獲得原諒】**"
+        },
+        {
+          "condition": "Cuteness <= 8 && Mischief > 7",
+          "text": "我立刻翻身露出肚子，但他似乎不怎麼買帳。他指著沙發上的抓痕說：「{cat_name}！這個不行！」看來今天晚上沒有零食了。\n\n**【放任風結局 - 被抓包了】**"
+        },
+        {
+          "condition": "Cuteness <= 8 && Mischief <= 7",
+          "text": "他嘆了口氣，雖然看起來有點生氣，但還是先過來檢查我有沒有受傷。他一邊收拾一邊說：「你呀，{cat_name}，真是個小麻煩。」\n\n**【放任風結局 - 溫柔的無奈】**"
+        }
+      ],
+      "choices": [
+        {
+          "text": "回到開頭",
+          "action": "0"
+        },
+        {
+          "text": "結束遊戲",
+          "action": "END"
+        }
+      ]
+    }
+  }
+}

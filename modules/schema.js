@@ -456,6 +456,70 @@ const multiServerSchema = mongoose.model('multiServer', new mongoose.Schema({
     botname: String
 }));
 
+// Story related schemas
+const storySchema = mongoose.model('story', new mongoose.Schema({
+    ownerID: { type: String, required: true, index: true },
+    ownerName: String,
+    alias: { type: String, required: true }, // like "03"
+    title: String,
+    type: { type: String, default: 'story', index: true },
+    payload: Schema.Types.Mixed, // original JSON content of the story
+    startPermission: { type: String, enum: ['AUTHOR_ONLY', 'GROUP_ONLY', 'ANYONE'], default: 'AUTHOR_ONLY', index: true },
+    allowedGroups: [String], // when GROUP_ONLY, which groups are allowed to start
+    isActive: { type: Boolean, default: true },
+}, {
+    timestamps: true,
+    indexes: [
+        { ownerID: 1, alias: 1, unique: true }
+    ]
+}));
+
+const storyRunSchema = mongoose.model('storyRun', new mongoose.Schema({
+    story: { type: Schema.Types.ObjectId, ref: 'story', index: true },
+    storyOwnerID: { type: String, index: true },
+    storyAlias: String,
+
+    starterID: { type: String, required: true, index: true },
+    starterName: String,
+    botname: String,
+    groupID: { type: String, index: true },
+    channelID: { type: String, index: true },
+
+    // Snapshot of permission at start time (from story), optional
+    startPermissionAtRun: { type: String, enum: ['AUTHOR_ONLY', 'GROUP_ONLY', 'ANYONE'], index: true },
+
+    // Who can participate in this run
+    participantPolicy: { type: String, enum: ['AUTHOR_ONLY', 'SPECIFIED', 'ANYONE'], default: 'ANYONE', index: true },
+    allowedUserIDs: [String],
+
+    // Gameplay state
+    variables: Schema.Types.Mixed, // key -> number/string/bool
+    stats: Schema.Types.Mixed, // gameStats current values
+    playerVariables: Schema.Types.Mixed, // user filled values
+
+    currentPageId: String,
+    history: [{
+        pageId: String,
+        choiceText: String,
+        choiceAction: String,
+        variables: Schema.Types.Mixed,
+        stats: Schema.Types.Mixed,
+        timestamp: { type: Date, default: Date.now }
+    }],
+
+    isEnded: { type: Boolean, default: false, index: true },
+    endingId: String,
+    endingText: String,
+    endedAt: { type: Date, index: true },
+}, {
+    timestamps: true,
+    indexes: [
+        { story: 1, createdAt: -1 },
+        { groupID: 1, createdAt: -1 },
+        { starterID: 1, createdAt: -1 }
+    ]
+}));
+
 // Schema for forwarded messages in character cards
 const forwardedMessageSchema = mongoose.model('forwardedMessage', new mongoose.Schema({
     userId: { type: String, required: true, index: true },
@@ -504,29 +568,7 @@ const getMongoDBState = async () => {
     }
 };
 
-const storyTellerRoundSchema = mongoose.model('storyTellerRound', new mongoose.Schema({
-    groupID: { type: String, index: true },
-    roundNumber: { type: Number, index: true },
-    story: String,
-    createdAt: { type: Date, default: Date.now }
-}, {
-    timestamps: true
-}));
-const storyTellerScriptSchema = mongoose.model('storyTellerScript', new mongoose.Schema({
-    groupID: { type: String, index: true },
-    story: String,
-    createdAt: { type: Date, default: Date.now }
-}, {
-    timestamps: true
-}));
 
-const storyTellerScriptCollectionSchema = mongoose.model('storyTellerScriptCollection', new mongoose.Schema({
-    groupID: { type: String, index: true },
-    script: String,
-    createdAt: { type: Date, default: Date.now }
-}, {
-    timestamps: true
-}));
 
 
 
@@ -572,6 +614,8 @@ module.exports = {
     randomAnsPersonal: randomAnswerPersonalSchema,
     translateChannel: translateChannelSchema,
     bcdiceRegedit: bcdiceRegeditSchema,
+    story: storySchema,
+    storyRun: storyRunSchema,
     myNameRecord: MyNameRecord,
     forwardedMessage: forwardedMessageSchema
 };

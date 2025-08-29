@@ -550,6 +550,30 @@ function findChoiceFromCurrentPage(story, run, targetPageId) {
     return null;
 }
 
+// Build quick-reply buttons from current page's available choices
+function getAllowedChoicesForCurrentPage(story, run) {
+    const currentPage = story.pages[run.currentPageId];
+    if (!currentPage) return [];
+    const scope = buildEvalScope(run);
+    const allowedChoices = Array.isArray(currentPage.choices)
+        ? currentPage.choices.filter(c => !c.condition || safeEvalCondition(c.condition, scope))
+        : [];
+    return allowedChoices;
+}
+
+function buildButtonsForPage(story, run) {
+    const allowedChoices = getAllowedChoicesForCurrentPage(story, run);
+    const buttons = [];
+    for (const c of allowedChoices) {
+        const actionUpper = String(c.action || '').toUpperCase();
+        if (actionUpper === 'END') buttons.push('.st end');
+        else buttons.push('.st goto ' + c.action);
+    }
+    // unique & limit to 20
+    const unique = Array.from(new Set(buttons));
+    return unique.slice(0, 20);
+}
+
 async function gotoPage({ story, run, targetPageId }) {
     // Apply stat changes if target matches a defined choice
     const choice = findChoiceFromCurrentPage(story, run, targetPageId);
@@ -596,6 +620,7 @@ const rollDiceCommand = async function ({
         case !sub || /^help$/.test(sub): {
             rply.text = this.getHelpMessage();
             rply.quotes = true;
+            rply.buttonCreate = ['.st mylist'];
             return rply;
         }
         case /^start$/.test(sub): {
@@ -613,6 +638,7 @@ const rollDiceCommand = async function ({
                 if (run && !run.isEnded) {
                     if ((run.storyAlias || '').toLowerCase() !== (resolved.alias || '').toLowerCase()) {
                         rply.text = '目前有進行中的故事：' + (run.storyAlias || '-') + '。請先輸入 .st end 或 .st pause 後再啟動新劇本。';
+                        rply.buttonCreate = ['.st end', '.st pause'];
                         return rply;
                     }
                     // Same story: continue
@@ -626,6 +652,7 @@ const rollDiceCommand = async function ({
                     } else {
                         const text = renderPageText(story, run, run.currentPageId);
                         rply.text = '已載入當前進度：\n' + text;
+                        rply.buttonCreate = buildButtonsForPage(story, run);
                     }
                     await saveRun(ctx, run);
                     return rply;
@@ -638,7 +665,10 @@ const rollDiceCommand = async function ({
                 const missing = getMissingPlayerVariables(story, run);
                 let text = '';
                 if (missing.length > 0) text = renderPlayerSetupPrompt(story, run);
-                else text = renderPageText(story, run, run.currentPageId);
+                else {
+                    text = renderPageText(story, run, run.currentPageId);
+                    rply.buttonCreate = buildButtonsForPage(story, run);
+                }
                 await saveRun(ctx, run);
                 rply.text = text;
                 return rply;
@@ -656,11 +686,13 @@ const rollDiceCommand = async function ({
                 } else {
                     const text = renderPageText(story, run, run.currentPageId);
                     rply.text = '已載入當前進度：\n' + text;
+                    rply.buttonCreate = buildButtonsForPage(story, run);
                 }
                 await saveRun(ctx, run);
                 return rply;
             }
             rply.text = '請輸入 .st start <alias|title> 開始，或使用 .st mylist 檢視清單。';
+            rply.buttonCreate = ['.st mylist'];
             return rply;
         }
         case /^pause$/.test(sub): {
@@ -668,6 +700,7 @@ const rollDiceCommand = async function ({
             if (!run) { rply.text = '目前沒有進行中的故事。'; return rply; }
             await saveRun(ctx, run);
             rply.text = '已暫停，使用 .st start 可繼續。';
+            rply.buttonCreate = ['.st start'];
             return rply;
         }
         case /^end$/.test(sub): {
@@ -688,6 +721,7 @@ const rollDiceCommand = async function ({
                 '標題：' + title + '\n' +
                 '開始時間：' + fmt(started) + '\n' +
                 '結束時間：' + fmt(ended);
+            rply.buttonCreate = ['.st mylist'];
             return rply;
         }
         case /^goto$/.test(sub): {
@@ -715,6 +749,13 @@ const rollDiceCommand = async function ({
                     else msg += '- ' + c.text + '（.st goto ' + c.action + '）\n';
                 }
                 rply.text = msg.trim();
+                const btns = [];
+                for (const c of allowedChoices) {
+                    const a = String(c.action || '').toUpperCase();
+                    if (a === 'END') btns.push('.st end');
+                    else btns.push('.st goto ' + c.action);
+                }
+                rply.buttonCreate = Array.from(new Set(btns)).slice(0, 20);
                 return rply;
             }
             if (targetUpper !== 'END' && !story.pages[target]) { rply.text = '找不到此頁面ID。'; return rply; }
@@ -722,6 +763,7 @@ const rollDiceCommand = async function ({
             const text = renderPageText(story, run, run.currentPageId);
             await saveRun(ctx, run);
             rply.text = text;
+            rply.buttonCreate = buildButtonsForPage(story, run);
             return rply;
         }
         case /^set$/.test(sub): {
@@ -729,7 +771,7 @@ const rollDiceCommand = async function ({
             const value = (mainMsg.slice(3).join(' ') || '').trim();
             if (!field || !value) { rply.text = '用法：.st set name 小花 或 .st set owner_name 阿明'; return rply; }
             const run = await getActiveRun(ctx);
-            if (!run) { rply.text = '請先使用 .st start 開始故事。'; return rply; }
+            if (!run) { rply.text = '請先使用 .st start 開始故事。'; rply.buttonCreate = ['.st start']; return rply; }
             // Map common aliases
             let key = field;
             if (field === 'name') key = 'cat_name';
@@ -757,6 +799,7 @@ const rollDiceCommand = async function ({
                 rply.text = '已設定 ' + key + ' = ' + value + '\n\n' + text;
                 // Persist any [set] effects applied during renderPageText (e.g., initial stats)
                 await saveRun(ctx, run);
+                rply.buttonCreate = buildButtonsForPage(storyRef, run);
             }
             return rply;
         }
@@ -960,6 +1003,9 @@ const rollDiceCommand = async function ({
                 }
             }
             rply.text = text.trim();
+            // Provide quick-start buttons for each alias
+            const startButtons = Array.from(new Set(rows.map(r => '.st start ' + r.alias))).slice(0, 20);
+            if (startButtons.length > 0) rply.buttonCreate = startButtons;
             return rply;
         }
         default: {

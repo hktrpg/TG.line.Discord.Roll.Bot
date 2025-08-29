@@ -86,6 +86,24 @@ function safeEvalCondition(expr, scope) {
     }
 }
 
+// Evaluate arithmetic/identifier expressions against scope and return the value (not just truthy)
+function evalExpressionValue(expr, scope) {
+    try {
+        if (expr === undefined || expr === null) return undefined;
+        if (typeof expr === 'number') return expr;
+        const str = String(expr).trim();
+        if (str === '') return '';
+        // Allow identifiers and basic operators
+        const allowed = /[A-Za-z_][A-Za-z0-9_]*|([<>]=?|==?=|!?=)|[()&|+\-*/%\s.\d]/g;
+        const cleaned = (str.match(allowed) || []).join('');
+        // eslint-disable-next-line no-new-func
+        const fn = new Function('scope', 'with(scope){ return (' + cleaned + ') }');
+        return fn(scope);
+    } catch (_) {
+        return expr;
+    }
+}
+
 function pickRandomChance(item) {
     if (item && typeof item.randomChance === 'number') {
         return Math.random() < item.randomChance;
@@ -97,11 +115,15 @@ function ensureRunDefaults(run, story) {
     run.variables = run.variables || {};
     run.stats = run.stats || {};
     run.playerVariables = run.playerVariables || {};
-    // Initialize stats 1-10 randomly if not set
+    // Initialize stats 1-10 randomly if not set.
+    // If stats have been explicitly set by the story (lock flag), do not randomize
+    // missing keys anymore to avoid overriding authored values mid-run.
+    const statsLocked = !!run.__statsLocked;
     if (story && Array.isArray(story.gameStats)) {
         for (const s of story.gameStats) {
             const k = s.key;
             if (run.stats[k] === undefined || run.stats[k] === null) {
+                if (statsLocked) continue;
                 const min = Number(s.min) || 1;
                 const max = Number(s.max) || 10;
                 run.stats[k] = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -110,16 +132,10 @@ function ensureRunDefaults(run, story) {
     }
 }
 
-function readStory03() {
-    const storyPath = path.join(__dirname, 'storyTeller', '03.json');
-    const raw = fs.readFileSync(storyPath, 'utf8');
-    return JSON.parse(raw);
-}
+// Deprecated: demo story direct link (03.json) removed after test phase
+function readStory03() { return { title: '', type: 'story', introduction: '', playerVariables: [], variables: [], speakers: [], gameStats: [], ownerId: '', initialPage: '0', pages: {} }; }
 
 async function loadStoryByAlias(ownerID, alias) {
-    if (alias === '03') {
-        return { storyDoc: null, story: readStory03() };
-    }
     if (db.story && typeof db.story.findOne === 'function') {
         const doc = await db.story.findOne({ ownerID, alias }).lean();
         if (doc && doc.payload) return { storyDoc: doc, story: doc.payload };
@@ -161,27 +177,8 @@ async function resolveStoryForStart({ ownerID, aliasOrTitle }) {
     return { storyDoc: null, story: null, alias: null };
 }
 
-async function loadOrCreateStory03(ownerID, ownerName) {
-    const storyPayload = readStory03();
-    if (db.story && typeof db.story.findOne === 'function') {
-        let doc = await db.story.findOne({ ownerID, alias: '03' });
-        if (!doc) {
-            doc = await db.story.create({
-                ownerID,
-                ownerName,
-                alias: '03',
-                title: storyPayload.title || '貓咪的一天',
-                type: 'story',
-                payload: storyPayload,
-                startPermission: 'ANYONE',
-                allowedGroups: [],
-                isActive: true
-            });
-        }
-        return { storyDoc: doc, story: doc.payload };
-    }
-    return { storyDoc: null, story: storyPayload };
-}
+// Removed auto-creation of demo story after test phase
+async function loadOrCreateStory03() { return { storyDoc: null, story: null }; }
 
 async function createRun({ storyDoc, story, context, starterID, starterName, botname }) {
     const run = {
@@ -230,8 +227,34 @@ async function getActiveRun(context) {
 }
 
 async function saveRun(context, run) {
+    if (run && typeof run.save === 'function' && run._id) {
+        try {
+            // Ensure Mongoose detects changes on Mixed paths
+            run.markModified && run.markModified('variables');
+            run.markModified && run.markModified('stats');
+            run.markModified && run.markModified('playerVariables');
+            run.markModified && run.markModified('history');
+            await run.save();
+            return;
+        } catch (_) {
+            // Fallback to findByIdAndUpdate below
+        }
+    }
     if (db.storyRun && typeof db.storyRun.findByIdAndUpdate === 'function' && run && run._id) {
-        await db.storyRun.findByIdAndUpdate(run._id, run, { new: true });
+        const update = {
+            variables: run.variables || {},
+            stats: run.stats || {},
+            playerVariables: run.playerVariables || {},
+            currentPageId: run.currentPageId,
+            history: run.history || [],
+            isEnded: !!run.isEnded,
+            endingId: run.endingId || '',
+            endingText: run.endingText || '',
+            endedAt: run.endedAt || undefined,
+            participantPolicy: run.participantPolicy,
+            allowedUserIDs: run.allowedUserIDs || []
+        };
+        await db.storyRun.findByIdAndUpdate(run._id, update, { new: true });
         return;
     }
     const key = getContextKey(context);
@@ -246,6 +269,8 @@ function renderPageText(story, run, pageId) {
     const page = story.pages[pageId];
     if (!page) return '找不到此頁面。';
     const scope = buildEvalScope(run);
+    const statKeySet = new Set(Array.isArray(story.gameStats) ? story.gameStats.map(s => s.key) : []);
+    const varKeySet = new Set(Array.isArray(story.variables) ? story.variables.map(v => v.key) : []);
     const ctx = Object.assign({}, scope);
     let out = '';
     if (page.title) out += '【' + page.title + '】\n';
@@ -256,7 +281,23 @@ function renderPageText(story, run, pageId) {
             if (item.setVariables && typeof item.setVariables === 'object') {
                 run.variables = run.variables || {};
                 for (const [k, v] of Object.entries(item.setVariables)) {
-                    run.variables[k] = v;
+                    const val = evalExpressionValue(v, Object.assign({}, run.variables, run.stats, run.playerVariables));
+                    // Decide destination: stat or variable
+                    if (statKeySet.has(k)) {
+                        const num = typeof val === 'number' ? val : Number(val);
+                        run.stats = run.stats || {};
+                        run.stats[k] = isNaN(num) ? (run.stats[k] ?? 0) : num;
+                        // Lock stats after first explicit authored assignment to prevent later randomization
+                        if (!run.__statsLocked) run.__statsLocked = true;
+                        scope[k] = run.stats[k];
+                        ctx[k] = run.stats[k];
+                    } else {
+                        // If declared variable key, set; otherwise also allow dynamic variables
+                        const resolved = (typeof val === 'number' || typeof val === 'string') ? val : String(val);
+                        run.variables[k] = resolved;
+                        scope[k] = resolved;
+                        ctx[k] = resolved;
+                    }
                 }
             }
             if (typeof item.text === 'string') {
@@ -580,8 +621,13 @@ const rollDiceCommand = async function ({
                     if (!story) { rply.text = '找不到故事內容，請重新開始。'; return rply; }
                     ensureRunDefaults(run, story);
                     const missing = getMissingPlayerVariables(story, run);
-                    if (missing.length > 0) rply.text = renderPlayerSetupPrompt(story, run);
-                    else rply.text = '已載入當前進度：\n' + renderPageText(story, run, run.currentPageId);
+                    if (missing.length > 0) {
+                        rply.text = renderPlayerSetupPrompt(story, run);
+                    } else {
+                        const text = renderPageText(story, run, run.currentPageId);
+                        rply.text = '已載入當前進度：\n' + text;
+                    }
+                    await saveRun(ctx, run);
                     return rply;
                 }
                 // Create new run for resolved story
@@ -605,8 +651,13 @@ const rollDiceCommand = async function ({
                 if (!story) { rply.text = '找不到故事內容，請重新開始。'; return rply; }
                 ensureRunDefaults(run, story);
                 const missing = getMissingPlayerVariables(story, run);
-                if (missing.length > 0) rply.text = renderPlayerSetupPrompt(story, run);
-                else rply.text = '已載入當前進度：\n' + renderPageText(story, run, run.currentPageId);
+                if (missing.length > 0) {
+                    rply.text = renderPlayerSetupPrompt(story, run);
+                } else {
+                    const text = renderPageText(story, run, run.currentPageId);
+                    rply.text = '已載入當前進度：\n' + text;
+                }
+                await saveRun(ctx, run);
                 return rply;
             }
             rply.text = '請輸入 .st start <alias|title> 開始，或使用 .st mylist 檢視清單。';
@@ -684,15 +735,28 @@ const rollDiceCommand = async function ({
             if (field === 'name') key = 'cat_name';
             run.playerVariables = run.playerVariables || {};
             run.playerVariables[key] = value;
-            const { story } = await loadOrCreateStory03(run.storyOwnerID || userid, run.starterName || '');
-            ensureRunDefaults(run, story);
-            await saveRun(ctx, run);
-            const missing = getMissingPlayerVariables(story, run);
+            // Load the current story by alias instead of default 03, so prompts match the active story
+            let storyRef = null;
+            try {
+                const cur = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
+                storyRef = cur && cur.story ? cur.story : null;
+            } catch (_) { storyRef = null; }
+            if (!storyRef) {
+                await saveRun(ctx, run);
+                rply.text = '已設定 ' + key + ' = ' + value + '\n\n目前沒有載入中的劇本內容，請使用 .st start <alias> 重新載入。';
+                return rply;
+            }
+            ensureRunDefaults(run, storyRef);
+            const missing = getMissingPlayerVariables(storyRef, run);
             if (missing.length > 0) {
-                rply.text = '已設定 ' + key + ' = ' + value + '\n\n' + renderPlayerSetupPrompt(story, run);
+                const prompt = renderPlayerSetupPrompt(storyRef, run);
+                rply.text = '已設定 ' + key + ' = ' + value + '\n\n' + prompt;
+                await saveRun(ctx, run);
             } else {
-                const text = renderPageText(story, run, run.currentPageId);
+                const text = renderPageText(storyRef, run, run.currentPageId);
                 rply.text = '已設定 ' + key + ' = ' + value + '\n\n' + text;
+                // Persist any [set] effects applied during renderPageText (e.g., initial stats)
+                await saveRun(ctx, run);
             }
             return rply;
         }
@@ -840,7 +904,7 @@ const rollDiceCommand = async function ({
                     if (run.storyOwnerID !== ownerID) continue;
                     const alias = run.storyAlias || '-';
                     if (aliasFilter && alias !== aliasFilter) continue;
-                    if (!counter.has(alias)) counter.set(alias, { title: '貓咪的一天', ended: 0, ongoing: 0 });
+                    if (!counter.has(alias)) counter.set(alias, { title: alias, ended: 0, ongoing: 0 });
                     const row = counter.get(alias);
                     if (run.isEnded) row.ended++; else row.ongoing++;
                 }
@@ -883,11 +947,7 @@ const rollDiceCommand = async function ({
                     if (!byAlias.has(alias)) byAlias.set(alias, true);
                 }
                 for (const alias of byAlias.keys()) {
-                    let title = '-';
-                    if (alias === '03') {
-                        try { const s = readStory03(); title = s.title || title; } catch (_) {}
-                    }
-                    rows.push({ title, alias, startPermission: 'ANYONE', isActive: true });
+                    rows.push({ title: alias, alias, startPermission: 'ANYONE', isActive: true });
                 }
             }
             if (rows.length === 0) {

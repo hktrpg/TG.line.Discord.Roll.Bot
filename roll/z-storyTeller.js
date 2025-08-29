@@ -2,6 +2,7 @@
 const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
+const axios = require('axios').default;
 
 // Optional persistence via Mongo (gracefully degrade if unavailable)
 let db = {};
@@ -9,6 +10,12 @@ try {
     db = require('../modules/schema.js') || {};
 } catch (error) {
     db = {};
+}
+let VIP = {};
+try {
+    VIP = require('../modules/veryImportantPerson');
+} catch (_) {
+    VIP = {};
 }
 
 // In-memory fallback for runs when DB is not configured
@@ -43,7 +50,7 @@ const getHelpMessage = function () {
 │ .st goto 20
 │ .st my [alias]（查看自己新增的劇本統計）
 │ .st mylist（顯示自己所有新增的劇本）
-│ .st importfile <alias> <path> [title]
+│ .st import <alias> [title]（附加檔案上傳 .json 或 .txt）
 │ .st exportfile <alias> <path>
 │ .st verify <alias>
 ╰────────────────`;
@@ -380,7 +387,7 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
         if ((m = line.match(/^\[title\]\s*([\s\S]+)$/i))) { ensurePage(currentPageId || '0').title = m[1]; continue; }
         if (/^\[ending\]/i.test(line)) { inEnding = true; continue; }
 
-        if ((m = line.match(/^\[text\](?:\|([^\]]+))?\s*([\s\S]*)$/i))) {
+        if ((m = line.match(/^\[text(?:\|([^\]]+))?\]\s*([\s\S]*)$/i))) {
             const opts = (m[1] || '').split(',').reduce((acc, kv) => {
                 const seg = kv.trim(); if (!seg) return acc; const p = seg.split('='); acc[(p[0] || '').trim()] = (p[1] || '').trim(); return acc;
             }, {});
@@ -596,6 +603,128 @@ async function gotoPage({ story, run, targetPageId }) {
     });
 }
 
+// ---- Attachment helpers & validation ----
+const STORY_LIMIT_BY_LEVEL = [3, 10, 100, 100, 100, 100, 100, 100];
+const MAX_PAGES = 400;
+const MAX_TEXT_SEGMENT = 500; // per [text] or ending text
+const MAX_UPLOAD_BYTES = 1024 * 1024; // 1MB
+
+async function getAttachmentInfo(discordMessage, discordClient) {
+    if (!discordMessage) return null;
+    // Interaction style (slash commands)
+    if (discordMessage.interaction) {
+        if (discordMessage.attachments && discordMessage.attachments.size > 0) {
+            const attachmentsArray = [...discordMessage.attachments.values()];
+            const a = attachmentsArray[0];
+            if (a && a.url) return { url: a.url, size: a.size || 0, filename: a.name || '', contentType: a.contentType || '' };
+        }
+        if (discordMessage.reference) {
+            try {
+                const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
+                const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId);
+                if (referenceMessage.attachments && referenceMessage.attachments.size > 0) {
+                    const attachmentsArray = [...referenceMessage.attachments.values()];
+                    const a = attachmentsArray[0];
+                    if (a && a.url) return { url: a.url, size: a.size || 0, filename: a.name || '', contentType: a.contentType || '' };
+                }
+            } catch (_) { /* ignore */ }
+        }
+        return null;
+    }
+
+    // Regular message
+    if (discordMessage.type === 0 && discordMessage.attachments && discordMessage.attachments.size > 0) {
+        const attachmentsArray = [...discordMessage.attachments.values()];
+        const a = attachmentsArray[0];
+        return (a && a.url) ? { url: a.url, size: a.size || 0, filename: a.name || '', contentType: a.contentType || '' } : null;
+    }
+    if (discordMessage.type === 19 && discordMessage.reference) { // reply
+        try {
+            const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
+            const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId);
+            if (referenceMessage.attachments && referenceMessage.attachments.size > 0) {
+                const attachmentsArray = [...referenceMessage.attachments.values()];
+                const a = attachmentsArray[0];
+                return (a && a.url) ? { url: a.url, size: a.size || 0, filename: a.name || '', contentType: a.contentType || '' } : null;
+            }
+        } catch (_) { /* ignore */ }
+    }
+    return null;
+}
+
+async function downloadText(url) {
+    const resp = await axios({ url, responseType: 'arraybuffer', timeout: 15000 });
+    return Buffer.from(resp.data).toString('utf8');
+}
+
+function estimateJsonErrorLine(text, error) {
+    const msg = String(error && error.message || '');
+    const m = msg.match(/position\s+(\d+)/i);
+    if (m) {
+        const pos = Number(m[1]);
+        const pre = text.slice(0, pos);
+        return pre.split(/\r?\n/).length;
+    }
+    const m2 = msg.match(/at\s+line\s+(\d+)/i);
+    if (m2) return Number(m2[1]);
+    return null;
+}
+
+function validateRunDesignLines(rawText) {
+    const lines = String(rawText || '').split(/\r?\n/);
+    const patterns = [
+        /^\s*$/,
+        /^\/\//,
+        /^\[meta\]\s*title\s+"([\s\S]*?)"$/i,
+        /^\[intro\]\s*(.*)$/i,
+        /^\[player_var\]\s*([^\s]+)\s+"([\s\S]*?)"(?:\s+"([\s\S]*?)")?$/i,
+        /^\[stat_def\]\s*([^\s]+)\s+(\-?\d+)\s+(\-?\d+)(?:\s+"([\s\S]*?)")?$/i,
+        /^\[var_def\]\s*([^\s]+)\s+(\-?\d+)\s+(\-?\d+)(?:\s+"([\s\S]*?)")?$/i,
+        /^\[label\]\s*(.+)$/i,
+        /^\[title\]\s*([\s\S]+)$/i,
+        /^\[ending\]/i,
+        /^\[text(?:\|[^\]]+)?\]\s*[\s\S]*$/i,
+        /^\[random\]\s*(\d+)%$/i,
+        /^\[set\]\s*([^=\s]+)\s*=\s*[\s\S]+$/i,
+        /^\[choice\]/i,
+        /^\-\>\s*[\s\S]+?\s*\|\s*([^|\s]+)(?:\s*\|\s*if=[^|]+)?(?:\s*\|\s*stat=[\s\S]+)?$/
+    ];
+    for (let i = 0; i < lines.length; i++) {
+        const line = String(lines[i]).trim();
+        if (!patterns.some(re => re.test(line))) {
+            return { ok: false, line: i + 1, message: '未知語法或格式錯誤' };
+        }
+    }
+    return { ok: true };
+}
+
+function validateCompiledStory(story) {
+    if (!story || typeof story !== 'object') return { ok: false, message: '故事結構不正確' };
+    const pageCount = story && story.pages ? Object.keys(story.pages).length : 0;
+    if (pageCount > MAX_PAGES) {
+        return { ok: false, message: '頁數超過限制（最多 ' + MAX_PAGES + ' 頁）' };
+    }
+    // check text length per segment
+    for (const pid of Object.keys(story.pages || {})) {
+        const page = story.pages[pid];
+        if (Array.isArray(page && page.content)) {
+            for (const item of page.content) {
+                if (typeof item.text === 'string' && item.text.length > MAX_TEXT_SEGMENT) {
+                    return { ok: false, message: '第 ' + pid + ' 頁內文過長（每段最多 ' + MAX_TEXT_SEGMENT + ' 字）' };
+                }
+            }
+        }
+        if (page && page.isEnding && Array.isArray(page.endings)) {
+            for (const ed of page.endings) {
+                if (typeof ed.text === 'string' && ed.text.length > MAX_TEXT_SEGMENT) {
+                    return { ok: false, message: '第 ' + pid + ' 頁結局文字過長（每段最多 ' + MAX_TEXT_SEGMENT + ' 字）' };
+                }
+            }
+        }
+    }
+    return { ok: true };
+}
+
 // ---- Command handler ----
 const rollDiceCommand = async function ({
     inputStr,
@@ -605,7 +734,9 @@ const rollDiceCommand = async function ({
     userrole,
     botname,
     displayname,
-    channelid
+    channelid,
+    discordClient,
+    discordMessage
 }) {
     let rply = {
         default: 'on',
@@ -621,6 +752,129 @@ const rollDiceCommand = async function ({
             rply.text = this.getHelpMessage();
             rply.quotes = true;
             rply.buttonCreate = ['.st mylist'];
+            return rply;
+        }
+        case /^importfile$/.test(sub): {
+            rply.text = '此指令已停用。請使用：.st import <alias> [title] 並附加檔案（.json 或 .txt）';
+            return rply;
+        }
+        case /^import$/.test(sub): {
+            // .st import <alias> [title] with attachment
+            const aliasArg = (mainMsg[2] || '').trim();
+            const customTitle = (mainMsg.slice(3).join(' ') || '').trim();
+            // Get attachment (Discord only)
+            const att = await getAttachmentInfo(discordMessage, discordClient);
+            if (!att || !att.url) {
+                rply.text = '未偵測到附件。請附加 .json 或 .txt 檔案後再試。';
+                return rply;
+            }
+            if (att.size && att.size > MAX_UPLOAD_BYTES) {
+                rply.text = '檔案過大（上限約 ' + Math.round(MAX_UPLOAD_BYTES / 1024) + 'KB）。請縮小後再上傳。';
+                return rply;
+            }
+            let rawText = '';
+            try {
+                rawText = await downloadText(att.url);
+            } catch (e) {
+                rply.text = '下載附件失敗：' + (e.message || '');
+                return rply;
+            }
+
+            const filename = String(att.filename || '').toLowerCase();
+            const isLikelyJson = /\.json$/.test(filename) || /json/i.test(att.contentType || '');
+            let compiled = null;
+            let parseErrorLine = null;
+            try {
+                if (isLikelyJson) {
+                    const obj = JSON.parse(rawText);
+                    compiled = obj && obj.type === 'story' ? obj : obj;
+                } else {
+                    // Validate RUN_DESIGN syntax lines first
+                    const lineCheck = validateRunDesignLines(rawText);
+                    if (!lineCheck.ok) {
+                        rply.text = '上傳失敗：第 ' + lineCheck.line + ' 行格式有誤（' + lineCheck.message + '）';
+                        return rply;
+                    }
+                    compiled = compileRunDesignToStory(rawText, { alias: aliasArg || (filename.replace(/\.[^.]+$/, '') || ''), title: customTitle });
+                }
+            } catch (err) {
+                parseErrorLine = estimateJsonErrorLine(rawText, err);
+                rply.text = '上傳失敗：無法解析檔案' + (parseErrorLine ? ('（第 ' + parseErrorLine + ' 行）') : '') + '。';
+                return rply;
+            }
+
+            // Normalize title/alias
+            const alias = (aliasArg || filename.replace(/\.[^.]+$/, '') || 'untitled').trim();
+            if (!alias) {
+                rply.text = '請提供 alias 或者將檔名設定為可作為 alias 的名稱。';
+                return rply;
+            }
+            if (customTitle) compiled.title = customTitle;
+            if (!compiled.title) compiled.title = alias;
+            compiled.type = 'story';
+            compiled.ownerId = userid;
+
+            // Validation: pages and segment lengths
+            const v = validateCompiledStory(compiled);
+            if (!v.ok) { rply.text = '上傳失敗：' + v.message; return rply; }
+
+            // Enforce per-user story limit (only counts new creations)
+            let isUpdate = false;
+            let currentCount = 0;
+            try {
+                if (db.story && typeof db.story.findOne === 'function') {
+                    const existing = await db.story.findOne({ ownerID: userid, alias }).lean();
+                    isUpdate = !!existing;
+                    currentCount = await db.story.countDocuments({ ownerID: userid });
+                } else {
+                    // filesystem fallback: count files owned by this user
+                    const dir = path.join(__dirname, 'storyTeller');
+                    const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => /\.json$/i.test(f)) : [];
+                    for (const f of files) {
+                        try {
+                            const obj = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
+                            if (obj && obj.ownerId === userid) currentCount++;
+                            if (String(f).replace(/\.[^.]+$/, '') === alias) isUpdate = true;
+                        } catch (_) { }
+                    }
+                }
+            } catch (_) { /* ignore */ }
+            if (!isUpdate) {
+                let levelIndex = 0;
+                try { levelIndex = (typeof VIP.viplevelCheckUser === 'function') ? await VIP.viplevelCheckUser(userid) : 0; } catch (_) { levelIndex = 0; }
+                const limit = STORY_LIMIT_BY_LEVEL[Math.max(0, Math.min(STORY_LIMIT_BY_LEVEL.length - 1, Number(levelIndex) || 0))];
+                if (currentCount >= limit) {
+                    rply.text = '你目前的劇本數已達上限（' + limit + '）。若需新增更多，請升級會員或刪除既有劇本。';
+                    return rply;
+                }
+            }
+
+            // Persist
+            if (db.story && typeof db.story.findOneAndUpdate === 'function') {
+                await db.story.findOneAndUpdate(
+                    { ownerID: userid, alias },
+                    {
+                        ownerID: userid,
+                        ownerName: (typeof displayname === 'string' ? displayname : ''),
+                        alias,
+                        title: compiled.title,
+                        type: 'story',
+                        payload: compiled,
+                        startPermission: 'AUTHOR_ONLY',
+                        allowedGroups: [],
+                        isActive: true
+                    },
+                    { upsert: true }
+                );
+            }
+            try {
+                const outPath = path.join(__dirname, 'storyTeller', alias + '.json');
+                fs.mkdirSync(path.dirname(outPath), { recursive: true });
+                fs.writeFileSync(outPath, JSON.stringify(compiled, null, 2), 'utf8');
+            } catch (_) { /* ignore */ }
+
+            rply.text = '已匯入劇本：' + (compiled.title || alias) + '（alias: ' + alias + '）';
+            rply.buttonCreate = ['.st start ' + alias];
             return rply;
         }
         case /^start$/.test(sub): {
@@ -848,44 +1102,7 @@ const rollDiceCommand = async function ({
             rply.text = text;
             return rply;
         }
-        case /^importfile$/.test(sub): {
-            const alias = (mainMsg[2] || '').trim();
-            const filePath = (mainMsg[3] || '').trim();
-            const customTitle = (mainMsg.slice(4).join(' ') || '').trim();
-            if (!alias || !filePath) { rply.text = '用法：.st importfile <alias> <path> [title]'; return rply; }
-            let content = '';
-            try {
-                const resolved = path.isAbsolute(filePath) ? filePath : path.join(process.cwd(), filePath);
-                content = fs.readFileSync(resolved, 'utf8');
-            } catch (e) {
-                rply.text = '讀取檔案失敗：' + e.message;
-                return rply;
-            }
-            const compiled = compileRunDesignToStory(content, { alias, title: customTitle });
-            if (db.story && typeof db.story.findOneAndUpdate === 'function') {
-                await db.story.findOneAndUpdate(
-                    { ownerID: userid, alias },
-                    {
-                        ownerID: userid,
-                        ownerName: (typeof displayname === 'string' ? displayname : ''),
-                        alias,
-                        title: compiled.title,
-                        type: 'story',
-                        payload: compiled,
-                        startPermission: 'AUTHOR_ONLY',
-                        allowedGroups: [],
-                        isActive: true
-                    },
-                    { upsert: true }
-                );
-            }
-            try {
-                const outPath = path.join(__dirname, 'storyTeller', alias + '.json');
-                fs.writeFileSync(outPath, JSON.stringify(compiled, null, 2), 'utf8');
-            } catch (_) { }
-            rply.text = '已匯入劇本：' + (compiled.title || alias) + '（alias: ' + alias + '）';
-            return rply;
-        }
+        // importfile deprecated above
         case /^exportfile$/.test(sub): {
             const alias = (mainMsg[2] || '').trim();
             const filePath = (mainMsg[3] || '').trim();

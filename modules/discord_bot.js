@@ -46,6 +46,10 @@ const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const shardid = client.cluster.id;
 let ws;
 
+// StoryTeller reaction poll support
+const POLL_EMOJIS = ['🇦','🇧','🇨','🇩','🇪','🇫','🇬','🇭','🇮','🇯','🇰','🇱','🇲','🇳','🇴','🇵','🇶','🇷','🇸','🇹'];
+const stPolls = new Map(); // messageId -> { channelid, groupid, options, originMessage, completed?: boolean }
+
 client.on('messageCreate', async message => {
 	try {
 		if (message.author.bot) return;
@@ -1296,6 +1300,7 @@ async function handlingResponMessage(message, answer = '') {
 		if (message.isInteraction) {
 			rplyVal.isInteraction = true;
 		}
+		// (poll is created later when sending message content to preserve order)
 		if (rplyVal.requestRollingCharacter) await handlingRequestRollingCharacter(message, rplyVal.requestRollingCharacter);
 		if (rplyVal.requestRolling) await handlingRequestRolling(message, rplyVal.requestRolling, displaynameDiscord);
 		if (rplyVal.buttonCreate) rplyVal.buttonCreate = await handlingButtonCreate(message, rplyVal.buttonCreate)
@@ -1442,7 +1447,8 @@ async function handlingResponMessage(message, answer = '') {
 			message,
 			statue: rplyVal.statue,
 			quotes: rplyVal.quotes,
-			buttonCreate: rplyVal.buttonCreate
+			buttonCreate: rplyVal.buttonCreate,
+			discordCreatePoll: rplyVal.discordCreatePoll
 		};
 
 	} catch (error) {
@@ -1497,6 +1503,7 @@ async function handlingSendMessage(input) {
 	const statue = input.statue
 	const quotes = input.quotes
 	const buttonCreate = input.buttonCreate;
+	const pollPayload = input.discordCreatePoll;
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
@@ -1561,6 +1568,11 @@ async function handlingSendMessage(input) {
 				sendText = `<@${userid}> ${(statue) ? statue : ''}${candle.checker(userid)}\n${sendText}`;
 			}
 			if (groupid) {
+				// Prefer poll if present
+				if (pollPayload && Array.isArray(pollPayload.options)) {
+					await createStPollByChannel({ channelid, groupid, text: sendText, payload: pollPayload });
+					return;
+				}
 				await SendToReplychannel({ replyText: sendText, channelid, quotes: quotes, buttonCreate: buttonCreate });
 			} else {
 				//SendToReply({ replyText: sendText, message, quotes: quotes, buttonCreate: buttonCreate });
@@ -1568,6 +1580,162 @@ async function handlingSendMessage(input) {
 			}
 			return;
 	}
+}
+
+// ---- StoryTeller reaction poll helpers ----
+async function createStPollByChannel({ channelid, groupid, text, payload }) {
+    try {
+        const channel = await client.channels.fetch(channelid);
+        // Send story content first
+        if (text && String(text).trim().length > 0) {
+            await channel.send({ content: text });
+        }
+        // Then send poll message with options
+        const pollText = `啟動投票，請於 ${payload.minutes || 3} 分鐘內投票\n選項：\n` + payload.options.map((o, i) => `${POLL_EMOJIS[i]} ${o.label}`).join('\n');
+        const pollMsg = await channel.send({ content: pollText });
+        await createStPollCore({ sentMessage: pollMsg, groupid, payload });
+    } catch (error) {
+        console.error('createStPollByChannel error:', error?.message);
+    }
+}
+
+// eslint-disable-next-line no-unused-vars
+async function createStPoll({ message, payload }) {
+    try {
+        // Post under the same channel, immediately after previous content
+        const content = `${message.member ? `<@${message.member.id}>` : ''} 啟動投票，請於 ${payload.minutes || 3} 分鐘內投票\n選項：\n` + payload.options.map((o, i) => `${POLL_EMOJIS[i]} ${o.label}`).join('\n');
+        const sent = await message.channel.send({ content });
+        await createStPollCore({ sentMessage: sent, groupid: message.guildId, payload });
+    } catch (error) {
+        console.error('createStPoll error:', error?.message);
+    }
+}
+
+async function createStPollCore({ sentMessage, groupid, payload }) {
+    const maxOptions = Math.min(payload.options.length, POLL_EMOJIS.length);
+    // react sequentially to guarantee reactions are present before users react
+    for (let i = 0; i < maxOptions; i++) {
+        try { await sentMessage.react(POLL_EMOJIS[i]); } catch (error) { console.error('poll react failed', error?.message); }
+    }
+    stPolls.set(sentMessage.id, {
+        channelid: sentMessage.channelId,
+        groupid,
+        options: payload.options.slice(0, maxOptions),
+        originMessage: sentMessage
+    });
+
+    const ms = Math.max(1, Number(payload.minutes || 3)) * 60 * 1000;
+    if (agenda) {
+        try {
+            await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', {
+                messageId: sentMessage.id,
+                channelid: sentMessage.channelId,
+                groupid
+            });
+        } catch (error) {
+            console.error('agenda schedule stPollFinish failed, falling back to setTimeout:', error?.message);
+            // fallback to setTimeout
+            setTimeout(() => tallyStPoll(sentMessage.id).catch(() => {}), ms);
+        }
+    } else {
+        setTimeout(() => tallyStPoll(sentMessage.id).catch(() => {}), ms);
+    }
+}
+
+async function tallyStPoll(messageId) {
+    const data = stPolls.get(messageId);
+    if (!data) return;
+    if (data.completed) return;
+    try {
+        const channel = await client.channels.fetch(data.channelid);
+        let msg = await channel.messages.fetch(messageId);
+		//console.log('tallyStPoll1', msg);
+        // Ensure partials are resolved (in case message/reactions are partial)
+        try { if (msg.partial) msg = await msg.fetch(); } catch {}
+		//console.log('tallyStPoll2', msg);
+        // count reactions on the first N emojis
+        const counts = [];
+        const debugPoll = debugMode || !!process.env.ST_POLL_DEBUG;
+        const preDetails = [];
+        for (let i = 0; i < data.options.length; i++) {
+            const emoji = POLL_EMOJIS[i];
+            const reaction = msg.reactions.cache.find(r => r.emoji.name === emoji);
+            // Count unique human users; ignore the bot's own reaction
+            let num = 0;
+            let raw = reaction ? (reaction.count || 0) : 0;
+            let nonBotIds = [];
+            if (reaction) {
+                try {
+                    const users = await reaction.users.fetch();
+                    const filtered = users.filter(u => !u.bot);
+                    num = filtered.size;
+                    nonBotIds = [...filtered.keys()];
+                } catch { num = Math.max(0, (reaction.count || 0) - 1); }
+            }
+            counts.push(num);
+            if (debugPoll) preDetails.push({ emoji, rawCount: raw, nonBotCount: num, users: nonBotIds });
+        }
+        let max = Math.max(...counts);
+        if (debugPoll) console.log('[ST-POLL] preRefetch', { messageId, channelId: data.channelid, counts, details: preDetails });
+        // If cache might be stale (raw counts show >1), refetch once and recount
+        const hasAny = msg.reactions?.cache?.some?.(r => POLL_EMOJIS.includes(r.emoji.name) && (r.count || 0) > 1) || false;
+        if (max === 0 && hasAny) {
+            try { await new Promise(r => setTimeout(r, 700)); } catch {}
+            let msg2 = await channel.messages.fetch(messageId);
+            try { if (msg2.partial) msg2 = await msg2.fetch(); } catch {}
+            const recounts = [];
+            const postDetails = [];
+            for (let i = 0; i < data.options.length; i++) {
+                const emoji = POLL_EMOJIS[i];
+                const reaction2 = msg2.reactions.cache.find(r => r.emoji.name === emoji);
+                let num2 = 0;
+                let raw2 = reaction2 ? (reaction2.count || 0) : 0;
+                let nonBotIds2 = [];
+                if (reaction2) {
+                    try {
+                        const users2 = await reaction2.users.fetch();
+                        const filtered2 = users2.filter(u => !u.bot);
+                        num2 = filtered2.size;
+                        nonBotIds2 = [...filtered2.keys()];
+                    } catch { num2 = Math.max(0, (reaction2.count || 0) - 1); }
+                }
+                recounts.push(num2);
+                if (debugPoll) postDetails.push({ emoji, rawCount: raw2, nonBotCount: num2, users: nonBotIds2 });
+            }
+            counts.splice(0, counts.length, ...recounts);
+            max = Math.max(...counts);
+            if (debugPoll) console.log('[ST-POLL] postRefetch', { messageId, channelId: data.channelid, counts, details: postDetails });
+        }
+        const indices = counts.reduce((acc, v, i) => { if (v === max) acc.push(i); return acc; }, []);
+        if (indices.length === 0) return;
+        const pick = indices[Math.floor(Math.random() * indices.length)];
+        const picked = data.options[pick];
+        await msg.reply({ content: `投票結束，選中：${POLL_EMOJIS[pick]} ${picked.label}（${max} 票）` });
+
+        // trigger next action by simulating a message: ".st goto action" or ".st end"
+        const nextCmd = (String(picked.action || '').toUpperCase() === 'END') ? '.st end' : `.st goto ${picked.action}`;
+        // Use the actual poll message context to continue the story
+        const result = await handlingResponMessage(msg, nextCmd);
+        if (result && result.text) {
+            await handlingSendMessage(result);
+        }
+    } catch (error) {
+        console.error('tallyStPoll error:', error?.message);
+    } finally {
+        const d = stPolls.get(messageId);
+        if (d) d.completed = true;
+        setTimeout(() => stPolls.delete(messageId), 60_000);
+    }
+}
+
+if (agenda) {
+    try {
+        agenda.define('stPollFinish', async (job) => {
+            const { messageId } = job.attrs.data || {};
+            await tallyStPoll(messageId);
+            try { await job.remove(); } catch { }
+        });
+    } catch { }
 }
 
 const convertRegex = function (str = "") {

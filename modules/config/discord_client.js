@@ -36,8 +36,8 @@ const clientConfig = {
         MessageManager: 200, // channel.messages
         //PermissionOverwriteManager: 200, // channel.permissionOverwrites
         PresenceManager: 0, // guild.presences
-        ReactionManager: 0, // message.reactions
-        ReactionUserManager: 0, // reaction.users
+        ReactionManager: 200, // message.reactions (must be >0 to tally poll reactions)
+        ReactionUserManager: 200, // reaction.users (allow fetching unique user counts)
         StageInstanceManager: 0, // guild.stageInstances
         ThreadManager: 0, // channel.threads
         ThreadMemberManager: 0, // threadchannel.members
@@ -79,7 +79,8 @@ const clientConfig = {
     partials: [
         Partials.Message, 
         Partials.Channel, 
-        Partials.Reaction
+        Partials.Reaction,
+        Partials.User // required when not using privileged presence intent and for DM support
     ],
 };
 

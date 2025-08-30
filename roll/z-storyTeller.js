@@ -42,7 +42,7 @@ const prefixs = function () {
 const getHelpMessage = function () {
     return `【📖互動故事 StoryTeller】
 ╭────── 指令 ──────
-│ .st start <alias|title> [alone|all]
+│ .st start <alias|title> [alone|all|poll x]
 │ .st pause
 │ .st continue [runId]
 │ .st end
@@ -60,7 +60,7 @@ const getHelpMessage = function () {
 │ .st allow <alias>（在此群組/頻道允許啟動）
 │ .st allow <alias> <groupId...>（指定群組允許啟動）
 │ .st allow <alias> all（任何人可啟動）
-│ .st edit alone|all（僅發起者可切換當前局的參與權限）
+│ .st edit alone|all|poll x（僅發起者可切換參與權限；poll 為Discord投票模式，x分鐘，預設3）
 │ .st exportfile <alias> <path>
 │ .st verify <alias>
 │ .st game（顯示目前運行與暫停中的遊戲）
@@ -610,6 +610,36 @@ function buildButtonsForPage(story, run) {
     return unique.slice(0, 20);
 }
 
+// Build poll payload for Discord reaction-based voting
+function buildPollPayloadForPage(story, run) {
+    const allowedChoices = getAllowedChoicesForCurrentPage(story, run);
+    if (!allowedChoices || allowedChoices.length === 0) return null;
+    const options = allowedChoices.map((c, i) => ({
+        index: i,
+        label: c.text || ('選項 ' + (i + 1)),
+        action: String(c.action || '')
+    }));
+    const minutes = Number((run && run.pollMinutes) || (run && run.variables && run.variables.__pollMinutes)) || 3;
+    return { options, minutes };
+}
+
+function attachChoicesOutput({ rply, story, run, botname }) {
+    if (!rply || !story || !run) return;
+    const isDiscord = String(botname || '').toLowerCase() === 'discord';
+    const policy = String(run.participantPolicy || 'ANYONE').toUpperCase();
+    if (isDiscord && policy === 'POLL') {
+        const pollPayload = buildPollPayloadForPage(story, run);
+        if (pollPayload) rply.discordCreatePoll = pollPayload;
+        // Strip textual choices block for poll mode
+        if (typeof rply.text === 'string') {
+            rply.text = rply.text.replace(/\n可用選項：[\s\S]*$/m, '').trim();
+        }
+        return;
+    }
+    const buttons = buildButtonsForPage(story, run);
+    if (buttons && buttons.length > 0) rply.buttonCreate = buttons;
+}
+
 async function gotoPage({ story, run, targetPageId }) {
     // Apply stat changes if target matches a defined choice
     const choice = findChoiceFromCurrentPage(story, run, targetPageId);
@@ -1016,12 +1046,23 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^start$/.test(sub): {
-            // Support optional policy arg: .st start <alias|title> [alone|all]
+            // Support optional policy arg: .st start <alias|title> [alone|all|poll x]
             const arg2 = (mainMsg[2] || '').trim();
-            const arg3 = (mainMsg[3] || '').trim().toLowerCase();
-            const hasPolicy = (arg3 === 'alone' || arg3 === 'all');
-            const key = hasPolicy ? arg2 : (mainMsg.slice(2).join(' ') || '').trim();
-            const requestedPolicy = hasPolicy ? arg3 : '';
+            const rest = mainMsg.slice(3).map(s => String(s || '').trim());
+            let key = '';
+            let requestedPolicy = '';
+            let requestedPollMinutes = 0;
+            if (rest.length > 0 && (/^(alone|all|poll)$/i).test(rest[0])) {
+                key = arg2;
+                const p0 = rest[0].toLowerCase();
+                if (p0 === 'alone' || p0 === 'all') requestedPolicy = p0;
+                else if (p0 === 'poll') {
+                    requestedPolicy = 'poll';
+                    requestedPollMinutes = Number(rest[1]) || 3;
+                }
+            } else {
+                key = (mainMsg.slice(2).join(' ') || '').trim();
+            }
             let run = await getActiveRun(ctx);
 
             if (key) {
@@ -1058,14 +1099,23 @@ const rollDiceCommand = async function ({
                 const storyDoc = resolved.storyDoc;
                 const story = resolved.story;
                 run = await createRun({ storyDoc, story, context: ctx, starterID: userid, starterName: displayname || '', botname });
-                if (requestedPolicy) run.participantPolicy = (requestedPolicy === 'alone') ? 'ALONE' : 'ANYONE';
+                if (requestedPolicy) {
+                    if (requestedPolicy === 'alone') run.participantPolicy = 'ALONE';
+                    else if (requestedPolicy === 'all') run.participantPolicy = 'ANYONE';
+                    else if (requestedPolicy === 'poll') { 
+                        run.participantPolicy = 'POLL'; 
+                        run.pollMinutes = requestedPollMinutes || 3; 
+                        run.variables = run.variables || {};
+                        run.variables.__pollMinutes = run.pollMinutes;
+                    }
+                }
                 run.storyAlias = resolved.alias || (storyDoc ? storyDoc.alias : key);
                 const missing = getMissingPlayerVariables(story, run);
                 let text = '';
                 if (missing.length > 0) text = renderPlayerSetupPrompt(story, run);
                 else {
                     text = renderPageText(story, run, run.currentPageId);
-                    rply.buttonCreate = buildButtonsForPage(story, run);
+                    attachChoicesOutput({ rply, story, run, botname });
                 }
                 await saveRun(ctx, run);
                 rply.text = text;
@@ -1085,7 +1135,7 @@ const rollDiceCommand = async function ({
                 } else {
                     const text = renderPageText(story, run, run.currentPageId);
                     rply.text = '已載入當前進度：\n' + text;
-                    rply.buttonCreate = buildButtonsForPage(story, run);
+                    attachChoicesOutput({ rply, story, run, botname });
                 }
                 await saveRun(ctx, run);
                 return rply;
@@ -1144,7 +1194,7 @@ const rollDiceCommand = async function ({
             const runClone = JSON.parse(JSON.stringify(run));
             const text = renderPageText(story, runClone, runClone.currentPageId);
             rply.text = text;
-            rply.buttonCreate = buildButtonsForPage(story, run);
+            attachChoicesOutput({ rply, story, run, botname });
             return rply;
         }
         case /^end$/.test(sub): {
@@ -1228,7 +1278,7 @@ const rollDiceCommand = async function ({
             const text = renderPageText(story, run, run.currentPageId);
             await saveRun(ctx, run);
             rply.text = text;
-            rply.buttonCreate = buildButtonsForPage(story, run);
+            attachChoicesOutput({ rply, story, run, botname });
             return rply;
         }
         case /^set$/.test(sub): {
@@ -1265,7 +1315,7 @@ const rollDiceCommand = async function ({
                 rply.text = '已設定 ' + key + ' = ' + value + '\n\n' + text;
                 // Persist any [set] effects applied during renderPageText (e.g., initial stats)
                 await saveRun(ctx, run);
-                rply.buttonCreate = buildButtonsForPage(storyRef, run);
+                attachChoicesOutput({ rply, story: storyRef, run, botname });
             }
             return rply;
         }
@@ -1483,13 +1533,17 @@ const rollDiceCommand = async function ({
         }
         case /^edit$/.test(sub): {
             const mode = (mainMsg[2] || '').trim().toLowerCase();
-            if (mode !== 'alone' && mode !== 'all') { rply.text = '用法：.st edit alone|all'; return rply; }
+            const maybeMinutes = Number(mainMsg[3]) || 0;
+            if (mode !== 'alone' && mode !== 'all' && mode !== 'poll') { rply.text = '用法：.st edit alone|all|poll x'; return rply; }
             const run = await getActiveRun(ctx);
             if (!run) { rply.text = '目前沒有進行中的故事。'; return rply; }
             if (String(run.starterID) !== String(userid)) { rply.text = '僅發起者可變更參與權限。'; return rply; }
-            run.participantPolicy = (mode === 'alone') ? 'ALONE' : 'ANYONE';
+            if (mode === 'alone') run.participantPolicy = 'ALONE';
+            else if (mode === 'all') run.participantPolicy = 'ANYONE';
+            else if (mode === 'poll') { run.participantPolicy = 'POLL'; run.pollMinutes = maybeMinutes || run.pollMinutes || 3; }
             await saveRun(ctx, run);
-            rply.text = '已設定參與權限為：' + (mode === 'alone' ? '僅發起者' : '所有人');
+            if (mode === 'poll') rply.text = '已設定參與權限為：投票（' + (run.pollMinutes || 3) + ' 分鐘）';
+            else rply.text = '已設定參與權限為：' + (mode === 'alone' ? '僅發起者' : '所有人');
             return rply;
         }
         case /^my$/.test(sub): {

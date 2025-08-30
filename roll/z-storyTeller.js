@@ -42,19 +42,28 @@ const prefixs = function () {
 const getHelpMessage = function () {
     return `【📖互動故事 StoryTeller】
 ╭────── 指令 ──────
-│ .st start <alias|title>
+│ .st start <alias|title> [alone|all]
 │ .st pause
+│ .st continue [runId]
 │ .st end
 │ .st goto 1
 │ .st set name 小花
 │ .st goto 20
 │ .st my [alias]（查看自己新增的劇本統計）
 │ .st mylist（顯示自己所有新增的劇本）
+│ .st list（顯示自己可啟動的劇本）
+│ .st list <alias>（顯示該劇本簡介）
 │ .st import <alias> [title]（附加檔案上傳 .json 或 .txt）
 │ .st update <alias> [title]（附加檔案覆蓋）
 │ .st delete <alias>（刪除自己擁有的劇本）
+│ .st allow <alias> AUTHOR（僅作者可啟動）
+│ .st allow <alias>（在此群組/頻道允許啟動）
+│ .st allow <alias> <groupId...>（指定群組允許啟動）
+│ .st allow <alias> all（任何人可啟動）
+│ .st edit alone|all（僅發起者可切換當前局的參與權限）
 │ .st exportfile <alias> <path>
 │ .st verify <alias>
+│ .st game（顯示目前運行與暫停中的遊戲）
 ╰────────────────`;
 }
 
@@ -64,8 +73,9 @@ const initialize = function () {
 
 // ---- Story utilities ----
 function getContextKey({ groupid, channelid, userid }) {
-    if (groupid) return `g:${groupid}`;
+    // Prefer channel scope when available; else group; else user
     if (channelid) return `c:${channelid}`;
+    if (groupid) return `g:${groupid}`;
     return `u:${userid}`;
 }
 
@@ -213,6 +223,7 @@ async function createRun({ storyDoc, story, context, starterID, starterName, bot
         currentPageId: story.initialPage || '0',
         history: [],
         isEnded: false,
+        isPaused: false,
         endingId: '',
         endingText: ''
     };
@@ -223,6 +234,8 @@ async function createRun({ storyDoc, story, context, starterID, starterName, bot
         return doc;
     }
     const key = getContextKey(context);
+    // Assign a memory id for pause/continue
+    if (!run._id) run._id = 'mem-' + Date.now() + '-' + Math.floor(Math.random() * 1000000);
     memoryRuns.set(key, run);
     return run;
 }
@@ -230,14 +243,16 @@ async function createRun({ storyDoc, story, context, starterID, starterName, bot
 async function getActiveRun(context) {
     const key = getContextKey(context);
     if (db.storyRun && typeof db.storyRun.findOne === 'function') {
-        const query = { isEnded: false };
-        if (context.groupid) query.groupID = context.groupid;
-        else if (context.channelid) query.channelID = context.channelid;
+        const query = { isEnded: false, isPaused: { $ne: true } };
+        if (context.channelid) query.channelID = context.channelid;
+        else if (context.groupid) query.groupID = context.groupid;
         else query.starterID = context.userid;
         const run = await db.storyRun.findOne(query).sort({ createdAt: -1 });
         return run;
     }
-    return memoryRuns.get(key) || null;
+    const run = memoryRuns.get(key) || null;
+    if (run && run.isPaused) return null;
+    return run;
 }
 
 async function saveRun(context, run) {
@@ -262,6 +277,7 @@ async function saveRun(context, run) {
             currentPageId: run.currentPageId,
             history: run.history || [],
             isEnded: !!run.isEnded,
+            isPaused: !!run.isPaused,
             endingId: run.endingId || '',
             endingText: run.endingText || '',
             endedAt: run.endedAt || undefined,
@@ -1007,7 +1023,7 @@ const rollDiceCommand = async function ({
                 }
                 if (run && !run.isEnded) {
                     if ((run.storyAlias || '').toLowerCase() !== (resolved.alias || '').toLowerCase()) {
-                        rply.text = '目前有進行中的故事：' + (run.storyAlias || '-') + '。請先輸入 .st end 或 .st pause 後再啟動新劇本。';
+                        rply.text = '目前此頻道已有進行中的故事：' + (run.storyAlias || '-') + '。請先輸入 .st end 或 .st pause 後再啟動新劇本。';
                         rply.buttonCreate = ['.st end', '.st pause'];
                         return rply;
                     }
@@ -1068,17 +1084,78 @@ const rollDiceCommand = async function ({
         case /^pause$/.test(sub): {
             const run = await getActiveRun(ctx);
             if (!run) { rply.text = '目前沒有進行中的故事。'; return rply; }
+            run.isPaused = true;
             await saveRun(ctx, run);
-            rply.text = '已暫停，使用 .st start 可繼續。';
+            rply.text = '已暫停（ID：' + (run._id || '-') + '），使用 .st continue ' + (run._id || '') + ' 可繼續。';
             rply.buttonCreate = ['.st start'];
+            return rply;
+        }
+        case /^continue$/.test(sub): {
+            const id = (mainMsg[2] || '').trim();
+            if (id) {
+                // Resume by id
+                let run = null;
+                if (db.storyRun && typeof db.storyRun.findById === 'function') {
+                    run = await db.storyRun.findById(id);
+                    if (!run) { rply.text = '找不到該遊戲ID。'; return rply; }
+                    // Enforce same channel/group
+                    if ((channelid && String(run.channelID) !== String(channelid)) || (!channelid && groupid && String(run.groupID) !== String(groupid))) {
+                        rply.text = '此遊戲不在目前頻道/群組中。';
+                        return rply;
+                    }
+                } else {
+                    // memory fallback: only current context
+                    run = memoryRuns.get(getContextKey(ctx));
+                    if (!run || String(run._id) !== id) { rply.text = '找不到該遊戲ID於此頻道。'; return rply; }
+                }
+                if (run.isEnded) { rply.text = '此遊戲已結束。'; return rply; }
+                // Resume
+                run.isPaused = false;
+                const { story } = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
+                if (!story) { rply.text = '找不到故事內容，請重新開始。'; return rply; }
+                const text = renderPageText(story, run, run.currentPageId);
+                await saveRun(ctx, run);
+                rply.text = text;
+                rply.buttonCreate = buildButtonsForPage(story, run);
+                return rply;
+            }
+            // Without id: show last output for active run without state changes
+            const run = await getActiveRun(ctx);
+            if (!run) { rply.text = '目前沒有進行中的故事。'; return rply; }
+            const { story } = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
+            if (!story) { rply.text = '找不到故事內容，請重新開始。'; return rply; }
+            // Deep clone run to avoid side effects
+            const runClone = JSON.parse(JSON.stringify(run));
+            const text = renderPageText(story, runClone, runClone.currentPageId);
+            rply.text = text;
+            rply.buttonCreate = buildButtonsForPage(story, run);
             return rply;
         }
         case /^end$/.test(sub): {
             const run = await getActiveRun(ctx);
             if (!run) { rply.text = '目前沒有進行中的故事。'; return rply; }
+            const { story } = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
+            // If on an ending page, capture endingId/text
+            try {
+                const page = story && story.pages ? story.pages[run.currentPageId] : null;
+                if (page && page.isEnding) {
+                    run.endingId = String(run.currentPageId || '');
+                    const scope = buildEvalScope(run);
+                    const ctx2 = Object.assign({}, scope);
+                    if (Array.isArray(page.endings)) {
+                        for (const ed of page.endings) {
+                            if (!ed.condition || safeEvalCondition(ed.condition, scope)) {
+                                run.endingText = interpolate(ed.text || '', ctx2);
+                                break;
+                            }
+                        }
+                    }
+                } else if (!run.endingId) {
+                    run.endingId = '';
+                }
+            } catch (_) { /* ignore */ }
             run.isEnded = true;
             run.endedAt = new Date();
-            const { story } = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
             await saveRun(ctx, run);
             const title = story && story.title ? story.title : '故事';
             const started = run.createdAt ? new Date(run.createdAt) : new Date();
@@ -1260,6 +1337,131 @@ const rollDiceCommand = async function ({
             rply.text = same ? 'verify: OK（可逆）' : 'verify: 差異（可能存在未支援元素）';
             return rply;
         }
+        case /^list$/.test(sub): {
+            const aliasFilter = (mainMsg[2] || '').trim();
+            const rows = [];
+            if (db.story && typeof db.story.find === 'function') {
+                if (aliasFilter) {
+                    const found = await db.story.findOne({ alias: aliasFilter, isActive: { $ne: false } }).lean();
+                    if (found) rows.push({ title: found.title || '-', alias: found.alias || '-', introduction: found.payload && found.payload.introduction || '', startPermission: found.startPermission || '-' });
+                } else {
+                    const all = await db.story.find({ isActive: { $ne: false } }).lean();
+                    for (const s of all) {
+                        const allow = canStartStory(s, { userid, groupid });
+                        if (allow.ok) rows.push({ title: s.title || '-', alias: s.alias || '-', introduction: s.payload && s.payload.introduction || '', startPermission: s.startPermission || '-' });
+                    }
+                }
+            } else {
+                const dir = path.join(__dirname, 'storyTeller');
+                const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => /(\.json)$/i.test(f)) : [];
+                for (const f of files) {
+                    const alias = f.replace(/\.[^.]+$/, '');
+                    if (aliasFilter && alias !== aliasFilter) continue;
+                    let intro = '';
+                    try { const obj = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); intro = obj && obj.introduction || ''; } catch (_) {}
+                    rows.push({ title: alias, alias, introduction: intro, startPermission: 'ANYONE' });
+                }
+            }
+            if (aliasFilter) {
+                if (rows.length === 0) { rply.text = '找不到該劇本（alias: ' + aliasFilter + '）'; return rply; }
+                const item = rows[0];
+                rply.text = '【' + item.title + '】\n' + (item.introduction || '(無簡介)');
+                rply.buttonCreate = ['.st start ' + item.alias];
+                return rply;
+            }
+            let text = '【可啟動的劇本】\n';
+            if (rows.length === 0) text += '(沒有資料)';
+            else {
+                for (const r of rows) text += '- ' + r.title + ' (alias: ' + r.alias + ')\n';
+            }
+            rply.text = text.trim();
+            if (rows.length > 0) rply.buttonCreate = [...new Set(rows.map(r => '.st start ' + r.alias))].slice(0, 20);
+            return rply;
+        }
+        case /^allow$/.test(sub): {
+            const alias = (mainMsg[2] || '').trim();
+            const arg3 = (mainMsg[3] || '').trim();
+            const moreGroupIds = mainMsg.slice(3).filter(Boolean);
+            if (!alias) { rply.text = '用法：.st allow <alias> AUTHOR|all|[在群組中空白]|<groupId...>'; return rply; }
+            if (db.story && typeof db.story.findOneAndUpdate === 'function') {
+                const doc = await db.story.findOne({ alias }).lean();
+                if (!doc) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
+                if (String(doc.ownerID) !== String(userid)) { rply.text = '你沒有權限變更此劇本設定。'; return rply; }
+                if (/^author$/i.test(arg3)) {
+                    await db.story.findOneAndUpdate({ alias }, { startPermission: 'AUTHOR_ONLY', allowedGroups: [] }, { new: true });
+                    rply.text = '已設定僅作者可啟動（alias: ' + alias + '）';
+                    return rply;
+                }
+                if (/^all$/i.test(arg3)) {
+                    await db.story.findOneAndUpdate({ alias }, { startPermission: 'ANYONE', allowedGroups: [] }, { new: true });
+                    rply.text = '已設定任何人可啟動（alias: ' + alias + '）';
+                    return rply;
+                }
+                let groups = Array.isArray(doc.allowedGroups) ? doc.allowedGroups.slice() : [];
+                if (moreGroupIds.length > 0) {
+                    for (const gid of moreGroupIds) if (!groups.includes(gid)) groups.push(gid);
+                } else {
+                    if (!groupid) { rply.text = '請在群組或頻道中使用 .st allow，或指定 groupId。'; return rply; }
+                    if (!groups.includes(groupid)) groups.push(groupid);
+                }
+                await db.story.findOneAndUpdate({ alias }, { startPermission: 'GROUP_ONLY', allowedGroups: groups }, { new: true });
+                rply.text = '已設定允許的群組/頻道（alias: ' + alias + '）：' + groups.join(', ');
+                return rply;
+            }
+            // files fallback
+            try {
+                const p = path.join(__dirname, 'storyTeller', alias + '.json');
+                if (!fs.existsSync(p)) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
+                const obj = JSON.parse(fs.readFileSync(p, 'utf8'));
+                if (obj && String(obj.ownerId) !== String(userid)) { rply.text = '你沒有權限變更此劇本設定。'; return rply; }
+                obj._meta = obj._meta || {};
+                if (/^author$/i.test(arg3)) { obj._meta.startPermission = 'AUTHOR_ONLY'; obj._meta.allowedGroups = []; }
+                else if (/^all$/i.test(arg3)) { obj._meta.startPermission = 'ANYONE'; obj._meta.allowedGroups = []; }
+                else {
+                    obj._meta.startPermission = 'GROUP_ONLY';
+                    obj._meta.allowedGroups = Array.isArray(obj._meta.allowedGroups) ? obj._meta.allowedGroups : [];
+                    if (moreGroupIds.length > 0) { for (const gid of moreGroupIds) if (!obj._meta.allowedGroups.includes(gid)) obj._meta.allowedGroups.push(gid); }
+                    else { if (!groupid) { rply.text = '請在群組或頻道中使用 .st allow，或指定 groupId。'; return rply; } if (!obj._meta.allowedGroups.includes(groupid)) obj._meta.allowedGroups.push(groupid); }
+                }
+                fs.writeFileSync(p, JSON.stringify(obj, null, 2), 'utf8');
+                rply.text = '已更新權限設定（alias: ' + alias + '）';
+                return rply;
+            } catch (error) { rply.text = '設定失敗：' + (error.message || ''); return rply; }
+        }
+        case /^game$/.test(sub): {
+            // Show current running and paused games in this channel/group
+            let text = '【當前遊戲】\n';
+            const activeRun = await getActiveRun(ctx);
+            if (activeRun) {
+                const { story } = await loadStoryByAlias(activeRun.storyOwnerID || userid, activeRun.storyAlias);
+                text += '- 標題：' + ((story && story.title) || activeRun.storyAlias || '-') + '\n';
+                text += '- alias：' + (activeRun.storyAlias || '-') + '\n';
+                text += '- 當前頁：' + (activeRun.currentPageId || '-') + '\n';
+                text += (story && story.introduction) ? ('\n【簡介】\n' + story.introduction + '\n') : '';
+            } else {
+                text += '(無)\n';
+            }
+            text += '\n【暫停中的遊戲】\n';
+            let paused = [];
+            if (db.storyRun && typeof db.storyRun.find === 'function') {
+                const query = { isEnded: false, isPaused: true };
+                if (channelid) query.channelID = channelid; else if (groupid) query.groupID = groupid; else query.starterID = userid;
+                const list = await db.storyRun.find(query).sort({ updatedAt: -1 }).lean();
+                paused = list || [];
+            } else {
+                const r = memoryRuns.get(getContextKey(ctx));
+                if (r && r.isPaused) paused = [r];
+            }
+            if (paused.length === 0) {
+                text += '(無)';
+            } else {
+                for (const p of paused) {
+                    text += '- ID：' + (p._id || '-') + '，alias：' + (p.storyAlias || '-') + '\n';
+                }
+            }
+            rply.text = text.trim();
+            return rply;
+        }
         case /^my$/.test(sub): {
             const aliasFilter = (mainMsg[2] || '').trim();
             let text = '【我的劇本】\n';
@@ -1309,23 +1511,45 @@ const rollDiceCommand = async function ({
             if (db.story && typeof db.story.find === 'function') {
                 const stories = await db.story.find({ ownerID }).lean();
                 for (const s of stories) {
+                    let completed = 0;
+                    let endingStats = [];
+                    try {
+                        if (db.storyRun && typeof db.storyRun.find === 'function') {
+                            const runs = await db.storyRun.find({ story: s._id, isEnded: true }, 'endingId').lean();
+                            completed = runs ? runs.length : 0;
+                            const counter = new Map();
+                            for (const r of (runs || [])) {
+                                const k = (r && r.endingId) ? String(r.endingId) : 'unknown';
+                                counter.set(k, (counter.get(k) || 0) + 1);
+                            }
+                            endingStats = Array.from(counter.entries()).map(([id, count]) => ({ id, count }));
+                        }
+                    } catch (_) { /* ignore */ }
                     rows.push({
                         title: s.title || '-',
                         alias: s.alias || '-',
                         startPermission: s.startPermission || '-',
-                        isActive: !!s.isActive
+                        isActive: !!s.isActive,
+                        completed,
+                        endingStats
                     });
                 }
             } else {
                 // memory fallback: infer from runs
-                const byAlias = new Map();
+                const byAlias = new Map(); // alias -> {completed, endings: Map}
                 for (const run of memoryRuns.values()) {
                     if (!run || run.storyOwnerID !== ownerID) continue;
                     const alias = run.storyAlias || '-';
-                    if (!byAlias.has(alias)) byAlias.set(alias, true);
+                    if (!byAlias.has(alias)) byAlias.set(alias, { completed: 0, endings: new Map() });
+                    const stat = byAlias.get(alias);
+                    if (run.isEnded) {
+                        stat.completed++;
+                        const k = run.endingId || 'unknown';
+                        stat.endings.set(k, (stat.endings.get(k) || 0) + 1);
+                    }
                 }
-                for (const alias of byAlias.keys()) {
-                    rows.push({ title: alias, alias, startPermission: 'ANYONE', isActive: true });
+                for (const [alias, data] of byAlias.entries()) {
+                    rows.push({ title: alias, alias, startPermission: 'ANYONE', isActive: true, completed: data.completed, endingStats: Array.from(data.endings.entries()).map(([id, count]) => ({ id, count })) });
                 }
             }
             if (rows.length === 0) {
@@ -1335,6 +1559,11 @@ const rollDiceCommand = async function ({
                     text += '- ' + r.title + ' (alias: ' + r.alias + ')\n';
                     text += '  - startPermission: ' + r.startPermission + '\n';
                     text += '  - active: ' + r.isActive + '\n';
+                    if (typeof r.completed === 'number') text += '  - Completed: ' + r.completed + '\n';
+                    if (Array.isArray(r.endingStats) && r.endingStats.length > 0) {
+                        text += '  - Endings:\n';
+                        for (const es of r.endingStats) text += '    • ' + (es.id || 'unknown') + ': ' + es.count + '\n';
+                    }
                 }
             }
             rply.text = text.trim();

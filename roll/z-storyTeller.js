@@ -51,6 +51,8 @@ const getHelpMessage = function () {
 │ .st my [alias]（查看自己新增的劇本統計）
 │ .st mylist（顯示自己所有新增的劇本）
 │ .st import <alias> [title]（附加檔案上傳 .json 或 .txt）
+│ .st update <alias> [title]（附加檔案覆蓋）
+│ .st delete <alias>（刪除自己擁有的劇本）
 │ .st exportfile <alias> <path>
 │ .st verify <alias>
 ╰────────────────`;
@@ -144,7 +146,10 @@ function readStory03() { return { title: '', type: 'story', introduction: '', pl
 
 async function loadStoryByAlias(ownerID, alias) {
     if (db.story && typeof db.story.findOne === 'function') {
-        const doc = await db.story.findOne({ ownerID, alias }).lean();
+        // Prefer global alias (unique) lookup
+        let doc = await db.story.findOne({ alias }).lean();
+        // Backward compatibility: if not found globally, try owner-scoped
+        if (!doc && ownerID) doc = await db.story.findOne({ ownerID, alias }).lean();
         if (doc && doc.payload) return { storyDoc: doc, story: doc.payload };
     }
     const fallbackPath = path.join(__dirname, 'storyTeller', alias + '.json');
@@ -172,7 +177,9 @@ async function resolveStoryForStart({ ownerID, aliasOrTitle }) {
     const key = String(aliasOrTitle || '').trim();
     if (!key) return { storyDoc: null, story: null, alias: null };
     if (db.story && typeof db.story.findOne === 'function') {
-        let doc = await db.story.findOne({ ownerID, alias: key });
+        // First try global alias (unique)
+        let doc = await db.story.findOne({ alias: key });
+        // If not found by alias, fallback to owner+title
         if (!doc) doc = await db.story.findOne({ ownerID, title: key });
         if (doc && doc.payload) return { storyDoc: doc, story: doc.payload, alias: doc.alias };
     }
@@ -775,8 +782,8 @@ const rollDiceCommand = async function ({
             let rawText = '';
             try {
                 rawText = await downloadText(att.url);
-            } catch (e) {
-                rply.text = '下載附件失敗：' + (e.message || '');
+            } catch (error) {
+                rply.text = '下載附件失敗：' + (error.message || '');
                 return rply;
             }
 
@@ -818,13 +825,20 @@ const rollDiceCommand = async function ({
             const v = validateCompiledStory(compiled);
             if (!v.ok) { rply.text = '上傳失敗：' + v.message; return rply; }
 
-            // Enforce per-user story limit (only counts new creations)
+            // Enforce alias uniqueness across all users
             let isUpdate = false;
             let currentCount = 0;
+            let existingDoc = null;
             try {
                 if (db.story && typeof db.story.findOne === 'function') {
-                    const existing = await db.story.findOne({ ownerID: userid, alias }).lean();
-                    isUpdate = !!existing;
+                    existingDoc = await db.story.findOne({ alias }).lean();
+                    if (existingDoc) {
+                        if (String(existingDoc.ownerID) !== String(userid)) {
+                            rply.text = '此 alias 已被其他使用者使用：' + alias;
+                            return rply;
+                        }
+                        isUpdate = true;
+                    }
                     currentCount = await db.story.countDocuments({ ownerID: userid });
                 } else {
                     // filesystem fallback: count files owned by this user
@@ -834,7 +848,13 @@ const rollDiceCommand = async function ({
                         try {
                             const obj = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
                             if (obj && obj.ownerId === userid) currentCount++;
-                            if (String(f).replace(/\.[^.]+$/, '') === alias) isUpdate = true;
+                            if (String(f).replace(/\.[^.]+$/, '') === alias) {
+                                if (obj && String(obj.ownerId) !== String(userid)) {
+                                    rply.text = '此 alias 已被其他使用者使用：' + alias;
+                                    return rply;
+                                }
+                                isUpdate = true;
+                            }
                         } catch (_) { }
                     }
                 }
@@ -851,21 +871,20 @@ const rollDiceCommand = async function ({
 
             // Persist
             if (db.story && typeof db.story.findOneAndUpdate === 'function') {
-                await db.story.findOneAndUpdate(
-                    { ownerID: userid, alias },
-                    {
-                        ownerID: userid,
-                        ownerName: (typeof displayname === 'string' ? displayname : ''),
-                        alias,
-                        title: compiled.title,
-                        type: 'story',
-                        payload: compiled,
-                        startPermission: 'AUTHOR_ONLY',
-                        allowedGroups: [],
-                        isActive: true
-                    },
-                    { upsert: true }
-                );
+                // If exists and belongs to user -> update; else create new
+                const filter = { ownerID: userid, alias };
+                const update = {
+                    ownerID: userid,
+                    ownerName: (typeof displayname === 'string' ? displayname : ''),
+                    alias,
+                    title: compiled.title,
+                    type: 'story',
+                    payload: compiled,
+                    startPermission: 'AUTHOR_ONLY',
+                    allowedGroups: [],
+                    isActive: true
+                };
+                await db.story.findOneAndUpdate(filter, update, { upsert: !existingDoc });
             }
             try {
                 const outPath = path.join(__dirname, 'storyTeller', alias + '.json');
@@ -875,6 +894,103 @@ const rollDiceCommand = async function ({
 
             rply.text = '已匯入劇本：' + (compiled.title || alias) + '（alias: ' + alias + '）';
             rply.buttonCreate = ['.st start ' + alias];
+            return rply;
+        }
+        case /^update$/.test(sub): {
+            // .st update <alias> [title] with attachment
+            const alias = (mainMsg[2] || '').trim();
+            const customTitle = (mainMsg.slice(3).join(' ') || '').trim();
+            if (!alias) { rply.text = '用法：.st update <alias>（需附加檔案）'; return rply; }
+            // Ensure alias exists and belongs to user
+            if (db.story && typeof db.story.findOne === 'function') {
+                const doc = await db.story.findOne({ alias }).lean();
+                if (!doc) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
+                if (String(doc.ownerID) !== String(userid)) { rply.text = '你沒有權限更新此劇本。'; return rply; }
+            } else {
+                const p = path.join(__dirname, 'storyTeller', alias + '.json');
+                if (!fs.existsSync(p)) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
+                try {
+                    const obj = JSON.parse(fs.readFileSync(p, 'utf8'));
+                    if (obj && String(obj.ownerId) !== String(userid)) { rply.text = '你沒有權限更新此劇本。'; return rply; }
+                } catch (_) { /* ignore parse errors; allow overwrite if file exists and owner matches unknown */ }
+            }
+
+            // Attachment
+            const att = await getAttachmentInfo(discordMessage, discordClient);
+            if (!att || !att.url) { rply.text = '未偵測到附件。請附加 .json 或 .txt 檔案後再試。'; return rply; }
+            if (att.size && att.size > MAX_UPLOAD_BYTES) { rply.text = '檔案過大（上限約 ' + Math.round(MAX_UPLOAD_BYTES / 1024) + 'KB）。請縮小後再上傳。'; return rply; }
+            let rawText = '';
+            try { rawText = await downloadText(att.url); } catch (error) { rply.text = '下載附件失敗：' + (error.message || ''); return rply; }
+            const isLikelyJson = /\.json$/i.test(String(att.filename || '')) || /json/i.test(att.contentType || '');
+            let compiled = null;
+            try {
+                if (isLikelyJson) {
+                    const obj = JSON.parse(rawText);
+                    compiled = obj && obj.type === 'story' ? obj : obj;
+                } else {
+                    const lineCheck = validateRunDesignLines(rawText);
+                    if (!lineCheck.ok) { rply.text = '上傳失敗：第 ' + lineCheck.line + ' 行格式有誤（' + lineCheck.message + '）'; return rply; }
+                    compiled = compileRunDesignToStory(rawText, { alias, title: customTitle });
+                }
+            } catch (error) {
+                const parseErrorLine = estimateJsonErrorLine(rawText, error);
+                rply.text = '上傳失敗：無法解析檔案' + (parseErrorLine ? ('（第 ' + parseErrorLine + ' 行）') : '') + '。';
+                return rply;
+            }
+            if (customTitle) compiled.title = customTitle;
+            if (!compiled.title) compiled.title = alias;
+            compiled.type = 'story';
+            compiled.ownerId = userid;
+            const v = validateCompiledStory(compiled);
+            if (!v.ok) { rply.text = '更新失敗：' + v.message; return rply; }
+
+            // Persist strictly as update (no create)
+            if (db.story && typeof db.story.findOneAndUpdate === 'function') {
+                const updated = await db.story.findOneAndUpdate(
+                    { ownerID: userid, alias },
+                    {
+                        ownerID: userid,
+                        ownerName: (typeof displayname === 'string' ? displayname : ''),
+                        alias,
+                        title: compiled.title,
+                        type: 'story',
+                        payload: compiled,
+                        isActive: true
+                    },
+                    { new: true }
+                );
+                if (!updated) { rply.text = '更新失敗：未找到可更新的劇本。'; return rply; }
+            }
+            try {
+                const outPath = path.join(__dirname, 'storyTeller', alias + '.json');
+                fs.mkdirSync(path.dirname(outPath), { recursive: true });
+                fs.writeFileSync(outPath, JSON.stringify(compiled, null, 2), 'utf8');
+            } catch (_) { /* ignore */ }
+            rply.text = '已更新劇本：' + (compiled.title || alias) + '（alias: ' + alias + '）';
+            rply.buttonCreate = ['.st start ' + alias];
+            return rply;
+        }
+        case /^delete$/.test(sub): {
+            const alias = (mainMsg[2] || '').trim();
+            if (!alias) { rply.text = '用法：.st delete <alias>'; return rply; }
+            // Verify ownership
+            if (db.story && typeof db.story.findOne === 'function') {
+                const doc = await db.story.findOne({ alias }).lean();
+                if (!doc) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
+                if (String(doc.ownerID) !== String(userid)) { rply.text = '你沒有權限刪除此劇本。'; return rply; }
+                if (typeof db.story.findOneAndDelete === 'function') {
+                    await db.story.findOneAndDelete({ alias, ownerID: userid });
+                }
+            }
+            // Delete filesystem copy
+            try {
+                const p1 = path.join(__dirname, 'storyTeller', alias + '.json');
+                if (fs.existsSync(p1)) fs.unlinkSync(p1);
+                const p2 = path.join(__dirname, 'storyTeller', alias);
+                if (fs.existsSync(p2)) fs.unlinkSync(p2);
+            } catch (_) { /* ignore */ }
+            rply.text = '已刪除劇本（alias: ' + alias + '）';
+            rply.buttonCreate = ['.st mylist'];
             return rply;
         }
         case /^start$/.test(sub): {
@@ -1109,6 +1225,7 @@ const rollDiceCommand = async function ({
             if (!alias || !filePath) { rply.text = '用法：.st exportfile <alias> <path>'; return rply; }
             const { story } = await loadStoryByAlias(userid, alias);
             if (!story) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
+            if (story.ownerId && String(story.ownerId) !== String(userid)) { rply.text = '你沒有權限匯出此劇本。'; return rply; }
             const txt = exportStoryToRunDesign(story);
             try {
                 let resolved = filePath;
@@ -1135,6 +1252,7 @@ const rollDiceCommand = async function ({
             if (!alias) { rply.text = '用法：.st verify <alias>'; return rply; }
             const { story } = await loadStoryByAlias(userid, alias);
             if (!story) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
+            if (story.ownerId && String(story.ownerId) !== String(userid)) { rply.text = '你沒有權限驗證此劇本。'; return rply; }
             const txt = exportStoryToRunDesign(story);
             const recompiled = compileRunDesignToStory(txt, { alias, title: story.title });
             const norm = (obj) => JSON.stringify(obj);

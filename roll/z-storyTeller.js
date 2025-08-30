@@ -295,6 +295,12 @@ function buildEvalScope(run) {
     return Object.assign({}, run.variables || {}, run.stats || {}, run.playerVariables || {});
 }
 
+function userCanActOnRun(run, userid) {
+    const policy = String(run && run.participantPolicy || 'ANYONE').toUpperCase();
+    if (policy !== 'ALONE') return true;
+    return String(run && run.starterID) === String(userid);
+}
+
 function renderPageText(story, run, pageId) {
     const page = story.pages[pageId];
     if (!page) return '找不到此頁面。';
@@ -1010,7 +1016,12 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^start$/.test(sub): {
-            const key = (mainMsg.slice(2).join(' ') || '').trim();
+            // Support optional policy arg: .st start <alias|title> [alone|all]
+            const arg2 = (mainMsg[2] || '').trim();
+            const arg3 = (mainMsg[3] || '').trim().toLowerCase();
+            const hasPolicy = (arg3 === 'alone' || arg3 === 'all');
+            const key = hasPolicy ? arg2 : (mainMsg.slice(2).join(' ') || '').trim();
+            const requestedPolicy = hasPolicy ? arg3 : '';
             let run = await getActiveRun(ctx);
 
             if (key) {
@@ -1047,6 +1058,7 @@ const rollDiceCommand = async function ({
                 const storyDoc = resolved.storyDoc;
                 const story = resolved.story;
                 run = await createRun({ storyDoc, story, context: ctx, starterID: userid, starterName: displayname || '', botname });
+                if (requestedPolicy) run.participantPolicy = (requestedPolicy === 'alone') ? 'ALONE' : 'ANYONE';
                 run.storyAlias = resolved.alias || (storyDoc ? storyDoc.alias : key);
                 const missing = getMissingPlayerVariables(story, run);
                 let text = '';
@@ -1062,6 +1074,7 @@ const rollDiceCommand = async function ({
 
             // No key provided: continue existing run if any, otherwise ask for key
             if (run && !run.isEnded) {
+                if (!userCanActOnRun(run, userid)) { rply.text = '此局設定為僅發起者可參與。'; return rply; }
                 const cur = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
                 const story = cur.story;
                 if (!story) { rply.text = '找不到故事內容，請重新開始。'; return rply; }
@@ -1084,6 +1097,7 @@ const rollDiceCommand = async function ({
         case /^pause$/.test(sub): {
             const run = await getActiveRun(ctx);
             if (!run) { rply.text = '目前沒有進行中的故事。'; return rply; }
+            if (!userCanActOnRun(run, userid)) { rply.text = '此局設定為僅發起者可參與。'; return rply; }
             run.isPaused = true;
             await saveRun(ctx, run);
             rply.text = '已暫停（ID：' + (run._id || '-') + '），使用 .st continue ' + (run._id || '') + ' 可繼續。';
@@ -1103,10 +1117,12 @@ const rollDiceCommand = async function ({
                         rply.text = '此遊戲不在目前頻道/群組中。';
                         return rply;
                     }
+                    if (!userCanActOnRun(run, userid)) { rply.text = '此局設定為僅發起者可參與。'; return rply; }
                 } else {
                     // memory fallback: only current context
                     run = memoryRuns.get(getContextKey(ctx));
                     if (!run || String(run._id) !== id) { rply.text = '找不到該遊戲ID於此頻道。'; return rply; }
+                    if (!userCanActOnRun(run, userid)) { rply.text = '此局設定為僅發起者可參與。'; return rply; }
                 }
                 if (run.isEnded) { rply.text = '此遊戲已結束。'; return rply; }
                 // Resume
@@ -1134,6 +1150,7 @@ const rollDiceCommand = async function ({
         case /^end$/.test(sub): {
             const run = await getActiveRun(ctx);
             if (!run) { rply.text = '目前沒有進行中的故事。'; return rply; }
+            if (!userCanActOnRun(run, userid)) { rply.text = '此局設定為僅發起者可參與。'; return rply; }
             const { story } = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
             // If on an ending page, capture endingId/text
             try {
@@ -1176,6 +1193,7 @@ const rollDiceCommand = async function ({
             if (!target) { rply.text = '請提供頁面ID，例如 .st goto 1'; return rply; }
             const run = await getActiveRun(ctx);
             if (!run) { rply.text = '請先使用 .st start 開始故事。'; return rply; }
+            if (!userCanActOnRun(run, userid)) { rply.text = '此局設定為僅發起者可參與。'; return rply; }
             const { story } = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
             const missing = getMissingPlayerVariables(story, run);
             if (missing.length > 0) { rply.text = renderPlayerSetupPrompt(story, run); return rply; }
@@ -1219,6 +1237,7 @@ const rollDiceCommand = async function ({
             if (!field || !value) { rply.text = '用法：.st set name 小花 或 .st set owner_name 阿明'; return rply; }
             const run = await getActiveRun(ctx);
             if (!run) { rply.text = '請先使用 .st start 開始故事。'; rply.buttonCreate = ['.st start']; return rply; }
+            if (!userCanActOnRun(run, userid)) { rply.text = '此局設定為僅發起者可參與。'; return rply; }
             // Map common aliases
             let key = field;
             if (field === 'name') key = 'cat_name';
@@ -1460,6 +1479,17 @@ const rollDiceCommand = async function ({
                 }
             }
             rply.text = text.trim();
+            return rply;
+        }
+        case /^edit$/.test(sub): {
+            const mode = (mainMsg[2] || '').trim().toLowerCase();
+            if (mode !== 'alone' && mode !== 'all') { rply.text = '用法：.st edit alone|all'; return rply; }
+            const run = await getActiveRun(ctx);
+            if (!run) { rply.text = '目前沒有進行中的故事。'; return rply; }
+            if (String(run.starterID) !== String(userid)) { rply.text = '僅發起者可變更參與權限。'; return rply; }
+            run.participantPolicy = (mode === 'alone') ? 'ALONE' : 'ANYONE';
+            await saveRun(ctx, run);
+            rply.text = '已設定參與權限為：' + (mode === 'alone' ? '僅發起者' : '所有人');
             return rply;
         }
         case /^my$/.test(sub): {

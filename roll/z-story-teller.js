@@ -96,6 +96,7 @@ const getHelpMessage = function () {
 │ - .txt 支援 RUN_DESIGN 語法。
 │ - poll、import、exportfile、update 僅於Discord有效；未提供 x 時預設為 3 分鐘。
 │ - runId 可於多處所使用以續玩同一劇本。
+│ - 閒置超過1小時的遊戲會在下次 .st start 時自動暫停。
 | - 編寫劇本請參考：https://bothelp.hktrpg.com/
 ╰────────────────`;
 }
@@ -344,7 +345,8 @@ async function createRun({ storyDoc, story, context, starterID, starterName, bot
         isPaused: false,
         endingId: '',
         endingText: '',
-        endingTitle: ''
+        endingTitle: '',
+        lastActivityAt: new Date()  
     };
     ensureRunDefaults(run, story);
 
@@ -393,6 +395,46 @@ async function countOpenRunsByStarter(starterID) {
     return cnt;
 }
 
+// Check for idle games and auto-pause them if they've been inactive for more than 1 hour
+async function checkAndPauseIdleGames(context) {
+    const IDLE_TIMEOUT_HOURS = 1;
+    const idleThreshold = new Date(Date.now() - (IDLE_TIMEOUT_HOURS * 60 * 60 * 1000));
+    
+    try {
+        if (db.storyRun && typeof db.storyRun.find === 'function') {
+            const query = { 
+                isEnded: false, 
+                isPaused: { $ne: true },
+                lastActivityAt: { $lt: idleThreshold }
+            };
+            if (context.channelid) query.channelID = context.channelid;
+            else if (context.groupid) query.groupID = context.groupid;
+            
+            const idleRuns = await db.storyRun.find(query).lean();
+            for (const run of idleRuns) {
+                run.isPaused = true;
+                run.pausedAt = new Date();
+                await db.storyRun.findByIdAndUpdate(run._id, {
+                    isPaused: true,
+                    pausedAt: new Date()
+                });
+            }
+            return idleRuns.length;
+        }
+    } catch { /* ignore */ }
+    
+    // Fallback to in-memory check
+    const key = getContextKey(context);
+    const run = memoryRuns.get(key);
+    if (run && !run.isEnded && !run.isPaused && run.lastActivityAt && run.lastActivityAt < idleThreshold) {
+        run.isPaused = true;
+        run.pausedAt = new Date();
+        return 1;
+    }
+    
+    return 0;
+}
+
 async function saveRun(context, run) {
     if (run && typeof run.save === 'function' && run._id) {
         try {
@@ -422,7 +464,8 @@ async function saveRun(context, run) {
             endingTitle: run.endingTitle || '',
             endedAt: run.endedAt || undefined,
             participantPolicy: run.participantPolicy,
-            allowedUserIDs: run.allowedUserIDs || []
+            allowedUserIDs: run.allowedUserIDs || [],
+            lastActivityAt: run.lastActivityAt || new Date()
         };
         await db.storyRun.findByIdAndUpdate(run._id, update, { new: true });
         return;
@@ -873,6 +916,8 @@ async function gotoPage({ story, run, targetPageId }) {
     }
     
     run.currentPageId = String(actualPageId);
+    // Update last activity timestamp when goto is called
+    run.lastActivityAt = new Date();
     run.history = run.history || [];
     run.history.push({
         pageId: String(actualPageId),
@@ -1305,6 +1350,10 @@ const rollDiceCommand = async function ({
             } else {
                 key = (mainMsg.slice(2).join(' ') || '').trim();
             }
+            
+            // Check for idle games and auto-pause them if they've been inactive for more than 1 hour
+            const pausedCount = await checkAndPauseIdleGames(ctx);
+            
             let run = await getActiveRun(ctx);
             // Allow starting a new game even if there is a paused run in this context
             // Keep paused run intact and do not block starting
@@ -1381,7 +1430,12 @@ const rollDiceCommand = async function ({
                     attachChoicesOutput({ rply, story, run, botname });
                 }
                 await saveRun(ctx, run);
-                rply.text = text;
+                let finalText = '';
+                if (pausedCount > 0) {
+                    finalText = `已自動暫停 ${pausedCount} 個閒置超過1小時的遊戲。\n\n`;
+                }
+                finalText += text;
+                rply.text = finalText;
                 return rply;
             }
 
@@ -1397,7 +1451,12 @@ const rollDiceCommand = async function ({
                     rply.text = renderPlayerSetupPrompt(story, run);
                 } else {
                     const text = renderPageText(story, run, run.currentPageId);
-                    rply.text = '已載入當前進度：\n' + text;
+                    let finalText = '';
+                    if (pausedCount > 0) {
+                        finalText = `已自動暫停 ${pausedCount} 個閒置超過1小時的遊戲。\n\n`;
+                    }
+                    finalText += '已載入當前進度：\n' + text;
+                    rply.text = finalText;
                     attachChoicesOutput({ rply, story, run, botname });
                 }
                 await saveRun(ctx, run);
@@ -1640,6 +1699,8 @@ const rollDiceCommand = async function ({
             if (field === 'name') key = 'cat_name';
             run.playerVariables = run.playerVariables || {};
             run.playerVariables[key] = value;
+            // Update last activity timestamp when set is called
+            run.lastActivityAt = new Date();
             // Load the current story by alias instead of default 03, so prompts match the active story
             let storyRef = null;
             try {

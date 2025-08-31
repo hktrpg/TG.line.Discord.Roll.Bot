@@ -93,7 +93,7 @@ const getHelpMessage = function () {
 │ .st continue
 │ .st end
 ├────── 💡備註 ──────
-│ - .json 劇本需包含 title、pages 等欄位；.txt 支援 RUN_DESIGN 語法。
+│ - .txt 支援 RUN_DESIGN 語法。
 │ - poll、import、exportfile、update 僅於Discord有效；未提供 x 時預設為 3 分鐘。
 │ - runId 可於多處所使用以續玩同一劇本。
 ╰────────────────`;

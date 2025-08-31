@@ -79,3 +79,5 @@ dist/
 
 *.dev.js
 ecosystem.config.js
+
+roll/storyTeller/*.json

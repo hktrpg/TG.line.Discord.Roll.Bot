@@ -70,7 +70,7 @@ const getHelpMessage = function () {
 │ .st delete <alias>
 │ 　刪除自己擁有的劇本。
 │ .st exportfile <alias>
-│ 　將劇本以附件回覆（需要有權限）。
+│ 　將劇本以私訊傳送文字檔，並在頻道通知（需要有權限）。
 │ .st verify <alias>
 │ 　檢查劇本內容格式是否正確。
 ├────── 🔐 啟動權限 ──────
@@ -1522,8 +1522,9 @@ const rollDiceCommand = async function ({
                 fs.mkdirSync(outDir, { recursive: true });
                 const outFile = path.join(outDir, safeAlias + '_RUN_DESIGN.txt');
                 fs.writeFileSync(outFile, txt, 'utf8');
-                rply.fileText = `已產生『${alias}』的 RUN_DESIGN，請查收附件。`;
-                rply.fileLink = [outFile];
+                rply.text = `已將『${alias}』的 RUN_DESIGN 以私訊傳送給你。`;
+                rply.dmFileText = `『${alias}』的 RUN_DESIGN`;
+                rply.dmFileLink = [outFile];
             } catch (error) {
                 rply.text = '輸出失敗：' + error.message;
                 return rply;

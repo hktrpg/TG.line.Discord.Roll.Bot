@@ -1338,6 +1338,7 @@ async function handlingResponMessage(message, answer = '') {
 		if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 
 		if (rplyVal.sendImage) sendBufferImage(message, rplyVal, userid)
+		if (rplyVal.dmFileLink?.length > 0) await sendDmFiles(message, rplyVal)
 		if (rplyVal.fileLink?.length > 0) sendFiles(message, rplyVal, userid)
 		if (rplyVal.respawn) respawnCluster2();
 		if (!rplyVal.text && !rplyVal.LevelUp) return;
@@ -1516,6 +1517,35 @@ const sendFiles = async (message, rplyVal, userid) => {
 	}
 
 	return;
+}
+
+const sendDmFiles = async (message, rplyVal) => {
+    try {
+        const files = [];
+        for (let i = 0; i < rplyVal.dmFileLink.length; i++) {
+            files.push(new AttachmentBuilder(rplyVal.dmFileLink[i]));
+        }
+
+        // Prefer direct message to author/user
+        if (message.author && typeof message.author.send === 'function') {
+            await message.author.send({ content: rplyVal.dmFileText || '', files });
+        } else if (message.user && message.isInteraction) {
+            await message.user.send({ content: rplyVal.dmFileText || '', files });
+        }
+
+        // Notify in channel
+        try {
+            await message.channel.send({ content: rplyVal.text || '已透過私訊傳送檔案。' });
+        } catch {}
+
+        // Cleanup local files
+        for (let i = 0; i < rplyVal.dmFileLink.length; i++) {
+            try { fs.unlinkSync(rplyVal.dmFileLink[i]); } catch {}
+        }
+    } catch (error) {
+        console.error('sendDmFiles error:', error?.message);
+        try { await message.channel.send({ content: '無法以私訊傳送檔案，請確認私訊設定。' }); } catch {}
+    }
 }
 
 async function handlingSendMessage(input) {

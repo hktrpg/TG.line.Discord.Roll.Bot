@@ -81,10 +81,29 @@ function getContextKey({ groupid, channelid, userid }) {
 
 function interpolate(template, ctx) {
     if (typeof template !== 'string') return '';
-    return template.replace(/\{([^}]+)\}/g, (m, p1) => {
-        const key = String(p1).trim();
-        return ctx[key] !== undefined && ctx[key] !== null ? String(ctx[key]) : m;
-    });
+    // Manual scan to avoid regex replace callback (and satisfy prefer-replaceAll linters)
+    let result = '';
+    let i = 0;
+    while (i < template.length) {
+        const open = template.indexOf('{', i);
+        if (open === -1) {
+            result += template.slice(i);
+            break;
+        }
+        const close = template.indexOf('}', open + 1);
+        if (close === -1) {
+            result += template.slice(i);
+            break;
+        }
+        result += template.slice(i, open);
+        const key = template.slice(open + 1, close).trim();
+        const val = Object.prototype.hasOwnProperty.call(ctx || {}, key) && ctx[key] !== null && ctx[key] !== undefined
+            ? String(ctx[key])
+            : template.slice(open, close + 1);
+        result += val;
+        i = close + 1;
+    }
+    return result;
 }
 
 function safeEvalCondition(expr, scope) {
@@ -97,10 +116,9 @@ function safeEvalCondition(expr, scope) {
         const allowed = /[A-Za-z_][A-Za-z0-9_]*|([<>]=?|==?=|!?=)|[()&|+\-*/%\s.\d]/g;
         const cleaned = (expr.match(allowed) || []).join('');
         // Build a function with scope via with()
-        // eslint-disable-next-line no-new-func
         const fn = new Function('scope', 'with(scope){ return (' + cleaned + ') }');
         return !!fn(scope);
-    } catch (e) {
+    } catch {
         return false;
     }
 }
@@ -108,17 +126,16 @@ function safeEvalCondition(expr, scope) {
 // Evaluate arithmetic/identifier expressions against scope and return the value (not just truthy)
 function evalExpressionValue(expr, scope) {
     try {
-        if (expr === undefined || expr === null) return undefined;
+        if (expr === undefined || expr === null) return void 0;
         if (typeof expr === 'number') return expr;
         const str = String(expr).trim();
         if (str === '') return '';
         // Allow identifiers and basic operators
         const allowed = /[A-Za-z_][A-Za-z0-9_]*|([<>]=?|==?=|!?=)|[()&|+\-*/%\s.\d]/g;
         const cleaned = (str.match(allowed) || []).join('');
-        // eslint-disable-next-line no-new-func
         const fn = new Function('scope', 'with(scope){ return (' + cleaned + ') }');
         return fn(scope);
-    } catch (_) {
+    } catch {
         return expr;
     }
 }
@@ -152,7 +169,7 @@ function ensureRunDefaults(run, story) {
 }
 
 // Deprecated: demo story direct link (03.json) removed after test phase
-function readStory03() { return { title: '', type: 'story', introduction: '', playerVariables: [], variables: [], speakers: [], gameStats: [], ownerId: '', initialPage: '0', pages: {} }; }
+// function readStory03() { return { title: '', type: 'story', introduction: '', playerVariables: [], variables: [], speakers: [], gameStats: [], ownerId: '', initialPage: '0', pages: {} }; }
 
 async function loadStoryByAlias(ownerID, alias) {
     if (db.story && typeof db.story.findOne === 'function') {
@@ -201,8 +218,7 @@ async function resolveStoryForStart({ ownerID, aliasOrTitle }) {
     return { storyDoc: null, story: null, alias: null };
 }
 
-// Removed auto-creation of demo story after test phase
-async function loadOrCreateStory03() { return { storyDoc: null, story: null }; }
+// Removed legacy demo story helpers
 
 async function createRun({ storyDoc, story, context, starterID, starterName, botname }) {
     const run = {
@@ -235,7 +251,7 @@ async function createRun({ storyDoc, story, context, starterID, starterName, bot
     }
     const key = getContextKey(context);
     // Assign a memory id for pause/continue
-    if (!run._id) run._id = 'mem-' + Date.now() + '-' + Math.floor(Math.random() * 1000000);
+    if (!run._id) run._id = 'mem-' + Date.now() + '-' + Math.floor(Math.random() * 1_000_000);
     // Ensure timestamps for in-memory mode
     if (!run.createdAt) run.createdAt = new Date();
     memoryRuns.set(key, run);
@@ -284,7 +300,7 @@ async function saveRun(context, run) {
             run.markModified && run.markModified('history');
             await run.save();
             return;
-        } catch (_) {
+        } catch {
             // Fallback to findByIdAndUpdate below
         }
     }
@@ -326,7 +342,7 @@ function renderPageText(story, run, pageId) {
     if (!page) return '找不到此頁面。';
     const scope = buildEvalScope(run);
     const statKeySet = new Set(Array.isArray(story.gameStats) ? story.gameStats.map(s => s.key) : []);
-    const varKeySet = new Set(Array.isArray(story.variables) ? story.variables.map(v => v.key) : []);
+    // const varKeySet = new Set(Array.isArray(story.variables) ? story.variables.map(v => v.key) : []);
     const ctx = Object.assign({}, scope);
     let out = '';
     if (page.title) out += '【' + page.title + '】\n';
@@ -342,7 +358,7 @@ function renderPageText(story, run, pageId) {
                     if (statKeySet.has(k)) {
                         const num = typeof val === 'number' ? val : Number(val);
                         run.stats = run.stats || {};
-                        run.stats[k] = isNaN(num) ? (run.stats[k] ?? 0) : num;
+                        run.stats[k] = Number.isNaN(num) ? (run.stats[k] ?? 0) : num;
                         // Lock stats after first explicit authored assignment to prevent later randomization
                         if (!run.__statsLocked) run.__statsLocked = true;
                         scope[k] = run.stats[k];
@@ -424,11 +440,11 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
             story.playerVariables.push({ key: m[1], prompt: m[2], placeholder: m[3] || '' });
             continue;
         }
-        if ((m = line.match(/^\[stat_def\]\s*([^\s]+)\s+(\-?\d+)\s+(\-?\d+)(?:\s+"([\s\S]*?)")?$/i))) {
+        if ((m = line.match(/^\[stat_def\]\s*([^\s]+)\s+(-?\d+)\s+(-?\d+)(?:\s+"([\s\S]*?)")?$/i))) {
             story.gameStats.push({ key: m[1], min: Number(m[2]), max: Number(m[3]), label: m[4] || m[1] });
             continue;
         }
-        if ((m = line.match(/^\[var_def\]\s*([^\s]+)\s+(\-?\d+)\s+(\-?\d+)(?:\s+"([\s\S]*?)")?$/i))) {
+        if ((m = line.match(/^\[var_def\]\s*([^\s]+)\s+(-?\d+)\s+(-?\d+)(?:\s+"([\s\S]*?)")?$/i))) {
             story.variables.push({ key: m[1], min: Number(m[2]), max: Number(m[3]), label: m[4] || m[1] });
             continue;
         }
@@ -458,20 +474,22 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
         }
         if ((m = line.match(/^\[set\]\s*([^=\s]+)\s*=\s*([\s\S]+)$/i))) {
             const page = ensurePage(currentPageId || '0');
-            page.content.push({ setVariables: { [m[1]]: isNaN(Number(m[2])) ? m[2] : Number(m[2]) } });
+            page.content.push({ setVariables: { [m[1]]: Number.isNaN(Number(m[2])) ? m[2] : Number(m[2]) } });
             continue;
         }
         if (/^\[choice\]/i.test(line)) { continue; }
-        if ((m = line.match(/^\-\>\s*([\s\S]+?)\s*\|\s*([^|\s]+)(?:\s*\|\s*if=([^|]+))?(?:\s*\|\s*stat=([\s\S]+))?$/))) {
+        if ((m = line.match(/^->\s*([\s\S]+?)\s*\|\s*([^|\s]+)(?:\s*\|\s*if=([^|]+))?(?:\s*\|\s*stat=([\s\S]+))?$/))) {
             const page = ensurePage(currentPageId || '0');
             const choice = { text: m[1].trim(), action: m[2].trim() };
             if (m[3]) choice.condition = m[3].trim();
             if (m[4]) {
                 const sc = {};
-                String(m[4]).split(',').forEach(pair => {
-                    const p = pair.trim(); if (!p) return; const mm = p.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*([+\-])\s*(\d+)$/);
+                for (const pair of String(m[4]).split(',')) {
+                    const p = pair.trim();
+                    if (!p) continue;
+                    const mm = p.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*([+-])\s*(\d+)$/);
                     if (mm) sc[mm[1]] = (mm[2] === '+') ? Number(mm[3]) : -Number(mm[3]);
-                });
+                }
                 choice.statChanges = sc;
             }
             page.choices.push(choice);
@@ -501,10 +519,10 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
 
 function exportStoryToRunDesign(story) {
     const lines = [];
-    const q = (s) => '"' + String(s || '').replace(/"/g, '\\"') + '"';
+    const q = (s) => '"' + JSON.stringify(String(s || '')).slice(1, -1) + '"';
     lines.push('[meta] title ' + q(story.title || ''));
     if (story.introduction) {
-        String(story.introduction).split(/\r?\n/).forEach(l => lines.push('[intro] ' + l));
+        for (const l of String(story.introduction).split(/\r?\n/)) lines.push('[intro] ' + l);
     }
     if (Array.isArray(story.playerVariables)) {
         for (const pv of story.playerVariables) {
@@ -557,7 +575,7 @@ function exportStoryToRunDesign(story) {
                 if (ch.statChanges) {
                     const parts = [];
                     for (const [k, v] of Object.entries(ch.statChanges)) parts.push(k + (v >= 0 ? '+' + v : v));
-                    if (parts.length) segs.push('stat=' + parts.join(','));
+                    if (parts.length > 0) segs.push('stat=' + parts.join(','));
                 }
                 lines.push(segs.join(' | '));
             }
@@ -626,7 +644,7 @@ function buildButtonsForPage(story, run) {
         else buttons.push('.st goto ' + c.action);
     }
     // unique & limit to 20
-    const unique = Array.from(new Set(buttons));
+    const unique = [...new Set(buttons)];
     return unique.slice(0, 20);
 }
 
@@ -706,7 +724,7 @@ async function getAttachmentInfo(discordMessage, discordClient) {
                     const a = attachmentsArray[0];
                     if (a && a.url) return { url: a.url, size: a.size || 0, filename: a.name || '', contentType: a.contentType || '' };
                 }
-            } catch (_) { /* ignore */ }
+            } catch { /* ignore */ }
         }
         return null;
     }
@@ -726,13 +744,13 @@ async function getAttachmentInfo(discordMessage, discordClient) {
                 const a = attachmentsArray[0];
                 return (a && a.url) ? { url: a.url, size: a.size || 0, filename: a.name || '', contentType: a.contentType || '' } : null;
             }
-        } catch (_) { /* ignore */ }
+        } catch { /* ignore */ }
     }
     return null;
 }
 
 async function downloadText(url) {
-    const resp = await axios({ url, responseType: 'arraybuffer', timeout: 15000 });
+    const resp = await axios({ url, responseType: 'arraybuffer', timeout: 15_000 });
     return Buffer.from(resp.data).toString('utf8');
 }
 
@@ -757,8 +775,8 @@ function validateRunDesignLines(rawText) {
         /^\[meta\]\s*title\s+"([\s\S]*?)"$/i,
         /^\[intro\]\s*(.*)$/i,
         /^\[player_var\]\s*([^\s]+)\s+"([\s\S]*?)"(?:\s+"([\s\S]*?)")?$/i,
-        /^\[stat_def\]\s*([^\s]+)\s+(\-?\d+)\s+(\-?\d+)(?:\s+"([\s\S]*?)")?$/i,
-        /^\[var_def\]\s*([^\s]+)\s+(\-?\d+)\s+(\-?\d+)(?:\s+"([\s\S]*?)")?$/i,
+        /^\[stat_def\]\s*([^\s]+)\s+(-?\d+)\s+(-?\d+)(?:\s+"([\s\S]*?)")?$/i,
+        /^\[var_def\]\s*([^\s]+)\s+(-?\d+)\s+(-?\d+)(?:\s+"([\s\S]*?)")?$/i,
         /^\[label\]\s*(.+)$/i,
         /^\[title\]\s*([\s\S]+)$/i,
         /^\[ending\]/i,
@@ -766,7 +784,7 @@ function validateRunDesignLines(rawText) {
         /^\[random\]\s*(\d+)%$/i,
         /^\[set\]\s*([^=\s]+)\s*=\s*[\s\S]+$/i,
         /^\[choice\]/i,
-        /^\-\>\s*[\s\S]+?\s*\|\s*([^|\s]+)(?:\s*\|\s*if=[^|]+)?(?:\s*\|\s*stat=[\s\S]+)?$/
+        /^->\s*[\s\S]+?\s*\|\s*([^|\s]+)(?:\s*\|\s*if=[^|]+)?(?:\s*\|\s*stat=[\s\S]+)?$/
     ];
     for (let i = 0; i < lines.length; i++) {
         const line = String(lines[i]).trim();
@@ -806,11 +824,11 @@ function validateCompiledStory(story) {
 
 // ---- Command handler ----
 const rollDiceCommand = async function ({
-    inputStr,
+    // inputStr,
     mainMsg,
     groupid,
     userid,
-    userrole,
+    // userrole,
     botname,
     displayname,
     channelid,
@@ -847,7 +865,7 @@ const rollDiceCommand = async function ({
                 rply.text = '未偵測到附件。請附加 .json 或 .txt 檔案後再試。';
                 return rply;
             }
-            if (att.size && att.size > MAX_UPLOAD_BYTES) {
+            if (att.size > 0 && att.size > MAX_UPLOAD_BYTES) {
                 rply.text = '檔案過大（上限約 ' + Math.round(MAX_UPLOAD_BYTES / 1024) + 'KB）。請縮小後再上傳。';
                 return rply;
             }
@@ -876,8 +894,8 @@ const rollDiceCommand = async function ({
                     }
                     compiled = compileRunDesignToStory(rawText, { alias: aliasArg || (filename.replace(/\.[^.]+$/, '') || ''), title: customTitle });
                 }
-            } catch (err) {
-                parseErrorLine = estimateJsonErrorLine(rawText, err);
+            } catch (error) {
+                parseErrorLine = estimateJsonErrorLine(rawText, error);
                 rply.text = '上傳失敗：無法解析檔案' + (parseErrorLine ? ('（第 ' + parseErrorLine + ' 行）') : '') + '。';
                 return rply;
             }
@@ -927,13 +945,13 @@ const rollDiceCommand = async function ({
                                 }
                                 isUpdate = true;
                             }
-                        } catch (_) { }
+                        } catch { }
                     }
                 }
-            } catch (_) { /* ignore */ }
+            } catch { /* ignore */ }
             if (!isUpdate) {
                 let levelIndex = 0;
-                try { levelIndex = (typeof VIP.viplevelCheckUser === 'function') ? await VIP.viplevelCheckUser(userid) : 0; } catch (_) { levelIndex = 0; }
+                try { levelIndex = (typeof VIP.viplevelCheckUser === 'function') ? await VIP.viplevelCheckUser(userid) : 0; } catch { levelIndex = 0; }
                 const limit = STORY_LIMIT_BY_LEVEL[Math.max(0, Math.min(STORY_LIMIT_BY_LEVEL.length - 1, Number(levelIndex) || 0))];
                 if (currentCount >= limit) {
                     rply.text = '你目前的劇本數已達上限（' + limit + '）。若需新增更多，請升級會員或刪除既有劇本。';
@@ -962,7 +980,7 @@ const rollDiceCommand = async function ({
                 const outPath = path.join(__dirname, 'storyTeller', alias + '.json');
                 fs.mkdirSync(path.dirname(outPath), { recursive: true });
                 fs.writeFileSync(outPath, JSON.stringify(compiled, null, 2), 'utf8');
-            } catch (_) { /* ignore */ }
+            } catch { /* ignore */ }
 
             rply.text = '已匯入劇本：' + (compiled.title || alias) + '（alias: ' + alias + '）';
             rply.buttonCreate = ['.st start ' + alias];
@@ -984,13 +1002,13 @@ const rollDiceCommand = async function ({
                 try {
                     const obj = JSON.parse(fs.readFileSync(p, 'utf8'));
                     if (obj && String(obj.ownerId) !== String(userid)) { rply.text = '你沒有權限更新此劇本。'; return rply; }
-                } catch (_) { /* ignore parse errors; allow overwrite if file exists and owner matches unknown */ }
+                } catch { /* ignore parse errors; allow overwrite if file exists and owner matches unknown */ }
             }
 
             // Attachment
             const att = await getAttachmentInfo(discordMessage, discordClient);
             if (!att || !att.url) { rply.text = '未偵測到附件。請附加 .json 或 .txt 檔案後再試。'; return rply; }
-            if (att.size && att.size > MAX_UPLOAD_BYTES) { rply.text = '檔案過大（上限約 ' + Math.round(MAX_UPLOAD_BYTES / 1024) + 'KB）。請縮小後再上傳。'; return rply; }
+            if (att.size > 0 && att.size > MAX_UPLOAD_BYTES) { rply.text = '檔案過大（上限約 ' + Math.round(MAX_UPLOAD_BYTES / 1024) + 'KB）。請縮小後再上傳。'; return rply; }
             let rawText = '';
             try { rawText = await downloadText(att.url); } catch (error) { rply.text = '下載附件失敗：' + (error.message || ''); return rply; }
             const isLikelyJson = /\.json$/i.test(String(att.filename || '')) || /json/i.test(att.contentType || '');
@@ -1037,7 +1055,7 @@ const rollDiceCommand = async function ({
                 const outPath = path.join(__dirname, 'storyTeller', alias + '.json');
                 fs.mkdirSync(path.dirname(outPath), { recursive: true });
                 fs.writeFileSync(outPath, JSON.stringify(compiled, null, 2), 'utf8');
-            } catch (_) { /* ignore */ }
+            } catch { /* ignore */ }
             rply.text = '已更新劇本：' + (compiled.title || alias) + '（alias: ' + alias + '）';
             rply.buttonCreate = ['.st start ' + alias];
             return rply;
@@ -1060,7 +1078,7 @@ const rollDiceCommand = async function ({
                 if (fs.existsSync(p1)) fs.unlinkSync(p1);
                 const p2 = path.join(__dirname, 'storyTeller', alias);
                 if (fs.existsSync(p2)) fs.unlinkSync(p2);
-            } catch (_) { /* ignore */ }
+            } catch { /* ignore */ }
             rply.text = '已刪除劇本（alias: ' + alias + '）';
             rply.buttonCreate = ['.st mylist'];
             return rply;
@@ -1133,13 +1151,21 @@ const rollDiceCommand = async function ({
                 } catch { /* ignore and proceed */ }
                 run = await createRun({ storyDoc, story, context: ctx, starterID: userid, starterName: displayname || '', botname });
                 if (requestedPolicy) {
-                    if (requestedPolicy === 'alone') run.participantPolicy = 'ALONE';
-                    else if (requestedPolicy === 'all') run.participantPolicy = 'ANYONE';
-                    else if (requestedPolicy === 'poll') {
-                        run.participantPolicy = 'POLL';
-                        run.pollMinutes = requestedPollMinutes || 3;
-                        run.variables = run.variables || {};
-                        run.variables.__pollMinutes = run.pollMinutes;
+                    switch (requestedPolicy) {
+                        case 'alone':
+                            run.participantPolicy = 'ALONE';
+                            break;
+                        case 'all':
+                            run.participantPolicy = 'ANYONE';
+                            break;
+                        case 'poll':
+                            run.participantPolicy = 'POLL';
+                            run.pollMinutes = requestedPollMinutes || 3;
+                            run.variables = run.variables || {};
+                            run.variables.__pollMinutes = run.pollMinutes;
+                            break;
+                        default:
+                            break;
                     }
                 }
                 run.storyAlias = resolved.alias || (storyDoc ? storyDoc.alias : key);
@@ -1191,7 +1217,23 @@ const rollDiceCommand = async function ({
         }
         case /^continue$/.test(sub): {
             const id = (mainMsg[2] || '').trim();
+            const activeRun = await getActiveRun(ctx);
             if (id) {
+                // Block resuming another game if one is already active in this context
+                if (activeRun && !activeRun.isEnded && !activeRun.isPaused && String(activeRun._id) !== String(id)) {
+                    rply.text = '目前此頻道已有進行中的故事：' + (activeRun.storyAlias || '-') + '。請先輸入 .st end 或 .st pause 後再繼續其他遊戲。';
+                    rply.buttonCreate = ['.st end', '.st pause'];
+                    return rply;
+                }
+                // If the requested id is the same as the active run, just re-render current output without changing state
+                if (activeRun && String(activeRun._id) === String(id)) {
+                    const { story } = await loadStoryByAlias(activeRun.storyOwnerID || userid, activeRun.storyAlias);
+                    if (!story) { rply.text = '找不到故事內容，請重新開始。'; return rply; }
+                    const text = renderPageText(story, activeRun, activeRun.currentPageId);
+                    rply.text = text;
+                    attachChoicesOutput({ rply, story, run: activeRun, botname });
+                    return rply;
+                }
                 // Resume by id
                 let run = null;
                 if (db.storyRun && typeof db.storyRun.findById === 'function') {
@@ -1226,7 +1268,7 @@ const rollDiceCommand = async function ({
             const { story } = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
             if (!story) { rply.text = '找不到故事內容，請重新開始。'; return rply; }
             // Deep clone run to avoid side effects
-            const runClone = JSON.parse(JSON.stringify(run));
+            const runClone = structuredClone(run);
             const text = renderPageText(story, runClone, runClone.currentPageId);
             rply.text = text;
             attachChoicesOutput({ rply, story, run, botname });
@@ -1255,7 +1297,7 @@ const rollDiceCommand = async function ({
                 } else if (!run.endingId) {
                     run.endingId = '';
                 }
-            } catch (_) { /* ignore */ }
+            } catch { /* ignore */ }
             run.isEnded = true;
             run.endedAt = new Date();
             await saveRun(ctx, run);
@@ -1305,7 +1347,7 @@ const rollDiceCommand = async function ({
                     if (a === 'END') btns.push('.st end');
                     else btns.push('.st goto ' + c.action);
                 }
-                rply.buttonCreate = Array.from(new Set(btns)).slice(0, 20);
+                rply.buttonCreate = [...new Set(btns)].slice(0, 20);
                 return rply;
             }
             if (targetUpper !== 'END' && !story.pages[target]) { rply.text = '找不到此頁面ID。'; return rply; }
@@ -1333,7 +1375,7 @@ const rollDiceCommand = async function ({
             try {
                 const cur = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
                 storyRef = cur && cur.story ? cur.story : null;
-            } catch (_) { storyRef = null; }
+            } catch { storyRef = null; }
             if (!storyRef) {
                 await saveRun(ctx, run);
                 rply.text = '已設定 ' + key + ' = ' + value + '\n\n目前沒有載入中的劇本內容，請使用 .st start <alias> 重新載入。';
@@ -1364,7 +1406,7 @@ const rollDiceCommand = async function ({
                 return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + ' ' + pad(date.getHours()) + ':' + pad(date.getMinutes()) + ':' + pad(date.getSeconds());
             };
             const safeJson = (obj) => {
-                try { return JSON.stringify(obj || {}, null, 0); } catch (_) { return '{}'; }
+                try { return JSON.stringify(obj || {}, null, 0); } catch { return '{}'; }
             };
             let text = '【Debug】\n';
             text += 'Context:\n';
@@ -1390,12 +1432,12 @@ const rollDiceCommand = async function ({
             text += '- isEnded: ' + (!!run.isEnded) + '\n';
             text += '- currentPageId: ' + (run.currentPageId || '-') + (story && story.pages && story.pages[run.currentPageId] && story.pages[run.currentPageId].title ? (' (' + story.pages[run.currentPageId].title + ')') : '') + '\n';
             text += '- participantPolicy: ' + (run.participantPolicy || '-') + '\n';
-            text += '- allowedUserIDs: ' + ((run.allowedUserIDs && run.allowedUserIDs.length) || 0) + '\n';
+            text += '- allowedUserIDs: ' + ((run.allowedUserIDs && run.allowedUserIDs.length > 0) ? run.allowedUserIDs.length : 0) + '\n';
             text += '- startPermissionAtRun: ' + (run.startPermissionAtRun || '-') + '\n';
             text += '- variables: ' + safeJson(run.variables) + '\n';
             text += '- stats: ' + safeJson(run.stats) + '\n';
             text += '- playerVariables: ' + safeJson(run.playerVariables) + '\n';
-            text += '- history length: ' + ((run.history && run.history.length) || 0) + '\n';
+            text += '- history length: ' + ((run.history && run.history.length > 0) ? run.history.length : 0) + '\n';
             rply.text = text;
             return rply;
         }
@@ -1410,9 +1452,9 @@ const rollDiceCommand = async function ({
             const txt = exportStoryToRunDesign(story);
             try {
                 let resolved = filePath;
-                const tmpMatch = /^@tmp(?:[\/]|$)/i.test(filePath);
+                const tmpMatch = /^@tmp(?:[/]|$)/i.test(filePath);
                 if (tmpMatch) {
-                    const rest = filePath.replace(/^@tmp(?:[\/])?/i, '');
+                    const rest = filePath.replace(/^@tmp(?:[/])?/i, '');
                     resolved = path.join(os.tmpdir(), rest || (alias + '.txt'));
                 } else if (!path.isAbsolute(filePath)) {
                     resolved = path.join(process.cwd(), filePath);
@@ -1421,8 +1463,8 @@ const rollDiceCommand = async function ({
                 fs.writeFileSync(resolved, txt, 'utf8');
                 const out2 = path.join(__dirname, 'storyTeller', alias);
                 fs.writeFileSync(out2, txt, 'utf8');
-            } catch (e) {
-                rply.text = '輸出失敗：' + e.message;
+            } catch (error) {
+                rply.text = '輸出失敗：' + error.message;
                 return rply;
             }
             rply.text = '已輸出 RUN_DESIGN 至：' + filePath;
@@ -1462,7 +1504,7 @@ const rollDiceCommand = async function ({
                     const alias = f.replace(/\.[^.]+$/, '');
                     if (aliasFilter && alias !== aliasFilter) continue;
                     let intro = '';
-                    try { const obj = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); intro = obj && obj.introduction || ''; } catch (_) { }
+                    try { const obj = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); intro = obj && obj.introduction || ''; } catch { }
                     rows.push({ title: alias, alias, introduction: intro, startPermission: 'ANYONE' });
                 }
             }
@@ -1501,7 +1543,7 @@ const rollDiceCommand = async function ({
                     rply.text = '已設定任何人可啟動（alias: ' + alias + '）';
                     return rply;
                 }
-                let groups = Array.isArray(doc.allowedGroups) ? doc.allowedGroups.slice() : [];
+                let groups = Array.isArray(doc.allowedGroups) ? [...doc.allowedGroups] : [];
                 if (moreGroupIds.length > 0) {
                     for (const gid of moreGroupIds) if (!groups.includes(gid)) groups.push(gid);
                 } else {
@@ -1604,9 +1646,20 @@ const rollDiceCommand = async function ({
             const run = await getActiveRun(ctx);
             if (!run) { rply.text = '目前沒有進行中的故事。'; return rply; }
             if (String(run.starterID) !== String(userid)) { rply.text = '僅發起者可變更參與權限。'; return rply; }
-            if (mode === 'alone') run.participantPolicy = 'ALONE';
-            else if (mode === 'all') run.participantPolicy = 'ANYONE';
-            else if (mode === 'poll') { run.participantPolicy = 'POLL'; run.pollMinutes = maybeMinutes || run.pollMinutes || 3; }
+            switch (mode) {
+                case 'alone':
+                    run.participantPolicy = 'ALONE';
+                    break;
+                case 'all':
+                    run.participantPolicy = 'ANYONE';
+                    break;
+                case 'poll':
+                    run.participantPolicy = 'POLL';
+                    run.pollMinutes = maybeMinutes || run.pollMinutes || 3;
+                    break;
+                default:
+                    break;
+            }
             await saveRun(ctx, run);
             if (mode === 'poll') rply.text = '已設定參與權限為：投票（' + (run.pollMinutes || 3) + ' 分鐘）';
             else rply.text = '已設定參與權限為：' + (mode === 'alone' ? '僅發起者' : '所有人');
@@ -1672,9 +1725,9 @@ const rollDiceCommand = async function ({
                                 const k = (r && r.endingId) ? String(r.endingId) : 'unknown';
                                 counter.set(k, (counter.get(k) || 0) + 1);
                             }
-                            endingStats = Array.from(counter.entries()).map(([id, count]) => ({ id, count }));
+                            endingStats = [...counter.entries()].map(([id, count]) => ({ id, count }));
                         }
-                    } catch (_) { /* ignore */ }
+                    } catch { /* ignore */ }
                     rows.push({
                         title: s.title || '-',
                         alias: s.alias || '-',
@@ -1699,7 +1752,7 @@ const rollDiceCommand = async function ({
                     }
                 }
                 for (const [alias, data] of byAlias.entries()) {
-                    rows.push({ title: alias, alias, startPermission: 'ANYONE', isActive: true, completed: data.completed, endingStats: Array.from(data.endings.entries()).map(([id, count]) => ({ id, count })) });
+                    rows.push({ title: alias, alias, startPermission: 'ANYONE', isActive: true, completed: data.completed, endingStats: [...data.endings.entries()].map(([id, count]) => ({ id, count })) });
                 }
             }
             if (rows.length === 0) {
@@ -1718,7 +1771,7 @@ const rollDiceCommand = async function ({
             }
             rply.text = text.trim();
             // Provide quick-start buttons for each alias
-            const startButtons = Array.from(new Set(rows.map(r => '.st start ' + r.alias))).slice(0, 20);
+            const startButtons = [...new Set(rows.map(r => '.st start ' + r.alias))].slice(0, 20);
             if (startButtons.length > 0) rply.buttonCreate = startButtons;
             return rply;
         }

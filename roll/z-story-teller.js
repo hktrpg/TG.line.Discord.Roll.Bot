@@ -1,7 +1,6 @@
 "use strict";
 const path = require('node:path');
 const fs = require('node:fs');
-const os = require('node:os');
 const axios = require('axios').default;
 
 // Optional persistence via Mongo (gracefully degrade if unavailable)
@@ -41,29 +40,62 @@ const prefixs = function () {
 
 const getHelpMessage = function () {
     return `【📖互動故事 StoryTeller】
-╭────── 指令 ──────
+╭────── 🚀快速開始 ──────
 │ .st start <alias|title> [alone|all|poll x]
-│ .st pause
-│ .st continue [runId]
+│ 　啟動劇本。alone 僅發起者可互動；all 任何人；poll x 啟用Discord投票x分鐘（預設3）。
+│ .st list
+│ 　顯示此處可啟動之劇本清單。
+│ .st pause / .st continue [runId]
+│ 　暫停或繼續目前進行中的劇本（跨裝置可用 runId 指定續玩）。
+│ .st edit alone|all|poll x
+│ 　發起者可切換參與權限；poll 啟用Discord投票（x分鐘，預設3）。
 │ .st end
-│ .st goto 1
-│ .st set name 小花
-│ .st goto 20
-│ .st my [alias]（查看自己新增的劇本統計）
-│ .st mylist（顯示自己所有新增的劇本）
-│ .st list（顯示自己可啟動的劇本）
-│ .st list <alias>（顯示該劇本簡介）
-│ .st import <alias> [title]（附加檔案上傳 .json 或 .txt）
-│ .st update <alias> [title]（附加檔案覆蓋）
-│ .st delete <alias>（刪除自己擁有的劇本）
-│ .st allow <alias> AUTHOR（僅作者可啟動）
-│ .st allow <alias>（在此群組/頻道允許啟動）
-│ .st allow <alias> <groupId...>（指定群組允許啟動）
-│ .st allow <alias> all（任何人可啟動）
-│ .st edit alone|all|poll x（僅發起者可切換參與權限；poll 為Discord投票模式，x分鐘，預設3）
-│ .st exportfile <alias> <path>
+│ 　結束目前劇本。
+├────── 🎯遊戲進行 ──────
+│ .st goto <page>
+│ 　跳至指定頁面/選項（通常由系統提示可用選項）。
+│ .st set <var> <value>
+│ 　設定變數（例：.st set name 小花 / .st set hp 12）。
+├────── 🧰 劇本管理 ──────
+│ .st my [alias]
+│ 　查看自己新增之劇本統計（可加 alias 僅看單一劇本）。
+│ .st mylist
+│ 　顯示自己所有新增之劇本清單。
+│ .st list <alias>
+│ 　顯示該劇本簡介與可用資訊。
+│ .st import <alias> [title]
+│ 　上傳檔案以新增劇本，支援 .json 或 .txt（RUN_DESIGN 格式）。
+│ .st update <alias> [title]
+│ 　上傳檔案以覆蓋既有劇本。
+│ .st delete <alias>
+│ 　刪除自己擁有的劇本。
+│ .st exportfile <alias>
+│ 　將劇本以附件回覆（需要有權限）。
 │ .st verify <alias>
-│ .st game（顯示目前運行與暫停中的遊戲）
+│ 　檢查劇本內容格式是否正確。
+├────── 🔐 啟動權限 ──────
+│ .st allow <alias> AUTHOR (預設)
+│ 　僅作者本人可在任何地方啟動。
+│ .st allow <alias>
+│ 　在本群組/頻道允許啟動。
+│ .st allow <alias> <groupId...>
+│ 　允許指定之群組/頻道啟動（可多個）。
+│ .st allow <alias> all
+│ 　任何人皆可啟動（公開）。
+├────── 📊 狀態檢視 ──────
+│ .st game
+│ 　顯示目前運行與暫停中的遊戲。
+├────── 📎 範例 ──────
+│ .st start v002
+│ .st set name 小花
+│ .st goto 12
+│ .st pause
+│ .st continue
+│ .st end
+├────── 💡備註 ──────
+│ - .json 劇本需包含 title、pages 等欄位；.txt 支援 RUN_DESIGN 語法。
+│ - poll 僅於Discord有效；未提供 x 時預設為 3 分鐘。
+│ - runId 可於多處所使用以續玩同一劇本。
 ╰────────────────`;
 }
 
@@ -111,6 +143,12 @@ function safeEvalCondition(expr, scope) {
         if (!expr) return true;
         if (/^true$/i.test(expr)) return true;
         if (/^false$/i.test(expr)) return false;
+        // Block function calls and sensitive globals to avoid executing arbitrary code
+        const raw = String(expr);
+        const hasCall = /(?:^|[^A-Za-z0-9_])(?:[A-Za-z_][A-Za-z0-9_]*\s*\(|\.\s*[A-Za-z_][A-Za-z0-9_]*\s*\()/.test(raw);
+        if (hasCall) return false;
+        const forbiddenIdents = /\b(?:globalThis|global|process|this|Function|constructor|require)\b/;
+        if (forbiddenIdents.test(raw)) return false;
         // Very small evaluator: replace bare identifiers with scope values
         // Allow operators: <, >, <=, >=, ==, ===, !=, !==, &&, ||, +, -, *, /, %
         const allowed = /[A-Za-z_][A-Za-z0-9_]*|([<>]=?|==?=|!?=)|[()&|+\-*/%\s.\d]/g;
@@ -130,6 +168,10 @@ function evalExpressionValue(expr, scope) {
         if (typeof expr === 'number') return expr;
         const str = String(expr).trim();
         if (str === '') return '';
+        // Block function calls and sensitive globals in value expressions
+        const hasCall = /(?:^|[^A-Za-z0-9_])(?:[A-Za-z_][A-Za-z0-9_]*\s*\(|\.\s*[A-Za-z_][A-Za-z0-9_]*\s*\()/.test(str);
+        const forbiddenIdents = /\b(?:globalThis|global|process|this|Function|constructor|require)\b/;
+        if (hasCall || forbiddenIdents.test(str)) return expr;
         // Allow identifiers and basic operators
         const allowed = /[A-Za-z_][A-Za-z0-9_]*|([<>]=?|==?=|!?=)|[()&|+\-*/%\s.\d]/g;
         const cleaned = (str.match(allowed) || []).join('');
@@ -1469,30 +1511,23 @@ const rollDiceCommand = async function ({
         // importfile deprecated above
         case /^exportfile$/.test(sub): {
             const alias = (mainMsg[2] || '').trim();
-            const filePath = (mainMsg[3] || '').trim();
-            if (!alias || !filePath) { rply.text = '用法：.st exportfile <alias> <path>'; return rply; }
+            if (!alias) { rply.text = '用法：.st exportfile <alias>'; return rply; }
             const { story } = await loadStoryByAlias(userid, alias);
             if (!story) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
             if (story.ownerId && String(story.ownerId) !== String(userid)) { rply.text = '你沒有權限匯出此劇本。'; return rply; }
             const txt = exportStoryToRunDesign(story);
             try {
-                let resolved = filePath;
-                const tmpMatch = /^@tmp(?:[/]|$)/i.test(filePath);
-                if (tmpMatch) {
-                    const rest = filePath.replace(/^@tmp(?:[/])?/i, '');
-                    resolved = path.join(os.tmpdir(), rest || (alias + '.txt'));
-                } else if (!path.isAbsolute(filePath)) {
-                    resolved = path.join(process.cwd(), filePath);
-                }
-                fs.mkdirSync(path.dirname(resolved), { recursive: true });
-                fs.writeFileSync(resolved, txt, 'utf8');
-                const out2 = path.join(__dirname, 'storyTeller', alias);
-                fs.writeFileSync(out2, txt, 'utf8');
+                const safeAlias = String(alias).replaceAll(/[^a-zA-Z0-9_-]/g, '_').slice(0, 50) || 'story';
+                const outDir = path.join(process.cwd(), 'temp');
+                fs.mkdirSync(outDir, { recursive: true });
+                const outFile = path.join(outDir, safeAlias + '_RUN_DESIGN.txt');
+                fs.writeFileSync(outFile, txt, 'utf8');
+                rply.fileText = `已產生『${alias}』的 RUN_DESIGN，請查收附件。`;
+                rply.fileLink = [outFile];
             } catch (error) {
                 rply.text = '輸出失敗：' + error.message;
                 return rply;
             }
-            rply.text = '已輸出 RUN_DESIGN 至：' + filePath;
             return rply;
         }
         case /^verify$/.test(sub): {

@@ -1082,7 +1082,7 @@ const rollDiceCommand = async function ({
         case !sub || /^help$/.test(sub): {
             rply.text = this.getHelpMessage();
             rply.quotes = true;
-            rply.buttonCreate = ['.st mylist'];
+            rply.buttonCreate = ['.st mylist', '.st list'];
             return rply;
         }
         case /^importfile$/.test(sub): {
@@ -1324,7 +1324,7 @@ const rollDiceCommand = async function ({
                 if (fs.existsSync(p2)) fs.unlinkSync(p2);
             } catch { /* ignore */ }
             rply.text = '已刪除劇本（alias: ' + alias + '）';
-            rply.buttonCreate = ['.st mylist'];
+            rply.buttonCreate = ['.st list'];
             return rply;
         }
         case /^start$/.test(sub): {
@@ -1462,8 +1462,8 @@ const rollDiceCommand = async function ({
                 await saveRun(ctx, run);
                 return rply;
             }
-            rply.text = '請輸入 .st start <alias|title> 開始，或使用 .st mylist 檢視清單。';
-            rply.buttonCreate = ['.st mylist'];
+            rply.text = '請輸入 .st start <alias|title> 開始，或使用 .st list 檢視清單。';
+            rply.buttonCreate = ['.st list'];
             return rply;
         }
         case /^pause$/.test(sub): {
@@ -1583,7 +1583,7 @@ const rollDiceCommand = async function ({
                 '標題：' + title + '\n' +
                 '開始時間：' + fmt(started) + '\n' +
                 '結束時間：' + fmt(ended);
-            rply.buttonCreate = ['.st mylist'];
+            rply.buttonCreate = ['.st list'];
             return rply;
         }
         case /^goto$/.test(sub): {
@@ -1840,14 +1840,23 @@ const rollDiceCommand = async function ({
                 }
             }
             if (aliasFilter) {
-                if (rows.length === 0) { rply.text = '找不到該劇本（alias: ' + aliasFilter + '）'; return rply; }
+                if (rows.length === 0) { 
+                    rply.text = '找不到該劇本（alias: ' + aliasFilter + '）'; 
+                    rply.buttonCreate = ['.st list', '.st mylist'];
+                    return rply; 
+                }
                 const item = rows[0];
                 rply.text = '【' + item.title + '】\n' + (item.introduction || '(無簡介)');
                 rply.buttonCreate = ['.st start ' + item.alias];
                 return rply;
             }
             let text = '【可啟動的劇本】\n';
-            if (rows.length === 0) text += '(沒有資料)';
+            if (rows.length === 0) {
+                text += '(沒有資料)';
+                rply.text = text.trim();
+                rply.buttonCreate = ['.st mylist'];
+                return rply;
+            }
             else {
                 for (const r of rows) {
                     text += '- ' + r.title + ' (alias: ' + r.alias + ')\n';
@@ -2051,6 +2060,7 @@ const rollDiceCommand = async function ({
                 }
             }
             rply.text = text.trim();
+            rply.buttonCreate = ['.st list', '.st mylist'];
             return rply;
         }
         case /^mylist$/.test(sub): {
@@ -2176,6 +2186,7 @@ const rollDiceCommand = async function ({
         default: {
             rply.text = this.getHelpMessage();
             rply.quotes = true;
+            rply.buttonCreate = ['.st mylist', '.st list'];
             return rply;
         }
     }

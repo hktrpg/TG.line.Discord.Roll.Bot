@@ -42,13 +42,13 @@ const getHelpMessage = function () {
     return `【📖互動故事 StoryTeller】
 ╭────── 🚀快速開始 ──────
 │ .st start <alias|title> [alone|all|poll x]
-│ 　啟動劇本。alone 僅發起者可互動；all 任何人；poll x 啟用Discord投票x分鐘（預設3）。
+│ 　啟動劇本。alone 僅發起者可互動；all 任何人；poll x 啟用Discord投票x分鐘（預設3，僅Discord）。
 │ .st list
 │ 　顯示此處可啟動之劇本清單。
 │ .st pause / .st continue [runId]
 │ 　暫停或繼續目前進行中的劇本（跨裝置可用 runId 指定續玩）。
 │ .st edit alone|all|poll x
-│ 　發起者可切換參與權限；poll 啟用Discord投票（x分鐘，預設3）。
+│ 　發起者可切換參與權限；poll 啟用Discord投票（x分鐘，預設3，僅Discord）。
 │ .st end
 │ 　結束目前劇本。
 ├────── 🎯遊戲進行 ──────
@@ -64,13 +64,13 @@ const getHelpMessage = function () {
 │ .st list <alias>
 │ 　顯示該劇本簡介與可用資訊。
 │ .st import <alias> [title]
-│ 　上傳檔案以新增劇本，支援 .json 或 .txt（RUN_DESIGN 格式）。
+│ 　上傳檔案以新增劇本，支援 .json 或 .txt（RUN_DESIGN 格式）。（僅Discord）
 │ .st update <alias> [title]
-│ 　上傳檔案以覆蓋既有劇本。
+│ 　上傳檔案以覆蓋既有劇本。（僅Discord）
 │ .st delete <alias>
 │ 　刪除自己擁有的劇本。
 │ .st exportfile <alias>
-│ 　將劇本以私訊傳送文字檔，並在頻道通知（需要有權限）。
+│ 　將劇本以私訊傳送文字檔，並在頻道通知（需要有權限）。（僅Discord）
 │ .st verify <alias>
 │ 　檢查劇本內容格式是否正確。
 ├────── 🔐 啟動權限 ──────
@@ -94,7 +94,7 @@ const getHelpMessage = function () {
 │ .st end
 ├────── 💡備註 ──────
 │ - .json 劇本需包含 title、pages 等欄位；.txt 支援 RUN_DESIGN 語法。
-│ - poll 僅於Discord有效；未提供 x 時預設為 3 分鐘。
+│ - poll、import、exportfile、update 僅於Discord有效；未提供 x 時預設為 3 分鐘。
 │ - runId 可於多處所使用以續玩同一劇本。
 ╰────────────────`;
 }
@@ -992,6 +992,11 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^import$/.test(sub): {
+            // Discord only restriction
+            if (String(botname || '').toLowerCase() !== 'discord') {
+                rply.text = '此功能僅在 Discord 上可用。';
+                return rply;
+            }
             // .st import <alias> [title] with attachment
             const aliasArg = (mainMsg[2] || '').trim();
             const customTitle = (mainMsg.slice(3).join(' ') || '').trim();
@@ -1123,6 +1128,11 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^update$/.test(sub): {
+            // Discord only restriction
+            if (String(botname || '').toLowerCase() !== 'discord') {
+                rply.text = '此功能僅在 Discord 上可用。';
+                return rply;
+            }
             // .st update <alias> [title] with attachment
             const alias = (mainMsg[2] || '').trim();
             const customTitle = (mainMsg.slice(3).join(' ') || '').trim();
@@ -1231,6 +1241,11 @@ const rollDiceCommand = async function ({
                 const p0 = rest[0].toLowerCase();
                 if (p0 === 'alone' || p0 === 'all') requestedPolicy = p0;
                 else if (p0 === 'poll') {
+                    // Discord only restriction for poll mode
+                    if (String(botname || '').toLowerCase() !== 'discord') {
+                        rply.text = '投票模式僅在 Discord 上可用。';
+                        return rply;
+                    }
                     requestedPolicy = 'poll';
                     requestedPollMinutes = Number(rest[1]) || 3;
                 }
@@ -1588,6 +1603,11 @@ const rollDiceCommand = async function ({
         }
         // importfile deprecated above
         case /^exportfile$/.test(sub): {
+            // Discord only restriction
+            if (String(botname || '').toLowerCase() !== 'discord') {
+                rply.text = '此功能僅在 Discord 上可用。';
+                return rply;
+            }
             const alias = (mainMsg[2] || '').trim();
             if (!alias) { rply.text = '用法：.st exportfile <alias>'; return rply; }
             const { story } = await loadStoryByAlias(userid, alias);
@@ -1803,6 +1823,11 @@ const rollDiceCommand = async function ({
                     run.participantPolicy = 'ANYONE';
                     break;
                 case 'poll':
+                    // Discord only restriction for poll mode
+                    if (String(botname || '').toLowerCase() !== 'discord') {
+                        rply.text = '投票模式僅在 Discord 上可用。';
+                        return rply;
+                    }
                     run.participantPolicy = 'POLL';
                     run.pollMinutes = maybeMinutes || run.pollMinutes || 3;
                     break;

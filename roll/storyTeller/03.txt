@@ -6,6 +6,9 @@
 [stat_def] Energy 1 10 "活力 (Energy)"
 [stat_def] Mischief 1 10 "淘氣度 (Mischief)"
 [var_def] rain 0 1 "下雨"
+
+
+
 [label] 0
 [title] 角色創造
 [text] 設定完成！現在，讓我們來看看 {cat_name} 今天的狀態...

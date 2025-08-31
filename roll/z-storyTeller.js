@@ -1064,6 +1064,8 @@ const rollDiceCommand = async function ({
                 key = (mainMsg.slice(2).join(' ') || '').trim();
             }
             let run = await getActiveRun(ctx);
+            // Allow starting a new game even if there is a paused run in this context
+            // Keep paused run intact and do not block starting
 
             if (key) {
                 // Start requested with explicit story key
@@ -1151,8 +1153,8 @@ const rollDiceCommand = async function ({
             run.isPaused = true;
             await saveRun(ctx, run);
             rply.text = '已暫停（ID：' + (run._id || '-') + '），使用 .st continue ' + (run._id || '') + ' 可繼續。';
-            // Keep mode-respecting quick action buttons; poll mode won't show text buttons anyway
-            rply.buttonCreate = ['.st start'];
+            // Provide a continue button for convenience
+            rply.buttonCreate = ['.st continue ' + (run._id || '')];
             return rply;
         }
         case /^continue$/.test(sub): {

@@ -82,6 +82,7 @@
   - `[random] <percent>%` 僅影響「下一行」的 `[text]`（例如 30%），`percent` 為 0~100 的整數。
   - `[set] <key>=<expr>` 在渲染時設定值：若 `key` 屬於已定義的 `stat_def`，則寫入 `stats`；否則寫入 `variables`。`<expr>` 支援基本運算式（見下文）。
     - 任一屬性一旦被 `[set]` 明確設定，之後將不再由隨機初始化覆寫。
+  - 文字內可直接擲骰：`{xDy}` 會在顯示時擲骰並以總和取代，例如 `{1D100}`、`{2d20}`、`{3d6}`。
 - 結局標記：
   - `[ending]` 之後的 `[text]` 行視為結局文字，會使用第一個符合條件的結局
   - 要求：一個有效的 RUN_DESIGN 必須至少包含一個帶有 `[ending]` 標記的頁面；若未定義結局，上傳/更新將被拒絕。
@@ -98,6 +99,32 @@
 - 支援運算子：`&& || < <= > >= == === != !== + - * / % ()`
 - 安全限制：不允許任何函式呼叫；不可存取 `globalThis`、`global`、`process`、`this`、`Function`、`constructor`、`require` 等識別字。
   - 範例：`if=Cuteness>=8 && Energy>3`
+
+#### 擲骰（Dice）
+
+- 在條件與賦值運算式中，可直接使用 `xDy` 字面量，會在運算前擲骰並以總和值替換，例如：
+  - `if=2d20>25`
+  - `[set] luck=3d6+2`
+  - 允許的範圍：`x` 1~100、`y` 1~10000；超出將被夾在此範圍內。
+
+#### 條件賦值（Conditional Set）
+
+- 支援在 `[set]` 上使用條件選項：`[set|if=<expr>] key=<expr>`。
+- 結合擲骰，可實作常見的檢定流程。
+
+範例：
+
+```text
+[stat_def] san 0 100 "SAN"
+[set] san=70
+
+[label] SAN_CHECK
+[set] sancheck=1d100
+[text] sancheck={sancheck}
+[set|if=san<sancheck] san=san-1
+[text|if=san<sancheck] 你扣了1san
+[text|if=san>=sancheck] 你穩住了心神
+```
 
 ### 範例頁面（Example Page）
 

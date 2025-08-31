@@ -129,13 +129,71 @@ function interpolate(template, ctx) {
         }
         result += template.slice(i, open);
         const key = template.slice(open + 1, close).trim();
-        const val = Object.prototype.hasOwnProperty.call(ctx || {}, key) && ctx[key] !== null && ctx[key] !== undefined
-            ? String(ctx[key])
-            : template.slice(open, close + 1);
+        // Dice placeholder support: {xDy}
+        let val;
+        const diceMatch = key.match(/^\s*(\d+)\s*[dD]\s*(\d+)\s*$/);
+        if (diceMatch) {
+            const count = Math.max(1, Math.min(100, Number(diceMatch[1]) || 1));
+            const sides = Math.max(1, Math.min(10_000, Number(diceMatch[2]) || 1));
+            let sum = 0;
+            for (let r = 0; r < count; r++) sum += Math.floor(Math.random() * sides) + 1;
+            val = String(sum);
+        } else if (Object.prototype.hasOwnProperty.call(ctx || {}, key) && ctx[key] !== null && ctx[key] !== undefined) {
+            val = String(ctx[key]);
+        } else {
+            val = template.slice(open, close + 1);
+        }
         result += val;
         i = close + 1;
     }
     return result;
+}
+
+// Replace all dice literals like `xDy` in a string with their rolled sum
+// Example: "2d6 + 1" => "7 + 1" (value will vary per call)
+function replaceDiceLiteralsWithSums(input) {
+    const s = String(input || '');
+    let out = '';
+    let i = 0;
+    const isIdent = (ch) => /[A-Za-z0-9_]/.test(ch);
+    while (i < s.length) {
+        const ch = s[i];
+        if (/[0-9]/.test(ch)) {
+            let j = i;
+            while (j < s.length && /[0-9]/.test(s[j])) j++;
+            const leftNum = s.slice(i, j);
+            let k = j;
+            // allow whitespace between number and d/D
+            while (k < s.length && /\s/.test(s[k])) k++;
+            if (k < s.length && (s[k] === 'd' || s[k] === 'D')) {
+                let m = k + 1;
+                while (m < s.length && /\s/.test(s[m])) m++;
+                if (m < s.length && /[0-9]/.test(s[m])) {
+                    let n = m;
+                    while (n < s.length && /[0-9]/.test(s[n])) n++;
+                    // boundary checks: ensure not part of identifier on either side
+                    const prevCh = i > 0 ? s[i - 1] : '';
+                    const nextCh = n < s.length ? s[n] : '';
+                    if (!isIdent(prevCh) && !isIdent(nextCh)) {
+                        const count = Math.max(1, Math.min(100, Number(leftNum) || 1));
+                        const sides = Math.max(1, Math.min(10_000, Number(s.slice(m, n)) || 1));
+                        let sum = 0;
+                        for (let r = 0; r < count; r++) sum += Math.floor(Math.random() * sides) + 1;
+                        out += String(sum);
+                        i = n;
+                        continue;
+                    }
+                }
+            }
+            // not a dice literal; emit the number as-is
+            out += leftNum;
+            i = j;
+            continue;
+        }
+        out += ch;
+        i++;
+    }
+    return out;
 }
 
 function safeEvalCondition(expr, scope) {
@@ -143,8 +201,9 @@ function safeEvalCondition(expr, scope) {
         if (!expr) return true;
         if (/^true$/i.test(expr)) return true;
         if (/^false$/i.test(expr)) return false;
+        // Preprocess dice literals like 2d20 -> concrete number
+        const raw = replaceDiceLiteralsWithSums(String(expr));
         // Block function calls and sensitive globals to avoid executing arbitrary code
-        const raw = String(expr);
         const hasCall = /(?:^|[^A-Za-z0-9_])(?:[A-Za-z_][A-Za-z0-9_]*\s*\(|\.\s*[A-Za-z_][A-Za-z0-9_]*\s*\()/.test(raw);
         if (hasCall) return false;
         const forbiddenIdents = /\b(?:globalThis|global|process|this|Function|constructor|require)\b/;
@@ -152,7 +211,7 @@ function safeEvalCondition(expr, scope) {
         // Very small evaluator: replace bare identifiers with scope values
         // Allow operators: <, >, <=, >=, ==, ===, !=, !==, &&, ||, +, -, *, /, %
         const allowed = /[A-Za-z_][A-Za-z0-9_]*|([<>]=?|==?=|!?=)|[()&|+\-*/%\s.\d]/g;
-        const cleaned = (expr.match(allowed) || []).join('');
+        const cleaned = (raw.match(allowed) || []).join('');
         // Build a function with scope via with()
         const fn = new Function('scope', 'with(scope){ return (' + cleaned + ') }');
         return !!fn(scope);
@@ -166,7 +225,7 @@ function evalExpressionValue(expr, scope) {
     try {
         if (expr === undefined || expr === null) return void 0;
         if (typeof expr === 'number') return expr;
-        const str = String(expr).trim();
+        const str = replaceDiceLiteralsWithSums(String(expr).trim());
         if (str === '') return '';
         // Block function calls and sensitive globals in value expressions
         const hasCall = /(?:^|[^A-Za-z0-9_])(?:[A-Za-z_][A-Za-z0-9_]*\s*\(|\.\s*[A-Za-z_][A-Za-z0-9_]*\s*\()/.test(str);
@@ -523,9 +582,18 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
             ensurePage(currentPageId || '0').content.push({ randomChance: Math.min(100, Math.max(0, Number(m[1]))) / 100, text: '' });
             continue;
         }
-        if ((m = line.match(/^\[set\]\s*([^=\s]+)\s*=\s*([\s\S]+)$/i))) {
+        // [set] and [set|if=...] support
+        if ((m = line.match(/^\[set(?:\|([^\]]+))?\]\s*([^=\s]+)\s*=\s*([\s\S]+)$/i))) {
             const page = ensurePage(currentPageId || '0');
-            page.content.push({ setVariables: { [m[1]]: Number.isNaN(Number(m[2])) ? m[2] : Number(m[2]) } });
+            const opts = (m[1] || '').split(',').reduce((acc, kv) => {
+                const seg = String(kv || '').trim(); if (!seg) return acc; const p = seg.split('='); acc[(p[0] || '').trim()] = (p[1] || '').trim(); return acc;
+            }, {});
+            const key = m[2];
+            const rawVal = m[3];
+            const val = Number.isNaN(Number(rawVal)) ? rawVal : Number(rawVal);
+            const entry = { setVariables: { [key]: val } };
+            if (opts.if) entry.condition = opts.if;
+            page.content.push(entry);
             continue;
         }
         if (/^\[choice\]/i.test(line)) { continue; }
@@ -603,7 +671,10 @@ function exportStoryToRunDesign(story) {
         if (Array.isArray(page.content)) {
             for (const item of page.content) {
                 if (item.setVariables && typeof item.setVariables === 'object') {
-                    for (const [k, v] of Object.entries(item.setVariables)) lines.push('[set] ' + k + '=' + v);
+                    for (const [k, v] of Object.entries(item.setVariables)) {
+                        if (item.condition) lines.push('[set|if=' + item.condition + '] ' + k + '=' + v);
+                        else lines.push('[set] ' + k + '=' + v);
+                    }
                 }
                 if (typeof item.randomChance === 'number') lines.push('[random] ' + Math.round(item.randomChance * 100) + '%');
                 if (typeof item.text === 'string') {
@@ -836,7 +907,7 @@ function validateRunDesignLines(rawText) {
         /^\[ending\]/i,
         /^\[text(?:\|[^\]]+)?\]\s*[\s\S]*$/i,
         /^\[random\]\s*(\d+)%$/i,
-        /^\[set\]\s*([^=\s]+)\s*=\s*[\s\S]+$/i,
+        /^\[set(?:\|[^\]]+)?\]\s*([^=\s]+)\s*=\s*[\s\S]+$/i,
         /^\[choice\]/i,
         /^->\s*[\s\S]+?\s*\|\s*([^|\s]+)(?:\s*\|\s*if=[^|]+)?(?:\s*\|\s*stat=[\s\S]+)?$/
     ];

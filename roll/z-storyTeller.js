@@ -236,6 +236,8 @@ async function createRun({ storyDoc, story, context, starterID, starterName, bot
     const key = getContextKey(context);
     // Assign a memory id for pause/continue
     if (!run._id) run._id = 'mem-' + Date.now() + '-' + Math.floor(Math.random() * 1000000);
+    // Ensure timestamps for in-memory mode
+    if (!run.createdAt) run.createdAt = new Date();
     memoryRuns.set(key, run);
     return run;
 }
@@ -278,6 +280,7 @@ async function saveRun(context, run) {
             history: run.history || [],
             isEnded: !!run.isEnded,
             isPaused: !!run.isPaused,
+            pausedAt: run.pausedAt || undefined,
             endingId: run.endingId || '',
             endingText: run.endingText || '',
             endedAt: run.endedAt || undefined,
@@ -1151,6 +1154,7 @@ const rollDiceCommand = async function ({
             if (!run) { rply.text = '目前沒有進行中的故事。'; return rply; }
             if (!userCanActOnRun(run, userid)) { rply.text = '此局設定為僅發起者可參與。'; return rply; }
             run.isPaused = true;
+            run.pausedAt = new Date();
             await saveRun(ctx, run);
             rply.text = '已暫停（ID：' + (run._id || '-') + '），使用 .st continue ' + (run._id || '') + ' 可繼續。';
             // Provide a continue button for convenience
@@ -1506,8 +1510,15 @@ const rollDiceCommand = async function ({
             const activeRun = await getActiveRun(ctx);
             if (activeRun) {
                 const { story } = await loadStoryByAlias(activeRun.storyOwnerID || userid, activeRun.storyAlias);
+                const fmt = (d) => {
+                    const date = new Date(d);
+                    const pad = (n) => String(n).padStart(2, '0');
+                    return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + ' ' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+                };
                 text += '- 標題：' + ((story && story.title) || activeRun.storyAlias || '-') + '\n';
                 text += '- alias：' + (activeRun.storyAlias || '-') + '\n';
+                text += '- 發起人：' + (activeRun.starterName || activeRun.starterID || '-') + '\n';
+                if (activeRun.createdAt) text += '- 發起時間：' + fmt(activeRun.createdAt) + '\n';
                 text += '- 當前頁：' + (activeRun.currentPageId || '-') + '\n';
                 text += (story && story.introduction) ? ('\n【簡介】\n' + story.introduction + '\n') : '';
             } else {
@@ -1527,11 +1538,35 @@ const rollDiceCommand = async function ({
             if (paused.length === 0) {
                 text += '(無)';
             } else {
+                const fmt = (d) => {
+                    const date = new Date(d);
+                    const pad = (n) => String(n).padStart(2, '0');
+                    return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + ' ' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+                };
                 for (const p of paused) {
                     text += '- ID：' + (p._id || '-') + '，alias：' + (p.storyAlias || '-') + '\n';
+                    text += '  - 發起人：' + (p.starterName || p.starterID || '-') + '\n';
+                    if (p.createdAt) text += '  - 發起時間：' + fmt(p.createdAt) + '\n';
+                    if (p.pausedAt) text += '  - 暫停時間：' + fmt(p.pausedAt) + '\n';
                 }
             }
             rply.text = text.trim();
+            // Build quick-reply buttons for all games
+            const btns = [];
+            if (activeRun) {
+                const activeBtns = [];
+                if (activeRun._id) activeBtns.push('.st continue ' + activeRun._id);
+                activeBtns.push('.st end', '.st pause');
+                btns.push.apply(btns, activeBtns);
+            }
+            if (paused && paused.length > 0) {
+                const pausedBtns = [];
+                for (const p of paused) {
+                    if (p && p._id) pausedBtns.push('.st continue ' + p._id);
+                }
+                if (pausedBtns.length > 0) btns.push.apply(btns, pausedBtns);
+            }
+            if (btns.length > 0) rply.buttonCreate = [...new Set(btns)].slice(0, 20);
             return rply;
         }
         case /^edit$/.test(sub): {

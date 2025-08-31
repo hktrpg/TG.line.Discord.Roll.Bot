@@ -508,6 +508,10 @@ const storyRunSchema = mongoose.model('storyRun', new mongoose.Schema({
     }],
 
     isEnded: { type: Boolean, default: false, index: true },
+    // Pause state for the run; used to block polls/advancement while paused
+    isPaused: { type: Boolean, default: false, index: true },
+    // Timestamp when the run was paused
+    pausedAt: { type: Date, index: true },
     endingId: String,
     endingText: String,
     endedAt: { type: Date, index: true },

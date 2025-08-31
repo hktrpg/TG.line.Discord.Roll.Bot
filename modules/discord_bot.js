@@ -51,6 +51,17 @@ const POLL_EMOJIS = ['🇦','🇧','🇨','🇩','🇪','🇫','🇬','🇭','�
 const stPolls = new Map(); // messageId -> { channelid, groupid, options, originMessage, completed?: boolean }
 const stNoVoteStreak = new Map(); // channelId -> consecutive no-vote count
 
+// Helper: check if StoryTeller run in this channel is paused
+async function isStoryTellerRunPausedByChannel(channelId) {
+    try {
+        if (!schema || !schema.storyRun || typeof schema.storyRun.findOne !== 'function') return false;
+        const run = await schema.storyRun.findOne({ channelID: channelId, isEnded: false }).sort({ updatedAt: -1 });
+        return !!(run && run.isPaused);
+    } catch {
+        return false;
+    }
+}
+
 client.on('messageCreate', async message => {
 	try {
 		if (message.author.bot) return;
@@ -1586,6 +1597,8 @@ async function handlingSendMessage(input) {
 // ---- StoryTeller reaction poll helpers ----
 async function createStPollByChannel({ channelid, groupid, text, payload }) {
     try {
+        // Skip creating poll if the run is paused
+        if (await isStoryTellerRunPausedByChannel(channelid)) return;
         const channel = await client.channels.fetch(channelid);
         // Send story content first
         if (text && String(text).trim().length > 0) {
@@ -1654,6 +1667,15 @@ async function tallyStPoll(messageId, fallbackData) {
         : null);
     if (!data) return;
     if (data.completed) return;
+    // Abort if run has been paused
+    try {
+        if (await isStoryTellerRunPausedByChannel(data.channelid)) {
+            const d = stPolls.get(messageId);
+            if (d) d.completed = true;
+            setTimeout(() => stPolls.delete(messageId), 60_000);
+            return;
+        }
+    } catch {}
     try {
         const channel = await client.channels.fetch(data.channelid);
         let msg = await channel.messages.fetch(messageId);
@@ -1742,7 +1764,10 @@ async function tallyStPoll(messageId, fallbackData) {
             }
             // Not pausing yet; repost poll with same options/minutes
             try {
-                await createStPollByChannel({ channelid: data.channelid, groupid: data.groupid, text: '', payload: { options: data.options, minutes: Number(data.minutes || 3) } });
+                // Only repost if not paused
+                if (!(await isStoryTellerRunPausedByChannel(data.channelid))) {
+                    await createStPollByChannel({ channelid: data.channelid, groupid: data.groupid, text: '', payload: { options: data.options, minutes: Number(data.minutes || 3) } });
+                }
             } catch (error) {
                 console.error('repost poll after no-vote failed:', error?.message);
             }
@@ -1764,9 +1789,12 @@ async function tallyStPoll(messageId, fallbackData) {
         // trigger next action by simulating a message: ".st goto action" or ".st end"
         const nextCmd = (String(picked.action || '').toUpperCase() === 'END') ? '.st end' : `.st goto ${picked.action}`;
         // Use the actual poll message context to continue the story
-        const result = await handlingResponMessage(msg, nextCmd);
-        if (result && result.text) {
-            await handlingSendMessage(result);
+        // Do not advance if paused
+        if (!(await isStoryTellerRunPausedByChannel(data.channelid))) {
+            const result = await handlingResponMessage(msg, nextCmd);
+            if (result && result.text) {
+                await handlingSendMessage(result);
+            }
         }
     } catch (error) {
         console.error('tallyStPoll error:', error?.message);

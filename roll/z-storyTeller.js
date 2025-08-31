@@ -1090,7 +1090,7 @@ const rollDiceCommand = async function ({
                     } else {
                         const text = renderPageText(story, run, run.currentPageId);
                         rply.text = '已載入當前進度：\n' + text;
-                        rply.buttonCreate = buildButtonsForPage(story, run);
+                        attachChoicesOutput({ rply, story, run, botname });
                     }
                     await saveRun(ctx, run);
                     return rply;
@@ -1151,6 +1151,7 @@ const rollDiceCommand = async function ({
             run.isPaused = true;
             await saveRun(ctx, run);
             rply.text = '已暫停（ID：' + (run._id || '-') + '），使用 .st continue ' + (run._id || '') + ' 可繼續。';
+            // Keep mode-respecting quick action buttons; poll mode won't show text buttons anyway
             rply.buttonCreate = ['.st start'];
             return rply;
         }
@@ -1182,7 +1183,7 @@ const rollDiceCommand = async function ({
                 const text = renderPageText(story, run, run.currentPageId);
                 await saveRun(ctx, run);
                 rply.text = text;
-                rply.buttonCreate = buildButtonsForPage(story, run);
+                attachChoicesOutput({ rply, story, run, botname });
                 return rply;
             }
             // Without id: show last output for active run without state changes

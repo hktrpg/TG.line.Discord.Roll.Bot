@@ -49,6 +49,7 @@ let ws;
 // StoryTeller reaction poll support
 const POLL_EMOJIS = ['🇦','🇧','🇨','🇩','🇪','🇫','🇬','🇭','🇮','🇯','🇰','🇱','🇲','🇳','🇴','🇵','🇶','🇷','🇸','🇹'];
 const stPolls = new Map(); // messageId -> { channelid, groupid, options, originMessage, completed?: boolean }
+const stNoVoteStreak = new Map(); // channelId -> consecutive no-vote count
 
 client.on('messageCreate', async message => {
 	try {
@@ -1621,6 +1622,7 @@ async function createStPollCore({ sentMessage, groupid, payload }) {
         channelid: sentMessage.channelId,
         groupid,
         options: payload.options.slice(0, maxOptions),
+        minutes: Number(payload.minutes || 3),
         originMessage: sentMessage
     });
 
@@ -1630,7 +1632,10 @@ async function createStPollCore({ sentMessage, groupid, payload }) {
             await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', {
                 messageId: sentMessage.id,
                 channelid: sentMessage.channelId,
-                groupid
+                groupid,
+                // Persist options/minutes so we can resume after process restarts
+                options: payload.options.slice(0, maxOptions),
+                minutes: Number(payload.minutes || 3)
             });
         } catch (error) {
             console.error('agenda schedule stPollFinish failed, falling back to setTimeout:', error?.message);
@@ -1642,8 +1647,11 @@ async function createStPollCore({ sentMessage, groupid, payload }) {
     }
 }
 
-async function tallyStPoll(messageId) {
-    const data = stPolls.get(messageId);
+async function tallyStPoll(messageId, fallbackData) {
+    // Use in-memory state if present; otherwise fallback to persisted job data
+    const data = stPolls.get(messageId) || (fallbackData && Array.isArray(fallbackData.options)
+        ? { channelid: fallbackData.channelid, groupid: fallbackData.groupid, options: fallbackData.options, minutes: Number(fallbackData.minutes || 3) }
+        : null);
     if (!data) return;
     if (data.completed) return;
     try {
@@ -1706,6 +1714,47 @@ async function tallyStPoll(messageId) {
             max = Math.max(...counts);
             if (debugPoll) console.log('[ST-POLL] postRefetch', { messageId, channelId: data.channelid, counts, details: postDetails });
         }
+        // No-vote safety: do not advance when there are no votes
+        if (max === 0) {
+            const chId = data.channelid;
+            const prev = stNoVoteStreak.get(chId) || 0;
+            const curr = prev + 1;
+            stNoVoteStreak.set(chId, curr);
+            try {
+                await msg.reply({ content: `本輪未收到投票（連續 ${curr} 次）。` });
+            } catch {}
+            if (curr >= 4) {
+                try {
+                    await msg.reply({ content: '連續 4 次無人投票，已自動暫停本局。' });
+                } catch {}
+                try {
+                    const result = await handlingResponMessage(msg, '.st pause');
+                    if (result && result.text) {
+                        await handlingSendMessage(result);
+                    }
+                } catch (error) {
+                    console.error('auto-pause after no-vote streak failed:', error?.message);
+                }
+                const d = stPolls.get(messageId);
+                if (d) d.completed = true;
+                setTimeout(() => stPolls.delete(messageId), 60_000);
+                return;
+            }
+            // Not pausing yet; repost poll with same options/minutes
+            try {
+                await createStPollByChannel({ channelid: data.channelid, groupid: data.groupid, text: '', payload: { options: data.options, minutes: Number(data.minutes || 3) } });
+            } catch (error) {
+                console.error('repost poll after no-vote failed:', error?.message);
+            }
+            // Mark this poll completed and clean up
+            const d = stPolls.get(messageId);
+            if (d) d.completed = true;
+            setTimeout(() => stPolls.delete(messageId), 60_000);
+            return;
+        } else {
+            // Reset streak on any valid vote
+            try { stNoVoteStreak.set(data.channelid, 0); } catch {}
+        }
         const indices = counts.reduce((acc, v, i) => { if (v === max) acc.push(i); return acc; }, []);
         if (indices.length === 0) return;
         const pick = indices[Math.floor(Math.random() * indices.length)];
@@ -1731,8 +1780,8 @@ async function tallyStPoll(messageId) {
 if (agenda) {
     try {
         agenda.define('stPollFinish', async (job) => {
-            const { messageId } = job.attrs.data || {};
-            await tallyStPoll(messageId);
+            const { messageId, channelid, groupid, options } = job.attrs.data || {};
+            await tallyStPoll(messageId, { channelid, groupid, options });
             try { await job.remove(); } catch { }
         });
     } catch { }

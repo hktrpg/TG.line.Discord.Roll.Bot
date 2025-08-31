@@ -8,13 +8,13 @@ const axios = require('axios').default;
 let db = {};
 try {
     db = require('../modules/schema.js') || {};
-} catch (error) {
+} catch {
     db = {};
 }
 let VIP = {};
 try {
-    VIP = require('../modules/veryImportantPerson');
-} catch (_) {
+    VIP = require('../modules/veryImportantPerson.js');
+} catch {
     VIP = {};
 }
 
@@ -1107,9 +1107,9 @@ const rollDiceCommand = async function ({
                 if (requestedPolicy) {
                     if (requestedPolicy === 'alone') run.participantPolicy = 'ALONE';
                     else if (requestedPolicy === 'all') run.participantPolicy = 'ANYONE';
-                    else if (requestedPolicy === 'poll') { 
-                        run.participantPolicy = 'POLL'; 
-                        run.pollMinutes = requestedPollMinutes || 3; 
+                    else if (requestedPolicy === 'poll') {
+                        run.participantPolicy = 'POLL';
+                        run.pollMinutes = requestedPollMinutes || 3;
                         run.variables = run.variables || {};
                         run.variables.__pollMinutes = run.pollMinutes;
                     }
@@ -1434,7 +1434,7 @@ const rollDiceCommand = async function ({
                     const alias = f.replace(/\.[^.]+$/, '');
                     if (aliasFilter && alias !== aliasFilter) continue;
                     let intro = '';
-                    try { const obj = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); intro = obj && obj.introduction || ''; } catch (_) {}
+                    try { const obj = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); intro = obj && obj.introduction || ''; } catch (_) { }
                     rows.push({ title: alias, alias, introduction: intro, startPermission: 'ANYONE' });
                 }
             }

@@ -1565,12 +1565,20 @@ const rollDiceCommand = async function ({
                         // Exact match
                         if (choiceAction.toUpperCase() === targetStr.toUpperCase()) {
                             isValidTarget = true;
+                            // For 2a, 2b, 2c format, use base page for actual navigation
+                            if (suffix) {
+                                actualTargetPage = basePage;
+                            }
                             break;
                         }
                         
                         // Base page + suffix match
                         if (choiceBasePage === basePage && choiceSuffix === suffix) {
                             isValidTarget = true;
+                            // For 2a, 2b, 2c format, use base page for actual navigation
+                            if (suffix) {
+                                actualTargetPage = basePage;
+                            }
                             break;
                         }
                         
@@ -1609,7 +1617,10 @@ const rollDiceCommand = async function ({
             
             // Check if the actual target page exists
             const targetUpper = String(actualTargetPage).toUpperCase();
-            if (targetUpper !== 'END' && !story.pages[actualTargetPage]) { rply.text = '找不到此頁面ID。'; return rply; }
+            if (targetUpper !== 'END' && !story.pages[actualTargetPage]) { 
+                rply.text = '找不到此頁面ID：' + actualTargetPage + '。可用頁面：' + Object.keys(story.pages).join(', '); 
+                return rply; 
+            }
             await gotoPage({ story, run, targetPageId: target });
             const text = renderPageText(story, run, run.currentPageId);
             await saveRun(ctx, run);

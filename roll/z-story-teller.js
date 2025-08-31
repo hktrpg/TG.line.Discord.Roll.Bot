@@ -96,6 +96,7 @@ const getHelpMessage = function () {
 │ - .txt 支援 RUN_DESIGN 語法。
 │ - poll、import、exportfile、update 僅於Discord有效；未提供 x 時預設為 3 分鐘。
 │ - runId 可於多處所使用以續玩同一劇本。
+| - 編寫劇本請參考：https://bothelp.hktrpg.com/
 ╰────────────────`;
 }
 

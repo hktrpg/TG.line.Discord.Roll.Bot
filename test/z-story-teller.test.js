@@ -1,24 +1,23 @@
 const assert = require('assert');
-const path = require('path');
 
 // Mock the required modules
 const mockDb = {};
 const mockVIP = {};
+// Start of Selection
 
-// Mock require statements
-const originalRequire = require;
-require = function(modulePath) {
-    if (modulePath.includes('schema.js')) {
-        return mockDb;
-    }
-    if (modulePath.includes('veryImportantPerson.js')) {
-        return mockVIP;
-    }
-    return originalRequire(modulePath);
-};
+// Use proxyquire to mock dependencies safely without modifying global require
+let proxyquire;
+try {
+    proxyquire = require('proxyquire').noCallThru();
+} catch {
+    throw new Error("proxyquire module is not installed. Please run 'yarn add --dev proxyquire' to install it.");
+}
 
-// Import the module
-const storyTeller = require('../roll/z-story-teller.js');
+const storyTeller = proxyquire('../roll/z-story-teller.js', {
+    '../db/schema.js': mockDb,
+    '../db/veryImportantPerson.js': mockVIP
+});
+// End of Selection
 
 describe('StoryTeller Discord-only restrictions', function() {
     let rollDiceCommand;

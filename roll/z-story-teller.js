@@ -559,7 +559,7 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
             story.variables.push({ key: m[1], min: Number(m[2]), max: Number(m[3]), label: m[4] || m[1] });
             continue;
         }
-        if ((m = line.match(/^\[label\]\s*(.+)$/i))) { currentPageId = String(m[1]).trim(); ensurePage(currentPageId); inEnding = false; continue; }
+        if ((m = line.match(/^\[label\]\s*(\d+)$/i))) { currentPageId = String(m[1]).trim(); ensurePage(currentPageId); inEnding = false; continue; }
         if ((m = line.match(/^\[title\]\s*([\s\S]+)$/i))) { ensurePage(currentPageId || '0').title = m[1]; continue; }
         if (/^\[ending\]/i.test(line)) { inEnding = true; continue; }
 
@@ -750,6 +750,42 @@ function renderPlayerSetupPrompt(story, run) {
 function findChoiceFromCurrentPage(story, run, targetPageId) {
     const curr = story.pages[run.currentPageId];
     if (!curr || !Array.isArray(curr.choices)) return null;
+    
+    // Support for 2a, 2b, 2c format: extract base page number and suffix
+    const targetStr = String(targetPageId || '');
+    const basePageMatch = targetStr.match(/^(\d+)([a-z])?$/i);
+    
+    if (basePageMatch) {
+        const basePage = basePageMatch[1];
+        const suffix = basePageMatch[2] || '';
+        
+        // First try exact match
+        for (const c of curr.choices) {
+            if (String(c.action) === targetStr) return c;
+        }
+        
+        // If no exact match and we have a suffix, try to find choice with matching base page + suffix
+        if (suffix) {
+            for (const c of curr.choices) {
+                const choiceAction = String(c.action || '');
+                const choiceMatch = choiceAction.match(/^(\d+)([a-z])?$/i);
+                if (choiceMatch && choiceMatch[1] === basePage && choiceMatch[2] === suffix) {
+                    return c;
+                }
+            }
+        }
+        
+        // Fallback: try to find any choice that goes to the base page
+        for (const c of curr.choices) {
+            const choiceAction = String(c.action || '');
+            const choiceMatch = choiceAction.match(/^(\d+)([a-z])?$/i);
+            if (choiceMatch && choiceMatch[1] === basePage) {
+                return c;
+            }
+        }
+    }
+    
+    // Original logic for non-matching cases
     for (const c of curr.choices) {
         if (String(c.action) === String(targetPageId)) return c;
     }
@@ -820,12 +856,28 @@ async function gotoPage({ story, run, targetPageId }) {
             }
         }
     }
-    run.currentPageId = String(targetPageId);
+    
+    // Support for 2a, 2b, 2c format: extract base page number
+    const targetStr = String(targetPageId || '');
+    const basePageMatch = targetStr.match(/^(\d+)([a-z])?$/i);
+    let actualPageId = targetPageId;
+    
+    if (basePageMatch) {
+        const basePage = basePageMatch[1];
+        const suffix = basePageMatch[2] || '';
+        
+        // If we have a suffix (like 2a), use the base page number (2) for actual navigation
+        if (suffix) {
+            actualPageId = basePage;
+        }
+    }
+    
+    run.currentPageId = String(actualPageId);
     run.history = run.history || [];
     run.history.push({
-        pageId: String(targetPageId),
+        pageId: String(actualPageId),
         choiceText: choice ? choice.text : '',
-        choiceAction: String(targetPageId),
+        choiceAction: String(targetPageId), // Keep original target for history
         variables: Object.assign({}, run.variables),
         stats: Object.assign({}, run.stats),
         timestamp: new Date()
@@ -909,7 +961,7 @@ function validateRunDesignLines(rawText) {
         /^\[player_var\]\s*([^\s]+)\s+"([\s\S]*?)"(?:\s+"([\s\S]*?)")?$/i,
         /^\[stat_def\]\s*([^\s]+)\s+(-?\d+)\s+(-?\d+)(?:\s+"([\s\S]*?)")?$/i,
         /^\[var_def\]\s*([^\s]+)\s+(-?\d+)\s+(-?\d+)(?:\s+"([\s\S]*?)")?$/i,
-        /^\[label\]\s*(.+)$/i,
+        /^\[label\]\s*(\d+)$/i,
         /^\[title\]\s*([\s\S]+)$/i,
         /^\[ending\]/i,
         /^\[text(?:\|[^\]]+)?\]\s*[\s\S]*$/i,
@@ -1491,9 +1543,53 @@ const rollDiceCommand = async function ({
             const allowedChoices = Array.isArray(currentPage.choices)
                 ? currentPage.choices.filter(c => !c.condition || safeEvalCondition(c.condition, scope))
                 : [];
-            const allowedActions = allowedChoices.map(c => String(c.action).toUpperCase());
-            const targetUpper = String(target).toUpperCase();
-            if (!allowedActions.includes(targetUpper)) {
+            // Support for 2a, 2b, 2c format: check if target is valid
+            const targetStr = String(target || '');
+            const basePageMatch = targetStr.match(/^(\d+)([a-z])?$/i);
+            let isValidTarget = false;
+            let actualTargetPage = target;
+            
+            if (basePageMatch) {
+                const basePage = basePageMatch[1];
+                const suffix = basePageMatch[2] || '';
+                
+                // Check if the target matches any allowed choice
+                for (const c of allowedChoices) {
+                    const choiceAction = String(c.action || '');
+                    const choiceMatch = choiceAction.match(/^(\d+)([a-z])?$/i);
+                    
+                    if (choiceMatch) {
+                        const choiceBasePage = choiceMatch[1];
+                        const choiceSuffix = choiceMatch[2] || '';
+                        
+                        // Exact match
+                        if (choiceAction.toUpperCase() === targetStr.toUpperCase()) {
+                            isValidTarget = true;
+                            break;
+                        }
+                        
+                        // Base page + suffix match
+                        if (choiceBasePage === basePage && choiceSuffix === suffix) {
+                            isValidTarget = true;
+                            break;
+                        }
+                        
+                        // Base page only match (for cases like 2a going to 2)
+                        if (choiceBasePage === basePage && !suffix) {
+                            isValidTarget = true;
+                            actualTargetPage = basePage;
+                            break;
+                        }
+                    }
+                }
+            } else {
+                // For non-matching format, use original logic
+                const allowedActions = allowedChoices.map(c => String(c.action).toUpperCase());
+                const targetUpper = String(target).toUpperCase();
+                isValidTarget = allowedActions.includes(targetUpper);
+            }
+            
+            if (!isValidTarget) {
                 let msg = '只能前往當前頁面的可選項目。\n\n可用選項：\n';
                 for (const c of allowedChoices) {
                     const a = String(c.action || '').toUpperCase();
@@ -1510,7 +1606,10 @@ const rollDiceCommand = async function ({
                 rply.buttonCreate = [...new Set(btns)].slice(0, 20);
                 return rply;
             }
-            if (targetUpper !== 'END' && !story.pages[target]) { rply.text = '找不到此頁面ID。'; return rply; }
+            
+            // Check if the actual target page exists
+            const targetUpper = String(actualTargetPage).toUpperCase();
+            if (targetUpper !== 'END' && !story.pages[actualTargetPage]) { rply.text = '找不到此頁面ID。'; return rply; }
             await gotoPage({ story, run, targetPageId: target });
             const text = renderPageText(story, run, run.currentPageId);
             await saveRun(ctx, run);

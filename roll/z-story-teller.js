@@ -726,7 +726,13 @@ function getMissingPlayerVariables(story, run) {
 function renderPlayerSetupPrompt(story, run) {
     const req = Array.isArray(story.playerVariables) ? story.playerVariables : [];
     const current = run.playerVariables || {};
-    let text = '【角色設定】\n請先完成以下項目：\n';
+    let text = '';
+    try {
+        if (story && typeof story.introduction === 'string' && story.introduction.trim() !== '') {
+            text += '【簡介】\n' + String(story.introduction) + '\n\n';
+        }
+    } catch { /* ignore */ }
+    text += '【角色設定】\n請先完成以下項目：\n';
     for (let i = 0; i < req.length; i++) {
         const item = req[i];
         const isSet = current[item.key] !== undefined && String(current[item.key]).trim() !== '';
@@ -1650,7 +1656,17 @@ const rollDiceCommand = async function ({
             let text = '【可啟動的劇本】\n';
             if (rows.length === 0) text += '(沒有資料)';
             else {
-                for (const r of rows) text += '- ' + r.title + ' (alias: ' + r.alias + ')\n';
+                for (const r of rows) {
+                    text += '- ' + r.title + ' (alias: ' + r.alias + ')\n';
+                    try {
+                        const intro = String(r.introduction || '').trim();
+                        if (intro) {
+                            const first = intro.split(/\r?\n/)[0] || '';
+                            const preview = first.length > 80 ? (first.slice(0, 80) + '…') : first;
+                            text += '  - ' + preview + '\n';
+                        }
+                    } catch { /* ignore */ }
+                }
             }
             rply.text = text.trim();
             if (rows.length > 0) rply.buttonCreate = [...new Set(rows.map(r => '.st start ' + r.alias))].slice(0, 20);
@@ -1887,6 +1903,7 @@ const rollDiceCommand = async function ({
                         alias: s.alias || '-',
                         startPermission: s.startPermission || '-',
                         isActive: !!s.isActive,
+                        introduction: s && s.payload && s.payload.introduction || '',
                         completed,
                         endingStats
                     });
@@ -1925,7 +1942,9 @@ const rollDiceCommand = async function ({
                     }
                 }
                 for (const [alias, data] of byAlias.entries()) {
-                    rows.push({ title: alias, alias, startPermission: 'ANYONE', isActive: true, completed: data.completed, endingStats: [...data.endings.entries()].map(([id, count]) => ({ id, count })) });
+                    const story = await getStoryFor(alias, ownerID);
+                    const intro = story && story.introduction || '';
+                    rows.push({ title: alias, alias, startPermission: 'ANYONE', isActive: true, introduction: intro, completed: data.completed, endingStats: [...data.endings.entries()].map(([id, count]) => ({ id, count })) });
                 }
             }
             if (rows.length === 0) {
@@ -1933,6 +1952,14 @@ const rollDiceCommand = async function ({
             } else {
                 for (const r of rows) {
                     text += '- ' + r.title + ' (alias: ' + r.alias + ')\n';
+                    try {
+                        const intro = String(r.introduction || '').trim();
+                        if (intro) {
+                            const first = intro.split(/\r?\n/)[0] || '';
+                            const preview = first.length > 80 ? (first.slice(0, 80) + '…') : first;
+                            text += '  - 簡介：' + preview + '\n';
+                        }
+                    } catch { /* ignore */ }
                     text += '  - startPermission: ' + r.startPermission + '\n';
                     text += '  - active: ' + r.isActive + '\n';
                     if (typeof r.completed === 'number') text += '  - Completed: ' + r.completed + '\n';

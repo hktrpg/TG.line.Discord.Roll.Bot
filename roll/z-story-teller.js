@@ -739,10 +739,10 @@ function renderPlayerSetupPrompt(story, run) {
         const prefix = isSet ? '✔️ 已設定' : (String(i + 1) + '.');
         text += prefix + ' ' + (item.prompt || ('設定 ' + item.key)) + '\n';
         if (!isSet && item.placeholder) text += '範例：' + item.placeholder + '\n';
-        if (!isSet) text += '指令：.st set ' + item.key + ' 內容\n';
+        if (!isSet) text += '指令：.st set ' + item.key + '   內容\n';
         else text += '目前：' + current[item.key] + '\n';
     }
-    text += '\n全部設定完成後，請再次輸入 .st start 以開始。';
+    text += '\n全部設定完成後，遊戲將自動開始。';
     return text;
 }
 
@@ -1532,8 +1532,9 @@ const rollDiceCommand = async function ({
                 rply.text = '已設定 ' + key + ' = ' + value + '\n\n' + prompt;
                 await saveRun(ctx, run);
             } else {
+                // All player variables are set, automatically start the game
                 const text = renderPageText(storyRef, run, run.currentPageId);
-                rply.text = '已設定 ' + key + ' = ' + value + '\n\n' + text;
+                rply.text = '已設定 ' + key + ' = ' + value + '\n\n遊戲開始！\n\n' + text;
                 // Persist any [set] effects applied during renderPageText (e.g., initial stats)
                 await saveRun(ctx, run);
                 attachChoicesOutput({ rply, story: storyRef, run, botname });

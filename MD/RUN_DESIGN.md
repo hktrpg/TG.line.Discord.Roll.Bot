@@ -1,152 +1,6 @@
-# RUN_DESIGN Text Format Guide
+# RUN_DESIGN 文字格式指南
 
-This guide describes a concise, human-editable text format (RUN_DESIGN) for interactive stories that compiles to the JSON schema used by `story` in `modules/schema.js` (e.g., `03.json`). It also supports round-trip conversion: JSON → RUN_DESIGN → JSON without loss for supported fields.
-
-## Goals
-
-- Simple, readable, version-friendly text format
-- Can compile into JSON story schema
-- Can export JSON story back to text with no semantic differences
-
-## File Encoding
-
-- UTF-8
-
-## Top-level Metadata
-
-- `[meta] title "<Title>"` Set story title
-- `[intro] <text>` Append one line to introduction (repeatable)
-
-Example:
-
-```text
-[meta] title "貓咪的一天"
-[intro] 歡迎來到互動故事！
-```
-
-## Player Variables
-
-- `[player_var] <key> "<prompt>" ["<placeholder>"]`
-  - key: identifier, e.g. `cat_name`
-  - prompt: question shown to player
-  - placeholder: optional hint
-
-Example:
-
-```text
-[player_var] cat_name "1. 請輸入你的貓咪名字：" "例如：橘子、Mochi、小黑"
-[player_var] owner_name "2. 請輸入主人的名字：" "例如：小明、艾蜜莉、阿傑"
-```
-
-## Game Stats
-
-- `[stat_def] <key> <min> <max> ["<label>"]`
-
-Example:
-
-```text
-[stat_def] Cuteness 1 10 "萌度 (Cuteness)"
-[stat_def] Energy 1 10 "活力 (Energy)"
-[stat_def] Mischief 1 10 "淘氣度 (Mischief)"
-```
-
-## Variables
-
-- `[var_def] <key> <min> <max> ["<label>"]`
-
-Example:
-
-```text
-[var_def] rain 0 1 "下雨"
-```
-
-## Pages
-
-A story is a collection of pages.
-
-- Define a page label (ID): `[label] <id>`
-- Optional page title: `[title] <text>`
-- Page content (any number of lines):
-  - `[text] <content>`
-  - `[text|if=<expr>] <content>` (conditional)
-  - `[text|speaker=<key>] <content>`
-  - `[text|speaker=<key>,if=<expr>] <content>`
-  - `[random] <percent>%` affects the next `[text]` line (e.g., 30%)
-  - `[set] <var>=<value>` sets `variables` during render
-- Ending mark:
-  - `[ending]` subsequent `[text]` lines become ending texts, the first condition-matching ending is used
-  - Requirement: a valid RUN_DESIGN must contain at least one page marked with `[ending]`. Upload/update will be rejected if no endings are defined.
-- Choices block:
-  - `[choice]` starts choices list
-  - `-> <text> | <action> [| if=<expr>] [| stat=a+1,b-2]`
-
-### Expressions
-
-- Conditions use a small JS-like subset against scope: variables + stats + playerVariables
-- Supported operators: `&& || < <= > >= == === != !== + - * / % ()`
-
-### Example Page
-
-```text
-[label] 0
-[title] 角色創造
-[text] 設定完成！現在，讓我們來看看 {cat_name} 今天的狀態...
-[text] (系統會為你隨機生成 1-10 的數值)
-[text] - 萌度 (Cuteness): {Cuteness}
-[text] - 活力 (Energy): {Energy}
-[text] - 淘氣度 (Mischief): {Mischief}
-[choice]
--> 準備好了嗎？ | 1
-```
-
-### Ending Page
-
-```text
-[label] 22
-[title] 結局
-[ending]
-[text|if=Cuteness>8] 以賣萌獲得原諒
-[text] 溫柔的無奈
-[choice]
--> 回到開頭 | 0
--> 結束遊戲 | END
-```
-
-## Placeholders
-
-- `{key}` inside `[text]` interpolates from `playerVariables`, `stats`, and `variables` (in that order of preference).
-
-## Round Trip
-
-- Import text (Discord attachment): send `.st import <alias> [title]` with a `.txt` (RUN_DESIGN) or `.json` file attached
-- Update existing: `.st update <alias> [title]` with the new attachment
-- Export text: `.st exportfile <alias>` (the bot will DM you a text file)
-- Verify reversible: `.st verify <alias>`
-
-## Conventions
-
-- Initial page defaults to `0`. You can set it in JSON after compile if needed.
-- Speakers are optional; the demo uses plain text.
-- For randomness within content, use `[random] <percent>%` immediately before a `[text]`.
-- For stat changes on choices, use `stat=a+1,b-2`.
-
-## Best Practices
-
-- Keep IDs numeric and sequential for readability
-- Keep conditions simple and based on defined keys
-- Avoid excessively long lines; split into multiple `[text]`
-- Ensure every ending page provides choices to restart or end
-
-## Limits
-
-- Maximum pages: 400
-- Maximum characters per text segment (each `[text]` line, including endings): 500
-- At least one page must be marked with `[ending]`
-- Upload size limit (for import/update attachments): approximately 1 MB
-
-## RUN_DESIGN 文字格式指南（繁體中文）
-
-本指南描述一種簡潔、便於人手編輯的互動故事文字格式（RUN_DESIGN），可編譯成 `modules/schema.js` 中 `story` 使用的 JSON 結構（例如 `03.json`）。同時支援可逆轉換：JSON → RUN_DESIGN → JSON，在支援的欄位範圍內不會有語義流失。
+本指南描述一種簡潔、便於人手編輯的互動故事文字格式（RUN_DESIGN）。同時支援可逆轉換：JSON → RUN_DESIGN → JSON，在支援的欄位範圍內不會有語義流失。
 
 ## 目標
 
@@ -157,6 +11,11 @@ A story is a collection of pages.
 ## 檔案編碼
 
 - UTF-8
+
+## 空白與註解（Whitespace & Comments）
+
+- 允許空白行。
+- 以 `//` 開頭的單行為註解，編譯時會被忽略。
 
 ## 頂層後設資料（Metadata）
 
@@ -188,6 +47,9 @@ A story is a collection of pages.
 
 - `[stat_def] <key> <min> <max> ["<label>"]`
 
+- 初始化：未被明確設定時，首次開始時以 `min`~`max` 隨機整數初始化。
+- 鎖定：若該屬性曾被內容內的 `[set]` 明確指定，之後將不再被隨機初始化覆寫。
+
 範例：
 
 ```text
@@ -217,19 +79,25 @@ A story is a collection of pages.
   - `[text|if=<expr>] <content>` 條件顯示
   - `[text|speaker=<key>] <content>` 指定說話者
   - `[text|speaker=<key>,if=<expr>] <content>` 指定說話者且具條件
-  - `[random] <percent>%` 影響緊接著的下一行 `[text]`（例如 30%）
-  - `[set] <var>=<value>` 在渲染時設定 `variables`
+  - `[random] <percent>%` 僅影響「下一行」的 `[text]`（例如 30%），`percent` 為 0~100 的整數。
+  - `[set] <key>=<expr>` 在渲染時設定值：若 `key` 屬於已定義的 `stat_def`，則寫入 `stats`；否則寫入 `variables`。`<expr>` 支援基本運算式（見下文）。
+    - 任一屬性一旦被 `[set]` 明確設定，之後將不再由隨機初始化覆寫。
 - 結局標記：
   - `[ending]` 之後的 `[text]` 行視為結局文字，會使用第一個符合條件的結局
   - 要求：一個有效的 RUN_DESIGN 必須至少包含一個帶有 `[ending]` 標記的頁面；若未定義結局，上傳/更新將被拒絕。
 - 選項區塊：
   - `[choice]` 開始定義選項列表
   - `-> <text> | <action> [| if=<expr>] [| stat=a+1,b-2]`
+    - `<action>` 可為任意頁面 ID（字串將原樣作為 ID 使用），或特殊值 `END`。
+    - `<action>` 為 `END` 時，介面會提供「`.st end`」按鈕以結束遊戲。
+    - `stat=` 僅支援整數加減，並在成功前往該選項之目標頁面時套用（例：`Cuteness+1,Energy-2`）。
 
 ### 運算式（Expressions）
 
 - 條件以小型、類 JS 的子集合為語法，運行於 scope（`variables` + `stats` + `playerVariables`）
 - 支援運算子：`&& || < <= > >= == === != !== + - * / % ()`
+- 安全限制：不允許任何函式呼叫；不可存取 `globalThis`、`global`、`process`、`this`、`Function`、`constructor`、`require` 等識別字。
+  - 範例：`if=Cuteness>=8 && Energy>3`
 
 ### 範例頁面（Example Page）
 
@@ -260,7 +128,8 @@ A story is a collection of pages.
 
 ## 佔位符（Placeholders）
 
-- 在 `[text]` 內使用 `{key}` 會依序從 `playerVariables`、`stats`、`variables` 取值並套入（優先順序如前）。
+- 在 `[text]` 內使用 `{key}` 會依序從 `playerVariables`、`stats`、`variables` 取值並套入（優先順序如前，後者可覆蓋前者）。
+- 若找不到對應鍵，將保留原樣（例如 `{unknown_key}` 會原樣輸出）。
 
 ## 往返轉換（Round Trip）
 
@@ -269,12 +138,17 @@ A story is a collection of pages.
 - 匯出文字：`.st exportfile <alias>`（機器人將以私訊傳送文字檔）
 - 驗證可逆：`.st verify <alias>`
 
+### 正規化（Normalization）
+
+- 編譯器會將緊鄰的 `[random]` 與其後的第一行 `[text]` 合併解釋為「機率顯示」。
+- 匯出時，若頁面是結局頁，`[ending]` 會緊跟在該頁 `[label]` 之下，以維持可逆性。
+
 ## 慣例（Conventions）
 
 - 初始頁面預設為 `0`。若需要可在編譯後的 JSON 再行設定。
 - 說話者為可選；示例採用純文字。
-- 若需在內文中加入隨機性，請在欲影響的 `[text]` 之前緊接著放置 `[random] <percent>%`。
-- 若需在選項上改變屬性值，使用 `stat=a+1,b-2`。
+- 若需在內文中加入隨機性，請於欲影響的 `[text]` 之前「緊貼」放置 `[random] <percent>%`（percent 為整數）。
+- 若需在選項上改變屬性值，使用 `stat=a+1,b-2`（僅支援整數加減）。
 
 ## 最佳實務（Best Practices）
 

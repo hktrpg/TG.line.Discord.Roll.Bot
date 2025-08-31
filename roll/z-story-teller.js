@@ -257,6 +257,23 @@ async function getActiveRun(context) {
     return run;
 }
 
+async function countOpenRunsByStarter(starterID) {
+    try {
+        if (db.storyRun && typeof db.storyRun.countDocuments === 'function') {
+            const n = await db.storyRun.countDocuments({ starterID, isEnded: false });
+            return Number(n) || 0;
+        }
+    } catch { /* ignore */ }
+    // Fallback to in-memory count
+    let cnt = 0;
+    try {
+        for (const run of memoryRuns.values()) {
+            if (run && String(run.starterID) === String(starterID) && !run.isEnded) cnt++;
+        }
+    } catch { /* ignore */ }
+    return cnt;
+}
+
 async function saveRun(context, run) {
     if (run && typeof run.save === 'function' && run._id) {
         try {
@@ -1103,6 +1120,17 @@ const rollDiceCommand = async function ({
                 // Create new run for resolved story
                 const storyDoc = resolved.storyDoc;
                 const story = resolved.story;
+                // Enforce per-user open runs limit (including paused) only when creating a new run
+                try {
+                    let levelIndex = 0;
+                    try { levelIndex = (typeof VIP.viplevelCheckUser === 'function') ? await VIP.viplevelCheckUser(userid) : 0; } catch { levelIndex = 0; }
+                    const limit = STORY_LIMIT_BY_LEVEL[Math.max(0, Math.min(STORY_LIMIT_BY_LEVEL.length - 1, Number(levelIndex) || 0))];
+                    const openCnt = await countOpenRunsByStarter(userid);
+                    if (openCnt >= limit) {
+                        rply.text = '你目前開啟中的遊戲局數（含暫停）已達上限（' + limit + '）。請先結束部分遊戲後再試或提升VIP等級。';
+                        return rply;
+                    }
+                } catch { /* ignore and proceed */ }
                 run = await createRun({ storyDoc, story, context: ctx, starterID: userid, starterName: displayname || '', botname });
                 if (requestedPolicy) {
                     if (requestedPolicy === 'alone') run.participantPolicy = 'ALONE';

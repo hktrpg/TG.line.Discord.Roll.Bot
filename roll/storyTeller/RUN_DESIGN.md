@@ -75,6 +75,7 @@ A story is a collection of pages.
   - `[set] <var>=<value>` sets `variables` during render
 - Ending mark:
   - `[ending]` subsequent `[text]` lines become ending texts, the first condition-matching ending is used
+  - Requirement: a valid RUN_DESIGN must contain at least one page marked with `[ending]`. Upload/update will be rejected if no endings are defined.
 - Choices block:
   - `[choice]` starts choices list
   - `-> <text> | <action> [| if=<expr>] [| stat=a+1,b-2]`

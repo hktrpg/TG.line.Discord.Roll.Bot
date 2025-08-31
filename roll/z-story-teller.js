@@ -241,7 +241,8 @@ async function createRun({ storyDoc, story, context, starterID, starterName, bot
         isEnded: false,
         isPaused: false,
         endingId: '',
-        endingText: ''
+        endingText: '',
+        endingTitle: ''
     };
     ensureRunDefaults(run, story);
 
@@ -316,6 +317,7 @@ async function saveRun(context, run) {
             pausedAt: run.pausedAt || undefined,
             endingId: run.endingId || '',
             endingText: run.endingText || '',
+            endingTitle: run.endingTitle || '',
             endedAt: run.endedAt || undefined,
             participantPolicy: run.participantPolicy,
             allowedUserIDs: run.allowedUserIDs || []
@@ -379,10 +381,17 @@ function renderPageText(story, run, pageId) {
     }
     if (page.isEnding) {
         // Evaluate endings
+        // Record ending id/title and final text when entering an ending page
+        try {
+            run.endingId = String(pageId || '');
+            run.endingTitle = page && page.title ? String(page.title) : '';
+        } catch { /* ignore */ }
         if (Array.isArray(page.endings)) {
             for (const ed of page.endings) {
                 if (!ed.condition || safeEvalCondition(ed.condition, scope)) {
-                    out += '\n' + interpolate(ed.text, ctx) + '\n';
+                    const chosen = interpolate(ed.text, ctx);
+                    out += '\n' + chosen + '\n';
+                    run.endingText = chosen;
                     break;
                 }
             }
@@ -802,8 +811,10 @@ function validateCompiledStory(story) {
         return { ok: false, message: '頁數超過限制（最多 ' + MAX_PAGES + ' 頁）' };
     }
     // check text length per segment
+    let hasEnding = false;
     for (const pid of Object.keys(story.pages || {})) {
         const page = story.pages[pid];
+        if (page && page.isEnding) hasEnding = true;
         if (Array.isArray(page && page.content)) {
             for (const item of page.content) {
                 if (typeof item.text === 'string' && item.text.length > MAX_TEXT_SEGMENT) {
@@ -818,6 +829,9 @@ function validateCompiledStory(story) {
                 }
             }
         }
+    }
+    if (!hasEnding) {
+        return { ok: false, message: '必須至少包含一個結局頁（[ending]）。' };
     }
     return { ok: true };
 }
@@ -1284,6 +1298,7 @@ const rollDiceCommand = async function ({
                 const page = story && story.pages ? story.pages[run.currentPageId] : null;
                 if (page && page.isEnding) {
                     run.endingId = String(run.currentPageId || '');
+                    run.endingTitle = page && page.title ? String(page.title) : '';
                     const scope = buildEvalScope(run);
                     const ctx2 = Object.assign({}, scope);
                     if (Array.isArray(page.endings)) {
@@ -1296,6 +1311,7 @@ const rollDiceCommand = async function ({
                     }
                 } else if (!run.endingId) {
                     run.endingId = '';
+                    run.endingTitle = '';
                 }
             } catch { /* ignore */ }
             run.isEnded = true;
@@ -1718,11 +1734,13 @@ const rollDiceCommand = async function ({
                     let endingStats = [];
                     try {
                         if (db.storyRun && typeof db.storyRun.find === 'function') {
-                            const runs = await db.storyRun.find({ story: s._id, isEnded: true }, 'endingId').lean();
+                            const runs = await db.storyRun.find({ story: s._id, isEnded: true }, 'endingId endingTitle').lean();
                             completed = runs ? runs.length : 0;
                             const counter = new Map();
                             for (const r of (runs || [])) {
-                                const k = (r && r.endingId) ? String(r.endingId) : 'unknown';
+                                // prefer endingTitle; fallback to label (endingId)
+                                const label = r && r.endingTitle ? String(r.endingTitle) : ((r && r.endingId) ? String(r.endingId) : 'unknown');
+                                const k = label;
                                 counter.set(k, (counter.get(k) || 0) + 1);
                             }
                             endingStats = [...counter.entries()].map(([id, count]) => ({ id, count }));

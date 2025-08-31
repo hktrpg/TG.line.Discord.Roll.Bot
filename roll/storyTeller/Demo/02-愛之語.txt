@@ -1,0 +1,192 @@
+[meta] title "愛之語心理測驗 (20題版)"
+[intro] 這是一個「愛之語」心理測驗。
+[intro] 請依序回答20個問題，測驗將分析你最主要的「愛之語」。
+
+// 定義五種愛之語的分數統計
+[stat_def] WordsOfAffirmation 0 20 "肯定的話語"
+[stat_def] QualityTime 0 20 "精心的時刻"
+[stat_def] ReceivingGifts 0 20 "接受禮物"
+[stat_def] ActsOfService 0 20 "服務行動"
+[stat_def] PhysicalTouch 0 20 "身體接觸"
+[set] WordsOfAffirmation=0
+[set] QualityTime=0
+[set] ReceivingGifts=0
+[set] ActsOfService=0
+[set] PhysicalTouch=0
+
+// 開始頁面
+[label] 0
+[title] 測驗開始
+[text] 準備好了解你的愛之語了嗎？
+[choice]
+-> 開始測驗 | 1
+
+[label] 1
+[title] 問題 1/20
+[text] 在你經歷了充滿挑戰的一天後，哪種情況更能讓你感到被愛？
+[choice]
+-> A) 伴侶對你說：「你真的辛苦了，你處理得非常好。」 | 2 | stat=WordsOfAffirmation+1
+-> B) 伴侶放下手邊所有事，專心地陪你聊聊今天發生的事。 | 2 | stat=QualityTime+1
+
+[label] 2
+[title] 問題 2/20
+[text] 當你生病在家休息時，你更希望伴侶怎麼做？
+[choice]
+-> A) 他主動為你準備三餐、處理好家務，讓你能安心休養。 | 3 | stat=ActsOfService+1
+-> B) 他會給你一個溫暖的擁抱，或輕輕地撫摸你的額頭。 | 3 | stat=PhysicalTouch+1
+
+[label] 3
+[title] 問題 3/20
+[text] 你認為哪種方式更能表達「我想你」？
+[choice]
+-> A) 伴侶送來一份你之前提過想要的小禮物。 | 4 | stat=ReceivingGifts+1
+-> B) 伴侶傳訊息告訴你，他欣賞你的某個特質。 | 4 | stat=WordsOfAffirmation+1
+
+[label] 4
+[title] 問題 4/20
+[text] 你們難得的約會日，你更偏好哪種安排？
+[choice]
+-> A) 一個精心規劃、不被打擾的兩人旅行。 | 5 | stat=QualityTime+1
+-> B) 在你忙於準備出門時，伴侶已經默默地把車子加滿油、檢查好路線。 | 5 | stat=ActsOfService+1
+
+[label] 5
+[title] 問題 5/20
+[text] 你覺得哪種場景更浪漫？
+[choice]
+-> A) 走在路上時，伴侶很自然地牽起你的手。 | 6 | stat=PhysicalTouch+1
+-> B) 在一個平凡的日子裡，收到伴侶為你精心挑選的花束。 | 6 | stat=ReceivingGifts+1
+
+[label] 6
+[title] 問題 6/20
+[text] 當你為某件事感到焦慮時，你最需要的是什麼？
+[choice]
+-> A) 伴侶幫你分析問題，並主動分擔你可以委派給他的任務。 | 7 | stat=ActsOfService+1
+-> B) 伴侶對你說：「別擔心，我相信你的能力，無論結果如何我都會支持你。」 | 7 | stat=WordsOfAffirmation+1
+
+[label] 7
+[title] 問題 7/20
+[text] 你和伴侶一起在家看電影時，什麼事會讓你更開心？
+[choice]
+-> A) 我們能共享一段不受打擾的時光，完全沉浸在電影和彼此的陪伴中。 | 8 | stat=QualityTime+1
+-> B) 我們能舒服地靠在一起，感受彼此的體溫和心跳。 | 8 | stat=PhysicalTouch+1
+
+[label] 8
+[title] 問題 8/20
+[text] 如果伴侶想向你道歉，你比較能接受哪種方式？
+[choice]
+-> A) 帶來一份禮物作為補償，代表他真的知道錯了。 | 9 | stat=ReceivingGifts+1
+-> B) 主動承擔起某個你一直很討厭做的家事。 | 9 | stat=ActsOfService+1
+
+[label] 9
+[title] 問題 9/20
+[text] 在公開場合，你更喜歡伴侶如何表達對你的情感？
+[choice]
+-> A) 在朋友面前真誠地讚美你。 | 10 | stat=WordsOfAffirmation+1
+-> B) 把手輕輕地放在你的背後或腰上。 | 10 | stat=PhysicalTouch+1
+
+[label] 10
+[title] 問題 10/20
+[text] 對你來說，哪個畫面更能代表「愛」？
+[choice]
+-> A) 兩人一起安靜地看著夕陽，享受彼此的陪伴。 | 11 | stat=QualityTime+1
+-> B) 伴侶在國外旅行時，還記得買紀念品給你。 | 11 | stat=ReceivingGifts+1
+
+[label] 11
+[title] 問題 11/20
+[text] 當你感到筋疲力盡時，你最渴望得到什麼？
+[choice]
+-> A) 伴侶為你按摩緊繃的肩膀。 | 12 | stat=PhysicalTouch+1
+-> B) 伴侶說：「你先去休息吧，剩下的事情我來處理。」 | 12 | stat=ActsOfService+1
+
+[label] 12
+[title] 問題 12/20
+[text] 慶祝週年紀念日，你更期待哪種驚喜？
+[choice]
+-> A) 一份你期待已久的禮物。 | 13 | stat=ReceivingGifts+1
+-> B) 一封充滿真摯情感的手寫卡片。 | 13 | stat=WordsOfAffirmation+1
+
+[label] 13
+[title] 問題 13/20
+[text] 哪種情況會讓你感覺和伴侶的關係更緊密？
+[choice]
+-> A) 我們一起完成一個有挑戰性的目標，例如一起粉刷房間或規劃一趟自助旅行。 | 14 | stat=QualityTime+1
+-> B) 伴侶主動幫你完成一件你一直拖延著沒做的事情。 | 14 | stat=ActsOfService+1
+
+[label] 14
+[title] 問題 14/20
+[text] 當你缺乏自信時，什麼最能給你力量？
+[choice]
+-> A) 伴侶給你一個大大的、充滿力量的擁抱。 | 15 | stat=PhysicalTouch+1
+-> B) 伴侶細數你的優點，提醒你有多麼棒。 | 15 | stat=WordsOfAffirmation+1
+
+[label] 15
+[title] 問題 15/20
+[text] 你理想中的週末早晨是怎樣的？
+[choice]
+-> A) 收到伴侶買回來你最喜歡吃的早餐。 | 16 | stat=ReceivingGifts+1
+-> B) 沒有任何計畫，只是兩人一起賴在床上聊天或看書。 | 16 | stat=QualityTime+1
+
+// --- 問題 16-20 (新增) ---
+
+[label] 16
+[title] 問題 16/20
+[text] 當你完成一件很重要的事時，你希望如何慶祝？
+[choice]
+-> A) 伴侶為你舉辦一個派對，並告訴所有朋友你的成就多麼令人驕傲。 | 17 | stat=WordsOfAffirmation+1
+-> B) 伴侶預約了你最喜歡的餐廳，兩人專心地享受一頓晚餐，慶祝這個時刻。 | 17 | stat=QualityTime+1
+
+[label] 17
+[title] 問題 17/20
+[text] 對方出差時，什麼舉動讓你感覺最窩心？
+[choice]
+-> A) 他預先把家裡的網路費、水電費都繳清，讓你無後顧之憂。 | 18 | stat=ActsOfService+1
+-> B) 他每天都會抽空打電話給你，分享今天發生的事，聽聽你的聲音。 | 18 | stat=QualityTime+1
+
+[label] 18
+[title] 問題 18/20
+[text] 你正為一個困難的決定而煩惱，你希望伴侶怎麼做？
+[choice]
+-> A) 他給你一個安靜的擁抱，讓你感覺不是一個人在面對。 | 19 | stat=PhysicalTouch+1
+-> B) 他對你說：「無論你選什麼，我都支持你，因為我相信你的判斷。」 | 19 | stat=WordsOfAffirmation+1
+
+[label] 19
+[title] 問題 19/20
+[text] 當你們意見不合時，什麼情況讓你覺得問題解決了？
+[choice]
+-> A) 他買了一件你看了很久卻捨不得買的東西送你，表示和好。 | 20 | stat=ReceivingGifts+1
+-> B) 他主動去做那件你們爭執中沒人想做的家事。 | 20 | stat=ActsOfService+1
+
+[label] 20
+[title] 問題 20/20
+[text] 什麼樣的日常更能讓你感受到愛？
+[choice]
+-> A) 下班回家時，伴侶給你一個溫暖的擁抱。 | 21 | stat=PhysicalTouch+1
+-> B) 伴侶為你泡好一杯熱茶，讓你放鬆一下。 | 21 | stat=ActsOfService+1
+
+// --- 結果頁面 ---
+
+[label] 21
+[title] 測驗結果
+[ending]
+[text] 測驗完成！以下是你的愛之語分數：
+[text] 
+[text] - 肯定的話語: {WordsOfAffirmation} 分
+[text] - 精心的時刻: {QualityTime} 分
+[text] - 接受禮物: {ReceivingGifts} 分
+[text] - 服務行動: {ActsOfService} 分
+[text] - 身體接觸: {PhysicalTouch} 分
+[text] 
+[text] --- 愛之語解析 ---
+[text] 
+[text] 【肯定的話語】你非常重視語言的力量。直接的讚美、溫柔的鼓勵、充滿愛意的言詞，對你來說是愛的最佳證明。
+[text] 
+[text] 【精心的時刻】你最渴望的是伴侶全心全意的陪伴。愛意味著對方願意放下手機，專注地與你共度時光。
+[text] 
+[text] 【接受禮物】禮物對你來說，是愛意與心意的具體象徵。重要的不是價值，而是它背後代表的「我在想著你」。
+[text] 
+[text] 【服務行動】「行動勝於雄辯」是你的座右銘。你認為真正的愛，體現在為對方分憂解勞的實際行動中。
+[text] 
+[text] 【身體接觸】你是透過身體的連結來感受愛的。一個擁抱、牽手或任何形式的親密接觸，都勝過千言萬語。
+[choice]
+-> 再玩一次 | 0
+-> 結束遊戲 | END

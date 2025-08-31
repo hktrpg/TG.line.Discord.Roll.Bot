@@ -1533,18 +1533,14 @@ const sendDmFiles = async (message, rplyVal) => {
             await message.user.send({ content: rplyVal.dmFileText || '', files });
         }
 
-        // Notify in channel
-        try {
-            await message.channel.send({ content: rplyVal.text || '已透過私訊傳送檔案。' });
-        } catch {}
-
         // Cleanup local files
         for (let i = 0; i < rplyVal.dmFileLink.length; i++) {
             try { fs.unlinkSync(rplyVal.dmFileLink[i]); } catch {}
         }
     } catch (error) {
         console.error('sendDmFiles error:', error?.message);
-        try { await message.channel.send({ content: '無法以私訊傳送檔案，請確認私訊設定。' }); } catch {}
+        // Update text so the normal send flow posts one error message
+        rplyVal.text = '無法以私訊傳送檔案，請確認私訊設定。';
     }
 }
 

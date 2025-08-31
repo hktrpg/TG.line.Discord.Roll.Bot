@@ -1,7 +1,8 @@
-[meta] title "深山老村"
+[meta] title "霧之村"
 [intro] 你是一個對人生感到苦惱的年輕人，名叫小櫻。
 [intro] 為了擺脫過去，改變自己，你聽從朋友的建議，獨自一人前往深山中的一座古老村莊。
 [intro] 但你似乎在森林中迷失了方向......
+[intro] 繪圖: @katechen0921
 [player_var] player_name "請輸入你的名字：" "小櫻"
 [player_var] friend_name "請輸入你那位朋友的名字：" "小晴"
 [stat_def] Sanity 0 10 "理智"
@@ -72,6 +73,7 @@
 [text] 她身邊有數十隻螢火蟲在飛舞，照亮了她天真無邪的臉龐。
 [text] 「嘻嘻，我在村口歡迎客人呢。」她說道。
 [text] 順著她手指的方向，一座靜悄悄的村莊竟在不遠處若隱若現。真奇怪，你之前怎麼完全沒看見。
+[text] https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/refs/heads/master/roll/storyTeller/Demo/03/NPC-01.png
 [set] met_girl=1
 [choice]
 -> 「你好，我迷路了，可以帶我進村嗎？」 | 5
@@ -459,6 +461,7 @@ Check】
 [text] 「求求你...再改一次內容吧...就最後一年...」村長哀求道。
 [text] 「一年又一年，這違反道德！你何必執著於此！」和尚怒斥。
 [text] 「這是祖傳的責任啊！」
+[text] https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/refs/heads/master/roll/storyTeller/Demo/03/NPC-02.png
 [choice]
 -> 問小女孩關於卷軸的事。 | 46
 [label] 44
@@ -641,6 +644,7 @@ Check】
 [text] 你搖醒了和尚。
 [text] 他看到你手裡的卷軸，臉色大變。
 [text] 「施主，你...你怎麼...」
+[text] https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/refs/heads/master/roll/storyTeller/Demo/03/NPC-03.png
 [choice]
 -> 「這到底是什麼？」你質問道。 |
 61

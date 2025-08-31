@@ -1244,7 +1244,7 @@ const rollDiceCommand = async function ({
                     const { story } = await loadStoryByAlias(activeRun.storyOwnerID || userid, activeRun.storyAlias);
                     if (!story) { rply.text = '找不到故事內容，請重新開始。'; return rply; }
                     const text = renderPageText(story, activeRun, activeRun.currentPageId);
-                    rply.text = text;
+                    rply.text = '已載入當前進度：\n' + text;
                     attachChoicesOutput({ rply, story, run: activeRun, botname });
                     return rply;
                 }
@@ -1281,10 +1281,16 @@ const rollDiceCommand = async function ({
             if (!run) { rply.text = '目前沒有進行中的故事。'; return rply; }
             const { story } = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
             if (!story) { rply.text = '找不到故事內容，請重新開始。'; return rply; }
-            // Deep clone run to avoid side effects
-            const runClone = structuredClone(run);
-            const text = renderPageText(story, runClone, runClone.currentPageId);
-            rply.text = text;
+            // Create a minimal plain-object view to avoid mutating the active run and avoid cloning errors
+            const runView = {
+                variables: Object.assign({}, run.variables || {}),
+                stats: Object.assign({}, run.stats || {}),
+                playerVariables: Object.assign({}, run.playerVariables || {}),
+                currentPageId: String(run.currentPageId || '0'),
+                __statsLocked: !!run.__statsLocked
+            };
+            const text = renderPageText(story, runView, runView.currentPageId);
+            rply.text = '已載入當前進度：\n' + text;
             attachChoicesOutput({ rply, story, run, botname });
             return rply;
         }
@@ -1734,12 +1740,32 @@ const rollDiceCommand = async function ({
                     let endingStats = [];
                     try {
                         if (db.storyRun && typeof db.storyRun.find === 'function') {
-                            const runs = await db.storyRun.find({ story: s._id, isEnded: true }, 'endingId endingTitle').lean();
+                            // Also fetch history to recover ending page when endingId/title are missing
+                            const runs = await db.storyRun.find({ story: s._id, isEnded: true }, 'endingId endingTitle history').lean();
                             completed = runs ? runs.length : 0;
                             const counter = new Map();
                             for (const r of (runs || [])) {
-                                // prefer endingTitle; fallback to label (endingId)
-                                const label = r && r.endingTitle ? String(r.endingTitle) : ((r && r.endingId) ? String(r.endingId) : 'unknown');
+                                // Prefer stored endingTitle; fallback to story page title by endingId; then endingId; finally try history's last page title; else 'unknown'
+                                let label = '';
+                                if (r && r.endingTitle && String(r.endingTitle).trim() !== '') {
+                                    label = String(r.endingTitle);
+                                } else {
+                                    const eid = r && r.endingId ? String(r.endingId) : '';
+                                    const storyPayload = s && s.payload ? s.payload : null;
+                                    const pageTitleByEndingId = (storyPayload && storyPayload.pages && storyPayload.pages[eid] && storyPayload.pages[eid].title) ? String(storyPayload.pages[eid].title) : '';
+                                    if (pageTitleByEndingId) {
+                                        label = pageTitleByEndingId;
+                                    } else if (eid) {
+                                        label = eid;
+                                    } else if (r && Array.isArray(r.history) && r.history.length > 0) {
+                                        const last = r.history.at(-1);
+                                        const lastPid = last && last.pageId ? String(last.pageId) : '';
+                                        const titleFromHistory = (storyPayload && storyPayload.pages && storyPayload.pages[lastPid] && storyPayload.pages[lastPid].title) ? String(storyPayload.pages[lastPid].title) : '';
+                                        label = titleFromHistory || lastPid || 'unknown';
+                                    } else {
+                                        label = 'unknown';
+                                    }
+                                }
                                 const k = label;
                                 counter.set(k, (counter.get(k) || 0) + 1);
                             }
@@ -1757,7 +1783,17 @@ const rollDiceCommand = async function ({
                 }
             } else {
                 // memory fallback: infer from runs
-                const byAlias = new Map(); // alias -> {completed, endings: Map}
+                const byAlias = new Map(); // alias -> {completed, endings: Map<label,count>}
+                const storyCache = new Map(); // alias -> story
+                async function getStoryFor(alias, owner) {
+                    if (storyCache.has(alias)) return storyCache.get(alias);
+                    try {
+                        const cur = await loadStoryByAlias(owner || ownerID, alias);
+                        const story = cur && cur.story ? cur.story : null;
+                        storyCache.set(alias, story);
+                        return story;
+                    } catch { storyCache.set(alias, null); return null; }
+                }
                 for (const run of memoryRuns.values()) {
                     if (!run || run.storyOwnerID !== ownerID) continue;
                     const alias = run.storyAlias || '-';
@@ -1765,8 +1801,17 @@ const rollDiceCommand = async function ({
                     const stat = byAlias.get(alias);
                     if (run.isEnded) {
                         stat.completed++;
-                        const k = run.endingId || 'unknown';
-                        stat.endings.set(k, (stat.endings.get(k) || 0) + 1);
+                        let label = '';
+                        if (run.endingTitle && String(run.endingTitle).trim() !== '') {
+                            label = String(run.endingTitle);
+                        } else {
+                            const story = await getStoryFor(alias, run.storyOwnerID);
+                            const eid = run.endingId ? String(run.endingId) : '';
+                            const titleFromStory = (story && story.pages && story.pages[eid] && story.pages[eid].title) ? String(story.pages[eid].title) : '';
+                            if (titleFromStory) label = titleFromStory;
+                            else if (eid) label = eid; else label = 'unknown';
+                        }
+                        stat.endings.set(label, (stat.endings.get(label) || 0) + 1);
                     }
                 }
                 for (const [alias, data] of byAlias.entries()) {

@@ -759,7 +759,6 @@ if=Suspicion>=7
 [ending]
 [text] 死亡結局 - 新的祭品
 [choice]
--> 回到開頭 | 0
 -> 結束遊戲 |
 END
 [label] 72
@@ -834,7 +833,6 @@ if=Sanity>=5&&Suspicion>=7
 [ending]
 [text|if=destroyed_pact] 普通結局 - 安息
 [choice]
--> 回到開頭 | 0
 -> 結束遊戲 |
 END
 [label] 80
@@ -849,7 +847,6 @@ END
 [ending]
 [text|if=destroyed_pact] 真結局 - 救贖
 [choice]
--> 回到開頭 | 0
 -> 結束遊戲 |
 END
 [label] 81

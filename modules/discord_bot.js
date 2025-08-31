@@ -62,6 +62,18 @@ async function isStoryTellerRunPausedByChannel(channelId) {
     }
 }
 
+// Helper: check if StoryTeller run in this channel is actively continuing (not paused, not ended)
+async function isStoryTellerRunActiveByChannel(channelId) {
+    try {
+        if (!schema || !schema.storyRun || typeof schema.storyRun.findOne !== 'function') return true;
+        const run = await schema.storyRun.findOne({ channelID: channelId }).sort({ updatedAt: -1 });
+        if (!run) return false;
+        return !run.isPaused && !run.isEnded;
+    } catch {
+        return true;
+    }
+}
+
 client.on('messageCreate', async message => {
 	try {
 		if (message.author.bot) return;
@@ -1599,6 +1611,8 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
     try {
         // Skip creating poll if the run is paused
         if (await isStoryTellerRunPausedByChannel(channelid)) return;
+        // Ensure the run is still active/continuing (not paused/ended)
+        if (!(await isStoryTellerRunActiveByChannel(channelid))) return;
         const channel = await client.channels.fetch(channelid);
         // Send story content first
         if (text && String(text).trim().length > 0) {
@@ -1616,6 +1630,8 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
 // eslint-disable-next-line no-unused-vars
 async function createStPoll({ message, payload }) {
     try {
+        // Ensure the run is still active/continuing (not paused/ended)
+        if (!(await isStoryTellerRunActiveByChannel(message.channelId))) return;
         // Post under the same channel, immediately after previous content
         const content = `${message.member ? `<@${message.member.id}>` : ''} 啟動投票，請於 ${payload.minutes || 3} 分鐘內投票\n選項：\n` + payload.options.map((o, i) => `${POLL_EMOJIS[i]} ${o.label}`).join('\n');
         const sent = await message.channel.send({ content });
@@ -1670,6 +1686,15 @@ async function tallyStPoll(messageId, fallbackData) {
     // Abort if run has been paused
     try {
         if (await isStoryTellerRunPausedByChannel(data.channelid)) {
+            const d = stPolls.get(messageId);
+            if (d) d.completed = true;
+            setTimeout(() => stPolls.delete(messageId), 60_000);
+            return;
+        }
+    } catch {}
+    // Abort if run is no longer active/continuing (ended or missing)
+    try {
+        if (!(await isStoryTellerRunActiveByChannel(data.channelid))) {
             const d = stPolls.get(messageId);
             if (d) d.completed = true;
             setTimeout(() => stPolls.delete(messageId), 60_000);

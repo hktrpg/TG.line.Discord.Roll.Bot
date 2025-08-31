@@ -552,7 +552,11 @@ function exportStoryToRunDesign(story) {
     const pageIds = Object.keys(story.pages || {}).sort((a, b) => Number(a) - Number(b));
     for (const pid of pageIds) {
         const page = story.pages[pid];
+        // Ensure a blank line before each [label]
+        if (lines.length > 0 && lines.at(-1) !== '') lines.push('');
         lines.push('[label] ' + pid);
+        // Place [ending] immediately under [label] when this page is an ending
+        if (page.isEnding) lines.push('[ending]');
         if (page.title) lines.push('[title] ' + page.title);
         if (Array.isArray(page.content)) {
             for (const item of page.content) {
@@ -570,7 +574,6 @@ function exportStoryToRunDesign(story) {
             }
         }
         if (page.isEnding && Array.isArray(page.endings)) {
-            lines.push('[ending]');
             for (const ed of page.endings) {
                 if (ed.condition && ed.condition !== 'true') lines.push('[text|if=' + ed.condition + '] ' + (ed.text || ''));
                 else lines.push('[text] ' + (ed.text || ''));

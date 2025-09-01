@@ -113,7 +113,7 @@ function getContextKey({ groupid, channelid, userid }) {
     return `u:${userid}`;
 }
 
-function interpolate(template, ctx) {
+function interpolate(template, ctx, depth = 0) {
     if (typeof template !== 'string') return '';
     // Manual scan to avoid regex replace callback (and satisfy prefer-replaceAll linters)
     let result = '';
@@ -141,7 +141,13 @@ function interpolate(template, ctx) {
             for (let r = 0; r < count; r++) sum += Math.floor(Math.random() * sides) + 1;
             val = String(sum);
         } else if (Object.prototype.hasOwnProperty.call(ctx || {}, key) && ctx[key] !== null && ctx[key] !== undefined) {
-            val = String(ctx[key]);
+            const inner = ctx[key];
+            if (typeof inner === 'string' && depth < 1 && inner.indexOf('{') !== -1 && inner.indexOf('}') !== -1) {
+                // One nested interpolation pass to expand placeholders inside variable values
+                val = interpolate(inner, ctx, depth + 1);
+            } else {
+                val = String(inner);
+            }
         } else {
             val = template.slice(open, close + 1);
         }
@@ -227,7 +233,13 @@ function evalExpressionValue(expr, scope) {
     try {
         if (expr === undefined || expr === null) return void 0;
         if (typeof expr === 'number') return expr;
-        const str = replaceDiceLiteralsWithSums(String(expr).trim());
+        const raw = String(expr);
+        const trimmed = raw.trim();
+        // Treat quoted RHS as literal string and unquote without evaluating dice
+        if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+            return trimmed.slice(1, -1);
+        }
+        const str = replaceDiceLiteralsWithSums(trimmed);
         if (str === '') return '';
         // Block function calls and sensitive globals in value expressions
         const hasCall = /(?:^|[^A-Za-z0-9_])(?:[A-Za-z_][A-Za-z0-9_]*\s*\(|\.\s*[A-Za-z_][A-Za-z0-9_]*\s*\()/.test(str);

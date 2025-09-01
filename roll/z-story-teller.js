@@ -113,7 +113,7 @@ function getContextKey({ groupid, channelid, userid }) {
     return `u:${userid}`;
 }
 
-function interpolate(template, ctx) {
+function interpolate(template, ctx, depth = 0) {
     if (typeof template !== 'string') return '';
     // Manual scan to avoid regex replace callback (and satisfy prefer-replaceAll linters)
     let result = '';
@@ -141,7 +141,13 @@ function interpolate(template, ctx) {
             for (let r = 0; r < count; r++) sum += Math.floor(Math.random() * sides) + 1;
             val = String(sum);
         } else if (Object.prototype.hasOwnProperty.call(ctx || {}, key) && ctx[key] !== null && ctx[key] !== undefined) {
-            val = String(ctx[key]);
+            const inner = ctx[key];
+            if (typeof inner === 'string' && depth < 1 && inner.indexOf('{') !== -1 && inner.indexOf('}') !== -1) {
+                // One nested interpolation pass to expand placeholders inside variable values
+                val = interpolate(inner, ctx, depth + 1);
+            } else {
+                val = String(inner);
+            }
         } else {
             val = template.slice(open, close + 1);
         }
@@ -227,7 +233,13 @@ function evalExpressionValue(expr, scope) {
     try {
         if (expr === undefined || expr === null) return void 0;
         if (typeof expr === 'number') return expr;
-        const str = replaceDiceLiteralsWithSums(String(expr).trim());
+        const raw = String(expr);
+        const trimmed = raw.trim();
+        // Treat quoted RHS as literal string and unquote without evaluating dice
+        if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+            return trimmed.slice(1, -1);
+        }
+        const str = replaceDiceLiteralsWithSums(trimmed);
         if (str === '') return '';
         // Block function calls and sensitive globals in value expressions
         const hasCall = /(?:^|[^A-Za-z0-9_])(?:[A-Za-z_][A-Za-z0-9_]*\s*\(|\.\s*[A-Za-z_][A-Za-z0-9_]*\s*\()/.test(str);
@@ -266,6 +278,16 @@ function ensureRunDefaults(run, story) {
                 const min = Number(s.min) || 1;
                 const max = Number(s.max) || 10;
                 run.stats[k] = Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+        }
+    }
+    // Initialize variables to their declared min value if not set
+    if (story && Array.isArray(story.variables)) {
+        for (const v of story.variables) {
+            const k = v.key;
+            if (run.variables[k] === undefined || run.variables[k] === null) {
+                const minVal = (v.min !== undefined && v.min !== null) ? v.min : 0;
+                run.variables[k] = minVal;
             }
         }
     }
@@ -590,18 +612,35 @@ function renderPageText(story, run, pageId) {
             run.endingTitle = page && page.title ? String(page.title) : '';
         } catch { /* ignore */ }
         if (Array.isArray(page.endings)) {
+            // Support preamble lines (unconditional [text]) followed by a single conditional ending branch
+            const preambles = [];
+            const branches = [];
+            for (const ed of page.endings) {
+                if (!ed || typeof ed.text !== 'string') continue;
+                if (ed.condition || ed.isElse) branches.push(ed);
+                else preambles.push(ed);
+            }
+
+            let endingBlock = '';
+            for (const pre of preambles) {
+                endingBlock += interpolate(pre.text, ctx) + '\n';
+            }
+
             let chosen = null;
             let elseEd = null;
-            for (const ed of page.endings) {
+            for (const ed of branches) {
                 if (ed && ed.isElse) { elseEd = ed; continue; }
-                if (!ed || typeof ed.text !== 'string') continue;
                 if (!ed.condition || safeEvalCondition(ed.condition, scope)) { chosen = ed; break; }
             }
             if (!chosen && elseEd) chosen = elseEd;
             if (chosen) {
                 const chosenText = interpolate(chosen.text, ctx);
-                out += '\n' + chosenText + '\n';
+                endingBlock += chosenText + '\n';
                 run.endingText = chosenText;
+            }
+            if (endingBlock) {
+                // Preserve previous formatting that separated ending text with a blank line
+                out += '\n' + endingBlock;
             }
         }
     }
@@ -717,8 +756,10 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
                 if (k) opts[k] = v;
             }
             const key = m[2];
+            // Strip inline '//' comment from value to avoid capturing comments as value content
             const rawVal = m[3];
-            const val = Number.isNaN(Number(rawVal)) ? rawVal : Number(rawVal);
+            const rawNoComment = String(rawVal).replace(/\s*\/\/.*$/, '').trim();
+            const val = Number.isNaN(Number(rawNoComment)) ? rawNoComment : Number(rawNoComment);
             const entry = { setVariables: { [key]: val } };
             if (opts.if) entry.condition = opts.if;
             page.content.push(entry);

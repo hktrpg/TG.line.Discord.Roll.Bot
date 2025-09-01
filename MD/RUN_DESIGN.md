@@ -56,7 +56,6 @@
 ## 遊戲屬性（Game Stats）
 
 - `[stat_def] <key> <min> <max> ["<label>"]`
-
 - 初始化：未被明確設定時，首次開始時以 `min`~`max` 隨機整數初始化。
 - 鎖定：若該屬性曾被內容內的 `[set]` 明確指定，之後將不再被隨機初始化覆寫。
 
@@ -90,14 +89,18 @@
 - 頁面內容（不限行數）：
   - `[text] <content>`
   - `[text|if=<expr>] <content>` 條件顯示
+  - `[text|else] <content>` 與前一或多個連續的 `[text|if=...]` 形成條件鏈，只會顯示第一個符合條件的項目；若皆不符合則顯示 `else`。也支援於結局區塊中使用。
+  - `[text|ifs=<expr>] <content>` 獨立條件顯示：只要命中就顯示，不會與上下鄰近的 `[text|if=...]`/`[text|else]` 形成條件鏈。
   - `[text|speaker=<key>] <content>` 指定說話者
   - `[text|speaker=<key>,if=<expr>] <content>` 指定說話者且具條件
   - `[random] <percent>%` 僅影響「下一行」的 `[text]`（例如 30%），`percent` 為 0~100 的整數。
   - `[set] <key>=<expr>` 在渲染時設定值：若 `key` 屬於已定義的 `stat_def`，則寫入 `stats`；否則寫入 `variables`。`<expr>` 支援基本運算式（見下文）。
+
     - 任一屬性一旦被 `[set]` 明確設定，之後將不再由隨機初始化覆寫。
   - 文字內可直接擲骰：`{xDy}` 會在顯示時擲骰並以總和取代，例如 `{1D100}`、`{2d20}`、`{3d6}`。
 - 結局標記：
   - `[ending]` 之後的 `[text]` 行視為結局文字，會使用第一個符合條件的結局
+  - 支援條件鏈：可使用多行 `[text|if=...]` 後接一行 `[text|else]` 作為後備
   - 要求：一個有效的 RUN_DESIGN 必須至少包含一個帶有 `[ending]` 標記的頁面；若未定義結局，上傳/更新將被拒絕。
 - 選項區塊：
   - `[choice]` 開始定義選項列表
@@ -119,15 +122,20 @@
 ```
 
 當玩家使用 `.st goto 2a`、`.st goto 2b`、`.st goto 2c` 時：
+
 - 都會跳轉到頁面 `2`
 - 但會分別獲得不同的加成：淘氣度+1、萌度+1、活力+1
 
 ### 運算式（Expressions）
 
 - 條件以小型、類 JS 的子集合為語法，運行於 scope（`variables` + `stats` + `playerVariables`）
-- 支援運算子：`&& || < <= > >= == === != !== + - * / % ()`
+- 支援運算子：`&& || ! < <= > >= == === != !== + - * / % ()`
 - 安全限制：不允許任何函式呼叫；不可存取 `globalThis`、`global`、`process`、`this`、`Function`、`constructor`、`require` 等識別字。
+
   - 範例：`if=Cuteness>=8 && Energy>3`
+- 支援一元否定 `!expr`（可搭配括號以控制優先順序）。
+
+  - 範例：`if=(Strength>5) && !(Agility>5)`
 
 #### 擲骰（Dice）
 
@@ -165,6 +173,15 @@
 [text] - 萌度 (Cuteness): {Cuteness}
 [text] - 活力 (Energy): {Energy}
 [text] - 淘氣度 (Mischief): {Mischief}
+[text|ifs=Wit==1]確切屬性值 -> Wit: 1
+[text|ifs=Wit==2]確切屬性值 -> Wit: 2
+[text|ifs=Wit==3]確切屬性值 -> Wit: 3
+[text|ifs=Wit==4]確切屬性值 -> Wit: 4
+[text|if=Cuteness>Mischief+2] 他笑了笑，把它撿起來，說：「你這個小搗蛋鬼。」然後把我抱起來，親了一下。我的惡作劇成功了！
+[text|if=Cuteness<=Mischief+2 && Cuteness > 4] 他嘆了口氣說：「{cat_name}，不可以這樣喔。」但他還是忍不住摸了摸我的頭。看來這次被原諒了。
+[text|if=Cuteness<=4] 他看起來有點生氣，把我抱起來唸了幾句，今天沒有點心了。
+[text|if=Cleverness>=10] 他注意到我的聰明眼神，笑著說：「你是不是在計劃什麼？」並給了我額外獎勵。
+[text|else] 他只是搖搖頭，收拾了一下。今天是普通的一天。
 [choice]
 -> 準備好了嗎？ | 1
 ```
@@ -176,7 +193,7 @@
 [title] 結局
 [ending]
 [text|if=Cuteness>8] 以賣萌獲得原諒
-[text] 溫柔的無奈
+[text|else] 溫柔的無奈
 [choice]
 -> 回到開頭 | 0
 -> 結束遊戲 | END

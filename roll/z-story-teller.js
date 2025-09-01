@@ -269,6 +269,16 @@ function ensureRunDefaults(run, story) {
             }
         }
     }
+    // Initialize variables to their declared min value if not set
+    if (story && Array.isArray(story.variables)) {
+        for (const v of story.variables) {
+            const k = v.key;
+            if (run.variables[k] === undefined || run.variables[k] === null) {
+                const minVal = (v.min !== undefined && v.min !== null) ? v.min : 0;
+                run.variables[k] = minVal;
+            }
+        }
+    }
 }
 
 // Deprecated: demo story direct link (03.json) removed after test phase
@@ -590,18 +600,35 @@ function renderPageText(story, run, pageId) {
             run.endingTitle = page && page.title ? String(page.title) : '';
         } catch { /* ignore */ }
         if (Array.isArray(page.endings)) {
+            // Support preamble lines (unconditional [text]) followed by a single conditional ending branch
+            const preambles = [];
+            const branches = [];
+            for (const ed of page.endings) {
+                if (!ed || typeof ed.text !== 'string') continue;
+                if (ed.condition || ed.isElse) branches.push(ed);
+                else preambles.push(ed);
+            }
+
+            let endingBlock = '';
+            for (const pre of preambles) {
+                endingBlock += interpolate(pre.text, ctx) + '\n';
+            }
+
             let chosen = null;
             let elseEd = null;
-            for (const ed of page.endings) {
+            for (const ed of branches) {
                 if (ed && ed.isElse) { elseEd = ed; continue; }
-                if (!ed || typeof ed.text !== 'string') continue;
                 if (!ed.condition || safeEvalCondition(ed.condition, scope)) { chosen = ed; break; }
             }
             if (!chosen && elseEd) chosen = elseEd;
             if (chosen) {
                 const chosenText = interpolate(chosen.text, ctx);
-                out += '\n' + chosenText + '\n';
+                endingBlock += chosenText + '\n';
                 run.endingText = chosenText;
+            }
+            if (endingBlock) {
+                // Preserve previous formatting that separated ending text with a blank line
+                out += '\n' + endingBlock;
             }
         }
     }
@@ -717,8 +744,10 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
                 if (k) opts[k] = v;
             }
             const key = m[2];
+            // Strip inline '//' comment from value to avoid capturing comments as value content
             const rawVal = m[3];
-            const val = Number.isNaN(Number(rawVal)) ? rawVal : Number(rawVal);
+            const rawNoComment = String(rawVal).replace(/\s*\/\/.*$/, '').trim();
+            const val = Number.isNaN(Number(rawNoComment)) ? rawNoComment : Number(rawNoComment);
             const entry = { setVariables: { [key]: val } };
             if (opts.if) entry.condition = opts.if;
             page.content.push(entry);

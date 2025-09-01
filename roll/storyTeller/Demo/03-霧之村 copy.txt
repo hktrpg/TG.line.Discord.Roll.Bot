@@ -94,6 +94,7 @@
 // 村長之女立繪: https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/refs/heads/master/roll/storyTeller/Demo/03/NPC-01.png
 [set] met_girl=1
 [text] 你撥開最後一層薄霧，看見一個穿著樸素連衣裙的小女孩。她身邊環繞著數十隻飛舞的螢火蟲，畫面如夢似幻。
+[text]https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/refs/heads/master/roll/storyTeller/Demo/03/NPC-01.png
 [text] 她看到你，露出了天真無邪的笑容：「嘻嘻，我在村口歡迎客人。」
 [choice]
 -> 「小妹妹，你好。你一個人嗎？這裡很危險的。」 | 4a | stat=attitude+5
@@ -185,6 +186,7 @@
 [text] 一個高大的男人緊緊抓著你的手臂，他的臉上滿是猙獰。
 // 村長立繪: https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/refs/heads/master/roll/storyTeller/Demo/03/NPC-02.png
 [text] 「乖女，你乖！你是村子的希望，跳下去就可以了！」他嘶吼著。
+[text]https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/refs/heads/master/roll/storyTeller/Demo/03/NPC-02.png
 [text] 「我不是你們村的人！放開我！」你奮力掙扎，但無濟 vicepresidente。
 [text] 「我是為了你好！」他怒吼著，樣子如同惡鬼，猛地將你推向冰冷的湖中。
 [text] 湖水淹沒了你的口鼻，你在絕望中緩緩下沉......
@@ -386,6 +388,7 @@
 [text] 只見一個身形微胖的和尚正在誦經，但他精神萎靡，眼下有著濃重的黑眼圈，看起來疲憊不堪。
 // 和尚主持立繪: https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/refs/heads/master/roll/storyTeller/Demo/03/NPC-03.png
 [text] 就在這時，他突然停下了誦經，彷彿察覺到了你的視線。
+[text]https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/refs/heads/master/roll/storyTeller/Demo/03/NPC-03.png
 [choice]
 -> 立刻敲門，假裝剛到。 | 30
 -> 嚇了一跳，轉身就走。 | 24 | stat=attitude-5

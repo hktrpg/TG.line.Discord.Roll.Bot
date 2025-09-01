@@ -1,0 +1,282 @@
+// RUN_DESIGN 功能測試劇本 (v4: 大量變數組合與 if/ifs 分離測試)
+
+[meta] title "大量變數組合與 if/ifs 分離測試"
+[intro] 這個劇本的核心在於起始頁面(label 0)，它會執行密集的條件檢查來驗證引擎的運算邏輯。此版本特別區分了 if 條件鏈與 ifs 獨立條件的行為，並新增了超過50種複雜的邏輯與算術比較。
+
+// --- 玩家變數定義 ---
+[player_var] player_name "請輸入你的冒險者名字：" "例如：測試員"
+
+// --- 遊戲屬性定義 (4個) ---
+[stat_def] Strength 1 10 "力量 (Strength)"
+[stat_def] Agility 1 10 "敏捷 (Agility)"
+[stat_def] Wit 1 10 "智慧 (Wit)"
+[stat_def] Charm 1 10 "魅力 (Charm)"
+
+// --- 故事開始 ---
+
+[label] 0
+[title] 變數測試平台
+[text] 歡迎，{player_name}！系統正在執行大量條件檢查...
+[text] ---
+[text] [ sezione 1: 'ifs' 獨立條件測試 (應顯示所有符合項目) ]
+
+// 確切屬性值 (使用 ifs)
+[text|ifs=Strength==1]確切屬性值 -> Strength: 1
+[text|ifs=Strength==2]確切屬性值 -> Strength: 2
+[text|ifs=Strength==3]確切屬性值 -> Strength: 3
+[text|ifs=Strength==4]確切屬性值 -> Strength: 4
+[text|ifs=Strength==5]確切屬性值 -> Strength: 5
+[text|ifs=Strength==6]確切屬性值 -> Strength: 6
+[text|ifs=Strength==7]確切屬性值 -> Strength: 7
+[text|ifs=Strength==8]確切屬性值 -> Strength: 8
+[text|ifs=Strength==9]確切屬性值 -> Strength: 9
+[text|ifs=Strength==10]確切屬性值 -> Strength: 10
+[text]
+[text|ifs=Agility==1]確切屬性值 -> Agility: 1
+[text|ifs=Agility==2]確切屬性值 -> Agility: 2
+[text|ifs=Agility==3]確切屬性值 -> Agility: 3
+[text|ifs=Agility==4]確切屬性值 -> Agility: 4
+[text|ifs=Agility==5]確切屬性值 -> Agility: 5
+[text|ifs=Agility==6]確切屬性值 -> Agility: 6
+[text|ifs=Agility==7]確切屬性值 -> Agility: 7
+[text|ifs=Agility==8]確切屬性值 -> Agility: 8
+[text|ifs=Agility==9]確切屬性值 -> Agility: 9
+[text|ifs=Agility==10]確切屬性值 -> Agility: 10
+[text]
+[text|ifs=Wit==1]確切屬性值 -> Wit: 1
+[text|ifs=Wit==2]確切屬性值 -> Wit: 2
+[text|ifs=Wit==3]確切屬性值 -> Wit: 3
+[text|ifs=Wit==4]確切屬性值 -> Wit: 4
+[text|ifs=Wit==5]確切屬性值 -> Wit: 5
+[text|ifs=Wit==6]確切屬性值 -> Wit: 6
+[text|ifs=Wit==7]確切屬性值 -> Wit: 7
+[text|ifs=Wit==8]確切屬性值 -> Wit: 8
+[text|ifs=Wit==9]確切屬性值 -> Wit: 9
+[text|ifs=Wit==10]確切屬性值 -> Wit: 10
+[text]
+[text|ifs=Charm==1]確切屬性值 -> Charm: 1
+[text|ifs=Charm==2]確切屬性值 -> Charm: 2
+[text|ifs=Charm==3]確切屬性值 -> Charm: 3
+[text|ifs=Charm==4]確切屬性值 -> Charm: 4
+[text|ifs=Charm==5]確切屬性值 -> Charm: 5
+[text|ifs=Charm==6]確切屬性值 -> Charm: 6
+[text|ifs=Charm==7]確切屬性值 -> Charm: 7
+[text|ifs=Charm==8]確切屬性值 -> Charm: 8
+[text|ifs=Charm==9]確切屬性值 -> Charm: 9
+[text|ifs=Charm==10]確切屬性值 -> Charm: 10
+
+// 屬性兩兩比較 (使用 ifs)
+[text] ---
+[text|ifs=Strength>Agility]比較 -> Strength ({Strength}) > Agility ({Agility})
+[text|ifs=Strength<Agility]比較 -> Strength ({Strength}) < Agility ({Agility})
+[text|ifs=Strength==Agility]比較 -> Strength ({Strength}) == Agility ({Agility})
+[text|ifs=Strength>Wit]比較 -> Strength ({Strength}) > Wit ({Wit})
+[text|ifs=Strength<Wit]比較 -> Strength ({Strength}) < Wit ({Wit})
+[text|ifs=Strength==Wit]比較 -> Strength ({Strength}) == Wit ({Wit})
+[text|ifs=Strength>Charm]比較 -> Strength ({Strength}) > Charm ({Charm})
+[text|ifs=Strength<Charm]比較 -> Strength ({Strength}) < Charm ({Charm})
+[text|ifs=Strength==Charm]比較 -> Strength ({Strength}) == Charm ({Charm})
+[text|ifs=Agility>Wit]比較 -> Agility ({Agility}) > Wit ({Wit})
+[text|ifs=Agility<Wit]比較 -> Agility ({Agility}) < Wit ({Wit})
+[text|ifs=Agility==Wit]比較 -> Agility ({Agility}) == Wit ({Wit})
+[text|ifs=Agility>Charm]比較 -> Agility ({Agility}) > Charm ({Charm})
+[text|ifs=Agility<Charm]比較 -> Agility ({Agility}) < Charm ({Charm})
+[text|ifs=Agility==Charm]比較 -> Agility ({Agility}) == Charm ({Charm})
+[text|ifs=Wit>Charm]比較 -> Wit ({Wit}) > Charm ({Charm})
+[text|ifs=Wit<Charm]比較 -> Wit ({Wit}) < Charm ({Charm})
+[text|ifs=Wit==Charm]比較 -> Wit ({Wit}) == Charm ({Charm})
+
+[text] ---
+[text] [ sezione 2: 'if' 條件鏈測試 (應只顯示第一個符合項目) ]
+[text|if=Strength > Agility && Strength > Wit && Strength > Charm]IF鏈 測試 -> 力量是最高的屬性。
+[text|if=Agility > Strength && Agility > Wit && Agility > Charm]IF鏈 測試 -> 敏捷是最高的屬性。
+[text|if=Wit > Strength && Wit > Agility && Wit > Charm]IF鏈 測試 -> 智慧是最高的屬性。
+[text|if=Charm > Strength && Charm > Agility && Charm > Wit]IF鏈 測試 -> 魅力是最高的屬性。
+[text|if=Strength == Agility && Strength > Wit && Strength > Charm]IF鏈 測試 -> 力量和敏捷並列最高。
+[text|else]IF鏈 測試 -> 屬性最高者不唯一或條件未涵蓋。
+
+[text] ---
+[text] [ sezione 3: 'ifs' 獨立條件測試 - 50+ 複雜情況 ]
+// 算術與比較
+[text|ifs=(Strength + Agility) > 15]複合條件 -> 力量與敏捷的總和超過 15
+[text|ifs=(Wit + Charm) < 5]複合條件 -> 智慧與魅力的總和小於 5
+[text|ifs=(Strength + Wit) > (Agility + Charm)]複合條件 -> 力量與智慧之和 > 敏捷與魅力之和
+[text|ifs=(Strength - Agility) > 5]複合條件 -> 力量比敏捷高出 5 以上
+[text|ifs=Strength == (Agility + Wit)]複合條件 -> 力量等於敏捷與智慧之和
+[text|ifs=Charm * 2 > Strength]複合條件 -> 魅力的兩倍大於力量
+[text|ifs=Strength > 5 && Agility > 5]複合條件 -> 力量和敏捷都高於 5
+[text|ifs=Wit <= 3 && Charm <= 3]複合條件 -> 智慧和魅力都低於等於 3
+[text|ifs=Strength >= 9 || Agility >= 9]複合條件 -> 力量或敏捷其中一項非常高 (>= 9)
+[text|ifs=Wit == 10 || Charm == 10]複合條件 -> 智慧或魅力其中一項達到頂點 (== 10)
+[text|ifs=Strength > 5 && Wit > 5 && Charm > 5]複合條件 -> 力量、智慧和魅力都很高 (皆 > 5)
+[text|ifs=Strength < 5 || Agility < 5 || Wit < 5]複合條件 -> 力量、敏捷或智慧至少有一項低於 5
+[text|ifs=(Strength > 7 && Agility > 7) || (Wit > 7 && Charm > 7)]複合條件 -> (力敏組合 > 7) 或 (智魅組合 > 7)
+[text|ifs=Strength >= Agility && Agility >= Wit && Wit >= Charm]複合條件 -> 屬性呈現遞減或相等趨勢 (力>=敏>=智>=魅)
+[text|ifs=Strength + Agility + Wit + Charm >= 35]複合條件 -> 四維總和達到 35 或以上
+[text|ifs=Strength + Agility + Wit + Charm < 10]複合條件 -> 四維總和低於 10
+[text|ifs=Strength > 3 && Strength < 8]複合條件 -> 力量處於中等範圍 (3 < STR < 8)
+[text|ifs=Agility == 1 || Agility == 10]複合條件 -> 敏捷為極端值 (1 或 10)
+[text|ifs=Strength == Wit && Agility == Charm]複合條件 -> 屬性兩兩成對相等 (力=智, 敏=魅)
+[text|ifs=Strength != Agility && Strength != Wit && Strength != Charm && Agility != Wit && Agility != Charm && Wit != Charm]複合條件 -> 所有屬性數值都互不相同
+[text|ifs=Strength == Agility && Agility == Wit && Wit == Charm]複合條件 -> 所有屬性數值完全相同
+[text|ifs=(Strength * Wit) > (Agility * Charm)]複合條件 -> 力量與智慧的乘積 > 敏捷與魅力的乘積
+[text|ifs=Agility / 2 > Charm]複合條件 -> 敏捷的一半仍然大於魅力
+[text|ifs=Strength % 2 == 0]複合條件 -> 力量是偶數
+[text|ifs=Agility % 2 != 0]複合條件 -> 敏捷是奇數
+[text|ifs=(Wit + Charm) % 2 == 0]複合條件 -> 智慧與魅力之和為偶數
+[text|ifs=(Strength > Agility || Strength > Wit) && Strength > Charm]複合條件 -> 力量至少比敏捷或智慧高，且一定比魅力高
+[text|ifs=Strength == 5 && Agility == 5 && Wit == 5 && Charm == 5]複合條件 -> 所有屬性都是 5
+[text|ifs=Strength > 1 && Agility > 1 && Wit > 1 && Charm > 1]複合條件 -> 沒有任何屬性為 1
+[text|ifs=Strength == 10 && Agility == 10 && Wit == 10 && Charm == 10]複合條件 -> 所有屬性都達到最大值
+[text|ifs=(Strength + Agility) - (Wit + Charm) > 5]複合條件 -> (力+敏) 比 (智+魅) 的總和高出 5 以上
+[text|ifs=Strength * Strength > 80]複合條件 -> 力量的平方大於 80 (即力量 > 8)
+[text|ifs=Strength > Wit + 5]複合條件 -> 力量比智慧高 5 點以上
+[text|ifs=Charm < Agility - 3]複合條件 -> 魅力比敏捷低 3 點以上
+[text|ifs=Strength == Agility || Strength == Wit || Strength == Charm]複合條件 -> 力量與至少一個其他屬性相等
+[text|ifs=Agility != Charm]複合條件 -> 敏捷與魅力數值不同
+[text|ifs=Wit > (Strength + Agility + Charm) / 3]複合條件 -> 智慧高於其他三項的平均值
+[text|ifs=Strength * 10 + Agility > 80]複合條件 -> 複合權重檢查 (10*STR + AGI > 80)
+[text|ifs=Strength == 1 && Charm == 10]複合條件 -> 力量最低且魅力最高
+[text|ifs=(Strength > 8 && Agility < 4) || (Wit > 8 && Charm < 4)]複合條件 -> 存在一組 "高攻低防" 或 "高智低魅" 的組合
+[text|ifs=Agility % Strength == 0 && Strength > 1]複合條件 -> 敏捷是力量的倍數 (且力量>1)
+[text|ifs=Strength + Wit == Agility + Charm]複合條件 -> 屬性分組總和相等
+[text|ifs=(Agility - 5) * (Wit - 5) > 0]複合條件 -> 敏捷和智慧同在 5 的一側 (同大於5或同小於5)
+[text|ifs=(Strength > 5) && !(Agility > 5)]複合條件 -> 力量大於5，但敏捷不大於5
+[text|ifs=Strength - Wit == 1 || Wit - Strength == 1]複合條件 -> 力量和智慧的數值相鄰
+[text|ifs=Strength > 5 && Agility > 5 || Charm < 3]複合條件 -> (力量和敏捷都高) 或 (魅力極低)
+[text|ifs=(Strength + Agility + Wit + Charm) / 4 > 6]複合條件 -> 平均屬性大於 6
+[text|ifs=Strength * Agility * Wit * Charm > 5000]複合條件 -> 四維乘積超過 5000
+[text|ifs=Strength > Charm * 2 && Agility > Wit * 2]複合條件 -> 物理屬性均為對應屬性的兩倍以上
+[text|ifs=Strength == 1 && Agility == 2 && Wit == 3 && Charm == 4]複合條件 -> 屬性為1,2,3,4的特定組合
+[text|ifs=Wit - Strength > 3]複合條件 -> 智慧顯著高於力量 (差距>3)
+[text|ifs=Agility * Charm > Strength * Wit]複合條件 -> 敏魅乘積大於力智乘積
+
+[text] ---
+[text] [ sezione 4: 獨立的 'if/else' 鏈測試 (維持原樣) ]
+[text|if=Wit >= 10 && Strength >= 8]If/Else 鏈 -> 觸發條件：高智慧且高力量
+[text|if=Strength >= 9 && Agility <= 2]If/Else 鏈 -> 觸發條件：強攻低敏
+[text|if=Agility >= 9 && Strength < 5]If/Else 鏈 -> 觸發條件：高敏低力
+[text|if=Strength == Agility && Agility == Wit && Wit == Charm]If/Else 鏈 -> 觸發條件：四維完全均衡
+[text|if=Strength + Agility + Wit + Charm >= 35]If/Else 鏈 -> 觸發條件：四維總和極高
+[text|if=Charm >= 8 && Wit < 5]If/Else 鏈 -> 觸發條件：高魅力但低智慧
+[text|else]If/Else 鏈 -> 後備選項：不符合「高魅力但低智慧」的條件
+
+[text] ---
+[text] [ sezione 5: 獨立的 'if/else' 鏈測試 (進階1) ]
+[text|if=!(Strength > Wit)]If/Else 鏈 -> 否定：力量不高於智慧
+[text|if=!(Agility <= 2)]If/Else 鏈 -> 否定：敏捷不小於等於2
+[text|else]If/Else 鏈 -> 後備選項：未命中否定條件
+
+[text] ---
+[text] [ sezione 6: 獨立的 'if/else' 鏈測試 (進階2) ]
+[text|if=(Strength + Agility) >= (Wit + Charm)]If/Else 鏈 -> 複合總和：力敏不低於智魅
+[text|if=(Strength >= 8) && (Wit >= 8) && !(Charm < 5)]If/Else 鏈 -> 複合條件：高力高智且魅力不低
+[text|else]If/Else 鏈 -> 後備選項：不符合進階複合條件
+
+[text] ---
+[text] [ sezione 7: 獨立的 'if/else' 鏈測試 (進階3) ]
+[text|if=Strength % 2 == 0 && Wit % 2 == 0]If/Else 鏈 -> 同為偶數：力量與智慧
+[text|if=Strength % 2 != 0 && Wit % 2 != 0]If/Else 鏈 -> 同為奇數：力量與智慧
+[text|if=(Strength % 2) != (Wit % 2)]If/Else 鏈 -> 奇偶不同：力量與智慧
+[text|else]If/Else 鏈 -> 後備選項：未命中奇偶條件
+
+[text] ---
+[text] 測試完畢。請選擇下一步。
+
+[choice]
+-> 繼續進行故事 | 1
+-> 直接跳到結局 | 100
+
+[text] ---
+[text] [ sezione 8: 骰子與 set 測試 ]
+[set] roll=3d6+2
+[text] 擲骰結果（3d6+2）：{roll}
+[text|ifs=2d20>25]條件擲骰 2d20>25 命中
+[text|ifs=2d20<=25]條件擲骰 2d20<=25 命中
+[set|if=roll>=12] Strength=Strength+1
+[set] mood="HAPPY"
+[text] 目前心情：{mood}
+
+[text] ---
+[text] [ sezione 9: random 測試（0%/100%） ]
+[random] 0%
+[text] 這行不應幾乎出現（0%）
+[random] 100%
+[text] 這行應必定出現（100%）
+
+[text] ---
+[text] [ sezione 10: speaker 測試 ]
+[text|speaker=Guide] 這是一段帶有說話者屬性的文字（目前顯示同一般文字）。
+
+[text] ---
+[text] [ sezione 11: choice 與屬性變更測試（2a/2b/2c 同頁跳轉） ]
+[choice]
+-> 測試跳轉至頁面2（路線 a，力量+2） | 2a | stat=Strength+2
+-> 測試跳轉至頁面2（路線 b，敏捷+3） | 2b | stat=Agility+3
+-> 測試跳轉至頁面2（路線 c，智慧+4） | 2c | stat=Wit+4
+-> 立即結束本回合 | END
+
+[text] ---
+[text] [ sezione 12: 變數 var_def 與條件 set/顯示 測試 ]
+[var_def] luck 3 18 "幸運 (Luck)"
+[set] luck=3d6
+[text] 你的幸運值為：{luck}
+[text] 測試佔位骰（{1D100}）：僅顯示擲骰結果，無其他效果
+[set|if=luck>=15] Charm=Charm+1
+[set|if=luck<6] Agility=Agility-1
+[text|ifs=luck>=15]幸運極佳：魅力 +1
+[text|ifs=luck<6]幸運欠佳：敏捷 -1
+
+[text] ---
+[text] [ sezione 13: 選項條件顯示/允許 測試 ]
+[text] 以下選項會依條件顯示：
+[choice]
+-> (需 Strength>=10) 測試條件選項 | 3 | if=Strength>=10
+-> (需 Agility>=5) 測試條件選項 | 3 | if=Agility>=5
+-> (需 Wit<=3) 測試條件選項 | 3 | if=Wit<=3
+
+[text] ---
+[text] [ sezione 14: if/else 鏈（總合比較與平手） ]
+[text|if=Strength+Agility > Wit+Charm]If/Else 鏈 -> 力敏總合較高
+[text|if=Strength+Agility == Wit+Charm]If/Else 鏈 -> 雙方總合相等
+[text|else]If/Else 鏈 -> 智魅總合較高
+
+[text] ---
+[text] [ sezione 15: random 30% 與條件 speaker ]
+[random] 30%
+[text] 這行有 30% 機率出現
+[text|speaker=Guide,if=Charm>=7]（Guide）魅力 7 以上時才會看到這行
+
+// 後續頁面維持不變，以便在測試後還能繼續操作
+[label] 1
+[title] 陰暗的小徑
+[text] 你踏上了陰暗的小徑...
+[choice]
+-> 繼續深入探索。 | 3
+-> 回到岔路口。 | 0
+
+[label] 2
+[title] 多分支同頁測試
+[text] 你來到了同一個頁面（2）。以下是當前屬性：
+[text] Strength={Strength}, Agility={Agility}, Wit={Wit}, Charm={Charm}
+[text] 心情：{mood}
+[choice]
+-> 回到起點 | 0
+-> 前往結局 | 100
+
+[label] 3
+[title] 森林深處的挑戰
+[text] 在森林的中心，你發現了一座被藤蔓覆蓋的古老祭壇。
+[choice]
+-> 查看結局。 | 100
+
+[label] 100
+[title] 結局
+[ending]
+[text|if=Wit>=10]結局 -> 以智慧取勝。
+[text|if=Strength>=10]結局 -> 以力量取勝。
+[text|if=Agility>=10]結局 -> 以敏捷取勝。
+[text|else]結局 -> 你順利地完成了這次的探險，雖然沒有獲得驚人的稱號，但這段經歷讓你成長了不少。這是一次平凡而又充實的冒險。
+[choice]
+-> 重新開始一次新的冒險 | 0
+-> 結束遊戲 | END

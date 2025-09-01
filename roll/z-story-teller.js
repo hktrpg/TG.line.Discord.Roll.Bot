@@ -212,7 +212,7 @@ function safeEvalCondition(expr, scope) {
         if (forbiddenIdents.test(raw)) return false;
         // Very small evaluator: replace bare identifiers with scope values
         // Allow operators: <, >, <=, >=, ==, ===, !=, !==, &&, ||, +, -, *, /, %
-        const allowed = /[A-Za-z_][A-Za-z0-9_]*|([<>]=?|==?=|!?=)|[()&|+\-*/%\s.\d]/g;
+        const allowed = /[A-Za-z_][A-Za-z0-9_]*|([<>]=?|==?=|!?=)|[()&|!+\-*/%\s.\d]/g;
         const cleaned = (raw.match(allowed) || []).join('');
         // Build a function with scope via with()
         const fn = new Function('scope', 'with(scope){ return (' + cleaned + ') }');
@@ -234,7 +234,7 @@ function evalExpressionValue(expr, scope) {
         const forbiddenIdents = /\b(?:globalThis|global|process|this|Function|constructor|require)\b/;
         if (hasCall || forbiddenIdents.test(str)) return expr;
         // Allow identifiers and basic operators
-        const allowed = /[A-Za-z_][A-Za-z0-9_]*|([<>]=?|==?=|!?=)|[()&|+\-*/%\s.\d]/g;
+        const allowed = /[A-Za-z_][A-Za-z0-9_]*|([<>]=?|==?=|!?=)|[()&|!+\-*/%\s.\d]/g;
         const cleaned = (str.match(allowed) || []).join('');
         const fn = new Function('scope', 'with(scope){ return (' + cleaned + ') }');
         return fn(scope);
@@ -491,35 +491,89 @@ function renderPageText(story, run, pageId) {
     const statKeySet = new Set(Array.isArray(story.gameStats) ? story.gameStats.map(s => s.key) : []);
     // const varKeySet = new Set(Array.isArray(story.variables) ? story.variables.map(v => v.key) : []);
     const ctx = Object.assign({}, scope);
+    // Coerce known stat values in the evaluation scope to numbers for reliable comparisons (e.g. ">= 10")
+    try {
+        for (const k of statKeySet) {
+            if (Object.prototype.hasOwnProperty.call(scope, k)) {
+                const num = typeof scope[k] === 'number' ? scope[k] : Number(scope[k]);
+                if (!Number.isNaN(num)) {
+                    scope[k] = num;
+                    ctx[k] = num;
+                }
+            }
+        }
+    } catch { /* ignore */ }
     let out = '';
     if (page.title) out += '【' + page.title + '】\n';
     if (Array.isArray(page.content)) {
-        for (const item of page.content) {
-            if (item.condition && !safeEvalCondition(item.condition, scope)) continue;
-            if (!pickRandomChance(item)) continue;
+        // Render with support for [text|if=...] ... [text|else] conditional chains
+        for (let i = 0; i < page.content.length; i++) {
+            const item = page.content[i];
+            if (!item) continue;
+
+            // Apply [set] effects immediately and continue
             if (item.setVariables && typeof item.setVariables === 'object') {
                 run.variables = run.variables || {};
                 for (const [k, v] of Object.entries(item.setVariables)) {
                     const val = evalExpressionValue(v, Object.assign({}, run.variables, run.stats, run.playerVariables));
-                    // Decide destination: stat or variable
                     if (statKeySet.has(k)) {
                         const num = typeof val === 'number' ? val : Number(val);
                         run.stats = run.stats || {};
                         run.stats[k] = Number.isNaN(num) ? (run.stats[k] ?? 0) : num;
-                        // Lock stats after first explicit authored assignment to prevent later randomization
                         if (!run.__statsLocked) run.__statsLocked = true;
                         scope[k] = run.stats[k];
                         ctx[k] = run.stats[k];
                     } else {
-                        // If declared variable key, set; otherwise also allow dynamic variables
                         const resolved = (typeof val === 'number' || typeof val === 'string') ? val : String(val);
                         run.variables[k] = resolved;
                         scope[k] = resolved;
                         ctx[k] = resolved;
                     }
                 }
+                continue;
             }
-            if (typeof item.text === 'string') {
+
+            const isText = typeof item.text === 'string';
+            const isConditional = !!(item && isText && (item.condition || item.isElse));
+
+            // Handle independent [text|ifs=...] items immediately (not part of an if/else chain)
+            if (isText && item.isIndependentIf) {
+                if (!item.condition || safeEvalCondition(item.condition, scope)) {
+                    if (pickRandomChance(item)) out += interpolate(item.text, ctx) + '\n';
+                }
+                continue;
+            }
+
+            if (isConditional) {
+                // Collect the contiguous chain of [text|if=...] and [text|else]
+                const chain = [];
+                let j = i;
+                while (j < page.content.length) {
+                    const it = page.content[j];
+                    if (!(it && typeof it.text === 'string' && (it.condition || it.isElse))) break;
+                    // Independent ifs should not join the chain
+                    if (it && it.isIndependentIf) break;
+                    chain.push(it);
+                    j++;
+                }
+                let chosen = null;
+                let elseItem = null;
+                for (const it of chain) {
+                    if (it.isElse) { elseItem = it; continue; }
+                    if (!it.condition || safeEvalCondition(it.condition, scope)) { chosen = it; break; }
+                }
+                if (!chosen && elseItem) chosen = elseItem;
+                if (chosen && pickRandomChance(chosen)) {
+                    out += interpolate(chosen.text, ctx) + '\n';
+                }
+                // Only adjust i when we actually consumed a chain; if chain is empty, just proceed normally
+                if (chain.length > 0) i = j - 1; // skip chain
+                continue;
+            }
+
+            if (isText) {
+                if (item.condition && !safeEvalCondition(item.condition, scope)) continue;
+                if (!pickRandomChance(item)) continue;
                 out += interpolate(item.text, ctx) + '\n';
             }
         }
@@ -532,13 +586,18 @@ function renderPageText(story, run, pageId) {
             run.endingTitle = page && page.title ? String(page.title) : '';
         } catch { /* ignore */ }
         if (Array.isArray(page.endings)) {
+            let chosen = null;
+            let elseEd = null;
             for (const ed of page.endings) {
-                if (!ed.condition || safeEvalCondition(ed.condition, scope)) {
-                    const chosen = interpolate(ed.text, ctx);
-                    out += '\n' + chosen + '\n';
-                    run.endingText = chosen;
-                    break;
-                }
+                if (ed && ed.isElse) { elseEd = ed; continue; }
+                if (!ed || typeof ed.text !== 'string') continue;
+                if (!ed.condition || safeEvalCondition(ed.condition, scope)) { chosen = ed; break; }
+            }
+            if (!chosen && elseEd) chosen = elseEd;
+            if (chosen) {
+                const chosenText = interpolate(chosen.text, ctx);
+                out += '\n' + chosenText + '\n';
+                run.endingText = chosenText;
             }
         }
     }
@@ -607,16 +666,30 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
         if (/^\[ending\]/i.test(line)) { inEnding = true; continue; }
 
         if ((m = line.match(/^\[text(?:\|([^\]]+))?\]\s*([\s\S]*)$/i))) {
-            const opts = (m[1] || '').split(',').reduce((acc, kv) => {
-                const seg = kv.trim(); if (!seg) return acc; const p = seg.split('='); acc[(p[0] || '').trim()] = (p[1] || '').trim(); return acc;
-            }, {});
+            // Parse text options, supporting standalone 'else'
+            const raw = String(m[1] || '').split(',').map(s => String(s || '').trim()).filter(Boolean);
+            const opts = {};
+            let isElse = false;
+            for (const seg of raw) {
+                if (/^else$/i.test(seg)) { isElse = true; continue; }
+                const eq = seg.indexOf('=');
+                const hasEq = eq !== -1;
+                const k = (hasEq ? seg.slice(0, eq) : seg).trim();
+                const v = (hasEq ? seg.slice(eq + 1) : '').trim();
+                if (k) opts[k] = v;
+            }
             const entry = { text: m[2] };
             if (opts.speaker) entry.speaker = opts.speaker;
-            if (opts.if) entry.condition = opts.if;
+            if (opts.ifs) { entry.condition = opts.ifs; entry.isIndependentIf = true; }
+            else if (opts.if) entry.condition = opts.if;
+            if (isElse) entry.isElse = true;
             const page = ensurePage(currentPageId || '0');
             if (inEnding) {
                 page.isEnding = true; page.endings = page.endings || [];
-                page.endings.push({ condition: entry.condition || 'true', text: entry.text });
+                const ed = { text: entry.text };
+                if (entry.condition) ed.condition = entry.condition;
+                if (entry.isElse) ed.isElse = true;
+                page.endings.push(ed);
             } else {
                 page.content.push(entry);
             }
@@ -629,9 +702,16 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
         // [set] and [set|if=...] support
         if ((m = line.match(/^\[set(?:\|([^\]]+))?\]\s*([^=\s]+)\s*=\s*([\s\S]+)$/i))) {
             const page = ensurePage(currentPageId || '0');
-            const opts = (m[1] || '').split(',').reduce((acc, kv) => {
-                const seg = String(kv || '').trim(); if (!seg) return acc; const p = seg.split('='); acc[(p[0] || '').trim()] = (p[1] || '').trim(); return acc;
-            }, {});
+            const opts = {};
+            for (const kv of String(m[1] || '').split(',')) {
+                const seg = String(kv || '').trim();
+                if (!seg) continue;
+                const eq = seg.indexOf('=');
+                const hasEq = eq !== -1;
+                const k = (hasEq ? seg.slice(0, eq) : seg).trim();
+                const v = (hasEq ? seg.slice(eq + 1) : '').trim();
+                if (k) opts[k] = v;
+            }
             const key = m[2];
             const rawVal = m[3];
             const val = Number.isNaN(Number(rawVal)) ? rawVal : Number(rawVal);
@@ -666,7 +746,8 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
         const fixed = [];
         for (let i = 0; i < page.content.length; i++) {
             const item = page.content[i];
-            if (item.randomChance && item.text === '' && page.content[i + 1] && typeof page.content[i + 1].text === 'string') {
+            // Attach even when randomChance is 0 (0%), not only truthy values
+            if (typeof item.randomChance === 'number' && item.text === '' && page.content[i + 1] && typeof page.content[i + 1].text === 'string') {
                 const nxt = Object.assign({}, page.content[i + 1]);
                 nxt.randomChance = item.randomChance;
                 fixed.push(nxt); i++; continue;
@@ -724,7 +805,11 @@ function exportStoryToRunDesign(story) {
                 if (typeof item.text === 'string') {
                     const opts = [];
                     if (item.speaker) opts.push('speaker=' + item.speaker);
-                    if (item.condition) opts.push('if=' + item.condition);
+                    if (item.condition) {
+                        if (item.isIndependentIf) opts.push('ifs=' + item.condition);
+                        else opts.push('if=' + item.condition);
+                    }
+                    if (item.isElse) opts.push('else');
                     if (opts.length > 0) lines.push('[text|' + opts.join(',') + '] ' + item.text);
                     else lines.push('[text] ' + item.text);
                 }
@@ -732,7 +817,10 @@ function exportStoryToRunDesign(story) {
         }
         if (page.isEnding && Array.isArray(page.endings)) {
             for (const ed of page.endings) {
-                if (ed.condition && ed.condition !== 'true') lines.push('[text|if=' + ed.condition + '] ' + (ed.text || ''));
+                const opts = [];
+                if (ed && ed.condition && ed.condition !== 'true') opts.push('if=' + ed.condition);
+                if (ed && ed.isElse) opts.push('else');
+                if (opts.length > 0) lines.push('[text|' + opts.join(',') + '] ' + (ed.text || ''));
                 else lines.push('[text] ' + (ed.text || ''));
             }
         }

@@ -194,7 +194,7 @@
 [text|ifs=2d20>25]條件擲骰 2d20>25 命中
 [text|ifs=2d20<=25]條件擲骰 2d20<=25 命中
 [set|if=roll>=12] Strength=Strength+1
-[set] mood="HAPPY"
+[set] mood=HAPPY
 [text] 目前心情：{mood}
 
 [text] ---
@@ -222,10 +222,14 @@
 [set] luck=3d6
 [text] 你的幸運值為：{luck}
 [text] 測試佔位骰（{1D100}）：僅顯示擲骰結果，無其他效果
-[set|if=luck>=15] Charm=Charm+1
-[set|if=luck<6] Agility=Agility-1
+[set|ifs=luck>=15] Charm=Charm+1
+[set|ifs=luck<14] Agility=Agility-1
 [text|ifs=luck>=15]幸運極佳：魅力 +1
-[text|ifs=luck<6]幸運欠佳：敏捷 -1
+[text|ifs=luck<14]幸運欠佳：敏捷 -1
+[set|if=luck>50]Strength=Strength+1
+[text|ifs=luck>50]幸運極佳：力量 +1
+[set|if=luck<50]Wit=Wit+1
+[text|ifs=luck<50]幸運極佳：智慧 +1
 
 [text] ---
 [text] [ sezione 13: 選項條件顯示/允許 測試 ]

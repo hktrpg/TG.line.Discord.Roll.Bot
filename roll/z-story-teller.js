@@ -513,6 +513,10 @@ function renderPageText(story, run, pageId) {
 
             // Apply [set] effects immediately and continue
             if (item.setVariables && typeof item.setVariables === 'object') {
+                // Respect conditional sets: only apply when condition is true
+                if (item.condition && !safeEvalCondition(item.condition, scope)) {
+                    continue;
+                }
                 run.variables = run.variables || {};
                 for (const [k, v] of Object.entries(item.setVariables)) {
                     const val = evalExpressionValue(v, Object.assign({}, run.variables, run.stats, run.playerVariables));

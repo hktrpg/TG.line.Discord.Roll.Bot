@@ -2039,8 +2039,8 @@ async function tallyStPoll(messageId, fallbackData) {
 if (agenda) {
     try {
         agenda.define('stPollFinish', async (job) => {
-            const { messageId, channelid, groupid, options } = job.attrs.data || {};
-            await tallyStPoll(messageId, { channelid, groupid, options });
+            const { messageId, channelid, groupid, options, minutes } = job.attrs.data || {};
+            await tallyStPoll(messageId, { channelid, groupid, options, minutes });
             try { await job.remove(); } catch { }
         });
     } catch { }

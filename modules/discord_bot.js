@@ -1752,203 +1752,170 @@ async function tallyStPoll(messageId, fallbackData) {
             return;
         }
     } catch {}
-    try {
-        const dbg = true;
-        console.error('[ST-POLL] tallyStPoll: start', {
-            shardId: client.cluster?.id,
-            messageId,
-            channelid: data.channelid,
-            optionsLen: Array.isArray(data.options) ? data.options.length : -1,
-            minutes: data.minutes
-        });
-        // Try cache first, then fetch as fallback
-        let channel = client.channels?.cache?.get?.(data.channelid) || null;
-        if (!channel) {
-            try {
-                channel = await client.channels.fetch(data.channelid).catch((e) => {
-                    console.error('[ST-POLL] tallyStPoll: channels.fetch failed', {
-                        shardId: client.cluster?.id,
-                        channelid: data.channelid,
-                        error: e?.message
-                    });
-                    return null;
-                });
-            } catch { channel = null; }
-        }
-        if (!channel) {
-            console.error('[ST-POLL] tallyStPoll: Channel not found', {
-                shardId: client.cluster?.id,
-                channelid: data.channelid,
-                messageId
-            });
-            const d = stPolls.get(messageId);
-            if (d) d.completed = true;
-            setTimeout(() => stPolls.delete(messageId), 60_000);
-            return;
-        }
-        if (dbg) {
-            console.error('[ST-POLL] tallyStPoll: Channel found', {
-                channelType: channel?.type,
-                isThread: typeof channel?.isThread === 'function' ? channel.isThread() : false,
-                partial: !!channel?.partial
-            });
-        }
-        let msg = null;
-        try {
-            msg = await channel.messages.fetch(messageId).catch((e) => {
-                console.error('[ST-POLL] tallyStPoll: channel.messages.fetch failed', {
-                    shardId: client.cluster?.id,
-                    channelid: data.channelid,
-                    messageId,
-                    error: e?.message
-                });
-                return null;
-            });
-        } catch { msg = null; }
 
-        if (!msg) {
-            console.error('[ST-POLL] tallyStPoll: Message not found or fetch failed', {
-                shardId: client.cluster?.id,
-                channelid: data.channelid,
-                messageId,
-                channelType: channel?.type,
-                channelPartial: !!channel?.partial,
-                cacheHasChannel: !!client.channels?.cache?.has?.(data.channelid)
-            });
+    console.error('[ST-POLL] tallyStPoll: start', {
+        shardId: client.cluster?.id,
+        messageId,
+        channelid: data.channelid,
+        optionsLen: Array.isArray(data.options) ? data.options.length : -1,
+        minutes: data.minutes
+    });
+
+    try {
+        // Count votes on the owning shard
+        const countResults = await client.cluster.broadcastEval(
+            async (c, { channelid, messageId, options }) => {
+                try {
+                    const channel = await c.channels.fetch(channelid).catch(() => null);
+                    if (!channel) return null;
+                    let msg = await channel.messages.fetch(messageId).catch(() => null);
+                    if (!msg) return { ok: false, reason: 'message-not-found' };
+                    if (msg.partial) { try { msg = await msg.fetch(); } catch {} }
+                    const EMOJIS = ['🇦','🇧','🇨','🇩','🇪','🇫','🇬','🇭','🇮','🇯','🇰','🇱','🇲','🇳','🇴','🇵','🇶','🇷','🇸','🇹'];
+                    const counts = [];
+                    for (let i = 0; i < options.length; i++) {
+                        const emoji = EMOJIS[i];
+                        const reaction = msg.reactions.cache.find(r => r.emoji.name === emoji);
+                        let num = 0;
+                        if (reaction) {
+                            try {
+                                const users = await reaction.users.fetch();
+                                num = users.filter(u => !u.bot).size;
+                            } catch {
+                                num = Math.max(0, (reaction.count || 0) - 1);
+                            }
+                        }
+                        counts.push(num);
+                    }
+                    return { ok: true, counts };
+                } catch (e) {
+                    return { ok: false, error: e?.message || String(e) };
+                }
+            },
+            { context: { channelid: data.channelid, messageId, options: data.options } }
+        );
+
+        const first = Array.isArray(countResults) && countResults.find(r => r && (r.ok || r.reason === 'message-not-found'));
+        if (!first) {
+            console.error('[ST-POLL] tallyStPoll: Channel not found', { shardId: client.cluster?.id, channelid: data.channelid, messageId });
             const d = stPolls.get(messageId);
             if (d) d.completed = true;
             setTimeout(() => stPolls.delete(messageId), 60_000);
             return;
         }
-		//console.log('tallyStPoll1', msg);
-        // Ensure partials are resolved (in case message/reactions are partial)
-        try {
-            if (msg.partial) {
-                if (dbg) console.error('[ST-POLL] tallyStPoll: message is partial, fetching full message');
-                msg = await msg.fetch();
-            }
-        } catch (e) {
-            console.error('[ST-POLL] tallyStPoll: msg.fetch failed', { error: e?.message });
+        if (first.reason === 'message-not-found') {
+            const d = stPolls.get(messageId);
+            if (d) d.completed = true;
+            setTimeout(() => stPolls.delete(messageId), 60_000);
+            return;
         }
-		//console.log('tallyStPoll2', msg);
-        // count reactions on the first N emojis
-        const counts = [];
-        const debugPoll = dbg;
-        const preDetails = [];
-        for (let i = 0; i < data.options.length; i++) {
-            const emoji = POLL_EMOJIS[i];
-            const reaction = msg.reactions.cache.find(r => r.emoji.name === emoji);
-            // Count unique human users; ignore the bot's own reaction
-            let num = 0;
-            let raw = reaction ? (reaction.count || 0) : 0;
-            let nonBotIds = [];
-            if (reaction) {
-                try {
-                    const users = await reaction.users.fetch();
-                    const filtered = users.filter(u => !u.bot);
-                    num = filtered.size;
-                    nonBotIds = [...filtered.keys()];
-                } catch { num = Math.max(0, (reaction.count || 0) - 1); }
-            }
-            counts.push(num);
-            if (debugPoll) preDetails.push({ emoji, rawCount: raw, nonBotCount: num, users: nonBotIds });
-        }
-        let max = Math.max(...counts);
-        if (debugPoll) console.log('[ST-POLL] preRefetch', { messageId, channelId: data.channelid, counts, details: preDetails });
-        // If cache might be stale (raw counts show >1), refetch once and recount
-        const hasAny = msg.reactions?.cache?.some?.(r => POLL_EMOJIS.includes(r.emoji.name) && (r.count || 0) > 1) || false;
-        if (max === 0 && hasAny) {
-            try { await new Promise(r => setTimeout(r, 700)); } catch {}
-            let msg2 = await channel.messages.fetch(messageId);
-            try { if (msg2.partial) msg2 = await msg2.fetch(); } catch {}
-            const recounts = [];
-            const postDetails = [];
-            for (let i = 0; i < data.options.length; i++) {
-                const emoji = POLL_EMOJIS[i];
-                const reaction2 = msg2.reactions.cache.find(r => r.emoji.name === emoji);
-                let num2 = 0;
-                let raw2 = reaction2 ? (reaction2.count || 0) : 0;
-                let nonBotIds2 = [];
-                if (reaction2) {
-                    try {
-                        const users2 = await reaction2.users.fetch();
-                        const filtered2 = users2.filter(u => !u.bot);
-                        num2 = filtered2.size;
-                        nonBotIds2 = [...filtered2.keys()];
-                    } catch { num2 = Math.max(0, (reaction2.count || 0) - 1); }
-                }
-                recounts.push(num2);
-                if (debugPoll) postDetails.push({ emoji, rawCount: raw2, nonBotCount: num2, users: nonBotIds2 });
-            }
-            counts.splice(0, counts.length, ...recounts);
-            max = Math.max(...counts);
-            if (debugPoll) console.log('[ST-POLL] postRefetch', { messageId, channelId: data.channelid, counts, details: postDetails });
-        }
-        // No-vote safety: do not advance when there are no votes
+
+        const counts = first.counts || [];
+        const max = Math.max(0, ...counts);
+
         if (max === 0) {
-            const chId = data.channelid;
-            const prev = stNoVoteStreak.get(chId) || 0;
+            // No votes: update streak and act on owning shard
+            const prev = stNoVoteStreak.get(data.channelid) || 0;
             const curr = prev + 1;
-            stNoVoteStreak.set(chId, curr);
-            try {
-                await msg.reply({ content: `本輪未收到投票（連續 ${curr} 次）。` });
-            } catch {}
+            stNoVoteStreak.set(data.channelid, curr);
             console.error('[ST-POLL] tallyStPoll: No votes received', { channelid: data.channelid, messageId, streak: curr });
+
             if (curr >= 4) {
-                try {
-                    await msg.reply({ content: '連續 4 次無人投票，已自動暫停本局。' });
-                } catch {}
-                try {
-                    const result = await handlingResponMessage(msg, '.st pause');
-                    if (result && result.text) {
-                        await handlingSendMessage(result);
-                    }
-                } catch (error) {
-                    console.error('auto-pause after no-vote streak failed:', error?.message);
-                }
+                // Auto pause via command on owning shard
+                await client.cluster.broadcastEval(
+                    async (c, { channelid }) => {
+                        try {
+                            const channel = await c.channels.fetch(channelid).catch(() => null);
+                            if (!channel) return null;
+                            try { await channel.send({ content: '連續 4 次無人投票，已自動暫停本局。' }); } catch {}
+                            try { await channel.send({ content: '.st pause' }); } catch {}
+                            return true;
+                        } catch { return null; }
+                    },
+                    { context: { channelid: data.channelid } }
+                );
                 const d = stPolls.get(messageId);
                 if (d) d.completed = true;
                 setTimeout(() => stPolls.delete(messageId), 60_000);
                 return;
             }
-            // Not pausing yet; repost poll with same options/minutes
-            try {
-                // Only repost if not paused
-                if (!(await isStoryTellerRunPausedByChannel(data.channelid))) {
-                    await createStPollByChannel({ channelid: data.channelid, groupid: data.groupid, text: '', payload: { options: data.options, minutes: Number(data.minutes || 3) } });
+
+            // Repost poll and reschedule on owning shard
+            const repost = await client.cluster.broadcastEval(
+                async (c, { channelid, options, minutes, streak }) => {
+                    try {
+                        const channel = await c.channels.fetch(channelid).catch(() => null);
+                        if (!channel) return null;
+                        try { await channel.send({ content: `本輪未收到投票（連續 ${streak} 次）。` }); } catch {}
+                        const EMOJIS = ['🇦','🇧','🇨','🇩','🇪','🇫','🇬','🇭','🇮','🇯','🇰','🇱','🇲','🇳','🇴','🇵','🇶','🇷','🇸','🇹'];
+                        const pollText = `啟動投票，請於 ${minutes} 分鐘內投票\n選項：\n` + options.map((o, i) => `${EMOJIS[i]} ${o.label || ('選項 ' + (i+1))}`).join('\n');
+                        const msg = await channel.send({ content: pollText });
+                        const maxOptions = Math.min(options.length, EMOJIS.length);
+                        for (let i = 0; i < maxOptions; i++) { try { await msg.react(EMOJIS[i]); } catch {} }
+                        return { messageId: msg.id };
+                    } catch { return null; }
+                },
+                { context: { channelid: data.channelid, options: data.options, minutes: Number(data.minutes || 3), streak: curr } }
+            );
+
+            const owned = Array.isArray(repost) && repost.find(r => r && r.messageId);
+            if (owned && owned.messageId) {
+                stPolls.set(owned.messageId, {
+                    channelid: data.channelid,
+                    groupid: data.groupid,
+                    options: data.options.slice(0),
+                    minutes: Number(data.minutes || 3)
+                });
+                const ms = Math.max(1, Number(data.minutes || 3)) * 60 * 1000;
+                if (agenda) {
+                    try {
+                        await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', {
+                            messageId: owned.messageId,
+                            channelid: data.channelid,
+                            groupid: data.groupid,
+                            options: data.options.slice(0),
+                            minutes: Number(data.minutes || 3)
+                        });
+                    } catch {
+                        setTimeout(() => tallyStPoll(owned.messageId).catch(() => {}), ms);
+                    }
+                } else {
+                    setTimeout(() => tallyStPoll(owned.messageId).catch(() => {}), ms);
                 }
-            } catch (error) {
-                console.error('repost poll after no-vote failed:', error?.message);
             }
-            // Mark this poll completed and clean up
+
             const d = stPolls.get(messageId);
             if (d) d.completed = true;
             setTimeout(() => stPolls.delete(messageId), 60_000);
             return;
-        } else {
-            // Reset streak on any valid vote
-            try { stNoVoteStreak.set(data.channelid, 0); } catch {}
         }
-        const indices = counts.reduce((acc, v, i) => { if (v === max) acc.push(i); return acc; }, []);
-        if (indices.length === 0) return;
-        const pick = indices[Math.floor(Math.random() * indices.length)];
-        const picked = data.options[pick];
-        console.error('[ST-POLL] tallyStPoll: Votes tallied', { counts, max, pickedIndex: pick, pickedAction: picked?.action, pickedLabel: picked?.label });
-        await msg.reply({ content: `投票結束，選中：${POLL_EMOJIS[pick]} ${picked.label}（${max} 票）` });
 
-        // trigger next action by simulating a message: ".st goto action" or ".st end"
-        const nextCmd = (String(picked.action || '').toUpperCase() === 'END') ? '.st end' : `.st goto ${picked.action}`;
-        // Use the actual poll message context to continue the story
-        // Do not advance if paused
-        if (!(await isStoryTellerRunPausedByChannel(data.channelid))) {
-            console.error('[ST-POLL] tallyStPoll: Advancing with command', { nextCmd });
-            const result = await handlingResponMessage(msg, nextCmd);
-            if (result && result.text) {
-                await handlingSendMessage(result);
-            }
-        }
+        // Reset streak on any valid vote
+        try { stNoVoteStreak.set(data.channelid, 0); } catch {}
+
+        // Determine winner and advance via command on owning shard
+        const top = counts.reduce((acc, v, i, arr) => (v === Math.max(...arr) ? acc.concat(i) : acc), []);
+        if (top.length === 0) return;
+        const pickIndex = top[Math.floor(Math.random() * top.length)];
+        const picked = data.options[pickIndex];
+        console.error('[ST-POLL] tallyStPoll: Votes tallied', { counts, max, pickedIndex: pickIndex, pickedAction: picked?.action, pickedLabel: picked?.label });
+
+        await client.cluster.broadcastEval(
+            async (c, { channelid, pickIndex, label, action }) => {
+                try {
+                    const channel = await c.channels.fetch(channelid).catch(() => null);
+                    if (!channel) return null;
+                    const EMOJIS = ['🇦','🇧','🇨','🇩','🇪','🇫','🇬','🇭','🇮','🇯','🇰','🇱','🇲','🇳','🇴','🇵','🇶','🇷','🇸','🇹'];
+                    try { await channel.send({ content: `投票結束，選中：${EMOJIS[pickIndex]} ${label}` }); } catch {}
+                    const nextCmd = (String(action || '').toUpperCase() === 'END') ? '.st end' : `.st goto ${action}`;
+                    try { await channel.send({ content: nextCmd }); } catch {}
+                    return true;
+                } catch { return null; }
+            },
+            { context: { channelid: data.channelid, pickIndex, label: picked.label || ('選項 ' + (pickIndex + 1)), action: picked.action || '' } }
+        );
     } catch (error) {
-        console.error('tallyStPoll error:', error?.message, { stack: error?.stack });
+        console.error('tallyStPoll error (cross-shard):', error?.message);
     } finally {
         const d = stPolls.get(messageId);
         if (d) d.completed = true;
@@ -1959,8 +1926,8 @@ async function tallyStPoll(messageId, fallbackData) {
 if (agenda) {
     try {
         agenda.define('stPollFinish', async (job) => {
-            const { messageId, channelid, groupid, options } = job.attrs.data || {};
-            await tallyStPoll(messageId, { channelid, groupid, options });
+            const { messageId, channelid, groupid, options, minutes } = job.attrs.data || {};
+            await tallyStPoll(messageId, { channelid, groupid, options, minutes });
             try { await job.remove(); } catch { }
         });
     } catch { }

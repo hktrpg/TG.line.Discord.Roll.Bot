@@ -41,6 +41,7 @@
 [text] {owner_name} 匆匆出門後，屋子裡瞬間安靜了下來。陽光從窗戶灑進來，在地板上形成一塊溫暖的光斑。
 [text] 你打了個哈欠，伸了伸懶腰，感覺身體裡充滿了無限可能。
 [text] 那麼，{cat_name}，今天打算怎麼過呢？
+[text|speaker=cat] 喵～（今天會是好日子嗎？）
 [choice]
 -> 準備好大鬧一場了！ | 1a | stat=Mischief+2,Energy+1
 -> 先伸個懶腰，看看今天心情如何。 | 1b | stat=Cuteness+2,Energy-1
@@ -58,6 +59,9 @@
 [text] - 淘氣度 (Mischief): {Mischief}
 [text] - 聰明度 (Cleverness): {Cleverness}
 [text] - 活力 (Energy): {Energy}
+[set|if=Energy>=8] mood="energetic"
+[set|if=Energy<8] mood="lazy"
+[text] 今日心情：{mood}
 [text] 巡視領地的時間到了。你優雅地跳下沙發，開始思考今天的第一步。
 [choice]
 -> 去客廳看看有什麼新鮮事。 | 2
@@ -70,6 +74,8 @@
 [title] 客廳的抉擇
 [text] 客廳裡一如往常。柔軟的沙發、高聳的貓抓板、還有貓奴忘在桌上的...一杯水？
 [text] 你環顧四周，思考著接下來的行動。
+[random] 35%
+[text] 你聽見窗外的鳥叫聲，精神一振。也許今天的幸運值是 {1d4}。
 [choice]
 -> 那塊溫暖的陽光地毯看起來是個完美的午睡地點。| 10 | if=Energy<8
 -> 貓奴的書桌看起來亂糟糟的，身為主的我應該幫忙「整理」一下。 | 30
@@ -81,6 +87,8 @@
 
 [label] 10
 [title] 完美的午睡地點
+[random] 25%
+[text] 陽光中的灰塵像小精靈般飛舞，彷彿在替你加油（也許帶來了 {1d6} 點好運）。
 [text] 沒錯，沒有什麼比在陽光下打盹更重要的貓生大事了。
 [text] 你走到那片光斑中，轉了幾圈，踩了踩，找了一個最舒服的姿勢躺下。溫暖的陽光曬得你毛茸茸的，舒服地發出了咕嚕聲。
 [set] Energy=Energy-2

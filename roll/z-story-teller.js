@@ -40,7 +40,14 @@ const prefixs = function () {
 
 const getHelpMessage = function () {
     return `【📖互動故事 StoryTeller】
-╭────── 🚀快速開始 ──────
+╭────── 💡功能簡介 ──────
+│ - 支援多頁面分支、條件顯示、隨機顯示與結局頁。
+│ - 玩家變數、劇本變數與屬性數值，可運算、可條件判斷。
+│ - 文字與條件可用骰語法：{2d6}、2d6>=7。
+│ - 匯入/更新/驗證/匯出 RUN_DESIGN 或 JSON 劇本。
+│ - 參與模式：僅發起者 / 所有人 / Discord 投票（計時）。
+│ - 閒置超過 1 小時的遊戲會自動暫停。
+├────── 🚀快速開始 ──────
 │ .st start <alias|title> [alone|all|poll x]
 │ 　啟動劇本。alone 僅發起者可互動；all 任何人；poll x 啟用Discord投票x分鐘（預設3，僅Discord）。
 │ .st list
@@ -72,7 +79,7 @@ const getHelpMessage = function () {
 │ .st exportfile <alias>
 │ 　將劇本以私訊傳送文字檔，並在頻道通知（需要有權限）。（僅Discord）
 │ .st verify <alias>
-│ 　檢查劇本內容格式是否正確。
+│ 　檢查劇本內容格式是否正確（可逆性檢查）。
 ├────── 🔐 啟動權限 ──────
 │ .st allow <alias> AUTHOR (預設)
 │ 　僅作者本人可在任何地方啟動。
@@ -84,7 +91,7 @@ const getHelpMessage = function () {
 │ 　任何人皆可啟動（公開）。
 ├────── 📊 狀態檢視 ──────
 │ .st game
-│ 　顯示目前運行與暫停中的遊戲。
+│ 　顯示目前運行與暫停中的遊戲（含快速操作）。
 ├────── 📎 範例 ──────
 │ .st start v002
 │ .st set name 小花
@@ -92,12 +99,12 @@ const getHelpMessage = function () {
 │ .st pause
 │ .st continue
 │ .st end
-├────── 💡備註 ──────
-│ - .txt 支援 RUN_DESIGN 語法。
+├────── 📝備註 ──────
+│ - .txt 使用 RUN_DESIGN 語法，可編輯並上傳/更新劇本。
 │ - poll、import、exportfile、update 僅於Discord有效；未提供 x 時預設為 3 分鐘。
-│ - runId 可於多處所使用以續玩同一劇本。
 │ - 閒置超過1小時的遊戲會在下次 .st start 時自動暫停。
-| - 編寫劇本請參考：https://bothelp.hktrpg.com/
+│ - 編寫劇本：請參考 RUN_DESIGN 語法（含進階範例）及 範例劇本，提供了三個範例劇本。
+│ - 位置在：https://bothelp.hktrpg.com/
 ╰────────────────`;
 }
 

@@ -187,7 +187,7 @@
 // 村長立繪: https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/refs/heads/master/roll/storyTeller/Demo/03/NPC-02.png
 [text] 「乖女，你乖！你是村子的希望，跳下去就可以了！」他嘶吼著。
 [text]https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/refs/heads/master/roll/storyTeller/Demo/03/NPC-02.png
-[text] 「我不是你們村的人！放開我！」你奮力掙扎，但無濟 vicepresidente。
+[text] 「我不是你們村的人！放開我！」你奮力掙扎，但無濟於事。
 [text] 「我是為了你好！」他怒吼著，樣子如同惡鬼，猛地將你推向冰冷的湖中。
 [text] 湖水淹沒了你的口鼻，你在絕望中緩緩下沉......
 [set] san_check = 1d100

@@ -1664,15 +1664,70 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
         if (await isStoryTellerRunPausedByChannel(channelid)) return;
         // Ensure the run is still active/continuing (not paused/ended)
         if (!(await isStoryTellerRunActiveByChannel(channelid))) return;
-        const channel = await client.channels.fetch(channelid);
-        // Send story content first
-        if (text && String(text).trim().length > 0) {
-            await channel.send({ content: text });
+
+        const maxOptions = Math.min(Array.isArray(payload?.options) ? payload.options.length : 0, POLL_EMOJIS.length);
+        if (maxOptions <= 0) return;
+
+        // Build poll text once
+        const pollText = `啟動投票，請於 ${payload.minutes || 3} 分鐘內投票\n選項：\n` + payload.options.slice(0, maxOptions).map((o, i) => `${POLL_EMOJIS[i]} ${o.label}`).join('\n');
+
+        // Send via owning shard to avoid null channel on non-owner shards
+        const results = await client.cluster.broadcastEval(
+            async (c, { channelId, textContent, pollContent, emojis }) => {
+                try {
+                    const channel = await c.channels.fetch(channelId).catch(() => null);
+                    if (!channel) return null;
+                    if (textContent && String(textContent).trim().length > 0) {
+                        try { await channel.send({ content: textContent }); } catch { /* ignore */ }
+                    }
+                    const msg = await channel.send({ content: pollContent });
+                    for (let i = 0; i < emojis.length; i++) {
+                        try { await msg.react(emojis[i]); } catch { /* ignore */ }
+                    }
+                    return { messageId: msg.id, channelId: msg.channelId, shardId: c.cluster?.id || 0 };
+                } catch {
+                    return null;
+                }
+            },
+            { context: { channelId: channelid, textContent: text, pollContent: pollText, emojis: POLL_EMOJIS.slice(0, maxOptions) } }
+        );
+
+        const found = Array.isArray(results) ? results.find(Boolean) : null;
+        if (!found) {
+            console.error(`[Shard ${client.cluster.id}] Could not send poll via owning shard for channel ${channelid}.`);
+            // Fallback: try local send (may still fail if this shard doesn't own the channel)
+            try {
+                const channel = await client.channels.fetch(channelid);
+                if (text && String(text).trim().length > 0) await channel.send({ content: text });
+                const pollMsg = await channel.send({ content: pollText });
+                for (let i = 0; i < maxOptions; i++) { try { await pollMsg.react(POLL_EMOJIS[i]); } catch { /* ignore */ } }
+                const ms = Math.max(1, Number(payload.minutes || 3)) * 60 * 1000;
+                const jobData = { messageId: pollMsg.id, channelid, groupid, options: payload.options.slice(0, maxOptions), minutes: Number(payload.minutes || 3) };
+                if (agenda) {
+                    try { await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', jobData); }
+                    catch { setTimeout(() => tallyStPoll(pollMsg.id, jobData).catch(() => { }), ms); }
+                } else {
+                    setTimeout(() => tallyStPoll(pollMsg.id, jobData).catch(() => { }), ms);
+                }
+                return;
+            } catch (e) {
+                console.error('createStPollByChannel fallback error:', e?.message);
+                return;
+            }
         }
-        // Then send poll message with options
-        const pollText = `啟動投票，請於 ${payload.minutes || 3} 分鐘內投票\n選項：\n` + payload.options.map((o, i) => `${POLL_EMOJIS[i]} ${o.label}`).join('\n');
-        const pollMsg = await channel.send({ content: pollText });
-        await createStPollCore({ sentMessage: pollMsg, groupid, payload });
+
+        // Schedule tally using fallback data so any shard can complete it
+        const ms = Math.max(1, Number(payload.minutes || 3)) * 60 * 1000;
+        const jobData = { messageId: found.messageId, channelid, groupid, options: payload.options.slice(0, maxOptions), minutes: Number(payload.minutes || 3) };
+        if (agenda) {
+            try { await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', jobData); }
+            catch (err) {
+                console.error('agenda schedule stPollFinish failed after broadcast send:', err?.message);
+                setTimeout(() => tallyStPoll(found.messageId, jobData).catch(() => { }), ms);
+            }
+        } else {
+            setTimeout(() => tallyStPoll(found.messageId, jobData).catch(() => { }), ms);
+        }
     } catch (error) {
         console.error('createStPollByChannel error:', error?.message);
     }

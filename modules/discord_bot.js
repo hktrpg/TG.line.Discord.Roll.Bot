@@ -1753,12 +1753,26 @@ async function tallyStPoll(messageId, fallbackData) {
         }
     } catch {}
     try {
-        const dbg = debugMode || !!process.env.ST_POLL_DEBUG;
+        const dbg = true;
+        console.error('[ST-POLL] tallyStPoll: start', {
+            shardId: client.cluster?.id,
+            messageId,
+            channelid: data.channelid,
+            optionsLen: Array.isArray(data.options) ? data.options.length : -1,
+            minutes: data.minutes
+        });
         // Try cache first, then fetch as fallback
         let channel = client.channels?.cache?.get?.(data.channelid) || null;
         if (!channel) {
             try {
-                channel = await client.channels.fetch(data.channelid).catch(() => null);
+                channel = await client.channels.fetch(data.channelid).catch((e) => {
+                    console.error('[ST-POLL] tallyStPoll: channels.fetch failed', {
+                        shardId: client.cluster?.id,
+                        channelid: data.channelid,
+                        error: e?.message
+                    });
+                    return null;
+                });
             } catch { channel = null; }
         }
         if (!channel) {
@@ -1772,22 +1786,35 @@ async function tallyStPoll(messageId, fallbackData) {
             setTimeout(() => stPolls.delete(messageId), 60_000);
             return;
         }
+        if (dbg) {
+            console.error('[ST-POLL] tallyStPoll: Channel found', {
+                channelType: channel?.type,
+                isThread: typeof channel?.isThread === 'function' ? channel.isThread() : false,
+                partial: !!channel?.partial
+            });
+        }
         let msg = null;
         try {
-            msg = await channel.messages.fetch(messageId).catch(() => null);
-        } catch { msg = null; }
-
-        if (!msg) {
-            if (dbg) {
-                console.error('[ST-POLL] tallyStPoll: Message not found or fetch failed', {
+            msg = await channel.messages.fetch(messageId).catch((e) => {
+                console.error('[ST-POLL] tallyStPoll: channel.messages.fetch failed', {
                     shardId: client.cluster?.id,
                     channelid: data.channelid,
                     messageId,
-                    channelType: channel?.type,
-                    channelPartial: !!channel?.partial,
-                    cacheHasChannel: !!client.channels?.cache?.has?.(data.channelid)
+                    error: e?.message
                 });
-            }
+                return null;
+            });
+        } catch { msg = null; }
+
+        if (!msg) {
+            console.error('[ST-POLL] tallyStPoll: Message not found or fetch failed', {
+                shardId: client.cluster?.id,
+                channelid: data.channelid,
+                messageId,
+                channelType: channel?.type,
+                channelPartial: !!channel?.partial,
+                cacheHasChannel: !!client.channels?.cache?.has?.(data.channelid)
+            });
             const d = stPolls.get(messageId);
             if (d) d.completed = true;
             setTimeout(() => stPolls.delete(messageId), 60_000);
@@ -1795,7 +1822,14 @@ async function tallyStPoll(messageId, fallbackData) {
         }
 		//console.log('tallyStPoll1', msg);
         // Ensure partials are resolved (in case message/reactions are partial)
-        try { if (msg.partial) msg = await msg.fetch(); } catch {}
+        try {
+            if (msg.partial) {
+                if (dbg) console.error('[ST-POLL] tallyStPoll: message is partial, fetching full message');
+                msg = await msg.fetch();
+            }
+        } catch (e) {
+            console.error('[ST-POLL] tallyStPoll: msg.fetch failed', { error: e?.message });
+        }
 		//console.log('tallyStPoll2', msg);
         // count reactions on the first N emojis
         const counts = [];
@@ -1859,6 +1893,7 @@ async function tallyStPoll(messageId, fallbackData) {
             try {
                 await msg.reply({ content: `本輪未收到投票（連續 ${curr} 次）。` });
             } catch {}
+            console.error('[ST-POLL] tallyStPoll: No votes received', { channelid: data.channelid, messageId, streak: curr });
             if (curr >= 4) {
                 try {
                     await msg.reply({ content: '連續 4 次無人投票，已自動暫停本局。' });
@@ -1898,6 +1933,7 @@ async function tallyStPoll(messageId, fallbackData) {
         if (indices.length === 0) return;
         const pick = indices[Math.floor(Math.random() * indices.length)];
         const picked = data.options[pick];
+        console.error('[ST-POLL] tallyStPoll: Votes tallied', { counts, max, pickedIndex: pick, pickedAction: picked?.action, pickedLabel: picked?.label });
         await msg.reply({ content: `投票結束，選中：${POLL_EMOJIS[pick]} ${picked.label}（${max} 票）` });
 
         // trigger next action by simulating a message: ".st goto action" or ".st end"
@@ -1905,13 +1941,14 @@ async function tallyStPoll(messageId, fallbackData) {
         // Use the actual poll message context to continue the story
         // Do not advance if paused
         if (!(await isStoryTellerRunPausedByChannel(data.channelid))) {
+            console.error('[ST-POLL] tallyStPoll: Advancing with command', { nextCmd });
             const result = await handlingResponMessage(msg, nextCmd);
             if (result && result.text) {
                 await handlingSendMessage(result);
             }
         }
     } catch (error) {
-        console.error('tallyStPoll error!:', error?.message);
+        console.error('tallyStPoll error:', error?.message, { stack: error?.stack });
     } finally {
         const d = stPolls.get(messageId);
         if (d) d.completed = true;

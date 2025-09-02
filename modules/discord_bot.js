@@ -1753,15 +1753,41 @@ async function tallyStPoll(messageId, fallbackData) {
         }
     } catch {}
     try {
-        const channel = await client.channels.fetch(data.channelid).catch(() => null);
+        const dbg = debugMode || !!process.env.ST_POLL_DEBUG;
+        // Try cache first, then fetch as fallback
+        let channel = client.channels?.cache?.get?.(data.channelid) || null;
         if (!channel) {
+            try {
+                channel = await client.channels.fetch(data.channelid).catch(() => null);
+            } catch { channel = null; }
+        }
+        if (!channel) {
+            console.error('[ST-POLL] tallyStPoll: Channel not found', {
+                shardId: client.cluster?.id,
+                channelid: data.channelid,
+                messageId
+            });
             const d = stPolls.get(messageId);
             if (d) d.completed = true;
             setTimeout(() => stPolls.delete(messageId), 60_000);
             return;
         }
-        let msg = await channel.messages.fetch(messageId).catch(() => null);
+        let msg = null;
+        try {
+            msg = await channel.messages.fetch(messageId).catch(() => null);
+        } catch { msg = null; }
+
         if (!msg) {
+            if (dbg) {
+                console.error('[ST-POLL] tallyStPoll: Message not found or fetch failed', {
+                    shardId: client.cluster?.id,
+                    channelid: data.channelid,
+                    messageId,
+                    channelType: channel?.type,
+                    channelPartial: !!channel?.partial,
+                    cacheHasChannel: !!client.channels?.cache?.has?.(data.channelid)
+                });
+            }
             const d = stPolls.get(messageId);
             if (d) d.completed = true;
             setTimeout(() => stPolls.delete(messageId), 60_000);
@@ -1773,7 +1799,7 @@ async function tallyStPoll(messageId, fallbackData) {
 		//console.log('tallyStPoll2', msg);
         // count reactions on the first N emojis
         const counts = [];
-        const debugPoll = debugMode || !!process.env.ST_POLL_DEBUG;
+        const debugPoll = dbg;
         const preDetails = [];
         for (let i = 0; i < data.options.length; i++) {
             const emoji = POLL_EMOJIS[i];
@@ -1799,13 +1825,7 @@ async function tallyStPoll(messageId, fallbackData) {
         const hasAny = msg.reactions?.cache?.some?.(r => POLL_EMOJIS.includes(r.emoji.name) && (r.count || 0) > 1) || false;
         if (max === 0 && hasAny) {
             try { await new Promise(r => setTimeout(r, 700)); } catch {}
-            let msg2 = await channel.messages.fetch(messageId).catch(() => null);
-            if (!msg2) {
-                const d = stPolls.get(messageId);
-                if (d) d.completed = true;
-                setTimeout(() => stPolls.delete(messageId), 60_000);
-                return;
-            }
+            let msg2 = await channel.messages.fetch(messageId);
             try { if (msg2.partial) msg2 = await msg2.fetch(); } catch {}
             const recounts = [];
             const postDetails = [];

@@ -1911,7 +1911,7 @@ async function tallyStPoll(messageId, fallbackData) {
             }
         }
     } catch (error) {
-        console.error('tallyStPoll error:', error?.message);
+        console.error('tallyStPoll error!:', error?.message);
     } finally {
         const d = stPolls.get(messageId);
         if (d) d.completed = true;

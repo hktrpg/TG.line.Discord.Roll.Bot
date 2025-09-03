@@ -1720,7 +1720,9 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
                 const pollMsg = await channel.send({ content: pollText });
                 for (let i = 0; i < maxOptions; i++) { try { await pollMsg.react(POLL_EMOJIS[i]); } catch { /* ignore */ } }
                 const ms = Math.max(1, Number(payload.minutes || 3)) * 60 * 1000;
-                const jobData = { messageId: pollMsg.id, channelid, groupid, options: payload.options.slice(0, maxOptions), minutes: Number(payload.minutes || 3) };
+                // reset no-vote streak when a new poll message is posted (fallback/local)
+                try { stNoVoteStreak.set(channelid, 0); } catch {}
+                const jobData = { messageId: pollMsg.id, channelid, groupid, options: payload.options.slice(0, maxOptions), minutes: Number(payload.minutes || 3), streak: Number(payload && payload.streak) || 0 };
                 if (agenda) {
                     try {
                         await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', jobData);
@@ -1743,7 +1745,9 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
 
         // Schedule tally using fallback data so any shard can complete it
         const ms = Math.max(1, Number(payload.minutes || 3)) * 60 * 1000;
-        const jobData = { messageId: found.messageId, channelid, groupid, options: payload.options.slice(0, maxOptions), minutes: Number(payload.minutes || 3) };
+        // reset no-vote streak when a new poll message is posted (broadcast/owner)
+        try { stNoVoteStreak.set(channelid, 0); } catch {}
+        const jobData = { messageId: found.messageId, channelid, groupid, options: payload.options.slice(0, maxOptions), minutes: Number(payload.minutes || 3), streak: Number(payload && payload.streak) || 0 };
         if (agenda) {
             try {
                 await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', jobData);
@@ -1900,8 +1904,9 @@ async function tallyStPoll(messageId, fallbackData) {
         if (max === 0) {
             const chId = data.channelid;
             const prev = stNoVoteStreak.get(chId) || 0;
-            const curr = prev + 1;
-            stNoVoteStreak.set(chId, curr);
+            // clamp streak at 4 to keep user-visible number stable and avoid jumps across shards
+            const next = Math.min(4, prev + 1);
+            stNoVoteStreak.set(chId, next);
             try {
                 await client.cluster.broadcastEval(
                     async (c, { channelId, messageId, content }) => {
@@ -1914,11 +1919,11 @@ async function tallyStPoll(messageId, fallbackData) {
                             return true;
                         } catch { return false; }
                     },
-                    { context: { channelId: data.channelid, messageId, content: `本輪未收到投票（連續 ${curr} 次）。` } }
+                    { context: { channelId: data.channelid, messageId, content: `本輪未收到投票（連續 ${next} 次）。` } }
                 );
             } catch {}
-            console.error('[ST-POLL] tallyStPoll: No votes received', { channelid: data.channelid, messageId, streak: curr });
-            if (curr >= 4) {
+            console.error('[ST-POLL] tallyStPoll: No votes received', { channelid: data.channelid, messageId, streak: next });
+            if (next >= 4) {
                 try {
                     await client.cluster.broadcastEval(
                         async (c, { channelId, messageId, content }) => {
@@ -1973,6 +1978,8 @@ async function tallyStPoll(messageId, fallbackData) {
                 } catch (error) {
                     console.error('auto-pause after no-vote streak failed:', error?.message);
                 }
+                // reset after auto-pause
+                try { stNoVoteStreak.set(chId, 0); } catch {}
                 const d = stPolls.get(messageId);
                 if (d) d.completed = true;
                 setTimeout(() => stPolls.delete(messageId), 60_000);

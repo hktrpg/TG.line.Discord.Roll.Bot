@@ -63,7 +63,12 @@ async function setActivePollForChannel(channelId, { messageId, minutes, optionCo
                     activePollMessageId: messageId,
                     pollMinutes: Number(minutes || 3),
                     lastPollAt: new Date(),
-                    activePollOptionCount: Number(optionCount || 0)
+                    activePollOptionCount: Number(optionCount || 0),
+                    // Reset streak on new poll creation
+                    pollNoVoteStreak: 0,
+                    // Clear any previous tally lock
+                    pollTallyingId: undefined,
+                    pollTallyingAt: undefined
                 }
             },
             { new: true }
@@ -1822,13 +1827,18 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
         try { await setActivePollForChannel(channelid, { messageId: found.messageId, minutes: payload.minutes, optionCount: maxOptions }); } catch { }
         console.error('[ST-POLL][create][owning-sent] shard=%s ch=%s msg=%s', found.shardId, channelid, found.messageId);
         if (agenda) {
-            try { await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', jobData); }
-            catch (error) {
+            try {
+                await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', jobData);
+                console.error('[ST-POLL][create][agenda] ch=%s msg=%s delayMs=%s', channelid, found.messageId, ms);
+            } catch (error) {
                 console.error('agenda schedule stPollFinish failed after broadcast send:', error?.message);
-                setTimeout(() => tallyStPoll(found.messageId, jobData).catch(() => { }), ms);
             }
+            // Always set a watchdog timeout as backup (guarded by tally lock)
+            setTimeout(() => tallyStPoll(found.messageId, jobData).catch(() => { }), ms + 5000);
+            console.error('[ST-POLL][create][watchdog] ch=%s msg=%s delayMs=%s', channelid, found.messageId, ms + 5000);
         } else {
             setTimeout(() => tallyStPoll(found.messageId, jobData).catch(() => { }), ms);
+            console.error('[ST-POLL][create][timeout] ch=%s msg=%s delayMs=%s', channelid, found.messageId, ms);
         }
     } catch (error) {
         console.error('createStPollByChannel error:', error?.message);
@@ -1884,6 +1894,9 @@ async function createStPollCore({ sentMessage, groupid, payload }) {
             setTimeout(() => tallyStPoll(sentMessage.id).catch(() => {}), ms);
             console.error('[ST-POLL][core-create][timeout] ch=%s msg=%s delayMs=%s', sentMessage.channelId, sentMessage.id, ms);
         }
+        // Watchdog timeout as backup (guarded by tally lock)
+        setTimeout(() => tallyStPoll(sentMessage.id).catch(() => {}), ms + 5000);
+        console.error('[ST-POLL][core-create][watchdog] ch=%s msg=%s delayMs=%s', sentMessage.channelId, sentMessage.id, ms + 5000);
     } else {
         setTimeout(() => tallyStPoll(sentMessage.id).catch(() => {}), ms);
         console.error('[ST-POLL][core-create][timeout] ch=%s msg=%s delayMs=%s', sentMessage.channelId, sentMessage.id, ms);
@@ -1998,22 +2011,6 @@ async function tallyStPoll(messageId, fallbackData) {
         if (max === 0) {
             const chId = data.channelid;
             const curr = await incrementPollNoVoteStreak(chId);
-            try {
-                await client.cluster.broadcastEval(
-                    async (c, { channelId, messageId, content }) => {
-                        try {
-                            const channel = await c.channels.fetch(channelId).catch(() => null);
-                            if (!channel) return false;
-                            const msg = await channel.messages.fetch(messageId).catch(() => null);
-                            if (!msg) return false;
-                            await msg.reply({ content });
-                            try { console.error('[ST-POLL][no-vote][reply] shard=%s ch=%s msg=%s', c.cluster?.id || 0, channelId, messageId); } catch {}
-                            return true;
-                        } catch { return false; }
-                    },
-                    { context: { channelId: data.channelid, messageId, content: `本輪未收到投票（連續 ${curr} 次）。` } }
-                );
-            } catch {}
             console.error('[ST-POLL] tallyStPoll: No votes received', { channelid: data.channelid, messageId, streak: curr });
             if (curr >= 4) {
                 try {
@@ -2075,6 +2072,23 @@ async function tallyStPoll(messageId, fallbackData) {
                 setTimeout(() => stPolls.delete(messageId), 60_000);
                 return;
             }
+            // 0 < curr < 4: emit info message once per cycle
+            try {
+                await client.cluster.broadcastEval(
+                    async (c, { channelId, messageId, content }) => {
+                        try {
+                            const channel = await c.channels.fetch(channelId).catch(() => null);
+                            if (!channel) return false;
+                            const msg = await channel.messages.fetch(messageId).catch(() => null);
+                            if (!msg) return false;
+                            await msg.reply({ content });
+                            try { console.error('[ST-POLL][no-vote][reply] shard=%s ch=%s msg=%s', c.cluster?.id || 0, channelId, messageId); } catch {}
+                            return true;
+                        } catch { return false; }
+                    },
+                    { context: { channelId: data.channelid, messageId, content: `本輪未收到投票（連續 ${curr} 次）。` } }
+                );
+            } catch {}
             // Not pausing yet; repost poll with same options/minutes
             try {
                 // Only repost if not paused and we can reserve repost (avoid duplicates across shards)
@@ -2177,6 +2191,7 @@ if (agenda) {
     try {
         agenda.define('stPollFinish', async (job) => {
             const { messageId, channelid, groupid, options, minutes } = job.attrs.data || {};
+            try { console.error('[ST-POLL][agenda][run] ch=%s msg=%s options=%s min=%s', channelid, messageId, Array.isArray(options) ? options.length : -1, minutes); } catch {}
             await tallyStPoll(messageId, { channelid, groupid, options, minutes });
             try { await job.remove(); } catch { }
         });

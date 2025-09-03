@@ -75,6 +75,29 @@ async function isStoryTellerRunActiveByChannel(channelId) {
     }
 }
 
+// Resolve which cluster owns a given guild so we only send from that cluster
+async function getOwnerClusterIdByGuild(guildId) {
+    try {
+        const results = await client.cluster.broadcastEval(
+            (c, { gid }) => {
+                try {
+                    return c.guilds.cache.has(gid) ? (c.cluster?.id || 0) : null;
+                } catch {
+                    return null;
+                }
+            },
+            { context: { gid: guildId } }
+        );
+        if (Array.isArray(results)) {
+            const id = results.find(v => Number.isInteger(v));
+            return (typeof id === 'number') ? id : null;
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
+
 client.on('messageCreate', async message => {
 	try {
 		if (message.author.bot) return;
@@ -1690,10 +1713,13 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
         // Build poll text once
         const pollText = `啟動投票，請於 ${payload.minutes || 3} 分鐘內投票\n選項：\n` + payload.options.slice(0, maxOptions).map((o, i) => `${POLL_EMOJIS[i]} ${o.label}`).join('\n');
 
-        // Send via owning shard to avoid null channel on non-owner shards
+        // Prefer sending only on the cluster that owns this guild to avoid flakiness
+        let ownerClusterId = null;
+        try { ownerClusterId = await getOwnerClusterIdByGuild(groupid); } catch {}
         const results = await client.cluster.broadcastEval(
-            async (c, { channelId, textContent, pollContent, emojis }) => {
+            async (c, { channelId, textContent, pollContent, emojis, targetClusterId }) => {
                 try {
+                    if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return null;
                     const channel = await c.channels.fetch(channelId).catch(() => null);
                     if (!channel) return null;
                     if (textContent && String(textContent).trim().length > 0) {
@@ -1708,7 +1734,7 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
                     return null;
                 }
             },
-            { context: { channelId: channelid, textContent: text, pollContent: pollText, emojis: POLL_EMOJIS.slice(0, maxOptions) } }
+            { context: { channelId: channelid, textContent: text, pollContent: pollText, emojis: POLL_EMOJIS.slice(0, maxOptions), targetClusterId: ownerClusterId } }
         );
 
         const found = Array.isArray(results) ? results.find(Boolean) : null;
@@ -1920,9 +1946,11 @@ async function tallyStPoll(messageId, fallbackData) {
             const nextDisplay = Math.min(4, nextRaw);
             stNoVoteStreak.set(chId, nextRaw);
             try {
+                let ownerClusterId = null; try { ownerClusterId = await getOwnerClusterIdByGuild(data.groupid); } catch {}
                 await client.cluster.broadcastEval(
-                    async (c, { channelId, messageId, content }) => {
+                    async (c, { channelId, messageId, content, targetClusterId }) => {
                         try {
+                            if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return false;
                             const channel = await c.channels.fetch(channelId).catch(() => null);
                             if (!channel) return false;
                             const msg = await channel.messages.fetch(messageId).catch(() => null);
@@ -1931,15 +1959,17 @@ async function tallyStPoll(messageId, fallbackData) {
                             return true;
                         } catch { return false; }
                     },
-                    { context: { channelId: data.channelid, messageId, content: `本輪未收到投票（連續 ${nextDisplay} 次）。` } }
+                    { context: { channelId: data.channelid, messageId, content: `本輪未收到投票（連續 ${nextDisplay} 次）。`, targetClusterId: ownerClusterId } }
                 );
             } catch {}
             console.error('[ST-POLL] tallyStPoll: No votes received', { channelid: data.channelid, messageId, streak: nextRaw });
             if (nextRaw >= 4) {
                 try {
+                    let ownerClusterId = null; try { ownerClusterId = await getOwnerClusterIdByGuild(data.groupid); } catch {}
                     await client.cluster.broadcastEval(
-                        async (c, { channelId, messageId, content }) => {
+                        async (c, { channelId, messageId, content, targetClusterId }) => {
                             try {
+                                if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return false;
                                 const channel = await c.channels.fetch(channelId).catch(() => null);
                                 if (!channel) return false;
                                 const msg = await channel.messages.fetch(messageId).catch(() => null);
@@ -1948,7 +1978,7 @@ async function tallyStPoll(messageId, fallbackData) {
                                 return true;
                             } catch { return false; }
                         },
-                        { context: { channelId: data.channelid, messageId, content: '連續 4 次無人投票，已自動暫停本局。' } }
+                        { context: { channelId: data.channelid, messageId, content: '連續 4 次無人投票，已自動暫停本局。', targetClusterId: ownerClusterId } }
                     );
                 } catch {}
                 try {
@@ -2022,9 +2052,11 @@ async function tallyStPoll(messageId, fallbackData) {
         const picked = data.options[pick];
         console.error('[ST-POLL] tallyStPoll: Votes tallied', { counts, max, pickedIndex: pick, pickedAction: picked?.action, pickedLabel: picked?.label });
         try {
+            let ownerClusterId = null; try { ownerClusterId = await getOwnerClusterIdByGuild(data.groupid); } catch {}
             await client.cluster.broadcastEval(
-                async (c, { channelId, messageId, content }) => {
+                async (c, { channelId, messageId, content, targetClusterId }) => {
                     try {
+                        if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return false;
                         const channel = await c.channels.fetch(channelId).catch(() => null);
                         if (!channel) return false;
                         const msg = await channel.messages.fetch(messageId).catch(() => null);
@@ -2033,7 +2065,7 @@ async function tallyStPoll(messageId, fallbackData) {
                         return true;
                     } catch { return false; }
                 },
-                { context: { channelId: data.channelid, messageId, content: `投票結束，選中：${POLL_EMOJIS[pick]} ${picked.label}（${max} 票）` } }
+                { context: { channelId: data.channelid, messageId, content: `投票結束，選中：${POLL_EMOJIS[pick]} ${picked.label}（${max} 票）`, targetClusterId: ownerClusterId } }
             );
         } catch {}
 
@@ -2069,16 +2101,18 @@ async function tallyStPoll(messageId, fallbackData) {
                         console.error('[ST-POLL] tallyStPoll: advancing with new poll payload');
                         await createStPollByChannel({ channelid: data.channelid, groupid: data.groupid, text: rplyVal.text, payload: rplyVal.discordCreatePoll });
                     } else {
+                        let ownerClusterId = null; try { ownerClusterId = await getOwnerClusterIdByGuild(data.groupid); } catch {}
                         await client.cluster.broadcastEval(
-                            async (c, { channelId, content }) => {
+                            async (c, { channelId, content, targetClusterId }) => {
                                 try {
+                                    if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return false;
                                     const channel = await c.channels.fetch(channelId).catch(() => null);
                                     if (!channel) return false;
                                     await channel.send({ content });
                                     return true;
                                 } catch { return false; }
                             },
-                            { context: { channelId: data.channelid, content: rplyVal.text } }
+                            { context: { channelId: data.channelid, content: rplyVal.text, targetClusterId: ownerClusterId } }
                         );
                     }
                 }

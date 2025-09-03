@@ -1816,18 +1816,6 @@ async function tallyStPoll(messageId, fallbackData) {
             optionsLen: Array.isArray(data.options) ? data.options.length : -1,
             minutes: data.minutes
         });
-        // Gate execution to the shard that owns the guild to prevent duplicate tallies across shards
-        try {
-            const ownerResults = await client.cluster.broadcastEval(
-                (c, { guildId }) => c.guilds.cache.has(guildId) ? (c.cluster?.id || 0) : null,
-                { context: { guildId: data.groupid } }
-            );
-            const ownerShardId = Array.isArray(ownerResults) ? ownerResults.find(v => typeof v === 'number') : null;
-            if (typeof ownerShardId === 'number' && ownerShardId !== (client.cluster?.id || 0)) {
-                // Not the owning shard; exit without processing
-                return;
-            }
-        } catch { /* ignore gating errors */ }
         // Count reactions on the owning shard using broadcastEval
         const shardResults = await client.cluster.broadcastEval(
             async (c, { channelId, messageId, optionCount, emojis }) => {

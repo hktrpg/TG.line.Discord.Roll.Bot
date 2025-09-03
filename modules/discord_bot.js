@@ -50,6 +50,9 @@ let ws;
 const POLL_EMOJIS = ['🇦','🇧','🇨','🇩','🇪','🇫','🇬','🇭','🇮','🇯','🇰','🇱','🇲','🇳','🇴','🇵','🇶','🇷','🇸','🇹'];
 const stPolls = new Map(); // messageId -> { channelid, groupid, options, originMessage, completed?: boolean }
 const stNoVoteStreak = new Map(); // channelId -> consecutive no-vote count
+// Cross-shard helpers when DB-based coordination is unavailable
+const stPollLocks = new Map(); // channelId -> locked messageId
+const lastPollIdByChannel = new Map(); // channelId -> last poll messageId
 
 // Helper: check if StoryTeller run in this channel is paused
 async function isStoryTellerRunPausedByChannel(channelId) {
@@ -1703,6 +1706,20 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
                 for (let i = 0; i < maxOptions; i++) { try { await pollMsg.react(POLL_EMOJIS[i]); } catch { /* ignore */ } }
                 const ms = Math.max(1, Number(payload.minutes || 3)) * 60 * 1000;
                 const jobData = { messageId: pollMsg.id, channelid, groupid, options: payload.options.slice(0, maxOptions), minutes: Number(payload.minutes || 3) };
+                // Record last poll id and reset local counters/locks (and DB if available)
+                try {
+                    if (schema && schema.storyRun && typeof schema.storyRun.findOneAndUpdate === 'function') {
+                        await schema.storyRun.findOneAndUpdate(
+                            { channelID: channelid },
+                            { $set: { 'variables.__lastPollMessageId': String(pollMsg.id), 'variables.__pollLockMessageId': '', 'variables.__noVoteStreak': 0 } },
+                            { new: true }
+                        );
+                    } else {
+                        lastPollIdByChannel.set(channelid, String(pollMsg.id));
+                        stPollLocks.set(channelid, '');
+                        stNoVoteStreak.set(channelid, 0);
+                    }
+                } catch { /* ignore */ }
                 if (agenda) {
                     try { await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', jobData); }
                     catch { setTimeout(() => tallyStPoll(pollMsg.id, jobData).catch(() => { }), ms); }
@@ -1719,6 +1736,20 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
         // Schedule tally using fallback data so any shard can complete it
         const ms = Math.max(1, Number(payload.minutes || 3)) * 60 * 1000;
         const jobData = { messageId: found.messageId, channelid, groupid, options: payload.options.slice(0, maxOptions), minutes: Number(payload.minutes || 3) };
+        // Record last poll id and reset local counters/locks (and DB if available)
+        try {
+            if (schema && schema.storyRun && typeof schema.storyRun.findOneAndUpdate === 'function') {
+                await schema.storyRun.findOneAndUpdate(
+                    { channelID: channelid },
+                    { $set: { 'variables.__lastPollMessageId': String(found.messageId), 'variables.__pollLockMessageId': '', 'variables.__noVoteStreak': 0 } },
+                    { new: true }
+                );
+            } else {
+                lastPollIdByChannel.set(channelid, String(found.messageId));
+                stPollLocks.set(channelid, '');
+                stNoVoteStreak.set(channelid, 0);
+            }
+        } catch { /* ignore */ }
         if (agenda) {
             try { await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', jobData); }
             catch (err) {
@@ -1789,6 +1820,32 @@ async function tallyStPoll(messageId, fallbackData) {
         : null);
     if (!data) return;
     if (data.completed) return;
+    // Only tally latest poll for this channel
+    try {
+        if (schema && schema.storyRun && typeof schema.storyRun.findOne === 'function') {
+            const run = await schema.storyRun.findOne({ channelID: data.channelid }).sort({ updatedAt: -1 }).lean();
+            const lastId = run && run.variables && run.variables.__lastPollMessageId ? String(run.variables.__lastPollMessageId) : '';
+            if (lastId && String(messageId) !== lastId) return;
+        } else {
+            const lastId = lastPollIdByChannel.get(data.channelid) || '';
+            if (lastId && String(messageId) !== lastId) return;
+        }
+    } catch { /* ignore */ }
+    // Acquire cross-shard lock
+    try {
+        if (schema && schema.storyRun && typeof schema.storyRun.findOneAndUpdate === 'function') {
+            const locked = await schema.storyRun.findOneAndUpdate(
+                { channelID: data.channelid, 'variables.__pollLockMessageId': { $ne: String(messageId) } },
+                { $set: { 'variables.__pollLockMessageId': String(messageId) } },
+                { new: true }
+            );
+            if (!locked) return;
+        } else {
+            const current = stPollLocks.get(data.channelid) || '';
+            if (current && current === String(messageId)) return;
+            stPollLocks.set(data.channelid, String(messageId));
+        }
+    } catch { /* ignore */ }
     // Abort if run has been paused
     try {
         if (await isStoryTellerRunPausedByChannel(data.channelid)) {
@@ -1863,9 +1920,25 @@ async function tallyStPoll(messageId, fallbackData) {
         // No-vote safety: do not advance when there are no votes
         if (max === 0) {
             const chId = data.channelid;
-            const prev = stNoVoteStreak.get(chId) || 0;
-            const curr = prev + 1;
-            stNoVoteStreak.set(chId, curr);
+            let curr = 0;
+            try {
+                if (schema && schema.storyRun && typeof schema.storyRun.findOneAndUpdate === 'function') {
+                    const updated = await schema.storyRun.findOneAndUpdate(
+                        { channelID: chId },
+                        { $inc: { 'variables.__noVoteStreak': 1 } },
+                        { new: true }
+                    );
+                    curr = Number((updated && updated.variables && updated.variables.__noVoteStreak) || 0);
+                } else {
+                    const prev = stNoVoteStreak.get(chId) || 0;
+                    curr = prev + 1;
+                    stNoVoteStreak.set(chId, curr);
+                }
+            } catch {
+                const prev = stNoVoteStreak.get(chId) || 0;
+                curr = prev + 1;
+                stNoVoteStreak.set(chId, curr);
+            }
             try {
                 await client.cluster.broadcastEval(
                     async (c, { channelId, messageId, content }) => {
@@ -1957,7 +2030,17 @@ async function tallyStPoll(messageId, fallbackData) {
             return;
         } else {
             // Reset streak on any valid vote
-            try { stNoVoteStreak.set(data.channelid, 0); } catch {}
+            try {
+                if (schema && schema.storyRun && typeof schema.storyRun.findOneAndUpdate === 'function') {
+                    await schema.storyRun.findOneAndUpdate(
+                        { channelID: data.channelid },
+                        { $set: { 'variables.__noVoteStreak': 0 } },
+                        { new: true }
+                    );
+                } else {
+                    stNoVoteStreak.set(data.channelid, 0);
+                }
+            } catch { /* ignore */ }
         }
         const indices = counts.reduce((acc, v, i) => { if (v === max) acc.push(i); return acc; }, []);
         if (indices.length === 0) return;

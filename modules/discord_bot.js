@@ -55,7 +55,8 @@ const stNoVoteStreak = new Map(); // channelId -> consecutive no-vote count
 async function setActivePollForChannel(channelId, { messageId, minutes, optionCount }) {
     try {
         if (!schema || !schema.storyRun || typeof schema.storyRun.findOneAndUpdate !== 'function') return;
-        await schema.storyRun.findOneAndUpdate(
+        console.error('[ST-POLL][setActive] ch=%s msg=%s min=%s opt=%s', channelId, messageId, minutes, optionCount);
+        const res = await schema.storyRun.findOneAndUpdate(
             { channelID: channelId, isEnded: false },
             {
                 $set: {
@@ -67,12 +68,14 @@ async function setActivePollForChannel(channelId, { messageId, minutes, optionCo
             },
             { new: true }
         );
+        console.error('[ST-POLL][setActive][ok] ch=%s updated=%s', channelId, !!res);
     } catch { /* ignore */ }
 }
 
 async function reservePollRepost(channelId, expectedPrevMessageId) {
     try {
         if (!schema || !schema.storyRun || typeof schema.storyRun.findOneAndUpdate !== 'function') return true;
+        console.error('[ST-POLL][reserveRepost] ch=%s prev=%s', channelId, expectedPrevMessageId || '-');
         const filter = { channelID: channelId, isEnded: false };
         if (expectedPrevMessageId) filter.activePollMessageId = String(expectedPrevMessageId);
         const updated = await schema.storyRun.findOneAndUpdate(
@@ -80,23 +83,30 @@ async function reservePollRepost(channelId, expectedPrevMessageId) {
             { $set: { activePollMessageId: '__creating__', lastPollAt: new Date() } },
             { new: true }
         );
-        return !!updated;
+        const ok = !!updated;
+        console.error('[ST-POLL][reserveRepost][result] ch=%s ok=%s', channelId, ok);
+        return ok;
     } catch {
-        return true; // fallback to allow
+        console.error('[ST-POLL][reserveRepost][error] ch=%s', channelId);
+        return false; // fail closed to avoid duplicates
     }
 }
 
 async function acquirePollTallyLock(channelId, messageId) {
     try {
         if (!schema || !schema.storyRun || typeof schema.storyRun.findOneAndUpdate !== 'function') return true;
+        console.error('[ST-POLL][tallyLock] ch=%s msg=%s', channelId, messageId);
         const updated = await schema.storyRun.findOneAndUpdate(
             { channelID: channelId, isEnded: false, activePollMessageId: String(messageId), $or: [ { pollTallyingId: { $exists: false } }, { pollTallyingId: { $ne: String(messageId) } } ] },
             { $set: { pollTallyingId: String(messageId), pollTallyingAt: new Date() } },
             { new: true }
         ).lean();
-        return !!updated;
+        const ok = !!updated;
+        console.error('[ST-POLL][tallyLock][result] ch=%s ok=%s', channelId, ok);
+        return ok;
     } catch {
-        return true;
+        console.error('[ST-POLL][tallyLock][error] ch=%s', channelId);
+        return false; // fail closed to avoid duplicates
     }
 }
 
@@ -110,11 +120,13 @@ async function incrementPollNoVoteStreak(channelId) {
         ).lean();
         const curr = updated && typeof updated.pollNoVoteStreak === 'number' ? updated.pollNoVoteStreak : 1;
         try { stNoVoteStreak.set(channelId, curr); } catch { }
+        console.error('[ST-POLL][streak][inc] ch=%s value=%s', channelId, curr);
         return curr;
     } catch {
         const prev = stNoVoteStreak.get(channelId) || 0;
         const curr = prev + 1;
         stNoVoteStreak.set(channelId, curr);
+        console.error('[ST-POLL][streak][inc-fallback] ch=%s value=%s', channelId, curr);
         return curr;
     }
 }
@@ -127,6 +139,7 @@ async function resetPollNoVoteStreak(channelId) {
                 { $set: { pollNoVoteStreak: 0 } },
                 { new: true }
             );
+            console.error('[ST-POLL][streak][reset] ch=%s', channelId);
         }
     } catch { /* ignore */ }
     try { stNoVoteStreak.set(channelId, 0); } catch { }
@@ -1758,10 +1771,12 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
                 try {
                     const channel = await c.channels.fetch(channelId).catch(() => null);
                     if (!channel) return null;
+                    try { console.error('[ST-POLL][create][owner-check] shard=%s ch=%s', c.cluster?.id || 0, channelId); } catch {}
                     if (textContent && String(textContent).trim().length > 0) {
                         try { await channel.send({ content: textContent }); } catch { /* ignore */ }
                     }
                     const msg = await channel.send({ content: pollContent });
+                    try { console.error('[ST-POLL][create][sent] shard=%s ch=%s msg=%s', c.cluster?.id || 0, channelId, msg.id); } catch {}
                     for (let i = 0; i < emojis.length; i++) {
                         try { await msg.react(emojis[i]); } catch { /* ignore */ }
                     }
@@ -1781,6 +1796,7 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
                 const channel = await client.channels.fetch(channelid);
                 if (text && String(text).trim().length > 0) await channel.send({ content: text });
                 const pollMsg = await channel.send({ content: pollText });
+                console.error('[ST-POLL][create][fallback-sent] shard=%s ch=%s msg=%s', client.cluster?.id || 0, channelid, pollMsg.id);
                 for (let i = 0; i < maxOptions; i++) { try { await pollMsg.react(POLL_EMOJIS[i]); } catch { /* ignore */ } }
                 // Mark active poll in DB for cross-shard de-duplication
                 try { await setActivePollForChannel(channelid, { messageId: pollMsg.id, minutes: payload.minutes, optionCount: maxOptions }); } catch { }
@@ -1793,8 +1809,8 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
                     setTimeout(() => tallyStPoll(pollMsg.id, jobData).catch(() => { }), ms);
                 }
                 return;
-            } catch (e) {
-                console.error('createStPollByChannel fallback error:', e?.message);
+            } catch (error) {
+                console.error('createStPollByChannel fallback error:', error?.message);
                 return;
             }
         }
@@ -1804,10 +1820,11 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
         const jobData = { messageId: found.messageId, channelid, groupid, options: payload.options.slice(0, maxOptions), minutes: Number(payload.minutes || 3) };
         // Mark active poll in DB for cross-shard de-duplication
         try { await setActivePollForChannel(channelid, { messageId: found.messageId, minutes: payload.minutes, optionCount: maxOptions }); } catch { }
+        console.error('[ST-POLL][create][owning-sent] shard=%s ch=%s msg=%s', found.shardId, channelid, found.messageId);
         if (agenda) {
             try { await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', jobData); }
-            catch (err) {
-                console.error('agenda schedule stPollFinish failed after broadcast send:', err?.message);
+            catch (error) {
+                console.error('agenda schedule stPollFinish failed after broadcast send:', error?.message);
                 setTimeout(() => tallyStPoll(found.messageId, jobData).catch(() => { }), ms);
             }
         } else {
@@ -1838,6 +1855,7 @@ async function createStPollCore({ sentMessage, groupid, payload }) {
     for (let i = 0; i < maxOptions; i++) {
         try { await sentMessage.react(POLL_EMOJIS[i]); } catch (error) { console.error('poll react failed', error?.message); }
     }
+    try { console.error('[ST-POLL][core-create] shard=%s ch=%s msg=%s opt=%s', client.cluster?.id || 0, sentMessage.channelId, sentMessage.id, maxOptions); } catch {}
     stPolls.set(sentMessage.id, {
         channelid: sentMessage.channelId,
         groupid,
@@ -1859,13 +1877,16 @@ async function createStPollCore({ sentMessage, groupid, payload }) {
                 options: payload.options.slice(0, maxOptions),
                 minutes: Number(payload.minutes || 3)
             });
+            console.error('[ST-POLL][core-create][agenda] ch=%s msg=%s delayMs=%s', sentMessage.channelId, sentMessage.id, ms);
         } catch (error) {
             console.error('agenda schedule stPollFinish failed, falling back to setTimeout:', error?.message);
             // fallback to setTimeout
             setTimeout(() => tallyStPoll(sentMessage.id).catch(() => {}), ms);
+            console.error('[ST-POLL][core-create][timeout] ch=%s msg=%s delayMs=%s', sentMessage.channelId, sentMessage.id, ms);
         }
     } else {
         setTimeout(() => tallyStPoll(sentMessage.id).catch(() => {}), ms);
+        console.error('[ST-POLL][core-create][timeout] ch=%s msg=%s delayMs=%s', sentMessage.channelId, sentMessage.id, ms);
     }
 }
 
@@ -1908,7 +1929,7 @@ async function tallyStPoll(messageId, fallbackData) {
         }
     } catch {}
     try {
-        const dbg = true;
+        // debug marker
         console.error('[ST-POLL] tallyStPoll: start', {
             shardId: client.cluster?.id,
             messageId,
@@ -1925,6 +1946,7 @@ async function tallyStPoll(messageId, fallbackData) {
                     let msg = await channel.messages.fetch(messageId).catch(() => null);
                     if (!msg) return null;
                     if (msg.partial) { try { msg = await msg.fetch(); } catch {} }
+                    try { console.error('[ST-POLL][tally][fetch] shard=%s ch=%s msg=%s', c.cluster?.id || 0, channelId, messageId); } catch {}
                     const counts = [];
                     for (let i = 0; i < optionCount; i++) {
                         const emoji = emojis[i];
@@ -1959,10 +1981,12 @@ async function tallyStPoll(messageId, fallbackData) {
             return;
         }
         const counts = found.counts;
+        console.error('[ST-POLL][tally][counts] shard=%s ch=%s msg=%s counts=%j', client.cluster?.id || 0, data.channelid, messageId, counts);
         // Acquire tally lock to ensure only one shard advances for this poll
         try {
             const gotLock = await acquirePollTallyLock(data.channelid, messageId);
             if (!gotLock) {
+                console.error('[ST-POLL][tally][skip-no-lock] ch=%s msg=%s', data.channelid, messageId);
                 const d = stPolls.get(messageId);
                 if (d) d.completed = true;
                 setTimeout(() => stPolls.delete(messageId), 60_000);
@@ -1983,6 +2007,7 @@ async function tallyStPoll(messageId, fallbackData) {
                             const msg = await channel.messages.fetch(messageId).catch(() => null);
                             if (!msg) return false;
                             await msg.reply({ content });
+                            try { console.error('[ST-POLL][no-vote][reply] shard=%s ch=%s msg=%s', c.cluster?.id || 0, channelId, messageId); } catch {}
                             return true;
                         } catch { return false; }
                     },
@@ -2000,6 +2025,7 @@ async function tallyStPoll(messageId, fallbackData) {
                                 const msg = await channel.messages.fetch(messageId).catch(() => null);
                                 if (!msg) return false;
                                 await msg.reply({ content });
+                                try { console.error('[ST-POLL][pause][reply] shard=%s ch=%s msg=%s', c.cluster?.id || 0, channelId, messageId); } catch {}
                                 return true;
                             } catch { return false; }
                         },
@@ -2134,8 +2160,8 @@ async function tallyStPoll(messageId, fallbackData) {
                         );
                     }
                 }
-            } catch (e) {
-                console.error('ST-POLL advance error:', e?.message);
+            } catch (error) {
+                console.error('ST-POLL advance error:', error?.message);
             }
         }
     } catch (error) {

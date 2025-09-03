@@ -515,14 +515,6 @@ const storyRunSchema = mongoose.model('storyRun', new mongoose.Schema({
     endingId: String,
     endingText: String,
     endedAt: { type: Date, index: true },
-    // Discord poll state (cross-shard safety)
-    activePollMessageId: { type: String, index: true },
-    pollMinutes: Number,
-    lastPollAt: { type: Date, index: true },
-    activePollOptionCount: Number,
-    pollNoVoteStreak: { type: Number, default: 0 },
-    pollTallyingId: { type: String, index: true },
-    pollTallyingAt: { type: Date, index: true },
 }, {
     timestamps: true,
     indexes: [

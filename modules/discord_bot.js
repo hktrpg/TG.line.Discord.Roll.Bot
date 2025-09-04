@@ -1827,7 +1827,8 @@ async function createStPollCore({ sentMessage, groupid, payload }) {
                 groupid,
                 // Persist options/minutes so we can resume after process restarts
                 options: payload.options.slice(0, maxOptions),
-                minutes: Number(payload.minutes || 3)
+                minutes: Number(payload.minutes || 3),
+                streak: Number((payload && payload.streak) || 0)
             });
         } catch (error) {
             console.error('agenda schedule stPollFinish failed, falling back to setTimeout:', error?.message);
@@ -2135,9 +2136,9 @@ async function tallyStPoll(messageId, fallbackData) {
 if (agenda) {
     try {
         agenda.define('stPollFinish', async (job) => {
-            const { messageId, channelid, groupid, options, minutes } = job.attrs.data || {};
+            const { messageId, channelid, groupid, options, minutes, streak } = job.attrs.data || {};
             console.error('[ST-POLL] agenda: stPollFinish fired', { shardId: client.cluster?.id, messageId, channelid, minutes, optionsLen: Array.isArray(options) ? options.length : -1 });
-            await tallyStPoll(messageId, { channelid, groupid, options, minutes });
+            await tallyStPoll(messageId, { channelid, groupid, options, minutes, streak });
             try { await job.remove(); } catch { }
         });
     } catch { }

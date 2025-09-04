@@ -1690,7 +1690,8 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
             groupid,
             textLen: (typeof text === 'string') ? text.length : (text ? String(text).length : 0),
             optionsLen: Array.isArray(payload?.options) ? payload.options.length : -1,
-            minutes: Number(payload?.minutes || 3)
+            minutes: Number(payload?.minutes || 3),
+            streak: Number(payload?.streak || 0)
         });
         // Skip creating poll if the run is paused
         if (await isStoryTellerRunPausedByChannel(channelid)) {
@@ -2137,7 +2138,7 @@ if (agenda) {
     try {
         agenda.define('stPollFinish', async (job) => {
             const { messageId, channelid, groupid, options, minutes, streak } = job.attrs.data || {};
-            console.error('[ST-POLL] agenda: stPollFinish fired', { shardId: client.cluster?.id, messageId, channelid, minutes, optionsLen: Array.isArray(options) ? options.length : -1 });
+            console.error('[ST-POLL] agenda: stPollFinish fired', { shardId: client.cluster?.id, messageId, channelid, minutes, optionsLen: Array.isArray(options) ? options.length : -1, streak });
             await tallyStPoll(messageId, { channelid, groupid, options, minutes, streak });
             try { await job.remove(); } catch { }
         });

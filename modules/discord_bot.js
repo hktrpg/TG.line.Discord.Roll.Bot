@@ -1842,7 +1842,7 @@ async function createStPollCore({ sentMessage, groupid, payload }) {
 async function tallyStPoll(messageId, fallbackData) {
     // Use in-memory state if present; otherwise fallback to persisted job data
     const data = stPolls.get(messageId) || (fallbackData && Array.isArray(fallbackData.options)
-        ? { channelid: fallbackData.channelid, groupid: fallbackData.groupid, options: fallbackData.options, minutes: Number(fallbackData.minutes || 3) }
+        ? { channelid: fallbackData.channelid, groupid: fallbackData.groupid, options: fallbackData.options, minutes: Number(fallbackData.minutes || 3), streak: Number(fallbackData.streak || 0) }
         : null);
     if (!data) return;
     if (data.completed) return;
@@ -1939,7 +1939,9 @@ async function tallyStPoll(messageId, fallbackData) {
         // No-vote safety: do not advance when there are no votes
         if (max === 0) {
             const chId = data.channelid;
-            const prev = stNoVoteStreak.get(chId) || 0;
+            // Prefer in-memory streak; fall back to persisted job data streak when cross-shard
+            const persistedPrev = Number.isFinite(Number(data.streak)) ? Number(data.streak) : 0;
+            const prev = (stNoVoteStreak.has(chId) ? Number(stNoVoteStreak.get(chId)) : persistedPrev) || 0;
             // only increment here; do NOT reset on repost to avoid lock at 1
             // clamp streak at 4 for display, but keep counter increasing for control flow
             const nextRaw = prev + 1;
@@ -2032,7 +2034,8 @@ async function tallyStPoll(messageId, fallbackData) {
                 // Only repost if not paused
                 if (!(await isStoryTellerRunPausedByChannel(data.channelid))) {
                     console.error('[ST-POLL] tallyStPoll: reposting poll after no-vote', { channelid: data.channelid, minutes: Number(data.minutes || 3) });
-                    await createStPollByChannel({ channelid: data.channelid, groupid: data.groupid, text: '', payload: { options: data.options, minutes: Number(data.minutes || 3) } });
+                    // carry forward streak across shards via job payload
+                    await createStPollByChannel({ channelid: data.channelid, groupid: data.groupid, text: '', payload: { options: data.options, minutes: Number(data.minutes || 3), streak: nextRaw } });
                 }
             } catch (error) {
                 console.error('repost poll after no-vote failed:', error?.message);

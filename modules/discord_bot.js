@@ -1749,6 +1749,23 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
                 for (let i = 0; i < maxOptions; i++) { try { await pollMsg.react(POLL_EMOJIS[i]); } catch { /* ignore */ } }
                 const ms = Math.max(1, Number(payload.minutes || 3)) * 60 * 1000;
                 const jobData = { messageId: pollMsg.id, channelid, groupid, options: payload.options.slice(0, maxOptions), minutes: Number(payload.minutes || 3), streak: Number(payload && payload.streak) || 0 };
+
+                // Persist last poll info and current streak for cross-shard consistency
+                try {
+                    if (schema && schema.storyRun && typeof schema.storyRun.findOneAndUpdate === 'function') {
+                        await schema.storyRun.findOneAndUpdate(
+                            { channelID: channelid, isEnded: false },
+                            {
+                                $set: {
+                                    stPollLastMessageId: String(pollMsg.id),
+                                    stPollLastStartedAt: new Date(Number(pollMsg.createdTimestamp) || Date.now()),
+                                    stPollNoVoteStreak: Number(payload && payload.streak) || 0
+                                }
+                            },
+                            { sort: { updatedAt: -1 } }
+                        );
+                    }
+                } catch { }
                 if (agenda) {
                     try {
                         await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', jobData);
@@ -1773,6 +1790,23 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
         const ms = Math.max(1, Number(payload.minutes || 3)) * 60 * 1000;
         const jobData = { messageId: found.messageId, channelid, groupid, options: payload.options.slice(0, maxOptions), minutes: Number(payload.minutes || 3), streak: Number(payload && payload.streak) || 0 };
         try { stLastPollStartedAt.set(channelid, Number(found.createdTimestamp) || Date.now()); } catch {}
+
+        // Persist last poll info and current streak for cross-shard consistency
+        try {
+            if (schema && schema.storyRun && typeof schema.storyRun.findOneAndUpdate === 'function') {
+                await schema.storyRun.findOneAndUpdate(
+                    { channelID: channelid, isEnded: false },
+                    {
+                        $set: {
+                            stPollLastMessageId: String(found.messageId),
+                            stPollLastStartedAt: new Date(Number(found.createdTimestamp) || Date.now()),
+                            stPollNoVoteStreak: Number(payload && payload.streak) || 0
+                        }
+                    },
+                    { sort: { updatedAt: -1 } }
+                );
+            }
+        } catch { }
         if (agenda) {
             try {
                 await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', jobData);
@@ -1881,6 +1915,21 @@ async function tallyStPoll(messageId, fallbackData) {
                 optionsLen: Array.isArray(fallbackData.options) ? fallbackData.options.length : -1
             });
         }
+        // Guard against outdated polls using persisted last poll info when available
+        try {
+            if (schema && schema.storyRun && typeof schema.storyRun.findOne === 'function' && data && data.channelid) {
+                const runDoc = await schema.storyRun.findOne({ channelID: data.channelid, isEnded: false }).sort({ updatedAt: -1 }).lean();
+                if (runDoc) {
+                    const lastId = String(runDoc.stPollLastMessageId || '');
+                    if (lastId && String(messageId) !== lastId) {
+                        const d = stPolls.get(messageId);
+                        if (d) d.completed = true;
+                        setTimeout(() => stPolls.delete(messageId), 60_000);
+                        return;
+                    }
+                }
+            }
+        } catch {}
         // Count reactions on the owning shard using broadcastEval
         const shardResults = await client.cluster.broadcastEval(
             async (c, { channelId, messageId, optionCount, emojis }) => {
@@ -1941,9 +1990,22 @@ async function tallyStPoll(messageId, fallbackData) {
         // No-vote safety: do not advance when there are no votes
         if (max === 0) {
             const chId = data.channelid;
-            // Prefer in-memory streak; fall back to persisted job data streak when cross-shard
-            const persistedPrev = Number.isFinite(Number(data.streak)) ? Number(data.streak) : 0;
-            const prev = (stNoVoteStreak.has(chId) ? Number(stNoVoteStreak.get(chId)) : persistedPrev) || 0;
+            // Atomically increment streak in DB if available; else use in-memory/job fallback
+            let prev = 0;
+            try {
+                if (schema && schema.storyRun && typeof schema.storyRun.findOneAndUpdate === 'function') {
+                    const updated = await schema.storyRun.findOneAndUpdate(
+                        { channelID: chId, isEnded: false },
+                        { $inc: { stPollNoVoteStreak: 1 } },
+                        { new: true, sort: { updatedAt: -1 } }
+                    ).lean();
+                    if (updated && Number.isFinite(Number(updated.stPollNoVoteStreak))) prev = Number(updated.stPollNoVoteStreak) - 1;
+                }
+            } catch {}
+            if (!Number.isFinite(prev) || prev < 0) {
+                const persistedPrev = Number.isFinite(Number(data.streak)) ? Number(data.streak) : 0;
+                prev = (stNoVoteStreak.has(chId) ? Number(stNoVoteStreak.get(chId)) : persistedPrev) || 0;
+            }
             // only increment here; do NOT reset on repost to avoid lock at 1
             // clamp streak at 4 for display, but keep counter increasing for control flow
             const nextRaw = prev + 1;
@@ -2024,6 +2086,16 @@ async function tallyStPoll(messageId, fallbackData) {
                 } catch (error) {
                     console.error('auto-pause after no-vote streak failed:', error?.message);
                 }
+                // Reset streak in DB as well when auto-paused
+                try {
+                    if (schema && schema.storyRun && typeof schema.storyRun.findOneAndUpdate === 'function') {
+                        await schema.storyRun.findOneAndUpdate(
+                            { channelID: chId, isEnded: false },
+                            { $set: { stPollNoVoteStreak: 0 } },
+                            { sort: { updatedAt: -1 } }
+                        );
+                    }
+                } catch {}
                 // reset after auto-pause so future sessions start fresh
                 try { stNoVoteStreak.set(chId, 0); } catch {}
                 const d = stPolls.get(messageId);

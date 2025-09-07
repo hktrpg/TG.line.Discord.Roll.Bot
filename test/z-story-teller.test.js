@@ -19,7 +19,7 @@ describe('StoryTeller (.st) Module Tests', () => {
 
     beforeAll(() => {
         // Assert the test story exists so tests are meaningful
-        const storyPath = path.join(__dirname, '..', 'roll', 'storyTeller', 'test.json');
+        const storyPath = path.join(__dirname, '..', 'test', 'test.json');
         expect(fs.existsSync(storyPath)).toBe(true);
         // Load module after mocks
         st = require('../roll/z-story-teller.js');
@@ -178,16 +178,16 @@ const storyTeller = proxyquire('../roll/z-story-teller.js', {
 });
 // End of Selection
 
-describe('StoryTeller Discord-only restrictions', function() {
+describe('StoryTeller Discord-only restrictions', function () {
     let rollDiceCommand;
 
-    beforeEach(function() {
+    beforeEach(function () {
         // Reset the command function
         rollDiceCommand = storyTeller.rollDiceCommand;
     });
 
-    describe('Import command restrictions', function() {
-        it('should reject import command on non-Discord platforms', async function() {
+    describe('Import command restrictions', function () {
+        it('should reject import command on non-Discord platforms', async function () {
             const params = {
                 mainMsg: ['.st', 'import', 'test', 'Test Story'],
                 groupid: 'test-group',
@@ -200,11 +200,11 @@ describe('StoryTeller Discord-only restrictions', function() {
             };
 
             const result = await rollDiceCommand.call(storyTeller, params);
-            
+
             assert.strictEqual(result.text, '此功能僅在 Discord 上可用。');
         });
 
-        it('should allow import command on Discord', async function() {
+        it('should allow import command on Discord', async function () {
             const params = {
                 mainMsg: ['.st', 'import', 'test', 'Test Story'],
                 groupid: 'test-group',
@@ -217,14 +217,14 @@ describe('StoryTeller Discord-only restrictions', function() {
             };
 
             const result = await rollDiceCommand.call(storyTeller, params);
-            
+
             // Should not return the Discord-only restriction message
             assert.notStrictEqual(result.text, '此功能僅在 Discord 上可用。');
         });
     });
 
-    describe('Export command restrictions', function() {
-        it('should reject exportfile command on non-Discord platforms', async function() {
+    describe('Export command restrictions', function () {
+        it('should reject exportfile command on non-Discord platforms', async function () {
             const params = {
                 mainMsg: ['.st', 'exportfile', 'test'],
                 groupid: 'test-group',
@@ -237,11 +237,11 @@ describe('StoryTeller Discord-only restrictions', function() {
             };
 
             const result = await rollDiceCommand.call(storyTeller, params);
-            
+
             assert.strictEqual(result.text, '此功能僅在 Discord 上可用。');
         });
 
-        it('should allow exportfile command on Discord', async function() {
+        it('should allow exportfile command on Discord', async function () {
             const params = {
                 mainMsg: ['.st', 'exportfile', 'test'],
                 groupid: 'test-group',
@@ -254,14 +254,14 @@ describe('StoryTeller Discord-only restrictions', function() {
             };
 
             const result = await rollDiceCommand.call(storyTeller, params);
-            
+
             // Should not return the Discord-only restriction message
             assert.notStrictEqual(result.text, '此功能僅在 Discord 上可用。');
         });
     });
 
-    describe('Update command restrictions', function() {
-        it('should reject update command on non-Discord platforms', async function() {
+    describe('Update command restrictions', function () {
+        it('should reject update command on non-Discord platforms', async function () {
             const params = {
                 mainMsg: ['.st', 'update', 'test', 'Updated Story'],
                 groupid: 'test-group',
@@ -274,11 +274,11 @@ describe('StoryTeller Discord-only restrictions', function() {
             };
 
             const result = await rollDiceCommand.call(storyTeller, params);
-            
+
             assert.strictEqual(result.text, '此功能僅在 Discord 上可用。');
         });
 
-        it('should allow update command on Discord', async function() {
+        it('should allow update command on Discord', async function () {
             const params = {
                 mainMsg: ['.st', 'update', 'test', 'Updated Story'],
                 groupid: 'test-group',
@@ -291,14 +291,14 @@ describe('StoryTeller Discord-only restrictions', function() {
             };
 
             const result = await rollDiceCommand.call(storyTeller, params);
-            
+
             // Should not return the Discord-only restriction message
             assert.notStrictEqual(result.text, '此功能僅在 Discord 上可用。');
         });
     });
 
-    describe('Poll mode restrictions in start command', function() {
-        it('should reject poll mode on non-Discord platforms', async function() {
+    describe('Poll mode restrictions in start command', function () {
+        it('should reject poll mode on non-Discord platforms', async function () {
             const params = {
                 mainMsg: ['.st', 'start', 'test', 'poll', '5'],
                 groupid: 'test-group',
@@ -311,11 +311,11 @@ describe('StoryTeller Discord-only restrictions', function() {
             };
 
             const result = await rollDiceCommand.call(storyTeller, params);
-            
+
             assert.strictEqual(result.text, '投票模式僅在 Discord 上可用。');
         });
 
-        it('should allow poll mode on Discord', async function() {
+        it('should allow poll mode on Discord', async function () {
             const params = {
                 mainMsg: ['.st', 'start', 'test', 'poll', '5'],
                 groupid: 'test-group',
@@ -328,14 +328,14 @@ describe('StoryTeller Discord-only restrictions', function() {
             };
 
             const result = await rollDiceCommand.call(storyTeller, params);
-            
+
             // Should not return the poll restriction message
             assert.notStrictEqual(result.text, '投票模式僅在 Discord 上可用。');
         });
     });
 
-    describe('Poll mode restrictions in edit command', function() {
-        it('should reject poll mode in edit on non-Discord platforms', async function() {
+    describe('Poll mode restrictions in edit command', function () {
+        it('should reject poll mode in edit on non-Discord platforms', async function () {
             // For this test, we'll just verify that the restriction logic exists
             // The actual functionality requires a complex database setup
             const params = {
@@ -350,12 +350,12 @@ describe('StoryTeller Discord-only restrictions', function() {
             };
 
             const result = await rollDiceCommand.call(storyTeller, params);
-            
+
             // Non-Discord platforms must be rejected explicitly
             assert.strictEqual(result.text, '投票模式僅在 Discord 上可用。');
         });
 
-        it('should allow poll mode in edit on Discord', async function() {
+        it('should allow poll mode in edit on Discord', async function () {
             // For this test, we'll just verify that the restriction logic exists
             const params = {
                 mainMsg: ['.st', 'edit', 'poll', '5'],
@@ -369,17 +369,17 @@ describe('StoryTeller Discord-only restrictions', function() {
             };
 
             const result = await rollDiceCommand.call(storyTeller, params);
-            
+
             // If there is an active run in this channel (created by previous tests),
             // it should set poll mode and report the configured minutes
             assert.strictEqual(result.text, '已設定參與權限為：投票（5 分鐘）');
         });
     });
 
-    describe('Help message updates', function() {
-        it('should include Discord-only indicators in help message', function() {
+    describe('Help message updates', function () {
+        it('should include Discord-only indicators in help message', function () {
             const helpMessage = storyTeller.getHelpMessage();
-            
+
             // Check that Discord-only features are marked
             assert(helpMessage.includes('（僅Discord）'));
             assert(helpMessage.includes('poll、import、exportfile、update 僅於Discord有效'));

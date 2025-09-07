@@ -316,6 +316,16 @@ async function loadStoryByAlias(ownerID, alias) {
         const raw = fs.readFileSync(fallbackPath, 'utf8');
         return { storyDoc: null, story: JSON.parse(raw) };
     }
+    // Test environment fallback: also look in test directory
+    try {
+        if (String(process.env.NODE_ENV).toLowerCase() === 'test') {
+            const testPath = path.join(__dirname, '..', 'test', alias + '.json');
+            if (fs.existsSync(testPath)) {
+                const raw = fs.readFileSync(testPath, 'utf8');
+                return { storyDoc: null, story: JSON.parse(raw) };
+            }
+        }
+    } catch { /* ignore */ }
     return { storyDoc: null, story: null };
 }
 
@@ -347,6 +357,16 @@ async function resolveStoryForStart({ ownerID, aliasOrTitle }) {
         const raw = fs.readFileSync(fallbackPath, 'utf8');
         return { storyDoc: null, story: JSON.parse(raw), alias: key };
     }
+    // Test environment fallback: also look in test directory
+    try {
+        if (String(process.env.NODE_ENV).toLowerCase() === 'test') {
+            const testPath = path.join(__dirname, '..', 'test', key + '.json');
+            if (fs.existsSync(testPath)) {
+                const raw = fs.readFileSync(testPath, 'utf8');
+                return { storyDoc: null, story: JSON.parse(raw), alias: key };
+            }
+        }
+    } catch { /* ignore */ }
     return { storyDoc: null, story: null, alias: null };
 }
 
@@ -1983,14 +2003,21 @@ const rollDiceCommand = async function ({
                     }
                 }
             } else {
-                const dir = path.join(__dirname, 'storyTeller');
-                const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => /(\.json)$/i.test(f)) : [];
-                for (const f of files) {
-                    const alias = f.replace(/\.[^.]+$/, '');
-                    if (aliasFilter && alias !== aliasFilter) continue;
-                    let intro = '';
-                    try { const obj = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); intro = obj && obj.introduction || ''; } catch { }
-                    rows.push({ title: alias, alias, introduction: intro, startPermission: 'ANYONE' });
+                // Filesystem fallback: search in roll/storyTeller; in test env also search test/
+                const dirs = [path.join(__dirname, 'storyTeller')];
+                try { if (String(process.env.NODE_ENV).toLowerCase() === 'test') dirs.push(path.join(__dirname, '..', 'test')); } catch { /* ignore */ }
+                const seen = new Set();
+                for (const dir of dirs) {
+                    const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => /(\.json)$/i.test(f)) : [];
+                    for (const f of files) {
+                        const alias = f.replace(/\.[^.]+$/, '');
+                        if (seen.has(alias)) continue;
+                        if (aliasFilter && alias !== aliasFilter) continue;
+                        let intro = '';
+                        try { const obj = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); intro = obj && obj.introduction || ''; } catch { }
+                        rows.push({ title: alias, alias, introduction: intro, startPermission: 'ANYONE' });
+                        seen.add(alias);
+                    }
                 }
             }
             if (aliasFilter) {

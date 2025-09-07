@@ -15,12 +15,12 @@
 ## 空白與註解（Whitespace & Comments）
 
 - 允許空白行。
-- 以 `//` 開頭的單行為註解，編譯時會被忽略。
+- 以 `//` 開頭的單行為註解，編譯時會被忽略。請另開新行。
 
 ## 頂層後設資料（Metadata）
 
 - `[meta] title "<Title>"` 設定故事標題
-- `[intro] <text>` 追加一行故事導言（可重複多行）
+- `[intro] <text>` 追加一行故事導言（可重複多行），在劇本開始時會顯示。
 
 顯示行為：
 
@@ -50,7 +50,7 @@
 
 ```text
 [player_var] cat_name "1. 請輸入你的貓咪名字：" "例如：橘子、Mochi、小黑"
-[player_var] owner_name "2. 請輸入主人的名字：" "例如：小明、艾蜜莉、阿傑"
+[player_var] owner_name "2. 請輸入主人的名字：" "小明、艾蜜莉、阿傑"
 ```
 
 ## 遊戲屬性（Game Stats）
@@ -104,10 +104,10 @@
   - 要求：一個有效的 RUN_DESIGN 必須至少包含一個帶有 `[ending]` 標記的頁面；若未定義結局，上傳/更新將被拒絕。
 - 選項區塊：
   - `[choice]` 開始定義選項列表
-  - `-> <text> | <action> [| if=<expr>] [| stat=a+1,b-2]`
-    - `<action>` 可為任意頁面 ID（字串將原樣作為 ID 使用），或特殊值 `END`。
-    - **新功能**：支援 `2a`, `2b`, `2c` 等格式，其中數字部分（如 `2`）為實際跳轉的頁面，字母部分（如 `a`, `b`, `c`）用於區分不同的加成效果。
-    - `<action>` 為 `END` 時，介面會提供「`.st end`」按鈕以結束遊戲。
+  - `-> <text> | <頁面代號> [| if=<expr>] [| stat=a+1,b-2]`
+    - `<頁面代號>` 必須為數字頁面 ID，或使用帶字母尾碼的變體（例如 `2a`、`2b`、`2c`）；或特殊值 `END`。
+    - **新功能**：支援 `2a`, `2b`, `2c` 等格式，其中數字部分（如 `2`）為實際跳轉的頁面，字母部分（如 `a`, `b`, `c`）僅用於區分不同的加成或描述變體（實際跳轉到 `2`）。
+    - `<頁面代號>` 為 `END` 時，介面會提供「`.st end`」按鈕以結束遊戲。
     - `stat=` 僅支援整數加減，並在成功前往該選項之目標頁面時套用（例：`Cuteness+1,Energy-2`）。
 
 ### 新功能：多選項同頁面跳轉
@@ -204,6 +204,11 @@
 - 在 `[text]` 內使用 `{key}` 會依序從 `playerVariables`、`stats`、`variables` 取值並套入（優先順序如前，後者可覆蓋前者）。
 - 若找不到對應鍵，將保留原樣（例如 `{unknown_key}` 會原樣輸出）。
 
+### 註：相容性與限制補充
+
+- 目前不支援以純字串作為頁面 ID；請使用數字頁面 ID（例如 `0`, `1`, `2`）。
+- `[set]` 行允許在值的後方加上行尾 `//` 註解，匯入時該註解會被忽略，不影響賦值內容。
+
 ## 往返轉換（Round Trip）
 
 - 匯入文字（於 Discord 夾帶檔案）：傳送 `.st import <alias> [title]` 並附上 `.txt`（RUN_DESIGN）或 `.json` 檔案
@@ -240,3 +245,116 @@
 - 至少需包含一個帶有 `[ending]` 的頁面
 - 匯入/更新之附件大小上限：約 1 MB
 - 頁面 ID 只能使用數字
+
+## 更多範例（More Examples）
+
+### 說話者（Speakers）與條件鏈
+
+```text
+[label] 5
+[title] 對話示例
+[text|speaker=cat] 喵～今天要做什麼呢？
+[text|if=Energy>=8] 我覺得精力充沛！
+[text|if=Energy>=5 && Energy<8] 還行，可以動一動。
+[text|else] 有點想睡覺……
+[choice]
+-> 出門巡視 | 6
+-> 先小睡一下 | 7
+```
+
+說話者為可選欄位，渲染時僅作為資料欄位保存，不影響文字輸出。
+
+### 隨機顯示（Random）
+
+```text
+[label] 6
+[title] 隨機事件
+[random] 30%
+[text] 你意外撿到一根貓薄荷棒！
+[text] 無論是否撿到，你繼續前進。
+```
+
+`[random] <percent>%` 僅作用於其後第一行 `[text]`，編譯器在匯出時會保持可逆性。
+
+### 內嵌擲骰（Dice）與條件檢定
+
+```text
+[label] 8
+[title] 擲骰檢定
+[set] roll=1d20
+[text] 你的檢定結果為：{roll}
+[text|if=roll+Energy>=18] 大成功！
+[text|else] 普通成功或失敗。
+```
+
+在運算式中可使用 `xDy` 字面量；在文字中可用 `{xDy}` 直接內嵌擲骰，顯示總和。
+
+### 條件賦值（Conditional Set）與字串值
+
+```text
+[label] 9
+[title] 狀態標記
+[set|if=Energy>=8] mood="energetic"
+[set|if=Energy<8] mood="lazy"
+[text] 目前心情：{mood}
+```
+
+RHS 以引號包裝時會被視為字串常值；否則會嘗試以表達式求值。
+
+### 多個選項同頁面跳轉（帶加成）
+
+```text
+[label] 10
+[title] 開場選擇
+[choice]
+-> 走力量路線 | 2a | stat=Power+1
+-> 走敏捷路線 | 2b | stat=Agility+1
+-> 走智力路線 | 2c | stat=Wit+1
+
+[label] 2
+[title] 共用頁面
+[text] 你來到了訓練場。
+```
+
+玩家輸入 `.st goto 2a/2b/2c` 皆會抵達頁面 `2`，但各自套用不同的加成。
+
+### 獨立條件顯示（ifs）
+
+```text
+[label] 11
+[title] 屬性揭示
+[text|ifs=Wit==1] 你感到有點遲鈍。
+[text|ifs=Wit>=8] 你靈光一閃，找到了捷徑。
+[text] 無論如何，你繼續前進。
+```
+
+使用 `ifs` 的 `[text]` 不會與相鄰的 `if/else` 形成條件鏈，命中就顯示，可同時出現多行。
+
+### 結局區塊的條件鏈
+
+```text
+[label] 99
+[title] 結局
+[ending]
+[text] 旅程告一段落。
+[text|if=Power>=8] 你以力量壓倒眾人，建立了威名。
+[text|if=Agility>=8] 你以身法穿梭暗影，無跡可尋。
+[text|else] 你學到了寶貴的一課，準備再出發。
+[choice]
+-> 重新開始 | 0
+-> 結束 | END
+```
+
+結局的多行 `[text|if=...]` 與一行 `[text|else]` 形成條件鏈，僅顯示第一個符合條件者；可在其上方書寫無條件前言文字。
+
+### 佔位符的優先順序與巢狀
+
+```text
+[label] 12
+[title] 佔位符
+[set] title="勇者"
+[set] who="{owner_name}"
+[text] {who} 稱呼你為「{title}」。
+```
+
+`{key}` 查找順序為 `playerVariables` → `stats` → `variables`。字串值內若再包含 `{...}`，會進行一次巢狀展開。

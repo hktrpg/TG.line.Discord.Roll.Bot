@@ -515,6 +515,10 @@ const storyRunSchema = mongoose.model('storyRun', new mongoose.Schema({
     endingId: String,
     endingText: String,
     endedAt: { type: Date, index: true },
+    // StoryTeller poll persistence (cross-shard consistency)
+    stPollLastMessageId: { type: String, index: true },
+    stPollLastStartedAt: { type: Date, index: true },
+    stPollNoVoteStreak: { type: Number, default: 0 },
 }, {
     timestamps: true,
     indexes: [

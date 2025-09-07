@@ -619,35 +619,49 @@ function renderPageText(story, run, pageId) {
             run.endingTitle = page && page.title ? String(page.title) : '';
         } catch { /* ignore */ }
         if (Array.isArray(page.endings)) {
-            // Support preamble lines (unconditional [text]) followed by a single conditional ending branch
-            const preambles = [];
-            const branches = [];
-            for (const ed of page.endings) {
-                if (!ed || typeof ed.text !== 'string') continue;
-                if (ed.condition || ed.isElse) branches.push(ed);
-                else preambles.push(ed);
-            }
-
+            // Preserve authoring order: render unconditional lines in-place and
+            // for contiguous conditional blocks, choose one branch (with optional else)
+            const endings = page.endings;
             let endingBlock = '';
-            for (const pre of preambles) {
-                endingBlock += interpolate(pre.text, ctx) + '\n';
-            }
-
-            let chosen = null;
-            let elseEd = null;
-            for (const ed of branches) {
-                if (ed && ed.isElse) { elseEd = ed; continue; }
-                if (!ed.condition || safeEvalCondition(ed.condition, scope)) { chosen = ed; break; }
-            }
-            if (!chosen && elseEd) chosen = elseEd;
-            if (chosen) {
-                const chosenText = interpolate(chosen.text, ctx);
-                endingBlock += chosenText + '\n';
-                run.endingText = chosenText;
+            let lastChosenText = '';
+            for (let i = 0; i < endings.length; i++) {
+                const ed = endings[i];
+                if (!ed || typeof ed.text !== 'string') continue;
+                const isConditional = !!(ed.condition || ed.isElse);
+                if (isConditional) {
+                    // Collect a contiguous conditional chain
+                    const chain = [];
+                    let j = i;
+                    while (j < endings.length) {
+                        const it = endings[j];
+                        if (!(it && typeof it.text === 'string' && (it.condition || it.isElse))) break;
+                        chain.push(it);
+                        j++;
+                    }
+                    let chosen = null;
+                    let elseEd = null;
+                    for (const it of chain) {
+                        if (it.isElse) { elseEd = it; continue; }
+                        if (!it.condition || safeEvalCondition(it.condition, scope)) { chosen = it; break; }
+                    }
+                    if (!chosen && elseEd) chosen = elseEd;
+                    if (chosen) {
+                        const chosenText = interpolate(chosen.text, ctx);
+                        endingBlock += chosenText + '\n';
+                        lastChosenText = chosenText;
+                    }
+                    i = j - 1; // skip the processed chain
+                    continue;
+                }
+                // Unconditional ending text line
+                endingBlock += interpolate(ed.text, ctx) + '\n';
             }
             if (endingBlock) {
                 // Preserve previous formatting that separated ending text with a blank line
                 out += '\n' + endingBlock;
+            }
+            if (lastChosenText) {
+                run.endingText = lastChosenText;
             }
         }
     }

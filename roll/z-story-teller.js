@@ -126,16 +126,16 @@ function interpolate(template, ctx, depth = 0) {
     let result = '';
     let i = 0;
     while (i < template.length) {
+        if (!template.includes('{', i)) {
+            result += template.slice(i);
+            break;
+        }
         const open = template.indexOf('{', i);
-        if (open === -1) {
+        if (!template.includes('}', open + 1)) {
             result += template.slice(i);
             break;
         }
         const close = template.indexOf('}', open + 1);
-        if (close === -1) {
-            result += template.slice(i);
-            break;
-        }
         result += template.slice(i, open);
         const key = template.slice(open + 1, close).trim();
         // Dice placeholder support: {xDy}
@@ -149,7 +149,7 @@ function interpolate(template, ctx, depth = 0) {
             val = String(sum);
         } else if (Object.prototype.hasOwnProperty.call(ctx || {}, key) && ctx[key] !== null && ctx[key] !== undefined) {
             const inner = ctx[key];
-            if (typeof inner === 'string' && depth < 1 && inner.indexOf('{') !== -1 && inner.indexOf('}') !== -1) {
+            if (typeof inner === 'string' && depth < 1 && inner.includes('{') && inner.includes('}')) {
                 // One nested interpolation pass to expand placeholders inside variable values
                 val = interpolate(inner, ctx, depth + 1);
             } else {

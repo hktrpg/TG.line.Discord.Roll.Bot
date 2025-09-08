@@ -224,9 +224,9 @@ describe('StoryTeller Discord-only restrictions', function () {
     });
 
     describe('Export command restrictions', function () {
-        it('should reject exportfile command on non-Discord platforms', async function () {
+        it('should reject export command on non-Discord platforms', async function () {
             const params = {
-                mainMsg: ['.st', 'exportfile', 'test'],
+                mainMsg: ['.st', 'export', 'test'],
                 groupid: 'test-group',
                 userid: 'test-user',
                 botname: 'Telegram',
@@ -241,9 +241,9 @@ describe('StoryTeller Discord-only restrictions', function () {
             assert.strictEqual(result.text, '此功能僅在 Discord 上可用。');
         });
 
-        it('should allow exportfile command on Discord', async function () {
+        it('should allow export command on Discord', async function () {
             const params = {
-                mainMsg: ['.st', 'exportfile', 'test'],
+                mainMsg: ['.st', 'export', 'test'],
                 groupid: 'test-group',
                 userid: 'test-user',
                 botname: 'Discord',
@@ -382,7 +382,7 @@ describe('StoryTeller Discord-only restrictions', function () {
 
             // Check that Discord-only features are marked
             assert(helpMessage.includes('（僅Discord）'));
-            assert(helpMessage.includes('poll、import、exportfile、update 僅於Discord有效'));
+            assert(helpMessage.includes('poll、import、export、update 僅於Discord有效'));
         });
     });
 });

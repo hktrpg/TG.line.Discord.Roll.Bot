@@ -52,7 +52,7 @@
     "express": "^4.21.2",
     "fuse.js": "^6.6.2",
     "geopattern": "^1.2.3",
-    "gpt-tokenizer": "^2.1.2",
+    "gpt-tokenizer": "^3.0.1",
     "grammy": "^1.37.0",
     "helmet": "^8.0.0",
     "https": "^1.0.0",

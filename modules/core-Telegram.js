@@ -22,7 +22,7 @@ const EXPUP = require('./level').EXPUP || function () { };
 const courtMessage = require('./logs').courtMessage || function () { };
 
 TGclient.on('message:text', (ctx) => {
-    if (ctx.from.is_bot) return;
+    if (ctx.from?.is_bot) return;
 
     (async () => {
         let inputStr = ctx.message.text;
@@ -320,37 +320,37 @@ TGclient.on('message:supergroup_chat_created', async (ctx) => {
 
 
 TGclient.on('message:audio', async (ctx) => {
-    if (ctx.from.is_bot) return;
+    if (ctx.from?.is_bot) return;
     await nonDice(ctx);
     return null;
 });
 TGclient.on('message:document', async (ctx) => {
-    if (ctx.from.is_bot) return;
+    if (ctx.from?.is_bot) return;
     await nonDice(ctx);
     return null;
 })
 TGclient.on('message:photo', async (ctx) => {
-    if (ctx.from.is_bot) return;
+    if (ctx.from?.is_bot) return;
     await nonDice(ctx);
     return null;
 })
 TGclient.on('message:sticker', async (ctx) => {
-    if (ctx.from.is_bot) return;
+    if (ctx.from?.is_bot) return;
     await nonDice(ctx);
     return null;
 })
 TGclient.on('message:video', async (ctx) => {
-    if (ctx.from.is_bot) return;
+    if (ctx.from?.is_bot) return;
     await nonDice(ctx);
     return null;
 })
 TGclient.on('message:voice', async (ctx) => {
-    if (ctx.from.is_bot) return;
+    if (ctx.from?.is_bot) return;
     await nonDice(ctx);
     return null;
 })
 TGclient.on('channel_post', async (ctx) => {
-    if (ctx.from.is_bot) return;
+    if (ctx.from?.is_bot) return;
     await nonDice(ctx);
     return null;
 })

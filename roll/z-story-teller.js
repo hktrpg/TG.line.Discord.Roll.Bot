@@ -1222,6 +1222,10 @@ function validateCompiledStory(story) {
                 }
             }
         }
+        // Enforce: every [label] must contain at least one [choice]
+        if (!Array.isArray(page && page.choices) || (page.choices || []).length === 0) {
+            return { ok: false, message: '第 ' + pid + ' 頁缺少選項（每個 [label] 必須至少包含一個 [choice]）' };
+        }
     }
     if (!hasEnding) {
         return { ok: false, message: '必須至少包含一個結局頁（[ending]）。' };

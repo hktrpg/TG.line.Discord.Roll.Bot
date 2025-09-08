@@ -39,72 +39,65 @@ const prefixs = function () {
 }
 
 const getHelpMessage = function () {
-    return `【📖互動故事 StoryTeller】
-╭────── 💡功能簡介 ──────
-│ - 支援多頁面分支、條件顯示、隨機顯示與結局頁。
-│ - 玩家變數、劇本變數與屬性數值，可運算、可條件判斷。
-│ - 文字與條件可用骰語法：{2d6}、2d6>=7。
-│ - 匯入/更新/驗證/匯出 RUN_DESIGN 或 JSON 劇本。
-│ - 參與模式：僅發起者 / 所有人 / Discord 投票（計時）。
-│ - 閒置超過 1 小時的遊戲會自動暫停。
-├────── 🚀快速開始 ──────
+    return `【📖 互動故事 StoryTeller】
+╭────── 💡 功能亮點 ──────
+│ - 多頁面分支、條件顯示（if/else、ifs）、隨機顯示與結局頁
+│ - 玩家變數、劇本變數、屬性數值，支援運算與條件判斷
+│ - 骰子語法：文字 {2d6}；條件/賦值可用 2d6>=7、3d6+2 等
+│ - 匯入/更新/驗證/匯出 RUN_DESIGN 或 JSON 劇本
+│ - 參與模式：僅發起者 / 所有人 / Discord 投票（計時）
+│ - 自動暫停：閒置超過 1 小時之遊戲將自動暫停
+├────── 🚀 快速開始 ──────
 │ .st start <alias|title> [alone|all|poll x]
-│ 　啟動劇本。alone 僅發起者可互動；all 任何人；poll x 啟用Discord投票x分鐘（預設3，僅Discord）。
+│   啟動劇本。alone 僅發起者；all 任何人；poll 啟用 Discord 投票 x 分鐘（預設 3）
 │ .st list
-│ 　顯示此處可啟動之劇本清單。
+│   顯示此處可啟動之劇本清單
 │ .st pause / .st continue [runId]
-│ 　暫停或繼續目前進行中的劇本（跨裝置可用 runId 指定續玩）。
+│   暫停或繼續當前劇本（跨裝置可用 runId 指定續玩）
 │ .st edit alone|all|poll x
-│ 　發起者可切換參與權限；poll 啟用Discord投票（x分鐘，預設3，僅Discord）。
+│   切換參與權限；poll 僅 Discord 有效（x 分鐘，預設 3）
 │ .st end
-│ 　結束目前劇本。
-├────── 🎯遊戲進行 ──────
+│   結束目前劇本
+├────── 🎯 遊戲進行 ──────
 │ .st goto <page>
-│ 　跳至指定頁面/選項（通常由系統提示可用選項）。
+│   跳至指定頁面/選項（介面會提示可用選項）
 │ .st set <var> <value>
-│ 　設定變數（例：.st set name 小花 / .st set hp 12）。
+│   設定玩家變數（例：.st set name 小花 / .st set hp 12）
 ├────── 🧰 劇本管理 ──────
 │ .st my [alias]
-│ 　查看自己新增之劇本統計（可加 alias 僅看單一劇本）。
+│   查看自己新增之劇本統計（可加 alias 僅看單一劇本）
 │ .st mylist
-│ 　顯示自己所有新增之劇本清單。
+│   顯示自己所有新增之劇本清單
 │ .st list <alias>
-│ 　顯示該劇本簡介與可用資訊。
+│   顯示該劇本簡介與可用資訊
 │ .st import <alias> [title]
-│ 　上傳檔案以新增劇本，支援 .json 或 .txt（RUN_DESIGN 格式）。（僅Discord）
+│   上傳 .json 或 .txt（RUN_DESIGN）以新增劇本（僅 Discord）
 │ .st update <alias> [title]
-│ 　上傳檔案以覆蓋既有劇本。（僅Discord）
+│   以附件覆蓋既有劇本（僅 Discord）
 │ .st delete <alias>
-│ 　刪除自己擁有的劇本。
-│ .st exportfile <alias>
-│ 　將劇本以私訊傳送文字檔，並在頻道通知（需要有權限）。（僅Discord）
+│   刪除自己擁有的劇本
+│ .st export <alias>
+│   私訊傳送 RUN_DESIGN 文字檔，並於頻道通知（需權限，僅 Discord）
 │ .st verify <alias>
-│ 　檢查劇本內容格式是否正確（可逆性檢查）。
+│   JSON → RUN_DESIGN → JSON 可逆性檢查
 ├────── 🔐 啟動權限 ──────
-│ .st allow <alias> AUTHOR (預設)
-│ 　僅作者本人可在任何地方啟動。
+│ .st allow <alias> AUTHOR
+│   僅作者本人可在任何地方啟動（預設）
 │ .st allow <alias>
-│ 　在本群組/頻道允許啟動。
+│   在目前群組/頻道允許啟動
 │ .st allow <alias> <groupId...>
-│ 　允許指定之群組/頻道啟動（可多個）。
+│   允許多個指定群組/頻道啟動
 │ .st allow <alias> all
-│ 　任何人皆可啟動（公開）。
-├────── 📊 狀態檢視 ──────
-│ .st game
-│ 　顯示目前運行與暫停中的遊戲（含快速操作）。
+│   任何人皆可啟動（公開）
 ├────── 📎 範例 ──────
-│ .st start v002
-│ .st set name 小花
-│ .st goto 12
-│ .st pause
-│ .st continue
-│ .st end
-├────── 📝備註 ──────
-│ - .txt 使用 RUN_DESIGN 語法，可編輯並上傳/更新劇本。
-│ - poll、import、exportfile、update 僅於Discord有效；未提供 x 時預設為 3 分鐘。
-│ - 閒置超過1小時的遊戲會在下次 .st start 時自動暫停。
-│ - 編寫劇本：請參考 RUN_DESIGN 語法（含進階範例）及 範例劇本，提供了三個範例劇本。
-│ - 位置在：https://bothelp.hktrpg.com/
+│ .st list          | 查看可啟動的劇本清單
+│ .st start 霧之村  | 啟動霧之村劇本
+│ .st set name 小花 | 設定玩家變數
+│ .st goto 12       | 跳至指定頁面
+│ .st pause / .st continue / .st end | 暫停/繼續/結束劇本
+├────── ℹ️ 備註 ──────
+│ - poll、import、export、update 僅於 Discord 有效；未提供 x 時預設 3 分鐘
+│ - 編寫語法與範例請見： https://bothelp.hktrpg.com/
 ╰────────────────`;
 }
 
@@ -395,7 +388,7 @@ async function createRun({ storyDoc, story, context, starterID, starterName, bot
         endingId: '',
         endingText: '',
         endingTitle: '',
-        lastActivityAt: new Date()  
+        lastActivityAt: new Date()
     };
     ensureRunDefaults(run, story);
 
@@ -448,17 +441,17 @@ async function countOpenRunsByStarter(starterID) {
 async function checkAndPauseIdleGames(context) {
     const IDLE_TIMEOUT_HOURS = 1;
     const idleThreshold = new Date(Date.now() - (IDLE_TIMEOUT_HOURS * 60 * 60 * 1000));
-    
+
     try {
         if (db.storyRun && typeof db.storyRun.find === 'function') {
-            const query = { 
-                isEnded: false, 
+            const query = {
+                isEnded: false,
                 isPaused: { $ne: true },
                 lastActivityAt: { $lt: idleThreshold }
             };
             if (context.channelid) query.channelID = context.channelid;
             else if (context.groupid) query.groupID = context.groupid;
-            
+
             const idleRuns = await db.storyRun.find(query).lean();
             for (const run of idleRuns) {
                 run.isPaused = true;
@@ -471,7 +464,7 @@ async function checkAndPauseIdleGames(context) {
             return idleRuns.length;
         }
     } catch { /* ignore */ }
-    
+
     // Fallback to in-memory check
     const key = getContextKey(context);
     const run = memoryRuns.get(key);
@@ -480,7 +473,7 @@ async function checkAndPauseIdleGames(context) {
         run.pausedAt = new Date();
         return 1;
     }
-    
+
     return 0;
 }
 
@@ -973,20 +966,20 @@ function renderPlayerSetupPrompt(story, run) {
 function findChoiceFromCurrentPage(story, run, targetPageId) {
     const curr = story.pages[run.currentPageId];
     if (!curr || !Array.isArray(curr.choices)) return null;
-    
+
     // Support for 2a, 2b, 2c format: extract base page number and suffix
     const targetStr = String(targetPageId || '');
     const basePageMatch = targetStr.match(/^(\d+)([a-z])?$/i);
-    
+
     if (basePageMatch) {
         const basePage = basePageMatch[1];
         const suffix = basePageMatch[2] || '';
-        
+
         // First try exact match
         for (const c of curr.choices) {
             if (String(c.action) === targetStr) return c;
         }
-        
+
         // If no exact match and we have a suffix, try to find choice with matching base page + suffix
         if (suffix) {
             for (const c of curr.choices) {
@@ -997,7 +990,7 @@ function findChoiceFromCurrentPage(story, run, targetPageId) {
                 }
             }
         }
-        
+
         // Fallback: try to find any choice that goes to the base page
         for (const c of curr.choices) {
             const choiceAction = String(c.action || '');
@@ -1007,7 +1000,7 @@ function findChoiceFromCurrentPage(story, run, targetPageId) {
             }
         }
     }
-    
+
     // Original logic for non-matching cases
     for (const c of curr.choices) {
         if (String(c.action) === String(targetPageId)) return c;
@@ -1079,22 +1072,22 @@ async function gotoPage({ story, run, targetPageId }) {
             }
         }
     }
-    
+
     // Support for 2a, 2b, 2c format: extract base page number
     const targetStr = String(targetPageId || '');
     const basePageMatch = targetStr.match(/^(\d+)([a-z])?$/i);
     let actualPageId = targetPageId;
-    
+
     if (basePageMatch) {
         const basePage = basePageMatch[1];
         const suffix = basePageMatch[2] || '';
-        
+
         // If we have a suffix (like 2a), use the base page number (2) for actual navigation
         if (suffix) {
             actualPageId = basePage;
         }
     }
-    
+
     run.currentPageId = String(actualPageId);
     // Update last activity timestamp when goto is called
     run.lastActivityAt = new Date();
@@ -1530,10 +1523,10 @@ const rollDiceCommand = async function ({
             } else {
                 key = (mainMsg.slice(2).join(' ') || '').trim();
             }
-            
+
             // Check for idle games and auto-pause them if they've been inactive for more than 1 hour
             const pausedCount = await checkAndPauseIdleGames(ctx);
-            
+
             let run = await getActiveRun(ctx);
             // Allow starting a new game even if there is a paused run in this context
             // Keep paused run intact and do not block starting
@@ -1787,20 +1780,20 @@ const rollDiceCommand = async function ({
             const basePageMatch = targetStr.match(/^(\d+)([a-z])?$/i);
             let isValidTarget = false;
             let actualTargetPage = target;
-            
+
             if (basePageMatch) {
                 const basePage = basePageMatch[1];
                 const suffix = basePageMatch[2] || '';
-                
+
                 // Check if the target matches any allowed choice
                 for (const c of allowedChoices) {
                     const choiceAction = String(c.action || '');
                     const choiceMatch = choiceAction.match(/^(\d+)([a-z])?$/i);
-                    
+
                     if (choiceMatch) {
                         const choiceBasePage = choiceMatch[1];
                         const choiceSuffix = choiceMatch[2] || '';
-                        
+
                         // Exact match
                         if (choiceAction.toUpperCase() === targetStr.toUpperCase()) {
                             isValidTarget = true;
@@ -1810,7 +1803,7 @@ const rollDiceCommand = async function ({
                             }
                             break;
                         }
-                        
+
                         // Base page + suffix match
                         if (choiceBasePage === basePage && choiceSuffix === suffix) {
                             isValidTarget = true;
@@ -1820,7 +1813,7 @@ const rollDiceCommand = async function ({
                             }
                             break;
                         }
-                        
+
                         // Base page only match (for cases like 2a going to 2)
                         if (choiceBasePage === basePage && !suffix) {
                             isValidTarget = true;
@@ -1835,7 +1828,7 @@ const rollDiceCommand = async function ({
                 const targetUpper = String(target).toUpperCase();
                 isValidTarget = allowedActions.includes(targetUpper);
             }
-            
+
             if (!isValidTarget) {
                 let msg = '只能前往當前頁面的可選項目。\n\n可用選項：\n';
                 for (const c of allowedChoices) {
@@ -1853,12 +1846,12 @@ const rollDiceCommand = async function ({
                 rply.buttonCreate = [...new Set(btns)].slice(0, 20);
                 return rply;
             }
-            
+
             // Check if the actual target page exists
             const targetUpper = String(actualTargetPage).toUpperCase();
-            if (targetUpper !== 'END' && !story.pages[actualTargetPage]) { 
-                rply.text = '找不到此頁面ID：' + actualTargetPage + '。可用頁面：' + Object.keys(story.pages).join(', '); 
-                return rply; 
+            if (targetUpper !== 'END' && !story.pages[actualTargetPage]) {
+                rply.text = '找不到此頁面ID：' + actualTargetPage + '。可用頁面：' + Object.keys(story.pages).join(', ');
+                return rply;
             }
             await gotoPage({ story, run, targetPageId: target });
             const text = renderPageText(story, run, run.currentPageId);
@@ -1953,15 +1946,15 @@ const rollDiceCommand = async function ({
             rply.text = text;
             return rply;
         }
-        // importfile deprecated above
-        case /^exportfile$/.test(sub): {
+        // export (was exportfile)
+        case /^(export|exportfile)$/.test(sub): {
             // Discord only restriction
             if (String(botname || '').toLowerCase() !== 'discord') {
                 rply.text = '此功能僅在 Discord 上可用。';
                 return rply;
             }
             const alias = (mainMsg[2] || '').trim();
-            if (!alias) { rply.text = '用法：.st exportfile <alias>'; return rply; }
+            if (!alias) { rply.text = '用法：.st export <alias>'; return rply; }
             const { story } = await loadStoryByAlias(userid, alias);
             if (!story) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
             if (story.ownerId && String(story.ownerId) !== String(userid)) { rply.text = '你沒有權限匯出此劇本。'; return rply; }
@@ -2027,10 +2020,10 @@ const rollDiceCommand = async function ({
                 }
             }
             if (aliasFilter) {
-                if (rows.length === 0) { 
-                    rply.text = '找不到該劇本（alias: ' + aliasFilter + '）'; 
+                if (rows.length === 0) {
+                    rply.text = '找不到該劇本（alias: ' + aliasFilter + '）';
                     rply.buttonCreate = ['.st list', '.st mylist'];
-                    return rply; 
+                    return rply;
                 }
                 const item = rows[0];
                 rply.text = '【' + item.title + '】\n' + (item.introduction || '(無簡介)');

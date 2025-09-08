@@ -525,7 +525,7 @@
 [text] 「血......償......全村......」
 [text] 霧氣彷彿變成了實體，化作無數隻手腳纏住你，將你向霧的深處拖拽。
 [text] 「殺.... 一起死....」「答應我的事呢....」「媽媽我好冷....」「都是你害的....」
-[text|if=san<20] those sounds seem to be drilling into your brain, and you seem to see the images of them before they died, which is extremely painful.
+[text|if=san<20] 那些聲音彷彿鑽進你的腦子裡，你似乎看到了他們臨死前的畫面，痛苦萬分。
 [text] 百千種聲音在你耳邊尖嘯，你感覺自己的身體快要被撕裂。奇異的是，你對這種感覺竟有種莫名的熟悉感。
 [set] roll_check=1d100
 [set|if=roll_check>san] san=san-1d10

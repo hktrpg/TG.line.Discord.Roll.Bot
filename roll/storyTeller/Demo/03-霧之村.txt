@@ -1,7 +1,8 @@
 [meta] title "靈探事件：山中老村"
 [intro] 你是對人生感到苦惱的人，雖然身邊不是沒有說話的對象，但內心總是感到不安。
-[intro] 為了改變自己，擺脫過去，你聽從摯友的建議，動身前往一座位於深山中的古老村莊。
+[intro] 為了改變自己，擺脫過去，你聽從朋友的建議，動身前往一座位於深山中的古老村莊。
 [intro] 然而，當你回過神來，眼前只剩下無盡的山林石地，以及幾乎吞噬一切的濃霧。
+[intro] 繪: @katechen0921
 
 // --- 變數設定 ---
 [player_var] player_name "請輸入你的名字：" "小櫻"
@@ -85,6 +86,7 @@
 
 [label] 3
 [title] 村口的小女孩
+[text] @https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/refs/heads/master/roll/storyTeller/Demo/03/NPC-01.png
 [set] met_girl=1
 [text] 你撥開最後一層薄霧，看見一個穿著樸素連衣裙的小女孩。她身邊環繞著數十隻飛舞的螢火蟲，畫面如夢似幻。
 [text|if=heard_laughter==1] 她的笑聲如銀鈴般清脆，你猛然想起，這就是剛才在森林深處聽到的那個聲音！
@@ -344,6 +346,7 @@
 
 [label] 29
 [title] 疲憊的和尚
+[text] @https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/refs/heads/master/roll/storyTeller/Demo/03/NPC-03.png
 [text] 你悄悄靠近，透過窗戶的縫隙向裡望去。
 [text] 只見一個身形微胖的和尚正在誦經，但他精神萎靡，眼下有著濃重的黑眼圈，看起來疲憊不堪。
 [text] 就在這時，他突然停下了誦經，彷彿察覺到了你的視線。
@@ -472,6 +475,7 @@
 
 [label] 40
 [title] 續命的契約
+[text] @https://raw.githubusercontent.com/hktrpg/TG.line.Discord.Roll.Bot/refs/heads/master/roll/storyTeller/Demo/03/NPC-02.png
 [text] 你和小女孩在窗戶上戳了個小洞，向裡窺看。
 [text] 村長和和尚正對著桌上的一卷古舊捲軸激烈地爭論著。
 [text] 「爸爸說那是很重要的東西，有了它，村子就很安全。」小女孩在你耳邊低語。

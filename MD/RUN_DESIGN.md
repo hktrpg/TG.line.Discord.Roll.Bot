@@ -67,9 +67,19 @@
 [stat_def] Mischief 1 10 "淘氣度 (Mischief)"
 ```
 
+額外示例（供後續範例使用）：
+
+```text
+[stat_def] Power 1 10 "力量 (Power)"
+[stat_def] Agility 1 10 "敏捷 (Agility)"
+[stat_def] Wit 1 10 "智力 (Wit)"
+```
+
 ## 變數（Variables）
 
 - `[var_def] <key> <min> <max> ["<label>"]`
+
+- 初始化：未被明確設定時，變數初始值為其 `min`。
 
 範例：
 
@@ -95,6 +105,8 @@
   - `[text|speaker=<key>,if=<expr>] <content>` 指定說話者且具條件
   - `[random] <percent>%` 僅影響「下一行」的 `[text]`（例如 30%），`percent` 為 0~100 的整數。
   - `[set] <key>=<expr>` 在渲染時設定值：若 `key` 屬於已定義的 `stat_def`，則寫入 `stats`；否則寫入 `variables`。`<expr>` 支援基本運算式（見下文）。
+  - `[set|if=<expr>] <key>=<expr>` 條件賦值（命中才執行）。
+  - `[set|ifs=<expr>] <key>=<expr>` 獨立條件賦值：不與相鄰的 `[text|if=...]`/`[text|else]` 形成條件鏈，命中即執行；常用於和多段 `ifs` 顯示對齊。
 
     - 任一屬性一旦被 `[set]` 明確設定，之後將不再由隨機初始化覆寫。
   - 文字內可直接擲骰：`{xDy}` 會在顯示時擲骰並以總和取代，例如 `{1D100}`、`{2d20}`、`{3d6}`。
@@ -146,7 +158,9 @@
 
 #### 條件賦值（Conditional Set）
 
-- 支援在 `[set]` 上使用條件選項：`[set|if=<expr>] key=<expr>`。
+- 支援在 `[set]` 上使用條件選項：
+  - `[set|if=<expr>] key=<expr>`：一般條件賦值。
+  - `[set|ifs=<expr>] key=<expr>`：獨立條件賦值（不參與 if/else 鏈）。
 - 結合擲骰，可實作常見的檢定流程。
 
 範例：
@@ -201,8 +215,9 @@
 
 ## 佔位符（Placeholders）
 
-- 在 `[text]` 內使用 `{key}` 會依序從 `playerVariables`、`stats`、`variables` 取值並套入（優先順序如前，後者可覆蓋前者）。
-- 若找不到對應鍵，將保留原樣（例如 `{unknown_key}` 會原樣輸出）。
+- 在 `[text]` 內使用 `{key}` 時，鍵值解析優先順序為：`variables` → `stats` → `playerVariables`（玩家變數最高優先）。
+- 若同名鍵同時存在，後者將覆蓋前者；若找不到對應鍵，將保留原樣（例如 `{unknown_key}` 會原樣輸出）。
+- 字串值內若再包含 `{...}`，會進行一次巢狀展開。
 
 ### 註：相容性與限制補充
 
@@ -357,4 +372,4 @@ RHS 以引號包裝時會被視為字串常值；否則會嘗試以表達式求�
 [text] {who} 稱呼你為「{title}」。
 ```
 
-`{key}` 查找順序為 `playerVariables` → `stats` → `variables`。字串值內若再包含 `{...}`，會進行一次巢狀展開。
+`{key}` 鍵值解析優先順序為 `variables` → `stats` → `playerVariables`（玩家變數最高優先）。字串值內若再包含 `{...}`，會進行一次巢狀展開。

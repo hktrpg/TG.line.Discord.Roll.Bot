@@ -783,7 +783,7 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
             ensurePage(currentPageId || '0').content.push({ randomChance: Math.min(100, Math.max(0, Number(m[1]))) / 100, text: '' });
             continue;
         }
-        // [set] and [set|if=...] support
+        // [set] and [set|if=...]/[set|ifs=...] support
         if ((m = line.match(/^\[set(?:\|([^\]]+))?\]\s*([^=\s]+)\s*=\s*([\s\S]+)$/i))) {
             const page = ensurePage(currentPageId || '0');
             const opts = {};
@@ -803,6 +803,8 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
             const val = Number.isNaN(Number(rawNoComment)) ? rawNoComment : Number(rawNoComment);
             const entry = { setVariables: { [key]: val } };
             if (opts.if) entry.condition = opts.if;
+            // Support independent conditional set: [set|ifs=EXPR]
+            if (opts.ifs) { entry.condition = opts.ifs; entry.isIndependentIf = true; }
             page.content.push(entry);
             continue;
         }
@@ -883,8 +885,12 @@ function exportStoryToRunDesign(story) {
             for (const item of page.content) {
                 if (item.setVariables && typeof item.setVariables === 'object') {
                     for (const [k, v] of Object.entries(item.setVariables)) {
-                        if (item.condition) lines.push('[set|if=' + item.condition + '] ' + k + '=' + v);
-                        else lines.push('[set] ' + k + '=' + v);
+                        if (item.condition) {
+                            if (item.isIndependentIf) lines.push('[set|ifs=' + item.condition + '] ' + k + '=' + v);
+                            else lines.push('[set|if=' + item.condition + '] ' + k + '=' + v);
+                        } else {
+                            lines.push('[set] ' + k + '=' + v);
+                        }
                     }
                 }
                 if (typeof item.randomChance === 'number') lines.push('[random] ' + Math.round(item.randomChance * 100) + '%');

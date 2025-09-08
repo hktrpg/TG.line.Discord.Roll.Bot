@@ -1382,15 +1382,27 @@ const rollDiceCommand = async function ({
                     title: compiled.title,
                     type: 'story',
                     payload: compiled,
-                    startPermission: 'AUTHOR_ONLY',
-                    allowedGroups: [],
                     isActive: true
                 };
+                // Preserve existing allow settings on import; only set defaults when creating new
+                if (!existingDoc) {
+                    update.startPermission = 'AUTHOR_ONLY';
+                    update.allowedGroups = [];
+                }
                 await db.story.findOneAndUpdate(filter, update, { upsert: !existingDoc });
             }
             try {
                 const outPath = path.join(__dirname, 'storyTeller', alias + '.json');
                 fs.mkdirSync(path.dirname(outPath), { recursive: true });
+                // Preserve filesystem allow settings (_meta) if file exists
+                try {
+                    if (fs.existsSync(outPath)) {
+                        const prev = JSON.parse(fs.readFileSync(outPath, 'utf8')) || {};
+                        if (prev && prev._meta) {
+                            compiled._meta = Object.assign({}, prev._meta, compiled._meta || {});
+                        }
+                    }
+                } catch { /* ignore */ }
                 fs.writeFileSync(outPath, JSON.stringify(compiled, null, 2), 'utf8');
             } catch { /* ignore */ }
 
@@ -1471,6 +1483,15 @@ const rollDiceCommand = async function ({
             try {
                 const outPath = path.join(__dirname, 'storyTeller', alias + '.json');
                 fs.mkdirSync(path.dirname(outPath), { recursive: true });
+                // Preserve filesystem allow settings (_meta) if file exists
+                try {
+                    if (fs.existsSync(outPath)) {
+                        const prev = JSON.parse(fs.readFileSync(outPath, 'utf8')) || {};
+                        if (prev && prev._meta) {
+                            compiled._meta = Object.assign({}, prev._meta, compiled._meta || {});
+                        }
+                    }
+                } catch { /* ignore */ }
                 fs.writeFileSync(outPath, JSON.stringify(compiled, null, 2), 'utf8');
             } catch { /* ignore */ }
             rply.text = '已更新劇本：' + (compiled.title || alias) + '（alias: ' + alias + '）';

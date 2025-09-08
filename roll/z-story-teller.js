@@ -55,7 +55,7 @@ const getHelpMessage = function () {
 │ .st pause / .st continue [runId]
 │   暫停或繼續當前劇本（跨裝置可用 runId 指定續玩）
 │ .st edit alone|all|poll x
-│   切換參與權限；poll 僅 Discord 有效（x 分鐘，預設 3）
+│   切換參與權限；poll 僅Discord有效（x 分鐘，預設 3）
 │ .st end
 │   結束目前劇本
 ├────── 🎯 遊戲進行 ──────
@@ -71,13 +71,13 @@ const getHelpMessage = function () {
 │ .st list <alias>
 │   顯示該劇本簡介與可用資訊
 │ .st import <alias> [title]
-│   上傳 .json 或 .txt（RUN_DESIGN）以新增劇本（僅 Discord）
+│   上傳 .json 或 .txt（RUN_DESIGN）以新增劇本（僅Discord）
 │ .st update <alias> [title]
-│   以附件覆蓋既有劇本（僅 Discord）
+│   以附件覆蓋既有劇本（僅Discord）
 │ .st delete <alias>
 │   刪除自己擁有的劇本
 │ .st export <alias>
-│   私訊傳送 RUN_DESIGN 文字檔，並於頻道通知（需權限，僅 Discord）
+│   私訊傳送 RUN_DESIGN 文字檔，並於頻道通知（需權限，僅Discord）
 │ .st verify <alias>
 │   JSON → RUN_DESIGN → JSON 可逆性檢查
 ├────── 🔐 啟動權限 ──────
@@ -96,7 +96,7 @@ const getHelpMessage = function () {
 │ .st goto 12       | 跳至指定頁面
 │ .st pause / .st continue / .st end | 暫停/繼續/結束劇本
 ├────── ℹ️ 備註 ──────
-│ - poll、import、export、update 僅於 Discord 有效；未提供 x 時預設 3 分鐘
+│ - poll、import、export、update 僅於Discord有效；未提供 x 時預設 3 分鐘
 │ - 編寫語法與範例請見： https://bothelp.hktrpg.com/
 ╰────────────────`;
 }
@@ -1221,6 +1221,10 @@ function validateCompiledStory(story) {
                     return { ok: false, message: '第 ' + pid + ' 頁結局文字過長（每段最多 ' + MAX_TEXT_SEGMENT + ' 字）' };
                 }
             }
+        }
+        // Enforce: every [label] must contain at least one [choice]
+        if (!Array.isArray(page && page.choices) || (page.choices || []).length === 0) {
+            return { ok: false, message: '第 ' + pid + ' 頁缺少選項（每個 [label] 必須至少包含一個 [choice]）' };
         }
     }
     if (!hasEnding) {

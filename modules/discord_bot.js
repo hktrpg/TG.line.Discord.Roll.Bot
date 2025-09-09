@@ -1684,30 +1684,19 @@ async function handlingSendMessage(input) {
 // ---- StoryTeller reaction poll helpers ----
 async function createStPollByChannel({ channelid, groupid, text, payload }) {
     try {
-        console.error('[ST-POLL] createStPollByChannel: request', {
-            shardId: client.cluster?.id,
-            channelid,
-            groupid,
-            textLen: (typeof text === 'string') ? text.length : (text ? String(text).length : 0),
-            optionsLen: Array.isArray(payload?.options) ? payload.options.length : -1,
-            minutes: Number(payload?.minutes || 3),
-            streak: Number(payload?.streak || 0)
-        });
+        
         // Skip creating poll if the run is paused
         if (await isStoryTellerRunPausedByChannel(channelid)) {
-            console.error('[ST-POLL] createStPollByChannel: aborted (run paused)', { channelid });
             return;
         }
         // Ensure the run is still active/continuing (not paused/ended)
         if (!(await isStoryTellerRunActiveByChannel(channelid))) {
-            console.error('[ST-POLL] createStPollByChannel: aborted (run not active)', { channelid });
             return;
         }
 
         const hasOptions = Array.isArray(payload?.options) && payload.options.length > 0;
         const maxOptions = Math.min(hasOptions ? payload.options.length : 0, POLL_EMOJIS.length);
         if (maxOptions <= 0) {
-            console.error('[ST-POLL] createStPollByChannel: aborted (no options)', { channelid });
             return;
         }
 
@@ -1769,14 +1758,11 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
                 if (agenda) {
                     try {
                         await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', jobData);
-                        console.error('[ST-POLL] createStPollByChannel: scheduled via agenda (fallback/local)', { channelid, messageId: pollMsg.id, delayMs: ms });
                     }
                     catch (error) {
-                        console.error('[ST-POLL] createStPollByChannel: agenda schedule failed (fallback/local), using setTimeout', { channelid, messageId: pollMsg.id, error: error?.message, delayMs: ms });
                         setTimeout(() => tallyStPoll(pollMsg.id, jobData).catch(() => { }), ms);
                     }
                 } else {
-                    console.error('[ST-POLL] createStPollByChannel: scheduled via setTimeout (fallback/local)', { channelid, messageId: pollMsg.id, delayMs: ms });
                     setTimeout(() => tallyStPoll(pollMsg.id, jobData).catch(() => { }), ms);
                 }
                 return;
@@ -1810,14 +1796,11 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
         if (agenda) {
             try {
                 await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', jobData);
-                console.error('[ST-POLL] createStPollByChannel: scheduled via agenda (broadcast/owner)', { channelid, messageId: found.messageId, ownerShard: found.shardId, delayMs: ms });
             } catch (error) {
                 console.error('agenda schedule stPollFinish failed after broadcast send:', error?.message);
-                console.error('[ST-POLL] createStPollByChannel: falling back to setTimeout after agenda failure', { channelid, messageId: found.messageId, delayMs: ms });
                 setTimeout(() => tallyStPoll(found.messageId, jobData).catch(() => { }), ms);
             }
         } else {
-            console.error('[ST-POLL] createStPollByChannel: scheduled via setTimeout (broadcast)', { channelid, messageId: found.messageId, delayMs: ms });
             setTimeout(() => tallyStPoll(found.messageId, jobData).catch(() => { }), ms);
         }
     } catch (error) {
@@ -1901,19 +1884,9 @@ async function tallyStPoll(messageId, fallbackData) {
         }
     } catch {}
     try {
-        console.error('[ST-POLL] tallyStPoll: start', {
-            shardId: client.cluster?.id,
-            messageId,
-            channelid: data.channelid,
-            optionsLen: Array.isArray(data.options) ? data.options.length : -1,
-            minutes: data.minutes
-        });
+        
         if (!stPolls.get(messageId) && fallbackData) {
-            console.error('[ST-POLL] tallyStPoll: using fallbackData (no in-memory state)', {
-                channelid: fallbackData.channelid,
-                minutes: fallbackData.minutes,
-                optionsLen: Array.isArray(fallbackData.options) ? fallbackData.options.length : -1
-            });
+            
         }
         // Guard against outdated polls using persisted last poll info when available
         try {
@@ -1963,17 +1936,11 @@ async function tallyStPoll(messageId, fallbackData) {
         );
         const found = Array.isArray(shardResults) ? shardResults.find(v => v && Array.isArray(v.counts)) : null;
         if (!found) {
-            console.error('[ST-POLL] tallyStPoll: Channel not found', {
-                shardId: client.cluster?.id,
-                channelid: data.channelid,
-                messageId
-            });
             const d = stPolls.get(messageId);
             if (d) d.completed = true;
             setTimeout(() => stPolls.delete(messageId), 60_000);
             return;
         }
-        console.error('[ST-POLL] tallyStPoll: reaction counts', { counts: found.counts, tallyShard: found.shardId });
         // Ignore outdated polls if a newer poll exists in this channel
         try {
             const lastTs = stLastPollStartedAt.get(data.channelid) || 0;
@@ -2028,7 +1995,6 @@ async function tallyStPoll(messageId, fallbackData) {
                     { context: { channelId: data.channelid, messageId, content: `本輪未收到投票（連續 ${nextDisplay} 次）。`, targetClusterId: ownerClusterId } }
                 );
             } catch {}
-            console.error('[ST-POLL] tallyStPoll: No votes received', { channelid: data.channelid, messageId, streak: nextRaw });
             if (nextRaw >= 4) {
                 try {
                     let ownerClusterId = null; try { ownerClusterId = await getOwnerClusterIdByGuild(data.groupid); } catch {}
@@ -2069,7 +2035,6 @@ async function tallyStPoll(messageId, fallbackData) {
                         discordMessage: null,
                         titleName: ''
                     });
-                    console.error('[ST-POLL] tallyStPoll: auto-pause parseInput done', { hasText: !!(rplyVal && rplyVal.text) });
                     if (rplyVal && rplyVal.text) {
                         await client.cluster.broadcastEval(
                             async (c, { channelId, content }) => {
@@ -2107,7 +2072,6 @@ async function tallyStPoll(messageId, fallbackData) {
             try {
                 // Only repost if not paused
                 if (!(await isStoryTellerRunPausedByChannel(data.channelid))) {
-                    console.error('[ST-POLL] tallyStPoll: reposting poll after no-vote', { channelid: data.channelid, minutes: Number(data.minutes || 3) });
                     // carry forward streak across shards via job payload
                     await createStPollByChannel({ channelid: data.channelid, groupid: data.groupid, text: '', payload: { options: data.options, minutes: Number(data.minutes || 3), streak: nextRaw } });
                 }
@@ -2127,7 +2091,6 @@ async function tallyStPoll(messageId, fallbackData) {
         if (indices.length === 0) return;
         const pick = indices[Math.floor(Math.random() * indices.length)];
         const picked = data.options[pick];
-        console.error('[ST-POLL] tallyStPoll: Votes tallied', { counts, max, pickedIndex: pick, pickedAction: picked?.action, pickedLabel: picked?.label });
         try {
             let ownerClusterId = null; try { ownerClusterId = await getOwnerClusterIdByGuild(data.groupid); } catch {}
             await client.cluster.broadcastEval(
@@ -2150,7 +2113,6 @@ async function tallyStPoll(messageId, fallbackData) {
         const nextCmd = (String(picked.action || '').toUpperCase() === 'END') ? '.st end' : `.st goto ${picked.action}`;
         // Do not advance if paused
         if (!(await isStoryTellerRunPausedByChannel(data.channelid))) {
-            console.error('[ST-POLL] tallyStPoll: Advancing with command', { nextCmd });
             try {
                 const starterId = await (async () => {
                     try {
@@ -2172,10 +2134,8 @@ async function tallyStPoll(messageId, fallbackData) {
                     discordMessage: null,
                     titleName: ''
                 });
-                console.error('[ST-POLL] tallyStPoll: advance parseInput done', { hasText: !!(rplyVal && rplyVal.text), hasPoll: !!(rplyVal && rplyVal.discordCreatePoll) });
                 if (rplyVal && rplyVal.text) {
                     if (rplyVal.discordCreatePoll) {
-                        console.error('[ST-POLL] tallyStPoll: advancing with new poll payload');
                         await createStPollByChannel({ channelid: data.channelid, groupid: data.groupid, text: rplyVal.text, payload: rplyVal.discordCreatePoll });
                     } else {
                         let ownerClusterId = null; try { ownerClusterId = await getOwnerClusterIdByGuild(data.groupid); } catch {}
@@ -2210,7 +2170,6 @@ if (agenda) {
     try {
         agenda.define('stPollFinish', async (job) => {
             const { messageId, channelid, groupid, options, minutes, streak } = job.attrs.data || {};
-            console.error('[ST-POLL] agenda: stPollFinish fired', { shardId: client.cluster?.id, messageId, channelid, minutes, optionsLen: Array.isArray(options) ? options.length : -1, streak });
             await tallyStPoll(messageId, { channelid, groupid, options, minutes, streak });
             try { await job.remove(); } catch { }
         });

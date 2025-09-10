@@ -1439,8 +1439,7 @@ const rollDiceCommand = async function ({
                     alias,
                     title: compiled.title,
                     type: 'story',
-                    payload: compiled,
-                    isActive: true
+                    payload: compiled
                 };
                 // Preserve existing allow settings on import; only set defaults when creating new
                 if (!existingDoc) {
@@ -1536,8 +1535,7 @@ const rollDiceCommand = async function ({
                         alias,
                         title: compiled.title,
                         type: 'story',
-                        payload: compiled,
-                        isActive: true
+                        payload: compiled
                     },
                     { new: true }
                 );
@@ -2073,10 +2071,10 @@ const rollDiceCommand = async function ({
             const rows = [];
             if (db.story && typeof db.story.find === 'function') {
                 if (aliasFilter) {
-                    const found = await db.story.findOne({ alias: aliasFilter, isActive: { $ne: false } }).lean();
+                    const found = await db.story.findOne({ alias: aliasFilter }).lean();
                     if (found) rows.push({ title: found.title || '-', alias: found.alias || '-', introduction: found.payload && found.payload.introduction || '', author: found.payload && found.payload.author || '', startPermission: found.startPermission || '-' });
                 } else {
-                    const all = await db.story.find({ isActive: { $ne: false } }).lean();
+                    const all = await db.story.find({}).lean();
                     for (const s of all) {
                         const allow = canStartStory(s, { userid, groupid });
                         if (allow.ok) rows.push({ title: s.title || '-', alias: s.alias || '-', introduction: s.payload && s.payload.introduction || '', author: s.payload && s.payload.author || '', startPermission: s.startPermission || '-' });
@@ -2430,7 +2428,6 @@ const rollDiceCommand = async function ({
                         title: s.title || '-',
                         alias: s.alias || '-',
                         startPermission: s.startPermission || '-',
-                        isActive: !!s.isActive,
                         introduction: s && s.payload && s.payload.introduction || '',
                         completed,
                         endingStats,
@@ -2478,7 +2475,6 @@ const rollDiceCommand = async function ({
                         title: alias,
                         alias,
                         startPermission: meta.startPermission || 'ANYONE',
-                        isActive: true,
                         introduction: intro,
                         completed: data.completed,
                         endingStats: [...data.endings.entries()].map(([id, count]) => ({ id, count })),
@@ -2528,7 +2524,6 @@ const rollDiceCommand = async function ({
                             }
                         }
                     }
-                    text += '  - 啟用：' + (r.isActive ? '是' : '否') + '\n';
                     if (typeof r.completed === 'number') text += '  - 完成次數：' + r.completed + '\n';
                     if (Array.isArray(r.endingStats) && r.endingStats.length > 0) {
                         text += '  - 結局統計：\n';

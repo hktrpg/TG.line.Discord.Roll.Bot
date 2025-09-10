@@ -144,7 +144,14 @@
 
 - 條件以小型、類 JS 的子集合為語法，運行於 scope（`variables` + `stats` + `playerVariables`）
 - 支援運算子：`&& || ! < <= > >= == === != !== + - * / % ()`
-- 安全限制：不允許任何函式呼叫；不可存取 `globalThis`、`global`、`process`、`this`、`Function`、`constructor`、`require` 等識別字。
+- 安全限制：
+  - 不允許任何函式呼叫。
+  - 不可存取 `globalThis`、`global`、`process`、`this`、`Function`、`constructor`、`require` 等識別字。
+  - 不允許使用點號 `.`（dot）。因此：
+    - 不支援屬性存取（例如 `obj.prop` 會被直接阻擋）。
+    - 不支援小數字面量（例如 `1.5` 會被視為不合法）。
+    - 在條件（`if=...`、`ifs=...`）中若包含 `.`，條件一律視為不成立。
+    - 在賦值（`[set] key=<expr>`）中若包含 `.`，值不會被運算，會以原樣字串寫入。若你只是要字面上的句點，請把整個值用引號包起來（例如：`[set] title="A.B"`）。
 
   - 範例：`if=Cuteness>=8 && Energy>3`
 - 支援一元否定 `!expr`（可搭配括號以控制優先順序）。

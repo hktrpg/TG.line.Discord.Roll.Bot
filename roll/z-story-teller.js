@@ -698,6 +698,7 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
     const lines = String(runDesignText || '').split(/\r?\n/);
     const story = {
         title: '',
+        author: '',
         type: 'story',
         introduction: '',
         coverImage: '',
@@ -725,6 +726,7 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
 
         let m;
         if ((m = line.match(/^\[meta\]\s*title\s+"([\s\S]*?)"$/i))) { story.title = m[1]; continue; }
+        if ((m = line.match(/^\[meta\]\s*author\s+"([\s\S]*?)"$/i))) { story.author = m[1]; continue; }
         if ((m = line.match(/^\[intro\]\s*(.*)$/i))) { story.introduction += (story.introduction ? '\n' : '') + m[1]; continue; }
         if ((m = line.match(/^\[player_var\]\s*([^\s]+)\s+"([\s\S]*?)"(?:\s+"([\s\S]*?)")?$/i))) {
             story.playerVariables.push({ key: m[1], prompt: m[2], placeholder: m[3] || '' });
@@ -846,6 +848,7 @@ function exportStoryToRunDesign(story) {
     const lines = [];
     const q = (s) => '"' + JSON.stringify(String(s || '')).slice(1, -1) + '"';
     lines.push('[meta] title ' + q(story.title || ''));
+    if (story.author) lines.push('[meta] author ' + q(story.author || ''));
     if (story.introduction) {
         for (const l of String(story.introduction).split(/\r?\n/)) lines.push('[intro] ' + l);
     }
@@ -1175,6 +1178,7 @@ function validateRunDesignLines(rawText) {
         /^\s*$/,
         /^\/\//,
         /^\[meta\]\s*title\s+"([\s\S]*?)"$/i,
+        /^\[meta\]\s*author\s+"([\s\S]*?)"$/i,
         /^\[intro\]\s*(.*)$/i,
         /^\[player_var\]\s*([^\s]+)\s+"([\s\S]*?)"(?:\s+"([\s\S]*?)")?$/i,
         /^\[stat_def\]\s*([^\s]+)\s+(-?\d+)\s+(-?\d+)(?:\s+"([\s\S]*?)")?$/i,
@@ -1326,6 +1330,11 @@ const rollDiceCommand = async function ({
             if (!compiled.title) compiled.title = alias;
             compiled.type = 'story';
             compiled.ownerId = userid;
+            // Require author metadata
+            if (!compiled.author || String(compiled.author).trim() === '') {
+                rply.text = '上傳失敗：缺少作者。請在檔案中加入 [meta] author "作者名" 後再試。';
+                return rply;
+            }
 
             // Validation: pages and segment lengths
             const v = validateCompiledStory(compiled);
@@ -1464,6 +1473,11 @@ const rollDiceCommand = async function ({
             if (!compiled.title) compiled.title = alias;
             compiled.type = 'story';
             compiled.ownerId = userid;
+            // Require author metadata
+            if (!compiled.author || String(compiled.author).trim() === '') {
+                rply.text = '更新失敗：缺少作者。請在檔案中加入 [meta] author "作者名" 後再試。';
+                return rply;
+            }
             const v = validateCompiledStory(compiled);
             if (!v.ok) { rply.text = '更新失敗：' + v.message; return rply; }
 
@@ -2018,12 +2032,12 @@ const rollDiceCommand = async function ({
             if (db.story && typeof db.story.find === 'function') {
                 if (aliasFilter) {
                     const found = await db.story.findOne({ alias: aliasFilter, isActive: { $ne: false } }).lean();
-                    if (found) rows.push({ title: found.title || '-', alias: found.alias || '-', introduction: found.payload && found.payload.introduction || '', startPermission: found.startPermission || '-' });
+                    if (found) rows.push({ title: found.title || '-', alias: found.alias || '-', introduction: found.payload && found.payload.introduction || '', author: found.payload && found.payload.author || '', startPermission: found.startPermission || '-' });
                 } else {
                     const all = await db.story.find({ isActive: { $ne: false } }).lean();
                     for (const s of all) {
                         const allow = canStartStory(s, { userid, groupid });
-                        if (allow.ok) rows.push({ title: s.title || '-', alias: s.alias || '-', introduction: s.payload && s.payload.introduction || '', startPermission: s.startPermission || '-' });
+                        if (allow.ok) rows.push({ title: s.title || '-', alias: s.alias || '-', introduction: s.payload && s.payload.introduction || '', author: s.payload && s.payload.author || '', startPermission: s.startPermission || '-' });
                     }
                 }
             } else {
@@ -2038,8 +2052,9 @@ const rollDiceCommand = async function ({
                         if (seen.has(alias)) continue;
                         if (aliasFilter && alias !== aliasFilter) continue;
                         let intro = '';
-                        try { const obj = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); intro = obj && obj.introduction || ''; } catch { }
-                        rows.push({ title: alias, alias, introduction: intro, startPermission: 'ANYONE' });
+                        let author = '';
+                        try { const obj = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); intro = obj && obj.introduction || ''; author = obj && obj.author || ''; } catch { }
+                        rows.push({ title: alias, alias, introduction: intro, author, startPermission: 'ANYONE' });
                         seen.add(alias);
                     }
                 }
@@ -2051,7 +2066,7 @@ const rollDiceCommand = async function ({
                     return rply;
                 }
                 const item = rows[0];
-                rply.text = '【' + item.title + '】\n' + (item.introduction || '(無簡介)');
+                rply.text = '【' + item.title + '】\n作者：' + (item.author || '-') + '\n' + (item.introduction || '(無簡介)');
                 rply.buttonCreate = ['.st start ' + item.alias];
                 return rply;
             }
@@ -2065,6 +2080,7 @@ const rollDiceCommand = async function ({
             else {
                 for (const r of rows) {
                     text += '- ' + r.title + ' (alias: ' + r.alias + ')\n';
+                    if (r.author) text += '  - 作者：' + r.author + '\n';
                     try {
                         const intro = String(r.introduction || '').trim();
                         if (intro) {

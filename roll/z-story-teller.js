@@ -2187,6 +2187,52 @@ const rollDiceCommand = async function ({
                 return rply;
             } catch (error) { rply.text = '設定失敗：' + (error.message || ''); return rply; }
         }
+        case /^disallow$/.test(sub): {
+            const alias = (mainMsg[2] || '').trim();
+            const removeIds = mainMsg.slice(3).filter(Boolean);
+            if (!alias) { rply.text = '用法：.st disallow <alias> [groupId...]'; return rply; }
+            if (db.story && typeof db.story.findOneAndUpdate === 'function') {
+                const doc = await db.story.findOne({ alias }).lean();
+                if (!doc) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
+                if (String(doc.ownerID) !== String(userid)) { rply.text = '你沒有權限變更此劇本設定。'; return rply; }
+                let groups = Array.isArray(doc.allowedGroups) ? [...doc.allowedGroups] : [];
+                const targets = [...removeIds];
+                if (targets.length === 0) {
+                    if (groupid) targets.push(groupid);
+                    if (channelid) targets.push(channelid);
+                }
+                if (targets.length === 0) { rply.text = '請在群組或頻道中使用 .st disallow，或指定 groupId。'; return rply; }
+                const before = groups.length;
+                groups = groups.filter(id => !targets.includes(String(id)));
+                await db.story.findOneAndUpdate({ alias }, { allowedGroups: groups }, { new: true });
+                if (before === groups.length) { rply.text = '指定群組/頻道未在允許清單中。'; return rply; }
+                rply.text = '已取消允許（alias: ' + alias + '）：' + (groups.length > 0 ? groups.join(', ') : '(無)');
+                rply.buttonCreate = ['.st allow ' + alias];
+                return rply;
+            }
+            // files fallback
+            try {
+                const p = path.join(__dirname, 'storyTeller', alias + '.json');
+                if (!fs.existsSync(p)) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
+                const obj = JSON.parse(fs.readFileSync(p, 'utf8'));
+                if (obj && String(obj.ownerId) !== String(userid)) { rply.text = '你沒有權限變更此劇本設定。'; return rply; }
+                obj._meta = obj._meta || {};
+                obj._meta.allowedGroups = Array.isArray(obj._meta.allowedGroups) ? obj._meta.allowedGroups : [];
+                const targets = [...removeIds];
+                if (targets.length === 0) {
+                    if (groupid) targets.push(groupid);
+                    if (channelid) targets.push(channelid);
+                }
+                if (targets.length === 0) { rply.text = '請在群組或頻道中使用 .st disallow，或指定 groupId。'; return rply; }
+                const before = obj._meta.allowedGroups.length;
+                obj._meta.allowedGroups = obj._meta.allowedGroups.filter(id => !targets.includes(String(id)));
+                fs.writeFileSync(p, JSON.stringify(obj, null, 2), 'utf8');
+                if (before === obj._meta.allowedGroups.length) { rply.text = '指定群組/頻道未在允許清單中。'; return rply; }
+                rply.text = '已取消允許（alias: ' + alias + '）：' + (obj._meta.allowedGroups.length > 0 ? obj._meta.allowedGroups.join(', ') : '(無)');
+                rply.buttonCreate = ['.st allow ' + alias];
+                return rply;
+            } catch (error) { rply.text = '設定失敗：' + (error.message || ''); return rply; }
+        }
         case /^game$/.test(sub): {
             // Show current running and paused games in this channel/group
             let text = '【當前遊戲】\n';
@@ -2387,7 +2433,8 @@ const rollDiceCommand = async function ({
                         isActive: !!s.isActive,
                         introduction: s && s.payload && s.payload.introduction || '',
                         completed,
-                        endingStats
+                        endingStats,
+                        allowedGroups: Array.isArray(s.allowedGroups) ? s.allowedGroups : []
                     });
                 }
             } else {
@@ -2426,7 +2473,17 @@ const rollDiceCommand = async function ({
                 for (const [alias, data] of byAlias.entries()) {
                     const story = await getStoryFor(alias, ownerID);
                     const intro = story && story.introduction || '';
-                    rows.push({ title: alias, alias, startPermission: 'ANYONE', isActive: true, introduction: intro, completed: data.completed, endingStats: [...data.endings.entries()].map(([id, count]) => ({ id, count })) });
+                    const meta = story && story._meta || {};
+                    rows.push({
+                        title: alias,
+                        alias,
+                        startPermission: meta.startPermission || 'ANYONE',
+                        isActive: true,
+                        introduction: intro,
+                        completed: data.completed,
+                        endingStats: [...data.endings.entries()].map(([id, count]) => ({ id, count })),
+                        allowedGroups: Array.isArray(meta.allowedGroups) ? meta.allowedGroups : []
+                    });
                 }
             }
             if (rows.length === 0) {
@@ -2442,12 +2499,40 @@ const rollDiceCommand = async function ({
                             text += '  - 簡介：' + preview + '\n';
                         }
                     } catch { /* ignore */ }
-                    text += '  - startPermission: ' + r.startPermission + '\n';
-                    text += '  - active: ' + r.isActive + '\n';
-                    if (typeof r.completed === 'number') text += '  - Completed: ' + r.completed + '\n';
+                    const perm = String(r.startPermission || '').toUpperCase();
+                    const options = ['僅作者', '任何人', '指定群組'];
+                    const activeIndex = (perm === 'AUTHOR_ONLY') ? 0 : (perm === 'ANYONE') ? 1 : (perm === 'GROUP_ONLY') ? 2 : -1;
+                    const display = options.map((label, idx) => idx === activeIndex ? ('【' + label + '】') : label).join('/');
+                    text += '  - ' + display + '\n';
+                    if (perm === 'GROUP_ONLY') {
+                        text += '    【指定群組】：\n';
+                        const groups = Array.isArray(r.allowedGroups) ? r.allowedGroups : [];
+                        if (groups.length === 0) {
+                            text += '      （未設定）\n';
+                        } else {
+                            for (const gid of groups) {
+                                let name = '';
+                                if (String(botname || '').toLowerCase() === 'discord' && discordClient && typeof discordClient.channels?.fetch === 'function') {
+                                    try {
+                                        const ch = await discordClient.channels.fetch(gid);
+                                        if (ch && ch.name) name = ch.name;
+                                    } catch { /* ignore */ }
+                                    if (!name && typeof discordClient.guilds?.fetch === 'function') {
+                                        try {
+                                            const g = await discordClient.guilds.fetch(gid);
+                                            if (g && g.name) name = g.name;
+                                        } catch { /* ignore */ }
+                                    }
+                                }
+                                text += '      ' + (name ? (name + ' - ' + gid) : gid) + '\n';
+                            }
+                        }
+                    }
+                    text += '  - 啟用：' + (r.isActive ? '是' : '否') + '\n';
+                    if (typeof r.completed === 'number') text += '  - 完成次數：' + r.completed + '\n';
                     if (Array.isArray(r.endingStats) && r.endingStats.length > 0) {
-                        text += '  - Endings:\n';
-                        for (const es of r.endingStats) text += '    • ' + (es.id || 'unknown') + ': ' + es.count + '\n';
+                        text += '  - 結局統計：\n';
+                        for (const es of r.endingStats) text += '    • ' + (es.id || '未知') + '：' + es.count + '\n';
                     }
                 }
             }

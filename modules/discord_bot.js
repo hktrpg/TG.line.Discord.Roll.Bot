@@ -47,55 +47,55 @@ const shardid = client.cluster.id;
 let ws;
 
 // StoryTeller reaction poll support
-const POLL_EMOJIS = ['🇦','🇧','🇨','🇩','🇪','🇫','🇬','🇭','🇮','🇯','🇰','🇱','🇲','🇳','🇴','🇵','🇶','🇷','🇸','🇹'];
+const POLL_EMOJIS = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯', '🇰', '🇱', '🇲', '🇳', '🇴', '🇵', '🇶', '🇷', '🇸', '🇹'];
 const stPolls = new Map(); // messageId -> { channelid, groupid, options, originMessage, completed?: boolean }
 const stNoVoteStreak = new Map(); // channelId -> consecutive no-vote count
 const stLastPollStartedAt = new Map(); // channelId -> timestamp of latest poll start
 
 // Helper: check if StoryTeller run in this channel is paused
 async function isStoryTellerRunPausedByChannel(channelId) {
-    try {
-        if (!schema || !schema.storyRun || typeof schema.storyRun.findOne !== 'function') return false;
-        const run = await schema.storyRun.findOne({ channelID: channelId, isEnded: false }).sort({ updatedAt: -1 });
-        return !!(run && run.isPaused);
-    } catch {
-        return false;
-    }
+	try {
+		if (!schema || !schema.storyRun || typeof schema.storyRun.findOne !== 'function') return false;
+		const run = await schema.storyRun.findOne({ channelID: channelId, isEnded: false }).sort({ updatedAt: -1 });
+		return !!(run && run.isPaused);
+	} catch {
+		return false;
+	}
 }
 
 // Helper: check if StoryTeller run in this channel is actively continuing (not paused, not ended)
 async function isStoryTellerRunActiveByChannel(channelId) {
-    try {
-        if (!schema || !schema.storyRun || typeof schema.storyRun.findOne !== 'function') return true;
-        const run = await schema.storyRun.findOne({ channelID: channelId }).sort({ updatedAt: -1 });
-        if (!run) return false;
-        return !run.isPaused && !run.isEnded;
-    } catch {
-        return true;
-    }
+	try {
+		if (!schema || !schema.storyRun || typeof schema.storyRun.findOne !== 'function') return true;
+		const run = await schema.storyRun.findOne({ channelID: channelId }).sort({ updatedAt: -1 });
+		if (!run) return false;
+		return !run.isPaused && !run.isEnded;
+	} catch {
+		return true;
+	}
 }
 
 // Resolve which cluster owns a given guild so we only send from that cluster
 async function getOwnerClusterIdByGuild(guildId) {
-    try {
-        const results = await client.cluster.broadcastEval(
-            (c, { gid }) => {
-                try {
-                    return c.guilds.cache.has(gid) ? (c.cluster?.id || 0) : null;
-                } catch {
-                    return null;
-                }
-            },
-            { context: { gid: guildId } }
-        );
-        if (Array.isArray(results)) {
-            const id = results.find(v => Number.isInteger(v));
-            return (typeof id === 'number') ? id : null;
-        }
-        return null;
-    } catch {
-        return null;
-    }
+	try {
+		const results = await client.cluster.broadcastEval(
+			(c, { gid }) => {
+				try {
+					return c.guilds.cache.has(gid) ? (c.cluster?.id || 0) : null;
+				} catch {
+					return null;
+				}
+			},
+			{ context: { gid: guildId } }
+		);
+		if (Array.isArray(results)) {
+			const id = results.find(v => Number.isInteger(v));
+			return (typeof id === 'number') ? id : null;
+		}
+		return null;
+	} catch {
+		return null;
+	}
 }
 
 client.on('messageCreate', async message => {
@@ -251,7 +251,7 @@ function startHeartbeatMonitor() {
 		require('child_process').exec('sudo reboot');
 	}
 	let heartbeat = 0;
-	
+
 	console.log('Discord Heartbeat Monitor Started on Cluster 0.');
 
 	heartbeatInterval = setInterval(async () => {
@@ -1569,28 +1569,28 @@ const sendFiles = async (message, rplyVal, userid) => {
 }
 
 const sendDmFiles = async (message, rplyVal) => {
-    try {
-        const files = [];
-        for (let i = 0; i < rplyVal.dmFileLink.length; i++) {
-            files.push(new AttachmentBuilder(rplyVal.dmFileLink[i]));
-        }
+	try {
+		const files = [];
+		for (let i = 0; i < rplyVal.dmFileLink.length; i++) {
+			files.push(new AttachmentBuilder(rplyVal.dmFileLink[i]));
+		}
 
-        // Prefer direct message to author/user
-        if (message.author && typeof message.author.send === 'function') {
-            await message.author.send({ content: rplyVal.dmFileText || '', files });
-        } else if (message.user && message.isInteraction) {
-            await message.user.send({ content: rplyVal.dmFileText || '', files });
-        }
+		// Prefer direct message to author/user
+		if (message.author && typeof message.author.send === 'function') {
+			await message.author.send({ content: rplyVal.dmFileText || '', files });
+		} else if (message.user && message.isInteraction) {
+			await message.user.send({ content: rplyVal.dmFileText || '', files });
+		}
 
-        // Cleanup local files
-        for (let i = 0; i < rplyVal.dmFileLink.length; i++) {
-            try { fs.unlinkSync(rplyVal.dmFileLink[i]); } catch {}
-        }
-    } catch (error) {
-        console.error('sendDmFiles error:', error?.message);
-        // Update text so the normal send flow posts one error message
-        rplyVal.text = '無法以私訊傳送檔案，請確認私訊設定。';
-    }
+		// Cleanup local files
+		for (let i = 0; i < rplyVal.dmFileLink.length; i++) {
+			try { fs.unlinkSync(rplyVal.dmFileLink[i]); } catch { }
+		}
+	} catch (error) {
+		console.error('sendDmFiles error:', error?.message);
+		// Update text so the normal send flow posts one error message
+		rplyVal.text = '無法以私訊傳送檔案，請確認私訊設定。';
+	}
 }
 
 async function handlingSendMessage(input) {
@@ -1683,497 +1683,497 @@ async function handlingSendMessage(input) {
 
 // ---- StoryTeller reaction poll helpers ----
 async function createStPollByChannel({ channelid, groupid, text, payload }) {
-    try {
-        
-        // Skip creating poll if the run is paused
-        if (await isStoryTellerRunPausedByChannel(channelid)) {
-            return;
-        }
-        // Ensure the run is still active/continuing (not paused/ended)
-        if (!(await isStoryTellerRunActiveByChannel(channelid))) {
-            return;
-        }
+	try {
 
-        const hasOptions = Array.isArray(payload?.options) && payload.options.length > 0;
-        const maxOptions = Math.min(hasOptions ? payload.options.length : 0, POLL_EMOJIS.length);
-        if (maxOptions <= 0) {
-            return;
-        }
+		// Skip creating poll if the run is paused
+		if (await isStoryTellerRunPausedByChannel(channelid)) {
+			return;
+		}
+		// Ensure the run is still active/continuing (not paused/ended)
+		if (!(await isStoryTellerRunActiveByChannel(channelid))) {
+			return;
+		}
 
-        // Build poll text once
-        const pollText = `啟動投票，請於 ${payload.minutes || 3} 分鐘內投票\n選項：\n` + payload.options.slice(0, maxOptions).map((o, i) => `${POLL_EMOJIS[i]} ${o.label}`).join('\n');
+		const hasOptions = Array.isArray(payload?.options) && payload.options.length > 0;
+		const maxOptions = Math.min(hasOptions ? payload.options.length : 0, POLL_EMOJIS.length);
+		if (maxOptions <= 0) {
+			return;
+		}
 
-        // Prefer sending only on the cluster that owns this guild to avoid flakiness
-        let ownerClusterId = null;
-        try { ownerClusterId = await getOwnerClusterIdByGuild(groupid); } catch {}
-        const results = await client.cluster.broadcastEval(
-            async (c, { channelId, textContent, pollContent, emojis, targetClusterId }) => {
-                try {
-                    if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return null;
-                    const channel = await c.channels.fetch(channelId).catch(() => null);
-                    if (!channel) return null;
-                    if (textContent && String(textContent).trim().length > 0) {
-                        try { await channel.send({ content: textContent }); } catch { /* ignore */ }
-                    }
-                    const msg = await channel.send({ content: pollContent });
-                    for (let i = 0; i < emojis.length; i++) {
-                        try { await msg.react(emojis[i]); } catch { /* ignore */ }
-                    }
-                    return { messageId: msg.id, channelId: msg.channelId, shardId: c.cluster?.id || 0, createdTimestamp: msg.createdTimestamp };
-                } catch {
-                    return null;
-                }
-            },
-            { context: { channelId: channelid, textContent: text, pollContent: pollText, emojis: POLL_EMOJIS.slice(0, maxOptions), targetClusterId: ownerClusterId } }
-        );
+		// Build poll text once
+		const pollText = `啟動投票，請於 ${payload.minutes || 3} 分鐘內投票\n選項：\n` + payload.options.slice(0, maxOptions).map((o, i) => `${POLL_EMOJIS[i]} ${o.label}`).join('\n');
 
-        const found = Array.isArray(results) ? results.find(Boolean) : null;
-        if (!found) {
-            console.error(`[Shard ${client.cluster.id}] Could not send poll via owning shard for channel ${channelid}.`);
-            // Fallback: try local send (may still fail if this shard doesn't own the channel)
-            try {
-                const channel = await client.channels.fetch(channelid);
-                if (text && String(text).trim().length > 0) await channel.send({ content: text });
-                const pollMsg = await channel.send({ content: pollText });
-                for (let i = 0; i < maxOptions; i++) { try { await pollMsg.react(POLL_EMOJIS[i]); } catch { /* ignore */ } }
-                const ms = Math.max(1, Number(payload.minutes || 3)) * 60 * 1000;
-                const jobData = { messageId: pollMsg.id, channelid, groupid, options: payload.options.slice(0, maxOptions), minutes: Number(payload.minutes || 3), streak: Number(payload && payload.streak) || 0 };
+		// Prefer sending only on the cluster that owns this guild to avoid flakiness
+		let ownerClusterId = null;
+		try { ownerClusterId = await getOwnerClusterIdByGuild(groupid); } catch { }
+		const results = await client.cluster.broadcastEval(
+			async (c, { channelId, textContent, pollContent, emojis, targetClusterId }) => {
+				try {
+					if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return null;
+					const channel = await c.channels.fetch(channelId).catch(() => null);
+					if (!channel) return null;
+					if (textContent && String(textContent).trim().length > 0) {
+						try { await channel.send({ content: textContent }); } catch { /* ignore */ }
+					}
+					const msg = await channel.send({ content: pollContent });
+					for (let i = 0; i < emojis.length; i++) {
+						try { await msg.react(emojis[i]); } catch { /* ignore */ }
+					}
+					return { messageId: msg.id, channelId: msg.channelId, shardId: c.cluster?.id || 0, createdTimestamp: msg.createdTimestamp };
+				} catch {
+					return null;
+				}
+			},
+			{ context: { channelId: channelid, textContent: text, pollContent: pollText, emojis: POLL_EMOJIS.slice(0, maxOptions), targetClusterId: ownerClusterId } }
+		);
 
-                // Persist last poll info and current streak for cross-shard consistency
-                try {
-                    if (schema && schema.storyRun && typeof schema.storyRun.findOneAndUpdate === 'function') {
-                        await schema.storyRun.findOneAndUpdate(
-                            { channelID: channelid, isEnded: false },
-                            {
-                                $set: {
-                                    stPollLastMessageId: String(pollMsg.id),
-                                    stPollLastStartedAt: new Date(Number(pollMsg.createdTimestamp) || Date.now()),
-                                    stPollNoVoteStreak: Number(payload && payload.streak) || 0
-                                }
-                            },
-                            { sort: { updatedAt: -1 } }
-                        );
-                    }
-                } catch { }
-                if (agenda) {
-                    try {
-                        await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', jobData);
-                    }
-                    catch (error) {
-                        setTimeout(() => tallyStPoll(pollMsg.id, jobData).catch(() => { }), ms);
-                    }
-                } else {
-                    setTimeout(() => tallyStPoll(pollMsg.id, jobData).catch(() => { }), ms);
-                }
-                return;
-            } catch (error) {
-                console.error('createStPollByChannel fallback error:', error?.message);
-                return;
-            }
-        }
+		const found = Array.isArray(results) ? results.find(Boolean) : null;
+		if (!found) {
+			console.error(`[Shard ${client.cluster.id}] Could not send poll via owning shard for channel ${channelid}.`);
+			// Fallback: try local send (may still fail if this shard doesn't own the channel)
+			try {
+				const channel = await client.channels.fetch(channelid);
+				if (text && String(text).trim().length > 0) await channel.send({ content: text });
+				const pollMsg = await channel.send({ content: pollText });
+				for (let i = 0; i < maxOptions; i++) { try { await pollMsg.react(POLL_EMOJIS[i]); } catch { /* ignore */ } }
+				const ms = Math.max(1, Number(payload.minutes || 3)) * 60 * 1000;
+				const jobData = { messageId: pollMsg.id, channelid, groupid, options: payload.options.slice(0, maxOptions), minutes: Number(payload.minutes || 3), streak: Number(payload && payload.streak) || 0 };
 
-        // Schedule tally using fallback data so any shard can complete it
-        const ms = Math.max(1, Number(payload.minutes || 3)) * 60 * 1000;
-        const jobData = { messageId: found.messageId, channelid, groupid, options: payload.options.slice(0, maxOptions), minutes: Number(payload.minutes || 3), streak: Number(payload && payload.streak) || 0 };
-        try { stLastPollStartedAt.set(channelid, Number(found.createdTimestamp) || Date.now()); } catch {}
+				// Persist last poll info and current streak for cross-shard consistency
+				try {
+					if (schema && schema.storyRun && typeof schema.storyRun.findOneAndUpdate === 'function') {
+						await schema.storyRun.findOneAndUpdate(
+							{ channelID: channelid, isEnded: false },
+							{
+								$set: {
+									stPollLastMessageId: String(pollMsg.id),
+									stPollLastStartedAt: new Date(Number(pollMsg.createdTimestamp) || Date.now()),
+									stPollNoVoteStreak: Number(payload && payload.streak) || 0
+								}
+							},
+							{ sort: { updatedAt: -1 } }
+						);
+					}
+				} catch { }
+				if (agenda) {
+					try {
+						await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', jobData);
+					}
+					catch {
+						setTimeout(() => tallyStPoll(pollMsg.id, jobData).catch(() => { }), ms);
+					}
+				} else {
+					setTimeout(() => tallyStPoll(pollMsg.id, jobData).catch(() => { }), ms);
+				}
+				return;
+			} catch (error) {
+				console.error('createStPollByChannel fallback error:', error?.message);
+				return;
+			}
+		}
 
-        // Persist last poll info and current streak for cross-shard consistency
-        try {
-            if (schema && schema.storyRun && typeof schema.storyRun.findOneAndUpdate === 'function') {
-                await schema.storyRun.findOneAndUpdate(
-                    { channelID: channelid, isEnded: false },
-                    {
-                        $set: {
-                            stPollLastMessageId: String(found.messageId),
-                            stPollLastStartedAt: new Date(Number(found.createdTimestamp) || Date.now()),
-                            stPollNoVoteStreak: Number(payload && payload.streak) || 0
-                        }
-                    },
-                    { sort: { updatedAt: -1 } }
-                );
-            }
-        } catch { }
-        if (agenda) {
-            try {
-                await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', jobData);
-            } catch (error) {
-                console.error('agenda schedule stPollFinish failed after broadcast send:', error?.message);
-                setTimeout(() => tallyStPoll(found.messageId, jobData).catch(() => { }), ms);
-            }
-        } else {
-            setTimeout(() => tallyStPoll(found.messageId, jobData).catch(() => { }), ms);
-        }
-    } catch (error) {
-        console.error('createStPollByChannel error:', error?.message);
-    }
+		// Schedule tally using fallback data so any shard can complete it
+		const ms = Math.max(1, Number(payload.minutes || 3)) * 60 * 1000;
+		const jobData = { messageId: found.messageId, channelid, groupid, options: payload.options.slice(0, maxOptions), minutes: Number(payload.minutes || 3), streak: Number(payload && payload.streak) || 0 };
+		try { stLastPollStartedAt.set(channelid, Number(found.createdTimestamp) || Date.now()); } catch { }
+
+		// Persist last poll info and current streak for cross-shard consistency
+		try {
+			if (schema && schema.storyRun && typeof schema.storyRun.findOneAndUpdate === 'function') {
+				await schema.storyRun.findOneAndUpdate(
+					{ channelID: channelid, isEnded: false },
+					{
+						$set: {
+							stPollLastMessageId: String(found.messageId),
+							stPollLastStartedAt: new Date(Number(found.createdTimestamp) || Date.now()),
+							stPollNoVoteStreak: Number(payload && payload.streak) || 0
+						}
+					},
+					{ sort: { updatedAt: -1 } }
+				);
+			}
+		} catch { }
+		if (agenda) {
+			try {
+				await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', jobData);
+			} catch (error) {
+				console.error('agenda schedule stPollFinish failed after broadcast send:', error?.message);
+				setTimeout(() => tallyStPoll(found.messageId, jobData).catch(() => { }), ms);
+			}
+		} else {
+			setTimeout(() => tallyStPoll(found.messageId, jobData).catch(() => { }), ms);
+		}
+	} catch (error) {
+		console.error('createStPollByChannel error:', error?.message);
+	}
 }
 
 // eslint-disable-next-line no-unused-vars
 async function createStPoll({ message, payload }) {
-    try {
-        // Ensure the run is still active/continuing (not paused/ended)
-        if (!(await isStoryTellerRunActiveByChannel(message.channelId))) return;
-        // Post under the same channel, immediately after previous content
-        const content = `${message.member ? `<@${message.member.id}>` : ''} 啟動投票，請於 ${payload.minutes || 3} 分鐘內投票\n選項：\n` + payload.options.map((o, i) => `${POLL_EMOJIS[i]} ${o.label}`).join('\n');
-        const sent = await message.channel.send({ content });
-        await createStPollCore({ sentMessage: sent, groupid: message.guildId, payload });
-    } catch (error) {
-        console.error('createStPoll error:', error?.message);
-    }
+	try {
+		// Ensure the run is still active/continuing (not paused/ended)
+		if (!(await isStoryTellerRunActiveByChannel(message.channelId))) return;
+		// Post under the same channel, immediately after previous content
+		const content = `${message.member ? `<@${message.member.id}>` : ''} 啟動投票，請於 ${payload.minutes || 3} 分鐘內投票\n選項：\n` + payload.options.map((o, i) => `${POLL_EMOJIS[i]} ${o.label}`).join('\n');
+		const sent = await message.channel.send({ content });
+		await createStPollCore({ sentMessage: sent, groupid: message.guildId, payload });
+	} catch (error) {
+		console.error('createStPoll error:', error?.message);
+	}
 }
 
 async function createStPollCore({ sentMessage, groupid, payload }) {
-    const maxOptions = Math.min(payload.options.length, POLL_EMOJIS.length);
-    // react sequentially to guarantee reactions are present before users react
-    for (let i = 0; i < maxOptions; i++) {
-        try { await sentMessage.react(POLL_EMOJIS[i]); } catch (error) { console.error('poll react failed', error?.message); }
-    }
-    stPolls.set(sentMessage.id, {
-        channelid: sentMessage.channelId,
-        groupid,
-        options: payload.options.slice(0, maxOptions),
-        minutes: Number(payload.minutes || 3),
-        originMessage: sentMessage
-    });
+	const maxOptions = Math.min(payload.options.length, POLL_EMOJIS.length);
+	// react sequentially to guarantee reactions are present before users react
+	for (let i = 0; i < maxOptions; i++) {
+		try { await sentMessage.react(POLL_EMOJIS[i]); } catch (error) { console.error('poll react failed', error?.message); }
+	}
+	stPolls.set(sentMessage.id, {
+		channelid: sentMessage.channelId,
+		groupid,
+		options: payload.options.slice(0, maxOptions),
+		minutes: Number(payload.minutes || 3),
+		originMessage: sentMessage
+	});
 
-    const ms = Math.max(1, Number(payload.minutes || 3)) * 60 * 1000;
-    if (agenda) {
-        try {
-            await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', {
-                messageId: sentMessage.id,
-                channelid: sentMessage.channelId,
-                groupid,
-                // Persist options/minutes so we can resume after process restarts
-                options: payload.options.slice(0, maxOptions),
-                minutes: Number(payload.minutes || 3),
-                streak: Number((payload && payload.streak) || 0)
-            });
-        } catch (error) {
-            console.error('agenda schedule stPollFinish failed, falling back to setTimeout:', error?.message);
-            // fallback to setTimeout
-            setTimeout(() => tallyStPoll(sentMessage.id).catch(() => {}), ms);
-        }
-    } else {
-        setTimeout(() => tallyStPoll(sentMessage.id).catch(() => {}), ms);
-    }
+	const ms = Math.max(1, Number(payload.minutes || 3)) * 60 * 1000;
+	if (agenda) {
+		try {
+			await agenda.schedule(new Date(Date.now() + ms), 'stPollFinish', {
+				messageId: sentMessage.id,
+				channelid: sentMessage.channelId,
+				groupid,
+				// Persist options/minutes so we can resume after process restarts
+				options: payload.options.slice(0, maxOptions),
+				minutes: Number(payload.minutes || 3),
+				streak: Number((payload && payload.streak) || 0)
+			});
+		} catch (error) {
+			console.error('agenda schedule stPollFinish failed, falling back to setTimeout:', error?.message);
+			// fallback to setTimeout
+			setTimeout(() => tallyStPoll(sentMessage.id).catch(() => { }), ms);
+		}
+	} else {
+		setTimeout(() => tallyStPoll(sentMessage.id).catch(() => { }), ms);
+	}
 }
 
 async function tallyStPoll(messageId, fallbackData) {
-    // Use in-memory state if present; otherwise fallback to persisted job data
-    const data = stPolls.get(messageId) || (fallbackData && Array.isArray(fallbackData.options)
-        ? { channelid: fallbackData.channelid, groupid: fallbackData.groupid, options: fallbackData.options, minutes: Number(fallbackData.minutes || 3), streak: Number(fallbackData.streak || 0) }
-        : null);
-    if (!data) return;
-    if (data.completed) return;
-    // Abort if run has been paused
-    try {
-        if (await isStoryTellerRunPausedByChannel(data.channelid)) {
-            const d = stPolls.get(messageId);
-            if (d) d.completed = true;
-            setTimeout(() => stPolls.delete(messageId), 60_000);
-            return;
-        }
-    } catch {}
-    // Abort if run is no longer active/continuing (ended or missing)
-    try {
-        if (!(await isStoryTellerRunActiveByChannel(data.channelid))) {
-            const d = stPolls.get(messageId);
-            if (d) d.completed = true;
-            setTimeout(() => stPolls.delete(messageId), 60_000);
-            return;
-        }
-    } catch {}
-    try {
-        
-        if (!stPolls.get(messageId) && fallbackData) {
-            
-        }
-        // Guard against outdated polls using persisted last poll info when available
-        try {
-            if (schema && schema.storyRun && typeof schema.storyRun.findOne === 'function' && data && data.channelid) {
-                const runDoc = await schema.storyRun.findOne({ channelID: data.channelid, isEnded: false }).sort({ updatedAt: -1 }).lean();
-                if (runDoc) {
-                    const lastId = String(runDoc.stPollLastMessageId || '');
-                    if (lastId && String(messageId) !== lastId) {
-                        const d = stPolls.get(messageId);
-                        if (d) d.completed = true;
-                        setTimeout(() => stPolls.delete(messageId), 60_000);
-                        return;
-                    }
-                }
-            }
-        } catch {}
-        // Count reactions on the owning shard using broadcastEval
-        const shardResults = await client.cluster.broadcastEval(
-            async (c, { channelId, messageId, optionCount, emojis }) => {
-                try {
-                    const channel = await c.channels.fetch(channelId).catch(() => null);
-                    if (!channel) return null;
-                    let msg = await channel.messages.fetch(messageId).catch(() => null);
-                    if (!msg) return null;
-                    if (msg.partial) { try { msg = await msg.fetch(); } catch {} }
-                    const createdTs = Number(msg.createdTimestamp) || Date.now();
-                    const counts = [];
-                    for (let i = 0; i < optionCount; i++) {
-                        const emoji = emojis[i];
-                        const reaction = msg.reactions.cache.find(r => r.emoji.name === emoji);
-                        let num = 0;
-                        if (reaction) {
-                            try {
-                                const users = await reaction.users.fetch();
-                                const filtered = users.filter(u => !u.bot);
-                                num = filtered.size;
-                            } catch {
-                                num = Math.max(0, (reaction.count || 0) - 1);
-                            }
-                        }
-                        counts.push(num);
-                    }
-                    return { shardId: c.cluster?.id || 0, counts, createdTimestamp: createdTs };
-                } catch { return null; }
-            },
-            { context: { channelId: data.channelid, messageId, optionCount: data.options.length, emojis: POLL_EMOJIS } }
-        );
-        const found = Array.isArray(shardResults) ? shardResults.find(v => v && Array.isArray(v.counts)) : null;
-        if (!found) {
-            const d = stPolls.get(messageId);
-            if (d) d.completed = true;
-            setTimeout(() => stPolls.delete(messageId), 60_000);
-            return;
-        }
-        // Ignore outdated polls if a newer poll exists in this channel
-        try {
-            const lastTs = stLastPollStartedAt.get(data.channelid) || 0;
-            const thisTs = Number(found.createdTimestamp) || 0;
-            if (lastTs && thisTs && thisTs < lastTs) {
-                const d = stPolls.get(messageId);
-                if (d) d.completed = true;
-                setTimeout(() => stPolls.delete(messageId), 60_000);
-                return;
-            }
-        } catch {}
-        const counts = found.counts;
-        let max = Math.max(...counts);
-        // No-vote safety: do not advance when there are no votes
-        if (max === 0) {
-            const chId = data.channelid;
-            // Atomically increment streak in DB if available; else use in-memory/job fallback
-            let prev = 0;
-            try {
-                if (schema && schema.storyRun && typeof schema.storyRun.findOneAndUpdate === 'function') {
-                    const updated = await schema.storyRun.findOneAndUpdate(
-                        { channelID: chId, isEnded: false },
-                        { $inc: { stPollNoVoteStreak: 1 } },
-                        { new: true, sort: { updatedAt: -1 } }
-                    ).lean();
-                    if (updated && Number.isFinite(Number(updated.stPollNoVoteStreak))) prev = Number(updated.stPollNoVoteStreak) - 1;
-                }
-            } catch {}
-            if (!Number.isFinite(prev) || prev < 0) {
-                const persistedPrev = Number.isFinite(Number(data.streak)) ? Number(data.streak) : 0;
-                prev = (stNoVoteStreak.has(chId) ? Number(stNoVoteStreak.get(chId)) : persistedPrev) || 0;
-            }
-            // only increment here; do NOT reset on repost to avoid lock at 1
-            // clamp streak at 4 for display, but keep counter increasing for control flow
-            const nextRaw = prev + 1;
-            const nextDisplay = Math.min(4, nextRaw);
-            stNoVoteStreak.set(chId, nextRaw);
-            try {
-                let ownerClusterId = null; try { ownerClusterId = await getOwnerClusterIdByGuild(data.groupid); } catch {}
-                await client.cluster.broadcastEval(
-                    async (c, { channelId, messageId, content, targetClusterId }) => {
-                        try {
-                            if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return false;
-                            const channel = await c.channels.fetch(channelId).catch(() => null);
-                            if (!channel) return false;
-                            const msg = await channel.messages.fetch(messageId).catch(() => null);
-                            if (!msg) return false;
-                            await msg.reply({ content });
-                            return true;
-                        } catch { return false; }
-                    },
-                    { context: { channelId: data.channelid, messageId, content: `本輪未收到投票（連續 ${nextDisplay} 次）。`, targetClusterId: ownerClusterId } }
-                );
-            } catch {}
-            if (nextRaw >= 4) {
-                try {
-                    let ownerClusterId = null; try { ownerClusterId = await getOwnerClusterIdByGuild(data.groupid); } catch {}
-                    await client.cluster.broadcastEval(
-                        async (c, { channelId, messageId, content, targetClusterId }) => {
-                            try {
-                                if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return false;
-                                const channel = await c.channels.fetch(channelId).catch(() => null);
-                                if (!channel) return false;
-                                const msg = await channel.messages.fetch(messageId).catch(() => null);
-                                if (!msg) return false;
-                                await msg.reply({ content });
-                                return true;
-                            } catch { return false; }
-                        },
-                        { context: { channelId: data.channelid, messageId, content: '連續 4 次無人投票，已自動暫停本局。', targetClusterId: ownerClusterId } }
-                    );
-                } catch {}
-                try {
-                    // Compute .st pause output and send via owning shard
-                    const starterId = await (async () => {
-                        try {
-                            const run = await schema.storyRun.findOne({ channelID: data.channelid }).sort({ updatedAt: -1 }).lean();
-                            return (run && run.starterID) ? String(run.starterID) : '';
-                        } catch { return ''; }
-                    })();
-                    const rplyVal = await exports.analytics.parseInput({
-                        inputStr: '.st pause',
-                        groupid: data.groupid,
-                        userid: starterId || '0',
-                        userrole: 1,
-                        botname: 'Discord',
-                        displayname: '',
-                        channelid: data.channelid,
-                        displaynameDiscord: '',
-                        membercount: 0,
-                        discordClient: client,
-                        discordMessage: null,
-                        titleName: ''
-                    });
-                    if (rplyVal && rplyVal.text) {
-                        await client.cluster.broadcastEval(
-                            async (c, { channelId, content }) => {
-                                try {
-                                    const channel = await c.channels.fetch(channelId).catch(() => null);
-                                    if (!channel) return false;
-                                    await channel.send({ content });
-                                    return true;
-                                } catch { return false; }
-                            },
-                            { context: { channelId: data.channelid, content: rplyVal.text } }
-                        );
-                    }
-                } catch (error) {
-                    console.error('auto-pause after no-vote streak failed:', error?.message);
-                }
-                // Reset streak in DB as well when auto-paused
-                try {
-                    if (schema && schema.storyRun && typeof schema.storyRun.findOneAndUpdate === 'function') {
-                        await schema.storyRun.findOneAndUpdate(
-                            { channelID: chId, isEnded: false },
-                            { $set: { stPollNoVoteStreak: 0 } },
-                            { sort: { updatedAt: -1 } }
-                        );
-                    }
-                } catch {}
-                // reset after auto-pause so future sessions start fresh
-                try { stNoVoteStreak.set(chId, 0); } catch {}
-                const d = stPolls.get(messageId);
-                if (d) d.completed = true;
-                setTimeout(() => stPolls.delete(messageId), 60_000);
-                return;
-            }
-            // Not pausing yet; repost poll with same options/minutes
-            try {
-                // Only repost if not paused
-                if (!(await isStoryTellerRunPausedByChannel(data.channelid))) {
-                    // carry forward streak across shards via job payload
-                    await createStPollByChannel({ channelid: data.channelid, groupid: data.groupid, text: '', payload: { options: data.options, minutes: Number(data.minutes || 3), streak: nextRaw } });
-                }
-            } catch (error) {
-                console.error('repost poll after no-vote failed:', error?.message);
-            }
-            // Mark this poll completed and clean up
-            const d = stPolls.get(messageId);
-            if (d) d.completed = true;
-            setTimeout(() => stPolls.delete(messageId), 60_000);
-            return;
-        } else {
-            // Reset streak on any valid vote
-            try { stNoVoteStreak.set(data.channelid, 0); } catch {}
-        }
-        const indices = counts.reduce((acc, v, i) => { if (v === max) acc.push(i); return acc; }, []);
-        if (indices.length === 0) return;
-        const pick = indices[Math.floor(Math.random() * indices.length)];
-        const picked = data.options[pick];
-        try {
-            let ownerClusterId = null; try { ownerClusterId = await getOwnerClusterIdByGuild(data.groupid); } catch {}
-            await client.cluster.broadcastEval(
-                async (c, { channelId, messageId, content, targetClusterId }) => {
-                    try {
-                        if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return false;
-                        const channel = await c.channels.fetch(channelId).catch(() => null);
-                        if (!channel) return false;
-                        const msg = await channel.messages.fetch(messageId).catch(() => null);
-                        if (!msg) return false;
-                        await msg.reply({ content });
-                        return true;
-                    } catch { return false; }
-                },
-                { context: { channelId: data.channelid, messageId, content: `投票結束，選中：${POLL_EMOJIS[pick]} ${picked.label}（${max} 票）`, targetClusterId: ownerClusterId } }
-            );
-        } catch {}
+	// Use in-memory state if present; otherwise fallback to persisted job data
+	const data = stPolls.get(messageId) || (fallbackData && Array.isArray(fallbackData.options)
+		? { channelid: fallbackData.channelid, groupid: fallbackData.groupid, options: fallbackData.options, minutes: Number(fallbackData.minutes || 3), streak: Number(fallbackData.streak || 0) }
+		: null);
+	if (!data) return;
+	if (data.completed) return;
+	// Abort if run has been paused
+	try {
+		if (await isStoryTellerRunPausedByChannel(data.channelid)) {
+			const d = stPolls.get(messageId);
+			if (d) d.completed = true;
+			setTimeout(() => stPolls.delete(messageId), 60_000);
+			return;
+		}
+	} catch { }
+	// Abort if run is no longer active/continuing (ended or missing)
+	try {
+		if (!(await isStoryTellerRunActiveByChannel(data.channelid))) {
+			const d = stPolls.get(messageId);
+			if (d) d.completed = true;
+			setTimeout(() => stPolls.delete(messageId), 60_000);
+			return;
+		}
+	} catch { }
+	try {
 
-        // trigger next action by simulating a message: ".st goto action" or ".st end"
-        const nextCmd = (String(picked.action || '').toUpperCase() === 'END') ? '.st end' : `.st goto ${picked.action}`;
-        // Do not advance if paused
-        if (!(await isStoryTellerRunPausedByChannel(data.channelid))) {
-            try {
-                const starterId = await (async () => {
-                    try {
-                        const run = await schema.storyRun.findOne({ channelID: data.channelid }).sort({ updatedAt: -1 }).lean();
-                        return (run && run.starterID) ? String(run.starterID) : '';
-                    } catch { return ''; }
-                })();
-                const rplyVal = await exports.analytics.parseInput({
-                    inputStr: nextCmd,
-                    groupid: data.groupid,
-                    userid: starterId || '0',
-                    userrole: 1,
-                    botname: 'Discord',
-                    displayname: '',
-                    channelid: data.channelid,
-                    displaynameDiscord: '',
-                    membercount: 0,
-                    discordClient: client,
-                    discordMessage: null,
-                    titleName: ''
-                });
-                if (rplyVal && rplyVal.text) {
-                    if (rplyVal.discordCreatePoll) {
-                        await createStPollByChannel({ channelid: data.channelid, groupid: data.groupid, text: rplyVal.text, payload: rplyVal.discordCreatePoll });
-                    } else {
-                        let ownerClusterId = null; try { ownerClusterId = await getOwnerClusterIdByGuild(data.groupid); } catch {}
-                        await client.cluster.broadcastEval(
-                            async (c, { channelId, content, targetClusterId }) => {
-                                try {
-                                    if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return false;
-                                    const channel = await c.channels.fetch(channelId).catch(() => null);
-                                    if (!channel) return false;
-                                    await channel.send({ content });
-                                    return true;
-                                } catch { return false; }
-                            },
-                            { context: { channelId: data.channelid, content: rplyVal.text, targetClusterId: ownerClusterId } }
-                        );
-                    }
-                }
-            } catch (error) {
-                console.error('ST-POLL advance error:', error?.message);
-            }
-        }
-    } catch (error) {
-        console.error('tallyStPoll error:', error?.message, { stack: error?.stack });
-    } finally {
-        const d = stPolls.get(messageId);
-        if (d) d.completed = true;
-        setTimeout(() => stPolls.delete(messageId), 60_000);
-    }
+		if (!stPolls.get(messageId) && fallbackData) {
+
+		}
+		// Guard against outdated polls using persisted last poll info when available
+		try {
+			if (schema && schema.storyRun && typeof schema.storyRun.findOne === 'function' && data && data.channelid) {
+				const runDoc = await schema.storyRun.findOne({ channelID: data.channelid, isEnded: false }).sort({ updatedAt: -1 }).lean();
+				if (runDoc) {
+					const lastId = String(runDoc.stPollLastMessageId || '');
+					if (lastId && String(messageId) !== lastId) {
+						const d = stPolls.get(messageId);
+						if (d) d.completed = true;
+						setTimeout(() => stPolls.delete(messageId), 60_000);
+						return;
+					}
+				}
+			}
+		} catch { }
+		// Count reactions on the owning shard using broadcastEval
+		const shardResults = await client.cluster.broadcastEval(
+			async (c, { channelId, messageId, optionCount, emojis }) => {
+				try {
+					const channel = await c.channels.fetch(channelId).catch(() => null);
+					if (!channel) return null;
+					let msg = await channel.messages.fetch(messageId).catch(() => null);
+					if (!msg) return null;
+					if (msg.partial) { try { msg = await msg.fetch(); } catch { } }
+					const createdTs = Number(msg.createdTimestamp) || Date.now();
+					const counts = [];
+					for (let i = 0; i < optionCount; i++) {
+						const emoji = emojis[i];
+						const reaction = msg.reactions.cache.find(r => r.emoji.name === emoji);
+						let num = 0;
+						if (reaction) {
+							try {
+								const users = await reaction.users.fetch();
+								const filtered = users.filter(u => !u.bot);
+								num = filtered.size;
+							} catch {
+								num = Math.max(0, (reaction.count || 0) - 1);
+							}
+						}
+						counts.push(num);
+					}
+					return { shardId: c.cluster?.id || 0, counts, createdTimestamp: createdTs };
+				} catch { return null; }
+			},
+			{ context: { channelId: data.channelid, messageId, optionCount: data.options.length, emojis: POLL_EMOJIS } }
+		);
+		const found = Array.isArray(shardResults) ? shardResults.find(v => v && Array.isArray(v.counts)) : null;
+		if (!found) {
+			const d = stPolls.get(messageId);
+			if (d) d.completed = true;
+			setTimeout(() => stPolls.delete(messageId), 60_000);
+			return;
+		}
+		// Ignore outdated polls if a newer poll exists in this channel
+		try {
+			const lastTs = stLastPollStartedAt.get(data.channelid) || 0;
+			const thisTs = Number(found.createdTimestamp) || 0;
+			if (lastTs && thisTs && thisTs < lastTs) {
+				const d = stPolls.get(messageId);
+				if (d) d.completed = true;
+				setTimeout(() => stPolls.delete(messageId), 60_000);
+				return;
+			}
+		} catch { }
+		const counts = found.counts;
+		let max = Math.max(...counts);
+		// No-vote safety: do not advance when there are no votes
+		if (max === 0) {
+			const chId = data.channelid;
+			// Atomically increment streak in DB if available; else use in-memory/job fallback
+			let prev = 0;
+			try {
+				if (schema && schema.storyRun && typeof schema.storyRun.findOneAndUpdate === 'function') {
+					const updated = await schema.storyRun.findOneAndUpdate(
+						{ channelID: chId, isEnded: false },
+						{ $inc: { stPollNoVoteStreak: 1 } },
+						{ new: true, sort: { updatedAt: -1 } }
+					).lean();
+					if (updated && Number.isFinite(Number(updated.stPollNoVoteStreak))) prev = Number(updated.stPollNoVoteStreak) - 1;
+				}
+			} catch { }
+			if (!Number.isFinite(prev) || prev < 0) {
+				const persistedPrev = Number.isFinite(Number(data.streak)) ? Number(data.streak) : 0;
+				prev = (stNoVoteStreak.has(chId) ? Number(stNoVoteStreak.get(chId)) : persistedPrev) || 0;
+			}
+			// only increment here; do NOT reset on repost to avoid lock at 1
+			// clamp streak at 4 for display, but keep counter increasing for control flow
+			const nextRaw = prev + 1;
+			const nextDisplay = Math.min(4, nextRaw);
+			stNoVoteStreak.set(chId, nextRaw);
+			try {
+				let ownerClusterId = null; try { ownerClusterId = await getOwnerClusterIdByGuild(data.groupid); } catch { }
+				await client.cluster.broadcastEval(
+					async (c, { channelId, messageId, content, targetClusterId }) => {
+						try {
+							if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return false;
+							const channel = await c.channels.fetch(channelId).catch(() => null);
+							if (!channel) return false;
+							const msg = await channel.messages.fetch(messageId).catch(() => null);
+							if (!msg) return false;
+							await msg.reply({ content });
+							return true;
+						} catch { return false; }
+					},
+					{ context: { channelId: data.channelid, messageId, content: `本輪未收到投票（連續 ${nextDisplay} 次）。`, targetClusterId: ownerClusterId } }
+				);
+			} catch { }
+			if (nextRaw >= 4) {
+				try {
+					let ownerClusterId = null; try { ownerClusterId = await getOwnerClusterIdByGuild(data.groupid); } catch { }
+					await client.cluster.broadcastEval(
+						async (c, { channelId, messageId, content, targetClusterId }) => {
+							try {
+								if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return false;
+								const channel = await c.channels.fetch(channelId).catch(() => null);
+								if (!channel) return false;
+								const msg = await channel.messages.fetch(messageId).catch(() => null);
+								if (!msg) return false;
+								await msg.reply({ content });
+								return true;
+							} catch { return false; }
+						},
+						{ context: { channelId: data.channelid, messageId, content: '連續 4 次無人投票，已自動暫停本局。', targetClusterId: ownerClusterId } }
+					);
+				} catch { }
+				try {
+					// Compute .st pause output and send via owning shard
+					const starterId = await (async () => {
+						try {
+							const run = await schema.storyRun.findOne({ channelID: data.channelid }).sort({ updatedAt: -1 }).lean();
+							return (run && run.starterID) ? String(run.starterID) : '';
+						} catch { return ''; }
+					})();
+					const rplyVal = await exports.analytics.parseInput({
+						inputStr: '.st pause',
+						groupid: data.groupid,
+						userid: starterId || '0',
+						userrole: 1,
+						botname: 'Discord',
+						displayname: '',
+						channelid: data.channelid,
+						displaynameDiscord: '',
+						membercount: 0,
+						discordClient: client,
+						discordMessage: null,
+						titleName: ''
+					});
+					if (rplyVal && rplyVal.text) {
+						await client.cluster.broadcastEval(
+							async (c, { channelId, content }) => {
+								try {
+									const channel = await c.channels.fetch(channelId).catch(() => null);
+									if (!channel) return false;
+									await channel.send({ content });
+									return true;
+								} catch { return false; }
+							},
+							{ context: { channelId: data.channelid, content: rplyVal.text } }
+						);
+					}
+				} catch (error) {
+					console.error('auto-pause after no-vote streak failed:', error?.message);
+				}
+				// Reset streak in DB as well when auto-paused
+				try {
+					if (schema && schema.storyRun && typeof schema.storyRun.findOneAndUpdate === 'function') {
+						await schema.storyRun.findOneAndUpdate(
+							{ channelID: chId, isEnded: false },
+							{ $set: { stPollNoVoteStreak: 0 } },
+							{ sort: { updatedAt: -1 } }
+						);
+					}
+				} catch { }
+				// reset after auto-pause so future sessions start fresh
+				try { stNoVoteStreak.set(chId, 0); } catch { }
+				const d = stPolls.get(messageId);
+				if (d) d.completed = true;
+				setTimeout(() => stPolls.delete(messageId), 60_000);
+				return;
+			}
+			// Not pausing yet; repost poll with same options/minutes
+			try {
+				// Only repost if not paused
+				if (!(await isStoryTellerRunPausedByChannel(data.channelid))) {
+					// carry forward streak across shards via job payload
+					await createStPollByChannel({ channelid: data.channelid, groupid: data.groupid, text: '', payload: { options: data.options, minutes: Number(data.minutes || 3), streak: nextRaw } });
+				}
+			} catch (error) {
+				console.error('repost poll after no-vote failed:', error?.message);
+			}
+			// Mark this poll completed and clean up
+			const d = stPolls.get(messageId);
+			if (d) d.completed = true;
+			setTimeout(() => stPolls.delete(messageId), 60_000);
+			return;
+		} else {
+			// Reset streak on any valid vote
+			try { stNoVoteStreak.set(data.channelid, 0); } catch { }
+		}
+		const indices = counts.reduce((acc, v, i) => { if (v === max) acc.push(i); return acc; }, []);
+		if (indices.length === 0) return;
+		const pick = indices[Math.floor(Math.random() * indices.length)];
+		const picked = data.options[pick];
+		try {
+			let ownerClusterId = null; try { ownerClusterId = await getOwnerClusterIdByGuild(data.groupid); } catch { }
+			await client.cluster.broadcastEval(
+				async (c, { channelId, messageId, content, targetClusterId }) => {
+					try {
+						if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return false;
+						const channel = await c.channels.fetch(channelId).catch(() => null);
+						if (!channel) return false;
+						const msg = await channel.messages.fetch(messageId).catch(() => null);
+						if (!msg) return false;
+						await msg.reply({ content });
+						return true;
+					} catch { return false; }
+				},
+				{ context: { channelId: data.channelid, messageId, content: `投票結束，選中：${POLL_EMOJIS[pick]} ${picked.label}（${max} 票）`, targetClusterId: ownerClusterId } }
+			);
+		} catch { }
+
+		// trigger next action by simulating a message: ".st goto action" or ".st end"
+		const nextCmd = (String(picked.action || '').toUpperCase() === 'END') ? '.st end' : `.st goto ${picked.action}`;
+		// Do not advance if paused
+		if (!(await isStoryTellerRunPausedByChannel(data.channelid))) {
+			try {
+				const starterId = await (async () => {
+					try {
+						const run = await schema.storyRun.findOne({ channelID: data.channelid }).sort({ updatedAt: -1 }).lean();
+						return (run && run.starterID) ? String(run.starterID) : '';
+					} catch { return ''; }
+				})();
+				const rplyVal = await exports.analytics.parseInput({
+					inputStr: nextCmd,
+					groupid: data.groupid,
+					userid: starterId || '0',
+					userrole: 1,
+					botname: 'Discord',
+					displayname: '',
+					channelid: data.channelid,
+					displaynameDiscord: '',
+					membercount: 0,
+					discordClient: client,
+					discordMessage: null,
+					titleName: ''
+				});
+				if (rplyVal && rplyVal.text) {
+					if (rplyVal.discordCreatePoll) {
+						await createStPollByChannel({ channelid: data.channelid, groupid: data.groupid, text: rplyVal.text, payload: rplyVal.discordCreatePoll });
+					} else {
+						let ownerClusterId = null; try { ownerClusterId = await getOwnerClusterIdByGuild(data.groupid); } catch { }
+						await client.cluster.broadcastEval(
+							async (c, { channelId, content, targetClusterId }) => {
+								try {
+									if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return false;
+									const channel = await c.channels.fetch(channelId).catch(() => null);
+									if (!channel) return false;
+									await channel.send({ content });
+									return true;
+								} catch { return false; }
+							},
+							{ context: { channelId: data.channelid, content: rplyVal.text, targetClusterId: ownerClusterId } }
+						);
+					}
+				}
+			} catch (error) {
+				console.error('ST-POLL advance error:', error?.message);
+			}
+		}
+	} catch (error) {
+		console.error('tallyStPoll error:', error?.message, { stack: error?.stack });
+	} finally {
+		const d = stPolls.get(messageId);
+		if (d) d.completed = true;
+		setTimeout(() => stPolls.delete(messageId), 60_000);
+	}
 }
 
 if (agenda) {
-    try {
-        agenda.define('stPollFinish', async (job) => {
-            const { messageId, channelid, groupid, options, minutes, streak } = job.attrs.data || {};
-            await tallyStPoll(messageId, { channelid, groupid, options, minutes, streak });
-            try { await job.remove(); } catch { }
-        });
-    } catch { }
+	try {
+		agenda.define('stPollFinish', async (job) => {
+			const { messageId, channelid, groupid, options, minutes, streak } = job.attrs.data || {};
+			await tallyStPoll(messageId, { channelid, groupid, options, minutes, streak });
+			try { await job.remove(); } catch { }
+		});
+	} catch { }
 }
 
 const convertRegex = function (str = "") {

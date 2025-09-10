@@ -2392,36 +2392,34 @@ const rollDiceCommand = async function ({
                     let endingStats = [];
                     try {
                         if (db.storyRun && typeof db.storyRun.find === 'function') {
-                            // Also fetch history to recover ending page when endingId/title are missing
                             const runs = await db.storyRun.find({ story: s._id, isEnded: true }, 'endingId endingTitle history').lean();
-                            completed = runs ? runs.length : 0;
+                            const storyPayload = s && s.payload ? s.payload : null;
                             const counter = new Map();
                             for (const r of (runs || [])) {
-                                // Prefer stored endingTitle; fallback to story page title by endingId; then endingId; finally try history's last page title; else 'unknown'
+                                if (!storyPayload || !storyPayload.pages) continue;
+                                let counted = false;
                                 let label = '';
-                                if (r && r.endingTitle && String(r.endingTitle).trim() !== '') {
-                                    label = String(r.endingTitle);
-                                } else {
-                                    const eid = r && r.endingId ? String(r.endingId) : '';
-                                    const storyPayload = s && s.payload ? s.payload : null;
-                                    const pageTitleByEndingId = (storyPayload && storyPayload.pages && storyPayload.pages[eid] && storyPayload.pages[eid].title) ? String(storyPayload.pages[eid].title) : '';
-                                    if (pageTitleByEndingId) {
-                                        label = pageTitleByEndingId;
-                                    } else if (eid) {
-                                        label = eid;
-                                    } else if (r && Array.isArray(r.history) && r.history.length > 0) {
-                                        const last = r.history.at(-1);
-                                        const lastPid = last && last.pageId ? String(last.pageId) : '';
-                                        const titleFromHistory = (storyPayload && storyPayload.pages && storyPayload.pages[lastPid] && storyPayload.pages[lastPid].title) ? String(storyPayload.pages[lastPid].title) : '';
-                                        label = titleFromHistory || lastPid || 'unknown';
-                                    } else {
-                                        label = 'unknown';
+                                const eid = r && r.endingId ? String(r.endingId) : '';
+                                if (eid && storyPayload.pages[eid] && storyPayload.pages[eid].isEnding) {
+                                    const page = storyPayload.pages[eid];
+                                    label = (page && page.title) ? String(page.title) : eid;
+                                    counted = true;
+                                } else if (r && Array.isArray(r.history) && r.history.length > 0) {
+                                    const last = r.history.at(-1);
+                                    const lastPid = last && last.pageId ? String(last.pageId) : '';
+                                    const page = lastPid ? storyPayload.pages[lastPid] : null;
+                                    if (page && page.isEnding) {
+                                        label = page.title ? String(page.title) : (lastPid || 'unknown');
+                                        counted = true;
                                     }
                                 }
-                                const k = label;
-                                counter.set(k, (counter.get(k) || 0) + 1);
+                                if (counted) {
+                                    const k = label || 'unknown';
+                                    counter.set(k, (counter.get(k) || 0) + 1);
+                                }
                             }
                             endingStats = [...counter.entries()].map(([id, count]) => ({ id, count }));
+                            completed = endingStats.reduce((sum, it) => sum + (it.count || 0), 0);
                         }
                     } catch { /* ignore */ }
                     rows.push({
@@ -2452,19 +2450,27 @@ const rollDiceCommand = async function ({
                     const alias = run.storyAlias || '-';
                     if (!byAlias.has(alias)) byAlias.set(alias, { completed: 0, endings: new Map() });
                     const stat = byAlias.get(alias);
-                    if (run.isEnded) {
-                        stat.completed++;
-                        let label = '';
-                        if (run.endingTitle && String(run.endingTitle).trim() !== '') {
-                            label = String(run.endingTitle);
-                        } else {
-                            const story = await getStoryFor(alias, run.storyOwnerID);
-                            const eid = run.endingId ? String(run.endingId) : '';
-                            const titleFromStory = (story && story.pages && story.pages[eid] && story.pages[eid].title) ? String(story.pages[eid].title) : '';
-                            if (titleFromStory) label = titleFromStory;
-                            else if (eid) label = eid; else label = 'unknown';
+                    const story = await getStoryFor(alias, run.storyOwnerID);
+                    if (!story || !story.pages) continue;
+                    let counted = false;
+                    let label = '';
+                    const eid = run && run.endingId ? String(run.endingId) : '';
+                    if (eid && story.pages[eid] && story.pages[eid].isEnding) {
+                        const page = story.pages[eid];
+                        label = page.title ? String(page.title) : eid;
+                        counted = true;
+                    } else if (Array.isArray(run.history) && run.history.length > 0) {
+                        const last = run.history.at(-1);
+                        const lastPid = last && last.pageId ? String(last.pageId) : '';
+                        const page = lastPid ? story.pages[lastPid] : null;
+                        if (page && page.isEnding) {
+                            label = page.title ? String(page.title) : (lastPid || 'unknown');
+                            counted = true;
                         }
-                        stat.endings.set(label, (stat.endings.get(label) || 0) + 1);
+                    }
+                    if (counted) {
+                        stat.completed++;
+                        stat.endings.set(label || 'unknown', (stat.endings.get(label || 'unknown') || 0) + 1);
                     }
                 }
                 for (const [alias, data] of byAlias.entries()) {

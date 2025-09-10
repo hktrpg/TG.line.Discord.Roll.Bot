@@ -89,6 +89,8 @@ const getHelpMessage = function () {
 │   允許多個指定群組/頻道啟動
 │ .st allow <alias> all
 │   任何人皆可啟動（公開）
+│ .st disallow <alias> [groupId...]
+│   在目前群組/頻道取消允許啟動（或移除指定 groupId）
 ├────── 📎 範例 ──────
 │ .st list          | 查看可啟動的劇本清單
 │ .st start 霧之村  | 啟動霧之村劇本

@@ -679,7 +679,7 @@ function renderPageText(story, run, pageId) {
         }
     }
     if (Array.isArray(page.choices) && page.choices.length > 0) {
-        const choices = page.choices.filter(c => !c.condition || safeEvalCondition(c.condition, scope));
+        const choices = getAllowedChoicesForCurrentPage(story, run);
         if (choices.length > 0) {
             out += '\n可用選項：\n';
             for (const c of choices) {
@@ -804,19 +804,36 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
             continue;
         }
         if (/^\[choice\]/i.test(line)) { continue; }
-        if ((m = line.match(/^->\s*([\s\S]+?)\s*\|\s*([^|\s]+)(?:\s*\|\s*if=([^|]+))?(?:\s*\|\s*stat=([\s\S]+))?$/))) {
+        if ((m = line.match(/^->\s*([\s\S]+?)\s*\|\s*([^|\s]+)([\s\S]*)$/))) {
             const page = ensurePage(currentPageId || '0');
             const choice = { text: m[1].trim(), action: m[2].trim() };
-            if (m[3]) choice.condition = m[3].trim();
-            if (m[4]) {
-                const sc = {};
-                for (const pair of String(m[4]).split(',')) {
-                    const p = pair.trim();
-                    if (!p) continue;
-                    const mm = p.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*([+-])\s*(\d+)$/);
-                    if (mm) sc[mm[1]] = (mm[2] === '+') ? Number(mm[3]) : -Number(mm[3]);
+            const rest = String(m[3] || '');
+            if (rest && rest.includes('|')) {
+                const segs = rest.split('|').map(s => String(s).trim()).filter(Boolean);
+                for (const seg of segs) {
+                    if (!seg) continue;
+                    if (/^else$/i.test(seg)) {
+                        choice.isElse = true;
+                        continue;
+                    }
+                    const mmIf = seg.match(/^if=(.*)$/i);
+                    if (mmIf) {
+                        choice.condition = mmIf[1].trim();
+                        continue;
+                    }
+                    const mmStat = seg.match(/^stat=(.*)$/i);
+                    if (mmStat) {
+                        const sc = {};
+                        for (const pair of String(mmStat[1]).split(',')) {
+                            const p = pair.trim();
+                            if (!p) continue;
+                            const mm = p.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*([+-])\s*(\d+)$/);
+                            if (mm) sc[mm[1]] = (mm[2] === '+') ? Number(mm[3]) : -Number(mm[3]);
+                        }
+                        if (Object.keys(sc).length > 0) choice.statChanges = sc;
+                        continue;
+                    }
                 }
-                choice.statChanges = sc;
             }
             page.choices.push(choice);
             continue;
@@ -917,6 +934,7 @@ function exportStoryToRunDesign(story) {
             for (const ch of page.choices) {
                 const segs = ['-> ' + ch.text, ch.action];
                 if (ch.condition) segs.push('if=' + ch.condition);
+                if (ch.isElse) segs.push('else');
                 if (ch.statChanges) {
                     const parts = [];
                     for (const [k, v] of Object.entries(ch.statChanges)) parts.push(k + (v >= 0 ? '+' + v : v));
@@ -1016,10 +1034,37 @@ function getAllowedChoicesForCurrentPage(story, run) {
     const currentPage = story.pages[run.currentPageId];
     if (!currentPage) return [];
     const scope = buildEvalScope(run);
-    const allowedChoices = Array.isArray(currentPage.choices)
-        ? currentPage.choices.filter(c => !c.condition || safeEvalCondition(c.condition, scope))
-        : [];
-    return allowedChoices;
+    const choices = Array.isArray(currentPage.choices) ? currentPage.choices : [];
+    const out = [];
+    for (let i = 0; i < choices.length; i++) {
+        const item = choices[i];
+        if (!item) continue;
+        const isConditional = !!(item.condition || item.isElse);
+        if (isConditional) {
+            // Collect contiguous conditional chain (if/else)
+            const chain = [];
+            let j = i;
+            while (j < choices.length) {
+                const it = choices[j];
+                if (!(it && (it.condition || it.isElse))) break;
+                chain.push(it);
+                j++;
+            }
+            let chosen = null;
+            let elseItem = null;
+            for (const it of chain) {
+                if (it.isElse) { elseItem = it; continue; }
+                if (!it.condition || safeEvalCondition(it.condition, scope)) { chosen = it; break; }
+            }
+            if (!chosen && elseItem) chosen = elseItem;
+            if (chosen) out.push(chosen);
+            i = j - 1; // skip chain
+            continue;
+        }
+        // Independent (non-conditional) choice
+        if (!item.condition || safeEvalCondition(item.condition, scope)) out.push(item);
+    }
+    return out;
 }
 
 function buildButtonsForPage(story, run) {
@@ -1190,7 +1235,7 @@ function validateRunDesignLines(rawText) {
         /^\[random\]\s*(\d+)%$/i,
         /^\[set(?:\|[^\]]+)?\]\s*([^=\s]+)\s*=\s*[\s\S]+$/i,
         /^\[choice\]/i,
-        /^->\s*[\s\S]+?\s*\|\s*([^|\s]+)(?:\s*\|\s*if=[^|]+)?(?:\s*\|\s*stat=[\s\S]+)?$/
+        /^->\s*[\s\S]+?\s*\|\s*([^|\s]+)(?:\s*\|\s*(?:if=[^|]+|else))?(?:\s*\|\s*stat=[\s\S]+)?$/
     ];
     for (let i = 0; i < lines.length; i++) {
         const line = String(lines[i]).trim();
@@ -1810,10 +1855,7 @@ const rollDiceCommand = async function ({
             // Enforce allowed choices from current page only
             const currentPage = story.pages[run.currentPageId];
             if (!currentPage) { rply.text = '目前頁面不存在，請重新開始。'; return rply; }
-            const scope = buildEvalScope(run);
-            const allowedChoices = Array.isArray(currentPage.choices)
-                ? currentPage.choices.filter(c => !c.condition || safeEvalCondition(c.condition, scope))
-                : [];
+            const allowedChoices = getAllowedChoicesForCurrentPage(story, run);
             // Support for 2a, 2b, 2c format: check if target is valid
             const targetStr = String(target || '');
             const basePageMatch = targetStr.match(/^(\d+)([a-z])?$/i);

@@ -37,7 +37,7 @@ describe('StoryTeller (.st) Module Tests', () => {
         const mod = require('../roll/z-story-teller.js');
         const scope = { a: 1 };
         // @ts-ignore access internal
-        const val = mod.__proto__ && mod.evalExpressionValue ? mod.evalExpressionValue('a.b + 1', scope) : undefined;
+        const _val = mod.__proto__ && mod.evalExpressionValue ? mod.evalExpressionValue('a.b + 1', scope) : undefined;
         // If not directly accessible (since not exported), assert via behavior: set should treat with dot as literal and not crash
         const r = await rollDiceCommand({ mainMsg: ['.st', 'set', 'nickname', 'Hero'], userid: USER_ID, botname: 'Discord' });
         expect(r.type).toBe('text');

@@ -89,6 +89,8 @@ const getHelpMessage = function () {
 │   允許多個指定群組/頻道啟動
 │ .st allow <alias> all
 │   任何人皆可啟動（公開）
+│ .st disallow <alias> [groupId...]
+│   在目前群組/頻道取消允許啟動（或移除指定 groupId）
 ├────── 📎 範例 ──────
 │ .st list          | 查看可啟動的劇本清單
 │ .st start 霧之村  | 啟動霧之村劇本
@@ -214,11 +216,14 @@ function safeEvalCondition(expr, scope) {
         // Block function calls and sensitive globals to avoid executing arbitrary code
         const hasCall = /(?:^|[^A-Za-z0-9_])(?:[A-Za-z_][A-Za-z0-9_]*\s*\(|\.\s*[A-Za-z_][A-Za-z0-9_]*\s*\()/.test(raw);
         if (hasCall) return false;
+        // Disallow property access via dot operator entirely for safety
+        const hasDotAccess = /\./.test(raw);
+        if (hasDotAccess) return false;
         const forbiddenIdents = /\b(?:globalThis|global|process|this|Function|constructor|require)\b/;
         if (forbiddenIdents.test(raw)) return false;
         // Very small evaluator: replace bare identifiers with scope values
         // Allow operators: <, >, <=, >=, ==, ===, !=, !==, &&, ||, +, -, *, /, %
-        const allowed = /[A-Za-z_][A-Za-z0-9_]*|([<>]=?|==?=|!?=)|[()&|!+\-*/%\s.\d]/g;
+        const allowed = /[A-Za-z_][A-Za-z0-9_]*|([<>]=?|==?=|!?=)|[()&|!+\-*/%\s\d]/g;
         const cleaned = (raw.match(allowed) || []).join('');
         // Build a function with scope via with()
         const fn = new Function('scope', 'with(scope){ return (' + cleaned + ') }');
@@ -244,9 +249,11 @@ function evalExpressionValue(expr, scope) {
         // Block function calls and sensitive globals in value expressions
         const hasCall = /(?:^|[^A-Za-z0-9_])(?:[A-Za-z_][A-Za-z0-9_]*\s*\(|\.\s*[A-Za-z_][A-Za-z0-9_]*\s*\()/.test(str);
         const forbiddenIdents = /\b(?:globalThis|global|process|this|Function|constructor|require)\b/;
-        if (hasCall || forbiddenIdents.test(str)) return expr;
+        // Disallow any property access via dot operator
+        const hasDotAccess = /\./.test(str);
+        if (hasCall || hasDotAccess || forbiddenIdents.test(str)) return expr;
         // Allow identifiers and basic operators
-        const allowed = /[A-Za-z_][A-Za-z0-9_]*|([<>]=?|==?=|!?=)|[()&|!+\-*/%\s.\d]/g;
+        const allowed = /[A-Za-z_][A-Za-z0-9_]*|([<>]=?|==?=|!?=)|[()&|!+\-*/%\s\d]/g;
         const cleaned = (str.match(allowed) || []).join('');
         const fn = new Function('scope', 'with(scope){ return (' + cleaned + ') }');
         return fn(scope);
@@ -679,7 +686,7 @@ function renderPageText(story, run, pageId) {
         }
     }
     if (Array.isArray(page.choices) && page.choices.length > 0) {
-        const choices = page.choices.filter(c => !c.condition || safeEvalCondition(c.condition, scope));
+        const choices = getAllowedChoicesForCurrentPage(story, run);
         if (choices.length > 0) {
             out += '\n可用選項：\n';
             for (const c of choices) {
@@ -698,6 +705,7 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
     const lines = String(runDesignText || '').split(/\r?\n/);
     const story = {
         title: '',
+        author: '',
         type: 'story',
         introduction: '',
         coverImage: '',
@@ -725,6 +733,7 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
 
         let m;
         if ((m = line.match(/^\[meta\]\s*title\s+"([\s\S]*?)"$/i))) { story.title = m[1]; continue; }
+        if ((m = line.match(/^\[meta\]\s*author\s+"([\s\S]*?)"$/i))) { story.author = m[1]; continue; }
         if ((m = line.match(/^\[intro\]\s*(.*)$/i))) { story.introduction += (story.introduction ? '\n' : '') + m[1]; continue; }
         if ((m = line.match(/^\[player_var\]\s*([^\s]+)\s+"([\s\S]*?)"(?:\s+"([\s\S]*?)")?$/i))) {
             story.playerVariables.push({ key: m[1], prompt: m[2], placeholder: m[3] || '' });
@@ -802,19 +811,36 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
             continue;
         }
         if (/^\[choice\]/i.test(line)) { continue; }
-        if ((m = line.match(/^->\s*([\s\S]+?)\s*\|\s*([^|\s]+)(?:\s*\|\s*if=([^|]+))?(?:\s*\|\s*stat=([\s\S]+))?$/))) {
+        if ((m = line.match(/^->\s*([\s\S]+?)\s*\|\s*([^|\s]+)([\s\S]*)$/))) {
             const page = ensurePage(currentPageId || '0');
             const choice = { text: m[1].trim(), action: m[2].trim() };
-            if (m[3]) choice.condition = m[3].trim();
-            if (m[4]) {
-                const sc = {};
-                for (const pair of String(m[4]).split(',')) {
-                    const p = pair.trim();
-                    if (!p) continue;
-                    const mm = p.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*([+-])\s*(\d+)$/);
-                    if (mm) sc[mm[1]] = (mm[2] === '+') ? Number(mm[3]) : -Number(mm[3]);
+            const rest = String(m[3] || '');
+            if (rest && rest.includes('|')) {
+                const segs = rest.split('|').map(s => String(s).trim()).filter(Boolean);
+                for (const seg of segs) {
+                    if (!seg) continue;
+                    if (/^else$/i.test(seg)) {
+                        choice.isElse = true;
+                        continue;
+                    }
+                    const mmIf = seg.match(/^if=(.*)$/i);
+                    if (mmIf) {
+                        choice.condition = mmIf[1].trim();
+                        continue;
+                    }
+                    const mmStat = seg.match(/^stat=(.*)$/i);
+                    if (mmStat) {
+                        const sc = {};
+                        for (const pair of String(mmStat[1]).split(',')) {
+                            const p = pair.trim();
+                            if (!p) continue;
+                            const mm = p.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*([+-])\s*(\d+)$/);
+                            if (mm) sc[mm[1]] = (mm[2] === '+') ? Number(mm[3]) : -Number(mm[3]);
+                        }
+                        if (Object.keys(sc).length > 0) choice.statChanges = sc;
+                        continue;
+                    }
                 }
-                choice.statChanges = sc;
             }
             page.choices.push(choice);
             continue;
@@ -846,6 +872,7 @@ function exportStoryToRunDesign(story) {
     const lines = [];
     const q = (s) => '"' + JSON.stringify(String(s || '')).slice(1, -1) + '"';
     lines.push('[meta] title ' + q(story.title || ''));
+    if (story.author) lines.push('[meta] author ' + q(story.author || ''));
     if (story.introduction) {
         for (const l of String(story.introduction).split(/\r?\n/)) lines.push('[intro] ' + l);
     }
@@ -914,6 +941,7 @@ function exportStoryToRunDesign(story) {
             for (const ch of page.choices) {
                 const segs = ['-> ' + ch.text, ch.action];
                 if (ch.condition) segs.push('if=' + ch.condition);
+                if (ch.isElse) segs.push('else');
                 if (ch.statChanges) {
                     const parts = [];
                     for (const [k, v] of Object.entries(ch.statChanges)) parts.push(k + (v >= 0 ? '+' + v : v));
@@ -1013,10 +1041,37 @@ function getAllowedChoicesForCurrentPage(story, run) {
     const currentPage = story.pages[run.currentPageId];
     if (!currentPage) return [];
     const scope = buildEvalScope(run);
-    const allowedChoices = Array.isArray(currentPage.choices)
-        ? currentPage.choices.filter(c => !c.condition || safeEvalCondition(c.condition, scope))
-        : [];
-    return allowedChoices;
+    const choices = Array.isArray(currentPage.choices) ? currentPage.choices : [];
+    const out = [];
+    for (let i = 0; i < choices.length; i++) {
+        const item = choices[i];
+        if (!item) continue;
+        const isConditional = !!(item.condition || item.isElse);
+        if (isConditional) {
+            // Collect contiguous conditional chain (if/else)
+            const chain = [];
+            let j = i;
+            while (j < choices.length) {
+                const it = choices[j];
+                if (!(it && (it.condition || it.isElse))) break;
+                chain.push(it);
+                j++;
+            }
+            let chosen = null;
+            let elseItem = null;
+            for (const it of chain) {
+                if (it.isElse) { elseItem = it; continue; }
+                if (!it.condition || safeEvalCondition(it.condition, scope)) { chosen = it; break; }
+            }
+            if (!chosen && elseItem) chosen = elseItem;
+            if (chosen) out.push(chosen);
+            i = j - 1; // skip chain
+            continue;
+        }
+        // Independent (non-conditional) choice
+        if (!item.condition || safeEvalCondition(item.condition, scope)) out.push(item);
+    }
+    return out;
 }
 
 function buildButtonsForPage(story, run) {
@@ -1175,6 +1230,7 @@ function validateRunDesignLines(rawText) {
         /^\s*$/,
         /^\/\//,
         /^\[meta\]\s*title\s+"([\s\S]*?)"$/i,
+        /^\[meta\]\s*author\s+"([\s\S]*?)"$/i,
         /^\[intro\]\s*(.*)$/i,
         /^\[player_var\]\s*([^\s]+)\s+"([\s\S]*?)"(?:\s+"([\s\S]*?)")?$/i,
         /^\[stat_def\]\s*([^\s]+)\s+(-?\d+)\s+(-?\d+)(?:\s+"([\s\S]*?)")?$/i,
@@ -1186,7 +1242,7 @@ function validateRunDesignLines(rawText) {
         /^\[random\]\s*(\d+)%$/i,
         /^\[set(?:\|[^\]]+)?\]\s*([^=\s]+)\s*=\s*[\s\S]+$/i,
         /^\[choice\]/i,
-        /^->\s*[\s\S]+?\s*\|\s*([^|\s]+)(?:\s*\|\s*if=[^|]+)?(?:\s*\|\s*stat=[\s\S]+)?$/
+        /^->\s*[\s\S]+?\s*\|\s*([^|\s]+)(?:\s*\|\s*(?:if=[^|]+|else))?(?:\s*\|\s*stat=[\s\S]+)?$/
     ];
     for (let i = 0; i < lines.length; i++) {
         const line = String(lines[i]).trim();
@@ -1326,6 +1382,11 @@ const rollDiceCommand = async function ({
             if (!compiled.title) compiled.title = alias;
             compiled.type = 'story';
             compiled.ownerId = userid;
+            // Require author metadata
+            if (!compiled.author || String(compiled.author).trim() === '') {
+                rply.text = '上傳失敗：缺少作者。請在檔案中加入 [meta] author "作者名" 後再試。';
+                return rply;
+            }
 
             // Validation: pages and segment lengths
             const v = validateCompiledStory(compiled);
@@ -1385,8 +1446,7 @@ const rollDiceCommand = async function ({
                     alias,
                     title: compiled.title,
                     type: 'story',
-                    payload: compiled,
-                    isActive: true
+                    payload: compiled
                 };
                 // Preserve existing allow settings on import; only set defaults when creating new
                 if (!existingDoc) {
@@ -1464,6 +1524,11 @@ const rollDiceCommand = async function ({
             if (!compiled.title) compiled.title = alias;
             compiled.type = 'story';
             compiled.ownerId = userid;
+            // Require author metadata
+            if (!compiled.author || String(compiled.author).trim() === '') {
+                rply.text = '更新失敗：缺少作者。請在檔案中加入 [meta] author "作者名" 後再試。';
+                return rply;
+            }
             const v = validateCompiledStory(compiled);
             if (!v.ok) { rply.text = '更新失敗：' + v.message; return rply; }
 
@@ -1477,8 +1542,7 @@ const rollDiceCommand = async function ({
                         alias,
                         title: compiled.title,
                         type: 'story',
-                        payload: compiled,
-                        isActive: true
+                        payload: compiled
                     },
                     { new: true }
                 );
@@ -1796,10 +1860,7 @@ const rollDiceCommand = async function ({
             // Enforce allowed choices from current page only
             const currentPage = story.pages[run.currentPageId];
             if (!currentPage) { rply.text = '目前頁面不存在，請重新開始。'; return rply; }
-            const scope = buildEvalScope(run);
-            const allowedChoices = Array.isArray(currentPage.choices)
-                ? currentPage.choices.filter(c => !c.condition || safeEvalCondition(c.condition, scope))
-                : [];
+            const allowedChoices = getAllowedChoicesForCurrentPage(story, run);
             // Support for 2a, 2b, 2c format: check if target is valid
             const targetStr = String(target || '');
             const basePageMatch = targetStr.match(/^(\d+)([a-z])?$/i);
@@ -2017,13 +2078,13 @@ const rollDiceCommand = async function ({
             const rows = [];
             if (db.story && typeof db.story.find === 'function') {
                 if (aliasFilter) {
-                    const found = await db.story.findOne({ alias: aliasFilter, isActive: { $ne: false } }).lean();
-                    if (found) rows.push({ title: found.title || '-', alias: found.alias || '-', introduction: found.payload && found.payload.introduction || '', startPermission: found.startPermission || '-' });
+                    const found = await db.story.findOne({ alias: aliasFilter }).lean();
+                    if (found) rows.push({ title: found.title || '-', alias: found.alias || '-', introduction: found.payload && found.payload.introduction || '', author: found.payload && found.payload.author || '', startPermission: found.startPermission || '-' });
                 } else {
-                    const all = await db.story.find({ isActive: { $ne: false } }).lean();
+                    const all = await db.story.find({}).lean();
                     for (const s of all) {
                         const allow = canStartStory(s, { userid, groupid });
-                        if (allow.ok) rows.push({ title: s.title || '-', alias: s.alias || '-', introduction: s.payload && s.payload.introduction || '', startPermission: s.startPermission || '-' });
+                        if (allow.ok) rows.push({ title: s.title || '-', alias: s.alias || '-', introduction: s.payload && s.payload.introduction || '', author: s.payload && s.payload.author || '', startPermission: s.startPermission || '-' });
                     }
                 }
             } else {
@@ -2038,8 +2099,9 @@ const rollDiceCommand = async function ({
                         if (seen.has(alias)) continue;
                         if (aliasFilter && alias !== aliasFilter) continue;
                         let intro = '';
-                        try { const obj = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); intro = obj && obj.introduction || ''; } catch { }
-                        rows.push({ title: alias, alias, introduction: intro, startPermission: 'ANYONE' });
+                        let author = '';
+                        try { const obj = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); intro = obj && obj.introduction || ''; author = obj && obj.author || ''; } catch { }
+                        rows.push({ title: alias, alias, introduction: intro, author, startPermission: 'ANYONE' });
                         seen.add(alias);
                     }
                 }
@@ -2051,7 +2113,7 @@ const rollDiceCommand = async function ({
                     return rply;
                 }
                 const item = rows[0];
-                rply.text = '【' + item.title + '】\n' + (item.introduction || '(無簡介)');
+                rply.text = '【' + item.title + '】\n作者：' + (item.author || '-') + '\n' + (item.introduction || '(無簡介)');
                 rply.buttonCreate = ['.st start ' + item.alias];
                 return rply;
             }
@@ -2065,6 +2127,7 @@ const rollDiceCommand = async function ({
             else {
                 for (const r of rows) {
                     text += '- ' + r.title + ' (alias: ' + r.alias + ')\n';
+                    if (r.author) text += '  - 作者：' + r.author + '\n';
                     try {
                         const intro = String(r.introduction || '').trim();
                         if (intro) {
@@ -2126,6 +2189,52 @@ const rollDiceCommand = async function ({
                 }
                 fs.writeFileSync(p, JSON.stringify(obj, null, 2), 'utf8');
                 rply.text = '已更新權限設定（alias: ' + alias + '）';
+                return rply;
+            } catch (error) { rply.text = '設定失敗：' + (error.message || ''); return rply; }
+        }
+        case /^disallow$/.test(sub): {
+            const alias = (mainMsg[2] || '').trim();
+            const removeIds = mainMsg.slice(3).filter(Boolean);
+            if (!alias) { rply.text = '用法：.st disallow <alias> [groupId...]'; return rply; }
+            if (db.story && typeof db.story.findOneAndUpdate === 'function') {
+                const doc = await db.story.findOne({ alias }).lean();
+                if (!doc) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
+                if (String(doc.ownerID) !== String(userid)) { rply.text = '你沒有權限變更此劇本設定。'; return rply; }
+                let groups = Array.isArray(doc.allowedGroups) ? [...doc.allowedGroups] : [];
+                const targets = [...removeIds];
+                if (targets.length === 0) {
+                    if (groupid) targets.push(groupid);
+                    if (channelid) targets.push(channelid);
+                }
+                if (targets.length === 0) { rply.text = '請在群組或頻道中使用 .st disallow，或指定 groupId。'; return rply; }
+                const before = groups.length;
+                groups = groups.filter(id => !targets.includes(String(id)));
+                await db.story.findOneAndUpdate({ alias }, { allowedGroups: groups }, { new: true });
+                if (before === groups.length) { rply.text = '指定群組/頻道未在允許清單中。'; return rply; }
+                rply.text = '已取消允許（alias: ' + alias + '）：' + (groups.length > 0 ? groups.join(', ') : '(無)');
+                rply.buttonCreate = ['.st allow ' + alias];
+                return rply;
+            }
+            // files fallback
+            try {
+                const p = path.join(__dirname, 'storyTeller', alias + '.json');
+                if (!fs.existsSync(p)) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
+                const obj = JSON.parse(fs.readFileSync(p, 'utf8'));
+                if (obj && String(obj.ownerId) !== String(userid)) { rply.text = '你沒有權限變更此劇本設定。'; return rply; }
+                obj._meta = obj._meta || {};
+                obj._meta.allowedGroups = Array.isArray(obj._meta.allowedGroups) ? obj._meta.allowedGroups : [];
+                const targets = [...removeIds];
+                if (targets.length === 0) {
+                    if (groupid) targets.push(groupid);
+                    if (channelid) targets.push(channelid);
+                }
+                if (targets.length === 0) { rply.text = '請在群組或頻道中使用 .st disallow，或指定 groupId。'; return rply; }
+                const before = obj._meta.allowedGroups.length;
+                obj._meta.allowedGroups = obj._meta.allowedGroups.filter(id => !targets.includes(String(id)));
+                fs.writeFileSync(p, JSON.stringify(obj, null, 2), 'utf8');
+                if (before === obj._meta.allowedGroups.length) { rply.text = '指定群組/頻道未在允許清單中。'; return rply; }
+                rply.text = '已取消允許（alias: ' + alias + '）：' + (obj._meta.allowedGroups.length > 0 ? obj._meta.allowedGroups.join(', ') : '(無)');
+                rply.buttonCreate = ['.st allow ' + alias];
                 return rply;
             } catch (error) { rply.text = '設定失敗：' + (error.message || ''); return rply; }
         }
@@ -2290,46 +2399,44 @@ const rollDiceCommand = async function ({
                     let endingStats = [];
                     try {
                         if (db.storyRun && typeof db.storyRun.find === 'function') {
-                            // Also fetch history to recover ending page when endingId/title are missing
                             const runs = await db.storyRun.find({ story: s._id, isEnded: true }, 'endingId endingTitle history').lean();
-                            completed = runs ? runs.length : 0;
+                            const storyPayload = s && s.payload ? s.payload : null;
                             const counter = new Map();
                             for (const r of (runs || [])) {
-                                // Prefer stored endingTitle; fallback to story page title by endingId; then endingId; finally try history's last page title; else 'unknown'
+                                if (!storyPayload || !storyPayload.pages) continue;
+                                let counted = false;
                                 let label = '';
-                                if (r && r.endingTitle && String(r.endingTitle).trim() !== '') {
-                                    label = String(r.endingTitle);
-                                } else {
-                                    const eid = r && r.endingId ? String(r.endingId) : '';
-                                    const storyPayload = s && s.payload ? s.payload : null;
-                                    const pageTitleByEndingId = (storyPayload && storyPayload.pages && storyPayload.pages[eid] && storyPayload.pages[eid].title) ? String(storyPayload.pages[eid].title) : '';
-                                    if (pageTitleByEndingId) {
-                                        label = pageTitleByEndingId;
-                                    } else if (eid) {
-                                        label = eid;
-                                    } else if (r && Array.isArray(r.history) && r.history.length > 0) {
-                                        const last = r.history.at(-1);
-                                        const lastPid = last && last.pageId ? String(last.pageId) : '';
-                                        const titleFromHistory = (storyPayload && storyPayload.pages && storyPayload.pages[lastPid] && storyPayload.pages[lastPid].title) ? String(storyPayload.pages[lastPid].title) : '';
-                                        label = titleFromHistory || lastPid || 'unknown';
-                                    } else {
-                                        label = 'unknown';
+                                const eid = r && r.endingId ? String(r.endingId) : '';
+                                if (eid && storyPayload.pages[eid] && storyPayload.pages[eid].isEnding) {
+                                    const page = storyPayload.pages[eid];
+                                    label = (page && page.title) ? String(page.title) : eid;
+                                    counted = true;
+                                } else if (r && Array.isArray(r.history) && r.history.length > 0) {
+                                    const last = r.history.at(-1);
+                                    const lastPid = last && last.pageId ? String(last.pageId) : '';
+                                    const page = lastPid ? storyPayload.pages[lastPid] : null;
+                                    if (page && page.isEnding) {
+                                        label = page.title ? String(page.title) : (lastPid || 'unknown');
+                                        counted = true;
                                     }
                                 }
-                                const k = label;
-                                counter.set(k, (counter.get(k) || 0) + 1);
+                                if (counted) {
+                                    const k = label || 'unknown';
+                                    counter.set(k, (counter.get(k) || 0) + 1);
+                                }
                             }
                             endingStats = [...counter.entries()].map(([id, count]) => ({ id, count }));
+                            completed = endingStats.reduce((sum, it) => sum + (it.count || 0), 0);
                         }
                     } catch { /* ignore */ }
                     rows.push({
                         title: s.title || '-',
                         alias: s.alias || '-',
                         startPermission: s.startPermission || '-',
-                        isActive: !!s.isActive,
                         introduction: s && s.payload && s.payload.introduction || '',
                         completed,
-                        endingStats
+                        endingStats,
+                        allowedGroups: Array.isArray(s.allowedGroups) ? s.allowedGroups : []
                     });
                 }
             } else {
@@ -2350,25 +2457,42 @@ const rollDiceCommand = async function ({
                     const alias = run.storyAlias || '-';
                     if (!byAlias.has(alias)) byAlias.set(alias, { completed: 0, endings: new Map() });
                     const stat = byAlias.get(alias);
-                    if (run.isEnded) {
-                        stat.completed++;
-                        let label = '';
-                        if (run.endingTitle && String(run.endingTitle).trim() !== '') {
-                            label = String(run.endingTitle);
-                        } else {
-                            const story = await getStoryFor(alias, run.storyOwnerID);
-                            const eid = run.endingId ? String(run.endingId) : '';
-                            const titleFromStory = (story && story.pages && story.pages[eid] && story.pages[eid].title) ? String(story.pages[eid].title) : '';
-                            if (titleFromStory) label = titleFromStory;
-                            else if (eid) label = eid; else label = 'unknown';
+                    const story = await getStoryFor(alias, run.storyOwnerID);
+                    if (!story || !story.pages) continue;
+                    let counted = false;
+                    let label = '';
+                    const eid = run && run.endingId ? String(run.endingId) : '';
+                    if (eid && story.pages[eid] && story.pages[eid].isEnding) {
+                        const page = story.pages[eid];
+                        label = page.title ? String(page.title) : eid;
+                        counted = true;
+                    } else if (Array.isArray(run.history) && run.history.length > 0) {
+                        const last = run.history.at(-1);
+                        const lastPid = last && last.pageId ? String(last.pageId) : '';
+                        const page = lastPid ? story.pages[lastPid] : null;
+                        if (page && page.isEnding) {
+                            label = page.title ? String(page.title) : (lastPid || 'unknown');
+                            counted = true;
                         }
-                        stat.endings.set(label, (stat.endings.get(label) || 0) + 1);
+                    }
+                    if (counted) {
+                        stat.completed++;
+                        stat.endings.set(label || 'unknown', (stat.endings.get(label || 'unknown') || 0) + 1);
                     }
                 }
                 for (const [alias, data] of byAlias.entries()) {
                     const story = await getStoryFor(alias, ownerID);
                     const intro = story && story.introduction || '';
-                    rows.push({ title: alias, alias, startPermission: 'ANYONE', isActive: true, introduction: intro, completed: data.completed, endingStats: [...data.endings.entries()].map(([id, count]) => ({ id, count })) });
+                    const meta = story && story._meta || {};
+                    rows.push({
+                        title: alias,
+                        alias,
+                        startPermission: meta.startPermission || 'ANYONE',
+                        introduction: intro,
+                        completed: data.completed,
+                        endingStats: [...data.endings.entries()].map(([id, count]) => ({ id, count })),
+                        allowedGroups: Array.isArray(meta.allowedGroups) ? meta.allowedGroups : []
+                    });
                 }
             }
             if (rows.length === 0) {
@@ -2384,12 +2508,39 @@ const rollDiceCommand = async function ({
                             text += '  - 簡介：' + preview + '\n';
                         }
                     } catch { /* ignore */ }
-                    text += '  - startPermission: ' + r.startPermission + '\n';
-                    text += '  - active: ' + r.isActive + '\n';
-                    if (typeof r.completed === 'number') text += '  - Completed: ' + r.completed + '\n';
+                    const perm = String(r.startPermission || '').toUpperCase();
+                    const options = ['僅作者', '任何人', '指定群組'];
+                    const activeIndex = (perm === 'AUTHOR_ONLY') ? 0 : (perm === 'ANYONE') ? 1 : (perm === 'GROUP_ONLY') ? 2 : -1;
+                    const display = options.map((label, idx) => idx === activeIndex ? ('【' + label + '】') : label).join('/');
+                    text += '  - ' + display + '\n';
+                    if (perm === 'GROUP_ONLY') {
+                        text += '    【指定群組】：\n';
+                        const groups = Array.isArray(r.allowedGroups) ? r.allowedGroups : [];
+                        if (groups.length === 0) {
+                            text += '      （未設定）\n';
+                        } else {
+                            for (const gid of groups) {
+                                let name = '';
+                                if (String(botname || '').toLowerCase() === 'discord' && discordClient && typeof discordClient.channels?.fetch === 'function') {
+                                    try {
+                                        const ch = await discordClient.channels.fetch(gid);
+                                        if (ch && ch.name) name = ch.name;
+                                    } catch { /* ignore */ }
+                                    if (!name && typeof discordClient.guilds?.fetch === 'function') {
+                                        try {
+                                            const g = await discordClient.guilds.fetch(gid);
+                                            if (g && g.name) name = g.name;
+                                        } catch { /* ignore */ }
+                                    }
+                                }
+                                text += '      ' + (name ? (name + ' - ' + gid) : gid) + '\n';
+                            }
+                        }
+                    }
+                    if (typeof r.completed === 'number') text += '  - 完成次數：' + r.completed + '\n';
                     if (Array.isArray(r.endingStats) && r.endingStats.length > 0) {
-                        text += '  - Endings:\n';
-                        for (const es of r.endingStats) text += '    • ' + (es.id || 'unknown') + ': ' + es.count + '\n';
+                        text += '  - 結局統計：\n';
+                        for (const es of r.endingStats) text += '    • ' + (es.id || '未知') + '：' + es.count + '\n';
                     }
                 }
             }

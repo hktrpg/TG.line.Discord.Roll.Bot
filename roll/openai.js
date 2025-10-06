@@ -956,19 +956,52 @@ class TranslateAi extends OpenAI {
         for (let index = 0; index < inputScript.length; index++) {
             // Add delay between requests to avoid rate limiting
             if (index > 0) {
-                // Wait configured delay between consecutive translation requests
-                await this.retryManager.waitSeconds(RETRY_CONFIG.GENERAL.batchDelay);
+                await this.retryManager.waitSeconds(this.retryManager.jitterDelay(RETRY_CONFIG.GENERAL.batchDelay));
             }
+
             const previousTranslatedContext = index > 0 ? response[index - 1] : '';
             const nextOriginalContext = (index + 1 < inputScript.length) ? inputScript[index + 1] : '';
-            let result = await this.translateChat(
-                inputScript[index],
-                mode,
-                modelTier,
-                previousTranslatedContext,
-                nextOriginalContext,
-                glossary
-            );
+
+            // Per-chunk retry windows: if we hit final rate-limit message, wait for cooldowns and try again
+            const MAX_CHUNK_WINDOWS = 6; // up to 6 cooldown windows per chunk
+            let windowAttempt = 0;
+            let result = '';
+            while (true) {
+                result = await this.translateChat(
+                    inputScript[index],
+                    mode,
+                    modelTier,
+                    previousTranslatedContext,
+                    nextOriginalContext,
+                    glossary
+                );
+
+                // If not a final rate-limit message, accept the result
+                if (typeof result !== 'string' || !/API\s*請求頻率限制已達上限/.test(result)) {
+                    break;
+                }
+
+                windowAttempt++;
+                if (windowAttempt >= MAX_CHUNK_WINDOWS) {
+                    console.warn(`[TRANSLATE_CHUNK_RETRY] idx=${index} hit max windows, returning last error message`);
+                    break;
+                }
+
+                // Compute a safe wait time based on model cooldowns (LOW tier) and keyset cycle
+                let waitSec = RETRY_CONFIG.GENERAL.keysetCycleDelay;
+                if (modelTier === 'LOW' && AI_CONFIG.MODELS.LOW?.models?.length) {
+                    const minRemain = this.retryManager.minCooldownRemaining(AI_CONFIG.MODELS.LOW.models);
+                    const padding = RETRY_CONFIG.MODEL_CYCLING.allModelsCooldownPadding || 0;
+                    waitSec = Math.max(waitSec, minRemain + padding);
+                }
+                waitSec = this.retryManager.jitterDelay(waitSec);
+                console.log(`[TRANSLATE_CHUNK_RETRY] idx=${index} window=${windowAttempt} wait=${waitSec}s`);
+
+                await this.retryManager.waitSeconds(waitSec);
+                // Open a fresh retry window
+                this.retryManager.resetCounters();
+            }
+
             response.push(result);
         }
         return response;
@@ -1010,10 +1043,14 @@ class TranslateAi extends OpenAI {
     splitTextByTokens(text, inputTokenLimit) {
         const results = [];
         let remains = text;
-        const tokenLimit = inputTokenLimit * 0.4;
+        const tokenLimit = Math.max(1, Math.floor((Number.isFinite(inputTokenLimit) ? inputTokenLimit : 1000) * 0.4));
         while (remains.length > 0) {
             const tokens = encode(remains);
-            let offset = (tokens > tokenLimit) ? remains.length : Math.floor(tokenLimit * remains.length / tokens.length);
+            const totalTokens = tokens.length || 1;
+            // If current text within limit, take all; else scale by token ratio
+            let offset = (totalTokens > tokenLimit)
+                ? Math.floor(tokenLimit * remains.length / totalTokens)
+                : remains.length;
             let subtext = remains.slice(0, Math.max(0, offset));
             // 超過token上限，試圖找到最接近而不超過上限的文字
             while (encode(subtext).length > tokenLimit && offset > 0) {
@@ -1045,6 +1082,9 @@ class TranslateAi extends OpenAI {
                 }
             }
         }
+        try {
+            console.log(`[TRANSLATE_SPLIT] chunks=${results.length}, tokenLimit=${tokenLimit}`);
+        } catch {}
         return results;
     }
 

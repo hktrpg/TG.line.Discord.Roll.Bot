@@ -45,6 +45,21 @@ const TRANSLATION_SYSTEM_PROMPT = `
 - 句法重塑：允許重構句型以符合中文母語者閱讀習慣。
 - 術語一致：基於上下文盡力維持專有名詞一致。
 
+# 正體中文排版規範 (Typography)
+- 引號：外層用「」；內層用『』；不要使用英文雙引號。
+- 書名號：作品名、書名用《》。
+- 破折號：使用「──」；省略號：使用「……」。
+- 標點：使用全形中文標點；中英文混排時，保留英文原文的標點。
+- 數字與單位：一般使用半形數字，單位與數字間通常不留空（例：10公斤、24小時）。
+
+# 不翻譯清單 (Do-Not-Translate List)
+- URL、Email、檔案路徑、IP/域名（例如 http/https 開頭或像 example.com）。
+- 以反引號 backticks 包裹的程式碼片段，或明顯的程式/設定/命令片段（如函式名()、JSON 鍵名、參數名、Shell 片段）。
+- TRPG 骰子表示法與數值：如 1d100、3d6+2、2d10-1、d100、難度百分比等；屬性縮寫與數值（STR/DEX/CON/INT/WIS/CHA/HP/MP/SAN）。
+- 版本號、規則條目、章節/條款編號、日期時間格式（如 v1.2.3、§3.1、2024-10-06、14:30）。
+- Hashtag 與 Mention：#標籤、@用戶名。
+- 保留表格/清單符號與編號格式（-、*、1. 2. 等）。
+
 # 任務說明
 你將會收到三段內容：
 1. "PREVIOUS_CONTEXT": 這部分是已翻譯成 正體中文 的前文，請用它來確保風格、語氣和術語的一致性。
@@ -301,7 +316,7 @@ class RetryManager {
 }
 
 const adminSecret = process.env.ADMIN_SECRET;
-const TRANSLATE_LIMIT_PERSONAL = [500, 100_000, 150_000, 150_000, 150_000, 150_000, 150_000, 150_000];
+const TRANSLATE_LIMIT_PERSONAL = [500, 100_000, 150_000, 250_000, 350_000, 550_000, 650_000, 750_000];
 const variables = {};
 const gameName = function () {
     return '【OpenAi】'
@@ -584,6 +599,96 @@ class TranslateAi extends OpenAI {
         // Remove <thinking>...</thinking> content (including nested tags and multiline)
         return text.replaceAll(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
     }
+    
+    // Generate glossary entries from a text sample using the current AI model
+    async generateGlossaryFromText(textSample, mode, modelTier = 'LOW') {
+        try {
+            const currentModel = this.getCurrentModel(modelTier);
+            if (!currentModel) {
+                console.error(`[GLOSSARY] No valid model found for tier ${modelTier}`);
+                return {};
+            }
+            const modelName = currentModel.name || mode.name;
+
+            const systemInstruction = `你是一位專業的術語學家，請從給定文本中抽取專有名詞與關鍵術語，並以 JSON 陣列輸出，每個元素包含 original 與 translation（正體中文）。只輸出 JSON，勿加解說。`;
+            const userContent = `文本：\n---\n${textSample}\n---\n請輸出格式：[ {"original": "...", "translation": "..."}, ... ]`;
+
+            let response = await this.openai.chat.completions.create({
+                model: modelName,
+                temperature: 0.2,
+                messages: [
+                    { role: 'system', content: systemInstruction },
+                    { role: 'user', content: userContent }
+                ]
+            })
+
+            this.retryManager.resetCounters();
+
+            let jsonText = null;
+            if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
+                const dataStr = response.data;
+                const dataArray = dataStr.split('\n\n').filter(Boolean);
+                const parsedData = [];
+                for (const str of dataArray) {
+                    const obj = JSON.parse(str.slice(6));
+                    parsedData.push(obj);
+                }
+                const contents = parsedData.map((obj) => obj.choices[0].delta.content).join('');
+                jsonText = contents;
+            } else {
+                jsonText = response.choices[0].message.content;
+            }
+
+            // Cleanup potential code fences or trailing commas
+            if (typeof jsonText === 'string') {
+                const fenced = jsonText.trim().match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
+                if (fenced) jsonText = fenced[1];
+                jsonText = jsonText.replaceAll(/,\s*([}\]])/g, '$1');
+            }
+
+            const glossaryArray = JSON.parse(jsonText);
+            const glossary = {};
+            for (const item of (Array.isArray(glossaryArray) ? glossaryArray : [])) {
+                if (item && item.original && item.translation) {
+                    glossary[item.original] = item.translation;
+                }
+            }
+            return glossary;
+        } catch (error) {
+            return await this.handleApiError(error, this.generateGlossaryFromText, modelTier, textSample, mode, modelTier);
+        }
+    }
+
+    // Build an aggregated glossary from selected chunks when chunk count is large
+    async buildAutoGlossaryFromChunks(chunks, mode, modelTier = 'LOW') {
+        if (!Array.isArray(chunks) || chunks.length === 0) return {};
+
+        const total = chunks.length;
+        const selectedIndices = new Set();
+        // First and second
+        if (total >= 1) selectedIndices.add(0);
+        if (total >= 2) selectedIndices.add(1);
+        // Last three
+        for (let i = Math.max(0, total - 3); i < total; i++) selectedIndices.add(i);
+        // Every multiple of 3 by human count: 3,6,9... -> 0-based 2,5,8...
+        for (let i = 2; i < total; i += 3) selectedIndices.add(i);
+
+        // Limit the number of samples to avoid excessive API calls
+        const MAX_SAMPLES = 24;
+        const ordered = [...selectedIndices].sort((a, b) => a - b).slice(0, MAX_SAMPLES);
+
+        const aggregated = {};
+        for (const idx of ordered) {
+            // Respect batch delay to reduce rate-limit
+            if (idx !== ordered[0]) {
+                await this.retryManager.waitSeconds(RETRY_CONFIG.GENERAL.batchDelay);
+            }
+            const sample = chunks[idx];
+            const partial = await this.generateGlossaryFromText(sample, mode, modelTier);
+            Object.assign(aggregated, partial);
+        }
+        return aggregated;
+    }
     async getText(str, mode, discordMessage, discordClient) {
         let text = [];
         let textLength = 0;
@@ -676,7 +781,7 @@ class TranslateAi extends OpenAI {
             return await this.handleApiError(error, this.translateChat, modelTier, inputStr, mode, modelTier, previousContext, nextContext, glossary);
         }
     }
-    async translateText(inputScript, mode, modelTier = 'LOW') {
+    async translateText(inputScript, mode, modelTier = 'LOW', glossary = null) {
         let response = [];
         for (let index = 0; index < inputScript.length; index++) {
             // Add delay between requests to avoid rate limiting
@@ -692,7 +797,7 @@ class TranslateAi extends OpenAI {
                 modelTier,
                 previousTranslatedContext,
                 nextOriginalContext,
-                null
+                glossary
             );
             response.push(result);
         }
@@ -703,11 +808,30 @@ class TranslateAi extends OpenAI {
         let lv = await VIP.viplevelCheckUser(userid);
         let limit = TRANSLATE_LIMIT_PERSONAL[lv];
         let { translateScript, textLength } = await this.getText(inputStr, mode, discordMessage, discordClient);
+        console.log(textLength, limit);
         if (textLength > limit) return { text: `輸入的文字太多了，請分批輸入，你是VIP LV${lv}，限制為${limit}字` };
-        let response = await this.translateText(translateScript, mode, modelTier);
+        // Auto-build glossary if chunk count is large
+        let autoGlossary = null;
+        if (Array.isArray(translateScript) && translateScript.length > 8) {
+            try {
+                autoGlossary = await this.buildAutoGlossaryFromChunks(translateScript, mode, modelTier);
+            } catch (error) {
+                console.error('[GLOSSARY] 自動生成 Glossary 失敗，將在無 Glossary 情況下繼續翻譯。', error);
+            }
+        }
+
+        let response = await this.translateText(translateScript, mode, modelTier, autoGlossary);
         response = response.join('\n');
         if (textLength > 1900) {
-            let sendfile = await this.createFile(response);
+            let fileContent = response;
+            if (autoGlossary && Object.keys(autoGlossary).length > 0) {
+                const glossaryHeader = '\n\n----- 名詞對照表 (Glossary) -----\n';
+                const glossaryBody = Object.entries(autoGlossary)
+                    .map(([original, translation]) => `- "${original}" -> "${translation}"`)
+                    .join('\n');
+                fileContent += glossaryHeader + glossaryBody + '\n';
+            }
+            let sendfile = await this.createFile(fileContent);
             return { fileText: '輸出的文字太多了，請看附件', sendfile };
         }
         return { text: response }
@@ -843,9 +967,11 @@ class CommandHandler {
             replyMessage = await handleMessage.getReplyContent(discordMessage);
         }
         
-        if (!mainMsg[1] && replyMessage) {
+        const hasArg = !!mainMsg[1];
+        const hasReply = !!(replyMessage && replyMessage.trim().length > 0);
+        if (!hasArg && hasReply) {
             params.inputStr = `${replyMessage}`;
-        } else if (mainMsg[1] === 'help' || !mainMsg[1]) {
+        } else if (mainMsg[1] === 'help' || (!hasArg && !hasReply)) {
             return { text: getHelpMessage(), quotes: true };
         }
         const command = mainMsg[0].toLowerCase().replace(/^\./, '');

@@ -140,42 +140,20 @@ const AI_CONFIG = {
             // Dynamically create models array based on available environment variables
             models: (() => {
                 const models = [];
-                
-                // Always add the first model if it exists
-                if (process.env.AI_MODEL_LOW_NAME) {
-                    models.push({
-                        name: process.env.AI_MODEL_LOW_NAME,
-                        token: Number.parseInt(process.env.AI_MODEL_LOW_TOKEN),
-                        input_price: Number.parseFloat(process.env.AI_MODEL_LOW_INPUT_PRICE),
-                        output_price: Number.parseFloat(process.env.AI_MODEL_LOW_OUTPUT_PRICE),
-                        display: process.env.AI_MODEL_LOW_DISPLAY
-                    });
-                }
-                
-                // Add second model only if it's explicitly configured
-                if (process.env.AI_MODEL_LOW_NAME_2 && process.env.AI_MODEL_LOW_NAME_2 !== process.env.AI_MODEL_LOW_NAME) {
-                    models.push({
-                        name: process.env.AI_MODEL_LOW_NAME_2,
-                        token: Number.parseInt(process.env.AI_MODEL_LOW_TOKEN_2 || process.env.AI_MODEL_LOW_TOKEN),
-                        input_price: Number.parseFloat(process.env.AI_MODEL_LOW_INPUT_PRICE_2 || process.env.AI_MODEL_LOW_INPUT_PRICE),
-                        output_price: Number.parseFloat(process.env.AI_MODEL_LOW_OUTPUT_PRICE_2 || process.env.AI_MODEL_LOW_OUTPUT_PRICE),
-                        display: process.env.AI_MODEL_LOW_DISPLAY_2 || process.env.AI_MODEL_LOW_DISPLAY
-                    });
-                }
-                
-                // Add third model only if it's explicitly configured and different from first two
-                if (process.env.AI_MODEL_LOW_NAME_3 && 
-                    process.env.AI_MODEL_LOW_NAME_3 !== process.env.AI_MODEL_LOW_NAME &&
-                    process.env.AI_MODEL_LOW_NAME_3 !== process.env.AI_MODEL_LOW_NAME_2) {
-                    models.push({
-                        name: process.env.AI_MODEL_LOW_NAME_3,
-                        token: Number.parseInt(process.env.AI_MODEL_LOW_TOKEN_3 || process.env.AI_MODEL_LOW_TOKEN),
-                        input_price: Number.parseFloat(process.env.AI_MODEL_LOW_INPUT_PRICE_3 || process.env.AI_MODEL_LOW_INPUT_PRICE),
-                        output_price: Number.parseFloat(process.env.AI_MODEL_LOW_OUTPUT_PRICE_3 || process.env.AI_MODEL_LOW_OUTPUT_PRICE),
-                        display: process.env.AI_MODEL_LOW_DISPLAY_3 || process.env.AI_MODEL_LOW_DISPLAY
-                    });
-                }
-                
+                const seen = new Set();
+                const pushModel = (idx) => {
+                    const suffix = idx === 1 ? '' : `_${idx}`;
+                    const name = process.env[`AI_MODEL_LOW_NAME${suffix}`] || process.env[`AI_MODEL_LOW_NAME_${idx}`];
+                    if (!name || seen.has(name)) return;
+                    const token = Number.parseInt(process.env[`AI_MODEL_LOW_TOKEN${suffix}`] || process.env[`AI_MODEL_LOW_TOKEN_${idx}`] || process.env.AI_MODEL_LOW_TOKEN);
+                    const input_price = Number.parseFloat(process.env[`AI_MODEL_LOW_INPUT_PRICE${suffix}`] || process.env[`AI_MODEL_LOW_INPUT_PRICE_${idx}`] || process.env.AI_MODEL_LOW_INPUT_PRICE);
+                    const output_price = Number.parseFloat(process.env[`AI_MODEL_LOW_OUTPUT_PRICE${suffix}`] || process.env[`AI_MODEL_LOW_OUTPUT_PRICE_${idx}`] || process.env.AI_MODEL_LOW_OUTPUT_PRICE);
+                    const display = process.env[`AI_MODEL_LOW_DISPLAY${suffix}`] || process.env[`AI_MODEL_LOW_DISPLAY_${idx}`] || process.env.AI_MODEL_LOW_DISPLAY;
+                    models.push({ name, token, input_price, output_price, display });
+                    seen.add(name);
+                };
+                // Support up to 20 configured LOW models
+                for (let i = 1; i <= 20; i++) pushModel(i);
                 return models;
             })(),
             type: process.env.AI_MODEL_LOW_TYPE,
@@ -858,8 +836,19 @@ class TranslateAi extends OpenAI {
     async getText(str, mode, discordMessage, discordClient) {
         let text = [];
         let textLength = 0;
-        // Handle LOW tier with multiple models
-        const splitLength = mode.models ? mode.models[0].token : mode.token;
+        // Handle LOW tier with multiple models: use MIN token across all LOW models
+        let splitLength;
+        if (mode.models && Array.isArray(mode.models) && mode.models.length > 0) {
+            splitLength = mode.models.reduce((min, m) => {
+                const t = Number.isFinite(m.token) ? m.token : min;
+                return Math.min(min, t);
+            }, Number.POSITIVE_INFINITY);
+            if (!Number.isFinite(splitLength)) {
+                splitLength = mode.models[0].token || 4000;
+            }
+        } else {
+            splitLength = mode.token || 4000;
+        }
         str = str.replace(/^\s*\.ait\d?\s*/i, '');
         if (str.length > 0) {
             text.push(str);

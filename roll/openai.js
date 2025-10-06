@@ -121,13 +121,16 @@ const RETRY_CONFIG = {
         defaultDelay: 5,            // Default delay for other errors
         keysetCycleDelay: 60,       // Delay when cycling through all keys
         batchDelay: 30,             // Delay between consecutive batch requests
-        modelCycleDelay: 30         // Delay when cycling through models
+        modelCycleDelay: 30,        // Delay when cycling through models
+        jitterRatio: 0.25           // +/- percentage jitter applied to delays
     },
     
     // Model cycling settings for LOW tier
     MODEL_CYCLING: {
         enabled: true,              // Enable model cycling for LOW tier
-        maxRetries: 2               // Max retries per model before cycling
+        maxRetries: 2,              // Max retries per model before cycling
+        perModelCooldownSeconds: 65,// Cooldown after 429 before using that model again
+        allModelsCooldownPadding: 5 // Extra seconds to wait if all are cooling down
     }
 };
 
@@ -230,6 +233,8 @@ const AI_CONFIG = {
 class RetryManager {
     constructor() {
         this.resetCounters();
+        this.modelCooldowns = new Map(); // modelName -> epoch seconds when available
+        this.firstRetryAt = null;
     }
 
     resetCounters() {
@@ -279,6 +284,17 @@ class RetryManager {
         }
     }
 
+    // Return jittered delay to avoid thundering herd
+    jitterDelay(seconds) {
+        const ratio = RETRY_CONFIG.GENERAL.jitterRatio || 0;
+        if (!ratio) return seconds;
+        const min = 1 - ratio;
+        const max = 1 + ratio;
+        const factor = Math.random() * (max - min) + min;
+        const s = Math.max(1, Math.round(seconds * factor));
+        return s;
+    }
+
     // Check if should cycle models for LOW tier
     shouldCycleModel(modelTier, errorType) {
         return modelTier === 'LOW' && 
@@ -312,6 +328,47 @@ class RetryManager {
         if (modelTier === 'LOW') {
             console.log(`[RETRY] Current LOW model: ${this.currentModelIndex + 1}/${AI_CONFIG.MODELS.LOW.models.length}`);
         }
+    }
+
+    // Mark a model as cooling down for given seconds
+    setModelCooldown(modelName, seconds) {
+        if (!modelName || !Number.isFinite(seconds)) return;
+        const availableAt = Math.floor(Date.now() / 1000) + Math.max(1, Math.round(seconds));
+        this.modelCooldowns.set(modelName, availableAt);
+    }
+
+    // Check if model is available (not cooling down)
+    isModelAvailable(modelName) {
+        if (!this.modelCooldowns.has(modelName)) return true;
+        const availableAt = this.modelCooldowns.get(modelName);
+        return Math.floor(Date.now() / 1000) >= availableAt;
+    }
+
+    // Find next available model index not in cooldown; returns null if none
+    nextAvailableModelIndex(startIndex, models) {
+        if (!Array.isArray(models) || models.length === 0) return null;
+        const n = models.length;
+        for (let i = 1; i <= n; i++) {
+            const idx = (startIndex + i) % n;
+            const m = models[idx];
+            if (!m || !m.name) continue;
+            if (this.isModelAvailable(m.name)) return idx;
+        }
+        return null;
+    }
+
+    // Get min remaining cooldown seconds among models
+    minCooldownRemaining(models) {
+        let now = Math.floor(Date.now() / 1000);
+        let minRemain = Infinity;
+        for (const m of (models || [])) {
+            const t = this.modelCooldowns.get(m?.name);
+            if (!t) continue;
+            const remain = t - now;
+            if (remain > 0 && remain < minRemain) minRemain = remain;
+        }
+        if (!Number.isFinite(minRemain)) return 0;
+        return Math.max(1, Math.round(minRemain));
     }
 }
 
@@ -477,23 +534,37 @@ class OpenAI {
         return AI_CONFIG.MODELS[modelTier];
     }
 
-    // Cycle through LOW tier models
-    cycleModel() {
+    // Cycle through LOW tier models with cooldown awareness
+    async cycleModel() {
         if (!AI_CONFIG.MODELS.LOW.models || AI_CONFIG.MODELS.LOW.models.length === 0) {
             console.error('[MODEL_CYCLE] No LOW models available for cycling');
-            return;
+            return { waitedSeconds: 0 };
         }
-        
+
         this.retryManager.modelRetryCount++;
-        this.retryManager.currentModelIndex = (this.retryManager.currentModelIndex + 1) % AI_CONFIG.MODELS.LOW.models.length;
-        const currentModel = AI_CONFIG.MODELS.LOW.models[this.retryManager.currentModelIndex];
-        
+
+        const models = AI_CONFIG.MODELS.LOW.models;
+        const currentIndex = this.retryManager.currentModelIndex;
+        const nextIdx = this.retryManager.nextAvailableModelIndex(currentIndex, models);
+
+        if (nextIdx === null) {
+            const minRemain = this.retryManager.minCooldownRemaining(models) + (RETRY_CONFIG.MODEL_CYCLING.allModelsCooldownPadding || 0);
+            const wait = this.retryManager.jitterDelay(minRemain);
+            console.log(`[MODEL_CYCLE] All LOW models cooling down; waiting ${wait}s before retrying`);
+            await this.retryManager.waitSeconds(wait);
+            return { waitedSeconds: wait };
+        }
+
+        this.retryManager.currentModelIndex = nextIdx;
+        const currentModel = models[this.retryManager.currentModelIndex];
+
         if (currentModel) {
-            console.log(`[MODEL_CYCLE] Cycling to LOW model ${this.retryManager.currentModelIndex + 1}/${AI_CONFIG.MODELS.LOW.models.length}: ${currentModel.display} (${currentModel.name})`);
+            console.log(`[MODEL_CYCLE] Cycling to LOW model ${this.retryManager.currentModelIndex + 1}/${models.length}: ${currentModel.display} (${currentModel.name})`);
         } else {
             console.error(`[MODEL_CYCLE] Invalid model at index ${this.retryManager.currentModelIndex}`);
             this.retryManager.currentModelIndex = 0; // Reset to first model
         }
+        return { waitedSeconds: 0 };
     }
 
     // Unified error handling with retry logic
@@ -510,10 +581,27 @@ class OpenAI {
         
         // Handle model cycling for LOW tier rate limits
         if (this.retryManager.shouldCycleModel(modelTier, errorType)) {
-            this.cycleModel();
-            const delay = RETRY_CONFIG.GENERAL.modelCycleDelay;
+            // Put the failed model on cooldown to avoid immediate reuse
+            const failedModel = this.getCurrentModel(modelTier);
+            if (failedModel?.name) {
+                const headerRetryAfter = Number.parseInt(error?.response?.headers?.['retry-after'] || error?.headers?.['retry-after']);
+                const coolSeconds = Number.isFinite(headerRetryAfter) && headerRetryAfter > 0
+                    ? headerRetryAfter
+                    : (RETRY_CONFIG.MODEL_CYCLING.perModelCooldownSeconds || 60);
+                this.retryManager.setModelCooldown(failedModel.name, coolSeconds);
+            }
+
+            const { waitedSeconds } = await this.cycleModel();
+            // Prefer Retry-After header if present; else default modelCycleDelay
+            const headerRetryAfter = Number.parseInt(error?.response?.headers?.['retry-after'] || error?.headers?.['retry-after']);
+            let delay = Number.isFinite(headerRetryAfter) && headerRetryAfter > 0
+                ? headerRetryAfter
+                : RETRY_CONFIG.GENERAL.modelCycleDelay;
+            delay = this.retryManager.jitterDelay(delay);
             this.retryManager.logRetry(error, `${errorType}_MODEL_CYCLE`, delay, modelTier);
-            await this.retryManager.waitSeconds(delay);
+            if (!waitedSeconds) {
+                await this.retryManager.waitSeconds(delay);
+            }
             return await retryFunction.apply(this, args);
         }
 
@@ -522,13 +610,19 @@ class OpenAI {
         
         // Calculate and apply retry delay
         const retryCount = Math.floor(this.retryManager.globalRetryCount / this.apiKeys.length);
-        const delay = this.retryManager.calculateRetryDelay(errorType, retryCount);
+        let delay = this.retryManager.calculateRetryDelay(errorType, retryCount);
+        // Respect Retry-After header if provided by provider
+        const headerRetryAfter = Number.parseInt(error?.response?.headers?.['retry-after'] || error?.headers?.['retry-after']);
+        if (Number.isFinite(headerRetryAfter) && headerRetryAfter > 0) {
+            delay = headerRetryAfter;
+        }
+        delay = this.retryManager.jitterDelay(delay);
         
         this.retryManager.logRetry(error, errorType, delay, modelTier);
         
         // Apply additional delay for keyset cycling
         if (this.retryManager.globalRetryCount % this.apiKeys.length === 0) {
-            await this.retryManager.waitSeconds(RETRY_CONFIG.GENERAL.keysetCycleDelay);
+            await this.retryManager.waitSeconds(this.retryManager.jitterDelay(RETRY_CONFIG.GENERAL.keysetCycleDelay));
         } else {
             await this.retryManager.waitSeconds(delay);
         }

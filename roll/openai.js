@@ -596,8 +596,73 @@ class TranslateAi extends OpenAI {
     removeThinkingTags(text) {
         if (!text || typeof text !== 'string') return text;
         
-        // Remove <thinking>...</thinking> content (including nested tags and multiline)
-        return text.replaceAll(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
+        // Remove <thinking>/<think> ... </thinking>/<\/think> content (including nested tags and multiline)
+        return text.replaceAll(/<(thinking|think)>[\s\S]*?<\/(thinking|think)>/gi, '').trim();
+    }
+    
+    // Sanitize mixed AI outputs to extract a valid JSON string (array or object)
+    sanitizeJsonContent(mixedText) {
+        if (!mixedText || typeof mixedText !== 'string') return mixedText;
+        let text = this.removeThinkingTags(mixedText).trim();
+
+        // Prefer content inside the first triple-backtick block (``` or ```json)
+        const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+        if (fenceMatch && fenceMatch[1]) {
+            text = fenceMatch[1].trim();
+        }
+
+        // Remove trailing commas before closing braces/brackets
+        text = text.replaceAll(/,\s*([}\]])/g, '$1');
+
+        // Always try to extract the first balanced JSON object/array segment
+        const startBrace = text.indexOf('{');
+        const startBracket = text.indexOf('[');
+        const startIdx = (startBrace === -1) ? startBracket : (startBracket === -1 ? startBrace : Math.min(startBrace, startBracket));
+        if (startIdx !== -1) {
+            const candidate = text.slice(startIdx);
+            const extracted = this.extractFirstJsonSegment(candidate);
+            if (extracted) return extracted.trim();
+        }
+        return text;
+    }
+
+    // Extract the first balanced JSON object/array substring from input
+    extractFirstJsonSegment(text) {
+        let bracketStack = [];
+        let inString = false;
+        let escape = false;
+        let start = -1;
+        for (let i = 0; i < text.length; i++) {
+            const ch = text[i];
+            if (inString) {
+                if (escape) {
+                    escape = false;
+                } else if (ch === '\\') {
+                    escape = true;
+                } else if (ch === '"') {
+                    inString = false;
+                }
+                continue;
+            }
+            if (ch === '"') {
+                inString = true;
+                continue;
+            }
+            if (ch === '{' || ch === '[') {
+                if (start === -1) start = i;
+                bracketStack.push(ch);
+            } else if (ch === '}' || ch === ']') {
+                if (bracketStack.length === 0) continue;
+                const open = bracketStack.at(-1);
+                if ((open === '{' && ch === '}') || (open === '[' && ch === ']')) {
+                    bracketStack.pop();
+                    if (bracketStack.length === 0 && start !== -1) {
+                        return text.slice(start, i + 1);
+                    }
+                }
+            }
+        }
+        return null;
     }
     
     // Generate glossary entries from a text sample using the current AI model
@@ -639,22 +704,29 @@ class TranslateAi extends OpenAI {
                 jsonText = response.choices[0].message.content;
             }
 
-            // Cleanup potential code fences or trailing commas
+            // Cleanup and safely parse JSON
             if (typeof jsonText === 'string') {
-                const fenced = jsonText.trim().match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
-                if (fenced) jsonText = fenced[1];
-                jsonText = jsonText.replaceAll(/,\s*([}\]])/g, '$1');
+                jsonText = this.sanitizeJsonContent(jsonText);
             }
-
-            const glossaryArray = JSON.parse(jsonText);
-            const glossary = {};
-            for (const item of (Array.isArray(glossaryArray) ? glossaryArray : [])) {
-                if (item && item.original && item.translation) {
-                    glossary[item.original] = item.translation;
+            try {
+                const glossaryArray = JSON.parse(jsonText);
+                const glossary = {};
+                for (const item of (Array.isArray(glossaryArray) ? glossaryArray : [])) {
+                    if (item && item.original && item.translation) {
+                        glossary[item.original] = item.translation;
+                    }
                 }
+                return glossary;
+            } catch (error) {
+                console.warn('[GLOSSARY] Failed to parse JSON glossary. Returning empty glossary.', error?.message || error);
+                return {};
             }
-            return glossary;
         } catch (error) {
+            // Do not retry on local JSON parsing/formatting issues
+            if (error instanceof SyntaxError) {
+                console.warn('[GLOSSARY] SyntaxError during glossary generation. Returning empty glossary.');
+                return {};
+            }
             return await this.handleApiError(error, this.generateGlossaryFromText, modelTier, textSample, mode, modelTier);
         }
     }
@@ -766,17 +838,21 @@ class TranslateAi extends OpenAI {
             this.retryManager.resetCounters();
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
                 const dataStr = response.data;
-                const dataArray = dataStr.split('\n\n').filter(Boolean); // 將字符串分割成數組
-                const parsedData = [];
+                const dataArray = dataStr.split('\n\n').filter(Boolean);
+                const contents = [];
                 for (const str of dataArray) {
-                    const obj = JSON.parse(str.slice(6)); // 將子字符串轉換為對象
-                    parsedData.push(obj);
+                    try {
+                        const obj = JSON.parse(str.slice(6));
+                        const piece = obj?.choices?.[0]?.delta?.content ?? '';
+                        if (piece) contents.push(piece);
+                    } catch {
+                        // ignore malformed chunk and keep concatenating
+                    }
                 }
-                const contents = parsedData.map((obj) => obj.choices[0].delta.content);
                 const mergedContent = contents.join('');
                 return this.removeThinkingTags(mergedContent);
             }
-            return this.removeThinkingTags(response.choices[0].message.content);
+            return this.removeThinkingTags(response.choices?.[0]?.message?.content || '');
         } catch (error) {
             return await this.handleApiError(error, this.translateChat, modelTier, inputStr, mode, modelTier, previousContext, nextContext, glossary);
         }
@@ -919,17 +995,21 @@ class ChatAi extends OpenAI {
 
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
                 const dataStr = response.data;
-                const dataArray = dataStr.split('\n\n').filter(Boolean); // 將字符串分割成數組
-                const parsedData = [];
+                const dataArray = dataStr.split('\n\n').filter(Boolean);
+                const contents = [];
                 for (const str of dataArray) {
-                    const obj = JSON.parse(str.slice(6)); // 將子字符串轉換為對象
-                    parsedData.push(obj);
+                    try {
+                        const obj = JSON.parse(str.slice(6));
+                        const piece = obj?.choices?.[0]?.delta?.content ?? '';
+                        if (piece) contents.push(piece);
+                    } catch {
+                        // ignore malformed chunk and keep concatenating
+                    }
                 }
-                const contents = parsedData.map((obj) => obj.choices[0].delta.content);
                 const mergedContent = contents.join('');
                 return this.removeThinkingTags(mergedContent);
             }
-            return this.removeThinkingTags(response.choices[0].message.content);
+            return this.removeThinkingTags(response.choices?.[0]?.message?.content || '');
         } catch (error) {
             return await this.handleApiError(error, this.handleChatAi, modelTier, inputStr, mode, userid);
         }

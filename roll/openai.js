@@ -362,7 +362,7 @@ const gameType = function () {
 }
 const prefixs = function () {
     return [{
-        first: /^([.]ai)|(^[.]aim)|(^[.]aih)|(^[.]ait)|(^[.]aitm)|(^[.]aith)|(^[.]aimage)|(^[.]aimageh)$/i,
+        first: /^([.]ai)|(^[.]aim)|(^[.]aih)|(^[.]ait)|(^[.]aitm)|(^[.]aith)|(^[.]aitest)|(^[.]aimage)|(^[.]aimageh)$/i,
         second: null
     }]
 }
@@ -402,6 +402,7 @@ const getHelpMessage = function () {
 │ • ${lowTranslateDisplays}
 │ • ${AI_CONFIG.MODELS.MEDIUM.prefix.translate} [文字內容] - 使用${AI_CONFIG.MODELS.MEDIUM.display}翻譯
 │ • ${AI_CONFIG.MODELS.HIGH.prefix.translate} [文字內容] - 使用${AI_CONFIG.MODELS.HIGH.display}翻譯
+│ • .aitest - 測試所有LOW模型翻譯效果 (需管理員權限)
 │ • 或上傳.txt附件 或回覆(Reply)要翻譯的內容
 │ • 轉換為正體中文
 │
@@ -739,6 +740,230 @@ class ImageAi extends OpenAI {
 class TranslateAi extends OpenAI {
     constructor() {
         super();
+    }
+    
+    // Get all available LOW models for testing (including those with low token limits)
+    getAllModelsForTesting() {
+        const allModels = [];
+        
+        // Add all LOW models (including those with low token limits)
+        if (AI_CONFIG.MODELS.LOW.models && AI_CONFIG.MODELS.LOW.models.length > 0) {
+            AI_CONFIG.MODELS.LOW.models.forEach(model => {
+                allModels.push({
+                    ...model,
+                    tier: 'LOW',
+                    displayName: `${model.display} (LOW)`
+                });
+            });
+        }
+        
+        return allModels;
+    }
+    
+    // Read files from temp directory
+    async getTempFiles() {
+        try {
+            const files = await fs.readdir('./temp');
+            const textFiles = files.filter(file => file.endsWith('.txt'));
+            return textFiles;
+        } catch (error) {
+            console.error('[TEST] Error reading temp directory:', error);
+            return [];
+        }
+    }
+    
+    // Read and split file content into first two segments
+    async getFileSegments(filename) {
+        try {
+            const content = await fs.readFile(`./temp/${filename}`, 'utf8');
+            const segments = this.splitTextByTokens(content, 2000); // Use smaller token limit for testing
+            if (!Array.isArray(segments) || segments.length === 0) return [];
+            if (segments.length <= 2) return segments;
+            // Randomly pick two distinct indices
+            const n = segments.length;
+            const firstIdx = Math.floor(Math.random() * n);
+            let secondIdx = Math.floor(Math.random() * (n - 1));
+            if (secondIdx >= firstIdx) secondIdx += 1; // ensure distinct
+            const picked = [segments[firstIdx], segments[secondIdx]];
+            return picked;
+        } catch (error) {
+            console.error(`[TEST] Error reading file ${filename}:`, error);
+            return [];
+        }
+    }
+    
+    // Test translation with a specific model
+    async testModelTranslation(text, model, filename, segmentIndex) {
+        try {
+            console.log(`[TEST] Testing ${model.displayName} on ${filename} segment ${segmentIndex + 1}`);
+            
+            const systemContent = TRANSLATION_SYSTEM_PROMPT.replace('<<GLOSSARY_PLACEHOLDER>>', 'N/A');
+            const userContent = `PREVIOUS_CONTEXT (already translated into Traditional Chinese):\n---\nN/A\n---\n\nNEXT_CONTEXT (original language):\n---\nN/A\n---\n\nTEXT_TO_TRANSLATE:\n---\n${text}\n---`;
+            
+            // Create a temporary model config for LOW tier testing
+            const modelConfig = {
+                ...AI_CONFIG.MODELS.LOW,
+                models: [model]
+            };
+            
+            let response = await this.openai.chat.completions.create({
+                model: model.name,
+                temperature: 0.2,
+                messages: [
+                    { role: 'system', content: systemContent },
+                    { role: 'user', content: userContent }
+                ]
+            });
+            
+            this.retryManager.resetCounters();
+            
+            let translatedText = '';
+            if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
+                const dataStr = response.data;
+                const dataArray = dataStr.split('\n\n').filter(Boolean);
+                const contents = [];
+                for (const str of dataArray) {
+                    try {
+                        const obj = JSON.parse(str.slice(6));
+                        const piece = obj?.choices?.[0]?.delta?.content ?? '';
+                        if (piece) contents.push(piece);
+                    } catch {
+                        // ignore malformed chunk and keep concatenating
+                    }
+                }
+                translatedText = contents.join('');
+            } else {
+                translatedText = response.choices?.[0]?.message?.content || '';
+            }
+            
+            return this.removeThinkingTags(translatedText);
+        } catch (error) {
+            console.error(`[TEST] Error testing ${model.displayName}:`, error);
+            return `[錯誤] ${error.message || '翻譯失敗'}`;
+        }
+    }
+    
+    // Run translation test for all models and files
+    async runTranslationTest(discordMessage, userid) {
+        try {
+            const files = await this.getTempFiles();
+            if (files.length === 0) {
+                return { text: 'temp目錄中沒有找到.txt文件' };
+            }
+            
+            const allModels = this.getAllModelsForTesting();
+            if (allModels.length === 0) {
+                return { text: '沒有找到可用的AI模型' };
+            }
+            
+            // Send initial progress message
+            if (discordMessage && userid) {
+                await this.sendProgressMessage(discordMessage, userid, 
+                    `🔍 **開始LOW模型翻譯測試**\n` +
+                    `📁 找到 ${files.length} 個文件\n` +
+                    `🤖 將測試 ${allModels.length} 個LOW模型\n` +
+                    `⏱️ 預估時間: ${Math.ceil(files.length * allModels.length * 2 * 1.5 / 60)} 分鐘\n\n` +
+                    `開始測試中...`);
+            }
+            
+            const results = {};
+            let completedTests = 0;
+            const totalTests = files.length * allModels.length * 2; // 2 segments per file
+            
+            // Process each file
+            for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+                const filename = files[fileIndex];
+                const segments = await this.getFileSegments(filename);
+                
+                if (segments.length === 0) {
+                    console.warn(`[TEST] No segments found in ${filename}`);
+                    continue;
+                }
+                
+                results[filename] = {
+                    segments: [],
+                    models: []
+                };
+                
+                // Process each segment
+                for (let segIndex = 0; segIndex < Math.min(segments.length, 2); segIndex++) {
+                    const segment = segments[segIndex];
+                    results[filename].segments.push({
+                        index: segIndex + 1,
+                        original: segment,
+                        translations: {}
+                    });
+                    
+                    // Test with each model
+                    for (let modelIndex = 0; modelIndex < allModels.length; modelIndex++) {
+                        const model = allModels[modelIndex];
+                        
+                        // Add delay between requests to avoid rate limiting
+                        if (completedTests > 0) {
+                            await this.retryManager.waitSeconds(this.retryManager.jitterDelay(5));
+                        }
+                        
+                        const translation = await this.testModelTranslation(segment, model, filename, segIndex);
+                        results[filename].segments[segIndex].translations[model.displayName] = translation;
+                        
+                        completedTests++;
+                        
+                        // Send progress update every 5 tests
+                        if (completedTests % 5 === 0 && discordMessage && userid) {
+                            const progress = Math.round((completedTests / totalTests) * 100);
+                            await this.sendProgressMessage(discordMessage, userid, 
+                                `📊 測試進度: ${completedTests}/${totalTests} (${progress}%)\n` +
+                                `📁 當前文件: ${filename}\n` +
+                                `🤖 當前模型: ${model.displayName}`);
+                        }
+                    }
+                }
+            }
+            
+            // Generate output files
+            const outputFiles = [];
+            for (const [filename, fileResults] of Object.entries(results)) {
+                let outputContent = `# ${filename} - 翻譯測試結果\n\n`;
+                outputContent += `測試時間: ${new Date().toLocaleString('zh-TW')}\n`;
+                outputContent += `測試模型數量: ${allModels.length}\n`;
+                outputContent += `測試段落數量: ${fileResults.segments.length}\n\n`;
+                
+                for (const segment of fileResults.segments) {
+                    outputContent += `## 段落 ${segment.index}\n\n`;
+                    outputContent += `### 原文\n${segment.original}\n\n`;
+                    
+                    for (const [modelName, translation] of Object.entries(segment.translations)) {
+                        outputContent += `### ${modelName}\n${translation}\n\n`;
+                    }
+                    outputContent += `---\n\n`;
+                }
+                
+                const outputFilename = `test_result_${filename.replace('.txt', '')}_${Date.now()}.txt`;
+                const outputPath = `./temp/${outputFilename}`;
+                await fs.writeFile(outputPath, outputContent, 'utf8');
+                outputFiles.push(outputPath);
+            }
+            
+            // Send completion message
+            if (discordMessage && userid) {
+                await this.sendProgressMessage(discordMessage, userid, 
+                    `✅ **LOW模型翻譯測試完成！**\n` +
+                    `📁 處理文件: ${files.length} 個\n` +
+                    `🤖 測試LOW模型: ${allModels.length} 個\n` +
+                    `📊 總測試次數: ${completedTests}\n` +
+                    `📄 生成結果文件: ${outputFiles.length} 個\n\n` +
+                    `結果文件已保存到temp目錄`);
+            }
+            
+            return { 
+                text: `翻譯測試完成！生成了 ${outputFiles.length} 個結果文件。`,
+                fileLinks: outputFiles
+            };
+            
+        } catch (error) {
+            console.error('[TEST] Translation test failed:', error);
+            return { text: `翻譯測試失敗: ${error.message}` };
+        }
     }
     
     // Helper method to send Discord progress messages
@@ -1357,6 +1582,7 @@ class CommandHandler {
             ait: this.handleTranslateCommand,
             aitm: this.handleTranslateCommand,
             aith: this.handleTranslateCommand,
+            aitest: this.handleTestCommand,
             aimage: this.handleImageCommand,
             aimageh: this.handleImageCommand,
             ai: this.handleChatCommand,
@@ -1384,10 +1610,11 @@ class CommandHandler {
         
         const command = mainMsg[0].toLowerCase().replace(/^\./, '');
         const isTranslateCommand = ['ait', 'aitm', 'aith'].includes(command);
+        const isTestCommand = command === 'aitest';
         
         if (!hasArg && hasReply) {
             params.inputStr = `${replyMessage}`;
-        } else if (mainMsg[1] === 'help' || (!hasArg && !hasReply && !(isTranslateCommand && (hasAttachments || hasReplyAttachments)))) {
+        } else if (mainMsg[1] === 'help' || (!hasArg && !hasReply && !(isTranslateCommand && (hasAttachments || hasReplyAttachments)) && !isTestCommand)) {
             return { text: getHelpMessage(), quotes: true };
         }
         
@@ -1470,6 +1697,32 @@ class CommandHandler {
 
         const imageModelType = /^.aimageh$/i.test(mainMsg[0]) ? 'IMAGE_HIGH' : 'IMAGE_LOW';
         rply.text = await imageAi.handleImageAi(inputStr, imageModelType);
+
+        return rply;
+    }
+
+    async handleTestCommand(params) {
+        const { userid, botname, discordMessage } = params;
+        const rply = { default: 'on', type: 'text', text: '', quotes: true };
+
+        // Check if user has admin permission
+        if (!adminSecret || userid !== adminSecret) {
+            rply.text = `使用翻譯測試功能需要 HKTRPG 管理員權限`;
+            return rply;
+        }
+
+        // If not using Discord, inform the user
+        if (botname !== "Discord") {
+            rply.text = "翻譯測試功能目前僅支持在 Discord 平台使用。";
+            return rply;
+        }
+
+        const result = await translateAi.runTranslationTest(discordMessage, userid);
+        
+        rply.text = result.text;
+        if (result.fileLinks && result.fileLinks.length > 0) {
+            rply.fileLink = result.fileLinks;
+        }
 
         return rply;
     }

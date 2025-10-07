@@ -1,6 +1,7 @@
 "use strict";
 const path = require('node:path');
 const fs = require('node:fs');
+const { SlashCommandBuilder } = require('discord.js');
 const axios = require('axios').default;
 
 // Optional persistence via Mongo (gracefully degrade if unavailable)
@@ -2559,7 +2560,81 @@ const rollDiceCommand = async function ({
     }
 }
 
-const discordCommand = []
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('st')
+            .setDescription('StoryTeller 控制')
+            .addSubcommand(sub =>
+                sub
+                    .setName('list')
+                    .setDescription('列出可啟動劇本')
+                    .addStringOption(opt => opt.setName('alias').setDescription('可選：指定 alias 查看詳情'))
+            )
+            .addSubcommand(sub =>
+                sub
+                    .setName('mylist')
+                    .setDescription('列出我的劇本')
+            )
+            .addSubcommand(sub =>
+                sub
+                    .setName('end')
+                    .setDescription('結束當前故事')
+            )
+            .addSubcommand(sub =>
+                sub
+                    .setName('pause')
+                    .setDescription('暫停當前故事')
+            )
+            .addSubcommand(sub =>
+                sub
+                    .setName('edit')
+                    .setDescription('設定參與權限')
+                    .addStringOption(opt =>
+                        opt
+                            .setName('mode')
+                            .setDescription('選擇模式（alone | all | poll）')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: 'alone', value: 'alone' },
+                                { name: 'all', value: 'all' },
+                                { name: 'poll', value: 'poll' }
+                            )
+                    )
+                    .addIntegerOption(opt =>
+                        opt
+                            .setName('minutes')
+                            .setDescription('投票時長（僅在 poll 模式有效）')
+                    )
+            ),
+        async execute(interaction) {
+            const sub = interaction.options.getSubcommand();
+            switch (sub) {
+                case 'list': {
+                    const alias = interaction.options.getString('alias');
+                    if (alias) return `.st list ${alias}`;
+                    return `.st list`;
+                }
+                case 'mylist':
+                    return `.st mylist`;
+                case 'end':
+                    return `.st end`;
+                case 'pause':
+                    return `.st pause`;
+                case 'edit': {
+                    const mode = interaction.options.getString('mode');
+                    const minutes = interaction.options.getInteger('minutes');
+                    if (mode === 'poll' && minutes && Number(minutes) > 0) {
+                        return `.st edit poll ${minutes}`;
+                    }
+                    return `.st edit ${mode}`;
+                }
+                default:
+                    return `.st list`;
+            }
+        }
+    }
+]
 
 module.exports = {
     rollDiceCommand,

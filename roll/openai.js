@@ -1110,14 +1110,24 @@ class TranslateAi extends OpenAI {
             const actualModel = this.getCurrentModelForTranslation(modelTier);
             const modelDisplay = actualModel ? actualModel.display : (mode.display || modelTier);
             
-            // More accurate time estimation based on real-world performance
+            // Dynamic time estimation based on content analysis
             let estimatedTime = 0;
-            if (Array.isArray(translateScript) && translateScript.length > 8) {
-                // Glossary generation takes about 6 minutes
-                estimatedTime += 6 * 60;
+            
+            // Glossary generation time estimation (dynamic based on chunk count)
+            if (textLength > 20_000) {
+                // Base time for glossary generation: 2 minutes
+                // Additional time per chunk: 0.5-1 minute depending on content complexity
+                const baseGlossaryTime = 2 * 60; // 2 minutes base
+                const perChunkTime = Math.min(60, Math.max(30, chunkCount * 8)); // 30-60 seconds per chunk, max 1 minute
+                const complexityFactor = Math.min(1.5, Math.max(0.8, textLength / 50_000)); // 0.8-1.5x based on text length
+                estimatedTime += Math.round((baseGlossaryTime + perChunkTime) * complexityFactor);
             }
-            // Each translation chunk takes about 1-2 minutes
-            estimatedTime += chunkCount * 90; // 90 seconds per chunk
+            
+            // Translation chunk time estimation (dynamic based on content complexity)
+            const baseChunkTime = 90; // 90 seconds base per chunk
+            const complexityFactor = Math.min(1.3, Math.max(0.7, textLength / (chunkCount * 5000))); // Complexity based on avg chars per chunk
+            const avgChunkTime = Math.round(baseChunkTime * complexityFactor);
+            estimatedTime += chunkCount * avgChunkTime;
             
             const timeStr = estimatedTime < 60 ? `${estimatedTime}秒` : `${Math.ceil(estimatedTime / 60)}分鐘`;
             
@@ -1130,9 +1140,9 @@ class TranslateAi extends OpenAI {
                 `開始翻譯中，請稍候...`);
         }
         
-        // Auto-build glossary if chunk count is large
+        // Auto-build glossary if text length is large (over 20,000 characters)
         let autoGlossary = null;
-        if (Array.isArray(translateScript) && translateScript.length > 8) {
+        if (textLength > 20_000) {
             try {
                 if (showProgress && discordMessage && userid) {
                     await this.sendProgressMessage(discordMessage, userid, 
@@ -1149,9 +1159,15 @@ class TranslateAi extends OpenAI {
         
         // Send completion message if progress was shown
         if (showProgress && discordMessage && userid) {
+            // 計算翻譯後文字量
+            const translatedTextLength = response.length;
+            const lengthRatio = textLength > 0 ? (translatedTextLength / textLength * 100).toFixed(1) : 0;
+            
             await this.sendProgressMessage(discordMessage, userid, 
                 `✅ **翻譯完成！**\n` +
-                `📊 總計處理: ${textLength.toLocaleString()} 字\n` +
+                `📊 原文長度: ${textLength.toLocaleString()} 字\n` +
+                `📊 譯文長度: ${translatedTextLength.toLocaleString()} 字\n` +
+                `📈 長度比例: ${lengthRatio}%\n` +
                 `📝 完成段落: ${chunkCount} 段\n` +
                 `${autoGlossary && Object.keys(autoGlossary).length > 0 ? `📚 術語對照: ${Object.keys(autoGlossary).length} 項\n` : ''}` +
                 `正在準備輸出...`);

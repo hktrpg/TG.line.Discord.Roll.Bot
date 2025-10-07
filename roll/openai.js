@@ -367,8 +367,13 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function () {
-    // Since models array now only contains valid models, no need to filter
+    // Get all LOW models for chat
     const validLowModels = AI_CONFIG.MODELS.LOW.models;
+    
+    // Filter LOW models with TOKEN >= 10,000 for translation
+    const validTranslateModels = validLowModels.filter(model => 
+        model.token && model.token >= 10_000
+    );
     
     const lowModelDisplays = validLowModels
         .map((model, index) => {
@@ -377,12 +382,14 @@ const getHelpMessage = function () {
         })
         .join('\n│ • ');
     
-    const lowTranslateDisplays = validLowModels
-        .map((model, index) => {
-            const isDefault = index === 0 ? ' (默認)' : '';
-            return `${AI_CONFIG.MODELS.LOW.prefix.translate} [文字內容] - 使用${model.display}${isDefault}翻譯`;
-        })
-        .join('\n│ • ');
+    const lowTranslateDisplays = validTranslateModels.length > 0 
+        ? validTranslateModels
+            .map((model, index) => {
+                const isDefault = index === 0 ? ' (默認)' : '';
+                return `${AI_CONFIG.MODELS.LOW.prefix.translate} [文字內容] - 使用${model.display}${isDefault}翻譯`;
+            })
+            .join('\n│ • ')
+        : `${AI_CONFIG.MODELS.LOW.prefix.translate} [文字內容] - 暫無符合TOKEN≥10,000的LOW模型`;
 
     return `【🤖AI助手】
 ╭────── 🗣️對話功能 ──────
@@ -415,7 +422,8 @@ const getHelpMessage = function () {
 │ • 10000字可能需時10分鐘以上
 │ • 系統可能因錯誤而翻譯失敗
 │ • 超過1900字將以.txt檔案回覆
-│ • LOW模型支援自動循環切換 (共${validLowModels.length}個模型)
+│ • 對話功能支援所有LOW模型 (共${validLowModels.length}個)
+│ • 翻譯功能僅使用TOKEN≥10,000的模型 (共${validTranslateModels.length}個)
 ╰──────────────`
 }
 const initialize = function () {
@@ -512,6 +520,33 @@ class OpenAI {
         return AI_CONFIG.MODELS[modelTier];
     }
 
+    // Get current model for translation with TOKEN limit filter
+    getCurrentModelForTranslation(modelTier) {
+        if (modelTier === 'LOW' && AI_CONFIG.MODELS.LOW.models && AI_CONFIG.MODELS.LOW.models.length > 0) {
+            // Filter models with TOKEN >= 10000
+            const validModels = AI_CONFIG.MODELS.LOW.models.filter(model => 
+                model.token && model.token >= 10_000
+            );
+            
+            if (validModels.length === 0) {
+                console.error(`[TRANSLATE_MODEL] No LOW models with TOKEN >= 10000 found. Available models: ${AI_CONFIG.MODELS.LOW.models.map(m => `${m.name}(${m.token})`).join(', ')}`);
+                return null;
+            }
+            
+            // Use the same cycling logic but with filtered models
+            const validIndex = this.retryManager.currentModelIndex % validModels.length;
+            const model = validModels[validIndex];
+            if (model) {
+                return model;
+            }
+            // Fallback to first valid model if current index is invalid
+            console.warn(`[TRANSLATE_MODEL] Invalid model index ${this.retryManager.currentModelIndex}, falling back to first valid model`);
+            this.retryManager.currentModelIndex = 0;
+            return validModels[0];
+        }
+        return AI_CONFIG.MODELS[modelTier];
+    }
+
     // Cycle through LOW tier models with cooldown awareness
     async cycleModel() {
         if (!AI_CONFIG.MODELS.LOW.models || AI_CONFIG.MODELS.LOW.models.length === 0) {
@@ -545,8 +580,50 @@ class OpenAI {
         return { waitedSeconds: 0 };
     }
 
+    // Cycle through LOW tier models for translation with TOKEN >= 10000 filter
+    async cycleModelForTranslation() {
+        if (!AI_CONFIG.MODELS.LOW.models || AI_CONFIG.MODELS.LOW.models.length === 0) {
+            console.error('[TRANSLATE_MODEL_CYCLE] No LOW models available for cycling');
+            return { waitedSeconds: 0 };
+        }
+
+        // Filter models with TOKEN >= 10000
+        const validModels = AI_CONFIG.MODELS.LOW.models.filter(model => 
+            model.token && model.token >= 10_000
+        );
+
+        if (validModels.length === 0) {
+            console.error(`[TRANSLATE_MODEL_CYCLE] No LOW models with TOKEN >= 10000 found. Available models: ${AI_CONFIG.MODELS.LOW.models.map(m => `${m.name}(${m.token})`).join(', ')}`);
+            return { waitedSeconds: 0 };
+        }
+
+        this.retryManager.modelRetryCount++;
+
+        const currentIndex = this.retryManager.currentModelIndex;
+        const nextIdx = this.retryManager.nextAvailableModelIndex(currentIndex, validModels);
+
+        if (nextIdx === null) {
+            const minRemain = this.retryManager.minCooldownRemaining(validModels) + (RETRY_CONFIG.MODEL_CYCLING.allModelsCooldownPadding || 0);
+            const wait = this.retryManager.jitterDelay(minRemain);
+            console.log(`[TRANSLATE_MODEL_CYCLE] All valid LOW models cooling down; waiting ${wait}s before retrying`);
+            await this.retryManager.waitSeconds(wait);
+            return { waitedSeconds: wait };
+        }
+
+        this.retryManager.currentModelIndex = nextIdx;
+        const currentModel = validModels[this.retryManager.currentModelIndex];
+
+        if (currentModel) {
+            console.log(`[TRANSLATE_MODEL_CYCLE] Cycling to valid LOW model ${this.retryManager.currentModelIndex + 1}/${validModels.length}: ${currentModel.display} (${currentModel.name}) - TOKEN: ${currentModel.token}`);
+        } else {
+            console.error(`[TRANSLATE_MODEL_CYCLE] Invalid model at index ${this.retryManager.currentModelIndex}`);
+            this.retryManager.currentModelIndex = 0; // Reset to first model
+        }
+        return { waitedSeconds: 0 };
+    }
+
     // Unified error handling with retry logic
-    async handleApiError(error, retryFunction, modelTier, ...args) {
+    async handleApiError(error, retryFunction, modelTier, isTranslation = false, ...args) {
         const { type: errorType } = this.retryManager.getErrorType(error);
         
         // Check if we should stop retrying
@@ -560,7 +637,7 @@ class OpenAI {
         // Handle model cycling for LOW tier rate limits
         if (this.retryManager.shouldCycleModel(modelTier, errorType)) {
             // Put the failed model on cooldown to avoid immediate reuse
-            const failedModel = this.getCurrentModel(modelTier);
+            const failedModel = isTranslation ? this.getCurrentModelForTranslation(modelTier) : this.getCurrentModel(modelTier);
             if (failedModel?.name) {
                 const headerRetryAfter = Number.parseInt(error?.response?.headers?.['retry-after'] || error?.headers?.['retry-after']);
                 const coolSeconds = Number.isFinite(headerRetryAfter) && headerRetryAfter > 0
@@ -569,7 +646,7 @@ class OpenAI {
                 this.retryManager.setModelCooldown(failedModel.name, coolSeconds);
             }
 
-            const { waitedSeconds } = await this.cycleModel();
+            const { waitedSeconds } = isTranslation ? await this.cycleModelForTranslation() : await this.cycleModel();
             // Prefer Retry-After header if present; else default modelCycleDelay
             const headerRetryAfter = Number.parseInt(error?.response?.headers?.['retry-after'] || error?.headers?.['retry-after']);
             let delay = Number.isFinite(headerRetryAfter) && headerRetryAfter > 0
@@ -646,7 +723,7 @@ class ImageAi extends OpenAI {
             this.retryManager.resetCounters();
             return response;
         } catch (error) {
-            return await this.handleApiError(error, this.handleImageAi, imageModelType, inputStr);
+            return await this.handleApiError(error, this.handleImageAi, imageModelType, false, inputStr);
         }
     }
     handleImage(data, input) {
@@ -662,6 +739,15 @@ class ImageAi extends OpenAI {
 class TranslateAi extends OpenAI {
     constructor() {
         super();
+    }
+    
+    // Helper method to send Discord progress messages
+    async sendProgressMessage(discordMessage, userid, message) {
+        if (discordMessage && discordMessage.channel && typeof discordMessage.channel.send === 'function') {
+            await discordMessage.channel.send(`<@${userid}>\n${message}`);
+        } else if (discordMessage && discordMessage.isInteraction) {
+            await discordMessage.reply({ content: `<@${userid}>\n${message}` });
+        }
     }
     
     // Remove <thinking> tags and their content from AI responses
@@ -740,9 +826,9 @@ class TranslateAi extends OpenAI {
     // Generate glossary entries from a text sample using the current AI model
     async generateGlossaryFromText(textSample, mode, modelTier = 'LOW') {
         try {
-            const currentModel = this.getCurrentModel(modelTier);
+            const currentModel = this.getCurrentModelForTranslation(modelTier);
             if (!currentModel) {
-                console.error(`[GLOSSARY] No valid model found for tier ${modelTier}`);
+                console.error(`[GLOSSARY] No valid model found for tier ${modelTier} with TOKEN >= 10000`);
                 return {};
             }
             const modelName = currentModel.name || mode.name;
@@ -799,7 +885,7 @@ class TranslateAi extends OpenAI {
                 console.warn('[GLOSSARY] SyntaxError during glossary generation. Returning empty glossary.');
                 return {};
             }
-            return await this.handleApiError(error, this.generateGlossaryFromText, modelTier, textSample, mode, modelTier);
+            return await this.handleApiError(error, this.generateGlossaryFromText, modelTier, true, textSample, mode, modelTier);
         }
     }
 
@@ -894,11 +980,11 @@ class TranslateAi extends OpenAI {
     }
     async translateChat(inputStr, mode, modelTier = 'LOW', previousContext = '', nextContext = '', glossary = null) {
         try {
-            // Get the current model if it's LOW tier with multiple models
-            const currentModel = this.getCurrentModel(modelTier);
+            // Get the current model for translation (with TOKEN >= 10000 filter)
+            const currentModel = this.getCurrentModelForTranslation(modelTier);
             if (!currentModel) {
-                console.error(`[TRANSLATE_AI] No valid model found for tier ${modelTier}`);
-                return `無法找到有效的 ${modelTier} 模型，請稍後再試。`;
+                console.error(`[TRANSLATE_AI] No valid model found for tier ${modelTier} with TOKEN >= 10000`);
+                return `無法找到有效的 ${modelTier} 模型（需要 TOKEN >= 10000），請稍後再試。`;
             }
             const modelName = currentModel.name || mode.name;
 
@@ -937,11 +1023,13 @@ class TranslateAi extends OpenAI {
             }
             return this.removeThinkingTags(response.choices?.[0]?.message?.content || '');
         } catch (error) {
-            return await this.handleApiError(error, this.translateChat, modelTier, inputStr, mode, modelTier, previousContext, nextContext, glossary);
+            return await this.handleApiError(error, this.translateChat, modelTier, true, inputStr, mode, modelTier, previousContext, nextContext, glossary);
         }
     }
-    async translateText(inputScript, mode, modelTier = 'LOW', glossary = null) {
+    async translateText(inputScript, mode, modelTier = 'LOW', glossary = null, discordMessage = null, userid = null, showProgress = false) {
         let response = [];
+        const totalChunks = inputScript.length;
+        
         for (let index = 0; index < inputScript.length; index++) {
             // Add delay between requests to avoid rate limiting
             if (index > 0) {
@@ -992,6 +1080,15 @@ class TranslateAi extends OpenAI {
             }
 
             response.push(result);
+            
+            // Send progress update if enabled and Discord message is available
+            if (showProgress && discordMessage && userid) {
+                const progress = Math.round(((index + 1) / totalChunks) * 100);
+                const currentModel = this.getCurrentModelForTranslation(modelTier);
+                const currentModelDisplay = currentModel ? currentModel.display : 'Unknown';
+                await this.sendProgressMessage(discordMessage, userid, 
+                    `📝 翻譯進度: ${index + 1}/${totalChunks} 段落完成 (${progress}%)\n🤖 當前模型: ${currentModelDisplay}`);
+            }
         }
         return response;
 
@@ -1002,18 +1099,64 @@ class TranslateAi extends OpenAI {
         let { translateScript, textLength } = await this.getText(inputStr, mode, discordMessage, discordClient);
         console.log(textLength, limit);
         if (textLength > limit) return { text: `輸入的文字太多了，請分批輸入，你是VIP LV${lv}，限制為${limit}字` };
+        
+        // Check if we should show progress (text length > 1000 characters)
+        const showProgress = textLength > 1000;
+        const chunkCount = Array.isArray(translateScript) ? translateScript.length : 1;
+        
+        // Send initial analysis message if text is long enough
+        if (showProgress && discordMessage && userid) {
+            // Get the actual model that will be used for translation
+            const actualModel = this.getCurrentModelForTranslation(modelTier);
+            const modelDisplay = actualModel ? actualModel.display : (mode.display || modelTier);
+            
+            // More accurate time estimation based on real-world performance
+            let estimatedTime = 0;
+            if (Array.isArray(translateScript) && translateScript.length > 8) {
+                // Glossary generation takes about 6 minutes
+                estimatedTime += 6 * 60;
+            }
+            // Each translation chunk takes about 1-2 minutes
+            estimatedTime += chunkCount * 90; // 90 seconds per chunk
+            
+            const timeStr = estimatedTime < 60 ? `${estimatedTime}秒` : `${Math.ceil(estimatedTime / 60)}分鐘`;
+            
+            await this.sendProgressMessage(discordMessage, userid, 
+                `🔍 **翻譯分析報告**\n` +
+                `📊 內容長度: ${textLength.toLocaleString()} 字\n` +
+                `📝 分段數量: ${chunkCount} 段\n` +
+                `⏱️ 預估時間: ${timeStr}\n` +
+                `🤖 使用模型: ${modelDisplay} (可能會中途更換)\n\n` +
+                `開始翻譯中，請稍候...`);
+        }
+        
         // Auto-build glossary if chunk count is large
         let autoGlossary = null;
         if (Array.isArray(translateScript) && translateScript.length > 8) {
             try {
+                if (showProgress && discordMessage && userid) {
+                    await this.sendProgressMessage(discordMessage, userid, 
+                        `📚 正在生成專業術語對照表...`);
+                }
                 autoGlossary = await this.buildAutoGlossaryFromChunks(translateScript, mode, modelTier);
             } catch (error) {
                 console.error('[GLOSSARY] 自動生成 Glossary 失敗，將在無 Glossary 情況下繼續翻譯。', error);
             }
         }
 
-        let response = await this.translateText(translateScript, mode, modelTier, autoGlossary);
+        let response = await this.translateText(translateScript, mode, modelTier, autoGlossary, discordMessage, userid, showProgress);
         response = response.join('\n');
+        
+        // Send completion message if progress was shown
+        if (showProgress && discordMessage && userid) {
+            await this.sendProgressMessage(discordMessage, userid, 
+                `✅ **翻譯完成！**\n` +
+                `📊 總計處理: ${textLength.toLocaleString()} 字\n` +
+                `📝 完成段落: ${chunkCount} 段\n` +
+                `${autoGlossary && Object.keys(autoGlossary).length > 0 ? `📚 術語對照: ${Object.keys(autoGlossary).length} 項\n` : ''}` +
+                `正在準備輸出...`);
+        }
+        
         if (textLength > 1900) {
             let fileContent = response;
             if (autoGlossary && Object.keys(autoGlossary).length > 0) {
@@ -1134,7 +1277,7 @@ class ChatAi extends OpenAI {
             }
             return this.removeThinkingTags(response.choices?.[0]?.message?.content || '');
         } catch (error) {
-            return await this.handleApiError(error, this.handleChatAi, modelTier, inputStr, mode, userid);
+            return await this.handleApiError(error, this.handleChatAi, modelTier, false, inputStr, mode, userid);
         }
     }
 }
@@ -1172,12 +1315,20 @@ class CommandHandler {
         
         const hasArg = !!mainMsg[1];
         const hasReply = !!(replyMessage && replyMessage.trim().length > 0);
+        
+        // Check if there are attachments (for translation commands)
+        const hasAttachments = discordMessage && discordMessage.attachments && discordMessage.attachments.size > 0;
+        const hasReplyAttachments = discordMessage && discordMessage.type === 19 && discordMessage.reference;
+        
+        const command = mainMsg[0].toLowerCase().replace(/^\./, '');
+        const isTranslateCommand = ['ait', 'aitm', 'aith'].includes(command);
+        
         if (!hasArg && hasReply) {
             params.inputStr = `${replyMessage}`;
-        } else if (mainMsg[1] === 'help' || (!hasArg && !hasReply)) {
+        } else if (mainMsg[1] === 'help' || (!hasArg && !hasReply && !(isTranslateCommand && (hasAttachments || hasReplyAttachments)))) {
             return { text: getHelpMessage(), quotes: true };
         }
-        const command = mainMsg[0].toLowerCase().replace(/^\./, '');
+        
         if (this.commands[command]) {
             return await this.commands[command](params);
         }
@@ -1211,8 +1362,26 @@ class CommandHandler {
             modelType = 'HIGH';
         }
 
+        // Get the actual model configuration for translation
+        let modelConfig = AI_CONFIG.MODELS[modelType];
+        if (modelType === 'LOW') {
+            // For LOW tier, we need to ensure we only use models with TOKEN >= 10,000
+            const validModels = AI_CONFIG.MODELS.LOW.models.filter(model => 
+                model.token && model.token >= 10_000
+            );
+            if (validModels.length === 0) {
+                rply.text = `沒有可用的翻譯模型（需要 TOKEN >= 10,000）。\n當前 LOW 模型：${AI_CONFIG.MODELS.LOW.models.map(m => `${m.display}(${m.token})`).join(', ')}`;
+                return rply;
+            }
+            // Create a modified model config with only valid models
+            modelConfig = {
+                ...AI_CONFIG.MODELS.LOW,
+                models: validModels
+            };
+        }
+
         const { filetext, sendfile, text } = await translateAi.handleTranslate(
-            inputStr, discordMessage, discordClient, userid, AI_CONFIG.MODELS[modelType], modelType
+            inputStr, discordMessage, discordClient, userid, modelConfig, modelType
         );
 
         filetext && (rply.fileText = filetext);

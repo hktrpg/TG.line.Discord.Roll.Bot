@@ -1175,21 +1175,67 @@ class TranslateAi extends OpenAI {
     splitTextByTokens(text, inputTokenLimit) {
         const results = [];
         let remains = text;
-        const tokenLimit = Math.max(1, Math.floor((Number.isFinite(inputTokenLimit) ? inputTokenLimit : 1000) * 0.4));
+        
+        // 計算動態 TOKEN 限制，但設定 8000 字符的硬性上限
+        const dynamicTokenLimit = Math.max(1, Math.floor((Number.isFinite(inputTokenLimit) ? inputTokenLimit : 1000) * 0.4));
+        const maxCharLimit = 8000; // 硬性字符上限，防止 AI 處理過多文字時出錯
+        
         while (remains.length > 0) {
             const tokens = encode(remains);
             const totalTokens = tokens.length || 1;
-            // If current text within limit, take all; else scale by token ratio
-            let offset = (totalTokens > tokenLimit)
-                ? Math.floor(tokenLimit * remains.length / totalTokens)
+            
+            // 計算基於 TOKEN 的字符限制
+            let tokenBasedOffset = (totalTokens > dynamicTokenLimit)
+                ? Math.floor(dynamicTokenLimit * remains.length / totalTokens)
                 : remains.length;
+            
+            // 取 TOKEN 限制和字符限制的較小值
+            let offset = Math.min(tokenBasedOffset, maxCharLimit);
             let subtext = remains.slice(0, Math.max(0, offset));
-            // 超過token上限，試圖找到最接近而不超過上限的文字
-            while (encode(subtext).length > tokenLimit && offset > 0) {
+            
+            // 精確調整到不超過 TOKEN 限制
+            while (encode(subtext).length > dynamicTokenLimit && offset > 0) {
                 offset--;
                 subtext = remains.slice(0, Math.max(0, offset));
             }
-            // 往上檢查文字結尾
+            
+            // 如果達到字符上限但 TOKEN 未超限，也要分割（防止 AI 出錯）
+            if (offset >= maxCharLimit && encode(subtext).length <= dynamicTokenLimit) {
+                // 在字符上限附近尋找合適的分割點
+                let bound = Math.min(Math.floor(maxCharLimit * 1.05), remains.length);
+                let found = false;
+                
+                // 優先尋找句子結尾
+                for (let i = maxCharLimit; i < bound; i++) {
+                    if (/[。！!]|(\. )/.test(remains[i])) {
+                        results.push(remains.slice(0, Math.max(0, i + 1)));
+                        remains = remains.slice(Math.max(0, i + 1));
+                        found = true;
+                        break;
+                    }
+                }
+                
+                // 如果沒找到句子結尾，尋找換行符
+                if (!found) {
+                    let newlineIndex = subtext.lastIndexOf('\n');
+                    if (newlineIndex !== -1 && newlineIndex > maxCharLimit * 0.8) {
+                        results.push(remains.slice(0, Math.max(0, newlineIndex + 1)));
+                        remains = remains.slice(Math.max(0, newlineIndex + 1));
+                        found = true;
+                    }
+                }
+                
+                // 如果都沒找到合適的分割點，強制在字符上限處分割
+                if (!found) {
+                    results.push(remains.slice(0, Math.max(0, maxCharLimit)));
+                    remains = remains.slice(Math.max(0, maxCharLimit));
+                    found = true;
+                }
+                
+                if (found) continue;
+            }
+            
+            // 標準的 TOKEN 限制分割邏輯
             let bound = Math.min(Math.floor(offset * 1.05), remains.length);
             let found = false;
             for (let i = offset; i < bound; i++) {
@@ -1215,7 +1261,7 @@ class TranslateAi extends OpenAI {
             }
         }
         try {
-            console.log(`[TRANSLATE_SPLIT] chunks=${results.length}, tokenLimit=${tokenLimit}`);
+            console.log(`[TRANSLATE_SPLIT] chunks=${results.length}, tokenLimit=${dynamicTokenLimit}, maxCharLimit=${maxCharLimit}`);
         } catch {}
         return results;
     }

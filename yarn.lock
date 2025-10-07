@@ -1901,6 +1901,33 @@
     file-type "^16.5.4"
     form-data "^4.0.0"
 
+"@lunisolar/plugin-char8ex@^0.2.5":
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/@lunisolar/plugin-char8ex/-/plugin-char8ex-0.2.5.tgz#991930f8a52e105875e332e57f59fcec5012681b"
+  integrity sha512-CM3ZAeOC6C4qFFBmXn9t2WrwzIcMN10GZKNsq8PtrnCaiZ8AEsR4i98MXsrb51bZjA88VvI1XvHSZS3yxXRghg==
+  dependencies:
+    "@lunisolar/utils" "^0.0.2"
+
+"@lunisolar/plugin-fetalgod@^0.1.4":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@lunisolar/plugin-fetalgod/-/plugin-fetalgod-0.1.4.tgz#6dbb71fa9c8d1a5573f4c5011237d9482edd27b8"
+  integrity sha512-FgotsUbD210KTIBRZFUjyVqYsgzhLpgwNGdRjhfV/n9+7yA8hBoaOyMpd5tbuT2MzIIU/KNelk0oSI1deLWrog==
+
+"@lunisolar/plugin-takesound@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@lunisolar/plugin-takesound/-/plugin-takesound-0.1.2.tgz#a7068957e1a03fae85556ef8f72355a601743d48"
+  integrity sha512-W/hmXbK0MLsNToE4s2xbwVpFQwniSGTwLSnmCFZsABc4pNwgvvwzZjL1HVjAkkhH+5FmPsR8D60hAjk+6m+PLQ==
+
+"@lunisolar/plugin-thegods@^0.1.4":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@lunisolar/plugin-thegods/-/plugin-thegods-0.1.4.tgz#10fb39c88c507d62d945b6bf7d5c526c156e1447"
+  integrity sha512-l6ay4n3xHNYTROZWGuzcuLoWxhSj4VCRpVe6VCfJT0waBEO55shGZZV7/FhVhbLWF7xI6VCeKR9Q7fIcZP37eA==
+
+"@lunisolar/utils@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@lunisolar/utils/-/utils-0.0.2.tgz#a5d709620a8a07026d924a04f331b4ac2dc9b030"
+  integrity sha512-ZJ9s+1GzimHQPMyihiShXfdW9zw0rF2PKikMUB5eO+K+Hl87vpbhM/lrWgYN4wtYPxFZ2uqpQ2i2zvbkD0/5Tg==
+
 "@mongodb-js/saslprep@^1.1.0":
   version "1.2.2"
   resolved "https://registry.npmjs.org/@mongodb-js/saslprep/-/saslprep-1.2.2.tgz"
@@ -6618,6 +6645,11 @@ lru-cache@~4.1.x:
   dependencies:
     pseudomap "^1.0.2"
     yallist "^2.1.2"
+
+lunisolar@^2.6.0:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/lunisolar/-/lunisolar-2.6.0.tgz#646020cca87185ddb212c9cbb4c2084000375ff0"
+  integrity sha512-Q2Ph0MtYDovbX5lvvo2FvM+bFzZVZaIb70q+FyQLheZ4xuL5tvCBP/uEU5KwG+vfo0ztzGPrlIitOcGhltfwvQ==
 
 luxon@^1.26.0:
   version "1.28.1"

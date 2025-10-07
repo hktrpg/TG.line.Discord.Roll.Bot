@@ -7,8 +7,17 @@ const chineseConv = require('chinese-conv'); //繁簡轉換
 const axios = require('axios');
 const cheerio = require('cheerio');
 const wiki = require('wikijs').default;
-const rollbase = require('./rollbase.js');
+
 const identity = 'HKTRPG (https://www.hktrpg.com; admin@hktrpg.com) wiki.js';
+const lunisolar = require('lunisolar');
+const { fetalGod } = require('@lunisolar/plugin-fetalgod');
+const { takeSound } = require('@lunisolar/plugin-takesound');
+const { theGods } = require('@lunisolar/plugin-thegods');
+const rollbase = require('./rollbase.js');
+lunisolar.extend(fetalGod);
+lunisolar.extend(takeSound);
+lunisolar.extend(theGods);
+
 const gameName = function () {
 	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日淺草簽 每日大事 每日(星座) 每日解答	立flag .me'
 }
@@ -389,9 +398,7 @@ class DailyAlmanac {
 	}
 	async getAlmanac() {
 		try {
-			if (!this.Almanac || this.Almanac.date !== this.getDate()) {
-				await this.updateAlmanac();
-			}
+			if (!this.Almanac || this.Almanac.date !== this.getDate()) await this.updateAlmanac();
 			if (this.Almanac) {
 				return this.returnStr(this.Almanac);
 			} else return;
@@ -408,11 +415,12 @@ ${Almanac.content}
 	}
 
 
-	async updateAlmanac() {
-		let date = this.getDate();
-		let res = await axios.get(encodeURI(`https://tw.18dao.net/每日黃曆/${date}`));
-		const $ = cheerio.load(res.data)
-		this.Almanac = new Almanac($, date);
+    async updateAlmanac() {
+                const now = new Date();
+		const lsr = lunisolar(now, { lang: 'zh' });
+		const date = this.getDate();
+		const content = this.buildContent(lsr, now);
+		this.Almanac = { date, content };
 	}
 	getDate() {
 		let year = new Date().getFullYear();
@@ -421,15 +429,134 @@ ${Almanac.content}
 		return `${year}年${month}月${day}日`;
 	}
 
-}
-class Almanac {
-	constructor($, date) {
-		//TODAY_CONTENT
-		this.date = date;
-		this.title = $('.fieldset').text();
-		this.content = $('.right_column').text();
-
+	buildContent(lsr, now) {
+		const weekday = this.getWeekday(now);
+		const westernZodiac = this.getWesternZodiac(now);
+		const lunar = lsr.lunar;
+		const lunarMonth = this.pad2(lunar.month);
+		const isBig = lunar.isBigMonth ? '大' : '小';
+		const lunarDay = this.pad2(lunar.day);
+		const yearSB = lsr.char8.year;
+		const monthSB = lsr.char8.month;
+		const daySB = lsr.char8.day;
+		const yearGanzhi = yearSB.toString();
+		const monthGanzhi = monthSB.toString();
+		const dayGanzhi = daySB.toString();
+		const zodiac = this.branchToAnimal(yearSB.branch.name);
+		const fetal = lsr.fetalGod;
+		const takeSoundStr = daySB.takeSound;
+		const dutyGod = lsr.theGods.getDuty12God()?.name || '';
+		const fiveElementStr = `${takeSoundStr} ${dutyGod}`.trim();
+		const conflictBranch = daySB.branch.conflict;
+		const conflictAnimal = this.branchToAnimal(conflictBranch.name);
+		const conflictSB = lunisolar.SB.create((daySB.value + 6) % 60);
+		const conflictGanzhi = conflictSB.toString();
+		const shaDirection = this.getShaDirection(conflictBranch.name);
+		const conflictStr = `沖${conflictAnimal}(${conflictGanzhi})煞${shaDirection}`;
+		const pengzu = this.getPengZuTaboo(daySB);
+		const goodGods = (lsr.theGods.getGoodGods('MD') || []).map(g => g.name).join(' ');
+		const badGods = (lsr.theGods.getBadGods('MD') || []).map(g => g.name).join(' ');
+		const goods = (lsr.theGods.getGoodActs(0, false) || []).join(' ');
+		const bads = (lsr.theGods.getBadActs(0, false) || []).join(' ');
+		const hoursBlock = this.buildHourBlock(lsr);
+		const luckDir = this.buildLuckDirection(lsr);
+		return [
+			`【農曆】：農曆${lunarMonth}月(${isBig})${lunarDay}日  `,
+			`【星期】：${weekday}  【星座】：${westernZodiac}`,
+			`【歲次】：${yearGanzhi}年 生肖屬${zodiac} ${monthGanzhi}月 ${dayGanzhi}日`,
+			`【胎神】：${fetal}  【五行】：${fiveElementStr}執位  【沖煞】：${conflictStr}`,
+			pengzu ? `【彭祖百忌】：${pengzu}` : '',
+			goodGods ? `【吉神宜趨】：${goodGods}` : '',
+			goods ? `【宜】：${goods}` : '',
+			badGods ? `【凶神宜忌】：${badGods}` : '',
+			bads ? `【忌】：${bads}` : '',
+			luckDir ? `【吉神方】：${luckDir}` : '',
+			'—— 當日時辰時局 ——',
+			hoursBlock
+		].filter(Boolean).join('\n');
 	}
+
+	buildLuckDirection(lsr) {
+		try {
+			const allDirections = lsr.theGods.getAllLuckDirection();
+			if (!Array.isArray(allDirections) || allDirections.length === 0) return '';
+			return allDirections
+				.map(item => {
+					if (!Array.isArray(item) || item.length < 2 || !item[0] || !item[1]) return '';
+					const d24 = item[0];
+					const god = item[1];
+					const dir = d24 && d24.direction ? d24.direction : '';
+					const name = god && god.name ? god.name : '';
+					return dir && name ? `${dir} ${name}` : '';
+				})
+				.filter(Boolean)
+				.join('； ');
+		} catch {
+			return '';
+		}
+	}
+
+	buildHourBlock(lsr) {
+		let luckArr = [];
+		let allHourGods = [];
+		try { luckArr = lsr.theGods.getLuckHours(1) || []; } catch { luckArr = []; }
+		try { allHourGods = lsr.theGods.getAllDayHourGods() || []; } catch { allHourGods = []; }
+		let lines = [];
+		for (let i = 0; i < 12; i++) {
+			const start = (i * 2 + 23) % 24;
+			const end = (start + 2) % 24;
+			const label = `${this.pad2(start)}-${this.pad2(end)}${this.hourStemBranch(lsr, i)}`;
+			const list = Array.isArray(allHourGods[i]) ? allHourGods[i] : [];
+			const gods = list.filter(Boolean).map(g => g && g.name ? g.name : '').filter(Boolean).join(' ');
+			const luck = luckArr[i] && luckArr[i] > 0 ? '吉' : '凶';
+			lines.push(`【${label}】：${luck} ${gods ? gods : ''}`.trim());
+		}
+		return lines.join('\n');
+	}
+
+	hourStemBranch(lsr, hourIndex) {
+		const branches = lunisolar.Branch.getNames();
+		const stems = lunisolar.Stem.getNames();
+		const dayStemIndex = lsr.char8.day.stem.value;
+		const stemIdx = (dayStemIndex * 2 + hourIndex) % 10;
+		return `${stems[stemIdx]}${branches[hourIndex]}`;
+	}
+
+	pad2(n) { return ('0' + n).slice(-2); }
+	getWeekday(d) {
+		const map = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+		return map[d.getDay()];
+	}
+	getWesternZodiac(d) {
+		const m = d.getMonth() + 1, day = d.getDate();
+		const z = [
+			['摩羯座',1,19],['水瓶座',2,18],['雙魚座',3,20],['牡羊座',4,19],['金牛座',5,20],['雙子座',6,21],
+			['巨蟹座',7,22],['獅子座',8,22],['處女座',9,22],['天秤座',10,23],['天蠍座',11,22],['射手座',12,21]
+		];
+		const cur = z[m-1];
+		if (day <= cur[2]) return cur[0];
+		return z[(m % 12)][0];
+	}
+	branchToAnimal(branchName) {
+		const map = { 子: '鼠', 丑: '牛', 寅: '虎', 卯: '兔', 辰: '龍', 巳: '蛇', 午: '馬', 未: '羊', 申: '猴', 酉: '雞', 戌: '狗', 亥: '豬' };
+		return map[branchName] || branchName;
+	}
+	getShaDirection(conflictBranchName) {
+		switch (conflictBranchName) {
+			case '申': case '子': case '辰': return '南';
+			case '寅': case '午': case '戌': return '北';
+			case '亥': case '卯': case '未': return '西';
+			case '巳': case '酉': case '丑': return '東';
+			default: return '';
+		}
+	}
+	getPengZuTaboo(daySB) {
+		try {
+			const arr = (daySB && daySB.gods) ? daySB.gods.filter(g => g.name && g.name.includes('彭祖')).map(g => g.name) : [];
+			if (arr.length > 0) return arr.join(' ');
+			return '';
+    } catch { return ''; }
+}
 }
 const dailyAlmanac = new DailyAlmanac();
 const dailyAstro = new TwelveAstro();

@@ -444,7 +444,7 @@ ${Almanac.content}
 		const dayGanzhi = daySB.toString();
 		const zodiac = this.branchToAnimal(yearSB.branch.name);
 		const fetal = lsr.fetalGod;
-		
+
 		// Get takeSound information for year, month, and day
 		const yearTakeSound = yearSB.takeSound;
 		const monthTakeSound = monthSB.takeSound;
@@ -452,7 +452,7 @@ ${Almanac.content}
 		const yearTakeSoundE5 = yearSB.takeSoundE5.toString();
 		const monthTakeSoundE5 = monthSB.takeSoundE5.toString();
 		const dayTakeSoundE5 = daySB.takeSoundE5.toString();
-		
+
 		const dutyGod = lsr.theGods.getDuty12God()?.name || '';
 		const fiveElementStr = `${dayTakeSound} ${dutyGod}`.trim();
 		const conflictBranch = daySB.branch.conflict;
@@ -739,7 +739,27 @@ function BStyleFlagSCRIPTS() {
 「我要將我超過５年的感情告訴她！」', '\
 「換人吧，你太無聊了。」', '\
 「只要他們幸福就好，我從心底祝福他們。」', '\
-「我可以好好利用這件事」'];
+「我可以好好利用這件事」', '\
+「我打oo???」', '\
+「會贏的」', '\
+「是我們的勝利！」', '\
+「畢竟我也不是吃素的」', '\
+「有一個好消息和一個壞消息」', '\
+「今天的風兒好喧囂啊 」', '\
+「然而我拒絕 」', '\
+「沒有人能在我的BGM里打敗我」', '\
+「你不是還有生命嗎 」', '\
+「他超我鎧」', '\
+「 我是，超級ooo」', '\
+「戰鬥力只有5的渣渣」', '\
+「這是我最後的波紋 」', '\
+「區區oo送給你了 」', '\
+「 完美的手牌  」', '\
+「都是世界的錯」', '\
+「我願分一半世界給你」', '\
+「你叫吧，你叫破喉嚨也沒人會來救你」', '\
+「你們先走我斷後」'
+	];
 
 	//	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
 	return rplyArr[rollbase.Dice(rplyArr.length) - 1]

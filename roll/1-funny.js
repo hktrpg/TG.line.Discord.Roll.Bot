@@ -758,7 +758,9 @@ function BStyleFlagSCRIPTS() {
 「都是世界的錯」', '\
 「我願分一半世界給你」', '\
 「你叫吧，你叫破喉嚨也沒人會來救你」', '\
-「你們先走我斷後」'
+「你們先走我斷後」', '\
+「好耶!」', '\
+「祝你生日快樂」'
 	];
 
 	//	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];

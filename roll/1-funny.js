@@ -415,8 +415,8 @@ ${Almanac.content}
 	}
 
 
-    async updateAlmanac() {
-                const now = new Date();
+	async updateAlmanac() {
+		const now = new Date();
 		const lsr = lunisolar(now, { lang: 'zh' });
 		const date = this.getDate();
 		const content = this.buildContent(lsr, now);
@@ -444,33 +444,54 @@ ${Almanac.content}
 		const dayGanzhi = daySB.toString();
 		const zodiac = this.branchToAnimal(yearSB.branch.name);
 		const fetal = lsr.fetalGod;
-		const takeSoundStr = daySB.takeSound;
+		
+		// Get takeSound information for year, month, and day
+		const yearTakeSound = yearSB.takeSound;
+		const monthTakeSound = monthSB.takeSound;
+		const dayTakeSound = daySB.takeSound;
+		const yearTakeSoundE5 = yearSB.takeSoundE5.toString();
+		const monthTakeSoundE5 = monthSB.takeSoundE5.toString();
+		const dayTakeSoundE5 = daySB.takeSoundE5.toString();
+		
 		const dutyGod = lsr.theGods.getDuty12God()?.name || '';
-		const fiveElementStr = `${takeSoundStr} ${dutyGod}`.trim();
+		const fiveElementStr = `${dayTakeSound} ${dutyGod}`.trim();
 		const conflictBranch = daySB.branch.conflict;
 		const conflictAnimal = this.branchToAnimal(conflictBranch.name);
 		const conflictSB = lunisolar.SB.create((daySB.value + 6) % 60);
 		const conflictGanzhi = conflictSB.toString();
 		const shaDirection = this.getShaDirection(conflictBranch.name);
 		const conflictStr = `沖${conflictAnimal}(${conflictGanzhi})煞${shaDirection}`;
-		const pengzu = this.getPengZuTaboo(daySB);
 		const goodGods = (lsr.theGods.getGoodGods('MD') || []).map(g => g.name).join(' ');
 		const badGods = (lsr.theGods.getBadGods('MD') || []).map(g => g.name).join(' ');
-		const goods = (lsr.theGods.getGoodActs(0, false) || []).join(' ');
-		const bads = (lsr.theGods.getBadActs(0, false) || []).join(' ');
+
+		// Get acts by different types
+		const goodsTongshu = (lsr.theGods.getGoodActs(1, false) || []).join(' ');
+		const goodsYuyong = (lsr.theGods.getGoodActs(2, false) || []).join(' ');
+		const goodsMin = (lsr.theGods.getGoodActs(3, false) || []).join(' ');
+
+		const badsTongshu = (lsr.theGods.getBadActs(1, false) || []).join(' ');
+		const badsYuyong = (lsr.theGods.getBadActs(2, false) || []).join(' ');
+		const badsMin = (lsr.theGods.getBadActs(3, false) || []).join(' ');
 		const hoursBlock = this.buildHourBlock(lsr);
 		const luckDir = this.buildLuckDirection(lsr);
 		return [
 			`【農曆】：農曆${lunarMonth}月(${isBig})${lunarDay}日  `,
 			`【星期】：${weekday}  【星座】：${westernZodiac}`,
 			`【歲次】：${yearGanzhi}年 生肖屬${zodiac} ${monthGanzhi}月 ${dayGanzhi}日`,
-			`【胎神】：${fetal}  【五行】：${fiveElementStr}執位  【沖煞】：${conflictStr}`,
-			pengzu ? `【彭祖百忌】：${pengzu}` : '',
+			`【胎神】：${fetal}  【五行】：${fiveElementStr}執位 【沖煞】：${conflictStr}`,
+			`【納音】：年${yearTakeSound}(${yearTakeSoundE5}) 月${monthTakeSound}(${monthTakeSoundE5}) 日${dayTakeSound}(${dayTakeSoundE5})`,
+			luckDir ? `【吉神方位】：${luckDir}` : '',
+			`---`,
 			goodGods ? `【吉神宜趨】：${goodGods}` : '',
-			goods ? `【宜】：${goods}` : '',
+			goodsTongshu ? `【宜-通書六十事】：${goodsTongshu}` : '',
+			goodsYuyong ? `【宜-御用六十七事】：${goodsYuyong}` : '',
+			goodsMin ? `【宜-民用三十七事】：${goodsMin}` : '',
+			`---`,
 			badGods ? `【凶神宜忌】：${badGods}` : '',
-			bads ? `【忌】：${bads}` : '',
-			luckDir ? `【吉神方】：${luckDir}` : '',
+			badsTongshu ? `【忌-通書六十事】：${badsTongshu}` : '',
+			badsYuyong ? `【忌-御用六十七事】：${badsYuyong}` : '',
+			badsMin ? `【忌-民用三十七事】：${badsMin}` : '',
+
 			'—— 當日時辰時局 ——',
 			hoursBlock
 		].filter(Boolean).join('\n');
@@ -524,16 +545,16 @@ ${Almanac.content}
 
 	pad2(n) { return ('0' + n).slice(-2); }
 	getWeekday(d) {
-		const map = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+		const map = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
 		return map[d.getDay()];
 	}
 	getWesternZodiac(d) {
 		const m = d.getMonth() + 1, day = d.getDate();
 		const z = [
-			['摩羯座',1,19],['水瓶座',2,18],['雙魚座',3,20],['牡羊座',4,19],['金牛座',5,20],['雙子座',6,21],
-			['巨蟹座',7,22],['獅子座',8,22],['處女座',9,22],['天秤座',10,23],['天蠍座',11,22],['射手座',12,21]
+			['摩羯座', 1, 19], ['水瓶座', 2, 18], ['雙魚座', 3, 20], ['牡羊座', 4, 19], ['金牛座', 5, 20], ['雙子座', 6, 21],
+			['巨蟹座', 7, 22], ['獅子座', 8, 22], ['處女座', 9, 22], ['天秤座', 10, 23], ['天蠍座', 11, 22], ['射手座', 12, 21]
 		];
-		const cur = z[m-1];
+		const cur = z[m - 1];
 		if (day <= cur[2]) return cur[0];
 		return z[(m % 12)][0];
 	}
@@ -555,8 +576,8 @@ ${Almanac.content}
 			const arr = (daySB && daySB.gods) ? daySB.gods.filter(g => g.name && g.name.includes('彭祖')).map(g => g.name) : [];
 			if (arr.length > 0) return arr.join(' ');
 			return '';
-    } catch { return ''; }
-}
+		} catch { return ''; }
+	}
 }
 const dailyAlmanac = new DailyAlmanac();
 const dailyAstro = new TwelveAstro();
@@ -1457,7 +1478,7 @@ const DailyFuckUp = {
 		return result;
 	},
 
-	discuss : [
+	discuss: [
 		"現在，解決主題的問題，是非常非常重要的。 ",
 		"主題的發生，到底需要如何做到，不主題的發生，又會如何產生。 ",
 		"主題，到底應該如何實現。 ",
@@ -1502,7 +1523,7 @@ const DailyFuckUp = {
 		"主題所帶來的影響和後果是深遠的，必須慎重對待。",
 	],
 
-	celebrityQuotes : [
+	celebrityQuotes: [
 		"馬丁路德金曾經說過：黑夜雖然會延遲，但白天一定會到來。這不禁令我深思",
 		"貝多芬曾經說過：人生就像一首交響樂，需要高低起伏才會有美妙的旋律。這不禁令我深思",
 		"約翰·藍儂曾經說過：生命是發生在你身上的事情，當你忙於為其餘的東西而忘了它時，它就會溜走。這不禁令我深思",
@@ -1615,9 +1636,9 @@ const DailyFuckUp = {
 		"吉格·金克拉曾經說過，如果你能做夢，你就能實現它。這不禁令我深思",
 	],
 
-	afterFuck : ["這不禁令我深思。 ", "帶著這句話，我們還要更加慎重的審視這個問題： ", "這啟發了我， ", "我希望諸位也能好好地體會這句話。 ", "這句話語雖然很短，但令我浮想聯翩。 ", "無可否認，這句話帶給我們極大的啟示。", "我深深體會到這句話所蘊含的深意。", "這句話真正引起了我的共鳴。", "這句話不僅引發了我們的關注，也引起了我們的思考。", "我們需要認真對待這句話所提出的挑戰。", "這句話所傳達的信息絕對不容忽視。", "這句話令我們更加清晰地看到了問題的本質。", "這句話讓我們看到了問題的另一面。", "我深信這句話會成為我們思考的重要起點。", "我們必須從這句話中學到更多的東西。", "這句話能夠激發我們內心深處的共鳴。", "我們需要從這句話中學到一個重要的教訓。", "這句話引起了我們對問題的關注，也啟發了我們的思考。", "這句話不僅是一句警句，更是一個重要的提醒。", "這句話在我們思考的過程中發揮了重要的作用。", "這句話讓我們看到了一個全新的視角。", "這句話可以幫助我們更好地理解問題的本質。", "我們必須從這句話中吸取更多的智慧和啟示。", "這句話深刻地反映了現實的困境和挑戰。", "這句話讓我們更加明白了自己的不足之處。", "這句話揭示了問題的一個重要方面。", "這句話讓我們更加認識到自己的責任和使命。", "這句話提醒我們要時刻保持警醒和警覺。", "這句話讓我們更加堅定了自己的信念和決心。", "這句話可以幫助我們更好地理解自己和他人。", "這句話是一個重要的思想火花，可以引發更多的啟示。", "這句話可以幫助我們更好地理解自己的身份和使命。", "這句話讓我們更加明白了人生的真諦和意義。", "這句話可以激勵我們更加努力地工作和生活。", "這句話是一個非常寶貴的啟示和提醒。", "這句話讓我們看到了問題的一個新的方向和出路。", "這句話可以幫助我們更好地面對人生的挑戰和困境。", "這句話讓我們更加明白了自己的優點和不足。", "這句話是一個非常實用的工作和生活的指導原則。", "這句話可以幫助我們更好地理解人性和社會。", "這句話讓我們更加意識到自己的權利和義務。", "這句話讓我們更加了解了一個文化或一個國家的特點和價值觀。", "這句話可以啟發我們更多的創造力和想像力。", "這句話讓我們更加明白了生命的珍貴和脆弱。"],
+	afterFuck: ["這不禁令我深思。 ", "帶著這句話，我們還要更加慎重的審視這個問題： ", "這啟發了我， ", "我希望諸位也能好好地體會這句話。 ", "這句話語雖然很短，但令我浮想聯翩。 ", "無可否認，這句話帶給我們極大的啟示。", "我深深體會到這句話所蘊含的深意。", "這句話真正引起了我的共鳴。", "這句話不僅引發了我們的關注，也引起了我們的思考。", "我們需要認真對待這句話所提出的挑戰。", "這句話所傳達的信息絕對不容忽視。", "這句話令我們更加清晰地看到了問題的本質。", "這句話讓我們看到了問題的另一面。", "我深信這句話會成為我們思考的重要起點。", "我們必須從這句話中學到更多的東西。", "這句話能夠激發我們內心深處的共鳴。", "我們需要從這句話中學到一個重要的教訓。", "這句話引起了我們對問題的關注，也啟發了我們的思考。", "這句話不僅是一句警句，更是一個重要的提醒。", "這句話在我們思考的過程中發揮了重要的作用。", "這句話讓我們看到了一個全新的視角。", "這句話可以幫助我們更好地理解問題的本質。", "我們必須從這句話中吸取更多的智慧和啟示。", "這句話深刻地反映了現實的困境和挑戰。", "這句話讓我們更加明白了自己的不足之處。", "這句話揭示了問題的一個重要方面。", "這句話讓我們更加認識到自己的責任和使命。", "這句話提醒我們要時刻保持警醒和警覺。", "這句話讓我們更加堅定了自己的信念和決心。", "這句話可以幫助我們更好地理解自己和他人。", "這句話是一個重要的思想火花，可以引發更多的啟示。", "這句話可以幫助我們更好地理解自己的身份和使命。", "這句話讓我們更加明白了人生的真諦和意義。", "這句話可以激勵我們更加努力地工作和生活。", "這句話是一個非常寶貴的啟示和提醒。", "這句話讓我們看到了問題的一個新的方向和出路。", "這句話可以幫助我們更好地面對人生的挑戰和困境。", "這句話讓我們更加明白了自己的優點和不足。", "這句話是一個非常實用的工作和生活的指導原則。", "這句話可以幫助我們更好地理解人性和社會。", "這句話讓我們更加意識到自己的權利和義務。", "這句話讓我們更加了解了一個文化或一個國家的特點和價值觀。", "這句話可以啟發我們更多的創造力和想像力。", "這句話讓我們更加明白了生命的珍貴和脆弱。"],
 
-	formerFuck : ["曾經說過", "在不經意間這樣說過", "事先聲明", "先說一聲", "需要先強調", "需要先說明", "需要先說明一下", "必須說明的是", "講過一個小故事", "討論過這問題", "曾經稍微講過背景", "曾經簡單提過一下", "談到這個話題", "想要先聲明的是", "在關於這個問題", "根據自己的經驗", "曾探討過這個議題", "在談論過這件事", "過交代過", "談到這個事情時，說過", "在進入正題前，曾說過", "關於這個話題，曾說過", "交代過一下", "說過自己的立場", "闡述過想法", "探討過這個問題", "談論過這個主題", "曾分析過", "提過，一下問題的重要性", "曾深入探討這個問題", "談到這個議題"],
+	formerFuck: ["曾經說過", "在不經意間這樣說過", "事先聲明", "先說一聲", "需要先強調", "需要先說明", "需要先說明一下", "必須說明的是", "講過一個小故事", "討論過這問題", "曾經稍微講過背景", "曾經簡單提過一下", "談到這個話題", "想要先聲明的是", "在關於這個問題", "根據自己的經驗", "曾探討過這個議題", "在談論過這件事", "過交代過", "談到這個事情時，說過", "在進入正題前，曾說過", "關於這個話題，曾說過", "交代過一下", "說過自己的立場", "闡述過想法", "探討過這個問題", "談論過這個主題", "曾分析過", "提過，一下問題的重要性", "曾深入探討這個問題", "談到這個議題"],
 
 };
 

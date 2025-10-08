@@ -84,6 +84,7 @@
     "sharp": "0.32.6",
     "socket.io": "^2.4.1",
     "socket.io-client": "^2.4.0",
+    "textract": "^2.5.0",
     "timer": "^1.0.1",
     "whatsapp-web.js": "^1.34.1",
     "wikijs": "6.4.1",

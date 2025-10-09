@@ -930,17 +930,137 @@ class TranslateAi extends OpenAI {
                 
                 if (discordMessage && userid) {
                     await this.sendProgressMessage(discordMessage, userid, 
-                        `🔍 **PDF 分析結果**\n📄 檔案: ${filename}\n⚠️ 檢測到掃描版 PDF\n🔄 正在使用 OCR 重新處理...`);
+                        `🔍 **PDF 分析結果**\n📄 檔案: ${filename}\n⚠️ 檢測到掃描版 PDF\n🔄 正在轉換為圖像並使用 OCR 處理...`);
                 }
                 
-                // Try OCR processing as fallback
-                return await this.processImageFile(buffer, filename, discordMessage, userid);
+                // Convert PDF pages to images and then use OCR
+                return await this.processPdfWithOcr(buffer, filename, discordMessage, userid);
             }
             
             console.log(`[PDF_PROCESS] PDF text extraction successful for ${filename}`);
             return data.text.trim();
         } catch (error) {
             console.error('[PDF_PROCESS] Error processing PDF:', error);
+            throw error;
+        }
+    }
+    
+    // Process PDF with OCR by converting pages to images first
+    async processPdfWithOcr(buffer, filename = 'document.pdf', discordMessage = null, userid = null) {
+        try {
+            console.log(`[PDF_OCR_PROCESS] Starting PDF to image conversion for ${filename}`);
+            
+            // Create timeout promise for PDF to image conversion
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => {
+                    reject(new Error('timeout'));
+                }, FILE_PROCESSING_LIMITS.MAX_PROCESSING_TIME.PDF * 1000);
+            });
+            
+            // Import PDFParse dynamically to avoid issues
+            const { PDFParse } = require('pdf-parse');
+            
+            // Create PDF parser and convert pages to images
+            const parser = new PDFParse({ data: buffer });
+            const imageResult = await Promise.race([parser.pageToImage(), timeoutPromise]);
+            
+            console.log(`[PDF_OCR_PROCESS] PDF converted to ${imageResult.pages.length} images for ${filename}`);
+            
+            if (!imageResult.pages || imageResult.pages.length === 0) {
+                throw new Error('no text');
+            }
+            
+            // Process each page with OCR
+            const allTexts = [];
+            for (let i = 0; i < imageResult.pages.length; i++) {
+                const pageData = imageResult.pages[i];
+                const pageNumber = pageData.pageNumber || (i + 1);
+                
+                console.log(`[PDF_OCR_PROCESS] Processing page ${pageNumber}/${imageResult.pages.length} for ${filename}`);
+                
+                if (discordMessage && userid) {
+                    await this.sendProgressMessage(discordMessage, userid, 
+                        `🔍 **PDF OCR 處理中**\n📄 檔案: ${filename}\n📑 頁面: ${pageNumber}/${imageResult.pages.length}\n⏱️ 預估時間: 1-3 分鐘/頁\n\n正在識別第 ${pageNumber} 頁的文字內容...`);
+                }
+                
+                try {
+                    // Process the page image with OCR
+                    const pageText = await this.processImageBufferWithOcr(pageData.data, `${filename}_page_${pageNumber}`, discordMessage, userid);
+                    if (pageText && pageText.trim().length > 0) {
+                        allTexts.push(`[第 ${pageNumber} 頁]\n${pageText}`);
+                    }
+                } catch (error) {
+                    console.error(`[PDF_OCR_PROCESS] Error processing page ${pageNumber}:`, error);
+                    allTexts.push(`[第 ${pageNumber} 頁 - 處理失敗]\n${error.message}`);
+                }
+            }
+            
+            if (allTexts.length === 0) {
+                throw new Error('no text');
+            }
+            
+            const combinedText = allTexts.join('\n\n');
+            console.log(`[PDF_OCR_PROCESS] PDF OCR completed for ${filename}, extracted ${combinedText.length} characters`);
+            
+            // Send completion message
+            if (discordMessage && userid) {
+                await this.sendProgressMessage(discordMessage, userid, 
+                    `✅ **PDF OCR 處理完成**\n📄 檔案: ${filename}\n📑 處理頁面: ${imageResult.pages.length} 頁\n📝 提取文字長度: ${combinedText.length} 字\n\n開始翻譯分析...`);
+            }
+            
+            return combinedText;
+        } catch (error) {
+            console.error('[PDF_OCR_PROCESS] Error processing PDF with OCR:', error);
+            throw error;
+        }
+    }
+    
+    // Process image buffer with OCR (separate from file processing)
+    async processImageBufferWithOcr(imageBuffer, filename = 'image', discordMessage = null, userid = null) {
+        try {
+            console.log(`[OCR_BUFFER_PROCESS] Starting OCR for ${filename}`);
+            
+            // Create timeout promise
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => {
+                    reject(new Error('timeout'));
+                }, FILE_PROCESSING_LIMITS.MAX_PROCESSING_TIME.IMAGE * 1000);
+            });
+            
+            let lastProgressUpdate = 0;
+            
+            // Create OCR promise
+            const ocrPromise = Tesseract.recognize(
+                imageBuffer,
+                'chi_tra+eng', // Traditional Chinese + English
+                {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const progress = Math.round(m.progress * 100);
+                            console.log(`[OCR_BUFFER_PROCESS] Progress: ${progress}%`);
+                            
+                            // Send progress updates every 25%
+                            if (discordMessage && userid && progress >= lastProgressUpdate + 25) {
+                                lastProgressUpdate = progress;
+                                this.sendProgressMessage(discordMessage, userid, 
+                                    `🔍 **OCR 處理進度**\n📷 檔案: ${filename}\n📊 進度: ${progress}%\n\n正在識別文字內容...`).catch(console.error);
+                            }
+                        }
+                    }
+                }
+            );
+            
+            // Race between OCR and timeout
+            const { data: { text } } = await Promise.race([ocrPromise, timeoutPromise]);
+            
+            if (!text || text.trim().length === 0) {
+                throw new Error('no text');
+            }
+            
+            console.log(`[OCR_BUFFER_PROCESS] OCR completed for ${filename}`);
+            return text.trim();
+        } catch (error) {
+            console.error('[OCR_BUFFER_PROCESS] Error processing image buffer:', error);
             throw error;
         }
     }
@@ -986,52 +1106,16 @@ class TranslateAi extends OpenAI {
                     `🔍 **OCR 相片處理中**\n📷 檔案: ${filename}\n⏱️ 預估時間: 1-3 分鐘\n\n正在分析圖像中的文字內容...`);
             }
             
-            // Create timeout promise
-            const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => {
-                    reject(new Error('timeout'));
-                }, FILE_PROCESSING_LIMITS.MAX_PROCESSING_TIME.IMAGE * 1000);
-            });
-            
-            let lastProgressUpdate = 0;
-            
-            // Create OCR promise
-            const ocrPromise = Tesseract.recognize(
-                buffer,
-                'chi_tra+eng', // Traditional Chinese + English
-                {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            const progress = Math.round(m.progress * 100);
-                            console.log(`[OCR_PROCESS] Progress: ${progress}%`);
-                            
-                            // Send progress updates every 25%
-                            if (discordMessage && userid && progress >= lastProgressUpdate + 25) {
-                                lastProgressUpdate = progress;
-                                this.sendProgressMessage(discordMessage, userid, 
-                                    `🔍 **OCR 處理進度**\n📷 檔案: ${filename}\n📊 進度: ${progress}%\n\n正在識別文字內容...`).catch(console.error);
-                            }
-                        }
-                    }
-                }
-            );
-            
-            // Race between OCR and timeout
-            const { data: { text } } = await Promise.race([ocrPromise, timeoutPromise]);
-            
-            if (!text || text.trim().length === 0) {
-                throw new Error('no text');
-            }
-            
-            console.log(`[OCR_PROCESS] OCR completed for ${filename}`);
+            // Use the shared OCR processing method
+            const text = await this.processImageBufferWithOcr(buffer, filename, discordMessage, userid);
             
             // Send completion message
             if (discordMessage && userid) {
                 await this.sendProgressMessage(discordMessage, userid, 
-                    `✅ **OCR 處理完成**\n📷 檔案: ${filename}\n📝 提取文字長度: ${text.trim().length} 字\n\n開始翻譯分析...`);
+                    `✅ **OCR 處理完成**\n📷 檔案: ${filename}\n📝 提取文字長度: ${text.length} 字\n\n開始翻譯分析...`);
             }
             
-            return text.trim();
+            return text;
         } catch (error) {
             console.error('[OCR_PROCESS] Error processing image:', error);
             throw error;

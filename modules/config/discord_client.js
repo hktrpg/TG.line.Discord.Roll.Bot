@@ -1,6 +1,19 @@
 const { Options, GatewayIntentBits, Partials } = require('discord.js');
 const { getInfo } = require('discord-hybrid-sharding');
 
+// Safely resolve sharding info. If clustering context isn't ready, fall back to 'auto'.
+function resolveShardingInfo() {
+    try {
+        const info = getInfo();
+        if (info && info.SHARD_LIST && info.TOTAL_SHARDS !== undefined) {
+            return { shardList: info.SHARD_LIST, totalShards: info.TOTAL_SHARDS };
+        }
+    } catch {
+        // ignore: occurs when not running inside a cluster child
+    }
+    return { shardList: 'auto', totalShards: 'auto' };
+}
+
 const channelFilter = channel => !channel.lastMessageId || 
     require('discord.js').SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 36_000;
 
@@ -58,8 +71,13 @@ const clientConfig = {
             sweepInterval: 3600
         },
     }),
-    shards: getInfo().SHARD_LIST,  // An array of shards that will get spawned
-    shardCount: getInfo().TOTAL_SHARDS, // Total number of shards
+    ...(() => {
+        const { shardList, totalShards } = resolveShardingInfo();
+        return {
+            shards: shardList,  // An array of shards that will get spawned
+            shardCount: totalShards, // Total number of shards
+        };
+    })(),
     restRequestTimeout: 45_000, // Timeout for REST requests
     /**
         cacheGuilds: true,

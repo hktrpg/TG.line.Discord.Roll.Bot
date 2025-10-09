@@ -1582,7 +1582,7 @@ class TranslateAi extends OpenAI {
         let remains = text;
         
         // 計算動態 TOKEN 限制，但設定 8000 字符的硬性上限
-        const dynamicTokenLimit = Math.max(1, Math.floor((Number.isFinite(inputTokenLimit) ? inputTokenLimit : 1000) * 0.4));
+        const dynamicTokenLimit = Math.max(1, Math.floor((Number.isFinite(inputTokenLimit) ? inputTokenLimit : 1000) * 0.8));
         const maxCharLimit = 8000; // 硬性字符上限，防止 AI 處理過多文字時出錯
         
         while (remains.length > 0) {

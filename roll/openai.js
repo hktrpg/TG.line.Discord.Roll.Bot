@@ -1584,6 +1584,7 @@ class TranslateAi extends OpenAI {
         let { translateScript, textLength } = await this.getText(inputStr, mode, discordMessage, discordClient, userid);
         console.log(textLength, limit);
         if (textLength > limit) return { text: `輸入的文字太多了，請分批輸入，你是VIP LV${lv}，限制為${limit}字` };
+        if (textLength === 0) return { text: '沒有找到需要翻譯的內容，請檢查文件內容或稍後再試。' };
         
         // Always show progress for all translations
         const showProgress = true;

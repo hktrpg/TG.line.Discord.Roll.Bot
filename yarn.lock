@@ -1985,7 +1985,7 @@
   resolved "https://registry.yarnpkg.com/@napi-rs/canvas-win32-x64-msvc/-/canvas-win32-x64-msvc-0.1.80.tgz#6bb95885d9377912d71f1372fc1916fb54d6ef0a"
   integrity sha512-Z8jPsM6df5V8B1HrCHB05+bDiCxjE9QA//3YrkKIdVDEwn5RKaqOxCJDRJkl48cJbylcrJbW4HxZbTte8juuPg==
 
-"@napi-rs/canvas@^0.1.80":
+"@napi-rs/canvas@^0.1.80", "@napi-rs/canvas@~0.1.80":
   version "0.1.80"
   resolved "https://registry.yarnpkg.com/@napi-rs/canvas/-/canvas-0.1.80.tgz#53615bea56fd94e07331ab13caa7a39efc4914ab"
   integrity sha512-DxuT1ClnIPts1kQx8FBmkk4BQDTfI5kIzywAaMjQSXfNnra5UFU9PwurXrl+Je3bJ6BGsp/zmshVVFbCmyI+ww==
@@ -7487,7 +7487,15 @@ pdf-parse@^2.2.2:
   dependencies:
     pdfjs-dist "^5.4.296"
 
-pdfjs-dist@^5.4.296:
+pdf-to-png-converter@^3.10.0:
+  version "3.10.0"
+  resolved "https://registry.yarnpkg.com/pdf-to-png-converter/-/pdf-to-png-converter-3.10.0.tgz#c4c6323ce0d9c3947b2acfbfd6c37f9fe03eb340"
+  integrity sha512-kRRoacnX88gvpRPQWtPd9igsSXnyItXnPy8hIKBDmhOauCImHjP7+3DClKsVZc2PR4/u9p2cJmXJ4Ry1g6U2Xw==
+  dependencies:
+    "@napi-rs/canvas" "~0.1.80"
+    pdfjs-dist "~5.4.149"
+
+pdfjs-dist@^5.4.296, pdfjs-dist@~5.4.149:
   version "5.4.296"
   resolved "https://registry.yarnpkg.com/pdfjs-dist/-/pdfjs-dist-5.4.296.tgz#b1aa7ded8828f29537bc7cc99c1343c8b3a5d2d6"
   integrity sha512-DlOzet0HO7OEnmUmB6wWGJrrdvbyJKftI1bhMitK7O2N8W2gc757yyYBbINy9IDafXAV9wmKr9t7xsTaNKRG5Q==

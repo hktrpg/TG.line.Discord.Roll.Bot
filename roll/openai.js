@@ -83,6 +83,7 @@ const fetch = require('node-fetch');
 const { SlashCommandBuilder } = require('discord.js');
 // File processing libraries
 const pdfParse = require('pdf-parse');
+const { pdfToPng } = require('pdf-to-png-converter');
 const mammoth = require('mammoth');
 const Tesseract = require('tesseract.js');
 dotenv.config({ override: true });
@@ -957,35 +958,40 @@ class TranslateAi extends OpenAI {
                 }, FILE_PROCESSING_LIMITS.MAX_PROCESSING_TIME.PDF * 1000);
             });
             
-            // Import PDFParse dynamically to avoid issues
-            const { PDFParse } = require('pdf-parse');
+            // Convert PDF to PNG images using pdf-to-png-converter
+            // This provides better quality images compared to pdf-parse
+            const convertPromise = pdfToPng(buffer, {
+                disableFontFace: false, // Enable font rendering for better quality
+                useSystemFonts: false, // Don't use system fonts to avoid inconsistencies
+                viewportScale: 2.0, // 2x scale for better OCR quality
+                verbosityLevel: 0 // Suppress logs
+            });
             
-            // Create PDF parser and convert pages to images
-            const parser = new PDFParse({ data: buffer });
-            const imageResult = await Promise.race([parser.pageToImage(), timeoutPromise]);
+            const pngPages = await Promise.race([convertPromise, timeoutPromise]);
             
-            console.log(`[PDF_OCR_PROCESS] PDF converted to ${imageResult.pages.length} images for ${filename}`);
+            console.log(`[PDF_OCR_PROCESS] PDF converted to ${pngPages.length} PNG images for ${filename}`);
             
-            if (!imageResult.pages || imageResult.pages.length === 0) {
+            if (!pngPages || pngPages.length === 0) {
                 throw new Error('no text');
             }
             
             // Process each page with OCR
             const allTexts = [];
-            for (let i = 0; i < imageResult.pages.length; i++) {
-                const pageData = imageResult.pages[i];
-                const pageNumber = pageData.pageNumber || (i + 1);
+            for (let i = 0; i < pngPages.length; i++) {
+                const pageData = pngPages[i];
+                const pageNumber = pageData.pageNumber;
                 
-                console.log(`[PDF_OCR_PROCESS] Processing page ${pageNumber}/${imageResult.pages.length} for ${filename}`);
+                console.log(`[PDF_OCR_PROCESS] Processing page ${pageNumber}/${pngPages.length} for ${filename}`);
+                console.log(`[PDF_OCR_PROCESS] Page ${pageNumber} dimensions: ${pageData.width}x${pageData.height}`);
                 
                 if (discordMessage && userid) {
                     await this.sendProgressMessage(discordMessage, userid, 
-                        `🔍 **PDF OCR 處理中**\n📄 檔案: ${filename}\n📑 頁面: ${pageNumber}/${imageResult.pages.length}\n⏱️ 預估時間: 1-3 分鐘/頁\n\n正在識別第 ${pageNumber} 頁的文字內容...`);
+                        `🔍 **PDF OCR 處理中**\n📄 檔案: ${filename}\n📑 頁面: ${pageNumber}/${pngPages.length}\n⏱️ 預估時間: 1-3 分鐘/頁\n\n正在識別第 ${pageNumber} 頁的文字內容...`);
                 }
                 
                 try {
-                    // Process the page image with OCR
-                    const pageText = await this.processImageBufferWithOcr(pageData.data, `${filename}_page_${pageNumber}`, discordMessage, userid);
+                    // Process the page image with OCR using the PNG buffer
+                    const pageText = await this.processImageBufferWithOcr(pageData.content, `${filename}_page_${pageNumber}`, discordMessage, userid);
                     if (pageText && pageText.trim().length > 0) {
                         allTexts.push(`[第 ${pageNumber} 頁]\n${pageText}`);
                     }
@@ -1005,7 +1011,7 @@ class TranslateAi extends OpenAI {
             // Send completion message
             if (discordMessage && userid) {
                 await this.sendProgressMessage(discordMessage, userid, 
-                    `✅ **PDF OCR 處理完成**\n📄 檔案: ${filename}\n📑 處理頁面: ${imageResult.pages.length} 頁\n📝 提取文字長度: ${combinedText.length} 字\n\n開始翻譯分析...`);
+                    `✅ **PDF OCR 處理完成**\n📄 檔案: ${filename}\n📑 處理頁面: ${pngPages.length} 頁\n📝 提取文字長度: ${combinedText.length} 字\n\n開始翻譯分析...`);
             }
             
             return combinedText;

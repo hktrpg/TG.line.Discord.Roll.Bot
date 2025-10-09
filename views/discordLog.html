@@ -465,6 +465,57 @@
             border-color: #3742fa;
             box-shadow: 0 2px 15px rgba(55, 66, 250, 0.2);
         }
+        /* Embed and Attachment Styles */
+        .embed {
+            background-color: #2f3136;
+            border-left: 4px solid #4f545c;
+            border-radius: 4px;
+            padding: 8px;
+            margin-top: 8px;
+            max-width: 520px;
+            color: #dcddde;
+        }
+        .embed-title {
+            font-weight: bold;
+            color: #00b0f4;
+        }
+        .embed-description {
+            color: #dcddde;
+        }
+        .embed-field {
+            margin-top: 4px;
+        }
+        .embed-field-name {
+            font-weight: bold;
+            color: #c2c4c6;
+        }
+        .embed-image img, .attachment-image img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+        .reply-container {
+            background-color: #292b2f;
+            border-radius: 4px;
+            padding: 0 8px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+        }
+        .reply-content {
+            font-size: 0.9em;
+            color: #b9bbbe;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .reply-username {
+            font-weight: bold;
+            margin-right: 8px;
+            color: #b9bbbe;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 
@@ -657,15 +708,15 @@
                     <tr v-if="index%2==0" class="d-flex" style="background-color: #90ccf43f">
                         <td class="col-md-1" v-html="index"></td>
                         <td class="col-md-2" v-html="dhm2(row.timestamp)"></td>
-                        <td class="col-md-2" v-html="highlightMatches(row.userName,row.isbot)"></td>
-                        <td class="col-md-7" v-html="highlightMatches(row.contact)"></td>
+                        <td class="col-md-2" v-html="renderUser(row)"></td>
+                        <td class="col-md-7" v-html="renderMessage(row)"></td>
                     </tr>
                     <tr v-if="index%2==1" class="d-flex" style="background-color: #f3d25052;">
                         <td class="col-md-1" v-html="index"></td>
                         <td class="col-md-2" v-html="dhm2(row.timestamp)"></td>
-                        <td class="col-md-2" v-html="highlightMatches(row.userName,row.isbot)">
+                        <td class="col-md-2" v-html="renderUser(row)">
                         </td>
-                        <td class="col-md-7" v-html="highlightMatches(row.contact)"></td>
+                        <td class="col-md-7" v-html="renderMessage(row)"></td>
                     </tr>
                 </tbody>
             </table>
@@ -805,7 +856,10 @@
                     timestamp: item.t,
                     contact: item.c,
                     userName: item.u,
-                    isbot: item.b
+                    isbot: item.b,
+                    attachments: item.a || [],
+                    embeds: item.e || [],
+                    reply_to: item.r || null
                 }));
             } catch (e) {
                 console.error('Decryption failed:', e);
@@ -865,7 +919,7 @@
             isbot: true,
         }, {
             timestamp: 1567584546000,
-            contact: '「報告校長 我地接到錯誤通知 有啲人接到兩份通知 到底我地班要做小紅帽定白雪公主」 「…一於溝埋做白雪帽啦，結局自定！」',
+            contact: '「報告校長 我地接到錯誤通知 有啲人接到兩份通知 到底我地班要做小紅帽定白雪公主」 「…一於溝埋做白雪帽啦，结局自定！」',
             userName: 'Zzzzz',
             isbot: false,
         }, {
@@ -969,8 +1023,8 @@
                 console.log('totallyMessage updated')
             }
         })
-        let newTotallyDay = ((totallydate).toString().match(/\d+/i) < 1) ? 1 : (totallydate).toString()
-            .match(/\d+/i);
+        let newTotallyDay = ((totallydate).toString().match(/\\d+/i) < 1) ? 1 : (totallydate).toString()
+            .match(/\\d+/i);
         let averageMessage = new Vue({
             el: '#averageMessage',
             data: {
@@ -978,7 +1032,7 @@
             },
             methods: {
                 reNewAaverageMessage: function (input) {
-                    newTotallyDay = Number(totallyDay(input).toString().match(/\d+/i)[0]);
+                    newTotallyDay = Number(totallyDay(input).toString().match(/\\d+/i)[0]);
                     if (newTotallyDay < 1) newTotallyDay = 1;
                     totallymessage = analysicTotallymessage(input);
                     this.message = (Math.ceil(totallymessage[0] / newTotallyDay * 100) / 100).toFixed(2) +
@@ -993,7 +1047,6 @@
         //[humanTimes.length, botTimes.length
 
 
-
         //最多訊息數日子頭三，訊息數 O   
         let analysicdate = analysicDate(rawData)
         let allDateforChart3 = JSON.parse(JSON.stringify(analysicdate));
@@ -1005,7 +1058,7 @@
 
         top3Date.splice(3, top3Date.length - 1);
         top3Date.forEach((e, i) => {
-            let temptop3Date = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
+            let temptop3Date = e.date.toString().match(/^(\\d\\d\\d\\d)(\\d\\d)(\\d\\d)/)
             top3Date[i].date = [temptop3Date[1], '年', temptop3Date[2], '月', temptop3Date[3], '日'].join('');
         })
         let analysicDateVue = new Vue({
@@ -1023,7 +1076,7 @@
                     top3Date = JSON.parse(JSON.stringify(analysicdate));
                     top3Date.splice(3, top3Date.length - 1);
                     top3Date.forEach((e, i) => {
-                        temptop3Date = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
+                        temptop3Date = e.date.toString().match(/^(\\d\\d\\d\\d)(\\d\\d)(\\d\\d)/)
                         top3Date[i].date = [temptop3Date[1], '年', temptop3Date[2], '月',
                         temptop3Date[3], '日'
                         ].join('');
@@ -1052,7 +1105,7 @@
         //最常講的字 文字雲(排序) 
 
         /**
-         *    contact: 'Third: Learn JavaScript\nWWW',
+         *    contact: 'Third: Learn JavaScript\\nWWW',
                         timestamp: '2009-09-09',
                         user: 'Sad',
                         ISBOT?: "Dec.",
@@ -1175,15 +1228,79 @@
                 reNewappMain(input) {
                     this.rows = input;
                 },
-                // ...existing methods...
-                highlightMatches(text, isbot) {
-                    const matchExists = text
-                        .toLowerCase()
-                        .includes(this.filter.toLowerCase());
-                    if (!matchExists) return text;
-                    const re = new RegExp(this.filter, "ig");
-                    if (isbot) text = text + '(🤖)';
-                    return text.replace(re, matchedText => `<strong>${matchedText}</strong>`);
+                renderUser(row) {
+                    const highlight = (text) => {
+                        if (!this.filter) return text;
+                        const re = new RegExp(this.filter, "ig");
+                        return text.replace(re, matchedText => `<strong>${matchedText}</strong>`);
+                    };
+                    let text = row.userName;
+                    if (row.isbot) text += '(🤖)';
+                    return highlight(text);
+                },
+                renderMessage(row) {
+                    let html = '';
+                    const highlight = (text) => {
+                        if (!this.filter || !text) return text;
+                        // Escape HTML to prevent XSS from text content
+                        let escapedText = text.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                        const re = new RegExp(this.filter, "ig");
+                        return escapedText.replace(re, matchedText => `<strong>${matchedText}</strong>`);
+                    };
+
+                    if (row.reply_to) {
+                        html += '<div class="reply-container">';
+                        html += `<div class="reply-username">${row.reply_to.userName}</div>`;
+                        let replyText = row.reply_to.contact;
+                        if (replyText.length > 100) {
+                            replyText = replyText.substring(0, 100) + '...';
+                        }
+                        html += `<div class="reply-content">${highlight(replyText)}</div>`;
+                        html += '</div>';
+                    }
+
+                    // Render main message content
+                    if (row.contact) {
+                        html += `<div>${highlight(row.contact)}</div>`;
+                    }
+
+                    // Render embeds
+                    if (row.embeds && row.embeds.length > 0) {
+                        row.embeds.forEach(embed => {
+                            html += '<div class="embed">';
+                            if (embed.title) {
+                                html += `<div class="embed-title">${highlight(embed.title)}</div>`;
+                            }
+                            if (embed.description) {
+                                html += `<div class="embed-description preline">${highlight(embed.description)}</div>`;
+                            }
+                            if (embed.fields) {
+                                embed.fields.forEach(field => {
+                                    html += '<div class="embed-field">';
+                                    html += `<div class="embed-field-name">${highlight(field.name)}</div>`;
+                                    html += `<div class="preline">${highlight(field.value)}</div>`;
+                                    html += '</div>';
+                                });
+                            }
+                            if (embed.image) {
+                                html += `<div class="embed-image"><img src="${embed.image.url}" loading="lazy"></div>`;
+                            }
+                            html += '</div>';
+                        });
+                    }
+
+                    // Render attachments
+                    if (row.attachments && row.attachments.length > 0) {
+                        row.attachments.forEach(att => {
+                            if (att.content_type && (att.content_type.startsWith('image/') || att.contentType.startsWith('image/'))) {
+                                html += `<div class="attachment-image"><a href="${att.url}" target="_blank" rel="noopener noreferrer"><img src="${att.url}" loading="lazy"></a></div>`;
+                            } else {
+                                html += `<div><a href="${att.url}" target="_blank" rel="noopener noreferrer">📎 ${att.filename}</a></div>`;
+                            }
+                        });
+                    }
+
+                    return html;
                 },
                 dhm2(unix_timestamp) {
                     let dhm2date = new Date(unix_timestamp)
@@ -1192,7 +1309,7 @@
                     let day = dhm2date.getDate().toString().padStart(2, '0');
                     let dhm2hour = dhm2date.getHours().toString().padStart(2, '0');
                     let dhm2minute = dhm2date.getMinutes().toString().padStart(2, '0');
-                    return [year, '年', month, '月', day, '日', '\n', dhm2hour, ':', dhm2minute].join('');
+                    return [year, '年', month, '月', day, '日', '\\n', dhm2hour, ':', dhm2minute].join('');
                 }
             },
             computed: {
@@ -1217,7 +1334,7 @@
                             case 'command':
                                 return basicSearch && contact.startsWith('.');
                             case 'dice':
-                                return basicSearch && contact.match(/\d+[dD]\d+/);
+                                return basicSearch && contact.match(/\\d+[dD]\\d+/);
                             default:
                                 return basicSearch;
                         }
@@ -1305,10 +1422,10 @@
                 const words = Object.entries(wordFreq)
                     .filter(([key]) => {
                         const isValidLength = key.length >= 2 && key.length <= 8;
-                        const isNotNumber = !key.match(/^\d+$/);
+                        const isNotNumber = !key.match(/^\\d+$/);
                         const isNotStopWord = !stopWords.has(key.toLowerCase());
-                        const hasNoSpecialChar = !key.match(/[^\w\s\u4e00-\u9fff]/);
-                        const isValidChinese = (key.match(/[\u4e00-\u9fff]/g) || []).length >= 2;
+                        const hasNoSpecialChar = !key.match(/[^\\w\\s\\u4e00-\\u9fff]/);
+                        const isValidChinese = (key.match(/[一-鿿]/g) || []).length >= 2;
                         const isValidEnglish = key.match(/^[a-zA-Z]+$/) ? key.length >= 4 : true;
 
                         return isValidLength && isNotNumber && isNotStopWord &&
@@ -1317,7 +1434,7 @@
                     .filter(([_, freq]) => freq >= 3)  // 最小詞頻閾值
                     .map(([text, freq]) => {
                         const tfidf = calculateTFIDF(text, freq);
-                        const isChinese = text.match(/[\u4e00-\u9fff]/);
+                        const isChinese = text.match(/[一-鿿]/);
                         return {
                             text,
                             freq,
@@ -1355,7 +1472,8 @@
                         .style("margin", "auto");
 
                     const container = svg.append("g")
-                        .attr("transform", `translate(${(cloudw + margin.left + margin.right) / 2},${(cloudH + margin.top + margin.bottom) / 2})`);
+                        .attr("transform", `translate(${(cloudw + margin.left + margin.right) / 2},${(cloudH + margin.top + margin.bottom) / 2})
+                    `);
 
                     const texts = container.selectAll("text")
                         .data(words)
@@ -1366,7 +1484,8 @@
                         .style("fill", (d, i) => fill(i))
                         .style("font-weight", "500")
                         .attr("text-anchor", "middle")
-                        .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate || 0})`)
+                        .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate || 0})
+                        `)
                         .text(d => d.text)
                         .style("cursor", "pointer")
                         .style("opacity", 0);
@@ -1565,7 +1684,7 @@
             let dataCFG = [];
 
             allDateforChart3.forEach((e, i) => {
-                let tempTime3 = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
+                let tempTime3 = e.date.toString().match(/^(\\d\\d\\d\\d)(\\d\\d)(\\d\\d)/)
                 dataCFG[i] = {
                     t: toTimestamp(tempTime3[1], tempTime3[2], tempTime3[3]),
                     y: e.number
@@ -1722,7 +1841,7 @@
 
     <script>
         $(document).ready(function () {
-            let activeSystemClass = $('.list-group-item.active');
+            let activeSystemClass = $(".list-group-item.active");
 
             //something is entered in search form
             $('#system-search').keyup(function () {
@@ -1768,7 +1887,7 @@
         function initializeVueComponents() {
             let totallydate = totallyDay(rawData) || "";
             let totallymessage = analysicTotallymessage(rawData);
-            let newTotallyDay = Math.max(1, Number(totallydate.match(/\d+/i)[0]));
+            let newTotallyDay = Math.max(1, Number(totallydate.match(/\\d+/i)[0]));
             let analysicdate = analysicDate(rawData);
             let top3Date = getTop3Dates(analysicdate);
 
@@ -1804,7 +1923,7 @@
                 },
                 methods: {
                     reNewAaverageMessage(input) {
-                        newTotallyDay = Math.max(1, Number(totallyDay(input).match(/\d+/i)[0]));
+                        newTotallyDay = Math.max(1, Number(totallyDay(input).match(/\\d+/i)[0]));
                         totallymessage = analysicTotallymessage(input);
                         this.message = (totallymessage[0] / newTotallyDay).toFixed(2) + '個';
                     }
@@ -1843,7 +1962,7 @@
                     },
                     dhm2(unix_timestamp) {
                         let date = new Date(unix_timestamp);
-                        return `${date.getFullYear()}年${(date.getMonth() + 1).toString().padStart(2, '0')}月${date.getDate().toString().padStart(2, '0')}日\n${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                        return `${date.getFullYear()}年${(date.getMonth() + 1).toString().padStart(2, '0')}月${date.getDate().toString().padStart(2, '0')}日\\n${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
                     }
                 },
                 computed: {
@@ -1863,7 +1982,7 @@
                                 case 'command':
                                     return basicSearch && contact.startsWith('.');
                                 case 'dice':
-                                    return basicSearch && /\d+[dD]\d+/.test(contact);
+                                    return basicSearch && /\\d+[dD]\\d+/.test(contact);
                                 default:
                                     return basicSearch;
                             }
@@ -1877,7 +1996,7 @@
             let top3Date = JSON.parse(JSON.stringify(analysicdate));
             top3Date.sort((a, b) => b.number - a.number).splice(3);
             top3Date.forEach(e => {
-                let match = e.date.match(/^(\d\d\d\d)(\d\d)(\d\d)/);
+                let match = e.date.match(/^(\\d\\d\\d\\d)(\\d\\d)(\\d\\d)/);
                 e.date = `${match[1]}年${match[2]}月${match[3]}日`;
             });
             return top3Date;

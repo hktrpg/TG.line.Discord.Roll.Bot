@@ -431,7 +431,9 @@ const rollDiceCommand = async function ({
             let tempB = key;
             const writeStream = createWriteStream(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html');
             const contentStream = new stream.Readable();
-            contentStream.push(newValue, null);
+            contentStream._read = () => {};
+            contentStream.push(newValue);
+            contentStream.push(null);
 
             await pipeline(
                 contentStream,
@@ -558,6 +560,7 @@ const rollDiceCommand = async function ({
             let withouttime = (/-withouttime/i).test(inputStr);
             const writeStream = createWriteStream(dir + channelid + '_' + hour + minutes + seconds + '.txt');
             const contentStream = new stream.Readable();
+            contentStream._read = () => {};
 
             for (let index = M.length - 1; index >= 0; index--) {
                 let line = '';

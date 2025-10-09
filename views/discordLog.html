@@ -658,14 +658,14 @@
                         <td class="col-md-1" v-html="index"></td>
                         <td class="col-md-2" v-html="dhm2(row.timestamp)"></td>
                         <td class="col-md-2" v-html="highlightMatches(row.userName,row.isbot)"></td>
-                        <td class="col-md-7" v-html="highlightMatches(row.contact)"></td>
+                        <td class="col-md-7" v-html="renderContent(row)"></td>
                     </tr>
                     <tr v-if="index%2==1" class="d-flex" style="background-color: #f3d25052;">
                         <td class="col-md-1" v-html="index"></td>
                         <td class="col-md-2" v-html="dhm2(row.timestamp)"></td>
                         <td class="col-md-2" v-html="highlightMatches(row.userName,row.isbot)">
                         </td>
-                        <td class="col-md-7" v-html="highlightMatches(row.contact)"></td>
+                        <td class="col-md-7" v-html="renderContent(row)"></td>
                     </tr>
                 </tbody>
             </table>
@@ -805,7 +805,10 @@
                     timestamp: item.t,
                     contact: item.c,
                     userName: item.u,
-                    isbot: item.b
+                    isbot: item.b,
+                    attachments: item.a || [],
+                    embeds: item.e || [],
+                    reply_to: item.r || null
                 }));
             } catch (e) {
                 console.error('Decryption failed:', e);
@@ -1193,6 +1196,84 @@
                     let dhm2hour = dhm2date.getHours().toString().padStart(2, '0');
                     let dhm2minute = dhm2date.getMinutes().toString().padStart(2, '0');
                     return [year, '年', month, '月', day, '日', '\n', dhm2hour, ':', dhm2minute].join('');
+                },
+                escapeHtml(text) {
+                    if (text == null) return '';
+                    return text.toString().replace(/[&<>"']/g, s => ({
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#39;'
+                    })[s]);
+                },
+                applyHighlight(escapedText) {
+                    const term = this.filter || '';
+                    if (!term) return escapedText;
+                    const safe = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const re = new RegExp(safe, 'ig');
+                    return escapedText.replace(re, m => `<strong>${m}</strong>`);
+                },
+                isImageUrl(url) {
+                    if (!url) return false;
+                    return /(\.(png|jpe?g|gif|webp)|\?format=(png|jpg|jpeg|gif|webp))/i.test(url);
+                },
+                renderAttachments(atts) {
+                    if (!atts || !atts.length) return '';
+                    let html = '';
+                    atts.forEach(att => {
+                        const url = att && (att.url || att.proxy_url || att.proxyURL);
+                        if (!url) return;
+                        const safeUrl = this.escapeHtml(url);
+                        if (this.isImageUrl(url) || (att && att.contentType && att.contentType.indexOf('image/') === 0)) {
+                            html += `<div><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a><br><img src="${safeUrl}" alt="attachment" style="max-width: 200px; max-height: 200px;"/></div>`;
+                        } else {
+                            html += `<div><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a></div>`;
+                        }
+                    });
+                    return html;
+                },
+                renderEmbeds(embeds) {
+                    if (!embeds || !embeds.length) return '';
+                    let html = '';
+                    embeds.forEach(e => {
+                        const title = e && e.title ? this.applyHighlight(this.escapeHtml(e.title)) : '';
+                        const url = e && (e.url || (e.author && e.author.url)) || '';
+                        const desc = e && e.description ? this.applyHighlight(this.escapeHtml(e.description)) : '';
+                        const thumb = e && e.thumbnail && (e.thumbnail.url || e.thumbnail.proxy_url);
+                        const image = e && e.image && (e.image.url || e.image.proxy_url);
+                        html += '<div class="mt-1 p-2" style="background:#f7f7f7;border-radius:6px;">';
+                        if (title) {
+                            if (url) {
+                                html += `<div><a href="${this.escapeHtml(url)}" target="_blank" rel="noopener noreferrer"><strong>${title}</strong></a></div>`;
+                            } else {
+                                html += `<div><strong>${title}</strong></div>`;
+                            }
+                        }
+                        if (desc) {
+                            html += `<div style="white-space:pre-wrap;">${desc}</div>`;
+                        }
+                        const imgUrl = image || thumb;
+                        if (imgUrl) {
+                            html += `<div><img src="${this.escapeHtml(imgUrl)}" alt="embed" style="max-width: 200px; max-height: 200px;"/></div>`;
+                        }
+                        html += '</div>';
+                    });
+                    return html;
+                },
+                renderReply(r) {
+                    if (!r) return '';
+                    const uname = r.userName ? this.applyHighlight(this.escapeHtml(r.userName)) : 'Unknown';
+                    const content = r.contact ? this.applyHighlight(this.escapeHtml(r.contact)) : '';
+                    return `<div class="p-2 mb-1" style="border-left:3px solid #90ccf4;background:#eef6ff;border-radius:4px;">↪ 回覆 ${uname}: <span style=\"white-space:pre-wrap;\">${content}</span></div>`;
+                },
+                renderContent(row) {
+                    const base = this.applyHighlight(this.escapeHtml((row && row.contact) || ''));
+                    const botMark = row && row.isbot ? ' (🤖)' : '';
+                    const reply = this.renderReply(row && row.reply_to);
+                    const embeds = this.renderEmbeds(row && row.embeds);
+                    const atts = this.renderAttachments(row && row.attachments);
+                    return `${reply}<div style=\"white-space:pre-wrap;\">${base}${botMark}</div>${embeds}${atts}`;
                 }
             },
             computed: {
@@ -1844,6 +1925,84 @@
                     dhm2(unix_timestamp) {
                         let date = new Date(unix_timestamp);
                         return `${date.getFullYear()}年${(date.getMonth() + 1).toString().padStart(2, '0')}月${date.getDate().toString().padStart(2, '0')}日\n${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                    },
+                    escapeHtml(text) {
+                        if (text == null) return '';
+                        return text.toString().replace(/[&<>"']/g, s => ({
+                            '&': '&amp;',
+                            '<': '&lt;',
+                            '>': '&gt;',
+                            '"': '&quot;',
+                            "'": '&#39;'
+                        })[s]);
+                    },
+                    applyHighlight(escapedText) {
+                        const term = this.filter || '';
+                        if (!term) return escapedText;
+                        const safe = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        const re = new RegExp(safe, 'ig');
+                        return escapedText.replace(re, m => `<strong>${m}</strong>`);
+                    },
+                    isImageUrl(url) {
+                        if (!url) return false;
+                        return (/(\.(png|jpe?g|gif|webp)|\?format=(png|jpg|jpeg|gif|webp))/i).test(url);
+                    },
+                    renderAttachments(atts) {
+                        if (!atts || !atts.length) return '';
+                        let html = '';
+                        atts.forEach(att => {
+                            const url = att && (att.url || att.proxy_url || att.proxyURL);
+                            if (!url) return;
+                            const safeUrl = this.escapeHtml(url);
+                            if (this.isImageUrl(url) || (att && att.contentType && att.contentType.indexOf('image/') === 0)) {
+                                html += `<div><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a><br><img src="${safeUrl}" alt="attachment" style="max-width: 200px; max-height: 200px;"/></div>`;
+                            } else {
+                                html += `<div><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a></div>`;
+                            }
+                        });
+                        return html;
+                    },
+                    renderEmbeds(embeds) {
+                        if (!embeds || !embeds.length) return '';
+                        let html = '';
+                        embeds.forEach(e => {
+                            const title = e && e.title ? this.applyHighlight(this.escapeHtml(e.title)) : '';
+                            const url = e && (e.url || (e.author && e.author.url)) || '';
+                            const desc = e && e.description ? this.applyHighlight(this.escapeHtml(e.description)) : '';
+                            const thumb = e && e.thumbnail && (e.thumbnail.url || e.thumbnail.proxy_url);
+                            const image = e && e.image && (e.image.url || e.image.proxy_url);
+                            html += '<div class="mt-1 p-2" style="background:#f7f7f7;border-radius:6px;">';
+                            if (title) {
+                                if (url) {
+                                    html += `<div><a href="${this.escapeHtml(url)}" target="_blank" rel="noopener noreferrer"><strong>${title}</strong></a></div>`;
+                                } else {
+                                    html += `<div><strong>${title}</strong></div>`;
+                                }
+                            }
+                            if (desc) {
+                                html += `<div style="white-space:pre-wrap;">${desc}</div>`;
+                            }
+                            const imgUrl = image || thumb;
+                            if (imgUrl) {
+                                html += `<div><img src="${this.escapeHtml(imgUrl)}" alt="embed" style="max-width: 200px; max-height: 200px;"/></div>`;
+                            }
+                            html += '</div>';
+                        });
+                        return html;
+                    },
+                    renderReply(r) {
+                        if (!r) return '';
+                        const uname = r.userName ? this.applyHighlight(this.escapeHtml(r.userName)) : 'Unknown';
+                        const content = r.contact ? this.applyHighlight(this.escapeHtml(r.contact)) : '';
+                        return `<div class=\"p-2 mb-1\" style=\"border-left:3px solid #90ccf4;background:#eef6ff;border-radius:4px;\">↪ 回覆 ${uname}: <span style=\"white-space:pre-wrap;\">${content}</span></div>`;
+                    },
+                    renderContent(row) {
+                        const base = this.applyHighlight(this.escapeHtml((row && row.contact) || ''));
+                        const botMark = row && row.isbot ? ' (🤖)' : '';
+                        const reply = this.renderReply(row && row.reply_to);
+                        const embeds = this.renderEmbeds(row && row.embeds);
+                        const atts = this.renderAttachments(row && row.attachments);
+                        return `${reply}<div style=\"white-space:pre-wrap;\">${base}${botMark}</div>${embeds}${atts}`;
                     }
                 },
                 computed: {

@@ -1231,15 +1231,33 @@ class TranslateAi extends OpenAI {
     async getText(str, mode, discordMessage, discordClient, userid = null) {
         let text = [];
         let textLength = 0;
-        // Handle LOW tier with multiple models: use MIN token across all LOW models
+        // Handle LOW tier with multiple models: use MIN token across models that will actually be used for translation (TOKEN >= 10000)
         let splitLength;
         if (mode.models && Array.isArray(mode.models) && mode.models.length > 0) {
-            splitLength = mode.models.reduce((min, m) => {
-                const t = Number.isFinite(m.token) ? m.token : min;
-                return Math.min(min, t);
-            }, Number.POSITIVE_INFINITY);
-            if (!Number.isFinite(splitLength)) {
-                splitLength = mode.models[0].token || 4000;
+            // Filter models that will actually be used for translation (TOKEN >= 10000)
+            const validTranslateModels = mode.models.filter(model => 
+                model.token && model.token >= 10_000
+            );
+            
+            if (validTranslateModels.length > 0) {
+                // Use MIN token across valid translation models only
+                splitLength = validTranslateModels.reduce((min, m) => {
+                    const t = Number.isFinite(m.token) ? m.token : min;
+                    return Math.min(min, t);
+                }, Number.POSITIVE_INFINITY);
+                
+                if (!Number.isFinite(splitLength)) {
+                    splitLength = validTranslateModels[0].token || 4000;
+                }
+            } else {
+                // Fallback to original logic if no valid models found
+                splitLength = mode.models.reduce((min, m) => {
+                    const t = Number.isFinite(m.token) ? m.token : min;
+                    return Math.min(min, t);
+                }, Number.POSITIVE_INFINITY);
+                if (!Number.isFinite(splitLength)) {
+                    splitLength = mode.models[0].token || 4000;
+                }
             }
         } else {
             splitLength = mode.token || 4000;
@@ -1585,6 +1603,14 @@ class TranslateAi extends OpenAI {
         const dynamicTokenLimit = Math.max(1, Math.floor((Number.isFinite(inputTokenLimit) ? inputTokenLimit : 1000) * 0.8));
         const maxCharLimit = 8000; // 硬性字符上限，防止 AI 處理過多文字時出錯
         
+        // Early return for short texts that don't need splitting
+        if (text.length <= maxCharLimit) {
+            const tokens = encode(text);
+            if (tokens.length <= dynamicTokenLimit) {
+                return [text];
+            }
+        }
+        
         while (remains.length > 0) {
             const tokens = encode(remains);
             const totalTokens = tokens.length || 1;
@@ -1598,6 +1624,7 @@ class TranslateAi extends OpenAI {
             let offset = Math.min(tokenBasedOffset, maxCharLimit);
             let subtext = remains.slice(0, Math.max(0, offset));
             
+            
             // 精確調整到不超過 TOKEN 限制
             while (encode(subtext).length > dynamicTokenLimit && offset > 0) {
                 offset--;
@@ -1605,7 +1632,8 @@ class TranslateAi extends OpenAI {
             }
             
             // 如果達到字符上限但 TOKEN 未超限，也要分割（防止 AI 出錯）
-            if (offset >= maxCharLimit && encode(subtext).length <= dynamicTokenLimit) {
+            // 但只有在實際文字長度接近字符上限時才分割
+            if (offset >= maxCharLimit && remains.length > maxCharLimit * 0.9 && encode(subtext).length <= dynamicTokenLimit) {
                 // 在字符上限附近尋找合適的分割點
                 let bound = Math.min(Math.floor(maxCharLimit * 1.05), remains.length);
                 let found = false;

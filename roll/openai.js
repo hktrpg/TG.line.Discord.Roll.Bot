@@ -82,8 +82,31 @@ const dotenv = require('dotenv');
 const fetch = require('node-fetch');
 const { SlashCommandBuilder } = require('discord.js');
 // File processing libraries
-const pdfParse = require('pdf-parse');
-const { pdfToPng } = require('pdf-to-png-converter');
+let pdfParse = null;
+// Lazy-load pdf-parse to avoid DOM polyfill issues in certain environments
+function loadPdfParseSafely() {
+    if (pdfParse) return pdfParse;
+    try {
+        // Defer require so environments without DOMMatrix don't crash on startup
+        // eslint-disable-next-line n/no-extraneous-require
+        pdfParse = require('pdf-parse');
+    } catch (error) {
+        pdfParse = null;
+    }
+    return pdfParse;
+}
+let pdfToPngLib = null;
+function loadPdfToPngSafely() {
+    if (pdfToPngLib) return pdfToPngLib;
+    try {
+        // eslint-disable-next-line n/no-extraneous-require
+        const mod = require('pdf-to-png-converter');
+        pdfToPngLib = mod?.pdfToPng || mod; // support both default and named export styles
+    } catch (error) {
+        pdfToPngLib = null;
+    }
+    return pdfToPngLib;
+}
 const mammoth = require('mammoth');
 const Tesseract = require('tesseract.js');
 const { getPool } = require('../modules/pool');
@@ -907,6 +930,17 @@ class TranslateAi extends OpenAI {
         try {
            // console.log(`[PDF_PROCESS] Starting PDF processing for ${filename}`);
             
+            // Try to load pdf-parse at runtime; if unavailable, fall back to OCR path
+            const pdfParseFn = loadPdfParseSafely();
+            if (!pdfParseFn) {
+                console.warn(`[PDF_PROCESS] pdf-parse not available; falling back to OCR for ${filename}`);
+                if (discordMessage && userid) {
+                    await this.sendProgressMessage(discordMessage, userid,
+                        `⚠️ 無法載入 PDF 解析元件，改用 OCR 方式處理 ${filename}`);
+                }
+                return await this.processPdfWithOcr(buffer, filename, discordMessage, userid);
+            }
+
             // Create timeout promise
             const timeoutPromise = new Promise((_, reject) => {
                 setTimeout(() => {
@@ -915,7 +949,7 @@ class TranslateAi extends OpenAI {
             });
             
             // Create processing promise
-            const processPromise = pdfParse(buffer);
+            const processPromise = pdfParseFn(buffer);
             
             // Race between processing and timeout
             const data = await Promise.race([processPromise, timeoutPromise]);
@@ -947,6 +981,12 @@ class TranslateAi extends OpenAI {
         try {
             //console.log(`[PDF_OCR_PROCESS] Starting PDF to image conversion for ${filename}`);
             
+            const pdfToPng = loadPdfToPngSafely();
+            if (!pdfToPng) {
+                console.warn(`[PDF_OCR_PROCESS] pdf-to-png-converter not available for ${filename}`);
+                throw new Error('no text');
+            }
+
             // Create timeout promise for PDF to image conversion
             const timeoutPromise = new Promise((_, reject) => {
                 setTimeout(() => {

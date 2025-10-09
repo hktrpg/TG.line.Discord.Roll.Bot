@@ -78,7 +78,6 @@ const fs2 = require('fs');
 const { encode } = require('gpt-tokenizer');
 const OpenAIApi = require('openai');
 const dotenv = require('dotenv');
-const textract = require('textract');
 // eslint-disable-next-line n/no-extraneous-require
 const fetch = require('node-fetch');
 const { SlashCommandBuilder } = require('discord.js');
@@ -392,8 +391,6 @@ const getHelpMessage = function () {
             .join('\n│ • ')
         : `${AI_CONFIG.MODELS.LOW.prefix.translate} [文字內容] - 暫無符合TOKEN≥10,000的LOW模型`;
 
-    const perAttachMB = Number.parseInt(process.env.ATTACH_MAX_SIZE_MB || '8');
-    const totalAttachMB = Number.parseInt(process.env.ATTACH_TOTAL_MAX_SIZE_MB || '24');
     return `【🤖AI助手】
 ╭────── 🗣️對話功能 ──────
 │ • ${lowModelDisplays}
@@ -407,7 +404,6 @@ const getHelpMessage = function () {
 │ • ${AI_CONFIG.MODELS.HIGH.prefix.translate} [文字內容] - 使用${AI_CONFIG.MODELS.HIGH.display}翻譯
 │ • 或上傳.txt附件 或回覆(Reply)要翻譯的內容
 │ • 轉換為正體中文
-│ • 支援附件格式：大部份常見OFFICE格式、PDF、圖片及 text
 │
 ├────── 🖼️圖像生成 ──────
 │ • ${AI_CONFIG.MODELS.IMAGE_LOW.prefix} [描述] - 使用${AI_CONFIG.MODELS.IMAGE_LOW.display}
@@ -428,7 +424,6 @@ const getHelpMessage = function () {
 │ • 超過1900字將以.txt檔案回覆
 │ • 對話功能支援所有LOW模型 (共${validLowModels.length}個)
 │ • 翻譯功能僅使用TOKEN≥10,000的模型 (共${validTranslateModels.length}個)
-│ • 附件大小限制：單個 ≤ ${perAttachMB}MB，總計 ≤ ${totalAttachMB}MB（超過將自動略過）
 ╰──────────────`
 }
 const initialize = function () {
@@ -945,72 +940,27 @@ class TranslateAi extends OpenAI {
             text.push(str);
             textLength += str.length;
         }
-        // Attachment size limits (bytes)
-        const PER_ATTACH_MAX_BYTES = (Number.parseInt(process.env.ATTACH_MAX_SIZE_MB || '8') * 1024 * 1024);
-        const TOTAL_ATTACH_MAX_BYTES = (Number.parseInt(process.env.ATTACH_TOTAL_MAX_SIZE_MB || '24') * 1024 * 1024);
-        let totalAttachmentsBytes = 0;
-        const allowedMimeRegex = /^(text\/|application\/(pdf|msword|vnd\.(openxmlformats|ms-|oasis)\.[\w.-]+|epub\+zip|rtf|xml|xhtml\+xml|atom\+xml|rss\+xml|javascript)|image\/(png|jpeg|jpg|gif)|application\/xhtml\+xml)$/i;
-        const fallbackByExt = (name = '') => {
-            const n = (name || '').toLowerCase();
-            if (/\.(html?|xml|xsl|atom|rss|md|markdown|epub|pdf|docx?|odt|ott|rtf|xlsx?|xlsb|xlsm|xltx|csv|ods|ots|pptx|potx|odp|otp|odg|otg|png|jpe?g|gif|dxf|js)$/i.test(n)) return true;
-            return false;
-        };
-        const shouldAccept = (att) => {
-            if (att?.contentType && allowedMimeRegex.test(att.contentType)) return true;
-            return fallbackByExt(att?.name || att?.filename || '');
-        };
-        const extractWithTextract = (buffer, filename, contentType) => new Promise((resolve) => {
-            try {
-                textract.fromBufferWithName(filename || 'file', buffer, { preserveLineBreaks: true, typeOverride: contentType }, (err, textOut) => {
-                    if (err) {
-                        resolve(null);
-                    } else {
-                        resolve(textOut || '');
-                    }
-                });
-            } catch {
-                resolve(null);
-            }
-        });
-        const downloadAsBuffer = async (url) => {
-            const res = await fetch(url);
-            if (!res.ok) throw new Error(`download failed ${res.status}`);
-            const arrayBuffer = await res.arrayBuffer();
-            return Buffer.from(arrayBuffer);
-        };
-        const processAttachments = async (attachments) => {
-            const values = [...(attachments?.values?.() || [])];
-            for (const att of values) {
-                try {
-                    if (!shouldAccept(att)) continue;
-                    const size = att.size || att.filesize || 0;
-                    if (size > PER_ATTACH_MAX_BYTES) continue;
-                    if ((totalAttachmentsBytes + size) > TOTAL_ATTACH_MAX_BYTES) continue;
-                    const buf = await downloadAsBuffer(att.url);
-                    totalAttachmentsBytes += size || buf.length;
-                    let extracted = await extractWithTextract(buf, att.name || att.filename || 'file', att.contentType || '');
-                    if (!extracted && /^text\//i.test(att.contentType || '')) {
-                        // Fallback: treat as text
-                        extracted = Buffer.isBuffer(buf) ? buf.toString('utf8') : String(buf);
-                    }
-                    if (extracted && extracted.trim()) {
-                        text.push(extracted);
-                        textLength += extracted.length;
-                    }
-                } catch {
-                    // ignore this attachment on failure
-                }
-            }
-        };
         if (discordMessage?.type === 0 && discordMessage?.attachments?.size > 0) {
-            await processAttachments(discordMessage.attachments);
+            const url = [...(discordMessage.attachments.filter(data => data.contentType.match(/text/i))?.values() || [])];
+            for (let index = 0; index < url.length; index++) {
+                const response = await fetch(url[index].url);
+                const data = await response.text();
+                textLength += data.length;
+                text.push(data);
+
+            }
         }
         //19 = reply
         if (discordMessage?.type === 19) {
             const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
             const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId)
-            if (referenceMessage?.attachments?.size > 0) {
-                await processAttachments(referenceMessage.attachments);
+            const url = [...(referenceMessage.attachments.filter(data => data.contentType.match(/text/i))?.values() || [])];
+            for (let index = 0; index < url.length; index++) {
+                const response = await fetch(url[index].url);
+                const data = await response.text();
+                textLength += data.length;
+                text.push(data);
+
             }
         }
         let result = this.splitTextByTokens(text.join('\n'), splitLength);
@@ -1492,11 +1442,11 @@ class CommandHandler {
             };
         }
 
-        const { fileText, sendfile, text } = await translateAi.handleTranslate(
+        const { filetext, sendfile, text } = await translateAi.handleTranslate(
             inputStr, discordMessage, discordClient, userid, modelConfig, modelType
         );
 
-        fileText && (rply.fileText = fileText);
+        filetext && (rply.fileText = filetext);
         sendfile && (rply.fileLink = [sendfile]);
         text && (rply.text = text);
 

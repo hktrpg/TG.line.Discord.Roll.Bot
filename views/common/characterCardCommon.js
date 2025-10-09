@@ -36,7 +36,7 @@ function debugLog(message, type = 'info') {
             .replaceAll(/userPassword['":\s]*['"]\w+['"]/gi, 'userPassword: "[REDACTED]"')
             .replaceAll(/auth['":\s]*['"]\w+['"]/gi, 'auth: "[REDACTED]"');
     }
-    console.log(`[${new Date().toISOString()}] [${type}] ${filteredMessage}`);
+    //console.log(`[${new Date().toISOString()}] [${type}] ${filteredMessage}`);
 }
 
 // Socket.io Setup

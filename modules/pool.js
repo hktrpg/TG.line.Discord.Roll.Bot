@@ -91,15 +91,13 @@ class PoolRegistry {
 // Global singleton registry
 const registry = new PoolRegistry();
 
-// Backward compatibility: sharedPool behaves as the 'image' pool by default
-const sharedPool = registry.get('image');
 
 function getPool(name, concurrency) {
     return registry.get(name, concurrency);
 }
 
 // Backward compatibility export names
-const ImagePool = Pool;
+
 
 module.exports = {
     // Core constructs
@@ -108,9 +106,6 @@ module.exports = {
     PoolRegistry,
     // API
     getPool,
-    // Back-compat
-    sharedPool,
-    ImagePool
 };
 
 

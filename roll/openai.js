@@ -337,11 +337,8 @@ class RetryManager {
 
     // Log retry attempt
     logRetry(error, errorType, delay, modelTier) {
-        console.log(`[RETRY] ${errorType} Error: ${error.status || error.code} - ${error.message}`);
-        console.log(`[RETRY] Global: ${this.globalRetryCount}, Model: ${this.modelRetryCount}, Delay: ${delay}s`);
-        if (modelTier === 'LOW') {
-            console.log(`[RETRY] Current LOW model: ${this.currentModelIndex + 1}/${AI_CONFIG.MODELS.LOW.models.length}`);
-        }
+        //console.log(`[RETRY] ${errorType} Error: ${error.status || error.code} - ${error.message}`);
+        //console.log(`[RETRY] Global: ${this.globalRetryCount}, Model: ${this.modelRetryCount}, Delay: ${delay}s`);
     }
 
     // Mark a model as cooling down for given seconds
@@ -636,7 +633,7 @@ class OpenAI {
         if (nextIdx === null) {
             const minRemain = this.retryManager.minCooldownRemaining(models) + (RETRY_CONFIG.MODEL_CYCLING.allModelsCooldownPadding || 0);
             const wait = this.retryManager.jitterDelay(minRemain);
-            console.log(`[MODEL_CYCLE] All LOW models cooling down; waiting ${wait}s before retrying`);
+            //console.log(`[MODEL_CYCLE] All LOW models cooling down; waiting ${wait}s before retrying`);
             await this.retryManager.waitSeconds(wait);
             return { waitedSeconds: wait };
         }
@@ -645,7 +642,7 @@ class OpenAI {
         const currentModel = models[this.retryManager.currentModelIndex];
 
         if (currentModel) {
-            console.log(`[MODEL_CYCLE] Cycling to LOW model ${this.retryManager.currentModelIndex + 1}/${models.length}: ${currentModel.display} (${currentModel.name})`);
+            //console.log(`[MODEL_CYCLE] Cycling to LOW model ${this.retryManager.currentModelIndex + 1}/${models.length}: ${currentModel.display} (${currentModel.name})`);
         } else {
             console.error(`[MODEL_CYCLE] Invalid model at index ${this.retryManager.currentModelIndex}`);
             this.retryManager.currentModelIndex = 0; // Reset to first model
@@ -678,7 +675,7 @@ class OpenAI {
         if (nextIdx === null) {
             const minRemain = this.retryManager.minCooldownRemaining(validModels) + (RETRY_CONFIG.MODEL_CYCLING.allModelsCooldownPadding || 0);
             const wait = this.retryManager.jitterDelay(minRemain);
-            console.log(`[TRANSLATE_MODEL_CYCLE] All valid LOW models cooling down; waiting ${wait}s before retrying`);
+            //console.log(`[TRANSLATE_MODEL_CYCLE] All valid LOW models cooling down; waiting ${wait}s before retrying`);
             await this.retryManager.waitSeconds(wait);
             return { waitedSeconds: wait };
         }
@@ -687,7 +684,7 @@ class OpenAI {
         const currentModel = validModels[this.retryManager.currentModelIndex];
 
         if (currentModel) {
-            console.log(`[TRANSLATE_MODEL_CYCLE] Cycling to valid LOW model ${this.retryManager.currentModelIndex + 1}/${validModels.length}: ${currentModel.display} (${currentModel.name}) - TOKEN: ${currentModel.token}`);
+            //console.log(`[TRANSLATE_MODEL_CYCLE] Cycling to valid LOW model ${this.retryManager.currentModelIndex + 1}/${validModels.length}: ${currentModel.display} (${currentModel.name}) - TOKEN: ${currentModel.token}`);
         } else {
             console.error(`[TRANSLATE_MODEL_CYCLE] Invalid model at index ${this.retryManager.currentModelIndex}`);
             this.retryManager.currentModelIndex = 0; // Reset to first model
@@ -908,7 +905,7 @@ class TranslateAi extends OpenAI {
     // Process PDF files and extract text with timeout and OCR fallback
     async processPdfFile(buffer, filename = 'document.pdf', discordMessage = null, userid = null) {
         try {
-            console.log(`[PDF_PROCESS] Starting PDF processing for ${filename}`);
+           // console.log(`[PDF_PROCESS] Starting PDF processing for ${filename}`);
             
             // Create timeout promise
             const timeoutPromise = new Promise((_, reject) => {
@@ -923,9 +920,6 @@ class TranslateAi extends OpenAI {
             // Race between processing and timeout
             const data = await Promise.race([processPromise, timeoutPromise]);
             
-            console.log(`[PDF_PROCESS] PDF parsing completed for ${filename}`);
-            console.log(`[PDF_PROCESS] Extracted text length: ${data.text.trim().length} characters`);
-            console.log(`[PDF_PROCESS] First 200 chars:`, data.text.trim().substring(0, 200));
             
             // Check if extracted text is too short (likely a scanned PDF)
             if (!data.text || data.text.trim().length < 10) {
@@ -940,7 +934,7 @@ class TranslateAi extends OpenAI {
                 return await this.processPdfWithOcr(buffer, filename, discordMessage, userid);
             }
             
-            console.log(`[PDF_PROCESS] PDF text extraction successful for ${filename}`);
+            //console.log(`[PDF_PROCESS] PDF text extraction successful for ${filename}`);
             return data.text.trim();
         } catch (error) {
             console.error('[PDF_PROCESS] Error processing PDF:', error);
@@ -951,7 +945,7 @@ class TranslateAi extends OpenAI {
     // Process PDF with OCR by converting pages to images first
     async processPdfWithOcr(buffer, filename = 'document.pdf', discordMessage = null, userid = null) {
         try {
-            console.log(`[PDF_OCR_PROCESS] Starting PDF to image conversion for ${filename}`);
+            //console.log(`[PDF_OCR_PROCESS] Starting PDF to image conversion for ${filename}`);
             
             // Create timeout promise for PDF to image conversion
             const timeoutPromise = new Promise((_, reject) => {
@@ -974,7 +968,7 @@ class TranslateAi extends OpenAI {
                 timeoutPromise
             ]);
             
-            console.log(`[PDF_OCR_PROCESS] PDF converted to ${pngPages.length} PNG images for ${filename}`);
+            //console.log(`[PDF_OCR_PROCESS] PDF converted to ${pngPages.length} PNG images for ${filename}`);
             
             if (!pngPages || pngPages.length === 0) {
                 throw new Error('no text');
@@ -986,8 +980,8 @@ class TranslateAi extends OpenAI {
                 const pageData = pngPages[i];
                 const pageNumber = pageData.pageNumber;
                 
-                console.log(`[PDF_OCR_PROCESS] Processing page ${pageNumber}/${pngPages.length} for ${filename}`);
-                console.log(`[PDF_OCR_PROCESS] Page ${pageNumber} dimensions: ${pageData.width}x${pageData.height}`);
+                //console.log(`[PDF_OCR_PROCESS] Processing page ${pageNumber}/${pngPages.length} for ${filename}`);
+                //console.log(`[PDF_OCR_PROCESS] Page ${pageNumber} dimensions: ${pageData.width}x${pageData.height}`);
                 
                 if (discordMessage && userid) {
                     await this.sendProgressMessage(discordMessage, userid, 
@@ -1011,7 +1005,7 @@ class TranslateAi extends OpenAI {
             }
             
             const combinedText = allTexts.join('\n\n');
-            console.log(`[PDF_OCR_PROCESS] PDF OCR completed for ${filename}, extracted ${combinedText.length} characters`);
+            //console.log(`[PDF_OCR_PROCESS] PDF OCR completed for ${filename}, extracted ${combinedText.length} characters`);
             
             // Send completion message
             if (discordMessage && userid) {
@@ -1029,7 +1023,7 @@ class TranslateAi extends OpenAI {
     // Process image buffer with OCR (separate from file processing)
     async processImageBufferWithOcr(imageBuffer, filename = 'image', discordMessage = null, userid = null) {
         try {
-            console.log(`[OCR_BUFFER_PROCESS] Starting OCR for ${filename}`);
+            //console.log(`[OCR_BUFFER_PROCESS] Starting OCR for ${filename}`);
             
             // Create timeout promise
             const timeoutPromise = new Promise((_, reject) => {
@@ -1048,7 +1042,7 @@ class TranslateAi extends OpenAI {
                     logger: m => {
                         if (m.status === 'recognizing text') {
                             const progress = Math.round(m.progress * 100);
-                            console.log(`[OCR_BUFFER_PROCESS] Progress: ${progress}%`);
+                            //console.log(`[OCR_BUFFER_PROCESS] Progress: ${progress}%`);
                             
                             // Send progress updates every 25%
                             if (discordMessage && userid && progress >= lastProgressUpdate + 25) {
@@ -1068,7 +1062,7 @@ class TranslateAi extends OpenAI {
                 throw new Error('no text');
             }
             
-            console.log(`[OCR_BUFFER_PROCESS] OCR completed for ${filename}`);
+            //console.log(`[OCR_BUFFER_PROCESS] OCR completed for ${filename}`);
             return text.trim();
         } catch (error) {
             console.error('[OCR_BUFFER_PROCESS] Error processing image buffer:', error);
@@ -1079,7 +1073,7 @@ class TranslateAi extends OpenAI {
     // Process DOCX files and extract text with timeout
     async processDocxFile(buffer, filename = 'document.docx') {
         try {
-            console.log(`[DOCX_PROCESS] Starting DOCX processing for ${filename}`);
+            //console.log(`[DOCX_PROCESS] Starting DOCX processing for ${filename}`);
             
             // Create timeout promise
             const timeoutPromise = new Promise((_, reject) => {
@@ -1098,7 +1092,7 @@ class TranslateAi extends OpenAI {
                 throw new Error('no text');
             }
             
-            console.log(`[DOCX_PROCESS] DOCX processing completed for ${filename}`);
+            //console.log(`[DOCX_PROCESS] DOCX processing completed for ${filename}`);
             return result.value.trim();
         } catch (error) {
             console.error('[DOCX_PROCESS] Error processing DOCX:', error);
@@ -1109,7 +1103,7 @@ class TranslateAi extends OpenAI {
     // Process image files using OCR with timeout and progress updates
     async processImageFile(buffer, filename = 'image', discordMessage = null, userid = null) {
         try {
-            console.log(`[OCR_PROCESS] Starting OCR for ${filename}`);
+            //console.log(`[OCR_PROCESS] Starting OCR for ${filename}`);
             
             // Send initial OCR start message
             if (discordMessage && userid) {
@@ -1561,7 +1555,7 @@ class TranslateAi extends OpenAI {
                     waitSec = Math.max(waitSec, minRemain + padding);
                 }
                 waitSec = this.retryManager.jitterDelay(waitSec);
-                console.log(`[TRANSLATE_CHUNK_RETRY] idx=${index} window=${windowAttempt} wait=${waitSec}s`);
+                //console.log(`[TRANSLATE_CHUNK_RETRY] idx=${index} window=${windowAttempt} wait=${waitSec}s`);
 
                 await this.retryManager.waitSeconds(waitSec);
                 // Open a fresh retry window
@@ -1671,8 +1665,8 @@ class TranslateAi extends OpenAI {
         response = response.join('\n');
         
         // Debug logging for final response
-        console.log(`[HANDLE_TRANSLATE] Final response length: ${response.length}`);
-        console.log(`[HANDLE_TRANSLATE] First 200 chars of response:`, response.substring(0, 200));
+        //console.log(`[HANDLE_TRANSLATE] Final response length: ${response.length}`);
+        //console.log(`[HANDLE_TRANSLATE] First 200 chars of response:`, response.substring(0, 200));
         
         if (!response || response.trim().length === 0) {
             console.error(`[HANDLE_TRANSLATE] Empty final response!`);
@@ -1808,9 +1802,7 @@ class TranslateAi extends OpenAI {
                 }
             }
         }
-        try {
-            console.log(`[TRANSLATE_SPLIT] chunks=${results.length}, tokenLimit=${dynamicTokenLimit}, maxCharLimit=${maxCharLimit}`);
-        } catch {}
+       
         return results;
     }
 

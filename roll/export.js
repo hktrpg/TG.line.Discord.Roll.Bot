@@ -28,6 +28,8 @@ const fs = require('fs').promises;
 const stream = require('stream');
 const { promisify } = require('util');
 const pipeline = promisify(stream.pipeline);
+const { getPool } = require('../modules/pool');
+const htmlPool = getPool('html');
 const { createWriteStream } = require('fs');
 const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 const moment = require('moment-timezone');
@@ -487,10 +489,10 @@ const rollDiceCommand = async function ({
             contentStream.push(newValue);
             contentStream.push(null);
 
-            await pipeline(
+            await htmlPool.run(() => pipeline(
                 contentStream,
                 writeStream
-            );
+            ));
 
             rply.discordExportHtml = [
                 tempA + '_' + randomLink,
@@ -642,10 +644,10 @@ const rollDiceCommand = async function ({
             }
             contentStream.push(null);
 
-            await pipeline(
+            await htmlPool.run(() => pipeline(
                 contentStream,
                 writeStream
-            );
+            ));
 
             rply.discordExport = channelid + '_' + hour + minutes + seconds;
             rply.text += `已私訊你 頻道  ${discordMessage.channel.name}  的聊天紀錄

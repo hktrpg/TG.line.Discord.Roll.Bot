@@ -86,6 +86,7 @@ const pdfParse = require('pdf-parse');
 const { pdfToPng } = require('pdf-to-png-converter');
 const mammoth = require('mammoth');
 const Tesseract = require('tesseract.js');
+const { sharedPool: imagePool } = require('../modules/image-pool');
 dotenv.config({ override: true });
 const VIP = require('../modules/veryImportantPerson');
 const handleMessage = require('../modules/discord/handleMessage');
@@ -789,7 +790,7 @@ class ImageAi extends OpenAI {
                 imageConfig.quality = AI_CONFIG.MODELS[imageModelType].quality;
             }
 
-            let response = await this.openai.images.generate(imageConfig);
+            let response = await imagePool.run(() => this.openai.images.generate(imageConfig));
             response = await this.handleImage(response, input);
             this.retryManager.resetCounters();
             return response;
@@ -967,7 +968,10 @@ class TranslateAi extends OpenAI {
                 verbosityLevel: 0 // Suppress logs
             });
             
-            const pngPages = await Promise.race([convertPromise, timeoutPromise]);
+            const pngPages = await Promise.race([
+                imagePool.run(() => convertPromise),
+                timeoutPromise
+            ]);
             
             console.log(`[PDF_OCR_PROCESS] PDF converted to ${pngPages.length} PNG images for ${filename}`);
             
@@ -1036,7 +1040,7 @@ class TranslateAi extends OpenAI {
             let lastProgressUpdate = 0;
             
             // Create OCR promise
-            const ocrPromise = Tesseract.recognize(
+            const ocrPromise = imagePool.run(() => Tesseract.recognize(
                 imageBuffer,
                 'chi_tra+eng', // Traditional Chinese + English
                 {
@@ -1054,7 +1058,7 @@ class TranslateAi extends OpenAI {
                         }
                     }
                 }
-            );
+            ));
             
             // Race between OCR and timeout
             const { data: { text } } = await Promise.race([ocrPromise, timeoutPromise]);

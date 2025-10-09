@@ -12,6 +12,7 @@ const fs = require('fs');
 const path = require('path');
 const jimp = require('jimp');
 const sharp = require('sharp');
+const { sharedPool: imagePool } = require('../modules/image-pool');
 const { SlashCommandBuilder } = require('discord.js');
 const axios = require('axios').default;
 const GeoPattern = require('geopattern');
@@ -226,10 +227,10 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
 }
 
 async function maskImage(path, maskPath) {
-    const image = await jimp.read(path);
-    const mask = await jimp.read(maskPath);
+    const image = await imagePool.run(() => jimp.read(path));
+    const mask = await imagePool.run(() => jimp.read(maskPath));
     image.mask(mask, 0, 0)
-    return await image.getBufferAsync(jimp.MIME_PNG);
+    return await imagePool.run(() => image.getBufferAsync(jimp.MIME_PNG));
     //    return await image.writeAsync('./assets/token/test2345.png'); // Returns Promise
 }
 
@@ -372,21 +373,21 @@ const getImage = async url => {
 const tokernMaker = async (imageLocation, name) => {
     try {
 
-        let image = await sharp(imageLocation).resize({ height: 387, width: 375, fit: 'outside' })
-        await image.toFile(`./temp/new_${name}`)
+        let image = await imagePool.run(() => sharp(imageLocation).resize({ height: 387, width: 375, fit: 'outside' }))
+        await imagePool.run(() => image.toFile(`./temp/new_${name}`))
         let newImage = await sharp((`./temp/new_${name}`))
-        let metadata = await newImage.metadata();
+        let metadata = await imagePool.run(() => newImage.metadata());
         const width = Math.min(metadata.width, 375);
         const height = Math.min(metadata.height, 387);
         const left = ((metadata.width - 375) / 2) < 0 ? sharp.gravity.center : Number.parseInt((metadata.width - 375) / 2);
         const top = ((metadata.height - 387) / 2) < 0 ? sharp.gravity.center : Number.parseInt((metadata.height - 387) / 2);
-        newImage = await newImage.extract({ left, top, width, height }).toBuffer()
-        newImage = await sharp('./views/image/ONLINE_TOKEN.png')
+        newImage = await imagePool.run(() => newImage.extract({ left, top, width, height }).toBuffer())
+        newImage = await imagePool.run(() => sharp('./views/image/ONLINE_TOKEN.png')
             .composite(
                 [{ input: newImage, blend: 'saturate', top: 28, left: 73 }
                 ]
             )
-            .toBuffer()
+            .toBuffer())
         fs.unlinkSync(`./temp/new_${name}`);
         return newImage;
     } catch (error) {
@@ -398,21 +399,21 @@ const tokernMaker = async (imageLocation, name) => {
 const tokernMaker2 = async (imageLocation, name) => {
     try {
 
-        let image = await sharp(imageLocation).resize({ height: 520, width: 520, fit: 'outside' })
-        await image.toFile(`./temp/new_${name}`)
+        let image = await imagePool.run(() => sharp(imageLocation).resize({ height: 520, width: 520, fit: 'outside' }))
+        await imagePool.run(() => image.toFile(`./temp/new_${name}`))
         let newImage = await sharp((`./temp/new_${name}`))
-        let metadata = await newImage.metadata();
+        let metadata = await imagePool.run(() => newImage.metadata());
         const width = Math.min(metadata.width, 520);
         const height = Math.min(metadata.height, 520);
         const left = ((metadata.width - 520) / 2) < 0 ? sharp.gravity.center : Number.parseInt((metadata.width - 520) / 2);
         const top = ((metadata.height - 520) / 2) < 0 ? sharp.gravity.center : Number.parseInt((metadata.height - 520) / 2);
-        newImage = await newImage.extract({ left, top, width, height }).toBuffer()
-        newImage = await sharp('./views/image/ONLINE TOKEN_BASE.png')
+        newImage = await imagePool.run(() => newImage.extract({ left, top, width, height }).toBuffer())
+        newImage = await imagePool.run(() => sharp('./views/image/ONLINE TOKEN_BASE.png')
             .composite(
                 [{ input: newImage, blend: 'saturate', top: 0, left: 0 }
                 ]
             )
-            .toBuffer()
+            .toBuffer())
         fs.unlinkSync(`./temp/new_${name}`);
         return newImage;
     } catch (error) {
@@ -423,21 +424,21 @@ const tokernMaker2 = async (imageLocation, name) => {
 const tokernMaker3 = async (imageLocation, name) => {
     try {
 
-        let image = await sharp(imageLocation).resize({ height: 520, width: 520, fit: 'outside' })
-        await image.toFile(`./temp/new_${name}`)
+        let image = await imagePool.run(() => sharp(imageLocation).resize({ height: 520, width: 520, fit: 'outside' }))
+        await imagePool.run(() => image.toFile(`./temp/new_${name}`))
         let newImage = await sharp((`./temp/new_${name}`))
-        let metadata = await newImage.metadata();
+        let metadata = await imagePool.run(() => newImage.metadata());
         const width = Math.min(metadata.width, 520);
         const height = Math.min(metadata.height, 520);
         const left = ((metadata.width - 520) / 2) < 0 ? sharp.gravity.center : Number.parseInt((metadata.width - 520) / 2);
         const top = ((metadata.height - 520) / 2) < 0 ? sharp.gravity.center : Number.parseInt((metadata.height - 520) / 2);
-        newImage = await newImage.extract({ left, top, width, height }).toBuffer()
-        newImage = await sharp('./views/image/ONLINE TOKEN_BASE.png')
+        newImage = await imagePool.run(() => newImage.extract({ left, top, width, height }).toBuffer())
+        newImage = await imagePool.run(() => sharp('./views/image/ONLINE TOKEN_BASE.png')
             .composite(
                 [
                     { input: newImage, blend: 'saturate', top: 0, left: 0 },
                 ])
-            .toBuffer()
+            .toBuffer())
         fs.unlinkSync(`./temp/new_${name}`);
         return newImage;
     } catch (error) {
@@ -456,7 +457,7 @@ async function addTextOnImage(token, text = '', text2 = '', name) {
                     left: 0,
                 },
             ])
-        await image.toFile(`./temp/finally_${name}`)
+        await imagePool.run(() => image.toFile(`./temp/finally_${name}`))
         return true;
     } catch {
         return null;
@@ -474,7 +475,7 @@ async function addTextOnImage2(token, text = ' ', text2 = ' ', name) {
                     left: 0,
                 },
             ])
-        await image.toFile(`./temp/finally_${name}`)
+        await imagePool.run(() => image.toFile(`./temp/finally_${name}`))
         return true;
     } catch {
         return null;

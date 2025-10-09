@@ -126,7 +126,8 @@ const RETRY_CONFIG = {
         keysetCycleDelay: 60,       // Delay when cycling through all keys
         batchDelay: 30,             // Delay between consecutive batch requests
         modelCycleDelay: 30,        // Delay when cycling through models
-        jitterRatio: 0.25           // +/- percentage jitter applied to delays
+        jitterRatio: 0.25,          // +/- percentage jitter applied to delays
+        requestTimeoutSec: 45       // Per-request timeout to avoid hangs
     },
     
     // Model cycling settings for LOW tier
@@ -245,6 +246,7 @@ class RetryManager {
     // Determine error type based on status code
     getErrorType(error) {
         const status = error.status || error.code;
+        const message = (error?.message || '').toLowerCase();
         
         for (const [type, config] of Object.entries(RETRY_CONFIG.ERROR_TYPES)) {
             if (Array.isArray(config.status)) {
@@ -253,7 +255,16 @@ class RetryManager {
                 return { type, config };
             }
         }
-        
+        // Map common network/JSON parse issues to SERVER_ERROR for retries
+        if (
+            message.includes('invalid json') ||
+            message.includes('unexpected end of json') ||
+            message.includes('failed to fetch') ||
+            message.includes('network') ||
+            message.includes('timeout')
+        ) {
+            return { type: 'SERVER_ERROR', config: RETRY_CONFIG.ERROR_TYPES.SERVER_ERROR };
+        }
         return { type: 'UNKNOWN', config: { baseDelay: RETRY_CONFIG.GENERAL.defaultDelay } };
     }
 
@@ -263,6 +274,7 @@ class RetryManager {
         
         // Handle undefined config for unknown error types
         if (!config) {
+            // Unknown errors still retry with default delay
             return RETRY_CONFIG.GENERAL.defaultDelay;
         }
         
@@ -278,7 +290,8 @@ class RetryManager {
                     config.maxDelay
                 );
             default:
-                return config.baseDelay || RETRY_CONFIG.GENERAL.defaultDelay;
+                // Retry other/unknown errors with at least base delay
+                return (config.baseDelay || RETRY_CONFIG.GENERAL.defaultDelay);
         }
     }
 
@@ -691,8 +704,8 @@ class OpenAI {
 
         this.retryManager.globalRetryCount++;
         
-        // Handle model cycling for LOW tier rate limits
-        if (this.retryManager.shouldCycleModel(modelTier, errorType)) {
+        // Handle model cycling for LOW tier rate limits and also for generic server/unknown errors
+        if (this.retryManager.shouldCycleModel(modelTier, errorType) || (modelTier === 'LOW' && (errorType === 'SERVER_ERROR' || errorType === 'UNKNOWN'))) {
             // Put the failed model on cooldown to avoid immediate reuse
             const failedModel = isTranslation ? this.getCurrentModelForTranslation(modelTier) : this.getCurrentModel(modelTier);
             if (failedModel?.name) {
@@ -722,7 +735,7 @@ class OpenAI {
         
         // Calculate and apply retry delay
         const retryCount = Math.floor(this.retryManager.globalRetryCount / this.apiKeys.length);
-        let delay = this.retryManager.calculateRetryDelay(errorType, retryCount);
+            let delay = this.retryManager.calculateRetryDelay(errorType, retryCount);
         // Respect Retry-After header if provided by provider
         const headerRetryAfter = Number.parseInt(error?.response?.headers?.['retry-after'] || error?.headers?.['retry-after']);
         if (Number.isFinite(headerRetryAfter) && headerRetryAfter > 0) {
@@ -1360,14 +1373,20 @@ class TranslateAi extends OpenAI {
 
             const userContent = `PREVIOUS_CONTEXT (already translated into Traditional Chinese):\n---\n${previousContext || 'N/A'}\n---\n\nNEXT_CONTEXT (original language):\n---\n${nextContext || 'N/A'}\n---\n\nTEXT_TO_TRANSLATE:\n---\n${inputStr}\n---`;
 
+            // Per-request timeout to avoid hangs
+            const perRequestTimeoutMs = (RETRY_CONFIG.GENERAL.requestTimeoutSec || 45) * 1000;
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), perRequestTimeoutMs);
             let response = await this.openai.chat.completions.create({
                 model: modelName,
                 temperature: 0.2,
                 messages: [
                     { role: 'system', content: systemContent },
                     { role: 'user', content: userContent }
-                ]
+                ],
+                signal: controller.signal
             })
+            clearTimeout(timer);
             this.retryManager.resetCounters();
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
                 const dataStr = response.data;

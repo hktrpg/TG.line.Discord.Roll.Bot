@@ -574,8 +574,8 @@ class Digimon {
                 }
             }
             
-            // Add next digimon to queue (limit to 3 per level)
-            for (let i = 0; i < Math.min(nextDigimon.length, 3); i++) {
+            // Add next digimon to queue (limit to 8 per level)
+            for (let i = 0; i < Math.min(nextDigimon.length, 8); i++) {
                 const next = nextDigimon[i];
                 const newVisited = new Set(visited);
                 newVisited.add(next.id);

@@ -524,6 +524,16 @@ class Digimon {
         const startTime = Date.now();
         const maxTime = 5000; // Reasonable timeout
         
+        // Check for null/undefined inputs
+        if (!fromDigimon || !toDigimon) {
+            return [];
+        }
+        
+        // Check if it's the same Digimon
+        if (fromDigimon.id === toDigimon.id) {
+            return [[fromDigimon]];
+        }
+        
         // First, check for direct evolution/devolutions
         if (fromDigimon.evolutions && fromDigimon.evolutions.includes(toDigimon.name)) {
             return [[fromDigimon, toDigimon]];

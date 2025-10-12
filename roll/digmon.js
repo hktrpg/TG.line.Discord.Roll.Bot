@@ -211,6 +211,8 @@ class Digimon {
         if (!this.worldData || !this.worldData.locations) return [];
         
         const personalities = new Set();
+        
+        // First, check if the digimon exists directly in world data
         for (const location in this.worldData.locations) {
             const digimonList = this.worldData.locations[location].digimon;
             for (const digimon of digimonList) {
@@ -219,6 +221,16 @@ class Digimon {
                         personalities.add(p);
                     }
                 }
+            }
+        }
+        
+        // If not found directly, check if it's a stage 1 digimon and derive personality lineage
+        if (personalities.size === 0) {
+            const digimon = this.digimonData.find(d => d.name === digimonName);
+            if (digimon && digimon.stage === '1') {
+                // For stage 1 digimon, create personality lineage name
+                const personalityLineage = `${digimonName}系譜`;
+                personalities.add(personalityLineage);
             }
         }
         
@@ -237,6 +249,28 @@ class Digimon {
         }
         
         return locations;
+    }
+
+    getLocationsByPersonality(personality) {
+        if (!this.worldData || !this.worldData.locations) return [];
+        
+        const locationDetails = [];
+        for (const location in this.worldData.locations) {
+            const digimonList = this.worldData.locations[location].digimon;
+            const matchingDigimon = digimonList.filter(d => 
+                d.personalities && d.personalities.includes(personality)
+            );
+            
+            if (matchingDigimon.length > 0) {
+                const digimonNames = matchingDigimon.map(d => d.name);
+                locationDetails.push({
+                    location: location,
+                    digimon: digimonNames
+                });
+            }
+        }
+        
+        return locationDetails;
     }
 
     static showDigimon(digimon, digimonInstance) {
@@ -300,12 +334,27 @@ class Digimon {
             const personalities = this.getPersonalities(digimon.name);
             if (personalities.length > 0) {
                 result += `   可能基礎系譜：${personalities.join(', ')}\n`;
+                
+                // For stage 1 digimon, show detailed location information
+                if (digimon.stage === '1' && personalities.length > 0) {
+                    for (const personality of personalities) {
+                        const locationDetails = this.getLocationsByPersonality(personality);
+                        if (locationDetails.length > 0) {
+                            result += `   就顯示${personality}有${locationDetails.length}個\n`;
+                            for (const detail of locationDetails) {
+                                result += `   ${detail.location}(${detail.digimon.join(', ')})\n`;
+                            }
+                        }
+                    }
+                }
             }
             
-            // Show locations only if exists
-            const locations = this.getLocations(digimon.name);
-            if (locations.length > 0) {
-                result += `   出現地點：${locations.join(', ')}\n`;
+            // Show locations only if exists (for non-stage 1 digimon)
+            if (digimon.stage !== '1') {
+                const locations = this.getLocations(digimon.name);
+                if (locations.length > 0) {
+                    result += `   出現地點：${locations.join(', ')}\n`;
+                }
             }
             
             result += '\n';
@@ -320,7 +369,7 @@ class Digimon {
         const maxTime = 2000; // 2 second timeout
         const maxSearches = 500; // Increased search limit
         
-        const findPath = (current, target, currentPath = [], visited = new Set(), depth = 0, searchCount = { count: 0 }) => {
+        const findPath = (current, target, currentPath = [], visited = new Set(), depth = 0, searchCount) => {
             // Timeout check
             if (Date.now() - startTime > maxTime) return [];
             
@@ -524,8 +573,8 @@ class Digimon {
             const nextDigimon = [];
             
             // Determine search priority based on target stage
-            const currentStage = parseInt(current.stage);
-            const targetStage = parseInt(toDigimon.stage);
+            const currentStage = Number.parseInt(current.stage);
+            const targetStage = Number.parseInt(toDigimon.stage);
             const shouldPrioritizeDevolutions = targetStage < currentStage;
             
             if (shouldPrioritizeDevolutions) {

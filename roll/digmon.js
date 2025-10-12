@@ -352,13 +352,18 @@ class Digimon {
     // Map Chinese attribute name to resistance key
     getAttributeKeyFromCN(attributeCN) {
         if (!attributeCN) return null;
-        const map = {
-            '疫苗種': 'Vaccine',
-            '資料種': 'Data',
-            '病毒種': 'Virus',
-            'No Data': null
-        };
-        return map[attributeCN] || null;
+		const map = {
+			// Traditional
+			'疫苗種': 'Vaccine',
+			'數據種': 'Data',
+			'病毒種': 'Virus',
+			// English passthrough
+			'Vaccine': 'Vaccine',
+			'Data': 'Data',
+			'Virus': 'Virus',
+			'No Data': null
+		};
+		return map[attributeCN] || null;
     }
 
     // Get elemental multiplier on target for a given skill element
@@ -508,9 +513,10 @@ class Digimon {
             const counterDigimon = digimonInstance.getCounterDigimon(digimon);
             if (counterDigimon.length > 0) {
                 rply += `\n------特殊技能克制------\n`;
-                for (const counter of counterDigimon) {
-                    rply += `• ${counter.name} (${digimonInstance.getStageName(counter.stage)}) - 傷害倍率: ${counter.counterValue}\n`;
-                }
+				for (const counter of counterDigimon) {
+					const aoeTag = counter.isAoE ? ' (全體)' : '';
+					rply += `• ${counter.name}${aoeTag} (${digimonInstance.getStageName(counter.stage)}) - 傷害倍率: ${counter.counterValue}\n`;
+				}
             }
 
             if (digimon.mix_evolution) {

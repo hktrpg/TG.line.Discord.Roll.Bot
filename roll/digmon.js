@@ -330,13 +330,10 @@ class Digimon {
                 result += `   基礎個性：${digimon.personality}\n`;
             }
             
-            // Show possible personalities from world data only if exists
-            const personalities = this.getPersonalities(digimon.name);
-            if (personalities.length > 0) {
-                result += `   可能基礎系譜：${personalities.join(', ')}\n`;
-                
-                // For stage 1 digimon, show detailed location information
-                if (digimon.stage === '1' && personalities.length > 0) {
+            // For stage 1 digimon, show detailed location information
+            if (digimon.stage === '1') {
+                const personalities = this.getPersonalities(digimon.name);
+                if (personalities.length > 0) {
                     for (const personality of personalities) {
                         const locationDetails = this.getLocationsByPersonality(personality);
                         if (locationDetails.length > 0) {

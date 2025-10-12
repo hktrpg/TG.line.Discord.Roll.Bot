@@ -28,6 +28,8 @@ const fs = require('fs').promises;
 const stream = require('stream');
 const { promisify } = require('util');
 const pipeline = promisify(stream.pipeline);
+const { getPool } = require('../modules/pool');
+const htmlPool = getPool('html');
 const { createWriteStream } = require('fs');
 const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 const moment = require('moment-timezone');
@@ -103,6 +105,8 @@ const rollDiceCommand = async function ({
         type: 'text',
         text: ''
     };
+    const limitMatch = inputStr.match(/--limit\s+(\d+)/);
+    const messageLimit = limitMatch ? parseInt(limitMatch[1], 10) : null;
     let C, M;
     let data = "";
     let totalSize = 0;
@@ -138,59 +142,7 @@ const rollDiceCommand = async function ({
         }
     }
 
-    async function lots_of_messages_getter_HTML(channel, demo, members) {
-        const sum_messages = [];
-        let last_id;
-        let totalSize = 0;
-
-        while (true) {
-            const options = {
-                limit: 100
-            };
-            if (last_id) {
-                options.before = last_id;
-            }
-            const messages = await channel.messages.fetch(options);
-            totalSize += Math.max(messages.size, 0);
-
-            for (const element of messages.values()) {
-                let temp;
-                if (element.type === 0 || element.type === 19) {
-                    const content = await replaceMentions(element.content, members);
-                    temp = {
-                        timestamp: element.createdTimestamp,
-                        contact: content,
-                        userName: element.author.username,
-                        isbot: element.author.bot
-                    };
-                } else {
-                    temp = {
-                        timestamp: element.createdTimestamp,
-                        contact: element.author.username + '\n' + element.type,
-                        userName: '系統信息',
-                        isbot: true
-                    };
-                }
-                sum_messages.push(temp);
-            }
-
-            last_id = messages.last().id;
-            if (messages.size != 100) {
-                break;
-            }
-            if (demo) {
-                if (totalSize >= 500) {
-                    break;
-                }
-            }
-        }
-
-        return {
-            sum_messages: sum_messages,
-            totalSize: totalSize
-        };
-    }
-    async function lots_of_messages_getter_TXT(channel, demo, members) {
+    async function lots_of_messages_getter_HTML(channel, demo, members, messageLimit) {
         const sum_messages = [];
         let last_id;
         let totalSize = 0;
@@ -208,6 +160,105 @@ const rollDiceCommand = async function ({
             for (const element of messages.values()) {
                 let temp;
                 const content = await replaceMentions(element.content, members);
+                const embeds = (element.embeds && element.embeds.length > 0) ? element.embeds.map(embed => embed.toJSON()) : [];
+                const attachments = (element.attachments && element.attachments.size > 0) ? element.attachments.map(attachment => attachment.toJSON()) : [];
+
+                // Handle replied-to message
+                let replyData = null;
+                if (element.referenced_message) {
+                    const repliedTo = element.referenced_message;
+                    const repliedToContent = await replaceMentions(repliedTo.content, members);
+                    const repliedToEmbeds = (repliedTo.embeds && repliedTo.embeds.length > 0) ? repliedTo.embeds.map(embed => embed.toJSON()) : [];
+                    const repliedToAttachments = (repliedTo.attachments && repliedTo.attachments.size > 0) ? repliedTo.attachments.map(attachment => attachment.toJSON()) : [];
+                    replyData = {
+                        contact: repliedToContent,
+                        userName: repliedTo.author.username,
+                        isbot: repliedTo.author.bot,
+                        attachments: repliedToAttachments,
+                        embeds: repliedToEmbeds
+                    };
+                }
+
+                if (element.type === 0 || element.type === 19 || element.type === 'DEFAULT' || element.type === 'REPLY') {
+                    temp = {
+                        timestamp: element.createdTimestamp,
+                        contact: content,
+                        userName: element.author.username,
+                        isbot: element.author.bot,
+                        attachments: attachments,
+                        embeds: embeds,
+                        reply_to: replyData
+                    };
+                } else if (element.interaction && element.interaction.commandName) {
+                    temp = {
+                        timestamp: element.createdTimestamp,
+                        contact: (element.interaction.nickname || element.interaction.user.username) + '使用' + element.interaction.commandName + "\n",
+                        userName: '系統信息',
+                        isbot: true,
+                        attachments: attachments,
+                        embeds: embeds,
+                        reply_to: replyData
+                    };
+                } else { // Handle other system messages
+                     temp = {
+                        timestamp: element.createdTimestamp,
+                        contact: element.system ? (element.content || `系統訊息 Type: ${element.type}`) : (element.content || `訊息 Type: ${element.type}`),
+                        userName: element.author ? element.author.username : '系統訊息',
+                        isbot: true,
+                        attachments: [],
+                        embeds: [],
+                        reply_to: replyData
+                    };
+                }
+                if (temp)
+                    sum_messages.push(temp);
+            }
+
+            last_id = messages.last().id;
+            if (messages.size != 100) {
+                break;
+            }
+            if (demo) {
+                if (totalSize >= 500) {
+                    break;
+                }
+            }
+            if (messageLimit && totalSize >= messageLimit) {
+                break;
+            }
+        }
+
+        return {
+            sum_messages: sum_messages,
+            totalSize: totalSize
+        };
+    }
+    async function lots_of_messages_getter_TXT(channel, demo, members, messageLimit) {
+        const sum_messages = [];
+        let last_id;
+        let totalSize = 0;
+
+        while (true) {
+            const options = {
+                limit: 100
+            };
+            if (last_id) {
+                options.before = last_id;
+            }
+            const messages = await channel.messages.fetch(options);
+            totalSize += Math.max(messages.size, 0);
+
+            for (const element of messages.values()) {
+                let temp;
+                let content = await replaceMentions(element.content, members);
+
+                // Handle replied-to message
+                if (element.referenced_message) {
+                    const repliedTo = element.referenced_message;
+                    const repliedToContent = await replaceMentions(repliedTo.content, members);
+                    content = `> 回覆 ${repliedTo.author.username}: ${repliedToContent.split('\n')[0]}\n\n` + content;
+                }
+
                 const processedEmbeds = await Promise.all(
                     (element.embeds && element.embeds.length > 0) ? element.embeds.map(async embed => {
                         if (embed.description) {
@@ -248,6 +299,9 @@ const rollDiceCommand = async function ({
                 if (totalSize >= 500) {
                     break;
                 }
+            }
+            if (messageLimit && totalSize >= messageLimit) {
+                break;
             }
         }
 
@@ -379,7 +433,7 @@ const rollDiceCommand = async function ({
             }
             const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
                 discordMessage.guild.members.cache.map(member => member) : [];
-            M = await lots_of_messages_getter_HTML(C, demoMode, members);
+            M = await lots_of_messages_getter_HTML(C, demoMode, members, messageLimit);
             if (!M || !M.sum_messages || M.sum_messages.length === 0) {
                 rply.text = "未能讀取信息";
                 return rply;
@@ -431,12 +485,14 @@ const rollDiceCommand = async function ({
             let tempB = key;
             const writeStream = createWriteStream(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html');
             const contentStream = new stream.Readable();
-            contentStream.push(newValue, null);
+            contentStream._read = () => {};
+            contentStream.push(newValue);
+            contentStream.push(null);
 
-            await pipeline(
+            await htmlPool.run(() => pipeline(
                 contentStream,
                 writeStream
-            );
+            ));
 
             rply.discordExportHtml = [
                 tempA + '_' + randomLink,
@@ -519,7 +575,7 @@ const rollDiceCommand = async function ({
             }
             const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
                 discordMessage.guild.members.cache.map(member => member) : [];
-            M = await lots_of_messages_getter_TXT(C, demoMode, members);
+            M = await lots_of_messages_getter_TXT(C, demoMode, members, messageLimit);
             if (!M || !M.sum_messages || M.sum_messages.length === 0) {
                 rply.text = "未能讀取信息";
                 return rply;
@@ -558,6 +614,7 @@ const rollDiceCommand = async function ({
             let withouttime = (/-withouttime/i).test(inputStr);
             const writeStream = createWriteStream(dir + channelid + '_' + hour + minutes + seconds + '.txt');
             const contentStream = new stream.Readable();
+            contentStream._read = () => {};
 
             for (let index = M.length - 1; index >= 0; index--) {
                 let line = '';
@@ -587,10 +644,10 @@ const rollDiceCommand = async function ({
             }
             contentStream.push(null);
 
-            await pipeline(
+            await htmlPool.run(() => pipeline(
                 contentStream,
                 writeStream
-            );
+            ));
 
             rply.discordExport = channelid + '_' + hour + minutes + seconds;
             rply.text += `已私訊你 頻道  ${discordMessage.channel.name}  的聊天紀錄
@@ -633,7 +690,10 @@ function lightEncrypt(data, key) {
             t: item.timestamp,
             c: item.contact,
             u: item.userName,
-            b: item.isbot
+            b: item.isbot,
+            a: item.attachments,
+            e: item.embeds,
+            r: item.reply_to
         }));
         const jsonString = JSON.stringify(minData);
 
@@ -698,13 +758,22 @@ const discordCommand = [
                         { name: 'HTML格式(含資料分析)', value: 'html' },
                         { name: 'TXT格式(含時間戳記)', value: 'txt' },
                         { name: 'TXT格式(不含時間戳記)', value: 'txt -withouttime' }
-                    )),
+                    ))
+            .addIntegerOption(option =>
+                option.setName('limit')
+                .setDescription('要匯出的最新訊息數量(預設為全部)')
+                .setRequired(false)),
         async execute(interaction) {
             const format = interaction.options.getString('format');
+            const messageLimit = interaction.options.getInteger('limit');
+            let commandStr = `.discord ${format}`;
+            if (messageLimit) {
+                commandStr += ` --limit ${messageLimit}`;
+            }
             // Instead of returning a command string, we'll use the interaction object
             // and make sure to store it in discordMessage for later use
             return {
-                inputStr: `.discord ${format}`,
+                inputStr: commandStr,
                 discordMessage: interaction,
                 isInteraction: true
             };

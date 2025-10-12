@@ -81,6 +81,36 @@ const dotenv = require('dotenv');
 // eslint-disable-next-line n/no-extraneous-require
 const fetch = require('node-fetch');
 const { SlashCommandBuilder } = require('discord.js');
+// File processing libraries
+let pdfParse = null;
+// Lazy-load pdf-parse to avoid DOM polyfill issues in certain environments
+function loadPdfParseSafely() {
+    if (pdfParse) return pdfParse;
+    try {
+        // Defer require so environments without DOMMatrix don't crash on startup
+        // eslint-disable-next-line n/no-extraneous-require
+        pdfParse = require('pdf-parse');
+    } catch (error) {
+        pdfParse = null;
+    }
+    return pdfParse;
+}
+let pdfToPngLib = null;
+function loadPdfToPngSafely() {
+    if (pdfToPngLib) return pdfToPngLib;
+    try {
+        // eslint-disable-next-line n/no-extraneous-require
+        const mod = require('pdf-to-png-converter');
+        pdfToPngLib = mod?.pdfToPng || mod; // support both default and named export styles
+    } catch (error) {
+        pdfToPngLib = null;
+    }
+    return pdfToPngLib;
+}
+const mammoth = require('mammoth');
+const Tesseract = require('tesseract.js');
+const { getPool } = require('../modules/pool');
+const imagePool = getPool('image');
 dotenv.config({ override: true });
 const VIP = require('../modules/veryImportantPerson');
 const handleMessage = require('../modules/discord/handleMessage');
@@ -122,7 +152,8 @@ const RETRY_CONFIG = {
         keysetCycleDelay: 60,       // Delay when cycling through all keys
         batchDelay: 30,             // Delay between consecutive batch requests
         modelCycleDelay: 30,        // Delay when cycling through models
-        jitterRatio: 0.25           // +/- percentage jitter applied to delays
+        jitterRatio: 0.25,          // +/- percentage jitter applied to delays
+        requestTimeoutSec: 45       // Per-request timeout to avoid hangs
     },
     
     // Model cycling settings for LOW tier
@@ -142,13 +173,29 @@ const AI_CONFIG = {
                 const models = [];
                 const seen = new Set();
                 const pushModel = (idx) => {
-                    const suffix = idx === 1 ? '' : `_${idx}`;
-                    const name = process.env[`AI_MODEL_LOW_NAME${suffix}`] || process.env[`AI_MODEL_LOW_NAME_${idx}`];
+                    // Try both naming conventions: with and without underscore
+                    const name1 = process.env[`AI_MODEL_LOW_NAME_${idx}`];
+                    const name2 = idx === 1 ? process.env[`AI_MODEL_LOW_NAME`] : null;
+                    const name = name1 || name2;
+                    
                     if (!name || seen.has(name)) return;
-                    const token = Number.parseInt(process.env[`AI_MODEL_LOW_TOKEN${suffix}`] || process.env[`AI_MODEL_LOW_TOKEN_${idx}`] || process.env.AI_MODEL_LOW_TOKEN);
-                    const input_price = Number.parseFloat(process.env[`AI_MODEL_LOW_INPUT_PRICE${suffix}`] || process.env[`AI_MODEL_LOW_INPUT_PRICE_${idx}`] || process.env.AI_MODEL_LOW_INPUT_PRICE);
-                    const output_price = Number.parseFloat(process.env[`AI_MODEL_LOW_OUTPUT_PRICE${suffix}`] || process.env[`AI_MODEL_LOW_OUTPUT_PRICE_${idx}`] || process.env.AI_MODEL_LOW_OUTPUT_PRICE);
-                    const display = process.env[`AI_MODEL_LOW_DISPLAY${suffix}`] || process.env[`AI_MODEL_LOW_DISPLAY_${idx}`] || process.env.AI_MODEL_LOW_DISPLAY;
+                    
+                    const token1 = process.env[`AI_MODEL_LOW_TOKEN_${idx}`];
+                    const token2 = idx === 1 ? process.env[`AI_MODEL_LOW_TOKEN`] : null;
+                    const token = Number.parseInt(token1 || token2 || process.env.AI_MODEL_LOW_TOKEN);
+                    
+                    const input_price1 = process.env[`AI_MODEL_LOW_INPUT_PRICE_${idx}`];
+                    const input_price2 = idx === 1 ? process.env[`AI_MODEL_LOW_INPUT_PRICE`] : null;
+                    const input_price = Number.parseFloat(input_price1 || input_price2 || process.env.AI_MODEL_LOW_INPUT_PRICE);
+                    
+                    const output_price1 = process.env[`AI_MODEL_LOW_OUTPUT_PRICE_${idx}`];
+                    const output_price2 = idx === 1 ? process.env[`AI_MODEL_LOW_OUTPUT_PRICE`] : null;
+                    const output_price = Number.parseFloat(output_price1 || output_price2 || process.env.AI_MODEL_LOW_OUTPUT_PRICE);
+                    
+                    const display1 = process.env[`AI_MODEL_LOW_DISPLAY_${idx}`];
+                    const display2 = idx === 1 ? process.env[`AI_MODEL_LOW_DISPLAY`] : null;
+                    const display = display1 || display2 || process.env.AI_MODEL_LOW_DISPLAY;
+                    
                     models.push({ name, token, input_price, output_price, display });
                     seen.add(name);
                 };
@@ -225,6 +272,7 @@ class RetryManager {
     // Determine error type based on status code
     getErrorType(error) {
         const status = error.status || error.code;
+        const message = (error?.message || '').toLowerCase();
         
         for (const [type, config] of Object.entries(RETRY_CONFIG.ERROR_TYPES)) {
             if (Array.isArray(config.status)) {
@@ -233,7 +281,16 @@ class RetryManager {
                 return { type, config };
             }
         }
-        
+        // Map common network/JSON parse issues to SERVER_ERROR for retries
+        if (
+            message.includes('invalid json') ||
+            message.includes('unexpected end of json') ||
+            message.includes('failed to fetch') ||
+            message.includes('network') ||
+            message.includes('timeout')
+        ) {
+            return { type: 'SERVER_ERROR', config: RETRY_CONFIG.ERROR_TYPES.SERVER_ERROR };
+        }
         return { type: 'UNKNOWN', config: { baseDelay: RETRY_CONFIG.GENERAL.defaultDelay } };
     }
 
@@ -243,6 +300,7 @@ class RetryManager {
         
         // Handle undefined config for unknown error types
         if (!config) {
+            // Unknown errors still retry with default delay
             return RETRY_CONFIG.GENERAL.defaultDelay;
         }
         
@@ -258,7 +316,8 @@ class RetryManager {
                     config.maxDelay
                 );
             default:
-                return config.baseDelay || RETRY_CONFIG.GENERAL.defaultDelay;
+                // Retry other/unknown errors with at least base delay
+                return (config.baseDelay || RETRY_CONFIG.GENERAL.defaultDelay);
         }
     }
 
@@ -301,11 +360,8 @@ class RetryManager {
 
     // Log retry attempt
     logRetry(error, errorType, delay, modelTier) {
-        console.log(`[RETRY] ${errorType} Error: ${error.status || error.code} - ${error.message}`);
-        console.log(`[RETRY] Global: ${this.globalRetryCount}, Model: ${this.modelRetryCount}, Delay: ${delay}s`);
-        if (modelTier === 'LOW') {
-            console.log(`[RETRY] Current LOW model: ${this.currentModelIndex + 1}/${AI_CONFIG.MODELS.LOW.models.length}`);
-        }
+        //console.log(`[RETRY] ${errorType} Error: ${error.status || error.code} - ${error.message}`);
+        //console.log(`[RETRY] Global: ${this.globalRetryCount}, Model: ${this.modelRetryCount}, Delay: ${delay}s`);
     }
 
     // Mark a model as cooling down for given seconds
@@ -352,6 +408,37 @@ class RetryManager {
 
 const adminSecret = process.env.ADMIN_SECRET;
 const TRANSLATE_LIMIT_PERSONAL = [500, 100_000, 150_000, 250_000, 350_000, 550_000, 650_000, 750_000];
+
+// File processing limits for CentOS VPS environment
+const FILE_PROCESSING_LIMITS = {
+    // File size limits in MB
+    MAX_FILE_SIZE: {
+        PDF: 50,      // 50MB for PDF files
+        DOCX: 25,     // 25MB for DOCX files  
+        IMAGE: 20,    // 20MB for image files
+        TEXT: 10      // 10MB for text files
+    },
+    
+    // Processing time limits in seconds
+    MAX_PROCESSING_TIME: {
+        PDF: 120,     // 2 minutes for PDF
+        DOCX: 60,     // 1 minute for DOCX
+        IMAGE: 180,   // 3 minutes for OCR
+        TEXT: 30      // 30 seconds for text
+    },
+    
+    // Memory limits for processing
+    MAX_MEMORY_USAGE: 512 * 1024 * 1024, // 512MB
+    
+    // Supported file extensions
+    SUPPORTED_EXTENSIONS: {
+        PDF: ['pdf'],
+        DOCX: ['docx'],
+        IMAGE: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp'],
+        TEXT: ['txt']
+    }
+};
+
 const variables = {};
 const gameName = function () {
     return '【OpenAi】'
@@ -402,7 +489,9 @@ const getHelpMessage = function () {
 │ • ${lowTranslateDisplays}
 │ • ${AI_CONFIG.MODELS.MEDIUM.prefix.translate} [文字內容] - 使用${AI_CONFIG.MODELS.MEDIUM.display}翻譯
 │ • ${AI_CONFIG.MODELS.HIGH.prefix.translate} [文字內容] - 使用${AI_CONFIG.MODELS.HIGH.display}翻譯
-│ • 或上傳.txt附件 或回覆(Reply)要翻譯的內容
+│ • 或上傳附件 或回覆(Reply)要翻譯的內容
+│ • 支援格式: .txt, .pdf, .docx, .jpg, .png, .gif 等圖像
+│ • 檔案大小限制: PDF(50MB), DOCX(25MB), 圖像(20MB), TXT(10MB)
 │ • 轉換為正體中文
 │
 ├────── 🖼️圖像生成 ──────
@@ -424,6 +513,10 @@ const getHelpMessage = function () {
 │ • 超過1900字將以.txt檔案回覆
 │ • 對話功能支援所有LOW模型 (共${validLowModels.length}個)
 │ • 翻譯功能僅使用TOKEN≥10,000的模型 (共${validTranslateModels.length}個)
+│ • PDF/DOCX/圖像處理需要額外時間
+│ • 圖像OCR處理較慢，請耐心等待
+│ • 檔案處理有超時限制，複雜檔案可能失敗
+│ • 建議使用較小檔案以確保處理成功
 ╰──────────────`
 }
 const initialize = function () {
@@ -563,7 +656,7 @@ class OpenAI {
         if (nextIdx === null) {
             const minRemain = this.retryManager.minCooldownRemaining(models) + (RETRY_CONFIG.MODEL_CYCLING.allModelsCooldownPadding || 0);
             const wait = this.retryManager.jitterDelay(minRemain);
-            console.log(`[MODEL_CYCLE] All LOW models cooling down; waiting ${wait}s before retrying`);
+            //console.log(`[MODEL_CYCLE] All LOW models cooling down; waiting ${wait}s before retrying`);
             await this.retryManager.waitSeconds(wait);
             return { waitedSeconds: wait };
         }
@@ -572,7 +665,7 @@ class OpenAI {
         const currentModel = models[this.retryManager.currentModelIndex];
 
         if (currentModel) {
-            console.log(`[MODEL_CYCLE] Cycling to LOW model ${this.retryManager.currentModelIndex + 1}/${models.length}: ${currentModel.display} (${currentModel.name})`);
+            //console.log(`[MODEL_CYCLE] Cycling to LOW model ${this.retryManager.currentModelIndex + 1}/${models.length}: ${currentModel.display} (${currentModel.name})`);
         } else {
             console.error(`[MODEL_CYCLE] Invalid model at index ${this.retryManager.currentModelIndex}`);
             this.retryManager.currentModelIndex = 0; // Reset to first model
@@ -605,7 +698,7 @@ class OpenAI {
         if (nextIdx === null) {
             const minRemain = this.retryManager.minCooldownRemaining(validModels) + (RETRY_CONFIG.MODEL_CYCLING.allModelsCooldownPadding || 0);
             const wait = this.retryManager.jitterDelay(minRemain);
-            console.log(`[TRANSLATE_MODEL_CYCLE] All valid LOW models cooling down; waiting ${wait}s before retrying`);
+            //console.log(`[TRANSLATE_MODEL_CYCLE] All valid LOW models cooling down; waiting ${wait}s before retrying`);
             await this.retryManager.waitSeconds(wait);
             return { waitedSeconds: wait };
         }
@@ -614,7 +707,7 @@ class OpenAI {
         const currentModel = validModels[this.retryManager.currentModelIndex];
 
         if (currentModel) {
-            console.log(`[TRANSLATE_MODEL_CYCLE] Cycling to valid LOW model ${this.retryManager.currentModelIndex + 1}/${validModels.length}: ${currentModel.display} (${currentModel.name}) - TOKEN: ${currentModel.token}`);
+            //console.log(`[TRANSLATE_MODEL_CYCLE] Cycling to valid LOW model ${this.retryManager.currentModelIndex + 1}/${validModels.length}: ${currentModel.display} (${currentModel.name}) - TOKEN: ${currentModel.token}`);
         } else {
             console.error(`[TRANSLATE_MODEL_CYCLE] Invalid model at index ${this.retryManager.currentModelIndex}`);
             this.retryManager.currentModelIndex = 0; // Reset to first model
@@ -634,8 +727,8 @@ class OpenAI {
 
         this.retryManager.globalRetryCount++;
         
-        // Handle model cycling for LOW tier rate limits
-        if (this.retryManager.shouldCycleModel(modelTier, errorType)) {
+        // Handle model cycling for LOW tier rate limits and also for generic server/unknown errors
+        if (this.retryManager.shouldCycleModel(modelTier, errorType) || (modelTier === 'LOW' && (errorType === 'SERVER_ERROR' || errorType === 'UNKNOWN'))) {
             // Put the failed model on cooldown to avoid immediate reuse
             const failedModel = isTranslation ? this.getCurrentModelForTranslation(modelTier) : this.getCurrentModel(modelTier);
             if (failedModel?.name) {
@@ -665,7 +758,7 @@ class OpenAI {
         
         // Calculate and apply retry delay
         const retryCount = Math.floor(this.retryManager.globalRetryCount / this.apiKeys.length);
-        let delay = this.retryManager.calculateRetryDelay(errorType, retryCount);
+            let delay = this.retryManager.calculateRetryDelay(errorType, retryCount);
         // Respect Retry-After header if provided by provider
         const headerRetryAfter = Number.parseInt(error?.response?.headers?.['retry-after'] || error?.headers?.['retry-after']);
         if (Number.isFinite(headerRetryAfter) && headerRetryAfter > 0) {
@@ -718,7 +811,7 @@ class ImageAi extends OpenAI {
                 imageConfig.quality = AI_CONFIG.MODELS[imageModelType].quality;
             }
 
-            let response = await this.openai.images.generate(imageConfig);
+            let response = await imagePool.run(() => this.openai.images.generate(imageConfig));
             response = await this.handleImage(response, input);
             this.retryManager.resetCounters();
             return response;
@@ -756,6 +849,364 @@ class TranslateAi extends OpenAI {
         
         // Remove <thinking>/<think> ... </thinking>/<\/think> content (including nested tags and multiline)
         return text.replaceAll(/<(thinking|think)>[\s\S]*?<\/(thinking|think)>/gi, '').trim();
+    }
+    
+    // Validate file before processing
+    validateFile(filename, contentType, fileSize) {
+        const extension = filename.toLowerCase().split('.').pop();
+        const sizeInMB = fileSize / (1024 * 1024);
+        
+        // Check if file extension is supported
+        let fileType = null;
+        for (const [type, extensions] of Object.entries(FILE_PROCESSING_LIMITS.SUPPORTED_EXTENSIONS)) {
+            if (extensions.includes(extension)) {
+                fileType = type;
+                break;
+            }
+        }
+        
+        if (!fileType) {
+            return {
+                valid: false,
+                error: `不支援的文件格式: ${extension}\n支援格式: PDF, DOCX, 圖像文件 (JPG, PNG, GIF 等), TXT`
+            };
+        }
+        
+        // Check file size limit
+        const maxSize = FILE_PROCESSING_LIMITS.MAX_FILE_SIZE[fileType];
+        if (sizeInMB > maxSize) {
+            return {
+                valid: false,
+                error: `檔案大小超過限制 ${maxSize} MB\n當前檔案大小: ${sizeInMB.toFixed(2)} MB\n檔案格式: ${fileType}`
+            };
+        }
+        
+        // Check memory usage (rough estimate)
+        if (fileSize > FILE_PROCESSING_LIMITS.MAX_MEMORY_USAGE) {
+            return {
+                valid: false,
+                error: `檔案過大，可能導致記憶體不足\n建議檔案大小: < ${(FILE_PROCESSING_LIMITS.MAX_MEMORY_USAGE / (1024 * 1024)).toFixed(0)} MB`
+            };
+        }
+        
+        return {
+            valid: true,
+            fileType: fileType,
+            sizeInMB: sizeInMB
+        };
+    }
+    
+    // Enhanced error response generator
+    generateFileProcessingError(error, filename, fileType) {
+        const errorMessage = error.message || error.toString();
+        
+        // Check for specific error types
+        if (errorMessage.includes('encrypted') || errorMessage.includes('password')) {
+            return `檔案損壞或加密\n檔案: ${filename}\n錯誤: 檔案可能受密碼保護或已損壞，無法提取文字內容`;
+        }
+        
+        if (errorMessage.includes('corrupt') || errorMessage.includes('invalid')) {
+            return `檔案損壞或加密\n檔案: ${filename}\n錯誤: 檔案格式無效或已損壞，請檢查檔案完整性`;
+        }
+        
+        if (errorMessage.includes('timeout') || errorMessage.includes('time out')) {
+            return `檔案處理超時\n檔案: ${filename}\n錯誤: 檔案過於複雜，處理時間超過限制 (${FILE_PROCESSING_LIMITS.MAX_PROCESSING_TIME[fileType]}秒)`;
+        }
+        
+        if (errorMessage.includes('memory') || errorMessage.includes('out of memory')) {
+            return `記憶體不足\n檔案: ${filename}\n錯誤: 檔案過大導致記憶體不足，請嘗試較小的檔案`;
+        }
+        
+        if (errorMessage.includes('no text') || errorMessage.includes('empty')) {
+            return `無法從附件中提取文字內容\n檔案: ${filename}\n原因: 檔案中包含可識別的文字內容\n建議: 檔案格式支援文字提取（PDF、圖片、Office文件等）`;
+        }
+        
+        // Generic error response
+        return `檔案處理失敗\n檔案: ${filename}\n錯誤: ${errorMessage}\n請檢查檔案是否完整且格式正確`;
+    }
+    
+    // Process PDF files and extract text with timeout and OCR fallback
+    async processPdfFile(buffer, filename = 'document.pdf', discordMessage = null, userid = null) {
+        try {
+           // console.log(`[PDF_PROCESS] Starting PDF processing for ${filename}`);
+            
+            // Try to load pdf-parse at runtime; if unavailable, fall back to OCR path
+            const pdfParseFn = loadPdfParseSafely();
+            if (!pdfParseFn) {
+                console.warn(`[PDF_PROCESS] pdf-parse not available; falling back to OCR for ${filename}`);
+                if (discordMessage && userid) {
+                    await this.sendProgressMessage(discordMessage, userid,
+                        `⚠️ 無法載入 PDF 解析元件，改用 OCR 方式處理 ${filename}`);
+                }
+                return await this.processPdfWithOcr(buffer, filename, discordMessage, userid);
+            }
+
+            // Create timeout promise
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => {
+                    reject(new Error('timeout'));
+                }, FILE_PROCESSING_LIMITS.MAX_PROCESSING_TIME.PDF * 1000);
+            });
+            
+            // Create processing promise
+            const processPromise = pdfParseFn(buffer);
+            
+            // Race between processing and timeout
+            const data = await Promise.race([processPromise, timeoutPromise]);
+            
+            
+            // Check if extracted text is too short (likely a scanned PDF)
+            if (!data.text || data.text.trim().length < 10) {
+                console.warn(`[PDF_PROCESS] PDF appears to be scanned/image-based, attempting OCR fallback for ${filename}`);
+                
+                if (discordMessage && userid) {
+                    await this.sendProgressMessage(discordMessage, userid, 
+                        `🔍 **PDF 分析結果**\n📄 檔案: ${filename}\n⚠️ 檢測到掃描版 PDF\n🔄 正在轉換為圖像並使用 OCR 處理...`);
+                }
+                
+                // Convert PDF pages to images and then use OCR
+                return await this.processPdfWithOcr(buffer, filename, discordMessage, userid);
+            }
+            
+            //console.log(`[PDF_PROCESS] PDF text extraction successful for ${filename}`);
+            return data.text.trim();
+        } catch (error) {
+            console.error('[PDF_PROCESS] Error processing PDF:', error);
+            throw error;
+        }
+    }
+    
+    // Process PDF with OCR by converting pages to images first
+    async processPdfWithOcr(buffer, filename = 'document.pdf', discordMessage = null, userid = null) {
+        try {
+            //console.log(`[PDF_OCR_PROCESS] Starting PDF to image conversion for ${filename}`);
+            
+            const pdfToPng = loadPdfToPngSafely();
+            if (!pdfToPng) {
+                console.warn(`[PDF_OCR_PROCESS] pdf-to-png-converter not available for ${filename}`);
+                throw new Error('no text');
+            }
+
+            // Create timeout promise for PDF to image conversion
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => {
+                    reject(new Error('timeout'));
+                }, FILE_PROCESSING_LIMITS.MAX_PROCESSING_TIME.PDF * 1000);
+            });
+            
+            // Convert PDF to PNG images using pdf-to-png-converter
+            // This provides better quality images compared to pdf-parse
+            const convertPromise = pdfToPng(buffer, {
+                disableFontFace: false, // Enable font rendering for better quality
+                useSystemFonts: false, // Don't use system fonts to avoid inconsistencies
+                viewportScale: 2.0, // 2x scale for better OCR quality
+                verbosityLevel: 0 // Suppress logs
+            });
+            
+            const pngPages = await Promise.race([
+                imagePool.run(() => convertPromise),
+                timeoutPromise
+            ]);
+            
+            //console.log(`[PDF_OCR_PROCESS] PDF converted to ${pngPages.length} PNG images for ${filename}`);
+            
+            if (!pngPages || pngPages.length === 0) {
+                throw new Error('no text');
+            }
+            
+            // Process each page with OCR
+            const allTexts = [];
+            for (let i = 0; i < pngPages.length; i++) {
+                const pageData = pngPages[i];
+                const pageNumber = pageData.pageNumber;
+                
+                //console.log(`[PDF_OCR_PROCESS] Processing page ${pageNumber}/${pngPages.length} for ${filename}`);
+                //console.log(`[PDF_OCR_PROCESS] Page ${pageNumber} dimensions: ${pageData.width}x${pageData.height}`);
+                
+                if (discordMessage && userid) {
+                    await this.sendProgressMessage(discordMessage, userid, 
+                        `🔍 **PDF OCR 處理中**\n📄 檔案: ${filename}\n📑 頁面: ${pageNumber}/${pngPages.length}\n⏱️ 預估時間: 1-3 分鐘/頁\n\n正在識別第 ${pageNumber} 頁的文字內容...`);
+                }
+                
+                try {
+                    // Process the page image with OCR using the PNG buffer
+                    const pageText = await this.processImageBufferWithOcr(pageData.content, `${filename}_page_${pageNumber}`, discordMessage, userid);
+                    if (pageText && pageText.trim().length > 0) {
+                        allTexts.push(`[第 ${pageNumber} 頁]\n${pageText}`);
+                    }
+                } catch (error) {
+                    console.error(`[PDF_OCR_PROCESS] Error processing page ${pageNumber}:`, error);
+                    allTexts.push(`[第 ${pageNumber} 頁 - 處理失敗]\n${error.message}`);
+                }
+            }
+            
+            if (allTexts.length === 0) {
+                throw new Error('no text');
+            }
+            
+            const combinedText = allTexts.join('\n\n');
+            //console.log(`[PDF_OCR_PROCESS] PDF OCR completed for ${filename}, extracted ${combinedText.length} characters`);
+            
+            // Send completion message
+            if (discordMessage && userid) {
+                await this.sendProgressMessage(discordMessage, userid, 
+                    `✅ **PDF OCR 處理完成**\n📄 檔案: ${filename}\n📑 處理頁面: ${pngPages.length} 頁\n📝 提取文字長度: ${combinedText.length} 字\n\n開始翻譯分析...`);
+            }
+            
+            return combinedText;
+        } catch (error) {
+            console.error('[PDF_OCR_PROCESS] Error processing PDF with OCR:', error);
+            throw error;
+        }
+    }
+    
+    // Process image buffer with OCR (separate from file processing)
+    async processImageBufferWithOcr(imageBuffer, filename = 'image', discordMessage = null, userid = null) {
+        try {
+            //console.log(`[OCR_BUFFER_PROCESS] Starting OCR for ${filename}`);
+            
+            // Create timeout promise
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => {
+                    reject(new Error('timeout'));
+                }, FILE_PROCESSING_LIMITS.MAX_PROCESSING_TIME.IMAGE * 1000);
+            });
+            
+            let lastProgressUpdate = 0;
+            
+            // Create OCR promise
+            const ocrPromise = imagePool.run(() => Tesseract.recognize(
+                imageBuffer,
+                'chi_tra+eng', // Traditional Chinese + English
+                {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const progress = Math.round(m.progress * 100);
+                            //console.log(`[OCR_BUFFER_PROCESS] Progress: ${progress}%`);
+                            
+                            // Send progress updates every 25%
+                            if (discordMessage && userid && progress >= lastProgressUpdate + 25) {
+                                lastProgressUpdate = progress;
+                                this.sendProgressMessage(discordMessage, userid, 
+                                    `🔍 **OCR 處理進度**\n📷 檔案: ${filename}\n📊 進度: ${progress}%\n\n正在識別文字內容...`).catch(console.error);
+                            }
+                        }
+                    }
+                }
+            ));
+            
+            // Race between OCR and timeout
+            const { data: { text } } = await Promise.race([ocrPromise, timeoutPromise]);
+            
+            if (!text || text.trim().length === 0) {
+                throw new Error('no text');
+            }
+            
+            //console.log(`[OCR_BUFFER_PROCESS] OCR completed for ${filename}`);
+            return text.trim();
+        } catch (error) {
+            console.error('[OCR_BUFFER_PROCESS] Error processing image buffer:', error);
+            throw error;
+        }
+    }
+    
+    // Process DOCX files and extract text with timeout
+    async processDocxFile(buffer, filename = 'document.docx') {
+        try {
+            //console.log(`[DOCX_PROCESS] Starting DOCX processing for ${filename}`);
+            
+            // Create timeout promise
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => {
+                    reject(new Error('timeout'));
+                }, FILE_PROCESSING_LIMITS.MAX_PROCESSING_TIME.DOCX * 1000);
+            });
+            
+            // Create processing promise
+            const processPromise = mammoth.extractRawText({ buffer });
+            
+            // Race between processing and timeout
+            const result = await Promise.race([processPromise, timeoutPromise]);
+            
+            if (!result.value || result.value.trim().length === 0) {
+                throw new Error('no text');
+            }
+            
+            //console.log(`[DOCX_PROCESS] DOCX processing completed for ${filename}`);
+            return result.value.trim();
+        } catch (error) {
+            console.error('[DOCX_PROCESS] Error processing DOCX:', error);
+            throw error;
+        }
+    }
+    
+    // Process image files using OCR with timeout and progress updates
+    async processImageFile(buffer, filename = 'image', discordMessage = null, userid = null) {
+        try {
+            //console.log(`[OCR_PROCESS] Starting OCR for ${filename}`);
+            
+            // Send initial OCR start message
+            if (discordMessage && userid) {
+                await this.sendProgressMessage(discordMessage, userid, 
+                    `🔍 **OCR 相片處理中**\n📷 檔案: ${filename}\n⏱️ 預估時間: 1-3 分鐘\n\n正在分析圖像中的文字內容...`);
+            }
+            
+            // Use the shared OCR processing method
+            const text = await this.processImageBufferWithOcr(buffer, filename, discordMessage, userid);
+            
+            // Send completion message
+            if (discordMessage && userid) {
+                await this.sendProgressMessage(discordMessage, userid, 
+                    `✅ **OCR 處理完成**\n📷 檔案: ${filename}\n📝 提取文字長度: ${text.length} 字\n\n開始翻譯分析...`);
+            }
+            
+            return text;
+        } catch (error) {
+            console.error('[OCR_PROCESS] Error processing image:', error);
+            throw error;
+        }
+    }
+    
+    // Determine file type and process accordingly with validation
+    async processAttachmentFile(buffer, filename, contentType, discordMessage = null, userid = null) {
+        const extension = filename.toLowerCase().split('.').pop();
+        const fileSize = buffer.length;
+        
+        // Validate file before processing
+        const validation = this.validateFile(filename, contentType, fileSize);
+        if (!validation.valid) {
+            throw new Error(validation.error);
+        }
+        
+        const fileType = validation.fileType;
+        
+        try {
+            // PDF files
+            if (fileType === 'PDF') {
+                return await this.processPdfFile(buffer, filename, discordMessage, userid);
+            }
+            
+            // DOCX files
+            if (fileType === 'DOCX') {
+                return await this.processDocxFile(buffer, filename);
+            }
+            
+            // Image files
+            if (fileType === 'IMAGE') {
+                return await this.processImageFile(buffer, filename, discordMessage, userid);
+            }
+            
+            // Text files (fallback to original behavior)
+            if (fileType === 'TEXT') {
+                return buffer.toString('utf8');
+            }
+            
+            throw new Error(`不支援的文件格式: ${extension || contentType}`);
+        } catch (error) {
+            // Generate enhanced error message
+            const enhancedError = this.generateFileProcessingError(error, filename, fileType);
+            throw new Error(enhancedError);
+        }
     }
     
     // Sanitize mixed AI outputs to extract a valid JSON string (array or object)
@@ -919,18 +1370,36 @@ class TranslateAi extends OpenAI {
         }
         return aggregated;
     }
-    async getText(str, mode, discordMessage, discordClient) {
+    async getText(str, mode, discordMessage, discordClient, userid = null) {
         let text = [];
         let textLength = 0;
-        // Handle LOW tier with multiple models: use MIN token across all LOW models
+        // Handle LOW tier with multiple models: use MIN token across models that will actually be used for translation (TOKEN >= 10000)
         let splitLength;
         if (mode.models && Array.isArray(mode.models) && mode.models.length > 0) {
-            splitLength = mode.models.reduce((min, m) => {
-                const t = Number.isFinite(m.token) ? m.token : min;
-                return Math.min(min, t);
-            }, Number.POSITIVE_INFINITY);
-            if (!Number.isFinite(splitLength)) {
-                splitLength = mode.models[0].token || 4000;
+            // Filter models that will actually be used for translation (TOKEN >= 10000)
+            const validTranslateModels = mode.models.filter(model => 
+                model.token && model.token >= 10_000
+            );
+            
+            if (validTranslateModels.length > 0) {
+                // Use MIN token across valid translation models only
+                splitLength = validTranslateModels.reduce((min, m) => {
+                    const t = Number.isFinite(m.token) ? m.token : min;
+                    return Math.min(min, t);
+                }, Number.POSITIVE_INFINITY);
+                
+                if (!Number.isFinite(splitLength)) {
+                    splitLength = validTranslateModels[0].token || 4000;
+                }
+            } else {
+                // Fallback to original logic if no valid models found
+                splitLength = mode.models.reduce((min, m) => {
+                    const t = Number.isFinite(m.token) ? m.token : min;
+                    return Math.min(min, t);
+                }, Number.POSITIVE_INFINITY);
+                if (!Number.isFinite(splitLength)) {
+                    splitLength = mode.models[0].token || 4000;
+                }
             }
         } else {
             splitLength = mode.token || 4000;
@@ -940,32 +1409,69 @@ class TranslateAi extends OpenAI {
             text.push(str);
             textLength += str.length;
         }
+        
+        // Process attachments from current message
         if (discordMessage?.type === 0 && discordMessage?.attachments?.size > 0) {
-            const url = [...(discordMessage.attachments.filter(data => data.contentType.match(/text/i))?.values() || [])];
-            for (let index = 0; index < url.length; index++) {
-                const response = await fetch(url[index].url);
-                const data = await response.text();
-                textLength += data.length;
-                text.push(data);
-
+            const attachments = [...discordMessage.attachments.values()];
+            for (const attachment of attachments) {
+                try {
+                    // Check if it's a text file (original behavior)
+                    if (attachment.contentType?.match(/text/i)) {
+                        const response = await fetch(attachment.url);
+                        const data = await response.text();
+                        textLength += data.length;
+                        text.push(data);
+                    } else {
+                        // Process PDF, DOCX, and image files
+                        const response = await fetch(attachment.url);
+                        const buffer = await response.buffer();
+                        const extractedText = await this.processAttachmentFile(buffer, attachment.name, attachment.contentType, discordMessage, userid);
+                        if (extractedText && extractedText.trim().length > 0) {
+                            textLength += extractedText.length;
+                            text.push(`[來自文件: ${attachment.name}]\n${extractedText}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error(`[ATTACHMENT_PROCESS] Error processing ${attachment.name}:`, error);
+                    // Use the enhanced error message from processAttachmentFile
+                    text.push(`[文件處理錯誤]\n${error.message}`);
+                }
             }
         }
-        //19 = reply
+        
+        // Process attachments from replied message
         if (discordMessage?.type === 19) {
             const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
-            const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId)
-            const url = [...(referenceMessage.attachments.filter(data => data.contentType.match(/text/i))?.values() || [])];
-            for (let index = 0; index < url.length; index++) {
-                const response = await fetch(url[index].url);
-                const data = await response.text();
-                textLength += data.length;
-                text.push(data);
-
+            const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId);
+            const attachments = [...referenceMessage.attachments.values()];
+            for (const attachment of attachments) {
+                try {
+                    // Check if it's a text file (original behavior)
+                    if (attachment.contentType?.match(/text/i)) {
+                        const response = await fetch(attachment.url);
+                        const data = await response.text();
+                        textLength += data.length;
+                        text.push(data);
+                    } else {
+                        // Process PDF, DOCX, and image files
+                        const response = await fetch(attachment.url);
+                        const buffer = await response.buffer();
+                        const extractedText = await this.processAttachmentFile(buffer, attachment.name, attachment.contentType, discordMessage, userid);
+                        if (extractedText && extractedText.trim().length > 0) {
+                            textLength += extractedText.length;
+                            text.push(`[來自回覆文件: ${attachment.name}]\n${extractedText}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error(`[REPLY_ATTACHMENT_PROCESS] Error processing ${attachment.name}:`, error);
+                    // Use the enhanced error message from processAttachmentFile
+                    text.push(`[回覆文件處理錯誤]\n${error.message}`);
+                }
             }
         }
+        
         let result = this.splitTextByTokens(text.join('\n'), splitLength);
         return { translateScript: result, textLength };
-
     }
     async createFile(data) {
         try {
@@ -996,14 +1502,20 @@ class TranslateAi extends OpenAI {
 
             const userContent = `PREVIOUS_CONTEXT (already translated into Traditional Chinese):\n---\n${previousContext || 'N/A'}\n---\n\nNEXT_CONTEXT (original language):\n---\n${nextContext || 'N/A'}\n---\n\nTEXT_TO_TRANSLATE:\n---\n${inputStr}\n---`;
 
+            // Per-request timeout to avoid hangs
+            const perRequestTimeoutMs = (RETRY_CONFIG.GENERAL.requestTimeoutSec || 45) * 1000;
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), perRequestTimeoutMs);
             let response = await this.openai.chat.completions.create({
                 model: modelName,
                 temperature: 0.2,
                 messages: [
                     { role: 'system', content: systemContent },
                     { role: 'user', content: userContent }
-                ]
+                ],
+                signal: controller.signal
             })
+            clearTimeout(timer);
             this.retryManager.resetCounters();
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
                 const dataStr = response.data;
@@ -1021,8 +1533,19 @@ class TranslateAi extends OpenAI {
                 const mergedContent = contents.join('');
                 return this.removeThinkingTags(mergedContent);
             }
-            return this.removeThinkingTags(response.choices?.[0]?.message?.content || '');
+            const content = response.choices?.[0]?.message?.content || '';
+            const cleanedContent = this.removeThinkingTags(content);
+            
+            // Debug logging for translation issues
+            if (!cleanedContent || cleanedContent.trim().length === 0) {
+                console.warn(`[TRANSLATE_CHAT] Empty or invalid response for model: ${modelName}`);
+                console.warn(`[TRANSLATE_CHAT] Raw response:`, JSON.stringify(response, null, 2));
+                return `翻譯失敗：模型 ${modelName} 返回空內容，請稍後再試。`;
+            }
+            
+            return cleanedContent;
         } catch (error) {
+            console.error(`[TRANSLATE_CHAT] Error in translateChat:`, error);
             return await this.handleApiError(error, this.translateChat, modelTier, true, inputStr, mode, modelTier, previousContext, nextContext, glossary);
         }
     }
@@ -1072,13 +1595,20 @@ class TranslateAi extends OpenAI {
                     waitSec = Math.max(waitSec, minRemain + padding);
                 }
                 waitSec = this.retryManager.jitterDelay(waitSec);
-                console.log(`[TRANSLATE_CHUNK_RETRY] idx=${index} window=${windowAttempt} wait=${waitSec}s`);
+                //console.log(`[TRANSLATE_CHUNK_RETRY] idx=${index} window=${windowAttempt} wait=${waitSec}s`);
 
                 await this.retryManager.waitSeconds(waitSec);
                 // Open a fresh retry window
                 this.retryManager.resetCounters();
             }
 
+            // Debug logging for translation results
+            if (!result || result.trim().length === 0) {
+                console.warn(`[TRANSLATE_TEXT] Empty result for chunk ${index + 1}/${totalChunks}`);
+                console.warn(`[TRANSLATE_TEXT] Input chunk:`, inputScript[index].substring(0, 100) + '...');
+                result = `[翻譯失敗：段落 ${index + 1} 無法翻譯]`;
+            }
+            
             response.push(result);
             
             // Send progress update if enabled and Discord message is available
@@ -1096,12 +1626,13 @@ class TranslateAi extends OpenAI {
     async handleTranslate(inputStr, discordMessage, discordClient, userid, mode, modelTier = 'LOW') {
         let lv = await VIP.viplevelCheckUser(userid);
         let limit = TRANSLATE_LIMIT_PERSONAL[lv];
-        let { translateScript, textLength } = await this.getText(inputStr, mode, discordMessage, discordClient);
+        let { translateScript, textLength } = await this.getText(inputStr, mode, discordMessage, discordClient, userid);
         console.log(textLength, limit);
         if (textLength > limit) return { text: `輸入的文字太多了，請分批輸入，你是VIP LV${lv}，限制為${limit}字` };
+        if (textLength === 0) return { text: '沒有找到需要翻譯的內容，請檢查文件內容或稍後再試。' };
         
-        // Check if we should show progress (text length > 1000 characters)
-        const showProgress = textLength > 1000;
+        // Always show progress for all translations
+        const showProgress = true;
         const chunkCount = Array.isArray(translateScript) ? translateScript.length : 1;
         
         // Send initial analysis message if text is long enough
@@ -1110,8 +1641,18 @@ class TranslateAi extends OpenAI {
             const actualModel = this.getCurrentModelForTranslation(modelTier);
             const modelDisplay = actualModel ? actualModel.display : (mode.display || modelTier);
             
+            // Check if there are any attachments that need processing
+            const hasAttachments = discordMessage?.attachments?.size > 0;
+            const hasReplyAttachments = discordMessage?.type === 19 && discordMessage?.reference;
+            const needsFileProcessing = hasAttachments || hasReplyAttachments;
+            
             // Dynamic time estimation based on content analysis
             let estimatedTime = 0;
+            
+            // Add file processing time if needed
+            if (needsFileProcessing) {
+                estimatedTime += 30; // Base 30 seconds for file processing
+            }
             
             // Glossary generation time estimation (dynamic based on chunk count)
             if (textLength > 20_000) {
@@ -1131,13 +1672,19 @@ class TranslateAi extends OpenAI {
             
             const timeStr = estimatedTime < 60 ? `${estimatedTime}秒` : `${Math.ceil(estimatedTime / 60)}分鐘`;
             
-            await this.sendProgressMessage(discordMessage, userid, 
-                `🔍 **翻譯分析報告**\n` +
+            let analysisMessage = `🔍 **翻譯分析報告**\n` +
                 `📊 內容長度: ${textLength.toLocaleString()} 字\n` +
                 `📝 分段數量: ${chunkCount} 段\n` +
                 `⏱️ 預估時間: ${timeStr}\n` +
-                `🤖 使用模型: ${modelDisplay} (可能會中途更換)\n\n` +
-                `開始翻譯中，請稍候...`);
+                `🤖 使用模型: ${modelDisplay} (可能會中途更換)\n`;
+            
+            if (needsFileProcessing) {
+                analysisMessage += `📎 檢測到附件，將進行文件處理\n`;
+            }
+            
+            analysisMessage += `\n開始翻譯中，請稍候...`;
+            
+            await this.sendProgressMessage(discordMessage, userid, analysisMessage);
         }
         
         // Auto-build glossary if text length is large (over 20,000 characters)
@@ -1156,6 +1703,15 @@ class TranslateAi extends OpenAI {
 
         let response = await this.translateText(translateScript, mode, modelTier, autoGlossary, discordMessage, userid, showProgress);
         response = response.join('\n');
+        
+        // Debug logging for final response
+        //console.log(`[HANDLE_TRANSLATE] Final response length: ${response.length}`);
+        //console.log(`[HANDLE_TRANSLATE] First 200 chars of response:`, response.substring(0, 200));
+        
+        if (!response || response.trim().length === 0) {
+            console.error(`[HANDLE_TRANSLATE] Empty final response!`);
+            response = `翻譯失敗：無法生成翻譯結果，請檢查文件內容或稍後再試。`;
+        }
         
         // Send completion message if progress was shown
         if (showProgress && discordMessage && userid) {
@@ -1193,8 +1749,16 @@ class TranslateAi extends OpenAI {
         let remains = text;
         
         // 計算動態 TOKEN 限制，但設定 8000 字符的硬性上限
-        const dynamicTokenLimit = Math.max(1, Math.floor((Number.isFinite(inputTokenLimit) ? inputTokenLimit : 1000) * 0.4));
+        const dynamicTokenLimit = Math.max(1, Math.floor((Number.isFinite(inputTokenLimit) ? inputTokenLimit : 1000) * 0.8));
         const maxCharLimit = 8000; // 硬性字符上限，防止 AI 處理過多文字時出錯
+        
+        // Early return for short texts that don't need splitting
+        if (text.length <= maxCharLimit) {
+            const tokens = encode(text);
+            if (tokens.length <= dynamicTokenLimit) {
+                return [text];
+            }
+        }
         
         while (remains.length > 0) {
             const tokens = encode(remains);
@@ -1209,6 +1773,7 @@ class TranslateAi extends OpenAI {
             let offset = Math.min(tokenBasedOffset, maxCharLimit);
             let subtext = remains.slice(0, Math.max(0, offset));
             
+            
             // 精確調整到不超過 TOKEN 限制
             while (encode(subtext).length > dynamicTokenLimit && offset > 0) {
                 offset--;
@@ -1216,7 +1781,8 @@ class TranslateAi extends OpenAI {
             }
             
             // 如果達到字符上限但 TOKEN 未超限，也要分割（防止 AI 出錯）
-            if (offset >= maxCharLimit && encode(subtext).length <= dynamicTokenLimit) {
+            // 但只有在實際文字長度接近字符上限時才分割
+            if (offset >= maxCharLimit && remains.length > maxCharLimit * 0.9 && encode(subtext).length <= dynamicTokenLimit) {
                 // 在字符上限附近尋找合適的分割點
                 let bound = Math.min(Math.floor(maxCharLimit * 1.05), remains.length);
                 let found = false;
@@ -1276,9 +1842,7 @@ class TranslateAi extends OpenAI {
                 }
             }
         }
-        try {
-            console.log(`[TRANSLATE_SPLIT] chunks=${results.length}, tokenLimit=${dynamicTokenLimit}, maxCharLimit=${maxCharLimit}`);
-        } catch {}
+       
         return results;
     }
 

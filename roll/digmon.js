@@ -523,9 +523,9 @@ class Digimon {
     findEvolutionPaths(fromDigimon, toDigimon, maxPaths = 4) {
         const paths = [];
         const startTime = Date.now();
-        const maxTime = 5000; // Increased timeout to 5 seconds
+        const maxTime = 8000; // Increased timeout to 8 seconds
         let searchCount = 0;
-        const maxSearches = 1000; // Increased search limit
+        const maxSearches = 2000; // Increased search limit
         
         // First, check for direct evolution/devolutions
         if (fromDigimon.evolutions && fromDigimon.evolutions.includes(toDigimon.name)) {
@@ -564,7 +564,7 @@ class Digimon {
             }
             
             // If path is too long, skip
-            if (path.length >= 10) continue; // Increased max path length
+            if (path.length >= 12) continue; // Increased max path length
             
             // Get next digimon - check both evolutions and devolutions without strict limits
             const nextDigimon = [];
@@ -589,8 +589,8 @@ class Digimon {
                 }
             }
             
-            // Add next digimon to queue (increased limit to 12 per level)
-            for (let i = 0; i < Math.min(nextDigimon.length, 12); i++) {
+            // Add next digimon to queue (increased limit to 15 per level)
+            for (let i = 0; i < Math.min(nextDigimon.length, 15); i++) {
                 const next = nextDigimon[i];
                 const newVisited = new Set(visited);
                 newVisited.add(next.id);

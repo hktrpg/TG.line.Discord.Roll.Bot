@@ -5943,6 +5943,7 @@
     "id": 436,
     "name": "金剛武神獸",
     "stage": "7",
+    "mix_evolution": true,
     "devolutions": [
       "愷撒暴龍獸",
       "盔甲加魯魯獸"

@@ -296,6 +296,14 @@ class Digimon {
         return locationDetails;
     }
 
+    getFusionComponents(digimon) {
+        if (!digimon || !digimon.mix_evolution) return [];
+        if (Array.isArray(digimon.devolutions) && digimon.devolutions.length >= 2) {
+            return digimon.devolutions.slice(0, 2);
+        }
+        return [];
+    }
+
     static showDigimon(digimon, digimonInstance) {
         let rply = '';
         try {
@@ -321,6 +329,10 @@ class Digimon {
             
             if (digimon.mix_evolution) {
                 rply += `特殊進化：合體進化\n`;
+                const comps = digimonInstance.getFusionComponents(digimon);
+                if (comps.length === 2) {
+                    rply += `合體來源：${comps[0]} + ${comps[1]}\n`;
+                }
             }
             
             rply += '\n------進化路線------\n';
@@ -366,6 +378,13 @@ class Digimon {
                             }
                         }
                     }
+                }
+            }
+            
+            if (digimon.mix_evolution) {
+                const comps = this.getFusionComponents(digimon);
+                if (comps.length === 2) {
+                    result += `   合體來源：${comps[0]} + ${comps[1]}\n`;
                 }
             }
             
@@ -733,6 +752,12 @@ class Digimon {
                 }
                 
                 result += '\n';
+                if (digimon.mix_evolution) {
+                    const comps = this.getFusionComponents(digimon);
+                    if (comps.length === 2) {
+                        result += `   合體來源：${comps[0]} + ${comps[1]}\n`;
+                    }
+                }
             }
             result += '\n';
         }

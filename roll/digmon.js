@@ -279,10 +279,10 @@ class Digimon {
     }
 
     findSimplePathFromStage1(targetDigimon) {
-        const maxDepth = 10;
+        const maxDepth = 8; // Reduced depth
         const startTime = Date.now();
-        const maxTime = 1000; // 1 second timeout
-        const maxSearches = 200; // Increased search limit
+        const maxTime = 2000; // 2 second timeout
+        const maxSearches = 500; // Increased search limit
         
         const findPath = (current, target, currentPath = [], visited = new Set(), depth = 0, searchCount = { count: 0 }) => {
             // Timeout check
@@ -306,9 +306,9 @@ class Digimon {
             // Get next digimon with limited search
             const nextDigimon = [];
             
-            // Check evolutions (limit to first 4)
+            // Check evolutions (limit to first 6)
             if (current.evolutions) {
-                for (let i = 0; i < Math.min(current.evolutions.length, 4); i++) {
+                for (let i = 0; i < Math.min(current.evolutions.length, 6); i++) {
                     const evolutionName = current.evolutions[i];
                     const evolutionDigimon = this.digimonData.find(d => d.name === evolutionName);
                     if (evolutionDigimon && !newVisited.has(evolutionDigimon.id)) {
@@ -317,9 +317,9 @@ class Digimon {
                 }
             }
             
-            // Check devolutions (limit to first 4)
+            // Check devolutions (limit to first 6)
             if (current.devolutions) {
-                for (let i = 0; i < Math.min(current.devolutions.length, 4); i++) {
+                for (let i = 0; i < Math.min(current.devolutions.length, 6); i++) {
                     const devolutionName = current.devolutions[i];
                     const devolutionDigimon = this.digimonData.find(d => d.name === devolutionName);
                     if (devolutionDigimon && !newVisited.has(devolutionDigimon.id)) {
@@ -328,8 +328,8 @@ class Digimon {
                 }
             }
             
-            // Try each next digimon (limit to 3)
-            for (let i = 0; i < Math.min(nextDigimon.length, 3); i++) {
+            // Try each next digimon (limit to 4)
+            for (let i = 0; i < Math.min(nextDigimon.length, 4); i++) {
                 const next = nextDigimon[i];
                 const result = findPath(next, target, [...currentPath, current], newVisited, depth + 1, searchCount);
                 if (result.length > 0) {
@@ -355,14 +355,84 @@ class Digimon {
                 shortestPath = path;
                 shortestLength = path.length;
                 
-                // If we found a very short path (2-3 steps), return it immediately
-                if (path.length <= 3) {
+                // If we found a very short path (2-4 steps), return it immediately
+                if (path.length <= 4) {
                     return path;
                 }
             }
             
             // Early exit if timeout
             if (Date.now() - startTime > maxTime) break;
+        }
+        
+        // Always try comprehensive search to find the shortest path
+        const comprehensivePath = this.findComprehensivePath(targetDigimon);
+        if (comprehensivePath.length > 0 && comprehensivePath.length < shortestLength) {
+            return comprehensivePath;
+        }
+        
+        return shortestPath;
+    }
+
+    findComprehensivePath(targetDigimon) {
+        // Use BFS for more reliable path finding
+        const startTime = Date.now();
+        const maxTime = 3000;
+        const maxDepth = 10;
+        
+        const stage1Digimon = this.digimonData.filter(d => d.stage === '1');
+        let shortestPath = [];
+        let shortestLength = Infinity;
+        
+        for (const startDigimon of stage1Digimon) {
+            if (Date.now() - startTime > maxTime) break;
+            
+            const visited = new Set();
+            const queue = [{ digimon: startDigimon, path: [startDigimon] }];
+            
+            while (queue.length > 0) {
+                if (Date.now() - startTime > maxTime) break;
+                
+                const { digimon: current, path } = queue.shift();
+                
+                if (visited.has(current.id)) continue;
+                visited.add(current.id);
+                
+                if (current.id === targetDigimon.id) {
+                    if (path.length < shortestLength) {
+                        shortestPath = path;
+                        shortestLength = path.length;
+                        
+                        // If we found a very short path, return immediately
+                        if (path.length <= 4) {
+                            return path;
+                        }
+                    }
+                    continue;
+                }
+                
+                if (path.length > maxDepth) continue;
+                
+                // Check evolutions
+                if (current.evolutions) {
+                    for (const evolutionName of current.evolutions) {
+                        const evolutionDigimon = this.digimonData.find(d => d.name === evolutionName);
+                        if (evolutionDigimon && !visited.has(evolutionDigimon.id)) {
+                            queue.push({ digimon: evolutionDigimon, path: [...path, evolutionDigimon] });
+                        }
+                    }
+                }
+                
+                // Check devolutions
+                if (current.devolutions) {
+                    for (const devolutionName of current.devolutions) {
+                        const devolutionDigimon = this.digimonData.find(d => d.name === devolutionName);
+                        if (devolutionDigimon && !visited.has(devolutionDigimon.id)) {
+                            queue.push({ digimon: devolutionDigimon, path: [...path, devolutionDigimon] });
+                        }
+                    }
+                }
+            }
         }
         
         return shortestPath;

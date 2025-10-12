@@ -325,6 +325,30 @@ class Digimon {
         return element;
     }
 
+	// Combine attribute and elemental resistances using additive levels mapping
+	// Levels: 0.5 -> -1, 1 -> 0, 1.5 -> +1, 2 -> +2
+	// Sum -> multiplier mapping: -2:0.3, -1:0.5, 0:1, 1:1.5, 2:2, 3:3, 4:4
+	combineResistanceValues(attributeValue, elementalValue) {
+		const toLevel = (v) => {
+			if (v <= 0.5) return -1;
+			if (v >= 2) return 2;
+			if (v >= 1.5) return 1;
+			return 0;
+		};
+		const levelSum = toLevel(attributeValue) + toLevel(elementalValue);
+		const clamped = Math.max(-2, Math.min(4, levelSum));
+		const levelToMultiplier = {
+			[-2]: 0.3,
+			[-1]: 0.5,
+			0: 1,
+			1: 1.5,
+			2: 2,
+			3: 3,
+			4: 4
+		};
+		return levelToMultiplier[clamped];
+	}
+
     getCounterDigimon(targetDigimon) {
         if (!targetDigimon.attribute_resistances || !targetDigimon.elemental_resistances) {
             return [];
@@ -334,8 +358,8 @@ class Digimon {
         const maxAttributeResistance = Math.max(...Object.values(targetDigimon.attribute_resistances));
         const maxElementalResistance = Math.max(...Object.values(targetDigimon.elemental_resistances));
         
-        // Calculate counter threshold
-        const counterThreshold = maxAttributeResistance * maxElementalResistance;
+		// Calculate counter threshold (using additive levels mapping)
+		const counterThreshold = this.combineResistanceValues(maxAttributeResistance, maxElementalResistance);
         
         // Only proceed if threshold >= 2
         if (counterThreshold < 2) {
@@ -392,11 +416,11 @@ class Digimon {
             return 0;
         }
 
-        // Find highest resistances for the counter digimon
-        const maxCounterAttribute = Math.max(...Object.values(counterDigimon.attribute_resistances));
-        const maxCounterElemental = Math.max(...Object.values(counterDigimon.elemental_resistances));
-
-        return maxCounterAttribute * maxCounterElemental;
+		// Find highest resistances for the counter digimon
+		const maxCounterAttribute = Math.max(...Object.values(counterDigimon.attribute_resistances));
+		const maxCounterElemental = Math.max(...Object.values(counterDigimon.elemental_resistances));
+		
+		return this.combineResistanceValues(maxCounterAttribute, maxCounterElemental);
     }
 
     randomSelect(array, count) {
@@ -452,9 +476,9 @@ class Digimon {
             // Show counter digimon if resistance calculation >= 2
             const counterDigimon = digimonInstance.getCounterDigimon(digimon);
             if (counterDigimon.length > 0) {
-                rply += `\n------克制數碼寶貝------\n`;
+                rply += `\n------特殊技能克制------\n`;
                 for (const counter of counterDigimon) {
-                    rply += `• ${counter.name} (${digimonInstance.getStageName(counter.stage)}) - 克制值: ${counter.counterValue}\n`;
+                    rply += `• ${counter.name} (${digimonInstance.getStageName(counter.stage)}) - 傷害倍率: ${counter.counterValue}\n`;
                 }
             }
             

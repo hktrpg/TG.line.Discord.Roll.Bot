@@ -122,7 +122,7 @@ class Digimon {
         this.worldData = null;
         this.stagesName = [];
         this.fuse = new Fuse(this.digimonData, {
-            keys: ['name', 'id'],
+			keys: ['name', 'zh-cn-name', 'id'],
             includeScore: true,
             findAllMatches: true,
             threshold: 0.6
@@ -147,29 +147,53 @@ class Digimon {
             item.stage
         );
         
-        // Recreate fuse with filtered data
-        digimon.fuse = new Fuse(digimon.digimonData, {
-            keys: ['name', 'id'],
-            includeScore: true,
-            findAllMatches: true,
-            threshold: 0.6
-        });
+		// Recreate fuse with filtered data
+		digimon.fuse = new Fuse(digimon.digimonData, {
+			keys: ['name', 'zh-cn-name', 'id'],
+			includeScore: true,
+			findAllMatches: true,
+			threshold: 0.6
+		});
         
         return digimon;
     }
 
+	/**
+	 * Detailed search with preference order:
+	 * 1) Exact by id
+	 * 2) Exact by name
+	 * 3) Exact by zh-cn-name
+	 * 4) Fuzzy by name, zh-cn-name, id (Fuse)
+	 * Returns { match, isFuzzy, candidates }
+	 */
+	findByNameOrIdDetailed(query) {
+		if (query === undefined || query === null) return { match: null, isFuzzy: false, candidates: [] };
+		const q = String(query).trim();
+		// 1) Exact by id (numeric string allowed)
+		if (!Number.isNaN(query) || /^\d+$/.test(q)) {
+			const id = Number.parseInt(q);
+			if (!Number.isNaN(id)) {
+				const byId = this.digimonData.find(d => d.id === id);
+				if (byId) return { match: byId, isFuzzy: false, candidates: [] };
+			}
+		}
+		// 2) Exact by name
+		const byName = this.digimonData.find(d => d.name === q);
+		if (byName) return { match: byName, isFuzzy: false, candidates: [] };
+		// 3) Exact by zh-cn-name
+		const byZhCN = this.digimonData.find(d => d['zh-cn-name'] && d['zh-cn-name'] === q);
+		if (byZhCN) return { match: byZhCN, isFuzzy: false, candidates: [] };
+		// 4) Fuzzy search across name and zh-cn-name
+		const results = this.fuse.search(q, { limit: 5 });
+		if (results.length > 0) {
+			return { match: results[0].item, isFuzzy: true, candidates: results.map(r => r.item) };
+		}
+		return { match: null, isFuzzy: false, candidates: [] };
+	}
+
     findByNameOrId(query) {
-        // Try to find by ID first if it's a number
-        if (!Number.isNaN(query)) {
-            const byId = this.digimonData.find(d => d.id === Number.parseInt(query));
-            if (byId) return byId;
-        }
-        
-        // Search by name using fuse
-        const result = this.fuse.search(query, { limit: 1 });
-        if (result.length > 0) return result[0].item;
-        
-        return null;
+		const detailed = this.findByNameOrIdDetailed(query);
+		return detailed.match;
     }
 
     getStageName(stage) {
@@ -718,10 +742,24 @@ class Digimon {
 
     search(name) {
         try {
-            const digimon = this.findByNameOrId(name);
-            if (!digimon) return '沒有找到相關資料';
-            
-            return Digimon.showDigimon(digimon, this);
+			const detailed = this.findByNameOrIdDetailed(name);
+			const digimon = detailed.match;
+			if (!digimon) return '沒有找到相關資料';
+			let output = Digimon.showDigimon(digimon, this);
+			// If fuzzy, append up to 4 suggestions (excluding the top match)
+			if (detailed.isFuzzy && detailed.candidates.length > 1) {
+				const suggestions = detailed.candidates
+					.filter(c => c.id !== digimon.id)
+					.slice(0, 4)
+					.map(c => {
+						const zh = c['zh-cn-name'] && c['zh-cn-name'] !== c.name ? ` / ${c['zh-cn-name']}` : '';
+						return `${c.name}${zh}`;
+					});
+				if (suggestions.length > 0) {
+					output += `\n可能的其他名稱：${suggestions.join(', ')}`;
+				}
+			}
+			return output;
         } catch (error) {
             console.error('digimon search error', error);
             return '發生錯誤';

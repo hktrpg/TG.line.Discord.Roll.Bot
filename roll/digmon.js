@@ -77,7 +77,7 @@ const rollDiceCommand = async function ({
     
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
-            rply.text = this.getHelpMessage();
+            rply.text = getHelpMessage();
             rply.quotes = true;
             rply.buttonCreate = ['.digi', '.digi 亞古獸', '.digi 123', '.digi 123 323', '.digi 亞古獸 戰鬥暴龍獸']
             return rply;
@@ -109,7 +109,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         default: {
-            rply.text = this.getHelpMessage();
+            rply.text = getHelpMessage();
             rply.quotes = true;
             return rply;
         }
@@ -133,10 +133,9 @@ class Digimon {
         const data = require('../assets/digmonsts/digimonSTS.json');
         const digimon = new Digimon(data);
         
-        // Find world data and stages info
-        const worldDataIndex = data.findIndex(item => item.id === 'world_data');
-        if (worldDataIndex !== -1) {
-            digimon.worldData = data[worldDataIndex];
+        // Find world data and stages info (world data is at index 0 with id: 0)
+        if (data.length > 0 && data[0].id === 0) {
+            digimon.worldData = data[0];
             digimon.stagesName = data[0].stages_name;
         }
         
@@ -304,13 +303,136 @@ class Digimon {
         return [];
     }
 
+    formatElementalResistances(elementalResistances) {
+        if (!elementalResistances) return [];
+        
+        const resistances = [];
+        for (const [element, value] of Object.entries(elementalResistances)) {
+            if (value !== 1) { // Only show non-neutral resistances
+                const elementName = this.getElementalName(element);
+                const sign = value > 1 ? '+' : '';
+                resistances.push(`${elementName}${sign}${value}`);
+            }
+        }
+        return resistances;
+    }
+
+    getElementalName(element) {
+        // Get elemental name from world data if available
+        if (this.worldData && this.worldData.elemental_name && this.worldData.elemental_name[element]) {
+            return this.worldData.elemental_name[element];
+        }
+        return element;
+    }
+
+    getCounterDigimon(targetDigimon) {
+        if (!targetDigimon.attribute_resistances || !targetDigimon.elemental_resistances) {
+            return [];
+        }
+
+        // Find highest attribute and elemental resistances
+        const maxAttributeResistance = Math.max(...Object.values(targetDigimon.attribute_resistances));
+        const maxElementalResistance = Math.max(...Object.values(targetDigimon.elemental_resistances));
+        
+        // Calculate counter threshold
+        const counterThreshold = maxAttributeResistance * maxElementalResistance;
+        
+        // Only proceed if threshold >= 2
+        if (counterThreshold < 2) {
+            return [];
+        }
+
+        // Get stage 5 and stage 6 digimon
+        const stage5Digimon = this.digimonData.filter(d => d.stage === '5' && d.special_skills && d.special_skills.length > 0);
+        const stage6Digimon = this.digimonData.filter(d => d.stage === '6' && d.special_skills && d.special_skills.length > 0);
+
+        const counters = [];
+
+        // Calculate counter values for stage 5 digimon
+        for (const digimon of stage5Digimon) {
+            const counterValue = this.calculateCounterValue(targetDigimon, digimon);
+            if (counterValue >= 2) {
+                counters.push({ ...digimon, counterValue, stage: '5' });
+            }
+        }
+
+        // Calculate counter values for stage 6 digimon
+        for (const digimon of stage6Digimon) {
+            const counterValue = this.calculateCounterValue(targetDigimon, digimon);
+            if (counterValue >= 2) {
+                counters.push({ ...digimon, counterValue, stage: '6' });
+            }
+        }
+
+        // Sort by counter value (highest first)
+        counters.sort((a, b) => b.counterValue - a.counterValue);
+
+        // Select 2 from each stage, randomly if more than 2
+        const result = [];
+        
+        // Get stage 5 counters
+        const stage5Counters = counters.filter(c => c.stage === '5');
+        if (stage5Counters.length > 0) {
+            const selected5 = this.randomSelect(stage5Counters, 2);
+            result.push(...selected5);
+        }
+
+        // Get stage 6 counters
+        const stage6Counters = counters.filter(c => c.stage === '6');
+        if (stage6Counters.length > 0) {
+            const selected6 = this.randomSelect(stage6Counters, 2);
+            result.push(...selected6);
+        }
+
+        return result;
+    }
+
+    calculateCounterValue(targetDigimon, counterDigimon) {
+        if (!counterDigimon.attribute_resistances || !counterDigimon.elemental_resistances) {
+            return 0;
+        }
+
+        // Find highest resistances for the counter digimon
+        const maxCounterAttribute = Math.max(...Object.values(counterDigimon.attribute_resistances));
+        const maxCounterElemental = Math.max(...Object.values(counterDigimon.elemental_resistances));
+
+        return maxCounterAttribute * maxCounterElemental;
+    }
+
+    randomSelect(array, count) {
+        if (array.length <= count) {
+            return array;
+        }
+        
+        const shuffled = [...array].sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, count);
+    }
+
     static showDigimon(digimon, digimonInstance) {
         let rply = '';
         try {
             rply += `#${digimon.id} 【${digimon.name}】\n`;
             rply += `進化階段：${digimonInstance.getStageName(digimon.stage)}\n`;
             
-            // Show personality section only if exists
+            // Show base personality if exists
+            if (digimon.base_personality) {
+                rply += `基本個性：${digimon.base_personality}\n`;
+            }
+            
+            // Show attribute (種族) if exists
+            if (digimon.attribute && digimon.attribute !== 'No Data') {
+                rply += `種族：${digimon.attribute}\n`;
+            }
+            
+            // Show elemental resistances if exists
+            if (digimon.elemental_resistances) {
+                const resistances = digimonInstance.formatElementalResistances(digimon.elemental_resistances);
+                if (resistances.length > 0) {
+                    rply += `屬性抗性：${resistances.join(', ')}\n`;
+                }
+            }
+            
+            // Show personality section only if exists (legacy field)
             if (digimon.personality) {
                 rply += `基礎個性：${digimon.personality}\n`;
             }
@@ -327,8 +449,17 @@ class Digimon {
                 rply += `出現地點：${locations.join(', ')}\n`;
             }
             
+            // Show counter digimon if resistance calculation >= 2
+            const counterDigimon = digimonInstance.getCounterDigimon(digimon);
+            if (counterDigimon.length > 0) {
+                rply += `\n------克制數碼寶貝------\n`;
+                for (const counter of counterDigimon) {
+                    rply += `• ${counter.name} (${digimonInstance.getStageName(counter.stage)}) - 克制值: ${counter.counterValue}\n`;
+                }
+            }
+            
             if (digimon.mix_evolution) {
-                rply += `特殊進化：合體進化\n`;
+                rply += `\n特殊進化：合體進化\n`;
                 const comps = digimonInstance.getFusionComponents(digimon);
                 if (comps.length === 2) {
                     rply += `合體來源：${comps[0]} + ${comps[1]}\n`;

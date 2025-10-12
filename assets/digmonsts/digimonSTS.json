@@ -20,7 +20,20 @@
       "VII"
     ],
     "mix_name": "混合體",
-    "armor_name": "裝甲體"
+    "armor_name": "裝甲體",
+    "elemental_name": {
+      "Fire": "火",
+      "Water": "水",
+      "Plant": "植物",
+      "Ice": "冰",
+      "Elec": "電",
+      "Earth": "地",
+      "Steel": "鋼",
+      "Wind": "風",
+      "Light": "光",
+      "Dark": "暗",
+      "Null": "無"
+    }
   },
   {
     "id": 1,
@@ -1075,7 +1088,7 @@
       "Virus": 0.5
     },
     "elemental_resistances": {
-      "Fire": "No Damage",
+      "Fire": 0,
       "Water": 1.5,
       "Plant": 1,
       "Ice": 1.5,
@@ -1129,7 +1142,7 @@
       "Ice": 1.5,
       "Elec": 1,
       "Earth": 1,
-      "Steel": "No Damage",
+      "Steel": 0,
       "Wind": 1,
       "Light": 1,
       "Dark": 1,
@@ -2086,7 +2099,7 @@
       "Plant": 1.5,
       "Ice": 1,
       "Elec": 1,
-      "Earth": "No Damage",
+      "Earth": 0,
       "Steel": 1,
       "Wind": 1.5,
       "Light": 1,
@@ -2716,7 +2729,7 @@
     ],
     "zh-cn-name": "小妖獸",
     "eng-name": "Impmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Little Devil",
     "base_personality": "壞點子",
     "attribute_resistances": {
@@ -2763,7 +2776,7 @@
     ],
     "zh-cn-name": "蝌蚪獸",
     "eng-name": "Otamamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Amphibian",
     "base_personality": "壞點子",
     "attribute_resistances": {
@@ -2803,7 +2816,7 @@
     ],
     "zh-cn-name": "加支獸",
     "eng-name": "Gazimon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Mammal",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -2851,7 +2864,7 @@
     ],
     "zh-cn-name": "鋸齒獸",
     "eng-name": "Gizamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Sea Animal",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -2898,7 +2911,7 @@
     ],
     "zh-cn-name": "基爾獸",
     "eng-name": "Guilmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Reptile",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -2945,7 +2958,7 @@
     ],
     "zh-cn-name": "哥布林獸",
     "eng-name": "Goblimon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Demon",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -2991,7 +3004,7 @@
     ],
     "zh-cn-name": "薩滿獸",
     "eng-name": "Shamamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Demon",
     "base_personality": "善於交際",
     "attribute_resistances": {
@@ -3038,7 +3051,7 @@
     ],
     "zh-cn-name": "碎碟獸",
     "eng-name": "Syakomon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Crustacean",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -3086,7 +3099,7 @@
     ],
     "zh-cn-name": "雪哥布林獸",
     "eng-name": "SnowGoblimon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Demon",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -3134,7 +3147,7 @@
     ],
     "zh-cn-name": "吱吱獸",
     "eng-name": "Chuumon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Beast",
     "base_personality": "善於交際",
     "attribute_resistances": {
@@ -3172,7 +3185,7 @@
     ],
     "zh-cn-name": "德庫拉獸",
     "eng-name": "Dracmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Undead",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -3211,7 +3224,7 @@
     ],
     "zh-cn-name": "齒輪獸",
     "eng-name": "Hagurumon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Machine",
     "base_personality": "善於交際",
     "attribute_resistances": {
@@ -3258,7 +3271,7 @@
     ],
     "zh-cn-name": "小惡魔獸",
     "eng-name": "DemiDevimon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Little Devil",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -3306,7 +3319,7 @@
     ],
     "zh-cn-name": "幻蜂獸",
     "eng-name": "FunBeemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Insectoid",
     "base_personality": "投機分子",
     "attribute_resistances": {
@@ -3354,7 +3367,7 @@
     ],
     "zh-cn-name": "貝塔獸",
     "eng-name": "Betamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Amphibian",
     "base_personality": "戰略家",
     "attribute_resistances": {
@@ -3400,7 +3413,7 @@
     ],
     "zh-cn-name": "蘑菇獸",
     "eng-name": "Mushroomon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Vegetation",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -3446,7 +3459,7 @@
     ],
     "zh-cn-name": "猶徐獸",
     "eng-name": "Armadillomon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Mammal",
     "base_personality": "過度保護",
     "attribute_resistances": {
@@ -3493,7 +3506,7 @@
     ],
     "zh-cn-name": "V仔獸",
     "eng-name": "Veemon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Mini Dragon",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -3539,7 +3552,7 @@
     ],
     "zh-cn-name": "麻鷹獸",
     "eng-name": "Hawkmon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Bird",
     "base_personality": "善於交際",
     "attribute_resistances": {
@@ -3584,7 +3597,7 @@
     ],
     "zh-cn-name": "蟲蟲獸",
     "eng-name": "Wormmon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Larva",
     "base_personality": "包容力",
     "attribute_resistances": {
@@ -3631,7 +3644,7 @@
     ],
     "zh-cn-name": "哈哈獸",
     "eng-name": "Keramon",
-    "attribute": "Unknown",
+    "attribute": "不明",
     "type": "種族不明",
     "base_personality": "壞點子",
     "attribute_resistances": {
@@ -4355,7 +4368,7 @@
       "Ice": 1.5,
       "Elec": 1,
       "Earth": 1,
-      "Steel": "No Damage",
+      "Steel": 0,
       "Wind": 1,
       "Light": 1,
       "Dark": 1,
@@ -4587,7 +4600,7 @@
       "Virus": 0.5
     },
     "elemental_resistances": {
-      "Fire": "No Damage",
+      "Fire": 0,
       "Water": 1.5,
       "Plant": 1,
       "Ice": 1.5,
@@ -4831,7 +4844,7 @@
       "Fire": 2,
       "Water": 1,
       "Plant": 1,
-      "Ice": "No Damage",
+      "Ice": 0,
       "Elec": 1.5,
       "Earth": 1,
       "Steel": 1,
@@ -5116,7 +5129,7 @@
       "Fire": 1.5,
       "Water": 0.5,
       "Plant": 1,
-      "Ice": "No Damage",
+      "Ice": 0,
       "Elec": 1.5,
       "Earth": 1,
       "Steel": 1,
@@ -6253,7 +6266,7 @@
       "Virus": 1.5
     },
     "elemental_resistances": {
-      "Fire": "No Damage",
+      "Fire": 0,
       "Water": 2,
       "Plant": 1,
       "Ice": 1.5,
@@ -6386,7 +6399,7 @@
     ],
     "zh-cn-name": "冰惡魔獸",
     "eng-name": "IceDevimon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Dark Angel",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -6398,7 +6411,7 @@
       "Fire": 2,
       "Water": 0.5,
       "Plant": 1,
-      "Ice": "No Damage",
+      "Ice": 0,
       "Elec": 1.5,
       "Earth": 1,
       "Steel": 1,
@@ -6433,7 +6446,7 @@
     ],
     "zh-cn-name": "溫蒂獸",
     "eng-name": "Wendigomon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Beast Man",
     "base_personality": "戰略家",
     "attribute_resistances": {
@@ -6480,7 +6493,7 @@
     ],
     "zh-cn-name": "枯木獸",
     "eng-name": "Woodmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Vegetation",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -6526,7 +6539,7 @@
     ],
     "zh-cn-name": "惡鬼獸",
     "eng-name": "Ogremon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Demon",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -6574,7 +6587,7 @@
     ],
     "zh-cn-name": "章魚獸",
     "eng-name": "Octomon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Mollusk",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -6620,7 +6633,7 @@
     ],
     "zh-cn-name": "守衛機器人獸",
     "eng-name": "Guardromon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Machine",
     "base_personality": "犧牲奉獻",
     "attribute_resistances": {
@@ -6668,7 +6681,7 @@
     ],
     "zh-cn-name": "貝殼鼻涕獸",
     "eng-name": "ShellNumemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Crustacean",
     "base_personality": "善於交際",
     "attribute_resistances": {
@@ -6715,7 +6728,7 @@
     ],
     "zh-cn-name": "古拉獸",
     "eng-name": "Growlmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Dark Dragon",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -6763,7 +6776,7 @@
     ],
     "zh-cn-name": "古加獸",
     "eng-name": "Kuwagamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Insectoid",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -6810,7 +6823,7 @@
     ],
     "zh-cn-name": "怪蛙獸",
     "eng-name": "Gekomon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Amphibian",
     "base_personality": "壞點子",
     "attribute_resistances": {
@@ -6857,7 +6870,7 @@
     ],
     "zh-cn-name": "卑劣獸",
     "eng-name": "Geremon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Mollusk",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -6903,7 +6916,7 @@
     ],
     "zh-cn-name": "核龍獸綠",
     "eng-name": "Coredramon (Green)",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Dragon",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -6949,7 +6962,7 @@
     ],
     "zh-cn-name": "黃金鼻涕獸",
     "eng-name": "GoldNumemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Mutant",
     "base_personality": "善於交際",
     "attribute_resistances": {
@@ -6996,7 +7009,7 @@
     ],
     "zh-cn-name": "魔像獸",
     "eng-name": "Golemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Mineral",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -7010,7 +7023,7 @@
       "Plant": 1,
       "Ice": 1,
       "Elec": 1,
-      "Earth": "No Damage",
+      "Earth": 0,
       "Steel": 1,
       "Wind": 1.5,
       "Light": 1,
@@ -7042,7 +7055,7 @@
     ],
     "zh-cn-name": "獨眼龍獸",
     "eng-name": "Cyclonemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "龍人型",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -7092,7 +7105,7 @@
     ],
     "zh-cn-name": "血狼獸",
     "eng-name": "Sangloupmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Dark Beast",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -7140,7 +7153,7 @@
     ],
     "zh-cn-name": "大便獸",
     "eng-name": "Sukamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Abnormal",
     "base_personality": "善於交際",
     "attribute_resistances": {
@@ -7187,7 +7200,7 @@
     ],
     "zh-cn-name": "長牙獸",
     "eng-name": "Tuskmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Dinosaur",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -7237,7 +7250,7 @@
     ],
     "zh-cn-name": "惡魔獸",
     "eng-name": "Devimon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Dark Angel",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -7286,7 +7299,7 @@
     ],
     "zh-cn-name": "德爾塔獸",
     "eng-name": "Deltamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Composite",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -7334,7 +7347,7 @@
     ],
     "zh-cn-name": "毒蜘蛛獸",
     "eng-name": "Dokugumon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Insectoid",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -7381,7 +7394,7 @@
     ],
     "zh-cn-name": "什麼獸",
     "eng-name": "Nanimon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Invader",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -7428,7 +7441,7 @@
     ],
     "zh-cn-name": "鼻涕獸",
     "eng-name": "Numemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Mollusk",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -7476,7 +7489,7 @@
     ],
     "zh-cn-name": "鬼怪獸",
     "eng-name": "Bakemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Ghost",
     "base_personality": "戰略家",
     "attribute_resistances": {
@@ -7523,7 +7536,7 @@
     ],
     "zh-cn-name": "冰河獸",
     "eng-name": "Hyogamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Ice-Snow",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -7570,7 +7583,7 @@
     ],
     "zh-cn-name": "風災獸",
     "eng-name": "Fugamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Demon",
     "base_personality": "善於交際",
     "attribute_resistances": {
@@ -7618,7 +7631,7 @@
     ],
     "zh-cn-name": "黃蜂獸",
     "eng-name": "Flymon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Insectoid",
     "base_personality": "投機分子",
     "attribute_resistances": {
@@ -7665,7 +7678,7 @@
     ],
     "zh-cn-name": "白金大便獸",
     "eng-name": "PlatinumSukamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Mutant",
     "base_personality": "善於交際",
     "attribute_resistances": {
@@ -7713,7 +7726,7 @@
     ],
     "zh-cn-name": "黑迪路獸",
     "eng-name": "BlackGatomon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Dark Beast",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -7760,7 +7773,7 @@
     ],
     "zh-cn-name": "野菜獸",
     "eng-name": "Vegiemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Carnivorous Vegetation",
     "base_personality": "過度保護",
     "attribute_resistances": {
@@ -7807,7 +7820,7 @@
     ],
     "zh-cn-name": "牛人獸",
     "eng-name": "Minotarumon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Beast Man",
     "base_personality": "投機分子",
     "attribute_resistances": {
@@ -7854,7 +7867,7 @@
     ],
     "zh-cn-name": "武人獸",
     "eng-name": "Musyamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Wizard",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -7901,7 +7914,7 @@
     ],
     "zh-cn-name": "機械載物獸",
     "eng-name": "Mekanorimon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Machine",
     "base_personality": "包容力",
     "attribute_resistances": {
@@ -7950,7 +7963,7 @@
     ],
     "zh-cn-name": "爛泥獸",
     "eng-name": "Raremon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Undead",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -7997,7 +8010,7 @@
     ],
     "zh-cn-name": "胡蜂獸",
     "eng-name": "Waspmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Android",
     "base_personality": "投機分子",
     "attribute_resistances": {
@@ -8045,7 +8058,7 @@
     ],
     "zh-cn-name": "天鷹獸",
     "eng-name": "Aquilamon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "巨鳥型",
     "base_personality": "善於交際",
     "attribute_resistances": {
@@ -8092,7 +8105,7 @@
     ],
     "zh-cn-name": "甲龍獸",
     "eng-name": "Ankylomon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Armored Dragon",
     "base_personality": "過度保護",
     "attribute_resistances": {
@@ -8139,7 +8152,7 @@
     ],
     "zh-cn-name": "XV獸",
     "eng-name": "ExVeemon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Mythical Dragon",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -8186,7 +8199,7 @@
     ],
     "zh-cn-name": "守衛機器人獸金",
     "eng-name": "Guardromon (Gold)",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Machine",
     "base_personality": "善於交際",
     "attribute_resistances": {
@@ -8233,7 +8246,7 @@
     ],
     "zh-cn-name": "飛蟲獸",
     "eng-name": "Stingmon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Insectoid",
     "base_personality": "包容力",
     "attribute_resistances": {
@@ -8281,7 +8294,7 @@
     ],
     "zh-cn-name": "蟲蛹獸",
     "eng-name": "Kurisarimon",
-    "attribute": "Unknown",
+    "attribute": "不明",
     "type": "種族不明",
     "base_personality": "壞點子",
     "attribute_resistances": {
@@ -8322,7 +8335,7 @@
     "evolutions": [],
     "zh-cn-name": "潛艇獸",
     "eng-name": "Submarimon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Aquatic",
     "base_personality": "過度保護",
     "attribute_resistances": {
@@ -8355,7 +8368,7 @@
     "evolutions": [],
     "zh-cn-name": "手裡劍獸",
     "eng-name": "Shurimon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Mutant",
     "base_personality": "善於交際",
     "attribute_resistances": {
@@ -8388,7 +8401,7 @@
     "evolutions": [],
     "zh-cn-name": "挖掘獸",
     "eng-name": "Digmon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Insectoid",
     "base_personality": "投機分子",
     "attribute_resistances": {
@@ -8421,7 +8434,7 @@
     "evolutions": [],
     "zh-cn-name": "納芙蒂獸",
     "eng-name": "Nefertimon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Holy Beast",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -8462,7 +8475,7 @@
     "evolutions": [],
     "zh-cn-name": "烈焰龍獸",
     "eng-name": "Flamedramon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "龍人型",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -8503,7 +8516,7 @@
     "evolutions": [],
     "zh-cn-name": "天馬獸",
     "eng-name": "Pegasusmon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Holy Beast",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -8536,7 +8549,7 @@
     "evolutions": [],
     "zh-cn-name": "荷魯斯獸",
     "eng-name": "Halsemon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Beast",
     "base_personality": "戰略家",
     "attribute_resistances": {
@@ -8569,7 +8582,7 @@
     "evolutions": [],
     "zh-cn-name": "閃電龍獸",
     "eng-name": "Lighdramon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Beast",
     "base_personality": "善於交際",
     "attribute_resistances": {
@@ -8613,7 +8626,7 @@
     ],
     "zh-cn-name": "火神獸",
     "eng-name": "Agunimon",
-    "attribute": "Variable",
+    "attribute": "可變種",
     "type": "Wizard",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -8622,7 +8635,7 @@
       "Virus": 1
     },
     "elemental_resistances": {
-      "Fire": "No Damage",
+      "Fire": 0,
       "Water": 1.5,
       "Plant": 1,
       "Ice": 2,
@@ -8649,7 +8662,7 @@
     ],
     "zh-cn-name": "野狼獸",
     "eng-name": "Lobomon",
-    "attribute": "Variable",
+    "attribute": "可變種",
     "type": "Warrior",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -8666,7 +8679,7 @@
       "Earth": 1.5,
       "Steel": 1,
       "Wind": 1,
-      "Light": "No Damage",
+      "Light": 0,
       "Dark": 2,
       "Null": 1
     },
@@ -8684,7 +8697,7 @@
     ],
     "zh-cn-name": "拉娜獸",
     "eng-name": "Lanamon",
-    "attribute": "Variable",
+    "attribute": "可變種",
     "type": "Pixie",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -8694,7 +8707,7 @@
     },
     "elemental_resistances": {
       "Fire": 1.5,
-      "Water": "No Damage",
+      "Water": 0,
       "Plant": 1,
       "Ice": 1,
       "Elec": 2,
@@ -8718,7 +8731,7 @@
     ],
     "zh-cn-name": "炎龍獸",
     "eng-name": "BurningGreymon",
-    "attribute": "Variable",
+    "attribute": "可變種",
     "type": "Dark Dragon",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -8727,7 +8740,7 @@
       "Virus": 1
     },
     "elemental_resistances": {
-      "Fire": "No Damage",
+      "Fire": 0,
       "Water": 1.5,
       "Plant": 1,
       "Ice": 2,
@@ -8751,7 +8764,7 @@
     ],
     "zh-cn-name": "烏賊獸",
     "eng-name": "Calmaramon",
-    "attribute": "Variable",
+    "attribute": "可變種",
     "type": "Aquatic",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -8761,7 +8774,7 @@
     },
     "elemental_resistances": {
       "Fire": 1.5,
-      "Water": "No Damage",
+      "Water": 0,
       "Plant": 1,
       "Ice": 1,
       "Elec": 2,
@@ -8785,7 +8798,7 @@
     ],
     "zh-cn-name": "加魯姆獸",
     "eng-name": "KendoGarurumon",
-    "attribute": "Variable",
+    "attribute": "可變種",
     "type": "Android",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -8802,7 +8815,7 @@
       "Earth": 1,
       "Steel": 1,
       "Wind": 0.5,
-      "Light": "No Damage",
+      "Light": 0,
       "Dark": 2,
       "Null": 1
     },
@@ -9170,7 +9183,7 @@
       "Elec": 0.5,
       "Earth": 1.5,
       "Steel": 1,
-      "Wind": "No Damage",
+      "Wind": 0,
       "Light": 1,
       "Dark": 1,
       "Null": 1
@@ -9796,7 +9809,7 @@
       "Ice": 1.5,
       "Elec": 1,
       "Earth": 1,
-      "Steel": "No Damage",
+      "Steel": 0,
       "Wind": 1,
       "Light": 1,
       "Dark": 1,
@@ -9839,7 +9852,7 @@
       "Water": 1,
       "Plant": 1,
       "Ice": 1,
-      "Elec": "No Damage",
+      "Elec": 0,
       "Earth": 1.5,
       "Steel": 1,
       "Wind": 0.5,
@@ -10025,7 +10038,7 @@
       "Virus": 0.5
     },
     "elemental_resistances": {
-      "Fire": "No Damage",
+      "Fire": 0,
       "Water": 1.5,
       "Plant": 1,
       "Ice": 1.5,
@@ -10074,7 +10087,7 @@
     },
     "elemental_resistances": {
       "Fire": 1,
-      "Water": "No Damage",
+      "Water": 0,
       "Plant": 1,
       "Ice": 0.5,
       "Elec": 1.5,
@@ -10129,7 +10142,7 @@
       "Earth": 1.5,
       "Steel": 1,
       "Wind": 1,
-      "Light": "No Damage",
+      "Light": 0,
       "Dark": 2,
       "Null": 1
     },
@@ -11219,7 +11232,7 @@
       "Virus": 1.5
     },
     "elemental_resistances": {
-      "Fire": "No Damage",
+      "Fire": 0,
       "Water": 1,
       "Plant": 1,
       "Ice": 1,
@@ -11898,7 +11911,7 @@
     },
     "elemental_resistances": {
       "Fire": 1.5,
-      "Water": "No Damage",
+      "Water": 0,
       "Plant": 1,
       "Ice": 1,
       "Elec": 0.5,
@@ -12088,7 +12101,7 @@
     ],
     "zh-cn-name": "阿斯塔獸",
     "eng-name": "Astamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Wizard",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -12136,7 +12149,7 @@
     ],
     "zh-cn-name": "阿刺克涅獸",
     "eng-name": "Arukenimon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Dark Beast",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -12176,7 +12189,7 @@
     ],
     "zh-cn-name": "吸血魔獸",
     "eng-name": "Myotismon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Undead",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -12216,7 +12229,7 @@
     ],
     "zh-cn-name": "猿猴獸",
     "eng-name": "Etemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Puppet",
     "base_personality": "投機分子",
     "attribute_resistances": {
@@ -12256,7 +12269,7 @@
     ],
     "zh-cn-name": "大古加獸",
     "eng-name": "Okuwamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Insectoid",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -12295,7 +12308,7 @@
     ],
     "zh-cn-name": "大蛇獸",
     "eng-name": "Orochimon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Dark Dragon",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -12333,7 +12346,7 @@
     ],
     "zh-cn-name": "垃圾桶獸",
     "eng-name": "Garbagemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Mutant",
     "base_personality": "善於交際",
     "attribute_resistances": {
@@ -12379,7 +12392,7 @@
     ],
     "zh-cn-name": "千兆龍獸",
     "eng-name": "Gigadramon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Android",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -12425,7 +12438,7 @@
     ],
     "zh-cn-name": "炮蜂獸",
     "eng-name": "CannonBeemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Android",
     "base_personality": "投機分子",
     "attribute_resistances": {
@@ -12472,7 +12485,7 @@
     ],
     "zh-cn-name": "地龍獸",
     "eng-name": "Groundramon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Earth Dragon",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -12517,7 +12530,7 @@
     ],
     "zh-cn-name": "鯊魚獸",
     "eng-name": "Sharkmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Android",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -12527,7 +12540,7 @@
     },
     "elemental_resistances": {
       "Fire": 1,
-      "Water": "No Damage",
+      "Water": 0,
       "Plant": 1,
       "Ice": 0.5,
       "Elec": 1.5,
@@ -12563,7 +12576,7 @@
     ],
     "zh-cn-name": "沙悟淨獸",
     "eng-name": "Shaujinmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Wizard",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -12603,7 +12616,7 @@
     ],
     "zh-cn-name": "祖利獸",
     "eng-name": "Cherrymon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Vegetation",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -12614,7 +12627,7 @@
     "elemental_resistances": {
       "Fire": 1.5,
       "Water": 1,
-      "Plant": "No Damage",
+      "Plant": 0,
       "Ice": 1,
       "Elec": 1,
       "Earth": 0.5,
@@ -12649,7 +12662,7 @@
     ],
     "zh-cn-name": "喪屍暴龍獸",
     "eng-name": "SkullGreymon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Undead",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -12697,7 +12710,7 @@
     ],
     "zh-cn-name": "骷髏撒旦獸",
     "eng-name": "SkullSatamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Undead",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -12743,7 +12756,7 @@
     ],
     "zh-cn-name": "喪屍海龍獸",
     "eng-name": "SkullSeadramon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Undead",
     "base_personality": "戰略家",
     "attribute_resistances": {
@@ -12791,7 +12804,7 @@
     ],
     "zh-cn-name": "黑暗巨星獸",
     "eng-name": "DarkSuperStarmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Mutant",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -12837,7 +12850,7 @@
     ],
     "zh-cn-name": "達貢獸",
     "eng-name": "Dragomon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Aquatic Beast Man",
     "base_personality": "過度保護",
     "attribute_resistances": {
@@ -12883,7 +12896,7 @@
     ],
     "zh-cn-name": "坦克龍獸",
     "eng-name": "Tankdramon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Machine",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -12931,7 +12944,7 @@
     ],
     "zh-cn-name": "怪蛙皇",
     "eng-name": "ShogunGekomon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Amphibian",
     "base_personality": "壞點子",
     "attribute_resistances": {
@@ -12977,7 +12990,7 @@
     ],
     "zh-cn-name": "分子獸",
     "eng-name": "Datamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Machine",
     "base_personality": "戰略家",
     "attribute_resistances": {
@@ -13025,7 +13038,7 @@
     ],
     "zh-cn-name": "幻影獸",
     "eng-name": "Phantomon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Ghost",
     "base_personality": "戰略家",
     "attribute_resistances": {
@@ -13071,7 +13084,7 @@
     ],
     "zh-cn-name": "黑國王鼻涕獸",
     "eng-name": "BlackKingNumemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Mollusk",
     "base_personality": "善於交際",
     "attribute_resistances": {
@@ -13118,7 +13131,7 @@
     ],
     "zh-cn-name": "藍色燃燒獸",
     "eng-name": "BlueMeramon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Fire",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -13127,7 +13140,7 @@
       "Virus": 1
     },
     "elemental_resistances": {
-      "Fire": "No Damage",
+      "Fire": 0,
       "Water": 1.5,
       "Plant": 1,
       "Ice": 0.5,
@@ -13164,7 +13177,7 @@
     ],
     "zh-cn-name": "入侵獸",
     "eng-name": "Vademon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Alien",
     "base_personality": "過度保護",
     "attribute_resistances": {
@@ -13211,7 +13224,7 @@
     ],
     "zh-cn-name": "鬥牛士獸",
     "eng-name": "Matadormon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Undead",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -13258,7 +13271,7 @@
     ],
     "zh-cn-name": "木乃伊獸",
     "eng-name": "Mummymon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Undead",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -13306,7 +13319,7 @@
     ],
     "zh-cn-name": "神秘獸",
     "eng-name": "Mistymon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Magic Warrior",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -13353,7 +13366,7 @@
     ],
     "zh-cn-name": "百萬龍獸",
     "eng-name": "Megadramon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Android",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -13401,7 +13414,7 @@
     ],
     "zh-cn-name": "大古拉獸",
     "eng-name": "WarGrowlmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Android",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -13448,7 +13461,7 @@
     ],
     "zh-cn-name": "金屬巨龍獸",
     "eng-name": "MetalTyrannomon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Android",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -13491,7 +13504,7 @@
     ],
     "zh-cn-name": "光明獸FM",
     "eng-name": "Lucemon CM",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Evil King",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -13531,7 +13544,7 @@
     ],
     "zh-cn-name": "女惡魔獸",
     "eng-name": "LadyDevimon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Dark Angel",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -13578,7 +13591,7 @@
     ],
     "zh-cn-name": "賢者獸",
     "eng-name": "Wisemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Wizard",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -13626,7 +13639,7 @@
     ],
     "zh-cn-name": "惡海龍獸",
     "eng-name": "WaruSeadramon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Aquatic",
     "base_personality": "壞點子",
     "attribute_resistances": {
@@ -13636,7 +13649,7 @@
     },
     "elemental_resistances": {
       "Fire": 1.5,
-      "Water": "No Damage",
+      "Water": 0,
       "Plant": 1,
       "Ice": 1,
       "Elec": 1,
@@ -13673,7 +13686,7 @@
     ],
     "zh-cn-name": "土偶獸",
     "eng-name": "Shakkoumon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Mutant",
     "base_personality": "過度保護",
     "attribute_resistances": {
@@ -13719,7 +13732,7 @@
     ],
     "zh-cn-name": "西爾芙獸",
     "eng-name": "Silphymon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Beast Man",
     "base_personality": "包容力",
     "attribute_resistances": {
@@ -13765,7 +13778,7 @@
     ],
     "zh-cn-name": "恐蜂獸",
     "eng-name": "Dinobeemon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Mutant",
     "base_personality": "包容力",
     "attribute_resistances": {
@@ -13811,7 +13824,7 @@
     ],
     "zh-cn-name": "機甲龍獸",
     "eng-name": "Paildramon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "龍人型",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -13858,7 +13871,7 @@
     ],
     "zh-cn-name": "地獄使者獸",
     "eng-name": "Infermon",
-    "attribute": "Unknown",
+    "attribute": "不明",
     "type": "種族不明",
     "base_personality": "壞點子",
     "attribute_resistances": {
@@ -13902,7 +13915,7 @@
     ],
     "zh-cn-name": "阿爾達獸",
     "eng-name": "Aldamon",
-    "attribute": "Variable",
+    "attribute": "可變種",
     "type": "Wizard",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -13911,7 +13924,7 @@
       "Virus": 1
     },
     "elemental_resistances": {
-      "Fire": "No Damage",
+      "Fire": 0,
       "Water": 1.5,
       "Plant": 1,
       "Ice": 2,
@@ -13938,7 +13951,7 @@
     ],
     "zh-cn-name": "貝奧武夫獸",
     "eng-name": "Beowolfmon",
-    "attribute": "Variable",
+    "attribute": "可變種",
     "type": "Warrior",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -13955,7 +13968,7 @@
       "Earth": 1,
       "Steel": 1,
       "Wind": 0.5,
-      "Light": "No Damage",
+      "Light": 0,
       "Dark": 2,
       "Null": 1
     },
@@ -13983,7 +13996,7 @@
       "Virus": 0.5
     },
     "elemental_resistances": {
-      "Fire": "No Damage",
+      "Fire": 0,
       "Water": 1.5,
       "Plant": 1,
       "Ice": 2,
@@ -13991,7 +14004,7 @@
       "Earth": 1,
       "Steel": 1,
       "Wind": 1,
-      "Light": "No Damage",
+      "Light": 0,
       "Dark": 2,
       "Null": 1
     },
@@ -14483,7 +14496,7 @@
       "Earth": 0.5,
       "Steel": 1,
       "Wind": 1,
-      "Light": "No Damage",
+      "Light": 0,
       "Dark": 2,
       "Null": 1.5
     },
@@ -14798,7 +14811,7 @@
       "Ice": 1.5,
       "Elec": 1,
       "Earth": 1,
-      "Steel": "No Damage",
+      "Steel": 0,
       "Wind": 1,
       "Light": 1,
       "Dark": 1,
@@ -14828,7 +14841,7 @@
     },
     "elemental_resistances": {
       "Fire": 1.5,
-      "Water": "No Damage",
+      "Water": 0,
       "Plant": 1,
       "Ice": 0.5,
       "Elec": 1.5,
@@ -15012,7 +15025,7 @@
       "Earth": 1,
       "Steel": 1,
       "Wind": 0.5,
-      "Light": "No Damage",
+      "Light": 0,
       "Dark": 2,
       "Null": 1
     },
@@ -15139,7 +15152,7 @@
       "Wind": 1,
       "Light": 1,
       "Dark": 1,
-      "Null": "No Damage"
+      "Null": 0
     },
     "special_skills": []
   },
@@ -15171,11 +15184,11 @@
       "Water": 1.5,
       "Plant": 1,
       "Ice": 1,
-      "Elec": "No Damage",
+      "Elec": 0,
       "Earth": 1,
       "Steel": 1,
       "Wind": 1,
-      "Light": "No Damage",
+      "Light": 0,
       "Dark": 2,
       "Null": 1
     },
@@ -15279,7 +15292,7 @@
       "Ice": 1,
       "Elec": 1,
       "Earth": 1.5,
-      "Steel": "No Damage",
+      "Steel": 0,
       "Wind": 1,
       "Light": 1,
       "Dark": 1,
@@ -15451,10 +15464,10 @@
     "elemental_resistances": {
       "Fire": 1.5,
       "Water": 1,
-      "Plant": "No Damage",
+      "Plant": 0,
       "Ice": 1.5,
       "Elec": 1,
-      "Earth": "No Damage",
+      "Earth": 0,
       "Steel": 1,
       "Wind": 1,
       "Light": 1,
@@ -15484,10 +15497,10 @@
     "elemental_resistances": {
       "Fire": 2,
       "Water": 1,
-      "Plant": "No Damage",
+      "Plant": 0,
       "Ice": 1.5,
       "Elec": 1,
-      "Earth": "No Damage",
+      "Earth": 0,
       "Steel": 1,
       "Wind": 1,
       "Light": 1,
@@ -15660,7 +15673,7 @@
       "Fire": 2,
       "Water": 0.5,
       "Plant": 1,
-      "Ice": "No Damage",
+      "Ice": 0,
       "Elec": 1,
       "Earth": 1,
       "Steel": 1,
@@ -15903,7 +15916,7 @@
     },
     "elemental_resistances": {
       "Fire": 1,
-      "Water": "No Damage",
+      "Water": 0,
       "Plant": 1,
       "Ice": 0.5,
       "Elec": 1.5,
@@ -16120,7 +16133,7 @@
     "elemental_resistances": {
       "Fire": 1.5,
       "Water": 1,
-      "Plant": "No Damage",
+      "Plant": 0,
       "Ice": 1.5,
       "Elec": 0.5,
       "Earth": 1,
@@ -16178,7 +16191,7 @@
     "evolutions": [],
     "zh-cn-name": "復仇吉德獸",
     "eng-name": "AvengeKidmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "龍人型",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -16213,7 +16226,7 @@
     "evolutions": [],
     "zh-cn-name": "外星獸",
     "eng-name": "Ebemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Android",
     "base_personality": "過度保護",
     "attribute_resistances": {
@@ -16247,7 +16260,7 @@
     "evolutions": [],
     "zh-cn-name": "怨毒吸血魔獸",
     "eng-name": "VenomMyotismon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Dark Beast",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -16280,7 +16293,7 @@
     "evolutions": [],
     "zh-cn-name": "古代賢者獸",
     "eng-name": "AncientWisemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Ancient Mutant",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -16315,7 +16328,7 @@
     "evolutions": [],
     "zh-cn-name": "凱王獸",
     "eng-name": "Gaiomon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "龍人型",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -16350,7 +16363,7 @@
     "evolutions": [],
     "zh-cn-name": "混沌公爵獸",
     "eng-name": "ChaosGallantmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Dark Knight",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -16385,7 +16398,7 @@
     "evolutions": [],
     "zh-cn-name": "混沌龍獸",
     "eng-name": "Chaosdramon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Machine",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -16419,7 +16432,7 @@
     "evolutions": [],
     "zh-cn-name": "卡利斯獸",
     "eng-name": "Callismon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Dark Beast",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -16455,7 +16468,7 @@
     "evolutions": [],
     "zh-cn-name": "槍龍獸",
     "eng-name": "Gundramon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Machine",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -16490,7 +16503,7 @@
     "evolutions": [],
     "zh-cn-name": "猿猴大王獸",
     "eng-name": "KingEtemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Puppet",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -16524,7 +16537,7 @@
     "evolutions": [],
     "zh-cn-name": "大德庫拉獸",
     "eng-name": "GranDracmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Dark Beast",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -16558,7 +16571,7 @@
     "evolutions": [],
     "zh-cn-name": "時空獸DM",
     "eng-name": "Chronomon DM",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "龍人型",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -16592,7 +16605,7 @@
     "evolutions": [],
     "zh-cn-name": "斬伐獸",
     "eng-name": "Zanbamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Wizard",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -16625,7 +16638,7 @@
     "evolutions": [],
     "zh-cn-name": "僵屍普路托獸",
     "eng-name": "ZombiePlutomon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Undead",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -16643,7 +16656,7 @@
       "Steel": 1,
       "Wind": 1,
       "Light": 2,
-      "Dark": "No Damage",
+      "Dark": 0,
       "Null": 1
     },
     "special_skills": []
@@ -16662,7 +16675,7 @@
     ],
     "zh-cn-name": "暗龍獸",
     "eng-name": "Darkdramon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Android",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -16698,7 +16711,7 @@
     "evolutions": [],
     "zh-cn-name": "虎蜂獸",
     "eng-name": "TigerVespamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Android",
     "base_personality": "投機分子",
     "attribute_resistances": {
@@ -16735,7 +16748,7 @@
     ],
     "zh-cn-name": "泰坦獸",
     "eng-name": "Titamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "神人型",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -16770,7 +16783,7 @@
     "evolutions": [],
     "zh-cn-name": "暴君比多獸",
     "eng-name": "TyrantKabuterimon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Insectoid",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -16804,7 +16817,7 @@
     "evolutions": [],
     "zh-cn-name": "究極魔獸",
     "eng-name": "Creepymon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Evil King",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -16822,7 +16835,7 @@
       "Steel": 1,
       "Wind": 1,
       "Light": 2,
-      "Dark": "No Damage",
+      "Dark": 0,
       "Null": 1
     },
     "special_skills": []
@@ -16840,7 +16853,7 @@
     ],
     "zh-cn-name": "公爵獸",
     "eng-name": "Gallantmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "聖騎士型",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -16877,7 +16890,7 @@
     ],
     "zh-cn-name": "巴克科斯獸",
     "eng-name": "Bacchusmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "神人型",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -16910,7 +16923,7 @@
     ],
     "zh-cn-name": "巴克科斯獸DM",
     "eng-name": "Bacchusmon DM",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "神人型",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -16921,7 +16934,7 @@
     "elemental_resistances": {
       "Fire": 2,
       "Water": 1,
-      "Plant": "No Damage",
+      "Plant": 0,
       "Ice": 1.5,
       "Elec": 1,
       "Earth": 1,
@@ -16944,7 +16957,7 @@
     "evolutions": [],
     "zh-cn-name": "巴爾巴獸",
     "eng-name": "Barbamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Evil King",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -16962,7 +16975,7 @@
       "Steel": 1,
       "Wind": 1,
       "Light": 2,
-      "Dark": "No Damage",
+      "Dark": 0,
       "Null": 1
     },
     "special_skills": []
@@ -16980,7 +16993,7 @@
     ],
     "zh-cn-name": "小丑獸",
     "eng-name": "Piedmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Wizard",
     "base_personality": "戰略家",
     "attribute_resistances": {
@@ -17015,7 +17028,7 @@
     "evolutions": [],
     "zh-cn-name": "木偶獸",
     "eng-name": "Puppetmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Puppet",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -17050,7 +17063,7 @@
     "evolutions": [],
     "zh-cn-name": "法老獸",
     "eng-name": "Pharaohmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Wizard",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -17085,7 +17098,7 @@
     "evolutions": [],
     "zh-cn-name": "河豚獸",
     "eng-name": "Pukumon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Mutant",
     "base_personality": "投機分子",
     "attribute_resistances": {
@@ -17121,7 +17134,7 @@
     "evolutions": [],
     "zh-cn-name": "白金鼻涕獸",
     "eng-name": "PlatinumNumemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Mutant",
     "base_personality": "善於交際",
     "attribute_resistances": {
@@ -17134,7 +17147,7 @@
       "Water": 1.5,
       "Plant": 1,
       "Ice": 1,
-      "Elec": "No Damage",
+      "Elec": 0,
       "Earth": 1.5,
       "Steel": 0.5,
       "Wind": 1,
@@ -17158,7 +17171,7 @@
     ],
     "zh-cn-name": "普路托獸",
     "eng-name": "Plutomon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "神人型",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -17176,7 +17189,7 @@
       "Steel": 1,
       "Wind": 1,
       "Light": 2,
-      "Dark": "No Damage",
+      "Dark": 0,
       "Null": 1
     },
     "special_skills": []
@@ -17194,7 +17207,7 @@
     ],
     "zh-cn-name": "破壞龍獸",
     "eng-name": "Breakdramon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Machine Dragon",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -17228,7 +17241,7 @@
     "evolutions": [],
     "zh-cn-name": "貝利亞吸血魔獸",
     "eng-name": "MaloMyotismon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Evil King",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -17263,7 +17276,7 @@
     "evolutions": [],
     "zh-cn-name": "貝爾斯塔獸",
     "eng-name": "BeelStarmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Wizard",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -17299,7 +17312,7 @@
     ],
     "zh-cn-name": "別西蔔獸",
     "eng-name": "Beelzemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Evil King",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -17317,7 +17330,7 @@
       "Steel": 1,
       "Wind": 1,
       "Light": 2,
-      "Dark": "No Damage",
+      "Dark": 0,
       "Null": 0.5
     },
     "special_skills": []
@@ -17336,7 +17349,7 @@
     ],
     "zh-cn-name": "貝爾菲獸SM",
     "eng-name": "Belphemon SM",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Evil King",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -17371,7 +17384,7 @@
     "evolutions": [],
     "zh-cn-name": "瑪格納吉德獸",
     "eng-name": "MagnaKidmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "龍人型",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -17407,7 +17420,7 @@
     ],
     "zh-cn-name": "密涅瓦獸",
     "eng-name": "Minervamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "神人型",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -17441,7 +17454,7 @@
     "evolutions": [],
     "zh-cn-name": "千年獸",
     "eng-name": "Millenniummon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Composite",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -17486,7 +17499,7 @@
     ],
     "zh-cn-name": "無限龍獸",
     "eng-name": "Machinedramon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Machine",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -17522,7 +17535,7 @@
     "evolutions": [],
     "zh-cn-name": "滅世龍獸",
     "eng-name": "Megidramon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Evil Dragon",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -17558,7 +17571,7 @@
     "evolutions": [],
     "zh-cn-name": "金屬猿猴獸",
     "eng-name": "MetalEtemon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Android",
     "base_personality": "投機分子",
     "attribute_resistances": {
@@ -17592,7 +17605,7 @@
     "evolutions": [],
     "zh-cn-name": "墨丘利獸",
     "eng-name": "Merukimon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "神人型",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -17628,7 +17641,7 @@
     ],
     "zh-cn-name": "朱諾獸",
     "eng-name": "Junomon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "神人型",
     "base_personality": "戰略家",
     "attribute_resistances": {
@@ -17645,7 +17658,7 @@
       "Earth": 1,
       "Steel": 1,
       "Wind": 1,
-      "Light": "No Damage",
+      "Light": 0,
       "Dark": 2,
       "Null": 1
     },
@@ -17661,7 +17674,7 @@
     ],
     "zh-cn-name": "朱諾獸HM",
     "eng-name": "Junomon HM",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "神人型",
     "base_personality": "戰略家",
     "attribute_resistances": {
@@ -17679,7 +17692,7 @@
       "Steel": 1,
       "Wind": 1,
       "Light": 2,
-      "Dark": "No Damage",
+      "Dark": 0,
       "Null": 1
     },
     "special_skills": []
@@ -17696,7 +17709,7 @@
     "evolutions": [],
     "zh-cn-name": "終極巨龍獸",
     "eng-name": "RustTyrannomon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Android",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -17731,7 +17744,7 @@
     "evolutions": [],
     "zh-cn-name": "利維亞獸",
     "eng-name": "Leviamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Evil King",
     "base_personality": "戰略家",
     "attribute_resistances": {
@@ -17741,7 +17754,7 @@
     },
     "elemental_resistances": {
       "Fire": 1,
-      "Water": "No Damage",
+      "Water": 0,
       "Plant": 1,
       "Ice": 1,
       "Elec": 2,
@@ -17749,7 +17762,7 @@
       "Steel": 1,
       "Wind": 1,
       "Light": 2,
-      "Dark": "No Damage",
+      "Dark": 0,
       "Null": 1
     },
     "special_skills": []
@@ -17766,7 +17779,7 @@
     "evolutions": [],
     "zh-cn-name": "莉莉絲獸",
     "eng-name": "Lilithmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Evil King",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -17784,7 +17797,7 @@
       "Steel": 1.5,
       "Wind": 1,
       "Light": 2,
-      "Dark": "No Damage",
+      "Dark": 0,
       "Null": 0.5
     },
     "special_skills": []
@@ -17800,7 +17813,7 @@
     "evolutions": [],
     "zh-cn-name": "領主騎士獸",
     "eng-name": "LordKnightmon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "聖騎士型",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -17836,7 +17849,7 @@
     ],
     "zh-cn-name": "帝皇龍甲獸DM",
     "eng-name": "Imperialdramon DM",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Ancient Dragon",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -17870,7 +17883,7 @@
     ],
     "zh-cn-name": "帝皇龍甲獸FM",
     "eng-name": "Imperialdramon FM",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Ancient Dragon Man",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -17905,7 +17918,7 @@
     "evolutions": [],
     "zh-cn-name": "維京獸",
     "eng-name": "Vikemon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Beast Man",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -17939,7 +17952,7 @@
     "evolutions": [],
     "zh-cn-name": "瓦爾基裡獸",
     "eng-name": "Valkyrimon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Warrior",
     "base_personality": "包容力",
     "attribute_resistances": {
@@ -17974,7 +17987,7 @@
     "evolutions": [],
     "zh-cn-name": "巨大古加獸",
     "eng-name": "GranKuwagamon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "Insectoid",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -18010,7 +18023,7 @@
     ],
     "zh-cn-name": "超惡魔獸",
     "eng-name": "Diaboromon",
-    "attribute": "Unknown",
+    "attribute": "不明",
     "type": "種族不明",
     "base_personality": "壞點子",
     "attribute_resistances": {
@@ -18084,7 +18097,7 @@
     "evolutions": [],
     "zh-cn-name": "金甲龍獸",
     "eng-name": "Magnamon",
-    "attribute": "Free",
+    "attribute": "自由種",
     "type": "聖騎士型",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -18119,7 +18132,7 @@
     ],
     "zh-cn-name": "凱撤暴龍獸",
     "eng-name": "EmperorGreymon",
-    "attribute": "Variable",
+    "attribute": "可變種",
     "type": "Dragon Warrior",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -18128,7 +18141,7 @@
       "Virus": 1
     },
     "elemental_resistances": {
-      "Fire": "No Damage",
+      "Fire": 0,
       "Water": 1.5,
       "Plant": 1,
       "Ice": 2,
@@ -18155,7 +18168,7 @@
     ],
     "zh-cn-name": "盔甲加魯魯獸",
     "eng-name": "MagnaGarurumon",
-    "attribute": "Variable",
+    "attribute": "可變種",
     "type": "Android",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -18172,7 +18185,7 @@
       "Earth": 1,
       "Steel": 1,
       "Wind": 0.5,
-      "Light": "No Damage",
+      "Light": 0,
       "Dark": 2,
       "Null": 1.5
     },
@@ -18188,7 +18201,7 @@
     ],
     "zh-cn-name": "盔甲加魯魯獸分離",
     "eng-name": "MagnaGarurumon (Detached)",
-    "attribute": "Variable",
+    "attribute": "可變種",
     "type": "Android",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -18205,7 +18218,7 @@
       "Earth": 1,
       "Steel": 1,
       "Wind": 0.5,
-      "Light": "No Damage",
+      "Light": 0,
       "Dark": 2,
       "Null": 1.5
     },
@@ -18271,7 +18284,7 @@
       "Ice": 1,
       "Elec": 0.5,
       "Earth": 1.5,
-      "Steel": "No Damage",
+      "Steel": 0,
       "Wind": 1,
       "Light": 1,
       "Dark": 1,
@@ -18516,7 +18529,7 @@
       "Earth": 1.5,
       "Steel": 1.5,
       "Wind": 1,
-      "Light": "No Damage",
+      "Light": 0,
       "Dark": 1,
       "Null": 1
     },
@@ -18580,11 +18593,11 @@
       "Water": 1.5,
       "Plant": 1,
       "Ice": 1,
-      "Elec": "No Damage",
+      "Elec": 0,
       "Earth": 1,
       "Steel": 1,
       "Wind": 1,
-      "Light": "No Damage",
+      "Light": 0,
       "Dark": 2,
       "Null": 1
     },
@@ -18711,7 +18724,7 @@
     "elemental_resistances": {
       "Fire": 1.5,
       "Water": 1,
-      "Plant": "No Damage",
+      "Plant": 0,
       "Ice": 1.5,
       "Elec": 0.5,
       "Earth": 1,
@@ -18734,7 +18747,7 @@
     "evolutions": [],
     "zh-cn-name": "泰坦+骷髏巨犀獸",
     "eng-name": "Titamon + SkullBaluchimon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "神人型",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -18752,7 +18765,7 @@
       "Steel": 1,
       "Wind": 1,
       "Light": 2,
-      "Dark": "No Damage",
+      "Dark": 0,
       "Null": 1
     },
     "special_skills": []
@@ -18767,7 +18780,7 @@
     "evolutions": [],
     "zh-cn-name": "公爵獸CM",
     "eng-name": "Gallantmon CM",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "聖騎士型",
     "base_personality": "膽識非凡",
     "attribute_resistances": {
@@ -18800,7 +18813,7 @@
     "evolutions": [],
     "zh-cn-name": "別西蔔獸BM",
     "eng-name": "Beelzemon BM",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Evil King",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -18833,7 +18846,7 @@
     "evolutions": [],
     "zh-cn-name": "貝爾菲獸RM",
     "eng-name": "Belphemon RM",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Evil King",
     "base_personality": "熱血",
     "attribute_resistances": {
@@ -18851,7 +18864,7 @@
       "Steel": 0.5,
       "Wind": 1,
       "Light": 2,
-      "Dark": "No Damage",
+      "Dark": 0,
       "Null": 1
     },
     "special_skills": []
@@ -18866,7 +18879,7 @@
     "evolutions": [],
     "zh-cn-name": "梅爾瓦獸",
     "eng-name": "Mervamon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "神人型",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -18899,7 +18912,7 @@
     "evolutions": [],
     "zh-cn-name": "光明獸SM",
     "eng-name": "Lucemon SM",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Demon God",
     "base_personality": "天啟",
     "attribute_resistances": {
@@ -18917,7 +18930,7 @@
       "Steel": 1,
       "Wind": 1,
       "Light": 1.5,
-      "Dark": "No Damage",
+      "Dark": 0,
       "Null": 1.5
     },
     "special_skills": []
@@ -18932,7 +18945,7 @@
     "evolutions": [],
     "zh-cn-name": "滅世魔獸",
     "eng-name": "Armageddemon",
-    "attribute": "Unknown",
+    "attribute": "不明",
     "type": "種族不明",
     "base_personality": "壞點子",
     "attribute_resistances": {
@@ -18965,7 +18978,7 @@
     "evolutions": [],
     "zh-cn-name": "亞古獸勇氣紐帶",
     "eng-name": "Agumon (Bond of Bravery)",
-    "attribute": "Unknown",
+    "attribute": "不明",
     "type": "種族不明",
     "base_personality": "勇敢",
     "attribute_resistances": {
@@ -18974,7 +18987,7 @@
       "Virus": 1
     },
     "elemental_resistances": {
-      "Fire": "No Damage",
+      "Fire": 0,
       "Water": 1.5,
       "Plant": 1,
       "Ice": 2,
@@ -18998,7 +19011,7 @@
     "evolutions": [],
     "zh-cn-name": "啟示錄獸",
     "eng-name": "Apocalymon",
-    "attribute": "Unknown",
+    "attribute": "不明",
     "type": "種族不明",
     "base_personality": "戰略家",
     "attribute_resistances": {
@@ -19031,7 +19044,7 @@
     "evolutions": [],
     "zh-cn-name": "加布獸勇氣紐帶",
     "eng-name": "Gabumon (Bond of Friendship)",
-    "attribute": "Unknown",
+    "attribute": "不明",
     "type": "種族不明",
     "base_personality": "饒富人情味",
     "attribute_resistances": {
@@ -19043,7 +19056,7 @@
       "Fire": 1,
       "Water": 1,
       "Plant": 1.5,
-      "Ice": "No Damage",
+      "Ice": 0,
       "Elec": 1.5,
       "Earth": 1,
       "Steel": 0.5,
@@ -19070,7 +19083,7 @@
     ],
     "zh-cn-name": "亞古獸黑",
     "eng-name": "Agumon (Black)",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Reptile",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -19110,7 +19123,7 @@
     ],
     "zh-cn-name": "加布獸黑",
     "eng-name": "Gabumon (Black)",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Reptile",
     "base_personality": "壞點子",
     "attribute_resistances": {
@@ -19149,7 +19162,7 @@
     ],
     "zh-cn-name": "加魯魯獸黑",
     "eng-name": "Garurumon (Black)",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Beast",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -19196,7 +19209,7 @@
     ],
     "zh-cn-name": "暴龍獸藍",
     "eng-name": "Greymon (Blue)",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Dinosaur",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -19243,7 +19256,7 @@
     ],
     "zh-cn-name": "機械暴龍獸藍",
     "eng-name": "MetalGreymon (Blue)",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Android",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -19289,7 +19302,7 @@
     ],
     "zh-cn-name": "狼人加魯魯獸黑",
     "eng-name": "WereGarurumon (Black)",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Beast Man",
     "base_personality": "和藹可親",
     "attribute_resistances": {
@@ -19333,7 +19346,7 @@
     ],
     "zh-cn-name": "黑暗戰鬥暴龍獸",
     "eng-name": "BlackWarGreymon",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "龍人型",
     "base_personality": "匹夫之勇",
     "attribute_resistances": {
@@ -19371,7 +19384,7 @@
     ],
     "zh-cn-name": "鋼鐵加魯魯獸黑",
     "eng-name": "MetalGarurumon (Black)",
-    "attribute": "Virus",
+    "attribute": "病毒種",
     "type": "Android",
     "base_personality": "和藹可親",
     "attribute_resistances": {

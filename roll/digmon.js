@@ -16,7 +16,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function () {
-    return `【🎮數碼寶貝物語時空異客】
+    return `【🎮數碼寶貝物語時空異客】(測試中)
 ╭────── 📖基礎查詢 ──────
 │ • .digi - 顯示完整指令列表
 │
@@ -49,11 +49,10 @@ const getHelpMessage = function () {
 │ 1: 幼年期1    2: 幼年期2
 │ 3: 成長期     4: 成熟期
 │ 5: 完全體     6: 究極體
-│ 7: 超究極體   a: 成熟期裝甲體
-│ d: 混合體(成熟期)
+│ 7: 超究極體   a: 裝甲體
+│ d: 混合體
 │
 ├────── 📚資料來源 ──────
-│ • Digimon Story: Cyber Sleuth
 │ • 數碼寶貝物語時空異客
 ╰──────────────`
 }

@@ -666,7 +666,8 @@
                 padding: 0.3rem;
                 margin: 0;
                 overflow-y: auto;
-                -webkit-overflow-scrolling: touch; /* 增加 iOS 滾動順暢度 */
+                -webkit-overflow-scrolling: touch;
+                /* 增加 iOS 滾動順暢度 */
             }
 
             #content {
@@ -694,11 +695,13 @@
             .main-content {
                 padding-bottom: var(--footer-height);
                 height: calc(100dvh - var(--header-height));
-                min-height: -webkit-fill-available; /* 支援 iOS Safari */
+                min-height: -webkit-fill-available;
+                /* 支援 iOS Safari */
             }
 
             /* 確保 body 和 html 高度正確 */
-            html, body {
+            html,
+            body {
                 height: 100%;
                 height: -webkit-fill-available;
                 overflow: hidden;
@@ -854,14 +857,15 @@
                 height: calc(100dvh - 60px);
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
-                padding-bottom: env(safe-area-inset-bottom, 0); /* 支援 iOS 安全區域 */
+                padding-bottom: env(safe-area-inset-bottom, 0);
+                /* 支援 iOS 安全區域 */
             }
 
             .sidebar.show {
                 left: 0;
             }
 
-            .sidebar.show + .main-content {
+            .sidebar.show+.main-content {
                 margin-left: 0;
             }
 
@@ -908,11 +912,13 @@
             .main-content {
                 padding-bottom: var(--footer-height);
                 height: calc(100dvh - var(--header-height));
-                min-height: -webkit-fill-available; /* 支援 iOS Safari */
+                min-height: -webkit-fill-available;
+                /* 支援 iOS Safari */
             }
 
             /* 確保 body 和 html 高度正確 */
-            html, body {
+            html,
+            body {
                 height: 100%;
                 height: -webkit-fill-available;
                 overflow: hidden;
@@ -927,7 +933,7 @@
             }
 
             /* 當側邊欄開啟時隱藏工具列 */
-            .sidebar.show ~ #header {
+            .sidebar.show~#header {
                 display: none;
             }
 
@@ -936,7 +942,8 @@
                 position: fixed;
                 left: 10px;
                 top: 10px;
-                z-index: 1006; /* 提高 z-index 確保在 header 之上 */
+                z-index: 1006;
+                /* 提高 z-index 確保在 header 之上 */
                 background: var(--badge-bg);
                 color: var(--badge-text);
                 border: none;
@@ -954,7 +961,7 @@
             }
 
             /* 當側邊欄開啟時調整切換按鈕位置 */
-            .sidebar.show ~ .mobile-sidebar-toggle {
+            .sidebar.show~.mobile-sidebar-toggle {
                 left: 250px;
             }
 
@@ -966,7 +973,8 @@
             /* 調整側邊欄內容的層級 */
             .sidebar-sticky {
                 padding: 0.2rem;
-                padding-bottom: calc(var(--footer-height) + env(safe-area-inset-bottom, 10px)); /* 支援 iOS 安全區域 */
+                padding-bottom: calc(var(--footer-height) + env(safe-area-inset-bottom, 10px));
+                /* 支援 iOS 安全區域 */
             }
 
             /* 確保側邊欄按鈕在工具列之上 */
@@ -1040,12 +1048,15 @@
                 background: var(--sidebar-bg);
                 overflow: hidden;
                 padding: 0.3rem;
-                padding-bottom: 0; /* 移除底部padding */
-                position: relative; /* 添加相對定位 */
+                padding-bottom: 0;
+                /* 移除底部padding */
+                position: relative;
+                /* 添加相對定位 */
             }
 
             .sidebar-actions {
-                position: absolute; /* 改為絕對定位 */
+                position: absolute;
+                /* 改為絕對定位 */
                 bottom: 0;
                 left: 0;
                 right: 0;
@@ -1065,7 +1076,8 @@
                 min-height: 0;
                 background: var(--sidebar-bg);
                 max-height: calc(100vh - 250px);
-                margin-bottom: 120px; /* 為底部按鈕預留空間 */
+                margin-bottom: 120px;
+                /* 為底部按鈕預留空間 */
             }
         }
 
@@ -1271,8 +1283,10 @@
             background: var(--sidebar-bg);
             overflow: hidden;
             padding: 0.3rem;
-            padding-bottom: 0; /* 移除底部padding */
-            position: relative; /* 添加相對定位 */
+            padding-bottom: 0;
+            /* 移除底部padding */
+            position: relative;
+            /* 添加相對定位 */
         }
 
         .sidebar-header {
@@ -1323,7 +1337,8 @@
             position: sticky;
             bottom: 0;
             z-index: 1007;
-            padding-bottom: env(safe-area-inset-bottom, 10px); /* 支援 iOS 安全區域 */
+            padding-bottom: env(safe-area-inset-bottom, 10px);
+            /* 支援 iOS 安全區域 */
         }
 
         .sidebar-actions .btn {
@@ -1501,7 +1516,7 @@
             }
 
             /* 當側邊欄開啟時，確保按鈕在側邊欄之上 */
-            .sidebar.show ~ .mobile-sidebar-toggle {
+            .sidebar.show~.mobile-sidebar-toggle {
                 z-index: 1007;
             }
         }
@@ -1679,7 +1694,9 @@
             max_record: CONFIG.MAX_MESSAGES,
             socket: null,
             reconnectAttempts: 0,
-            isConnected: false
+            isConnected: false,
+            isHistoryLoading: true,
+            pendingLive: []
         };
 
         // Utility Functions
@@ -1731,13 +1748,46 @@
 
                 state.socket.on('chatRecord', async (msgs) => {
                     if (!Array.isArray(msgs)) return;
-                    msgs.sort((a, b) => new Date(a.time) - new Date(b.time));
+                    // Mark history phase
+                    state.isHistoryLoading = true;
+                    // Render history in stable order
+                    msgs.sort((a, b) => {
+                        const ta = new Date(a.time).getTime();
+                        const tb = new Date(b.time).getTime();
+                        if (ta !== tb) return ta - tb;
+                        // tie-breaker using stringified _id if present
+                        const ida = (a._id || '').toString();
+                        const idb = (b._id || '').toString();
+                        return ida.localeCompare(idb);
+                    });
                     for (const msg of msgs) {
                         await uiManager.addMessageToBox(msg);
                     }
+                    // Flush buffered live messages after history is painted
+                    if (state.pendingLive.length) {
+                        state.pendingLive.sort((a, b) => {
+                            const ta = new Date(a.time).getTime();
+                            const tb = new Date(b.time).getTime();
+                            if (ta !== tb) return ta - tb;
+                            const ida = (a._id || '').toString();
+                            const idb = (b._id || '').toString();
+                            return ida.localeCompare(idb);
+                        });
+                        for (const msg of state.pendingLive) {
+                            await uiManager.addMessageToBox(msg);
+                        }
+                        state.pendingLive = [];
+                    }
+                    state.isHistoryLoading = false;
                 });
 
-                state.socket.on(state.currentRoom, uiManager.addMessageToBox);
+                state.socket.on(state.currentRoom, (message) => {
+                    if (state.isHistoryLoading) {
+                        state.pendingLive.push(message);
+                        return;
+                    }
+                    uiManager.addMessageToBox(message);
+                });
             }
         };
 
@@ -2070,9 +2120,18 @@
 
                 // 發送切換房間事件
                 if (state.socket) {
+                    // Prepare history loading state and buffer
+                    state.isHistoryLoading = true;
+                    state.pendingLive = [];
                     state.socket.emit("newRoom", roomName);
                     // 添加新房間的事件監聽器
-                    state.socket.on(roomName, uiManager.addMessageToBox);
+                    state.socket.on(roomName, (message) => {
+                        if (state.isHistoryLoading) {
+                            state.pendingLive.push(message);
+                            return;
+                        }
+                        uiManager.addMessageToBox(message);
+                    });
                 }
 
                 // 更新房間顯示

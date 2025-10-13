@@ -582,6 +582,21 @@ class Digimon {
                 }
             }
 
+            // Locations (if any)
+            const locations = digimonInstance.getLocations(digimon.name);
+            if (locations.length > 0) {
+                rply += `出現地點：${locations.join(', ')}\n`;
+            }
+
+            // Fusion info (if any)
+            if (digimon.mix_evolution) {
+                rply += `特殊進化：合體進化\n`;
+                const comps = digimonInstance.getFusionComponents(digimon);
+                if (comps.length === 2) {
+                    rply += `合體來源：${comps[0]} + ${comps[1]}\n`;
+                }
+            }
+
             // Counter list in table format
             const counterDigimon = digimonInstance.getCounterDigimon(digimon);
             if (counterDigimon.length > 0) {
@@ -609,6 +624,18 @@ class Digimon {
             const stageLabel = this.getStageName(d.stage);
             const personality = this.getDisplayPersonality(d);
             result += `${i + 1} ${this.padEnd(d.name, 8)}｜${stageLabel}｜基礎個性：${personality}\n`;
+            if (d.mix_evolution) {
+                const comps = this.getFusionComponents(d);
+                if (comps.length === 2) {
+                    result += `   合體來源：${comps[0]} + ${comps[1]}\n`;
+                }
+            }
+            if (d.stage !== '1') {
+                const locs = this.getLocations(d.name);
+                if (locs.length > 0) {
+                    result += `   出現地點：${locs.join(', ')}\n`;
+                }
+            }
         }
         return result;
     }

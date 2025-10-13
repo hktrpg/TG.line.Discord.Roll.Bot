@@ -565,11 +565,11 @@ if (io) {
         io.emit("online", onlineCount);
         // 發送紀錄最大值
         socket.emit("maxRecord", records.chatRoomGetMax());
-        // 發送紀錄
-        //socket.emit("chatRecord", records.get());
-        records.chatRoomGet("公共房間", (msgs) => {
-            socket.emit("chatRecord", msgs);
-        });
+        setTimeout(() => {
+            records.chatRoomGet("公共房間", (msgs) => {
+                socket.emit("chatRecord", msgs);
+            });
+        }, 200);
 
 
         socket.on("greet", () => {
@@ -606,9 +606,11 @@ if (io) {
             // 因此我們直接 return ，終止函式執行。
             if (!msg) return;
             let roomNumber = msg || "公共房間";
-            records.chatRoomGet(roomNumber, (msgs) => {
-                socket.emit("chatRecord", msgs);
-            });
+            setTimeout(() => {
+                records.chatRoomGet(roomNumber, (msgs) => {
+                    socket.emit("chatRecord", msgs);
+                });
+            }, 150);
 
         });
 

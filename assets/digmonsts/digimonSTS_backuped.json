@@ -240,15 +240,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Acid Bubbles",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24371"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 6,
@@ -282,15 +274,7 @@
       "Dark": 1.5,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Acid Bubbles",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 23171"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 7,
@@ -933,15 +917,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Smile Fang",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 23211"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 21,
@@ -1312,15 +1288,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Super Shocker",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 23031"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 29,
@@ -1731,15 +1699,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Knuckle Beater",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24581"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 38,
@@ -1868,15 +1828,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Sparkling Thunder",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 25641"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 41,
@@ -2671,15 +2623,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Tearing Shot",
-        "element": "Ice",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20021"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 58,
@@ -2766,15 +2710,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Blazing Ice",
-        "element": "Water",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27501"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 60,
@@ -2861,15 +2797,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Lullaby Bubble",
-        "element": "Ice",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 25821"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 62,
@@ -3240,15 +3168,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Cheese Bomb",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20201"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 70,
@@ -3286,15 +3206,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Eye of Nightmares",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24571"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 71,
@@ -3855,15 +3767,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Harpoon Torpedo",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 23441"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 83,
@@ -8452,15 +8356,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Oxygen Homing",
-        "element": "Ice",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21451"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 180,
@@ -8493,15 +8389,7 @@
       "Dark": 1,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Double Stars",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21422"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 181,
@@ -8534,15 +8422,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Gold Rush",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21441"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 182,
@@ -8657,15 +8537,7 @@
       "Dark": 1.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Silver Blaze",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21461"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 185,
@@ -8698,15 +8570,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Tempest Wing",
-        "element": "Steel",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21411"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 186,
@@ -8783,22 +8647,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Pyro Punch",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Fire physical attack at power 35 x 2 hits.\r\nIncreased damage to targets with Immortal Trait."
-      },
-      {
-        "name": "Corona Blaster",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies]\r\nPerforms  Fire physical attack at power 20 x 2 hits.\r\nIncreased damage to targets with Immortal Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 188,
@@ -8834,22 +8683,7 @@
       "Dark": 2,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Zwei Sieger",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Light physical attack at power 75.\r\nIncreased damage to targets with Evil Trait."
-      },
-      {
-        "name": "Speed Star",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Steel physical attack at power 70.\r\nActs first next round. \r\nIncreased damage to targets with Beast Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 189,
@@ -8884,22 +8718,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Rain Stream",
-        "element": "Ice",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21621"
-      },
-      {
-        "name": "Titanic Charge",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21631"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 190,
@@ -8933,22 +8752,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Pyro Punch",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Fire physical attack at power 35 x 2 hits.\r\nIncreased damage to targets with Immortal Trait."
-      },
-      {
-        "name": "Corona Blaster",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies]\r\nPerforms  Fire physical attack at power 20 x 2 hits.\r\nIncreased damage to targets with Immortal Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 191,
@@ -8981,22 +8785,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Rain Stream",
-        "element": "Ice",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21621"
-      },
-      {
-        "name": "Titanic Charge",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21631"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 192,
@@ -9030,22 +8819,7 @@
       "Dark": 2,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Zwei Sieger",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Light physical attack at power 75.\r\nIncreased damage to targets with Evil Trait."
-      },
-      {
-        "name": "Speed Star",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Steel physical attack at power 70.\r\nActs first next round. \r\nIncreased damage to targets with Beast Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 193,
@@ -9130,22 +8904,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Bramble Bite",
-        "element": "Plant",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy] Performs  Plant physical attack \r\nat power 85. Recovers HP/SP equal to 10% of damage.\r\n100% chance to apply  Plant Resistance Down.\r\nIncreased damage to targets with Deity Trait."
-      },
-      {
-        "name": "Plant Zone Cradle",
-        "element": "Plant",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21882"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 195,
@@ -9180,22 +8939,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Triangler",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21851"
-      },
-      {
-        "name": "Plasmadness",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy] Performs  Dark physical attack\r\nat power 70. If target is  Data: Increased damage.\r\n100% chance to apply  Dark Resistance Down.\r\nIncreased damage to targets with Angel Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 196,
@@ -9230,22 +8974,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Powered Ignition",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21871"
-      },
-      {
-        "name": "Penetra-laser",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21872"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 197,
@@ -9280,22 +9009,7 @@
       "Dark": 1.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Lightning Shower",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21861"
-      },
-      {
-        "name": "Circlet Defense",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "Activates  Counter Physical.\r\nUpon receiving a physical attack, counters with an\r\n Electricity magic attack at power 90."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 198,
@@ -11859,15 +11573,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Trick or Treat",
-        "element": "Plant",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 25961"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 252,
@@ -11906,15 +11612,7 @@
       "Dark": 1,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Big Smiley Bomber",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies]\r\nPerforms  Fire physical attack at power 60.\r\n100% chance of 20% reduction to user's Max HP for 3 turns.\r\nIncreased damage to targets with Mineral Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 253,
@@ -11953,15 +11651,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Pit Bomb",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24101"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 254,
@@ -11999,15 +11689,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Heat Wave",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20821"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 255,
@@ -12046,15 +11728,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Brachio Bubble",
-        "element": "Ice",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27241"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 256,
@@ -12095,15 +11769,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Big Bang Voice",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies]\r\n100% chance of 10% reduction to SPI for 3 turns.\r\n60% chance to apply  Paralysis.\r\n20% chance to apply  Immobilization."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 257,
@@ -12140,15 +11806,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Daredevil Break",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy] \r\nPerforms  Steel physical attack at power 135.\r\n20% CRT Rate. Receives 10% HP damage from attack recoil.\r\nIncreased damage to targets with Bird Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 258,
@@ -12186,15 +11844,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Winning Knuckle",
-        "element": "Steel",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20741"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 259,
@@ -12233,15 +11883,7 @@
       "Dark": 1,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Smiley Bomb",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24121"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 260,
@@ -12325,15 +11967,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Energy Bomb",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24131"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 262,
@@ -12372,15 +12006,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Lila Shower",
-        "element": "Plant",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20731"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 263,
@@ -12418,15 +12044,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Flower Cannon",
-        "element": "Plant",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 23591"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 264,
@@ -12465,15 +12083,7 @@
       "Dark": 1,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Wheel Grinder",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21981"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 265,
@@ -12560,15 +12170,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Spider Thread",
-        "element": "Plant",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21991"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 267,
@@ -12608,15 +12210,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Night Raid",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20851"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 268,
@@ -12656,15 +12250,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Love Serenade",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 23111"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 269,
@@ -12704,15 +12290,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Double Scissor Claw",
-        "element": "Plant",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24011"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 270,
@@ -12751,15 +12329,7 @@
       "Dark": 1,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Ame no Murakumo",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21491"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 271,
@@ -13027,15 +12597,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Kouyoujou: Hydro Descent",
-        "element": "Ice",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20761"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 277,
@@ -13963,22 +13525,7 @@
       "Dark": 0.5,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Dead or Alive",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Dark magic attack at power 30 or 120.\r\nIncreased damage to targets with Holy Trait."
-      },
-      {
-        "name": "Paradise Lost",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20392"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 297,
@@ -14389,15 +13936,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Atomic Inferno",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 26691"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 306,
@@ -14433,15 +13972,7 @@
       "Dark": 2,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Zweihänder",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 26701"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 307,
@@ -14477,22 +14008,7 @@
       "Dark": 2,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Sol Blaster",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21731"
-      },
-      {
-        "name": "Phoebus Blow",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21732"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 308,
@@ -14528,22 +14044,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Blade of the Dragon King",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Light physical attack at power 90.\r\nActs first next round.\r\nIncreased damage to targets with Knight Trait."
-      },
-      {
-        "name": "Soul Digitalization",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24162"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 309,
@@ -14577,22 +14078,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "The Ray of Victory",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24171"
-      },
-      {
-        "name": "Victory Sword",
-        "element": "Steel",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24172"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 310,
@@ -14629,22 +14115,7 @@
       "Dark": 1.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Aurora Undulation",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21171"
-      },
-      {
-        "name": "Purge Shine",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All allies]\r\nApplies  Status Abnormality Immunity.\r\nRemoves status abnormalities."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 311,
@@ -14678,22 +14149,7 @@
       "Dark": 2,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Peace Fantasia",
-        "element": "-",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nDeals fixed damage at power 10 x 3 hits.\r\n100% chance of 30% reduction to ATK/INT for 3 turns.\r\nRemoves stat buffs."
-      },
-      {
-        "name": "LOVE YOU",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Magic",
-        "description": "No description available for 21722"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 312,
@@ -14729,22 +14185,7 @@
       "Dark": 1.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Terra Force",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20271"
-      },
-      {
-        "name": "Great Tornado",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20272"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 313,
@@ -14781,22 +14222,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Eiseiryuojin",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21931"
-      },
-      {
-        "name": "Golden Armor",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21932"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 314,
@@ -14830,22 +14256,7 @@
       "Dark": 1.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "EDEN's Javelin",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Light magic attack at power 85.\r\nIf target is  Virus: 75% chance of 15% reduction to ATK/INT\r\nfor 3 turns. Increased damage to targets with Immortal Trait."
-      },
-      {
-        "name": "Sefirot Crystal",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24212"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 315,
@@ -14879,15 +14290,7 @@
       "Dark": 1.5,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "The Key",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 26131"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 316,
@@ -14922,22 +14325,7 @@
       "Dark": 1,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Waltz's End",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27341"
-      },
-      {
-        "name": "Breath of the Gods",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: User]\r\n100% chance to nullify physical/magic damage."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 317,
@@ -14972,22 +14360,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Kaiser Phoenix",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21971"
-      },
-      {
-        "name": "Mystic Break",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21972"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 318,
@@ -15020,22 +14393,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Holy Flare",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20451"
-      },
-      {
-        "name": "Chronos Crop",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20452"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 319,
@@ -15071,22 +14429,7 @@
       "Dark": 1.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Lightning Spear",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27741"
-      },
-      {
-        "name": "Heaven's Judgment",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27742"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 320,
@@ -15121,22 +14464,7 @@
       "Dark": 1.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Heaven's Judgment",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27351"
-      },
-      {
-        "name": "Lightning Spear",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27352"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 321,
@@ -15172,15 +14500,7 @@
       "Dark": 2,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "God Flame",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20481"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 322,
@@ -15216,22 +14536,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "GeoGrey Sword",
-        "element": "Wind",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20941"
-      },
-      {
-        "name": "Glorious Burst",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20942"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 323,
@@ -15266,22 +14571,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Justice Kick",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27371"
-      },
-      {
-        "name": "Trinity Arm",
-        "element": "-",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy] Performs phys. attack of random power/element/effect:\r\n - Pwr. 110  Steel; Incr. dmg. to Mineral Trait; Nullifies unfav. compat.\r\n - Pwr. 100  Null; Incr. dmg. to Weapon Trait; 20% CRT Rate.\r\n - Pwr. 105  Electricity; Incr. dmg. to Amphibian Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 324,
@@ -15317,15 +14607,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Spiral Bone",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24611"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 325,
@@ -15360,22 +14642,7 @@
       "Dark": 1.5,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Golden Ripper",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 26141"
-      },
-      {
-        "name": "Blade of the True",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 26142"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 326,
@@ -15410,22 +14677,7 @@
       "Dark": 1,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Bifrost",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20861"
-      },
-      {
-        "name": "Odin's Breath",
-        "element": "Water",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20862"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 327,
@@ -15461,29 +14713,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Tenryu Slash",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 22131"
-      },
-      {
-        "name": "Shoryu Slash",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 22132"
-      },
-      {
-        "name": "Koryu Slash",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 22133"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 328,
@@ -15517,22 +14747,7 @@
       "Dark": 1.5,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Strike of the Seven Stars",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 23151"
-      },
-      {
-        "name": "Testament",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies] Performs  Light magic attack\r\nat power 140. Consumes all SP. Causes KO from attack \r\nrecoil. The lower the user's SP, the lower the damage.\r\nIncreased damage to targets with Deity Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 329,
@@ -15567,22 +14782,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Burst Shot",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27411"
-      },
-      {
-        "name": "Giant Missile",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27412"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 330,
@@ -15617,22 +14817,7 @@
       "Dark": 1,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Zwei Glänze",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27001"
-      },
-      {
-        "name": "Thron Messer",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27002"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 331,
@@ -15667,22 +14852,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Vortex Penetration",
-        "element": "Ice",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Water physical attack at power 90.\r\nAlways hits. If target has yet to act: Increased damage.\r\nIncreased damage to targets with Aquatic Trait."
-      },
-      {
-        "name": "Wave of Depth",
-        "element": "Ice",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20752"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 332,
@@ -15718,15 +14888,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Atomic Ray",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24261"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 333,
@@ -15764,22 +14926,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Flashy Boss Punch",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20491"
-      },
-      {
-        "name": "Lion Slash",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Fire physical attack at power 90. \r\nIf target's Generation is greater than user's: Increased damage.\r\nIncreased damage to targets with Humanoid Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 334,
@@ -15814,15 +14961,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Giga Blaster",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 23061"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 335,
@@ -15856,15 +14995,7 @@
       "Dark": 1.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Starlight Explosion",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 23101"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 336,
@@ -15898,15 +15029,7 @@
       "Dark": 2,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Fire Tornado",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24531"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 337,
@@ -15997,15 +15120,7 @@
       "Dark": 1.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Ocean Love",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Magic",
-        "description": "No description available for 20241"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 339,
@@ -16039,22 +15154,7 @@
       "Dark": 1,
       "Null": 0
     },
-    "special_skills": [
-      {
-        "name": "Corona Sanctions",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Fire physical attack at power 90.\r\nThe greater the user's stat buffs, the greater the damage.\r\nIncreased damage to targets with Beast Trait."
-      },
-      {
-        "name": "Endless Surge",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21742"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 340,
@@ -16092,22 +15192,7 @@
       "Dark": 2,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Punish Judge",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\n100% chance of reduction to  Electricity resistance/30% reduction to DEF for 3 turn(s)."
-      },
-      {
-        "name": "Wide Plasment",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies] \r\nPerforms  Electricity physical attack at power 55.\r\nIf target's Generation is lesser than user's: Increased damage.\r\nIncreased damage to targets with Evil Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 341,
@@ -16144,22 +15229,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Ame no Ohabari",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27401"
-      },
-      {
-        "name": "Spiral Raven Claw",
-        "element": "Steel",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27402"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 342,
@@ -16194,22 +15264,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Ultimate Blast",
-        "element": "Steel",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27251"
-      },
-      {
-        "name": "Ultimate Quake",
-        "element": "Wind",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27252"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 343,
@@ -16243,22 +15298,7 @@
       "Dark": 1,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Appropriate Works",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21781"
-      },
-      {
-        "name": "Unknown Skill 21786",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21786"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 344,
@@ -16292,22 +15332,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Quake! Blast! Fire! Father!",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 26881"
-      },
-      {
-        "name": "Table Flip",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 26882"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 345,
@@ -16342,22 +15367,7 @@
       "Dark": 1.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Taizoukai Mandala",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27541"
-      },
-      {
-        "name": "Illuminator",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27542"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 346,
@@ -16392,15 +15402,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Destruction Crush",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27041"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 347,
@@ -16435,15 +15437,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Supersonic Voice",
-        "element": "Steel",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20831"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 348,
@@ -16480,29 +15474,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Island Freefall",
-        "element": "Plant",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies] \r\nPerforms  Plant physical attack at power 55.\r\n10% chance to apply Instant Death. \r\nIncreased damage to targets with Insectoid Trait."
-      },
-      {
-        "name": "Burning Blood Shell",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies]\r\nPerforms  Fire magic attack at power 55.\r\n100% chance to apply  Fire Resistance Down. \r\nIncreased damage to targets with Vegetation Trait."
-      },
-      {
-        "name": "Famis",
-        "element": "Plant",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies]\r\nPerforms  Plant magic attack at power 70.\r\n25% chance to apply  Deadly Poison. \r\nIncreased damage to targets with Beast Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 349,
@@ -16535,29 +15507,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Island Freefall",
-        "element": "Plant",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies] \r\nPerforms  Plant physical attack at power 55.\r\n10% chance to apply Instant Death. \r\nIncreased damage to targets with Insectoid Trait."
-      },
-      {
-        "name": "Burning Blood Shell",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies]\r\nPerforms  Fire magic attack at power 55.\r\n100% chance to apply  Fire Resistance Down. \r\nIncreased damage to targets with Vegetation Trait."
-      },
-      {
-        "name": "Famis",
-        "element": "Plant",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies]\r\nPerforms  Plant magic attack at power 70.\r\n25% chance to apply  Deadly Poison. \r\nIncreased damage to targets with Beast Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 350,
@@ -16593,22 +15543,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Howling Crusher",
-        "element": "Steel",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24241"
-      },
-      {
-        "name": "Infinity Arrow",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24242"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 351,
@@ -16642,22 +15577,7 @@
       "Dark": 1.5,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Amethyst Mandala",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24251"
-      },
-      {
-        "name": "Izuna",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24252"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 352,
@@ -16691,22 +15611,7 @@
       "Dark": 1,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Judgment of the Blade",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27491"
-      },
-      {
-        "name": "Weltgeist",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "Activates  Counter Physical.\r\nUpon receiving a physical attack, counters with a\r\n Fire physical attack at power 105.\r\nIncreased damage to targets with Humanoid Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 353,
@@ -16741,22 +15646,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Megaton Hydro Laser",
-        "element": "Ice",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20981"
-      },
-      {
-        "name": "Jumbo Crater",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20982"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 354,
@@ -16792,22 +15682,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Good Night Moon",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\n100% chance of 30% reduction to SPD for 3 turns.\r\n80% chance to apply  Deep Slumber."
-      },
-      {
-        "name": "Arrow of Artemis",
-        "element": "Water",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Ice magic attack at power 90.\r\nIf target is affected by  Sleep/ Deep Slumber: Increased\r\ndamage. Increased damage to targets with Humanoid Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 355,
@@ -16842,22 +15717,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Wyvern's Breath",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies] Performs  Fire physical attack\r\nat power 115. 100% chance to apply 30% reduction to\r\nuser's DEF for 3 turns. Immobilized next turn.\r\nIncreased damage to targets with Evil Trait."
-      },
-      {
-        "name": "Dragon's Roar",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "Activates  Counter Physical. Upon receiving a\r\nphysical attack, counters with a  Null magic attack\r\nat power 115. Negates unfavorable compatibility.\r\nIncreased damage to targets with Mythical Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 356,
@@ -16893,29 +15753,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Extinction Wave",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies]\r\nPerforms  Light magic attack at power 55.\r\nIf target has already acted: Increased damage. \r\nIncreased damage to targets with Machine Trait."
-      },
-      {
-        "name": "Black Aura Blast",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27392"
-      },
-      {
-        "name": "Vulcan Crusher",
-        "element": "Wind",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Earth physical attack at power 90. \r\nIf target has yet to act: 25% CRT Rate. \r\nIncreased damage to targets with Bird Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 357,
@@ -16948,29 +15786,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Extinction Wave",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies]\r\nPerforms  Light magic attack at power 55.\r\nIf target has already acted: Increased damage. \r\nIncreased damage to targets with Machine Trait."
-      },
-      {
-        "name": "Vulcan Crusher",
-        "element": "Wind",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Earth physical attack at power 90. \r\nIf target has yet to act: 25% CRT Rate. \r\nIncreased damage to targets with Bird Trait."
-      },
-      {
-        "name": "Eroberung",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27432"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 358,
@@ -17004,22 +15820,7 @@
       "Dark": 0.5,
       "Null": 2
     },
-    "special_skills": [
-      {
-        "name": "Brave Metal",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20191"
-      },
-      {
-        "name": "DORU-Din",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20192"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 359,
@@ -17055,22 +15856,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Volcanic Driver",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20601"
-      },
-      {
-        "name": "Diamond Fist",
-        "element": "Wind",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20602"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 360,
@@ -17106,15 +15892,7 @@
       "Dark": 1.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Smile Warhead",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24291"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 361,
@@ -17149,15 +15927,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Sorrow Blue",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24502"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 362,
@@ -17192,15 +15962,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Tomahawk Stinger",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24311"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 363,
@@ -17237,22 +15999,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Full Moon Blaster",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20951"
-      },
-      {
-        "name": "Double Crescent Mirage",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20952"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 364,
@@ -17289,22 +16036,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Ice Wolf Claw",
-        "element": "Water",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21351"
-      },
-      {
-        "name": "Freezing Breath",
-        "element": "Water",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21352"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 365,
@@ -17340,15 +16072,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "River of Power",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24341"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 366,
@@ -17381,22 +16105,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Rage of Wyvern",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 26031"
-      },
-      {
-        "name": "Final Crest",
-        "element": "Steel",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 26032"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 367,
@@ -17434,22 +16143,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Thorn Whip",
-        "element": "Plant",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20571"
-      },
-      {
-        "name": "Forbidden Temptation",
-        "element": "Plant",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20572"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 368,
@@ -17483,29 +16177,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Seven's Fantasia",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27421"
-      },
-      {
-        "name": "Serpent Ruin",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27422"
-      },
-      {
-        "name": "Serpent Cure",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Magic",
-        "description": "No description available for 27423"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 369,
@@ -17540,22 +16212,7 @@
       "Dark": 0.5,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Destruction Trigger",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy] Performs  Steel physical attack at\r\npower 35 x 3 hits. Nullifies unfavorable compatibility.\r\nReceives 20% HP damage from attack recoil.\r\nIncreased damage to targets with Weapon Trait."
-      },
-      {
-        "name": "Misery Bullet Rain",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 26172"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 370,
@@ -17590,22 +16247,7 @@
       "Dark": 1,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Brain Rupture",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nSteals all stat changes."
-      },
-      {
-        "name": "Planet Destroyer",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Electricity magic attack at power 90.\r\nThe greater the user's stat buffs, the greater the damage.\r\nIncreased damage to targets with Alien Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 371,
@@ -17639,15 +16281,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Venom Infusion",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy] Performs  Null physical attack at\r\npower 85. 50% chance to apply  Deadly Poison.\r\n50% chance to apply  Crystallization. Increased\r\ndamage to targets with Unknown Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 372,
@@ -17680,22 +16314,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Laplace's Demon",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 23381"
-      },
-      {
-        "name": "Elder Sign",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies] Performs  Null magic attack at\r\npower 80. 50% chance to apply  Immobilization.\r\n70% chance of 20% reduction to DEF for 3 turns.\r\nIncreased damage to targets with Holy Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 373,
@@ -17730,22 +16349,7 @@
       "Dark": 1,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Will-O'-Wisp Slash",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27441"
-      },
-      {
-        "name": "Phosphorus Fire Attack",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27442"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 374,
@@ -17780,22 +16384,7 @@
       "Dark": 0.5,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Demonic Disaster",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21501"
-      },
-      {
-        "name": "Judecca Prison",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21502"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 375,
@@ -17830,15 +16419,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Hyper Infinity Cannon",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24221"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 376,
@@ -17872,22 +16453,7 @@
       "Dark": 1,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Rodeo Bullet",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24921"
-      },
-      {
-        "name": "Deep Forest",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24922"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 377,
@@ -17923,22 +16489,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Gewalt Schwärmer",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies] Performs  Steel physical attack \r\nat power 35 x 4 hits. The lower the user's SP, the lower \r\nthe damage. Consumes all SP. Immobilized next turn.\r\nIncreased damage to targets with Machine Trait."
-      },
-      {
-        "name": "Der Blitz",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21942"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 378,
@@ -17973,15 +16524,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Monkey Wrench",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies]\r\n100% chance of 50% reduction to ATK/INT for 1 turn.\r\nApplies  Taunting to user."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 379,
@@ -18015,22 +16558,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Crystal Revolution",
-        "element": "Water",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20321"
-      },
-      {
-        "name": "Eye of the Gorgon",
-        "element": "Water",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20322"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 380,
@@ -18064,22 +16592,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Holy Flare",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20461"
-      },
-      {
-        "name": "Chrono Devolution",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy] Performs  Dark magic attack at\r\npower 80. 100% chance to apply  Crystallization.\r\n70% chance of 20% reduction to ATK/DEF/INT/SPI.\r\nIf target's HP is 50% or higher: Increased damage."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 381,
@@ -18113,22 +16626,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Vorpal Blade",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 22251"
-      },
-      {
-        "name": "Mystic Flame",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 22252"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 382,
@@ -18161,22 +16659,7 @@
       "Dark": 0,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Hell Slicer",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 29121"
-      },
-      {
-        "name": "Marionette Abomination",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 29122"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 383,
@@ -18213,22 +16696,7 @@
       "Dark": 1,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Dark Roar",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27711"
-      },
-      {
-        "name": "Gigastick Lance",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27712"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 384,
@@ -18264,15 +16732,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Mach Stinger V",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27451"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 385,
@@ -18309,22 +16769,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Soul Core Attack",
-        "element": "Wind",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24401"
-      },
-      {
-        "name": "Phantom Blade",
-        "element": "Wind",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24402"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 386,
@@ -18359,22 +16804,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Shine of Bee",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21281"
-      },
-      {
-        "name": "Bee Cyclone",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All allies]\r\n100% chance of 20% reduction to physical/magic\r\ndamage taken for 2 turns. 100% chance of  Steel\r\nresistance boost for 2 turns."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 387,
@@ -18408,15 +16838,7 @@
       "Dark": 0,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Flame Inferno",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20381"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 388,
@@ -18452,22 +16874,7 @@
       "Dark": 1.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Lightning Joust",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21261"
-      },
-      {
-        "name": "Shield of the Just",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21262"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 389,
@@ -18504,22 +16911,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Cook of the Abyss",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21791"
-      },
-      {
-        "name": "Party of the Heavens",
-        "element": "Ice",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21792"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 390,
@@ -18552,15 +16944,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Reversal of the Dead",
-        "element": "Ice",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies]\r\nPerforms  Water physical attack at power 90.\r\n100% chance to apply  Sleep to user.\r\nIncreased damage to targets with Humanoid Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 391,
@@ -18594,22 +16978,7 @@
       "Dark": 0,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Pandemonium Lost",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20361"
-      },
-      {
-        "name": "Death Lure",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\n100% chance of 30% reduction to SPI for 3 turns.\r\n80% chance to apply  Chaos."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 392,
@@ -18645,15 +17014,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Trump Sword",
-        "element": "Steel",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24271"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 393,
@@ -18688,15 +17049,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Puppet Pummel",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24281"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 394,
@@ -18731,15 +17084,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Necromist",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 22271"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 395,
@@ -18774,15 +17119,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Needle Squall",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21961"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 396,
@@ -18818,22 +17155,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Platinum Excrement",
-        "element": "-",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies]\r\nDeals 2% HP damage x 3 hits.\r\n100% chance of 10% reduction to INT/SPI for 3 turns."
-      },
-      {
-        "name": "Platinum Burp",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20692"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 397,
@@ -18870,22 +17192,7 @@
       "Dark": 0,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Hell's Gate",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21801"
-      },
-      {
-        "name": "Haggard Cluster",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21802"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 398,
@@ -18921,22 +17228,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Destroyed Rush",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 22141"
-      },
-      {
-        "name": "Infinity Bowling",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 22142"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 399,
@@ -18970,22 +17262,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Pandemonium Flame",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 22331"
-      },
-      {
-        "name": "Crimson Mist",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 22332"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 400,
@@ -19020,22 +17297,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Fly Bullet",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21951"
-      },
-      {
-        "name": "Hurricane Screw Shot",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21952"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 401,
@@ -19071,22 +17333,7 @@
       "Dark": 0,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Double Impact",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20351"
-      },
-      {
-        "name": "Darkness Claw",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20352"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 402,
@@ -19123,22 +17370,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Eternal Nightmare",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24391"
-      },
-      {
-        "name": "Lampranthus",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24392"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 403,
@@ -19173,22 +17405,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Happy Bullet Showering",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 26161"
-      },
-      {
-        "name": "Bind Red Trigger",
-        "element": "Steel",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 26162"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 404,
@@ -19224,22 +17441,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Strike Roll",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27471"
-      },
-      {
-        "name": "Madness Merry-Go-Round",
-        "element": "Steel",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27472"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 405,
@@ -19318,15 +17520,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Infinity Cannon",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 23851"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 407,
@@ -19362,22 +17556,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Megiddo Flame",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20471"
-      },
-      {
-        "name": "Hell Howling",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy] Performs  Null physical attack\r\nat power 80. 70% chance of 20% reduction to INT.\r\n70% chance to apply  Crystallization.\r\nIncreased damage to targets with Unknown Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 408,
@@ -19413,15 +17592,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Banana Slip",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\n100% chance of 30% reduction to SPD for 3 turns.\r\n60% chance to apply Immobilized next turn."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 409,
@@ -19455,22 +17626,7 @@
       "Dark": 2,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Thousand Fists",
-        "element": "Steel",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20801"
-      },
-      {
-        "name": "Spiritual Enchantment",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy] Performs  Null physical attack at\r\npower 80. 100% chance of 20% reduction to DEF for\r\n3 turns. 50% chance to apply  Injury.\r\nIncreased damage to targets with Unknown Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 410,
@@ -19506,22 +17662,7 @@
       "Dark": 2,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Needle Hive",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21701"
-      },
-      {
-        "name": "Graceful Lance",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "Activates  Counter Physical.\r\nUpon receiving a physical attack, counters against\r\nall enemies with a  Dark physical attack at power 105.\r\nIncreased damage to targets with Unknown Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 411,
@@ -19554,22 +17695,7 @@
       "Dark": 0,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Welcome Demise",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21711"
-      },
-      {
-        "name": "Chain Lash",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21712"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 412,
@@ -19604,22 +17730,7 @@
       "Dark": 1,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Terrors Cluster",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 23831"
-      },
-      {
-        "name": "Rust Breath",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 23832"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 413,
@@ -19654,22 +17765,7 @@
       "Dark": 0,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Biting Crush",
-        "element": "Ice",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20371"
-      },
-      {
-        "name": "Tail Strike",
-        "element": "Ice",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies] Performs  Water physical\r\nattack at power 55. If target is affected by reduction\r\nto DEF: 20% chance to apply Instant Death.\r\nIncreased damage to targets with Unknown Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 414,
@@ -19704,15 +17800,7 @@
       "Dark": 0,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Phantom Pain",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20341"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 415,
@@ -19746,22 +17834,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Spiral Masquerade",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27031"
-      },
-      {
-        "name": "Fist of Athena",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27032"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 416,
@@ -19797,29 +17870,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Positron Laser",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Light physical attack at power 95. \r\nIncreased damage to targets with Unknown Trait."
-      },
-      {
-        "name": "Megadeath",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27321"
-      },
-      {
-        "name": "Positron Laser",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27322"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 417,
@@ -19853,29 +17904,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Positron Laser",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Light physical attack at power 95. \r\nIncreased damage to targets with Unknown Trait."
-      },
-      {
-        "name": "Unknown Skill 24192",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies]\r\nPerforms  Light physical attack at power 80.\r\nIncreased damage to targets with Unknown Trait."
-      },
-      {
-        "name": "Positron Laser",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27322"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 418,
@@ -19910,22 +17939,7 @@
       "Dark": 1,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Arctic Blizzard",
-        "element": "Water",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 23461"
-      },
-      {
-        "name": "Viking Axe",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 23462"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 419,
@@ -19959,22 +17973,7 @@
       "Dark": 1.5,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Fenrir Sword",
-        "element": "Water",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27731"
-      },
-      {
-        "name": "Aurvandil's Arrow",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27732"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 420,
@@ -20009,15 +18008,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Dimension Scissor",
-        "element": "Plant",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24231"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 421,
@@ -20053,15 +18044,7 @@
       "Dark": 0.5,
       "Null": 2
     },
-    "special_skills": [
-      {
-        "name": "Catastrophe Cannon",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 26321"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 422,
@@ -20135,22 +18118,7 @@
       "Dark": 1.5,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Shining Gold Solar Storm",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 23821"
-      },
-      {
-        "name": "Plasma Shot",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 23822"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 424,
@@ -20185,22 +18153,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Firedrake Strike",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 26771"
-      },
-      {
-        "name": "Pyro Dragons",
-        "element": "Wind",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 26772"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 425,
@@ -20236,15 +18189,7 @@
       "Dark": 2,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Machinegun Destroyer",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies]\r\nPerforms  Steel physical attack at power 25 x 3 hits.\r\n10% CRT Rate. \r\nIncreased damage to targets with Machine Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 426,
@@ -20277,15 +18222,7 @@
       "Dark": 2,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Starlight Velocity",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 26751"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 427,
@@ -20319,22 +18256,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Ultimate Ouryuken",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27661"
-      },
-      {
-        "name": "Soul Digitalization",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27662"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 428,
@@ -20368,15 +18290,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Unknown Skill 24941",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24941"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 429,
@@ -20410,15 +18324,7 @@
       "Dark": 1.5,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Omni Blade",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24201"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 430,
@@ -20455,22 +18361,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Transcendent Sword",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20881"
-      },
-      {
-        "name": "Supreme Cannon",
-        "element": "Water",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20882"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 431,
@@ -20507,22 +18398,7 @@
       "Dark": 1,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Transcendent Sword",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27571"
-      },
-      {
-        "name": "Supreme Cannon",
-        "element": "Water",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27572"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 432,
@@ -20556,22 +18432,7 @@
       "Dark": 0.5,
       "Null": 0.5
     },
-    "special_skills": [
-      {
-        "name": "Bancho Blade",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27721"
-      },
-      {
-        "name": "Dark Prominence",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27722"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 433,
@@ -20605,22 +18466,7 @@
       "Dark": 1.5,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Bancho Blade",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21181"
-      },
-      {
-        "name": "Aurora Blaster",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21182"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 434,
@@ -20654,22 +18500,7 @@
       "Dark": 0.5,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Eclipse Finger",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 26041"
-      },
-      {
-        "name": "Calydon Arcus",
-        "element": "Water",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies] Performs  Ice magic attack at\r\npower 20 x 4 hits. If target is affected by status\r\nabnormalities or  Injury/ Disease: Increased\r\ndamage. Increased damage to targets with Fire Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 435,
@@ -20702,22 +18533,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Final Shining Burst",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27761"
-      },
-      {
-        "name": "Corona Blaze Sword",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Fire physical attack at power 110.\r\n75% chance of 10% reduction to user's DEF/SPI for 3 turns.\r\nIncreased damage to targets with Ice Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 436,
@@ -20752,22 +18568,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Ama no Habakiri",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21041"
-      },
-      {
-        "name": "Heaven's Thunder",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21042"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 437,
@@ -20800,22 +18601,7 @@
       "Dark": 2,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Keraunos Divide",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: 1 enemy]\r\nPerforms  Electricity physical attack at power 90.\r\nIf target is affected by  Paralysis/ Immobilization:\r\nIncreased damage. Increased damage to targets with Evil Trait."
-      },
-      {
-        "name": "Dios Thunder",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21692"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 438,
@@ -20848,22 +18634,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Mourning Dance",
-        "element": "Steel",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27781"
-      },
-      {
-        "name": "Lightning Flash Thrust",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27782"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 439,
@@ -20897,22 +18668,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Pendragon's Glory",
-        "element": "Elec",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 22151"
-      },
-      {
-        "name": "Dragonic Impact",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 22152"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 440,
@@ -20945,22 +18701,7 @@
       "Dark": 1,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Full Moon Meteor Impact",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27771"
-      },
-      {
-        "name": "Final Mirage Burst",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies]\r\nPerforms  Light physical attack at power 105. 100%\r\nchance of 20% reduction to all user's stats for 3 turns.\r\nIncreased damage to targets with Immortal Trait."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 441,
@@ -20993,22 +18734,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Aguichant Lèvres",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27791"
-      },
-      {
-        "name": "Charité",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27792"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 442,
@@ -21042,15 +18768,7 @@
       "Dark": 0,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Senjin Kishinzan",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 29151"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 443,
@@ -21083,22 +18801,7 @@
       "Dark": 1.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Quo Vadis",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21051"
-      },
-      {
-        "name": "Invincible Sword",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21052"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 444,
@@ -21131,22 +18834,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Chaos Flare",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27751"
-      },
-      {
-        "name": "Death Slinger",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27752"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 445,
@@ -21179,22 +18867,7 @@
       "Dark": 0,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Gift of Darkness",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20401"
-      },
-      {
-        "name": "Lampranthus",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 20402"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 446,
@@ -21227,22 +18900,7 @@
       "Dark": 2,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Love Poison",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21811"
-      },
-      {
-        "name": "Madness Merry-Go-Round DX",
-        "element": "Steel",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21812"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 447,
@@ -21275,22 +18933,7 @@
       "Dark": 0,
       "Null": 1.5
     },
-    "special_skills": [
-      {
-        "name": "Divine Atonement",
-        "element": "Light",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24351"
-      },
-      {
-        "name": "Purgatorial Flame",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24352"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 448,
@@ -21323,22 +18966,7 @@
       "Dark": 0.5,
       "Null": 2
     },
-    "special_skills": [
-      {
-        "name": "Ultimate Flare",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21061"
-      },
-      {
-        "name": "Black Rain",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21062"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 449,
@@ -21371,22 +18999,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Red Reamer",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24891"
-      },
-      {
-        "name": "Gaia Brave",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24892"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 450,
@@ -21419,15 +19032,7 @@
       "Dark": 0.5,
       "Null": 2
     },
-    "special_skills": [
-      {
-        "name": "Darkness-Zone",
-        "element": "-",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "[Target: All enemies] \r\nDeals 20% HP damage. \r\nAlways hits."
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 451,
@@ -21460,22 +19065,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Raddle Star",
-        "element": "Earth",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24901"
-      },
-      {
-        "name": "Cool Edge",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 24902"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 468,
@@ -21514,15 +19104,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Spitfire Blast",
-        "element": "Fire",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21431"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 469,
@@ -21562,15 +19144,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Little Horn",
-        "element": "Water",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 27131"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 470,
@@ -21793,22 +19367,7 @@
       "Dark": 0.5,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Dark Terra Force",
-        "element": "Dark",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21751"
-      },
-      {
-        "name": "Black Tornado",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21752"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": 475,
@@ -21846,22 +19405,7 @@
       "Dark": 1,
       "Null": 1
     },
-    "special_skills": [
-      {
-        "name": "Ice Wolf Claw",
-        "element": "Water",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21821"
-      },
-      {
-        "name": "Garuru Tomahawk",
-        "element": "Null",
-        "sp_cost": "25",
-        "type": "Physical",
-        "description": "No description available for 21822"
-      }
-    ]
+    "special_skills": []
   },
   {
     "id": "world_data",

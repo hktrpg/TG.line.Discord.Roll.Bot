@@ -396,7 +396,10 @@ class Records extends EventEmitter {
                 return;
             }
 
-            const messages = await this.ChatRoomModel.find({ roomNumber });
+            // Always return messages in chronological order with a deterministic tiebreaker
+            const messages = await this.ChatRoomModel
+                .find({ roomNumber })
+                .sort({ time: 1, _id: 1 });
 
             // Update cache
             cache.set(cacheKey, messages);

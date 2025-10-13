@@ -722,10 +722,10 @@ class Digimon {
             return this.getEvolutionLineFromStage1(targetDigimon);
         }
 
-        // Sort by personality score desc, then by path length asc
+        // Sort by shortest path first, then by personality score (desc)
         candidates.sort((a, b) => {
-            if (b.score !== a.score) return b.score - a.score;
-            return a.path.length - b.path.length;
+            if (a.path.length !== b.path.length) return a.path.length - b.path.length;
+            return b.score - a.score;
         });
 
         const first = candidates[0];

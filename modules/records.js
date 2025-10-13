@@ -341,36 +341,43 @@ class Records extends EventEmitter {
     // Chat room operations
     async chatRoomPush(message) {
         try {
-            // Validate message
-            if (!message || !message.roomNumber) {
-                throw new Error('Invalid message format');
+            // Basic payload validation & sanitization
+            if (!message || typeof message !== 'object') {
+                throw new Error('Invalid message payload');
             }
-            // Normalize and set safe defaults to satisfy schema requirements
-            const normalizedMessage = {
-                name: (message.name && String(message.name).trim()) || 'Anonymous',
-                msg: (message.msg !== undefined && message.msg !== null) ? String(message.msg) : '',
-                time: message.time ? new Date(message.time) : new Date(),
-                roomNumber: message.roomNumber || '公共房間'
-            };
 
-            const chatMessage = new this.ChatRoomModel(normalizedMessage);
+            const safeName = (message.name ?? '').toString().trim().slice(0, 50);
+            const safeMsg = (message.msg ?? '').toString().trim();
+            const safeRoom = (message.roomNumber ?? '').toString().trim().slice(0, 50);
+            const safeTime = message.time ? new Date(message.time) : new Date();
+
+            if (!safeName || !safeMsg || !safeRoom) {
+                throw new Error('Invalid chat message fields');
+            }
+
+            const chatMessage = new this.ChatRoomModel({
+                name: safeName,
+                msg: safeMsg,
+                time: Number.isNaN(safeTime.getTime()) ? new Date() : safeTime,
+                roomNumber: safeRoom
+            });
             await chatMessage.save();
-            this.emit("new_message", normalizedMessage);
+            this.emit("new_message", message);
 
             // Clear cache for this room
-            cache.del(`chatRoom:${normalizedMessage.roomNumber}`);
+            cache.del(`chatRoom:${message.roomNumber}`);
 
-            const messageCount = await this.ChatRoomModel.countDocuments({ 'roomNumber': normalizedMessage.roomNumber });
+            const messageCount = await this.ChatRoomModel.countDocuments({ 'roomNumber': safeRoom });
             if (messageCount < this.maxChatMessages) return;
 
             const overflowCount = messageCount - this.maxChatMessages;
-            const oldestMessages = await this.ChatRoomModel.find({ 'roomNumber': normalizedMessage.roomNumber })
+            const oldestMessages = await this.ChatRoomModel.find({ 'roomNumber': safeRoom })
                 .sort({ 'time': 1 });
 
             if (!oldestMessages[overflowCount - 1]) return;
 
             await this.ChatRoomModel.deleteMany({
-                'roomNumber': normalizedMessage.roomNumber,
+                'roomNumber': safeRoom,
                 time: { $lt: oldestMessages[overflowCount - 1].time }
             });
         } catch (error) {

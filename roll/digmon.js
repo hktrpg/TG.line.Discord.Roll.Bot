@@ -196,7 +196,8 @@ class Digimon {
         if (!stage) return '-';
         const s = String(stage);
         if (s === '5') return '完全';
-        if (s === '6' || s === '7') return '究極';
+        if (s === '6') return '究極';
+        if (s === '7') return '超究';
         if (s === '4') return '成熟';
         if (s === '3') return '成長';
         if (s === '2') return '幼2';
@@ -524,7 +525,7 @@ class Digimon {
 
         const counters = [];
 
-        const evaluate = (list, stageLabel) => {
+        const evaluate = (list) => {
             for (const attacker of list) {
                 const result = this.calculateCounterValue(targetDigimon, attacker);
                 const counterValue = result.value;
@@ -536,7 +537,7 @@ class Digimon {
                         ...attacker,
                         counterValue,
                         isAoE: result.isAoE,
-                        stage: stageLabel,
+                        stage: attacker.stage,
                         hitPower: result.hitPower,
                         hits: result.hits,
                         power: result.power
@@ -545,8 +546,8 @@ class Digimon {
             }
         };
 
-        evaluate(stage5Digimon, '5');
-        evaluate(stage6Digimon, '6');
+        evaluate(stage5Digimon);
+        evaluate(stage6Digimon);
 
         // Sort: 1) highest damage multiplier 2) AoE first 3) highest maxHits*power 4) random order if tie
         counters.sort((a, b) => {
@@ -556,11 +557,31 @@ class Digimon {
             return (Math.random() < 0.5) ? -1 : 1;
         });
 
-        // deterministically take top 2 from each stage
+        // Build top candidates per stage with special rule:
+        // If the first 3 for a stage are all AoE, force add a 4th single-target if available
         const result = [];
-        const stage5Top = counters.filter(c => c.stage === '5').slice(0, Math.max(tempCounterValue, 2));
-        const stage6Top = counters.filter(c => c.stage === '6').slice(0, Math.max(tempCounterValue, 2));
-        result.push(...stage5Top, ...stage6Top);
+
+        const pickWithRule = (stageLabel) => {
+            const list = counters.filter(c => c.stage === stageLabel);
+            const topThree = list.slice(0, 3);
+            const allThreeAoE = topThree.length === 3 && topThree.every(c => !!c.isAoE);
+            if (allThreeAoE) {
+                const singleTarget = list.slice(3).find(c => !c.isAoE);
+                return singleTarget ? [...topThree, singleTarget] : topThree;
+            }
+            return topThree;
+        };
+
+        const stage5Top = pickWithRule('5');
+
+        // Combine stages 6 and 7 for selection, but keep their own labels for display
+        const highStagesList = counters.filter(c => c.stage === '6' || c.stage === '7');
+        const highTopThree = highStagesList.slice(0, 3);
+        const highAllThreeAoE = highTopThree.length === 3 && highTopThree.every(c => !!c.isAoE);
+        const highFourthSingle = highAllThreeAoE ? highStagesList.slice(3).find(c => !c.isAoE) : null;
+        const highStageTop = highFourthSingle ? [...highTopThree, highFourthSingle] : highTopThree;
+
+        result.push(...stage5Top, ...highStageTop);
         return result;
     }
 

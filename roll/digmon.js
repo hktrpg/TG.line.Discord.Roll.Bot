@@ -690,12 +690,6 @@ class Digimon {
                     result += `   合體來源：${comps[0]} + ${comps[1]}\n`;
                 }
             }
-            if (d.stage !== '1') { // Skip summary line for stage-1 to avoid duplication
-                const locs = this.getLocations(d.name);
-                if (locs.length > 0) {
-                    result += `   出現地點：${locs.join(', ')}\n`;
-                }
-            }
         }
         return result;
     }

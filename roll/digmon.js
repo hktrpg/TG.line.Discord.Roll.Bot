@@ -590,7 +590,6 @@ class Digimon {
                 }
             }
 
-            result += '\n';
         }
 
         return result;

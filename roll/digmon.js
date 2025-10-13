@@ -159,6 +159,60 @@ class Digimon {
         return digimon;
     }
 
+    // Prefer base_personality; fallback to personality; otherwise '-'
+    getDisplayPersonality(digimon) {
+        if (!digimon) return '-';
+        if (digimon.base_personality) return digimon.base_personality;
+        if (digimon.personality) return digimon.personality;
+        return '-';
+    }
+
+    // Table-level short label for stage in counter list
+    getLevelLabelForTable(stage) {
+        if (!stage) return '-';
+        const s = String(stage);
+        if (s === '5') return '完全';
+        if (s === '6' || s === '7') return '究極';
+        if (s === '4') return '成熟';
+        if (s === '3') return '成長';
+        if (s === '2') return '幼2';
+        if (s === '1') return '幼1';
+        return this.getStageName(s);
+    }
+
+    padEnd(str, len) {
+        return String(str || '').padEnd(len, ' ');
+    }
+
+    padStart(str, len) {
+        return String(str || '').padStart(len, ' ');
+    }
+
+    formatCounterTable(counterDigimon) {
+        if (!Array.isArray(counterDigimon) || counterDigimon.length === 0) return '';
+        let text = '';
+        text += `[受其特殊技能克制]\n`;
+        // headers
+        const h1 = this.padEnd('等級', 4);
+        const h2 = this.padEnd('名稱', 12);
+        const h3 = this.padEnd('倍率', 6);
+        const h4 = this.padEnd('傷害(次×力=總)', 16);
+        const h5 = this.padEnd('範圍', 4);
+        text += `${h1}  ${h2}  ${h3}  ${h4}  ${h5}\n`;
+        for (const c of counterDigimon) {
+            const level = this.padEnd(this.getLevelLabelForTable(c.stage), 4);
+            const name = this.padEnd(c.name, 12);
+            const mult = this.padEnd(`×${c.counterValue}`, 6);
+            const hitInfo = (typeof c.hits === 'number' && typeof c.power === 'number' && c.hits > 0 && c.power > 0)
+                ? `${c.hits}×${c.power}=${c.hitPower}`
+                : '-';
+            const hit = this.padEnd(hitInfo, 16);
+            const range = this.padEnd(c.isAoE ? '全體' : '-', 4);
+            text += `${level}  ${name}  ${mult}  ${hit}  ${range}\n`;
+        }
+        return text;
+    }
+
     /**
      * Detailed search with preference order:
      * 1) Exact by id
@@ -354,18 +408,18 @@ class Digimon {
     // Map Chinese attribute name to resistance key
     getAttributeKeyFromCN(attributeCN) {
         if (!attributeCN) return null;
-		const map = {
-			// Traditional
-			'疫苗種': 'Vaccine',
-			'數據種': 'Data',
-			'病毒種': 'Virus',
-			// English passthrough
-			'Vaccine': 'Vaccine',
-			'Data': 'Data',
-			'Virus': 'Virus',
-			'No Data': null
-		};
-		return map[attributeCN] || null;
+        const map = {
+            // Traditional
+            '疫苗種': 'Vaccine',
+            '數據種': 'Data',
+            '病毒種': 'Virus',
+            // English passthrough
+            'Vaccine': 'Vaccine',
+            'Data': 'Data',
+            'Virus': 'Virus',
+            'No Data': null
+        };
+        return map[attributeCN] || null;
     }
 
     // Get elemental multiplier on target for a given skill element
@@ -383,72 +437,72 @@ class Digimon {
         return targetDigimon.attribute_resistances[key] ?? 1;
     }
 
-	// Get targetType numeric codes from world data (id 0), with safe defaults
-	getTargetTypeCodes() {
-		const defaults = { self: 10, 'all enemies': 5, '1 enemy': 1, 'all allies': 6, '1 ally': 2 };
-		if (this.worldData && this.worldData.targetType) {
-			return this.worldData.targetType;
-		}
-		return defaults;
-	}
+    // Get targetType numeric codes from world data (id 0), with safe defaults
+    getTargetTypeCodes() {
+        const defaults = { self: 10, 'all enemies': 5, '1 enemy': 1, 'all allies': 6, '1 ally': 2 };
+        if (this.worldData && this.worldData.targetType) {
+            return this.worldData.targetType;
+        }
+        return defaults;
+    }
 
-	// Prefer targetType to decide if a skill targets enemy; fall back to description when missing
-	isSkillTargetsEnemy(skill) {
-		if (!skill) return false;
-		const codes = this.getTargetTypeCodes();
-		if (typeof skill.targetType === 'number') {
-			return skill.targetType === codes['1 enemy'] || skill.targetType === codes['all enemies'];
-		}
-		if (typeof skill.description === 'string') {
-			const re = /Target\s*:\s*\d*\s*(enemy|enemies)/i;
-			return re.test(skill.description);
-		}
-		return false;
-	}
+    // Prefer targetType to decide if a skill targets enemy; fall back to description when missing
+    isSkillTargetsEnemy(skill) {
+        if (!skill) return false;
+        const codes = this.getTargetTypeCodes();
+        if (typeof skill.targetType === 'number') {
+            return skill.targetType === codes['1 enemy'] || skill.targetType === codes['all enemies'];
+        }
+        if (typeof skill.description === 'string') {
+            const re = /Target\s*:\s*\d*\s*(enemy|enemies)/i;
+            return re.test(skill.description);
+        }
+        return false;
+    }
 
-	// Prefer targetType to decide if a skill targets multiple enemies (AoE); fall back to description when missing
-	isSkillTargetsEnemies(skill) {
-		if (!skill) return false;
-		const codes = this.getTargetTypeCodes();
-		if (typeof skill.targetType === 'number') {
-			return skill.targetType === codes['all enemies'];
-		}
-		if (typeof skill.description === 'string') {
-			const re = /Target\s*:\s*\d*\s*enemies/i;
-			return re.test(skill.description);
-		}
-		return false;
-	}
+    // Prefer targetType to decide if a skill targets multiple enemies (AoE); fall back to description when missing
+    isSkillTargetsEnemies(skill) {
+        if (!skill) return false;
+        const codes = this.getTargetTypeCodes();
+        if (typeof skill.targetType === 'number') {
+            return skill.targetType === codes['all enemies'];
+        }
+        if (typeof skill.description === 'string') {
+            const re = /Target\s*:\s*\d*\s*enemies/i;
+            return re.test(skill.description);
+        }
+        return false;
+    }
 
     getCounterDigimon(targetDigimon) {
         if (!targetDigimon || !targetDigimon.attribute_resistances || !targetDigimon.elemental_resistances) {
             return [];
         }
-		// Consider stage 5 and 6 attackers that have at least one valid offensive skill
-		const hasValidSkill = (d) => Array.isArray(d.special_skills) && d.special_skills.some(s => this.isSkillTargetsEnemy(s));
-		const stage5Digimon = this.digimonData.filter(d => d.stage === '5' && hasValidSkill(d));
-		const stage6Digimon = this.digimonData.filter(d => (d.stage === '6' || d.stage === '7') && hasValidSkill(d));
+        // Consider stage 5 and 6 attackers that have at least one valid offensive skill
+        const hasValidSkill = (d) => Array.isArray(d.special_skills) && d.special_skills.some(s => this.isSkillTargetsEnemy(s));
+        const stage5Digimon = this.digimonData.filter(d => d.stage === '5' && hasValidSkill(d));
+        const stage6Digimon = this.digimonData.filter(d => (d.stage === '6' || d.stage === '7') && hasValidSkill(d));
         let tempCounterValue = 0;
 
-		const counters = [];
+        const counters = [];
 
-		const evaluate = (list, stageLabel) => {
+        const evaluate = (list, stageLabel) => {
             for (const attacker of list) {
-				const result = this.calculateCounterValue(targetDigimon, attacker);
-				const counterValue = result.value;
-				if (counterValue >= 2) {
-					if (counterValue > tempCounterValue) {
-						tempCounterValue = counterValue;
-					}
-					counters.push({
-						...attacker,
-						counterValue,
-						isAoE: result.isAoE,
-						stage: stageLabel,
-						hitPower: result.hitPower,
-						hits: result.hits,
-						power: result.power
-					});
+                const result = this.calculateCounterValue(targetDigimon, attacker);
+                const counterValue = result.value;
+                if (counterValue >= 2) {
+                    if (counterValue > tempCounterValue) {
+                        tempCounterValue = counterValue;
+                    }
+                    counters.push({
+                        ...attacker,
+                        counterValue,
+                        isAoE: result.isAoE,
+                        stage: stageLabel,
+                        hitPower: result.hitPower,
+                        hits: result.hits,
+                        power: result.power
+                    });
                 }
             }
         };
@@ -456,50 +510,50 @@ class Digimon {
         evaluate(stage5Digimon, '5');
         evaluate(stage6Digimon, '6');
 
-		// Sort: 1) highest damage multiplier 2) AoE first 3) highest maxHits*power 4) random order if tie
-		counters.sort((a, b) => {
-			if (b.counterValue !== a.counterValue) return b.counterValue - a.counterValue;
-			if (!!b.isAoE !== !!a.isAoE) return b.isAoE ? 1 : -1;
-			if (b.hitPower !== a.hitPower) return b.hitPower - a.hitPower;
-			return (Math.random() < 0.5) ? -1 : 1;
-		});
+        // Sort: 1) highest damage multiplier 2) AoE first 3) highest maxHits*power 4) random order if tie
+        counters.sort((a, b) => {
+            if (b.counterValue !== a.counterValue) return b.counterValue - a.counterValue;
+            if (!!b.isAoE !== !!a.isAoE) return b.isAoE ? 1 : -1;
+            if (b.hitPower !== a.hitPower) return b.hitPower - a.hitPower;
+            return (Math.random() < 0.5) ? -1 : 1;
+        });
 
         // deterministically take top 2 from each stage
         const result = [];
-		const stage5Top = counters.filter(c => c.stage === '5').slice(0, Math.max(tempCounterValue, 2));
-		const stage6Top = counters.filter(c => c.stage === '6').slice(0, Math.max(tempCounterValue, 2));
+        const stage5Top = counters.filter(c => c.stage === '5').slice(0, Math.max(tempCounterValue, 2));
+        const stage6Top = counters.filter(c => c.stage === '6').slice(0, Math.max(tempCounterValue, 2));
         result.push(...stage5Top, ...stage6Top);
         return result;
     }
 
-	calculateCounterValue(targetDigimon, counterDigimon) {
+    calculateCounterValue(targetDigimon, counterDigimon) {
         if (!counterDigimon || !Array.isArray(counterDigimon.special_skills) || counterDigimon.special_skills.length === 0) {
-			return { value: 0, isAoE: false, hitPower: 0, hits: 0, power: 0 };
+            return { value: 0, isAoE: false, hitPower: 0, hits: 0, power: 0 };
         }
         // Attribute multiplier based on attacker's attribute vs target's attribute resistances
         const attrMult = this.getAttributeMultiplierOnTarget(targetDigimon, counterDigimon.attribute);
-		let best = 0;
-		let bestIsAoE = false;
-		let bestHitPower = 0;
-		let bestHits = 0;
-		let bestPower = 0;
-		for (const skill of counterDigimon.special_skills) {
-			if (!this.isSkillTargetsEnemy(skill)) continue;
+        let best = 0;
+        let bestIsAoE = false;
+        let bestHitPower = 0;
+        let bestHits = 0;
+        let bestPower = 0;
+        for (const skill of counterDigimon.special_skills) {
+            if (!this.isSkillTargetsEnemy(skill)) continue;
             const element = (skill && skill.element) ? skill.element : 'Null';
             const elemMult = this.getElementMultiplierOnTarget(targetDigimon, element);
-			const total = attrMult * elemMult;
-			const hits = (skill && typeof skill.maxHits === 'number') ? skill.maxHits : 1;
-			const pow = (skill && typeof skill.power === 'number') ? skill.power : 0;
-			const hitPower = hits * pow;
-			if (total > best || (total === best && hitPower > bestHitPower)) {
-				best = total;
-				bestIsAoE = this.isSkillTargetsEnemies(skill);
-				bestHitPower = hitPower;
-				bestHits = hits;
-				bestPower = pow;
-			}
+            const total = attrMult * elemMult;
+            const hits = (skill && typeof skill.maxHits === 'number') ? skill.maxHits : 1;
+            const pow = (skill && typeof skill.power === 'number') ? skill.power : 0;
+            const hitPower = hits * pow;
+            if (total > best || (total === best && hitPower > bestHitPower)) {
+                best = total;
+                bestIsAoE = this.isSkillTargetsEnemies(skill);
+                bestHitPower = hitPower;
+                bestHits = hits;
+                bestPower = pow;
+            }
         }
-		return { value: best, isAoE: bestIsAoE, hitPower: bestHitPower, hits: bestHits, power: bestPower };
+        return { value: best, isAoE: bestIsAoE, hitPower: bestHitPower, hits: bestHits, power: bestPower };
     }
 
     randomSelect(array, count) {
@@ -514,70 +568,29 @@ class Digimon {
     static showDigimon(digimon, digimonInstance) {
         let rply = '';
         try {
-            rply += `#${digimon.id} 【${digimon.name}】\n`;
-            rply += `進化階段：${digimonInstance.getStageName(digimon.stage)}\n`;
-
-            // Show base personality if exists
-            if (digimon.base_personality) {
-                rply += `基本個性：${digimon.base_personality}\n`;
-            }
-
-            // Show attribute (種族) if exists
-            if (digimon.attribute && digimon.attribute !== 'No Data') {
-                rply += `種族：${digimon.attribute}\n`;
-            }
-
-            // Show elemental resistances if exists
+            // Header line
+            const headerLine = `#${digimon.id} 【${digimon.name}】｜${digimonInstance.getStageName(digimon.stage)}｜${(digimon.attribute && digimon.attribute !== 'No Data') ? digimon.attribute : '-'}`;
+            rply += `${headerLine}\n`;
+            // Personality
+            const displayPersonality = digimonInstance.getDisplayPersonality(digimon);
+            rply += `個性：${displayPersonality}\n`;
+            // Resistances
             if (digimon.elemental_resistances) {
                 const resistances = digimonInstance.formatElementalResistances(digimon.elemental_resistances);
                 if (resistances.length > 0) {
-                    rply += `屬性抗性：${resistances.join(', ')}\n`;
+                    rply += `抗性：${resistances.join(', ')}\n`;
                 }
             }
 
-            // Show personality section only if exists (legacy field)
-            if (digimon.personality) {
-                rply += `基礎個性：${digimon.personality}\n`;
-            }
-
-            // Get possible personalities from world data
-            const personalities = digimonInstance.getPersonalities(digimon.name);
-            if (personalities.length > 0) {
-                rply += `可能基礎系譜：${personalities.join(', ')}\n`;
-            }
-
-            // Get locations
-            const locations = digimonInstance.getLocations(digimon.name);
-            if (locations.length > 0) {
-                rply += `出現地點：${locations.join(', ')}\n`;
-            }
-
-            // Show counter digimon if resistance calculation >= 2
+            // Counter list in table format
             const counterDigimon = digimonInstance.getCounterDigimon(digimon);
             if (counterDigimon.length > 0) {
-                rply += `\n------受該數碼寶貝特殊技能克制------\n`;
-				for (const counter of counterDigimon) {
-					const aoeTag = counter.isAoE ? ' (全體)' : '';
-					const hitInfo = (typeof counter.hits === 'number' && typeof counter.power === 'number' && counter.hits > 0 && counter.power > 0)
-						? ` (${counter.hits}＊${counter.power}=${counter.hitPower})`
-						: '';
-					rply += `• ${counter.name} (${digimonInstance.getStageName(counter.stage)}) - 傷害倍率: ${counter.counterValue}${hitInfo}${aoeTag}\n`;
-				}
+                rply += `\n`;
+                rply += digimonInstance.formatCounterTable(counterDigimon);
             }
 
-            if (digimon.mix_evolution) {
-                rply += `\n特殊進化：合體進化\n`;
-                const comps = digimonInstance.getFusionComponents(digimon);
-                if (comps.length === 2) {
-                    rply += `合體來源：${comps[0]} + ${comps[1]}\n`;
-                }
-            }
-
-            rply += '\n------進化路線------\n';
-
-            // Show evolution line from stage 1
-            const evolutionLine = digimonInstance.getEvolutionLineFromStage1(digimon);
-            rply += evolutionLine;
+            rply += '\n[進化路線]\n';
+            rply += digimonInstance.getEvolutionLineFromStage1(digimon);
 
         } catch (error) {
             console.error('digimon display error', error);
@@ -586,56 +599,17 @@ class Digimon {
     }
 
     getEvolutionLineFromStage1(targetDigimon) {
-        // Find a simple path from stage 1 to target with performance limits
         const path = this.findSimplePathFromStage1(targetDigimon);
-
         if (path.length === 0) {
             return '無法找到從幼年期1的進化路線';
         }
-
         let result = '';
         for (let i = 0; i < path.length; i++) {
-            const digimon = path[i];
-            result += `${i + 1}. ${digimon.name} (${this.getStageName(digimon.stage)})\n`;
-
-            // Show personality only if exists
-            if (digimon.personality) {
-                result += `   基礎個性：${digimon.personality}\n`;
-            }
-
-            // For stage 1 digimon, show detailed location information
-            if (digimon.stage === '1') {
-                const personalities = this.getPersonalities(digimon.name);
-                if (personalities.length > 0) {
-                    for (const personality of personalities) {
-                        const locationDetails = this.getLocationsByPersonality(personality);
-                        if (locationDetails.length > 0) {
-                            result += `   就顯示${personality}有${locationDetails.length}個\n`;
-                            for (const detail of locationDetails) {
-                                result += `   ${detail.location}(${detail.digimon.join(', ')})\n`;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (digimon.mix_evolution) {
-                const comps = this.getFusionComponents(digimon);
-                if (comps.length === 2) {
-                    result += `   合體來源：${comps[0]} + ${comps[1]}\n`;
-                }
-            }
-
-            // Show locations only if exists (for non-stage 1 digimon)
-            if (digimon.stage !== '1') {
-                const locations = this.getLocations(digimon.name);
-                if (locations.length > 0) {
-                    result += `   出現地點：${locations.join(', ')}\n`;
-                }
-            }
-
+            const d = path[i];
+            const stageLabel = this.getStageName(d.stage);
+            const personality = this.getDisplayPersonality(d);
+            result += `${i + 1} ${this.padEnd(d.name, 8)}｜${stageLabel}｜基礎個性：${personality}\n`;
         }
-
         return result;
     }
 

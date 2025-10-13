@@ -557,9 +557,24 @@ if (io) {
         if (await limitRaterChatRoom(socket.handshake.address)) return;
         // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
         // 因此我們直接 return ，終止函式執行。
-        if (Object.keys(msg).length < 2) return;
-        msg.msg = '\n' + msg.msg
-        records.chatRoomPush(msg);
+        if (!msg || typeof msg !== 'object') return;
+
+        const name = (msg.name ?? '').toString().trim();
+        const text = (msg.msg ?? '').toString().trim();
+        const room = (msg.roomNumber ?? '').toString().trim();
+        const time = msg.time ? new Date(msg.time) : new Date();
+
+        // Caller-side validation: require non-empty fields
+        if (!name || !text || !room) return;
+
+        const payload = {
+            name: name.slice(0, 50),
+            msg: '\n' + text, // keep leading newline as before
+            time: Number.isNaN(time.getTime()) ? new Date() : time,
+            roomNumber: room.slice(0, 50)
+        };
+
+        records.chatRoomPush(payload);
     });
 
     socket.on("newRoom", async (msg) => {

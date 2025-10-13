@@ -345,25 +345,32 @@ class Records extends EventEmitter {
             if (!message || !message.roomNumber) {
                 throw new Error('Invalid message format');
             }
+            // Normalize and set safe defaults to satisfy schema requirements
+            const normalizedMessage = {
+                name: (message.name && String(message.name).trim()) || 'Anonymous',
+                msg: (message.msg !== undefined && message.msg !== null) ? String(message.msg) : '',
+                time: message.time ? new Date(message.time) : new Date(),
+                roomNumber: message.roomNumber || '公共房間'
+            };
 
-            const chatMessage = new this.ChatRoomModel(message);
+            const chatMessage = new this.ChatRoomModel(normalizedMessage);
             await chatMessage.save();
-            this.emit("new_message", message);
+            this.emit("new_message", normalizedMessage);
 
             // Clear cache for this room
-            cache.del(`chatRoom:${message.roomNumber}`);
+            cache.del(`chatRoom:${normalizedMessage.roomNumber}`);
 
-            const messageCount = await this.ChatRoomModel.countDocuments({ 'roomNumber': message.roomNumber });
+            const messageCount = await this.ChatRoomModel.countDocuments({ 'roomNumber': normalizedMessage.roomNumber });
             if (messageCount < this.maxChatMessages) return;
 
             const overflowCount = messageCount - this.maxChatMessages;
-            const oldestMessages = await this.ChatRoomModel.find({ 'roomNumber': message.roomNumber })
+            const oldestMessages = await this.ChatRoomModel.find({ 'roomNumber': normalizedMessage.roomNumber })
                 .sort({ 'time': 1 });
 
             if (!oldestMessages[overflowCount - 1]) return;
 
             await this.ChatRoomModel.deleteMany({
-                'roomNumber': message.roomNumber,
+                'roomNumber': normalizedMessage.roomNumber,
                 time: { $lt: oldestMessages[overflowCount - 1].time }
             });
         } catch (error) {

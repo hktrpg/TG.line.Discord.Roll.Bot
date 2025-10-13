@@ -135,10 +135,16 @@ class Digimon {
         const data = require('../assets/digmonsts/digimonSTS.json');
         const digimon = new Digimon(data);
 
-        // Find world data and stages info (world data is at index 0 with id: 0)
-        if (data.length > 0 && data[0].id === 0) {
-            digimon.worldData = data[0];
-            digimon.stagesName = data[0].stages_name;
+        // Find world data and stages info (support id:0 or id:'world_data' or name:'基礎系譜')
+        let worldEntry = null;
+        if (Array.isArray(data)) {
+            worldEntry = data.find(item => item && (item.id === 0 || item.id === 'world_data' || item.name === '基礎系譜')) || null;
+        }
+        if (worldEntry) {
+            digimon.worldData = worldEntry;
+            if (worldEntry.stages_name) {
+                digimon.stagesName = worldEntry.stages_name;
+            }
         }
 
         // Filter out non-digimon entries
@@ -157,6 +163,24 @@ class Digimon {
         });
 
         return digimon;
+    }
+
+    ensureWorldDataLoaded() {
+        if (this.worldData && this.worldData.locations) return;
+        try {
+            const data = require('../assets/digmonsts/digimonSTS.json');
+            if (Array.isArray(data)) {
+                const worldEntry = data.find(item => item && (item.id === 0 || item.id === 'world_data' || item.name === '基礎系譜')) || null;
+                if (worldEntry) {
+                    this.worldData = worldEntry;
+                    if (worldEntry.stages_name) {
+                        this.stagesName = worldEntry.stages_name;
+                    }
+                }
+            }
+        } catch {
+            // ignore
+        }
     }
 
     // Prefer base_personality; fallback to personality; otherwise '-'
@@ -286,6 +310,7 @@ class Digimon {
     }
 
     getPersonalities(digimonName) {
+        this.ensureWorldDataLoaded();
         if (!this.worldData || !this.worldData.locations) return [];
 
         const personalities = new Set();
@@ -316,6 +341,7 @@ class Digimon {
     }
 
     getLocations(digimonName) {
+        this.ensureWorldDataLoaded();
         if (!this.worldData || !this.worldData.locations) return [];
 
         const locations = [];
@@ -326,10 +352,22 @@ class Digimon {
             }
         }
 
+        // Fallback for stage-1 lineage-based appearance: infer via personalities
+        if (locations.length === 0) {
+            const lineage = `${digimonName}系譜`;
+            for (const location in this.worldData.locations) {
+                const digimonList = this.worldData.locations[location].digimon;
+                if (digimonList.some(d => Array.isArray(d.personalities) && d.personalities.includes(lineage))) {
+                    locations.push(location);
+                }
+            }
+        }
+
         return locations;
     }
 
     getLocationsByPersonality(personality) {
+        this.ensureWorldDataLoaded();
         if (!this.worldData || !this.worldData.locations) return [];
 
         const locationDetails = [];
@@ -624,17 +662,30 @@ class Digimon {
             const stageLabel = this.getStageName(d.stage);
             const personality = this.getDisplayPersonality(d);
             result += `${i + 1} ${this.padEnd(d.name, 8)}｜${stageLabel}｜基礎個性：${personality}\n`;
+            if (d.stage === '1') {
+                const personalities = this.getPersonalities(d.name);
+                if (personalities.length > 0) {
+                    for (const p of personalities) {
+                        const locationDetails = this.getLocationsByPersonality(p);
+                        result += `   顯示${p}${locationDetails.length}個\n`;
+                        if (locationDetails.length > 0) {
+                            for (const detail of locationDetails) {
+                                result += `   ${detail.location}(${detail.digimon.join(', ')})\n`;
+                            }
+                        }
+                    }
+                }
+            }
             if (d.mix_evolution) {
                 const comps = this.getFusionComponents(d);
                 if (comps.length === 2) {
                     result += `   合體來源：${comps[0]} + ${comps[1]}\n`;
                 }
             }
-            if (d.stage !== '1') {
-                const locs = this.getLocations(d.name);
-                if (locs.length > 0) {
-                    result += `   出現地點：${locs.join(', ')}\n`;
-                }
+            // Always show locations if available (including stage 1 via lineage fallback)
+            const locs = this.getLocations(d.name);
+            if (locs.length > 0) {
+                result += `   出現地點：${locs.join(', ')}\n`;
             }
         }
         return result;

@@ -383,19 +383,41 @@ class Digimon {
         return targetDigimon.attribute_resistances[key] ?? 1;
     }
 
-	// Whether a skill description explicitly targets enemy/enemies
-	isSkillTargetsEnemy(skill) {
-		if (!skill || typeof skill.description !== 'string') return false;
-		// Matches: Target\n: 1 enemy | Target\n: enemies | Target : enemy ... etc.
-		const re = /Target\s*:\s*\d*\s*(enemy|enemies)/i;
-		return re.test(skill.description);
+	// Get targetType numeric codes from world data (id 0), with safe defaults
+	getTargetTypeCodes() {
+		const defaults = { self: 10, 'all enemies': 5, '1 enemy': 1, 'all allies': 6, '1 ally': 2 };
+		if (this.worldData && this.worldData.targetType) {
+			return this.worldData.targetType;
+		}
+		return defaults;
 	}
 
-	// Whether a skill description targets multiple enemies (AoE)
+	// Prefer targetType to decide if a skill targets enemy; fall back to description when missing
+	isSkillTargetsEnemy(skill) {
+		if (!skill) return false;
+		const codes = this.getTargetTypeCodes();
+		if (typeof skill.targetType === 'number') {
+			return skill.targetType === codes['1 enemy'] || skill.targetType === codes['all enemies'];
+		}
+		if (typeof skill.description === 'string') {
+			const re = /Target\s*:\s*\d*\s*(enemy|enemies)/i;
+			return re.test(skill.description);
+		}
+		return false;
+	}
+
+	// Prefer targetType to decide if a skill targets multiple enemies (AoE); fall back to description when missing
 	isSkillTargetsEnemies(skill) {
-		if (!skill || typeof skill.description !== 'string') return false;
-		const re = /Target\s*:\s*\d*\s*enemies/i;
-		return re.test(skill.description);
+		if (!skill) return false;
+		const codes = this.getTargetTypeCodes();
+		if (typeof skill.targetType === 'number') {
+			return skill.targetType === codes['all enemies'];
+		}
+		if (typeof skill.description === 'string') {
+			const re = /Target\s*:\s*\d*\s*enemies/i;
+			return re.test(skill.description);
+		}
+		return false;
 	}
 
     getCounterDigimon(targetDigimon) {
@@ -408,7 +430,7 @@ class Digimon {
 		const stage6Digimon = this.digimonData.filter(d => (d.stage === '6' || d.stage === '7') && hasValidSkill(d));
         let tempCounterValue = 0;
 
-        const counters = [];
+		const counters = [];
 
 		const evaluate = (list, stageLabel) => {
             for (const attacker of list) {
@@ -418,7 +440,15 @@ class Digimon {
 					if (counterValue > tempCounterValue) {
 						tempCounterValue = counterValue;
 					}
-					counters.push({ ...attacker, counterValue, isAoE: result.isAoE, stage: stageLabel });
+					counters.push({
+						...attacker,
+						counterValue,
+						isAoE: result.isAoE,
+						stage: stageLabel,
+						hitPower: result.hitPower,
+						hits: result.hits,
+						power: result.power
+					});
                 }
             }
         };
@@ -426,10 +456,12 @@ class Digimon {
         evaluate(stage5Digimon, '5');
         evaluate(stage6Digimon, '6');
 
-		// Sort AoE first, then by highest damage multiplier
+		// Sort: 1) highest damage multiplier 2) AoE first 3) highest maxHits*power 4) random order if tie
 		counters.sort((a, b) => {
+			if (b.counterValue !== a.counterValue) return b.counterValue - a.counterValue;
 			if (!!b.isAoE !== !!a.isAoE) return b.isAoE ? 1 : -1;
-			return b.counterValue - a.counterValue;
+			if (b.hitPower !== a.hitPower) return b.hitPower - a.hitPower;
+			return (Math.random() < 0.5) ? -1 : 1;
 		});
 
         // deterministically take top 2 from each stage
@@ -442,23 +474,32 @@ class Digimon {
 
 	calculateCounterValue(targetDigimon, counterDigimon) {
         if (!counterDigimon || !Array.isArray(counterDigimon.special_skills) || counterDigimon.special_skills.length === 0) {
-			return { value: 0, isAoE: false };
+			return { value: 0, isAoE: false, hitPower: 0, hits: 0, power: 0 };
         }
         // Attribute multiplier based on attacker's attribute vs target's attribute resistances
         const attrMult = this.getAttributeMultiplierOnTarget(targetDigimon, counterDigimon.attribute);
 		let best = 0;
 		let bestIsAoE = false;
+		let bestHitPower = 0;
+		let bestHits = 0;
+		let bestPower = 0;
 		for (const skill of counterDigimon.special_skills) {
 			if (!this.isSkillTargetsEnemy(skill)) continue;
             const element = (skill && skill.element) ? skill.element : 'Null';
             const elemMult = this.getElementMultiplierOnTarget(targetDigimon, element);
 			const total = attrMult * elemMult;
-			if (total > best) {
+			const hits = (skill && typeof skill.maxHits === 'number') ? skill.maxHits : 1;
+			const pow = (skill && typeof skill.power === 'number') ? skill.power : 0;
+			const hitPower = hits * pow;
+			if (total > best || (total === best && hitPower > bestHitPower)) {
 				best = total;
 				bestIsAoE = this.isSkillTargetsEnemies(skill);
+				bestHitPower = hitPower;
+				bestHits = hits;
+				bestPower = pow;
 			}
         }
-		return { value: best, isAoE: bestIsAoE };
+		return { value: best, isAoE: bestIsAoE, hitPower: bestHitPower, hits: bestHits, power: bestPower };
     }
 
     randomSelect(array, count) {
@@ -517,7 +558,10 @@ class Digimon {
                 rply += `\n------受該數碼寶貝特殊技能克制------\n`;
 				for (const counter of counterDigimon) {
 					const aoeTag = counter.isAoE ? ' (全體)' : '';
-					rply += `• ${counter.name}${aoeTag} (${digimonInstance.getStageName(counter.stage)}) - 傷害倍率: ${counter.counterValue}\n`;
+					const hitInfo = (typeof counter.hits === 'number' && typeof counter.power === 'number' && counter.hits > 0 && counter.power > 0)
+						? ` (${counter.hits}＊${counter.power}=${counter.hitPower})`
+						: '';
+					rply += `• ${counter.name} (${digimonInstance.getStageName(counter.stage)}) - 傷害倍率: ${counter.counterValue}${hitInfo}${aoeTag}\n`;
 				}
             }
 

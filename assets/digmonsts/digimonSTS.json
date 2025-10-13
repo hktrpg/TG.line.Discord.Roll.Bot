@@ -33,6 +33,35 @@
       "Light": "光",
       "Dark": "闇",
       "Null": "無"
+    },
+    "elemental_name_number": {
+      "Fire": 1,
+      "Ice": 2,
+      "Plant": 3,
+      "Water": 4,
+      "Elec": 5,
+      "Steel": 6,
+      "Wind": 7,
+      "Earth": 8,
+      "Light": 9,
+      "Dark": 10,
+      "Null": 0,
+      "-": "-1"
+    },
+    "dmgTypes": {
+      "Support": 0,
+      "Physical": 1,
+      "Magic": 2,
+      "Fixed": 4,
+      "HP%": 5,
+      "Heal": 8
+    },
+    "targetTypes": {
+      "self": 10,
+      "all enemies": 5,
+      "1 enemy": 1,
+      "all allies": 6,
+      "1 ally": 2
     }
   },
   {

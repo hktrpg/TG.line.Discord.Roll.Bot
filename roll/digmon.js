@@ -643,7 +643,7 @@ class Digimon {
             }
 
             rply += '\n[進化路線]\n';
-            rply += digimonInstance.getEvolutionLineFromStage1(digimon);
+            rply += digimonInstance.getEvolutionLinesWithTwoPaths(digimon);
 
         } catch (error) {
             console.error('digimon display error', error);
@@ -656,25 +656,33 @@ class Digimon {
         if (path.length === 0) {
             return '無法找到從幼年期1的進化路線';
         }
+        return this.formatEvolutionPath(path);
+    }
+
+    // Format one evolution path into text lines
+    formatEvolutionPath(path, headerMarker = '#\uFE0F\u20E3') { // default '#️⃣'
         let result = '';
+        // Optional lineage header for stage-1 start
+        if (path.length > 0 && path[0].stage === '1') {
+            const start = path[0];
+            const lineage = `${start.name}系譜`;
+            const personalities = this.getPersonalities(start.name);
+            const chosen = personalities.length > 0 ? personalities[0] : lineage;
+            const details = this.getLocationsByPersonality(chosen);
+            result += `${headerMarker}${lineage}：出現地點\n`;
+            for (const detail of details) {
+                result += `${detail.location}(${detail.digimon.join(', ')})\n`;
+            }
+        }
+
         for (let i = 0; i < path.length; i++) {
             const d = path[i];
             const stageLabel = this.getStageName(d.stage);
             const personality = this.getDisplayPersonality(d);
-            result += `${i + 1} ${this.padEnd(d.name, 8)}｜${stageLabel}｜基礎個性：${personality}\n`;
+            const num = this.numberToEmoji(i + 1);
+            result += `${num}${this.padEnd(d.name, 8)}｜${stageLabel}｜基礎個性：${personality}\n`;
             if (d.stage === '1') {
-                const personalities = this.getPersonalities(d.name);
-                if (personalities.length > 0) {
-                    for (const p of personalities) {
-                        const locationDetails = this.getLocationsByPersonality(p);
-                        result += `   顯示${p}${locationDetails.length}個\n`;
-                        if (locationDetails.length > 0) {
-                            for (const detail of locationDetails) {
-                                result += `   ${detail.location}(${detail.digimon.join(', ')})\n`;
-                            }
-                        }
-                    }
-                }
+                // lineage details are shown in the header; skip per-item lineage block
             }
             if (d.mix_evolution) {
                 const comps = this.getFusionComponents(d);
@@ -682,13 +690,131 @@ class Digimon {
                     result += `   合體來源：${comps[0]} + ${comps[1]}\n`;
                 }
             }
-            // Always show locations if available (including stage 1 via lineage fallback)
-            const locs = this.getLocations(d.name);
-            if (locs.length > 0) {
-                result += `   出現地點：${locs.join(', ')}\n`;
+            if (d.stage !== '1') { // Skip summary line for stage-1 to avoid duplication
+                const locs = this.getLocations(d.name);
+                if (locs.length > 0) {
+                    result += `   出現地點：${locs.join(', ')}\n`;
+                }
             }
         }
         return result;
+    }
+
+    // Find up to two best evolution paths starting from different stage-1 Digimon
+    getEvolutionLinesWithTwoPaths(targetDigimon) {
+        // Collect shortest path from each stage-1 start
+        const startTime = Date.now();
+        const maxTime = 3500;
+        const stage1Digimon = this.digimonData.filter(d => d.stage === '1');
+        const candidates = [];
+
+        for (const start of stage1Digimon) {
+            if (Date.now() - startTime > maxTime) break;
+            const path = this.findShortestPathFromStart(start, targetDigimon, 10, maxTime - (Date.now() - startTime));
+            if (path.length > 0) {
+                const score = this.scorePathByPersonality(path);
+                candidates.push({ startId: start.id, path, score });
+            }
+        }
+
+        if (candidates.length === 0) {
+            // Fallback to legacy single-path logic
+            return this.getEvolutionLineFromStage1(targetDigimon);
+        }
+
+        // Sort by personality score desc, then by path length asc
+        candidates.sort((a, b) => {
+            if (b.score !== a.score) return b.score - a.score;
+            return a.path.length - b.path.length;
+        });
+
+        const first = candidates[0];
+        // Find second with different stage-1 start
+        const second = candidates.find(c => c.startId !== first.startId);
+
+        // If there is no second with different start, show only one as per rule (a)
+        if (!second) {
+            return this.formatEvolutionPath(first.path, '#\uFE0F\u20E3');
+        }
+
+        // Show up to two paths
+        let out = '';
+        out += this.formatEvolutionPath(first.path, '#\uFE0F\u20E3');
+        out += '\n';
+        out += this.formatEvolutionPath(second.path, '*\uFE0F\u20E3');
+        return out;
+    }
+
+    // BFS shortest path from a specific start to target
+    findShortestPathFromStart(startDigimon, targetDigimon, maxDepth = 10, maxTime = 2000) {
+        const startTime = Date.now();
+        const queue = [{ digimon: startDigimon, path: [startDigimon] }];
+        const visited = new Set();
+
+        while (queue.length > 0) {
+            if (Date.now() - startTime > maxTime) break;
+            const { digimon: current, path } = queue.shift();
+            if (visited.has(current.id)) continue;
+            visited.add(current.id);
+
+            if (current.id === targetDigimon.id) {
+                return path;
+            }
+
+            if (path.length > maxDepth) continue;
+
+            if (current.evolutions) {
+                for (const evolutionName of current.evolutions) {
+                    const evolutionDigimon = this.digimonData.find(d => d.name === evolutionName);
+                    if (evolutionDigimon && !visited.has(evolutionDigimon.id)) {
+                        queue.push({ digimon: evolutionDigimon, path: [...path, evolutionDigimon] });
+                    }
+                }
+            }
+
+            if (current.devolutions) {
+                for (const devolutionName of current.devolutions) {
+                    const devolutionDigimon = this.digimonData.find(d => d.name === devolutionName);
+                    if (devolutionDigimon && !visited.has(devolutionDigimon.id)) {
+                        queue.push({ digimon: devolutionDigimon, path: [...path, devolutionDigimon] });
+                    }
+                }
+            }
+        }
+
+        return [];
+    }
+
+    // Score a path by the largest count of the same base personality appearing
+    scorePathByPersonality(path) {
+        const counter = new Map();
+        for (const d of path) {
+            const p = this.getDisplayPersonality(d);
+            const key = String(p || '-');
+            counter.set(key, (counter.get(key) || 0) + 1);
+        }
+        let best = 0;
+        for (const v of counter.values()) {
+            if (v > best) best = v;
+        }
+        return best;
+    }
+
+    numberToEmoji(n) {
+        const map = {
+            0: '0\uFE0F\u20E3',
+            1: '1\uFE0F\u20E3',
+            2: '2\uFE0F\u20E3',
+            3: '3\uFE0F\u20E3',
+            4: '4\uFE0F\u20E3',
+            5: '5\uFE0F\u20E3',
+            6: '6\uFE0F\u20E3',
+            7: '7\uFE0F\u20E3',
+            8: '8\uFE0F\u20E3',
+            9: '9\uFE0F\u20E3',
+            10: '\uD83D\uDD1F' // keycap 10
+        };
+        return map[n] || `${n}. `;
     }
 
     findSimplePathFromStage1(targetDigimon) {

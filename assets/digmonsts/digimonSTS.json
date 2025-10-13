@@ -62,6 +62,214 @@
       "1 enemy": 1,
       "all allies": 6,
       "1 ally": 2
+    },
+    "name": "基礎系譜",
+    "description": "基礎系譜分布",
+    "locations": {
+      "螺旋地下水道": {
+        "digimon": [
+          {
+            "name": "螳螂獸",
+            "personalities": [
+              "泡沫獸系譜",
+              "浮游獸系譜"
+            ]
+          },
+          {
+            "name": "哈哈獸",
+            "personalities": [
+              "水母獸系譜"
+            ]
+          },
+          {
+            "name": "蝌蚪獸",
+            "personalities": [
+              "水母獸系譜"
+            ]
+          },
+          {
+            "name": "加支獸",
+            "personalities": [
+              "水母獸系譜"
+            ]
+          },
+          {
+            "name": "企鵝獸",
+            "personalities": [
+              "泡沫獸系譜"
+            ]
+          },
+          {
+            "name": "蜘蛛獸",
+            "personalities": [
+              "水母獸系譜",
+              "泡沫獸系譜"
+            ]
+          },
+          {
+            "name": "鑽地獸",
+            "personalities": [
+              "多多獸系譜",
+              "普尼獸系譜"
+            ]
+          }
+        ]
+      },
+      "中央通道": {
+        "digimon": [
+          {
+            "name": "人馬獸",
+            "personalities": [
+              "電鼠獸系譜",
+              "浮游獸系譜"
+            ]
+          },
+          {
+            "name": "積木亞古獸",
+            "personalities": [
+              "電鼠獸系譜"
+            ]
+          },
+          {
+            "name": "螳螂獸",
+            "personalities": [
+              "泡沫獸系譜",
+              "浮游獸系譜"
+            ]
+          },
+          {
+            "name": "幻蜂獸",
+            "personalities": [
+              "泡沫獸系譜"
+            ]
+          },
+          {
+            "name": "蝌蚪獸",
+            "personalities": [
+              "水母獸系譜"
+            ]
+          },
+          {
+            "name": "蜘蛛獸",
+            "personalities": [
+              "水母獸系譜",
+              "泡沫獸系譜"
+            ]
+          },
+          {
+            "name": "高吼獸",
+            "personalities": [
+              "黑球獸系譜"
+            ]
+          }
+        ]
+      },
+      "鋼架迷宮": {
+        "digimon": [
+          {
+            "name": "管狐獸",
+            "personalities": [
+              "普尼獸系譜"
+            ]
+          },
+          {
+            "name": "太陽獸",
+            "personalities": [
+              "電鼠獸系譜"
+            ]
+          },
+          {
+            "name": "野人獸",
+            "personalities": [
+              "普尼獸系譜"
+            ]
+          },
+          {
+            "name": "幻蜂獸",
+            "personalities": [
+              "泡沫獸系譜"
+            ]
+          },
+          {
+            "name": "飛龍獸",
+            "personalities": [
+              "多多獸系譜",
+              "泡沫獸系譜",
+              "浮游獸系譜"
+            ]
+          }
+        ]
+      },
+      "鋼架外圍": {
+        "digimon": [
+          {
+            "name": "幻蜂獸",
+            "personalities": [
+              "泡沫獸系譜"
+            ]
+          },
+          {
+            "name": "雀蜂獸",
+            "personalities": [
+              "電鼠獸系譜",
+              "泡沫獸系譜"
+            ]
+          },
+          {
+            "name": "太陽獸",
+            "personalities": [
+              "電鼠獸系譜"
+            ]
+          },
+          {
+            "name": "管狐獸",
+            "personalities": [
+              "普尼獸系譜"
+            ]
+          },
+          {
+            "name": "野人獸",
+            "personalities": [
+              "普尼獸系譜"
+            ]
+          }
+        ]
+      },
+      "鋼架尖端": {
+        "digimon": [
+          {
+            "name": "幻蜂獸",
+            "personalities": [
+              "泡沫獸系譜"
+            ]
+          },
+          {
+            "name": "雀蜂獸",
+            "personalities": [
+              "電鼠獸系譜",
+              "泡沫獸系譜"
+            ]
+          },
+          {
+            "name": "野人獸",
+            "personalities": [
+              "普尼獸系譜"
+            ]
+          },
+          {
+            "name": "太陽獸",
+            "personalities": [
+              "電鼠獸系譜"
+            ]
+          },
+          {
+            "name": "巨龍獸",
+            "personalities": [
+              "黑球獸系譜"
+            ]
+          }
+        ]
+      }
     }
   },
   {

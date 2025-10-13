@@ -42,6 +42,8 @@ const getHelpMessage = function () {
 │ 單一查詢顯示:
 │ 　• 基礎個性(personality)
 │ 　• 可能基礎系譜
+│ 　• 屬性抗性
+│ 　• 受該數碼寶貝特殊技能克制
 │ 　• 出現地點(locations)
 │ 　• 完整進化退化路線
 │
@@ -512,7 +514,7 @@ class Digimon {
             // Show counter digimon if resistance calculation >= 2
             const counterDigimon = digimonInstance.getCounterDigimon(digimon);
             if (counterDigimon.length > 0) {
-                rply += `\n------特殊技能克制------\n`;
+                rply += `\n------受該數碼寶貝特殊技能克制------\n`;
 				for (const counter of counterDigimon) {
 					const aoeTag = counter.isAoE ? ' (全體)' : '';
 					rply += `• ${counter.name}${aoeTag} (${digimonInstance.getStageName(counter.stage)}) - 傷害倍率: ${counter.counterValue}\n`;

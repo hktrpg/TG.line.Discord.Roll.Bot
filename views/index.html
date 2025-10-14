@@ -1695,7 +1695,8 @@
             reconnectAttempts: 0,
             isConnected: false,
             isHistoryLoading: true,
-            pendingLive: []
+            pendingLive: [],
+            scrollTimeout: null
         };
 
         // Utility Functions
@@ -1867,7 +1868,13 @@
 
                 // Always scroll when loading history, or for user's own messages and related bot responses.
                 if (state.isHistoryLoading || isMyMessage || isBotResponseToMe) {
-                    setTimeout(utils.scrollToBottom, 0);
+                    if (state.scrollTimeout) {
+                        clearTimeout(state.scrollTimeout);
+                    }
+                    state.scrollTimeout = setTimeout(() => {
+                        utils.scrollToBottom();
+                        state.scrollTimeout = null;
+                    }, 50);
                 }
             }
         };

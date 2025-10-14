@@ -512,3 +512,104 @@ describe('Digimon Evolution Path Finding Tests', () => {
         });
     });
 });
+
+describe('Digimon Real Data Evolution Path Check - All IDs (1-451)', () => {
+    let digimonInstance;
+
+    beforeAll(() => {
+        // Use real data instead of mock data
+        const { Digimon } = require('../roll/digmon');
+        digimonInstance = Digimon.init();
+    });
+
+    test('Check all Digimon IDs (1-451) for evolution path from stage 1', () => {
+        const failedDigimon = [];
+        const totalDigimon = 451;
+
+        for (let id = 1; id <= totalDigimon; id++) {
+            const digimon = digimonInstance.findByNameOrId(id.toString());
+            
+            if (!digimon) {
+                continue;
+            }
+
+            // Get evolution line
+            const evolutionLine = digimonInstance.getEvolutionLineFromStage1(digimon);
+            
+            if (evolutionLine.includes('無法找到從幼年期1的進化路線')) {
+                const stage = digimonInstance.getStageName(digimon.stage);
+                failedDigimon.push({
+                    id: digimon.id,
+                    name: digimon.name,
+                    stage: digimon.stage,
+                    stageName: stage,
+                    zhCnName: digimon['zh-cn-name'] || '-'
+                });
+            }
+        }
+
+        // Log failures for debugging
+        if (failedDigimon.length > 0) {
+            console.error('Failed Digimon (無法找到從幼年期1的進化路線):');
+            for (const d of failedDigimon) {
+                console.error(`  ID ${d.id}: ${d.name} (${d.stageName})`);
+            }
+        }
+
+        // Test should pass - all Digimon should have valid evolution paths
+        expect(failedDigimon.length).toBe(0);
+    });
+
+    test('Verify evolution paths for sample Digimon across all stages', () => {
+        const testCases = [
+            { id: 1, expectedStage: '1', name: '水母獸' },
+            { id: 50, expectedStage: '3', name: '多路獸' },
+            { id: 100, expectedStage: '4', name: '焰獅獸' },
+            { id: 200, expectedStage: '5', name: '翔龍獸' },
+            { id: 300, expectedStage: '5', name: '古神獸' },
+            { id: 385, expectedStage: '6', name: '泰坦獸' },
+            { id: 400, expectedStage: '6', name: '貝爾斯塔獸' },
+            { id: 450, expectedStage: '7', name: '啟示錄獸' }
+        ];
+
+        for (const testCase of testCases) {
+            const digimon = digimonInstance.findByNameOrId(testCase.id.toString());
+            
+            expect(digimon).toBeDefined();
+            expect(digimon.name).toBe(testCase.name);
+            expect(digimon.stage).toBe(testCase.expectedStage);
+
+            const evolutionLine = digimonInstance.getEvolutionLineFromStage1(digimon);
+            
+            expect(evolutionLine).toBeDefined();
+            expect(typeof evolutionLine).toBe('string');
+            expect(evolutionLine).not.toContain('無法找到從幼年期1的進化路線');
+            expect(evolutionLine.length).toBeGreaterThan(0);
+        }
+    });
+
+    test('Verify both path finding methods work correctly', () => {
+        const testIds = [100, 200, 300];
+
+        for (const id of testIds) {
+            const digimon = digimonInstance.findByNameOrId(id.toString());
+            
+            expect(digimon).toBeDefined();
+
+            const simplePath = digimonInstance.findSimplePathFromStage1(digimon);
+            const comprehensivePath = digimonInstance.findComprehensivePath(digimon);
+            
+            // Both methods should find a path
+            expect(simplePath.length).toBeGreaterThan(0);
+            expect(comprehensivePath.length).toBeGreaterThan(0);
+            
+            // Paths should start from stage 1
+            expect(simplePath[0].stage).toBe('1');
+            expect(comprehensivePath[0].stage).toBe('1');
+            
+            // Paths should end at the target
+            expect(simplePath[simplePath.length - 1].id).toBe(digimon.id);
+            expect(comprehensivePath[comprehensivePath.length - 1].id).toBe(digimon.id);
+        }
+    });
+});

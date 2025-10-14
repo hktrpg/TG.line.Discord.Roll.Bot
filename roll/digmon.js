@@ -566,8 +566,8 @@ class Digimon {
             const topThree = list.slice(0, 3);
             const allThreeAoE = topThree.length === 3 && topThree.every(c => !!c.isAoE);
             if (allThreeAoE) {
-                const singleTarget = list.slice(3).find(c => !c.isAoE);
-                return singleTarget ? [...topThree, singleTarget] : topThree;
+                const singleTargets = list.slice(3).filter(c => !c.isAoE).slice(0, 3);
+                return singleTargets.length > 0 ? [...topThree, ...singleTargets] : topThree;
             }
             return topThree;
         };
@@ -578,8 +578,8 @@ class Digimon {
         const highStagesList = counters.filter(c => c.stage === '6' || c.stage === '7');
         const highTopThree = highStagesList.slice(0, 3);
         const highAllThreeAoE = highTopThree.length === 3 && highTopThree.every(c => !!c.isAoE);
-        const highFourthSingle = highAllThreeAoE ? highStagesList.slice(3).find(c => !c.isAoE) : null;
-        const highStageTop = highFourthSingle ? [...highTopThree, highFourthSingle] : highTopThree;
+        const highSingles = highAllThreeAoE ? highStagesList.slice(3).filter(c => !c.isAoE).slice(0, 3) : [];
+        const highStageTop = highSingles.length > 0 ? [...highTopThree, ...highSingles] : highTopThree;
 
         result.push(...stage5Top, ...highStageTop);
         return result;
@@ -653,6 +653,23 @@ class Digimon {
                 const comps = digimonInstance.getFusionComponents(digimon);
                 if (comps.length === 2) {
                     rply += `合體來源：${comps[0]} + ${comps[1]}\n`;
+                }
+            }
+
+            // Immediate evolutions available from this Digimon
+            if (Array.isArray(digimon.evolutions) && digimon.evolutions.length > 0) {
+                const nextDigimon = digimon.evolutions
+                    .map(name => digimonInstance.digimonData.find(d => d.name === name))
+                    .filter(Boolean);
+                if (nextDigimon.length > 0) {
+                    rply += `可進化：\n`;
+                    for (let i = 0; i < nextDigimon.length; i++) {
+                        const nd = nextDigimon[i];
+                        const stageLabel = digimonInstance.getStageName(nd.stage);
+                        const personality = digimonInstance.getDisplayPersonality(nd);
+                        const letter = digimonInstance.letterIndexToEmoji(i);
+                        rply += ` ${letter} ${digimonInstance.padEnd(nd.name, 8)}｜${stageLabel}｜基礎個性：${personality}\n`;
+                    }
                 }
             }
 
@@ -833,6 +850,19 @@ class Digimon {
             10: '\uD83D\uDD1F' // keycap 10
         };
         return map[n] || `${n}. `;
+    }
+
+    // Map 0-based index to regional indicator letter emoji (A=🇦, B=🇧, ...)
+    letterIndexToEmoji(index) {
+        if (typeof index !== 'number' || index < 0) return '';
+        const A_CODEPOINT = 0x1F1E6; // Regional Indicator Symbol Letter A
+        const idx = Math.floor(index) % 26;
+        const codePoint = A_CODEPOINT + idx;
+        try {
+            return String.fromCodePoint(codePoint);
+        } catch {
+            return '';
+        }
     }
 
     findSimplePathFromStage1(targetDigimon) {

@@ -1715,16 +1715,8 @@
             init: () => {
                 state.socket = io({
                     reconnection: true,
-                    // retry forever until the server is back
-                    reconnectionAttempts: Infinity,
-                    // start at 1s, back off up to 10s
-                    reconnectionDelay: CONFIG.SOCKET_RECONNECT_DELAY,
-                    reconnectionDelayMax: 10000,
-                    randomizationFactor: 0.5,
-                    // give each attempt a fair timeout
-                    timeout: 20000,
-                    // try websocket first, fall back to polling (compatible with EIO=3)
-                    transports: ['websocket', 'polling']
+                    reconnectionAttempts: CONFIG.SOCKET_RECONNECT_ATTEMPTS,
+                    reconnectionDelay: CONFIG.SOCKET_RECONNECT_DELAY
                 });
 
                 socketManager.setupEventListeners();
@@ -1735,21 +1727,6 @@
                     state.isConnected = true;
                     state.reconnectAttempts = 0;
                     console.log('Connected to server');
-                    // ensure we are receiving messages for the current room after (re)connect
-                    if (state.socket && chatroomManager.currentRoom) {
-                        state.isHistoryLoading = true;
-                        state.pendingLive = [];
-                        state.socket.emit('newRoom', chatroomManager.currentRoom);
-                        // make sure the event listener for the room exists
-                        state.socket.off(chatroomManager.currentRoom);
-                        state.socket.on(chatroomManager.currentRoom, (message) => {
-                            if (state.isHistoryLoading) {
-                                state.pendingLive.push(message);
-                                return;
-                            }
-                            uiManager.addMessageToBox(message);
-                        });
-                    }
                 });
 
                 state.socket.on('disconnect', () => {
@@ -1759,31 +1736,6 @@
 
                 state.socket.on('connect_error', (error) => {
                     console.error('Connection error:', error);
-                });
-
-                // extra visibility and robustness around reconnection
-                state.socket.on('reconnect_attempt', (attempt) => {
-                    state.reconnectAttempts = attempt;
-                    console.log('Reconnecting... attempt', attempt);
-                });
-
-                state.socket.on('reconnect', (attempt) => {
-                    state.isConnected = true;
-                    console.log('Reconnected after attempts:', attempt);
-                    // request current room history on successful reconnect
-                    if (state.socket && chatroomManager.currentRoom) {
-                        state.isHistoryLoading = true;
-                        state.pendingLive = [];
-                        state.socket.emit('newRoom', chatroomManager.currentRoom);
-                    }
-                });
-
-                state.socket.on('reconnect_error', (err) => {
-                    console.warn('Reconnect error:', err && err.message ? err.message : err);
-                });
-
-                state.socket.on('reconnect_failed', () => {
-                    console.error('Reconnect failed; will keep trying due to Infinity attempts.');
                 });
 
                 state.socket.on('online', (amount) => {

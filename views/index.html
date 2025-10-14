@@ -1871,7 +1871,39 @@
 
                 // Auto-scroll if it's the user's own message, or if they were already at the bottom.
                 if (isMyMessage || isScrolledToBottom) {
-                    setTimeout(utils.scrollToBottom, 0);
+                    const scrollAndWatch = () => {
+                        const container = document.getElementById("container-content");
+                        let lastHeight = container.scrollHeight;
+                        let stableChecks = 0;
+                        const requiredStableChecks = 3; // Require 3 stable checks (e.g. 3 * 50ms = 150ms of stability)
+                        let totalChecks = 0;
+                        const maxTotalChecks = 20; // Stop after 1 second regardless
+
+                        const checkAndScroll = () => {
+                            totalChecks++;
+                            const newHeight = container.scrollHeight;
+
+                            if (newHeight !== lastHeight) {
+                                // Height changed, so scroll and reset stability counter
+                                lastHeight = newHeight;
+                                utils.scrollToBottom();
+                                stableChecks = 0;
+                            } else {
+                                // Height is stable
+                                stableChecks++;
+                            }
+
+                            // If we are not yet stable and haven't exceeded max checks, schedule another check
+                            if (stableChecks < requiredStableChecks && totalChecks < maxTotalChecks) {
+                                setTimeout(checkAndScroll, 50);
+                            }
+                        };
+                        
+                        // Initial scroll and start checking
+                        utils.scrollToBottom();
+                        setTimeout(checkAndScroll, 50);
+                    };
+                    scrollAndWatch();
                 }
             }
         };

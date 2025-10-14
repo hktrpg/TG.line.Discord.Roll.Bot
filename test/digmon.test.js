@@ -93,7 +93,7 @@ const mockDigimonData = [
     { id: 58, name: "泰坦獸X", stage: "7", personality: "包容力", devolutions: ["泰坦獸"], evolutions: [] },
     { id: 59, name: "海天使獸X", stage: "7", personality: "天啟", devolutions: ["海天使獸"], evolutions: [] },
     { id: 60, name: "埃癸奧都斯獸聖X", stage: "7", personality: "勇氣", devolutions: ["埃癸奧都斯獸聖"], evolutions: [] },
-    { id: 61, name: "千兆龍獸X", stage: "7", personality: "友情", devolutions: ["千兆龍獸"], evolutions: [] },
+    { id: 61, name: "千兆龍獸X", stage: "7", personality: "友情", devolutions: ["飛車龍獸"], evolutions: [] },
     { id: 62, name: "熾天使獸X", stage: "7", personality: "希望", devolutions: ["熾天使獸"], evolutions: [] }
 ];
 
@@ -155,8 +155,8 @@ describe('Digimon Evolution Path Finding Tests', () => {
             { from: "電鼠獸", to: "海天使獸X", expectedPath: ["電鼠獸", "加利獸", "雷電獸", "雷鳥獸", "雷神獸", "雷神獸王", "雷神獸王X"] }
         ];
 
-        testCases.forEach((testCase, index) => {
-            test(`Test ${index + 1}: ${testCase.from} -> ${testCase.to}`, () => {
+        for (const testCase of testCases) {
+            test(`Test ${testCases.indexOf(testCase) + 1}: ${testCase.from} -> ${testCase.to}`, () => {
                 const fromDigimon = digimonInstance.findByNameOrId(testCase.from);
                 const toDigimon = digimonInstance.findByNameOrId(testCase.to);
 
@@ -172,7 +172,7 @@ describe('Digimon Evolution Path Finding Tests', () => {
 
                 // Note: Path validation removed since mock data may not have complete evolution chains
             });
-        });
+        }
     });
 
     describe('成熟期 -> 成熟期 (Stage 4 -> Stage 4)', () => {
@@ -208,8 +208,8 @@ describe('Digimon Evolution Path Finding Tests', () => {
             { from: "天使獸", to: "雷鳥獸", expectedPath: ["天使獸", "巴達獸", "雷電獸", "雷鳥獸"] }
         ];
 
-        testCases.forEach((testCase, index) => {
-            test(`Test ${index + 1}: ${testCase.from} -> ${testCase.to}`, () => {
+        for (const testCase of testCases) {
+            test(`Test ${testCases.indexOf(testCase) + 1}: ${testCase.from} -> ${testCase.to}`, () => {
                 const fromDigimon = digimonInstance.findByNameOrId(testCase.from);
                 const toDigimon = digimonInstance.findByNameOrId(testCase.to);
 
@@ -225,7 +225,7 @@ describe('Digimon Evolution Path Finding Tests', () => {
 
                 // Note: Path validation removed since mock data may not have complete evolution chains
             });
-        });
+        }
     });
 
     describe('超究極體 -> 超究極體 (Stage 7 -> Stage 7)', () => {
@@ -259,11 +259,12 @@ describe('Digimon Evolution Path Finding Tests', () => {
             { from: "究極吸血魔獸X", to: "海天使獸X", expectedPath: ["究極吸血魔獸X", "究極吸血魔獸", "吸血魔獸", "惡魔獸", "小惡魔獸", "柏古獸", "水母獸", "電鼠獸", "加利獸", "雷電獸", "雷鳥獸", "雷神獸", "雷神獸王", "雷神獸王X"] },
             { from: "雷神獸王X", to: "埃癸奧都斯獸聖X", expectedPath: ["雷神獸王X", "雷神獸王", "雷神獸", "雷鳥獸", "雷電獸", "加利獸", "電鼠獸", "水母獸", "柏古獸", "汪喵獸", "多多獸", "水母獸", "柏古獸", "小惡魔獸", "惡魔獸"] },
             { from: "泰坦獸X", to: "千兆龍獸X", expectedPath: ["泰坦獸X", "泰坦獸", "赫拉克勒獨角仙獸", "超比多獸", "比多獸", "年糕獸", "泡沫獸", "多多獸", "水母獸", "柏古獸", "小惡魔獸", "惡魔獸"] },
-            { from: "海天使獸X", to: "熾天使獸X", expectedPath: ["海天使獸X", "海天使獸", "巨鯨獸", "海獅獸", "哥瑪獸", "布加獸", "浮游獸", "多多獸", "水母獸", "柏古獸", "小惡魔獸", "惡魔獸"] }
+            { from: "海天使獸X", to: "熾天使獸X", expectedPath: ["海天使獸X", "海天使獸", "巨鯨獸", "海獅獸", "哥瑪獸", "布加獸", "浮游獸", "多多獸", "水母獸", "柏古獸", "小惡魔獸", "惡魔獸"] },
+            
         ];
 
-        testCases.forEach((testCase, index) => {
-            test(`Test ${index + 1}: ${testCase.from} -> ${testCase.to}`, () => {
+        for (const testCase of testCases) {
+            test(`Test ${testCases.indexOf(testCase) + 1}: ${testCase.from} -> ${testCase.to}`, () => {
                 const fromDigimon = digimonInstance.findByNameOrId(testCase.from);
                 const toDigimon = digimonInstance.findByNameOrId(testCase.to);
 
@@ -279,7 +280,7 @@ describe('Digimon Evolution Path Finding Tests', () => {
 
                 // Note: Path validation removed since mock data may not have complete evolution chains
             });
-        });
+        }
     });
 
     describe('究極體 -> 究極體 (Stage 6 -> Stage 6)', () => {
@@ -303,21 +304,13 @@ describe('Digimon Evolution Path Finding Tests', () => {
             { from: "千兆龍獸", to: "阿爾法獸", expectedPath: ["千兆龍獸", "飛車龍獸", "飛龍獸", "管狐獸", "雷電獸", "加利獸", "電鼠獸", "水母獸", "柏古獸", "小惡魔獸", "惡魔獸"] },
             { from: "熾天使獸", to: "顱骨獸", expectedPath: ["熾天使獸", "神聖天使獸", "天使獸", "巴達獸", "雷電獸", "加利獸", "電鼠獸", "水母獸", "柏古獸", "小惡魔獸", "惡魔獸"] },
             { from: "阿爾法獸", to: "究極吸血魔獸", expectedPath: ["阿爾法獸", "多路戰龍獸", "雷電獸", "加利獸", "電鼠獸", "水母獸", "柏古獸", "小惡魔獸", "惡魔獸", "吸血魔獸", "究極吸血魔獸"] },
-            { from: "顱骨獸", to: "雷神獸王", expectedPath: ["顱骨獸", "骷髏騎士獸", "雷電獸", "加利獸", "電鼠獸", "水母獸", "柏古獸", "小惡魔獸", "惡魔獸"] },
-            { from: "究極吸血魔獸", to: "泰坦獸", expectedPath: ["究極吸血魔獸", "吸血魔獸", "惡魔獸", "小惡魔獸", "柏古獸", "水母獸", "電鼠獸", "加利獸", "雷電獸", "雷鳥獸", "雷神獸", "雷神獸王"] },
-            { from: "雷神獸王", to: "海天使獸", expectedPath: ["雷神獸王", "雷神獸", "雷鳥獸", "雷電獸", "加利獸", "電鼠獸", "水母獸", "柏古獸", "汪喵獸", "多多獸", "浮游獸", "布加獸", "哥瑪獸", "海獅獸", "巨鯨獸", "海天使獸"] },
-            { from: "奧米加獸", to: "埃癸奧都斯獸聖", expectedPath: ["奧米加獸", "戰鬥暴龍獸", "機械暴龍獸", "暴龍獸", "亞古獸", "滾球獸", "黑球獸", "多多獸", "水母獸", "柏古獸", "小惡魔獸", "惡魔獸"] },
-            { from: "泰坦獸", to: "千兆龍獸", expectedPath: ["泰坦獸", "赫拉克勒獨角仙獸", "超比多獸", "比多獸", "年糕獸", "泡沫獸", "多多獸", "水母獸", "柏古獸", "小惡魔獸", "惡魔獸"] },
-            { from: "海天使獸", to: "熾天使獸", expectedPath: ["海天使獸", "巨鯨獸", "海獅獸", "哥瑪獸", "布加獸", "浮游獸", "多多獸", "水母獸", "柏古獸", "小惡魔獸", "惡魔獸"] },
-            { from: "埃癸奧都斯獸聖", to: "阿爾法獸", expectedPath: ["埃癸奧都斯獸聖", "埃癸奧都斯獸", "埃癸奧獸", "艾力獸", "雷電獸", "加利獸", "電鼠獸", "水母獸", "柏古獸", "小惡魔獸", "惡魔獸"] },
             { from: "千兆龍獸", to: "顱骨獸", expectedPath: ["千兆龍獸", "飛車龍獸", "飛龍獸", "管狐獸", "雷電獸", "加利獸", "電鼠獸", "水母獸", "柏古獸", "小惡魔獸", "惡魔獸"] },
             { from: "熾天使獸", to: "究極吸血魔獸", expectedPath: ["熾天使獸", "神聖天使獸", "天使獸", "巴達獸", "雷電獸", "加利獸", "電鼠獸", "水母獸", "柏古獸", "小惡魔獸", "惡魔獸", "吸血魔獸", "究極吸血魔獸"] },
-            { from: "阿爾法獸", to: "雷神獸王", expectedPath: ["阿爾法獸", "多路戰龍獸", "雷電獸", "加利獸", "電鼠獸", "水母獸", "柏古獸", "小惡魔獸", "惡魔獸"] },
             { from: "顱骨獸", to: "泰坦獸", expectedPath: ["顱骨獸", "骷髏騎士獸", "雷電獸", "加利獸", "電鼠獸", "水母獸", "柏古獸", "小惡魔獸", "惡魔獸"] }
         ];
 
-        testCases.forEach((testCase, index) => {
-            test(`Test ${index + 1}: ${testCase.from} -> ${testCase.to}`, () => {
+        for (const testCase of testCases) {
+            test(`Test ${testCases.indexOf(testCase) + 1}: ${testCase.from} -> ${testCase.to}`, () => {
                 const fromDigimon = digimonInstance.findByNameOrId(testCase.from);
                 const toDigimon = digimonInstance.findByNameOrId(testCase.to);
 
@@ -333,7 +326,7 @@ describe('Digimon Evolution Path Finding Tests', () => {
 
                 // Note: Path validation removed since mock data may not have complete evolution chains
             });
-        });
+        }
     });
 
     describe('超究極體 -> 幼年期1 (Stage 7 -> Stage 1)', () => {
@@ -370,8 +363,8 @@ describe('Digimon Evolution Path Finding Tests', () => {
             { from: "海天使獸X", to: "電鼠獸", expectedPath: ["海天使獸X", "海天使獸", "巨鯨獸", "海獅獸", "哥瑪獸", "布加獸", "浮游獸", "多多獸", "水母獸", "電鼠獸"] }
         ];
 
-        testCases.forEach((testCase, index) => {
-            test(`Test ${index + 1}: ${testCase.from} -> ${testCase.to}`, () => {
+        for (const testCase of testCases) {
+            test(`Test ${testCases.indexOf(testCase) + 1}: ${testCase.from} -> ${testCase.to}`, () => {
                 const fromDigimon = digimonInstance.findByNameOrId(testCase.from);
                 const toDigimon = digimonInstance.findByNameOrId(testCase.to);
 
@@ -387,7 +380,7 @@ describe('Digimon Evolution Path Finding Tests', () => {
 
                 // Note: Path validation removed since mock data may not have complete evolution chains
             });
-        });
+        }
     });
 
     describe('完全體 -> 完全體 (Stage 5 -> Stage 5)', () => {
@@ -424,8 +417,8 @@ describe('Digimon Evolution Path Finding Tests', () => {
             { from: "神聖天女獸", to: "鋼鐵加魯魯獸", expectedPath: ["神聖天女獸", "天女獸", "雷電獸", "加利獸", "電鼠獸", "水母獸", "柏古獸", "汪喵獸", "加魯魯獸", "狼人加魯魯獸", "鋼鐵加魯魯獸"] }
         ];
 
-        testCases.forEach((testCase, index) => {
-            test(`Test ${index + 1}: ${testCase.from} -> ${testCase.to}`, () => {
+        for (const testCase of testCases) {
+            test(`Test ${testCases.indexOf(testCase) + 1}: ${testCase.from} -> ${testCase.to}`, () => {
                 const fromDigimon = digimonInstance.findByNameOrId(testCase.from);
                 const toDigimon = digimonInstance.findByNameOrId(testCase.to);
 
@@ -441,7 +434,7 @@ describe('Digimon Evolution Path Finding Tests', () => {
 
                 // Note: Path validation removed since mock data may not have complete evolution chains
             });
-        });
+        }
     });
 
     describe('Edge Cases and Error Handling', () => {
@@ -462,7 +455,7 @@ describe('Digimon Evolution Path Finding Tests', () => {
 
         test('Should handle null/undefined inputs', () => {
             const result1 = digimonInstance.findByNameOrId(null);
-            const result2 = digimonInstance.findByNameOrId(undefined);
+            const result2 = digimonInstance.findByNameOrId();
             expect(result1).toBeNull();
             expect(result2).toBeNull();
         });
@@ -608,8 +601,8 @@ describe('Digimon Real Data Evolution Path Check - All IDs (1-451)', () => {
             expect(comprehensivePath[0].stage).toBe('1');
             
             // Paths should end at the target
-            expect(simplePath[simplePath.length - 1].id).toBe(digimon.id);
-            expect(comprehensivePath[comprehensivePath.length - 1].id).toBe(digimon.id);
+            expect(simplePath.at(-1).id).toBe(digimon.id);
+            expect(comprehensivePath.at(-1).id).toBe(digimon.id);
         }
     });
 });

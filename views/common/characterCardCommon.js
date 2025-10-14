@@ -25,12 +25,11 @@ function simpleDecrypt(encodedText) {
 }
 
 // Debug logging with sensitive data filtering
-function debugLog(message, type = 'info') {
+function debugLog(message) {
     // Filter out sensitive information
-    let filteredMessage = message;
     if (typeof message === 'string') {
         // Replace potential passwords, tokens, and other sensitive data
-        filteredMessage = message
+        message
             .replaceAll(/password['":\s]*['"]\w+['"]/gi, 'password: "[REDACTED]"')
             .replaceAll(/token['":\s]*['"]\w+['"]/gi, 'token: "[REDACTED]"')
             .replaceAll(/userPassword['":\s]*['"]\w+['"]/gi, 'userPassword: "[REDACTED]"')

@@ -28,11 +28,11 @@ const fs = require('fs').promises;
 const stream = require('stream');
 const { promisify } = require('util');
 const pipeline = promisify(stream.pipeline);
-const { getPool } = require('../modules/pool');
-const htmlPool = getPool('html');
 const { createWriteStream } = require('fs');
 const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 const moment = require('moment-timezone');
+const { getPool } = require('../modules/pool');
+const htmlPool = getPool('html');
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const checkTools = require('../modules/check.js');
@@ -106,7 +106,7 @@ const rollDiceCommand = async function ({
         text: ''
     };
     const limitMatch = inputStr.match(/--limit\s+(\d+)/);
-    const messageLimit = limitMatch ? parseInt(limitMatch[1], 10) : null;
+    const messageLimit = limitMatch ? Number.parseInt(limitMatch[1], 10) : null;
     let C, M;
     let data = "";
     let totalSize = 0;
@@ -487,6 +487,7 @@ const rollDiceCommand = async function ({
             const contentStream = new stream.Readable();
             contentStream._read = () => {};
             contentStream.push(newValue);
+            // eslint-disable-next-line unicorn/prefer-single-call
             contentStream.push(null);
 
             await htmlPool.run(() => pipeline(

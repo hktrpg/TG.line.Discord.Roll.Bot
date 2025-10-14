@@ -88,9 +88,8 @@ function loadPdfParseSafely() {
     if (pdfParse) return pdfParse;
     try {
         // Defer require so environments without DOMMatrix don't crash on startup
-        // eslint-disable-next-line n/no-extraneous-require
         pdfParse = require('pdf-parse');
-    } catch (error) {
+    } catch {
         pdfParse = null;
     }
     return pdfParse;
@@ -99,10 +98,9 @@ let pdfToPngLib = null;
 function loadPdfToPngSafely() {
     if (pdfToPngLib) return pdfToPngLib;
     try {
-        // eslint-disable-next-line n/no-extraneous-require
         const mod = require('pdf-to-png-converter');
         pdfToPngLib = mod?.pdfToPng || mod; // support both default and named export styles
-    } catch (error) {
+    } catch {
         pdfToPngLib = null;
     }
     return pdfToPngLib;
@@ -359,7 +357,7 @@ class RetryManager {
     }
 
     // Log retry attempt
-    logRetry(error, errorType, delay, modelTier) {
+    logRetry() {
         //console.log(`[RETRY] ${errorType} Error: ${error.status || error.code} - ${error.message}`);
         //console.log(`[RETRY] Global: ${this.globalRetryCount}, Model: ${this.modelRetryCount}, Delay: ${delay}s`);
     }
@@ -746,7 +744,7 @@ class OpenAI {
                 ? headerRetryAfter
                 : RETRY_CONFIG.GENERAL.modelCycleDelay;
             delay = this.retryManager.jitterDelay(delay);
-            this.retryManager.logRetry(error, `${errorType}_MODEL_CYCLE`, delay, modelTier);
+            this.retryManager.logRetry();
             if (!waitedSeconds) {
                 await this.retryManager.waitSeconds(delay);
             }
@@ -766,7 +764,7 @@ class OpenAI {
         }
         delay = this.retryManager.jitterDelay(delay);
         
-        this.retryManager.logRetry(error, errorType, delay, modelTier);
+        this.retryManager.logRetry();
         
         // Apply additional delay for keyset cycling
         if (this.retryManager.globalRetryCount % this.apiKeys.length === 0) {
@@ -999,7 +997,7 @@ class TranslateAi extends OpenAI {
             const convertPromise = pdfToPng(buffer, {
                 disableFontFace: false, // Enable font rendering for better quality
                 useSystemFonts: false, // Don't use system fonts to avoid inconsistencies
-                viewportScale: 2.0, // 2x scale for better OCR quality
+                viewportScale: 2, // 2x scale for better OCR quality
                 verbosityLevel: 0 // Suppress logs
             });
             
@@ -1111,6 +1109,7 @@ class TranslateAi extends OpenAI {
     }
     
     // Process DOCX files and extract text with timeout
+    // eslint-disable-next-line no-unused-vars
     async processDocxFile(buffer, filename = 'document.docx') {
         try {
             //console.log(`[DOCX_PROCESS] Starting DOCX processing for ${filename}`);
@@ -1605,7 +1604,7 @@ class TranslateAi extends OpenAI {
             // Debug logging for translation results
             if (!result || result.trim().length === 0) {
                 console.warn(`[TRANSLATE_TEXT] Empty result for chunk ${index + 1}/${totalChunks}`);
-                console.warn(`[TRANSLATE_TEXT] Input chunk:`, inputScript[index].substring(0, 100) + '...');
+                console.warn(`[TRANSLATE_TEXT] Input chunk:`, inputScript[index].slice(0, 100) + '...');
                 result = `[翻譯失敗：段落 ${index + 1} 無法翻譯]`;
             }
             

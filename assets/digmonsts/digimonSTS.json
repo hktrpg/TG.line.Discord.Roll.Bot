@@ -32,7 +32,8 @@
       "Wind": "風",
       "Light": "光",
       "Dark": "闇",
-      "Null": "無"
+      "Null": "無",
+      "-": "-"
     },
     "elemental_name_number": {
       "Fire": 1,
@@ -46,7 +47,7 @@
       "Light": 9,
       "Dark": 10,
       "Null": 0,
-      "-": "-1"
+      "-": -1
     },
     "dmgTypes": {
       "Support": 0,

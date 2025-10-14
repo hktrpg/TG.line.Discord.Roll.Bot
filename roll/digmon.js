@@ -464,7 +464,8 @@ class Digimon {
     // Get elemental multiplier on target for a given skill element
     getElementMultiplierOnTarget(targetDigimon, skillElement) {
         if (!targetDigimon || !targetDigimon.elemental_resistances) return 1;
-        if (!skillElement || skillElement === '-') skillElement = 'Null';
+        // '-' means no element (neutral), distinct from 'Null' which is a real element
+        if (!skillElement || skillElement === '-') return 1;
         return targetDigimon.elemental_resistances[skillElement] ?? 1;
     }
 
@@ -598,7 +599,8 @@ class Digimon {
         let bestPower = 0;
         for (const skill of counterDigimon.special_skills) {
             if (!this.isSkillTargetsEnemy(skill)) continue;
-            const element = (skill && skill.element) ? skill.element : 'Null';
+            // Use '-' (neutral) when element is missing; 'Null' stays as a distinct element when present
+            const element = (skill && typeof skill.element === 'string') ? skill.element : '-';
             const elemMult = this.getElementMultiplierOnTarget(targetDigimon, element);
             const total = attrMult * elemMult;
             const hits = (skill && typeof skill.maxHits === 'number') ? skill.maxHits : 1;

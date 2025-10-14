@@ -1682,8 +1682,9 @@
             DEFAULT_ROOM: "公共房間",
             MAX_MESSAGES: 100,
             DEFAULT_NAME_PREFIX: "調查員",
-            SOCKET_RECONNECT_ATTEMPTS: 5,
+            SOCKET_RECONNECT_ATTEMPTS: Infinity,
             SOCKET_RECONNECT_DELAY: 1000,
+            SOCKET_RECONNECT_DELAY_MAX: 10000,
             MESSAGE_CHUNK_SIZE: 2000
         };
 
@@ -1716,7 +1717,12 @@
                 state.socket = io({
                     reconnection: true,
                     reconnectionAttempts: CONFIG.SOCKET_RECONNECT_ATTEMPTS,
-                    reconnectionDelay: CONFIG.SOCKET_RECONNECT_DELAY
+                    reconnectionDelay: CONFIG.SOCKET_RECONNECT_DELAY,
+                    reconnectionDelayMax: CONFIG.SOCKET_RECONNECT_DELAY_MAX,
+                    randomizationFactor: 0.5,
+                    transports: ['websocket', 'polling'],
+                    upgrade: true,
+                    timeout: 20000
                 });
 
                 socketManager.setupEventListeners();
@@ -1727,6 +1733,12 @@
                     state.isConnected = true;
                     state.reconnectAttempts = 0;
                     console.log('Connected to server');
+                    // Ensure current room history is requested after (re)connect
+                    if (chatroomManager && chatroomManager.currentRoom) {
+                        state.isHistoryLoading = true;
+                        state.pendingLive = [];
+                        state.socket.emit('newRoom', chatroomManager.currentRoom);
+                    }
                 });
 
                 state.socket.on('disconnect', () => {
@@ -1736,6 +1748,21 @@
 
                 state.socket.on('connect_error', (error) => {
                     console.error('Connection error:', error);
+                });
+
+                // Auto-retry feedback and rejoin on successful reconnect
+                state.socket.on('reconnect_attempt', (attempt) => {
+                    state.reconnectAttempts = attempt;
+                });
+
+                state.socket.on('reconnect', () => {
+                    state.isConnected = true;
+                    console.log('Reconnected to server');
+                    if (chatroomManager && chatroomManager.currentRoom) {
+                        state.isHistoryLoading = true;
+                        state.pendingLive = [];
+                        state.socket.emit('newRoom', chatroomManager.currentRoom);
+                    }
                 });
 
                 state.socket.on('online', (amount) => {

@@ -855,7 +855,7 @@ class Digimon {
     // Map 0-based index to regional indicator letter emoji (A=🇦, B=🇧, ...)
     letterIndexToEmoji(index) {
         if (typeof index !== 'number' || index < 0) return '';
-        const A_CODEPOINT = 0x1F1E6; // Regional Indicator Symbol Letter A
+        const A_CODEPOINT = 0x1_F1_E6; // Regional Indicator Symbol Letter A
         const idx = Math.floor(index) % 26;
         const codePoint = A_CODEPOINT + idx;
         try {

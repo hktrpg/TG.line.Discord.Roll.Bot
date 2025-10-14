@@ -1695,8 +1695,7 @@
             reconnectAttempts: 0,
             isConnected: false,
             isHistoryLoading: true,
-            pendingLive: [],
-            scrollTimeout: null
+            pendingLive: []
         };
 
         // Utility Functions
@@ -1827,6 +1826,16 @@
             addMessageToBox: async (message) => {
                 if (!message || !message.msg) return;
 
+                const container = document.getElementById("container-content");
+
+                // Check if user is scrolled toward the bottom before adding the new message.
+                // This determines if we should auto-scroll after the new message is added.
+                const scrollThreshold = 100; // A buffer in pixels.
+                const isScrolledToBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + scrollThreshold;
+
+                const myName = document.getElementById("name").value;
+                const isMyMessage = message.name === myName;
+
                 state.color++;
                 const msgBox = document.createElement("div");
                 msgBox.className = "card";
@@ -1860,21 +1869,9 @@
                     content.removeChild(content.firstChild);
                 }
 
-                // Conditional scrolling logic.
-                const myName = document.getElementById("name").value;
-                const isMyMessage = message.name === myName;
-                // Assumption: The bot is named 'HKTRPG' and its responses to a user mention the user's name.
-                const isBotResponseToMe = message.name === 'HKTRPG' && message.msg.includes(myName);
-
-                // Always scroll when loading history, or for user's own messages and related bot responses.
-                if (state.isHistoryLoading || isMyMessage || isBotResponseToMe) {
-                    if (state.scrollTimeout) {
-                        clearTimeout(state.scrollTimeout);
-                    }
-                    state.scrollTimeout = setTimeout(() => {
-                        utils.scrollToBottom();
-                        state.scrollTimeout = null;
-                    }, 50);
+                // Auto-scroll if it's the user's own message, or if they were already at the bottom.
+                if (isMyMessage || isScrolledToBottom) {
+                    setTimeout(utils.scrollToBottom, 0);
                 }
             }
         };

@@ -1233,18 +1233,14 @@ class Digimon {
 
         for (let i = 0; i < paths.length; i++) {
             const path = paths[i];
-            result += `路線 ${i + 1} (${path.length} 步)：\n`;
 
             for (let j = 0; j < path.length; j++) {
                 const digimon = path[j];
                 const stageName = this.getStageName(digimon.stage);
-                result += `${j + 1}. ${digimon.name} (${stageName})`;
+                const personality = this.getDisplayPersonality(digimon);
+                const num = this.numberToEmoji(j + 1);
+                result += `${num}${this.padEnd(digimon.name, 8)}｜${stageName}｜基礎個性：${personality}\n`;
 
-                if (digimon.mix_evolution) {
-                    result += ' [合體進化]';
-                }
-
-                result += '\n';
                 if (digimon.mix_evolution) {
                     const comps = this.getFusionComponents(digimon);
                     if (comps.length === 2) {

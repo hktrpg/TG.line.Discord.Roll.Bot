@@ -9,6 +9,12 @@
     <title>HKTRPG 擲骰機器人及聊天室 1D100 2D6 查詢指令輸入Bothelp</title>
     <meta name="description" content="HKTRPG - 線上擲骰聊天室，支援多種TRPG系統">
     <meta name="theme-color" content="#343a40">
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <script src="/socket.io/socket.io.js"></script>
@@ -1912,7 +1918,6 @@
         const themeManager = {
             init: () => {
                 const savedTheme = localStorage.getItem('theme') || 'light';
-                document.documentElement.setAttribute('data-theme', savedTheme);
                 themeManager.updateThemeButton(savedTheme);
             },
 

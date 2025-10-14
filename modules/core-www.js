@@ -100,6 +100,29 @@ function createWebServer(options = {}, www) {
 
     const protocol = options.key ? 'https' : 'http';
     console.log(`${protocol} server`);
+    // Ensure malformed requests/sockets are closed and not left hanging
+    // to avoid double-emitted socket errors from Node's http(s) server.
+    server.on('clientError', (err, socket) => {
+        try {
+            if (socket && socket.writable) {
+                // Respond with a simple 400 so clients don't retry the same bad request
+                socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+            }
+        } catch {
+            // Intentionally ignore write errors
+        } finally {
+            try {
+                if (socket && !socket.destroyed) socket.destroy(err);
+            } catch { /* ignore */ }
+        }
+    });
+
+    // For HTTPS servers, also proactively destroy on TLS handshake errors
+    server.on('tlsClientError', (err, socket) => {
+        try {
+            if (socket && !socket.destroyed) socket.destroy(err);
+        } catch { /* ignore */ }
+    });
     server.listen(port, () => {
         console.log("Web Server Started. Link: " + protocol + "://127.0.0.1:" + port);
     });
@@ -313,17 +336,17 @@ www.get('/log/:id', async (req, res) => {
         res.status(429).end();
         return;
     }
-    
+
     if (req.originalUrl.endsWith('html')) {
         // Sanitize and validate the file path
         const logPath = path.resolve(LOGLINK, req.params.id);
-        
+
         // Ensure the resolved path is within the allowed directory and file exists
         if (!logPath.startsWith(path.resolve(LOGLINK)) || !fs.existsSync(logPath)) {
             res.sendFile(process.cwd() + '/views/includes/error.html');
             return;
         }
-        
+
         // Send the validated file path
         res.sendFile(logPath);
     } else {
@@ -343,243 +366,260 @@ www.get('/:xx', async (req, res) => {
 // Socket.IO 連接處理 (只有在 server 存在時)
 if (io) {
     io.on('connection', async (socket) => {
-    socket.on('getListInfo', async message => {
-        if (await limitRaterCard(socket.handshake.address)) return;
-        //回傳 message 給發送訊息的 Client
-        let filter = {
-            userName: message.userName,
-            password: SHA(message.userPassword)
-        }
-        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #144 mongoDB error:', error.name, error.reason));
-        let temp;
-        if (doc && doc.id) {
-            temp = await schema.characterCard.find({
-                id: doc.id
-            }).catch(error => console.error('www #149 mongoDB error:', error.name, error.reason));
-        }
-        let id = [];
-        if (doc && doc.channel) {
-            id = doc.channel;
-        }
-        socket.emit('getListInfo', {
-            temp,
-            id
+        socket.on('getListInfo', async message => {
+            if (await limitRaterCard(socket.handshake.address)) return;
+            //回傳 message 給發送訊息的 Client
+            let filter = {
+                userName: message.userName,
+                password: SHA(message.userPassword)
+            }
+            let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #144 mongoDB error:', error.name, error.reason));
+            let temp;
+            if (doc && doc.id) {
+                temp = await schema.characterCard.find({
+                    id: doc.id
+                }).catch(error => console.error('www #149 mongoDB error:', error.name, error.reason));
+            }
+            let id = [];
+            if (doc && doc.channel) {
+                id = doc.channel;
+            }
+            socket.emit('getListInfo', {
+                temp,
+                id
+            })
         })
-    })
 
-    socket.on('getPublicListInfo', async () => {
-        if (await limitRaterCard(socket.handshake.address)) return;
-        //回傳 message 給發送訊息的 Client
-        let filter = {
-            public: true
-        }
-        let temp = await schema.characterCard.find(filter);
-        try {
-            socket.emit('getPublicListInfo', {
-                temp
-            })
-        } catch (error) {
-            console.error('www #170 mongoDB error:', error.name, error.reason)
-        }
+        socket.on('getPublicListInfo', async () => {
+            if (await limitRaterCard(socket.handshake.address)) return;
+            //回傳 message 給發送訊息的 Client
+            let filter = {
+                public: true
+            }
+            let temp = await schema.characterCard.find(filter);
+            try {
+                socket.emit('getPublicListInfo', {
+                    temp
+                })
+            } catch (error) {
+                console.error('www #170 mongoDB error:', error.name, error.reason)
+            }
 
-    })
+        })
 
-    socket.on('publicRolling', async message => {
-        if (await limitRaterChatRoom(socket.handshake.address)) return;
-        if (!message.item || !message.doc) return;
-        let rplyVal = {}
-        let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`)
-        if (result && result.characterReRoll) {
-            rplyVal = await exports.analytics.parseInput({
-                inputStr: result.characterReRollItem,
-                botname: "WWW"
-            })
-        }
+        socket.on('publicRolling', async message => {
+            if (await limitRaterChatRoom(socket.handshake.address)) return;
+            if (!message.item || !message.doc) return;
+            let rplyVal = {}
+            let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`)
+            if (result && result.characterReRoll) {
+                rplyVal = await exports.analytics.parseInput({
+                    inputStr: result.characterReRollItem,
+                    botname: "WWW"
+                })
+            }
 
-        // 訊息來到後, 會自動跳到analytics.js進行骰組分析
-        // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-        if (rplyVal && rplyVal.text) {
-            socket.emit('publicRolling', result.characterReRollName + '：\n' + rplyVal.text)
-        }
-    })
-    socket.on('rolling', async message => {
-        if (await limitRaterChatRoom(socket.handshake.address)) return;
-        if (!message.item || !message.doc) return;
-        let rplyVal = {}
-        let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`)
-        if (result && result.characterReRoll) {
-            rplyVal = await exports.analytics.parseInput({
-                inputStr: result.characterReRollItem,
-                botname: "WWW"
-            })
-        }
+            // 訊息來到後, 會自動跳到analytics.js進行骰組分析
+            // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+            if (rplyVal && rplyVal.text) {
+                socket.emit('publicRolling', result.characterReRollName + '：\n' + rplyVal.text)
+            }
+        })
+        socket.on('rolling', async message => {
+            if (await limitRaterChatRoom(socket.handshake.address)) return;
+            if (!message.item || !message.doc) return;
+            let rplyVal = {}
+            let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`)
+            if (result && result.characterReRoll) {
+                rplyVal = await exports.analytics.parseInput({
+                    inputStr: result.characterReRollItem,
+                    botname: "WWW"
+                })
+            }
 
-        // 訊息來到後, 會自動跳到analytics.js進行骰組分析
-        // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-        if (rplyVal && rplyVal.text) {
-            socket.emit('rolling', result.characterReRollName + '：\n' + rplyVal.text + candle.checker())
-            
-            // If a selectedGroupId is provided, use it as the target for the roll
-            if (message.selectedGroupId && message.selectedGroupId !== "") {
-                try {
+            // 訊息來到後, 會自動跳到analytics.js進行骰組分析
+            // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+            if (rplyVal && rplyVal.text) {
+                socket.emit('rolling', result.characterReRollName + '：\n' + rplyVal.text + candle.checker())
+
+                // If a selectedGroupId is provided, use it as the target for the roll
+                if (message.selectedGroupId && message.selectedGroupId !== "") {
+                    try {
+                        let filter = {
+                            userName: message.userName,
+                            password: SHA(message.userPassword),
+                        };
+
+                        let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error:', error.name, error.message));
+                        if (result && result.channel) {
+                            // Find the channel with matching ID - needs to be compared as strings
+                            const targetChannel = result.channel.find(ch => ch._id && ch._id.toString() === message.selectedGroupId);
+                            if (targetChannel) {
+                                rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
+                                if (targetChannel.botname) {
+                                    if (!sendTo) return;
+                                    sendTo({
+                                        target: {
+                                            id: targetChannel.id,
+                                            botname: targetChannel.botname
+                                        },
+                                        text: rplyVal.text
+                                    });
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error handling selectedGroupId in rolling event:', error.message);
+                    }
+                }
+                // Legacy support for rollTarget
+                else if (message.rollTarget && message.rollTarget.id && message.rollTarget.botname && message.userName && message.userPassword && message.cardName) {
                     let filter = {
                         userName: message.userName,
                         password: SHA(message.userPassword),
-                    };
-                    
-                    let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error:', error.name, error.message));
-                    if (result && result.channel) {
-                        // Find the channel with matching ID - needs to be compared as strings
-                        const targetChannel = result.channel.find(ch => ch._id && ch._id.toString() === message.selectedGroupId);
-                        if (targetChannel) {
-                            rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
-                            if (targetChannel.botname) {
-                                if (!sendTo) return;
-                                sendTo({
-                                    target: {
-                                        id: targetChannel.id,
-                                        botname: targetChannel.botname
-                                    },
-                                    text: rplyVal.text
-                                });
-                            }
+                        "channel.id": message.rollTarget.id,
+                        "channel.botname": message.rollTarget.botname
+                    }
+                    let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error:', error.name, error.reason));
+                    if (!result) return;
+                    let filter2 = {
+                        "botname": message.rollTarget.botname,
+                        "id": message.rollTarget.id
+                    }
+                    let allowRollingResult = await schema.allowRolling.findOne(filter2).catch(error => console.error('www #220 mongoDB error:', error.name, error.reason));
+                    if (!allowRollingResult) return;
+                    rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
+                    if (message.rollTarget.botname) {
+                        if (!sendTo) return;
+                        sendTo({
+                            target: message.rollTarget,
+                            text: rplyVal.text
+                        })
+                    }
+                }
+            }
+        })
+
+        socket.on('removeChannel', async message => {
+            if (await limitRaterCard(socket.handshake.address)) return;
+            //回傳 message 給發送訊息的 Client
+            try {
+                await schema.accountPW.updateOne({
+                    "userName": message.userName,
+                    "password": SHA(message.userPassword)
+                }, {
+                    $pull: {
+                        channel: {
+                            "id": message.channelId,
+                            "botname": message.botname
                         }
                     }
-                } catch (error) {
-                    console.error('Error handling selectedGroupId in rolling event:', error.message);
-                }
+                });
+            } catch (error) {
+                console.error('core-www ERROR:', error);
             }
-            // Legacy support for rollTarget
-            else if (message.rollTarget && message.rollTarget.id && message.rollTarget.botname && message.userName && message.userPassword && message.cardName) {
-                let filter = {
-                    userName: message.userName,
-                    password: SHA(message.userPassword),
-                    "channel.id": message.rollTarget.id,
-                    "channel.botname": message.rollTarget.botname
-                }
-                let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error:', error.name, error.reason));
-                if (!result) return;
-                let filter2 = {
-                    "botname": message.rollTarget.botname,
-                    "id": message.rollTarget.id
-                }
-                let allowRollingResult = await schema.allowRolling.findOne(filter2).catch(error => console.error('www #220 mongoDB error:', error.name, error.reason));
-                if (!allowRollingResult) return;
-                rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
-                if (message.rollTarget.botname) {
-                    if (!sendTo) return;
-                    sendTo({
-                        target: message.rollTarget,
-                        text: rplyVal.text
-                    })
-                }
-            }
-        }
-    })
 
-    socket.on('removeChannel', async message => {
-        if (await limitRaterCard(socket.handshake.address)) return;
-        //回傳 message 給發送訊息的 Client
-        try {
-            await schema.accountPW.updateOne({
-                "userName": message.userName,
-                "password": SHA(message.userPassword)
-            }, {
-                $pull: {
-                    channel: {
-                        "id": message.channelId,
-                        "botname": message.botname
+        })
+
+        socket.on('updateCard', async message => {
+            if (await limitRaterCard(socket.handshake.address)) return;
+
+            // Decode password from Base64
+            const decodedPassword = Buffer.from(message.userPassword, 'base64').toString('utf8');
+
+            //回傳 message 給發送訊息的 Client
+            let filter = {
+                userName: message.userName,
+                password: SHA(decodedPassword) // Use decoded password
+            }
+            let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #246 mongoDB error:', error.name, error.reason));
+            let temp;
+            if (doc && doc.id) {
+                message.card.state = checkNullItem(message.card.state);
+                message.card.roll = checkNullItem(message.card.roll);
+                message.card.notes = checkNullItem(message.card.notes);
+                temp = await schema.characterCard.findOneAndUpdate({
+                    id: doc.id,
+                    _id: message.card._id
+                }, {
+                    $set: {
+                        public: message.card.public,
+                        state: message.card.state,
+                        roll: message.card.roll,
+                        notes: message.card.notes,
                     }
-                }
+                }).catch(error => console.error('www #262 mongoDB error:', error.name, error.reason));
+            }
+            if (temp) {
+                socket.emit('updateCard', true)
+            } else {
+                socket.emit('updateCard', false)
+            }
+        })
+
+
+
+        // 有連線發生時增加人數
+        onlineCount++;
+        // 發送人數給網頁
+        io.emit("online", onlineCount);
+        // 發送紀錄最大值
+        socket.emit("maxRecord", records.chatRoomGetMax());
+        setTimeout(() => {
+            records.chatRoomGet("公共房間", (msgs) => {
+                socket.emit("chatRecord", msgs);
             });
-        } catch (error) {
-            console.error('core-www ERROR:', error);
-        }
-
-    })
-
-    socket.on('updateCard', async message => {
-        if (await limitRaterCard(socket.handshake.address)) return;
-
-        // Decode password from Base64
-        const decodedPassword = Buffer.from(message.userPassword, 'base64').toString('utf8');
-
-        //回傳 message 給發送訊息的 Client
-        let filter = {
-            userName: message.userName,
-            password: SHA(decodedPassword) // Use decoded password
-        }
-        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #246 mongoDB error:', error.name, error.reason));
-        let temp;
-        if (doc && doc.id) {
-            message.card.state = checkNullItem(message.card.state);
-            message.card.roll = checkNullItem(message.card.roll);
-            message.card.notes = checkNullItem(message.card.notes);
-            temp = await schema.characterCard.findOneAndUpdate({
-                id: doc.id,
-                _id: message.card._id
-            }, {
-                $set: {
-                    public: message.card.public,
-                    state: message.card.state,
-                    roll: message.card.roll,
-                    notes: message.card.notes,
-                }
-            }).catch(error => console.error('www #262 mongoDB error:', error.name, error.reason));
-        }
-        if (temp) {
-            socket.emit('updateCard', true)
-        } else {
-            socket.emit('updateCard', false)
-        }
-    })
+        }, 200);
 
 
-
-    // 有連線發生時增加人數
-    onlineCount++;
-    // 發送人數給網頁
-    io.emit("online", onlineCount);
-    // 發送紀錄最大值
-    socket.emit("maxRecord", records.chatRoomGetMax());
-    // 發送紀錄
-    //socket.emit("chatRecord", records.get());
-    records.chatRoomGet("公共房間", (msgs) => {
-        socket.emit("chatRecord", msgs);
-    });
-
-
-    socket.on("greet", () => {
-        socket.emit("greet", onlineCount);
-    });
-
-    socket.on("send", async (msg) => {
-        if (await limitRaterChatRoom(socket.handshake.address)) return;
-        // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
-        // 因此我們直接 return ，終止函式執行。
-        if (Object.keys(msg).length < 2) return;
-        msg.msg = '\n' + msg.msg
-        records.chatRoomPush(msg);
-    });
-
-    socket.on("newRoom", async (msg) => {
-        if (await limitRaterChatRoom(socket.handshake.address)) return;
-        // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
-        // 因此我們直接 return ，終止函式執行。
-        if (!msg) return;
-        let roomNumber = msg || "公共房間";
-        records.chatRoomGet(roomNumber, (msgs) => {
-            socket.emit("chatRecord", msgs);
+        socket.on("greet", () => {
+            socket.emit("greet", onlineCount);
         });
 
-    });
+        socket.on("send", async (msg) => {
+            if (await limitRaterChatRoom(socket.handshake.address)) return;
+            // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
+            // 因此我們直接 return ，終止函式執行。
+            if (!msg || typeof msg !== 'object') return;
 
-    socket.on('disconnect', () => {
-        // 有人離線了，扣人
-        onlineCount = (onlineCount < 0) ? 0 : onlineCount -= 1;
-        io.emit("online", onlineCount);
+            const name = (msg.name ?? '').toString().trim();
+            const text = (msg.msg ?? '').toString().trim();
+            const room = (msg.roomNumber ?? '').toString().trim();
+            const time = new Date(); // Use server's time for accuracy.
+
+            // Caller-side validation: require non-empty fields
+            if (!name || !text || !room) return;
+
+            const payload = {
+                name: name.slice(0, 50),
+                msg: '\n' + text, // keep leading newline as before
+                time: time,
+                roomNumber: room.slice(0, 50)
+            };
+
+            records.chatRoomPush(payload);
+        });
+
+        socket.on("newRoom", async (msg) => {
+            if (await limitRaterChatRoom(socket.handshake.address)) return;
+            // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
+            // 因此我們直接 return ，終止函式執行。
+            if (!msg) return;
+            let roomNumber = msg || "公共房間";
+            setTimeout(() => {
+                records.chatRoomGet(roomNumber, (msgs) => {
+                    socket.emit("chatRecord", msgs);
+                });
+            }, 150);
+
+        });
+
+        socket.on('disconnect', () => {
+            // 有人離線了，扣人
+            onlineCount = (onlineCount < 0) ? 0 : onlineCount -= 1;
+            io.emit("online", onlineCount);
+        });
     });
-});
 }
 
 records.on("new_message", async (message) => {
@@ -627,21 +667,20 @@ function checkNullItem(target) {
     return target.filter(item => item.name);
 }
 async function loadb(io, records, rplyVal, message) {
-    const unixTimeZero = message.time ? (Date.parse(message.time) + 50) : Date.now();
-    for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-        io.emit(message.roomNumber, {
+    const baseTime = new Date(message.time).getTime(); // Ensure message.time is parsed as a Date object
+    const messages = rplyVal.text.toString().match(/[\s\S]{1,2000}/g) || [];
+
+    for (let i = 0; i < messages.length; i++) {
+        const messageTime = new Date(baseTime + 1 + i); // Increment time by 1ms for each part
+        const botMessage = {
             name: 'HKTRPG -> ' + (message.name || 'Sad'),
-            msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
-            time: new Date(unixTimeZero),
+            msg: messages[i],
+            time: messageTime,
             roomNumber: message.roomNumber
-        });
-        records.chatRoomPush({
-            name: 'HKTRPG -> ' + (message.name || 'Sad'),
-            msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
-            time: new Date(unixTimeZero),
-            roomNumber: message.roomNumber
-        });
-        //message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
+        };
+
+        io.emit(message.roomNumber, botMessage);
+        records.chatRoomPush(botMessage);
     }
 }
 async function limitRaterChatRoom(address) {

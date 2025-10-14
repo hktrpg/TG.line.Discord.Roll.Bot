@@ -12,12 +12,12 @@ const fs = require('fs');
 const path = require('path');
 const jimp = require('jimp');
 const sharp = require('sharp');
-const { getPool } = require('../modules/pool');
-const imagePool = getPool('image');
 const { SlashCommandBuilder } = require('discord.js');
 const axios = require('axios').default;
 const GeoPattern = require('geopattern');
 const { imgbox } = require("imgbox");
+const { getPool } = require('../modules/pool');
+const imagePool = getPool('image');
 
 const gameName = function () {
     return '【製作Token】.token .token2 .token3 .tokenupload'

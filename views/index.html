@@ -23,7 +23,7 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <div class="col-md-3 col-lg-3 d-md-block sidebar collapse">
                 <div class="sidebar-sticky pt-3">
                     <div class="sidebar-header mb-3">
                         <div class="input-group">
@@ -69,7 +69,7 @@
             </div>
 
             <!-- Main Chat Area -->
-            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 d-flex flex-column">
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-9 px-md-4 d-flex flex-column">
                 <div
                     class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 </div>
@@ -666,7 +666,8 @@
                 padding: 0.3rem;
                 margin: 0;
                 overflow-y: auto;
-                -webkit-overflow-scrolling: touch; /* 增加 iOS 滾動順暢度 */
+                -webkit-overflow-scrolling: touch;
+                /* 增加 iOS 滾動順暢度 */
             }
 
             #content {
@@ -694,11 +695,13 @@
             .main-content {
                 padding-bottom: var(--footer-height);
                 height: calc(100dvh - var(--header-height));
-                min-height: -webkit-fill-available; /* 支援 iOS Safari */
+                min-height: -webkit-fill-available;
+                /* 支援 iOS Safari */
             }
 
             /* 確保 body 和 html 高度正確 */
-            html, body {
+            html,
+            body {
                 height: 100%;
                 height: -webkit-fill-available;
                 overflow: hidden;
@@ -854,14 +857,15 @@
                 height: calc(100dvh - 60px);
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
-                padding-bottom: env(safe-area-inset-bottom, 0); /* 支援 iOS 安全區域 */
+                padding-bottom: env(safe-area-inset-bottom, 0);
+                /* 支援 iOS 安全區域 */
             }
 
             .sidebar.show {
                 left: 0;
             }
 
-            .sidebar.show + .main-content {
+            .sidebar.show+.main-content {
                 margin-left: 0;
             }
 
@@ -908,11 +912,13 @@
             .main-content {
                 padding-bottom: var(--footer-height);
                 height: calc(100dvh - var(--header-height));
-                min-height: -webkit-fill-available; /* 支援 iOS Safari */
+                min-height: -webkit-fill-available;
+                /* 支援 iOS Safari */
             }
 
             /* 確保 body 和 html 高度正確 */
-            html, body {
+            html,
+            body {
                 height: 100%;
                 height: -webkit-fill-available;
                 overflow: hidden;
@@ -927,7 +933,7 @@
             }
 
             /* 當側邊欄開啟時隱藏工具列 */
-            .sidebar.show ~ #header {
+            .sidebar.show~#header {
                 display: none;
             }
 
@@ -936,7 +942,8 @@
                 position: fixed;
                 left: 10px;
                 top: 10px;
-                z-index: 1006; /* 提高 z-index 確保在 header 之上 */
+                z-index: 1006;
+                /* 提高 z-index 確保在 header 之上 */
                 background: var(--badge-bg);
                 color: var(--badge-text);
                 border: none;
@@ -954,7 +961,7 @@
             }
 
             /* 當側邊欄開啟時調整切換按鈕位置 */
-            .sidebar.show ~ .mobile-sidebar-toggle {
+            .sidebar.show~.mobile-sidebar-toggle {
                 left: 250px;
             }
 
@@ -966,7 +973,8 @@
             /* 調整側邊欄內容的層級 */
             .sidebar-sticky {
                 padding: 0.2rem;
-                padding-bottom: calc(var(--footer-height) + env(safe-area-inset-bottom, 10px)); /* 支援 iOS 安全區域 */
+                padding-bottom: calc(var(--footer-height) + env(safe-area-inset-bottom, 10px));
+                /* 支援 iOS 安全區域 */
             }
 
             /* 確保側邊欄按鈕在工具列之上 */
@@ -1040,12 +1048,15 @@
                 background: var(--sidebar-bg);
                 overflow: hidden;
                 padding: 0.3rem;
-                padding-bottom: 0; /* 移除底部padding */
-                position: relative; /* 添加相對定位 */
+                padding-bottom: 0;
+                /* 移除底部padding */
+                position: relative;
+                /* 添加相對定位 */
             }
 
             .sidebar-actions {
-                position: absolute; /* 改為絕對定位 */
+                position: absolute;
+                /* 改為絕對定位 */
                 bottom: 0;
                 left: 0;
                 right: 0;
@@ -1065,7 +1076,8 @@
                 min-height: 0;
                 background: var(--sidebar-bg);
                 max-height: calc(100vh - 250px);
-                margin-bottom: 120px; /* 為底部按鈕預留空間 */
+                margin-bottom: 120px;
+                /* 為底部按鈕預留空間 */
             }
         }
 
@@ -1271,8 +1283,10 @@
             background: var(--sidebar-bg);
             overflow: hidden;
             padding: 0.3rem;
-            padding-bottom: 0; /* 移除底部padding */
-            position: relative; /* 添加相對定位 */
+            padding-bottom: 0;
+            /* 移除底部padding */
+            position: relative;
+            /* 添加相對定位 */
         }
 
         .sidebar-header {
@@ -1323,7 +1337,8 @@
             position: sticky;
             bottom: 0;
             z-index: 1007;
-            padding-bottom: env(safe-area-inset-bottom, 10px); /* 支援 iOS 安全區域 */
+            padding-bottom: env(safe-area-inset-bottom, 10px);
+            /* 支援 iOS 安全區域 */
         }
 
         .sidebar-actions .btn {
@@ -1338,9 +1353,8 @@
             border: 1px solid var(--card-border);
             color: var(--text-color);
             margin: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            white-space: normal;
+            height: 100%;
         }
 
         .sidebar-actions .btn:hover {
@@ -1501,7 +1515,7 @@
             }
 
             /* 當側邊欄開啟時，確保按鈕在側邊欄之上 */
-            .sidebar.show ~ .mobile-sidebar-toggle {
+            .sidebar.show~.mobile-sidebar-toggle {
                 z-index: 1007;
             }
         }
@@ -1667,8 +1681,8 @@
             DEFAULT_ROOM: "公共房間",
             MAX_MESSAGES: 100,
             DEFAULT_NAME_PREFIX: "調查員",
-            SOCKET_RECONNECT_ATTEMPTS: 5,
-            SOCKET_RECONNECT_DELAY: 1000,
+            SOCKET_RECONNECT_ATTEMPTS: 999,
+            SOCKET_RECONNECT_DELAY: 5000,
             MESSAGE_CHUNK_SIZE: 2000
         };
 
@@ -1679,7 +1693,9 @@
             max_record: CONFIG.MAX_MESSAGES,
             socket: null,
             reconnectAttempts: 0,
-            isConnected: false
+            isConnected: false,
+            isHistoryLoading: true,
+            pendingLive: []
         };
 
         // Utility Functions
@@ -1731,13 +1747,46 @@
 
                 state.socket.on('chatRecord', async (msgs) => {
                     if (!Array.isArray(msgs)) return;
-                    msgs.sort((a, b) => new Date(a.time) - new Date(b.time));
+                    // Mark history phase
+                    state.isHistoryLoading = true;
+                    // Render history in stable order
+                    msgs.sort((a, b) => {
+                        const ta = new Date(a.time).getTime();
+                        const tb = new Date(b.time).getTime();
+                        if (ta !== tb) return ta - tb;
+                        // tie-breaker using stringified _id if present
+                        const ida = (a._id || '').toString();
+                        const idb = (b._id || '').toString();
+                        return ida.localeCompare(idb);
+                    });
                     for (const msg of msgs) {
                         await uiManager.addMessageToBox(msg);
                     }
+                    // Flush buffered live messages after history is painted
+                    if (state.pendingLive.length) {
+                        state.pendingLive.sort((a, b) => {
+                            const ta = new Date(a.time).getTime();
+                            const tb = new Date(b.time).getTime();
+                            if (ta !== tb) return ta - tb;
+                            const ida = (a._id || '').toString();
+                            const idb = (b._id || '').toString();
+                            return ida.localeCompare(idb);
+                        });
+                        for (const msg of state.pendingLive) {
+                            await uiManager.addMessageToBox(msg);
+                        }
+                        state.pendingLive = [];
+                    }
+                    state.isHistoryLoading = false;
                 });
 
-                state.socket.on(state.currentRoom, uiManager.addMessageToBox);
+                state.socket.on(state.currentRoom, (message) => {
+                    if (state.isHistoryLoading) {
+                        state.pendingLive.push(message);
+                        return;
+                    }
+                    uiManager.addMessageToBox(message);
+                });
             }
         };
 
@@ -1777,6 +1826,16 @@
             addMessageToBox: async (message) => {
                 if (!message || !message.msg) return;
 
+                const container = document.getElementById("container-content");
+
+                // Check if user is scrolled toward the bottom before adding the new message.
+                // This determines if we should auto-scroll after the new message is added.
+                const scrollThreshold = 100; // A buffer in pixels.
+                const isScrolledToBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + scrollThreshold;
+
+                const myName = document.getElementById("name").value;
+                const isMyMessage = message.name === myName;
+
                 state.color++;
                 const msgBox = document.createElement("div");
                 msgBox.className = "card";
@@ -1810,7 +1869,42 @@
                     content.removeChild(content.firstChild);
                 }
 
-                setTimeout(utils.scrollToBottom, 50);
+                // Auto-scroll if it's the user's own message, or if they were already at the bottom.
+                if (isMyMessage || isScrolledToBottom) {
+                    const scrollAndWatch = () => {
+                        const container = document.getElementById("container-content");
+                        let lastHeight = container.scrollHeight;
+                        let stableChecks = 0;
+                        const requiredStableChecks = 3; // Require 3 stable checks (e.g. 3 * 50ms = 150ms of stability)
+                        let totalChecks = 0;
+                        const maxTotalChecks = 20; // Stop after 1 second regardless
+
+                        const checkAndScroll = () => {
+                            totalChecks++;
+                            const newHeight = container.scrollHeight;
+
+                            if (newHeight !== lastHeight) {
+                                // Height changed, so scroll and reset stability counter
+                                lastHeight = newHeight;
+                                utils.scrollToBottom();
+                                stableChecks = 0;
+                            } else {
+                                // Height is stable
+                                stableChecks++;
+                            }
+
+                            // If we are not yet stable and haven't exceeded max checks, schedule another check
+                            if (stableChecks < requiredStableChecks && totalChecks < maxTotalChecks) {
+                                setTimeout(checkAndScroll, 50);
+                            }
+                        };
+                        
+                        // Initial scroll and start checking
+                        utils.scrollToBottom();
+                        setTimeout(checkAndScroll, 50);
+                    };
+                    scrollAndWatch();
+                }
             }
         };
 
@@ -2070,9 +2164,18 @@
 
                 // 發送切換房間事件
                 if (state.socket) {
+                    // Prepare history loading state and buffer
+                    state.isHistoryLoading = true;
+                    state.pendingLive = [];
                     state.socket.emit("newRoom", roomName);
                     // 添加新房間的事件監聽器
-                    state.socket.on(roomName, uiManager.addMessageToBox);
+                    state.socket.on(roomName, (message) => {
+                        if (state.isHistoryLoading) {
+                            state.pendingLive.push(message);
+                            return;
+                        }
+                        uiManager.addMessageToBox(message);
+                    });
                 }
 
                 // 更新房間顯示

@@ -237,21 +237,28 @@ const chatRoomSchema = mongoose.model('chatRoom', new mongoose.Schema({
     name: {
         type: String,
         required: true,
-        maxlength: 50
+        maxlength: 50,
+        trim: true,
+        minlength: 1
     },
     msg: {
         type: String,
-        required: true
+        required: true,
+        trim: true,
+        minlength: 1
     },
     time: {
         type: Date,
         required: true,
-        index: true
+        index: true,
+        default: Date.now
     },
     roomNumber: {
         type: String,
         required: true,
         maxlength: 50,
+        trim: true,
+        minlength: 1,
         index: true
     }
 }));

@@ -1015,7 +1015,26 @@ class Digimon {
         }
 
         // Use bidirectional BFS for more efficient path finding
-        return this.bidirectionalBFS(fromDigimon, toDigimon, maxPaths, startTime, maxTime);
+        const paths = this.bidirectionalBFS(fromDigimon, toDigimon, maxPaths, startTime, maxTime);
+        
+        // Sort paths by priority: 1) shortest 2) most matching personality in evolutions 3) most matching overall
+        const targetPersonality = this.getDisplayPersonality(toDigimon);
+        paths.sort((a, b) => {
+            // Priority 1: Shortest path
+            if (a.length !== b.length) return a.length - b.length;
+            
+            // Priority 2: Most matching personality in evolution steps only
+            const aEvolutionScore = this.scoreEvolutionPersonality(a, fromDigimon, targetPersonality);
+            const bEvolutionScore = this.scoreEvolutionPersonality(b, fromDigimon, targetPersonality);
+            if (bEvolutionScore !== aEvolutionScore) return bEvolutionScore - aEvolutionScore;
+            
+            // Priority 3: Most matching personality overall
+            const aOverallScore = this.scoreOverallPersonality(a, targetPersonality);
+            const bOverallScore = this.scoreOverallPersonality(b, targetPersonality);
+            return bOverallScore - aOverallScore;
+        });
+        
+        return paths.slice(0, maxPaths);
     }
 
     bidirectionalBFS(fromDigimon, toDigimon, maxPaths, startTime, maxTime) {
@@ -1034,9 +1053,9 @@ class Digimon {
         backwardVisited.set(toDigimon.id, [toDigimon]);
 
         let searchCount = 0;
-        const maxSearches = 1000; // Reduced but more efficient
+        const maxSearches = 2000; // Increase to find more paths
 
-        while ((forwardQueue.length > 0 || backwardQueue.length > 0) && paths.length < maxPaths) {
+        while ((forwardQueue.length > 0 || backwardQueue.length > 0) && paths.length < maxPaths * 3) {
             // Timeout check
             if (Date.now() - startTime > maxTime) break;
             if (++searchCount > maxSearches) break;
@@ -1059,7 +1078,7 @@ class Digimon {
             }
         }
 
-        return paths.sort((a, b) => a.length - b.length).slice(0, maxPaths);
+        return paths;
     }
 
     expandBidirectionalSearch(queue, otherVisited, currentVisited, paths, foundPaths, direction) {
@@ -1157,6 +1176,50 @@ class Digimon {
         }
 
         return result;
+    }
+
+    // Check if a step is evolution (stage increases or stays same)
+    isEvolutionStep(fromDigimon, toDigimon) {
+        if (!fromDigimon || !toDigimon) return false;
+        const fromStage = Number.parseInt(fromDigimon.stage) || 0;
+        const toStage = Number.parseInt(toDigimon.stage) || 0;
+        return toStage >= fromStage;
+    }
+
+    // Score evolution steps only (ignore devolution steps)
+    scoreEvolutionPersonality(path, fromDigimon, targetPersonality) {
+        if (!path || path.length < 2) return 0;
+        let score = 0;
+        
+        for (let i = 1; i < path.length; i++) {
+            const prev = path[i - 1];
+            const curr = path[i];
+            
+            // Only count if this is an evolution step
+            if (this.isEvolutionStep(prev, curr)) {
+                const currPersonality = this.getDisplayPersonality(curr);
+                if (currPersonality === targetPersonality && targetPersonality !== '-') {
+                    score++;
+                }
+            }
+        }
+        
+        return score;
+    }
+
+    // Score overall personality matches (including devolution)
+    scoreOverallPersonality(path, targetPersonality) {
+        if (!path || path.length < 2 || targetPersonality === '-') return 0;
+        let score = 0;
+        
+        for (let i = 1; i < path.length; i++) {
+            const currPersonality = this.getDisplayPersonality(path[i]);
+            if (currPersonality === targetPersonality) {
+                score++;
+            }
+        }
+        
+        return score;
     }
 
     showEvolutionPaths(fromDigimon, toDigimon) {

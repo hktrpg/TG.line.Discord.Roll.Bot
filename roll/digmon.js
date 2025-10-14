@@ -722,13 +722,15 @@ class Digimon {
         const maxTime = 3500;
         const stage1Digimon = this.digimonData.filter(d => d.stage === '1');
         const candidates = [];
+        const targetPersonality = this.getDisplayPersonality(targetDigimon);
 
         for (const start of stage1Digimon) {
             if (Date.now() - startTime > maxTime) break;
             const path = this.findShortestPathFromStart(start, targetDigimon, 10, maxTime - (Date.now() - startTime));
             if (path.length > 0) {
-                const score = this.scorePathByPersonality(path);
-                candidates.push({ startId: start.id, path, score });
+                const evoScore = this.scoreEvolutionPersonality(path, path[0], targetPersonality);
+                const overallScore = this.scoreOverallPersonality(path, targetPersonality);
+                candidates.push({ startId: start.id, path, evoScore, overallScore });
             }
         }
 
@@ -737,10 +739,11 @@ class Digimon {
             return this.getEvolutionLineFromStage1(targetDigimon);
         }
 
-        // Sort by shortest path first, then by personality score (desc)
+        // Sort by shortest path first, then by evolution-step personality matches (desc), then overall (desc)
         candidates.sort((a, b) => {
             if (a.path.length !== b.path.length) return a.path.length - b.path.length;
-            return b.score - a.score;
+            if (b.evoScore !== a.evoScore) return b.evoScore - a.evoScore;
+            return b.overallScore - a.overallScore;
         });
 
         const first = candidates[0];

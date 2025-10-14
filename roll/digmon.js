@@ -287,8 +287,8 @@ class Digimon {
             '5': this.stagesName[4], // 完全體
             '6': this.stagesName[5], // 究極體
             '7': this.stagesName[6], // 超究極體
-            'a': '成熟期裝甲體',
-            'd': '混合體(成熟期)'
+            'a': '裝甲體',
+            'd': '混合體'
         };
 
         // Handle composite stages like "4a", "4d", etc.

@@ -70,7 +70,7 @@ const cspConfig = {
         "https://fonts.googleapis.com",
         "https://cdnjs.cloudflare.com"
     ],
-    imgSrc: ["'self'", "data:", "https:", "https://avatars2.githubusercontent.com", "https://www.hktrpg.com"],
+    imgSrc: ["'self'", "data:", "blob:", "https:", "https://avatars2.githubusercontent.com", "https://www.hktrpg.com"],
     fontSrc: [
         "'self'",
         "https://fonts.gstatic.com",

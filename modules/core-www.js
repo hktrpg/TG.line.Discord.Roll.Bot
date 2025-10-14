@@ -585,7 +585,7 @@ if (io) {
             const name = (msg.name ?? '').toString().trim();
             const text = (msg.msg ?? '').toString().trim();
             const room = (msg.roomNumber ?? '').toString().trim();
-            const time = msg.time ? new Date(msg.time) : new Date();
+            const time = new Date(); // Use server's time for accuracy.
 
             // Caller-side validation: require non-empty fields
             if (!name || !text || !room) return;
@@ -593,7 +593,7 @@ if (io) {
             const payload = {
                 name: name.slice(0, 50),
                 msg: '\n' + text, // keep leading newline as before
-                time: Number.isNaN(time.getTime()) ? new Date() : time,
+                time: time,
                 roomNumber: room.slice(0, 50)
             };
 
@@ -667,21 +667,20 @@ function checkNullItem(target) {
     return target.filter(item => item.name);
 }
 async function loadb(io, records, rplyVal, message) {
-    const unixTimeZero = message.time ? (Date.parse(message.time) + 50) : Date.now();
-    for (let i = 0; i < rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length; i++) {
-        io.emit(message.roomNumber, {
+    const baseTime = new Date(message.time).getTime(); // Ensure message.time is parsed as a Date object
+    const messages = rplyVal.text.toString().match(/[\s\S]{1,2000}/g) || [];
+
+    for (let i = 0; i < messages.length; i++) {
+        const messageTime = new Date(baseTime + 1 + i); // Increment time by 1ms for each part
+        const botMessage = {
             name: 'HKTRPG -> ' + (message.name || 'Sad'),
-            msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
-            time: new Date(unixTimeZero),
+            msg: messages[i],
+            time: messageTime,
             roomNumber: message.roomNumber
-        });
-        records.chatRoomPush({
-            name: 'HKTRPG -> ' + (message.name || 'Sad'),
-            msg: rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i],
-            time: new Date(unixTimeZero),
-            roomNumber: message.roomNumber
-        });
-        //message.reply.text(rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i])
+        };
+
+        io.emit(message.roomNumber, botMessage);
+        records.chatRoomPush(botMessage);
     }
 }
 async function limitRaterChatRoom(address) {

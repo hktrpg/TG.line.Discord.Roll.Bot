@@ -1682,9 +1682,8 @@
             DEFAULT_ROOM: "公共房間",
             MAX_MESSAGES: 100,
             DEFAULT_NAME_PREFIX: "調查員",
-            SOCKET_RECONNECT_ATTEMPTS: Infinity,
+            SOCKET_RECONNECT_ATTEMPTS: 5,
             SOCKET_RECONNECT_DELAY: 1000,
-            SOCKET_RECONNECT_DELAY_MAX: 10000,
             MESSAGE_CHUNK_SIZE: 2000
         };
 
@@ -1716,13 +1715,16 @@
             init: () => {
                 state.socket = io({
                     reconnection: true,
-                    reconnectionAttempts: CONFIG.SOCKET_RECONNECT_ATTEMPTS,
+                    // retry forever until the server is back
+                    reconnectionAttempts: Infinity,
+                    // start at 1s, back off up to 10s
                     reconnectionDelay: CONFIG.SOCKET_RECONNECT_DELAY,
-                    reconnectionDelayMax: CONFIG.SOCKET_RECONNECT_DELAY_MAX,
+                    reconnectionDelayMax: 10000,
                     randomizationFactor: 0.5,
-                    transports: ['websocket', 'polling'],
-                    upgrade: true,
-                    timeout: 20000
+                    // give each attempt a fair timeout
+                    timeout: 20000,
+                    // try websocket first, fall back to polling (compatible with EIO=3)
+                    transports: ['websocket', 'polling']
                 });
 
                 socketManager.setupEventListeners();
@@ -1733,11 +1735,20 @@
                     state.isConnected = true;
                     state.reconnectAttempts = 0;
                     console.log('Connected to server');
-                    // Ensure current room history is requested after (re)connect
-                    if (chatroomManager && chatroomManager.currentRoom) {
+                    // ensure we are receiving messages for the current room after (re)connect
+                    if (state.socket && chatroomManager.currentRoom) {
                         state.isHistoryLoading = true;
                         state.pendingLive = [];
                         state.socket.emit('newRoom', chatroomManager.currentRoom);
+                        // make sure the event listener for the room exists
+                        state.socket.off(chatroomManager.currentRoom);
+                        state.socket.on(chatroomManager.currentRoom, (message) => {
+                            if (state.isHistoryLoading) {
+                                state.pendingLive.push(message);
+                                return;
+                            }
+                            uiManager.addMessageToBox(message);
+                        });
                     }
                 });
 
@@ -1750,19 +1761,29 @@
                     console.error('Connection error:', error);
                 });
 
-                // Auto-retry feedback and rejoin on successful reconnect
+                // extra visibility and robustness around reconnection
                 state.socket.on('reconnect_attempt', (attempt) => {
                     state.reconnectAttempts = attempt;
+                    console.log('Reconnecting... attempt', attempt);
                 });
 
-                state.socket.on('reconnect', () => {
+                state.socket.on('reconnect', (attempt) => {
                     state.isConnected = true;
-                    console.log('Reconnected to server');
-                    if (chatroomManager && chatroomManager.currentRoom) {
+                    console.log('Reconnected after attempts:', attempt);
+                    // request current room history on successful reconnect
+                    if (state.socket && chatroomManager.currentRoom) {
                         state.isHistoryLoading = true;
                         state.pendingLive = [];
                         state.socket.emit('newRoom', chatroomManager.currentRoom);
                     }
+                });
+
+                state.socket.on('reconnect_error', (err) => {
+                    console.warn('Reconnect error:', err && err.message ? err.message : err);
+                });
+
+                state.socket.on('reconnect_failed', () => {
+                    console.error('Reconnect failed; will keep trying due to Infinity attempts.');
                 });
 
                 state.socket.on('online', (amount) => {

@@ -669,8 +669,9 @@ class Digimon {
                         const nd = nextDigimon[i];
                         const stageLabel = digimonInstance.getStageName(nd.stage);
                         const personality = digimonInstance.getDisplayPersonality(nd);
-                        const letter = digimonInstance.letterIndexToEmoji(i);
-                        rply += ` ${letter} ${digimonInstance.padEnd(nd.name, 8)}｜${stageLabel}｜基礎個性：${personality}\n`;
+                        const elem = digimonInstance.getPrimarySkillElement(nd);
+                        const emoji = digimonInstance.getElementEmoji(elem);
+                        rply += ` ${emoji} ${digimonInstance.padEnd(nd.name, 8)}｜${stageLabel}｜基礎個性：${personality}\n`;
                     }
                 }
             }
@@ -867,6 +868,41 @@ class Digimon {
         }
     }
 
+    // Choose a representative emoji for an element keyword
+    getElementEmoji(element) {
+        switch (element) {
+            case 'Fire': return '🔥';
+            case 'Water': return '💧';
+            case 'Plant': return '🌱';
+            case 'Ice': return '🧊';
+            case 'Elec': return '⚡️';
+            case 'Earth': return '⛰️';
+            case 'Steel': return '⚙️';
+            case 'Wind': return '🌪️';
+            case 'Light': return '🌟';
+            case 'Dark': return '🌑';
+            case 'Null': return '🈳';
+            default:
+                return '➖';
+        }
+    }
+
+    // Determine a digimon's primary skill element for display
+    getPrimarySkillElement(digimon) {
+        if (!digimon || !Array.isArray(digimon.special_skills)) return '-';
+        // Prefer first offensive skill targeting enemies
+        const offensive = digimon.special_skills.find(s => this.isSkillTargetsEnemy(s));
+        if (offensive && typeof offensive.element === 'string' && offensive.element.length > 0) {
+            return offensive.element;
+        }
+        // Fallback to first listed skill's element
+        const first = digimon.special_skills[0];
+        if (first && typeof first.element === 'string' && first.element.length > 0) {
+            return first.element;
+        }
+        return '-';
+    }
+
     findSimplePathFromStage1(targetDigimon) {
         const maxDepth = 8; // Reduced depth
         const startTime = Date.now();
@@ -1051,24 +1087,24 @@ class Digimon {
 
         // Use bidirectional BFS for more efficient path finding
         const paths = this.bidirectionalBFS(fromDigimon, toDigimon, maxPaths, startTime, maxTime);
-        
+
         // Sort paths by priority: 1) shortest 2) most matching personality in evolutions 3) most matching overall
         const targetPersonality = this.getDisplayPersonality(toDigimon);
         paths.sort((a, b) => {
             // Priority 1: Shortest path
             if (a.length !== b.length) return a.length - b.length;
-            
+
             // Priority 2: Most matching personality in evolution steps only
             const aEvolutionScore = this.scoreEvolutionPersonality(a, fromDigimon, targetPersonality);
             const bEvolutionScore = this.scoreEvolutionPersonality(b, fromDigimon, targetPersonality);
             if (bEvolutionScore !== aEvolutionScore) return bEvolutionScore - aEvolutionScore;
-            
+
             // Priority 3: Most matching personality overall
             const aOverallScore = this.scoreOverallPersonality(a, targetPersonality);
             const bOverallScore = this.scoreOverallPersonality(b, targetPersonality);
             return bOverallScore - aOverallScore;
         });
-        
+
         return paths.slice(0, maxPaths);
     }
 
@@ -1225,11 +1261,11 @@ class Digimon {
     scoreEvolutionPersonality(path, fromDigimon, targetPersonality) {
         if (!path || path.length < 2) return 0;
         let score = 0;
-        
+
         for (let i = 1; i < path.length; i++) {
             const prev = path[i - 1];
             const curr = path[i];
-            
+
             // Only count if this is an evolution step
             if (this.isEvolutionStep(prev, curr)) {
                 const currPersonality = this.getDisplayPersonality(curr);
@@ -1238,7 +1274,7 @@ class Digimon {
                 }
             }
         }
-        
+
         return score;
     }
 
@@ -1246,14 +1282,14 @@ class Digimon {
     scoreOverallPersonality(path, targetPersonality) {
         if (!path || path.length < 2 || targetPersonality === '-') return 0;
         let score = 0;
-        
+
         for (let i = 1; i < path.length; i++) {
             const currPersonality = this.getDisplayPersonality(path[i]);
             if (currPersonality === targetPersonality) {
                 score++;
             }
         }
-        
+
         return score;
     }
 

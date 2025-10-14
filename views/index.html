@@ -1859,7 +1859,16 @@
                     content.removeChild(content.firstChild);
                 }
 
-                setTimeout(utils.scrollToBottom, 50);
+                // Conditional scrolling logic.
+                const myName = document.getElementById("name").value;
+                const isMyMessage = message.name === myName;
+                // Assumption: The bot is named 'HKTRPG' and its responses to a user mention the user's name.
+                const isBotResponseToMe = message.name === 'HKTRPG' && message.msg.includes(myName);
+
+                // Always scroll when loading history, or for user's own messages and related bot responses.
+                if (state.isHistoryLoading || isMyMessage || isBotResponseToMe) {
+                    setTimeout(utils.scrollToBottom, 50);
+                }
             }
         };
 

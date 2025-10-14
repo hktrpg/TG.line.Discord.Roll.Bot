@@ -1867,7 +1867,7 @@
 
                 // Always scroll when loading history, or for user's own messages and related bot responses.
                 if (state.isHistoryLoading || isMyMessage || isBotResponseToMe) {
-                    requestAnimationFrame(() => utils.scrollToBottom());
+                    setTimeout(utils.scrollToBottom, 0);
                 }
             }
         };

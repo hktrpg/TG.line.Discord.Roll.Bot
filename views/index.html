@@ -93,15 +93,29 @@
 
                     <div class="pad-content">
                         <div class="pad-header">
-                            <span class="pad-title">常用指令</span>
+                            <span class="pad-title">快速指令</span>
                         </div>
-                        <div class="pad-buttons" id="quickInputButtons">
-                            <!-- Buttons will be added dynamically -->
+                        <div class="d-flex" style="gap:6px; margin:6px 0;">
+                            <button id="tab-common" class="btn btn-info btn-sm">常用指令</button>
+                            <button id="tab-roll" class="btn btn-secondary btn-sm">骰組</button>
                         </div>
-                        <div class="custom-input">
-                            <input type="text" id="customInput" placeholder="自訂指令" onchange="quickInputPad.saveCustom()"
-                                onkeypress="if(event.key === 'Enter') quickInputPad.sendCustom()">
-                            <button class="btn btn-primary" onclick="quickInputPad.sendCustom()">送出</button>
+                        <!-- Roll Systems Quick Panel -->
+                        <div class="pad-section" id="rollQuickPanel" style="margin-top:8px; display:none;">
+                            <div class="d-flex align-items-center" style="gap:8px; margin-bottom:6px;">
+                                <label for="rollSystemSelect" style="margin:0; font-weight:bold;">骰組</label>
+                                <select id="rollSystemSelect" class="form-control" style="max-width:220px; height: var(--input-height);"></select>
+                            </div>
+                            <div class="pad-buttons" id="rollCommandButtons"></div>
+                        </div>
+                        <div id="commonPanel">
+                            <div class="pad-buttons" id="quickInputButtons">
+                                <!-- Buttons will be added dynamically -->
+                            </div>
+                            <div class="custom-input">
+                                <input type="text" id="customInput" placeholder="自訂指令" onchange="quickInputPad.saveCustom()"
+                                    onkeypress="if(event.key === 'Enter') quickInputPad.sendCustom()">
+                                <button class="btn btn-primary" onclick="quickInputPad.sendCustom()">送出</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2067,6 +2081,144 @@
             }
         };
 
+        // 新增：骰組快速指令管理
+        const rollQuick = {
+            systems: [],
+            commands: [],
+            filterText: '',
+
+            init: async () => {
+                try {
+                    await rollQuick.loadSystems();
+                    rollQuick.bindEvents();
+                    const saved = localStorage.getItem('selectedRollSystem');
+                    if (saved && rollQuick.systems.includes(saved)) {
+                        document.getElementById('rollSystemSelect').value = saved;
+                        await rollQuick.loadCommands(saved);
+                    }
+                } catch (e) {
+                    console.error('rollQuick init error:', e);
+                }
+            },
+
+            bindEvents: () => {
+                const select = document.getElementById('rollSystemSelect');
+                const tabCommon = document.getElementById('tab-common');
+                const tabRoll = document.getElementById('tab-roll');
+                if (select) {
+                    select.addEventListener('change', async (e) => {
+                        const system = e.target.value;
+                        localStorage.setItem('selectedRollSystem', system);
+                        await rollQuick.loadCommands(system);
+                    });
+                }
+                if (tabCommon && tabRoll) {
+                    tabCommon.addEventListener('click', () => rollQuick.switchTab('common'));
+                    tabRoll.addEventListener('click', () => rollQuick.switchTab('roll'));
+                }
+            },
+
+            loadSystems: async () => {
+                const res = await fetch('/roll/systems');
+                if (!res.ok) return;
+                const data = await res.json();
+                rollQuick.systems = Array.isArray(data.systems) ? data.systems : [];
+                const select = document.getElementById('rollSystemSelect');
+                if (select) {
+                    select.innerHTML = rollQuick.systems.map(s => `<option value="${s}">${s}</option>`).join('');
+                }
+            },
+
+            loadCommands: async (system) => {
+                rollQuick.commands = [];
+                const container = document.getElementById('rollCommandButtons');
+                if (container) container.innerHTML = '';
+                if (!system) return;
+                const res = await fetch(`/roll/${encodeURIComponent(system)}/commands`);
+                if (!res.ok) return;
+                const data = await res.json();
+                rollQuick.commands = Array.isArray(data.commands) ? data.commands : [];
+                rollQuick.renderCommands();
+            },
+
+            normalizeItem: (item) => {
+                // Support string or object shapes
+                if (typeof item === 'string') {
+                    return { label: item, trigger: item };
+                }
+                if (!item || typeof item !== 'object') return null;
+                // Try common explicit fields first
+                let trigger = item.example || item.command || item.trigger || item.text || item.code || '';
+                let label = item.name || item.title || item.label || '';
+                let desc = item.desc || item.description || '';
+                // Support Discord SlashCommandBuilder shape: { data: { name, description } }
+                if (!trigger && item.data && (item.data.name || item.data.commandName)) {
+                    const cmdName = item.data.name || item.data.commandName;
+                    trigger = `.${cmdName}`;
+                    if (!label) label = cmdName;
+                    if (!desc && item.data.description) desc = item.data.description;
+                }
+                // Fallback: if still missing, attempt '.' + label
+                if (!trigger && label) {
+                    trigger = `.${label}`;
+                }
+                if (!trigger) return null;
+                return { label: String(label || trigger), trigger: String(trigger), desc: String(desc || '') };
+            },
+
+            renderCommands: () => {
+                const container = document.getElementById('rollCommandButtons');
+                if (!container) return;
+                const list = rollQuick.commands
+                    .map(rollQuick.normalizeItem)
+                    .filter(Boolean)
+                    .slice(0, 120); // safety cap
+
+                container.innerHTML = list.map(c => `
+                    <button class="pad-button" title="${(c.desc || c.trigger).replace(/\"/g, '"')}" onclick="rollQuick.useTrigger('${rollQuick.escapeForAttr(c.trigger)}')">${rollQuick.escapeHtml(c.label)}</button>
+                `).join('');
+            },
+
+            useTrigger: (trigger) => {
+                const msgInput = document.getElementById('msg');
+                if (!msgInput) return;
+                msgInput.value = trigger;
+                const sendForm = document.getElementById('send-form');
+                if (sendForm) {
+                    sendForm.dispatchEvent(new Event('submit'));
+                }
+            },
+
+            escapeHtml: (s) => {
+                return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            },
+            escapeForAttr: (s) => {
+                return String(s)
+                    .replace(/\\/g, '\\\\')
+                    .replace(/'/g, "\\'")
+                    .replace(/\n/g, ' ');
+            },
+
+            switchTab: (tab) => {
+                const commonPanel = document.getElementById('commonPanel');
+                const rollPanel = document.getElementById('rollQuickPanel');
+                const tabCommon = document.getElementById('tab-common');
+                const tabRoll = document.getElementById('tab-roll');
+                if (!commonPanel || !rollPanel || !tabCommon || !tabRoll) return;
+                if (tab === 'roll') {
+                    commonPanel.style.display = 'none';
+                    rollPanel.style.display = '';
+                    tabCommon.className = 'btn btn-secondary btn-sm';
+                    tabRoll.className = 'btn btn-info btn-sm';
+                } else {
+                    commonPanel.style.display = '';
+                    rollPanel.style.display = 'none';
+                    tabCommon.className = 'btn btn-info btn-sm';
+                    tabRoll.className = 'btn btn-secondary btn-sm';
+                }
+            }
+        };
+
         // Header Management
         const headerManager = {
             init: () => {
@@ -2253,6 +2405,7 @@
             headerManager.init();
             chatroomManager.init();
             sidebarManager.init();
+            rollQuick.init();
         });
 
         // Modal functions

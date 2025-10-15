@@ -171,6 +171,80 @@ www.get('/', async (req, res) => {
     }
     res.sendFile(process.cwd() + '/views/index.html');
 });
+
+// ============= Roll Systems Discovery APIs =============
+// Expose only systems that export a non-empty discordCommand array
+function getRollDirectory() {
+    return path.join(process.cwd(), 'roll');
+}
+
+function safeRequire(modulePath) {
+    try {
+        // Clear from cache to allow updates without restart (best-effort)
+        delete require.cache[require.resolve(modulePath)];
+        return require(modulePath);
+    } catch {
+        return null;
+    }
+}
+
+function isValidDiscordCommandArray(commands) {
+    return Array.isArray(commands) && commands.length > 0;
+}
+
+function listRollSystems() {
+    const rollDir = getRollDirectory();
+    let entries = [];
+    try {
+        entries = fs.readdirSync(rollDir, { withFileTypes: true });
+    } catch {
+        return [];
+    }
+    const systems = [];
+    for (const entry of entries) {
+        if (!entry.isFile()) continue;
+        if (!entry.name.endsWith('.js')) continue;
+        if (entry.name.startsWith('z_')) continue; // skip helper/internal packs
+        const base = entry.name.slice(0, -3);
+        const full = path.join(rollDir, entry.name);
+        const mod = safeRequire(full);
+        if (!mod || !isValidDiscordCommandArray(mod.discordCommand)) continue;
+        systems.push(base);
+    }
+    return systems;
+}
+
+function getSystemCommands(systemName) {
+    const rollDir = getRollDirectory();
+    const filePath = path.join(rollDir, `${systemName}.js`);
+    if (!fs.existsSync(filePath)) return null;
+    const mod = safeRequire(filePath);
+    if (!mod || !isValidDiscordCommandArray(mod.discordCommand)) return null;
+    return mod.discordCommand;
+}
+
+www.get('/roll/systems', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    const systems = listRollSystems();
+    res.json({ systems });
+});
+
+www.get('/roll/:system/commands', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    const system = (req.params.system || '').toString();
+    const commands = getSystemCommands(system);
+    if (!commands) {
+        res.status(404).json({ error: 'system_not_found_or_no_discordCommand' });
+        return;
+    }
+    res.json({ system, commands });
+});
 www.get('/api', async (req, res) => {
     if (!APIswitch || await limitRaterApi(req.ip)) return;
 

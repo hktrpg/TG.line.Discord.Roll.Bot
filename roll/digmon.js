@@ -3,7 +3,7 @@ const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 const Fuse = require('fuse.js');
 const gameName = function () {
-    return '【Digimon Story: Cyber Sleuth】.digi '
+    return '【數碼寶貝物語時空異客】.digi '
 }
 const gameType = function () {
     return 'Funny:digimon:hktrpg'

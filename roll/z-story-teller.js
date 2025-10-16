@@ -2634,7 +2634,9 @@ const discordCommand = [
             }
         }
     }
-]
+];
+
+const webCommand = false;
 
 module.exports = {
     rollDiceCommand,
@@ -2643,5 +2645,6 @@ module.exports = {
     prefixs,
     gameType,
     gameName,
-    discordCommand
+    discordCommand,
+    webCommand
 };

@@ -90,18 +90,40 @@
 
                 <!-- Quick Input Pad -->
                 <div class="quick-input-pad" id="quickInputPad">
-
                     <div class="pad-content">
-                        <div class="pad-header">
-                            <span class="pad-title">常用指令</span>
-                        </div>
-                        <div class="pad-buttons" id="quickInputButtons">
-                            <!-- Buttons will be added dynamically -->
-                        </div>
-                        <div class="custom-input">
-                            <input type="text" id="customInput" placeholder="自訂指令" onchange="quickInputPad.saveCustom()"
-                                onkeypress="if(event.key === 'Enter') quickInputPad.sendCustom()">
-                            <button class="btn btn-primary" onclick="quickInputPad.sendCustom()">送出</button>
+                        <ul class="nav nav-tabs" id="quick-command-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link active" id="common-tab" data-toggle="tab" href="#common-commands" role="tab" aria-controls="common-commands" aria-selected="true">常用指令</a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" id="dice-set-tab" data-toggle="tab" href="#dice-set-commands-panel" role="tab" aria-controls="dice-set-commands-panel" aria-selected="false">骰組</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="quick-command-tabs-content">
+                            <div class="tab-pane fade show active" id="common-commands" role="tabpanel" aria-labelledby="common-tab">
+                                <div class="pad-buttons" id="quickInputButtons">
+                                    <!-- Buttons will be added dynamically -->
+                                </div>
+                                <div class="custom-input">
+                                    <input type="text" id="customInput" placeholder="自訂指令" onchange="quickInputPad.saveCustom()" onkeypress="if(event.key === 'Enter') quickInputPad.sendCustom()">
+                                    <button class="btn btn-primary" onclick="quickInputPad.sendCustom()">送出</button>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="dice-set-commands-panel" role="tabpanel" aria-labelledby="dice-set-tab">
+                                <div class="dice-set-selector form-group">
+                                     <label for="dice-set-select">選擇骰組:</label>
+                                     <div class="input-group">
+                                        <select class="form-control" id="dice-set-select"></select>
+                                        <div class="input-group-append">
+                                            <button class="btn btn-outline-secondary" type="button" id="dice-set-info-btn">
+                                                <span class="iconify" data-icon="bi:info-circle"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="dice-set-commands" class="pad-buttons"></div>
+                                <div id="dice-set-command-inputs"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -245,6 +267,23 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="helpModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="helpModalLabel">指令說明</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body" id="helpModalBody" style="white-space: pre-wrap;">
+            ...
+          </div>
+        </div>
+      </div>
     </div>
 
     <style>
@@ -1954,6 +1993,164 @@
             }
         };
 
+                        const quickCommandsManager = {
+            data: [],
+            activeCommand: null,
+            init: async () => {
+                try {
+                    const response = await fetch('/api/dice-commands');
+                    quickCommandsManager.data = await response.json();
+                    quickCommandsManager.renderDiceSetOptions();
+
+                    const lastSet = localStorage.getItem('selectedDiceSet') || (quickCommandsManager.data.length > 0 ? quickCommandsManager.data[0].fileName : null);
+                    if (lastSet) {
+                        document.getElementById('dice-set-select').value = lastSet;
+                        quickCommandsManager.renderCommands(lastSet);
+                    }
+
+                    document.getElementById('dice-set-select').addEventListener('change', (e) => {
+                        const selectedSet = e.target.value;
+                        localStorage.setItem('selectedDiceSet', selectedSet);
+                        quickCommandsManager.renderCommands(selectedSet);
+                    });
+                    
+                    document.getElementById('dice-set-info-btn').addEventListener('click', () => {
+                        const selectedSet = document.getElementById('dice-set-select').value;
+                        const game = quickCommandsManager.data.find(g => g.fileName === selectedSet);
+                        if (game) {
+                            document.getElementById('helpModalBody').textContent = game.helpMessage;
+                            $('#helpModal').modal('show');
+                        }
+                    });
+
+                } catch (error) {
+                    console.error('Failed to load dice commands:', error);
+                }
+            },
+            renderDiceSetOptions: () => {
+                const select = document.getElementById('dice-set-select');
+                if (!select) return;
+                select.innerHTML = '';
+                quickCommandsManager.data.forEach(game => {
+                    const match = game.gameName.match(/【(.+?)】/);
+                    const gameDisplayName = match ? match[1] : game.fileName;
+                    const option = new Option(gameDisplayName, game.fileName);
+                    select.add(option);
+                });
+            },
+            renderCommands: (fileName) => {
+                const commandsContainer = document.getElementById('dice-set-commands');
+                const inputsContainer = document.getElementById('dice-set-command-inputs');
+                if (!commandsContainer || !inputsContainer) return;
+                commandsContainer.innerHTML = '';
+                inputsContainer.innerHTML = '';
+                quickCommandsManager.activeCommand = null;
+
+                const game = quickCommandsManager.data.find(g => g.fileName === fileName);
+                if (!game) return;
+
+                game.commands.forEach(command => {
+                    const btn = document.createElement('button');
+                    btn.className = 'pad-button';
+                    btn.textContent = command.json.description;
+                    btn.onclick = () => quickCommandsManager.handleCommandClick(command, game);
+                    commandsContainer.appendChild(btn);
+                });
+            },
+            handleCommandClick: (command, game) => {
+                const inputsContainer = document.getElementById('dice-set-command-inputs');
+                if (!inputsContainer) return;
+                inputsContainer.innerHTML = '';
+                quickCommandsManager.activeCommand = { command, game, inputs: {} };
+
+                const options = command.json.options;
+
+                if (!options || options.length === 0) {
+                    quickCommandsManager.executeCommand();
+                    return;
+                }
+
+                options.forEach(option => {
+                    const inputGroup = document.createElement('div');
+                    inputGroup.className = 'form-group';
+                    
+                    const label = document.createElement('label');
+                    label.textContent = option.description;
+                    inputGroup.appendChild(label);
+
+                    if (option.choices) {
+                        const choiceGroup = document.createElement('div');
+                        choiceGroup.className = 'btn-group btn-group-toggle';
+                        choiceGroup.dataset.toggle = 'buttons';
+                        option.choices.forEach(choice => {
+                            const choiceLabel = document.createElement('label');
+                            choiceLabel.className = 'btn btn-outline-secondary';
+                            const radio = document.createElement('input');
+                            radio.type = 'radio';
+                            radio.name = option.name;
+                            radio.value = choice.value;
+                            radio.onchange = (e) => {
+                                quickCommandsManager.activeCommand.inputs[option.name] = e.target.value;
+                            };
+                            choiceLabel.appendChild(radio);
+                            choiceLabel.append(choice.name);
+                            choiceGroup.appendChild(choiceLabel);
+                        });
+                        inputGroup.appendChild(choiceGroup);
+                    } else {
+                        const input = document.createElement('input');
+                        switch(option.type) {
+                            case 4: // Integer
+                            case 10: // Number
+                                input.type = 'number';
+                                break;
+                            default: // String, Boolean, etc.
+                                input.type = 'text';
+                        }
+                        input.className = 'form-control';
+                        input.placeholder = option.description;
+                        input.onchange = (e) => {
+                            quickCommandsManager.activeCommand.inputs[option.name] = e.target.value;
+                        };
+                        inputGroup.appendChild(input);
+                    }
+                    inputsContainer.appendChild(inputGroup);
+                });
+                
+                const executeBtn = document.createElement('button');
+                executeBtn.className = 'btn btn-primary btn-block mt-2';
+                executeBtn.textContent = '執行';
+                executeBtn.onclick = quickCommandsManager.executeCommand;
+                inputsContainer.appendChild(executeBtn);
+            },
+            executeCommand: () => {
+                if (!quickCommandsManager.activeCommand) return;
+
+                const { command, inputs } = quickCommandsManager.activeCommand;
+                let finalCommand = command.execute;
+
+                for (const key in inputs) {
+                    const value = inputs[key] || '';
+                    const placeholderRegex = new RegExp(`PLACEHOLDER_(STRING|INTEGER|BOOLEAN|NUMBER)_${key}`, 'g');
+                    finalCommand = finalCommand.replace(placeholderRegex, value);
+                }
+                
+                finalCommand = finalCommand.replace(/PLACEHOLDER_(STRING|INTEGER|BOOLEAN|NUMBER)_\w+/g, '').trim();
+
+                const msgInput = document.getElementById("msg");
+                msgInput.value = finalCommand;
+                
+                const sendForm = document.getElementById("send-form");
+                sendForm.dispatchEvent(new Event('submit'));
+
+                const inputsContainer = document.getElementById('dice-set-command-inputs');
+                if (inputsContainer) {
+                    inputsContainer.innerHTML = '';
+                }
+                quickCommandsManager.activeCommand = null;
+            }
+        };
+
         // 在現有的 JavaScript 代碼中添加快速輸入指令欄管理模組
         const quickInputPad = {
             init: () => {
@@ -1975,6 +2172,18 @@
                     if (toggleButton) {
                         toggleButton.classList.add('collapsed');
                     }
+                }
+                
+                quickCommandsManager.init(); // Init new dice set commands
+
+                // Tab switching logic
+                $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                    localStorage.setItem('quickCommandActiveTab', e.target.id);
+                });
+
+                const lastTab = localStorage.getItem('quickCommandActiveTab');
+                if (lastTab) {
+                    $('#' + lastTab).tab('show');
                 }
             },
 

@@ -217,6 +217,97 @@ www.get('/api', async (req, res) => {
 
 });
 
+www.get('/api/dice-commands', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+
+    const rollDir = path.join(process.cwd(), 'roll');
+    const files = fs.readdirSync(rollDir);
+    const commandsData = [];
+    
+    const ignoredFiles = ['z_', 'rollbase', 'demo', 'export', 'forward', 'help', 'init', 'request-rolling', 'token', 'edit'];
+
+    for (const file of files) {
+        if (file.endsWith('.js') && !ignoredFiles.some(prefix => file.startsWith(prefix))) {
+            try {
+                const modulePath = path.join(rollDir, file);
+                const commandModule = require(modulePath);
+
+                if (commandModule.webCommand !== false && commandModule.discordCommand && commandModule.gameName && commandModule.getHelpMessage) {
+                    const gameName = commandModule.gameName();
+                    const helpMessage = await commandModule.getHelpMessage();
+                    const commands = [];
+
+                    for (const cmd of commandModule.discordCommand) {
+                        const commandJson = cmd.data.toJSON();
+                        const subcommands = commandJson.options ? commandJson.options.filter(opt => opt.type === 1) : [];
+
+                        if (subcommands.length > 0) {
+                            for (const sub of subcommands) {
+                                const mockInteraction = {
+                                    options: {
+                                        getSubcommand: () => sub.name,
+                                        getString: (name) => {
+                                            const optionExists = sub.options && sub.options.some(o => o.name === name);
+                                            return optionExists ? `PLACEHOLDER_STRING_${name}` : null;
+                                        },
+                                        getInteger: () => null, // Keep it simple for now
+                                        getBoolean: () => null,
+                                        getNumber: () => null,
+                                    }
+                                };
+
+                                try {
+                                    const executeTemplate = await cmd.execute(mockInteraction);
+                                    // Flatten the subcommand into a regular command for the frontend
+                                    commands.push({
+                                        json: {
+                                            name: `${commandJson.name}_${sub.name}`,
+                                            description: sub.description,
+                                            options: sub.options || []
+                                        },
+                                        execute: executeTemplate
+                                    });
+                                } catch (e) { /* Ignore errors in mock execution */ }
+                            }
+                        } else {
+                            const mockInteraction = {
+                                options: {
+                                    getSubcommand: () => null,
+                                    getString: (name) => `PLACEHOLDER_STRING_${name}`,
+                                    getInteger: (name) => `PLACEHOLDER_INTEGER_${name}`,
+                                    getBoolean: (name) => `PLACEHOLDER_BOOLEAN_${name}`,
+                                    getNumber: (name) => `PLACEHOLDER_NUMBER_${name}`,
+                                }
+                            };
+                            try {
+                                const executeTemplate = await cmd.execute(mockInteraction);
+                                commands.push({
+                                    json: commandJson,
+                                    execute: executeTemplate
+                                });
+                            } catch (e) { /* Ignore errors in mock execution */ }
+                        }
+                    }
+
+                    commandsData.push({
+                        fileName: file,
+                        gameName: gameName,
+                        helpMessage: helpMessage,
+                        commands: commands
+                    });
+                }
+            } catch (error) {
+                console.error(`Error processing file ${file}:`, error);
+            }
+        }
+    }
+
+    res.json(commandsData);
+});
+
 // 將/publiccard/css/設置為靜態資源的路徑
 www.use('/:path/css/', async (req, res, next) => {
     if (await checkRateLimit('api', req.ip)) {

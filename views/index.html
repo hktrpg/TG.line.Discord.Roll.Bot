@@ -2080,46 +2080,37 @@
 
                     if (option.choices) {
                         const choiceGroup = document.createElement('div');
-                        choiceGroup.className = 'btn-group btn-group-toggle';
-                        choiceGroup.dataset.toggle = 'buttons';
+                        choiceGroup.className = 'btn-group';
+                        choiceGroup.setAttribute('role', 'group');
+                        choiceGroup.dataset.name = option.name; // Add data-name for selection
 
                         option.choices.forEach(choice => {
-                            const choiceLabel = document.createElement('label');
-                            choiceLabel.className = 'btn btn-outline-secondary';
-                            const radio = document.createElement('input');
-                            radio.type = 'radio';
-                            radio.name = option.name;
-                            radio.value = choice.value;
-                            radio.autocomplete = 'off';
+                            const button = document.createElement('button');
+                            button.type = 'button';
+                            button.className = 'btn btn-outline-secondary';
+                            button.textContent = choice.name;
+                            button.dataset.value = choice.value;
 
-                            choiceLabel.appendChild(radio);
-                            choiceLabel.append(choice.name);
-
-                            choiceLabel.addEventListener('click', function(e) {
-                                e.preventDefault(); // Take full control
-
-                                if (radio.checked) {
-                                    // Already checked, so uncheck it
-                                    radio.checked = false;
+                            button.addEventListener('click', function() {
+                                if (this.classList.contains('active')) {
                                     this.classList.remove('active');
                                     delete quickCommandsManager.activeCommand.inputs[option.name];
                                 } else {
-                                    // Not checked, so check it and uncheck others
-                                    const allRadiosInGroup = choiceGroup.querySelectorAll('input[type="radio"]');
-                                    allRadiosInGroup.forEach(r => {
-                                        r.checked = false;
-                                        r.parentElement.classList.remove('active');
-                                    });
+                                    const allButtonsInGroup = choiceGroup.querySelectorAll('button');
+                                    allButtonsInGroup.forEach(b => b.classList.remove('active'));
 
-                                    radio.checked = true;
                                     this.classList.add('active');
-                                    quickCommandsManager.activeCommand.inputs[option.name] = radio.value;
+                                    quickCommandsManager.activeCommand.inputs[option.name] = this.dataset.value;
                                 }
                             });
-
-                            choiceGroup.appendChild(choiceLabel);
+                            choiceGroup.appendChild(button);
                         });
                         inputGroup.appendChild(choiceGroup);
+
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'invalid-feedback d-block'; // d-block to make it visible
+                        errorDiv.id = `error-for-${option.name}`;
+                        inputGroup.appendChild(errorDiv);
                     } else {
                         const input = document.createElement('input');
                         switch(option.type) {
@@ -2130,6 +2121,7 @@
                             default: // String, Boolean, etc.
                                 input.type = 'text';
                         }
+                        input.name = option.name; // Add name for selection
                         input.className = 'form-control';
                         input.placeholder = option.description;
                         input.oninput = (e) => {
@@ -2142,6 +2134,11 @@
                             }
                         };
                         inputGroup.appendChild(input);
+
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'invalid-feedback';
+                        errorDiv.id = `error-for-${option.name}`;
+                        inputGroup.appendChild(errorDiv);
                     }
                     inputsContainer.appendChild(inputGroup);
                 });
@@ -2156,15 +2153,33 @@
                 if (!quickCommandsManager.activeCommand) return;
 
                 const { command, inputs } = quickCommandsManager.activeCommand;
+                let isValid = true;
+                const inputsContainer = document.getElementById('dice-set-command-inputs');
 
-                // Check for required options before executing
+                // Clear previous errors
+                inputsContainer.querySelectorAll('.form-control, .btn-group').forEach(el => el.classList.remove('is-invalid'));
+                inputsContainer.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+
+                // Check for required options
                 if (command.json.options) {
                     for (const option of command.json.options) {
-                        if (option.required && (inputs[option.name] === undefined || inputs[option.name] === '')) {
-                            alert(`請填寫必填欄位: ${option.description}`);
-                            return; // Stop execution
+                        if (option.required && (inputs[option.name] === undefined || String(inputs[option.name]).trim() === '')) {
+                            isValid = false;
+                            const errorEl = document.getElementById(`error-for-${option.name}`);
+                            if (errorEl) {
+                                errorEl.textContent = '此為必填欄位';
+                            }
+                            
+                            const control = inputsContainer.querySelector(`[name="${option.name}"]`) || inputsContainer.querySelector(`[data-name="${option.name}"]`);
+                            if (control) {
+                                control.classList.add('is-invalid');
+                            }
                         }
                     }
+                }
+
+                if (!isValid) {
+                    return; // Stop execution
                 }
 
                 let finalCommand = command.execute;
@@ -2183,7 +2198,6 @@
                 const sendForm = document.getElementById("send-form");
                 sendForm.dispatchEvent(new Event('submit'));
 
-                const inputsContainer = document.getElementById('dice-set-command-inputs');
                 if (inputsContainer) {
                     inputsContainer.innerHTML = '';
                 }

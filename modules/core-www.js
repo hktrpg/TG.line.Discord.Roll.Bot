@@ -250,18 +250,26 @@ www.get('/api/dice-commands', async (req, res) => {
                                     options: {
                                         getSubcommand: () => sub.name,
                                         getString: (name) => {
-                                            const optionExists = sub.options && sub.options.some(o => o.name === name);
-                                            return optionExists ? `PLACEHOLDER_STRING_${name}` : null;
+                                            const opt = sub.options?.find(o => o.name === name);
+                                            return (opt && !opt.required) ? null : `PLACEHOLDER_STRING_${name}`;
                                         },
-                                        getInteger: () => null, // Keep it simple for now
-                                        getBoolean: () => null,
-                                        getNumber: () => null,
+                                        getInteger: (name) => {
+                                            const opt = sub.options?.find(o => o.name === name);
+                                            return (opt && !opt.required) ? null : `PLACEHOLDER_INTEGER_${name}`;
+                                        },
+                                        getBoolean: (name) => {
+                                            const opt = sub.options?.find(o => o.name === name);
+                                            return (opt && !opt.required) ? null : `PLACEHOLDER_BOOLEAN_${name}`;
+                                        },
+                                        getNumber: (name) => {
+                                            const opt = sub.options?.find(o => o.name === name);
+                                            return (opt && !opt.required) ? null : `PLACEHOLDER_NUMBER_${name}`;
+                                        },
                                     }
                                 };
 
                                 try {
                                     const executeTemplate = await cmd.execute(mockInteraction);
-                                    // Flatten the subcommand into a regular command for the frontend
                                     commands.push({
                                         json: {
                                             name: `${commandJson.name}_${sub.name}`,
@@ -276,10 +284,22 @@ www.get('/api/dice-commands', async (req, res) => {
                             const mockInteraction = {
                                 options: {
                                     getSubcommand: () => null,
-                                    getString: (name) => `PLACEHOLDER_STRING_${name}`,
-                                    getInteger: (name) => `PLACEHOLDER_INTEGER_${name}`,
-                                    getBoolean: (name) => `PLACEHOLDER_BOOLEAN_${name}`,
-                                    getNumber: (name) => `PLACEHOLDER_NUMBER_${name}`,
+                                    getString: (name) => {
+                                        const opt = commandJson.options?.find(o => o.name === name);
+                                        return (opt && !opt.required) ? null : `PLACEHOLDER_STRING_${name}`;
+                                    },
+                                    getInteger: (name) => {
+                                        const opt = commandJson.options?.find(o => o.name === name);
+                                        return (opt && !opt.required) ? null : `PLACEHOLDER_INTEGER_${name}`;
+                                    },
+                                    getBoolean: (name) => {
+                                        const opt = commandJson.options?.find(o => o.name === name);
+                                        return (opt && !opt.required) ? null : `PLACEHOLDER_BOOLEAN_${name}`;
+                                    },
+                                    getNumber: (name) => {
+                                        const opt = commandJson.options?.find(o => o.name === name);
+                                        return (opt && !opt.required) ? null : `PLACEHOLDER_NUMBER_${name}`;
+                                    },
                                 }
                             };
                             try {

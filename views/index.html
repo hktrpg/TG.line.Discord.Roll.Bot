@@ -148,6 +148,27 @@
         </div>
     </div>
 
+    <!-- Personal Room Clear Confirm Modal -->
+    <div class="modal fade" id="personalClearModal" tabindex="-1" role="dialog" aria-labelledby="personalClearModalTitle" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="personalClearModalTitle">清空「個人小屋」內容</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    此操作只會清除本機儲存的訊息，不會影響伺服器資料。清空後無法復原，確定要繼續嗎？
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" id="personalClearConfirmBtn" class="btn btn-danger">清空</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
 
 
@@ -2607,8 +2628,16 @@
             },
 
             confirmAndClearPersonalRoom: () => {
-                if (!window.confirm('確定要清空「個人小屋」的內容嗎？此動作無法復原。')) return;
-                chatroomManager.clearPersonalRoom();
+                const btn = document.getElementById('personalClearConfirmBtn');
+                if (btn) {
+                    // 先移除舊監聽，避免多次綁定
+                    btn.onclick = null;
+                    btn.addEventListener('click', () => {
+                        chatroomManager.clearPersonalRoom();
+                        $('#personalClearModal').modal('hide');
+                    }, { once: true });
+                }
+                $('#personalClearModal').modal('show');
             },
 
             clearPersonalRoom: () => {

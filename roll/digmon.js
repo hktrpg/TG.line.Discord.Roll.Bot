@@ -216,9 +216,10 @@ class Digimon {
     padWide(str, length) {
         let s = String(str || '');
         let currentWidth = 0;
-        for (let i = 0; i < s.length; i++) {
+        for (const ch of s) {
             // CJK and full-width characters
-            if (s.charCodeAt(i) > 255) {
+            const cp = ch.codePointAt(0);
+            if (cp > 0xFF) {
                 currentWidth += 2;
             } else {
                 currentWidth += 1;

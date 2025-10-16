@@ -226,7 +226,7 @@ www.get('/api/dice-commands', async (req, res) => {
     const rollDir = path.join(process.cwd(), 'roll');
     const files = fs.readdirSync(rollDir);
     const commandsData = [];
-    
+
     const ignoredFiles = ['z_', 'rollbase', 'demo', 'export', 'forward', 'help', 'init', 'request-rolling', 'token', 'edit'];
 
     for (const file of files) {
@@ -278,7 +278,7 @@ www.get('/api/dice-commands', async (req, res) => {
                                         },
                                         execute: executeTemplate
                                     });
-                                } catch (e) { /* Ignore errors in mock execution */ }
+                                } catch { /* Ignore errors in mock execution */ }
                             }
                         } else {
                             const mockInteraction = {
@@ -308,7 +308,7 @@ www.get('/api/dice-commands', async (req, res) => {
                                     json: commandJson,
                                     execute: executeTemplate
                                 });
-                            } catch (e) { /* Ignore errors in mock execution */ }
+                            } catch { /* Ignore errors in mock execution */ }
                         }
                     }
 

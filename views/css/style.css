@@ -53,3 +53,10 @@ body {
         overflow: hidden; /* Prevent scrolling */
     }
 }
+
+.help-icon {
+    color: #6c757d;
+    font-size: 10px;
+    margin-left: 4px;
+    cursor: help;
+}

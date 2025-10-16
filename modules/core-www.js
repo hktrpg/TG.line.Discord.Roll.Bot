@@ -209,7 +209,23 @@ function listRollSystems() {
         const full = path.join(rollDir, entry.name);
         const mod = safeRequire(full);
         if (!mod || !isValidDiscordCommandArray(mod.discordCommand)) continue;
-        systems.push(base);
+        
+        // Extract display name from gameName function or use systemName
+        let displayName = base;
+        if (mod.gameName && typeof mod.gameName === 'function') {
+            const gameNameResult = mod.gameName();
+            // Extract Chinese title from help message format like "【克蘇魯神話】 ..."
+            const match = gameNameResult.match(/【([^】]+)】/);
+            if (match) {
+                displayName = match[1];
+            }
+        }
+        
+        systems.push({
+            name: base,
+            displayName: displayName,
+            helpMessage: mod.getHelpMessage && typeof mod.getHelpMessage === 'function' ? mod.getHelpMessage() : null
+        });
     }
     return systems;
 }

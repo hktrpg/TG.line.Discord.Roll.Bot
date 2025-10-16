@@ -104,6 +104,9 @@
                             <div class="d-flex align-items-center" style="gap:8px; margin-bottom:6px;">
                                 <label for="rollSystemSelect" style="margin:0; font-weight:bold;">骰組</label>
                                 <select id="rollSystemSelect" class="form-control" style="max-width:220px; height: var(--input-height);"></select>
+                                <button id="rollSystemHelp" class="btn btn-outline-info btn-sm" style="padding: 4px 8px; font-size: 12px;" title="查看說明">
+                                    <span class="iconify" data-icon="bi:info-circle"></span>
+                                </button>
                             </div>
                             <div class="pad-buttons" id="rollCommandButtons"></div>
                         </div>
@@ -256,6 +259,48 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
                     <button type="button" class="btn btn-primary" onclick="joinRoomModal.submit()">加入</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Roll Quick Input Modal -->
+    <div class="modal fade" id="rollQuickModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">填寫指令參數</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="rollQuickModalDesc" style="margin-bottom:8px; opacity:0.85;"></div>
+                    <form id="rollQuickForm"></form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="rollQuick.submitModal()">送出</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Help Modal -->
+    <div class="modal fade" id="systemHelpModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="systemHelpTitle">骰組說明</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <pre id="systemHelpContent" style="white-space: pre-wrap; font-family: inherit; background: transparent; border: none; padding: 0; margin: 0; color: white;"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
                 </div>
             </div>
         </div>
@@ -2092,9 +2137,10 @@
                     await rollQuick.loadSystems();
                     rollQuick.bindEvents();
                     const saved = localStorage.getItem('selectedRollSystem');
-                    if (saved && rollQuick.systems.includes(saved)) {
+                    if (saved && rollQuick.systems.some(s => (s.name || s) === saved)) {
                         document.getElementById('rollSystemSelect').value = saved;
                         await rollQuick.loadCommands(saved);
+                        rollQuick.updateHelpButton();
                     }
                 } catch (e) {
                     console.error('rollQuick init error:', e);
@@ -2105,16 +2151,22 @@
                 const select = document.getElementById('rollSystemSelect');
                 const tabCommon = document.getElementById('tab-common');
                 const tabRoll = document.getElementById('tab-roll');
+                const helpButton = document.getElementById('rollSystemHelp');
+                
                 if (select) {
                     select.addEventListener('change', async (e) => {
                         const system = e.target.value;
                         localStorage.setItem('selectedRollSystem', system);
                         await rollQuick.loadCommands(system);
+                        rollQuick.updateHelpButton();
                     });
                 }
                 if (tabCommon && tabRoll) {
                     tabCommon.addEventListener('click', () => rollQuick.switchTab('common'));
                     tabRoll.addEventListener('click', () => rollQuick.switchTab('roll'));
+                }
+                if (helpButton) {
+                    helpButton.addEventListener('click', () => rollQuick.showSystemHelp());
                 }
             },
 
@@ -2125,7 +2177,10 @@
                 rollQuick.systems = Array.isArray(data.systems) ? data.systems : [];
                 const select = document.getElementById('rollSystemSelect');
                 if (select) {
-                    select.innerHTML = rollQuick.systems.map(s => `<option value="${s}">${s}</option>`).join('');
+                    select.innerHTML = rollQuick.systems.map(s => {
+                        const displayName = s.displayName || s.name || s;
+                        return `<option value="${s.name || s}">${displayName}</option>`;
+                    }).join('');
                 }
             },
 
@@ -2151,32 +2206,161 @@
                 let trigger = item.example || item.command || item.trigger || item.text || item.code || '';
                 let label = item.name || item.title || item.label || '';
                 let desc = item.desc || item.description || '';
-                // Support Discord SlashCommandBuilder shape: { data: { name, description } }
-                if (!trigger && item.data && (item.data.name || item.data.commandName)) {
-                    const cmdName = item.data.name || item.data.commandName;
+                // Support Discord SlashCommandBuilder shape: { data: { name, description, options } }
+                const raw = item.data && (typeof item.data.toJSON === 'function' ? item.data.toJSON() : item.data);
+                if (!trigger && raw && (raw.name || raw.commandName)) {
+                    const cmdName = raw.name || raw.commandName;
                     trigger = `.${cmdName}`;
                     if (!label) label = cmdName;
-                    if (!desc && item.data.description) desc = item.data.description;
+                    if (!desc && raw.description) desc = raw.description;
                 }
                 // Fallback: if still missing, attempt '.' + label
                 if (!trigger && label) {
                     trigger = `.${label}`;
                 }
                 if (!trigger) return null;
-                return { label: String(label || trigger), trigger: String(trigger), desc: String(desc || '') };
+                // Use description as label if available, otherwise use name/trigger
+                const finalLabel = desc || label || trigger;
+                return { label: String(finalLabel), trigger: String(trigger), desc: String(desc || ''), rawSlash: raw };
+            },
+
+            // Expand a normalized item into multiple button entries when slash data is present
+            expandItems: (norm) => {
+                if (!norm) return [];
+                const list = [];
+                const data = norm.rawSlash;
+                if (!data || typeof data !== 'object') {
+                    // If no slash data, include base command
+                    list.push({ label: norm.label, trigger: norm.trigger, desc: norm.desc, meta: null });
+                    return list;
+                }
+                const base = `.${data.name || norm.label}`;
+                const options = Array.isArray(data.options) ? data.options : [];
+                const OPTION_TYPE = {
+                    SUB_COMMAND: 1,
+                    SUB_COMMAND_GROUP: 2
+                };
+                const isRequired = (opt) => !!opt && opt.required === true;
+                const placeholderFor = (opt) => {
+                    const n = opt && opt.name ? opt.name : 'value';
+                    return `<${n}>`;
+                };
+                const addEntry = (label, parts, reqOpts, desc) => {
+                    const trig = parts.filter(Boolean).join(' ');
+                    const meta = { base: parts[0], parts, required: reqOpts || [], description: desc || '' };
+                    // Extract just the subcommand description for button label
+                    const subDesc = reqOpts && reqOpts.length > 0 ? 
+                        (reqOpts[0].description || '') : 
+                        (desc ? desc.split('\n')[0] : '');
+                    const finalLabel = subDesc || label;
+                    list.push({ label: finalLabel, trigger: trig, desc: desc || norm.desc || '', meta });
+                };
+                const mkDesc = (baseDesc, reqs, prefixPath) => {
+                    const lines = [];
+                    const pathInfo = Array.isArray(prefixPath) && prefixPath.length ? `/${prefixPath.join(' / ')}` : '';
+                    if (baseDesc || pathInfo) lines.push([pathInfo, baseDesc || ''].filter(Boolean).join(' '));
+                    if (Array.isArray(reqs) && reqs.length) {
+                        lines.push('參數說明:');
+                        for (const o of reqs) {
+                            lines.push(`- ${o.name}: ${o.description || ''}`);
+                        }
+                    }
+                    return lines.join('\n');
+                };
+                // Only show subcommands, skip base command
+                for (const opt of options) {
+                    if (opt.type === OPTION_TYPE.SUB_COMMAND) {
+                        const reqs = Array.isArray(opt.options) ? opt.options.filter(isRequired) : [];
+                        const parts = [base, ...reqs.map(placeholderFor)];
+                        const fullDesc = mkDesc(opt.description || data.description, reqs, [opt.name]);
+                        // Use subcommand description as button label, full description as tooltip
+                        list.push({ 
+                            label: opt.description || `${data.name} ${opt.name}`, 
+                            trigger: parts.filter(Boolean).join(' '), 
+                            desc: fullDesc, 
+                            meta: { base: parts[0], parts, required: reqs || [], description: fullDesc }
+                        });
+                    } else if (opt.type === OPTION_TYPE.SUB_COMMAND_GROUP && Array.isArray(opt.options)) {
+                        for (const sub of opt.options) {
+                            if (sub && sub.type === OPTION_TYPE.SUB_COMMAND) {
+                                const reqs = Array.isArray(sub.options) ? sub.options.filter(isRequired) : [];
+                                const parts = [base, ...reqs.map(placeholderFor)];
+                                const d = sub.description || opt.description || data.description;
+                                const fullDesc = mkDesc(d, reqs, [opt.name, sub.name]);
+                                list.push({ 
+                                    label: sub.description || `${data.name} ${opt.name} ${sub.name}`, 
+                                    trigger: parts.filter(Boolean).join(' '), 
+                                    desc: fullDesc, 
+                                    meta: { base: parts[0], parts, required: reqs || [], description: fullDesc }
+                                });
+                            }
+                        }
+                    }
+                }
+                return list;
             },
 
             renderCommands: () => {
                 const container = document.getElementById('rollCommandButtons');
                 if (!container) return;
-                const list = rollQuick.commands
+                const items = rollQuick.commands
                     .map(rollQuick.normalizeItem)
                     .filter(Boolean)
-                    .slice(0, 120); // safety cap
+                    .flatMap(rollQuick.expandItems)
+                    .slice(0, 240);
 
-                container.innerHTML = list.map(c => `
-                    <button class="pad-button" title="${(c.desc || c.trigger).replace(/\"/g, '"')}" onclick="rollQuick.useTrigger('${rollQuick.escapeForAttr(c.trigger)}')">${rollQuick.escapeHtml(c.label)}</button>
+                container.innerHTML = items.map((c, idx) => `
+                    <button class=\"pad-button\" title=\"${rollQuick.escapeHtml((c.desc || c.trigger))}\" onclick=\"rollQuick.handleClick(${idx})\">${rollQuick.escapeHtml(c.label)}</button>
                 `).join('');
+                rollQuick._renderCache = items;
+            },
+
+            handleClick: (index) => {
+                const item = (rollQuick._renderCache || [])[index];
+                if (!item) return;
+                // If has required options, open modal; else send directly
+                if (item.meta && Array.isArray(item.meta.required) && item.meta.required.length > 0) {
+                    rollQuick.openModal(item);
+                    return;
+                }
+                rollQuick.useTrigger(item.trigger);
+            },
+
+            openModal: (item) => {
+                const form = document.getElementById('rollQuickForm');
+                const desc = document.getElementById('rollQuickModalDesc');
+                if (!form || !desc) return;
+                // Fill description
+                desc.textContent = item.desc || '';
+                // Build inputs for required options in order
+                form.innerHTML = (item.meta.required || []).map((o, i) => `
+                    <div class=\"form-group\">
+                        <label>${rollQuick.escapeHtml(o.name)}${o.required ? ' *' : ''}</label>
+                        <input type=\"text\" class=\"form-control\" id=\"rollOpt_${i}\" placeholder=\"${rollQuick.escapeHtml(o.description || '')}\" required />
+                    </div>
+                `).join('');
+                // Store current item
+                rollQuick._currentModalItem = item;
+                $('#rollQuickModal').modal('show');
+            },
+
+            submitModal: () => {
+                const item = rollQuick._currentModalItem;
+                if (!item || !item.meta) return;
+                const values = [];
+                for (let i = 0; i < item.meta.required.length; i++) {
+                    const input = document.getElementById(`rollOpt_${i}`);
+                    const v = (input && input.value) ? input.value.trim() : '';
+                    if (!v) {
+                        if (input) input.focus();
+                        return;
+                    }
+                    values.push(v);
+                }
+                // Rebuild trigger by replacing placeholders sequentially
+                const built = item.meta.parts.map(p => /<[^>]+>/.test(p) ? values.shift() : p).join(' ');
+                $('#rollQuickModal').modal('hide');
+                rollQuick.useTrigger(built);
             },
 
             useTrigger: (trigger) => {
@@ -2197,6 +2381,32 @@
                     .replace(/\\/g, '\\\\')
                     .replace(/'/g, "\\'")
                     .replace(/\n/g, ' ');
+            },
+
+            updateHelpButton: () => {
+                const helpButton = document.getElementById('rollSystemHelp');
+                const select = document.getElementById('rollSystemSelect');
+                if (!helpButton || !select) return;
+                
+                const selectedSystem = rollQuick.systems.find(s => (s.name || s) === select.value);
+                if (selectedSystem && selectedSystem.helpMessage) {
+                    helpButton.style.display = 'inline-block';
+                    helpButton.title = '查看 ' + (selectedSystem.displayName || selectedSystem.name) + ' 說明';
+                } else {
+                    helpButton.style.display = 'none';
+                }
+            },
+
+            showSystemHelp: () => {
+                const select = document.getElementById('rollSystemSelect');
+                if (!select) return;
+                
+                const selectedSystem = rollQuick.systems.find(s => (s.name || s) === select.value);
+                if (selectedSystem && selectedSystem.helpMessage) {
+                    document.getElementById('systemHelpTitle').textContent = (selectedSystem.displayName || selectedSystem.name) + ' 說明';
+                    document.getElementById('systemHelpContent').textContent = selectedSystem.helpMessage;
+                    $('#systemHelpModal').modal('show');
+                }
             },
 
             switchTab: (tab) => {

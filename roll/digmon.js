@@ -634,7 +634,17 @@ class Digimon {
             rply += `${headerLine}\n`;
             // Personality
             const displayPersonality = digimonInstance.getDisplayPersonality(digimon);
-            rply += `個性：${displayPersonality}\n`;
+            let personalityLine = `個性：${displayPersonality}`;
+            if (digimon.rider !== undefined) {
+                personalityLine += ` ｜ 騎乘：${digimon.rider ? '⭕' : '❌'}`;
+            }
+            const primaryElement = digimonInstance.getPrimarySkillElement(digimon);
+            const primaryPower = digimonInstance.getPrimarySkillPower(digimon);
+            if (primaryPower !== '-') {
+                const elementEmoji = digimonInstance.getElementEmoji(primaryElement);
+                personalityLine += ` ｜ 威力：${elementEmoji} ${primaryPower}`;
+            }
+            rply += personalityLine + '\n';
             // Resistances
             if (digimon.elemental_resistances) {
                 const resistances = digimonInstance.formatElementalResistances(digimon.elemental_resistances);
@@ -721,7 +731,17 @@ class Digimon {
             const stageLabel = this.getStageName(d.stage);
             const personality = this.getDisplayPersonality(d);
             const num = this.numberToEmoji(i + 1);
-            result += `${num}${this.padEnd(d.name, 8)}｜${stageLabel}｜基礎個性：${personality}\n`;
+            let line = `${num}${this.padEnd(d.name, 8)}｜${stageLabel}｜基礎個性：${personality}`;
+            if (d.rider !== undefined) {
+                line += ` ｜ 騎乘：${d.rider ? '⭕' : '❌'}`;
+            }
+            const primaryElement = this.getPrimarySkillElement(d);
+            const primaryPower = this.getPrimarySkillPower(d);
+            if (primaryPower !== '-') {
+                const elementEmoji = this.getElementEmoji(primaryElement);
+                line += ` ｜ 威力：${elementEmoji} ${primaryPower}`;
+            }
+            result += line + '\n';
             if (d.stage === '1') {
                 // lineage details are shown in the header; skip per-item lineage block
             }
@@ -897,8 +917,21 @@ class Digimon {
         }
         // Fallback to first listed skill's element
         const first = digimon.special_skills[0];
-        if (first && typeof first.element === 'string' && first.element.length > 0) {
-            return first.element;
+        return '-';
+    }
+
+    // Get a digimon's primary skill power for display
+    getPrimarySkillPower(digimon) {
+        if (!digimon || !Array.isArray(digimon.special_skills) || digimon.special_skills.length === 0) return '-';
+        // Prefer first offensive skill targeting enemies
+        const offensive = digimon.special_skills.find(s => this.isSkillTargetsEnemy(s));
+        if (offensive && offensive.power !== undefined) {
+            return offensive.power;
+        }
+        // Fallback to first listed skill's power
+        const first = digimon.special_skills[0];
+        if (first && first.power !== undefined) {
+            return first.power;
         }
         return '-';
     }

@@ -2049,13 +2049,42 @@
                 const game = quickCommandsManager.data.find(g => g.fileName === fileName);
                 if (!game) return;
 
-                game.commands.forEach(command => {
-                    const btn = document.createElement('button');
-                    btn.className = 'pad-button';
-                    btn.textContent = command.json.description;
-                    btn.onclick = () => quickCommandsManager.handleCommandClick(command, game);
-                    commandsContainer.appendChild(btn);
-                });
+                const isCoc = game.gameName.includes('克蘇魯神話');
+                const filterText = '克蘇魯神話TRPG ';
+
+                if (game.commands.length === 1) {
+                    const singleCommand = game.commands[0];
+                    const hasOptions = singleCommand.json.options && singleCommand.json.options.length > 0;
+
+                    if (hasOptions) {
+                        // Auto-expand the single command with options
+                        quickCommandsManager.handleCommandClick(singleCommand, game);
+                    } else {
+                        // Single command with no options, just show the button
+                        const btn = document.createElement('button');
+                        btn.className = 'pad-button';
+                        let buttonText = singleCommand.json.description;
+                        if (isCoc) {
+                            buttonText = buttonText.replace(filterText, '').trim();
+                        }
+                        btn.textContent = buttonText;
+                        btn.onclick = () => quickCommandsManager.handleCommandClick(singleCommand, game);
+                        commandsContainer.appendChild(btn);
+                    }
+                } else {
+                    // Original logic for multiple commands
+                    game.commands.forEach(command => {
+                        const btn = document.createElement('button');
+                        btn.className = 'pad-button';
+                        let buttonText = command.json.description;
+                        if (isCoc) {
+                            buttonText = buttonText.replace(filterText, '').trim();
+                        }
+                        btn.textContent = buttonText;
+                        btn.onclick = () => quickCommandsManager.handleCommandClick(command, game);
+                        commandsContainer.appendChild(btn);
+                    });
+                }
             },
             handleCommandClick: (command, game) => {
                 const inputsContainer = document.getElementById('dice-set-command-inputs');

@@ -660,7 +660,16 @@ class Digimon {
                 const maxHits = primarySkill.maxHits || 1;
                 const totalPower = power * maxHits;
                 const elementEmoji = digimonInstance.getElementEmoji(primarySkill.element);
-                personalityLine += ` ｜ 威力：${elementEmoji} ${totalPower}`;
+                const powerString = maxHits > 1 ? `${maxHits}×${power}=${totalPower}` : `${totalPower}`;
+                let extras = [];
+                if (primarySkill.critRate > 0) {
+                    extras.push(`CR:${primarySkill.critRate}`);
+                }
+                if (primarySkill.alwaysHits) {
+                    extras.push('必中');
+                }
+                const extrasString = extras.length > 0 ? ` (${extras.join(' ')})` : '';
+                personalityLine += ` ｜ 威力：${elementEmoji} ${powerString}${extrasString}`;
             }
             rply += personalityLine + '\n';
             // Resistances

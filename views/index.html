@@ -2082,6 +2082,7 @@
                         const choiceGroup = document.createElement('div');
                         choiceGroup.className = 'btn-group btn-group-toggle';
                         choiceGroup.dataset.toggle = 'buttons';
+
                         option.choices.forEach(choice => {
                             const choiceLabel = document.createElement('label');
                             choiceLabel.className = 'btn btn-outline-secondary';
@@ -2089,11 +2090,33 @@
                             radio.type = 'radio';
                             radio.name = option.name;
                             radio.value = choice.value;
-                            radio.onchange = (e) => {
-                                quickCommandsManager.activeCommand.inputs[option.name] = e.target.value;
-                            };
+                            radio.autocomplete = 'off';
+
                             choiceLabel.appendChild(radio);
                             choiceLabel.append(choice.name);
+
+                            choiceLabel.addEventListener('click', function(e) {
+                                e.preventDefault(); // Take full control
+
+                                if (radio.checked) {
+                                    // Already checked, so uncheck it
+                                    radio.checked = false;
+                                    this.classList.remove('active');
+                                    delete quickCommandsManager.activeCommand.inputs[option.name];
+                                } else {
+                                    // Not checked, so check it and uncheck others
+                                    const allRadiosInGroup = choiceGroup.querySelectorAll('input[type="radio"]');
+                                    allRadiosInGroup.forEach(r => {
+                                        r.checked = false;
+                                        r.parentElement.classList.remove('active');
+                                    });
+
+                                    radio.checked = true;
+                                    this.classList.add('active');
+                                    quickCommandsManager.activeCommand.inputs[option.name] = radio.value;
+                                }
+                            });
+
                             choiceGroup.appendChild(choiceLabel);
                         });
                         inputGroup.appendChild(choiceGroup);
@@ -2109,8 +2132,14 @@
                         }
                         input.className = 'form-control';
                         input.placeholder = option.description;
-                        input.onchange = (e) => {
+                        input.oninput = (e) => {
                             quickCommandsManager.activeCommand.inputs[option.name] = e.target.value;
+                        };
+                        input.onkeydown = (e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                quickCommandsManager.executeCommand();
+                            }
                         };
                         inputGroup.appendChild(input);
                     }
@@ -2127,6 +2156,17 @@
                 if (!quickCommandsManager.activeCommand) return;
 
                 const { command, inputs } = quickCommandsManager.activeCommand;
+
+                // Check for required options before executing
+                if (command.json.options) {
+                    for (const option of command.json.options) {
+                        if (option.required && (inputs[option.name] === undefined || inputs[option.name] === '')) {
+                            alert(`請填寫必填欄位: ${option.description}`);
+                            return; // Stop execution
+                        }
+                    }
+                }
+
                 let finalCommand = command.execute;
 
                 for (const key in inputs) {

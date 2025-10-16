@@ -217,6 +217,38 @@ www.get('/api', async (req, res) => {
 
 });
 
+// Local bot endpoint for personal room (no broadcasting/records)
+www.get('/api/local', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+
+    try {
+        const q = (req && req.query && typeof req.query.msg === 'string') ? req.query.msg : '';
+        if (!q) {
+            res.writeHead(200, { 'Content-type': 'application/json' });
+            res.end(String.raw`{"message":""}`);
+            return;
+        }
+
+        const mainMsg = q.match(MESSAGE_SPLITOR);
+        let rplyVal = {};
+        if (mainMsg && mainMsg.length) {
+            rplyVal = await exports.analytics.parseInput({
+                inputStr: mainMsg.join(' '),
+                botname: "Local"
+            });
+        }
+        if (!rplyVal || !rplyVal.text) rplyVal = { text: '' };
+        res.writeHead(200, { 'Content-type': 'application/json' });
+        res.end(`{"message":"${jsonEscape(rplyVal.text)}"}`);
+    } catch (err) {
+        res.writeHead(200, { 'Content-type': 'application/json' });
+        res.end(String.raw`{"message":""}`);
+    }
+});
+
 www.get('/api/dice-commands', async (req, res) => {
     if (await checkRateLimit('api', req.ip)) {
         res.status(429).end();

@@ -212,6 +212,14 @@
                         <li>點擊「重新生成」可隨機生成新暱稱</li>
                     </ul>
 
+                    <h6>個人小屋</h6>
+                    <ul>
+                        <li>僅儲存在本機，不會上傳伺服器，其他人無法看到</li>
+                        <li>可與機器人互動；對話只在本機顯示</li>
+                        <li>刪除鍵為「清空內容」（不會移除房間），並會跳出確認</li>
+                        <li>清空後無法復原</li>
+                    </ul>
+
                     <h6>注意事項</h6>
                     <ul>
                         <li>每間房間上限100條訊息</li>
@@ -1724,6 +1732,7 @@
         // Configuration and Constants
         const CONFIG = {
             DEFAULT_ROOM: "公共房間",
+            PERSONAL_ROOM: "個人小屋",
             MAX_MESSAGES: 100,
             DEFAULT_NAME_PREFIX: "調查員",
             SOCKET_RECONNECT_ATTEMPTS: 999,
@@ -1792,8 +1801,15 @@
 
                 state.socket.on('chatRecord', async (msgs) => {
                     if (!Array.isArray(msgs)) return;
+                    // Only render if the history batch matches current room
+                    const batchRoom = (msgs[0] && msgs[0].roomNumber) ? msgs[0].roomNumber : null;
+                    if (batchRoom && batchRoom !== chatroomManager.currentRoom) {
+                        return; // Ignore history for other rooms (e.g., server's default 公共房間 push)
+                    }
+
                     // Mark history phase
                     state.isHistoryLoading = true;
+
                     // Render history in stable order
                     msgs.sort((a, b) => {
                         const ta = new Date(a.time).getTime();
@@ -1805,8 +1821,11 @@
                         return ida.localeCompare(idb);
                     });
                     for (const msg of msgs) {
-                        await uiManager.addMessageToBox(msg);
+                        if (!batchRoom || msg.roomNumber === chatroomManager.currentRoom) {
+                            await uiManager.addMessageToBox(msg);
+                        }
                     }
+
                     // Flush buffered live messages after history is painted
                     if (state.pendingLive.length) {
                         state.pendingLive.sort((a, b) => {
@@ -1848,19 +1867,58 @@
                 const msgInput = document.getElementById("msg");
                 const nameInput = document.getElementById("name");
 
-                sendForm.addEventListener("submit", (e) => {
+                sendForm.addEventListener("submit", async (e) => {
                     e.preventDefault();
 
                     if (!msgInput.value.trim()) return;
 
+                    const plainMsg = msgInput.value;
                     const formData = {
                         time: new Date(),
-                        msg: msgInput.value,
+                        msg: plainMsg,
                         name: nameInput.value,
                         roomNumber: chatroomManager.currentRoom // 使用當前房間
                     };
 
+                    // 個人小屋：本地處理，不送往伺服器
+                    if (chatroomManager.currentRoom === CONFIG.PERSONAL_ROOM) {
+                        const userMessage = {
+                            time: new Date(),
+                            msg: '\n' + plainMsg,
+                            name: nameInput.value,
+                            roomNumber: CONFIG.PERSONAL_ROOM
+                        };
+                        await uiManager.addMessageToBox(userMessage);
+
+                        try {
+                            const res = await fetch(`/api/local?msg=${encodeURIComponent(plainMsg)}`);
+                            const data = await res.json();
+                            const reply = (data && data.message) ? data.message.toString() : '';
+                            if (reply) {
+                                // 分段顯示，以符合介面一致性
+                                const parts = reply.match(/[\s\S]{1,2000}/g) || [];
+                                const baseTime = Date.now();
+                                for (let i = 0; i < parts.length; i++) {
+                                    const botMessage = {
+                                        time: new Date(baseTime + 1 + i),
+                                        msg: parts[i],
+                                        name: 'HKTRPG -> ' + nameInput.value,
+                                        roomNumber: CONFIG.PERSONAL_ROOM
+                                    };
+                                    await uiManager.addMessageToBox(botMessage);
+                                }
+                            }
+                        } catch (err) {
+                            console.error('Local bot error:', err);
+                        }
+
+                        utils.setLocalStorage("name", nameInput.value);
+                        msgInput.value = '';
+                        return;
+                    }
+
                     if (state.socket) {
+                        // 與伺服器通訊維持原有格式（伺服器端會在前綴加上換行）
                         state.socket.emit("send", formData);
                         utils.setLocalStorage("name", nameInput.value);
                         msgInput.value = '';
@@ -1949,6 +2007,15 @@
                         setTimeout(checkAndScroll, 50);
                     };
                     scrollAndWatch();
+                }
+
+                // 個人小屋歷史紀錄：僅在非歷史載入期間保存
+                if (chatroomManager.currentRoom === CONFIG.PERSONAL_ROOM && !state.isHistoryLoading) {
+                    personalStorage.append(CONFIG.PERSONAL_ROOM, {
+                        name: message.name,
+                        msg: message.msg,
+                        time: message.time
+                    }, state.max_record);
                 }
             }
         };
@@ -2395,11 +2462,18 @@
                 if (!chatroomManager.rooms.has(CONFIG.DEFAULT_ROOM)) {
                     chatroomManager.rooms.add(CONFIG.DEFAULT_ROOM);
                 }
+                // 確保個人小屋存在（且永遠在列表內）
+                chatroomManager.rooms.add(CONFIG.PERSONAL_ROOM);
 
                 chatroomManager.renderRooms();
                 chatroomManager.setupEventListeners();
-                // 初始化時加入默認房間
-                chatroomManager.switchRoom(CONFIG.DEFAULT_ROOM);
+                // 初始化時恢復上次房間
+                const lastRoom = localStorage.getItem('lastRoom');
+                if (lastRoom && (lastRoom === CONFIG.PERSONAL_ROOM || chatroomManager.rooms.has(lastRoom))) {
+                    chatroomManager.switchRoom(lastRoom);
+                } else {
+                    chatroomManager.switchRoom(CONFIG.DEFAULT_ROOM);
+                }
             },
 
             setupEventListeners: () => {
@@ -2433,6 +2507,11 @@
 
             removeRoom: (roomName) => {
                 if (roomName === CONFIG.DEFAULT_ROOM) return;
+                if (roomName === CONFIG.PERSONAL_ROOM) {
+                    // 個人小屋：清空內容而不是移除
+                    chatroomManager.clearPersonalRoom();
+                    return;
+                }
                 chatroomManager.rooms.delete(roomName);
                 chatroomManager.saveRooms(); // 保存更新後的房間列表
                 chatroomManager.renderRooms();
@@ -2444,14 +2523,15 @@
             switchRoom: (roomName) => {
                 if (chatroomManager.currentRoom === roomName) return;
 
-                // 移除舊房間的事件監聽器
-                if (state.socket) {
+                // 移除舊房間的事件監聽器（僅非個人小屋）
+                if (state.socket && chatroomManager.currentRoom !== CONFIG.PERSONAL_ROOM) {
                     state.socket.off(chatroomManager.currentRoom);
                 }
 
                 // 更新房間狀態
                 chatroomManager.currentRoom = roomName;
                 state.currentRoom = roomName;
+                localStorage.setItem('lastRoom', roomName);
 
                 // 清空聊天內容
                 const content = document.getElementById("content");
@@ -2459,9 +2539,25 @@
                     content.innerHTML = '';
                 }
 
-                // 發送切換房間事件
-                if (state.socket) {
-                    // Prepare history loading state and buffer
+                // 個人小屋：從本地載入歷史
+                if (roomName === CONFIG.PERSONAL_ROOM) {
+                    state.isHistoryLoading = true;
+                    const history = personalStorage.load(CONFIG.PERSONAL_ROOM);
+                    try {
+                        for (const msg of history) {
+                            // 重播歷史訊息
+                            uiManager.addMessageToBox({
+                                name: msg.name,
+                                msg: msg.msg,
+                                time: msg.time,
+                                roomNumber: CONFIG.PERSONAL_ROOM
+                            });
+                        }
+                    } finally {
+                        state.isHistoryLoading = false;
+                    }
+                } else if (state.socket) {
+                    // 發送切換房間事件（連線房）
                     state.isHistoryLoading = true;
                     state.pendingLive = [];
                     state.socket.emit("newRoom", roomName);
@@ -2489,18 +2585,62 @@
                 const container = document.getElementById("chatroomList");
                 if (!container) return;
 
-                container.innerHTML = Array.from(chatroomManager.rooms).map(room => `
+                // 保持順序：默認房 -> 個人小屋 -> 其他
+                const rooms = [CONFIG.DEFAULT_ROOM, CONFIG.PERSONAL_ROOM, ...Array.from(chatroomManager.rooms).filter(r => r !== CONFIG.DEFAULT_ROOM && r !== CONFIG.PERSONAL_ROOM).sort()];
+
+                container.innerHTML = rooms.map(room => `
                     <div class="chatroom-item ${room === chatroomManager.currentRoom ? 'active' : ''}"
                          onclick="chatroomManager.switchRoom('${room}')">
                         <span class="iconify" data-icon="bi:chat-dots"></span>
                         <span class="room-name">${room}</span>
-                        ${room !== CONFIG.DEFAULT_ROOM ? `
+                        ${room === CONFIG.PERSONAL_ROOM ? `
+                            <button class=\"delete-btn\" title=\"清空內容\" onclick=\"event.stopPropagation(); chatroomManager.confirmAndClearPersonalRoom()\">
+                                <span class="iconify" data-icon="bi:x"></span>
+                            </button>
+                        ` : (room !== CONFIG.DEFAULT_ROOM ? `
                             <button class="delete-btn" onclick="event.stopPropagation(); chatroomManager.removeRoom('${room}')">
                                 <span class="iconify" data-icon="bi:x"></span>
                             </button>
-                        ` : ''}
+                        ` : '')}
                     </div>
                 `).join('');
+            },
+
+            confirmAndClearPersonalRoom: () => {
+                if (!window.confirm('確定要清空「個人小屋」的內容嗎？此動作無法復原。')) return;
+                chatroomManager.clearPersonalRoom();
+            },
+
+            clearPersonalRoom: () => {
+                personalStorage.clear(CONFIG.PERSONAL_ROOM);
+                if (chatroomManager.currentRoom === CONFIG.PERSONAL_ROOM) {
+                    const content = document.getElementById("content");
+                    if (content) content.innerHTML = '';
+                }
+            }
+        };
+
+        // 個人小屋本地儲存
+        const personalStorage = {
+            key: (room) => `chatRoomMessages_${room}`,
+            load: (room) => {
+                try {
+                    const raw = localStorage.getItem(personalStorage.key(room));
+                    const arr = raw ? JSON.parse(raw) : [];
+                    return Array.isArray(arr) ? arr : [];
+                } catch { return []; }
+            },
+            saveAll: (room, arr) => {
+                try { localStorage.setItem(personalStorage.key(room), JSON.stringify(arr)); } catch {}
+            },
+            append: (room, message, max) => {
+                const arr = personalStorage.load(room);
+                arr.push({ name: message.name, msg: message.msg, time: message.time });
+                while (arr.length > (max || CONFIG.MAX_MESSAGES)) arr.shift();
+                personalStorage.saveAll(room, arr);
+            },
+            clear: (room) => {
+                try { localStorage.removeItem(personalStorage.key(room)); } catch {}
             }
         };
 

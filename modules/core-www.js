@@ -234,7 +234,7 @@ www.get('/api/local', async (req, res) => {
 
         const mainMsg = q.match(MESSAGE_SPLITOR);
         let rplyVal = {};
-        if (mainMsg && mainMsg.length) {
+        if (mainMsg && mainMsg.length > 0) {
             rplyVal = await exports.analytics.parseInput({
                 inputStr: mainMsg.join(' '),
                 botname: "Local"
@@ -243,7 +243,8 @@ www.get('/api/local', async (req, res) => {
         if (!rplyVal || !rplyVal.text) rplyVal = { text: '' };
         res.writeHead(200, { 'Content-type': 'application/json' });
         res.end(`{"message":"${jsonEscape(rplyVal.text)}"}`);
-    } catch (err) {
+    } catch (error) {
+        console.error('Error in /api/local:', error.message);
         res.writeHead(200, { 'Content-type': 'application/json' });
         res.end(String.raw`{"message":""}`);
     }

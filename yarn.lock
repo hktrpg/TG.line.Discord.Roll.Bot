@@ -4139,10 +4139,10 @@ discord-api-types@^0.38.1:
   resolved "https://registry.npmjs.org/discord-api-types/-/discord-api-types-0.38.8.tgz"
   integrity sha512-xuRXPD44FcbKHrQK15FS1HFlMRNJtsaZou/SVws18vQ7zHqmlxyDktMkZpyvD6gE2ctGOVYC/jUyoMMAyBWfcw==
 
-discord-hybrid-sharding@^2.2.6:
-  version "2.2.6"
-  resolved "https://registry.npmjs.org/discord-hybrid-sharding/-/discord-hybrid-sharding-2.2.6.tgz"
-  integrity sha512-I/MaEg3+/DD1oDZx5kDWXyajkKqiJwG4nxF5hv8nLBfioFSO19sXjaq2z9klMJRINvPhX0zNAj52dRRNuzqyzQ==
+discord-hybrid-sharding@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/discord-hybrid-sharding/-/discord-hybrid-sharding-3.0.1.tgz#a102258ca2e2b945f8e69d1188697396520b9938"
+  integrity sha512-a4MhJs9Ga2yiIGEz+Lj0WgBOS785DSqX3PIr/vkOMpqugS1QJk79T8YFvGr26JmOVRAhgqaWE2eUjuekR/8MJA==
 
 discord.js@^14.21.0:
   version "14.21.0"

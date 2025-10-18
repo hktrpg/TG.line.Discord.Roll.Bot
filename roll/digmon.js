@@ -3,7 +3,7 @@ const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 const Fuse = require('fuse.js');
 const gameName = function () {
-    return '【Digimon Story: Cyber Sleuth】.digi '
+    return '【數碼寶貝物語時空異客】.digi '
 }
 const gameType = function () {
     return 'Funny:digimon:hktrpg'
@@ -213,26 +213,42 @@ class Digimon {
         return String(str || '').padStart(len, ' ');
     }
 
+    padWide(str, length) {
+        let s = String(str || '');
+        let currentWidth = 0;
+        for (const ch of s) {
+            // CJK and full-width characters
+            const cp = ch.codePointAt(0);
+            if (cp > 0xFF) {
+                currentWidth += 2;
+            } else {
+                currentWidth += 1;
+            }
+        }
+        const padding = Math.max(0, length - currentWidth);
+        return s + ' '.repeat(padding);
+    }
+
     formatCounterTable(counterDigimon) {
         if (!Array.isArray(counterDigimon) || counterDigimon.length === 0) return '';
         let text = '';
         text += `[受其特殊技能克制]\n`;
         // headers
-        const h1 = this.padEnd('等級', 4);
-        const h2 = this.padEnd('名稱', 12);
-        const h3 = this.padEnd('倍率', 6);
-        const h4 = this.padEnd('傷害(次×力=總)', 16);
-        const h5 = this.padEnd('範圍', 4);
+        const h1 = this.padWide('等級', 6);
+        const h2 = this.padWide('名稱', 12);
+        const h3 = this.padWide('倍率', 6);
+        const h4 = this.padWide('傷害(次×力=總)', 16);
+        const h5 = this.padWide('範圍', 6);
         text += `${h1}  ${h2}  ${h3}  ${h4}  ${h5}\n`;
         for (const c of counterDigimon) {
-            const level = this.padEnd(this.getLevelLabelForTable(c.stage), 4);
-            const name = this.padEnd(c.name, 12);
-            const mult = this.padEnd(`×${c.counterValue}`, 6);
+            const level = this.padWide(this.getLevelLabelForTable(c.stage), 6);
+            const name = this.padWide(c.name, 12);
+            const mult = this.padWide(`×${c.counterValue}`, 6);
             const hitInfo = (typeof c.hits === 'number' && typeof c.power === 'number' && c.hits > 0 && c.power > 0)
                 ? `${c.hits}×${c.power}=${c.hitPower}`
                 : '-';
-            const hit = this.padEnd(hitInfo, 16);
-            const range = this.padEnd(c.isAoE ? '全體' : '-', 4);
+            const hit = this.padWide(hitInfo, 16);
+            const range = this.padWide(c.isAoE ? '全體' : '-', 6);
             text += `${level}  ${name}  ${mult}  ${hit}  ${range}\n`;
         }
         return text;
@@ -634,7 +650,28 @@ class Digimon {
             rply += `${headerLine}\n`;
             // Personality
             const displayPersonality = digimonInstance.getDisplayPersonality(digimon);
-            rply += `個性：${displayPersonality}\n`;
+            let personalityLine = `個性：${displayPersonality}`;
+            if (digimon.rider !== undefined) {
+                personalityLine += ` ｜ 騎乘：${digimon.rider ? '⭕' : '❌'}`;
+            }
+            const primarySkill = digimonInstance.getPrimarySkill(digimon);
+            if (primarySkill) {
+                const power = primarySkill.power || 0;
+                const maxHits = primarySkill.maxHits || 1;
+                const totalPower = power * maxHits;
+                const elementEmoji = digimonInstance.getElementEmoji(primarySkill.element);
+                const powerString = maxHits > 1 ? `${maxHits}×${power}=${totalPower}` : `${totalPower}`;
+                let extras = [];
+                if (primarySkill.critRate > 0) {
+                    extras.push(`CR:${primarySkill.critRate}`);
+                }
+                if (primarySkill.alwaysHits) {
+                    extras.push('必中');
+                }
+                const extrasString = extras.length > 0 ? ` (${extras.join(' ')})` : '';
+                personalityLine += ` ｜ 威力：${elementEmoji} ${powerString}${extrasString}`;
+            }
+            rply += personalityLine + '\n';
             // Resistances
             if (digimon.elemental_resistances) {
                 const resistances = digimonInstance.formatElementalResistances(digimon.elemental_resistances);
@@ -669,9 +706,41 @@ class Digimon {
                         const nd = nextDigimon[i];
                         const stageLabel = digimonInstance.getStageName(nd.stage);
                         const personality = digimonInstance.getDisplayPersonality(nd);
-                        const elem = digimonInstance.getPrimarySkillElement(nd);
+                        
+                        const primarySkill = digimonInstance.getPrimarySkill(nd);
+                        const elem = primarySkill ? primarySkill.element : '-';
                         const emoji = digimonInstance.getElementEmoji(elem);
-                        rply += ` ${emoji} ${digimonInstance.padEnd(nd.name, 8)}｜${stageLabel}｜基礎個性：${personality}\n`;
+
+                        let line = ` ${emoji} ${digimonInstance.padWide(nd.name, 12)}｜${stageLabel}｜${personality}`;
+
+                        if (nd.rider !== undefined) {
+                            line += ` ｜ ${nd.rider ? '🏇' : '➖'}`;
+                        }
+
+                        if (primarySkill) {
+                            const power = primarySkill.power || 0;
+                            const maxHits = primarySkill.maxHits || 1;
+                            const totalPower = power * maxHits;
+                            
+                            let powerString;
+                            if (maxHits > 1) {
+                                powerString = `${maxHits}×${power}=${totalPower}`;
+                            } else {
+                                powerString = `${totalPower}`;
+                            }
+
+                            let extras = [];
+                            if (primarySkill.critRate > 0) {
+                                extras.push(`CR:${primarySkill.critRate}`);
+                            }
+                            if (primarySkill.alwaysHits) {
+                                extras.push('必中');
+                            }
+                            const extrasString = extras.length > 0 ? ` (${extras.join(' ')})` : '';
+                            line += ` ｜ ${digimonInstance.getElementEmoji(primarySkill.element)} ${powerString}${extrasString}`;
+                        }
+
+                        rply += line + '\n';
                     }
                 }
             }
@@ -721,7 +790,19 @@ class Digimon {
             const stageLabel = this.getStageName(d.stage);
             const personality = this.getDisplayPersonality(d);
             const num = this.numberToEmoji(i + 1);
-            result += `${num}${this.padEnd(d.name, 8)}｜${stageLabel}｜基礎個性：${personality}\n`;
+            let line = `${num}${this.padWide(d.name, 12)}｜${stageLabel}｜${personality}`;
+            if (d.rider !== undefined) {
+                line += d.rider ? ' ｜ 🏇' : ' ｜ ➖';
+            }
+            const primarySkill = this.getPrimarySkill(d);
+            if (primarySkill) {
+                const power = primarySkill.power || 0;
+                const maxHits = primarySkill.maxHits || 1;
+                const totalPower = power * maxHits;
+                const elementEmoji = this.getElementEmoji(primarySkill.element);
+                line += ` ｜ ${elementEmoji} ${totalPower}`;
+            }
+            result += line + '\n';
             if (d.stage === '1') {
                 // lineage details are shown in the header; skip per-item lineage block
             }
@@ -887,20 +968,16 @@ class Digimon {
         }
     }
 
-    // Determine a digimon's primary skill element for display
-    getPrimarySkillElement(digimon) {
-        if (!digimon || !Array.isArray(digimon.special_skills)) return '-';
+    // Get a digimon's primary skill object for display
+    getPrimarySkill(digimon) {
+        if (!digimon || !Array.isArray(digimon.special_skills) || digimon.special_skills.length === 0) return null;
         // Prefer first offensive skill targeting enemies
         const offensive = digimon.special_skills.find(s => this.isSkillTargetsEnemy(s));
-        if (offensive && typeof offensive.element === 'string' && offensive.element.length > 0) {
-            return offensive.element;
+        if (offensive) {
+            return offensive;
         }
-        // Fallback to first listed skill's element
-        const first = digimon.special_skills[0];
-        if (first && typeof first.element === 'string' && first.element.length > 0) {
-            return first.element;
-        }
-        return '-';
+        // Fallback to first listed skill
+        return digimon.special_skills[0];
     }
 
     findSimplePathFromStage1(targetDigimon) {

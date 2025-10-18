@@ -196,7 +196,7 @@ const discordCommand = [
             .addIntegerOption(option => 
                 option.setName('target')
                     .setDescription('目標值 (1-20)')
-                    .setRequired(false)
+                    .setRequired(true)
                     .setMinValue(1)
                     .setMaxValue(20)),
         async execute(interaction) {

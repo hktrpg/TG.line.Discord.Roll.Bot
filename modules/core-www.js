@@ -217,6 +217,150 @@ www.get('/api', async (req, res) => {
 
 });
 
+// Local bot endpoint for personal room (no broadcasting/records)
+www.get('/api/local', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+
+    try {
+        const q = (req && req.query && typeof req.query.msg === 'string') ? req.query.msg : '';
+        if (!q) {
+            res.writeHead(200, { 'Content-type': 'application/json' });
+            res.end(String.raw`{"message":""}`);
+            return;
+        }
+
+        const mainMsg = q.match(MESSAGE_SPLITOR);
+        let rplyVal = {};
+        if (mainMsg && mainMsg.length > 0) {
+            rplyVal = await exports.analytics.parseInput({
+                inputStr: mainMsg.join(' '),
+                botname: "Local"
+            });
+        }
+        if (!rplyVal || !rplyVal.text) rplyVal = { text: '' };
+        res.writeHead(200, { 'Content-type': 'application/json' });
+        res.end(`{"message":"${jsonEscape(rplyVal.text)}"}`);
+    } catch (error) {
+        console.error('Error in /api/local:', error.message);
+        res.writeHead(200, { 'Content-type': 'application/json' });
+        res.end(String.raw`{"message":""}`);
+    }
+});
+
+www.get('/api/dice-commands', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+
+    const rollDir = path.join(process.cwd(), 'roll');
+    const files = fs.readdirSync(rollDir);
+    const commandsData = [];
+
+    const ignoredFiles = ['z_', 'rollbase', 'demo', 'export', 'forward', 'help', 'init', 'request-rolling', 'token', 'edit'];
+
+    for (const file of files) {
+        if (file.endsWith('.js') && !ignoredFiles.some(prefix => file.startsWith(prefix))) {
+            try {
+                const modulePath = path.join(rollDir, file);
+                const commandModule = require(modulePath);
+
+                if (commandModule.webCommand !== false && commandModule.discordCommand && commandModule.gameName && commandModule.getHelpMessage) {
+                    const gameName = commandModule.gameName();
+                    const helpMessage = await commandModule.getHelpMessage();
+                    const commands = [];
+
+                    for (const cmd of commandModule.discordCommand) {
+                        const commandJson = cmd.data.toJSON();
+                        const subcommands = commandJson.options ? commandJson.options.filter(opt => opt.type === 1) : [];
+
+                        if (subcommands.length > 0) {
+                            for (const sub of subcommands) {
+                                const mockInteraction = {
+                                    options: {
+                                        getSubcommand: () => sub.name,
+                                        getString: (name) => {
+                                            const opt = sub.options?.find(o => o.name === name);
+                                            return (opt && !opt.required) ? null : `PLACEHOLDER_STRING_${name}`;
+                                        },
+                                        getInteger: (name) => {
+                                            const opt = sub.options?.find(o => o.name === name);
+                                            return (opt && !opt.required) ? null : `PLACEHOLDER_INTEGER_${name}`;
+                                        },
+                                        getBoolean: (name) => {
+                                            const opt = sub.options?.find(o => o.name === name);
+                                            return (opt && !opt.required) ? null : `PLACEHOLDER_BOOLEAN_${name}`;
+                                        },
+                                        getNumber: (name) => {
+                                            const opt = sub.options?.find(o => o.name === name);
+                                            return (opt && !opt.required) ? null : `PLACEHOLDER_NUMBER_${name}`;
+                                        },
+                                    }
+                                };
+
+                                try {
+                                    const executeTemplate = await cmd.execute(mockInteraction);
+                                    commands.push({
+                                        json: {
+                                            name: `${commandJson.name}_${sub.name}`,
+                                            description: sub.description,
+                                            options: sub.options || []
+                                        },
+                                        execute: executeTemplate
+                                    });
+                                } catch { /* Ignore errors in mock execution */ }
+                            }
+                        } else {
+                            const mockInteraction = {
+                                options: {
+                                    getSubcommand: () => null,
+                                    getString: (name) => {
+                                        const opt = commandJson.options?.find(o => o.name === name);
+                                        return (opt && !opt.required) ? null : `PLACEHOLDER_STRING_${name}`;
+                                    },
+                                    getInteger: (name) => {
+                                        const opt = commandJson.options?.find(o => o.name === name);
+                                        return (opt && !opt.required) ? null : `PLACEHOLDER_INTEGER_${name}`;
+                                    },
+                                    getBoolean: (name) => {
+                                        const opt = commandJson.options?.find(o => o.name === name);
+                                        return (opt && !opt.required) ? null : `PLACEHOLDER_BOOLEAN_${name}`;
+                                    },
+                                    getNumber: (name) => {
+                                        const opt = commandJson.options?.find(o => o.name === name);
+                                        return (opt && !opt.required) ? null : `PLACEHOLDER_NUMBER_${name}`;
+                                    },
+                                }
+                            };
+                            try {
+                                const executeTemplate = await cmd.execute(mockInteraction);
+                                commands.push({
+                                    json: commandJson,
+                                    execute: executeTemplate
+                                });
+                            } catch { /* Ignore errors in mock execution */ }
+                        }
+                    }
+
+                    commandsData.push({
+                        fileName: file,
+                        gameName: gameName,
+                        helpMessage: helpMessage,
+                        commands: commands
+                    });
+                }
+            } catch (error) {
+                console.error(`Error processing file ${file}:`, error);
+            }
+        }
+    }
+
+    res.json(commandsData);
+});
+
 // 將/publiccard/css/設置為靜態資源的路徑
 www.use('/:path/css/', async (req, res, next) => {
     if (await checkRateLimit('api', req.ip)) {

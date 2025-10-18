@@ -203,104 +203,53 @@ const discordCommand = [
         data: new SlashCommandBuilder()
             .setName('wn')
             .setDescription('【魔女狩獵之夜】標準擲骰')
-            .addIntegerOption(option => option.setName('dice_count').setDescription('骰池數量').setRequired(true))
-            .addIntegerOption(option => option.setName('sin_value').setDescription('罪業值(成功判定值)').setRequired(false))
+            .addIntegerOption(option => option.setName('dice_count').setDescription('骰池數量 (1-200)').setRequired(true).setMinValue(1).setMaxValue(200))
+            .addIntegerOption(option => option.setName('sin_value').setDescription('罪業值(成功判定值, 1-6)').setRequired(false).setMinValue(1).setMaxValue(6))
             .addStringOption(option => option.setName('adjustment').setDescription('調整值(如 +3, -2)').setRequired(false))
             .addStringOption(option => option.setName('comment').setDescription('備註').setRequired(false)),
         async execute(interaction) {
             const diceCount = interaction.options.getInteger('dice_count');
-            const sinValue = interaction.options.getInteger('sin_value') || 4;
+            const sinValue = interaction.options.getInteger('sin_value') || '';
             const adjustment = interaction.options.getString('adjustment') || '';
             const comment = interaction.options.getString('comment') || '';
             
-            // Validate inputs
-            if (diceCount <= 0 || diceCount > 200) {
-                return '骰池數量必須在1-200之間';
-            }
-            
-            if (sinValue <= 0 || sinValue > 6) {
-                return '罪業值必須在1-6之間';
-            }
-            
-            // Create the command string
-            let command = `${diceCount}D${sinValue}${adjustment}`;
-            
-            // Call the dice roller
-            const result = await WN(command).then(async (result) => {
-                return await WN2(result, comment);
-            });
-            
-            return result;
+            return `.wn ${diceCount}D${sinValue}${adjustment} ${comment}`.trim();
         }
     },
     {
         data: new SlashCommandBuilder()
             .setName('wndd')
             .setDescription('【魔女狩獵之夜】成敗相抵擲骰')
-            .addIntegerOption(option => option.setName('dice_count').setDescription('骰池數量').setRequired(true))
-            .addIntegerOption(option => option.setName('sin_value').setDescription('罪業值(成功判定值)').setRequired(false))
+            .addIntegerOption(option => option.setName('dice_count').setDescription('骰池數量 (1-200)').setRequired(true).setMinValue(1).setMaxValue(200))
+            .addIntegerOption(option => option.setName('sin_value').setDescription('罪業值(成功判定值, 1-6)').setRequired(false).setMinValue(1).setMaxValue(6))
             .addStringOption(option => option.setName('adjustment').setDescription('調整值(如 +3, -2)').setRequired(false))
             .addStringOption(option => option.setName('comment').setDescription('備註').setRequired(false)),
         async execute(interaction) {
             const diceCount = interaction.options.getInteger('dice_count');
-            const sinValue = interaction.options.getInteger('sin_value') || 4;
+            const sinValue = interaction.options.getInteger('sin_value') || '';
             const adjustment = interaction.options.getString('adjustment') || '';
             const comment = interaction.options.getString('comment') || '';
-            
-            // Validate inputs
-            if (diceCount <= 0 || diceCount > 200) {
-                return '骰池數量必須在1-200之間';
-            }
-            
-            if (sinValue <= 0 || sinValue > 6) {
-                return '罪業值必須在1-6之間';
-            }
-            
-            // Create the command string
-            let command = `${diceCount}DD${sinValue}${adjustment}`;
-            
-            // Call the dice roller
-            const result = await WN(command).then(async (result) => {
-                return await WN2(result, comment);
-            });
-            
-            return result;
+
+            return `.wn ${diceCount}DD${sinValue}${adjustment} ${comment}`.trim();
         }
     },
     {
         data: new SlashCommandBuilder()
             .setName('wnmod')
             .setDescription('【魔女狩獵之夜】魔改規則擲骰')
-            .addIntegerOption(option => option.setName('dice_count').setDescription('骰池數量').setRequired(true))
-            .addIntegerOption(option => option.setName('sin_value').setDescription('罪業值(成功判定值)').setRequired(true))
+            .addIntegerOption(option => option.setName('dice_count').setDescription('骰池數量 (1-200)').setRequired(true).setMinValue(1).setMaxValue(200))
+            .addIntegerOption(option => option.setName('sin_value').setDescription('罪業值(≦n失敗, 1-6)').setRequired(true).setMinValue(1).setMaxValue(6))
             .addStringOption(option => option.setName('adjustment').setDescription('調整值(如 +3, -2)').setRequired(false))
             .addBooleanOption(option => option.setName('use_dd').setDescription('是否使用成敗相抵').setRequired(false))
             .addStringOption(option => option.setName('comment').setDescription('備註').setRequired(false)),
         async execute(interaction) {
             const diceCount = interaction.options.getInteger('dice_count');
-            const sinValue = interaction.options.getInteger('sin_value') || 4;
+            const sinValue = interaction.options.getInteger('sin_value');
             const adjustment = interaction.options.getString('adjustment') || '';
             const useDD = interaction.options.getBoolean('use_dd') || false;
             const comment = interaction.options.getString('comment') || '';
-            
-            // Validate inputs
-            if (diceCount <= 0 || diceCount > 200) {
-                return '骰池數量必須在1-200之間';
-            }
-            
-            if (sinValue <= 0 || sinValue > 6) {
-                return '罪業值必須在1-6之間';
-            }
-            
-            // Create the command string
-            let command = `${diceCount}@${useDD ? 'D' : ''}${sinValue}${adjustment}`;
-            
-            // Call the dice roller
-            const result = await WN(command).then(async (result) => {
-                return await WN2(result, comment);
-            });
-            
-            return result;
+
+            return `.wn ${diceCount}@${useDD ? 'D' : ''}${sinValue}${adjustment} ${comment}`.trim();
         }
     }
 ];

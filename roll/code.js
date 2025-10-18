@@ -152,6 +152,7 @@ public class main {
 }
 
 const discordCommand = []
+const webCommand = false;
 module.exports = {
     rollDiceCommand,
     initialize,
@@ -159,7 +160,8 @@ module.exports = {
     prefixs,
     gameType,
     gameName,
-    discordCommand
+    discordCommand,
+    webCommand
 };
 
 /**

@@ -1432,7 +1432,7 @@ const discordCommand = [
 			if (star !== null)
 				return `${star}`
 			if (subcommand !== null)
-				return `每日${subcommand} ${name}`
+				return `每日${subcommand}${name ? ' ' + name : ''}`
 			if (category !== null)
 				return `${category}`
 			return;

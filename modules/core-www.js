@@ -284,19 +284,22 @@ www.get('/api/dice-commands', async (req, res) => {
                                     options: {
                                         getSubcommand: () => sub.name,
                                         getString: (name) => {
-                                            sub.options?.find(o => o.name === name);
-                                            return `PLACEHOLDER_STRING_${name}`;
+                                            return sub.options?.find(o => o.name === name)
+                                                ? `PLACEHOLDER_STRING_${name}`
+                                                : null;
                                         },
                                         getInteger: (name) => {
-                                            sub.options?.find(o => o.name === name);
-                                            return `PLACEHOLDER_INTEGER_${name}`;
+                                            return sub.options?.find(o => o.name === name)
+                                                ? `PLACEHOLDER_INTEGER_${name}`
+                                                : null;
                                         },
                                         getBoolean: () => {
                                             return false;
                                         },
                                         getNumber: (name) => {
-                                            sub.options?.find(o => o.name === name);
-                                            return `PLACEHOLDER_NUMBER_${name}`;
+                                            return sub.options?.find(o => o.name === name)
+                                                ? `PLACEHOLDER_NUMBER_${name}`
+                                                : null;
                                         },
                                     }
                                 };
@@ -319,19 +322,22 @@ www.get('/api/dice-commands', async (req, res) => {
                                 options: {
                                     getSubcommand: () => null,
                                     getString: (name) => {
-                                        commandJson.options?.find(o => o.name === name);
-                                        return `PLACEHOLDER_STRING_${name}`;
+                                        return commandJson.options?.find(o => o.name === name)
+                                            ? `PLACEHOLDER_STRING_${name}`
+                                            : null;
                                     },
                                     getInteger: (name) => {
-                                        commandJson.options?.find(o => o.name === name);
-                                        return `PLACEHOLDER_INTEGER_${name}`;
+                                        return commandJson.options?.find(o => o.name === name)
+                                            ? `PLACEHOLDER_INTEGER_${name}`
+                                            : null;
                                     },
                                     getBoolean: () => {
                                         return false;
                                     },
                                     getNumber: (name) => {
-                                        commandJson.options?.find(o => o.name === name);
-                                        return `PLACEHOLDER_NUMBER_${name}`;
+                                        return commandJson.options?.find(o => o.name === name)
+                                            ? `PLACEHOLDER_NUMBER_${name}`
+                                            : null;
                                     },
                                 }
                             };

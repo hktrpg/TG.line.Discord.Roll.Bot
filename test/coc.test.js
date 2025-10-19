@@ -302,4 +302,134 @@ describe('Call of Cthulhu Module Tests', () => {
         expect(ccCommand).toBeDefined();
         expect(ccCommand.data.description).toContain('克蘇魯神話TRPG CoC 7th 擲骰');
     });
+
+    // Test additional CoC functions
+    test('Test rollDiceCommand with cc1 (bonus die)', async () => {
+        rollbase.Dice.mockReturnValueOnce(50).mockReturnValueOnce(5);
+        
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['cc1', '70', '偵查'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('1D100 ≦ 70');
+        expect(result.text).toContain('偵查');
+    });
+
+    test('Test rollDiceCommand with ccn1 (penalty die)', async () => {
+        rollbase.Dice.mockReturnValueOnce(50).mockReturnValueOnce(5);
+        
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['ccn1', '70', '偵查'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('1D100 ≦ 70');
+        expect(result.text).toContain('偵查');
+    });
+
+    test('Test rollDiceCommand with cc2 (two bonus dice)', async () => {
+        rollbase.Dice.mockReturnValueOnce(50).mockReturnValueOnce(5).mockReturnValueOnce(3);
+        
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['cc2', '70', '偵查'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('1D100 ≦ 70');
+        expect(result.text).toContain('偵查');
+    });
+
+    test('Test rollDiceCommand with ccn2 (two penalty dice)', async () => {
+        rollbase.Dice.mockReturnValueOnce(50).mockReturnValueOnce(5).mockReturnValueOnce(3);
+        
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['ccn2', '70', '偵查'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('1D100 ≦ 70');
+        expect(result.text).toContain('偵查');
+    });
+
+    test('Test rollDiceCommand with .cc7build (character creation)', async () => {
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['.cc7build']
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toBeTruthy();
+        expect(result.quotes).toBe(true);
+    });
+
+    test('Test rollDiceCommand with .cc6build (CoC6 character creation)', async () => {
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['.cc6build']
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('六版核心創角');
+        expect(result.quotes).toBe(true);
+    });
+
+    test('Test rollDiceCommand with .ccpulpbuild (Pulp character creation)', async () => {
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['.ccpulpbuild']
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('Pulp CoC');
+        expect(result.quotes).toBe(true);
+    });
+
+    test('Test rollDiceCommand with .ccpc (Pulp character)', async () => {
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['.ccpc']
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toBeTruthy();
+        expect(result.quotes).toBe(true);
+    });
+
+    test('Test rollDiceCommand with .ccdr (development record)', async () => {
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['.ccdr']
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('克蘇魯神話');
+        expect(result.quotes).toBe(true);
+    });
+
+    test('Test rollDiceCommand with 成長檢定', async () => {
+        rollbase.Dice.mockReturnValueOnce(99); // Roll higher than skill for development
+        
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['成長檢定', '50', '偵查'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('成長或增強檢定');
+        expect(result.quotes).toBe(true);
+    });
+
+    test('Test rollDiceCommand with 幕間成長', async () => {
+        rollbase.Dice.mockReturnValueOnce(99); // Roll higher than skill for development
+        
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['幕間成長', '50', '偵查'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('成長或增強檢定');
+        expect(result.quotes).toBe(true);
+    });
+
+    // Test initialize function
+    test('Test initialize function', () => {
+        const result = coc.initialize();
+        expect(result).toBeDefined();
+    });
 }); 

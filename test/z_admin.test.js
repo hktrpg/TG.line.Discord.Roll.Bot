@@ -25,12 +25,17 @@ jest.mock('crypto', () => ({
   })
 }));
 
-jest.mock('../modules/schema.js', () => ({
-  accountPW: {
-    findOne: jest.fn(),
-    findOneAndUpdate: jest.fn(),
-    updateOne: jest.fn()
-  },
+jest.mock('../modules/schema.js', () => {
+  const mockAccountPW = jest.fn().mockImplementation((data) => ({
+    ...data,
+    save: jest.fn().mockResolvedValue(data)
+  }));
+  mockAccountPW.findOne = jest.fn();
+  mockAccountPW.findOneAndUpdate = jest.fn();
+  mockAccountPW.updateOne = jest.fn();
+  
+  return {
+    accountPW: mockAccountPW,
   allowRolling: {
     findOne: jest.fn(),
     findOneAndUpdate: jest.fn(),
@@ -44,7 +49,8 @@ jest.mock('../modules/schema.js', () => ({
     find: jest.fn()
   },
   mongodbState: jest.fn().mockResolvedValue({ connections: [] })
-}));
+  };
+});
 
 jest.mock('../modules/check.js', () => ({
   permissionErrMsg: jest.fn(),
@@ -253,4 +259,186 @@ describe('Admin Module Tests', () => {
     expect(result.type).toBe('text');
     expect(result.text).toBe('重覆用戶名稱');
   });
+
+  // Test additional admin functions
+  test('Test rollDiceCommand with unknown command', async () => {
+    const result = await adminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'unknown']
+    });
+    
+    expect(result.type).toBe('text');
+    expect(result.text).toBe('');
+  });
+
+  test('Test rollDiceCommand with account command (username too short)', async () => {
+    const result = await adminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'account', 'ab', 'password123']
+    });
+    
+    expect(result.type).toBe('text');
+    expect(result.text).toBe('使用者名稱，4-16字，中英文限定，大小階相同');
+  });
+
+  test('Test rollDiceCommand with account command (username too long)', async () => {
+    const result = await adminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'account', 'verylongusernamethatexceedslimit', 'password123']
+    });
+    
+    expect(result.type).toBe('text');
+    expect(result.text).toBe('使用者名稱，4-16字，中英文限定，大小階相同');
+  });
+
+  test('Test rollDiceCommand with account command (password too short)', async () => {
+    const result = await adminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'account', 'validuser', '12345']
+    });
+    
+    expect(result.type).toBe('text');
+    expect(result.text).toBe('使用者密碼，6-16字，英文及以下符號限定!@#$%^&*');
+  });
+
+  test('Test rollDiceCommand with account command (password too long)', async () => {
+    const result = await adminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'account', 'validuser', 'verylongpasswordthatexceedslimit']
+    });
+    
+    expect(result.type).toBe('text');
+    expect(result.text).toBe('使用者密碼，6-16字，英文及以下符號限定!@#$%^&*');
+  });
+
+  test('Test rollDiceCommand with account command (invalid characters in username)', async () => {
+    const result = await adminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'account', 'user@#$%', 'password123']
+    });
+    
+    expect(result.type).toBe('text');
+    expect(result.text).toBe('使用者名稱，4-16字，中英文限定，大小階相同');
+  });
+
+  test('Test rollDiceCommand with account command (invalid characters in password)', async () => {
+    const result = await adminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'account', 'validuser', 'password+invalid']
+    });
+    
+    expect(result.type).toBe('text');
+    expect(result.text).toBe('使用者密碼，6-16字，英文及以下符號限定!@#$%^&*');
+  });
+
+  test('Test rollDiceCommand with news command (no userid)', async () => {
+    const result = await adminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'news', 'on']
+    });
+    
+    expect(result.type).toBe('text');
+    expect(result.text).toBe('');
+  });
+
+  test('Test rollDiceCommand with news command (invalid action)', async () => {
+    const result = await adminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'news', 'invalid'],
+      userid: 'test_user'
+    });
+    
+    expect(result.type).toBe('text');
+    expect(result.text).toBe('');
+  });
+
+  test('Test rollDiceCommand with registerChannel (with permission)', async () => {
+    checkTools.permissionErrMsg.mockReturnValueOnce(null);
+    schema.allowRolling.findOne.mockResolvedValueOnce(null);
+    schema.allowRolling.findOneAndUpdate.mockResolvedValueOnce({ ok: 1 });
+    
+    const result = await adminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'registerChannel'],
+      groupid: 'test_group',
+      userid: 'test_user'
+    });
+    
+    expect(result.type).toBe('text');
+    expect(result.text).toContain('註冊成功');
+  });
+
+  test('Test rollDiceCommand with registerChannel (already registered)', async () => {
+    checkTools.permissionErrMsg.mockReturnValueOnce(null);
+    schema.allowRolling.findOne.mockResolvedValueOnce({
+      groupid: 'test_group',
+      allow: true
+    });
+    
+    const result = await adminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'registerChannel'],
+      groupid: 'test_group',
+      userid: 'test_user'
+    });
+    
+    expect(result.type).toBe('text');
+    expect(result.text).toContain('註冊成功');
+  });
+
+  test('Test rollDiceCommand with registerChannel (database error)', async () => {
+    checkTools.permissionErrMsg.mockReturnValueOnce(null);
+    schema.allowRolling.findOne.mockRejectedValueOnce(new Error('Database error'));
+    
+    const result = await adminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'registerChannel'],
+      groupid: 'test_group',
+      userid: 'test_user'
+    });
+    
+    expect(result.type).toBe('text');
+    expect(result.text).toContain('註冊成功');
+  });
+
+  test('Test rollDiceCommand with registerChannel (update error)', async () => {
+    checkTools.permissionErrMsg.mockReturnValueOnce(null);
+    schema.allowRolling.findOne.mockResolvedValueOnce(null);
+    schema.allowRolling.findOneAndUpdate.mockRejectedValueOnce(new Error('Update error'));
+    
+    const result = await adminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'registerChannel'],
+      groupid: 'test_group',
+      userid: 'test_user'
+    });
+    
+    expect(result.type).toBe('text');
+    expect(result.text).toContain('註冊成功');
+  });
+
+  test('Test rollDiceCommand with news command (database error)', async () => {
+    schema.theNewsMessage.updateOne.mockRejectedValueOnce(new Error('Database error'));
+    
+    const result = await adminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'news', 'on'],
+      userid: 'test_user'
+    });
+    
+    expect(result.type).toBe('text');
+    expect(result.text).toContain('更新失敗');
+  });
+
+  test('Test rollDiceCommand with account command (database error)', async () => {
+    schema.accountPW.findOne.mockRejectedValueOnce(new Error('Database error'));
+
+    const result = await adminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'account', 'validuser', 'password123'],
+      userid: 'test_user'
+    });
+    
+    expect(result.type).toBe('text');
+    expect(result.text).toBeTruthy();
+  });
+
+  test('Test rollDiceCommand with account command (update error)', async () => {
+    schema.accountPW.findOne.mockResolvedValueOnce(null);
+    schema.accountPW.findOneAndUpdate.mockRejectedValueOnce(new Error('Update error'));
+
+    const result = await adminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'account', 'validuser', 'password123'],
+      userid: 'test_user'
+    });
+    
+    expect(result.type).toBe('text');
+    expect(result.text).toBeTruthy();
+  });
+
 }); 

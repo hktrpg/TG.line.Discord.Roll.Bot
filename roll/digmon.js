@@ -81,22 +81,26 @@ const rollDiceCommand = async function ({
         variables.digimonDex = Digimon.init();
     }
 
+    const isMoveSearch = mainMsg.some(arg => /^-m$/i.test(arg) || /^-move$/i.test(arg));
+
+    if (isMoveSearch) {
+        // Move search
+        rply.quotes = true;
+        const queryParts = mainMsg.slice(1).filter(arg => !/^-m$/i.test(arg) && !/^-move$/i.test(arg));
+        const query = queryParts.join(' ') || '';
+        if (!query) {
+            rply.text = '請提供招式關鍵字';
+            return rply;
+        }
+        rply.text = variables.digimonDex.searchMoves(query);
+        return rply;
+    }
+
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = getHelpMessage();
             rply.quotes = true;
             rply.buttonCreate = ['.digi', '.digi 亞古獸', '.digi 123', '.digi 123 323', '.digi 亞古獸 戰鬥暴龍獸']
-            return rply;
-        }
-        case /^-m$/i.test(mainMsg[1]) || /^-move$/i.test(mainMsg[1]): {
-            // Move search
-            rply.quotes = true;
-            const query = mainMsg.slice(2).join(' ') || '';
-            if (!query) {
-                rply.text = '請提供招式關鍵字';
-                return rply;
-            }
-            rply.text = variables.digimonDex.searchMoves(query);
             return rply;
         }
         case mainMsg.length >= 3: {

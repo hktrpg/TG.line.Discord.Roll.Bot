@@ -1550,11 +1550,9 @@ class Digimon {
             'Physical': '物理',
             'Magic': '魔法',
             'HP Damage': 'HP%',
-            'Support': '輔助',
-            'Heal': '治療',
+            'Buff': '輔助',
             'Debuff': 'Debuff',
             'Recovery': '回復',
-            'Buff': 'Buff'
         };
         return map[skillType] || skillType;
     }
@@ -1597,7 +1595,7 @@ class Digimon {
         });
 
         const stages = ['幼年期1', '幼年期2', '成長期', '成熟期', '完全體', '究極體', '超究極體'];
-        const skillTypes = ['Physical', 'Magic', 'Support', 'Heal', 'HP Damage', 'Debuff', 'Recovery', 'Buff'];
+        const skillTypes = ['Physical', 'Magic', 'Buff', 'HP Damage', 'Debuff', 'Recovery'];
         const queryTerms = query.split(/\s+/).filter(Boolean);
 
         const stageTerm = queryTerms.find(term => stages.includes(term));
@@ -1807,12 +1805,10 @@ const discordCommand = [
                             .addChoices(
                                 { name: '物理', value: 'Physical' },
                                 { name: '魔法', value: 'Magic' },
-                                { name: '輔助', value: 'Support' },
-                                { name: '治療', value: 'Heal' },
+                                { name: '輔助', value: 'Buff' },
                                 { name: 'HP%', value: 'HP Damage' },
                                 { name: 'Debuff', value: 'Debuff' },
-                                { name: 'Recovery', value: 'Recovery' },
-                                { name: 'Buff', value: 'Buff' }
+                                { name: '回復', value: 'Recovery' }
                             ))
                     .addBooleanOption(option =>
                         option.setName('has_crit')

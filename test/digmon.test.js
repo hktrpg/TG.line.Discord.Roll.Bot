@@ -606,3 +606,84 @@ describe('Digimon Real Data Evolution Path Check - All IDs (1-451)', () => {
         }
     });
 });
+
+describe('rollDiceCommand', () => {
+    let searchMovesSpy;
+    let searchSpy;
+    let showEvolutionPathsSpy;
+    let findByNameOrIdSpy;
+
+    beforeEach(() => {
+        // Spy on methods and mock their implementation
+        searchMovesSpy = jest.spyOn(digmon.Digimon.prototype, 'searchMoves').mockImplementation((query) => `Mocked search result for: ${query}`);
+        searchSpy = jest.spyOn(digmon.Digimon.prototype, 'search').mockImplementation((name) => `Mocked single search for: ${name}`);
+        showEvolutionPathsSpy = jest.spyOn(digmon.Digimon.prototype, 'showEvolutionPaths').mockImplementation((from, to) => `Mocked path from ${from.name} to ${to.name}`);
+        findByNameOrIdSpy = jest.spyOn(digmon.Digimon.prototype, 'findByNameOrId').mockImplementation((name) => ({ id: name.length, name }));
+
+        // This will initialize variables.digimonDex if not present
+        digmon.initialize();
+    });
+
+    afterEach(() => {
+        // Restore original methods
+        searchMovesSpy.mockRestore();
+        searchSpy.mockRestore();
+        showEvolutionPathsSpy.mockRestore();
+        findByNameOrIdSpy.mockRestore();
+    });
+
+    test('should correctly parse move search with flag at the end', async () => {
+        const mainMsg = ['.digi', '疫苗種', '電', '-m'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+        expect(searchMovesSpy).toHaveBeenCalledWith('疫苗種 電');
+        expect(result.text).toBe('Mocked search result for: 疫苗種 電');
+    });
+
+    test('should correctly parse move search with flag at the start', async () => {
+        const mainMsg = ['.digi', '-m', '疫苗種', '電'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+        expect(searchMovesSpy).toHaveBeenCalledWith('疫苗種 電');
+        expect(result.text).toBe('Mocked search result for: 疫苗種 電');
+    });
+
+    test('should correctly parse move search with -move flag in the middle', async () => {
+        const mainMsg = ['.digi', '疫苗種', '-move', '電'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+        expect(searchMovesSpy).toHaveBeenCalledWith('疫苗種 電');
+        expect(result.text).toBe('Mocked search result for: 疫苗種 電');
+    });
+
+    test('should handle move search with no query terms', async () => {
+        const mainMsg = ['.digi', '-m'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+        expect(searchMovesSpy).not.toHaveBeenCalled();
+        expect(result.text).toBe('請提供招式關鍵字');
+    });
+
+    test('should handle single Digimon search when no move flag is present', async () => {
+        const mainMsg = ['.digi', '亞古獸'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+        expect(searchSpy).toHaveBeenCalledWith('亞古獸');
+        expect(searchMovesSpy).not.toHaveBeenCalled();
+        expect(showEvolutionPathsSpy).not.toHaveBeenCalled();
+        expect(result.text).toBe('Mocked single search for: 亞古獸');
+    });
+
+    test('should handle evolution path search when no move flag is present', async () => {
+        const mainMsg = ['.digi', '亞古獸', '暴龍獸'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+
+        expect(findByNameOrIdSpy).toHaveBeenCalledWith('亞古獸');
+        expect(findByNameOrIdSpy).toHaveBeenCalledWith('暴龍獸');
+        expect(showEvolutionPathsSpy).toHaveBeenCalledWith({ id: 3, name: '亞古獸' }, { id: 3, name: '暴龍獸' });
+        expect(searchMovesSpy).not.toHaveBeenCalled();
+        expect(searchSpy).not.toHaveBeenCalled();
+        expect(result.text).toBe('Mocked path from 亞古獸 to 暴龍獸');
+    });
+
+    test('should show help message for empty command', async () => {
+        const mainMsg = ['.digi'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+        expect(result.text).toContain('【🎮數碼寶貝物語時空異客】');
+    });
+});

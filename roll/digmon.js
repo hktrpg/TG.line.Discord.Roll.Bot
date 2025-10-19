@@ -32,11 +32,15 @@ const getHelpMessage = function () {
 │ 　  例: .digi 123 323
 │ 　  例: .digi 亞古獸 戰鬥暴龍獸
 │
+├────── ⚔️招式查詢 ──────
+│ 招式搜尋:
+│ 　• .digi -m [關鍵字]
+│ 　  例: .digi -m 火
+│ 　  例: .digi -m 全體
+│ 　  例: .digi -m 病毒種
 │ 功能說明:
-│ 　• 顯示從起始數碼寶貝到目標的進化路線
-│ 　• 最多顯示4條最短路線
-│ 　• 支援退化與進化混合路線
-│ 　• 包含特殊進化(合體進化、裝甲進化)
+│ 　• 根據關鍵字模糊搜尋招式
+│ 　• 結果按威力排序，最多顯示10筆
 │
 ├────── 📊資料顯示 ──────
 │ 單一查詢顯示:
@@ -75,6 +79,21 @@ const rollDiceCommand = async function ({
     // Initialize digimon data if not already done
     if (!variables.digimonDex) {
         variables.digimonDex = Digimon.init();
+    }
+
+    const isMoveSearch = mainMsg.some(arg => /^-m$/i.test(arg) || /^-move$/i.test(arg));
+
+    if (isMoveSearch) {
+        // Move search
+        rply.quotes = true;
+        const queryParts = mainMsg.slice(1).filter(arg => !/^-m$/i.test(arg) && !/^-move$/i.test(arg));
+        const query = queryParts.join(' ') || '';
+        if (!query) {
+            rply.text = '請提供招式關鍵字';
+            return rply;
+        }
+        rply.text = variables.digimonDex.searchMoves(query);
+        return rply;
     }
 
     switch (true) {
@@ -227,6 +246,20 @@ class Digimon {
         }
         const padding = Math.max(0, length - currentWidth);
         return s + ' '.repeat(padding);
+    }
+
+    getWideWidth(str) {
+        let s = String(str || '');
+        let currentWidth = 0;
+        for (const ch of s) {
+            const cp = ch.codePointAt(0);
+            if (cp > 0xFF) {
+                currentWidth += 2;
+            } else {
+                currentWidth += 1;
+            }
+        }
+        return currentWidth;
     }
 
     formatCounterTable(counterDigimon) {
@@ -586,6 +619,11 @@ class Digimon {
                 const singleTargets = list.slice(3).filter(c => !c.isAoE).slice(0, 3);
                 return singleTargets.length > 0 ? [...topThree, ...singleTargets] : topThree;
             }
+            const nonAoE = topThree.filter(c => !c.isAoE);
+            if (nonAoE.length < 2) {
+                const more = list.slice(3).filter(c => !c.isAoE).slice(0, 2 - nonAoE.length);
+                return [...topThree, ...more];
+            }
             return topThree;
         };
 
@@ -671,6 +709,26 @@ class Digimon {
                 const extrasString = extras.length > 0 ? ` (${extras.join(' ')})` : '';
                 personalityLine += ` ｜ 威力：${elementEmoji} ${powerString}${extrasString}`;
             }
+            if (Array.isArray(digimon.special_skills) && digimon.special_skills.length > 0) {
+                const skillsLines = [];
+                for (const skill of digimon.special_skills) {
+                    const power = skill.power || 0;
+                    const maxHits = skill.maxHits || 1;
+                    const totalPower = power * maxHits;
+                    const elementEmoji = digimonInstance.getElementEmoji(skill.element);
+                    const powerString = maxHits > 1 ? `${maxHits}×${power}=${totalPower}` : `${totalPower}`;
+                    let extras = [];
+                    if (skill.critRate > 0) {
+                        extras.push(`CR:${skill.critRate}`);
+                    }
+                    if (skill.alwaysHits) {
+                        extras.push('必中');
+                    }
+                    const extrasString = extras.length > 0 ? ` (${extras.join(' ')})` : '';
+                    skillsLines.push(`${elementEmoji} ${powerString}${extrasString}`);
+                }
+                personalityLine += ` ｜ 威力：${skillsLines.join(' ')}`;
+            }
             rply += personalityLine + '\n';
             // Resistances
             if (digimon.elemental_resistances) {
@@ -717,27 +775,31 @@ class Digimon {
                             line += ` ｜ ${nd.rider ? '🏇' : '➖'}`;
                         }
 
-                        if (primarySkill) {
-                            const power = primarySkill.power || 0;
-                            const maxHits = primarySkill.maxHits || 1;
-                            const totalPower = power * maxHits;
-                            
-                            let powerString;
-                            if (maxHits > 1) {
-                                powerString = `${maxHits}×${power}=${totalPower}`;
-                            } else {
-                                powerString = `${totalPower}`;
-                            }
+                        if (Array.isArray(nd.special_skills) && nd.special_skills.length > 0) {
+                            const skillsLines = [];
+                            for (const skill of nd.special_skills) {
+                                const power = skill.power || 0;
+                                const maxHits = skill.maxHits || 1;
+                                const totalPower = power * maxHits;
+                                
+                                let powerString;
+                                if (maxHits > 1) {
+                                    powerString = `${maxHits}×${power}=${totalPower}`;
+                                } else {
+                                    powerString = `${totalPower}`;
+                                }
 
-                            let extras = [];
-                            if (primarySkill.critRate > 0) {
-                                extras.push(`CR:${primarySkill.critRate}`);
+                                let extras = [];
+                                if (skill.critRate > 0) {
+                                    extras.push(`CR:${skill.critRate}`);
+                                }
+                                if (skill.alwaysHits) {
+                                    extras.push('必中');
+                                }
+                                const extrasString = extras.length > 0 ? ` (${extras.join(' ')})` : '';
+                                skillsLines.push(`${digimonInstance.getElementEmoji(skill.element)} ${powerString}${extrasString}`);
                             }
-                            if (primarySkill.alwaysHits) {
-                                extras.push('必中');
-                            }
-                            const extrasString = extras.length > 0 ? ` (${extras.join(' ')})` : '';
-                            line += ` ｜ ${digimonInstance.getElementEmoji(primarySkill.element)} ${powerString}${extrasString}`;
+                            line += ` ｜ ${skillsLines.join(' ')}`;
                         }
 
                         rply += line + '\n';
@@ -1427,6 +1489,142 @@ class Digimon {
             return '發生錯誤';
         }
     }
+
+    getTargetTypeName(skill) {
+        if (!skill) return '';
+        const codes = this.getTargetTypeCodes();
+        const typeMap = {
+            [codes['1 enemy']]: '單體敵人',
+            [codes['all enemies']]: '全體敵人',
+            [codes['1 ally']]: '單體隊友',
+            [codes['all allies']]: '全體隊友',
+            [codes.self]: '自己'
+        };
+        if (typeof skill.targetType === 'number' && typeMap[skill.targetType]) {
+            return typeMap[skill.targetType];
+        }
+
+        // Fallback for text-based description
+        if (typeof skill.description === 'string') {
+            const desc = skill.description.toLowerCase();
+            if (desc.includes('all enemies')) return '全體敵人';
+            if (desc.includes('enemy')) return '單體敵人';
+            if (desc.includes('all allies')) return '全體隊友';
+            if (desc.includes('ally')) return '單體隊友';
+            if (desc.includes('self')) return '自己';
+        }
+        return '未知';
+    }
+
+    searchMoves(query) {
+        // 1. Flatten all skills
+        const allSkills = [];
+        for (const digimon of this.digimonData) {
+            if (digimon.special_skills) {
+                for (const skill of digimon.special_skills) {
+                    allSkills.push({ skill, digimon });
+                }
+            }
+        }
+
+        // 2. Create searchable text and filter
+        const augmentedSkills = allSkills.map(({ skill, digimon }) => {
+            const elementName = this.getElementalName(skill.element);
+            const targetTypeName = this.getTargetTypeName(skill);
+            const stageName = this.getStageName(digimon.stage);
+
+            const searchText = [
+                skill.name || '',
+                skill.description || '',
+                elementName,
+                targetTypeName,
+                digimon.attribute || '',
+                stageName
+            ].join(' ');
+
+            return { skill, digimon, searchText, elementName, targetTypeName, stageName };
+        });
+
+        const fuse = new Fuse(augmentedSkills, {
+            keys: ['searchText'],
+            threshold: 0.4,
+            includeScore: true,
+            findAllMatches: true,
+            useExtendedSearch: true
+        });
+
+        const stages = ['幼年期1', '幼年期2', '成長期', '成熟期', '完全體', '究極體', '超究極體'];
+        const queryTerms = query.split(/\s+/).filter(Boolean);
+
+        const stageTerm = queryTerms.find(term => stages.includes(term));
+        const otherTerms = queryTerms.filter(term => !stages.includes(term));
+
+        let results;
+
+        if (otherTerms.length > 0) {
+            const fuseQuery = otherTerms.map(term => `'${term}`).join(' ');
+            results = fuse.search(fuseQuery).map(r => r.item);
+        } else {
+            // If only a stage (or nothing) is provided, start with all skills
+            results = augmentedSkills;
+        }
+
+        // Post-filter for exact stage match
+        if (stageTerm) {
+            results = results.filter(item => item.stageName === stageTerm);
+        }
+
+        // 3. Sort by power
+        results.sort((a, b) => {
+            const powerA = (a.skill.power || 0) * (a.skill.maxHits || 1);
+            const powerB = (b.skill.power || 0) * (b.skill.maxHits || 1);
+            return powerB - powerA;
+        });
+
+        // 4. Take top 10 and format
+        const top10 = results.slice(0, 10);
+
+        if (top10.length === 0) {
+            return `找不到與 "${query}" 相關的招式。`;
+        }
+
+        // Find max widths for alignment
+        let maxNameWidth = 0;
+        let maxPowerWidth = 0;
+        let maxDigimonNameWidth = 0;
+
+        const processedResults = top10.map(item => {
+            const { skill, digimon } = item;
+            const power = skill.power || 0;
+            const maxHits = skill.maxHits || 1;
+            const totalPower = power * maxHits;
+            const powerString = maxHits > 1 ? `${maxHits}×${power}=${totalPower}` : String(totalPower);
+
+            const skillNameWidth = this.getWideWidth(skill.name);
+            if (skillNameWidth > maxNameWidth) maxNameWidth = skillNameWidth;
+
+            const powerStringWidth = this.getWideWidth(powerString);
+            if (powerStringWidth > maxPowerWidth) maxPowerWidth = powerStringWidth;
+
+            const digimonNameWidth = this.getWideWidth(digimon.name);
+            if (digimonNameWidth > maxDigimonNameWidth) maxDigimonNameWidth = digimonNameWidth;
+
+            return { ...item, powerString };
+        });
+
+        let output = `查詢 "${query}" 的招式結果：\n`;
+        for (const item of processedResults) {
+            const { skill, digimon, elementName, targetTypeName, stageName, powerString } = item;
+            const elementEmoji = this.getElementEmoji(skill.element);
+
+            const line1 = `${this.padWide(skill.name, maxNameWidth)} | ${elementEmoji}${elementName} | ${targetTypeName}`;
+            const line2 = `  威力: ${this.padWide(powerString, maxPowerWidth)} | ${this.padWide(digimon.name, maxDigimonNameWidth)} (${stageName} | ${digimon.attribute})`;
+
+            output += `${line1}\n${line2}\n`;
+        }
+
+        return output;
+    }
 }
 
 
@@ -1455,7 +1653,67 @@ const discordCommand = [
                     .addStringOption(option =>
                         option.setName('to')
                             .setDescription('目標數碼寶貝名稱或編號')
-                            .setRequired(true))),
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('move')
+                    .setDescription('查詢招式')
+                    .addStringOption(option =>
+                        option.setName('keyword')
+                            .setDescription('招式或數碼獸名稱關鍵字')
+                            .setRequired(false))
+                    .addStringOption(option =>
+                        option.setName('attribute')
+                            .setDescription('數碼寶貝屬性')
+                            .setRequired(false)
+                            .addChoices(
+                                { name: '數據種', value: '數據種' },
+                                { name: '疫苗種', value: '疫苗種' },
+                                { name: '病毒種', value: '病毒種' }
+                            ))
+                    .addStringOption(option =>
+                        option.setName('element')
+                            .setDescription('招式屬性')
+                            .setRequired(false)
+                            .addChoices(
+                                { name: '火', value: '火' },
+                                { name: '水', value: '水' },
+                                { name: '草木', value: '草木' },
+                                { name: '冰', value: '冰' },
+                                { name: '電', value: '電' },
+                                { name: '地面', value: '地面' },
+                                { name: '鋼', value: '鋼' },
+                                { name: '風', value: '風' },
+                                { name: '光', value: '光' },
+                                { name: '闇', value: '闇' },
+                                { name: '無', value: '無' },
+                                { name: '-', value: '-' }
+                            ))
+                    .addStringOption(option =>
+                        option.setName('target_type')
+                            .setDescription('招式目標類型')
+                            .setRequired(false)
+                            .addChoices(
+                                { name: '全體(敵)', value: '全體敵人' },
+                                { name: '單體(敵)', value: '單體敵人' },
+                                { name: '全體(友)', value: '全體隊友' },
+                                { name: '單體(友)', value: '單體隊友' },
+                                { name: '自己', value: '自己' }
+                            ))
+                    .addStringOption(option =>
+                        option.setName('stage')
+                            .setDescription('數碼寶貝進化階段')
+                            .setRequired(false)
+                            .addChoices(
+                                { name: '幼年期1', value: '幼年期1' },
+                                { name: '幼年期2', value: '幼年期2' },
+                                { name: '成長期', value: '成長期' },
+                                { name: '成熟期', value: '成熟期' },
+                                { name: '完全體', value: '完全體' },
+                                { name: '究極體', value: '究極體' },
+                                { name: '超究極體', value: '超究極體' }
+                            ))
+            ),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             switch (subcommand) {
@@ -1467,6 +1725,15 @@ const discordCommand = [
                     const from = interaction.options.getString('from');
                     const to = interaction.options.getString('to');
                     return `.digi ${from} ${to}`;
+                }
+                case 'move': {
+                    const keyword = interaction.options.getString('keyword');
+                    const attribute = interaction.options.getString('attribute');
+                    const element = interaction.options.getString('element');
+                    const target_type = interaction.options.getString('target_type');
+                    const stage = interaction.options.getString('stage');
+                    const queryParts = [keyword, attribute, element, target_type, stage].filter(Boolean);
+                    return `.digi -m ${queryParts.join(' ')}`;
                 }
             }
         }

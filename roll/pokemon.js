@@ -118,11 +118,20 @@ const rollDiceCommand = async function ({
 class Pokemon {
     constructor(data) {
         this.pokemonData = data;
+        // 優化的 Fuse 配置：更精確的搜尋，減少無關結果
         this.fuse = new Fuse(this.pokemonData, {
-            keys: ['name', 'id', 'alias'],
+            keys: [
+                { name: 'name', weight: 0.5 },
+                { name: 'id', weight: 0.3 },
+                { name: 'alias', weight: 0.2 }
+            ],
             includeScore: true,
-            findAllMatches: true,
-            threshold: 0.6
+            findAllMatches: false,
+            threshold: 0.4,
+            minMatchCharLength: 1,
+            shouldSort: true,
+            location: 0,
+            distance: 100
         });
     }
 
@@ -190,17 +199,82 @@ ${(pokemon.evolution.stage) ? `進化階段：${pokemon.evolution.stage}` : ''} 
     }
     search(name, detail) {
         try {
-            let result = this.fuse.search(name, { limit: 12 });
+            // 優化搜尋策略：根據輸入類型調整搜尋參數
+            let searchOptions = { limit: 12 };
+            
+            // 如果是數字 ID，使用更嚴格的搜尋
+            if (/^\d+$/.test(name)) {
+                searchOptions.threshold = 0.1; // 更嚴格的匹配
+            } else if (name.length <= 2) {
+                // 極短名稱使用更嚴格的搜尋，避免過多結果
+                searchOptions.threshold = 0.3;
+                searchOptions.limit = 5; // 限制結果數量
+            } else if (name.length <= 4) {
+                // 短名稱使用中等嚴格度
+                searchOptions.threshold = 0.4;
+                searchOptions.limit = 8;
+            }
+            
+            let result = this.fuse.search(name, searchOptions);
             let rply = '';
             if (result.length === 0) return '沒有找到相關資料';
-            if (result.length <= 2 || result[0].item.name === name) {
-                rply = Pokemon.showPokemon(result[0].item, detail);
-            }
-            else {
-                rply += '找到太多相關資料，請更精確的查詢\n\n';
-                for (let i = 0; i < result.length; i++) {
-                    rply += `${result[i].item.name}\n`;
+            
+            // Check if searching by ID (numeric string)
+            if (/^\d+$/.test(name)) {
+                // For numeric searches, look for exact ID match first
+                let exactMatch = result.find(item => item.item.id === name);
+                if (exactMatch) {
+                    rply = Pokemon.showPokemon(exactMatch.item, detail);
+                    return rply;
                 }
+            }
+            
+            // Check for exact name match (case insensitive)
+            let exactNameMatch = result.find(item => 
+                item.item.name.toLowerCase() === name.toLowerCase()
+            );
+            if (exactNameMatch) {
+                rply = Pokemon.showPokemon(exactNameMatch.item, detail);
+                return rply;
+            }
+            
+            // Check for exact alias match
+            let exactAliasMatch = result.find(item => 
+                item.item.alias && item.item.alias.toLowerCase() === name.toLowerCase()
+            );
+            if (exactAliasMatch) {
+                rply = Pokemon.showPokemon(exactAliasMatch.item, detail);
+                return rply;
+            }
+            
+            // 檢查是否有高相似度的結果
+            const highScoreResults = result.filter(item => 
+                item.score && (1 - item.score) >= 0.9
+            );
+            
+            // 如果有高相似度結果且數量不多，直接顯示
+            if (highScoreResults.length > 0 && highScoreResults.length <= 5) {
+                for (let i = 0; i < highScoreResults.length; i++) {
+                    rply += Pokemon.showPokemon(highScoreResults[i].item, detail);
+                    if (i < highScoreResults.length - 1) rply += '\n\n';
+                }
+                return rply;
+            }
+            
+            // If 2 or fewer results, show all
+            if (result.length <= 2) {
+                for (let i = 0; i < result.length; i++) {
+                    rply += Pokemon.showPokemon(result[i].item, detail);
+                    if (i < result.length - 1) rply += '\n\n';
+                }
+                return rply;
+            }
+            
+            // Too many results - show top matches with scores
+            rply += '找到太多相關資料，請更精確的查詢\n\n';
+            for (let i = 0; i < Math.min(result.length, 8); i++) {
+                const score = result[i].score ? ` (相似度: ${(1 - result[i].score).toFixed(2)})` : '';
+                rply += `${result[i].item.name}${score}\n`;
             }
             return rply;
         }
@@ -228,11 +302,19 @@ function removeAndCheck(mainMsg) {
 class Moves {
     constructor(data) {
         this.pokemonData = data;
+        // 優化的招式搜尋配置：更精確的匹配
         this.fuse = new Fuse(this.pokemonData, {
-            keys: ['name', 'id', 'alias'],
+            keys: [
+                { name: 'name', weight: 0.6 },
+                { name: 'alias', weight: 0.4 }
+            ],
             includeScore: true,
             findAllMatches: false,
-            threshold: 0.4
+            threshold: 0.3,
+            minMatchCharLength: 1,
+            shouldSort: true,
+            location: 0,
+            distance: 50
         });
     }
 
@@ -271,23 +353,67 @@ class Moves {
     }
     search(name) {
         try {
-            let result = this.fuse.search(name, { limit: 12 });
+            // 優化招式搜尋：根據輸入長度調整搜尋策略
+            let searchOptions = { limit: 12 };
+            
+            if (name.length <= 2) {
+                // 極短名稱使用更嚴格的搜尋，避免過多結果
+                searchOptions.threshold = 0.3;
+                searchOptions.limit = 5;
+            } else if (name.length <= 4) {
+                // 短名稱使用中等嚴格度
+                searchOptions.threshold = 0.4;
+                searchOptions.limit = 8;
+            } else {
+                // 長名稱使用更精確的搜尋
+                searchOptions.threshold = 0.2;
+            }
+            
+            let result = this.fuse.search(name, searchOptions);
             let rply = '';
             if (result.length === 0) return '沒有找到相關資料';
-            if (result[0].item.name === name) {
-                rply = Moves.showMove(result[0].item);
+            
+            // Check for exact name match (case insensitive)
+            let exactNameMatch = result.find(item => 
+                item.item.name.toLowerCase() === name.toLowerCase()
+            );
+            if (exactNameMatch) {
+                rply = Moves.showMove(exactNameMatch.item);
                 return rply;
             }
+            
+            // Check for exact alias match
+            let exactAliasMatch = result.find(item => 
+                item.item.alias && item.item.alias.toLowerCase().includes(name.toLowerCase())
+            );
+            if (exactAliasMatch) {
+                rply = Moves.showMove(exactAliasMatch.item);
+                return rply;
+            }
+            
+            // 檢查是否有高相似度的結果
+            const highScoreResults = result.filter(item => 
+                item.score && (1 - item.score) >= 0.9
+            );
+            
+            // 如果有高相似度結果且數量不多，直接顯示
+            if (highScoreResults.length > 0 && highScoreResults.length <= 5) {
+                for (let i = 0; i < highScoreResults.length; i++) {
+                    rply += `${Moves.showMove(highScoreResults[i].item)}\n\n`;
+                }
+                return rply;
+            }
+            
             if (result.length <= 2) {
                 for (let i = 0; i < result.length; i++) {
-                    rply += `${Moves.showMove(result[i].item)} \n
- `;
+                    rply += `${Moves.showMove(result[i].item)}\n\n`;
                 }
             }
             else {
                 rply += '找到太多相關資料，請更精確的查詢\n\n';
-                for (let i = 0; i < result.length; i++) {
-                    rply += `${result[i].item.name}\n`;
+                for (let i = 0; i < Math.min(result.length, 8); i++) {
+                    const score = result[i].score ? ` (相似度: ${(1 - result[i].score).toFixed(2)})` : '';
+                    rply += `${result[i].item.name}${score}\n`;
                 }
             }
             return rply;

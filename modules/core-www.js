@@ -880,11 +880,11 @@ if (isMaster) {
 function jsonEscape(str) {
     if (typeof str !== 'string') return '';
     return str
-        .replace(/\\/g, '\\\\')
-        .replace(/"/g, '\\"')
-        .replace(/\n/g, '\\n')
-        .replace(/\r/g, '\\r')
-        .replace(/\t/g, '\\t');
+        .replaceAll('\\', String.raw`\\`)
+        .replaceAll('"', String.raw`\"`)
+        .replaceAll('\n', String.raw`\n`)
+        .replaceAll('\r', String.raw`\r`)
+        .replaceAll('\t', String.raw`\t`);
 }
 module.exports = {
     app: www

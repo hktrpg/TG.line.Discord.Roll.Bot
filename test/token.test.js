@@ -284,6 +284,311 @@ describe('Token Module Tests', () => {
     expect(result.toString()).toContain('Second Line');
   });
 
+
+
+
+
+
+
+
+
+  // New tests for improved coverage
+  test('Test rollDiceCommand with .tokenupload command - improved coverage', async () => {
+    const mockDiscordMessage = {
+      type: 0,
+      attachments: new Map([
+        ['1', { contentType: 'image/png', url: 'https://example.com/image.png' }]
+      ])
+    };
+
+    const mockDiscordClient = {
+      users: {
+        fetch: jest.fn().mockResolvedValue({
+          displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png')
+        })
+      },
+      channels: {
+        fetch: jest.fn().mockResolvedValue({
+          messages: {
+            fetch: jest.fn().mockResolvedValue({
+              attachments: new Map()
+            })
+          }
+        })
+      }
+    };
+
+    const result = await tokenModule.rollDiceCommand({
+      inputStr: '.tokenupload Test Name',
+      mainMsg: ['.tokenupload', 'Test', 'Name'],
+      discordClient: mockDiscordClient,
+      discordMessage: mockDiscordMessage,
+      displaynameDiscord: 'TestUser'
+    });
+    
+    expect(result.text).toBeTruthy();
+    expect(result.text).toContain('https://example.com/image.png');
+  });
+
+  test('Test rollDiceCommand with no image and no avatar - improved coverage', async () => {
+    const mockDiscordMessage = {
+      type: 0,
+      attachments: new Map(),
+      reference: null
+    };
+
+    const mockDiscordClient = {
+      users: {
+        fetch: jest.fn().mockRejectedValue(new Error('User not found'))
+      },
+      channels: {
+        fetch: jest.fn().mockResolvedValue({
+          messages: {
+            fetch: jest.fn().mockResolvedValue({
+              attachments: new Map()
+            })
+          }
+        })
+      }
+    };
+    
+    const result = await tokenModule.rollDiceCommand({
+      inputStr: '.token Test Name',
+      mainMsg: ['.token', 'Test', 'Name'],
+      discordClient: mockDiscordClient,
+      discordMessage: mockDiscordMessage,
+      displaynameDiscord: 'TestUser'
+    });
+    
+    expect(result.text).toBeTruthy();
+    expect(result.text).toContain('製作失敗，可能出現某些錯誤');
+  });
+
+  test('Test rollDiceCommand with image from attachments - improved coverage', async () => {
+    const mockAttachment = {
+      contentType: 'image/png',
+      url: 'https://example.com/attachment.png'
+    };
+    
+    const mockDiscordMessage = {
+      type: 0,
+      attachments: new Map([['1', mockAttachment]]),
+      reference: null
+    };
+
+    const mockDiscordClient = {
+      users: {
+        fetch: jest.fn().mockResolvedValue({
+          displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png')
+        })
+      },
+      channels: {
+        fetch: jest.fn().mockResolvedValue({
+          messages: {
+            fetch: jest.fn().mockResolvedValue({
+              attachments: new Map()
+            })
+          }
+        })
+      }
+    };
+    
+    const result = await tokenModule.rollDiceCommand({
+      inputStr: '.token Test Name',
+      mainMsg: ['.token', 'Test', 'Name'],
+      discordClient: mockDiscordClient,
+      discordMessage: mockDiscordMessage,
+      displaynameDiscord: 'TestUser'
+    });
+    
+    expect(result.sendImage).toBeTruthy();
+    expect(result.sendImage).toContain('temp_');
+    expect(result.sendImage).toContain('.png');
+  });
+
+  test('Test rollDiceCommand with image from referenced message - improved coverage', async () => {
+    const mockDiscordMessage = {
+      type: 0,
+      attachments: new Map(),
+      reference: { messageId: '123' }
+    };
+
+    const mockDiscordClient = {
+      users: {
+        fetch: jest.fn().mockResolvedValue({
+          displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png')
+        })
+      },
+      channels: {
+        fetch: jest.fn().mockResolvedValue({
+          messages: {
+            fetch: jest.fn().mockResolvedValue({
+              attachments: new Map([['1', { url: 'https://example.com/ref.png' }]])
+            })
+          }
+        })
+      }
+    };
+    
+    const result = await tokenModule.rollDiceCommand({
+      inputStr: '.token Test Name',
+      mainMsg: ['.token', 'Test', 'Name'],
+      discordClient: mockDiscordClient,
+      discordMessage: mockDiscordMessage,
+      displaynameDiscord: 'TestUser'
+    });
+    
+    expect(result.text).toBeTruthy();
+    expect(result.text).toContain('製作失敗，可能出現某些錯誤');
+  });
+
+  test('Test rollDiceCommand with long text input - improved coverage', async () => {
+    const longText = 'A'.repeat(1000);
+    const mockDiscordMessage = {
+      type: 0,
+      attachments: new Map(),
+      reference: null
+    };
+
+    const mockDiscordClient = {
+      users: {
+        fetch: jest.fn().mockResolvedValue({
+          displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png')
+        })
+      },
+      channels: {
+        fetch: jest.fn().mockResolvedValue({
+          messages: {
+            fetch: jest.fn().mockResolvedValue({
+              attachments: new Map()
+            })
+          }
+        })
+      }
+    };
+
+    const result = await tokenModule.rollDiceCommand({
+      inputStr: `.token ${longText}`,
+      mainMsg: ['.token', longText],
+      discordClient: mockDiscordClient,
+      discordMessage: mockDiscordMessage,
+      displaynameDiscord: 'TestUser'
+    });
+    
+    expect(result.text).toBeTruthy();
+    expect(result.text).toContain('製作失敗，可能出現某些錯誤');
+  });
+
+  test('Test rollDiceCommand with special characters in text - improved coverage', async () => {
+    const specialText = 'Test@#$%^&*()_+{}|:"<>?[]\\;\'.,/';
+    const mockDiscordMessage = {
+      type: 0,
+      attachments: new Map(),
+      reference: null
+    };
+
+    const mockDiscordClient = {
+      users: {
+        fetch: jest.fn().mockResolvedValue({
+          displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png')
+        })
+      },
+      channels: {
+        fetch: jest.fn().mockResolvedValue({
+          messages: {
+            fetch: jest.fn().mockResolvedValue({
+              attachments: new Map()
+            })
+          }
+        })
+      }
+    };
+
+    const result = await tokenModule.rollDiceCommand({
+      inputStr: `.token ${specialText}`,
+      mainMsg: ['.token', specialText],
+      discordClient: mockDiscordClient,
+      discordMessage: mockDiscordMessage,
+      displaynameDiscord: 'TestUser'
+    });
+    
+    expect(result.text).toBeTruthy();
+    expect(result.text).toContain('製作失敗，可能出現某些錯誤');
+  });
+
+  test('Test rollDiceCommand with empty text input - improved coverage', async () => {
+    const mockDiscordMessage = {
+      type: 0,
+      attachments: new Map(),
+      reference: null
+    };
+
+    const mockDiscordClient = {
+      users: {
+        fetch: jest.fn().mockResolvedValue({
+          displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png')
+        })
+      },
+      channels: {
+        fetch: jest.fn().mockResolvedValue({
+          messages: {
+            fetch: jest.fn().mockResolvedValue({
+              attachments: new Map()
+            })
+          }
+        })
+      }
+    };
+
+    const result = await tokenModule.rollDiceCommand({
+      inputStr: '.token',
+      mainMsg: ['.token'],
+      discordClient: mockDiscordClient,
+      discordMessage: mockDiscordMessage,
+      displaynameDiscord: 'TestUser'
+    });
+    
+    expect(result.text).toBeTruthy();
+    expect(result.text).toContain('製作失敗，可能出現某些錯誤');
+  });
+
+  test('Test rollDiceCommand with unicode text - improved coverage', async () => {
+    const unicodeText = '測試中文 🎭 表情符號';
+    const mockDiscordMessage = {
+      type: 0,
+      attachments: new Map(),
+      reference: null
+    };
+
+    const mockDiscordClient = {
+      users: {
+        fetch: jest.fn().mockResolvedValue({
+          displayAvatarURL: jest.fn().mockReturnValue('https://example.com/avatar.png')
+        })
+      },
+      channels: {
+        fetch: jest.fn().mockResolvedValue({
+          messages: {
+            fetch: jest.fn().mockResolvedValue({
+              attachments: new Map()
+            })
+          }
+        })
+      }
+    };
+
+    const result = await tokenModule.rollDiceCommand({
+      inputStr: `.token ${unicodeText}`,
+      mainMsg: ['.token', unicodeText],
+      discordClient: mockDiscordClient,
+      discordMessage: mockDiscordMessage,
+      displaynameDiscord: 'TestUser'
+    });
+    
+    expect(result.text).toBeTruthy();
+    expect(result.text).toContain('製作失敗，可能出現某些錯誤');
+  });
+
   // Restore original process.env after tests
   afterAll(() => {
     process.env = originalProcessEnv;

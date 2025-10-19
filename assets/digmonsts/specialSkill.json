@@ -1,0 +1,5352 @@
+[
+  {
+    "name": "Acid Bubbles",
+    "element": "Water",
+    "sp_cost": "30",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Water physical attack at power 40.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Acid Bubbles",
+    "element": "Debuff",
+    "sp_cost": "5",
+    "type": "None",
+    "description": "[Target: 1 enemy]100% chance of 10% reduction to DEF for 3 turn(s).",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Acid Bubbles",
+    "element": "Fire",
+    "sp_cost": "25",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 35.",
+    "power": 35,
+    "critRate": 5
+  },
+  {
+    "name": "Acid Bubbles",
+    "element": "Debuff",
+    "sp_cost": "5",
+    "type": "None",
+    "description": "[Target: 1 enemy]100% chance of 10% reduction to DEF for 3 turn(s).",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Adhesive Bubble Blow",
+    "element": "Debuff",
+    "sp_cost": "5",
+    "type": "None",
+    "description": "[Target: 1 enemy]100% chance of 10% reduction to SPD for 3 turn(s).",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Adhesive Bubble Blow",
+    "element": "Debuff",
+    "sp_cost": "10",
+    "type": "None",
+    "description": "[Target: 1 enemy]100% chance of 15% reduction to SPD for 3 turn(s).",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Aguichant Levres",
+    "element": "Light",
+    "sp_cost": "370",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 95.Recovers HP/SP equal to 15% of damage dealt.Increased damage to targets with Insectoid Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Air Bubbles",
+    "element": "Wind",
+    "sp_cost": "30",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 40.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Air Shot",
+    "element": "Wind",
+    "sp_cost": "55",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Wind magic attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "All-Out Bombardment",
+    "element": "Steel",
+    "sp_cost": "175",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Steel physical attack at power 45.",
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Ama no Habakiri",
+    "element": "Light",
+    "sp_cost": "540",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Light physical attack at power 60.Nullifies unfavorable compatibility.Increased damage to targets with Dragon Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Ambush Crunch",
+    "element": "Steel",
+    "sp_cost": "80",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 65.100% chance of 10% reduction to DEF for 3 turn(s).",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Ame no Murakumo",
+    "element": "Steel",
+    "sp_cost": "140",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 90.Increased damage to targets with Dragon Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Ame no Ohabari",
+    "element": "Electricity",
+    "sp_cost": "310",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Electricity magic attack at power 55.15% chance to apply  Immobilization.Increased damage to targets with Bird Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Amethyst Mandala",
+    "element": "Light",
+    "sp_cost": "290",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Light magic attack at power 55.Removes stat buffs.Increased damage to targets with Spirit Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Animal Nail",
+    "element": "Earth",
+    "sp_cost": "150",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Earth physical attack at power 80.The more allies are KO'd, the greater the damage.Increased damage to targets with Vegetation Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Appropriate Works",
+    "element": "Steel",
+    "sp_cost": "215",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 25 x 4 hits.Increased damage to targets with Weapon Trait.",
+    "minHits": 4,
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Arctic Blizzard",
+    "element": "Ice",
+    "sp_cost": "320",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Ice physical attack at power 60.Increased damage to targets with Steel Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Arrow of Artemis",
+    "element": "Ice",
+    "sp_cost": "250",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Ice magic attack at power 90.If target is affected by  Sleep/ Deep Slumber: Increaseddamage. Increased damage to targets with Humanoid Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Atomic Blaster",
+    "element": "Fire",
+    "sp_cost": "220",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 100.Immobilized next turn.Increased damage to targets with Unknown Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Atomic Inferno",
+    "element": "Fire",
+    "sp_cost": "165",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 30 x 3 hits.10% CRT Rate.Increased damage to targets with Vegetation Trait.",
+    "minHits": 3,
+    "power": 30,
+    "critRate": 10
+  },
+  {
+    "name": "Atomic Ray",
+    "element": "Electricity",
+    "sp_cost": "240",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 95.Increased damage to targets with Machine Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Attract Echo",
+    "element": "Buff",
+    "sp_cost": "60",
+    "type": "None",
+    "description": "[Target: User]Applies  Taunting.100% chance of 30% boost to EVA for 1 turn.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Aurora Blaster",
+    "element": "Light",
+    "sp_cost": "295",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 90.Removes stat buffs.Increased damage to targets with Unknown Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Aurora Undulation",
+    "element": "Light",
+    "sp_cost": "320",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Light magic attack at power 55.Always hits. Removes stat buffs.Increased damage to targets with Evil Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Aurvandil's Arrow",
+    "element": "Light",
+    "sp_cost": "245",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 90.Always hits.Increased damage to targets with Bird Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Baby Breath",
+    "element": "Fire",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Baluluna Gale",
+    "element": "Wind",
+    "sp_cost": "85",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Wind magic attack at power 60.30% chance to apply  Injury.Increased damage to targets with Magic Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Banana Slip",
+    "element": "Debuff",
+    "sp_cost": "55",
+    "type": "None",
+    "description": "[Target: 1 enemy]100% chance of 30% reduction to SPD for 3 turns.60% chance to apply Immobilized next turn.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Bancho Blade",
+    "element": "Light",
+    "sp_cost": "365",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Light physical attack at power 60.The lower the user's HP, the greater the damage.Increased damage to targets with Demon Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Bancho Blade",
+    "element": "Light",
+    "sp_cost": "365",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Light physical attack at power 60.The lower the user's HP, the greater the damage.Increased damage to targets with Beast Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Bear Fist",
+    "element": "Null",
+    "sp_cost": "65",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 55.10% CRT Rate.",
+    "power": 55,
+    "critRate": 10
+  },
+  {
+    "name": "Bee Cyclone",
+    "element": "Buff",
+    "sp_cost": "70",
+    "type": "None",
+    "description": "[Target: All allies]100% chance of 20% reduction to physical/magicdamage taken for 2 turns. 100% chance of  Steelresistance boost for 2 turns.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Berserk Sword",
+    "element": "Steel",
+    "sp_cost": "160",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 120.50% ACU. 50% CRT Rate.Increased damage to targets with Knight Trait.",
+    "power": 120,
+    "critRate": 50
+    
+  },
+  {
+    "name": "Bifrost",
+    "element": "Fire",
+    "sp_cost": "225",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 95.Increased damage to targets with Evil Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Big Bang Voice",
+    "element": "Debuff",
+    "sp_cost": "50",
+    "type": "None",
+    "description": "[Target: All enemies]100% chance of 10% reduction to SPI for 3 turns.60% chance to apply  Paralysis.20% chance to apply  Immobilization.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Big Smiley Bomber",
+    "element": "Fire",
+    "sp_cost": "220",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 60.100% chance of 20% reduction to user's Max HP for 3 turns.Increased damage to targets with Mineral Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Bind Red Trigger",
+    "element": "Wind",
+    "sp_cost": "295",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 23 x 4 hits.Nullifies unfavorable compatibility.Increased damage to targets with Weapon Trait.",
+    "minHits": 4,
+    "power": 23,
+    "critRate": 5
+  },
+  {
+    "name": "Bit Fire",
+    "element": "Fire",
+    "sp_cost": "100",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 14 x 3 hits.",
+    "minHits": 3,
+    "power": 14,
+    "critRate": 5
+  },
+  {
+    "name": "Bite",
+    "element": "Null",
+    "sp_cost": "35",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 45.",
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Biting Crush",
+    "element": "Water",
+    "sp_cost": "210",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Water physical attack at power 120.80% ACU.Increased damage to targets with Ancient Trait.",
+    "power": 120,
+    "critRate": 5
+    
+  },
+  {
+    "name": "Black Aura Blast",
+    "element": "Dark",
+    "sp_cost": "210",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Dark magic attack at power 90.If target has already acted: 50% chance to apply  Chaos.Increased damage to targets with Unknown Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Black Pearl Blast",
+    "element": "Water",
+    "sp_cost": "105",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Water physical attack at power 30.50% CRT Rate.",
+    "power": 30,
+    "critRate": 50
+  },
+  {
+    "name": "Black Rain",
+    "element": "Dark",
+    "sp_cost": "415",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Dark physical attack at power 80.100% chance of reduction to  Dark resistance.Increased damage to targets with Mythical Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Black Tornado",
+    "element": "Null",
+    "sp_cost": "195",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 30 x 3 hits.15% CRT Rate.Increased damage to targets with Dragon Trait.",
+    "minHits": 3,
+    "power": 30,
+    "critRate": 15
+  },
+  {
+    "name": "Blade of the Dragon King",
+    "element": "Light",
+    "sp_cost": "220",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 90.Acts first next round.Increased damage to targets with Knight Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Blade of the True",
+    "element": "Light",
+    "sp_cost": "220",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 90.50% chance to apply  Injury.Increased damage to targets with Evil Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Blast Fire",
+    "element": "Fire",
+    "sp_cost": "150",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Fire magic attack at power 80.100% chance of 10% boost to DEF/SPI for 3 turn(s).Increased damage to targets with Warrior Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Blaze Sonic Breath",
+    "element": "Fire",
+    "sp_cost": "185",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 80.If target has yet to act: 25% CRT Rate.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Blazing Ice",
+    "element": "Ice",
+    "sp_cost": "55",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Ice magic attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Blinded",
+    "element": "Steel",
+    "sp_cost": "150",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 70.20% CRT Rate. 100% chance of 20% reduction to DEF for 3 turn(s).",
+    "power": 70,
+    "critRate": 20
+  },
+  {
+    "name": "Blinding Ray",
+    "element": "Debuff",
+    "sp_cost": "15",
+    "type": "None",
+    "description": "[Target: 1 enemy]100% chance of 20% reduction to ACU for 3 turn(s).",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Blue Blaster",
+    "element": "Fire",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 45.100% chance of 10% reduction to DEF for 3 turn(s).",
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Blue Flare Breath",
+    "element": "Fire",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 65.100% chance of 10% reduction to DEF for 3 turn(s).Increased damage to targets with Pixie Trait.",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Bolt Break Knockdown",
+    "element": "Electricity",
+    "sp_cost": "155",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 25 x 3 hits.30% chance to apply  Paralysis.Increased damage to targets with Deity Trait.",
+    "minHits": 3,
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Bowling Storm",
+    "element": "Steel",
+    "sp_cost": "160",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 25 x 3 hits.If target has yet to act: Increased damage.Increased damage to targets with Mineral Trait.",
+    "minHits": 3,
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Brachio Bubble",
+    "element": "Water",
+    "sp_cost": "195",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Water physical attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Brain Rupture",
+    "element": "Buff",
+    "sp_cost": "110",
+    "type": "None",
+    "description": "[Target: 1 enemy]Steals all stat changes.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Bramble Bite",
+    "element": "Plant",
+    "sp_cost": "170",
+    "type": "Physical",
+    "description": "[Target: 1 enemy] Performs  Plant physical attackat power 85. Recovers HP/SP equal to 10% of damage.100% chance to apply  Plant resistance Down.Increased damage to targets with Deity Trait.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Branch Drain",
+    "element": "Plant",
+    "sp_cost": "95",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Plant physical attack at power 65.Recovers HP equal to 20% of damage dealt.",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Brave Metal",
+    "element": "Steel",
+    "sp_cost": "205",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 95.Increased damage to targets with Dragon Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Breath of the Gods",
+    "element": "Buff",
+    "sp_cost": "55",
+    "type": "None",
+    "description": "[Target: User]100% chance to nullify physical/magic damage.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Brown Stingers",
+    "element": "Plant",
+    "sp_cost": "85",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Plant physical attack at power 60.10% chance to apply  Paralysis/ Immobilization.Increased damage to targets with Humanoid Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Bubbles",
+    "element": "Water",
+    "sp_cost": "30",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Water physical attack at power 40.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Bunny Blades",
+    "element": "Wind",
+    "sp_cost": "150",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 40 x 2 hits.10% CRT Rate.Increased damage to targets with Humanoid Trait.",
+    "minHits": 2,
+    "power": 40,
+    "critRate": 10
+  },
+  {
+    "name": "Burning Blood Shell",
+    "element": "Fire",
+    "sp_cost": "295",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Fire magic attack at power 55.100% chance to apply  Fire resistance Down.Increased damage to targets with Vegetation Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Burning Fist",
+    "element": "Fire",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 20 x 3 hits.Increased damage to targets with Ice Trait.",
+    "minHits": 3,
+    "power": 20,
+    "critRate": 5
+  },
+  {
+    "name": "Burst Shot",
+    "element": "Fire",
+    "sp_cost": "325",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 55 x 2 hits.Immobilized next turn.Increased damage to targets with Vegetation Trait.",
+    "minHits": 2,
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Calydon Arcus",
+    "element": "Ice",
+    "sp_cost": "500",
+    "type": "Magic",
+    "description": "[Target: All enemies] Performs  Ice magic attack atpower 20 x 4 hits. If target is affected by statusabnormalities or  Injury/ Disease: Increaseddamage. Increased damage to targets with Fire Trait.",
+    "minHits": 4,
+    "power": 20,
+    "critRate": 5
+  },
+  {
+    "name": "Catastrophe Cannon",
+    "element": "Dark",
+    "sp_cost": "220",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 35 x 3 hits.The lower the user's HP, the lower the damage.Increased damage to targets with Unknown Trait.",
+    "minHits": 3,
+    "power": 35,
+    "critRate": 5
+  },
+  {
+    "name": "Celestial Arrow",
+    "element": "Light",
+    "sp_cost": "155",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 90.Increased damage to targets with Evil Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Chain Lash",
+    "element": "Dark",
+    "sp_cost": "255",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 100.If target is affected by stat changes: Increased damage.Increased damage to targets with Humanoid Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Chaos Degradation",
+    "element": "Null",
+    "sp_cost": "330",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Null magic attack at power 65.Increased damage to targets with Holy Trait.",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Chaos Flare",
+    "element": "Dark",
+    "sp_cost": "305",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 125.Consumes all SP.Increased damage to targets with Angel Trait.",
+    "power": 125,
+    "critRate": 5
+  },
+  {
+    "name": "Charité",
+    "element": "Light",
+    "sp_cost": "305",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 70.Always hits. 100% reduction to  Light resistance.Increased damage to targets with Humanoid Trait.",
+    "power": 70,
+    "critRate": 0
+  },
+  {
+    "name": "Cheese Bomb",
+    "element": "Fire",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 40.30% chance to apply  Poison.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Cherry Bomb",
+    "element": "Plant",
+    "sp_cost": "185",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Plant physical attack at power 15 x 3 hits.30% chance to apply  Poison.Increased damage to targets with Beast Trait.",
+    "minHits": 3,
+    "power": 15,
+    "critRate": 5
+  },
+  {
+    "name": "Chrono Breaker",
+    "element": "Null",
+    "sp_cost": "90",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Null magic attack at power 60.Removes all stat changes.20% chance to apply  Sleep.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Chrono Devolution",
+    "element": "Dark",
+    "sp_cost": "245",
+    "type": "Magic",
+    "description": "[Target: 1 enemy] Performs  Dark magic attack atpower 80. 100% chance to apply  Crystallization.70% chance of 20% reduction to ATK/DEF/INT/SPI.If target's HP is 50% or higher: Increased damage.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Chronos Crop",
+    "element": "Light",
+    "sp_cost": "350",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 110.Always hits. Nullifies unfavorable compatibility.",
+    "power": 110,
+    "critRate": 5
+  },
+  {
+    "name": "Circlet Defense",
+    "element": "Buff",
+    "sp_cost": "155",
+    "type": "None",
+    "description": "[Target: User]Upon receiving a physical attack, counters with an Electricity magic attack at power 90.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Cog Crusher",
+    "element": "Dark",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Cold Flame",
+    "element": "Ice",
+    "sp_cost": "155",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Ice physical attack at power 90.Increased damage to targets with Fire Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Cook of the Abyss",
+    "element": "Null",
+    "sp_cost": "260",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 90.Recovers HP equal to 30% of damage dealt.Increased damage to targets with Fish Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Cool Edge",
+    "element": "Null",
+    "sp_cost": "490",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Null physical attack at power 60.If target has yet to act: Increased damage.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Corona Blaster",
+    "element": "Fire",
+    "sp_cost": "150",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 20 x 2 hits.Increased damage to targets with Immortal Trait.",
+    "minHits": 2,
+    "power": 20,
+    "critRate": 5
+  },
+  {
+    "name": "Corona Blaze Sword",
+    "element": "Fire",
+    "sp_cost": "325",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 110.75% chance of 10% reduction to user's DEF/SPI for 3 turns.Increased damage to targets with Ice Trait.",
+    "power": 110,
+    "critRate": 5
+  },
+  {
+    "name": "Corona Flame",
+    "element": "Fire",
+    "sp_cost": "75",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 45.Nullifies unfavorable compatibility.",
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Corona Sanctions",
+    "element": "Fire",
+    "sp_cost": "230",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 90.The greater the user's stat buffs, the greater the damage.Increased damage to targets with Beast Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Crazy Giggle",
+    "element": "Dark",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Crimson Curse",
+    "element": "Debuff",
+    "sp_cost": "30",
+    "type": "None",
+    "description": "[Target: All enemies]100% chance of 10% reduction to DEF for 3 turns.50% chance to apply  Paralysis.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Crimson Mist",
+    "element": "Dark",
+    "sp_cost": "205",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Dark magic attack at power 85.50% chance to apply  Deadly Poison/ Injury.Increased damage to targets with Humanoid Trait.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Crimson Wave of the Beast King",
+    "element": "Fire",
+    "sp_cost": "155",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 90.Increased damage to targets with Vegetation Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Cross Blade",
+    "element": "Steel",
+    "sp_cost": "135",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 80.Acts first next round.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Crystal Cloud",
+    "element": "Ice",
+    "sp_cost": "90",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Ice magic attack at power 70.Increased damage to targets with Magic Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Crystal Revolution",
+    "element": "Ice",
+    "sp_cost": "315",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Ice magic attack at power 55.Recovers HP equal to 15% of damage dealt.Increased damage to targets with Angel Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Daredevil Break",
+    "element": "Steel",
+    "sp_cost": "170",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 135.20% CRT Rate. Receives 10% HP damage from attack recoil.Increased damage to targets with Bird Trait.",
+    "power": 135,
+    "critRate": 20
+  },
+  {
+    "name": "Dark Despair",
+    "element": "Dark",
+    "sp_cost": "285",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Dark magic attack at power 90.Nullifies unfavorable compatibility.Increased damage to targets with Holy Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Dark Explosion",
+    "element": "Dark",
+    "sp_cost": "185",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Dark physical attack at power 10 x 3～6 hits.",
+    "minHits": 3,
+    "power": 10,
+    "critRate": 5
+  },
+  {
+    "name": "Dark Prominence",
+    "element": "Dark",
+    "sp_cost": "280",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 90.30% chance to apply  Crystallization.Increased damage to targets with Unknown Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Dark Pupil",
+    "element": "Null",
+    "sp_cost": "145",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Null magic attack at power 70.50% chance to apply  Injury.",
+    "power": 70,
+    "critRate": 0
+  },
+  {
+    "name": "Dark Roar",
+    "element": "Dark",
+    "sp_cost": "240",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 90.90% ACU. 25% CRT Rate.Increased damage to targets with Alien Trait.",
+    "power": 90,
+    "critRate": 25
+    
+  },
+  {
+    "name": "Dark Terra Force",
+    "element": "Dark",
+    "sp_cost": "195",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 95.Increased damage to targets with Holy Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Darkness Claw",
+    "element": "Dark",
+    "sp_cost": "210",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 90.50% chance to apply  Injury.Increased damage to targets with Holy Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Darkness Wave",
+    "element": "Dark",
+    "sp_cost": "185",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Dark magic attack at power 15 x 3 hits.Increased damage to targets with Holy Trait.",
+    "minHits": 3,
+    "power": 15,
+    "critRate": 5
+  },
+  {
+    "name": "Darkness-Zone",
+    "element": "Null",
+    "sp_cost": "505",
+    "type": "Fixed",
+    "description": "[Target: All enemies]Deals 20% HP damage.Always hits.",
+    "power": 20,
+    "critRate": 0
+  },
+  {
+    "name": "Darkside Quake",
+    "element": "Earth",
+    "sp_cost": "115",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Earth physical attack at power 40.Increased damage to targets with Mineral Trait.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Darkstrom",
+    "element": "Dark",
+    "sp_cost": "145",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Dark magic attack at power 90.Increased damage to targets with Fish Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Data Crusher",
+    "element": "Dark",
+    "sp_cost": "85",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 60.30% chance to apply  Crystallization.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Dead Angle Horn",
+    "element": "Dark",
+    "sp_cost": "135",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 70.100% chance of 10% reduction to DEF for 3 turn(s).Increased damage to targets with Holy Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Dead or Alive",
+    "element": "Dark",
+    "sp_cost": "225",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Dark magic attack at power 30 or 120.Increased damage to targets with Holy Trait.",
+    "power": 120,
+    "critRate": 5
+  },
+  {
+    "name": "Death Charm",
+    "element": "Injury",
+    "sp_cost": "200",
+    "type": "Fixed",
+    "description": "[Target: 1 enemy]Deals 15% HP damage.50% chance to apply  Injury.",
+    "power": 15,
+    "critRate": 0
+  },
+  {
+    "name": "Death Claw",
+    "element": "Dark",
+    "sp_cost": "95",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 65.Recovers HP equal to 20% of damage dealt.Increased damage to targets with Holy Trait.",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Death Lure",
+    "element": "Debuff",
+    "sp_cost": "55",
+    "type": "None",
+    "description": "[Target: 1 enemy]100% chance of 30% reduction to SPI for 3 turns.80% chance to apply  Chaos.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Death Parade Blaster",
+    "element": "Null",
+    "sp_cost": "210",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Null physical attack at power 15 x 3 hits.10% CRT Rate.Increased damage to targets with Humanoid Trait.",
+    "minHits": 3,
+    "power": 15,
+    "critRate": 10
+  },
+  {
+    "name": "Death Slinger",
+    "element": "Dark",
+    "sp_cost": "290",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 100.Increased damage to targets with Deity Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Deep Forest",
+    "element": "Steel",
+    "sp_cost": "205",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 95.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Demi Darts",
+    "element": "Dark",
+    "sp_cost": "70",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Dark physical attack at power 25.Recovers HP equal to 15% of damage dealt.",
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Demonic Disaster",
+    "element": "Dark",
+    "sp_cost": "210",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 30 x 3 hits.Removes stat debuffs.Increased damage to targets with Holy Trait.",
+    "minHits": 3,
+    "power": 30,
+    "critRate": 5
+  },
+  {
+    "name": "Der Blitz",
+    "element": "Steel",
+    "sp_cost": "220",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 90.15% CRT Rate.Increased damage to targets with Antibody Trait.",
+    "power": 90,
+    "critRate": 15
+  },
+  {
+    "name": "Desolation Claw",
+    "element": "Null",
+    "sp_cost": "175",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 85.If target is  Data: Increased damage.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Destroyed Rush",
+    "element": "Steel",
+    "sp_cost": "220",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 30 x 3 hits.15% CRT Rate.Increased damage to targets with Mineral Trait.",
+    "minHits": 3,
+    "power": 30,
+    "critRate": 15
+  },
+  {
+    "name": "Destruction Crush",
+    "element": "Electricity",
+    "sp_cost": "340",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Electricity physical attack at power 20 x 3 hits.Increased damage to targets with Unknown Trait.",
+    "minHits": 3,
+    "power": 20,
+    "critRate": 5
+  },
+  {
+    "name": "Destruction Grenade",
+    "element": "Fire",
+    "sp_cost": "100",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 65.Always hits.",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Destruction Grenade",
+    "element": "Fire",
+    "sp_cost": "130",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 35.Always hits.",
+    "power": 35,
+    "critRate": 5
+  },
+  {
+    "name": "Destruction Trigger",
+    "element": "Steel",
+    "sp_cost": "290",
+    "type": "Physical",
+    "description": "[Target: 1 enemy] Performs  Steel physical attack atpower 35 x 3 hits. Nullifies unfavorable compatibility.Receives 20% HP damage from attack recoil.Increased damage to targets with Weapon Trait.",
+    "minHits": 3,
+    "power": 35,
+    "critRate": 5
+  },
+  {
+    "name": "Diamond Fist",
+    "element": "Earth",
+    "sp_cost": "210",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Earth physical attack at power 90.100% chance of 20% reduction to DEF for 3 turn(s).Increased damage to targets with Steel Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Diamond Shell",
+    "element": "Earth",
+    "sp_cost": "50",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Earth physical attack at power 45.100% chance of 20% reduction to DEF for 3 turn(s).",
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Diamond Storm",
+    "element": "Plant",
+    "sp_cost": "55",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Plant magic attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Digital Bomb",
+    "element": "Fire",
+    "sp_cost": "150",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Fire magic attack at power 85.100% chance to apply  Reverse.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Dimension Scissor",
+    "element": "Plant",
+    "sp_cost": "230",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Plant physical attack at power 100.Increased damage to targets with Insectoid Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Dios Thunder",
+    "element": "Electricity",
+    "sp_cost": "310",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 85.50% chance to apply  Immobilization.Increased damage to targets with Holy Trait.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Disaster Blaster",
+    "element": "Light",
+    "sp_cost": "150",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 80.30% chance to apply  Crystallization.Increased damage to targets with Aquatic Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Divine Atonement",
+    "element": "Light",
+    "sp_cost": "440",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Light magic attack at power 90.15% chance to apply Instant Death.Increased damage to targets with Holy Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "DJ Shooter",
+    "element": "Water",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Water physical attack at power 70.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "DORU-Din",
+    "element": "Fire",
+    "sp_cost": "325",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 60.Increased damage to targets with Dragon Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Double Backhand",
+    "element": "Wind",
+    "sp_cost": "70",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Wind physical attack at power 25.10% CRT Rate.",
+    "power": 25,
+    "critRate": 10
+  },
+  {
+    "name": "Double Crescent Mirage",
+    "element": "Null",
+    "sp_cost": "245",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 50 x 2 hits.Increased damage to targets with Knight Trait.",
+    "minHits": 2,
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Double Impact",
+    "element": "Steel",
+    "sp_cost": "190",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 24 x 5 hits.70% ACU. 10% CRT Rate.Increased damage to targets with Angel Trait.",
+    "minHits": 5,
+    "power": 24,
+    "critRate": 10
+    
+  },
+  {
+    "name": "Double Scissor Claw",
+    "element": "Plant",
+    "sp_cost": "200",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Plant physical attack at power 85.Nullifies unfavorable compatibility.Increased damage to targets with Antibody Trait.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Double Stars",
+    "element": "Steel",
+    "sp_cost": "120",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Steel physical attack at power 22 x 2 hits.Increased damage to targets with Dragon Trait.",
+    "minHits": 2,
+    "power": 22,
+    "critRate": 5
+  },
+  {
+    "name": "Downward Cleave",
+    "element": "Steel",
+    "sp_cost": "65",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 45.Nullifies unfavorable compatibility.",
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Dragon Impulse",
+    "element": "Wind",
+    "sp_cost": "150",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 90.Increased damage to targets with Dragon Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Dragon's Roar",
+    "element": "Buff",
+    "sp_cost": "330",
+    "type": "None",
+    "description": "[Target: User]Activates  Counter Physical. Upon receiving aphysical attack, counters with a  Null magic attackat power 115. Negates unfavorable compatibility.Increased damage to targets with Mythical Trait.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Dragonic Impact",
+    "element": "Fire",
+    "sp_cost": "545",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 60.Nullifies unfavorable compatibility.Increased damage to targets with Dragon Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Drill Spin",
+    "element": "Earth",
+    "sp_cost": "115",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Earth physical attack at power 65.Nullifies unfavorable compatibility.Increased damage to targets with Mineral Trait.",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Dual Swallow Reversal",
+    "element": "Steel",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 30 x 2 hits.Always hits.",
+    "minHits": 2,
+    "power": 30,
+    "critRate": 5
+  },
+  {
+    "name": "Dumdum Uppercut",
+    "element": "Steel",
+    "sp_cost": "80",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 65.100% chance of 10% reduction to ATK for 3 turn(s).",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Earth-Shattering Stomp",
+    "element": "Dark",
+    "sp_cost": "150",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 25 x 3 hits.Recovers HP equal to 20% of damage dealt.Increased damage to targets with Humanoid Trait.",
+    "minHits": 3,
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Eclipse Finger",
+    "element": "Fire",
+    "sp_cost": "310",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Fire magic attack at power 100.Increased damage to targets with Ice Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "EDEN's Javelin",
+    "element": "Light",
+    "sp_cost": "205",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 85.If target is  Virus: 75% chance of 15% reduction to ATK/INTfor 3 turns. Increased damage to targets with Immortal Trait.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Eiseiryuojin",
+    "element": "Electricity",
+    "sp_cost": "330",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 90.10% CRT Rate. Nullifies unfavorable compatibility.Increased damage to targets with Dragon Trait.",
+    "power": 90,
+    "critRate": 10
+  },
+  {
+    "name": "Elastic Bubbles",
+    "element": "Water",
+    "sp_cost": "30",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Water physical attack at power 40.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Elder Sign",
+    "element": "Null",
+    "sp_cost": "330",
+    "type": "Magic",
+    "description": "[Target: All enemies] Performs  Null magic attack atpower 80. 50% chance to apply  Immobilization.70% chance of 20% reduction to DEF for 3 turns.Increased damage to targets with Holy Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Electric Shock",
+    "element": "Electricity",
+    "sp_cost": "75",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Electricity magic attack at power 25.",
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Electric Stun Blast",
+    "element": "Null",
+    "sp_cost": "70",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Null physical attack at power 25.20% chance to apply  Paralysis.",
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Electro Shocker",
+    "element": "Electricity",
+    "sp_cost": "90",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Electricity magic attack at power 60.If target is  Virus: 50% chance to apply  Paralysis.Increased damage to targets with Insectoid Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Endless Surge",
+    "element": "Fire",
+    "sp_cost": "300",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 45 x 2 hits.Nullifies unfavorable compatibility.Increased damage to targets with Mollusk Trait.",
+    "minHits": 2,
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Energy Bomb",
+    "element": "Electricity",
+    "sp_cost": "160",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 90.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Eradication Attack",
+    "element": "Fire",
+    "sp_cost": "155",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 30 x 3 hits.Increased damage to targets with Knight Trait.",
+    "minHits": 3,
+    "power": 30,
+    "critRate": 5
+  },
+  {
+    "name": "Eradication Gears",
+    "element": "Fire",
+    "sp_cost": "220",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 30 x 2 hits.",
+    "minHits": 2,
+    "power": 30,
+    "critRate": 5
+  },
+  {
+    "name": "Eroberung",
+    "element": "Electricity",
+    "sp_cost": "340",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Electricity physical attack at power 60.Increased damage to targets with Machine Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Eternal Nightmare",
+    "element": "Null",
+    "sp_cost": "300",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Null magic attack at power 55.30% chance to apply  Deep Slumber.Increased damage to targets with Immortal Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Evil Hurricane",
+    "element": "Wind",
+    "sp_cost": "115",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Wind physical attack at power 40.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Exhaust Flame",
+    "element": "Fire",
+    "sp_cost": "95",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 70.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Extinction Wave",
+    "element": "Light",
+    "sp_cost": "350",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Light magic attack at power 55.If target has already acted: Increased damage.Increased damage to targets with Machine Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Eye of Nightmares",
+    "element": "Dark",
+    "sp_cost": "55",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Dark magic attack at power 45.Recovers HP equal to 10% of damage dealt.",
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Eye of the Gorgon",
+    "element": "Ice",
+    "sp_cost": "215",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Ice magic attack at power 80.60% chance to apply  Chaos.Increased damage to targets with Angel Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Famis",
+    "element": "Plant",
+    "sp_cost": "310",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Plant magic attack at power 70.25% chance to apply  Deadly Poison.Increased damage to targets with Beast Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Fang Strike",
+    "element": "Fire",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 65.100% chance of 20% reduction to SPD for 3 turn(s).",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Feather Slash",
+    "element": "Wind",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Fenrir Sword",
+    "element": "Ice",
+    "sp_cost": "220",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Ice physical attack at power 90.25% chance to apply  Injury.Increased damage to targets with Deity Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Fif Cross",
+    "element": "Null",
+    "sp_cost": "100",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 12 x 5 hits.15% CRT Rate.",
+    "minHits": 5,
+    "power": 12,
+    "critRate": 15
+  },
+  {
+    "name": "Fifth Rush",
+    "element": "Null",
+    "sp_cost": "50",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 14 x 5 hits.70% ACU.",
+    "minHits": 5,
+    "power": 14,
+    "critRate": 5
+    
+  },
+  {
+    "name": "Final Crest",
+    "element": "Wind",
+    "sp_cost": "260",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Wind magic attack at power 90.If target has yet to act: Increased damage.Increased damage to targets with Magic Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Final Mirage Burst",
+    "element": "Light",
+    "sp_cost": "440",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Light physical attack at power 105. 100%chance of 20% reduction to all user's stats for 3 turns.Increased damage to targets with Immortal Trait.",
+    "power": 105,
+    "critRate": 5
+  },
+  {
+    "name": "Final Shining Burst",
+    "element": "Fire",
+    "sp_cost": "440",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 100.Consumes all SP.Increased damage to targets with Vegetation Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Fire Breath",
+    "element": "Fire",
+    "sp_cost": "95",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 70.Increased damage to targets with Humanoid Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Fire Tornado",
+    "element": "Light",
+    "sp_cost": "220",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 90.100% chance of reduction to  Light resistance.Increased damage to targets with Evil Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Firedrake Strike",
+    "element": "Fire",
+    "sp_cost": "225",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 90.Increased damage to targets with Dragon Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Fist of Athena",
+    "element": "Fire",
+    "sp_cost": "300",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 90.Nullifies unfavorable compatibility.Increased damage to targets with Weapon Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Fist of Ice",
+    "element": "Ice",
+    "sp_cost": "155",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Ice physical attack at power 90.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Fist of the Beast King",
+    "element": "Earth",
+    "sp_cost": "85",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Earth physical attack at power 70.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Flame Cannon",
+    "element": "Fire",
+    "sp_cost": "200",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 25 x 2 hits.100% chance of 10% reduction to INT for 3 turn(s).",
+    "minHits": 2,
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Flame Dive",
+    "element": "Fire",
+    "sp_cost": "95",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 70.Increased damage to targets with Ice Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Flame Inferno",
+    "element": "Fire",
+    "sp_cost": "325",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Fire magic attack at power 70.Increased damage to targets with Holy Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Flaming Fist",
+    "element": "Fire",
+    "sp_cost": "105",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 75.The lower the user's HP, the greater the damage.Increased damage to targets with Dragon Trait.",
+    "power": 75,
+    "critRate": 5
+  },
+  {
+    "name": "Flashy Boss Punch",
+    "element": "Light",
+    "sp_cost": "225",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 90.The lower the user's HP, the greater the damage.Increased damage to targets with Antibody Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Flower Cannon",
+    "element": "Plant",
+    "sp_cost": "145",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Plant magic attack at power 80.30% chance to apply  Paralysis.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Fly Bullet",
+    "element": "Dark",
+    "sp_cost": "245",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Dark magic attack at power 90.Always hits. 10% CRT Rate.Increased damage to targets with Humanoid Trait.",
+    "power": 90,
+    "critRate": 10
+  },
+  {
+    "name": "Forbidden Temptation",
+    "element": "Plant",
+    "sp_cost": "310",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Plant magic attack at power 60.Increased damage to targets with Humanoid Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Forbidden Trident",
+    "element": "Water",
+    "sp_cost": "185",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Water physical attack at power 90.If target is KO'd: Recovers user's SP by 25%.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Fossil Bite",
+    "element": "Water",
+    "sp_cost": "80",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Water physical attack at power 60.If target is affected by  Confusion/ Chaos: 25% chanceto apply Instant Death.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Fox Fire",
+    "element": "Fire",
+    "sp_cost": "95",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 70.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Fox Tail",
+    "element": "Null",
+    "sp_cost": "30",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 30.100% chance of 20% reduction to SPD for 3 turn(s).",
+    "power": 30,
+    "critRate": 5
+  },
+  {
+    "name": "Fox Tail Inferno",
+    "element": "Fire",
+    "sp_cost": "95",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Fire magic attack at power 70.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Freeze Fang",
+    "element": "Ice",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Ice physical attack at power 70.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Freezing Breath",
+    "element": "Ice",
+    "sp_cost": "220",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Ice physical attack at power 90.100% chance of reduction to  Ice resistance.Increased damage to targets with Reptile Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Frost Claw",
+    "element": "Ice",
+    "sp_cost": "100",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Ice physical attack at power 65.Recovers HP equal to 20% of damage dealt.Increased damage to targets with Fire Trait.",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Full Moon Blaster",
+    "element": "Light",
+    "sp_cost": "240",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 95.If user is boost to SPD: 25% CRT Rate.Increased damage to targets with Spirit Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Full Moon Kick",
+    "element": "Ice",
+    "sp_cost": "140",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Ice physical attack at power 90.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Full Moon Meteor Impact",
+    "element": "Light",
+    "sp_cost": "305",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 100.Increased damage to targets with Spirit Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Fungus Crusher",
+    "element": "Plant",
+    "sp_cost": "65",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Plant physical attack at power 20.30% chance to apply  Poison.",
+    "power": 20,
+    "critRate": 5
+  },
+  {
+    "name": "Gaia Brave",
+    "element": "Fire",
+    "sp_cost": "225",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 60.20% CRT Rate.",
+    "power": 60,
+    "critRate": 20
+  },
+  {
+    "name": "Galactic Flare",
+    "element": "Earth",
+    "sp_cost": "205",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Earth physical attack at power 15 x 3～6 hits.",
+    "minHits": 3,
+    "power": 15,
+    "critRate": 5
+  },
+  {
+    "name": "Garuru Tomahawk",
+    "element": "Null",
+    "sp_cost": "265",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 100.Always hits.Increased damage to targets with Aquatic Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Gauntlet Claw",
+    "element": "Steel",
+    "sp_cost": "80",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 20 x 3 hits.",
+    "minHits": 3,
+    "power": 20,
+    "critRate": 5
+  },
+  {
+    "name": "Gear Stinger",
+    "element": "Null",
+    "sp_cost": "60",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 20 x 3 hits.",
+    "minHits": 3,
+    "power": 20,
+    "critRate": 5
+  },
+  {
+    "name": "GeoGrey Sword",
+    "element": "Earth",
+    "sp_cost": "210",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Earth physical attack at power 90.100% chance of 20% boost to ATK for 3 turn(s).Increased damage to targets with Pixie Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Gewalt Schwärmer",
+    "element": "Steel",
+    "sp_cost": "290",
+    "type": "Physical",
+    "description": "[Target: All enemies] Performs  Steel physical attackat power 35 x 4 hits. The lower the user's SP, the lowerthe damage. Consumes all SP. Immobilized next turn.Increased damage to targets with Machine Trait.",
+    "minHits": 4,
+    "power": 35,
+    "critRate": 5
+  },
+  {
+    "name": "Giant Missile",
+    "element": "Fire",
+    "sp_cost": "240",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 48 x 2 hits.Increased damage to targets with Mineral Trait.",
+    "minHits": 2,
+    "power": 48,
+    "critRate": 5
+  },
+  {
+    "name": "Gift of Darkness",
+    "element": "Dark",
+    "sp_cost": "290",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 100.Increased damage to targets with Immortal Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Giga Blaster",
+    "element": "Electricity",
+    "sp_cost": "225",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Electricity magic attack at power 95.If target is  Virus: 50% chance to apply  Immobilization.Increased damage to targets with Machine Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Giga Death",
+    "element": "Light",
+    "sp_cost": "320",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Light physical attack at power 80.Increased damage to targets with Unknown Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Giga Destroyer",
+    "element": "Fire",
+    "sp_cost": "155",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 90.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Gigastick Lance",
+    "element": "Null",
+    "sp_cost": "330",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 105.Nullifies unfavorable compatibility.Increased damage to targets with Immortal Trait.",
+    "power": 105,
+    "critRate": 5
+  },
+  {
+    "name": "Glare Eye",
+    "element": "Dark",
+    "sp_cost": "25",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Dark magic attack at power 35.",
+    "power": 35,
+    "critRate": 5
+  },
+  {
+    "name": "Glide Horn",
+    "element": "Wind",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 65.100% chance of 20% reduction to ATK for 3 turn(s).Increased damage to targets with Bird Trait.",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Glorious Burst",
+    "element": "Light",
+    "sp_cost": "320",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Light physical attack at power 60.Increased damage to targets with Evil Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Goblin Strike",
+    "element": "Fire",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 40.100% chance of 30% reduction to SPD for 3 turn(s).",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "God Flame",
+    "element": "Light",
+    "sp_cost": "370",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Light magic attack at power 55.If target is KO'd: Recovers user's HP/SP by 20%.Increased damage to targets with Spirit Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Gold Rush",
+    "element": "Steel",
+    "sp_cost": "130",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Steel physical attack at power 40.If target has already acted: Increased damage.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Golden Armor",
+    "element": "Steel",
+    "sp_cost": "295",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Steel physical attack at power 60.Increased damage to targets with Mollusk Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Golden Ripper",
+    "element": "Steel",
+    "sp_cost": "210",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 30 x 3 hits.10% CRT Rate.Increased damage to targets with Immortal Trait.",
+    "minHits": 3,
+    "power": 30,
+    "critRate": 10
+  },
+  {
+    "name": "Golden Triangle",
+    "element": "Electricity",
+    "sp_cost": "155",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Electricity magic attack at power 80.50% chance to apply  Injury.Increased damage to targets with Machine Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Golden Triangle",
+    "element": "Electricity",
+    "sp_cost": "230",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Electricity magic attack at power 85.50% chance to apply  Injury.Increased damage to targets with Machine Trait.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Goldurian Rush",
+    "element": "Null",
+    "sp_cost": "250",
+    "type": "Fixed",
+    "description": "[Target: All enemies]Deals 2% HP damage x 3 hits.100% chance of 15% reduction to SPI for 3 turns.",
+    "minHits": 3,
+    "power": 2,
+    "critRate": 0
+  },
+  {
+    "name": "Good Night Moon",
+    "element": "Debuff",
+    "sp_cost": "55",
+    "type": "None",
+    "description": "[Target: 1 enemy]100% chance of 30% reduction to SPD for 3 turns.80% chance to apply  Deep Slumber.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Graceful Lance",
+    "element": "Buff",
+    "sp_cost": "305",
+    "type": "None",
+    "description": "[Target: User]Activates  Counter Physical.Upon receiving a physical attack, counters againstall enemies with a  Dark physical attack at power 105.Increased damage to targets with Unknown Trait.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Grand Cross",
+    "element": "Light",
+    "sp_cost": "200",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Light magic attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Grau Lärm",
+    "element": "Debuff",
+    "sp_cost": "30",
+    "type": "None",
+    "description": "[Target: All enemies]100% chance of 10% reduction to SPI for 3 turns.50% chance to apply  Crystallization.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Grave Bone",
+    "element": "Earth",
+    "sp_cost": "140",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Earth physical attack at power 80.100% chance of reduction to  Earth resistance.Increased damage to targets with Mineral Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Great Tornado",
+    "element": "Null",
+    "sp_cost": "250",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 30 x 3 hits.15% CRT Rate.Increased damage to targets with Dragon Trait.",
+    "minHits": 3,
+    "power": 30,
+    "critRate": 15
+  },
+  {
+    "name": "Great Weight",
+    "element": "Earth",
+    "sp_cost": "115",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Earth physical attack at power 40.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Green Flare Breath",
+    "element": "Fire",
+    "sp_cost": "125",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 65.Nullifies unfavorable compatibility.Increased damage to targets with Pixie Trait.",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Haggard Cluster",
+    "element": "Dark",
+    "sp_cost": "280",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Dark physical attack at power 55.20% chance to apply  Crystallization.Increased damage to targets with Evil Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Haley Storm",
+    "element": "Light",
+    "sp_cost": "155",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 90.Increased damage to targets with Mineral Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Happy Bullet Showering",
+    "element": "Steel",
+    "sp_cost": "240",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 30 x 3 hits.If target's HP is 50% or less: Increased damage.Increased damage to targets with Weapon Trait.",
+    "minHits": 3,
+    "power": 30,
+    "critRate": 5
+  },
+  {
+    "name": "Hard Rock Soul",
+    "element": "Fire",
+    "sp_cost": "150",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 35 x 2 hits.The lower the user's HP, the greater the damage.",
+    "minHits": 2,
+    "power": 35,
+    "critRate": 5
+  },
+  {
+    "name": "Harpoon Torpedo",
+    "element": "Null",
+    "sp_cost": "100",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 75.",
+    "power": 75,
+    "critRate": 5
+  },
+  {
+    "name": "Hearts Attack",
+    "element": "Buff",
+    "sp_cost": "175",
+    "type": "None",
+    "description": "[Target: All allies]Recovers HP based on user's SPI.",
+    "power": 30,
+    "critRate": 0
+  },
+  {
+    "name": "Heat Viper",
+    "element": "Fire",
+    "sp_cost": "200",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 25 x 3 hits.Nullifies unfavorable compatibility.Increased damage to targets with Ice Trait.",
+    "minHits": 3,
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Heat Wave",
+    "element": "Fire",
+    "sp_cost": "200",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Fire magic attack at power 50.Increased damage to targets with Ice Trait.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Heaven's Gate",
+    "element": "Light",
+    "sp_cost": "200",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Light magic attack at power 50.Increased damage to targets with Evil Trait.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Heaven's Judgment",
+    "element": "Dark",
+    "sp_cost": "305",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Dark magic attack at power 20 x 3 hits.Increased damage to targets with Immortal Trait.",
+    "minHits": 3,
+    "power": 20,
+    "critRate": 5
+  },
+  {
+    "name": "Heaven's Judgment",
+    "element": "Light",
+    "sp_cost": "320",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Light magic attack at power 20 x 3 hits.Increased damage to targets with Spirit Trait.",
+    "minHits": 3,
+    "power": 20,
+    "critRate": 5
+  },
+  {
+    "name": "Heaven's Knuckle",
+    "element": "Light",
+    "sp_cost": "90",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 65.100% chance of 20% reduction to SPI for 3 turn(s).Increased damage to targets with Evil Trait.",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Heavy Metal Fire",
+    "element": "Fire",
+    "sp_cost": "200",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 50.Increased damage to targets with Steel Trait.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Hell Howling",
+    "element": "Null",
+    "sp_cost": "220",
+    "type": "Physical",
+    "description": "[Target: 1 enemy] Performs  Null physical attackat power 80. 70% chance of 20% reduction to INT.70% chance to apply  Crystallization.Increased damage to targets with Unknown Trait.",
+    "power": 80,
+    "critRate": 0
+  },
+  {
+    "name": "Hell Masquerade",
+    "element": "Plant",
+    "sp_cost": "175",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Plant physical attack at power 25 x 3 hits.If target has yet to act: 25% CRT Rate.",
+    "minHits": 3,
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Hell Slicer",
+    "element": "Dark",
+    "sp_cost": "410",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Dark physical attack at power 70.Nullifies unfavorable compatibility. 50% chance to apply  Chaos.Increased damage to targets with Holy Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Hell's Gate",
+    "element": "Dark",
+    "sp_cost": "210",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 90.100% chance of 20% reduction to DEF for 3 turn(s).Increased damage to targets with Holy Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Holy Desire",
+    "element": "Light",
+    "sp_cost": "220",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 90.100% chance of reduction to  Light resistance.Increased damage to targets with Evil Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Holy Flare",
+    "element": "Fire",
+    "sp_cost": "440",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 85.Nullifies unfavorable compatibility.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Holy Flare",
+    "element": "Fire",
+    "sp_cost": "325",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Fire magic attack at power 85.Removes stat buffs.Increased damage to targets with Evil Trait.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Holy Shot",
+    "element": "Light",
+    "sp_cost": "90",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 70.Increased damage to targets with Mythical Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Horn Buster",
+    "element": "Plant",
+    "sp_cost": "145",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Plant physical attack at power 80.100% chance of 20% reduction to SPD for 3 turn(s).",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Hothead",
+    "element": "Fire",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Howling Crusher",
+    "element": "Wind",
+    "sp_cost": "220",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 95.Increased damage to targets with Beast Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Howling Destroyer",
+    "element": "Wind",
+    "sp_cost": "150",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Wind physical attack at power 35.Nullifies unfavorable compatibility.",
+    "power": 35,
+    "critRate": 5
+  },
+  {
+    "name": "Howling Hertz",
+    "element": "Null",
+    "sp_cost": "25",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 15.20% chance to apply  Paralysis.",
+    "power": 15,
+    "critRate": 5
+  },
+  {
+    "name": "Hunting Cannon",
+    "element": "Electricity",
+    "sp_cost": "105",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 105.Immobilized next turn.",
+    "power": 105,
+    "critRate": 5
+  },
+  {
+    "name": "Hurricane Screw Shot",
+    "element": "Dark",
+    "sp_cost": "320",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Dark physical attack at power 15 x 4 hits.10% CRT Rate.Increased damage to targets with Bird Trait.",
+    "minHits": 4,
+    "power": 15,
+    "critRate": 10
+  },
+  {
+    "name": "Hydro Blaster",
+    "element": "Water",
+    "sp_cost": "90",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Water magic attack at power 60.If user is boost to DEF: 25% CRT Rate.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Hyper Cannon",
+    "element": "Fire",
+    "sp_cost": "100",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 105.Immobilized next turn.",
+    "power": 105,
+    "critRate": 5
+  },
+  {
+    "name": "Hyper Heat",
+    "element": "Fire",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 65.100% chance of reduction to  Fire resistance.",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Hyper Infinity Cannon",
+    "element": "Electricity",
+    "sp_cost": "340",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Electricity physical attack at power 70.Increased damage to targets with Machine Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Hyper Smell",
+    "element": "Debuff",
+    "sp_cost": "30",
+    "type": "None",
+    "description": "[Target: All enemies]100% chance of 10% reduction to SPI for 3 turns.50% chance to apply  Paralysis.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Iai Blade",
+    "element": "Steel",
+    "sp_cost": "50",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 45.10% CRT Rate.",
+    "power": 45,
+    "critRate": 10
+  },
+  {
+    "name": "Ice Blast",
+    "element": "Ice",
+    "sp_cost": "90",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Ice magic attack at power 70.Increased damage to targets with Aquatic Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Ice Wolf Claw",
+    "element": "Ice",
+    "sp_cost": "320",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Ice physical attack at power 20 x 3 hits.Increased damage to targets with Fire Trait.",
+    "minHits": 3,
+    "power": 20,
+    "critRate": 5
+  },
+  {
+    "name": "Ice Wolf Claw",
+    "element": "Ice",
+    "sp_cost": "275",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Ice physical attack at power 20 x 3 hits.Increased damage to targets with Fire Trait.",
+    "minHits": 3,
+    "power": 20,
+    "critRate": 5
+  },
+  {
+    "name": "Iceball Bomb",
+    "element": "Ice",
+    "sp_cost": "110",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Ice physical attack at power 15 x 2 hits.",
+    "minHits": 2,
+    "power": 15,
+    "critRate": 5
+  },
+  {
+    "name": "Icicle Rod",
+    "element": "Ice",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Ice physical attack at power 70.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Illuminator",
+    "element": "Dark",
+    "sp_cost": "250",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Dark magic attack at power 90.25% CRT Rate.Increased damage to targets with Vegetation Trait.",
+    "power": 90,
+    "critRate": 25
+  },
+  {
+    "name": "Inferno Divide",
+    "element": "Dark",
+    "sp_cost": "195",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 85.Nullifies unfavorable compatibility.Increased damage to targets with Beast Trait.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Infinity Arrow",
+    "element": "Null",
+    "sp_cost": "300",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Null physical attack at power 55.15% chance to apply  Immobilization.Increased damage to targets with Bird Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Infinity Bowling",
+    "element": "Steel",
+    "sp_cost": "240",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 18 x 5 hits.If target's HP is 50% or higher: Increased damage.Increased damage to targets with Mineral Trait.",
+    "minHits": 5,
+    "power": 18,
+    "critRate": 5
+  },
+  {
+    "name": "Infinity Cannon",
+    "element": "Electricity",
+    "sp_cost": "250",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 48 x 2 hits.Increased damage to targets with Machine Trait.",
+    "minHits": 2,
+    "power": 48,
+    "critRate": 5
+  },
+  {
+    "name": "Invincible Sword",
+    "element": "Light",
+    "sp_cost": "370",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 100.Always hits. Recovers user's HP by 10%.Increased damage to targets with Ancient Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Island Freefall",
+    "element": "Plant",
+    "sp_cost": "285",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Plant physical attack at power 55.10% chance to apply Instant Death.Increased damage to targets with Insectoid Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Izuna",
+    "element": "Null",
+    "sp_cost": "275",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Null magic attack at power 90.25% CRT Rate.Increased damage to targets with Vegetation Trait.",
+    "power": 90,
+    "critRate": 25
+  },
+  {
+    "name": "Jamming Powder",
+    "element": "Steel",
+    "sp_cost": "15",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 5.15% chance to apply  Confusion.",
+    "power": 5,
+    "critRate": 5
+  },
+  {
+    "name": "Judecca Prison",
+    "element": "Dark",
+    "sp_cost": "240",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Dark magic attack at power 90.If target is  Vaccine: Increased damage.Increased damage to targets with Knight Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Judgment of the Blade",
+    "element": "Null",
+    "sp_cost": "260",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 18 x 5 hits.20% CRT Rate.Increased damage to targets with Ancient Trait.",
+    "minHits": 5,
+    "power": 18,
+    "critRate": 20
+  },
+  {
+    "name": "Jumbo Crater",
+    "element": "Null",
+    "sp_cost": "330",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Null physical attack at power 20 x 3 hits.Increased damage to targets with Mollusk Trait.",
+    "minHits": 3,
+    "power": 20,
+    "critRate": 5
+  },
+  {
+    "name": "Justice Bullet",
+    "element": "Light",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 70.Increased damage to targets with Humanoid Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Justice Kick",
+    "element": "Null",
+    "sp_cost": "245",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 105.Increased damage to targets with Humanoid Trait.",
+    "power": 105,
+    "critRate": 5
+  },
+  {
+    "name": "Kaiser Phoenix",
+    "element": "Steel",
+    "sp_cost": "205",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 95.Increased damage to targets with Bird Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Keraunos Divide",
+    "element": "Electricity",
+    "sp_cost": "360",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 90.If target is affected by Paralysis/ Immobilization:Increased damage. Increased damage to targets with Evil Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Kirisute Gomen",
+    "element": "Steel",
+    "sp_cost": "110",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 65.If target is KO'd: Recovers user's HP by 50%.Increased damage to targets with Warrior Trait.",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Knuckle Beater",
+    "element": "Null",
+    "sp_cost": "60",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 60.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Koryu Slash",
+    "element": "Fire",
+    "sp_cost": "220",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 85.100% chance of 20% reduction to DEF for 3 turn(s).Increased damage to targets with Dragon Trait.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Kouyoujou: Hydro Descent",
+    "element": "Water",
+    "sp_cost": "195",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Water magic attack at power 50.Increased damage to targets with Fire Trait.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Kunai Wing",
+    "element": "Steel",
+    "sp_cost": "115",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Steel physical attack at power 30.20% CRT Rate.",
+    "power": 30,
+    "critRate": 20
+  },
+  {
+    "name": "Lampranthus",
+    "element": "Dark",
+    "sp_cost": "415",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Dark magic attack at power 80.100% chance of 10% reduction to SPD for 3 turn(s).Increased damage to targets with Unknown Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Lampranthus",
+    "element": "Dark",
+    "sp_cost": "280",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Dark magic attack at power 55.100% chance of 10% reduction to SPD for 3 turn(s).Increased damage to targets with Unknown Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Laplace's Demon",
+    "element": "Null",
+    "sp_cost": "245",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Null magic attack at power 105.Increased damage to targets with Unknown Trait.",
+    "power": 105,
+    "critRate": 5
+  },
+  {
+    "name": "Legendary Dragon Blade",
+    "element": "Steel",
+    "sp_cost": "190",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 80.10% CRT Rate. Nullifies unfavorable compatibility.",
+    "power": 80,
+    "critRate": 10
+  },
+  {
+    "name": "Lightning Blade",
+    "element": "Electricity",
+    "sp_cost": "105",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 75.",
+    "power": 75,
+    "critRate": 5
+  },
+  {
+    "name": "Lightning Javelin",
+    "element": "Electricity",
+    "sp_cost": "160",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Electricity magic attack at power 90.Increased damage to targets with Aquatic Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Lightning Javelin",
+    "element": "Electricity",
+    "sp_cost": "160",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Electricity magic attack at power 90.Increased damage to targets with Aquatic Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Lightning Joust",
+    "element": "Light",
+    "sp_cost": "220",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 90.Removes stat debuffs.Increased damage to targets with Immortal Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Lightning Paw",
+    "element": "Dark",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 70.50% chance to apply  Confusion.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Lightning Paw",
+    "element": "Light",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 70.50% chance to apply  Confusion.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Lightning Pile",
+    "element": "Electricity",
+    "sp_cost": "150",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 70.100% chance of reduction to  Electricity resistance.Increased damage to targets with Aquatic Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Lightning Shower",
+    "element": "Light",
+    "sp_cost": "220",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Light physical attack at power 30 x 3 hits.100% chance of reduction to  Light resistance.Increased damage to targets with Evil Trait.",
+    "minHits": 3,
+    "power": 30,
+    "critRate": 5
+  },
+  {
+    "name": "Lightning Spear",
+    "element": "Dark",
+    "sp_cost": "285",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Dark magic attack at power 90.Nullifies unfavorable compatibility.Increased damage to targets with Holy Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Lightning Spear",
+    "element": "Light",
+    "sp_cost": "300",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 90.Nullifies unfavorable compatibility.Increased damage to targets with Evil Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Lightning Thrust",
+    "element": "Electricity",
+    "sp_cost": "385",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 95.If target has yet to act: Increased damage.Increased damage to targets with Holy Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Lila Shower",
+    "element": "Plant",
+    "sp_cost": "195",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Plant magic attack at power 50.Increased damage to targets with Insectoid Trait.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Lion Slash",
+    "element": "Fire",
+    "sp_cost": "255",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 90.If target's Generation is greater than user's: Increased damage.Increased damage to targets with Humanoid Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Little Horn",
+    "element": "Ice",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Ice physical attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Little Iron Beads",
+    "element": "Steel",
+    "sp_cost": "25",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 35.",
+    "power": 35,
+    "critRate": 5
+  },
+  {
+    "name": "Lizard Dance",
+    "element": "Steel",
+    "sp_cost": "80",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 20 x 3 hits.",
+    "minHits": 3,
+    "power": 20,
+    "critRate": 5
+  },
+  {
+    "name": "Love Poison",
+    "element": "Null",
+    "sp_cost": "450",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Null physical attack at power 60.60% chance to apply  Deadly Poison.Increased damage to targets with Humanoid Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Love Serenade",
+    "element": "Debuff",
+    "sp_cost": "50",
+    "type": "None",
+    "description": "[Target: All enemies]100% chance of 30% reduction to ATK for 3 turn(s).",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "LOVE YOU",
+    "element": "Recovery",
+    "sp_cost": "260",
+    "type": "None",
+    "description": "[Target: All allies]Recovers HP based on user's SPI.Removes stat debuffs.",
+    "power": 35,
+    "critRate": 0
+  },
+  {
+    "name": "Lullaby Bubble",
+    "element": "Water",
+    "sp_cost": "50",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Water magic attack at power 40.30% chance to apply  Sleep.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Lunatic Dance",
+    "element": "Ice",
+    "sp_cost": "165",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Ice magic attack at power 20 x 4 hits.15% CRT Rate.Increased damage to targets with Beast Trait.",
+    "minHits": 4,
+    "power": 20,
+    "critRate": 15
+  },
+  {
+    "name": "Mach Stinger V",
+    "element": "Electricity",
+    "sp_cost": "245",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 15 x 6 hits.10% CRT Rate.Increased damage to targets with Insectoid Trait.",
+    "minHits": 6,
+    "power": 15,
+    "critRate": 10
+  },
+  {
+    "name": "Machinegun Destroyer",
+    "element": "Steel",
+    "sp_cost": "310",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Steel physical attack at power 25 x 3 hits.10% CRT Rate.Increased damage to targets with Machine Trait.",
+    "minHits": 3,
+    "power": 25,
+    "critRate": 10
+  },
+  {
+    "name": "Mad Dog Fire",
+    "element": "Dark",
+    "sp_cost": "185",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Dark physical attack at power 45.20% chance to apply  Crystallization.Increased damage to targets with Beast Trait.",
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Mad Dog Fire",
+    "element": "Dark",
+    "sp_cost": "150",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 25 x 3 hits.Always hits.",
+    "minHits": 3,
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Madness Merry-Go-Round",
+    "element": "Wind",
+    "sp_cost": "315",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Wind physical attack at power 20 x 4 hits.Increased damage to targets with Deity Trait.",
+    "minHits": 4,
+    "power": 20,
+    "critRate": 5
+  },
+  {
+    "name": "Madness Merry-Go-Round DX",
+    "element": "Wind",
+    "sp_cost": "410",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Wind physical attack at power 27 x 3 hits.10% CRT Rate.Increased damage to targets with Reptile Trait.",
+    "minHits": 3,
+    "power": 27,
+    "critRate": 10
+  },
+  {
+    "name": "Marching Fishes",
+    "element": "Water",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Water physical attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Marionette Abomination",
+    "element": "Dark",
+    "sp_cost": "225",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 100.Increased damage to targets with Holy Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Mature Poop",
+    "element": "Null",
+    "sp_cost": "200",
+    "type": "Fixed",
+    "description": "[Target: 1 enemy]Deals 15% HP damage.",
+    "power": 15,
+    "critRate": 0
+  },
+  {
+    "name": "Maul Attack",
+    "element": "Buff",
+    "sp_cost": "100",
+    "type": "None",
+    "description": "[Target: User]Activates  Counter Physical.Upon receiving a physical attack, counters with a Null physical attack at power 85.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Mega Burst",
+    "element": "Fire",
+    "sp_cost": "95",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 70.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Mega Death",
+    "element": "Dark",
+    "sp_cost": "305",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Dark magic attack at power 80.Increased damage to targets with Ancient Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Mega Flame",
+    "element": "Fire",
+    "sp_cost": "120",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 40.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Megaton Hydro Laser",
+    "element": "Water",
+    "sp_cost": "295",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Water physical attack at power 90.Nullifies unfavorable compatibility.Increased damage to targets with Machine Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Megiddo Flame",
+    "element": "Fire",
+    "sp_cost": "265",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 55.If target is KO'd: 100% chance of 20% boost to ATK for 3 turn(s).Increased damage to targets with Immortal Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Metal Armor Blade",
+    "element": "Steel",
+    "sp_cost": "85",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 65.10% CRT Rate.Increased damage to targets with Warrior Trait.",
+    "power": 65,
+    "critRate": 10
+  },
+  {
+    "name": "Metal Cannon",
+    "element": "Steel",
+    "sp_cost": "50",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Metal Drop",
+    "element": "Steel",
+    "sp_cost": "30",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 40.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Metal Meteor",
+    "element": "Steel",
+    "sp_cost": "180",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Steel physical attack at power 50.Increased damage to targets with Machine Trait.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Meteor Shower",
+    "element": "Earth",
+    "sp_cost": "110",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Earth physical attack at power 10 x 2～5 hits.",
+    "minHits": 2,
+    "power": 10,
+    "critRate": 5
+  },
+  {
+    "name": "Meteor Wing",
+    "element": "Fire",
+    "sp_cost": "120",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Fire magic attack at power 40.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Mini Scissor Claw",
+    "element": "Electricity",
+    "sp_cost": "60",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 45.10% CRT Rate.",
+    "power": 45,
+    "critRate": 10
+  },
+  {
+    "name": "Miracle Bomb",
+    "element": "Fire",
+    "sp_cost": "165",
+    "type": "None",
+    "description": "[Target: 1 enemy]Either Performs  Fire physical attack at power 110,or 100% chance of 10% reduction to SPD for 3 turns.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Misery Bullet Rain",
+    "element": "Dark",
+    "sp_cost": "250",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 18 x 5 hits.If target has already acted: Increased damage.Increased damage to targets with Weapon Trait.",
+    "minHits": 5,
+    "power": 18,
+    "critRate": 5
+  },
+  {
+    "name": "Mjölnir Thunder",
+    "element": "Electricity",
+    "sp_cost": "160",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Electricity magic attack at power 90.Increased damage to targets with Machine Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Monkey Wrench",
+    "element": "Debuff",
+    "sp_cost": "70",
+    "type": "None",
+    "description": "[Target: All enemies]100% chance of 50% reduction to ATK/INT for 1 turn.Applies  Taunting to user.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Moon Night Bomb",
+    "element": "Water",
+    "sp_cost": "85",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Water magic attack at power 60.30% chance to apply  Sleep.Increased damage to targets with Beast Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Mourning Dance",
+    "element": "Wind",
+    "sp_cost": "320",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 18 x 5 hits.15% CRT Rate.Increased damage to targets with Holy Trait.",
+    "minHits": 5,
+    "power": 18,
+    "critRate": 15
+  },
+  {
+    "name": "Musical Fist",
+    "element": "Null",
+    "sp_cost": "180",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Null magic attack at power 90.If target is affected by  Sleep/ Deep Slumber: Increaseddamage. Increased damage to targets with Amphibian Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Mystic Break",
+    "element": "Null",
+    "sp_cost": "330",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Null magic attack at power 65.100% chance of 20% reduction to SPI for 3 turn(s).",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Mystic Flame",
+    "element": "Null",
+    "sp_cost": "245",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 50 x 2 hits.Increased damage to targets with Demon Trait.",
+    "minHits": 2,
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Nail Bone",
+    "element": "Dark",
+    "sp_cost": "190",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Dark magic attack at power 50.Increased damage to targets with Holy Trait.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Nail Scratch",
+    "element": "Dark",
+    "sp_cost": "30",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 40.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Necromist",
+    "element": "Dark",
+    "sp_cost": "205",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Dark magic attack at power 80.60% chance to apply  Chaos.Increased damage to targets with Holy Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Needle Hive",
+    "element": "Dark",
+    "sp_cost": "210",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 30 x 3 hits.100% chance to apply  Deadly Poison.Increased damage to targets with Pixie Trait.",
+    "minHits": 3,
+    "power": 30,
+    "critRate": 5
+  },
+  {
+    "name": "Needle Spray",
+    "element": "Plant",
+    "sp_cost": "110",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Plant physical attack at power 35.25% chance to apply  Poison.",
+    "power": 35,
+    "critRate": 5
+  },
+  {
+    "name": "Needle Squall",
+    "element": "Steel",
+    "sp_cost": "295",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Steel physical attack at power 30 x 2 hits.Increased damage to targets with Fish Trait.",
+    "minHits": 2,
+    "power": 30,
+    "critRate": 5
+  },
+  {
+    "name": "Night Raid",
+    "element": "Dark",
+    "sp_cost": "165",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Dark magic attack at power 85.Recovers HP equal to 30% of damage dealt.Increased damage to targets with Holy Trait.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Nightmare Syndrome",
+    "element": "Dark",
+    "sp_cost": "135",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 70.70% chance to apply  Sleep.Increased damage to targets with Unknown Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Nightmare Syndrome",
+    "element": "Dark",
+    "sp_cost": "50",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Dark magic attack at power 40.10% chance to apply  Sleep.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Ninja Blade",
+    "element": "Steel",
+    "sp_cost": "65",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Steel physical attack at power 25.10% CRT Rate.",
+    "power": 25,
+    "critRate": 10
+  },
+  {
+    "name": "Nitro Stinger",
+    "element": "Electricity",
+    "sp_cost": "160",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 85.30% chance to apply  Paralysis.Increased damage to targets with Insectoid Trait.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Nuclear Laser",
+    "element": "Electricity",
+    "sp_cost": "215",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 85.Nullifies unfavorable compatibility.Increased damage to targets with Steel Trait.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Oblivion Bird",
+    "element": "Fire",
+    "sp_cost": "155",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 90.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Ocean Love",
+    "element": "Recovery",
+    "sp_cost": "260",
+    "type": "None",
+    "description": "[Target: All allies]Recovers HP based on user's SPI.Removes status abnormalities/ Injury/ Disease.",
+    "power": 30,
+    "critRate": 0
+  },
+  {
+    "name": "Odin's Breath",
+    "element": "Ice",
+    "sp_cost": "290",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Ice magic attack at power 55.100% chance of reduction to  Ice resistance.Increased damage to targets with Dinosaur Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Omni Blade",
+    "element": "Light",
+    "sp_cost": "350",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 100.If target is affected by stat changes: Increased damage.Increased damage to targets with Unknown Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Oxygen Homing",
+    "element": "Water",
+    "sp_cost": "130",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Water physical attack at power 45.",
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Pandemonium Flame",
+    "element": "Fire",
+    "sp_cost": "325",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Fire magic attack at power 70.Increased damage to targets with Vegetation Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Pandemonium Lost",
+    "element": "Dark",
+    "sp_cost": "305",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Dark magic attack at power 70.Increased damage to targets with Deity Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Pandora Dialogue",
+    "element": "Null",
+    "sp_cost": "160",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Null magic attack at power 90.Increased damage to targets with Magic Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Paradise Lost",
+    "element": "Null",
+    "sp_cost": "230",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 95.100% chance of reduction to  Null resistance.Increased damage to targets with Deity Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Party of the Heavens",
+    "element": "Water",
+    "sp_cost": "285",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Water physical attack at power 55.30% chance to apply  Immobilization.Increased damage to targets with Fire Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Peace Fantasia",
+    "element": "Null",
+    "sp_cost": "170",
+    "type": "Fixed",
+    "description": "[Target: 1 enemy]Deals fixed damage at power 10 x 3 hits.100% chance of 30% reduction to ATK/INT for 3 turns.Removes stat buffs.",
+    "minHits": 3,
+    "power": 10,
+    "critRate": 0
+  },
+  {
+    "name": "Pendragon's Glory",
+    "element": "Electricity",
+    "sp_cost": "325",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 100.Increased damage to targets with Ancient Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Penetra-Laser",
+    "element": "Steel",
+    "sp_cost": "140",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 100.The lower the user's SP, the lower the damage.Increased damage to targets with Fire Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Pepper Breath",
+    "element": "Fire",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Phantom Blade",
+    "element": "Earth",
+    "sp_cost": "210",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Earth physical attack at power 90.50% chance to apply  Injury.Increased damage to targets with Humanoid Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Phantom Pain",
+    "element": "Dark",
+    "sp_cost": "280",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Dark magic attack at power 55.100% chance to apply  Deadly Poison/ Injury.Increased damage to targets with Deity Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Phoebus Blow",
+    "element": "Fire",
+    "sp_cost": "230",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 90.The lower the user's HP, the greater the damage.Increased damage to targets with Aquatic Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Phosphorus Fire Attack",
+    "element": "Fire",
+    "sp_cost": "240",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 85.Always hits. 100% chance of reduction to  Fire resistance.Increased damage to targets with Humanoid Trait.",
+    "power": 85,
+    "critRate": 0
+  },
+  {
+    "name": "Pinpoint Weapon Works",
+    "element": "Null",
+    "sp_cost": "195",
+    "type": "Physical",
+    "description": "[Target: 1 enemy] Performs  Null physical attack atpower 80. If target's Attribute is anything other thanNo Data: Increased damage. Increased damage totargets with Mineral Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Pit Bomb",
+    "element": "Fire",
+    "sp_cost": "165",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Fire magic attack at power 70.If target is  Data: Increased damage.Increased damage to targets with Magic Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Planet Destroyer",
+    "element": "Electricity",
+    "sp_cost": "240",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Electricity magic attack at power 90.The greater the user's stat buffs, the greater the damage.Increased damage to targets with Alien Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Plant Zone Cradle",
+    "element": "Plant",
+    "sp_cost": "215",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Plant magic attack at power 60.30% chance to apply  Sleep.Increased damage to targets with Mineral Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Plasma Shot",
+    "element": "Electricity",
+    "sp_cost": "235",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 45 x 2 hits.25% chance to apply  Immobilization.Increased damage to targets with Machine Trait.",
+    "minHits": 2,
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Plasmadness",
+    "element": "Dark",
+    "sp_cost": "155",
+    "type": "Physical",
+    "description": "[Target: 1 enemy] Performs  Dark physical attackat power 70. If target is  Data: Increased damage.100% chance to apply  Dark resistance Down.Increased damage to targets with Angel Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Plastic Blaze",
+    "element": "Null",
+    "sp_cost": "60",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 50.20% chance to apply  Confusion.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Platinum Burp",
+    "element": "Debuff",
+    "sp_cost": "55",
+    "type": "None",
+    "description": "[Target: 1 enemy]100% chance of 30% reduction to ATK/DEF for 3 turn(s).",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Platinum Excrement",
+    "element": "Null",
+    "sp_cost": "140",
+    "type": "Fixed",
+    "description": "[Target: All enemies]Deals 2% HP damage x 3 hits.100% chance of 10% reduction to INT/SPI for 3 turns.",
+    "minHits": 3,
+    "power": 2,
+    "critRate": 0
+  },
+  {
+    "name": "Pointer Arrow",
+    "element": "Water",
+    "sp_cost": "60",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Water physical attack at power 45.Always hits.",
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Poison Bubbles",
+    "element": "Dark",
+    "sp_cost": "25",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 15.30% chance to apply  Poison.",
+    "power": 15,
+    "critRate": 5
+  },
+  {
+    "name": "Poison Ivy",
+    "element": "Plant",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Plant physical attack at power 45.20% chance to apply  Poison.",
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Poop",
+    "element": "Poison (Status Abnormality)",
+    "sp_cost": "190",
+    "type": "Fixed",
+    "description": "[Target: 1 enemy]Deals 1% HP damage x 5 hits.100% chance of 10% reduction to SPI for 3 turns.60% chance to apply  Poison.",
+    "minHits": 5,
+    "power": 1,
+    "critRate": 0
+  },
+  {
+    "name": "Poop Bazooka",
+    "element": "Confusion (Status Abnormality)",
+    "sp_cost": "310",
+    "type": "Fixed",
+    "description": "[Target: 1 enemy]Deals 5% HP damage.100% chance of 10% reduction to ATK for 3 turns.70% chance to apply  Confusion.",
+    "power": 5,
+    "critRate": 0
+  },
+  {
+    "name": "Poop Dunk",
+    "element": "Null",
+    "sp_cost": "190",
+    "type": "Fixed",
+    "description": "[Target: 1 enemy]Deals 5% HP damage.100% chance of 15% reduction to DEF/SPI for 3 turns.",
+    "power": 5,
+    "critRate": 0
+  },
+  {
+    "name": "Poop Toss",
+    "element": "Null",
+    "sp_cost": "190",
+    "type": "Fixed",
+    "description": "[Target: 1 enemy]Deals 5% HP damage.100% chance of 25% reduction to SPI for 3 turns.",
+    "power": 5,
+    "critRate": 0
+  },
+  {
+    "name": "Positron Laser",
+    "element": "Light",
+    "sp_cost": "225",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 95.Increased damage to targets with Unknown Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Positron Laser",
+    "element": "Light",
+    "sp_cost": "225",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 95.Increased damage to targets with Unknown Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Power Metal",
+    "element": "Steel",
+    "sp_cost": "85",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 70.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Powered Ignition",
+    "element": "Steel",
+    "sp_cost": "135",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 80.100% chance of reduction to  Steel resistance.Increased damage to targets with Deity Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Pretty Attack",
+    "element": "Buff",
+    "sp_cost": "135",
+    "type": "None",
+    "description": "[Target: 1 ally]Recovers HP based on user's SPI.Removes stat debuffs.",
+    "power": 35,
+    "critRate": 0
+  },
+  {
+    "name": "Pummel Peck",
+    "element": "Fire",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 15 x 4 hits.Receives 1% HP damage from attack recoil.",
+    "minHits": 4,
+    "power": 15,
+    "critRate": 5
+  },
+  {
+    "name": "Pummel Whack",
+    "element": "Dark",
+    "sp_cost": "85",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 60.100% chance of 20% reduction to ACU for 3 turn(s).",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Punish Judge",
+    "element": "Debuff",
+    "sp_cost": "55",
+    "type": "None",
+    "description": "[Target: 1 enemy]100% chance of reduction to  Electricity resistance/30% reduction to DEF for 3 turn(s).",
+    "power": 0,
+    "critRate": 5
+  },
+  {
+    "name": "Puppet Pummel",
+    "element": "Fire",
+    "sp_cost": "300",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 90.Nullifies unfavorable compatibility.Increased damage to targets with Vegetation Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Puppy Howl",
+    "element": "Light",
+    "sp_cost": "50",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 30.50% chance to apply  Paralysis.",
+    "power": 30,
+    "critRate": 5
+  },
+  {
+    "name": "Purgatorial Flame",
+    "element": "Fire",
+    "sp_cost": "310",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Fire magic attack at power 100.Increased damage to targets with Deity Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Purge Shine",
+    "element": "Buff",
+    "sp_cost": "70",
+    "type": "None",
+    "description": "[Target: All allies]Applies  Status Abnormality Immunity.Removes status abnormalities.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Pyro Dragons",
+    "element": "Earth",
+    "sp_cost": "205",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Earth physical attack at power 85.100% chance of reduction to  Earth resistance.Increased damage to targets with Dragon Trait.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Pyro Punch",
+    "element": "Fire",
+    "sp_cost": "85",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 35 x 2 hits.Increased damage to targets with Immortal Trait.",
+    "minHits": 2,
+    "power": 35,
+    "critRate": 5
+  },
+  {
+    "name": "Quake! Blast! Fire! Father!",
+    "element": "Fire",
+    "sp_cost": "240",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 25 x 4 hits.Increased damage to targets with Humanoid Trait.",
+    "minHits": 4,
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Quo Vadis",
+    "element": "Light",
+    "sp_cost": "480",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Light physical attack at power 70.Always hits.Increased damage to targets with Machine Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Raddle Star",
+    "element": "Steel",
+    "sp_cost": "350",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 12 x 8 hits.Always hits. 20% CRT Rate.",
+    "minHits": 8,
+    "power": 12,
+    "critRate": 20
+  },
+  {
+    "name": "Rage of Wyvern",
+    "element": "Fire",
+    "sp_cost": "225",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Fire magic attack at power 95.Increased damage to targets with Magic Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Rain of Pollen",
+    "element": "Plant",
+    "sp_cost": "65",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Plant magic attack at power 20.20% chance to apply  Confusion.",
+    "power": 20,
+    "critRate": 5
+  },
+  {
+    "name": "Rain Stream",
+    "element": "Water",
+    "sp_cost": "80",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Water magic attack at power 70.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Rare Metal Poop",
+    "element": "Confusion (Status Abnormality)",
+    "sp_cost": "70",
+    "type": "Fixed",
+    "description": "[Target: 1 enemy]Deals 1% HP damage x 5 hits.100% chance of 20% reduction to SPI for 3 turns.30% chance to apply  Confusion.",
+    "minHits": 5,
+    "power": 1,
+    "critRate": 0
+  },
+  {
+    "name": "Red Reamer",
+    "element": "Fire",
+    "sp_cost": "310",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 100.100% chance of reduction to  Fire resistance.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Reversal of the Dead",
+    "element": "Water",
+    "sp_cost": "315",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Water physical attack at power 90.100% chance to apply  Sleep to user.Increased damage to targets with Humanoid Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "River of Power",
+    "element": "Light",
+    "sp_cost": "225",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 95.Increased damage to targets with Fish Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Rock Breaker",
+    "element": "Fire",
+    "sp_cost": "60",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 45.10% CRT Rate.",
+    "power": 45,
+    "critRate": 10
+  },
+  {
+    "name": "Rock Fist",
+    "element": "Earth",
+    "sp_cost": "65",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Earth physical attack at power 25.",
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Rock Soul",
+    "element": "Fire",
+    "sp_cost": "60",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 40.The lower the user's HP, the greater the damage.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Rodeo Bullet",
+    "element": "Steel",
+    "sp_cost": "295",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Steel physical attack at power 80.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Rolling Tackle",
+    "element": "Steel",
+    "sp_cost": "85",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 30 x 2 hits.10% CRT Rate.Increased damage to targets with Vegetation Trait.",
+    "minHits": 2,
+    "power": 30,
+    "critRate": 10
+  },
+  {
+    "name": "Rosetta Stone",
+    "element": "Earth",
+    "sp_cost": "90",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Earth magic attack at power 75.50% chance to apply  Confusion.",
+    "power": 75,
+    "critRate": 5
+  },
+  {
+    "name": "Royal Nuts",
+    "element": "Plant",
+    "sp_cost": "195",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Plant physical attack at power 50.Increased damage to targets with Insectoid Trait.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Rust Breath",
+    "element": "Debuff",
+    "sp_cost": "70",
+    "type": "None",
+    "description": "[Target: All enemies]100% chance of 30% reduction to DEF for 3 turn(s).",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Ruthless Charge",
+    "element": "Null",
+    "sp_cost": "330",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Null magic attack at power 90.100% chance of 10% reduction to ATK for 3 turn(s).Increased damage to targets with Dragon Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Savage Emperor",
+    "element": "Wind",
+    "sp_cost": "195",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Wind magic attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Scissor Claw",
+    "element": "Plant",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Plant physical attack at power 70.Increased damage to targets with Insectoid Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Scissors Execution",
+    "element": "Water",
+    "sp_cost": "50",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Water physical attack at power 45.If target is affected by  Confusion/ Chaos:25% chance to apply Instant Death.",
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Scrapless Claw",
+    "element": "Earth",
+    "sp_cost": "140",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Earth physical attack at power 80.50% chance to apply  Injury.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Seed Blast",
+    "element": "Plant",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Plant physical attack at power 15 x 3 hits.90% ACU. 10% CRT Rate.",
+    "minHits": 3,
+    "power": 15,
+    "critRate": 10
+    
+  },
+  {
+    "name": "Sefirot Crystal",
+    "element": "Light",
+    "sp_cost": "230",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 9 x 10 hits.10% CRT Rate.Increased damage to targets with Spirit Trait.",
+    "minHits": 10,
+    "maxHits": 10,
+    "power": 9,
+    "critRate": 10
+  },
+  {
+    "name": "Senjin Kishinzan",
+    "element": "Dark",
+    "sp_cost": "280",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 90.100% chance to apply  Injury.Increased damage to targets with Holy Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Serpent Cure",
+    "element": "Recovery",
+    "sp_cost": "200",
+    "type": "None",
+    "description": "[Target: 1 ally]Recovers HP based on user's SPI.100% chance of 20% boost to INT for 3 turn(s).",
+    "power": 30,
+    "critRate": 0
+  },
+  {
+    "name": "Serpent Ruin",
+    "element": "Debuff",
+    "sp_cost": "55",
+    "type": "None",
+    "description": "[Target: 1 enemy]100% chance of 30% reduction to DEF/SPI for 3 turn(s).",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Seven's Fantasia",
+    "element": "Light",
+    "sp_cost": "290",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Light magic attack at power 55.20% chance to apply  Chaos.Increased damage to targets with Pixie Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Shadow Sickle",
+    "element": "Dark",
+    "sp_cost": "105",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 60.Always hits. 20% CRT Rate.",
+    "power": 60,
+    "critRate": 20
+  },
+  {
+    "name": "Shadow Wing",
+    "element": "Fire",
+    "sp_cost": "200",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Fire magic attack at power 50.Increased damage to targets with Bird Trait.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Shama Hammer",
+    "element": "Null",
+    "sp_cost": "60",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 50.100% chance of 20% reduction to ATK for 3 turn(s).",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Shield of the Just",
+    "element": "Light",
+    "sp_cost": "250",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 90.If target is  Virus: Increased damage.Increased damage to targets with Unknown Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Shine of Bee",
+    "element": "Fire",
+    "sp_cost": "325",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 110.Immobilized next turn.Increased damage to targets with Insectoid Trait.",
+    "power": 110,
+    "critRate": 5
+  },
+  {
+    "name": "Shining Gold Solar Storm",
+    "element": "Light",
+    "sp_cost": "350",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Light magic attack at power 55.Recovers user's HP by 20%.Increased damage to targets with Evil Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Shiny Ring",
+    "element": "Light",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 10 x 5 hits.",
+    "minHits": 5,
+    "power": 10,
+    "critRate": 5
+  },
+  {
+    "name": "Shoryu Slash",
+    "element": "Fire",
+    "sp_cost": "355",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 55.If target has already acted: Increased damage.Increased damage to targets with Dragon Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Silver Blaze",
+    "element": "Light",
+    "sp_cost": "110",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 75.If target is  Virus: Increased damage.",
+    "power": 75,
+    "critRate": 5
+  },
+  {
+    "name": "Slamming Tusk",
+    "element": "Null",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 85.80% ACU.",
+    "power": 85,
+    "critRate": 5
+    
+  },
+  {
+    "name": "Sludge",
+    "element": "Debuff",
+    "sp_cost": "25",
+    "type": "None",
+    "description": "[Target: 1 enemy]100% chance of 10% reduction to DEF/SPI for 3 turns.50% chance to apply  Poison.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Smile Fang",
+    "element": "Null",
+    "sp_cost": "35",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 45.",
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Smile Warhead",
+    "element": "Null",
+    "sp_cost": "230",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 95.20% chance to apply  Confusion.Increased damage to targets with Steel Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Smiley Bomb",
+    "element": "Fire",
+    "sp_cost": "160",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 85.10% CRT Rate.",
+    "power": 85,
+    "critRate": 10
+  },
+  {
+    "name": "Snake Bandage",
+    "element": "Debuff",
+    "sp_cost": "40",
+    "type": "None",
+    "description": "[Target: 1 enemy]100% chance of 20% reduction to SPD& applying  Paralysis for 3 turns.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Snow Goblin Volt",
+    "element": "Ice",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Ice physical attack at power 40.100% chance of reduction to  Ice resistance.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Snow Punch",
+    "element": "Ice",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Ice physical attack at power 60.100% chance of reduction to  Ice resistance.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Soap Flower",
+    "element": "Water",
+    "sp_cost": "30",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Water physical attack at power 40.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Sol Blaster",
+    "element": "Fire",
+    "sp_cost": "325",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 60.Increased damage to targets with Immortal Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Sorrow Blue",
+    "element": "Null",
+    "sp_cost": "330",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Null magic attack at power 55.Always hits. 40% chance to apply  Chaos.Increased damage to targets with Humanoid Trait.",
+    "power": 55,
+    "critRate": 0
+  },
+  {
+    "name": "Soul Chopper",
+    "element": "Injury",
+    "sp_cost": "310",
+    "type": "Fixed",
+    "description": "[Target: 1 enemy]Deals 15% HP damage.100% chance to apply  Injury.",
+    "power": 15,
+    "critRate": 0
+  },
+  {
+    "name": "Soul Core Attack",
+    "element": "Earth",
+    "sp_cost": "280",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Earth physical attack at power 90.Nullifies unfavorable compatibility.Increased damage to targets with Humanoid Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Soul Digitalization",
+    "element": "Null",
+    "sp_cost": "510",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Null magic attack at power 60.If target has yet to act: 25% CRT Rate.Increased damage to targets with Unknown Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Soul Digitalization",
+    "element": "Null",
+    "sp_cost": "375",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Null magic attack at power 55.If target has yet to act: 25% CRT Rate.Increased damage to targets with Unknown Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Sparkling Thunder",
+    "element": "Electricity",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 40.20% chance to apply  Paralysis.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Speed Star",
+    "element": "Steel",
+    "sp_cost": "105",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 70.Acts first next round.Increased damage to targets with Beast Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Spider Shooter",
+    "element": "Dark",
+    "sp_cost": "155",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 23 x 4 hits.Increased damage to targets with Unknown Trait.",
+    "minHits": 4,
+    "power": 23,
+    "critRate": 5
+  },
+  {
+    "name": "Spider Thread",
+    "element": "Plant",
+    "sp_cost": "150",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Plant physical attack at power 25 x 3 hits.10% CRT Rate.Increased damage to targets with Insectoid Trait.",
+    "minHits": 3,
+    "power": 25,
+    "critRate": 10
+  },
+  {
+    "name": "Spike Buster",
+    "element": "Plant",
+    "sp_cost": "190",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Plant physical attack at power 25 x 3 hits.Nullifies unfavorable compatibility.Increased damage to targets with Insectoid Trait.",
+    "minHits": 3,
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Spiking Strike",
+    "element": "Plant",
+    "sp_cost": "110",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Plant physical attack at power 65.If target has yet to act: 25% CRT Rate.",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Spinning Needle",
+    "element": "Wind",
+    "sp_cost": "115",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Wind magic attack at power 40.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Spiral Blow",
+    "element": "Wind",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 70.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Spiral Bone",
+    "element": "Null",
+    "sp_cost": "330",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Null physical attack at power 70.Increased damage to targets with Dinosaur Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Spiral Edge",
+    "element": "Null",
+    "sp_cost": "65",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 55.10% CRT Rate.",
+    "power": 55,
+    "critRate": 10
+  },
+  {
+    "name": "Spiral Masquerade",
+    "element": "Dark",
+    "sp_cost": "220",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 13 x 7 hits.10% CRT Rate.Increased damage to targets with Mollusk Trait.",
+    "minHits": 7,
+    "power": 13,
+    "critRate": 10
+  },
+  {
+    "name": "Spiral Raven Claw",
+    "element": "Wind",
+    "sp_cost": "215",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 18 x 5 hits.Increased damage to targets with Bird Trait.",
+    "minHits": 5,
+    "power": 18,
+    "critRate": 5
+  },
+  {
+    "name": "Spiral Sword",
+    "element": "Electricity",
+    "sp_cost": "165",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 80.10% CRT Rate.Increased damage to targets with Machine Trait.",
+    "power": 80,
+    "critRate": 10
+  },
+  {
+    "name": "Spiral Twister",
+    "element": "Fire",
+    "sp_cost": "55",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Fire magic attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Spirited Claws",
+    "element": "Earth",
+    "sp_cost": "145",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Earth physical attack at power 90.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Spiritual Enchantment",
+    "element": "Null",
+    "sp_cost": "220",
+    "type": "Physical",
+    "description": "[Target: 1 enemy] Performs  Null physical attack atpower 80. 100% chance of 20% reduction to DEF for3 turns. 50% chance to apply  Injury.Increased damage to targets with Unknown Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Spitfire Blast",
+    "element": "Fire",
+    "sp_cost": "50",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 25.",
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Spurting Ink",
+    "element": "Debuff",
+    "sp_cost": "25",
+    "type": "None",
+    "description": "[Target: 1 enemy]80% chance of 30% reduction to ACU for 3 turns.50% chance to apply  Poison.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Starlight Explosion",
+    "element": "Light",
+    "sp_cost": "320",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Light magic attack at power 70.Increased damage to targets with Spirit Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Starlight Velocity",
+    "element": "Light",
+    "sp_cost": "215",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 85.100% chance of 20% boost to SPD for 3 turn(s).Increased damage to targets with Ancient Trait.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Sticker Blade",
+    "element": "Dark",
+    "sp_cost": "85",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 20 x 3 hits.Increased damage to targets with Beast Trait.",
+    "minHits": 3,
+    "power": 20,
+    "critRate": 5
+  },
+  {
+    "name": "Sticky Net",
+    "element": "Plant",
+    "sp_cost": "50",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Plant physical attack at power 40.100% chance of 50% reduction to SPD for 3 turn(s).",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Stinger Surprise",
+    "element": "Water",
+    "sp_cost": "135",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Water physical attack at power 35 x 2 hits.If target is affected by  Confusion/ Chaos: 25% chanceto apply Instant Death.",
+    "minHits": 2,
+    "power": 35,
+    "critRate": 5
+  },
+  {
+    "name": "Strike Fishing",
+    "element": "Steel",
+    "sp_cost": "150",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 80.Always hits. 100% chance of 20% reduction to EVA for 3 turn(s).Increased damage to targets with Aquatic Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Strike of the Seven Stars",
+    "element": "Light",
+    "sp_cost": "220",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Light magic attack at power 13 x 7 hits.Increased damage to targets with Evil Trait.",
+    "minHits": 7,
+    "power": 13,
+    "critRate": 5
+  },
+  {
+    "name": "Strike Roll",
+    "element": "Steel",
+    "sp_cost": "205",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 95.Increased damage to targets with Dinosaur Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Striver Cannon",
+    "element": "Fire",
+    "sp_cost": "165",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 125.Immobilized next turn.Increased damage to targets with Humanoid Trait.",
+    "power": 125,
+    "critRate": 5
+  },
+  {
+    "name": "Stun Beat Blow",
+    "element": "Electricity",
+    "sp_cost": "95",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 60.20% chance to apply  Paralysis.Increased damage to targets with Titan Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Sub-Zero Ice Punch",
+    "element": "Ice",
+    "sp_cost": "120",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Ice physical attack at power 40.",
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Summon",
+    "element": "Null",
+    "sp_cost": "60",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Null magic attack at power 60.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Sunburst Dance",
+    "element": "Fire",
+    "sp_cost": "205",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 45.10% CRT Rate.Increased damage to targets with Warrior Trait.",
+    "power": 45,
+    "critRate": 10
+  },
+  {
+    "name": "Sunshine Beam",
+    "element": "Plant",
+    "sp_cost": "95",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Plant magic attack at power 105.Immobilized next turn.",
+    "power": 105,
+    "critRate": 5
+  },
+  {
+    "name": "Super Shocker",
+    "element": "Electricity",
+    "sp_cost": "60",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Electricity magic attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Super Slap",
+    "element": "Null",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 15 x 3 hits.",
+    "minHits": 3,
+    "power": 15,
+    "critRate": 5
+  },
+  {
+    "name": "Super Stinky Jet",
+    "element": "Null",
+    "sp_cost": "115",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Null physical attack at power 30.50% chance to apply  Poison.",
+    "power": 30,
+    "critRate": 5
+  },
+  {
+    "name": "Supersonic Voice",
+    "element": "Wind",
+    "sp_cost": "230",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 32 x 3 hits.Increased damage to targets with Bird Trait.",
+    "minHits": 3,
+    "power": 32,
+    "critRate": 5
+  },
+  {
+    "name": "Supreme Cannon",
+    "element": "Ice",
+    "sp_cost": "305",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Ice physical attack at power 100.Increased damage to targets with Beast Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Supreme Cannon",
+    "element": "Ice",
+    "sp_cost": "305",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Ice physical attack at power 100.Increased damage to targets with Fire Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Symphony Crusher",
+    "element": "Water",
+    "sp_cost": "100",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Water magic attack at power 60.If target is affected by  Sleep/ Deep Slumber:Increased damage.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Symphony No. 1",
+    "element": "Debuff",
+    "sp_cost": "50",
+    "type": "None",
+    "description": "[Target: All enemies]100% chance of 10% reduction to DEF for 3 turns.50% chance to apply  Confusion.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Symphony No. 2",
+    "element": "Debuff",
+    "sp_cost": "50",
+    "type": "None",
+    "description": "[Target: All enemies]100% chance of 30% reduction to SPI& 10% reduction to ACU for 3 turns.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Symphony No. 3",
+    "element": "Wind",
+    "sp_cost": "150",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Wind magic attack at power 90.Increased damage to targets with Humanoid Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Table Flip",
+    "element": "Debuff",
+    "sp_cost": "145",
+    "type": "None",
+    "description": "[Target: All enemies]Inverts all stat changes of the target.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Tail Hammer",
+    "element": "Earth",
+    "sp_cost": "85",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Earth physical attack at power 65.25% chance to apply  Confusion.",
+    "power": 65,
+    "critRate": 5
+  },
+  {
+    "name": "Tail Strike",
+    "element": "Water",
+    "sp_cost": "270",
+    "type": "Physical",
+    "description": "[Target: All enemies] Performs  Water physicalattack at power 55. If target is affected by reductionto DEF: 20% chance to apply Instant Death.Increased damage to targets with Unknown Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Taizoukai Mandala",
+    "element": "Dark",
+    "sp_cost": "280",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Dark magic attack at power 55.Removes stat debuffs.Increased damage to targets with Immortal Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Talisman of Light",
+    "element": "Dark",
+    "sp_cost": "140",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Dark magic attack at power 80.Removes stat buffs.Increased damage to targets with Spirit Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Tearing Shot",
+    "element": "Water",
+    "sp_cost": "55",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Water magic attack at power 50.",
+    "power": 50,
+    "critRate": 5
+  },
+  {
+    "name": "Tempest Wing",
+    "element": "Wind",
+    "sp_cost": "95",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 18 x 4 hits.",
+    "minHits": 4,
+    "power": 18,
+    "critRate": 5
+  },
+  {
+    "name": "Tenryu Slash",
+    "element": "Fire",
+    "sp_cost": "280",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 90.If target has yet to act: 25% CRT Rate.Increased damage to targets with Dragon Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Terra Force",
+    "element": "Fire",
+    "sp_cost": "225",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 95.Increased damage to targets with Vegetation Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Terrier Tornado",
+    "element": "Wind",
+    "sp_cost": "70",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Wind magic attack at power 30.",
+    "power": 30,
+    "critRate": 5
+  },
+  {
+    "name": "Terrors Cluster",
+    "element": "Electricity",
+    "sp_cost": "235",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 90.25% chance to apply  Immobilization.Increased damage to targets with Antibody Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Testament",
+    "element": "Light",
+    "sp_cost": "315",
+    "type": "Magic",
+    "description": "[Target: All enemies] Performs  Light magic attackat power 140. Consumes all SP. Causes KO from attackrecoil. The lower the user's SP, the lower the damage.Increased damage to targets with Deity Trait.",
+    "power": 140,
+    "critRate": 5
+  },
+  {
+    "name": "The Key",
+    "element": "Light",
+    "sp_cost": "335",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Light magic attack at power 55.If target is affected by stat buffs: Increased damage.Increased damage to targets with Unknown Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "The King of Fists",
+    "element": "Wind",
+    "sp_cost": "145",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 80.100% chance of 20% reduction to DEF for 3 turn(s).Increased damage to targets with Beast Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "The Ray of Victory",
+    "element": "Light",
+    "sp_cost": "320",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Light physical attack at power 55.Always hits. 100% chance of 20% reduction to ACU for 3 turn(s).Increased damage to targets with Puppet Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Thorn Whip",
+    "element": "Plant",
+    "sp_cost": "280",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Plant magic attack at power 90.Recovers SP equal to 30% of damage dealt.Increased damage to targets with Insectoid Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Thousand Fists",
+    "element": "Wind",
+    "sp_cost": "215",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 12 x 8 hits.If user is boost to SPD state: 10% CRT Rate.Increased damage to targets with Bird Trait.",
+    "minHits": 8,
+    "power": 12,
+    "critRate": 5
+  },
+  {
+    "name": "Thron Messer",
+    "element": "Steel",
+    "sp_cost": "295",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Steel physical attack at power 15 x 4 hits.Increased damage to targets with Knight Trait.",
+    "minHits": 4,
+    "power": 15,
+    "critRate": 5
+  },
+  {
+    "name": "Thunder Cloud",
+    "element": "Electricity",
+    "sp_cost": "100",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Electricity magic attack at power 70.Increased damage to targets with Magic Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Tidal Wave",
+    "element": "Water",
+    "sp_cost": "190",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Water magic attack at power 45.100% chance of reduction to  Water resistance.Increased damage to targets with Fire Trait.",
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Time Unlimited",
+    "element": "Dark",
+    "sp_cost": "225",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 100.50% chance to apply  Crystallization.Increased damage to targets with Magic Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Titanic Charge",
+    "element": "Null",
+    "sp_cost": "120",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 75.",
+    "power": 75,
+    "critRate": 5
+  },
+  {
+    "name": "Tomahawk Stinger",
+    "element": "Steel",
+    "sp_cost": "185",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 130.70% ACU.Increased damage to targets with Antibody Trait.",
+    "power": 130,
+    "critRate": 5
+    
+  },
+  {
+    "name": "Top Gun",
+    "element": "Wind",
+    "sp_cost": "150",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Wind magic attack at power 90.Increased damage to targets with Bird Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Transcendent Sword",
+    "element": "Dark",
+    "sp_cost": "415",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Dark physical attack at power 80.Increased damage to targets with Dragon Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Transcendent Sword",
+    "element": "Fire",
+    "sp_cost": "440",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 80.Increased damage to targets with Dragon Trait.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Tri-Horn Attack",
+    "element": "Earth",
+    "sp_cost": "135",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Earth physical attack at power 105.80% ACU.Increased damage to targets with Antibody Trait.",
+    "power": 105,
+    "critRate": 5
+    
+  },
+  {
+    "name": "Triangler",
+    "element": "Dark",
+    "sp_cost": "160",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 25 x 3 hits.If target is  Data: Increased damage.Increased damage to targets with Deity Trait.",
+    "minHits": 3,
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Trick or Treat",
+    "element": "Plant",
+    "sp_cost": "145",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Plant magic attack at power 80.25% chance to apply  Injury.",
+    "power": 80,
+    "critRate": 5
+  },
+  {
+    "name": "Trident Arm",
+    "element": "Steel",
+    "sp_cost": "140",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 90.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Trident Revolver",
+    "element": "Fire",
+    "sp_cost": "130",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 50 x 3 hits.60% ACU.",
+    "minHits": 3,
+    "power": 50,
+    "critRate": 5
+    
+  },
+  {
+    "name": "Trident Saber",
+    "element": "Null",
+    "sp_cost": "165",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 25 x 3 hits.15% CRT Rate.",
+    "minHits": 3,
+    "power": 25,
+    "critRate": 15
+  },
+  {
+    "name": "Trinity Arm",
+    "element": "Steel",
+    "sp_cost": "260",
+    "type": "None",
+    "description": "[Target: 1 enemy] Performs phys. attack of random power/element/effect:- Pwr. 110  Steel; Incr. dmg. to Mineral Trait; Nullifies unfav. compat.- Pwr. 100  Null; Incr. dmg. to Weapon Trait; 20% CRT Rate.- Pwr. 105  Electricity; Incr. dmg. to Amphibian Trait.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Triple Forces",
+    "element": "Null",
+    "sp_cost": "100",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 25 x 3 hits.Increased damage to targets with Unknown Trait.",
+    "minHits": 3,
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Tropical Beak",
+    "element": "Null",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 15 x 3 hits.",
+    "minHits": 3,
+    "power": 15,
+    "critRate": 5
+  },
+  {
+    "name": "Trump Sword",
+    "element": "Wind",
+    "sp_cost": "315",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Wind magic attack at power 70.Increased damage to targets with Unknown Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Turbo Stinger",
+    "element": "Electricity",
+    "sp_cost": "105",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 15 x 5 hits.Increased damage to targets with Humanoid Trait.",
+    "minHits": 5,
+    "power": 15,
+    "critRate": 5
+  },
+  {
+    "name": "Tusk Strikes",
+    "element": "Null",
+    "sp_cost": "160",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 90.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Twenty Dive",
+    "element": "Steel",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 40.20% CRT Rate.",
+    "power": 40,
+    "critRate": 20
+  },
+  {
+    "name": "Twinkle Beam",
+    "element": "Electricity",
+    "sp_cost": "95",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 60.60% chance to apply  Paralysis.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Ultimate Blast",
+    "element": "Wind",
+    "sp_cost": "215",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 90.100% chance of reduction to  Wind resistance.Increased damage to targets with Humanoid Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Ultimate Flare",
+    "element": "Dark",
+    "sp_cost": "300",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 40 x 3 hits.The lower the user's HP, the lower the damage.Increased damage to targets with Unknown Trait.",
+    "minHits": 3,
+    "power": 40,
+    "critRate": 5
+  },
+  {
+    "name": "Ultimate Ouryuken",
+    "element": "Steel",
+    "sp_cost": "295",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 110.Increased damage to targets with Dragon Trait.",
+    "power": 110,
+    "critRate": 5
+  },
+  {
+    "name": "Ultimate Quake",
+    "element": "Earth",
+    "sp_cost": "305",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Earth physical attack at power 70.Increased damage to targets with Mineral Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Unidentified Flying Kiss",
+    "element": "Dark",
+    "sp_cost": "135",
+    "type": "Magic",
+    "description": "[Target: 1 enemy]Performs  Dark magic attack at power 70.30% chance to apply  Crystallization.Increased damage to targets with Humanoid Trait.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "V-Nova Blast",
+    "element": "Fire",
+    "sp_cost": "95",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 70.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Vantheon",
+    "element": "Steel",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 30 x 2 hits.20% CRT Rate.Increased damage to targets with Humanoid Trait.",
+    "minHits": 2,
+    "power": 30,
+    "critRate": 20
+  },
+  {
+    "name": "Vee Laser",
+    "element": "Wind",
+    "sp_cost": "90",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 70.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Veemon Headbutt",
+    "element": "Null",
+    "sp_cost": "55",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 45.30% chance to apply  Confusion.",
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Venom Blast",
+    "element": "Plant",
+    "sp_cost": "80",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Plant physical attack at power 60.If target is affected by  Poison/ Deadly Poison/ Sleep/ Deep Slumber: 25% chance to apply Instant Death.Increased damage to targets with Insectoid Trait.",
+    "power": 60,
+    "critRate": 5
+  },
+  {
+    "name": "Venom Infusion",
+    "element": "Null",
+    "sp_cost": "225",
+    "type": "Physical",
+    "description": "[Target: 1 enemy] Performs  Null physical attack atpower 85. 50% chance to apply  Deadly Poison.50% chance to apply  Crystallization. Increaseddamage to targets with Unknown Trait.",
+    "power": 85,
+    "critRate": 5
+  },
+  {
+    "name": "Victory Sword",
+    "element": "Wind",
+    "sp_cost": "240",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 30 x 3 hits.15% CRT Rate.Increased damage to targets with Warrior Trait.",
+    "minHits": 3,
+    "power": 30,
+    "critRate": 15
+  },
+  {
+    "name": "Viking Axe",
+    "element": "Steel",
+    "sp_cost": "205",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 95.Increased damage to targets with Mollusk Trait.",
+    "power": 95,
+    "critRate": 5
+  },
+  {
+    "name": "Volcanic Driver",
+    "element": "Fire",
+    "sp_cost": "230",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 90.The lower the user's HP, the greater the damage.Increased damage to targets with Humanoid Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Volcanic Strike",
+    "element": "Fire",
+    "sp_cost": "95",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 70.",
+    "power": 70,
+    "critRate": 5
+  },
+  {
+    "name": "Vorpal Blade",
+    "element": "Steel",
+    "sp_cost": "290",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 100.Nullifies unfavorable compatibility.Increased damage to targets with Demon Trait.",
+    "power": 100,
+    "critRate": 5
+  },
+  {
+    "name": "Vortex Penetration",
+    "element": "Water",
+    "sp_cost": "285",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Water physical attack at power 90.Always hits. If target has yet to act: Increased damage.Increased damage to targets with Aquatic Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Vulcan Crusher",
+    "element": "Earth",
+    "sp_cost": "260",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Earth physical attack at power 90.If target has yet to act: 25% CRT Rate.Increased damage to targets with Bird Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Vulcan's Hammer",
+    "element": "Electricity",
+    "sp_cost": "160",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 90.Increased damage to targets with Weapon Trait.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Waltz's End",
+    "element": "Steel",
+    "sp_cost": "350",
+    "type": "Magic",
+    "description": "[Target: All enemies]Performs  Steel magic attack at power 30 x 2 hits.If target has already acted: Increased damage.Increased damage to targets with Evil Trait.",
+    "minHits": 2,
+    "power": 30,
+    "critRate": 5
+  },
+  {
+    "name": "Wave of Depth",
+    "element": "Water",
+    "sp_cost": "285",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Water physical attack at power 55.100% chance of reduction to  Water resistance.Increased damage to targets with Fire Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Welcome Demise",
+    "element": "Dark",
+    "sp_cost": "225",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Dark physical attack at power 18 x 6 hits.Increased damage to targets with Angel Trait.",
+    "minHits": 6,
+    "power": 18,
+    "critRate": 5
+  },
+  {
+    "name": "Weltgeist",
+    "element": "Buff",
+    "sp_cost": "240",
+    "type": "None",
+    "description": "[Target: User]Activates  Counter PhysicalUpon receiving a physical attack, counters with a Fire physical attack at power 105.Increased damage to targets with Humanoid Trait.",
+    "power": 0,
+    "critRate": 0
+  },
+  {
+    "name": "Wheel Grinder",
+    "element": "Steel",
+    "sp_cost": "180",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 25 x 3 hits.Nullifies unfavorable compatibility.",
+    "minHits": 3,
+    "power": 25,
+    "critRate": 5
+  },
+  {
+    "name": "Wide Plasment",
+    "element": "Electricity",
+    "sp_cost": "355",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Electricity physical attack at power 55.If target's Generation is lesser than user's: Increased damage.Increased damage to targets with Evil Trait.",
+    "power": 55,
+    "critRate": 5
+  },
+  {
+    "name": "Will-O'-Wisp Slash",
+    "element": "Fire",
+    "sp_cost": "225",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Fire physical attack at power 45 x 2 hits.50% chance to apply  Injury.Increased damage to targets with Humanoid Trait.",
+    "minHits": 2,
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Wind Cutter Sword",
+    "element": "Light",
+    "sp_cost": "155",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 90.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Winning Knuckle",
+    "element": "Wind",
+    "sp_cost": "150",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Wind physical attack at power 90.",
+    "power": 90,
+    "critRate": 5
+  },
+  {
+    "name": "Wolf Claw",
+    "element": "Null",
+    "sp_cost": "160",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Null physical attack at power 45 x 2 hits.",
+    "minHits": 2,
+    "power": 45,
+    "critRate": 5
+  },
+  {
+    "name": "Wyvern's Breath",
+    "element": "Fire",
+    "sp_cost": "325",
+    "type": "Physical",
+    "description": "[Target: All enemies] Performs  Fire physical attackat power 115. 100% chance to apply 30% reduction touser's DEF for 3 turns. Immobilized next turn.Increased damage to targets with Evil Trait.",
+    "power": 115,
+    "critRate": 5
+  },
+  {
+    "name": "Yakusa no Ikazuchi",
+    "element": "Electricity",
+    "sp_cost": "320",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 12 x 8 hits.Increased damage to targets with Demon Trait.",
+    "minHits": 8,
+    "power": 12,
+    "critRate": 5
+  },
+  {
+    "name": "Zeppelin Explosion",
+    "element": "Fire",
+    "sp_cost": "115",
+    "type": "Physical",
+    "description": "[Target: All enemies]Performs  Fire physical attack at power 60.70% ACU.Increased damage to targets with Bird Trait.",
+    "power": 60,
+    "critRate": 5
+    
+  },
+  {
+    "name": "Zwei Glänze",
+    "element": "Steel",
+    "sp_cost": "230",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Steel physical attack at power 90.20% CRT Rate.Increased damage to targets with Knight Trait.",
+    "power": 90,
+    "critRate": 20
+  },
+  {
+    "name": "Zwei Sieger",
+    "element": "Light",
+    "sp_cost": "85",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 75.Increased damage to targets with Evil Trait.",
+    "power": 75,
+    "critRate": 5
+  },
+  {
+    "name": "Zweihänder",
+    "element": "Light",
+    "sp_cost": "190",
+    "type": "Physical",
+    "description": "[Target: 1 enemy]Performs  Light physical attack at power 90.If target has yet to act: 25% CRT Rate.Increased damage to targets with Evil Trait.",
+    "power": 90,
+    "critRate": 5
+  }
+]

@@ -235,8 +235,9 @@ www.get('/api/local', async (req, res) => {
         const mainMsg = q.match(MESSAGE_SPLITOR);
         let rplyVal = {};
         if (mainMsg && mainMsg.length > 0) {
+            const processedInput = mainMsg.join(' ');
             rplyVal = await exports.analytics.parseInput({
-                inputStr: mainMsg.join(' '),
+                inputStr: processedInput,
                 botname: "Local"
             });
         }
@@ -877,7 +878,13 @@ if (isMaster) {
 }
 
 function jsonEscape(str) {
-    return str.replaceAll('\n', String.raw`\n`).replaceAll('\r', String.raw`\r`).replaceAll('\t', String.raw`\t`);
+    if (typeof str !== 'string') return '';
+    return str
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r')
+        .replace(/\t/g, '\\t');
 }
 module.exports = {
     app: www

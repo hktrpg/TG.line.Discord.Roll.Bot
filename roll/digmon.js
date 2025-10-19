@@ -81,7 +81,7 @@ const rollDiceCommand = async function ({
         variables.digimonDex = Digimon.init();
     }
 
-    const isMoveSearch = mainMsg.some(arg => /^-m$/i.test(arg) || /^-move$/i.test(arg));
+    const isMoveSearch = mainMsg[1] && (/^-m$/i.test(mainMsg[1]) || /^-move$/i.test(mainMsg[1]));
 
     if (isMoveSearch) {
         // Move search

@@ -704,4 +704,147 @@ describe('rollDiceCommand', () => {
         const result = await digmon.rollDiceCommand({ mainMsg });
         expect(result.text).toContain('【🎮數碼寶貝物語時空異客】');
     });
+
+    test('should handle move search with multiple flags', async () => {
+        const mainMsg = ['.digi', '-m', '火', '-move', '水'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+        expect(searchMovesSpy).toHaveBeenCalledWith('火 水', {
+            always_hits: false,
+            has_crit: false,
+            has_recoil: false,
+            hp_drain: false,
+            sp_drain: false
+        });
+    });
+
+    test('should handle move search with special flags', async () => {
+        const mainMsg = ['.digi', '-m', 'always_hits', 'crit', 'recoil'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+        expect(searchMovesSpy).toHaveBeenCalledWith('always_hits crit recoil', {
+            always_hits: false,
+            has_crit: false,
+            has_recoil: false,
+            hp_drain: false,
+            sp_drain: false
+        });
+    });
+
+    test('should handle move search with hp_drain and sp_drain flags', async () => {
+        const mainMsg = ['.digi', '-m', 'hp_drain', 'sp_drain'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+        expect(searchMovesSpy).toHaveBeenCalledWith('hp_drain sp_drain', {
+            always_hits: false,
+            has_crit: false,
+            has_recoil: false,
+            hp_drain: false,
+            sp_drain: false
+        });
+    });
+
+    test('should handle evolution path search with non-existent digimon', async () => {
+        findByNameOrIdSpy.mockImplementation((name) => null);
+        const mainMsg = ['.digi', 'nonexistent1', 'nonexistent2'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+        expect(result.text).toContain('找不到');
+    });
+
+    test('should handle evolution path search with one non-existent digimon', async () => {
+        findByNameOrIdSpy.mockImplementation((name) => {
+            if (name === '亞古獸') return { id: 1, name: '亞古獸' };
+            return null;
+        });
+        const mainMsg = ['.digi', '亞古獸', 'nonexistent'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+        expect(result.text).toContain('找不到');
+    });
+});
+
+describe('Digimon Module Basic Functions', () => {
+    test('should return correct game name', () => {
+        expect(digmon.gameName()).toBe('【數碼寶貝物語時空異客】.digi ');
+    });
+
+    test('should return correct game type', () => {
+        expect(digmon.gameType()).toBe('Funny:digimon:hktrpg');
+    });
+
+    test('should return correct prefixs', () => {
+        const prefixs = digmon.prefixs();
+        expect(Array.isArray(prefixs)).toBe(true);
+        expect(prefixs).toHaveLength(1);
+        expect(prefixs[0].first).toEqual(/^\.digi$/i);
+        expect(prefixs[0].second).toBeNull();
+    });
+
+    test('should return help message', () => {
+        const helpMessage = digmon.getHelpMessage();
+        expect(typeof helpMessage).toBe('string');
+        expect(helpMessage).toContain('【🎮數碼寶貝物語時空異客】');
+    });
+
+    test('should initialize variables', () => {
+        const result = digmon.initialize();
+        expect(result).toBeDefined();
+    });
+});
+
+describe('Digimon Class Methods', () => {
+    let digimonInstance;
+
+    beforeEach(() => {
+        digimonInstance = new digmon.Digimon(mockDigimonData);
+    });
+
+    test('should find digimon by name', () => {
+        const result = digimonInstance.findByNameOrId('亞古獸');
+        expect(result).toBeDefined();
+        expect(result.name).toBe('亞古獸');
+    });
+
+    test('should find digimon by id', () => {
+        const result = digimonInstance.findByNameOrId('20');
+        expect(result).toBeDefined();
+        expect(result.id).toBe(20);
+    });
+
+    test('should return null for non-existent digimon', () => {
+        const result = digimonInstance.findByNameOrId('nonexistent');
+        expect(result).toBeNull();
+    });
+
+    test('should search moves with default options', () => {
+        const result = digimonInstance.searchMoves('火');
+        expect(typeof result).toBe('string');
+    });
+
+    test('should search moves with custom options', () => {
+        const options = {
+            always_hits: true,
+            has_crit: true,
+            has_recoil: false,
+            hp_drain: false,
+            sp_drain: false
+        };
+        const result = digimonInstance.searchMoves('火', options);
+        expect(typeof result).toBe('string');
+    });
+
+    test('should search single digimon', () => {
+        const result = digimonInstance.search('亞古獸');
+        expect(typeof result).toBe('string');
+    });
+
+    test('should show evolution paths', () => {
+        const from = { id: 1, name: '水母獸' };
+        const to = { id: 2, name: '電鼠獸' };
+        const result = digimonInstance.showEvolutionPaths(from, to);
+        expect(typeof result).toBe('string');
+    });
+
+    test('should find evolution paths', () => {
+        const from = { id: 1, name: '水母獸' };
+        const to = { id: 2, name: '電鼠獸' };
+        const result = digimonInstance.findEvolutionPaths(from, to);
+        expect(Array.isArray(result)).toBe(true);
+    });
 });

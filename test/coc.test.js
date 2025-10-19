@@ -43,9 +43,66 @@ jest.mock('../roll/rollbase.js', () => ({
     BuildRollDice: jest.fn().mockReturnValue('2d6')
 }));
 
+// Mock skill arrays for character creation
+global.移動類 = [
+    { name: "導航", skill: 10 },
+    { name: "生存", skill: 10 },
+    { name: "跳躍", skill: 20 }
+];
+
+global.隱密類 = [
+    { name: "潛行", skill: 20 },
+    { name: "追蹤", skill: 10 },
+    { name: "喬裝", skill: 5 }
+];
+
+global.職業興趣 = [
+    { name: "信譽", skill: 0 },
+    { name: "職業技能1", skill: 15 },
+    { name: "職業技能2", skill: 15 }
+];
+
+global.調查類 = [
+    { name: "偵查", skill: 25 },
+    { name: "聆聽", skill: 20 },
+    { name: "圖書館使用", skill: 20 }
+];
+
+global.戰鬥類 = [
+    { name: "鬥毆", skill: 25 },
+    { name: "手槍", skill: 20 },
+    { name: "步槍", skill: 25 }
+];
+
+global.醫療類 = [
+    { name: "急救", skill: 30 },
+    { name: "醫學", skill: 5 },
+    { name: "心理學", skill: 10 }
+];
+
+global.語言類 = [
+    { name: "英語", skill: 0 },
+    { name: "中文", skill: 0 },
+    { name: "日語", skill: 0 }
+];
+
+global.學問類 = [
+    { name: "歷史", skill: 5 },
+    { name: "神秘學", skill: 5 },
+    { name: "科學", skill: 1 }
+];
+
+global.交際類 = [
+    { name: "魅惑", skill: 15 },
+    { name: "恐嚇", skill: 15 },
+    { name: "取悅", skill: 15 }
+];
+
 describe('Call of Cthulhu Module Tests', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        // Mock Math.random to return predictable values
+        Math.random = jest.fn(() => 0.5);
         // Default mock implementation
         rollbase.Dice.mockImplementation(num => {
             if (num === 100) return 50; // Default d100 roll

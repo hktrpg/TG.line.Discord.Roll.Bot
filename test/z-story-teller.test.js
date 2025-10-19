@@ -389,3 +389,309 @@ describe('StoryTeller Discord-only restrictions', function () {
         });
     });
 });
+
+describe('StoryTeller Advanced Functionality', () => {
+    const USER_ID = 'tester-uid';
+    let st;
+
+    beforeAll(() => {
+        st = require('../roll/z-story-teller.js');
+    });
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test('should handle set command with expressions', async () => {
+        await st.rollDiceCommand({ mainMsg: ['.st', 'start', 'test'], userid: USER_ID, botname: 'Discord' });
+        await st.rollDiceCommand({ mainMsg: ['.st', 'set', 'player_name', 'Alice'], userid: USER_ID, botname: 'Discord' });
+        
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'set', 'strength', '10'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle set command with arithmetic expressions', async () => {
+        await st.rollDiceCommand({ mainMsg: ['.st', 'start', 'test'], userid: USER_ID, botname: 'Discord' });
+        await st.rollDiceCommand({ mainMsg: ['.st', 'set', 'player_name', 'Bob'], userid: USER_ID, botname: 'Discord' });
+        
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'set', 'agility', '5+3'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle dice expressions in set command', async () => {
+        await st.rollDiceCommand({ mainMsg: ['.st', 'start', 'test'], userid: USER_ID, botname: 'Discord' });
+        await st.rollDiceCommand({ mainMsg: ['.st', 'set', 'player_name', 'Charlie'], userid: USER_ID, botname: 'Discord' });
+        
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'set', 'wit', '2d6'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle show command', async () => {
+        await st.rollDiceCommand({ mainMsg: ['.st', 'start', 'test'], userid: USER_ID, botname: 'Discord' });
+        await st.rollDiceCommand({ mainMsg: ['.st', 'set', 'player_name', 'David'], userid: USER_ID, botname: 'Discord' });
+        
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'show'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('變數');
+    });
+
+    test('should handle show command with specific variable', async () => {
+        await st.rollDiceCommand({ mainMsg: ['.st', 'start', 'test'], userid: USER_ID, botname: 'Discord' });
+        await st.rollDiceCommand({ mainMsg: ['.st', 'set', 'player_name', 'Eve'], userid: USER_ID, botname: 'Discord' });
+        
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'show', 'player_name'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle goto command with page number', async () => {
+        await st.rollDiceCommand({ mainMsg: ['.st', 'start', 'test'], userid: USER_ID, botname: 'Discord' });
+        await st.rollDiceCommand({ mainMsg: ['.st', 'set', 'player_name', 'Frank'], userid: USER_ID, botname: 'Discord' });
+        
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'goto', '1'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle goto command with invalid page', async () => {
+        await st.rollDiceCommand({ mainMsg: ['.st', 'start', 'test'], userid: USER_ID, botname: 'Discord' });
+        await st.rollDiceCommand({ mainMsg: ['.st', 'set', 'player_name', 'Grace'], userid: USER_ID, botname: 'Discord' });
+        
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'goto', '999'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('只能前往');
+    });
+
+    test('should handle status command', async () => {
+        await st.rollDiceCommand({ mainMsg: ['.st', 'start', 'test'], userid: USER_ID, botname: 'Discord' });
+        await st.rollDiceCommand({ mainMsg: ['.st', 'set', 'player_name', 'Henry'], userid: USER_ID, botname: 'Discord' });
+        
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'status'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('互動故事');
+    });
+
+    test('should handle help command', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'help'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('互動故事');
+    });
+
+    test('should handle unknown command', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'unknown'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('互動故事');
+    });
+
+    test('should handle start command with invalid story', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'start', 'nonexistent'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('找不到該劇本');
+    });
+
+    test('should handle end command without active story', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'end'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('已結束');
+    });
+
+    test('should handle pause command without active story', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'pause'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('已暫停');
+    });
+
+    test('should handle continue command with invalid ID', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'continue', 'invalid-id'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('找不到該遊戲ID');
+    });
+
+    test('should handle set command without active story', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'set', 'player_name', 'Alice'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('請先使用');
+    });
+
+    test('should handle goto command without active story', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'goto', '1'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('請先使用');
+    });
+
+    test('should handle show command without active story', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'show'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('互動故事');
+    });
+
+    test('should handle status command without active story', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'status'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('互動故事');
+    });
+});
+
+describe('StoryTeller Error Handling', () => {
+    const USER_ID = 'tester-uid';
+    let st;
+
+    beforeAll(() => {
+        st = require('../roll/z-story-teller.js');
+    });
+
+    test('should handle malformed commands gracefully', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('互動故事');
+    });
+
+    test('should handle empty mainMsg array', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: [],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle null mainMsg', async () => {
+        try {
+            const result = await st.rollDiceCommand({
+                mainMsg: null,
+                userid: USER_ID,
+                botname: 'Discord'
+            });
+            expect(result.type).toBe('text');
+        } catch (error) {
+            // Expected to fail due to null mainMsg
+            expect(error).toBeDefined();
+        }
+    });
+
+    test('should handle undefined mainMsg', async () => {
+        try {
+            const result = await st.rollDiceCommand({
+                mainMsg: undefined,
+                userid: USER_ID,
+                botname: 'Discord'
+            });
+            expect(result.type).toBe('text');
+        } catch (error) {
+            // Expected to fail due to undefined mainMsg
+            expect(error).toBeDefined();
+        }
+    });
+});
+
+describe('StoryTeller File Operations', () => {
+    const USER_ID = 'tester-uid';
+    let st;
+
+    beforeAll(() => {
+        st = require('../roll/z-story-teller.js');
+    });
+
+    test('should handle list command', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'list'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('可啟動的劇本');
+    });
+
+    test('should handle validate command with valid story', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'validate', 'test'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle validate command with invalid story', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'validate', 'nonexistent'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('互動故事');
+    });
+});

@@ -635,21 +635,39 @@ describe('rollDiceCommand', () => {
     test('should correctly parse move search with flag at the end', async () => {
         const mainMsg = ['.digi', '疫苗種', '電', '-m'];
         const result = await digmon.rollDiceCommand({ mainMsg });
-        expect(searchMovesSpy).toHaveBeenCalledWith('疫苗種 電');
+        expect(searchMovesSpy).toHaveBeenCalledWith('疫苗種 電', {
+            always_hits: false,
+            has_crit: false,
+            has_recoil: false,
+            hp_drain: false,
+            sp_drain: false
+        });
         expect(result.text).toBe('Mocked search result for: 疫苗種 電');
     });
 
     test('should correctly parse move search with flag at the start', async () => {
         const mainMsg = ['.digi', '-m', '疫苗種', '電'];
         const result = await digmon.rollDiceCommand({ mainMsg });
-        expect(searchMovesSpy).toHaveBeenCalledWith('疫苗種 電');
+        expect(searchMovesSpy).toHaveBeenCalledWith('疫苗種 電', {
+            always_hits: false,
+            has_crit: false,
+            has_recoil: false,
+            hp_drain: false,
+            sp_drain: false
+        });
         expect(result.text).toBe('Mocked search result for: 疫苗種 電');
     });
 
     test('should correctly parse move search with -move flag in the middle', async () => {
         const mainMsg = ['.digi', '疫苗種', '-move', '電'];
         const result = await digmon.rollDiceCommand({ mainMsg });
-        expect(searchMovesSpy).toHaveBeenCalledWith('疫苗種 電');
+        expect(searchMovesSpy).toHaveBeenCalledWith('疫苗種 電', {
+            always_hits: false,
+            has_crit: false,
+            has_recoil: false,
+            hp_drain: false,
+            sp_drain: false
+        });
         expect(result.text).toBe('Mocked search result for: 疫苗種 電');
     });
 

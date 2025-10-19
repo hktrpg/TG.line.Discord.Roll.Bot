@@ -149,7 +149,7 @@
     "sp_cost": "215",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Steel physical attack at power 25 x 4 hits.Increased damage to targets with Weapon Trait.",
-    "minHits": 4,
+    
     "power": 25,
     "critRate": 5
   },
@@ -186,7 +186,7 @@
     "sp_cost": "165",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Fire physical attack at power 30 x 3 hits.10% CRT Rate.Increased damage to targets with Vegetation Trait.",
-    "minHits": 3,
+    
     "power": 30,
     "critRate": 10
   },
@@ -341,7 +341,7 @@
     "sp_cost": "295",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Wind physical attack at power 23 x 4 hits.Nullifies unfavorable compatibility.Increased damage to targets with Weapon Trait.",
-    "minHits": 4,
+    
     "power": 23,
     "critRate": 5
   },
@@ -351,7 +351,7 @@
     "sp_cost": "100",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Fire physical attack at power 14 x 3 hits.",
-    "minHits": 3,
+    
     "power": 14,
     "critRate": 5
   },
@@ -407,7 +407,7 @@
     "sp_cost": "195",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Null physical attack at power 30 x 3 hits.15% CRT Rate.Increased damage to targets with Dragon Trait.",
-    "minHits": 3,
+    
     "power": 30,
     "critRate": 15
   },
@@ -498,7 +498,7 @@
     "sp_cost": "155",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 25 x 3 hits.30% chance to apply  Paralysis.Increased damage to targets with Deity Trait.",
-    "minHits": 3,
+    
     "power": 25,
     "critRate": 5
   },
@@ -508,7 +508,7 @@
     "sp_cost": "160",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Steel physical attack at power 25 x 3 hits.If target has yet to act: Increased damage.Increased damage to targets with Mineral Trait.",
-    "minHits": 3,
+    
     "power": 25,
     "critRate": 5
   },
@@ -590,7 +590,7 @@
     "sp_cost": "150",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Wind physical attack at power 40 x 2 hits.10% CRT Rate.Increased damage to targets with Humanoid Trait.",
-    "minHits": 2,
+    
     "power": 40,
     "critRate": 10
   },
@@ -609,7 +609,7 @@
     "sp_cost": "90",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Fire physical attack at power 20 x 3 hits.Increased damage to targets with Ice Trait.",
-    "minHits": 3,
+    
     "power": 20,
     "critRate": 5
   },
@@ -619,7 +619,7 @@
     "sp_cost": "325",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Fire physical attack at power 55 x 2 hits.Immobilized next turn.Increased damage to targets with Vegetation Trait.",
-    "minHits": 2,
+    
     "power": 55,
     "critRate": 5
   },
@@ -629,7 +629,7 @@
     "sp_cost": "500",
     "type": "Magic",
     "description": "[Target: All enemies] Performs  Ice magic attack atpower 20 x 4 hits. If target is affected by statusabnormalities or  Injury/ Disease: Increaseddamage. Increased damage to targets with Fire Trait.",
-    "minHits": 4,
+    
     "power": 20,
     "critRate": 5
   },
@@ -639,7 +639,7 @@
     "sp_cost": "220",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Dark physical attack at power 35 x 3 hits.The lower the user's HP, the lower the damage.Increased damage to targets with Unknown Trait.",
-    "minHits": 3,
+    
     "power": 35,
     "critRate": 5
   },
@@ -703,7 +703,7 @@
     "sp_cost": "185",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Plant physical attack at power 15 x 3 hits.30% chance to apply  Poison.Increased damage to targets with Beast Trait.",
-    "minHits": 3,
+    
     "power": 15,
     "critRate": 5
   },
@@ -785,7 +785,7 @@
     "sp_cost": "150",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Fire physical attack at power 20 x 2 hits.Increased damage to targets with Immortal Trait.",
-    "minHits": 2,
+    
     "power": 20,
     "critRate": 5
   },
@@ -903,7 +903,7 @@
     "sp_cost": "185",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Dark physical attack at power 10 x 3～6 hits.",
-    "minHits": 3,
+    
     "power": 10,
     "critRate": 5
   },
@@ -959,7 +959,7 @@
     "sp_cost": "185",
     "type": "Magic",
     "description": "[Target: All enemies]Performs  Dark magic attack at power 15 x 3 hits.Increased damage to targets with Holy Trait.",
-    "minHits": 3,
+    
     "power": 15,
     "critRate": 5
   },
@@ -1050,7 +1050,7 @@
     "sp_cost": "210",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Null physical attack at power 15 x 3 hits.10% CRT Rate.Increased damage to targets with Humanoid Trait.",
-    "minHits": 3,
+    
     "power": 15,
     "critRate": 10
   },
@@ -1087,7 +1087,7 @@
     "sp_cost": "210",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Dark physical attack at power 30 x 3 hits.Removes stat debuffs.Increased damage to targets with Holy Trait.",
-    "minHits": 3,
+    
     "power": 30,
     "critRate": 5
   },
@@ -1115,7 +1115,7 @@
     "sp_cost": "220",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Steel physical attack at power 30 x 3 hits.15% CRT Rate.Increased damage to targets with Mineral Trait.",
-    "minHits": 3,
+    
     "power": 30,
     "critRate": 15
   },
@@ -1125,7 +1125,7 @@
     "sp_cost": "340",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Electricity physical attack at power 20 x 3 hits.Increased damage to targets with Unknown Trait.",
-    "minHits": 3,
+    
     "power": 20,
     "critRate": 5
   },
@@ -1153,7 +1153,7 @@
     "sp_cost": "290",
     "type": "Physical",
     "description": "[Target: 1 enemy] Performs  Steel physical attack atpower 35 x 3 hits. Nullifies unfavorable compatibility.Receives 20% HP damage from attack recoil.Increased damage to targets with Weapon Trait.",
-    "minHits": 3,
+    
     "power": 35,
     "critRate": 5
   },
@@ -1262,7 +1262,7 @@
     "sp_cost": "245",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Null physical attack at power 50 x 2 hits.Increased damage to targets with Knight Trait.",
-    "minHits": 2,
+    
     "power": 50,
     "critRate": 5
   },
@@ -1272,7 +1272,7 @@
     "sp_cost": "190",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Steel physical attack at power 24 x 5 hits.70% ACU. 10% CRT Rate.Increased damage to targets with Angel Trait.",
-    "minHits": 5,
+    
     "power": 24,
     "critRate": 10
     
@@ -1292,7 +1292,7 @@
     "sp_cost": "120",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Steel physical attack at power 22 x 2 hits.Increased damage to targets with Dragon Trait.",
-    "minHits": 2,
+    
     "power": 22,
     "critRate": 5
   },
@@ -1347,7 +1347,7 @@
     "sp_cost": "90",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Steel physical attack at power 30 x 2 hits.Always hits.",
-    "minHits": 2,
+    
     "power": 30,
     "critRate": 5
   },
@@ -1366,7 +1366,7 @@
     "sp_cost": "150",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Dark physical attack at power 25 x 3 hits.Recovers HP equal to 20% of damage dealt.Increased damage to targets with Humanoid Trait.",
-    "minHits": 3,
+    
     "power": 25,
     "critRate": 5
   },
@@ -1448,7 +1448,7 @@
     "sp_cost": "300",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Fire physical attack at power 45 x 2 hits.Nullifies unfavorable compatibility.Increased damage to targets with Mollusk Trait.",
-    "minHits": 2,
+    
     "power": 45,
     "critRate": 5
   },
@@ -1467,7 +1467,7 @@
     "sp_cost": "155",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Fire physical attack at power 30 x 3 hits.Increased damage to targets with Knight Trait.",
-    "minHits": 3,
+    
     "power": 30,
     "critRate": 5
   },
@@ -1477,7 +1477,7 @@
     "sp_cost": "220",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Fire physical attack at power 30 x 2 hits.",
-    "minHits": 2,
+    
     "power": 30,
     "critRate": 5
   },
@@ -1586,7 +1586,7 @@
     "sp_cost": "100",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Null physical attack at power 12 x 5 hits.15% CRT Rate.",
-    "minHits": 5,
+    
     "power": 12,
     "critRate": 15
   },
@@ -1596,7 +1596,7 @@
     "sp_cost": "50",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Null physical attack at power 14 x 5 hits.70% ACU.",
-    "minHits": 5,
+    
     "power": 14,
     "critRate": 5
     
@@ -1688,7 +1688,7 @@
     "sp_cost": "200",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Fire physical attack at power 25 x 2 hits.100% chance of 10% reduction to INT for 3 turn(s).",
-    "minHits": 2,
+    
     "power": 25,
     "critRate": 5
   },
@@ -1878,7 +1878,7 @@
     "sp_cost": "205",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Earth physical attack at power 15 x 3～6 hits.",
-    "minHits": 3,
+    
     "power": 15,
     "critRate": 5
   },
@@ -1897,7 +1897,7 @@
     "sp_cost": "80",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Steel physical attack at power 20 x 3 hits.",
-    "minHits": 3,
+    
     "power": 20,
     "critRate": 5
   },
@@ -1907,7 +1907,7 @@
     "sp_cost": "60",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Null physical attack at power 20 x 3 hits.",
-    "minHits": 3,
+    
     "power": 20,
     "critRate": 5
   },
@@ -1926,7 +1926,7 @@
     "sp_cost": "290",
     "type": "Physical",
     "description": "[Target: All enemies] Performs  Steel physical attackat power 35 x 4 hits. The lower the user's SP, the lowerthe damage. Consumes all SP. Immobilized next turn.Increased damage to targets with Machine Trait.",
-    "minHits": 4,
+    
     "power": 35,
     "critRate": 5
   },
@@ -1936,7 +1936,7 @@
     "sp_cost": "240",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Fire physical attack at power 48 x 2 hits.Increased damage to targets with Mineral Trait.",
-    "minHits": 2,
+    
     "power": 48,
     "critRate": 5
   },
@@ -2054,7 +2054,7 @@
     "sp_cost": "210",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Steel physical attack at power 30 x 3 hits.10% CRT Rate.Increased damage to targets with Immortal Trait.",
-    "minHits": 3,
+    
     "power": 30,
     "critRate": 10
   },
@@ -2082,7 +2082,7 @@
     "sp_cost": "250",
     "type": "Fixed",
     "description": "[Target: All enemies]Deals 2% HP damage x 3 hits.100% chance of 15% reduction to SPI for 3 turns.",
-    "minHits": 3,
+    
     "power": 2,
     "critRate": 0
   },
@@ -2137,7 +2137,7 @@
     "sp_cost": "250",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Null physical attack at power 30 x 3 hits.15% CRT Rate.Increased damage to targets with Dragon Trait.",
-    "minHits": 3,
+    
     "power": 30,
     "critRate": 15
   },
@@ -2183,7 +2183,7 @@
     "sp_cost": "240",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Steel physical attack at power 30 x 3 hits.If target's HP is 50% or less: Increased damage.Increased damage to targets with Weapon Trait.",
-    "minHits": 3,
+    
     "power": 30,
     "critRate": 5
   },
@@ -2193,7 +2193,7 @@
     "sp_cost": "150",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Fire physical attack at power 35 x 2 hits.The lower the user's HP, the greater the damage.",
-    "minHits": 2,
+    
     "power": 35,
     "critRate": 5
   },
@@ -2221,7 +2221,7 @@
     "sp_cost": "200",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Fire physical attack at power 25 x 3 hits.Nullifies unfavorable compatibility.Increased damage to targets with Ice Trait.",
-    "minHits": 3,
+    
     "power": 25,
     "critRate": 5
   },
@@ -2249,7 +2249,7 @@
     "sp_cost": "305",
     "type": "Magic",
     "description": "[Target: All enemies]Performs  Dark magic attack at power 20 x 3 hits.Increased damage to targets with Immortal Trait.",
-    "minHits": 3,
+    
     "power": 20,
     "critRate": 5
   },
@@ -2259,7 +2259,7 @@
     "sp_cost": "320",
     "type": "Magic",
     "description": "[Target: All enemies]Performs  Light magic attack at power 20 x 3 hits.Increased damage to targets with Spirit Trait.",
-    "minHits": 3,
+    
     "power": 20,
     "critRate": 5
   },
@@ -2296,7 +2296,7 @@
     "sp_cost": "175",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Plant physical attack at power 25 x 3 hits.If target has yet to act: 25% CRT Rate.",
-    "minHits": 3,
+    
     "power": 25,
     "critRate": 5
   },
@@ -2414,7 +2414,7 @@
     "sp_cost": "320",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Dark physical attack at power 15 x 4 hits.10% CRT Rate.Increased damage to targets with Bird Trait.",
-    "minHits": 4,
+    
     "power": 15,
     "critRate": 10
   },
@@ -2487,7 +2487,7 @@
     "sp_cost": "320",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Ice physical attack at power 20 x 3 hits.Increased damage to targets with Fire Trait.",
-    "minHits": 3,
+    
     "power": 20,
     "critRate": 5
   },
@@ -2497,7 +2497,7 @@
     "sp_cost": "275",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Ice physical attack at power 20 x 3 hits.Increased damage to targets with Fire Trait.",
-    "minHits": 3,
+    
     "power": 20,
     "critRate": 5
   },
@@ -2507,7 +2507,7 @@
     "sp_cost": "110",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Ice physical attack at power 15 x 2 hits.",
-    "minHits": 2,
+    
     "power": 15,
     "critRate": 5
   },
@@ -2553,7 +2553,7 @@
     "sp_cost": "240",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Steel physical attack at power 18 x 5 hits.If target's HP is 50% or higher: Increased damage.Increased damage to targets with Mineral Trait.",
-    "minHits": 5,
+    
     "power": 18,
     "critRate": 5
   },
@@ -2563,7 +2563,7 @@
     "sp_cost": "250",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 48 x 2 hits.Increased damage to targets with Machine Trait.",
-    "minHits": 2,
+    
     "power": 48,
     "critRate": 5
   },
@@ -2618,7 +2618,7 @@
     "sp_cost": "260",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Null physical attack at power 18 x 5 hits.20% CRT Rate.Increased damage to targets with Ancient Trait.",
-    "minHits": 5,
+    
     "power": 18,
     "critRate": 20
   },
@@ -2628,7 +2628,7 @@
     "sp_cost": "330",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Null physical attack at power 20 x 3 hits.Increased damage to targets with Mollusk Trait.",
-    "minHits": 3,
+    
     "power": 20,
     "critRate": 5
   },
@@ -2818,7 +2818,7 @@
     "sp_cost": "220",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Light physical attack at power 30 x 3 hits.100% chance of reduction to  Light resistance.Increased damage to targets with Evil Trait.",
-    "minHits": 3,
+    
     "power": 30,
     "critRate": 5
   },
@@ -2891,7 +2891,7 @@
     "sp_cost": "80",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Steel physical attack at power 20 x 3 hits.",
-    "minHits": 3,
+    
     "power": 20,
     "critRate": 5
   },
@@ -2937,7 +2937,7 @@
     "sp_cost": "165",
     "type": "Magic",
     "description": "[Target: 1 enemy]Performs  Ice magic attack at power 20 x 4 hits.15% CRT Rate.Increased damage to targets with Beast Trait.",
-    "minHits": 4,
+    
     "power": 20,
     "critRate": 15
   },
@@ -2947,7 +2947,7 @@
     "sp_cost": "245",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 15 x 6 hits.10% CRT Rate.Increased damage to targets with Insectoid Trait.",
-    "minHits": 6,
+    
     "power": 15,
     "critRate": 10
   },
@@ -2957,7 +2957,7 @@
     "sp_cost": "310",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Steel physical attack at power 25 x 3 hits.10% CRT Rate.Increased damage to targets with Machine Trait.",
-    "minHits": 3,
+    
     "power": 25,
     "critRate": 10
   },
@@ -2976,7 +2976,7 @@
     "sp_cost": "150",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Dark physical attack at power 25 x 3 hits.Always hits.",
-    "minHits": 3,
+    
     "power": 25,
     "critRate": 5
   },
@@ -2986,7 +2986,7 @@
     "sp_cost": "315",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Wind physical attack at power 20 x 4 hits.Increased damage to targets with Deity Trait.",
-    "minHits": 4,
+    
     "power": 20,
     "critRate": 5
   },
@@ -2996,7 +2996,7 @@
     "sp_cost": "410",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Wind physical attack at power 27 x 3 hits.10% CRT Rate.Increased damage to targets with Reptile Trait.",
-    "minHits": 3,
+    
     "power": 27,
     "critRate": 10
   },
@@ -3123,7 +3123,7 @@
     "sp_cost": "110",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Earth physical attack at power 10 x 2～5 hits.",
-    "minHits": 2,
+    
     "power": 10,
     "critRate": 5
   },
@@ -3160,7 +3160,7 @@
     "sp_cost": "250",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Dark physical attack at power 18 x 5 hits.If target has already acted: Increased damage.Increased damage to targets with Weapon Trait.",
-    "minHits": 5,
+    
     "power": 18,
     "critRate": 5
   },
@@ -3197,7 +3197,7 @@
     "sp_cost": "320",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Wind physical attack at power 18 x 5 hits.15% CRT Rate.Increased damage to targets with Holy Trait.",
-    "minHits": 5,
+    
     "power": 18,
     "critRate": 15
   },
@@ -3225,7 +3225,7 @@
     "sp_cost": "245",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Null physical attack at power 50 x 2 hits.Increased damage to targets with Demon Trait.",
-    "minHits": 2,
+    
     "power": 50,
     "critRate": 5
   },
@@ -3262,7 +3262,7 @@
     "sp_cost": "210",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Dark physical attack at power 30 x 3 hits.100% chance to apply  Deadly Poison.Increased damage to targets with Pixie Trait.",
-    "minHits": 3,
+    
     "power": 30,
     "critRate": 5
   },
@@ -3281,7 +3281,7 @@
     "sp_cost": "295",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Steel physical attack at power 30 x 2 hits.Increased damage to targets with Fish Trait.",
-    "minHits": 2,
+    
     "power": 30,
     "critRate": 5
   },
@@ -3435,7 +3435,7 @@
     "sp_cost": "170",
     "type": "Fixed",
     "description": "[Target: 1 enemy]Deals fixed damage at power 10 x 3 hits.100% chance of 30% reduction to ATK/INT for 3 turns.Removes stat buffs.",
-    "minHits": 3,
+    
     "power": 10,
     "critRate": 0
   },
@@ -3544,7 +3544,7 @@
     "sp_cost": "235",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 45 x 2 hits.25% chance to apply  Immobilization.Increased damage to targets with Machine Trait.",
-    "minHits": 2,
+    
     "power": 45,
     "critRate": 5
   },
@@ -3581,7 +3581,7 @@
     "sp_cost": "140",
     "type": "Fixed",
     "description": "[Target: All enemies]Deals 2% HP damage x 3 hits.100% chance of 10% reduction to INT/SPI for 3 turns.",
-    "minHits": 3,
+    
     "power": 2,
     "critRate": 0
   },
@@ -3618,7 +3618,7 @@
     "sp_cost": "190",
     "type": "Fixed",
     "description": "[Target: 1 enemy]Deals 1% HP damage x 5 hits.100% chance of 10% reduction to SPI for 3 turns.60% chance to apply  Poison.",
-    "minHits": 5,
+    
     "power": 1,
     "critRate": 0
   },
@@ -3700,7 +3700,7 @@
     "sp_cost": "90",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Fire physical attack at power 15 x 4 hits.Receives 1% HP damage from attack recoil.",
-    "minHits": 4,
+    
     "power": 15,
     "critRate": 5
   },
@@ -3773,7 +3773,7 @@
     "sp_cost": "85",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Fire physical attack at power 35 x 2 hits.Increased damage to targets with Immortal Trait.",
-    "minHits": 2,
+    
     "power": 35,
     "critRate": 5
   },
@@ -3783,7 +3783,7 @@
     "sp_cost": "240",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Fire physical attack at power 25 x 4 hits.Increased damage to targets with Humanoid Trait.",
-    "minHits": 4,
+    
     "power": 25,
     "critRate": 5
   },
@@ -3802,7 +3802,7 @@
     "sp_cost": "350",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Steel physical attack at power 12 x 8 hits.Always hits. 20% CRT Rate.",
-    "minHits": 8,
+    
     "power": 12,
     "critRate": 20
   },
@@ -3839,7 +3839,7 @@
     "sp_cost": "70",
     "type": "Fixed",
     "description": "[Target: 1 enemy]Deals 1% HP damage x 5 hits.100% chance of 20% reduction to SPI for 3 turns.30% chance to apply  Confusion.",
-    "minHits": 5,
+    
     "power": 1,
     "critRate": 0
   },
@@ -3912,7 +3912,7 @@
     "sp_cost": "85",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Steel physical attack at power 30 x 2 hits.10% CRT Rate.Increased damage to targets with Vegetation Trait.",
-    "minHits": 2,
+    
     "power": 30,
     "critRate": 10
   },
@@ -3994,7 +3994,7 @@
     "sp_cost": "55",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Plant physical attack at power 15 x 3 hits.90% ACU. 10% CRT Rate.",
-    "minHits": 3,
+    
     "power": 15,
     "critRate": 10
     
@@ -4005,7 +4005,7 @@
     "sp_cost": "230",
     "type": "Magic",
     "description": "[Target: 1 enemy]Performs  Light magic attack at power 9 x 10 hits.10% CRT Rate.Increased damage to targets with Spirit Trait.",
-    "minHits": 10,
+    
     "maxHits": 10,
     "power": 9,
     "critRate": 10
@@ -4106,7 +4106,7 @@
     "sp_cost": "55",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Light physical attack at power 10 x 5 hits.",
-    "minHits": 5,
+    
     "power": 10,
     "critRate": 5
   },
@@ -4288,7 +4288,7 @@
     "sp_cost": "155",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Dark physical attack at power 23 x 4 hits.Increased damage to targets with Unknown Trait.",
-    "minHits": 4,
+    
     "power": 23,
     "critRate": 5
   },
@@ -4298,7 +4298,7 @@
     "sp_cost": "150",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Plant physical attack at power 25 x 3 hits.10% CRT Rate.Increased damage to targets with Insectoid Trait.",
-    "minHits": 3,
+    
     "power": 25,
     "critRate": 10
   },
@@ -4308,7 +4308,7 @@
     "sp_cost": "190",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Plant physical attack at power 25 x 3 hits.Nullifies unfavorable compatibility.Increased damage to targets with Insectoid Trait.",
-    "minHits": 3,
+    
     "power": 25,
     "critRate": 5
   },
@@ -4363,7 +4363,7 @@
     "sp_cost": "220",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Dark physical attack at power 13 x 7 hits.10% CRT Rate.Increased damage to targets with Mollusk Trait.",
-    "minHits": 7,
+    
     "power": 13,
     "critRate": 10
   },
@@ -4373,7 +4373,7 @@
     "sp_cost": "215",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Wind physical attack at power 18 x 5 hits.Increased damage to targets with Bird Trait.",
-    "minHits": 5,
+    
     "power": 18,
     "critRate": 5
   },
@@ -4455,7 +4455,7 @@
     "sp_cost": "85",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Dark physical attack at power 20 x 3 hits.Increased damage to targets with Beast Trait.",
-    "minHits": 3,
+    
     "power": 20,
     "critRate": 5
   },
@@ -4474,7 +4474,7 @@
     "sp_cost": "135",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Water physical attack at power 35 x 2 hits.If target is affected by  Confusion/ Chaos: 25% chanceto apply Instant Death.",
-    "minHits": 2,
+    
     "power": 35,
     "critRate": 5
   },
@@ -4493,7 +4493,7 @@
     "sp_cost": "220",
     "type": "Magic",
     "description": "[Target: 1 enemy]Performs  Light magic attack at power 13 x 7 hits.Increased damage to targets with Evil Trait.",
-    "minHits": 7,
+    
     "power": 13,
     "critRate": 5
   },
@@ -4575,7 +4575,7 @@
     "sp_cost": "55",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Null physical attack at power 15 x 3 hits.",
-    "minHits": 3,
+    
     "power": 15,
     "critRate": 5
   },
@@ -4594,7 +4594,7 @@
     "sp_cost": "230",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Wind physical attack at power 32 x 3 hits.Increased damage to targets with Bird Trait.",
-    "minHits": 3,
+    
     "power": 32,
     "critRate": 5
   },
@@ -4712,7 +4712,7 @@
     "sp_cost": "95",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Wind physical attack at power 18 x 4 hits.",
-    "minHits": 4,
+    
     "power": 18,
     "critRate": 5
   },
@@ -4803,7 +4803,7 @@
     "sp_cost": "215",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Wind physical attack at power 12 x 8 hits.If user is boost to SPD state: 10% CRT Rate.Increased damage to targets with Bird Trait.",
-    "minHits": 8,
+    
     "power": 12,
     "critRate": 5
   },
@@ -4813,7 +4813,7 @@
     "sp_cost": "295",
     "type": "Physical",
     "description": "[Target: All enemies]Performs  Steel physical attack at power 15 x 4 hits.Increased damage to targets with Knight Trait.",
-    "minHits": 4,
+    
     "power": 15,
     "critRate": 5
   },
@@ -4906,7 +4906,7 @@
     "sp_cost": "160",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Dark physical attack at power 25 x 3 hits.If target is  Data: Increased damage.Increased damage to targets with Deity Trait.",
-    "minHits": 3,
+    
     "power": 25,
     "critRate": 5
   },
@@ -4934,7 +4934,7 @@
     "sp_cost": "130",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Fire physical attack at power 50 x 3 hits.60% ACU.",
-    "minHits": 3,
+    
     "power": 50,
     "critRate": 5
     
@@ -4945,7 +4945,7 @@
     "sp_cost": "165",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Null physical attack at power 25 x 3 hits.15% CRT Rate.",
-    "minHits": 3,
+    
     "power": 25,
     "critRate": 15
   },
@@ -4964,7 +4964,7 @@
     "sp_cost": "100",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Null physical attack at power 25 x 3 hits.Increased damage to targets with Unknown Trait.",
-    "minHits": 3,
+    
     "power": 25,
     "critRate": 5
   },
@@ -4974,7 +4974,7 @@
     "sp_cost": "55",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Null physical attack at power 15 x 3 hits.",
-    "minHits": 3,
+    
     "power": 15,
     "critRate": 5
   },
@@ -4993,7 +4993,7 @@
     "sp_cost": "105",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 15 x 5 hits.Increased damage to targets with Humanoid Trait.",
-    "minHits": 5,
+    
     "power": 15,
     "critRate": 5
   },
@@ -5039,7 +5039,7 @@
     "sp_cost": "300",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Dark physical attack at power 40 x 3 hits.The lower the user's HP, the lower the damage.Increased damage to targets with Unknown Trait.",
-    "minHits": 3,
+    
     "power": 40,
     "critRate": 5
   },
@@ -5085,7 +5085,7 @@
     "sp_cost": "90",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Steel physical attack at power 30 x 2 hits.20% CRT Rate.Increased damage to targets with Humanoid Trait.",
-    "minHits": 2,
+    
     "power": 30,
     "critRate": 20
   },
@@ -5131,7 +5131,7 @@
     "sp_cost": "240",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Wind physical attack at power 30 x 3 hits.15% CRT Rate.Increased damage to targets with Warrior Trait.",
-    "minHits": 3,
+    
     "power": 30,
     "critRate": 15
   },
@@ -5204,7 +5204,7 @@
     "sp_cost": "350",
     "type": "Magic",
     "description": "[Target: All enemies]Performs  Steel magic attack at power 30 x 2 hits.If target has already acted: Increased damage.Increased damage to targets with Evil Trait.",
-    "minHits": 2,
+    
     "power": 30,
     "critRate": 5
   },
@@ -5223,7 +5223,7 @@
     "sp_cost": "225",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Dark physical attack at power 18 x 6 hits.Increased damage to targets with Angel Trait.",
-    "minHits": 6,
+    
     "power": 18,
     "critRate": 5
   },
@@ -5242,7 +5242,7 @@
     "sp_cost": "180",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Steel physical attack at power 25 x 3 hits.Nullifies unfavorable compatibility.",
-    "minHits": 3,
+    
     "power": 25,
     "critRate": 5
   },
@@ -5261,7 +5261,7 @@
     "sp_cost": "225",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Fire physical attack at power 45 x 2 hits.50% chance to apply  Injury.Increased damage to targets with Humanoid Trait.",
-    "minHits": 2,
+    
     "power": 45,
     "critRate": 5
   },
@@ -5289,7 +5289,7 @@
     "sp_cost": "160",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Null physical attack at power 45 x 2 hits.",
-    "minHits": 2,
+    
     "power": 45,
     "critRate": 5
   },
@@ -5308,7 +5308,7 @@
     "sp_cost": "320",
     "type": "Physical",
     "description": "[Target: 1 enemy]Performs  Electricity physical attack at power 12 x 8 hits.Increased damage to targets with Demon Trait.",
-    "minHits": 8,
+    
     "power": 12,
     "critRate": 5
   },

@@ -235,8 +235,9 @@ www.get('/api/local', async (req, res) => {
         const mainMsg = q.match(MESSAGE_SPLITOR);
         let rplyVal = {};
         if (mainMsg && mainMsg.length > 0) {
+            const processedInput = mainMsg.join(' ');
             rplyVal = await exports.analytics.parseInput({
-                inputStr: mainMsg.join(' '),
+                inputStr: processedInput,
                 botname: "Local"
             });
         }
@@ -283,19 +284,22 @@ www.get('/api/dice-commands', async (req, res) => {
                                     options: {
                                         getSubcommand: () => sub.name,
                                         getString: (name) => {
-                                            sub.options?.find(o => o.name === name);
-                                            return `PLACEHOLDER_STRING_${name}`;
+                                            return sub.options?.find(o => o.name === name)
+                                                ? `PLACEHOLDER_STRING_${name}`
+                                                : null;
                                         },
                                         getInteger: (name) => {
-                                            sub.options?.find(o => o.name === name);
-                                            return `PLACEHOLDER_INTEGER_${name}`;
+                                            return sub.options?.find(o => o.name === name)
+                                                ? `PLACEHOLDER_INTEGER_${name}`
+                                                : null;
                                         },
                                         getBoolean: () => {
                                             return false;
                                         },
                                         getNumber: (name) => {
-                                            sub.options?.find(o => o.name === name);
-                                            return `PLACEHOLDER_NUMBER_${name}`;
+                                            return sub.options?.find(o => o.name === name)
+                                                ? `PLACEHOLDER_NUMBER_${name}`
+                                                : null;
                                         },
                                     }
                                 };
@@ -318,19 +322,22 @@ www.get('/api/dice-commands', async (req, res) => {
                                 options: {
                                     getSubcommand: () => null,
                                     getString: (name) => {
-                                        commandJson.options?.find(o => o.name === name);
-                                        return `PLACEHOLDER_STRING_${name}`;
+                                        return commandJson.options?.find(o => o.name === name)
+                                            ? `PLACEHOLDER_STRING_${name}`
+                                            : null;
                                     },
                                     getInteger: (name) => {
-                                        commandJson.options?.find(o => o.name === name);
-                                        return `PLACEHOLDER_INTEGER_${name}`;
+                                        return commandJson.options?.find(o => o.name === name)
+                                            ? `PLACEHOLDER_INTEGER_${name}`
+                                            : null;
                                     },
                                     getBoolean: () => {
                                         return false;
                                     },
                                     getNumber: (name) => {
-                                        commandJson.options?.find(o => o.name === name);
-                                        return `PLACEHOLDER_NUMBER_${name}`;
+                                        return commandJson.options?.find(o => o.name === name)
+                                            ? `PLACEHOLDER_NUMBER_${name}`
+                                            : null;
                                     },
                                 }
                             };
@@ -877,7 +884,13 @@ if (isMaster) {
 }
 
 function jsonEscape(str) {
-    return str.replaceAll('\n', String.raw`\n`).replaceAll('\r', String.raw`\r`).replaceAll('\t', String.raw`\t`);
+    if (typeof str !== 'string') return '';
+    return str
+        .replaceAll('\\', String.raw`\\`)
+        .replaceAll('"', String.raw`\"`)
+        .replaceAll('\n', String.raw`\n`)
+        .replaceAll('\r', String.raw`\r`)
+        .replaceAll('\t', String.raw`\t`);
 }
 module.exports = {
     app: www

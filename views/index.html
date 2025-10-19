@@ -81,6 +81,10 @@
                 </div>
 
                 <div class="chat-container flex-grow-1">
+                    <div id="personal-room-notice" class="alert alert-info small p-2 m-2" role="alert" style="display: none; margin-bottom: 0;">
+                        <span class="iconify" data-icon="bi:info-circle-fill"></span>
+                        個人小屋所有資料只存在本機，伺服器不會儲存。
+                    </div>
                     <div class="overflow-auto" id="container-content">
                         <div id="content" class="p-2">
                             <!-- Messages will be added here -->
@@ -159,7 +163,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    此操作只會清除本機儲存的訊息，不會影響伺服器資料。清空後無法復原，確定要繼續嗎？
+                    此操作將會清除「個人小屋」的訊息。個人小屋的訊息只會儲存在本機，不會上傳到伺服器。清空後無法復原，確定要繼續嗎？
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
@@ -2613,6 +2617,11 @@
                 const content = document.getElementById("content");
                 if (content) {
                     content.innerHTML = '';
+                }
+
+                const notice = document.getElementById('personal-room-notice');
+                if (notice) {
+                    notice.style.display = roomName === CONFIG.PERSONAL_ROOM ? 'block' : 'none';
                 }
 
                 // 個人小屋：從本地載入歷史

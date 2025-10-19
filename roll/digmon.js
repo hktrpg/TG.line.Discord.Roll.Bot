@@ -86,13 +86,27 @@ const rollDiceCommand = async function ({
     if (isMoveSearch) {
         // Move search
         rply.quotes = true;
-        const queryParts = mainMsg.slice(1).filter(arg => !/^-m$/i.test(arg) && !/^-move$/i.test(arg));
+
+        const filters = {
+            has_crit: mainMsg.some(arg => /^--crit$/i.test(arg)),
+            always_hits: mainMsg.some(arg => /^--hits$/i.test(arg)),
+            hp_drain: mainMsg.some(arg => /^--hp$/i.test(arg)),
+            sp_drain: mainMsg.some(arg => /^--sp$/i.test(arg)),
+            has_recoil: mainMsg.some(arg => /^--recoil$/i.test(arg))
+        };
+
+        const filterFlagsRegex = /^(-m|-move|--crit|--hits|--hp|--sp|--recoil)$/i;
+        const queryParts = mainMsg.slice(1).filter(arg => !filterFlagsRegex.test(arg));
         const query = queryParts.join(' ') || '';
-        if (!query) {
+
+        const hasFilters = Object.values(filters).some(v => v);
+
+        if (!query && !hasFilters) {
             rply.text = '請提供招式關鍵字';
             return rply;
         }
-        rply.text = variables.digimonDex.searchMoves(query);
+
+        rply.text = variables.digimonDex.searchMoves(query, filters);
         return rply;
     }
 
@@ -1527,7 +1541,7 @@ class Digimon {
         return map[skillType] || skillType;
     }
 
-    searchMoves(query) {
+    searchMoves(query, filters = {}) {
         // 1. Flatten all skills
         const allSkills = [];
         for (const digimon of this.digimonData) {
@@ -1583,6 +1597,23 @@ class Digimon {
         // Post-filter for exact stage match
         if (stageTerm) {
             results = results.filter(item => item.stageName === stageTerm);
+        }
+
+        // Add filtering for special properties
+        if (filters.has_crit) {
+            results = results.filter(item => item.skill.critRate > 0);
+        }
+        if (filters.always_hits) {
+            results = results.filter(item => item.skill.alwaysHits);
+        }
+        if (filters.hp_drain) {
+            results = results.filter(item => item.skill.HPDrain > 0);
+        }
+        if (filters.sp_drain) {
+            results = results.filter(item => item.skill.SPDrain > 0);
+        }
+        if (filters.has_recoil) {
+            results = results.filter(item => item.skill.recoil > 0);
         }
 
         // 3. Sort by power
@@ -1741,6 +1772,21 @@ const discordCommand = [
                                 { name: '究極體', value: '究極體' },
                                 { name: '超究極體', value: '超究極體' }
                             ))
+                    .addBooleanOption(option =>
+                        option.setName('has_crit')
+                            .setDescription('CR招式'))
+                    .addBooleanOption(option =>
+                        option.setName('always_hits')
+                            .setDescription('必中招式'))
+                    .addBooleanOption(option =>
+                        option.setName('hp_drain')
+                            .setDescription('HP回復招式'))
+                    .addBooleanOption(option =>
+                        option.setName('sp_drain')
+                            .setDescription('SP回復招式'))
+                    .addBooleanOption(option =>
+                        option.setName('has_recoil')
+                            .setDescription('反作用力招式'))
             ),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
@@ -1760,7 +1806,21 @@ const discordCommand = [
                     const element = interaction.options.getString('element');
                     const target_type = interaction.options.getString('target_type');
                     const stage = interaction.options.getString('stage');
+
+                    const has_crit = interaction.options.getBoolean('has_crit');
+                    const always_hits = interaction.options.getBoolean('always_hits');
+                    const hp_drain = interaction.options.getBoolean('hp_drain');
+                    const sp_drain = interaction.options.getBoolean('sp_drain');
+                    const has_recoil = interaction.options.getBoolean('has_recoil');
+
                     const queryParts = [keyword, attribute, element, target_type, stage].filter(Boolean);
+
+                    if (has_crit) queryParts.push('--crit');
+                    if (always_hits) queryParts.push('--hits');
+                    if (hp_drain) queryParts.push('--hp');
+                    if (sp_drain) queryParts.push('--sp');
+                    if (has_recoil) queryParts.push('--recoil');
+
                     return `.digi -m ${queryParts.join(' ')}`;
                 }
             }

@@ -291,8 +291,7 @@ www.get('/api/dice-commands', async (req, res) => {
                                             return `PLACEHOLDER_INTEGER_${name}`;
                                         },
                                         getBoolean: (name) => {
-                                            sub.options?.find(o => o.name === name);
-                                            return `PLACEHOLDER_BOOLEAN_${name}`;
+                                            return false;
                                         },
                                         getNumber: (name) => {
                                             sub.options?.find(o => o.name === name);
@@ -326,8 +325,7 @@ www.get('/api/dice-commands', async (req, res) => {
                                         return `PLACEHOLDER_INTEGER_${name}`;
                                     },
                                     getBoolean: (name) => {
-                                        commandJson.options?.find(o => o.name === name);
-                                        return `PLACEHOLDER_BOOLEAN_${name}`;
+                                        return false;
                                     },
                                     getNumber: (name) => {
                                         commandJson.options?.find(o => o.name === name);

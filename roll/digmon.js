@@ -1690,12 +1690,13 @@ class Digimon {
         });
 
         let output = `查詢 "${query}" 的招式結果：\n`;
-        for (const item of processedResults) {
+        for (const [index, item] of processedResults.entries()) {
             const { skill, digimon, elementName, targetTypeName, stageName, powerWithExtras } = item;
             const elementEmoji = this.getElementEmoji(skill.element);
             const skillType = this.getSkillTypeName(skill.type);
+            const num = this.numberToEmoji(index + 1);
 
-            let line1 = `${this.padWide(skill.name, maxNameWidth)} | ${elementEmoji}${elementName} | ${targetTypeName}`;
+            let line1 = `${num} ${this.padWide(skill.name, maxNameWidth)} | ${elementEmoji}${elementName} | ${targetTypeName}`;
             if (skill.sp_cost) {
                 line1 += ` | SP:${skill.sp_cost}`;
             }
@@ -1703,7 +1704,8 @@ class Digimon {
                 line1 += ` | ${skillType}`;
             }
 
-            const line2 = `  威力: ${this.padWide(powerWithExtras, maxPowerWidth)} | ${this.padWide(digimon.name, maxDigimonNameWidth)} (${stageName} | ${digimon.attribute})`;
+            const numWidth = (index + 1 >= 10) ? 4 : 3;
+            const line2 = `${' '.repeat(numWidth)}威力: ${this.padWide(powerWithExtras, maxPowerWidth)} | ${this.padWide(digimon.name, maxDigimonNameWidth)} (${stageName} | ${digimon.attribute})`;
 
             output += `${line1}\n${line2}\n`;
         }

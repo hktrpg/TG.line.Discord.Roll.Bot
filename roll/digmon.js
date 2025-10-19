@@ -86,13 +86,27 @@ const rollDiceCommand = async function ({
     if (isMoveSearch) {
         // Move search
         rply.quotes = true;
-        const queryParts = mainMsg.slice(1).filter(arg => !/^-m$/i.test(arg) && !/^-move$/i.test(arg));
+
+        const filters = {
+            has_crit: mainMsg.some(arg => /^--crit$/i.test(arg)),
+            always_hits: mainMsg.some(arg => /^--hits$/i.test(arg)),
+            hp_drain: mainMsg.some(arg => /^--hp$/i.test(arg)),
+            sp_drain: mainMsg.some(arg => /^--sp$/i.test(arg)),
+            has_recoil: mainMsg.some(arg => /^--recoil$/i.test(arg))
+        };
+
+        const filterFlagsRegex = /^(-m|-move|--crit|--hits|--hp|--sp|--recoil)$/i;
+        const queryParts = mainMsg.slice(1).filter(arg => !filterFlagsRegex.test(arg));
         const query = queryParts.join(' ') || '';
-        if (!query) {
+
+        const hasFilters = Object.values(filters).some(Boolean);
+
+        if (!query && !hasFilters) {
             rply.text = '請提供招式關鍵字';
             return rply;
         }
-        rply.text = variables.digimonDex.searchMoves(query);
+
+        rply.text = variables.digimonDex.searchMoves(query, filters);
         return rply;
     }
 
@@ -142,6 +156,8 @@ class Digimon {
         this.digimonData = data;
         this.worldData = null;
         this.stagesName = [];
+        this.dmgTypes = {};
+        this.reverseDmgTypes = {};
         this.fuse = new Fuse(this.digimonData, {
             keys: ['name', 'zh-cn-name', 'id'],
             includeScore: true,
@@ -163,6 +179,13 @@ class Digimon {
             digimon.worldData = worldEntry;
             if (worldEntry.stages_name) {
                 digimon.stagesName = worldEntry.stages_name;
+            }
+            if (worldEntry.dmgTypes) {
+                digimon.dmgTypes = worldEntry.dmgTypes;
+                digimon.reverseDmgTypes = {};
+                for (const [name, id] of Object.entries(worldEntry.dmgTypes)) {
+                    digimon.reverseDmgTypes[id] = name;
+                }
             }
         }
 
@@ -1516,7 +1539,28 @@ class Digimon {
         return '未知';
     }
 
-    searchMoves(query) {
+    getSkillTypeName(skillType) {
+        if (skillType === null || skillType === undefined) return '';
+
+        // If it's a number, look it up in the reverse map
+        if (typeof skillType === 'number' && this.reverseDmgTypes[skillType]) {
+            skillType = this.reverseDmgTypes[skillType];
+        }
+        const map = {
+            'Physical': '物理',
+            'Magic': '魔法',
+            'Fixed': '固定傷害',
+            'HP Damage': 'HP%',
+            'Support': '輔助',
+            'Heal': '治療',
+            'Debuff': 'Debuff',
+            'Recovery': '回復',
+            'Buff': 'Buff'
+        };
+        return map[skillType] || skillType;
+    }
+
+    searchMoves(query, filters = {}) {
         // 1. Flatten all skills
         const allSkills = [];
         for (const digimon of this.digimonData) {
@@ -1554,10 +1598,12 @@ class Digimon {
         });
 
         const stages = ['幼年期1', '幼年期2', '成長期', '成熟期', '完全體', '究極體', '超究極體'];
+        const skillTypes = ['Physical', 'Magic', 'Support', 'Heal', 'Fixed', 'HP Damage', 'Debuff', 'Recovery', 'Buff'];
         const queryTerms = query.split(/\s+/).filter(Boolean);
 
         const stageTerm = queryTerms.find(term => stages.includes(term));
-        const otherTerms = queryTerms.filter(term => !stages.includes(term));
+        const skillTypeTerm = queryTerms.find(term => skillTypes.includes(term));
+        const otherTerms = queryTerms.filter(term => !stages.includes(term) && !skillTypes.includes(term));
 
         let results;
 
@@ -1572,6 +1618,31 @@ class Digimon {
         // Post-filter for exact stage match
         if (stageTerm) {
             results = results.filter(item => item.stageName === stageTerm);
+        }
+
+        // Post-filter for skill type
+        if (skillTypeTerm) {
+            const numericType = this.dmgTypes[skillTypeTerm];
+            results = results.filter(item => {
+                return item.skill.type === skillTypeTerm || (numericType !== undefined && item.skill.type === numericType);
+            });
+        }
+
+        // Add filtering for special properties
+        if (filters.has_crit) {
+            results = results.filter(item => item.skill.critRate > 0);
+        }
+        if (filters.always_hits) {
+            results = results.filter(item => item.skill.alwaysHits);
+        }
+        if (filters.hp_drain) {
+            results = results.filter(item => item.skill.HPDrain > 0);
+        }
+        if (filters.sp_drain) {
+            results = results.filter(item => item.skill.SPDrain > 0);
+        }
+        if (filters.has_recoil) {
+            results = results.filter(item => item.skill.recoil > 0);
         }
 
         // 3. Sort by power
@@ -1599,26 +1670,43 @@ class Digimon {
             const maxHits = skill.maxHits || 1;
             const totalPower = power * maxHits;
             const powerString = maxHits > 1 ? `${maxHits}×${power}=${totalPower}` : String(totalPower);
+            
+            const extras = [];
+            if (skill.critRate > 0) extras.push(`CR:${skill.critRate}`);
+            if (skill.alwaysHits) extras.push('必中');
+            if (skill.HPDrain > 0) extras.push(`HP回復:${skill.HPDrain}%`);
+            if (skill.SPDrain > 0) extras.push(`SP回復:${skill.SPDrain}%`);
+            if (skill.recoil > 0) extras.push(`反作用力:${skill.recoil}%`);
+            const extrasString = extras.length > 0 ? ` (${extras.join(' ')})` : '';
+            const powerWithExtras = powerString + extrasString;
 
             const skillNameWidth = this.getWideWidth(skill.name);
             if (skillNameWidth > maxNameWidth) maxNameWidth = skillNameWidth;
 
-            const powerStringWidth = this.getWideWidth(powerString);
+            const powerStringWidth = this.getWideWidth(powerWithExtras);
             if (powerStringWidth > maxPowerWidth) maxPowerWidth = powerStringWidth;
 
             const digimonNameWidth = this.getWideWidth(digimon.name);
             if (digimonNameWidth > maxDigimonNameWidth) maxDigimonNameWidth = digimonNameWidth;
 
-            return { ...item, powerString };
+            return { ...item, powerString, extrasString, powerWithExtras };
         });
 
         let output = `查詢 "${query}" 的招式結果：\n`;
         for (const item of processedResults) {
-            const { skill, digimon, elementName, targetTypeName, stageName, powerString } = item;
+            const { skill, digimon, elementName, targetTypeName, stageName, powerWithExtras } = item;
             const elementEmoji = this.getElementEmoji(skill.element);
+            const skillType = this.getSkillTypeName(skill.type);
 
-            const line1 = `${this.padWide(skill.name, maxNameWidth)} | ${elementEmoji}${elementName} | ${targetTypeName}`;
-            const line2 = `  威力: ${this.padWide(powerString, maxPowerWidth)} | ${this.padWide(digimon.name, maxDigimonNameWidth)} (${stageName} | ${digimon.attribute})`;
+            let line1 = `${this.padWide(skill.name, maxNameWidth)} | ${elementEmoji}${elementName} | ${targetTypeName}`;
+            if (skill.sp_cost) {
+                line1 += ` | SP:${skill.sp_cost}`;
+            }
+            if (skillType) {
+                line1 += ` | ${skillType}`;
+            }
+
+            const line2 = `  威力: ${this.padWide(powerWithExtras, maxPowerWidth)} | ${this.padWide(digimon.name, maxDigimonNameWidth)} (${stageName} | ${digimon.attribute})`;
 
             output += `${line1}\n${line2}\n`;
         }
@@ -1713,7 +1801,44 @@ const discordCommand = [
                                 { name: '究極體', value: '究極體' },
                                 { name: '超究極體', value: '超究極體' }
                             ))
+                    .addStringOption(option =>
+                        option.setName('skill_type')
+                            .setDescription('招式類型')
+                            .setRequired(false)
+                            .addChoices(
+                                { name: '物理', value: 'Physical' },
+                                { name: '魔法', value: 'Magic' },
+                                { name: '輔助', value: 'Support' },
+                                { name: '治療', value: 'Heal' },
+                                { name: '固定傷害', value: 'Fixed' },
+                                { name: 'HP%', value: 'HP Damage' },
+                                { name: 'Debuff', value: 'Debuff' },
+                                { name: 'Recovery', value: 'Recovery' },
+                                { name: 'Buff', value: 'Buff' }
+                            ))
+                    .addBooleanOption(option =>
+                        option.setName('has_crit')
+                            .setDescription('CR招式'))
+                    .addBooleanOption(option =>
+                        option.setName('always_hits')
+                            .setDescription('必中招式'))
+                    .addBooleanOption(option =>
+                        option.setName('hp_drain')
+                            .setDescription('HP回復招式'))
+                    .addBooleanOption(option =>
+                        option.setName('sp_drain')
+                            .setDescription('SP回復招式'))
+                    .addBooleanOption(option =>
+                        option.setName('has_recoil')
+                            .setDescription('反作用力招式'))
             ),
+        flagMap: {
+            has_crit: '--crit',
+            always_hits: '--hits',
+            hp_drain: '--hp',
+            sp_drain: '--sp',
+            has_recoil: '--recoil'
+        },
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             switch (subcommand) {
@@ -1732,7 +1857,22 @@ const discordCommand = [
                     const element = interaction.options.getString('element');
                     const target_type = interaction.options.getString('target_type');
                     const stage = interaction.options.getString('stage');
-                    const queryParts = [keyword, attribute, element, target_type, stage].filter(Boolean);
+                    const skill_type = interaction.options.getString('skill_type');
+
+                    const has_crit = interaction.options.getBoolean('has_crit');
+                    const always_hits = interaction.options.getBoolean('always_hits');
+                    const hp_drain = interaction.options.getBoolean('hp_drain');
+                    const sp_drain = interaction.options.getBoolean('sp_drain');
+                    const has_recoil = interaction.options.getBoolean('has_recoil');
+
+                    const queryParts = [keyword, attribute, element, target_type, stage, skill_type].filter(Boolean);
+
+                    if (has_crit) queryParts.push('--crit');
+                    if (always_hits) queryParts.push('--hits');
+                    if (hp_drain) queryParts.push('--hp');
+                    if (sp_drain) queryParts.push('--sp');
+                    if (has_recoil) queryParts.push('--recoil');
+
                     return `.digi -m ${queryParts.join(' ')}`;
                 }
             }

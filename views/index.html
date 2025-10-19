@@ -93,14 +93,14 @@
                     <div class="pad-content">
                         <ul class="nav nav-tabs" id="quick-command-tabs" role="tablist">
                             <li class="nav-item" role="presentation">
-                                <a class="nav-link active" id="common-tab" data-toggle="tab" href="#common-commands" role="tab" aria-controls="common-commands" aria-selected="true">常用指令</a>
+                                <a class="nav-link" id="common-tab" data-toggle="tab" href="#common-commands" role="tab" aria-controls="common-commands" aria-selected="false">常用指令</a>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <a class="nav-link" id="dice-set-tab" data-toggle="tab" href="#dice-set-commands-panel" role="tab" aria-controls="dice-set-commands-panel" aria-selected="false">骰組</a>
+                                <a class="nav-link active" id="dice-set-tab" data-toggle="tab" href="#dice-set-commands-panel" role="tab" aria-controls="dice-set-commands-panel" aria-selected="true">骰組</a>
                             </li>
                         </ul>
                         <div class="tab-content" id="quick-command-tabs-content">
-                            <div class="tab-pane fade show active" id="common-commands" role="tabpanel" aria-labelledby="common-tab">
+                            <div class="tab-pane fade" id="common-commands" role="tabpanel" aria-labelledby="common-tab">
                                 <div class="pad-buttons" id="quickInputButtons">
                                     <!-- Buttons will be added dynamically -->
                                 </div>
@@ -109,7 +109,7 @@
                                     <button class="btn btn-primary" onclick="quickInputPad.sendCustom()">送出</button>
                                 </div>
                             </div>
-                            <div class="tab-pane fade" id="dice-set-commands-panel" role="tabpanel" aria-labelledby="dice-set-tab">
+                            <div class="tab-pane fade show active" id="dice-set-commands-panel" role="tabpanel" aria-labelledby="dice-set-tab">
                                 <div class="dice-set-selector form-group">
                                      <label for="dice-set-select">選擇骰組:</label>
                                      <div class="input-group">
@@ -845,6 +845,8 @@
             border-radius: 12px 12px 0 0;
             box-shadow: var(--shadow-lg);
             border: 1px solid var(--card-border);
+            max-height: 60vh;
+            overflow-y: auto;
         }
 
         .quick-input-pad .toggle-button {
@@ -2198,7 +2200,10 @@
                     return;
                 }
 
-                options.forEach(option => {
+                const booleanOptions = options.filter(o => o.type === 5);
+                const otherOptions = options.filter(o => o.type !== 5);
+
+                otherOptions.forEach(option => {
                     const inputGroup = document.createElement('div');
                     inputGroup.className = 'form-group';
                     
@@ -2271,6 +2276,35 @@
                     inputsContainer.appendChild(inputGroup);
                 });
                 
+                if (booleanOptions.length > 0) {
+                    const boolGroupContainer = document.createElement('div');
+                    boolGroupContainer.className = 'form-group';
+                    
+                    const boolLabel = document.createElement('label');
+                    boolLabel.textContent = '篩選條件';
+                    boolGroupContainer.appendChild(boolLabel);
+                    
+                    const choiceGroup = document.createElement('div');
+                    choiceGroup.className = 'choices-group';
+                    
+                    booleanOptions.forEach(option => {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'btn btn-outline-secondary';
+                        button.textContent = option.description;
+                        button.dataset.name = option.name;
+                        
+                        button.addEventListener('click', function() {
+                            this.classList.toggle('active');
+                            quickCommandsManager.activeCommand.inputs[option.name] = this.classList.contains('active');
+                        });
+                        choiceGroup.appendChild(button);
+                    });
+                    
+                    boolGroupContainer.appendChild(choiceGroup);
+                    inputsContainer.appendChild(boolGroupContainer);
+                }
+
                 const executeBtn = document.createElement('button');
                 executeBtn.className = 'btn btn-primary btn-block mt-2';
                 executeBtn.textContent = '執行';
@@ -2314,11 +2348,21 @@
 
                 for (const key in inputs) {
                     const value = inputs[key] || '';
-                    const placeholderRegex = new RegExp(`PLACEHOLDER_(STRING|INTEGER|BOOLEAN|NUMBER)_${key}`, 'g');
-                    finalCommand = finalCommand.replace(placeholderRegex, value);
+                    if (typeof value !== 'boolean') {
+                        const placeholderRegex = new RegExp(`PLACEHOLDER_(STRING|INTEGER|BOOLEAN|NUMBER)_${key}`, 'g');
+                        finalCommand = finalCommand.replace(placeholderRegex, value);
+                    }
                 }
                 
                 finalCommand = finalCommand.replace(/PLACEHOLDER_(STRING|INTEGER|BOOLEAN|NUMBER)_\w+/g, '').trim();
+
+                const flagMap = quickCommandsManager.activeCommand.command.flagMap || {};
+
+                for (const key in inputs) {
+                    if (inputs[key] === true && flagMap[key]) {
+                        finalCommand += ` ${flagMap[key]}`;
+                    }
+                }
 
                 const msgInput = document.getElementById("msg");
                 msgInput.value = finalCommand;
@@ -2725,6 +2769,14 @@
             headerManager.init();
             chatroomManager.init();
             sidebarManager.init();
+
+            // Remove focus from buttons after click to prevent "glow"
+            document.addEventListener('mouseup', (e) => {
+                const button = e.target.closest('button, .btn');
+                if (button) {
+                    button.blur();
+                }
+            });
         });
 
         // Modal functions

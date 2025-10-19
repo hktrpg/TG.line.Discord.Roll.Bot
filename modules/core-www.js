@@ -290,9 +290,8 @@ www.get('/api/dice-commands', async (req, res) => {
                                             sub.options?.find(o => o.name === name);
                                             return `PLACEHOLDER_INTEGER_${name}`;
                                         },
-                                        getBoolean: (name) => {
-                                            sub.options?.find(o => o.name === name);
-                                            return `PLACEHOLDER_BOOLEAN_${name}`;
+                                        getBoolean: () => {
+                                            return false;
                                         },
                                         getNumber: (name) => {
                                             sub.options?.find(o => o.name === name);
@@ -309,7 +308,8 @@ www.get('/api/dice-commands', async (req, res) => {
                                             description: sub.description,
                                             options: sub.options || []
                                         },
-                                        execute: executeTemplate
+                                        execute: executeTemplate,
+                                        flagMap: cmd.flagMap || {}
                                     });
                                 } catch { /* Ignore errors in mock execution */ }
                             }
@@ -325,9 +325,8 @@ www.get('/api/dice-commands', async (req, res) => {
                                         commandJson.options?.find(o => o.name === name);
                                         return `PLACEHOLDER_INTEGER_${name}`;
                                     },
-                                    getBoolean: (name) => {
-                                        commandJson.options?.find(o => o.name === name);
-                                        return `PLACEHOLDER_BOOLEAN_${name}`;
+                                    getBoolean: () => {
+                                        return false;
                                     },
                                     getNumber: (name) => {
                                         commandJson.options?.find(o => o.name === name);
@@ -339,7 +338,8 @@ www.get('/api/dice-commands', async (req, res) => {
                                 const executeTemplate = await cmd.execute(mockInteraction);
                                 commands.push({
                                     json: commandJson,
-                                    execute: executeTemplate
+                                    execute: executeTemplate,
+                                    flagMap: cmd.flagMap || {}
                                 });
                             } catch { /* Ignore errors in mock execution */ }
                         }

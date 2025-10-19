@@ -1740,6 +1740,17 @@
                 bottom: 0;
             }
         }
+
+        /* Styles for wrapping choice buttons */
+        .choices-group {
+            display: flex;
+            flex-wrap: wrap;
+            margin: -0.125rem; /* Counteract button margin */
+        }
+
+        .choices-group > .btn {
+            margin: 0.125rem;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
@@ -2197,7 +2208,7 @@
 
                     if (option.choices) {
                         const choiceGroup = document.createElement('div');
-                        choiceGroup.className = 'btn-group';
+                        choiceGroup.className = 'choices-group';
                         choiceGroup.setAttribute('role', 'group');
                         choiceGroup.dataset.name = option.name; // Add data-name for selection
 

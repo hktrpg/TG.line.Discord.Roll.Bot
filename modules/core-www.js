@@ -284,19 +284,19 @@ www.get('/api/dice-commands', async (req, res) => {
                                         getSubcommand: () => sub.name,
                                         getString: (name) => {
                                             const opt = sub.options?.find(o => o.name === name);
-                                            return (opt && !opt.required) ? null : `PLACEHOLDER_STRING_${name}`;
+                                            return `PLACEHOLDER_STRING_${name}`;
                                         },
                                         getInteger: (name) => {
                                             const opt = sub.options?.find(o => o.name === name);
-                                            return (opt && !opt.required) ? null : `PLACEHOLDER_INTEGER_${name}`;
+                                            return `PLACEHOLDER_INTEGER_${name}`;
                                         },
                                         getBoolean: (name) => {
                                             const opt = sub.options?.find(o => o.name === name);
-                                            return (opt && !opt.required) ? null : `PLACEHOLDER_BOOLEAN_${name}`;
+                                            return `PLACEHOLDER_BOOLEAN_${name}`;
                                         },
                                         getNumber: (name) => {
                                             const opt = sub.options?.find(o => o.name === name);
-                                            return (opt && !opt.required) ? null : `PLACEHOLDER_NUMBER_${name}`;
+                                            return `PLACEHOLDER_NUMBER_${name}`;
                                         },
                                     }
                                 };
@@ -319,19 +319,19 @@ www.get('/api/dice-commands', async (req, res) => {
                                     getSubcommand: () => null,
                                     getString: (name) => {
                                         const opt = commandJson.options?.find(o => o.name === name);
-                                        return (opt && !opt.required) ? null : `PLACEHOLDER_STRING_${name}`;
+                                        return `PLACEHOLDER_STRING_${name}`;
                                     },
                                     getInteger: (name) => {
                                         const opt = commandJson.options?.find(o => o.name === name);
-                                        return (opt && !opt.required) ? null : `PLACEHOLDER_INTEGER_${name}`;
+                                        return `PLACEHOLDER_INTEGER_${name}`;
                                     },
                                     getBoolean: (name) => {
                                         const opt = commandJson.options?.find(o => o.name === name);
-                                        return (opt && !opt.required) ? null : `PLACEHOLDER_BOOLEAN_${name}`;
+                                        return `PLACEHOLDER_BOOLEAN_${name}`;
                                     },
                                     getNumber: (name) => {
                                         const opt = commandJson.options?.find(o => o.name === name);
-                                        return (opt && !opt.required) ? null : `PLACEHOLDER_NUMBER_${name}`;
+                                        return `PLACEHOLDER_NUMBER_${name}`;
                                     },
                                 }
                             };

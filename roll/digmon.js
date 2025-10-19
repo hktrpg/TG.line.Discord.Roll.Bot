@@ -99,7 +99,7 @@ const rollDiceCommand = async function ({
         const queryParts = mainMsg.slice(1).filter(arg => !filterFlagsRegex.test(arg));
         const query = queryParts.join(' ') || '';
 
-        const hasFilters = Object.values(filters).some(v => v);
+        const hasFilters = Object.values(filters).some(Boolean);
 
         if (!query && !hasFilters) {
             rply.text = '請提供招式關鍵字';

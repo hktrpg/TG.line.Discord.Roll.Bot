@@ -1580,7 +1580,9 @@ class Digimon {
                 elementName,
                 targetTypeName,
                 digimon.attribute || '',
-                stageName
+                stageName,
+                digimon.name || '',
+                digimon['zh-cn-name'] || ''
             ].join(' ');
 
             return { skill, digimon, searchText, elementName, targetTypeName, stageName };

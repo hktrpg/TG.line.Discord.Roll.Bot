@@ -787,7 +787,7 @@ class Digimon {
                         const nd = nextDigimon[i];
                         const stageLabel = digimonInstance.getStageName(nd.stage);
                         const personality = digimonInstance.getDisplayPersonality(nd);
-                        
+
                         const primarySkill = digimonInstance.getPrimarySkill(nd);
                         const elem = primarySkill ? primarySkill.element : '-';
                         const emoji = digimonInstance.getElementEmoji(elem);
@@ -804,7 +804,7 @@ class Digimon {
                                 const power = skill.power || 0;
                                 const maxHits = skill.maxHits || 1;
                                 const totalPower = power * maxHits;
-                                
+
                                 let powerString;
                                 if (maxHits > 1) {
                                     powerString = `${maxHits}×${power}=${totalPower}`;
@@ -1549,7 +1549,6 @@ class Digimon {
         const map = {
             'Physical': '物理',
             'Magic': '魔法',
-            'Fixed': '固定傷害',
             'HP Damage': 'HP%',
             'Support': '輔助',
             'Heal': '治療',
@@ -1598,7 +1597,7 @@ class Digimon {
         });
 
         const stages = ['幼年期1', '幼年期2', '成長期', '成熟期', '完全體', '究極體', '超究極體'];
-        const skillTypes = ['Physical', 'Magic', 'Support', 'Heal', 'Fixed', 'HP Damage', 'Debuff', 'Recovery', 'Buff'];
+        const skillTypes = ['Physical', 'Magic', 'Support', 'Heal', 'HP Damage', 'Debuff', 'Recovery', 'Buff'];
         const queryTerms = query.split(/\s+/).filter(Boolean);
 
         const stageTerm = queryTerms.find(term => stages.includes(term));
@@ -1670,7 +1669,7 @@ class Digimon {
             const maxHits = skill.maxHits || 1;
             const totalPower = power * maxHits;
             const powerString = maxHits > 1 ? `${maxHits}×${power}=${totalPower}` : String(totalPower);
-            
+
             const extras = [];
             if (skill.critRate > 0) extras.push(`CR:${skill.critRate}`);
             if (skill.alwaysHits) extras.push('必中');
@@ -1810,7 +1809,6 @@ const discordCommand = [
                                 { name: '魔法', value: 'Magic' },
                                 { name: '輔助', value: 'Support' },
                                 { name: '治療', value: 'Heal' },
-                                { name: '固定傷害', value: 'Fixed' },
                                 { name: 'HP%', value: 'HP Damage' },
                                 { name: 'Debuff', value: 'Debuff' },
                                 { name: 'Recovery', value: 'Recovery' },

@@ -1516,6 +1516,17 @@ class Digimon {
         return '未知';
     }
 
+    getSkillTypeName(skillType) {
+        if (!skillType) return '';
+        const map = {
+            'Physical': '物理',
+            'Magic': '魔法',
+            'Fixed': '固定傷害',
+            'HP%': 'HP%'
+        };
+        return map[skillType] || skillType;
+    }
+
     searchMoves(query) {
         // 1. Flatten all skills
         const allSkills = [];
@@ -1599,26 +1610,43 @@ class Digimon {
             const maxHits = skill.maxHits || 1;
             const totalPower = power * maxHits;
             const powerString = maxHits > 1 ? `${maxHits}×${power}=${totalPower}` : String(totalPower);
+            
+            const extras = [];
+            if (skill.critRate > 0) extras.push(`CR:${skill.critRate}`);
+            if (skill.alwaysHits) extras.push('必中');
+            if (skill.HPDrain > 0) extras.push(`HP回復:${skill.HPDrain}%`);
+            if (skill.SPDrain > 0) extras.push(`SP回復:${skill.SPDrain}%`);
+            if (skill.recoil > 0) extras.push(`反作用力:${skill.recoil}%`);
+            const extrasString = extras.length > 0 ? ` (${extras.join(' ')})` : '';
+            const powerWithExtras = powerString + extrasString;
 
             const skillNameWidth = this.getWideWidth(skill.name);
             if (skillNameWidth > maxNameWidth) maxNameWidth = skillNameWidth;
 
-            const powerStringWidth = this.getWideWidth(powerString);
+            const powerStringWidth = this.getWideWidth(powerWithExtras);
             if (powerStringWidth > maxPowerWidth) maxPowerWidth = powerStringWidth;
 
             const digimonNameWidth = this.getWideWidth(digimon.name);
             if (digimonNameWidth > maxDigimonNameWidth) maxDigimonNameWidth = digimonNameWidth;
 
-            return { ...item, powerString };
+            return { ...item, powerString, extrasString, powerWithExtras };
         });
 
         let output = `查詢 "${query}" 的招式結果：\n`;
         for (const item of processedResults) {
-            const { skill, digimon, elementName, targetTypeName, stageName, powerString } = item;
+            const { skill, digimon, elementName, targetTypeName, stageName, powerWithExtras } = item;
             const elementEmoji = this.getElementEmoji(skill.element);
+            const skillType = this.getSkillTypeName(skill.type);
 
-            const line1 = `${this.padWide(skill.name, maxNameWidth)} | ${elementEmoji}${elementName} | ${targetTypeName}`;
-            const line2 = `  威力: ${this.padWide(powerString, maxPowerWidth)} | ${this.padWide(digimon.name, maxDigimonNameWidth)} (${stageName} | ${digimon.attribute})`;
+            let line1 = `${this.padWide(skill.name, maxNameWidth)} | ${elementEmoji}${elementName} | ${targetTypeName}`;
+            if (skill.sp_cost) {
+                line1 += ` | SP:${skill.sp_cost}`;
+            }
+            if (skillType) {
+                line1 += ` | ${skillType}`;
+            }
+
+            const line2 = `  威力: ${this.padWide(powerWithExtras, maxPowerWidth)} | ${this.padWide(digimon.name, maxDigimonNameWidth)} (${stageName} | ${digimon.attribute})`;
 
             output += `${line1}\n${line2}\n`;
         }

@@ -441,4 +441,227 @@ describe('Admin Module Tests', () => {
     expect(result.text).toBeTruthy();
   });
 
+});
+
+describe('Admin Module Advanced Coverage Tests', () => {
+  let adminModule;
+  let schema;
+
+  beforeAll(() => {
+    adminModule = require('../roll/z_admin.js');
+    schema = require('../modules/schema.js');
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('Test rollDiceCommand with state command', async () => {
+    const result = await adminModule.rollDiceCommand({
+      inputStr: '.admin state',
+      mainMsg: ['.admin', 'state'],
+      userid: 'testuser',
+      groupid: 'testgroup'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toBeDefined();
+  });
+
+  test('Test rollDiceCommand with debug command', async () => {
+    const result = await adminModule.rollDiceCommand({
+      inputStr: '.admin debug',
+      mainMsg: ['.admin', 'debug'],
+      userid: 'testuser',
+      groupid: 'testgroup'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toBeTruthy();
+  });
+
+  test('Test rollDiceCommand with mongod command (admin user)', async () => {
+    const result = await adminModule.rollDiceCommand({
+      inputStr: '.admin mongod',
+      mainMsg: ['.admin', 'mongod'],
+      userid: process.env.ADMIN_SECRET,
+      groupid: 'testgroup'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toBeTruthy();
+  });
+
+  test('Test rollDiceCommand with allowrolling command', async () => {
+    schema.allowRolling.findOne.mockResolvedValue(null);
+    schema.allowRolling.findOneAndUpdate.mockResolvedValue({
+      groupid: 'testgroup',
+      allow: true
+    });
+    const result = await adminModule.rollDiceCommand({
+      inputStr: '.admin allowrolling',
+      mainMsg: ['.admin', 'allowrolling'],
+      userid: 'testuser',
+      groupid: 'testgroup'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toBeTruthy();
+  });
+
+  test('Test rollDiceCommand with disallowrolling command', async () => {
+    schema.allowRolling.findOne.mockResolvedValue({
+      groupid: 'testgroup',
+      allow: true
+    });
+    schema.allowRolling.findOneAndRemove.mockResolvedValue({
+      groupid: 'testgroup'
+    });
+    const result = await adminModule.rollDiceCommand({
+      inputStr: '.admin disallowrolling',
+      mainMsg: ['.admin', 'disallowrolling'],
+      userid: 'testuser',
+      groupid: 'testgroup'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toBeTruthy();
+  });
+
+  test('Test rollDiceCommand with unregisterChannel command', async () => {
+    schema.accountPW.findOne.mockResolvedValue({
+      userid: 'testuser',
+      groupid: 'testgroup',
+      allow: true
+    });
+    schema.accountPW.updateOne.mockResolvedValue({
+      userid: 'testuser',
+      groupid: 'testgroup'
+    });
+    const result = await adminModule.rollDiceCommand({
+      inputStr: '.admin unregisterChannel',
+      mainMsg: ['.admin', 'unregisterChannel'],
+      userid: 'testuser',
+      groupid: 'testgroup'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toBeTruthy();
+  });
+
+  test('Test rollDiceCommand with news command (on)', async () => {
+    schema.theNewsMessage.updateOne.mockResolvedValue({
+      userid: 'testuser',
+      news: true
+    });
+    const result = await adminModule.rollDiceCommand({
+      inputStr: '.admin news on',
+      mainMsg: ['.admin', 'news', 'on'],
+      userid: 'testuser',
+      groupid: 'testgroup'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toBeTruthy();
+  });
+
+  test('Test rollDiceCommand with news command (off)', async () => {
+    schema.theNewsMessage.updateOne.mockResolvedValue({
+      userid: 'testuser',
+      news: false
+    });
+    const result = await adminModule.rollDiceCommand({
+      inputStr: '.admin news off',
+      mainMsg: ['.admin', 'news', 'off'],
+      userid: 'testuser',
+      groupid: 'testgroup'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toBeTruthy();
+  });
+
+  test('Test rollDiceCommand with news command (show)', async () => {
+    schema.theNewsMessage.find.mockResolvedValue([
+      { userid: 'user1', news: true },
+      { userid: 'user2', news: false }
+    ]);
+    const result = await adminModule.rollDiceCommand({
+      inputStr: '.admin news show',
+      mainMsg: ['.admin', 'news', 'show'],
+      userid: 'testuser',
+      groupid: 'testgroup'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toBeDefined();
+  });
+
+  test('Test rollDiceCommand with news command (database error)', async () => {
+    schema.theNewsMessage.updateOne.mockRejectedValue(new Error('Database error'));
+    const result = await adminModule.rollDiceCommand({
+      inputStr: '.admin news on',
+      mainMsg: ['.admin', 'news', 'on'],
+      userid: 'testuser',
+      groupid: 'testgroup'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toBeTruthy();
+  });
+
+  test('Test rollDiceCommand with allowrolling command (database error)', async () => {
+    schema.allowRolling.findOne.mockRejectedValue(new Error('Database error'));
+    const result = await adminModule.rollDiceCommand({
+      inputStr: '.admin allowrolling',
+      mainMsg: ['.admin', 'allowrolling'],
+      userid: 'testuser',
+      groupid: 'testgroup'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toBeTruthy();
+  });
+
+  test('Test rollDiceCommand with disallowrolling command (database error)', async () => {
+    schema.allowRolling.findOne.mockRejectedValue(new Error('Database error'));
+    const result = await adminModule.rollDiceCommand({
+      inputStr: '.admin disallowrolling',
+      mainMsg: ['.admin', 'disallowrolling'],
+      userid: 'testuser',
+      groupid: 'testgroup'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toBeTruthy();
+  });
+
+  test('Test rollDiceCommand with unregisterChannel command (database error)', async () => {
+    schema.accountPW.findOne.mockRejectedValue(new Error('Database error'));
+    const result = await adminModule.rollDiceCommand({
+      inputStr: '.admin unregisterChannel',
+      mainMsg: ['.admin', 'unregisterChannel'],
+      userid: 'testuser',
+      groupid: 'testgroup'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toBeTruthy();
+  });
+
+  test('Test rollDiceCommand with unregisterChannel command (not found)', async () => {
+    schema.accountPW.findOne.mockResolvedValue(null);
+    const result = await adminModule.rollDiceCommand({
+      inputStr: '.admin unregisterChannel',
+      mainMsg: ['.admin', 'unregisterChannel'],
+      userid: 'testuser',
+      groupid: 'testgroup'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toBeTruthy();
+  });
+
+  test('Test rollDiceCommand with unregisterChannel command (update error)', async () => {
+    schema.accountPW.findOne.mockResolvedValue({
+      userid: 'testuser',
+      groupid: 'testgroup',
+      allow: true
+    });
+    schema.accountPW.updateOne.mockRejectedValue(new Error('Update error'));
+    const result = await adminModule.rollDiceCommand({
+      inputStr: '.admin unregisterChannel',
+      mainMsg: ['.admin', 'unregisterChannel'],
+      userid: 'testuser',
+      groupid: 'testgroup'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toBeTruthy();
+  });
 }); 

@@ -695,3 +695,288 @@ describe('StoryTeller File Operations', () => {
         expect(result.text).toContain('互動故事');
     });
 });
+
+describe('StoryTeller Advanced Coverage Tests', () => {
+    const USER_ID = 'tester-uid';
+    let st;
+
+    beforeAll(() => {
+        st = require('../roll/z-story-teller.js');
+    });
+
+    test('should handle import command with valid URL', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'import', 'https://example.com/story.json'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle import command with invalid URL', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'import', 'invalid-url'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle update command with valid story', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'update', 'test', 'https://example.com/story.json'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle update command with invalid story', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'update', 'nonexistent', 'https://example.com/story.json'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle export command', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'export', 'test'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle verify command with valid story', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'verify', 'test'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle verify command with invalid story', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'verify', 'nonexistent'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle my command for story owner', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'my'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle mylist command for story owner', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'mylist'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle debug command', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'debug'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle game command', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'game'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle edit command with allow/author options', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'edit', 'test', 'allow', 'author'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle edit command with disallow options', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'edit', 'test', 'disallow', 'author'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle edit command with alone option', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'edit', 'test', 'alone'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle edit command with all option', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'edit', 'test', 'all'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+});
+
+describe('StoryTeller Interpolation and Advanced Features', () => {
+    const USER_ID = 'tester-uid';
+    let st;
+
+    beforeAll(() => {
+        st = require('../roll/z-story-teller.js');
+    });
+
+    test('should handle dice interpolation in story text', async () => {
+        // Start a story and set variables to test interpolation
+        await st.rollDiceCommand({ mainMsg: ['.st', 'start', 'test'], userid: USER_ID, botname: 'Discord' });
+        await st.rollDiceCommand({ mainMsg: ['.st', 'set', 'player_name', 'TestPlayer'], userid: USER_ID, botname: 'Discord' });
+        
+        // Test goto to trigger interpolation
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'goto', '1'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle nested interpolation', async () => {
+        await st.rollDiceCommand({ mainMsg: ['.st', 'start', 'test'], userid: USER_ID, botname: 'Discord' });
+        await st.rollDiceCommand({ mainMsg: ['.st', 'set', 'nested_var', '{player_name}'], userid: USER_ID, botname: 'Discord' });
+        
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'show', 'nested_var'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle dice expressions in interpolation', async () => {
+        await st.rollDiceCommand({ mainMsg: ['.st', 'start', 'test'], userid: USER_ID, botname: 'Discord' });
+        
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'set', 'dice_result', '2d6'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle complex expressions in set command', async () => {
+        await st.rollDiceCommand({ mainMsg: ['.st', 'start', 'test'], userid: USER_ID, botname: 'Discord' });
+        
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'set', 'complex', '2d6+3'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle condition evaluation', async () => {
+        await st.rollDiceCommand({ mainMsg: ['.st', 'start', 'test'], userid: USER_ID, botname: 'Discord' });
+        await st.rollDiceCommand({ mainMsg: ['.st', 'set', 'test_var', '5'], userid: USER_ID, botname: 'Discord' });
+        
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'goto', '1'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle random chance evaluation', async () => {
+        await st.rollDiceCommand({ mainMsg: ['.st', 'start', 'test'], userid: USER_ID, botname: 'Discord' });
+        
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'goto', '1'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle story compilation', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'validate', 'test'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle run design compilation', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'verify', 'test'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle story export functionality', async () => {
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'export', 'test'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle page rendering with variables', async () => {
+        await st.rollDiceCommand({ mainMsg: ['.st', 'start', 'test'], userid: USER_ID, botname: 'Discord' });
+        await st.rollDiceCommand({ mainMsg: ['.st', 'set', 'test_var', '10'], userid: USER_ID, botname: 'Discord' });
+        
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'goto', '1'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle button generation', async () => {
+        await st.rollDiceCommand({ mainMsg: ['.st', 'start', 'test'], userid: USER_ID, botname: 'Discord' });
+        
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'goto', '1'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+
+    test('should handle poll generation', async () => {
+        await st.rollDiceCommand({ mainMsg: ['.st', 'start', 'test'], userid: USER_ID, botname: 'Discord' });
+        
+        const result = await st.rollDiceCommand({
+            mainMsg: ['.st', 'goto', '1'],
+            userid: USER_ID,
+            botname: 'Discord'
+        });
+        expect(result.type).toBe('text');
+    });
+});

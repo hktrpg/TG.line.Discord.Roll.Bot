@@ -489,4 +489,110 @@ describe('Call of Cthulhu Module Tests', () => {
         const result = coc.initialize();
         expect(result).toBeDefined();
     });
+
+    test('Test rollDiceCommand with cc command', async () => {
+        rollbase.Dice.mockReturnValueOnce(50);
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['cc', '70', '偵查'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('1D100 ≦ 70');
+        expect(result.text).toContain('偵查');
+    });
+
+    test('Test rollDiceCommand with ccb command', async () => {
+        rollbase.Dice.mockReturnValueOnce(50);
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['ccb', '70', '偵查'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toContain('ccb<=70');
+        expect(result.text).toContain('偵查');
+    });
+
+    test('Test rollDiceCommand with ccrt command', async () => {
+        rollbase.Dice.mockReturnValueOnce(50);
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['ccrt', '70', '偵查'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toBeDefined();
+    });
+
+    test('Test rollDiceCommand with ccsu command', async () => {
+        rollbase.Dice.mockReturnValueOnce(50);
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['ccsu', '70', '偵查'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toBeDefined();
+    });
+
+    test('Test rollDiceCommand with .dp command', async () => {
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['.dp'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toBeDefined();
+    });
+
+    test('Test rollDiceCommand with .cc7bg command', async () => {
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['.cc7bg'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toBeTruthy();
+    });
+
+    test('Test rollDiceCommand with .ccpc command', async () => {
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['.ccpc'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toBeTruthy();
+    });
+
+    test('Test rollDiceCommand with .ccdr command', async () => {
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['.ccdr'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toBeTruthy();
+    });
+
+    test('Test rollDiceCommand with 成長檢定 command', async () => {
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['成長檢定', '偵查', '70'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toBeTruthy();
+    });
+
+    test('Test rollDiceCommand with 幕間成長 command', async () => {
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['幕間成長', '偵查', '70'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toBeTruthy();
+    });
 }); 

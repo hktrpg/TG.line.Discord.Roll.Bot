@@ -176,7 +176,7 @@ manager.on("clusterCreate", cluster => {
             console.log('[Cluster] Initiating full cluster respawn');
             try {
                 await manager.respawnAll({
-                    clusterDelay: 1000 * 60 * 2, // 2 minutes between clusters
+                    clusterDelay: 1000 * 60 * 1, // 1 minutes between clusters
                     respawnDelay: 5000,          // 5 seconds
                     timeout: 1000 * 60 * 5       // 5 minutes timeout
                 });

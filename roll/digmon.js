@@ -156,6 +156,8 @@ class Digimon {
         this.digimonData = data;
         this.worldData = null;
         this.stagesName = [];
+        this.dmgTypes = {};
+        this.reverseDmgTypes = {};
         this.fuse = new Fuse(this.digimonData, {
             keys: ['name', 'zh-cn-name', 'id'],
             includeScore: true,
@@ -177,6 +179,13 @@ class Digimon {
             digimon.worldData = worldEntry;
             if (worldEntry.stages_name) {
                 digimon.stagesName = worldEntry.stages_name;
+            }
+            if (worldEntry.dmgTypes) {
+                digimon.dmgTypes = worldEntry.dmgTypes;
+                digimon.reverseDmgTypes = {};
+                for (const [name, id] of Object.entries(worldEntry.dmgTypes)) {
+                    digimon.reverseDmgTypes[id] = name;
+                }
             }
         }
 
@@ -1531,12 +1540,22 @@ class Digimon {
     }
 
     getSkillTypeName(skillType) {
-        if (!skillType) return '';
+        if (skillType === null || skillType === undefined) return '';
+
+        // If it's a number, look it up in the reverse map
+        if (typeof skillType === 'number' && this.reverseDmgTypes[skillType]) {
+            skillType = this.reverseDmgTypes[skillType];
+        }
         const map = {
             'Physical': '物理',
             'Magic': '魔法',
             'Fixed': '固定傷害',
-            'HP%': 'HP%'
+            'HP Damage': 'HP%',
+            'Support': '輔助',
+            'Heal': '治療',
+            'Debuff': 'Debuff',
+            'Recovery': '回復',
+            'Buff': 'Buff'
         };
         return map[skillType] || skillType;
     }
@@ -1579,10 +1598,12 @@ class Digimon {
         });
 
         const stages = ['幼年期1', '幼年期2', '成長期', '成熟期', '完全體', '究極體', '超究極體'];
+        const skillTypes = ['Physical', 'Magic', 'Support', 'Heal', 'Fixed', 'HP Damage', 'Debuff', 'Recovery', 'Buff'];
         const queryTerms = query.split(/\s+/).filter(Boolean);
 
         const stageTerm = queryTerms.find(term => stages.includes(term));
-        const otherTerms = queryTerms.filter(term => !stages.includes(term));
+        const skillTypeTerm = queryTerms.find(term => skillTypes.includes(term));
+        const otherTerms = queryTerms.filter(term => !stages.includes(term) && !skillTypes.includes(term));
 
         let results;
 
@@ -1597,6 +1618,14 @@ class Digimon {
         // Post-filter for exact stage match
         if (stageTerm) {
             results = results.filter(item => item.stageName === stageTerm);
+        }
+
+        // Post-filter for skill type
+        if (skillTypeTerm) {
+            const numericType = this.dmgTypes[skillTypeTerm];
+            results = results.filter(item => {
+                return item.skill.type === skillTypeTerm || (numericType !== undefined && item.skill.type === numericType);
+            });
         }
 
         // Add filtering for special properties
@@ -1772,6 +1801,21 @@ const discordCommand = [
                                 { name: '究極體', value: '究極體' },
                                 { name: '超究極體', value: '超究極體' }
                             ))
+                    .addStringOption(option =>
+                        option.setName('skill_type')
+                            .setDescription('招式類型')
+                            .setRequired(false)
+                            .addChoices(
+                                { name: '物理', value: 'Physical' },
+                                { name: '魔法', value: 'Magic' },
+                                { name: '輔助', value: 'Support' },
+                                { name: '治療', value: 'Heal' },
+                                { name: '固定傷害', value: 'Fixed' },
+                                { name: 'HP%', value: 'HP Damage' },
+                                { name: 'Debuff', value: 'Debuff' },
+                                { name: 'Recovery', value: 'Recovery' },
+                                { name: 'Buff', value: 'Buff' }
+                            ))
                     .addBooleanOption(option =>
                         option.setName('has_crit')
                             .setDescription('CR招式'))
@@ -1788,6 +1832,13 @@ const discordCommand = [
                         option.setName('has_recoil')
                             .setDescription('反作用力招式'))
             ),
+        flagMap: {
+            has_crit: '--crit',
+            always_hits: '--hits',
+            hp_drain: '--hp',
+            sp_drain: '--sp',
+            has_recoil: '--recoil'
+        },
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             switch (subcommand) {
@@ -1806,6 +1857,7 @@ const discordCommand = [
                     const element = interaction.options.getString('element');
                     const target_type = interaction.options.getString('target_type');
                     const stage = interaction.options.getString('stage');
+                    const skill_type = interaction.options.getString('skill_type');
 
                     const has_crit = interaction.options.getBoolean('has_crit');
                     const always_hits = interaction.options.getBoolean('always_hits');
@@ -1813,7 +1865,7 @@ const discordCommand = [
                     const sp_drain = interaction.options.getBoolean('sp_drain');
                     const has_recoil = interaction.options.getBoolean('has_recoil');
 
-                    const queryParts = [keyword, attribute, element, target_type, stage].filter(Boolean);
+                    const queryParts = [keyword, attribute, element, target_type, stage, skill_type].filter(Boolean);
 
                     if (has_crit) queryParts.push('--crit');
                     if (always_hits) queryParts.push('--hits');

@@ -2356,13 +2356,7 @@
                 
                 finalCommand = finalCommand.replace(/PLACEHOLDER_(STRING|INTEGER|BOOLEAN|NUMBER)_\w+/g, '').trim();
 
-                const flagMap = {
-                    has_crit: '--crit',
-                    always_hits: '--hits',
-                    hp_drain: '--hp',
-                    sp_drain: '--sp',
-                    has_recoil: '--recoil'
-                };
+                const flagMap = quickCommandsManager.activeCommand.command.flagMap || {};
 
                 for (const key in inputs) {
                     if (inputs[key] === true && flagMap[key]) {

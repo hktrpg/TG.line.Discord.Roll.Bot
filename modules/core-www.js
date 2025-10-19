@@ -308,7 +308,8 @@ www.get('/api/dice-commands', async (req, res) => {
                                             description: sub.description,
                                             options: sub.options || []
                                         },
-                                        execute: executeTemplate
+                                        execute: executeTemplate,
+                                        flagMap: cmd.flagMap || {}
                                     });
                                 } catch { /* Ignore errors in mock execution */ }
                             }
@@ -337,7 +338,8 @@ www.get('/api/dice-commands', async (req, res) => {
                                 const executeTemplate = await cmd.execute(mockInteraction);
                                 commands.push({
                                     json: commandJson,
-                                    execute: executeTemplate
+                                    execute: executeTemplate,
+                                    flagMap: cmd.flagMap || {}
                                 });
                             } catch { /* Ignore errors in mock execution */ }
                         }

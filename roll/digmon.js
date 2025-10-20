@@ -120,8 +120,10 @@ const rollDiceCommand = async function ({
         case mainMsg.length >= 3: {
             // Two parameters: evolution path finding
             rply.quotes = true;
-            const fromDigimon = variables.digimonDex.findByNameOrId(mainMsg[1]);
-            const toDigimon = variables.digimonDex.findByNameOrId(mainMsg[2]);
+            const fromDetailed = variables.digimonDex.findByNameOrIdDetailed(mainMsg[1]);
+            const toDetailed = variables.digimonDex.findByNameOrIdDetailed(mainMsg[2]);
+            const fromDigimon = fromDetailed.match;
+            const toDigimon = toDetailed.match;
 
             if (!fromDigimon) {
                 rply.text = `找不到起始數碼寶貝：${mainMsg[1]}`;
@@ -133,7 +135,32 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
-            rply.text = variables.digimonDex.showEvolutionPaths(fromDigimon, toDigimon);
+            let text = variables.digimonDex.showEvolutionPaths(fromDigimon, toDigimon);
+
+            // Append suggestions if fuzzy matched inputs
+            const buildSuggestions = (detailed) => {
+                if (!detailed || !detailed.isFuzzy || !Array.isArray(detailed.candidates)) return '';
+                const chosen = detailed.match;
+                const suggestions = detailed.candidates
+                    .filter(c => c && chosen && c.id !== chosen.id)
+                    .slice(0, 4)
+                    .map(c => {
+                        const zh = c['zh-cn-name'] && c['zh-cn-name'] !== c.name ? ` / ${c['zh-cn-name']}` : '';
+                        return `${c.name}${zh}`;
+                    });
+                return suggestions.length > 0 ? suggestions.join(', ') : '';
+            };
+
+            const fromSugs = buildSuggestions(fromDetailed);
+            const toSugs = buildSuggestions(toDetailed);
+            const sugLines = [];
+            if (fromSugs) sugLines.push(`可能的其他名稱(起始)：${fromSugs}`);
+            if (toSugs) sugLines.push(`可能的其他名稱(目標)：${toSugs}`);
+            if (sugLines.length > 0) {
+                text += `\n${sugLines.join('\n')}`;
+            }
+
+            rply.text = text;
             return rply;
         }
         case mainMsg.length >= 2: {
@@ -336,9 +363,29 @@ class Digimon {
         const byZhCN = this.digimonData.find(d => d['zh-cn-name'] && d['zh-cn-name'] === q);
         if (byZhCN) return { match: byZhCN, isFuzzy: false, candidates: [] };
         // 4) Fuzzy search across name and zh-cn-name
-        const results = this.fuse.search(q, { limit: 5 });
+        const results = this.fuse.search(q, { limit: 12 });
         if (results.length > 0) {
-            return { match: results[0].item, isFuzzy: true, candidates: results.map(r => r.item) };
+            // Prefer candidates that share a longer common suffix with the query (e.g., "獅子獸")
+            // and, if tied, prefer longer names overall; finally fall back to Fuse score.
+            const enriched = results.map(r => {
+                const name = r.item.name || '';
+                const zhName = r.item['zh-cn-name'] || '';
+                const suffixLen = Math.max(this.commonSuffixLength(name, q), this.commonSuffixLength(zhName, q));
+                const prefixLen = Math.max(this.commonPrefixLength(name, q), this.commonPrefixLength(zhName, q));
+                const contains = (name.includes(q) || zhName.includes(q)) ? 1 : 0;
+                const displayLen = Math.max(name.length, zhName.length);
+                return { ...r, suffixLen, prefixLen, contains, displayLen };
+            });
+            enriched.sort((a, b) => {
+                if (b.prefixLen !== a.prefixLen) return b.prefixLen - a.prefixLen; // strongest: starts with query
+                if (b.contains !== a.contains) return b.contains - a.contains; // then any containment
+                if (b.suffixLen !== a.suffixLen) return b.suffixLen - a.suffixLen; // then common suffix
+                if (b.displayLen !== a.displayLen) return b.displayLen - a.displayLen;
+                const as = (a.score ?? 1);
+                const bs = (b.score ?? 1);
+                return as - bs; // lower Fuse score is better
+            });
+            return { match: enriched[0].item, isFuzzy: true, candidates: enriched.map(e => e.item) };
         }
         return { match: null, isFuzzy: false, candidates: [] };
     }
@@ -1019,6 +1066,33 @@ class Digimon {
             10: '\uD83D\uDD1F' // keycap 10
         };
         return map[n] || `${n}. `;
+    }
+
+    // Compute length of common suffix between two strings
+    commonSuffixLength(a, b) {
+        const sa = String(a || '');
+        const sb = String(b || '');
+        let i = sa.length - 1;
+        let j = sb.length - 1;
+        let len = 0;
+        while (i >= 0 && j >= 0 && sa[i] === sb[j]) {
+            len++;
+            i--;
+            j--;
+        }
+        return len;
+    }
+
+    // Compute length of common prefix between two strings
+    commonPrefixLength(a, b) {
+        const sa = String(a || '');
+        const sb = String(b || '');
+        const max = Math.min(sa.length, sb.length);
+        let k = 0;
+        while (k < max && sa[k] === sb[k]) {
+            k++;
+        }
+        return k;
     }
 
     // Map 0-based index to regional indicator letter emoji (A=🇦, B=🇧, ...)

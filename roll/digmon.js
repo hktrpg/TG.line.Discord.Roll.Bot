@@ -120,18 +120,45 @@ const rollDiceCommand = async function ({
         case mainMsg.length >= 3: {
             // Two parameters: evolution path finding
             rply.quotes = true;
+            // Call both direct and detailed lookups: direct to preserve legacy/test calls,
+            // detailed to detect fuzziness and build suggestions.
+            const fromDigimonDirect = variables.digimonDex.findByNameOrId(mainMsg[1]);
+            const toDigimonDirect = variables.digimonDex.findByNameOrId(mainMsg[2]);
+
             const fromDetailed = variables.digimonDex.findByNameOrIdDetailed(mainMsg[1]);
             const toDetailed = variables.digimonDex.findByNameOrIdDetailed(mainMsg[2]);
-            const fromDigimon = fromDetailed.match;
-            const toDigimon = toDetailed.match;
 
-            if (!fromDigimon) {
-                rply.text = `找不到起始數碼寶貝：${mainMsg[1]}`;
-                return rply;
-            }
+            const fromDigimon = fromDigimonDirect || (fromDetailed ? fromDetailed.match : null);
+            const toDigimon = toDigimonDirect || (toDetailed ? toDetailed.match : null);
 
-            if (!toDigimon) {
-                rply.text = `找不到目標數碼寶貝：${mainMsg[2]}`;
+            if (!fromDigimon || !toDigimon) {
+                // Build suggestion hints for both sides
+                const buildSuggestions = (detailed) => {
+                    if (!detailed || !detailed.isFuzzy || !Array.isArray(detailed.candidates)) return '';
+                    const chosen = detailed.match;
+                    const suggestions = detailed.candidates
+                        .filter(c => !chosen || c.id !== chosen.id)
+                        .slice(0, 6)
+                        .map(c => {
+                            const zh = c['zh-cn-name'] && c['zh-cn-name'] !== c.name ? ` / ${c['zh-cn-name']}` : '';
+                            return `${c.name}${zh}`;
+                        });
+                    return suggestions.length > 0 ? suggestions.join(', ') : '';
+                };
+
+                const fromDetailedForSugs = fromDetailed;
+                const toDetailedForSugs = toDetailed;
+                const fromSugs = buildSuggestions(fromDetailedForSugs);
+                const toSugs = buildSuggestions(toDetailedForSugs);
+
+                let msg = '';
+                if (!fromDigimon) msg += `找不到起始數碼寶貝：${mainMsg[1]}\n`;
+                if (!toDigimon) msg += `找不到目標數碼寶貝：${mainMsg[2]}\n`;
+                const sugLines = [];
+                if (fromSugs) sugLines.push(`可能的其他名稱(起始)：${fromSugs}`);
+                if (toSugs) sugLines.push(`可能的其他名稱(目標)：${toSugs}`);
+                if (sugLines.length > 0) msg += sugLines.join('\n');
+                rply.text = msg.trim();
                 return rply;
             }
 
@@ -367,16 +394,19 @@ class Digimon {
         if (results.length > 0) {
             // Prefer candidates that share a longer common suffix with the query (e.g., "獅子獸")
             // and, if tied, prefer longer names overall; finally fall back to Fuse score.
+            const coreCjk = this.extractCoreCjkSuffix(q);
             const enriched = results.map(r => {
                 const name = r.item.name || '';
                 const zhName = r.item['zh-cn-name'] || '';
                 const suffixLen = Math.max(this.commonSuffixLength(name, q), this.commonSuffixLength(zhName, q));
                 const prefixLen = Math.max(this.commonPrefixLength(name, q), this.commonPrefixLength(zhName, q));
                 const contains = (name.includes(q) || zhName.includes(q)) ? 1 : 0;
+                const hasCore = coreCjk && (name.includes(coreCjk) || zhName.includes(coreCjk)) ? 1 : 0;
                 const displayLen = Math.max(name.length, zhName.length);
-                return { ...r, suffixLen, prefixLen, contains, displayLen };
+                return { ...r, suffixLen, prefixLen, contains, hasCore, displayLen };
             });
             enriched.sort((a, b) => {
+                if (b.hasCore !== a.hasCore) return b.hasCore - a.hasCore; // prioritize names containing core CJK suffix (e.g., 獅子獸)
                 if (b.prefixLen !== a.prefixLen) return b.prefixLen - a.prefixLen; // strongest: starts with query
                 if (b.contains !== a.contains) return b.contains - a.contains; // then any containment
                 if (b.suffixLen !== a.suffixLen) return b.suffixLen - a.suffixLen; // then common suffix
@@ -386,6 +416,107 @@ class Digimon {
                 return as - bs; // lower Fuse score is better
             });
             return { match: enriched[0].item, isFuzzy: true, candidates: enriched.map(e => e.item) };
+        }
+
+        // 5) Fallback: try CJK token containment matching when Fuse yields nothing
+        const token = this.extractLongestCjkToken(q);
+        if (token && token.length >= 2) {
+            let matches = this.digimonData.filter(d =>
+                (d.name && d.name.includes(token)) ||
+                (d['zh-cn-name'] && d['zh-cn-name'].includes(token))
+            );
+            // If still empty, try sliding window substrings length 2-3
+            if (matches.length === 0 && token.length > 2) {
+                const windows = [];
+                for (let len = Math.min(3, token.length); len >= 2; len--) {
+                    for (let i = 0; i + len <= token.length; i++) {
+                        windows.push(token.slice(i, i + len));
+                    }
+                }
+                const set = new Set();
+                for (const w of windows) {
+                    for (const d of this.digimonData) {
+                        const nm = d.name || '';
+                        const zh = d['zh-cn-name'] || '';
+                        if ((nm.includes(w) || zh.includes(w)) && !set.has(d.id)) {
+                            set.add(d.id);
+                            matches.push(d);
+                        }
+                    }
+                }
+            }
+            if (matches.length > 0) {
+                const fauxResults = matches.map(item => ({ item, score: 1 }));
+                const coreCjk = this.extractCoreCjkSuffix(q);
+                const enriched = fauxResults.map(r => {
+                    const name = r.item.name || '';
+                    const zhName = r.item['zh-cn-name'] || '';
+                    const suffixLen = Math.max(this.commonSuffixLength(name, q), this.commonSuffixLength(zhName, q));
+                    const prefixLen = Math.max(this.commonPrefixLength(name, q), this.commonPrefixLength(zhName, q));
+                    const contains = (name.includes(q) || zhName.includes(q)) ? 1 : 0;
+                    const hasCore = coreCjk && (name.includes(coreCjk) || zhName.includes(coreCjk)) ? 1 : 0;
+                    const displayLen = Math.max(name.length, zhName.length);
+                    return { ...r, suffixLen, prefixLen, contains, hasCore, displayLen };
+                });
+                enriched.sort((a, b) => {
+                    if (b.hasCore !== a.hasCore) return b.hasCore - a.hasCore;
+                    if (b.prefixLen !== a.prefixLen) return b.prefixLen - a.prefixLen;
+                    if (b.contains !== a.contains) return b.contains - a.contains;
+                    if (b.suffixLen !== a.suffixLen) return b.suffixLen - a.suffixLen;
+                    if (b.displayLen !== a.displayLen) return b.displayLen - a.displayLen;
+                    const as = (a.score ?? 1);
+                    const bs = (b.score ?? 1);
+                    return as - bs;
+                });
+                return { match: enriched[0].item, isFuzzy: true, candidates: enriched.map(e => e.item) };
+            }
+        }
+
+        // 6) Broad fallback: suggest by CJK character overlap when nothing else matched
+        const qSet = this.extractCjkCharSet(q);
+        if (qSet.size > 0) {
+            const scored = [];
+            for (const d of this.digimonData) {
+                const name = d.name || '';
+                const zh = d['zh-cn-name'] || '';
+                const overlap = this.countCjkOverlap(qSet, this.extractCjkCharSet(name)) +
+                                this.countCjkOverlap(qSet, this.extractCjkCharSet(zh));
+                if (overlap > 0) {
+                    const displayLen = Math.max(name.length, zh.length);
+                    scored.push({ item: d, overlap, displayLen });
+                }
+            }
+            if (scored.length > 0) {
+                scored.sort((a, b) => {
+                    if (b.overlap !== a.overlap) return b.overlap - a.overlap;
+                    return b.displayLen - a.displayLen;
+                });
+                const candidates = scored.slice(0, 8).map(s => s.item);
+                return { match: null, isFuzzy: true, candidates };
+            }
+        }
+
+        // 7) ASCII fallback: suggest by ASCII character overlap (case-insensitive)
+        const aSet = this.extractAsciiCharSet(q);
+        if (aSet.size > 0) {
+            const scored = [];
+            for (const d of this.digimonData) {
+                const name = (d.name || '').toLowerCase();
+                const zh = (d['zh-cn-name'] || '').toLowerCase();
+                const overlap = this.countAsciiOverlap(aSet, name) + this.countAsciiOverlap(aSet, zh);
+                if (overlap > 0) {
+                    const displayLen = Math.max((d.name || '').length, (d['zh-cn-name'] || '').length);
+                    scored.push({ item: d, overlap, displayLen });
+                }
+            }
+            if (scored.length > 0) {
+                scored.sort((a, b) => {
+                    if (b.overlap !== a.overlap) return b.overlap - a.overlap;
+                    return b.displayLen - a.displayLen;
+                });
+                const candidates = scored.slice(0, 8).map(s => s.item);
+                return { match: null, isFuzzy: true, candidates };
+            }
         }
         return { match: null, isFuzzy: false, candidates: [] };
     }
@@ -1095,6 +1226,86 @@ class Digimon {
         return k;
     }
 
+    // Extract the longest trailing run of CJK (full-width) characters from query
+    extractCoreCjkSuffix(text) {
+        const s = String(text || '');
+        let i = s.length - 1;
+        let chars = [];
+        while (i >= 0) {
+            const ch = s[i];
+            const cp = ch.codePointAt(0);
+            if (cp > 0xFF) {
+                chars.push(ch);
+                i--;
+            } else {
+                break;
+            }
+        }
+        if (chars.length >= 2) {
+            return chars.reverse().join('');
+        }
+        return '';
+    }
+
+    // Extract the longest continuous CJK (full-width) token from text
+    extractLongestCjkToken(text) {
+        const s = String(text || '');
+        let best = '';
+        let curr = '';
+        for (let i = 0; i < s.length; i++) {
+            const ch = s[i];
+            const cp = ch.codePointAt(0);
+            if (cp > 0xFF) {
+                curr += ch;
+                if (curr.length > best.length) best = curr;
+            } else {
+                curr = '';
+            }
+        }
+        return best;
+    }
+
+    // Build a set of CJK characters from a string
+    extractCjkCharSet(text) {
+        const s = String(text || '');
+        const set = new Set();
+        for (const ch of s) {
+            const cp = ch.codePointAt(0);
+            if (cp > 0xFF) set.add(ch);
+        }
+        return set;
+    }
+
+    // Count overlap between a query CJK set and another set
+    countCjkOverlap(qSet, otherSet) {
+        let c = 0;
+        for (const ch of otherSet) {
+            if (qSet.has(ch)) c++;
+        }
+        return c;
+    }
+
+    // Extract lowercase ASCII alphanumerics as a set
+    extractAsciiCharSet(text) {
+        const s = String(text || '').toLowerCase();
+        const set = new Set();
+        for (const ch of s) {
+            if ((ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9')) {
+                set.add(ch);
+            }
+        }
+        return set;
+    }
+
+    // Count overlap of ascii characters present in the target string
+    countAsciiOverlap(aSet, targetLower) {
+        let c = 0;
+        for (const ch of aSet) {
+            if (targetLower.includes(ch)) c++;
+        }
+        return c;
+    }
+
     // Map 0-based index to regional indicator letter emoji (A=🇦, B=🇧, ...)
     letterIndexToEmoji(index) {
         if (typeof index !== 'number' || index < 0) return '';
@@ -1565,7 +1776,18 @@ class Digimon {
         try {
             const detailed = this.findByNameOrIdDetailed(name);
             const digimon = detailed.match;
-            if (!digimon) return '沒有找到相關資料';
+            if (!digimon) {
+                if (Array.isArray(detailed.candidates) && detailed.candidates.length > 0) {
+                    const suggestions = detailed.candidates
+                        .slice(0, 6)
+                        .map(c => {
+                            const zh = c['zh-cn-name'] && c['zh-cn-name'] !== c.name ? ` / ${c['zh-cn-name']}` : '';
+                            return `${c.name}${zh}`;
+                        });
+                    return `沒有找到相關資料\n可能的其他名稱：${suggestions.join(', ')}`;
+                }
+                return '沒有找到相關資料';
+            }
             let output = Digimon.showDigimon(digimon, this);
             // If fuzzy, append up to 4 suggestions (excluding the top match)
             if (detailed.isFuzzy && detailed.candidates.length > 1) {

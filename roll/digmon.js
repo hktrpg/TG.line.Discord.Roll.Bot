@@ -395,6 +395,7 @@ class Digimon {
             // Prefer candidates that share a longer common suffix with the query (e.g., "獅子獸")
             // and, if tied, prefer longer names overall; finally fall back to Fuse score.
             const coreCjk = this.extractCoreCjkSuffix(q);
+            const longestCjk = this.extractLongestCjkToken(q) || coreCjk || q;
             const enriched = results.map(r => {
                 const name = r.item.name || '';
                 const zhName = r.item['zh-cn-name'] || '';
@@ -402,15 +403,21 @@ class Digimon {
                 const prefixLen = Math.max(this.commonPrefixLength(name, q), this.commonPrefixLength(zhName, q));
                 const contains = (name.includes(q) || zhName.includes(q)) ? 1 : 0;
                 const hasCore = coreCjk && (name.includes(coreCjk) || zhName.includes(coreCjk)) ? 1 : 0;
-                const displayLen = Math.max(name.length, zhName.length);
-                return { ...r, suffixLen, prefixLen, contains, hasCore, displayLen };
+                const startsWithToken = (!!longestCjk && (name.startsWith(longestCjk) || zhName.startsWith(longestCjk))) ? 1 : 0;
+                const tokenLen = longestCjk ? longestCjk.length : 0;
+                const minDisplayLen = Math.min(name.length || Infinity, zhName.length || Infinity);
+                const lengthGap = (startsWithToken ? Math.max(0, minDisplayLen - tokenLen) : Number.POSITIVE_INFINITY);
+                const displayLen = minDisplayLen === Infinity ? Math.max(name.length, zhName.length) : minDisplayLen;
+                return { ...r, suffixLen, prefixLen, contains, hasCore, startsWithToken, lengthGap, displayLen };
             });
             enriched.sort((a, b) => {
                 if (b.hasCore !== a.hasCore) return b.hasCore - a.hasCore; // prioritize names containing core CJK suffix (e.g., 獅子獸)
-                if (b.prefixLen !== a.prefixLen) return b.prefixLen - a.prefixLen; // strongest: starts with query
+                if (b.startsWithToken !== a.startsWithToken) return b.startsWithToken - a.startsWithToken; // then names that start with the core token (e.g., 亞古)
+                if (a.lengthGap !== b.lengthGap) return a.lengthGap - b.lengthGap; // prefer shorter extra length beyond the token (e.g., 亞古獸 over 亞古獸勇氣的羈絆)
+                if (b.prefixLen !== a.prefixLen) return b.prefixLen - a.prefixLen; // then stronger prefix match against full query
                 if (b.contains !== a.contains) return b.contains - a.contains; // then any containment
                 if (b.suffixLen !== a.suffixLen) return b.suffixLen - a.suffixLen; // then common suffix
-                if (b.displayLen !== a.displayLen) return b.displayLen - a.displayLen;
+                if (a.displayLen !== b.displayLen) return a.displayLen - b.displayLen; // prefer shorter names
                 const as = (a.score ?? 1);
                 const bs = (b.score ?? 1);
                 return as - bs; // lower Fuse score is better
@@ -448,6 +455,7 @@ class Digimon {
             if (matches.length > 0) {
                 const fauxResults = matches.map(item => ({ item, score: 1 }));
                 const coreCjk = this.extractCoreCjkSuffix(q);
+                const longestCjk = this.extractLongestCjkToken(q) || coreCjk || q;
                 const enriched = fauxResults.map(r => {
                     const name = r.item.name || '';
                     const zhName = r.item['zh-cn-name'] || '';
@@ -455,15 +463,21 @@ class Digimon {
                     const prefixLen = Math.max(this.commonPrefixLength(name, q), this.commonPrefixLength(zhName, q));
                     const contains = (name.includes(q) || zhName.includes(q)) ? 1 : 0;
                     const hasCore = coreCjk && (name.includes(coreCjk) || zhName.includes(coreCjk)) ? 1 : 0;
-                    const displayLen = Math.max(name.length, zhName.length);
-                    return { ...r, suffixLen, prefixLen, contains, hasCore, displayLen };
+                    const startsWithToken = (!!longestCjk && (name.startsWith(longestCjk) || zhName.startsWith(longestCjk))) ? 1 : 0;
+                    const tokenLen = longestCjk ? longestCjk.length : 0;
+                    const minDisplayLen = Math.min(name.length || Infinity, zhName.length || Infinity);
+                    const lengthGap = (startsWithToken ? Math.max(0, minDisplayLen - tokenLen) : Number.POSITIVE_INFINITY);
+                    const displayLen = minDisplayLen === Infinity ? Math.max(name.length, zhName.length) : minDisplayLen;
+                    return { ...r, suffixLen, prefixLen, contains, hasCore, startsWithToken, lengthGap, displayLen };
                 });
                 enriched.sort((a, b) => {
                     if (b.hasCore !== a.hasCore) return b.hasCore - a.hasCore;
+                    if (b.startsWithToken !== a.startsWithToken) return b.startsWithToken - a.startsWithToken;
+                    if (a.lengthGap !== b.lengthGap) return a.lengthGap - b.lengthGap;
                     if (b.prefixLen !== a.prefixLen) return b.prefixLen - a.prefixLen;
                     if (b.contains !== a.contains) return b.contains - a.contains;
                     if (b.suffixLen !== a.suffixLen) return b.suffixLen - a.suffixLen;
-                    if (b.displayLen !== a.displayLen) return b.displayLen - a.displayLen;
+                    if (a.displayLen !== b.displayLen) return a.displayLen - b.displayLen;
                     const as = (a.score ?? 1);
                     const bs = (b.score ?? 1);
                     return as - bs;

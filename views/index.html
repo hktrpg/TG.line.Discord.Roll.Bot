@@ -1831,14 +1831,14 @@
                 const urls = utils.extractUrls(text);
                 if (!urls.length) return;
                 
-                // Filter for likely image URLs
+                // Filter for likely image URLs and validate them
                 const imageUrls = urls.filter(url => {
                     const lowerUrl = url.toLowerCase();
                     return lowerUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?|$)/i) || 
                            lowerUrl.includes('digimon.net/cimages/') ||
                            lowerUrl.includes('image') ||
                            lowerUrl.includes('img');
-                });
+                }).filter(url => utils.isValidImageUrl(url));
                 
                 if (!imageUrls.length) return;
                 
@@ -1849,9 +1849,9 @@
                         img.referrerPolicy = 'no-referrer';
                         img.style.display = 'none';
                         img.onload = () => {
-                            // Wrap image with anchor to allow opening full size
+                            // Create safe anchor with validated URL
                             const a = document.createElement('a');
-                            a.href = url;
+                            a.href = utils.sanitizeUrl(url);
                             a.target = '_blank';
                             a.rel = 'noopener noreferrer';
                             a.appendChild(img);
@@ -1861,11 +1861,46 @@
                         img.onerror = () => { 
                             console.log('Failed to load image:', url);
                         };
-                        img.src = url;
+                        img.src = utils.sanitizeUrl(url);
                     } catch (e) { 
                         console.log('Error creating image for:', url, e);
                     }
                 });
+            },
+            isValidImageUrl: (url) => {
+                try {
+                    const urlObj = new URL(url);
+                    // Only allow HTTP/HTTPS protocols
+                    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+                        return false;
+                    }
+                    // Only allow specific trusted domains for security
+                    const allowedDomains = [
+                        'digimon.net',
+                        'digimon.net',
+                        'cdn.digimon.net',
+                        'images.digimon.net'
+                    ];
+                    const hostname = urlObj.hostname.toLowerCase();
+                    return allowedDomains.some(domain => 
+                        hostname === domain || hostname.endsWith('.' + domain)
+                    );
+                } catch {
+                    return false;
+                }
+            },
+            sanitizeUrl: (url) => {
+                try {
+                    const urlObj = new URL(url);
+                    // Ensure protocol is HTTP/HTTPS
+                    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+                        return 'about:blank';
+                    }
+                    // Return sanitized URL
+                    return urlObj.toString();
+                } catch {
+                    return 'about:blank';
+                }
             }
         };
 

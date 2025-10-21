@@ -213,12 +213,22 @@ class Digimon {
         this.stagesName = [];
         this.dmgTypes = {};
         this.reverseDmgTypes = {};
+        // Fast lookup indexes (built in init):
+        this.byId = new Map();
+        this.byName = new Map();
+        this.byZhName = new Map();
+        // Cached moves search structures
+        this._movesAugmented = null;
+        this._movesFuse = null;
         this.fuse = new Fuse(this.digimonData, {
             keys: ['name', 'zh-cn-name', 'id'],
             includeScore: true,
             findAllMatches: true,
             threshold: 0.6
         });
+
+		// Ensure indices exist even when constructed directly (e.g., in tests)
+		this.buildIndices();
     }
 
     static init() {
@@ -259,6 +269,9 @@ class Digimon {
             threshold: 0.6
         });
 
+        // Build quick-lookup indexes
+        digimon.buildIndices();
+
         return digimon;
     }
 
@@ -278,6 +291,22 @@ class Digimon {
         } catch {
             // ignore
         }
+    }
+
+    buildIndices() {
+        this.byId.clear();
+        this.byName.clear();
+        this.byZhName.clear();
+        for (const d of this.digimonData) {
+            if (typeof d.id === 'number') this.byId.set(d.id, d);
+            if (d && typeof d.name === 'string') this.byName.set(d.name, d);
+            if (d && typeof d['zh-cn-name'] === 'string') this.byZhName.set(d['zh-cn-name'], d);
+        }
+    }
+
+    getByName(name) {
+        if (!name) return null;
+        return this.byName.get(name) || null;
     }
 
     // Prefer base_personality; fallback to personality; otherwise '-'
@@ -388,15 +417,15 @@ class Digimon {
         if (!Number.isNaN(query) || /^\d+$/.test(q)) {
             const id = Number.parseInt(q);
             if (!Number.isNaN(id)) {
-                const byId = this.digimonData.find(d => d.id === id);
+                const byId = this.byId.get(id);
                 if (byId) return { match: byId, isFuzzy: false, candidates: [] };
             }
         }
         // 2) Exact by name
-        const byName = this.digimonData.find(d => d.name === q);
+        const byName = this.byName.get(q);
         if (byName) return { match: byName, isFuzzy: false, candidates: [] };
         // 3) Exact by zh-cn-name
-        const byZhCN = this.digimonData.find(d => d['zh-cn-name'] && d['zh-cn-name'] === q);
+        const byZhCN = this.byZhName.get(q);
         if (byZhCN) return { match: byZhCN, isFuzzy: false, candidates: [] };
         // Guard: empty string should not yield a match
         if (q.length === 0) return { match: null, isFuzzy: false, candidates: [] };
@@ -1152,7 +1181,7 @@ class Digimon {
             // Immediate evolutions available from this Digimon
             if (Array.isArray(digimon.evolutions) && digimon.evolutions.length > 0) {
                 const nextDigimon = digimon.evolutions
-                    .map(name => digimonInstance.digimonData.find(d => d.name === name))
+                    .map(name => digimonInstance.getByName(name))
                     .filter(Boolean);
                 if (nextDigimon.length > 0) {
                     rply += `可進化：\n`;
@@ -1342,7 +1371,7 @@ class Digimon {
 
             if (current.evolutions) {
                 for (const evolutionName of current.evolutions) {
-                    const evolutionDigimon = this.digimonData.find(d => d.name === evolutionName);
+                    const evolutionDigimon = this.getByName(evolutionName);
                     if (evolutionDigimon && !visited.has(evolutionDigimon.id)) {
                         queue.push({ digimon: evolutionDigimon, path: [...path, evolutionDigimon] });
                     }
@@ -1351,7 +1380,7 @@ class Digimon {
 
             if (current.devolutions) {
                 for (const devolutionName of current.devolutions) {
-                    const devolutionDigimon = this.digimonData.find(d => d.name === devolutionName);
+                    const devolutionDigimon = this.getByName(devolutionName);
                     if (devolutionDigimon && !visited.has(devolutionDigimon.id)) {
                         queue.push({ digimon: devolutionDigimon, path: [...path, devolutionDigimon] });
                     }
@@ -1683,7 +1712,7 @@ class Digimon {
                 // Check evolutions
                 if (current.evolutions) {
                     for (const evolutionName of current.evolutions) {
-                        const evolutionDigimon = this.digimonData.find(d => d.name === evolutionName);
+                        const evolutionDigimon = this.getByName(evolutionName);
                         if (evolutionDigimon && !visited.has(evolutionDigimon.id)) {
                             queue.push({ digimon: evolutionDigimon, path: [...path, evolutionDigimon] });
                         }
@@ -1693,7 +1722,7 @@ class Digimon {
                 // Check devolutions
                 if (current.devolutions) {
                     for (const devolutionName of current.devolutions) {
-                        const devolutionDigimon = this.digimonData.find(d => d.name === devolutionName);
+                        const devolutionDigimon = this.getByName(devolutionName);
                         if (devolutionDigimon && !visited.has(devolutionDigimon.id)) {
                             queue.push({ digimon: devolutionDigimon, path: [...path, devolutionDigimon] });
                         }
@@ -1843,7 +1872,7 @@ class Digimon {
 
         if (current.evolutions) {
             for (const evolutionName of current.evolutions) {
-                const evolutionDigimon = this.digimonData.find(d => d.name === evolutionName);
+                const evolutionDigimon = this.getByName(evolutionName);
                 if (evolutionDigimon && !visited.has(evolutionDigimon.id)) {
                     allNext.push({ digimon: evolutionDigimon, stage: Number.parseInt(evolutionDigimon.stage), type: 'evolution' });
                 }
@@ -1852,7 +1881,7 @@ class Digimon {
 
         if (current.devolutions) {
             for (const devolutionName of current.devolutions) {
-                const devolutionDigimon = this.digimonData.find(d => d.name === devolutionName);
+                const devolutionDigimon = this.getByName(devolutionName);
                 if (devolutionDigimon && !visited.has(devolutionDigimon.id)) {
                     allNext.push({ digimon: devolutionDigimon, stage: Number.parseInt(devolutionDigimon.stage), type: 'devolution' });
                 }
@@ -2058,8 +2087,10 @@ class Digimon {
         return map[skillType] || skillType;
     }
 
-    searchMoves(query, filters = {}) {
-        // 1. Flatten all skills
+    ensureMovesIndex() {
+        if (this._movesAugmented && this._movesFuse) return;
+        this.ensureWorldDataLoaded();
+        // Flatten and augment once
         const allSkills = [];
         for (const digimon of this.digimonData) {
             if (digimon.special_skills) {
@@ -2068,13 +2099,10 @@ class Digimon {
                 }
             }
         }
-
-        // 2. Create searchable text and filter
         const augmentedSkills = allSkills.map(({ skill, digimon }) => {
             const elementName = this.getElementalName(skill.element);
             const targetTypeName = this.getTargetTypeName(skill);
             const stageName = this.getStageName(digimon.stage);
-
             const searchText = [
                 skill.name || '',
                 skill.description || '',
@@ -2085,17 +2113,23 @@ class Digimon {
                 digimon.name || '',
                 digimon['zh-cn-name'] || ''
             ].join(' ');
-
             return { skill, digimon, searchText, elementName, targetTypeName, stageName };
         });
-
-        const fuse = new Fuse(augmentedSkills, {
+        this._movesAugmented = augmentedSkills;
+        this._movesFuse = new Fuse(augmentedSkills, {
             keys: ['searchText'],
             threshold: 0.4,
             includeScore: true,
             findAllMatches: true,
             useExtendedSearch: true
         });
+    }
+
+    searchMoves(query, filters = {}) {
+        this.ensureMovesIndex();
+        // 1. Flatten all skills
+        const augmentedSkills = this._movesAugmented;
+        const fuse = this._movesFuse;
 
         const stages = ['幼年期1', '幼年期2', '成長期', '成熟期', '完全體', '究極體', '超究極體'];
         const skillTypes = ['Physical', 'Magic', 'Buff', 'HP Damage', 'Debuff', 'Recovery'];

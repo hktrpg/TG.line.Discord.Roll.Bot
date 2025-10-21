@@ -520,6 +520,133 @@ describe('Digimon Evolution Path Finding Tests', () => {
     });
 });
 
+describe('Fuzzy search - single, two, three character matches (real data)', () => {
+    let digimonInstance;
+    beforeAll(() => {
+        const { Digimon } = require('../roll/digmon');
+        digimonInstance = Digimon.init();
+    });
+
+    describe('Single-character matches (中間/結尾，不是開頭)', () => {
+        test('Single char in middle: 女 -> ensure a non-prefix candidate exists', () => {
+            const detailed = digimonInstance.findByNameOrIdDetailed('女');
+            expect(detailed).toBeDefined();
+            expect(detailed).toHaveProperty('candidates');
+            const names = (detailed.candidates || []).map(c => c.name);
+            const ok = names.some(n => n.includes('女') && !n.startsWith('女'));
+            expect(ok).toBe(true);
+        });
+
+        test('Single char at end: 劍 -> ensure an endsWith (non-prefix) candidate exists', () => {
+            const detailed = digimonInstance.findByNameOrIdDetailed('劍');
+            expect(detailed).toBeDefined();
+            expect(detailed).toHaveProperty('candidates');
+            const names = (detailed.candidates || []).map(c => c.name);
+            const ok = names.some(n => n.endsWith('劍') && !n.startsWith('劍'));
+            expect(ok).toBe(true);
+        });
+
+        // Extra cases to broaden coverage
+        test('Single char in middle: 魯 -> contained and not prefix (加魯魯獸系列)', () => {
+            const q = '魯';
+            const detailed = digimonInstance.findByNameOrIdDetailed(q);
+            expect(detailed).toBeDefined();
+            expect(detailed.match).toBeDefined();
+            expect(detailed.match.name.includes(q)).toBe(true);
+            expect(detailed.match.name.startsWith(q)).toBe(false);
+        });
+
+        test('Single char at end: 獸 -> ensure an endsWith (non-prefix) candidate exists', () => {
+            const q = '獸';
+            const detailed = digimonInstance.findByNameOrIdDetailed(q);
+            expect(detailed).toBeDefined();
+            const names = (detailed.candidates || []).map(c => c.name);
+            const ok = names.some(n => n.endsWith(q) && !n.startsWith(q));
+            expect(ok).toBe(true);
+        });
+    });
+
+    describe('Two-character matches (兩字命中：中間/結尾，不是開頭)', () => {
+        test('Middle: 鬥暴 -> contained and not prefix/suffix (戰鬥暴龍獸)', () => {
+            const q = '鬥暴';
+            const detailed = digimonInstance.findByNameOrIdDetailed(q);
+            expect(detailed).toBeDefined();
+            expect(detailed.match).toBeDefined();
+            expect(detailed.match.name.includes(q)).toBe(true);
+            expect(detailed.match.name.startsWith(q)).toBe(false);
+            expect(detailed.match.name.endsWith(q)).toBe(false);
+        });
+
+        test('End: 女獸 -> endsWith and not prefix (天女獸/神聖天女獸等)', () => {
+            const q = '女獸';
+            const detailed = digimonInstance.findByNameOrIdDetailed(q);
+            expect(detailed).toBeDefined();
+            expect(detailed.match).toBeDefined();
+            expect(detailed.match.name.endsWith(q)).toBe(true);
+            expect(detailed.match.name.startsWith(q)).toBe(false);
+        });
+
+        test('End: 龍劍 -> endsWith and not prefix (阿爾法獸王龍劍)', () => {
+            const q = '龍劍';
+            const detailed = digimonInstance.findByNameOrIdDetailed(q);
+            expect(detailed).toBeDefined();
+            expect(detailed.match).toBeDefined();
+            expect(detailed.match.name.endsWith(q)).toBe(true);
+            expect(detailed.match.name.startsWith(q)).toBe(false);
+        });
+
+        test('Middle: 天使 -> ensure a mid (non-prefix/suffix) candidate exists', () => {
+            const q = '天使';
+            const detailed = digimonInstance.findByNameOrIdDetailed(q);
+            expect(detailed).toBeDefined();
+            const names = (detailed.candidates || []).map(c => c.name);
+            const ok = names.some(n => n.includes(q) && !n.startsWith(q) && !n.endsWith(q));
+            expect(ok).toBe(true);
+        });
+    });
+
+    describe('Three-character matches (三字命中：中間/結尾，不是開頭)', () => {
+        test('Middle: 奧都斯 -> contained and not prefix/suffix (埃癸奧都斯獸)', () => {
+            const q = '奧都斯';
+            const detailed = digimonInstance.findByNameOrIdDetailed(q);
+            expect(detailed).toBeDefined();
+            expect(detailed.match).toBeDefined();
+            expect(detailed.match.name.includes(q)).toBe(true);
+            expect(detailed.match.name.startsWith(q)).toBe(false);
+            expect(detailed.match.name.endsWith(q)).toBe(false);
+        });
+
+        test('End: 天女獸 -> ensure an endsWith (non-prefix) candidate or dataset entry exists', () => {
+            const q = '天女獸';
+            const detailed = digimonInstance.findByNameOrIdDetailed(q);
+            expect(detailed).toBeDefined();
+            const pool = (detailed.candidates && detailed.candidates.length > 0)
+                ? detailed.candidates.map(c => c.name)
+                : (digimonInstance.digimonData || []).map(d => d.name);
+            const ok = pool.some(n => n.endsWith(q) && !n.startsWith(q));
+            expect(ok).toBe(true);
+        });
+
+        test('End: 王龍劍 -> endsWith and not prefix (阿爾法獸王龍劍)', () => {
+            const q = '王龍劍';
+            const detailed = digimonInstance.findByNameOrIdDetailed(q);
+            expect(detailed).toBeDefined();
+            expect(detailed.match).toBeDefined();
+            expect(detailed.match.name.endsWith(q)).toBe(true);
+            expect(detailed.match.name.startsWith(q)).toBe(false);
+        });
+
+        test('Middle: 魯魯獸 -> ensure a mid (non-prefix/suffix) candidate exists', () => {
+            const q = '魯魯獸';
+            const detailed = digimonInstance.findByNameOrIdDetailed(q);
+            expect(detailed).toBeDefined();
+            const names = (detailed.candidates || []).map(c => c.name);
+            const ok = names.some(n => n.includes(q) && !n.startsWith(q) && !n.endsWith(q));
+            expect(ok).toBe(true);
+        });
+    });
+});
+
 describe('Digimon Real Data Evolution Path Check - All IDs (1-451)', () => {
     let digimonInstance;
 

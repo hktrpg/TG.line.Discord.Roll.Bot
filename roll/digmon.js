@@ -1984,18 +1984,28 @@ class Digimon {
                 return '沒有找到相關資料';
             }
             let output = Digimon.showDigimon(digimon, this);
-            // If not an exact (100%) match, always show possible alternative names when available
+            // If not an exact (100%) match, ALWAYS show possible alternative names
             if (detailed.isFuzzy) {
-                const suggestions = detailed.candidates
-                    .filter(c => c.id !== digimon.id)
-                    .slice(0, 6)
-                    .map(c => {
-                        const zh = c['zh-cn-name'] && c['zh-cn-name'] !== c.name ? ` / ${c['zh-cn-name']}` : '';
-                        return `${c.name}${zh}`;
-                    });
-                if (suggestions.length > 0) {
-                    output += `\n可能的其他名稱：${suggestions.join(', ')}`;
+                let suggestions = [];
+                if (Array.isArray(detailed.candidates)) {
+                    suggestions = detailed.candidates
+                        .filter(c => c && c.id !== digimon.id)
+                        .slice(0, 6)
+                        .map(c => {
+                            const zh = c['zh-cn-name'] && c['zh-cn-name'] !== c.name ? ` / ${c['zh-cn-name']}` : '';
+                            return `${c.name}${zh}`;
+                        });
+                    // Fallback: if excluding the chosen leaves no suggestions, include from full candidate list
+                    if (suggestions.length === 0) {
+                        suggestions = detailed.candidates
+                            .slice(0, 6)
+                            .map(c => {
+                                const zh = c['zh-cn-name'] && c['zh-cn-name'] !== c.name ? ` / ${c['zh-cn-name']}` : '';
+                                return `${c.name}${zh}`;
+                            });
+                    }
                 }
+                output += `\n可能的其他名稱：${suggestions.length > 0 ? suggestions.join(', ') : '-'}`;
             }
             return output;
         } catch (error) {

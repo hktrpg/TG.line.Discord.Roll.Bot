@@ -28598,8 +28598,8 @@
       }
     ],
     "rider": 1,
-    "img": "https://digimon.net/cimages/digimon/shinegreymon_ruin.jpg",
-    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=shinegreymon_ruin"
+    "img": "https://digimon.net/cimages/digimon/greymon_blue.jpg",
+    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=greymon_blue"
   },
   {
     "id": 472,
@@ -28656,9 +28656,7 @@
         "recoil": 0
       }
     ],
-    "rider": 1,
-    "img": "https://digimon.net/cimages/digimon/greymon_blue.jpg",
-    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=greymon_blue"
+    "rider": 1
   },
   {
     "id": 473,
@@ -28715,8 +28713,8 @@
       }
     ],
     "rider": 1,
-    "img": "https://digimon.net/cimages/digimon/waregarurumon_sagittarius.jpg",
-    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=waregarurumon_sagittarius"
+    "img": "https://digimon.net/cimages/digimon/weregarurumon_black.jpg",
+    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=weregarurumon_black"
   },
   {
     "id": 474,

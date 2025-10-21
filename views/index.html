@@ -484,6 +484,17 @@
             word-break: break-word;
         }
 
+        /* Responsive images inside messages */
+        .card-body2 img.message-image {
+            max-width: 100%;
+            max-height: 300px;
+            height: auto;
+            display: block;
+            margin-top: 4px;
+            border-radius: 6px;
+            box-shadow: var(--shadow-sm);
+        }
+
         /* 表單元素樣式優化 */
         .form-control {
             background-color: var(--input-bg);
@@ -1798,6 +1809,63 @@
             scrollToBottom: () => {
                 const content = document.getElementById("container-content");
                 content.scrollTop = content.scrollHeight;
+            },
+            extractUrls: (text) => {
+                try {
+                    const re = /https?:\/\/[^\s\n]+/g;
+                    const matches = String(text || '').match(re) || [];
+                    // Deduplicate and cap to avoid spam
+                    const seen = new Set();
+                    const result = [];
+                    for (const u of matches) {
+                        const url = u.replace(/[)\]\s\n]+$/, '');
+                        if (!seen.has(url) && result.length < 5) {
+                            seen.add(url);
+                            result.push(url);
+                        }
+                    }
+                    return result;
+                } catch { return []; }
+            },
+            tryEmbedImagesInto: (container, text) => {
+                const urls = utils.extractUrls(text);
+                if (!urls.length) return;
+                
+                // Filter for likely image URLs
+                const imageUrls = urls.filter(url => {
+                    const lowerUrl = url.toLowerCase();
+                    return lowerUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?|$)/i) || 
+                           lowerUrl.includes('digimon.net/cimages/') ||
+                           lowerUrl.includes('image') ||
+                           lowerUrl.includes('img');
+                });
+                
+                if (!imageUrls.length) return;
+                
+                imageUrls.forEach((url) => {
+                    try {
+                        const img = new Image();
+                        img.className = 'message-image';
+                        img.referrerPolicy = 'no-referrer';
+                        img.style.display = 'none';
+                        img.onload = () => {
+                            // Wrap image with anchor to allow opening full size
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.target = '_blank';
+                            a.rel = 'noopener noreferrer';
+                            a.appendChild(img);
+                            container.appendChild(a);
+                            img.style.display = 'block';
+                        };
+                        img.onerror = () => { 
+                            console.log('Failed to load image:', url);
+                        };
+                        img.src = url;
+                    } catch (e) { 
+                        console.log('Error creating image for:', url, e);
+                    }
+                });
             }
         };
 
@@ -1999,6 +2067,8 @@
                 msgBoxHeader.innerHTML += "&nbsp;";
                 msgBoxHeader.appendChild(timeBox);
                 msgBoxBody.textContent = message.msg.replace(/^\n/, '');
+                // Try to auto-embed images for any URLs contained in the message
+                utils.tryEmbedImagesInto(msgBoxBody, message.msg);
 
                 msgBox.appendChild(msgBoxHeader);
                 msgBox.appendChild(msgBoxBody);

@@ -495,6 +495,27 @@
             box-shadow: var(--shadow-sm);
         }
 
+        /* Message link styles */
+        .card-body2 .message-link {
+            color: var(--badge-bg);
+            text-decoration: underline;
+            word-break: break-all;
+            transition: all 0.2s ease;
+        }
+
+        .card-body2 .message-link:hover {
+            color: var(--text-color);
+            text-decoration: none;
+            background: var(--message-hover);
+            padding: 1px 2px;
+            border-radius: 3px;
+        }
+
+        .card-body2 .message-link:visited {
+            color: var(--badge-bg);
+            opacity: 0.8;
+        }
+
         /* 表單元素樣式優化 */
         .form-control {
             background-color: var(--input-bg);
@@ -1901,6 +1922,26 @@
                 } catch {
                     return 'about:blank';
                 }
+            },
+            convertUrlsToLinks: (text) => {
+                if (!text) return text;
+                
+                // URL regex pattern - matches http/https URLs
+                const urlRegex = /(https?:\/\/[^\s\n\)\]\>]+)/g;
+                
+                return text.replace(urlRegex, (url) => {
+                    // Clean up the URL (remove trailing punctuation that might not be part of the URL)
+                    const cleanUrl = url.replace(/[.,;:!?]+$/, '');
+                    const trailingPunctuation = url.replace(cleanUrl, '');
+                    
+                    // Create a safe, clickable link
+                    const sanitizedUrl = utils.sanitizeUrl(cleanUrl);
+                    if (sanitizedUrl === 'about:blank') {
+                        return url; // Return original if URL is invalid
+                    }
+                    
+                    return `<a href="${sanitizedUrl}" target="_blank" rel="noopener noreferrer" class="message-link">${cleanUrl}</a>${trailingPunctuation}`;
+                });
             }
         };
 
@@ -2101,7 +2142,12 @@
                 msgBoxHeader.appendChild(nameBox);
                 msgBoxHeader.innerHTML += "&nbsp;";
                 msgBoxHeader.appendChild(timeBox);
-                msgBoxBody.textContent = message.msg.replace(/^\n/, '');
+                
+                // Convert URLs to clickable links and set as HTML content
+                const messageText = message.msg.replace(/^\n/, '');
+                const messageWithLinks = utils.convertUrlsToLinks(messageText);
+                msgBoxBody.innerHTML = messageWithLinks;
+                
                 // Try to auto-embed images for any URLs contained in the message
                 utils.tryEmbedImagesInto(msgBoxBody, message.msg);
 

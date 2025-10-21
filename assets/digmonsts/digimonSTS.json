@@ -28419,9 +28419,7 @@
         "recoil": 0
       }
     ],
-    "rider": 0,
-    "img": "https://digimon.net/cimages/digimon/agumon_kizuna.jpg",
-    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=clearagumon"
+    "rider": 0
   },
   {
     "id": 469,
@@ -28479,9 +28477,7 @@
         "recoil": 0
       }
     ],
-    "rider": 0,
-    "img": "https://digimon.net/cimages/digimon/gabumon_kizuna.jpg",
-    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=gabumon_kizuna"
+    "rider": 0
   },
   {
     "id": 470,
@@ -28538,9 +28534,7 @@
         "recoil": 0
       }
     ],
-    "rider": 1,
-    "img": "https://digimon.net/cimages/digimon/waregarurumon_sagittarius.jpg",
-    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=waregarurumon_sagittarius"
+    "rider": 1
   },
   {
     "id": 471,
@@ -28858,9 +28852,7 @@
         "recoil": 0
       }
     ],
-    "rider": 1,
-    "img": "https://digimon.net/cimages/digimon/garurumon.jpg",
-    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=garurumon"
+    "rider": 1
   },
   {
     "id": "world_data",

@@ -1111,6 +1111,13 @@ class Digimon {
             // Header line
             const headerLine = `#${digimon.id} 【${digimon.name}】｜${digimonInstance.getStageName(digimon.stage)}｜${(digimon.attribute && digimon.attribute !== 'No Data') ? digimon.attribute : '-'}`;
             rply += `${headerLine}\n`;
+			// Official link and image url (will auto-embed in web UI if supported)
+			if (digimon.link) {
+				rply += `連結：${digimon.link}\n`;
+			}
+			if (digimon.img) {
+				rply += `圖像：${digimon.img}\n`;
+			}
             // Personality
             const displayPersonality = digimonInstance.getDisplayPersonality(digimon);
             let personalityLine = `個性：${displayPersonality}`;

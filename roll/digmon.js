@@ -1984,11 +1984,11 @@ class Digimon {
                 return '沒有找到相關資料';
             }
             let output = Digimon.showDigimon(digimon, this);
-            // If fuzzy, append up to 4 suggestions (excluding the top match)
-            if (detailed.isFuzzy && detailed.candidates.length > 1) {
+            // If not an exact (100%) match, always show possible alternative names when available
+            if (detailed.isFuzzy) {
                 const suggestions = detailed.candidates
                     .filter(c => c.id !== digimon.id)
-                    .slice(0, 4)
+                    .slice(0, 6)
                     .map(c => {
                         const zh = c['zh-cn-name'] && c['zh-cn-name'] !== c.name ? ` / ${c['zh-cn-name']}` : '';
                         return `${c.name}${zh}`;

@@ -39,37 +39,37 @@ const validationSchemas = {
 };
 
 // 🔒 Input Validation Helper
-class InputValidator {
-    static sanitizeString(input, maxLength = 100) {
+const InputValidator = {
+    sanitizeString(input, maxLength = 100) {
         if (typeof input !== 'string') {
             return '';
         }
         return input.trim().slice(0, maxLength);
-    }
+    },
     
-    static sanitizeGroupId(groupId) {
+    sanitizeGroupId(groupId) {
         if (typeof groupId !== 'string') {
-            throw new Error('Invalid groupId type - expected string');
+            throw new TypeError('Invalid groupId type - expected string');
         }
         const sanitized = groupId.trim();
         if (!sanitized || sanitized.length > 100) {
-            throw new Error('Invalid groupId length');
+            throw new TypeError('Invalid groupId length');
         }
         return sanitized;
-    }
+    },
     
-    static sanitizeObject(obj) {
+    sanitizeObject(obj) {
         if (!obj || typeof obj !== 'object') {
-            throw new Error('Invalid object type');
+            throw new TypeError('Invalid object type');
         }
         // Prevent prototype pollution
         if (obj.__proto__ || obj.constructor || obj.prototype) {
-            throw new Error('Suspicious object detected');
+            throw new TypeError('Suspicious object detected');
         }
         return obj;
-    }
+    },
     
-    static validateChatMessage(message) {
+    validateChatMessage(message) {
         // 使用 security.js 的验证，如果可用
         if (security && security.validateChatMessage) {
             return security.validateChatMessage(message);
@@ -118,7 +118,7 @@ class InputValidator {
             }
         };
     }
-}
+};
 
 class DatabaseOperation {
     constructor(schema) {

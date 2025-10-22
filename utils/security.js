@@ -74,7 +74,7 @@ async function verifyPassword(password, hash) {
  */
 function sanitizeInput(input, maxLength = 100) {
     if (typeof input !== 'string') {
-        throw new Error('Invalid input type - expected string');
+        throw new TypeError('Invalid input type - expected string');
     }
 
     return input.trim().slice(0, maxLength);
@@ -91,15 +91,29 @@ function validateChatMessage(msg) {
         return { valid: false, error: 'Invalid message format' };
     }
 
+    // 🔒 NoSQL 注入防護 - 檢查字段類型
+    if (typeof msg.name !== 'string') {
+        return { valid: false, error: 'Invalid name type' };
+    }
+    if (typeof msg.msg !== 'string' && !Array.isArray(msg.msg)) {
+        return { valid: false, error: 'Invalid message type' };
+    }
+    if (Array.isArray(msg.msg)) {
+        return { valid: false, error: 'Invalid message type' };
+    }
+    if (typeof msg.roomNumber !== 'string') {
+        return { valid: false, error: 'Invalid room number type' };
+    }
+
     // 驗證名稱
     const name = String(msg.name || '').trim();
-    if (!name || name.length < 1 || name.length > 50) {
+    if (name.length === 0 || name.length > 50) {
         return { valid: false, error: 'Invalid name length (1-50 characters)' };
     }
 
     // 驗證訊息內容
     const text = String(msg.msg || '').trim();
-    if (!text || text.length < 1 || text.length > 2000) {
+    if (text.length === 0 || text.length > 2000) {
         return { valid: false, error: 'Invalid message length (1-2000 characters)' };
     }
 
@@ -159,7 +173,7 @@ function validateCredentials(credentials) {
         valid: true,
         data: {
             userName: userName.slice(0, 50),
-            password: password.slice(0, 100)
+            userPassword: password.slice(0, 100)
         }
     };
 }
@@ -172,6 +186,7 @@ function validateCredentials(credentials) {
 
 let jwt;
 try {
+    // eslint-disable-next-line n/no-missing-require
     jwt = require('jsonwebtoken');
 } catch {
     console.warn('⚠️ jsonwebtoken not installed');

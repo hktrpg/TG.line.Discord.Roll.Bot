@@ -19,8 +19,8 @@ const {
 const candle = require('../modules/candleDays.js');
 const cspConfig = require('../modules/config/csp.js');
 const mainCharacter = require('../roll/z_character').mainCharacter;
-const schema = require('./schema.js');
 const security = require('../utils/security.js');
+const schema = require('./schema.js');
 
 const www = express();
 //const loglink = (LOGLINK) ? LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
@@ -956,18 +956,6 @@ function SHA(text) {
     return crypto.createHmac('sha256', text)
         .update(salt)
         .digest('hex');
-}
-
-// 🔒 Secure password hashing wrapper
-// Uses bcrypt if available, falls back to SHA256 (for testing only)
-async function hashPasswordSecure(password) {
-    try {
-        return await security.hashPassword(password);
-    } catch (error) {
-        console.error('🔒 Password hashing error:', error.message);
-        console.warn('⚠️ Falling back to legacy hash (INSECURE)');
-        return SHA(password);
-    }
 }
 
 // 🔒 Secure password verification

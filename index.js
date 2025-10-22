@@ -49,7 +49,7 @@ class Logger {
     sanitizeData(data) {
         if (typeof data === 'string') {
             // Redact potential tokens/keys in strings
-            return data.replace(/([a-zA-Z0-9_-]{20,})/g, (match) => {
+            return data.replaceAll(/([a-zA-Z0-9_-]{20,})/g, (match) => {
                 if (match.length > 30) {
                     return '[REDACTED_TOKEN]';
                 }
@@ -64,7 +64,7 @@ class Logger {
                 const lowerKey = key.toLowerCase();
                 
                 // Check if key contains sensitive terms
-                const isSensitive = Array.from(this.sensitiveFields).some(field => 
+                const isSensitive = [...this.sensitiveFields].some(field => 
                     lowerKey.includes(field.toLowerCase())
                 );
                 

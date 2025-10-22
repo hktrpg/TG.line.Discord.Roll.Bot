@@ -213,7 +213,7 @@
 
                     <h6>使用方式</h6>
                     <ol>
-                        <li>輸入暱稱（預設為「調查員」+隨機數字，可點擊重新生成按鈕更換）</li>
+                        <li>輸入暱稱（預設為「調查員」+隨機數字，可點擊重新產生按鈕更換）</li>
                         <li>點擊「加入聊天室」或直接輸入房間名稱</li>
                         <li>在輸入框輸入擲骰指令或聊天內容</li>
                         <li>點擊「送出」或按 Enter 鍵發送訊息</li>
@@ -243,9 +243,9 @@
                     <ul>
                         <li>點擊「快速輸入」可展開常用指令面板</li>
                         <li>點擊「儲存」可下載聊天記錄（格式：HKTRPG + 房間名稱）</li>
-                        <li>點擊「說明」可查看此使用說明</li>
+                        <li>點擊「說明」可檢視此使用說明</li>
                         <li>點擊「深色模式」可切換主題</li>
-                        <li>點擊「重新生成」可隨機生成新暱稱</li>
+                        <li>點擊「重新產生」可隨機產生新暱稱</li>
                     </ul>
 
                     <h6>個人小屋</h6>
@@ -1174,7 +1174,7 @@
                 padding-bottom: 0;
                 /* 移除底部padding */
                 position: relative;
-                /* 添加相對定位 */
+                /* 新增相對定位 */
             }
 
             .sidebar-actions {
@@ -1409,7 +1409,7 @@
             padding-bottom: 0;
             /* 移除底部padding */
             position: relative;
-            /* 添加相對定位 */
+            /* 新增相對定位 */
         }
 
         .sidebar-header {
@@ -1828,18 +1828,19 @@
         }
 
         /* ============================================ */
-        /* 图片懒加载样式 */
+        /* 圖片懶載入樣式 */
         /* ============================================ */
         
         .image-wrapper {
             position: relative;
-            display: inline-block;
+            display: block;
             min-width: 200px;
             min-height: 150px;
             margin: 8px 0;
             border-radius: 8px;
             overflow: hidden;
             background: var(--card-bg);
+            clear: both;
         }
         
         .image-placeholder {
@@ -1888,6 +1889,7 @@
             height: auto;
             border-radius: 8px;
             transition: opacity 0.3s ease, transform 0.3s ease;
+            display: block;
         }
         
         .message-image.loaded {
@@ -1910,7 +1912,13 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         
-        /* 移动端优化 */
+        /* 確保圖片鏈接是塊級元素，圖片在下一行顯示 */
+        .card-body2 a:has(.image-wrapper) {
+            display: block;
+            margin: 8px 0;
+        }
+        
+        /* 移動端優化 */
         @media (max-width: 768px) {
             .image-wrapper {
                 min-width: 150px;
@@ -2142,8 +2150,8 @@
             SOCKET_RECONNECT_ATTEMPTS: 999,
             SOCKET_RECONNECT_DELAY: 5000,
             MESSAGE_CHUNK_SIZE: 2000,
-            // 图片安全模式：true = 严格白名单，false = 允许所有HTTPS图片（显示警告）
-            STRICT_IMAGE_WHITELIST: false  // 设为 false 以允许更多图片源
+            // 圖片安全模式：true = 嚴格白名單，false = 允許所有HTTPS圖片（顯示警告）
+            STRICT_IMAGE_WHITELIST: false  // 設為 false 以允許更多圖片源
         };
 
         // State Management
@@ -2265,7 +2273,7 @@
                         // Create placeholder
                         const placeholder = document.createElement('div');
                         placeholder.className = 'image-placeholder';
-                        placeholder.innerHTML = '<span class="iconify" data-icon="bi:image"></span><span>载入图片中...</span>';
+                        placeholder.innerHTML = '<span class="iconify" data-icon="bi:image"></span><span>載入圖片中...</span>';
                         
                         // Create actual image (lazy loaded)
                         const img = document.createElement('img');
@@ -2273,7 +2281,7 @@
                         img.referrerPolicy = 'no-referrer';
                         img.setAttribute('data-src', utils.sanitizeUrl(url));
                         img.style.display = 'none';
-                        img.alt = '消息图片';
+                        img.alt = '訊息圖片';
                         
                         // Assemble structure
                         wrapper.appendChild(placeholder);
@@ -2288,8 +2296,8 @@
                         
                         container.appendChild(a);
                         
-                        // 🔧 历史记录加载时，立即加载图片（不使用懒加载）
-                        // 因为历史消息在顶部，不在视口内，永远不会触发懒加载
+                        // 🔧 歷史記錄載入時，立即載入圖片（不使用懶載入）
+                        // 因為歷史訊息在頂部，不在視口內，永遠不會觸發懶載入
                         if (state.isHistoryLoading) {
                             console.log('📜 Loading image immediately (history):', url);
                             img.onload = () => {
@@ -2299,14 +2307,14 @@
                             };
                             img.onerror = () => {
                                 if (placeholder) {
-                                    placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>图片加载失败</span>';
+                                    placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片載入失敗</span>';
                                     placeholder.classList.add('error');
                                 }
                                 console.warn('❌ Failed to load image (history):', url);
                             };
                             img.src = utils.sanitizeUrl(url);
                         } 
-                        // 新消息：使用懒加载
+                        // 新訊息：使用懶載入
                         else if (window.imageLoader) {
                             console.log('🔍 Registering image for lazy load:', url);
                             window.imageLoader.observe(img);
@@ -2321,7 +2329,7 @@
                             };
                             img.onerror = () => {
                                 if (placeholder) {
-                                    placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>图片加载失败</span>';
+                                    placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片載入失敗</span>';
                                     placeholder.classList.add('error');
                                 }
                                 console.warn('❌ Failed to load image (fallback):', url);
@@ -2334,22 +2342,22 @@
                 });
             },
             isValidImageUrl: (url) => {
-                // 非严格模式：允许所有 HTTPS 图片
+                // 非嚴格模式：允許所有 HTTPS 圖片
                 if (!CONFIG.STRICT_IMAGE_WHITELIST) {
                     try {
                         const urlObj = new URL(url);
-                        // 允许所有 HTTP/HTTPS 图片
+                        // 允許所有 HTTP/HTTPS 圖片
                         return urlObj.protocol === 'https:' || urlObj.protocol === 'http:';
                     } catch {
                         return false;
                     }
                 }
                 
-                // 严格模式：使用安全管理器的验证
+                // 嚴格模式：使用安全管理器的驗證
                 return securityManager.validateImageUrl(url);
             },
             sanitizeUrl: (url) => {
-                // 非严格模式：允许所有 HTTPS URL
+                // 非嚴格模式：允許所有 HTTPS URL
                 if (!CONFIG.STRICT_IMAGE_WHITELIST) {
                     try {
                         const urlObj = new URL(url);
@@ -2361,7 +2369,7 @@
                     }
                 }
                 
-                // 严格模式：使用安全管理器验证
+                // 嚴格模式：使用安全管理器驗證
                 const validation = securityManager.validateUrl(url);
                 if (!validation.valid) {
                     console.warn('Invalid URL blocked:', url);
@@ -2438,17 +2446,17 @@
                 state.socket.on('chatRecord', async (msgs) => {
                     if (!Array.isArray(msgs) || msgs.length === 0) return;
                     
-                    // 🐛 FIX: 检查房间并记录当前房间，避免竞态条件
+                    // 🐛 FIX: 檢查房間並記錄目前房間，避免競態條件
                     const batchRoom = msgs[0].roomNumber;
                     const currentRoom = chatroomManager.currentRoom;
                     
-                    // 只处理当前房间的历史记录
+                    // 只處理當前房間的歷史記錄
                     if (batchRoom !== currentRoom) {
                         console.log(`🔄 Ignoring history for room ${batchRoom}, current: ${currentRoom}`);
                         return;
                     }
 
-                    // 记录开始处理时间（用于调试）
+                    // 記錄開始處理時間（用於除錯）
                     const startTime = Date.now();
                     console.log(`📜 Loading history for room ${batchRoom} (${msgs.length} messages)`);
                     
@@ -2467,7 +2475,7 @@
                     });
                     
                     for (const msg of msgs) {
-                        // 🐛 FIX: 每次添加消息前都检查房间，防止切换房间时污染
+                        // 🐛 FIX: 每次新增訊息前都檢查房間，防止切換房間時污染
                         if (chatroomManager.currentRoom !== batchRoom) {
                             console.warn(`⚠️ Room changed during history load, aborting (${batchRoom} → ${chatroomManager.currentRoom})`);
                             break;
@@ -2478,7 +2486,7 @@
                         }
                     }
                     
-                    // 只有在房间未改变时才继续
+                    // 只有在房間未改變時才繼續
                     if (chatroomManager.currentRoom !== batchRoom) {
                         console.log(`🔄 History load aborted for room ${batchRoom}`);
                         return;
@@ -2751,7 +2759,7 @@
                     });
                 }
 
-                // 個人小屋歷史紀錄：僅在非歷史載入期間保存
+                // 個人小屋歷史紀錄：僅在非歷史載入期間儲存
                 if (chatroomManager.currentRoom === CONFIG.PERSONAL_ROOM && !state.isHistoryLoading) {
                     personalStorage.append(CONFIG.PERSONAL_ROOM, {
                         name: message.name,
@@ -2982,7 +2990,7 @@
                 const temp = document.createElement('div');
                 temp.textContent = html;
                 
-                // 獲取純文本
+                // 獲取純文字
                 let sanitized = temp.innerHTML;
                 
                 // 額外清理：移除任何殘留的事件處理器
@@ -2993,10 +3001,10 @@
             
             // 安全錯誤處理
             handleError: (error, context = '') => {
-                // 記錄錯誤但不暴露敏感信息
+                // 記錄錯誤但不暴露敏感資訊
                 console.error(`[Security] ${context}:`, error);
                 
-                // 返回通用錯誤信息
+                // 返回通用錯誤資訊
                 return '操作失敗，請稍後再試';
             },
             
@@ -3015,18 +3023,18 @@
             }
         };
         
-        // 图片懒加载管理器
+        // 圖片懶載入管理器
         const imageLoader = {
             observer: null,
             loadedImages: new Set(),
             
             init() {
-                // 🔧 临时禁用懒加载（用于调试）
-                const DISABLE_LAZY_LOADING = false;  // 改回 false 启用懒加载
+                // 🔧 臨時禁用懶載入（用於除錯）
+                const DISABLE_LAZY_LOADING = false;  // 改回 false 啟用懶載入
                 
                 if (DISABLE_LAZY_LOADING) {
                     console.warn('⚠️ Lazy loading DISABLED - all images will load immediately');
-                    return;  // 不创建 Observer，图片会用 fallback 方式加载
+                    return;  // 不建立 Observer，圖片會用 fallback 方式載入
                 }
                 
                 // Check if Intersection Observer is supported
@@ -3099,7 +3107,7 @@
                 
                 // Update placeholder to loading state
                 if (placeholder) {
-                    placeholder.innerHTML = '<span class="iconify loading-spin" data-icon="bi:arrow-clockwise"></span><span>载入中...</span>';
+                    placeholder.innerHTML = '<span class="iconify loading-spin" data-icon="bi:arrow-clockwise"></span><span>載入中...</span>';
                     placeholder.classList.add('loading');
                 } else {
                     console.warn('⚠️ No placeholder found for:', src);
@@ -3130,7 +3138,7 @@
                 img.onerror = () => {
                     // Show error state
                     if (placeholder) {
-                        placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>图片加载失败</span>';
+                        placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片載入失敗</span>';
                         placeholder.classList.remove('loading');
                         placeholder.classList.add('error');
                     }
@@ -3620,7 +3628,7 @@
             }
         };
 
-        // 在現有的 JavaScript 代碼中添加快速輸入指令欄管理模組
+        // 在現有的 JavaScript 代碼中新增快速輸入指令欄管理模組
         const quickInputPad = {
             init: () => {
                 // 檢查元素是否存在
@@ -3629,7 +3637,7 @@
 
                 // 固定選項
                 const fixedCommands = ["1d2", "1d6", "1d8", "1d10", "1d12", "1d20", "1d100"];
-                // 自訂指令（最多保存5個不重複的指令）
+                // 自訂指令（最多儲存5個不重複的指令）
                 const customCommands = JSON.parse(localStorage.getItem('quickCommands') || '[]');
                 quickInputPad.renderButtons(fixedCommands, customCommands);
 
@@ -3712,7 +3720,7 @@
                 // 檢查是否為固定指令
                 const fixedCommands = ["1d2", "1d6", "1d8", "1d10", "1d12", "1d20", "1d100"];
                 if (fixedCommands.includes(command)) {
-                    return; // 如果是固定指令，不保存
+                    return; // 如果是固定指令，不儲存
                 }
 
                 // 獲取現有的自訂指令
@@ -3813,13 +3821,13 @@
             },
 
             saveRooms: () => {
-                // 將房間列表保存到 localStorage
+                // 將房間列表儲存到 localStorage
                 localStorage.setItem('chatRooms', JSON.stringify(Array.from(chatroomManager.rooms)));
             },
 
             addRoom: (roomName) => {
                 chatroomManager.rooms.add(roomName);
-                chatroomManager.saveRooms(); // 保存更新後的房間列表
+                chatroomManager.saveRooms(); // 儲存更新後的房間列表
                 chatroomManager.renderRooms();
                 chatroomManager.switchRoom(roomName);
             },
@@ -3832,7 +3840,7 @@
                     return;
                 }
                 chatroomManager.rooms.delete(roomName);
-                chatroomManager.saveRooms(); // 保存更新後的房間列表
+                chatroomManager.saveRooms(); // 儲存更新後的房間列表
                 chatroomManager.renderRooms();
                 if (chatroomManager.currentRoom === roomName) {
                     chatroomManager.switchRoom(CONFIG.DEFAULT_ROOM);
@@ -3885,7 +3893,7 @@
                     state.isHistoryLoading = true;
                     state.pendingLive = [];
                     state.socket.emit("newRoom", roomName);
-                    // 添加新房間的事件監聽器
+                    // 新增新房間的事件監聽器
                     state.socket.on(roomName, (message) => {
                         if (state.isHistoryLoading) {
                             state.pendingLive.push(message);
@@ -4011,7 +4019,7 @@
         // Initialize application
         document.addEventListener("DOMContentLoaded", () => {
             securityManager.init();  // 🔒 優先初始化安全管理器
-            imageLoader.init();      // 🖼️ 初始化图片懒加载
+            imageLoader.init();      // 🖼️ 初始化圖片懶載入
             socketManager.init();
             uiManager.initialize();
             themeManager.init();

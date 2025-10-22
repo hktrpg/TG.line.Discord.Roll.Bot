@@ -8,6 +8,14 @@ const NodeCache = require('node-cache');
 const { validate } = require('jsonschema');
 const schema = require('./schema.js');
 
+// 🔒 Try to load security utilities
+let security;
+try {
+    security = require('../utils/security.js');
+} catch {
+    console.warn('⚠️ Security utilities not found, using basic validation');
+}
+
 // Cache configuration
 const CACHE_TTL = 300; // 5 minutes
 const cache = new NodeCache({ stdTTL: CACHE_TTL });
@@ -29,6 +37,88 @@ const validationSchemas = {
         }
     }
 };
+
+// 🔒 Input Validation Helper
+class InputValidator {
+    static sanitizeString(input, maxLength = 100) {
+        if (typeof input !== 'string') {
+            return '';
+        }
+        return input.trim().slice(0, maxLength);
+    }
+    
+    static sanitizeGroupId(groupId) {
+        if (typeof groupId !== 'string') {
+            throw new Error('Invalid groupId type - expected string');
+        }
+        const sanitized = groupId.trim();
+        if (!sanitized || sanitized.length > 100) {
+            throw new Error('Invalid groupId length');
+        }
+        return sanitized;
+    }
+    
+    static sanitizeObject(obj) {
+        if (!obj || typeof obj !== 'object') {
+            throw new Error('Invalid object type');
+        }
+        // Prevent prototype pollution
+        if (obj.__proto__ || obj.constructor || obj.prototype) {
+            throw new Error('Suspicious object detected');
+        }
+        return obj;
+    }
+    
+    static validateChatMessage(message) {
+        // 使用 security.js 的验证，如果可用
+        if (security && security.validateChatMessage) {
+            return security.validateChatMessage(message);
+        }
+        
+        // Fallback 基本验证
+        if (!message || typeof message !== 'object') {
+            return { valid: false, error: 'Invalid message format' };
+        }
+        
+        const name = String(message.name || '').trim();
+        const msg = String(message.msg || '').trim();
+        const roomNumber = String(message.roomNumber || '').trim();
+        
+        if (!name || name.length > 50) {
+            return { valid: false, error: 'Invalid name' };
+        }
+        
+        if (!msg || msg.length > 2000) {
+            return { valid: false, error: 'Invalid message' };
+        }
+        
+        if (!roomNumber || roomNumber.length > 50) {
+            return { valid: false, error: 'Invalid room number' };
+        }
+        
+        // 检查可疑模式
+        const suspiciousPatterns = [
+            /<script/i,
+            /javascript:/i,
+            /on\w+\s*=/i
+        ];
+        
+        for (const pattern of suspiciousPatterns) {
+            if (pattern.test(msg)) {
+                return { valid: false, error: 'Suspicious content detected' };
+            }
+        }
+        
+        return {
+            valid: true,
+            data: {
+                name: name.slice(0, 50),
+                msg: msg.slice(0, 2000),
+                roomNumber: roomNumber.slice(0, 50)
+            }
+        };
+    }
+}
 
 class DatabaseOperation {
     constructor(schema) {
@@ -95,6 +185,28 @@ class Records extends EventEmitter {
 
     async updateRecord(databaseName, query, update, options, callback) {
         try {
+            // 🔒 Sanitize groupId if present in query
+            if (query && query.groupid) {
+                try {
+                    query.groupid = InputValidator.sanitizeGroupId(query.groupid);
+                } catch (error) {
+                    console.error(`[SECURITY] Invalid groupId:`, error.message);
+                    callback(null);
+                    return;
+                }
+            }
+            
+            // 🔒 Validate query object
+            try {
+                if (query && typeof query === 'object') {
+                    InputValidator.sanitizeObject(query);
+                }
+            } catch (error) {
+                console.error(`[SECURITY] Suspicious query object:`, error.message);
+                callback(null);
+                return;
+            }
+            
             // Validate input data if schema exists
             if (validationSchemas[databaseName]) {
                 const validationResult = validate(query, validationSchemas[databaseName]);
@@ -341,47 +453,50 @@ class Records extends EventEmitter {
     // Chat room operations
     async chatRoomPush(message) {
         try {
-            // Basic payload validation & sanitization
-            if (!message || typeof message !== 'object') {
-                throw new Error('Invalid message payload');
+            // 🔒 使用增强的输入验证
+            const validation = InputValidator.validateChatMessage(message);
+            if (!validation.valid) {
+                console.error(`[SECURITY] Invalid chat message: ${validation.error}`);
+                throw new Error(`Invalid chat message: ${validation.error}`);
             }
 
-            const safeName = (message.name ?? '').toString().trim().slice(0, 50);
-            const safeMsg = (message.msg ?? '').toString().trim();
-            const safeRoom = (message.roomNumber ?? '').toString().trim().slice(0, 50);
+            const { name, msg, roomNumber } = validation.data;
             const safeTime = message.time ? new Date(message.time) : new Date();
 
-            if (!safeName || !safeMsg || !safeRoom) {
-                throw new Error('Invalid chat message fields');
-            }
-
             const chatMessage = new this.ChatRoomModel({
-                name: safeName,
-                msg: safeMsg,
+                name: name,
+                msg: msg,
                 time: Number.isNaN(safeTime.getTime()) ? new Date() : safeTime,
-                roomNumber: safeRoom
+                roomNumber: roomNumber
             });
             await chatMessage.save();
-            this.emit("new_message", message);
+            
+            // Emit with validated data
+            this.emit("new_message", {
+                name: name,
+                msg: msg,
+                time: safeTime,
+                roomNumber: roomNumber
+            });
 
             // Clear cache for this room
-            cache.del(`chatRoom:${message.roomNumber}`);
+            cache.del(`chatRoom:${roomNumber}`);
 
-            const messageCount = await this.ChatRoomModel.countDocuments({ 'roomNumber': safeRoom });
+            const messageCount = await this.ChatRoomModel.countDocuments({ 'roomNumber': roomNumber });
             if (messageCount < this.maxChatMessages) return;
 
             const overflowCount = messageCount - this.maxChatMessages;
-            const oldestMessages = await this.ChatRoomModel.find({ 'roomNumber': safeRoom })
+            const oldestMessages = await this.ChatRoomModel.find({ 'roomNumber': roomNumber })
                 .sort({ 'time': 1 });
 
             if (!oldestMessages[overflowCount - 1]) return;
 
             await this.ChatRoomModel.deleteMany({
-                'roomNumber': safeRoom,
+                'roomNumber': roomNumber,
                 time: { $lt: oldestMessages[overflowCount - 1].time }
             });
         } catch (error) {
-            console.error('Chat room push failed:', error);
+            console.error('[ERROR] Chat room push failed:', error.message);
             throw error;
         }
     }

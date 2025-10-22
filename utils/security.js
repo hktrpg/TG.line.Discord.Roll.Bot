@@ -129,8 +129,8 @@ function validateChatMessage(msg) {
         valid: true,
         data: {
             name: name.slice(0, 50),
-            text: text.slice(0, 2000),
-            room: room.slice(0, 50)
+            msg: text.slice(0, 2000),        // 使用 msg 而不是 text
+            roomNumber: room.slice(0, 50)    // 使用 roomNumber 而不是 room
         }
     };
 }

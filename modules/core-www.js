@@ -878,14 +878,15 @@ if (io) {
                 return;
             }
 
-            const { name, text, room } = validation.data;
+            // 🔒 修复：使用正确的字段名 msg 和 roomNumber
+            const { name, msg: text, roomNumber } = validation.data;
             const time = new Date(); // Use server's time for accuracy
 
             const payload = {
                 name: name,
                 msg: '\n' + text, // keep leading newline as before
                 time: time,
-                roomNumber: room
+                roomNumber: roomNumber  // 🔒 修复：使用 roomNumber
             };
 
             records.chatRoomPush(payload);

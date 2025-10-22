@@ -271,8 +271,13 @@ function validateOrigin(origin) {
         return false;
     }
 
-    return ALLOWED_ORIGINS.includes(origin) ||
-        origin.match(/^https:\/\/.*\.hktrpg\.com$/);
+    // 檢查是否在白名單中
+    if (ALLOWED_ORIGINS.includes(origin)) {
+        return true;
+    }
+
+    // 檢查是否為 hktrpg.com 的子域名（支持 http 和 https）
+    return /^https?:\/\/.*\.hktrpg\.com$/.test(origin);
 }
 
 /**

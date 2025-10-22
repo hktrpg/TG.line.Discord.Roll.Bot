@@ -2296,8 +2296,9 @@
                         
                         container.appendChild(a);
                         
-                        // 🔧 歷史記錄載入時，立即載入圖片（不使用懶載入）
-                        // 因為歷史訊息在頂部，不在視口內，永遠不會觸發懶載入
+                        // 🔧 Smart loading strategy:
+                        // 1. History records: Load immediately (at top, not in viewport)
+                        // 2. New messages: Always load immediately for better UX
                         if (state.isHistoryLoading) {
                             console.log('📜 Loading image immediately (history):', url);
                             img.onload = () => {
@@ -2314,25 +2315,20 @@
                             };
                             img.src = utils.sanitizeUrl(url);
                         } 
-                        // 新訊息：使用懶載入
-                        else if (window.imageLoader) {
-                            console.log('🔍 Registering image for lazy load:', url);
-                            window.imageLoader.observe(img);
-                        } 
-                        // Fallback
+                        // New messages: Always load immediately for better user experience
                         else {
-                            console.warn('⚠️ imageLoader not ready, loading immediately:', url);
+                            console.log('💬 Loading image immediately (new message):', url);
                             img.onload = () => {
                                 if (placeholder) placeholder.style.display = 'none';
                                 img.style.display = 'block';
-                                console.log('✅ Image loaded (fallback):', url);
+                                console.log('✅ Image loaded (new message):', url);
                             };
                             img.onerror = () => {
                                 if (placeholder) {
                                     placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片載入失敗</span>';
                                     placeholder.classList.add('error');
                                 }
-                                console.warn('❌ Failed to load image (fallback):', url);
+                                console.warn('❌ Failed to load image (new message):', url);
                             };
                             img.src = utils.sanitizeUrl(url);
                         }

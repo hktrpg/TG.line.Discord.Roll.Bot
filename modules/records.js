@@ -453,19 +453,14 @@ class Records extends EventEmitter {
     // Chat room operations
     async chatRoomPush(message) {
         try {
-            // 🔒 添加调试日志
-            console.log('[DEBUG] chatRoomPush input:', JSON.stringify(message));
-            
             // 🔒 使用增强的输入验证
             const validation = InputValidator.validateChatMessage(message);
             if (!validation.valid) {
                 console.error(`[SECURITY] Invalid chat message: ${validation.error}`);
-                console.error(`[SECURITY] Input message:`, JSON.stringify(message));
                 throw new Error(`Invalid chat message: ${validation.error}`);
             }
 
             const { name, msg, roomNumber } = validation.data;
-            console.log('[DEBUG] Validated data:', { name, msg, roomNumber });
             const safeTime = message.time ? new Date(message.time) : new Date();
 
             const chatMessage = new this.ChatRoomModel({
@@ -592,7 +587,7 @@ class Records extends EventEmitter {
 
     async createForwardedMessage(data) {
         try {
-            console.log(`[DEBUG] Attempting to create forwarded message with data:`, JSON.stringify(data));
+            //console.log(`[DEBUG] Attempting to create forwarded message with data:`, JSON.stringify(data));
 
             // Check if a message with this fixedId already exists for this user
             const existingMessage = await this.dbOperations.forwardedMessage.schema.findOne({
@@ -606,7 +601,7 @@ class Records extends EventEmitter {
 
                 // Get a new fixedId for this user
                 data.fixedId = await this.getNextFixedIdForUser(data.userId);
-                console.log(`[DEBUG] Adjusted fixedId to: ${data.fixedId}`);
+                //console.log(`[DEBUG] Adjusted fixedId to: ${data.fixedId}`);
             }
 
             const message = await this.dbOperations.forwardedMessage.schema.create(data);
@@ -634,7 +629,7 @@ class Records extends EventEmitter {
                     fixedId: message.fixedId
                 })}`, message);
 
-                console.log(`[DEBUG] Successfully created forwarded message with fixedId: ${message.fixedId}`);
+                //console.log(`[DEBUG] Successfully created forwarded message with fixedId: ${message.fixedId}`);
             }
 
             return message;
@@ -648,7 +643,7 @@ class Records extends EventEmitter {
 
             // If it's a duplicate key error, try again with a new fixedId
             if (error.code === 11_000 && error.keyPattern && error.keyPattern.fixedId) {
-                console.log(`[DEBUG] Retrying with a new fixedId for user ${data.userId}`);
+                //console.log(`[DEBUG] Retrying with a new fixedId for user ${data.userId}`);
                 data.fixedId = await this.getNextFixedIdForUser(data.userId);
                 return this.createForwardedMessage(data);
             }

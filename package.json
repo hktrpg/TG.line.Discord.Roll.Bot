@@ -43,7 +43,7 @@
     "axios": "^1.8.2",
     "axios-retry": "^3.2.4",
     "bcdice": "^4.5.0",
-    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
     "chai": "^4.3.4",
     "cheerio": "1.0.0-rc.12",
     "chinese-conv": "^1.0.1",

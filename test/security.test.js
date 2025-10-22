@@ -1,14 +1,14 @@
 /**
  * Security Utilities Tests
- * 安全工具函数测试
+ * 安全工具函式測試
  * 
- * 运行方式：
+ * 執行方式：
  * node test/security.test.js
  */
 
 const security = require('../utils/security');
 
-// 颜色输出
+// 顏色輸出
 const colors = {
     green: '\x1b[32m',
     red: '\x1b[31m',
@@ -22,21 +22,21 @@ function log(status, message) {
     console.log(`${color}${symbol} ${message}${colors.reset}`);
 }
 
-// 测试计数器
+// 測試計數器
 let passed = 0;
 let failed = 0;
 
 // ============================================
-// 测试：密码哈希
+// 測試：密碼雜湊
 // ============================================
 async function testPasswordHashing() {
     console.log('\n📝 Testing Password Hashing...\n');
-    
+
     try {
-        // 测试 1: 哈希密码
+        // 測試 1: 雜湊密碼
         const password = 'testPassword123';
         const hash = await security.hashPassword(password);
-        
+
         if (hash && hash.length > 20) {
             log('pass', 'Password hashing works');
             passed++;
@@ -44,8 +44,8 @@ async function testPasswordHashing() {
             log('fail', 'Password hash too short');
             failed++;
         }
-        
-        // 测试 2: 验证正确密码
+
+        // 測試 2: 驗證正確密碼
         const valid = await security.verifyPassword(password, hash);
         if (valid === true) {
             log('pass', 'Correct password verified');
@@ -54,8 +54,8 @@ async function testPasswordHashing() {
             log('fail', 'Failed to verify correct password');
             failed++;
         }
-        
-        // 测试 3: 拒绝错误密码
+
+        // 測試 3: 拒絕錯誤密碼
         const invalid = await security.verifyPassword('wrongPassword', hash);
         if (invalid === false) {
             log('pass', 'Incorrect password rejected');
@@ -64,8 +64,8 @@ async function testPasswordHashing() {
             log('fail', 'Accepted incorrect password');
             failed++;
         }
-        
-        // 测试 4: 处理空密码
+
+        // 測試 4: 處理空密碼
         try {
             await security.hashPassword('');
             log('fail', 'Accepted empty password');
@@ -74,7 +74,7 @@ async function testPasswordHashing() {
             log('pass', 'Empty password rejected');
             passed++;
         }
-        
+
     } catch (error) {
         log('fail', `Password hashing error: ${error.message}`);
         failed++;
@@ -82,18 +82,18 @@ async function testPasswordHashing() {
 }
 
 // ============================================
-// 测试：输入验证
+// 測試：輸入驗證
 // ============================================
 function testInputValidation() {
     console.log('\n📝 Testing Input Validation...\n');
-    
-    // 测试 1: 正常聊天消息
+
+    // 測試 1: 正常聊天訊息
     const validMsg = security.validateChatMessage({
         name: 'Player1',
         msg: 'Hello World',
         roomNumber: '公共房間'
     });
-    
+
     if (validMsg.valid === true) {
         log('pass', 'Valid chat message accepted');
         passed++;
@@ -101,14 +101,14 @@ function testInputValidation() {
         log('fail', `Valid message rejected: ${validMsg.error}`);
         failed++;
     }
-    
-    // 测试 2: XSS 攻击
+
+    // 測試 2: XSS 攻擊
     const xssMsg = security.validateChatMessage({
         name: 'Hacker',
         msg: '<script>alert("XSS")</script>',
         roomNumber: '公共房間'
     });
-    
+
     if (xssMsg.valid === false) {
         log('pass', 'XSS attack blocked');
         passed++;
@@ -116,14 +116,14 @@ function testInputValidation() {
         log('fail', 'XSS attack not detected');
         failed++;
     }
-    
-    // 测试 3: JavaScript URI
+
+    // 測試 3: JavaScript URI
     const jsUri = security.validateChatMessage({
         name: 'Hacker',
         msg: 'Click here: javascript:alert(1)',
         roomNumber: '公共房間'
     });
-    
+
     if (jsUri.valid === false) {
         log('pass', 'JavaScript URI blocked');
         passed++;
@@ -131,14 +131,14 @@ function testInputValidation() {
         log('fail', 'JavaScript URI not detected');
         failed++;
     }
-    
-    // 测试 4: 内联事件处理器
+
+    // 測試 4: 內聯事件處理器
     const inlineEvent = security.validateChatMessage({
         name: 'Hacker',
         msg: '<img src=x onerror=alert(1)>',
         roomNumber: '公共房間'
     });
-    
+
     if (inlineEvent.valid === false) {
         log('pass', 'Inline event handler blocked');
         passed++;
@@ -146,14 +146,14 @@ function testInputValidation() {
         log('fail', 'Inline event handler not detected');
         failed++;
     }
-    
-    // 测试 5: 空消息
+
+    // 測試 5: 空訊息
     const emptyMsg = security.validateChatMessage({
         name: 'Player1',
         msg: '',
         roomNumber: '公共房間'
     });
-    
+
     if (emptyMsg.valid === false) {
         log('pass', 'Empty message rejected');
         passed++;
@@ -161,14 +161,14 @@ function testInputValidation() {
         log('fail', 'Empty message accepted');
         failed++;
     }
-    
-    // 测试 6: 过长消息
+
+    // 測試 6: 過長訊息
     const longMsg = security.validateChatMessage({
         name: 'Player1',
         msg: 'A'.repeat(2001),
         roomNumber: '公共房間'
     });
-    
+
     if (longMsg.valid === false) {
         log('pass', 'Oversized message rejected');
         passed++;
@@ -176,14 +176,14 @@ function testInputValidation() {
         log('fail', 'Oversized message accepted');
         failed++;
     }
-    
-    // 测试 7: 过长名称
+
+    // 測試 7: 過長名稱
     const longName = security.validateChatMessage({
         name: 'A'.repeat(51),
         msg: 'Hello',
         roomNumber: '公共房間'
     });
-    
+
     if (longName.valid === false) {
         log('pass', 'Oversized name rejected');
         passed++;
@@ -194,12 +194,12 @@ function testInputValidation() {
 }
 
 // ============================================
-// 测试：NoSQL 注入防护
+// 測試：NoSQL 注入防護
 // ============================================
 function testNoSQLInjection() {
     console.log('\n📝 Testing NoSQL Injection Protection...\n');
-    
-    // 测试 1: 对象注入
+
+    // 測試 1: 對像注入
     try {
         security.sanitizeInput({ $ne: null });
         log('fail', 'Object injection not detected');
@@ -208,8 +208,8 @@ function testNoSQLInjection() {
         log('pass', 'Object injection blocked');
         passed++;
     }
-    
-    // 测试 2: 数组注入
+
+    // 測試 2: 陣列注入
     try {
         security.sanitizeInput(['admin', 'user']);
         log('fail', 'Array injection not detected');
@@ -218,8 +218,8 @@ function testNoSQLInjection() {
         log('pass', 'Array injection blocked');
         passed++;
     }
-    
-    // 测试 3: 正常字符串
+
+    // 測試 3: 正常字串
     try {
         const result = security.sanitizeInput('normalInput');
         if (result === 'normalInput') {
@@ -233,8 +233,8 @@ function testNoSQLInjection() {
         log('fail', `Normal string rejected: ${error.message}`);
         failed++;
     }
-    
-    // 测试 4: 长度限制
+
+    // 測試 4: 長度限制
     try {
         const long = 'A'.repeat(200);
         const result = security.sanitizeInput(long, 100);
@@ -252,17 +252,17 @@ function testNoSQLInjection() {
 }
 
 // ============================================
-// 测试：凭证验证
+// 測試：憑證驗證
 // ============================================
 function testCredentials() {
     console.log('\n📝 Testing Credentials Validation...\n');
-    
-    // 测试 1: 有效凭证
+
+    // 測試 1: 有效憑證
     const valid = security.validateCredentials({
         userName: 'player123',
         userPassword: 'password123'
     });
-    
+
     if (valid.valid === true) {
         log('pass', 'Valid credentials accepted');
         passed++;
@@ -270,13 +270,13 @@ function testCredentials() {
         log('fail', `Valid credentials rejected: ${valid.error}`);
         failed++;
     }
-    
-    // 测试 2: 短用户名
+
+    // 測試 2: 短使用者名稱
     const shortName = security.validateCredentials({
         userName: 'ab',
         userPassword: 'password123'
     });
-    
+
     if (shortName.valid === false) {
         log('pass', 'Short username rejected');
         passed++;
@@ -284,13 +284,13 @@ function testCredentials() {
         log('fail', 'Short username accepted');
         failed++;
     }
-    
-    // 测试 3: 短密码
+
+    // 測試 3: 短密碼
     const shortPass = security.validateCredentials({
         userName: 'player123',
         userPassword: '12345'
     });
-    
+
     if (shortPass.valid === false) {
         log('pass', 'Short password rejected');
         passed++;
@@ -301,20 +301,20 @@ function testCredentials() {
 }
 
 // ============================================
-// 测试：日志清理
+// 測試：日誌清理
 // ============================================
 function testLogSanitization() {
     console.log('\n📝 Testing Log Sanitization...\n');
-    
-    // 测试 1: 清理密码
+
+    // 測試 1: 清理密碼
     const sensitive = {
         userName: 'player',
         password: 'secret123',
         message: 'Hello'
     };
-    
+
     const cleaned = security.sanitizeLogData(sensitive);
-    
+
     if (cleaned.password === '[REDACTED]') {
         log('pass', 'Password redacted in logs');
         passed++;
@@ -322,7 +322,7 @@ function testLogSanitization() {
         log('fail', 'Password not redacted');
         failed++;
     }
-    
+
     if (cleaned.userName === 'player' && cleaned.message === 'Hello') {
         log('pass', 'Non-sensitive data preserved');
         passed++;
@@ -330,15 +330,15 @@ function testLogSanitization() {
         log('fail', 'Non-sensitive data lost');
         failed++;
     }
-    
-    // 测试 2: 清理 token
+
+    // 測試 2: 清理 token
     const withToken = {
         userId: '123',
         token: 'jwt.token.here'
     };
-    
+
     const cleanedToken = security.sanitizeLogData(withToken);
-    
+
     if (cleanedToken.token === '[REDACTED]') {
         log('pass', 'Token redacted in logs');
         passed++;
@@ -349,12 +349,12 @@ function testLogSanitization() {
 }
 
 // ============================================
-// 测试：Origin 验证
+// 測試：Origin 驗證
 // ============================================
 function testOriginValidation() {
     console.log('\n📝 Testing Origin Validation...\n');
-    
-    // 测试 1: 有效域名
+
+    // 測試 1: 有效域名
     const valid = security.validateOrigin('https://hktrpg.com');
     if (valid === true) {
         log('pass', 'Valid origin accepted');
@@ -363,8 +363,8 @@ function testOriginValidation() {
         log('fail', 'Valid origin rejected');
         failed++;
     }
-    
-    // 测试 2: 有效子域名
+
+    // 測試 2: 有效子域名
     const subdomain = security.validateOrigin('https://api.hktrpg.com');
     if (subdomain === true) {
         log('pass', 'Valid subdomain accepted');
@@ -373,8 +373,8 @@ function testOriginValidation() {
         log('fail', 'Valid subdomain rejected');
         failed++;
     }
-    
-    // 测试 3: 无效域名
+
+    // 測試 3: 無效域名
     const invalid = security.validateOrigin('https://evil.com');
     if (invalid === false) {
         log('pass', 'Invalid origin rejected');
@@ -383,8 +383,8 @@ function testOriginValidation() {
         log('fail', 'Invalid origin accepted');
         failed++;
     }
-    
-    // 测试 4: localhost（开发环境）
+
+    // 測試 4: localhost（開發環境）
     const localhost = security.validateOrigin('http://localhost:20721');
     if (localhost === true) {
         log('pass', 'Localhost accepted (dev mode)');
@@ -396,26 +396,26 @@ function testOriginValidation() {
 }
 
 // ============================================
-// 运行所有测试
+// 執行所有測試
 // ============================================
 async function runAllTests() {
     console.log('🧪 Starting Security Tests...');
     console.log('═'.repeat(50));
-    
+
     await testPasswordHashing();
     testInputValidation();
     testNoSQLInjection();
     testCredentials();
     testLogSanitization();
     testOriginValidation();
-    
+
     console.log('\n' + '═'.repeat(50));
     console.log(`\n📊 Test Results:`);
     console.log(`${colors.green}✅ Passed: ${passed}${colors.reset}`);
     console.log(`${colors.red}❌ Failed: ${failed}${colors.reset}`);
     console.log(`📈 Total: ${passed + failed}`);
     console.log(`🎯 Success Rate: ${((passed / (passed + failed)) * 100).toFixed(1)}%`);
-    
+
     if (failed === 0) {
         console.log(`\n${colors.green}🎉 All tests passed!${colors.reset}\n`);
     } else {
@@ -424,7 +424,7 @@ async function runAllTests() {
     }
 }
 
-// 运行测试
+// 執行測試
 if (require.main === module) {
     runAllTests().catch(error => {
         console.error('Test execution error:', error);

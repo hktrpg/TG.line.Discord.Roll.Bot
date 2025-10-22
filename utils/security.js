@@ -1,19 +1,19 @@
 /**
  * Security Utilities for HKTRPG
- * 安全工具函数集
+ * 安全工具函式集
  */
 
 const crypto = require('crypto');
 
 // ============================================
-// 密码哈希（使用 bcrypt）
+// 密碼雜湊（使用 bcrypt）
 // ============================================
-// 注意：需要先安装 bcrypt
+// 注意：需要先安裝 bcrypt
 // npm install bcrypt
 
 let bcrypt;
 try {
-    bcrypt = require('bcrypt');
+    bcrypt = require('bcryptjs');
 } catch {
     console.warn('⚠️ bcrypt not installed. Using fallback (NOT SECURE for production)');
 }
@@ -21,33 +21,33 @@ try {
 const SALT_ROUNDS = 12;
 
 /**
- * 哈希密码
- * @param {string} password - 明文密码
- * @returns {Promise<string>} 哈希后的密码
+ * 雜湊密碼
+ * @param {string} password - 明文密碼
+ * @returns {Promise<string>} 雜湊后的密碼
  */
 async function hashPassword(password) {
     if (!password || typeof password !== 'string') {
         throw new Error('Invalid password');
     }
-    
+
     if (bcrypt) {
         return await bcrypt.hash(password, SALT_ROUNDS);
     } else {
-        // Fallback（仅用于开发，不安全）
+        // Fallback（僅用於開發，不安全）
         console.warn('⚠️ Using insecure password hash fallback!');
         return crypto.createHash('sha256').update(password).digest('hex');
     }
 }
 
 /**
- * 验证密码
- * @param {string} password - 明文密码
- * @param {string} hash - 哈希值
+ * 驗證密碼
+ * @param {string} password - 明文密碼
+ * @param {string} hash - 雜湊值
  * @returns {Promise<boolean>} 是否匹配
  */
 async function verifyPassword(password, hash) {
     if (!password || !hash) return false;
-    
+
     try {
         if (bcrypt) {
             return await bcrypt.compare(password, hash);
@@ -63,47 +63,47 @@ async function verifyPassword(password, hash) {
 }
 
 // ============================================
-// 输入验证
+// 輸入驗證
 // ============================================
 
 /**
- * 清理输入（防止 NoSQL 注入）
- * @param {any} input - 用户输入
- * @param {number} maxLength - 最大长度
- * @returns {string} 清理后的字符串
+ * 清理輸入（防止 NoSQL 注入）
+ * @param {any} input - 使用者輸入
+ * @param {number} maxLength - 最大長度
+ * @returns {string} 清理后的字串
  */
 function sanitizeInput(input, maxLength = 100) {
     if (typeof input !== 'string') {
         throw new Error('Invalid input type - expected string');
     }
-    
+
     return input.trim().slice(0, maxLength);
 }
 
 /**
- * 验证聊天消息
- * @param {object} msg - 消息对象
+ * 驗證聊天訊息
+ * @param {object} msg - 訊息對像
  * @returns {object} { valid: boolean, error?: string, data?: object }
  */
 function validateChatMessage(msg) {
-    // 类型检查
+    // 型別檢查
     if (!msg || typeof msg !== 'object') {
         return { valid: false, error: 'Invalid message format' };
     }
-    
-    // 验证名称
+
+    // 驗證名稱
     const name = String(msg.name || '').trim();
     if (!name || name.length < 1 || name.length > 50) {
         return { valid: false, error: 'Invalid name length (1-50 characters)' };
     }
-    
-    // 验证消息内容
+
+    // 驗證訊息內容
     const text = String(msg.msg || '').trim();
     if (!text || text.length < 1 || text.length > 2000) {
         return { valid: false, error: 'Invalid message length (1-2000 characters)' };
     }
-    
-    // XSS 防护 - 检查可疑模式
+
+    // XSS 防護 - 檢查可疑模式
     const suspiciousPatterns = [
         /<script/i,
         /javascript:/i,
@@ -112,19 +112,19 @@ function validateChatMessage(msg) {
         /<object/i,
         /<embed/i
     ];
-    
+
     for (const pattern of suspiciousPatterns) {
         if (pattern.test(text)) {
             return { valid: false, error: 'Suspicious content detected' };
         }
     }
-    
-    // 验证房间号
+
+    // 驗證房間號
     const room = String(msg.roomNumber || '').trim();
     if (!room || room.length > 50) {
         return { valid: false, error: 'Invalid room number' };
     }
-    
+
     return {
         valid: true,
         data: {
@@ -136,7 +136,7 @@ function validateChatMessage(msg) {
 }
 
 /**
- * 验证用户名和密码
+ * 驗證使用者名稱和密碼
  * @param {object} credentials - { userName, userPassword }
  * @returns {object} { valid: boolean, error?: string, data?: object }
  */
@@ -144,17 +144,17 @@ function validateCredentials(credentials) {
     if (!credentials || typeof credentials !== 'object') {
         return { valid: false, error: 'Invalid credentials format' };
     }
-    
+
     const userName = String(credentials.userName || '').trim();
     if (!userName || userName.length < 3 || userName.length > 50) {
         return { valid: false, error: 'Invalid username length (3-50 characters)' };
     }
-    
+
     const password = String(credentials.userPassword || '');
     if (!password || password.length < 6 || password.length > 100) {
         return { valid: false, error: 'Invalid password length (6-100 characters)' };
     }
-    
+
     return {
         valid: true,
         data: {
@@ -165,9 +165,9 @@ function validateCredentials(credentials) {
 }
 
 // ============================================
-// JWT 认证（可选）
+// JWT 認證（可選）
 // ============================================
-// 注意：需要先安装 jsonwebtoken
+// 注意：需要先安裝 jsonwebtoken
 // npm install jsonwebtoken
 
 let jwt;
@@ -181,21 +181,21 @@ const JWT_SECRET = process.env.JWT_SECRET || 'change-this-secret-in-production';
 const JWT_EXPIRES_IN = '24h';
 
 /**
- * 生成 JWT Token
- * @param {object} user - 用户对象 { id, userName }
+ * 產生 JWT Token
+ * @param {object} user - 使用者對像 { id, userName }
  * @returns {string} JWT token
  */
 function generateToken(user) {
     if (!jwt) {
         throw new Error('jsonwebtoken not installed');
     }
-    
+
     if (!user || !user.id) {
         throw new Error('Invalid user object');
     }
-    
+
     return jwt.sign(
-        { 
+        {
             userId: user.id,
             userName: user.userName
         },
@@ -205,20 +205,20 @@ function generateToken(user) {
 }
 
 /**
- * 验证 JWT Token
+ * 驗證 JWT Token
  * @param {string} token - JWT token
- * @returns {object|null} 解码后的用户信息，或 null
+ * @returns {object|null} 解碼后的使用者資訊，或 null
  */
 function verifyToken(token) {
     if (!jwt) {
         console.error('jsonwebtoken not installed');
         return null;
     }
-    
+
     if (!token || typeof token !== 'string') {
         return null;
     }
-    
+
     try {
         return jwt.verify(token, JWT_SECRET);
     } catch (error) {
@@ -228,82 +228,82 @@ function verifyToken(token) {
 }
 
 /**
- * Socket.IO 认证中间件
- * @param {object} socket - Socket 对象
- * @param {function} next - 下一个中间件
+ * Socket.IO 認證中介軟體
+ * @param {object} socket - Socket 對像
+ * @param {function} next - 下一個中介軟體
  */
 function socketAuthMiddleware(socket, next) {
     const token = socket.handshake.auth.token;
-    
+
     if (!token) {
         return next(new Error('Authentication required'));
     }
-    
+
     const decoded = verifyToken(token);
     if (!decoded) {
         return next(new Error('Invalid or expired token'));
     }
-    
-    // 将用户信息附加到 socket
+
+    // 將使用者資訊附加到 socket
     socket.userId = decoded.userId;
     socket.userName = decoded.userName;
-    
+
     next();
 }
 
 // ============================================
-// Origin 验证
+// Origin 驗證
 // ============================================
 
 const ALLOWED_ORIGINS = [
     'https://hktrpg.com',
     'https://www.hktrpg.com',
-    'http://localhost:20721'  // 开发环境
+    'http://localhost:20721'  // 開發環境
 ];
 
 /**
- * 验证请求来源
- * @param {string} origin - 请求来源
- * @returns {boolean} 是否允许
+ * 驗證請求來源
+ * @param {string} origin - 請求來源
+ * @returns {boolean} 是否允許
  */
 function validateOrigin(origin) {
     if (!origin) {
         return false;
     }
-    
-    return ALLOWED_ORIGINS.includes(origin) || 
-           origin.match(/^https:\/\/.*\.hktrpg\.com$/);
+
+    return ALLOWED_ORIGINS.includes(origin) ||
+        origin.match(/^https:\/\/.*\.hktrpg\.com$/);
 }
 
 /**
- * Socket.IO Origin 验证中间件
- * @param {object} socket - Socket 对象
- * @param {function} next - 下一个中间件
+ * Socket.IO Origin 驗證中介軟體
+ * @param {object} socket - Socket 對像
+ * @param {function} next - 下一個中介軟體
  */
 function socketOriginMiddleware(socket, next) {
     const origin = socket.handshake.headers.origin;
-    
+
     if (!origin) {
         console.warn('No origin header in socket connection');
-        return next();  // 允许无 origin（可能是移动端）
+        return next();  // 允許無 origin（可能是移動端）
     }
-    
+
     if (!validateOrigin(origin)) {
         console.warn('Rejected connection from invalid origin:', origin);
         return next(new Error('Invalid origin'));
     }
-    
+
     next();
 }
 
 // ============================================
-// 日志清理
+// 日誌清理
 // ============================================
 
 /**
- * 清理日志中的敏感信息
- * @param {any} data - 要记录的数据
- * @returns {any} 清理后的数据
+ * 清理日誌中的敏感資訊
+ * @param {any} data - 要記錄的數據
+ * @returns {any} 清理后的數據
  */
 function sanitizeLogData(data) {
     if (typeof data === 'string') {
@@ -313,48 +313,48 @@ function sanitizeLogData(data) {
             return data;
         }
     }
-    
+
     if (typeof data === 'object' && data !== null) {
         const cleaned = { ...data };
-        
-        // 移除敏感字段
+
+        // 移除敏感欄位
         const sensitiveFields = ['password', 'userPassword', 'token', 'secret'];
         for (const field of sensitiveFields) {
             if (cleaned[field]) {
                 cleaned[field] = '[REDACTED]';
             }
         }
-        
+
         return cleaned;
     }
-    
+
     return data;
 }
 
 // ============================================
-// 导出
+// 導出
 // ============================================
 
 module.exports = {
-    // 密码
+    // 密碼
     hashPassword,
     verifyPassword,
-    
-    // 输入验证
+
+    // 輸入驗證
     sanitizeInput,
     validateChatMessage,
     validateCredentials,
-    
-    // JWT（如果已安装）
+
+    // JWT（如果已安裝）
     generateToken: jwt ? generateToken : null,
     verifyToken: jwt ? verifyToken : null,
     socketAuthMiddleware: jwt ? socketAuthMiddleware : null,
-    
-    // Origin 验证
+
+    // Origin 驗證
     validateOrigin,
     socketOriginMiddleware,
-    
-    // 日志
+
+    // 日誌
     sanitizeLogData
 };
 

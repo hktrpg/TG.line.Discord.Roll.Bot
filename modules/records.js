@@ -453,14 +453,19 @@ class Records extends EventEmitter {
     // Chat room operations
     async chatRoomPush(message) {
         try {
+            // 🔒 添加调试日志
+            console.log('[DEBUG] chatRoomPush input:', JSON.stringify(message));
+            
             // 🔒 使用增强的输入验证
             const validation = InputValidator.validateChatMessage(message);
             if (!validation.valid) {
                 console.error(`[SECURITY] Invalid chat message: ${validation.error}`);
+                console.error(`[SECURITY] Input message:`, JSON.stringify(message));
                 throw new Error(`Invalid chat message: ${validation.error}`);
             }
 
             const { name, msg, roomNumber } = validation.data;
+            console.log('[DEBUG] Validated data:', { name, msg, roomNumber });
             const safeTime = message.time ? new Date(message.time) : new Date();
 
             const chatMessage = new this.ChatRoomModel({

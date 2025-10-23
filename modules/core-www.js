@@ -545,31 +545,15 @@ if (io) {
             if (await limitRaterCard(socket.handshake.address)) return;
             
             try {
-                // 🔒 Decode password from Base64 first
-                let decodedPassword;
-                try {
-                    if (!message.userPassword) {
-                        throw new Error('No password provided');
-                    }
-                    decodedPassword = Buffer.from(message.userPassword, 'base64').toString('utf8');
-                } catch (decodeError) {
-                    console.warn('🔒 Failed to decode password for getListInfo:', decodeError.message);
-                    socket.emit('getListInfo', { temp: null, id: [] });
-                    return;
-                }
-                
                 // 🔒 验证输入
-                const validation = security.validateCredentials({
-                    userName: message.userName,
-                    userPassword: decodedPassword
-                });
+                const validation = security.validateCredentials(message);
                 if (!validation.valid) {
                     console.warn('🔒 Invalid credentials:', validation.error);
                     socket.emit('getListInfo', { temp: null, id: [] });
                     return;
                 }
                 
-                const { userName, userPassword: password } = validation.data;
+                const { userName, password } = validation.data;
                 
                 // 🔒 防止 NoSQL 注入 - 强制类型转换
                 let filter = {
@@ -588,13 +572,6 @@ if (io) {
                     socket.emit('getListInfo', { temp: null, id: [] });
                     return;
                 }
-                
-                console.log('🔍 Debug before verification:', {
-                    userName: userName,
-                    password: password,
-                    storedHash: doc.password,
-                    hashLength: doc.password ? doc.password.length : 0
-                });
                 
                 const isValid = await verifyPasswordSecure(password, doc.password);
                 if (!isValid) {
@@ -678,47 +655,12 @@ if (io) {
                 // If a selectedGroupId is provided, use it as the target for the roll
                 if (message.selectedGroupId && message.selectedGroupId !== "") {
                     try {
-                        // 🔒 Decode password from Base64 first
-                        let decodedPassword;
-                        try {
-                            if (!message.userPassword) {
-                                throw new Error('No password provided');
-                            }
-                            decodedPassword = Buffer.from(message.userPassword, 'base64').toString('utf8');
-                        } catch (decodeError) {
-                            console.warn('🔒 Failed to decode password for selectedGroupId:', decodeError.message);
-                            return;
-                        }
-                        
-                        // 🔒 Use secure verification instead of direct SHA
-                        const validation = security.validateCredentials({
-                            userName: message.userName,
-                            userPassword: decodedPassword
-                        });
-                        if (!validation.valid) {
-                            console.warn('🔒 Invalid credentials for selectedGroupId:', validation.error);
-                            return;
-                        }
-                        
-                        const { userName, userPassword: password } = validation.data;
-                        
                         let filter = {
-                            userName: String(userName).trim()
+                            userName: message.userName,
+                            password: SHA(message.userPassword),
                         };
 
                         let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error:', error.name, error.message));
-                        
-                        if (!result) {
-                            console.warn('🔒 User not found for selectedGroupId');
-                            return;
-                        }
-                        
-                        // 🔒 Verify password securely
-                        const isValid = await verifyPasswordSecure(password, result.password);
-                        if (!isValid) {
-                            console.warn('🔒 Invalid password for selectedGroupId');
-                            return;
-                        }
                         if (result && result.channel) {
                             // Find the channel with matching ID - needs to be compared as strings
                             const targetChannel = result.channel.find(ch => ch._id && ch._id.toString() === message.selectedGroupId);
@@ -743,29 +685,14 @@ if (io) {
                 // Legacy support for rollTarget
                 else if (message.rollTarget && message.rollTarget.id && message.rollTarget.botname && message.userName && message.userPassword && message.cardName) {
                     try {
-                        // 🔒 Decode password from Base64 first
-                        let decodedPassword;
-                        try {
-                            if (!message.userPassword) {
-                                throw new Error('No password provided');
-                            }
-                            decodedPassword = Buffer.from(message.userPassword, 'base64').toString('utf8');
-                        } catch (decodeError) {
-                            console.warn('🔒 Failed to decode password for rolling:', decodeError.message);
-                            return;
-                        }
-                        
                         // 🔒 验证凭证
-                        const validation = security.validateCredentials({
-                            userName: message.userName,
-                            userPassword: decodedPassword
-                        });
+                        const validation = security.validateCredentials(message);
                         if (!validation.valid) {
                             console.warn('🔒 Invalid credentials for rolling:', validation.error);
                             return;
                         }
                         
-                        const { userName, userPassword: password } = validation.data;
+                        const { userName, password } = validation.data;
                         
                         // 🔒 防止 NoSQL 注入
                         let filter = {
@@ -826,55 +753,9 @@ if (io) {
             if (await limitRaterCard(socket.handshake.address)) return;
             //回傳 message 給發送訊息的 Client
             try {
-                // 🔒 Decode password from Base64 first
-                let decodedPassword;
-                try {
-                    if (!message.userPassword) {
-                        throw new Error('No password provided');
-                    }
-                    decodedPassword = Buffer.from(message.userPassword, 'base64').toString('utf8');
-                } catch (decodeError) {
-                    console.warn('🔒 Failed to decode password for removeChannel:', decodeError.message);
-                    return;
-                }
-                
-                // 🔒 Use secure verification instead of direct SHA
-                const validation = security.validateCredentials({
-                    userName: message.userName,
-                    userPassword: decodedPassword
-                });
-                if (!validation.valid) {
-                    console.warn('🔒 Invalid credentials for removeChannel:', validation.error);
-                    return;
-                }
-                
-                const { userName, userPassword: password } = validation.data;
-                
-                // 🔒 Find user and verify password securely
-                let filter = {
-                    userName: String(userName).trim()
-                };
-                
-                let userDoc = await schema.accountPW.findOne(filter)
-                    .catch(error => {
-                        console.error('🔒 MongoDB error:', error.message);
-                        return null;
-                    });
-                
-                if (!userDoc) {
-                    console.warn('🔒 User not found for removeChannel:', userName);
-                    return;
-                }
-                
-                const isValid = await verifyPasswordSecure(password, userDoc.password);
-                if (!isValid) {
-                    console.warn('🔒 Invalid password for removeChannel:', userName);
-                    return;
-                }
-                
-                // 🔒 Update using user ID instead of password hash
                 await schema.accountPW.updateOne({
-                    "_id": userDoc._id
+                    "userName": message.userName,
+                    "password": SHA(message.userPassword)
                 }, {
                     $pull: {
                         channel: {
@@ -893,18 +774,8 @@ if (io) {
             if (await limitRaterCard(socket.handshake.address)) return;
 
             try {
-                // 🔒 Decode password from Base64 with error handling
-                let decodedPassword;
-                try {
-                    if (!message.userPassword) {
-                        throw new Error('No password provided');
-                    }
-                    decodedPassword = Buffer.from(message.userPassword, 'base64').toString('utf8');
-                } catch (decodeError) {
-                    console.warn('🔒 Failed to decode password:', decodeError.message);
-                    socket.emit('updateCard', false);
-                    return;
-                }
+                // 🔒 Decode password from Base64
+                const decodedPassword = Buffer.from(message.userPassword, 'base64').toString('utf8');
                 
                 // 🔒 验证输入
                 const validation = security.validateCredentials({
@@ -918,7 +789,7 @@ if (io) {
                     return;
                 }
                 
-                const { userName, userPassword: password } = validation.data;
+                const { userName, password } = validation.data;
 
                 // 🔒 防止 NoSQL 注入
                 let filter = {
@@ -1082,14 +953,8 @@ records.on("new_message", async (message) => {
 // This function is kept for backward compatibility with existing password hashes
 // New code should use security.hashPassword() and security.verifyPassword()
 function SHA(text) {
-    // Ensure text is a string and salt is a string
-    if (!text || typeof text !== 'string') {
-        console.warn('⚠️ SHA function called with invalid text:', text);
-        return '';
-    }
-    const saltValue = salt || 'default-salt-for-legacy-compatibility';
-    return crypto.createHmac('sha256', saltValue)
-        .update(text)
+    return crypto.createHmac('sha256', text)
+        .update(salt)
         .digest('hex');
 }
 
@@ -1097,51 +962,13 @@ function SHA(text) {
 // Handles both legacy SHA hashes and new bcrypt hashes
 async function verifyPasswordSecure(password, hash) {
     try {
-        // Validate inputs
-        if (!password || !hash) {
-            console.warn('🔒 Invalid password or hash provided');
-            return false;
-        }
-        
         // First try bcrypt verification
         const bcryptValid = await security.verifyPassword(password, hash);
-        if (bcryptValid) {
-            console.log('✅ Password verified with bcrypt');
-            return true;
-        }
+        if (bcryptValid) return true;
         
         // Fallback: check if it matches legacy SHA hash
         const legacyHash = SHA(password);
-        console.log('🔍 Debug password verification:', {
-            password: password,
-            hash: hash,
-            legacyHash: legacyHash,
-            hashMatch: legacyHash === hash,
-            saltUsed: salt || 'default-salt-for-legacy-compatibility'
-        });
-        
-        // Try with different salt values if the default doesn't work
-        if (legacyHash !== hash) {
-            const commonSalts = [
-                '', // empty salt
-                'hktrpg', // common project name
-                'default', // common default
-                'salt', // literal salt
-                'password', // common password salt
-                'secret' // common secret
-            ];
-            
-            for (const testSalt of commonSalts) {
-                const testHash = crypto.createHmac('sha256', testSalt)
-                    .update(password)
-                    .digest('hex');
-                if (testHash === hash) {
-                    console.log('✅ Found matching salt:', testSalt);
-                    console.warn('⚠️ User authenticated with legacy hash. Consider migrating to bcrypt.');
-                    return true;
-                }
-            }
-        } else {
+        if (legacyHash === hash) {
             console.warn('⚠️ User authenticated with legacy hash. Consider migrating to bcrypt.');
             return true;
         }

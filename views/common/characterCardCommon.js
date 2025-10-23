@@ -190,7 +190,7 @@ function initializeVueApps(isPublic = false) {
                             socket.emit('publicRolling', {
                                 item: name,
                                 userName: localStorage.getItem("userName"),
-                                userPassword: btoa(simpleDecrypt(localStorage.getItem("userPassword"))), // 🔒 Base64 encode for server
+                                userPassword: simpleDecrypt(localStorage.getItem("userPassword")),
                                 doc: {
                                     name: this.name,
                                     state: this.state,
@@ -202,7 +202,7 @@ function initializeVueApps(isPublic = false) {
                             socket.emit('rolling', {
                                 item: name,
                                 userName: localStorage.getItem("userName"),
-                                userPassword: btoa(simpleDecrypt(localStorage.getItem("userPassword"))), // 🔒 Base64 encode for server
+                                userPassword: simpleDecrypt(localStorage.getItem("userPassword")),
                                 cardName: this.name,
                                 selectedGroupId: this.selectedGroupId,
                                 doc: {
@@ -283,7 +283,7 @@ function setupLoginForm() {
                 debugLog('User already logged in, attempting to get card list', 'info');
                 socket.emit('getListInfo', {
                     userName: userName,
-                    userPassword: btoa(userPassword) // 🔒 Base64 encode for server
+                    userPassword: userPassword
                 });
 
                 socket.once("getListInfo", function (listInfo) {
@@ -343,7 +343,7 @@ function login() {
     if (userName && userName.length >= 4 && userPassword && userPassword.length >= 6) {
         socket.emit('getListInfo', {
             userName: userName,
-            userPassword: btoa(userPassword) // 🔒 Base64 encode for server
+            userPassword: userPassword // Use original password for transmission
         });
 
         socket.on("getListInfo", function (listInfo) {

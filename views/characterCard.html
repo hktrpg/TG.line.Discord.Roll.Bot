@@ -85,9 +85,12 @@
                 return;
             }
 
+            // 🔒 Encode password to Base64 for secure transmission
+            const encodedPassword = btoa(userPassword);
+
             const data = {
                 userName: userName,
-                userPassword: userPassword,
+                userPassword: encodedPassword,
                 card: {
                     _id: card._id,
                     id: card.id,

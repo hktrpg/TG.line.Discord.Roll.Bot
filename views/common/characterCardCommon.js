@@ -190,7 +190,7 @@ function initializeVueApps(isPublic = false) {
                             socket.emit('publicRolling', {
                                 item: name,
                                 userName: localStorage.getItem("userName"),
-                                userPassword: simpleDecrypt(localStorage.getItem("userPassword")),
+                                userPassword: btoa(simpleDecrypt(localStorage.getItem("userPassword"))), // 🔒 Base64 encode for server
                                 doc: {
                                     name: this.name,
                                     state: this.state,
@@ -202,7 +202,7 @@ function initializeVueApps(isPublic = false) {
                             socket.emit('rolling', {
                                 item: name,
                                 userName: localStorage.getItem("userName"),
-                                userPassword: simpleDecrypt(localStorage.getItem("userPassword")),
+                                userPassword: btoa(simpleDecrypt(localStorage.getItem("userPassword"))), // 🔒 Base64 encode for server
                                 cardName: this.name,
                                 selectedGroupId: this.selectedGroupId,
                                 doc: {
@@ -283,7 +283,7 @@ function setupLoginForm() {
                 debugLog('User already logged in, attempting to get card list', 'info');
                 socket.emit('getListInfo', {
                     userName: userName,
-                    userPassword: userPassword
+                    userPassword: btoa(userPassword) // 🔒 Base64 encode for server
                 });
 
                 socket.once("getListInfo", function (listInfo) {
@@ -343,7 +343,7 @@ function login() {
     if (userName && userName.length >= 4 && userPassword && userPassword.length >= 6) {
         socket.emit('getListInfo', {
             userName: userName,
-            userPassword: userPassword // Use original password for transmission
+            userPassword: btoa(userPassword) // 🔒 Base64 encode for server
         });
 
         socket.on("getListInfo", function (listInfo) {

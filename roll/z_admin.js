@@ -4,7 +4,7 @@ const opt = {
     upsert: true,
     runValidators: true
 }
-const salt = process.env.SALT;
+// const salt = process.env.SALT; // No longer needed with new security module
 const crypto = require('crypto');
 // 🔧 Auto-fix CRYPTO_SECRET length for AES-256-CTR compatibility
 let password = process.env.CRYPTO_SECRET;
@@ -592,7 +592,7 @@ const rollDiceCommand = async function ({
                 }
                 rply.text = "此頻道已被Admin允許使用網頁版角色卡擲骰，希望經網頁擲骰的玩家可在此頻道輸入以下指令登記。\n.admin registerChannel\n\n如Admin希望取消本頻道的網頁擲骰許可，可輸入\n.admin disallowrolling";
                 return rply;
-            case /^account$/i.test(mainMsg[1]):
+            case /^account$/i.test(mainMsg[1]): {
                 if (groupid) {
                     rply.text = "設定帳號時，請直接和HKTRPG對話，禁止在群組中使用";
                     return rply;
@@ -614,9 +614,9 @@ const rollDiceCommand = async function ({
                     rply.text = "使用者密碼，6-16字，英文及以下符號限定!@#$%^&*";
                     return rply;
                 }
-                hash = crypto.createHmac('sha256', mainMsg[3])
-                    .update(salt)
-                    .digest('hex');
+                // 🔒 Use new secure password hashing
+                const security = require('../utils/security.js');
+                hash = await security.hashPassword(mainMsg[3]);
                 try {
                     temp = await schema.accountPW.findOne({
                         "userName": name
@@ -650,6 +650,7 @@ const rollDiceCommand = async function ({
                 rply.text += "現在你的帳號是: " + name + "\n" + "密碼: " + mainMsg[3];
                 rply.text += "\n登入位置: https://card.hktrpg.com/ \n如想經網頁擲骰，可以請Admin在頻道中輸入\n.admin  allowrolling\n然後希望擲骰玩家可在該頻道輸入以下指令登記。\n.admin registerChannel";
                 return rply;
+            }
             case /^news$/i.test(mainMsg[1]) && /^on$/i.test(mainMsg[2]):
                 if (!userid) return rply;
                 try {

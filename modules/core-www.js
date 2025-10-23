@@ -553,7 +553,7 @@ if (io) {
                     return;
                 }
                 
-                const { userName, password } = validation.data;
+                const { userName, userPassword: password } = validation.data;
                 
                 // 🔒 防止 NoSQL 注入 - 强制类型转换
                 let filter = {
@@ -692,7 +692,7 @@ if (io) {
                             return;
                         }
                         
-                        const { userName, password } = validation.data;
+                        const { userName, userPassword: password } = validation.data;
                         
                         // 🔒 防止 NoSQL 注入
                         let filter = {
@@ -789,7 +789,7 @@ if (io) {
                     return;
                 }
                 
-                const { userName, password } = validation.data;
+                const { userName, userPassword: password } = validation.data;
 
                 // 🔒 防止 NoSQL 注入
                 let filter = {

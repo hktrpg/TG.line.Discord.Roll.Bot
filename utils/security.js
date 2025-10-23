@@ -36,15 +36,20 @@ async function hashPassword(password) {
         // Fallback: Use legacy SHA256 with SALT for backward compatibility
         const salt = process.env.SALT;
         if (salt) {
-            console.warn('⚠️ Using legacy password hash with SALT for backward compatibility');
-            return crypto.createHmac('sha256', password)
-                .update(salt)
-                .digest('hex');
-        } else {
-            // Last resort fallback（僅用於開發，不安全）
-            console.warn('⚠️ Using insecure password hash fallback!');
-            return crypto.createHash('sha256').update(password).digest('hex');
+            try {
+                console.warn('⚠️ Using legacy password hash with SALT for backward compatibility');
+                return crypto.createHmac('sha256', password)
+                    .update(salt)
+                    .digest('hex');
+            } catch (error) {
+                console.error('🔒 Legacy hash creation failed:', error.message);
+                // Fall through to last resort
+            }
         }
+        
+        // Last resort fallback（僅用於開發，不安全）
+        console.warn('⚠️ Using insecure password hash fallback!');
+        return crypto.createHash('sha256').update(password).digest('hex');
     }
 }
 
@@ -67,13 +72,19 @@ async function verifyPassword(password, hash) {
         // Fallback: check if it matches legacy SHA256 hash with SALT
         const salt = process.env.SALT;
         if (salt) {
-            const legacyHash = crypto.createHmac('sha256', password)
-                .update(salt)
-                .digest('hex');
-            if (legacyHash === hash) {
-                console.warn('⚠️ User authenticated with legacy hash. Consider migrating to bcrypt.');
-                return true;
+            try {
+                const legacyHash = crypto.createHmac('sha256', password)
+                    .update(salt)
+                    .digest('hex');
+                if (legacyHash === hash) {
+                    console.warn('⚠️ User authenticated with legacy hash. Consider migrating to bcrypt.');
+                    return true;
+                }
+            } catch (error) {
+                console.error('🔒 Legacy hash verification failed:', error.message);
             }
+        } else {
+            console.warn('⚠️ SALT environment variable not set, cannot verify legacy passwords');
         }
         
         return false;

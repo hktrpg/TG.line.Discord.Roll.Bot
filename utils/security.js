@@ -384,6 +384,74 @@ function sanitizeLogData(data) {
 }
 
 // ============================================
+// 自動密碼升級
+// ============================================
+
+/**
+ * 自動升級密碼（如果使用舊密碼登入）
+ * @param {string} userName - 用戶名
+ * @param {string} password - 明文密碼
+ * @param {string} currentHash - 當前密碼雜湊
+ * @returns {Promise<boolean>} 是否成功升級
+ */
+async function upgradePasswordIfLegacy(userName, password, currentHash) {
+    try {
+        // 檢查是否為 legacy 密碼
+        if (currentHash.startsWith('$2b$')) {
+            // 已經是 bcrypt，無需升級
+            return false;
+        }
+        
+        // 檢查是否為 legacy SHA256 密碼
+        const salt = process.env.SALT;
+        if (!salt) {
+            console.warn('⚠️ SALT not set, cannot verify legacy password');
+            return false;
+        }
+        
+        const legacyHash = crypto.createHmac('sha256', password)
+            .update(salt)
+            .digest('hex');
+        
+        if (legacyHash !== currentHash) {
+            // 不是 legacy 密碼，無需升級
+            return false;
+        }
+        
+        console.log(`🔄 Upgrading password for user: ${userName}`);
+        
+        // 生成新的 bcrypt 密碼
+        const newHash = await hashPassword(password);
+        
+        // 更新數據庫
+        const schema = require('../modules/schema.js');
+        const result = await schema.accountPW.findOneAndUpdate(
+            { userName: userName },
+            { 
+                $set: { 
+                    password: newHash,
+                    legacyPassword: currentHash // 備份舊密碼
+                }
+            },
+            { new: true }
+        );
+        
+        if (result) {
+            console.log(`✅ Password upgraded for user: ${userName}`);
+            console.log(`   Old hash backed up to legacyPassword field`);
+            return true;
+        } else {
+            console.error(`❌ Failed to upgrade password for user: ${userName}`);
+            return false;
+        }
+        
+    } catch (error) {
+        console.error('❌ Password upgrade failed:', error.message);
+        return false;
+    }
+}
+
+// ============================================
 // 導出
 // ============================================
 
@@ -407,6 +475,9 @@ module.exports = {
     socketOriginMiddleware,
 
     // 日誌
-    sanitizeLogData
+    sanitizeLogData,
+    
+    // 🔄 自動密碼升級
+    upgradePasswordIfLegacy
 };
 

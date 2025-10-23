@@ -517,15 +517,15 @@ www.get('/:xx', async (req, res) => {
 
 // Socket.IO 連接處理 (只有在 server 存在時)
 if (io) {
-    // 🔒 添加安全中间件
+    // 🔒 新增安全中介軟體
     io.use((socket, next) => {
-        // Origin 验证
+        // Origin 驗證
         const origin = socket.handshake.headers.origin;
         if (origin) {
             const allowedOrigins = [
                 'https://hktrpg.com',
                 'https://www.hktrpg.com',
-                'http://localhost:20721'  // 开发环境
+                'http://localhost:20721'  // 開發環境
             ];
             
             const isAllowed = allowedOrigins.includes(origin) || 
@@ -545,7 +545,7 @@ if (io) {
             if (await limitRaterCard(socket.handshake.address)) return;
             
             try {
-                // 🔒 验证输入
+                // 🔒 驗證輸入
                 const validation = security.validateCredentials(message);
                 if (!validation.valid) {
                     console.warn('🔒 Invalid credentials:', validation.error);
@@ -555,7 +555,7 @@ if (io) {
                 
                 const { userName, userPassword: password } = validation.data;
                 
-                // 🔒 防止 NoSQL 注入 - 强制类型转换
+                // 🔒 防止 NoSQL 注入 - 強制型別轉換
                 let filter = {
                     userName: String(userName).trim()
                 };
@@ -566,7 +566,7 @@ if (io) {
                         return null;
                     });
                 
-                // 🔒 使用安全的密码验证（支持 legacy 和 bcrypt）
+                // 🔒 使用安全的密碼驗證（支援 legacy 和 bcrypt）
                 if (!doc) {
                     console.warn('🔒 User not found:', userName);
                     socket.emit('getListInfo', { temp: null, id: [] });
@@ -580,7 +580,20 @@ if (io) {
                     return;
                 }
                 
-                // 验证成功，获取数据
+                // 🔄 自動升級密碼（如果使用舊密碼）
+                try {
+                    const upgraded = await security.upgradePasswordIfLegacy(userName, password, doc.password);
+                    if (upgraded) {
+                        console.log(`🔄 Password automatically upgraded for user: ${userName}`);
+                        // 重新獲取用戶數據（包含升級後的密碼）
+                        doc = await schema.accountPW.findOne({ userName: userName });
+                    }
+                } catch (error) {
+                    console.error('🔄 Password upgrade failed:', error.message);
+                    // 升級失敗不影響登入流程
+                }
+                
+                // 驗證成功，獲取數據
                 let temp;
                 if (doc.id) {
                     temp = await schema.characterCard.find({ id: doc.id })
@@ -685,7 +698,7 @@ if (io) {
                 // Legacy support for rollTarget
                 else if (message.rollTarget && message.rollTarget.id && message.rollTarget.botname && message.userName && message.userPassword && message.cardName) {
                     try {
-                        // 🔒 验证凭证
+                        // 🔒 驗證憑證
                         const validation = security.validateCredentials(message);
                         if (!validation.valid) {
                             console.warn('🔒 Invalid credentials for rolling:', validation.error);
@@ -712,11 +725,24 @@ if (io) {
                             return;
                         }
                         
-                        // 🔒 验证密码
+                        // 🔒 驗證密碼
                         const isValid = await verifyPasswordSecure(password, userDoc.password);
                         if (!isValid) {
                             console.warn('🔒 Invalid password for rolling');
                             return;
+                        }
+                        
+                        // 🔄 自動升級密碼（如果使用舊密碼）
+                        try {
+                            const upgraded = await security.upgradePasswordIfLegacy(userName, password, userDoc.password);
+                            if (upgraded) {
+                                console.log(`🔄 Password automatically upgraded for rolling user: ${userName}`);
+                                // 重新獲取用戶數據（包含升級後的密碼）
+                                userDoc = await schema.accountPW.findOne(filter);
+                            }
+                        } catch (error) {
+                            console.error('🔄 Password upgrade failed for rolling:', error.message);
+                            // 升級失敗不影響擲骰流程
                         }
                         
                         let filter2 = {
@@ -777,7 +803,7 @@ if (io) {
                 // 🔒 Decode password from Base64
                 const decodedPassword = Buffer.from(message.userPassword, 'base64').toString('utf8');
                 
-                // 🔒 验证输入
+                // 🔒 驗證輸入
                 const validation = security.validateCredentials({
                     userName: message.userName,
                     userPassword: decodedPassword
@@ -802,7 +828,7 @@ if (io) {
                         return null;
                     });
                 
-                // 🔒 使用安全的密码验证
+                // 🔒 使用安全的密碼驗證
                 if (!doc) {
                     console.warn('🔒 User not found for updateCard:', userName);
                     socket.emit('updateCard', false);
@@ -816,7 +842,20 @@ if (io) {
                     return;
                 }
                 
-                // 验证成功，更新卡片
+                // 🔄 自動升級密碼（如果使用舊密碼）
+                try {
+                    const upgraded = await security.upgradePasswordIfLegacy(userName, password, doc.password);
+                    if (upgraded) {
+                        console.log(`🔄 Password automatically upgraded for updateCard user: ${userName}`);
+                        // 重新獲取用戶數據（包含升級後的密碼）
+                        doc = await schema.accountPW.findOne(filter);
+                    }
+                } catch (error) {
+                    console.error('🔄 Password upgrade failed for updateCard:', error.message);
+                    // 升級失敗不影響更新流程
+                }
+                
+                // 驗證成功，更新卡片
                 let temp;
                 if (doc.id && message.card) {
                     message.card.state = checkNullItem(message.card.state || []);
@@ -869,7 +908,7 @@ if (io) {
         socket.on("send", async (msg) => {
             if (await limitRaterChatRoom(socket.handshake.address)) return;
             
-            // 🔒 使用安全的输入验证
+            // 🔒 使用安全的輸入驗證
             const validation = security.validateChatMessage(msg);
             if (!validation.valid) {
                 console.warn('🔒 Invalid chat message:', validation.error, 
@@ -878,7 +917,7 @@ if (io) {
                 return;
             }
 
-            // 🔒 修复：使用正确的字段名 msg 和 roomNumber
+            // 🔒 修復：使用正確的欄位名 msg 和 roomNumber
             const { name, msg: text, roomNumber } = validation.data;
             const time = new Date(); // Use server's time for accuracy
 
@@ -886,7 +925,7 @@ if (io) {
                 name: name,
                 msg: '\n' + text, // keep leading newline as before
                 time: time,
-                roomNumber: roomNumber  // 🔒 修复：使用 roomNumber
+                roomNumber: roomNumber  // 🔒 修復：使用 roomNumber
             };
 
             records.chatRoomPush(payload);

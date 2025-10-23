@@ -962,18 +962,8 @@ function SHA(text) {
 // Handles both legacy SHA hashes and new bcrypt hashes
 async function verifyPasswordSecure(password, hash) {
     try {
-        // First try bcrypt verification
-        const bcryptValid = await security.verifyPassword(password, hash);
-        if (bcryptValid) return true;
-        
-        // Fallback: check if it matches legacy SHA hash
-        const legacyHash = SHA(password);
-        if (legacyHash === hash) {
-            console.warn('⚠️ User authenticated with legacy hash. Consider migrating to bcrypt.');
-            return true;
-        }
-        
-        return false;
+        // Use the security module which handles both legacy and new hashes
+        return await security.verifyPassword(password, hash);
     } catch (error) {
         console.error('🔒 Password verification error:', error.message);
         return false;

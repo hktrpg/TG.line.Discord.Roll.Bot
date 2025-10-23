@@ -6,8 +6,23 @@ const opt = {
 }
 const salt = process.env.SALT;
 const crypto = require('crypto');
-const password = process.env.CRYPTO_SECRET,
-    algorithm = 'aes-256-ctr';
+// 🔧 Auto-fix CRYPTO_SECRET length for AES-256-CTR compatibility
+let password = process.env.CRYPTO_SECRET;
+if (password) {
+    if (password.length > 32) {
+        // Truncate if too long
+        password = password.slice(0, 32);
+        console.warn('⚠️ CRYPTO_SECRET truncated to 32 characters for AES-256-CTR');
+    } else if (password.length < 32) {
+        // Pad with zeros if too short
+        password = password.padEnd(32, '0');
+        console.warn('⚠️ CRYPTO_SECRET padded to 32 characters for AES-256-CTR');
+    }
+} else {
+    console.error('❌ CRYPTO_SECRET environment variable is not set');
+}
+
+const algorithm = 'aes-256-ctr';
 //32bit ASCII
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id
@@ -858,23 +873,43 @@ async function store(mainMsg, mode) {
 
 
 function encrypt(text) {
-    let iv = crypto.randomBytes(16);
-    let cipher = crypto.createCipheriv(algorithm, Buffer.from(password, 'utf8'), iv);
-    let encrypted = cipher.update(text);
-    encrypted = Buffer.concat([encrypted, cipher.final()]);
-    return iv.toString('hex') + ':' + encrypted.toString('hex');
+    if (!password) {
+        console.error('❌ CRYPTO_SECRET environment variable is not set');
+        return 'ENCRYPTION_ERROR: CRYPTO_SECRET not configured';
+    }
+    
+    try {
+        let iv = crypto.randomBytes(16);
+        let cipher = crypto.createCipheriv(algorithm, Buffer.from(password, 'utf8'), iv);
+        let encrypted = cipher.update(text);
+        encrypted = Buffer.concat([encrypted, cipher.final()]);
+        return iv.toString('hex') + ':' + encrypted.toString('hex');
+    } catch (error) {
+        console.error('❌ Encryption failed:', error.message);
+        return 'ENCRYPTION_ERROR: ' + error.message;
+    }
 }
 
 
 
 function decrypt(text) {
-    let textParts = text.split(':');
-    let iv = Buffer.from(textParts.shift(), 'hex');
-    let encryptedText = Buffer.from(textParts.join(':'), 'hex');
-    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(password, 'utf8'), iv);
-    let decrypted = decipher.update(encryptedText);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    return decrypted.toString();
+    if (!password) {
+        console.error('❌ CRYPTO_SECRET environment variable is not set');
+        return 'DECRYPTION_ERROR: CRYPTO_SECRET not configured';
+    }
+    
+    try {
+        let textParts = text.split(':');
+        let iv = Buffer.from(textParts.shift(), 'hex');
+        let encryptedText = Buffer.from(textParts.join(':'), 'hex');
+        let decipher = crypto.createDecipheriv(algorithm, Buffer.from(password, 'utf8'), iv);
+        let decrypted = decipher.update(encryptedText);
+        decrypted = Buffer.concat([decrypted, decipher.final()]);
+        return decrypted.toString();
+    } catch (error) {
+        console.error('❌ Decryption failed:', error.message);
+        return 'DECRYPTION_ERROR: ' + error.message;
+    }
 }
 
 module.exports = {

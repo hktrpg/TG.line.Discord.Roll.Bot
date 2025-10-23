@@ -33,9 +33,18 @@ async function hashPassword(password) {
     if (bcrypt) {
         return await bcrypt.hash(password, SALT_ROUNDS);
     } else {
-        // Fallback（僅用於開發，不安全）
-        console.warn('⚠️ Using insecure password hash fallback!');
-        return crypto.createHash('sha256').update(password).digest('hex');
+        // Fallback: Use legacy SHA256 with SALT for backward compatibility
+        const salt = process.env.SALT;
+        if (salt) {
+            console.warn('⚠️ Using legacy password hash with SALT for backward compatibility');
+            return crypto.createHmac('sha256', password)
+                .update(salt)
+                .digest('hex');
+        } else {
+            // Last resort fallback（僅用於開發，不安全）
+            console.warn('⚠️ Using insecure password hash fallback!');
+            return crypto.createHash('sha256').update(password).digest('hex');
+        }
     }
 }
 
@@ -49,13 +58,25 @@ async function verifyPassword(password, hash) {
     if (!password || !hash) return false;
 
     try {
+        // First try bcrypt verification (for new passwords)
         if (bcrypt) {
-            return await bcrypt.compare(password, hash);
-        } else {
-            // Fallback
-            const testHash = crypto.createHash('sha256').update(password).digest('hex');
-            return testHash === hash;
+            const bcryptValid = await bcrypt.compare(password, hash);
+            if (bcryptValid) return true;
         }
+        
+        // Fallback: check if it matches legacy SHA256 hash with SALT
+        const salt = process.env.SALT;
+        if (salt) {
+            const legacyHash = crypto.createHmac('sha256', password)
+                .update(salt)
+                .digest('hex');
+            if (legacyHash === hash) {
+                console.warn('⚠️ User authenticated with legacy hash. Consider migrating to bcrypt.');
+                return true;
+            }
+        }
+        
+        return false;
     } catch (error) {
         console.error('Password verification error:', error.message);
         return false;

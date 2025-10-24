@@ -3089,6 +3089,26 @@
             loadImage(img) {
                 const src = img.getAttribute('data-src');
                 
+                // Only allow safe protocols for image src
+                const isSafeSrc = (
+                    typeof src === 'string' &&
+                    (
+                        src.startsWith('https://') ||
+                        src.startsWith('http://') ||
+                        src.startsWith('data:')
+                    )
+                );
+                
+                if (!isSafeSrc) {
+                    if (placeholder) {
+                        placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片來源不安全或格式不正確</span>';
+                        placeholder.classList.remove('loading');
+                        placeholder.classList.add('error');
+                    }
+                    console.warn('❌ Refusing to load unsafe src:', src);
+                    return;
+                }
+                
                 if (!src) {
                     console.warn('⚠️ No data-src attribute');
                     return;

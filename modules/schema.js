@@ -212,6 +212,7 @@ const accountPasswordSchema = mongoose.model('accountPW', new mongoose.Schema({
     id: { type: String, index: true },
     userName: { type: String, index: true },
     password: String,
+    legacyPassword: { type: String, default: null }, // 🔒 Backup for legacy passwords
     channel: [{
         id: String,
         botname: String,

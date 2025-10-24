@@ -9,6 +9,12 @@
     <title>HKTRPG 擲骰機器人及聊天室 1D100 2D6 查詢指令輸入Bothelp</title>
     <meta name="description" content="HKTRPG - 線上擲骰聊天室，支援多種TRPG系統">
     <meta name="theme-color" content="#343a40">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <script>
         (function() {
             const theme = localStorage.getItem('theme') || 'light';
@@ -137,9 +143,14 @@
                     <div class="container">
                         <form id="send-form" class="needs-validation" novalidate>
                             <div class="input-group">
-                                <input type="text" class="form-control" name="msg" id="msg" value="1d100"
-                                    placeholder="說點什麼？" maxlength="1000" required>
-                                <button type="submit" class="btn btn-primary">送出</button>
+                                <textarea class="form-control message-input" name="msg" id="msg" 
+                                    placeholder="說點什麼？" maxlength="1000" rows="1" required>1d100</textarea>
+                                <div class="input-group-append">
+                                    <span class="input-group-text char-counter" id="charCounter">4/1000</span>
+                                    <button type="submit" class="btn btn-primary" id="sendBtn">
+                                        <span class="iconify" data-icon="bi:send-fill"></span>
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -202,7 +213,7 @@
 
                     <h6>使用方式</h6>
                     <ol>
-                        <li>輸入暱稱（預設為「調查員」+隨機數字，可點擊重新生成按鈕更換）</li>
+                        <li>輸入暱稱（預設為「調查員」+隨機數字，可點擊重新產生按鈕更換）</li>
                         <li>點擊「加入聊天室」或直接輸入房間名稱</li>
                         <li>在輸入框輸入擲骰指令或聊天內容</li>
                         <li>點擊「送出」或按 Enter 鍵發送訊息</li>
@@ -232,9 +243,9 @@
                     <ul>
                         <li>點擊「快速輸入」可展開常用指令面板</li>
                         <li>點擊「儲存」可下載聊天記錄（格式：HKTRPG + 房間名稱）</li>
-                        <li>點擊「說明」可查看此使用說明</li>
+                        <li>點擊「說明」可檢視此使用說明</li>
                         <li>點擊「深色模式」可切換主題</li>
-                        <li>點擊「重新生成」可隨機生成新暱稱</li>
+                        <li>點擊「重新產生」可隨機產生新暱稱</li>
                     </ul>
 
                     <h6>個人小屋</h6>
@@ -677,7 +688,7 @@
             display: flex;
             flex-direction: column;
             gap: 0.1rem;
-            margin-bottom: var(--footer-height);
+            margin-bottom: 1rem;
         }
 
         /* 狀態框樣式優化 */
@@ -803,7 +814,7 @@
 
             /* 調整主內容區域的邊距 */
             .main-content {
-                padding-bottom: var(--footer-height);
+                padding-bottom: 1rem;
                 height: calc(100dvh - var(--header-height));
                 min-height: -webkit-fill-available;
                 /* 支援 iOS Safari */
@@ -1022,7 +1033,7 @@
 
             /* 調整主內容區域的邊距 */
             .main-content {
-                padding-bottom: var(--footer-height);
+                padding-bottom: 1rem;
                 height: calc(100dvh - var(--header-height));
                 min-height: -webkit-fill-available;
                 /* 支援 iOS Safari */
@@ -1163,7 +1174,7 @@
                 padding-bottom: 0;
                 /* 移除底部padding */
                 position: relative;
-                /* 添加相對定位 */
+                /* 新增相對定位 */
             }
 
             .sidebar-actions {
@@ -1398,7 +1409,7 @@
             padding-bottom: 0;
             /* 移除底部padding */
             position: relative;
-            /* 添加相對定位 */
+            /* 新增相對定位 */
         }
 
         .sidebar-header {
@@ -1789,6 +1800,337 @@
         .choices-group > .btn {
             margin: 0.125rem;
         }
+
+        /* ============================================ */
+        /* 訊息視覺化增強 */
+        /* ============================================ */
+
+        /* 訊息進場動畫 */
+        @keyframes messageFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-fade-in {
+            animation: messageFadeIn 0.3s ease-out;
+        }
+
+        /* 訊息懸停效果 */
+        .card:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* ============================================ */
+        /* 圖片懶載入樣式 */
+        /* ============================================ */
+        
+        .image-wrapper {
+            position: relative;
+            display: block;
+            min-width: 200px;
+            min-height: 150px;
+            margin: 8px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--card-bg);
+            clear: both;
+        }
+        
+        .image-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 150px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.05) 100%);
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+        
+        .image-placeholder .iconify {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+        
+        .image-placeholder span:last-child {
+            font-size: 0.85rem;
+        }
+        
+        .image-placeholder.loading {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 51, 234, 0.05) 100%);
+        }
+        
+        .image-placeholder.error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(220, 38, 38, 0.05) 100%);
+            color: #ef4444;
+        }
+        
+        .loading-spin {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .message-image {
+            max-width: 100%;
+            max-height: 400px;
+            width: auto;
+            height: auto;
+            border-radius: 8px;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            display: block;
+        }
+        
+        .message-image.loaded {
+            animation: imageFadeIn 0.3s ease-out;
+        }
+        
+        @keyframes imageFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .message-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        /* 圖片包裝器樣式 */
+        .image-wrapper {
+            display: block;
+            margin: 8px 0;
+        }
+        
+        /* 移動端優化 */
+        @media (max-width: 768px) {
+            .image-wrapper {
+                min-width: 150px;
+                min-height: 100px;
+            }
+            
+            .image-placeholder {
+                min-height: 100px;
+                padding: 15px;
+            }
+            
+            .message-image {
+                max-height: 300px;
+            }
+        }
+
+        /* ============================================ */
+        /* 訊息輸入區優化 */
+        /* ============================================ */
+
+        /* Textarea 自動高度調整 */
+        .message-input {
+            resize: none;
+            overflow-y: hidden;
+            min-height: 38px;
+            max-height: 120px;
+            line-height: 1.5;
+            transition: height 0.1s ease;
+        }
+
+        /* 字數統計器 */
+        .char-counter {
+            min-width: 80px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        /* 發送按鈕優化 */
+        #sendBtn {
+            min-width: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #sendBtn .iconify {
+            font-size: 1.2rem;
+        }
+
+        /* 輸入框焦點效果 */
+        .message-input:focus {
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        /* 移動端調整 */
+        @media (max-width: 768px) {
+            .char-counter {
+                min-width: 70px;
+                font-size: 0.75rem;
+            }
+            
+            #sendBtn {
+                min-width: 50px;
+            }
+        }
+
+        /* ============================================ */
+        /* 滾動優化相關樣式 */
+        /* ============================================ */
+
+        /* 優化滾動行為 */
+        #container-content {
+            scroll-behavior: smooth;
+        }
+
+        /* 滾動高亮效果 */
+        .card.scroll-highlight {
+            animation: scrollHighlight 2s ease-out;
+        }
+
+        @keyframes scrollHighlight {
+            0% {
+                background: var(--badge-bg);
+                transform: scale(1);
+                box-shadow: 0 0 20px var(--badge-bg);
+            }
+            10% {
+                background: var(--badge-bg);
+                transform: scale(1.02);
+            }
+            100% {
+                background: var(--card-bg);
+                transform: scale(1);
+                box-shadow: none;
+            }
+        }
+
+        /* 回到底部按鈕 */
+        .scroll-to-bottom-btn {
+            position: fixed;
+            bottom: calc(var(--footer-height) + 80px);
+            right: 30px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--badge-bg);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(100px) scale(0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 997;
+        }
+
+        .scroll-to-bottom-btn.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .scroll-to-bottom-btn:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+            background: var(--badge-bg);
+            filter: brightness(1.1);
+        }
+
+        .scroll-to-bottom-btn:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        .scroll-to-bottom-btn .iconify {
+            font-size: 26px;
+            transition: transform 0.3s ease;
+        }
+
+        .scroll-to-bottom-btn:hover .iconify {
+            transform: translateY(2px);
+        }
+
+        /* 新訊息提示徽章 */
+        .new-msg-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #ff4444;
+            color: white;
+            border-radius: 12px;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            min-width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(255, 68, 68, 0.4);
+            animation: badgePulse 2s infinite;
+        }
+
+        @keyframes badgePulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        /* 移動端調整 */
+        @media (max-width: 768px) {
+            .scroll-to-bottom-btn {
+                bottom: calc(var(--footer-height) + 20px);
+                right: 20px;
+                width: 44px;
+                height: 44px;
+            }
+            
+            .scroll-to-bottom-btn .iconify {
+                font-size: 24px;
+            }
+        }
+
+        /* 尊重用戶的減少動畫偏好設定 */
+        @media (prefers-reduced-motion: reduce) {
+            #container-content {
+                scroll-behavior: auto;
+            }
+            
+            .scroll-to-bottom-btn {
+                transition: none;
+            }
+            
+            .card.scroll-highlight {
+                animation: none;
+                background: var(--badge-bg);
+            }
+            
+            @keyframes scrollHighlight {
+                0%, 100% {
+                    background: var(--card-bg);
+                }
+            }
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
@@ -1807,7 +2149,9 @@
             DEFAULT_NAME_PREFIX: "調查員",
             SOCKET_RECONNECT_ATTEMPTS: 999,
             SOCKET_RECONNECT_DELAY: 5000,
-            MESSAGE_CHUNK_SIZE: 2000
+            MESSAGE_CHUNK_SIZE: 2000,
+            // 圖片安全模式：true = 嚴格白名單，false = 允許所有HTTPS圖片（顯示警告）
+            STRICT_IMAGE_WHITELIST: false  // 設為 false 以允許更多圖片源
         };
 
         // State Management
@@ -1824,12 +2168,55 @@
 
         // Utility Functions
         const utils = {
-            setLocalStorage: (key, value) => localStorage.setItem(key, value),
-            getLocalStorage: (key) => localStorage.getItem(key) || null,
+            setLocalStorage: (key, value) => {
+                try {
+                    localStorage.setItem(key, value);
+                    return true;
+                } catch (error) {
+                    if (error.name === 'QuotaExceededError') {
+                        console.warn('🔒 LocalStorage quota exceeded');
+                        // 嘗試清理舊數據
+                        try {
+                            const keysToClean = ['personalRoomMessages', 'chatHistory'];
+                            for (const k of keysToClean) {
+                                localStorage.removeItem(k);
+                            }
+                            // 再次嘗試設置
+                            localStorage.setItem(key, value);
+                            return true;
+                        } catch (e) {
+                            console.error('🔒 Failed to set localStorage:', e);
+                            return false;
+                        }
+                    }
+                    console.error('🔒 LocalStorage error:', error);
+                    return false;
+                }
+            },
+            getLocalStorage: (key) => {
+                try {
+                    return localStorage.getItem(key) || null;
+                } catch (error) {
+                    console.error('🔒 Failed to get localStorage:', error);
+                    return null;
+                }
+            },
             generateName: () => CONFIG.DEFAULT_NAME_PREFIX + Math.floor(Math.random() * 1000) + 1,
-            scrollToBottom: () => {
-                const content = document.getElementById("container-content");
-                content.scrollTop = content.scrollHeight;
+            scrollToBottom: (behavior = 'smooth') => {
+                const container = document.getElementById("container-content");
+                if (!container) return;
+                
+                container.scroll({
+                    top: container.scrollHeight,
+                    behavior: behavior
+                });
+            },
+            isAtBottom: (threshold = 100) => {
+                const container = document.getElementById("container-content");
+                if (!container) return false;
+                
+                const { scrollHeight, scrollTop, clientHeight } = container;
+                return scrollHeight - scrollTop - clientHeight <= threshold;
             },
             extractUrls: (text) => {
                 try {
@@ -1852,84 +2239,149 @@
                 const urls = utils.extractUrls(text);
                 if (!urls.length) return;
                 
-                // Filter for likely image URLs and validate them
+                // Filter for likely image URLs
                 const imageUrls = urls.filter(url => {
                     const lowerUrl = url.toLowerCase();
                     return lowerUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?|$)/i) || 
                            lowerUrl.includes('digimon.net/cimages/') ||
                            lowerUrl.includes('image') ||
                            lowerUrl.includes('img');
-                }).filter(url => utils.isValidImageUrl(url));
+                });
                 
-                if (!imageUrls.length) return;
+                console.log('📸 Found image URLs:', imageUrls);
                 
-                imageUrls.forEach((url) => {
+                // Validate URLs
+                const validImageUrls = imageUrls.filter(url => {
+                    const isValid = utils.isValidImageUrl(url);
+                    if (!isValid) {
+                        console.warn('❌ Invalid image URL:', url);
+                    }
+                    return isValid;
+                });
+                
+                console.log('✅ Valid image URLs:', validImageUrls);
+                
+                if (!validImageUrls.length) return;
+                
+                validImageUrls.forEach((url) => {
                     try {
-                        const img = new Image();
-                        img.className = 'message-image';
+                        // Create placeholder wrapper
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'image-wrapper';
+                        wrapper.setAttribute('data-image-url', utils.sanitizeUrl(url));
+                        
+                        // Create placeholder
+                        const placeholder = document.createElement('div');
+                        placeholder.className = 'image-placeholder';
+                        placeholder.innerHTML = '<span class="iconify" data-icon="bi:image"></span><span>載入圖片中...</span>';
+                        
+                        // Create actual image (lazy loaded)
+                        const img = document.createElement('img');
+                        img.className = 'message-image lazy-image';
                         img.referrerPolicy = 'no-referrer';
+                        img.setAttribute('data-src', utils.sanitizeUrl(url));
                         img.style.display = 'none';
-                        img.onload = () => {
-                            // Create safe anchor with validated URL
-                            const a = document.createElement('a');
-                            a.href = utils.sanitizeUrl(url);
-                            a.target = '_blank';
-                            a.rel = 'noopener noreferrer';
-                            a.appendChild(img);
-                            container.appendChild(a);
-                            img.style.display = 'block';
-                        };
-                        img.onerror = () => { 
-                            console.log('Failed to load image:', url);
-                        };
-                        img.src = utils.sanitizeUrl(url);
+                        img.alt = '訊息圖片';
+                        
+                        // Assemble structure
+                        wrapper.appendChild(placeholder);
+                        wrapper.appendChild(img);
+                        
+                        // Add wrapper directly to container (no link wrapper)
+                        container.appendChild(wrapper);
+                        
+                        // 🔧 Smart loading strategy:
+                        // 1. History records: Load immediately (at top, not in viewport)
+                        // 2. New messages: Always load immediately for better UX
+                        if (state.isHistoryLoading) {
+                            console.log('📜 Loading image immediately (history):', url);
+                            img.onload = () => {
+                                if (placeholder) placeholder.style.display = 'none';
+                                img.style.display = 'block';
+                                console.log('✅ Image loaded (history):', url);
+                            };
+                            img.onerror = () => {
+                                if (placeholder) {
+                                    placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片載入失敗</span>';
+                                    placeholder.classList.add('error');
+                                }
+                                console.warn('❌ Failed to load image (history):', url);
+                            };
+                            img.src = utils.sanitizeUrl(url);
+                        } 
+                        // New messages: Always load immediately for better user experience
+                        else {
+                            console.log('💬 Loading image immediately (new message):', url);
+                            img.onload = () => {
+                                if (placeholder) placeholder.style.display = 'none';
+                                img.style.display = 'block';
+                                console.log('✅ Image loaded (new message):', url);
+                            };
+                            img.onerror = () => {
+                                if (placeholder) {
+                                    placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片載入失敗</span>';
+                                    placeholder.classList.add('error');
+                                }
+                                console.warn('❌ Failed to load image (new message):', url);
+                            };
+                            img.src = utils.sanitizeUrl(url);
+                        }
                     } catch (e) { 
                         console.log('Error creating image for:', url, e);
                     }
                 });
             },
             isValidImageUrl: (url) => {
-                try {
-                    const urlObj = new URL(url);
-                    // Only allow HTTP/HTTPS protocols
-                    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+                // 非嚴格模式：允許所有 HTTPS 圖片
+                if (!CONFIG.STRICT_IMAGE_WHITELIST) {
+                    try {
+                        const urlObj = new URL(url);
+                        // 允許所有 HTTP/HTTPS 圖片
+                        return urlObj.protocol === 'https:' || urlObj.protocol === 'http:';
+                    } catch {
                         return false;
                     }
-                    // Only allow specific trusted domains for security
-                    const allowedDomains = [
-                        'digimon.net',
-                        'digimon.net',
-                        'cdn.digimon.net',
-                        'images.digimon.net'
-                    ];
-                    const hostname = urlObj.hostname.toLowerCase();
-                    return allowedDomains.some(domain => 
-                        hostname === domain || hostname.endsWith('.' + domain)
-                    );
-                } catch {
-                    return false;
                 }
+                
+                // 嚴格模式：使用安全管理器的驗證
+                return securityManager.validateImageUrl(url);
             },
             sanitizeUrl: (url) => {
-                try {
-                    const urlObj = new URL(url);
-                    // Ensure protocol is HTTP/HTTPS
-                    if (!['http:', 'https:'].includes(urlObj.protocol)) {
+                // 非嚴格模式：允許所有 HTTPS URL
+                if (!CONFIG.STRICT_IMAGE_WHITELIST) {
+                    try {
+                        const urlObj = new URL(url);
+                        if (urlObj.protocol === 'https:' || urlObj.protocol === 'http:') {
+                            return urlObj.toString();
+                        }
+                    } catch {
                         return 'about:blank';
                     }
-                    // Return sanitized URL
-                    return urlObj.toString();
-                } catch {
+                }
+                
+                // 嚴格模式：使用安全管理器驗證
+                const validation = securityManager.validateUrl(url);
+                if (!validation.valid) {
+                    console.warn('Invalid URL blocked:', url);
                     return 'about:blank';
                 }
+                return validation.url;
             },
+            escapeHtml: (text) => {
+                // 使用安全管理器的 HTML 清理函數
+                return securityManager.sanitizeHtml(text);
+            },
+            
             convertUrlsToLinks: (text) => {
                 if (!text) return text;
+                
+                // First, escape HTML to prevent XSS
+                const escapedText = utils.escapeHtml(text);
                 
                 // URL regex pattern - matches http/https URLs
                 const urlRegex = /(https?:\/\/[^\s\n\)\]\>]+)/g;
                 
-                return text.replace(urlRegex, (url) => {
+                return escapedText.replace(urlRegex, (url) => {
                     // Clean up the URL (remove trailing punctuation that might not be part of the URL)
                     const cleanUrl = url.replace(/[.,;:!?]+$/, '');
                     const trailingPunctuation = url.replace(cleanUrl, '');
@@ -1937,10 +2389,10 @@
                     // Create a safe, clickable link
                     const sanitizedUrl = utils.sanitizeUrl(cleanUrl);
                     if (sanitizedUrl === 'about:blank') {
-                        return url; // Return original if URL is invalid
+                        return utils.escapeHtml(url); // Return escaped original if URL is invalid
                     }
                     
-                    return `<a href="${sanitizedUrl}" target="_blank" rel="noopener noreferrer" class="message-link">${cleanUrl}</a>${trailingPunctuation}`;
+                    return `<a href="${sanitizedUrl}" target="_blank" rel="noopener noreferrer" class="message-link">${utils.escapeHtml(cleanUrl)}</a>${utils.escapeHtml(trailingPunctuation)}`;
                 });
             }
         };
@@ -1982,13 +2434,22 @@
                 });
 
                 state.socket.on('chatRecord', async (msgs) => {
-                    if (!Array.isArray(msgs)) return;
-                    // Only render if the history batch matches current room
-                    const batchRoom = (msgs[0] && msgs[0].roomNumber) ? msgs[0].roomNumber : null;
-                    if (batchRoom && batchRoom !== chatroomManager.currentRoom) {
-                        return; // Ignore history for other rooms (e.g., server's default 公共房間 push)
+                    if (!Array.isArray(msgs) || msgs.length === 0) return;
+                    
+                    // 🐛 FIX: 檢查房間並記錄目前房間，避免競態條件
+                    const batchRoom = msgs[0].roomNumber;
+                    const currentRoom = chatroomManager.currentRoom;
+                    
+                    // 只處理當前房間的歷史記錄
+                    if (batchRoom !== currentRoom) {
+                        console.log(`🔄 Ignoring history for room ${batchRoom}, current: ${currentRoom}`);
+                        return;
                     }
 
+                    // 記錄開始處理時間（用於除錯）
+                    const startTime = Date.now();
+                    console.log(`📜 Loading history for room ${batchRoom} (${msgs.length} messages)`);
+                    
                     // Mark history phase
                     state.isHistoryLoading = true;
 
@@ -2002,11 +2463,26 @@
                         const idb = (b._id || '').toString();
                         return ida.localeCompare(idb);
                     });
+                    
                     for (const msg of msgs) {
-                        if (!batchRoom || msg.roomNumber === chatroomManager.currentRoom) {
+                        // 🐛 FIX: 每次新增訊息前都檢查房間，防止切換房間時污染
+                        if (chatroomManager.currentRoom !== batchRoom) {
+                            console.warn(`⚠️ Room changed during history load, aborting (${batchRoom} → ${chatroomManager.currentRoom})`);
+                            break;
+                        }
+                        
+                        if (msg.roomNumber === batchRoom) {
                             await uiManager.addMessageToBox(msg);
                         }
                     }
+                    
+                    // 只有在房間未改變時才繼續
+                    if (chatroomManager.currentRoom !== batchRoom) {
+                        console.log(`🔄 History load aborted for room ${batchRoom}`);
+                        return;
+                    }
+                    
+                    console.log(`✅ History loaded for room ${batchRoom} in ${Date.now() - startTime}ms`);
 
                     // Flush buffered live messages after history is painted
                     if (state.pendingLive.length) {
@@ -2043,21 +2519,97 @@
                 document.getElementById("name").value = name || utils.generateName();
                 uiManager.setupEventListeners();
             },
+            
+            autoResizeTextarea: () => {
+                const textarea = document.getElementById("msg");
+                if (!textarea) return;
+                
+                // Reset height to auto to get the correct scrollHeight
+                textarea.style.height = 'auto';
+                
+                // Set new height (max 120px for 5 lines)
+                const newHeight = Math.min(textarea.scrollHeight, 120);
+                textarea.style.height = newHeight + 'px';
+            },
+            
+            updateCharCount: () => {
+                const textarea = document.getElementById("msg");
+                const counter = document.getElementById("charCounter");
+                if (!textarea || !counter) return;
+                
+                const count = textarea.value.length;
+                const max = textarea.maxLength || 1000;
+                counter.textContent = `${count}/${max}`;
+                
+                // Change color when approaching limit
+                if (count > max * 0.9) {
+                    counter.style.color = '#ff4444';
+                } else if (count > max * 0.7) {
+                    counter.style.color = '#ff9800';
+                } else {
+                    counter.style.color = 'var(--text-color)';
+                }
+            },
 
             setupEventListeners: () => {
                 const sendForm = document.getElementById("send-form");
                 const msgInput = document.getElementById("msg");
                 const nameInput = document.getElementById("name");
+                
+                // Auto-resize textarea and update character count
+                if (msgInput) {
+                    // Initial update
+                    uiManager.updateCharCount();
+                    uiManager.autoResizeTextarea();
+                    
+                    msgInput.addEventListener("input", () => {
+                        uiManager.autoResizeTextarea();
+                        uiManager.updateCharCount();
+                    });
+                    
+                    // Handle Enter key (send message) vs Shift+Enter (new line)
+                    msgInput.addEventListener("keydown", (e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            sendForm.dispatchEvent(new Event('submit'));
+                        }
+                    });
+                }
 
                 sendForm.addEventListener("submit", async (e) => {
                     e.preventDefault();
 
                     if (!msgInput.value.trim()) return;
 
+                    // 🔒 Security: 檢查是否正在提交
+                    const submitCheck = securityManager.canSubmit();
+                    if (!submitCheck.allowed) {
+                        console.warn(submitCheck.error);
+                        return;
+                    }
+
                     const plainMsg = msgInput.value;
+
+                    // 🔒 Security: 輸入驗證
+                    const validation = securityManager.validateInput(plainMsg);
+                    if (!validation.valid) {
+                        alert(validation.error);
+                        return;
+                    }
+
+                    // 🔒 Security: Rate limiting
+                    const rateLimitCheck = securityManager.checkRateLimit();
+                    if (!rateLimitCheck.allowed) {
+                        alert(rateLimitCheck.error);
+                        return;
+                    }
+
+                    // 🔒 Security: 標記為提交中
+                    securityManager.setSubmitting(true);
+
                     const formData = {
                         time: new Date(),
-                        msg: plainMsg,
+                        msg: validation.sanitized, // 使用已驗證的訊息
                         name: nameInput.value,
                         roomNumber: chatroomManager.currentRoom // 使用當前房間
                     };
@@ -2096,14 +2648,32 @@
 
                         utils.setLocalStorage("name", nameInput.value);
                         msgInput.value = '';
+                        
+                        // 🔒 Security: 完成提交
+                        securityManager.setSubmitting(false);
                         return;
                     }
 
                     if (state.socket) {
-                        // 與伺服器通訊維持原有格式（伺服器端會在前綴加上換行）
-                        state.socket.emit("send", formData);
-                        utils.setLocalStorage("name", nameInput.value);
-                        msgInput.value = '';
+                        try {
+                            // 與伺服器通訊維持原有格式（伺服器端會在前綴加上換行）
+                            state.socket.emit("send", formData);
+                            utils.setLocalStorage("name", nameInput.value);
+                            msgInput.value = '';
+                            
+                            // Reset textarea height and char count
+                            uiManager.autoResizeTextarea();
+                            uiManager.updateCharCount();
+                        } catch (error) {
+                            console.error('Failed to send message:', error);
+                            alert('發送訊息失敗，請稍後再試');
+                        } finally {
+                            // 🔒 Security: 完成提交
+                            securityManager.setSubmitting(false);
+                        }
+                    } else {
+                        // 🔒 Security: 完成提交
+                        securityManager.setSubmitting(false);
                     }
                 });
             },
@@ -2123,7 +2693,9 @@
 
                 state.color++;
                 const msgBox = document.createElement("div");
-                msgBox.className = "card";
+                
+                // Add animation class
+                msgBox.className = "card message-fade-in";
 
                 const msgBoxHeader = document.createElement("div");
                 msgBoxHeader.className = "card-header2";
@@ -2161,44 +2733,23 @@
                     content.removeChild(content.firstChild);
                 }
 
-                // Auto-scroll if it's the user's own message, or if they were already at the bottom.
-                if (isMyMessage || isScrolledToBottom) {
-                    const scrollAndWatch = () => {
-                        const container = document.getElementById("container-content");
-                        let lastHeight = container.scrollHeight;
-                        let stableChecks = 0;
-                        const requiredStableChecks = 3; // Require 3 stable checks (e.g. 3 * 50ms = 150ms of stability)
-                        let totalChecks = 0;
-                        const maxTotalChecks = 20; // Stop after 1 second regardless
-
-                        const checkAndScroll = () => {
-                            totalChecks++;
-                            const newHeight = container.scrollHeight;
-
-                            if (newHeight !== lastHeight) {
-                                // Height changed, so scroll and reset stability counter
-                                lastHeight = newHeight;
-                                utils.scrollToBottom();
-                                stableChecks = 0;
-                            } else {
-                                // Height is stable
-                                stableChecks++;
-                            }
-
-                            // If we are not yet stable and haven't exceeded max checks, schedule another check
-                            if (stableChecks < requiredStableChecks && totalChecks < maxTotalChecks) {
-                                setTimeout(checkAndScroll, 50);
-                            }
-                        };
-                        
-                        // Initial scroll and start checking
-                        utils.scrollToBottom();
-                        setTimeout(checkAndScroll, 50);
-                    };
-                    scrollAndWatch();
+                // Auto-scroll logic:
+                // 1. Always scroll for user's own messages
+                // 2. Scroll if already at bottom
+                // 3. Scroll if bot mentions the user (has "-> username" in the name)
+                const isMentioned = message.name && message.name.includes('-> ' + myName);
+                
+                if (isMyMessage || isScrolledToBottom || isMentioned) {
+                    // Use smooth scroll for new messages, instant for history
+                    const behavior = state.isHistoryLoading ? 'instant' : 'smooth';
+                    
+                    // Use requestAnimationFrame to ensure DOM is updated
+                    requestAnimationFrame(() => {
+                        utils.scrollToBottom(behavior);
+                    });
                 }
 
-                // 個人小屋歷史紀錄：僅在非歷史載入期間保存
+                // 個人小屋歷史紀錄：僅在非歷史載入期間儲存
                 if (chatroomManager.currentRoom === CONFIG.PERSONAL_ROOM && !state.isHistoryLoading) {
                     personalStorage.append(CONFIG.PERSONAL_ROOM, {
                         name: message.name,
@@ -2246,6 +2797,565 @@
                         text.textContent = theme === 'dark' ? '淺色模式' : '深色模式';
                     }
                 }, 100);
+            }
+        };
+
+        // 安全管理器 - 增強版
+        const securityManager = {
+            config: {
+                maxMessageLength: 1000,
+                maxMessagesPerMinute: 30,
+                rateLimitWindow: 60000, // 1 minute
+                allowedImageDomains: [
+                    // Digimon
+                    'digimon.net',
+                    'cdn.digimon.net',
+                    'images.digimon.net',
+                    // Imgur
+                    'i.imgur.com',
+                    'imgur.com',
+                    // Common image hosts
+                    'i.postimg.cc',
+                    'postimg.cc',
+                    'ibb.co',
+                    'i.ibb.co',
+                    // CDN services
+                    'cdn.discordapp.com',
+                    'media.discordapp.net',
+                    'cdn.jsdelivr.net',
+                    'raw.githubusercontent.com',
+                    // Image services
+                    'imagekit.io',
+                    'cloudinary.com',
+                    'imgbb.com',
+                    // Allow any subdomain of these
+                    'imgur.io'
+                ],
+                allowedProtocols: ['http:', 'https:']
+            },
+            
+            state: {
+                messageCount: 0,
+                lastResetTime: Date.now(),
+                isSubmitting: false
+            },
+            
+            // 輸入驗證
+            validateInput: (text) => {
+                if (!text || typeof text !== 'string') {
+                    return { valid: false, error: '無效的輸入' };
+                }
+                
+                const trimmed = text.trim();
+                
+                if (trimmed.length === 0) {
+                    return { valid: false, error: '訊息不能為空' };
+                }
+                
+                if (trimmed.length > securityManager.config.maxMessageLength) {
+                    return { valid: false, error: `訊息長度不能超過 ${securityManager.config.maxMessageLength} 字` };
+                }
+                
+                // 檢查是否包含可疑的腳本標籤
+                const suspiciousPatterns = [
+                    /<script/i,
+                    /javascript:/i,
+                    /on\w+\s*=/i,
+                    /<iframe/i,
+                    /<object/i,
+                    /<embed/i
+                ];
+                
+                for (const pattern of suspiciousPatterns) {
+                    if (pattern.test(trimmed)) {
+                        console.warn('Suspicious input detected:', trimmed.substring(0, 50));
+                        return { valid: false, error: '訊息包含不允許的內容' };
+                    }
+                }
+                
+                return { valid: true, sanitized: trimmed };
+            },
+            
+            // Rate limiting
+            checkRateLimit: () => {
+                const now = Date.now();
+                
+                // 重置計數器
+                if (now - securityManager.state.lastResetTime > securityManager.config.rateLimitWindow) {
+                    securityManager.state.messageCount = 0;
+                    securityManager.state.lastResetTime = now;
+                }
+                
+                // 檢查是否超過限制
+                if (securityManager.state.messageCount >= securityManager.config.maxMessagesPerMinute) {
+                    return {
+                        allowed: false,
+                        error: `發送過快，請稍後再試（最多 ${securityManager.config.maxMessagesPerMinute} 則/分鐘）`
+                    };
+                }
+                
+                securityManager.state.messageCount++;
+                return { allowed: true };
+            },
+            
+            // 防止重複提交
+            canSubmit: () => {
+                if (securityManager.state.isSubmitting) {
+                    return { allowed: false, error: '正在發送中，請稍候...' };
+                }
+                return { allowed: true };
+            },
+            
+            setSubmitting: (value) => {
+                securityManager.state.isSubmitting = value;
+            },
+            
+            // URL 驗證增強
+            validateUrl: (url) => {
+                try {
+                    const urlObj = new URL(url);
+                    
+                    // 只允許特定協議
+                    if (!securityManager.config.allowedProtocols.includes(urlObj.protocol)) {
+                        return { valid: false, reason: 'Invalid protocol' };
+                    }
+                    
+                    // 檢查是否為 IP 地址（可能的內網攻擊）
+                    const hostname = urlObj.hostname.toLowerCase();
+                    
+                    // 阻止本地/內網地址
+                    const blockedPatterns = [
+                        /^localhost$/i,
+                        /^127\./,
+                        /^192\.168\./,
+                        /^10\./,
+                        /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
+                        /^0\./,
+                        /^\[?::1\]?$/,
+                        /^\[?fe80:/i
+                    ];
+                    
+                    for (const pattern of blockedPatterns) {
+                        if (pattern.test(hostname)) {
+                            return { valid: false, reason: 'Blocked hostname' };
+                        }
+                    }
+                    
+                    return { valid: true, url: urlObj.toString() };
+                } catch (e) {
+                    return { valid: false, reason: 'Invalid URL' };
+                }
+            },
+            
+            // 圖片 URL 驗證
+            validateImageUrl: (url) => {
+                const urlValidation = securityManager.validateUrl(url);
+                if (!urlValidation.valid) {
+                    return false;
+                }
+                
+                try {
+                    const urlObj = new URL(url);
+                    const hostname = urlObj.hostname.toLowerCase();
+                    
+                    // 檢查域名白名單
+                    const allowed = securityManager.config.allowedImageDomains.some(domain => 
+                        hostname === domain || hostname.endsWith('.' + domain)
+                    );
+                    
+                    if (!allowed) {
+                        console.log('Image domain not in whitelist:', hostname);
+                        return false;
+                    }
+                    
+                    return true;
+                } catch {
+                    return false;
+                }
+            },
+            
+            // 清理 HTML（增強版）
+            sanitizeHtml: (html) => {
+                // 創建臨時元素
+                const temp = document.createElement('div');
+                temp.textContent = html;
+                
+                // 獲取純文字
+                let sanitized = temp.innerHTML;
+                
+                // 額外清理：移除任何殘留的事件處理器
+                let prev;
+                do {
+                    prev = sanitized;
+                    sanitized = sanitized.replace(/on\w+\s*=\s*["'][^"']*["']/gi, '');
+                } while (sanitized !== prev);
+                
+                return sanitized;
+            },
+            
+            // 安全錯誤處理
+            handleError: (error, context = '') => {
+                // 記錄錯誤但不暴露敏感資訊
+                console.error(`[Security] ${context}:`, error);
+                
+                // 返回通用錯誤資訊
+                return '操作失敗，請稍後再試';
+            },
+            
+            // 初始化安全檢查
+            init: () => {
+                console.log('🔒 Security Manager initialized');
+                
+                // 定期清理 rate limit 計數
+                setInterval(() => {
+                    const now = Date.now();
+                    if (now - securityManager.state.lastResetTime > securityManager.config.rateLimitWindow) {
+                        securityManager.state.messageCount = 0;
+                        securityManager.state.lastResetTime = now;
+                    }
+                }, 10000); // 每 10 秒檢查一次
+            }
+        };
+        
+        // 圖片懶載入管理器
+        const imageLoader = {
+            observer: null,
+            loadedImages: new Set(),
+            
+            init() {
+                // 🔧 臨時禁用懶載入（用於除錯）
+                const DISABLE_LAZY_LOADING = false;  // 改回 false 啟用懶載入
+                
+                if (DISABLE_LAZY_LOADING) {
+                    console.warn('⚠️ Lazy loading DISABLED - all images will load immediately');
+                    return;  // 不建立 Observer，圖片會用 fallback 方式載入
+                }
+                
+                // Check if Intersection Observer is supported
+                if (!('IntersectionObserver' in window)) {
+                    console.warn('IntersectionObserver not supported, loading all images immediately');
+                    imageLoader.loadAllImages();
+                    return;
+                }
+                
+                // Create observer with options
+                const options = {
+                    root: document.getElementById('container-content'),
+                    rootMargin: '50px', // Start loading 50px before entering viewport
+                    threshold: 0.01
+                };
+                
+                this.observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        const img = entry.target;
+                        const src = img.getAttribute('data-src');
+                        
+                        if (entry.isIntersecting) {
+                            console.log('👀 Image entered viewport:', src);
+                            imageLoader.loadImage(img);
+                        } else {
+                            console.log('👁️ Image left viewport:', src);
+                        }
+                    });
+                }, options);
+                
+                console.log('🖼️ Image Lazy Loader initialized');
+            },
+            
+            observe(img) {
+                if (!img || !img.hasAttribute('data-src')) {
+                    console.warn('⚠️ Cannot observe image: missing element or data-src');
+                    return;
+                }
+                
+                const src = img.getAttribute('data-src');
+                console.log('👁️ Observing image:', src);
+                
+                if (this.observer) {
+                    this.observer.observe(img);
+                } else {
+                    console.warn('⚠️ Observer not ready, loading immediately');
+                    // Fallback: load immediately
+                    this.loadImage(img);
+                }
+            },
+            
+            loadImage(img) {
+                const src = img.getAttribute('data-src');
+                
+                // Only allow safe protocols for image src
+                const isSafeSrc = (
+                    typeof src === 'string' &&
+                    (
+                        src.startsWith('https://') ||
+                        src.startsWith('http://') ||
+                        src.startsWith('data:')
+                    )
+                );
+                
+                if (!isSafeSrc) {
+                    if (placeholder) {
+                        placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片來源不安全或格式不正確</span>';
+                        placeholder.classList.remove('loading');
+                        placeholder.classList.add('error');
+                    }
+                    console.warn('❌ Refusing to load unsafe src:', src);
+                    return;
+                }
+                
+                if (!src) {
+                    console.warn('⚠️ No data-src attribute');
+                    return;
+                }
+                
+                if (this.loadedImages.has(src)) {
+                    console.log('⏭️ Already loaded/loading:', src);
+                    return;
+                }
+                
+                console.log('🔄 Starting to load image:', src);
+                this.loadedImages.add(src);
+                
+                const wrapper = img.closest('.image-wrapper');
+                const placeholder = wrapper ? wrapper.querySelector('.image-placeholder') : null;
+                
+                // Update placeholder to loading state
+                if (placeholder) {
+                    placeholder.innerHTML = '<span class="iconify loading-spin" data-icon="bi:arrow-clockwise"></span><span>載入中...</span>';
+                    placeholder.classList.add('loading');
+                } else {
+                    console.warn('⚠️ No placeholder found for:', src);
+                }
+                
+                // Setup load handlers
+                img.onload = () => {
+                    // Hide placeholder
+                    if (placeholder) {
+                        placeholder.style.display = 'none';
+                    }
+                    
+                    // Show image
+                    img.style.display = 'block';
+                    img.classList.add('loaded');
+                    
+                    // Remove data-src
+                    img.removeAttribute('data-src');
+                    
+                    // Stop observing
+                    if (imageLoader.observer) {
+                        imageLoader.observer.unobserve(img);
+                    }
+                    
+                    console.log('✅ Image loaded:', src);
+                };
+                
+                img.onerror = () => {
+                    // Show error state
+                    if (placeholder) {
+                        placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片載入失敗</span>';
+                        placeholder.classList.remove('loading');
+                        placeholder.classList.add('error');
+                    }
+                    
+                    // 🐛 FIX: Clean up to prevent memory leak
+                    img.onload = null;
+                    img.onerror = null;
+                    img.removeAttribute('data-src');
+                    
+                    // Stop observing
+                    if (imageLoader.observer) {
+                        imageLoader.observer.unobserve(img);
+                    }
+                    
+                    console.warn('❌ Failed to load image:', src);
+                };
+                
+                // Actually start loading
+                img.src = src;
+            },
+            
+            loadAllImages() {
+                // Fallback for browsers without IntersectionObserver
+                document.querySelectorAll('.lazy-image[data-src]').forEach(img => {
+                    this.loadImage(img);
+                });
+            },
+            
+            unobserve(img) {
+                if (this.observer && img) {
+                    this.observer.unobserve(img);
+                }
+            },
+            
+            destroy() {
+                if (this.observer) {
+                    this.observer.disconnect();
+                    this.observer = null;
+                }
+                this.loadedImages.clear();
+            }
+        };
+        
+        // Make imageLoader globally accessible
+        window.imageLoader = imageLoader;
+        
+        // 滾動管理器 - 優化版
+        const scrollManager = {
+            config: {
+                bottomThreshold: 100,
+                autoScrollBehavior: 'smooth',
+                resizeCheckEnabled: true
+            },
+            
+            state: {
+                isUserScrolling: false,
+                scrollTimer: null,
+                resizeObserver: null,
+                container: null,
+                content: null,
+                newMessageCount: 0
+            },
+            
+            init() {
+                this.state.container = document.getElementById("container-content");
+                this.state.content = document.getElementById("content");
+                
+                if (!this.state.container || !this.state.content) {
+                    console.error('Scroll container not found');
+                    return;
+                }
+                
+                this.setupScrollListener();
+                
+                if (this.config.resizeCheckEnabled && typeof ResizeObserver !== 'undefined') {
+                    this.setupResizeObserver();
+                }
+                
+                this.setupBottomButton();
+            },
+            
+            setupScrollListener() {
+                this.state.container.addEventListener('scroll', () => {
+                    this.state.isUserScrolling = true;
+                    
+                    clearTimeout(this.state.scrollTimer);
+                    this.state.scrollTimer = setTimeout(() => {
+                        this.state.isUserScrolling = false;
+                    }, 150);
+                    
+                    this.updateBottomButtonVisibility();
+                }, { passive: true });
+            },
+            
+            setupResizeObserver() {
+                this.state.resizeObserver = new ResizeObserver(() => {
+                    if (utils.isAtBottom() && !this.state.isUserScrolling) {
+                        requestAnimationFrame(() => {
+                            this.scrollToBottom('smooth');
+                        });
+                    }
+                });
+                
+                this.state.resizeObserver.observe(this.state.content);
+            },
+            
+            scrollToBottom(behavior = 'smooth') {
+                if (!this.state.container) return;
+                
+                this.state.container.scroll({
+                    top: this.state.container.scrollHeight,
+                    behavior: behavior
+                });
+            },
+            
+            scrollToMessage(messageElement, behavior = 'smooth') {
+                if (!messageElement) return;
+                
+                messageElement.scrollIntoView({
+                    behavior: behavior,
+                    block: 'center',
+                    inline: 'nearest'
+                });
+                
+                messageElement.classList.add('scroll-highlight');
+                setTimeout(() => {
+                    messageElement.classList.remove('scroll-highlight');
+                }, 2000);
+            },
+            
+            setupBottomButton() {
+                if (document.getElementById('scroll-to-bottom-btn')) return;
+                
+                const button = document.createElement('button');
+                button.id = 'scroll-to-bottom-btn';
+                button.className = 'scroll-to-bottom-btn';
+                button.innerHTML = `
+                    <span class="iconify" data-icon="bi:arrow-down-circle-fill"></span>
+                    <span class="new-msg-badge" id="newMsgBadge" style="display: none;">0</span>
+                `;
+                button.title = '回到底部';
+                
+                button.addEventListener('click', () => {
+                    this.scrollToBottom('smooth');
+                    this.hideNewMessageIndicator();
+                });
+                
+                const chatContainer = document.querySelector('.chat-container');
+                if (chatContainer) {
+                    chatContainer.appendChild(button);
+                }
+                
+                this.updateBottomButtonVisibility();
+            },
+            
+            updateBottomButtonVisibility() {
+                const button = document.getElementById('scroll-to-bottom-btn');
+                if (!button) return;
+                
+                if (utils.isAtBottom(50)) {
+                    button.classList.remove('visible');
+                    this.hideNewMessageIndicator();
+                } else {
+                    button.classList.add('visible');
+                }
+            },
+            
+            showNewMessageIndicator() {
+                const badge = document.getElementById('newMsgBadge');
+                if (!badge) return;
+                
+                this.state.newMessageCount++;
+                badge.textContent = this.state.newMessageCount;
+                badge.style.display = 'flex';
+            },
+            
+            hideNewMessageIndicator() {
+                const badge = document.getElementById('newMsgBadge');
+                if (badge) {
+                    this.state.newMessageCount = 0;
+                    badge.textContent = '0';
+                    badge.style.display = 'none';
+                }
+            },
+            
+            onNewMessage(isMyMessage) {
+                const isAtBottom = utils.isAtBottom();
+                
+                if (isAtBottom || isMyMessage) {
+                    const behavior = state.isHistoryLoading ? 'instant' : this.config.autoScrollBehavior;
+                    requestAnimationFrame(() => {
+                        this.scrollToBottom(behavior);
+                    });
+                } else {
+                    this.showNewMessageIndicator();
+                }
+            },
+            
+            destroy() {
+                if (this.state.resizeObserver) {
+                    this.state.resizeObserver.disconnect();
+                }
+                clearTimeout(this.state.scrollTimer);
             }
         };
 
@@ -2532,7 +3642,7 @@
             }
         };
 
-        // 在現有的 JavaScript 代碼中添加快速輸入指令欄管理模組
+        // 在現有的 JavaScript 代碼中新增快速輸入指令欄管理模組
         const quickInputPad = {
             init: () => {
                 // 檢查元素是否存在
@@ -2541,7 +3651,7 @@
 
                 // 固定選項
                 const fixedCommands = ["1d2", "1d6", "1d8", "1d10", "1d12", "1d20", "1d100"];
-                // 自訂指令（最多保存5個不重複的指令）
+                // 自訂指令（最多儲存5個不重複的指令）
                 const customCommands = JSON.parse(localStorage.getItem('quickCommands') || '[]');
                 quickInputPad.renderButtons(fixedCommands, customCommands);
 
@@ -2624,7 +3734,7 @@
                 // 檢查是否為固定指令
                 const fixedCommands = ["1d2", "1d6", "1d8", "1d10", "1d12", "1d20", "1d100"];
                 if (fixedCommands.includes(command)) {
-                    return; // 如果是固定指令，不保存
+                    return; // 如果是固定指令，不儲存
                 }
 
                 // 獲取現有的自訂指令
@@ -2725,13 +3835,13 @@
             },
 
             saveRooms: () => {
-                // 將房間列表保存到 localStorage
+                // 將房間列表儲存到 localStorage
                 localStorage.setItem('chatRooms', JSON.stringify(Array.from(chatroomManager.rooms)));
             },
 
             addRoom: (roomName) => {
                 chatroomManager.rooms.add(roomName);
-                chatroomManager.saveRooms(); // 保存更新後的房間列表
+                chatroomManager.saveRooms(); // 儲存更新後的房間列表
                 chatroomManager.renderRooms();
                 chatroomManager.switchRoom(roomName);
             },
@@ -2744,7 +3854,7 @@
                     return;
                 }
                 chatroomManager.rooms.delete(roomName);
-                chatroomManager.saveRooms(); // 保存更新後的房間列表
+                chatroomManager.saveRooms(); // 儲存更新後的房間列表
                 chatroomManager.renderRooms();
                 if (chatroomManager.currentRoom === roomName) {
                     chatroomManager.switchRoom(CONFIG.DEFAULT_ROOM);
@@ -2797,7 +3907,7 @@
                     state.isHistoryLoading = true;
                     state.pendingLive = [];
                     state.socket.emit("newRoom", roomName);
-                    // 添加新房間的事件監聽器
+                    // 新增新房間的事件監聽器
                     state.socket.on(roomName, (message) => {
                         if (state.isHistoryLoading) {
                             state.pendingLive.push(message);
@@ -2922,6 +4032,8 @@
 
         // Initialize application
         document.addEventListener("DOMContentLoaded", () => {
+            securityManager.init();  // 🔒 優先初始化安全管理器
+            imageLoader.init();      // 🖼️ 初始化圖片懶載入
             socketManager.init();
             uiManager.initialize();
             themeManager.init();
@@ -2929,6 +4041,7 @@
             headerManager.init();
             chatroomManager.init();
             sidebarManager.init();
+            scrollManager.init();
 
             // Remove focus from buttons after click to prevent "glow"
             document.addEventListener('mouseup', (e) => {

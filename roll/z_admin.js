@@ -4,10 +4,25 @@ const opt = {
     upsert: true,
     runValidators: true
 }
-const salt = process.env.SALT;
+// const salt = process.env.SALT; // No longer needed with new security module
 const crypto = require('crypto');
-const password = process.env.CRYPTO_SECRET,
-    algorithm = 'aes-256-ctr';
+// 🔧 Auto-fix CRYPTO_SECRET length for AES-256-CTR compatibility
+let password = process.env.CRYPTO_SECRET;
+if (password) {
+    if (password.length > 32) {
+        // Truncate if too long
+        password = password.slice(0, 32);
+        console.warn('⚠️ CRYPTO_SECRET truncated to 32 characters for AES-256-CTR');
+    } else if (password.length < 32) {
+        // Pad with zeros if too short
+        password = password.padEnd(32, '0');
+        console.warn('⚠️ CRYPTO_SECRET padded to 32 characters for AES-256-CTR');
+    }
+} else {
+    console.error('❌ CRYPTO_SECRET environment variable is not set');
+}
+
+const algorithm = 'aes-256-ctr';
 //32bit ASCII
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id
@@ -577,7 +592,7 @@ const rollDiceCommand = async function ({
                 }
                 rply.text = "此頻道已被Admin允許使用網頁版角色卡擲骰，希望經網頁擲骰的玩家可在此頻道輸入以下指令登記。\n.admin registerChannel\n\n如Admin希望取消本頻道的網頁擲骰許可，可輸入\n.admin disallowrolling";
                 return rply;
-            case /^account$/i.test(mainMsg[1]):
+            case /^account$/i.test(mainMsg[1]): {
                 if (groupid) {
                     rply.text = "設定帳號時，請直接和HKTRPG對話，禁止在群組中使用";
                     return rply;
@@ -599,9 +614,9 @@ const rollDiceCommand = async function ({
                     rply.text = "使用者密碼，6-16字，英文及以下符號限定!@#$%^&*";
                     return rply;
                 }
-                hash = crypto.createHmac('sha256', mainMsg[3])
-                    .update(salt)
-                    .digest('hex');
+                // 🔒 Use new secure password hashing
+                const security = require('../utils/security.js');
+                hash = await security.hashPassword(mainMsg[3]);
                 try {
                     temp = await schema.accountPW.findOne({
                         "userName": name
@@ -635,6 +650,7 @@ const rollDiceCommand = async function ({
                 rply.text += "現在你的帳號是: " + name + "\n" + "密碼: " + mainMsg[3];
                 rply.text += "\n登入位置: https://card.hktrpg.com/ \n如想經網頁擲骰，可以請Admin在頻道中輸入\n.admin  allowrolling\n然後希望擲骰玩家可在該頻道輸入以下指令登記。\n.admin registerChannel";
                 return rply;
+            }
             case /^news$/i.test(mainMsg[1]) && /^on$/i.test(mainMsg[2]):
                 if (!userid) return rply;
                 try {
@@ -858,23 +874,43 @@ async function store(mainMsg, mode) {
 
 
 function encrypt(text) {
-    let iv = crypto.randomBytes(16);
-    let cipher = crypto.createCipheriv(algorithm, Buffer.from(password, 'utf8'), iv);
-    let encrypted = cipher.update(text);
-    encrypted = Buffer.concat([encrypted, cipher.final()]);
-    return iv.toString('hex') + ':' + encrypted.toString('hex');
+    if (!password) {
+        console.error('❌ CRYPTO_SECRET environment variable is not set');
+        return 'ENCRYPTION_ERROR: CRYPTO_SECRET not configured';
+    }
+    
+    try {
+        let iv = crypto.randomBytes(16);
+        let cipher = crypto.createCipheriv(algorithm, Buffer.from(password, 'utf8'), iv);
+        let encrypted = cipher.update(text);
+        encrypted = Buffer.concat([encrypted, cipher.final()]);
+        return iv.toString('hex') + ':' + encrypted.toString('hex');
+    } catch (error) {
+        console.error('❌ Encryption failed:', error.message);
+        return 'ENCRYPTION_ERROR: ' + error.message;
+    }
 }
 
 
 
 function decrypt(text) {
-    let textParts = text.split(':');
-    let iv = Buffer.from(textParts.shift(), 'hex');
-    let encryptedText = Buffer.from(textParts.join(':'), 'hex');
-    let decipher = crypto.createDecipheriv(algorithm, Buffer.from(password, 'utf8'), iv);
-    let decrypted = decipher.update(encryptedText);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    return decrypted.toString();
+    if (!password) {
+        console.error('❌ CRYPTO_SECRET environment variable is not set');
+        return 'DECRYPTION_ERROR: CRYPTO_SECRET not configured';
+    }
+    
+    try {
+        let textParts = text.split(':');
+        let iv = Buffer.from(textParts.shift(), 'hex');
+        let encryptedText = Buffer.from(textParts.join(':'), 'hex');
+        let decipher = crypto.createDecipheriv(algorithm, Buffer.from(password, 'utf8'), iv);
+        let decrypted = decipher.update(encryptedText);
+        decrypted = Buffer.concat([decrypted, decipher.final()]);
+        return decrypted.toString();
+    } catch (error) {
+        console.error('❌ Decryption failed:', error.message);
+        return 'DECRYPTION_ERROR: ' + error.message;
+    }
 }
 
 module.exports = {

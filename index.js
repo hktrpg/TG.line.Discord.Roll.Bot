@@ -28,12 +28,67 @@ class Logger {
         };
         this.currentLevel = this.levels[config.logging.level] || this.levels.info;
         this.writeQueue = new Set();
+        
+        // 🔒 Sensitive fields to redact
+        this.sensitiveFields = new Set([
+            'password',
+            'userPassword',
+            'token',
+            'secret',
+            'apiKey',
+            'accessToken',
+            'refreshToken',
+            'privateKey',
+            'sessionId',
+            'cookie',
+            'authorization'
+        ]);
+    }
+
+    // 🔒 Sanitize sensitive information from logs
+    sanitizeData(data) {
+        if (typeof data === 'string') {
+            // Redact potential tokens/keys in strings
+            return data.replaceAll(/([a-zA-Z0-9_-]{20,})/g, (match) => {
+                if (match.length > 30) {
+                    return '[REDACTED_TOKEN]';
+                }
+                return match;
+            });
+        }
+        
+        if (data && typeof data === 'object') {
+            const sanitized = Array.isArray(data) ? [...data] : { ...data };
+            
+            for (const key in sanitized) {
+                const lowerKey = key.toLowerCase();
+                
+                // Check if key contains sensitive terms
+                const isSensitive = [...this.sensitiveFields].some(field => 
+                    lowerKey.includes(field.toLowerCase())
+                );
+                
+                if (isSensitive) {
+                    sanitized[key] = '[REDACTED]';
+                } else if (sanitized[key] && typeof sanitized[key] === 'object') {
+                    sanitized[key] = this.sanitizeData(sanitized[key]);
+                }
+            }
+            
+            return sanitized;
+        }
+        
+        return data;
     }
 
     formatMessage(level, message, meta = {}) {
         const timestamp = new Date().toISOString();
-        const metaStr = Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
-        return `[${timestamp}] [${level.toUpperCase()}] ${message}${metaStr}`;
+        // 🔒 Sanitize meta data before logging
+        const sanitizedMeta = this.sanitizeData(meta);
+        const metaStr = Object.keys(sanitizedMeta).length > 0 ? ` ${JSON.stringify(sanitizedMeta)}` : '';
+        // 🔒 Sanitize message
+        const sanitizedMessage = this.sanitizeData(message);
+        return `[${timestamp}] [${level.toUpperCase()}] ${sanitizedMessage}${metaStr}`;
     }
 
     async writeToFile(message, isError = false) {

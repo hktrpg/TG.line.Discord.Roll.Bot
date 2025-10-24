@@ -19,6 +19,7 @@ const {
 const candle = require('../modules/candleDays.js');
 const cspConfig = require('../modules/config/csp.js');
 const mainCharacter = require('../roll/z_character').mainCharacter;
+const security = require('../utils/security.js');
 const schema = require('./schema.js');
 
 const www = express();
@@ -516,29 +517,100 @@ www.get('/:xx', async (req, res) => {
 
 // Socket.IO 連接處理 (只有在 server 存在時)
 if (io) {
+    // 🔒 新增安全中介軟體
+    io.use((socket, next) => {
+        // Origin 驗證
+        const origin = socket.handshake.headers.origin;
+        if (origin) {
+            const allowedOrigins = [
+                'https://hktrpg.com',
+                'https://www.hktrpg.com',
+                'http://localhost:20721'  // 開發環境
+            ];
+            
+            const isAllowed = allowedOrigins.includes(origin) || 
+                             origin.match(/^https?:\/\/.*\.hktrpg\.com$/);
+            
+            if (!isAllowed) {
+                console.warn('🔒 Rejected connection from invalid origin:', origin);
+                return next(new Error('Invalid origin'));
+            }
+        }
+        
+        next();
+    });
+    
     io.on('connection', async (socket) => {
         socket.on('getListInfo', async message => {
             if (await limitRaterCard(socket.handshake.address)) return;
-            //回傳 message 給發送訊息的 Client
-            let filter = {
-                userName: message.userName,
-                password: SHA(message.userPassword)
+            
+            try {
+                // 🔒 驗證輸入
+                const validation = security.validateCredentials(message);
+                if (!validation.valid) {
+                    console.warn('🔒 Invalid credentials:', validation.error);
+                    socket.emit('getListInfo', { temp: null, id: [] });
+                    return;
+                }
+                
+                const { userName, userPassword: password } = validation.data;
+                
+                // 🔒 防止 NoSQL 注入 - 強制型別轉換
+                let filter = {
+                    userName: String(userName).trim()
+                };
+                
+                let doc = await schema.accountPW.findOne(filter)
+                    .catch(error => {
+                        console.error('🔒 MongoDB error:', error.message);
+                        return null;
+                    });
+                
+                // 🔒 使用安全的密碼驗證（支援 legacy 和 bcrypt）
+                if (!doc) {
+                    console.warn('🔒 User not found:', userName);
+                    socket.emit('getListInfo', { temp: null, id: [] });
+                    return;
+                }
+                
+                const isValid = await verifyPasswordSecure(password, doc.password);
+                if (!isValid) {
+                    console.warn('🔒 Invalid password for user:', userName);
+                    socket.emit('getListInfo', { temp: null, id: [] });
+                    return;
+                }
+                
+                // 🔄 自動升級密碼（如果使用舊密碼）
+                try {
+                    const upgraded = await security.upgradePasswordIfLegacy(userName, password, doc.password);
+                    if (upgraded) {
+                        console.log(`🔄 Password automatically upgraded for user: ${userName}`);
+                        // 重新獲取用戶數據（包含升級後的密碼）
+                        doc = await schema.accountPW.findOne({ userName: userName });
+                    }
+                } catch (error) {
+                    console.error('🔄 Password upgrade failed:', error.message);
+                    // 升級失敗不影響登入流程
+                }
+                
+                // 驗證成功，獲取數據
+                let temp;
+                if (doc.id) {
+                    temp = await schema.characterCard.find({ id: doc.id })
+                        .catch(error => {
+                            console.error('🔒 MongoDB error:', error.message);
+                            return null;
+                        });
+                }
+                
+                let id = doc.channel || [];
+                
+                socket.emit('getListInfo', { temp, id });
+                
+            } catch (error) {
+                console.error('🔒 getListInfo error:', error.message);
+                socket.emit('getListInfo', { temp: null, id: [] });
             }
-            let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #144 mongoDB error:', error.name, error.reason));
-            let temp;
-            if (doc && doc.id) {
-                temp = await schema.characterCard.find({
-                    id: doc.id
-                }).catch(error => console.error('www #149 mongoDB error:', error.name, error.reason));
-            }
-            let id = [];
-            if (doc && doc.channel) {
-                id = doc.channel;
-            }
-            socket.emit('getListInfo', {
-                temp,
-                id
-            })
         })
 
         socket.on('getPublicListInfo', async () => {
@@ -625,27 +697,79 @@ if (io) {
                 }
                 // Legacy support for rollTarget
                 else if (message.rollTarget && message.rollTarget.id && message.rollTarget.botname && message.userName && message.userPassword && message.cardName) {
-                    let filter = {
-                        userName: message.userName,
-                        password: SHA(message.userPassword),
-                        "channel.id": message.rollTarget.id,
-                        "channel.botname": message.rollTarget.botname
-                    }
-                    let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error:', error.name, error.reason));
-                    if (!result) return;
-                    let filter2 = {
-                        "botname": message.rollTarget.botname,
-                        "id": message.rollTarget.id
-                    }
-                    let allowRollingResult = await schema.allowRolling.findOne(filter2).catch(error => console.error('www #220 mongoDB error:', error.name, error.reason));
-                    if (!allowRollingResult) return;
-                    rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
-                    if (message.rollTarget.botname) {
-                        if (!sendTo) return;
-                        sendTo({
-                            target: message.rollTarget,
-                            text: rplyVal.text
-                        })
+                    try {
+                        // 🔒 驗證憑證
+                        const validation = security.validateCredentials(message);
+                        if (!validation.valid) {
+                            console.warn('🔒 Invalid credentials for rolling:', validation.error);
+                            return;
+                        }
+                        
+                        const { userName, userPassword: password } = validation.data;
+                        
+                        // 🔒 防止 NoSQL 注入
+                        let filter = {
+                            userName: String(userName).trim(),
+                            "channel.id": String(message.rollTarget.id).trim(),
+                            "channel.botname": String(message.rollTarget.botname).trim()
+                        };
+                        
+                        let userDoc = await schema.accountPW.findOne(filter)
+                            .catch(error => {
+                                console.error('🔒 MongoDB error:', error.message);
+                                return null;
+                            });
+                        
+                        if (!userDoc) {
+                            console.warn('🔒 User not found for rolling');
+                            return;
+                        }
+                        
+                        // 🔒 驗證密碼
+                        const isValid = await verifyPasswordSecure(password, userDoc.password);
+                        if (!isValid) {
+                            console.warn('🔒 Invalid password for rolling');
+                            return;
+                        }
+                        
+                        // 🔄 自動升級密碼（如果使用舊密碼）
+                        try {
+                            const upgraded = await security.upgradePasswordIfLegacy(userName, password, userDoc.password);
+                            if (upgraded) {
+                                console.log(`🔄 Password automatically upgraded for rolling user: ${userName}`);
+                                // 重新獲取用戶數據（包含升級後的密碼）
+                                userDoc = await schema.accountPW.findOne(filter);
+                            }
+                        } catch (error) {
+                            console.error('🔄 Password upgrade failed for rolling:', error.message);
+                            // 升級失敗不影響擲骰流程
+                        }
+                        
+                        let filter2 = {
+                            "botname": String(message.rollTarget.botname).trim(),
+                            "id": String(message.rollTarget.id).trim()
+                        };
+                        
+                        let allowRollingResult = await schema.allowRolling.findOne(filter2)
+                            .catch(error => {
+                                console.error('🔒 MongoDB error:', error.message);
+                                return null;
+                            });
+                        
+                        if (!allowRollingResult) {
+                            console.warn('🔒 Rolling not allowed for this target');
+                            return;
+                        }
+                        
+                        rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
+                        if (message.rollTarget.botname && sendTo) {
+                            sendTo({
+                                target: message.rollTarget,
+                                text: rplyVal.text
+                            });
+                        }
+                    } catch (error) {
+                        console.error('🔒 Rolling error:', error.message);
                     }
                 }
             }
@@ -675,36 +799,90 @@ if (io) {
         socket.on('updateCard', async message => {
             if (await limitRaterCard(socket.handshake.address)) return;
 
-            // Decode password from Base64
-            const decodedPassword = Buffer.from(message.userPassword, 'base64').toString('utf8');
+            try {
+                // 🔒 Decode password from Base64
+                const decodedPassword = Buffer.from(message.userPassword, 'base64').toString('utf8');
+                
+                // 🔒 驗證輸入
+                const validation = security.validateCredentials({
+                    userName: message.userName,
+                    userPassword: decodedPassword
+                });
+                
+                if (!validation.valid) {
+                    console.warn('🔒 Invalid credentials for updateCard:', validation.error);
+                    socket.emit('updateCard', false);
+                    return;
+                }
+                
+                const { userName, userPassword: password } = validation.data;
 
-            //回傳 message 給發送訊息的 Client
-            let filter = {
-                userName: message.userName,
-                password: SHA(decodedPassword) // Use decoded password
-            }
-            let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #246 mongoDB error:', error.name, error.reason));
-            let temp;
-            if (doc && doc.id) {
-                message.card.state = checkNullItem(message.card.state);
-                message.card.roll = checkNullItem(message.card.roll);
-                message.card.notes = checkNullItem(message.card.notes);
-                temp = await schema.characterCard.findOneAndUpdate({
-                    id: doc.id,
-                    _id: message.card._id
-                }, {
-                    $set: {
-                        public: message.card.public,
-                        state: message.card.state,
-                        roll: message.card.roll,
-                        notes: message.card.notes,
+                // 🔒 防止 NoSQL 注入
+                let filter = {
+                    userName: String(userName).trim()
+                };
+                
+                let doc = await schema.accountPW.findOne(filter)
+                    .catch(error => {
+                        console.error('🔒 MongoDB error:', error.message);
+                        return null;
+                    });
+                
+                // 🔒 使用安全的密碼驗證
+                if (!doc) {
+                    console.warn('🔒 User not found for updateCard:', userName);
+                    socket.emit('updateCard', false);
+                    return;
+                }
+                
+                const isValid = await verifyPasswordSecure(password, doc.password);
+                if (!isValid) {
+                    console.warn('🔒 Invalid password for updateCard:', userName);
+                    socket.emit('updateCard', false);
+                    return;
+                }
+                
+                // 🔄 自動升級密碼（如果使用舊密碼）
+                try {
+                    const upgraded = await security.upgradePasswordIfLegacy(userName, password, doc.password);
+                    if (upgraded) {
+                        console.log(`🔄 Password automatically upgraded for updateCard user: ${userName}`);
+                        // 重新獲取用戶數據（包含升級後的密碼）
+                        doc = await schema.accountPW.findOne(filter);
                     }
-                }).catch(error => console.error('www #262 mongoDB error:', error.name, error.reason));
-            }
-            if (temp) {
-                socket.emit('updateCard', true)
-            } else {
-                socket.emit('updateCard', false)
+                } catch (error) {
+                    console.error('🔄 Password upgrade failed for updateCard:', error.message);
+                    // 升級失敗不影響更新流程
+                }
+                
+                // 驗證成功，更新卡片
+                let temp;
+                if (doc.id && message.card) {
+                    message.card.state = checkNullItem(message.card.state || []);
+                    message.card.roll = checkNullItem(message.card.roll || []);
+                    message.card.notes = checkNullItem(message.card.notes || []);
+                    
+                    temp = await schema.characterCard.findOneAndUpdate({
+                        id: doc.id,
+                        _id: message.card._id
+                    }, {
+                        $set: {
+                            public: message.card.public,
+                            state: message.card.state,
+                            roll: message.card.roll,
+                            notes: message.card.notes,
+                        }
+                    }).catch(error => {
+                        console.error('🔒 MongoDB error:', error.message);
+                        return null;
+                    });
+                }
+                
+                socket.emit('updateCard', !!temp);
+                
+            } catch (error) {
+                console.error('🔒 updateCard error:', error.message);
+                socket.emit('updateCard', false);
             }
         })
 
@@ -729,23 +907,25 @@ if (io) {
 
         socket.on("send", async (msg) => {
             if (await limitRaterChatRoom(socket.handshake.address)) return;
-            // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
-            // 因此我們直接 return ，終止函式執行。
-            if (!msg || typeof msg !== 'object') return;
+            
+            // 🔒 使用安全的輸入驗證
+            const validation = security.validateChatMessage(msg);
+            if (!validation.valid) {
+                console.warn('🔒 Invalid chat message:', validation.error, 
+                    'from', socket.handshake.address);
+                socket.emit('error', { message: validation.error });
+                return;
+            }
 
-            const name = (msg.name ?? '').toString().trim();
-            const text = (msg.msg ?? '').toString().trim();
-            const room = (msg.roomNumber ?? '').toString().trim();
-            const time = new Date(); // Use server's time for accuracy.
-
-            // Caller-side validation: require non-empty fields
-            if (!name || !text || !room) return;
+            // 🔒 修復：使用正確的欄位名 msg 和 roomNumber
+            const { name, msg: text, roomNumber } = validation.data;
+            const time = new Date(); // Use server's time for accuracy
 
             const payload = {
-                name: name.slice(0, 50),
+                name: name,
                 msg: '\n' + text, // keep leading newline as before
                 time: time,
-                roomNumber: room.slice(0, 50)
+                roomNumber: roomNumber  // 🔒 修復：使用 roomNumber
             };
 
             records.chatRoomPush(payload);
@@ -808,10 +988,25 @@ records.on("new_message", async (message) => {
     }
 });
 
+// ⚠️ DEPRECATED: Legacy password hashing - insecure!
+// This function is kept for backward compatibility with existing password hashes
+// New code should use security.hashPassword() and security.verifyPassword()
 function SHA(text) {
     return crypto.createHmac('sha256', text)
         .update(salt)
         .digest('hex');
+}
+
+// 🔒 Secure password verification
+// Handles both legacy SHA hashes and new bcrypt hashes
+async function verifyPasswordSecure(password, hash) {
+    try {
+        // Use the security module which handles both legacy and new hashes
+        return await security.verifyPassword(password, hash);
+    } catch (error) {
+        console.error('🔒 Password verification error:', error.message);
+        return false;
+    }
 }
 
 function checkNullItem(target) {

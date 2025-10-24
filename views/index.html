@@ -1912,8 +1912,8 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         
-        /* 確保圖片鏈接是塊級元素，圖片在下一行顯示 */
-        .card-body2 a:has(.image-wrapper) {
+        /* 圖片包裝器樣式 */
+        .image-wrapper {
             display: block;
             margin: 8px 0;
         }
@@ -2287,14 +2287,8 @@
                         wrapper.appendChild(placeholder);
                         wrapper.appendChild(img);
                         
-                        // Create link wrapper
-                        const a = document.createElement('a');
-                        a.href = utils.sanitizeUrl(url);
-                        a.target = '_blank';
-                        a.rel = 'noopener noreferrer';
-                        a.appendChild(wrapper);
-                        
-                        container.appendChild(a);
+                        // Add wrapper directly to container (no link wrapper)
+                        container.appendChild(wrapper);
                         
                         // 🔧 Smart loading strategy:
                         // 1. History records: Load immediately (at top, not in viewport)

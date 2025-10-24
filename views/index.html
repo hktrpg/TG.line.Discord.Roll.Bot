@@ -2990,7 +2990,11 @@
                 let sanitized = temp.innerHTML;
                 
                 // 額外清理：移除任何殘留的事件處理器
-                sanitized = sanitized.replace(/on\w+\s*=\s*["'][^"']*["']/gi, '');
+                let prev;
+                do {
+                    prev = sanitized;
+                    sanitized = sanitized.replace(/on\w+\s*=\s*["'][^"']*["']/gi, '');
+                } while (sanitized !== prev);
                 
                 return sanitized;
             },

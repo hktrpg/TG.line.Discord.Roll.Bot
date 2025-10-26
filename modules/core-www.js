@@ -414,8 +414,6 @@ www.get('/api/dice-commands', async (req, res) => {
 
 // 自動完成模組註冊系統
 const autocompleteModules = {};
-const autocompleteCache = new Map();
-const autocompleteStats = new Map();
 
 // 快取配置
 const CACHE_CONFIG = {
@@ -425,14 +423,14 @@ const CACHE_CONFIG = {
     MAX_SEARCH_CACHE: 500 // 最大搜尋快取數
 };
 
-// 速率限制配置
-const RATE_LIMIT_CONFIG = {
-    autocomplete: {
-        windowMs: 60 * 1000, // 1分鐘
-        max: 100, // 每分鐘最多100次請求
-        skipSuccessfulRequests: false
-    }
-};
+// 速率限制配置 (保留用於未來擴展)
+// const RATE_LIMIT_CONFIG = {
+//     autocomplete: {
+//         windowMs: 60_000, // 1分鐘
+//         max: 100, // 每分鐘最多100次請求
+//         skipSuccessfulRequests: false
+//     }
+// };
 
 // 效能監控
 class AutocompleteMonitor {
@@ -478,7 +476,7 @@ class AutocompleteCache {
     constructor() {
         this.cache = new Map();
         this.searchCache = new Map();
-        this.cleanupInterval = setInterval(() => this.cleanup(), 60000); // 每分鐘清理一次
+        this.cleanupInterval = setInterval(() => this.cleanup(), 60_000); // 每分鐘清理一次
     }
     
     set(key, value, ttl = CACHE_CONFIG.TTL) {
@@ -577,13 +575,13 @@ const registerAutocompleteModules = () => {
                 }
                 
                 // 檢查模組是否有其他自動完成功能（如招式自動完成）
-                Object.keys(commandModule).forEach(key => {
+                for (const key of Object.keys(commandModule)) {
                     if (key.endsWith('Autocomplete') && typeof commandModule[key] === 'object') {
                         const moduleName = commandModule[key].moduleName || key;
                         autocompleteModules[moduleName] = commandModule[key];
                         console.log(`Registered autocomplete module: ${moduleName}`);
                     }
-                });
+                }
             } catch (error) {
                 console.error(`Failed to register autocomplete module from ${file}:`, error);
             }
@@ -614,7 +612,7 @@ www.get('/api/autocomplete/:module', async (req, res) => {
     
     try {
         const moduleConfig = autocompleteModules[module];
-        const limitNum = Math.min(parseInt(limit), 50); // 限制最大結果數
+        const limitNum = Math.min(Number.parseInt(limit, 10), 50); // 限制最大結果數
         let results;
         
         if (q && q.trim().length > 0) {

@@ -2290,7 +2290,7 @@ class Digimon {
                 
                 const nameMatch = digimon.name.toLowerCase() === trimmedQuery;
                 const zhNameMatch = digimon['zh-cn-name'] && digimon['zh-cn-name'].toLowerCase() === trimmedQuery;
-                const idMatch = !isNaN(trimmedQuery) && digimon.id === parseInt(trimmedQuery);
+                const idMatch = !Number.isNaN(Number(trimmedQuery)) && digimon.id === Number.parseInt(trimmedQuery, 10);
                 
                 if ((nameMatch || zhNameMatch || idMatch) && !seenIds.has(digimon.id)) {
                     results.push(digimon);
@@ -2393,12 +2393,12 @@ class Digimon {
         const results = [];
         
         // 檢查是否為數碼寶貝ID搜尋
-        const isIdSearch = !isNaN(searchTerm) && searchTerm.length > 0;
+        const isIdSearch = !Number.isNaN(Number(searchTerm)) && searchTerm.length > 0;
         let targetDigimon = null;
         
         if (isIdSearch) {
             // 根據ID找到對應的數碼寶貝
-            const digimonId = parseInt(searchTerm);
+            const digimonId = Number.parseInt(searchTerm, 10);
             targetDigimon = this.digimonData.find(d => d.id === digimonId);
         }
         

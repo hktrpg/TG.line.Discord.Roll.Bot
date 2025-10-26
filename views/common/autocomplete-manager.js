@@ -21,7 +21,7 @@ class AutocompleteManager {
         };
         
         // 定期清理過期快取
-        setInterval(() => this.cleanupCache(), 60000);
+        setInterval(() => this.cleanupCache(), 60_000);
     }
 
     /**
@@ -84,7 +84,7 @@ class AutocompleteManager {
         // 生成基於位置和屬性的ID
         const form = input.closest('form');
         const formId = form ? form.id || 'form' : 'no-form';
-        const inputIndex = Array.from(document.querySelectorAll('input')).indexOf(input);
+        const inputIndex = [...document.querySelectorAll('input')].indexOf(input);
         return `${formId}_input_${inputIndex}_${Date.now()}`;
     }
 
@@ -244,7 +244,7 @@ class Autocomplete {
             this.input.parentNode.style.position = 'relative';
         }
 
-        this.input.parentNode.appendChild(this.dropdown);
+        this.input.parentNode.append(this.dropdown);
     }
 
     /**
@@ -431,12 +431,12 @@ class Autocomplete {
             const noResults = document.createElement('div');
             noResults.className = 'autocomplete-item no-results';
             noResults.textContent = this.config.noResultsText;
-            this.dropdown.appendChild(noResults);
+            this.dropdown.append(noResults);
         } else {
-            results.forEach((item, index) => {
+            for (const [index, item] of results.entries()) {
                 const itemElement = this.createItemElement(item, index);
-                this.dropdown.appendChild(itemElement);
-            });
+                this.dropdown.append(itemElement);
+            }
         }
 
         this.dropdown.style.display = 'block';
@@ -467,7 +467,7 @@ class Autocomplete {
         }
         
         // 檢查是否會被底部遮擋
-        const dropdownBottom = inputRect.bottom + dropdownRect.height;
+        // const dropdownBottom = inputRect.bottom + dropdownRect.height;
         const availableSpace = quickInputBottom > 0 ? 
             Math.min(viewportHeight, quickInputBottom) - inputRect.bottom :
             viewportHeight - inputRect.bottom;
@@ -576,13 +576,13 @@ class Autocomplete {
         if (!this.dropdown) return;
 
         const items = this.dropdown.querySelectorAll('.autocomplete-item');
-        items.forEach((item, index) => {
+        for (const [index, item] of items.entries()) {
             if (index === this.selectedIndex && this.selectedIndex >= 0) {
                 item.classList.add('selected');
             } else {
                 item.classList.remove('selected');
             }
-        });
+        }
     }
 
     /**
@@ -654,7 +654,7 @@ class Autocomplete {
 
         // 使用 MutationObserver 監聽 class 變化
         const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
+            for (const mutation of mutations) {
                 if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                     // 當快速輸入面板狀態改變時，重新調整下拉選單位置
                     if (this.isVisible) {
@@ -663,7 +663,7 @@ class Autocomplete {
                         }, 100); // 稍微延遲以確保動畫完成
                     }
                 }
-            });
+            }
         });
 
         observer.observe(quickInputPad, {

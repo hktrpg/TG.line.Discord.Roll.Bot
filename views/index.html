@@ -23,8 +23,155 @@
     </script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <style>
+        /* 自動完成樣式 */
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ccc;
+            border-top: none;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1100; /* 提高z-index確保在快速輸入面板之上 */
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 0 0 6px 6px;
+        }
+        
+        .autocomplete-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .autocomplete-item:hover,
+        .autocomplete-item.selected {
+            background-color: #e3f2fd;
+            border-left: 3px solid #2196f3;
+            padding-left: 9px;
+        }
+        
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        
+        .autocomplete-item.no-results {
+            color: #6c757d;
+            font-style: italic;
+            cursor: default;
+            text-align: center;
+            padding: 15px;
+        }
+        
+        .autocomplete-main {
+            font-weight: 500;
+            color: #212529;
+            font-size: 0.95rem;
+            line-height: 1.3;
+        }
+        
+        .autocomplete-meta {
+            margin-top: 4px;
+            font-size: 0.8rem;
+            color: #6c757d;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            align-items: center;
+        }
+        
+        .autocomplete-meta .badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        .autocomplete-meta .badge.badge-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .autocomplete-meta .badge.badge-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        
+        .autocomplete-meta .text-muted {
+            color: #6c757d !important;
+            font-size: 0.75rem;
+        }
+        
+        /* 深色主題支持 */
+        [data-theme="dark"] .autocomplete-dropdown {
+            background: #343a40;
+            border-color: #495057;
+            color: #f8f9fa;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        [data-theme="dark"] .autocomplete-item {
+            border-bottom-color: #495057;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover,
+        [data-theme="dark"] .autocomplete-item.selected {
+            background-color: #1e3a8a;
+            border-left-color: #3b82f6;
+        }
+        
+        [data-theme="dark"] .autocomplete-item.no-results {
+            color: #adb5bd;
+        }
+        
+        [data-theme="dark"] .autocomplete-main {
+            color: #f8f9fa;
+        }
+        
+        [data-theme="dark"] .autocomplete-meta {
+            color: #adb5bd;
+        }
+        
+        [data-theme="dark"] .autocomplete-meta .badge.badge-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        [data-theme="dark"] .autocomplete-meta .badge.badge-info {
+            background-color: #0dcaf0;
+            color: #000;
+        }
+        
+        [data-theme="dark"] .autocomplete-meta .text-muted {
+            color: #adb5bd !important;
+        }
+        
+        /* 表單組樣式優化，為自動完成提供空間 */
+        .form-group {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* 確保自動完成下拉選單在快速輸入面板之上 */
+        .quick-input-pad .form-group {
+            z-index: 1001;
+        }
+        
+        .quick-input-pad .form-group .autocomplete-dropdown {
+            z-index: 1100;
+        }
+    </style>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <script src="common/autocompleteManager.js"></script>
 </head>
 
 <body>
@@ -894,6 +1041,8 @@
             border: 1px solid var(--card-border);
             max-height: 60vh;
             overflow-y: auto;
+            position: relative;
+            z-index: 1000; /* 確保在自動完成下拉選單之下 */
         }
 
         .quick-input-pad .toggle-button {
@@ -3532,6 +3681,29 @@
                             }
                         };
                         inputGroup.appendChild(input);
+
+                        // 檢查是否支持自動完成
+                        if (option.autocomplete && option.autocomplete.enabled) {
+                            const autocompleteConfig = {
+                                dataSource: 'api',
+                                module: option.autocomplete.module || 'digimon',
+                                searchFields: option.autocomplete.searchFields || ['display', 'value'],
+                                limit: option.autocomplete.limit || 8,
+                                minQueryLength: option.autocomplete.minQueryLength || 1,
+                                placeholder: option.autocomplete.placeholder || option.description,
+                                noResultsText: option.autocomplete.noResultsText || '找不到相關結果'
+                            };
+                            
+                            // 為輸入框添加自動完成
+                            if (window.autocompleteManager) {
+                                window.autocompleteManager.attachToInput(input, autocompleteConfig);
+                                
+                                // 監聽自動完成選擇事件
+                                input.addEventListener('autocomplete-select', (e) => {
+                                    quickCommandsManager.activeCommand.inputs[option.name] = e.detail.item.value;
+                                });
+                            }
+                        }
 
                         const errorDiv = document.createElement('div');
                         errorDiv.className = 'invalid-feedback';

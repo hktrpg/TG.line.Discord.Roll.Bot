@@ -2256,6 +2256,50 @@ class Digimon {
 
         return output;
     }
+
+    // 新增：為自動完成功能提供搜尋方法
+    searchForAutocomplete(query, limit = 10) {
+        if (!query || query.trim().length === 0) {
+            return this.digimonData.slice(0, limit).map(digimon => ({
+                id: digimon.id,
+                display: digimon.name,
+                value: digimon.name,
+                metadata: {
+                    stage: this.getStageName(digimon.stage),
+                    attribute: digimon.attribute,
+                    'zh-cn-name': digimon['zh-cn-name']
+                }
+            }));
+        }
+
+        const detailed = this.findByNameOrIdDetailed(query);
+        const results = detailed.candidates || [];
+        
+        return results.slice(0, limit).map(digimon => ({
+            id: digimon.id,
+            display: digimon.name,
+            value: digimon.name,
+            metadata: {
+                stage: this.getStageName(digimon.stage),
+                attribute: digimon.attribute,
+                'zh-cn-name': digimon['zh-cn-name']
+            }
+        }));
+    }
+
+    // 新增：獲取所有數碼寶貝名稱（用於初始化）
+    getAllDigimonNames() {
+        return this.digimonData.map(digimon => ({
+            id: digimon.id,
+            display: digimon.name,
+            value: digimon.name,
+            metadata: {
+                stage: this.getStageName(digimon.stage),
+                attribute: digimon.attribute,
+                'zh-cn-name': digimon['zh-cn-name']
+            }
+        }));
+    }
 }
 
 
@@ -2272,7 +2316,8 @@ const discordCommand = [
                     .addStringOption(option =>
                         option.setName('name')
                             .setDescription('數碼寶貝名稱或編號')
-                            .setRequired(true)))
+                            .setRequired(true)
+                            .setAutocomplete(true)))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('path')
@@ -2280,11 +2325,13 @@ const discordCommand = [
                     .addStringOption(option =>
                         option.setName('from')
                             .setDescription('起始數碼寶貝名稱或編號')
-                            .setRequired(true))
+                            .setRequired(true)
+                            .setAutocomplete(true))
                     .addStringOption(option =>
                         option.setName('to')
                             .setDescription('目標數碼寶貝名稱或編號')
-                            .setRequired(true)))
+                            .setRequired(true)
+                            .setAutocomplete(true)))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('move')

@@ -307,11 +307,31 @@ www.get('/api/dice-commands', async (req, res) => {
 
                                 try {
                                     const executeTemplate = await cmd.execute(mockInteraction);
+                                    
+                                    // 為支持自動完成的選項添加配置
+                                    const optionsWithAutocomplete = (sub.options || []).map(option => {
+                                        if (option.autocomplete === true) {
+                                            return {
+                                                ...option,
+                                                autocomplete: {
+                                                    enabled: true,
+                                                    module: 'digimon',
+                                                    searchFields: ['display', 'value', 'metadata.zh-cn-name'],
+                                                    limit: 8,
+                                                    minQueryLength: 1,
+                                                    placeholder: option.description,
+                                                    noResultsText: '找不到相關的數碼寶貝'
+                                                }
+                                            };
+                                        }
+                                        return option;
+                                    });
+                                    
                                     commands.push({
                                         json: {
                                             name: `${commandJson.name}_${sub.name}`,
                                             description: sub.description,
-                                            options: sub.options || []
+                                            options: optionsWithAutocomplete
                                         },
                                         execute: executeTemplate,
                                         flagMap: cmd.flagMap || {}
@@ -344,8 +364,31 @@ www.get('/api/dice-commands', async (req, res) => {
                             };
                             try {
                                 const executeTemplate = await cmd.execute(mockInteraction);
+                                
+                                // 為支持自動完成的選項添加配置
+                                const optionsWithAutocomplete = (commandJson.options || []).map(option => {
+                                    if (option.autocomplete === true) {
+                                        return {
+                                            ...option,
+                                            autocomplete: {
+                                                enabled: true,
+                                                module: 'digimon',
+                                                searchFields: ['display', 'value', 'metadata.zh-cn-name'],
+                                                limit: 8,
+                                                minQueryLength: 1,
+                                                placeholder: option.description,
+                                                noResultsText: '找不到相關的數碼寶貝'
+                                            }
+                                        };
+                                    }
+                                    return option;
+                                });
+                                
                                 commands.push({
-                                    json: commandJson,
+                                    json: {
+                                        ...commandJson,
+                                        options: optionsWithAutocomplete
+                                    },
                                     execute: executeTemplate,
                                     flagMap: cmd.flagMap || {}
                                 });
@@ -367,6 +410,62 @@ www.get('/api/dice-commands', async (req, res) => {
     }
 
     res.json(commandsData);
+});
+
+// 自動完成模組註冊系統
+const autocompleteModules = {};
+
+// 註冊數碼寶貝自動完成模組
+try {
+    const digimonModule = require('../roll/digmon.js');
+    if (digimonModule.Digimon) {
+        const digimonInstance = digimonModule.Digimon.init();
+        autocompleteModules['digimon'] = {
+            getData: () => digimonInstance.getAllDigimonNames(),
+            search: (query, limit) => digimonInstance.searchForAutocomplete(query, limit),
+            transform: (item) => ({
+                id: item.id,
+                display: item.display,
+                value: item.value,
+                metadata: item.metadata
+            })
+        };
+    }
+} catch (error) {
+    console.error('Failed to register digimon autocomplete module:', error);
+}
+
+// 通用自動完成API端點
+www.get('/api/autocomplete/:module', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+
+    const { module } = req.params;
+    const { q, limit = 10 } = req.query;
+    
+    if (!autocompleteModules[module]) {
+        return res.status(404).json({ error: 'Module not found' });
+    }
+    
+    try {
+        const moduleConfig = autocompleteModules[module];
+        let results;
+        
+        if (q && q.trim().length > 0) {
+            results = await moduleConfig.search(q.trim(), parseInt(limit));
+        } else {
+            results = await moduleConfig.getData();
+            results = results.slice(0, parseInt(limit));
+        }
+        
+        const transformed = results.map(moduleConfig.transform);
+        res.json(transformed);
+    } catch (error) {
+        console.error('Autocomplete search error:', error);
+        res.status(500).json({ error: 'Search failed' });
+    }
 });
 
 // 將/publiccard/css/設置為靜態資源的路徑

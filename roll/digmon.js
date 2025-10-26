@@ -2350,25 +2350,53 @@ const discordCommand = [
                 subcommand
                     .setName('search')
                     .setDescription('查詢數碼寶貝資料')
-                    .addStringOption(option =>
-                        option.setName('name')
+                    .addStringOption(option => {
+                        const opt = option.setName('name')
                             .setDescription('數碼寶貝名稱或編號')
                             .setRequired(true)
-                            .setAutocomplete(true)))
+                            .setAutocomplete(true);
+                        
+                        // 添加自動完成配置到選項對象
+                        opt.autocompleteModule = 'digimon';
+                        opt.autocompleteSearchFields = ['display', 'value', 'metadata.zh-cn-name'];
+                        opt.autocompleteLimit = 8;
+                        opt.autocompleteMinQueryLength = 1;
+                        opt.autocompleteNoResultsText = '找不到相關的數碼寶貝';
+                        
+                        return opt;
+                    }))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('path')
                     .setDescription('查詢進化路線')
-                    .addStringOption(option =>
-                        option.setName('from')
+                    .addStringOption(option => {
+                        const opt = option.setName('from')
                             .setDescription('起始數碼寶貝名稱或編號')
                             .setRequired(true)
-                            .setAutocomplete(true))
-                    .addStringOption(option =>
-                        option.setName('to')
+                            .setAutocomplete(true);
+                        
+                        opt.autocompleteModule = 'digimon';
+                        opt.autocompleteSearchFields = ['display', 'value', 'metadata.zh-cn-name'];
+                        opt.autocompleteLimit = 8;
+                        opt.autocompleteMinQueryLength = 1;
+                        opt.autocompleteNoResultsText = '找不到相關的數碼寶貝';
+                        
+                        return opt;
+                    })
+                    .addStringOption(option => {
+                        const opt = option.setName('to')
                             .setDescription('目標數碼寶貝名稱或編號')
                             .setRequired(true)
-                            .setAutocomplete(true)))
+                            .setAutocomplete(true);
+                        
+                        opt.autocompleteModule = 'digimon';
+                        opt.autocompleteSearchFields = ['display', 'value', 'metadata.zh-cn-name'];
+                        opt.autocompleteLimit = 8;
+                        opt.autocompleteMinQueryLength = 1;
+                        opt.autocompleteNoResultsText = '找不到相關的數碼寶貝';
+                        
+                        return opt;
+                    }))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('move')
@@ -2504,6 +2532,25 @@ const discordCommand = [
     }
 ];
 
+// 自動完成模組配置
+const autocomplete = {
+    moduleName: 'digimon',
+    getData: () => {
+        const instance = Digimon.init();
+        return instance.getAllDigimonNames();
+    },
+    search: (query, limit) => {
+        const instance = Digimon.init();
+        return instance.searchForAutocomplete(query, limit);
+    },
+    transform: (item) => ({
+        id: item.id,
+        display: item.display,
+        value: item.value,
+        metadata: item.metadata
+    })
+};
+
 module.exports = {
     rollDiceCommand,
     initialize,
@@ -2512,5 +2559,6 @@ module.exports = {
     gameType,
     gameName,
     discordCommand,
-    Digimon
+    Digimon,
+    autocomplete
 };

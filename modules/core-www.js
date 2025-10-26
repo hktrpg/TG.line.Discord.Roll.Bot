@@ -315,12 +315,12 @@ www.get('/api/dice-commands', async (req, res) => {
                                                 ...option,
                                                 autocomplete: {
                                                     enabled: true,
-                                                    module: 'digimon',
-                                                    searchFields: ['display', 'value', 'metadata.zh-cn-name'],
-                                                    limit: 8,
-                                                    minQueryLength: 1,
+                                                    module: option.autocompleteModule || 'default',
+                                                    searchFields: option.autocompleteSearchFields || ['display', 'value'],
+                                                    limit: option.autocompleteLimit || 8,
+                                                    minQueryLength: option.autocompleteMinQueryLength || 1,
                                                     placeholder: option.description,
-                                                    noResultsText: '找不到相關的數碼寶貝'
+                                                    noResultsText: option.autocompleteNoResultsText || '找不到相關結果'
                                                 }
                                             };
                                         }
@@ -372,12 +372,12 @@ www.get('/api/dice-commands', async (req, res) => {
                                             ...option,
                                             autocomplete: {
                                                 enabled: true,
-                                                module: 'digimon',
-                                                searchFields: ['display', 'value', 'metadata.zh-cn-name'],
-                                                limit: 8,
-                                                minQueryLength: 1,
+                                                module: option.autocompleteModule || 'default',
+                                                searchFields: option.autocompleteSearchFields || ['display', 'value'],
+                                                limit: option.autocompleteLimit || 8,
+                                                minQueryLength: option.autocompleteMinQueryLength || 1,
                                                 placeholder: option.description,
-                                                noResultsText: '找不到相關的數碼寶貝'
+                                                noResultsText: option.autocompleteNoResultsText || '找不到相關結果'
                                             }
                                         };
                                     }
@@ -415,25 +415,34 @@ www.get('/api/dice-commands', async (req, res) => {
 // 自動完成模組註冊系統
 const autocompleteModules = {};
 
-// 註冊數碼寶貝自動完成模組
-try {
-    const digimonModule = require('../roll/digmon.js');
-    if (digimonModule.Digimon) {
-        const digimonInstance = digimonModule.Digimon.init();
-        autocompleteModules['digimon'] = {
-            getData: () => digimonInstance.getAllDigimonNames(),
-            search: (query, limit) => digimonInstance.searchForAutocomplete(query, limit),
-            transform: (item) => ({
-                id: item.id,
-                display: item.display,
-                value: item.value,
-                metadata: item.metadata
-            })
-        };
+// 動態註冊自動完成模組
+const registerAutocompleteModules = () => {
+    const rollDir = path.join(process.cwd(), 'roll');
+    const files = fs.readdirSync(rollDir);
+    
+    const ignoredFiles = ['z_', 'rollbase', 'demo', 'export', 'forward', 'help', 'init', 'request-rolling', 'token', 'edit'];
+    
+    for (const file of files) {
+        if (file.endsWith('.js') && !ignoredFiles.some(prefix => file.startsWith(prefix))) {
+            try {
+                const modulePath = path.join(rollDir, file);
+                const commandModule = require(modulePath);
+                
+                // 檢查模組是否有自動完成功能
+                if (commandModule.autocomplete && typeof commandModule.autocomplete === 'object') {
+                    const moduleName = commandModule.autocomplete.moduleName || file.replace('.js', '');
+                    autocompleteModules[moduleName] = commandModule.autocomplete;
+                    console.log(`Registered autocomplete module: ${moduleName}`);
+                }
+            } catch (error) {
+                console.error(`Failed to register autocomplete module from ${file}:`, error);
+            }
+        }
     }
-} catch (error) {
-    console.error('Failed to register digimon autocomplete module:', error);
-}
+};
+
+// 初始化時註冊所有模組
+registerAutocompleteModules();
 
 // 通用自動完成API端點
 www.get('/api/autocomplete/:module', async (req, res) => {

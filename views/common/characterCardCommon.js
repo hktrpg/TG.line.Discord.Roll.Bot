@@ -431,7 +431,7 @@ function popup(result) {
     }
 }
 
-function addElement(message, type, closeDelay) {
+function addElement(message, type, closeDelay, allowHtml = false) {
     let $cont = $("#alerts-container");
     if ($cont.length === 0) {
         $cont = $('<div id="alerts-container">')
@@ -449,8 +449,14 @@ function addElement(message, type, closeDelay) {
     type = type || "info";
     let alert = $('<div>')
         .addClass("alert text-wrap text-break alert-dismissible fade show alert-" + type)
-        .append($('<button type="button" class="close" data-dismiss="alert">').append("&times;"))
-        .append(sanitizeHtml(message));
+        .append($('<button type="button" class="close" data-dismiss="alert">').append("&times;"));
+    
+    // 根據 allowHtml 參數決定是否使用 HTML 或純文字
+    if (allowHtml) {
+        alert.append(message);
+    } else {
+        alert.append(sanitizeHtml(message));
+    }
 
     $cont.prepend(alert);
     if (closeDelay) {
@@ -471,9 +477,9 @@ function selectCard() {
 socket.on("rolling", function (result) {
     debugLog(`Received rolling result: ${result}`, 'info');
     if (result) {
-        addElement("<strong>" + result + "</strong>", "warning", 4000);
+        addElement(result, "warning", 4000, true); // 允許 HTML 格式
     } else {
-        addElement("<strong>擲骰失敗!</strong> 請檢查或向HKTRPG回報。", "danger", 4000);
+        addElement("<strong>擲骰失敗!</strong> 請檢查或向HKTRPG回報。", "danger", 4000, true);
         debugLog('Rolling failed', 'error');
     }
 });
@@ -481,9 +487,9 @@ socket.on("rolling", function (result) {
 socket.on("publicRolling", function (result) {
     debugLog(`Received public rolling result: ${result}`, 'info');
     if (result) {
-        addElement("<strong>" + result + "</strong>", "warning", 4000);
+        addElement(result, "warning", 4000, true); // 允許 HTML 格式
     } else {
-        addElement("<strong>擲骰失敗!</strong> 請檢查或向HKTRPG回報。", "danger", 4000);
+        addElement("<strong>擲骰失敗!</strong> 請檢查或向HKTRPG回報。", "danger", 4000, true);
         debugLog('Public rolling failed', 'error');
     }
 });

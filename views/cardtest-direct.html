@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<!-- HKTRPG Sad-->
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="css/card.css">
+    <link rel="stylesheet" href="css/modern-card.css">
+    <link rel="stylesheet" href="css/hybrid-card.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+        integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <!-- production version, optimized for size and speed -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <title>Character Card 角色卡 @ HKTRPG - 混合設計測試版</title>
+    <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <!-- Font Awesome for modern icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous">
+</head>
+
+<body class="bg-color" id="body">
+    <header>
+        <div id="header">
+            <h1>HKTRPG 角色卡系統 - 混合設計測試版</h1>
+            <p>測試新的混合設計UI，包含編輯模式、浮動按鈕和角色詳情網格</p>
+        </div>
+    </header>
+    <br>
+    <div class="container-fluid px-3 px-md-4 py-3" id="array-rendering">
+        <!-- Alerts -->
+        <div class="alert alert-success alert-dismissible fade show overlay" style="position: fixed; z-index: 999; display: none;" role="alert" id="warning-update">
+            <i class="fas fa-check-circle me-2"></i><strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div class="alert alert-danger alert-dismissible fade show overlay" style="position: fixed; z-index: 999; display: none;" role="alert" id="warning-updateError">
+            <i class="fas fa-exclamation-triangle me-2"></i><strong>更新失敗!</strong> 請檢查或向HKTRPG回報。
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- 直接嵌入混合設計UI -->
+        <main class="container" id="array-rendering">
+            <!-- 角色頭部信息 -->
+            <section class="character-header mb-4">
+                <div class="hybrid-card-container">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="character-name mb-3">
+                                <i class="fas fa-user-circle me-2"></i>
+                                {{ character.name }}
+                            </h2>
+                            <div class="character-info d-flex flex-wrap gap-3">
+                                <span class="info-badge">
+                                    <i class="fas fa-briefcase me-1"></i>
+                                    <span class="info-label">職業:</span>
+                                    <span class="info-value">調查員</span>
+                                </span>
+                                <span class="info-badge">
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    <span class="info-label">地點:</span>
+                                    <span class="info-value">東京</span>
+                                </span>
+                                <span class="info-badge">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    <span class="info-label">年齡:</span>
+                                    <span class="info-value">28歲</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="action-controls">
+                                <button type="button" class="action-btn primary" @click="toggleEditMode" :title="editMode ? '關閉編輯模式' : '開啟編輯模式'">
+                                    <i class="fas fa-edit"></i>
+                                    {{ editMode ? '關閉編輯' : '編輯模式' }}
+                                </button>
+                                <button type="button" class="action-btn danger" @click="toggleDeleteMode" :title="deleteMode ? '關閉刪除模式' : '開啟刪除模式'">
+                                    <i class="fas fa-trash-alt"></i>
+                                    {{ deleteMode ? '關閉刪除' : '刪除模式' }}
+                                </button>
+                                <button type="button" class="action-btn secondary" onclick="updateCard()">
+                                    <i class="fas fa-save"></i>
+                                    儲存
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 擲骰區域 - 混合設計網格 -->
+            <section class="rolls-section mb-4">
+                <div class="hybrid-card-container section-container">
+                    <h4 class="section-title">
+                        <i class="fas fa-dice-d20"></i>擲骰
+                    </h4>
+                    
+                    <div class="hybrid-attributes-grid">
+                        <div v-for="(skill, index) in skills" :key="index" 
+                             class="attribute-panel"
+                             @click="!editMode ? rollDice(skill.name) : null">
+                            <!-- 擲骰按鈕只在非編輯模式下顯示 -->
+                            <button type="button" class="dice-roll-button" @click.stop="!editMode ? rollDice(skill.name) : null" title="擲骰" v-if="!editMode">
+                                <i class="fas fa-dice-d20"></i>
+                            </button>
+                            
+                            <!-- 正常顯示模式 -->
+                            <div class="attribute-label" v-if="!editMode">{{ skill.name }}</div>
+                            <div class="attribute-value-display" v-if="!editMode">{{ skill.value }}</div>
+                            <div class="attribute-cc-value" v-if="!editMode">CC {{ skill.value }}</div>
+                            
+                            <!-- 編輯模式下的輸入框 -->
+                            <div v-if="editMode" class="edit-inputs">
+                                <input type="text" 
+                                       v-model="skill.name" 
+                                       placeholder="技能名稱"
+                                       class="edit-input">
+                                <input type="number" 
+                                       v-model.number="skill.value" 
+                                       placeholder="數值"
+                                       class="edit-input">
+                            </div>
+                            
+                            <!-- 刪除按鈕 (刪除模式) -->
+                            <button type="button" 
+                                    class="action-btn danger btn-sm mt-2 w-100" 
+                                    v-if="deleteMode" 
+                                    @click.stop="removeSkill(index)">
+                                <i class="fas fa-trash me-1"></i>刪除
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 浮動添加按鈕 - 正中間 -->
+                    <button type="button" 
+                            class="section-add-button" 
+                            @click="addSkill" 
+                            title="新增技能">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 屬性區域 - 混合設計網格 -->
+            <section class="attributes-section mb-4">
+                <div class="hybrid-card-container section-container">
+                    <h4 class="section-title">
+                        <i class="fas fa-chart-line"></i>基本屬性
+                    </h4>
+                    
+                    <div class="hybrid-attributes-grid">
+                        <div v-for="(attr, index) in attributes" :key="index" 
+                             class="attribute-panel"
+                             @click="!editMode ? rollDice(attr.name) : null">
+                            <!-- 擲骰按鈕只在非編輯模式下顯示 -->
+                            <button type="button" class="dice-roll-button" @click.stop="!editMode ? rollDice(attr.name) : null" title="擲骰" v-if="!editMode">
+                                <i class="fas fa-dice-d20"></i>
+                            </button>
+                            
+                            <!-- 正常顯示模式 -->
+                            <div class="attribute-label" v-if="!editMode">{{ attr.name }}</div>
+                            <div class="attribute-display" v-if="!editMode">
+                                <div class="attribute-current">{{ attr.current }}</div>
+                                <div class="attribute-separator">/</div>
+                                <div class="attribute-max">{{ attr.max }}</div>
+                            </div>
+                            
+                            <!-- 編輯模式下的輸入框 -->
+                            <div v-if="editMode" class="edit-inputs">
+                                <input type="text" 
+                                       v-model="attr.name" 
+                                       placeholder="屬性名稱"
+                                       class="edit-input">
+                                <div class="edit-number-inputs">
+                                    <input type="number" 
+                                           v-model.number="attr.current" 
+                                           placeholder="現在值"
+                                           class="edit-input">
+                                    <span class="edit-separator">/</span>
+                                    <input type="number" 
+                                           v-model.number="attr.max" 
+                                           placeholder="上限"
+                                           class="edit-input">
+                                </div>
+                            </div>
+                            
+                            <!-- 刪除按鈕 (刪除模式) -->
+                            <button type="button" 
+                                    class="action-btn danger btn-sm mt-2 w-100" 
+                                    v-if="deleteMode" 
+                                    @click.stop="removeAttribute(index)">
+                                <i class="fas fa-trash me-1"></i>刪除
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 浮動添加按鈕 - 正中間 -->
+                    <button type="button" 
+                            class="section-add-button" 
+                            @click="addAttribute" 
+                            title="新增屬性">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 筆記區域 - 傳統大面板設計 -->
+            <section class="notes-section mb-4">
+                <div class="hybrid-card-container section-container">
+                    <h4 class="section-title">
+                        <i class="fas fa-sticky-note"></i>筆記
+                    </h4>
+                    
+                    <div class="notes-panel">
+                        <div v-for="(note, index) in notes" :key="index" class="note-item mb-3">
+                            <div class="note-header d-flex justify-content-between align-items-center mb-2">
+                                <div class="note-title">{{ note.title }}</div>
+                                <button type="button" 
+                                        class="action-btn danger btn-sm" 
+                                        v-if="deleteMode" 
+                                        @click="removeNote(index)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            <div class="note-content">
+                                <textarea v-if="editMode" 
+                                          class="notes-textarea" 
+                                          v-model="note.content" 
+                                          placeholder="輸入筆記內容..."></textarea>
+                                <div v-else class="note-text">{{ note.content }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 浮動添加按鈕 - 正中間 -->
+                    <button type="button" 
+                            class="section-add-button" 
+                            @click="addNote" 
+                            title="新增筆記">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 角色詳情區域 - 網格佈局 -->
+            <section class="character-details-section mb-4">
+                <div class="hybrid-card-container section-container">
+                    <h4 class="section-title">
+                        <i class="fas fa-user-edit"></i>角色詳情
+                    </h4>
+                    
+                    <div class="character-details-grid">
+                        <div v-for="(detail, index) in characterDetails" :key="index" 
+                             class="detail-panel">
+                            <!-- 正常顯示模式 -->
+                            <div v-if="!editMode" class="detail-content">
+                                <div class="detail-value">{{ detail.value || '' }}</div>
+                                <div class="detail-label">{{ detail.label }}</div>
+                            </div>
+                            
+                            <!-- 編輯模式下的輸入框 -->
+                            <div v-if="editMode" class="edit-detail-inputs">
+                                <input type="text" 
+                                       v-model="detail.value" 
+                                       placeholder="數值"
+                                       class="edit-detail-value">
+                                <input type="text" 
+                                       v-model="detail.label" 
+                                       placeholder="標題"
+                                       class="edit-detail-label">
+                            </div>
+                            
+                            <!-- 刪除按鈕 (刪除模式) -->
+                            <button type="button" 
+                                    class="action-btn danger btn-sm mt-2 w-100" 
+                                    v-if="deleteMode" 
+                                    @click.stop="removeCharacterDetail(index)">
+                                <i class="fas fa-trash me-1"></i>刪除
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 浮動添加按鈕 - 正中間 -->
+                    <button type="button" 
+                            class="section-add-button" 
+                            @click="addCharacterDetail" 
+                            title="新增角色詳情">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <footer>
+        <div id="footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>測試功能說明</h5>
+                        <ul>
+                            <li><strong>編輯模式：</strong> 點擊"編輯模式"按鈕，所有文字和數字項目變為可編輯</li>
+                            <li><strong>浮動+按鈕：</strong> 將滑鼠懸停在各區域上，會顯示浮動的+按鈕</li>
+                            <li><strong>角色詳情：</strong> 網格佈局，標題和數值都可編輯</li>
+                            <li><strong>響應式設計：</strong> 在手機上自動調整佈局</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>路由測試</h5>
+                        <ul>
+                            <li><a href="/card">原始角色卡</a></li>
+                            <li><a href="/publiccard">公開角色卡</a></li>
+                            <li><a href="/cardtest">混合設計測試版</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <hr>
+                <p>&copy; 2024 HKTRPG. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Common Modals -->
+    <div id="commonModals"></div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js"
+        integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s" crossorigin="anonymous">
+    </script>
+
+    <!-- Common JavaScript -->
+    <script src="/common/characterCardCommon.js"></script>
+
+    <!-- Page Specific JavaScript -->
+    <script>
+        // Load common modals
+        $("#commonModals").load("/common/characterCardModals.html", function() {
+            debugLog('Modals loaded', 'info');
+        });
+
+        // Hide alerts initially
+        $('#warning-update').hide();
+        $('#warning-updateError').hide();
+
+        // Initialize on body load
+        document.getElementById("body").onload = function () {
+            debugLog('Body loaded, initializing private card', 'info');
+        };
+
+        // Update card function with loading states
+        function updateCard() {
+            const userName = localStorage.getItem("userName");
+            const userPassword = localStorage.getItem("userPassword");
+
+            if (!userName || !userPassword) {
+                debugLog('User not logged in, cannot update card', 'error');
+                showError('請先登入才能更新角色卡');
+                return;
+            }
+
+            // Show loading state
+            const updateButton = document.querySelector('[onclick="updateCard()"]');
+            if (updateButton) {
+                updateButton.classList.add('btn-loading');
+                updateButton.disabled = true;
+            }
+
+            // Add loading class to card
+            const cardElement = document.querySelector('.board1');
+            if (cardElement) {
+                cardElement.classList.add('loading');
+            }
+
+            const data = {
+                userName: userName,
+                userPassword: userPassword,
+                card: {
+                    _id: card._id,
+                    id: card.id,
+                    state: card.state,
+                    roll: card.roll,
+                    notes: card.notes,
+                    characterDetails: card.characterDetails,
+                    public: card.public
+                }
+            };
+
+            debugLog(`Attempting to update card with data:`);
+            socket.emit('updateCard', data);
+        }
+
+        // Enhanced error display
+        function showError(message) {
+            addElement(`<i class="fas fa-exclamation-triangle me-2"></i><strong>錯誤!</strong> ${message}`, "danger", 5000, true);
+        }
+
+        // Enhanced success display
+        function showSuccess(message) {
+            addElement(`<i class="fas fa-check-circle me-2"></i><strong>成功!</strong> ${message}`, "success", 3000, true);
+        }
+
+        // Export updateCard function
+        window.updateCard = updateCard;
+        
+        // Initialize Vue app directly
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    character: {
+                        name: 'Doctor Boston'
+                    },
+                    editMode: false,
+                    deleteMode: false,
+                    skills: [
+                        { name: '心理學', value: 10 },
+                        { name: '信譽', value: 0 },
+                        { name: '偵查', value: 25 },
+                        { name: '聆聽', value: 25 },
+                        { name: '母語', value: 1 },
+                        { name: '閃躲', value: 25 },
+                        { name: '空手', value: 25 },
+                        { name: '投擲', value: 25 },
+                        { name: '鬥毆', value: 25 },
+                        { name: '魔法', value: 1 },
+                        { name: '小刀', value: 25 },
+                        { name: '幸運', value: 50 }
+                    ],
+                    attributes: [
+                        { name: 'STR', current: 18, max: 37 },
+                        { name: 'DEX', current: 25, max: 50 },
+                        { name: 'POW', current: 30, max: 60 },
+                        { name: 'CON', current: 19, max: 38 },
+                        { name: 'APP', current: 17, max: 35 },
+                        { name: 'EDU', current: 45, max: 90 },
+                        { name: 'SIZ', current: 25, max: 50 },
+                        { name: 'INT', current: 45, max: 90 },
+                        { name: 'Dodge', current: 12, max: 25 }
+                    ],
+                    notes: [
+                        { title: '調查筆記', content: '這是測試,請試試在群組 輸入.char use Sad' }
+                    ],
+                    characterDetails: [
+                        { label: '現金', value: '1,000日元' },
+                        { label: '心靈支柱', value: '無' },
+                        { label: '隨身物品', value: '' },
+                        { label: '筆記', value: '' },
+                        { label: '資產', value: '' },
+                        { label: '物品', value: '' }
+                    ]
+                }
+            },
+            methods: {
+                toggleEditMode() {
+                    this.editMode = !this.editMode;
+                },
+                
+                toggleDeleteMode() {
+                    this.deleteMode = !this.deleteMode;
+                },
+                
+                rollDice(skillName) {
+                    alert(`擲骰 ${skillName}！`);
+                },
+                
+                addSkill() {
+                    this.skills.push({ name: '新技能', value: 0 });
+                },
+                
+                removeSkill(index) {
+                    this.skills.splice(index, 1);
+                },
+                
+                addAttribute() {
+                    this.attributes.push({ name: '新屬性', current: 0, max: 0 });
+                },
+                
+                removeAttribute(index) {
+                    this.attributes.splice(index, 1);
+                },
+                
+                addNote() {
+                    this.notes.push({ title: '新筆記', content: '' });
+                },
+                
+                removeNote(index) {
+                    this.notes.splice(index, 1);
+                },
+                
+                addCharacterDetail() {
+                    this.characterDetails.push({ label: '新項目', value: '' });
+                },
+                
+                removeCharacterDetail(index) {
+                    this.characterDetails.splice(index, 1);
+                }
+            }
+        }).mount('#array-rendering');
+    </script>
+
+    <style>
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .character-header .character-name {
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .character-info .info-badge {
+            background: var(--bg-panel);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+        }
+        
+        .info-label {
+            font-weight: 600;
+            margin-right: 4px;
+            color: var(--text-dark);
+        }
+        
+        .info-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+    </style>
+</body>
+<!-- HKTRPG Sad -- 20201221-->
+</html>

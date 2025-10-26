@@ -64,14 +64,28 @@ function initializeVueApps(isPublic = false) {
                         state: [],
                         roll: [],
                         notes: [],
+                        characterDetails: [],
                         gpList: [],
                         selectedGroupId: localStorage.getItem("selectedGroupId") || null,
                         public: isPublic,
                         deleteMode: false,
+                        editMode: false,
                         isPublic: isPublic
                     }
                 },
                 mounted() {
+                    // Initialize character details if empty
+                    if (this.characterDetails.length === 0) {
+                        this.characterDetails = [
+                            { label: '現金', value: '1,000日元' },
+                            { label: '心靈支柱', value: '無' },
+                            { label: '隨身物品', value: '' },
+                            { label: '筆記', value: '' },
+                            { label: '資產', value: '' },
+                            { label: '物品', value: '' }
+                        ];
+                    }
+                    
                     // Set the correct radio button based on saved selectedGroupId
                     if (this.selectedGroupId && this.selectedGroupId !== "") {
                         debugLog(`Loading saved group ID: ${this.selectedGroupId}`, 'info');
@@ -92,6 +106,36 @@ function initializeVueApps(isPublic = false) {
                     }
                 },
                 methods: {
+                    // 計算屬性百分比
+                    calculatePercentage(itemA, itemB) {
+                        const a = parseFloat(itemA) || 0;
+                        const b = parseFloat(itemB) || 0;
+                        if (b === 0) return 0;
+                        return Math.round((a / b) * 100);
+                    },
+                    
+                    // 獲取屬性卡片樣式類
+                    getAttributeCardClass(index) {
+                        const classes = ['primary', 'secondary', 'success', 'warning', 'danger', 'info'];
+                        return classes[index % classes.length];
+                    },
+                    
+                    // 調整數值方法
+                    adjustValue(form, index, change) {
+                        if (form === 1 && this.roll[index]) {
+                            const currentValue = parseInt(this.roll[index].itemA) || 0;
+                            this.roll[index].itemA = Math.max(0, currentValue + change).toString();
+                        }
+                    },
+                    
+                    // 調整屬性數值
+                    adjustAttributeValue(index, field, change) {
+                        if (this.state[index] && this.state[index][field] !== undefined) {
+                            const currentValue = parseInt(this.state[index][field]) || 0;
+                            this.state[index][field] = Math.max(0, currentValue + change).toString();
+                        }
+                    },
+                    
                     addItem(form) {
                         switch (form) {
                             case 0:
@@ -146,6 +190,23 @@ function initializeVueApps(isPublic = false) {
                     },
                     toggleDeleteMode() {
                         this.deleteMode = !this.deleteMode;
+                    },
+                    
+                    toggleEditMode() {
+                        this.editMode = !this.editMode;
+                    },
+                    
+                    addCharacterDetail() {
+                        this.characterDetails.push({
+                            label: '新項目',
+                            value: ''
+                        });
+                        debugLog('Adding character detail', 'info');
+                    },
+                    
+                    removeCharacterDetail(index) {
+                        this.characterDetails.splice(index, 1);
+                        debugLog('Removing character detail', 'info');
                     },
                     removeChannel(channelId) {
                         // Find the channel to get its details

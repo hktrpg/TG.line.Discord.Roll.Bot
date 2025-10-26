@@ -742,6 +742,14 @@ www.get('/publiccard', async (req, res) => {
     }
     res.sendFile(process.cwd() + '/views/characterCardPublic.html');
 });
+
+www.get('/cardtest', async (req, res) => {
+    if (await checkRateLimit('card', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    res.sendFile(process.cwd() + '/views/cardtest-direct.html');
+});
 www.get('/signal', async (req, res) => {
     if (await checkRateLimit('api', req.ip)) {
         res.status(429).end();

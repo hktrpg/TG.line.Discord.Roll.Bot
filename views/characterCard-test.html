@@ -14,14 +14,20 @@
         integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
     <!-- production version, optimized for size and speed -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-    <title>Character Card 角色卡 @ HKTRPG</title>
+    <title>Character Card 角色卡 @ HKTRPG - 測試版</title>
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <!-- Font Awesome for modern icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous">
 </head>
 
 <body class="bg-color" id="body">
     <header>
-        <div id="header"></div>
+        <div id="header">
+            <h1>HKTRPG 角色卡系統 - 混合設計測試版</h1>
+            <p>測試新的混合設計UI，包含編輯模式、浮動按鈕和角色詳情網格</p>
+        </div>
     </header>
     <br>
     <div class="container-fluid px-3 px-md-4 py-3" id="array-rendering">
@@ -36,7 +42,31 @@
         </div>
     </div>
     <footer>
-        <div id="footer"></div>
+        <div id="footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>測試功能說明</h5>
+                        <ul>
+                            <li><strong>編輯模式：</strong> 點擊"編輯模式"按鈕，所有文字和數字項目變為可編輯</li>
+                            <li><strong>浮動+按鈕：</strong> 將滑鼠懸停在各區域上，會顯示浮動的+按鈕</li>
+                            <li><strong>角色詳情：</strong> 網格佈局，標題和數值都可編輯</li>
+                            <li><strong>響應式設計：</strong> 在手機上自動調整佈局</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>路由測試</h5>
+                        <ul>
+                            <li><a href="/card">原始角色卡</a></li>
+                            <li><a href="/publiccard">公開角色卡</a></li>
+                            <li><a href="/cardtest">混合設計測試版</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <hr>
+                <p>&copy; 2024 HKTRPG. All rights reserved.</p>
+            </div>
+        </div>
     </footer>
 
     <!-- Common Modals -->
@@ -135,27 +165,4 @@
     </script>
 </body>
 <!-- HKTRPG Sad -- 20201221-->
-<!--
-
-輸入 .char online
-
--> 產生 和 顯示一組ID 和 PASSWORD.
--> 產生一個DB -> 這組ID, 對應一個ACC.
-
-
-
-試入USER NAME和 密碼, 可以登入
-
-顯示角色卡列表
-
-點擊進入, 取得內容
-
-角色卡內容可以修改
-
-修改後按碓定鍵送出
-
-
-
--->
-
 </html>

@@ -895,7 +895,7 @@ describe('Pokemon Module Tests', () => {
     describe('Autocomplete Data Format Tests', () => {
       test('Test Pokemon autocomplete data format consistency', () => {
         const results = mockPokemonInstance.searchForAutocomplete('皮', 5);
-        results.forEach(item => {
+        for (const item of results) {
           expect(item).toHaveProperty('id');
           expect(item).toHaveProperty('display');
           expect(item).toHaveProperty('value');
@@ -905,12 +905,12 @@ describe('Pokemon Module Tests', () => {
           expect(typeof item.value).toBe('string');
           expect(typeof item.metadata).toBe('object');
           expect(Array.isArray(item.metadata.type)).toBe(true);
-        });
+        }
       });
 
       test('Test Moves autocomplete data format consistency', () => {
         const results = mockMovesInstance.searchForAutocomplete('火', 5);
-        results.forEach(item => {
+        for (const item of results) {
           expect(item).toHaveProperty('id');
           expect(item).toHaveProperty('display');
           expect(item).toHaveProperty('value');
@@ -920,7 +920,7 @@ describe('Pokemon Module Tests', () => {
           expect(typeof item.value).toBe('string');
           expect(typeof item.metadata).toBe('object');
           expect(Array.isArray(item.metadata.type)).toBe(true);
-        });
+        }
       });
 
       test('Test autocomplete search with case insensitive matching', () => {

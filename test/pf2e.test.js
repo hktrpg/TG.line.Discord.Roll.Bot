@@ -247,7 +247,7 @@ describe('Pf2e Module Tests', () => {
             display: item.name,
             value: item.name,
             metadata: {
-              description: item.desc.length > 100 ? item.desc.substring(0, 100) + '...' : item.desc
+              description: item.desc.length > 100 ? item.desc.slice(0, 100) + '...' : item.desc
             }
           }));
         }
@@ -266,7 +266,7 @@ describe('Pf2e Module Tests', () => {
               display: item.name,
               value: item.name,
               metadata: {
-                description: desc.length > 100 ? desc.substring(0, 100) + '...' : desc
+                description: desc.length > 100 ? desc.slice(0, 100) + '...' : desc
               }
             });
           }
@@ -282,7 +282,7 @@ describe('Pf2e Module Tests', () => {
           display: item.name,
           value: item.name,
           metadata: {
-            description: item.desc.length > 100 ? item.desc.substring(0, 100) + '...' : item.desc
+            description: item.desc.length > 100 ? item.desc.slice(0, 100) + '...' : item.desc
           }
         }));
       });
@@ -331,7 +331,7 @@ describe('Pf2e Module Tests', () => {
 
     test('Test autocomplete data format consistency', () => {
       const results = mockPf2eInstance.searchForAutocomplete('火', 5);
-      results.forEach(item => {
+      for (const item of results) {
         expect(item).toHaveProperty('id');
         expect(item).toHaveProperty('display');
         expect(item).toHaveProperty('value');
@@ -340,7 +340,7 @@ describe('Pf2e Module Tests', () => {
         expect(typeof item.display).toBe('string');
         expect(typeof item.value).toBe('string');
         expect(typeof item.metadata).toBe('object');
-      });
+      }
     });
 
     test('Test autocomplete search with case insensitive matching', () => {

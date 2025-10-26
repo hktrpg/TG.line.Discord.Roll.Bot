@@ -155,7 +155,7 @@ ${result[i].item.desc} \n
                     display: name,
                     value: name,
                     metadata: {
-                        description: desc.length > 100 ? desc.substring(0, 100) + '...' : desc
+                        description: desc.length > 100 ? desc.slice(0, 100) + '...' : desc
                     }
                 });
             }
@@ -180,7 +180,7 @@ ${result[i].item.desc} \n
             display: item.name,
             value: item.name,
             metadata: {
-                description: item.desc.length > 100 ? item.desc.substring(0, 100) + '...' : item.desc
+                description: item.desc.length > 100 ? item.desc.slice(0, 100) + '...' : item.desc
             }
         }));
     }

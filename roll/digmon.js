@@ -2262,10 +2262,76 @@ class Digimon {
         return output;
     }
 
-    // 新增：為自動完成功能提供搜尋方法
+    // 新增：為自動完成功能提供搜尋方法（優化版）
     searchForAutocomplete(query, limit = 10) {
-        if (!query || query.trim().length === 0) {
-            return this.digimonData.slice(0, limit).map(digimon => ({
+        const startTime = Date.now();
+        
+        try {
+            if (!query || query.trim().length === 0) {
+                return this.digimonData.slice(0, limit).map(digimon => ({
+                    id: digimon.id,
+                    display: digimon.name,
+                    value: digimon.name,
+                    metadata: {
+                        stage: this.getStageName(digimon.stage),
+                        attribute: digimon.attribute,
+                        'zh-cn-name': digimon['zh-cn-name']
+                    }
+                }));
+            }
+
+            const trimmedQuery = query.trim().toLowerCase();
+            const results = [];
+            const seenIds = new Set();
+            
+            // 1. 精確匹配（優先級最高）
+            for (const digimon of this.digimonData) {
+                if (results.length >= limit) break;
+                
+                const nameMatch = digimon.name.toLowerCase() === trimmedQuery;
+                const zhNameMatch = digimon['zh-cn-name'] && digimon['zh-cn-name'].toLowerCase() === trimmedQuery;
+                const idMatch = !isNaN(trimmedQuery) && digimon.id === parseInt(trimmedQuery);
+                
+                if ((nameMatch || zhNameMatch || idMatch) && !seenIds.has(digimon.id)) {
+                    results.push(digimon);
+                    seenIds.add(digimon.id);
+                }
+            }
+            
+            // 2. 開頭匹配（優先級次之）
+            if (results.length < limit) {
+                for (const digimon of this.digimonData) {
+                    if (results.length >= limit) break;
+                    
+                    const nameStartsWith = digimon.name.toLowerCase().startsWith(trimmedQuery);
+                    const zhNameStartsWith = digimon['zh-cn-name'] && digimon['zh-cn-name'].toLowerCase().startsWith(trimmedQuery);
+                    
+                    if ((nameStartsWith || zhNameStartsWith) && !seenIds.has(digimon.id)) {
+                        results.push(digimon);
+                        seenIds.add(digimon.id);
+                    }
+                }
+            }
+            
+            // 3. 包含匹配（優先級最低）
+            if (results.length < limit) {
+                for (const digimon of this.digimonData) {
+                    if (results.length >= limit) break;
+                    
+                    const nameContains = digimon.name.toLowerCase().includes(trimmedQuery);
+                    const zhNameContains = digimon['zh-cn-name'] && digimon['zh-cn-name'].toLowerCase().includes(trimmedQuery);
+                    const stageContains = digimon.stage && digimon.stage.toLowerCase().includes(trimmedQuery);
+                    const attributeContains = digimon.attribute && digimon.attribute.toLowerCase().includes(trimmedQuery);
+                    
+                    if ((nameContains || zhNameContains || stageContains || attributeContains) && !seenIds.has(digimon.id)) {
+                        results.push(digimon);
+                        seenIds.add(digimon.id);
+                    }
+                }
+            }
+            
+            // 轉換結果格式
+            const transformedResults = results.map(digimon => ({
                 id: digimon.id,
                 display: digimon.name,
                 value: digimon.name,
@@ -2275,54 +2341,18 @@ class Digimon {
                     'zh-cn-name': digimon['zh-cn-name']
                 }
             }));
-        }
-
-        const trimmedQuery = query.trim();
-        
-        // 首先嘗試精確匹配
-        let results = [];
-        
-        // 1. 精確匹配名稱（包括中文名稱）
-        const exactMatch = this.digimonData.find(digimon => 
-            digimon.name === trimmedQuery || 
-            digimon['zh-cn-name'] === trimmedQuery
-        );
-        
-        if (exactMatch) {
-            results.push(exactMatch);
-        }
-        
-        // 2. 精確匹配ID
-        if (!isNaN(trimmedQuery)) {
-            const idMatch = this.digimonData.find(digimon => digimon.id === parseInt(trimmedQuery));
-            if (idMatch && !results.find(r => r.id === idMatch.id)) {
-                results.push(idMatch);
+            
+            // 記錄搜尋時間（用於監控）
+            const searchTime = Date.now() - startTime;
+            if (searchTime > 100) { // 如果搜尋時間超過100ms，記錄警告
+                console.warn(`Slow autocomplete search for "${query}": ${searchTime}ms`);
             }
+            
+            return transformedResults;
+        } catch (error) {
+            console.error('Autocomplete search error:', error);
+            return [];
         }
-        
-        // 3. 如果沒有精確匹配，使用模糊搜尋
-        if (results.length === 0) {
-            const detailed = this.findByNameOrIdDetailed(trimmedQuery);
-            results = detailed.candidates || [];
-        } else {
-            // 如果有精確匹配，也添加一些模糊匹配的結果
-            const detailed = this.findByNameOrIdDetailed(trimmedQuery);
-            const fuzzyResults = (detailed.candidates || []).filter(candidate => 
-                !results.find(r => r.id === candidate.id)
-            );
-            results = results.concat(fuzzyResults);
-        }
-        
-        return results.slice(0, limit).map(digimon => ({
-            id: digimon.id,
-            display: digimon.name,
-            value: digimon.name,
-            metadata: {
-                stage: this.getStageName(digimon.stage),
-                attribute: digimon.attribute,
-                'zh-cn-name': digimon['zh-cn-name']
-            }
-        }));
     }
 
     // 新增：獲取所有數碼寶貝名稱（用於初始化）

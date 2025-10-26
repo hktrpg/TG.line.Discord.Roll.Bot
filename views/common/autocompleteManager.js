@@ -6,13 +6,22 @@ class AutocompleteManager {
     constructor() {
         this.modules = {};
         this.activeAutocomplete = new Map(); // 改為 Map 支援多個實例
+        this.browserCache = new Map(); // 瀏覽器端快取
+        this.requestQueue = new Map(); // 請求佇列，避免重複請求
         this.defaultConfig = {
             limit: 8,
             minQueryLength: 1,
             placeholder: '輸入搜尋關鍵字...',
             noResultsText: '找不到相關結果',
-            debounceDelay: 300
+            debounceDelay: 300,
+            cacheTimeout: 5 * 60 * 1000, // 5分鐘快取
+            maxCacheSize: 100, // 最大快取項目數
+            enablePrefetch: true, // 啟用預載入
+            prefetchDelay: 1000 // 預載入延遲
         };
+        
+        // 定期清理過期快取
+        setInterval(() => this.cleanupCache(), 60000);
     }
 
     /**
@@ -86,6 +95,92 @@ class AutocompleteManager {
      */
     getModuleConfig(name) {
         return this.modules[name] || null;
+    }
+    
+    /**
+     * 快取管理方法
+     */
+    setCache(key, value, ttl = this.defaultConfig.cacheTimeout) {
+        this.browserCache.set(key, {
+            value,
+            expires: Date.now() + ttl
+        });
+        
+        // 限制快取大小
+        if (this.browserCache.size > this.defaultConfig.maxCacheSize) {
+            const firstKey = this.browserCache.keys().next().value;
+            this.browserCache.delete(firstKey);
+        }
+    }
+    
+    getCache(key) {
+        const item = this.browserCache.get(key);
+        if (!item) return null;
+        
+        if (Date.now() > item.expires) {
+            this.browserCache.delete(key);
+            return null;
+        }
+        
+        return item.value;
+    }
+    
+    cleanupCache() {
+        const now = Date.now();
+        for (const [key, item] of this.browserCache.entries()) {
+            if (now > item.expires) {
+                this.browserCache.delete(key);
+            }
+        }
+    }
+    
+    /**
+     * 預載入數據
+     * @param {string} module - 模組名稱
+     * @param {Object} config - 配置
+     */
+    async prefetchData(module, config) {
+        if (!this.defaultConfig.enablePrefetch) return;
+        
+        const cacheKey = `prefetch:${module}`;
+        if (this.getCache(cacheKey)) return; // 已經預載入過
+        
+        try {
+            const url = `/api/autocomplete/${module}?limit=${config.limit || 8}`;
+            const response = await fetch(url);
+            if (response.ok) {
+                const data = await response.json();
+                this.setCache(cacheKey, data, this.defaultConfig.cacheTimeout);
+            }
+        } catch (error) {
+            console.warn('Prefetch failed:', error);
+        }
+    }
+    
+    /**
+     * 智能請求管理
+     * @param {string} url - 請求URL
+     * @param {Object} options - 請求選項
+     * @returns {Promise} 請求結果
+     */
+    async smartRequest(url, options = {}) {
+        // 檢查是否已有相同的請求在進行中
+        if (this.requestQueue.has(url)) {
+            return this.requestQueue.get(url);
+        }
+        
+        const requestPromise = fetch(url, options)
+            .then(response => {
+                this.requestQueue.delete(url);
+                return response;
+            })
+            .catch(error => {
+                this.requestQueue.delete(url);
+                throw error;
+            });
+        
+        this.requestQueue.set(url, requestPromise);
+        return requestPromise;
     }
 }
 
@@ -170,6 +265,13 @@ class Autocomplete {
                 default:
                     console.warn('Autocomplete: Unknown data source:', this.config.dataSource);
             }
+            
+            // 預載入數據（如果啟用）
+            if (this.config.dataSource === 'api' && this.config.module) {
+                setTimeout(() => {
+                    window.autocompleteManager.prefetchData(this.config.module, this.config);
+                }, this.config.prefetchDelay || 1000);
+            }
         } catch (error) {
             console.error('Autocomplete: Failed to load data:', error);
             this.data = [];
@@ -187,12 +289,28 @@ class Autocomplete {
             url = `/api/autocomplete/${module}`;
         }
 
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`API request failed: ${response.status}`);
+        // 檢查快取
+        const cacheKey = `data:${url}`;
+        const cachedData = window.autocompleteManager.getCache(cacheKey);
+        if (cachedData) {
+            this.data = cachedData;
+            return;
         }
-        
-        this.data = await response.json();
+
+        try {
+            const response = await window.autocompleteManager.smartRequest(url);
+            if (!response.ok) {
+                throw new Error(`API request failed: ${response.status}`);
+            }
+            
+            this.data = await response.json();
+            
+            // 快取數據
+            window.autocompleteManager.setCache(cacheKey, this.data);
+        } catch (error) {
+            console.error('API load error:', error);
+            this.data = [];
+        }
     }
 
     /**
@@ -251,12 +369,29 @@ class Autocomplete {
             url += `?q=${encodeURIComponent(query)}&limit=${this.config.limit}`;
         }
 
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`API search failed: ${response.status}`);
+        // 檢查搜尋快取
+        const cacheKey = `search:${url}`;
+        const cachedResults = window.autocompleteManager.getCache(cacheKey);
+        if (cachedResults) {
+            return cachedResults;
         }
-        
-        return await response.json();
+
+        try {
+            const response = await window.autocompleteManager.smartRequest(url);
+            if (!response.ok) {
+                throw new Error(`API search failed: ${response.status}`);
+            }
+            
+            const results = await response.json();
+            
+            // 快取搜尋結果（較短時間）
+            window.autocompleteManager.setCache(cacheKey, results, 2 * 60 * 1000); // 2分鐘
+            
+            return results;
+        } catch (error) {
+            console.error('API search error:', error);
+            return [];
+        }
     }
 
     /**

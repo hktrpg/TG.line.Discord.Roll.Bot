@@ -46,30 +46,66 @@ let card = null;
 let cardList = null;
 
 function initializeVueApps(isPublic = false, skipUITemplateLoad = false) {
+    console.log('=== INITIALIZE VUE APPS START ===');
+    console.log('Parameters - isPublic:', isPublic, 'skipUITemplateLoad:', skipUITemplateLoad);
+    console.log('Array rendering element exists:', !!document.getElementById('array-rendering'));
+    console.log('Array rendering innerHTML before load:', document.getElementById('array-rendering').innerHTML);
+    
     debugLog('Initializing Vue applications', 'info');
     try {
         // Set title based on card type
         TITLE = isPublic ? "HKTRPG 公開角色卡" : "HKTRPG 私人角色卡";
+        console.log('Title set to:', TITLE);
         
         // Only load UI template if not already loaded (skipUITemplateLoad = true means UI is already loaded)
         if (!skipUITemplateLoad) {
+            console.log('Loading characterCardUI.html template...');
             $("#array-rendering").load("/common/characterCardUI.html", function() {
+                console.log('✓ characterCardUI.html loaded successfully');
+                console.log('Array rendering innerHTML after load:', document.getElementById('array-rendering').innerHTML);
                 debugLog('UI template loaded, initializing Vue apps', 'info');
-                initializeVueAppsInternal(isPublic);
+                initializeVueAppsInternal(isPublic, null);
             });
         } else {
+            console.log('Loading hybridCharacterCardUI.html template...');
             debugLog('UI template already loaded, initializing Vue apps directly', 'info');
-            initializeVueAppsInternal(isPublic);
+            // Load the hybrid UI template into a temporary container first
+            const tempContainer = document.createElement('div');
+            tempContainer.style.display = 'none';
+            document.body.appendChild(tempContainer);
+            
+            $(tempContainer).load("/common/hybridCharacterCardUI.html", function() {
+                console.log('✓ hybridCharacterCardUI.html loaded successfully');
+                const templateContent = tempContainer.innerHTML;
+                console.log('Template content length:', templateContent.length);
+                console.log('Value controls elements found in template:', tempContainer.querySelectorAll('.value-controls').length);
+                console.log('Value button elements found in template:', tempContainer.querySelectorAll('.value-btn').length);
+                
+                // Remove the temporary container
+                document.body.removeChild(tempContainer);
+                
+                debugLog('Hybrid UI template loaded into temporary container', 'info');
+                initializeVueAppsInternal(isPublic, templateContent);
+            });
         }
     } catch (error) {
+        console.error('Error in initializeVueApps:', error);
         debugLog(`Error initializing Vue apps: ${error.message}`, 'error');
     }
+    console.log('=== INITIALIZE VUE APPS END ===');
 }
 
-function initializeVueAppsInternal(isPublic = false) {
+function initializeVueAppsInternal(isPublic = false, templateContent = null) {
     try {
         // Initialize main card app
+        console.log('Creating Vue app...');
+        
+        // Get the template content - use provided content or get from DOM
+        const finalTemplateContent = templateContent || document.getElementById('array-rendering').innerHTML;
+        console.log('Template content length:', finalTemplateContent.length);
+        
         card = Vue.createApp({
+            template: finalTemplateContent,
                 data() {
                     return {
                         id: "",
@@ -81,14 +117,18 @@ function initializeVueAppsInternal(isPublic = false) {
                         gpList: [],
                         selectedGroupId: localStorage.getItem("selectedGroupId") || null,
                         public: isPublic,
-                        deleteMode: false,
                         editMode: false,
-                        isPublic: isPublic
+                        isPublic: isPublic,
+                        originalData: null
                     }
                 },
                 mounted() {
                     // Initialize character details if empty - no default data
                     // characterDetails will be populated from server data
+                    
+                    // Add test data for debugging
+                    console.log('Vue app mounted, adding test data...');
+                    this.loadTestData();
                     
                     // Set the correct radio button based on saved selectedGroupId
                     if (this.selectedGroupId && this.selectedGroupId !== "") {
@@ -110,6 +150,262 @@ function initializeVueAppsInternal(isPublic = false) {
                     }
                 },
                 methods: {
+                    // 載入測試數據
+                    loadTestData() {
+                        console.log('Loading test data...');
+                        this.name = "測試角色";
+                        this.state = [
+                            { name: 'HP', itemA: '11', itemB: '11' },
+                            { name: 'MP', itemA: '16', itemB: '16' },
+                            { name: 'SAN', itemA: '80', itemB: '80' },
+                            { name: '體格', itemA: '1', itemB: '' },
+                            { name: 'DB', itemA: '＋1D4', itemB: '' },
+                            { name: 'MOV', itemA: '8', itemB: '' },
+                            { name: '護甲', itemA: '0', itemB: '' },
+                            { name: '職業', itemA: '保險調查員', itemB: '' },
+                            { name: '特徵', itemA: '野外活動愛好者', itemB: '' }
+                        ].filter(item => item && item.name);
+                        this.roll = [
+                            { name: '心理學', itemA: '10' },
+                            { name: '信譽', itemA: '0' },
+                            { name: '偵查', itemA: '25' },
+                            { name: '鬥毆', itemA: '25' },
+                            { name: '魔法', itemA: '1' },
+                            { name: '小刀', itemA: '25' },
+                            { name: '幸運', itemA: '50' }
+                        ].filter(item => item && item.name);
+                        this.notes = [
+                            { name: '調查筆記', itemA: '這是測試筆記內容' },
+                            { name: '戰鬥記錄', itemA: '戰鬥日誌記錄' }
+                        ].filter(item => item && item.name);
+                        this.characterDetails = [
+                            { label: '職業', value: '保險調查員' },
+                            { label: '特徵', value: '野外活動愛好者' }
+                        ].filter(detail => detail && detail.label && detail.value);
+                        
+                        console.log('Test data loaded:', {
+                            name: this.name,
+                            stateLength: this.state.length,
+                            rollLength: this.roll.length,
+                            notesLength: this.notes.length
+                        });
+                        
+                        // Check for value controls after data is loaded
+                        this.$nextTick(() => {
+                            console.log('Value controls after test data load:', document.querySelectorAll('.value-controls').length);
+                            console.log('Value buttons after test data load:', document.querySelectorAll('.value-btn').length);
+                            
+                            // 強制應用按鈕樣式
+                            this.applyButtonStyles();
+                            
+                            // Check CSS rules after Vue render
+                            setTimeout(() => {
+                                console.log('=== CSS CHECK AFTER VUE RENDER ===');
+                                const buttons = document.querySelectorAll('.value-btn');
+                                console.log('Found value buttons after Vue render:', buttons.length);
+                                buttons.forEach((btn, index) => {
+                                    const styles = window.getComputedStyle(btn);
+                                    console.log(`Button ${index} styles after Vue render:`, {
+                                        backgroundColor: styles.backgroundColor,
+                                        color: styles.color,
+                                        border: styles.border,
+                                        borderRadius: styles.borderRadius,
+                                        width: styles.width,
+                                        height: styles.height,
+                                        classes: btn.className,
+                                        elementStyle: btn.style.cssText
+                                    });
+                                });
+                            }, 100);
+                        });
+                    },
+                    
+                    // 強制應用按鈕樣式
+                    applyButtonStyles() {
+                        console.log('=== APPLYING BUTTON STYLES FROM VUE ===');
+                        const buttons = document.querySelectorAll('.value-btn');
+                        const deleteButtons = document.querySelectorAll('.hover-delete-btn');
+                        const floatingControls = document.querySelectorAll('.floating-edit-controls');
+                        const floatingButtons = document.querySelectorAll('.floating-btn');
+                        console.log('Found', buttons.length, 'value buttons to style');
+                        console.log('Found', deleteButtons.length, 'delete buttons to style');
+                        console.log('Found', floatingControls.length, 'floating controls to style');
+                        console.log('Found', floatingButtons.length, 'floating buttons to style');
+                        
+                        // 樣式化value按鈕
+                        buttons.forEach((btn, index) => {
+                            console.log(`Styling button ${index}:`, btn.className);
+                            
+                            // 重置所有樣式
+                            btn.style.all = 'unset';
+                            
+                            // 應用基本樣式
+                            btn.style.width = '16px';
+                            btn.style.height = '16px';
+                            btn.style.border = 'none';
+                            btn.style.borderRadius = '3px';
+                            btn.style.display = 'flex';
+                            btn.style.alignItems = 'center';
+                            btn.style.justifyContent = 'center';
+                            btn.style.fontSize = '10px';
+                            btn.style.fontWeight = '700';
+                            btn.style.cursor = 'pointer';
+                            btn.style.transition = 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)';
+                            btn.style.flexShrink = '0';
+                            btn.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.12)';
+                            btn.style.position = 'relative';
+                            btn.style.overflow = 'hidden';
+                            btn.style.padding = '0';
+                            btn.style.margin = '0';
+                            btn.style.outline = 'none';
+                            btn.style.textDecoration = 'none';
+                            btn.style.verticalAlign = 'middle';
+                            btn.style.userSelect = 'none';
+                            btn.style.appearance = 'none';
+                            btn.style.webkitAppearance = 'none';
+                            btn.style.mozAppearance = 'none';
+                            btn.style.boxSizing = 'border-box';
+                            
+                            // 應用顏色
+                            if (btn.classList.contains('plus-btn')) {
+                                btn.style.backgroundColor = '#22c55e';
+                                btn.style.color = 'white';
+                                btn.style.border = '1px solid #16a34a';
+                                console.log(`Applied plus button styles to button ${index}`);
+                            } else if (btn.classList.contains('minus-btn')) {
+                                btn.style.backgroundColor = '#f87171';
+                                btn.style.color = 'white';
+                                btn.style.border = '1px solid #ef4444';
+                                console.log(`Applied minus button styles to button ${index}`);
+                            }
+                            
+                            console.log(`Button ${index} final style:`, btn.style.cssText);
+                        });
+                        
+                        // 樣式化刪除按鈕
+                        deleteButtons.forEach((btn, index) => {
+                            console.log(`Styling delete button ${index}:`, btn.className);
+                            
+                            // 重置所有樣式
+                            btn.style.all = 'unset';
+                            
+                            // 應用X按鈕樣式
+                            btn.style.position = 'absolute';
+                            btn.style.top = '8px';
+                            btn.style.right = '8px';
+                            btn.style.width = '24px';
+                            btn.style.height = '24px';
+                            btn.style.borderRadius = '50%';
+                            btn.style.background = '#dc3545';
+                            btn.style.backgroundColor = '#dc3545';
+                            btn.style.color = 'white';
+                            btn.style.border = 'none';
+                            btn.style.display = 'flex';
+                            btn.style.alignItems = 'center';
+                            btn.style.justifyContent = 'center';
+                            btn.style.fontSize = '12px';
+                            btn.style.opacity = '1'; // 強制設置為可見
+                            btn.style.transition = 'all 0.2s ease';
+                            btn.style.zIndex = '10';
+                            btn.style.cursor = 'pointer';
+                            btn.style.padding = '0';
+                            btn.style.margin = '0';
+                            btn.style.outline = 'none';
+                            btn.style.textDecoration = 'none';
+                            btn.style.verticalAlign = 'middle';
+                            btn.style.userSelect = 'none';
+                            btn.style.appearance = 'none';
+                            btn.style.webkitAppearance = 'none';
+                            btn.style.mozAppearance = 'none';
+                            btn.style.boxSizing = 'border-box';
+                            
+                            console.log(`Applied delete button styles to button ${index}`);
+                        });
+                        
+                        // 樣式化浮動控制容器
+                        floatingControls.forEach((container, index) => {
+                            console.log(`Styling floating control ${index}:`, container.className);
+                            
+                            // 重置所有樣式
+                            container.style.all = 'unset';
+                            
+                            // 應用浮動容器樣式
+                            container.style.position = 'fixed';
+                            container.style.bottom = '20px';
+                            container.style.right = '20px';
+                            container.style.display = 'flex';
+                            container.style.flexDirection = 'column';
+                            container.style.gap = '10px';
+                            container.style.zIndex = '1000';
+                            container.style.margin = '0';
+                            container.style.padding = '0';
+                            container.style.border = 'none';
+                            container.style.background = 'transparent';
+                            container.style.width = 'auto';
+                            container.style.height = 'auto';
+                            
+                            console.log(`Applied floating control styles to container ${index}`);
+                        });
+                        
+                        // 樣式化浮動按鈕
+                        floatingButtons.forEach((btn, index) => {
+                            console.log(`Styling floating button ${index}:`, btn.className);
+                            
+                            // 重置所有樣式
+                            btn.style.all = 'unset';
+                            
+                            // 應用浮動按鈕樣式
+                            btn.style.display = 'flex';
+                            btn.style.alignItems = 'center';
+                            btn.style.gap = '8px';
+                            btn.style.padding = '12px 16px';
+                            btn.style.border = 'none';
+                            btn.style.borderRadius = '25px';
+                            btn.style.fontSize = '14px';
+                            btn.style.fontWeight = '600';
+                            btn.style.cursor = 'pointer';
+                            btn.style.transition = 'all 0.3s ease';
+                            btn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                            btn.style.minWidth = '120px';
+                            btn.style.justifyContent = 'center';
+                            btn.style.margin = '0';
+                            btn.style.outline = 'none';
+                            btn.style.textDecoration = 'none';
+                            btn.style.verticalAlign = 'middle';
+                            btn.style.userSelect = 'none';
+                            btn.style.appearance = 'none';
+                            btn.style.webkitAppearance = 'none';
+                            btn.style.mozAppearance = 'none';
+                            btn.style.boxSizing = 'border-box';
+                            btn.style.fontFamily = 'inherit';
+                            btn.style.lineHeight = 'inherit';
+                            btn.style.textTransform = 'none';
+                            btn.style.textIndent = '0px';
+                            btn.style.textShadow = 'none';
+                            btn.style.textAlign = 'center';
+                            btn.style.letterSpacing = 'normal';
+                            btn.style.wordSpacing = 'normal';
+                            btn.style.overflow = 'visible';
+                            
+                            // 應用特定按鈕顏色
+                            if (btn.classList.contains('save-btn')) {
+                                btn.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+                                btn.style.backgroundColor = '#28a745';
+                                btn.style.color = 'white';
+                            } else if (btn.classList.contains('revert-btn')) {
+                                btn.style.background = 'linear-gradient(135deg, #ffc107, #fd7e14)';
+                                btn.style.backgroundColor = '#ffc107';
+                                btn.style.color = 'white';
+                            } else if (btn.classList.contains('close-btn')) {
+                                btn.style.background = 'linear-gradient(135deg, #dc3545, #e83e8c)';
+                                btn.style.backgroundColor = '#dc3545';
+                                btn.style.color = 'white';
+                            }
+                            
+                            console.log(`Applied floating button styles to button ${index}`);
+                        });
+                    },
+                    
                     // 計算屬性百分比
                     calculatePercentage(itemA, itemB) {
                         const a = parseFloat(itemA) || 0;
@@ -193,12 +489,91 @@ function initializeVueAppsInternal(isPublic = false) {
                                 break;
                         }
                     },
-                    toggleDeleteMode() {
-                        this.deleteMode = !this.deleteMode;
-                    },
                     
                     toggleEditMode() {
+                        if (!this.editMode) {
+                            // 進入編輯模式時備份原始數據
+                            this.backupData();
+                        }
                         this.editMode = !this.editMode;
+                        console.log('Edit mode toggled:', this.editMode);
+                    },
+                    
+                    closeEditMode() {
+                        // 關閉編輯模式並還原數據
+                        this.revertChanges();
+                    },
+                    
+                    backupData() {
+                        // 備份當前數據
+                        this.originalData = {
+                            roll: JSON.parse(JSON.stringify(this.roll)),
+                            state: JSON.parse(JSON.stringify(this.state)),
+                            notes: JSON.parse(JSON.stringify(this.notes)),
+                            characterDetails: JSON.parse(JSON.stringify(this.characterDetails))
+                        };
+                    },
+                    
+                    revertChanges() {
+                        if (this.originalData) {
+                            // 還原到備份的數據
+                            this.roll = JSON.parse(JSON.stringify(this.originalData.roll));
+                            this.state = JSON.parse(JSON.stringify(this.originalData.state));
+                            this.notes = JSON.parse(JSON.stringify(this.originalData.notes));
+                            this.characterDetails = JSON.parse(JSON.stringify(this.originalData.characterDetails));
+                        }
+                        this.editMode = false;
+                    },
+                    
+                    revertDataOnly() {
+                        // 只還原數據，不退出編輯模式
+                        if (this.originalData) {
+                            // 還原到備份的數據
+                            this.roll = JSON.parse(JSON.stringify(this.originalData.roll));
+                            this.state = JSON.parse(JSON.stringify(this.originalData.state));
+                            this.notes = JSON.parse(JSON.stringify(this.originalData.notes));
+                            this.characterDetails = JSON.parse(JSON.stringify(this.originalData.characterDetails));
+                            console.log('Data reverted, staying in edit mode');
+                        } else {
+                            console.log('No original data to revert to');
+                        }
+                    },
+                    
+                    isNumeric(value) {
+                        // 檢查值是否為數字（包括字符串形式的數字）
+                        console.log(`isNumeric called with value:`, value, 'type:', typeof value);
+                        if (value === null || value === undefined || value === '') {
+                            console.log('isNumeric: value is null/undefined/empty, returning false');
+                            return false;
+                        }
+                        const cleanValue = value.toString().replace(/^CC\s*/i, '');
+                        const num = parseFloat(cleanValue);
+                        const isNum = !isNaN(num) && isFinite(num);
+                        console.log(`isNumeric check: "${value}" -> "${cleanValue}" -> ${num} -> ${isNum}`);
+                        return isNum;
+                    },
+                    
+                    adjustValue(index, type, delta) {
+                        // 調整屬性值
+                        console.log(`adjustValue called - index: ${index}, type: ${type}, delta: ${delta}`);
+                        const item = this.state[index];
+                        if (!item) {
+                            console.log('adjustValue: item not found at index', index);
+                            return;
+                        }
+                        
+                        const field = type === 'current' ? 'itemA' : 'itemB';
+                        const currentValue = item[field];
+                        console.log(`adjustValue: field=${field}, currentValue=${currentValue}`);
+                        
+                        if (this.isNumeric(currentValue)) {
+                            const num = parseFloat(currentValue.toString().replace(/^CC\s*/i, ''));
+                            const newValue = Math.max(0, num + delta);
+                            item[field] = newValue.toString();
+                            console.log(`adjustValue: updated ${field} from ${currentValue} to ${newValue}`);
+                        } else {
+                            console.log('adjustValue: value is not numeric, skipping adjustment');
+                        }
                     },
                     
                     removeChannel(channelId) {
@@ -297,7 +672,29 @@ function initializeVueAppsInternal(isPublic = false) {
                 }
             }).mount('#array-rendering');
 
+            console.log('✓ Vue app mounted successfully');
+            console.log('Array rendering element after mount:', document.getElementById('array-rendering'));
+            console.log('Array rendering innerHTML after mount:', document.getElementById('array-rendering').innerHTML);
+            console.log('Value controls elements after mount:', document.querySelectorAll('.value-controls').length);
+            console.log('Value button elements after mount:', document.querySelectorAll('.value-btn').length);
+            console.log('Edit mode state:', card._instance?.data?.editMode);
+            console.log('State data:', card._instance?.data?.state);
+            console.log('State length:', card._instance?.data?.state?.length);
+            console.log('Vue app instance:', card._instance);
+            console.log('Vue app data:', card._instance?.data);
+            
             debugLog('Main card Vue app initialized successfully', 'info');
+            
+            // Wait for Vue to render, then check again
+            setTimeout(() => {
+                console.log('=== DELAYED FINAL CHECK ===');
+                console.log('Value controls delayed count:', document.querySelectorAll('.value-controls').length);
+                console.log('Value buttons delayed count:', document.querySelectorAll('.value-btn').length);
+                console.log('State data delayed:', card._instance?.data?.state);
+                console.log('State length delayed:', card._instance?.data?.state?.length);
+                console.log('Edit mode delayed:', card._instance?.data?.editMode);
+                console.log('=== DELAYED FINAL CHECK END ===');
+            }, 500);
 
             // Initialize card list app if element exists
             const cardListElement = document.querySelector('#array-cardList');

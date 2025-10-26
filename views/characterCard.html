@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="css/hybrid-card.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
         integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <!-- Font Awesome for modern icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous">
     <!-- production version, optimized for size and speed -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <title>Character Card 角色卡 @ HKTRPG</title>
@@ -24,7 +27,7 @@
         <div id="header"></div>
     </header>
     <br>
-    <div class="container-fluid px-3 px-md-4 py-3" id="array-rendering">
+    <div class="container-fluid px-3 px-md-4 py-3">
         <!-- Alerts -->
         <div class="alert alert-success alert-dismissible fade show overlay" style="position: fixed; z-index: 999; display: none;" role="alert" id="warning-update">
             <i class="fas fa-check-circle me-2"></i><strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。
@@ -34,6 +37,11 @@
             <i class="fas fa-exclamation-triangle me-2"></i><strong>更新失敗!</strong> 請檢查或向HKTRPG回報。
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+        
+                <!-- Vue App Container -->
+                <div id="array-rendering" class="container-fluid px-3 px-md-4 py-3">
+                    <!-- Hybrid UI Template will be loaded here -->
+                </div>
     </div>
     <footer>
         <div id="footer"></div>
@@ -58,16 +66,78 @@
 
     <!-- Page Specific JavaScript -->
     <script>
+        console.log('=== CHARACTER CARD DEBUG START ===');
+        console.log('Document ready state:', document.readyState);
+        console.log('jQuery loaded:', typeof $ !== 'undefined');
+        console.log('Vue loaded:', typeof Vue !== 'undefined');
+        
+        // Check CSS loading
+        console.log('=== CSS LOADING CHECK ===');
+        const checkCSS = () => {
+            const styleSheets = document.styleSheets;
+            console.log('Total stylesheets loaded:', styleSheets.length);
+            for (let i = 0; i < styleSheets.length; i++) {
+                try {
+                    const sheet = styleSheets[i];
+                    console.log(`Stylesheet ${i}:`, sheet.href || 'inline');
+                    if (sheet.href && sheet.href.includes('hybrid-card.css')) {
+                        console.log('✓ hybrid-card.css found');
+                    }
+                    if (sheet.href && sheet.href.includes('font-awesome')) {
+                        console.log('✓ Font Awesome found');
+                    }
+                } catch (e) {
+                    console.log(`Stylesheet ${i}: CORS restricted`);
+                }
+            }
+        };
+        
+        // Check CSS rules
+        const checkCSSRules = () => {
+            console.log('=== CSS RULES CHECK ===');
+            try {
+                const testElement = document.createElement('div');
+                testElement.className = 'value-btn plus-btn';
+                document.body.appendChild(testElement);
+                
+                const styles = window.getComputedStyle(testElement);
+                console.log('Value button styles:', {
+                    backgroundColor: styles.backgroundColor,
+                    color: styles.color,
+                    border: styles.border,
+                    borderRadius: styles.borderRadius,
+                    width: styles.width,
+                    height: styles.height,
+                    display: styles.display
+                });
+                
+                document.body.removeChild(testElement);
+            } catch (e) {
+                console.error('Error checking CSS rules:', e);
+            }
+        };
+        
         // Load common modals
         $("#commonModals").load("/common/characterCardModals.html", function() {
+            console.log('✓ Modals loaded successfully');
             debugLog('Modals loaded', 'info');
         });
         
-        // Load hybrid UI template and initialize Vue apps
-        $("#array-rendering").load("/common/hybridCharacterCardUI.html", function() {
-            debugLog('Hybrid UI template loaded, initializing Vue apps', 'info');
+        // Add delay to ensure all scripts are loaded
+        setTimeout(function() {
+            console.log('=== INITIALIZING VUE APPS ===');
+            console.log('Array rendering element before init:', document.getElementById('array-rendering'));
+            console.log('Array rendering innerHTML before init:', document.getElementById('array-rendering').innerHTML);
+            
+            // Check CSS loading
+            checkCSS();
+            checkCSSRules();
+            
+            // Initialize Vue apps directly (they will load the hybrid UI template)
             initializeVueApps(false, true); // Initialize for private card, skip UI template load
-        });
+            
+            console.log('=== VUE APPS INITIALIZATION CALLED ===');
+        }, 100);
 
         // Hide alerts initially
         $('#warning-update').hide();

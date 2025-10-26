@@ -162,9 +162,31 @@
                             <!-- 正常顯示模式 -->
                             <div class="attribute-label" v-if="!editMode">{{ attr.name }}</div>
                             <div class="attribute-display" v-if="!editMode">
-                                <div class="attribute-current">{{ attr.current }}</div>
+                                <div class="attribute-current">
+                                    {{ attr.current }}
+                                    <!-- 加減按鈕 (僅數字值) -->
+                                    <div v-if="isNumeric(attr.current)" class="value-controls">
+                                        <button type="button" class="value-btn minus-btn" @click.stop="adjustValue(index, 'current', -1)" title="減1">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <button type="button" class="value-btn plus-btn" @click.stop="adjustValue(index, 'current', 1)" title="加1">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
                                 <div class="attribute-separator">/</div>
-                                <div class="attribute-max">{{ attr.max }}</div>
+                                <div class="attribute-max">
+                                    {{ attr.max }}
+                                    <!-- 加減按鈕 (僅數字值) -->
+                                    <div v-if="isNumeric(attr.max)" class="value-controls">
+                                        <button type="button" class="value-btn minus-btn" @click.stop="adjustValue(index, 'max', -1)" title="減1">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <button type="button" class="value-btn plus-btn" @click.stop="adjustValue(index, 'max', 1)" title="加1">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                             
                             <!-- 編輯模式下的輸入框 -->
@@ -466,6 +488,31 @@
                     alert(`擲骰 ${skillName}！`);
                 },
                 
+                isNumeric(value) {
+                    // 檢查值是否為數字（包括字符串形式的數字）
+                    if (value === null || value === undefined || value === '') return false;
+                    const cleanValue = value.toString().replace(/^CC\s*/i, '');
+                    const num = parseFloat(cleanValue);
+                    const isNum = !isNaN(num) && isFinite(num);
+                    console.log(`isNumeric check: "${value}" -> "${cleanValue}" -> ${num} -> ${isNum}`);
+                    return isNum;
+                },
+                
+                adjustValue(index, type, delta) {
+                    // 調整屬性值
+                    const attr = this.attributes[index];
+                    if (!attr) return;
+                    
+                    const field = type === 'current' ? 'current' : 'max';
+                    const currentValue = attr[field];
+                    
+                    if (this.isNumeric(currentValue)) {
+                        const num = parseFloat(currentValue.toString().replace(/^CC\s*/i, ''));
+                        const newValue = Math.max(0, num + delta);
+                        attr[field] = newValue.toString();
+                    }
+                },
+                
                 addSkill() {
                     this.roll.push({ name: '新技能', itemA: '0' });
                 },
@@ -536,6 +583,86 @@
         .info-value {
             color: var(--text-primary);
             font-weight: 500;
+        }
+        
+        /* 數值控制按鈕 */
+        .value-controls {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-left: 6px;
+            vertical-align: middle;
+            align-items: center;
+        }
+
+        .value-btn {
+            width: 16px;
+            height: 16px;
+            border: none;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .value-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .value-btn:hover::before {
+            opacity: 1;
+        }
+
+        .plus-btn {
+            background: #22c55e;
+            color: white;
+            border: 1px solid #16a34a;
+        }
+
+        .plus-btn:hover {
+            background: #16a34a;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(34, 197, 94, 0.25);
+        }
+
+        .minus-btn {
+            background: #f87171;
+            color: white;
+            border: 1px solid #ef4444;
+        }
+
+        .minus-btn:hover {
+            background: #ef4444;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(248, 113, 113, 0.25);
+        }
+
+        .value-btn:active {
+            transform: translateY(0) scale(0.95);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 按鈕圖標樣式 */
+        .value-btn i {
+            font-size: 8px;
+            line-height: 1;
+            font-weight: 900;
         }
     </style>
 </body>

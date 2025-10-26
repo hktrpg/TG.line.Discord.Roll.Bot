@@ -72,10 +72,7 @@
         });
         
         // Load hybrid UI template and initialize Vue apps
-        $("#array-rendering").load("/common/hybridCharacterCardUI.html", function() {
-            debugLog('Hybrid UI template loaded, initializing Vue apps', 'info');
-            initializeVueApps(true, true); // Initialize for public card, skip UI template load
-        });
+        initializeVueApps(true, true); // Initialize for public card, skip UI template load
 
         // Hide alerts initially
         $('#warning-update').hide();

@@ -2392,35 +2392,63 @@ class Digimon {
         const searchTerm = query.toLowerCase().trim();
         const results = [];
         
+        // 檢查是否為數碼寶貝ID搜尋
+        const isIdSearch = !isNaN(searchTerm) && searchTerm.length > 0;
+        let targetDigimon = null;
+        
+        if (isIdSearch) {
+            // 根據ID找到對應的數碼寶貝
+            const digimonId = parseInt(searchTerm);
+            targetDigimon = this.digimonData.find(d => d.id === digimonId);
+        }
+        
         // 搜尋所有招式
         for (const skillData of augmentedSkills) {
             const skill = skillData.skill;
             const digimonName = skillData.digimonName;
             const stageName = skillData.stageName;
+            const digimonId = skillData.digimonId;
             
-            // 搜尋字段：招式名稱、數碼寶貝名稱、階段、屬性、元素
-            const searchableText = [
-                skill.name,
-                digimonName,
-                stageName,
-                skill.element || '',
-                skill.type || ''
-            ].join(' ').toLowerCase();
+            let shouldInclude = false;
+            let score = 0;
             
-            if (searchableText.includes(searchTerm)) {
-                // 計算相關性分數
-                let score = 0;
-                const skillName = skill.name.toLowerCase();
-                const digimon = digimonName.toLowerCase();
+            if (isIdSearch && targetDigimon) {
+                // ID搜尋：只顯示該數碼寶貝的招式
+                if (digimonId === targetDigimon.id) {
+                    shouldInclude = true;
+                    score = 100; // ID完全匹配得分最高
+                }
+            } else {
+                // 關鍵字搜尋：招式名稱、數碼寶貝名稱、階段、屬性、元素、ID
+                const searchableText = [
+                    skill.name,
+                    digimonName,
+                    stageName,
+                    skill.element || '',
+                    skill.type || '',
+                    digimonId.toString() // 添加ID到搜尋字段
+                ].join(' ').toLowerCase();
                 
-                // 招式名稱完全匹配得分最高
-                if (skillName === searchTerm) score += 100;
-                else if (skillName.startsWith(searchTerm)) score += 80;
-                else if (skillName.includes(searchTerm)) score += 60;
-                
-                // 數碼寶貝名稱匹配
-                if (digimon.includes(searchTerm)) score += 30;
-                
+                if (searchableText.includes(searchTerm)) {
+                    shouldInclude = true;
+                    const skillName = skill.name.toLowerCase();
+                    const digimon = digimonName.toLowerCase();
+                    
+                    // 招式名稱完全匹配得分最高
+                    if (skillName === searchTerm) score += 100;
+                    else if (skillName.startsWith(searchTerm)) score += 80;
+                    else if (skillName.includes(searchTerm)) score += 60;
+                    
+                    // 數碼寶貝名稱匹配
+                    if (digimon.includes(searchTerm)) score += 30;
+                    
+                    // ID匹配
+                    if (digimonId.toString() === searchTerm) score += 50;
+                    else if (digimonId.toString().includes(searchTerm)) score += 20;
+                }
+            }
+            
+            if (shouldInclude) {
                 results.push({
                     id: `${skillData.digimonId}_${skill.name}`,
                     display: skill.name,
@@ -2430,7 +2458,8 @@ class Digimon {
                         stage: stageName,
                         element: skill.element,
                         type: skill.type,
-                        power: skill.power
+                        power: skill.power,
+                        digimonId: digimonId // 添加ID到元數據
                     },
                     score: score
                 });
@@ -2457,7 +2486,8 @@ class Digimon {
                 stage: skillData.stageName,
                 element: skillData.skill.element,
                 type: skillData.skill.type,
-                power: skillData.skill.power
+                power: skillData.skill.power,
+                digimonId: skillData.digimonId
             }
         }));
     }
@@ -2533,7 +2563,7 @@ const discordCommand = [
                         
                         // 添加自動完成配置到選項對象
                         opt.autocompleteModule = 'digimon_moves';
-                        opt.autocompleteSearchFields = ['display', 'value', 'metadata.digimon', 'metadata.element', 'metadata.type'];
+                        opt.autocompleteSearchFields = ['display', 'value', 'metadata.digimon', 'metadata.element', 'metadata.type', 'metadata.digimonId'];
                         opt.autocompleteLimit = 8;
                         opt.autocompleteMinQueryLength = 1;
                         opt.autocompleteNoResultsText = '找不到相關的招式';

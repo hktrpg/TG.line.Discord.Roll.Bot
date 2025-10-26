@@ -906,7 +906,21 @@ if (io) {
                 
                 let id = doc.channel || [];
                 
-                socket.emit('getListInfo', { temp, id });
+                // 🔐 生成JWT token
+                let jwtToken = null;
+                if (security.generateToken) {
+                    try {
+                        jwtToken = security.generateToken({
+                            id: doc._id.toString(),
+                            userName: userName
+                        });
+                        console.log(`🔐 JWT token generated for user: ${userName}`);
+                    } catch (error) {
+                        console.error('🔐 JWT token generation failed:', error.message);
+                    }
+                }
+                
+                socket.emit('getListInfo', { temp, id, token: jwtToken });
                 
             } catch (error) {
                 console.error('🔒 getListInfo error:', error.message);
@@ -969,14 +983,17 @@ if (io) {
                 // If a selectedGroupId is provided, use it as the target for the roll
                 if (message.selectedGroupId && message.selectedGroupId !== "") {
                     try {
-                        // 🔒 使用安全的認證方式
-                        const validation = security.validateCredentials(message);
+                        // 🔒 使用JWT Token驗證
+                        const validation = security.validateJWTAuth({
+                            token: message.token,
+                            userName: message.userName
+                        });
                         if (!validation.valid) {
-                            console.warn('🔒 Invalid credentials for rolling:', validation.error);
+                            console.warn('🔒 Invalid JWT auth for rolling:', validation.error);
                             return;
                         }
                         
-                        const { userName, userPassword: password } = validation.data;
+                        const { userId, userName } = validation.data;
                         
                         let filter = {
                             userName: String(userName).trim()
@@ -985,8 +1002,8 @@ if (io) {
                         let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error:', error.name, error.message));
                         
                         if (doc) {
-                            const isValid = await security.verifyPassword(password, doc.password);
-                            if (isValid && doc.channel) {
+                            // 🔒 JWT token已經驗證了用戶身份，不需要密碼驗證
+                            if (doc.channel) {
                                 // Find the channel with matching ID - needs to be compared as strings
                                 const targetChannel = doc.channel.find(ch => ch._id && ch._id.toString() === message.selectedGroupId);
                                 if (targetChannel) {
@@ -1092,14 +1109,17 @@ if (io) {
             if (await limitRaterCard(socket.handshake.address)) return;
             //回傳 message 給發送訊息的 Client
             try {
-                // 🔒 驗證輸入
-                const validation = security.validateCredentials(message);
+                // 🔒 使用JWT Token驗證
+                const validation = security.validateJWTAuth({
+                    token: message.token,
+                    userName: message.userName
+                });
                 if (!validation.valid) {
-                    socket.emit('removeChannel', { success: false, message: 'Invalid credentials' });
+                    socket.emit('removeChannel', { success: false, message: 'Invalid JWT auth' });
                     return;
                 }
                 
-                const { userName, userPassword: password } = validation.data;
+                const { userId, userName } = validation.data;
                 
                 // 🔒 防止 NoSQL 注入 - 強制型別轉換
                 let filter = {
@@ -1112,15 +1132,9 @@ if (io) {
                         return null;
                     });
                 
-                // 🔒 使用安全的密碼驗證（支援 legacy 和 bcrypt）
+                // 🔒 JWT token已經驗證了用戶身份，不需要密碼驗證
                 if (!doc) {
                     socket.emit('removeChannel', { success: false, message: 'User not found' });
-                    return;
-                }
-                
-                const isValid = await security.verifyPassword(password, doc.password);
-                if (!isValid) {
-                    socket.emit('removeChannel', { success: false, message: 'Invalid password' });
                     return;
                 }
                 
@@ -1151,22 +1165,19 @@ if (io) {
             if (await limitRaterCard(socket.handshake.address)) return;
 
             try {
-                // 🔒 Decode password from Base64
-                const decodedPassword = Buffer.from(message.userPassword, 'base64').toString('utf8');
-                
-                // 🔒 驗證輸入
-                const validation = security.validateCredentials({
-                    userName: message.userName,
-                    userPassword: decodedPassword
+                // 🔒 使用JWT Token驗證
+                const validation = security.validateJWTAuth({
+                    token: message.token,
+                    userName: message.userName
                 });
                 
                 if (!validation.valid) {
-                    console.warn('🔒 Invalid credentials for updateCard:', validation.error);
+                    console.warn('🔒 Invalid JWT auth for updateCard:', validation.error);
                     socket.emit('updateCard', false);
                     return;
                 }
                 
-                const { userName, userPassword: password } = validation.data;
+                const { userId, userName } = validation.data;
 
                 // 🔒 防止 NoSQL 注入
                 let filter = {
@@ -1179,31 +1190,11 @@ if (io) {
                         return null;
                     });
                 
-                // 🔒 使用安全的密碼驗證
+                // 🔒 JWT token已經驗證了用戶身份，不需要密碼驗證
                 if (!doc) {
                     console.warn('🔒 User not found for updateCard:', userName);
                     socket.emit('updateCard', false);
                     return;
-                }
-                
-                const isValid = await verifyPasswordSecure(password, doc.password);
-                if (!isValid) {
-                    console.warn('🔒 Invalid password for updateCard:', userName);
-                    socket.emit('updateCard', false);
-                    return;
-                }
-                
-                // 🔄 自動升級密碼（如果使用舊密碼）
-                try {
-                    const upgraded = await security.upgradePasswordIfLegacy(userName, password, doc.password);
-                    if (upgraded) {
-                        console.log(`🔄 Password automatically upgraded for updateCard user: ${userName}`);
-                        // 重新獲取用戶數據（包含升級後的密碼）
-                        doc = await schema.accountPW.findOne(filter);
-                    }
-                } catch (error) {
-                    console.error('🔄 Password upgrade failed for updateCard:', error.message);
-                    // 升級失敗不影響更新流程
                 }
                 
                 // 驗證成功，更新卡片

@@ -345,6 +345,45 @@ function validateCredentials(credentials) {
     };
 }
 
+/**
+ * 驗證JWT Token認證
+ * @param {object} authData - { token, userName? }
+ * @returns {object} { valid: boolean, error?: string, data?: object }
+ */
+function validateJWTAuth(authData) {
+    if (!authData || typeof authData !== 'object') {
+        return { valid: false, error: 'Invalid auth data format' };
+    }
+
+    const token = String(authData.token || '').trim();
+    if (!token) {
+        return { valid: false, error: 'JWT token is required' };
+    }
+
+    try {
+        const decoded = verifyToken(token);
+        if (!decoded) {
+            return { valid: false, error: 'Invalid or expired JWT token' };
+        }
+
+        // 如果提供了userName，驗證是否匹配
+        if (authData.userName && decoded.userName !== authData.userName) {
+            return { valid: false, error: 'Token user does not match provided username' };
+        }
+
+        return {
+            valid: true,
+            data: {
+                userId: decoded.userId,
+                userName: decoded.userName,
+                token: token
+            }
+        };
+    } catch (error) {
+        return { valid: false, error: `Token validation failed: ${error.message}` };
+    }
+}
+
 // ============================================
 // JWT 認證（可選）
 // ============================================
@@ -709,6 +748,7 @@ module.exports = {
     sanitizeInput,
     validateChatMessage,
     validateCredentials,
+    validateJWTAuth,
 
     // JWT（如果已安裝）
     generateToken: jwt ? generateToken : null,

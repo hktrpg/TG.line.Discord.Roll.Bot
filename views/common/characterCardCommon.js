@@ -46,63 +46,41 @@ let card = null;
 let cardList = null;
 
 function initializeVueApps(isPublic = false, skipUITemplateLoad = false) {
-    console.log('=== INITIALIZE VUE APPS START ===');
-    console.log('Parameters - isPublic:', isPublic, 'skipUITemplateLoad:', skipUITemplateLoad);
-    console.log('Array rendering element exists:', !!document.getElementById('array-rendering'));
-    console.log('Array rendering innerHTML before load:', document.getElementById('array-rendering').innerHTML);
-    
-    debugLog('Initializing Vue applications', 'info');
     try {
         // Set title based on card type
         TITLE = isPublic ? "HKTRPG 公開角色卡" : "HKTRPG 私人角色卡";
-        console.log('Title set to:', TITLE);
         
         // Only load UI template if not already loaded (skipUITemplateLoad = true means UI is already loaded)
         if (!skipUITemplateLoad) {
-            console.log('Loading characterCardUI.html template...');
             $("#array-rendering").load("/common/characterCardUI.html", function() {
-                console.log('✓ characterCardUI.html loaded successfully');
-                console.log('Array rendering innerHTML after load:', document.getElementById('array-rendering').innerHTML);
-                debugLog('UI template loaded, initializing Vue apps', 'info');
                 initializeVueAppsInternal(isPublic, null);
             });
         } else {
-            console.log('Loading hybridCharacterCardUI.html template...');
-            debugLog('UI template already loaded, initializing Vue apps directly', 'info');
             // Load the hybrid UI template into a temporary container first
             const tempContainer = document.createElement('div');
             tempContainer.style.display = 'none';
             document.body.appendChild(tempContainer);
             
             $(tempContainer).load("/common/hybridCharacterCardUI.html", function() {
-                console.log('✓ hybridCharacterCardUI.html loaded successfully');
                 const templateContent = tempContainer.innerHTML;
-                console.log('Template content length:', templateContent.length);
-                console.log('Value controls elements found in template:', tempContainer.querySelectorAll('.value-controls').length);
-                console.log('Value button elements found in template:', tempContainer.querySelectorAll('.value-btn').length);
                 
                 // Remove the temporary container
                 document.body.removeChild(tempContainer);
                 
-                debugLog('Hybrid UI template loaded into temporary container', 'info');
                 initializeVueAppsInternal(isPublic, templateContent);
             });
         }
     } catch (error) {
         console.error('Error in initializeVueApps:', error);
-        debugLog(`Error initializing Vue apps: ${error.message}`, 'error');
     }
-    console.log('=== INITIALIZE VUE APPS END ===');
 }
 
 function initializeVueAppsInternal(isPublic = false, templateContent = null) {
     try {
         // Initialize main card app
-        console.log('Creating Vue app...');
         
         // Get the template content - use provided content or get from DOM
         const finalTemplateContent = templateContent || document.getElementById('array-rendering').innerHTML;
-        console.log('Template content length:', finalTemplateContent.length);
         
         card = Vue.createApp({
             template: finalTemplateContent,
@@ -127,12 +105,10 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
                     // characterDetails will be populated from server data
                     
                     // Add test data for debugging
-                    console.log('Vue app mounted, adding test data...');
                     this.loadTestData();
                     
                     // Set the correct radio button based on saved selectedGroupId
                     if (this.selectedGroupId && this.selectedGroupId !== "") {
-                        debugLog(`Loading saved group ID: ${this.selectedGroupId}`, 'info');
                         this.$nextTick(() => {
                             const radio = document.querySelector(`input[name="gpListRadio"][value="${this.selectedGroupId}"]`);
                             if (radio) {
@@ -152,7 +128,6 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
                 methods: {
                     // 載入測試數據
                     loadTestData() {
-                        console.log('Loading test data...');
                         this.name = "測試角色";
                         this.state = [
                             { name: 'HP', itemA: '11', itemB: '11' },
@@ -183,58 +158,25 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
                             { label: '特徵', value: '野外活動愛好者' }
                         ].filter(detail => detail && detail.label && detail.value);
                         
-                        console.log('Test data loaded:', {
-                            name: this.name,
-                            stateLength: this.state.length,
-                            rollLength: this.roll.length,
-                            notesLength: this.notes.length
-                        });
                         
                         // Check for value controls after data is loaded
                         this.$nextTick(() => {
-                            console.log('Value controls after test data load:', document.querySelectorAll('.value-controls').length);
-                            console.log('Value buttons after test data load:', document.querySelectorAll('.value-btn').length);
                             
                             // 強制應用按鈕樣式
                             this.applyButtonStyles();
                             
-                            // Check CSS rules after Vue render
-                            setTimeout(() => {
-                                console.log('=== CSS CHECK AFTER VUE RENDER ===');
-                                const buttons = document.querySelectorAll('.value-btn');
-                                console.log('Found value buttons after Vue render:', buttons.length);
-                                buttons.forEach((btn, index) => {
-                                    const styles = window.getComputedStyle(btn);
-                                    console.log(`Button ${index} styles after Vue render:`, {
-                                        backgroundColor: styles.backgroundColor,
-                                        color: styles.color,
-                                        border: styles.border,
-                                        borderRadius: styles.borderRadius,
-                                        width: styles.width,
-                                        height: styles.height,
-                                        classes: btn.className,
-                                        elementStyle: btn.style.cssText
-                                    });
-                                });
-                            }, 100);
                         });
                     },
                     
                     // 強制應用按鈕樣式
                     applyButtonStyles() {
-                        console.log('=== APPLYING BUTTON STYLES FROM VUE ===');
                         const buttons = document.querySelectorAll('.value-btn');
                         const deleteButtons = document.querySelectorAll('.hover-delete-btn');
                         const floatingControls = document.querySelectorAll('.floating-edit-controls');
                         const floatingButtons = document.querySelectorAll('.floating-btn');
-                        console.log('Found', buttons.length, 'value buttons to style');
-                        console.log('Found', deleteButtons.length, 'delete buttons to style');
-                        console.log('Found', floatingControls.length, 'floating controls to style');
-                        console.log('Found', floatingButtons.length, 'floating buttons to style');
                         
                         // 樣式化value按鈕
                         buttons.forEach((btn, index) => {
-                            console.log(`Styling button ${index}:`, btn.className);
                             
                             // 重置所有樣式
                             btn.style.all = 'unset';
@@ -271,20 +213,16 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
                                 btn.style.backgroundColor = '#22c55e';
                                 btn.style.color = 'white';
                                 btn.style.border = '1px solid #16a34a';
-                                console.log(`Applied plus button styles to button ${index}`);
                             } else if (btn.classList.contains('minus-btn')) {
                                 btn.style.backgroundColor = '#f87171';
                                 btn.style.color = 'white';
                                 btn.style.border = '1px solid #ef4444';
-                                console.log(`Applied minus button styles to button ${index}`);
                             }
                             
-                            console.log(`Button ${index} final style:`, btn.style.cssText);
                         });
                         
                         // 樣式化刪除按鈕
                         deleteButtons.forEach((btn, index) => {
-                            console.log(`Styling delete button ${index}:`, btn.className);
                             
                             // 重置所有樣式
                             btn.style.all = 'unset';
@@ -319,12 +257,10 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
                             btn.style.mozAppearance = 'none';
                             btn.style.boxSizing = 'border-box';
                             
-                            console.log(`Applied delete button styles to button ${index}`);
                         });
                         
                         // 樣式化浮動控制容器
                         floatingControls.forEach((container, index) => {
-                            console.log(`Styling floating control ${index}:`, container.className);
                             
                             // 重置所有樣式
                             container.style.all = 'unset';
@@ -344,12 +280,10 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
                             container.style.width = 'auto';
                             container.style.height = 'auto';
                             
-                            console.log(`Applied floating control styles to container ${index}`);
                         });
                         
                         // 樣式化浮動按鈕
                         floatingButtons.forEach((btn, index) => {
-                            console.log(`Styling floating button ${index}:`, btn.className);
                             
                             // 重置所有樣式
                             btn.style.all = 'unset';
@@ -402,7 +336,6 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
                                 btn.style.color = 'white';
                             }
                             
-                            console.log(`Applied floating button styles to button ${index}`);
                         });
                     },
                     
@@ -496,7 +429,6 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
                             this.backupData();
                         }
                         this.editMode = !this.editMode;
-                        console.log('Edit mode toggled:', this.editMode);
                     },
                     
                     closeEditMode() {
@@ -533,46 +465,34 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
                             this.state = JSON.parse(JSON.stringify(this.originalData.state));
                             this.notes = JSON.parse(JSON.stringify(this.originalData.notes));
                             this.characterDetails = JSON.parse(JSON.stringify(this.originalData.characterDetails));
-                            console.log('Data reverted, staying in edit mode');
-                        } else {
-                            console.log('No original data to revert to');
                         }
                     },
                     
                     isNumeric(value) {
                         // 檢查值是否為數字（包括字符串形式的數字）
-                        console.log(`isNumeric called with value:`, value, 'type:', typeof value);
                         if (value === null || value === undefined || value === '') {
-                            console.log('isNumeric: value is null/undefined/empty, returning false');
                             return false;
                         }
                         const cleanValue = value.toString().replace(/^CC\s*/i, '');
                         const num = parseFloat(cleanValue);
                         const isNum = !isNaN(num) && isFinite(num);
-                        console.log(`isNumeric check: "${value}" -> "${cleanValue}" -> ${num} -> ${isNum}`);
                         return isNum;
                     },
                     
                     adjustValue(index, type, delta) {
                         // 調整屬性值
-                        console.log(`adjustValue called - index: ${index}, type: ${type}, delta: ${delta}`);
                         const item = this.state[index];
                         if (!item) {
-                            console.log('adjustValue: item not found at index', index);
                             return;
                         }
                         
                         const field = type === 'current' ? 'itemA' : 'itemB';
                         const currentValue = item[field];
-                        console.log(`adjustValue: field=${field}, currentValue=${currentValue}`);
                         
                         if (this.isNumeric(currentValue)) {
                             const num = parseFloat(currentValue.toString().replace(/^CC\s*/i, ''));
                             const newValue = Math.max(0, num + delta);
                             item[field] = newValue.toString();
-                            console.log(`adjustValue: updated ${field} from ${currentValue} to ${newValue}`);
-                        } else {
-                            console.log('adjustValue: value is not numeric, skipping adjustment');
                         }
                     },
                     
@@ -586,16 +506,16 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
 
                         // Send remove request to server
                         const userName = localStorage.getItem("userName");
-                        const userPassword = simpleDecrypt(localStorage.getItem("userPassword"));
+                        const token = localStorage.getItem("jwtToken");
                         
-                        if (!userName || !userPassword) {
-                            debugLog('User not logged in, cannot remove channel', 'error');
+                        if (!userName || !token) {
+                            debugLog('User not logged in or token missing, cannot remove channel', 'error');
                             return;
                         }
 
                         socket.emit('removeChannel', {
                             userName: userName,
-                            userPassword: userPassword,
+                            token: token,
                             channelId: channelToRemove.id,
                             botname: channelToRemove.botname
                         });
@@ -645,7 +565,7 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
                             socket.emit('publicRolling', {
                                 item: name,
                                 userName: localStorage.getItem("userName"),
-                                userPassword: simpleDecrypt(localStorage.getItem("userPassword")),
+                                token: localStorage.getItem("jwtToken"),
                                 doc: {
                                     name: this.name,
                                     state: this.state,
@@ -657,7 +577,7 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
                             socket.emit('rolling', {
                                 item: name,
                                 userName: localStorage.getItem("userName"),
-                                userPassword: simpleDecrypt(localStorage.getItem("userPassword")),
+                                token: localStorage.getItem("jwtToken"),
                                 cardName: this.name,
                                 selectedGroupId: this.selectedGroupId,
                                 doc: {
@@ -668,33 +588,31 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
                                 }
                             });
                         }
+                    },
+                    
+                    updateCard() {
+                        // 調用全局的updateCard函數
+                        if (typeof globalThis.updateCard === 'function') {
+                            globalThis.updateCard();
+                        } else {
+                            console.error('Global updateCard function not found');
+                            this.showError('儲存功能不可用');
+                        }
+                    },
+                    
+                    showError(message) {
+                        // 調用全局的showError函數
+                        if (typeof globalThis.showError === 'function') {
+                            globalThis.showError(message);
+                        } else {
+                            console.error('Error:', message);
+                        }
                     }
                 }
             }).mount('#array-rendering');
 
-            console.log('✓ Vue app mounted successfully');
-            console.log('Array rendering element after mount:', document.getElementById('array-rendering'));
-            console.log('Array rendering innerHTML after mount:', document.getElementById('array-rendering').innerHTML);
-            console.log('Value controls elements after mount:', document.querySelectorAll('.value-controls').length);
-            console.log('Value button elements after mount:', document.querySelectorAll('.value-btn').length);
-            console.log('Edit mode state:', card._instance?.data?.editMode);
-            console.log('State data:', card._instance?.data?.state);
-            console.log('State length:', card._instance?.data?.state?.length);
-            console.log('Vue app instance:', card._instance);
-            console.log('Vue app data:', card._instance?.data);
             
-            debugLog('Main card Vue app initialized successfully', 'info');
             
-            // Wait for Vue to render, then check again
-            setTimeout(() => {
-                console.log('=== DELAYED FINAL CHECK ===');
-                console.log('Value controls delayed count:', document.querySelectorAll('.value-controls').length);
-                console.log('Value buttons delayed count:', document.querySelectorAll('.value-btn').length);
-                console.log('State data delayed:', card._instance?.data?.state);
-                console.log('State length delayed:', card._instance?.data?.state?.length);
-                console.log('Edit mode delayed:', card._instance?.data?.editMode);
-                console.log('=== DELAYED FINAL CHECK END ===');
-            }, 500);
 
             // Initialize card list app if element exists
             const cardListElement = document.querySelector('#array-cardList');
@@ -827,6 +745,12 @@ function login() {
             if (listInfo && listInfo.id && listInfo.id.length > 0) {
                 card.gpList = listInfo.id;
             }
+            
+            // 🔐 存儲JWT token
+            if (listInfo.token) {
+                localStorage.setItem('jwtToken', listInfo.token);
+            }
+            
             if (list) {
                 warningElement.style.display = "none";
                 cardList.list = list;
@@ -967,10 +891,10 @@ socket.on("removeChannel", function (result) {
 // Update card function for hybrid UI
 function updateCard() {
     const userName = localStorage.getItem("userName");
-    const userPassword = simpleDecrypt(localStorage.getItem("userPassword"));
+    const token = localStorage.getItem("jwtToken");
 
-    if (!userName || !userPassword) {
-        debugLog('User not logged in, cannot update card', 'error');
+    if (!userName || !token) {
+        debugLog('User not logged in or token missing, cannot update card', 'error');
         showError('請先登入才能更新角色卡');
         return;
     }
@@ -990,7 +914,7 @@ function updateCard() {
 
     const data = {
         userName: userName,
-        userPassword: userPassword,
+        token: token,
         card: {
             _id: card._id,
             id: card.id,

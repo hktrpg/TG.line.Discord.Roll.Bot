@@ -402,7 +402,7 @@ class Autocomplete {
         if (item.metadata) {
             const metadata = [];
             
-            // 數碼獸相關元數據
+            // 數碼寶貝相關元數據
             if (item.metadata.stage) metadata.push(`<span class="badge badge-secondary">${this.escapeHtml(item.metadata.stage)}</span>`);
             if (item.metadata.attribute) metadata.push(`<span class="badge badge-info">${this.escapeHtml(item.metadata.attribute)}</span>`);
             if (item.metadata['zh-cn-name'] && item.metadata['zh-cn-name'] !== item.display) {

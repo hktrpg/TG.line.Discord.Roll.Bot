@@ -2368,7 +2368,7 @@ class Digimon {
             const digimonName = skillData.digimonName;
             const stageName = skillData.stageName;
             
-            // 搜尋字段：招式名稱、數碼獸名稱、階段、屬性、元素
+            // 搜尋字段：招式名稱、數碼寶貝名稱、階段、屬性、元素
             const searchableText = [
                 skill.name,
                 digimonName,
@@ -2388,7 +2388,7 @@ class Digimon {
                 else if (skillName.startsWith(searchTerm)) score += 80;
                 else if (skillName.includes(searchTerm)) score += 60;
                 
-                // 數碼獸名稱匹配
+                // 數碼寶貝名稱匹配
                 if (digimon.includes(searchTerm)) score += 30;
                 
                 results.push({
@@ -2497,7 +2497,7 @@ const discordCommand = [
                     .setDescription('查詢招式')
                     .addStringOption(option => {
                         const opt = option.setName('keyword')
-                            .setDescription('招式或數碼獸名稱關鍵字')
+                            .setDescription('招式或數碼寶貝名稱關鍵字')
                             .setRequired(false)
                             .setAutocomplete(true);
                         

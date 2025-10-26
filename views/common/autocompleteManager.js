@@ -5,7 +5,7 @@
 class AutocompleteManager {
     constructor() {
         this.modules = {};
-        this.activeAutocomplete = null;
+        this.activeAutocomplete = new Map(); // 改為 Map 支援多個實例
         this.defaultConfig = {
             limit: 8,
             minQueryLength: 1,
@@ -39,9 +39,12 @@ class AutocompleteManager {
             return null;
         }
 
-        // 如果已經有自動完成實例，先移除
-        if (this.activeAutocomplete) {
-            this.activeAutocomplete.destroy();
+        // 為每個輸入框生成唯一ID
+        const inputId = this.generateInputId(input);
+        
+        // 如果該輸入框已經有自動完成實例，先移除
+        if (this.activeAutocomplete.has(inputId)) {
+            this.activeAutocomplete.get(inputId).destroy();
         }
 
         const autocomplete = new Autocomplete(input, {
@@ -49,8 +52,31 @@ class AutocompleteManager {
             ...config
         });
 
-        this.activeAutocomplete = autocomplete;
+        this.activeAutocomplete.set(inputId, autocomplete);
         return autocomplete;
+    }
+
+    /**
+     * 為輸入框生成唯一ID
+     * @param {HTMLInputElement} input - 輸入框元素
+     * @returns {string} 唯一ID
+     */
+    generateInputId(input) {
+        // 嘗試使用現有的ID
+        if (input.id) {
+            return input.id;
+        }
+        
+        // 嘗試使用name屬性
+        if (input.name) {
+            return input.name;
+        }
+        
+        // 生成基於位置和屬性的ID
+        const form = input.closest('form');
+        const formId = form ? form.id || 'form' : 'no-form';
+        const inputIndex = Array.from(document.querySelectorAll('input')).indexOf(input);
+        return `${formId}_input_${inputIndex}_${Date.now()}`;
     }
 
     /**
@@ -76,6 +102,7 @@ class Autocomplete {
         this.selectedIndex = -1;
         this.debounceTimer = null;
         this.isVisible = false;
+        this.clickHandler = null; // 存儲點擊事件處理器
         
         this.init();
     }
@@ -101,6 +128,7 @@ class Autocomplete {
 
         this.dropdown = document.createElement('div');
         this.dropdown.className = 'autocomplete-dropdown';
+        this.dropdown.id = `autocomplete-dropdown-${this.input.name || this.input.id || Date.now()}`;
         this.dropdown.style.cssText = `
             position: absolute;
             top: 100%;
@@ -373,11 +401,19 @@ class Autocomplete {
         // 添加元數據信息
         if (item.metadata) {
             const metadata = [];
+            
+            // 數碼獸相關元數據
             if (item.metadata.stage) metadata.push(`<span class="badge badge-secondary">${this.escapeHtml(item.metadata.stage)}</span>`);
             if (item.metadata.attribute) metadata.push(`<span class="badge badge-info">${this.escapeHtml(item.metadata.attribute)}</span>`);
             if (item.metadata['zh-cn-name'] && item.metadata['zh-cn-name'] !== item.display) {
                 metadata.push(`<span class="text-muted">${this.escapeHtml(item.metadata['zh-cn-name'])}</span>`);
             }
+            
+            // 招式相關元數據
+            if (item.metadata.digimon) metadata.push(`<span class="badge badge-primary">${this.escapeHtml(item.metadata.digimon)}</span>`);
+            if (item.metadata.element) metadata.push(`<span class="badge badge-warning">${this.escapeHtml(item.metadata.element)}</span>`);
+            if (item.metadata.type) metadata.push(`<span class="badge badge-success">${this.escapeHtml(item.metadata.type)}</span>`);
+            if (item.metadata.power) metadata.push(`<span class="text-muted">威力: ${this.escapeHtml(item.metadata.power)}</span>`);
             
             if (metadata.length > 0) {
                 html += `<div class="autocomplete-meta">${metadata.join(' ')}</div>`;
@@ -461,12 +497,14 @@ class Autocomplete {
             }
         });
 
-        // 點擊外部隱藏
-        document.addEventListener('click', (e) => {
-            if (!this.input.contains(e.target) && !this.dropdown.contains(e.target)) {
+        // 點擊外部隱藏 - 使用實例特定的處理器
+        this.clickHandler = (e) => {
+            if (this.input && this.dropdown && 
+                !this.input.contains(e.target) && !this.dropdown.contains(e.target)) {
                 this.hideDropdown();
             }
-        });
+        };
+        document.addEventListener('click', this.clickHandler);
 
         // 監聽快速輸入面板的展開/收起
         this.observeQuickInputPad();
@@ -576,6 +614,12 @@ class Autocomplete {
     destroy() {
         if (this.debounceTimer) {
             clearTimeout(this.debounceTimer);
+        }
+        
+        // 移除事件監聽器
+        if (this.clickHandler) {
+            document.removeEventListener('click', this.clickHandler);
+            this.clickHandler = null;
         }
         
         if (this.dropdown) {

@@ -434,6 +434,15 @@ const registerAutocompleteModules = () => {
                     autocompleteModules[moduleName] = commandModule.autocomplete;
                     console.log(`Registered autocomplete module: ${moduleName}`);
                 }
+                
+                // 檢查模組是否有其他自動完成功能（如招式自動完成）
+                Object.keys(commandModule).forEach(key => {
+                    if (key.endsWith('Autocomplete') && typeof commandModule[key] === 'object') {
+                        const moduleName = commandModule[key].moduleName || key;
+                        autocompleteModules[moduleName] = commandModule[key];
+                        console.log(`Registered autocomplete module: ${moduleName}`);
+                    }
+                });
             } catch (error) {
                 console.error(`Failed to register autocomplete module from ${file}:`, error);
             }

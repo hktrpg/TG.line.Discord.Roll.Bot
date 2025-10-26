@@ -106,7 +106,6 @@ class Autocomplete {
             top: 100%;
             left: 0;
             right: 0;
-            background: white;
             border: 1px solid #ccc;
             border-top: none;
             max-height: 200px;
@@ -317,12 +316,14 @@ class Autocomplete {
             this.dropdown.style.borderTop = '1px solid #ccc';
             this.dropdown.style.borderBottom = 'none';
             this.dropdown.style.borderRadius = '6px 6px 0 0';
+            this.dropdown.classList.add('autocomplete-dropdown-up');
         } else {
             this.dropdown.style.top = '100%';
             this.dropdown.style.bottom = 'auto';
             this.dropdown.style.borderTop = 'none';
             this.dropdown.style.borderBottom = '1px solid #ccc';
             this.dropdown.style.borderRadius = '0 0 6px 6px';
+            this.dropdown.classList.remove('autocomplete-dropdown-up');
         }
     }
 
@@ -336,11 +337,6 @@ class Autocomplete {
         const element = document.createElement('div');
         element.className = 'autocomplete-item';
         element.dataset.index = index;
-        element.style.cssText = `
-            padding: 8px 12px;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
-        `;
 
         // 創建顯示內容
         const displayText = this.createDisplayText(item);
@@ -349,6 +345,12 @@ class Autocomplete {
         // 添加懸停效果
         element.addEventListener('mouseenter', () => {
             this.selectedIndex = index;
+            this.updateSelection();
+        });
+        
+        // 添加滑鼠離開效果
+        element.addEventListener('mouseleave', () => {
+            this.selectedIndex = -1;
             this.updateSelection();
         });
 
@@ -404,10 +406,10 @@ class Autocomplete {
 
         const items = this.dropdown.querySelectorAll('.autocomplete-item');
         items.forEach((item, index) => {
-            if (index === this.selectedIndex) {
-                item.style.backgroundColor = '#f8f9fa';
+            if (index === this.selectedIndex && this.selectedIndex >= 0) {
+                item.classList.add('selected');
             } else {
-                item.style.backgroundColor = '';
+                item.classList.remove('selected');
             }
         });
     }

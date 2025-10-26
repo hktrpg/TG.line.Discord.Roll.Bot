@@ -108,46 +108,82 @@
         
         /* 深色主題支持 */
         [data-theme="dark"] .autocomplete-dropdown {
-            background: #343a40;
-            border-color: #495057;
-            color: #f8f9fa;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            background: #2d3748 !important;
+            border-color: #4a5568 !important;
+            color: #e2e8f0 !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-dropdown.autocomplete-dropdown-up {
+            background: #2d3748 !important;
+            border-color: #4a5568 !important;
+            color: #e2e8f0 !important;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.4) !important;
         }
         
         [data-theme="dark"] .autocomplete-item {
-            border-bottom-color: #495057;
+            border-bottom-color: #4a5568 !important;
+            color: #e2e8f0 !important;
         }
         
         [data-theme="dark"] .autocomplete-item:hover,
         [data-theme="dark"] .autocomplete-item.selected {
-            background-color: #1e3a8a;
-            border-left-color: #3b82f6;
+            background-color: #3182ce !important;
+            border-left-color: #63b3ed !important;
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover *,
+        [data-theme="dark"] .autocomplete-item.selected * {
+            color: #ffffff !important;
         }
         
         [data-theme="dark"] .autocomplete-item.no-results {
-            color: #adb5bd;
+            color: #a0aec0 !important;
         }
         
         [data-theme="dark"] .autocomplete-main {
-            color: #f8f9fa;
+            color: #e2e8f0 !important;
+            font-weight: 600 !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover .autocomplete-main,
+        [data-theme="dark"] .autocomplete-item.selected .autocomplete-main {
+            color: #ffffff !important;
         }
         
         [data-theme="dark"] .autocomplete-meta {
-            color: #adb5bd;
+            color: #a0aec0 !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover .autocomplete-meta,
+        [data-theme="dark"] .autocomplete-item.selected .autocomplete-meta {
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover .autocomplete-meta .badge,
+        [data-theme="dark"] .autocomplete-item.selected .autocomplete-meta .badge {
+            background-color: #ffffff !important;
+            color: #3182ce !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover .autocomplete-meta .text-muted,
+        [data-theme="dark"] .autocomplete-item.selected .autocomplete-meta .text-muted {
+            color: #e2e8f0 !important;
         }
         
         [data-theme="dark"] .autocomplete-meta .badge.badge-secondary {
-            background-color: #6c757d;
-            color: white;
+            background-color: #718096 !important;
+            color: #ffffff !important;
         }
         
         [data-theme="dark"] .autocomplete-meta .badge.badge-info {
-            background-color: #0dcaf0;
-            color: #000;
+            background-color: #3182ce !important;
+            color: #ffffff !important;
         }
         
         [data-theme="dark"] .autocomplete-meta .text-muted {
-            color: #adb5bd !important;
+            color: #a0aec0 !important;
         }
         
         /* 表單組樣式優化，為自動完成提供空間 */

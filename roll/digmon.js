@@ -566,6 +566,10 @@ class Digimon {
             const startPool = enriched.filter(e => e.startsWithFull === 1);
             const pool = startPool.length > 0 ? startPool : enriched;
             pool.sort((a, b) => {
+                // Highest priority: exact match
+                if (a.item.name === q || a.item['zh-cn-name'] === q) return -1;
+                if (b.item.name === q || b.item['zh-cn-name'] === q) return 1;
+                
                 if (a.startsWithName !== b.startsWithName) return b.startsWithName - a.startsWithName; // prefer traditional name prefix
                 if ((a.bestIndex || Infinity) !== (b.bestIndex || Infinity)) return (a.bestIndex || Infinity) - (b.bestIndex || Infinity);
                 // If query contains CJK, prioritize candidates sharing CJK chars first
@@ -2272,8 +2276,41 @@ class Digimon {
             }));
         }
 
-        const detailed = this.findByNameOrIdDetailed(query);
-        const results = detailed.candidates || [];
+        const trimmedQuery = query.trim();
+        
+        // 首先嘗試精確匹配
+        let results = [];
+        
+        // 1. 精確匹配名稱（包括中文名稱）
+        const exactMatch = this.digimonData.find(digimon => 
+            digimon.name === trimmedQuery || 
+            digimon['zh-cn-name'] === trimmedQuery
+        );
+        
+        if (exactMatch) {
+            results.push(exactMatch);
+        }
+        
+        // 2. 精確匹配ID
+        if (!isNaN(trimmedQuery)) {
+            const idMatch = this.digimonData.find(digimon => digimon.id === parseInt(trimmedQuery));
+            if (idMatch && !results.find(r => r.id === idMatch.id)) {
+                results.push(idMatch);
+            }
+        }
+        
+        // 3. 如果沒有精確匹配，使用模糊搜尋
+        if (results.length === 0) {
+            const detailed = this.findByNameOrIdDetailed(trimmedQuery);
+            results = detailed.candidates || [];
+        } else {
+            // 如果有精確匹配，也添加一些模糊匹配的結果
+            const detailed = this.findByNameOrIdDetailed(trimmedQuery);
+            const fuzzyResults = (detailed.candidates || []).filter(candidate => 
+                !results.find(r => r.id === candidate.id)
+            );
+            results = results.concat(fuzzyResults);
+        }
         
         return results.slice(0, limit).map(digimon => ({
             id: digimon.id,

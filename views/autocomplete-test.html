@@ -94,6 +94,86 @@
             position: relative;
             margin-bottom: 1rem;
         }
+        
+        /* 深色主題支持 */
+        [data-theme="dark"] .autocomplete-dropdown {
+            background: #2d3748 !important;
+            border-color: #4a5568 !important;
+            color: #e2e8f0 !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-dropdown.autocomplete-dropdown-up {
+            background: #2d3748 !important;
+            border-color: #4a5568 !important;
+            color: #e2e8f0 !important;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.4) !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item {
+            border-bottom-color: #4a5568 !important;
+            color: #e2e8f0 !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover,
+        [data-theme="dark"] .autocomplete-item.selected {
+            background-color: #3182ce !important;
+            border-left-color: #63b3ed !important;
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover *,
+        [data-theme="dark"] .autocomplete-item.selected * {
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item.no-results {
+            color: #a0aec0 !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-main {
+            color: #e2e8f0 !important;
+            font-weight: 600 !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover .autocomplete-main,
+        [data-theme="dark"] .autocomplete-item.selected .autocomplete-main {
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-meta {
+            color: #a0aec0 !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover .autocomplete-meta,
+        [data-theme="dark"] .autocomplete-item.selected .autocomplete-meta {
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover .autocomplete-meta .badge,
+        [data-theme="dark"] .autocomplete-item.selected .autocomplete-meta .badge {
+            background-color: #ffffff !important;
+            color: #3182ce !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover .autocomplete-meta .text-muted,
+        [data-theme="dark"] .autocomplete-item.selected .autocomplete-meta .text-muted {
+            color: #e2e8f0 !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-meta .badge.badge-secondary {
+            background-color: #718096 !important;
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-meta .badge.badge-info {
+            background-color: #3182ce !important;
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-meta .text-muted {
+            color: #a0aec0 !important;
+        }
     </style>
 </head>
 <body>

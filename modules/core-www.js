@@ -961,26 +961,38 @@ if (io) {
                 // If a selectedGroupId is provided, use it as the target for the roll
                 if (message.selectedGroupId && message.selectedGroupId !== "") {
                     try {
+                        // 🔒 使用安全的認證方式
+                        const validation = security.validateCredentials(message);
+                        if (!validation.valid) {
+                            console.warn('🔒 Invalid credentials for rolling:', validation.error);
+                            return;
+                        }
+                        
+                        const { userName, userPassword: password } = validation.data;
+                        
                         let filter = {
-                            userName: message.userName,
-                            password: SHA(message.userPassword),
+                            userName: String(userName).trim()
                         };
 
-                        let result = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error:', error.name, error.message));
-                        if (result && result.channel) {
-                            // Find the channel with matching ID - needs to be compared as strings
-                            const targetChannel = result.channel.find(ch => ch._id && ch._id.toString() === message.selectedGroupId);
-                            if (targetChannel) {
-                                rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
-                                if (targetChannel.botname) {
-                                    if (!sendTo) return;
-                                    sendTo({
-                                        target: {
-                                            id: targetChannel.id,
-                                            botname: targetChannel.botname
-                                        },
-                                        text: rplyVal.text
-                                    });
+                        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error:', error.name, error.message));
+                        
+                        if (doc) {
+                            const isValid = await security.verifyPassword(password, doc.password);
+                            if (isValid && doc.channel) {
+                                // Find the channel with matching ID - needs to be compared as strings
+                                const targetChannel = doc.channel.find(ch => ch._id && ch._id.toString() === message.selectedGroupId);
+                                if (targetChannel) {
+                                    rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
+                                    if (targetChannel.botname) {
+                                        if (!sendTo) return;
+                                        sendTo({
+                                            target: {
+                                                id: targetChannel.id,
+                                                botname: targetChannel.botname
+                                            },
+                                            text: rplyVal.text
+                                        });
+                                    }
                                 }
                             }
                         }
@@ -1072,19 +1084,57 @@ if (io) {
             if (await limitRaterCard(socket.handshake.address)) return;
             //回傳 message 給發送訊息的 Client
             try {
-                await schema.accountPW.updateOne({
-                    "userName": message.userName,
-                    "password": SHA(message.userPassword)
+                // 🔒 驗證輸入
+                const validation = security.validateCredentials(message);
+                if (!validation.valid) {
+                    socket.emit('removeChannel', { success: false, message: 'Invalid credentials' });
+                    return;
+                }
+                
+                const { userName, userPassword: password } = validation.data;
+                
+                // 🔒 防止 NoSQL 注入 - 強制型別轉換
+                let filter = {
+                    userName: String(userName).trim()
+                };
+                
+                let doc = await schema.accountPW.findOne(filter)
+                    .catch(error => {
+                        console.error('🔒 MongoDB error:', error.message);
+                        return null;
+                    });
+                
+                // 🔒 使用安全的密碼驗證（支援 legacy 和 bcrypt）
+                if (!doc) {
+                    socket.emit('removeChannel', { success: false, message: 'User not found' });
+                    return;
+                }
+                
+                const isValid = await security.verifyPassword(password, doc.password);
+                if (!isValid) {
+                    socket.emit('removeChannel', { success: false, message: 'Invalid password' });
+                    return;
+                }
+                
+                const result = await schema.accountPW.updateOne({
+                    "userName": userName
                 }, {
                     $pull: {
                         channel: {
-                            "id": message.channelId,
-                            "botname": message.botname
+                            "id": message.channelId
                         }
                     }
                 });
+                
+                // Send response back to client
+                if (result.modifiedCount > 0) {
+                    socket.emit('removeChannel', { success: true, message: 'Channel removed successfully' });
+                } else {
+                    socket.emit('removeChannel', { success: false, message: 'Channel not found or already removed' });
+                }
             } catch (error) {
-                console.error('core-www ERROR:', error);
+                console.error('core-www removeChannel ERROR:', error);
+                socket.emit('removeChannel', { success: false, message: 'Database error: ' + error.message });
             }
 
         })

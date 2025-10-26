@@ -148,10 +148,33 @@ function initializeVueApps(isPublic = false) {
                         this.deleteMode = !this.deleteMode;
                     },
                     removeChannel(channelId) {
-                        this.gpList = this.gpList.filter(channel => channel.id !== channelId);
+                        // Find the channel to get its details
+                        const channelToRemove = this.gpList.find(channel => channel._id === channelId);
+                        if (!channelToRemove) {
+                            debugLog(`Channel with ID ${channelId} not found`, 'error');
+                            return;
+                        }
+
+                        // Send remove request to server
+                        const userName = localStorage.getItem("userName");
+                        const userPassword = simpleDecrypt(localStorage.getItem("userPassword"));
+                        
+                        if (!userName || !userPassword) {
+                            debugLog('User not logged in, cannot remove channel', 'error');
+                            return;
+                        }
+
+                        socket.emit('removeChannel', {
+                            userName: userName,
+                            userPassword: userPassword,
+                            channelId: channelToRemove.id,
+                            botname: channelToRemove.botname
+                        });
+
+                        // Remove from local list
+                        this.gpList = this.gpList.filter(channel => channel._id !== channelId);
                     },
                     config() {
-                        debugLog('Configuring group list', 'info');
                         // Check if delete mode is already active
                         const isDeleteModeActive = this.gpList.length > 0 && this.gpList[0].showDeleteButton;
                         
@@ -165,8 +188,11 @@ function initializeVueApps(isPublic = false) {
                     },
                     confirmRemoveChannel(channel) {
                         if (!channel.confirmDelete) {
+                            // First click: show confirmation
                             channel.confirmDelete = true;
+                            channel.showCancelButton = true;
                         } else {
+                            // Second click: actually remove the channel
                             this.removeChannel(channel._id);
                         }
                     },
@@ -470,6 +496,15 @@ socket.on("updateCard", function (result) {
     } else {
         popup(false);
         debugLog('Card update failed', 'error');
+    }
+});
+
+// Add socket listener for removeChannel response
+socket.on("removeChannel", function (result) {
+    if (result && result.success) {
+        addElement('頻道移除成功！', 'success', 3000);
+    } else {
+        addElement(`頻道移除失敗: ${result ? result.message : '未知錯誤'}`, 'danger', 5000);
     }
 });
 

@@ -66,7 +66,7 @@
         // Load hybrid UI template and initialize Vue apps
         $("#array-rendering").load("/common/hybridCharacterCardUI.html", function() {
             debugLog('Hybrid UI template loaded, initializing Vue apps', 'info');
-            initializeVueApps(false); // Initialize for private card
+            initializeVueApps(false, true); // Initialize for private card, skip UI template load
         });
 
         // Hide alerts initially
@@ -78,60 +78,7 @@
             debugLog('Body loaded, initializing private card', 'info');
         };
 
-        // Update card function with loading states
-        function updateCard() {
-            const userName = localStorage.getItem("userName");
-            const userPassword = localStorage.getItem("userPassword");
-
-            if (!userName || !userPassword) {
-                debugLog('User not logged in, cannot update card', 'error');
-                showError('請先登入才能更新角色卡');
-                return;
-            }
-
-            // Show loading state
-            const updateButton = document.querySelector('[onclick="updateCard()"]');
-            if (updateButton) {
-                updateButton.classList.add('btn-loading');
-                updateButton.disabled = true;
-            }
-
-            // Add loading class to card
-            const cardElement = document.querySelector('.board1');
-            if (cardElement) {
-                cardElement.classList.add('loading');
-            }
-
-            const data = {
-                userName: userName,
-                userPassword: userPassword,
-                card: {
-                    _id: card._id,
-                    id: card.id,
-                    state: card.state,
-                    roll: card.roll,
-                    notes: card.notes,
-                    characterDetails: card.characterDetails,
-                    public: card.public
-                }
-            };
-
-            debugLog(`Attempting to update card with data:`);
-            socket.emit('updateCard', data);
-        }
-
-        // Enhanced error display
-        function showError(message) {
-            addElement(`<i class="fas fa-exclamation-triangle me-2"></i><strong>錯誤!</strong> ${message}`, "danger", 5000, true);
-        }
-
-        // Enhanced success display
-        function showSuccess(message) {
-            addElement(`<i class="fas fa-check-circle me-2"></i><strong>成功!</strong> ${message}`, "success", 3000, true);
-        }
-
-        // Export updateCard function
-        window.updateCard = updateCard;
+        // updateCard function is now defined in characterCardCommon.js
     </script>
 </body>
 <!-- HKTRPG Sad -- 20201221-->

@@ -45,18 +45,31 @@ let socket = io();
 let card = null;
 let cardList = null;
 
-function initializeVueApps(isPublic = false) {
+function initializeVueApps(isPublic = false, skipUITemplateLoad = false) {
     debugLog('Initializing Vue applications', 'info');
     try {
         // Set title based on card type
         TITLE = isPublic ? "HKTRPG 公開角色卡" : "HKTRPG 私人角色卡";
         
-        // Load common UI template
-        $("#array-rendering").load("/common/characterCardUI.html", function() {
-            debugLog('UI template loaded, initializing Vue apps', 'info');
-            
-            // Initialize main card app
-            card = Vue.createApp({
+        // Only load UI template if not already loaded (skipUITemplateLoad = true means UI is already loaded)
+        if (!skipUITemplateLoad) {
+            $("#array-rendering").load("/common/characterCardUI.html", function() {
+                debugLog('UI template loaded, initializing Vue apps', 'info');
+                initializeVueAppsInternal(isPublic);
+            });
+        } else {
+            debugLog('UI template already loaded, initializing Vue apps directly', 'info');
+            initializeVueAppsInternal(isPublic);
+        }
+    } catch (error) {
+        debugLog(`Error initializing Vue apps: ${error.message}`, 'error');
+    }
+}
+
+function initializeVueAppsInternal(isPublic = false) {
+    try {
+        // Initialize main card app
+        card = Vue.createApp({
                 data() {
                     return {
                         id: "",
@@ -74,17 +87,8 @@ function initializeVueApps(isPublic = false) {
                     }
                 },
                 mounted() {
-                    // Initialize character details if empty
-                    if (this.characterDetails.length === 0) {
-                        this.characterDetails = [
-                            { label: '現金', value: '1,000日元' },
-                            { label: '心靈支柱', value: '無' },
-                            { label: '隨身物品', value: '' },
-                            { label: '筆記', value: '' },
-                            { label: '資產', value: '' },
-                            { label: '物品', value: '' }
-                        ];
-                    }
+                    // Initialize character details if empty - no default data
+                    // characterDetails will be populated from server data
                     
                     // Set the correct radio button based on saved selectedGroupId
                     if (this.selectedGroupId && this.selectedGroupId !== "") {
@@ -113,6 +117,7 @@ function initializeVueApps(isPublic = false) {
                         if (b === 0) return 0;
                         return Math.round((a / b) * 100);
                     },
+                    
                     
                     // 獲取屬性卡片樣式類
                     getAttributeCardClass(index) {
@@ -196,18 +201,6 @@ function initializeVueApps(isPublic = false) {
                         this.editMode = !this.editMode;
                     },
                     
-                    addCharacterDetail() {
-                        this.characterDetails.push({
-                            label: '新項目',
-                            value: ''
-                        });
-                        debugLog('Adding character detail', 'info');
-                    },
-                    
-                    removeCharacterDetail(index) {
-                        this.characterDetails.splice(index, 1);
-                        debugLog('Removing character detail', 'info');
-                    },
                     removeChannel(channelId) {
                         // Find the channel to get its details
                         const channelToRemove = this.gpList.find(channel => channel._id === channelId);
@@ -335,13 +328,12 @@ function initializeVueApps(isPublic = false) {
 
             debugLog('Vue applications initialized successfully', 'info');
 
-            // Set up login form for private cards
-            if (!isPublic) {
-                setupLoginForm();
-            }
-        });
+        // Set up login form for private cards
+        if (!isPublic) {
+            setupLoginForm();
+        }
     } catch (error) {
-        debugLog(`Error initializing Vue apps: ${error.message}`, 'error');
+        debugLog(`Error initializing Vue apps internal: ${error.message}`, 'error');
     }
 }
 
@@ -575,10 +567,65 @@ socket.on("removeChannel", function (result) {
     }
 });
 
+// Update card function for hybrid UI
+function updateCard() {
+    const userName = localStorage.getItem("userName");
+    const userPassword = simpleDecrypt(localStorage.getItem("userPassword"));
+
+    if (!userName || !userPassword) {
+        debugLog('User not logged in, cannot update card', 'error');
+        showError('請先登入才能更新角色卡');
+        return;
+    }
+
+    // Show loading state
+    const updateButton = document.querySelector('[onclick="updateCard()"]');
+    if (updateButton) {
+        updateButton.classList.add('btn-loading');
+        updateButton.disabled = true;
+    }
+
+    // Add loading class to card
+    const cardElement = document.querySelector('.hybrid-card-container');
+    if (cardElement) {
+        cardElement.classList.add('loading');
+    }
+
+    const data = {
+        userName: userName,
+        userPassword: userPassword,
+        card: {
+            _id: card._id,
+            id: card.id,
+            state: card.state,
+            roll: card.roll,
+            notes: card.notes,
+            characterDetails: card.characterDetails,
+            public: card.public
+        }
+    };
+
+    debugLog(`Attempting to update card with data:`);
+    socket.emit('updateCard', data);
+}
+
+// Enhanced error display
+function showError(message) {
+    addElement(`<i class="fas fa-exclamation-triangle me-2"></i><strong>錯誤!</strong> ${message}`, "danger", 5000, true);
+}
+
+// Enhanced success display
+function showSuccess(message) {
+    addElement(`<i class="fas fa-check-circle me-2"></i><strong>成功!</strong> ${message}`, "success", 3000, true);
+}
+
 // Export functions for use in other files
 globalThis.initializeVueApps = initializeVueApps;
 globalThis.debugLog = debugLog;
 globalThis.login = login;
 globalThis.logout = logout;
 globalThis.readme = readme;
-globalThis.selectCard = selectCard; 
+globalThis.selectCard = selectCard;
+globalThis.updateCard = updateCard;
+globalThis.showError = showError;
+globalThis.showSuccess = showSuccess; 

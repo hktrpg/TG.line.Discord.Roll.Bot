@@ -421,42 +421,36 @@
                     },
                     editMode: false,
                     deleteMode: false,
-                    skills: [
-                        { name: '心理學', value: 10 },
-                        { name: '信譽', value: 0 },
-                        { name: '偵查', value: 25 },
-                        { name: '聆聽', value: 25 },
-                        { name: '母語', value: 1 },
-                        { name: '閃躲', value: 25 },
-                        { name: '空手', value: 25 },
-                        { name: '投擲', value: 25 },
-                        { name: '鬥毆', value: 25 },
-                        { name: '魔法', value: 1 },
-                        { name: '小刀', value: 25 },
-                        { name: '幸運', value: 50 }
+                    roll: [
+                        { name: '心理學', itemA: '10' },
+                        { name: '信譽', itemA: '0' },
+                        { name: '偵查', itemA: '25' },
+                        { name: '聆聽', itemA: '25' },
+                        { name: '母語', itemA: '1' },
+                        { name: '閃躲', itemA: '25' },
+                        { name: '空手', itemA: '25' },
+                        { name: '投擲', itemA: '25' },
+                        { name: '鬥毆', itemA: '25' },
+                        { name: '魔法', itemA: '1' },
+                        { name: '小刀', itemA: '25' },
+                        { name: '幸運', itemA: '50' }
                     ],
-                    attributes: [
-                        { name: 'STR', current: 18, max: 37 },
-                        { name: 'DEX', current: 25, max: 50 },
-                        { name: 'POW', current: 30, max: 60 },
-                        { name: 'CON', current: 19, max: 38 },
-                        { name: 'APP', current: 17, max: 35 },
-                        { name: 'EDU', current: 45, max: 90 },
-                        { name: 'SIZ', current: 25, max: 50 },
-                        { name: 'INT', current: 45, max: 90 },
-                        { name: 'Dodge', current: 12, max: 25 }
+                    state: [
+                        { name: 'STR', itemA: '18', itemB: '37' },
+                        { name: 'DEX', itemA: '25', itemB: '50' },
+                        { name: 'POW', itemA: '30', itemB: '60' },
+                        { name: 'CON', itemA: '19', itemB: '38' },
+                        { name: 'APP', itemA: '17', itemB: '35' },
+                        { name: 'EDU', itemA: '45', itemB: '90' },
+                        { name: 'SIZ', itemA: '25', itemB: '50' },
+                        { name: 'INT', itemA: '45', itemB: '90' },
+                        { name: 'Dodge', itemA: '12', itemB: '25' }
                     ],
                     notes: [
-                        { title: '調查筆記', content: '這是測試,請試試在群組 輸入.char use Sad' }
+                        { name: '調查筆記', itemA: '這是測試,請試試在群組 輸入.char use Sad\n\n第二行內容\n第三行內容' },
+                        { name: '戰鬥記錄', itemA: '戰鬥日誌：\n- 第一回合：攻擊命中\n- 第二回合：防禦成功\n- 第三回合：使用魔法' }
                     ],
-                    characterDetails: [
-                        { label: '現金', value: '1,000日元' },
-                        { label: '心靈支柱', value: '無' },
-                        { label: '隨身物品', value: '' },
-                        { label: '筆記', value: '' },
-                        { label: '資產', value: '' },
-                        { label: '物品', value: '' }
-                    ]
+                    characterDetails: []
                 }
             },
             methods: {
@@ -473,23 +467,23 @@
                 },
                 
                 addSkill() {
-                    this.skills.push({ name: '新技能', value: 0 });
+                    this.roll.push({ name: '新技能', itemA: '0' });
                 },
                 
                 removeSkill(index) {
-                    this.skills.splice(index, 1);
+                    this.roll.splice(index, 1);
                 },
                 
                 addAttribute() {
-                    this.attributes.push({ name: '新屬性', current: 0, max: 0 });
+                    this.state.push({ name: '新屬性', itemA: '0', itemB: '0' });
                 },
                 
                 removeAttribute(index) {
-                    this.attributes.splice(index, 1);
+                    this.state.splice(index, 1);
                 },
                 
                 addNote() {
-                    this.notes.push({ title: '新筆記', content: '' });
+                    this.notes.push({ name: '新筆記', itemA: '' });
                 },
                 
                 removeNote(index) {

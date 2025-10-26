@@ -5,25 +5,15 @@
         <div class="hybrid-card-container">
             <div class="row align-items-center">
                 <div class="col-md-8">
-                    <h2 class="character-name mb-3">
+                    <h2 class="character-name mb-3" style="color: #F5F5DC !important;">
                         <i class="fas fa-user-circle me-2"></i>
                         {{ name || '未命名角色' }}
                     </h2>
-                    <div class="character-info d-flex flex-wrap gap-3">
-                        <span class="info-badge">
-                            <i class="fas fa-briefcase me-1"></i>
-                            <span class="info-label">職業:</span>
-                            <span class="info-value">冒險者</span>
-                        </span>
-                        <span class="info-badge">
-                            <i class="fas fa-map-marker-alt me-1"></i>
-                            <span class="info-label">地點:</span>
-                            <span class="info-value">未知</span>
-                        </span>
-                        <span class="info-badge">
-                            <i class="fas fa-calendar me-1"></i>
-                            <span class="info-label">年齡:</span>
-                            <span class="info-value">未知</span>
+                    <div class="character-info d-flex flex-wrap gap-3" v-if="characterDetails && characterDetails.length > 0">
+                        <span class="info-badge" v-for="(detail, index) in characterDetails.slice(0, 3)" :key="index" v-if="detail.value && detail.value.trim() !== ''">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <span class="info-label">{{ detail.label }}:</span>
+                            <span class="info-value">{{ detail.value }}</span>
                         </span>
                     </div>
                 </div>
@@ -45,16 +35,19 @@
                             <i class="fas fa-list"></i>
                             選擇角色卡
                         </button>
+                        
+                        <!-- 公開設定 (僅私人卡片) -->
+                        <button type="button" 
+                                class="action-btn" 
+                                :class="public ? 'success' : 'secondary'" 
+                                v-if="name && !isPublic" 
+                                @click="public = !public" 
+                                :title="public ? '點擊設為私人' : '點擊設為公開'">
+                            <i class="fas fa-globe"></i>
+                            現在狀態：{{ public ? '公開' : '私人' }}
+                        </button>
                     </div>
                 </div>
-            </div>
-            
-            <!-- 公開設定 (僅私人卡片) -->
-            <div class="form-check mt-3" v-if="name && !isPublic">
-                <input class="form-check-input" type="checkbox" v-model="public" id="publicCheck">
-                <label class="form-check-label text-light" for="publicCheck">
-                    <i class="fas fa-globe me-1"></i>公開這角色卡
-                </label>
             </div>
         </div>
     </section>
@@ -113,18 +106,19 @@
                         <i class="fas fa-dice-d20"></i>
                     </button>
                     
-                    <div class="attribute-label" v-if="!editMode">{{ item.name || '技能' }}</div>
-                    <div class="attribute-value-display" v-if="!editMode">{{ item.itemA || '0' }}</div>
-                    <div class="attribute-cc-value" v-if="!editMode">CC {{ item.itemA || '0' }}</div>
+                    <div class="attribute-label" v-if="!editMode">{{ item.name }}</div>
+                    <div class="attribute-value-display" v-if="!editMode">{{ (item.itemA || '').toString().replace(/^CC\s*/i, '') }}</div>
                     
                     <!-- 編輯模式下的輸入框 -->
-                    <div v-if="editMode" class="edit-inputs">
+                    <div v-if="editMode && !isPublic" class="edit-inputs">
                         <input type="text" 
-                               v-model="item.name" 
+                               :value="item.name" 
+                               @input="item.name = $event.target.value"
                                placeholder="技能名稱"
                                class="edit-input">
-                        <input type="number" 
-                               v-model.number="item.itemA" 
+                        <input type="text" 
+                               :value="(item.itemA || '').toString().replace(/^CC\s*/i, '')" 
+                               @input="item.itemA = $event.target.value"
                                placeholder="數值"
                                class="edit-input">
                     </div>
@@ -166,27 +160,30 @@
                         <i class="fas fa-dice-d20"></i>
                     </button>
                     
-                    <div class="attribute-label" v-if="!editMode">{{ item.name || '屬性' }}</div>
+                    <div class="attribute-label" v-if="!editMode">{{ item.name }}</div>
                     <div class="attribute-display" v-if="!editMode">
-                        <div class="attribute-current">{{ item.itemA || '0' }}</div>
+                        <div class="attribute-current">{{ (item.itemA || '').toString().replace(/^CC\s*/i, '') }}</div>
                         <div class="attribute-separator">/</div>
-                        <div class="attribute-max">{{ item.itemB || '0' }}</div>
+                        <div class="attribute-max">{{ (item.itemB || '').toString().replace(/^CC\s*/i, '') }}</div>
                     </div>
                     
                     <!-- 編輯模式下的輸入框 -->
-                    <div v-if="editMode" class="edit-inputs">
+                    <div v-if="editMode && !isPublic" class="edit-inputs">
                         <input type="text" 
-                               v-model="item.name" 
+                               :value="item.name" 
+                               @input="item.name = $event.target.value"
                                placeholder="屬性名稱"
                                class="edit-input">
                         <div class="edit-number-inputs">
-                            <input type="number" 
-                                   v-model.number="item.itemA" 
+                            <input type="text" 
+                                   :value="(item.itemA || '').toString().replace(/^CC\s*/i, '')" 
+                                   @input="item.itemA = $event.target.value"
                                    placeholder="現在值"
                                    class="edit-input">
                             <span class="edit-separator">/</span>
-                            <input type="number" 
-                                   v-model.number="item.itemB" 
+                            <input type="text" 
+                                   :value="(item.itemB || '').toString().replace(/^CC\s*/i, '')" 
+                                   @input="item.itemB = $event.target.value"
                                    placeholder="上限"
                                    class="edit-input">
                         </div>
@@ -214,31 +211,43 @@
         </div>
     </section>
 
-    <!-- 筆記區域 - 傳統大面板設計 -->
+    <!-- 筆記區域 - 網格佈局 -->
     <section class="notes-section mb-4">
         <div class="hybrid-card-container section-container">
             <h4 class="section-title">
                 <i class="fas fa-sticky-note"></i>筆記
             </h4>
             
-            <div class="notes-panel">
-                <div v-for="(item, index) in notes" :key="index" class="note-item mb-3">
-                    <div class="note-header d-flex justify-content-between align-items-center mb-2">
-                        <div class="note-title">{{ item.name || '筆記標題' }}</div>
-                        <button type="button" 
-                                class="action-btn danger btn-sm" 
-                                v-if="deleteMode && !isPublic" 
-                                @click="removeItem(2, index)">
-                            <i class="fas fa-trash"></i>
-                        </button>
+            <div class="character-details-grid">
+                <div v-for="(item, index) in notes" :key="index" 
+                     class="detail-panel">
+                    <!-- 正常顯示模式 -->
+                    <div v-if="!editMode" class="detail-content">
+                        <div class="detail-value" v-html="(item.itemA || item.content || '').replace(/\n/g, '<br>')"></div>
+                        <div class="detail-label">{{ item.name || item.title || '' }}</div>
                     </div>
-                    <div class="note-content">
-                        <textarea v-if="!isPublic" 
-                                  class="notes-textarea" 
-                                  v-model="item.itemA" 
-                                  placeholder="輸入筆記內容..."></textarea>
-                        <div v-else class="note-text">{{ item.itemA || '無內容' }}</div>
+                    
+                    <!-- 編輯模式下的輸入框 -->
+                    <div v-if="editMode" class="edit-detail-inputs">
+                        <textarea 
+                               :value="item.itemA || item.content || ''" 
+                               @input="item.itemA = $event.target.value; if (item.content) item.content = $event.target.value"
+                               placeholder="筆記內容"
+                               class="edit-detail-textarea"></textarea>
+                        <input type="text" 
+                               :value="item.name || item.title || ''" 
+                               @input="item.name = $event.target.value; if (item.title) item.title = $event.target.value"
+                               placeholder="筆記標題"
+                               class="edit-detail-label">
                     </div>
+                    
+                    <!-- 刪除按鈕 (刪除模式) -->
+                    <button type="button" 
+                            class="action-btn danger btn-sm mt-2 w-100" 
+                            v-if="deleteMode && !isPublic" 
+                            @click.stop="removeItem(2, index)">
+                        <i class="fas fa-trash me-1"></i>刪除
+                    </button>
                 </div>
             </div>
             
@@ -253,63 +262,34 @@
         </div>
     </section>
 
-    <!-- 角色詳情區域 - 網格佈局 -->
-    <section class="character-details-section mb-4">
-        <div class="hybrid-card-container section-container">
-            <h4 class="section-title">
-                <i class="fas fa-user-edit"></i>角色詳情
-            </h4>
-            
-            <div class="character-details-grid">
-                <div v-for="(detail, index) in characterDetails" :key="index" 
-                     class="detail-panel">
-                    <!-- 正常顯示模式 -->
-                    <div v-if="!editMode" class="detail-content">
-                        <div class="detail-value">{{ detail.value || '' }}</div>
-                        <div class="detail-label">{{ detail.label }}</div>
-                    </div>
-                    
-                    <!-- 編輯模式下的輸入框 -->
-                    <div v-if="editMode" class="edit-detail-inputs">
-                        <input type="text" 
-                               v-model="detail.value" 
-                               placeholder="數值"
-                               class="edit-detail-value">
-                        <input type="text" 
-                               v-model="detail.label" 
-                               placeholder="標題"
-                               class="edit-detail-label">
-                    </div>
-                    
-                    <!-- 刪除按鈕 (刪除模式) -->
-                    <button type="button" 
-                            class="action-btn danger btn-sm mt-2 w-100" 
-                            v-if="deleteMode && !isPublic" 
-                            @click.stop="removeCharacterDetail(index)">
-                        <i class="fas fa-trash me-1"></i>刪除
-                    </button>
-                </div>
-            </div>
-            
-            <!-- 浮動添加按鈕 -->
-            <button type="button" 
-                    class="section-add-button" 
-                    v-if="name && !isPublic" 
-                    @click="addCharacterDetail" 
-                    title="新增角色詳情">
-                <i class="fas fa-plus"></i>
-            </button>
-        </div>
-    </section>
 </main>
 
 <style>
 /* 角色頭部樣式 */
 .character-header .character-name {
-    color: var(--text-primary);
+    color: #F5F5DC !important;
     font-weight: 700;
     font-size: 2rem;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* 更強制的角色名字樣式 */
+h2.character-name {
+    color: #F5F5DC !important;
+}
+
+.character-name {
+    color: #F5F5DC !important;
+}
+
+/* 針對Bootstrap覆蓋的強制樣式 */
+.character-header h2.character-name.mb-3 {
+    color: #F5F5DC !important;
+}
+
+/* 最強制的樣式 */
+#array-rendering .character-header .character-name {
+    color: #F5F5DC !important;
 }
 
 .character-info .info-badge {
@@ -324,11 +304,11 @@
 .info-label {
     font-weight: 600;
     margin-right: 4px;
-    color: var(--text-dark);
+    color: #3E2723;
 }
 
 .info-value {
-    color: var(--text-primary);
+    color: #F5F5DC;
     font-weight: 500;
 }
 
@@ -377,6 +357,67 @@
     color: var(--text-dark);
 }
 
+/* 編輯模式樣式 */
+.edit-note-title {
+    background: var(--cream);
+    border: 2px solid var(--border-light);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-dark);
+    width: 100%;
+    max-width: 300px;
+}
+
+.edit-note-title:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.25);
+}
+
+.notes-textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 12px;
+    border: 2px solid var(--border-light);
+    border-radius: 4px;
+    background: var(--cream);
+    color: var(--text-dark);
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+    resize: vertical;
+}
+
+.notes-textarea:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.25);
+}
+
+/* 筆記編輯模式 textarea 樣式 */
+.edit-detail-textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 12px;
+    border: 2px solid var(--border-light);
+    border-radius: 4px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+    resize: vertical;
+    margin-bottom: 8px;
+}
+
+.edit-detail-textarea:focus {
+    outline: none;
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
 /* 角色詳情樣式 */
 .detail-section-title {
     color: var(--text-primary);
@@ -388,6 +429,7 @@
     border-radius: 6px;
     text-align: center;
 }
+
 
 /* 響應式設計 */
 @media (max-width: 768px) {

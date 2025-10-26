@@ -566,6 +566,10 @@ class Digimon {
             const startPool = enriched.filter(e => e.startsWithFull === 1);
             const pool = startPool.length > 0 ? startPool : enriched;
             pool.sort((a, b) => {
+                // Highest priority: exact match
+                if (a.item.name === q || a.item['zh-cn-name'] === q) return -1;
+                if (b.item.name === q || b.item['zh-cn-name'] === q) return 1;
+                
                 if (a.startsWithName !== b.startsWithName) return b.startsWithName - a.startsWithName; // prefer traditional name prefix
                 if ((a.bestIndex || Infinity) !== (b.bestIndex || Infinity)) return (a.bestIndex || Infinity) - (b.bestIndex || Infinity);
                 // If query contains CJK, prioritize candidates sharing CJK chars first
@@ -2110,6 +2114,7 @@ class Digimon {
             const elementName = this.getElementalName(skill.element);
             const targetTypeName = this.getTargetTypeName(skill);
             const stageName = this.getStageName(digimon.stage);
+            const digimonName = digimon.name || '';
             const searchText = [
                 skill.name || '',
                 skill.description || '',
@@ -2117,10 +2122,10 @@ class Digimon {
                 targetTypeName,
                 digimon.attribute || '',
                 stageName,
-                digimon.name || '',
+                digimonName,
                 digimon['zh-cn-name'] || ''
             ].join(' ');
-            return { skill, digimon, searchText, elementName, targetTypeName, stageName };
+            return { skill, digimon, searchText, elementName, targetTypeName, stageName, digimonName, digimonId: digimon.id };
         });
         this._movesAugmented = augmentedSkills;
         this._movesFuse = new Fuse(augmentedSkills, {
@@ -2256,6 +2261,236 @@ class Digimon {
 
         return output;
     }
+
+    // 新增：為自動完成功能提供搜尋方法（優化版）
+    searchForAutocomplete(query, limit = 10) {
+        const startTime = Date.now();
+        
+        try {
+            if (!query || query.trim().length === 0) {
+                return this.digimonData.slice(0, limit).map(digimon => ({
+                    id: digimon.id,
+                    display: digimon.name,
+                    value: digimon.name,
+                    metadata: {
+                        stage: this.getStageName(digimon.stage),
+                        attribute: digimon.attribute,
+                        'zh-cn-name': digimon['zh-cn-name']
+                    }
+                }));
+            }
+
+            const trimmedQuery = query.trim().toLowerCase();
+            const results = [];
+            const seenIds = new Set();
+            
+            // 1. 精確匹配（優先級最高）
+            for (const digimon of this.digimonData) {
+                if (results.length >= limit) break;
+                
+                const nameMatch = digimon.name.toLowerCase() === trimmedQuery;
+                const zhNameMatch = digimon['zh-cn-name'] && digimon['zh-cn-name'].toLowerCase() === trimmedQuery;
+                const idMatch = !Number.isNaN(Number(trimmedQuery)) && digimon.id === Number.parseInt(trimmedQuery, 10);
+                
+                if ((nameMatch || zhNameMatch || idMatch) && !seenIds.has(digimon.id)) {
+                    results.push(digimon);
+                    seenIds.add(digimon.id);
+                }
+            }
+            
+            // 2. 開頭匹配（優先級次之）
+            if (results.length < limit) {
+                for (const digimon of this.digimonData) {
+                    if (results.length >= limit) break;
+                    
+                    const nameStartsWith = digimon.name.toLowerCase().startsWith(trimmedQuery);
+                    const zhNameStartsWith = digimon['zh-cn-name'] && digimon['zh-cn-name'].toLowerCase().startsWith(trimmedQuery);
+                    
+                    if ((nameStartsWith || zhNameStartsWith) && !seenIds.has(digimon.id)) {
+                        results.push(digimon);
+                        seenIds.add(digimon.id);
+                    }
+                }
+            }
+            
+            // 3. 包含匹配（優先級最低）
+            if (results.length < limit) {
+                for (const digimon of this.digimonData) {
+                    if (results.length >= limit) break;
+                    
+                    const nameContains = digimon.name.toLowerCase().includes(trimmedQuery);
+                    const zhNameContains = digimon['zh-cn-name'] && digimon['zh-cn-name'].toLowerCase().includes(trimmedQuery);
+                    const stageContains = digimon.stage && digimon.stage.toLowerCase().includes(trimmedQuery);
+                    const attributeContains = digimon.attribute && digimon.attribute.toLowerCase().includes(trimmedQuery);
+                    
+                    if ((nameContains || zhNameContains || stageContains || attributeContains) && !seenIds.has(digimon.id)) {
+                        results.push(digimon);
+                        seenIds.add(digimon.id);
+                    }
+                }
+            }
+            
+            // 轉換結果格式
+            const transformedResults = results.map(digimon => ({
+                id: digimon.id,
+                display: digimon.name,
+                value: digimon.name,
+                metadata: {
+                    stage: this.getStageName(digimon.stage),
+                    attribute: digimon.attribute,
+                    'zh-cn-name': digimon['zh-cn-name']
+                }
+            }));
+            
+            // 記錄搜尋時間（用於監控）
+            const searchTime = Date.now() - startTime;
+            if (searchTime > 100) { // 如果搜尋時間超過100ms，記錄警告
+                console.warn(`Slow autocomplete search for "${query}": ${searchTime}ms`);
+            }
+            
+            return transformedResults;
+        } catch (error) {
+            console.error('Autocomplete search error:', error);
+            return [];
+        }
+    }
+
+    // 新增：獲取所有數碼寶貝名稱（用於初始化）
+    getAllDigimonNames() {
+        return this.digimonData.map(digimon => ({
+            id: digimon.id,
+            display: digimon.name,
+            value: digimon.name,
+            metadata: {
+                stage: this.getStageName(digimon.stage),
+                attribute: digimon.attribute,
+                'zh-cn-name': digimon['zh-cn-name']
+            }
+        }));
+    }
+
+    // 新增：為招式關鍵字自動完成提供搜尋方法
+    searchMovesForAutocomplete(query, limit = 10) {
+        this.ensureMovesIndex();
+        const augmentedSkills = this._movesAugmented;
+        
+        if (!query || query.trim().length === 0) {
+            return augmentedSkills.slice(0, limit).map(skill => ({
+                id: `${skill.digimonId}_${skill.skill.name}`,
+                display: skill.skill.name,
+                value: skill.skill.name,
+                metadata: {
+                    digimon: skill.digimonName,
+                    stage: skill.stageName,
+                    element: skill.skill.element,
+                    type: skill.skill.type,
+                    power: skill.skill.power
+                }
+            }));
+        }
+
+        const searchTerm = query.toLowerCase().trim();
+        const results = [];
+        
+        // 檢查是否為數碼寶貝ID搜尋
+        const isIdSearch = !Number.isNaN(Number(searchTerm)) && searchTerm.length > 0;
+        let targetDigimon = null;
+        
+        if (isIdSearch) {
+            // 根據ID找到對應的數碼寶貝
+            const digimonId = Number.parseInt(searchTerm, 10);
+            targetDigimon = this.digimonData.find(d => d.id === digimonId);
+        }
+        
+        // 搜尋所有招式
+        for (const skillData of augmentedSkills) {
+            const skill = skillData.skill;
+            const digimonName = skillData.digimonName;
+            const stageName = skillData.stageName;
+            const digimonId = skillData.digimonId;
+            
+            let shouldInclude = false;
+            let score = 0;
+            
+            if (isIdSearch && targetDigimon) {
+                // ID搜尋：只顯示該數碼寶貝的招式
+                if (digimonId === targetDigimon.id) {
+                    shouldInclude = true;
+                    score = 100; // ID完全匹配得分最高
+                }
+            } else {
+                // 關鍵字搜尋：招式名稱、數碼寶貝名稱、階段、屬性、元素、ID
+                const searchableText = [
+                    skill.name,
+                    digimonName,
+                    stageName,
+                    skill.element || '',
+                    skill.type || '',
+                    digimonId.toString() // 添加ID到搜尋字段
+                ].join(' ').toLowerCase();
+                
+                if (searchableText.includes(searchTerm)) {
+                    shouldInclude = true;
+                    const skillName = skill.name.toLowerCase();
+                    const digimon = digimonName.toLowerCase();
+                    
+                    // 招式名稱完全匹配得分最高
+                    if (skillName === searchTerm) score += 100;
+                    else if (skillName.startsWith(searchTerm)) score += 80;
+                    else if (skillName.includes(searchTerm)) score += 60;
+                    
+                    // 數碼寶貝名稱匹配
+                    if (digimon.includes(searchTerm)) score += 30;
+                    
+                    // ID匹配
+                    if (digimonId.toString() === searchTerm) score += 50;
+                    else if (digimonId.toString().includes(searchTerm)) score += 20;
+                }
+            }
+            
+            if (shouldInclude) {
+                results.push({
+                    id: `${skillData.digimonId}_${skill.name}`,
+                    display: skill.name,
+                    value: skill.name,
+                    metadata: {
+                        digimon: digimonName,
+                        stage: stageName,
+                        element: skill.element,
+                        type: skill.type,
+                        power: skill.power,
+                        digimonId: digimonId // 添加ID到元數據
+                    },
+                    score: score
+                });
+            }
+        }
+        
+        // 按相關性排序
+        results.sort((a, b) => b.score - a.score);
+        
+        return results.slice(0, limit);
+    }
+
+    // 新增：獲取所有招式（用於初始化）
+    getAllMoves() {
+        this.ensureMovesIndex();
+        const augmentedSkills = this._movesAugmented;
+        
+        return augmentedSkills.map(skillData => ({
+            id: `${skillData.digimonId}_${skillData.skill.name}`,
+            display: skillData.skill.name,
+            value: skillData.skill.name,
+            metadata: {
+                digimon: skillData.digimonName,
+                stage: skillData.stageName,
+                element: skillData.skill.element,
+                type: skillData.skill.type,
+                power: skillData.skill.power,
+                digimonId: skillData.digimonId
+            }
+        }));
+    }
 }
 
 
@@ -2269,30 +2504,72 @@ const discordCommand = [
                 subcommand
                     .setName('search')
                     .setDescription('查詢數碼寶貝資料')
-                    .addStringOption(option =>
-                        option.setName('name')
+                    .addStringOption(option => {
+                        const opt = option.setName('name')
                             .setDescription('數碼寶貝名稱或編號')
-                            .setRequired(true)))
+                            .setRequired(true)
+                            .setAutocomplete(true);
+                        
+                        // 添加自動完成配置到選項對象
+                        opt.autocompleteModule = 'digimon';
+                        opt.autocompleteSearchFields = ['display', 'value', 'metadata.zh-cn-name'];
+                        opt.autocompleteLimit = 8;
+                        opt.autocompleteMinQueryLength = 1;
+                        opt.autocompleteNoResultsText = '找不到相關的數碼寶貝';
+                        
+                        return opt;
+                    }))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('path')
                     .setDescription('查詢進化路線')
-                    .addStringOption(option =>
-                        option.setName('from')
+                    .addStringOption(option => {
+                        const opt = option.setName('from')
                             .setDescription('起始數碼寶貝名稱或編號')
-                            .setRequired(true))
-                    .addStringOption(option =>
-                        option.setName('to')
+                            .setRequired(true)
+                            .setAutocomplete(true);
+                        
+                        opt.autocompleteModule = 'digimon';
+                        opt.autocompleteSearchFields = ['display', 'value', 'metadata.zh-cn-name'];
+                        opt.autocompleteLimit = 8;
+                        opt.autocompleteMinQueryLength = 1;
+                        opt.autocompleteNoResultsText = '找不到相關的數碼寶貝';
+                        
+                        return opt;
+                    })
+                    .addStringOption(option => {
+                        const opt = option.setName('to')
                             .setDescription('目標數碼寶貝名稱或編號')
-                            .setRequired(true)))
+                            .setRequired(true)
+                            .setAutocomplete(true);
+                        
+                        opt.autocompleteModule = 'digimon';
+                        opt.autocompleteSearchFields = ['display', 'value', 'metadata.zh-cn-name'];
+                        opt.autocompleteLimit = 8;
+                        opt.autocompleteMinQueryLength = 1;
+                        opt.autocompleteNoResultsText = '找不到相關的數碼寶貝';
+                        
+                        return opt;
+                    }))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('move')
                     .setDescription('查詢招式')
-                    .addStringOption(option =>
-                        option.setName('keyword')
-                            .setDescription('招式或數碼獸名稱關鍵字')
-                            .setRequired(false))
+                    .addStringOption(option => {
+                        const opt = option.setName('keyword')
+                            .setDescription('招式或數碼寶貝名稱關鍵字')
+                            .setRequired(false)
+                            .setAutocomplete(true);
+                        
+                        // 添加自動完成配置到選項對象
+                        opt.autocompleteModule = 'digimon_moves';
+                        opt.autocompleteSearchFields = ['display', 'value', 'metadata.digimon', 'metadata.element', 'metadata.type', 'metadata.digimonId'];
+                        opt.autocompleteLimit = 8;
+                        opt.autocompleteMinQueryLength = 1;
+                        opt.autocompleteNoResultsText = '找不到相關的招式';
+                        
+                        return opt;
+                    })
                     .addStringOption(option =>
                         option.setName('attribute')
                             .setDescription('數碼寶貝屬性')
@@ -2420,6 +2697,44 @@ const discordCommand = [
     }
 ];
 
+// 自動完成模組配置
+const autocomplete = {
+    moduleName: 'digimon',
+    getData: () => {
+        const instance = Digimon.init();
+        return instance.getAllDigimonNames();
+    },
+    search: (query, limit) => {
+        const instance = Digimon.init();
+        return instance.searchForAutocomplete(query, limit);
+    },
+    transform: (item) => ({
+        id: item.id,
+        display: item.display,
+        value: item.value,
+        metadata: item.metadata
+    })
+};
+
+// 招式自動完成模組配置
+const movesAutocomplete = {
+    moduleName: 'digimon_moves',
+    getData: () => {
+        const instance = Digimon.init();
+        return instance.getAllMoves();
+    },
+    search: (query, limit) => {
+        const instance = Digimon.init();
+        return instance.searchMovesForAutocomplete(query, limit);
+    },
+    transform: (item) => ({
+        id: item.id,
+        display: item.display,
+        value: item.value,
+        metadata: item.metadata
+    })
+};
+
 module.exports = {
     rollDiceCommand,
     initialize,
@@ -2428,5 +2743,7 @@ module.exports = {
     gameType,
     gameName,
     discordCommand,
-    Digimon
+    Digimon,
+    autocomplete,
+    movesAutocomplete
 };

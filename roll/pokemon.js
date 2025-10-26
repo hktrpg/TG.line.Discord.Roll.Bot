@@ -283,6 +283,68 @@ ${(pokemon.evolution.stage) ? `進化階段：${pokemon.evolution.stage}` : ''} 
             return '發生錯誤';
         }
     }
+
+    // 為自動完成功能提供搜尋方法
+    searchForAutocomplete(query, limit = 10) {
+        if (!query || query.trim().length === 0) {
+            return this.getAllData().slice(0, limit);
+        }
+        
+        const searchTerm = query.toLowerCase().trim();
+        const results = [];
+        
+        // 搜尋所有寶可夢
+        for (const pokemon of this.pokemonData) {
+            const name = pokemon.name || '';
+            const alias = pokemon.alias || '';
+            const id = pokemon.id || '';
+            const type = pokemon.type || [];
+            const category = pokemon.info?.category || '';
+            
+            // 多字段搜尋
+            const searchableText = `${name} ${alias} ${id} ${type.join(' ')} ${category}`.toLowerCase();
+            
+            if (searchableText.includes(searchTerm)) {
+                results.push({
+                    id: pokemon.id,
+                    display: name,
+                    value: name,
+                    metadata: {
+                        alias: alias,
+                        type: Pokemon.findTypeByEng(type),
+                        category: category,
+                        id: id
+                    }
+                });
+            }
+        }
+        
+        // 按相關性排序（名稱完全匹配優先）
+        results.sort((a, b) => {
+            const aExact = a.display.toLowerCase() === searchTerm;
+            const bExact = b.display.toLowerCase() === searchTerm;
+            if (aExact && !bExact) return -1;
+            if (!aExact && bExact) return 1;
+            return a.display.localeCompare(b.display);
+        });
+        
+        return results.slice(0, limit);
+    }
+
+    // 獲取所有數據（用於初始化）
+    getAllData() {
+        return this.pokemonData.map(pokemon => ({
+            id: pokemon.id,
+            display: pokemon.name,
+            value: pokemon.name,
+            metadata: {
+                alias: pokemon.alias,
+                type: Pokemon.findTypeByEng(pokemon.type),
+                category: pokemon.info?.category,
+                id: pokemon.id
+            }
+        }));
+    }
 }
 
 
@@ -422,6 +484,67 @@ class Moves {
             console.error('pokemon error #241', error);
             return '發生錯誤';
         }
+    }
+
+    // 為自動完成功能提供搜尋方法
+    searchForAutocomplete(query, limit = 10) {
+        if (!query || query.trim().length === 0) {
+            return this.getAllData().slice(0, limit);
+        }
+        
+        const searchTerm = query.toLowerCase().trim();
+        const results = [];
+        
+        // 搜尋所有招式
+        for (const move of this.pokemonData) {
+            const name = move.name || '';
+            const alias = move.alias || '';
+            const type = move.type || '';
+            const power = move.power || '';
+            
+            // 多字段搜尋
+            const searchableText = `${name} ${alias} ${type} ${power}`.toLowerCase();
+            
+            if (searchableText.includes(searchTerm)) {
+                results.push({
+                    id: name, // 使用名稱作為ID
+                    display: name,
+                    value: name,
+                    metadata: {
+                        alias: alias,
+                        type: Pokemon.findTypeByEng([type]),
+                        power: power,
+                        accuracy: move.accuracy
+                    }
+                });
+            }
+        }
+        
+        // 按相關性排序（名稱完全匹配優先）
+        results.sort((a, b) => {
+            const aExact = a.display.toLowerCase() === searchTerm;
+            const bExact = b.display.toLowerCase() === searchTerm;
+            if (aExact && !bExact) return -1;
+            if (!aExact && bExact) return 1;
+            return a.display.localeCompare(b.display);
+        });
+        
+        return results.slice(0, limit);
+    }
+
+    // 獲取所有數據（用於初始化）
+    getAllData() {
+        return this.pokemonData.map(move => ({
+            id: move.name,
+            display: move.name,
+            value: move.name,
+            metadata: {
+                alias: move.alias,
+                type: Pokemon.findTypeByEng([move.type]),
+                power: move.power,
+                accuracy: move.accuracy
+            }
+        }));
     }
 }
 const pokeDex = Pokemon.init('pokedex-');
@@ -591,10 +714,21 @@ const discordCommand = [
                 subcommand
                     .setName('mon')
                     .setDescription('查詢寶可夢資料')
-                    .addStringOption(option =>
-                        option.setName('name')
+                    .addStringOption(option => {
+                        const opt = option.setName('name')
                             .setDescription('寶可夢名稱或編號')
-                            .setRequired(true))
+                            .setRequired(true)
+                            .setAutocomplete(true);
+                        
+                        // 添加自動完成配置
+                        opt.autocompleteModule = 'pokemon';
+                        opt.autocompleteSearchFields = ['display', 'value', 'metadata.alias', 'metadata.type', 'metadata.id'];
+                        opt.autocompleteLimit = 8;
+                        opt.autocompleteMinQueryLength = 1;
+                        opt.autocompleteNoResultsText = '找不到相關的寶可夢';
+                        
+                        return opt;
+                    })
                     .addBooleanOption(option =>
                         option.setName('detail')
                             .setDescription('是否顯示招式列表')
@@ -603,22 +737,55 @@ const discordCommand = [
                 subcommand
                     .setName('move')
                     .setDescription('查詢招式資料')
-                    .addStringOption(option =>
-                        option.setName('name')
+                    .addStringOption(option => {
+                        const opt = option.setName('name')
                             .setDescription('招式名稱')
-                            .setRequired(true)))
+                            .setRequired(true)
+                            .setAutocomplete(true);
+                        
+                        // 添加自動完成配置
+                        opt.autocompleteModule = 'pokemon_moves';
+                        opt.autocompleteSearchFields = ['display', 'value', 'metadata.alias', 'metadata.type'];
+                        opt.autocompleteLimit = 8;
+                        opt.autocompleteMinQueryLength = 1;
+                        opt.autocompleteNoResultsText = '找不到相關的招式';
+                        
+                        return opt;
+                    }))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('vs')
                     .setDescription('對戰模擬')
-                    .addStringOption(option =>
-                        option.setName('attacker')
+                    .addStringOption(option => {
+                        const opt = option.setName('attacker')
                             .setDescription('攻擊方(招式名稱或屬性)')
-                            .setRequired(true))
-                    .addStringOption(option =>
-                        option.setName('defender')
+                            .setRequired(true)
+                            .setAutocomplete(true);
+                        
+                        // 添加自動完成配置
+                        opt.autocompleteModule = 'pokemon_moves';
+                        opt.autocompleteSearchFields = ['display', 'value', 'metadata.alias', 'metadata.type'];
+                        opt.autocompleteLimit = 8;
+                        opt.autocompleteMinQueryLength = 1;
+                        opt.autocompleteNoResultsText = '找不到相關的招式或屬性';
+                        
+                        return opt;
+                    })
+                    .addStringOption(option => {
+                        const opt = option.setName('defender')
                             .setDescription('防守方(寶可夢名稱/編號或屬性)')
-                            .setRequired(true))
+                            .setRequired(true)
+                            .setAutocomplete(true);
+                        
+                        // 添加自動完成配置
+                        opt.autocompleteModule = 'pokemon';
+                        opt.autocompleteSearchFields = ['display', 'value', 'metadata.alias', 'metadata.type', 'metadata.id'];
+                        opt.autocompleteLimit = 8;
+                        opt.autocompleteMinQueryLength = 1;
+                        opt.autocompleteNoResultsText = '找不到相關的寶可夢或屬性';
+                        
+                        return opt;
+                    })
                     .addStringOption(option =>
                         option.setName('defender_type2')
                             .setDescription('防守方第二屬性(選填)')
@@ -646,6 +813,47 @@ const discordCommand = [
     }
 ];
 
+// 自動完成配置 - 寶可夢
+const autocomplete = {
+    moduleName: 'pokemon',
+    getData: () => {
+        const instance = Pokemon.init('pokedex-');
+        return instance.getAllData();
+    },
+    search: (query, limit) => {
+        const instance = Pokemon.init('pokedex-');
+        return instance.searchForAutocomplete(query, limit);
+    },
+    transform: (item) => ({
+        id: item.id,
+        display: item.display,
+        value: item.value,
+        metadata: item.metadata
+    })
+};
+
+// 自動完成配置 - 寶可夢招式
+const autocompleteMoves = {
+    moduleName: 'pokemon_moves',
+    getData: () => {
+        const instance = Moves.init('moves-');
+        return instance.getAllData();
+    },
+    search: (query, limit) => {
+        const instance = Moves.init('moves-');
+        return instance.searchForAutocomplete(query, limit);
+    },
+    transform: (item) => ({
+        id: item.id,
+        display: item.display,
+        value: item.value,
+        metadata: item.metadata
+    })
+};
+
+// 為了讓自動完成模組註冊系統識別，需要以 Autocomplete 結尾
+const pokemonMovesAutocomplete = autocompleteMoves;
+
 module.exports = {
     rollDiceCommand,
     initialize,
@@ -653,5 +861,10 @@ module.exports = {
     prefixs,
     gameType,
     gameName,
-    discordCommand
+    discordCommand,
+    autocomplete,
+    autocompleteMoves,
+    pokemonMovesAutocomplete,
+    Pokemon,
+    Moves
 };

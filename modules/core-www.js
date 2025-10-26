@@ -307,11 +307,31 @@ www.get('/api/dice-commands', async (req, res) => {
 
                                 try {
                                     const executeTemplate = await cmd.execute(mockInteraction);
+                                    
+                                    // 為支持自動完成的選項添加配置
+                                    const optionsWithAutocomplete = (sub.options || []).map(option => {
+                                        if (option.autocomplete === true) {
+                                            return {
+                                                ...option,
+                                                autocomplete: {
+                                                    enabled: true,
+                                                    module: option.autocompleteModule || 'default',
+                                                    searchFields: option.autocompleteSearchFields || ['display', 'value'],
+                                                    limit: option.autocompleteLimit || 8,
+                                                    minQueryLength: option.autocompleteMinQueryLength || 1,
+                                                    placeholder: option.description,
+                                                    noResultsText: option.autocompleteNoResultsText || '找不到相關結果'
+                                                }
+                                            };
+                                        }
+                                        return option;
+                                    });
+                                    
                                     commands.push({
                                         json: {
                                             name: `${commandJson.name}_${sub.name}`,
                                             description: sub.description,
-                                            options: sub.options || []
+                                            options: optionsWithAutocomplete
                                         },
                                         execute: executeTemplate,
                                         flagMap: cmd.flagMap || {}
@@ -344,8 +364,31 @@ www.get('/api/dice-commands', async (req, res) => {
                             };
                             try {
                                 const executeTemplate = await cmd.execute(mockInteraction);
+                                
+                                // 為支持自動完成的選項添加配置
+                                const optionsWithAutocomplete = (commandJson.options || []).map(option => {
+                                    if (option.autocomplete === true) {
+                                        return {
+                                            ...option,
+                                            autocomplete: {
+                                                enabled: true,
+                                                module: option.autocompleteModule || 'default',
+                                                searchFields: option.autocompleteSearchFields || ['display', 'value'],
+                                                limit: option.autocompleteLimit || 8,
+                                                minQueryLength: option.autocompleteMinQueryLength || 1,
+                                                placeholder: option.description,
+                                                noResultsText: option.autocompleteNoResultsText || '找不到相關結果'
+                                            }
+                                        };
+                                    }
+                                    return option;
+                                });
+                                
                                 commands.push({
-                                    json: commandJson,
+                                    json: {
+                                        ...commandJson,
+                                        options: optionsWithAutocomplete
+                                    },
                                     execute: executeTemplate,
                                     flagMap: cmd.flagMap || {}
                                 });
@@ -368,6 +411,255 @@ www.get('/api/dice-commands', async (req, res) => {
 
     res.json(commandsData);
 });
+
+// 自動完成模組註冊系統
+const autocompleteModules = {};
+
+// 快取配置
+const CACHE_CONFIG = {
+    TTL: 5 * 60 * 1000, // 5分鐘
+    MAX_SIZE: 1000, // 最大快取項目數
+    SEARCH_TTL: 2 * 60 * 1000, // 搜尋結果快取2分鐘
+    MAX_SEARCH_CACHE: 500 // 最大搜尋快取數
+};
+
+// 速率限制配置 (保留用於未來擴展)
+// const RATE_LIMIT_CONFIG = {
+//     autocomplete: {
+//         windowMs: 60_000, // 1分鐘
+//         max: 100, // 每分鐘最多100次請求
+//         skipSuccessfulRequests: false
+//     }
+// };
+
+// 效能監控
+class AutocompleteMonitor {
+    constructor() {
+        this.stats = new Map();
+    }
+    
+    recordRequest(module, type, duration, success) {
+        if (!this.stats.has(module)) {
+            this.stats.set(module, {
+                requests: 0,
+                errors: 0,
+                totalDuration: 0,
+                cacheHits: 0,
+                cacheMisses: 0,
+                lastRequest: Date.now()
+            });
+        }
+        
+        const stats = this.stats.get(module);
+        stats.requests++;
+        stats.totalDuration += duration;
+        stats.lastRequest = Date.now();
+        
+        if (!success) stats.errors++;
+        if (type === 'cache_hit') stats.cacheHits++;
+        if (type === 'cache_miss') stats.cacheMisses++;
+    }
+    
+    getStats(module) {
+        return this.stats.get(module) || null;
+    }
+    
+    getAllStats() {
+        return Object.fromEntries(this.stats);
+    }
+}
+
+const monitor = new AutocompleteMonitor();
+
+// 快取管理
+class AutocompleteCache {
+    constructor() {
+        this.cache = new Map();
+        this.searchCache = new Map();
+        this.cleanupInterval = setInterval(() => this.cleanup(), 60_000); // 每分鐘清理一次
+    }
+    
+    set(key, value, ttl = CACHE_CONFIG.TTL) {
+        this.cache.set(key, {
+            value,
+            expires: Date.now() + ttl
+        });
+        
+        // 限制快取大小
+        if (this.cache.size > CACHE_CONFIG.MAX_SIZE) {
+            const firstKey = this.cache.keys().next().value;
+            this.cache.delete(firstKey);
+        }
+    }
+    
+    get(key) {
+        const item = this.cache.get(key);
+        if (!item) return null;
+        
+        if (Date.now() > item.expires) {
+            this.cache.delete(key);
+            return null;
+        }
+        
+        return item.value;
+    }
+    
+    setSearch(key, value, ttl = CACHE_CONFIG.SEARCH_TTL) {
+        this.searchCache.set(key, {
+            value,
+            expires: Date.now() + ttl
+        });
+        
+        // 限制搜尋快取大小
+        if (this.searchCache.size > CACHE_CONFIG.MAX_SEARCH_CACHE) {
+            const firstKey = this.searchCache.keys().next().value;
+            this.searchCache.delete(firstKey);
+        }
+    }
+    
+    getSearch(key) {
+        const item = this.searchCache.get(key);
+        if (!item) return null;
+        
+        if (Date.now() > item.expires) {
+            this.searchCache.delete(key);
+            return null;
+        }
+        
+        return item.value;
+    }
+    
+    cleanup() {
+        const now = Date.now();
+        
+        // 清理過期快取
+        for (const [key, item] of this.cache.entries()) {
+            if (now > item.expires) {
+                this.cache.delete(key);
+            }
+        }
+        
+        for (const [key, item] of this.searchCache.entries()) {
+            if (now > item.expires) {
+                this.searchCache.delete(key);
+            }
+        }
+    }
+    
+    clear() {
+        this.cache.clear();
+        this.searchCache.clear();
+    }
+}
+
+const cache = new AutocompleteCache();
+
+// 動態註冊自動完成模組
+const registerAutocompleteModules = () => {
+    const rollDir = path.join(process.cwd(), 'roll');
+    const files = fs.readdirSync(rollDir);
+    
+    const ignoredFiles = ['z_', 'rollbase', 'demo', 'export', 'forward', 'help', 'init', 'request-rolling', 'token', 'edit'];
+    
+    for (const file of files) {
+        if (file.endsWith('.js') && !ignoredFiles.some(prefix => file.startsWith(prefix))) {
+            try {
+                const modulePath = path.join(rollDir, file);
+                const commandModule = require(modulePath);
+                
+                // 檢查模組是否有自動完成功能
+                if (commandModule.autocomplete && typeof commandModule.autocomplete === 'object') {
+                    const moduleName = commandModule.autocomplete.moduleName || file.replace('.js', '');
+                    autocompleteModules[moduleName] = commandModule.autocomplete;
+                    console.log(`Registered autocomplete module: ${moduleName}`);
+                }
+                
+                // 檢查模組是否有其他自動完成功能（如招式自動完成）
+                for (const key of Object.keys(commandModule)) {
+                    if (key.endsWith('Autocomplete') && typeof commandModule[key] === 'object') {
+                        const moduleName = commandModule[key].moduleName || key;
+                        autocompleteModules[moduleName] = commandModule[key];
+                        console.log(`Registered autocomplete module: ${moduleName}`);
+                    }
+                }
+            } catch (error) {
+                console.error(`Failed to register autocomplete module from ${file}:`, error);
+            }
+        }
+    }
+};
+
+// 初始化時註冊所有模組
+registerAutocompleteModules();
+
+// 通用自動完成API端點
+www.get('/api/autocomplete/:module', async (req, res) => {
+    const startTime = Date.now();
+    const { module } = req.params;
+    const { q, limit = 10 } = req.query;
+    
+    // 檢查速率限制
+    if (await checkRateLimit('api', req.ip)) {
+        monitor.recordRequest(module, 'rate_limited', Date.now() - startTime, false);
+        res.status(429).json({ error: 'Rate limit exceeded' });
+        return;
+    }
+    
+    if (!autocompleteModules[module]) {
+        monitor.recordRequest(module, 'not_found', Date.now() - startTime, false);
+        return res.status(404).json({ error: 'Module not found' });
+    }
+    
+    try {
+        const moduleConfig = autocompleteModules[module];
+        const limitNum = Math.min(Number.parseInt(limit, 10), 50); // 限制最大結果數
+        let results;
+        
+        if (q && q.trim().length > 0) {
+            // 搜尋請求
+            const searchKey = `${module}:search:${q.trim()}:${limitNum}`;
+            const cachedResults = cache.getSearch(searchKey);
+            
+            if (cachedResults) {
+                monitor.recordRequest(module, 'cache_hit', Date.now() - startTime, true);
+                return res.json(cachedResults);
+            }
+            
+            monitor.recordRequest(module, 'cache_miss', 0, true);
+            results = await moduleConfig.search(q.trim(), limitNum);
+            
+            // 快取搜尋結果
+            const transformed = results.map(moduleConfig.transform);
+            cache.setSearch(searchKey, transformed);
+            res.json(transformed);
+        } else {
+            // 獲取所有數據請求
+            const dataKey = `${module}:data:${limitNum}`;
+            const cachedData = cache.get(dataKey);
+            
+            if (cachedData) {
+                monitor.recordRequest(module, 'cache_hit', Date.now() - startTime, true);
+                return res.json(cachedData);
+            }
+            
+            monitor.recordRequest(module, 'cache_miss', 0, true);
+            results = await moduleConfig.getData();
+            results = results.slice(0, limitNum);
+            
+            // 快取數據
+            const transformed = results.map(moduleConfig.transform);
+            cache.set(dataKey, transformed);
+            res.json(transformed);
+        }
+        
+        monitor.recordRequest(module, 'success', Date.now() - startTime, true);
+    } catch (error) {
+        console.error('Autocomplete search error:', error);
+        monitor.recordRequest(module, 'error', Date.now() - startTime, false);
+        res.status(500).json({ error: 'Search failed' });
+    }
+});
+
 
 // 將/publiccard/css/設置為靜態資源的路徑
 www.use('/:path/css/', async (req, res, next) => {
@@ -480,6 +772,7 @@ www.get('/busstop', async (req, res) => {
     }
     res.sendFile(process.cwd() + '/views/busstop.html');
 });
+
 
 
 

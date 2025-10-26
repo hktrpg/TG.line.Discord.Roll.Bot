@@ -2111,6 +2111,27 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         
+        /* 🔧 CORS Error Prevention: Disable tooltips and previews */
+        .message-image {
+            pointer-events: auto;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* 🔧 CORS Error Prevention: Disable tooltips for external images */
+        .message-image[src*="://"] {
+            /* Prevent browser from trying to access external images on hover */
+            pointer-events: auto;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
         /* 圖片包裝器樣式 */
         .image-wrapper {
             display: block;
@@ -2350,7 +2371,15 @@
             SOCKET_RECONNECT_DELAY: 5000,
             MESSAGE_CHUNK_SIZE: 2000,
             // 圖片安全模式：true = 嚴格白名單，false = 允許所有HTTPS圖片（顯示警告）
-            STRICT_IMAGE_WHITELIST: false  // 設為 false 以允許更多圖片源
+            STRICT_IMAGE_WHITELIST: false,  // 設為 false 以允許更多圖片源
+            // CORS 錯誤抑制配置
+            CORS_ERROR_SUPPRESSION: {
+                enabled: true,
+                // 抑制策略: 'all' = 抑制所有外部域名, 'cors-errors' = 只抑制CORS錯誤, 'none' = 不抑制
+                strategy: 'cors-errors',
+                // 是否抑制所有外部域名的 CORS 錯誤
+                suppressAllExternal: false
+            }
         };
 
         // State Management
@@ -2363,6 +2392,103 @@
             isConnected: false,
             isHistoryLoading: true,
             pendingLive: []
+        };
+
+        // 🔧 CORS 錯誤抑制工具 - 動態版本
+        const corsErrorSuppressor = {
+            // 動態檢測是否應該抑制 CORS 錯誤
+            shouldSuppressError: (url, errorEvent = null) => {
+                if (!CONFIG.CORS_ERROR_SUPPRESSION.enabled) {
+                    return false;
+                }
+                
+                if (!url) return false;
+                
+                try {
+                    const urlObj = new URL(url);
+                    const hostname = urlObj.hostname.toLowerCase();
+                    const currentDomain = window.location.hostname.toLowerCase();
+                    
+                    // 如果是同域名，不抑制
+                    if (hostname === currentDomain) {
+                        return false;
+                    }
+                    
+                    // 根據策略決定是否抑制
+                    switch (CONFIG.CORS_ERROR_SUPPRESSION.strategy) {
+                        case 'all':
+                            // 抑制所有外部域名
+                            return true;
+                            
+                        case 'cors-errors':
+                            // 只抑制CORS相關錯誤
+                            if (errorEvent) {
+                                // 檢查是否為CORS錯誤
+                                const isCorsError = this.isCorsError(errorEvent);
+                                return isCorsError;
+                            }
+                            // 如果沒有錯誤事件，檢查URL是否可能導致CORS問題
+                            return this.isLikelyCorsProblem(url);
+                            
+                        case 'none':
+                        default:
+                            return false;
+                    }
+                } catch (e) {
+                    return false;
+                }
+            },
+            
+            // 檢測是否為CORS錯誤
+            isCorsError: (errorEvent) => {
+                if (!errorEvent) return false;
+                
+                // 檢查錯誤訊息是否包含CORS相關關鍵字
+                const corsKeywords = ['cors', 'cross-origin', 'access-control', 'origin'];
+                const errorMessage = errorEvent.message || errorEvent.toString() || '';
+                const lowerMessage = errorMessage.toLowerCase();
+                
+                return corsKeywords.some(keyword => lowerMessage.includes(keyword));
+            },
+            
+            // 檢測URL是否可能導致CORS問題
+            isLikelyCorsProblem: (url) => {
+                try {
+                    const urlObj = new URL(url);
+                    const hostname = urlObj.hostname.toLowerCase();
+                    const currentDomain = window.location.hostname.toLowerCase();
+                    
+                    // 不同域名且不是常見的CDN
+                    const commonCdnDomains = [
+                        'cdnjs.cloudflare.com',
+                        'unpkg.com',
+                        'jsdelivr.net',
+                        'stackpath.bootstrapcdn.com',
+                        'cdn.jsdelivr.net'
+                    ];
+                    
+                    const isCommonCdn = commonCdnDomains.some(cdn => hostname.includes(cdn));
+                    
+                    // 如果是常見CDN，通常不會有CORS問題
+                    if (isCommonCdn) {
+                        return false;
+                    }
+                    
+                    // 其他外部域名可能會有CORS問題
+                    return hostname !== currentDomain;
+                } catch (e) {
+                    return false;
+                }
+            },
+            
+            // 抑制 CORS 錯誤
+            suppressError: (url, context = '', errorEvent = null) => {
+                if (this.shouldSuppressError(url, errorEvent)) {
+                    console.log(`🔇 Suppressed CORS error (${context}):`, url);
+                    return true;
+                }
+                return false;
+            }
         };
 
         // Utility Functions
@@ -2482,6 +2608,28 @@
                         img.style.display = 'none';
                         img.alt = '訊息圖片';
                         
+                        // 🔧 CORS Error Prevention: Add error suppression for hover events
+                        img.addEventListener('error', (e) => {
+                            // Suppress CORS errors on hover/preview attempts
+                            if (corsErrorSuppressor.shouldSuppressError(e.target.src, e)) {
+                                corsErrorSuppressor.suppressError(e.target.src, 'image hover', e);
+                                e.preventDefault();
+                                e.stopPropagation();
+                                return false;
+                            }
+                        }, true);
+                        
+                        // Prevent browser from trying to access images on hover
+                        img.addEventListener('mouseenter', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        });
+                        
+                        img.addEventListener('mouseover', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        });
+                        
                         // Assemble structure
                         wrapper.appendChild(placeholder);
                         wrapper.appendChild(img);
@@ -2499,7 +2647,13 @@
                                 img.style.display = 'block';
                                 console.log('✅ Image loaded (history):', url);
                             };
-                            img.onerror = () => {
+                            img.onerror = (e) => {
+                                // Suppress CORS errors dynamically
+                                if (corsErrorSuppressor.shouldSuppressError(url, e)) {
+                                    corsErrorSuppressor.suppressError(url, 'history load', e);
+                                    return;
+                                }
+                                
                                 if (placeholder) {
                                     placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片載入失敗</span>';
                                     placeholder.classList.add('error');
@@ -2516,7 +2670,13 @@
                                 img.style.display = 'block';
                                 console.log('✅ Image loaded (new message):', url);
                             };
-                            img.onerror = () => {
+                            img.onerror = (e) => {
+                                // Suppress CORS errors dynamically
+                                if (corsErrorSuppressor.shouldSuppressError(url, e)) {
+                                    corsErrorSuppressor.suppressError(url, 'new message load', e);
+                                    return;
+                                }
+                                
                                 if (placeholder) {
                                     placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片載入失敗</span>';
                                     placeholder.classList.add('error');
@@ -3348,7 +3508,13 @@
                     console.log('✅ Image loaded:', src);
                 };
                 
-                img.onerror = () => {
+                img.onerror = (e) => {
+                    // Suppress CORS errors dynamically
+                    if (corsErrorSuppressor.shouldSuppressError(src, e)) {
+                        corsErrorSuppressor.suppressError(src, 'lazy load', e);
+                        return;
+                    }
+                    
                     // Show error state
                     if (placeholder) {
                         placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片載入失敗</span>';
@@ -3397,6 +3563,26 @@
         
         // Make imageLoader globally accessible
         window.imageLoader = imageLoader;
+        
+        // 🔧 Global CORS Error Suppression
+        window.addEventListener('error', (e) => {
+            // Suppress CORS errors dynamically
+            if (e.target && e.target.src && corsErrorSuppressor.shouldSuppressError(e.target.src, e)) {
+                corsErrorSuppressor.suppressError(e.target.src, 'global error handler', e);
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }, true);
+        
+        // Suppress unhandled promise rejections for CORS errors
+        window.addEventListener('unhandledrejection', (e) => {
+            if (e.reason && e.reason.message && e.reason.message.includes('CORS')) {
+                console.log('🔇 Suppressed CORS promise rejection:', e.reason.message);
+                e.preventDefault();
+                return false;
+            }
+        });
         
         // 滾動管理器 - 優化版
         const scrollManager = {

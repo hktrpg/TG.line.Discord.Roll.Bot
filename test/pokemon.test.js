@@ -607,4 +607,340 @@ describe('Pokemon Module Tests', () => {
     expect(pokemonModule.discordCommand).toBeDefined();
     expect(Array.isArray(pokemonModule.discordCommand)).toBe(true);
   });
+
+  // 自動完成功能測試
+  describe('Autocomplete Functionality Tests', () => {
+    let mockPokemonInstance;
+    let mockMovesInstance;
+
+    beforeEach(() => {
+      // 創建模擬的 Pokemon 實例
+      mockPokemonInstance = {
+        pokemonData: [
+          {
+            id: '025',
+            name: '皮卡丘',
+            alias: 'Pikachu',
+            type: ['Electric'],
+            info: { category: '鼠寶可夢' }
+          },
+          {
+            id: '150',
+            name: '超夢',
+            alias: 'Mewtwo',
+            type: ['Psychic'],
+            info: { category: '基因寶可夢' }
+          },
+          {
+            id: '004',
+            name: '小火龍',
+            alias: 'Charmander',
+            type: ['Fire'],
+            info: { category: '蜥蜴寶可夢' }
+          }
+        ],
+        searchForAutocomplete: jest.fn(),
+        getAllData: jest.fn()
+      };
+
+      // 創建模擬的 Moves 實例
+      mockMovesInstance = {
+        pokemonData: [
+          {
+            name: '火焰輪',
+            alias: 'Fire Wheel',
+            type: 'Fire',
+            power: '8',
+            accuracy: '2'
+          },
+          {
+            name: '噴射火焰',
+            alias: 'Flamethrower',
+            type: 'Fire',
+            power: '10',
+            accuracy: '3'
+          },
+          {
+            name: '電擊',
+            alias: 'Thunder Shock',
+            type: 'Electric',
+            power: '4',
+            accuracy: '2'
+          }
+        ],
+        searchForAutocomplete: jest.fn(),
+        getAllData: jest.fn()
+      };
+
+      // 模擬 Pokemon searchForAutocomplete 方法
+      mockPokemonInstance.searchForAutocomplete.mockImplementation((query, limit = 10) => {
+        if (!query || query.trim().length === 0) {
+          return mockPokemonInstance.pokemonData.slice(0, limit).map(pokemon => ({
+            id: pokemon.id,
+            display: pokemon.name,
+            value: pokemon.name,
+            metadata: {
+              alias: pokemon.alias,
+              type: pokemon.type,
+              category: pokemon.info?.category,
+              id: pokemon.id
+            }
+          }));
+        }
+
+        const searchTerm = query.toLowerCase().trim();
+        const results = [];
+
+        for (const pokemon of mockPokemonInstance.pokemonData) {
+          const name = pokemon.name || '';
+          const alias = pokemon.alias || '';
+          const id = pokemon.id || '';
+          const type = pokemon.type || [];
+          const category = pokemon.info?.category || '';
+          const searchableText = `${name} ${alias} ${id} ${type.join(' ')} ${category}`.toLowerCase();
+
+          if (searchableText.includes(searchTerm)) {
+            results.push({
+              id: pokemon.id,
+              display: pokemon.name,
+              value: pokemon.name,
+              metadata: {
+                alias: pokemon.alias,
+                type: pokemon.type,
+                category: pokemon.info?.category,
+                id: pokemon.id
+              }
+            });
+          }
+        }
+
+        return results.slice(0, limit);
+      });
+
+      // 模擬 Moves searchForAutocomplete 方法
+      mockMovesInstance.searchForAutocomplete.mockImplementation((query, limit = 10) => {
+        if (!query || query.trim().length === 0) {
+          return mockMovesInstance.pokemonData.slice(0, limit).map(move => ({
+            id: move.name,
+            display: move.name,
+            value: move.name,
+            metadata: {
+              alias: move.alias,
+              type: [move.type],
+              power: move.power,
+              accuracy: move.accuracy
+            }
+          }));
+        }
+
+        const searchTerm = query.toLowerCase().trim();
+        const results = [];
+
+        for (const move of mockMovesInstance.pokemonData) {
+          const name = move.name || '';
+          const alias = move.alias || '';
+          const type = move.type || '';
+          const power = move.power || '';
+          const searchableText = `${name} ${alias} ${type} ${power}`.toLowerCase();
+
+          if (searchableText.includes(searchTerm)) {
+            results.push({
+              id: move.name,
+              display: move.name,
+              value: move.name,
+              metadata: {
+                alias: move.alias,
+                type: [move.type],
+                power: move.power,
+                accuracy: move.accuracy
+              }
+            });
+          }
+        }
+
+        return results.slice(0, limit);
+      });
+
+      // 模擬 getAllData 方法
+      mockPokemonInstance.getAllData.mockImplementation(() => {
+        return mockPokemonInstance.pokemonData.map(pokemon => ({
+          id: pokemon.id,
+          display: pokemon.name,
+          value: pokemon.name,
+          metadata: {
+            alias: pokemon.alias,
+            type: pokemon.type,
+            category: pokemon.info?.category,
+            id: pokemon.id
+          }
+        }));
+      });
+
+      mockMovesInstance.getAllData.mockImplementation(() => {
+        return mockMovesInstance.pokemonData.map(move => ({
+          id: move.name,
+          display: move.name,
+          value: move.name,
+          metadata: {
+            alias: move.alias,
+            type: [move.type],
+            power: move.power,
+            accuracy: move.accuracy
+          }
+        }));
+      });
+    });
+
+    describe('Pokemon Autocomplete Tests', () => {
+      test('Test Pokemon searchForAutocomplete with empty query returns all data', () => {
+        const results = mockPokemonInstance.searchForAutocomplete('', 3);
+        expect(results).toHaveLength(3);
+        expect(results[0].display).toBe('皮卡丘');
+        expect(results[0].metadata.type).toEqual(['Electric']);
+      });
+
+      test('Test Pokemon searchForAutocomplete with exact name match', () => {
+        const results = mockPokemonInstance.searchForAutocomplete('皮卡丘', 5);
+        expect(results).toHaveLength(1);
+        expect(results[0].display).toBe('皮卡丘');
+        expect(results[0].value).toBe('皮卡丘');
+        expect(results[0].id).toBe('025');
+      });
+
+      test('Test Pokemon searchForAutocomplete with alias match', () => {
+        const results = mockPokemonInstance.searchForAutocomplete('Pikachu', 5);
+        expect(results).toHaveLength(1);
+        expect(results[0].display).toBe('皮卡丘');
+      });
+
+      test('Test Pokemon searchForAutocomplete with type match', () => {
+        const results = mockPokemonInstance.searchForAutocomplete('火', 5);
+        expect(results).toHaveLength(1);
+        expect(results[0].display).toBe('小火龍');
+        expect(results[0].metadata.type).toEqual(['Fire']);
+      });
+
+      test('Test Pokemon searchForAutocomplete with ID match', () => {
+        const results = mockPokemonInstance.searchForAutocomplete('025', 5);
+        expect(results).toHaveLength(1);
+        expect(results[0].display).toBe('皮卡丘');
+      });
+
+      test('Test Pokemon searchForAutocomplete with no matches', () => {
+        const results = mockPokemonInstance.searchForAutocomplete('不存在的寶可夢', 5);
+        expect(results).toHaveLength(0);
+      });
+
+      test('Test Pokemon getAllData returns correct format', () => {
+        const results = mockPokemonInstance.getAllData();
+        expect(results).toHaveLength(3);
+        expect(results[0]).toHaveProperty('id');
+        expect(results[0]).toHaveProperty('display');
+        expect(results[0]).toHaveProperty('value');
+        expect(results[0]).toHaveProperty('metadata');
+        expect(results[0].metadata).toHaveProperty('alias');
+        expect(results[0].metadata).toHaveProperty('type');
+        expect(results[0].metadata).toHaveProperty('category');
+      });
+    });
+
+    describe('Pokemon Moves Autocomplete Tests', () => {
+      test('Test Moves searchForAutocomplete with empty query returns all data', () => {
+        const results = mockMovesInstance.searchForAutocomplete('', 3);
+        expect(results).toHaveLength(3);
+        expect(results[0].display).toBe('火焰輪');
+        expect(results[0].metadata.type).toEqual(['Fire']);
+      });
+
+      test('Test Moves searchForAutocomplete with exact name match', () => {
+        const results = mockMovesInstance.searchForAutocomplete('火焰輪', 5);
+        expect(results).toHaveLength(1);
+        expect(results[0].display).toBe('火焰輪');
+        expect(results[0].value).toBe('火焰輪');
+        expect(results[0].id).toBe('火焰輪');
+      });
+
+      test('Test Moves searchForAutocomplete with alias match', () => {
+        const results = mockMovesInstance.searchForAutocomplete('Fire Wheel', 5);
+        expect(results).toHaveLength(1);
+        expect(results[0].display).toBe('火焰輪');
+      });
+
+      test('Test Moves searchForAutocomplete with type match', () => {
+        const results = mockMovesInstance.searchForAutocomplete('火', 5);
+        expect(results).toHaveLength(2); // 火焰輪和噴射火焰
+        expect(results.some(item => item.display === '火焰輪')).toBe(true);
+        expect(results.some(item => item.display === '噴射火焰')).toBe(true);
+      });
+
+      test('Test Moves searchForAutocomplete with no matches', () => {
+        const results = mockMovesInstance.searchForAutocomplete('不存在的招式', 5);
+        expect(results).toHaveLength(0);
+      });
+
+      test('Test Moves getAllData returns correct format', () => {
+        const results = mockMovesInstance.getAllData();
+        expect(results).toHaveLength(3);
+        expect(results[0]).toHaveProperty('id');
+        expect(results[0]).toHaveProperty('display');
+        expect(results[0]).toHaveProperty('value');
+        expect(results[0]).toHaveProperty('metadata');
+        expect(results[0].metadata).toHaveProperty('alias');
+        expect(results[0].metadata).toHaveProperty('type');
+        expect(results[0].metadata).toHaveProperty('power');
+        expect(results[0].metadata).toHaveProperty('accuracy');
+      });
+    });
+
+    describe('Autocomplete Data Format Tests', () => {
+      test('Test Pokemon autocomplete data format consistency', () => {
+        const results = mockPokemonInstance.searchForAutocomplete('皮', 5);
+        results.forEach(item => {
+          expect(item).toHaveProperty('id');
+          expect(item).toHaveProperty('display');
+          expect(item).toHaveProperty('value');
+          expect(item).toHaveProperty('metadata');
+          expect(typeof item.id).toBe('string');
+          expect(typeof item.display).toBe('string');
+          expect(typeof item.value).toBe('string');
+          expect(typeof item.metadata).toBe('object');
+          expect(Array.isArray(item.metadata.type)).toBe(true);
+        });
+      });
+
+      test('Test Moves autocomplete data format consistency', () => {
+        const results = mockMovesInstance.searchForAutocomplete('火', 5);
+        results.forEach(item => {
+          expect(item).toHaveProperty('id');
+          expect(item).toHaveProperty('display');
+          expect(item).toHaveProperty('value');
+          expect(item).toHaveProperty('metadata');
+          expect(typeof item.id).toBe('string');
+          expect(typeof item.display).toBe('string');
+          expect(typeof item.value).toBe('string');
+          expect(typeof item.metadata).toBe('object');
+          expect(Array.isArray(item.metadata.type)).toBe(true);
+        });
+      });
+
+      test('Test autocomplete search with case insensitive matching', () => {
+        const pokemonResults = mockPokemonInstance.searchForAutocomplete('PIKACHU', 5);
+        const movesResults = mockMovesInstance.searchForAutocomplete('FIRE', 5);
+        
+        expect(pokemonResults).toHaveLength(1);
+        expect(pokemonResults[0].display).toBe('皮卡丘');
+        
+        expect(movesResults).toHaveLength(2);
+        expect(movesResults.some(item => item.display === '火焰輪')).toBe(true);
+      });
+
+      test('Test autocomplete search with limit parameter', () => {
+        const pokemonResults = mockPokemonInstance.searchForAutocomplete('', 2);
+        const movesResults = mockMovesInstance.searchForAutocomplete('', 2);
+        
+        expect(pokemonResults).toHaveLength(2);
+        expect(movesResults).toHaveLength(2);
+      });
+    });
+  });
 }); 

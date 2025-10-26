@@ -1309,7 +1309,7 @@
       "烏龜獸",
       "螃蟹獸",
       "哥瑪獸",
-      "基刹獸",
+      "基剎獸",
       "蝦蛄獸"
     ],
     "zh-cn-name": "布加獸",
@@ -3953,11 +3953,13 @@
   },
   {
     "id": 63,
-    "name": "基刹獸",
+    "name": "基剎獸",
     "stage": "3",
     "devolutions": [
       "布加獸"
     ],
+    "ink": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=gizamon",
+    "img": "https://digimon.net/cimages/digimon/gizamon.jpg",
     "evolutions": [
       "獨眼龍獸",
       "黃蜂獸",
@@ -5860,7 +5862,7 @@
     "name": "茲巴伊戈獸",
     "stage": "4",
     "devolutions": [
-      "基刹獸",
+      "基剎獸",
       "咆哮獸",
       "茲巴獸"
     ],
@@ -9012,7 +9014,7 @@
     "devolutions": [
       "芝蒙獸",
       "加布獸",
-      "基刹獸"
+      "基剎獸"
     ],
     "evolutions": [
       "捕捉豆豆獸",
@@ -9245,7 +9247,7 @@
     "stage": "4",
     "devolutions": [
       "單角龍獸",
-      "基刹獸"
+      "基剎獸"
     ],
     "evolutions": [
       "黃金劍士獸",
@@ -9963,7 +9965,7 @@
     "stage": "4",
     "devolutions": [
       "幻蜂獸",
-      "基刹獸",
+      "基剎獸",
       "蘑菇獸"
     ],
     "evolutions": [
@@ -10557,7 +10559,7 @@
     "name": "戰甲獸",
     "stage": "4",
     "devolutions": [
-      "基刹獸",
+      "基剎獸",
       "茲巴獸",
       "穿山獸"
     ],
@@ -11421,7 +11423,7 @@
     "name": "娜娜獸",
     "stage": "4d",
     "devolutions": [
-      "基刹獸"
+      "基剎獸"
     ],
     "evolutions": [
       "卡瑪拉獸"
@@ -25972,11 +25974,13 @@
     "devolutions": [
       "機甲龍獸"
     ],
+    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=imperialdramondragonmode",
+    "img": "https://digimon.net/cimages/digimon/imperialdramondragonmode.jpg",
     "evolutions": [
       "帝皇龍甲獸FM",
       "帝皇龍甲獸PM"
     ],
-    "zh-cn-name": "帝皇龍甲獸DM",
+    "zh-cn-name": "帝皇龍甲獸：龍型態",
     "eng-name": "Imperialdramon DM",
     "attribute": "自由種",
     "type": "Ancient Dragon",
@@ -26055,12 +26059,14 @@
     "id": 417,
     "name": "帝皇龍甲獸FM",
     "stage": "6",
+    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=imperialdramonfightermode",
+    "img": "https://digimon.net/cimages/digimon/imperialdramonfightermode.jpg",
     "devolutions": [],
     "evolutions": [
       "帝皇龍甲獸PM",
       "帝皇龍甲獸DM"
     ],
-    "zh-cn-name": "帝皇龍甲獸FM",
+    "zh-cn-name": "帝皇龍甲獸：龍人型態",
     "eng-name": "Imperialdramon FM",
     "attribute": "自由種",
     "type": "Ancient Dragon Man",
@@ -26819,8 +26825,10 @@
       "帝皇龍甲獸FM",
       "帝皇龍甲獸DM"
     ],
+    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=imperialdramonpaladinmode",
+    "img": "https://digimon.net/cimages/digimon/imperialdramonpaladinmode.jpg",
     "evolutions": [],
-    "zh-cn-name": "帝皇龍甲獸PM",
+    "zh-cn-name": "帝皇龍甲獸：聖騎士型態",
     "eng-name": "Imperialdramon PM",
     "attribute": "疫苗種",
     "type": "Ancient Holy Knight",
@@ -28371,6 +28379,8 @@
     "devolutions": [
       "妖爪獸"
     ],
+    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=agumon-black",
+    "img": "https://digimon.net/cimages/digimon/agumon-black.jpg",
     "evolutions": [
       "強襲龍獸",
       "大角獸",
@@ -28428,6 +28438,8 @@
     "devolutions": [
       "妖爪獸"
     ],
+    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=gabumon_black",
+    "img": "https://digimon.net/cimages/digimon/gabumon_black.jpg",
     "evolutions": [
       "牛人獸",
       "黑暗迪路獸",
@@ -28488,6 +28500,8 @@
       "妖狐獸",
       "小熊獸"
     ],
+    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=garurumon_black",
+    "img": "https://digimon.net/cimages/digimon/garurumon_black.jpg",
     "evolutions": [
       "喪屍撒旦獸",
       "熊貓獸",
@@ -28792,6 +28806,8 @@
       "沙路比獸",
       "沙路比獸JM"
     ],
+    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=metalgarurumon_black",
+    "img": "https://digimon.net/cimages/digimon/metalgarurumon_black.jpg",
     "evolutions": [
       "黑奧米加獸"
     ],

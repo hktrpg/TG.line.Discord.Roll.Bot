@@ -188,18 +188,67 @@
 
             // 應用顏色
             if (btn.classList.contains('plus-btn')) {
-                btn.style.backgroundColor = '#22c55e';
+                btn.style.backgroundColor = '#f59e0b';
                 btn.style.color = 'white';
-                btn.style.border = '1px solid #16a34a';
+                btn.style.border = '1px solid #d97706';
 
             } else if (btn.classList.contains('minus-btn')) {
-                btn.style.backgroundColor = '#f87171';
+                btn.style.backgroundColor = '#f59e0b';
                 btn.style.color = 'white';
-                btn.style.border = '1px solid #ef4444';
+                btn.style.border = '1px solid #d97706';
 
             }
 
 
+        });
+    }
+
+    // 強制修復按鈕容器的水平佈局
+    function forceHorizontalLayout() {
+        const containers = document.querySelectorAll('.value-controls-bottom');
+        
+        containers.forEach((container, index) => {
+            // 移除所有可能影響佈局的內聯樣式
+            container.style.removeProperty('flex-direction');
+            container.style.removeProperty('display');
+            container.style.removeProperty('flex-wrap');
+            container.style.removeProperty('flex-flow');
+            container.style.removeProperty('direction');
+            container.style.removeProperty('writing-mode');
+            container.style.removeProperty('text-orientation');
+            
+            // 強制設置水平佈局
+            container.style.display = 'flex';
+            container.style.flexDirection = 'row';
+            container.style.flexWrap = 'nowrap';
+            container.style.gap = '4px';
+            container.style.justifyContent = 'center';
+            container.style.alignItems = 'center';
+            container.style.width = '100%';
+            container.style.height = 'auto';
+            container.style.marginTop = '8px';
+            container.style.paddingTop = '8px';
+            container.style.borderTop = '1px solid var(--border-light)';
+            
+            // 確保子按鈕也是水平排列
+            const buttons = container.querySelectorAll('.value-btn');
+            buttons.forEach((btn, btnIndex) => {
+                btn.style.display = 'flex';
+                btn.style.alignItems = 'center';
+                btn.style.justifyContent = 'center';
+                btn.style.width = '16px';
+                btn.style.height = '16px';
+                btn.style.margin = '0';
+                btn.style.padding = '0';
+                btn.style.float = 'none';
+                btn.style.clear = 'none';
+                btn.style.position = 'relative';
+                btn.style.top = 'auto';
+                btn.style.left = 'auto';
+                btn.style.right = 'auto';
+                btn.style.bottom = 'auto';
+                btn.style.transform = 'none';
+            });
         });
     }
 
@@ -216,6 +265,7 @@
                 forceButtonStyles();
                 forceDeleteButtonStyles();
                 forceFloatingButtonStyles();
+                forceHorizontalLayout();
 
                 const buttons = document.querySelectorAll('.value-btn');
                 const deleteButtons = document.querySelectorAll('.hover-delete-btn');
@@ -297,15 +347,15 @@
         subtree: true
     });
 </script>
-<!-- 角色頭部信息 -->
-<section class="character-header mb-4">
-    <div class="hybrid-card-container">
-        <div class="row align-items-center">
-            <div class="col-md-8">
+    <!-- 角色頭部信息 -->
+    <section class="character-header mb-4">
+        <div class="hybrid-card-container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
                 <h2 class="character-name mb-3" style="color: #F5F5DC !important;">
-                    <i class="fas fa-user-circle me-2"></i>
-                    {{ name || '未命名角色' }}
-                </h2>
+                        <i class="fas fa-user-circle me-2"></i>
+                        {{ name || '未命名角色' }}
+                    </h2>
                 <div class="character-info d-flex flex-wrap gap-3"
                     v-if="characterDetails && characterDetails.length > 0">
                     <span class="info-badge" v-for="(detail, index) in characterDetails.slice(0, 3)" :key="index"
@@ -313,95 +363,95 @@
                         <i class="fas fa-info-circle me-1"></i>
                         <span class="info-label">{{ detail.label }}:</span>
                         <span class="info-value">{{ detail.value }}</span>
-                    </span>
+                        </span>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-4 text-end">
-                <div class="action-controls">
+                <div class="col-md-4 text-end">
+                    <div class="action-controls">
                     <button type="button" class="action-btn primary" v-if="!isPublic" @click="toggleEditMode"
                         :title="editMode ? '關閉編輯模式' : '開啟編輯模式'">
-                        <i class="fas fa-edit"></i>
-                        {{ editMode ? '關閉編輯' : '編輯模式' }}
-                    </button>
+                            <i class="fas fa-edit"></i>
+                            {{ editMode ? '關閉編輯' : '編輯模式' }}
+                        </button>
                     <button type="button" class="action-btn secondary" v-if="name && !isPublic" @click="updateCard"
                         title="儲存角色卡">
-                        <i class="fas fa-save"></i>
-                        儲存
-                    </button>
-                    <button type="button" class="action-btn warning" onclick="selectCard()" title="選擇角色卡">
-                        <i class="fas fa-list"></i>
-                        選擇角色卡
-                    </button>
+                            <i class="fas fa-save"></i>
+                            儲存
+                        </button>
+                        <button type="button" class="action-btn warning" onclick="selectCard()" title="選擇角色卡">
+                            <i class="fas fa-list"></i>
+                            選擇角色卡
+                        </button>
 
                     <!-- 公開設定 (僅私人卡片) -->
                     <button type="button" class="action-btn" :class="public ? 'success' : 'secondary'"
                         v-if="name && !isPublic" @click="public = !public" :title="public ? '點擊設為私人' : '點擊設為公開'">
                         <i class="fas fa-globe"></i>
                         現在狀態：{{ public ? '公開' : '私人' }}
-                    </button>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- 群組列表 (僅私人卡片) -->
-<section v-if="gpList && !isPublic" class="mb-4">
-    <div class="hybrid-card-container">
-        <h4 class="section-title">
-            <i class="fas fa-broadcast-tower"></i>擲骰頻道
-        </h4>
-        <button type="button" class="action-btn warning float-end" @click="config()">
-            <i class="fas fa-cog"></i>設定
-        </button>
-
-        <div class="traditional-panel">
-            <div class="form-check mb-2">
+    <!-- 群組列表 (僅私人卡片) -->
+    <section v-if="gpList && !isPublic" class="mb-4">
+        <div class="hybrid-card-container">
+            <h4 class="section-title">
+                <i class="fas fa-broadcast-tower"></i>擲骰頻道
+            </h4>
+            <button type="button" class="action-btn warning float-end" @click="config()">
+                <i class="fas fa-cog"></i>設定
+            </button>
+            
+            <div class="traditional-panel">
+                <div class="form-check mb-2">
                 <input class="form-check-input" type="radio" name="gpListRadio" value="" v-model="selectedGroupId"
                     @change="saveSelectedGroupId" id="noGroup">
-                <label class="form-check-label text-light" for="noGroup">
-                    不進行群組擲骰
-                </label>
-            </div>
-
-            <div v-for="(gp, i) in gpList" :key="gp._id" class="channel-item">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="gpListRadio" :value="gp._id"
-                        v-model="selectedGroupId" @change="saveSelectedGroupId" :id="'channel' + i">
-                    <label class="form-check-label text-light" :for="'channel' + i">
-                        <strong>編號 {{i+1}}:</strong> {{gp.botname}} - {{gp.titleName}}
+                    <label class="form-check-label text-light" for="noGroup">
+                        不進行群組擲骰
                     </label>
                 </div>
-
-                <div class="channel-actions" v-if="gp.showDeleteButton">
-                    <button type="button" class="action-btn danger btn-sm me-2" @click="confirmRemoveChannel(gp)">
-                        {{ gp.confirmDelete ? '確定刪除' : '移除?' }}
-                    </button>
+                
+                <div v-for="(gp, i) in gpList" :key="gp._id" class="channel-item">
+                    <div class="form-check">
+                    <input class="form-check-input" type="radio" name="gpListRadio" :value="gp._id"
+                        v-model="selectedGroupId" @change="saveSelectedGroupId" :id="'channel' + i">
+                        <label class="form-check-label text-light" :for="'channel' + i">
+                            <strong>編號 {{i+1}}:</strong> {{gp.botname}} - {{gp.titleName}}
+                        </label>
+                    </div>
+                    
+                    <div class="channel-actions" v-if="gp.showDeleteButton">
+                        <button type="button" class="action-btn danger btn-sm me-2" @click="confirmRemoveChannel(gp)">
+                            {{ gp.confirmDelete ? '確定刪除' : '移除?' }}
+                        </button>
                     <button type="button" class="action-btn secondary btn-sm" v-if="gp.showCancelButton"
                         @click="cancelButton(gp)">
-                        取消
-                    </button>
+                            取消
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- 屬性區域 - 混合設計網格 -->
-<section class="attributes-section mb-4">
-    <div class="hybrid-card-container section-container">
-        <h4 class="section-title">
-            <i class="fas fa-chart-line"></i>基本屬性
-        </h4>
-
-        <div class="hybrid-attributes-grid">
+    <!-- 屬性區域 - 混合設計網格 -->
+    <section class="attributes-section mb-4">
+        <div class="hybrid-card-container section-container">
+            <h4 class="section-title">
+                <i class="fas fa-chart-line"></i>基本屬性
+            </h4>
+            
+            <div class="hybrid-attributes-grid">
             <div v-for="(item, index) in state" :key="index" class="attribute-panel" :class="{ 'edit-mode': editMode }"
-                @click="!editMode ? rolling(item.name) : null">
+                     @click="!editMode ? rolling(item.name) : null">
                 <button type="button" class="dice-roll-button" @click.stop="!editMode ? rolling(item.name) : null"
                     title="擲骰" v-if="!editMode">
-                    <i class="fas fa-dice-d20"></i>
-                </button>
-
+                        <i class="fas fa-dice-d20"></i>
+                    </button>
+                    
                 <!-- 懸停刪除按鈕 (編輯模式) -->
                 <button type="button" class="hover-delete-btn" v-if="editMode" @click.stop="removeItem(0, index)"
                     title="刪除此項目">
@@ -409,67 +459,57 @@
                 </button>
 
                 <div class="attribute-label" v-if="!editMode">{{ item.name }}</div>
-                <div class="attribute-display" v-if="!editMode">
+                    <div class="attribute-display" v-if="!editMode">
                     <div class="attribute-current">
                         {{ (item.itemA || '').toString().replace(/^CC\s*/i, '') }}
-                        <!-- 加減按鈕 (僅數字值) -->
-                        <div v-if="isNumeric(item.itemA)" class="value-controls">
-                            <button type="button" class="value-btn minus-btn"
-                                @click.stop="adjustValue(index, 'current', -1)" title="減1">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <button type="button" class="value-btn plus-btn"
-                                @click.stop="adjustValue(index, 'current', 1)" title="加1">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
                     </div>
-                    <div class="attribute-separator">/</div>
+                        <div class="attribute-separator">/</div>
                     <div class="attribute-max">
                         {{ (item.itemB || '').toString().replace(/^CC\s*/i, '') }}
-                        <!-- 加減按鈕 (僅數字值) -->
-                        <div v-if="isNumeric(item.itemB)" class="value-controls">
-                            <button type="button" class="value-btn minus-btn"
-                                @click.stop="adjustValue(index, 'max', -1)" title="減1">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <button type="button" class="value-btn plus-btn" @click.stop="adjustValue(index, 'max', 1)"
-                                title="加1">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
                     </div>
-                </div>
-
-                <!-- 編輯模式下的輸入框 -->
-                <div v-if="editMode" class="edit-inputs">
+                    </div>
+                    
+                    <!-- 加減按鈕 (僅現在值，位於卡片底部) -->
+                    <div v-if="isNumeric(item.itemA)" class="value-controls-bottom">
+                        <button type="button" class="value-btn plus-btn"
+                            @click.stop="adjustValue(index, 'current', 1)" title="加1">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button type="button" class="value-btn minus-btn"
+                            @click.stop="adjustValue(index, 'current', -1)" title="減1">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- 編輯模式下的輸入框 -->
+                    <div v-if="editMode" class="edit-inputs">
                     <input type="text" :value="item.name" @input="item.name = $event.target.value" placeholder="屬性名稱"
-                        class="edit-input">
-                    <div class="edit-number-inputs">
+                               class="edit-input">
+                        <div class="edit-number-inputs">
                         <input type="text" :value="(item.itemA || '').toString().replace(/^CC\s*/i, '')"
                             @input="item.itemA = $event.target.value" placeholder="現在值" class="edit-input">
-                        <span class="edit-separator">/</span>
+                            <span class="edit-separator">/</span>
                         <input type="text" :value="(item.itemB || '').toString().replace(/^CC\s*/i, '')"
                             @input="item.itemB = $event.target.value" placeholder="上限" class="edit-input">
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- 浮動添加按鈕 -->
+            
+            <!-- 浮動添加按鈕 -->
         <button type="button" class="section-add-button" v-if="name && !isPublic" @click="addItem(0)" title="新增屬性">
-            <i class="fas fa-plus"></i>
-        </button>
-    </div>
-</section>
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </section>
 
 <!-- 擲骰區域 - 混合設計網格 -->
 <section class="rolls-section mb-4">
-    <div class="hybrid-card-container section-container">
-        <h4 class="section-title">
+        <div class="hybrid-card-container section-container">
+            <h4 class="section-title">
             <i class="fas fa-dice-d20"></i>擲骰
-        </h4>
-
+            </h4>
+            
         <div class="hybrid-attributes-grid">
             <div v-for="(item, index) in roll" :key="index" class="attribute-panel" :class="{ 'edit-mode': editMode }"
                 @click="!editMode ? rolling(item.name) : null">
@@ -482,7 +522,7 @@
                 <button type="button" class="hover-delete-btn" v-if="editMode" @click.stop="removeItem(1, index)"
                     title="刪除此項目">
                     <i class="fas fa-times"></i>
-                </button>
+                        </button>
 
                 <div class="attribute-label" v-if="!editMode">{{ item.name }}</div>
                 <div class="attribute-value-display" v-if="!editMode">{{ (item.itemA ||
@@ -494,25 +534,25 @@
                         class="edit-input">
                     <input type="text" :value="(item.itemA || '').toString().replace(/^CC\s*/i, '')"
                         @input="item.itemA = $event.target.value" placeholder="數值" class="edit-input">
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <!-- 浮動添加按鈕 -->
+            
+            <!-- 浮動添加按鈕 -->
         <button type="button" class="section-add-button" v-if="name && !isPublic" @click="addItem(1)" title="新增技能">
-            <i class="fas fa-plus"></i>
-        </button>
-    </div>
-</section>
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </section>
 
 <!-- 筆記區域 - 網格佈局 -->
 <section class="notes-section mb-4">
-    <div class="hybrid-card-container section-container">
-        <h4 class="section-title">
+        <div class="hybrid-card-container section-container">
+            <h4 class="section-title">
             <i class="fas fa-sticky-note"></i>筆記
-        </h4>
-
-        <div class="character-details-grid">
+            </h4>
+            
+            <div class="character-details-grid">
             <div v-for="(item, index) in notes" :key="index" class="detail-panel" :class="{ 'edit-mode': editMode }">
                 <!-- 懸停刪除按鈕 (編輯模式) -->
                 <button type="button" class="hover-delete-btn" v-if="editMode" @click.stop="removeItem(2, index)"
@@ -520,30 +560,30 @@
                     <i class="fas fa-times"></i>
                 </button>
 
-                <!-- 正常顯示模式 -->
-                <div v-if="!editMode" class="detail-content">
+                    <!-- 正常顯示模式 -->
+                    <div v-if="!editMode" class="detail-content">
                     <div class="detail-value" v-html="(item.itemA || item.content || '').replace(/\n/g, '<br>')"></div>
                     <div class="detail-label">{{ item.name || item.title || '' }}</div>
-                </div>
-
-                <!-- 編輯模式下的輸入框 -->
-                <div v-if="editMode" class="edit-detail-inputs">
+                    </div>
+                    
+                    <!-- 編輯模式下的輸入框 -->
+                    <div v-if="editMode" class="edit-detail-inputs">
                     <textarea :value="item.itemA || item.content || ''"
                         @input="item.itemA = $event.target.value; if (item.content) item.content = $event.target.value"
                         placeholder="筆記內容" class="edit-detail-textarea"></textarea>
                     <input type="text" :value="item.name || item.title || ''"
                         @input="item.name = $event.target.value; if (item.title) item.title = $event.target.value"
                         placeholder="筆記標題" class="edit-detail-label">
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <!-- 浮動添加按鈕 -->
+            
+            <!-- 浮動添加按鈕 -->
         <button type="button" class="section-add-button" v-if="name && !isPublic" @click="addItem(2)" title="新增筆記">
-            <i class="fas fa-plus"></i>
-        </button>
-    </div>
-</section>
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </section>
 
 <!-- 編輯模式浮動按鈕 -->
 <div v-if="editMode" class="floating-edit-controls">
@@ -728,11 +768,25 @@
     /* 數值控制按鈕 */
     .value-controls {
         display: inline-flex !important;
-        flex-direction: column !important;
+        flex-direction: row !important;
         gap: 2px !important;
         margin-left: 6px !important;
         vertical-align: middle !important;
         align-items: center !important;
+    }
+
+    /* 底部數值控制按鈕 */
+    .value-controls-bottom {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 4px !important;
+        justify-content: center !important;
+        align-items: center !important;
+        margin-top: 8px !important;
+        padding-top: 8px !important;
+        border-top: 1px solid var(--border-light) !important;
+        width: 100% !important;
+        flex-wrap: nowrap !important;
     }
 
     .value-btn {
@@ -772,33 +826,33 @@
     }
 
     .plus-btn {
-        background-color: #22c55e !important;
-        background: #22c55e !important;
+        background-color: #f59e0b !important;
+        background: #f59e0b !important;
         color: white !important;
-        border: 1px solid #16a34a !important;
-        border-color: #16a34a !important;
+        border: 1px solid #d97706 !important;
+        border-color: #d97706 !important;
     }
 
     .plus-btn:hover {
-        background-color: #16a34a !important;
-        background: #16a34a !important;
+        background-color: #d97706 !important;
+        background: #d97706 !important;
         transform: translateY(-1px) !important;
-        box-shadow: 0 3px 6px rgba(34, 197, 94, 0.25) !important;
+        box-shadow: 0 3px 6px rgba(245, 158, 11, 0.25) !important;
     }
 
     .minus-btn {
-        background-color: #f87171 !important;
-        background: #f87171 !important;
+        background-color: #f59e0b !important;
+        background: #f59e0b !important;
         color: white !important;
-        border: 1px solid #ef4444 !important;
-        border-color: #ef4444 !important;
+        border: 1px solid #d97706 !important;
+        border-color: #d97706 !important;
     }
 
     .minus-btn:hover {
-        background-color: #ef4444 !important;
-        background: #ef4444 !important;
+        background-color: #d97706 !important;
+        background: #d97706 !important;
         transform: translateY(-1px) !important;
-        box-shadow: 0 3px 6px rgba(248, 113, 113, 0.25) !important;
+        box-shadow: 0 3px 6px rgba(245, 158, 11, 0.25) !important;
     }
 
     .value-btn:active {
@@ -858,12 +912,12 @@
     .hybrid-attributes-grid .plus-btn,
     button.value-btn.plus-btn,
     button[type="button"].value-btn.plus-btn {
-        background-color: #22c55e !important;
-        background: #22c55e !important;
+        background-color: #f59e0b !important;
+        background: #f59e0b !important;
         background-image: none !important;
         color: white !important;
-        border: 1px solid #16a34a !important;
-        border-color: #16a34a !important;
+        border: 1px solid #d97706 !important;
+        border-color: #d97706 !important;
         border-radius: 3px !important;
     }
 
@@ -872,12 +926,12 @@
     .hybrid-attributes-grid .minus-btn,
     button.value-btn.minus-btn,
     button[type="button"].value-btn.minus-btn {
-        background-color: #f87171 !important;
-        background: #f87171 !important;
+        background-color: #f59e0b !important;
+        background: #f59e0b !important;
         background-image: none !important;
         color: white !important;
-        border: 1px solid #ef4444 !important;
-        border-color: #ef4444 !important;
+        border: 1px solid #d97706 !important;
+        border-color: #d97706 !important;
         border-radius: 3px !important;
     }
 
@@ -924,15 +978,43 @@
         box-sizing: border-box !important;
     }
 
+    /* 強制水平佈局的容器樣式 - 最高優先級 */
+    html body .value-controls-bottom,
+    html body .attribute-panel .value-controls-bottom,
+    html body .detail-panel .value-controls-bottom,
+    html body .hybrid-attributes-grid .value-controls-bottom {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 4px !important;
+        justify-content: center !important;
+        align-items: center !important;
+        margin-top: 8px !important;
+        padding-top: 8px !important;
+        border-top: 1px solid var(--border-light) !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        transform: none !important;
+        z-index: auto !important;
+    }
+
     /* 加號按鈕顏色 - 使用最高優先級 */
     html body .attribute-panel button.value-btn.plus-btn,
     html body .detail-panel button.value-btn.plus-btn,
     html body .hybrid-attributes-grid button.value-btn.plus-btn,
     html body button.value-btn.plus-btn {
-        background-color: #22c55e !important;
-        background: #22c55e !important;
+        background-color: #f59e0b !important;
+        background: #f59e0b !important;
         color: white !important;
-        border: 1px solid #16a34a !important;
+        border: 1px solid #d97706 !important;
     }
 
     /* 減號按鈕顏色 - 使用最高優先級 */
@@ -940,10 +1022,10 @@
     html body .detail-panel button.value-btn.minus-btn,
     html body .hybrid-attributes-grid button.value-btn.minus-btn,
     html body button.value-btn.minus-btn {
-        background-color: #f87171 !important;
-        background: #f87171 !important;
+        background-color: #f59e0b !important;
+        background: #f59e0b !important;
         color: white !important;
-        border: 1px solid #ef4444 !important;
+        border: 1px solid #d97706 !important;
     }
 
     /* 懸停效果 - 使用最高優先級 */
@@ -951,29 +1033,29 @@
     html body .detail-panel button.value-btn.plus-btn:hover,
     html body .hybrid-attributes-grid button.value-btn.plus-btn:hover,
     html body button.value-btn.plus-btn:hover {
-        background-color: #16a34a !important;
-        background: #16a34a !important;
+        background-color: #d97706 !important;
+        background: #d97706 !important;
         transform: translateY(-1px) !important;
-        box-shadow: 0 3px 6px rgba(34, 197, 94, 0.25) !important;
+        box-shadow: 0 3px 6px rgba(245, 158, 11, 0.25) !important;
     }
 
     html body .attribute-panel button.value-btn.minus-btn:hover,
     html body .detail-panel button.value-btn.minus-btn:hover,
     html body .hybrid-attributes-grid button.value-btn.minus-btn:hover,
     html body button.value-btn.minus-btn:hover {
-        background-color: #ef4444 !important;
-        background: #ef4444 !important;
+        background-color: #d97706 !important;
+        background: #d97706 !important;
         transform: translateY(-1px) !important;
-        box-shadow: 0 3px 6px rgba(248, 113, 113, 0.25) !important;
+        box-shadow: 0 3px 6px rgba(245, 158, 11, 0.25) !important;
     }
 
-    /* 角色頭部樣式 */
-    .character-header .character-name {
+/* 角色頭部樣式 */
+.character-header .character-name {
         color: #F5F5DC !important;
-        font-weight: 700;
-        font-size: 2rem;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    }
+    font-weight: 700;
+    font-size: 2rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
 
     /* 更強制的角色名字樣式 */
     h2.character-name {
@@ -992,72 +1074,72 @@
     /* 最強制的樣式 */
     #array-rendering .character-header .character-name {
         color: #F5F5DC !important;
-    }
+}
 
-    .character-info .info-badge {
-        background: var(--bg-panel);
-        padding: 8px 12px;
-        border-radius: 20px;
-        font-size: 14px;
-        color: var(--text-secondary);
-        border: 1px solid var(--border-light);
-    }
+.character-info .info-badge {
+    background: var(--bg-panel);
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-light);
+}
 
-    .info-label {
-        font-weight: 600;
-        margin-right: 4px;
+.info-label {
+    font-weight: 600;
+    margin-right: 4px;
         color: #3E2723;
-    }
+}
 
-    .info-value {
+.info-value {
         color: #F5F5DC;
-        font-weight: 500;
-    }
+    font-weight: 500;
+}
 
-    /* 頻道列表樣式 */
-    .channel-item {
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 8px;
-        background: var(--bg-surface);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border: 1px solid var(--border-dark);
-    }
+/* 頻道列表樣式 */
+.channel-item {
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: var(--bg-surface);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border-dark);
+}
 
-    .channel-actions {
-        display: flex;
-        gap: 8px;
-    }
+.channel-actions {
+    display: flex;
+    gap: 8px;
+}
 
-    /* 筆記樣式 */
-    .note-item {
-        background: var(--bg-surface);
-        border-radius: 8px;
-        padding: 16px;
-        border: 1px solid var(--border-dark);
-    }
+/* 筆記樣式 */
+.note-item {
+    background: var(--bg-surface);
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid var(--border-dark);
+}
 
-    .note-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--text-primary);
-        background: var(--cream);
-        padding: 4px 8px;
-        border-radius: 4px;
-        display: inline-block;
-    }
+.note-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--cream);
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
 
-    .note-text {
-        color: var(--text-secondary);
-        line-height: 1.6;
-        min-height: 60px;
-        padding: 12px;
-        background: var(--cream);
-        border-radius: 4px;
-        color: var(--text-dark);
-    }
+.note-text {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    min-height: 60px;
+    padding: 12px;
+    background: var(--cream);
+    border-radius: 4px;
+    color: var(--text-dark);
+}
 
     /* 編輯模式樣式 */
     .edit-note-title {
@@ -1118,70 +1200,70 @@
         outline: none;
         border-color: var(--accent-purple);
         box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+/* 角色詳情樣式 */
+.detail-section-title {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    background: var(--gradient-brown);
+    border-radius: 6px;
+    text-align: center;
+}
+
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .character-header .character-name {
+        font-size: 1.5rem;
     }
-
-    /* 角色詳情樣式 */
-    .detail-section-title {
-        color: var(--text-primary);
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 16px;
-        padding: 8px 12px;
-        background: var(--gradient-brown);
-        border-radius: 6px;
-        text-align: center;
+    
+    .character-info {
+        flex-direction: column;
+        gap: 8px;
     }
-
-
-    /* 響應式設計 */
-    @media (max-width: 768px) {
-        .character-header .character-name {
-            font-size: 1.5rem;
-        }
-
-        .character-info {
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .hybrid-attributes-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .character-details {
-            grid-template-columns: 1fr;
-        }
-
-        .channel-item {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .channel-actions {
-            width: 100%;
-            justify-content: flex-end;
-        }
-
-        .action-controls {
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .action-btn {
-            width: 100%;
-            max-width: 300px;
-            justify-content: center;
-        }
+    
+    .hybrid-attributes-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
-
-    @media (max-width: 480px) {
-        .hybrid-attributes-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .attribute-panel {
-            min-height: 100px;
-        }
+    
+    .character-details {
+        grid-template-columns: 1fr;
     }
+    
+    .channel-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .channel-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .action-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .action-btn {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .hybrid-attributes-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .attribute-panel {
+        min-height: 100px;
+    }
+}
 </style>

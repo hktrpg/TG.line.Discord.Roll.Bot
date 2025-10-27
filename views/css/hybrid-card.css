@@ -104,9 +104,10 @@ body {
 /* 混合屬性網格 - 現代網格 + 傳統面板感 */
 .hybrid-attributes-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 160px));
     gap: 12px;
     margin: 20px 0;
+    justify-content: center;
 }
 
 .attribute-panel {
@@ -495,8 +496,9 @@ body {
     }
     
     .hybrid-attributes-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(140px, 140px));
         gap: 8px;
+        justify-content: center;
     }
     
     .attribute-panel {
@@ -527,7 +529,8 @@ body {
 
 @media (max-width: 480px) {
     .hybrid-attributes-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 120px));
+        justify-content: center;
     }
     
     .attribute-panel {
@@ -598,20 +601,27 @@ body {
 /* 基本屬性顯示格式 */
 .attribute-display {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     gap: 4px;
+    justify-content: center;
 }
 
 .attribute-current {
     font-size: 18px;
     font-weight: 700;
     color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .attribute-max {
     font-size: 14px;
     color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .attribute-separator {

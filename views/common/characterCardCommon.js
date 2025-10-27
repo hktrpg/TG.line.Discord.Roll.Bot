@@ -685,6 +685,12 @@ function setupLoginForm() {
                     if (listInfo && listInfo.id && listInfo.id.length > 0) {
                         card.gpList = listInfo.id;
                     }
+                    
+                    // 🔐 存儲JWT token（自動登入時也需要）
+                    if (listInfo.token) {
+                        localStorage.setItem('jwtToken', listInfo.token);
+                    }
+                    
                     if (list) {
                         warningElement.style.display = "none";
                         cardList.list = list;
@@ -893,8 +899,10 @@ function updateCard() {
     const userName = localStorage.getItem("userName");
     const token = localStorage.getItem("jwtToken");
 
+    console.log('updateCard called - userName:', userName, 'token exists:', !!token);
+
     if (!userName || !token) {
-        debugLog('User not logged in or token missing, cannot update card', 'error');
+        console.log('updateCard failed - missing credentials:', { userName: !!userName, token: !!token });
         showError('請先登入才能更新角色卡');
         return;
     }

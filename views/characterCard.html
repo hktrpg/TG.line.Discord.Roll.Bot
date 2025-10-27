@@ -66,77 +66,15 @@
 
     <!-- Page Specific JavaScript -->
     <script>
-        console.log('=== CHARACTER CARD DEBUG START ===');
-        console.log('Document ready state:', document.readyState);
-        console.log('jQuery loaded:', typeof $ !== 'undefined');
-        console.log('Vue loaded:', typeof Vue !== 'undefined');
-        
-        // Check CSS loading
-        console.log('=== CSS LOADING CHECK ===');
-        const checkCSS = () => {
-            const styleSheets = document.styleSheets;
-            console.log('Total stylesheets loaded:', styleSheets.length);
-            for (let i = 0; i < styleSheets.length; i++) {
-                try {
-                    const sheet = styleSheets[i];
-                    console.log(`Stylesheet ${i}:`, sheet.href || 'inline');
-                    if (sheet.href && sheet.href.includes('hybrid-card.css')) {
-                        console.log('✓ hybrid-card.css found');
-                    }
-                    if (sheet.href && sheet.href.includes('font-awesome')) {
-                        console.log('✓ Font Awesome found');
-                    }
-                } catch (e) {
-                    console.log(`Stylesheet ${i}: CORS restricted`);
-                }
-            }
-        };
-        
-        // Check CSS rules
-        const checkCSSRules = () => {
-            console.log('=== CSS RULES CHECK ===');
-            try {
-                const testElement = document.createElement('div');
-                testElement.className = 'value-btn plus-btn';
-                document.body.appendChild(testElement);
-                
-                const styles = window.getComputedStyle(testElement);
-                console.log('Value button styles:', {
-                    backgroundColor: styles.backgroundColor,
-                    color: styles.color,
-                    border: styles.border,
-                    borderRadius: styles.borderRadius,
-                    width: styles.width,
-                    height: styles.height,
-                    display: styles.display
-                });
-                
-                document.body.removeChild(testElement);
-            } catch (e) {
-                console.error('Error checking CSS rules:', e);
-            }
-        };
-        
         // Load common modals
         $("#commonModals").load("/common/characterCardModals.html", function() {
-            console.log('✓ Modals loaded successfully');
             debugLog('Modals loaded', 'info');
         });
         
         // Add delay to ensure all scripts are loaded
         setTimeout(function() {
-            console.log('=== INITIALIZING VUE APPS ===');
-            console.log('Array rendering element before init:', document.getElementById('array-rendering'));
-            console.log('Array rendering innerHTML before init:', document.getElementById('array-rendering').innerHTML);
-            
-            // Check CSS loading
-            checkCSS();
-            checkCSSRules();
-            
             // Initialize Vue apps directly (they will load the hybrid UI template)
             initializeVueApps(false, true); // Initialize for private card, skip UI template load
-            
-            console.log('=== VUE APPS INITIALIZATION CALLED ===');
         }, 100);
 
         // Hide alerts initially

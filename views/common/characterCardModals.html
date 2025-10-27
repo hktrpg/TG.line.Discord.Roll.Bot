@@ -39,6 +39,47 @@
     </div>
 </div>
 
+<!-- Logout Modal -->
+<div class="modal fade" id="logoutModalCenter" tabindex="-1" role="dialog" aria-labelledby="logoutModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logoutModalCenterTitle">登出確認</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="logoutForm">
+                    <div class="form-group">
+                        <label for="logoutUserName">用戶名</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="logoutUserName" 
+                               autocomplete="username"
+                               placeholder="Enter userName">
+                    </div>
+                    <div class="form-group">
+                        <label for="logoutUserPassword">密碼</label>
+                        <input type="password" 
+                               class="form-control" 
+                               id="logoutUserPassword"
+                               autocomplete="current-password"
+                               placeholder="Enter userPassword">
+                    </div>
+                    <div class="alert alert-danger" id="logoutWarning" style="display: none;">
+                        <strong>登出失敗</strong> 請檢查用戶名和密碼是否正確
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" onclick="confirmLogout()">確認登出</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Card List Modal -->
 <div class="modal fade" id="cardListModal" tabindex="-1" role="dialog" aria-labelledby="cardListModalLabel"
     aria-hidden="true">

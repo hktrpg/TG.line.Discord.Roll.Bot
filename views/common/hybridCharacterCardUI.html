@@ -405,14 +405,23 @@
                         {{ name || '未命名角色' }}
                     </h2>
                 <div class="character-info d-flex flex-wrap gap-3"
-                    v-if="characterDetails && characterDetails.length > 0">
-                    <span class="info-badge" v-for="(detail, index) in characterDetails.slice(0, 3)" :key="index"
+                    v-if="(!editMode && (characterDetails && characterDetails.length > 0)) || (!editMode && getNonNumericAttributes().length > 0)">
+                    <!-- 顯示角色詳情 -->
+                    <span class="info-badge" v-for="(detail, index) in characterDetails.slice(0, 3)" :key="'detail-' + index"
                         v-if="detail && detail.value && detail.value.trim() !== ''">
                         <i class="fas fa-info-circle me-1"></i>
                         <span class="info-label">{{ detail.label }}:</span>
                         <span class="info-value">{{ detail.value }}</span>
-                        </span>
-                    </div>
+                    </span>
+                    
+                    <!-- 顯示非數值屬性 -->
+                    <span class="info-badge" v-for="(attr, index) in getNonNumericAttributes().slice(0, 3)" :key="'attr-' + index"
+                        v-if="attr && attr.itemA && attr.itemA.trim() !== ''">
+                        <i class="fas fa-tag me-1"></i>
+                        <span class="info-label">{{ attr.name }}:</span>
+                        <span class="info-value">{{ attr.itemA }}</span>
+                    </span>
+                </div>
                 </div>
                 <div class="col-md-4 text-end">
                     <div class="action-controls">
@@ -420,11 +429,6 @@
                         :title="editMode ? '關閉編輯模式' : '開啟編輯模式'">
                             <i class="fas fa-edit"></i>
                             {{ editMode ? '關閉編輯' : '編輯模式' }}
-                        </button>
-                    <button type="button" class="action-btn secondary" v-if="name && !isPublic" @click="updateCard"
-                        title="儲存角色卡">
-                            <i class="fas fa-save"></i>
-                            儲存
                         </button>
                         <button type="button" class="action-btn warning" onclick="selectCard()" title="選擇角色卡">
                             <i class="fas fa-list"></i>
@@ -437,6 +441,12 @@
                         <i class="fas fa-globe"></i>
                         現在狀態：{{ public ? '公開' : '私人' }}
                         </button>
+                        
+                    <!-- 登出按鈕 (僅私人卡片) -->
+                    <button type="button" class="action-btn danger" v-if="!isPublic" @click="showLogoutModal" title="登出">
+                        <i class="fas fa-sign-out-alt"></i>
+                        登出
+                    </button>
                     </div>
                 </div>
             </div>
@@ -454,12 +464,14 @@
             </button>
             
             <div class="traditional-panel">
-                <div class="form-check mb-2">
-                <input class="form-check-input" type="radio" name="gpListRadio" value="" v-model="selectedGroupId"
-                    @change="saveSelectedGroupId" id="noGroup">
-                    <label class="form-check-label text-light" for="noGroup">
-                        不進行群組擲骰
-                    </label>
+                <div class="channel-item">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="gpListRadio" value="" v-model="selectedGroupId"
+                            @change="saveSelectedGroupId" id="noGroup">
+                        <label class="form-check-label text-light" for="noGroup">
+                            <strong>編號 0:</strong> 不進行群組擲骰
+                        </label>
+                    </div>
                 </div>
                 
                 <div v-for="(gp, i) in gpList" :key="gp._id" class="channel-item">
@@ -493,7 +505,7 @@
             </h4>
             
             <div class="hybrid-attributes-grid">
-            <div v-for="(item, index) in state" :key="index" class="attribute-panel" :class="{ 'edit-mode': editMode }">
+            <div v-for="(item, index) in state" :key="index" class="attribute-panel" :class="{ 'edit-mode': editMode, 'inline-editing': item.isInlineEditing }">
                     
                 <!-- 懸停刪除按鈕 (編輯模式) -->
                 <button type="button" class="hover-delete-btn" v-if="editMode" @click.stop="removeItem(0, index)"
@@ -501,8 +513,18 @@
                     <i class="fas fa-times"></i>
                 </button>
 
-                <div class="attribute-label" v-if="!editMode">{{ item.name }}</div>
-                    <div class="attribute-display" v-if="!editMode">
+                <!-- 內聯編輯控制按鈕 (新項目) -->
+                <div v-if="item.isInlineEditing" class="inline-edit-controls">
+                    <button type="button" class="inline-btn confirm-btn" @click.stop="confirmInlineEdit(0, index)" title="確認">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button type="button" class="inline-btn cancel-btn" @click.stop="cancelInlineEdit(0, index)" title="取消">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="attribute-label" v-if="!editMode && !item.isInlineEditing">{{ item.name }}</div>
+                    <div class="attribute-display" v-if="!editMode && !item.isInlineEditing">
                     <div class="attribute-current">
                         {{ (item.itemA || '').toString().replace(/^CC\s*/i, '') }}
                     </div>
@@ -513,7 +535,7 @@
                     </div>
                     
                     <!-- 加減按鈕 (僅現在值，位於卡片底部) -->
-                    <div v-if="isNumeric(item.itemA)" class="value-controls-bottom">
+                    <div v-if="isNumeric(item.itemA) && !item.isInlineEditing" class="value-controls-bottom">
                         <button type="button" class="value-btn plus-btn"
                             @click.stop="adjustValue(index, 'current', 1)" title="加1">
                             <i class="fas fa-plus"></i>
@@ -536,6 +558,16 @@
                             @input="item.itemB = $event.target.value" placeholder="上限" class="edit-input">
                         </div>
                     </div>
+                    
+                    <!-- 內聯編輯輸入框 -->
+                    <div v-if="item.isInlineEditing" class="inline-edit-inputs">
+                        <input type="text" v-model="item.name" placeholder="屬性名稱" class="edit-input">
+                        <div class="edit-number-inputs">
+                            <input type="text" v-model="item.itemA" placeholder="現在值" class="edit-input">
+                            <span class="edit-separator">/</span>
+                            <input type="text" v-model="item.itemB" placeholder="上限" class="edit-input">
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -554,10 +586,10 @@
             </h4>
             
         <div class="hybrid-attributes-grid">
-            <div v-for="(item, index) in roll" :key="index" class="attribute-panel" :class="{ 'edit-mode': editMode }"
-                @click="!editMode ? rolling(item.name) : null">
-                <button type="button" class="dice-roll-button" @click.stop="!editMode ? rolling(item.name) : null"
-                    title="擲骰" v-if="!editMode">
+            <div v-for="(item, index) in roll" :key="index" class="attribute-panel" :class="{ 'edit-mode': editMode, 'inline-editing': item.isInlineEditing }"
+                @click="!editMode && !item.isInlineEditing ? rolling(item.name) : null">
+                <button type="button" class="dice-roll-button" @click.stop="!editMode && !item.isInlineEditing ? rolling(item.name) : null"
+                    title="擲骰" v-if="!editMode && !item.isInlineEditing">
                     <i class="fas fa-dice-d20"></i>
                 </button>
 
@@ -567,8 +599,18 @@
                     <i class="fas fa-times"></i>
                         </button>
 
-                <div class="attribute-label" v-if="!editMode">{{ item.name }}</div>
-                <div class="attribute-value-display" v-if="!editMode">{{ item.itemA || '' }}</div>
+                <!-- 內聯編輯控制按鈕 (新項目) -->
+                <div v-if="item.isInlineEditing" class="inline-edit-controls">
+                    <button type="button" class="inline-btn confirm-btn" @click.stop="confirmInlineEdit(1, index)" title="確認">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button type="button" class="inline-btn cancel-btn" @click.stop="cancelInlineEdit(1, index)" title="取消">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="attribute-label" v-if="!editMode && !item.isInlineEditing">{{ item.name }}</div>
+                <div class="attribute-value-display" v-if="!editMode && !item.isInlineEditing">{{ item.itemA || '' }}</div>
 
                 <!-- 編輯模式下的輸入框 -->
                 <div v-if="editMode" class="edit-inputs">
@@ -576,6 +618,12 @@
                         class="edit-input">
                     <input type="text" v-model="item.itemA" placeholder="擲骰指令" class="edit-input">
                     </div>
+                    
+                <!-- 內聯編輯輸入框 -->
+                <div v-if="item.isInlineEditing" class="inline-edit-inputs">
+                    <input type="text" v-model="item.name" placeholder="技能名稱" class="edit-input">
+                    <input type="text" v-model="item.itemA" placeholder="擲骰指令" class="edit-input">
+                </div>
                 </div>
             </div>
             
@@ -594,15 +642,25 @@
             </h4>
             
             <div class="character-details-grid">
-            <div v-for="(item, index) in notes" :key="index" class="detail-panel" :class="{ 'edit-mode': editMode }">
+            <div v-for="(item, index) in notes" :key="index" class="detail-panel" :class="{ 'edit-mode': editMode, 'inline-editing': item.isInlineEditing }">
                 <!-- 懸停刪除按鈕 (編輯模式) -->
                 <button type="button" class="hover-delete-btn" v-if="editMode" @click.stop="removeItem(2, index)"
                     title="刪除此項目">
                     <i class="fas fa-times"></i>
                 </button>
 
+                <!-- 內聯編輯控制按鈕 (新項目) -->
+                <div v-if="item.isInlineEditing" class="inline-edit-controls">
+                    <button type="button" class="inline-btn confirm-btn" @click.stop="confirmInlineEdit(2, index)" title="確認">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button type="button" class="inline-btn cancel-btn" @click.stop="cancelInlineEdit(2, index)" title="取消">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
                     <!-- 正常顯示模式 -->
-                    <div v-if="!editMode" class="detail-content">
+                    <div v-if="!editMode && !item.isInlineEditing" class="detail-content">
                     <div class="detail-value" v-html="(item.itemA || item.content || '').replace(/\n/g, '<br>')"></div>
                     <div class="detail-label">{{ item.name || item.title || '' }}</div>
                     </div>
@@ -615,6 +673,12 @@
                     <input type="text" :value="item.name || item.title || ''"
                         @input="item.name = $event.target.value; if (item.title) item.title = $event.target.value"
                         placeholder="筆記標題" class="edit-detail-label">
+                    </div>
+                    
+                    <!-- 內聯編輯輸入框 -->
+                    <div v-if="item.isInlineEditing" class="inline-edit-inputs">
+                        <textarea v-model="item.itemA" placeholder="筆記內容" class="edit-detail-textarea"></textarea>
+                        <input type="text" v-model="item.name" placeholder="筆記標題" class="edit-detail-label">
                     </div>
                 </div>
             </div>
@@ -639,6 +703,18 @@
     <button type="button" class="floating-btn close-btn" @click="closeEditMode" title="關閉編輯模式">
         <i class="fas fa-times"></i>
         <span>關閉</span>
+    </button>
+</div>
+
+<!-- 非編輯模式浮動儲存按鈕 (當數值被修改時顯示) -->
+<div v-if="!editMode && hasUnsavedChanges" class="floating-save-controls">
+    <button type="button" class="floating-btn save-btn" @click="updateCard" title="儲存修改">
+        <i class="fas fa-save"></i>
+        <span>儲存</span>
+    </button>
+    <button type="button" class="floating-btn revert-btn" @click="revertChanges" title="還原修改">
+        <i class="fas fa-undo"></i>
+        <span>還原</span>
     </button>
 </div>
 
@@ -723,23 +799,41 @@
         transform: scale(1.1) !important;
     }
 
-    /* 浮動編輯控制按鈕 - 使用最高優先級 */
-    html body .floating-edit-controls,
-    html body div.floating-edit-controls {
-        position: fixed !important;
-        bottom: 20px !important;
-        right: 20px !important;
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 10px !important;
-        z-index: 1000 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-        background: transparent !important;
-        width: auto !important;
-        height: auto !important;
-    }
+/* 浮動編輯控制按鈕 - 使用最高優先級 */
+html body .floating-edit-controls,
+html body div.floating-edit-controls {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    z-index: 1000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+/* 浮動儲存控制按鈕 - 使用最高優先級 */
+html body .floating-save-controls,
+html body div.floating-save-controls {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    z-index: 1000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    width: auto !important;
+    height: auto !important;
+}
 
     html body .floating-btn,
     html body button.floating-btn {
@@ -1306,5 +1400,86 @@
     .attribute-panel {
         min-height: 100px;
     }
+}
+
+/* 內聯編輯控制按鈕樣式 */
+html body .inline-edit-controls,
+html body div.inline-edit-controls {
+    position: absolute !important;
+    top: 8px !important;
+    right: 8px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 4px !important;
+    z-index: 15 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+html body .inline-btn,
+html body button.inline-btn {
+    width: 24px !important;
+    height: 24px !important;
+    border: none !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    outline: none !important;
+    text-decoration: none !important;
+    vertical-align: middle !important;
+    user-select: none !important;
+    appearance: none !important;
+    box-sizing: border-box !important;
+}
+
+html body .inline-btn.confirm-btn {
+    background-color: #28a745 !important;
+    background: #28a745 !important;
+    color: white !important;
+}
+
+html body .inline-btn.confirm-btn:hover {
+    background-color: #218838 !important;
+    background: #218838 !important;
+    transform: scale(1.1) !important;
+}
+
+html body .inline-btn.cancel-btn {
+    background-color: #dc3545 !important;
+    background: #dc3545 !important;
+    color: white !important;
+}
+
+html body .inline-btn.cancel-btn:hover {
+    background-color: #c82333 !important;
+    background: #c82333 !important;
+    transform: scale(1.1) !important;
+}
+
+/* 內聯編輯模式樣式 */
+html body .attribute-panel.inline-editing,
+html body .detail-panel.inline-editing {
+    border-color: #28a745 !important;
+    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2) !important;
+}
+
+/* 內聯編輯輸入框樣式 */
+html body .inline-edit-inputs {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-top: 8px !important;
 }
 </style>

@@ -38,7 +38,8 @@ class CardManager {
                         public: isPublic,
                         editMode: false,
                         isPublic: isPublic,
-                        originalData: null
+                        originalData: null,
+                        hasUnsavedChanges: false
                     }
                 },
                 mounted() {
@@ -80,6 +81,9 @@ class CardManager {
                             { label: '職業', value: '保險調查員' },
                             { label: '特徵', value: '野外活動愛好者' }
                         ].filter(detail => detail && detail.label && detail.value);
+                        
+                        // 保存原始數據
+                        this.saveOriginalData();
                         
                         this.$nextTick(() => {
                             this.applyButtonStyles();
@@ -291,19 +295,25 @@ class CardManager {
                                 this.state.push({
                                     name: "",
                                     itemA: "",
-                                    itemB: ""
+                                    itemB: "",
+                                    isNewItem: true,
+                                    isInlineEditing: true
                                 });
                                 break;
                             case 1:
                                 this.roll.push({
                                     name: "",
-                                    itemA: ""
+                                    itemA: "",
+                                    isNewItem: true,
+                                    isInlineEditing: true
                                 });
                                 break;
                             case 2:
                                 this.notes.push({
                                     name: "",
-                                    itemA: ""
+                                    itemA: "",
+                                    isNewItem: true,
+                                    isInlineEditing: true
                                 });
                                 break;
                             default:
@@ -409,6 +419,11 @@ class CardManager {
                             const num = parseFloat(currentValue.toString().replace(/^CC\s*/i, ''));
                             const newValue = Math.max(0, num + delta);
                             item[field] = newValue.toString();
+                            
+                            // 在非編輯模式下標記有變更
+                            if (!this.editMode) {
+                                this.markAsChanged();
+                            }
                         }
                     },
                     
@@ -512,6 +527,10 @@ class CardManager {
                     updateCard() {
                         if (typeof globalThis.updateCard === 'function') {
                             globalThis.updateCard();
+                            // 更新成功後保存原始數據
+                            this.$nextTick(() => {
+                                this.saveOriginalData();
+                            });
                         } else {
                             console.error('Global updateCard function not found');
                             this.showError('儲存功能不可用');
@@ -525,6 +544,117 @@ class CardManager {
                         } else {
                             console.error('Error:', message);
                         }
+                    },
+                    
+                    // 保存原始數據
+                    saveOriginalData() {
+                        this.originalData = {
+                            name: this.name,
+                            state: JSON.parse(JSON.stringify(this.state)),
+                            roll: JSON.parse(JSON.stringify(this.roll)),
+                            notes: JSON.parse(JSON.stringify(this.notes)),
+                            characterDetails: JSON.parse(JSON.stringify(this.characterDetails)),
+                            public: this.public
+                        };
+                        this.hasUnsavedChanges = false;
+                    },
+                    
+                    // 檢查是否有未保存的變更
+                    checkForChanges() {
+                        if (!this.originalData) return false;
+                        
+                        const currentData = {
+                            name: this.name,
+                            state: this.state,
+                            roll: this.roll,
+                            notes: this.notes,
+                            characterDetails: this.characterDetails,
+                            public: this.public
+                        };
+                        
+                        return JSON.stringify(currentData) !== JSON.stringify(this.originalData);
+                    },
+                    
+                    // 還原變更 (非編輯模式)
+                    revertChanges() {
+                        if (!this.originalData) return;
+                        
+                        this.name = this.originalData.name;
+                        this.state = JSON.parse(JSON.stringify(this.originalData.state));
+                        this.roll = JSON.parse(JSON.stringify(this.originalData.roll));
+                        this.notes = JSON.parse(JSON.stringify(this.originalData.notes));
+                        this.characterDetails = JSON.parse(JSON.stringify(this.originalData.characterDetails));
+                        this.public = this.originalData.public;
+                        this.hasUnsavedChanges = false;
+                    },
+                    
+                    // 標記有變更
+                    markAsChanged() {
+                        this.hasUnsavedChanges = true;
+                    },
+                    
+                    // 獲取非數值屬性
+                    getNonNumericAttributes() {
+                        return this.state.filter(attr => {
+                            // 檢查 itemA 是否為非數值
+                            if (!attr.itemA || attr.itemA.trim() === '') return false;
+                            
+                            // 移除 CC 前綴後檢查是否為數值
+                            const cleanValue = attr.itemA.toString().replace(/^CC\s*/i, '');
+                            const num = parseFloat(cleanValue);
+                            const isNum = !isNaN(num) && isFinite(num);
+                            
+                            // 返回非數值屬性
+                            return !isNum;
+                        });
+                    },
+                    
+                    // 確認內聯編輯
+                    confirmInlineEdit(form, index) {
+                        const item = this.getItemByForm(form, index);
+                        if (!item) return;
+                        
+                        // 驗證必填欄位
+                        if (!item.name || item.name.trim() === '') {
+                            this.showError('請輸入名稱');
+                            return;
+                        }
+                        
+                        // 標記為已確認的新項目
+                        item.isNewItem = false;
+                        item.isInlineEditing = false;
+                        
+                        // 標記有變更
+                        this.markAsChanged();
+                    },
+                    
+                    // 取消內聯編輯
+                    cancelInlineEdit(form, index) {
+                        const item = this.getItemByForm(form, index);
+                        if (!item) return;
+                        
+                        // 如果是新項目，直接移除
+                        if (item.isNewItem) {
+                            this.removeItem(form, index);
+                        } else {
+                            // 還原到原始狀態
+                            item.isInlineEditing = false;
+                        }
+                    },
+                    
+                    // 根據表單類型獲取項目
+                    getItemByForm(form, index) {
+                        switch (form) {
+                            case 0: return this.state[index];
+                            case 1: return this.roll[index];
+                            case 2: return this.notes[index];
+                            default: return null;
+                        }
+                    },
+                    
+                    // 顯示登出模態框
+                    showLogoutModal() {
+                        $('#logoutModalCenter').modal('show');
                     }
                 }
             }).mount('#array-rendering');

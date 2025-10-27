@@ -94,6 +94,35 @@ function logout() {
     authManager.logout();
 }
 
+// Confirm logout function
+function confirmLogout() {
+    const userName = document.getElementById('logoutUserName').value;
+    const userPassword = document.getElementById('logoutUserPassword').value;
+    
+    if (!userName || !userPassword) {
+        document.getElementById('logoutWarning').style.display = 'block';
+        document.getElementById('logoutWarning').innerHTML = '<strong>錯誤!</strong> 請輸入用戶名和密碼';
+        return;
+    }
+    
+    // Clear localStorage
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userPassword');
+    localStorage.removeItem('jwtToken');
+    localStorage.removeItem('selectedGroupId');
+    
+    // Hide modal
+    $('#logoutModalCenter').modal('hide');
+    
+    // Show success message
+    uiManager.showSuccess('已成功登出');
+    
+    // Redirect to login or reload page
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
+}
+
 // DOM Ready Handler
 $(function () {
     debugLog('DOM ready, initializing components', 'info');
@@ -180,6 +209,7 @@ globalThis.initializeVueApps = initializeVueApps;
 globalThis.debugLog = debugLog;
 globalThis.login = login;
 globalThis.logout = logout;
+globalThis.confirmLogout = confirmLogout;
 globalThis.readme = readme;
 globalThis.selectCard = selectCard;
 globalThis.updateCard = updateCard;

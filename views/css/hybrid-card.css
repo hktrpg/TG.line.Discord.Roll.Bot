@@ -65,7 +65,7 @@ body {
     box-shadow: var(--shadow-medium);
     border: 2px solid var(--border-dark);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .hybrid-card-container::before {
@@ -192,7 +192,7 @@ body {
 /* 浮動添加按鈕 - 只在hover時顯示 */
 .section-add-button {
     position: absolute;
-    bottom: 20px;
+    bottom: -24px;
     left: 50%;
     transform: translateX(-50%) translateY(20px) scale(0.8);
     width: 48px;
@@ -209,7 +209,7 @@ body {
     opacity: 0;
     transition: all 0.3s ease;
     box-shadow: var(--shadow-medium);
-    z-index: 10;
+    z-index: 1000;
 }
 
 .section-container:hover .section-add-button {
@@ -225,6 +225,9 @@ body {
 /* 區段容器需要相對定位 */
 .section-container {
     position: relative;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    overflow: visible;
 }
 
 /* 筆記區域 - 傳統大面板設計 */

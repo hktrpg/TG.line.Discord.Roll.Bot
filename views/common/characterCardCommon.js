@@ -879,9 +879,40 @@ socket.on("updateCard", function (result) {
     if (result === true) {
         popup(true);
         debugLog('Card updated successfully', 'info');
+        
+        // 關閉編輯模式
+        if (card && card.editMode !== undefined) {
+            card.editMode = false;
+        }
+        
+        // 移除載入狀態
+        const updateButton = document.querySelector('[onclick="updateCard()"]');
+        if (updateButton) {
+            updateButton.classList.remove('btn-loading');
+            updateButton.disabled = false;
+        }
+        
+        // 移除卡片載入狀態
+        const cardElement = document.querySelector('.hybrid-card-container');
+        if (cardElement) {
+            cardElement.classList.remove('loading');
+        }
     } else {
         popup(false);
         debugLog('Card update failed', 'error');
+        
+        // 移除載入狀態
+        const updateButton = document.querySelector('[onclick="updateCard()"]');
+        if (updateButton) {
+            updateButton.classList.remove('btn-loading');
+            updateButton.disabled = false;
+        }
+        
+        // 移除卡片載入狀態
+        const cardElement = document.querySelector('.hybrid-card-container');
+        if (cardElement) {
+            cardElement.classList.remove('loading');
+        }
     }
 });
 

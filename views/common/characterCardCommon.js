@@ -36,6 +36,9 @@ function initializeVueApps(isPublic = false, skipUITemplateLoad = false) {
         // Set title based on card type
         TITLE = isPublic ? "HKTRPG 公開角色卡" : "HKTRPG 私人角色卡";
         
+        // Update page title
+        document.title = `${TITLE} @ HKTRPG`;
+        
         // Only load UI template if not already loaded (skipUITemplateLoad = true means UI is already loaded)
         if (!skipUITemplateLoad) {
             $("#array-rendering").load("/common/characterCardUI.html", function() {

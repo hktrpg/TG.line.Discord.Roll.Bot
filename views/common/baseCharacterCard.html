@@ -33,17 +33,17 @@
     <!-- Iconify -->
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
     
-    <title>Character Card 角色卡 @ HKTRPG</title>
+    <title>{{TITLE}} @ HKTRPG</title>
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
 </head>
 
-<body class="bg-color " id="body">
+<body class="bg-color {{BODY_CLASS}}" id="body">
     <header>
         <div id="header"></div>
     </header>
     <br>
     
-    <div class="container-fluid px-3 px-md-4 py-3">
+    <div class="{{CONTAINER_CLASS}}">
         <!-- Success Alert -->
         <div class="alert alert-success alert-dismissible fade show overlay" 
              style="position: fixed; z-index: 999; display: none;" 
@@ -63,7 +63,7 @@
         </div>
         
         <!-- Vue App Container -->
-        <div id="array-rendering" class="container-fluid px-3 px-md-4 py-3">
+        <div id="array-rendering" class="{{VUE_CONTAINER_CLASS}}">
             <!-- Hybrid UI Template will be loaded here -->
         </div>
     </div>
@@ -97,11 +97,11 @@
     <script>
         // Configuration object for page-specific settings
         const PAGE_CONFIG = {
-            isPublic: false,
-            title: "Character Card 角色卡",
-            bodyClass: "",
-            containerClass: "container-fluid px-3 px-md-4 py-3",
-            vueContainerClass: "container-fluid px-3 px-md-4 py-3"
+            isPublic: {{IS_PUBLIC}},
+            title: "{{TITLE}}",
+            bodyClass: "{{BODY_CLASS}}",
+            containerClass: "{{CONTAINER_CLASS}}",
+            vueContainerClass: "{{VUE_CONTAINER_CLASS}}"
         };
 
         // Load common modals
@@ -129,18 +129,7 @@
         };
 
         // Public card specific socket listeners
-        
-        // Private card specific socket listeners
-        socket.on('cardUpdated', function(data) {
-            if (data && data.success) {
-                $('#warning-update').show();
-                setTimeout(() => $('#warning-update').hide(), 3000);
-            } else {
-                $('#warning-updateError').show();
-                setTimeout(() => $('#warning-updateError').hide(), 3000);
-            }
-        });
-        
+        {{PUBLIC_SOCKET_LISTENERS}}
     </script>
 </body>
 <!-- HKTRPG Sad -->

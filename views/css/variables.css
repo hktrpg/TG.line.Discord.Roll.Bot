@@ -108,6 +108,23 @@
     --border-width-normal: 2px;
     --border-width-thick: 3px;
     
+    /* Bootstrap 兼容性變數 */
+    --color-white: #ffffff;
+    --color-dark: #212529;
+    --color-light: #f8f9fa;
+    
+    /* RGB 值用於 rgba() 函數 */
+    --color-primary-rgb: 139, 92, 246;
+    --color-success-rgb: 16, 185, 129;
+    --color-danger-rgb: 244, 63, 94;
+    --color-warning-rgb: 245, 158, 11;
+    --color-info-rgb: 59, 130, 246;
+    
+    /* 深色模式變數 */
+    --bg-dark-primary: #1a1a1a;
+    --bg-dark-secondary: #2d2d2d;
+    --color-text-dark: #e0e0e0;
+    
     /* 自動完成專用變數 */
     --autocomplete-max-height: 200px;
     --autocomplete-z-index: 1100;

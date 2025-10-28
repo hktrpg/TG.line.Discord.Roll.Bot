@@ -419,7 +419,8 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
-    "inheritedLevels": []
+    "inheritedLevels": [],
+    "categoryNames": "Unidentified"
   },
   {
     "id": 2,
@@ -519,7 +520,8 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
-    "inheritedLevels": []
+    "inheritedLevels": [],
+    "categoryNames": "Machine"
   },
   {
     "id": 3,
@@ -611,7 +613,8 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
-    "inheritedLevels": []
+    "inheritedLevels": [],
+    "categoryNames": "Slime"
   },
   {
     "id": 4,
@@ -725,7 +728,8 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
-    "inheritedLevels": []
+    "inheritedLevels": [],
+    "categoryNames": "Slime"
   },
   {
     "id": 5,
@@ -826,7 +830,8 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
-    "inheritedLevels": []
+    "inheritedLevels": [],
+    "categoryNames": "Slime"
   },
   {
     "id": 6,
@@ -926,7 +931,8 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
-    "inheritedLevels": []
+    "inheritedLevels": [],
+    "categoryNames": "Slime"
   },
   {
     "id": 7,
@@ -1030,7 +1036,8 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
-    "inheritedLevels": []
+    "inheritedLevels": [],
+    "categoryNames": "Slime"
   },
   {
     "id": 8,
@@ -1136,7 +1143,8 @@
     },
     "inheritedLevels": [
       5
-    ]
+    ],
+    "categoryNames": "Lesser"
   },
   {
     "id": 9,
@@ -1235,7 +1243,8 @@
     },
     "inheritedLevels": [
       5
-    ]
+    ],
+    "categoryNames": "Lesser"
   },
   {
     "id": 10,
@@ -1354,7 +1363,8 @@
     },
     "inheritedLevels": [
       5
-    ]
+    ],
+    "categoryNames": "Bulb"
   },
   {
     "id": 11,
@@ -1465,7 +1475,8 @@
     },
     "inheritedLevels": [
       5
-    ]
+    ],
+    "categoryNames": "Lesser"
   },
   {
     "id": 12,
@@ -1563,7 +1574,8 @@
     },
     "inheritedLevels": [
       5
-    ]
+    ],
+    "categoryNames": "Unidentified"
   },
   {
     "id": 13,
@@ -1661,7 +1673,8 @@
     },
     "inheritedLevels": [
       5
-    ]
+    ],
+    "categoryNames": "Lesser"
   },
   {
     "id": 14,
@@ -1758,7 +1771,8 @@
     },
     "inheritedLevels": [
       5
-    ]
+    ],
+    "categoryNames": "Lesser"
   },
   {
     "id": 15,
@@ -1864,7 +1878,8 @@
     },
     "inheritedLevels": [
       5
-    ]
+    ],
+    "categoryNames": "Lesser"
   },
   {
     "id": 16,
@@ -1970,7 +1985,8 @@
     },
     "inheritedLevels": [
       5
-    ]
+    ],
+    "categoryNames": "Lesser"
   },
   {
     "id": 17,
@@ -2069,7 +2085,8 @@
     },
     "inheritedLevels": [
       5
-    ]
+    ],
+    "categoryNames": "Bulb"
   },
   {
     "id": 18,
@@ -2167,7 +2184,8 @@
     },
     "inheritedLevels": [
       5
-    ]
+    ],
+    "categoryNames": "Lesser"
   },
   {
     "id": 19,
@@ -2264,7 +2282,8 @@
     },
     "inheritedLevels": [
       5
-    ]
+    ],
+    "categoryNames": "Lesser"
   },
   {
     "id": 20,
@@ -2361,7 +2380,8 @@
     },
     "inheritedLevels": [
       5
-    ]
+    ],
+    "categoryNames": "Lesser"
   },
   {
     "id": 21,
@@ -2442,7 +2462,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Reptile"
   },
   {
     "id": 22,
@@ -2551,7 +2572,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Holy Beast"
   },
   {
     "id": 23,
@@ -2650,7 +2672,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Sea Beast"
   },
   {
     "id": 24,
@@ -2750,7 +2773,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Beast"
   },
   {
     "id": 25,
@@ -2850,7 +2874,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Weapon"
   },
   {
     "id": 26,
@@ -2948,7 +2973,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 27,
@@ -3047,7 +3073,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Beast"
   },
   {
     "id": 28,
@@ -3146,7 +3173,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Insectoid"
   },
   {
     "id": 29,
@@ -3254,7 +3282,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Puppet"
   },
   {
     "id": 30,
@@ -3362,7 +3391,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Holy Beast"
   },
   {
     "id": 31,
@@ -3458,7 +3488,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Baby Bird"
   },
   {
     "id": 32,
@@ -3556,7 +3587,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Baby Bird"
   },
   {
     "id": 33,
@@ -3653,7 +3685,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Bird"
   },
   {
     "id": 34,
@@ -3762,7 +3795,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Mammal"
   },
   {
     "id": 35,
@@ -3861,7 +3895,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Beast"
   },
   {
     "id": 36,
@@ -3959,7 +3994,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Bird"
   },
   {
     "id": 37,
@@ -4058,7 +4094,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Mini Dragon"
   },
   {
     "id": 38,
@@ -4157,7 +4194,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Beast"
   },
   {
     "id": 39,
@@ -4254,7 +4292,8 @@
       15,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Angel"
   },
   {
     "id": 40,
@@ -4362,7 +4401,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Mammal"
   },
   {
     "id": 41,
@@ -4461,7 +4501,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Beast"
   },
   {
     "id": 42,
@@ -4587,7 +4628,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Crustacean"
   },
   {
     "id": 43,
@@ -4677,7 +4719,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Reptile"
   },
   {
     "id": 44,
@@ -4777,7 +4820,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 45,
@@ -4876,7 +4920,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 46,
@@ -4976,7 +5021,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Ore"
   },
   {
     "id": 47,
@@ -5075,7 +5121,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Reptile"
   },
   {
     "id": 48,
@@ -5173,7 +5220,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Mini Dragon"
   },
   {
     "id": 49,
@@ -5273,7 +5321,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Dragon"
   },
   {
     "id": 50,
@@ -5373,7 +5422,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Beast"
   },
   {
     "id": 51,
@@ -5471,7 +5521,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Mammal"
   },
   {
     "id": 52,
@@ -5570,7 +5621,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Mini Dragon"
   },
   {
     "id": 53,
@@ -5678,7 +5730,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Vegetation"
   },
   {
     "id": 54,
@@ -5786,7 +5839,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Vegetation"
   },
   {
     "id": 55,
@@ -5884,7 +5938,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Bird"
   },
   {
     "id": 56,
@@ -5983,7 +6038,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Vegetation"
   },
   {
     "id": 57,
@@ -6083,7 +6139,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Mammal"
   },
   {
     "id": 58,
@@ -6182,7 +6239,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Beast Man"
   },
   {
     "id": 59,
@@ -6282,7 +6340,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Beast"
   },
   {
     "id": 60,
@@ -6382,7 +6441,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Little Devil"
   },
   {
     "id": 61,
@@ -6490,7 +6550,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Amphibian"
   },
   {
     "id": 62,
@@ -6599,7 +6660,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Mammal"
   },
   {
     "id": 63,
@@ -6699,7 +6761,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Sea Animal"
   },
   {
     "id": 64,
@@ -6798,7 +6861,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Reptile"
   },
   {
     "id": 65,
@@ -6906,7 +6970,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Demon"
   },
   {
     "id": 66,
@@ -7013,7 +7078,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Demon"
   },
   {
     "id": 67,
@@ -7112,7 +7178,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Crustacean"
   },
   {
     "id": 68,
@@ -7221,7 +7288,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Demon"
   },
   {
     "id": 69,
@@ -7330,7 +7398,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Beast"
   },
   {
     "id": 70,
@@ -7428,7 +7497,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Undead"
   },
   {
     "id": 71,
@@ -7527,7 +7597,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 72,
@@ -7626,7 +7697,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Little Devil"
   },
   {
     "id": 73,
@@ -7726,7 +7798,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Insectoid"
   },
   {
     "id": 74,
@@ -7826,7 +7899,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Amphibian"
   },
   {
     "id": 75,
@@ -7933,7 +8007,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Vegetation"
   },
   {
     "id": 76,
@@ -8040,7 +8115,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Mammal"
   },
   {
     "id": 77,
@@ -8148,7 +8224,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Mini Dragon"
   },
   {
     "id": 78,
@@ -8246,7 +8323,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Bird"
   },
   {
     "id": 79,
@@ -8352,7 +8430,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Larva"
   },
   {
     "id": 80,
@@ -8451,7 +8530,8 @@
     "inheritedLevels": [
       10,
       2
-    ]
+    ],
+    "categoryNames": "Unidentified"
   },
   {
     "id": 81,
@@ -8606,7 +8686,8 @@
       30,
       2,
       10
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 82,
@@ -8707,7 +8788,8 @@
       25,
       2,
       15
-    ]
+    ],
+    "categoryNames": "Sea Beast"
   },
   {
     "id": 83,
@@ -8808,7 +8890,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Mythical Beast"
   },
   {
     "id": 84,
@@ -8918,7 +9001,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Angel"
   },
   {
     "id": 85,
@@ -9028,7 +9112,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Insectoid"
   },
   {
     "id": 86,
@@ -9137,7 +9222,8 @@
       15,
       25,
       2
-    ]
+    ],
+    "categoryNames": "Beast Man"
   },
   {
     "id": 87,
@@ -9238,7 +9324,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Beast"
   },
   {
     "id": 88,
@@ -9339,7 +9426,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Beast Dragon"
   },
   {
     "id": 89,
@@ -9448,7 +9536,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Beast"
   },
   {
     "id": 90,
@@ -9549,7 +9638,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Dinosaur"
   },
   {
     "id": 91,
@@ -9659,7 +9749,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Dragon"
   },
   {
     "id": 92,
@@ -9759,7 +9850,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Dinosaur"
   },
   {
     "id": 93,
@@ -9868,7 +9960,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Dragon Man"
   },
   {
     "id": 94,
@@ -9969,7 +10062,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Insectoid"
   },
   {
     "id": 95,
@@ -10071,7 +10165,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Weapon"
   },
   {
     "id": 96,
@@ -10172,7 +10267,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Wizard"
   },
   {
     "id": 97,
@@ -10282,7 +10378,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Holy Beast"
   },
   {
     "id": 98,
@@ -10412,7 +10509,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Dark Beast"
   },
   {
     "id": 99,
@@ -10514,7 +10612,8 @@
       15,
       25,
       2
-    ]
+    ],
+    "categoryNames": "Giant Bird"
   },
   {
     "id": 100,
@@ -10614,7 +10713,8 @@
       25,
       15,
       2
-    ]
+    ],
+    "categoryNames": "Beast"
   },
   {
     "id": 101,
@@ -10715,7 +10815,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Mythical Dragon"
   },
   {
     "id": 102,
@@ -10813,7 +10914,8 @@
       25,
       2,
       15
-    ]
+    ],
+    "categoryNames": "Bird Man"
   },
   {
     "id": 103,
@@ -10914,7 +11016,8 @@
       25,
       15,
       2
-    ]
+    ],
+    "categoryNames": "Bird"
   },
   {
     "id": 104,
@@ -11016,7 +11119,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Rare Animal"
   },
   {
     "id": 105,
@@ -11118,7 +11222,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Ice-Snow"
   },
   {
     "id": 106,
@@ -11220,7 +11325,8 @@
       25,
       2,
       15
-    ]
+    ],
+    "categoryNames": "Mythical Beast"
   },
   {
     "id": 107,
@@ -11329,7 +11435,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 108,
@@ -11430,7 +11537,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Mutant"
   },
   {
     "id": 109,
@@ -11531,7 +11639,8 @@
       25,
       2,
       15
-    ]
+    ],
+    "categoryNames": "Beast Man"
   },
   {
     "id": 110,
@@ -11633,7 +11742,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Holy Beast"
   },
   {
     "id": 111,
@@ -11733,7 +11843,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Ice-Snow"
   },
   {
     "id": 112,
@@ -11834,7 +11945,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Wizard"
   },
   {
     "id": 113,
@@ -11943,7 +12055,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Wizard"
   },
   {
     "id": 114,
@@ -12043,7 +12156,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Beast"
   },
   {
     "id": 115,
@@ -12143,7 +12257,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 116,
@@ -12244,7 +12359,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Ancient Bird"
   },
   {
     "id": 117,
@@ -12345,7 +12461,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Mysterious Beast"
   },
   {
     "id": 118,
@@ -12472,7 +12589,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 119,
@@ -12580,7 +12698,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Beast Man"
   },
   {
     "id": 120,
@@ -12691,7 +12810,8 @@
       15,
       25,
       2
-    ]
+    ],
+    "categoryNames": "Vegetation"
   },
   {
     "id": 121,
@@ -12796,7 +12916,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Aquatic"
   },
   {
     "id": 122,
@@ -12925,7 +13046,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Ancient Fish"
   },
   {
     "id": 123,
@@ -13034,7 +13156,8 @@
       25,
       15,
       2
-    ]
+    ],
+    "categoryNames": "Mollusk"
   },
   {
     "id": 124,
@@ -13135,7 +13258,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Mutant"
   },
   {
     "id": 125,
@@ -13244,7 +13368,8 @@
       25,
       15,
       2
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 126,
@@ -13344,7 +13469,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Mutant"
   },
   {
     "id": 127,
@@ -13444,7 +13570,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Dragon Man"
   },
   {
     "id": 128,
@@ -13545,7 +13672,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Dinosaur"
   },
   {
     "id": 129,
@@ -13646,7 +13774,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Beast Man"
   },
   {
     "id": 130,
@@ -13755,7 +13884,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Vegetation"
   },
   {
     "id": 131,
@@ -13856,7 +13986,8 @@
       25,
       2,
       15
-    ]
+    ],
+    "categoryNames": "Beast"
   },
   {
     "id": 132,
@@ -13957,7 +14088,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Beast Dragon"
   },
   {
     "id": 133,
@@ -14057,7 +14189,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Dinosaur"
   },
   {
     "id": 134,
@@ -14157,7 +14290,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 135,
@@ -14258,7 +14392,8 @@
       25,
       15,
       2
-    ]
+    ],
+    "categoryNames": "Fire"
   },
   {
     "id": 136,
@@ -14358,7 +14493,8 @@
       15,
       25,
       2
-    ]
+    ],
+    "categoryNames": "Armored Dragon"
   },
   {
     "id": 137,
@@ -14468,7 +14604,8 @@
       25,
       2,
       15
-    ]
+    ],
+    "categoryNames": "Beast Man"
   },
   {
     "id": 138,
@@ -14570,7 +14707,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Dark Angel"
   },
   {
     "id": 139,
@@ -14670,7 +14808,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Beast Man"
   },
   {
     "id": 140,
@@ -14770,7 +14909,8 @@
       15,
       25,
       2
-    ]
+    ],
+    "categoryNames": "Vegetation"
   },
   {
     "id": 141,
@@ -14878,7 +15018,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Demon"
   },
   {
     "id": 142,
@@ -14996,7 +15137,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Mollusk"
   },
   {
     "id": 143,
@@ -15095,7 +15237,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 144,
@@ -15197,7 +15340,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Crustacean"
   },
   {
     "id": 145,
@@ -15297,7 +15441,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Dark Dragon"
   },
   {
     "id": 146,
@@ -15399,7 +15544,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Insectoid"
   },
   {
     "id": 147,
@@ -15516,7 +15662,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Amphibian"
   },
   {
     "id": 148,
@@ -15633,7 +15780,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Mollusk"
   },
   {
     "id": 149,
@@ -15733,7 +15881,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Dragon"
   },
   {
     "id": 150,
@@ -15842,7 +15991,8 @@
       25,
       2,
       15
-    ]
+    ],
+    "categoryNames": "Mutant"
   },
   {
     "id": 151,
@@ -15959,7 +16109,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Mineral"
   },
   {
     "id": 152,
@@ -16067,7 +16218,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Dragon Man"
   },
   {
     "id": 153,
@@ -16171,7 +16323,8 @@
       25,
       2,
       15
-    ]
+    ],
+    "categoryNames": "Dark Beast"
   },
   {
     "id": 154,
@@ -16289,7 +16442,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Abnormal"
   },
   {
     "id": 155,
@@ -16389,7 +16543,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Dinosaur"
   },
   {
     "id": 156,
@@ -16493,7 +16648,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Dark Angel"
   },
   {
     "id": 157,
@@ -16596,7 +16752,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Composite"
   },
   {
     "id": 158,
@@ -16738,7 +16895,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Insectoid"
   },
   {
     "id": 159,
@@ -16855,7 +17013,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Invader"
   },
   {
     "id": 160,
@@ -16965,7 +17124,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Mollusk"
   },
   {
     "id": 161,
@@ -17076,7 +17236,8 @@
       15,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Ghost"
   },
   {
     "id": 162,
@@ -17185,7 +17346,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Ice-Snow"
   },
   {
     "id": 163,
@@ -17285,7 +17447,8 @@
       25,
       2,
       15
-    ]
+    ],
+    "categoryNames": "Demon"
   },
   {
     "id": 164,
@@ -17403,7 +17566,8 @@
       15,
       25,
       2
-    ]
+    ],
+    "categoryNames": "Insectoid"
   },
   {
     "id": 165,
@@ -17520,7 +17684,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Mutant"
   },
   {
     "id": 166,
@@ -17630,7 +17795,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Dark Beast"
   },
   {
     "id": 167,
@@ -17739,7 +17905,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Carnivorous Vegetation"
   },
   {
     "id": 168,
@@ -17840,7 +18007,8 @@
       15,
       25,
       2
-    ]
+    ],
+    "categoryNames": "Beast Man"
   },
   {
     "id": 169,
@@ -17941,7 +18109,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Wizard"
   },
   {
     "id": 170,
@@ -18050,7 +18219,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 171,
@@ -18176,7 +18346,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Undead"
   },
   {
     "id": 172,
@@ -18277,7 +18448,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 173,
@@ -18388,7 +18560,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Giant Bird"
   },
   {
     "id": 174,
@@ -18497,7 +18670,8 @@
       25,
       2,
       15
-    ]
+    ],
+    "categoryNames": "Armored Dragon"
   },
   {
     "id": 175,
@@ -18597,7 +18771,8 @@
       15,
       25,
       2
-    ]
+    ],
+    "categoryNames": "Mythical Dragon"
   },
   {
     "id": 176,
@@ -18697,7 +18872,8 @@
       2,
       25,
       15
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 177,
@@ -18797,7 +18973,8 @@
       25,
       2,
       15
-    ]
+    ],
+    "categoryNames": "Insectoid"
   },
   {
     "id": 178,
@@ -18907,7 +19084,8 @@
       2,
       15,
       25
-    ]
+    ],
+    "categoryNames": "Unidentified"
   },
   {
     "id": 179,
@@ -19002,7 +19180,8 @@
       2,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Aquatic"
   },
   {
     "id": 180,
@@ -19098,7 +19277,8 @@
       20,
       40,
       2
-    ]
+    ],
+    "categoryNames": "Mutant"
   },
   {
     "id": 181,
@@ -19193,7 +19373,8 @@
       30,
       2,
       40
-    ]
+    ],
+    "categoryNames": "Insectoid"
   },
   {
     "id": 182,
@@ -19297,7 +19478,8 @@
       2,
       20,
       40
-    ]
+    ],
+    "categoryNames": "Holy Beast"
   },
   {
     "id": 183,
@@ -19393,7 +19575,8 @@
       2,
       40,
       20
-    ]
+    ],
+    "categoryNames": "Dragon Man"
   },
   {
     "id": 184,
@@ -19488,7 +19671,8 @@
       2,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Holy Beast"
   },
   {
     "id": 185,
@@ -19583,7 +19767,8 @@
       40,
       30,
       20
-    ]
+    ],
+    "categoryNames": "Beast"
   },
   {
     "id": 186,
@@ -19678,7 +19863,8 @@
       30,
       2,
       40
-    ]
+    ],
+    "categoryNames": "Beast"
   },
   {
     "id": 187,
@@ -19807,7 +19993,8 @@
       30,
       40,
       2
-    ]
+    ],
+    "categoryNames": "Wizard"
   },
   {
     "id": 188,
@@ -19945,7 +20132,8 @@
       2,
       20,
       40
-    ]
+    ],
+    "categoryNames": "Warrior"
   },
   {
     "id": 189,
@@ -20069,7 +20257,8 @@
       20,
       30,
       40
-    ]
+    ],
+    "categoryNames": "Pixie"
   },
   {
     "id": 190,
@@ -20196,7 +20385,8 @@
       30,
       40,
       2
-    ]
+    ],
+    "categoryNames": "Dark Dragon"
   },
   {
     "id": 191,
@@ -20318,7 +20508,8 @@
       30,
       2,
       20
-    ]
+    ],
+    "categoryNames": "Aquatic"
   },
   {
     "id": 192,
@@ -20454,7 +20645,8 @@
       2,
       20,
       40
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 193,
@@ -20598,7 +20790,8 @@
       40,
       20,
       30
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 194,
@@ -20743,7 +20936,8 @@
       40,
       20,
       30
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 195,
@@ -20879,7 +21073,8 @@
       40,
       20,
       30
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 196,
@@ -21014,7 +21209,8 @@
       40,
       20,
       30
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 197,
@@ -21158,7 +21354,8 @@
       40,
       20,
       30
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 198,
@@ -21267,7 +21464,8 @@
       30,
       40,
       20
-    ]
+    ],
+    "categoryNames": "Insectoid"
   },
   {
     "id": 199,
@@ -21369,7 +21567,8 @@
       30,
       40,
       20
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 200,
@@ -21470,7 +21669,8 @@
       40,
       20,
       2
-    ]
+    ],
+    "categoryNames": "Sky Dragon"
   },
   {
     "id": 201,
@@ -21572,7 +21772,8 @@
       30,
       40,
       2
-    ]
+    ],
+    "categoryNames": "Holy Dragon"
   },
   {
     "id": 202,
@@ -21682,7 +21883,8 @@
       40,
       30,
       20
-    ]
+    ],
+    "categoryNames": "Puppet"
   },
   {
     "id": 203,
@@ -21786,7 +21988,8 @@
       40,
       20,
       30
-    ]
+    ],
+    "categoryNames": "High Angel"
   },
   {
     "id": 204,
@@ -21889,7 +22092,8 @@
       20,
       30,
       2
-    ]
+    ],
+    "categoryNames": "Bird Man"
   },
   {
     "id": 205,
@@ -22002,7 +22206,8 @@
       30,
       40,
       20
-    ]
+    ],
+    "categoryNames": "Beast Man"
   },
   {
     "id": 206,
@@ -22115,7 +22320,8 @@
       2,
       30,
       40
-    ]
+    ],
+    "categoryNames": "Warrior"
   },
   {
     "id": 207,
@@ -22214,7 +22420,8 @@
       20,
       2,
       40
-    ]
+    ],
+    "categoryNames": "Beast Man"
   },
   {
     "id": 208,
@@ -22356,7 +22563,8 @@
       20,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Dark Beast"
   },
   {
     "id": 209,
@@ -22494,7 +22702,8 @@
       30,
       20,
       40
-    ]
+    ],
+    "categoryNames": "Wizard"
   },
   {
     "id": 210,
@@ -22595,7 +22804,8 @@
       30,
       40,
       20
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 211,
@@ -22696,7 +22906,8 @@
       40,
       30,
       20
-    ]
+    ],
+    "categoryNames": "Insectoid"
   },
   {
     "id": 212,
@@ -22798,7 +23009,8 @@
       40,
       20,
       2
-    ]
+    ],
+    "categoryNames": "Sea Beast"
   },
   {
     "id": 213,
@@ -22899,7 +23111,8 @@
       40,
       30,
       2
-    ]
+    ],
+    "categoryNames": "Holy Beast"
   },
   {
     "id": 214,
@@ -23010,7 +23223,8 @@
       20,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Weapon"
   },
   {
     "id": 215,
@@ -23110,7 +23324,8 @@
       2,
       30,
       40
-    ]
+    ],
+    "categoryNames": "Giant Bird"
   },
   {
     "id": 216,
@@ -23212,7 +23427,8 @@
       40,
       30,
       20
-    ]
+    ],
+    "categoryNames": "Beast Man"
   },
   {
     "id": 217,
@@ -23313,7 +23529,8 @@
       2,
       30,
       20
-    ]
+    ],
+    "categoryNames": "Beast Dragon"
   },
   {
     "id": 218,
@@ -23414,7 +23631,8 @@
       40,
       30,
       2
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 219,
@@ -23516,7 +23734,8 @@
       30,
       40,
       20
-    ]
+    ],
+    "categoryNames": "Beast Man"
   },
   {
     "id": 220,
@@ -23628,7 +23847,8 @@
       40,
       20,
       30
-    ]
+    ],
+    "categoryNames": "Sea Animal"
   },
   {
     "id": 221,
@@ -23731,7 +23951,8 @@
       30,
       20,
       40
-    ]
+    ],
+    "categoryNames": "High Angel"
   },
   {
     "id": 222,
@@ -23832,7 +24053,8 @@
       20,
       30,
       40
-    ]
+    ],
+    "categoryNames": "Ancient Beast"
   },
   {
     "id": 223,
@@ -23932,7 +24154,8 @@
       20,
       40,
       2
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 224,
@@ -24032,7 +24255,8 @@
       2,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Puppet"
   },
   {
     "id": 225,
@@ -24132,7 +24356,8 @@
       40,
       2,
       20
-    ]
+    ],
+    "categoryNames": "Mysterious Bird"
   },
   {
     "id": 226,
@@ -24234,7 +24459,8 @@
       40,
       30,
       2
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 227,
@@ -24344,7 +24570,8 @@
       20,
       40,
       2
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 228,
@@ -24446,7 +24673,8 @@
       2,
       40,
       20
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 229,
@@ -24546,7 +24774,8 @@
       30,
       2,
       40
-    ]
+    ],
+    "categoryNames": "Beast Man"
   },
   {
     "id": 230,
@@ -24672,7 +24901,8 @@
       20,
       2,
       40
-    ]
+    ],
+    "categoryNames": "Ancient Crustacean"
   },
   {
     "id": 231,
@@ -24781,7 +25011,8 @@
       2,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Undead"
   },
   {
     "id": 232,
@@ -24883,7 +25114,8 @@
       30,
       40,
       2
-    ]
+    ],
+    "categoryNames": "Holy Beast"
   },
   {
     "id": 233,
@@ -24984,7 +25216,8 @@
       30,
       2,
       20
-    ]
+    ],
+    "categoryNames": "Ore"
   },
   {
     "id": 234,
@@ -25119,7 +25352,8 @@
       40,
       2,
       30
-    ]
+    ],
+    "categoryNames": "Dragon Man"
   },
   {
     "id": 235,
@@ -25223,7 +25457,8 @@
       30,
       40,
       2
-    ]
+    ],
+    "categoryNames": "Composite"
   },
   {
     "id": 236,
@@ -25337,7 +25572,8 @@
       2,
       30,
       40
-    ]
+    ],
+    "categoryNames": "Mutant"
   },
   {
     "id": 237,
@@ -25440,7 +25676,8 @@
       2,
       30,
       40
-    ]
+    ],
+    "categoryNames": "Wizard"
   },
   {
     "id": 238,
@@ -25555,7 +25792,8 @@
       30,
       40,
       20
-    ]
+    ],
+    "categoryNames": "Mutant"
   },
   {
     "id": 239,
@@ -25666,7 +25904,8 @@
       2,
       20,
       30
-    ]
+    ],
+    "categoryNames": "Undead"
   },
   {
     "id": 240,
@@ -25768,7 +26007,8 @@
       40,
       30,
       2
-    ]
+    ],
+    "categoryNames": "Dragon Man"
   },
   {
     "id": 241,
@@ -25957,7 +26197,8 @@
       30,
       40,
       20
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 242,
@@ -26068,7 +26309,8 @@
       40,
       2,
       30
-    ]
+    ],
+    "categoryNames": "Wizard"
   },
   {
     "id": 243,
@@ -26178,7 +26420,8 @@
       20,
       30,
       40
-    ]
+    ],
+    "categoryNames": "Perfect"
   },
   {
     "id": 244,
@@ -26280,7 +26523,8 @@
       30,
       20,
       40
-    ]
+    ],
+    "categoryNames": "Fire"
   },
   {
     "id": 245,
@@ -26382,7 +26626,8 @@
       2,
       20,
       40
-    ]
+    ],
+    "categoryNames": "Bird"
   },
   {
     "id": 246,
@@ -26484,7 +26729,8 @@
       30,
       40,
       20
-    ]
+    ],
+    "categoryNames": "Ceratopsian"
   },
   {
     "id": 247,
@@ -26585,7 +26831,8 @@
       30,
       40,
       2
-    ]
+    ],
+    "categoryNames": "Beast Dragon"
   },
   {
     "id": 248,
@@ -26688,7 +26935,8 @@
       2,
       30,
       40
-    ]
+    ],
+    "categoryNames": "Warrior"
   },
   {
     "id": 249,
@@ -26799,7 +27047,8 @@
       40,
       2,
       30
-    ]
+    ],
+    "categoryNames": "Aquatic Beast Man"
   },
   {
     "id": 250,
@@ -26902,7 +27151,8 @@
       20,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Puppet"
   },
   {
     "id": 251,
@@ -27011,7 +27261,8 @@
       2,
       40,
       20
-    ]
+    ],
+    "categoryNames": "Puppet"
   },
   {
     "id": 252,
@@ -27123,7 +27374,8 @@
       2,
       40,
       20
-    ]
+    ],
+    "categoryNames": "Mutant"
   },
   {
     "id": 253,
@@ -27225,7 +27477,8 @@
       20,
       30,
       40
-    ]
+    ],
+    "categoryNames": "Pixie"
   },
   {
     "id": 254,
@@ -27326,7 +27579,8 @@
       2,
       30,
       20
-    ]
+    ],
+    "categoryNames": "Mythical Beast"
   },
   {
     "id": 255,
@@ -27427,7 +27681,8 @@
       20,
       2,
       30
-    ]
+    ],
+    "categoryNames": "Plesiosaur"
   },
   {
     "id": 256,
@@ -27554,7 +27809,8 @@
       20,
       2,
       30
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 257,
@@ -27655,7 +27911,8 @@
       40,
       30,
       2
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 258,
@@ -27755,7 +28012,8 @@
       30,
       20,
       40
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 259,
@@ -27856,7 +28114,8 @@
       30,
       20,
       40
-    ]
+    ],
+    "categoryNames": "Mutant"
   },
   {
     "id": 260,
@@ -27958,7 +28217,8 @@
       2,
       20,
       30
-    ]
+    ],
+    "categoryNames": "Aquatic"
   },
   {
     "id": 261,
@@ -28057,7 +28317,8 @@
       2,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 262,
@@ -28159,7 +28420,8 @@
       40,
       30,
       20
-    ]
+    ],
+    "categoryNames": "Pixie"
   },
   {
     "id": 263,
@@ -28268,7 +28530,8 @@
       20,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Pixie"
   },
   {
     "id": 264,
@@ -28369,7 +28632,8 @@
       30,
       2,
       40
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 265,
@@ -28470,7 +28734,8 @@
       20,
       40,
       2
-    ]
+    ],
+    "categoryNames": "Wizard"
   },
   {
     "id": 266,
@@ -28573,7 +28838,8 @@
       30,
       20,
       40
-    ]
+    ],
+    "categoryNames": "Dark Beast"
   },
   {
     "id": 267,
@@ -28676,7 +28942,8 @@
       20,
       30,
       40
-    ]
+    ],
+    "categoryNames": "Undead"
   },
   {
     "id": 268,
@@ -28787,7 +29054,8 @@
       30,
       20,
       40
-    ]
+    ],
+    "categoryNames": "Puppet"
   },
   {
     "id": 269,
@@ -28890,7 +29158,8 @@
       30,
       40,
       20
-    ]
+    ],
+    "categoryNames": "Insectoid"
   },
   {
     "id": 270,
@@ -28992,7 +29261,8 @@
       2,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Dark Dragon"
   },
   {
     "id": 271,
@@ -29109,7 +29379,8 @@
       40,
       30,
       2
-    ]
+    ],
+    "categoryNames": "Mutant"
   },
   {
     "id": 272,
@@ -29209,7 +29480,8 @@
       2,
       40,
       20
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 273,
@@ -29319,7 +29591,8 @@
       20,
       30,
       40
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 274,
@@ -29429,7 +29702,8 @@
       40,
       2,
       30
-    ]
+    ],
+    "categoryNames": "Earth Dragon"
   },
   {
     "id": 275,
@@ -29528,7 +29802,8 @@
       2,
       30,
       20
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 276,
@@ -29629,7 +29904,8 @@
       20,
       30,
       40
-    ]
+    ],
+    "categoryNames": "Wizard"
   },
   {
     "id": 277,
@@ -29741,7 +30017,8 @@
       30,
       40,
       2
-    ]
+    ],
+    "categoryNames": "Vegetation"
   },
   {
     "id": 278,
@@ -29841,7 +30118,8 @@
       20,
       30,
       2
-    ]
+    ],
+    "categoryNames": "Undead"
   },
   {
     "id": 279,
@@ -29942,7 +30220,8 @@
       30,
       40,
       20
-    ]
+    ],
+    "categoryNames": "Undead"
   },
   {
     "id": 280,
@@ -30043,7 +30322,8 @@
       30,
       2,
       40
-    ]
+    ],
+    "categoryNames": "Undead"
   },
   {
     "id": 281,
@@ -30145,7 +30425,8 @@
       40,
       20,
       30
-    ]
+    ],
+    "categoryNames": "Mutant"
   },
   {
     "id": 282,
@@ -30245,7 +30526,8 @@
       40,
       20,
       30
-    ]
+    ],
+    "categoryNames": "Aquatic Beast Man"
   },
   {
     "id": 283,
@@ -30355,7 +30637,8 @@
       20,
       30,
       2
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 284,
@@ -30475,7 +30758,8 @@
       30,
       2,
       40
-    ]
+    ],
+    "categoryNames": "Amphibian"
   },
   {
     "id": 285,
@@ -30584,7 +30868,8 @@
       20,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 286,
@@ -30696,7 +30981,8 @@
       40,
       30,
       2
-    ]
+    ],
+    "categoryNames": "Ghost"
   },
   {
     "id": 287,
@@ -30805,7 +31091,8 @@
       40,
       20,
       30
-    ]
+    ],
+    "categoryNames": "Mollusk"
   },
   {
     "id": 288,
@@ -30907,7 +31194,8 @@
       20,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Fire"
   },
   {
     "id": 289,
@@ -31017,7 +31305,8 @@
       20,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Alien"
   },
   {
     "id": 290,
@@ -31119,7 +31408,8 @@
       30,
       2,
       40
-    ]
+    ],
+    "categoryNames": "Undead"
   },
   {
     "id": 291,
@@ -31237,7 +31527,8 @@
       2,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Undead"
   },
   {
     "id": 292,
@@ -31356,7 +31647,8 @@
       20,
       2,
       40
-    ]
+    ],
+    "categoryNames": "Magic Warrior"
   },
   {
     "id": 293,
@@ -31458,7 +31750,8 @@
       40,
       30,
       2
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 294,
@@ -31570,7 +31863,8 @@
       20,
       30,
       2
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 295,
@@ -31672,7 +31966,8 @@
       20,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 296,
@@ -31808,7 +32103,8 @@
       2,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Evil King"
   },
   {
     "id": 297,
@@ -31911,7 +32207,8 @@
       30,
       2,
       40
-    ]
+    ],
+    "categoryNames": "Dark Angel"
   },
   {
     "id": 298,
@@ -32013,7 +32310,8 @@
       2,
       30,
       40
-    ]
+    ],
+    "categoryNames": "Wizard"
   },
   {
     "id": 299,
@@ -32116,7 +32414,8 @@
       20,
       2,
       40
-    ]
+    ],
+    "categoryNames": "Aquatic"
   },
   {
     "id": 300,
@@ -32227,7 +32526,8 @@
       2,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Mutant"
   },
   {
     "id": 301,
@@ -32328,7 +32628,8 @@
       20,
       30,
       40
-    ]
+    ],
+    "categoryNames": "Beast Man"
   },
   {
     "id": 302,
@@ -32428,7 +32729,8 @@
       20,
       40,
       2
-    ]
+    ],
+    "categoryNames": "Mutant"
   },
   {
     "id": 303,
@@ -32529,7 +32831,8 @@
       2,
       40,
       30
-    ]
+    ],
+    "categoryNames": "Dragon Man"
   },
   {
     "id": 304,
@@ -32631,7 +32934,8 @@
       30,
       2,
       40
-    ]
+    ],
+    "categoryNames": "Unidentified"
   },
   {
     "id": 305,
@@ -32730,7 +33034,8 @@
       45,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Wizard"
   },
   {
     "id": 306,
@@ -32829,7 +33134,8 @@
       25,
       2,
       45
-    ]
+    ],
+    "categoryNames": "Warrior"
   },
   {
     "id": 307,
@@ -32956,7 +33262,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 308,
@@ -33093,7 +33400,8 @@
       45,
       35,
       25
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 309,
@@ -33227,7 +33535,8 @@
       25,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 310,
@@ -33382,7 +33691,8 @@
       25,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Holy Bird"
   },
   {
     "id": 311,
@@ -33540,7 +33850,8 @@
       2,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 312,
@@ -33667,7 +33978,8 @@
       45,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Dragon Man"
   },
   {
     "id": 313,
@@ -33795,7 +34107,8 @@
       25,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Beast Dragon"
   },
   {
     "id": 314,
@@ -33937,7 +34250,8 @@
       25,
       2,
       35
-    ]
+    ],
+    "categoryNames": "Super Angel"
   },
   {
     "id": 315,
@@ -34043,7 +34357,8 @@
       2,
       25,
       45
-    ]
+    ],
+    "categoryNames": "Virtue"
   },
   {
     "id": 316,
@@ -34185,7 +34500,8 @@
       45,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 317,
@@ -34319,7 +34635,8 @@
       2,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Giant Bird"
   },
   {
     "id": 318,
@@ -34449,7 +34766,8 @@
       45,
       2,
       35
-    ]
+    ],
+    "categoryNames": "Bird Man"
   },
   {
     "id": 319,
@@ -34576,7 +34894,8 @@
       45,
       2,
       35
-    ]
+    ],
+    "categoryNames": "Cherub"
   },
   {
     "id": 320,
@@ -34702,7 +35021,8 @@
       25,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Cherub"
   },
   {
     "id": 321,
@@ -34801,7 +35121,8 @@
       25,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Holy Dragon"
   },
   {
     "id": 322,
@@ -34937,7 +35258,8 @@
       45,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Shining Dragon"
   },
   {
     "id": 323,
@@ -35063,7 +35385,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 324,
@@ -35162,7 +35485,8 @@
       45,
       25,
       2
-    ]
+    ],
+    "categoryNames": "Undead"
   },
   {
     "id": 325,
@@ -35297,7 +35621,8 @@
       2,
       45,
       25
-    ]
+    ],
+    "categoryNames": "Great Angel"
   },
   {
     "id": 326,
@@ -35432,7 +35757,8 @@
       45,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 327,
@@ -35596,7 +35922,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Dragon Man"
   },
   {
     "id": 328,
@@ -35722,7 +36049,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Seraph"
   },
   {
     "id": 329,
@@ -35857,7 +36185,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 330,
@@ -35983,7 +36312,8 @@
       2,
       35,
       45
-    ]
+    ],
+    "categoryNames": "Holy Sword"
   },
   {
     "id": 331,
@@ -36119,7 +36449,8 @@
       25,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 332,
@@ -36218,7 +36549,8 @@
       25,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 333,
@@ -36348,7 +36680,8 @@
       35,
       2,
       45
-    ]
+    ],
+    "categoryNames": "Beast Man"
   },
   {
     "id": 334,
@@ -36455,7 +36788,8 @@
       45,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Insectoid"
   },
   {
     "id": 335,
@@ -36552,7 +36886,8 @@
       45,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Holy Beast"
   },
   {
     "id": 336,
@@ -36658,7 +36993,8 @@
       25,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Holy Dragon"
   },
   {
     "id": 337,
@@ -36821,7 +37157,8 @@
       25,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Angel"
   },
   {
     "id": 338,
@@ -36933,7 +37270,8 @@
       25,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Pixie"
   },
   {
     "id": 339,
@@ -37059,7 +37397,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 340,
@@ -37205,7 +37544,8 @@
       25,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 341,
@@ -37342,7 +37682,8 @@
       45,
       2,
       35
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 342,
@@ -37477,7 +37818,8 @@
       25,
       35,
       45
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 343,
@@ -37613,7 +37955,8 @@
       25,
       35,
       45
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 344,
@@ -37737,7 +38080,8 @@
       35,
       25,
       45
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 345,
@@ -37872,7 +38216,8 @@
       35,
       45,
       25
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 346,
@@ -37970,7 +38315,8 @@
       35,
       2,
       45
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 347,
@@ -38068,7 +38414,8 @@
       35,
       2,
       45
-    ]
+    ],
+    "categoryNames": "Mythical Beast"
   },
   {
     "id": 348,
@@ -38254,7 +38601,8 @@
       25,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 349,
@@ -38435,7 +38783,8 @@
       25,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 350,
@@ -38571,7 +38920,8 @@
       35,
       25,
       45
-    ]
+    ],
+    "categoryNames": "Ancient Beast"
   },
   {
     "id": 351,
@@ -38705,7 +39055,8 @@
       35,
       25,
       45
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 352,
@@ -38840,7 +39191,8 @@
       45,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 353,
@@ -38966,7 +39318,8 @@
       25,
       35,
       45
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 354,
@@ -39126,7 +39479,8 @@
       45,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 355,
@@ -39279,7 +39633,8 @@
       2,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 356,
@@ -39445,7 +39800,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 357,
@@ -39599,7 +39955,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 358,
@@ -39724,7 +40081,8 @@
       45,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Beast Dragon"
   },
   {
     "id": 359,
@@ -39860,7 +40218,8 @@
       25,
       35,
       45
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 360,
@@ -39968,7 +40327,8 @@
       25,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Mutant"
   },
   {
     "id": 361,
@@ -40075,7 +40435,8 @@
       45,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Plesiosaur"
   },
   {
     "id": 362,
@@ -40173,7 +40534,8 @@
       45,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 363,
@@ -40310,7 +40672,8 @@
       35,
       2,
       45
-    ]
+    ],
+    "categoryNames": "Beast Knight"
   },
   {
     "id": 364,
@@ -40447,7 +40810,8 @@
       35,
       45,
       25
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 365,
@@ -40546,7 +40910,8 @@
       25,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 366,
@@ -40670,7 +41035,8 @@
       25,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Warrior"
   },
   {
     "id": 367,
@@ -40799,7 +41165,8 @@
       45,
       2,
       35
-    ]
+    ],
+    "categoryNames": "Pixie"
   },
   {
     "id": 368,
@@ -40984,7 +41351,8 @@
       25,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Pixie"
   },
   {
     "id": 369,
@@ -41111,7 +41479,8 @@
       45,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Dragon Man"
   },
   {
     "id": 370,
@@ -41254,7 +41623,8 @@
       35,
       2,
       45
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 371,
@@ -41368,7 +41738,8 @@
       25,
       2,
       35
-    ]
+    ],
+    "categoryNames": "Dark Beast"
   },
   {
     "id": 372,
@@ -41509,7 +41880,8 @@
       35,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Ancient Mutant"
   },
   {
     "id": 373,
@@ -41653,7 +42025,8 @@
       45,
       35,
       25
-    ]
+    ],
+    "categoryNames": "Dragon Man"
   },
   {
     "id": 374,
@@ -41788,7 +42161,8 @@
       2,
       25,
       45
-    ]
+    ],
+    "categoryNames": "Dark Knight"
   },
   {
     "id": 375,
@@ -41886,7 +42260,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 376,
@@ -42009,7 +42384,8 @@
       45,
       2,
       35
-    ]
+    ],
+    "categoryNames": "Dark Beast"
   },
   {
     "id": 377,
@@ -42146,7 +42522,8 @@
       25,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 378,
@@ -42269,7 +42646,8 @@
       45,
       2,
       35
-    ]
+    ],
+    "categoryNames": "Puppet"
   },
   {
     "id": 379,
@@ -42403,7 +42781,8 @@
       35,
       45,
       25
-    ]
+    ],
+    "categoryNames": "Dark Beast"
   },
   {
     "id": 380,
@@ -42562,7 +42941,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Dragon Man"
   },
   {
     "id": 381,
@@ -42687,7 +43067,8 @@
       35,
       25,
       2
-    ]
+    ],
+    "categoryNames": "Wizard"
   },
   {
     "id": 382,
@@ -42820,7 +43201,8 @@
       25,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Undead"
   },
   {
     "id": 383,
@@ -42948,7 +43330,8 @@
       35,
       45,
       25
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 384,
@@ -43047,7 +43430,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 385,
@@ -43184,7 +43568,8 @@
       35,
       2,
       45
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 386,
@@ -43342,7 +43727,8 @@
       2,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Insectoid"
   },
   {
     "id": 387,
@@ -43439,7 +43825,8 @@
       45,
       2,
       35
-    ]
+    ],
+    "categoryNames": "Evil King"
   },
   {
     "id": 388,
@@ -43575,7 +43962,8 @@
       2,
       25,
       45
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 389,
@@ -43712,7 +44100,8 @@
       25,
       35,
       45
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 390,
@@ -43818,7 +44207,8 @@
       35,
       2,
       45
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 391,
@@ -43959,7 +44349,8 @@
       45,
       35,
       25
-    ]
+    ],
+    "categoryNames": "Evil King"
   },
   {
     "id": 392,
@@ -44058,7 +44449,8 @@
       35,
       25,
       45
-    ]
+    ],
+    "categoryNames": "Wizard"
   },
   {
     "id": 393,
@@ -44156,7 +44548,8 @@
       45,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Puppet"
   },
   {
     "id": 394,
@@ -44263,7 +44656,8 @@
       2,
       25,
       45
-    ]
+    ],
+    "categoryNames": "Wizard"
   },
   {
     "id": 395,
@@ -44361,7 +44755,8 @@
       25,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Mutant"
   },
   {
     "id": 396,
@@ -44519,7 +44914,8 @@
       2,
       45,
       25
-    ]
+    ],
+    "categoryNames": "Mutant"
   },
   {
     "id": 397,
@@ -44665,7 +45061,8 @@
       25,
       2,
       45
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 398,
@@ -44792,7 +45189,8 @@
       2,
       35,
       25
-    ]
+    ],
+    "categoryNames": "Machine Dragon"
   },
   {
     "id": 399,
@@ -44933,7 +45331,8 @@
       25,
       35,
       45
-    ]
+    ],
+    "categoryNames": "Evil King"
   },
   {
     "id": 400,
@@ -45059,7 +45458,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Wizard"
   },
   {
     "id": 401,
@@ -45195,7 +45595,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Evil King"
   },
   {
     "id": 402,
@@ -45341,7 +45742,8 @@
       45,
       35,
       25
-    ]
+    ],
+    "categoryNames": "Evil King"
   },
   {
     "id": 403,
@@ -45467,7 +45869,8 @@
       25,
       2,
       35
-    ]
+    ],
+    "categoryNames": "Dragon Man"
   },
   {
     "id": 404,
@@ -45594,7 +45997,8 @@
       25,
       35,
       45
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 405,
@@ -45700,7 +46104,8 @@
       25,
       2,
       45
-    ]
+    ],
+    "categoryNames": "Composite"
   },
   {
     "id": 406,
@@ -45800,7 +46205,8 @@
       2,
       25,
       35
-    ]
+    ],
+    "categoryNames": "Machine"
   },
   {
     "id": 407,
@@ -45953,7 +46359,8 @@
       35,
       25,
       45
-    ]
+    ],
+    "categoryNames": "Evil Dragon"
   },
   {
     "id": 408,
@@ -46068,7 +46475,8 @@
       25,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 409,
@@ -46219,7 +46627,8 @@
       25,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 410,
@@ -46365,7 +46774,8 @@
       45,
       25,
       35
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 411,
@@ -46505,7 +46915,8 @@
       45,
       25,
       35
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 412,
@@ -46648,7 +47059,8 @@
       25,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 413,
@@ -46793,7 +47205,8 @@
       25,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Evil King"
   },
   {
     "id": 414,
@@ -46907,7 +47320,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Evil King"
   },
   {
     "id": 415,
@@ -47032,7 +47446,8 @@
       35,
       25,
       2
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 416,
@@ -47189,7 +47604,8 @@
       45,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Ancient Dragon"
   },
   {
     "id": 417,
@@ -47311,6 +47727,32 @@
         "name": "",
         "moveDescriptionEnglish": "[Target: All enemies]\r\nPerforms  Light physical attack at power 80.\r\nIncreased damage to targets with Unknown Trait.",
         "increasedDmgAgainstClassEng": "Unknown"
+      },
+      {
+        "id": "24192",
+        "effectId": 12011,
+        "dmgType": 1,
+        "power": 80,
+        "element": 9,
+        "increasedDmgAgainstClass": 41,
+        "additionalProperty": 0,
+        "additionalProperty_1": 0,
+        "targetType": 5,
+        "minHits": 1,
+        "maxHits": 1,
+        "accuracy": 100,
+        "alwaysHits": 0,
+        "critRate": 5,
+        "HPDrain": 0,
+        "SPDrain": 0,
+        "recoil": 0,
+        "skillConditionalType": 0,
+        "skillEffectIfConditional": 0,
+        "skillConditionalArg": 0,
+        "skillEffectArg": 0,
+        "name": "",
+        "moveDescriptionEnglish": "[Target: All enemies]\r\nPerforms  Light physical attack at power 80.\r\nIncreased damage to targets with Unknown Trait.",
+        "increasedDmgAgainstClassEng": "Unknown"
       }
     ],
     "rider": 0,
@@ -47344,7 +47786,8 @@
       45,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Ancient Dragon Man"
   },
   {
     "id": 418,
@@ -47470,7 +47913,8 @@
       35,
       2,
       45
-    ]
+    ],
+    "categoryNames": "Beast Man"
   },
   {
     "id": 419,
@@ -47604,7 +48048,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Warrior"
   },
   {
     "id": 420,
@@ -47702,7 +48147,8 @@
       45,
       2,
       35
-    ]
+    ],
+    "categoryNames": "Insectoid"
   },
   {
     "id": 421,
@@ -47801,7 +48247,8 @@
       45,
       25,
       35
-    ]
+    ],
+    "categoryNames": "Unidentified"
   },
   {
     "id": 422,
@@ -47906,7 +48353,8 @@
       35,
       45,
       25
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 423,
@@ -48039,7 +48487,8 @@
       2,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 424,
@@ -48174,7 +48623,8 @@
       25,
       45,
       35
-    ]
+    ],
+    "categoryNames": "Dragon Warrior"
   },
   {
     "id": 425,
@@ -48274,7 +48724,8 @@
       25,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 426,
@@ -48379,7 +48830,8 @@
       25,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 427,
@@ -48504,7 +48956,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "No Data"
   },
   {
     "id": 428,
@@ -48621,7 +49074,8 @@
       45,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 429,
@@ -48734,7 +49188,8 @@
       45,
       2,
       25
-    ]
+    ],
+    "categoryNames": "Ancient Holy Knight"
   },
   {
     "id": 430,
@@ -48862,7 +49317,8 @@
       25,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 431,
@@ -48990,7 +49446,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 432,
@@ -49124,7 +49581,8 @@
       25,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Unique"
   },
   {
     "id": 433,
@@ -49258,7 +49716,8 @@
       45,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Unique"
   },
   {
     "id": 434,
@@ -49400,7 +49859,8 @@
       45,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Galaxy"
   },
   {
     "id": 435,
@@ -49541,7 +50001,8 @@
       45,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Shining Dragon"
   },
   {
     "id": 436,
@@ -49667,7 +50128,8 @@
       25,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 437,
@@ -49817,7 +50279,8 @@
       25,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 438,
@@ -49941,7 +50404,8 @@
       45,
       2,
       35
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 439,
@@ -50066,7 +50530,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 440,
@@ -50228,7 +50693,8 @@
       35,
       2,
       45
-    ]
+    ],
+    "categoryNames": "Beast Knight"
   },
   {
     "id": 441,
@@ -50387,7 +50853,8 @@
       45,
       35,
       2
-    ]
+    ],
+    "categoryNames": "Pixie"
   },
   {
     "id": 442,
@@ -50493,7 +50960,8 @@
       35,
       2,
       45
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 443,
@@ -50617,7 +51085,8 @@
       45,
       25,
       2
-    ]
+    ],
+    "categoryNames": "Holy Knight"
   },
   {
     "id": 444,
@@ -50741,7 +51210,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Evil King"
   },
   {
     "id": 445,
@@ -50874,7 +51344,8 @@
       35,
       45,
       2
-    ]
+    ],
+    "categoryNames": "Evil King"
   },
   {
     "id": 446,
@@ -51007,7 +51478,8 @@
       35,
       2,
       45
-    ]
+    ],
+    "categoryNames": "Deity"
   },
   {
     "id": 447,
@@ -51140,7 +51612,8 @@
       35,
       25,
       45
-    ]
+    ],
+    "categoryNames": "Demon God"
   },
   {
     "id": 448,
@@ -51273,7 +51746,8 @@
       2,
       35,
       45
-    ]
+    ],
+    "categoryNames": "Unidentified"
   },
   {
     "id": 449,
@@ -51404,7 +51878,8 @@
       15,
       30,
       50
-    ]
+    ],
+    "categoryNames": "Unidentified"
   },
   {
     "id": 450,
@@ -51500,7 +51975,8 @@
       25,
       2,
       35
-    ]
+    ],
+    "categoryNames": "Unidentified"
   },
   {
     "id": 451,
@@ -51622,7 +52098,8 @@
       20,
       50,
       35
-    ]
+    ],
+    "categoryNames": "Unidentified"
   },
   {
     "id": 468,
@@ -51721,7 +52198,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Reptile"
   },
   {
     "id": 469,
@@ -51821,7 +52299,8 @@
     "inheritedLevels": [
       2,
       10
-    ]
+    ],
+    "categoryNames": "Reptile"
   },
   {
     "id": 470,
@@ -51921,7 +52400,8 @@
       15,
       30,
       2
-    ]
+    ],
+    "categoryNames": "Beast"
   },
   {
     "id": 471,
@@ -52021,7 +52501,8 @@
       2,
       30,
       15
-    ]
+    ],
+    "categoryNames": "Dinosaur"
   },
   {
     "id": 472,
@@ -52120,7 +52601,8 @@
       20,
       50,
       35
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": 473,
@@ -52220,7 +52702,8 @@
       20,
       2,
       35
-    ]
+    ],
+    "categoryNames": "Beast Man"
   },
   {
     "id": 474,
@@ -52347,7 +52830,8 @@
       25,
       40,
       60
-    ]
+    ],
+    "categoryNames": "Dragon Man"
   },
   {
     "id": 475,
@@ -52476,7 +52960,8 @@
       40,
       2,
       60
-    ]
+    ],
+    "categoryNames": "Android"
   },
   {
     "id": "world_data",

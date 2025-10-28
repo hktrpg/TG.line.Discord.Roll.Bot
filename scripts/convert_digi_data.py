@@ -326,6 +326,29 @@ def convert(source_path: str, output_path: str) -> None:
             "conditions": entry.get("conditions", {}),
         }
 
+        # Add top-level categoryNames (single) resolved from categoryNames.English by digimon id
+        try:
+            digimon_id = entry.get("id") if isinstance(entry, dict) else None
+            if digimon_id is None:
+                digimon_id = base_stats.get("fieldGuideId")
+            cat_names_root = lookups.get("categoryNames") or {}
+            cat_names_eng = None
+            if isinstance(cat_names_root, dict):
+                for lang_key in ("English", "english", "eng", "en"):
+                    node = cat_names_root.get(lang_key)
+                    if isinstance(node, dict):
+                        cat_names_eng = node
+                        break
+                if cat_names_eng is None:
+                    cat_names_eng = normalize_case_dict(cat_names_root).get("english") if isinstance(cat_names_root, dict) else None
+            if isinstance(cat_names_eng, dict) and digimon_id is not None:
+                nm = cat_names_eng.get(str(digimon_id))
+                if isinstance(nm, str) and nm:
+                    target["categoryNames"] = nm
+        except Exception:
+            # best-effort; ignore resolution errors
+            pass
+
         # inherited levels array
         levels: List[int] = []
         if isinstance(inherited, dict):

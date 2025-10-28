@@ -27,6 +27,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Unidentified",
     "inheritedLevels": [],
     "special_skills": [
       {
@@ -83,6 +84,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [],
     "special_skills": [
       {
@@ -148,6 +150,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Slime",
     "inheritedLevels": [],
     "special_skills": [
       {
@@ -204,6 +207,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Slime",
     "inheritedLevels": [],
     "special_skills": [
       {
@@ -269,6 +273,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Slime",
     "inheritedLevels": [],
     "special_skills": [
       {
@@ -334,6 +339,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Slime",
     "inheritedLevels": [],
     "special_skills": [
       {
@@ -399,6 +405,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Slime",
     "inheritedLevels": [],
     "special_skills": [
       {
@@ -455,6 +462,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Lesser",
     "inheritedLevels": [
       5
     ],
@@ -522,6 +530,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Lesser",
     "inheritedLevels": [
       5
     ],
@@ -580,6 +589,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Bulb",
     "inheritedLevels": [
       5
     ],
@@ -647,6 +657,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Lesser",
     "inheritedLevels": [
       5
     ],
@@ -705,6 +716,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Unidentified",
     "inheritedLevels": [
       5
     ],
@@ -763,6 +775,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Lesser",
     "inheritedLevels": [
       5
     ],
@@ -821,6 +834,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Lesser",
     "inheritedLevels": [
       5
     ],
@@ -879,6 +893,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Lesser",
     "inheritedLevels": [
       5
     ],
@@ -946,6 +961,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Lesser",
     "inheritedLevels": [
       5
     ],
@@ -1013,6 +1029,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Bulb",
     "inheritedLevels": [
       5
     ],
@@ -1071,6 +1088,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Lesser",
     "inheritedLevels": [
       5
     ],
@@ -1129,6 +1147,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Lesser",
     "inheritedLevels": [
       5
     ],
@@ -1187,6 +1206,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Lesser",
     "inheritedLevels": [
       5
     ],
@@ -1245,6 +1265,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Reptile",
     "inheritedLevels": [
       2,
       10
@@ -1285,6 +1306,7 @@
       "level": "Rookie"
     },
     "conditions": {},
+    "categoryNames": "Reptile",
     "inheritedLevels": [
       2,
       10
@@ -1344,6 +1366,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Beast",
     "inheritedLevels": [
       2,
       10
@@ -1412,6 +1435,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Sea Beast",
     "inheritedLevels": [
       2,
       10
@@ -1471,6 +1495,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast",
     "inheritedLevels": [
       10,
       2
@@ -1530,6 +1555,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Weapon",
     "inheritedLevels": [
       2,
       10
@@ -1589,6 +1615,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       10,
       2
@@ -1648,6 +1675,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast",
     "inheritedLevels": [
       10,
       2
@@ -1707,6 +1735,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Insectoid",
     "inheritedLevels": [
       2,
       10
@@ -1766,6 +1795,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Puppet",
     "inheritedLevels": [
       2,
       10
@@ -1834,6 +1864,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Beast",
     "inheritedLevels": [
       10,
       2
@@ -1902,6 +1933,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Baby Bird",
     "inheritedLevels": [
       2,
       10
@@ -1961,6 +1993,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Baby Bird",
     "inheritedLevels": [
       2,
       10
@@ -2020,6 +2053,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Bird",
     "inheritedLevels": [
       2,
       10
@@ -2079,6 +2113,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mammal",
     "inheritedLevels": [
       2,
       10
@@ -2147,6 +2182,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast",
     "inheritedLevels": [
       2,
       10
@@ -2206,6 +2242,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Bird",
     "inheritedLevels": [
       10,
       2
@@ -2265,6 +2302,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mini Dragon",
     "inheritedLevels": [
       2,
       10
@@ -2324,6 +2362,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast",
     "inheritedLevels": [
       10,
       2
@@ -2383,6 +2422,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Angel",
     "inheritedLevels": [
       30,
       15,
@@ -2444,6 +2484,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mammal",
     "inheritedLevels": [
       2,
       10
@@ -2512,6 +2553,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast",
     "inheritedLevels": [
       2,
       10
@@ -2571,6 +2613,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Crustacean",
     "inheritedLevels": [
       10,
       2
@@ -2656,6 +2699,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Reptile",
     "inheritedLevels": [
       2,
       10
@@ -2705,6 +2749,7 @@
       "level": "Rookie"
     },
     "conditions": {},
+    "categoryNames": "Reptile",
     "inheritedLevels": [
       2,
       10
@@ -2773,6 +2818,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       2,
       10
@@ -2832,6 +2878,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       10,
       2
@@ -2891,6 +2938,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Ore",
     "inheritedLevels": [
       10,
       2
@@ -2950,6 +2998,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Reptile",
     "inheritedLevels": [
       2,
       10
@@ -3009,6 +3058,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mini Dragon",
     "inheritedLevels": [
       2,
       10
@@ -3068,6 +3118,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dragon",
     "inheritedLevels": [
       2,
       10
@@ -3127,6 +3178,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast",
     "inheritedLevels": [
       2,
       10
@@ -3186,6 +3238,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mammal",
     "inheritedLevels": [
       2,
       10
@@ -3245,6 +3298,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mini Dragon",
     "inheritedLevels": [
       2,
       10
@@ -3304,6 +3358,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Vegetation",
     "inheritedLevels": [
       2,
       10
@@ -3372,6 +3427,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Vegetation",
     "inheritedLevels": [
       2,
       10
@@ -3440,6 +3496,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Bird",
     "inheritedLevels": [
       10,
       2
@@ -3499,6 +3556,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Vegetation",
     "inheritedLevels": [
       10,
       2
@@ -3558,6 +3616,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mammal",
     "inheritedLevels": [
       2,
       10
@@ -3617,6 +3676,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Man",
     "inheritedLevels": [
       2,
       10
@@ -3676,6 +3736,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast",
     "inheritedLevels": [
       10,
       2
@@ -3735,6 +3796,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Little Devil",
     "inheritedLevels": [
       2,
       10
@@ -3794,6 +3856,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Amphibian",
     "inheritedLevels": [
       2,
       10
@@ -3862,6 +3925,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mammal",
     "inheritedLevels": [
       2,
       10
@@ -3930,6 +3994,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Sea Animal",
     "inheritedLevels": [
       2,
       10
@@ -3989,6 +4054,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Reptile",
     "inheritedLevels": [
       10,
       2
@@ -4048,6 +4114,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Demon",
     "inheritedLevels": [
       2,
       10
@@ -4116,6 +4183,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Demon",
     "inheritedLevels": [
       10,
       2
@@ -4184,6 +4252,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Crustacean",
     "inheritedLevels": [
       2,
       10
@@ -4243,6 +4312,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Demon",
     "inheritedLevels": [
       10,
       2
@@ -4311,6 +4381,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast",
     "inheritedLevels": [
       2,
       10
@@ -4379,6 +4450,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Undead",
     "inheritedLevels": [
       10,
       2
@@ -4438,6 +4510,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       2,
       10
@@ -4497,6 +4570,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Little Devil",
     "inheritedLevels": [
       2,
       10
@@ -4556,6 +4630,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Insectoid",
     "inheritedLevels": [
       10,
       2
@@ -4615,6 +4690,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Amphibian",
     "inheritedLevels": [
       2,
       10
@@ -4674,6 +4750,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Vegetation",
     "inheritedLevels": [
       2,
       10
@@ -4742,6 +4819,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mammal",
     "inheritedLevels": [
       10,
       2
@@ -4810,6 +4888,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mini Dragon",
     "inheritedLevels": [
       2,
       10
@@ -4878,6 +4957,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Bird",
     "inheritedLevels": [
       2,
       10
@@ -4937,6 +5017,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Larva",
     "inheritedLevels": [
       2,
       10
@@ -5005,6 +5086,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Unidentified",
     "inheritedLevels": [
       10,
       2
@@ -5064,6 +5146,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       20,
       30,
@@ -5176,6 +5259,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Sea Beast",
     "inheritedLevels": [
       25,
       2,
@@ -5236,6 +5320,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mythical Beast",
     "inheritedLevels": [
       2,
       15,
@@ -5296,6 +5381,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Angel",
     "inheritedLevels": [
       15,
       2,
@@ -5366,6 +5452,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Insectoid",
     "inheritedLevels": [
       2,
       15,
@@ -5436,6 +5523,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Man",
     "inheritedLevels": [
       15,
       25,
@@ -5505,6 +5593,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast",
     "inheritedLevels": [
       15,
       2,
@@ -5565,6 +5654,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Dragon",
     "inheritedLevels": [
       2,
       25,
@@ -5626,6 +5716,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast",
     "inheritedLevels": [
       2,
       25,
@@ -5696,6 +5787,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dinosaur",
     "inheritedLevels": [
       2,
       25,
@@ -5756,6 +5848,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dragon",
     "inheritedLevels": [
       2,
       15,
@@ -5826,6 +5919,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dinosaur",
     "inheritedLevels": [
       2,
       15,
@@ -5886,6 +5980,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dragon Man",
     "inheritedLevels": [
       2,
       25,
@@ -5955,6 +6050,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Insectoid",
     "inheritedLevels": [
       15,
       2,
@@ -6015,6 +6111,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Weapon",
     "inheritedLevels": [
       2,
       15,
@@ -6076,6 +6173,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Wizard",
     "inheritedLevels": [
       2,
       25,
@@ -6137,6 +6235,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Beast",
     "inheritedLevels": [
       2,
       25,
@@ -6206,6 +6305,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dark Beast",
     "inheritedLevels": [
       2,
       15,
@@ -6283,6 +6383,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Giant Bird",
     "inheritedLevels": [
       15,
       25,
@@ -6343,6 +6444,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast",
     "inheritedLevels": [
       25,
       15,
@@ -6404,6 +6506,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mythical Dragon",
     "inheritedLevels": [
       15,
       2,
@@ -6464,6 +6567,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Bird Man",
     "inheritedLevels": [
       25,
       2,
@@ -6524,6 +6628,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Bird",
     "inheritedLevels": [
       25,
       15,
@@ -6584,6 +6689,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Rare Animal",
     "inheritedLevels": [
       15,
       2,
@@ -6644,6 +6750,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Ice-Snow",
     "inheritedLevels": [
       2,
       15,
@@ -6704,6 +6811,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mythical Beast",
     "inheritedLevels": [
       25,
       2,
@@ -6765,6 +6873,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       2,
       15,
@@ -6834,6 +6943,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mutant",
     "inheritedLevels": [
       15,
       2,
@@ -6895,6 +7005,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Man",
     "inheritedLevels": [
       25,
       2,
@@ -6955,6 +7066,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Beast",
     "inheritedLevels": [
       15,
       2,
@@ -7016,6 +7128,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Ice-Snow",
     "inheritedLevels": [
       2,
       15,
@@ -7076,6 +7189,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Wizard",
     "inheritedLevels": [
       2,
       15,
@@ -7137,6 +7251,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Wizard",
     "inheritedLevels": [
       15,
       2,
@@ -7207,6 +7322,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast",
     "inheritedLevels": [
       2,
       15,
@@ -7267,6 +7383,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       15,
       2,
@@ -7327,6 +7444,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Ancient Bird",
     "inheritedLevels": [
       2,
       25,
@@ -7387,6 +7505,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mysterious Beast",
     "inheritedLevels": [
       2,
       15,
@@ -7447,6 +7566,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       15,
       2,
@@ -7533,6 +7653,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Man",
     "inheritedLevels": [
       15,
       2,
@@ -7602,6 +7723,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Vegetation",
     "inheritedLevels": [
       15,
       25,
@@ -7671,6 +7793,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Aquatic",
     "inheritedLevels": [
       2,
       15,
@@ -7732,6 +7855,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Ancient Fish",
     "inheritedLevels": [
       2,
       25,
@@ -7818,6 +7942,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mollusk",
     "inheritedLevels": [
       25,
       15,
@@ -7887,6 +8012,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mutant",
     "inheritedLevels": [
       2,
       25,
@@ -7947,6 +8073,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       25,
       15,
@@ -8016,6 +8143,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mutant",
     "inheritedLevels": [
       2,
       15,
@@ -8076,6 +8204,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dragon Man",
     "inheritedLevels": [
       2,
       25,
@@ -8136,6 +8265,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dinosaur",
     "inheritedLevels": [
       15,
       2,
@@ -8197,6 +8327,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Man",
     "inheritedLevels": [
       15,
       2,
@@ -8257,6 +8388,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Vegetation",
     "inheritedLevels": [
       2,
       25,
@@ -8326,6 +8458,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast",
     "inheritedLevels": [
       25,
       2,
@@ -8387,6 +8520,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Dragon",
     "inheritedLevels": [
       2,
       15,
@@ -8447,6 +8581,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dinosaur",
     "inheritedLevels": [
       2,
       25,
@@ -8507,6 +8642,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       15,
       2,
@@ -8568,6 +8704,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Fire",
     "inheritedLevels": [
       25,
       15,
@@ -8629,6 +8766,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Armored Dragon",
     "inheritedLevels": [
       15,
       25,
@@ -8689,6 +8827,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Man",
     "inheritedLevels": [
       25,
       2,
@@ -8759,6 +8898,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dark Angel",
     "inheritedLevels": [
       2,
       15,
@@ -8820,6 +8960,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Man",
     "inheritedLevels": [
       2,
       25,
@@ -8880,6 +9021,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Vegetation",
     "inheritedLevels": [
       15,
       25,
@@ -8940,6 +9082,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Demon",
     "inheritedLevels": [
       15,
       2,
@@ -9009,6 +9152,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mollusk",
     "inheritedLevels": [
       2,
       25,
@@ -9086,6 +9230,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       2,
       15,
@@ -9146,6 +9291,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Crustacean",
     "inheritedLevels": [
       15,
       2,
@@ -9207,6 +9353,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dark Dragon",
     "inheritedLevels": [
       2,
       15,
@@ -9267,6 +9414,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Insectoid",
     "inheritedLevels": [
       15,
       2,
@@ -9328,6 +9476,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Amphibian",
     "inheritedLevels": [
       2,
       15,
@@ -9405,6 +9554,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mollusk",
     "inheritedLevels": [
       2,
       15,
@@ -9482,6 +9632,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dragon",
     "inheritedLevels": [
       2,
       15,
@@ -9543,6 +9694,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mutant",
     "inheritedLevels": [
       25,
       2,
@@ -9613,6 +9765,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mineral",
     "inheritedLevels": [
       15,
       2,
@@ -9690,6 +9843,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dragon Man",
     "inheritedLevels": [
       2,
       25,
@@ -9759,6 +9913,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dark Beast",
     "inheritedLevels": [
       25,
       2,
@@ -9820,6 +9975,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Abnormal",
     "inheritedLevels": [
       2,
       15,
@@ -9897,6 +10053,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dinosaur",
     "inheritedLevels": [
       2,
       15,
@@ -9957,6 +10114,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dark Angel",
     "inheritedLevels": [
       2,
       15,
@@ -10018,6 +10176,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Composite",
     "inheritedLevels": [
       2,
       15,
@@ -10079,6 +10238,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Insectoid",
     "inheritedLevels": [
       15,
       2,
@@ -10180,6 +10340,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Invader",
     "inheritedLevels": [
       15,
       2,
@@ -10257,6 +10418,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mollusk",
     "inheritedLevels": [
       15,
       2,
@@ -10327,6 +10489,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Ghost",
     "inheritedLevels": [
       15,
       2,
@@ -10397,6 +10560,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Ice-Snow",
     "inheritedLevels": [
       2,
       25,
@@ -10466,6 +10630,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Demon",
     "inheritedLevels": [
       25,
       2,
@@ -10526,6 +10691,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Insectoid",
     "inheritedLevels": [
       15,
       25,
@@ -10603,6 +10769,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mutant",
     "inheritedLevels": [
       2,
       25,
@@ -10680,6 +10847,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dark Beast",
     "inheritedLevels": [
       2,
       15,
@@ -10749,6 +10917,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Carnivorous Vegetation",
     "inheritedLevels": [
       2,
       25,
@@ -10818,6 +10987,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Man",
     "inheritedLevels": [
       15,
       25,
@@ -10879,6 +11049,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Wizard",
     "inheritedLevels": [
       2,
       25,
@@ -10940,6 +11111,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       2,
       15,
@@ -11009,6 +11181,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Undead",
     "inheritedLevels": [
       2,
       25,
@@ -11093,6 +11266,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       2,
       25,
@@ -11154,6 +11328,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Giant Bird",
     "inheritedLevels": [
       2,
       25,
@@ -11224,6 +11399,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Armored Dragon",
     "inheritedLevels": [
       25,
       2,
@@ -11293,6 +11469,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mythical Dragon",
     "inheritedLevels": [
       15,
       25,
@@ -11353,6 +11530,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       2,
       25,
@@ -11413,6 +11591,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Insectoid",
     "inheritedLevels": [
       25,
       2,
@@ -11473,6 +11652,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Unidentified",
     "inheritedLevels": [
       2,
       15,
@@ -11542,6 +11722,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Aquatic",
     "inheritedLevels": [
       20,
       2,
@@ -11603,6 +11784,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mutant",
     "inheritedLevels": [
       30,
       20,
@@ -11665,6 +11847,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Insectoid",
     "inheritedLevels": [
       20,
       30,
@@ -11726,6 +11909,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Beast",
     "inheritedLevels": [
       30,
       2,
@@ -11796,6 +11980,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dragon Man",
     "inheritedLevels": [
       30,
       2,
@@ -11858,6 +12043,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Beast",
     "inheritedLevels": [
       20,
       2,
@@ -11919,6 +12105,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast",
     "inheritedLevels": [
       2,
       40,
@@ -11980,6 +12167,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast",
     "inheritedLevels": [
       20,
       30,
@@ -12041,6 +12229,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Wizard",
     "inheritedLevels": [
       20,
       30,
@@ -12130,6 +12319,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Warrior",
     "inheritedLevels": [
       30,
       2,
@@ -12228,6 +12418,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Pixie",
     "inheritedLevels": [
       2,
       20,
@@ -12313,6 +12504,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dark Dragon",
     "inheritedLevels": [
       20,
       30,
@@ -12402,6 +12594,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Aquatic",
     "inheritedLevels": [
       40,
       30,
@@ -12487,6 +12680,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       30,
       2,
@@ -12585,6 +12779,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       2,
       40,
@@ -12690,6 +12885,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       2,
       40,
@@ -12796,6 +12992,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       2,
       40,
@@ -12893,6 +13090,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       2,
       40,
@@ -12989,6 +13187,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       2,
       40,
@@ -13094,6 +13293,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Insectoid",
     "inheritedLevels": [
       2,
       30,
@@ -13164,6 +13364,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       2,
       30,
@@ -13226,6 +13427,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Sky Dragon",
     "inheritedLevels": [
       30,
       40,
@@ -13287,6 +13489,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Dragon",
     "inheritedLevels": [
       20,
       30,
@@ -13349,6 +13552,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Puppet",
     "inheritedLevels": [
       2,
       40,
@@ -13419,6 +13623,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "High Angel",
     "inheritedLevels": [
       2,
       40,
@@ -13481,6 +13686,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Bird Man",
     "inheritedLevels": [
       40,
       20,
@@ -13543,6 +13749,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Man",
     "inheritedLevels": [
       2,
       30,
@@ -13614,6 +13821,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Warrior",
     "inheritedLevels": [
       20,
       2,
@@ -13685,6 +13893,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Man",
     "inheritedLevels": [
       30,
       20,
@@ -13746,6 +13955,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dark Beast",
     "inheritedLevels": [
       2,
       20,
@@ -13844,6 +14054,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Wizard",
     "inheritedLevels": [
       2,
       30,
@@ -13942,6 +14153,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       2,
       30,
@@ -14003,6 +14215,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Insectoid",
     "inheritedLevels": [
       2,
       40,
@@ -14065,6 +14278,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Sea Beast",
     "inheritedLevels": [
       30,
       40,
@@ -14127,6 +14341,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Beast",
     "inheritedLevels": [
       20,
       40,
@@ -14188,6 +14403,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Weapon",
     "inheritedLevels": [
       2,
       20,
@@ -14259,6 +14475,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Giant Bird",
     "inheritedLevels": [
       20,
       2,
@@ -14321,6 +14538,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Man",
     "inheritedLevels": [
       2,
       40,
@@ -14382,6 +14600,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Dragon",
     "inheritedLevels": [
       40,
       2,
@@ -14443,6 +14662,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       20,
       40,
@@ -14505,6 +14725,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Man",
     "inheritedLevels": [
       2,
       30,
@@ -14567,6 +14788,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Sea Animal",
     "inheritedLevels": [
       2,
       40,
@@ -14638,6 +14860,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "High Angel",
     "inheritedLevels": [
       2,
       30,
@@ -14700,6 +14923,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Ancient Beast",
     "inheritedLevels": [
       2,
       20,
@@ -14761,6 +14985,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       30,
       20,
@@ -14822,6 +15047,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Puppet",
     "inheritedLevels": [
       20,
       2,
@@ -14883,6 +15109,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mysterious Bird",
     "inheritedLevels": [
       30,
       40,
@@ -14944,6 +15171,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       20,
       40,
@@ -15005,6 +15233,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       30,
       20,
@@ -15076,6 +15305,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       30,
       2,
@@ -15138,6 +15368,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Man",
     "inheritedLevels": [
       20,
       30,
@@ -15199,6 +15430,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Ancient Crustacean",
     "inheritedLevels": [
       30,
       20,
@@ -15286,6 +15518,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Undead",
     "inheritedLevels": [
       20,
       2,
@@ -15357,6 +15590,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Beast",
     "inheritedLevels": [
       20,
       30,
@@ -15419,6 +15653,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Ore",
     "inheritedLevels": [
       40,
       30,
@@ -15480,6 +15715,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dragon Man",
     "inheritedLevels": [
       20,
       40,
@@ -15574,6 +15810,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Composite",
     "inheritedLevels": [
       20,
       30,
@@ -15636,6 +15873,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mutant",
     "inheritedLevels": [
       20,
       2,
@@ -15698,6 +15936,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Wizard",
     "inheritedLevels": [
       20,
       2,
@@ -15760,6 +15999,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mutant",
     "inheritedLevels": [
       2,
       30,
@@ -15822,6 +16062,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Undead",
     "inheritedLevels": [
       40,
       2,
@@ -15893,6 +16134,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dragon Man",
     "inheritedLevels": [
       20,
       40,
@@ -15954,6 +16196,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       2,
       30,
@@ -16098,6 +16341,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Wizard",
     "inheritedLevels": [
       20,
       40,
@@ -16169,6 +16413,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Perfect",
     "inheritedLevels": [
       2,
       20,
@@ -16240,6 +16485,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Fire",
     "inheritedLevels": [
       2,
       30,
@@ -16302,6 +16548,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Bird",
     "inheritedLevels": [
       30,
       2,
@@ -16364,6 +16611,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Ceratopsian",
     "inheritedLevels": [
       2,
       30,
@@ -16426,6 +16674,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Dragon",
     "inheritedLevels": [
       20,
       30,
@@ -16488,6 +16737,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Warrior",
     "inheritedLevels": [
       20,
       2,
@@ -16550,6 +16800,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Aquatic Beast Man",
     "inheritedLevels": [
       20,
       40,
@@ -16621,6 +16872,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Puppet",
     "inheritedLevels": [
       2,
       20,
@@ -16683,6 +16935,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Puppet",
     "inheritedLevels": [
       30,
       2,
@@ -16753,6 +17006,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mutant",
     "inheritedLevels": [
       30,
       2,
@@ -16825,6 +17079,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Pixie",
     "inheritedLevels": [
       2,
       20,
@@ -16887,6 +17142,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mythical Beast",
     "inheritedLevels": [
       40,
       2,
@@ -16949,6 +17205,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Plesiosaur",
     "inheritedLevels": [
       40,
       20,
@@ -17010,6 +17267,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       40,
       20,
@@ -17095,6 +17353,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       20,
       40,
@@ -17158,6 +17417,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       2,
       30,
@@ -17219,6 +17479,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mutant",
     "inheritedLevels": [
       2,
       30,
@@ -17280,6 +17541,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Aquatic",
     "inheritedLevels": [
       40,
       2,
@@ -17342,6 +17604,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       20,
       2,
@@ -17403,6 +17666,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Pixie",
     "inheritedLevels": [
       2,
       40,
@@ -17465,6 +17729,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Pixie",
     "inheritedLevels": [
       2,
       20,
@@ -17535,6 +17800,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       20,
       30,
@@ -17596,6 +17862,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Wizard",
     "inheritedLevels": [
       30,
       20,
@@ -17657,6 +17924,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dark Beast",
     "inheritedLevels": [
       2,
       30,
@@ -17719,6 +17987,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Undead",
     "inheritedLevels": [
       2,
       20,
@@ -17781,6 +18050,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Puppet",
     "inheritedLevels": [
       2,
       30,
@@ -17851,6 +18121,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Insectoid",
     "inheritedLevels": [
       2,
       30,
@@ -17913,6 +18184,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dark Dragon",
     "inheritedLevels": [
       20,
       2,
@@ -17975,6 +18247,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mutant",
     "inheritedLevels": [
       20,
       40,
@@ -18053,6 +18326,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       30,
       2,
@@ -18114,6 +18388,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       2,
       20,
@@ -18185,6 +18460,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Earth Dragon",
     "inheritedLevels": [
       20,
       40,
@@ -18255,6 +18531,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       40,
       2,
@@ -18316,6 +18593,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Wizard",
     "inheritedLevels": [
       2,
       20,
@@ -18378,6 +18656,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Vegetation",
     "inheritedLevels": [
       20,
       30,
@@ -18449,6 +18728,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Undead",
     "inheritedLevels": [
       40,
       20,
@@ -18510,6 +18790,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Undead",
     "inheritedLevels": [
       2,
       30,
@@ -18572,6 +18853,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Undead",
     "inheritedLevels": [
       20,
       30,
@@ -18634,6 +18916,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mutant",
     "inheritedLevels": [
       2,
       40,
@@ -18695,6 +18978,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Aquatic Beast Man",
     "inheritedLevels": [
       2,
       40,
@@ -18756,6 +19040,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       40,
       20,
@@ -18827,6 +19112,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Amphibian",
     "inheritedLevels": [
       20,
       30,
@@ -18906,6 +19192,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       2,
       20,
@@ -18976,6 +19263,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Ghost",
     "inheritedLevels": [
       20,
       40,
@@ -19047,6 +19335,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mollusk",
     "inheritedLevels": [
       2,
       40,
@@ -19117,6 +19406,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Fire",
     "inheritedLevels": [
       2,
       20,
@@ -19179,6 +19469,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Alien",
     "inheritedLevels": [
       2,
       20,
@@ -19250,6 +19541,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Undead",
     "inheritedLevels": [
       20,
       30,
@@ -19312,6 +19604,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Undead",
     "inheritedLevels": [
       20,
       2,
@@ -19390,6 +19683,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Magic Warrior",
     "inheritedLevels": [
       30,
       20,
@@ -19468,6 +19762,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       20,
       40,
@@ -19530,6 +19825,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       40,
       20,
@@ -19601,6 +19897,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       2,
       20,
@@ -19663,6 +19960,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Evil King",
     "inheritedLevels": [
       20,
       2,
@@ -19760,6 +20058,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dark Angel",
     "inheritedLevels": [
       20,
       30,
@@ -19822,6 +20121,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Wizard",
     "inheritedLevels": [
       20,
       2,
@@ -19884,6 +20184,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Aquatic",
     "inheritedLevels": [
       30,
       20,
@@ -19946,6 +20247,7 @@
       "jogressIdB": "87",
       "jogressPersonalityB": "15"
     },
+    "categoryNames": "Mutant",
     "inheritedLevels": [
       20,
       2,
@@ -20017,6 +20319,7 @@
       "jogressIdB": "92",
       "jogressPersonalityB": "7"
     },
+    "categoryNames": "Beast Man",
     "inheritedLevels": [
       2,
       20,
@@ -20079,6 +20382,7 @@
       "jogressIdB": "365",
       "jogressPersonalityB": "2"
     },
+    "categoryNames": "Mutant",
     "inheritedLevels": [
       30,
       20,
@@ -20140,6 +20444,7 @@
       "jogressIdB": "91",
       "jogressPersonalityB": "7"
     },
+    "categoryNames": "Dragon Man",
     "inheritedLevels": [
       20,
       2,
@@ -20202,6 +20507,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Unidentified",
     "inheritedLevels": [
       20,
       30,
@@ -20264,6 +20570,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Wizard",
     "inheritedLevels": [
       35,
       45,
@@ -20326,6 +20633,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Warrior",
     "inheritedLevels": [
       35,
       25,
@@ -20388,6 +20696,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       25,
       35,
@@ -20475,6 +20784,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       2,
       45,
@@ -20572,6 +20882,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       35,
       25,
@@ -20668,6 +20979,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Bird",
     "inheritedLevels": [
       2,
       25,
@@ -20782,6 +21094,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       25,
       2,
@@ -20902,6 +21215,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dragon Man",
     "inheritedLevels": [
       25,
       45,
@@ -20989,6 +21303,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Dragon",
     "inheritedLevels": [
       2,
       25,
@@ -21076,6 +21391,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Super Angel",
     "inheritedLevels": [
       45,
       25,
@@ -21180,6 +21496,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Virtue",
     "inheritedLevels": [
       35,
       2,
@@ -21251,6 +21568,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       25,
       45,
@@ -21354,6 +21672,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Giant Bird",
     "inheritedLevels": [
       25,
       2,
@@ -21449,6 +21768,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Bird Man",
     "inheritedLevels": [
       25,
       45,
@@ -21544,6 +21864,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Cherub",
     "inheritedLevels": [
       25,
       45,
@@ -21631,6 +21952,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Cherub",
     "inheritedLevels": [
       45,
       25,
@@ -21718,6 +22040,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Dragon",
     "inheritedLevels": [
       35,
       25,
@@ -21780,6 +22103,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Shining Dragon",
     "inheritedLevels": [
       25,
       45,
@@ -21876,6 +22200,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       25,
       35,
@@ -21963,6 +22288,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Undead",
     "inheritedLevels": [
       35,
       45,
@@ -22025,6 +22351,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Great Angel",
     "inheritedLevels": [
       35,
       2,
@@ -22121,6 +22448,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       25,
       45,
@@ -22217,6 +22545,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dragon Man",
     "inheritedLevels": [
       25,
       35,
@@ -22338,6 +22667,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Seraph",
     "inheritedLevels": [
       25,
       35,
@@ -22426,6 +22756,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       25,
       35,
@@ -22522,6 +22853,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Sword",
     "inheritedLevels": [
       25,
       2,
@@ -22609,6 +22941,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       2,
       25,
@@ -22706,6 +23039,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       45,
       25,
@@ -22768,6 +23102,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Man",
     "inheritedLevels": [
       25,
       35,
@@ -22856,6 +23191,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Insectoid",
     "inheritedLevels": [
       25,
       45,
@@ -22927,6 +23263,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Beast",
     "inheritedLevels": [
       25,
       45,
@@ -22989,6 +23326,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Dragon",
     "inheritedLevels": [
       2,
       25,
@@ -23060,6 +23398,7 @@
       "jogressIdB": "107",
       "jogressPersonalityB": "15"
     },
+    "categoryNames": "Angel",
     "inheritedLevels": [
       45,
       25,
@@ -23181,6 +23520,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Pixie",
     "inheritedLevels": [
       2,
       25,
@@ -23258,6 +23598,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       25,
       35,
@@ -23346,6 +23687,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       45,
       25,
@@ -23450,6 +23792,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       25,
       45,
@@ -23546,6 +23889,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       2,
       25,
@@ -23642,6 +23986,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       2,
       25,
@@ -23728,6 +24073,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       2,
       35,
@@ -23814,6 +24160,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       2,
       35,
@@ -23910,6 +24257,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       25,
       35,
@@ -23972,6 +24320,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mythical Beast",
     "inheritedLevels": [
       25,
       35,
@@ -24034,6 +24383,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       2,
       25,
@@ -24176,6 +24526,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       2,
       25,
@@ -24318,6 +24669,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Ancient Beast",
     "inheritedLevels": [
       2,
       35,
@@ -24414,6 +24766,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       2,
       35,
@@ -24510,6 +24863,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       25,
       45,
@@ -24607,6 +24961,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       2,
       25,
@@ -24694,6 +25049,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       25,
       45,
@@ -24814,6 +25170,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       25,
       2,
@@ -24928,6 +25285,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       25,
       35,
@@ -25051,6 +25409,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       25,
       35,
@@ -25165,6 +25524,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Dragon",
     "inheritedLevels": [
       25,
       45,
@@ -25252,6 +25612,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       2,
       25,
@@ -25348,6 +25709,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mutant",
     "inheritedLevels": [
       2,
       25,
@@ -25419,6 +25781,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Plesiosaur",
     "inheritedLevels": [
       25,
       45,
@@ -25490,6 +25853,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       25,
       45,
@@ -25552,6 +25916,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Knight",
     "inheritedLevels": [
       25,
       35,
@@ -25648,6 +26013,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       2,
       35,
@@ -25744,6 +26110,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       2,
       25,
@@ -25806,6 +26173,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Warrior",
     "inheritedLevels": [
       45,
       25,
@@ -25893,6 +26261,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Pixie",
     "inheritedLevels": [
       25,
       45,
@@ -25980,6 +26349,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Pixie",
     "inheritedLevels": [
       2,
       25,
@@ -26124,6 +26494,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dragon Man",
     "inheritedLevels": [
       25,
       45,
@@ -26212,6 +26583,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       25,
       35,
@@ -26316,6 +26688,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dark Beast",
     "inheritedLevels": [
       45,
       25,
@@ -26395,6 +26768,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Ancient Mutant",
     "inheritedLevels": [
       45,
       35,
@@ -26499,6 +26873,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dragon Man",
     "inheritedLevels": [
       2,
       45,
@@ -26604,6 +26979,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dark Knight",
     "inheritedLevels": [
       35,
       2,
@@ -26700,6 +27076,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       25,
       35,
@@ -26762,6 +27139,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dark Beast",
     "inheritedLevels": [
       25,
       45,
@@ -26847,6 +27225,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       35,
       25,
@@ -26944,6 +27323,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Puppet",
     "inheritedLevels": [
       25,
       45,
@@ -27031,6 +27411,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dark Beast",
     "inheritedLevels": [
       2,
       35,
@@ -27127,6 +27508,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dragon Man",
     "inheritedLevels": [
       25,
       35,
@@ -27250,6 +27632,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Wizard",
     "inheritedLevels": [
       45,
       35,
@@ -27337,6 +27720,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Undead",
     "inheritedLevels": [
       2,
       25,
@@ -27433,6 +27817,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       2,
       35,
@@ -27520,6 +27905,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       25,
       35,
@@ -27582,6 +27968,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       25,
       35,
@@ -27678,6 +28065,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Insectoid",
     "inheritedLevels": [
       25,
       2,
@@ -27797,6 +28185,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Evil King",
     "inheritedLevels": [
       25,
       45,
@@ -27859,6 +28248,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       35,
       2,
@@ -27955,6 +28345,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       2,
       25,
@@ -28051,6 +28442,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       25,
       35,
@@ -28123,6 +28515,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Evil King",
     "inheritedLevels": [
       2,
       45,
@@ -28226,6 +28619,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Wizard",
     "inheritedLevels": [
       2,
       35,
@@ -28288,6 +28682,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Puppet",
     "inheritedLevels": [
       35,
       45,
@@ -28350,6 +28745,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Wizard",
     "inheritedLevels": [
       35,
       2,
@@ -28421,6 +28817,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mutant",
     "inheritedLevels": [
       2,
       25,
@@ -28483,6 +28880,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Mutant",
     "inheritedLevels": [
       35,
       2,
@@ -28601,6 +28999,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       35,
       25,
@@ -28706,6 +29105,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine Dragon",
     "inheritedLevels": [
       45,
       2,
@@ -28793,6 +29193,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Evil King",
     "inheritedLevels": [
       2,
       25,
@@ -28896,6 +29297,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Wizard",
     "inheritedLevels": [
       25,
       35,
@@ -28983,6 +29385,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Evil King",
     "inheritedLevels": [
       25,
       35,
@@ -29079,6 +29482,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Evil King",
     "inheritedLevels": [
       2,
       45,
@@ -29184,6 +29588,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dragon Man",
     "inheritedLevels": [
       45,
       25,
@@ -29271,6 +29676,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       2,
       25,
@@ -29358,6 +29764,7 @@
       "jogressIdB": "229",
       "jogressPersonalityB": "11"
     },
+    "categoryNames": "Composite",
     "inheritedLevels": [
       35,
       25,
@@ -29429,6 +29836,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Machine",
     "inheritedLevels": [
       45,
       2,
@@ -29491,6 +29899,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Evil Dragon",
     "inheritedLevels": [
       2,
       35,
@@ -29604,6 +30013,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       2,
       25,
@@ -29682,6 +30092,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       35,
       25,
@@ -29795,6 +30206,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       2,
       45,
@@ -29901,6 +30313,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       2,
       45,
@@ -30004,6 +30417,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       2,
       25,
@@ -30108,6 +30522,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Evil King",
     "inheritedLevels": [
       35,
       25,
@@ -30214,6 +30629,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Evil King",
     "inheritedLevels": [
       25,
       35,
@@ -30292,6 +30708,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       45,
       35,
@@ -30379,6 +30796,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Ancient Dragon",
     "inheritedLevels": [
       35,
       45,
@@ -30492,6 +30910,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Ancient Dragon Man",
     "inheritedLevels": [
       35,
       45,
@@ -30606,6 +31025,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Man",
     "inheritedLevels": [
       25,
       35,
@@ -30693,6 +31113,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Warrior",
     "inheritedLevels": [
       25,
       35,
@@ -30789,6 +31210,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Insectoid",
     "inheritedLevels": [
       25,
       45,
@@ -30851,6 +31273,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Unidentified",
     "inheritedLevels": [
       2,
       45,
@@ -30913,6 +31336,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       2,
       35,
@@ -30984,6 +31408,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       25,
       2,
@@ -31080,6 +31505,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dragon Warrior",
     "inheritedLevels": [
       2,
       25,
@@ -31176,6 +31602,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       35,
       25,
@@ -31239,6 +31666,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       35,
       25,
@@ -31310,6 +31738,7 @@
       "jogressIdB": "193",
       "jogressPersonalityB": "2"
     },
+    "categoryNames": "No Data",
     "inheritedLevels": [
       25,
       35,
@@ -31397,6 +31826,7 @@
       "jogressIdB": "920",
       "jogressPersonalityB": "16"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       25,
       45,
@@ -31467,6 +31897,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Ancient Holy Knight",
     "inheritedLevels": [
       35,
       45,
@@ -31545,6 +31976,7 @@
       "jogressIdB": "135",
       "jogressPersonalityB": "11"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       45,
       25,
@@ -31632,6 +32064,7 @@
       "jogressIdB": "182",
       "jogressPersonalityB": "11"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       25,
       35,
@@ -31719,6 +32152,7 @@
       "jogressIdB": "49",
       "jogressPersonalityB": "3"
     },
+    "categoryNames": "Unique",
     "inheritedLevels": [
       45,
       25,
@@ -31815,6 +32249,7 @@
       "jogressIdB": "117",
       "jogressPersonalityB": "10"
     },
+    "categoryNames": "Unique",
     "inheritedLevels": [
       25,
       45,
@@ -31911,6 +32346,7 @@
       "jogressIdB": "733",
       "jogressPersonalityB": "15"
     },
+    "categoryNames": "Galaxy",
     "inheritedLevels": [
       25,
       45,
@@ -32015,6 +32451,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Shining Dragon",
     "inheritedLevels": [
       25,
       45,
@@ -32119,6 +32556,7 @@
       "jogressIdB": "678",
       "jogressPersonalityB": "11"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       35,
       25,
@@ -32206,6 +32644,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       45,
       25,
@@ -32319,6 +32758,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       25,
       45,
@@ -32406,6 +32846,7 @@
       "jogressIdB": "214",
       "jogressPersonalityB": "4"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       25,
       35,
@@ -32493,6 +32934,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Knight",
     "inheritedLevels": [
       25,
       35,
@@ -32618,6 +33060,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Pixie",
     "inheritedLevels": [
       25,
       45,
@@ -32714,6 +33157,7 @@
       "jogressIdB": "239",
       "jogressPersonalityB": "10"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       25,
       35,
@@ -32785,6 +33229,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Holy Knight",
     "inheritedLevels": [
       35,
       45,
@@ -32872,6 +33317,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Evil King",
     "inheritedLevels": [
       25,
       35,
@@ -32959,6 +33405,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Evil King",
     "inheritedLevels": [
       25,
       35,
@@ -33055,6 +33502,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Deity",
     "inheritedLevels": [
       25,
       35,
@@ -33151,6 +33599,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Demon God",
     "inheritedLevels": [
       2,
       35,
@@ -33247,6 +33696,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Unidentified",
     "inheritedLevels": [
       25,
       2,
@@ -33343,6 +33793,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Unidentified",
     "inheritedLevels": [
       2,
       25,
@@ -33437,6 +33888,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Unidentified",
     "inheritedLevels": [
       2,
       15,
@@ -33531,6 +33983,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Unidentified",
     "inheritedLevels": [
       45,
       25,
@@ -33593,6 +34046,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Unidentified",
     "inheritedLevels": [
       2,
       25,
@@ -33678,6 +34132,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Unidentified",
     "inheritedLevels": [
       2,
       20,
@@ -33763,6 +34218,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Reptile",
     "inheritedLevels": [
       2,
       10
@@ -33822,6 +34278,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Reptile",
     "inheritedLevels": [
       2,
       10
@@ -33881,6 +34338,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast",
     "inheritedLevels": [
       15,
       30,
@@ -33941,6 +34399,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dinosaur",
     "inheritedLevels": [
       2,
       30,
@@ -34001,6 +34460,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       2,
       20,
@@ -34062,6 +34522,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Beast Man",
     "inheritedLevels": [
       50,
       20,
@@ -34123,6 +34584,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Dragon Man",
     "inheritedLevels": [
       2,
       25,
@@ -34210,6 +34672,7 @@
       "jogressIdB": "0",
       "jogressPersonalityB": "0"
     },
+    "categoryNames": "Android",
     "inheritedLevels": [
       25,
       40,

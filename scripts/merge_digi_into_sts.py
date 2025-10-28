@@ -53,6 +53,29 @@ def deep_merge_no_overwrite(target, source, current_key=None):
 
         tgt_val = target[key]
 
+        # Special handling for categoryNames: merge without overwriting
+        if key == "categoryNames":
+            # Target exists. Perform non-destructive merge.
+            try:
+                if isinstance(tgt_val, list):
+                    if isinstance(src_val, list):
+                        existing = set(tgt_val)
+                        for v in src_val:
+                            if isinstance(v, str) and v not in existing:
+                                tgt_val.append(v)
+                                existing.add(v)
+                    elif isinstance(src_val, str):
+                        if src_val not in tgt_val:
+                            tgt_val.append(src_val)
+                elif isinstance(tgt_val, str):
+                    # Keep existing string. If source is list and contains the same name, nothing to do.
+                    # If source has a different value, do not overwrite or change type.
+                    pass
+            except Exception:
+                # best-effort; do nothing on errors
+                pass
+            continue
+
         if isinstance(tgt_val, dict) and isinstance(src_val, dict):
             deep_merge_no_overwrite(tgt_val, src_val, current_key=key)
         elif isinstance(tgt_val, list) and isinstance(src_val, list):

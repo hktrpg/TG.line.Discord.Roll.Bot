@@ -29137,5 +29137,53 @@
       }
     },
     "special_skills": []
+  },
+  {
+    "classNames": {
+      "English": {
+        "0": "Royal Knight",
+        "1": "Olympos XII",
+        "2": "Seven Great Demon Lords",
+        "3": "Titan",
+        "4": "Small",
+        "5": "Medium",
+        "6": "Large",
+        "7": "Humanoid",
+        "8": "Beast",
+        "9": "Fish",
+        "10": "Spirit",
+        "11": "Aquatic",
+        "12": "Ice",
+        "13": "Fire",
+        "14": "Steel",
+        "15": "Mineral",
+        "16": "Insectoid",
+        "17": "Vegetation",
+        "18": "Holy",
+        "19": "Evil",
+        "20": "Deity",
+        "21": "Machine",
+        "22": "Angel",
+        "23": "Dinosaur",
+        "24": "Dragon",
+        "25": "Demon",
+        "26": "Bird",
+        "27": "Amphibian",
+        "28": "Reptile",
+        "29": "Magic",
+        "30": "Ancient",
+        "31": "Alien",
+        "32": "Pixie",
+        "33": "Mythical",
+        "34": "Knight",
+        "35": "Warrior",
+        "36": "Mollusk",
+        "37": "Antibody",
+        "38": "Immortal",
+        "39": "Weapon",
+        "40": "Puppet",
+        "41": "Unknown"
+      }
+    }
   }
 ]

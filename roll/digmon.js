@@ -469,8 +469,8 @@ class Digimon {
                 const startsWithFull = (startsWithName === 1 || startsWithZh === 1) ? 1 : 0;
                 const asciiOverlap = this.countAsciiOverlap(aSet, nameLower) + this.countAsciiOverlap(aSet, zhLower);
                 const cjkOverlap = this.countCjkOverlap(qCjkSet, this.extractCjkCharSet(name)) + this.countCjkOverlap(qCjkSet, this.extractCjkCharSet(zhName));
-                const idxName = (name.indexOf(q) >= 0) ? name.indexOf(q) : nameLower.indexOf(qLower);
-                const idxZh = (zhName.indexOf(q) >= 0) ? zhName.indexOf(q) : zhLower.indexOf(qLower);
+                const idxName = (name.includes(q)) ? name.indexOf(q) : nameLower.indexOf(qLower);
+                const idxZh = (zhName.includes(q)) ? zhName.indexOf(q) : zhLower.indexOf(qLower);
                 const idxNameS = qSimplified ? name.indexOf(qSimplified) : -1;
                 const idxZhS = qSimplified ? zhName.indexOf(qSimplified) : -1;
                 let bestIndex = Number.POSITIVE_INFINITY;
@@ -514,8 +514,8 @@ class Digimon {
                     const startsWithFull = (name.startsWith(q) || zhName.startsWith(q) || (qSimplified && (name.startsWith(qSimplified) || zhName.startsWith(qSimplified)))) ? 1 : 0;
                 const nameLower = name.toLowerCase();
                 const zhLower = zhName.toLowerCase();
-                const idxName = (name.indexOf(q) >= 0) ? name.indexOf(q) : nameLower.indexOf(qLower);
-                const idxZh = (zhName.indexOf(q) >= 0) ? zhName.indexOf(q) : zhLower.indexOf(qLower);
+                const idxName = (name.includes(q)) ? name.indexOf(q) : nameLower.indexOf(qLower);
+                const idxZh = (zhName.includes(q)) ? zhName.indexOf(q) : zhLower.indexOf(qLower);
                     const idxNameS = qSimplified ? name.indexOf(qSimplified) : -1;
                     const idxZhS = qSimplified ? zhName.indexOf(qSimplified) : -1;
                     let bestIndex = Number.POSITIVE_INFINITY;
@@ -570,8 +570,8 @@ class Digimon {
                 const aSet = this.extractAsciiCharSet(q);
                 const asciiOverlap = this.countAsciiOverlap(aSet, nameLower) + this.countAsciiOverlap(aSet, zhLower);
                 const cjkOverlap = this.countCjkOverlap(qCjkSet, this.extractCjkCharSet(name)) + this.countCjkOverlap(qCjkSet, this.extractCjkCharSet(zhName));
-                const idxName = (name.indexOf(q) >= 0) ? name.indexOf(q) : nameLower.indexOf(qLower);
-                const idxZh = (zhName.indexOf(q) >= 0) ? zhName.indexOf(q) : zhLower.indexOf(qLower);
+                const idxName = (name.includes(q)) ? name.indexOf(q) : nameLower.indexOf(qLower);
+                const idxZh = (zhName.includes(q)) ? zhName.indexOf(q) : zhLower.indexOf(qLower);
                 const idxNameS = qSimplified ? name.indexOf(qSimplified) : -1;
                 const idxZhS = qSimplified ? zhName.indexOf(qSimplified) : -1;
                 let bestIndex = Number.POSITIVE_INFINITY;

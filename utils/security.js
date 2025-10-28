@@ -218,7 +218,6 @@ function validateCredentials(credentials) {
 
 let jwt;
 try {
-     
     jwt = require('jsonwebtoken');
 } catch {
     console.warn('⚠️ jsonwebtoken not installed');

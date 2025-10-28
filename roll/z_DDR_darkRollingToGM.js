@@ -1,11 +1,47 @@
 "use strict";
-if (!process.env.mongoURL) {
-    return;
-}
+const DB_READY = !!process.env.mongoURL;
 const { SlashCommandBuilder } = require('discord.js');
 const records = require('../modules/records.js');
-let trpgDarkRollingfunction = {};
 const checkTools = require('../modules/check.js');
+
+// When DB is not available: disable the whole feature cleanly
+if (!DB_READY) {
+    const gameName = function () {
+        return '【暗骰GM功能】 .drgm (addgm del show) dr ddr dddr';
+    };
+    const gameType = function () {
+        return 'Tool:trpgDarkRolling:hktrpg';
+    };
+    const prefixs = function () {
+        // No prefixes registered -> command disabled
+        return [];
+    };
+    const getHelpMessage = async function () {
+        return '暗骰GM功能未啟用：需要資料庫連線';
+    };
+    const initialize = function () {
+        return {};
+    };
+    const rollDiceCommand = async function () {
+        return {
+            default: 'on',
+            type: 'text',
+            text: '暗骰GM功能未啟用：需要資料庫連線'
+        };
+    };
+    const discordCommand = [];
+
+    module.exports = {
+        rollDiceCommand: rollDiceCommand,
+        initialize: initialize,
+        getHelpMessage: getHelpMessage,
+        prefixs: prefixs,
+        gameType: gameType,
+        gameName: gameName,
+        discordCommand: discordCommand
+    };
+} else {
+const trpgDarkRollingfunction = {};
 records.get('trpgDarkRolling', (msgs) => {
     trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
 })
@@ -153,7 +189,7 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                     "")
             } else rply.text = '新增失敗. 你已在GM列表'
             return rply;
-        } case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
+        } case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]): {
             //    
             //刪除所有自定義關鍵字
             //
@@ -169,8 +205,10 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             if (channelid)
                 groupid = channelid
             if (!mainMsg[2]) return;
+            let matched = false;
             for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
                 if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
+                    matched = true;
                     let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
                     temp.trpgDarkRollingfunction = []
                     records.setTrpgDarkRollingFunction('trpgDarkRolling', temp, () => {
@@ -181,9 +219,11 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                     rply.text = '刪除所有在表GM'
                 }
             }
-
-
+            if (!matched) {
+                rply.text = '沒有已註冊的暗骰GM. '
+            }
             return rply;
+        }
         case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]): {
             //
             //刪除GM
@@ -200,18 +240,22 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             }
             if (channelid)
                 groupid = channelid
+            let deleted = false;
             for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
-                if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid && mainMsg[2] < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length && mainMsg[2] >= 0) {
-                    let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
-                    temp.trpgDarkRollingfunction.splice(mainMsg[2], 1)
-                    records.setTrpgDarkRollingFunction('trpgDarkRolling', temp, () => {
-                        records.get('trpgDarkRolling', (msgs) => {
-                            trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
+                if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
+                    if (mainMsg[2] < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length && mainMsg[2] >= 0) {
+                        let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
+                        temp.trpgDarkRollingfunction.splice(mainMsg[2], 1)
+                        records.setTrpgDarkRollingFunction('trpgDarkRolling', temp, () => {
+                            records.get('trpgDarkRolling', (msgs) => {
+                                trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
+                            })
                         })
-                    })
+                        deleted = true;
+                    }
                 }
-                rply.text = '刪除成功: ' + mainMsg[2]
             }
+            rply.text = deleted ? ('刪除成功: ' + mainMsg[2]) : '沒有已註冊的暗骰GM或索引無效. '
 
             return rply;
         }
@@ -338,3 +382,4 @@ module.exports = {
     gameName: gameName,
     discordCommand: discordCommand
 };
+}

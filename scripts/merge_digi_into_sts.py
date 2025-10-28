@@ -34,7 +34,7 @@ def try_int(value):
         return None
 
 
-def deep_merge_no_overwrite(target, source):
+def deep_merge_no_overwrite(target, source, current_key=None):
     """
     Merge source into target without overwriting existing values.
     - If key missing in target: deep copy from source
@@ -54,11 +54,38 @@ def deep_merge_no_overwrite(target, source):
         tgt_val = target[key]
 
         if isinstance(tgt_val, dict) and isinstance(src_val, dict):
-            deep_merge_no_overwrite(tgt_val, src_val)
+            deep_merge_no_overwrite(tgt_val, src_val, current_key=key)
         elif isinstance(tgt_val, list) and isinstance(src_val, list):
-            # Non-overwrite: do not change existing list
-            # Optionally, we could append only missing items, but requirement says no overwrite
-            pass
+            # Special handling for lists of special skills: merge by name without overwriting existing fields
+            if key == "special_skills":
+                # Build index by normalized name for target
+                def norm_name(v):
+                    try:
+                        return str(v).strip().lower()
+                    except Exception:
+                        return None
+
+                name_to_tgt_item = {}
+                for item in tgt_val:
+                    if isinstance(item, dict):
+                        n = norm_name(item.get("name"))
+                        if n:
+                            name_to_tgt_item[n] = item
+
+                for src_item in src_val:
+                    if not isinstance(src_item, dict):
+                        # For non-dict items, keep non-overwrite behavior (do nothing)
+                        continue
+                    src_name = norm_name(src_item.get("name"))
+                    if src_name and src_name in name_to_tgt_item:
+                        # Merge into existing item without overwriting
+                        deep_merge_no_overwrite(name_to_tgt_item[src_name], src_item, current_key="special_skill_item")
+                    else:
+                        # Not present: clone/append
+                        tgt_val.append(deepcopy(src_item))
+            else:
+                # Non-overwrite for other lists: do not modify existing list
+                pass
         else:
             # Primitive or type mismatch: keep existing target value (no overwrite)
             pass

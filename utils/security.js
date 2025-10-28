@@ -218,7 +218,6 @@ function validateCredentials(credentials) {
 
 let jwt;
 try {
-    // eslint-disable-next-line n/no-extraneous-require
     jwt = require('jsonwebtoken');
 } catch {
     console.warn('⚠️ jsonwebtoken not installed');

@@ -69,9 +69,7 @@ def resolve_english_name(mapping_root: Dict[str, Any], mapping_key: str, item_id
 def convert_signature_entry(sig_id: str, level_value: Any, lookups: Dict[str, Any]) -> Dict[str, Any]:
 
     out: Dict[str, Any] = {"id": sig_id}
-    level_num = to_int(level_value if not isinstance(level_value, dict) else get_nested(level_value, "level", default=None))
-    if level_num is not None:
-        out["level"] = level_num
+    # Do not record level in special_skills items per latest requirement
 
     skill_data: Dict[str, Any] = lookups.get("skillData") or {}
     # skillData may be dict keyed by id strings
@@ -145,8 +143,15 @@ def convert_signature_entry(sig_id: str, level_value: Any, lookups: Dict[str, An
                             if isinstance(nm, str):
                                 item["buffnames"] = clean_buffname(nm)
                         enriched_skill[k] = item
-
-        out["skillData"] = enriched_skill
+        # Flatten: merge enriched_skill fields into the signature object itself
+        for k, v in enriched_skill.items():
+            if k in out:
+                # avoid overwriting existing signature fields like id/level/moveName
+                continue
+            # Skip fields not needed in special_skills: skillId, skillFixedDescId
+            if k in ("skillId", "skillFixedDescId"):
+                continue
+            out[k] = v
 
     # Names/descriptions
     sig_moves = lookups.get("sigMoves") or {}
@@ -163,7 +168,7 @@ def convert_signature_entry(sig_id: str, level_value: Any, lookups: Dict[str, An
         # try generic resolver
         move_name = resolve_english_name(sig_moves, "sigmoves", sig_id)
     if isinstance(move_name, str):
-        out["moveName"] = move_name
+        out["name"] = move_name
 
     move_descs = lookups.get("moveDescriptions") or lookups.get("moveDescription") or {}
     move_desc = None
@@ -338,7 +343,7 @@ def convert(source_path: str, output_path: str) -> None:
         if isinstance(signature, dict):
             for sig_id, lvl_obj in signature.items():
                 sig_out.append(convert_signature_entry(str(sig_id), lvl_obj, lookups))
-        target["signature"] = sig_out
+        target["special_skills"] = sig_out
 
         transformed.append(target)
 

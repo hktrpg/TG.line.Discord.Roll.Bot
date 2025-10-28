@@ -62,8 +62,9 @@ const InputValidator = {
         if (!obj || typeof obj !== 'object') {
             throw new TypeError('Invalid object type');
         }
-        // Prevent prototype pollution
-        if (obj.__proto__ || obj.constructor || obj.prototype) {
+        // Prevent prototype pollution (only block if these are OWN keys)
+        const hasOwn = Object.prototype.hasOwnProperty;
+        if (hasOwn.call(obj, '__proto__') || hasOwn.call(obj, 'constructor') || hasOwn.call(obj, 'prototype')) {
             throw new TypeError('Suspicious object detected');
         }
         return obj;
@@ -372,7 +373,16 @@ class Records extends EventEmitter {
 
     // TRPG dark rolling operations
     pushTrpgDarkRollingFunction(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { trpgDarkRollingfunction: data.trpgDarkRollingfunction } }, { new: true, upsert: true }, callback);
+        const entry = Array.isArray(data.trpgDarkRollingfunction)
+            ? data.trpgDarkRollingfunction[0]
+            : data.trpgDarkRollingfunction;
+        this.updateRecord(
+            databaseName,
+            { groupid: data.groupid },
+            { $push: { trpgDarkRollingfunction: entry } },
+            { new: true, upsert: true },
+            callback
+        );
     }
 
     setTrpgDarkRollingFunction(databaseName, data, callback) {

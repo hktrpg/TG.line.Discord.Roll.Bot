@@ -217,6 +217,8 @@ class Digimon {
         this.byId = new Map();
         this.byName = new Map();
         this.byZhName = new Map();
+        this.byNameLower = new Map();
+        this.byZhNameLower = new Map();
         // Cached moves search structures
         this._movesAugmented = null;
         this._movesFuse = null;
@@ -297,16 +299,23 @@ class Digimon {
         this.byId.clear();
         this.byName.clear();
         this.byZhName.clear();
+        this.byNameLower.clear();
+        this.byZhNameLower.clear();
         for (const d of this.digimonData) {
             if (typeof d.id === 'number') this.byId.set(d.id, d);
             if (d && typeof d.name === 'string') this.byName.set(d.name, d);
             if (d && typeof d['zh-cn-name'] === 'string') this.byZhName.set(d['zh-cn-name'], d);
+            if (d && typeof d.name === 'string') this.byNameLower.set(d.name.toLowerCase(), d);
+            if (d && typeof d['zh-cn-name'] === 'string') this.byZhNameLower.set(String(d['zh-cn-name']).toLowerCase(), d);
         }
     }
 
     getByName(name) {
         if (!name) return null;
-        return this.byName.get(name) || null;
+        const direct = this.byName.get(name);
+        if (direct) return direct;
+        const lower = String(name).toLowerCase();
+        return this.byNameLower.get(lower) || null;
     }
 
     // Prefer base_personality; fallback to personality; otherwise '-'
@@ -405,6 +414,7 @@ class Digimon {
     findByNameOrIdDetailed(query) {
         if (query === undefined || query === null) return { match: null, isFuzzy: false, candidates: [] };
         const q = String(query).trim();
+        const qLower = q.toLowerCase();
         // Build variant for Simplified/Traditional when single CJK char
         let qSimplified = null;
         if (q.length === 1) {
@@ -422,10 +432,10 @@ class Digimon {
             }
         }
         // 2) Exact by name
-        const byName = this.byName.get(q);
+        const byName = this.byName.get(q) || this.byNameLower.get(qLower);
         if (byName) return { match: byName, isFuzzy: false, candidates: [] };
         // 3) Exact by zh-cn-name
-        const byZhCN = this.byZhName.get(q);
+        const byZhCN = this.byZhName.get(q) || this.byZhNameLower.get(qLower);
         if (byZhCN) return { match: byZhCN, isFuzzy: false, candidates: [] };
         // Guard: empty string should not yield a match
         if (q.length === 0) return { match: null, isFuzzy: false, candidates: [] };
@@ -434,9 +444,11 @@ class Digimon {
         const substringCandidates = this.digimonData.filter(d => {
             const name = typeof d.name === 'string' ? d.name : '';
             const zhName = typeof d['zh-cn-name'] === 'string' ? d['zh-cn-name'] : '';
+            const nameLower = name.toLowerCase();
+            const zhLower = zhName.toLowerCase();
             return (
-                name.includes(q) ||
-                zhName.includes(q) ||
+                name.includes(q) || zhName.includes(q) ||
+                nameLower.includes(qLower) || zhLower.includes(qLower) ||
                 (qSimplified && (name.includes(qSimplified) || zhName.includes(qSimplified)))
             );
         });
@@ -457,8 +469,8 @@ class Digimon {
                 const startsWithFull = (startsWithName === 1 || startsWithZh === 1) ? 1 : 0;
                 const asciiOverlap = this.countAsciiOverlap(aSet, nameLower) + this.countAsciiOverlap(aSet, zhLower);
                 const cjkOverlap = this.countCjkOverlap(qCjkSet, this.extractCjkCharSet(name)) + this.countCjkOverlap(qCjkSet, this.extractCjkCharSet(zhName));
-                const idxName = name.indexOf(q);
-                const idxZh = zhName.indexOf(q);
+                const idxName = (name.indexOf(q) >= 0) ? name.indexOf(q) : nameLower.indexOf(qLower);
+                const idxZh = (zhName.indexOf(q) >= 0) ? zhName.indexOf(q) : zhLower.indexOf(qLower);
                 const idxNameS = qSimplified ? name.indexOf(qSimplified) : -1;
                 const idxZhS = qSimplified ? zhName.indexOf(qSimplified) : -1;
                 let bestIndex = Number.POSITIVE_INFINITY;
@@ -500,8 +512,10 @@ class Digimon {
                     const name = item.name || '';
                     const zhName = item['zh-cn-name'] || '';
                     const startsWithFull = (name.startsWith(q) || zhName.startsWith(q) || (qSimplified && (name.startsWith(qSimplified) || zhName.startsWith(qSimplified)))) ? 1 : 0;
-                    const idxName = name.indexOf(q);
-                    const idxZh = zhName.indexOf(q);
+                const nameLower = name.toLowerCase();
+                const zhLower = zhName.toLowerCase();
+                const idxName = (name.indexOf(q) >= 0) ? name.indexOf(q) : nameLower.indexOf(qLower);
+                const idxZh = (zhName.indexOf(q) >= 0) ? zhName.indexOf(q) : zhLower.indexOf(qLower);
                     const idxNameS = qSimplified ? name.indexOf(qSimplified) : -1;
                     const idxZhS = qSimplified ? zhName.indexOf(qSimplified) : -1;
                     let bestIndex = Number.POSITIVE_INFINITY;
@@ -539,7 +553,11 @@ class Digimon {
                 const zhLower = zhName.toLowerCase();
                 const suffixLen = Math.max(this.commonSuffixLength(name, q), this.commonSuffixLength(zhName, q));
                 const prefixLen = Math.max(this.commonPrefixLength(name, q), this.commonPrefixLength(zhName, q));
-                const contains = (name.includes(q) || zhName.includes(q) || (qSimplified && (name.includes(qSimplified) || zhName.includes(qSimplified)))) ? 1 : 0; // full substring containment
+                const contains = (
+                    name.includes(q) || zhName.includes(q) ||
+                    nameLower.includes(qLower) || zhLower.includes(qLower) ||
+                    (qSimplified && (name.includes(qSimplified) || zhName.includes(qSimplified)))
+                ) ? 1 : 0; // full substring containment
                 const startsWithName = name.startsWith(q) ? 1 : 0;
                 const startsWithZh = zhName.startsWith(q) || (qSimplified && zhName.startsWith(qSimplified)) ? 1 : 0;
                 const startsWithFull = (startsWithName === 1 || startsWithZh === 1) ? 1 : 0;
@@ -552,8 +570,8 @@ class Digimon {
                 const aSet = this.extractAsciiCharSet(q);
                 const asciiOverlap = this.countAsciiOverlap(aSet, nameLower) + this.countAsciiOverlap(aSet, zhLower);
                 const cjkOverlap = this.countCjkOverlap(qCjkSet, this.extractCjkCharSet(name)) + this.countCjkOverlap(qCjkSet, this.extractCjkCharSet(zhName));
-                const idxName = name.indexOf(q);
-                const idxZh = zhName.indexOf(q);
+                const idxName = (name.indexOf(q) >= 0) ? name.indexOf(q) : nameLower.indexOf(qLower);
+                const idxZh = (zhName.indexOf(q) >= 0) ? zhName.indexOf(q) : zhLower.indexOf(qLower);
                 const idxNameS = qSimplified ? name.indexOf(qSimplified) : -1;
                 const idxZhS = qSimplified ? zhName.indexOf(qSimplified) : -1;
                 let bestIndex = Number.POSITIVE_INFINITY;
@@ -642,13 +660,13 @@ class Digimon {
                 const coreCjk = this.extractCoreCjkSuffix(q);
                 const longestCjk = this.extractLongestCjkToken(q) || coreCjk || q;
                 const enriched = fauxResults.map(r => {
-                    const name = r.item.name || '';
-                    const zhName = r.item['zh-cn-name'] || '';
-                    const nameLower = name.toLowerCase();
-                    const zhLower = zhName.toLowerCase();
+                const name = r.item.name || '';
+                const zhName = r.item['zh-cn-name'] || '';
+                const nameLower = name.toLowerCase();
+                const zhLower = zhName.toLowerCase();
                     const suffixLen = Math.max(this.commonSuffixLength(name, q), this.commonSuffixLength(zhName, q));
                     const prefixLen = Math.max(this.commonPrefixLength(name, q), this.commonPrefixLength(zhName, q));
-                    const contains = (name.includes(q) || zhName.includes(q)) ? 1 : 0; // full substring containment
+                const contains = (name.includes(q) || zhName.includes(q) || nameLower.includes(qLower) || zhLower.includes(qLower)) ? 1 : 0; // full substring containment
                     const startsWithFull = (name.startsWith(q) || zhName.startsWith(q)) ? 1 : 0;
                     const hasCore = coreCjk && (name.includes(coreCjk) || zhName.includes(coreCjk)) ? 1 : 0;
                     const startsWithToken = (!!longestCjk && (name.startsWith(longestCjk) || zhName.startsWith(longestCjk))) ? 1 : 0;
@@ -699,7 +717,7 @@ class Digimon {
                     const nameLower = s.name.toLowerCase();
                     const zhLower = s.zh.toLowerCase();
                     const asciiOverlap = this.countAsciiOverlap(aSet, nameLower) + this.countAsciiOverlap(aSet, zhLower);
-                    const contains = (s.name.includes(q) || s.zh.includes(q)) ? 1 : 0;
+                    const contains = (s.name.includes(q) || s.zh.includes(q) || nameLower.includes(qLower) || zhLower.includes(qLower)) ? 1 : 0;
                     const startsWithFull = (s.name.startsWith(q) || s.zh.startsWith(q)) ? 1 : 0;
                     return { ...s, asciiOverlap, contains, startsWithFull };
                 });
@@ -2125,11 +2143,12 @@ class Digimon {
                 digimonName,
                 digimon['zh-cn-name'] || ''
             ].join(' ');
-            return { skill, digimon, searchText, elementName, targetTypeName, stageName, digimonName, digimonId: digimon.id };
+            const searchTextLower = searchText.toLowerCase();
+            return { skill, digimon, searchText, searchTextLower, elementName, targetTypeName, stageName, digimonName, digimonId: digimon.id };
         });
         this._movesAugmented = augmentedSkills;
         this._movesFuse = new Fuse(augmentedSkills, {
-            keys: ['searchText'],
+            keys: ['searchTextLower'],
             threshold: 0.4,
             includeScore: true,
             findAllMatches: true,
@@ -2145,11 +2164,12 @@ class Digimon {
 
         const stages = ['幼年期1', '幼年期2', '成長期', '成熟期', '完全體', '究極體', '超究極體'];
         const skillTypes = ['Physical', 'Magic', 'Buff', 'HP Damage', 'Debuff', 'Recovery'];
-        const queryTerms = query.split(/\s+/).filter(Boolean);
+        const queryLower = (query || '').toLowerCase();
+        const queryTerms = queryLower.split(/\s+/).filter(Boolean);
 
         const stageTerm = queryTerms.find(term => stages.includes(term));
-        const skillTypeTerm = queryTerms.find(term => skillTypes.includes(term));
-        const otherTerms = queryTerms.filter(term => !stages.includes(term) && !skillTypes.includes(term));
+        const skillTypeTerm = queryTerms.find(term => skillTypes.map(s => s.toLowerCase()).includes(term));
+        const otherTerms = queryTerms.filter(term => !stages.includes(term) && !skillTypes.map(s => s.toLowerCase()).includes(term));
 
         let results;
 
@@ -2170,7 +2190,8 @@ class Digimon {
         if (skillTypeTerm) {
             const numericType = this.dmgTypes[skillTypeTerm];
             results = results.filter(item => {
-                return item.skill.type === skillTypeTerm || (numericType !== undefined && item.skill.type === numericType);
+                const typeStr = (typeof item.skill.type === 'string') ? item.skill.type : item.skill.type;
+                return (typeof typeStr === 'string' && typeStr.toLowerCase() === skillTypeTerm) || (numericType !== undefined && item.skill.type === numericType);
             });
         }
 

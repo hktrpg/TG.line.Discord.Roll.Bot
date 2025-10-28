@@ -1103,7 +1103,18 @@ class Digimon {
             // Use '-' (neutral) when element is missing; 'Null' stays as a distinct element when present
             const element = (skill && typeof skill.element === 'string') ? skill.element : '-';
             const elemMult = this.getElementMultiplierOnTarget(targetDigimon, element);
-            const total = attrMult * elemMult;
+            let total = attrMult * elemMult;
+            // If skill has increasedDmgAgainstClassEng (or increasedDmgAgainstClass) matching target's categoryNames (or categories), add +1
+            try {
+                const inc = (skill && (skill.increasedDmgAgainstClassEng || skill.increasedDmgAgainstClass)) || null;
+                const incList = Array.isArray(inc) ? inc : (inc ? [inc] : []);
+                const targetCats = (targetDigimon && (targetDigimon.categoryNames || targetDigimon.categories)) || [];
+                const targetCatList = Array.isArray(targetCats) ? targetCats : (targetCats ? [targetCats] : []);
+                const hasMatch = incList.some(x => targetCatList.includes(x));
+                if (hasMatch) {
+                    total += 1;
+                }
+            } catch {}
             const hits = (skill && typeof skill.maxHits === 'number') ? skill.maxHits : 1;
             const pow = (skill && typeof skill.power === 'number') ? skill.power : 0;
             const hitPower = hits * pow;
@@ -1182,6 +1193,16 @@ class Digimon {
                     skillsLines.push(`${elementEmoji} ${powerString}${extrasString}`);
                 }
                 personalityLine += ` ｜ 威力：${skillsLines.join(' ')}`;
+            }
+            // Append inherited levels (max) if present
+            if (Array.isArray(digimon.inheritedLevels) && digimon.inheritedLevels.length > 0) {
+                const numeric = digimon.inheritedLevels
+                    .map(v => Number.parseFloat(v))
+                    .filter(v => !Number.isNaN(v));
+                if (numeric.length > 0) {
+                    const maxInherited = Math.max(...numeric);
+                    personalityLine += ` ｜ 繼承招式等級：${maxInherited}`;
+                }
             }
             rply += personalityLine + '\n';
             // Resistances

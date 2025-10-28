@@ -1,9 +1,47 @@
 "use strict";
-// Note: In test environments mongoURL may be missing; do not early return here.
+const DB_READY = !!process.env.mongoURL;
 const { SlashCommandBuilder } = require('discord.js');
 const records = require('../modules/records.js');
-let trpgDarkRollingfunction = {};
 const checkTools = require('../modules/check.js');
+
+// When DB is not available: disable the whole feature cleanly
+if (!DB_READY) {
+    const gameName = function () {
+        return '【暗骰GM功能】 .drgm (addgm del show) dr ddr dddr';
+    };
+    const gameType = function () {
+        return 'Tool:trpgDarkRolling:hktrpg';
+    };
+    const prefixs = function () {
+        // No prefixes registered -> command disabled
+        return [];
+    };
+    const getHelpMessage = async function () {
+        return '暗骰GM功能未啟用：需要資料庫連線';
+    };
+    const initialize = function () {
+        return {};
+    };
+    const rollDiceCommand = async function () {
+        return {
+            default: 'on',
+            type: 'text',
+            text: '暗骰GM功能未啟用：需要資料庫連線'
+        };
+    };
+    const discordCommand = [];
+
+    module.exports = {
+        rollDiceCommand: rollDiceCommand,
+        initialize: initialize,
+        getHelpMessage: getHelpMessage,
+        prefixs: prefixs,
+        gameType: gameType,
+        gameName: gameName,
+        discordCommand: discordCommand
+    };
+} else {
+const trpgDarkRollingfunction = {};
 records.get('trpgDarkRolling', (msgs) => {
     trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
 })
@@ -344,3 +382,4 @@ module.exports = {
     gameName: gameName,
     discordCommand: discordCommand
 };
+}

@@ -1201,7 +1201,7 @@ class Digimon {
                     .filter(v => !Number.isNaN(v));
                 if (numeric.length > 0) {
                     const maxInherited = Math.max(...numeric);
-                    personalityLine += ` ｜ 最高繼承等級：${maxInherited}`;
+                    personalityLine += ` ｜ 招式最高等級：${maxInherited}`;
                 }
             }
             rply += personalityLine + '\n';

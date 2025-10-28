@@ -1,7 +1,5 @@
 "use strict";
-if (!process.env.mongoURL) {
-    return;
-}
+// Note: In test environments mongoURL may be missing; do not early return here.
 const { SlashCommandBuilder } = require('discord.js');
 const records = require('../modules/records.js');
 let trpgDarkRollingfunction = {};
@@ -153,7 +151,7 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                     "")
             } else rply.text = '新增失敗. 你已在GM列表'
             return rply;
-        } case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
+        } case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]): {
             //    
             //刪除所有自定義關鍵字
             //
@@ -186,9 +184,8 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             if (!matched) {
                 rply.text = '沒有已註冊的暗骰GM. '
             }
-
-
             return rply;
+        }
         case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]): {
             //
             //刪除GM

@@ -707,7 +707,7 @@
 </div>
 
 <!-- 非編輯模式浮動儲存按鈕 (當數值被修改時顯示) -->
-<div v-if="!editMode && hasUnsavedChanges" class="floating-save-controls">
+<div v-if="!isPublic && !editMode && hasUnsavedChanges" class="floating-save-controls">
     <button type="button" class="floating-btn save-btn" @click="updateCard" title="儲存修改">
         <i class="fas fa-save"></i>
         <span>儲存</span>

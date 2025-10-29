@@ -153,6 +153,11 @@ function selectCard() {
 
 // Update card function for hybrid UI - 使用 socketManager
 function updateCard() {
+    // 公開頁面禁止儲存
+    if (card && card.isPublic) {
+        uiManager.showInfo('公開頁面僅供瀏覽與擲骰，無法儲存。');
+        return;
+    }
     const userName = localStorage.getItem("userName");
     const token = localStorage.getItem("jwtToken");
 

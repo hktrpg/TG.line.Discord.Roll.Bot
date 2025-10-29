@@ -102,6 +102,33 @@
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
+/* Character Card list modal matches page background */
+#cardListModal .modal-content {
+    /* Match page base background (.bg-color) */
+    background-color: #F9F1F0;
+    color: var(--color-text);
+    border: var(--border-width-normal) solid var(--color-gray-700);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+}
+
+#cardListModal .modal-header,
+#cardListModal .modal-footer {
+    /* Match page base background (.bg-color) */
+    background-color: #F9F1F0;
+    border-color: var(--color-gray-700);
+}
+
+/* Keep count text on one line and align controls */
+#cardListModal .modal-body .d-flex.align-items-center {
+    flex-wrap: nowrap;
+    gap: 8px;
+}
+
+#cardListModal .modal-body .text-muted {
+    white-space: nowrap;
+}
+
 /* 卡片覆蓋 */
 .card.card-custom {
     border: var(--border-width-normal) solid var(--color-gray-300);

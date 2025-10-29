@@ -11,17 +11,38 @@ function sanitizeHtml(str) {
 }
 
 // Debug logging with sensitive data filtering
-function debugLog(message) {
-    // Filter out sensitive information
-    if (typeof message === 'string') {
-        // Replace potential passwords, tokens, and other sensitive data
-        message
-            .replaceAll(/password['":\s]*['"]\w+['"]/gi, 'password: "[REDACTED]"')
-            .replaceAll(/token['":\s]*['"]\w+['"]/gi, 'token: "[REDACTED]"')
-            .replaceAll(/userPassword['":\s]*['"]\w+['"]/gi, 'userPassword: "[REDACTED]"')
-            .replaceAll(/auth['":\s]*['"]\w+['"]/gi, 'auth: "[REDACTED]"');
+function debugLog(message, type = 'info', data) {
+    try {
+        const redact = (text) => {
+            if (typeof text !== 'string') return text;
+            return text
+                .replace(/(password["':\s]*)([^\s"']+)/gi, '$1[REDACTED]')
+                .replace(/(token["':\s]*)([^\s"']+)/gi, '$1[REDACTED]')
+                .replace(/(userPassword["':\s]*)([^\s"']+)/gi, '$1[REDACTED]')
+                .replace(/(auth["':\s]*)([^\s"']+)/gi, '$1[REDACTED]');
+        };
+
+        const ts = new Date().toISOString();
+        const safeMessage = redact(typeof message === 'string' ? message : JSON.stringify(message));
+        if (data !== undefined) {
+            // Avoid logging full objects with sensitive fields
+            let safeData = data;
+            try {
+                safeData = JSON.parse(JSON.stringify(data));
+                if (safeData && typeof safeData === 'object') {
+                    ['password', 'userPassword', 'token', 'auth'].forEach((k) => {
+                        if (k in safeData) safeData[k] = '[REDACTED]';
+                    });
+                }
+            } catch {}
+            console.log(`[${ts}] [${type}]`, safeMessage, safeData);
+        } else {
+            console.log(`[${ts}] [${type}] ${safeMessage}`);
+        }
+    } catch (e) {
+        // Fallback minimal log
+        try { console.log(`[${new Date().toISOString()}] [error] debugLog failure: ${e && e.message}`); } catch {}
     }
-    //console.log(`[${new Date().toISOString()}] [${type}] ${filteredMessage}`);
 }
 
 // Socket.io Setup - 使用 socketManager

@@ -756,6 +756,10 @@ class CardManager {
                             try {
                                 const userKey = (localStorage.getItem('userName') || 'default');
                                 localStorage.setItem(`lastSelectedCardId:${userKey}`, item._id);
+                                // 若為公開頁面，同步記錄公開卡片選擇供自動載入
+                                if (cardManager.card && cardManager.card.isPublic) {
+                                    localStorage.setItem('lastSelectedPublicCardId', item._id);
+                                }
                             } catch (e) {}
                             $('#cardListModal').modal("hide");
                         }

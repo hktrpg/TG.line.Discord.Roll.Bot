@@ -120,59 +120,12 @@
 
         // Initialize on body load
         document.getElementById("body").onload = function () {
-            debugLog(`Body loaded, initializing ${PAGE_CONFIG.isPublic ? 'public' : 'private'} card`, 'info');
-            
-            // Public card specific initialization
-            if (PAGE_CONFIG.isPublic) {
-                socket.emit('getPublicListInfo');
-            }
+            // 公開頁面之初始化與清單請求改由共用初始化流程發出，避免重複
         };
 
         // Public card specific socket listeners
         
-        // Public card specific socket listeners
-        socket.on("getPublicListInfo", function (listInfo) {
-            let list = listInfo.temp;
-            if (list) {
-                if (cardList && cardList.list) {
-                    cardList.list = list;
-                    try {
-                        const savedId = localStorage.getItem('lastSelectedPublicCardId');
-                        const selected = savedId && list.find((x) => x && x._id === savedId);
-                        if (selected) {
-                            socket.emit('getPublicCardInfo', { cardId: selected._id });
-                            return; // 不顯示清單，直接載入
-                        }
-                    } catch {}
-                    $('#cardListModal').modal("show");
-                    debugLog('Public card list loaded successfully', 'info');
-                } else {
-                    debugLog('CardList Vue app not initialized', 'error');
-                }
-            } else {
-                debugLog('Failed to load public card list', 'error');
-            }
-        });
-
-        socket.on("getPublicCardInfo", function (cardInfo) {
-            if (cardInfo && cardInfo.temp) {
-                const cardData = cardInfo.temp;
-                card._id = cardData._id;
-                card.id = cardData.id;
-                card.name = cardData.name;
-                card.state = cardData.state || [];
-                card.roll = cardData.roll || [];
-                card.notes = cardData.notes || [];
-                card.public = cardData.public || false;
-                try {
-                    localStorage.setItem('lastSelectedPublicCardId', cardData._id);
-                } catch {}
-                $('#cardListModal').modal("hide");
-                debugLog('Card data loaded successfully', 'info');
-            } else {
-                debugLog('Failed to load card data', 'error');
-            }
-        });
+        // Public card socket flow is handled centrally by socketManager
 
         // Public card utility functions
         function getTheSelectedOne(index) {

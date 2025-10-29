@@ -6,6 +6,8 @@ class SocketManager {
     constructor() {
         this.socket = io();
         this.eventHandlers = new Map();
+        this.publicListProcessed = false;
+        this.publicCardLoadedId = null;
         this.setupEventListeners();
     }
 
@@ -131,17 +133,44 @@ class SocketManager {
      */
     handlePublicListInfo(listInfo) {
         const list = listInfo.temp;
+        if (this.publicListProcessed) {
+            return;
+        }
         if (list) {
             const cardList = cardManager.getCardList();
             if (cardList && cardList.list) {
                 cardList.list = list;
+                // Try auto-select by saved public card id first
+                try {
+                    const savedId = localStorage.getItem('lastSelectedPublicCardId');
+                    const selected = savedId && list.find((x) => x && x._id === savedId);
+                    if (selected && selected._id) {
+                        const card = cardManager.getCard();
+                        if (card) {
+                            card._id = selected._id;
+                            card.id = selected.id;
+                            card.name = selected.name;
+                            card.state = selected.state || [];
+                            card.roll = selected.roll || [];
+                            card.notes = selected.notes || [];
+                            card.public = selected.public || false;
+                            try { localStorage.setItem('lastSelectedPublicCardId', selected._id); } catch {}
+                            try { $('#cardListModal').modal("hide"); } catch {}
+                            this.publicCardLoadedId = selected._id;
+                            this.publicListProcessed = true;
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    // ignore
+                }
                 $('#cardListModal').modal("show");
-                debugLog('Public card list loaded successfully', 'info');
+                this.publicListProcessed = true;
             } else {
-                debugLog('CardList Vue app not initialized', 'error');
+                // ignore
             }
         } else {
-            debugLog('Failed to load public card list', 'error');
+            // ignore
         }
     }
 
@@ -152,6 +181,9 @@ class SocketManager {
     handlePublicCardInfo(cardInfo) {
         if (cardInfo && cardInfo.temp) {
             const cardData = cardInfo.temp;
+            if (this.publicCardLoadedId && this.publicCardLoadedId === cardData._id) {
+                return;
+            }
             const card = cardManager.getCard();
             
             if (card) {
@@ -166,10 +198,10 @@ class SocketManager {
                     localStorage.setItem('lastSelectedPublicCardId', cardData._id);
                 } catch {}
                 $('#cardListModal').modal("hide");
-                debugLog('Card data loaded successfully', 'info');
+                this.publicCardLoadedId = cardData._id;
             }
         } else {
-            debugLog('Failed to load card data', 'error');
+            // ignore
         }
     }
 

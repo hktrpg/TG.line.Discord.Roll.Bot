@@ -167,7 +167,20 @@ class AuthManager {
             if (warningElement) {
                 warningElement.style.display = "none";
             }
-            cardManager.getCardList().list = list;
+            // cardList Vue app may not be mounted yet; guard and retry briefly
+            const assignListSafely = (attemptsLeft = 10) => {
+                const cardListApp = cardManager.getCardList();
+                if (cardListApp && cardListApp.list !== undefined) {
+                    cardListApp.list = list;
+                    return true;
+                }
+                if (attemptsLeft > 0) {
+                    setTimeout(() => assignListSafely(attemptsLeft - 1), 100);
+                    return false;
+                }
+                return false;
+            };
+            assignListSafely();
             // 嘗試自動載入上次選用的角色卡（依用戶分隔）
             try {
                 const userKey = (localStorage.getItem('userName') || 'default');

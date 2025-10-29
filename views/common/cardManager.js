@@ -29,6 +29,7 @@ class CardManager {
                     return {
                         id: "",
                         name: "",
+                        image: "",
                         state: [],
                         roll: [],
                         notes: [],
@@ -569,6 +570,7 @@ class CardManager {
                     saveOriginalData() {
                         this.originalData = {
                             name: this.name,
+                            image: this.image,
                             state: JSON.parse(JSON.stringify(this.state)),
                             roll: JSON.parse(JSON.stringify(this.roll)),
                             notes: JSON.parse(JSON.stringify(this.notes)),
@@ -584,6 +586,7 @@ class CardManager {
                         
                         const currentData = {
                             name: this.name,
+                            image: this.image,
                             state: this.state,
                             roll: this.roll,
                             notes: this.notes,
@@ -599,6 +602,7 @@ class CardManager {
                         if (!this.originalData) return;
                         
                         this.name = this.originalData.name;
+                        this.image = this.originalData.image;
                         this.state = JSON.parse(JSON.stringify(this.originalData.state));
                         this.roll = JSON.parse(JSON.stringify(this.originalData.roll));
                         this.notes = JSON.parse(JSON.stringify(this.originalData.notes));
@@ -674,6 +678,19 @@ class CardManager {
                     // 顯示登出模態框
                     showLogoutModal() {
                         $('#logoutModalCenter').modal('show');
+                    },
+
+                    // 圖片URL安全檢查
+                    isSafeImageUrl(url) {
+                        if (!url || typeof url !== 'string') return false;
+                        try {
+                            const u = new URL(url);
+                            if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
+                            const host = u.hostname.toLowerCase();
+                            const blocked = [/^localhost$/i, /^127\./, /^192\.168\./, /^10\./, /^172\.(1[6-9]|2[0-9]|3[0-1])\./, /^\[?::1\]?$/, /^\[?fe80:/i];
+                            if (blocked.some(rx => rx.test(host))) return false;
+                            return true;
+                        } catch { return false; }
                     }
                 }
             }).mount('#array-rendering');
@@ -742,6 +759,7 @@ class CardManager {
                             cardManager.card._id = item._id;
                             cardManager.card.id = item.id;
                             cardManager.card.name = item.name;
+                            cardManager.card.image = item.image || "";
                             cardManager.card.state = item.state;
                             cardManager.card.roll = item.roll;
                             cardManager.card.notes = item.notes;

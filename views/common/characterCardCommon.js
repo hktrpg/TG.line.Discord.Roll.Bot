@@ -215,6 +215,7 @@ function updateCard() {
         card: {
             _id: card._id,
             id: card.id,
+            image: card.image,
             state: card.state,
             roll: card.roll,
             notes: card.notes,

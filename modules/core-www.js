@@ -1211,6 +1211,7 @@ if (io) {
                     }, {
                         $set: {
                             public: message.card.public,
+                            image: message.card.image,
                             state: message.card.state,
                             roll: message.card.roll,
                             notes: message.card.notes,

@@ -19,6 +19,7 @@ const regexName = new RegExp(/name\[(.*?)\]~/, 'i');
 const regexState = new RegExp(/state\[(.*?)\]~/, 'i');
 const regexRoll = new RegExp(/roll\[(.*?)\]~/, 'i');
 const regexNotes = new RegExp(/notes\[(.*?)\]~/, 'i');
+const regexImage = new RegExp(/image\[(.*?)\]~/, 'i');
 const re = new RegExp(/(.*?):(.*?)(;|$)/, 'ig');
 const regexRollDice = new RegExp(/<([^<>]*)>/, 'ig');
 // Discord message link regex: https://discord.com/channels/{guildId}/{channelId}/{messageId}
@@ -798,6 +799,7 @@ async function analysicInputCharacterCard(inputStr) {
     let characterStateTemp = (regexState.test(inputStr)) ? inputStr.match(regexState)[1] : '';
     let characterRollTemp = (regexRoll.test(inputStr)) ? inputStr.match(regexRoll)[1] : '';
     let characterNotesTemp = (regexNotes.test(inputStr)) ? inputStr.match(regexNotes)[1] : '';
+    let characterImage = (regexImage.test(inputStr)) ? (inputStr.match(regexImage)[1] || '').trim() : '';
     let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : [];
     let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : [];
     let characterNotes = (characterNotesTemp) ? await analysicStr(characterNotesTemp, false, 'notes') : [];
@@ -808,7 +810,8 @@ async function analysicInputCharacterCard(inputStr) {
         name: characterName.replace(/^\s+/, '').replace(/\s+$/, ''),
         state: characterState,
         roll: characterRoll,
-        notes: characterNotes
+        notes: characterNotes,
+        image: characterImage
     };
     return character;
 }

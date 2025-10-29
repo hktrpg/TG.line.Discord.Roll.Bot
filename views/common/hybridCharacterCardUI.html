@@ -23,10 +23,19 @@
         <div class="hybrid-card-container">
             <div class="row align-items-center">
                 <div class="col-md-8">
-                <h2 class="character-name mb-3" style="color: #F5F5DC !important;">
+                <h2 class="character-name mb-3" style="color: #F5F5DC !important; display: flex; align-items: center; gap: 12px;">
+                        <template v-if="image && isSafeImageUrl && isSafeImageUrl(image)">
+                            <img :src="image" alt="角色頭像" referrerpolicy="no-referrer" class="character-avatar">
+                        </template>
+                        <template v-else>
                         <i class="fas fa-user-circle me-2"></i>
+                        </template>
                         {{ name || '未命名角色' }}
                     </h2>
+                    <div v-if="editMode" class="mb-2">
+                        <input type="text" v-model="image" placeholder="角色圖片 URL (http/https)" class="edit-input" style="max-width: 480px;">
+                        <div class="small" style="color:#F5F5DC; opacity:0.85; margin-top:4px;">僅允許 http/https，禁止內網/localhost。顯示機制同首頁圖片處理。</div>
+                    </div>
                 <div class="character-info d-flex flex-wrap gap-3"
                     v-if="(!editMode && (characterDetails && characterDetails.length > 0)) || (!editMode && getNonNumericAttributes().length > 0)">
                     <!-- 顯示角色詳情 -->
@@ -832,6 +841,25 @@ html body div.floating-save-controls {
     /* 最強制的樣式 */
     #array-rendering .character-header .character-name {
         color: #F5F5DC !important;
+}
+
+/* 角色頭像尺寸（完整顯示且至少等於標題區高度） */
+.character-avatar {
+    height: 72px; /* desktop default */
+    max-height: 80px;
+    width: auto;
+    object-fit: contain; /* 完整顯示，不裁切 */
+    border-radius: 8px;
+    background: rgba(0,0,0,0.1); /* 補背景避免透明邊 */
+    border: 1px solid rgba(0,0,0,0.2);
+    display: inline-block;
+}
+
+@media (max-width: 768px) {
+    .character-avatar {
+        height: 64px; /* mobile */
+        max-height: 72px;
+    }
 }
 
 .character-info .info-badge {

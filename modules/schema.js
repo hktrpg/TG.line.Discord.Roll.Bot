@@ -271,6 +271,7 @@ const characterCardSchema = mongoose.model('characterCard', new mongoose.Schema(
         type: String,
         maxlength: 50
     },
+    image: { type: String },
     nameShow: Boolean,
     state: [{
         name: {

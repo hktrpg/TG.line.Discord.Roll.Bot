@@ -154,6 +154,7 @@ class SocketManager {
                             card.roll = selected.roll || [];
                             card.notes = selected.notes || [];
                             card.public = selected.public || false;
+                            card.image = selected.image || "";
                             try { localStorage.setItem('lastSelectedPublicCardId', selected._id); } catch {}
                             try { $('#cardListModal').modal("hide"); } catch {}
                             this.publicCardLoadedId = selected._id;
@@ -190,6 +191,7 @@ class SocketManager {
                 card._id = cardData._id;
                 card.id = cardData.id;
                 card.name = cardData.name;
+                card.image = cardData.image || "";
                 card.state = cardData.state || [];
                 card.roll = cardData.roll || [];
                 card.notes = cardData.notes || [];

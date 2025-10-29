@@ -179,6 +179,7 @@ class AuthManager {
                         card._id = selected._id;
                         card.id = selected.id;
                         card.name = selected.name;
+                        card.image = selected.image || "";
                         card.state = selected.state || [];
                         card.roll = selected.roll || [];
                         card.notes = selected.notes || [];

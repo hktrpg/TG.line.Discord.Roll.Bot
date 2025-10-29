@@ -4,8 +4,11 @@
     <section id="buttonlist">
         <div class="button-group">
             <!-- Private card specific buttons -->
-            <button type="button" class="btn btn-primary float-right" v-if="!isPublic" onclick="logout()">
-                <span class="iconify" data-icon="mdi:login" data-inline="false"></span>登入/登出
+            <button type="button" class="btn btn-primary float-right" v-if="!isPublic" onclick="$('#loginModalCenter').modal('show')">
+                <span class="iconify" data-icon="mdi:login" data-inline="false"></span>登入
+            </button>
+            <button type="button" class="btn btn-danger float-right" v-if="!isPublic" onclick="cardManager.getCard() && cardManager.getCard().showLogoutModal && cardManager.getCard().showLogoutModal()">
+                <span class="iconify" data-icon="mdi:logout" data-inline="false"></span>登出
             </button>
             <button type="button" class="btn btn-warning float-right" v-if="name && !isPublic" @click="toggleDeleteMode(0)">
                 <span class="iconify" data-icon="carbon:column-delete" data-inline="false"></span>

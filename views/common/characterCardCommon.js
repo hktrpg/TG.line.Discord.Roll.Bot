@@ -124,31 +124,18 @@ function logout() {
 
 // Confirm logout function
 function confirmLogout() {
-    const userName = document.getElementById('logoutUserName').value;
-    const userPassword = document.getElementById('logoutUserPassword').value;
-    
-    if (!userName || !userPassword) {
-        document.getElementById('logoutWarning').style.display = 'block';
-        document.getElementById('logoutWarning').innerHTML = '<strong>錯誤!</strong> 請輸入用戶名和密碼';
-        return;
-    }
-    
-    // Clear localStorage
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userPassword');
-    localStorage.removeItem('jwtToken');
-    localStorage.removeItem('selectedGroupId');
-    
-    // Hide modal
+    // 清除本機登入資訊
+    try { localStorage.removeItem('userName'); } catch {}
+    try { localStorage.removeItem('userPassword'); } catch {}
+    try { localStorage.removeItem('jwtToken'); } catch {}
+    try { localStorage.removeItem('selectedGroupId'); } catch {}
+
+    // 關閉彈窗
     $('#logoutModalCenter').modal('hide');
-    
-    // Show success message
+
+    // 訊息提示並重新載入
     uiManager.showSuccess('已成功登出');
-    
-    // Redirect to login or reload page
-    setTimeout(() => {
-        window.location.reload();
-    }, 1000);
+    setTimeout(() => { window.location.reload(); }, 800);
 }
 
 // DOM Ready Handler

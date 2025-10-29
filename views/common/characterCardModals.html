@@ -50,27 +50,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form id="logoutForm">
-                    <div class="form-group">
-                        <label for="logoutUserName">用戶名</label>
-                        <input type="text" 
-                               class="form-control" 
-                               id="logoutUserName" 
-                               autocomplete="username"
-                               placeholder="Enter userName">
-                    </div>
-                    <div class="form-group">
-                        <label for="logoutUserPassword">密碼</label>
-                        <input type="password" 
-                               class="form-control" 
-                               id="logoutUserPassword"
-                               autocomplete="current-password"
-                               placeholder="Enter userPassword">
-                    </div>
-                    <div class="alert alert-danger" id="logoutWarning" style="display: none;">
-                        <strong>登出失敗</strong> 請檢查用戶名和密碼是否正確
-                    </div>
-                </form>
+                <p class="mb-0">確定要登出嗎？此操作會清除本機登入資訊並回到登入畫面。</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
@@ -78,7 +58,7 @@
             </div>
         </div>
     </div>
-</div>
+    </div>
 
 <!-- Card List Modal -->
 <div class="modal fade" id="cardListModal" tabindex="-1" role="dialog" aria-labelledby="cardListModalLabel"

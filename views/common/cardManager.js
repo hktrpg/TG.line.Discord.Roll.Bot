@@ -523,6 +523,31 @@ class CardManager {
                         }
                     },
                     
+                    // 要求切換公開狀態（先確認再儲存）
+                    requestTogglePublic() {
+                        // 目前為私人 -> 切換為公開，先彈出確認
+                        if (!this.public) {
+                            $('#publicConfirmModal').modal('show');
+                            return;
+                        }
+
+                        // 目前為公開 -> 切為私人，直接儲存
+                        this.public = false;
+                        this.updateCard();
+                    },
+
+                    // 確認公開
+                    confirmMakePublic() {
+                        this.public = true;
+                        $('#publicConfirmModal').modal('hide');
+                        this.updateCard();
+                    },
+
+                    // 取消公開
+                    cancelMakePublic() {
+                        $('#publicConfirmModal').modal('hide');
+                    },
+                    
                     // 更新角色卡
                     updateCard() {
                         if (typeof globalThis.updateCard === 'function') {

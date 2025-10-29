@@ -134,3 +134,30 @@
         </div>
     </div>
 </div> 
+
+<!-- Public Confirm Modal -->
+<div class="modal fade" id="publicConfirmModal" tabindex="-1" role="dialog" aria-labelledby="publicConfirmModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="publicConfirmModalTitle">公開角色卡確認</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>將「現在狀態」切換為「公開」後：</p>
+                <ul>
+                    <li>你的角色卡會顯示在 <a href="https://publiccard.hktrpg.com/" target="_blank" rel="noopener">publiccard.hktrpg.com</a></li>
+                    <li>任何人都可以瀏覽該角色卡並進行簡單擲骰</li>
+                    <li>你隨時可以改回「私人」，我們會立即儲存狀態</li>
+                </ul>
+                <p class="mb-0">確認要公開此角色卡嗎？</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="cardManager.getCard() && cardManager.getCard().cancelMakePublic && cardManager.getCard().cancelMakePublic()">取消</button>
+                <button type="button" class="btn btn-primary" onclick="cardManager.getCard() && cardManager.getCard().confirmMakePublic && cardManager.getCard().confirmMakePublic()">確認公開並儲存</button>
+            </div>
+        </div>
+    </div>
+    </div>

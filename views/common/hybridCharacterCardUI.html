@@ -437,7 +437,7 @@
 
                     <!-- 公開設定 (僅私人卡片) -->
                     <button type="button" class="action-btn" :class="public ? 'success' : 'secondary'"
-                        v-if="name && !isPublic" @click="public = !public" :title="public ? '點擊設為私人' : '點擊設為公開'">
+                        v-if="name && !isPublic" @click="requestTogglePublic" :title="public ? '點擊設為私人' : '點擊設為公開'">
                         <i class="fas fa-globe"></i>
                         現在狀態：{{ public ? '公開' : '私人' }}
                         </button>

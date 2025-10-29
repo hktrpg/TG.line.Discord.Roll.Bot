@@ -702,23 +702,60 @@ class CardManager {
             this.cardList = Vue.createApp({
                 data() {
                     return {
-                        list: []
+                        list: [],
+                        searchQuery: localStorage.getItem('cardList.searchQuery') || '',
+                        page: Number(localStorage.getItem('cardList.page') || 1),
+                        pageSize: Number(localStorage.getItem('cardList.pageSize') || 24)
+                    }
+                },
+                computed: {
+                    filteredList() {
+                        if (!this.searchQuery || this.searchQuery.trim() === '') return this.list;
+                        const q = this.searchQuery.trim().toLowerCase();
+                        return this.list.filter(x => (x && x.name && x.name.toLowerCase().includes(q)));
+                    },
+                    filteredCount() {
+                        return this.filteredList.length;
+                    },
+                    totalPages() {
+                        return Math.max(1, Math.ceil(this.filteredList.length / this.pageSize));
+                    },
+                    pagedList() {
+                        const start = (this.page - 1) * this.pageSize;
+                        return this.filteredList.slice(start, start + this.pageSize);
+                    }
+                },
+                watch: {
+                    searchQuery(val) {
+                        localStorage.setItem('cardList.searchQuery', val);
+                        this.page = 1;
+                        localStorage.setItem('cardList.page', String(this.page));
+                    },
+                    page(val) {
+                        localStorage.setItem('cardList.page', String(val));
+                    },
+                    pageSize(val) {
+                        localStorage.setItem('cardList.pageSize', String(val));
+                        this.page = 1;
+                        localStorage.setItem('cardList.page', String(this.page));
                     }
                 },
                 methods: {
-                    getTheSelectedOne(index) {
-                        if (cardManager.card) {
-                            cardManager.card._id = this.list[index]._id;
-                            cardManager.card.id = this.list[index].id;
-                            cardManager.card.name = this.list[index].name;
-                            cardManager.card.state = this.list[index].state;
-                            cardManager.card.roll = this.list[index].roll;
-                            cardManager.card.notes = this.list[index].notes;
-                            cardManager.card.public = this.list[index].public;
+                    prevPage() { if (this.page > 1) this.page--; },
+                    nextPage() { if (this.page < this.totalPages) this.page++; },
+                    getTheSelectedOneByItem(item) {
+                        if (cardManager.card && item) {
+                            cardManager.card._id = item._id;
+                            cardManager.card.id = item.id;
+                            cardManager.card.name = item.name;
+                            cardManager.card.state = item.state;
+                            cardManager.card.roll = item.roll;
+                            cardManager.card.notes = item.notes;
+                            cardManager.card.public = item.public;
                             // 記下本機最後選用的角色卡（依用戶分隔）
                             try {
                                 const userKey = (localStorage.getItem('userName') || 'default');
-                                localStorage.setItem(`lastSelectedCardId:${userKey}`, this.list[index]._id);
+                                localStorage.setItem(`lastSelectedCardId:${userKey}`, item._id);
                             } catch (e) {}
                             $('#cardListModal').modal("hide");
                         }

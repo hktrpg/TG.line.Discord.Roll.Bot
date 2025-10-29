@@ -90,13 +90,29 @@
             </div>
             <div class="modal-body">
                 <form id="cardList-Form">
-                    <div class="form-group">
-                        <div id="array-cardList">
-                            <span v-for="(item,index) in list" :key="index" class="col">
+                    <div class="form-group" id="array-cardList">
+                        <div class="d-flex align-items-center mb-2">
+                            <input type="text" class="form-control form-control-sm mr-2" placeholder="搜尋角色卡名稱"
+                                   v-model="searchQuery">
+                            <select class="form-control form-control-sm" style="width:auto" v-model.number="pageSize">
+                                <option :value="12">12/頁</option>
+                                <option :value="24">24/頁</option>
+                                <option :value="48">48/頁</option>
+                                <option :value="96">96/頁</option>
+                            </select>
+                            <span class="ml-2 text-muted">共 {{ filteredCount }} 張</span>
+                        </div>
+                        <div>
+                            <span v-for="(item,index) in pagedList" :key="item._id || index" class="col">
                                 <button type="button" class="btn btn-warning m-1"
-                                    v-on:click="getTheSelectedOne(index)">
+                                    v-on:click="getTheSelectedOneByItem(item)">
                                     {{item.name}}</button>
                             </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2" v-if="totalPages > 1">
+                            <button type="button" class="btn btn-sm btn-secondary" :disabled="page<=1" @click="prevPage">上一頁</button>
+                            <div class="text-muted">第 {{ page }} / {{ totalPages }} 頁</div>
+                            <button type="button" class="btn btn-sm btn-secondary" :disabled="page>=totalPages" @click="nextPage">下一頁</button>
                         </div>
                     </div>
                 </form>

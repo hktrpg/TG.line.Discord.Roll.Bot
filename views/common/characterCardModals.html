@@ -39,6 +39,47 @@
     </div>
 </div>
 
+<!-- Logout Modal -->
+<div class="modal fade" id="logoutModalCenter" tabindex="-1" role="dialog" aria-labelledby="logoutModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logoutModalCenterTitle">登出確認</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="logoutForm">
+                    <div class="form-group">
+                        <label for="logoutUserName">用戶名</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="logoutUserName" 
+                               autocomplete="username"
+                               placeholder="Enter userName">
+                    </div>
+                    <div class="form-group">
+                        <label for="logoutUserPassword">密碼</label>
+                        <input type="password" 
+                               class="form-control" 
+                               id="logoutUserPassword"
+                               autocomplete="current-password"
+                               placeholder="Enter userPassword">
+                    </div>
+                    <div class="alert alert-danger" id="logoutWarning" style="display: none;">
+                        <strong>登出失敗</strong> 請檢查用戶名和密碼是否正確
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" onclick="confirmLogout()">確認登出</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Card List Modal -->
 <div class="modal fade" id="cardListModal" tabindex="-1" role="dialog" aria-labelledby="cardListModalLabel"
     aria-hidden="true">
@@ -49,13 +90,29 @@
             </div>
             <div class="modal-body">
                 <form id="cardList-Form">
-                    <div class="form-group">
-                        <div id="array-cardList">
-                            <span v-for="(item,index) in list" :key="index" class="col">
+                    <div class="form-group" id="array-cardList">
+                        <div class="d-flex align-items-center mb-2">
+                            <input type="text" class="form-control form-control-sm mr-2" placeholder="搜尋角色卡名稱"
+                                   v-model="searchQuery">
+                            <select class="form-control form-control-sm" style="width:auto" v-model.number="pageSize">
+                                <option :value="12">12/頁</option>
+                                <option :value="24">24/頁</option>
+                                <option :value="48">48/頁</option>
+                                <option :value="96">96/頁</option>
+                            </select>
+                            <span class="ml-2 text-muted">共 {{ filteredCount }} 張</span>
+                        </div>
+                        <div>
+                            <span v-for="(item,index) in pagedList" :key="item._id || index" class="col">
                                 <button type="button" class="btn btn-warning m-1"
-                                    v-on:click="getTheSelectedOne(index)">
+                                    v-on:click="getTheSelectedOneByItem(item)">
                                     {{item.name}}</button>
                             </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2" v-if="totalPages > 1">
+                            <button type="button" class="btn btn-sm btn-secondary" :disabled="page<=1" @click="prevPage">上一頁</button>
+                            <div class="text-muted">第 {{ page }} / {{ totalPages }} 頁</div>
+                            <button type="button" class="btn btn-sm btn-secondary" :disabled="page>=totalPages" @click="nextPage">下一頁</button>
                         </div>
                     </div>
                 </form>
@@ -93,3 +150,30 @@
         </div>
     </div>
 </div> 
+
+<!-- Public Confirm Modal -->
+<div class="modal fade" id="publicConfirmModal" tabindex="-1" role="dialog" aria-labelledby="publicConfirmModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="publicConfirmModalTitle">公開角色卡確認</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>將「現在狀態」切換為「公開」後：</p>
+                <ul>
+                    <li>你的角色卡會顯示在 <a href="https://publiccard.hktrpg.com/" target="_blank" rel="noopener">publiccard.hktrpg.com</a></li>
+                    <li>任何人都可以瀏覽該角色卡並進行簡單擲骰</li>
+                    <li>你隨時可以改回「私人」，我們會立即儲存狀態</li>
+                </ul>
+                <p class="mb-0">確認要公開此角色卡嗎？</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="cardManager.getCard() && cardManager.getCard().cancelMakePublic && cardManager.getCard().cancelMakePublic()">取消</button>
+                <button type="button" class="btn btn-primary" onclick="cardManager.getCard() && cardManager.getCard().confirmMakePublic && cardManager.getCard().confirmMakePublic()">確認公開並儲存</button>
+            </div>
+        </div>
+    </div>
+    </div>

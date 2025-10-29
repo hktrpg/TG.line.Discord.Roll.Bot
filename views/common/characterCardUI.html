@@ -55,7 +55,7 @@
             <button type="button" class="btn btn-danger" v-if="gp.showDeleteButton" v-on:click="confirmRemoveChannel(gp)">
                 {{ gp.confirmDelete ? '確定' : '移除?' }}
             </button>
-            <button type="button" class="btn btn-danger" v-if="gp.showCancelButton" v-on:click="cancelButton(gp)">
+            <button type="button" class="btn btn-secondary" v-if="gp.showCancelButton" v-on:click="cancelButton(gp)">
                 取消
             </button>
         </div>

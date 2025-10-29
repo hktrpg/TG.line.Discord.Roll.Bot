@@ -65,6 +65,7 @@
     "imgbox": "^1.1.4",
     "jimp": "^0.16.2",
     "jsonschema": "^1.5.0",
+    "jsonwebtoken": "^9.0.2",
     "log-to-file": "^3.0.3",
     "lunisolar": "^2.6.0",
     "mammoth": "^1.11.0",

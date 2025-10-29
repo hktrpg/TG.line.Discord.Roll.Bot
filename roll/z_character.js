@@ -19,6 +19,7 @@ const regexName = new RegExp(/name\[(.*?)\]~/, 'i');
 const regexState = new RegExp(/state\[(.*?)\]~/, 'i');
 const regexRoll = new RegExp(/roll\[(.*?)\]~/, 'i');
 const regexNotes = new RegExp(/notes\[(.*?)\]~/, 'i');
+const regexImage = new RegExp(/image\[(.*?)\]~/, 'i');
 const re = new RegExp(/(.*?):(.*?)(;|$)/, 'ig');
 const regexRollDice = new RegExp(/<([^<>]*)>/, 'ig');
 // Discord message link regex: https://discord.com/channels/{guildId}/{channelId}/{messageId}
@@ -61,10 +62,11 @@ name[Sad]~
 state[HP:15/15;MP:10/10;San:80;力量:50;敏捷:60;]~
 roll[鬥毆: cc 50;射擊: cc 45;SanCheck: .sc {San};]~
 notes[筆記:這是測試,請試試在群組輸入 .char use Sad]~
+image[https://example.com/avatar.png]~
 │
 │ ■ 修改角色卡:
 .char edit name[角色名]~
-state[...]~ roll[...]~ notes[...]~
+state[...]~ roll[...]~ notes[...]~ image[https://example.com/avatar.png]~
 │
 ├──── 💻管理方式 ────
 │ ■ 網頁版(推薦):
@@ -90,6 +92,11 @@ state[...]~ roll[...]~ notes[...]~
 │ • .char delete [名稱] (刪除)
 │ • .ch show (顯示狀態)
 │ • .ch showall (顯示全部內容)
+│ 
+│ ■ 頭像設定（image）:
+│ • 在 .char add / .char edit 中加入：image[https://...]
+│ • 僅接受 http/https，系統會拒絕 localhost/內網位址
+│ • 網站在角色名稱左側顯示完整頭像（不裁切）
 │ 
 │ ■ 數值操作:
 │ • .ch [項目]
@@ -798,6 +805,7 @@ async function analysicInputCharacterCard(inputStr) {
     let characterStateTemp = (regexState.test(inputStr)) ? inputStr.match(regexState)[1] : '';
     let characterRollTemp = (regexRoll.test(inputStr)) ? inputStr.match(regexRoll)[1] : '';
     let characterNotesTemp = (regexNotes.test(inputStr)) ? inputStr.match(regexNotes)[1] : '';
+    let characterImage = (regexImage.test(inputStr)) ? (inputStr.match(regexImage)[1] || '').trim() : '';
     let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : [];
     let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : [];
     let characterNotes = (characterNotesTemp) ? await analysicStr(characterNotesTemp, false, 'notes') : [];
@@ -808,7 +816,8 @@ async function analysicInputCharacterCard(inputStr) {
         name: characterName.replace(/^\s+/, '').replace(/\s+$/, ''),
         state: characterState,
         roll: characterRoll,
-        notes: characterNotes
+        notes: characterNotes,
+        image: characterImage
     };
     return character;
 }

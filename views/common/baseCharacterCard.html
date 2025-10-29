@@ -33,17 +33,17 @@
     <!-- Iconify -->
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
     
-    <title>Character Card 角色卡 @ HKTRPG</title>
+    <title>{{TITLE}} @ HKTRPG</title>
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
 </head>
 
-<body class="bg-color " id="body">
+<body class="bg-color {{BODY_CLASS}}" id="body">
     <header>
         <div id="header"></div>
     </header>
     <br>
     
-    <div class="container-fluid px-3 px-md-4 py-3">
+    <div class="{{CONTAINER_CLASS}}">
         <!-- Success Alert -->
         <div class="alert alert-success alert-dismissible fade show overlay" 
              style="position: fixed; z-index: 999; display: none;" 
@@ -63,7 +63,7 @@
         </div>
         
         <!-- Vue App Container -->
-        <div id="array-rendering" class="container-fluid px-3 px-md-4 py-3">
+        <div id="array-rendering" class="{{VUE_CONTAINER_CLASS}}">
             <!-- Hybrid UI Template will be loaded here -->
         </div>
     </div>
@@ -95,28 +95,41 @@
 
     <!-- Page Specific JavaScript -->
     <script>
-        const IS_PUBLIC = false;
+        // Configuration object for page-specific settings
+        const PAGE_CONFIG = {
+            isPublic: {{IS_PUBLIC}},
+            title: "{{TITLE}}",
+            bodyClass: "{{BODY_CLASS}}",
+            containerClass: "{{CONTAINER_CLASS}}",
+            vueContainerClass: "{{VUE_CONTAINER_CLASS}}"
+        };
 
-        document.addEventListener('DOMContentLoaded', function () {
-            $('#warning-update').hide();
-            $('#warning-updateError').hide();
-
-            $("#commonModals").load("/common/characterCardModals.html", function () {
-                debugLog('Modals loaded', 'info');
-            });
-
-            initializeVueApps(IS_PUBLIC, true);
-
-            socket.on('cardUpdated', function (data) {
-                if (data && data.success) {
-                    $('#warning-update').show();
-                    setTimeout(function(){ $('#warning-update').hide(); }, 3000);
-                } else {
-                    $('#warning-updateError').show();
-                    setTimeout(function(){ $('#warning-updateError').hide(); }, 3000);
-                }
-            });
+        // Load common modals
+        $("#commonModals").load("/common/characterCardModals.html", function() {
+            debugLog('Modals loaded', 'info');
         });
+        
+        // Initialize Vue apps with configuration
+        setTimeout(function() {
+            initializeVueApps(PAGE_CONFIG.isPublic, true);
+        }, 100);
+
+        // Hide alerts initially
+        $('#warning-update').hide();
+        $('#warning-updateError').hide();
+
+        // Initialize on body load
+        document.getElementById("body").onload = function () {
+            debugLog(`Body loaded, initializing ${PAGE_CONFIG.isPublic ? 'public' : 'private'} card`, 'info');
+            
+            // Public card specific initialization
+            if (PAGE_CONFIG.isPublic) {
+                socket.emit('getPublicListInfo');
+            }
+        };
+
+        // Public card specific socket listeners
+        {{PUBLIC_SOCKET_LISTENERS}}
     </script>
 </body>
 <!-- HKTRPG Sad -->

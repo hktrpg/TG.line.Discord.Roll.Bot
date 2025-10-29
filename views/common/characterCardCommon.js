@@ -1,4 +1,6 @@
-// Common JavaScript code for character card pages
+// Common JavaScript code for character card pages - 重構版本
+// 使用模組化架構，依賴 cardManager, authManager, uiManager, socketManager
+
 let TITLE = "HKTRPG 角色卡";
 
 // XSS Protection function
@@ -8,380 +10,145 @@ function sanitizeHtml(str) {
     return div.innerHTML;
 }
 
-// Simple encryption/decryption for localStorage (not cryptographically secure, but better than plain text)
-function simpleEncrypt(text) {
-    if (!text) return '';
-    return btoa(encodeURIComponent(text));
-}
-
-function simpleDecrypt(encodedText) {
-    if (!encodedText) return '';
-    try {
-        return decodeURIComponent(atob(encodedText));
-    } catch (error) {
-        console.warn('Failed to decrypt stored data:', error.message);
-        return '';
-    }
-}
-
 // Debug logging with sensitive data filtering
-function debugLog(message) {
-    // Filter out sensitive information
-    if (typeof message === 'string') {
-        // Replace potential passwords, tokens, and other sensitive data
-        message
-            .replaceAll(/password['":\s]*['"]\w+['"]/gi, 'password: "[REDACTED]"')
-            .replaceAll(/token['":\s]*['"]\w+['"]/gi, 'token: "[REDACTED]"')
-            .replaceAll(/userPassword['":\s]*['"]\w+['"]/gi, 'userPassword: "[REDACTED]"')
-            .replaceAll(/auth['":\s]*['"]\w+['"]/gi, 'auth: "[REDACTED]"');
+function debugLog(message, type = 'info', data) {
+    try {
+        const redact = (text) => {
+            if (typeof text !== 'string') return text;
+            return text
+                .replaceAll(/(password["':\s]*)([^\s"']+)/gi, '$1[REDACTED]')
+                .replaceAll(/(token["':\s]*)([^\s"']+)/gi, '$1[REDACTED]')
+                .replaceAll(/(userPassword["':\s]*)([^\s"']+)/gi, '$1[REDACTED]')
+                .replaceAll(/(auth["':\s]*)([^\s"']+)/gi, '$1[REDACTED]');
+        };
+
+        const ts = new Date().toISOString();
+        const safeMessage = redact(typeof message === 'string' ? message : JSON.stringify(message));
+        if (data !== undefined) {
+            // Avoid logging full objects with sensitive fields
+            let safeData = data;
+            try {
+                safeData = JSON.parse(JSON.stringify(data));
+                if (safeData && typeof safeData === 'object') {
+                    for (const k of ['password', 'userPassword', 'token', 'auth']) {
+                        if (k in safeData) safeData[k] = '[REDACTED]';
+                    }
+                }
+            } catch {}
+            console.log(`[${ts}] [${type}]`, safeMessage, safeData);
+        } else {
+            console.log(`[${ts}] [${type}] ${safeMessage}`);
+        }
+    } catch (error) {
+        // Fallback minimal log
+        try { console.log(`[${new Date().toISOString()}] [error] debugLog failure: ${error && error.message}`); } catch {}
     }
-    //console.log(`[${new Date().toISOString()}] [${type}] ${filteredMessage}`);
 }
 
-// Socket.io Setup
-let socket = io();
+// Socket.io Setup - 使用 socketManager
+let socket = socketManager.getSocket();
 
-// Vue Applications
+// Vue Applications - 使用 cardManager
 let card = null;
 let cardList = null;
 
-function initializeVueApps(isPublic = false) {
-    debugLog('Initializing Vue applications', 'info');
+function initializeVueApps(isPublic = false, skipUITemplateLoad = false) {
     try {
         // Set title based on card type
         TITLE = isPublic ? "HKTRPG 公開角色卡" : "HKTRPG 私人角色卡";
         
-        // Load common UI template
-        $("#array-rendering").load("/common/characterCardUI.html", function() {
-            debugLog('UI template loaded, initializing Vue apps', 'info');
+        // Update page title
+        document.title = `${TITLE} @ HKTRPG`;
+        
+        // Only load UI template if not already loaded (skipUITemplateLoad = true means UI is already loaded)
+        if (!skipUITemplateLoad) {
+            $("#array-rendering").load("/common/characterCardUI.html", function() {
+                initializeVueAppsInternal(isPublic, null);
+            });
+        } else {
+            // Load the hybrid UI template into a temporary container first
+            const tempContainer = document.createElement('div');
+            tempContainer.style.display = 'none';
+            document.body.append(tempContainer);
             
-            // Initialize main card app
-            card = Vue.createApp({
-                data() {
-                    return {
-                        id: "",
-                        name: "",
-                        state: [],
-                        roll: [],
-                        notes: [],
-                        gpList: [],
-                        selectedGroupId: localStorage.getItem("selectedGroupId") || null,
-                        public: isPublic,
-                        deleteMode: false,
-                        isPublic: isPublic
-                    }
-                },
-                mounted() {
-                    // Set the correct radio button based on saved selectedGroupId
-                    if (this.selectedGroupId && this.selectedGroupId !== "") {
-                        debugLog(`Loading saved group ID: ${this.selectedGroupId}`, 'info');
-                        this.$nextTick(() => {
-                            const radio = document.querySelector(`input[name="gpListRadio"][value="${this.selectedGroupId}"]`);
-                            if (radio) {
-                                radio.checked = true;
-                            }
-                        });
-                    } else {
-                        // Default to "no group" option
-                        this.$nextTick(() => {
-                            const radio = document.querySelector('input[name="gpListRadio"][value=""]');
-                            if (radio) {
-                                radio.checked = true;
-                            }
-                        });
-                    }
-                },
-                methods: {
-                    addItem(form) {
-                        switch (form) {
-                            case 0:
-                                this.state.push({
-                                    name: "",
-                                    itemA: "",
-                                    itemB: ""
-                                });
-                                break;
-                            case 1:
-                                this.roll.push({
-                                    name: "",
-                                    itemA: ""
-                                });
-                                break;
-                            case 2:
-                                this.notes.push({
-                                    name: "",
-                                    itemA: ""
-                                });
-                                break;
-                            default:
-                                break;
-                        }
-                    },
-                    removeItem(form, index = null) {
-                        switch (form) {
-                            case 0:
-                                if (index !== null) {
-                                    this.state.splice(index, 1);
-                                } else {
-                                    this.state.pop();
-                                }
-                                break;
-                            case 1:
-                                if (index !== null) {
-                                    this.roll.splice(index, 1);
-                                } else {
-                                    this.roll.pop();
-                                }
-                                break;
-                            case 2:
-                                if (index !== null) {
-                                    this.notes.splice(index, 1);
-                                } else {
-                                    this.notes.pop();
-                                }
-                                break;
-                            default:
-                                break;
-                        }
-                    },
-                    toggleDeleteMode() {
-                        this.deleteMode = !this.deleteMode;
-                    },
-                    removeChannel(channelId) {
-                        this.gpList = this.gpList.filter(channel => channel.id !== channelId);
-                    },
-                    config() {
-                        debugLog('Configuring group list', 'info');
-                        // Check if delete mode is already active
-                        const isDeleteModeActive = this.gpList.length > 0 && this.gpList[0].showDeleteButton;
-                        
-                        // Toggle delete mode
-                        this.gpList = this.gpList.map(group => ({
-                            ...group,
-                            showDeleteButton: !isDeleteModeActive,
-                            showCancelButton: false,
-                            confirmDelete: false
-                        }));
-                    },
-                    confirmRemoveChannel(channel) {
-                        if (!channel.confirmDelete) {
-                            channel.confirmDelete = true;
-                        } else {
-                            this.removeChannel(channel._id);
-                        }
-                    },
-                    cancelButton(channel) {
-                        channel.showDeleteButton = true;
-                        channel.showCancelButton = false;
-                        channel.confirmDelete = false;
-                    },
-                    saveSelectedGroupId() {
-                        localStorage.setItem("selectedGroupId", this.selectedGroupId || "");
-                        debugLog(`Saving selected group ID: ${this.selectedGroupId}`, 'info');
-                    },
-                    rolling(name) {
-                        debugLog(`Rolling for ${name}`, 'info');
-                        // Get the selected group ID from the radio button
-                        this.selectedGroupId = document.querySelector('input[name="gpListRadio"]:checked')?.value || null;
-                        // Save the selection to localStorage for persistence
-                        this.saveSelectedGroupId();
-                        
-                        if (this.isPublic) {
-                            socket.emit('publicRolling', {
-                                item: name,
-                                userName: localStorage.getItem("userName"),
-                                userPassword: simpleDecrypt(localStorage.getItem("userPassword")),
-                                doc: {
-                                    name: this.name,
-                                    state: this.state,
-                                    roll: this.roll,
-                                    notes: this.notes
-                                }
-                            });
-                        } else {
-                            socket.emit('rolling', {
-                                item: name,
-                                userName: localStorage.getItem("userName"),
-                                userPassword: simpleDecrypt(localStorage.getItem("userPassword")),
-                                cardName: this.name,
-                                selectedGroupId: this.selectedGroupId,
-                                doc: {
-                                    name: this.name,
-                                    state: this.state,
-                                    roll: this.roll,
-                                    notes: this.notes
-                                }
-                            });
-                        }
-                    }
-                }
-            }).mount('#array-rendering');
-
-            debugLog('Main card Vue app initialized successfully', 'info');
-
-            // Initialize card list app if element exists
-            const cardListElement = document.querySelector('#array-cardList');
-            if (cardListElement) {
-                cardList = Vue.createApp({
-                    data() {
-                        return {
-                            list: []
-                        }
-                    },
-                    methods: {
-                        getTheSelectedOne(index) {
-                            if (card) {
-                                card._id = this.list[index]._id;
-                                card.id = this.list[index].id;
-                                card.name = this.list[index].name;
-                                card.state = this.list[index].state;
-                                card.roll = this.list[index].roll;
-                                card.notes = this.list[index].notes;
-                                card.public = this.list[index].public;
-                                $('#cardListModal').modal("hide");
-                            }
-                        }
-                    }
-                }).mount('#array-cardList');
-                debugLog('CardList Vue app initialized successfully', 'info');
-            }
-
-            debugLog('Vue applications initialized successfully', 'info');
-
-            // Set up login form for private cards
-            if (!isPublic) {
-                setupLoginForm();
-            }
-        });
+            $(tempContainer).load("/common/hybridCharacterCardUI.html", function() {
+                const templateContent = tempContainer.innerHTML;
+                
+                // Remove the temporary container
+                tempContainer.remove();
+                
+                initializeVueAppsInternal(isPublic, templateContent);
+            });
+        }
     } catch (error) {
-        debugLog(`Error initializing Vue apps: ${error.message}`, 'error');
+        console.error('Error in initializeVueApps:', error);
     }
 }
 
-// Login form setup
-function setupLoginForm() {
-    debugLog('Setting up login form', 'info');
-    let retryCount = 0;
-    const maxRetries = 5;
-    const retryInterval = 100; // ms
+function initializeVueAppsInternal(isPublic = false, templateContent = null) {
+    try {
+        // 使用 cardManager 初始化角色卡
+        cardManager.initializeCard(isPublic, templateContent);
+        
+        // 獲取實例引用
+        card = cardManager.getCard();
+        cardList = cardManager.getCardList();
 
-    function trySetupLoginForm() {
-        const userNameInput = document.querySelector('#userName');
-        const userPasswordInput = document.querySelector('#userPassword_id');
-        const warningElement = document.querySelector('#warning');
+        debugLog('Vue applications initialized successfully', 'info');
 
-        if (userNameInput && userPasswordInput && warningElement) {
-            // Set initial values from localStorage
-            const userName = localStorage.getItem("userName");
-            const userPassword = simpleDecrypt(localStorage.getItem("userPassword"));
-            
-            if (userName) userNameInput.value = userName;
-            if (userPassword) userPasswordInput.value = userPassword;
-
-            // Check if user is already logged in
-            if (userName && userPassword) {
-                debugLog('User already logged in, attempting to get card list', 'info');
-                socket.emit('getListInfo', {
-                    userName: userName,
-                    userPassword: userPassword
-                });
-
-                socket.once("getListInfo", function (listInfo) {
-                    let list = listInfo.temp;
-                    if (listInfo && listInfo.id && listInfo.id.length > 0) {
-                        card.gpList = listInfo.id;
-                    }
-                    if (list) {
-                        warningElement.style.display = "none";
-                        cardList.list = list;
-                        $('#cardListModal').modal("show");
-                    } else {
-                        // If login failed, show login modal
-                        $('#loginModalCenter').modal("show");
-                    }
-                });
-            } else {
-                // If no stored credentials, show login modal
-                $('#loginModalCenter').modal("show");
-            }
-            
-            debugLog('Login form setup completed successfully', 'info');
-            return true;
+        // Set up login form for private cards
+        if (!isPublic) {
+            authManager.setupLoginForm();
+        } else {
+            // 公開頁面：在Vue初始化完成後再請求一次公開清單，避免卡在尚未掛載cardList時收到回應
+            try {
+                if (socket && typeof socket.emit === 'function') {
+                    socket.emit('getPublicListInfo');
+                }
+            } catch {}
         }
-
-        if (retryCount < maxRetries) {
-            retryCount++;
-            debugLog(`Login form elements not found, retrying (${retryCount}/${maxRetries})`, 'info');
-            setTimeout(trySetupLoginForm, retryInterval);
-            return false;
-        }
-
-        debugLog('Failed to find login form elements after maximum retries', 'error');
-        return false;
+    } catch (error) {
+        debugLog(`Error initializing Vue apps internal: ${error.message}`, 'error');
     }
-
-    trySetupLoginForm();
 }
 
-// Login function
+// Login function - 使用 authManager
 function login() {
-    const userNameInput = document.querySelector('#userName');
-    const userPasswordInput = document.querySelector('#userPassword_id');
-    const warningElement = document.querySelector('#warning');
+    authManager.login();
+}
 
-    if (!userNameInput || !userPasswordInput || !warningElement) {
-        debugLog('Login form elements not found', 'error');
+// Logout function - 使用 authManager
+function logout() {
+    authManager.logout();
+}
+
+// Confirm logout function
+function confirmLogout() {
+    const userName = document.getElementById('logoutUserName').value;
+    const userPassword = document.getElementById('logoutUserPassword').value;
+    
+    if (!userName || !userPassword) {
+        document.getElementById('logoutWarning').style.display = 'block';
+        document.getElementById('logoutWarning').innerHTML = '<strong>錯誤!</strong> 請輸入用戶名和密碼';
         return;
     }
-
-    const userName = userNameInput.value;
-    const userPassword = userPasswordInput.value;
-
-    localStorage.setItem('userName', userName);
-    localStorage.setItem('userPassword', simpleEncrypt(userPassword)); // Encrypt password
-
-    if (userName && userName.length >= 4 && userPassword && userPassword.length >= 6) {
-        socket.emit('getListInfo', {
-            userName: userName,
-            userPassword: userPassword // Use original password for transmission
-        });
-
-        socket.on("getListInfo", function (listInfo) {
-            let list = listInfo.temp;
-            if (listInfo && listInfo.id && listInfo.id.length > 0) {
-                card.gpList = listInfo.id;
-            }
-            if (list) {
-                warningElement.style.display = "none";
-                cardList.list = list;
-                $('#loginModalCenter').modal("hide");
-                $('#cardListModal').modal("show");
-            } else {
-                warningElement.style.display = "block";
-                $('#loginModalCenter').modal("show");
-            }
-        });
-    } else {
-        $('#loginModalCenter').modal("show");
-    }
-}
-
-// Logout function
-function logout() {
-    const warningElement = document.querySelector('#warning');
-    if (warningElement) {
-        warningElement.style.display = "none";
-    }
-    $('#loginModalCenter').modal("show");
-    if (card) {
-        card._id = "";
-        card.id = "";
-        card.name = "";
-        card.notes = "";
-        card.roll = "";
-        card.state = "";
-        card.public = false;
-    }
+    
+    // Clear localStorage
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userPassword');
+    localStorage.removeItem('jwtToken');
+    localStorage.removeItem('selectedGroupId');
+    
+    // Hide modal
+    $('#logoutModalCenter').modal('hide');
+    
+    // Show success message
+    uiManager.showSuccess('已成功登出');
+    
+    // Redirect to login or reload page
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
 }
 
 // DOM Ready Handler
@@ -393,90 +160,92 @@ $(function () {
     $("#footer").load("includes/footer.html");
 });
 
-// Alert Functions
+// Alert Functions - 使用 uiManager
 function popup(result) {
     debugLog(`Showing popup with result: ${result}`, 'info');
-    if (result) {
-        addElement("更新成功! 你可以在聊天平台上使用新資料了。", "success", 5000);
-        debugLog('Success alert shown', 'info');
-    } else {
-        addElement("更新失敗! 請檢查或向HKTRPG回報。", "danger", 5000);
-        debugLog('Error alert shown', 'info');
-    }
+    uiManager.showPopup(result);
 }
 
-function addElement(message, type, closeDelay) {
-    let $cont = $("#alerts-container");
-    if ($cont.length === 0) {
-        $cont = $('<div id="alerts-container">')
-            .css({
-                position: "fixed",
-                width: "30%",
-                left: "60%",
-                top: "15%",
-                margin: "0 auto",
-                zIndex: "9999"
-            })
-            .appendTo($("body"));
-    }
-
-    type = type || "info";
-    let alert = $('<div>')
-        .addClass("alert text-wrap text-break alert-dismissible fade show alert-" + type)
-        .append($('<button type="button" class="close" data-dismiss="alert">').append("&times;"))
-        .append(sanitizeHtml(message));
-
-    $cont.prepend(alert);
-    if (closeDelay) {
-        globalThis.setTimeout(() => alert.alert("close"), closeDelay);
-    }
+function addElement(message, type, closeDelay, allowHtml = false) {
+    uiManager.showAlert(message, type, closeDelay, allowHtml);
 }
 
 // Modal Functions
 function readme() {
-    $('#readmeModalCenter').modal("show");
+    uiManager.showModal('readmeModalCenter');
 }
 
 function selectCard() {
-    $('#cardListModal').modal("show");
+    uiManager.showModal('cardListModal');
 }
 
-// Socket event handlers
-socket.on("rolling", function (result) {
-    debugLog(`Received rolling result: ${result}`, 'info');
-    if (result) {
-        addElement("<strong>" + result + "</strong>", "warning", 4000);
-    } else {
-        addElement("<strong>擲骰失敗!</strong> 請檢查或向HKTRPG回報。", "danger", 4000);
-        debugLog('Rolling failed', 'error');
+// Update card function for hybrid UI - 使用 socketManager
+function updateCard() {
+    // 公開頁面禁止儲存
+    if (card && card.isPublic) {
+        uiManager.showInfo('公開頁面僅供瀏覽與擲骰，無法儲存。');
+        return;
     }
-});
+    const userName = localStorage.getItem("userName");
+    const token = localStorage.getItem("jwtToken");
 
-socket.on("publicRolling", function (result) {
-    debugLog(`Received public rolling result: ${result}`, 'info');
-    if (result) {
-        addElement("<strong>" + result + "</strong>", "warning", 4000);
-    } else {
-        addElement("<strong>擲骰失敗!</strong> 請檢查或向HKTRPG回報。", "danger", 4000);
-        debugLog('Public rolling failed', 'error');
-    }
-});
+    console.log('updateCard called - userName:', userName, 'token exists:', !!token);
 
-socket.on("updateCard", function (result) {
-    debugLog(`Update card result: ${result}`, 'info');
-    if (result === true) {
-        popup(true);
-        debugLog('Card updated successfully', 'info');
-    } else {
-        popup(false);
-        debugLog('Card update failed', 'error');
+    if (!userName || !token) {
+        console.log('updateCard failed - missing credentials:', { userName: !!userName, token: !!token });
+        uiManager.showError('請先登入才能更新角色卡');
+        return;
     }
-});
+
+    // Show loading state
+    const updateButton = document.querySelector('[onclick="updateCard()"]');
+    if (updateButton) {
+        uiManager.showLoading(updateButton);
+    }
+
+    // Add loading class to card
+    const cardElement = document.querySelector('.hybrid-card-container');
+    if (cardElement) {
+        cardElement.classList.add('loading');
+    }
+
+    const data = {
+        userName: userName,
+        token: token,
+        card: {
+            _id: card._id,
+            id: card.id,
+            image: card.image,
+            state: card.state,
+            roll: card.roll,
+            notes: card.notes,
+            characterDetails: card.characterDetails,
+            public: card.public
+        }
+    };
+
+    debugLog(`Attempting to update card with data:`);
+    socketManager.emitUpdateCard(data);
+}
+
+// Enhanced error display - 使用 uiManager
+function showError(message) {
+    uiManager.showError(message);
+}
+
+// Enhanced success display - 使用 uiManager
+function showSuccess(message) {
+    uiManager.showSuccess(message);
+}
 
 // Export functions for use in other files
 globalThis.initializeVueApps = initializeVueApps;
 globalThis.debugLog = debugLog;
 globalThis.login = login;
 globalThis.logout = logout;
+globalThis.confirmLogout = confirmLogout;
 globalThis.readme = readme;
-globalThis.selectCard = selectCard; 
+globalThis.selectCard = selectCard;
+globalThis.updateCard = updateCard;
+globalThis.showError = showError;
+globalThis.showSuccess = showSuccess;

@@ -4,6 +4,141 @@
  */
 
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const CryptoJS = require('crypto-js');
+
+// ============================================
+// 自動環境變數密鑰產生
+// ============================================
+
+/**
+ * 產生安全的隨機密鑰
+ * @param {number} length - 密鑰長度（位元組）
+ * @param {string} encoding - 編碼格式 ('hex', 'base64', 'base64url')
+ * @returns {string} 隨機密鑰
+ */
+function generateSecureKey(length = 32, encoding = 'hex') {
+    const randomBytes = crypto.randomBytes(length);
+    
+    switch (encoding) {
+        case 'hex':
+            return randomBytes.toString('hex');
+        case 'base64':
+            return randomBytes.toString('base64');
+        case 'base64url':
+            return randomBytes.toString('base64url');
+        default:
+            return randomBytes.toString('hex');
+    }
+}
+
+/**
+ * 讀取或建立 .env 檔案
+ * @returns {string} .env 檔案路徑
+ */
+function getEnvFilePath() {
+    const projectRoot = path.resolve(__dirname, '..');
+    return path.join(projectRoot, '.env');
+}
+
+/**
+ * 讀取現有的 .env 檔案內容
+ * @returns {object} 環境變數物件
+ */
+function readEnvFile() {
+    const envPath = getEnvFilePath();
+    const envVars = {};
+    
+    if (fs.existsSync(envPath)) {
+        const content = fs.readFileSync(envPath, 'utf8');
+        const lines = content.split('\n');
+        
+        for (const line of lines) {
+            const trimmedLine = line.trim();
+            if (trimmedLine && !trimmedLine.startsWith('#')) {
+                const [key, ...valueParts] = trimmedLine.split('=');
+                if (key && valueParts.length > 0) {
+                    envVars[key.trim()] = valueParts.join('=').trim();
+                }
+            }
+        }
+    }
+    
+    return envVars;
+}
+
+/**
+ * 寫入 .env 檔案
+ * @param {object} envVars - 環境變數物件
+ */
+function writeEnvFile(envVars) {
+    const envPath = getEnvFilePath();
+    let content = '# HKTRPG Environment Variables\n';
+    content += '# Generated automatically by security.js\n\n';
+    
+    // 按字母順序排列
+    const sortedKeys = Object.keys(envVars).sort();
+    
+    for (const key of sortedKeys) {
+        content += `${key}=${envVars[key]}\n`;
+    }
+    
+    fs.writeFileSync(envPath, content, 'utf8');
+    console.log(`✅ Environment variables written to: ${envPath}`);
+}
+
+/**
+ * 確保必要的環境變數存在，如果不存在則自動產生
+ */
+function ensureEnvironmentKeys() {
+    const envVars = readEnvFile();
+    let needsUpdate = false;
+    
+    // 定義需要檢查的環境變數及其產生規則
+    const requiredKeys = {
+        'JWT_SECRET': { length: 32, encoding: 'hex', description: 'JWT signing secret' },
+        'SALT': { length: 16, encoding: 'hex', description: 'Password hashing salt' },
+        'SESSION_SECRET': { length: 32, encoding: 'hex', description: 'Session secret' },
+        'ENCRYPTION_KEY': { length: 32, encoding: 'base64', description: 'Data encryption key' },
+        'API_SECRET': { length: 24, encoding: 'hex', description: 'API authentication secret' }
+    };
+    
+    for (const [key, config] of Object.entries(requiredKeys)) {
+        if (!envVars[key] || envVars[key].length < 16) {
+            const newKey = generateSecureKey(config.length, config.encoding);
+            envVars[key] = newKey;
+            needsUpdate = true;
+            console.log(`🔑 Generated new ${key}: ${config.description}`);
+        }
+    }
+    
+    if (needsUpdate) {
+        writeEnvFile(envVars);
+        
+        // 重新載入環境變數
+        for (const [key, value] of Object.entries(envVars)) {
+            if (!process.env[key]) {
+                process.env[key] = value;
+            }
+        }
+    }
+}
+
+// 在模組載入時自動確保環境變數
+ensureEnvironmentKeys();
+
+// 載入 .env 檔案到 process.env
+function loadEnvFile() {
+    const envVars = readEnvFile();
+    for (const [key, value] of Object.entries(envVars)) {
+        if (!process.env[key]) {
+            process.env[key] = value;
+        }
+    }
+}
+
+loadEnvFile();
 
 // ============================================
 // 密碼雜湊（使用 bcrypt）
@@ -210,6 +345,45 @@ function validateCredentials(credentials) {
     };
 }
 
+/**
+ * 驗證JWT Token認證
+ * @param {object} authData - { token, userName? }
+ * @returns {object} { valid: boolean, error?: string, data?: object }
+ */
+function validateJWTAuth(authData) {
+    if (!authData || typeof authData !== 'object') {
+        return { valid: false, error: 'Invalid auth data format' };
+    }
+
+    const token = String(authData.token || '').trim();
+    if (!token) {
+        return { valid: false, error: 'JWT token is required' };
+    }
+
+    try {
+        const decoded = verifyToken(token);
+        if (!decoded) {
+            return { valid: false, error: 'Invalid or expired JWT token' };
+        }
+
+        // 如果提供了userName，驗證是否匹配
+        if (authData.userName && decoded.userName !== authData.userName) {
+            return { valid: false, error: 'Token user does not match provided username' };
+        }
+
+        return {
+            valid: true,
+            data: {
+                userId: decoded.userId,
+                userName: decoded.userName,
+                token: token
+            }
+        };
+    } catch (error) {
+        return { valid: false, error: `Token validation failed: ${error.message}` };
+    }
+}
+
 // ============================================
 // JWT 認證（可選）
 // ============================================
@@ -223,8 +397,13 @@ try {
     console.warn('⚠️ jsonwebtoken not installed');
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || 'change-this-secret-in-production';
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = '24h';
+
+// 驗證 JWT_SECRET 是否存在
+if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET not found in environment variables. Please check .env file.');
+}
 
 /**
  * 產生 JWT Token
@@ -451,6 +630,111 @@ async function upgradePasswordIfLegacy(userName, password, currentHash) {
 }
 
 // ============================================
+// 資料加密/解密（使用 crypto-js）
+// ============================================
+
+/**
+ * 加密資料
+ * @param {string} data - 要加密的資料
+ * @param {string} key - 加密金鑰（可選，預設使用 ENCRYPTION_KEY）
+ * @returns {string} 加密後的資料
+ */
+function encryptData(data, key = null) {
+    const encryptionKey = key || process.env.ENCRYPTION_KEY;
+    
+    if (!encryptionKey) {
+        throw new Error('ENCRYPTION_KEY not found in environment variables');
+    }
+    
+    if (!data || typeof data !== 'string') {
+        throw new Error('Invalid data for encryption');
+    }
+    
+    try {
+        const encrypted = CryptoJS.AES.encrypt(data, encryptionKey).toString();
+        return encrypted;
+    } catch (error) {
+        console.error('Encryption failed:', error.message);
+        throw new Error('Encryption failed');
+    }
+}
+
+/**
+ * 解密資料
+ * @param {string} encryptedData - 加密的資料
+ * @param {string} key - 解密金鑰（可選，預設使用 ENCRYPTION_KEY）
+ * @returns {string} 解密後的資料
+ */
+function decryptData(encryptedData, key = null) {
+    const encryptionKey = key || process.env.ENCRYPTION_KEY;
+    
+    if (!encryptionKey) {
+        throw new Error('ENCRYPTION_KEY not found in environment variables');
+    }
+    
+    if (!encryptedData || typeof encryptedData !== 'string') {
+        throw new Error('Invalid encrypted data');
+    }
+    
+    try {
+        const bytes = CryptoJS.AES.decrypt(encryptedData, encryptionKey);
+        const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+        
+        if (!decrypted) {
+            throw new Error('Decryption failed - invalid key or corrupted data');
+        }
+        
+        return decrypted;
+    } catch (error) {
+        console.error('Decryption failed:', error.message);
+        throw new Error('Decryption failed');
+    }
+}
+
+/**
+ * 產生資料摘要（HMAC）
+ * @param {string} data - 要產生摘要的資料
+ * @param {string} key - HMAC 金鑰（可選，預設使用 API_SECRET）
+ * @returns {string} 資料摘要
+ */
+function generateHMAC(data, key = null) {
+    const hmacKey = key || process.env.API_SECRET;
+    
+    if (!hmacKey) {
+        throw new Error('API_SECRET not found in environment variables');
+    }
+    
+    if (!data || typeof data !== 'string') {
+        throw new Error('Invalid data for HMAC generation');
+    }
+    
+    try {
+        const hmac = CryptoJS.HmacSHA256(data, hmacKey);
+        return hmac.toString(CryptoJS.enc.Hex);
+    } catch (error) {
+        console.error('HMAC generation failed:', error.message);
+        throw new Error('HMAC generation failed');
+    }
+}
+
+/**
+ * 驗證資料完整性
+ * @param {string} data - 原始資料
+ * @param {string} signature - 預期的簽名
+ * @param {string} key - 驗證金鑰（可選，預設使用 API_SECRET）
+ * @returns {boolean} 是否驗證通過
+ */
+function verifyHMAC(data, signature, key = null) {
+    try {
+        const expectedSignature = generateHMAC(data, key);
+        return expectedSignature === signature;
+    } catch (error) {
+        console.error('HMAC verification failed:', error.message);
+        return false;
+    }
+}
+
+// ============================================
 // 導出
 // ============================================
 
@@ -463,6 +747,7 @@ module.exports = {
     sanitizeInput,
     validateChatMessage,
     validateCredentials,
+    validateJWTAuth,
 
     // JWT（如果已安裝）
     generateToken: jwt ? generateToken : null,
@@ -477,6 +762,16 @@ module.exports = {
     sanitizeLogData,
     
     // 🔄 自動密碼升級
-    upgradePasswordIfLegacy
+    upgradePasswordIfLegacy,
+    
+    // 🔐 資料加密/解密
+    encryptData,
+    decryptData,
+    generateHMAC,
+    verifyHMAC,
+    
+    // 🔑 密鑰管理
+    generateSecureKey,
+    ensureEnvironmentKeys
 };
 

@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>混合設計角色卡測試</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/hybrid-card.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Vue.js -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <!-- 角色頭部信息 -->
+        <section class="character-header mb-4">
+            <div class="hybrid-card-container">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="character-name mb-3">
+                            <i class="fas fa-user-circle me-2"></i>
+                            {{ character.name }}
+                        </h2>
+                        <div class="character-info d-flex flex-wrap gap-3">
+                            <span class="info-badge">
+                                <i class="fas fa-briefcase me-1"></i>
+                                <span class="info-label">職業:</span>
+                                <span class="info-value">調查員</span>
+                            </span>
+                            <span class="info-badge">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                <span class="info-label">地點:</span>
+                                <span class="info-value">東京</span>
+                            </span>
+                            <span class="info-badge">
+                                <i class="fas fa-calendar me-1"></i>
+                                <span class="info-label">年齡:</span>
+                                <span class="info-value">28歲</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="action-controls">
+                            <button type="button" class="action-btn primary">
+                                <i class="fas fa-edit"></i>編輯
+                            </button>
+                            <button type="button" class="action-btn secondary">
+                                <i class="fas fa-save"></i>儲存
+                            </button>
+                            <button type="button" class="action-btn warning">
+                                <i class="fas fa-cog"></i>設定
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 擲骰區域 - 混合設計網格 -->
+        <section class="rolls-section mb-4">
+            <div class="hybrid-card-container">
+                <h4 class="section-title">
+                    <i class="fas fa-dice-d20"></i>擲骰
+                </h4>
+                
+                <div class="hybrid-attributes-grid">
+                    <div v-for="(skill, index) in skills" :key="index" 
+                         class="attribute-panel"
+                         @click="rollDice(skill.name)">
+                        <button type="button" class="dice-roll-button" @click.stop="rollDice(skill.name)" title="擲骰">
+                            <i class="fas fa-dice-d20"></i>
+                        </button>
+                        
+                        <div class="attribute-label">{{ skill.name }}</div>
+                        <div class="attribute-value-display">{{ skill.value }}</div>
+                        <div class="attribute-cc-value">CC {{ skill.value }}</div>
+                        
+                        <!-- 調整按鈕 -->
+                        <div class="adjust-buttons">
+                            <button type="button" class="adjust-btn" @click.stop="adjustSkill(index, 1)">+</button>
+                            <button type="button" class="adjust-btn" @click.stop="adjustSkill(index, -1)">-</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 屬性區域 - 混合設計網格 -->
+        <section class="attributes-section mb-4">
+            <div class="hybrid-card-container">
+                <h4 class="section-title">
+                    <i class="fas fa-chart-line"></i>基本屬性
+                </h4>
+                
+                <div class="hybrid-attributes-grid">
+                    <div v-for="(attr, index) in attributes" :key="index" 
+                         class="attribute-panel"
+                         @click="rollDice(attr.name)">
+                        <button type="button" class="dice-roll-button" @click.stop="rollDice(attr.name)" title="擲骰">
+                            <i class="fas fa-dice-d20"></i>
+                        </button>
+                        
+                        <div class="attribute-label">{{ attr.name }}</div>
+                        <div class="attribute-value-display">{{ calculatePercentage(attr.value, attr.max) }}%</div>
+                        <div class="attribute-cc-value">{{ attr.value }} / {{ attr.max }}</div>
+                        
+                        <!-- 調整按鈕 -->
+                        <div class="adjust-buttons">
+                            <button type="button" class="adjust-btn" @click.stop="adjustAttribute(index, 'value', 1)">+</button>
+                            <button type="button" class="adjust-btn" @click.stop="adjustAttribute(index, 'value', -1)">-</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 筆記區域 - 傳統大面板設計 -->
+        <section class="notes-section mb-4">
+            <div class="hybrid-card-container">
+                <h4 class="section-title">
+                    <i class="fas fa-sticky-note"></i>筆記
+                </h4>
+                
+                <div class="notes-panel">
+                    <div class="note-item mb-3">
+                        <div class="note-header d-flex justify-content-between align-items-center mb-2">
+                            <div class="note-title">調查筆記</div>
+                        </div>
+                        <div class="note-content">
+                            <textarea class="notes-textarea" placeholder="記錄調查過程中的重要發現...">這是測試,請試試在群組 輸入.char use Sad</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 角色詳情區域 - 傳統雙欄佈局 -->
+        <section class="character-details-section mb-4">
+            <div class="hybrid-card-container">
+                <h4 class="section-title">
+                    <i class="fas fa-user-edit"></i>角色詳情
+                </h4>
+                
+                <div class="character-details">
+                    <div class="detail-group">
+                        <h5 class="detail-section-title">財務狀況</h5>
+                        <div class="detail-item">
+                            <span class="detail-label">現金</span>
+                            <input type="text" class="detail-input" value="1,000日元">
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">心靈支柱</span>
+                            <input type="text" class="detail-input" value="無">
+                        </div>
+                    </div>
+                    
+                    <div class="detail-group">
+                        <h5 class="detail-section-title">物品裝備</h5>
+                        <div class="detail-item">
+                            <span class="detail-label">隨身物品</span>
+                            <input type="text" class="detail-input" placeholder="">
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">筆記</span>
+                            <input type="text" class="detail-input" placeholder="">
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">資產</span>
+                            <input type="text" class="detail-input" placeholder="">
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">物品</span>
+                            <input type="text" class="detail-input" placeholder="">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    character: {
+                        name: 'Doctor Boston'
+                    },
+                    skills: [
+                        { name: '心理學', value: 10 },
+                        { name: '信譽', value: 0 },
+                        { name: '偵查', value: 25 },
+                        { name: '聆聽', value: 25 },
+                        { name: '母語', value: 1 },
+                        { name: '閃躲', value: 25 },
+                        { name: '空手', value: 25 },
+                        { name: '投擲', value: 25 },
+                        { name: '鬥毆', value: 25 },
+                        { name: '魔法', value: 1 },
+                        { name: '小刀', value: 25 },
+                        { name: '幸運', value: 50 },
+                        { name: '力量', value: 18 },
+                        { name: '敏捷', value: 25 },
+                        { name: '意志', value: 30 },
+                        { name: '體質', value: 19 },
+                        { name: '外貌', value: 17 },
+                        { name: '教育', value: 45 },
+                        { name: '體型', value: 25 },
+                        { name: '智力', value: 45 },
+                        { name: '靈感', value: 45 },
+                        { name: '圖書館使用', value: 25 },
+                        { name: '閃避', value: 25 },
+                        { name: '小型棍狀物', value: 25 }
+                    ],
+                    attributes: [
+                        { name: 'STR', value: 18, max: 37 },
+                        { name: 'DEX', value: 25, max: 50 },
+                        { name: 'POW', value: 30, max: 60 },
+                        { name: 'CON', value: 19, max: 38 },
+                        { name: 'APP', value: 17, max: 35 },
+                        { name: 'EDU', value: 45, max: 90 },
+                        { name: 'SIZ', value: 25, max: 50 },
+                        { name: 'INT', value: 45, max: 90 },
+                        { name: 'Dodge', value: 12, max: 25 }
+                    ]
+                }
+            },
+            methods: {
+                calculatePercentage(value, max) {
+                    if (max === 0) return 0;
+                    return Math.round((value / max) * 100);
+                },
+                
+                rollDice(skillName) {
+                    alert(`擲骰 ${skillName}！`);
+                },
+                
+                adjustSkill(index, change) {
+                    this.skills[index].value = Math.max(0, this.skills[index].value + change);
+                },
+                
+                adjustAttribute(index, field, change) {
+                    this.attributes[index][field] = Math.max(0, this.attributes[index][field] + change);
+                }
+            }
+        }).mount('#app');
+    </script>
+
+    <style>
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .character-header .character-name {
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .character-info .info-badge {
+            background: var(--bg-panel);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+        }
+        
+        .info-label {
+            font-weight: 600;
+            margin-right: 4px;
+            color: var(--text-dark);
+        }
+        
+        .info-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        .detail-section-title {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding: 8px 12px;
+            background: var(--gradient-brown);
+            border-radius: 6px;
+            text-align: center;
+        }
+    </style>
+</body>
+</html>

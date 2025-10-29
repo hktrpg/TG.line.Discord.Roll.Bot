@@ -1,0 +1,385 @@
+/* 統一CSS系統 - 減少!important使用，提高Bootstrap 4兼容性 */
+
+/* ===== CSS 載入順序優化 ===== */
+/* 
+載入順序：
+1. variables.css - CSS變數定義
+2. utilities.css - 工具類別
+3. card.css - 基礎卡片樣式
+4. modern-card.css - 現代化樣式
+5. hybrid-card-optimized.css - 混合樣式
+6. bootstrap.css - Bootstrap框架 (最後載入，允許覆蓋)
+7. bootstrap-overrides.css - Bootstrap覆蓋樣式 (本文件)
+*/
+
+/* ===== Bootstrap 4 覆蓋樣式 ===== */
+/* 使用更高特異性而非!important */
+
+/* 按鈕樣式覆蓋 */
+.btn.btn-custom {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-white);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn.btn-custom:hover {
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn.btn-custom:focus {
+    box-shadow: 0 0 0 0.2rem rgba(var(--color-primary-rgb), 0.25);
+}
+
+/* 表單控制項覆蓋 */
+.form-control.form-control-custom {
+    border: var(--border-width-normal) solid var(--color-gray-300);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm);
+    font-size: var(--font-size-base);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control.form-control-custom:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--color-primary-rgb), 0.25);
+}
+
+/* 警告框覆蓋 */
+.alert.alert-custom {
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.alert.alert-custom.alert-success {
+    background-color: var(--color-success-light);
+    color: var(--color-success-dark);
+    border-left: 4px solid var(--color-success);
+}
+
+.alert.alert-custom.alert-danger {
+    background-color: var(--color-danger-light);
+    color: var(--color-danger-dark);
+    border-left: 4px solid var(--color-danger);
+}
+
+.alert.alert-custom.alert-warning {
+    background-color: var(--color-warning-light);
+    color: var(--color-warning-dark);
+    border-left: 4px solid var(--color-warning);
+}
+
+/* 模態框覆蓋 */
+.modal.modal-custom .modal-content {
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+}
+
+.modal.modal-custom .modal-header {
+    border-bottom: var(--border-width-normal) solid var(--color-gray-200);
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.modal.modal-custom .modal-body {
+    padding: var(--spacing-lg);
+    background-color: var(--bg-secondary);
+}
+
+.modal.modal-custom .modal-footer {
+    border-top: var(--border-width-normal) solid var(--color-gray-200);
+    background-color: var(--bg-primary);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+/* Character Card list modal matches page background */
+#cardListModal .modal-content {
+    /* Match page base background (.bg-color) */
+    background-color: #F9F1F0;
+    color: var(--color-text);
+    border: var(--border-width-normal) solid var(--color-gray-700);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+}
+
+#cardListModal .modal-header,
+#cardListModal .modal-footer {
+    /* Match page base background (.bg-color) */
+    background-color: #F9F1F0;
+    border-color: var(--color-gray-700);
+}
+
+/* Keep count text on one line and align controls */
+#cardListModal .modal-body .d-flex.align-items-center {
+    flex-wrap: nowrap;
+    gap: 8px;
+}
+
+#cardListModal .modal-body .text-muted {
+    white-space: nowrap;
+}
+
+/* 卡片覆蓋 */
+.card.card-custom {
+    border: var(--border-width-normal) solid var(--color-gray-300);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    background-color: var(--bg-secondary);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card.card-custom:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.card.card-custom .card-header {
+    background-color: var(--bg-primary);
+    border-bottom: var(--border-width-normal) solid var(--color-gray-300);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: var(--spacing-md);
+}
+
+.card.card-custom .card-body {
+    padding: var(--spacing-md);
+    background-color: var(--bg-secondary);
+}
+
+.card.card-custom .card-footer {
+    background-color: var(--bg-primary);
+    border-top: var(--border-width-normal) solid var(--color-gray-300);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    padding: var(--spacing-md);
+}
+
+/* 網格系統覆蓋 */
+.container.container-custom {
+    max-width: 1200px;
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+}
+
+.container-fluid.container-fluid-custom {
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+}
+
+/* 導航欄覆蓋 */
+.navbar.navbar-custom {
+    background-color: var(--bg-primary);
+    border-bottom: var(--border-width-normal) solid var(--color-gray-300);
+    box-shadow: var(--shadow-sm);
+}
+
+.navbar.navbar-custom .navbar-brand {
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: var(--font-size-lg);
+}
+
+.navbar.navbar-custom .navbar-nav .nav-link {
+    color: var(--color-text);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    transition: background-color 0.2s ease;
+}
+
+.navbar.navbar-custom .navbar-nav .nav-link:hover {
+    background-color: var(--color-gray-100);
+    color: var(--color-primary);
+}
+
+/* 分頁覆蓋 */
+.pagination.pagination-custom .page-link {
+    color: var(--color-primary);
+    border: var(--border-width-normal) solid var(--color-gray-300);
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin: 0 var(--spacing-xs);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+}
+
+.pagination.pagination-custom .page-link:hover {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border-color: var(--color-primary);
+}
+
+.pagination.pagination-custom .page-item.active .page-link {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+/* 標籤覆蓋 */
+.badge.badge-custom {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+}
+
+.badge.badge-custom.badge-primary {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+.badge.badge-custom.badge-secondary {
+    background-color: var(--color-gray-600);
+    color: var(--color-white);
+}
+
+.badge.badge-custom.badge-success {
+    background-color: var(--color-success);
+    color: var(--color-white);
+}
+
+.badge.badge-custom.badge-danger {
+    background-color: var(--color-danger);
+    color: var(--color-white);
+}
+
+.badge.badge-custom.badge-warning {
+    background-color: var(--color-warning);
+    color: var(--color-dark);
+}
+
+/* 進度條覆蓋 */
+.progress.progress-custom {
+    height: var(--spacing-md);
+    border-radius: var(--radius-md);
+    background-color: var(--color-gray-200);
+    overflow: hidden;
+}
+
+.progress.progress-custom .progress-bar {
+    background-color: var(--color-primary);
+    transition: width 0.3s ease;
+}
+
+.progress.progress-custom .progress-bar.bg-success {
+    background-color: var(--color-success);
+}
+
+.progress.progress-custom .progress-bar.bg-danger {
+    background-color: var(--color-danger);
+}
+
+.progress.progress-custom .progress-bar.bg-warning {
+    background-color: var(--color-warning);
+}
+
+/* 工具提示覆蓋 */
+.tooltip.tooltip-custom .tooltip-inner {
+    background-color: var(--color-dark);
+    color: var(--color-white);
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+}
+
+.tooltip.tooltip-custom .arrow::before {
+    border-top-color: var(--color-dark);
+}
+
+/* 彈出框覆蓋 */
+.popover.popover-custom {
+    border: var(--border-width-normal) solid var(--color-gray-300);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+}
+
+.popover.popover-custom .popover-header {
+    background-color: var(--bg-primary);
+    border-bottom: var(--border-width-normal) solid var(--color-gray-300);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.popover.popover-custom .popover-body {
+    background-color: var(--bg-secondary);
+    color: var(--color-text);
+}
+
+/* 下拉選單覆蓋 */
+.dropdown-menu.dropdown-menu-custom {
+    border: var(--border-width-normal) solid var(--color-gray-300);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    background-color: var(--bg-secondary);
+}
+
+.dropdown-menu.dropdown-menu-custom .dropdown-item {
+    color: var(--color-text);
+    padding: var(--spacing-sm) var(--spacing-md);
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-menu.dropdown-menu-custom .dropdown-item:hover {
+    background-color: var(--color-gray-100);
+    color: var(--color-primary);
+}
+
+.dropdown-menu.dropdown-menu-custom .dropdown-item.active {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+/* 響應式覆蓋 */
+@media (max-width: 768px) {
+    .container.container-custom,
+    .container-fluid.container-fluid-custom {
+        padding-left: var(--spacing-sm);
+        padding-right: var(--spacing-sm);
+    }
+    
+    .card.card-custom .card-body {
+        padding: var(--spacing-sm);
+    }
+    
+    .modal.modal-custom .modal-body {
+        padding: var(--spacing-md);
+    }
+}
+
+/* 深色模式支援 */
+@media (prefers-color-scheme: dark) {
+    .card.card-custom {
+        background-color: var(--bg-dark-secondary);
+        border-color: var(--color-gray-600);
+        color: var(--color-text-dark);
+    }
+    
+    .modal.modal-custom .modal-content {
+        background-color: var(--bg-dark-primary);
+        color: var(--color-text-dark);
+    }
+    
+    .navbar.navbar-custom {
+        background-color: var(--bg-dark-primary);
+        border-color: var(--color-gray-600);
+    }
+}
+
+/* 打印樣式 */
+@media print {
+    .btn.btn-custom,
+    .modal.modal-custom,
+    .navbar.navbar-custom {
+        display: none;
+    }
+    
+    .card.card-custom {
+        box-shadow: none;
+        border: var(--border-width-normal) solid var(--color-gray-400);
+    }
+}

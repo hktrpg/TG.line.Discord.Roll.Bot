@@ -136,6 +136,14 @@
             if (list) {
                 if (cardList && cardList.list) {
                     cardList.list = list;
+                    try {
+                        const savedId = localStorage.getItem('lastSelectedPublicCardId');
+                        const selected = savedId && list.find((x) => x && x._id === savedId);
+                        if (selected) {
+                            socket.emit('getPublicCardInfo', { cardId: selected._id });
+                            return; // 不顯示清單，直接載入
+                        }
+                    } catch {}
                     $('#cardListModal').modal("show");
                     debugLog('Public card list loaded successfully', 'info');
                 } else {
@@ -156,6 +164,9 @@
                 card.roll = cardData.roll || [];
                 card.notes = cardData.notes || [];
                 card.public = cardData.public || false;
+                try {
+                    localStorage.setItem('lastSelectedPublicCardId', cardData._id);
+                } catch {}
                 $('#cardListModal').modal("hide");
                 debugLog('Card data loaded successfully', 'info');
             } else {

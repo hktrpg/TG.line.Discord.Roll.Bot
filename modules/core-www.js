@@ -41,7 +41,7 @@ let options = {
 // ============= Rate Limiter Configuration =============
 const rateLimitConfig = {
     chatRoom: { points: 90, duration: 60 },
-    card: { points: 20, duration: 60 },
+    card: { points: 120, duration: 60 },
     api: { points: 10_000, duration: 10 }
 };
 
@@ -826,7 +826,8 @@ if (io) {
             const allowedOrigins = [
                 'https://hktrpg.com',
                 'https://www.hktrpg.com',
-                'http://localhost:20721'  // 開發環境
+                'http://localhost:20721',  // 開發環境
+                'http://127.0.0.1:20721'   // 本機IP開發環境
             ];
             
             const isAllowed = allowedOrigins.includes(origin) || 

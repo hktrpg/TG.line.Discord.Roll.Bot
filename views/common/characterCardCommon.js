@@ -78,6 +78,13 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
         // Set up login form for private cards
         if (!isPublic) {
             authManager.setupLoginForm();
+        } else {
+            // 公開頁面：在Vue初始化完成後再請求一次公開清單，避免卡在尚未掛載cardList時收到回應
+            try {
+                if (socket && typeof socket.emit === 'function') {
+                    socket.emit('getPublicListInfo');
+                }
+            } catch {}
         }
     } catch (error) {
         debugLog(`Error initializing Vue apps internal: ${error.message}`, 'error');

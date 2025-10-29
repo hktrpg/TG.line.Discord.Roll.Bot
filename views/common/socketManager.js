@@ -162,6 +162,9 @@ class SocketManager {
                 card.roll = cardData.roll || [];
                 card.notes = cardData.notes || [];
                 card.public = cardData.public || false;
+                try {
+                    localStorage.setItem('lastSelectedPublicCardId', cardData._id);
+                } catch {}
                 $('#cardListModal').modal("hide");
                 debugLog('Card data loaded successfully', 'info');
             }

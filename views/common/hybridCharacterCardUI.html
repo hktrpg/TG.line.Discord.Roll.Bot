@@ -843,23 +843,12 @@ html body div.floating-save-controls {
         color: #F5F5DC !important;
 }
 
-/* 角色頭像尺寸（完整顯示且至少等於標題區高度） */
+/* 角色頭像基本樣式 */
 .character-avatar {
-    height: 72px; /* desktop default */
-    max-height: 80px;
-    width: auto;
-    object-fit: contain; /* 完整顯示，不裁切 */
     border-radius: 8px;
     background: rgba(0,0,0,0.1); /* 補背景避免透明邊 */
     border: 1px solid rgba(0,0,0,0.2);
     display: inline-block;
-}
-
-@media (max-width: 768px) {
-    .character-avatar {
-        height: 64px; /* mobile */
-        max-height: 72px;
-    }
 }
 
 .character-info .info-badge {

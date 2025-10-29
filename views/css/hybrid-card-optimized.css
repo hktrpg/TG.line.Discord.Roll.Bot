@@ -11,6 +11,8 @@
     border: var(--border-width-normal) solid var(--color-gray-700);
     position: relative;
     overflow: visible;
+    /* 調整頭像懸停時的水平位移，補償 section padding 與欄位左右間距 */
+    --avatar-hover-shift: calc(-1 * (var(--spacing-lg)));
 }
 
 .hybrid-card-container::before {
@@ -922,13 +924,18 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
     animation: loading 1.5s infinite;
 }
 
 @keyframes loading {
-    0% { left: -100%; }
-    100% { left: 100%; }
+    0% {
+        left: -100%;
+    }
+
+    100% {
+        left: 100%;
+    }
 }
 
 /* Edit Mode 樣式 */
@@ -986,8 +993,13 @@
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* 響應式設計 */
@@ -995,36 +1007,36 @@
     .character-header .character-name {
         font-size: 1.5rem;
     }
-    
+
     .character-info {
         flex-direction: column;
         gap: var(--spacing-sm);
     }
-    
+
     .hybrid-attributes-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .character-details {
         grid-template-columns: 1fr;
     }
-    
+
     .channel-item {
         flex-direction: column;
         align-items: flex-start;
         gap: var(--spacing-sm);
     }
-    
+
     .channel-actions {
         width: 100%;
         justify-content: flex-end;
     }
-    
+
     .action-controls {
         flex-direction: column;
         align-items: center;
     }
-    
+
     .action-btn {
         width: 100%;
         max-width: 300px;
@@ -1036,8 +1048,59 @@
     .hybrid-attributes-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .attribute-panel {
         min-height: 100px;
+    }
+}
+
+/* 安全保護：所有混合卡片容器內的圖片都不應超出容器 */
+.hybrid-card-container img {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* 角色頭像強制限制 */
+.character-avatar {
+    max-width: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: 80px !important;
+    object-fit: contain !important;
+    transition: transform 0.3s ease !important;
+    cursor: pointer !important;
+}
+
+/* 角色頭像懸停放大效果 */
+.character-avatar:hover {
+    transform: scale(3) translateX(var(--avatar-hover-shift)) !important;
+    z-index: 1000 !important;
+    position: relative !important;
+    transform-origin: left center !important;
+}
+
+/* 針對特定選擇器的強制限制 */
+#array-rendering .character-header .character-name .character-avatar,
+.hybrid-card-container .character-header .character-name .character-avatar,
+.character-header .character-name .character-avatar,
+img.character-avatar {
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 80px !important;
+    width: auto !important;
+    object-fit: contain !important;
+}
+
+@media (max-width: 768px) {
+
+    .character-avatar,
+    #array-rendering .character-header .character-name .character-avatar,
+    .hybrid-card-container .character-header .character-name .character-avatar,
+    .character-header .character-name .character-avatar,
+    img.character-avatar {
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: 72px !important;
+        width: auto !important;
     }
 }

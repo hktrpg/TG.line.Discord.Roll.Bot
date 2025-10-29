@@ -78,6 +78,12 @@ body {
     overflow: hidden;
 }
 
+/* 安全保護：現代卡片容器內的圖片不應超出容器寬度 */
+.modern-card-container img {
+    max-width: 100%;
+    height: auto;
+}
+
 .modern-card-container::before {
     content: '';
     position: absolute;

@@ -113,7 +113,7 @@ class CardManager {
                     applyButtonStyles() {
                         const buttons = document.querySelectorAll('.value-btn');
                         const deleteButtons = document.querySelectorAll('.hover-delete-btn');
-                        const floatingControls = document.querySelectorAll('.floating-edit-controls');
+                        const floatingControls = document.querySelectorAll('.floating-edit-controls, .floating-save-controls');
                         const floatingButtons = document.querySelectorAll('.floating-btn');
                         
                         // 樣式化value按鈕
@@ -690,6 +690,11 @@ class CardManager {
                             cardManager.card.roll = this.list[index].roll;
                             cardManager.card.notes = this.list[index].notes;
                             cardManager.card.public = this.list[index].public;
+                            // 記下本機最後選用的角色卡（依用戶分隔）
+                            try {
+                                const userKey = (localStorage.getItem('userName') || 'default');
+                                localStorage.setItem(`lastSelectedCardId:${userKey}`, this.list[index]._id);
+                            } catch (e) {}
                             $('#cardListModal').modal("hide");
                         }
                     }

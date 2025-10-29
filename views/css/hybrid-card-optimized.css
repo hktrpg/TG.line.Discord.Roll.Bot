@@ -679,6 +679,23 @@
     height: auto;
 }
 
+/* 浮動儲存控制按鈕（非編輯模式） */
+.floating-save-controls {
+    position: fixed;
+    bottom: var(--spacing-lg);
+    right: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    z-index: var(--z-dropdown);
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    width: auto;
+    height: auto;
+}
+
 .floating-btn {
     display: flex;
     align-items: center;

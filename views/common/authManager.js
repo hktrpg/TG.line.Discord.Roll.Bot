@@ -168,7 +168,31 @@ class AuthManager {
                 warningElement.style.display = "none";
             }
             cardManager.getCardList().list = list;
-            $('#cardListModal').modal("show");
+            // 嘗試自動載入上次選用的角色卡（依用戶分隔）
+            try {
+                const userKey = (localStorage.getItem('userName') || 'default');
+                const savedId = localStorage.getItem(`lastSelectedCardId:${userKey}`);
+                if (savedId) {
+                    const selected = list.find((item) => item && item._id === savedId);
+                    if (selected && cardManager.getCard()) {
+                        const card = cardManager.getCard();
+                        card._id = selected._id;
+                        card.id = selected.id;
+                        card.name = selected.name;
+                        card.state = selected.state || [];
+                        card.roll = selected.roll || [];
+                        card.notes = selected.notes || [];
+                        card.public = selected.public || false;
+                        $('#cardListModal').modal("hide");
+                    } else {
+                        $('#cardListModal').modal("show");
+                    }
+                } else {
+                    $('#cardListModal').modal("show");
+                }
+            } catch (e) {
+                $('#cardListModal').modal("show");
+            }
             this.isLoggedIn = true;
         } else {
             // 如果登入失敗，顯示登入模態框

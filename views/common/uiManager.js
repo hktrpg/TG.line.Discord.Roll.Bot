@@ -218,7 +218,7 @@ class UIManager {
     applyButtonStyles() {
         const buttons = document.querySelectorAll('.value-btn');
         const deleteButtons = document.querySelectorAll('.hover-delete-btn');
-        const floatingControls = document.querySelectorAll('.floating-edit-controls');
+        const floatingControls = document.querySelectorAll('.floating-edit-controls, .floating-save-controls');
         const floatingButtons = document.querySelectorAll('.floating-btn');
         
         this.styleValueButtons(buttons);

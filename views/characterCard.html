@@ -95,52 +95,28 @@
 
     <!-- Page Specific JavaScript -->
     <script>
-        // Configuration object for page-specific settings
-        const PAGE_CONFIG = {
-            isPublic: false,
-            title: "Character Card 角色卡",
-            bodyClass: "",
-            containerClass: "container-fluid px-3 px-md-4 py-3",
-            vueContainerClass: "container-fluid px-3 px-md-4 py-3"
-        };
+        const IS_PUBLIC = false;
 
-        // Load common modals
-        $("#commonModals").load("/common/characterCardModals.html", function() {
-            debugLog('Modals loaded', 'info');
+        document.addEventListener('DOMContentLoaded', function () {
+            $('#warning-update').hide();
+            $('#warning-updateError').hide();
+
+            $("#commonModals").load("/common/characterCardModals.html", function () {
+                debugLog('Modals loaded', 'info');
+            });
+
+            initializeVueApps(IS_PUBLIC, true);
+
+            socket.on('cardUpdated', function (data) {
+                if (data && data.success) {
+                    $('#warning-update').show();
+                    setTimeout(function(){ $('#warning-update').hide(); }, 3000);
+                } else {
+                    $('#warning-updateError').show();
+                    setTimeout(function(){ $('#warning-updateError').hide(); }, 3000);
+                }
+            });
         });
-        
-        // Initialize Vue apps with configuration
-        setTimeout(function() {
-            initializeVueApps(PAGE_CONFIG.isPublic, true);
-        }, 100);
-
-        // Hide alerts initially
-        $('#warning-update').hide();
-        $('#warning-updateError').hide();
-
-        // Initialize on body load
-        document.getElementById("body").onload = function () {
-            debugLog(`Body loaded, initializing ${PAGE_CONFIG.isPublic ? 'public' : 'private'} card`, 'info');
-            
-            // Public card specific initialization
-            if (PAGE_CONFIG.isPublic) {
-                socket.emit('getPublicListInfo');
-            }
-        };
-
-        // Public card specific socket listeners
-        
-        // Private card specific socket listeners
-        socket.on('cardUpdated', function(data) {
-            if (data && data.success) {
-                $('#warning-update').show();
-                setTimeout(() => $('#warning-update').hide(), 3000);
-            } else {
-                $('#warning-updateError').show();
-                setTimeout(() => $('#warning-updateError').hide(), 3000);
-            }
-        });
-        
     </script>
 </body>
 <!-- HKTRPG Sad -->

@@ -233,8 +233,7 @@ class UIManager {
      */
     styleValueButtons(buttons) {
         for (const btn of buttons) {
-            btn.style.all = 'unset';
-            btn.style.width = '16px';
+                btn.style.width = '16px';
             btn.style.height = '16px';
             btn.style.border = 'none';
             btn.style.borderRadius = '3px';
@@ -259,16 +258,11 @@ class UIManager {
             btn.style.webkitAppearance = 'none';
             btn.style.mozAppearance = 'none';
             btn.style.boxSizing = 'border-box';
-            
-            if (btn.classList.contains('plus-btn')) {
-                btn.style.backgroundColor = '#22c55e';
-                btn.style.color = 'white';
-                btn.style.border = '1px solid #16a34a';
-            } else if (btn.classList.contains('minus-btn')) {
-                btn.style.backgroundColor = '#f87171';
-                btn.style.color = 'white';
-                btn.style.border = '1px solid #ef4444';
-            }
+            // 清除顏色相關的內聯樣式，讓 CSS 類別統一控制色系
+            btn.style.backgroundColor = '';
+            btn.style.background = '';
+            btn.style.border = '';
+            btn.style.color = '';
         }
     }
 

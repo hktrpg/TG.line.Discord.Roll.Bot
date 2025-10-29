@@ -116,9 +116,8 @@ class CardManager {
                         const floatingControls = document.querySelectorAll('.floating-edit-controls, .floating-save-controls');
                         const floatingButtons = document.querySelectorAll('.floating-btn');
                         
-                        // 樣式化value按鈕
+                        // 樣式化value按鈕（不覆蓋配色，交由CSS類別控制）
                         for (const btn of buttons) {
-                            btn.style.all = 'unset';
                             btn.style.width = '16px';
                             btn.style.height = '16px';
                             btn.style.border = 'none';
@@ -144,16 +143,11 @@ class CardManager {
                             btn.style.webkitAppearance = 'none';
                             btn.style.mozAppearance = 'none';
                             btn.style.boxSizing = 'border-box';
-                            
-                            if (btn.classList.contains('plus-btn')) {
-                                btn.style.backgroundColor = '#22c55e';
-                                btn.style.color = 'white';
-                                btn.style.border = '1px solid #16a34a';
-                            } else if (btn.classList.contains('minus-btn')) {
-                                btn.style.backgroundColor = '#f87171';
-                                btn.style.color = 'white';
-                                btn.style.border = '1px solid #ef4444';
-                            }
+                            // 清理顏色相關內聯樣式，讓CSS控制最終配色
+                            btn.style.backgroundColor = '';
+                            btn.style.background = '';
+                            btn.style.border = '';
+                            btn.style.color = '';
                         }
                         
                         // 樣式化刪除按鈕

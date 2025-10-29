@@ -161,7 +161,7 @@ class SocketManager {
                             return;
                         }
                     }
-                } catch (e) {
+                } catch (error) {
                     // ignore
                 }
                 $('#cardListModal').modal("show");
@@ -298,7 +298,7 @@ class SocketManager {
         if (this.eventHandlers.has(event)) {
             const handlers = this.eventHandlers.get(event);
             const index = handlers.indexOf(handler);
-            if (index > -1) {
+            if (index !== -1) {
                 handlers.splice(index, 1);
             }
         }

@@ -117,7 +117,7 @@ class CardManager {
                         const floatingButtons = document.querySelectorAll('.floating-btn');
                         
                         // 樣式化value按鈕
-                        buttons.forEach((btn) => {
+                        for (const btn of buttons) {
                             btn.style.all = 'unset';
                             btn.style.width = '16px';
                             btn.style.height = '16px';
@@ -154,10 +154,10 @@ class CardManager {
                                 btn.style.color = 'white';
                                 btn.style.border = '1px solid #ef4444';
                             }
-                        });
+                        }
                         
                         // 樣式化刪除按鈕
-                        deleteButtons.forEach((btn) => {
+                        for (const btn of deleteButtons) {
                             btn.style.all = 'unset';
                             btn.style.position = 'absolute';
                             btn.style.top = '8px';
@@ -187,10 +187,10 @@ class CardManager {
                             btn.style.webkitAppearance = 'none';
                             btn.style.mozAppearance = 'none';
                             btn.style.boxSizing = 'border-box';
-                        });
+                        }
                         
                         // 樣式化浮動控制容器
-                        floatingControls.forEach((container) => {
+                        for (const container of floatingControls) {
                             container.style.all = 'unset';
                             container.style.position = 'fixed';
                             container.style.bottom = '20px';
@@ -205,10 +205,10 @@ class CardManager {
                             container.style.background = 'transparent';
                             container.style.width = 'auto';
                             container.style.height = 'auto';
-                        });
+                        }
                         
                         // 樣式化浮動按鈕
-                        floatingButtons.forEach((btn) => {
+                        for (const btn of floatingButtons) {
                             btn.style.all = 'unset';
                             btn.style.display = 'flex';
                             btn.style.alignItems = 'center';
@@ -255,13 +255,13 @@ class CardManager {
                                 btn.style.backgroundColor = '#dc3545';
                                 btn.style.color = 'white';
                             }
-                        });
+                        }
                     },
                     
                     // 計算屬性百分比
                     calculatePercentage(itemA, itemB) {
-                        const a = parseFloat(itemA) || 0;
-                        const b = parseFloat(itemB) || 0;
+                        const a = Number.parseFloat(itemA) || 0;
+                        const b = Number.parseFloat(itemB) || 0;
                         if (b === 0) return 0;
                         return Math.round((a / b) * 100);
                     },
@@ -275,7 +275,7 @@ class CardManager {
                     // 調整數值方法
                     adjustValue(form, index, change) {
                         if (form === 1 && this.roll[index]) {
-                            const currentValue = parseInt(this.roll[index].itemA) || 0;
+                            const currentValue = Number.parseInt(this.roll[index].itemA) || 0;
                             this.roll[index].itemA = Math.max(0, currentValue + change).toString();
                         }
                     },
@@ -283,7 +283,7 @@ class CardManager {
                     // 調整屬性數值
                     adjustAttributeValue(index, field, change) {
                         if (this.state[index] && this.state[index][field] !== undefined) {
-                            const currentValue = parseInt(this.state[index][field]) || 0;
+                            const currentValue = Number.parseInt(this.state[index][field]) || 0;
                             this.state[index][field] = Math.max(0, currentValue + change).toString();
                         }
                     },
@@ -400,7 +400,7 @@ class CardManager {
                             return false;
                         }
                         const cleanValue = value.toString().replace(/^CC\s*/i, '');
-                        const num = parseFloat(cleanValue);
+                        const num = Number.parseFloat(cleanValue);
                         const isNum = !isNaN(num) && isFinite(num);
                         return isNum;
                     },
@@ -416,7 +416,7 @@ class CardManager {
                         const currentValue = item[field];
                         
                         if (this.isNumeric(currentValue)) {
-                            const num = parseFloat(currentValue.toString().replace(/^CC\s*/i, ''));
+                            const num = Number.parseFloat(currentValue.toString().replace(/^CC\s*/i, ''));
                             const newValue = Math.max(0, num + delta);
                             item[field] = newValue.toString();
                             
@@ -626,7 +626,7 @@ class CardManager {
                             
                             // 移除 CC 前綴後檢查是否為數值
                             const cleanValue = attr.itemA.toString().replace(/^CC\s*/i, '');
-                            const num = parseFloat(cleanValue);
+                            const num = Number.parseFloat(cleanValue);
                             const isNum = !isNaN(num) && isFinite(num);
                             
                             // 返回非數值屬性
@@ -760,7 +760,7 @@ class CardManager {
                                 if (cardManager.card && cardManager.card.isPublic) {
                                     localStorage.setItem('lastSelectedPublicCardId', item._id);
                                 }
-                            } catch (e) {}
+                            } catch (error) {}
                             $('#cardListModal').modal("hide");
                         }
                     }

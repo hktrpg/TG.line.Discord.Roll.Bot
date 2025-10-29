@@ -45,10 +45,10 @@ class CharacterCardTemplateGenerator {
             let generatedContent = baseTemplate;
 
             // Replace template variables
-            Object.keys(config).forEach(key => {
+            for (const key of Object.keys(config)) {
                 const placeholder = `{{${key}}}`;
-                generatedContent = generatedContent.replace(new RegExp(placeholder, 'g'), config[key]);
-            });
+                generatedContent = generatedContent.replaceAll(new RegExp(placeholder, 'g'), config[key]);
+            }
 
             // Write to output file
             const outputPath = path.join(this.outputDir, filename);

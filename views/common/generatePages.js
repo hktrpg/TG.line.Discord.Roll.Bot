@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // 角色卡頁面生成腳本
 // 使用方式: node generatePages.js [private|public|all]
 
@@ -24,10 +23,10 @@ class PageGenerator {
             let generatedContent = baseTemplate;
 
             // 替換模板變數
-            Object.keys(config).forEach(key => {
+            for (const key of Object.keys(config)) {
                 const placeholder = `{{${key}}}`;
-                generatedContent = generatedContent.replace(new RegExp(placeholder, 'g'), config[key]);
-            });
+                generatedContent = generatedContent.replaceAll(new RegExp(placeholder, 'g'), config[key]);
+            }
 
             // 確定輸出文件名
             const filename = pageType === 'public' ? 'characterCardPublic.html' : 'characterCard.html';
@@ -69,7 +68,7 @@ class PageGenerator {
         const files = ['characterCard.html', 'characterCardPublic.html'];
         const results = {};
 
-        files.forEach(filename => {
+        for (const filename of files) {
             const filePath = path.join(this.outputDir, filename);
             try {
                 const content = fs.readFileSync(filePath, 'utf8');
@@ -86,10 +85,10 @@ class PageGenerator {
                     error: error.message
                 };
             }
-        });
+        }
 
         console.log('\n🔍 Validation Results:');
-        Object.keys(results).forEach(filename => {
+        for (const filename of Object.keys(results)) {
             const result = results[filename];
             if (result.exists) {
                 const status = result.hasTemplateVars ? '⚠️  Has template variables' : '✅ Valid';
@@ -97,7 +96,7 @@ class PageGenerator {
             } else {
                 console.log(`${filename}: ❌ Missing (${result.error})`);
             }
-        });
+        }
 
         return results;
     }

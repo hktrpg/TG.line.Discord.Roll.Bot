@@ -4,9 +4,9 @@
  */
 
 const crypto = require('crypto');
-const CryptoJS = require('crypto-js');
 const fs = require('fs');
 const path = require('path');
+const CryptoJS = require('crypto-js');
 
 // ============================================
 // 自動環境變數密鑰產生
@@ -392,7 +392,7 @@ function validateJWTAuth(authData) {
 
 let jwt;
 try {
-    // eslint-disable-next-line n/no-missing-require
+     
     jwt = require('jsonwebtoken');
 } catch {
     console.warn('⚠️ jsonwebtoken not installed');

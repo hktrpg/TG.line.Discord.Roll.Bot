@@ -52,7 +52,7 @@ class UIManager {
             margin: 0 auto;
             z-index: 9999;
         `;
-        document.body.appendChild(this.alertContainer);
+        document.body.append(this.alertContainer);
         return this.alertContainer;
     }
 
@@ -73,15 +73,15 @@ class UIManager {
         const closeButton = document.createElement('button');
         closeButton.type = 'button';
         closeButton.className = 'close';
-        closeButton.setAttribute('data-dismiss', 'alert');
+        closeButton.dataset.dismiss = 'alert';
         closeButton.innerHTML = '&times;';
-        alert.appendChild(closeButton);
+        alert.append(closeButton);
         
         // 添加訊息內容
         if (allowHtml) {
             alert.innerHTML += message;
         } else {
-            alert.appendChild(document.createTextNode(this.sanitizeHtml(message)));
+            alert.append(document.createTextNode(this.sanitizeHtml(message)));
         }
 
         container.insertBefore(alert, container.firstChild);
@@ -232,7 +232,7 @@ class UIManager {
      * @param {NodeList} buttons - 按鈕元素列表
      */
     styleValueButtons(buttons) {
-        buttons.forEach((btn) => {
+        for (const btn of buttons) {
             btn.style.all = 'unset';
             btn.style.width = '16px';
             btn.style.height = '16px';
@@ -269,7 +269,7 @@ class UIManager {
                 btn.style.color = 'white';
                 btn.style.border = '1px solid #ef4444';
             }
-        });
+        }
     }
 
     /**
@@ -277,7 +277,7 @@ class UIManager {
      * @param {NodeList} buttons - 按鈕元素列表
      */
     styleDeleteButtons(buttons) {
-        buttons.forEach((btn) => {
+        for (const btn of buttons) {
             btn.style.all = 'unset';
             btn.style.position = 'absolute';
             btn.style.top = '8px';
@@ -307,7 +307,7 @@ class UIManager {
             btn.style.webkitAppearance = 'none';
             btn.style.mozAppearance = 'none';
             btn.style.boxSizing = 'border-box';
-        });
+        }
     }
 
     /**
@@ -315,7 +315,7 @@ class UIManager {
      * @param {NodeList} containers - 容器元素列表
      */
     styleFloatingControls(containers) {
-        containers.forEach((container) => {
+        for (const container of containers) {
             container.style.all = 'unset';
             container.style.position = 'fixed';
             container.style.bottom = '20px';
@@ -330,7 +330,7 @@ class UIManager {
             container.style.background = 'transparent';
             container.style.width = 'auto';
             container.style.height = 'auto';
-        });
+        }
     }
 
     /**
@@ -338,7 +338,7 @@ class UIManager {
      * @param {NodeList} buttons - 按鈕元素列表
      */
     styleFloatingButtons(buttons) {
-        buttons.forEach((btn) => {
+        for (const btn of buttons) {
             btn.style.all = 'unset';
             btn.style.display = 'flex';
             btn.style.alignItems = 'center';
@@ -385,7 +385,7 @@ class UIManager {
                 btn.style.backgroundColor = '#dc3545';
                 btn.style.color = 'white';
             }
-        });
+        }
     }
 
     /**

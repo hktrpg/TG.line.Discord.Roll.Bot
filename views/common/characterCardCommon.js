@@ -16,10 +16,10 @@ function debugLog(message, type = 'info', data) {
         const redact = (text) => {
             if (typeof text !== 'string') return text;
             return text
-                .replace(/(password["':\s]*)([^\s"']+)/gi, '$1[REDACTED]')
-                .replace(/(token["':\s]*)([^\s"']+)/gi, '$1[REDACTED]')
-                .replace(/(userPassword["':\s]*)([^\s"']+)/gi, '$1[REDACTED]')
-                .replace(/(auth["':\s]*)([^\s"']+)/gi, '$1[REDACTED]');
+                .replaceAll(/(password["':\s]*)([^\s"']+)/gi, '$1[REDACTED]')
+                .replaceAll(/(token["':\s]*)([^\s"']+)/gi, '$1[REDACTED]')
+                .replaceAll(/(userPassword["':\s]*)([^\s"']+)/gi, '$1[REDACTED]')
+                .replaceAll(/(auth["':\s]*)([^\s"']+)/gi, '$1[REDACTED]');
         };
 
         const ts = new Date().toISOString();
@@ -30,18 +30,18 @@ function debugLog(message, type = 'info', data) {
             try {
                 safeData = JSON.parse(JSON.stringify(data));
                 if (safeData && typeof safeData === 'object') {
-                    ['password', 'userPassword', 'token', 'auth'].forEach((k) => {
+                    for (const k of ['password', 'userPassword', 'token', 'auth']) {
                         if (k in safeData) safeData[k] = '[REDACTED]';
-                    });
+                    }
                 }
             } catch {}
             console.log(`[${ts}] [${type}]`, safeMessage, safeData);
         } else {
             console.log(`[${ts}] [${type}] ${safeMessage}`);
         }
-    } catch (e) {
+    } catch (error) {
         // Fallback minimal log
-        try { console.log(`[${new Date().toISOString()}] [error] debugLog failure: ${e && e.message}`); } catch {}
+        try { console.log(`[${new Date().toISOString()}] [error] debugLog failure: ${error && error.message}`); } catch {}
     }
 }
 
@@ -69,13 +69,13 @@ function initializeVueApps(isPublic = false, skipUITemplateLoad = false) {
             // Load the hybrid UI template into a temporary container first
             const tempContainer = document.createElement('div');
             tempContainer.style.display = 'none';
-            document.body.appendChild(tempContainer);
+            document.body.append(tempContainer);
             
             $(tempContainer).load("/common/hybridCharacterCardUI.html", function() {
                 const templateContent = tempContainer.innerHTML;
                 
                 // Remove the temporary container
-                document.body.removeChild(tempContainer);
+                tempContainer.remove();
                 
                 initializeVueAppsInternal(isPublic, templateContent);
             });

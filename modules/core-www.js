@@ -994,7 +994,7 @@ if (io) {
                             return;
                         }
                         
-                        const { userId, userName } = validation.data;
+                        const { userName } = validation.data;
                         
                         let filter = {
                             userName: String(userName).trim()
@@ -1120,7 +1120,7 @@ if (io) {
                     return;
                 }
                 
-                const { userId, userName } = validation.data;
+                const { userName } = validation.data;
                 
                 // 🔒 防止 NoSQL 注入 - 強制型別轉換
                 let filter = {
@@ -1178,7 +1178,7 @@ if (io) {
                     return;
                 }
                 
-                const { userId, userName } = validation.data;
+                const { userName } = validation.data;
 
                 // 🔒 防止 NoSQL 注入
                 let filter = {
@@ -1334,6 +1334,7 @@ records.on("new_message", async (message) => {
 // ⚠️ DEPRECATED: Legacy password hashing - insecure!
 // This function is kept for backward compatibility with existing password hashes
 // New code should use security.hashPassword() and security.verifyPassword()
+// eslint-disable-next-line no-unused-vars
 function SHA(text) {
     return crypto.createHmac('sha256', text)
         .update(salt)

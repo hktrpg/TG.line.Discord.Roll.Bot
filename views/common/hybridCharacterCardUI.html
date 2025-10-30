@@ -131,7 +131,8 @@
             </h4>
             
             <div class="hybrid-attributes-grid">
-            <div v-for="(item, index) in state" :key="index" class="attribute-panel" :class="{ 'edit-mode': editMode, 'inline-editing': item.isInlineEditing }" v-if="editMode || !isBadgeAttribute(item)">
+            <template v-for="(item, index) in state">
+            <div :key="'state-' + index" class="attribute-panel" :class="{ 'edit-mode': editMode, 'inline-editing': item.isInlineEditing }" v-if="editMode || !isBadgeAttribute(item)">
                     
                 <!-- 懸停刪除按鈕 (編輯模式) -->
                 <button type="button" class="hover-delete-btn" v-if="editMode" @click.stop="removeItem(0, index)"
@@ -195,6 +196,7 @@
                         </div>
                     </div>
                 </div>
+            </template>
             </div>
             
             <!-- 浮動添加按鈕 -->

@@ -173,8 +173,8 @@
                         </button>
                     </div>
                     
-                    <!-- 編輯模式下的輸入框 -->
-                    <div v-if="editMode" class="edit-inputs">
+                    <!-- 編輯模式下的輸入框（非內聯新項目時顯示） -->
+                    <div v-if="editMode && !item.isInlineEditing" class="edit-inputs">
                     <input type="text" :value="item.name" @input="item.name = $event.target.value" placeholder="屬性名稱"
                                class="edit-input">
                         <div class="edit-number-inputs">
@@ -240,8 +240,8 @@
                 <div class="attribute-label" v-if="!editMode && !item.isInlineEditing">{{ item.name }}</div>
                 <div class="attribute-value-display" v-if="!editMode && !item.isInlineEditing">{{ item.itemA || '' }}</div>
 
-                <!-- 編輯模式下的輸入框 -->
-                <div v-if="editMode" class="edit-inputs">
+                <!-- 編輯模式下的輸入框（非內聯新項目時顯示） -->
+                <div v-if="editMode && !item.isInlineEditing" class="edit-inputs">
                     <input type="text" v-model="item.name" placeholder="技能名稱"
                         class="edit-input">
                     <input type="text" v-model="item.itemA" placeholder="擲骰指令" class="edit-input">
@@ -299,8 +299,8 @@
                         <div class="detail-label">{{ item.name || item.title || '' }}</div>
                     </div>
                     
-                    <!-- 編輯模式下的輸入框 -->
-                    <div v-if="editMode" class="edit-detail-inputs">
+                    <!-- 編輯模式下的輸入框（非內聯新項目時顯示） -->
+                    <div v-if="editMode && !item.isInlineEditing" class="edit-detail-inputs">
                     <textarea :value="item.itemA || item.content || ''"
                         @input="item.itemA = $event.target.value; if (item.content) item.content = $event.target.value"
                         placeholder="筆記內容" class="edit-detail-textarea"></textarea>

@@ -348,11 +348,11 @@
 <div v-if="editMode" class="floating-edit-controls">
     <button type="button" class="floating-btn save-btn" @click="updateCard" title="儲存修改">
         <i class="fas fa-save"></i>
-        <span>儲存</span>
+        <span>儲存變更</span>
     </button>
     <button type="button" class="floating-btn revert-btn" @click="revertDataOnly" title="還原修改">
         <i class="fas fa-undo"></i>
-        <span>還原</span>
+        <span>還原修改</span>
     </button>
     <button type="button" class="floating-btn close-btn" @click="closeEditMode" title="關閉編輯模式">
         <i class="fas fa-times"></i>
@@ -364,11 +364,11 @@
 <div v-if="!isPublic && !editMode && hasUnsavedChanges" class="floating-save-controls">
     <button type="button" class="floating-btn save-btn" @click="updateCard" title="儲存修改">
         <i class="fas fa-save"></i>
-        <span>儲存</span>
+        <span>儲存變更</span>
     </button>
     <button type="button" class="floating-btn revert-btn" @click="revertChanges" title="還原修改">
         <i class="fas fa-undo"></i>
-        <span>還原</span>
+        <span>還原修改</span>
     </button>
 </div>
 
@@ -1103,6 +1103,8 @@ html body button.inline-btn {
     user-select: none !important;
     appearance: none !important;
     box-sizing: border-box !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25) !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
 }
 
 html body .inline-btn.confirm-btn {
@@ -1128,6 +1130,10 @@ html body .inline-btn.cancel-btn:hover {
     background: #c82333 !important;
     transform: scale(1.1) !important;
 }
+
+/* 內聯編輯按鈕圖示顏色與焦點樣式 */
+html body .inline-btn i { color: #ffffff !important; line-height: 1 !important; }
+html body .inline-btn:focus { box-shadow: 0 0 0 2px rgba(255,255,255,0.25) !important; }
 
 /* 內聯編輯模式樣式 */
 html body .attribute-panel.inline-editing,

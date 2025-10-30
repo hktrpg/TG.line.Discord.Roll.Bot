@@ -44,6 +44,7 @@ class UIManager {
 
         this.alertContainer = document.createElement('div');
         this.alertContainer.id = 'alerts-container';
+        try { this.alertContainer.classList.add('bg-color'); } catch {}
         this.alertContainer.style.cssText = `
             position: fixed;
             width: 30%;

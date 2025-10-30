@@ -287,10 +287,16 @@
                     </button>
                 </div>
 
-                    <!-- 正常顯示模式 -->
-                    <div v-if="!editMode && !item.isInlineEditing" class="detail-content">
-                    <div class="detail-value" v-html="(item.itemA || item.content || '').replace(/\n/g, '<br>')"></div>
-                    <div class="detail-label">{{ item.name || item.title || '' }}</div>
+                    <!-- 非編輯模式顯示與右上角全文圖示 -->
+                    <button type="button" class="dice-roll-button" v-if="!editMode && !item.isInlineEditing && isLongNote(item)" @click.stop="openNoteModal(item)" :title="(item.name || item.title || '查看全文')">
+                        <i :class="item.icon || 'fa-solid fa-up-right-and-down-left-from-center'"></i>
+                    </button>
+                    <div v-if="!editMode && !item.isInlineEditing" class="detail-content" @click="isLongNote(item) && openNoteModal(item)" :style="isLongNote(item) ? 'cursor: pointer;' : ''">
+                        <div class="detail-value" v-if="isLongNote(item)">
+                            {{ truncatedNote(item, 80) }}
+                        </div>
+                        <div class="detail-value" v-else v-html="(item.itemA || item.content || '').replace(/\n/g, '<br>')"></div>
+                        <div class="detail-label">{{ item.name || item.title || '' }}</div>
                     </div>
                     
                     <!-- 編輯模式下的輸入框 -->
@@ -317,6 +323,26 @@
             </button>
         </div>
     </section>
+
+    <!-- 筆記全文彈窗 -->
+    <div class="modal fade" id="noteDetailModal" tabindex="-1" role="dialog" aria-labelledby="noteDetailModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content bg-color">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="noteDetailModalTitle">{{ modalNoteTitle || '筆記' }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body bg-color">
+                    <div v-html="modalNoteContent"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 <!-- 編輯模式浮動按鈕 -->
 <div v-if="editMode" class="floating-edit-controls">

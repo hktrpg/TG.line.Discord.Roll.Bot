@@ -40,7 +40,10 @@ class CardManager {
                         editMode: false,
                         isPublic: isPublic,
                         originalData: null,
-                        hasUnsavedChanges: false
+                        hasUnsavedChanges: false,
+                        // Note modal state
+                        modalNoteTitle: '',
+                        modalNoteContent: ''
                     }
                 },
                 computed: {
@@ -171,6 +174,35 @@ class CardManager {
                         const s = str.toString().trim();
                         const limit = this.isCjk(s) ? 10 : 30;
                         return s.length <= limit;
+                    },
+                    // 判斷筆記是否過長
+                    isLongNote(item, limit = 160) {
+                        try {
+                            const text = (item && (item.itemA || item.content || '') || '').toString();
+                            return text.length > limit;
+                        } catch { return false; }
+                    },
+                    // 取得截斷後的筆記內容（純文字）
+                    truncatedNote(item, limit = 160) {
+                        try {
+                            const raw = (item && (item.itemA || item.content || '') || '').toString();
+                            const text = raw.replace(/\r\n|\n|\r/g, ' ');
+                            if (text.length <= limit) return text;
+                            return text.slice(0, limit).trim() + '…';
+                        } catch { return ''; }
+                    },
+                    // 開啟筆記全文彈窗
+                    openNoteModal(item) {
+                        try {
+                            this.modalNoteTitle = (item && (item.name || item.title || '')) || '';
+                            const raw = (item && (item.itemA || item.content || '') || '').toString();
+                            // 保留換行
+                            this.modalNoteContent = raw.replace(/\n/g, '<br>');
+                            $('#noteDetailModal').modal('show');
+                            debugLog('Opened note detail modal', 'info', { title: this.modalNoteTitle, length: raw.length });
+                        } catch (e) {
+                            debugLog(`openNoteModal failed: ${e && e.message}`, 'error');
+                        }
                     },
                     // 載入測試數據
                     loadTestData() {

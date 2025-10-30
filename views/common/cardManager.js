@@ -43,11 +43,135 @@ class CardManager {
                         hasUnsavedChanges: false
                     }
                 },
+                computed: {
+                    // 根據 localStorage 判斷是否登入
+                    isLoggedIn() {
+                        try {
+                            const hasUser = !!localStorage.getItem('userName');
+                            const hasToken = !!localStorage.getItem('jwtToken');
+                            return hasUser && hasToken;
+                        } catch { return false; }
+                    },
+                    headerBadges() {
+                        try {
+                            const badges = [];
+                            // characterDetails
+                            if (Array.isArray(this.characterDetails)) {
+                                for (const detail of this.characterDetails) {
+                                    if (detail && detail.label && detail.value && detail.value.toString().trim() !== '') {
+                                        const val = detail.value.toString().trim();
+                                        if (this.withinHeaderTextLength(val)) {
+                                            badges.push({ label: detail.label, value: val, icon: 'info-circle', source: 'detail' });
+                                        }
+                                    }
+                                }
+                            }
+                            // state-derived badges: only current value, non-numeric, short
+                            if (Array.isArray(this.state)) {
+                                for (const attr of this.state) {
+                                    if (!attr || !attr.name) continue;
+                                    const a = (attr.itemA ?? '').toString();
+                                    const b = (attr.itemB ?? '').toString();
+                                    const onlyCurrent = !b || b.trim() === '';
+                                    const nonNumeric = !this.isNumeric(a);
+                                    if (onlyCurrent && nonNumeric && a.trim() !== '' && this.withinHeaderTextLength(a)) {
+                                        badges.push({ label: attr.name, value: a.trim(), icon: 'tag', source: 'state' });
+                                    }
+                                }
+                            }
+                            // dedupe
+                            const seen = new Set();
+                            const unique = [];
+                            for (const b of badges) {
+                                const key = `${b.label}|${b.value}`;
+                                if (!seen.has(key)) { seen.add(key); unique.push(b); }
+                            }
+                            return unique.slice(0, 6);
+                        } catch (e) {
+                            debugLog(`headerBadges compute failed: ${e && e.message}`, 'error');
+                            return [];
+                        }
+                    }
+                },
                 mounted() {
-                    this.loadTestData();
+                    try {
+                        const path = (window && window.location && window.location.pathname) ? window.location.pathname : '';
+                        const isTestPage = /cardtest/i.test(path);
+                        if (isTestPage) {
+                            this.loadTestData();
+                        } else {
+                            debugLog('Skipping test data seeding on non-test page', 'info');
+                            // 確保啟動時為乾淨狀態
+                            this.name = '';
+                            this.image = '';
+                            this.state = [];
+                            this.roll = [];
+                            this.notes = [];
+                            this.characterDetails = [];
+                        }
+                    } catch {
+                        // 安全保護：若出錯則不灌測試資料
+                    }
                     this.setupGroupSelection();
+                    try {
+                        const badges = this.headerBadges || [];
+                        debugLog(`Header badges computed (initial): ${badges.length}`,'info', badges.map(b=>({label:b.label,value:b.value,source:b.source})));
+                    } catch {}
+                    // 監聽 storage 事件以便登入狀態改變時觸發重繪
+                    try {
+                        this.__onStorage = (e) => {
+                            if (!e || !e.key) return;
+                            if (e.key === 'userName' || e.key === 'jwtToken') {
+                                this.$forceUpdate();
+                            }
+                        };
+                        window.addEventListener('storage', this.__onStorage);
+                    } catch {}
+                },
+                beforeUnmount() {
+                    try { if (this.__onStorage) { window.removeEventListener('storage', this.__onStorage); this.__onStorage = null; } } catch {}
+                },
+                watch: {
+                    state: {
+                        deep: true,
+                        handler() {
+                            try {
+                                const badges = this.headerBadges || [];
+                                debugLog(`Header badges recomputed (state changed): ${badges.length}`,'info', badges.map(b=>({label:b.label,value:b.value,source:b.source})));
+                            } catch {}
+                        }
+                    },
+                    characterDetails: {
+                        deep: true,
+                        handler() {
+                            try {
+                                const badges = this.headerBadges || [];
+                                debugLog(`Header badges recomputed (details changed): ${badges.length}`,'info', badges.map(b=>({label:b.label,value:b.value,source:b.source})));
+                            } catch {}
+                        }
+                    }
                 },
                 methods: {
+                    // 是否為徽章屬性（非編輯模式時應隱藏於屬性格）
+                    isBadgeAttribute(item) {
+                        if (!item) return false;
+                        const a = (item.itemA ?? '').toString();
+                        const b = (item.itemB ?? '').toString();
+                        const onlyCurrent = !b || b.trim() === '';
+                        const nonNumeric = !this.isNumeric(a);
+                        const shortEnough = this.withinHeaderTextLength(a);
+                        return !!item.name && onlyCurrent && nonNumeric && a.trim() !== '' && shortEnough;
+                    },
+                    isCjk(str) {
+                        if (!str) return false;
+                        return /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/.test(str);
+                    },
+                    withinHeaderTextLength(str) {
+                        if (!str) return false;
+                        const s = str.toString().trim();
+                        const limit = this.isCjk(s) ? 10 : 30;
+                        return s.length <= limit;
+                    },
                     // 載入測試數據
                     loadTestData() {
                         this.name = "測試角色";
@@ -77,6 +201,8 @@ class CardManager {
                             { name: '調查筆記', itemA: '這是測試筆記內容' },
                             { name: '戰鬥記錄', itemA: '戰鬥日誌記錄' }
                         ].filter(item => item && item.name);
+
+                        this.image = 'https://images2.imgbox.com/ea/b2/Bn8DmRTW_o.png';
                         
                         this.characterDetails = [
                             { label: '職業', value: '保險調查員' },
@@ -720,10 +846,53 @@ class CardManager {
                     }
                 },
                 computed: {
+                    // 產出測試角色項目
+                    testItem() {
+                        return {
+                            _id: '_test_',
+                            id: '_test_',
+                            name: '測試角色',
+                            image: 'https://images2.imgbox.com/ea/b2/Bn8DmRTW_o.png',
+                            state: [
+                                { name: 'HP', itemA: '11', itemB: '11' },
+                                { name: 'MP', itemA: '16', itemB: '16' },
+                                { name: 'SAN', itemA: '80', itemB: '80' },
+                                { name: '體格', itemA: '1', itemB: '' },
+                                { name: 'DB', itemA: '＋1D4', itemB: '' },
+                                { name: 'MOV', itemA: '8', itemB: '' },
+                                { name: '護甲', itemA: '0', itemB: '' },
+                                { name: '職業', itemA: '保險調查員', itemB: '' },
+                                { name: '特徵', itemA: '野外活動愛好者', itemB: '' }
+                            ],
+                            roll: [
+                                { name: '心理學', itemA: 'CC 10' },
+                                { name: '信譽', itemA: 'CC 5' },
+                                { name: '偵查', itemA: 'CC 25' },
+                                { name: '鬥毆', itemA: 'CC 25' },
+                                { name: '魔法', itemA: 'CC 1' },
+                                { name: '小刀', itemA: 'CC 25' },
+                                { name: '幸運', itemA: 'CC 50' },
+                                { name: '占卜', itemA: 'CC 80' },
+                            ],
+                            notes: [
+                                { name: '調查筆記', itemA: '這是測試筆記內容' },
+                                { name: '戰鬥記錄', itemA: '戰鬥日誌記錄' }
+                            ],
+                            public: false
+                        };
+                    },
+                    // 含測試角色置頂的清單，避免重複
+                    listWithTest() {
+                        const base = Array.isArray(this.list) ? this.list : [];
+                        // 避免與伺服器回傳同 _id 重覆
+                        const filteredBase = base.filter(x => x && x._id !== this.testItem._id);
+                        return [this.testItem, ...filteredBase];
+                    },
                     filteredList() {
-                        if (!this.searchQuery || this.searchQuery.trim() === '') return this.list;
+                        const source = this.listWithTest;
+                        if (!this.searchQuery || this.searchQuery.trim() === '') return source;
                         const q = this.searchQuery.trim().toLowerCase();
-                        return this.list.filter(x => (x && x.name && x.name.toLowerCase().includes(q)));
+                        return source.filter(x => (x && x.name && x.name.toLowerCase().includes(q)));
                     },
                     filteredCount() {
                         return this.filteredList.length;

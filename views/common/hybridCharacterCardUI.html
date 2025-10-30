@@ -37,21 +37,11 @@
                         <div class="small" style="color:#F5F5DC; opacity:0.85; margin-top:4px;">僅允許 http/https，禁止內網/localhost。顯示機制同首頁圖片處理。</div>
                     </div>
                 <div class="character-info d-flex flex-wrap gap-3"
-                    v-if="(!editMode && (characterDetails && characterDetails.length > 0)) || (!editMode && getNonNumericAttributes().length > 0)">
-                    <!-- 顯示角色詳情 -->
-                    <span class="info-badge" v-for="(detail, index) in characterDetails.slice(0, 3)" :key="'detail-' + index"
-                        v-if="detail && detail.value && detail.value.trim() !== ''">
-                        <i class="fas fa-info-circle me-1"></i>
-                        <span class="info-label">{{ detail.label }}:</span>
-                        <span class="info-value">{{ detail.value }}</span>
-                    </span>
-                    
-                    <!-- 顯示非數值屬性 -->
-                    <span class="info-badge" v-for="(attr, index) in getNonNumericAttributes().slice(0, 3)" :key="'attr-' + index"
-                        v-if="attr && attr.itemA && attr.itemA.trim() !== ''">
-                        <i class="fas fa-tag me-1"></i>
-                        <span class="info-label">{{ attr.name }}:</span>
-                        <span class="info-value">{{ attr.itemA }}</span>
+                    v-if="!editMode && (headerBadges && headerBadges.length > 0)">
+                    <span class="info-badge" v-for="(badge, i) in headerBadges" :key="'badge-' + i">
+                        <i class="fas" :class="'fa-' + (badge.icon || 'tag') + ' me-1'"></i>
+                        <span class="info-label">{{ badge.label }}:</span>
+                        <span class="info-value">{{ badge.value }}</span>
                     </span>
                 </div>
                 </div>
@@ -74,8 +64,12 @@
                         現在狀態：{{ public ? '公開' : '私人' }}
                         </button>
                         
-                    <!-- 登出按鈕 (僅私人卡片) -->
-                    <button type="button" class="action-btn danger" v-if="!isPublic" @click="showLogoutModal" title="登出">
+                    <!-- 登入/登出按鈕 (僅私人卡片) -->
+                    <button type="button" class="action-btn secondary" v-if="!isPublic && !isLoggedIn" @click="login" title="登入">
+                        <i class="fas fa-sign-in-alt"></i>
+                        登入
+                    </button>
+                    <button type="button" class="action-btn danger" v-if="!isPublic && isLoggedIn" @click="showLogoutModal" title="登出">
                         <i class="fas fa-sign-out-alt"></i>
                         登出
                     </button>
@@ -137,7 +131,7 @@
             </h4>
             
             <div class="hybrid-attributes-grid">
-            <div v-for="(item, index) in state" :key="index" class="attribute-panel" :class="{ 'edit-mode': editMode, 'inline-editing': item.isInlineEditing }">
+            <div v-for="(item, index) in state" :key="index" class="attribute-panel" :class="{ 'edit-mode': editMode, 'inline-editing': item.isInlineEditing }" v-if="editMode || !isBadgeAttribute(item)">
                     
                 <!-- 懸停刪除按鈕 (編輯模式) -->
                 <button type="button" class="hover-delete-btn" v-if="editMode" @click.stop="removeItem(0, index)"

@@ -196,6 +196,25 @@ function updateCard() {
         cardElement.classList.add('loading');
     }
 
+    // 先進行前端驗證：禁止同名與超長內容
+    const clientValidationError = validateClientCardPayload({
+        _id: card._id,
+        id: card.id,
+        image: card.image,
+        state: card.state,
+        roll: card.roll,
+        notes: card.notes,
+        characterDetails: card.characterDetails,
+        public: card.public,
+        name: card.name
+    });
+    if (clientValidationError) {
+        uiManager.showError(clientValidationError);
+        uiManager.hideLoading(updateButton);
+        if (cardElement) { cardElement.classList.remove('loading'); }
+        return;
+    }
+
     const data = {
         userName: userName,
         token: token,
@@ -213,6 +232,58 @@ function updateCard() {
 
     debugLog(`Attempting to update card with data:`);
     socketManager.emitUpdateCard(data);
+}
+
+// 前端驗證：避免同名與欄位長度超標（與後端一致）
+function validateClientCardPayload(payload) {
+    try {
+        if (!payload) return '資料無效';
+        const name = (payload.name || '').toString().trim();
+        if (!name) return '角色卡名稱不可為空';
+        if (name.length > 50) return '角色卡名稱長度不可超過 50 字元';
+
+        const tooLong = (v, m) => (v || '').toString().length > m;
+        const norm = (s) => (s || '').toString().trim().toLowerCase();
+        const findDups = (arr) => {
+            const seen = new Set();
+            const d = new Set();
+            for (const it of (arr || [])) {
+                const k = norm(it && it.name);
+                if (!k) continue;
+                if (seen.has(k)) d.add((it.name || '').toString()); else seen.add(k);
+            }
+            return Array.from(d);
+        };
+
+        const sD = findDups(payload.state);
+        const rD = findDups(payload.roll);
+        const nD = findDups(payload.notes);
+        if (sD.length || rD.length || nD.length) {
+            let msg = '偵測到重複項目名稱:\n';
+            if (sD.length) msg += `狀態: ${sD.join(', ')}\n`;
+            if (rD.length) msg += `擲骰: ${rD.join(', ')}\n`;
+            if (nD.length) msg += `備註: ${nD.join(', ')}\n`;
+            return msg.trim();
+        }
+
+        for (const it of (payload.state || [])) {
+            if (!it || !it.name || !it.name.toString().trim()) return '狀態項目名稱不可為空';
+            if (tooLong(it.name, 50)) return `狀態「${it.name}」名稱超過 50 字元`;
+            if (tooLong(it.itemA, 50)) return `狀態「${it.name}」當前值超過 50 字元`;
+            if (tooLong(it.itemB, 50)) return `狀態「${it.name}」最大值超過 50 字元`;
+        }
+        for (const it of (payload.roll || [])) {
+            if (!it || !it.name || !it.name.toString().trim()) return '擲骰項目名稱不可為空';
+            if (tooLong(it.name, 50)) return `擲骰「${it.name}」名稱超過 50 字元`;
+            if (tooLong(it.itemA, 150)) return `擲骰「${it.name}」內容超過 150 字元`;
+        }
+        for (const it of (payload.notes || [])) {
+            if (!it || !it.name || !it.name.toString().trim()) return '備註項目名稱不可為空';
+            if (tooLong(it.name, 50)) return `備註「${it.name}」名稱超過 50 字元`;
+            if (tooLong(it.itemA, 1500)) return `備註「${it.name}」內容超過 1500 字元`;
+        }
+        return null;
+    } catch { return '驗證失敗'; }
 }
 
 // Enhanced error display - 使用 uiManager

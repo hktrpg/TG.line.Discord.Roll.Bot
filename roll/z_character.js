@@ -282,6 +282,12 @@ async function handleShow(mainMsg, userid, rply) {
 
 async function handleAddEdit(mainMsg, inputStr, userid, groupid, rply) {
     let Card = await analysicInputCharacterCard(inputStr);
+    // 驗證輸入：禁止同名標題與超長內容
+    const validationError = await validateCharacterCardInput(Card);
+    if (validationError) {
+        rply.text = validationError;
+        return rply;
+    }
     if (!Card.name) {
         rply.text = '沒有輸入角色咭名字，請重新整理內容 格式為 \n.char add name[Sad]~ \nstate[HP:15/15;MP:6/6;]~\nroll[投擲:cc 80 投擲;鬥毆:cc 40 鬥毆;]~\nnotes[心靈支柱: 無;notes:這是測試,請試試在群組輸入 .char use Sad;]~\n';
         return rply;
@@ -809,9 +815,7 @@ async function analysicInputCharacterCard(inputStr) {
     let characterState = (characterStateTemp) ? await analysicStr(characterStateTemp, true) : [];
     let characterRoll = (characterRollTemp) ? await analysicStr(characterRollTemp, false) : [];
     let characterNotes = (characterNotesTemp) ? await analysicStr(characterNotesTemp, false, 'notes') : [];
-    characterState = characterState.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i);
-    characterRoll = characterRoll.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i);
-    characterNotes = characterNotes.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i);
+    // 不再自動去重，交由驗證階段阻擋重複
     let character = {
         name: characterName.replace(/^\s+/, '').replace(/\s+$/, ''),
         state: characterState,
@@ -820,6 +824,68 @@ async function analysicInputCharacterCard(inputStr) {
         image: characterImage
     };
     return character;
+}
+
+// 伺服器端驗證：阻擋重複標題與欄位長度超標
+async function validateCharacterCardInput(Card) {
+    if (!Card) return '輸入內容無效';
+    const trimLower = (s) => (s || '').toString().trim().toLowerCase();
+
+    // 名稱長度
+    const name = (Card.name || '').toString().trim();
+    if (!name) return '角色卡名稱不可為空';
+    if (name.length > 50) return '角色卡名稱長度不可超過 50 字元';
+
+    // 工具：找出重複
+    const findDuplicates = (arr) => {
+        const seen = new Set();
+        const dups = new Set();
+        for (const it of (arr || [])) {
+            const key = trimLower(it && it.name);
+            if (!key) continue;
+            if (seen.has(key)) dups.add((it.name || '').toString());
+            else seen.add(key);
+        }
+        return Array.from(dups);
+    };
+
+    // 欄位長度限制符合 schema.js
+    const tooLong = (val, max) => (val || '').toString().length > max;
+
+    const stateDups = findDuplicates(Card.state);
+    const rollDups = findDuplicates(Card.roll);
+    const notesDups = findDuplicates(Card.notes);
+    if (stateDups.length || rollDups.length || notesDups.length) {
+        let msg = '偵測到重複項目名稱：\n';
+        if (stateDups.length) msg += `狀態: ${stateDups.join(', ')}\n`;
+        if (rollDups.length) msg += `擲骰: ${rollDups.join(', ')}\n`;
+        if (notesDups.length) msg += `備註: ${notesDups.join(', ')}\n`;
+        return msg.trim();
+    }
+
+    // 狀態長度
+    for (const it of (Card.state || [])) {
+        if (!it || !it.name || !it.name.toString().trim()) return '狀態項目名稱不可為空';
+        if (tooLong(it.name, 50)) return `狀態「${it.name}」名稱超過 50 字元`;
+        if (tooLong(it.itemA, 50)) return `狀態「${it.name}」當前值超過 50 字元`;
+        if (tooLong(it.itemB, 50)) return `狀態「${it.name}」最大值超過 50 字元`;
+    }
+
+    // 擲骰長度
+    for (const it of (Card.roll || [])) {
+        if (!it || !it.name || !it.name.toString().trim()) return '擲骰項目名稱不可為空';
+        if (tooLong(it.name, 50)) return `擲骰「${it.name}」名稱超過 50 字元`;
+        if (tooLong(it.itemA, 150)) return `擲骰「${it.name}」內容超過 150 字元`;
+    }
+
+    // 備註長度
+    for (const it of (Card.notes || [])) {
+        if (!it || !it.name || !it.name.toString().trim()) return '備註項目名稱不可為空';
+        if (tooLong(it.name, 50)) return `備註「${it.name}」名稱超過 50 字元`;
+        if (tooLong(it.itemA, 1500)) return `備註「${it.name}」內容超過 1500 字元`;
+    }
+
+    return null;
 }
 
 async function analysicStr(inputStr, state, term) {

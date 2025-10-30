@@ -222,6 +222,7 @@ function updateCard() {
             _id: card._id,
             id: card.id,
             image: card.image,
+            name: card.name, // 強制帶 name 無論如何
             state: card.state,
             roll: card.roll,
             notes: card.notes,
@@ -229,8 +230,7 @@ function updateCard() {
             public: card.public
         }
     };
-
-    debugLog(`Attempting to update card with data:`);
+    debugLog('updateCard outgoing (patched):', 'info', data.card);
     socketManager.emitUpdateCard(data);
 }
 

@@ -294,6 +294,8 @@ def convert(source_path: str, output_path: str) -> None:
         "categoryNames": data.get("categoryNames"),
         "moveDescriptions": data.get("moveDescriptions") or data.get("moveDescription"),
         "buffnames": data.get("buffnames") or data.get("buffNames"),
+        "digimonNames": data.get("digimonNames"),
+        "itemNames": data.get("itemNames"),
     }
 
     transformed: List[Dict[str, Any]] = []
@@ -367,6 +369,26 @@ def convert(source_path: str, output_path: str) -> None:
             for sig_id, lvl_obj in signature.items():
                 sig_out.append(convert_signature_entry(str(sig_id), lvl_obj, lookups))
         target["special_skills"] = sig_out
+
+        # Add jogress English names if jogressIdA and jogressIdB are not 0
+        conditions = entry.get("conditions", {})
+        jogress_id_a = to_int(conditions.get("jogressIdA"))
+        jogress_id_b = to_int(conditions.get("jogressIdB"))
+        if jogress_id_a is not None and jogress_id_a != 0:
+            jogress_a_name = resolve_english_name(lookups.get("digimonNames") or {}, "digimonnames", jogress_id_a)
+            if jogress_a_name is not None:
+                target["jogressAEng"] = jogress_a_name
+        if jogress_id_b is not None and jogress_id_b != 0:
+            jogress_b_name = resolve_english_name(lookups.get("digimonNames") or {}, "digimonnames", jogress_id_b)
+            if jogress_b_name is not None:
+                target["jogressBEng"] = jogress_b_name
+
+        # Add needsItem English name if needsItem is not 0
+        needs_item = to_int(conditions.get("needsItem"))
+        if needs_item is not None and needs_item != 0:
+            needs_item_name = resolve_english_name(lookups.get("itemNames") or {}, "itemnames", needs_item)
+            if needs_item_name is not None:
+                target["needsItemEng"] = needs_item_name
 
         transformed.append(target)
 

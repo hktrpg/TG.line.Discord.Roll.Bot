@@ -795,22 +795,42 @@ async function repeatMessages(discord, message) {
 }
 async function manageWebhook(discord) {
 	try {
-		const channel = await client.channels.fetch(discord.channelId);
-		const isThread = channel && channel.isThread();
-		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
+		const channel = await client.channels.fetch(discord.channelId).catch(() => null);
+		if (!channel) throw new Error('Channel not found');
+		const isThread = typeof channel.isThread === 'function' && channel.isThread();
+		// Resolve target channel that actually supports webhooks
+		const targetChannel = isThread ? await client.channels.fetch(channel.parentId).catch(() => null) : channel;
+		if (!targetChannel || !targetChannel.guild) throw new Error('Target channel/guild not available for webhooks');
+
+		// Some channel types (like DM) do not support fetchWebhooks
+		let webhooks;
+		if (typeof targetChannel.fetchWebhooks === 'function') {
+			webhooks = await targetChannel.fetchWebhooks();
+		} else {
+			// Fallback to guild-level fetch and filter by channel
+			const all = await targetChannel.guild.fetchWebhooks();
+			webhooks = all.filter(v => v.channelId === (isThread ? channel.parentId : channel.id));
+		}
 		let webhook = webhooks.find(v => {
-			return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
+			return (v.channelId == (isThread ? channel.parentId : channel.id)) && v.token;
 		})
 
 		//type Channel Follower
 		//'Incoming'
 		if (!webhook) {
-			const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
-			await hooks.createWebhook({ name: "HKTRPG .me Function", avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
-			webhooks = await channel.fetchWebhooks();
-			webhook = webhooks.find(v => {
-				return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
-			})
+			try {
+				await targetChannel.createWebhook({ name: "HKTRPG .me Function", avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
+			} catch (e) {
+				throw new Error('Failed to create webhook: ' + e.message);
+			}
+			// Re-fetch to find the newly created webhook
+			if (typeof targetChannel.fetchWebhooks === 'function') {
+				webhooks = await targetChannel.fetchWebhooks();
+			} else {
+				const all = await targetChannel.guild.fetchWebhooks();
+				webhooks = all.filter(v => v.channelId === (isThread ? channel.parentId : channel.id));
+			}
+			webhook = webhooks.find(v => (v.channelId == (isThread ? channel.parentId : channel.id)) && v.token);
 		}
 		return { webhook, isThread };
 	} catch (error) {
@@ -887,15 +907,15 @@ async function checkWakeUp() {
 }
 
 async function getAllshardIds() {
-	if (!client.cluster) return '';
+    if (!client.cluster) return '';
 
 	try {
-		const [shardIds, wsStatus, wsPing, clusterId] = await Promise.all([
-			[...client.cluster.ids.keys()],
-			client.cluster.broadcastEval(c => c.ws.status),
-			client.cluster.broadcastEval(c => c.ws.ping),
-			client.cluster.id
-		]);
+        const [shardIds, wsStatus, wsPing, clusterId] = await Promise.all([
+            [...client.cluster.ids.keys()],
+            client.cluster.broadcastEval(c => c.ws.status).catch(() => []),
+            client.cluster.broadcastEval(c => c.ws.ping).catch(() => []),
+            (typeof client.cluster.id === 'number') ? client.cluster.id : 0
+        ]);
 
 		// WebSocket status mapping - Discord.js uses numeric status codes
 		const statusMap = {
@@ -975,8 +995,8 @@ ${formatGroup(groupedStatus, true)}
 │ 響應時間(ms):
 ${formatGroup(groupedPing)}
 ╰──────────────`;
-	} catch (error) {
-		console.error('Discord分流監控錯誤:', error);
+    } catch (error) {
+        console.error('Discord分流監控錯誤:', error);
 		return `
 ├────── ⚠️錯誤信息 ──────
 │ 無法獲取分流狀態
@@ -1368,6 +1388,8 @@ async function handlingResponMessage(message, answer = '') {
 			discordMessage: message,
 			titleName: titleName
 		});
+		// Ensure rplyVal is a plain object to avoid undefined access
+		if (!rplyVal || typeof rplyVal !== 'object') rplyVal = {};
 
 		// Ensure isInteraction flag is preserved
 		if (message.isInteraction) {
@@ -1517,7 +1539,7 @@ async function handlingResponMessage(message, answer = '') {
 			privatemsg: checkPrivateMsg.privatemsg, channelid,
 			groupid,
 			userid,
-			text: rplyVal.text,
+			text: (typeof rplyVal.text === 'string') ? rplyVal.text : String(rplyVal.text || ''),
 			message,
 			statue: rplyVal.statue,
 			quotes: rplyVal.quotes,
@@ -2263,23 +2285,29 @@ async function handlingEditMessage(message, rplyVal) {
 //TOP.GG 
 const togGGToken = process.env.TOPGG;
 if (togGGToken) {
-	if (shardid !== (getInfo().TOTAL_SHARDS - 1)) return;
+	// Guard getInfo() usage when not under a valid cluster manager
+	let totalShards = 1;
+	try { totalShards = getInfo().TOTAL_SHARDS; } catch { totalShards = 1; }
+	if (typeof shardid !== 'number' || shardid !== (totalShards - 1)) return;
 	const Topgg = require(`@top-gg/sdk`)
 	const api = new Topgg.Api(togGGToken)
 	this.interval = setInterval(async () => {
-		const guilds = await client.cluster.fetchClientValues("guilds.cache.size");
+		let guilds = [];
+		try { guilds = await client.cluster.fetchClientValues("guilds.cache.size"); } catch { guilds = [client.guilds.cache.size]; }
 		api.postStats({
 			serverCount: Number.parseInt(guilds.reduce((a, c) => a + c, 0)),
-			shardCount: getInfo().TOTAL_SHARDS,
-			shardId: client.cluster.id
+			shardCount: totalShards,
+			shardId: (typeof client.cluster.id === 'number') ? client.cluster.id : 0
 		});
 	}, 300_000);
 }
 
 async function sendCronWebhook({ channelid, replyText, data }) {
-	console.log(`[Shard ${client.cluster.id}] Starting sendCronWebhook for channel ${channelid}`);
+    const shardLabel = (client.cluster && typeof client.cluster.id === 'number') ? client.cluster.id : 'single';
+    console.log(`[Shard ${shardLabel}] Starting sendCronWebhook for channel ${channelid}`);
 	try {
-		const webhookData = await client.cluster.broadcastEval(
+        // Prefer cluster path when available, fallback to single-client path otherwise
+        const webhookData = client.cluster && client.cluster.broadcastEval ? await client.cluster.broadcastEval(
 			async (c, { channelId }) => {
 				const channel = await c.channels.fetch(channelId).catch(() => null);
 				if (!channel) return null;
@@ -2308,19 +2336,42 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 					isThread: isThread,
 					threadId: isThread ? channelId : null
 				};
-			},
-			{ context: { channelId: channelid } }
-		);
+            },
+            { context: { channelId: channelid } }
+        ) : [];
 
-		const validWebhookData = webhookData.find(Boolean);
+        const validWebhookData = Array.isArray(webhookData) ? webhookData.find(Boolean) : null;
 
 		if (!validWebhookData) {
-			console.error(`[Shard ${client.cluster.id}] Could not find or create a webhook for channel ${channelid} on any shard. Falling back to regular message.`);
-			await SendToReplychannel({ replyText, channelid, quotes: true, groupid: data.groupid });
-			return;
+            // Non-cluster or not found on other shards → try local client fallback creating/sending via webhook
+            try {
+                const channel = await client.channels.fetch(channelid).catch(() => null);
+                if (!channel) throw new Error('Channel not found');
+                const isThread = typeof channel.isThread === 'function' && channel.isThread();
+                const targetChannel = isThread ? await client.channels.fetch(channel.parentId).catch(() => null) : channel;
+                if (!targetChannel) throw new Error('Target channel not found');
+                let webhooks = typeof targetChannel.fetchWebhooks === 'function' ? await targetChannel.fetchWebhooks().catch(() => []) : [];
+                let webhook = webhooks.find(wh => wh.owner && wh.owner.id === client.user.id);
+                if (!webhook) {
+                    webhook = await targetChannel.createWebhook({
+                        name: "HKTRPG .me Function",
+                        avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png"
+                    });
+                }
+                const webhookClient = new WebhookClient({ id: webhook.id, token: webhook.token });
+                const messageOptions = { content: replyText, username: data.roleName, avatarURL: data.imageLink };
+                if (isThread) messageOptions.threadId = channelid;
+                await webhookClient.send(messageOptions);
+                console.log(`[Shard ${shardLabel}] Successfully sent message via webhook (local) to channel ${channelid}.`);
+                return;
+            } catch (localErr) {
+                console.error(`[Shard ${shardLabel}] Local webhook path failed for channel ${channelid}: ${localErr.message}`);
+                await SendToReplychannel({ replyText, channelid, quotes: true, groupid: data.groupid });
+                return;
+            }
 		}
 
-		console.log(`[Shard ${client.cluster.id}] Found webhook ${validWebhookData.id} for channel ${channelid}. Sending message.`);
+        console.log(`[Shard ${shardLabel}] Found webhook ${validWebhookData.id} for channel ${channelid}. Sending message.`);
 		const webhookClient = new WebhookClient({ id: validWebhookData.id, token: validWebhookData.token });
 
 		const messageOptions = {
@@ -2333,11 +2384,11 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 			messageOptions.threadId = validWebhookData.threadId;
 		}
 
-		await webhookClient.send(messageOptions);
-		console.log(`[Shard ${client.cluster.id}] Successfully sent message via webhook to channel ${channelid}.`);
+        await webhookClient.send(messageOptions);
+        console.log(`[Shard ${shardLabel}] Successfully sent message via webhook to channel ${channelid}.`);
 
 	} catch (error) {
-		console.error(`[Shard ${client.cluster.id}] Error in sendCronWebhook for channel ${channelid}: ${error.message}`, error.stack);
+        console.error(`[Shard ${shardLabel}] Error in sendCronWebhook for channel ${channelid}: ${error.message}`, error.stack);
 		// Fallback to regular message sending
 		try {
 			await SendToReplychannel({
@@ -2347,7 +2398,7 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 				groupid: data.groupid
 			});
 		} catch (fallbackError) {
-			console.error(`[Shard ${client.cluster.id}] Fallback message sending also failed for channel ${channelid}: ${fallbackError.message}`);
+            console.error(`[Shard ${shardLabel}] Fallback message sending also failed for channel ${channelid}: ${fallbackError.message}`);
 		}
 	}
 }

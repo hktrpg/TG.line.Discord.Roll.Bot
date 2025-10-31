@@ -214,7 +214,11 @@ const rollDiceCommand = async function ({
                     sum_messages.push(temp);
             }
 
-            last_id = messages.last().id;
+            const last = messages.last();
+            if (!last) {
+                break;
+            }
+            last_id = last.id;
             if (messages.size != 100) {
                 break;
             }

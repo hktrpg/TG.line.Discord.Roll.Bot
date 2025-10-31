@@ -899,6 +899,12 @@ class CardManager {
      * 初始化卡片列表應用
      */
     initializeCardList() {
+        // 防止重複初始化
+        if (this.cardList) {
+            debugLog('Card list already initialized, skipping', 'info');
+            return;
+        }
+
         const cardListElement = document.querySelector('#array-cardList');
         if (cardListElement) {
             this.cardList = Vue.createApp({

@@ -162,7 +162,7 @@ class SocketManager {
                             return;
                         }
                     }
-                } catch (error) {
+                } catch {
                     // ignore
                 }
                 $('#cardListModal').modal("show");

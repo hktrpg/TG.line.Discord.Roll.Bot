@@ -1381,13 +1381,13 @@ function validateCardPayload(card) {
                 if (!k) continue;
                 if (seen.has(k)) d.add((it.name || '').toString()); else seen.add(k);
             }
-            return Array.from(d);
+            return [...d];
         };
 
         const sD = findDups(card.state);
         const rD = findDups(card.roll);
         const nD = findDups(card.notes);
-        if (sD.length || rD.length || nD.length) return '存在重複的項目名稱';
+        if (sD.length > 0 || rD.length > 0 || nD.length > 0) return '存在重複的項目名稱';
 
         for (const it of (card.state || [])) {
             if (!it || !it.name || !it.name.toString().trim()) return '狀態項目名稱不可為空';
@@ -1406,7 +1406,7 @@ function validateCardPayload(card) {
             if (tooLong(it.itemA, 1500)) return `備註「${it.name}」內容超過 1500 字元`;
         }
         return null;
-    } catch (e) {
+    } catch {
         return '驗證失敗';
     }
 }

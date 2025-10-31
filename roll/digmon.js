@@ -43,6 +43,22 @@ const getHelpMessage = function () {
 │ 　• 根據關鍵字模糊搜尋招式
 │ 　• 結果按威力排序，最多顯示10筆
 │
+├────── 📋列表篩選查詢 ──────
+│ 列表查詢:
+│ 　• .digi list [參數]
+│ 　  例: .digi list --attr=疫苗種 --stage=完全體
+│ 　  例: .digi list --move-element=火 --has-jogress
+│ 　  例: .digi list --attr=數據種 --can-ride
+│ 篩選參數:
+│ 　• --attr=[疫苗種|數據種|病毒種] - 數碼寶貝屬性
+│ 　• --stage=[幼年期1|成長期|成熟期|完全體|究極體|超究極體] - 進化階段
+│ 　• --move-element=[火|水|冰|電|光|闇|無|-] - 招式屬性
+│ 　• --move-target=[全體敵人|單體敵人|全體隊友|單體隊友|自己] - 招式目標
+│ 　• --move-type=[物理|魔法|輔助|HP%|Debuff|回復] - 招式類型
+│ 　• --has-jogress/--no-jogress - 需要/不需要合體進化
+│ 　• --has-item/--no-item - 需要/不需要道具進化
+│ 　• --can-ride/--no-ride - 可以/不可以騎乘
+│
 ├────── 📊資料顯示 ──────
 │ 單一查詢顯示:
 │ 　• 基礎個性(personality)
@@ -83,6 +99,36 @@ const rollDiceCommand = async function ({
     }
 
     const isMoveSearch = mainMsg.some(arg => /^-m$/i.test(arg) || /^-move$/i.test(arg));
+    const isListSearch = mainMsg.some(arg => /^list$/i.test(arg));
+
+    if (isListSearch) {
+        // List search
+        rply.quotes = true;
+
+        const filters = {
+            attr: mainMsg.find(arg => /^--attr=(.*)$/i.test(arg))?.match(/^--attr=(.*)$/i)?.[1],
+            stage: mainMsg.find(arg => /^--stage=(.*)$/i.test(arg))?.match(/^--stage=(.*)$/i)?.[1],
+            move_element: mainMsg.find(arg => /^--move-element=(.*)$/i.test(arg))?.match(/^--move-element=(.*)$/i)?.[1],
+            move_target: mainMsg.find(arg => /^--move-target=(.*)$/i.test(arg))?.match(/^--move-target=(.*)$/i)?.[1],
+            move_type: mainMsg.find(arg => /^--move-type=(.*)$/i.test(arg))?.match(/^--move-type=(.*)$/i)?.[1],
+            has_jogress: mainMsg.some(arg => /^--has-jogress$/i.test(arg)),
+            no_jogress: mainMsg.some(arg => /^--no-jogress$/i.test(arg)),
+            has_item: mainMsg.some(arg => /^--has-item$/i.test(arg)),
+            no_item: mainMsg.some(arg => /^--no-item$/i.test(arg)),
+            can_ride: mainMsg.some(arg => /^--can-ride$/i.test(arg)),
+            no_ride: mainMsg.some(arg => /^--no-ride$/i.test(arg))
+        };
+
+        const hasFilters = Object.values(filters).some(value => value !== undefined && value !== false);
+
+        if (!hasFilters) {
+            rply.text = '請提供至少一個篩選參數\n\n支援的篩選參數：\n• --attr=[疫苗種|數據種|病毒種] - 數碼寶貝屬性\n• --stage=[幼年期1|成長期|成熟期|完全體|究極體|超究極體] - 進化階段\n• --move-element=[火|水|冰|電|光|闇|無|-] - 招式屬性\n• --move-target=[全體敵人|單體敵人|全體隊友|單體隊友|自己] - 招式目標\n• --move-type=[物理|魔法|輔助|HP%|Debuff|回復] - 招式類型\n• --has-jogress/--no-jogress - 需要/不需要合體進化\n• --has-item/--no-item - 需要/不需要道具進化\n• --can-ride/--no-ride - 可以/不可以騎乘\n\n範例：.digi list --attr=疫苗種 --stage=完全體';
+            return rply;
+        }
+
+        rply.text = variables.digimonDex.searchDigimonList(filters);
+        return rply;
+    }
 
     if (isMoveSearch) {
         // Move search
@@ -115,7 +161,7 @@ const rollDiceCommand = async function ({
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = getHelpMessage();
             rply.quotes = true;
-            rply.buttonCreate = ['.digi', '.digi 亞古獸', '.digi 123', '.digi 123 323', '.digi 亞古獸 戰鬥暴龍獸']
+            rply.buttonCreate = ['.digi', '.digi 亞古獸', '.digi 123', '.digi 123 323', '.digi 亞古獸 戰鬥暴龍獸', '.digi list --attr=疫苗種 --stage=完全體']
             return rply;
         }
         case mainMsg.length >= 3: {
@@ -1472,20 +1518,25 @@ class Digimon {
     }
 
     numberToEmoji(n) {
-        const map = {
-            0: '0\uFE0F\u20E3',
-            1: '1\uFE0F\u20E3',
-            2: '2\uFE0F\u20E3',
-            3: '3\uFE0F\u20E3',
-            4: '4\uFE0F\u20E3',
-            5: '5\uFE0F\u20E3',
-            6: '6\uFE0F\u20E3',
-            7: '7\uFE0F\u20E3',
-            8: '8\uFE0F\u20E3',
-            9: '9\uFE0F\u20E3',
-            10: '\uD83D\uDD1F' // keycap 10
-        };
-        return map[n] || `${n}. `;
+        // 對於列表顯示，使用 emoji 數字，雙位數時用組合方式
+        if (n <= 10) {
+            const map = {
+                1: '1️⃣',
+                2: '2️⃣',
+                3: '3️⃣',
+                4: '4️⃣',
+                5: '5️⃣',
+                6: '6️⃣',
+                7: '7️⃣',
+                8: '8️⃣',
+                9: '9️⃣',
+                10: '🔟'
+            };
+            return map[n] || `${n}. `;
+        } else {
+            // 對於 11-25，使用數字格式
+            return `${String(n).padStart(2, '0')}. `;
+        }
     }
 
     // Compute length of common suffix between two strings
@@ -2443,6 +2494,166 @@ class Digimon {
         return output;
     }
 
+    // 搜尋數碼寶貝列表（支援各種篩選條件）
+    searchDigimonList(filters) {
+        let results = [...this.digimonData];
+
+        // 篩選數碼寶貝屬性
+        if (filters.attr && filters.attr.trim()) {
+            results = results.filter(d => d.attribute === filters.attr);
+        }
+
+        // 篩選進化階段
+        if (filters.stage && filters.stage.trim()) {
+            const stageMap = {
+                '幼年期1': '1',
+                '幼年期2': '2',
+                '成長期': '3',
+                '成熟期': '4',
+                '完全體': '5',
+                '究極體': '6',
+                '超究極體': '7'
+            };
+
+            // 處理編碼問題：如果直接匹配失敗，嘗試模糊匹配
+            let targetStage = stageMap[filters.stage];
+
+            if (!targetStage) {
+                // 如果不是映射的鍵，檢查是否已經是數字
+                if (/^[1-7]$/.test(filters.stage)) {
+                    targetStage = filters.stage;
+                } else {
+                    // 嘗試通過包含匹配找到正確的階段
+                    for (const [key, value] of Object.entries(stageMap)) {
+                        if (key.includes(filters.stage) || filters.stage.includes(key)) {
+                            targetStage = value;
+                            break;
+                        }
+                    }
+                    // 如果還是找不到，直接使用輸入值
+                    if (!targetStage) {
+                        targetStage = filters.stage;
+                    }
+                }
+            }
+
+            results = results.filter(d => d.stage === targetStage);
+        }
+
+        // 篩選招式屬性
+        if (filters.move_element && filters.move_element.trim()) {
+            results = results.filter(d => {
+                if (!d.special_skills) return false;
+                return d.special_skills.some(skill => skill.element === filters.move_element);
+            });
+        }
+
+        // 篩選招式目標類型
+        if (filters.move_target && filters.move_target.trim()) {
+            const targetTypeMap = {
+                '全體敵人': 5,
+                '單體敵人': 1,
+                '全體隊友': 6,
+                '單體隊友': 2,
+                '自己': 10
+            };
+            const targetTypeCode = targetTypeMap[filters.move_target];
+            results = results.filter(d => {
+                if (!d.special_skills) return false;
+                return d.special_skills.some(skill => skill.targetType === targetTypeCode);
+            });
+        }
+
+        // 篩選招式類型
+        if (filters.move_type && filters.move_type.trim()) {
+            const typeMap = {
+                '物理': 'Physical',
+                '魔法': 'Magic',
+                '輔助': 'Buff',
+                'HP%': 'HP Damage',
+                'Debuff': 'Debuff',
+                '回復': 'Recovery'
+            };
+            const targetType = typeMap[filters.move_type];
+            results = results.filter(d => {
+                if (!d.special_skills) return false;
+                return d.special_skills.some(skill => skill.type === targetType);
+            });
+        }
+
+        // 篩選合體進化條件
+        if (filters.has_jogress) {
+            results = results.filter(d => this.requiresJogress(d));
+        } else if (filters.no_jogress) {
+            results = results.filter(d => !this.requiresJogress(d));
+        }
+
+        // 篩選道具進化條件
+        if (filters.has_item) {
+            results = results.filter(d => d.needsItemEng);
+        } else if (filters.no_item) {
+            results = results.filter(d => !d.needsItemEng);
+        }
+
+        // 篩選騎乘條件
+        if (filters.can_ride) {
+            results = results.filter(d => d.rider !== undefined && d.rider == 1);
+        } else if (filters.no_ride) {
+            results = results.filter(d => d.rider === undefined || d.rider != 1);
+        }
+
+        // 格式化輸出
+        if (results.length === 0) {
+            let filterDesc = [];
+            if (filters.attr) filterDesc.push(`屬性: ${filters.attr}`);
+            if (filters.stage) filterDesc.push(`階段: ${filters.stage}`);
+            if (filters.move_element) filterDesc.push(`招式屬性: ${filters.move_element}`);
+            if (filters.move_target) filterDesc.push(`招式目標: ${filters.move_target}`);
+            if (filters.move_type) filterDesc.push(`招式類型: ${filters.move_type}`);
+            if (filters.has_jogress) filterDesc.push('需要合體進化');
+            if (filters.no_jogress) filterDesc.push('不需要合體進化');
+            if (filters.has_item) filterDesc.push('需要道具進化');
+            if (filters.no_item) filterDesc.push('不需要道具進化');
+            if (filters.can_ride) filterDesc.push('可以騎乘');
+            if (filters.no_ride) filterDesc.push('不可以騎乘');
+
+            const filterText = filterDesc.length > 0 ? `\n應用篩選條件: ${filterDesc.join(', ')}` : '';
+            return `找不到符合條件的數碼寶貝${filterText}`;
+        }
+
+        const maxDisplay = 25;
+        const displayedResults = results.slice(0, maxDisplay);
+        const hasMore = results.length > maxDisplay;
+
+        let filterDesc = [];
+        if (filters.attr) filterDesc.push(`屬性: ${filters.attr}`);
+        if (filters.stage) filterDesc.push(`階段: ${filters.stage}`);
+        if (filters.move_element) filterDesc.push(`招式屬性: ${filters.move_element}`);
+        if (filters.move_target) filterDesc.push(`招式目標: ${filters.move_target}`);
+        if (filters.move_type) filterDesc.push(`招式類型: ${filters.move_type}`);
+        if (filters.has_jogress) filterDesc.push('需要合體進化');
+        if (filters.no_jogress) filterDesc.push('不需要合體進化');
+        if (filters.has_item) filterDesc.push('需要道具進化');
+        if (filters.no_item) filterDesc.push('不需要道具進化');
+        if (filters.can_ride) filterDesc.push('可以騎乘');
+        if (filters.no_ride) filterDesc.push('不可以騎乘');
+
+        const filterText = filterDesc.length > 0 ? `應用篩選條件: ${filterDesc.join(', ')}\n\n` : '';
+
+        let output = `找到 ${results.length} 個符合條件的數碼寶貝${hasMore ? ` (過多，僅顯示前${maxDisplay}個)` : ''}:\n\n${filterText}`;
+
+        for (let i = 0; i < displayedResults.length; i++) {
+            const digimon = displayedResults[i];
+            const stageName = this.getStageName(digimon.stage);
+            const emojiNum = this.numberToEmoji(i + 1);
+            // 只顯示英文名稱，不顯示中文名稱
+            const displayName = digimon.name || '';
+            output += `${emojiNum} #${digimon.id} 【${displayName}】｜${stageName}｜${digimon.attribute || '-'}\n`;
+        }
+
+        return output;
+    }
+
     // 新增：為自動完成功能提供搜尋方法（優化版）
     searchForAutocomplete(query, limit = 10) {
         const startTime = Date.now();
@@ -2829,13 +3040,105 @@ const discordCommand = [
                     .addBooleanOption(option =>
                         option.setName('has_recoil')
                             .setDescription('反作用力招式'))
+            )
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('list')
+                    .setDescription('查詢數碼寶貝列表')
+                    .addStringOption(option =>
+                        option.setName('attr')
+                            .setDescription('數碼寶貝屬性')
+                            .setRequired(false)
+                            .addChoices(
+                                { name: '數據種', value: '數據種' },
+                                { name: '疫苗種', value: '疫苗種' },
+                                { name: '病毒種', value: '病毒種' }
+                            ))
+                    .addStringOption(option =>
+                        option.setName('stage')
+                            .setDescription('數碼寶貝進化階段')
+                            .setRequired(false)
+                            .addChoices(
+                                { name: '幼年期1', value: '幼年期1' },
+                                { name: '幼年期2', value: '幼年期2' },
+                                { name: '成長期', value: '成長期' },
+                                { name: '成熟期', value: '成熟期' },
+                                { name: '完全體', value: '完全體' },
+                                { name: '究極體', value: '究極體' },
+                                { name: '超究極體', value: '超究極體' }
+                            ))
+                    .addStringOption(option =>
+                        option.setName('move_element')
+                            .setDescription('招式屬性')
+                            .setRequired(false)
+                            .addChoices(
+                                { name: '火', value: '火' },
+                                { name: '水', value: '水' },
+                                { name: '草木', value: '草木' },
+                                { name: '冰', value: '冰' },
+                                { name: '電', value: '電' },
+                                { name: '地面', value: '地面' },
+                                { name: '鋼', value: '鋼' },
+                                { name: '風', value: '風' },
+                                { name: '光', value: '光' },
+                                { name: '闇', value: '闇' },
+                                { name: '無', value: '無' },
+                                { name: '-', value: '-' }
+                            ))
+                    .addStringOption(option =>
+                        option.setName('move_target')
+                            .setDescription('招式目標類型')
+                            .setRequired(false)
+                            .addChoices(
+                                { name: '全體(敵)', value: '全體敵人' },
+                                { name: '單體(敵)', value: '單體敵人' },
+                                { name: '全體(友)', value: '全體隊友' },
+                                { name: '單體(友)', value: '單體隊友' },
+                                { name: '自己', value: '自己' }
+                            ))
+                    .addStringOption(option =>
+                        option.setName('move_type')
+                            .setDescription('招式類型')
+                            .setRequired(false)
+                            .addChoices(
+                                { name: '物理', value: 'Physical' },
+                                { name: '魔法', value: 'Magic' },
+                                { name: '輔助', value: 'Buff' },
+                                { name: 'HP%', value: 'HP Damage' },
+                                { name: 'Debuff', value: 'Debuff' },
+                                { name: '回復', value: 'Recovery' }
+                            ))
+                    .addBooleanOption(option =>
+                        option.setName('has_jogress')
+                            .setDescription('需要合體進化'))
+                    .addBooleanOption(option =>
+                        option.setName('no_jogress')
+                            .setDescription('不需要合體進化'))
+                    .addBooleanOption(option =>
+                        option.setName('has_item')
+                            .setDescription('需要道具進化'))
+                    .addBooleanOption(option =>
+                        option.setName('no_item')
+                            .setDescription('不需要道具進化'))
+                    .addBooleanOption(option =>
+                        option.setName('can_ride')
+                            .setDescription('可以騎乘'))
+                    .addBooleanOption(option =>
+                        option.setName('no_ride')
+                            .setDescription('不可以騎乘'))
             ),
         flagMap: {
             has_crit: '--crit',
             always_hits: '--hits',
             hp_drain: '--hp',
             sp_drain: '--sp',
-            has_recoil: '--recoil'
+            has_recoil: '--recoil',
+            has_jogress: '--has-jogress',
+            no_jogress: '--no-jogress',
+            has_item: '--has-item',
+            no_item: '--no-item',
+            can_ride: '--can-ride',
+            no_ride: '--no-ride'
         },
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
@@ -2872,6 +3175,37 @@ const discordCommand = [
                     if (has_recoil) queryParts.push('--recoil');
 
                     return `.digi -m ${queryParts.join(' ')}`;
+                }
+                case 'list': {
+                    const attr = interaction.options.getString('attr');
+                    const stage = interaction.options.getString('stage');
+                    const move_element = interaction.options.getString('move_element');
+                    const move_target = interaction.options.getString('move_target');
+                    const move_type = interaction.options.getString('move_type');
+
+                    const has_jogress = interaction.options.getBoolean('has_jogress');
+                    const no_jogress = interaction.options.getBoolean('no_jogress');
+                    const has_item = interaction.options.getBoolean('has_item');
+                    const no_item = interaction.options.getBoolean('no_item');
+                    const can_ride = interaction.options.getBoolean('can_ride');
+                    const no_ride = interaction.options.getBoolean('no_ride');
+
+                    const queryParts = [];
+
+                    if (attr) queryParts.push(`--attr=${attr}`);
+                    if (stage) queryParts.push(`--stage=${stage}`);
+                    if (move_element) queryParts.push(`--move-element=${move_element}`);
+                    if (move_target) queryParts.push(`--move-target=${move_target}`);
+                    if (move_type) queryParts.push(`--move-type=${move_type}`);
+
+                    if (has_jogress) queryParts.push('--has-jogress');
+                    if (no_jogress) queryParts.push('--no-jogress');
+                    if (has_item) queryParts.push('--has-item');
+                    if (no_item) queryParts.push('--no-item');
+                    if (can_ride) queryParts.push('--can-ride');
+                    if (no_ride) queryParts.push('--no-ride');
+
+                    return `.digi list ${queryParts.join(' ')}`;
                 }
             }
         }

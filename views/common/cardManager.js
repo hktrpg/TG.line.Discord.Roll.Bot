@@ -94,8 +94,8 @@ class CardManager {
                                 if (!seen.has(key)) { seen.add(key); unique.push(b); }
                             }
                             return unique.slice(0, 6);
-                        } catch (e) {
-                            debugLog(`headerBadges compute failed: ${e && e.message}`, 'error');
+                        } catch (error) {
+                            debugLog(`headerBadges compute failed: ${error && error.message}`, 'error');
                             return [];
                         }
                     }
@@ -183,7 +183,7 @@ class CardManager {
                     },
                     isCjk(str) {
                         if (!str) return false;
-                        return /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/.test(str);
+                        return /[\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/.test(str);
                     },
                     withinHeaderTextLength(str) {
                         if (!str) return false;
@@ -202,7 +202,7 @@ class CardManager {
                     truncatedNote(item, limit = 160) {
                         try {
                             const raw = (item && (item.itemA || item.content || '') || '').toString();
-                            const text = raw.replace(/\r\n|\n|\r/g, ' ');
+                            const text = raw.replaceAll(/\r\n|\n|\r/g, ' ');
                             if (text.length <= limit) return text;
                             return text.slice(0, limit).trim() + '…';
                         } catch { return ''; }
@@ -213,11 +213,11 @@ class CardManager {
                             this.modalNoteTitle = (item && (item.name || item.title || '')) || '';
                             const raw = (item && (item.itemA || item.content || '') || '').toString();
                             // 保留換行
-                            this.modalNoteContent = raw.replace(/\n/g, '<br>');
+                            this.modalNoteContent = raw.replaceAll('\n', '<br>');
                             $('#noteDetailModal').modal('show');
                             debugLog('Opened note detail modal', 'info', { title: this.modalNoteTitle, length: raw.length });
-                        } catch (e) {
-                            debugLog(`openNoteModal failed: ${e && e.message}`, 'error');
+                        } catch (error) {
+                            debugLog(`openNoteModal failed: ${error && error.message}`, 'error');
                         }
                     },
                     // 載入測試數據
@@ -1045,7 +1045,7 @@ class CardManager {
                                 if (cardManager.card && cardManager.card.isPublic) {
                                     localStorage.setItem('lastSelectedPublicCardId', item._id);
                                 }
-                            } catch (error) {}
+                            } catch {}
                             $('#cardListModal').modal("hide");
                         }
                     }

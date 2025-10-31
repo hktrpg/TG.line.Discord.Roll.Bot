@@ -846,7 +846,7 @@ async function validateCharacterCardInput(Card) {
             if (seen.has(key)) dups.add((it.name || '').toString());
             else seen.add(key);
         }
-        return Array.from(dups);
+        return [...dups];
     };
 
     // 欄位長度限制符合 schema.js
@@ -855,11 +855,11 @@ async function validateCharacterCardInput(Card) {
     const stateDups = findDuplicates(Card.state);
     const rollDups = findDuplicates(Card.roll);
     const notesDups = findDuplicates(Card.notes);
-    if (stateDups.length || rollDups.length || notesDups.length) {
+    if (stateDups.length > 0 || rollDups.length > 0 || notesDups.length > 0) {
         let msg = '偵測到重複項目名稱：\n';
-        if (stateDups.length) msg += `狀態: ${stateDups.join(', ')}\n`;
-        if (rollDups.length) msg += `擲骰: ${rollDups.join(', ')}\n`;
-        if (notesDups.length) msg += `備註: ${notesDups.join(', ')}\n`;
+        if (stateDups.length > 0) msg += `狀態: ${stateDups.join(', ')}\n`;
+        if (rollDups.length > 0) msg += `擲骰: ${rollDups.join(', ')}\n`;
+        if (notesDups.length > 0) msg += `備註: ${notesDups.join(', ')}\n`;
         return msg.trim();
     }
 

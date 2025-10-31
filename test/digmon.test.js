@@ -952,3 +952,229 @@ describe('rollDiceCommand', () => {
         expect(result.text).toContain('【🎮數碼寶貝物語時空異客】');
     });
 });
+
+describe('Digimon List Search Feature', () => {
+    let searchDigimonListSpy;
+
+    beforeEach(() => {
+        searchDigimonListSpy = jest.spyOn(digmon.Digimon.prototype, 'searchDigimonList');
+        digmon.initialize();
+    });
+
+    afterEach(() => {
+        searchDigimonListSpy.mockRestore();
+    });
+
+    test('should handle list search with has-jogress flag', async () => {
+        const mockResult = '找到 16 個符合條件的數碼寶貝:\n\n應用篩選條件: 需要合體進化\n\n1️⃣ #300 【古神獸】｜完全體｜自由種';
+        searchDigimonListSpy.mockReturnValue(mockResult);
+
+        const mainMsg = ['.digi', 'list', '--has-jogress'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+
+        expect(searchDigimonListSpy).toHaveBeenCalledWith({
+            attr: undefined,
+            stage: undefined,
+            move_element: undefined,
+            move_target: undefined,
+            move_type: undefined,
+            has_jogress: true,
+            no_jogress: false,
+            has_item: false,
+            no_item: false,
+            can_ride: false,
+            no_ride: false
+        });
+        expect(result.quotes).toBe(true);
+        expect(result.text).toBe(mockResult);
+    });
+
+    test('should handle list search with multiple filters', async () => {
+        const mockResult = '找到 5 個符合條件的數碼寶貝:\n\n應用篩選條件: 屬性: 疫苗種, 階段: 超究極體\n\n07.  #427 【阿爾法獸：王龍劍】｜超究極體｜疫苗種';
+        searchDigimonListSpy.mockReturnValue(mockResult);
+
+        const mainMsg = ['.digi', 'list', '--attr=疫苗種', '--stage=超究極體'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+
+        expect(searchDigimonListSpy).toHaveBeenCalledWith({
+            attr: '疫苗種',
+            stage: '超究極體',
+            move_element: undefined,
+            move_target: undefined,
+            move_type: undefined,
+            has_jogress: false,
+            no_jogress: false,
+            has_item: false,
+            no_item: false,
+            can_ride: false,
+            no_ride: false
+        });
+        expect(result.text).toBe(mockResult);
+    });
+
+    test('should handle list search with can-ride flag', async () => {
+        const mockResult = '找到 3 個符合條件的數碼寶貝:\n\n應用篩選條件: 可以騎乘\n\n07.  #427 【阿爾法獸：王龍劍】｜超究極體｜疫苗種';
+        searchDigimonListSpy.mockReturnValue(mockResult);
+
+        const mainMsg = ['.digi', 'list', '--can-ride'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+
+        expect(searchDigimonListSpy).toHaveBeenCalledWith({
+            attr: undefined,
+            stage: undefined,
+            move_element: undefined,
+            move_target: undefined,
+            move_type: undefined,
+            has_jogress: false,
+            no_jogress: false,
+            has_item: false,
+            no_item: false,
+            can_ride: true,
+            no_ride: false
+        });
+        expect(result.text).toBe(mockResult);
+    });
+
+    test('should handle list search with no-jogress flag', async () => {
+        const mockResult = '找到 435 個符合條件的數碼寶貝:\n\n應用篩選條件: 不需要合體進化\n\n01.  #1 【水母獸】｜幼年期1｜疫苗種';
+        searchDigimonListSpy.mockReturnValue(mockResult);
+
+        const mainMsg = ['.digi', 'list', '--no-jogress'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+
+        expect(searchDigimonListSpy).toHaveBeenCalledWith({
+            attr: undefined,
+            stage: undefined,
+            move_element: undefined,
+            move_target: undefined,
+            move_type: undefined,
+            has_jogress: false,
+            no_jogress: true,
+            has_item: false,
+            no_item: false,
+            can_ride: false,
+            no_ride: false
+        });
+        expect(result.text).toBe(mockResult);
+    });
+
+    test('should handle list search with move filters', async () => {
+        const mockResult = '找到 25 個符合條件的數碼寶貝:\n\n應用篩選條件: 招式屬性: 火, 招式目標: 全體敵人\n\n01.  #1 【水母獸】｜幼年期1｜疫苗種';
+        searchDigimonListSpy.mockReturnValue(mockResult);
+
+        const mainMsg = ['.digi', 'list', '--move-element=火', '--move-target=全體敵人'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+
+        expect(searchDigimonListSpy).toHaveBeenCalledWith({
+            attr: undefined,
+            stage: undefined,
+            move_element: '火',
+            move_target: '全體敵人',
+            move_type: undefined,
+            has_jogress: false,
+            no_jogress: false,
+            has_item: false,
+            no_item: false,
+            can_ride: false,
+            no_ride: false
+        });
+        expect(result.text).toBe(mockResult);
+    });
+
+    test('should show help message when no filters provided', async () => {
+        const mainMsg = ['.digi', 'list'];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+
+        expect(searchDigimonListSpy).not.toHaveBeenCalled();
+        expect(result.text).toContain('請提供至少一個篩選參數');
+        expect(result.text).toContain('--attr=[疫苗種|數據種|病毒種]');
+        expect(result.text).toContain('--stage=[幼年期1|成長期|成熟期|完全體|究極體|超究極體]');
+        expect(result.text).toContain('--has-jogress/--no-jogress');
+        expect(result.text).toContain('--can-ride/--no-ride');
+    });
+
+    test('should handle empty parameter values correctly', async () => {
+        const mockResult = '找到 451 個符合條件的數碼寶貝:\n\n01.  #1 【水母獸】｜幼年期1｜疫苗種';
+        searchDigimonListSpy.mockReturnValue(mockResult);
+
+        const mainMsg = ['.digi', 'list', '--attr=', '--stage='];
+        const result = await digmon.rollDiceCommand({ mainMsg });
+
+        // Empty values are passed as empty strings but should not trigger filtering
+        expect(searchDigimonListSpy).toHaveBeenCalledWith({
+            attr: '',
+            stage: '',
+            move_element: undefined,
+            move_target: undefined,
+            move_type: undefined,
+            has_jogress: false,
+            no_jogress: false,
+            has_item: false,
+            no_item: false,
+            can_ride: false,
+            no_ride: false
+        });
+        expect(result.text).toBe(mockResult);
+    });
+});
+
+describe('Digimon Display Format Tests', () => {
+    let digimonInstance;
+
+    beforeAll(() => {
+        digimonInstance = digmon.Digimon.init();
+    });
+
+    test('should format display name correctly', () => {
+        const digimon = digimonInstance.findByNameOrId('阿爾法獸：王龍劍');
+        expect(digimon).toBeDefined();
+
+        const displayName = digimon.name; // Should contain the full name
+        expect(displayName).toBe('阿爾法獸：王龍劍');
+        expect(displayName).toContain('阿爾法獸：王龍劍'); // Should contain the expected name
+    });
+
+    test('should generate emoji numbers correctly', () => {
+        expect(digimonInstance.numberToEmoji(1)).toBe('1️⃣');
+        expect(digimonInstance.numberToEmoji(10)).toBe('🔟');
+        expect(digimonInstance.numberToEmoji(11)).toBe('11. ');
+        expect(digimonInstance.numberToEmoji(25)).toBe('25. ');
+    });
+
+    test('should format evolution requirements correctly', () => {
+        const jogressDigimon = digimonInstance.findByNameOrId('阿爾法獸：王龍劍');
+        expect(jogressDigimon).toBeDefined();
+
+        const requirements = digimonInstance.formatEvolutionRequirements(jogressDigimon);
+        expect(requirements.length).toBeGreaterThan(0);
+        expect(requirements[0]).toContain('合體進化：');
+        expect(requirements[0]).toContain('＋'); // Should contain the join symbol
+    });
+
+    test('should handle Digimon without evolution requirements', () => {
+        const normalDigimon = digimonInstance.findByNameOrId('水母獸');
+        expect(normalDigimon).toBeDefined();
+
+        const requirements = digimonInstance.formatEvolutionRequirements(normalDigimon);
+        expect(requirements).toEqual([]);
+    });
+
+    test('should format filter descriptions correctly', () => {
+        const filters = {
+            attr: '疫苗種',
+            stage: '超究極體',
+            has_jogress: true,
+            can_ride: true
+        };
+
+        // This tests the internal logic of searchDigimonList
+        // We can't directly test the filter description formatting,
+        // but we can verify the search function exists and works
+        const result = digimonInstance.searchDigimonList(filters);
+        expect(result).toContain('應用篩選條件');
+        expect(result).toContain('屬性: 疫苗種');
+        expect(result).toContain('階段: 超究極體');
+        expect(result).toContain('需要合體進化');
+        expect(result).toContain('可以騎乘');
+    });
+});

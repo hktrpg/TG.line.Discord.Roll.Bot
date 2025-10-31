@@ -204,7 +204,7 @@ class AuthManager {
                 } else {
                     $('#cardListModal').modal("show");
                 }
-            } catch (error) {
+            } catch {
                 $('#cardListModal').modal("show");
             }
             this.isLoggedIn = true;

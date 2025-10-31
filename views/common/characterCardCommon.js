@@ -3,8 +3,8 @@
 
 let TITLE = "HKTRPG 角色卡";
 
-// XSS Protection function
-function sanitizeHtml(str) {
+// XSS Protection function (currently unused)
+function _sanitizeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
@@ -50,7 +50,7 @@ let socket = socketManager.getSocket();
 
 // Vue Applications - 使用 cardManager
 let card = null;
-let cardList = null;
+let _cardList = null;
 
 function initializeVueApps(isPublic = false, skipUITemplateLoad = false) {
     try {
@@ -92,7 +92,7 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
         
         // 獲取實例引用
         card = cardManager.getCard();
-        cardList = cardManager.getCardList();
+        _cardList = cardManager.getCardList();
 
         debugLog('Vue applications initialized successfully', 'info');
 
@@ -148,12 +148,12 @@ $(function () {
 });
 
 // Alert Functions - 使用 uiManager
-function popup(result) {
+function _popup(result) {
     debugLog(`Showing popup with result: ${result}`, 'info');
     uiManager.showPopup(result);
 }
 
-function addElement(message, type, closeDelay, allowHtml = false) {
+function _addElement(message, type, closeDelay, allowHtml = false) {
     uiManager.showAlert(message, type, closeDelay, allowHtml);
 }
 
@@ -262,17 +262,17 @@ function validateClientCardPayload(payload) {
                 if (!k) continue;
                 if (seen.has(k)) d.add((it.name || '').toString()); else seen.add(k);
             }
-            return Array.from(d);
+            return [...d];
         };
 
         const sD = findDups(payload.state);
         const rD = findDups(payload.roll);
         const nD = findDups(payload.notes);
-        if (sD.length || rD.length || nD.length) {
+        if (sD.length > 0 || rD.length > 0 || nD.length > 0) {
             let msg = '偵測到重複項目名稱:\n';
-            if (sD.length) msg += `狀態: ${sD.join(', ')}\n`;
-            if (rD.length) msg += `擲骰: ${rD.join(', ')}\n`;
-            if (nD.length) msg += `備註: ${nD.join(', ')}\n`;
+            if (sD.length > 0) msg += `狀態: ${sD.join(', ')}\n`;
+            if (rD.length > 0) msg += `擲骰: ${rD.join(', ')}\n`;
+            if (nD.length > 0) msg += `備註: ${nD.join(', ')}\n`;
             return msg.trim();
         }
 

@@ -57,9 +57,9 @@ describe('Character add/edit validation (duplicates and length limits)', () => {
                 m[3] = temp2[2];
             }
             m[3] = (m[3] === ';') ? '' : m[3];
-            m[1] = m[1].replace(/\s+/g, '');
-            m[2] = m[2].replace(/^\s+|\s+$/g, '');
-            m[3] = m[3].replace(/^\s+|\s+$/g, '');
+            m[1] = m[1].replaceAll(/\s+/g, '');
+            m[2] = m[2].replaceAll(/^\s+|\s+$/g, '');
+            m[3] = m[3].replaceAll(/^\s+|\s+$/g, '');
             if (state) out.push({ name: m[1], itemA: m[2], itemB: m[3] });
             else out.push({ name: m[1], itemA: m[2] });
         }
@@ -91,13 +91,13 @@ describe('Character add/edit validation (duplicates and length limits)', () => {
                 if (!k) continue;
                 if (seen.has(k)) dup.add((it.name || '').toString()); else seen.add(k);
             }
-            return Array.from(dup);
+            return [...dup];
         };
         const name = (card.name || '').toString().trim();
         if (!name) return '角色卡名稱不可為空';
         if (tooLong(name, 50)) return '角色卡名稱長度不可超過 50 字元';
         const sD = dups(card.state), rD = dups(card.roll), nD = dups(card.notes);
-        if (sD.length || rD.length || nD.length) return '偵測到重複項目名稱';
+        if (sD.length > 0 || rD.length > 0 || nD.length > 0) return '偵測到重複項目名稱';
         for (const it of (card.state || [])) {
             if (!it || !it.name || !it.name.toString().trim()) return '狀態項目名稱不可為空';
             if (tooLong(it.name, 50)) return `狀態「${it.name}」名稱超過 50 字元`;

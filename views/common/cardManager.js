@@ -529,7 +529,14 @@ class CardManager {
                     
                     // 關閉編輯模式
                     closeEditMode() {
-                        this.revertChanges();
+                        // 編輯模式下的關閉：還原變更並退出編輯模式
+                        if (this.originalData) {
+                            this.roll = JSON.parse(JSON.stringify(this.originalData.roll));
+                            this.state = JSON.parse(JSON.stringify(this.originalData.state));
+                            this.notes = JSON.parse(JSON.stringify(this.originalData.notes));
+                            this.characterDetails = JSON.parse(JSON.stringify(this.originalData.characterDetails));
+                        }
+                        this.editMode = false;
                     },
                     
                     // 備份數據
@@ -810,17 +817,31 @@ class CardManager {
                     confirmInlineEdit(form, index) {
                         const item = this.getItemByForm(form, index);
                         if (!item) return;
-                        
+
                         // 驗證必填欄位
                         if (!item.name || item.name.trim() === '') {
                             this.showError('請輸入名稱');
                             return;
                         }
-                        
+
+                        // 檢查重複名稱
+                        const name = item.name.trim();
+                        const formArray = this.getFormArray(form);
+                        const duplicateIndex = formArray.findIndex((existingItem, i) =>
+                            i !== index && existingItem && existingItem.name &&
+                            existingItem.name.trim().toLowerCase() === name.toLowerCase()
+                        );
+
+                        if (duplicateIndex !== -1) {
+                            const formNames = { 0: '狀態', 1: '擲骰', 2: '備註' };
+                            this.showError(`偵測到重複項目名稱: ${formNames[form]}: ${name}`);
+                            return;
+                        }
+
                         // 標記為已確認的新項目
                         item.isNewItem = false;
                         item.isInlineEditing = false;
-                        
+
                         // 標記有變更
                         this.markAsChanged();
                     },
@@ -846,6 +867,16 @@ class CardManager {
                             case 1: return this.roll[index];
                             case 2: return this.notes[index];
                             default: return null;
+                        }
+                    },
+
+                    // 根據表單類型獲取數組
+                    getFormArray(form) {
+                        switch (form) {
+                            case 0: return this.state;
+                            case 1: return this.roll;
+                            case 2: return this.notes;
+                            default: return [];
                         }
                     },
                     

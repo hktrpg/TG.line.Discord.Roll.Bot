@@ -94,7 +94,15 @@
             position: relative;
             margin-bottom: 1rem;
         }
-        
+
+        /* 向上顯示的下拉選單樣式 - 修復iOS Safari點擊穿透問題 */
+        .autocomplete-dropdown.autocomplete-dropdown-up {
+            z-index: 1110 !important; /* 高於普通下拉選單 */
+            pointer-events: auto !important; /* 確保可以接收點擊事件 */
+            -webkit-transform: translateZ(0); /* 強制建立新的合成層 */
+            transform: translateZ(0);
+        }
+
         /* 深色主題支持 */
         [data-theme="dark"] .autocomplete-dropdown {
             background: #2d3748 !important;

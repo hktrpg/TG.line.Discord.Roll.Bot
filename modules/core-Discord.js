@@ -175,11 +175,7 @@ manager.on("clusterCreate", cluster => {
         if (message.respawnall === true) {
             console.log('[Cluster] Initiating full cluster respawn');
             try {
-                await manager.respawnAll({
-                    clusterDelay: 1000 * 60 * 1, // 1 minutes between clusters
-                    respawnDelay: 5000,          // 5 seconds
-                    timeout: 1000 * 60 * 5       // 5 minutes timeout
-                });
+                await manager.respawnAll();
             } catch (error) {
                 console.error('[Cluster] Failed to respawn all clusters:', error);
             }
@@ -194,11 +190,7 @@ if (agenda) {
 
         console.log('[Schedule] Running daily Discord maintenance');
         try {
-            await manager.respawnAll({
-                clusterDelay: 1000 * 60,
-                respawnDelay: 500,
-                timeout: 1000 * 60 * 2
-            });
+            await manager.respawnAll();
         } catch (error) {
             console.error('[Schedule] Failed to perform maintenance:', error);
         }

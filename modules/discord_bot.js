@@ -43,7 +43,8 @@ const courtMessage = require('./logs').courtMessage || function () { };
 const newMessage = require('./message');
 
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
-const shardid = client.cluster.id;
+const isClusterMode = client.cluster && typeof client.cluster.id === 'number';
+const shardid = isClusterMode ? client.cluster.id : 0;
 let ws;
 
 // StoryTeller reaction poll support
@@ -232,7 +233,7 @@ client.once('ready', async () => {
 let heartbeatInterval = null;
 client.cluster.on('message', message => {
 	if (message?.type === 'startHeartbeat') {
-		if (client.cluster.id === 0) {
+		if (shardid === 0) {
 			console.log('[Cluster 0] Received startHeartbeat signal. Starting heartbeat monitor.');
 			startHeartbeatMonitor();
 		}
@@ -669,7 +670,7 @@ function respawnCluster(err) {
 	errorCount[number]++;
 	if (errorCount[number] > 3) {
 		try {
-			client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
+			client.cluster.evalOnManager(`this.clusters.get(${shardid}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
 		} catch (error) {
 			console.error('respawnCluster #480 error', (error && error.name), (error && error.message), (error && error.reason));
 		}
@@ -677,7 +678,7 @@ function respawnCluster(err) {
 }
 function respawnCluster2() {
 	try {
-		client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
+		client.cluster.evalOnManager(`this.clusters.get(${shardid}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
 	} catch (error) {
 		console.error('respawnCluster2 error', (error && error.name), (error && error.message), (error && error.reason));
 	}
@@ -802,6 +803,11 @@ async function manageWebhook(discord) {
 		const targetChannel = isThread ? await client.channels.fetch(channel.parentId).catch(() => null) : channel;
 		if (!targetChannel || !targetChannel.guild) throw new Error('Target channel/guild not available for webhooks');
 
+		// 確保 targetChannel 支援所需方法
+		if (!targetChannel || typeof targetChannel.createWebhook !== 'function') {
+			throw new Error('Channel does not support webhook creation');
+		}
+
 		// Some channel types (like DM) do not support fetchWebhooks
 		let webhooks;
 		if (typeof targetChannel.fetchWebhooks === 'function') {
@@ -907,14 +913,16 @@ async function checkWakeUp() {
 }
 
 async function getAllshardIds() {
-    if (!client.cluster) return '';
+    const isClusterMode = client.cluster && typeof client.cluster.id === 'number';
+    const shardId = isClusterMode ? client.cluster.id : 0;
+    if (!isClusterMode) return '';
 
 	try {
         const [shardIds, wsStatus, wsPing, clusterId] = await Promise.all([
             [...client.cluster.ids.keys()],
             client.cluster.broadcastEval(c => c.ws.status).catch(() => []),
             client.cluster.broadcastEval(c => c.ws.ping).catch(() => []),
-            (typeof client.cluster.id === 'number') ? client.cluster.id : 0
+            shardId
         ]);
 
 		// WebSocket status mapping - Discord.js uses numeric status codes
@@ -1751,7 +1759,7 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
 
 		const found = Array.isArray(results) ? results.find(Boolean) : null;
 		if (!found) {
-			console.error(`[Shard ${client.cluster.id}] Could not send poll via owning shard for channel ${channelid}.`);
+			console.error(`[Shard ${shardid}] Could not send poll via owning shard for channel ${channelid}.`);
 			// Fallback: try local send (may still fail if this shard doesn't own the channel)
 			try {
 				const channel = await client.channels.fetch(channelid);
@@ -2282,13 +2290,15 @@ async function handlingEditMessage(message, rplyVal) {
 	}
 }
 
-//TOP.GG 
+//TOP.GG
 const togGGToken = process.env.TOPGG;
 if (togGGToken) {
+	const isClusterMode = client.cluster && typeof client.cluster.id === 'number';
+	const shardId = isClusterMode ? client.cluster.id : 0;
 	// Guard getInfo() usage when not under a valid cluster manager
 	let totalShards = 1;
 	try { totalShards = getInfo().TOTAL_SHARDS; } catch { totalShards = 1; }
-	if (typeof shardid !== 'number' || shardid !== (totalShards - 1)) return;
+	if (!isClusterMode || shardId !== (totalShards - 1)) return;
 	const Topgg = require(`@top-gg/sdk`)
 	const api = new Topgg.Api(togGGToken)
 	this.interval = setInterval(async () => {
@@ -2297,13 +2307,15 @@ if (togGGToken) {
 		api.postStats({
 			serverCount: Number.parseInt(guilds.reduce((a, c) => a + c, 0)),
 			shardCount: totalShards,
-			shardId: (typeof client.cluster.id === 'number') ? client.cluster.id : 0
+			shardId: shardId
 		});
 	}, 300_000);
 }
 
 async function sendCronWebhook({ channelid, replyText, data }) {
-    const shardLabel = (client.cluster && typeof client.cluster.id === 'number') ? client.cluster.id : 'single';
+    const isClusterMode = client.cluster && typeof client.cluster.id === 'number';
+    const shardId = isClusterMode ? client.cluster.id : 0;
+    const shardLabel = isClusterMode ? shardId : 'single';
     console.log(`[Shard ${shardLabel}] Starting sendCronWebhook for channel ${channelid}`);
 	try {
         // Prefer cluster path when available, fallback to single-client path otherwise
@@ -2312,7 +2324,7 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 				const channel = await c.channels.fetch(channelId).catch(() => null);
 				if (!channel) return null;
 
-				const isThread = channel.isThread();
+				const isThread = typeof channel.isThread === 'function' && channel.isThread();
 				const targetChannel = isThread ? await c.channels.fetch(channel.parentId).catch(() => null) : channel;
 				if (!targetChannel) return null;
 
@@ -2326,7 +2338,8 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 							avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png"
 						});
 					} catch (error) {
-						console.error(`[Shard ${c.cluster.id}] Failed to create webhook in channel ${targetChannel.id}: ${error.message}`);
+						const cShardId = (c.cluster && typeof c.cluster.id === 'number') ? c.cluster.id : 'single';
+						console.error(`[Shard ${cShardId}] Failed to create webhook in channel ${targetChannel.id}: ${error.message}`);
 						return null;
 					}
 				}

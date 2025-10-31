@@ -1858,13 +1858,13 @@ class Digimon {
             if (searchForward) {
                 const result = this.expandBidirectionalSearch(
                     forwardQueue, backwardVisited, forwardVisited,
-                    paths, foundPaths, 'forward'
+                    paths, foundPaths, 'forward', toDigimon
                 );
                 if (result.found) continue;
             } else if (backwardQueue.length > 0) {
                 const result = this.expandBidirectionalSearch(
                     backwardQueue, forwardVisited, backwardVisited,
-                    paths, foundPaths, 'backward'
+                    paths, foundPaths, 'backward', fromDigimon
                 );
                 if (result.found) continue;
             }
@@ -1873,7 +1873,7 @@ class Digimon {
         return paths;
     }
 
-    expandBidirectionalSearch(queue, otherVisited, currentVisited, paths, foundPaths, direction) {
+    expandBidirectionalSearch(queue, otherVisited, currentVisited, paths, foundPaths, direction, targetDigimon) {
         const { digimon: current, path, visited } = queue.shift();
 
         // Check if we've met the other search direction
@@ -1898,7 +1898,7 @@ class Digimon {
         if (path.length >= 8) return { found: false };
 
         // Get next digimon with stage-based heuristics
-        const nextDigimon = this.getNextDigimonWithHeuristics(current, visited, direction);
+        const nextDigimon = this.getNextDigimonWithHeuristics(current, visited, direction, targetDigimon);
 
         // Add to queue with priority
         for (const next of nextDigimon.slice(0, 8)) { // Limit to 8 per expansion
@@ -1915,7 +1915,7 @@ class Digimon {
         return { found: false };
     }
 
-    getNextDigimonWithHeuristics(current, visited, direction) {
+    getNextDigimonWithHeuristics(current, visited, direction, targetDigimon) {
 
         // Get all possible next digimon
         const allNext = [];
@@ -1938,9 +1938,22 @@ class Digimon {
             }
         }
 
+        // Calculate stage proximity to target for "最後一程進行進化" logic
+        const currentStage = Number.parseInt(current.stage) || 0;
+        const targetStage = targetDigimon ? Number.parseInt(targetDigimon.stage) || 0 : 4; // Default to mature stage if no target
+        const stageDistance = Math.abs(currentStage - targetStage);
+        const isCloseToTarget = stageDistance <= 2; // Consider "最後一程" when within 2 stages
+
         // Sort by stage proximity and type preference
         allNext.sort((a, b) => {
-            // Prefer evolutions for forward search, devolutions for backward
+            // Special logic: 最後一程進行進化 (prefer evolutions when close to target)
+            if (isCloseToTarget && a.type !== b.type) {
+                // When close to target, strongly prefer evolutions over devolutions
+                if (a.type === 'evolution' && b.type === 'devolution') return -1;
+                if (a.type === 'devolution' && b.type === 'evolution') return 1;
+            }
+
+            // Default directional preferences
             if (direction === 'forward' && a.type !== b.type) {
                 return a.type === 'evolution' ? -1 : 1;
             } else if (direction === 'backward' && a.type !== b.type) {

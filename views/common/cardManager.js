@@ -43,12 +43,16 @@ class CardManager {
                         hasUnsavedChanges: false,
                         // Note modal state
                         modalNoteTitle: '',
-                        modalNoteContent: ''
+                        modalNoteContent: '',
+                        // Auth state reactivity
+                        authStateVersion: 0
                     }
                 },
                 computed: {
                     // 根據 localStorage 判斷是否登入
                     isLoggedIn() {
+                        // Force reactivity by depending on authStateVersion
+                        this.authStateVersion;
                         try {
                             const hasUser = !!localStorage.getItem('userName');
                             const hasToken = !!localStorage.getItem('jwtToken');
@@ -130,9 +134,19 @@ class CardManager {
                         };
                         window.addEventListener('storage', this.__onStorage);
                     } catch {}
+
+                    // 監聽自定義認證狀態改變事件
+                    try {
+                        this.__onAuthStateChanged = (e) => {
+                            debugLog('Auth state change event received', 'info', e.detail);
+                            this.refreshAuthState();
+                        };
+                        window.addEventListener('authStateChanged', this.__onAuthStateChanged);
+                    } catch {}
                 },
                 beforeUnmount() {
                     try { if (this.__onStorage) { window.removeEventListener('storage', this.__onStorage); this.__onStorage = null; } } catch {}
+                    try { if (this.__onAuthStateChanged) { window.removeEventListener('authStateChanged', this.__onAuthStateChanged); this.__onAuthStateChanged = null; } } catch {}
                 },
                 watch: {
                     state: {
@@ -833,6 +847,25 @@ class CardManager {
                         }
                     },
                     
+                    // 登入方法
+                    login() {
+                        if (typeof window.login === 'function') {
+                            window.login();
+                            // Force UI update after login attempt
+                            setTimeout(() => {
+                                this.refreshAuthState();
+                            }, 100);
+                        } else {
+                            debugLog('Global login function not found', 'error');
+                        }
+                    },
+
+                    // 重新整理認證狀態（強制更新UI）
+                    refreshAuthState() {
+                        this.authStateVersion++;
+                        debugLog('Auth state refreshed', 'info', { isLoggedIn: this.isLoggedIn });
+                    },
+
                     // 顯示登出模態框
                     showLogoutModal() {
                         $('#logoutModalCenter').modal('show');

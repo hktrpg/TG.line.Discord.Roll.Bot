@@ -1679,6 +1679,27 @@ class Digimon {
         return requirements;
     }
 
+    // Check if a digimon requires jogress (fusion) to evolve
+    requiresJogress(digimon) {
+        return digimon && digimon.jogressAEng && digimon.jogressBEng;
+    }
+
+    // Check if a digimon has alternative evolution paths (excluding jogress requirement)
+    hasAlternativePaths(digimon) {
+        if (!digimon || !digimon.evolutions) return false;
+
+        // Count non-jogress evolutions
+        let nonJogressCount = 0;
+        for (const evolutionName of digimon.evolutions) {
+            const evolutionDigimon = this.getByName(evolutionName);
+            if (evolutionDigimon && !this.requiresJogress(evolutionDigimon)) {
+                nonJogressCount++;
+            }
+        }
+
+        return nonJogressCount > 1; // More than one non-jogress path available
+    }
+
     findSimplePathFromStage1(targetDigimon) {
         const maxDepth = 8; // Reduced depth
         const startTime = Date.now();
@@ -1713,6 +1734,13 @@ class Digimon {
                     const evolutionName = current.evolutions[i];
                     const evolutionDigimon = this.digimonData.find(d => d.name === evolutionName);
                     if (evolutionDigimon && !newVisited.has(evolutionDigimon.id)) {
+                        // Skip digimon that requires jogress unless it's the target or no alternative paths exist
+                        if (this.requiresJogress(evolutionDigimon) && evolutionDigimon.id !== target.id) {
+                            // Only skip if there are alternative non-jogress paths
+                            if (this.hasAlternativePaths(current)) {
+                                continue;
+                            }
+                        }
                         nextDigimon.push(evolutionDigimon);
                     }
                 }
@@ -1724,6 +1752,13 @@ class Digimon {
                     const devolutionName = current.devolutions[i];
                     const devolutionDigimon = this.digimonData.find(d => d.name === devolutionName);
                     if (devolutionDigimon && !newVisited.has(devolutionDigimon.id)) {
+                        // Skip digimon that requires jogress unless it's the target or no alternative paths exist
+                        if (this.requiresJogress(devolutionDigimon) && devolutionDigimon.id !== target.id) {
+                            // Only skip if there are alternative non-jogress paths
+                            if (this.hasAlternativePaths(current)) {
+                                continue;
+                            }
+                        }
                         nextDigimon.push(devolutionDigimon);
                     }
                 }
@@ -1819,6 +1854,13 @@ class Digimon {
                     for (const evolutionName of current.evolutions) {
                         const evolutionDigimon = this.getByName(evolutionName);
                         if (evolutionDigimon && !visited.has(evolutionDigimon.id)) {
+                            // Skip digimon that requires jogress unless it's the target or no alternative paths exist
+                            if (this.requiresJogress(evolutionDigimon) && evolutionDigimon.id !== targetDigimon.id) {
+                                // Only skip if there are alternative non-jogress paths
+                                if (this.hasAlternativePaths(current)) {
+                                    continue;
+                                }
+                            }
                             queue.push({ digimon: evolutionDigimon, path: [...path, evolutionDigimon] });
                         }
                     }
@@ -1829,6 +1871,13 @@ class Digimon {
                     for (const devolutionName of current.devolutions) {
                         const devolutionDigimon = this.getByName(devolutionName);
                         if (devolutionDigimon && !visited.has(devolutionDigimon.id)) {
+                            // Skip digimon that requires jogress unless it's the target or no alternative paths exist
+                            if (this.requiresJogress(devolutionDigimon) && devolutionDigimon.id !== targetDigimon.id) {
+                                // Only skip if there are alternative non-jogress paths
+                                if (this.hasAlternativePaths(current)) {
+                                    continue;
+                                }
+                            }
                             queue.push({ digimon: devolutionDigimon, path: [...path, devolutionDigimon] });
                         }
                     }
@@ -1979,6 +2028,13 @@ class Digimon {
             for (const evolutionName of current.evolutions) {
                 const evolutionDigimon = this.getByName(evolutionName);
                 if (evolutionDigimon && !visited.has(evolutionDigimon.id)) {
+                    // Skip digimon that requires jogress unless it's the target or no alternative paths exist
+                    if (this.requiresJogress(evolutionDigimon) && evolutionDigimon.id !== targetDigimon?.id) {
+                        // Only skip if there are alternative non-jogress paths
+                        if (this.hasAlternativePaths(current)) {
+                            continue;
+                        }
+                    }
                     allNext.push({ digimon: evolutionDigimon, stage: Number.parseInt(evolutionDigimon.stage), type: 'evolution' });
                 }
             }
@@ -1988,6 +2044,13 @@ class Digimon {
             for (const devolutionName of current.devolutions) {
                 const devolutionDigimon = this.getByName(devolutionName);
                 if (devolutionDigimon && !visited.has(devolutionDigimon.id)) {
+                    // Skip digimon that requires jogress unless it's the target or no alternative paths exist
+                    if (this.requiresJogress(devolutionDigimon) && devolutionDigimon.id !== targetDigimon?.id) {
+                        // Only skip if there are alternative non-jogress paths
+                        if (this.hasAlternativePaths(current)) {
+                            continue;
+                        }
+                    }
                     allNext.push({ digimon: devolutionDigimon, stage: Number.parseInt(devolutionDigimon.stage), type: 'devolution' });
                 }
             }

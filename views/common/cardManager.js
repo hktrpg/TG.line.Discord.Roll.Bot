@@ -172,6 +172,8 @@ class CardManager {
                     // 是否為徽章屬性（非編輯模式時應隱藏於屬性格）
                     isBadgeAttribute(item) {
                         if (!item) return false;
+                        // 正在內聯編輯的項目不應被視為徽章屬性
+                        if (item.isInlineEditing) return false;
                         const a = (item.itemA ?? '').toString();
                         const b = (item.itemB ?? '').toString();
                         const onlyCurrent = !b || b.trim() === '';

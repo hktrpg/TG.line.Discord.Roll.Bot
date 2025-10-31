@@ -820,8 +820,8 @@ async function manageWebhook(discord) {
 		if (!webhook) {
 			try {
 				await targetChannel.createWebhook({ name: "HKTRPG .me Function", avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
-			} catch (e) {
-				throw new Error('Failed to create webhook: ' + e.message);
+			} catch (error) {
+				throw new Error('Failed to create webhook: ' + error.message);
 			}
 			// Re-fetch to find the newly created webhook
 			if (typeof targetChannel.fetchWebhooks === 'function') {
@@ -2364,8 +2364,8 @@ async function sendCronWebhook({ channelid, replyText, data }) {
                 await webhookClient.send(messageOptions);
                 console.log(`[Shard ${shardLabel}] Successfully sent message via webhook (local) to channel ${channelid}.`);
                 return;
-            } catch (localErr) {
-                console.error(`[Shard ${shardLabel}] Local webhook path failed for channel ${channelid}: ${localErr.message}`);
+            } catch (error) {
+                console.error(`[Shard ${shardLabel}] Local webhook path failed for channel ${channelid}: ${error.message}`);
                 await SendToReplychannel({ replyText, channelid, quotes: true, groupid: data.groupid });
                 return;
             }

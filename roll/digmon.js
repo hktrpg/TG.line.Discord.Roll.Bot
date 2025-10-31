@@ -668,7 +668,15 @@ class Digimon {
                 (!isSingleCjk && !isVeryShort && (top.hasCore === 1 || top.startsWithToken === 1 || top.prefixLen >= 2 || top.suffixLen >= 2 || hasCjkOverlapTop))
             );
             const candidatesAll = orderedEnriched.map(e => e.item);
-            if (!accept) {
+
+            // For fuzzy matching, if we have candidates with reasonable quality, accept the top one
+            // even for very short queries, to provide better user experience
+            const shouldAcceptAnyway = (
+                candidatesAll.length > 0 &&
+                (top.startsWithToken === 1 || top.hasCore === 1 || hasCjkOverlapTop || top.asciiOverlap >= 1)
+            );
+
+            if (!accept && !shouldAcceptAnyway) {
                 return { match: null, isFuzzy: true, candidates: candidatesAll.slice(0, 8) };
             }
             return { match: top.item, isFuzzy: true, candidates: candidatesAll };
@@ -1785,13 +1793,7 @@ class Digimon {
                     const evolutionName = current.evolutions[i];
                     const evolutionDigimon = this.digimonData.find(d => d.name === evolutionName);
                     if (evolutionDigimon && !newVisited.has(evolutionDigimon.id)) {
-                        // Skip digimon that requires jogress unless it's the target or no alternative paths exist
-                        if (this.requiresJogress(evolutionDigimon) && evolutionDigimon.id !== target.id) {
-                            // Only skip if there are alternative non-jogress paths
-                            if (this.hasAlternativePaths(current)) {
-                                continue;
-                            }
-                        }
+                        // Always consider jogress evolutions, but they will have lower priority in path selection
                         nextDigimon.push(evolutionDigimon);
                     }
                 }
@@ -1803,13 +1805,7 @@ class Digimon {
                     const devolutionName = current.devolutions[i];
                     const devolutionDigimon = this.digimonData.find(d => d.name === devolutionName);
                     if (devolutionDigimon && !newVisited.has(devolutionDigimon.id)) {
-                        // Skip digimon that requires jogress unless it's the target or no alternative paths exist
-                        if (this.requiresJogress(devolutionDigimon) && devolutionDigimon.id !== target.id) {
-                            // Only skip if there are alternative non-jogress paths
-                            if (this.hasAlternativePaths(current)) {
-                                continue;
-                            }
-                        }
+                        // Always consider jogress devolutions, but they will have lower priority in path selection
                         nextDigimon.push(devolutionDigimon);
                     }
                 }
@@ -1905,13 +1901,7 @@ class Digimon {
                     for (const evolutionName of current.evolutions) {
                         const evolutionDigimon = this.getByName(evolutionName);
                         if (evolutionDigimon && !visited.has(evolutionDigimon.id)) {
-                            // Skip digimon that requires jogress unless it's the target or no alternative paths exist
-                            if (this.requiresJogress(evolutionDigimon) && evolutionDigimon.id !== targetDigimon.id) {
-                                // Only skip if there are alternative non-jogress paths
-                                if (this.hasAlternativePaths(current)) {
-                                    continue;
-                                }
-                            }
+                            // Always consider jogress evolutions, but they will have lower priority in path selection
                             queue.push({ digimon: evolutionDigimon, path: [...path, evolutionDigimon] });
                         }
                     }
@@ -1922,13 +1912,7 @@ class Digimon {
                     for (const devolutionName of current.devolutions) {
                         const devolutionDigimon = this.getByName(devolutionName);
                         if (devolutionDigimon && !visited.has(devolutionDigimon.id)) {
-                            // Skip digimon that requires jogress unless it's the target or no alternative paths exist
-                            if (this.requiresJogress(devolutionDigimon) && devolutionDigimon.id !== targetDigimon.id) {
-                                // Only skip if there are alternative non-jogress paths
-                                if (this.hasAlternativePaths(current)) {
-                                    continue;
-                                }
-                            }
+                            // Always consider jogress devolutions, but they will have lower priority in path selection
                             queue.push({ digimon: devolutionDigimon, path: [...path, devolutionDigimon] });
                         }
                     }
@@ -2079,14 +2063,14 @@ class Digimon {
             for (const evolutionName of current.evolutions) {
                 const evolutionDigimon = this.getByName(evolutionName);
                 if (evolutionDigimon && !visited.has(evolutionDigimon.id)) {
-                    // Skip digimon that requires jogress unless it's the target or no alternative paths exist
-                    if (this.requiresJogress(evolutionDigimon) && evolutionDigimon.id !== targetDigimon?.id) {
-                        // Only skip if there are alternative non-jogress paths
-                        if (this.hasAlternativePaths(current)) {
-                            continue;
-                        }
-                    }
-                    allNext.push({ digimon: evolutionDigimon, stage: Number.parseInt(evolutionDigimon.stage), type: 'evolution' });
+                    // Always consider jogress evolutions, but they will have lower priority in sorting
+                    const requiresJogress = this.requiresJogress(evolutionDigimon);
+                    allNext.push({
+                        digimon: evolutionDigimon,
+                        stage: Number.parseInt(evolutionDigimon.stage),
+                        type: 'evolution',
+                        requiresJogress
+                    });
                 }
             }
         }
@@ -2095,14 +2079,14 @@ class Digimon {
             for (const devolutionName of current.devolutions) {
                 const devolutionDigimon = this.getByName(devolutionName);
                 if (devolutionDigimon && !visited.has(devolutionDigimon.id)) {
-                    // Skip digimon that requires jogress unless it's the target or no alternative paths exist
-                    if (this.requiresJogress(devolutionDigimon) && devolutionDigimon.id !== targetDigimon?.id) {
-                        // Only skip if there are alternative non-jogress paths
-                        if (this.hasAlternativePaths(current)) {
-                            continue;
-                        }
-                    }
-                    allNext.push({ digimon: devolutionDigimon, stage: Number.parseInt(devolutionDigimon.stage), type: 'devolution' });
+                    // Always consider jogress devolutions, but they will have lower priority in sorting
+                    const requiresJogress = this.requiresJogress(devolutionDigimon);
+                    allNext.push({
+                        digimon: devolutionDigimon,
+                        stage: Number.parseInt(devolutionDigimon.stage),
+                        type: 'devolution',
+                        requiresJogress
+                    });
                 }
             }
         }
@@ -2127,6 +2111,11 @@ class Digimon {
                 return a.type === 'evolution' ? -1 : 1;
             } else if (direction === 'backward' && a.type !== b.type) {
                 return a.type === 'devolution' ? -1 : 1;
+            }
+
+            // Prefer non-jogress evolutions over jogress ones
+            if (a.requiresJogress !== b.requiresJogress) {
+                return a.requiresJogress ? 1 : -1; // Non-jogress first
             }
 
             // Then sort by stage (prefer middle stages for better connectivity)

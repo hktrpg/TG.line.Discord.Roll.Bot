@@ -19181,7 +19181,8 @@
       40,
       30
     ],
-    "categoryNames": "Aquatic"
+    "categoryNames": "Aquatic",
+    "needsItemEng": "Digi-Egg of Reliability"
   },
   {
     "id": 180,
@@ -19278,7 +19279,8 @@
       40,
       2
     ],
-    "categoryNames": "Mutant"
+    "categoryNames": "Mutant",
+    "needsItemEng": "Digi-Egg of Sincerity"
   },
   {
     "id": 181,
@@ -19374,7 +19376,8 @@
       2,
       40
     ],
-    "categoryNames": "Insectoid"
+    "categoryNames": "Insectoid",
+    "needsItemEng": "Digi-Egg of Knowledge"
   },
   {
     "id": 182,
@@ -19479,7 +19482,8 @@
       20,
       40
     ],
-    "categoryNames": "Holy Beast"
+    "categoryNames": "Holy Beast",
+    "needsItemEng": "Digi-Egg of Light"
   },
   {
     "id": 183,
@@ -19576,7 +19580,8 @@
       40,
       20
     ],
-    "categoryNames": "Dragon Man"
+    "categoryNames": "Dragon Man",
+    "needsItemEng": "Digi-Egg of Courage"
   },
   {
     "id": 184,
@@ -19672,7 +19677,8 @@
       40,
       30
     ],
-    "categoryNames": "Holy Beast"
+    "categoryNames": "Holy Beast",
+    "needsItemEng": "Digi-Egg of Hope"
   },
   {
     "id": 185,
@@ -19768,7 +19774,8 @@
       30,
       20
     ],
-    "categoryNames": "Beast"
+    "categoryNames": "Beast",
+    "needsItemEng": "Digi-Egg of Love"
   },
   {
     "id": 186,
@@ -19864,7 +19871,8 @@
       2,
       40
     ],
-    "categoryNames": "Beast"
+    "categoryNames": "Beast",
+    "needsItemEng": "Digi-Egg of Friendship"
   },
   {
     "id": 187,
@@ -19994,7 +20002,8 @@
       40,
       2
     ],
-    "categoryNames": "Wizard"
+    "categoryNames": "Wizard",
+    "needsItemEng": "Human Spirit of Flame"
   },
   {
     "id": 188,
@@ -20133,7 +20142,8 @@
       20,
       40
     ],
-    "categoryNames": "Warrior"
+    "categoryNames": "Warrior",
+    "needsItemEng": "Human Spirit of Light"
   },
   {
     "id": 189,
@@ -20386,7 +20396,8 @@
       40,
       2
     ],
-    "categoryNames": "Dark Dragon"
+    "categoryNames": "Dark Dragon",
+    "needsItemEng": "Beast Spirit of Flame"
   },
   {
     "id": 191,
@@ -20646,7 +20657,8 @@
       20,
       40
     ],
-    "categoryNames": "Android"
+    "categoryNames": "Android",
+    "needsItemEng": "Beast Spirit of Light"
   },
   {
     "id": 193,
@@ -32527,7 +32539,9 @@
       40,
       30
     ],
-    "categoryNames": "Mutant"
+    "categoryNames": "Mutant",
+    "jogressAEng": "Ankylomon",
+    "jogressBEng": "Angemon"
   },
   {
     "id": 301,
@@ -32629,7 +32643,9 @@
       30,
       40
     ],
-    "categoryNames": "Beast Man"
+    "categoryNames": "Beast Man",
+    "jogressAEng": "Aquilamon",
+    "jogressBEng": "Gatomon"
   },
   {
     "id": 302,
@@ -32730,7 +32746,9 @@
       40,
       2
     ],
-    "categoryNames": "Mutant"
+    "categoryNames": "Mutant",
+    "jogressAEng": "Stingmon",
+    "jogressBEng": "ExVeemon"
   },
   {
     "id": 303,
@@ -32832,7 +32850,9 @@
       40,
       30
     ],
-    "categoryNames": "Dragon Man"
+    "categoryNames": "Dragon Man",
+    "jogressAEng": "ExVeemon",
+    "jogressBEng": "Stingmon"
   },
   {
     "id": 304,
@@ -33035,7 +33055,8 @@
       2,
       25
     ],
-    "categoryNames": "Wizard"
+    "categoryNames": "Wizard",
+    "needsItemEng": "Beast Spirit of Flame"
   },
   {
     "id": 306,
@@ -33135,7 +33156,8 @@
       2,
       45
     ],
-    "categoryNames": "Warrior"
+    "categoryNames": "Warrior",
+    "needsItemEng": "Beast Spirit of Light"
   },
   {
     "id": 307,
@@ -37158,7 +37180,9 @@
       35,
       2
     ],
-    "categoryNames": "Angel"
+    "categoryNames": "Angel",
+    "jogressAEng": "Angewomon",
+    "jogressBEng": "LadyDevimon"
   },
   {
     "id": 338,
@@ -46105,7 +46129,9 @@
       2,
       45
     ],
-    "categoryNames": "Composite"
+    "categoryNames": "Composite",
+    "jogressAEng": "Machinedramon",
+    "jogressBEng": "Kimeramon"
   },
   {
     "id": 406,
@@ -47753,6 +47779,32 @@
         "name": "",
         "moveDescriptionEnglish": "[Target: All enemies]\r\nPerforms  Light physical attack at power 80.\r\nIncreased damage to targets with Unknown Trait.",
         "increasedDmgAgainstClassEng": "Unknown"
+      },
+      {
+        "id": "24192",
+        "effectId": 12011,
+        "dmgType": 1,
+        "power": 80,
+        "element": 9,
+        "increasedDmgAgainstClass": 41,
+        "additionalProperty": 0,
+        "additionalProperty_1": 0,
+        "targetType": 5,
+        "minHits": 1,
+        "maxHits": 1,
+        "accuracy": 100,
+        "alwaysHits": 0,
+        "critRate": 5,
+        "HPDrain": 0,
+        "SPDrain": 0,
+        "recoil": 0,
+        "skillConditionalType": 0,
+        "skillEffectIfConditional": 0,
+        "skillConditionalArg": 0,
+        "skillEffectArg": 0,
+        "name": "",
+        "moveDescriptionEnglish": "[Target: All enemies]\r\nPerforms  Light physical attack at power 80.\r\nIncreased damage to targets with Unknown Trait.",
+        "increasedDmgAgainstClassEng": "Unknown"
       }
     ],
     "rider": 0,
@@ -48354,7 +48406,8 @@
       45,
       25
     ],
-    "categoryNames": "Holy Knight"
+    "categoryNames": "Holy Knight",
+    "needsItemEng": "Digi-Egg of Destiny"
   },
   {
     "id": 423,
@@ -48488,7 +48541,8 @@
       45,
       35
     ],
-    "categoryNames": "Holy Knight"
+    "categoryNames": "Holy Knight",
+    "needsItemEng": "Digi-Egg of Miracles"
   },
   {
     "id": 424,
@@ -48957,7 +49011,9 @@
       45,
       2
     ],
-    "categoryNames": "No Data"
+    "categoryNames": "No Data",
+    "jogressAEng": "Alphamon",
+    "jogressBEng": "Ouryumon"
   },
   {
     "id": 428,
@@ -49075,7 +49131,9 @@
       35,
       2
     ],
-    "categoryNames": "Holy Knight"
+    "categoryNames": "Holy Knight",
+    "jogressAEng": "Craniamon",
+    "jogressBEng": "Enbarrmon"
   },
   {
     "id": 429,
@@ -49189,7 +49247,8 @@
       2,
       25
     ],
-    "categoryNames": "Ancient Holy Knight"
+    "categoryNames": "Ancient Holy Knight",
+    "needsItemEng": "Omni Blade"
   },
   {
     "id": 430,
@@ -49318,7 +49377,9 @@
       35,
       2
     ],
-    "categoryNames": "Holy Knight"
+    "categoryNames": "Holy Knight",
+    "jogressAEng": "WarGreymon",
+    "jogressBEng": "MetalGarurumon"
   },
   {
     "id": 431,
@@ -49447,7 +49508,9 @@
       45,
       2
     ],
-    "categoryNames": "Holy Knight"
+    "categoryNames": "Holy Knight",
+    "jogressAEng": "BlackWarGreymon",
+    "jogressBEng": "MetalGarurumon (Black)"
   },
   {
     "id": 432,
@@ -49582,7 +49645,9 @@
       35,
       2
     ],
-    "categoryNames": "Unique"
+    "categoryNames": "Unique",
+    "jogressAEng": "Darkdramon",
+    "jogressBEng": "BanchoLeomon"
   },
   {
     "id": 433,
@@ -49717,7 +49782,9 @@
       35,
       2
     ],
-    "categoryNames": "Unique"
+    "categoryNames": "Unique",
+    "jogressAEng": "BanchoLeomon",
+    "jogressBEng": "Varodurumon"
   },
   {
     "id": 434,
@@ -49860,7 +49927,9 @@
       35,
       2
     ],
-    "categoryNames": "Galaxy"
+    "categoryNames": "Galaxy",
+    "jogressAEng": "Apollomon",
+    "jogressBEng": "Dianamon"
   },
   {
     "id": 435,
@@ -50129,7 +50198,9 @@
       45,
       2
     ],
-    "categoryNames": "Deity"
+    "categoryNames": "Deity",
+    "jogressAEng": "EmperorGreymon",
+    "jogressBEng": "MagnaGarurumon"
   },
   {
     "id": 437,
@@ -50531,7 +50602,9 @@
       45,
       2
     ],
-    "categoryNames": "Holy Knight"
+    "categoryNames": "Holy Knight",
+    "jogressAEng": "Slayerdramon",
+    "jogressBEng": "Breakdramon"
   },
   {
     "id": 440,
@@ -50961,7 +51034,9 @@
       2,
       45
     ],
-    "categoryNames": "Deity"
+    "categoryNames": "Deity",
+    "jogressAEng": "Titamon",
+    "jogressBEng": "SkullBaluchimon"
   },
   {
     "id": 443,

@@ -175,7 +175,7 @@ class PageConfigManager {
 }
 
 // 創建全局實例
-const pageConfigManager = new PageConfigManager();
+const _pageConfigManager = new PageConfigManager();
 
 // 導出供其他模組使用
 if (typeof module !== 'undefined' && module.exports) {

@@ -103,9 +103,9 @@
 
             $("#commonModals").load("/common/characterCardModals.html", function () {
                 debugLog('Modals loaded', 'info');
+                // 模態框載入完成後初始化Vue應用
+                initializeVueApps(IS_PUBLIC, true);
             });
-
-            initializeVueApps(IS_PUBLIC, true);
 
             socket.on('cardUpdated', function (data) {
                 if (data && data.success) {

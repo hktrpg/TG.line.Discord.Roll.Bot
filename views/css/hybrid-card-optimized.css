@@ -645,6 +645,50 @@
     transform: scale(1.1);
 }
 
+/* 內聯編輯控制按鈕（+ 新增後的✓/✕） */
+.inline-edit-controls {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    display: flex;
+    flex-direction: row;
+    gap: var(--spacing-xs);
+    z-index: var(--z-dropdown);
+}
+
+.inline-btn {
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    padding: 0;
+    margin: 0;
+    outline: none;
+    text-decoration: none;
+    vertical-align: middle;
+    user-select: none;
+    appearance: none;
+    box-sizing: border-box;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(255,255,255,0.15);
+}
+
+.inline-btn i { color: #ffffff; line-height: 1; }
+.inline-btn:focus { box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
+
+.inline-btn.confirm-btn { background-color: #28a745; color: #fff; }
+.inline-btn.confirm-btn:hover { background-color: #218838; transform: scale(1.1); }
+
+.inline-btn.cancel-btn { background-color: #dc3545; color: #fff; }
+.inline-btn.cancel-btn:hover { background-color: #c82333; transform: scale(1.1); }
+
 /* 編輯模式下的面板樣式 */
 .attribute-panel.edit-mode,
 .detail-panel.edit-mode {

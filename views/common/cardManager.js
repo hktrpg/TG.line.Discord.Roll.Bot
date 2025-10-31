@@ -40,14 +40,186 @@ class CardManager {
                         editMode: false,
                         isPublic: isPublic,
                         originalData: null,
-                        hasUnsavedChanges: false
+                        hasUnsavedChanges: false,
+                        // Note modal state
+                        modalNoteTitle: '',
+                        modalNoteContent: '',
+                        // Auth state reactivity
+                        authStateVersion: 0
+                    }
+                },
+                computed: {
+                    // 根據 localStorage 判斷是否登入
+                    isLoggedIn() {
+                        // Force reactivity by depending on authStateVersion
+                        this.authStateVersion;
+                        try {
+                            const hasUser = !!localStorage.getItem('userName');
+                            const hasToken = !!localStorage.getItem('jwtToken');
+                            return hasUser && hasToken;
+                        } catch { return false; }
+                    },
+                    headerBadges() {
+                        try {
+                            const badges = [];
+                            // characterDetails
+                            if (Array.isArray(this.characterDetails)) {
+                                for (const detail of this.characterDetails) {
+                                    if (detail && detail.label && detail.value && detail.value.toString().trim() !== '') {
+                                        const val = detail.value.toString().trim();
+                                        if (this.withinHeaderTextLength(val)) {
+                                            badges.push({ label: detail.label, value: val, icon: 'info-circle', source: 'detail' });
+                                        }
+                                    }
+                                }
+                            }
+                            // state-derived badges: only current value, non-numeric, short
+                            if (Array.isArray(this.state)) {
+                                for (const attr of this.state) {
+                                    if (!attr || !attr.name) continue;
+                                    const a = (attr.itemA ?? '').toString();
+                                    const b = (attr.itemB ?? '').toString();
+                                    const onlyCurrent = !b || b.trim() === '';
+                                    const nonNumeric = !this.isNumeric(a);
+                                    if (onlyCurrent && nonNumeric && a.trim() !== '' && this.withinHeaderTextLength(a)) {
+                                        badges.push({ label: attr.name, value: a.trim(), icon: 'tag', source: 'state' });
+                                    }
+                                }
+                            }
+                            // dedupe
+                            const seen = new Set();
+                            const unique = [];
+                            for (const b of badges) {
+                                const key = `${b.label}|${b.value}`;
+                                if (!seen.has(key)) { seen.add(key); unique.push(b); }
+                            }
+                            return unique.slice(0, 6);
+                        } catch (error) {
+                            debugLog(`headerBadges compute failed: ${error && error.message}`, 'error');
+                            return [];
+                        }
                     }
                 },
                 mounted() {
-                    this.loadTestData();
+                    try {
+                        const path = (window && window.location && window.location.pathname) ? window.location.pathname : '';
+                        const isTestPage = /cardtest/i.test(path);
+                        if (isTestPage) {
+                            this.loadTestData();
+                        } else {
+                            debugLog('Skipping test data seeding on non-test page', 'info');
+                            // 確保啟動時為乾淨狀態
+                            this.name = '';
+                            this.image = '';
+                            this.state = [];
+                            this.roll = [];
+                            this.notes = [];
+                            this.characterDetails = [];
+                        }
+                    } catch {
+                        // 安全保護：若出錯則不灌測試資料
+                    }
                     this.setupGroupSelection();
+                    try {
+                        const badges = this.headerBadges || [];
+                        debugLog(`Header badges computed (initial): ${badges.length}`,'info', badges.map(b=>({label:b.label,value:b.value,source:b.source})));
+                    } catch {}
+                    // 監聽 storage 事件以便登入狀態改變時觸發重繪
+                    try {
+                        this.__onStorage = (e) => {
+                            if (!e || !e.key) return;
+                            if (e.key === 'userName' || e.key === 'jwtToken') {
+                                this.$forceUpdate();
+                            }
+                        };
+                        window.addEventListener('storage', this.__onStorage);
+                    } catch {}
+
+                    // 監聽自定義認證狀態改變事件
+                    try {
+                        this.__onAuthStateChanged = (e) => {
+                            debugLog('Auth state change event received', 'info', e.detail);
+                            this.refreshAuthState();
+                        };
+                        window.addEventListener('authStateChanged', this.__onAuthStateChanged);
+                    } catch {}
+                },
+                beforeUnmount() {
+                    try { if (this.__onStorage) { window.removeEventListener('storage', this.__onStorage); this.__onStorage = null; } } catch {}
+                    try { if (this.__onAuthStateChanged) { window.removeEventListener('authStateChanged', this.__onAuthStateChanged); this.__onAuthStateChanged = null; } } catch {}
+                },
+                watch: {
+                    state: {
+                        deep: true,
+                        handler() {
+                            try {
+                                const badges = this.headerBadges || [];
+                                debugLog(`Header badges recomputed (state changed): ${badges.length}`,'info', badges.map(b=>({label:b.label,value:b.value,source:b.source})));
+                            } catch {}
+                        }
+                    },
+                    characterDetails: {
+                        deep: true,
+                        handler() {
+                            try {
+                                const badges = this.headerBadges || [];
+                                debugLog(`Header badges recomputed (details changed): ${badges.length}`,'info', badges.map(b=>({label:b.label,value:b.value,source:b.source})));
+                            } catch {}
+                        }
+                    }
                 },
                 methods: {
+                    // 是否為徽章屬性（非編輯模式時應隱藏於屬性格）
+                    isBadgeAttribute(item) {
+                        if (!item) return false;
+                        // 正在內聯編輯的項目不應被視為徽章屬性
+                        if (item.isInlineEditing) return false;
+                        const a = (item.itemA ?? '').toString();
+                        const b = (item.itemB ?? '').toString();
+                        const onlyCurrent = !b || b.trim() === '';
+                        const nonNumeric = !this.isNumeric(a);
+                        const shortEnough = this.withinHeaderTextLength(a);
+                        return !!item.name && onlyCurrent && nonNumeric && a.trim() !== '' && shortEnough;
+                    },
+                    isCjk(str) {
+                        if (!str) return false;
+                        return /[\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/.test(str);
+                    },
+                    withinHeaderTextLength(str) {
+                        if (!str) return false;
+                        const s = str.toString().trim();
+                        const limit = this.isCjk(s) ? 10 : 30;
+                        return s.length <= limit;
+                    },
+                    // 判斷筆記是否過長
+                    isLongNote(item, limit = 160) {
+                        try {
+                            const text = (item && (item.itemA || item.content || '') || '').toString();
+                            return text.length > limit;
+                        } catch { return false; }
+                    },
+                    // 取得截斷後的筆記內容（純文字）
+                    truncatedNote(item, limit = 160) {
+                        try {
+                            const raw = (item && (item.itemA || item.content || '') || '').toString();
+                            const text = raw.replaceAll(/\r\n|\n|\r/g, ' ');
+                            if (text.length <= limit) return text;
+                            return text.slice(0, limit).trim() + '…';
+                        } catch { return ''; }
+                    },
+                    // 開啟筆記全文彈窗
+                    openNoteModal(item) {
+                        try {
+                            this.modalNoteTitle = (item && (item.name || item.title || '')) || '';
+                            const raw = (item && (item.itemA || item.content || '') || '').toString();
+                            // 保留換行
+                            this.modalNoteContent = raw.replaceAll('\n', '<br>');
+                            $('#noteDetailModal').modal('show');
+                            debugLog('Opened note detail modal', 'info', { title: this.modalNoteTitle, length: raw.length });
+                        } catch (error) {
+                            debugLog(`openNoteModal failed: ${error && error.message}`, 'error');
+                        }
+                    },
                     // 載入測試數據
                     loadTestData() {
                         this.name = "測試角色";
@@ -77,6 +249,8 @@ class CardManager {
                             { name: '調查筆記', itemA: '這是測試筆記內容' },
                             { name: '戰鬥記錄', itemA: '戰鬥日誌記錄' }
                         ].filter(item => item && item.name);
+
+                        this.image = 'https://images2.imgbox.com/ea/b2/Bn8DmRTW_o.png';
                         
                         this.characterDetails = [
                             { label: '職業', value: '保險調查員' },
@@ -355,7 +529,14 @@ class CardManager {
                     
                     // 關閉編輯模式
                     closeEditMode() {
-                        this.revertChanges();
+                        // 編輯模式下的關閉：還原變更並退出編輯模式
+                        if (this.originalData) {
+                            this.roll = JSON.parse(JSON.stringify(this.originalData.roll));
+                            this.state = JSON.parse(JSON.stringify(this.originalData.state));
+                            this.notes = JSON.parse(JSON.stringify(this.originalData.notes));
+                            this.characterDetails = JSON.parse(JSON.stringify(this.originalData.characterDetails));
+                        }
+                        this.editMode = false;
                     },
                     
                     // 備份數據
@@ -636,17 +817,31 @@ class CardManager {
                     confirmInlineEdit(form, index) {
                         const item = this.getItemByForm(form, index);
                         if (!item) return;
-                        
+
                         // 驗證必填欄位
                         if (!item.name || item.name.trim() === '') {
                             this.showError('請輸入名稱');
                             return;
                         }
-                        
+
+                        // 檢查重複名稱
+                        const name = item.name.trim();
+                        const formArray = this.getFormArray(form);
+                        const duplicateIndex = formArray.findIndex((existingItem, i) =>
+                            i !== index && existingItem && existingItem.name &&
+                            existingItem.name.trim().toLowerCase() === name.toLowerCase()
+                        );
+
+                        if (duplicateIndex !== -1) {
+                            const formNames = { 0: '狀態', 1: '擲骰', 2: '備註' };
+                            this.showError(`偵測到重複項目名稱: ${formNames[form]}: ${name}`);
+                            return;
+                        }
+
                         // 標記為已確認的新項目
                         item.isNewItem = false;
                         item.isInlineEditing = false;
-                        
+
                         // 標記有變更
                         this.markAsChanged();
                     },
@@ -674,7 +869,36 @@ class CardManager {
                             default: return null;
                         }
                     },
+
+                    // 根據表單類型獲取數組
+                    getFormArray(form) {
+                        switch (form) {
+                            case 0: return this.state;
+                            case 1: return this.roll;
+                            case 2: return this.notes;
+                            default: return [];
+                        }
+                    },
                     
+                    // 登入方法
+                    login() {
+                        if (typeof window.login === 'function') {
+                            window.login();
+                            // Force UI update after login attempt
+                            setTimeout(() => {
+                                this.refreshAuthState();
+                            }, 100);
+                        } else {
+                            debugLog('Global login function not found', 'error');
+                        }
+                    },
+
+                    // 重新整理認證狀態（強制更新UI）
+                    refreshAuthState() {
+                        this.authStateVersion++;
+                        debugLog('Auth state refreshed', 'info', { isLoggedIn: this.isLoggedIn });
+                    },
+
                     // 顯示登出模態框
                     showLogoutModal() {
                         $('#logoutModalCenter').modal('show');
@@ -708,6 +932,12 @@ class CardManager {
      * 初始化卡片列表應用
      */
     initializeCardList() {
+        // 防止重複初始化
+        if (this.cardList) {
+            debugLog('Card list already initialized, skipping', 'info');
+            return;
+        }
+
         const cardListElement = document.querySelector('#array-cardList');
         if (cardListElement) {
             this.cardList = Vue.createApp({
@@ -720,10 +950,53 @@ class CardManager {
                     }
                 },
                 computed: {
+                    // 產出測試角色項目
+                    testItem() {
+                        return {
+                            _id: '_test_',
+                            id: '_test_',
+                            name: '測試角色',
+                            image: 'https://images2.imgbox.com/ea/b2/Bn8DmRTW_o.png',
+                            state: [
+                                { name: 'HP', itemA: '11', itemB: '11' },
+                                { name: 'MP', itemA: '16', itemB: '16' },
+                                { name: 'SAN', itemA: '80', itemB: '80' },
+                                { name: '體格', itemA: '1', itemB: '' },
+                                { name: 'DB', itemA: '＋1D4', itemB: '' },
+                                { name: 'MOV', itemA: '8', itemB: '' },
+                                { name: '護甲', itemA: '0', itemB: '' },
+                                { name: '職業', itemA: '保險調查員', itemB: '' },
+                                { name: '特徵', itemA: '野外活動愛好者', itemB: '' }
+                            ],
+                            roll: [
+                                { name: '心理學', itemA: 'CC 10' },
+                                { name: '信譽', itemA: 'CC 5' },
+                                { name: '偵查', itemA: 'CC 25' },
+                                { name: '鬥毆', itemA: 'CC 25' },
+                                { name: '魔法', itemA: 'CC 1' },
+                                { name: '小刀', itemA: 'CC 25' },
+                                { name: '幸運', itemA: 'CC 50' },
+                                { name: '占卜', itemA: 'CC 80' },
+                            ],
+                            notes: [
+                                { name: '調查筆記', itemA: '這是測試筆記內容' },
+                                { name: '戰鬥記錄', itemA: '戰鬥日誌記錄' }
+                            ],
+                            public: false
+                        };
+                    },
+                    // 含測試角色置頂的清單，避免重複
+                    listWithTest() {
+                        const base = Array.isArray(this.list) ? this.list : [];
+                        // 避免與伺服器回傳同 _id 重覆
+                        const filteredBase = base.filter(x => x && x._id !== this.testItem._id);
+                        return [this.testItem, ...filteredBase];
+                    },
                     filteredList() {
-                        if (!this.searchQuery || this.searchQuery.trim() === '') return this.list;
+                        const source = this.listWithTest;
+                        if (!this.searchQuery || this.searchQuery.trim() === '') return source;
                         const q = this.searchQuery.trim().toLowerCase();
-                        return this.list.filter(x => (x && x.name && x.name.toLowerCase().includes(q)));
+                        return source.filter(x => (x && x.name && x.name.toLowerCase().includes(q)));
                     },
                     filteredCount() {
                         return this.filteredList.length;
@@ -772,7 +1045,7 @@ class CardManager {
                                 if (cardManager.card && cardManager.card.isPublic) {
                                     localStorage.setItem('lastSelectedPublicCardId', item._id);
                                 }
-                            } catch (error) {}
+                            } catch {}
                             $('#cardListModal').modal("hide");
                         }
                     }

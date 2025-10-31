@@ -11754,7 +11754,8 @@
         "skillEffectArg": 0,
         "name": "Oxygen Homing"
       }
-    ]
+    ],
+    "needsItemEng": "Digi-Egg of Reliability"
   },
   {
     "id": "180",
@@ -11817,7 +11818,8 @@
         "name": "Double Stars",
         "increasedDmgAgainstClassEng": "Dragon"
       }
-    ]
+    ],
+    "needsItemEng": "Digi-Egg of Sincerity"
   },
   {
     "id": "181",
@@ -11879,7 +11881,8 @@
         "skillEffectArg": 0,
         "name": "Gold Rush"
       }
-    ]
+    ],
+    "needsItemEng": "Digi-Egg of Knowledge"
   },
   {
     "id": "182",
@@ -11950,7 +11953,8 @@
         ],
         "name": "Rosetta Stone"
       }
-    ]
+    ],
+    "needsItemEng": "Digi-Egg of Light"
   },
   {
     "id": "183",
@@ -12013,7 +12017,8 @@
         "name": "Flaming Fist",
         "increasedDmgAgainstClassEng": "Dragon"
       }
-    ]
+    ],
+    "needsItemEng": "Digi-Egg of Courage"
   },
   {
     "id": "184",
@@ -12075,7 +12080,8 @@
         "skillEffectArg": 0,
         "name": "Silver Blaze"
       }
-    ]
+    ],
+    "needsItemEng": "Digi-Egg of Hope"
   },
   {
     "id": "185",
@@ -12137,7 +12143,8 @@
         "skillEffectArg": 0,
         "name": "Tempest Wing"
       }
-    ]
+    ],
+    "needsItemEng": "Digi-Egg of Love"
   },
   {
     "id": "186",
@@ -12199,7 +12206,8 @@
         "skillEffectArg": 0,
         "name": "Lightning Blade"
       }
-    ]
+    ],
+    "needsItemEng": "Digi-Egg of Friendship"
   },
   {
     "id": "187",
@@ -12289,7 +12297,8 @@
         "moveDescriptionEnglish": "[Target: All enemies]\r\nPerforms  Fire physical attack at power 20 x 2 hits.\r\nIncreased damage to targets with Immortal Trait.",
         "increasedDmgAgainstClassEng": "Immortal"
       }
-    ]
+    ],
+    "needsItemEng": "Human Spirit of Flame"
   },
   {
     "id": "188",
@@ -12388,7 +12397,8 @@
         "moveDescriptionEnglish": "[Target: 1 enemy]\r\nPerforms  Steel physical attack at power 70.\r\nActs first next round. \r\nIncreased damage to targets with Beast Trait.",
         "increasedDmgAgainstClassEng": "Beast"
       }
-    ]
+    ],
+    "needsItemEng": "Human Spirit of Light"
   },
   {
     "id": "189",
@@ -12564,7 +12574,8 @@
         "moveDescriptionEnglish": "[Target: All enemies]\r\nPerforms  Fire physical attack at power 20 x 2 hits.\r\nIncreased damage to targets with Immortal Trait.",
         "increasedDmgAgainstClassEng": "Immortal"
       }
-    ]
+    ],
+    "needsItemEng": "Beast Spirit of Flame"
   },
   {
     "id": "191",
@@ -12749,7 +12760,8 @@
         "moveDescriptionEnglish": "[Target: 1 enemy]\r\nPerforms  Steel physical attack at power 70.\r\nActs first next round. \r\nIncreased damage to targets with Beast Trait.",
         "increasedDmgAgainstClassEng": "Beast"
       }
-    ]
+    ],
+    "needsItemEng": "Beast Spirit of Light"
   },
   {
     "id": "193",
@@ -20289,7 +20301,9 @@
         "name": "Disaster Blaster",
         "increasedDmgAgainstClassEng": "Aquatic"
       }
-    ]
+    ],
+    "jogressAEng": "Ankylomon",
+    "jogressBEng": "Angemon"
   },
   {
     "id": "301",
@@ -20352,7 +20366,9 @@
         "name": "Top Gun",
         "increasedDmgAgainstClassEng": "Bird"
       }
-    ]
+    ],
+    "jogressAEng": "Aquilamon",
+    "jogressBEng": "Gatomon"
   },
   {
     "id": "302",
@@ -20414,7 +20430,9 @@
         "skillEffectArg": 25,
         "name": "Hell Masquerade"
       }
-    ]
+    ],
+    "jogressAEng": "Stingmon",
+    "jogressBEng": "ExVeemon"
   },
   {
     "id": "303",
@@ -20477,7 +20495,9 @@
         "name": "Death Parade Blaster",
         "increasedDmgAgainstClassEng": "Humanoid"
       }
-    ]
+    ],
+    "jogressAEng": "ExVeemon",
+    "jogressBEng": "Stingmon"
   },
   {
     "id": "304",
@@ -20603,7 +20623,8 @@
         "name": "Atomic Inferno",
         "increasedDmgAgainstClassEng": "Vegetation"
       }
-    ]
+    ],
+    "needsItemEng": "Beast Spirit of Flame"
   },
   {
     "id": "306",
@@ -20666,7 +20687,8 @@
         "name": "Zweihänder",
         "increasedDmgAgainstClassEng": "Evil"
       }
-    ]
+    ],
+    "needsItemEng": "Beast Spirit of Light"
   },
   {
     "id": "307",
@@ -23490,7 +23512,9 @@
         "name": "Dark Despair",
         "increasedDmgAgainstClassEng": "Holy"
       }
-    ]
+    ],
+    "jogressAEng": "Angewomon",
+    "jogressBEng": "LadyDevimon"
   },
   {
     "id": "338",
@@ -29806,7 +29830,9 @@
         "name": "Time Unlimited",
         "increasedDmgAgainstClassEng": "Magic"
       }
-    ]
+    ],
+    "jogressAEng": "Machinedramon",
+    "jogressBEng": "Kimeramon"
   },
   {
     "id": "406",
@@ -31378,7 +31404,8 @@
         "name": "Golden Triangle",
         "increasedDmgAgainstClassEng": "Machine"
       }
-    ]
+    ],
+    "needsItemEng": "Digi-Egg of Destiny"
   },
   {
     "id": "423",
@@ -31475,7 +31502,8 @@
         "name": "Plasma Shot",
         "increasedDmgAgainstClassEng": "Machine"
       }
-    ]
+    ],
+    "needsItemEng": "Digi-Egg of Miracles"
   },
   {
     "id": "424",
@@ -31796,7 +31824,9 @@
         "name": "Soul Digitalization",
         "increasedDmgAgainstClassEng": "Unknown"
       }
-    ]
+    ],
+    "jogressAEng": "Alphamon",
+    "jogressBEng": "Ouryumon"
   },
   {
     "id": "428",
@@ -31867,7 +31897,9 @@
         ],
         "increasedDmgAgainstClassEng": "Dragon"
       }
-    ]
+    ],
+    "jogressAEng": "Craniamon",
+    "jogressBEng": "Enbarrmon"
   },
   {
     "id": "429",
@@ -31946,7 +31978,8 @@
         "name": "Omni Blade",
         "increasedDmgAgainstClassEng": "Unknown"
       }
-    ]
+    ],
+    "needsItemEng": "Omni Blade"
   },
   {
     "id": "430",
@@ -32034,7 +32067,9 @@
         "name": "Supreme Cannon",
         "increasedDmgAgainstClassEng": "Fire"
       }
-    ]
+    ],
+    "jogressAEng": "WarGreymon",
+    "jogressBEng": "MetalGarurumon"
   },
   {
     "id": "431",
@@ -32122,7 +32157,9 @@
         "name": "Supreme Cannon",
         "increasedDmgAgainstClassEng": "Beast"
       }
-    ]
+    ],
+    "jogressAEng": "BlackWarGreymon",
+    "jogressBEng": "MetalGarurumon (Black)"
   },
   {
     "id": "432",
@@ -32219,7 +32256,9 @@
         "name": "Dark Prominence",
         "increasedDmgAgainstClassEng": "Unknown"
       }
-    ]
+    ],
+    "jogressAEng": "Darkdramon",
+    "jogressBEng": "BanchoLeomon"
   },
   {
     "id": "433",
@@ -32316,7 +32355,9 @@
         "name": "Aurora Blaster",
         "increasedDmgAgainstClassEng": "Unknown"
       }
-    ]
+    ],
+    "jogressAEng": "BanchoLeomon",
+    "jogressBEng": "Varodurumon"
   },
   {
     "id": "434",
@@ -32421,7 +32462,9 @@
         "moveDescriptionEnglish": "[Target: All enemies] Performs  Ice magic attack at\r\npower 20 x 4 hits. If target is affected by status\r\nabnormalities or  Injury/ Disease: Increased\r\ndamage. Increased damage to targets with Fire Trait.",
         "increasedDmgAgainstClassEng": "Fire"
       }
-    ]
+    ],
+    "jogressAEng": "Apollomon",
+    "jogressBEng": "Dianamon"
   },
   {
     "id": "435",
@@ -32614,7 +32657,9 @@
         "name": "Heaven's Thunder",
         "increasedDmgAgainstClassEng": "Demon"
       }
-    ]
+    ],
+    "jogressAEng": "EmperorGreymon",
+    "jogressBEng": "MagnaGarurumon"
   },
   {
     "id": "437",
@@ -32904,7 +32949,9 @@
         "name": "Dragonic Impact",
         "increasedDmgAgainstClassEng": "Dragon"
       }
-    ]
+    ],
+    "jogressAEng": "Slayerdramon",
+    "jogressBEng": "Breakdramon"
   },
   {
     "id": "440",
@@ -33199,7 +33246,9 @@
         "name": "Senjin Kishinzan",
         "increasedDmgAgainstClassEng": "Holy"
       }
-    ]
+    ],
+    "jogressAEng": "Titamon",
+    "jogressBEng": "SkullBaluchimon"
   },
   {
     "id": "443",

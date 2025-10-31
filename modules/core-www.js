@@ -1201,6 +1201,13 @@ if (io) {
                 // 驗證成功，更新卡片
                 let temp;
                 if (doc.id && message.card) {
+                    // 後端驗證：禁止同名與超長內容
+                    const validationError = validateCardPayload(message.card);
+                    if (validationError) {
+                        console.warn('updateCard validation failed:', validationError);
+                        socket.emit('updateCard', false);
+                        return;
+                    }
                     message.card.state = checkNullItem(message.card.state || []);
                     message.card.roll = checkNullItem(message.card.roll || []);
                     message.card.notes = checkNullItem(message.card.notes || []);
@@ -1356,6 +1363,52 @@ async function verifyPasswordSecure(password, hash) {
 
 function checkNullItem(target) {
     return target.filter(item => item.name);
+}
+function validateCardPayload(card) {
+    try {
+        if (!card) return '資料無效';
+        const name = (card.name || '').toString().trim();
+        if (!name) return '角色卡名稱不可為空';
+        if (name.length > 50) return '角色卡名稱長度不可超過 50 字元';
+
+        const norm = (s) => (s || '').toString().trim().toLowerCase();
+        const tooLong = (v, m) => (v || '').toString().length > m;
+        const findDups = (arr) => {
+            const seen = new Set();
+            const d = new Set();
+            for (const it of (arr || [])) {
+                const k = norm(it && it.name);
+                if (!k) continue;
+                if (seen.has(k)) d.add((it.name || '').toString()); else seen.add(k);
+            }
+            return [...d];
+        };
+
+        const sD = findDups(card.state);
+        const rD = findDups(card.roll);
+        const nD = findDups(card.notes);
+        if (sD.length > 0 || rD.length > 0 || nD.length > 0) return '存在重複的項目名稱';
+
+        for (const it of (card.state || [])) {
+            if (!it || !it.name || !it.name.toString().trim()) return '狀態項目名稱不可為空';
+            if (tooLong(it.name, 50)) return `狀態「${it.name}」名稱超過 50 字元`;
+            if (tooLong(it.itemA, 50)) return `狀態「${it.name}」當前值超過 50 字元`;
+            if (tooLong(it.itemB, 50)) return `狀態「${it.name}」最大值超過 50 字元`;
+        }
+        for (const it of (card.roll || [])) {
+            if (!it || !it.name || !it.name.toString().trim()) return '擲骰項目名稱不可為空';
+            if (tooLong(it.name, 50)) return `擲骰「${it.name}」名稱超過 50 字元`;
+            if (tooLong(it.itemA, 150)) return `擲骰「${it.name}」內容超過 150 字元`;
+        }
+        for (const it of (card.notes || [])) {
+            if (!it || !it.name || !it.name.toString().trim()) return '備註項目名稱不可為空';
+            if (tooLong(it.name, 50)) return `備註「${it.name}」名稱超過 50 字元`;
+            if (tooLong(it.itemA, 1500)) return `備註「${it.name}」內容超過 1500 字元`;
+        }
+        return null;
+    } catch {
+        return '驗證失敗';
+    }
 }
 async function loadb(io, records, rplyVal, message) {
     const baseTime = new Date(message.time).getTime(); // Ensure message.time is parsed as a Date object

@@ -30,28 +30,23 @@
                         <template v-else>
                         <i class="fas fa-user-circle me-2"></i>
                         </template>
-                        {{ name || '未命名角色' }}
+                        <template v-if="editMode">
+                          <input type="text" v-model="name" placeholder="角色名稱" class="edit-input" style="max-width: 320px; margin-right: 8px;">
+                        </template>
+                        <template v-else>
+                          {{ name || '未命名角色' }}
+                        </template>
                     </h2>
                     <div v-if="editMode" class="mb-2">
                         <input type="text" v-model="image" placeholder="角色圖片 URL (http/https)" class="edit-input" style="max-width: 480px;">
                         <div class="small" style="color:#F5F5DC; opacity:0.85; margin-top:4px;">僅允許 http/https，禁止內網/localhost。顯示機制同首頁圖片處理。</div>
                     </div>
                 <div class="character-info d-flex flex-wrap gap-3"
-                    v-if="(!editMode && (characterDetails && characterDetails.length > 0)) || (!editMode && getNonNumericAttributes().length > 0)">
-                    <!-- 顯示角色詳情 -->
-                    <span class="info-badge" v-for="(detail, index) in characterDetails.slice(0, 3)" :key="'detail-' + index"
-                        v-if="detail && detail.value && detail.value.trim() !== ''">
-                        <i class="fas fa-info-circle me-1"></i>
-                        <span class="info-label">{{ detail.label }}:</span>
-                        <span class="info-value">{{ detail.value }}</span>
-                    </span>
-                    
-                    <!-- 顯示非數值屬性 -->
-                    <span class="info-badge" v-for="(attr, index) in getNonNumericAttributes().slice(0, 3)" :key="'attr-' + index"
-                        v-if="attr && attr.itemA && attr.itemA.trim() !== ''">
-                        <i class="fas fa-tag me-1"></i>
-                        <span class="info-label">{{ attr.name }}:</span>
-                        <span class="info-value">{{ attr.itemA }}</span>
+                    v-if="!editMode && (headerBadges && headerBadges.length > 0)">
+                    <span class="info-badge" v-for="(badge, i) in headerBadges" :key="'badge-' + i">
+                        <i class="fas" :class="'fa-' + (badge.icon || 'tag') + ' me-1'"></i>
+                        <span class="info-label">{{ badge.label }}:</span>
+                        <span class="info-value">{{ badge.value }}</span>
                     </span>
                 </div>
                 </div>
@@ -74,8 +69,12 @@
                         現在狀態：{{ public ? '公開' : '私人' }}
                         </button>
                         
-                    <!-- 登出按鈕 (僅私人卡片) -->
-                    <button type="button" class="action-btn danger" v-if="!isPublic" @click="showLogoutModal" title="登出">
+                    <!-- 登入/登出按鈕 (僅私人卡片) -->
+                    <button type="button" class="action-btn secondary" v-if="!isPublic && !isLoggedIn" @click="login" title="登入">
+                        <i class="fas fa-sign-in-alt"></i>
+                        登入
+                    </button>
+                    <button type="button" class="action-btn danger" v-if="!isPublic && isLoggedIn" @click="showLogoutModal" title="登出">
                         <i class="fas fa-sign-out-alt"></i>
                         登出
                     </button>
@@ -137,7 +136,8 @@
             </h4>
             
             <div class="hybrid-attributes-grid">
-            <div v-for="(item, index) in state" :key="index" class="attribute-panel" :class="{ 'edit-mode': editMode, 'inline-editing': item.isInlineEditing }">
+            <template v-for="(item, index) in state">
+            <div :key="'state-' + index" class="attribute-panel" :class="{ 'edit-mode': editMode, 'inline-editing': item.isInlineEditing }" v-if="editMode || !isBadgeAttribute(item)">
                     
                 <!-- 懸停刪除按鈕 (編輯模式) -->
                 <button type="button" class="hover-delete-btn" v-if="editMode" @click.stop="removeItem(0, index)"
@@ -178,8 +178,8 @@
                         </button>
                     </div>
                     
-                    <!-- 編輯模式下的輸入框 -->
-                    <div v-if="editMode" class="edit-inputs">
+                    <!-- 編輯模式下的輸入框（非內聯新項目時顯示） -->
+                    <div v-if="editMode && !item.isInlineEditing" class="edit-inputs">
                     <input type="text" :value="item.name" @input="item.name = $event.target.value" placeholder="屬性名稱"
                                class="edit-input">
                         <div class="edit-number-inputs">
@@ -201,6 +201,7 @@
                         </div>
                     </div>
                 </div>
+            </template>
             </div>
             
             <!-- 浮動添加按鈕 -->
@@ -244,8 +245,8 @@
                 <div class="attribute-label" v-if="!editMode && !item.isInlineEditing">{{ item.name }}</div>
                 <div class="attribute-value-display" v-if="!editMode && !item.isInlineEditing">{{ item.itemA || '' }}</div>
 
-                <!-- 編輯模式下的輸入框 -->
-                <div v-if="editMode" class="edit-inputs">
+                <!-- 編輯模式下的輸入框（非內聯新項目時顯示） -->
+                <div v-if="editMode && !item.isInlineEditing" class="edit-inputs">
                     <input type="text" v-model="item.name" placeholder="技能名稱"
                         class="edit-input">
                     <input type="text" v-model="item.itemA" placeholder="擲骰指令" class="edit-input">
@@ -291,14 +292,20 @@
                     </button>
                 </div>
 
-                    <!-- 正常顯示模式 -->
-                    <div v-if="!editMode && !item.isInlineEditing" class="detail-content">
-                    <div class="detail-value" v-html="(item.itemA || item.content || '').replace(/\n/g, '<br>')"></div>
-                    <div class="detail-label">{{ item.name || item.title || '' }}</div>
+                    <!-- 非編輯模式顯示與右上角全文圖示 -->
+                    <button type="button" class="dice-roll-button" v-if="!editMode && !item.isInlineEditing && isLongNote(item)" @click.stop="openNoteModal(item)" :title="(item.name || item.title || '查看全文')">
+                        <i :class="item.icon || 'fa-solid fa-up-right-and-down-left-from-center'"></i>
+                    </button>
+                    <div v-if="!editMode && !item.isInlineEditing" class="detail-content" @click="isLongNote(item) && openNoteModal(item)" :style="isLongNote(item) ? 'cursor: pointer;' : ''">
+                        <div class="detail-value" v-if="isLongNote(item)">
+                            {{ truncatedNote(item, 80) }}
+                        </div>
+                        <div class="detail-value" v-else v-html="(item.itemA || item.content || '').replace(/\n/g, '<br>')"></div>
+                        <div class="detail-label">{{ item.name || item.title || '' }}</div>
                     </div>
                     
-                    <!-- 編輯模式下的輸入框 -->
-                    <div v-if="editMode" class="edit-detail-inputs">
+                    <!-- 編輯模式下的輸入框（非內聯新項目時顯示） -->
+                    <div v-if="editMode && !item.isInlineEditing" class="edit-detail-inputs">
                     <textarea :value="item.itemA || item.content || ''"
                         @input="item.itemA = $event.target.value; if (item.content) item.content = $event.target.value"
                         placeholder="筆記內容" class="edit-detail-textarea"></textarea>
@@ -322,15 +329,35 @@
         </div>
     </section>
 
+    <!-- 筆記全文彈窗 -->
+    <div class="modal fade" id="noteDetailModal" tabindex="-1" role="dialog" aria-labelledby="noteDetailModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content bg-color">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="noteDetailModalTitle">{{ modalNoteTitle || '筆記' }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body bg-color">
+                    <div v-html="modalNoteContent"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 <!-- 編輯模式浮動按鈕 -->
 <div v-if="editMode" class="floating-edit-controls">
     <button type="button" class="floating-btn save-btn" @click="updateCard" title="儲存修改">
         <i class="fas fa-save"></i>
-        <span>儲存</span>
+        <span>儲存變更</span>
     </button>
     <button type="button" class="floating-btn revert-btn" @click="revertDataOnly" title="還原修改">
         <i class="fas fa-undo"></i>
-        <span>還原</span>
+        <span>還原修改</span>
     </button>
     <button type="button" class="floating-btn close-btn" @click="closeEditMode" title="關閉編輯模式">
         <i class="fas fa-times"></i>
@@ -342,11 +369,11 @@
 <div v-if="!isPublic && !editMode && hasUnsavedChanges" class="floating-save-controls">
     <button type="button" class="floating-btn save-btn" @click="updateCard" title="儲存修改">
         <i class="fas fa-save"></i>
-        <span>儲存</span>
+        <span>儲存變更</span>
     </button>
     <button type="button" class="floating-btn revert-btn" @click="revertChanges" title="還原修改">
         <i class="fas fa-undo"></i>
-        <span>還原</span>
+        <span>還原修改</span>
     </button>
 </div>
 
@@ -1081,6 +1108,8 @@ html body button.inline-btn {
     user-select: none !important;
     appearance: none !important;
     box-sizing: border-box !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25) !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
 }
 
 html body .inline-btn.confirm-btn {
@@ -1106,6 +1135,10 @@ html body .inline-btn.cancel-btn:hover {
     background: #c82333 !important;
     transform: scale(1.1) !important;
 }
+
+/* 內聯編輯按鈕圖示顏色與焦點樣式 */
+html body .inline-btn i { color: #ffffff !important; line-height: 1 !important; }
+html body .inline-btn:focus { box-shadow: 0 0 0 2px rgba(255,255,255,0.25) !important; }
 
 /* 內聯編輯模式樣式 */
 html body .attribute-panel.inline-editing,

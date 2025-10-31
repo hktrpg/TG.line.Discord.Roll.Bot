@@ -204,14 +204,24 @@ class AuthManager {
                 } else {
                     $('#cardListModal').modal("show");
                 }
-            } catch (error) {
+            } catch {
                 $('#cardListModal').modal("show");
             }
             this.isLoggedIn = true;
+
+            // 觸發登入狀態更新事件
+            window.dispatchEvent(new CustomEvent('authStateChanged', {
+                detail: { isLoggedIn: true, userName: this.userName }
+            }));
         } else {
             // 如果登入失敗，顯示登入模態框
             $('#loginModalCenter').modal("show");
             this.isLoggedIn = false;
+
+            // 觸發登入狀態更新事件
+            window.dispatchEvent(new CustomEvent('authStateChanged', {
+                detail: { isLoggedIn: false, userName: null }
+            }));
         }
     }
 

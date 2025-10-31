@@ -1205,6 +1205,12 @@ class Digimon {
                 }
             }
             rply += personalityLine + '\n';
+
+            // Evolution requirements (jogress or item)
+            const requirements = digimonInstance.formatEvolutionRequirements(digimon);
+            if (requirements.length > 0) {
+                rply += requirements.join('\n') + '\n';
+            }
             // Resistances
             if (digimon.elemental_resistances) {
                 const resistances = digimonInstance.formatElementalResistances(digimon.elemental_resistances);
@@ -1340,6 +1346,15 @@ class Digimon {
                 line += ` ｜ ${elementEmoji} ${totalPower}`;
             }
             result += line + '\n';
+
+            // Evolution requirements for this digimon
+            const requirements = this.formatEvolutionRequirements(d);
+            if (requirements.length > 0) {
+                for (const req of requirements) {
+                    result += `${d.name} ${req}\n`;
+                }
+            }
+
             if (d.stage === '1') {
                 // lineage details are shown in the header; skip per-item lineage block
             }
@@ -1622,6 +1637,46 @@ class Digimon {
         }
         // Fallback to first listed skill
         return digimon.special_skills[0];
+    }
+
+    // Get digimon Chinese name for display
+    getDigimonDisplayName(digimon) {
+        if (!digimon) return '';
+        const name = digimon.name || '';
+        const zhName = digimon['zh-cn-name'] || '';
+        if (zhName && zhName !== name) {
+            return `${name} ${zhName}`;
+        }
+        return name;
+    }
+
+    // Get digimon display name by English name
+    getDigimonDisplayNameByEngName(engName) {
+        if (!engName) return engName;
+        const digimon = this.getByName(engName);
+        if (digimon) {
+            return this.getDigimonDisplayName(digimon);
+        }
+        return engName;
+    }
+
+    // Format evolution requirements (jogress or item)
+    formatEvolutionRequirements(digimon) {
+        const requirements = [];
+
+        // Check for jogress (fusion) requirements
+        if (digimon.jogressAEng && digimon.jogressBEng) {
+            const aName = this.getDigimonDisplayNameByEngName(digimon.jogressAEng);
+            const bName = this.getDigimonDisplayNameByEngName(digimon.jogressBEng);
+            requirements.push(`合體進化：${aName}＋${bName}`);
+        }
+
+        // Check for item requirements
+        if (digimon.needsItemEng) {
+            requirements.push(`道具進化：${digimon.needsItemEng}`);
+        }
+
+        return requirements;
     }
 
     findSimplePathFromStage1(targetDigimon) {
@@ -2045,6 +2100,14 @@ class Digimon {
                 const personality = this.getDisplayPersonality(digimon);
                 const num = this.numberToEmoji(j + 1);
                 result += `${num}${this.padEnd(digimon.name, 8)}｜${stageName}｜基礎個性：${personality}\n`;
+
+                // Evolution requirements for this digimon
+                const requirements = this.formatEvolutionRequirements(digimon);
+                if (requirements.length > 0) {
+                    for (const req of requirements) {
+                        result += `${digimon.name} ${req}\n`;
+                    }
+                }
 
                 if (digimon.mix_evolution) {
                     const comps = this.getFusionComponents(digimon);

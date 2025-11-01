@@ -28,7 +28,7 @@ const buttonStyles = [ButtonStyle.Danger, ButtonStyle.Primary, ButtonStyle.Secon
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const discordClientConfig = require('./config/discord_client');
 const client = new Client(discordClientConfig);
-client.on('ready', () => {
+client.on('clientReady', () => {
 	discordClientConfig.updateWithClient(client);
 });
 client.cluster = new ClusterClient(client);
@@ -205,7 +205,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 
 
 
-client.once('ready', async () => {
+client.once('clientReady', async () => {
 	initInteractionCommands();
 	if (process.env.BROADCAST) connect();
 	//	if (shardid === 0) getSchedule();

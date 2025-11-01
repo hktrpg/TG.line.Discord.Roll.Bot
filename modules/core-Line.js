@@ -89,7 +89,12 @@ app.post('/', (req, res, next) => {
 // Global error handler for this module
 app.use((error, req, res) => {
 	console.error('Unhandled error in LINE webhook:', error.message);
-	res.status(500).json({ error: 'Internal server error' });
+	// Check if res is a valid Express response object
+	if (res && typeof res.status === 'function') {
+		res.status(500).json({ error: 'Internal server error' });
+	} else {
+		console.error('LINE webhook error handler: Invalid response object');
+	}
 });
 // event handler
 process.on("Line", message => {

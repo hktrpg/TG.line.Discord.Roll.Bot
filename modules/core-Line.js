@@ -299,7 +299,11 @@ let handleEvent = async function (event) {
 async function __sendMeMessage({ event, rplyVal, roomorgroupid }) {
 	if (roomorgroupid) {
 		let temp = HandleMessage(rplyVal.myspeck.content);
-		await client.replyMessage(event.replyToken, temp).catch((error) => {
+		const messages = Array.isArray(temp) ? temp : [temp];
+		await client.replyMessage({
+			replyToken: event.replyToken,
+			messages: messages
+		}).catch((error) => {
 			console.error('#60 line err', error.status);
 		});
 	} else {
@@ -310,7 +314,11 @@ async function __sendMeMessage({ event, rplyVal, roomorgroupid }) {
 
 let replyMessagebyReplyToken = function (event, Reply) {
 	let temp = HandleMessage(Reply);
-	return client.replyMessage(event.replyToken, temp).catch((error) => {
+	const messages = Array.isArray(temp) ? temp : [temp];
+	return client.replyMessage({
+		replyToken: event.replyToken,
+		messages: messages
+	}).catch((error) => {
 		// Handle reply message errors
 		const statusCode = error.status;
 		if (statusCode === 404) {
@@ -327,7 +335,10 @@ let replyMessagebyReplyToken = function (event, Reply) {
 				type: 'text',
 				text: temp.originalContentUrl
 			};
-			client.replyMessage(event.replyToken, tempB).catch((fallbackError) => {
+			client.replyMessage({
+				replyToken: event.replyToken,
+				messages: [tempB]
+			}).catch((fallbackError) => {
 				console.error(`LINE replyMessage fallback error (${fallbackError.status})`);
 			});
 		}

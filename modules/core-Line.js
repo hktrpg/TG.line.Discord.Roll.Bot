@@ -26,6 +26,33 @@ const courtMessage = require('./logs').courtMessage || function () {};
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const client = new line.Client(config);
 const newMessage = require('./message');
+
+// Helper function to get user profile based on context
+async function getUserProfile(event, userid) {
+	try {
+		let profile;
+		if (event.source.groupId) {
+			profile = await client.getGroupMemberProfile(event.source.groupId, userid);
+		} else if (event.source.roomId) {
+			profile = await client.getRoomMemberProfile(event.source.roomId, userid);
+		} else {
+			profile = await client.getProfile(userid);
+		}
+		return profile;
+	} catch (error) {
+		if (error.statusCode === 404) {
+			console.error(`LINE getProfile error: User profile not accessible (${userid})`);
+		} else {
+			console.error('LINE getProfile error:', error.message);
+		}
+		return null;
+	}
+}
+
+// Export for testing
+if (process.env.NODE_ENV === 'test') {
+	exports.getUserProfile = getUserProfile;
+}
 // create Express app
 // about Express itself: https://expressjs.com/
 const app = require('./core-www.js').app;
@@ -41,22 +68,21 @@ app.post('/', (req, res, next) => {
 			console.error('LINE webhook signature verification failed');
 			return res.status(401).json({ error: 'Invalid signature' });
 		}
-		// Pass other errors to Express error handler
 		next(error);
 	}
-}, (req, res) => {
-	Promise
-		.all(req.body.events.map(handleEvent))
-		.then((result) => res.json(result))
-		.catch(() => {
-			console.error('LINE event processing error');
-			res.status(500).end();
-		});
+}, async (req, res) => {
+	try {
+		const result = await Promise.all(req.body.events.map(handleEvent));
+		res.json(result);
+	} catch (error) {
+		console.error('LINE event processing error:', error.message);
+		res.status(500).end();
+	}
 });
 
 // Global error handler for this module
-app.use((_, req, res) => {
-	console.error('Unhandled error in LINE webhook');
+app.use((error, req, res) => {
+	console.error('Unhandled error in LINE webhook:', error.message);
 	res.status(500).json({ error: 'Internal server error' });
 });
 // event handler
@@ -67,17 +93,17 @@ process.on("Line", message => {
 });
 
 let handleEvent = async function (event) {
+	try {
+		let inputStr = (event.message && event.message.text) ? event.message.text : "";
 
-	let inputStr = (event.message && event.message.text) ? event.message.text : "";
-
-	let trigger = "";
-	let roomorgroupid = event.source.groupId || event.source.roomId || '';
-	let mainMsg = (inputStr) ? inputStr.match(MESSAGE_SPLITOR) : {}; //定義輸入字串
-	if (mainMsg && mainMsg[0]) {
-		trigger = mainMsg[0].toString().toLowerCase();
-	}
-	//指定啟動詞在第一個詞&把大階強制轉成細階
-	let privatemsg = 0;
+		let trigger = "";
+		let roomorgroupid = event.source.groupId || event.source.roomId || '';
+		let mainMsg = (inputStr) ? inputStr.match(MESSAGE_SPLITOR) : {}; //定義輸入字串
+		if (mainMsg && mainMsg[0]) {
+			trigger = mainMsg[0].toString().toLowerCase();
+		}
+		//指定啟動詞在第一個詞&把大階強制轉成細階
+		let privatemsg = 0;
 
 	(function privateMsg() {
 		if (/^dr$/i.test(trigger) && mainMsg && mainMsg[1]) {
@@ -115,12 +141,8 @@ let handleEvent = async function (event) {
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
 	if (userid) {
-		try {
-			let profile = await client.getProfile(userid);
-			displayname = (profile && profile.displayName) ? profile.displayName : '';
-		} catch {
-			//
-		}
+		const profile = await getUserProfile(event, userid);
+		displayname = (profile && profile.displayName) ? profile.displayName : '';
 	}
 
 	if (event.source && event.source.groupId) {
@@ -268,6 +290,10 @@ let handleEvent = async function (event) {
 		}
 	}
 	return;
+	} catch (error) {
+		console.error('LINE handleEvent error:', error.message);
+		// Don't re-throw the error to prevent it from bubbling up to Promise.all
+	}
 }
 
 async function __sendMeMessage({ event, rplyVal, roomorgroupid }) {
@@ -284,20 +310,28 @@ async function __sendMeMessage({ event, rplyVal, roomorgroupid }) {
 
 let replyMessagebyReplyToken = function (event, Reply) {
 	let temp = HandleMessage(Reply);
-	return client.replyMessage(event.replyToken, temp).catch(() => {
-		if (temp.type == 'image') {
-			let tempB = {
+	return client.replyMessage(event.replyToken, temp).catch((error) => {
+		// Handle reply message errors
+		const statusCode = error.statusCode;
+		if (statusCode === 404) {
+			console.error('LINE replyMessage 404: Invalid reply token or user blocked bot');
+		} else if (statusCode === 400) {
+			console.error('LINE replyMessage 400: Invalid message format');
+		} else {
+			console.error(`LINE replyMessage error (${statusCode})`);
+		}
+
+		// Fallback for image messages
+		if (temp.type === 'image') {
+			const tempB = {
 				type: 'text',
 				text: temp.originalContentUrl
 			};
-			client.replyMessage(event.replyToken, tempB).catch((error) => {
-				console.error('#292 line err', error.statusCode);
+			client.replyMessage(event.replyToken, tempB).catch((fallbackError) => {
+				console.error(`LINE replyMessage fallback error (${fallbackError.statusCode})`);
 			});
-			//	}
 		}
 	});
-
-
 }
 
 function HandleMessage(message) {
@@ -427,10 +461,18 @@ app.on('unhandledRejection', error => {
 	console.error('Line unhandledRejection:', error.message);
 });
 function SendToId(targetid, Reply) {
-	let temp = HandleMessage(Reply);
+	const temp = HandleMessage(Reply);
 	client.pushMessage(targetid, temp).catch((error) => {
-		if (error.statusCode == 429) return
-		console.error('#409 line err', error.statusCode, temp);
+		const statusCode = error.statusCode;
+		if (statusCode === 429) return; // Rate limit, ignore
+
+		if (statusCode === 404) {
+			console.error(`LINE pushMessage 404: User not found or blocked bot (${targetid})`);
+		} else if (statusCode === 400) {
+			console.error('LINE pushMessage 400: Invalid message format');
+		} else {
+			console.error(`LINE pushMessage error (${statusCode}): ${targetid}`);
+		}
 	});
 }
 async function privateMsgFinder(channelid) {
@@ -441,23 +483,22 @@ async function privateMsgFinder(channelid) {
 	return groupInfo && groupInfo.trpgDarkRollingfunction ? groupInfo.trpgDarkRollingfunction : [];
 }
 async function nonDice(event) {
-	await courtMessage({ result: "", botname: "Line", inputStr: "" })
-	let roomorgroupid = event.source.groupId || event.source.roomId || '',
-		userid = event.source.userId || '',
-		displayname = '';
-	if (!roomorgroupid || !userid) return;
-	let profile = await client.getProfile(userid);
+	try {
+		await courtMessage({ result: "", botname: "Line", inputStr: "" });
+		const roomorgroupid = event.source.groupId || event.source.roomId || '';
+		const userid = event.source.userId || '';
+		if (!roomorgroupid || !userid) return;
 
-	//	在GP 而有加好友的話,得到名字
-	if (profile && profile.displayName) {
-		displayname = profile.displayName;
-	}
-	let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
-	if (roomorgroupid && LevelUp && LevelUp.text) {
-		return replyMessagebyReplyToken(event, LevelUp.text);
-	}
-	//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
+		const profile = await getUserProfile(event, userid);
+		const displayname = (profile && profile.displayName) ? profile.displayName : '';
 
+		const LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
+		if (roomorgroupid && LevelUp && LevelUp.text) {
+			replyMessagebyReplyToken(event, LevelUp.text);
+		}
+	} catch (error) {
+		console.error('LINE nonDice processing error:', error.message);
+	}
 	return null;
 }
 

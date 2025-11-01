@@ -423,8 +423,32 @@ async function read() {
 (async () => {
 	await read()
 })();
-require('https').createServer(options, app).listen(port, () => {
+const server = require('https').createServer(options, app);
+server.listen(port, () => {
 	console.log(`Line BOT listening on ${port}`);
+});
+
+// Handle malformed client requests to prevent socket warnings
+server.on('clientError', (err, socket) => {
+	try {
+		if (socket && socket.writable) {
+			// Respond with a simple 400 so clients don't retry the same bad request
+			socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+		}
+	} catch {
+		// Intentionally ignore write errors
+	} finally {
+		try {
+			if (socket && !socket.destroyed) socket.destroy(err);
+		} catch { /* ignore */ }
+	}
+});
+
+// Handle TLS-specific errors
+server.on('tlsClientError', (err, socket) => {
+	try {
+		if (socket && !socket.destroyed) socket.destroy(err);
+	} catch { /* ignore */ }
 });
 
 

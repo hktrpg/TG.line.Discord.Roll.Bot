@@ -32,14 +32,32 @@ const app = require('./core-www.js').app;
 
 // register a webhook handler with middleware
 // about the middleware, please refer to doc
-app.post('/', line.middleware(config), (req, res) => {
+app.post('/', (req, res, next) => {
+	try {
+		line.middleware(config)(req, res, next);
+	} catch (error) {
+		// Handle signature verification errors gracefully
+		if (error.message === 'no signature' || error.message.includes('signature')) {
+			console.error('LINE webhook signature verification failed');
+			return res.status(401).json({ error: 'Invalid signature' });
+		}
+		// Pass other errors to Express error handler
+		next(error);
+	}
+}, (req, res) => {
 	Promise
 		.all(req.body.events.map(handleEvent))
 		.then((result) => res.json(result))
 		.catch(() => {
-			//	console.error(err);
+			console.error('LINE event processing error');
 			res.status(500).end();
 		});
+});
+
+// Global error handler for this module
+app.use((_, req, res) => {
+	console.error('Unhandled error in LINE webhook');
+	res.status(500).json({ error: 'Internal server error' });
 });
 // event handler
 process.on("Line", message => {

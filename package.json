@@ -31,7 +31,7 @@
     "@aws-sdk/client-sso-oidc": "^3.713.0",
     "@aws-sdk/client-sts": "^3.848.0",
     "@dice-roller/rpg-dice-roller": "5.3.2",
-    "@line/bot-sdk": "^7.2.0",
+    "@line/bot-sdk": "^10.4.0",
     "@lunisolar/plugin-char8ex": "^0.2.5",
     "@lunisolar/plugin-fetalgod": "^0.1.4",
     "@lunisolar/plugin-takesound": "^0.1.2",

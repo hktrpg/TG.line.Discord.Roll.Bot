@@ -48,15 +48,15 @@ app.post('/', (req, res, next) => {
 	Promise
 		.all(req.body.events.map(handleEvent))
 		.then((result) => res.json(result))
-		.catch(() => {
-			console.error('LINE event processing error');
+		.catch((error) => {
+			console.error('LINE event processing error:', error.message);
 			res.status(500).end();
 		});
 });
 
 // Global error handler for this module
-app.use((_, req, res) => {
-	console.error('Unhandled error in LINE webhook');
+app.use((error, req, res) => {
+	console.error('Unhandled error in LINE webhook:', error.message);
 	res.status(500).json({ error: 'Internal server error' });
 });
 // event handler

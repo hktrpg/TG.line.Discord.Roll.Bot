@@ -38,17 +38,11 @@ async function getUserProfile(event, userid) {
 
 		let profile;
 		if (event.source.groupId) {
-			profile = await client.getGroupMemberProfile({
-				groupId: event.source.groupId,
-				userId: userid
-			});
+			profile = await client.getGroupMemberProfile(event.source.groupId, userid);
 		} else if (event.source.roomId) {
-			profile = await client.getRoomMemberProfile({
-				roomId: event.source.roomId,
-				userId: userid
-			});
+			profile = await client.getRoomMemberProfile(event.source.roomId, userid);
 		} else {
-			profile = await client.getProfile({ userId: userid });
+			profile = await client.getProfile(userid);
 		}
 		return profile;
 	} catch (error) {
@@ -161,7 +155,7 @@ let handleEvent = async function (event) {
 
 	if (event.source && event.source.groupId) {
 		try {
-			let gpProfile = await client.getGroupSummary({ groupId: roomorgroupid });
+			let gpProfile = await client.getGroupSummary(roomorgroupid);
 			titleName = (gpProfile && gpProfile.groupName) ? gpProfile.groupName : '';
 		} catch {
 			//

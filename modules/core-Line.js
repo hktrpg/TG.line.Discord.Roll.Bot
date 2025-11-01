@@ -32,11 +32,17 @@ async function getUserProfile(event, userid) {
 	try {
 		let profile;
 		if (event.source.groupId) {
-			profile = await client.getGroupMemberProfile(event.source.groupId, userid);
+			profile = await client.getGroupMemberProfile({
+				groupId: event.source.groupId,
+				userId: userid
+			});
 		} else if (event.source.roomId) {
-			profile = await client.getRoomMemberProfile(event.source.roomId, userid);
+			profile = await client.getRoomMemberProfile({
+				roomId: event.source.roomId,
+				userId: userid
+			});
 		} else {
-			profile = await client.getProfile(userid);
+			profile = await client.getProfile({ userId: userid });
 		}
 		return profile;
 	} catch (error) {
@@ -147,7 +153,7 @@ let handleEvent = async function (event) {
 
 	if (event.source && event.source.groupId) {
 		try {
-			let gpProfile = await client.getGroupSummary(roomorgroupid);
+			let gpProfile = await client.getGroupSummary({ groupId: roomorgroupid });
 			titleName = (gpProfile && gpProfile.groupName) ? gpProfile.groupName : '';
 		} catch {
 			//
@@ -473,7 +479,11 @@ app.on('unhandledRejection', error => {
 });
 function SendToId(targetid, Reply) {
 	const temp = HandleMessage(Reply);
-	client.pushMessage(targetid, temp).catch((error) => {
+	const messages = Array.isArray(temp) ? temp : [temp];
+	client.pushMessage({
+		to: targetid,
+		messages: messages
+	}).catch((error) => {
 		const statusCode = error.status;
 		if (statusCode === 429) return; // Rate limit, ignore
 

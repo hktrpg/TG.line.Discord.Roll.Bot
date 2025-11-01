@@ -163,14 +163,18 @@ function readme() {
 }
 
 function selectCard() {
-    // 檢查是否有未保存的變更
+    // 檢查是否有未保存的變更 - 只在私有頁面且有編輯權限時檢查
     if (cardManager && cardManager.getCard) {
         const card = cardManager.getCard();
-        if (card && (card.hasUnsavedChanges || (card.editMode && card.hasUnsavedChangesInEditMode && card.hasUnsavedChangesInEditMode()))) {
-            if (confirm('您有未儲存的變更，確定要離開嗎？未儲存的變更將會遺失。')) {
-                uiManager.showModal('cardListModal');
+        if (card && !card.isPublic) {
+            // 檢查是否顯示了 floating-save-controls（表示有未保存的變更）
+            const floatingControls = document.querySelector('.floating-save-controls');
+            if (floatingControls) {
+                if (confirm('您有未儲存的變更，確定要離開嗎？未儲存的變更將會遺失。')) {
+                    uiManager.showModal('cardListModal');
+                }
+                return;
             }
-            return;
         }
     }
     uiManager.showModal('cardListModal');

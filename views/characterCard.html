@@ -116,6 +116,22 @@
                     setTimeout(function(){ $('#warning-updateError').hide(); }, 3000);
                 }
             });
+
+            // 添加頁面卸載前的檢查 - 防止未保存變更遺失
+            window.addEventListener('beforeunload', function (event) {
+                if (cardManager && cardManager.getCard) {
+                    const card = cardManager.getCard();
+                    if (card && !card.isPublic) {
+                        // 檢查是否有未保存的變更
+                        if (card.hasUnsavedChanges) {
+                            // 顯示確認對話框
+                            event.preventDefault();
+                            event.returnValue = '您有未儲存的變更，確定要離開嗎？未儲存的變更將會遺失。';
+                            return event.returnValue;
+                        }
+                    }
+                }
+            });
         });
     </script>
 </body>

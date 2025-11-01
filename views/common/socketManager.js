@@ -147,6 +147,10 @@ class SocketManager {
                     if (selected && selected._id) {
                         const card = cardManager.getCard();
                         if (card) {
+                            // 清除之前的原始數據，避免不同卡片的數據混合
+                            card.originalData = null;
+                            card.hasUnsavedChanges = false;
+
                             card._id = selected._id;
                             card.id = selected.id;
                             card.name = selected.name;
@@ -159,6 +163,11 @@ class SocketManager {
                             try { $('#cardListModal').modal("hide"); } catch {}
                             this.publicCardLoadedId = selected._id;
                             this.publicListProcessed = true;
+
+                            // 保存新卡片的原始數據
+                            card.$nextTick(() => {
+                                card.saveOriginalData();
+                            });
                             return;
                         }
                     }

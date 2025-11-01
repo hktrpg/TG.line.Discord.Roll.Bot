@@ -66,6 +66,11 @@ class PageConfigManager {
         socket.on("getPublicCardInfo", function (cardInfo) {
             if (cardInfo && cardInfo.temp) {
                 const cardData = cardInfo.temp;
+
+                // 清除之前的原始數據，避免不同卡片的數據混合
+                card.originalData = null;
+                card.hasUnsavedChanges = false;
+
                 card._id = cardData._id;
                 card.id = cardData.id;
                 card.name = cardData.name;
@@ -74,6 +79,12 @@ class PageConfigManager {
                 card.notes = cardData.notes || [];
                 card.public = cardData.public || false;
                 $('#cardListModal').modal("hide");
+
+                // 保存新卡片的原始數據
+                card.$nextTick(() => {
+                    card.saveOriginalData();
+                });
+
                 debugLog('Card data loaded successfully', 'info');
             } else {
                 debugLog('Failed to load card data', 'error');

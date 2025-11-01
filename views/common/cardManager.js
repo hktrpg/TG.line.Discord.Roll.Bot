@@ -1029,6 +1029,10 @@ class CardManager {
                     nextPage() { if (this.page < this.totalPages) this.page++; },
                     getTheSelectedOneByItem(item) {
                         if (cardManager.card && item) {
+                            // 清除之前的原始數據，避免不同卡片的數據混合
+                            cardManager.card.originalData = null;
+                            cardManager.card.hasUnsavedChanges = false;
+
                             cardManager.card._id = item._id;
                             cardManager.card.id = item.id;
                             cardManager.card.name = item.name;
@@ -1037,6 +1041,7 @@ class CardManager {
                             cardManager.card.roll = item.roll;
                             cardManager.card.notes = item.notes;
                             cardManager.card.public = item.public;
+
                             // 記下本機最後選用的角色卡（依用戶分隔）
                             try {
                                 const userKey = (localStorage.getItem('userName') || 'default');
@@ -1047,6 +1052,9 @@ class CardManager {
                                 }
                             } catch {}
                             $('#cardListModal').modal("hide");
+
+                            // 保存新卡片的原始數據
+                            cardManager.card.saveOriginalData();
                         }
                     }
                 }

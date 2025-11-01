@@ -60,6 +60,20 @@
     box-shadow: var(--shadow-sm);
 }
 
+/* Style alerts container and alerts */
+#alerts-container {
+    background-color: transparent;
+}
+
+#alerts-container .alert {
+    margin-bottom: 8px !important;
+    /* Transparent spacing between alerts */
+    border-radius: 12px !important;
+    /* Rounded corners */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    /* Shadow effect */
+}
+
 .alert.alert-custom.alert-success {
     background-color: var(--color-success-light);
     color: var(--color-success-dark);
@@ -336,16 +350,17 @@
 
 /* 響應式覆蓋 */
 @media (max-width: 768px) {
+
     .container.container-custom,
     .container-fluid.container-fluid-custom {
         padding-left: var(--spacing-sm);
         padding-right: var(--spacing-sm);
     }
-    
+
     .card.card-custom .card-body {
         padding: var(--spacing-sm);
     }
-    
+
     .modal.modal-custom .modal-body {
         padding: var(--spacing-md);
     }
@@ -358,12 +373,12 @@
         border-color: var(--color-gray-600);
         color: var(--color-text-dark);
     }
-    
+
     .modal.modal-custom .modal-content {
         background-color: var(--bg-dark-primary);
         color: var(--color-text-dark);
     }
-    
+
     .navbar.navbar-custom {
         background-color: var(--bg-dark-primary);
         border-color: var(--color-gray-600);
@@ -372,12 +387,13 @@
 
 /* 打印樣式 */
 @media print {
+
     .btn.btn-custom,
     .modal.modal-custom,
     .navbar.navbar-custom {
         display: none;
     }
-    
+
     .card.card-custom {
         box-shadow: none;
         border: var(--border-width-normal) solid var(--color-gray-400);

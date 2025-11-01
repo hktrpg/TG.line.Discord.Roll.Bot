@@ -80,7 +80,7 @@
 
 /* 屬性標籤 - 傳統風格 */
 .attribute-label {
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-base);
     font-weight: var(--font-weight-semibold);
     color: var(--text-dark);
     margin-bottom: var(--spacing-sm);
@@ -94,7 +94,7 @@
 
 /* 屬性數值 - 現代化顯示 */
 .attribute-value-display {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-s);
     font-weight: var(--font-weight-bold);
     color: var(--text-primary);
     margin: var(--spacing-sm) 0;
@@ -1090,7 +1090,7 @@
 
 @media (max-width: 480px) {
     .hybrid-attributes-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .attribute-panel {

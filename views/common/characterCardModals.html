@@ -82,12 +82,12 @@
                             </select>
                             <span class="ml-2 text-muted">共 {{ filteredCount }} 張</span>
                         </div>
-                        <div>
-                            <span v-for="(item,index) in pagedList" :key="item._id || index" class="col">
-                                <button type="button" class="btn btn-warning m-1"
+                        <div class="row">
+                            <div v-for="(item,index) in pagedList" :key="item._id || index" class="col-6 col-md-4 col-lg-3 mb-2">
+                                <button type="button" class="btn btn-warning w-100"
                                     v-on:click="getTheSelectedOneByItem(item)">
                                     {{item.name}}</button>
-                            </span>
+                            </div>
                         </div>
                         <div class="d-flex justify-content-between align-items-center mt-2" v-if="totalPages > 1">
                             <button type="button" class="btn btn-sm btn-secondary" :disabled="page<=1" @click="prevPage">上一頁</button>

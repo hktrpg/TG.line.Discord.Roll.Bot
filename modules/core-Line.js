@@ -67,17 +67,17 @@ process.on("Line", message => {
 });
 
 let handleEvent = async function (event) {
+	try {
+		let inputStr = (event.message && event.message.text) ? event.message.text : "";
 
-	let inputStr = (event.message && event.message.text) ? event.message.text : "";
-
-	let trigger = "";
-	let roomorgroupid = event.source.groupId || event.source.roomId || '';
-	let mainMsg = (inputStr) ? inputStr.match(MESSAGE_SPLITOR) : {}; //定義輸入字串
-	if (mainMsg && mainMsg[0]) {
-		trigger = mainMsg[0].toString().toLowerCase();
-	}
-	//指定啟動詞在第一個詞&把大階強制轉成細階
-	let privatemsg = 0;
+		let trigger = "";
+		let roomorgroupid = event.source.groupId || event.source.roomId || '';
+		let mainMsg = (inputStr) ? inputStr.match(MESSAGE_SPLITOR) : {}; //定義輸入字串
+		if (mainMsg && mainMsg[0]) {
+			trigger = mainMsg[0].toString().toLowerCase();
+		}
+		//指定啟動詞在第一個詞&把大階強制轉成細階
+		let privatemsg = 0;
 
 	(function privateMsg() {
 		if (/^dr$/i.test(trigger) && mainMsg && mainMsg[1]) {
@@ -116,10 +116,24 @@ let handleEvent = async function (event) {
 	let TargetGMTempdisplayname = [];
 	if (userid) {
 		try {
-			let profile = await client.getProfile(userid);
+			let profile;
+			// Use appropriate method based on context
+			if (event.source.groupId) {
+				profile = await client.getGroupMemberProfile(event.source.groupId, userid);
+			} else if (event.source.roomId) {
+				profile = await client.getRoomMemberProfile(event.source.roomId, userid);
+			} else {
+				// Direct message - user has added bot as friend
+				profile = await client.getProfile(userid);
+			}
 			displayname = (profile && profile.displayName) ? profile.displayName : '';
-		} catch {
-			//
+		} catch (error) {
+			// Handle 404 errors gracefully - user may not be accessible
+			if (error.statusCode === 404) {
+				console.error('LINE getProfile error: User profile not accessible (user not friend or invalid ID):', userid);
+			} else {
+				console.error('LINE getProfile error:', error.message);
+			}
 		}
 	}
 
@@ -268,6 +282,10 @@ let handleEvent = async function (event) {
 		}
 	}
 	return;
+	} catch (error) {
+		console.error('LINE handleEvent error:', error.message);
+		// Don't re-throw the error to prevent it from bubbling up to Promise.all
+	}
 }
 
 async function __sendMeMessage({ event, rplyVal, roomorgroupid }) {
@@ -284,14 +302,23 @@ async function __sendMeMessage({ event, rplyVal, roomorgroupid }) {
 
 let replyMessagebyReplyToken = function (event, Reply) {
 	let temp = HandleMessage(Reply);
-	return client.replyMessage(event.replyToken, temp).catch(() => {
+	return client.replyMessage(event.replyToken, temp).catch((error) => {
+		// Handle reply message errors (404, 400, etc.)
+		if (error.statusCode === 404) {
+			console.error('LINE replyMessage 404 error - invalid reply token or user blocked bot');
+		} else if (error.statusCode === 400) {
+			console.error('LINE replyMessage 400 error - invalid message format');
+		} else {
+			console.error('LINE replyMessage error:', error.statusCode);
+		}
+
 		if (temp.type == 'image') {
 			let tempB = {
 				type: 'text',
 				text: temp.originalContentUrl
 			};
 			client.replyMessage(event.replyToken, tempB).catch((error) => {
-				console.error('#292 line err', error.statusCode);
+				console.error('#292 line reply fallback err', error.statusCode);
 			});
 			//	}
 		}
@@ -429,8 +456,14 @@ app.on('unhandledRejection', error => {
 function SendToId(targetid, Reply) {
 	let temp = HandleMessage(Reply);
 	client.pushMessage(targetid, temp).catch((error) => {
-		if (error.statusCode == 429) return
-		console.error('#409 line err', error.statusCode, temp);
+		if (error.statusCode == 429) return; // Rate limit, ignore
+		if (error.statusCode === 404) {
+			console.error('LINE pushMessage 404 error - user not found or bot blocked by user:', targetid);
+		} else if (error.statusCode === 400) {
+			console.error('LINE pushMessage 400 error - invalid message format:', error.message);
+		} else {
+			console.error('#409 line push err', error.statusCode, targetid);
+		}
 	});
 }
 async function privateMsgFinder(channelid) {
@@ -441,20 +474,43 @@ async function privateMsgFinder(channelid) {
 	return groupInfo && groupInfo.trpgDarkRollingfunction ? groupInfo.trpgDarkRollingfunction : [];
 }
 async function nonDice(event) {
-	await courtMessage({ result: "", botname: "Line", inputStr: "" })
-	let roomorgroupid = event.source.groupId || event.source.roomId || '',
-		userid = event.source.userId || '',
-		displayname = '';
-	if (!roomorgroupid || !userid) return;
-	let profile = await client.getProfile(userid);
+	try {
+		await courtMessage({ result: "", botname: "Line", inputStr: "" })
+		let roomorgroupid = event.source.groupId || event.source.roomId || '',
+			userid = event.source.userId || '',
+			displayname = '';
+		if (!roomorgroupid || !userid) return;
 
-	//	在GP 而有加好友的話,得到名字
-	if (profile && profile.displayName) {
-		displayname = profile.displayName;
-	}
-	let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
-	if (roomorgroupid && LevelUp && LevelUp.text) {
-		return replyMessagebyReplyToken(event, LevelUp.text);
+		try {
+			let profile;
+			// Use appropriate method based on context
+			if (event.source.groupId) {
+				profile = await client.getGroupMemberProfile(event.source.groupId, userid);
+			} else if (event.source.roomId) {
+				profile = await client.getRoomMemberProfile(event.source.roomId, userid);
+			} else {
+				// Direct message - user has added bot as friend
+				profile = await client.getProfile(userid);
+			}
+			//	在GP 而有加好友的話,得到名字
+			if (profile && profile.displayName) {
+				displayname = profile.displayName;
+			}
+		} catch (error) {
+			// Handle profile fetch errors (404, etc.) gracefully
+			if (error.statusCode === 404) {
+				console.error('LINE getProfile error in nonDice: User profile not accessible (user not friend or invalid ID):', userid);
+			} else {
+				console.error('LINE getProfile error in nonDice:', error.message);
+			}
+		}
+
+		let LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
+		if (roomorgroupid && LevelUp && LevelUp.text) {
+			replyMessagebyReplyToken(event, LevelUp.text);
+		}
+	} catch (error) {
+		console.error('LINE nonDice processing error:', error.message);
 	}
 	//如果對方沒加朋友,會出現 UnhandledPromiseRejectionWarning, 就跳到這裡
 

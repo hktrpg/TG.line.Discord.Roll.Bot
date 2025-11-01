@@ -22,14 +22,20 @@ const config = {
 };
 const TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const courtMessage = require('./logs').courtMessage || function () {};
-// create LINE SDK client
+// create LINE SDK client (CommonJS format for v10.x)
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
-const client = new line.Client(config);
+const client = new line.messagingApi.MessagingApiClient(config);
 const newMessage = require('./message');
 
 // Helper function to get user profile based on context
 async function getUserProfile(event, userid) {
 	try {
+		// Validate userid before making API calls
+		if (!userid || userid.trim() === '') {
+			console.error(`LINE getProfile error: Invalid userId provided (${userid})`);
+			return null;
+		}
+
 		let profile;
 		if (event.source.groupId) {
 			profile = await client.getGroupMemberProfile(event.source.groupId, userid);
@@ -40,10 +46,10 @@ async function getUserProfile(event, userid) {
 		}
 		return profile;
 	} catch (error) {
-		if (error.statusCode === 404) {
+		if (error.status === 404) {
 			console.error(`LINE getProfile error: User profile not accessible (${userid})`);
 		} else {
-			console.error('LINE getProfile error:', error.message);
+			console.error(`LINE getProfile error: ${error.status} - ${error.message} (userId: ${userid})`);
 		}
 		return null;
 	}
@@ -299,8 +305,12 @@ let handleEvent = async function (event) {
 async function __sendMeMessage({ event, rplyVal, roomorgroupid }) {
 	if (roomorgroupid) {
 		let temp = HandleMessage(rplyVal.myspeck.content);
-		await client.replyMessage(event.replyToken, temp).catch((error) => {
-			console.error('#60 line err', error.statusCode);
+		const messages = Array.isArray(temp) ? temp : [temp];
+		await client.replyMessage({
+			replyToken: event.replyToken,
+			messages: messages
+		}).catch((error) => {
+			console.error('#60 line err', error.status);
 		});
 	} else {
 		SendToId(event.source.userId, rplyVal.myspeck.content);
@@ -310,9 +320,13 @@ async function __sendMeMessage({ event, rplyVal, roomorgroupid }) {
 
 let replyMessagebyReplyToken = function (event, Reply) {
 	let temp = HandleMessage(Reply);
-	return client.replyMessage(event.replyToken, temp).catch((error) => {
+	const messages = Array.isArray(temp) ? temp : [temp];
+	return client.replyMessage({
+		replyToken: event.replyToken,
+		messages: messages
+	}).catch((error) => {
 		// Handle reply message errors
-		const statusCode = error.statusCode;
+		const statusCode = error.status;
 		if (statusCode === 404) {
 			console.error('LINE replyMessage 404: Invalid reply token or user blocked bot');
 		} else if (statusCode === 400) {
@@ -327,8 +341,11 @@ let replyMessagebyReplyToken = function (event, Reply) {
 				type: 'text',
 				text: temp.originalContentUrl
 			};
-			client.replyMessage(event.replyToken, tempB).catch((fallbackError) => {
-				console.error(`LINE replyMessage fallback error (${fallbackError.statusCode})`);
+			client.replyMessage({
+				replyToken: event.replyToken,
+				messages: [tempB]
+			}).catch((fallbackError) => {
+				console.error(`LINE replyMessage fallback error (${fallbackError.status})`);
 			});
 		}
 	});
@@ -462,8 +479,12 @@ app.on('unhandledRejection', error => {
 });
 function SendToId(targetid, Reply) {
 	const temp = HandleMessage(Reply);
-	client.pushMessage(targetid, temp).catch((error) => {
-		const statusCode = error.statusCode;
+	const messages = Array.isArray(temp) ? temp : [temp];
+	client.pushMessage({
+		to: targetid,
+		messages: messages
+	}).catch((error) => {
+		const statusCode = error.status;
 		if (statusCode === 429) return; // Rate limit, ignore
 
 		if (statusCode === 404) {
@@ -487,7 +508,11 @@ async function nonDice(event) {
 		await courtMessage({ result: "", botname: "Line", inputStr: "" });
 		const roomorgroupid = event.source.groupId || event.source.roomId || '';
 		const userid = event.source.userId || '';
-		if (!roomorgroupid || !userid) return;
+
+		// Skip if no room/group ID or no valid user ID
+		if (!roomorgroupid || !userid || userid.trim() === '') {
+			return null;
+		}
 
 		const profile = await getUserProfile(event, userid);
 		const displayname = (profile && profile.displayName) ? profile.displayName : '';

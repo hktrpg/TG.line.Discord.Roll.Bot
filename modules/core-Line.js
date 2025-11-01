@@ -30,6 +30,12 @@ const newMessage = require('./message');
 // Helper function to get user profile based on context
 async function getUserProfile(event, userid) {
 	try {
+		// Validate userid before making API calls
+		if (!userid || userid.trim() === '') {
+			console.error(`LINE getProfile error: Invalid userId provided (${userid})`);
+			return null;
+		}
+
 		let profile;
 		if (event.source.groupId) {
 			profile = await client.getGroupMemberProfile({
@@ -49,7 +55,7 @@ async function getUserProfile(event, userid) {
 		if (error.status === 404) {
 			console.error(`LINE getProfile error: User profile not accessible (${userid})`);
 		} else {
-			console.error('LINE getProfile error:', error.message);
+			console.error(`LINE getProfile error: ${error.status} - ${error.message} (userId: ${userid})`);
 		}
 		return null;
 	}
@@ -508,7 +514,11 @@ async function nonDice(event) {
 		await courtMessage({ result: "", botname: "Line", inputStr: "" });
 		const roomorgroupid = event.source.groupId || event.source.roomId || '';
 		const userid = event.source.userId || '';
-		if (!roomorgroupid || !userid) return;
+
+		// Skip if no room/group ID or no valid user ID
+		if (!roomorgroupid || !userid || userid.trim() === '') {
+			return null;
+		}
 
 		const profile = await getUserProfile(event, userid);
 		const displayname = (profile && profile.displayName) ? profile.displayName : '';

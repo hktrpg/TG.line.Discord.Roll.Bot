@@ -263,6 +263,7 @@ class Digimon {
         this.byId = new Map();
         this.byName = new Map();
         this.byZhName = new Map();
+        this.byEngName = new Map();
         this.byNameLower = new Map();
         this.byZhNameLower = new Map();
         // Cached moves search structures
@@ -345,12 +346,14 @@ class Digimon {
         this.byId.clear();
         this.byName.clear();
         this.byZhName.clear();
+        this.byEngName.clear();
         this.byNameLower.clear();
         this.byZhNameLower.clear();
         for (const d of this.digimonData) {
             if (typeof d.id === 'number') this.byId.set(d.id, d);
             if (d && typeof d.name === 'string') this.byName.set(d.name, d);
             if (d && typeof d['zh-cn-name'] === 'string') this.byZhName.set(d['zh-cn-name'], d);
+            if (d && typeof d['eng-name'] === 'string') this.byEngName.set(d['eng-name'], d);
             if (d && typeof d.name === 'string') this.byNameLower.set(d.name.toLowerCase(), d);
             if (d && typeof d['zh-cn-name'] === 'string') this.byZhNameLower.set(String(d['zh-cn-name']).toLowerCase(), d);
         }
@@ -1279,15 +1282,6 @@ class Digimon {
                 rply += `出現地點：${locations.join(', ')}\n`;
             }
 
-            // Fusion info (if any)
-            if (digimon.mix_evolution) {
-                rply += `特殊進化：合體進化\n`;
-                const comps = digimonInstance.getFusionComponents(digimon);
-                if (comps.length === 2) {
-                    rply += `合體來源：${comps[0]} + ${comps[1]}\n`;
-                }
-            }
-
             // Immediate evolutions available from this Digimon
             if (Array.isArray(digimon.evolutions) && digimon.evolutions.length > 0) {
                 const nextDigimon = digimon.evolutions
@@ -1405,18 +1399,17 @@ class Digimon {
             const requirements = this.formatEvolutionRequirements(d);
             if (requirements.length > 0) {
                 for (const req of requirements) {
-                    result += `${d.name} ${req}\n`;
+                    // For jogress evolution, don't add the digimon name prefix since it's already shown above
+                    if (req.startsWith('合體進化：')) {
+                        result += `${req}\n`;
+                    } else {
+                        result += `${d.name} ${req}\n`;
+                    }
                 }
             }
 
             if (d.stage === '1') {
                 // lineage details are shown in the header; skip per-item lineage block
-            }
-            if (d.mix_evolution) {
-                const comps = this.getFusionComponents(d);
-                if (comps.length === 2) {
-                    result += `   合體來源：${comps[0]} + ${comps[1]}\n`;
-                }
             }
         }
         return result;
@@ -1719,14 +1712,24 @@ class Digimon {
         return engName;
     }
 
+    // Get name by English name (prefer name field over zh-cn-name)
+    getChineseNameByEngName(engName) {
+        if (!engName) return engName;
+        const digimon = this.byEngName.get(engName);
+        if (digimon) {
+            return digimon.name || digimon['zh-cn-name'] || engName;
+        }
+        return engName;
+    }
+
     // Format evolution requirements (jogress or item)
     formatEvolutionRequirements(digimon) {
         const requirements = [];
 
         // Check for jogress (fusion) requirements
         if (digimon.jogressAEng && digimon.jogressBEng) {
-            const aName = this.getDigimonDisplayNameByEngName(digimon.jogressAEng);
-            const bName = this.getDigimonDisplayNameByEngName(digimon.jogressBEng);
+            const aName = this.getChineseNameByEngName(digimon.jogressAEng);
+            const bName = this.getChineseNameByEngName(digimon.jogressBEng);
             requirements.push(`合體進化：${aName}＋${bName}`);
         }
 
@@ -2208,14 +2211,12 @@ class Digimon {
                 const requirements = this.formatEvolutionRequirements(digimon);
                 if (requirements.length > 0) {
                     for (const req of requirements) {
-                        result += `${digimon.name} ${req}\n`;
-                    }
-                }
-
-                if (digimon.mix_evolution) {
-                    const comps = this.getFusionComponents(digimon);
-                    if (comps.length === 2) {
-                        result += `   合體來源：${comps[0]} + ${comps[1]}\n`;
+                        // For jogress evolution, don't add the digimon name prefix since it's already shown above
+                        if (req.startsWith('合體進化：')) {
+                            result += `${req}\n`;
+                        } else {
+                            result += `${digimon.name} ${req}\n`;
+                        }
                     }
                 }
             }

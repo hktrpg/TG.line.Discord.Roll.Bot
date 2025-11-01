@@ -4,6 +4,7 @@ if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.LINE_CHANNEL_SECRET) {
 }
 const port = process.env.LINEPORT || 20_831;
 const fs = require('fs');
+const https = require('https');
 const line = require('@line/bot-sdk');
 const candle = require('../modules/candleDays.js');
 const mainLine = Boolean(process.env.DISCORD_CHANNEL_SECRET);
@@ -88,12 +89,12 @@ app.post('/', (req, res, next) => {
 
 // Global error handler for this module
 app.use((error, req, res) => {
-	console.error('Unhandled error in LINE webhook:', error.message);
+	//console.error('Unhandled error in LINE webhook:', error.message);
 	// Check if res is a valid Express response object
 	if (res && typeof res.status === 'function') {
 		res.status(500).json({ error: 'Internal server error' });
 	} else {
-		console.error('LINE webhook error handler: Invalid response object');
+		//console.error('LINE webhook error handler: Invalid response object');
 	}
 });
 // event handler
@@ -423,7 +424,7 @@ async function read() {
 (async () => {
 	await read()
 })();
-const server = require('https').createServer(options, app);
+const server = https.createServer(options, app);
 server.listen(port, () => {
 	console.log(`Line BOT listening on ${port}`);
 });

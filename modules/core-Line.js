@@ -48,6 +48,11 @@ async function getUserProfile(event, userid) {
 		return null;
 	}
 }
+
+// Export for testing
+if (process.env.NODE_ENV === 'test') {
+	exports.getUserProfile = getUserProfile;
+}
 // create Express app
 // about Express itself: https://expressjs.com/
 const app = require('./core-www.js').app;

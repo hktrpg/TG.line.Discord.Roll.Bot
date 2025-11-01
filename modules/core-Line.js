@@ -155,6 +155,8 @@ let handleEvent = async function (event) {
 	if (userid) {
 		const profile = await getUserProfile(event, userid);
 		displayname = (profile && profile.displayName) ? profile.displayName : '';
+	} else {
+		console.log(`Skipping profile fetch for event type: ${event.type}, source:`, event.source);
 	}
 
 	if (event.source && event.source.groupId) {

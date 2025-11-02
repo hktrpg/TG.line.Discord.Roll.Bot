@@ -35,7 +35,7 @@ class CardManager {
                         notes: [],
                         characterDetails: [],
                         gpList: [],
-                        selectedGroupId: localStorage.getItem("selectedGroupId") || null,
+                        selectedGroupId: "",
                         public: isPublic,
                         editMode: false,
                         isPublic: isPublic,

@@ -138,28 +138,58 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
         if (!isPublic) {
             authManager.setupLoginForm();
         } else {
-            // 公開頁面：在Vue初始化完成後再請求一次公開清單，避免卡在尚未掛載cardList時收到回應
-            try {
-                if (socket && typeof socket.emit === 'function') {
-                    debugLog('Requesting public card list', 'info');
-                    socket.emit('getPublicListInfo');
-
-                    // Set a timeout to check if the request succeeds
-                    setTimeout(() => {
-                        if (!socketManager.publicListProcessed) {
-                            debugLog('Public list request timeout, retrying', 'warn');
-                            socket.emit('getPublicListInfo');
-                        }
-                    }, 5000);
-                } else {
-                    debugLog('Socket not available for public list request', 'error');
-                }
-            } catch (error) {
-                debugLog(`Error requesting public list: ${error.message}`, 'error');
-            }
+            // 公開頁面：在Vue初始化完成後請求公開清單，使用改進的重試機制
+            this.requestPublicListWithRetry();
         }
     } catch (error) {
         debugLog(`Error initializing Vue apps internal: ${error.message}`, 'error');
+    }
+}
+
+/**
+ * 使用改進的重試機制請求公開清單
+ */
+function requestPublicListWithRetry() {
+    try {
+        if (!socketManager || !socketManager.getSocket) {
+            debugLog('SocketManager not available for public list request', 'error');
+            return;
+        }
+
+        const socket = socketManager.getSocket();
+        if (socket && typeof socket.emit === 'function') {
+            debugLog('Requesting public card list', 'info');
+            socket.emit('getPublicListInfo');
+
+            // Set up progressive timeout checks with increasing delays
+            const timeoutDelays = [2000, 5000, 10000, 20000]; // 2s, 5s, 10s, 20s
+            let timeoutIndex = 0;
+
+            const scheduleTimeoutCheck = () => {
+                if (timeoutIndex >= timeoutDelays.length) {
+                    debugLog('Public list request exhausted all retry attempts', 'error');
+                    return;
+                }
+
+                const timeoutId = setTimeout(() => {
+                    if (!socketManager.publicListProcessed && socketManager.getSocket().connected) {
+                        debugLog(`Public list request timeout after ${timeoutDelays[timeoutIndex]}ms, retrying (attempt ${timeoutIndex + 1}/${timeoutDelays.length})`, 'warn');
+                        socket.emit('getPublicListInfo');
+                        timeoutIndex++;
+                        scheduleTimeoutCheck();
+                    }
+                }, timeoutDelays[timeoutIndex]);
+
+                // Store timeout ID in socketManager for cleanup
+                socketManager.publicListRequestTimeouts.push(timeoutId);
+            };
+
+            scheduleTimeoutCheck();
+        } else {
+            debugLog('Socket not available for public list request', 'error');
+        }
+    } catch (error) {
+        debugLog(`Error requesting public list: ${error.message}`, 'error');
     }
 }
 
@@ -372,3 +402,4 @@ globalThis.selectCard = selectCard;
 globalThis.updateCard = updateCard;
 globalThis.showError = showError;
 globalThis.showSuccess = showSuccess;
+globalThis.requestPublicListWithRetry = requestPublicListWithRetry;

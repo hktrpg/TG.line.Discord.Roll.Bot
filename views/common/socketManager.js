@@ -4,11 +4,84 @@
  */
 class SocketManager {
     constructor() {
-        this.socket = io();
+        // Socket.io connection with reconnection options
+        this.socket = io({
+            reconnection: true,
+            reconnectionAttempts: 10,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            randomizationFactor: 0.5
+        });
+
         this.eventHandlers = new Map();
         this.publicListProcessed = false;
         this.publicCardLoadedId = null;
+
+        // Retry management for card list operations
+        this.cardListRetryCount = 0;
+        this.maxCardListRetries = 50; // Limit retries to prevent infinite loops
+        this.cardListRetryTimeouts = [];
+        this.publicListRequestTimeouts = [];
+
         this.setupEventListeners();
+        this.setupConnectionListeners();
+    }
+
+    /**
+     * 設置連接狀態監聽器
+     */
+    setupConnectionListeners() {
+        this.socket.on('connect', () => {
+            debugLog('Socket connected successfully', 'info');
+            this.resetRetryCounters();
+        });
+
+        this.socket.on('disconnect', (reason) => {
+            debugLog(`Socket disconnected: ${reason}`, 'warn');
+        });
+
+        this.socket.on('connect_error', (error) => {
+            debugLog(`Socket connection error: ${error.message}`, 'error');
+        });
+
+        this.socket.on('reconnect', (attemptNumber) => {
+            debugLog(`Socket reconnected after ${attemptNumber} attempts`, 'info');
+            this.resetRetryCounters();
+        });
+
+        this.socket.on('reconnect_failed', () => {
+            debugLog('Socket reconnection failed permanently', 'error');
+        });
+    }
+
+    /**
+     * 重置重試計數器
+     */
+    resetRetryCounters() {
+        this.cardListRetryCount = 0;
+        // Clear any pending timeouts
+        this.cardListRetryTimeouts.forEach(timeout => clearTimeout(timeout));
+        this.publicListRequestTimeouts.forEach(timeout => clearTimeout(timeout));
+        this.cardListRetryTimeouts = [];
+        this.publicListRequestTimeouts = [];
+    }
+
+    /**
+     * 計算重試延遲時間（指數退避）
+     * @param {number} retryCount - 當前重試次數
+     * @returns {number} 延遲毫秒數
+     */
+    calculateRetryDelay(retryCount) {
+        if (retryCount < 3) {
+            // 前3次快速重試：100ms, 200ms, 400ms
+            return Math.pow(2, retryCount) * 100;
+        } else if (retryCount < 10) {
+            // 接下來7次中等速度：800ms, 1600ms, 3200ms, 5000ms...
+            return Math.min(Math.pow(2, retryCount - 2) * 100, 5000);
+        } else {
+            // 之後慢速重試：10000ms
+            return 10000;
+        }
     }
 
     /**
@@ -187,11 +260,24 @@ class SocketManager {
                     debugLog(`Failed to show card list modal: ${error.message}`, 'error');
                 }
             } else {
-                debugLog('CardList Vue app not ready, retrying in 100ms', 'warn');
-                // Retry after a short delay if cardList isn't ready yet
-                setTimeout(() => {
+                // Check if we've exceeded max retries
+                if (this.cardListRetryCount >= this.maxCardListRetries) {
+                    debugLog(`CardList Vue app not ready after ${this.maxCardListRetries} retries, giving up`, 'error');
+                    return;
+                }
+
+                this.cardListRetryCount++;
+                const delay = this.calculateRetryDelay(this.cardListRetryCount - 1); // -1 because count starts at 1
+
+                debugLog(`CardList Vue app not ready, retrying in ${delay}ms (attempt ${this.cardListRetryCount}/${this.maxCardListRetries})`, 'warn');
+
+                // Schedule retry with exponential backoff
+                const timeoutId = setTimeout(() => {
                     this.handlePublicListInfo(listInfo);
-                }, 100);
+                }, delay);
+
+                // Store timeout ID for cleanup
+                this.cardListRetryTimeouts.push(timeoutId);
             }
         } else {
             debugLog('No list data received', 'warn');

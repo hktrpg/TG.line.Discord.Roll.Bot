@@ -56,13 +56,27 @@ function initializeVueApps(isPublic = false, skipUITemplateLoad = false) {
     try {
         // Set title based on card type
         TITLE = isPublic ? "HKTRPG 公開角色卡" : "HKTRPG 私人角色卡";
-        
+
         // Update page title
         document.title = `${TITLE} @ HKTRPG`;
-        
+
         // Only load UI template if not already loaded (skipUITemplateLoad = true means UI is already loaded)
         if (!skipUITemplateLoad) {
-            $("#array-rendering").load("/common/characterCardUI.html", function() {
+            $("#array-rendering").load("/common/characterCardUI.html", function(response, status, xhr) {
+                if (status === "error") {
+                    debugLog(`Failed to load characterCardUI.html: ${xhr.status} ${xhr.statusText}`, 'error');
+                    // Retry once after a delay
+                    setTimeout(() => {
+                        $("#array-rendering").load("/common/characterCardUI.html", function(response2, status2, xhr2) {
+                            if (status2 === "error") {
+                                debugLog(`Retry failed to load characterCardUI.html: ${xhr2.status} ${xhr2.statusText}`, 'error');
+                                return;
+                            }
+                            initializeVueAppsInternal(isPublic, null);
+                        });
+                    }, 1000);
+                    return;
+                }
                 initializeVueAppsInternal(isPublic, null);
             });
         } else {
@@ -70,18 +84,42 @@ function initializeVueApps(isPublic = false, skipUITemplateLoad = false) {
             const tempContainer = document.createElement('div');
             tempContainer.style.display = 'none';
             document.body.append(tempContainer);
-            
-            $(tempContainer).load("/common/hybridCharacterCardUI.html", function() {
+
+            $(tempContainer).load("/common/hybridCharacterCardUI.html", function(response, status, xhr) {
+                if (status === "error") {
+                    debugLog(`Failed to load hybridCharacterCardUI.html: ${xhr.status} ${xhr.statusText}`, 'error');
+                    // Remove the temporary container
+                    tempContainer.remove();
+                    // Retry once after a delay
+                    setTimeout(() => {
+                        const retryContainer = document.createElement('div');
+                        retryContainer.style.display = 'none';
+                        document.body.append(retryContainer);
+
+                        $(retryContainer).load("/common/hybridCharacterCardUI.html", function(response2, status2, xhr2) {
+                            if (status2 === "error") {
+                                debugLog(`Retry failed to load hybridCharacterCardUI.html: ${xhr2.status} ${xhr2.statusText}`, 'error');
+                                retryContainer.remove();
+                                return;
+                            }
+                            const templateContent = retryContainer.innerHTML;
+                            retryContainer.remove();
+                            initializeVueAppsInternal(isPublic, templateContent);
+                        });
+                    }, 1000);
+                    return;
+                }
+
                 const templateContent = tempContainer.innerHTML;
-                
+
                 // Remove the temporary container
                 tempContainer.remove();
-                
+
                 initializeVueAppsInternal(isPublic, templateContent);
             });
         }
     } catch (error) {
-        console.error('Error in initializeVueApps:', error);
+        debugLog(`Error in initializeVueApps: ${error.message}`, 'error');
     }
 }
 
@@ -103,9 +141,22 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
             // 公開頁面：在Vue初始化完成後再請求一次公開清單，避免卡在尚未掛載cardList時收到回應
             try {
                 if (socket && typeof socket.emit === 'function') {
+                    debugLog('Requesting public card list', 'info');
                     socket.emit('getPublicListInfo');
+
+                    // Set a timeout to check if the request succeeds
+                    setTimeout(() => {
+                        if (!socketManager.publicListProcessed) {
+                            debugLog('Public list request timeout, retrying', 'warn');
+                            socket.emit('getPublicListInfo');
+                        }
+                    }, 5000);
+                } else {
+                    debugLog('Socket not available for public list request', 'error');
                 }
-            } catch {}
+            } catch (error) {
+                debugLog(`Error requesting public list: ${error.message}`, 'error');
+            }
         }
     } catch (error) {
         debugLog(`Error initializing Vue apps internal: ${error.message}`, 'error');

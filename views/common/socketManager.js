@@ -134,17 +134,22 @@ class SocketManager {
     handlePublicListInfo(listInfo) {
         const list = listInfo.temp;
         if (this.publicListProcessed) {
+            debugLog('Public list already processed, skipping', 'info');
             return;
         }
         if (list) {
             const cardList = cardManager.getCardList();
-            if (cardList && cardList.list) {
+            if (cardList && cardList.list !== undefined) {
+                debugLog(`Setting card list with ${list.length} items`, 'info');
                 cardList.list = list;
+                this.publicListProcessed = true;
+
                 // Try auto-select by saved public card id first
                 try {
                     const savedId = localStorage.getItem('lastSelectedPublicCardId');
                     const selected = savedId && list.find((x) => x && x._id === savedId);
                     if (selected && selected._id) {
+                        debugLog(`Auto-selecting saved card: ${selected.name}`, 'info');
                         const card = cardManager.getCard();
                         if (card) {
                             // 清除之前的原始數據，避免不同卡片的數據混合
@@ -162,7 +167,6 @@ class SocketManager {
                             try { localStorage.setItem('lastSelectedPublicCardId', selected._id); } catch {}
                             try { $('#cardListModal').modal("hide"); } catch {}
                             this.publicCardLoadedId = selected._id;
-                            this.publicListProcessed = true;
 
                             // 保存新卡片的原始數據
                             card.$nextTick(() => {
@@ -171,16 +175,26 @@ class SocketManager {
                             return;
                         }
                     }
-                } catch {
-                    // ignore
+                } catch (error) {
+                    debugLog(`Auto-select failed: ${error.message}`, 'error');
                 }
-                $('#cardListModal').modal("show");
-                this.publicListProcessed = true;
+
+                // Show modal if no auto-selection
+                try {
+                    $('#cardListModal').modal("show");
+                    debugLog('Card list modal shown', 'info');
+                } catch (error) {
+                    debugLog(`Failed to show card list modal: ${error.message}`, 'error');
+                }
             } else {
-                // ignore
+                debugLog('CardList Vue app not ready, retrying in 100ms', 'warn');
+                // Retry after a short delay if cardList isn't ready yet
+                setTimeout(() => {
+                    this.handlePublicListInfo(listInfo);
+                }, 100);
             }
         } else {
-            // ignore
+            debugLog('No list data received', 'warn');
         }
     }
 

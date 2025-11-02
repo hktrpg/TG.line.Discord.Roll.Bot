@@ -932,14 +932,20 @@ class CardManager {
      * 初始化卡片列表應用
      */
     initializeCardList() {
-        // 防止重複初始化
-        if (this.cardList) {
-            debugLog('Card list already initialized, skipping', 'info');
-            return;
-        }
+        try {
+            // 防止重複初始化
+            if (this.cardList) {
+                debugLog('Card list already initialized, skipping', 'info');
+                return;
+            }
 
-        const cardListElement = document.querySelector('#array-cardList');
-        if (cardListElement) {
+            const cardListElement = document.querySelector('#array-cardList');
+            if (!cardListElement) {
+                debugLog('Card list element #array-cardList not found', 'error');
+                return;
+            }
+
+            debugLog('Initializing card list Vue app', 'info');
             this.cardList = Vue.createApp({
                 data() {
                     return {
@@ -1060,6 +1066,8 @@ class CardManager {
                 }
             }).mount('#array-cardList');
             debugLog('CardList Vue app initialized successfully', 'info');
+        } catch (error) {
+            debugLog(`Error initializing card list: ${error.message}`, 'error');
         }
     }
 

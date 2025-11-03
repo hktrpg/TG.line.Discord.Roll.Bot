@@ -7,6 +7,7 @@ class CardManager {
         this.card = null;
         this.cardList = null;
         this.originalData = null;
+        this.editModeBackup = null; // 編輯模式備份，與原始數據分離
         this.isPublic = false;
     }
 
@@ -522,7 +523,7 @@ class CardManager {
                     // 切換編輯模式
                     toggleEditMode() {
                         if (!this.editMode) {
-                            this.backupData();
+                            this.backupEditModeData();
                         }
                         this.editMode = !this.editMode;
                     },
@@ -537,11 +538,18 @@ class CardManager {
                             this.characterDetails = JSON.parse(JSON.stringify(this.originalData.characterDetails));
                         }
                         this.editMode = false;
+                        this.editModeBackup = null; // 清除編輯模式備份
+                        this.hasUnsavedChanges = false; // 還原後沒有未保存的變更
                     },
                     
-                    // 備份數據
+                    // 備份數據 (舊方法，保留兼容性)
                     backupData() {
-                        this.originalData = {
+                        this.backupEditModeData();
+                    },
+
+                    // 備份編輯模式數據
+                    backupEditModeData() {
+                        this.editModeBackup = {
                             roll: JSON.parse(JSON.stringify(this.roll)),
                             state: JSON.parse(JSON.stringify(this.state)),
                             notes: JSON.parse(JSON.stringify(this.notes)),
@@ -560,13 +568,16 @@ class CardManager {
                         this.editMode = false;
                     },
                     
-                    // 只還原數據
+                    // 只還原數據 - 統一還原到原始載入狀態
                     revertDataOnly() {
                         if (this.originalData) {
                             this.roll = JSON.parse(JSON.stringify(this.originalData.roll));
                             this.state = JSON.parse(JSON.stringify(this.originalData.state));
                             this.notes = JSON.parse(JSON.stringify(this.originalData.notes));
                             this.characterDetails = JSON.parse(JSON.stringify(this.originalData.characterDetails));
+                            this.hasUnsavedChanges = false;
+                            // 清除編輯模式備份，因為已還原到原始狀態
+                            this.editModeBackup = null;
                         }
                     },
                     
@@ -759,6 +770,8 @@ class CardManager {
                             public: this.public
                         };
                         this.hasUnsavedChanges = false;
+                        // 清除編輯模式備份，因為原始數據已更新
+                        this.editModeBackup = null;
                     },
                     
                     // 檢查是否有未保存的變更
@@ -1037,6 +1050,7 @@ class CardManager {
                         if (cardManager.card && item) {
                             // 清除之前的原始數據，避免不同卡片的數據混合
                             cardManager.card.originalData = null;
+                            cardManager.card.editModeBackup = null;
                             cardManager.card.hasUnsavedChanges = false;
 
                             cardManager.card._id = item._id;
@@ -1059,7 +1073,7 @@ class CardManager {
                             } catch {}
                             $('#cardListModal').modal("hide");
 
-                            // 保存新卡片的原始數據
+                            // 保存新卡片的原始數據，並清除編輯模式備份
                             cardManager.card.saveOriginalData();
                         }
                     }

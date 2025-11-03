@@ -598,18 +598,23 @@ class CardManager {
                         if (!item) {
                             return;
                         }
-                        
+
                         const field = type === 'current' ? 'itemA' : 'itemB';
                         const currentValue = item[field];
-                        
+
                         if (this.isNumeric(currentValue)) {
                             const num = Number.parseFloat(currentValue.toString().replace(/^CC\s*/i, ''));
                             const newValue = Math.max(0, num + delta);
                             item[field] = newValue.toString();
-                            
-                            // 在非編輯模式下標記有變更
+
+                            // 在非編輯模式下檢查是否有實際變更
                             if (!this.editMode) {
-                                this.markAsChanged();
+                                // 檢查當前狀態是否與原始狀態相同
+                                if (this.checkForChanges()) {
+                                    this.markAsChanged();
+                                } else {
+                                    this.hasUnsavedChanges = false;
+                                }
                             }
                         }
                     },

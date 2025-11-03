@@ -147,7 +147,8 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
 }
 
 /**
- * 使用改進的重試機制請求公開清單
+ * 請求公開卡片清單
+ * 重試邏輯現在由 socketManager.handlePublicListInfo 內建的 RetryManager 處理
  */
 function requestPublicListWithRetry() {
     try {
@@ -160,31 +161,6 @@ function requestPublicListWithRetry() {
         if (socket && typeof socket.emit === 'function') {
             debugLog('Requesting public card list', 'info');
             socket.emit('getPublicListInfo');
-
-            // Set up progressive timeout checks with increasing delays
-            const timeoutDelays = [2000, 5000, 10_000, 20_000]; // 2s, 5s, 10s, 20s timeouts
-            let timeoutIndex = 0;
-
-            const scheduleTimeoutCheck = () => {
-                if (timeoutIndex >= timeoutDelays.length) {
-                    debugLog('Public list request exhausted all retry attempts', 'error');
-                    return;
-                }
-
-                const timeoutId = setTimeout(() => {
-                    if (!socketManager.publicListProcessed && socketManager.getSocket().connected) {
-                        debugLog(`Public list request timeout after ${timeoutDelays[timeoutIndex]}ms, retrying (attempt ${timeoutIndex + 1}/${timeoutDelays.length})`, 'warn');
-                        socket.emit('getPublicListInfo');
-                        timeoutIndex++;
-                        scheduleTimeoutCheck();
-                    }
-                }, timeoutDelays[timeoutIndex]);
-
-                // Store timeout ID in socketManager for cleanup
-                socketManager.publicListRequestTimeouts.push(timeoutId);
-            };
-
-            scheduleTimeoutCheck();
         } else {
             debugLog('Socket not available for public list request', 'error');
         }

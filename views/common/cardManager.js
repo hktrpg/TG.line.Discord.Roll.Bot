@@ -619,7 +619,7 @@ class CardManager {
                             return;
                         }
 
-                        socket.emit('removeChannel', {
+                        socketManager.emitRemoveChannel({
                             userName: userName,
                             token: token,
                             channelId: channelToRemove.id,
@@ -671,7 +671,7 @@ class CardManager {
                         this.saveSelectedGroupId();
                         
                         if (this.isPublic) {
-                            socket.emit('publicRolling', {
+                            socketManager.emitPublicRolling({
                                 item: name,
                                 userName: localStorage.getItem("userName"),
                                 token: localStorage.getItem("jwtToken"),
@@ -683,7 +683,7 @@ class CardManager {
                                 }
                             });
                         } else {
-                            socket.emit('rolling', {
+                            socketManager.emitRolling({
                                 item: name,
                                 userName: localStorage.getItem("userName"),
                                 token: localStorage.getItem("jwtToken"),

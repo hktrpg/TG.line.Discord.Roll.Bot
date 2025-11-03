@@ -17,11 +17,8 @@ class SocketManager {
         this.publicListProcessed = false;
         this.publicCardLoadedId = null;
 
-        // Retry management for card list operations
-        this.cardListRetryCount = 0;
-        this.maxCardListRetries = 50; // Limit retries to prevent infinite loops
-        this.cardListRetryTimeouts = [];
-        this.publicListRequestTimeouts = [];
+        // Retry management using RetryManager
+        this.retryManager = window.retryManager;
 
         this.setupEventListeners();
         this.setupConnectionListeners();
@@ -58,30 +55,17 @@ class SocketManager {
      * 重置重試計數器
      */
     resetRetryCounters() {
-        this.cardListRetryCount = 0;
-        // Clear any pending timeouts
-        this.cardListRetryTimeouts.forEach(timeout => clearTimeout(timeout));
-        this.publicListRequestTimeouts.forEach(timeout => clearTimeout(timeout));
-        this.cardListRetryTimeouts = [];
-        this.publicListRequestTimeouts = [];
+        // Reset all retry states using RetryManager
+        this.retryManager.resetAllRetryStates();
     }
 
     /**
-     * 計算重試延遲時間（指數退避）
+     * 計算重試延遲時間（委派給 RetryManager）
      * @param {number} retryCount - 當前重試次數
      * @returns {number} 延遲毫秒數
      */
     calculateRetryDelay(retryCount) {
-        if (retryCount < 3) {
-            // 前3次快速重試：100ms, 200ms, 400ms
-            return Math.pow(2, retryCount) * 100;
-        } else if (retryCount < 10) {
-            // 接下來7次中等速度：800ms, 1600ms, 3200ms, 5000ms...
-            return Math.min(Math.pow(2, retryCount - 2) * 100, 5000);
-        } else {
-            // 之後慢速重試：10000ms
-            return 10000;
-        }
+        return this.retryManager.calculateRetryDelay(retryCount);
     }
 
     /**
@@ -192,12 +176,22 @@ class SocketManager {
     }
 
     /**
-     * 處理列表資訊
+     * 處理列表資訊（私有角色卡）
      * @param {Object} listInfo - 列表資訊
      */
     handleListInfo(listInfo) {
-        // 這個處理器會被 authManager 覆蓋，這裡只是預留
-        debugLog('List info received', 'info');
+        debugLog('Private list info received', 'info');
+
+        // 將處理委派給authManager，但這裡進行重試管理
+        if (authManager && typeof authManager.handleListInfoWithRetry === 'function') {
+            authManager.handleListInfoWithRetry(listInfo);
+        } else {
+            // Fallback: 如果authManager沒有處理方法，則直接處理
+            debugLog('authManager not available, processing directly', 'warn');
+            if (authManager && typeof authManager.handleLoginResponse === 'function') {
+                authManager.handleLoginResponse(listInfo);
+            }
+        }
     }
 
     /**
@@ -260,24 +254,76 @@ class SocketManager {
                     debugLog(`Failed to show card list modal: ${error.message}`, 'error');
                 }
             } else {
-                // Check if we've exceeded max retries
-                if (this.cardListRetryCount >= this.maxCardListRetries) {
-                    debugLog(`CardList Vue app not ready after ${this.maxCardListRetries} retries, giving up`, 'error');
-                    return;
-                }
+                // Use RetryManager for retry logic
+                const retryKey = 'publicCardList';
 
-                this.cardListRetryCount++;
-                const delay = this.calculateRetryDelay(this.cardListRetryCount - 1); // -1 because count starts at 1
+                this.retryManager.retry(
+                    retryKey,
+                    async () => {
+                        const cardList = cardManager.getCardList();
+                        if (cardList && cardList.list !== undefined) {
+                            debugLog(`Setting card list with ${list.length} items`, 'info');
+                            cardList.list = list;
+                            this.publicListProcessed = true;
 
-                debugLog(`CardList Vue app not ready, retrying in ${delay}ms (attempt ${this.cardListRetryCount}/${this.maxCardListRetries})`, 'warn');
+                            // Try auto-select by saved public card id first
+                            try {
+                                const savedId = localStorage.getItem('lastSelectedPublicCardId');
+                                const selected = savedId && list.find((x) => x && x._id === savedId);
+                                if (selected && selected._id) {
+                                    debugLog(`Auto-selecting saved card: ${selected.name}`, 'info');
+                                    const card = cardManager.getCard();
+                                    if (card) {
+                                        // 清除之前的原始數據，避免不同卡片的數據混合
+                                        card.originalData = null;
+                                        card.hasUnsavedChanges = false;
 
-                // Schedule retry with exponential backoff
-                const timeoutId = setTimeout(() => {
-                    this.handlePublicListInfo(listInfo);
-                }, delay);
+                                        card._id = selected._id;
+                                        card.id = selected.id;
+                                        card.name = selected.name;
+                                        card.state = selected.state || [];
+                                        card.roll = selected.roll || [];
+                                        card.notes = selected.notes || [];
+                                        card.public = selected.public || false;
+                                        card.image = selected.image || "";
+                                        try { localStorage.setItem('lastSelectedPublicCardId', selected._id); } catch {}
+                                        try { $('#cardListModal').modal("hide"); } catch {}
+                                        this.publicCardLoadedId = selected._id;
 
-                // Store timeout ID for cleanup
-                this.cardListRetryTimeouts.push(timeoutId);
+                                        // 保存新卡片的原始數據
+                                        card.$nextTick(() => {
+                                            card.saveOriginalData();
+                                        });
+                                        return;
+                                    }
+                                }
+                            } catch (error) {
+                                debugLog(`Auto-select failed: ${error.message}`, 'error');
+                            }
+
+                            // Show modal if no auto-selection
+                            try {
+                                $('#cardListModal').modal("show");
+                                debugLog('Card list modal shown', 'info');
+                            } catch (error) {
+                                debugLog(`Failed to show card list modal: ${error.message}`, 'error');
+                            }
+
+                            return true; // Success
+                        }
+                        throw new Error('CardList Vue app not ready');
+                    },
+                    {
+                        onRetry: (attemptCount, error) => {
+                            debugLog(`CardList Vue app not ready, retrying (attempt ${attemptCount})`, 'warn');
+                        },
+                        onMaxRetries: (attemptCount, error) => {
+                            debugLog(`CardList Vue app not ready after ${attemptCount} retries, giving up`, 'error');
+                        }
+                    }
+                ).catch(error => {
+                    debugLog(`Public card list assignment failed: ${error.message}`, 'error');
+                });
             }
         } else {
             debugLog('No list data received', 'warn');

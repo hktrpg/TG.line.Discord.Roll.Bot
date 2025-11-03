@@ -135,6 +135,7 @@ class AuthManager {
      * @param {string} userPassword - 密碼
      */
     attemptAutoLogin(userName, userPassword) {
+        const socket = window.socketManager.getSocket();
         socket.emit('getListInfo', {
             userName: userName,
             userPassword: userPassword
@@ -167,20 +168,8 @@ class AuthManager {
             if (warningElement) {
                 warningElement.style.display = "none";
             }
-            // cardList Vue app may not be mounted yet; guard and retry briefly
-            const assignListSafely = (attemptsLeft = 10) => {
-                const cardListApp = cardManager.getCardList();
-                if (cardListApp && cardListApp.list !== undefined) {
-                    cardListApp.list = list;
-                    return true;
-                }
-                if (attemptsLeft > 0) {
-                    setTimeout(() => assignListSafely(attemptsLeft - 1), 100);
-                    return false;
-                }
-                return false;
-            };
-            assignListSafely();
+            // 使用改進的重試機制來等待cardList Vue app準備就緒
+            this.assignPrivateCardListWithRetry(list);
             // 嘗試自動載入上次選用的角色卡（依用戶分隔）
             try {
                 const userKey = (localStorage.getItem('userName') || 'default');
@@ -255,6 +244,7 @@ class AuthManager {
         this.saveCredentials(userName, userPassword);
 
         if (userName && userName.length >= 4 && userPassword && userPassword.length >= 6) {
+            const socket = window.socketManager.getSocket();
             socket.emit('getListInfo', {
                 userName: userName,
                 userPassword: userPassword
@@ -262,7 +252,7 @@ class AuthManager {
 
             socket.on("getListInfo", (listInfo) => {
                 this.handleLoginResponse(listInfo);
-                
+
                 if (listInfo.temp) {
                     $('#loginModalCenter').modal("hide");
                     $('#cardListModal').modal("show");
@@ -327,6 +317,52 @@ class AuthManager {
      */
     getToken() {
         return this.token;
+    }
+
+    /**
+     * 使用指數退避重試機制來處理私有角色卡列表
+     * @param {Object} listInfo - 列表資訊
+     */
+    handleListInfoWithRetry(listInfo) {
+        this.handleLoginResponse(listInfo);
+    }
+
+    /**
+     * 使用指數退避重試機制來分配私有角色卡列表
+     * @param {Array} list - 角色卡列表
+     */
+    assignPrivateCardListWithRetry(list) {
+        const retryManager = window.retryManager;
+        if (!retryManager) {
+            debugLog('RetryManager not available for private card list assignment', 'error');
+            return;
+        }
+
+        const retryKey = 'privateCardList';
+
+        retryManager.retry(
+            retryKey,
+            async () => {
+                const cardListApp = cardManager.getCardList();
+                if (cardListApp && cardListApp.list !== undefined) {
+                    // Success! Assign the list
+                    cardListApp.list = list;
+                    debugLog('Private card list assigned successfully', 'info');
+                    return true;
+                }
+                throw new Error('CardList Vue app not ready');
+            },
+            {
+                onRetry: (attemptCount, error) => {
+                    debugLog(`Private card list app not ready, retrying (attempt ${attemptCount})`, 'warn');
+                },
+                onMaxRetries: (attemptCount, error) => {
+                    debugLog(`Private card list assignment failed after ${attemptCount} retries, giving up`, 'error');
+                }
+            }
+        ).catch(error => {
+            debugLog(`Private card list assignment failed: ${error.message}`, 'error');
+        });
     }
 }
 

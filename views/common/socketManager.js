@@ -60,8 +60,8 @@ class SocketManager {
     resetRetryCounters() {
         this.cardListRetryCount = 0;
         // Clear any pending timeouts
-        this.cardListRetryTimeouts.forEach(timeout => clearTimeout(timeout));
-        this.publicListRequestTimeouts.forEach(timeout => clearTimeout(timeout));
+        for (const timeout of this.cardListRetryTimeouts) clearTimeout(timeout);
+        for (const timeout of this.publicListRequestTimeouts) clearTimeout(timeout);
         this.cardListRetryTimeouts = [];
         this.publicListRequestTimeouts = [];
     }
@@ -80,7 +80,7 @@ class SocketManager {
             return Math.min(Math.pow(2, retryCount - 2) * 100, 5000);
         } else {
             // 之後慢速重試：10000ms
-            return 10000;
+            return 10_000;
         }
     }
 

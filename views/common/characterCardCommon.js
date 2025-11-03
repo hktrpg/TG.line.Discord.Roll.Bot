@@ -2,6 +2,7 @@
 // 使用模組化架構，依賴 cardManager, authManager, uiManager, socketManager
 
 let TITLE = "HKTRPG 角色卡";
+// eslint-disable-next-line no-unused-vars
 let socket = socketManager.getSocket();
 // XSS Protection function (currently unused)
 function _sanitizeHtml(str) {

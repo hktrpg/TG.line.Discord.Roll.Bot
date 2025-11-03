@@ -45,9 +45,6 @@ function debugLog(message, type = 'info', data) {
     }
 }
 
-// Socket.io Setup - 使用 socketManager
-let socket = socketManager.getSocket();
-
 // Vue Applications - 使用 cardManager
 let card = null;
 let _cardList = null;
@@ -162,7 +159,7 @@ function requestPublicListWithRetry() {
             socket.emit('getPublicListInfo');
 
             // Set up progressive timeout checks with increasing delays
-            const timeoutDelays = [2000, 5000, 10000, 20000]; // 2s, 5s, 10s, 20s
+            const timeoutDelays = [2000, 5000, 10_000, 20_000]; // 2s, 5s, 10s, 20s
             let timeoutIndex = 0;
 
             const scheduleTimeoutCheck = () => {

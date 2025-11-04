@@ -217,6 +217,34 @@ function confirmLogout() {
     setTimeout(() => { window.location.reload(); }, 800);
 }
 
+// Edit Mode Close Confirm Functions
+function confirmSaveChangesAndExitEditMode() {
+    if (cardManager && cardManager.getCard) {
+        const card = cardManager.getCard();
+        if (card) {
+            // 保存變更並退出編輯模式
+            card.saveCard();
+            card.editMode = false;
+            card.editModeBackup = null;
+            card.hasUnsavedChanges = false;
+        }
+    }
+    // 關閉模態框
+    $('#editModeCloseConfirmModal').modal('hide');
+}
+
+function confirmExitEditModeWithoutSaving() {
+    if (cardManager && cardManager.getCard) {
+        const card = cardManager.getCard();
+        if (card) {
+            // 退出編輯模式並還原變更
+            card.closeEditMode();
+        }
+    }
+    // 關閉模態框
+    $('#editModeCloseConfirmModal').modal('hide');
+}
+
 // DOM Ready Handler
 $(function () {
     debugLog('DOM ready, initializing components', 'info');
@@ -395,6 +423,8 @@ globalThis.debugLog = debugLog;
 globalThis.login = login;
 globalThis.logout = logout;
 globalThis.confirmLogout = confirmLogout;
+globalThis.confirmSaveChangesAndExitEditMode = confirmSaveChangesAndExitEditMode;
+globalThis.confirmExitEditModeWithoutSaving = confirmExitEditModeWithoutSaving;
 globalThis.readme = readme;
 globalThis.selectCard = selectCard;
 globalThis.updateCard = updateCard;

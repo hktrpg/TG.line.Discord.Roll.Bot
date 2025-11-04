@@ -2581,7 +2581,7 @@
                            lowerUrl.includes('img');
                 });
                 
-                console.log('📸 Found image URLs:', imageUrls);
+                //console.log('📸 Found image URLs:', imageUrls);
                 
                 // Validate URLs
                 const validImageUrls = imageUrls.filter(url => {
@@ -2592,7 +2592,7 @@
                     return isValid;
                 });
                 
-                console.log('✅ Valid image URLs:', validImageUrls);
+                //console.log('✅ Valid image URLs:', validImageUrls);
                 
                 if (!validImageUrls.length) return;
                 
@@ -2649,11 +2649,11 @@
                         // 1. History records: Load immediately (at top, not in viewport)
                         // 2. New messages: Always load immediately for better UX
                         if (state.isHistoryLoading) {
-                            console.log('📜 Loading image immediately (history):', url);
+                            //console.log('📜 Loading image immediately (history):', url);
                             img.onload = () => {
                                 if (placeholder) placeholder.style.display = 'none';
                                 img.style.display = 'block';
-                                console.log('✅ Image loaded (history):', url);
+                                //console.log('✅ Image loaded (history):', url);
                             };
                             img.onerror = (e) => {
                                 // Suppress CORS errors dynamically
@@ -2672,11 +2672,11 @@
                         } 
                         // New messages: Always load immediately for better user experience
                         else {
-                            console.log('💬 Loading image immediately (new message):', url);
+                            //console.log('💬 Loading image immediately (new message):', url);
                             img.onload = () => {
                                 if (placeholder) placeholder.style.display = 'none';
                                 img.style.display = 'block';
-                                console.log('✅ Image loaded (new message):', url);
+                                //console.log('✅ Image loaded (new message):', url);
                             };
                             img.onerror = (e) => {
                                 // Suppress CORS errors dynamically
@@ -3436,7 +3436,7 @@
                 }
                 
                 const src = img.getAttribute('data-src');
-                console.log('👁️ Observing image:', src);
+                //console.log('👁️ Observing image:', src);
                 
                 if (this.observer) {
                     this.observer.observe(img);
@@ -3476,7 +3476,7 @@
                 }
                 
                 if (this.loadedImages.has(src)) {
-                    console.log('⏭️ Already loaded/loading:', src);
+                    //console.log('⏭️ Already loaded/loading:', src);
                     return;
                 }
                 
@@ -3513,7 +3513,7 @@
                         imageLoader.observer.unobserve(img);
                     }
                     
-                    console.log('✅ Image loaded:', src);
+                    //console.log('✅ Image loaded:', src);
                 };
                 
                 img.onerror = (e) => {

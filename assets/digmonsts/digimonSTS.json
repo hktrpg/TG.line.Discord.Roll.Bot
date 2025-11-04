@@ -49939,7 +49939,7 @@
       "閃光暴龍獸"
     ],
     "evolutions": [],
-    "zh-cn-name": "閃光暴龍獸BM",
+    "zh-cn-name": "閃光暴龍獸：爆裂型態",
     "eng-name": "ShineGreymon BM",
     "attribute": "疫苗種",
     "type": "Shining Dragon",
@@ -50038,8 +50038,8 @@
       }
     ],
     "rider": 0,
-    "img": "https://digimon.net/cimages/digimon/greymon_blue.jpg",
-    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=greymon_blue",
+    "img": "https://digimon.net/cimages/digimon/shinegreymonburstmode.jpg",
+    "link": "https://digimon.net/reference_zh-CHT/detail.php?directory_name=shinegreymonburstmode",
     "baseStats": {
       "basePersonality": "11",
       "type": "Vaccine",

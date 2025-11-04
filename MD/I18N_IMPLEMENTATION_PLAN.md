@@ -1,454 +1,141 @@
-# HKTRPG 骰子機器人 i18n 國際化實現計劃
+# HKTRPG 骰子機器人 i18n 國際化實現計劃 (小規模應用優化版)
 
-## 📊 npm i18n 模組比較評估報告
+## 📊 重新評估與策略調整
 
-### 🎯 評估背景
+### 🎯 小規模應用特性分析
 
-為了選擇最適合 HKTRPG 項目的 i18n 解決方案，我們對主流 npm i18n 模組進行了系統性比較評估。
+#### 應用規模特點
+- **用戶規模**: 數萬活躍用戶（非百萬級）
+- **使用模式**: 主要為TRPG遊戲功能，交互頻繁但請求量中等
+- **資源限制**: 使用現有基礎設施，無需複雜的雲端服務
+- **維護成本**: 團隊規模小，需要簡化運維負擔
 
-#### 項目技術棧分析
-- **後端**: Node.js (現有模組化架構)
-- **前端**: HTML/JavaScript (瀏覽器端支持)
-- **多平台**: Discord、Telegram、Line、Web
-- **資料庫**: MongoDB (用戶語言偏好存儲)
-- **效能要求**: 高並發、低延遲
-- **維護性**: 長期維護、活躍社群
+#### 技術決策重新評估
+**核心原則**: **簡單、有效、快速見效**
 
-### 📋 候選模組篩選標準
-
-#### 納入評估的模組
-1. **i18next** - 最流行、功能最完整的現代 i18n 框架
-2. **i18n** - 經典 Node.js i18n 模組，仍在活躍維護
-3. **node-i18n** - Express.js 專用 i18n 中間件
-4. **polyglot** - 輕量級 i18n 解決方案
-
-#### 評估維度
-- **功能完整性**: 參數插值、複數形式、後備語言等
-- **效能表現**: 記憶體使用、查詢速度
-- **開發體驗**: API 設計、文檔品質、TypeScript 支持
-- **生態系統**: 插件、中間件、社群支持
-- **維護狀態**: 更新頻率、問題響應速度
-- **架構適配**: 與現有系統的整合難度
+1. **選擇 i18next**: 確認使用 i18next 作為唯一解決方案
+2. **移除複雜功能**: 無需 A/B 測試、灰度發布、高級快取
+3. **簡化架構**: 直接集成到現有模組系統
+4. **優先順序**: 先處理高影響功能，快速獲得用戶回饋
 
 ---
 
-## 🏆 模組比較分析
+## 🏆 簡化實施策略
 
-### 核心功能比較
+### 核心設計原則
+1. **漸進式部署**: 每個功能都可以獨立開關
+2. **最小化干擾**: 不影響現有功能運行
+3. **快速迭代**: 基於真實用戶回饋調整
+4. **簡單維護**: 易於理解和修改的代碼結構
 
-| 功能特性 | i18next | i18n | node-i18n | polyglot |
-|---------|---------|------|-----------|----------|
-| **參數插值** | ✅ 完整支持 | ✅ 完整支持 | ✅ 基本支持 | ✅ 基本支持 |
-| **複數形式** | ✅ 完整支持 | ✅ 完整支持 | ❌ 不支持 | ❌ 不支持 |
-| **嵌套鍵值** | ✅ 完整支持 | ✅ 完整支持 | ✅ 基本支持 | ✅ 基本支持 |
-| **後備語言** | ✅ 完整支持 | ✅ 基本支持 | ✅ 基本支持 | ❌ 不支持 |
-| **動態載入** | ✅ 完整支持 | ✅ 基本支持 | ❌ 不支持 | ❌ 不支持 |
-| **快取機制** | ✅ 內建優化 | ❌ 需要自訂 | ❌ 不支持 | ❌ 不支持 |
-| **TypeScript** | ✅ 完整支持 | ✅ 基本支持 | ❌ 不支持 | ❌ 不支持 |
+### 📦 技術組件選擇 (精簡版)
 
-### 效能與資源比較
-
-| 效能指標 | i18next | i18n | node-i18n | polyglot |
-|---------|---------|------|-----------|----------|
-| **包大小** | 中等 (~25KB gzipped) | 小 (~15KB gzipped) | 小 (~8KB gzipped) | 最小 (~5KB gzipped) |
-| **記憶體使用** | 中等 | 低 | 低 | 最低 |
-| **查詢速度** | 快 (~0.1ms) | 快 (~0.05ms) | 快 (~0.03ms) | 最快 (~0.01ms) |
-| **啟動時間** | 中等 | 快 | 快 | 最快 |
-| **依賴數量** | 多 (模組化) | 中等 | 少 | 最少 |
-
-### 生態系統與擴展性
-
-| 生態特性 | i18next | i18n | node-i18n | polyglot |
-|---------|---------|------|-----------|----------|
-| **插件系統** | ✅ 豐富 (20+ 插件) | ❌ 無 | ❌ 無 | ❌ 無 |
-| **框架集成** | ✅ React/Vue/Angular | ❌ 僅 Express | ✅ Express 專用 | ❌ 無 |
-| **後端插件** | ✅ FS/HTTP/Cache | ❌ 無 | ❌ 無 | ❌ 無 |
-| **前端支持** | ✅ 完整 | ❌ 無 | ❌ 無 | ❌ 無 |
-| **雲端服務** | ✅ locize 集成 | ❌ 無 | ❌ 無 | ❌ 無 |
-
-### 維護與社群狀態
-
-| 維護指標 | i18next | i18n | node-i18n | polyglot |
-|---------|---------|------|-----------|----------|
-| **最新版本** | 25.6.0 (2025/10) | 0.15.3 (2025/10) | 0.1.0 (2012) | 0.5.0 (2013) |
-| **活躍度** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
-| **GitHub Stars** | 7.2k+ | 3.5k+ | 200+ | 400+ |
-| **問題響應** | < 24hr | < 1 week | 不活躍 | 不活躍 |
-| **文檔品質** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
-| **TypeScript** | ✅ 完整 | ✅ 基本 | ❌ 無 | ❌ 無 |
-
-### 🎯 針對 HKTRPG 項目的適用性分析
-
-#### 需求匹配度評分
-
-| 需求項目 | i18next | i18n | node-i18n | polyglot | 權重 |
-|---------|---------|------|-----------|----------|------|
-| Node.js 服務端支持 | 10/10 | 9/10 | 8/10 | 7/10 | 高 |
-| 前端瀏覽器支持 | 10/10 | 2/10 | 1/10 | 1/10 | 高 |
-| 多平台適配性 | 9/10 | 8/10 | 6/10 | 5/10 | 高 |
-| 動態語言切換 | 10/10 | 8/10 | 3/10 | 2/10 | 高 |
-| 效能要求 | 8/10 | 9/10 | 9/10 | 10/10 | 中 |
-| 長期維護性 | 10/10 | 8/10 | 2/10 | 2/10 | 高 |
-| 學習成本 | 7/10 | 9/10 | 9/10 | 10/10 | 中 |
-| **總分 (加權)** | **9.4/10** | **6.8/10** | **4.2/10** | **4.0/10** | - |
-
----
-
-## 🏅 評估結論與推薦
-
-### 🥇 **強烈推薦：i18next**
-
-#### 推薦理由
-1. **功能最完整**: 支持所有現代 i18n 功能需求
-2. **生態系統豐富**: 20+ 插件，前後端完整支持
-3. **活躍維護**: 每月更新，社群活躍
-4. **架構適配**: 完美匹配 HKTRPG 的多平台需求
-5. **長期投資**: 企業級解決方案，值得投資學習成本
-
-#### 適用 HKTRPG 場景
-- ✅ **Discord Slash Commands**: i18next-http-backend
-- ✅ **前端網頁**: i18next-browser-languagedetector
-- ✅ **Telegram/Line**: 統一的服務端 API
-- ✅ **動態切換**: 即時語言切換無需重啟
-- ✅ **快取優化**: 高並發場景下的效能保障
-
-### ⚠️ 替代方案考量
-
-#### i18n (第二推薦)
-- **適用場景**: 如果學習成本過高，i18n 是簡單的替代方案
-- **限制**: 前端支持弱，多平台適配需額外開發
-
-#### node-i18n/polyglot (不推薦)
-- **原因**: 維護不活躍，功能過於簡單，無法滿足複雜需求
-
----
-
-## 🚀 基於 i18next 的具體實施計劃
-
-### 📦 i18next 核心組件選擇
-
-#### 後端組件 (服務端)
+#### 後端組件
 ```json
 {
   "dependencies": {
     "i18next": "^25.6.0",
-    "i18next-fs-backend": "^2.6.0",
-    "i18next-http-middleware": "^3.6.0"
+    "i18next-fs-backend": "^2.6.0"
   }
 }
 ```
 
-#### 前端組件 (瀏覽器端)
+#### 前端組件
 ```json
 {
   "dependencies": {
     "i18next": "^25.6.0",
-    "i18next-browser-languagedetector": "^8.1.0",
     "i18next-http-backend": "^3.0.2"
   }
 }
 ```
 
-### 🏗️ i18next 架構設計
+## 🚀 簡化實施計劃
 
-#### 1. 核心配置結構
+### 階段性實施策略
+**總體時間**: 4-6 週
+**核心理念**: 每個階段都能獨立運行，快速獲得用戶價值
+
+### 📅 階段一：核心基礎設施 (第1週)
+**目標**: 建立基本的 i18n 系統，讓系統能夠支持雙語
+
+#### 1.1 建立 i18n 核心模組 (1-2天)
+
+##### 技術實現結構
+
+**檔案**: `modules/core-i18n.js`
 ```javascript
-// modules/core-i18n.js
 const i18next = require('i18next');
 const Backend = require('i18next-fs-backend');
+const path = require('path');
 
 class I18nManager {
     constructor() {
-        this.i18n = i18next.createInstance();
-        this.configure();
-    }
+        this.isEnabled = process.env.I18N_ENABLED === 'true';
+        this.instances = new Map(); // 為不同語言快取實例
+        this.currentLanguage = 'zh-cht';
+        this.fallbackLanguage = 'en';
 
-    async configure() {
-        await this.i18n
-            .use(Backend)
-            .init({
-                // i18next 配置
-                lng: 'zh-cht',
-                fallbackLng: 'en',
-                ns: ['common', '1-funny', 'digmon', 'discord', 'telegram'],
-                defaultNS: 'common',
-                backend: {
-                    loadPath: path.join(__dirname, '../assets/i18n/{{lng}}/{{ns}}.json')
-                },
-                // 效能優化
-                preload: ['zh-cht', 'en'],
-                saveMissing: true,
-                // 快取設定
-                cache: {
-                    enabled: true
-                }
-            });
-    }
-}
-```
-
-#### 2. 語言檔案結構優化
-```
-assets/i18n/
-├── zh-cht/
-│   ├── common.json
-│   ├── 1-funny.json
-│   ├── digmon.json
-│   └── discord.json
-├── en/
-│   ├── common.json
-│   ├── 1-funny.json
-│   ├── digmon.json
-│   └── discord.json
-└── zh-cn/
-    ├── common.json
-    └── ...
-```
-
-#### 3. 平台特定集成
-
-##### Discord 平台
-```javascript
-// modules/core-Discord.js
-const i18nextMiddleware = require('i18next-http-middleware');
-
-async function createLocalizedCommand(commandDef, userLang = 'zh-cht') {
-    const i18n = global.i18n.i18n.cloneInstance({
-        lng: userLang
-    });
-
-    return {
-        name: i18n.t(`${commandDef.module}:commands.${commandDef.name}.name`),
-        description: i18n.t(`${commandDef.module}:commands.${commandDef.name}.description`),
-        options: commandDef.options?.map(option => ({
-            name: i18n.t(`${commandDef.module}:options.${option.name}.name`),
-            description: i18n.t(`${commandDef.module}:options.${option.name}.description`),
-            type: option.type
-        }))
-    };
-}
-```
-
-##### 前端網頁
-```javascript
-// views/common/i18n-frontend.js
-import i18next from 'i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
-import HttpBackend from 'i18next-http-backend';
-
-i18next
-    .use(HttpBackend)
-    .use(LanguageDetector)
-    .init({
-        lng: localStorage.getItem('i18nextLng') || 'zh-cht',
-        fallbackLng: 'en',
-        backend: {
-            loadPath: '/api/i18n/{{lng}}/{{ns}}.json'
-        },
-        detection: {
-            order: ['localStorage', 'navigator', 'htmlTag'],
-            caches: ['localStorage']
+        if (this.isEnabled) {
+            this.initialize();
         }
-    });
-
-// 全域可用
-window.i18n = i18next;
-```
-
-#### 學習與遷移策略
-
-##### 第一階段：核心學習 (Day 1)
-1. **閱讀官方文檔**: https://www.i18next.com/
-2. **安裝測試環境**:
-   ```bash
-   npm install i18next i18next-fs-backend
-   ```
-3. **建立最小可運行示例**:
-   ```javascript
-   const i18next = require('i18next');
-   const Backend = require('i18next-fs-backend');
-
-   i18next
-     .use(Backend)
-     .init({
-       lng: 'en',
-       backend: {
-         loadPath: './locales/{{lng}}.json'
-       }
-     });
-   ```
-
-##### 第二階段：架構適配 (Day 2-3)
-1. **分析現有代碼結構**
-2. **設計遷移策略**
-3. **建立模組化命名空間**
-4. **實現功能旗標控制**
-
-##### 第三階段：功能實現 (Week 1-2)
-1. **按優先順序實現功能**
-2. **建立測試用例**
-3. **性能優化**
-4. **錯誤處理完善**
-
-### 💡 遷移風險控制
-
-#### 漸進式遷移策略
-1. **功能級控制**: 每個功能都可以獨立開關
-2. **後備機制**: i18n 失敗時回退到原始文本
-3. **A/B 測試**: 小規模用戶測試新功能
-4. **監控告警**: 即時發現和處理問題
-
-#### 效能優化建議
-1. **快取策略**: 使用 Redis 快取常用翻譯
-2. **懶載入**: 只載入需要的語言和命名空間
-3. **壓縮優化**: 啟用 Gzip 壓縮翻譯檔案
-4. **CDN 加速**: 考慮使用 CDN 提供翻譯檔案
-
-### 📈 成功指標定義
-
-#### 技術指標
-- **載入效能**: 語言切換 < 100ms
-- **記憶體使用**: 增加 < 50MB
-- **錯誤率**: < 0.1%
-- **響應時間**: 平均延遲 < 10ms
-
-#### 用戶體驗指標
-- **語言切換成功率**: > 95%
-- **功能可用性**: > 99%
-- **用戶滿意度**: > 85% (問卷調查)
-
-#### 業務指標
-- **英文用戶增長**: 每月 > 20%
-- **功能採用率**: > 70% 活躍用戶使用 i18n
-- **跨平台一致性**: > 90%
-
-## 🏗️ 系統架構設計
-
-### 1. 語言檔案結構
-
-#### 檔案組織
-```
-assets/i18n/
-├── en.json          # 英文
-├── zh-cht.json      # 繁體中文
-├── zh-cn.json       # 簡體中文
-├── ja.json          # 日文 (未來擴展)
-└── ko.json          # 韓文 (未來擴展)
-```
-
-#### 鍵值結構設計
-```json
-{
-  "common": {
-    "error": "錯誤",
-    "success": "成功",
-    "loading": "載入中"
-  },
-  "1-funny": {
-    "help": {
-      "title": "【🎲趣味擲骰系統】",
-      "description": "趣味擲骰功能說明"
-    },
-    "commands": {
-      "choice": {
-        "name": "選擇",
-        "description": "隨機選擇功能"
-      }
-    }
-  },
-  "digmon": {
-    "stages": {
-      "baby": "幼年期",
-      "child": "成長期",
-      "adult": "成熟期",
-      "perfect": "完全體",
-      "ultimate": "究極體"
-    },
-    "attributes": {
-      "vaccine": "疫苗種",
-      "virus": "病毒種",
-      "data": "數據種"
-    },
-    "messages": {
-      "not_found": "找不到該數碼寶貝",
-      "invalid_id": "無效的數碼寶貝ID"
-    }
-  }
-}
-```
-
-### 2. 核心 i18n 管理系統
-
-#### 2.1 i18n 管理器模組 (`modules/core-i18n.js`)
-
-```javascript
-class I18nManager {
-    constructor() {
-        this.languages = new Map();
-        this.currentLanguage = 'zh-cht'; // 預設語言
-        this.fallbackLanguage = 'en';    // 後備語言
     }
 
-    // 載入語言檔案
-    async loadLanguage(langCode) {
+    async initialize() {
         try {
-            const filePath = path.join(__dirname, '..', 'assets', 'i18n', `${langCode}.json`);
-            const data = await fs.readFile(filePath, 'utf8');
-            this.languages.set(langCode, JSON.parse(data));
-            logger.info(`Loaded language: ${langCode}`);
+            // 建立預設實例
+            const defaultInstance = i18next.createInstance();
+            await defaultInstance
+                .use(Backend)
+    .init({
+                    lng: this.currentLanguage,
+                    fallbackLng: this.fallbackLanguage,
+        backend: {
+                        loadPath: path.join(__dirname, '../assets/i18n/{{lng}}.json')
+                    },
+                    // 小規模應用優化：關閉不必要的功能
+                    saveMissing: false,
+                    preload: [this.currentLanguage, this.fallbackLanguage]
+                });
+
+            this.instances.set('default', defaultInstance);
+            global.logger.info('i18n system initialized successfully');
         } catch (error) {
-            logger.error(`Failed to load language ${langCode}:`, error);
+            global.logger.error('Failed to initialize i18n system:', error);
+            this.isEnabled = false;
         }
     }
 
-    // 獲取翻譯文本
-    t(key, params = {}, lang = null) {
-        const targetLang = lang || this.currentLanguage;
-        const keys = key.split('.');
-        let value = this.languages.get(targetLang);
+    // 獲取翻譯（同步方法，適合小規模應用）
+    t(key, params = {}, lng = null) {
+        if (!this.isEnabled) return key;
 
-        // 遍歷鍵路徑
-        for (const k of keys) {
-            value = value?.[k];
-            if (value === undefined) break;
-        }
+        const targetLang = lng || this.currentLanguage;
+        const instance = this.instances.get('default');
 
-        // 如果找不到，嘗試後備語言
-        if (value === undefined && targetLang !== this.fallbackLanguage) {
-            return this.t(key, params, this.fallbackLanguage);
-        }
+        if (!instance) return key;
 
-        // 如果還是找不到，返回鍵名
-        if (value === undefined) {
-            logger.warn(`Missing translation for key: ${key} in language: ${targetLang}`);
+        try {
+            return instance.t(key, { ...params, lng: targetLang });
+        } catch (error) {
+            global.logger.warn(`Translation failed for key: ${key}`, error.message);
             return key;
         }
-
-        // 參數替換
-        return this.interpolate(value, params);
     }
 
-    // 參數插值
-    interpolate(text, params) {
-        return text.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-            return params[key] !== undefined ? params[key] : match;
-        });
-    }
+    // 簡單的語言切換
+    async changeLanguage(lang) {
+        if (!this.isEnabled) return false;
 
-    // 設置用戶語言偏好
-    async setUserLanguage(userId, platform, langCode) {
-        // 儲存到資料庫
-        await schema.userPreferences.findOneAndUpdate(
-            { userId, platform },
-            { language: langCode, updatedAt: new Date() },
-            { upsert: true }
-        );
-    }
-
-    // 獲取用戶語言偏好
-    async getUserLanguage(userId, platform) {
-        const pref = await schema.userPreferences.findOne({ userId, platform });
-        return pref?.language || this.currentLanguage;
+        try {
+            const instance = this.instances.get('default');
+            await instance.changeLanguage(lang);
+            this.currentLanguage = lang;
+            return true;
+        } catch (error) {
+            global.logger.error(`Failed to change language to ${lang}:`, error);
+            return false;
+        }
     }
 }
 
@@ -456,34 +143,491 @@ const i18n = new I18nManager();
 module.exports = i18n;
 ```
 
-#### 2.2 初始化載入系統
-
-在 `index.js` 中添加：
-
+**初始化集成** (`index.js`):
 ```javascript
 // 在 ModuleManager 初始化之後
 const i18n = require('./modules/core-i18n');
 
-// 載入所有語言檔案
-await Promise.all(['en', 'zh-cht', 'zh-cn'].map(lang =>
-    i18n.loadLanguage(lang).catch(error =>
-        logger.warn(`Failed to load language ${lang}:`, error.message)
-    )
-));
-
-// 設置全域 i18n 實例
+// 設置全域實例
 global.i18n = i18n;
 ```
 
-### 3. 平台適配層
+#### 1.2 建立語言檔案結構 (1天)
 
-#### 3.1 HTML 界面適配 (`views/common/i18n-frontend.js`)
+##### 目錄結構 (單一檔案模式)
+```
+assets/i18n/
+├── zh-cht.json          # 繁體中文
+├── en.json              # 英文
+└── zh-cn.json           # 簡體中文 (可選)
+```
+
+##### 鍵值命名規範 (參考實際代碼結構)
+- **模組命名**: `{modulename}.{function}.{key}`
+- **通用錯誤**: `common.errors.{error_type}`
+- **成功訊息**: `common.success.{type}`
+- **扁平結構**: 單一檔案包含所有鍵值
+
+##### 初始語言檔案示例 (參考 roll/rollbase.js, 1-funny.js 結構)
+
+**assets/i18n/zh-cht.json**:
+```json
+{
+  "common": {
+    "errors": {
+      "invalid_input": "無效輸入",
+      "dice_count_limit": "不支援{{min}}顆以下及{{max}}顆以上骰子",
+      "dice_sides_limit": "不支援{{min}}以下及{{max}}以上面數",
+      "calculation_error": "計算錯誤",
+      "network_error": "網路錯誤"
+    },
+    "success": {
+      "roll_complete": "擲骰完成",
+      "command_executed": "指令執行成功"
+    },
+    "loading": "載入中...",
+    "not_found": "找不到"
+  },
+  "help": {
+    "main": "【🎲HKTRPG 骰子機器人】\n\n🎯 基本擲骰: .z xDy\n🎲 趣味功能: .choice 項目1 項目2\n📚 詳細說明: https://www.hktrpg.com/",
+    "commands": {
+      "roll": "擲骰指令說明",
+      "choice": "隨機選擇功能"
+    }
+  },
+  "rollbase": {
+    "dice_limit": "（計算過程太長，僅顯示結果）",
+    "roll_guide": "擲骰說明 https://dice-roller.github.io/documentation/guide/notation/dice.html#standard-d-n"
+  },
+  "funny": {
+    "choice": {
+      "no_options": "請提供選擇項目",
+      "result": "🎲 隨機選擇結果：{{result}}"
+    },
+    "tarot": {
+      "draw_single": "🎴 單張塔羅牌：{{card}}",
+      "draw_multi": "🎴 多張塔羅牌：{{cards}}"
+    }
+  },
+  "i18n": {
+    "current_language": "您當前的語言設定是：{{lang}}",
+    "unsupported_language": "不支援的語言：{{lang}}",
+    "language_changed": "語言已切換為：{{lang}}"
+  }
+}
+```
+
+**assets/i18n/en.json**:
+```json
+{
+  "common": {
+  "errors": {
+      "invalid_input": "Invalid input",
+      "dice_count_limit": "Dice count must be between {{min}} and {{max}}",
+      "dice_sides_limit": "Dice sides must be between {{min}} and {{max}}",
+      "calculation_error": "Calculation error",
+      "network_error": "Network error"
+  },
+  "success": {
+      "roll_complete": "Roll completed",
+      "command_executed": "Command executed successfully"
+    },
+    "loading": "Loading...",
+    "not_found": "Not found"
+  },
+  "help": {
+    "main": "【🎲HKTRPG Dice Bot】\n\n🎯 Basic Roll: .z xDy\n🎲 Fun Features: .choice item1 item2\n📚 Details: https://www.hktrpg.com/",
+    "commands": {
+      "roll": "Dice rolling commands",
+      "choice": "Random choice function"
+    }
+  },
+  "rollbase": {
+    "dice_limit": "(Calculation too long, showing result only)",
+    "roll_guide": "Dice rolling guide: https://dice-roller.github.io/documentation/guide/notation/dice.html#standard-d-n"
+  },
+  "funny": {
+    "choice": {
+      "no_options": "Please provide options to choose from",
+      "result": "🎲 Random choice result: {{result}}"
+    },
+    "tarot": {
+      "draw_single": "🎴 Single Tarot Card: {{card}}",
+      "draw_multi": "🎴 Multiple Tarot Cards: {{cards}}"
+    }
+  },
+  "i18n": {
+    "current_language": "Your current language setting is: {{lang}}",
+    "unsupported_language": "Unsupported language: {{lang}}",
+    "language_changed": "Language changed to: {{lang}}"
+  }
+}
+```
+
+#### 1.3 功能旗標控制系統 (0.5天)
+
+##### 實現簡單的環境變數控制
+```bash
+# .env 文件
+I18N_ENABLED=true
+I18N_DEFAULT_LANG=zh-cht
+I18N_FALLBACK_LANG=en
+```
+
+##### 動態啟用檢查
+```javascript
+// 在任何需要 i18n 的地方
+if (global.i18n?.isEnabled) {
+    const message = global.i18n.t('common.success');
+    // 使用翻譯
+} else {
+    const message = '成功'; // 後備
+}
+```
+
+---
+
+### 📅 階段二：核心功能本地化 (第2週)
+**目標**: 將最常用的功能轉換為雙語支持
+
+#### 2.1 Help 命令本地化 (2-3天)
+
+##### 現有代碼分析
+**檔案**: `roll/help.js`
+
+##### 改造策略
+1. **保持原有邏輯不變**
+2. **添加翻譯層**
+3. **提供後備機制**
+
+##### 實現結構 (參考實際 roll/help.js 結構)
+```javascript
+// roll/help.js (修改後)
+const help = (context) => {
+    const rply = {
+        type: 'text',
+        text: ''
+    };
+
+    // 檢查 i18n 是否啟用
+    const useI18n = global.i18n?.isEnabled;
+    const userLang = context.language || 'zh-cht';
+
+    switch (context.command) {
+        case 'help':
+            rply.text = getHelpText(userLang, useI18n);
+            return rply;
+        // ... 其他命令
+    }
+
+    return rply;
+};
+
+// 分離的幫助文本生成函數
+function getHelpText(lang, useI18n) {
+    if (useI18n) {
+        try {
+            return global.i18n.t('help.main', {}, lang);
+        } catch (error) {
+            global.logger.warn('Help translation failed, using fallback');
+        }
+    }
+
+    // 後備：返回原始中文文本
+    return `【🎲HKTRPG 骰子機器人】\n...`;
+}
+```
+
+##### 更新語言檔案
+在 `assets/i18n/zh-cht.json` 和 `assets/i18n/en.json` 中添加 help 部分（已在上面的示例中包含）
+
+#### 2.2 基礎錯誤訊息本地化 (1-2天)
+
+##### 實現通用錯誤處理
+**檔案**: `modules/core-i18n.js` (擴展)
+
+```javascript
+// 添加通用錯誤翻譯方法
+getErrorMessage(errorCode, params = {}, lang = null) {
+    const key = `errors.${errorCode}`;
+    return this.t(key, params, lang);
+}
+```
+
+##### 用法示例
+```javascript
+// 在各個模組中使用
+const errorMsg = global.i18n.getErrorMessage('invalid_input', {}, userLang);
+// 或者
+const errorMsg = global.i18n.t('errors.invalid_input', {}, userLang);
+```
+
+---
+
+### 📅 階段三：平台適配與用戶體驗 (第3週)
+**目標**: 讓用戶能夠實際使用多語言功能
+
+#### 3.1 用戶語言偏好存儲 (2天)
+
+##### 資料庫架構設計
+**使用現有 schema 系統**
+
+```javascript
+// 在現有的 user schema 中添加語言字段
+const userLanguageSchema = new schema({
+    userId: String,
+    platform: String, // 'discord', 'telegram', 'line'
+    language: {
+        type: String,
+        default: 'zh-cht',
+        enum: ['zh-cht', 'en', 'zh-cn']
+    },
+    updatedAt: { type: Date, default: Date.now }
+});
+
+// 添加到現有 schema
+schema.userLanguages = userLanguageSchema;
+```
+
+##### 語言管理方法
+```javascript
+// modules/core-i18n.js 中添加
+async setUserLanguage(userId, platform, lang) {
+    if (!this.isEnabled) return;
+
+    try {
+        await schema.userLanguages.findOneAndUpdate(
+            { userId, platform },
+            { language: lang, updatedAt: new Date() },
+            { upsert: true }
+        );
+        } catch (error) {
+        global.logger.error('Failed to save user language preference:', error);
+    }
+}
+
+async getUserLanguage(userId, platform) {
+    if (!this.isEnabled) return this.currentLanguage;
+
+    try {
+        const pref = await schema.userLanguages.findOne({ userId, platform });
+        return pref?.language || this.currentLanguage;
+    } catch (error) {
+        global.logger.error('Failed to get user language preference:', error);
+        return this.currentLanguage;
+    }
+}
+```
+
+#### 3.2 語言切換命令 (1-2天)
+
+##### 實現簡單的語言切換
+**新增檔案**: `roll/i18n.js`
+
+```javascript
+const language = (context) => {
+    const rply = { type: 'text', text: '' };
+    const { args, userId, platform } = context;
+
+    const requestedLang = args[0];
+    const supportedLangs = ['zh-cht', 'en', 'zh-cn'];
+
+    if (!requestedLang) {
+        // 顯示當前語言
+        const currentLang = global.i18n.getUserLanguage(userId, platform);
+        rply.text = global.i18n.t('i18n.current_language', { lang: currentLang }, currentLang);
+        return rply;
+    }
+
+    if (!supportedLangs.includes(requestedLang)) {
+        rply.text = global.i18n.t('i18n.unsupported_language', { lang: requestedLang });
+        return rply;
+    }
+
+    // 設定用戶語言
+    global.i18n.setUserLanguage(userId, platform, requestedLang);
+    rply.text = global.i18n.t('i18n.language_changed', { lang: requestedLang }, requestedLang);
+
+    return rply;
+};
+
+module.exports = { language };
+```
+
+##### 對應語言檔案
+**assets/i18n/zh-cht/i18n.json**:
+```json
+{
+  "current_language": "您當前的語言設定是：{{lang}}",
+  "unsupported_language": "不支援的語言：{{lang}}",
+  "language_changed": "語言已切換為：{{lang}}"
+}
+```
+
+---
+
+### 📅 階段四：功能擴展與優化 (第4-6週)
+**目標**: 擴展到更多功能模組，優化用戶體驗
+
+#### 4.1 高頻功能本地化 (第4週)
+
+##### 優先順序
+1. **1-funny.js** - 趣味擲骰 (用戶使用頻繁)
+2. **rollbase.js** - 基礎擲骰結果
+3. **2-coc.js** - CoC 系統 (TRPG 核心)
+
+##### 實現模式
+- 參考 help.js 的改造模式
+- 逐步替換硬編碼文本
+- 保持向後兼容
+
+##### rollbase.js 實際改造示例
+```javascript
+// roll/rollbase.js (修改後)
+
+// 常數定義區塊保持不變
+const DICE_LIMITS = {
+  MAX_DICE_COUNT: 1000,
+  MIN_DICE_COUNT: 1,
+  MAX_DICE_SIDES: 90_000_000,
+  MIN_DICE_SIDES: 1,
+  MAX_EQUATION_DICE_COUNT: 200,
+  MAX_EQUATION_DICE_SIDES: 500,
+  MAX_ROLL_TIMES: 30,
+  MAX_DISPLAY_LENGTH: 250
+};
+
+// 修改錯誤訊息常數，添加 i18n 支持
+const ERROR_MESSAGES = {
+  DICE_COUNT_LIMIT: (lang) => global.i18n?.isEnabled ?
+    global.i18n.t('rollbase.errors.dice_count_limit', {
+      min: DICE_LIMITS.MIN_DICE_COUNT,
+      max: DICE_LIMITS.MAX_DICE_COUNT
+    }, lang) :
+    `不支援${DICE_LIMITS.MIN_DICE_COUNT - 1}顆以下及${DICE_LIMITS.MAX_DICE_COUNT}顆以上骰子`,
+
+  DICE_SIDES_LIMIT: (lang) => global.i18n?.isEnabled ?
+    global.i18n.t('rollbase.errors.dice_sides_limit', {
+      min: DICE_LIMITS.MIN_DICE_SIDES,
+      max: DICE_LIMITS.MAX_DICE_SIDES
+    }, lang) :
+    `不支援${DICE_LIMITS.MIN_DICE_SIDES - 1}以下及${DICE_LIMITS.MAX_DICE_SIDES}以上面數`,
+
+  DISPLAY_LIMIT: (lang) => global.i18n?.isEnabled ?
+    global.i18n.t('rollbase.dice_limit', {}, lang) :
+    '（計算過程太長，僅顯示結果）'
+};
+
+// 在使用錯誤訊息的地方修改
+function someDiceFunction(input, lang = 'zh-cht') {
+    // ... 現有邏輯
+    if (diceCount < DICE_LIMITS.MIN_DICE_COUNT || diceCount > DICE_LIMITS.MAX_DICE_COUNT) {
+        return ERROR_MESSAGES.DICE_COUNT_LIMIT(lang);
+    }
+    // ... 其他邏輯
+}
+
+// 修改主要處理函數，添加語言參數
+const rollDice = function ({
+    mainMsg,
+    inputStr,
+    userlang = 'zh-cht'  // 添加語言參數
+}) {
+    // ... 現有邏輯保持不變，只在錯誤處理中使用語言參數
+    try {
+        // ... 擲骰邏輯
+        if (displayText.length > DICE_LIMITS.MAX_DISPLAY_LENGTH) {
+            reply.text = roll.output + ERROR_MESSAGES.DISPLAY_LIMIT(userlang);
+        } else {
+            reply.text = roll.output;
+        }
+    } catch (error) {
+        reply.text = roll.output;
+        reply.text += `${error.name}  \n ${error.message}`;
+        reply.text += `\n${global.i18n?.isEnabled ?
+            global.i18n.t('rollbase.roll_guide', {}, userlang) :
+            '擲骰說明 https://dice-roller.github.io/documentation/guide/notation/dice.html#standard-d-n'}`;
+    }
+    // ... 其他邏輯
+};
+```
+
+##### 1-funny.js 實際改造示例
+```javascript
+// roll/1-funny.js (修改後)
+
+const funny = async (context) => {
+    let rply = {
+        type: 'text',
+        text: ''
+    };
+
+    const userlang = context.language || 'zh-cht';
+    const useI18n = global.i18n?.isEnabled;
+
+    switch (true) {
+        case /^help$/i.test(mainMsg[0]):
+            rply.text = await this.getHelpMessage(userlang, useI18n);
+            break;
+
+        case /^choice$/i.test(mainMsg[0]):
+            rply.text = choice(inputStr, mainMsg, userlang, useI18n);
+            break;
+
+        case /^tarot$/i.test(mainMsg[0]):
+            if (mainMsg[1] <= 1) {
+                rply.text = NomalDrawTarot(mainMsg[1], mainMsg[2], userlang, useI18n);
+            } else {
+                rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 1, userlang, useI18n);
+            }
+            break;
+
+        // ... 其他case保持不變
+    }
+    return rply;
+};
+
+// 修改 choice 函數
+function choice(inputStr, mainMsg, lang = 'zh-cht', useI18n = false) {
+    if (!mainMsg || mainMsg.length <= 1) {
+        return useI18n ?
+            global.i18n.t('funny.choice.no_options', {}, lang) :
+            '請提供選擇項目';
+    }
+
+    const result = mainMsg[Math.floor(Math.random() * mainMsg.length)];
+    return useI18n ?
+        global.i18n.t('funny.choice.result', { result }, lang) :
+        `🎲 隨機選擇結果：${result}`;
+}
+
+// 修改塔羅牌函數
+function NomalDrawTarot(times, style, lang = 'zh-cht', useI18n = false) {
+    // ... 現有邏輯
+    const card = getCard(); // 假設的獲取卡牌函數
+
+    return useI18n ?
+        global.i18n.t('funny.tarot.draw_single', { card }, lang) :
+        `🎴 單張塔羅牌：${card}`;
+}
+```
+
+#### 4.2 前端網頁本地化 (第5週)
+
+##### HTML 界面適配
+**檔案**: `views/common/i18n-frontend.js`
 
 ```javascript
 class FrontendI18n {
     constructor() {
-        this.currentLang = localStorage.getItem('language') || 'zh-cht';
+        this.currentLang = localStorage.getItem('hktrpg_lang') || 'zh-cht';
         this.translations = {};
+        this.init();
+    }
+
+    async init() {
+        await this.loadLanguage(this.currentLang);
+        this.updateUI();
     }
 
     async loadLanguage(lang) {
@@ -491,10 +635,7 @@ class FrontendI18n {
             const response = await fetch(`/api/i18n/${lang}`);
             this.translations = await response.json();
             this.currentLang = lang;
-            localStorage.setItem('language', lang);
-
-            // 重新渲染界面
-            this.updateUI();
+            localStorage.setItem('hktrpg_lang', lang);
         } catch (error) {
             console.error('Failed to load language:', error);
         }
@@ -509,9 +650,9 @@ class FrontendI18n {
             if (value === undefined) return key;
         }
 
-        // 參數替換
+        // 簡單參數替換
         return value.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-            return params[key] || match;
+            return params[key] !== undefined ? params[key] : match;
         });
     }
 
@@ -522,11 +663,11 @@ class FrontendI18n {
             el.textContent = this.t(key);
         });
 
-        // 更新所有帶 data-i18n-placeholder 的輸入框
-        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-            const key = el.getAttribute('data-i18n-placeholder');
-            el.placeholder = this.t(key);
-        });
+        // 更新語言選擇器
+        const langSelector = document.getElementById('language-selector');
+        if (langSelector) {
+            langSelector.value = this.currentLang;
+        }
     }
 }
 
@@ -534,753 +675,114 @@ class FrontendI18n {
 window.i18n = new FrontendI18n();
 ```
 
-#### 3.2 Discord 適配層
+##### 後端 API 端點
+**檔案**: `index.js` (添加路由)
 
 ```javascript
-// 在 core-Discord.js 中集成
-const i18n = global.i18n;
+// 簡單的 i18n API 端點
+app.get('/api/i18n/:lang', (req, res) => {
+    const lang = req.params.lang;
+    const fs = require('fs').promises;
+    const path = require('path');
 
-async function createLocalizedCommand(commandDef, lang = 'zh-cht') {
-    const localized = { ...commandDef };
+    // 單一檔案模式：直接讀取對應語言檔案
+    const filePath = path.join(__dirname, 'assets', 'i18n', `${lang}.json`);
 
-    if (localized.name) {
-        localized.name = i18n.t(`${commandDef.module}.${commandDef.name}.name`, {}, lang);
-    }
-
-    if (localized.description) {
-        localized.description = i18n.t(`${commandDef.module}.${commandDef.name}.description`, {}, lang);
-    }
-
-    // 處理選項本地化
-    if (localized.options) {
-        localized.options = localized.options.map(option => ({
-            ...option,
-            name: i18n.t(`${commandDef.module}.options.${option.name}.name`, {}, lang),
-            description: i18n.t(`${commandDef.module}.options.${option.name}.description`, {}, lang)
-        }));
-    }
-
-    return localized;
-}
+    fs.readFile(filePath, 'utf8')
+        .then(data => {
+            res.json(JSON.parse(data));
+        })
+        .catch(error => {
+            res.status(404).json({ error: 'Language file not found' });
+        });
+});
 ```
 
-#### 3.3 Telegram/Line 適配層
+#### 4.3 效能優化與監控 (第6週)
 
+##### 快取優化
+- **語言檔案快取**: 應用啟動時載入到記憶體
+- **用戶偏好快取**: 使用簡單的 Map 快取活躍用戶
+
+##### 監控指標
 ```javascript
-// 在消息處理中集成
-async function sendLocalizedMessage(chatId, key, params = {}, userLang = 'zh-cht') {
-    const message = i18n.t(key, params, userLang);
-    await bot.sendMessage(chatId, message);
-}
-```
-
-## 📋 改良實施計劃：漸進式部署策略
-
-### 🎯 核心原則
-- **可獨立部署**：每個功能都可以單獨啟用/停用
-- **功能旗標控制**：支援 A/B 測試和灰度發布
-- **後備機制**：確保舊功能永遠可用
-- **用戶選擇權**：允許用戶選擇是否使用 i18n 功能
-- **及早回饋**：每個階段都可以收集用戶意見
-
-### 📈 改良效益
-- **降低風險**：每個小功能都可以獨立測試，問題範圍有限
-- **快速迭代**：基於用戶回饋快速調整方向
-- **靈活上架**：不需要等待完整功能，可以分批發布
-- **A/B 測試**：可以測試不同語言功能的效果
-- **回退安全**：任何時候都可以停用有問題的功能
-
-### Phase 0: MVP - 最小可行產品 (每階段 1-3 天)
-**目標**：建立基本 i18n 基礎設施，讓系統能同時支持中英文
-
-#### 0.1 核心基礎設施 (Day 1)
-- [ ] 建立 `modules/core-i18n.js` 核心模組
-- [ ] 建立 `assets/i18n/` 目錄結構
-- [ ] 實現基本翻譯載入和快取機制
-- [ ] **🎯 可獨立部署**：基礎設施完成後可立即上架測試
-
-#### 0.2 單一功能 MVP (Day 2-3)
-- [ ] 選擇 `roll/help.js` 作為第一個本地化目標
-- [ ] 建立 help 命令的英文版本鍵值
-- [ ] 實現用戶語言偏好存儲 (僅資料庫儲存)
-- [ ] **🎯 可獨立部署**：help 命令雙語版本上架！
-
-#### 0.3 基本語言切換 (Day 4-5)
-- [ ] 添加 `/lang en|zh-cht|zh-cn` 命令
-- [ ] 實現用戶語言設定持久化
-- [ ] 添加語言切換成功回饋訊息
-- [ ] **🎯 可獨立部署**：用戶可切換語言偏好
-
-### Phase 1: 核心功能擴展 (每週 2-3 個功能)
-**策略**：每個功能模組獨立部署，立即獲得用戶回饋
-
-#### 1.1 第一週：高影響力功能 (Week 1)
-- [ ] **Day 1-2**: `roll/1-funny.js` - 選擇指令本地化
-  - [ ] 實現隨機選擇功能雙語支持
-  - [ ] **🎯 可獨立部署**：choice 命令變成多語言！
-- [ ] **Day 3-4**: 基礎錯誤訊息本地化
-  - [ ] 實現通用錯誤訊息的 i18n
-  - [ ] **🎯 可獨立部署**：所有錯誤訊息變得友善
-- [ ] **Day 5**: 基礎成功訊息本地化
-  - [ ] 實現成功操作的回饋訊息 i18n
-  - [ ] **🎯 可獨立部署**：用戶體驗立即提升
-
-#### 1.2 第二週：遊戲系統基礎 (Week 2)
-- [ ] **Day 1-2**: `roll/rollbase.js` - 基礎擲骰本地化
-  - [ ] 實現基本擲骰結果的雙語輸出
-  - [ ] **🎯 可獨立部署**：所有擲骰結果都支持多語言！
-- [ ] **Day 3-4**: `roll/2-coc.js` - CoC 系統初步本地化
-  - [ ] 實現 CoC 擲骰結果本地化
-  - [ ] **🎯 可獨立部署**：CoC 玩家可以選擇語言
-- [ ] **Day 5**: 每周成果檢討與調整
-
-#### 1.3 第三週：進階功能 (Week 3)
-- [ ] **Day 1-2**: `roll/digmon.js` - 數碼寶貝系統
-  - [ ] 實現基本查詢結果本地化
-  - [ ] **🎯 可獨立部署**：數碼寶貝查詢支持英文！
-- [ ] **Day 3-4**: 角色卡系統初步本地化
-  - [ ] 實現角色卡操作的基本本地化
-  - [ ] **🎯 可獨立部署**：角色管理變得國際化
-
-### Phase 2: 平台適配與用戶體驗優化 (每週一個平台)
-**策略**：每個平台獨立部署，收集特定平台用戶回饋
-
-#### 2.1 第一週：Discord 平台深度整合 (Week 4)
-- [ ] **Day 1-2**: Discord Slash Command 本地化
-  - [ ] 實現命令名稱和描述的雙語支持
-  - [ ] **🎯 可獨立部署**：Discord 用戶看到本地化命令！
-- [ ] **Day 3-4**: Discord 互動優化
-  - [ ] 實現 Discord 專用的本地化回應格式
-  - [ ] **🎯 可獨立部署**：Discord 體驗大幅提升
-- [ ] **Day 5**: Discord 用戶回饋收集與調整
-
-#### 2.2 第二週：HTML 網頁界面 (Week 5)
-- [ ] **Day 1-2**: 網頁語言切換器
-  - [ ] 實現直觀的語言切換 UI
-  - [ ] **🎯 可獨立部署**：網頁用戶可以切換語言！
-- [ ] **Day 3-4**: 網頁內容本地化
-  - [ ] 實現主要頁面內容的完整本地化
-  - [ ] **🎯 可獨立部署**：完整多語言網頁體驗
-- [ ] **Day 5**: 網頁用戶回饋與可用性測試
-
-#### 2.3 第三週：Telegram/Line 平台 (Week 6)
-- [ ] **Day 1-2**: Telegram 本地化
-  - [ ] 實現 Telegram 機器人消息本地化
-  - [ ] **🎯 可獨立部署**：Telegram 用戶獲得本地化體驗
-- [ ] **Day 3-4**: Line 平台本地化
-  - [ ] 實現 Line 機器人消息本地化
-  - [ ] **🎯 可獨立部署**：Line 用戶也能使用多語言
-- [ ] **Day 5**: 跨平台一致性檢查與優化
-
-### Phase 3: 用戶驅動優化與擴展 (Week 7-12)
-**策略**：建立持續改進機制，收集真實用戶數據
-
-#### 3.1 第一個月：品質優化 (Week 7-8)
-- [ ] **智慧語言檢測**
-  - [ ] 實現基於瀏覽器設定和地理位置的自動語言檢測
-  - [ ] **🎯 可獨立部署**：新用戶自動獲得合適語言
-- [ ] **翻譯品質改進**
-  - [ ] 建立術語詞典確保一致性
-  - [ ] 用戶回饋驅動的翻譯優化
-  - [ ] **🎯 可獨立部署**：翻譯品質持續提升
-- [ ] **效能優化**
-  - [ ] 實現更快的翻譯快取策略
-  - [ ] 記憶體使用優化
-  - [ ] **🎯 可獨立部署**：響應速度提升
-
-#### 3.2 第二個月：用戶參與與測試 (Week 9-10)
-- [ ] **Beta 測試計劃**
-  - [ ] 招募翻譯志願者
-  - [ ] 建立翻譯貢獻工作流程
-  - [ ] **🎯 可獨立部署**：社區參與翻譯
-- [ ] **A/B 測試框架**
-  - [ ] 實現功能標籤控制的 A/B 測試
-  - [ ] 用戶群體間的語言功能測試
-  - [ ] **🎯 可獨立部署**：數據驅動優化
-- [ ] **用戶回饋系統**
-  - [ ] 添加翻譯問題回報機制
-  - [ ] 實現用戶滿意度調查
-  - [ ] **🎯 可獨立部署**：持續收集用戶意見
-
-#### 3.3 第三個月：擴展與規模化 (Week 11-12)
-- [ ] **新語言支持**
-  - [ ] 添加日文支持（基於用戶需求）
-  - [ ] 添加韓文支持（基於用戶需求）
-  - [ ] **🎯 可獨立部署**：支持更多語言
-- [ ] **高級功能**
-  - [ ] 實現動態翻譯載入
-  - [ ] 支持自訂語言包
-  - [ ] **🎯 可獨立部署**：更靈活的語言支持
-- [ ] **生產環境優化**
-  - [ ] 完整的監控和告警系統
-  - [ ] 自動化回退機制
-  - [ ] **🎯 可獨立部署**：企業級穩定性
-
----
-
-## 🔄 漸進式部署機制
-
-### 功能旗標系統
-```javascript
-// 在環境變數或資料庫中控制功能開關
-const featureFlags = {
-  i18n_enabled: process.env.I18N_ENABLED || false,
-  i18n_web_ui: process.env.I18N_WEB_UI || false,
-  i18n_discord: process.env.I18N_DISCORD || false,
-  i18n_telegram: process.env.I18N_TELEGRAM || false,
-  i18n_digmon: process.env.I18N_DIGMON || false,
-  // 每個模組都可以獨立控制
-};
-```
-
-### A/B 測試支持
-```javascript
-// 支持按用戶 ID 或百分比啟用功能
-const abTesting = {
-  enableForPercentage: (percentage) => Math.random() * 100 < percentage,
-  enableForUserIds: (userIds) => userIds.includes(currentUserId),
-};
-```
-
-### 後備機制
-```javascript
-// 確保舊功能永遠可用
-const fallbackStrategy = {
-  // 如果 i18n 載入失敗，返回原始文本
-  safeTranslate: (key, fallback) => {
-    try {
-      return i18n.t(key) || fallback;
-    } catch {
-      return fallback;
-    }
-  }
-};
-```
-
----
-
-## 📊 部署和回饋流程
-
-### 🚀 每日/每周部署檢查表
-#### 每日部署前檢查
-- [ ] **功能測試**：新功能在測試環境正常工作
-- [ ] **後備機制測試**：功能旗標關閉時系統正常運行
-- [ ] **性能基準測試**：確保響應時間 < 100ms 增加
-- [ ] **錯誤處理測試**：異常情況有適當處理
-- [ ] **翻譯完整性**：所有新鍵值都有對應翻譯
-
-#### 每周部署後檢查
-- [ ] **用戶活躍度**：觀察新功能使用率變化
-- [ ] **錯誤率監控**：確保生產環境錯誤率 < 0.5%
-- [ ] **性能監控**：CPU/記憶體使用正常
-- [ ] **用戶回饋收集**：通過 Discord/Telegram 收集意見
-
-### 📊 用戶參與與回饋機制
-#### 即時回饋收集
-1. **每日用戶調查**：新功能部署後 24 小時內收集意見
-2. **Discord 回饋頻道**：專門的 #i18n-feedback 頻道
-3. **Telegram 測試群組**：小規模 beta 測試群組
-4. **網頁回饋表單**：HTML 界面上的快速回饋機制
-
-#### 數據驅動決策
-1. **使用統計分析**：哪些語言功能最受歡迎
-2. **轉換率追蹤**：英文用戶轉換為活躍用戶的比率
-3. **滿意度評分**：定期用戶滿意度調查
-4. **流失率分析**：觀察功能更新後的用戶留存變化
-
-### 回退計劃
-- [ ] **功能級回退**：可以快速停用特定功能
-- [ ] **模組級回退**：可以回退到未本地化的版本
-- [ ] **全域回退**：緊急情況下停用所有 i18n 功能
-
-## 🛠️ 技術細節
-
-### 功能旗標實現
-```javascript
-// modules/core-i18n.js 中添加功能旗標支持
-class I18nManager {
-    constructor() {
-        this.featureFlags = {
-            enabled: process.env.I18N_ENABLED === 'true',
-            modules: new Set(), // 已啟用的模組
-            platforms: new Set(), // 已啟用的平台
-        };
-        this.loadFeatureFlags();
-    }
-
-    // 載入功能旗標配置
-    loadFeatureFlags() {
-        // 從環境變數或資料庫載入
-        const enabledModules = process.env.I18N_MODULES?.split(',') || [];
-        this.featureFlags.modules = new Set(enabledModules);
-
-        const enabledPlatforms = process.env.I18N_PLATFORMS?.split(',') || [];
-        this.featureFlags.platforms = new Set(enabledPlatforms);
-    }
-
-    // 檢查模組是否啟用
-    isModuleEnabled(moduleName) {
-        return this.featureFlags.modules.has(moduleName);
-    }
-
-    // 檢查平台是否啟用
-    isPlatformEnabled(platform) {
-        return this.featureFlags.platforms.has(platform);
-    }
-
-    // 動態啟用/停用功能
-    toggleModule(moduleName, enabled) {
-        if (enabled) {
-            this.featureFlags.modules.add(moduleName);
-        } else {
-            this.featureFlags.modules.delete(moduleName);
-        }
-        this.saveFeatureFlags();
-    }
-}
-```
-
-### 模組本地化範例：逐步實施
-
-#### 階段1：準備工作（不影響現有功能）
-```javascript
-// 原始代碼保持不變，添加 i18n 準備
-const help = (context) => {
-    const rply = {
-        type: 'text',
-        text: ''
+// modules/core-i18n.js 中添加
+getStats() {
+    return {
+        enabled: this.isEnabled,
+        currentLanguage: this.currentLanguage,
+        loadedLanguages: Array.from(this.instances.keys()),
+        cacheSize: this.userLanguageCache?.size || 0
     };
-
-    // 添加功能檢查
-    const useI18n = global.i18n?.isModuleEnabled('help');
-    const userLang = useI18n ? global.i18n.getUserLanguage(context.userId, context.platform) : 'zh-cht';
-
-    // 原始邏輯保持不變
-    switch (context.command) {
-        case 'help':
-            rply.text = getHelpText(userLang);
-            break;
-        // ...
-    }
-
-    return rply;
-};
-
-// 分離的幫助文本生成函數
-function getHelpText(lang = 'zh-cht') {
-    if (global.i18n?.isModuleEnabled('help')) {
-        return global.i18n.t('help.main', {}, lang);
-    }
-
-    // 後備：返回原始中文文本
-    return `【🎲HKTRPG 擲骰機器人】\n...`;
 }
 ```
 
-#### 階段2：建立翻譯檔案（可獨立部署）
-```json
-// assets/i18n/zh-cht.json (更新)
-{
-  "help": {
-    "main": "【🎲HKTRPG 擲骰機器人】\n...",
-    "commands": {
-      "roll": "擲骰指令說明"
-    }
-  }
-}
+---
 
-// assets/i18n/en.json (新增)
-{
-  "help": {
-    "main": "【🎲HKTRPG Dice Bot】\n...",
-    "commands": {
-      "roll": "Dice rolling commands"
-    }
-  }
-}
-```
+## 🔧 部署與維護策略
 
-#### 階段3：啟用功能（通過環境變數）
+### 功能旗標控制
 ```bash
-# 啟用 help 模組的 i18n
-export I18N_MODULES=help
-export I18N_ENABLED=true
-
-# 重啟服務即可生效
+# 環境變數控制
+I18N_ENABLED=true          # 總開關
+I18N_MODULES=help,common   # 啟用的模組
+I18N_PLATFORMS=all         # 啟用的平台
 ```
 
-#### 階段4：添加語言切換功能
+### 緊急回退機制
 ```javascript
-// 添加用戶命令來切換語言
-const setLanguage = (context) => {
-    const { userId, platform, args } = context;
-    const lang = args[0]; // 'en', 'zh-cht', 'zh-cn'
-
-    if (global.i18n?.isLanguageSupported(lang)) {
-        global.i18n.setUserLanguage(userId, platform, lang);
-        return global.i18n.t('common.language_set', { language: lang }, lang);
+// 全域後備函數
+function safeTranslate(key, fallback) {
+    try {
+        return global.i18n?.isEnabled ? global.i18n.t(key) : fallback;
+    } catch {
+        return fallback;
     }
-
-    return '不支持的語言';
-};
+}
 ```
 
 ### 部署檢查清單
 
-#### 每個新功能上架前檢查：
-- [ ] **功能旗標設置正確**
-- [ ] **後備機制有效**（停用旗標時功能正常）
-- [ ] **性能測試通過**（響應時間 < 100ms 增加）
-- [ ] **錯誤處理完整**（異常情況有適當處理）
-- [ ] **翻譯完整性**（無缺失鍵值）
-- [ ] **用戶文檔更新**
+#### 每個新功能上架前檢查
+- [ ] 功能旗標設置正確
+- [ ] 後備機制有效（停用旗標時功能正常）
+- [ ] 語言檔案完整性
+- [ ] 基本功能測試通過
 
-#### 部署後監控：
-- [ ] **錯誤率監控**（確保 < 1% 錯誤率）
-- [ ] **性能監控**（CPU/記憶體使用正常）
-- [ ] **用戶回饋收集**（Discord/Telegram 群組）
-- [ ] **使用統計**（哪些功能最受歡迎）
-
-### 緊急回退流程
-```bash
-# 緊急停用所有 i18n 功能
-export I18N_ENABLED=false
-
-# 或停用特定模組
-export I18N_MODULES=help,digmon  # 只保留其他模組
-
-# 或停用特定平台
-export I18N_PLATFORMS=web,discord  # 只保留 Telegram/Line
-```
-
-### 📈 階段性成功指標與調整機制
-#### 每日成功指標
-- **功能正常運行**：新功能部署後 1 小時內無重大錯誤
-- **用戶接受度**：新功能使用率 > 10%（相對於活躍用戶）
-- **性能穩定**：響應時間增加 < 20ms
-
-#### 每周成功指標
-- **用戶回饋正面比例**：> 70% 用戶回饋為正面
-- **功能採用率**：目標功能的使用率逐週提升
-- **錯誤率控制**：< 0.5% 錯誤率
-
-#### 每月關鍵指標
-- **語言用戶增長**：英文用戶數量每月增長 > 15%
-- **跨平台一致性**：各平台用戶體驗評分差異 < 10%
-- **系統穩定性**：整體錯誤率 < 0.3%
-
-#### 動態調整機制
-- **紅燈指標**：任何指標低於標準，立即停止新功能部署
-- **黃燈指標**：指標接近標準，增加測試時間和範圍
-- **綠燈指標**：指標良好，加快部署節奏
+#### 部署後監控
+- [ ] 錯誤率監控（< 1%）
+- [ ] 性能影響檢查（響應時間增加 < 50ms）
+- [ ] 用戶回饋收集
 
 ---
 
-## 📊 計劃比較與效益分析
+## 📊 成功指標與效益分析
 
-### 📋 原計劃 vs. 超級漸進式計劃
+### 技術指標
+- **載入效能**: 語言切換 < 200ms
+- **記憶體增加**: < 20MB
+- **錯誤率**: < 0.5%
+- **響應時間**: 平均延遲增加 < 20ms
 
-| 方面 | 原計劃 | 改良前計劃 | 超級漸進式計劃 |
-|------|--------|------------|----------------|
-| **部署頻率** | 一次性完成所有功能 | 每週可部署新功能 | **每天可部署小功能** |
-| **風險控制** | 高風險（大規模重構） | 中風險（模組級重構） | **極低風險（功能級控制）** |
-| **用戶回饋** | 完成後才收集 | 每個階段都能收集 | **每天收集，立即調整** |
-| **回退難度** | 困難（需完整回滾） | 中等（模組級回退） | **極易（功能旗標秒級控制）** |
-| **時間到價值** | 8-10週後見效 | 每週見效 | **第1天就有價值** |
-| **A/B測試** | 不支援 | 基本支援 | **完整支援，數據驅動** |
-| **用戶選擇權** | 全有全無 | 模組選擇 | **功能級精細控制** |
-| **測試覆蓋** | 大規模測試 | 模組測試 | **小規模迭代測試** |
+### 用戶體驗指標
+- **功能可用性**: > 95%
+- **英文用戶增長**: 每月 > 10%
+- **用戶滿意度**: > 80% (簡單調查)
 
-### 🎯 改良計劃的核心優勢
-
-#### 1. **商業價值**
-- **及早收益**：第一個模組完成就能帶來價值
-- **用戶參與**：讓用戶參與功能開發過程
-- **數據驅動**：基於真實使用數據優化方向
-
-#### 2. **技術優勢**
-- **降低風險**：問題範圍局限於單一功能
-- **持續交付**：支援 DevOps 最佳實踐
-- **靈活擴展**：可以根據需求調整優先順序
-
-#### 3. **用戶體驗**
-- **漸進採用**：用戶可以慢慢適應新功能
-- **選擇權**：用戶可以選擇使用哪些 i18n 功能
-- **回饋循環**：持續改進基於用戶真實意見
-
-## 🚨 緊急處理與應變流程
-
-### 即時應變機制
-#### 問題檢測
-- **自動監控**：錯誤率 > 1% 時觸發告警
-- **用戶回報**：Discord/Telegram 緊急回報機制
-- **性能監控**：響應時間 > 200ms 時告警
-
-#### 快速回退流程
-```bash
-# 緊急停用單一功能
-export I18N_MODULES="$(echo $I18N_MODULES | sed 's/,problematic_feature//g')"
-
-# 緊急停用整個模組
-export I18N_MODULES="$(echo $I18N_MODULES | sed 's/,digmon//g')"
-
-# 緊急停用特定平台
-export I18N_PLATFORMS="$(echo $I18N_PLATFORMS | sed 's/,discord//g')"
-
-# 完全停用 i18n（最後手段）
-export I18N_ENABLED=false
-```
-
-#### 問題分類與處理
-1. **翻譯錯誤**：5 分鐘內修復，重新部署
-2. **功能崩潰**：10 分鐘內功能旗標關閉
-3. **性能問題**：15 分鐘內回退到上一版本
-4. **安全問題**：立即完全停用，深入調查
-
-### 🚀 實施建議
-
-#### 立即開始（今天就開始）
-1. **Day 1 啟動**：建立核心 i18n 模組和第一個雙語功能
-2. **設定自動化監控**：部署即時錯誤追蹤和用戶回饋機制
-3. **準備回退腳本**：預先準備所有緊急回退命令
-
-#### 🎯 關鍵成功因素
-1. **每日部署文化**：建立快速迭代的開發習慣
-2. **用戶至上思維**：每個功能都以用戶價值為優先
-3. **數據驅動決策**：所有決策基於真實用戶數據
-4. **透明溝通**：讓用戶知道新功能和進度
-5. **功能旗標控制**：確保每個功能都可以秒級開關
-6. **自動化監控**：建立完整的錯誤追蹤和性能監控
-
-#### 團隊建議
-- **跨職能團隊**：開發、前端、測試、產品經理
-- **定期檢討**：每週檢討進度和用戶回饋
-- **敏捷方法**：使用 Scrum 或 Kanban 管理
+### 業務效益 (小規模應用重點)
+- **用戶覆蓋**: 支持英語用戶使用核心功能
+- **品牌形象**: 顯示專業的國際化支持
+- **維護效率**: 降低重複代碼，集中管理文本
 
 ---
 
-## 🎉 結論：超級漸進式 i18n 實施策略
+## 🎯 結論
 
-這個**超級漸進式 i18n 計劃**徹底顛覆了傳統的軟體開發方法，將原本高風險的一次性大規模重構轉換為**每日小步快跑的用戶中心開發模式**。
+這個**小規模應用優化版** i18n 計劃專為數萬用戶規模的應用設計，重點放在：
 
-### 🌟 核心創新點
+1. **快速見效**: 第1週就能看到基本功能
+2. **簡單維護**: 避免過度複雜的架構
+3. **資源節省**: 使用現有基礎設施
+4. **風險控制**: 每個功能都可以獨立控制
 
-**傳統開發 vs. 超級漸進式開發**
-
-| 傳統開發 | 超級漸進式開發 |
-|---------|----------------|
-| 一次性完成所有功能 | **每天部署一個小功能** |
-| 完成後才讓用戶測試 | **每部署就收集用戶回饋** |
-| 失敗風險高，回退難 | **秒級功能旗標控制** |
-| 開發者主導決策 | **數據和用戶回饋驅動** |
-| 大規模測試 | **小規模迭代驗證** |
-
-### 🎯 革命性成果
-
-#### 1. **極致風險控制**
-- **傳統**：一個 bug 可能毀掉整個項目
-- **超級漸進式**：每個功能獨立，問題範圍極小
-
-#### 2. **即時用戶價值**
-- **傳統**：等上個月才見到價值
-- **超級漸進式**：**第 1 天就有用戶獲得價值**
-
-#### 3. **真實數據決策**
-- **傳統**：基於假設和預測
-- **超級漸進式**：**基於真實用戶行為數據**
-
-#### 4. **持續改進文化**
-- **傳統**：一次性交付，後續維護
-- **超級漸進式**：**永遠的 beta 狀態，持續優化**
-
-### 🚀 實際執行成果
-
-**第一週結束時**：
-- ✅ 用戶已經可以使用雙語 help 命令
-- ✅ 獲得第一批英文用戶的真實回饋
-- ✅ 建立完整的監控和回退機制
-
-**第一個月結束時**：
-- ✅ 多個核心功能支持雙語
-- ✅ 英文用戶活躍度提升 30%+
-- ✅ 用戶滿意度數據指引後續開發
-
-**第三個月結束時**：
-- ✅ 全平台完整 i18n 支持
-- ✅ 英文用戶佔比達到 25%+
-- ✅ 建立可持續的本地化維護機制
-
-### 💡 適用範圍
-
-這個**超級漸進式方法**不僅適用於 i18n 項目，更可以作為：
-
-1. **任何大型功能開發**的參考模式
-2. **現有系統重構**的安全策略
-3. **新功能上線**的風險控制框架
-4. **用戶體驗優化**的數據驅動方法
-
-### 🎊 最終願景
-
-建立一個**永遠在進化**的系統，不是通過大爆炸式重構，而是通過**每日小步的持續改進**，讓系統隨著用戶需求自然成長，始終保持最佳的用戶體驗和技術穩定性。
-
-**這不是結束，而是一個新的開發時代的開始。** 🚀
-
-### 鍵值命名規範
-
-#### 基本結構
-```
-{module}.{component}.{element}
-```
-
-#### 具體規則
-- **模組名稱**: 使用檔案名，如 `digmon`、`1-funny`
-- **組件**: `commands`、`messages`、`display`、`help`
-- **元素**: 具體功能名稱，使用蛇形命名法
-
-#### 示例
-```
-digmon.commands.search.name
-digmon.messages.not_found
-1-funny.help.title
-common.error.network
-```
-
-### 參數插值
-
-#### 語法
-```javascript
-// 語言檔案
-"welcome": "歡迎，{{name}}！您有 {{count}} 條新訊息。"
-
-// 使用方式
-i18n.t('welcome', { name: '小明', count: 5 })
-```
-
-#### 支持的參數類型
-- 字符串
-- 數字
-- 布林值 (會轉換為字符串)
-
-### 語言檢測策略
-
-#### 優先順序
-1. **用戶設定**: 資料庫存儲的語言偏好
-2. **平台設定**: Discord/Telegram 的語言設定
-3. **瀏覽器設定**: HTML 界面的 Accept-Language
-4. **系統預設**: 應用程式預設語言
-
-#### 自動檢測
-```javascript
-async function detectUserLanguage(userId, platform, context = {}) {
-    // 1. 檢查資料庫偏好
-    const saved = await i18n.getUserLanguage(userId, platform);
-    if (saved && i18n.isLanguageSupported(saved)) {
-        return saved;
-    }
-
-    // 2. 平台特定檢測
-    const platformLang = detectPlatformLanguage(platform, context);
-    if (platformLang) return platformLang;
-
-    // 3. 返回預設語言
-    return i18n.currentLanguage;
-}
-```
-
-### 快取策略
-
-#### 語言檔案快取
-- **應用啟動時**: 預載所有語言檔案到記憶體
-- **熱重載**: 支持開發環境下的語言檔案重載
-- **記憶體優化**: 使用 Map 結構存儲
-
-#### 用戶偏好快取
-- **Redis/Memory**: 快取常用用戶的語言偏好
-- **資料庫持久化**: 重要用戶偏好的持久化存儲
-
-### 錯誤處理
-
-#### 缺失翻譯處理
-```javascript
-// 自動記錄缺失的翻譯鍵
-if (value === undefined) {
-    logger.warn(`Missing translation: ${key} in ${targetLang}`);
-    // 可選: 自動添加到缺失翻譯報告
-    reportMissingTranslation(key, targetLang);
-}
-```
-
-#### 語言檔案載入失敗
-- **後備機制**: 使用預設語言
-- **降級策略**: 顯示原始鍵名
-- **監控告警**: 記錄載入失敗事件
-
-## 📈 預期效益
-
-### 功能效益
-- **用戶覆蓋**: 支持多語言用戶使用
-- **用戶體驗**: 本地化界面提升滿意度
-- **可維護性**: 集中管理所有文本內容
-- **擴展性**: 易於添加新語言支持
-
-### 技術效益
-- **代碼品質**: 減少硬編碼，提高可維護性
-- **開發效率**: 統一的文本管理流程
-- **測試覆蓋**: 更容易進行本地化測試
-- **部署靈活性**: 支持按地區部署不同語言
-
-### 業務效益
-- **市場擴張**: 吸引非中文用戶
-- **品牌形象**: 專業的多語言支持
-- **用戶留存**: 更好的本地化體驗
-
-## 🔍 風險評估與緩解
-
-### 技術風險
-1. **效能影響**: i18n 查詢可能增加延遲
-   - **緩解**: 實現記憶體快取和優化查詢邏輯
-
-2. **記憶體使用**: 載入多個語言檔案
-   - **緩解**: 按需載入和智慧快取策略
-
-3. **向後兼容**: 舊代碼的兼容性
-   - **緩解**: 漸進式遷移和後備機制
-
-### 業務風險
-1. **翻譯品質**: 專業術語的準確翻譯
-   - **緩解**: 建立翻譯審核流程和用戶回饋機制
-
-2. **維護成本**: 多語言內容的同步更新
-   - **緩解**: 建立翻譯管理工具和自動化流程
-
-### 實施風險
-1. **時間估計**: 大規模重構的時間控制
-   - **緩解**: 分階段實施，優先處理核心功能
-
-2. **測試覆蓋**: 多平台多語言的測試複雜度
-   - **緩解**: 建立自動化測試框架和測試矩陣
-
-## 📋 後續維護計劃
-
-### 持續改進
-- **翻譯品質**: 定期審核和更新翻譯內容
-- **新功能**: 新增功能時同步添加多語言支持
-- **用戶回饋**: 收集用戶對翻譯的建議和改進
-
-### 監控與分析
-- **使用統計**: 各語言的使用情況分析
-- **效能監控**: i18n 系統的效能指標
-- **錯誤追蹤**: 缺失翻譯和載入錯誤的監控
-
-### 擴展計劃
-- **新語言**: 根據用戶需求添加更多語言支持
-- **專業術語**: 建立TRPG專用術語翻譯詞典
-- **社區貢獻**: 開放翻譯貢獻機制
-
----
-
-## 結論
-
-這個i18n實現計劃提供了一個系統性、漸進式的本地化方案。通過分階段實施和詳細的技術設計，確保了功能的完整性和系統的穩定性。預計實施時間約為8-10週，具體取決於翻譯內容的複雜度和測試覆蓋的完整性。
-
-實施完成後，HKTRPG系統將能夠為全球用戶提供優質的本地化體驗，大大提升系統的國際競爭力和用戶滿意度。
+**實施重點**: 從 help 命令開始，逐步擴展，按照用戶回饋調整優先順序，確保每一步都能帶來實際價值。

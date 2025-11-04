@@ -619,7 +619,7 @@ const rollDiceCommand = async function ({
                 targetIndex = groupData?.trpgDatabasefunction?.findIndex(
                     item => item.topic.toLowerCase() === mainMsg[2].toLowerCase()
                 );
-                if (targetIndex !== -1) {
+                if (targetIndex !== -1 && groupData?.trpgDatabasefunction?.[targetIndex]) {
                     targetTopic = groupData.trpgDatabasefunction[targetIndex].topic;
                 }
             }

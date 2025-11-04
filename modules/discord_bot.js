@@ -796,6 +796,12 @@ async function repeatMessages(discord, message) {
 async function manageWebhook(discord) {
 	try {
 		const channel = await client.channels.fetch(discord.channelId);
+
+		// Check if channel exists and is a valid type for webhooks
+		if (!channel || !channel.fetchWebhooks) {
+			throw new Error('Channel does not support webhooks or channel not found');
+		}
+
 		const isThread = channel && channel.isThread();
 		let webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
 		let webhook = webhooks.find(v => {
@@ -2405,6 +2411,33 @@ function __checkUserRole(groupid, message) {
 
 }
 
+// Helper function for retrying message sends with exponential backoff
+async function sendMessageWithRetry(sendFunction, maxRetries = 3, baseDelay = 1000) {
+	for (let attempt = 0; attempt <= maxRetries; attempt++) {
+		try {
+			return await sendFunction();
+		} catch (error) {
+			// Don't retry for certain non-retryable errors
+			if (error.code === 10_062 || // Unknown interaction
+				error.code === 50_035 || // Invalid Form Body
+				error.code === 50_013 || // Missing Permissions
+				error.message.includes('Missing Access') ||
+				error.message.includes('Unknown Channel')) {
+				throw error;
+			}
+
+			if (attempt === maxRetries) {
+				throw error;
+			}
+
+			// Exponential backoff: 1s, 2s, 4s
+			const delay = baseDelay * Math.pow(2, attempt);
+			console.warn(`Message send failed (attempt ${attempt + 1}/${maxRetries + 1}), retrying in ${delay}ms: ${error.message}`);
+			await new Promise(resolve => setTimeout(resolve, delay));
+		}
+	}
+}
+
 async function __handlingReplyMessage(message, result) {
 	const text = result.text;
 	const sendTexts = text.toString().match(/[\s\S]{1,2000}/g);
@@ -2429,11 +2462,11 @@ async function __handlingReplyMessage(message, result) {
 		// For deferred interactions, use editReply for the first response
 		if (message.deferred && !message.replied) {
 			try {
-				await message.editReply({ embeds: await convQuotes(sendTexts[0]) });
+				await sendMessageWithRetry(async () => message.editReply({ embeds: await convQuotes(sendTexts[0]) }));
 
 				// Send follow-up messages for additional content
 				for (let index = 1; index < sendTexts?.length && index < 4; index++) {
-					await message.followUp({ embeds: await convQuotes(sendTexts[index]) });
+					await sendMessageWithRetry(async () => message.followUp({ embeds: await convQuotes(sendTexts[index]) }));
 				}
 			} catch (error) {
 				// If the interaction is no longer valid, log it but don't crash
@@ -2453,17 +2486,17 @@ async function __handlingReplyMessage(message, result) {
 			try {
 				if (index === 0) {
 					if (message.isInteraction && !message.replied) {
-						await message.reply({ embeds: await convQuotes(sendText) });
+						await sendMessageWithRetry(async () => message.reply({ embeds: await convQuotes(sendText) }));
 					} else if (!message.isInteraction) {
-						await message.reply({ embeds: await convQuotes(sendText) });
+						await sendMessageWithRetry(async () => message.reply({ embeds: await convQuotes(sendText) }));
 					}
 				} else {
 					// For subsequent chunks, use message.channel.send for regular messages
 					// and followUp for interactions
 					if (message.isInteraction) {
-						await message.followUp({ embeds: await convQuotes(sendText) });
+						await sendMessageWithRetry(async () => message.followUp({ embeds: await convQuotes(sendText) }));
 					} else {
-						await message.reply({ embeds: await convQuotes(sendText) });
+						await sendMessageWithRetry(async () => message.reply({ embeds: await convQuotes(sendText) }));
 					}
 				}
 			} catch (error) {
@@ -2471,7 +2504,7 @@ async function __handlingReplyMessage(message, result) {
 				if (error.code === 'InteractionNotReplied' && message.isInteraction) {
 					try {
 						await message.deferReply();
-						await message.editReply({ embeds: await convQuotes(sendText) });
+						await sendMessageWithRetry(async () => message.editReply({ embeds: await convQuotes(sendText) }));
 					} catch (innerError) {
 						if (innerError.code === 10_062) {
 							console.error(`Interaction expired during reply: ${message.commandName || 'unknown'}`);
@@ -2517,7 +2550,16 @@ async function __handlingInteractionMessage(message) {
 			console.error(`Interaction expired before immediate deferral: ${message.commandName || message.component?.label || 'unknown'}`);
 			return;
 		}
-		console.error(`Failed to defer interaction: ${deferError.message} | Command: ${message.commandName || message.component?.label || 'unknown'}`);
+		// Handle other deferral errors
+		console.error(`Failed to defer interaction: ${deferError.message} | Command: ${message.commandName || message.component?.label || 'unknown'} | Code: ${deferError.code}`);
+		// Try to respond with an error message if possible
+		try {
+			if (!message.replied && !message.deferred) {
+				await message.reply({ content: '處理請求時發生錯誤，請稍後再試。', ephemeral: true });
+			}
+		} catch (replyError) {
+			console.error(`Failed to send error reply: ${replyError.message}`);
+		}
 		return;
 	}
 

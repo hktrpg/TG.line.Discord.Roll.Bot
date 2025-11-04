@@ -166,14 +166,18 @@ const rollDiceCommand = async function ({
             const jobs = await agenda.agenda.jobs(
                 check
             ).catch(error => console.error('agenda error:', error.name, error.reason))
+            const jobIndex = Number(mainMsg[2]) - 1;
+            if (!jobs || !Array.isArray(jobs) || jobIndex < 0 || jobIndex >= jobs.length || !jobs[jobIndex]) {
+                rply.text = "找不到該序號, 請使用.at show重新檢查"
+                return rply;
+            }
             try {
-                let data = jobs[Number(mainMsg[2]) - 1];
-                await jobs[Number(mainMsg[2]) - 1].remove();
+                let data = jobs[jobIndex];
+                await jobs[jobIndex].remove();
                 rply.text = `已刪除序號#${Number(mainMsg[2])} \n${data.attrs.data.replyText}`;
-
             } catch (error) {
                 console.error("Remove at Error removing job from collection. input:", inputStr, error);
-                rply.text = "找不到該序號, 請使用.at show重新檢查"
+                rply.text = "刪除時發生錯誤，請稍後再試"
                 return rply;
             }
             return rply;

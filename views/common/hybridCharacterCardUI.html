@@ -31,14 +31,14 @@
                         <i class="fas fa-user-circle me-2"></i>
                         </template>
                         <template v-if="editMode">
-                          <input type="text" v-model="name" placeholder="角色名稱" class="edit-input" style="max-width: 320px; margin-right: 8px;">
+                          <input type="text" v-model="name" placeholder="角色名稱" class="edit-input" style="max-width: 320px; margin-right: 8px;" @input="handleEditChange()">
                         </template>
                         <template v-else>
                           {{ name || '未命名角色' }}
                         </template>
                     </h2>
                     <div v-if="editMode" class="mb-2">
-                        <input type="text" v-model="image" placeholder="角色圖片 URL (http/https)" class="edit-input" style="max-width: 480px;">
+                        <input type="text" v-model="image" placeholder="角色圖片 URL (http/https)" class="edit-input" style="max-width: 480px;" @input="handleEditChange()">
                         <div class="small" style="color:#F5F5DC; opacity:0.85; margin-top:4px;">僅允許 http/https，禁止內網/localhost。顯示機制同首頁圖片處理。</div>
                     </div>
                 <div class="character-info d-flex flex-wrap gap-3"
@@ -193,11 +193,11 @@
                     
                     <!-- 內聯編輯輸入框 -->
                     <div v-if="item.isInlineEditing" class="inline-edit-inputs">
-                        <input type="text" v-model="item.name" placeholder="屬性名稱" class="edit-input">
+                        <input type="text" v-model="item.name" placeholder="屬性名稱" class="edit-input" @input="handleEditChange()">
                         <div class="edit-number-inputs">
-                            <input type="text" v-model="item.itemA" placeholder="現在值" class="edit-input">
+                            <input type="text" v-model="item.itemA" placeholder="現在值" class="edit-input" @input="handleEditChange()">
                             <span class="edit-separator">/</span>
-                            <input type="text" v-model="item.itemB" placeholder="上限" class="edit-input">
+                            <input type="text" v-model="item.itemB" placeholder="上限" class="edit-input" @input="handleEditChange()">
                         </div>
                     </div>
                 </div>
@@ -248,14 +248,14 @@
                 <!-- 編輯模式下的輸入框（非內聯新項目時顯示） -->
                 <div v-if="editMode && !item.isInlineEditing" class="edit-inputs">
                     <input type="text" v-model="item.name" placeholder="技能名稱"
-                        class="edit-input">
-                    <input type="text" v-model="item.itemA" placeholder="擲骰指令" class="edit-input">
+                        class="edit-input" @input="handleEditChange()">
+                    <input type="text" v-model="item.itemA" placeholder="擲骰指令" class="edit-input" @input="handleEditChange()">
                     </div>
                     
                 <!-- 內聯編輯輸入框 -->
                 <div v-if="item.isInlineEditing" class="inline-edit-inputs">
-                    <input type="text" v-model="item.name" placeholder="技能名稱" class="edit-input">
-                    <input type="text" v-model="item.itemA" placeholder="擲骰指令" class="edit-input">
+                    <input type="text" v-model="item.name" placeholder="技能名稱" class="edit-input" @input="handleEditChange()">
+                    <input type="text" v-model="item.itemA" placeholder="擲骰指令" class="edit-input" @input="handleEditChange()">
                 </div>
                 </div>
             </div>
@@ -316,8 +316,8 @@
                     
                     <!-- 內聯編輯輸入框 -->
                     <div v-if="item.isInlineEditing" class="inline-edit-inputs">
-                        <textarea v-model="item.itemA" placeholder="筆記內容" class="edit-detail-textarea"></textarea>
-                        <input type="text" v-model="item.name" placeholder="筆記標題" class="edit-detail-label">
+                        <textarea v-model="item.itemA" placeholder="筆記內容" class="edit-detail-textarea" @input="handleEditChange()"></textarea>
+                        <input type="text" v-model="item.name" placeholder="筆記標題" class="edit-detail-label" @input="handleEditChange()">
                     </div>
                 </div>
             </div>

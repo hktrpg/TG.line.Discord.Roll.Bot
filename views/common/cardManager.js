@@ -523,9 +523,25 @@ class CardManager {
                     // 切換編輯模式
                     toggleEditMode() {
                         if (!this.editMode) {
+                            // 進入編輯模式
                             this.backupEditModeData();
+                            this.editMode = true;
+                            // 在進入編輯模式時檢查是否有未保存的變更
+                            if (this.checkForChanges()) {
+                                this.hasUnsavedChanges = true;
+                            }
+                        } else {
+                            // 離開編輯模式 - 檢查是否有未保存的變更
+                            if (this.hasUnsavedChanges || this.checkForChanges()) {
+                                // 顯示確認對話框
+                                uiManager.showModal('editModeCloseConfirmModal');
+                                return; // 不立即切換模式，等待用戶確認
+                            } else {
+                                // 沒有未保存的變更，直接關閉編輯模式
+                                this.editMode = false;
+                                this.editModeBackup = null;
+                            }
                         }
-                        this.editMode = !this.editMode;
                     },
                     
                     // 關閉編輯模式
@@ -813,6 +829,13 @@ class CardManager {
                     // 標記有變更
                     markAsChanged() {
                         this.hasUnsavedChanges = true;
+                    },
+
+                    // 處理編輯模式下的數據變化
+                    handleEditChange() {
+                        if (this.editMode) {
+                            this.hasUnsavedChanges = true;
+                        }
                     },
                     
                     // 獲取非數值屬性

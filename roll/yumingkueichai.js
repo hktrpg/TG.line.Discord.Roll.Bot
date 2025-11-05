@@ -179,7 +179,11 @@ const discordCommand = [
         data: new SlashCommandBuilder()
             .setName('kc')
             .setDescription('貓貓鬼差系統 - 擲骰判定')
-            .addIntegerOption(option => 
+            .addIntegerOption(option =>
+                option.setName('target')
+                    .setDescription('目標值 (1-20)')
+                    .setRequired(true))
+            .addIntegerOption(option =>
                 option.setName('dice_count')
                     .setDescription('骰子數量 (4或5，預設為4)')
                     .setRequired(false)
@@ -187,16 +191,10 @@ const discordCommand = [
                         { name: '4顆骰子', value: 4 },
                         { name: '5顆骰子', value: 5 }
                     ))
-            .addIntegerOption(option => 
+            .addIntegerOption(option =>
                 option.setName('modifier')
                     .setDescription('修正值 (1-20)')
                     .setRequired(false)
-                    .setMinValue(1)
-                    .setMaxValue(20))
-            .addIntegerOption(option => 
-                option.setName('target')
-                    .setDescription('目標值 (1-20)')
-                    .setRequired(true)
                     .setMinValue(1)
                     .setMaxValue(20)),
         async execute(interaction) {

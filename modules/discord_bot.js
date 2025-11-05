@@ -798,7 +798,7 @@ async function manageWebhook(discord) {
 		const channel = await client.channels.fetch(discord.channelId);
 
 		// Check if channel exists and is a valid type for webhooks
-		if (!channel || !channel.fetchWebhooks) {
+		if (!channel) {
 			throw new Error('Channel does not support webhooks or channel not found');
 		}
 
@@ -817,6 +817,9 @@ async function manageWebhook(discord) {
 			webhook = webhooks.find(v => {
 				return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
 			})
+		}
+		if (!webhook) {
+			throw new Error('Webhook not found');
 		}
 		return { webhook, isThread };
 	} catch (error) {

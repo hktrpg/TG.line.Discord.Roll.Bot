@@ -781,7 +781,7 @@ async function repeatMessages(discord, message) {
 				username: element.username,
 				avatarURL: element.avatarURL
 			};
-			let pair = (webhook && webhook.isThread) ? { threadId: discord.channelId } : {};
+			let pair = (webhook && webhook.isThread) ? { threadId: discord.channel.id } : {};
 			await webhook.webhook.send({ ...obj, ...pair });
 
 		}
@@ -795,7 +795,8 @@ async function repeatMessages(discord, message) {
 }
 async function manageWebhook(discord) {
 	try {
-		const channel = await client.channels.fetch(discord.channelId);
+		const channelId = discord.channelId || discord.channel.id;
+		const channel = await client.channels.fetch(channelId);
 
 		// Check if channel exists and is a valid type for webhooks
 		if (!channel) {
@@ -813,7 +814,7 @@ async function manageWebhook(discord) {
 		if (!webhook) {
 			const hooks = isThread ? await client.channels.fetch(channel.parentId) : channel;
 			await hooks.createWebhook({ name: "HKTRPG .me Function", avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png" })
-			webhooks = await channel.fetchWebhooks();
+			webhooks = isThread ? await channel.guild.fetchWebhooks() : await channel.fetchWebhooks();
 			webhook = webhooks.find(v => {
 				return (v.channelId == channel.parentId || v.channelId == channel.id) && v.token;
 			})

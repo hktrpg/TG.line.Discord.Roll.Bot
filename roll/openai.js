@@ -405,7 +405,7 @@ class RetryManager {
 }
 
 const adminSecret = process.env.ADMIN_SECRET;
-const TRANSLATE_LIMIT_PERSONAL = [500, 100_000, 150_000, 250_000, 350_000, 550_000, 650_000, 750_000];
+const TRANSLATE_LIMIT_PERSONAL = [2500, 100_000, 150_000, 250_000, 350_000, 550_000, 650_000, 750_000];
 
 // File processing limits for CentOS VPS environment
 const FILE_PROCESSING_LIMITS = {
@@ -498,7 +498,7 @@ const getHelpMessage = function () {
 │
 ├────── ⚠️使用限制 ──────
 │ 一般用戶:
-│ 　• 文字上限500字
+│ 　• 文字上限2500字
 │
 │ VIP用戶:
 │ 　• 享有更高文字上限

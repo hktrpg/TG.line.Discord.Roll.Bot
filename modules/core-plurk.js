@@ -28,14 +28,14 @@ const RECONNECT_DELAY = 30_000; // 30 seconds
 function startCometConnection() {
     try {
         if (cometConnected) {
-            console.log('Plurk comet already connected');
+            //console.log('Plurk comet already connected');
             return;
         }
 
         Plurk_Client.startComet();
         cometConnected = true;
         reconnectAttempts = 0;
-        console.log('Plurk comet connection started');
+        //console.log('Plurk comet connection started');
     } catch (error) {
         console.error('Failed to start Plurk comet connection:', error.message);
         scheduleReconnect();
@@ -47,7 +47,7 @@ function stopCometConnection() {
         if (!cometConnected) return;
         Plurk_Client.stopComet();
         cometConnected = false;
-        console.log('Plurk comet connection stopped');
+        //console.log('Plurk comet connection stopped');
     } catch (error) {
         console.error('Error stopping Plurk comet connection:', error.message);
     }
@@ -61,7 +61,7 @@ function scheduleReconnect() {
 
     reconnectAttempts++;
     const delay = RECONNECT_DELAY * Math.pow(2, reconnectAttempts - 1); // Exponential backoff
-    console.log(`Scheduling Plurk comet reconnection in ${delay}ms (attempt ${reconnectAttempts})`);
+    //console.log(`Scheduling Plurk comet reconnection in ${delay}ms (attempt ${reconnectAttempts})`);
 
     setTimeout(() => {
         startCometConnection();
@@ -78,7 +78,7 @@ Plurk_Client.on('error', (error) => {
 });
 
 Plurk_Client.on('close', () => {
-    console.log('Plurk comet connection closed');
+    //console.log('Plurk comet connection closed');
     cometConnected = false;
     scheduleReconnect();
 });

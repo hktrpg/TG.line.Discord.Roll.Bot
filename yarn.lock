@@ -2403,9 +2403,9 @@
     form-data "^4.0.4"
 
 "@types/node@*":
-  version "24.10.0"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-24.10.0.tgz#6b79086b0dfc54e775a34ba8114dcc4e0221f31f"
-  integrity sha512-qzQZRBqkFsYyaSWXuEHc2WR9c0a0CXwiE5FWUvn7ZM+vdy1uZLfCunD38UzhuB7YN/J11ndbDBcTmOdxJo9Q7A==
+  version "24.10.1"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-24.10.1.tgz#91e92182c93db8bd6224fca031e2370cef9a8f01"
+  integrity sha512-GNWcUTRBgIRJD5zj+Tq0fKOJ5XZajIiBroOF0yvj2bSU1WvNdYS/dn9UxwsujGW4JX06dnHyjV2y9rRaybH0iQ==
   dependencies:
     undici-types "~7.16.0"
 
@@ -8791,9 +8791,9 @@ webidl-conversions@^7.0.0:
   integrity sha512-VwddBukDzu71offAQR975unBIGqfKZpM+8ZX6ySk8nYhVoo5CYaZyzt3YBvYtRtO+aoGlqxPg/B87NGVZ/fu6g==
 
 whatsapp-web.js@^1.34.1:
-  version "1.34.1"
-  resolved "https://registry.yarnpkg.com/whatsapp-web.js/-/whatsapp-web.js-1.34.1.tgz#d417b643407750063be6e4cea486e9ad0bd4a38f"
-  integrity sha512-IInGEg+F8wB9M+c61KXGZ4bpwq24ew9EgsyMYxUZ/4CQ8GW/afsGseQO4FZriQ16qpu14pFovsD6YrEYxRbyLw==
+  version "1.34.2"
+  resolved "https://registry.yarnpkg.com/whatsapp-web.js/-/whatsapp-web.js-1.34.2.tgz#3507bb186d03bd68f0727ff41ac473455d88d883"
+  integrity sha512-M8/HV2CmQ6T67NQblDJZUA9jt9ZDOLZKO67kKQ6r9eDpkzNqVNa1uK8nNxt1hB0NqndkFGAXdcO1tq+z2hYV5A==
   dependencies:
     "@pedroslopez/moduleraid" "^5.0.2"
     fluent-ffmpeg "2.1.3"

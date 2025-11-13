@@ -66,18 +66,7 @@ const app = require('./core-www.js').app;
 
 // register a webhook handler with middleware
 // about the middleware, please refer to doc
-app.post('/', (req, res, next) => {
-	try {
-		line.middleware(config)(req, res, next);
-	} catch (error) {
-		// Handle signature verification errors gracefully
-		if (error.message === 'no signature' || error.message.includes('signature')) {
-			console.error('LINE webhook signature verification failed');
-			return res.status(401).json({ error: 'Invalid signature' });
-		}
-		next(error);
-	}
-}, async (req, res) => {
+app.post('/', line.middleware(config), async (req, res) => {
 	try {
 		const result = await Promise.all(req.body.events.map(handleEvent));
 		res.json(result);
@@ -85,6 +74,15 @@ app.post('/', (req, res, next) => {
 		console.error('LINE event processing error:', error.message);
 		res.status(500).end();
 	}
+});
+
+// Add error handling middleware for signature validation failures
+app.use((error, req, res, next) => {
+	if (error.message && (error.message.includes('signature') || error.message.includes('no signature'))) {
+		console.error('LINE webhook signature verification failed:', error.message);
+		return res.status(401).json({ error: 'Invalid signature' });
+	}
+	next(error);
 });
 
 // Global error handler for this module

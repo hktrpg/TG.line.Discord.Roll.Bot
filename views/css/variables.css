@@ -77,8 +77,8 @@
     --gradient-cool: linear-gradient(135deg, var(--color-info), var(--color-secondary));
     --gradient-brown: linear-gradient(135deg, var(--color-brown-primary), var(--color-brown-secondary));
     
-    /* 字體系統 */
-    --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* 字體系統 - 支援中英混合及簡繁體中文 */
+    --font-family-primary: 'Noto Sans CJK TC', 'Noto Sans CJK SC', 'PingFang TC', 'PingFang SC', 'Hiragino Sans TC', 'Hiragino Sans GB', 'Microsoft YaHei', 'SimHei', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-size-xs: 12px;
     --font-size-sm: 14px;
     --font-size-base: 16px;

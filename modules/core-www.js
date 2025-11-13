@@ -39,9 +39,11 @@ let options = {
 };
 
 // ============= Rate Limiter Configuration =============
+// Adjusted limits to be more permissive for testing while still protecting against attacks
 const rateLimitConfig = {
     chatRoom: { points: 90, duration: 60 },
-    card: { points: 120, duration: 60 },
+    card: { points: 300, duration: 60 }, // Increased from 120 to 300 for better testing experience
+    cardRead: { points: 500, duration: 60 }, // Separate limit for read operations (public cards, list info)
     api: { points: 10_000, duration: 10 }
 };
 
@@ -847,7 +849,8 @@ if (io) {
     
     io.on('connection', async (socket) => {
         socket.on('getListInfo', async message => {
-            if (await limitRaterCard(socket.handshake.address)) return;
+            // Use cardRead limit for list info (less restrictive)
+            if (await limitRaterCardRead(socket.handshake.address)) return;
 
             try {
                 // 🔒 驗證輸入
@@ -953,7 +956,8 @@ if (io) {
         })
 
         socket.on('getPublicListInfo', async () => {
-            if (await limitRaterCard(socket.handshake.address)) return;
+            // Public list info is read-only, use less restrictive limit
+            if (await limitRaterCardRead(socket.handshake.address)) return;
             //回傳 message 給發送訊息的 Client
             let filter = {
                 public: true
@@ -1464,6 +1468,10 @@ async function limitRaterChatRoom(address) {
 
 async function limitRaterCard(address) {
     return await checkRateLimit('card', address);
+}
+
+async function limitRaterCardRead(address) {
+    return await checkRateLimit('cardRead', address);
 }
 
 async function limitRaterApi(address) {

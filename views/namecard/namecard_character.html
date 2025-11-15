@@ -1803,11 +1803,12 @@
                 const canvas = await html2canvas(container, {
                     allowTaint: true,
                     useCORS: true,
-                    backgroundColor: '#f3f3f3',
+                    backgroundColor: null, // Use transparent background to preserve gradients
                     scale: 2,
                     windowWidth: 1024,
                     imageTimeout: 10000,
                     logging: false,
+                    foreignObjectRendering: true, // Better for complex CSS effects
                     onclone: (doc) => {
                         // Ensure all images in the cloned document are properly handled
                         const allImages = doc.querySelectorAll('img');
@@ -1815,6 +1816,30 @@
                             if (img.src.startsWith('http')) {
                                 img.crossOrigin = 'anonymous';
                             }
+                        });
+
+                        // Ensure column styling is preserved
+                        const columns = doc.querySelectorAll('.column');
+                        columns.forEach(column => {
+                            column.style.background = 'linear-gradient(to right, #ffffff, #ffffff)';
+                            column.style.borderRadius = '0.5rem';
+                            column.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
+                        });
+
+                        // Ensure message styling is preserved
+                        const messages = doc.querySelectorAll('.message');
+                        messages.forEach(message => {
+                            message.style.background = 'linear-gradient(to right, #d7ffec, #cae1ff)';
+                            message.style.borderRadius = '0.5rem';
+                            message.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
+                        });
+
+                        // Ensure status bars styling is preserved
+                        const statusBars = doc.querySelectorAll('.status-bars');
+                        statusBars.forEach(statusBar => {
+                            statusBar.style.background = 'linear-gradient(to right, #cae1ff, #d7ffec)';
+                            statusBar.style.borderRadius = '0.5rem';
+                            statusBar.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
                         });
 
                         const avatarImgClone = doc.querySelector('.avatar-container img');
@@ -1826,6 +1851,32 @@
                             avatarImgClone.style.height = '100%';
                             avatarImgClone.style.objectFit = 'cover';
                             avatarImgClone.style.objectPosition = 'center';
+                            avatarImgClone.style.border = '5px solid #ffffff';
+                        }
+
+                        // Ensure container styling is preserved
+                        const containerClone = doc.querySelector('.container');
+                        if (containerClone) {
+                            containerClone.style.background = 'linear-gradient(to right, #b5e1fe, #f3f7ff)';
+                            containerClone.style.borderRadius = '0.5rem';
+                            containerClone.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
+                        }
+
+                        // Ensure avatar container styling is preserved during export
+                        const avatarContainerClone = doc.querySelector('.avatar-container');
+                        if (avatarContainerClone) {
+                            // Force box-shadow and other visual effects
+                            avatarContainerClone.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
+                            avatarContainerClone.style.border = '4px solid white';
+                            avatarContainerClone.style.borderRadius = '50%';
+                            avatarContainerClone.style.overflow = 'hidden';
+                            avatarContainerClone.style.position = 'relative';
+                            avatarContainerClone.style.display = 'flex';
+                            avatarContainerClone.style.alignItems = 'center';
+                            avatarContainerClone.style.justifyContent = 'center';
+                            avatarContainerClone.style.width = '12rem';
+                            avatarContainerClone.style.height = '12rem';
+                            avatarContainerClone.style.margin = '0 auto 1.5rem';
                         }
                     }
                 });
@@ -2096,15 +2147,13 @@
             ).join('');
         }
 
-        // On page load, try to load from localStorage first, then check URL data
-        if (!loadCharacterFromLocalStorage()) {
-            const sharedData = getDataFromUrl();
-            if (sharedData) {
-                character = sharedData;
-                saveCharacterToLocalStorage();
-            } else {
-                character = JSON.parse(JSON.stringify(defaultCharacter)); // Deep copy
-            }
+        // On page load, prioritize URL data over localStorage
+        const sharedData = getDataFromUrl();
+        if (sharedData) {
+            character = sharedData;
+            saveCharacterToLocalStorage();
+        } else if (!loadCharacterFromLocalStorage()) {
+            character = JSON.parse(JSON.stringify(defaultCharacter)); // Deep copy
         }
         renderViewMode();
     </script>

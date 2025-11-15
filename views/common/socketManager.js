@@ -10,10 +10,10 @@ class SocketManager {
             reconnection: true,
             reconnectionAttempts: 5, // Reduced from 10 to 5
             reconnectionDelay: 2000, // Increased from 1000 to 2000
-            reconnectionDelayMax: 10000, // Increased from 5000 to 10000
+            reconnectionDelayMax: 10_000, // Increased from 5000 to 10000
             randomizationFactor: 0.5,
             // Add timeout to prevent hanging connections
-            timeout: 20000
+            timeout: 20_000
         });
 
         this.eventHandlers = new Map();

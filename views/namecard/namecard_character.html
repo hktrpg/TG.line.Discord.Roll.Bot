@@ -717,6 +717,24 @@
             opacity: 0.8;
             transform: scale(1.05);
         }
+
+        /* Export-specific styles */
+        .exporting img {
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+
+        .exporting .avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        .no-animations * {
+            animation: none !important;
+            transition: none !important;
+        }
     </style>
 </head>
 
@@ -1529,10 +1547,10 @@
             });
         }
         const proxyServers = [
+            'https://cors-anywhere.herokuapp.com/',
             'https://api.codetabs.com/v1/proxy?quest=',
             'https://corsproxy.io/?url=',
-            'https://cors-anywhere.herokuapp.com/'
-
+            'https://thingproxy.freeboard.io/fetch/'
         ];
 
         const proxyConfig = {
@@ -1542,15 +1560,59 @@
             lastSuccessfulServer: null
         };
         // NEW: Export image helper functions and cache
-        async function proxyImage(url, attempt = 0) {
-            // Try last successful server first if available
+        async function loadImageAsBase64(url, options = {}) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    try {
+                        // Create canvas to convert image to base64
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+
+                        // For avatars, create a square canvas to prevent aspect ratio issues
+                        if (options.forAvatar) {
+                            const size = Math.max(img.naturalWidth, img.naturalHeight);
+                            canvas.width = size;
+                            canvas.height = size;
+
+                            // Center the image in the square canvas
+                            const x = (size - img.naturalWidth) / 2;
+                            const y = (size - img.naturalHeight) / 2;
+                            ctx.drawImage(img, x, y);
+                        } else {
+                            canvas.width = img.naturalWidth;
+                            canvas.height = img.naturalHeight;
+                            ctx.drawImage(img, 0, 0);
+                        }
+
+                        const base64 = canvas.toDataURL('image/png');
+                        resolve(base64);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                img.onerror = () => reject(new Error('Image failed to load'));
+                img.src = url;
+            });
+        }
+
+        async function proxyImage(url, attempt = 0, options = {}) {
+            // First try direct loading with CORS
+            try {
+                return await loadImageAsBase64(url, options);
+            } catch (directError) {
+                console.warn('Direct image loading failed, trying proxy servers:', directError);
+            }
+
+            // Fallback to proxy servers
             const orderedServers = proxyConfig.lastSuccessfulServer
                 ? [proxyConfig.lastSuccessfulServer, ...proxyServers.filter(s => s !== proxyConfig.lastSuccessfulServer)]
                 : proxyServers;
 
             // Try all servers in parallel with timeout
             const fetchPromises = orderedServers.map(server => {
-                const proxyUrl = server + (url);
+                const proxyUrl = server + encodeURIComponent(url);
                 return fetchWithTimeout(proxyUrl);
             });
 
@@ -1574,10 +1636,28 @@
                 if (attempt < proxyConfig.maxRetries) {
                     await new Promise(resolve =>
                         setTimeout(resolve, proxyConfig.retryDelay));
-                    return proxyImage(url, attempt + 1);
+                    return proxyImage(url, attempt + 1, options);
                 }
                 console.error('All proxy attempts failed:', error);
-                return null;
+
+                // Final fallback: create a placeholder image
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 200;
+                    canvas.height = 200;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#f3f3f3';
+                    ctx.fillRect(0, 0, 200, 200);
+                    ctx.fillStyle = '#666';
+                    ctx.font = '14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('無法載入圖片', 100, 95);
+                    ctx.fillText('Image unavailable', 100, 115);
+                    return canvas.toDataURL('image/png');
+                } catch (fallbackError) {
+                    console.error('Fallback image creation failed:', fallbackError);
+                    return null;
+                }
             }
         }
 
@@ -1672,24 +1752,45 @@
                 // Handle image caching and loading
                 if (!currentSrc.startsWith('data:image')) {
                     if (!imageCache.base64 || imageCache.url !== currentSrc) {
-                        imageCache.base64 = await proxyImage(currentSrc);
-                        imageCache.url = currentSrc;
+                        try {
+                            imageCache.base64 = await proxyImage(currentSrc, 0, { forAvatar: true });
+                            imageCache.url = currentSrc;
+                        } catch (error) {
+                            console.warn('Failed to load image, using placeholder:', error);
+                            // Create a placeholder image
+                            const canvas = document.createElement('canvas');
+                            canvas.width = 200;
+                            canvas.height = 200;
+                            const ctx = canvas.getContext('2d');
+                            ctx.fillStyle = '#f3f3f3';
+                            ctx.fillRect(0, 0, 200, 200);
+                            ctx.fillStyle = '#666';
+                            ctx.font = '16px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.fillText('圖片載入失敗', 100, 100);
+                            imageCache.base64 = canvas.toDataURL('image/png');
+                            imageCache.url = currentSrc;
+                        }
                     }
                 } else {
                     imageCache.base64 = currentSrc;
                     imageCache.url = currentSrc;
                 }
 
-                // Pre-load image to ensure it's ready
-                await new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.onload = resolve;
-                    img.onerror = reject;
-                    img.crossOrigin = 'anonymous';
-                    img.src = imageCache.base64;
-                }).catch(error => {
-                    console.warn('Image pre-load failed:', error);
-                });
+                // Pre-load image to ensure it's ready for html2canvas
+                if (imageCache.base64) {
+                    await new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.onload = resolve;
+                        img.onerror = reject;
+                        img.crossOrigin = 'anonymous';
+                        img.src = imageCache.base64;
+                    }).catch(error => {
+                        console.warn('Image pre-load failed, continuing anyway:', error);
+                        // Don't reject, continue with export even if pre-load fails
+                        resolve();
+                    });
+                }
 
                 // Update progress: Preparing canvas
                 updateProgress(overlay, 50, '準備畫布...');
@@ -1705,15 +1806,26 @@
                     backgroundColor: '#f3f3f3',
                     scale: 2,
                     windowWidth: 1024,
+                    imageTimeout: 10000,
+                    logging: false,
                     onclone: (doc) => {
+                        // Ensure all images in the cloned document are properly handled
+                        const allImages = doc.querySelectorAll('img');
+                        allImages.forEach(img => {
+                            if (img.src.startsWith('http')) {
+                                img.crossOrigin = 'anonymous';
+                            }
+                        });
+
                         const avatarImgClone = doc.querySelector('.avatar-container img');
                         if (avatarImgClone && imageCache.base64) {
-                            if (imageCache.url.startsWith('http')) {
-                                avatarImgClone.crossOrigin = 'anonymous';
-                            } else {
-                                avatarImgClone.removeAttribute('crossOrigin');
-                            }
+                            avatarImgClone.crossOrigin = 'anonymous';
                             avatarImgClone.src = imageCache.base64;
+                            // Ensure proper styling for export
+                            avatarImgClone.style.width = '100%';
+                            avatarImgClone.style.height = '100%';
+                            avatarImgClone.style.objectFit = 'cover';
+                            avatarImgClone.style.objectPosition = 'center';
                         }
                     }
                 });

@@ -735,6 +735,229 @@
             animation: none !important;
             transition: none !important;
         }
+
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(to right, #60a5fa, #f472b6);
+            color: white;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+            padding: 0;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            opacity: 0.8;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .slot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .slot-item {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .slot-item:hover {
+            border-color: #60a5fa;
+            box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
+        }
+
+        .slot-item.empty {
+            background: linear-gradient(to bottom, #f3f4f6, #e5e7eb);
+        }
+
+        .slot-item.filled {
+            background: linear-gradient(to bottom, #ffffff, #f9fafb);
+        }
+
+        .slot-avatar {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            margin: 0 auto 0.5rem;
+            border: 2px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #f3f4f6;
+        }
+
+        .slot-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .slot-avatar.empty {
+            background: #e5e7eb;
+            color: #9ca3af;
+        }
+
+        .slot-name {
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .slot-player {
+            color: #6b7280;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .slot-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .slot-save {
+            background: linear-gradient(to right, #10B981, #34D399);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .slot-save:hover {
+            transform: scale(1.05);
+        }
+
+        .slot-load {
+            background: linear-gradient(to right, #3B82F6, #60A5FA);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .slot-load:hover {
+            transform: scale(1.05);
+        }
+
+        .slot-load:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .slot-number {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        /* Message notification styles */
+        .message-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(to right, #60a5fa, #f472b6);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 3000;
+            max-width: 400px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .message-notification.show {
+            transform: translateX(0);
+        }
+
+        .message-notification.error {
+            background: linear-gradient(to right, #ef4444, #f87171);
+        }
+
+        .message-notification.success {
+            background: linear-gradient(to right, #10b981, #34d399);
+        }
     </style>
 </head>
 
@@ -745,7 +968,7 @@
             <!-- Replace old Edit button with new container -->
             <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">編輯角色</button>
             <button id="exportBtn" class="btn-export" onclick="exportToPNG()">匯出 PNG</button>
-            <button id="shareBtn" class="btn-backup" onclick="generateShareLink()">備份角色</button>
+            <button id="shareBtn" class="btn-backup" onclick="openBackupRestoreModal()">備份/讀取</button>
         </div>
         <div class="grid">
             <div class="column">
@@ -1227,7 +1450,7 @@
                         };
                         reader.readAsDataURL(file);
                     } else {
-                        alert('請上傳圖片檔案');
+                        showNotification('請上傳圖片檔案', 'error');
                     }
                 }
             }
@@ -1371,7 +1594,7 @@
         function previewAvatarFromUrl(url) {
             // Validate URL before processing
             if (!isValidUrl(url)) {
-                alert('請輸入有效的圖片網址 (http://, https://, 或 data:)');
+                showNotification('請輸入有效的圖片網址 (http://, https://, 或 data:)', 'error');
                 const input = document.getElementById('edit-avatar');
                 if (input) input.value = character.avatarTemp || '';
                 return;
@@ -1385,7 +1608,7 @@
                 character.avatarTemp = url; // Store URL in temp storage
             };
             img.onerror = () => {
-                alert('圖片載入失敗，請確認網址是否正確');
+                showNotification('圖片載入失敗，請確認網址是否正確', 'error');
             };
             img.src = url;
         }
@@ -1447,7 +1670,7 @@
   <div class="header-buttons">
       <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">編輯角色</button>
       <button id="exportBtn" class="btn-export" onclick="exportToPNG()">匯出 PNG</button>
-      <button id="shareBtn" class="btn-backup" onclick="generateShareLink()">備份角色</button>
+      <button id="shareBtn" class="btn-backup" onclick="openBackupRestoreModal()">備份/讀取</button>
       <button id="restoreBtn" class="btn-restore" onclick="restoreDefaultCharacter()">還原預設</button>
   </div>
   <div class="grid">
@@ -1733,11 +1956,13 @@
                 // Update progress: Start
                 updateProgress(overlay, 10, '準備匯出...');
 
-                // Force desktop viewport and width
+                // Force desktop viewport and ensure container width is set
                 if (viewport) {
-                    viewport.content = 'width=1024, initial-scale=1';
+                    viewport.content = 'width=device-width, initial-scale=1';
                 }
-                container.style.width = '1024px';
+                // Temporarily set container to auto width to get full dimensions
+                container.style.width = 'auto';
+                container.style.maxWidth = 'none';
 
                 // Wait for layout adjustments
                 await new Promise(resolve => setTimeout(resolve, 500));
@@ -1805,7 +2030,10 @@
                     useCORS: true,
                     backgroundColor: null, // Use transparent background to preserve gradients
                     scale: 2,
-                    windowWidth: 1024,
+                    width: container.scrollWidth, // Capture full width of container
+                    height: container.scrollHeight, // Capture full height of container
+                    scrollX: 0, // Start from left edge
+                    scrollY: 0, // Start from top edge
                     imageTimeout: 10000,
                     logging: false,
                     foreignObjectRendering: true, // Better for complex CSS effects
@@ -1860,7 +2088,31 @@
                             containerClone.style.background = 'linear-gradient(to right, #b5e1fe, #f3f7ff)';
                             containerClone.style.borderRadius = '0.5rem';
                             containerClone.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
+                            containerClone.style.width = 'auto';
+                            containerClone.style.maxWidth = 'none';
+                            containerClone.style.position = 'relative';
+                            containerClone.style.overflow = 'visible'; // Ensure content is not clipped
                         }
+
+                        // Apply exporting styles to cloned document
+                        const style = doc.createElement('style');
+                        style.textContent = `
+                            .exporting img {
+                                image-rendering: -webkit-optimize-contrast;
+                                image-rendering: crisp-edges;
+                            }
+                            .exporting .avatar-container img {
+                                width: 100%;
+                                height: 100%;
+                                object-fit: cover;
+                                object-position: center;
+                            }
+                            .no-animations * {
+                                animation: none !important;
+                                transition: none !important;
+                            }
+                        `;
+                        doc.head.appendChild(style);
 
                         // Ensure avatar container styling is preserved during export
                         const avatarContainerClone = doc.querySelector('.avatar-container');
@@ -1940,6 +2192,32 @@
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
+        }
+
+        // Custom notification function to replace alert
+        function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.message-notification');
+            existingNotifications.forEach(notification => notification.remove());
+
+            // Create new notification
+            const notification = document.createElement('div');
+            notification.className = `message-notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // Trigger animation
+            setTimeout(() => notification.classList.add('show'), 100);
+
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
         }
         
         // URL validation function to prevent javascript: protocol injection
@@ -2096,11 +2374,14 @@
                 currentUrl.searchParams.set('data', base64Data);
 
                 const shareUrl = currentUrl.toString();
-                alert('備份連結已複製到剪貼簿!\n' + shareUrl);
-                navigator.clipboard.writeText(shareUrl);
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    showNotification('備份連結已複製到剪貼簿!', 'success');
+                }).catch(() => {
+                    showNotification('備份連結: ' + shareUrl, 'info');
+                });
             } catch (error) {
                 console.error('產生備份連結失敗:', error);
-                alert('產生備份連結失敗');
+                showNotification('產生備份連結失敗', 'error');
             }
         }
 
@@ -2147,6 +2428,124 @@
             ).join('');
         }
 
+        // NEW: Backup/Restore Modal Functions
+        function openBackupRestoreModal() {
+            const modal = document.getElementById('backupRestoreModal');
+            modal.style.display = 'flex';
+            renderSlotGrid();
+        }
+
+        function closeBackupRestoreModal() {
+            const modal = document.getElementById('backupRestoreModal');
+            modal.style.display = 'none';
+        }
+
+        function renderSlotGrid() {
+            const slotGrid = document.getElementById('slotGrid');
+            let html = '';
+
+            for (let i = 1; i <= 99; i++) {
+                const slotKey = `characterSlot_${i}`;
+                const savedData = localStorage.getItem(slotKey);
+
+                let slotClass = 'empty';
+                let avatarHtml = '<i class="fas fa-user"></i>';
+                let characterName = '';
+                let playerName = '';
+                let loadDisabled = 'disabled';
+
+                if (savedData) {
+                    try {
+                        const parsedData = JSON.parse(savedData);
+                        slotClass = 'filled';
+                        loadDisabled = '';
+
+                        // Get avatar
+                        const avatarUrl = parsedData.avatarUrl || avatarImageUrl;
+                        if (avatarUrl && isValidUrl(avatarUrl)) {
+                            avatarHtml = `<img src="${escapeHtml(avatarUrl)}" alt="頭像" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user\\'></i>'">`;
+                        }
+
+                        characterName = parsedData.characterName || '';
+                        playerName = parsedData.playerName || '';
+                    } catch (error) {
+                        console.error(`Error parsing slot ${i}:`, error);
+                    }
+                }
+
+                html += `
+                    <div class="slot-item ${slotClass}">
+                        <div class="slot-number">${i}</div>
+                        <div class="slot-avatar ${savedData ? '' : 'empty'}">
+                            ${avatarHtml}
+                        </div>
+                        <div class="slot-name" title="${escapeHtml(characterName)}">${escapeHtml(characterName || '空槽')}</div>
+                        <div class="slot-player" title="${escapeHtml(playerName)}">${escapeHtml(playerName || '')}</div>
+                        <div class="slot-buttons">
+                            <button class="slot-save" onclick="saveToSlot(${i})">儲存</button>
+                            <button class="slot-load" onclick="loadFromSlot(${i})" ${loadDisabled}>讀取</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            slotGrid.innerHTML = html;
+        }
+
+        function saveToSlot(slotNumber) {
+            try {
+                const slotKey = `characterSlot_${slotNumber}`;
+                const dataToSave = JSON.stringify(character);
+                localStorage.setItem(slotKey, dataToSave);
+
+                showNotification(`角色資料已儲存到槽位 ${slotNumber}`, 'success');
+                renderSlotGrid(); // Refresh the grid to show updated data
+            } catch (error) {
+                console.error('Error saving to slot:', error);
+                showNotification('儲存失敗，請稍後再試', 'error');
+            }
+        }
+
+        function loadFromSlot(slotNumber) {
+            try {
+                const slotKey = `characterSlot_${slotNumber}`;
+                const savedData = localStorage.getItem(slotKey);
+
+                if (!savedData) {
+                    showNotification('此槽位沒有儲存的資料', 'error');
+                    return;
+                }
+
+                const parsedData = JSON.parse(savedData);
+
+                // Validate the data structure
+                if (!parsedData || typeof parsedData !== 'object') {
+                    showNotification('資料格式錯誤', 'error');
+                    return;
+                }
+
+                // Load the character data
+                character = parsedData;
+                saveCharacterToLocalStorage(); // Also save to main storage
+                renderViewMode();
+
+                showNotification(`已從槽位 ${slotNumber} 讀取角色資料`, 'success');
+                closeBackupRestoreModal();
+            } catch (error) {
+                console.error('Error loading from slot:', error);
+                showNotification('讀取失敗，請稍後再試', 'error');
+            }
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('backupRestoreModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeBackupRestoreModal();
+                }
+            });
+        });
+
         // On page load, prioritize URL data over localStorage
         const sharedData = getDataFromUrl();
         if (sharedData) {
@@ -2157,6 +2556,21 @@
         }
         renderViewMode();
     </script>
+
+    <!-- Backup/Restore Modal -->
+    <div id="backupRestoreModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>角色資料備份/讀取</h2>
+                <button class="modal-close" onclick="closeBackupRestoreModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="slotGrid" class="slot-grid">
+                    <!-- Slots will be generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

@@ -39,9 +39,11 @@ let options = {
 };
 
 // ============= Rate Limiter Configuration =============
+// Adjusted limits to be more permissive for testing while still protecting against attacks
 const rateLimitConfig = {
     chatRoom: { points: 90, duration: 60 },
-    card: { points: 120, duration: 60 },
+    card: { points: 300, duration: 60 }, // Increased from 120 to 300 for better testing experience
+    cardRead: { points: 500, duration: 60 }, // Separate limit for read operations (public cards, list info)
     api: { points: 10_000, duration: 10 }
 };
 
@@ -104,25 +106,28 @@ function createWebServer(options = {}, www) {
     // Ensure malformed requests/sockets are closed and not left hanging
     // to avoid double-emitted socket errors from Node's http(s) server.
     server.on('clientError', (err, socket) => {
+        // Immediately destroy the socket to prevent double error emission
+        // Do not attempt to send responses when handling clientError
         try {
-            if (socket && socket.writable) {
-                // Respond with a simple 400 so clients don't retry the same bad request
-                socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+            if (socket && !socket.destroyed) {
+                socket.destroy(err);
             }
-        } catch {
-            // Intentionally ignore write errors
-        } finally {
-            try {
-                if (socket && !socket.destroyed) socket.destroy(err);
-            } catch { /* ignore */ }
+        } catch (error) {
+            // Log the destruction error but don't re-throw
+            console.error('Error destroying socket in clientError handler:', error.message);
         }
     });
 
     // For HTTPS servers, also proactively destroy on TLS handshake errors
     server.on('tlsClientError', (err, socket) => {
         try {
-            if (socket && !socket.destroyed) socket.destroy(err);
-        } catch { /* ignore */ }
+            if (socket && !socket.destroyed) {
+                socket.destroy(err);
+            }
+        } catch (error) {
+            // Log the destruction error but don't re-throw
+            console.error('Error destroying socket in tlsClientError handler:', error.message);
+        }
     });
     server.listen(port, () => {
         console.log("Web Server Started. Link: " + protocol + "://127.0.0.1:" + port);
@@ -844,41 +849,62 @@ if (io) {
     
     io.on('connection', async (socket) => {
         socket.on('getListInfo', async message => {
-            if (await limitRaterCard(socket.handshake.address)) return;
-            
+            // Use cardRead limit for list info (less restrictive)
+            if (await limitRaterCardRead(socket.handshake.address)) return;
+
             try {
                 // 🔒 驗證輸入
                 const validation = security.validateCredentials(message);
                 if (!validation.valid) {
-                    console.warn('🔒 Invalid credentials:', validation.error);
-                    socket.emit('getListInfo', { temp: null, id: [] });
+                    console.warn('🔒 Invalid credentials format:', validation.error, 'from IP:', socket.handshake.address);
+                    socket.emit('getListInfo', {
+                        temp: null,
+                        id: [],
+                        error: 'Invalid credentials format',
+                        code: 'INVALID_FORMAT'
+                    });
                     return;
                 }
-                
+
                 const { userName, userPassword: password } = validation.data;
-                
+
                 // 🔒 防止 NoSQL 注入 - 強制型別轉換
                 let filter = {
                     userName: String(userName).trim()
                 };
-                
+
                 let doc = await schema.accountPW.findOne(filter)
                     .catch(error => {
-                        console.error('🔒 MongoDB error:', error.message);
+                        console.error('🔒 MongoDB error during authentication:', error.message);
+                        socket.emit('getListInfo', {
+                            temp: null,
+                            id: [],
+                            error: 'Database connection error',
+                            code: 'DB_ERROR'
+                        });
                         return null;
                     });
-                
-                // 🔒 使用安全的密碼驗證（支援 legacy 和 bcrypt）
+
                 if (!doc) {
-                    console.warn('🔒 User not found:', userName);
-                    socket.emit('getListInfo', { temp: null, id: [] });
+                    console.warn('🔒 User not found:', userName, 'from IP:', socket.handshake.address);
+                    socket.emit('getListInfo', {
+                        temp: null,
+                        id: [],
+                        error: 'User not found',
+                        code: 'USER_NOT_FOUND'
+                    });
                     return;
                 }
-                
+
                 const isValid = await verifyPasswordSecure(password, doc.password);
                 if (!isValid) {
-                    console.warn('🔒 Invalid password for user:', userName);
-                    socket.emit('getListInfo', { temp: null, id: [] });
+                    console.warn('🔒 Invalid password for user:', userName, 'from IP:', socket.handshake.address);
+                    socket.emit('getListInfo', {
+                        temp: null,
+                        id: [],
+                        error: 'Invalid password',
+                        code: 'INVALID_PASSWORD'
+                    });
                     return;
                 }
                 
@@ -930,7 +956,8 @@ if (io) {
         })
 
         socket.on('getPublicListInfo', async () => {
-            if (await limitRaterCard(socket.handshake.address)) return;
+            // Public list info is read-only, use less restrictive limit
+            if (await limitRaterCardRead(socket.handshake.address)) return;
             //回傳 message 給發送訊息的 Client
             let filter = {
                 public: true
@@ -1262,9 +1289,17 @@ if (io) {
             // 🔒 使用安全的輸入驗證
             const validation = security.validateChatMessage(msg);
             if (!validation.valid) {
-                console.warn('🔒 Invalid chat message:', validation.error, 
-                    'from', socket.handshake.address);
-                socket.emit('error', { message: validation.error });
+                console.warn('🔒 Invalid chat message:', validation.error,
+                    'from IP:', socket.handshake.address,
+                    'msg data:', JSON.stringify(msg).slice(0, 200));
+
+                // Send user-friendly error message to client
+                const userFriendlyError = getUserFriendlyError(validation.error);
+                socket.emit('error', {
+                    message: userFriendlyError,
+                    code: validation.error.replaceAll(/\s+/g, '_').toUpperCase(),
+                    originalError: validation.error
+                });
                 return;
             }
 
@@ -1435,6 +1470,10 @@ async function limitRaterCard(address) {
     return await checkRateLimit('card', address);
 }
 
+async function limitRaterCardRead(address) {
+    return await checkRateLimit('cardRead', address);
+}
+
 async function limitRaterApi(address) {
     return await checkRateLimit('api', address);
 }
@@ -1474,6 +1513,21 @@ if (isMaster) {
             }
         }
     });
+}
+
+// Convert technical validation errors to user-friendly messages
+function getUserFriendlyError(error) {
+    const errorMap = {
+        'Invalid message format': 'Message format is invalid',
+        'Invalid name type': 'Name must be text',
+        'Invalid message type': 'Message content is invalid',
+        'Invalid room number type': 'Room number is invalid',
+        'Invalid name length (1-50 characters)': 'Name must be 1-50 characters long',
+        'Invalid message length (1-2000 characters)': 'Message must be 1-2000 characters long',
+        'Suspicious content detected': 'Message contains suspicious content and was blocked'
+    };
+
+    return errorMap[error] || 'Invalid message: ' + error;
 }
 
 function jsonEscape(str) {

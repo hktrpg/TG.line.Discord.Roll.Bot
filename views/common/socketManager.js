@@ -5,12 +5,15 @@
 class SocketManager {
     constructor() {
         // Socket.io connection with reconnection options
+        // More conservative settings to avoid excessive reconnections during testing
         this.socket = io({
             reconnection: true,
-            reconnectionAttempts: 10,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            randomizationFactor: 0.5
+            reconnectionAttempts: 5, // Reduced from 10 to 5
+            reconnectionDelay: 2000, // Increased from 1000 to 2000
+            reconnectionDelayMax: 10_000, // Increased from 5000 to 10000
+            randomizationFactor: 0.5,
+            // Add timeout to prevent hanging connections
+            timeout: 20_000
         });
 
         this.eventHandlers = new Map();
@@ -22,6 +25,10 @@ class SocketManager {
         this.maxCardListRetries = 50; // Limit retries to prevent infinite loops
         this.cardListRetryTimeouts = [];
         this.publicListRequestTimeouts = [];
+
+        // Request throttling to prevent excessive requests during testing
+        this.lastRequestTime = new Map();
+        this.requestThrottleMs = 100; // Minimum 100ms between similar requests
 
         this.setupEventListeners();
         this.setupConnectionListeners();
@@ -82,6 +89,24 @@ class SocketManager {
             // 之後慢速重試：10000ms
             return 10_000;
         }
+    }
+
+    /**
+     * 檢查請求是否應該被節流
+     * @param {string} requestType - 請求類型
+     * @returns {boolean} 是否應該跳過請求
+     */
+    shouldThrottleRequest(requestType) {
+        const now = Date.now();
+        const lastTime = this.lastRequestTime.get(requestType) || 0;
+
+        if (now - lastTime < this.requestThrottleMs) {
+            debugLog(`Request throttled: ${requestType}`, 'warn');
+            return true; // Throttle this request
+        }
+
+        this.lastRequestTime.set(requestType, now);
+        return false; // Allow this request
     }
 
     /**
@@ -336,6 +361,7 @@ class SocketManager {
      * @param {Object} data - 擲骰資料
      */
     emitRolling(data) {
+        if (this.shouldThrottleRequest('rolling')) return;
         this.socket.emit('rolling', data);
     }
 
@@ -344,6 +370,7 @@ class SocketManager {
      * @param {Object} data - 擲骰資料
      */
     emitPublicRolling(data) {
+        if (this.shouldThrottleRequest('publicRolling')) return;
         this.socket.emit('publicRolling', data);
     }
 
@@ -352,6 +379,7 @@ class SocketManager {
      * @param {Object} data - 更新資料
      */
     emitUpdateCard(data) {
+        if (this.shouldThrottleRequest('updateCard')) return;
         this.socket.emit('updateCard', data);
     }
 
@@ -360,6 +388,7 @@ class SocketManager {
      * @param {Object} data - 請求資料
      */
     emitGetListInfo(data) {
+        if (this.shouldThrottleRequest('getListInfo')) return;
         this.socket.emit('getListInfo', data);
     }
 
@@ -367,6 +396,7 @@ class SocketManager {
      * 發送獲取公開列表資訊請求
      */
     emitGetPublicListInfo() {
+        if (this.shouldThrottleRequest('getPublicListInfo')) return;
         this.socket.emit('getPublicListInfo');
     }
 
@@ -375,6 +405,7 @@ class SocketManager {
      * @param {Object} data - 請求資料
      */
     emitGetPublicCardInfo(data) {
+        if (this.shouldThrottleRequest('getPublicCardInfo')) return;
         this.socket.emit('getPublicCardInfo', data);
     }
 

@@ -141,9 +141,36 @@ TGclient.on('message:text', (ctx) => {
         if (!rplyVal.text && !rplyVal.LevelUp)
             return;
         if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Telegram")) {
-            TGclient.api.sendMessage(userid, newMessage.firstTimeMessage()).catch((error) => {
-                console.error("Telegram newUserChecker error:", error.message);
-            });
+            // Send welcome message in the same chat instead of trying to DM the user
+            // Telegram bots cannot initiate conversations with users, so we send welcome in context
+            try {
+                const welcomeMessage = newMessage.firstTimeMessage();
+                if (welcomeMessage) {
+                    const welcomePayload = {
+                        chat_id: groupid || ctx.chat.id,
+                        text: welcomeMessage,
+                        parse_mode: 'Markdown'
+                    };
+                    if (ctx.message.is_topic_message) {
+                        welcomePayload.message_thread_id = ctx.message.message_thread_id;
+                    }
+                    await TGclient.api.sendMessage(welcomePayload.chat_id, welcomePayload.text, {
+                        message_thread_id: welcomePayload.message_thread_id,
+                        parse_mode: welcomePayload.parse_mode
+                    }).catch((error) => {
+                        // If Markdown fails, try without formatting
+                        if (error.message.includes('parse')) {
+                            return TGclient.api.sendMessage(welcomePayload.chat_id, welcomeMessage, {
+                                message_thread_id: welcomePayload.message_thread_id
+                            });
+                        }
+                        throw error;
+                    });
+                }
+            } catch (error) {
+                console.error("Telegram welcome message error:", error.message);
+                // Don't throw - continue with normal message processing
+            }
         }
 
         //LevelUp功能

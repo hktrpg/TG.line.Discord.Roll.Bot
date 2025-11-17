@@ -809,6 +809,20 @@
             overflow-y: auto;
         }
 
+        /* 電腦版：至少2行，一行兩個角色 */
+        @media (min-width: 769px) {
+            .slot-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* 手機版：一行一個角色 */
+        @media (max-width: 768px) {
+            .slot-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .slot-item {
             background: #f9fafb;
             border: 2px solid #e5e7eb;

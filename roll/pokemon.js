@@ -173,9 +173,9 @@ class Pokemon {
     static showPokemon(pokemon, detail = false) {
         let rply = '';
         try {
-            rply += `#${pokemon.id} 【${pokemon.name}】 ${pokemon.alias} ${Pokemon.findTypeByEng(pokemon.type)} 
+            rply += `#${pokemon.id} 【${pokemon.name}】 ${pokemon.alias} ${Pokemon.findTypeByEng(pokemon.type)}
 ${pokemon.info.category} ${pokemon.info.height}m / ${pokemon.info.weight}kg
-建議等級：${pokemon.rank}  基礎HP：${pokemon.baseHP}  特性：${pokemon.ability} 
+建議等級：${pokemon.rank}  基礎HP：${pokemon.baseHP}  特性：${pokemon.ability}
 力量 ${displayValue(pokemon.attr.str.value, pokemon.attr.str.max)}
 靈巧 ${displayValue(pokemon.attr.dex.value, pokemon.attr.dex.max)}
 活力 ${displayValue(pokemon.attr.vit.value, pokemon.attr.vit.max)}
@@ -183,6 +183,24 @@ ${pokemon.info.category} ${pokemon.info.height}m / ${pokemon.info.weight}kg
 洞察 ${displayValue(pokemon.attr.ins.value, pokemon.attr.ins.max)}
 ${(pokemon.evolution.stage) ? `進化階段：${pokemon.evolution.stage}` : ''} ${(pokemon.evolution.time) ? `進化時間：${pokemon.evolution.time}` : ''}
 `
+            // 添加屬性相刻顯示
+            const typeEffectiveness = getTypeEffectiveness(pokemon.type);
+            rply += '------屬性相剋------\n';
+
+            if (typeEffectiveness.superEffective.length > 0) {
+                rply += `效果超級絕佳：${typeEffectiveness.superEffective.join('、')}\n`;
+            }
+            if (typeEffectiveness.effective.length > 0) {
+                rply += `效果絕佳：${typeEffectiveness.effective.join('、')}\n`;
+            }
+            if (typeEffectiveness.notVeryEffective.length > 0) {
+                rply += `效果非常不好：${typeEffectiveness.notVeryEffective.join('、')}\n`;
+            }
+            if (typeEffectiveness.noEffect.length > 0) {
+                rply += `完全沒有效果：${typeEffectiveness.noEffect.join('、')}\n`;
+            }
+            rply += '\n';
+
             if (detail) {
                 rply += '------招式------\n'
                 for (let index = 0; index < pokemon.moves.length; index++) {
@@ -201,7 +219,7 @@ ${(pokemon.evolution.stage) ? `進化階段：${pokemon.evolution.stage}` : ''} 
         try {
             // 優化搜尋策略：根據輸入類型調整搜尋參數
             let searchOptions = { limit: 12 };
-            
+
             // 如果是數字 ID，使用更嚴格的搜尋
             if (/^\d+$/.test(name)) {
                 searchOptions.threshold = 0.1; // 更嚴格的匹配
@@ -213,39 +231,42 @@ ${(pokemon.evolution.stage) ? `進化階段：${pokemon.evolution.stage}` : ''} 
                 // 短名稱使用中等嚴格度
                 searchOptions.threshold = 0.4;
                 searchOptions.limit = 8;
+            } else {
+                // 長名稱使用較寬鬆的搜尋以包含更多結果
+                searchOptions.threshold = 0.5;
             }
-            
+
+            // 先檢查完全匹配（不依賴Fuse搜尋結果）
+            const nameLower = name.toLowerCase();
+
+            // 檢查ID完全匹配
+            if (/^\d+$/.test(name)) {
+                const exactIdMatch = this.pokemonData.find(item => item.id === name);
+                if (exactIdMatch) {
+                    return Pokemon.showPokemon(exactIdMatch, detail);
+                }
+            }
+
+            // 檢查名稱完全匹配
+            const exactNameMatch = this.pokemonData.find(item =>
+                item.name.toLowerCase() === nameLower
+            );
+            if (exactNameMatch) {
+                return Pokemon.showPokemon(exactNameMatch, detail);
+            }
+
+            // 檢查別名完全匹配
+            const exactAliasMatch = this.pokemonData.find(item =>
+                item.alias && item.alias.toLowerCase() === nameLower
+            );
+            if (exactAliasMatch) {
+                return Pokemon.showPokemon(exactAliasMatch, detail);
+            }
+
+            // 如果沒有完全匹配，使用Fuse搜尋
             let result = this.fuse.search(name, searchOptions);
             let rply = '';
             if (result.length === 0) return '沒有找到相關資料';
-            
-            // Check if searching by ID (numeric string)
-            if (/^\d+$/.test(name)) {
-                // For numeric searches, look for exact ID match first
-                let exactMatch = result.find(item => item.item.id === name);
-                if (exactMatch) {
-                    rply = Pokemon.showPokemon(exactMatch.item, detail);
-                    return rply;
-                }
-            }
-            
-            // Check for exact name match (case insensitive)
-            let exactNameMatch = result.find(item => 
-                item.item.name.toLowerCase() === name.toLowerCase()
-            );
-            if (exactNameMatch) {
-                rply = Pokemon.showPokemon(exactNameMatch.item, detail);
-                return rply;
-            }
-            
-            // Check for exact alias match
-            let exactAliasMatch = result.find(item => 
-                item.item.alias && item.item.alias.toLowerCase() === name.toLowerCase()
-            );
-            if (exactAliasMatch) {
-                rply = Pokemon.showPokemon(exactAliasMatch.item, detail);
-                return rply;
-            }
             
             // 檢查是否有高相似度的結果
             const highScoreResults = result.filter(item => 
@@ -705,6 +726,61 @@ function displayValue(current, total) {
     return result;
 }
 
+function getTypeEffectiveness(pokemonTypes) {
+    /**
+     * 分析寶可夢的屬性相刻
+     * @param {Array} pokemonTypes - 寶可夢的屬性陣列
+     * @returns {Object} 包含各種效果的屬性列表
+     */
+    const effectiveness = {
+        superEffective: [], // 效果超級絕佳 (4倍)
+        effective: [],      // 效果絕佳 (2倍)
+        notVeryEffective: [], // 效果非常不好 (0.25倍)
+        noEffect: []        // 完全沒有效果 (0倍)
+    };
+
+    // 遍歷所有攻擊屬性
+    for (const attackType of Object.keys(typeChart)) {
+        let totalEffect = 0;
+        let hasNoEffect = false;
+
+        // 計算對每個防禦屬性的效果
+        for (const defenseType of pokemonTypes) {
+            const effect = typeChart[attackType][defenseType];
+            if (effect === -999) {
+                hasNoEffect = true;
+            } else {
+                totalEffect += effect;
+            }
+        }
+
+        // 如果任何屬性免疫，則完全沒有效果
+        if (hasNoEffect) {
+            effectiveness.noEffect.push(typeName[attackType]);
+        } else {
+            // 根據總效果分類 (基於這個系統的傷害計算)
+            // 2 = 效果絕佳 (額外2傷害 = 4倍傷害)
+            // 1 = 效果絕佳 (額外1傷害 = 2倍傷害)
+            // -2 = 效果非常不好 (減少2傷害 = 0.25倍傷害)
+            // 其他值 = 普通效果
+            switch (totalEffect) {
+                case 2:
+                    effectiveness.superEffective.push(typeName[attackType]);
+                    break;
+                case 1:
+                    effectiveness.effective.push(typeName[attackType]);
+                    break;
+                case -2:
+                    effectiveness.notVeryEffective.push(typeName[attackType]);
+                    break;
+                // totalEffect === 0 或 -1 的情況不顯示（普通效果）
+            }
+        }
+    }
+
+    return effectiveness;
+}
+
 const discordCommand = [
     {
         data: new SlashCommandBuilder()
@@ -866,5 +942,6 @@ module.exports = {
     autocompleteMoves,
     pokemonMovesAutocomplete,
     Pokemon,
-    Moves
+    Moves,
+    getTypeEffectiveness
 };

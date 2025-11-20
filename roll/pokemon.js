@@ -763,14 +763,18 @@ function getTypeEffectiveness(pokemonTypes) {
             // 1 = 效果絕佳 (額外1傷害 = 2倍傷害)
             // -2 = 效果非常不好 (減少2傷害 = 0.25倍傷害)
             // 其他值 = 普通效果
-            if (totalEffect === 2) {
-                effectiveness.superEffective.push(typeName[attackType]);
-            } else if (totalEffect === 1) {
-                effectiveness.effective.push(typeName[attackType]);
-            } else if (totalEffect === -2) {
-                effectiveness.notVeryEffective.push(typeName[attackType]);
+            switch (totalEffect) {
+                case 2:
+                    effectiveness.superEffective.push(typeName[attackType]);
+                    break;
+                case 1:
+                    effectiveness.effective.push(typeName[attackType]);
+                    break;
+                case -2:
+                    effectiveness.notVeryEffective.push(typeName[attackType]);
+                    break;
+                // totalEffect === 0 或 -1 的情況不顯示（普通效果）
             }
-            // totalEffect === 0 或 -1 的情況不顯示（普通效果）
         }
     }
 

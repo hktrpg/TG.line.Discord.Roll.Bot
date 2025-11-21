@@ -94,6 +94,34 @@ class HealthMonitor extends EventEmitter {
         this.raiseAlert('databaseError', data);
     }
 
+    async checkAlertConditions(healthReport) {
+        // 檢查互動失敗率
+        if (healthReport.interactions.successRate < 90) {
+            this.raiseAlert('highInteractionFailureRate', {
+                failureRate: (100 - healthReport.interactions.successRate).toFixed(1) + '%',
+                totalInteractions: healthReport.interactions.total,
+                failedInteractions: healthReport.interactions.failed
+            });
+        }
+
+        // 檢查資料庫狀態
+        if (healthReport.database.status !== 'healthy') {
+            this.raiseAlert('databaseError', {
+                status: healthReport.database.status,
+                circuitBreakerState: healthReport.database.circuitBreaker.state
+            });
+        }
+
+        // 檢查集群健康狀態
+        const unhealthyClusters = healthReport.clusters.unhealthy;
+        if (unhealthyClusters > 0) {
+            this.raiseAlert('multipleUnhealthyClusters', {
+                unhealthyCount: unhealthyClusters,
+                totalClusters: healthReport.clusters.total
+            });
+        }
+    }
+
     raiseAlert(alertType, data) {
         const alertKey = `${alertType}_${Date.now()}`;
         const lastAlert = this.alerts.get(alertType);

@@ -15,7 +15,7 @@ const config = {
     restartTime: '30 04 */3 * *',
     connectTimeout: 120_000,    // 2 minutes
     socketTimeout: 120_000,     // 2 minutes
-    poolSize: 10,             // 連線池大小
+    poolSize: 4,              // 連線池大小 - Discord shard bot 每個 cluster 4 個連接
     minPoolSize: 2,           // 最小連線池大小
     heartbeatInterval: 10_000,  // 心跳檢測間隔
     serverSelectionTimeout: 30_000,  // Increased from 5000 to 30000 (30 seconds)
@@ -36,6 +36,7 @@ if (!config.mongoUrl) {
 let isConnected = false;
 let connectionAttempts = 0;
 let isInitializing = false; // 防止重複初始化
+let reconnecting = false; // 防止重複重新連接
 // const master = require.main?.filename.includes('index');
 
 // MongoDB 配置
@@ -62,15 +63,17 @@ function calculateBackoffTime(attempt) {
     return backoffTime + Math.random() * 1000; // 添加隨機抖動
 }
 
-// 建立連線
+// 建立連線 - 強制只建立一個連接
 async function connect(retries = 0) {
-    // 如果已經連接，直接返回
-    if (isConnected && mongoose.connection.readyState === 1) {
+    // 檢查是否已經有活躍連接
+    if (mongoose.connection.readyState === 1 && isConnected) {
+        console.log('MongoDB connection already active, skipping...');
         return true;
     }
 
     // 如果正在連接中，等待連接完成
     if (mongoose.connection.readyState === 2) { // connecting
+        console.log('MongoDB connection in progress, waiting...');
         return new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
                 reject(new Error('Connection timeout'));
@@ -78,11 +81,15 @@ async function connect(retries = 0) {
 
             mongoose.connection.once('connected', () => {
                 clearTimeout(timeout);
+                console.log('MongoDB connection established while waiting');
+                isConnected = true;
                 resolve(true);
             });
 
             mongoose.connection.once('error', (error) => {
                 clearTimeout(timeout);
+                console.error('MongoDB connection failed while waiting:', error.message);
+                isConnected = false;
                 reject(error);
             });
         });
@@ -90,10 +97,11 @@ async function connect(retries = 0) {
 
     try {
         connectionAttempts++;
-        console.log(`Attempting to connect to MongoDB (Attempt ${connectionAttempts})`);
+        console.log(`Attempting to connect to MongoDB (Attempt ${connectionAttempts}) - ReadyState: ${mongoose.connection.readyState}`);
 
-        // 只有在未連接狀態下才呼叫 mongoose.connect
-        if (mongoose.connection.readyState === 0 || mongoose.connection.readyState === 3) { // disconnected or disconnecting
+        // 只有在真正斷開連接時才建立新連接
+        if (mongoose.connection.readyState === 0) { // disconnected
+            console.log('Creating new MongoDB connection...');
             await mongoose.connect(config.mongoUrl, {
                 connectTimeoutMS: config.connectTimeout,
                 socketTimeoutMS: config.socketTimeout,
@@ -108,6 +116,38 @@ async function connect(retries = 0) {
                 useNewUrlParser: config.useNewUrlParser,
                 useUnifiedTopology: config.useUnifiedTopology
             });
+        } else if (mongoose.connection.readyState === 3) { // disconnecting
+            console.log('Waiting for disconnect to complete before reconnecting...');
+            // 等待斷開完成，然後建立新連接
+            await new Promise(resolve => {
+                const checkState = () => {
+                    if (mongoose.connection.readyState === 0) {
+                        resolve();
+                    } else {
+                        setTimeout(checkState, 100);
+                    }
+                };
+                checkState();
+            });
+
+            console.log('Reconnecting after disconnect...');
+            await mongoose.connect(config.mongoUrl, {
+                connectTimeoutMS: config.connectTimeout,
+                socketTimeoutMS: config.socketTimeout,
+                serverSelectionTimeoutMS: config.serverSelectionTimeout,
+                maxPoolSize: config.poolSize,
+                minPoolSize: config.minPoolSize,
+                heartbeatFrequencyMS: config.heartbeatInterval,
+                maxIdleTimeMS: config.maxIdleTimeMS,
+                w: config.w,
+                retryWrites: config.retryWrites,
+                autoIndex: config.autoIndex,
+                useNewUrlParser: config.useNewUrlParser,
+                useUnifiedTopology: config.useUnifiedTopology
+            });
+        } else {
+            console.log(`MongoDB connection state is ${mongoose.connection.readyState}, no action needed`);
+            return true;
         }
 
         console.log(`MongoDB connected successfully. Connection state: ${connectionStates[mongoose.connection.readyState]}`);
@@ -167,23 +207,31 @@ function setupPoolMonitoring() {
 
 // 設置連線監聽器
 function setupConnectionListeners() {
+    // 移除現有的事件監聽器，避免重複註冊
+    mongoose.connection.removeAllListeners('disconnected');
+    mongoose.connection.removeAllListeners('error');
+    mongoose.connection.removeAllListeners('connected');
+    mongoose.connection.removeAllListeners('reconnected');
+    mongoose.connection.removeAllListeners('connecting');
+    mongoose.connection.removeAllListeners('disconnecting');
+
     mongoose.connection.on('disconnected', handleDisconnect);
     mongoose.connection.on('error', handleError);
     mongoose.connection.on('connected', () => {
-        console.log('MongoDB connection established');
+        console.log(`MongoDB connection established - ReadyState: ${mongoose.connection.readyState}`);
         isConnected = true;
         connectionAttempts = 0;
     });
     mongoose.connection.on('reconnected', () => {
-        console.log('MongoDB reconnected');
+        console.log(`MongoDB reconnected - ReadyState: ${mongoose.connection.readyState}`);
         isConnected = true;
         connectionAttempts = 0;
     });
     mongoose.connection.on('connecting', () => {
-        console.log('MongoDB connecting...');
+        console.log(`MongoDB connecting... - ReadyState: ${mongoose.connection.readyState}`);
     });
     mongoose.connection.on('disconnecting', () => {
-        console.log('MongoDB disconnecting...');
+        console.log(`MongoDB disconnecting... - ReadyState: ${mongoose.connection.readyState}`);
     });
 }
 
@@ -211,17 +259,29 @@ async function restart() {
 async function handleDisconnect() {
     console.log('MongoDB disconnected');
     isConnected = false;
-    
+
+    // 如果已經在重新連接中，跳過
+    if (reconnecting) {
+        console.log('Reconnection already in progress, skipping...');
+        return;
+    }
+
+    reconnecting = true;
+
     // 使用指數退避進行重試
     const backoffTime = calculateBackoffTime(connectionAttempts);
     setTimeout(async () => {
-        if (!isConnected) {
+        if (!isConnected && reconnecting) {
             console.log(`Attempting to reconnect after ${Math.round(backoffTime/1000)} seconds...`);
             try {
                 await restart();
             } catch (error) {
                 console.error('Reconnection attempt failed:', error);
+            } finally {
+                reconnecting = false;
             }
+        } else {
+            reconnecting = false;
         }
     }, backoffTime);
 }
@@ -230,17 +290,29 @@ async function handleDisconnect() {
 async function handleError(error) {
     console.error('MongoDB connection error:', error);
     isConnected = false;
-    
+
+    // 如果已經在重新連接中，跳過
+    if (reconnecting) {
+        console.log('Reconnection already in progress (from error handler), skipping...');
+        return;
+    }
+
+    reconnecting = true;
+
     // 使用指數退避進行重試
     const backoffTime = calculateBackoffTime(connectionAttempts);
     setTimeout(async () => {
-        if (!isConnected) {
+        if (!isConnected && reconnecting) {
             console.log(`Attempting to recover from error after ${Math.round(backoffTime/1000)} seconds...`);
             try {
                 await restart();
             } catch (error) {
                 console.error('Recovery attempt failed:', error);
+            } finally {
+                reconnecting = false;
             }
+        } else {
+            reconnecting = false;
         }
     }, backoffTime);
 }
@@ -336,10 +408,14 @@ async function initializeConnection() {
     }
 }
 
-// 啟動初始連線
-initializeConnection().catch(error => {
-    console.error('Failed to initialize MongoDB connection:', error);
-});
+// 啟動初始連線 - 只執行一次
+let initialized = false;
+if (!initialized) {
+    initialized = true;
+    initializeConnection().catch(error => {
+        console.error('Failed to initialize MongoDB connection:', error);
+    });
+}
 
 // 匯出
 module.exports = {

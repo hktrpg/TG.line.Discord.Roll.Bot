@@ -227,7 +227,7 @@ class DbWatchdog {
         setInterval(
             async () => {
                 try {
-                    let ans = await schema.mongodbState();
+                    let ans = await schema.mongodbStateCheck();
                     if (!ans) return;
                     const currentdate = new Date();
                     const datetime = "Time: " + currentdate.getDate() + "/"

@@ -35,6 +35,7 @@ if (!config.mongoUrl) {
 // 連線狀態
 let isConnected = false;
 let connectionAttempts = 0;
+let isInitializing = false; // 防止重複初始化
 // const master = require.main?.filename.includes('index');
 
 // MongoDB 配置
@@ -63,26 +64,51 @@ function calculateBackoffTime(attempt) {
 
 // 建立連線
 async function connect(retries = 0) {
-    if (isConnected) return true;
+    // 如果已經連接，直接返回
+    if (isConnected && mongoose.connection.readyState === 1) {
+        return true;
+    }
+
+    // 如果正在連接中，等待連接完成
+    if (mongoose.connection.readyState === 2) { // connecting
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error('Connection timeout'));
+            }, 30000);
+
+            mongoose.connection.once('connected', () => {
+                clearTimeout(timeout);
+                resolve(true);
+            });
+
+            mongoose.connection.once('error', (error) => {
+                clearTimeout(timeout);
+                reject(error);
+            });
+        });
+    }
 
     try {
         connectionAttempts++;
         console.log(`Attempting to connect to MongoDB (Attempt ${connectionAttempts})`);
 
-        await mongoose.connect(config.mongoUrl, {
-            connectTimeoutMS: config.connectTimeout,
-            socketTimeoutMS: config.socketTimeout,
-            serverSelectionTimeoutMS: config.serverSelectionTimeout,
-            maxPoolSize: config.poolSize,
-            minPoolSize: config.minPoolSize,
-            heartbeatFrequencyMS: config.heartbeatInterval,
-            maxIdleTimeMS: config.maxIdleTimeMS,
-            w: config.w,
-            retryWrites: config.retryWrites,
-            autoIndex: config.autoIndex,
-            useNewUrlParser: config.useNewUrlParser,
-            useUnifiedTopology: config.useUnifiedTopology
-        });
+        // 只有在未連接狀態下才呼叫 mongoose.connect
+        if (mongoose.connection.readyState === 0 || mongoose.connection.readyState === 3) { // disconnected or disconnecting
+            await mongoose.connect(config.mongoUrl, {
+                connectTimeoutMS: config.connectTimeout,
+                socketTimeoutMS: config.socketTimeout,
+                serverSelectionTimeoutMS: config.serverSelectionTimeout,
+                maxPoolSize: config.poolSize,
+                minPoolSize: config.minPoolSize,
+                heartbeatFrequencyMS: config.heartbeatInterval,
+                maxIdleTimeMS: config.maxIdleTimeMS,
+                w: config.w,
+                retryWrites: config.retryWrites,
+                autoIndex: config.autoIndex,
+                useNewUrlParser: config.useNewUrlParser,
+                useUnifiedTopology: config.useUnifiedTopology
+            });
+        }
 
         console.log(`MongoDB connected successfully. Connection state: ${connectionStates[mongoose.connection.readyState]}`);
         isConnected = true;
@@ -252,7 +278,21 @@ async function withTransaction(callback) {
 let retryInterval = null;
 
 async function initializeConnection() {
+    // 防止重複初始化
+    if (isInitializing) {
+        console.log('MongoDB initialization already in progress, skipping...');
+        return;
+    }
+
+    if (isConnected) {
+        console.log('MongoDB already connected, skipping initialization...');
+        return;
+    }
+
+    isInitializing = true;
+
     try {
+        console.log('Initializing MongoDB connection...');
         const success = await connect();
         if (!success) {
             console.error('Failed to establish initial MongoDB connection after all retries');
@@ -291,6 +331,8 @@ async function initializeConnection() {
                 console.error('Retry connection error:', error);
             }
         }, config.maxRetryInterval);
+    } finally {
+        isInitializing = false;
     }
 }
 

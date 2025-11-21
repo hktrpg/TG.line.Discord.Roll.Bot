@@ -208,7 +208,6 @@ client.on('messageReactionRemove', async (reaction, user) => {
 
 client.once('clientReady', async () => {
 	initInteractionCommands();
-	if (process.env.BROADCAST) connect();
 	//	if (shardid === 0) getSchedule();
 	client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
 	console.log(`Discord: Logged in as ${client.user.tag}!`);

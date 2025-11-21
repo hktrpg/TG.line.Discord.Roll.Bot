@@ -300,7 +300,6 @@ let connect = function () {
         setTimeout(connect, RECONNECT_INTERVAL);
     });
 };
-if (process.env.BROADCAST) connect();
 
 
 async function nonDice(ctx) {

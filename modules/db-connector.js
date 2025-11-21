@@ -69,24 +69,20 @@ async function connect(retries = 0) {
         connectionAttempts++;
         console.log(`Attempting to connect to MongoDB (Attempt ${connectionAttempts})`);
 
-        // 直接連線，不使用斷路器（因為斷路器會阻擋重試）
         await mongoose.connect(config.mongoUrl, {
-                connectTimeoutMS: config.connectTimeout,
-                socketTimeoutMS: config.socketTimeout,
-                serverSelectionTimeoutMS: config.serverSelectionTimeout,
-    bufferMaxEntries: 0,  // Disable mongoose buffering
-    bufferCommands: false, // Disable mongoose buffering
-                maxPoolSize: config.poolSize,
-                minPoolSize: config.minPoolSize,
-                heartbeatFrequencyMS: config.heartbeatInterval,
-                maxIdleTimeMS: config.maxIdleTimeMS,
-                w: config.w,
-                retryWrites: config.retryWrites,
-                autoIndex: config.autoIndex,
-                useNewUrlParser: config.useNewUrlParser,
-                useUnifiedTopology: config.useUnifiedTopology
-            });
-        }, 'mongodb_connection');
+            connectTimeoutMS: config.connectTimeout,
+            socketTimeoutMS: config.socketTimeout,
+            serverSelectionTimeoutMS: config.serverSelectionTimeout,
+            maxPoolSize: config.poolSize,
+            minPoolSize: config.minPoolSize,
+            heartbeatFrequencyMS: config.heartbeatInterval,
+            maxIdleTimeMS: config.maxIdleTimeMS,
+            w: config.w,
+            retryWrites: config.retryWrites,
+            autoIndex: config.autoIndex,
+            useNewUrlParser: config.useNewUrlParser,
+            useUnifiedTopology: config.useUnifiedTopology
+        });
 
         console.log(`MongoDB connected successfully. Connection state: ${connectionStates[mongoose.connection.readyState]}`);
         isConnected = true;

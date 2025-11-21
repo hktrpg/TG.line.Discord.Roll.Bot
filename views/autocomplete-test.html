@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自動完成功能測試</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="common/autocompleteManager.js"></script>
+    <style>
+        /* 自動完成樣式 */
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ccc;
+            border-top: none;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1100;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 0 0 6px 6px;
+        }
+        
+        .autocomplete-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .autocomplete-item:hover,
+        .autocomplete-item.selected {
+            background-color: #e3f2fd;
+            border-left: 3px solid #2196f3;
+            padding-left: 9px;
+        }
+        
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        
+        .autocomplete-item.no-results {
+            color: #6c757d;
+            font-style: italic;
+            cursor: default;
+            text-align: center;
+            padding: 15px;
+        }
+        
+        .autocomplete-main {
+            font-weight: 500;
+            color: #212529;
+            font-size: 0.95rem;
+            line-height: 1.3;
+        }
+        
+        .autocomplete-meta {
+            margin-top: 4px;
+            font-size: 0.8rem;
+            color: #6c757d;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            align-items: center;
+        }
+        
+        .autocomplete-meta .badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        .autocomplete-meta .badge.badge-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .autocomplete-meta .badge.badge-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        
+        .autocomplete-meta .text-muted {
+            color: #6c757d !important;
+            font-size: 0.75rem;
+        }
+        
+        /* 表單組樣式優化 */
+        .form-group {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        /* 向上顯示的下拉選單樣式 - 修復iOS Safari點擊穿透問題 */
+        .autocomplete-dropdown.autocomplete-dropdown-up {
+            z-index: 1110 !important; /* 高於普通下拉選單 */
+            pointer-events: auto !important; /* 確保可以接收點擊事件 */
+            -webkit-transform: translateZ(0); /* 強制建立新的合成層 */
+            transform: translateZ(0);
+        }
+
+        /* 深色主題支持 */
+        [data-theme="dark"] .autocomplete-dropdown {
+            background: #2d3748 !important;
+            border-color: #4a5568 !important;
+            color: #e2e8f0 !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-dropdown.autocomplete-dropdown-up {
+            background: #2d3748 !important;
+            border-color: #4a5568 !important;
+            color: #e2e8f0 !important;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.4) !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item {
+            border-bottom-color: #4a5568 !important;
+            color: #e2e8f0 !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover,
+        [data-theme="dark"] .autocomplete-item.selected {
+            background-color: #3182ce !important;
+            border-left-color: #63b3ed !important;
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover *,
+        [data-theme="dark"] .autocomplete-item.selected * {
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item.no-results {
+            color: #a0aec0 !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-main {
+            color: #e2e8f0 !important;
+            font-weight: 600 !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover .autocomplete-main,
+        [data-theme="dark"] .autocomplete-item.selected .autocomplete-main {
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-meta {
+            color: #a0aec0 !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover .autocomplete-meta,
+        [data-theme="dark"] .autocomplete-item.selected .autocomplete-meta {
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover .autocomplete-meta .badge,
+        [data-theme="dark"] .autocomplete-item.selected .autocomplete-meta .badge {
+            background-color: #ffffff !important;
+            color: #3182ce !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover .autocomplete-meta .text-muted,
+        [data-theme="dark"] .autocomplete-item.selected .autocomplete-meta .text-muted {
+            color: #e2e8f0 !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-meta .badge.badge-secondary {
+            background-color: #718096 !important;
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-meta .badge.badge-info {
+            background-color: #3182ce !important;
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-meta .text-muted {
+            color: #a0aec0 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>自動完成功能測試</h1>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h3>數碼寶貝搜尋測試</h3>
+                <div class="form-group">
+                    <label for="digimon-search">搜尋數碼寶貝：</label>
+                    <input type="text" id="digimon-search" class="form-control" placeholder="輸入數碼寶貝名稱或編號...">
+                    <small class="form-text text-muted">支援中文名稱、英文名稱和編號搜尋</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="digimon-from">起始數碼寶貝：</label>
+                    <input type="text" id="digimon-from" class="form-control" placeholder="輸入起始數碼寶貝...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="digimon-to">目標數碼寶貝：</label>
+                    <input type="text" id="digimon-to" class="form-control" placeholder="輸入目標數碼寶貝...">
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <h3>測試結果</h3>
+                <div id="test-results" class="alert alert-info">
+                    選擇數碼寶貝後，結果會顯示在這裡
+                </div>
+                
+                <h4>功能說明</h4>
+                <ul>
+                    <li>支援中文名稱搜尋（如：亞古獸）</li>
+                    <li>支援英文名稱搜尋（如：Agumon）</li>
+                    <li>支援編號搜尋（如：123）</li>
+                    <li>支援模糊搜尋</li>
+                    <li>顯示進化階段和屬性信息</li>
+                    <li>鍵盤導航支持（上下箭頭、Enter、Escape）</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 等待頁面加載完成
+        document.addEventListener('DOMContentLoaded', function() {
+            // 配置數碼寶貝自動完成
+            const digimonConfig = {
+                dataSource: 'api',
+                module: 'digimon',
+                searchFields: ['display', 'value', 'metadata.zh-cn-name'],
+                limit: 8,
+                minQueryLength: 1,
+                placeholder: '輸入數碼寶貝名稱或編號...',
+                noResultsText: '找不到相關的數碼寶貝'
+            };
+
+            // 為所有輸入框添加自動完成
+            const inputs = ['digimon-search', 'digimon-from', 'digimon-to'];
+            
+            inputs.forEach(inputId => {
+                const input = document.getElementById(inputId);
+                if (input && window.autocompleteManager) {
+                    window.autocompleteManager.attachToInput(input, digimonConfig);
+                    
+                    // 監聽選擇事件
+                    input.addEventListener('autocomplete-select', function(e) {
+                        const resultsDiv = document.getElementById('test-results');
+                        const item = e.detail.item;
+                        
+                        resultsDiv.innerHTML = `
+                            <h5>已選擇：${item.display}</h5>
+                            <p><strong>值：</strong> ${item.value}</p>
+                            <p><strong>ID：</strong> ${item.id}</p>
+                            <p><strong>進化階段：</strong> ${item.metadata.stage}</p>
+                            <p><strong>屬性：</strong> ${item.metadata.attribute}</p>
+                            ${item.metadata['zh-cn-name'] ? `<p><strong>中文名稱：</strong> ${item.metadata['zh-cn-name']}</p>` : ''}
+                        `;
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

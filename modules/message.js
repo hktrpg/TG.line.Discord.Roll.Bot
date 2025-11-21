@@ -2,8 +2,8 @@
 if (!process.env.mongoURL) return;
 
 const fs = require('fs');
-const schema = require('./schema.js');
 const crypto = require('crypto');
+const schema = require('./schema.js');
 const checkMongodb = require('./dbWatchdog.js');
 
 // 使用 Map 來做使用者快取

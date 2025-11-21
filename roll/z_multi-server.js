@@ -3,14 +3,12 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
 const variables = {};
+const { PermissionsBitField } = require('discord.js');
 const VIP = require('../modules/veryImportantPerson');
-const FUNCTION_LIMIT = [0, 1, 1, 1, 1, 1, 1, 1];
-const { SlashCommandBuilder, PermissionsBitField } = require('discord.js');
 const schema = require('../modules/schema')
-const rollbase = require('./rollbase.js');
 const multiServer = require('../modules/multi-server')
-const Discord = require("discord.js");
-const { Permissions } = Discord;
+const rollbase = require('./rollbase.js');
+const FUNCTION_LIMIT = [0, 1, 1, 1, 1, 1, 1, 1];
 const gameName = function () {
     return '【同步聊天】.chatroom'
 }
@@ -39,18 +37,13 @@ const initialize = function () {
 }
 
 const rollDiceCommand = async function ({
-    inputStr,
     mainMsg,
     groupid,
     userid,
     userrole,
     botname,
-    displayname,
     channelid,
-    displaynameDiscord,
-    discordClient,
-    discordMessage,
-    membercount
+    discordClient
 }) {
     let rply = {
         default: 'on',
@@ -71,23 +64,23 @@ const rollDiceCommand = async function ({
                 if (limit <= 0) return;
                 const channel = await discordClient.channels.fetch(mainMsg[2])
                 const member = await channel.fetch(userid)
-                const v = member.members.find(v => v)
+                const v = member.members.find(Boolean)
                 const role = channel.permissionsFor(v).has(PermissionsBitField.Flags.ManageChannels)
                 if (!role) return;
                 const d = new Date();
                 const time = d.getTime();
-                const num = rollbase.Dice(100000000);
+                const num = rollbase.Dice(100_000_000);
                 const multiId = `${time}_${num}`
                 await schema.multiServer.findOneAndUpdate({ guildID: channel.guildId }, { channelid: mainMsg[2], multiId, guildID: channel.guildId, guildName: channel.guild.name, channelName: channel.name, botname }, { upsert: true }).catch(error => {
-                    console.error('multiserver #78 mongoDB error: ', error.name, error.reson)
+                    console.error('multiserver #78 mongoDB error:', error.name, error.reason)
                     return
                 });
                 await multiServer.getRecords();
                 rply.text = `已把${channel.guild.name} - ${channel.name}新增到聊天室`
                 //，想把其他頻道加入，請輸入\n .chatroom join ${multiId} (其他頻道的ID)
                 return rply;
-            } catch (error) {
-                console.error('error', error)
+            } catch {
+                console.error('multiserver create error')
             }
             return
         }
@@ -101,8 +94,8 @@ const rollDiceCommand = async function ({
                 const member = await channel.fetch(userid)
                 let v;
                 try {
-                    v = (member.members && member.members.find(data => data))
-                } catch (error) {
+                    v = (member.members && member.members.find(Boolean))
+                } catch {
                     v = member;
                 }
                 const role = channel.permissionsFor(v).has(PermissionsBitField.Flags.ManageChannels)
@@ -110,21 +103,21 @@ const rollDiceCommand = async function ({
                 let max = await schema.multiServer.find({ multiId: mainMsg[2] })
                 if (max.length >= 2) return;
                 await schema.multiServer.findOneAndUpdate({ guildID: channel.guildId }, { channelid: mainMsg[3], multiId: mainMsg[2], guildID: channel.guildId, guildName: channel.guild.name, channelName: channel.name, botname }, { upsert: true }).catch(error => {
-                    console.error('multiserver #93 mongoDB error: ', error.name, error.reson)
+                    console.error('multiserver #93 mongoDB error:', error.name, error.reason)
                     return
                 });
                 await multiServer.getRecords();
                 rply.text = `已把${channel.guild.name} - ${channel.name}新增到聊天室，想把其他頻道加入，請輸入 .join ${mainMsg[2]} (其他頻道的ID)`
                 return rply;
-            } catch (error) {
-                console.error('error', error)
+            } catch {
+                console.error('multiserver join error')
             }
             return;
         }
         case /^exit$/i.test(mainMsg[1]): {
             if (!mainMsg[2] && userrole == 3) {
                 await schema.multiServer.findOneAndRemove({ channelid: channelid }).catch(error => {
-                    console.error('multiserver #101 mongoDB error: ', error.name, error.reson)
+                    console.error('multiserver #101 mongoDB error:', error.name, error.reason)
                     return
                 });
                 await multiServer.getRecords();
@@ -134,11 +127,11 @@ const rollDiceCommand = async function ({
             if (mainMsg[2]) {
                 const channel = await discordClient.channels.fetch(mainMsg[2])
                 const member = await channel.fetch(userid)
-                const v = member.members.find(v => v)
+                const v = member.members.find(Boolean)
                 const role = channel.permissionsFor(v).has(PermissionsBitField.Flags.ManageChannels)
                 if (!role) return;
                 await schema.multiServer.findOneAndRemove({ channelid: mainMsg[2] }).catch(error => {
-                    console.error('multiserver #112 mongoDB error: ', error.name, error.reson)
+                    console.error('multiserver #112 mongoDB error:', error.name, error.reason)
                     return
                 });
                 await multiServer.getRecords();

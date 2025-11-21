@@ -6,9 +6,9 @@ const {
     DynamicLoader
 } = require('bcdice');
 const variables = {};
+const { SlashCommandBuilder } = require('discord.js');
 const checkTools = require('../modules/check.js');
 const schema = require('../modules/schema.js');
-const { SlashCommandBuilder } = require('discord.js');
 const gameName = function () {
     return '【BcDice】.bc'
 }
@@ -116,7 +116,7 @@ const rollDiceCommand = async function ({
         }
 
         case /^dicehelp$/i.test(mainMsg[1]): {
-            let doc = await schema.bcdiceRegedit.findOne(filter).catch(err => console.error(err))
+            let doc = await schema.bcdiceRegedit.findOne(filter).catch(error => console.error(error))
             if (doc && doc.trpgId) {
                 rply.text = await callHelp(doc.trpgId) || '';
                 return rply;
@@ -128,11 +128,12 @@ const rollDiceCommand = async function ({
 
         }
         case /^use+$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
             if (!mainMsg[2]) {
@@ -144,7 +145,7 @@ const rollDiceCommand = async function ({
                 rply.text = `此骰表ID沒有回應，請檢查是不是正確\nhttps://bcdice.org/systems/\n\n使用例子: .bc use CthulhuTech`
                 return rply;
             }
-            let doc = await schema.bcdiceRegedit.findOneAndUpdate(filter, { trpgId: mainMsg[2] }, { upsert: true, returnDocument: 'after', returnNewDocument: true }).catch(err => null)
+            let doc = await schema.bcdiceRegedit.findOneAndUpdate(filter, { trpgId: mainMsg[2] }, { upsert: true, returnDocument: 'after', returnNewDocument: true }).catch(() => null)
             if (doc) rply.text = `已更新BcDice，現在此頻道正在使用 ${doc.trpgId}
 
             使用說明: \n${help}
@@ -153,21 +154,22 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^delete+$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
-            let doc = await schema.bcdiceRegedit.findOneAndDelete(filter, { returnDocument: true }).catch(err => console.error(err))
+            let doc = await schema.bcdiceRegedit.findOneAndDelete(filter, { returnDocument: true }).catch(error => console.error(error))
             if (doc) rply.text = `已刪除BcDice的設定`
             else rply.text = `刪除失敗，請以後再嘗試`
             return rply;
         }
         case /^\S/.test(mainMsg[1] || ''): {
-            let doc = await schema.bcdiceRegedit.findOne(filter).catch(err => console.error(err))
+            let doc = await schema.bcdiceRegedit.findOne(filter).catch(error => console.error(error))
             if (doc && doc.trpgId) {
                 rply.text = await calldice(doc.trpgId, inputStr.replace(/^\S+/, ''))
                 return rply;
@@ -197,52 +199,74 @@ https://bcdice.org/systems/
 const discordCommand = [
     {
         data: new SlashCommandBuilder()
-            .setName('bcdice擲骰')
-            .setDescription('進行BcDice擲骰')
-            .addStringOption(option => option.setName('text').setDescription('擲骰內容').setRequired(true))
-        ,
+            .setName('bcdice')
+            .setDescription('【BcDice日系擲骰系統】')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('roll')
+                    .setDescription('進行BcDice擲骰')
+                    .addStringOption(option => 
+                        option.setName('command')
+                            .setDescription('擲骰指令')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('use')
+                    .setDescription('登記使用的骰表ID')
+                    .addStringOption(option => 
+                        option.setName('system_id')
+                            .setDescription('系統ID (例如: Cthulhu, PathFinder)')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('dicehelp')
+                    .setDescription('查看當前系統說明'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('delete')
+                    .setDescription('移除使用的骰表ID')),
         async execute(interaction) {
-            const text = interaction.options.getString('text')
-            return `.bc ${text} `
-        }
-    },
-    {
-        data: new SlashCommandBuilder()
-            .setName('bcdice設定')
-            .setDescription('進行bcdice的設定(說明/登記/刪除)')
-            .addStringOption(option =>
-                option.setName('指令')
-                    .setDescription('進行bcdice的設定')
-                    .setRequired(true)
-                    .addChoices({ name: '顯示使用說明', value: 'help' },
-                        { name: '顯示BcDice骰組使用說明(登記後可使用)', value: 'dicehelp' },
-                        { name: '登記使用的骰表ID', value: 'use' },
-                        { name: '移除使用的骰表ID', value: 'delete' }))
-            .addStringOption(option => option.setName('usetext').setDescription('如登記，請在這裡填寫ID').setRequired(false))
-        ,
-        async execute(interaction) {
-            const useText = interaction.options.getString('usetext') || '';
-            const subcommand = interaction.options.getString('指令') || '';
+            const subcommand = interaction.options.getSubcommand();
+            
             switch (subcommand) {
-                case 'help':
-                    return '.bc help'
+                case 'roll': {
+                    const command = interaction.options.getString('command');
+                    return `.bc ${command}`;
+                }
+                    
+                case 'use': {
+                    const systemId = interaction.options.getString('system_id');
+                    return `.bc use ${systemId}`;
+                }
+                    
                 case 'dicehelp':
-                    return '.bc dicehelp'
+                    return `.bc dicehelp`;
+                    
                 case 'delete':
-                    return '.bc delete'
-                case 'use':
-                    return `.bc use ${useText} `
+                    return `.bc delete`;
+                    
                 default:
-                    return;
+                    return '未知的子命令';
             }
         }
     }
-]
+];
 async function calldice(gameType, message) {
-    const loader = new DynamicLoader();
-    const GameSystem = await loader.dynamicLoad(gameType);
-    const result = GameSystem.eval(message);
-    return (result && result.text) ? result.text : null;
+    try {
+        const loader = new DynamicLoader();
+        const GameSystem = await loader.dynamicLoad(gameType);
+        const result = GameSystem.eval(message);
+        return (result && result.text) ? result.text : null;
+    } catch (error) {
+        console.error(
+            `[${new Date().toISOString()}] Error evaluating dice command for command "${message}" using gameType "${gameType}":`,
+            error?.stack || 'no stack'
+        );
+        return `錯誤：骰子指令運算失敗。
+請確認指令格式是否正確。
+輸入指令: ${message}
+錯誤訊息: ${error?.message || '無訊息'}`;
+    }
 }
 async function callHelp(gameType) {
     try {
@@ -250,7 +274,7 @@ async function callHelp(gameType) {
         const GameSystem = await loader.dynamicLoad(gameType);
         const result = GameSystem.HELP_MESSAGE || '';
         return result;
-    } catch (error) {
+    } catch {
         return
     }
 

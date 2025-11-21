@@ -118,29 +118,38 @@ const rollDiceCommand = async function ({
 class Pokemon {
     constructor(data) {
         this.pokemonData = data;
+        // 優化的 Fuse 配置：更精確的搜尋，減少無關結果
         this.fuse = new Fuse(this.pokemonData, {
-            keys: ['name', 'id', 'alias'],
+            keys: [
+                { name: 'name', weight: 0.5 },
+                { name: 'id', weight: 0.3 },
+                { name: 'alias', weight: 0.2 }
+            ],
             includeScore: true,
-            findAllMatches: true,
-            threshold: 0.6
+            findAllMatches: false,
+            threshold: 0.4,
+            minMatchCharLength: 1,
+            shouldSort: true,
+            location: 0,
+            distance: 100
         });
     }
 
     static init(link) {
         let data = [];
-        require('fs').readdirSync('./assets/pokemon/').forEach(function (file) {
-            if (file.match(/\.js$/) && file.match(new RegExp('^' + link, 'i'))) {
+        for (const file of require('fs').readdirSync('./assets/pokemon/')) {
+            if (/\.js$/.test(file) && new RegExp('^' + link, 'i').test(file)) {
                 let importData = require('../assets/pokemon/' + file);
-                data = data.concat(importData.Pokedex)
+                data = [...data, ...importData.Pokedex]
             }
-        });
+        }
         return new Pokemon(data);
     }
     getVS(string) {
         if (typeof (string) === 'number') { string = ('000' + string).slice(-3) }
         let result = this.fuse.search(string, { limit: 1 })
-        if (result.length) return result[0].item;
-        return undefined;
+        if (result.length > 0) return result[0].item;
+        return;
     }
     static findTypeByCht(value) {
         for (const key in typeName) {
@@ -164,9 +173,9 @@ class Pokemon {
     static showPokemon(pokemon, detail = false) {
         let rply = '';
         try {
-            rply += `#${pokemon.id} 【${pokemon.name}】 ${pokemon.alias} ${Pokemon.findTypeByEng(pokemon.type)} 
+            rply += `#${pokemon.id} 【${pokemon.name}】 ${pokemon.alias} ${Pokemon.findTypeByEng(pokemon.type)}
 ${pokemon.info.category} ${pokemon.info.height}m / ${pokemon.info.weight}kg
-建議等級：${pokemon.rank}  基礎HP：${pokemon.baseHP}  特性：${pokemon.ability} 
+建議等級：${pokemon.rank}  基礎HP：${pokemon.baseHP}  特性：${pokemon.ability}
 力量 ${displayValue(pokemon.attr.str.value, pokemon.attr.str.max)}
 靈巧 ${displayValue(pokemon.attr.dex.value, pokemon.attr.dex.max)}
 活力 ${displayValue(pokemon.attr.vit.value, pokemon.attr.vit.max)}
@@ -174,6 +183,24 @@ ${pokemon.info.category} ${pokemon.info.height}m / ${pokemon.info.weight}kg
 洞察 ${displayValue(pokemon.attr.ins.value, pokemon.attr.ins.max)}
 ${(pokemon.evolution.stage) ? `進化階段：${pokemon.evolution.stage}` : ''} ${(pokemon.evolution.time) ? `進化時間：${pokemon.evolution.time}` : ''}
 `
+            // 添加屬性相刻顯示
+            const typeEffectiveness = getTypeEffectiveness(pokemon.type);
+            rply += '------屬性相剋------\n';
+
+            if (typeEffectiveness.superEffective.length > 0) {
+                rply += `效果超級絕佳：${typeEffectiveness.superEffective.join('、')}\n`;
+            }
+            if (typeEffectiveness.effective.length > 0) {
+                rply += `效果絕佳：${typeEffectiveness.effective.join('、')}\n`;
+            }
+            if (typeEffectiveness.notVeryEffective.length > 0) {
+                rply += `效果非常不好：${typeEffectiveness.notVeryEffective.join('、')}\n`;
+            }
+            if (typeEffectiveness.noEffect.length > 0) {
+                rply += `完全沒有效果：${typeEffectiveness.noEffect.join('、')}\n`;
+            }
+            rply += '\n';
+
             if (detail) {
                 rply += '------招式------\n'
                 for (let index = 0; index < pokemon.moves.length; index++) {
@@ -190,17 +217,85 @@ ${(pokemon.evolution.stage) ? `進化階段：${pokemon.evolution.stage}` : ''} 
     }
     search(name, detail) {
         try {
-            let result = this.fuse.search(name, { limit: 12 });
+            // 優化搜尋策略：根據輸入類型調整搜尋參數
+            let searchOptions = { limit: 12 };
+
+            // 如果是數字 ID，使用更嚴格的搜尋
+            if (/^\d+$/.test(name)) {
+                searchOptions.threshold = 0.1; // 更嚴格的匹配
+            } else if (name.length <= 2) {
+                // 極短名稱使用更嚴格的搜尋，避免過多結果
+                searchOptions.threshold = 0.3;
+                searchOptions.limit = 5; // 限制結果數量
+            } else if (name.length <= 4) {
+                // 短名稱使用中等嚴格度
+                searchOptions.threshold = 0.4;
+                searchOptions.limit = 8;
+            } else {
+                // 長名稱使用較寬鬆的搜尋以包含更多結果
+                searchOptions.threshold = 0.5;
+            }
+
+            // 先檢查完全匹配（不依賴Fuse搜尋結果）
+            const nameLower = name.toLowerCase();
+
+            // 檢查ID完全匹配
+            if (/^\d+$/.test(name)) {
+                const exactIdMatch = this.pokemonData.find(item => item.id === name);
+                if (exactIdMatch) {
+                    return Pokemon.showPokemon(exactIdMatch, detail);
+                }
+            }
+
+            // 檢查名稱完全匹配
+            const exactNameMatch = this.pokemonData.find(item =>
+                item.name.toLowerCase() === nameLower
+            );
+            if (exactNameMatch) {
+                return Pokemon.showPokemon(exactNameMatch, detail);
+            }
+
+            // 檢查別名完全匹配
+            const exactAliasMatch = this.pokemonData.find(item =>
+                item.alias && item.alias.toLowerCase() === nameLower
+            );
+            if (exactAliasMatch) {
+                return Pokemon.showPokemon(exactAliasMatch, detail);
+            }
+
+            // 如果沒有完全匹配，使用Fuse搜尋
+            let result = this.fuse.search(name, searchOptions);
             let rply = '';
             if (result.length === 0) return '沒有找到相關資料';
-            if (result.length <= 2 || result[0].item.name === name) {
-                rply = Pokemon.showPokemon(result[0].item, detail);
-            }
-            else {
-                rply += '找到太多相關資料，請更精確的查詢\n\n';
-                for (let i = 0; i < result.length; i++) {
-                    rply += `${result[i].item.name}\n`;
+            
+            // 檢查是否有高相似度的結果
+            const highScoreResults = result.filter(item => 
+                item.score && (1 - item.score) >= 0.9
+            );
+            
+            // 如果有高相似度結果且數量不多，直接顯示
+            if (highScoreResults.length > 0 && highScoreResults.length <= 5) {
+                for (let i = 0; i < highScoreResults.length; i++) {
+                    rply += Pokemon.showPokemon(highScoreResults[i].item, detail);
+                    if (i < highScoreResults.length - 1) rply += '\n\n';
                 }
+                return rply;
+            }
+            
+            // If 2 or fewer results, show all
+            if (result.length <= 2) {
+                for (let i = 0; i < result.length; i++) {
+                    rply += Pokemon.showPokemon(result[i].item, detail);
+                    if (i < result.length - 1) rply += '\n\n';
+                }
+                return rply;
+            }
+            
+            // Too many results - show top matches with scores
+            rply += '找到太多相關資料，請更精確的查詢\n\n';
+            for (let i = 0; i < Math.min(result.length, 8); i++) {
+                const score = result[i].score ? ` (相似度: ${(1 - result[i].score).toFixed(2)})` : '';
+                rply += `${result[i].item.name}${score}\n`;
             }
             return rply;
         }
@@ -208,6 +303,68 @@ ${(pokemon.evolution.stage) ? `進化階段：${pokemon.evolution.stage}` : ''} 
             console.error('pokemon error #166' + error);
             return '發生錯誤';
         }
+    }
+
+    // 為自動完成功能提供搜尋方法
+    searchForAutocomplete(query, limit = 10) {
+        if (!query || query.trim().length === 0) {
+            return this.getAllData().slice(0, limit);
+        }
+        
+        const searchTerm = query.toLowerCase().trim();
+        const results = [];
+        
+        // 搜尋所有寶可夢
+        for (const pokemon of this.pokemonData) {
+            const name = pokemon.name || '';
+            const alias = pokemon.alias || '';
+            const id = pokemon.id || '';
+            const type = pokemon.type || [];
+            const category = pokemon.info?.category || '';
+            
+            // 多字段搜尋
+            const searchableText = `${name} ${alias} ${id} ${type.join(' ')} ${category}`.toLowerCase();
+            
+            if (searchableText.includes(searchTerm)) {
+                results.push({
+                    id: pokemon.id,
+                    display: name,
+                    value: name,
+                    metadata: {
+                        alias: alias,
+                        type: Pokemon.findTypeByEng(type),
+                        category: category,
+                        id: id
+                    }
+                });
+            }
+        }
+        
+        // 按相關性排序（名稱完全匹配優先）
+        results.sort((a, b) => {
+            const aExact = a.display.toLowerCase() === searchTerm;
+            const bExact = b.display.toLowerCase() === searchTerm;
+            if (aExact && !bExact) return -1;
+            if (!aExact && bExact) return 1;
+            return a.display.localeCompare(b.display);
+        });
+        
+        return results.slice(0, limit);
+    }
+
+    // 獲取所有數據（用於初始化）
+    getAllData() {
+        return this.pokemonData.map(pokemon => ({
+            id: pokemon.id,
+            display: pokemon.name,
+            value: pokemon.name,
+            metadata: {
+                alias: pokemon.alias,
+                type: Pokemon.findTypeByEng(pokemon.type),
+                category: pokemon.info?.category,
+                id: pokemon.id
+            }
+        }));
     }
 }
 
@@ -228,22 +385,30 @@ function removeAndCheck(mainMsg) {
 class Moves {
     constructor(data) {
         this.pokemonData = data;
+        // 優化的招式搜尋配置：更精確的匹配
         this.fuse = new Fuse(this.pokemonData, {
-            keys: ['name', 'id', 'alias'],
+            keys: [
+                { name: 'name', weight: 0.6 },
+                { name: 'alias', weight: 0.4 }
+            ],
             includeScore: true,
             findAllMatches: false,
-            threshold: 0.4
+            threshold: 0.3,
+            minMatchCharLength: 1,
+            shouldSort: true,
+            location: 0,
+            distance: 50
         });
     }
 
     static init(link) {
         let data = [];
-        require('fs').readdirSync('./assets/pokemon/').forEach(function (file) {
-            if (file.match(/\.js$/) && file.match(new RegExp('^' + link, 'i'))) {
+        for (const file of require('fs').readdirSync('./assets/pokemon/')) {
+            if (/\.js$/.test(file) && new RegExp('^' + link, 'i').test(file)) {
                 let importData = require('../assets/pokemon/' + file);
-                data = data.concat(importData.MoveList)
+                data = [...data, ...importData.MoveList]
             }
-        });
+        }
         return new Moves(data);
     }
     getVS(string) {
@@ -258,7 +423,7 @@ class Moves {
                 return key;
             }
         }
-        return undefined;
+        return;
     }
     static showMove(move) {
         let result = '';
@@ -271,23 +436,67 @@ class Moves {
     }
     search(name) {
         try {
-            let result = this.fuse.search(name, { limit: 12 });
+            // 優化招式搜尋：根據輸入長度調整搜尋策略
+            let searchOptions = { limit: 12 };
+            
+            if (name.length <= 2) {
+                // 極短名稱使用更嚴格的搜尋，避免過多結果
+                searchOptions.threshold = 0.3;
+                searchOptions.limit = 5;
+            } else if (name.length <= 4) {
+                // 短名稱使用中等嚴格度
+                searchOptions.threshold = 0.4;
+                searchOptions.limit = 8;
+            } else {
+                // 長名稱使用更精確的搜尋
+                searchOptions.threshold = 0.2;
+            }
+            
+            let result = this.fuse.search(name, searchOptions);
             let rply = '';
             if (result.length === 0) return '沒有找到相關資料';
-            if (result[0].item.name === name) {
-                rply = Moves.showMove(result[0].item);
+            
+            // Check for exact name match (case insensitive)
+            let exactNameMatch = result.find(item => 
+                item.item.name.toLowerCase() === name.toLowerCase()
+            );
+            if (exactNameMatch) {
+                rply = Moves.showMove(exactNameMatch.item);
                 return rply;
             }
+            
+            // Check for exact alias match
+            let exactAliasMatch = result.find(item => 
+                item.item.alias && item.item.alias.toLowerCase().includes(name.toLowerCase())
+            );
+            if (exactAliasMatch) {
+                rply = Moves.showMove(exactAliasMatch.item);
+                return rply;
+            }
+            
+            // 檢查是否有高相似度的結果
+            const highScoreResults = result.filter(item => 
+                item.score && (1 - item.score) >= 0.9
+            );
+            
+            // 如果有高相似度結果且數量不多，直接顯示
+            if (highScoreResults.length > 0 && highScoreResults.length <= 5) {
+                for (let i = 0; i < highScoreResults.length; i++) {
+                    rply += `${Moves.showMove(highScoreResults[i].item)}\n\n`;
+                }
+                return rply;
+            }
+            
             if (result.length <= 2) {
                 for (let i = 0; i < result.length; i++) {
-                    rply += `${Moves.showMove(result[i].item)} \n
- `;
+                    rply += `${Moves.showMove(result[i].item)}\n\n`;
                 }
             }
             else {
                 rply += '找到太多相關資料，請更精確的查詢\n\n';
-                for (let i = 0; i < result.length; i++) {
-                    rply += `${result[i].item.name}\n`;
+                for (let i = 0; i < Math.min(result.length, 8); i++) {
+                    const score = result[i].score ? ` (相似度: ${(1 - result[i].score).toFixed(2)})` : '';
+                    rply += `${result[i].item.name}${score}\n`;
                 }
             }
             return rply;
@@ -296,6 +505,67 @@ class Moves {
             console.error('pokemon error #241', error);
             return '發生錯誤';
         }
+    }
+
+    // 為自動完成功能提供搜尋方法
+    searchForAutocomplete(query, limit = 10) {
+        if (!query || query.trim().length === 0) {
+            return this.getAllData().slice(0, limit);
+        }
+        
+        const searchTerm = query.toLowerCase().trim();
+        const results = [];
+        
+        // 搜尋所有招式
+        for (const move of this.pokemonData) {
+            const name = move.name || '';
+            const alias = move.alias || '';
+            const type = move.type || '';
+            const power = move.power || '';
+            
+            // 多字段搜尋
+            const searchableText = `${name} ${alias} ${type} ${power}`.toLowerCase();
+            
+            if (searchableText.includes(searchTerm)) {
+                results.push({
+                    id: name, // 使用名稱作為ID
+                    display: name,
+                    value: name,
+                    metadata: {
+                        alias: alias,
+                        type: Pokemon.findTypeByEng([type]),
+                        power: power,
+                        accuracy: move.accuracy
+                    }
+                });
+            }
+        }
+        
+        // 按相關性排序（名稱完全匹配優先）
+        results.sort((a, b) => {
+            const aExact = a.display.toLowerCase() === searchTerm;
+            const bExact = b.display.toLowerCase() === searchTerm;
+            if (aExact && !bExact) return -1;
+            if (!aExact && bExact) return 1;
+            return a.display.localeCompare(b.display);
+        });
+        
+        return results.slice(0, limit);
+    }
+
+    // 獲取所有數據（用於初始化）
+    getAllData() {
+        return this.pokemonData.map(move => ({
+            id: move.name,
+            display: move.name,
+            value: move.name,
+            metadata: {
+                alias: move.alias,
+                type: Pokemon.findTypeByEng([move.type]),
+                power: move.power,
+                accuracy: move.accuracy
+            }
+        }));
     }
 }
 const pokeDex = Pokemon.init('pokedex-');
@@ -377,10 +647,11 @@ function checkEffectiveness(moveType, enemyType) {
 
 
 function commandVS(mainMsg) {
+    let rply = {
+        text: ''
+    }
     try {
-        let rply = {
-            text: ''
-        }
+
         //招式名,屬性  VS  POKEMON名,POKEMON NO,屬性1,屬性2
         let attackerType = Moves.findTypeByCht(mainMsg[2]);
         let attacker = (attackerType) ? null : pokeMove.getVS(mainMsg[2]);
@@ -388,18 +659,18 @@ function commandVS(mainMsg) {
             attackerType = attacker.type
         }
         let defenderType = Pokemon.findTypeByCht(mainMsg[3]);
-        let defender = (defenderType.length) ? null : pokeDex.getVS(mainMsg[3]);
+        let defender = (defenderType.length > 0) ? null : pokeDex.getVS(mainMsg[3]);
         if (defender) {
             defenderType = defender.type
         }
 
         if (mainMsg[4]) {
             let defenderType2 = Pokemon.findTypeByCht(mainMsg[4]);
-            if (defenderType2) defenderType = defenderType.concat(defenderType2);
+            if (defenderType2) defenderType = [...defenderType, ...defenderType2];
         }
-        if (!defenderType.length || !attackerType) {
+        if (defenderType.length === 0 || !attackerType) {
             rply.text += (!attackerType) ? '找不到攻方屬性，請確認名稱，你可以輸入完整招式名稱或屬性\n' : '';
-            rply.text += (!defenderType.length) ? '找不到防方屬性，請確認名稱，你可以輸入小精靈名稱，編號或屬性\n' : '';
+            rply.text += (defenderType.length === 0) ? '找不到防方屬性，請確認名稱，你可以輸入小精靈名稱，編號或屬性\n' : '';
             return rply;
 
         }
@@ -438,7 +709,7 @@ function commandVS(mainMsg) {
 防方小精靈圖片：https://github.com/hktrpg/TG.line.Discord.Roll.Bot/raw/master/assets/pokemon/${defender.info.image}
 `: '';
         return rply;
-    } catch (error) {
+    } catch {
         rply.text = `輸入錯誤，請輸入正確的招式名稱或小精靈名稱\n${getHelpMessage()}`
         return rply;
     }
@@ -455,7 +726,210 @@ function displayValue(current, total) {
     return result;
 }
 
-const discordCommand = []
+function getTypeEffectiveness(pokemonTypes) {
+    /**
+     * 分析寶可夢的屬性相刻
+     * @param {Array} pokemonTypes - 寶可夢的屬性陣列
+     * @returns {Object} 包含各種效果的屬性列表
+     */
+    const effectiveness = {
+        superEffective: [], // 效果超級絕佳 (4倍)
+        effective: [],      // 效果絕佳 (2倍)
+        notVeryEffective: [], // 效果非常不好 (0.25倍)
+        noEffect: []        // 完全沒有效果 (0倍)
+    };
+
+    // 遍歷所有攻擊屬性
+    for (const attackType of Object.keys(typeChart)) {
+        let totalEffect = 0;
+        let hasNoEffect = false;
+
+        // 計算對每個防禦屬性的效果
+        for (const defenseType of pokemonTypes) {
+            const effect = typeChart[attackType][defenseType];
+            if (effect === -999) {
+                hasNoEffect = true;
+            } else {
+                totalEffect += effect;
+            }
+        }
+
+        // 如果任何屬性免疫，則完全沒有效果
+        if (hasNoEffect) {
+            effectiveness.noEffect.push(typeName[attackType]);
+        } else {
+            // 根據總效果分類 (基於這個系統的傷害計算)
+            // 2 = 效果絕佳 (額外2傷害 = 4倍傷害)
+            // 1 = 效果絕佳 (額外1傷害 = 2倍傷害)
+            // -2 = 效果非常不好 (減少2傷害 = 0.25倍傷害)
+            // 其他值 = 普通效果
+            switch (totalEffect) {
+                case 2:
+                    effectiveness.superEffective.push(typeName[attackType]);
+                    break;
+                case 1:
+                    effectiveness.effective.push(typeName[attackType]);
+                    break;
+                case -2:
+                    effectiveness.notVeryEffective.push(typeName[attackType]);
+                    break;
+                // totalEffect === 0 或 -1 的情況不顯示（普通效果）
+            }
+        }
+    }
+
+    return effectiveness;
+}
+
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('poke')
+            .setDescription('寶可夢PokeRole查詢系統')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('mon')
+                    .setDescription('查詢寶可夢資料')
+                    .addStringOption(option => {
+                        const opt = option.setName('name')
+                            .setDescription('寶可夢名稱或編號')
+                            .setRequired(true)
+                            .setAutocomplete(true);
+                        
+                        // 添加自動完成配置
+                        opt.autocompleteModule = 'pokemon';
+                        opt.autocompleteSearchFields = ['display', 'value', 'metadata.alias', 'metadata.type', 'metadata.id'];
+                        opt.autocompleteLimit = 8;
+                        opt.autocompleteMinQueryLength = 1;
+                        opt.autocompleteNoResultsText = '找不到相關的寶可夢';
+                        
+                        return opt;
+                    })
+                    .addBooleanOption(option =>
+                        option.setName('detail')
+                            .setDescription('是否顯示招式列表')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('move')
+                    .setDescription('查詢招式資料')
+                    .addStringOption(option => {
+                        const opt = option.setName('name')
+                            .setDescription('招式名稱')
+                            .setRequired(true)
+                            .setAutocomplete(true);
+                        
+                        // 添加自動完成配置
+                        opt.autocompleteModule = 'pokemon_moves';
+                        opt.autocompleteSearchFields = ['display', 'value', 'metadata.alias', 'metadata.type'];
+                        opt.autocompleteLimit = 8;
+                        opt.autocompleteMinQueryLength = 1;
+                        opt.autocompleteNoResultsText = '找不到相關的招式';
+                        
+                        return opt;
+                    }))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('vs')
+                    .setDescription('對戰模擬')
+                    .addStringOption(option => {
+                        const opt = option.setName('attacker')
+                            .setDescription('攻擊方(招式名稱或屬性)')
+                            .setRequired(true)
+                            .setAutocomplete(true);
+                        
+                        // 添加自動完成配置
+                        opt.autocompleteModule = 'pokemon_moves';
+                        opt.autocompleteSearchFields = ['display', 'value', 'metadata.alias', 'metadata.type'];
+                        opt.autocompleteLimit = 8;
+                        opt.autocompleteMinQueryLength = 1;
+                        opt.autocompleteNoResultsText = '找不到相關的招式或屬性';
+                        
+                        return opt;
+                    })
+                    .addStringOption(option => {
+                        const opt = option.setName('defender')
+                            .setDescription('防守方(寶可夢名稱/編號或屬性)')
+                            .setRequired(true)
+                            .setAutocomplete(true);
+                        
+                        // 添加自動完成配置
+                        opt.autocompleteModule = 'pokemon';
+                        opt.autocompleteSearchFields = ['display', 'value', 'metadata.alias', 'metadata.type', 'metadata.id'];
+                        opt.autocompleteLimit = 8;
+                        opt.autocompleteMinQueryLength = 1;
+                        opt.autocompleteNoResultsText = '找不到相關的寶可夢或屬性';
+                        
+                        return opt;
+                    })
+                    .addStringOption(option =>
+                        option.setName('defender_type2')
+                            .setDescription('防守方第二屬性(選填)')
+                            .setRequired(false))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            switch (subcommand) {
+                case 'mon': {
+                    const name = interaction.options.getString('name');
+                    const detail = interaction.options.getBoolean('detail');
+                    return `.poke mon ${name}${detail ? ' --d' : ''}`;
+                }
+                case 'move': {
+                    const name = interaction.options.getString('name');
+                    return `.poke move ${name}`;
+                }
+                case 'vs': {
+                    const attacker = interaction.options.getString('attacker');
+                    const defender = interaction.options.getString('defender');
+                    const defenderType2 = interaction.options.getString('defender_type2');
+                    return `.poke vs ${attacker} ${defender}${defenderType2 ? ' ' + defenderType2 : ''}`;
+                }
+            }
+        }
+    }
+];
+
+// 自動完成配置 - 寶可夢
+const autocomplete = {
+    moduleName: 'pokemon',
+    getData: () => {
+        const instance = Pokemon.init('pokedex-');
+        return instance.getAllData();
+    },
+    search: (query, limit) => {
+        const instance = Pokemon.init('pokedex-');
+        return instance.searchForAutocomplete(query, limit);
+    },
+    transform: (item) => ({
+        id: item.id,
+        display: item.display,
+        value: item.value,
+        metadata: item.metadata
+    })
+};
+
+// 自動完成配置 - 寶可夢招式
+const autocompleteMoves = {
+    moduleName: 'pokemon_moves',
+    getData: () => {
+        const instance = Moves.init('moves-');
+        return instance.getAllData();
+    },
+    search: (query, limit) => {
+        const instance = Moves.init('moves-');
+        return instance.searchForAutocomplete(query, limit);
+    },
+    transform: (item) => ({
+        id: item.id,
+        display: item.display,
+        value: item.value,
+        metadata: item.metadata
+    })
+};
+
+// 為了讓自動完成模組註冊系統識別，需要以 Autocomplete 結尾
+const pokemonMovesAutocomplete = autocompleteMoves;
+
 module.exports = {
     rollDiceCommand,
     initialize,
@@ -463,5 +937,11 @@ module.exports = {
     prefixs,
     gameType,
     gameName,
-    discordCommand
+    discordCommand,
+    autocomplete,
+    autocompleteMoves,
+    pokemonMovesAutocomplete,
+    Pokemon,
+    Moves,
+    getTypeEffectiveness
 };

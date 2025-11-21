@@ -1,7 +1,8 @@
 "use strict";
+const { SlashCommandBuilder } = require('discord.js');
+const mathjs = require('mathjs')
 const rollbase = require('./rollbase.js');
 let variables = {};
-const mathjs = require('mathjs')
 const gameName = function () {
     return '【魔女狩獵之夜】.wn xDn+-y'
 }
@@ -80,7 +81,7 @@ const rollDiceCommand = async function ({ mainMsg }) {
             rply.quotes = true;
             return rply;
         case /^\d/i.test(mainMsg[1]):
-            if (mainMsg[1].replace(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[@]/ig, '')) return;
+            if (mainMsg[1].replaceAll(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[@]/ig, '')) return;
 
             rply.text = await WN(mainMsg[1]).then(async (result) => {
                 return await WN2(result, mainMsg[2])
@@ -112,22 +113,22 @@ async function WN(message) {
     let tempmessage = message;
     let regex = /^(\d+)/ig
     key[0] = tempmessage.match(regex) || 1
-    tempmessage = tempmessage.replace(regex, '')
+    tempmessage = tempmessage.replaceAll(regex, '')
     let regex1 = /^([@]|[d])/ig
     key[1] = tempmessage.match(regex1) || 'd'
-    tempmessage = tempmessage.replace(regex1, '')
+    tempmessage = tempmessage.replaceAll(regex1, '')
     let regex999 = /\d+d\d+/ig;
     while (tempmessage.match(regex999) != null) {
         // let totally = 0
         let tempMatch = tempmessage.match(regex999)
         if (tempMatch[1] > 1000 || tempMatch[1] <= 0) return
-        if (tempMatch[2] < 1 || tempMatch[2] > 9000000000000000) return
+        if (tempMatch[2] < 1 || tempMatch[2] > 9_000_000_000_000_000) return
         tempmessage = tempmessage.replace(/\d+d\d+/i, await Dice(tempmessage.match(/\d+d\d+/i)));
     }
 
     let regex2 = /d/ig
     key[2] = tempmessage.match(regex2) || ''
-    tempmessage = tempmessage.replace(regex2, '')
+    tempmessage = tempmessage.replaceAll(regex2, '')
     let regex3 = /^\d+/
     key[3] = tempmessage.match(regex3) || '4'
     tempmessage = tempmessage.replace(regex3, '')
@@ -179,7 +180,7 @@ async function WN2(key, message) {
     let tempAdj = ''
     try {
         tempAdj = mathjs.evaluate(Adjustment)
-    } catch (error) {
+    } catch {
         tempAdj = Adjustment
     }
     if (tempAdj)
@@ -197,8 +198,61 @@ async function WN2(key, message) {
     //6D6D>3-5 -> X 成功
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('wn')
+            .setDescription('【魔女狩獵之夜】標準擲骰')
+            .addIntegerOption(option => option.setName('dice_count').setDescription('骰池數量 (1-200)').setRequired(true).setMinValue(1).setMaxValue(200))
+            .addIntegerOption(option => option.setName('sin_value').setDescription('罪業值(成功判定值, 1-6)').setRequired(false).setMinValue(1).setMaxValue(6))
+            .addStringOption(option => option.setName('adjustment').setDescription('調整值(如 +3, -2)').setRequired(false))
+            .addStringOption(option => option.setName('comment').setDescription('備註').setRequired(false)),
+        async execute(interaction) {
+            const diceCount = interaction.options.getInteger('dice_count');
+            const sinValue = interaction.options.getInteger('sin_value') || '';
+            const adjustment = interaction.options.getString('adjustment') || '';
+            const comment = interaction.options.getString('comment') || '';
+            
+            return `.wn ${diceCount}D${sinValue}${adjustment} ${comment}`.trim();
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('wndd')
+            .setDescription('【魔女狩獵之夜】成敗相抵擲骰')
+            .addIntegerOption(option => option.setName('dice_count').setDescription('骰池數量 (1-200)').setRequired(true).setMinValue(1).setMaxValue(200))
+            .addIntegerOption(option => option.setName('sin_value').setDescription('罪業值(成功判定值, 1-6)').setRequired(false).setMinValue(1).setMaxValue(6))
+            .addStringOption(option => option.setName('adjustment').setDescription('調整值(如 +3, -2)').setRequired(false))
+            .addStringOption(option => option.setName('comment').setDescription('備註').setRequired(false)),
+        async execute(interaction) {
+            const diceCount = interaction.options.getInteger('dice_count');
+            const sinValue = interaction.options.getInteger('sin_value') || '';
+            const adjustment = interaction.options.getString('adjustment') || '';
+            const comment = interaction.options.getString('comment') || '';
 
+            return `.wn ${diceCount}DD${sinValue}${adjustment} ${comment}`.trim();
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('wnmod')
+            .setDescription('【魔女狩獵之夜】魔改規則擲骰')
+            .addIntegerOption(option => option.setName('dice_count').setDescription('骰池數量 (1-200)').setRequired(true).setMinValue(1).setMaxValue(200))
+            .addIntegerOption(option => option.setName('sin_value').setDescription('罪業值(≦n失敗, 1-6)').setRequired(true).setMinValue(1).setMaxValue(6))
+            .addStringOption(option => option.setName('adjustment').setDescription('調整值(如 +3, -2)').setRequired(false))
+            .addBooleanOption(option => option.setName('use_dd').setDescription('是否使用成敗相抵').setRequired(false))
+            .addStringOption(option => option.setName('comment').setDescription('備註').setRequired(false)),
+        async execute(interaction) {
+            const diceCount = interaction.options.getInteger('dice_count');
+            const sinValue = interaction.options.getInteger('sin_value');
+            const adjustment = interaction.options.getString('adjustment') || '';
+            const useDD = interaction.options.getBoolean('use_dd') || false;
+            const comment = interaction.options.getString('comment') || '';
 
+            return `.wn ${diceCount}@${useDD ? 'D' : ''}${sinValue}${adjustment} ${comment}`.trim();
+        }
+    }
+];
 
 module.exports = {
     rollDiceCommand: rollDiceCommand,
@@ -206,5 +260,6 @@ module.exports = {
     getHelpMessage: getHelpMessage,
     prefixs: prefixs,
     gameType: gameType,
-    gameName: gameName
+    gameName: gameName,
+    discordCommand: discordCommand
 };

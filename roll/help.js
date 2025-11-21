@@ -1,6 +1,7 @@
 "use strict";
 const fs = require('node:fs');
 const axios = require('axios');
+const { SlashCommandBuilder } = require('discord.js');
 const Dice = [],
 	Tool = [],
 	admin = [],
@@ -20,25 +21,25 @@ const start = async () => {
 
 		}
 	} catch (error) {
-		console.error('help.js error: ', error)
+		console.error('help.js error:', error)
 	}
 	for (let name of Object.keys(exports)) {
-		if (name.match(/^DICE/i)) {
+		if (/^DICE/i.test(name)) {
 			Dice.push(exports[name])
 		}
-		if (name.match(/^Tool/i)) {
+		if (/^Tool/i.test(name)) {
 			Tool.push(exports[name]);
 		}
-		if (name.match(/^admin/i)) {
+		if (/^admin/i.test(name)) {
 			admin.push(exports[name]);
 		}
-		if (name.match(/^funny/i)) {
+		if (/^funny/i.test(name)) {
 			funny.push(exports[name]);
 		}
-		if (name.match(/^help/i)) {
+		if (/^help/i.test(name)) {
 			help.push(exports[name]);
 		}
-		if (name.match(/^link/i)) {
+		if (/^link/i.test(name)) {
 			link.push(exports[name]);
 		}
 	}
@@ -224,7 +225,7 @@ https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/
 `
 			return rply;
 		case /^Dice/i.test(mainMsg[1]):
-			if (mainMsg[1].match(/^DICE$/i)) {
+			if (/^DICE$/i.test(mainMsg[1])) {
 				rply.text = `【🎲 查看骰子說明】
 ╭─────────────
 │ 指令格式: bothelp Dice序號
@@ -239,14 +240,14 @@ https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/
 					rply.buttonCreate.push('bothelp Dice' + num);
 				}
 			}
-			if (mainMsg[1].match(/^Dice\d+$/i)) {
+			if (/^Dice\d+$/i.test(mainMsg[1])) {
 				let temp = mainMsg[1].replace(/^dice/i, '');
 				if (!Dice[temp]) return;
 				rply.text = await Dice[temp].getHelpMessage();
 			}
 			return rply;
 		case /^Tool/i.test(mainMsg[1]):
-			if (mainMsg[1].match(/^Tool$/i)) {
+			if (/^Tool$/i.test(mainMsg[1])) {
 				rply.text = `【🛠️ 查看工具說明】
 ╭─────────────
 │ 指令格式: bothelp Tool序號
@@ -261,7 +262,7 @@ https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/
 					rply.buttonCreate.push('bothelp Tool' + num);
 				}
 			}
-			if (mainMsg[1].match(/^Tool\d+$/i)) {
+			if (/^Tool\d+$/i.test(mainMsg[1])) {
 				let temp = mainMsg[1].replace(/^Tool/i, '');
 				if (!Tool[temp]) return;
 				rply.text = await Tool[temp].getHelpMessage();
@@ -276,7 +277,7 @@ https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/
 			return rply;
 		}
 		case /^admin/i.test(mainMsg[1]):
-			if (mainMsg[1].match(/^admin$/i)) {
+			if (/^admin$/i.test(mainMsg[1])) {
 				rply.text = `【⚙️ 管理指令說明】
 ╭─────────────
 │ 指令格式: bothelp admin序號
@@ -291,7 +292,7 @@ https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/
 					rply.buttonCreate.push('bothelp admin' + num);
 				}
 			}
-			if (mainMsg[1].match(/^admin\d+$/i)) {
+			if (/^admin\d+$/i.test(mainMsg[1])) {
 				let temp = mainMsg[1].replace(/^admin/i, '');
 				if (!admin[temp]) return;
 				rply.text = await admin[temp].getHelpMessage();
@@ -299,7 +300,7 @@ https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/
 			return rply;
 
 		case /^funny/i.test(mainMsg[1]):
-			if (mainMsg[1].match(/^funny$/i)) {
+			if (/^funny$/i.test(mainMsg[1])) {
 				rply.text = `【😄 娛樂功能說明】
 ╭─────────────
 │ 指令格式: bothelp funny序號
@@ -314,7 +315,7 @@ https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/
 					rply.buttonCreate.push('bothelp Funny' + num);
 				}
 			}
-			if (mainMsg[1].match(/^funny\d+$/i)) {
+			if (/^funny\d+$/i.test(mainMsg[1])) {
 				let temp = mainMsg[1].replace(/^funny/i, '');
 				if (!funny[temp]) return;
 				rply.text = await funny[temp].getHelpMessage();
@@ -322,7 +323,7 @@ https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/
 			return rply;
 
 		case /^help/i.test(mainMsg[1]):
-			if (mainMsg[1].match(/^help$/i)) {
+			if (/^help$/i.test(mainMsg[1])) {
 				rply.text = `【❓ 說明文件查詢】
 ╭─────────────
 │ 指令格式: bothelp help序號
@@ -337,7 +338,7 @@ https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/
 					rply.buttonCreate.push('bothelp help' + num);
 				}
 			}
-			if (mainMsg[1].match(/^help\d+$/i)) {
+			if (/^help\d+$/i.test(mainMsg[1])) {
 				let temp = mainMsg[1].replace(/^help/i, '');
 				if (!help[temp]) return;
 				rply.text = await help[temp].getHelpMessage();
@@ -397,7 +398,7 @@ class Version {
 			this.pullsNumber = data[0].number;
 			this.lastUpdate = this.YYYYMMDD(data[0].merged_at);
 		} catch (error) {
-			console.log('help #302 version error: ', error)
+			console.error('help #302 version error:', error)
 		}
 		this.filesCourt = Object.keys(exports).length;
 	}
@@ -417,6 +418,33 @@ const version = new Version();
  * if (botname == "Line")
 				rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik\nP.S. Line 修改政策，免費帳號的Line Bot現在有每月500次的私訊限制，超過時DR等私訊功能會失效。(可以認為這功能在Line已失效，半天已400個DR私訊要求)"
  */
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('bothelp')
+            .setDescription('HKTRPG擲骰機器人說明')
+            .addStringOption(option =>
+                option.setName('category')
+                    .setDescription('選擇要查看的說明類別')
+                    .setRequired(false)
+                    .addChoices(
+                        { name: '版本與公告', value: 'ver' },
+                        { name: '基本擲骰指令', value: 'Base' },
+                        { name: '系統擲骰指令', value: 'Dice' },
+                        { name: '輔助工具指令', value: 'Tool' },
+                        { name: '管理工具指令', value: 'admin' },
+                        { name: '娛樂功能指令', value: 'funny' },
+                        { name: '相關平台連結', value: 'link' },
+                        { name: '隱私權條款', value: 'privacy' },
+                        { name: '歷史沿革', value: 'about' }
+                    )),
+        async execute(interaction) {
+            const category = interaction.options.getString('category') || '';
+            return `bothelp ${category}`;
+        }
+    }
+];
+
 module.exports = {
 	rollDiceCommand: rollDiceCommand,
 	initialize: initialize,
@@ -424,8 +452,8 @@ module.exports = {
 	prefixs: prefixs,
 	gameType: gameType,
 	gameName: gameName,
-	Version: Version
-
+	Version: Version,
+	discordCommand
 };
 
 

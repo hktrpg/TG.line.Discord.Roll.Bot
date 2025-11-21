@@ -1,7 +1,7 @@
 "use strict";
-const rollbase = require('./rollbase.js');
 const mathjs = require('mathjs');
 const { SlashCommandBuilder } = require('discord.js');
+const rollbase = require('./rollbase.js');
 const variables = {};
 const regexxBy = /^((\d+)(b)(\d+))(S?)/i
 const regexxUy = /^(\d+)(u)(\d+)/i
@@ -92,12 +92,12 @@ const rollDiceCommand = async function ({
 			return rply;
 		case /^[.][c][a]$/i.test(mainMsg[0]):
 			//為了令= 轉TO 功能正常, 又不會影響常規計數如 1*5+4>=5
-			if (inputStr.match(/[=]/ig))
-				if (inputStr.match(/^((?!(>=|<=|=>|=<|\d=|[)]=)).)*$/ig)) {
-					inputStr = inputStr.replace(/[=]/g, ' to ');
+			if (/[=]/ig.test(inputStr))
+				if (/^((?!(>=|<=|=>|=<|\d=|[)]=)).)*$/ig.test(inputStr)) {
+					inputStr = inputStr.replaceAll(/[=]/g, ' to ');
 				}
 			try {
-				rply.text = mathjs.evaluate(inputStr.toLowerCase().replace(/\.ca/i, '').replace(/磅/g, 'lb').replace(/公斤/g, 'kg').replace(/盎司/g, 'oz').replace(/英吋/g, 'inch').replace(/公分/g, 'cm').replace(/公釐/g, 'mm').replace(/克/g, 'g').replace(/公尺/g, 'm').replace(/碼/g, 'yd').replace(/桿/g, 'rd').replace(/英里/g, 'mi').replace(/千米/g, 'km').replace(/厘米/g, 'cm').replace(/毫米/g, 'mm').replace(/微米/g, 'µm').replace(/毫克/g, 'mg').replace(/公克/g, 'hg').replace(/斤/g, 'kg').replace(/米/g, 'm').replace(/英尺/g, 'ft').replace(/尺/g, 'ft').replace(/角度/g, 'deg').replace(/度/g, 'deg').replace(/呎/g, 'ft').replace(/吋/g, 'inch').replace(/轉換/g, ' to ').replace(/轉/g, ' to ').replace(/換/g, ' to ').replace(/√/g, 'sqrt').replace(/π/g, 'pi'));
+				rply.text = mathjs.evaluate(inputStr.toLowerCase().replace(/\.ca/i, '').replaceAll('磅', 'lb').replaceAll('公斤', 'kg').replaceAll('盎司', 'oz').replaceAll('英吋', 'inch').replaceAll('公分', 'cm').replaceAll('公釐', 'mm').replaceAll('克', 'g').replaceAll('公尺', 'm').replaceAll('碼', 'yd').replaceAll('桿', 'rd').replaceAll('英里', 'mi').replaceAll('千米', 'km').replaceAll('厘米', 'cm').replaceAll('毫米', 'mm').replaceAll('微米', 'µm').replaceAll('毫克', 'mg').replaceAll('公克', 'hg').replaceAll('斤', 'kg').replaceAll('米', 'm').replaceAll('英尺', 'ft').replaceAll('尺', 'ft').replaceAll('角度', 'deg').replaceAll('度', 'deg').replaceAll('呎', 'ft').replaceAll('吋', 'inch').replaceAll('轉換', ' to ').replaceAll('轉', ' to ').replaceAll('換', ' to ').replaceAll('√', 'sqrt').replaceAll('π', 'pi'));
 			} catch (error) {
 				//console.error('.ca ERROR FUNCTION', inputStr, error.message);
 				rply.text = inputStr.replace(/\.ca\s+/i, '') + '\n→ ' + error.message;
@@ -122,17 +122,17 @@ const rollDiceCommand = async function ({
 			matchxby = regexxBy.exec(mainMsg[0]);
 			//判斷式 0:"5b10<=80" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"80"
 			let sortMode = (matchxby[5]) ? true : false;
-			if (matchxby && matchxby[4] > 1 && matchxby[4] < 10000 && matchxby[2] > 0 && matchxby[2] <= 600)
+			if (matchxby && matchxby[4] > 1 && matchxby[4] < 10_000 && matchxby[2] > 0 && matchxby[2] <= 600)
 				rply.text = xBy(mainMsg[0].replace(/S/i, ""), mainMsg[1], mainMsg[2], sortMode, botname);
 			return rply;
 		}
-		case regexxUy.test(mainMsg[0]) && mainMsg[1] <= 10000:
+		case regexxUy.test(mainMsg[0]) && mainMsg[1] <= 10_000:
 			matchxuy = regexxUy.exec(mainMsg[0]); //判斷式  ['5U10',  '5', 'U', '10']
-			if (matchxuy && matchxuy[1] > 0 && matchxuy[1] <= 600 && matchxuy[3] > 0 && matchxuy[3] <= 10000) {
+			if (matchxuy && matchxuy[1] > 0 && matchxuy[1] <= 600 && matchxuy[3] > 0 && matchxuy[3] <= 10_000) {
 				rply.text = xUy(matchxuy, mainMsg[1], mainMsg[2], mainMsg[3]);
 			}
 			return rply;
-		case /^[.][i][n][t]$/i.test(mainMsg[0]) && mainMsg[1] <= 100000 && mainMsg[2] <= 100000:
+		case /^[.][i][n][t]$/i.test(mainMsg[0]) && mainMsg[1] <= 100_000 && mainMsg[2] <= 100_000:
 			rply.text = '投擲 ' + mainMsg[1] + ' - ' + mainMsg[2] + '：\n→ ' + rollbase.DiceINT(mainMsg[1], mainMsg[2]);
 			return rply
 		default:
@@ -248,10 +248,10 @@ function xBy(triggermsg, text01, text02, sortMode, botname) {
 	let match02 = temptriggermsg.match(regex2);
 	//["<=1+1", "<=", "<", "=", "1+1"]
 	temptriggermsg = temptriggermsg.replace(regex2, '');
-	if (temptriggermsg.replace(/\d/ig, '').replace(/[+]|[-]|[*]|[/]/ig, '')) {
+	if (temptriggermsg.replaceAll(/\d/ig, '').replaceAll(/[+]|[-]|[*]|[/]/ig, '')) {
 		return;
 	}
-	if (match02 && match02[4].replace(/\d/ig, '').replace(/[+]|[-]|[*]|[/]/ig, '')) {
+	if (match02 && match02[4].replaceAll(/\d/ig, '').replaceAll(/[+]|[-]|[*]|[/]/ig, '')) {
 		return;
 	}
 	if (match02) {
@@ -266,7 +266,7 @@ function xBy(triggermsg, text01, text02, sortMode, botname) {
 	//判斷式 0:"d5"  1:"d5" 2:"d" 3:"5" 
 	let text = "";
 	if (text01) text = text01;
-	if (!match[5] && match01 && match01[2] && !isNaN(match01[3])) {
+	if (!match[5] && match01 && match01[2] && !Number.isNaN(match01[3])) {
 		match[5] = "<=";
 		match[7] = "<";
 		match[8] = "=";
@@ -276,7 +276,7 @@ function xBy(triggermsg, text01, text02, sortMode, botname) {
 		text = "";
 		if (text02) text = text02;
 	}
-	if (!match[5] && match01 && !match01[2] && !isNaN(match01[3])) {
+	if (!match[5] && match01 && !match01[2] && !Number.isNaN(match01[3])) {
 		match[5] = ">=";
 		match[7] = ">";
 		match[8] = "=";
@@ -394,7 +394,7 @@ function xUy(triggermsg, text01, text02, text03) {
 		} else returnStr += varcou[i] + '[' + varcouloop[i] + '], ';
 
 	}
-	returnStr = returnStr.replace(/, $/ig, '');
+	returnStr = returnStr.replaceAll(/, $/ig, '');
 
 	if (Number(text02) <= Number(match[3])) {
 		let suc = 0;
@@ -419,8 +419,7 @@ function xUy(triggermsg, text01, text02, text03) {
 // eslint-disable-next-line no-unused-vars
 function strikeThrough(text, botname) {
 	if (text)
-		return text.toString()
-			.split('')
+		return [...text.toString()]
 			.map(char => '\u0336' + char + '\u0336')
 			.join('')
 }

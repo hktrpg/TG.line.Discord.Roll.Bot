@@ -46,16 +46,7 @@ const initialize = function () {
 }
 
 const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg,
-    groupid,
-    userid,
-    userrole,
-    botname,
-    displayname,
-    channelid,
-    displaynameDiscord,
-    membercount
+    mainMsg
 }) {
     let rply = {
         default: 'on',
@@ -95,7 +86,7 @@ class Pf2e {
         let data = [];
         for (let i = 0; i < datalink.length; i++) {
             let temp = require(datalink[i]);
-            data = data.concat(Pf2e.objectToArray(temp.helpdoc))
+            data = [...data, ...Pf2e.objectToArray(temp.helpdoc)]
         }
 
         return new Pf2e(data);
@@ -140,10 +131,108 @@ ${result[i].item.desc} \n
             return '發生錯誤';
         }
     }
+
+    // 為自動完成功能提供搜尋方法
+    searchForAutocomplete(query, limit = 10) {
+        if (!query || query.trim().length === 0) {
+            return this.getAllData().slice(0, limit);
+        }
+        
+        const searchTerm = query.toLowerCase().trim();
+        const results = [];
+        
+        // 搜尋所有PF2E資料
+        for (const item of this.pf2eData) {
+            const name = item.name || '';
+            const desc = item.desc || '';
+            
+            // 多字段搜尋
+            const searchableText = `${name} ${desc}`.toLowerCase();
+            
+            if (searchableText.includes(searchTerm)) {
+                results.push({
+                    id: name, // 使用名稱作為ID
+                    display: name,
+                    value: name,
+                    metadata: {
+                        description: desc.length > 100 ? desc.slice(0, 100) + '...' : desc
+                    }
+                });
+            }
+        }
+        
+        // 按相關性排序（名稱完全匹配優先）
+        results.sort((a, b) => {
+            const aExact = a.display.toLowerCase() === searchTerm;
+            const bExact = b.display.toLowerCase() === searchTerm;
+            if (aExact && !bExact) return -1;
+            if (!aExact && bExact) return 1;
+            return a.display.localeCompare(b.display);
+        });
+        
+        return results.slice(0, limit);
+    }
+
+    // 獲取所有數據（用於初始化）
+    getAllData() {
+        return this.pf2eData.map(item => ({
+            id: item.name,
+            display: item.name,
+            value: item.name,
+            metadata: {
+                description: item.desc.length > 100 ? item.desc.slice(0, 100) + '...' : item.desc
+            }
+        }));
+    }
 }
 const pf2 = Pf2e.init();
 
-const discordCommand = []
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('pf2')
+            .setDescription('Pathfinder 2E查詢系統')
+            .addStringOption(option => {
+                const opt = option.setName('keyword')
+                    .setDescription('要查詢的關鍵字')
+                    .setRequired(true)
+                    .setAutocomplete(true);
+                
+                // 添加自動完成配置
+                opt.autocompleteModule = 'pf2e';
+                opt.autocompleteSearchFields = ['display', 'value', 'metadata.description'];
+                opt.autocompleteLimit = 8;
+                opt.autocompleteMinQueryLength = 1;
+                opt.autocompleteNoResultsText = '找不到相關的PF2E資料';
+                
+                return opt;
+            }),
+        async execute(interaction) {
+            const keyword = interaction.options.getString('keyword');
+            return `.pf2 ${keyword}`;
+        }
+    }
+];
+
+// 自動完成配置
+const autocomplete = {
+    moduleName: 'pf2e',
+    getData: () => {
+        const instance = Pf2e.init();
+        return instance.getAllData();
+    },
+    search: (query, limit) => {
+        const instance = Pf2e.init();
+        return instance.searchForAutocomplete(query, limit);
+    },
+    transform: (item) => ({
+        id: item.id,
+        display: item.display,
+        value: item.value,
+        metadata: item.metadata
+    })
+};
+
 module.exports = {
     rollDiceCommand,
     initialize,
@@ -151,5 +240,6 @@ module.exports = {
     prefixs,
     gameType,
     gameName,
-    discordCommand
+    discordCommand,
+    autocomplete
 };

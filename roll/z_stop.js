@@ -72,11 +72,12 @@ const rollDiceCommand = async function ({
             //增加阻擋用關鍵字
             //if (!mainMsg[2]) return;
             if (!mainMsg[2]) rply.text += '沒有關鍵字. '
-            if (rply.text += checkTools.permissionErrMsg({
+            rply.text += checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
@@ -99,11 +100,10 @@ const rollDiceCommand = async function ({
                 groupid: groupid,
                 blockfunction: mainMsg[2]
             }
-            records.pushblockfunction('block', temp, () => {
+            records.pushBlockFunction('block', temp, () => {
                 records.get('block', (msgs) => {
                     save.save = msgs
                 })
-
             })
             rply.text = '新增成功: ' + mainMsg[2]
 
@@ -111,11 +111,12 @@ const rollDiceCommand = async function ({
         }
         case /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //刪除阻擋用關鍵字
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
@@ -135,11 +136,12 @@ const rollDiceCommand = async function ({
         case /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //刪除阻擋用關鍵字
             if (!mainMsg[2]) rply.text += '沒有關鍵字. '
-            if (rply.text += checkTools.permissionErrMsg({
+            rply.text += checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
@@ -163,10 +165,11 @@ const rollDiceCommand = async function ({
                 save.save = msgs
             })
 
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannel,
                 gid : groupid
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
             

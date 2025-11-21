@@ -4,6 +4,7 @@
 if (!process.env.mongoURL) {
     return;
 }
+const { SlashCommandBuilder } = require('discord.js');
 const checkMongodb = require('../modules/dbWatchdog.js');
 const checkTools = require('../modules/check.js');
 const tempSwitchV2 = require('../modules/level');
@@ -177,20 +178,21 @@ const rollDiceCommand = async function ({
         // .level(0) LevelUpWord(1) TOPIC(2) CONTACT(3)
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^TitleWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #164 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('level_system #164 mongoDB error:', error.name, error.reason));
 
             //問題: 如果沒有GP 的話, 可以刪除嗎?
-            if (!doc || doc.Title.length < 1) {
+            if (!doc || doc.Title.length === 0) {
                 rply.text = "刪除稱號成功。現改回使用預設稱號。"
                 return rply
             }
@@ -207,8 +209,8 @@ const rollDiceCommand = async function ({
             }
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #184 mongoDB error: ', error.name, error.reson));
-            if (!doc || doc.Title.length < 1) {
+            }).catch(error => console.error('level_system #184 mongoDB error:', error.name, error.reason));
+            if (!doc || doc.Title.length === 0) {
                 rply.text = "正在使用預設稱號。"
                 return rply
             }
@@ -225,21 +227,35 @@ const rollDiceCommand = async function ({
             //
             //稱號Title
             //
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
+                return rply;
+            }
+
+            // Check if there's any input to process
+            if (!mainMsg[2]) {
+                rply.text = '請提供稱號設定，格式為 \n.level TitleWord -(等級) (稱號).\n例如: -0 無名調查員 -5 調查員 -10 記者';
                 return rply;
             }
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #212 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('level_system #212 mongoDB error:', error.name, error.reason));
 
-            let temprply = setNew(inputStr, doc.Title)
+            // Add null check for doc before accessing doc.Title
+            if (!doc) {
+                doc = new schema.trpgLevelSystem({
+                    groupid: groupid
+                });
+            }
 
-            if (temprply.length < 1) {
+            let temprply = setNew(inputStr, doc.Title || [])
+
+            if (temprply.length === 0) {
                 rply.text = '新增失敗。 未有稱號輸入，格式為 \n.level TitleWord -(等級) (稱號).'
                 return rply
             }
@@ -249,7 +265,7 @@ const rollDiceCommand = async function ({
                 $set: {
                     "Title": temprply
                 }
-            }).catch(error => console.error('level_system #227 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('level_system #227 mongoDB error:', error.name, error.reason));
             rply.text = '新增稱號成功: \n'
             for (let te = 0; te < temprply.length; te++) {
                 if (temprply[te])
@@ -264,7 +280,7 @@ const rollDiceCommand = async function ({
             }
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #242 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('level_system #242 mongoDB error:', error.name, error.reason));
             if (!doc || !doc.LevelUpWord) {
                 rply.text = '正在使用預設升級語. ';
                 return rply;
@@ -274,36 +290,58 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #262 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('level_system #262 mongoDB error:', error.name, error.reason));
+            
+            if (!doc) {
+                doc = new schema.trpgLevelSystem({
+                    groupid: groupid
+                });
+            }
+            
             doc.LevelUpWord = "";
-            await doc.save().catch(error => console.error('level_system #264 mongoDB error: ', error.name, error.reson));
+            await doc.save().catch(error => console.error('level_system #264 mongoDB error:', error.name, error.reason));
             rply.text = "刪除升級語成功."
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
+                return rply;
+            }
+
+            // Check if there's any input to process
+            if (!mainMsg[2]) {
+                rply.text = '請提供升級通知文字，格式為 \n.level LevelUpWord [內容]\n可使用的關鍵字有: {user.name}, {user.displayName}, {user.level}, {user.title}, {user.exp}, {user.Ranking}, {user.RankingPer}, {server.member_count}';
                 return rply;
             }
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #280 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('level_system #280 mongoDB error:', error.name, error.reason));
+            
+            if (!doc) {
+                doc = new schema.trpgLevelSystem({
+                    groupid: groupid
+                });
+            }
+            
             doc.LevelUpWord = inputStr.replace(/\s?.*\s+\w+\s+/i, '');
-            await doc.save().catch(error => console.error('level_system #282 mongoDB error: ', error.name, error.reson));
+            await doc.save().catch(error => console.error('level_system #282 mongoDB error:', error.name, error.reason));
             rply.text = "新增升級語成功.\n" + inputStr.replace(/\s?.*\s+\w+\s+/i, '');
 
             return rply;
@@ -315,7 +353,7 @@ const rollDiceCommand = async function ({
             }
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #294 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('level_system #294 mongoDB error:', error.name, error.reason));
             if (!doc || !doc.RankWord) {
                 rply.text = '正在使用預設查詢語. ';
                 return rply;
@@ -325,34 +363,56 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #314 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('level_system #314 mongoDB error:', error.name, error.reason));
+            
+            if (!doc) {
+                doc = new schema.trpgLevelSystem({
+                    groupid: groupid
+                });
+            }
+            
             doc.RankWord = "";
             await doc.save();
             rply.text = "刪除查詢語成功."
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
+                return rply;
+            }
+
+            // Check if there's any input to process
+            if (!mainMsg[2]) {
+                rply.text = '請提供查詢回應文字，格式為 \n.level RankWord [內容]\n可使用的關鍵字有: {user.name}, {user.displayName}, {user.level}, {user.title}, {user.exp}, {user.Ranking}, {user.RankingPer}, {server.member_count}';
                 return rply;
             }
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #332 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('level_system #332 mongoDB error:', error.name, error.reason));
+            
+            if (!doc) {
+                doc = new schema.trpgLevelSystem({
+                    groupid: groupid
+                });
+            }
+            
             doc.RankWord = inputStr.replace(/\s?.*\s+\w+\s+/i, '');
             await doc.save();
             rply.text = "新增查詢語成功.\n" + inputStr.replace(/\s?.*\s+\w+\s+/i, '');
@@ -365,19 +425,20 @@ const rollDiceCommand = async function ({
             }
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #345 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('level_system #345 mongoDB error:', error.name, error.reason));
             rply.text = '現在設定: ' + '\n經驗值功能: ';
-            rply.text += (doc && doc.SwitchV2) ? '啓動\n升級通知功能: ' : '關閉\n升級通知功能: ';
-            rply.text += (doc && doc.HiddenV2) ? '啓動' : '關閉';
+            rply.text += (doc && doc.SwitchV2) ? '啟動\n升級通知功能: ' : '關閉\n升級通知功能: ';
+            rply.text += (doc && doc.HiddenV2) ? '啟動' : '關閉';
             return rply;
         }
 
         case /(^[.]level$)/i.test(mainMsg[0]) && /^config$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
@@ -390,7 +451,7 @@ const rollDiceCommand = async function ({
             }
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #370 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('level_system #370 mongoDB error:', error.name, error.reason));
             if (!doc) {
                 doc = new schema.trpgLevelSystem({
                     groupid: groupid
@@ -445,8 +506,8 @@ const rollDiceCommand = async function ({
                     return rply
             }
             rply.text = '修改成功: ' + '\n經驗值功能: ';
-            rply.text += (doc.SwitchV2) ? '啓動\n升級通知功能: ' : '關閉\n升級通知功能: ';
-            rply.text += (doc.HiddenV2) ? '啓動' : '關閉';
+            rply.text += (doc.SwitchV2) ? '啟動\n升級通知功能: ' : '關閉\n升級通知功能: ';
+            rply.text += (doc.HiddenV2) ? '啟動' : '關閉';
             return rply;
         }
 
@@ -464,7 +525,7 @@ const rollDiceCommand = async function ({
                 groupid: groupid,
                 SwitchV2: true
             }).catch(error => {
-                console.error('level_system #442 mongoDB error: ', error.name, error.reson)
+                console.error('level_system #442 mongoDB error:', error.name, error.reason)
                 checkMongodb.dbErrOccurs();
             });
             if (!doc || !doc.SwitchV2) {
@@ -477,7 +538,7 @@ const rollDiceCommand = async function ({
                 groupid: groupid
             }).sort({
                 EXP: -1
-            }).catch(error => console.error('level_system #453 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('level_system #453 mongoDB error:', error.name, error.reason));
             //要尋找其中自己的userid
             let myselfIndex = docMember.map(function (members) {
                 return members.userid;
@@ -507,7 +568,7 @@ const rollDiceCommand = async function ({
             let userexp = docMember[myselfIndex].EXP;
             let usermember_count = Math.max(membercount, docMember.length);
             let userRanking = myselfIndex + 1;
-            let userRankingPer = Math.ceil(userRanking / usermember_count * 10000) / 100 + '%';
+            let userRankingPer = Math.ceil(userRanking / usermember_count * 10_000) / 100 + '%';
             let userTitle = await this.checkTitle(userlevel, doc.Title || []);
             //Title 首先檢查  trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Title[0].Lvl 有沒有那個LV的TITLE
             //沒有  則使用預設
@@ -518,10 +579,10 @@ const rollDiceCommand = async function ({
             // { user.RankingPer} 現在排名百分比 \
             // { server.member_count } 現在頻道中總人數 \
 
-            rply.text = rankWord.replace(/{user.name}/ig, username).replace(/{user.level}/ig, userlevel).replace(/{user.exp}/ig, userexp).replace(/{user.Ranking}/ig, userRanking).replace(/{user.RankingPer}/ig, userRankingPer).replace(/{server.member_count}/ig, usermember_count).replace(/{user.title}/ig, userTitle)
-            if (rply.text.match(/{user.displayName}/ig)) {
+            rply.text = rankWord.replaceAll(/{user.name}/ig, username).replaceAll(/{user.level}/ig, userlevel).replaceAll(/{user.exp}/ig, userexp).replaceAll(/{user.Ranking}/ig, userRanking).replaceAll(/{user.RankingPer}/ig, userRankingPer).replaceAll(/{server.member_count}/ig, usermember_count).replaceAll(/{user.title}/ig, userTitle)
+            if (/{user.displayName}/ig.test(rply.text)) {
                 let userDisplayName = await getDisplayName(discordMessage) || username || "無名";
-                rply.text = rply.text.replace(/{user.displayName}/ig, userDisplayName)
+                rply.text = rply.text.replaceAll(/{user.displayName}/ig, userDisplayName)
             }
             return rply;
         }
@@ -541,7 +602,7 @@ const rollDiceCommand = async function ({
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid,
                 SwitchV2: true
-            }).catch(error => console.error('level_system #514 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('level_system #514 mongoDB error:', error.name, error.reason));
             if (!doc || !doc.SwitchV2) {
                 rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
                     \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
@@ -552,8 +613,8 @@ const rollDiceCommand = async function ({
                 groupid: groupid
             }).sort({
                 EXP: -1
-            }).limit(RankNumber).catch(error => console.error('level_system #525 mongoDB error: ', error.name, error.reson));
-            if (docMember.length < 1) {
+            }).limit(RankNumber).catch(error => console.error('level_system #525 mongoDB error:', error.name, error.reason));
+            if (docMember.length === 0) {
                 rply.text = '此群組未有足夠資料\n'
                 return rply;
             }
@@ -564,13 +625,13 @@ const rollDiceCommand = async function ({
         case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeAtTheWorld$/i.test(mainMsg[1]): {
             //顯示自己的排名
             let myExp = await schema.trpgLevelSystemMember.findOne({ groupid: groupid, userid: userid })
-                .catch(error => console.error('level_system #537 mongoDB error: ', error.name, error.reson));
+                .catch(error => console.error('level_system #537 mongoDB error:', error.name, error.reason));
             if (!myExp || !myExp.EXP) {
                 rply.text = "未有找到你的資料，請檢查有沒有開啓經驗值功能";
                 return rply;
             }
             let docMember = await schema.trpgLevelSystemMember.find({ EXP: { $gt: myExp.EXP } }).countDocuments()
-                .catch(error => console.error('level_system #543 mongoDB error: ', error.name, error.reson));
+                .catch(error => console.error('level_system #543 mongoDB error:', error.name, error.reason));
             rply.text = `你現在的世界排名是第${docMember + 1}名`
             return rply;
 
@@ -586,10 +647,10 @@ const rollDiceCommand = async function ({
             }
             let docMember = await schema.trpgLevelSystemMember.find({}, { name: 1, EXP: 1, Level: 1 }).sort({
                 EXP: -1
-            }).limit(RankNumber).catch(error => console.error('level_system #559 mongoDB error: ', error.name, error.reson));
-            let docMemberCount = await schema.trpgLevelSystemMember.countDocuments({}).catch(error => console.error('level_system #560 mongoDB error: ', error.name, error.reson));
+            }).limit(RankNumber).catch(error => console.error('level_system #559 mongoDB error:', error.name, error.reason));
+            let docMemberCount = await schema.trpgLevelSystemMember.countDocuments({}).catch(error => console.error('level_system #560 mongoDB error:', error.name, error.reason));
 
-            if (docMember.length < 1) {
+            if (docMember.length === 0) {
                 rply.text = '此群組未有足夠資料\n'
                 return rply;
             }
@@ -657,7 +718,7 @@ const rollDiceCommand = async function ({
                         }
                 answer += "第" + (Number([b]) + 1) + "名 "
                 answer += "《" + await checkTitle(array[b].Level, tempTitleAll) + "》 "
-                answer += array[b].name + " " + array[b].Level + "級 " + await kMGTPE(parseInt(array[b].EXP), 1) + "經驗\n";
+                answer += array[b].name + " " + array[b].Level + "級 " + await kMGTPE(Number.parseInt(array[b].EXP), 1) + "經驗\n";
             }
         }
         return answer;
@@ -682,6 +743,196 @@ const rollDiceCommand = async function ({
     }
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('level')
+            .setDescription('【經驗值系統】查看等級、排名和設定')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('help')
+                    .setDescription('顯示經驗值系統的幫助信息'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示現時升級語及其他語')
+                    .addStringOption(option =>
+                        option.setName('type')
+                            .setDescription('要顯示的設定類型')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: '升級通知文字', value: 'levelupword' },
+                                { name: '查詢回應文字', value: 'rankword' },
+                                { name: '稱號設定', value: 'titleword' }
+                            )))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('showme')
+                    .setDescription('查詢群組排名')
+                    .addIntegerOption(option =>
+                        option.setName('count')
+                            .setDescription('顯示前幾名 (預設5名)')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('showmetheworld')
+                    .setDescription('查詢世界排名')
+                    .addIntegerOption(option =>
+                        option.setName('count')
+                            .setDescription('顯示前幾名 (預設6名)')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('showmeattheworld')
+                    .setDescription('查詢自己的世界排名'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('config')
+                    .setDescription('設定經驗值功能')
+                    .addStringOption(option =>
+                        option.setName('setting')
+                            .setDescription('設定值: 11(開啟並顯示通知), 10(開啟但不顯示通知), 00(關閉功能)')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: '開啟並顯示通知', value: '11' },
+                                { name: '開啟但不顯示通知', value: '10' },
+                                { name: '關閉功能', value: '00' }
+                            )))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('levelupword')
+                    .setDescription('設定升級通知文字')
+                    .addStringOption(option =>
+                        option.setName('action')
+                            .setDescription('動作: 設定文字、顯示現有設定或刪除設定')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: '設定文字', value: 'set' },
+                                { name: '顯示現有設定', value: 'show' },
+                                { name: '刪除設定', value: 'del' }
+                            ))
+                    .addStringOption(option =>
+                        option.setName('text')
+                            .setDescription('升級通知文字')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('rankword')
+                    .setDescription('設定查詢回應文字')
+                    .addStringOption(option =>
+                        option.setName('action')
+                            .setDescription('動作: 設定文字、顯示現有設定或刪除設定')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: '設定文字', value: 'set' },
+                                { name: '顯示現有設定', value: 'show' },
+                                { name: '刪除設定', value: 'del' }
+                            ))
+                    .addStringOption(option =>
+                        option.setName('text')
+                            .setDescription('查詢回應文字')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('titleword')
+                    .setDescription('設定等級稱號')
+                    .addStringOption(option =>
+                        option.setName('action')
+                            .setDescription('動作: 設定稱號、顯示現有設定或刪除設定')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: '設定稱號', value: 'set' },
+                                { name: '顯示現有設定', value: 'show' },
+                                { name: '刪除設定', value: 'del' }
+                            ))
+                    .addStringOption(option =>
+                        option.setName('titles')
+                            .setDescription('格式: -0 無名調查員 -5 調查員 -10 記者')
+                            .setRequired(false))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            switch (subcommand) {
+                case 'help':
+                    return `.level help`;
+                case 'show': {
+                    const type = interaction.options.getString('type');
+                    return `.level ${type} Show`;
+                }
+                case 'showme': {
+                    const count = interaction.options.getInteger('count');
+                    return count ? `.level showMe ${count}` : `.level showMe`;
+                }
+                case 'showmetheworld': {
+                    const worldCount = interaction.options.getInteger('count');
+                    return worldCount ? `.level showMeTheworld ${worldCount}` : `.level showMeTheworld`;
+                }
+                case 'showmeattheworld':
+                    return `.level showMeAtTheworld`;
+                case 'config': {
+                    const setting = interaction.options.getString('setting');
+                    return `.level config ${setting}`;
+                }
+                case 'levelupword': {
+                    const levelUpAction = interaction.options.getString('action');
+                    const levelUpText = interaction.options.getString('text');
+                    
+                    switch (levelUpAction) {
+                        case 'show': {
+                            return `.level LevelUpWord Show`;
+                        }
+                        case 'del': {
+                            return `.level LevelUpWord del`;
+                        }
+                        case 'set': {
+                            return levelUpText ? `.level LevelUpWord ${levelUpText}` : `.level LevelUpWord Show`;
+                        }
+                        // No default
+                    }
+                    break;
+                }
+                case 'rankword': {
+                    const rankAction = interaction.options.getString('action');
+                    const rankText = interaction.options.getString('text');
+                    
+                    switch (rankAction) {
+                    case 'show': {
+                        return `.level RankWord Show`;
+                    }
+                    case 'del': {
+                        return `.level RankWord del`;
+                    }
+                    case 'set': {
+                        return rankText ? `.level RankWord ${rankText}` : `.level RankWord Show`;
+                    }
+                    // No default
+                    }
+                    break;
+                }
+                case 'titleword': {
+                    const titleAction = interaction.options.getString('action');
+                    const titles = interaction.options.getString('titles');
+                    
+                    switch (titleAction) {
+                    case 'show': {
+                        return `.level TitleWord Show`;
+                    }
+                    case 'del': {
+                        return `.level TitleWord del`;
+                    }
+                    case 'set': {
+                        return titles ? `.level TitleWord ${titles}` : `.level TitleWord Show`;
+                    }
+                    // No default
+                    }
+                    break;
+                }
+                default:
+                    return `.level help`;
+            }
+        }
+    }
+];
 
 module.exports = {
     rollDiceCommand: rollDiceCommand,
@@ -691,7 +942,8 @@ module.exports = {
     gameType: gameType,
     gameName: gameName,
     Title: Title,
-    checkTitle: checkTitle
+    checkTitle: checkTitle,
+    discordCommand: discordCommand
 };
 
 

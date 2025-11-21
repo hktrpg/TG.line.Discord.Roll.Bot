@@ -1,48 +1,104 @@
 "use strict";
 // Load `*.js` under roll directory as properties
 //  i.e., `User.js` will become `exports['User']` or `exports.User`
-const fs = require('fs');
-const path = require('path');
-const util = require('util');
+const fs = require('node:fs');
+const path = require('node:path');
+const util = require('node:util');
 const readdir = util.promisify(fs.readdir);
 
+// Create an index of available roll modules
+const rollModules = new Map();
+
+// Initialize the module index
 (async function () {
-	const files = await readdir('./roll/');
-	files.forEach((file) => {
-		const name = path.basename(file, '.js');
-		if ((name !== 'index' || name !== 'demo') && file.endsWith('.js')) {
-			exports[name] = require(path.join(__dirname, '../roll/', file));
+	try {
+		const files = await readdir('./roll/');
+		for (const file of files) {
+			const name = path.basename(file, '.js');
+			if ((name !== 'index' && name !== 'demo') && file.endsWith('.js')) {
+				rollModules.set(name.toLowerCase(), {
+					name,
+					path: path.join(__dirname, '../roll/', file)
+				});
+			}
 		}
-	});
+	} catch (error) {
+		console.error('Error initializing roll modules:', error);
+	}
 }());
 
+// Lazy loading function for roll modules
+function getRollModule(moduleName) {
+	if (!moduleName) return null;
+
+	const moduleInfo = rollModules.get(moduleName.toLowerCase());
+	if (!moduleInfo) return null;
+
+	// Only require the module when it's first accessed
+	if (!exports[moduleInfo.name]) {
+		try {
+			exports[moduleInfo.name] = require(moduleInfo.path);
+			// Special handling for z_stop module
+			if (moduleInfo.name === 'z_stop' && exports[moduleInfo.name].initialize) {
+				exports[moduleInfo.name] = exports[moduleInfo.name].initialize();
+			}
+		} catch (error) {
+			console.error(`Error loading module ${moduleInfo.name}:`, error);
+			return null;
+		}
+	}
+
+	return exports[moduleInfo.name];
+}
 
 const schema = require('./schema.js');
 const debugMode = (process.env.DEBUG) ? true : false;
 const MESSAGE_SPLITOR = (/\S+/ig);
-const courtMessage = require('./logs').courtMessage || function () { };
-const getState = require('./logs').getState || function () { };
-const EXPUP = require('./level').EXPUP || function () { };
+const courtMessage = require('./logs').courtMessage || function () {};
+const getState = require('./logs').getState || function () {};
+const EXPUP = require('./level').EXPUP || function () {};
 
-//用來呼叫骰組,新增骰組的話,要寫條件式到下面呼叫
-//格式是 exports.骰組檔案名字.function名
+// 創建一個統一的上下文類來管理參數
+class RollContext {
+	constructor(params) {
+		this.inputStr = params.inputStr || "";
+		this.groupid = params.groupid || null;
+		this.userid = params.userid || null;
+		this.userrole = params.userrole || 1;
+		this.botname = params.botname || null;
+		this.displayname = params.displayname || null;
+		this.channelid = params.channelid || null;
+		this.displaynameDiscord = params.displaynameDiscord || null;
+		this.membercount = params.membercount || 0;
+		this.discordClient = params.discordClient || null;
+		this.discordMessage = params.discordMessage || null;
+		this.titleName = params.titleName || '';
+		this.tgDisplayname = params.tgDisplayname || '';
+		this.mainMsg = this.inputStr.replaceAll(/^\s/g, '').match(MESSAGE_SPLITOR);
+	}
+
+	toParams() {
+		return {
+			inputStr: this.inputStr,
+			groupid: this.groupid,
+			userid: this.userid,
+			userrole: this.userrole,
+			mainMsg: this.mainMsg,
+			botname: this.botname,
+			displayname: this.displayname,
+			channelid: this.channelid,
+			displaynameDiscord: this.displaynameDiscord,
+			membercount: this.membercount,
+			discordClient: this.discordClient,
+			discordMessage: this.discordMessage,
+			titleName: this.titleName,
+			tgDisplayname: this.tgDisplayname
+		};
+	}
+}
+
 const parseInput = async (params) => {
-	const {
-		inputStr = "",
-		groupid = null,
-		userid = null,
-		userrole = 1,
-		botname = null,
-		displayname = null,
-		channelid = null,
-		displaynameDiscord = null,
-		membercount = 0,
-		discordClient,
-		discordMessage,
-		titleName = '',
-		tgDisplayname = ''
-	} = params;
-
+	const context = new RollContext(params);
 	let result = {
 		text: '',
 		type: 'text',
@@ -50,61 +106,46 @@ const parseInput = async (params) => {
 		statue: ''
 	};
 
-	let mainMsg = inputStr.replace(/^\s/g, '').match(MESSAGE_SPLITOR); // 定義輸入字串
-
 	// EXPUP 功能 + LevelUP 功能
-	if (groupid) {
-		let tempEXPUP = await EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage);
+	if (context.groupid) {
+		let tempEXPUP = await EXPUP(
+			context.groupid,
+			context.userid,
+			context.displayname,
+			context.displaynameDiscord,
+			context.membercount,
+			context.tgDisplayname,
+			context.discordMessage
+		);
 		result.LevelUp = tempEXPUP?.text || '';
 		result.statue = tempEXPUP?.statue || '';
 	}
 
 	// 檢查是不是要停止 z_stop 功能
-	if (groupid && mainMsg[0] && z_stop(mainMsg, groupid)) {
+	if (context.groupid && context.mainMsg[0] && z_stop(context.mainMsg, context.groupid)) {
 		return result;
 	}
 
 	// rolldice 擲骰功能
 	try {
-		let rollDiceResult = await rolldice({
-			inputStr,
-			groupid,
-			userid,
-			userrole,
-			mainMsg,
-			botname,
-			displayname,
-			channelid,
-			displaynameDiscord,
-			membercount,
-			discordClient,
-			discordMessage,
-			titleName,
-			tgDisplayname
-		});
+		let rollDiceResult = await rolldice(context);
 		if (rollDiceResult) {
 			result = { ...result, ...rollDiceResult };
 		}
 	} catch (error) {
-		console.error('rolldice GET ERROR:', error.stack, error.name, ' inputStr: ', inputStr, ' botname: ', botname, ' Time: ', new Date());
+		console.error(`rolldice GET ERROR:
+			Stack: ${error.stack}
+			Name: ${error.name}
+			Input: ${context.inputStr}
+			Botname: ${context.botname}
+			Time: ${new Date()}`);
 	}
 
 	// cmdfunction .cmd 功能 z_saveCommand 功能
 	if (result.cmd && result.text) {
 		let cmdFunctionResult = await cmdfunction({
-			inputStr,
-			groupid,
-			userid,
-			userrole,
-			mainMsg,
-			botname,
-			displayname,
-			channelid,
-			displaynameDiscord,
-			membercount,
-			result,
-			titleName,
-			tgDisplayname
+			...context.toParams(),
+			result
 		});
 		if (cmdFunctionResult) {
 			result = { ...result, ...cmdFunctionResult };
@@ -114,25 +155,16 @@ const parseInput = async (params) => {
 	// characterReRoll 功能
 	if (result.characterReRoll) {
 		let characterReRoll = await cmdfunction({
-			inputStr,
-			groupid,
-			userid,
-			userrole,
-			mainMsg,
-			botname,
-			displayname,
-			channelid,
-			displaynameDiscord,
-			membercount,
-			result,
-			titleName,
-			tgDisplayname
+			...context.toParams(),
+			result
 		});
 		if (result.text && characterReRoll.text) {
 			result.text = `${result.characterName} 投擲 ${result.characterReRollName}\n${characterReRoll.text}\n======\n${result.text}`;
 		} else {
 			result.text = result.text || '';
-			result.text += characterReRoll.text ? `======\n${characterReRoll.text}` : '';
+			if (characterReRoll && characterReRoll.text) {
+				result.text += `======\n${characterReRoll.text}`;
+			}
 		}
 	}
 
@@ -142,94 +174,49 @@ const parseInput = async (params) => {
 	}
 
 	// courtMessage + saveLog
-	await courtMessage({ result, botname, inputStr });
+	await courtMessage({ result, botname: context.botname, inputStr: context.inputStr });
 	return result;
 }
 
-
-
-const rolldice = async ({
-	inputStr,
-	groupid,
-	userid,
-	userrole,
-	mainMsg,
-	botname,
-	displayname,
-	channelid,
-	displaynameDiscord,
-	membercount,
-	discordClient,
-	discordMessage,
-	titleName,
-	tgDisplayname
-}) => {
-	//在下面位置開始分析trigger
-	if (!groupid) {
-		groupid = '';
+const rolldice = async (context) => {
+	if (!context.groupid) {
+		context.groupid = '';
 	}
-	//把exports objest => Array
-	let target = findRollList(mainMsg);
+	let target = findRollList(context.mainMsg);
 	if (!target) return null;
-	(debugMode) ? console.log('            trigger: ', inputStr) : '';
+	(debugMode) ? console.log('            trigger:', context.inputStr) : '';
 
-	let rollTimes = inputStr.match(/^\.(\d{1,2})\s/);
+	let rollTimes = context.inputStr.match(/^\.(\d{1,2})\s/);
+	
 	rollTimes ? rollTimes = rollTimes[1] : rollTimes = 1;
 	rollTimes > 10 ? rollTimes = 10 : null;
-	inputStr = inputStr.replace(/^\.\d{1,2}\s/, '');
+	context.inputStr = context.inputStr.replace(/^\.\d{1,2}\s/, '');
 
-	mainMsg[0].match(/^\.(\d{1,2})$/) ? mainMsg.shift() : null;
+	/^\.(\d{1,2})$/.test(context.mainMsg[0]) ? context.mainMsg.shift() : null;
+	context.mainMsg = context.mainMsg.filter(item => item !== '');
 
 	let retext = '';
 	let tempsave = {};
 	for (let index = 0; index < rollTimes; index++) {
 		if (rollTimes > 1 && /^dice|^funny/i.test(target.gameType())) {
-			tempsave = await target.rollDiceCommand({
-				inputStr: inputStr,
-				mainMsg: mainMsg,
-				groupid: groupid,
-				userid: userid,
-				userrole: userrole,
-				botname: botname,
-				displayname: displayname,
-				channelid: channelid,
-				displaynameDiscord: displaynameDiscord,
-				membercount: membercount,
-				discordClient: discordClient,
-				discordMessage: discordMessage,
-				titleName: titleName,
-				tgDisplayname: tgDisplayname
-			});
-			if (tempsave && tempsave.text) {
-				retext += `#${index + 1}： ${tempsave.text.replace(/\n/g, '')}\n`
+			let result = await target.rollDiceCommand(context.toParams());
+			if (result && result.text) {
+				retext += `#${index + 1}： ${result.text.replaceAll('\n', '')}\n`;
+				tempsave = result;
 			}
 		} else {
-			tempsave = await target.rollDiceCommand({
-				inputStr: inputStr,
-				mainMsg: mainMsg,
-				groupid: groupid,
-				userid: userid,
-				userrole: userrole,
-				botname: botname,
-				displayname: displayname,
-				channelid: channelid,
-				displaynameDiscord: displaynameDiscord,
-				membercount: membercount,
-				discordClient: discordClient,
-				discordMessage: discordMessage,
-				titleName: titleName,
-				tgDisplayname: tgDisplayname
-			});
+			let result = await target.rollDiceCommand(context.toParams());
+			if (result) {
+				tempsave = result;
+			}
 		}
-
 	}
 
-
-
-	if (retext) {
+	if (retext && tempsave) {
 		tempsave.text = retext;
 	}
-	return tempsave;
+
+	return tempsave || {};
 }
 
 function findRollList(mainMsg) {
@@ -237,92 +224,111 @@ function findRollList(mainMsg) {
 	if (!mainMsg || !Array.isArray(mainMsg) || mainMsg.length === 0) return;
 
 	// Check if first element matches pattern and shift if true
-	if (mainMsg[0] && mainMsg[0].match(/^\.(\d{1,2})$/)) {
+	if (mainMsg[0] && /^\.(\d{1,2})$/.test(mainMsg[0])) {
 		mainMsg.shift();
 	}
 
 	// Set default empty string for mainMsg[1] if undefined
 	if (!mainMsg[1]) mainMsg[1] = '';
 
-	const idList = Object.values(exports);
-	const findTarget = idList.find(item => {
-		if (item && item.prefixs && typeof item.prefixs === 'function') {
-			const prefixList = item.prefixs();
-			if (!Array.isArray(prefixList)) return false;
+	// Special handling for .me and .mee commands - make sure they go to z_myname
+	if (mainMsg[0] && (mainMsg[0].toLowerCase() === '.me' || mainMsg[0].toLowerCase() === '.mee')) {
+		const zMyname = getRollModule('z_myname');
+		if (zMyname) return zMyname;
+	}
 
-			return prefixList.some(prefix => {
-				// Check if mainMsg[0] exists and matches first prefix
-				if (!mainMsg || !mainMsg[0] || !prefix || !prefix.first) return false;
-				const firstMatch = mainMsg[0].match(prefix.first);
-				if (!firstMatch) return false;
+	// Iterate through available modules
+	for (const [moduleName] of rollModules) {
+		const module = getRollModule(moduleName);
+		if (!module || !module.prefixs || typeof module.prefixs !== 'function') continue;
 
-				// Check second prefix if it exists
-				if (prefix.second === null) return true;
-				return mainMsg[1] && mainMsg[1].match(prefix.second);
-			});
-		}
-		return false;
-	});
+		const prefixList = module.prefixs();
+		if (!Array.isArray(prefixList)) continue;
 
-	return findTarget;
+		const match = prefixList.some(prefix => {
+			// Check if mainMsg[0] exists and matches first prefix
+			if (!mainMsg || !mainMsg[0] || !prefix || !prefix.first) return false;
+			const firstMatch = mainMsg[0].match(prefix.first);
+			if (!firstMatch) return false;
+
+			// Check second prefix if it exists
+			if (prefix.second === null) return true;
+			return mainMsg[1] && mainMsg[1].match(prefix.second);
+		});
+
+		if (match) return module;
+	}
+
+	return null;
 }
 
 async function stateText() {
 	let state = await getState() || '';
-	if (!Object.keys(state).length || !state.LogTime) return;
-	let text = "";
-	text = '系統開始紀錄時間: ' + state.StartTime.replace(' GMT+0800 (Hong Kong Standard Time)', '');
-	text += '\n 現在時間: ' + state.LogTime.replace(' GMT+0800 (GMT+08:00)', '');
-	text += '\n Line總擲骰次數: ' + state.LineCountRoll;
-	text += '\n Discord總擲骰次數: ' + state.DiscordCountRoll;
-	text += '\n Telegram總擲骰次數: ' + state.TelegramCountRoll;
-	text += '\n Whatsapp總擲骰次數: ' + state.WhatsappCountRoll;
-	text += '\n 網頁版總擲骰次數: ' + state.WWWCountRoll;
-	text += '\n 使用經驗值功能的群組: ' + await schema.trpgLevelSystem.countDocuments({ Switch: '1' }).catch(error => console.error('analytics #266 mongoDB error: ', error.name, error.reson));
-	text += '\n 已新增的角色卡: ' + await schema.characterCard.countDocuments({}).catch(error => console.error('analytics #267 mongoDB error: ', error.name, error.reson));
-	text += '\n HKTRPG使用者數量: ' + await schema.firstTimeMessage.countDocuments({}).catch(error => console.error('analytics #268 mongoDB error: ', error.name, error.reson));
-	text += '\n 擲骰系統使用的隨機方式: random-js nodeCrypto';
-	return text;
+	if (Object.keys(state).length === 0 || !state.LogTime) return '';
+
+	const cleanDateTime = (dateStr) => dateStr
+		.replace(' GMT+0800 (Hong Kong Standard Time)', '')
+		.replace(' GMT+0800 (GMT+08:00)', '');
+
+	const formatNumber = (num) => num.toString().replaceAll(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+	// 使用 Promise.all 同時獲取所有統計數據
+	const [levelSystemCount, characterCardCount, userCount] = await Promise.all([
+		schema.trpgLevelSystem.countDocuments({ Switch: '1' })
+			.catch(error => console.error('analytics #266 mongoDB error:', error.name, error.reason)),
+		schema.characterCard.countDocuments({})
+			.catch(error => console.error('analytics #267 mongoDB error:', error.name, error.reason)),
+		schema.firstTimeMessage.countDocuments({})
+			.catch(error => console.error('analytics #268 mongoDB error:', error.name, error.reason))
+	]);
+
+	return `【📊 HKTRPG系統狀態報告】
+╭────── ⏰時間資訊 ──────
+│ 系統啟動:
+│   • ${cleanDateTime(state.StartTime)}
+│ 現在時間:
+│   • ${cleanDateTime(state.LogTime)}
+│
+├────── 🎲擲骰統計 ──────
+│ 各平台使用次數:
+│   • Line     ${formatNumber(state.LineCountRoll)}
+│   • Discord  ${formatNumber(state.DiscordCountRoll)}
+│   • Telegram ${formatNumber(state.TelegramCountRoll)}
+│   • Whatsapp ${formatNumber(state.WhatsappCountRoll)}
+│   • 網頁版   ${formatNumber(state.WWWCountRoll)}
+│
+├────── 📊系統數據 ──────
+│ 功能使用統計:
+│   • 經驗值群組 ${formatNumber(levelSystemCount)}
+│   • 角色卡數量 ${formatNumber(characterCardCount)}
+│   • 使用者總數 ${formatNumber(userCount)}
+│
+├────── ⚙️系統資訊 ──────
+│ 隨機數生成:
+│   • random-js  • nodeCrypto
+╰──────────────`;
 }
 
-
-
-async function cmdfunction({
-	groupid,
-	userid,
-	userrole,
-	botname,
-	displayname,
-	channelid,
-	displaynameDiscord,
-	membercount,
-	result,
-	titleName,
-	tgDisplayname
-}) {
+async function cmdfunction({ result, ...context }) {
 	let newInputStr = result.characterReRollItem || result.text;
-	let mainMsg = newInputStr.match(MESSAGE_SPLITOR); //定義輸入字串
-	//檢查是不是要停止
+	let mainMsg = newInputStr.match(MESSAGE_SPLITOR);
 	let tempResut = {};
+
 	try {
-		tempResut = await rolldice({
+		tempResut = await rolldice(new RollContext({
+			...context,
 			inputStr: newInputStr,
-			groupid: groupid,
-			userid: userid,
-			userrole: userrole,
-			mainMsg: mainMsg,
-			botname: botname,
-			displayname: displayname,
-			channelid: channelid,
-			displaynameDiscord: displaynameDiscord,
-			membercount: membercount,
-			titleName: titleName,
-			tgDisplayname: tgDisplayname
-		})
+			mainMsg
+		}));
 	} catch (error) {
-		console.error('cmdfunction GET ERROR:', error, ' inputStr: ', newInputStr, ' botname: ', botname, ' Time: ', new Date());
+		console.error(`cmdfunction GET ERROR:
+			Error: ${error}
+			Input: ${newInputStr}
+			Botname: ${context.botname}
+			Time: ${new Date()}`);
 	}
-	(debugMode) ? console.log('            inputStr2: ', newInputStr) : '';
+
+	(debugMode) ? console.log('            inputStr2:', newInputStr) : '';
 	if (typeof tempResut === 'object' && tempResut !== null) {
 		if (result.characterName) tempResut.text = `${result.characterName} 進行 ${result.characterReRollName} 擲骰\n ${tempResut.text}`
 		return tempResut;
@@ -330,12 +336,11 @@ async function cmdfunction({
 	return;
 }
 
-
 function z_stop(mainMsg, groupid) {
-	const zStopData = exports.z_stop.initialize().save;
-	if (!zStopData) return false;
+	const zStopModule = getRollModule('z_stop');
+	if (!zStopModule || !zStopModule.save) return false;
 
-	const groupInfo = zStopData.find(e => e.groupid == groupid);
+	const groupInfo = zStopModule.save.find(e => e.groupid == groupid);
 	if (!groupInfo || !groupInfo.blockfunction) return false;
 
 	const match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()));
@@ -345,8 +350,6 @@ function z_stop(mainMsg, groupid) {
 	}
 	return false;
 }
-
-
 
 module.exports.debugMode = debugMode;
 module.exports.parseInput = parseInput;

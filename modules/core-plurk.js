@@ -4,9 +4,9 @@ if (!process.env.PLURK_SWITCH) {
 }
 let plurkID = '';
 const { PlurkClient } = require('plurk2');
-const EXPUP = require('./level').EXPUP || function () { };
-const courtMessage = require('./logs').courtMessage || function () { };
-const SIX_MINUTES = 1000 * 60 * 6;
+const EXPUP = require('./level').EXPUP || function () {};
+const courtMessage = require('./logs').courtMessage || function () {};
+const SIX_MINUTES = 360_000;
 const MESSAGE_SPLITOR = (/\S+/ig);
 const Plurk_Client = new PlurkClient(process.env.PLURK_APPKEY, process.env.PLURK_APPSECRET, process.env.PLURK_TOKENKEY, process.env.PLURK_TOKENSECRET);
 exports.analytics = require('./analytics');
@@ -15,16 +15,89 @@ Plurk_Client.request('Users/me')
         console.log(`Plurk 名稱: ${profile.full_name}`);
         plurkID = profile.id;
     })
-    .catch(err => console.error('plurk error: ', err.error_text));
+    .catch(error => console.error('plurk error:', error.error_text));
 
 
 
-Plurk_Client.startComet();
+// Comet connection management with error handling
+let cometConnected = false;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+const RECONNECT_DELAY = 30_000; // 30 seconds
+
+function startCometConnection() {
+    try {
+        if (cometConnected) {
+            //console.log('Plurk comet already connected');
+            return;
+        }
+
+        Plurk_Client.startComet();
+        cometConnected = true;
+        reconnectAttempts = 0;
+        //console.log('Plurk comet connection started');
+    } catch (error) {
+        console.error('Failed to start Plurk comet connection:', error.message);
+        scheduleReconnect();
+    }
+}
+
+function stopCometConnection() {
+    try {
+        if (!cometConnected) return;
+        Plurk_Client.stopComet();
+        cometConnected = false;
+        //console.log('Plurk comet connection stopped');
+    } catch (error) {
+        console.error('Error stopping Plurk comet connection:', error.message);
+    }
+}
+
+function scheduleReconnect() {
+    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        console.error(`Plurk comet reconnection failed after ${MAX_RECONNECT_ATTEMPTS} attempts`);
+        return;
+    }
+
+    reconnectAttempts++;
+    const delay = RECONNECT_DELAY * Math.pow(2, reconnectAttempts - 1); // Exponential backoff
+    //console.log(`Scheduling Plurk comet reconnection in ${delay}ms (attempt ${reconnectAttempts})`);
+
+    setTimeout(() => {
+        startCometConnection();
+    }, delay);
+}
+
+startCometConnection();
+
+// Add error handling for comet connection
+Plurk_Client.on('error', (error) => {
+    console.error('Plurk comet connection error:', error.message);
+    cometConnected = false;
+    scheduleReconnect();
+});
+
+Plurk_Client.on('close', () => {
+    //console.log('Plurk comet connection closed');
+    cometConnected = false;
+    scheduleReconnect();
+});
+
+// Initial alerts setup with error handling
 Plurk_Client.request('Alerts/addAllAsFriends')
+    .catch(error => {
+        console.error('Failed to add all as friends:', error.message || error.error_text);
+    });
+
 function intervalFunc() {
-    Plurk_Client.request('Alerts/addAllAsFriends');
-    Plurk_Client.stopComet();
-    Plurk_Client.startComet();
+    Plurk_Client.request('Alerts/addAllAsFriends')
+        .catch(error => {
+            console.error('Failed to refresh alerts:', error.message || error.error_text);
+        });
+
+    // Restart comet connection periodically to prevent timeouts
+    stopCometConnection();
+    setTimeout(startCometConnection, 5000); // Restart after 5 seconds
 }
 
 setInterval(intervalFunc, SIX_MINUTES);
@@ -52,7 +125,7 @@ Plurk_Client.on('new_plurk', async response => {
     if (!message) return;
     let mainMsg = message.match(MESSAGE_SPLITOR); // 定義輸入字串
     if (mainMsg && mainMsg.length > 1) {
-        if (!mainMsg[0].match(/@HKTRPG/i)) return;
+        if (!/@HKTRPG/i.test(mainMsg[0])) return;
         mainMsg.shift();
     }
     else return;
@@ -106,7 +179,7 @@ Plurk_Client.on('new_response', async response => {
 
 
     if (mainMsg && mainMsg.length > 1) {
-        if (!mainMsg[0].match(/@HKTRPG/i)) return;
+        if (!/@HKTRPG/i.test(mainMsg[0])) return;
         mainMsg.shift();
     }
     else return;
@@ -145,8 +218,8 @@ async function sendMessage(response, rplyVal) {
     try {
         await Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[0], qualifier: 'says' })
     } catch (error) {
-        if (!error.error_text == "anti-flood-same-content")
-            console.error('plurk error: ', error.error_text);
+        if (error.error_text !== "anti-flood-same-content")
+            console.error('plurk error:', error.error_text);
     }
     return;
 

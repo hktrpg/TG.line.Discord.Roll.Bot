@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>最終版混合設計角色卡測試</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/hybrid-card.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Vue.js -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <!-- 角色頭部信息 -->
+        <section class="character-header mb-4">
+            <div class="hybrid-card-container">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="character-name mb-3">
+                            <i class="fas fa-user-circle me-2"></i>
+                            {{ character.name }}
+                        </h2>
+                        <div class="character-info d-flex flex-wrap gap-3">
+                            <span class="info-badge">
+                                <i class="fas fa-briefcase me-1"></i>
+                                <span class="info-label">職業:</span>
+                                <span class="info-value">調查員</span>
+                            </span>
+                            <span class="info-badge">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                <span class="info-label">地點:</span>
+                                <span class="info-value">東京</span>
+                            </span>
+                            <span class="info-badge">
+                                <i class="fas fa-calendar me-1"></i>
+                                <span class="info-label">年齡:</span>
+                                <span class="info-value">28歲</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="action-controls">
+                            <button type="button" class="action-btn primary" @click="toggleEditMode" :title="editMode ? '關閉編輯模式' : '開啟編輯模式'">
+                                <i class="fas fa-edit"></i>
+                                {{ editMode ? '關閉編輯' : '編輯模式' }}
+                            </button>
+                            <button type="button" class="action-btn danger" @click="toggleDeleteMode" :title="deleteMode ? '關閉刪除模式' : '開啟刪除模式'">
+                                <i class="fas fa-trash-alt"></i>
+                                {{ deleteMode ? '關閉刪除' : '刪除模式' }}
+                            </button>
+                            <button type="button" class="action-btn secondary">
+                                <i class="fas fa-save"></i>
+                                儲存
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 擲骰區域 - 混合設計網格 -->
+        <section class="rolls-section mb-4">
+            <div class="hybrid-card-container section-container">
+                <h4 class="section-title">
+                    <i class="fas fa-dice-d20"></i>擲骰
+                </h4>
+                
+                <div class="hybrid-attributes-grid">
+                    <div v-for="(skill, index) in skills" :key="index" 
+                         class="attribute-panel"
+                         @click="rollDice(skill.name)">
+                        <button type="button" class="dice-roll-button" @click.stop="rollDice(skill.name)" title="擲骰">
+                            <i class="fas fa-dice-d20"></i>
+                        </button>
+                        
+                        <!-- 正常顯示模式 -->
+                        <div class="attribute-label" v-if="!editMode">{{ skill.name }}</div>
+                        <div class="attribute-value-display" v-if="!editMode">{{ skill.value }}</div>
+                        <div class="attribute-cc-value" v-if="!editMode">CC {{ skill.value }}</div>
+                        
+                        <!-- 編輯模式下的輸入框 -->
+                        <div v-if="editMode" class="edit-inputs">
+                            <input type="text" 
+                                   v-model="skill.name" 
+                                   placeholder="技能名稱"
+                                   class="edit-input">
+                            <input type="number" 
+                                   v-model.number="skill.value" 
+                                   placeholder="數值"
+                                   class="edit-input">
+                        </div>
+                        
+                        <!-- 刪除按鈕 (刪除模式) -->
+                        <button type="button" 
+                                class="action-btn danger btn-sm mt-2 w-100" 
+                                v-if="deleteMode" 
+                                @click.stop="removeSkill(index)">
+                            <i class="fas fa-trash me-1"></i>刪除
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 浮動添加按鈕 - 正中間 -->
+                <button type="button" 
+                        class="section-add-button" 
+                        @click="addSkill" 
+                        title="新增技能">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- 屬性區域 - 混合設計網格 -->
+        <section class="attributes-section mb-4">
+            <div class="hybrid-card-container section-container">
+                <h4 class="section-title">
+                    <i class="fas fa-chart-line"></i>基本屬性
+                </h4>
+                
+                <div class="hybrid-attributes-grid">
+                    <div v-for="(attr, index) in attributes" :key="index" 
+                         class="attribute-panel"
+                         @click="rollDice(attr.name)">
+                        <button type="button" class="dice-roll-button" @click.stop="rollDice(attr.name)" title="擲骰">
+                            <i class="fas fa-dice-d20"></i>
+                        </button>
+                        
+                        <!-- 正常顯示模式 -->
+                        <div class="attribute-label" v-if="!editMode">{{ attr.name }}</div>
+                        <div class="attribute-display" v-if="!editMode">
+                            <div class="attribute-current">{{ attr.current }}</div>
+                            <div class="attribute-separator">/</div>
+                            <div class="attribute-max">{{ attr.max }}</div>
+                        </div>
+                        
+                        <!-- 編輯模式下的輸入框 -->
+                        <div v-if="editMode" class="edit-inputs">
+                            <input type="text" 
+                                   v-model="attr.name" 
+                                   placeholder="屬性名稱"
+                                   class="edit-input">
+                            <div class="edit-number-inputs">
+                                <input type="number" 
+                                       v-model.number="attr.current" 
+                                       placeholder="現在值"
+                                       class="edit-input">
+                                <span class="edit-separator">/</span>
+                                <input type="number" 
+                                       v-model.number="attr.max" 
+                                       placeholder="上限"
+                                       class="edit-input">
+                            </div>
+                        </div>
+                        
+                        <!-- 刪除按鈕 (刪除模式) -->
+                        <button type="button" 
+                                class="action-btn danger btn-sm mt-2 w-100" 
+                                v-if="deleteMode" 
+                                @click.stop="removeAttribute(index)">
+                            <i class="fas fa-trash me-1"></i>刪除
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 浮動添加按鈕 - 正中間 -->
+                <button type="button" 
+                        class="section-add-button" 
+                        @click="addAttribute" 
+                        title="新增屬性">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- 筆記區域 - 傳統大面板設計 -->
+        <section class="notes-section mb-4">
+            <div class="hybrid-card-container section-container">
+                <h4 class="section-title">
+                    <i class="fas fa-sticky-note"></i>筆記
+                </h4>
+                
+                <div class="notes-panel">
+                    <div v-for="(note, index) in notes" :key="index" class="note-item mb-3">
+                        <div class="note-header d-flex justify-content-between align-items-center mb-2">
+                            <div class="note-title">{{ note.title }}</div>
+                            <button type="button" 
+                                    class="action-btn danger btn-sm" 
+                                    v-if="deleteMode" 
+                                    @click="removeNote(index)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="note-content">
+                            <textarea v-if="editMode" 
+                                      class="notes-textarea" 
+                                      v-model="note.content" 
+                                      placeholder="輸入筆記內容..."></textarea>
+                            <div v-else class="note-text">{{ note.content }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 浮動添加按鈕 - 正中間 -->
+                <button type="button" 
+                        class="section-add-button" 
+                        @click="addNote" 
+                        title="新增筆記">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- 角色詳情區域 - 傳統雙欄佈局 -->
+        <section class="character-details-section mb-4">
+            <div class="hybrid-card-container section-container">
+                <h4 class="section-title">
+                    <i class="fas fa-user-edit"></i>角色詳情
+                </h4>
+                
+                <div class="character-details">
+                    <div class="detail-group">
+                        <h5 class="detail-section-title">財務狀況</h5>
+                        <div class="detail-item">
+                            <span class="detail-label">現金</span>
+                            <input type="text" class="detail-input" v-model="characterDetails.cash" placeholder="1000日元">
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">心靈支柱</span>
+                            <input type="text" class="detail-input" v-model="characterDetails.mentalPillar" placeholder="無">
+                        </div>
+                    </div>
+                    
+                    <div class="detail-group">
+                        <h5 class="detail-section-title">物品裝備</h5>
+                        <div class="detail-item">
+                            <span class="detail-label">隨身物品</span>
+                            <input type="text" class="detail-input" v-model="characterDetails.personalItems" placeholder="">
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">筆記</span>
+                            <input type="text" class="detail-input" v-model="characterDetails.notes" placeholder="">
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">資產</span>
+                            <input type="text" class="detail-input" v-model="characterDetails.assets" placeholder="">
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">物品</span>
+                            <input type="text" class="detail-input" v-model="characterDetails.items" placeholder="">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 浮動添加按鈕 - 正中間 -->
+                <button type="button" 
+                        class="section-add-button" 
+                        @click="addCharacterDetail" 
+                        title="新增角色詳情">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    character: {
+                        name: 'Doctor Boston'
+                    },
+                    editMode: false,
+                    deleteMode: false,
+                    skills: [
+                        { name: '心理學', value: 10 },
+                        { name: '信譽', value: 0 },
+                        { name: '偵查', value: 25 },
+                        { name: '聆聽', value: 25 },
+                        { name: '母語', value: 1 },
+                        { name: '閃躲', value: 25 },
+                        { name: '空手', value: 25 },
+                        { name: '投擲', value: 25 },
+                        { name: '鬥毆', value: 25 },
+                        { name: '魔法', value: 1 },
+                        { name: '小刀', value: 25 },
+                        { name: '幸運', value: 50 }
+                    ],
+                    attributes: [
+                        { name: 'STR', current: 18, max: 37 },
+                        { name: 'DEX', current: 25, max: 50 },
+                        { name: 'POW', current: 30, max: 60 },
+                        { name: 'CON', current: 19, max: 38 },
+                        { name: 'APP', current: 17, max: 35 },
+                        { name: 'EDU', current: 45, max: 90 },
+                        { name: 'SIZ', current: 25, max: 50 },
+                        { name: 'INT', current: 45, max: 90 },
+                        { name: 'Dodge', current: 12, max: 25 }
+                    ],
+                    notes: [
+                        { title: '調查筆記', content: '這是測試,請試試在群組 輸入.char use Sad' }
+                    ],
+                    characterDetails: {
+                        cash: '1,000日元',
+                        mentalPillar: '無',
+                        personalItems: '',
+                        notes: '',
+                        assets: '',
+                        items: ''
+                    }
+                }
+            },
+            methods: {
+                toggleEditMode() {
+                    this.editMode = !this.editMode;
+                },
+                
+                toggleDeleteMode() {
+                    this.deleteMode = !this.deleteMode;
+                },
+                
+                rollDice(skillName) {
+                    alert(`擲骰 ${skillName}！`);
+                },
+                
+                addSkill() {
+                    this.skills.push({ name: '新技能', value: 0 });
+                },
+                
+                removeSkill(index) {
+                    this.skills.splice(index, 1);
+                },
+                
+                addAttribute() {
+                    this.attributes.push({ name: '新屬性', current: 0, max: 0 });
+                },
+                
+                removeAttribute(index) {
+                    this.attributes.splice(index, 1);
+                },
+                
+                addNote() {
+                    this.notes.push({ title: '新筆記', content: '' });
+                },
+                
+                removeNote(index) {
+                    this.notes.splice(index, 1);
+                },
+                
+                addCharacterDetail() {
+                    alert('新增角色詳情功能');
+                }
+            }
+        }).mount('#app');
+    </script>
+
+    <style>
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .character-header .character-name {
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .character-info .info-badge {
+            background: var(--bg-panel);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+        }
+        
+        .info-label {
+            font-weight: 600;
+            margin-right: 4px;
+            color: var(--text-dark);
+        }
+        
+        .info-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        .detail-section-title {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding: 8px 12px;
+            background: var(--gradient-brown);
+            border-radius: 6px;
+            text-align: center;
+        }
+    </style>
+</body>
+</html>

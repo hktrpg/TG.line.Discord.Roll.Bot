@@ -1,0 +1,695 @@
+/* 混合設計系統 - 結合現代化與傳統角色卡風格 */
+:root {
+    /* 混合色彩系統 - 結合現代色彩與傳統棕色系 */
+    --primary-brown: #8B4513;
+    --secondary-brown: #A0522D;
+    --light-brown: #D2B48C;
+    --cream: #F5F5DC;
+    --dark-brown: #654321;
+    
+    /* 現代化強調色 */
+    --accent-purple: #8b5cf6;
+    --accent-blue: #3b82f6;
+    --accent-teal: #14b8a6;
+    --accent-emerald: #10b981;
+    --accent-amber: #f59e0b;
+    --accent-rose: #f43f5e;
+    
+    /* 背景色系統 */
+    --bg-primary: #2C1810;
+    --bg-secondary: #3D2817;
+    --bg-surface: #4A3429;
+    --bg-card: #5D4037;
+    --bg-panel: #8D6E63;
+    
+    /* 文字色 */
+    --text-primary: #F5F5DC;
+    --text-secondary: #D2B48C;
+    --text-muted: #A1887F;
+    --text-dark: #3E2723;
+    
+    /* 邊框和陰影 */
+    --border-light: #BCAAA4;
+    --border-dark: #5D4037;
+    --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-strong: 0 8px 24px rgba(0, 0, 0, 0.5);
+    
+    /* 漸變 */
+    --gradient-brown: linear-gradient(135deg, var(--primary-brown), var(--secondary-brown));
+    --gradient-modern: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+    --gradient-warm: linear-gradient(135deg, var(--accent-amber), var(--accent-rose));
+    --gradient-cool: linear-gradient(135deg, var(--accent-teal), var(--accent-emerald));
+}
+
+/* 重置和基礎樣式 */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-family-primary);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+/* 混合卡片容器 - 結合現代圓角與傳統面板感 */
+.hybrid-card-container {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px;
+    box-shadow: var(--shadow-medium);
+    border: 2px solid var(--border-dark);
+    position: relative;
+    overflow: visible;
+}
+
+.hybrid-card-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-brown);
+    border-radius: 12px 12px 0 0;
+}
+
+/* 傳統面板樣式 - 棕色系矩形設計 */
+.traditional-panel {
+    background: var(--bg-panel);
+    border: 2px solid var(--border-light);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 8px 0;
+    box-shadow: var(--shadow-soft);
+    position: relative;
+}
+
+.traditional-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--gradient-brown);
+    border-radius: 8px 8px 0 0;
+}
+
+/* 混合屬性網格 - 現代網格 + 傳統面板感 */
+.hybrid-attributes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 160px));
+    gap: 12px;
+    margin: 20px 0;
+    justify-content: center;
+}
+
+.attribute-panel {
+    background: var(--bg-panel);
+    border: 2px solid var(--border-light);
+    border-radius: 8px;
+    padding: 16px 12px;
+    text-align: center;
+    position: relative;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.attribute-panel:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+    border-color: var(--accent-purple);
+}
+
+/* 屬性標籤 - 傳統風格 */
+.attribute-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--cream);
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+/* 屬性數值 - 現代化顯示 */
+.attribute-value-display {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 8px 0;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.attribute-cc-value {
+    font-size: 14px;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 4px;
+}
+
+/* 擲骰按鈕 - 混合設計 */
+.dice-roll-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    background: var(--gradient-modern);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-soft);
+}
+
+.dice-roll-button:hover {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-medium);
+}
+
+/* 浮動添加按鈕 - 只在hover時顯示 */
+.section-add-button {
+    position: absolute;
+    bottom: -24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px) scale(0.8);
+    width: 48px;
+    height: 48px;
+    background: var(--gradient-modern);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    opacity: 0;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-medium);
+    z-index: 1000;
+}
+
+.section-container:hover .section-add-button {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.section-add-button:hover {
+    transform: translateX(-50%) translateY(-2px) scale(1.1);
+    box-shadow: var(--shadow-strong);
+}
+
+/* 區段容器需要相對定位 */
+.section-container {
+    position: relative;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    overflow: visible;
+}
+
+/* 筆記區域 - 傳統大面板設計 */
+.notes-panel {
+    background: var(--bg-panel);
+    border: 2px solid var(--border-light);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 16px 0;
+    min-height: 200px;
+    position: relative;
+}
+
+.notes-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--gradient-brown);
+    border-radius: 8px 8px 0 0;
+}
+
+.notes-textarea {
+    width: 100%;
+    height: 150px;
+    background: var(--bg-surface);
+    border: 2px solid var(--border-dark);
+    border-radius: 8px;
+    padding: 16px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text-primary);
+    resize: vertical;
+    transition: all 0.3s ease;
+}
+
+.notes-textarea:focus {
+    outline: none;
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+    background: var(--bg-card);
+}
+
+.notes-textarea::placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* 角色詳情區域 - 網格佈局 */
+.character-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+}
+
+.detail-panel {
+    background: var(--bg-panel);
+    border: 2px solid var(--border-light);
+    border-radius: 8px;
+    padding: 16px;
+    position: relative;
+    transition: all 0.3s ease;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.detail-panel:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+    border-color: var(--accent-purple);
+}
+
+.detail-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.detail-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    flex-grow: 1;
+    display: flex;
+    align-items: flex-start;
+    padding-top: 8px;
+}
+
+.detail-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dark);
+    background: var(--cream);
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: auto;
+}
+
+/* 編輯模式下的角色詳情輸入框 */
+.edit-detail-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+}
+
+.edit-detail-value {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-dark);
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 16px;
+    color: var(--text-primary);
+    width: 100%;
+    flex-grow: 1;
+}
+
+.edit-detail-label {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-dark);
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 12px;
+    color: var(--text-primary);
+    width: 100%;
+}
+
+.edit-detail-value:focus,
+.edit-detail-label:focus {
+    outline: none;
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+.detail-group {
+    background: var(--bg-panel);
+    border: 2px solid var(--border-light);
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-dark);
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.detail-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+    background: var(--cream);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.detail-input {
+    background: var(--bg-surface);
+    border: 2px solid var(--border-dark);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: var(--text-primary);
+    width: 200px;
+    min-height: 40px;
+    transition: all 0.3s ease;
+}
+
+.detail-input:focus {
+    outline: none;
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+    background: var(--bg-card);
+}
+
+.detail-input::placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.detail-value {
+    font-size: 14px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* 區段標題 - 混合設計 */
+.section-title {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 1.4rem;
+    margin-bottom: 16px;
+    padding: 8px 16px;
+    background: var(--gradient-brown);
+    border-radius: 8px;
+    display: inline-block;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--shadow-soft);
+}
+
+.section-title i {
+    margin-right: 8px;
+    color: var(--accent-purple);
+}
+
+/* 操作按鈕區域 */
+.action-controls {
+    display: flex;
+    gap: 12px;
+    margin: 20px 0;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: var(--shadow-soft);
+}
+
+.action-btn.primary {
+    background: var(--gradient-modern);
+    color: white;
+}
+
+.action-btn.secondary {
+    background: var(--gradient-brown);
+    color: white;
+}
+
+.action-btn.warning {
+    background: var(--gradient-warm);
+    color: white;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .hybrid-card-container {
+        margin: 8px;
+        padding: 16px;
+    }
+    
+    .hybrid-attributes-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 140px));
+        gap: 8px;
+        justify-content: center;
+    }
+    
+    .attribute-panel {
+        min-height: 100px;
+        padding: 12px 8px;
+    }
+    
+    .attribute-value-display {
+        font-size: 20px;
+    }
+    
+    .character-details {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .action-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .action-btn {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .hybrid-attributes-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 120px));
+        justify-content: center;
+    }
+    
+    .attribute-panel {
+        min-height: 80px;
+    }
+    
+    .attribute-value-display {
+        font-size: 18px;
+    }
+}
+
+/* 載入動畫 */
+.loading {
+    position: relative;
+    overflow: hidden;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Edit Mode 樣式 */
+.edit-mode .attribute-panel {
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+.edit-mode .attribute-edit {
+    display: block !important;
+}
+
+.attribute-edit {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-dark);
+}
+
+.attribute-edit input {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-dark);
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 12px;
+    color: var(--text-primary);
+    width: 100%;
+    margin-bottom: 4px;
+}
+
+.attribute-edit input:focus {
+    outline: none;
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+/* 基本屬性顯示格式 */
+.attribute-display {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    justify-content: center;
+}
+
+.attribute-current {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.attribute-max {
+    font-size: 14px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.attribute-separator {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+/* 編輯模式輸入框樣式 */
+.edit-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.edit-input {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-dark);
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 12px;
+    color: var(--text-primary);
+    width: 100%;
+    text-align: center;
+}
+
+.edit-input:focus {
+    outline: none;
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+.edit-number-inputs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.edit-separator {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* 按鈕載入狀態 */
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

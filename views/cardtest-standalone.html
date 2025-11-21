@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<!-- HKTRPG Sad-->
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="css/card.css">
+    <link rel="stylesheet" href="css/modern-card.css">
+    <link rel="stylesheet" href="css/hybrid-card.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+        integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <!-- production version, optimized for size and speed -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <title>Character Card 角色卡 @ HKTRPG - 混合設計測試版</title>
+    <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <!-- Font Awesome for modern icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous">
+</head>
+
+<body class="bg-color" id="body">
+    <header>
+        <div id="header">
+            <h1>HKTRPG 角色卡系統 - 混合設計測試版</h1>
+            <p>測試新的混合設計UI，包含編輯模式、浮動按鈕和角色詳情網格</p>
+        </div>
+    </header>
+    <br>
+    <div class="container-fluid px-3 px-md-4 py-3" id="array-rendering">
+        <!-- Loading indicator -->
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">載入中...</span>
+            </div>
+            <p class="mt-3">載入混合設計UI...</p>
+        </div>
+        
+        <!-- Alerts -->
+        <div class="alert alert-success alert-dismissible fade show overlay" style="position: fixed; z-index: 999; display: none;" role="alert" id="warning-update">
+            <i class="fas fa-check-circle me-2"></i><strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div class="alert alert-danger alert-dismissible fade show overlay" style="position: fixed; z-index: 999; display: none;" role="alert" id="warning-updateError">
+            <i class="fas fa-exclamation-triangle me-2"></i><strong>更新失敗!</strong> 請檢查或向HKTRPG回報。
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    <footer>
+        <div id="footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>測試功能說明</h5>
+                        <ul>
+                            <li><strong>編輯模式：</strong> 點擊"編輯模式"按鈕，所有文字和數字項目變為可編輯</li>
+                            <li><strong>浮動+按鈕：</strong> 將滑鼠懸停在各區域上，會顯示浮動的+按鈕</li>
+                            <li><strong>角色詳情：</strong> 網格佈局，標題和數值都可編輯</li>
+                            <li><strong>響應式設計：</strong> 在手機上自動調整佈局</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>路由測試</h5>
+                        <ul>
+                            <li><a href="/card">原始角色卡</a></li>
+                            <li><a href="/publiccard">公開角色卡</a></li>
+                            <li><a href="/cardtest">混合設計測試版</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <hr>
+                <p>&copy; 2024 HKTRPG. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Common Modals -->
+    <div id="commonModals"></div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js"
+        integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s" crossorigin="anonymous">
+    </script>
+
+    <!-- Common JavaScript -->
+    <script src="/common/characterCardCommon.js"></script>
+
+    <!-- Page Specific JavaScript -->
+    <script>
+        // Load common modals first
+        $("#commonModals").load("/common/characterCardModals.html", function() {
+            debugLog('Modals loaded', 'info');
+            
+            // Then load hybrid UI template
+            $("#array-rendering").load("/common/hybridCharacterCardUI.html", function() {
+                debugLog('Hybrid UI template loaded, initializing Vue apps', 'info');
+                
+                // Initialize Vue apps after everything is loaded
+                setTimeout(function() {
+                    initializeVueApps(false); // Initialize for private card
+                    debugLog('Vue apps initialized', 'info');
+                }, 100); // Small delay to ensure DOM is ready
+            });
+        });
+
+        // Hide alerts initially
+        $('#warning-update').hide();
+        $('#warning-updateError').hide();
+
+        // Initialize on body load
+        document.getElementById("body").onload = function () {
+            debugLog('Body loaded, initializing private card', 'info');
+        };
+
+        // Update card function with loading states
+        function updateCard() {
+            const userName = localStorage.getItem("userName");
+            const userPassword = localStorage.getItem("userPassword");
+
+            if (!userName || !userPassword) {
+                debugLog('User not logged in, cannot update card', 'error');
+                showError('請先登入才能更新角色卡');
+                return;
+            }
+
+            // Show loading state
+            const updateButton = document.querySelector('[onclick="updateCard()"]');
+            if (updateButton) {
+                updateButton.classList.add('btn-loading');
+                updateButton.disabled = true;
+            }
+
+            // Add loading class to card
+            const cardElement = document.querySelector('.board1');
+            if (cardElement) {
+                cardElement.classList.add('loading');
+            }
+
+            const data = {
+                userName: userName,
+                userPassword: userPassword,
+                card: {
+                    _id: card._id,
+                    id: card.id,
+                    state: card.state,
+                    roll: card.roll,
+                    notes: card.notes,
+                    characterDetails: card.characterDetails,
+                    public: card.public
+                }
+            };
+
+            debugLog(`Attempting to update card with data:`);
+            socket.emit('updateCard', data);
+        }
+
+        // Enhanced error display
+        function showError(message) {
+            addElement(`<i class="fas fa-exclamation-triangle me-2"></i><strong>錯誤!</strong> ${message}`, "danger", 5000, true);
+        }
+
+        // Enhanced success display
+        function showSuccess(message) {
+            addElement(`<i class="fas fa-check-circle me-2"></i><strong>成功!</strong> ${message}`, "success", 3000, true);
+        }
+
+        // Export updateCard function
+        window.updateCard = updateCard;
+    </script>
+</body>
+<!-- HKTRPG Sad -- 20201221-->
+</html>

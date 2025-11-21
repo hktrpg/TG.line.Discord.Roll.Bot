@@ -1,0 +1,444 @@
+<!-- 現代化角色卡 UI 模板 -->
+<main class="container-fluid px-3 px-md-4 py-3" id="array-rendering">
+    <!-- 角色頭部信息 -->
+    <section class="character-header mb-4">
+        <div class="modern-card-container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="character-name mb-2">
+                        <i class="fas fa-user-circle me-2 text-primary"></i>
+                        {{ name || '未命名角色' }}
+                    </h2>
+                    <div class="character-info d-flex flex-wrap gap-3">
+                        <span class="info-badge">
+                            <i class="fas fa-briefcase me-1"></i>
+                            <span class="info-label">職業:</span>
+                            <span class="info-value">冒險者</span>
+                        </span>
+                        <span class="info-badge">
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                            <span class="info-label">地點:</span>
+                            <span class="info-value">未知</span>
+                        </span>
+                        <span class="info-badge">
+                            <i class="fas fa-calendar me-1"></i>
+                            <span class="info-label">年齡:</span>
+                            <span class="info-value">未知</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="action-buttons">
+                        <button type="button" class="action-button primary" v-if="!isPublic" @click="toggleDeleteMode(0)" :title="deleteMode ? '關閉刪除模式' : '開啟刪除模式'">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                        <button type="button" class="action-button secondary" v-if="name && !isPublic" @click="updateCard" title="儲存角色卡">
+                            <i class="fas fa-save"></i>
+                        </button>
+                        <button type="button" class="action-button warning" onclick="selectCard()" title="選擇角色卡">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 公開設定 (僅私人卡片) -->
+            <div class="form-check mt-3" v-if="name && !isPublic">
+                <input class="form-check-input" type="checkbox" v-model="public" id="publicCheck">
+                <label class="form-check-label text-light" for="publicCheck">
+                    <i class="fas fa-globe me-1"></i>公開這角色卡
+                </label>
+            </div>
+        </div>
+    </section>
+
+    <!-- 群組列表 (僅私人卡片) -->
+    <section v-if="gpList && !isPublic" class="mb-4">
+        <div class="modern-card-container">
+            <h4 class="section-title mb-3">
+                <i class="fas fa-broadcast-tower me-2"></i>擲骰頻道
+                <button type="button" class="btn btn-outline-warning btn-sm float-end" @click="config()">
+                    <i class="fas fa-cog me-1"></i>設定
+                </button>
+            </h4>
+            
+            <div class="channel-list">
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="gpListRadio" value="" v-model="selectedGroupId" @change="saveSelectedGroupId" id="noGroup">
+                    <label class="form-check-label text-light" for="noGroup">
+                        不進行群組擲骰
+                    </label>
+                </div>
+                
+                <div v-for="(gp, i) in gpList" :key="gp._id" class="channel-item">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="gpListRadio" :value="gp._id" v-model="selectedGroupId" @change="saveSelectedGroupId" :id="'channel' + i">
+                        <label class="form-check-label text-light" :for="'channel' + i">
+                            <strong>編號 {{i+1}}:</strong> {{gp.botname}} - {{gp.titleName}}
+                        </label>
+                    </div>
+                    
+                    <div class="channel-actions" v-if="gp.showDeleteButton">
+                        <button type="button" class="btn btn-danger btn-sm me-2" @click="confirmRemoveChannel(gp)">
+                            {{ gp.confirmDelete ? '確定刪除' : '移除?' }}
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm" v-if="gp.showCancelButton" @click="cancelButton(gp)">
+                            取消
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 屬性區域 - 現代化網格設計 -->
+    <section class="attributes-section mb-4">
+        <div class="modern-card-container">
+            <h4 class="section-title mb-3">
+                <i class="fas fa-chart-line me-2"></i>基本屬性
+                <div class="float-end" v-if="name && !isPublic">
+                    <button type="button" class="btn btn-outline-success btn-sm me-2" @click="addItem(0)">
+                        <i class="fas fa-plus me-1"></i>新增
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" @click="removeItem(0)">
+                        <i class="fas fa-minus me-1"></i>刪除
+                    </button>
+                </div>
+            </h4>
+            
+            <div class="attributes-grid">
+                <div v-for="(item, index) in state" :key="index" 
+                     class="attribute-card" 
+                     :class="getAttributeCardClass(index)"
+                     @click="rolling(item.name)">
+                    <button type="button" class="dice-button" @click.stop="rolling(item.name)" title="擲骰">
+                        <i class="fas fa-dice-d20"></i>
+                    </button>
+                    
+                    <div class="attribute-name">{{ item.name || '屬性' }}</div>
+                    <div class="attribute-percentage">{{ calculatePercentage(item.itemA, item.itemB) }}</div>
+                    <div class="attribute-values">
+                        <span class="attribute-value">{{ item.itemA || '0' }}</span>
+                        <span class="attribute-divider">|</span>
+                        <span class="attribute-value">{{ item.itemB || '0' }}</span>
+                    </div>
+                    
+                    <!-- 編輯區域 (僅私人卡片) -->
+                    <div v-if="!isPublic" class="attribute-edit mt-2" @click.stop>
+                        <input type="text" 
+                               class="form-control form-control-sm text-center" 
+                               v-model="item.name" 
+                               placeholder="屬性名稱"
+                               @click.stop>
+                        <div class="d-flex gap-1 mt-1">
+                            <input type="number" 
+                                   class="form-control form-control-sm text-center" 
+                                   v-model.number="item.itemA" 
+                                   placeholder="值1"
+                                   @click.stop>
+                            <input type="number" 
+                                   class="form-control form-control-sm text-center" 
+                                   v-model.number="item.itemB" 
+                                   placeholder="值2"
+                                   @click.stop>
+                        </div>
+                    </div>
+                    
+                    <!-- 刪除按鈕 (僅刪除模式) -->
+                    <button type="button" 
+                            class="btn btn-danger btn-sm mt-2 w-100" 
+                            v-if="deleteMode && !isPublic" 
+                            @click.stop="removeItem(0, index)">
+                        <i class="fas fa-trash me-1"></i>刪除
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 擲骰區域 - 現代化設計 -->
+    <section class="rolls-section mb-4">
+        <div class="modern-card-container">
+            <h4 class="section-title mb-3">
+                <i class="fas fa-dice me-2"></i>擲骰技能
+                <div class="float-end" v-if="name && !isPublic">
+                    <button type="button" class="btn btn-outline-success btn-sm me-2" @click="addItem(1)">
+                        <i class="fas fa-plus me-1"></i>新增
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" @click="removeItem(1)">
+                        <i class="fas fa-minus me-1"></i>刪除
+                    </button>
+                </div>
+            </h4>
+            
+            <div class="rolls-grid">
+                <div v-for="(item, index) in roll" :key="index" 
+                     class="roll-card"
+                     @click="rolling(item.name)">
+                    <div class="roll-content">
+                        <div class="roll-name">{{ item.name || '技能' }}</div>
+                        <div class="roll-value">{{ item.itemA || '0' }}%</div>
+                    </div>
+                    <button type="button" class="roll-dice-btn" @click.stop="rolling(item.name)" title="擲骰">
+                        <i class="fas fa-dice-d20"></i>
+                    </button>
+                    
+                    <!-- 編輯區域 (僅私人卡片) -->
+                    <div v-if="!isPublic" class="roll-edit mt-2" @click.stop>
+                        <input type="text" 
+                               class="form-control form-control-sm" 
+                               v-model="item.name" 
+                               placeholder="技能名稱"
+                               @click.stop>
+                        <input type="number" 
+                               class="form-control form-control-sm mt-1" 
+                               v-model.number="item.itemA" 
+                               placeholder="數值"
+                               @click.stop>
+                    </div>
+                    
+                    <!-- 刪除按鈕 (僅刪除模式) -->
+                    <button type="button" 
+                            class="btn btn-danger btn-sm mt-2 w-100" 
+                            v-if="deleteMode && !isPublic" 
+                            @click.stop="removeItem(1, index)">
+                        <i class="fas fa-trash me-1"></i>刪除
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 筆記區域 - 現代化設計 -->
+    <section class="notes-section mb-4">
+        <div class="modern-card-container">
+            <h4 class="section-title mb-3">
+                <i class="fas fa-sticky-note me-2"></i>筆記
+                <div class="float-end" v-if="name && !isPublic">
+                    <button type="button" class="btn btn-outline-success btn-sm me-2" @click="addItem(2)">
+                        <i class="fas fa-plus me-1"></i>新增
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" @click="removeItem(2)">
+                        <i class="fas fa-minus me-1"></i>刪除
+                    </button>
+                </div>
+            </h4>
+            
+            <div class="notes-grid">
+                <div v-for="(item, index) in notes" :key="index" class="note-card">
+                    <div class="note-header">
+                        <div class="note-title">{{ item.name || '筆記標題' }}</div>
+                        <button type="button" 
+                                class="btn btn-danger btn-sm" 
+                                v-if="deleteMode && !isPublic" 
+                                @click="removeItem(2, index)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="note-content">
+                        <textarea v-if="!isPublic" 
+                                  class="form-control" 
+                                  v-model="item.itemA" 
+                                  placeholder="輸入筆記內容..."
+                                  rows="3"></textarea>
+                        <div v-else class="note-text">{{ item.itemA || '無內容' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<style>
+/* 角色頭部樣式 */
+.character-header .character-name {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 2rem;
+}
+
+.character-info .info-badge {
+    background: var(--bg-surface);
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.info-label {
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+.info-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* 區段標題 */
+.section-title {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 1.25rem;
+    border-bottom: 2px solid var(--primary-purple);
+    padding-bottom: 8px;
+    display: inline-block;
+}
+
+/* 頻道列表樣式 */
+.channel-list {
+    background: var(--bg-surface);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.channel-item {
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: var(--bg-card);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.channel-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* 擲骰網格 */
+.rolls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.roll-card {
+    background: var(--bg-surface);
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.roll-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-teal);
+}
+
+.roll-content {
+    text-align: center;
+}
+
+.roll-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.roll-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.roll-dice-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    background: var(--gradient-secondary);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.roll-dice-btn:hover {
+    transform: scale(1.1);
+}
+
+/* 筆記網格 */
+.notes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.note-card {
+    background: var(--bg-surface);
+    border-radius: 12px;
+    padding: 16px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.note-card:hover {
+    border-color: var(--primary-emerald);
+    box-shadow: var(--shadow-md);
+}
+
+.note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.note-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.note-content .note-text {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    min-height: 60px;
+    padding: 12px;
+    background: var(--bg-card);
+    border-radius: 8px;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .character-header .character-name {
+        font-size: 1.5rem;
+    }
+    
+    .character-info {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .rolls-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .notes-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .channel-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .channel-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+</style>

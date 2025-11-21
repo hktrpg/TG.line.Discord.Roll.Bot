@@ -1,696 +1,144 @@
 <!doctype html>
 <html lang="zh-Hant-HK">
-<!-- HKTRPG Sad-->
-<link rel="stylesheet" href="css/card.css">
-
+<!-- HKTRPG Sad -->
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <!-- Bootstrap CSS -->
+    
+    <!-- Socket.io -->
     <script src="/socket.io/socket.io.js"></script>
+    
+    <!-- CSS Files - Order matters for specificity -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/utilities.css">
+    <link rel="stylesheet" href="css/card.css">
+    <link rel="stylesheet" href="css/modern-card.css">
+    <link rel="stylesheet" href="css/hybrid-card-optimized.css">
+    
+    <!-- Bootstrap CSS - Load after custom CSS to allow overrides -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
         integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
-    <!-- production version, optimized for size and speed -->
+    
+    <!-- Bootstrap Overrides - Load after Bootstrap to override with higher specificity -->
+    <link rel="stylesheet" href="css/bootstrap-overrides.css">
+    
+    <!-- Google Fonts - Noto Sans CJK for Chinese character support -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+CJK+TC:wght@400;500;700&family=Noto+Sans+CJK+SC:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous">
+    
+    <!-- Vue.js -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    
+    <!-- Iconify -->
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    
     <title>Character Card 角色卡 @ HKTRPG</title>
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
-    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
-    <!--https://blog.gtwang.org/programming/javascript-aes-symmetric-encryption-tutorial/-->
 </head>
 
-<body class="bg-color center container" id="body">
+<body class="bg-color " id="body">
     <header>
         <div id="header"></div>
     </header>
     <br>
-    <div class="container" id="array-rendering">
-        <div class="alert alert-warning alert-dismissible fade show overlay" style="position: fixed;
-        z-index: 999;" role="alert" id="warning-update">
+    
+    <div class="container-fluid px-3 px-md-4 py-3">
+        <!-- Success Alert -->
+        <div class="alert alert-success alert-dismissible fade show overlay" 
+             style="position: fixed; z-index: 999; display: none;" 
+             role="alert" id="warning-update">
+            <i class="fas fa-check-circle me-2"></i>
             <strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div class="alert alert-warning alert-dismissible fade show overlay" style="position: fixed;
-        z-index: 999;" role="alert" id="warning-updateError">
+        
+        <!-- Error Alert -->
+        <div class="alert alert-danger alert-dismissible fade show overlay" 
+             style="position: fixed; z-index: 999; display: none;" 
+             role="alert" id="warning-updateError">
+            <i class="fas fa-exclamation-triangle me-2"></i>
             <strong>更新失敗!</strong> 請檢查或向HKTRPG回報。
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div id="buttonlist">
-            <button type="button" class="btn btn-primary float-right" onclick="logout()">
-                <span class="iconify" data-icon="mdi:login" data-inline="false"></span>登入/登出
-            </button>
-            <button type="button" class="btn btn-secondary float-right" onclick="selectCard()">
-                <span class="iconify" data-icon="grommet-icons:select" data-inline="false"></span>選擇角色卡
-            </button>
-            <button type="button" class="btn btn-warning float-right" v-if="name" @click="toggleDeleteMode(0)">
-                <span class="iconify" data-icon="carbon:column-delete" data-inline="false"></span>
-                {{ deleteMode ? '關閉刪除欄位模式' : '開啟刪除欄位模式' }}
-            </button>
-
-            <button type="button" class="btn btn-info float-right" v-if="name" onclick="updateCard()">
-                <span class="iconify" data-icon="ic:outline-save-alt" data-inline="false"></span>儲存角色卡
-            </button>
-            <button type="button" class="btn btn-dark float-right" onclick="readme()">
-                <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
-            </button>
-            <h3>
-                <span class="iconify" data-icon="wpf:name" data-inline="false"></span> {{name}}
-            </h3>
-            <div class="form-check" v-if="name">
-                <input class="form-check-input" type="checkbox" value="true" v-model="public" id="invalidCheck">
-                <label class="form-check-label" for="invalidCheck">
-                    公開這角色卡
-                </label>
-            </div>
-        </div>
-        <div id="groupList" v-if="gpList">
-            <br>
-            <h4 class="bg-color3 p-1">
-                <span class="iconify" data-icon="grommet-icons:channel" data-inline="false" data-width="20px"
-                    data-height="20px"></span>擲骰頻道
-            </h4>
-            <button type="button" class="btn btn-warning float-right" v-on:click="config()">
-                設定
-            </button>
-            <label>
-                <input type="radio" name="gpListRadio" value="null" checked />
-                不進行群組擲骰
-            </label>
-            <div v-for="(gp, i) in gpList">
-                <label>
-                    <input type="radio" name="gpListRadio" v-bind:value="gp._id" />
-                    編號: {{i+1}} 平台: {{gp.botname}} 群組名稱: {{gp.titleName}}
-                </label>
-                <button type="button" class="btn btn-danger" v-if="gp.showDeleteButton"
-                    v-on:click="confirmRemoveChannel(gp)">
-                    {{ gp.confirmDelete ? '確定' : '移除?' }}
-                </button>
-                <button type="button" class="btn btn-danger" v-if="gp.showCancelButton" v-on:click="cancelButton(gp)">
-                    取消
-                </button>
-            </div>
-        </div>
-        <br>
-        <div id="attributeList" class="mt-4">
-            <h4 class="bg-color3 p-1">
-                <span class="iconify" data-icon="carbon:data-base" data-inline="false" data-width="20px"
-                    data-height="20px"></span> 基本屬性
-            </h4>
-
-            <button type="button" class="btn btn-warning float-right" v-if="name" @click="addItem(0)">+</button>
-            <button type="button" class="btn btn-warning float-right" v-if="name" @click="removeLastItem(0)">-</button>
-            <div class="row align-items-start m-1 p-1">
-                <div v-for="(item, index) in state" class="board1" style="height: 36px;">
-                    <div>
-                        <textarea class="textName" v-model="item.name"
-                            style="width:50px;padding: 1px;">{{item.name}}</textarea>
-                        <span class="centered-text">：</span>
-                        <textarea class="textState" v-model="item.itemA"
-                            style="width:55px;padding: 1px;">{{item.itemA}}</textarea>
-                        <span class="centered-text">／</span>
-                        <textarea class="textState" v-model="item.itemB"
-                            style="width:55px;padding: 1px;">{{item.itemB}}</textarea>
-                        <button type="button" class="btn btn-link" @click="rolling(item.name)">
-                            <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
-                                data-height="20px"></span>
-                        </button>
-                        <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode"
-                            @click="removeItem(index, 0)">刪除</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <br>
-        <div id="rollList">
-            <h4 class=" bg-color3 p-1">
-                <span class="iconify" data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
-                    data-height="20px"></span>擲骰
-            </h4>
-            <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(1)">
-                +
-            </button>
-            <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(1)">
-                -
-            </button>
-            <div class="row align-items-start m-1 p-1" id="roll">
-                <div v-for="(item, index)  in roll" class="board1" style="height: 36px;padding: 1px 1px 1px 1px">
-                    <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
-                    {{item.name}}
-                </textarea><span class="pb-2">:</span>
-                    <textarea class="col textState" v-model="item.itemA" style="width:80px;padding: 1px 1px 1px 1px">
-                    {{item.itemA}}
-                </textarea><button type="button" class="btn btn-link" v-on:click="rolling(item.name)"><span
-                            class="iconify " data-icon="fa-solid:dice-d20" data-inline="false" data-width="20px"
-                            data-height="20px"></span></button>
-                    <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode"
-                        @click="removeItem(index, 1)">
-                        刪除
-                    </button>
-                </div>
-            </div>
-        </div>
-        <br>
-        <div id="noteList">
-            <h4 class=" bg-color3 p-1">
-                <span class="iconify" data-icon="clarity:note-edit-line" data-inline="false" data-width="20px"
-                    data-height="20px"></span>筆記
-            </h4>
-            <button type="button" class="btn btn-warning float-right" v-if="name" onclick="newItem(2)">
-                +
-            </button>
-            <button type="button" class="btn btn-warning float-right" v-if="name" onclick="removeItem(2)">
-                -
-            </button>
-            <div class="row align-items-end" id="notes">
-                <div v-for="(item, index)  in notes" class="board1">
-                    <textarea class="col textName" v-model="item.name" style="width:80px;padding: 1px 1px 1px 1px">
-                    {{item.name}}
-                </textarea>：
-                    <textarea class="col textNote" v-model="item.itemA" style="width:180px">
-                    {{item.itemA}}
-                </textarea>
-                    <button type="button" class="btn btn-danger btn-delete" v-if="deleteMode"
-                        @click="removeItem(index, 2)">
-                        刪除
-                    </button>
-                </div>
-            </div>
+        
+        <!-- Vue App Container -->
+        <div id="array-rendering" class="container-fluid px-3 px-md-4 py-3">
+            <!-- Hybrid UI Template will be loaded here -->
         </div>
     </div>
-    <!-- Button trigger modal -->
-
-    <!-- Modal -->
-    <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="loginModalLabel">HKTRPG 角色卡登入系統</h5>
-                </div>
-                <div class="modal-body">
-                    <form id="card-Form">
-                        <div class="form-group">
-                            <label for="userName_id">使用者名稱</label>
-                            <input type="email" class="form-control" id="userName_id" autocomplete="current-username"
-                                aria-describedby="emailHelp" placeholder="輸入名稱">
-                            <small id="emailHelp" class="form-text text-muted"></small>
-                        </div>
-                        <div class="form-group">
-                            <label for="userPassword_id">Password</label>
-                            <input type="password" class="form-control" id="userPassword_id"
-                                autocomplete="current-password" placeholder="Password">
-                        </div>
-                    </form>
-                </div>
-                <div id="warning" class="small" style="color:red;display:none">登入失敗或沒有角色卡</div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-dark float-right" onclick="readme()">
-                        <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
-                    </button>
-                    <button type="button" class="btn btn-primary" onclick="login()">登入</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <div class="modal fade" id="cardListModal" tabindex="-1" role="dialog" aria-labelledby="cardListModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="cardListModalLabel">選擇角色卡</h5>
-                </div>
-                <div class="modal-body">
-                    <form id="cardList-Form">
-                        <div class="form-group">
-                            <div id="array-cardList">
-                                <span v-for="(item,index) in list" :key="index" class="col">
-                                    <button type="button" class="btn btn-warning m-1"
-                                        v-on:click="getTheSelectedOne(index)">
-                                        {{item.name}}</button>
-                                </span>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="readmeModalCenter" tabindex="-1" role="dialog" aria-labelledby="readmeModalCenterTitle"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="readmeModalLongTitle">使用說明</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    使用前，首先要與HKTRPG骰子機器人對話，<br>
-                    新增一張角色卡及一個管理用的ACC。<br>
-                    方法如下:<br>
-                    <strong> 1. 新增角色卡</strong><br>
-                    <img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/raw/master/views/image/d01.jpg"
-                        alt="01" class="img-thumbnail">
-                    對HKTRPG(在discord之類的平台) 輸入 .char add name[Sad]~ state[HP:15/15;mp:10/10;con:60;]~ roll[鬥毆: cc 50;心理學:
-                    cc 60;]~
-                    notes[筆記:這是測試,請試試在群組輸入 .char use Sad;]~<br>
-                    Sad 是角色的名字，可以改成其他，也可以在這步直接設定能力值，<br>
-                    詳細說明請輸入.char<br><br>
-                    <strong> 2. 新增管理用的ACC</strong><br>
-                    <img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/raw/master/views/image/d02.jpg"
-                        alt="02" class="img-thumbnail">
-                    對HKTRPG輸入.admin account (帳號) (密碼)<br>
-                    成功後，在這網頁 輸入帳號密碼，<br>
-                    就可以管理角色卡，在網頁上 修改角色卡能力。<br><br>
-                    <strong>3.在頻道中使用角卡</strong><br>
-                    詳細可看 <a href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/wiki/Character-Card"
-                        class="tooltip-Character" title="Tooltip">HKTRPG WIKI</a> <br>
-                    <img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/raw/master/views/image/d03.jpg"
-                        alt="03" class="img-thumbnail">
-                    但簡單來說，在你想使用這張角色卡的聊天軟件頻道輸入<br>
-                    .char use Sad 或你角色名字，就可以使用角卡<br>
-                    <img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/raw/master/views/image/d04.jpg"
-                        alt="04" class="img-thumbnail">
-                    例如你在擲骰欄有一招名叫 鬥毆 內容是 cc 80<br>
-                    那你在登記了的頻道輸入 .ch 鬥毆 就可以使出 cc 80<br>
-                    又或你在 基本屬性 中加入一個 HP 18<br>
-                    那你輸入 .ch hp -6 就可以扣減HP<br>
-                    <br>
-                    <strong>4.把擲骰結果傳送到已登記的Discord，TG，LINE上的聊天群組上: </strong><br>
-                    <img src="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/raw/master/views/image/d05.jpg"
-                        alt="05" class="img-thumbnail">
-                    讓你可以在使用網頁,直接在聊天軟件擲骰，不用再打指令，<br>
-                    輸入後你的網站角色卡就會顯示該平台名稱，讓你可以選擇<br>
-                    A) 由該群組的Admin授權允許 輸入 .admin allowrolling <br>
-                    B) 登記該群組到自己的名單中 輸入 .admin registerChannel <br>
-                    <br>
-                    取消方法<br>
-                    A) 由該群組的Admin取消授權 輸入 .admin disallowrolling <br>
-                    B) 取消登記該群組到名單 輸入 .admin unregisterChannel <br>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    
     <footer>
         <div id="footer"></div>
     </footer>
 
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <!-- Common Modals -->
+    <div id="commonModals"></div>
 
+    <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
         integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
-        </script>
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js"
         integrity="sha384-w1Q4orYjBQndcko6MimVbzY0tgp4pWB4lZ7lr30WKz0vr/aWKhXdBNmNb5D92v7s" crossorigin="anonymous">
-        </script>
-    <script>
-        const TITLE = "HKTRPG 私人角色卡";
-        $(function () {
-            $("#header").load("includes/header.html", function () {
-                $("#title").text(TITLE);
-            });
-            $("#footer").load("includes/footer.html");
-        });
-
-
     </script>
+
+    <!-- Common JavaScript Modules -->
+    <script src="/common/cardManager.js"></script>
+    <script src="/common/authManager.js"></script>
+    <script src="/common/uiManager.js"></script>
+    <script src="/common/socketManager.js"></script>
+    <script src="/common/pageConfigManager.js"></script>
+    <script src="/common/characterCardCommon.js"></script>
+
+    <!-- Page Specific JavaScript -->
     <script>
-        $('#warning-update').hide();
-        $('#warning-updateError').hide();
-        let socket = io();
-        let userName = localStorage.getItem("userName");
-        let userPassword = localStorage.getItem("userPassword");
-        document.getElementById("userName_id").value = userName;
-        document.getElementById("userPassword_id").value = userPassword;
-        document.getElementById("body").onload = function () {
-            login();
-        };
+        const IS_PUBLIC = false;
 
-        function readme() {
-            $('#readmeModalCenter').modal("show")
-        }
+        document.addEventListener('DOMContentLoaded', function () {
+            $('#warning-update').hide();
+            $('#warning-updateError').hide();
 
-        function popup(result) {
-            if (result) {
-                $('#warning-update').show();
-                setTimeout(function () {
-                    // Closing the alert 
-                    $('#warning-update').hide();
-                }, 5000);
-            }
-            if (!result) {
-                $('#warning-updateError').show();
-                setTimeout(function () {
-                    // Closing the alert 
-                    $('#warning-updateError').hide();
-                }, 5000);
-            }
+            $("#commonModals").load("/common/characterCardModals.html", function () {
+                debugLog('Modals loaded', 'info');
+                // 模態框載入完成後初始化Vue應用
+                initializeVueApps(IS_PUBLIC, true);
+            });
 
-        }
-
-        function updateCard() {
-            socket.emit('updateCard', {
-                userName: userName,
-                userPassword: userPassword,
-                card: {
-                    _id: card._id,
-                    id: card.id,
-                    name: card.name,
-                    state: card.state,
-                    roll: card.roll,
-                    notes: card.notes,
-                    gpList: card.gpList,
-                    public: card.public,
-                    deleteMode: card.deleteMode
+            socket.on('cardUpdated', function (data) {
+                if (data && data.success) {
+                    $('#warning-update').show();
+                    setTimeout(function(){ $('#warning-update').hide(); }, 3000);
+                } else {
+                    $('#warning-updateError').show();
+                    setTimeout(function(){ $('#warning-updateError').hide(); }, 3000);
                 }
             });
-        }
-        socket.on("updateCard", function (result) {
-            popup(result);
-        })
 
-        function newItem(form) {
-            switch (form) {
-                case 0:
-                    card.state.push({
-                        itemA: ""
-                    });
-                    break;
-                case 1:
-                    card.roll.push({
-                        itemA: ""
-                    });
-                    break;
-                case 2:
-                    card.notes.push({
-                        itemA: ""
-                    });
-                    break;
-                default:
-                    break;
-            }
-
-        }
-        let divNumber = 0;
-
-        function addElement(message, type, closeDelay) {
-            let $cont = $("#alerts-container");
-            if ($cont.length == 0) {
-                // alerts-container does not exist, create it
-                $cont = $('<div id="alerts-container">')
-                    .css({
-                        position: "fixed",
-                        width: "30%",
-                        left: "60%",
-                        top: "15%",
-                        margin: "0 auto"
-                    })
-                    .appendTo($("body"));
-            }
-
-            // default to alert-info; other options include success, warning, danger
-            type = type || "info";
-
-            // create the alert div
-            let alert = $('<div>')
-                .addClass("alert text-wrap text-break warning alert-dismissible fade show overlay alert-" + type)
-                .append(
-                    $('<button type="button" class="close" data-dismiss="alert">')
-                        .append("&times;")
-                )
-                .append(message);
-
-            // add the alert div to top of alerts-container, use append() to add to bottom
-            $cont.prepend(alert);
-
-            // if closeDelay was passed - set a timeout to close the alert
-            if (closeDelay)
-                window.setTimeout(function () {
-                    alert.alert("close")
-                }, closeDelay);
-
-        }
-
-
-        function removeItem(form) {
-            switch (form) {
-                case 0:
-                    card.state.pop();
-                    break;
-                case 1:
-                    card.roll.pop();
-                    break;
-                case 2:
-                    card.notes.pop();
-                    break;
-                default:
-                    break;
-            }
-
-        }
-
-        function logout() {
-            document.getElementById("warning").style.display = "none";
-            $('#loginModal').modal("show")
-            card._id = "";
-            card.id = "";
-            card.name = "";
-            card.notes = "";
-            card.roll = "";
-            card.state = "";
-            card.public = false;
-        }
-
-        function selectCard() {
-            $('#cardListModal').modal("show")
-        }
-
-        function login() {
-            userName = document.getElementById("userName_id").value;
-            userPassword = document.getElementById("userPassword_id").value;
-            localStorage.setItem('userName', userName);
-            localStorage.setItem('userPassword', userPassword);
-            if (userName && userName.length >= 4 && userPassword && userPassword.length >= 6) {
-                document.getElementById("userName_id").value = userName;
-                document.getElementById("userPassword_id").value = userPassword;
-                socket.emit('getListInfo', {
-                    userName: userName,
-                    userPassword: userPassword
-                })
-                socket.on("getListInfo", function (listInfo) {
-                    let list = listInfo.temp;
-                    if (listInfo && listInfo.id && listInfo.id.length > 0) {
-                        card.gpList = listInfo.id
+            // 添加頁面卸載前的檢查 - 防止未保存變更遺失
+            window.addEventListener('beforeunload', function (event) {
+                if (cardManager && cardManager.getCard) {
+                    const card = cardManager.getCard();
+                    if (card && !card.isPublic) {
+                        // 檢查是否有未保存的變更
+                        if (card.hasUnsavedChanges) {
+                            // 顯示確認對話框
+                            event.preventDefault();
+                            event.returnValue = '您有未儲存的變更，確定要離開嗎？未儲存的變更將會遺失。';
+                            return event.returnValue;
+                        }
                     }
-                    if (list) {
-                        document.getElementById("warning").style.display = "none";
-                        cardList.list = list
-                        $('#loginModal').modal("hide");
-                        $('#cardListModal').modal("show");
-                    } else {
-                        document.getElementById("warning").style.display = "block";
-                        $('#loginModal').modal("show")
-                    }
-                });
-            } else {
-                $('#loginModal').modal("show")
-            }
-        }
-
-        let card = Vue.createApp({
-            data() {
-                return {
-                    id: "",
-                    name: "",
-                    state: [],
-                    roll: [],
-                    notes: [],
-                    gpList: "",
-                    public: false,
-                    deleteMode: false
                 }
-            },
-            methods: {
-                addItem(form) {
-                    switch (form) {
-                        case 0:
-                            this.state.push({
-                                name: "",
-                                itemA: "",
-                                itemB: ""
-                            });
-                            break;
-                        case 1:
-                            this.roll.push({
-                                name: "",
-                                itemA: ""
-                            });
-                            break;
-                        case 2:
-                            this.notes.push({
-                                name: "",
-                                itemA: ""
-                            });
-                            break;
-                    }
-                },
-                removeLastItem(form) {
-                    switch (form) {
-                        case 0:
-                            if (this.state.length > 0) {
-                                this.state.pop();
-                            }
-                            break;
-                        case 1:
-                            if (this.roll.length > 0) {
-                                this.roll.pop();
-                            }
-                            break;
-                        case 2:
-                            if (this.notes.length > 0) {
-                                this.notes.pop();
-                            }
-                            break;
-                    }
-                },
-                toggleDeleteMode(form) {
-                    this.deleteMode = !this.deleteMode; // 切換刪除模式
-
-                },
-                removeItem(index, form) {
-
-                    switch (form) {
-                        case 0:
-                            this.state.splice(index, 1); // 刪除基本屬性項目
-                            break;
-                        case 1:
-                            this.roll.splice(index, 1); // 刪除擲骰項目
-                            break;
-                        case 2:
-                            this.notes.splice(index, 1); // 刪除筆記項目
-                            break;
-                        default:
-                            break;
-                    }
-                },
-                config() {
-                    for (let gp of this.gpList) {
-                        gp.showDeleteButton = !gp.showDeleteButton;
-                        gp.confirmDelete = false;
-                        gp.showCancelButton = (gp.showDeleteButton && gp.confirmDelete)
-                    }
-                },
-                cancelButton(gp) {
-                    gp.confirmDelete = false;
-                    gp.showCancelButton = false;
-
-                },
-                confirmRemoveChannel(gp) {
-                    if (gp.confirmDelete) {
-                        this.removeChannel(gp);
-                    } else {
-                        gp.confirmDelete = true;
-                        gp.showCancelButton = true;
-                    }
-                },
-                removeChannel(gp) {
-                    socket.emit('removeChannel', {
-                        botname: gp.botname,
-                        userName: userName,
-                        userPassword: userPassword,
-                        channelId: gp.id
-                    });
-                    location.reload();
-                },
-                rolling(item) {
-                    let obj = '';
-                    if (document.querySelector('input[name="gpListRadio"]:checked')) {
-                        let temp = document.querySelector('input[name="gpListRadio"]:checked').value;
-                        obj = card.gpList.find(function (item, index, array) {
-                            return item._id == temp;
-                        });
-                    }
-                    socket.emit('rolling', {
-                        item: item,
-                        userName: userName,
-                        userPassword: userPassword,
-                        rollTarget: obj,
-                        doc: {
-                            state: card.state,
-                            roll: card.roll,
-                            notes: card.notes
-                        },
-                        cardName: card.name
-                    });
-
-
-                }
-            }
-        }).mount('#array-rendering')
-        socket.on("rolling", function (result) {
-            if (result) {
-                addElement("<strong>" + result +
-                    "</strong>", "warning", 4000);
-            }
-        })
-        let cardList = Vue.createApp({
-            data() {
-                return {
-                    list: []
-                }
-            },
-            methods: {
-                getTheSelectedOne(number) {
-                    // then number will be the number
-                    card._id = this.list[number]._id;
-                    card.id = this.list[number].id;
-                    card.name = this.list[number].name;
-                    card.notes = this.list[number].notes;
-                    card.roll = this.list[number].roll;
-                    card.state = this.list[number].state;
-                    card.public = this.list[number].public;
-                    $('#cardListModal').modal("hide")
-                }
-            }
-        }).mount('#array-cardList')
+            });
+        });
     </script>
 </body>
-<!-- HKTRPG Sad -- 20201221-->
-<!--
-
-輸入 .char online
-
--> 產生 和 顯示一組ID 和 PASSWORD.
--> 產生一個DB -> 這組ID, 對應一個ACC.
-
-
-
-試入USER NAME和 密碼, 可以登入
-
-顯示角色卡列表
-
-點擊進入, 取得內容
-
-角色卡內容可以修改
-
-修改後按碓定鍵送出
-
-
-
--->
-
+<!-- HKTRPG Sad -->
 </html>

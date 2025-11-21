@@ -4,6 +4,7 @@ if (!process.env.mongoURL) {
     return;
 }
 
+const { SlashCommandBuilder } = require('discord.js');
 const checkTools = require('../modules/check.js');
 const records = require('../modules/records.js');
 const VIP = require('../modules/veryImportantPerson');
@@ -124,7 +125,7 @@ const handleAddCommand = (inputStr, mainMsg, groupid, response, permissionError,
         }]
     };
 
-    records.pushtrpgCommandfunction('trpgCommand', newCommand, () => {
+    records.pushTrpgCommandFunction('trpgCommand', newCommand, () => {
         updateCommandData();
     });
 
@@ -158,12 +159,12 @@ const handleEditCommand = (mainMsg, groupid, response, permissionError, limit) =
     };
 
     if (existingCommand) {
-        records.editSettrpgCommandfunction('trpgCommand', updatedCommand, () => {
+        records.editsetTrpgCommandFunction('trpgCommand', updatedCommand, () => {
             updateCommandData();
         });
         response.text = `編輯成功: ${mainMsg[2]}\n${newContact}`;
     } else {
-        records.pushtrpgCommandfunction('trpgCommand', updatedCommand, () => {
+        records.pushTrpgCommandFunction('trpgCommand', updatedCommand, () => {
             updateCommandData();
         });
         response.text = `新增成功: ${mainMsg[2]}\n${newContact}`;
@@ -178,15 +179,15 @@ const handleDeleteAllCommands = (groupid, response, permissionError) => {
         return response;
     }
 
-    trpgCommandData.commands.forEach((entry) => {
+    for (const entry of trpgCommandData.commands) {
         if (entry.groupid === groupid) {
             entry.trpgCommandfunction = [];
-            records.settrpgCommandfunction('trpgCommand', entry, () => {
+            records.setTrpgCommandFunction('trpgCommand', entry, () => {
                 updateCommandData();
             });
             response.text = '已刪除所有關鍵字';
         }
-    });
+    }
     return response;
 }
 
@@ -197,23 +198,21 @@ const handleDeleteSpecificCommand = (mainMsg, groupid, response, permissionError
         return response;
     }
 
-    trpgCommandData.commands.forEach((entry) => {
+    for (const entry of trpgCommandData.commands) {
         if (entry.groupid === groupid) {
-            const index = parseInt(mainMsg[2]);
-            let target;
+            const index = Number.parseInt(mainMsg[2]);
             if (index >= 0 && index < entry.trpgCommandfunction.length) {
+                const target = entry.trpgCommandfunction[index]; // get target before deletion
                 entry.trpgCommandfunction.splice(index, 1);
-                target = entry.trpgCommandfunction[index];
-                records.settrpgCommandfunction('trpgCommand', entry, () => {
+                records.setTrpgCommandFunction('trpgCommand', entry, () => {
                     updateCommandData();
                 });
                 response.text = `刪除成功: ${mainMsg[2]}: ${target.topic} \n ${target.contact}`;
-            }
-            else {
+            } else {
                 response.text = '沒有相關關鍵字. \n請使用.cmd show 顯示列表\n\n';
             }
         }
-    });
+    }
     return response;
 }
 
@@ -224,15 +223,15 @@ const handleShowCommands = (groupid, response) => {
     }
 
     let found = false;
-    trpgCommandData.commands.forEach((entry) => {
+    for (const entry of trpgCommandData.commands) {
         if (entry.groupid === groupid) {
             response.text += '資料庫列表:';
-            entry.trpgCommandfunction.forEach((cmd, index) => {
+            for (const [index, cmd] of entry.trpgCommandfunction.entries()) {
                 found = true;
                 response.text += `\n${index}: ${cmd.topic}\n${cmd.contact}\n`;
-            });
+            }
         }
-    });
+    }
 
     if (!found) response.text = '沒有已設定的關鍵字. ';
     return response;
@@ -245,18 +244,18 @@ const handleExecuteCommand = (mainMsg, groupid, response) => {
     }
 
     let found = false;
-    trpgCommandData.commands.forEach((entry) => {
+    for (const entry of trpgCommandData.commands) {
         if (entry.groupid === groupid) {
-            entry.trpgCommandfunction.forEach((cmd) => {
+            for (const cmd of entry.trpgCommandfunction) {
                 if (cmd.topic.toLowerCase() === mainMsg[1].toLowerCase()) {
                     response.text = cmd.contact;
                     response.cmd = true;
                     found = true;
                 }
-            });
+            }
 
-            if (!found && !isNaN(mainMsg[1])) {
-                const index = parseInt(mainMsg[1]);
+            if (!found && !Number.isNaN(mainMsg[1])) {
+                const index = Number.parseInt(mainMsg[1]);
                 if (index >= 0 && index < entry.trpgCommandfunction.length) {
                     response.text = entry.trpgCommandfunction[index].contact;
                     response.cmd = true;
@@ -264,24 +263,22 @@ const handleExecuteCommand = (mainMsg, groupid, response) => {
                 }
             }
         }
-    });
+    }
 
     if (!found) response.text = '沒有相關關鍵字. ';
     return response;
 }
 
-
-
-const isDuplicateCommand = (topic, groupid, limit) => {
+const isDuplicateCommand = (topic, groupid) => {
     let isDuplicate = false;
 
-    trpgCommandData.commands.forEach((entry) => {
+    for (const entry of trpgCommandData.commands) {
         if (entry.groupid === groupid) {
             if (entry.trpgCommandfunction.some(cmd => cmd.topic.toLowerCase() === topic.toLowerCase())) {
                 isDuplicate = true;
             }
         }
-    });
+    }
 
     return isDuplicate;
 }
@@ -310,11 +307,121 @@ const updateCommandData = () => {
     });
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('cmd')
+            .setDescription('【儲存擲骰指令功能】')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('help')
+                    .setDescription('顯示儲存擲骰指令功能的說明'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('add')
+                    .setDescription('增加新的指令組合')
+                    .addStringOption(option => 
+                        option.setName('keyword')
+                            .setDescription('關鍵字')
+                            .setRequired(true))
+                    .addStringOption(option => 
+                        option.setName('command')
+                            .setDescription('指令內容')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('edit')
+                    .setDescription('修改現有指令內容')
+                    .addStringOption(option => 
+                        option.setName('keyword')
+                            .setDescription('關鍵字')
+                            .setRequired(true))
+                    .addStringOption(option => 
+                        option.setName('command')
+                            .setDescription('新的指令內容')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示所有關鍵字列表'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('del')
+                    .setDescription('刪除指定/全部指令')
+                    .addStringOption(option => 
+                        option.setName('target')
+                            .setDescription('編號或all')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('execute')
+                    .setDescription('執行已儲存的指令')
+                    .addStringOption(option => 
+                        option.setName('keyword')
+                            .setDescription('關鍵字或編號')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            switch (subcommand) {
+                case 'help': {
+                    return `.cmd help`;
+                }
+                
+                case 'add': {
+                    const keyword = interaction.options.getString('keyword');
+                    const command = interaction.options.getString('command');
+                    if (keyword && command) {
+                        return `.cmd add ${keyword} ${command}`;
+                    } else {
+                        return '需要輸入關鍵字和指令內容\n例如: .cmd add pc1鬥毆 cc 80 鬥毆';
+                    }
+                }
+                
+                case 'edit': {
+                    const keyword = interaction.options.getString('keyword');
+                    const command = interaction.options.getString('command');
+                    if (keyword && command) {
+                        return `.cmd edit ${keyword} ${command}`;
+                    } else {
+                        return '需要輸入關鍵字和新的指令內容\n例如: .cmd edit pc1鬥毆 cc 85 鬥毆';
+                    }
+                }
+                
+                case 'show':
+                    return `.cmd show`;
+                
+                case 'del': {
+                    const target = interaction.options.getString('target');
+                    if (target) {
+                        return `.cmd del ${target}`;
+                    } else {
+                        return '需要輸入編號或all\n例如: .cmd del 1 或 .cmd del all';
+                    }
+                }
+                
+                case 'execute': {
+                    const keyword = interaction.options.getString('keyword');
+                    if (keyword) {
+                        return `.cmd ${keyword}`;
+                    } else {
+                        return '需要輸入關鍵字或編號\n例如: .cmd pc1鬥毆';
+                    }
+                }
+                
+                default:
+                    return '未知的子命令';
+            }
+        }
+    }
+];
+
 module.exports = {
     rollDiceCommand,
     initialize,
     getHelpMessage,
     prefixs,
     gameType,
-    gameName
+    gameName,
+    discordCommand
 };

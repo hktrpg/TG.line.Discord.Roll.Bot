@@ -2,12 +2,10 @@
 if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
-const { PermissionFlagsBits, PermissionsBitField } = require('discord.js');
 let variables = {};
-const oneMinuts = (process.env.DEBUG) ? 1 : 60000;
-const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60000;
-const checkTools = require('../modules/check.js');
-
+const oneMinuts = (process.env.DEBUG) ? 1 : 60_000;
+const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60_000;
+const crypto = require('crypto');
 const gameName = function () {
     return '【Discord 頻道輸出工具】'
 }
@@ -15,11 +13,10 @@ const opt = {
     upsert: true,
     runValidators: true
 }
-const VIP = require('../modules/veryImportantPerson');
-const FUNCTION_LIMIT = (process.env.DEBUG) ? [99, 99, 99, 40, 40, 99, 99, 99] : [1, 20, 40, 40, 40, 99, 99, 99];
+const FUNCTION_LIMIT = (process.env.DEBUG) ? [99, 99, 99, 99, 99, 99, 99, 99] : [1, 20, 40, 40, 40, 99, 99, 99];
 /**
  * 因為資源限制，
- * 每個guild 5分鐘可以使用一次,
+ * 每個guild 120分鐘可以使用一次,
  * 每個ACC可以一星期一次
  * 
  *  
@@ -27,10 +24,18 @@ const FUNCTION_LIMIT = (process.env.DEBUG) ? [99, 99, 99, 40, 40, 99, 99, 99] : 
  * 只有一分鐘限制
  * 
  */
-const schema = require('../modules/schema.js');
 const fs = require('fs').promises;
+const stream = require('stream');
+const { promisify } = require('util');
+const pipeline = promisify(stream.pipeline);
+const { createWriteStream } = require('fs');
+const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 const moment = require('moment-timezone');
-const CryptoJS = require("crypto-js");
+const { getPool } = require('../modules/pool');
+const htmlPool = getPool('html');
+const schema = require('../modules/schema.js');
+const VIP = require('../modules/veryImportantPerson');
+const checkTools = require('../modules/check.js');
 const gameType = function () {
     return 'Tool:Export:hktrpg'
 }
@@ -100,13 +105,15 @@ const rollDiceCommand = async function ({
         type: 'text',
         text: ''
     };
+    const limitMatch = inputStr.match(/--limit\s+(\d+)/);
+    const messageLimit = limitMatch ? Number.parseInt(limitMatch[1], 10) : null;
     let C, M;
     let data = "";
     let totalSize = 0;
     let newRawDate = [];
     let newValue = "";
-    let lv, limit, checkUser, checkGP;
-    let channelName = discordMessage.channel.name || '';
+    let limit, checkUser, checkGP;
+    let channelName = discordMessage && discordMessage.channel ? discordMessage.channel.name || '' : '';
     let date = new Date;
     let seconds = date.getSeconds();
     let minutes = date.getMinutes();
@@ -116,10 +123,16 @@ const rollDiceCommand = async function ({
     let update, gpRemainingTime, userRemainingTime;
     let theTime = new Date();
     let demoMode = false;
-    if (groupid) {
+    // Check if the message is from an interaction
+    if (discordMessage && discordMessage.isInteraction) {
+        // For slash commands, set this flag to true
+        discordMessage.isInteraction = true;
+    }
+    if (groupid && discordMessage && discordMessage.channel && discordMessage.guild && discordMessage.guild.members && discordMessage.guild.members.me) {
         hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.members.me).has(PermissionFlagsBits.ReadMessageHistory) || discordMessage.guild.members.me.permissions.has(PermissionFlagsBits.Administrator);
     }
 
+    // eslint-disable-next-line no-unused-vars
     async function replacer(first, second) {
         let users = await discordClient.users.fetch(second);
         if (users && users.username) {
@@ -129,7 +142,7 @@ const rollDiceCommand = async function ({
         }
     }
 
-    async function lots_of_messages_getter_HTML(channel, demo) {
+    async function lots_of_messages_getter_HTML(channel, demo, members, messageLimit) {
         const sum_messages = [];
         let last_id;
         let totalSize = 0;
@@ -142,27 +155,63 @@ const rollDiceCommand = async function ({
                 options.before = last_id;
             }
             const messages = await channel.messages.fetch(options);
-            totalSize += (messages.size) ? messages.size : 0;
+            totalSize += Math.max(messages.size, 0);
 
             for (const element of messages.values()) {
                 let temp;
-                if (element.type === 0 || element.type === 19) {
-                    const content = await replaceMentions(element.content);
+                const content = await replaceMentions(element.content, members);
+                const embeds = (element.embeds && element.embeds.length > 0) ? element.embeds.map(embed => embed.toJSON()) : [];
+                const attachments = (element.attachments && element.attachments.size > 0) ? element.attachments.map(attachment => attachment.toJSON()) : [];
+
+                // Handle replied-to message
+                let replyData = null;
+                if (element.referenced_message) {
+                    const repliedTo = element.referenced_message;
+                    const repliedToContent = await replaceMentions(repliedTo.content, members);
+                    const repliedToEmbeds = (repliedTo.embeds && repliedTo.embeds.length > 0) ? repliedTo.embeds.map(embed => embed.toJSON()) : [];
+                    const repliedToAttachments = (repliedTo.attachments && repliedTo.attachments.size > 0) ? repliedTo.attachments.map(attachment => attachment.toJSON()) : [];
+                    replyData = {
+                        contact: repliedToContent,
+                        userName: repliedTo.author.username,
+                        isbot: repliedTo.author.bot,
+                        attachments: repliedToAttachments,
+                        embeds: repliedToEmbeds
+                    };
+                }
+
+                if (element.type === 0 || element.type === 19 || element.type === 'DEFAULT' || element.type === 'REPLY') {
                     temp = {
                         timestamp: element.createdTimestamp,
                         contact: content,
                         userName: element.author.username,
-                        isbot: element.author.bot
+                        isbot: element.author.bot,
+                        attachments: attachments,
+                        embeds: embeds,
+                        reply_to: replyData
                     };
-                } else {
+                } else if (element.interaction && element.interaction.commandName) {
                     temp = {
                         timestamp: element.createdTimestamp,
-                        contact: element.author.username + '\n' + element.type,
+                        contact: (element.interaction.nickname || element.interaction.user.username) + '使用' + element.interaction.commandName + "\n",
                         userName: '系統信息',
-                        isbot: true
+                        isbot: true,
+                        attachments: attachments,
+                        embeds: embeds,
+                        reply_to: replyData
+                    };
+                } else { // Handle other system messages
+                     temp = {
+                        timestamp: element.createdTimestamp,
+                        contact: element.system ? (element.content || `系統訊息 Type: ${element.type}`) : (element.content || `訊息 Type: ${element.type}`),
+                        userName: element.author ? element.author.username : '系統訊息',
+                        isbot: true,
+                        attachments: [],
+                        embeds: [],
+                        reply_to: replyData
                     };
                 }
-                sum_messages.push(temp);
+                if (temp)
+                    sum_messages.push(temp);
             }
 
             last_id = messages.last().id;
@@ -174,6 +223,9 @@ const rollDiceCommand = async function ({
                     break;
                 }
             }
+            if (messageLimit && totalSize >= messageLimit) {
+                break;
+            }
         }
 
         return {
@@ -181,7 +233,7 @@ const rollDiceCommand = async function ({
             totalSize: totalSize
         };
     }
-    async function lots_of_messages_getter_TXT(channel, demo, members) {
+    async function lots_of_messages_getter_TXT(channel, demo, members, messageLimit) {
         const sum_messages = [];
         let last_id;
         let totalSize = 0;
@@ -194,13 +246,21 @@ const rollDiceCommand = async function ({
                 options.before = last_id;
             }
             const messages = await channel.messages.fetch(options);
-            totalSize += (messages.size) ? messages.size : 0;
+            totalSize += Math.max(messages.size, 0);
 
             for (const element of messages.values()) {
                 let temp;
-                const content = await replaceMentions(element.content, members);
+                let content = await replaceMentions(element.content, members);
+
+                // Handle replied-to message
+                if (element.referenced_message) {
+                    const repliedTo = element.referenced_message;
+                    const repliedToContent = await replaceMentions(repliedTo.content, members);
+                    content = `> 回覆 ${repliedTo.author.username}: ${repliedToContent.split('\n')[0]}\n\n` + content;
+                }
+
                 const processedEmbeds = await Promise.all(
-                    (element.embeds && element.embeds.length) ? element.embeds.map(async embed => {
+                    (element.embeds && element.embeds.length > 0) ? element.embeds.map(async embed => {
                         if (embed.description) {
                             return await replaceMentions(embed.description, members);
                         }
@@ -214,7 +274,7 @@ const rollDiceCommand = async function ({
                         contact: content,
                         userName: element.author.username,
                         isbot: element.author.bot,
-                        attachments: (element.attachments && element.attachments.size) ? element.attachments.map(attachment => attachment.proxyURL) : [],
+                        attachments: (element.attachments && element.attachments.size > 0) ? element.attachments.map(attachment => attachment.proxyURL) : [],
                         embeds: processedEmbeds
                     };
                 } else if (element.interaction && element.interaction.commandName) {
@@ -223,7 +283,7 @@ const rollDiceCommand = async function ({
                         contact: (element.interaction.nickname || element.interaction.user.username) + '使用' + element.interaction.commandName + "\n",
                         userName: '系統信息',
                         isbot: true,
-                        attachments: (element.attachments && element.attachments.size) ? element.attachments.map(attachment => attachment.proxyURL) : [],
+                        attachments: (element.attachments && element.attachments.size > 0) ? element.attachments.map(attachment => attachment.proxyURL) : [],
                         embeds: processedEmbeds
                     };
                 }
@@ -236,9 +296,12 @@ const rollDiceCommand = async function ({
                 break;
             }
             if (demo) {
-                if (totalSize >= 400) {
+                if (totalSize >= 500) {
                     break;
                 }
+            }
+            if (messageLimit && totalSize >= messageLimit) {
+                break;
             }
         }
 
@@ -264,15 +327,15 @@ const rollDiceCommand = async function ({
                 if (member) name = member.nickname || member.displayName;
                 if (!member) name = await discordClient.users.fetch(userId).then(user => user.username).catch(() => ""); // 嘗試獲取用戶名
                 return name ? `@${name}` : match; // 如果用戶存在，返回用戶名
-            } catch (error) {
+            } catch {
                 return match; // 如果出現錯誤，返回原始的 match
             }
         }));
 
         let replacedContent = content;
-        matches.forEach((match, index) => {
+        for (const [index, match] of matches.entries()) {
             replacedContent = replacedContent.replace(match, replacements[index]);
-        });
+        }
 
         return replacedContent;
     }
@@ -283,9 +346,7 @@ const rollDiceCommand = async function ({
             rply.text = await this.getHelpMessage();
             rply.quotes = true;
             return rply;
-        case /^html$/i.test(mainMsg[1]):
-            rply.text = "功能暫停，請先使用TXT版 .discord txt"
-            return rply;
+        case /^html$/i.test(mainMsg[1]): {
             if (!channelid || !groupid) {
                 rply.text = "這是頻道功能，需要在頻道上使用。"
                 return rply;
@@ -302,15 +363,16 @@ const rollDiceCommand = async function ({
                 rply.text = "這是Discord限定功能"
                 return rply;
             }
-            lv = await VIP.viplevelCheckUser(userid);
-            limit = FUNCTION_LIMIT[lv];
+            let lv = await VIP.viplevelCheckUser(userid);
+
+            let limit = FUNCTION_LIMIT[lv];
             checkUser = await schema.exportUser.findOne({
                 userID: userid
             });
             checkGP = await schema.exportGp.findOne({
-                groupID: userid
+                groupID: groupid
             });
-            gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 5;
+            gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 120;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
             userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
             try {
@@ -327,12 +389,14 @@ const rollDiceCommand = async function ({
                 rply.text = `此群組的冷卻時間未過，冷卻剩餘 ${millisToMinutesAndSeconds(gpRemainingTime)} 時間`;
                 return rply;
             }
+
             if (userRemainingTime < 0 && checkUser && checkUser.times >= limit) {
                 rply.text = `你每星期完整下載聊天紀錄的上限為 ${limit} 次，
-                冷卻剩餘 ${millisToMinutesAndSeconds(userRemainingTime)} 時間，
-                現在正處於Demo模式，可以輸出500條信息。
-
-                支援及解鎖上限 https://www.patreon.com/HKTRPG`;
+冷卻剩餘 ${millisToMinutesAndSeconds(userRemainingTime)} 時間，
+現在正處於Demo模式，可以輸出500條信息，
+                
+支援及解鎖上限 https://www.patreon.com/HKTRPG
+`;
                 demoMode = true;
             }
             /**
@@ -352,7 +416,7 @@ const rollDiceCommand = async function ({
             console.log('USE EXPORT HTML')
             if (!checkGP) {
                 checkGP = await schema.exportGp.updateOne({
-                    groupID: userid
+                    groupID: groupid
                 }, {
                     lastActiveAt: new Date()
                 }, opt);
@@ -362,9 +426,15 @@ const rollDiceCommand = async function ({
             }
 
 
-            discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
-            M = await lots_of_messages_getter_HTML(C, demoMode);
-            if (M.length == 0) {
+            if (discordMessage && discordMessage.channel && typeof discordMessage.channel.send === 'function') {
+                discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
+            } else if (discordMessage && discordMessage.isInteraction) {
+                await discordMessage.reply({ content: "<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間' });
+            }
+            const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
+                discordMessage.guild.members.cache.map(member => member) : [];
+            M = await lots_of_messages_getter_HTML(C, demoMode, members, messageLimit);
+            if (!M || !M.sum_messages || M.sum_messages.length === 0) {
                 rply.text = "未能讀取信息";
                 return rply;
             }
@@ -403,14 +473,28 @@ const rollDiceCommand = async function ({
                 if (error && error.code === 'ENOENT')
                     await fs.mkdir(dir);
             }
-            data = await fs.readFile(__dirname + '/../views/discordLog.html', 'utf-8')
-            let key = makeid(32);
+            data = await fs.readFile(__dirname + '/../views/discordLog.html', 'utf8')
+            // 在 rollDiceCommand 中使用
+            let key = makeid(16); // 使用16位元的金鑰
             let randomLink = makeid(7);
-            let newAESDate = AES(key, key, JSON.stringify(newRawDate));
-            //aesData = [];
-            newValue = data.replace(/aesData\s=\s\[\]/, 'aesData = ' + JSON.stringify(newAESDate.toString('base64'))).replace(/<h1>聊天紀錄<\/h1>/, '<h1>' + channelName + ' 的聊天紀錄</h1>');
+            let encryptedData = lightEncrypt(newRawDate, key);
+            newValue = data.replace(/aesData\s=\s\[\]/,
+                'aesData = "' + encryptedData + '"')
+                .replace(/<h1>聊天紀錄<\/h1>/,
+                    '<h1>' + channelName + ' 的聊天紀錄</h1>');
             let tempB = key;
-            await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html', newValue); // need to be in an async function
+            const writeStream = createWriteStream(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html');
+            const contentStream = new stream.Readable();
+            contentStream._read = () => {};
+            contentStream.push(newValue);
+            // eslint-disable-next-line unicorn/prefer-single-call
+            contentStream.push(null);
+
+            await htmlPool.run(() => pipeline(
+                contentStream,
+                writeStream
+            ));
+
             rply.discordExportHtml = [
                 tempA + '_' + randomLink,
                 tempB
@@ -418,13 +502,15 @@ const rollDiceCommand = async function ({
             rply.text += `已私訊你 頻道 ${discordMessage.channel.name} 的聊天紀錄
             你的channel 聊天紀錄 共有 ${totalSize} 項`
             return rply;
+        }
         case /^txt$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkBot,
                 gid: groupid,
                 role: userrole,
                 name: botname
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
@@ -434,16 +520,16 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
-            lv = await VIP.viplevelCheckUser(userid);
+            let lv = await VIP.viplevelCheckUser(userid);
             let gpLv = await VIP.viplevelCheckGroup(groupid);
-            lv = (gpLv > lv) ? gpLv : lv;
+            lv = Math.max(gpLv, lv);
             limit = FUNCTION_LIMIT[lv];
             checkUser = await schema.exportUser.findOne({
                 userID: userid
-            }).catch(error => console.error('export #372 mongoDB error: ', error.name, error.reson));
+            }).catch(error => console.error('export #372 mongoDB error:', error.name, error.reason));
             checkGP = await schema.exportGp.findOne({
-                groupID: userid
-            }).catch(error => console.error('export #375 mongoDB error: ', error.name, error.reson));
+                groupID: groupid
+            }).catch(error => console.error('export #375 mongoDB error:', error.name, error.reason));
             gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 120;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
             userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
@@ -460,31 +546,38 @@ const rollDiceCommand = async function ({
                 rply.text = "此群組的冷卻時間未過，冷卻剩餘" + millisToMinutesAndSeconds(gpRemainingTime) + '時間';
                 return rply;
             }
+
             if (userRemainingTime < 0 && checkUser && checkUser.times >= limit) {
                 rply.text = `你每星期完整下載聊天紀錄的上限為 ${limit} 次，
-                    冷卻剩餘 ${millisToMinutesAndSeconds(userRemainingTime)} 時間，
-                    現在正處於Demo模式，可以輸出500條信息，
+冷卻剩餘 ${millisToMinutesAndSeconds(userRemainingTime)} 時間，
+現在正處於Demo模式，可以輸出500條信息，
                     
-                    支援及解鎖上限 https://www.patreon.com/HKTRPG`;
-                return rply;
+支援及解鎖上限 https://www.patreon.com/HKTRPG
+                    `;
+                demoMode = true;
             }
 
             if (!checkGP) {
                 checkGP = await schema.exportGp.updateOne({
-                    groupID: userid
+                    groupID: groupid
                 }, {
                     lastActiveAt: new Date()
-                }, opt).catch(error => console.error('export #408 mongoDB error: ', error.name, error.reson));
+                }, opt).catch(error => console.error('export #408 mongoDB error:', error.name, error.reason));
             } else {
                 checkGP.lastActiveAt = theTime;
                 await checkGP.save();
             }
 
             console.log('USE EXPORT TXT')
-            discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
-            const members = discordMessage.guild.members.cache.map(member => member);
-            M = await lots_of_messages_getter_TXT(C, demoMode, members);
-            if (M.length == 0) {
+            if (discordMessage && discordMessage.channel && typeof discordMessage.channel.send === 'function') {
+                discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
+            } else if (discordMessage && discordMessage.isInteraction) {
+                await discordMessage.reply({ content: "<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間' });
+            }
+            const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
+                discordMessage.guild.members.cache.map(member => member) : [];
+            M = await lots_of_messages_getter_TXT(C, demoMode, members, messageLimit);
+            if (!M || !M.sum_messages || M.sum_messages.length === 0) {
                 rply.text = "未能讀取信息";
                 return rply;
             }
@@ -494,7 +587,7 @@ const rollDiceCommand = async function ({
                 }, {
                     lastActiveAt: new Date(),
                     times: 1
-                }, opt).catch(error => console.error('export #428 mongoDB error: ', error.name, error.reson));
+                }, opt).catch(error => console.error('export #428 mongoDB error:', error.name, error.reason));
             } else {
                 if (userRemainingTime && userRemainingTime > 0) {
                     update = {
@@ -512,7 +605,7 @@ const rollDiceCommand = async function ({
                 if (update)
                     await schema.exportUser.updateOne({
                         userID: userid
-                    }, update, opt).catch(error => console.error('export #446 mongoDB error: ', error.name, error.reson));
+                    }, update, opt).catch(error => console.error('export #446 mongoDB error:', error.name, error.reason));
             }
             totalSize = M.totalSize;
             M = M.sum_messages;
@@ -520,15 +613,19 @@ const rollDiceCommand = async function ({
                 return a.timestamp - b.timestamp;
             });
             let withouttime = (/-withouttime/i).test(inputStr);
-            //加不加時間標記下去
+            const writeStream = createWriteStream(dir + channelid + '_' + hour + minutes + seconds + '.txt');
+            const contentStream = new stream.Readable();
+            contentStream._read = () => {};
+
             for (let index = M.length - 1; index >= 0; index--) {
+                let line = '';
                 if (withouttime) {
                     if (M[index].isbot) {
-                        data += '(🤖)'
+                        line += '(🤖)';
                     }
-                    data += M[index].userName + '	' + '\n';
-                    data += M[index].contact;
-                    data += '\n\n';
+                    line += M[index].userName + '\t\n';
+                    line += M[index].contact;
+                    line += '\n\n';
                 } else {
                     let time = M[index].timestamp.toString().slice(0, -3);
                     const dateObj = moment
@@ -536,23 +633,23 @@ const rollDiceCommand = async function ({
                         .tz('Asia/Taipei')
                         .format('YYYY-MM-DD HH:mm:ss');
                     if (M[index].isbot) {
-                        data += '(🤖)'
+                        line += '(🤖)';
                     }
-                    //dateObj  決定有沒有時間
-                    data += M[index].userName + '	' + dateObj + '\n';
-                    data += (M[index].contact) ? (M[index].contact) + '\n' : '';
-                    data += (M[index].embeds.length) ? `${M[index].embeds.join('\n')}` : '';
-                    data += (M[index].attachments.length) ? `${M[index].attachments.join('\n')}` : '';
-                    data += '\n';
+                    line += M[index].userName + '\t' + dateObj + '\n';
+                    line += (M[index].contact) ? (M[index].contact) + '\n' : '';
+                    line += (M[index].embeds.length > 0) ? `${M[index].embeds.join('\n')}` : '';
+                    line += (M[index].attachments.length > 0) ? `${M[index].attachments.join('\n')}` : '';
+                    line += '\n';
                 }
+                contentStream.push(line);
             }
-            try {
-                await fs.access(dir)
-            } catch (error) {
-                if (error && error.code === 'ENOENT')
-                    await fs.mkdir(dir);
-            }
-            await fs.writeFile(dir + channelid + '_' + hour + minutes + seconds + '.txt', data); // need to be in an async function
+            contentStream.push(null);
+
+            await htmlPool.run(() => pipeline(
+                contentStream,
+                writeStream
+            ));
+
             rply.discordExport = channelid + '_' + hour + minutes + seconds;
             rply.text += `已私訊你 頻道  ${discordMessage.channel.name}  的聊天紀錄
                 你的channel聊天紀錄 共有  ${totalSize}  項`
@@ -566,34 +663,57 @@ const rollDiceCommand = async function ({
 
 
 
-function getAesString(data, key, iv) { //加密
-    let keyy = CryptoJS.enc.Utf8.parse(key);
-    //alert(key）;
-    let ivv = CryptoJS.enc.Utf8.parse(iv);
-    let encrypted = CryptoJS.AES.encrypt(data, keyy, {
-        iv: ivv,
-        mode: CryptoJS.mode.CBC,
-        padding: CryptoJS.pad.Pkcs7
-    });
-    return encrypted.toString(); //返回的是base64格式的密文
-}
 
 
+
+// eslint-disable-next-line no-unused-vars
 function AES(key, iv, data) {
-    let crypto = require('crypto');
     let algo = "aes-256-cbc"; // we are using 128 bit here because of the 16 byte key. use 256 is the key is 32 byte.
-    let cipher = crypto.createCipheriv(algo, Buffer.from(key, 'utf-8'), iv.slice(0, 16));
+    let cipher = crypto.createCipheriv(algo, Buffer.from(key, 'utf8'), iv.slice(0, 16));
     // let encrypted = cipher.update(data, 'utf-8', 'base64'); // `base64` here represents output encoding
     //encrypted += cipher.final('base64');
     let encrypted = Buffer.concat([cipher.update(Buffer.from(data)), cipher.final()]);
     return encrypted;
 }
 
-function getAES(key, iv, data) { //加密
-    let encrypted = getAesString(data, key, iv); //密文
-    //    let encrypted1 = CryptoJS.enc.Utf8.parse(encrypted);
-    return encrypted;
+
+
+
+function lightEncrypt(data, key) {
+    try {
+        const iv = Buffer.alloc(16, 0);
+        const cipher = crypto.createCipheriv('aes-128-cbc',
+            Buffer.from(key.slice(0, 16)),
+            iv);
+
+        // 壓縮數據並轉換為字串
+        const minData = data.map(item => ({
+            t: item.timestamp,
+            c: item.contact,
+            u: item.userName,
+            b: item.isbot,
+            a: item.attachments,
+            e: item.embeds,
+            r: item.reply_to
+        }));
+        const jsonString = JSON.stringify(minData);
+
+        // 加密數據
+        const encrypted = Buffer.concat([
+            cipher.update(jsonString, 'utf8'),
+            cipher.final()
+        ]);
+
+        // 轉換為 base64
+        return encrypted.toString('base64');
+    } catch (error) {
+        console.error('Encryption error:', error);
+        throw error;
+    }
 }
+
+
+
 
 function makeid(length) {
     let result = '';
@@ -605,13 +725,62 @@ function makeid(length) {
     return result;
 }
 const millisToMinutesAndSeconds = (millis) => {
-    millis = millis * -1;
-    let minutes = Math.floor(millis / 60000);
-    let seconds = ((millis % 60000) / 1000).toFixed(0);
-    //ES6 interpolated literals/template literals 
-    //If seconds is less than 10 put a zero in front.
-    return `${minutes}分鐘${(seconds < 10 ? "0" : "")}${seconds}秒`;
+    // Only negate if the value is negative (user is still in cooldown)
+    if (millis < 0) {
+        millis = millis * -1;
+    }
+    let days = Math.floor(millis / (24 * 60 * 60 * 1000));
+    let hours = Math.floor((millis % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+    let minutes = Math.floor((millis % (60 * 60 * 1000)) / 60_000);
+    let seconds = ((millis % 60_000) / 1000).toFixed(0);
+
+    let result = '';
+    if (days > 0) {
+        result += `${days}天`;
+    }
+    if (hours > 0 || days > 0) {
+        result += `${hours}小時`;
+    }
+    result += `${minutes}分鐘${(seconds < 10 ? "0" : "")}${seconds}秒`;
+
+    return result;
 }
+
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('export')
+            .setDescription('【聊天紀錄匯出系統】匯出Discord頻道聊天紀錄')
+            .addStringOption(option =>
+                option.setName('format')
+                    .setDescription('匯出格式')
+                    .setRequired(true)
+                    .addChoices(
+                        { name: 'HTML格式(含資料分析)', value: 'html' },
+                        { name: 'TXT格式(含時間戳記)', value: 'txt' },
+                        { name: 'TXT格式(不含時間戳記)', value: 'txt -withouttime' }
+                    ))
+            .addIntegerOption(option =>
+                option.setName('limit')
+                .setDescription('要匯出的最新訊息數量(預設為全部)')
+                .setRequired(false)),
+        async execute(interaction) {
+            const format = interaction.options.getString('format');
+            const messageLimit = interaction.options.getInteger('limit');
+            let commandStr = `.discord ${format}`;
+            if (messageLimit) {
+                commandStr += ` --limit ${messageLimit}`;
+            }
+            // Instead of returning a command string, we'll use the interaction object
+            // and make sure to store it in discordMessage for later use
+            return {
+                inputStr: commandStr,
+                discordMessage: interaction,
+                isInteraction: true
+            };
+        }
+    }
+];
 
 module.exports = {
     rollDiceCommand: rollDiceCommand,
@@ -619,5 +788,6 @@ module.exports = {
     getHelpMessage: getHelpMessage,
     prefixs: prefixs,
     gameType: gameType,
-    gameName: gameName
+    gameName: gameName,
+    discordCommand
 };

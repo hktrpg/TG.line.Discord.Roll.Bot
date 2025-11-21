@@ -11,19 +11,14 @@
     border-bottom: 00px !important;
     margin-bottom: 25px !important;
     height: 32px !important;
-
 }
-
 
 .btn-delete {
     font-weight: 400;
-
     text-decoration: none;
     padding: 0px 8px 0px 8px !important;
     border-bottom: 00px !important;
     margin-bottom: 25px !important;
-  
-
 }
 
 .btn-link:hover {
@@ -75,6 +70,19 @@
     border-radius: 8px;
 }
 
+.textState {
+    border: none;
+    padding: 1px 1px 1px 1px;
+    border-radius: 8px;
+    width: 153px;
+    height: 32px;
+    background-color: #FADCD9;
+    resize: none;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: center;
+}
+
 .textState:hover {
     background-color: #F79489;
 }
@@ -87,15 +95,84 @@
     background-color: #F79489;
 }
 
-.textState {
-    border: none;
-    padding: 1px 1px 1px 1px;
-    border-radius: 8px;
-    width: 153px;
-    height: 32px;
-    background-color: #FADCD9;
-    resize: none;
-    overflow: hidden;
-    white-space: nowrap;
-    text-align: center;
+.attribute-item {
+    height: 36px;
+}
+
+.roll-item {
+    height: 36px;
+    padding: 1px;
+}
+
+.attribute-name {
+    width: 50px;
+    padding: 1px;
+}
+
+.attribute-value {
+    width: 55px;
+    padding: 1px;
+}
+
+.roll-name {
+    width: 80px;
+    padding: 1px;
+}
+
+.roll-value {
+    width: 80px;
+    padding: 1px;
+}
+
+.note-name {
+    width: 80px;
+    padding: 1px;
+}
+
+.note-content {
+    width: 180px;
+}
+
+/* 角色頭像強制限制 */
+.character-avatar {
+    max-width: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: 80px !important;
+    object-fit: contain !important;
+    transition: transform 0.3s ease !important;
+    cursor: pointer !important;
+}
+
+/* 角色頭像懸停放大效果 */
+.character-avatar:hover {
+    transform: scale(3) translateX(var(--avatar-hover-shift, -40px)) !important;
+    z-index: 1000 !important;
+    position: relative !important;
+    transform-origin: left center !important;
+}
+
+/* 針對特定選擇器的強制限制 */
+#array-rendering .character-header .character-name .character-avatar,
+.hybrid-card-container .character-header .character-name .character-avatar,
+.character-header .character-name .character-avatar,
+img.character-avatar {
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 80px !important;
+    width: auto !important;
+    object-fit: contain !important;
+}
+
+@media (max-width: 768px) {
+    .character-avatar,
+    #array-rendering .character-header .character-name .character-avatar,
+    .hybrid-card-container .character-header .character-name .character-avatar,
+    .character-header .character-name .character-avatar,
+    img.character-avatar {
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: 72px !important;
+        width: auto !important;
+    }
 }

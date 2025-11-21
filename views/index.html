@@ -7,309 +7,4524 @@
     <meta content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"
         name="viewport" />
     <title>HKTRPG 擲骰機器人及聊天室 1D100 2D6 查詢指令輸入Bothelp</title>
+    <meta name="description" content="HKTRPG - 線上擲骰聊天室，支援多種TRPG系統">
+    <meta name="theme-color" content="#343a40">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <style>
+        /* 自動完成樣式 */
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ccc;
+            border-top: none;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1100; /* 提高z-index確保在快速輸入面板之上 */
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 0 0 6px 6px;
+        }
+        
+        .autocomplete-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .autocomplete-item:hover,
+        .autocomplete-item.selected {
+            background-color: #e3f2fd;
+            border-left: 3px solid #2196f3;
+            padding-left: 9px;
+        }
+        
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        
+        .autocomplete-item.no-results {
+            color: #6c757d;
+            font-style: italic;
+            cursor: default;
+            text-align: center;
+            padding: 15px;
+        }
+        
+        .autocomplete-main {
+            font-weight: 500;
+            color: #212529;
+            font-size: 0.95rem;
+            line-height: 1.3;
+        }
+        
+        .autocomplete-meta {
+            margin-top: 4px;
+            font-size: 0.8rem;
+            color: #6c757d;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            align-items: center;
+        }
+        
+        .autocomplete-meta .badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        .autocomplete-meta .badge.badge-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .autocomplete-meta .badge.badge-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        
+        .autocomplete-meta .badge.badge-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .autocomplete-meta .badge.badge-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .autocomplete-meta .badge.badge-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .autocomplete-meta .text-muted {
+            color: #6c757d !important;
+            font-size: 0.75rem;
+        }
+        
+        /* 向上顯示的下拉選單樣式 - 修復iOS Safari點擊穿透問題 */
+        .autocomplete-dropdown.autocomplete-dropdown-up {
+            z-index: 1110 !important; /* 高於普通下拉選單 */
+            pointer-events: auto !important; /* 確保可以接收點擊事件 */
+            -webkit-transform: translateZ(0); /* 強制建立新的合成層 */
+            transform: translateZ(0);
+        }
+
+        /* 深色主題支持 */
+        [data-theme="dark"] .autocomplete-dropdown {
+            background: #2d3748 !important;
+            border-color: #4a5568 !important;
+            color: #e2e8f0 !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+        }
+
+        [data-theme="dark"] .autocomplete-dropdown.autocomplete-dropdown-up {
+            background: #2d3748 !important;
+            border-color: #4a5568 !important;
+            color: #e2e8f0 !important;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.4) !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item {
+            border-bottom-color: #4a5568 !important;
+            color: #e2e8f0 !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover,
+        [data-theme="dark"] .autocomplete-item.selected {
+            background-color: #3182ce !important;
+            border-left-color: #63b3ed !important;
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover *,
+        [data-theme="dark"] .autocomplete-item.selected * {
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item.no-results {
+            color: #a0aec0 !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-main {
+            color: #e2e8f0 !important;
+            font-weight: 600 !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover .autocomplete-main,
+        [data-theme="dark"] .autocomplete-item.selected .autocomplete-main {
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-meta {
+            color: #a0aec0 !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover .autocomplete-meta,
+        [data-theme="dark"] .autocomplete-item.selected .autocomplete-meta {
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover .autocomplete-meta .badge,
+        [data-theme="dark"] .autocomplete-item.selected .autocomplete-meta .badge {
+            background-color: #ffffff !important;
+            color: #3182ce !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-item:hover .autocomplete-meta .text-muted,
+        [data-theme="dark"] .autocomplete-item.selected .autocomplete-meta .text-muted {
+            color: #e2e8f0 !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-meta .badge.badge-secondary {
+            background-color: #718096 !important;
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-meta .badge.badge-info {
+            background-color: #3182ce !important;
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .autocomplete-meta .text-muted {
+            color: #a0aec0 !important;
+        }
+        
+        /* 表單組樣式優化，為自動完成提供空間 */
+        .form-group {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* 確保自動完成下拉選單在快速輸入面板之上 */
+        .quick-input-pad .form-group {
+            z-index: 1001;
+        }
+        
+        .quick-input-pad .form-group .autocomplete-dropdown {
+            z-index: 1100;
+        }
+    </style>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <script src="common/autocomplete-manager.js"></script>
 </head>
 
 <body>
-    <section id="root">
-        <div class="container-sm" id="container">
-            <div id="header"></div>
-            <div class="row justify-content-end">
-                <div class="row justify-content-center center">
-                    <div class="col-auto">
-                        <form id="changeRoomNumber-form">
-                            <div class="input-group">
-                                <span class="iconify" data-icon="bi:person-fill" data-inline="false"
-                                    style="color: black;" data-width="32" data-height="32"></span>
-                                <input type="text" class="form-control" name="name" id="name" value=""
-                                    placeholder="暱稱" maxlength="50">
-                                <span class="iconify" data-icon="bi:house-door" data-inline="false"
-                                    style="color: black;" data-width="32" data-height="32"></span>
-                                <input type="text" class="form-control" name="roomNumber" id="roomNumber"
-                                    value="公共房間" placeholder="房間名稱" maxlength="50">
-                                <div class="input-group-append">
-                                    <input type="submit" class="btn btn-danger mb-2" id="changeRoomNumber"
-                                        value="變更">
-                                </div>
-                            </div>
-                        </form>
+    <!-- Header -->
+    <div id="header"></div>
+
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-3 d-md-block sidebar collapse">
+                <div class="sidebar-sticky pt-3">
+                    <div class="sidebar-header mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <span class="iconify" data-icon="bi:person-fill"></span>
+                            </span>
+                            <input type="text" class="form-control" name="name" id="name" placeholder="暱稱"
+                                maxlength="50" required>
+                        </div>
+                        <div class="online-count mt-2">
+                            <span class="iconify" data-icon="bi:people"></span>
+                            <span id="online">0</span>
+                        </div>
                     </div>
-                </div>
-                <button type="button" class="btn btn-info float-right" onclick="save()">
-                    <span class="iconify" data-icon="gg:readme" data-inline="false"></span>儲存
-                </button>
-                <button type="button" class="btn btn-dark float-right" onclick="readme()">
-                    <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
-                </button>
-                <div class="input-group-text font-weight-bold" id="status-box"> <span class="iconify"
-                        data-icon="bi:house-door-fill" data-inline="false" style="color: black;" data-width="22"
-                        data-height="22"></span><span id="room">公共房間</span></div>
-                <div class="badge-warning input-group-text font-weight-bold" id="status-box">
-                    <span class="iconify" data-icon="bi:people" data-inline="false" style="color: black;"
-                        data-width="22" data-height="22"></span>
-                    x <span id="online">0</span></div>
-            </div>
-        </div>
-        <main>
-            <div class="overflow-auto  middleBlock p-2" id="container-content">
-                <div class="border" id="content">
-                </div>
-            </div>
-        </main>
-        <footer>
-            <div class="sticky-bottom  footer white">
-                <div class="row justify-content-center">
-                    <div class="col-auto">
-                        <form id="send-form">
-                            <div class="input-group text-center">
-                                <input type="text" name="msg" id="msg" value="1d100" placeholder="說點什麼？"
-                                    maxlength="1000">
-                                <div class="input-group-append">
-                                    <input type="submit" class="btn btn-primary" id="submit" value="送出"
-                                        onclick="genName()">
-                                </div>
-                            </div>
-                        </form>
+                    <div class="chatroom-list">
+                        <div class="list-header mb-2">
+                            <span class="iconify" data-icon="bi:chat-dots"></span>
+                            <span>聊天室列表</span>
+                        </div>
+                        <div class="list-content" id="chatroomList">
+                            <!-- Chatrooms will be added here dynamically -->
+                        </div>
                     </div>
-                </div>
-        </footer>
-        <footer>
-            <div id="footer"></div>
-        </footer>
-        <div class="modal fade" id="readmeModalCenter" tabindex="-1" role="dialog"
-            aria-labelledby="readmeModalCenterTitle" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="readmeModalLongTitle">使用說明</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
+                    <div class="sidebar-actions mt-3">
+                        <button class="btn btn-primary w-100" onclick="joinRoomModal.show()">
+                            <span class="iconify" data-icon="bi:plus-circle"></span>
+                            <span>加入聊天室</span>
+                        </button>
+                        <button class="btn btn-info w-100" onclick="save()">
+                            <span class="iconify" data-icon="bi:download"></span>
+                            <span>下載記錄</span>
+                        </button>
+                        <button class="btn btn-dark w-100" onclick="readme()">
+                            <span class="iconify" data-icon="bi:question-circle"></span>
+                            <span>使用教學</span>
+                        </button>
+                        <button class="btn btn-secondary w-100" onclick="themeManager.toggleTheme()">
+                            <span class="iconify" data-icon="bi:moon-stars"></span>
+                            <span class="theme-text">深色模式</span>
                         </button>
                     </div>
-                    <div class="modal-body">
-                        每間房間上限100條信息<br>
-                        輸入名字可以進入自定的房間<br>
-                        擲骰方法和HKTRPG骰子機械人一樣。<br>
-                        詳情可以點擊<br>
-                        <a href="https://bothelp.hktrpg.com/">HKTRPG使用教學!</a>
+                </div>
+            </div>
+
+            <!-- Main Chat Area -->
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-9 px-md-4 d-flex flex-column">
+                <div
+                    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                </div>
+
+                <div class="chat-container flex-grow-1">
+                    <div id="personal-room-notice" class="alert alert-info small p-2 m-2" role="alert" style="display: none; margin-bottom: 0;">
+                        <span class="iconify" data-icon="bi:info-circle-fill"></span>
+                        個人小屋所有資料只存在本機，伺服器不會儲存。
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <div class="overflow-auto" id="container-content">
+                        <div id="content" class="p-2">
+                            <!-- Messages will be added here -->
+                        </div>
                     </div>
+                </div>
+
+                <!-- Quick Input Pad -->
+                <div class="quick-input-pad" id="quickInputPad">
+                    <div class="pad-content">
+                        <ul class="nav nav-tabs" id="quick-command-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" id="common-tab" data-toggle="tab" href="#common-commands" role="tab" aria-controls="common-commands" aria-selected="false">常用指令</a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link active" id="dice-set-tab" data-toggle="tab" href="#dice-set-commands-panel" role="tab" aria-controls="dice-set-commands-panel" aria-selected="true">骰組</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="quick-command-tabs-content">
+                            <div class="tab-pane fade" id="common-commands" role="tabpanel" aria-labelledby="common-tab">
+                                <div class="pad-buttons" id="quickInputButtons">
+                                    <!-- Buttons will be added dynamically -->
+                                </div>
+                                <div class="custom-input">
+                                    <input type="text" id="customInput" placeholder="自訂指令" onchange="quickInputPad.saveCustom()" onkeypress="if(event.key === 'Enter') quickInputPad.sendCustom()">
+                                    <button class="btn btn-primary" onclick="quickInputPad.sendCustom()">送出</button>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade show active" id="dice-set-commands-panel" role="tabpanel" aria-labelledby="dice-set-tab">
+                                <div class="dice-set-selector form-group">
+                                     <label for="dice-set-select">選擇骰組:</label>
+                                     <div class="input-group">
+                                        <select class="form-control" id="dice-set-select"></select>
+                                        <div class="input-group-append">
+                                            <button class="btn btn-outline-secondary" type="button" id="dice-set-info-btn">
+                                                <span class="iconify" data-icon="bi:info-circle"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="dice-set-commands" class="pad-buttons"></div>
+                                <div id="dice-set-command-inputs"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Message Input -->
+                <footer class="footer mt-auto py-3">
+                    <div class="container">
+                        <form id="send-form" class="needs-validation" novalidate>
+                            <div class="input-group">
+                                <textarea class="form-control message-input" name="msg" id="msg" 
+                                    placeholder="說點什麼？" maxlength="1000" rows="1" required>1d100</textarea>
+                                <div class="input-group-append">
+                                    <span class="input-group-text char-counter" id="charCounter">4/1000</span>
+                                    <button type="submit" class="btn btn-primary" id="sendBtn">
+                                        <span class="iconify" data-icon="bi:send-fill"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="toggle-button" onclick="quickInputPad.toggle()">
+                        <span class="iconify" data-icon="bi:keyboard"></span>
+                        <span>快速指令</span>
+                    </div>
+                </footer>
+            </main>
+        </div>
+    </div>
+
+    <!-- Personal Room Clear Confirm Modal -->
+    <div class="modal fade" id="personalClearModal" tabindex="-1" role="dialog" aria-labelledby="personalClearModalTitle" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="personalClearModalTitle">清空「個人小屋」內容</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    此操作將會清除「個人小屋」的訊息。個人小屋的訊息只會儲存在本機，不會上傳到伺服器。清空後無法復原，確定要繼續嗎？
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" id="personalClearConfirmBtn" class="btn btn-danger">清空</button>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+
+    <!-- Footer -->
+
+
+    <!-- Readme Modal -->
+    <div class="modal fade" id="readmeModalCenter" tabindex="-1" role="dialog" aria-labelledby="readmeModalCenterTitle"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="readmeModalLongTitle">使用說明</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h6>基本功能</h6>
+                    <ul>
+                        <li>支援多種擲骰指令：1d100、2d6、1d20 等</li>
+                        <li>可自訂聊天室名稱</li>
+                        <li>支援深色/淺色主題切換</li>
+                        <li>快速輸入常用指令</li>
+                        <li>可儲存聊天記錄</li>
+                        <li>支援多房間同時使用</li>
+                        <li>即時顯示在線人數</li>
+                        <li>支援自訂暱稱</li>
+                    </ul>
+
+                    <h6>使用方式</h6>
+                    <ol>
+                        <li>輸入暱稱（預設為「調查員」+隨機數字，可點擊重新產生按鈕更換）</li>
+                        <li>點擊「加入聊天室」或直接輸入房間名稱</li>
+                        <li>在輸入框輸入擲骰指令或聊天內容</li>
+                        <li>點擊「送出」或按 Enter 鍵發送訊息</li>
+                    </ol>
+
+                    <h6>擲骰指令格式</h6>
+                    <ul>
+                        <li>基本格式：<code>XdY</code>（X為骰子數量，Y為骰子面數）</li>
+                        <li>範例：
+                            <ul>
+                                <li><code>1d100</code>：擲一個100面骰</li>
+                                <li><code>2d6</code>：擲兩個6面骰</li>
+                                <li><code>1d20</code>：擲一個20面骰</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h6>快速指令功能</h6>
+                    <ul>
+                        <li>點擊「快速指令」按鈕展開常用指令面板</li>
+                        <li>預設提供常用擲骰指令：1d2、1d6、1d8、1d10、1d12、1d20、1d100</li>
+                        <li>可自訂最多5個常用指令</li>
+                        <li>點擊指令即可快速發送</li>
+                    </ul>
+
+                    <h6>其他功能</h6>
+                    <ul>
+                        <li>點擊「快速輸入」可展開常用指令面板</li>
+                        <li>點擊「儲存」可下載聊天記錄（格式：HKTRPG + 房間名稱）</li>
+                        <li>點擊「說明」可檢視此使用說明</li>
+                        <li>點擊「深色模式」可切換主題</li>
+                        <li>點擊「重新產生」可隨機產生新暱稱</li>
+                    </ul>
+
+                    <h6>個人小屋</h6>
+                    <ul>
+                        <li>僅儲存在本機，不會上傳伺服器，其他人無法看到</li>
+                        <li>可與機器人互動；對話只在本機顯示</li>
+                        <li>刪除鍵為「清空內容」（不會移除房間），並會跳出確認</li>
+                        <li>清空後無法復原</li>
+                    </ul>
+
+                    <h6>注意事項</h6>
+                    <ul>
+                        <li>每間房間上限100條訊息</li>
+                        <li>聊天室名稱不可重複</li>
+                        <li>預設房間「公共房間」不可刪除</li>
+                        <li>暱稱長度限制為50個字元</li>
+                        <li>訊息長度限制為1000個字元</li>
+                    </ul>
+
+                    <div class="mt-3">
+                        <p>更多詳細教學請參考：</p>
+                        <a href="https://bothelp.hktrpg.com/" target="_blank" class="btn btn-primary btn-sm">
+                            <span class="iconify" data-icon="bi:link-45deg"></span>
+                            HKTRPG使用教學
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Room Modal -->
+    <div class="modal fade" id="joinRoomModal" tabindex="-1" role="dialog" aria-labelledby="joinRoomModalTitle"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="joinRoomModalTitle">加入聊天室</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="joinRoom-form">
+                        <div class="form-group">
+                            <label for="joinRoomNumber">聊天室名稱</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <span class="iconify" data-icon="bi:box-arrow-in-right"></span>
+                                </span>
+                                <input type="text" class="form-control" name="joinRoomNumber" id="joinRoomNumber"
+                                    placeholder="輸入聊天室名稱" maxlength="50" required>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="joinRoomModal.submit()">加入</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="helpModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="helpModalLabel">指令說明</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body" id="helpModalBody" style="white-space: pre-wrap;">
+            ...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <style>
+        /* 主題相關樣式 */
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --card-bg: #ffffff;
+            --card-border: #dee2e6;
+            --input-bg: #ffffff;
+            --input-border: #ced4da;
+            --badge-bg: #007bff;
+            --badge-text: #ffffff;
+            --footer-bg: #f8f9fa;
+            --scrollbar-track: #f1f1f1;
+            --scrollbar-thumb: #888;
+            --scrollbar-thumb-hover: #555;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --gradient-start: rgba(255, 255, 255, 0.1);
+            --gradient-end: rgba(255, 255, 255, 0.05);
+            --input-height: 38px;
+            --border-radius: 8px;
+            --footer-height: 60px;
+            --header-height: 60px;
+            --quick-input-height: 200px;
+            --sidebar-bg: #f8f9fa;
+            --sidebar-border: #dee2e6;
+            --chat-bg: #ffffff;
+            --message-hover: rgba(0, 0, 0, 0.05);
+            --active-item: #007bff;
+            --active-item-text: #ffffff;
+            --modal-bg: #ffffff;
+            --modal-border: #dee2e6;
+            --btn-info-bg: #17a2b8;
+            --btn-info-border: #17a2b8;
+            --btn-info-text: #ffffff;
+            --btn-dark-bg: #343a40;
+            --btn-dark-border: #343a40;
+            --btn-dark-text: #ffffff;
+            --btn-secondary-bg: #6c757d;
+            --btn-secondary-border: #6c757d;
+            --btn-secondary-text: #ffffff;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #36393f;
+            --text-color: #dcddde;
+            --card-bg: #2f3136;
+            --card-border: #202225;
+            --input-bg: #40444b;
+            --input-border: #202225;
+            --badge-bg: #5865f2;
+            --badge-text: #ffffff;
+            --footer-bg: #2f3136;
+            --scrollbar-track: #2f3136;
+            --scrollbar-thumb: #202225;
+            --scrollbar-thumb-hover: #2f3136;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
+            --gradient-start: rgba(47, 49, 54, 0.8);
+            --gradient-end: rgba(47, 49, 54, 0.6);
+            --sidebar-bg: #2f3136;
+            --sidebar-border: #202225;
+            --chat-bg: #36393f;
+            --message-hover: rgba(255, 255, 255, 0.05);
+            --active-item: #5865f2;
+            --active-item-text: #ffffff;
+            --modal-bg: #2f3136;
+            --modal-border: #202225;
+            --btn-info-bg: #2f3136;
+            --btn-info-border: #5865f2;
+            --btn-info-text: #dcddde;
+            --btn-dark-bg: #2f3136;
+            --btn-dark-border: #5865f2;
+            --btn-dark-text: #dcddde;
+            --btn-secondary-bg: #2f3136;
+            --btn-secondary-border: #5865f2;
+            --btn-secondary-text: #dcddde;
+        }
+
+        /* 滾動條樣式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--scrollbar-track);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--scrollbar-thumb-hover);
+        }
+
+        /* Firefox 滾動條樣式 */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 容器樣式優化 */
+        #container {
+            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
+            padding: 0.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 0.5rem;
+        }
+
+        /* 卡片樣式優化 */
+        .card {
+            background-color: var(--card-bg);
+            border-color: var(--card-border);
+            border-radius: 6px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+            margin-bottom: 0.3rem;
+            overflow: hidden;
+            border: none;
+            background: var(--card-bg);
+        }
+
+        .card:hover {
+            background: var(--message-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header2 {
+            background: transparent;
+            border-bottom: 1px solid var(--card-border);
+            padding: 0.3rem 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.85rem;
+        }
+
+        .card-body2 {
+            background: transparent;
+            color: var(--text-color);
+            padding: 0.3rem 0.5rem;
+            line-height: 1.3;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* Responsive images inside messages */
+        .card-body2 img.message-image {
+            max-width: 100%;
+            max-height: 300px;
+            height: auto;
+            display: block;
+            margin-top: 4px;
+            border-radius: 6px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Message link styles */
+        .card-body2 .message-link {
+            color: var(--badge-bg);
+            text-decoration: underline;
+            word-break: break-all;
+            transition: all 0.2s ease;
+        }
+
+        .card-body2 .message-link:hover {
+            color: var(--text-color);
+            text-decoration: none;
+            background: var(--message-hover);
+            padding: 1px 2px;
+            border-radius: 3px;
+        }
+
+        .card-body2 .message-link:visited {
+            color: var(--badge-bg);
+            opacity: 0.8;
+        }
+
+        /* 表單元素樣式優化 */
+        .form-control {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            color: var(--text-color);
+            border-radius: var(--border-radius);
+            padding: 0.5rem 0.75rem;
+            transition: all 0.3s ease;
+            height: var(--input-height);
+            line-height: 1.5;
+        }
+
+        .form-control:focus {
+            background-color: var(--input-bg);
+            border-color: var(--badge-bg);
+            color: var(--text-color);
+            box-shadow: 0 0 0 2px var(--badge-bg);
+        }
+
+        .form-control::placeholder {
+            color: var(--text-color);
+            opacity: 0.6;
+        }
+
+        .input-group-text {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            color: var(--text-color);
+            border-radius: var(--border-radius);
+            height: var(--input-height);
+            padding: 0 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .input-group .iconify {
+            font-size: 1.2rem;
+            width: 1.2rem;
+            height: 1.2rem;
+        }
+
+        /* 按鈕樣式優化 */
+        .btn-info {
+            background-color: var(--btn-info-bg);
+            border-color: var(--btn-info-border);
+            color: var(--btn-info-text);
+        }
+
+        .btn-info:hover {
+            background-color: var(--btn-info-bg);
+            border-color: var(--btn-info-border);
+            color: var(--btn-info-text);
+            opacity: 0.9;
+        }
+
+        .btn-dark {
+            background-color: var(--btn-dark-bg);
+            border-color: var(--btn-dark-border);
+            color: var(--btn-dark-text);
+        }
+
+        .btn-dark:hover {
+            background-color: var(--btn-dark-bg);
+            border-color: var(--btn-dark-border);
+            color: var(--btn-dark-text);
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background-color: var(--btn-secondary-bg);
+            border-color: var(--btn-secondary-border);
+            color: var(--btn-secondary-text);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--btn-secondary-bg);
+            border-color: var(--btn-secondary-border);
+            color: var(--btn-secondary-text);
+            opacity: 0.9;
+        }
+
+        /* 徽章樣式優化 */
+        .badge {
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.75rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .badge-primary {
+            background-color: var(--badge-bg);
+            color: var(--badge-text);
+        }
+
+        .badge-secondary {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        /* 頁尾樣式優化 */
+        footer.fixed-bottom {
+            background-color: var(--footer-bg) !important;
+            box-shadow: var(--shadow-lg);
+            padding: 0.5rem 0;
+        }
+
+        /* 模態框樣式優化 */
+        .modal-content {
+            background-color: var(--modal-bg);
+            color: var(--text-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-header {
+            border-bottom-color: var(--modal-border);
+            padding: 1.25rem;
+        }
+
+        .modal-footer {
+            border-top-color: var(--modal-border);
+            padding: 1.25rem;
+        }
+
+        .modal .close {
+            color: var(--text-color);
+        }
+
+        .modal .close:hover {
+            color: var(--badge-bg);
+        }
+
+        /* 聊天室容器樣式優化 */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--chat-bg);
+            border-radius: 8px;
+            padding: 0.3rem;
+            margin: 0.2rem 0;
+            box-shadow: var(--shadow-md);
+            height: calc(100dvh - var(--header-height) - var(--footer-height));
+            position: relative;
+        }
+
+        #container-content {
+            flex: 1;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            position: relative;
+        }
+
+        #content {
+            padding: 0.2rem;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+            margin-bottom: 1rem;
+        }
+
+        /* 狀態框樣式優化 */
+        #status-box {
+            border-radius: var(--border-radius);
+            padding: 0.5rem 1rem;
+            margin-left: 0.5rem;
+            box-shadow: var(--shadow-sm);
+            height: var(--input-height);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #status-box .iconify {
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        /* 輸入群組樣式優化 */
+        .input-group {
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .input-group>.form-control:first-child {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .input-group>.form-control:last-child {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        .input-group>.input-group-text:first-child {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .input-group>.input-group-text:last-child {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        .input-group>.btn:first-child {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .input-group>.btn:last-child {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        /* 房間符號特殊樣式 */
+        .input-group-text:has(.iconify[data-icon="bi:house-door"]) {
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 768px) {
+            #container {
+                padding: 0.3rem;
+                margin-top: 120px;
+            }
+
+            .card {
+                margin-bottom: 0.4rem;
+            }
+
+            .card-header2 {
+                padding: 0.3rem 0.5rem;
+            }
+
+            .card-body2 {
+                padding: 0.3rem 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .input-group {
+                margin-bottom: 0.5rem;
+            }
+
+            .btn {
+                padding: 0.4rem 0.8rem;
+            }
+
+            #status-box {
+                margin: 0.5rem 0;
+            }
+
+            #container-content {
+                height: calc(100dvh - 160px);
+                padding: 0.3rem;
+                margin: 0;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                /* 增加 iOS 滾動順暢度 */
+            }
+
+            #content {
+                padding: 0.2rem;
+                margin-bottom: 0;
+            }
+
+            /* 調整 footer 樣式 */
+            .footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 999;
+                background: var(--footer-bg);
+                border-top: 1px solid var(--card-border);
+                padding: 0.5rem;
+                height: var(--footer-height);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            /* 調整主內容區域的邊距 */
+            .main-content {
+                padding-bottom: 1rem;
+                height: calc(100dvh - var(--header-height));
+                min-height: -webkit-fill-available;
+                /* 支援 iOS Safari */
+            }
+
+            /* 確保 body 和 html 高度正確 */
+            html,
+            body {
+                height: 100%;
+                height: -webkit-fill-available;
+                overflow: hidden;
+            }
+
+            body {
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                height: -webkit-fill-available;
+                overflow: hidden;
+            }
+        }
+
+        /* 快速輸入指令欄樣式 */
+        .quick-input-pad {
+            position: fixed;
+            bottom: 0;
+            right: 20px;
+            background: var(--card-bg);
+            border-radius: 12px 12px 0 0;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            max-width: 300px;
+            width: 90%;
+            transform: translateY(100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .quick-input-pad.expanded {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+            bottom: calc(var(--footer-height) + 1rem);
+        }
+
+        /* 移動端樣式調整 */
+        @media (max-width: 768px) {
+            .quick-input-pad {
+                right: 50%;
+                transform: translateX(50%) translateY(100%);
+                width: 95%;
+                max-width: 400px;
+            }
+
+            .quick-input-pad.expanded {
+                transform: translateX(50%) translateY(-50%);
+                top: 50%;
+                bottom: auto;
+            }
+
+            .quick-input-pad .pad-content {
+                border-radius: 12px;
+                margin: 0 10px;
+            }
+
+            .quick-input-pad .toggle-button {
+                display: none;
+            }
+        }
+
+        .quick-input-pad .pad-content {
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 12px 12px 0 0;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--card-border);
+            max-height: 60vh;
+            overflow-y: auto;
+            position: relative;
+            z-index: 1000; /* 確保在自動完成下拉選單之下 */
+        }
+
+        .quick-input-pad .toggle-button {
+            position: relative;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 6px 6px 0 0;
+            padding: 8px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-color);
+            box-shadow: var(--shadow-sm);
+            z-index: 1001;
+            margin-bottom: -1px;
+            /* 覆蓋邊框 */
+        }
+
+        .quick-input-pad .toggle-button .iconify {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .quick-input-pad.collapsed .toggle-button .iconify {
+            transform: rotate(180deg);
+        }
+
+        .quick-input-pad .pad-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .quick-input-pad .pad-button {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            padding: 8px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .quick-input-pad .pad-button:hover {
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            transform: translateY(-2px);
+        }
+
+        .quick-input-pad .custom-input {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .quick-input-pad .custom-input input {
+            flex: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            padding: 8px;
+            color: var(--text-color);
+        }
+
+        .quick-input-pad .pad-title {
+            font-weight: bold;
+        }
+
+        /* 移動端樣式調整 */
+        @media (max-width: 768px) {
+            .app-container {
+                margin-top: 0;
+            }
+
+            .sidebar {
+                left: -240px;
+                top: 60px;
+                bottom: 0;
+                z-index: 1002;
+                height: calc(100dvh - 60px);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: env(safe-area-inset-bottom, 0);
+                /* 支援 iOS 安全區域 */
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .sidebar.show+.main-content {
+                margin-left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+                margin-top: 0;
+                height: calc(100vh - var(--header-height) - var(--footer-height));
+            }
+
+            .chat-container {
+                position: fixed;
+                top: var(--header-height);
+                bottom: var(--footer-height);
+                left: 0;
+                right: 0;
+                margin: 0;
+                border-radius: 0;
+                height: calc(100dvh - var(--header-height) - var(--footer-height));
+                z-index: 998;
+                padding-bottom: 0;
+            }
+
+            #content {
+                padding: 0.2rem;
+            }
+
+            /* 調整 footer 樣式 */
+            .footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 999;
+                background: var(--footer-bg);
+                border-top: 1px solid var(--card-border);
+                padding: 0.5rem;
+                height: var(--footer-height);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            /* 調整主內容區域的邊距 */
+            .main-content {
+                padding-bottom: 1rem;
+                height: calc(100dvh - var(--header-height));
+                min-height: -webkit-fill-available;
+                /* 支援 iOS Safari */
+            }
+
+            /* 確保 body 和 html 高度正確 */
+            html,
+            body {
+                height: 100%;
+                height: -webkit-fill-available;
+                overflow: hidden;
+            }
+
+            body {
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                height: -webkit-fill-available;
+                overflow: hidden;
+            }
+
+            /* 當側邊欄開啟時隱藏工具列 */
+            .sidebar.show~#header {
+                display: none;
+            }
+
+            /* 調整移動端側邊欄切換按鈕 */
+            .mobile-sidebar-toggle {
+                position: fixed;
+                left: 10px;
+                top: 10px;
+                z-index: 1006;
+                /* 提高 z-index 確保在 header 之上 */
+                background: var(--badge-bg);
+                color: var(--badge-text);
+                border: none;
+                border-radius: 4px;
+                padding: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+            }
+
+            .mobile-sidebar-toggle .iconify {
+                font-size: 1.5rem;
+            }
+
+            /* 當側邊欄開啟時調整切換按鈕位置 */
+            .sidebar.show~.mobile-sidebar-toggle {
+                left: 250px;
+            }
+
+            /* 確保側邊欄在工具列之上 */
+            .sidebar.show {
+                z-index: 1005;
+            }
+
+            /* 調整側邊欄內容的層級 */
+            .sidebar-sticky {
+                padding: 0.2rem;
+                padding-bottom: calc(var(--footer-height) + env(safe-area-inset-bottom, 10px));
+                /* 支援 iOS 安全區域 */
+            }
+
+            /* 確保側邊欄按鈕在工具列之上 */
+            .sidebar-actions {
+                position: sticky;
+                bottom: 0;
+                z-index: 1007;
+                background: var(--sidebar-bg);
+                padding: 4px;
+                padding-bottom: env(safe-area-inset-bottom, 10px);
+                margin-top: auto;
+            }
+
+            /* 調整側邊欄按鈕的樣式 */
+            .sidebar-actions .btn {
+                position: relative;
+                z-index: 1008;
+                background: var(--card-bg);
+                border: 1px solid var(--card-border);
+                color: var(--text-color);
+                margin: 2px 0;
+                padding: 6px 4px;
+                font-size: 0.75rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                transition: all 0.2s ease;
+            }
+
+            .sidebar-actions .btn:hover {
+                background: var(--message-hover);
+                transform: translateY(-1px);
+                box-shadow: var(--shadow-sm);
+            }
+
+            .sidebar-actions .btn:active {
+                transform: translateY(0);
+            }
+
+            .sidebar-actions .btn .iconify {
+                font-size: 1.2rem;
+                min-width: 1.2rem;
+                height: 1.2rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .sidebar-actions .btn .iconify {
+                font-size: 1.2rem;
+                min-width: 1.2rem;
+                height: 1.2rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+
+        /* 確保桌面版不受影響 */
+        @media (min-width: 769px) {
+            .footer {
+                position: sticky;
+                bottom: 0;
+            }
+
+            .sidebar-sticky {
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                background: var(--sidebar-bg);
+                overflow: hidden;
+                padding: 0.3rem;
+                padding-bottom: 0;
+                /* 移除底部padding */
+                position: relative;
+                /* 新增相對定位 */
+            }
+
+            .sidebar-actions {
+                position: absolute;
+                /* 改為絕對定位 */
+                bottom: 0;
+                left: 0;
+                right: 0;
+                padding: 4px;
+                border-top: 1px solid var(--card-border);
+                background: var(--sidebar-bg);
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 4px;
+                z-index: 1007;
+            }
+
+            .list-content {
+                flex: 1;
+                overflow-y: auto;
+                padding: 2px;
+                min-height: 0;
+                background: var(--sidebar-bg);
+                max-height: calc(100vh - 250px);
+                margin-bottom: 120px;
+                /* 為底部按鈕預留空間 */
+            }
+        }
+
+        /* Remove old header-toggle styles */
+        .header-toggle {
+            display: none;
+        }
+
+        #header {
+            transition: transform 0.3s ease;
+            background: var(--card-bg);
+            box-shadow: var(--shadow-md);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1005;
+            padding: 5px;
+            width: 100%;
+            height: 60px;
+            display: flex;
+            align-items: center;
+        }
+
+        #header .navbar {
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            background: var(--card-bg) !important;
+        }
+
+        #header .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #header .navbar-toggler {
+            border: none;
+            padding: 0.5rem;
+        }
+
+        #header .navbar-toggler:focus {
+            outline: none;
+        }
+
+        #header .navbar-nav {
+            display: flex;
+            align-items: center;
+        }
+
+        #header .nav-link {
+            color: var(--text-color) !important;
+            padding: 0.5rem 1rem;
+        }
+
+        #header .dropdown-menu {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+        }
+
+        #header .dropdown-item {
+            color: var(--text-color);
+        }
+
+        #header .dropdown-item:hover {
+            background: var(--message-hover);
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            #header {
+                height: 60px;
+                padding: 0;
+                background: var(--card-bg);
+                box-shadow: var(--shadow-md);
+            }
+
+            #header .navbar {
+                padding: 0 10px;
+            }
+
+            #header .navbar-brand {
+                font-size: 1rem;
+            }
+
+            #header .navbar-toggler {
+                margin-right: 10px;
+            }
+
+            #header .navbar-collapse {
+                position: absolute;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background: var(--card-bg);
+                padding: 10px;
+                box-shadow: var(--shadow-md);
+                z-index: 1004;
+            }
+
+            #header .navbar-nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            #header .nav-item {
+                width: 100%;
+                margin: 5px 0;
+            }
+
+            #header .nav-link {
+                padding: 8px 0;
+            }
+
+            #header .dropdown-menu {
+                position: static !important;
+                transform: none !important;
+                border: none;
+                box-shadow: none;
+                padding-left: 20px;
+            }
+
+            #header .dropdown-item {
+                padding: 8px 0;
+            }
+
+            /* 調整主容器位置 */
+            .app-container {
+                margin-top: 60px;
+                height: calc(100vh - 60px);
+            }
+
+            /* 調整側邊欄位置 */
+            .sidebar {
+                top: 60px;
+                height: calc(100vh - 60px);
+            }
+
+            /* 調整內容區域 */
+            .main-content {
+                margin-top: 60px;
+                height: calc(100vh - 120px);
+            }
+
+            /* 調整 footer 位置 */
+            .footer {
+                bottom: 0;
+                z-index: 1003;
+            }
+        }
+
+        /* Desktop styles */
+        @media (min-width: 769px) {
+            #header {
+                position: relative;
+                height: auto;
+                padding: 5px;
+            }
+
+            .app-container {
+                margin-top: 0;
+            }
+
+            .sidebar {
+                top: 0;
+                height: 100vh;
+            }
+
+            .main-content {
+                margin-top: 0;
+            }
+        }
+
+        /* Add new styles for Discord-like layout */
+        .app-container {
+            display: flex;
+            height: calc(100vh - 60px);
+            margin-top: 60px;
+            position: relative;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            position: fixed;
+            top: 60px;
+            bottom: 0;
+            left: 0;
+            z-index: 1001;
+            height: calc(100dvh - 60px);
+            overflow: hidden;
+        }
+
+        .sidebar-sticky {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: var(--sidebar-bg);
+            overflow: hidden;
+            padding: 0.3rem;
+            padding-bottom: 0;
+            /* 移除底部padding */
+            position: relative;
+            /* 新增相對定位 */
+        }
+
+        .sidebar-header {
+            background: var(--sidebar-bg);
+            padding: 0;
+            margin-bottom: 0.3rem;
+            flex-shrink: 0;
+        }
+
+        .chatroom-list {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            background: var(--sidebar-bg);
+            margin-bottom: 2px;
+        }
+
+        .list-header {
+            background: var(--sidebar-bg);
+            padding: 0.3rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--card-border);
+            flex-shrink: 0;
+        }
+
+        .list-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2px;
+            min-height: 0;
+            background: var(--sidebar-bg);
+            max-height: calc(100vh - 250px);
+        }
+
+        .sidebar-actions {
+            padding: 4px;
+            border-top: 1px solid var(--card-border);
+            background: var(--sidebar-bg);
+            flex-shrink: 0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px;
+            margin-top: auto;
+            position: sticky;
+            bottom: 0;
+            z-index: 1007;
+            padding-bottom: env(safe-area-inset-bottom, 10px);
+            /* 支援 iOS 安全區域 */
+        }
+
+        .sidebar-actions .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 4px 2px;
+            font-size: 0.75rem;
+            transition: all 0.2s ease;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-color);
+            margin: 0;
+            white-space: normal;
+            height: 100%;
+        }
+
+        .sidebar-actions .btn:hover {
+            background: var(--message-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-actions .btn:active {
+            transform: translateY(0);
+        }
+
+        .sidebar-actions .btn .iconify {
+            font-size: 1.2rem;
+            min-width: 1.2rem;
+            height: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .join-room-section,
+        .create-room-section {
+            width: 100%;
+        }
+
+        .join-room-section .input-group,
+        .create-room-section .input-group {
+            width: 100%;
+        }
+
+        .chatroom-item {
+            display: flex;
+            align-items: center;
+            padding: 4px;
+            margin: 1px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--card-bg);
+            position: relative;
+        }
+
+        .chatroom-item:hover {
+            background: var(--message-hover);
+        }
+
+        .chatroom-item.active {
+            background: var(--active-item);
+            color: var(--active-item-text);
+        }
+
+        .chatroom-item.active .iconify {
+            color: var(--active-item-text);
+        }
+
+        .chatroom-item.active .delete-btn {
+            color: var(--active-item-text);
+        }
+
+        .chatroom-item.active .delete-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--active-item-text);
+        }
+
+        .chatroom-item .iconify {
+            margin-right: 8px;
+            transition: all 0.2s ease;
+            font-size: 1.2rem;
+            min-width: 1.2rem;
+            height: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--badge-bg);
+            opacity: 0.8;
+        }
+
+        .chatroom-item:hover .iconify {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .chatroom-item.active .iconify {
+            opacity: 1;
+            color: var(--active-item-text);
+        }
+
+        .chatroom-item .room-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+
+        .chatroom-item .delete-btn {
+            opacity: 0;
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: all 0.2s ease;
+            background: transparent;
+            border: none;
+            padding: 4px;
+            border-radius: 4px;
+            color: var(--text-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chatroom-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .chatroom-item .delete-btn:hover {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .chatroom-item .delete-btn .iconify {
+            font-size: 1rem;
+            margin: 0;
+            color: inherit;
+        }
+
+        /* 移動端樣式調整 */
+        @media (max-width: 768px) {
+            .sidebar-sticky {
+                padding: 0.2rem;
+                padding-bottom: calc(var(--footer-height) + env(safe-area-inset-bottom, 10px));
+            }
+
+            .list-header {
+                padding: 0.2rem;
+            }
+
+            .list-content {
+                padding: 1px;
+            }
+
+            .sidebar-actions {
+                padding: 2px;
+            }
+
+            .chatroom-item {
+                padding: 3px;
+                margin: 1px 0;
+            }
+
+            /* 確保移動端側邊欄按鈕始終可見 */
+            .mobile-sidebar-toggle {
+                display: flex;
+                z-index: 1006;
+            }
+
+            /* 當側邊欄開啟時，確保按鈕在側邊欄之上 */
+            .sidebar.show~.mobile-sidebar-toggle {
+                z-index: 1007;
+            }
+        }
+
+        /* 確保桌面版不受影響 */
+        @media (min-width: 769px) {
+            .mobile-sidebar-toggle {
+                display: none;
+            }
+        }
+
+        /* 加入聊天室按鈕樣式 */
+        .list-footer .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .list-footer .btn .iconify {
+            font-size: 1.2rem;
+        }
+
+        /* Modal 樣式優化 */
+        .modal-content {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--card-border);
+        }
+
+        .modal-header {
+            border-bottom-color: var(--card-border);
+        }
+
+        .modal-footer {
+            border-top-color: var(--card-border);
+        }
+
+        .modal .form-group label {
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Footer 樣式優化 */
+        .footer {
+            position: sticky;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--footer-bg);
+            border-top: 1px solid var(--card-border);
+            z-index: 1000;
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            height: var(--footer-height);
+        }
+
+        .footer .container {
+            padding: 0;
+            flex: 1;
+            min-width: 0;
+            /* 防止 flex 項目溢出 */
+        }
+
+        .footer .toggle-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: var(--border-radius);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-left: 10px;
+            white-space: nowrap;
+            /* 防止文字換行 */
+        }
+
+        .footer .toggle-button:hover {
+            background: var(--badge-bg);
+            color: var(--badge-text);
+        }
+
+        .footer .toggle-button .iconify {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .footer .toggle-button.collapsed .iconify {
+            transform: rotate(180deg);
+        }
+
+        /* 移動端樣式調整 */
+        @media (max-width: 768px) {
+            .footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 999;
+                background: var(--footer-bg);
+                border-top: 1px solid var(--card-border);
+                padding: 0.5rem;
+                height: var(--footer-height);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .footer .container {
+                flex: 1;
+                margin-right: 10px;
+                min-width: 0;
+                /* 防止 flex 項目溢出 */
+            }
+
+            .footer .toggle-button {
+                flex-shrink: 0;
+                /* 防止按鈕被壓縮 */
+                padding: 6px 12px;
+                font-size: 0.9rem;
+                margin-left: 0;
+            }
+
+            .footer .input-group {
+                width: 100%;
+            }
+
+            .footer .input-group .form-control {
+                width: 1%;
+                flex: 1;
+                min-width: 0;
+                /* 防止輸入框溢出 */
+            }
+        }
+
+        /* 確保桌面版不受影響 */
+        @media (min-width: 769px) {
+            .footer {
+                position: sticky;
+                bottom: 0;
+            }
+        }
+
+        /* Styles for wrapping choice buttons */
+        .choices-group {
+            display: flex;
+            flex-wrap: wrap;
+            margin: -0.125rem; /* Counteract button margin */
+        }
+
+        .choices-group > .btn {
+            margin: 0.125rem;
+        }
+
+        /* ============================================ */
+        /* 訊息視覺化增強 */
+        /* ============================================ */
+
+        /* 訊息進場動畫 */
+        @keyframes messageFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-fade-in {
+            animation: messageFadeIn 0.3s ease-out;
+        }
+
+        /* 訊息懸停效果 */
+        .card:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* ============================================ */
+        /* 圖片懶載入樣式 */
+        /* ============================================ */
+        
+        .image-wrapper {
+            position: relative;
+            display: block;
+            min-width: 200px;
+            min-height: 150px;
+            margin: 8px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--card-bg);
+            clear: both;
+        }
+        
+        .image-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 150px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.05) 100%);
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+        
+        .image-placeholder .iconify {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+        
+        .image-placeholder span:last-child {
+            font-size: 0.85rem;
+        }
+        
+        .image-placeholder.loading {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 51, 234, 0.05) 100%);
+        }
+        
+        .image-placeholder.error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(220, 38, 38, 0.05) 100%);
+            color: #ef4444;
+        }
+        
+        .loading-spin {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .message-image {
+            max-width: 100%;
+            max-height: 400px;
+            width: auto;
+            height: auto;
+            border-radius: 8px;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            display: block;
+        }
+        
+        .message-image.loaded {
+            animation: imageFadeIn 0.3s ease-out;
+        }
+        
+        @keyframes imageFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .message-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        /* 🔧 CORS Error Prevention: Disable tooltips and previews */
+        .message-image {
+            pointer-events: auto;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* 🔧 CORS Error Prevention: Disable tooltips for external images */
+        .message-image[src*="://"] {
+            /* Prevent browser from trying to access external images on hover */
+            pointer-events: auto;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* 圖片包裝器樣式 */
+        .image-wrapper {
+            display: block;
+            margin: 8px 0;
+        }
+        
+        /* 移動端優化 */
+        @media (max-width: 768px) {
+            .image-wrapper {
+                min-width: 150px;
+                min-height: 100px;
+            }
+            
+            .image-placeholder {
+                min-height: 100px;
+                padding: 15px;
+            }
+            
+            .message-image {
+                max-height: 300px;
+            }
+        }
+
+        /* ============================================ */
+        /* 訊息輸入區優化 */
+        /* ============================================ */
+
+        /* Textarea 自動高度調整 */
+        .message-input {
+            resize: none;
+            overflow-y: hidden;
+            min-height: 38px;
+            max-height: 120px;
+            line-height: 1.5;
+            transition: height 0.1s ease;
+        }
+
+        /* 字數統計器 */
+        .char-counter {
+            min-width: 80px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        /* 發送按鈕優化 */
+        #sendBtn {
+            min-width: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #sendBtn .iconify {
+            font-size: 1.2rem;
+        }
+
+        /* 輸入框焦點效果 */
+        .message-input:focus {
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        /* 移動端調整 */
+        @media (max-width: 768px) {
+            .char-counter {
+                min-width: 70px;
+                font-size: 0.75rem;
+            }
+            
+            #sendBtn {
+                min-width: 50px;
+            }
+        }
+
+        /* ============================================ */
+        /* 滾動優化相關樣式 */
+        /* ============================================ */
+
+        /* 優化滾動行為 */
+        #container-content {
+            scroll-behavior: smooth;
+        }
+
+        /* 滾動高亮效果 */
+        .card.scroll-highlight {
+            animation: scrollHighlight 2s ease-out;
+        }
+
+        @keyframes scrollHighlight {
+            0% {
+                background: var(--badge-bg);
+                transform: scale(1);
+                box-shadow: 0 0 20px var(--badge-bg);
+            }
+            10% {
+                background: var(--badge-bg);
+                transform: scale(1.02);
+            }
+            100% {
+                background: var(--card-bg);
+                transform: scale(1);
+                box-shadow: none;
+            }
+        }
+
+        /* 回到底部按鈕 */
+        .scroll-to-bottom-btn {
+            position: fixed;
+            bottom: calc(var(--footer-height) + 80px);
+            right: 30px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--badge-bg);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(100px) scale(0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 997;
+        }
+
+        .scroll-to-bottom-btn.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .scroll-to-bottom-btn:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+            background: var(--badge-bg);
+            filter: brightness(1.1);
+        }
+
+        .scroll-to-bottom-btn:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        .scroll-to-bottom-btn .iconify {
+            font-size: 26px;
+            transition: transform 0.3s ease;
+        }
+
+        .scroll-to-bottom-btn:hover .iconify {
+            transform: translateY(2px);
+        }
+
+        /* 新訊息提示徽章 */
+        .new-msg-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #ff4444;
+            color: white;
+            border-radius: 12px;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            min-width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(255, 68, 68, 0.4);
+            animation: badgePulse 2s infinite;
+        }
+
+        @keyframes badgePulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        /* 移動端調整 */
+        @media (max-width: 768px) {
+            .scroll-to-bottom-btn {
+                bottom: calc(var(--footer-height) + 20px);
+                right: 20px;
+                width: 44px;
+                height: 44px;
+            }
+            
+            .scroll-to-bottom-btn .iconify {
+                font-size: 24px;
+            }
+        }
+
+        /* 尊重用戶的減少動畫偏好設定 */
+        @media (prefers-reduced-motion: reduce) {
+            #container-content {
+                scroll-behavior: auto;
+            }
+            
+            .scroll-to-bottom-btn {
+                transition: none;
+            }
+            
+            .card.scroll-highlight {
+                animation: none;
+                background: var(--badge-bg);
+            }
+            
+            @keyframes scrollHighlight {
+                0%, 100% {
+                    background: var(--card-bg);
+                }
+            }
+        }
+    </style>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
         integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
-    </script>
+        </script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
         integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous">
-    </script>
-</body>
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-111430056-7"></script>
-<script>
-    window.dataLayer = window.dataLayer || [];
+        </script>
+    <script>
+        // Configuration and Constants
+        const CONFIG = {
+            DEFAULT_ROOM: "公共房間",
+            PERSONAL_ROOM: "個人小屋",
+            MAX_MESSAGES: 100,
+            DEFAULT_NAME_PREFIX: "調查員",
+            SOCKET_RECONNECT_ATTEMPTS: 999,
+            SOCKET_RECONNECT_DELAY: 5000,
+            MESSAGE_CHUNK_SIZE: 2000,
+            // 圖片安全模式：true = 嚴格白名單，false = 允許所有HTTPS圖片（顯示警告）
+            STRICT_IMAGE_WHITELIST: false,  // 設為 false 以允許更多圖片源
+            // CORS 錯誤抑制配置
+            CORS_ERROR_SUPPRESSION: {
+                enabled: true,
+                // 抑制策略: 'all' = 抑制所有外部域名, 'cors-errors' = 只抑制CORS錯誤, 'none' = 不抑制
+                strategy: 'cors-errors',
+                // 是否抑制所有外部域名的 CORS 錯誤
+                suppressAllExternal: false
+            }
+        };
 
-    function gtag() {
-        dataLayer.push(arguments);
-    }
-    gtag('js', new Date());
-    gtag('config', 'UA-111430056-7');
-    let socket = io();
-    let color = 3;
+        // State Management
+        const state = {
+            currentRoom: CONFIG.DEFAULT_ROOM,
+            color: 3,
+            max_record: CONFIG.MAX_MESSAGES,
+            socket: null,
+            reconnectAttempts: 0,
+            isConnected: false,
+            isHistoryLoading: true,
+            pendingLive: []
+        };
 
-    function readme() {
-        $('#readmeModalCenter').modal("show")
-    }
+        // 🔧 CORS 錯誤抑制工具 - 動態版本
+        const corsErrorSuppressor = {
+            // 動態檢測是否應該抑制 CORS 錯誤
+            shouldSuppressError: (url, errorEvent = null) => {
+                if (!CONFIG.CORS_ERROR_SUPPRESSION.enabled) {
+                    return false;
+                }
+                
+                if (!url) return false;
+                
+                try {
+                    const urlObj = new URL(url);
+                    const hostname = urlObj.hostname.toLowerCase();
+                    const currentDomain = window.location.hostname.toLowerCase();
+                    
+                    // 如果是同域名，不抑制
+                    if (hostname === currentDomain) {
+                        return false;
+                    }
+                    
+                    // 根據策略決定是否抑制
+                    switch (CONFIG.CORS_ERROR_SUPPRESSION.strategy) {
+                        case 'all':
+                            // 抑制所有外部域名
+                            return true;
+                            
+                        case 'cors-errors':
+                            // 只抑制CORS相關錯誤
+                            if (errorEvent) {
+                                // 檢查是否為CORS錯誤
+                                const isCorsError = this.isCorsError(errorEvent);
+                                return isCorsError;
+                            }
+                            // 如果沒有錯誤事件，檢查URL是否可能導致CORS問題
+                            return this.isLikelyCorsProblem(url);
+                            
+                        case 'none':
+                        default:
+                            return false;
+                    }
+                } catch (e) {
+                    return false;
+                }
+            },
+            
+            // 檢測是否為CORS錯誤
+            isCorsError: (errorEvent) => {
+                if (!errorEvent) return false;
+                
+                // 檢查錯誤訊息是否包含CORS相關關鍵字
+                const corsKeywords = ['cors', 'cross-origin', 'access-control', 'origin'];
+                const errorMessage = errorEvent.message || errorEvent.toString() || '';
+                const lowerMessage = errorMessage.toLowerCase();
+                
+                return corsKeywords.some(keyword => lowerMessage.includes(keyword));
+            },
+            
+            // 檢測URL是否可能導致CORS問題
+            isLikelyCorsProblem: (url) => {
+                try {
+                    const urlObj = new URL(url);
+                    const hostname = urlObj.hostname.toLowerCase();
+                    const currentDomain = window.location.hostname.toLowerCase();
+                    
+                    // 不同域名且不是常見的CDN
+                    const commonCdnDomains = [
+                        'cdnjs.cloudflare.com',
+                        'unpkg.com',
+                        'jsdelivr.net',
+                        'stackpath.bootstrapcdn.com',
+                        'cdn.jsdelivr.net'
+                    ];
+                    
+                    const isCommonCdn = commonCdnDomains.some(cdn => hostname.includes(cdn));
+                    
+                    // 如果是常見CDN，通常不會有CORS問題
+                    if (isCommonCdn) {
+                        return false;
+                    }
+                    
+                    // 其他外部域名可能會有CORS問題
+                    return hostname !== currentDomain;
+                } catch (e) {
+                    return false;
+                }
+            },
+            
+            // 抑制 CORS 錯誤
+            suppressError: (url, context = '', errorEvent = null) => {
+                if (this.shouldSuppressError(url, errorEvent)) {
+                    console.log(`🔇 Suppressed CORS error (${context}):`, url);
+                    return true;
+                }
+                return false;
+            }
+        };
 
-    function genName() {
-        if (!document.getElementById("name").value)
-            document.getElementById("name").value = "調查員" + Math.floor(Math.random() * 1000) + 1;
-    }
+        // Utility Functions
+        const utils = {
+            setLocalStorage: (key, value) => {
+                try {
+                    localStorage.setItem(key, value);
+                    return true;
+                } catch (error) {
+                    if (error.name === 'QuotaExceededError') {
+                        console.warn('🔒 LocalStorage quota exceeded');
+                        // 嘗試清理舊數據
+                        try {
+                            const keysToClean = ['personalRoomMessages', 'chatHistory'];
+                            for (const k of keysToClean) {
+                                localStorage.removeItem(k);
+                            }
+                            // 再次嘗試設置
+                            localStorage.setItem(key, value);
+                            return true;
+                        } catch (e) {
+                            console.error('🔒 Failed to set localStorage:', e);
+                            return false;
+                        }
+                    }
+                    console.error('🔒 LocalStorage error:', error);
+                    return false;
+                }
+            },
+            getLocalStorage: (key) => {
+                try {
+                    return localStorage.getItem(key) || null;
+                } catch (error) {
+                    console.error('🔒 Failed to get localStorage:', error);
+                    return null;
+                }
+            },
+            generateName: () => CONFIG.DEFAULT_NAME_PREFIX + Math.floor(Math.random() * 1000) + 1,
+            scrollToBottom: (behavior = 'smooth') => {
+                const container = document.getElementById("container-content");
+                if (!container) return;
+                
+                container.scroll({
+                    top: container.scrollHeight,
+                    behavior: behavior
+                });
+            },
+            isAtBottom: (threshold = 100) => {
+                const container = document.getElementById("container-content");
+                if (!container) return false;
+                
+                const { scrollHeight, scrollTop, clientHeight } = container;
+                return scrollHeight - scrollTop - clientHeight <= threshold;
+            },
+            extractUrls: (text) => {
+                try {
+                    const re = /https?:\/\/[^\s\n]+/g;
+                    const matches = String(text || '').match(re) || [];
+                    // Deduplicate and cap to avoid spam
+                    const seen = new Set();
+                    const result = [];
+                    for (const u of matches) {
+                        const url = u.replace(/[)\]\s\n]+$/, '');
+                        if (!seen.has(url) && result.length < 5) {
+                            seen.add(url);
+                            result.push(url);
+                        }
+                    }
+                    return result;
+                } catch { return []; }
+            },
+            tryEmbedImagesInto: (container, text) => {
+                const urls = utils.extractUrls(text);
+                if (!urls.length) return;
+                
+                // Filter for likely image URLs
+                const imageUrls = urls.filter(url => {
+                    const lowerUrl = url.toLowerCase();
+                    return lowerUrl.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?|$)/i) || 
+                           lowerUrl.includes('digimon.net/cimages/') ||
+                           lowerUrl.includes('image') ||
+                           lowerUrl.includes('img');
+                });
+                
+                //console.log('📸 Found image URLs:', imageUrls);
+                
+                // Validate URLs
+                const validImageUrls = imageUrls.filter(url => {
+                    const isValid = utils.isValidImageUrl(url);
+                    if (!isValid) {
+                        console.warn('❌ Invalid image URL:', url);
+                    }
+                    return isValid;
+                });
+                
+                //console.log('✅ Valid image URLs:', validImageUrls);
+                
+                if (!validImageUrls.length) return;
+                
+                validImageUrls.forEach((url) => {
+                    try {
+                        // Create placeholder wrapper
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'image-wrapper';
+                        wrapper.setAttribute('data-image-url', utils.sanitizeUrl(url));
+                        
+                        // Create placeholder
+                        const placeholder = document.createElement('div');
+                        placeholder.className = 'image-placeholder';
+                        placeholder.innerHTML = '<span class="iconify" data-icon="bi:image"></span><span>載入圖片中...</span>';
+                        
+                        // Create actual image (lazy loaded)
+                        const img = document.createElement('img');
+                        img.className = 'message-image lazy-image';
+                        img.referrerPolicy = 'no-referrer';
+                        img.setAttribute('data-src', utils.sanitizeUrl(url));
+                        img.style.display = 'none';
+                        img.alt = '訊息圖片';
+                        
+                        // 🔧 CORS Error Prevention: Add error suppression for hover events
+                        img.addEventListener('error', (e) => {
+                            // Suppress CORS errors on hover/preview attempts
+                            if (corsErrorSuppressor.shouldSuppressError(e.target.src, e)) {
+                                corsErrorSuppressor.suppressError(e.target.src, 'image hover', e);
+                                e.preventDefault();
+                                e.stopPropagation();
+                                return false;
+                            }
+                        }, true);
+                        
+                        // Prevent browser from trying to access images on hover
+                        img.addEventListener('mouseenter', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        });
+                        
+                        img.addEventListener('mouseover', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        });
+                        
+                        // Assemble structure
+                        wrapper.appendChild(placeholder);
+                        wrapper.appendChild(img);
+                        
+                        // Add wrapper directly to container (no link wrapper)
+                        container.appendChild(wrapper);
+                        
+                        // 🔧 Smart loading strategy:
+                        // 1. History records: Load immediately (at top, not in viewport)
+                        // 2. New messages: Always load immediately for better UX
+                        if (state.isHistoryLoading) {
+                            //console.log('📜 Loading image immediately (history):', url);
+                            img.onload = () => {
+                                if (placeholder) placeholder.style.display = 'none';
+                                img.style.display = 'block';
+                                //console.log('✅ Image loaded (history):', url);
+                            };
+                            img.onerror = (e) => {
+                                // Suppress CORS errors dynamically
+                                if (corsErrorSuppressor.shouldSuppressError(url, e)) {
+                                    corsErrorSuppressor.suppressError(url, 'history load', e);
+                                    return;
+                                }
+                                
+                                if (placeholder) {
+                                    placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片載入失敗</span>';
+                                    placeholder.classList.add('error');
+                                }
+                                console.warn('❌ Failed to load image (history):', url);
+                            };
+                            img.src = utils.sanitizeUrl(url);
+                        } 
+                        // New messages: Always load immediately for better user experience
+                        else {
+                            //console.log('💬 Loading image immediately (new message):', url);
+                            img.onload = () => {
+                                if (placeholder) placeholder.style.display = 'none';
+                                img.style.display = 'block';
+                                //console.log('✅ Image loaded (new message):', url);
+                            };
+                            img.onerror = (e) => {
+                                // Suppress CORS errors dynamically
+                                if (corsErrorSuppressor.shouldSuppressError(url, e)) {
+                                    corsErrorSuppressor.suppressError(url, 'new message load', e);
+                                    return;
+                                }
+                                
+                                if (placeholder) {
+                                    placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片載入失敗</span>';
+                                    placeholder.classList.add('error');
+                                }
+                                console.warn('❌ Failed to load image (new message):', url);
+                            };
+                            img.src = utils.sanitizeUrl(url);
+                        }
+                    } catch (e) { 
+                        console.log('Error creating image for:', url, e);
+                    }
+                });
+            },
+            isValidImageUrl: (url) => {
+                // 非嚴格模式：允許所有 HTTPS 圖片
+                if (!CONFIG.STRICT_IMAGE_WHITELIST) {
+                    try {
+                        const urlObj = new URL(url);
+                        // 允許所有 HTTP/HTTPS 圖片
+                        return urlObj.protocol === 'https:' || urlObj.protocol === 'http:';
+                    } catch {
+                        return false;
+                    }
+                }
+                
+                // 嚴格模式：使用安全管理器的驗證
+                return securityManager.validateImageUrl(url);
+            },
+            sanitizeUrl: (url) => {
+                // 非嚴格模式：允許所有 HTTPS URL
+                if (!CONFIG.STRICT_IMAGE_WHITELIST) {
+                    try {
+                        const urlObj = new URL(url);
+                        if (urlObj.protocol === 'https:' || urlObj.protocol === 'http:') {
+                            return urlObj.toString();
+                        }
+                    } catch {
+                        return 'about:blank';
+                    }
+                }
+                
+                // 嚴格模式：使用安全管理器驗證
+                const validation = securityManager.validateUrl(url);
+                if (!validation.valid) {
+                    console.warn('Invalid URL blocked:', url);
+                    return 'about:blank';
+                }
+                return validation.url;
+            },
+            escapeHtml: (text) => {
+                // 使用安全管理器的 HTML 清理函數
+                return securityManager.sanitizeHtml(text);
+            },
+            
+            convertUrlsToLinks: (text) => {
+                if (!text) return text;
+                
+                // First, escape HTML to prevent XSS
+                const escapedText = utils.escapeHtml(text);
+                
+                // URL regex pattern - matches http/https URLs
+                const urlRegex = /(https?:\/\/[^\s\n\)\]\>]+)/g;
+                
+                return escapedText.replace(urlRegex, (url) => {
+                    // Clean up the URL (remove trailing punctuation that might not be part of the URL)
+                    const cleanUrl = url.replace(/[.,;:!?]+$/, '');
+                    const trailingPunctuation = url.replace(cleanUrl, '');
+                    
+                    // Create a safe, clickable link
+                    const sanitizedUrl = utils.sanitizeUrl(cleanUrl);
+                    if (sanitizedUrl === 'about:blank') {
+                        return utils.escapeHtml(url); // Return escaped original if URL is invalid
+                    }
+                    
+                    return `<a href="${sanitizedUrl}" target="_blank" rel="noopener noreferrer" class="message-link">${utils.escapeHtml(cleanUrl)}</a>${utils.escapeHtml(trailingPunctuation)}`;
+                });
+            }
+        };
 
-    function save() {
-        let roomText = document.getElementById("roomNumber");
-        console.log('roomText', document.getElementById(
-            "content").innerText)
-        let string = ('HKTRPG' + (roomText && (
-            roomText.value || ''))) + '\n' + (document.getElementById(
-            "content") && (document.getElementById(
-            "content").innerText || '')).replace(/(.*\d+:\d+:\d+)/g, '\n$1')
-
-
-        let link = document.createElement('a');
-        link.download = 'HKTRPG' + (roomText.value || '');
-        let blob = new Blob([string], {
-            type: 'text/plain;charset=utf-8;'
-        });
-        link.href = window.URL.createObjectURL(blob);
-        console.log('blob', blob)
-        link.click();
-
-
-
-    }
-
-    function scorllToBottom() {
-        let content = document.getElementById("container-content");
-        content.scrollTop = content.scrollHeight;
-    }
-    document.addEventListener("DOMContentLoaded", () => {
-        let roomNumber = "公共房間"
-        let max_record = 100;
-        //  let status = document.getElementById("status");
-        let online = document.getElementById("online");
-        let room = document.getElementById("room");
-        let roomText = document.getElementById("roomNumber");
-        let changeRoomNumber = document.getElementById("changeRoomNumber-form");
-        let sendForm = document.getElementById("send-form");
-        let content = document.getElementById("content");
-        let nameInputBox = document.getElementById("name");
-        let msgInputBox = document.getElementById("msg");
-        let name = getLocalStorage("name");
-
-        if (name) {
-            nameInputBox.value = name;
-        } else {
-            genName()
-        }
-        /*
-                socket.on("connect", function () {
-                    status.innerText = "Connected.";
+        // Socket.IO Management
+        const socketManager = {
+            init: () => {
+                state.socket = io({
+                    reconnection: true,
+                    reconnectionAttempts: CONFIG.SOCKET_RECONNECT_ATTEMPTS,
+                    reconnectionDelay: CONFIG.SOCKET_RECONNECT_DELAY
                 });
 
-                socket.on("disconnect", function () {
-                    status.innerText = "Disconnected.";
+                socketManager.setupEventListeners();
+            },
+
+            setupEventListeners: () => {
+                state.socket.on('connect', () => {
+                    state.isConnected = true;
+                    state.reconnectAttempts = 0;
+                    console.log('Connected to server');
                 });
-        */
-        socket.on("online", function (amount) {
-            online.innerText = amount;
-        });
 
-        socket.on("maxRecord", function (amount) {
-            max_record = amount;
-        });
+                state.socket.on('disconnect', () => {
+                    state.isConnected = false;
+                    console.log('Disconnected from server');
+                });
 
-        socket.on("chatRecord", async function (msgs) {
-            msgs.sort(function (a, b) {
-                return new Date(a.time) - new Date(b.time);
+                state.socket.on('connect_error', (error) => {
+                    console.error('Connection error:', error);
+                });
+
+                state.socket.on('online', (amount) => {
+                    document.getElementById("online").innerText = amount;
+                });
+
+                state.socket.on('maxRecord', (amount) => {
+                    state.max_record = amount;
+                });
+
+                state.socket.on('chatRecord', async (msgs) => {
+                    if (!Array.isArray(msgs) || msgs.length === 0) return;
+                    
+                    // 🐛 FIX: 檢查房間並記錄目前房間，避免競態條件
+                    const batchRoom = msgs[0].roomNumber;
+                    const currentRoom = chatroomManager.currentRoom;
+                    
+                    // 只處理當前房間的歷史記錄
+                    if (batchRoom !== currentRoom) {
+                        console.log(`🔄 Ignoring history for room ${batchRoom}, current: ${currentRoom}`);
+                        return;
+                    }
+
+                    // 記錄開始處理時間（用於除錯）
+                    const startTime = Date.now();
+                    console.log(`📜 Loading history for room ${batchRoom} (${msgs.length} messages)`);
+                    
+                    // Mark history phase
+                    state.isHistoryLoading = true;
+
+                    // Render history in stable order
+                    msgs.sort((a, b) => {
+                        const ta = new Date(a.time).getTime();
+                        const tb = new Date(b.time).getTime();
+                        if (ta !== tb) return ta - tb;
+                        // tie-breaker using stringified _id if present
+                        const ida = (a._id || '').toString();
+                        const idb = (b._id || '').toString();
+                        return ida.localeCompare(idb);
+                    });
+                    
+                    for (const msg of msgs) {
+                        // 🐛 FIX: 每次新增訊息前都檢查房間，防止切換房間時污染
+                        if (chatroomManager.currentRoom !== batchRoom) {
+                            console.warn(`⚠️ Room changed during history load, aborting (${batchRoom} → ${chatroomManager.currentRoom})`);
+                            break;
+                        }
+                        
+                        if (msg.roomNumber === batchRoom) {
+                            await uiManager.addMessageToBox(msg);
+                        }
+                    }
+                    
+                    // 只有在房間未改變時才繼續
+                    if (chatroomManager.currentRoom !== batchRoom) {
+                        console.log(`🔄 History load aborted for room ${batchRoom}`);
+                        return;
+                    }
+                    
+                    console.log(`✅ History loaded for room ${batchRoom} in ${Date.now() - startTime}ms`);
+
+                    // Flush buffered live messages after history is painted
+                    if (state.pendingLive.length) {
+                        state.pendingLive.sort((a, b) => {
+                            const ta = new Date(a.time).getTime();
+                            const tb = new Date(b.time).getTime();
+                            if (ta !== tb) return ta - tb;
+                            const ida = (a._id || '').toString();
+                            const idb = (b._id || '').toString();
+                            return ida.localeCompare(idb);
+                        });
+                        for (const msg of state.pendingLive) {
+                            await uiManager.addMessageToBox(msg);
+                        }
+                        state.pendingLive = [];
+                    }
+                    state.isHistoryLoading = false;
+                });
+
+                state.socket.on(state.currentRoom, (message) => {
+                    if (state.isHistoryLoading) {
+                        state.pendingLive.push(message);
+                        return;
+                    }
+                    uiManager.addMessageToBox(message);
+                });
+            }
+        };
+
+        // UI Management
+        const uiManager = {
+            initialize: () => {
+                const name = utils.getLocalStorage("name");
+                document.getElementById("name").value = name || utils.generateName();
+                uiManager.setupEventListeners();
+            },
+            
+            autoResizeTextarea: () => {
+                const textarea = document.getElementById("msg");
+                if (!textarea) return;
+                
+                // Reset height to auto to get the correct scrollHeight
+                textarea.style.height = 'auto';
+                
+                // Set new height (max 120px for 5 lines)
+                const newHeight = Math.min(textarea.scrollHeight, 120);
+                textarea.style.height = newHeight + 'px';
+            },
+            
+            updateCharCount: () => {
+                const textarea = document.getElementById("msg");
+                const counter = document.getElementById("charCounter");
+                if (!textarea || !counter) return;
+                
+                const count = textarea.value.length;
+                const max = textarea.maxLength || 1000;
+                counter.textContent = `${count}/${max}`;
+                
+                // Change color when approaching limit
+                if (count > max * 0.9) {
+                    counter.style.color = '#ff4444';
+                } else if (count > max * 0.7) {
+                    counter.style.color = '#ff9800';
+                } else {
+                    counter.style.color = 'var(--text-color)';
+                }
+            },
+
+            setupEventListeners: () => {
+                const sendForm = document.getElementById("send-form");
+                const msgInput = document.getElementById("msg");
+                const nameInput = document.getElementById("name");
+                
+                // Auto-resize textarea and update character count
+                if (msgInput) {
+                    // Initial update
+                    uiManager.updateCharCount();
+                    uiManager.autoResizeTextarea();
+                    
+                    msgInput.addEventListener("input", () => {
+                        uiManager.autoResizeTextarea();
+                        uiManager.updateCharCount();
+                    });
+                    
+                    // Handle Enter key (send message) vs Shift+Enter (new line)
+                    msgInput.addEventListener("keydown", (e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            sendForm.dispatchEvent(new Event('submit'));
+                        }
+                    });
+                }
+
+                sendForm.addEventListener("submit", async (e) => {
+                    e.preventDefault();
+
+                    if (!msgInput.value.trim()) return;
+
+                    // 🔒 Security: 檢查是否正在提交
+                    const submitCheck = securityManager.canSubmit();
+                    if (!submitCheck.allowed) {
+                        console.warn(submitCheck.error);
+                        return;
+                    }
+
+                    const plainMsg = msgInput.value;
+
+                    // 🔒 Security: 輸入驗證
+                    const validation = securityManager.validateInput(plainMsg);
+                    if (!validation.valid) {
+                        alert(validation.error);
+                        return;
+                    }
+
+                    // 🔒 Security: Rate limiting
+                    const rateLimitCheck = securityManager.checkRateLimit();
+                    if (!rateLimitCheck.allowed) {
+                        alert(rateLimitCheck.error);
+                        return;
+                    }
+
+                    // 🔒 Security: 標記為提交中
+                    securityManager.setSubmitting(true);
+
+                    const formData = {
+                        time: new Date(),
+                        msg: validation.sanitized, // 使用已驗證的訊息
+                        name: nameInput.value,
+                        roomNumber: chatroomManager.currentRoom // 使用當前房間
+                    };
+
+                    // 個人小屋：本地處理，不送往伺服器
+                    if (chatroomManager.currentRoom === CONFIG.PERSONAL_ROOM) {
+                        const userMessage = {
+                            time: new Date(),
+                            msg: '\n' + plainMsg,
+                            name: nameInput.value,
+                            roomNumber: CONFIG.PERSONAL_ROOM
+                        };
+                        await uiManager.addMessageToBox(userMessage);
+
+                        try {
+                            const res = await fetch(`/api/local?msg=${encodeURIComponent(plainMsg)}`);
+                            const data = await res.json();
+                            const reply = (data && data.message) ? data.message.toString() : '';
+                            if (reply) {
+                                // 分段顯示，以符合介面一致性
+                                const parts = reply.match(/[\s\S]{1,2000}/g) || [];
+                                const baseTime = Date.now();
+                                for (let i = 0; i < parts.length; i++) {
+                                    const botMessage = {
+                                        time: new Date(baseTime + 1 + i),
+                                        msg: parts[i],
+                                        name: 'HKTRPG -> ' + nameInput.value,
+                                        roomNumber: CONFIG.PERSONAL_ROOM
+                                    };
+                                    await uiManager.addMessageToBox(botMessage);
+                                }
+                            }
+                        } catch (err) {
+                            console.error('Local bot error:', err);
+                        }
+
+                        utils.setLocalStorage("name", nameInput.value);
+                        msgInput.value = '';
+                        
+                        // 🔒 Security: 完成提交
+                        securityManager.setSubmitting(false);
+                        return;
+                    }
+
+                    if (state.socket) {
+                        try {
+                            // 與伺服器通訊維持原有格式（伺服器端會在前綴加上換行）
+                            state.socket.emit("send", formData);
+                            utils.setLocalStorage("name", nameInput.value);
+                            msgInput.value = '';
+                            
+                            // Reset textarea height and char count
+                            uiManager.autoResizeTextarea();
+                            uiManager.updateCharCount();
+                        } catch (error) {
+                            console.error('Failed to send message:', error);
+                            alert('發送訊息失敗，請稍後再試');
+                        } finally {
+                            // 🔒 Security: 完成提交
+                            securityManager.setSubmitting(false);
+                        }
+                    } else {
+                        // 🔒 Security: 完成提交
+                        securityManager.setSubmitting(false);
+                    }
+                });
+            },
+
+            addMessageToBox: async (message) => {
+                if (!message || !message.msg) return;
+
+                const container = document.getElementById("container-content");
+
+                // Check if user is scrolled toward the bottom before adding the new message.
+                // This determines if we should auto-scroll after the new message is added.
+                const scrollThreshold = 100; // A buffer in pixels.
+                const isScrolledToBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + scrollThreshold;
+
+                const myName = document.getElementById("name").value;
+                const isMyMessage = message.name === myName;
+
+                state.color++;
+                const msgBox = document.createElement("div");
+                
+                // Add animation class
+                msgBox.className = "card message-fade-in";
+
+                const msgBoxHeader = document.createElement("div");
+                msgBoxHeader.className = "card-header2";
+
+                const msgBoxBody = document.createElement("div");
+                msgBoxBody.classList.add("card-body2");
+
+                const nameBox = document.createElement("span");
+                nameBox.className = "badge badge-primary";
+                nameBox.textContent = message.name;
+
+                const timeBox = document.createElement("span");
+                timeBox.className = "badge badge-secondary";
+                timeBox.textContent = new Date(message.time).toLocaleString();
+
+                msgBoxHeader.appendChild(nameBox);
+                msgBoxHeader.innerHTML += "&nbsp;";
+                msgBoxHeader.appendChild(timeBox);
+                
+                // Convert URLs to clickable links and set as HTML content
+                const messageText = message.msg.replace(/^\n/, '');
+                const messageWithLinks = utils.convertUrlsToLinks(messageText);
+                msgBoxBody.innerHTML = messageWithLinks;
+                
+                // Try to auto-embed images for any URLs contained in the message
+                utils.tryEmbedImagesInto(msgBoxBody, message.msg);
+
+                msgBox.appendChild(msgBoxHeader);
+                msgBox.appendChild(msgBoxBody);
+
+                const content = document.getElementById("content");
+                content.appendChild(msgBox);
+
+                if (content.children.length > state.max_record) {
+                    content.removeChild(content.firstChild);
+                }
+
+                // Auto-scroll logic:
+                // 1. Always scroll for user's own messages
+                // 2. Scroll if already at bottom
+                // 3. Scroll if bot mentions the user (has "-> username" in the name)
+                const isMentioned = message.name && message.name.includes('-> ' + myName);
+                
+                if (isMyMessage || isScrolledToBottom || isMentioned) {
+                    // Use smooth scroll for new messages, instant for history
+                    const behavior = state.isHistoryLoading ? 'instant' : 'smooth';
+                    
+                    // Use requestAnimationFrame to ensure DOM is updated
+                    requestAnimationFrame(() => {
+                        utils.scrollToBottom(behavior);
+                    });
+                }
+
+                // 個人小屋歷史紀錄：僅在非歷史載入期間儲存
+                if (chatroomManager.currentRoom === CONFIG.PERSONAL_ROOM && !state.isHistoryLoading) {
+                    personalStorage.append(CONFIG.PERSONAL_ROOM, {
+                        name: message.name,
+                        msg: message.msg,
+                        time: message.time
+                    }, state.max_record);
+                }
+            }
+        };
+
+        // 在現有的 JavaScript 代碼中加入主題管理模組
+        const themeManager = {
+            init: () => {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                themeManager.updateThemeButton(savedTheme);
+            },
+
+            toggleTheme: () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                themeManager.updateThemeButton(newTheme);
+            },
+
+            updateThemeButton: (theme) => {
+                // 等待 DOM 完全加載
+                setTimeout(() => {
+                    const button = document.querySelector('.btn-secondary');
+                    if (!button) return; // 如果按鈕不存在，直接返回
+
+                    const icon = button.querySelector('.iconify');
+                    const text = button.querySelector('.theme-text');
+
+                    if (icon) {
+                        if (theme === 'dark') {
+                            icon.setAttribute('data-icon', 'bi:sun');
+                        } else {
+                            icon.setAttribute('data-icon', 'bi:moon-stars');
+                        }
+                    }
+
+                    if (text) {
+                        text.textContent = theme === 'dark' ? '淺色模式' : '深色模式';
+                    }
+                }, 100);
+            }
+        };
+
+        // 安全管理器 - 增強版
+        const securityManager = {
+            config: {
+                maxMessageLength: 1000,
+                maxMessagesPerMinute: 30,
+                rateLimitWindow: 60000, // 1 minute
+                allowedImageDomains: [
+                    // Digimon
+                    'digimon.net',
+                    'cdn.digimon.net',
+                    'images.digimon.net',
+                    // Imgur
+                    'i.imgur.com',
+                    'imgur.com',
+                    // Common image hosts
+                    'i.postimg.cc',
+                    'postimg.cc',
+                    'ibb.co',
+                    'i.ibb.co',
+                    // CDN services
+                    'cdn.discordapp.com',
+                    'media.discordapp.net',
+                    'cdn.jsdelivr.net',
+                    'raw.githubusercontent.com',
+                    // Image services
+                    'imagekit.io',
+                    'cloudinary.com',
+                    'imgbb.com',
+                    // Allow any subdomain of these
+                    'imgur.io'
+                ],
+                allowedProtocols: ['http:', 'https:']
+            },
+            
+            state: {
+                messageCount: 0,
+                lastResetTime: Date.now(),
+                isSubmitting: false
+            },
+            
+            // 輸入驗證
+            validateInput: (text) => {
+                if (!text || typeof text !== 'string') {
+                    return { valid: false, error: '無效的輸入' };
+                }
+                
+                const trimmed = text.trim();
+                
+                if (trimmed.length === 0) {
+                    return { valid: false, error: '訊息不能為空' };
+                }
+                
+                if (trimmed.length > securityManager.config.maxMessageLength) {
+                    return { valid: false, error: `訊息長度不能超過 ${securityManager.config.maxMessageLength} 字` };
+                }
+                
+                // 檢查是否包含可疑的腳本標籤
+                const suspiciousPatterns = [
+                    /<script/i,
+                    /javascript:/i,
+                    /on\w+\s*=/i,
+                    /<iframe/i,
+                    /<object/i,
+                    /<embed/i
+                ];
+                
+                for (const pattern of suspiciousPatterns) {
+                    if (pattern.test(trimmed)) {
+                        console.warn('Suspicious input detected:', trimmed.substring(0, 50));
+                        return { valid: false, error: '訊息包含不允許的內容' };
+                    }
+                }
+                
+                return { valid: true, sanitized: trimmed };
+            },
+            
+            // Rate limiting
+            checkRateLimit: () => {
+                const now = Date.now();
+                
+                // 重置計數器
+                if (now - securityManager.state.lastResetTime > securityManager.config.rateLimitWindow) {
+                    securityManager.state.messageCount = 0;
+                    securityManager.state.lastResetTime = now;
+                }
+                
+                // 檢查是否超過限制
+                if (securityManager.state.messageCount >= securityManager.config.maxMessagesPerMinute) {
+                    return {
+                        allowed: false,
+                        error: `發送過快，請稍後再試（最多 ${securityManager.config.maxMessagesPerMinute} 則/分鐘）`
+                    };
+                }
+                
+                securityManager.state.messageCount++;
+                return { allowed: true };
+            },
+            
+            // 防止重複提交
+            canSubmit: () => {
+                if (securityManager.state.isSubmitting) {
+                    return { allowed: false, error: '正在發送中，請稍候...' };
+                }
+                return { allowed: true };
+            },
+            
+            setSubmitting: (value) => {
+                securityManager.state.isSubmitting = value;
+            },
+            
+            // URL 驗證增強
+            validateUrl: (url) => {
+                try {
+                    const urlObj = new URL(url);
+                    
+                    // 只允許特定協議
+                    if (!securityManager.config.allowedProtocols.includes(urlObj.protocol)) {
+                        return { valid: false, reason: 'Invalid protocol' };
+                    }
+                    
+                    // 檢查是否為 IP 地址（可能的內網攻擊）
+                    const hostname = urlObj.hostname.toLowerCase();
+                    
+                    // 阻止本地/內網地址
+                    const blockedPatterns = [
+                        /^localhost$/i,
+                        /^127\./,
+                        /^192\.168\./,
+                        /^10\./,
+                        /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
+                        /^0\./,
+                        /^\[?::1\]?$/,
+                        /^\[?fe80:/i
+                    ];
+                    
+                    for (const pattern of blockedPatterns) {
+                        if (pattern.test(hostname)) {
+                            return { valid: false, reason: 'Blocked hostname' };
+                        }
+                    }
+                    
+                    return { valid: true, url: urlObj.toString() };
+                } catch (e) {
+                    return { valid: false, reason: 'Invalid URL' };
+                }
+            },
+            
+            // 圖片 URL 驗證
+            validateImageUrl: (url) => {
+                const urlValidation = securityManager.validateUrl(url);
+                if (!urlValidation.valid) {
+                    return false;
+                }
+                
+                try {
+                    const urlObj = new URL(url);
+                    const hostname = urlObj.hostname.toLowerCase();
+                    
+                    // 檢查域名白名單
+                    const allowed = securityManager.config.allowedImageDomains.some(domain => 
+                        hostname === domain || hostname.endsWith('.' + domain)
+                    );
+                    
+                    if (!allowed) {
+                        console.log('Image domain not in whitelist:', hostname);
+                        return false;
+                    }
+                    
+                    return true;
+                } catch {
+                    return false;
+                }
+            },
+            
+            // 清理 HTML（增強版）
+            sanitizeHtml: (html) => {
+                // 創建臨時元素
+                const temp = document.createElement('div');
+                temp.textContent = html;
+                
+                // 獲取純文字
+                let sanitized = temp.innerHTML;
+                
+                // 額外清理：移除任何殘留的事件處理器
+                let prev;
+                do {
+                    prev = sanitized;
+                    sanitized = sanitized.replace(/on\w+\s*=\s*["'][^"']*["']/gi, '');
+                } while (sanitized !== prev);
+                
+                return sanitized;
+            },
+            
+            // 安全錯誤處理
+            handleError: (error, context = '') => {
+                // 記錄錯誤但不暴露敏感資訊
+                console.error(`[Security] ${context}:`, error);
+                
+                // 返回通用錯誤資訊
+                return '操作失敗，請稍後再試';
+            },
+            
+            // 初始化安全檢查
+            init: () => {
+                console.log('🔒 Security Manager initialized');
+                
+                // 定期清理 rate limit 計數
+                setInterval(() => {
+                    const now = Date.now();
+                    if (now - securityManager.state.lastResetTime > securityManager.config.rateLimitWindow) {
+                        securityManager.state.messageCount = 0;
+                        securityManager.state.lastResetTime = now;
+                    }
+                }, 10000); // 每 10 秒檢查一次
+            }
+        };
+        
+        // 圖片懶載入管理器
+        const imageLoader = {
+            observer: null,
+            loadedImages: new Set(),
+            
+            init() {
+                // 🔧 臨時禁用懶載入（用於除錯）
+                const DISABLE_LAZY_LOADING = false;  // 改回 false 啟用懶載入
+                
+                if (DISABLE_LAZY_LOADING) {
+                    console.warn('⚠️ Lazy loading DISABLED - all images will load immediately');
+                    return;  // 不建立 Observer，圖片會用 fallback 方式載入
+                }
+                
+                // Check if Intersection Observer is supported
+                if (!('IntersectionObserver' in window)) {
+                    console.warn('IntersectionObserver not supported, loading all images immediately');
+                    imageLoader.loadAllImages();
+                    return;
+                }
+                
+                // Create observer with options
+                const options = {
+                    root: document.getElementById('container-content'),
+                    rootMargin: '50px', // Start loading 50px before entering viewport
+                    threshold: 0.01
+                };
+                
+                this.observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        const img = entry.target;
+                        const src = img.getAttribute('data-src');
+                        
+                        if (entry.isIntersecting) {
+                            console.log('👀 Image entered viewport:', src);
+                            imageLoader.loadImage(img);
+                        } else {
+                            console.log('👁️ Image left viewport:', src);
+                        }
+                    });
+                }, options);
+                
+                console.log('🖼️ Image Lazy Loader initialized');
+            },
+            
+            observe(img) {
+                if (!img || !img.hasAttribute('data-src')) {
+                    console.warn('⚠️ Cannot observe image: missing element or data-src');
+                    return;
+                }
+                
+                const src = img.getAttribute('data-src');
+                //console.log('👁️ Observing image:', src);
+                
+                if (this.observer) {
+                    this.observer.observe(img);
+                } else {
+                    console.warn('⚠️ Observer not ready, loading immediately');
+                    // Fallback: load immediately
+                    this.loadImage(img);
+                }
+            },
+            
+            loadImage(img) {
+                const src = img.getAttribute('data-src');
+                
+                // Only allow safe protocols for image src
+                const isSafeSrc = (
+                    typeof src === 'string' &&
+                    (
+                        src.startsWith('https://') ||
+                        src.startsWith('http://') ||
+                        src.startsWith('data:')
+                    )
+                );
+                
+                if (!isSafeSrc) {
+                    if (placeholder) {
+                        placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片來源不安全或格式不正確</span>';
+                        placeholder.classList.remove('loading');
+                        placeholder.classList.add('error');
+                    }
+                    console.warn('❌ Refusing to load unsafe src:', src);
+                    return;
+                }
+                
+                if (!src) {
+                    console.warn('⚠️ No data-src attribute');
+                    return;
+                }
+                
+                if (this.loadedImages.has(src)) {
+                    //console.log('⏭️ Already loaded/loading:', src);
+                    return;
+                }
+                
+                console.log('🔄 Starting to load image:', src);
+                this.loadedImages.add(src);
+                
+                const wrapper = img.closest('.image-wrapper');
+                const placeholder = wrapper ? wrapper.querySelector('.image-placeholder') : null;
+                
+                // Update placeholder to loading state
+                if (placeholder) {
+                    placeholder.innerHTML = '<span class="iconify loading-spin" data-icon="bi:arrow-clockwise"></span><span>載入中...</span>';
+                    placeholder.classList.add('loading');
+                } else {
+                    console.warn('⚠️ No placeholder found for:', src);
+                }
+                
+                // Setup load handlers
+                img.onload = () => {
+                    // Hide placeholder
+                    if (placeholder) {
+                        placeholder.style.display = 'none';
+                    }
+                    
+                    // Show image
+                    img.style.display = 'block';
+                    img.classList.add('loaded');
+                    
+                    // Remove data-src
+                    img.removeAttribute('data-src');
+                    
+                    // Stop observing
+                    if (imageLoader.observer) {
+                        imageLoader.observer.unobserve(img);
+                    }
+                    
+                    //console.log('✅ Image loaded:', src);
+                };
+                
+                img.onerror = (e) => {
+                    // Suppress CORS errors dynamically
+                    if (corsErrorSuppressor.shouldSuppressError(src, e)) {
+                        corsErrorSuppressor.suppressError(src, 'lazy load', e);
+                        return;
+                    }
+                    
+                    // Show error state
+                    if (placeholder) {
+                        placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片載入失敗</span>';
+                        placeholder.classList.remove('loading');
+                        placeholder.classList.add('error');
+                    }
+                    
+                    // 🐛 FIX: Clean up to prevent memory leak
+                    img.onload = null;
+                    img.onerror = null;
+                    img.removeAttribute('data-src');
+                    
+                    // Stop observing
+                    if (imageLoader.observer) {
+                        imageLoader.observer.unobserve(img);
+                    }
+                    
+                    console.warn('❌ Failed to load image:', src);
+                };
+                
+                // Actually start loading
+                img.src = src;
+            },
+            
+            loadAllImages() {
+                // Fallback for browsers without IntersectionObserver
+                document.querySelectorAll('.lazy-image[data-src]').forEach(img => {
+                    this.loadImage(img);
+                });
+            },
+            
+            unobserve(img) {
+                if (this.observer && img) {
+                    this.observer.unobserve(img);
+                }
+            },
+            
+            destroy() {
+                if (this.observer) {
+                    this.observer.disconnect();
+                    this.observer = null;
+                }
+                this.loadedImages.clear();
+            }
+        };
+        
+        // Make imageLoader globally accessible
+        window.imageLoader = imageLoader;
+        
+        // 🔧 Global CORS Error Suppression
+        window.addEventListener('error', (e) => {
+            // Suppress CORS errors dynamically
+            if (e.target && e.target.src && corsErrorSuppressor.shouldSuppressError(e.target.src, e)) {
+                corsErrorSuppressor.suppressError(e.target.src, 'global error handler', e);
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }, true);
+        
+        // Suppress unhandled promise rejections for CORS errors
+        window.addEventListener('unhandledrejection', (e) => {
+            if (e.reason && e.reason.message && e.reason.message.includes('CORS')) {
+                console.log('🔇 Suppressed CORS promise rejection:', e.reason.message);
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // 滾動管理器 - 優化版
+        const scrollManager = {
+            config: {
+                bottomThreshold: 100,
+                autoScrollBehavior: 'smooth',
+                resizeCheckEnabled: true
+            },
+            
+            state: {
+                isUserScrolling: false,
+                scrollTimer: null,
+                resizeObserver: null,
+                container: null,
+                content: null,
+                newMessageCount: 0
+            },
+            
+            init() {
+                this.state.container = document.getElementById("container-content");
+                this.state.content = document.getElementById("content");
+                
+                if (!this.state.container || !this.state.content) {
+                    console.error('Scroll container not found');
+                    return;
+                }
+                
+                this.setupScrollListener();
+                
+                if (this.config.resizeCheckEnabled && typeof ResizeObserver !== 'undefined') {
+                    this.setupResizeObserver();
+                }
+                
+                this.setupBottomButton();
+            },
+            
+            setupScrollListener() {
+                this.state.container.addEventListener('scroll', () => {
+                    this.state.isUserScrolling = true;
+                    
+                    clearTimeout(this.state.scrollTimer);
+                    this.state.scrollTimer = setTimeout(() => {
+                        this.state.isUserScrolling = false;
+                    }, 150);
+                    
+                    this.updateBottomButtonVisibility();
+                }, { passive: true });
+            },
+            
+            setupResizeObserver() {
+                this.state.resizeObserver = new ResizeObserver(() => {
+                    if (utils.isAtBottom() && !this.state.isUserScrolling) {
+                        requestAnimationFrame(() => {
+                            this.scrollToBottom('smooth');
+                        });
+                    }
+                });
+                
+                this.state.resizeObserver.observe(this.state.content);
+            },
+            
+            scrollToBottom(behavior = 'smooth') {
+                if (!this.state.container) return;
+                
+                this.state.container.scroll({
+                    top: this.state.container.scrollHeight,
+                    behavior: behavior
+                });
+            },
+            
+            scrollToMessage(messageElement, behavior = 'smooth') {
+                if (!messageElement) return;
+                
+                messageElement.scrollIntoView({
+                    behavior: behavior,
+                    block: 'center',
+                    inline: 'nearest'
+                });
+                
+                messageElement.classList.add('scroll-highlight');
+                setTimeout(() => {
+                    messageElement.classList.remove('scroll-highlight');
+                }, 2000);
+            },
+            
+            setupBottomButton() {
+                if (document.getElementById('scroll-to-bottom-btn')) return;
+                
+                const button = document.createElement('button');
+                button.id = 'scroll-to-bottom-btn';
+                button.className = 'scroll-to-bottom-btn';
+                button.innerHTML = `
+                    <span class="iconify" data-icon="bi:arrow-down-circle-fill"></span>
+                    <span class="new-msg-badge" id="newMsgBadge" style="display: none;">0</span>
+                `;
+                button.title = '回到底部';
+                
+                button.addEventListener('click', () => {
+                    this.scrollToBottom('smooth');
+                    this.hideNewMessageIndicator();
+                });
+                
+                const chatContainer = document.querySelector('.chat-container');
+                if (chatContainer) {
+                    chatContainer.appendChild(button);
+                }
+                
+                this.updateBottomButtonVisibility();
+            },
+            
+            updateBottomButtonVisibility() {
+                const button = document.getElementById('scroll-to-bottom-btn');
+                if (!button) return;
+                
+                if (utils.isAtBottom(50)) {
+                    button.classList.remove('visible');
+                    this.hideNewMessageIndicator();
+                } else {
+                    button.classList.add('visible');
+                }
+            },
+            
+            showNewMessageIndicator() {
+                const badge = document.getElementById('newMsgBadge');
+                if (!badge) return;
+                
+                this.state.newMessageCount++;
+                badge.textContent = this.state.newMessageCount;
+                badge.style.display = 'flex';
+            },
+            
+            hideNewMessageIndicator() {
+                const badge = document.getElementById('newMsgBadge');
+                if (badge) {
+                    this.state.newMessageCount = 0;
+                    badge.textContent = '0';
+                    badge.style.display = 'none';
+                }
+            },
+            
+            onNewMessage(isMyMessage) {
+                const isAtBottom = utils.isAtBottom();
+                
+                if (isAtBottom || isMyMessage) {
+                    const behavior = state.isHistoryLoading ? 'instant' : this.config.autoScrollBehavior;
+                    requestAnimationFrame(() => {
+                        this.scrollToBottom(behavior);
+                    });
+                } else {
+                    this.showNewMessageIndicator();
+                }
+            },
+            
+            destroy() {
+                if (this.state.resizeObserver) {
+                    this.state.resizeObserver.disconnect();
+                }
+                clearTimeout(this.state.scrollTimer);
+            }
+        };
+
+                        const quickCommandsManager = {
+            data: [],
+            activeCommand: null,
+            init: async () => {
+                try {
+                    const response = await fetch('/api/dice-commands');
+                    quickCommandsManager.data = await response.json();
+                    quickCommandsManager.renderDiceSetOptions();
+
+                    const lastSet = localStorage.getItem('selectedDiceSet') || (quickCommandsManager.data.length > 0 ? quickCommandsManager.data[0].fileName : null);
+                    if (lastSet) {
+                        document.getElementById('dice-set-select').value = lastSet;
+                        quickCommandsManager.renderCommands(lastSet);
+                    }
+
+                    document.getElementById('dice-set-select').addEventListener('change', (e) => {
+                        const selectedSet = e.target.value;
+                        localStorage.setItem('selectedDiceSet', selectedSet);
+                        quickCommandsManager.renderCommands(selectedSet);
+                    });
+                    
+                    document.getElementById('dice-set-info-btn').addEventListener('click', () => {
+                        const selectedSet = document.getElementById('dice-set-select').value;
+                        const game = quickCommandsManager.data.find(g => g.fileName === selectedSet);
+                        if (game) {
+                            document.getElementById('helpModalBody').textContent = game.helpMessage;
+                            $('#helpModal').modal('show');
+                        }
+                    });
+
+                } catch (error) {
+                    console.error('Failed to load dice commands:', error);
+                }
+            },
+            renderDiceSetOptions: () => {
+                const select = document.getElementById('dice-set-select');
+                if (!select) return;
+                select.innerHTML = '';
+                quickCommandsManager.data.forEach(game => {
+                    const match = game.gameName.match(/【(.+?)】/);
+                    const gameDisplayName = match ? match[1] : game.fileName;
+                    const option = new Option(gameDisplayName, game.fileName);
+                    select.add(option);
+                });
+            },
+            renderCommands: (fileName) => {
+                const commandsContainer = document.getElementById('dice-set-commands');
+                const inputsContainer = document.getElementById('dice-set-command-inputs');
+                if (!commandsContainer || !inputsContainer) return;
+                commandsContainer.innerHTML = '';
+                inputsContainer.innerHTML = '';
+                quickCommandsManager.activeCommand = null;
+
+                const game = quickCommandsManager.data.find(g => g.fileName === fileName);
+                if (!game) return;
+
+                const isCoc = game.gameName.includes('克蘇魯神話');
+                const filterText = '克蘇魯神話TRPG ';
+
+                if (game.commands.length === 1) {
+                    const singleCommand = game.commands[0];
+                    const hasOptions = singleCommand.json.options && singleCommand.json.options.length > 0;
+
+                    if (hasOptions) {
+                        // Auto-expand the single command with options
+                        quickCommandsManager.handleCommandClick(singleCommand, game);
+                    } else {
+                        // Single command with no options, just show the button
+                        const btn = document.createElement('button');
+                        btn.className = 'pad-button';
+                        let buttonText = singleCommand.json.description;
+                        if (isCoc) {
+                            buttonText = buttonText.replace(filterText, '').trim();
+                        }
+                        btn.textContent = buttonText;
+                        btn.onclick = () => quickCommandsManager.handleCommandClick(singleCommand, game);
+                        commandsContainer.appendChild(btn);
+                    }
+                } else {
+                    // Original logic for multiple commands
+                    game.commands.forEach(command => {
+                        const btn = document.createElement('button');
+                        btn.className = 'pad-button';
+                        let buttonText = command.json.description;
+                        if (isCoc) {
+                            buttonText = buttonText.replace(filterText, '').trim();
+                        }
+                        btn.textContent = buttonText;
+                        btn.onclick = () => quickCommandsManager.handleCommandClick(command, game);
+                        commandsContainer.appendChild(btn);
+                    });
+                }
+            },
+            handleCommandClick: (command, game) => {
+                const inputsContainer = document.getElementById('dice-set-command-inputs');
+                if (!inputsContainer) return;
+                inputsContainer.innerHTML = '';
+                quickCommandsManager.activeCommand = { command, game, inputs: {} };
+
+                const options = command.json.options;
+
+                if (!options || options.length === 0) {
+                    quickCommandsManager.executeCommand();
+                    return;
+                }
+
+                const booleanOptions = options.filter(o => o.type === 5);
+                const otherOptions = options.filter(o => o.type !== 5);
+
+                otherOptions.forEach(option => {
+                    const inputGroup = document.createElement('div');
+                    inputGroup.className = 'form-group';
+                    
+                    const label = document.createElement('label');
+                    label.textContent = option.description;
+                    inputGroup.appendChild(label);
+
+                    if (option.choices) {
+                        const choiceGroup = document.createElement('div');
+                        choiceGroup.className = 'choices-group';
+                        choiceGroup.setAttribute('role', 'group');
+                        choiceGroup.dataset.name = option.name; // Add data-name for selection
+
+                        option.choices.forEach(choice => {
+                            const button = document.createElement('button');
+                            button.type = 'button';
+                            button.className = 'btn btn-outline-secondary';
+                            button.textContent = choice.name;
+                            button.dataset.value = choice.value;
+
+                            button.addEventListener('click', function() {
+                                if (this.classList.contains('active')) {
+                                    this.classList.remove('active');
+                                    delete quickCommandsManager.activeCommand.inputs[option.name];
+                                } else {
+                                    const allButtonsInGroup = choiceGroup.querySelectorAll('button');
+                                    allButtonsInGroup.forEach(b => b.classList.remove('active'));
+
+                                    this.classList.add('active');
+                                    quickCommandsManager.activeCommand.inputs[option.name] = this.dataset.value;
+                                }
+                            });
+                            choiceGroup.appendChild(button);
+                        });
+                        inputGroup.appendChild(choiceGroup);
+
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'invalid-feedback d-block'; // d-block to make it visible
+                        errorDiv.id = `error-for-${option.name}`;
+                        inputGroup.appendChild(errorDiv);
+                    } else {
+                        const input = document.createElement('input');
+                        switch(option.type) {
+                            case 4: // Integer
+                            case 10: // Number
+                                input.type = 'number';
+                                break;
+                            default: // String, Boolean, etc.
+                                input.type = 'text';
+                        }
+                        input.name = option.name; // Add name for selection
+                        input.className = 'form-control';
+                        input.placeholder = option.description;
+                        input.oninput = (e) => {
+                            quickCommandsManager.activeCommand.inputs[option.name] = e.target.value;
+                        };
+                        input.onkeydown = (e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                quickCommandsManager.executeCommand();
+                            }
+                        };
+                        inputGroup.appendChild(input);
+
+                        // 檢查是否支持自動完成
+                        if (option.autocomplete && option.autocomplete.enabled) {
+                            const autocompleteConfig = {
+                                dataSource: 'api',
+                                module: option.autocomplete.module || 'digimon',
+                                searchFields: option.autocomplete.searchFields || ['display', 'value'],
+                                limit: option.autocomplete.limit || 8,
+                                minQueryLength: option.autocomplete.minQueryLength || 1,
+                                placeholder: option.autocomplete.placeholder || option.description,
+                                noResultsText: option.autocomplete.noResultsText || '找不到相關結果'
+                            };
+                            
+                            // 為輸入框添加自動完成
+                            if (window.autocompleteManager) {
+                                window.autocompleteManager.attachToInput(input, autocompleteConfig);
+                                
+                                // 監聽自動完成選擇事件
+                                input.addEventListener('autocomplete-select', (e) => {
+                                    quickCommandsManager.activeCommand.inputs[option.name] = e.detail.item.value;
+                                });
+                            }
+                        }
+
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'invalid-feedback';
+                        errorDiv.id = `error-for-${option.name}`;
+                        inputGroup.appendChild(errorDiv);
+                    }
+                    inputsContainer.appendChild(inputGroup);
+                });
+                
+                if (booleanOptions.length > 0) {
+                    const boolGroupContainer = document.createElement('div');
+                    boolGroupContainer.className = 'form-group';
+                    
+                    const boolLabel = document.createElement('label');
+                    boolLabel.textContent = '篩選條件';
+                    boolGroupContainer.appendChild(boolLabel);
+                    
+                    const choiceGroup = document.createElement('div');
+                    choiceGroup.className = 'choices-group';
+                    
+                    booleanOptions.forEach(option => {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'btn btn-outline-secondary';
+                        button.textContent = option.description;
+                        button.dataset.name = option.name;
+                        
+                        button.addEventListener('click', function() {
+                            this.classList.toggle('active');
+                            quickCommandsManager.activeCommand.inputs[option.name] = this.classList.contains('active');
+                        });
+                        choiceGroup.appendChild(button);
+                    });
+                    
+                    boolGroupContainer.appendChild(choiceGroup);
+                    inputsContainer.appendChild(boolGroupContainer);
+                }
+
+                const executeBtn = document.createElement('button');
+                executeBtn.className = 'btn btn-primary btn-block mt-2';
+                executeBtn.textContent = '執行';
+                executeBtn.onclick = quickCommandsManager.executeCommand;
+                inputsContainer.appendChild(executeBtn);
+            },
+            executeCommand: () => {
+                if (!quickCommandsManager.activeCommand) return;
+
+                const { command, inputs } = quickCommandsManager.activeCommand;
+                let isValid = true;
+                const inputsContainer = document.getElementById('dice-set-command-inputs');
+
+                // Clear previous errors
+                inputsContainer.querySelectorAll('.form-control, .btn-group').forEach(el => el.classList.remove('is-invalid'));
+                inputsContainer.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+
+                // Check for required options
+                if (command.json.options) {
+                    for (const option of command.json.options) {
+                        if (option.required && (inputs[option.name] === undefined || String(inputs[option.name]).trim() === '')) {
+                            isValid = false;
+                            const errorEl = document.getElementById(`error-for-${option.name}`);
+                            if (errorEl) {
+                                errorEl.textContent = '此為必填欄位';
+                            }
+                            
+                            const control = inputsContainer.querySelector(`[name="${option.name}"]`) || inputsContainer.querySelector(`[data-name="${option.name}"]`);
+                            if (control) {
+                                control.classList.add('is-invalid');
+                            }
+                        }
+                    }
+                }
+
+                if (!isValid) {
+                    return; // Stop execution
+                }
+
+                let finalCommand = command.execute;
+
+                for (const key in inputs) {
+                    const value = inputs[key] || '';
+                    if (typeof value !== 'boolean') {
+                        const placeholderRegex = new RegExp(`PLACEHOLDER_(STRING|INTEGER|BOOLEAN|NUMBER)_${key}`, 'g');
+                        finalCommand = finalCommand.replace(placeholderRegex, value);
+                    }
+                }
+                
+                finalCommand = finalCommand.replace(/PLACEHOLDER_(STRING|INTEGER|BOOLEAN|NUMBER)_\w+/g, '').trim();
+
+                const flagMap = quickCommandsManager.activeCommand.command.flagMap || {};
+
+                for (const key in inputs) {
+                    if (inputs[key] === true && flagMap[key]) {
+                        finalCommand += ` ${flagMap[key]}`;
+                    }
+                }
+
+                const msgInput = document.getElementById("msg");
+                msgInput.value = finalCommand;
+                
+                const sendForm = document.getElementById("send-form");
+                sendForm.dispatchEvent(new Event('submit'));
+
+                if (inputsContainer) {
+                    inputsContainer.innerHTML = '';
+                }
+                quickCommandsManager.activeCommand = null;
+            }
+        };
+
+
+        // 在現有的 JavaScript 代碼中新增快速輸入指令欄管理模組
+        const quickInputPad = {
+            init: () => {
+                // 檢查元素是否存在
+                const quickInputPadElement = document.getElementById('quickInputPad');
+                if (!quickInputPadElement) return; // 如果元素不存在，直接返回
+
+                // 固定選項
+                const fixedCommands = ["1d2", "1d6", "1d8", "1d10", "1d12", "1d20", "1d100"];
+                // 自訂指令（最多儲存5個不重複的指令）
+                const customCommands = JSON.parse(localStorage.getItem('quickCommands') || '[]');
+                quickInputPad.renderButtons(fixedCommands, customCommands);
+
+                // 恢復之前的展開狀態
+                const isExpanded = localStorage.getItem('quickInputExpanded') === 'true';
+                if (isExpanded) {
+                    quickInputPadElement.classList.add('expanded');
+                    const toggleButton = document.querySelector('.toggle-button');
+                    if (toggleButton) {
+                        toggleButton.classList.add('collapsed');
+                    }
+                }
+                
+                quickCommandsManager.init(); // Init new dice set commands
+
+                // Tab switching logic
+                $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                    localStorage.setItem('quickCommandActiveTab', e.target.id);
+                });
+
+                const lastTab = localStorage.getItem('quickCommandActiveTab');
+                if (lastTab) {
+                    $('#' + lastTab).tab('show');
+                }
+            },
+
+            renderButtons: (fixedCommands, customCommands) => {
+                const container = document.getElementById('quickInputButtons');
+                if (!container) return; // 如果元素不存在，直接返回
+
+                // 渲染固定選項
+                const fixedButtons = fixedCommands.map(cmd => `
+                    <button class="pad-button" onclick="quickInputPad.sendCommand('${cmd}')">
+                        ${cmd}
+                    </button>
+                `).join('');
+
+                // 渲染自訂指令
+                const customButtons = customCommands.map(cmd => `
+                    <button class="pad-button custom-command" onclick="quickInputPad.sendCommand('${cmd}')">
+                        ${cmd}
+                    </button>
+                `).join('');
+
+                container.innerHTML = fixedButtons + customButtons;
+            },
+
+            sendCommand: (command) => {
+                const msgInput = document.getElementById('msg');
+                if (!msgInput) return; // 如果元素不存在，直接返回
+
+                msgInput.value = command;
+                // 觸發表單提交
+                const sendForm = document.getElementById('send-form');
+                if (sendForm) {
+                    sendForm.dispatchEvent(new Event('submit'));
+                }
+            },
+
+            sendCustom: () => {
+                const customInput = document.getElementById('customInput');
+                if (!customInput) return; // 如果元素不存在，直接返回
+
+                const command = customInput.value.trim().toLowerCase();
+                if (command) {
+                    // 檢查是否為固定指令
+                    const fixedCommands = ["1d2", "1d6", "1d8", "1d10", "1d12", "1d20", "1d100"];
+                    if (!fixedCommands.includes(command)) {
+                        quickInputPad.saveCustom(command);
+                    }
+                    quickInputPad.sendCommand(command);
+                    customInput.value = '';
+                }
+            },
+
+            saveCustom: (command) => {
+                // 檢查是否為空值
+                if (!command) return;
+
+                // 檢查是否為固定指令
+                const fixedCommands = ["1d2", "1d6", "1d8", "1d10", "1d12", "1d20", "1d100"];
+                if (fixedCommands.includes(command)) {
+                    return; // 如果是固定指令，不儲存
+                }
+
+                // 獲取現有的自訂指令
+                let customCommands = JSON.parse(localStorage.getItem('quickCommands') || '[]');
+
+                // 移除相同的指令（不區分大小寫）
+                customCommands = customCommands.filter(cmd => cmd && cmd.toLowerCase() !== command.toLowerCase());
+
+                // 將新指令加入開頭
+                customCommands.unshift(command);
+
+                // 只保留前5個不重複的指令
+                customCommands = customCommands.slice(0, 5);
+
+                // 儲存更新後的指令列表
+                localStorage.setItem('quickCommands', JSON.stringify(customCommands));
+
+                // 重新渲染按鈕
+                quickInputPad.renderButtons(fixedCommands, customCommands);
+            },
+
+            toggle: () => {
+                const pad = document.getElementById('quickInputPad');
+                const toggleButton = document.querySelector('.toggle-button');
+                if (!pad || !toggleButton) return; // 如果元素不存在，直接返回
+
+                const isExpanded = pad.classList.toggle('expanded');
+                toggleButton.classList.toggle('collapsed');
+                localStorage.setItem('quickInputExpanded', isExpanded);
+            }
+        };
+
+        // Header Management
+        const headerManager = {
+            init: () => {
+                // Initialize header state
+                const isCollapsed = localStorage.getItem('headerCollapsed') === 'true';
+                const header = document.getElementById('header');
+
+                if (isCollapsed && header) {
+                    header.classList.add('collapsed');
+                }
+            },
+
+            toggle: () => {
+                const header = document.getElementById('header');
+
+                if (header) {
+                    const isCollapsed = header.classList.toggle('collapsed');
+                    localStorage.setItem('headerCollapsed', isCollapsed);
+                }
+            }
+        };
+
+        // Add new chatroom management functionality
+        const chatroomManager = {
+            rooms: new Set(),
+            currentRoom: CONFIG.DEFAULT_ROOM,
+
+            init: () => {
+                // 從 localStorage 加載房間列表
+                const savedRooms = JSON.parse(localStorage.getItem('chatRooms') || '[]');
+                savedRooms.forEach(room => chatroomManager.rooms.add(room));
+
+                // 確保默認房間存在
+                if (!chatroomManager.rooms.has(CONFIG.DEFAULT_ROOM)) {
+                    chatroomManager.rooms.add(CONFIG.DEFAULT_ROOM);
+                }
+                // 確保個人小屋存在（且永遠在列表內）
+                chatroomManager.rooms.add(CONFIG.PERSONAL_ROOM);
+
+                chatroomManager.renderRooms();
+                chatroomManager.setupEventListeners();
+                // 初始化時恢復上次房間
+                const lastRoom = localStorage.getItem('lastRoom');
+                if (lastRoom && (lastRoom === CONFIG.PERSONAL_ROOM || chatroomManager.rooms.has(lastRoom))) {
+                    chatroomManager.switchRoom(lastRoom);
+                } else {
+                    chatroomManager.switchRoom(CONFIG.DEFAULT_ROOM);
+                }
+            },
+
+            setupEventListeners: () => {
+                // Join room form
+                const joinForm = document.getElementById("joinRoom-form");
+                if (joinForm) {
+                    joinForm.addEventListener("submit", (e) => {
+                        e.preventDefault();
+                        const input = document.getElementById("joinRoomNumber");
+                        const roomName = input.value.trim();
+
+                        if (roomName && !chatroomManager.rooms.has(roomName)) {
+                            chatroomManager.addRoom(roomName);
+                            input.value = '';
+                        }
+                    });
+                }
+            },
+
+            saveRooms: () => {
+                // 將房間列表儲存到 localStorage
+                localStorage.setItem('chatRooms', JSON.stringify(Array.from(chatroomManager.rooms)));
+            },
+
+            addRoom: (roomName) => {
+                chatroomManager.rooms.add(roomName);
+                chatroomManager.saveRooms(); // 儲存更新後的房間列表
+                chatroomManager.renderRooms();
+                chatroomManager.switchRoom(roomName);
+            },
+
+            removeRoom: (roomName) => {
+                if (roomName === CONFIG.DEFAULT_ROOM) return;
+                if (roomName === CONFIG.PERSONAL_ROOM) {
+                    // 個人小屋：清空內容而不是移除
+                    chatroomManager.clearPersonalRoom();
+                    return;
+                }
+                chatroomManager.rooms.delete(roomName);
+                chatroomManager.saveRooms(); // 儲存更新後的房間列表
+                chatroomManager.renderRooms();
+                if (chatroomManager.currentRoom === roomName) {
+                    chatroomManager.switchRoom(CONFIG.DEFAULT_ROOM);
+                }
+            },
+
+            switchRoom: (roomName) => {
+                if (chatroomManager.currentRoom === roomName) return;
+
+                // 移除舊房間的事件監聽器（僅非個人小屋）
+                if (state.socket && chatroomManager.currentRoom !== CONFIG.PERSONAL_ROOM) {
+                    state.socket.off(chatroomManager.currentRoom);
+                }
+
+                // 更新房間狀態
+                chatroomManager.currentRoom = roomName;
+                state.currentRoom = roomName;
+                localStorage.setItem('lastRoom', roomName);
+
+                // 清空聊天內容
+                const content = document.getElementById("content");
+                if (content) {
+                    content.innerHTML = '';
+                }
+
+                const notice = document.getElementById('personal-room-notice');
+                if (notice) {
+                    notice.style.display = roomName === CONFIG.PERSONAL_ROOM ? 'block' : 'none';
+                }
+
+                // 個人小屋：從本地載入歷史
+                if (roomName === CONFIG.PERSONAL_ROOM) {
+                    state.isHistoryLoading = true;
+                    const history = personalStorage.load(CONFIG.PERSONAL_ROOM);
+                    try {
+                        for (const msg of history) {
+                            // 重播歷史訊息
+                            uiManager.addMessageToBox({
+                                name: msg.name,
+                                msg: msg.msg,
+                                time: msg.time,
+                                roomNumber: CONFIG.PERSONAL_ROOM
+                            });
+                        }
+                    } finally {
+                        state.isHistoryLoading = false;
+                    }
+                } else if (state.socket) {
+                    // 發送切換房間事件（連線房）
+                    state.isHistoryLoading = true;
+                    state.pendingLive = [];
+                    state.socket.emit("newRoom", roomName);
+                    // 新增新房間的事件監聽器
+                    state.socket.on(roomName, (message) => {
+                        if (state.isHistoryLoading) {
+                            state.pendingLive.push(message);
+                            return;
+                        }
+                        uiManager.addMessageToBox(message);
+                    });
+                }
+
+                // 更新房間顯示
+                const roomElement = document.getElementById("room");
+                if (roomElement) {
+                    roomElement.innerText = roomName;
+                }
+
+                // 重新渲染房間列表以更新活動狀態
+                chatroomManager.renderRooms();
+            },
+
+            renderRooms: () => {
+                const container = document.getElementById("chatroomList");
+                if (!container) return;
+
+                // 保持順序：默認房 -> 個人小屋 -> 其他
+                const rooms = [CONFIG.DEFAULT_ROOM, CONFIG.PERSONAL_ROOM, ...Array.from(chatroomManager.rooms).filter(r => r !== CONFIG.DEFAULT_ROOM && r !== CONFIG.PERSONAL_ROOM).sort()];
+
+                container.innerHTML = rooms.map(room => `
+                    <div class="chatroom-item ${room === chatroomManager.currentRoom ? 'active' : ''}"
+                         onclick="chatroomManager.switchRoom('${room}')">
+                        <span class="iconify" data-icon="bi:chat-dots"></span>
+                        <span class="room-name">${room}</span>
+                        ${room === CONFIG.PERSONAL_ROOM ? `
+                            <button class=\"delete-btn\" title=\"清空內容\" onclick=\"event.stopPropagation(); chatroomManager.confirmAndClearPersonalRoom()\">
+                                <span class="iconify" data-icon="bi:x"></span>
+                            </button>
+                        ` : (room !== CONFIG.DEFAULT_ROOM ? `
+                            <button class="delete-btn" onclick="event.stopPropagation(); chatroomManager.removeRoom('${room}')">
+                                <span class="iconify" data-icon="bi:x"></span>
+                            </button>
+                        ` : '')}
+                    </div>
+                `).join('');
+            },
+
+            confirmAndClearPersonalRoom: () => {
+                const btn = document.getElementById('personalClearConfirmBtn');
+                if (btn) {
+                    // 先移除舊監聽，避免多次綁定
+                    btn.onclick = null;
+                    btn.addEventListener('click', () => {
+                        chatroomManager.clearPersonalRoom();
+                        $('#personalClearModal').modal('hide');
+                    }, { once: true });
+                }
+                $('#personalClearModal').modal('show');
+            },
+
+            clearPersonalRoom: () => {
+                personalStorage.clear(CONFIG.PERSONAL_ROOM);
+                if (chatroomManager.currentRoom === CONFIG.PERSONAL_ROOM) {
+                    const content = document.getElementById("content");
+                    if (content) content.innerHTML = '';
+                }
+            }
+        };
+
+        // 個人小屋本地儲存
+        const personalStorage = {
+            key: (room) => `chatRoomMessages_${room}`,
+            load: (room) => {
+                try {
+                    const raw = localStorage.getItem(personalStorage.key(room));
+                    const arr = raw ? JSON.parse(raw) : [];
+                    return Array.isArray(arr) ? arr : [];
+                } catch { return []; }
+            },
+            saveAll: (room, arr) => {
+                try { localStorage.setItem(personalStorage.key(room), JSON.stringify(arr)); } catch {}
+            },
+            append: (room, message, max) => {
+                const arr = personalStorage.load(room);
+                arr.push({ name: message.name, msg: message.msg, time: message.time });
+                while (arr.length > (max || CONFIG.MAX_MESSAGES)) arr.shift();
+                personalStorage.saveAll(room, arr);
+            },
+            clear: (room) => {
+                try { localStorage.removeItem(personalStorage.key(room)); } catch {}
+            }
+        };
+
+        // Add sidebar toggle functionality
+        const sidebarManager = {
+            init: () => {
+                // Create mobile sidebar toggle button
+                const toggleButton = document.createElement('button');
+                toggleButton.className = 'mobile-sidebar-toggle';
+                toggleButton.innerHTML = '<span class="iconify" data-icon="bi:list"></span>';
+                document.body.appendChild(toggleButton);
+
+                // Add click event
+                toggleButton.addEventListener('click', () => {
+                    const sidebar = document.querySelector('.sidebar');
+                    if (sidebar) {
+                        sidebar.classList.toggle('show');
+                    }
+                });
+
+                // Close sidebar when clicking outside
+                document.addEventListener('click', (e) => {
+                    const sidebar = document.querySelector('.sidebar');
+                    const toggleButton = document.querySelector('.mobile-sidebar-toggle');
+
+                    if (sidebar && toggleButton &&
+                        !sidebar.contains(e.target) &&
+                        !toggleButton.contains(e.target) &&
+                        window.innerWidth <= 768) {
+                        sidebar.classList.remove('show');
+                    }
+                });
+            }
+        };
+
+        // Initialize application
+        document.addEventListener("DOMContentLoaded", () => {
+            securityManager.init();  // 🔒 優先初始化安全管理器
+            imageLoader.init();      // 🖼️ 初始化圖片懶載入
+            socketManager.init();
+            uiManager.initialize();
+            themeManager.init();
+            quickInputPad.init();
+            headerManager.init();
+            chatroomManager.init();
+            sidebarManager.init();
+            scrollManager.init();
+
+            // Remove focus from buttons after click to prevent "glow"
+            document.addEventListener('mouseup', (e) => {
+                const button = e.target.closest('button, .btn');
+                if (button) {
+                    button.blur();
+                }
             });
-            for (let i = 0; i < msgs.length; i++) {
-                (async function () {
-                    await addMsgToBox(msgs[i]);
-                })();
-            }
         });
 
-        socket.on(roomNumber, addMsgToBox);
+        // Modal functions
+        function readme() {
+            $('#readmeModalCenter').modal("show");
+        }
 
-        changeRoomNumber.addEventListener("submit", async function (e) {
-            e.preventDefault();
-            color = 3;
-            if (!roomText.value) {
-                roomText.innerHTML = "公共房間";
-                roomText.value = "公共房間";
-            };
-            if (roomText.value == roomNumber) {
-                return;
-            }
-            await socket.off(roomNumber);
-            roomNumber = roomText.value;
-            let myNode = document.getElementById("content");
-            myNode.innerHTML = '';
-            socket.emit("newRoom", roomNumber);
-            room.innerText = roomNumber;
-            await socket.on(roomNumber, addMsgToBox);
-        });
+        function save() {
+            const content = document.getElementById("content");
+            const roomName = chatroomManager.currentRoom || '';
+            const contentText = content.innerText || '';
 
+            const string = `HKTRPG${roomName}\n${contentText.replace(/(.*\d+:\d+:\d+)/g, '\n$1')}`;
 
+            const blob = new Blob([string], { type: 'text/plain;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = `HKTRPG${roomName}`;
+            link.click();
+            window.URL.revokeObjectURL(link.href);
+        }
 
-        sendForm.addEventListener("submit", function (e) {
-            e.preventDefault();
-            $('#msg').focus();
-            if (!msgInputBox) return;
-            let formData = {
-                time: new Date(Date.now())
-            };
-            formData.msg = msgInputBox.value;
-            formData.name = nameInputBox.value;
-            formData.roomNumber = roomNumber;
-            socket.emit("send", formData);
-            setLocalStorage("name", nameInputBox.value);
-            // console.log('nameInputBox', nameInputBox)
-
-        });
-
-
-        async function addMsgToBox(d) {
-            color++;
-            let msgBox = document.createElement("div");
-            msgBox.className = "card";
-            let msgBoxHeader = document.createElement("div");
-            msgBoxHeader.className = "card-header2";
-            let msgBoxBody = document.createElement("div");
-
-            msgBoxBody.classList.add("card-body2")
-
-            let space = document.createElement("span");
-            let nameBox = document.createElement("span");
-            nameBox.className = "badge badge-primary";
-            let timeBox = document.createElement("span")
-            timeBox.className = "badge badge-secondary";
-            let name = document.createTextNode(d.name);
-
-            let time = document.createTextNode(new Date(d.time).toLocaleString());
-            let msg = document.createTextNode(d.msg.replace(/^\n/, ''), setTimeout(function () {
-                scorllToBottom();
-            }, 50));
-
-
-            nameBox.appendChild(name);
-            msgBoxHeader.appendChild(nameBox);
-            msgBoxHeader.innerHTML += "&nbsp";
-            timeBox.appendChild(time);
-            msgBoxHeader.appendChild(timeBox);
-            msgBoxBody.appendChild(msg);
-
-            msgBox.appendChild(msgBoxHeader);
-            msgBox.appendChild(msgBoxBody);
-            content.appendChild(msgBox);
-
-            if (content.children.length > max_record) {
-                rmMsgFromBox();
+        // Add genName function
+        function genName() {
+            const nameInput = document.getElementById("name");
+            if (nameInput) {
+                nameInput.value = utils.generateName();
             }
         }
 
-        function rmMsgFromBox() {
-            let childs = content.children;
-            childs[0].remove();
-        }
+        // 加入聊天室 Modal 管理
+        const joinRoomModal = {
+            show: () => {
+                $('#joinRoomModal').modal('show');
+            },
 
-        function setLocalStorage(cname, cvalue) {
-            localStorage.setItem(cname, cvalue);
-        }
+            submit: () => {
+                const input = document.getElementById("joinRoomNumber");
+                const roomName = input.value.trim();
 
-        function getLocalStorage(cname) {
-            return localStorage.getItem(cname) || null;
-        }
-    });
-</script>
-<script>
-    const TITLE = "HKTRPG 擲骰聊天室";
-    $(function () {
-        $("#header").load("includes/header.html", function () {
-            $("#title").text(TITLE);
+                if (roomName && !chatroomManager.rooms.has(roomName)) {
+                    chatroomManager.addRoom(roomName);
+                    input.value = '';
+                    $('#joinRoomModal').modal('hide');
+                }
+            }
+        };
+    </script>
+    <script>
+        const TITLE = "HKTRPG 擲骰聊天室";
+        $(function () {
+            $("#header").load("includes/header.html", function () {
+                $("#title").text(TITLE);
+            });
+            $("#footer").load("includes/footer.html");
         });
-        $("#footer").load("includes/footer.html");
-    });
-</script>
+    </script>
+
+</body>
 
 </html>

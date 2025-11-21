@@ -2,12 +2,13 @@
 if (!process.env.mongoURL) {
     return;
 }
+const { SlashCommandBuilder } = require('discord.js');
+const moment = require('moment');
 const VIP = require('../modules/veryImportantPerson');
 const checkMongodb = require('../modules/dbWatchdog.js');
 const FUNCTION_AT_LIMIT = [5, 25, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema')
 const FUNCTION_CRON_LIMIT = [2, 15, 30, 45, 99, 99, 99, 99];
-const moment = require('moment');
 const agenda = require('../modules/schedule')
 const CRON_REGEX = /^(\d\d)(\d\d)((?:-([1-9]?[1-9]|((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?))){0,1})/i;
 const VALID_DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
@@ -121,19 +122,23 @@ const rollDiceCommand = async function ({
             }
             const jobs = await agenda.agenda.jobs(
                 check
-            ).catch(error => console.error('agenda error: ', error.name, error.reson))
+            ).catch(error => console.error('agenda error:', error.name, error.reason))
             rply.text = showJobs(jobs);
             if (userrole == 3 && botname == "Discord") {
-                rply.text = `\n本頻道列表\n\n${rply.text}`
-                check = {
+                const groupJobsText = rply.text;
+                const channelCheck = {
                     name: differentPeformAt(botname),
+                    "data.channelid": channelid,
                     "data.groupid": groupid
-                }
-                const jobs = await agenda.agenda.jobs(
-                    check
-                ).catch(error => console.error('agenda error: ', error.name, error.reson))
-                rply.text = `本群組列表\n\n${showJobs(jobs)} \n\n${rply.text
-                    } `;
+                };
+                const channelJobs = await agenda.agenda.jobs(channelCheck)
+                    .catch(error => console.error('agenda error:', error.name, error.reason));
+                const channelJobsText = showJobs(channelJobs);
+                rply.text = `【本群組列表】\n${groupJobsText}\n\n【本頻道列表】\n${channelJobsText}`;
+            } else if (botname == "Discord" && userrole < 3) {
+                rply.text = `【本頻道列表】\n${rply.text}`;
+            } else {
+                rply.text = `【本群組列表】\n${rply.text}`;
             }
             return rply;
         }
@@ -160,15 +165,19 @@ const rollDiceCommand = async function ({
             }
             const jobs = await agenda.agenda.jobs(
                 check
-            ).catch(error => console.error('agenda error: ', error.name, error.reson))
-            try {
-                let data = jobs[Number(mainMsg[2]) - 1];
-                await jobs[Number(mainMsg[2]) - 1].remove();
-                rply.text = `已刪除序號#${Number(mainMsg[2])} \n${data.attrs.data.replyText}`;
-
-            } catch (e) {
-                console.error("Remove at Error removing job from collection. input: ", inputStr);
+            ).catch(error => console.error('agenda error:', error.name, error.reason))
+            const jobIndex = Number(mainMsg[2]) - 1;
+            if (!jobs || !Array.isArray(jobs) || jobIndex < 0 || jobIndex >= jobs.length || !jobs[jobIndex]) {
                 rply.text = "找不到該序號, 請使用.at show重新檢查"
+                return rply;
+            }
+            try {
+                let data = jobs[jobIndex];
+                await jobs[jobIndex].remove();
+                rply.text = `已刪除序號#${Number(mainMsg[2])} \n${data.attrs.data.replyText}`;
+            } catch (error) {
+                console.error("Remove at Error removing job from collection. input:", inputStr, error);
+                rply.text = "刪除時發生錯誤，請稍後再試"
                 return rply;
             }
             return rply;
@@ -181,7 +190,7 @@ const rollDiceCommand = async function ({
             }
             let lv = await VIP.viplevelCheckUser(userid);
             let gpLv = await VIP.viplevelCheckGroup(groupid);
-            lv = (gpLv > lv) ? gpLv : lv;
+            lv = Math.max(gpLv, lv);
             let limit = FUNCTION_AT_LIMIT[lv];
             let check = {
                 name: differentPeformAt(botname),
@@ -189,7 +198,7 @@ const rollDiceCommand = async function ({
             }
             let checkGroupid = await schema.agendaAtHKTRPG.countDocuments(
                 check
-            ).catch(error => console.error('schedule  #171 mongoDB error: ', error.name, error.reson));
+            ).catch(error => console.error('schedule  #171 mongoDB error:', error.name, error.reason));
             if (checkGroupid >= limit) {
                 rply.text = '.at 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 return rply;
@@ -222,17 +231,20 @@ const rollDiceCommand = async function ({
             }
 
             let callBotname = differentPeformAt(botname);
-            await agenda.agenda.schedule(date, callBotname, { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid }).catch(error => console.error('agenda error: ', error.name, error.reson))
-            rply.text = `已新增排定內容\n將於${date.toString().replace(/:\d+\s.*/, '')}運行`
+            await agenda.agenda.schedule(date, callBotname, { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid }).catch(error => console.error('agenda error:', error.name, error.reason))
+            rply.text = `已新增排定內容
+執行時間: ${moment(date).format('YYYY-MM-DD HH:mm')}
+訊息內容: ${text}`
             return rply;
         }
         case /^\.cron+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
             if (!checkMongodb.isDbOnline()) return;
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
@@ -249,28 +261,33 @@ const rollDiceCommand = async function ({
             }
             const jobs = await agenda.agenda.jobs(
                 check
-            ).catch(error => console.error('agenda error: ', error.name, error.reson))
+            ).catch(error => console.error('agenda error:', error.name, error.reason))
             rply.text = showCronJobs(jobs);
             if (userrole == 3 && botname == "Discord") {
-                rply.text = `\n本頻道列表\n\n${rply.text}`
-                check = {
+                const groupJobsText = rply.text;
+                const channelCheck = {
                     name: differentPeformCron(botname),
+                    "data.channelid": channelid,
                     "data.groupid": groupid
-                }
-                const jobs = await agenda.agenda.jobs(
-                    check
-                ).catch(error => console.error('agenda error: ', error.name, error.reson))
-                rply.text = `本群組列表\n\n${showCronJobs(jobs)} \n\n${rply.text
-                    } `;
+                };
+                const channelJobs = await agenda.agenda.jobs(channelCheck)
+                    .catch(error => console.error('agenda error:', error.name, error.reason));
+                const channelJobsText = showCronJobs(channelJobs);
+                rply.text = `【本群組列表】\n${groupJobsText}\n\n【本頻道列表】\n${channelJobsText}`;
+            } else if (botname == "Discord" && userrole < 3) {
+                rply.text = `【本頻道列表】\n${rply.text}`;
+            } else {
+                rply.text = `【本群組列表】\n${rply.text}`;
             }
             return rply;
         }
         case /^\.cron$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
-            if (rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
-            })) {
+            });
+            if (rply.text) {
                 return rply;
             }
 
@@ -298,8 +315,8 @@ const rollDiceCommand = async function ({
                 await jobs[Number(mainMsg[2]) - 1].remove();
                 rply.text = `已刪除序號#${Number(mainMsg[2])} \n${data.attrs.data.replyText} `;
 
-            } catch (e) {
-                console.error("Remove Cron Error removing job from collection, input: ", inputStr);
+            } catch {
+                console.error("Remove Cron Error removing job from collection, input:", inputStr);
                 rply.text = "找不到該序號, 請使用.cron show 重新檢查"
                 return rply;
             }
@@ -316,7 +333,7 @@ const rollDiceCommand = async function ({
 
             let lv = await VIP.viplevelCheckUser(userid);
             let gpLv = await VIP.viplevelCheckGroup(groupid);
-            lv = (gpLv > lv) ? gpLv : lv;
+            lv = Math.max(gpLv, lv);
             let limit = FUNCTION_CRON_LIMIT[lv];
             let check = {
                 name: differentPeformCron(botname),
@@ -324,7 +341,7 @@ const rollDiceCommand = async function ({
             }
             let checkGroupid = await schema.agendaAtHKTRPG.countDocuments(
                 check
-            ).catch(error => console.error('schedule #278 mongoDB error: ', error.name, error.reson));
+            ).catch(error => console.error('schedule #278 mongoDB error:', error.name, error.reason));
             if (checkGroupid >= limit) {
                 rply.text = '.cron 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
                 return rply;
@@ -357,7 +374,7 @@ const rollDiceCommand = async function ({
 
             let text = inputStr.replace(/^\s?\S+\s+\S+\s+/, '');
             // "0 6 * * *"
-            let date = `${checkTime.min} ${checkTime.hour} *${checkTime.days ? `/${checkTime.days}` : ''} * ${(checkTime.weeks.length) ? checkTime.weeks : '*'}`;
+            let date = `${checkTime.min} ${checkTime.hour} *${checkTime.days ? `/${checkTime.days}` : ''} * ${(checkTime.weeks.length > 0) ? checkTime.weeks : '*'}`;
 
             let callBotname = differentPeformCron(botname);
             const job = agenda.agenda.create(callBotname, { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, createAt: new Date(Date.now()) });
@@ -365,11 +382,26 @@ const rollDiceCommand = async function ({
 
             try {
                 await job.save();
-            } catch (error) {
+            } catch {
                 console.error("schedule #301 Error saving job to collection");
             }
 
-            rply.text = `已新增排定內容\n將於${checkTime.days ? `每隔${checkTime.days}天` : ''}  ${checkTime.weeks.length ? `每個星期的${checkTime.weeks}` : ''}${!checkTime.weeks && !checkTime.days ? `每天` : ''} ${checkTime.hour}:${checkTime.min} (24小時制)運行`
+            const weekDayNames = checkTime.weeks.map(d => VALID_DAYS[d]);
+
+            let scheduleTextParts = [];
+            if (checkTime.days) {
+                scheduleTextParts.push(`每隔${checkTime.days}天`);
+            }
+            if (weekDayNames.length > 0) {
+                scheduleTextParts.push(`每個星期的 ${weekDayNames.join(',')}`);
+            }
+
+            let scheduleText = scheduleTextParts.join(' ');
+            if (!scheduleText) {
+                scheduleText = '每天';
+            }
+
+            rply.text = `已新增排定內容\n將於 ${scheduleText} ${checkTime.hour}:${checkTime.min} (24小時制)運行`;
             return rply;
         }
         default: {
@@ -393,8 +425,8 @@ function differentPeformAt(botname) {
     }
 }
 function getAndRemoveRoleNameAndLink(input) {
-    let roleName = input.match(/^name=(.*)\n/mi) ? input.match(/^name=(.*)\n/mi)[1] : null;
-    let imageLink = input.match(/^link=(.*)\n/mi) ? input.match(/^link=(.*)\n/mi)[1] : null;
+    let roleName = /^name=(.*)\n/mi.test(input) ? input.match(/^name=(.*)\n/mi)[1] : null;
+    let imageLink = /^link=(.*)\n/mi.test(input) ? input.match(/^link=(.*)\n/mi)[1] : null;
     return { newText: input.replace(/^link=.*\n/mi, "").replace(/^name=.*\n/im, ""), roleName, imageLink };
 }
 
@@ -424,7 +456,7 @@ function checkAtTime(first, second) {
     switch (true) {
         case /^\d+mins$/i.test(first): {
             let time = first.match(/^(\d+)mins$/i)[1];
-            if (time > 44640) time = 44640;
+            if (time > 44_640) time = 44_640;
             if (time < 1) time = 1;
             time = moment().add(time, 'minute').toDate();
             return { time: time, threeColum: false };
@@ -466,7 +498,7 @@ function checkCronTime(text) {
         min = "00";
     }
     for (let index = 0; index < VALID_DAYS.length; index++) {
-        text.toLowerCase().indexOf(VALID_DAYS[index]) >= 0 ? weeks.push(index) : null
+        text.toLowerCase().includes(VALID_DAYS[index]) ? weeks.push(index) : null
 
     }
 
@@ -484,7 +516,7 @@ function showJobs(jobs) {
     if (jobs && jobs.length > 0) {
         for (let index = 0; index < jobs.length; index++) {
             let job = jobs[index];
-            reply += `序號#${index + 1} 下次運行時間 ${job.attrs.nextRunAt.toString().replace(/:\d+\s.*/, '')}\n${job.attrs.data.replyText}\n`;
+            reply += `序號#${index + 1} 下次運行時間 ${job.attrs.nextRunAt.toString().replace(/:\d+\s.*/, '')}\n${job.attrs.data.replyText}\n\n`;
         }
     } else reply = "沒有找到定時任務"
     return reply;
@@ -495,13 +527,314 @@ function showCronJobs(jobs) {
         for (let index = 0; index < jobs.length; index++) {
             let job = jobs[index];
             let createAt = job.attrs.data.createAt;
-            let time = job.attrs.repeatInterval.match(/^(\d+) (\d+)/);
-            reply += `序號#${index + 1} 創建時間 ${createAt.toString().replace(/:\d+\s.*/, '')}\n每天運行時間 ${(time && time[2]) || 'error'} ${(time && time[1]) || 'error'}\n${job.attrs.data.replyText}\n`;
+
+            const cronParts = job.attrs.repeatInterval.split(' ');
+            const min = cronParts[0];
+            const hour = cronParts[1];
+            const dayOfMonth = cronParts[2];
+            const dayOfWeek = cronParts[4];
+
+            let scheduleText = '';
+
+            const daysIntervalMatch = dayOfMonth.match(/\*\/(\d+)/);
+            if (daysIntervalMatch) {
+                scheduleText += `每隔${daysIntervalMatch[1]}天`;
+            }
+
+            if (dayOfWeek !== '*') {
+                const weekDays = dayOfWeek.split(',').map(d => VALID_DAYS[Number.parseInt(d, 10)]).join(',');
+                if (scheduleText) scheduleText += ' ';
+                scheduleText += `每個星期的 ${weekDays}`;
+            }
+
+            if (!scheduleText) {
+                scheduleText = '每天';
+            }
+
+            reply += `序號#${index + 1} 創建時間 ${createAt ? new Date(createAt).toString().replace(/:\d+\s.*/, '') : '未知'}\n運行資訊: ${scheduleText} ${hour}:${min}\n${job.attrs.data.replyText}\n\n`;
         }
     } else reply = "沒有找到定時任務"
     return reply;
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('at')
+            .setDescription('【⏰定時任務功能】單次定時')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('datetime')
+                    .setDescription('指定時間發送訊息')
+                    .addStringOption(option =>
+                        option.setName('date')
+                            .setDescription('日期 (YYYYMMDD)')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('time')
+                            .setDescription('時間 (HHMM)')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('message')
+                            .setDescription('要發送的訊息內容')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('dice')
+                            .setDescription('骰子指令 (使用[[]]包覆)')
+                            .setRequired(false))
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('發送者名稱 (僅限Patreoner)')
+                            .setRequired(false))
+                    .addStringOption(option =>
+                        option.setName('link')
+                            .setDescription('頭像連結網址 (僅限Patreoner)')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('countdown')
+                    .setDescription('計時模式發送訊息')
+                    .addIntegerOption(option =>
+                        option.setName('amount')
+                            .setDescription('倒數時間')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('unit')
+                            .setDescription('單位 (mins/hours)')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: '分鐘', value: 'mins' },
+                                { name: '小時', value: 'hours' }
+                            ))
+                    .addStringOption(option =>
+                        option.setName('message')
+                            .setDescription('要發送的訊息內容')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('dice')
+                            .setDescription('骰子指令 (使用[[]]包覆)')
+                            .setRequired(false))
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('發送者名稱 (僅限Patreoner)')
+                            .setRequired(false))
+                    .addStringOption(option =>
+                        option.setName('link')
+                            .setDescription('頭像連結網址 (僅限Patreoner)')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('查看定時任務列表'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('delete')
+                    .setDescription('刪除定時任務')
+                    .addIntegerOption(option =>
+                        option.setName('id')
+                            .setDescription('要刪除的任務序號')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+
+            switch (subcommand) {
+                case 'show': {
+                    return '.at show';
+                }
+                case 'delete': {
+                    const id = interaction.options.getInteger('id');
+                    return `.at delete ${id}`;
+                }
+                case 'datetime': {
+                    const date = interaction.options.getString('date');
+                    const time = interaction.options.getString('time');
+                    const message = interaction.options.getString('message');
+                    const dice = interaction.options.getString('dice');
+                    const name = interaction.options.getString('name');
+                    const link = interaction.options.getString('link');
+
+                    let command = `.at ${date} ${time} ${message}`;
+                    if (dice) command += ` ${dice}`;
+                    if (name) command += `\nname=${name}`;
+                    if (link) command += `\nlink=${link}`;
+
+                    return command;
+                }
+                case 'countdown': {
+                    const amount = interaction.options.getInteger('amount');
+                    const unit = interaction.options.getString('unit');
+                    const message = interaction.options.getString('message');
+                    const dice = interaction.options.getString('dice');
+                    const name = interaction.options.getString('name');
+                    const link = interaction.options.getString('link');
+
+                    let command = `.at ${amount}${unit} ${message}`;
+                    if (dice) command += ` ${dice}`;
+                    if (name) command += `\nname=${name}`;
+                    if (link) command += `\nlink=${link}`;
+
+                    return command;
+                }
+                // No default
+            }
+        }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('cron')
+            .setDescription('【⏰定時任務功能】循環定時')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('daily')
+                    .setDescription('每天定時發送訊息')
+                    .addStringOption(option =>
+                        option.setName('time')
+                            .setDescription('時間 (HHMM)')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('message')
+                            .setDescription('要發送的訊息內容')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('dice')
+                            .setDescription('骰子指令 (使用[[]]包覆)')
+                            .setRequired(false))
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('發送者名稱 (僅限Patreoner)')
+                            .setRequired(false))
+                    .addStringOption(option =>
+                        option.setName('link')
+                            .setDescription('頭像連結網址 (僅限Patreoner)')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('interval')
+                    .setDescription('間隔天數發送訊息')
+                    .addStringOption(option =>
+                        option.setName('time')
+                            .setDescription('時間 (HHMM)')
+                            .setRequired(true))
+                    .addIntegerOption(option =>
+                        option.setName('days')
+                            .setDescription('間隔天數')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('message')
+                            .setDescription('要發送的訊息內容')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('dice')
+                            .setDescription('骰子指令 (使用[[]]包覆)')
+                            .setRequired(false))
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('發送者名稱 (僅限Patreoner)')
+                            .setRequired(false))
+                    .addStringOption(option =>
+                        option.setName('link')
+                            .setDescription('頭像連結網址 (僅限Patreoner)')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('weekly')
+                    .setDescription('指定星期發送訊息')
+                    .addStringOption(option =>
+                        option.setName('time')
+                            .setDescription('時間 (HHMM)')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('days')
+                            .setDescription('星期 (例如: wed-mon)')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('message')
+                            .setDescription('要發送的訊息內容')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('dice')
+                            .setDescription('骰子指令 (使用[[]]包覆)')
+                            .setRequired(false))
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('發送者名稱 (僅限Patreoner)')
+                            .setRequired(false))
+                    .addStringOption(option =>
+                        option.setName('link')
+                            .setDescription('頭像連結網址 (僅限Patreoner)')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('查看定時任務列表'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('delete')
+                    .setDescription('刪除定時任務')
+                    .addIntegerOption(option =>
+                        option.setName('id')
+                            .setDescription('要刪除的任務序號')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+
+            switch (subcommand) {
+                case 'show': {
+                    return '.cron show';
+                }
+                case 'delete': {
+                    const id = interaction.options.getInteger('id');
+                    return `.cron delete ${id}`;
+                }
+                case 'daily': {
+                    const time = interaction.options.getString('time');
+                    const message = interaction.options.getString('message');
+                    const dice = interaction.options.getString('dice');
+                    const name = interaction.options.getString('name');
+                    const link = interaction.options.getString('link');
+
+                    let command = `.cron ${time} ${message}`;
+                    if (dice) command += ` ${dice}`;
+                    if (name) command += `\nname=${name}`;
+                    if (link) command += `\nlink=${link}`;
+
+                    return command;
+                }
+                case 'interval': {
+                    const time = interaction.options.getString('time');
+                    const days = interaction.options.getInteger('days');
+                    const message = interaction.options.getString('message');
+                    const dice = interaction.options.getString('dice');
+                    const name = interaction.options.getString('name');
+                    const link = interaction.options.getString('link');
+
+                    let command = `.cron ${time}-${days} ${message}`;
+                    if (dice) command += ` ${dice}`;
+                    if (name) command += `\nname=${name}`;
+                    if (link) command += `\nlink=${link}`;
+
+                    return command;
+                }
+                case 'weekly': {
+                    const time = interaction.options.getString('time');
+                    const days = interaction.options.getString('days');
+                    const message = interaction.options.getString('message');
+                    const dice = interaction.options.getString('dice');
+                    const name = interaction.options.getString('name');
+                    const link = interaction.options.getString('link');
+
+                    let command = `.cron ${time}-${days} ${message}`;
+                    if (dice) command += ` ${dice}`;
+                    if (name) command += `\nname=${name}`;
+                    if (link) command += `\nlink=${link}`;
+
+                    return command;
+                }
+                // No default
+            }
+        }
+    }
+];
 
 module.exports = {
     rollDiceCommand: rollDiceCommand,
@@ -509,5 +842,6 @@ module.exports = {
     getHelpMessage: getHelpMessage,
     prefixs: prefixs,
     gameType: gameType,
-    gameName: gameName
+    gameName: gameName,
+    discordCommand: discordCommand
 };

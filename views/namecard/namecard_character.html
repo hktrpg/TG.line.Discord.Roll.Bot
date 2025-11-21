@@ -1,0 +1,2596 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRPG 角色卡</title>
+    <meta name="description" content="HKTRPG - TRPG 角色卡 - 透過網頁快速製作 TRPG 角色卡">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- NEW: Include SortableJS library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- NEW: Include html2canvas library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rampart+One&family=Noto+Sans+TC:wght@400&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --gradient-start: #60a5fa;
+            --gradient-end: #f472b6;
+            --message-bg: linear-gradient(to right, #d7ffec, #cae1ff);
+            --status-bg: linear-gradient(to right, #cae1ff, #d7ffec);
+            --container-bg: linear-gradient(to right, #b5e1fe, #f3f7ff);
+            --card-bg: linear-gradient(to right, #ffffff, #ffffff);
+            --text-color: #1e40af;
+            --attribute-color: #4a5568;
+            --subtext-color: #6b7280;
+            --border-radius: 0.5rem;
+            --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #516ea7, #d6e4ff);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .container {
+            max-width: 1024px;
+            margin: 2rem auto;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            background: var(--container-bg);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 0;
+                padding: 0.5rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+
+
+
+                gap: 1rem;
+            }
+
+            .column {
+                padding: 1rem;
+            }
+
+            .header-buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+                padding: 0.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .header-buttons button {
+                width: 100%;
+                margin: 0;
+                padding: 0.8rem;
+                font-size: 1rem;
+                display: block;
+            }
+
+            .btn-edit,
+            .btn-export,
+            .btn-backup {
+                margin-bottom: 0.5rem !important;
+                width: 100%;
+                display: block;
+            }
+
+            .avatar-container {
+                width: 8rem;
+                height: 8rem;
+            }
+
+            .attribute-group {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+            }
+
+            .attribute {
+                flex: 0 1 100%;
+                font-size: 0.9rem;
+            }
+
+            .status-item {
+                font-size: 0.9rem;
+            }
+
+            .notes-overflow {
+                grid-column: 1;
+            }
+
+            .progress-container {
+                width: 90%;
+                max-width: 300px;
+            }
+
+            input[type="text"],
+            input[type="number"],
+            select {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .draggable {
+                margin-bottom: 1rem;
+                padding: 0.5rem;
+                border: 1px solid #e5e7eb;
+                border-radius: 0.5rem;
+                background: #fff;
+            }
+
+            .draggable::before {
+                content: '⋮';
+                display: inline-block;
+                padding: 0.25rem 0.5rem;
+                cursor: grab;
+                color: #9ca3af;
+                font-size: 1.2rem;
+                margin-right: 0.5rem;
+            }
+
+            .draggable:active::before {
+                cursor: grabbing;
+            }
+
+            .draggable input[type="text"],
+            .draggable input[type="number"] {
+                width: calc(50% - 0.5rem);
+                margin-bottom: 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .draggable select {
+                width: calc(100% - 1rem);
+                margin: 0.5rem 0;
+            }
+
+            /* 調整標籤和輸入框的佈局 */
+            #editAttributesContainer,
+            #editSkillsContainer,
+            #editDiceRollsContainer,
+            #editNotesItemsContainer,
+            #editPersonalityContainer {
+                padding: 0.5rem;
+            }
+
+            /* 調整標題輸入框 */
+            label input[type="text"] {
+                width: 100%;
+                margin: 0.5rem 0;
+                display: block;
+            }
+
+            /* 調整移除按鈕 */
+            .btn-remove {
+                width: auto;
+                padding: 0.3rem 0.8rem;
+                margin-top: 0.5rem;
+                font-size: 0.8rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.2rem;
+            }
+
+            .footer {
+                padding: 0.5rem;
+                text-align: center;
+            }
+        }
+
+        .column {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .column:hover {
+            transform: translateY(-5px);
+        }
+
+        h2 {
+            color: #b83b6f;
+            margin-bottom: 1rem;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            text-decoration: underline;
+            /* Add underline */
+        }
+
+        h3 {
+            color: #4c51bf;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .avatar-container {
+            width: 12rem;
+            height: 12rem;
+            margin: 0 auto 1.5rem;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: var(--box-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border: 5px solid #ffffff;
+            /* Add border */
+        }
+
+        .stats-chart {
+            margin-top: 1.5rem;
+        }
+
+        .message {
+            background: var(--message-bg);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-top: 1.5rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        .player-info {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .player-info span {
+            color: var(--subtext-color);
+        }
+
+        .status-bars {
+            margin-top: 1.5rem;
+            background: var(--status-bg);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            margin: 1rem 0;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 0.5rem;
+            background: #e5e7eb;
+            border-radius: 9999px;
+            margin: 0 1rem;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            border-radius: 9999px;
+        }
+
+        .attribute-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between !important;
+            margin-bottom: 0.1rem;
+        }
+
+        .attribute {
+            flex: 0 1 30%;
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            font-weight: bold;
+            color: var(--attribute-color);
+        }
+
+        .flex-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .flex-item {
+            flex: 1 1 30%;
+            margin: 0.5rem;
+            text-align: center;
+        }
+
+        .divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 1rem 0;
+        }
+
+        .icon {
+            margin-right: 0.5rem;
+            color: var(--text-color);
+        }
+
+        /* Added button styles */
+        #editBtn {
+            background: linear-gradient(to right, #60a5fa, #f472b6);
+            border: none;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        #editBtn:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        /* NEW: Generic button styles to beautify all buttons */
+        button {
+            background: #60a5fa;
+            border: none;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        button:hover {
+            opacity: 0.85;
+            transform: scale(1.05);
+        }
+
+        input[type="text"] {
+            background: #fff;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+            outline: none;
+        }
+
+        /* NEW: Cursor change for draggable items */
+        .draggable {
+            cursor: grab;
+        }
+
+        .draggable:active {
+            cursor: grabbing;
+        }
+
+        /* NEW: Drag visual feedback styles */
+        .sortable-chosen {
+            background-color: rgba(96, 165, 250, 0.2);
+            border: 2px dashed #60a5fa;
+        }
+
+        .sortable-ghost {
+            opacity: 0.5;
+        }
+
+        /* Remove previous generic button styles and add new button classes */
+
+        /* Button for the main edit action in view mode */
+        .btn-edit {
+            background: linear-gradient(to right, #60a5fa, #f472b6);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .btn-edit:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        /* Button for add new item actions */
+        .btn-add {
+            background: #10B981;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-add:hover {
+            opacity: 0.85;
+        }
+
+        /* Button for remove actions */
+        .btn-remove {
+            background: #EF4444;
+            border: none;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 0.375rem;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-remove:hover {
+            opacity: 0.85;
+        }
+
+        /* Buttons for save and cancel in edit mode */
+        .btn-save {
+            background: linear-gradient(to right, #2563EB, #3B82F6);
+            border: none;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .btn-save:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        .btn-cancel {
+            background: #6B7280;
+            border: none;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .btn-cancel:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        /* NEW: Export button styling */
+        .btn-export {
+            background: linear-gradient(to right, #10B981, #99bffd);
+            border: none;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .btn-export:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        /* NEW: Share button styling */
+        .btn-backup {
+            background: linear-gradient(to right, #4ade80, #22d3ee);
+            border: none;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .btn-backup:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        /* NEW: Styles for notes overflow handling */
+        .notes-overflow {
+            grid-column: span 3;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--box-shadow);
+            margin-top: 2rem;
+        }
+
+        .notes-card {
+            background: var(--message-bg);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-top: 1.5rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        .notes-overflow h3 {
+            color: #4c51bf;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .notes-content {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        /* Scrollbar styling for notes overflow */
+        .notes-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .notes-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .notes-content::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .notes-content::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .info.flex-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+        }
+
+        .flex-item {
+            flex: 1 1 auto;
+            text-align: center;
+        }
+
+        /* NEW: Class for when only one item is present */
+        .flex-item.solo {
+            flex: 0 0 100%;
+        }
+
+        /* NEW: Progress indicator styles */
+        .progress-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .progress-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar-container {
+            width: 300px;
+            height: 20px;
+            background: #f3f3f3;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            color: #4a5568;
+            margin-bottom: 1rem;
+        }
+
+        .footer {
+            grid-column: span 2;
+            text-align: right;
+            color: var(--color-text-secondary);
+            opacity: 0.7;
+            font-size: 0.8rem;
+            padding: 10px 0 0 0;
+            margin: 0 0 0 0;
+            font-family: "Rampart One", serif;
+        }
+
+        /* Add new styles for drag-and-drop */
+        .avatar-upload-zone {
+            width: 12rem;
+            height: 12rem;
+            margin: 0 auto 1.5rem;
+            border: 3px dashed #60a5fa;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar-upload-zone.drag-over {
+            background: rgba(96, 165, 250, 0.1);
+            border-color: #3b82f6;
+        }
+
+        .avatar-upload-zone i {
+            font-size: 2rem;
+            color: #60a5fa;
+            margin-bottom: 0.5rem;
+        }
+
+        .avatar-upload-zone .upload-text {
+            color: #60a5fa;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .avatar-upload-zone img {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .upload-hint {
+            color: #6b7280;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        /* Add style for restore button */
+        .btn-restore {
+            background: linear-gradient(to right, #EF4444, #F87171);
+            border: none;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        .btn-restore:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        /* Export-specific styles */
+        .exporting img {
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+
+        .exporting .avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        .no-animations * {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(to right, #60a5fa, #f472b6);
+            color: white;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+            padding: 0;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            opacity: 0.8;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .slot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        /* 電腦版：至少2行，一行兩個角色 */
+        @media (min-width: 769px) {
+            .slot-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* 手機版：一行一個角色 */
+        @media (max-width: 768px) {
+            .slot-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .slot-item {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .slot-item:hover {
+            border-color: #60a5fa;
+            box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
+        }
+
+        .slot-item.empty {
+            background: linear-gradient(to bottom, #f3f4f6, #e5e7eb);
+        }
+
+        .slot-item.filled {
+            background: linear-gradient(to bottom, #ffffff, #f9fafb);
+        }
+
+        .slot-avatar {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            margin: 0 auto 0.5rem;
+            border: 2px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #f3f4f6;
+        }
+
+        .slot-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .slot-avatar.empty {
+            background: #e5e7eb;
+            color: #9ca3af;
+        }
+
+        .slot-name {
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .slot-player {
+            color: #6b7280;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .slot-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .slot-save {
+            background: linear-gradient(to right, #10B981, #34D399);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .slot-save:hover {
+            transform: scale(1.05);
+        }
+
+        .slot-load {
+            background: linear-gradient(to right, #3B82F6, #60A5FA);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .slot-load:hover {
+            transform: scale(1.05);
+        }
+
+        .slot-load:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .slot-number {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        /* Message notification styles */
+        .message-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(to right, #60a5fa, #f472b6);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 3000;
+            max-width: 400px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .message-notification.show {
+            transform: translateX(0);
+        }
+
+        .message-notification.error {
+            background: linear-gradient(to right, #ef4444, #f87171);
+        }
+
+        .message-notification.success {
+            background: linear-gradient(to right, #10b981, #34d399);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- NEW: Wrap header buttons -->
+        <div class="header-buttons">
+            <!-- Replace old Edit button with new container -->
+            <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">編輯角色</button>
+            <button id="exportBtn" class="btn-export" onclick="exportToPNG()">匯出 PNG</button>
+            <button id="shareBtn" class="btn-backup" onclick="openBackupRestoreModal()">備份/讀取</button>
+        </div>
+        <div class="grid">
+            <div class="column">
+                <div class="player-info">
+                    <!-- Wrap editable fields in identifiable elements -->
+                    <h2 id="characterName">角色名字</h2>
+                    <div class="info flex-container">
+                        <span class="flex-item" id="playerName">玩家名字</span>
+                        <span class="flex-item" id="snsID">SNS ID</span>
+                    </div>
+                </div>
+                <div class="avatar-container">
+                    <img id="avatarImage" alt="角色頭像">
+
+                </div>
+                <h3 id="attributeTitle">基本屬性</h3>
+                <div id="basic-attributes"></div>
+            </div>
+
+            <div class="column">
+                <h3 id="skillsTitle">能力分析</h3>
+                <canvas id="skillsChart"></canvas>
+
+                <div class="status-bars">
+                    <h3>性格與偏好</h3>
+                    <div class="status-item">
+                        <i class="fas fa-check icon"></i>
+                        <span>活潑開朗</span>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 70%"></div>
+                        </div>
+                        <span>靜思內省</span>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-star icon"></i>
+                        <span>單一專業</span>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 60%"></div>
+                        </div>
+                        <span>敏銳直觀</span>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-users icon"></i>
+                        <span>理性思維</span>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 85%"></div>
+                        </div>
+                        <span>情感共鳴</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="column">
+                <h3 id="diceTitle">技能</h3>
+                <div id="dice-rolls"></div>
+                <div class="divider"></div>
+                <div class="message">
+                    <h3 id="notesTitle">筆記</h3>
+                    <div id="notes"></div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">@character.HKTRPG.com 請隨意取用</div>
+    </div>
+    <script>
+        const icons = [
+            'fas fa-check',
+            'fas fa-star',
+            'fas fa-heart',
+            'fas fa-smile',
+            'fas fa-thumbs-up',
+            'fas fa-lightbulb',
+            'fas fa-user-friends',
+            'fas fa-flag',
+            'fas fa-clipboard-list',
+            'fas fa-comment-dots'
+        ];
+        const avatarImageUrl = "https://images2.imgbox.com/ea/b2/Bn8DmRTW_o.png";
+
+        const defaultCharacter = {
+            characterName: "吾是 範例",
+            playerName: "範例君",
+            id: "@HKTRPG",
+            attributes: {
+                attributesList: {
+                    HP: "15 / 15",
+                    MP: "10 / 10",
+                    san: "60 / 60 ",
+                    幸運: 80,
+                    力量: 55,
+                    敏捷: 40,
+                    意志: 50,
+                    體質: 60,
+                    外貌: 50,
+                    教育: 70,
+                    體型: 50,
+                    智力: 70,
+                    靈感: 70,
+                    體格: 0,
+                    DB: 0,
+                    MOV: 8
+                }
+            },
+            skills: [
+                { type: '交際', value: 200 },
+                { type: '學問', value: 180 },
+                { type: '職業', value: 140 },
+                { type: '調查+隱密', value: 160 },
+                { type: '戰鬥', value: 200 },
+                { type: '醫療', value: 20 }
+            ],
+            diceRolls: {
+                心理學: "50",
+                信譽: "30",
+                偵查: "25",
+                鬥毆: "15"
+            },
+            notes: {
+                title: "筆記",
+                items: [
+                    { label: "現金", value: "100,000日元" },
+                    { label: "隨身物品", value: "手機" },
+                    { label: "心靈支柱", value: "思想與信念" },
+                    { label: "資產", value: "車" }
+                ]
+            },
+            diceTitle: "技能",
+            skillsTitle: "能力分析",
+            attributeTitle: "基本屬性",
+            personalityPreferencesTitle: '性格與偏好',
+            personalityPreferences: {
+                items: [
+                    { label: '活潑開朗', value: 70, alternative: '靜思內省', icon: 'fas fa-check' },
+                    { label: '實事求是', value: 30, alternative: '敏銳直觀', icon: 'fas fa-star' },
+                    { label: '理性思維', value: 15, alternative: '情感共鳴', icon: 'fas fa-users' }
+                ]
+            }
+        };
+
+        let character = { ...defaultCharacter };
+
+        document.getElementById('playerName').innerText = character.playerName;
+        document.getElementById('characterName').innerText = character.characterName;
+        document.getElementById('snsID').innerText = character.id;
+        document.getElementById('avatarImage').src = avatarImageUrl;
+
+        // 更新技能類型標題
+        document.getElementById('skillsTitle').innerText = character.skillsTitle;
+
+        // 更新基本屬性標題
+        document.getElementById('attributeTitle').innerText = character.attributeTitle;
+        // 更新技能標題
+        document.getElementById('diceTitle').innerText = character.diceTitle;
+
+        // 更新筆記標題
+        document.getElementById('notesTitle').innerText = character.notes.title;
+
+        // 生成筆記的 HTML
+        const notesHTML = character.notes.items.map(item => {
+            return `<p>${escapeHtml(item.label)}：<span style="color: var(--text-color);">${escapeHtml(item.value)}</span></p>`;
+        }).join('');
+        document.getElementById('notes').innerHTML = notesHTML;
+
+
+
+        // 生成性格與偏好的 HTML
+        const statusItemsHTML = character.personalityPreferences.items.map(item => {
+            return `
+                <div class="status-item">
+                    <i class="${item.icon} icon"></i>
+                    <span>${escapeHtml(item.label)}</span>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: ${item.value}%"></div>
+                    </div>
+                    <span>${escapeHtml(item.alternative)}</span>
+                </div>
+            `;
+        }).join('');
+
+        // 替換原有的性格與偏好內容
+        document.querySelector('.status-bars').innerHTML = `
+            <h3>${escapeHtml(character.personalityPreferencesTitle)}</h3>
+            ${statusItemsHTML}
+        `;
+
+        const attributes = character.attributes;
+        const attributesHTML = `
+            <div class="attribute-group">
+                ${Object.entries(attributes.attributesList).map(([key, value]) => {
+            return `<span class="attribute">${escapeHtml(key)}：<span style="color: var(--text-color);">${escapeHtml(value)}</span></span>`;
+        }).join('')}
+            </div>
+        `;
+        document.getElementById('basic-attributes').innerHTML = attributesHTML;
+
+        const diceRollsHTML = `
+            <div class="attribute-group">
+                ${Object.entries(character.diceRolls).map(([key, value]) => {
+            return `<span class="attribute">${escapeHtml(key)}：<span style="color: var(--text-color);">${escapeHtml(value)}</span></span>`;
+        }).join('')}
+            </div>
+        `;
+        document.getElementById('dice-rolls').innerHTML = diceRollsHTML;
+
+        const ctx = document.getElementById('skillsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: character.skills.map(skill => skill.type),
+                datasets: [{
+                    data: character.skills.map(skill => skill.value),
+                    backgroundColor: 'rgba(255, 105, 180, 0.3)',
+                    borderColor: 'rgba(255, 105, 180, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(255, 105, 180, 1)'
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        angleLines: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
+                        pointLabels: {
+                            color: '#4a5568',
+                            font: {
+                                size: 12
+                            }
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: 100
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // Centering logic for player name and character ID
+        const playerNameEl = document.getElementById('playerName');
+        const snsIDEl = document.getElementById('snsID');
+
+        if (!character.playerName) {
+            playerNameEl.style.display = 'none';
+            snsIDEl.style.textAlign = 'center';
+            snsIDEl.style.width = '100%'; // Force full width
+        } else if (!character.id) {
+            snsIDEl.style.display = 'none';
+            playerNameEl.style.textAlign = 'center';
+            playerNameEl.style.width = '100%'; // Force full width
+        }
+
+        // New editing functionality
+        let isEditMode = false;
+        function toggleEditMode() {
+            if (!isEditMode) {
+                isEditMode = true;
+                renderEditForm();
+            } else {
+                // In this design, the "保存修改" button calls saveEdit()
+            }
+        }
+
+        // NEW: In renderEditForm, convert attributes and diceRolls if needed
+        function renderEditForm() {
+            // Convert attributesList to array if still an object
+            if (!Array.isArray(character.attributes.attributesList)) {
+                character.attributes.attributesList = Object.entries(character.attributes.attributesList).map(([key, value]) => ({ key, value }));
+            }
+            // Convert diceRolls to array if still an object
+            if (!Array.isArray(character.diceRolls)) {
+                character.diceRolls = Object.entries(character.diceRolls).map(([key, value]) => ({ key, value }));
+            }
+            // Validate and sanitize avatar URL
+            const safeAvatarUrl = isValidUrl(avatarImageUrl) ? avatarImageUrl : '';
+            
+            document.querySelector('.container').innerHTML = `
+  <h2>編輯角色資料</h2>
+  <div>
+    <label>角色名字: <input type="text" id="editCharacterName" value="${escapeHtml(character.characterName)}"></label>
+    <label>玩家名字: <input type="text" id="editPlayerName" value="${escapeHtml(character.playerName)}"></label>
+    <label>SNS ID: <input type="text" id="editsnsID" value="${escapeHtml(character.id)}"></label></br>
+     <label class="avatar-label">頭像網址: 
+        <input type="text" id="edit-avatar" class="avatar-input" 
+            value="${escapeHtml(safeAvatarUrl)}" 
+            placeholder="輸入圖片網址"
+            onchange="previewAvatarFromUrl(this.value)">
+    </label>
+    <div class="avatar-upload-zone" id="avatarUploadZone">
+        <input type="file" id="avatarFileInput" style="display: none" accept="image/*">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <div class="upload-text">拖放圖片或點擊上傳</div>
+        ${document.getElementById('avatarImage').src ?
+                    `<img src="${escapeHtml(document.getElementById('avatarImage').src)}" alt="預覽">` : ''}
+    </div>
+    <div class="upload-hint">* 圖片僅用於預覽和匯出，不會保存在備份連結中</div>
+  </div>
+  <hr>
+    <h2>可拖動項目以重新排序</h2>
+  <div>
+
+    <h3>基本屬性</h3>
+ <label>基本屬性標題: <input type="text" id="editAttributeTitle" value="${escapeHtml(character.attributeTitle)}"></label><br>
+    <div id="editAttributesContainer">
+      <div id="editAttributesList">
+        ${character.attributes.attributesList.map(attr =>
+                        `<div draggable="true" class="draggable">
+          <input type="text" class="attr-key" value="${escapeHtml(attr.key)}">
+          : <input type="text" class="attr-value" value="${escapeHtml(attr.value)}">
+          <button onclick="removeAttr('${escapeHtml(attr.key)}')" class="btn-remove">移除</button>
+        </div>`
+                    ).join('')}
+      </div>
+      <button onclick="addAttribute()" class="btn-add">新增屬性</button>
+    </div>
+  </div>
+  <hr>
+  <div>
+    <h3>能力分析</h3>
+     <label>能力分析標題: <input type="text" id="editSkillsTitle" value="${escapeHtml(character.skillsTitle)}"></label><br>
+    <div id="editSkillsContainer">
+      <div id="editSkillsList">
+        ${character.skills.map((skill, index) =>
+                        `<div draggable="true" class="draggable">
+          <input type="text" class="skill-type" value="${escapeHtml(skill.type)}">
+          <input type="number" class="skill-value" value="${skill.value}">
+          <button onclick="removeSkill(${index})" class="btn-remove">移除</button>
+        </div>`
+                    ).join('')}
+      </div>
+      <button onclick="addSkill()" class="btn-add">新增技能</button>
+    </div>
+  </div>
+  <hr>
+  <div>
+    <h3>技能</h3>
+    <label>技能標題: <input type="text" id="editDiceTitle" value="${escapeHtml(character.diceTitle)}"></label><br>
+    <div id="editDiceRollsContainer">
+      <div id="editDiceRollsList">
+        ${character.diceRolls.map(dice =>
+                        `<div draggable="true" class="draggable">
+          <input type="text" class="dice-key" value="${escapeHtml(dice.key)}">
+          : <input type="text" class="dice-value" value="${escapeHtml(dice.value)}">
+          <button onclick="removeDice('${escapeHtml(dice.key)}')" class="btn-remove">移除</button>
+        </div>`
+                    ).join('')}
+      </div>
+      <button onclick="addDice()" class="btn-add">新增技能</button>
+    </div>
+  </div>
+  <hr>
+  <div>
+    <h3>筆記</h3>
+    <label>筆記標題: <input type="text" id="editNotesTitle" value="${escapeHtml(character.notes.title)}"></label>
+    <div id="editNotesItemsContainer">
+      <div id="editNotesItemsList">
+        ${character.notes.items.map((item, index) =>
+                        `<div draggable="true" class="draggable">
+          <input type="text" class="note-label" value="${escapeHtml(item.label)}">
+          : <input type="text" class="note-value" value="${escapeHtml(item.value)}">
+          <button onclick="removeNote(${index})" class="btn-remove">移除</button>
+        </div>`
+                    ).join('')}
+      </div>
+      <button onclick="addNote()" class="btn-add">新增筆記</button>
+    </div>
+  </div>
+  <hr>
+  <div>
+    <h3>性格與偏好</h3>
+      <label>性格與偏好標題: <input type="text" id="editPersonalityTitle" value="${escapeHtml(character.personalityPreferencesTitle)}"></label>
+    <div id="editPersonalityContainer">
+      <div id="editPersonalityList">
+        ${character.personalityPreferences.items.map((item, index) =>
+                        `<div draggable="true" class="draggable">
+          <input type="text" class="personality-label" value="${escapeHtml(item.label)}">
+          <input type="number" class="personality-value" value="${item.value}">
+          <input type="text" class="personality-alt" value="${escapeHtml(item.alternative)}">
+          <select class="personality-icon">
+            <option value="fas fa-check" ${item.icon === 'fas fa-check' ? 'selected' : ''}>打勾</option>
+            <option value="fas fa-star" ${item.icon === 'fas fa-star' ? 'selected' : ''}>星星</option>
+            <option value="fas fa-heart" ${item.icon === 'fas fa-heart' ? 'selected' : ''}>愛心</option>
+            <option value="fas fa-smile" ${item.icon === 'fas fa-smile' ? 'selected' : ''}>笑臉</option>
+            <option value="fas fa-thumbs-up" ${item.icon === 'fas fa-thumbs-up' ? 'selected' : ''}>讚</option>
+            <option value="fas fa-lightbulb" ${item.icon === 'fas fa-lightbulb' ? 'selected' : ''}>燈泡</option>
+            <option value="fas fa-user-friends" ${item.icon === 'fas fa-user-friends' ? 'selected' : ''}>好友</option>
+            <option value="fas fa-flag" ${item.icon === 'fas fa-flag' ? 'selected' : ''}>旗幟</option>
+            <option value="fas fa-clipboard-list" ${item.icon === 'fas fa-clipboard-list' ? 'selected' : ''}>清單</option>
+            <option value="fas fa-comment-dots" ${item.icon === 'fas fa-comment-dots' ? 'selected' : ''}>留言</option>
+          </select>
+          <button onclick="removePersonality(${index})" class="btn-remove">移除</button>
+        </div>`
+                    ).join('')}
+      </div>
+      <button onclick="addPersonality()" class="btn-add">新增性格偏好</button>
+    </div>
+  </div>
+  <br>
+  <button onclick="saveEdit()" class="btn-save">保存修改</button>
+  <button onclick="cancelEdit()" class="btn-cancel">取消</button>
+            `;
+            // NEW: Initialize Sortable with visual feedback settings
+            const sortableOptions = {
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-chosen',
+                onStart: function (evt) {
+                    evt.item.style.transform = 'scale(1.05)';
+                    evt.item.title = '拖動中...';
+                },
+                onEnd: function (evt) {
+                    evt.item.style.transform = 'scale(1)';
+                    evt.item.title = '';
+                }
+            };
+            Sortable.create(document.getElementById('editAttributesList'), sortableOptions);
+            Sortable.create(document.getElementById('editSkillsList'), sortableOptions);
+            Sortable.create(document.getElementById('editDiceRollsList'), sortableOptions);
+            Sortable.create(document.getElementById('editNotesItemsList'), sortableOptions);
+            Sortable.create(document.getElementById('editPersonalityList'), sortableOptions);
+
+            // Add drag-and-drop event listeners
+            const uploadZone = document.getElementById('avatarUploadZone');
+            const fileInput = document.getElementById('avatarFileInput');
+
+            uploadZone.addEventListener('click', () => fileInput.click());
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, () => {
+                    uploadZone.classList.add('drag-over');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, () => {
+                    uploadZone.classList.remove('drag-over');
+                });
+            });
+
+            uploadZone.addEventListener('drop', handleDrop);
+            fileInput.addEventListener('change', handleFileSelect);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles(files);
+            }
+
+            function handleFileSelect(e) {
+                const files = e.target.files;
+                handleFiles(files);
+            }
+
+            function handleFiles(files) {
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            uploadZone.innerHTML = '';
+                            uploadZone.appendChild(img);
+                            character.avatarTemp = e.target.result; // Store temporary image data
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        showNotification('請上傳圖片檔案', 'error');
+                    }
+                }
+            }
+        }
+
+        // NEW: Save edit form data back into character and re-render view
+        function saveEdit() {
+            // Update basic info
+            character.characterName = document.getElementById('editCharacterName').value;
+            character.playerName = document.getElementById('editPlayerName').value;
+            character.id = document.getElementById('editsnsID').value;
+
+            // Save title changes
+            character.attributeTitle = document.getElementById('editAttributeTitle').value;
+            character.diceTitle = document.getElementById('editDiceTitle').value;
+            character.skillsTitle = document.getElementById('editSkillsTitle').value;
+            character.personalityPreferencesTitle = document.getElementById('editPersonalityTitle').value;
+
+            // Collect attributes and filter out if both fields are empty
+            const attrElems = document.querySelectorAll('#editAttributesList > div');
+            const newAttributes = Array.from(attrElems).map(div => {
+                const key = div.querySelector('.attr-key').value.trim();
+                const value = div.querySelector('.attr-value').value.trim();
+                return { key, value };
+            }).filter(item => item.key !== "" || item.value !== "");
+            character.attributes.attributesList = newAttributes;
+
+            // Collect skills and filter out if both fields are empty
+            const skillElems = document.querySelectorAll('#editSkillsList > div');
+            let newSkills = [];
+            skillElems.forEach(div => {
+                const typeVal = div.querySelector('.skill-type').value.trim();
+                const valueVal = div.querySelector('.skill-value').value.trim();
+                if (typeVal !== "" || valueVal !== "") {
+                    newSkills.push({ type: typeVal, value: parseInt(valueVal, 10) || 0 });
+                }
+            });
+            character.skills = newSkills;
+
+            // Collect diceRolls and filter out if both fields are empty
+            const diceElems = document.querySelectorAll('#editDiceRollsList > div');
+            const newDice = Array.from(diceElems).map(div => {
+                const key = div.querySelector('.dice-key').value.trim();
+                const value = div.querySelector('.dice-value').value.trim();
+                return { key, value };
+            }).filter(item => item.key !== "" || item.value !== "");
+            character.diceRolls = newDice;
+
+            // Collect notes and filter out if both fields are empty
+            character.notes.title = document.getElementById('editNotesTitle').value;
+            const noteElems = document.querySelectorAll('#editNotesItemsList > div');
+            const newNotes = Array.from(noteElems).map(div => {
+                const label = div.querySelector('.note-label').value.trim();
+                const value = div.querySelector('.note-value').value.trim();
+                return { label, value };
+            }).filter(item => item.label !== "" || item.value !== "");
+            character.notes.items = newNotes;
+
+            // Collect personalityPreferences and filter out if both label and alternative are empty
+            const persElems = document.querySelectorAll('#editPersonalityList > div');
+            const newPers = Array.from(persElems).map(div => {
+                const label = div.querySelector('.personality-label').value.trim();
+                const value = parseInt(div.querySelector('.personality-value').value.trim(), 10) || 0;
+                const alternative = div.querySelector('.personality-alt').value.trim();
+                const icon = div.querySelector('.personality-icon').value.trim();
+                return { label, value, alternative, icon };
+            }).filter(item => item.label !== "" || item.alternative !== "");
+            character.personalityPreferences.items = newPers;
+
+            // Handle temporary avatar by storing it in character object
+            if (character.avatarTemp) {
+                character.avatarUrl = character.avatarTemp;
+                delete character.avatarTemp;
+            }
+
+            // Save to localStorage before rendering view mode
+            saveCharacterToLocalStorage();
+
+            // Re-render original view
+            renderViewMode();
+            isEditMode = false;
+        }
+
+        // NEW: Cancel edit and re-render view mode
+        function cancelEdit() {
+            renderViewMode();
+            isEditMode = false;
+        }
+
+        // NEW: Helper functions for dynamic add/remove operations.
+        function removeAttr(keyToRemove) {
+            console.log('Removing attribute', keyToRemove);
+            // Remove matching attribute by key from the edit form
+            const container = document.getElementById('editAttributesList');
+            container.innerHTML = Array.from(container.querySelectorAll('div'))
+                .filter(div => div.querySelector('.attr-key').value.trim() !== keyToRemove)
+                .map(div => div.outerHTML).join('');
+        }
+        // Modified addAttribute() to insert new attribute directly into the list container
+        function addAttribute() {
+            const attributesList = document.getElementById('editAttributesList');
+            attributesList.insertAdjacentHTML('beforeend', `
+              <div draggable="true" class="draggable">
+                <input type="text" class="attr-key" placeholder="屬性名稱">
+                : <input type="text" class="attr-value" placeholder="屬性值">
+                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
+              </div>
+            `);
+        }
+        function removeSkill(index) {
+            const container = document.getElementById('editSkillsList');
+            container.removeChild(container.children[index]);
+        }
+        function addSkill() {
+            const container = document.getElementById('editSkillsList');
+            container.insertAdjacentHTML('beforeend', `
+              <div draggable="true" class="draggable">
+                <input type="text" class="skill-type" placeholder="技能名稱">
+                <input type="number" class="skill-value" placeholder="數值">
+                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
+              </div>
+            `);
+        }
+        function removeDice(keyToRemove) {
+            const container = document.getElementById('editDiceRollsList');
+            container.innerHTML = Array.from(container.querySelectorAll('div'))
+                .filter(div => div.querySelector('.dice-key').value.trim() !== keyToRemove)
+                .map(div => div.outerHTML).join('');
+        }
+        function addDice() {
+            const container = document.getElementById('editDiceRollsList');
+            container.insertAdjacentHTML('beforeend', `
+              <div draggable="true" class="draggable">
+                <input type="text" class="dice-key" placeholder="骰項">
+                : <input type="text" class="dice-value" placeholder="數值">
+                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
+              </div>
+            `);
+        }
+
+        function previewAvatarFromUrl(url) {
+            // Validate URL before processing
+            if (!isValidUrl(url)) {
+                showNotification('請輸入有效的圖片網址 (http://, https://, 或 data:)', 'error');
+                const input = document.getElementById('edit-avatar');
+                if (input) input.value = character.avatarTemp || '';
+                return;
+            }
+            
+            const uploadZone = document.getElementById('avatarUploadZone');
+            const img = document.createElement('img');
+            img.onload = () => {
+                uploadZone.innerHTML = '';
+                uploadZone.appendChild(img);
+                character.avatarTemp = url; // Store URL in temp storage
+            };
+            img.onerror = () => {
+                showNotification('圖片載入失敗，請確認網址是否正確', 'error');
+            };
+            img.src = url;
+        }
+        function removeNote(index) {
+            const container = document.getElementById('editNotesItemsList');
+            container.removeChild(container.children[index]);
+        }
+        function addNote() {
+            const container = document.getElementById('editNotesItemsList');
+            container.insertAdjacentHTML('beforeend', `
+              <div draggable="true" class="draggable">
+                <input type="text" class="note-label" placeholder="標籤">
+                : <input type="text" class="note-value" placeholder="內容">
+                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
+              </div>
+            `);
+        }
+        function removePersonality(index) {
+            const container = document.getElementById('editPersonalityList');
+            container.removeChild(container.children[index]);
+        }
+        function addPersonality() {
+            const container = document.getElementById('editPersonalityList');
+            container.insertAdjacentHTML('beforeend', `
+              <div draggable="true" class="draggable">
+                <input type="text" class="personality-label" placeholder="名稱">
+                <input type="number" class="personality-value" placeholder="數值">
+                <input type="text" class="personality-alt" placeholder="對立">
+                <select class="personality-icon">
+                    <option value="fas fa-check">打勾</option>
+                    <option value="fas fa-star">星星</option>
+                    <option value="fas fa-heart">愛心</option>
+                    <option value="fas fa-smile">笑臉</option>
+                    <option value="fas fa-thumbs-up">讚</option>
+                    <option value="fas fa-lightbulb">燈泡</option>
+                    <option value="fas fa-user-friends">好友</option>
+                    <option value="fas fa-flag">旗幟</option>
+                    <option value="fas fa-clipboard-list">清單</option>
+                    <option value="fas fa-comment-dots">留言</option>
+                </select>
+                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
+              </div>
+            `);
+        }
+
+        // NEW: In renderViewMode, add conversion steps similarly before using map()
+        function renderViewMode() {
+            if (!Array.isArray(character.attributes.attributesList)) {
+                character.attributes.attributesList = Object.entries(character.attributes.attributesList).map(([key, value]) => ({ key, value }));
+            }
+            if (!Array.isArray(character.diceRolls)) {
+                character.diceRolls = Object.entries(character.diceRolls).map(([key, value]) => ({ key, value }));
+            }
+            const container = document.querySelector('.container');
+            const safeAvatarSrc = isValidUrl(character.avatarUrl || character.avatarTemp || avatarImageUrl) ? 
+                                  (character.avatarUrl || character.avatarTemp || avatarImageUrl) : '';
+            container.innerHTML = `
+  <!-- Rebuild the view mode using updated character data -->
+  <div class="header-buttons">
+      <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">編輯角色</button>
+      <button id="exportBtn" class="btn-export" onclick="exportToPNG()">匯出 PNG</button>
+      <button id="shareBtn" class="btn-backup" onclick="openBackupRestoreModal()">備份/讀取</button>
+      <button id="restoreBtn" class="btn-restore" onclick="restoreDefaultCharacter()">還原預設</button>
+  </div>
+  <div class="grid">
+      <div class="column">
+          <div class="player-info">
+              <h2 id="characterName">${escapeHtml(character.characterName)}</h2>
+              <div class="info flex-container">
+                  ${character.playerName ?
+                    `<span class="flex-item${!character.id ? ' solo' : ''}" id="playerName">${escapeHtml(character.playerName)}</span>` : ''}
+                ${character.id ?
+                    `<span class="flex-item${!character.playerName ? ' solo' : ''}" id="snsID">${escapeHtml(character.id)}</span>` : ''}
+              </div>
+          </div>
+          <div class="avatar-container">
+              <img id="avatarImage" src="${escapeHtml(safeAvatarSrc)}" alt="角色頭像">
+          </div>
+          <h3 id="attributeTitle">${escapeHtml(character.attributeTitle)}</h3>
+          <div id="basic-attributes">
+              <div class="attribute-group">
+                  ${character.attributes.attributesList.map(attr =>
+                        `<span class="attribute">${escapeHtml(attr.key)}：<span style="color: var(--text-color);">${escapeHtml(attr.value)}</span></span>`
+                    ).join('')}
+              </div>
+          </div>
+      </div>
+      <div class="column">
+          <h3 id="skillsTitle">${escapeHtml(character.skillsTitle)}</h3>
+          <canvas id="skillsChart"></canvas>
+          <div class="status-bars">
+              <h3>${escapeHtml(character.personalityPreferencesTitle)}</h3>
+              ${character.personalityPreferences.items.map(item => `
+                  <div class="status-item">
+                      <i class="${item.icon} icon"></i>
+                      <span>${escapeHtml(item.label)}</span>
+                      <div class="progress-bar">
+                          <div class="progress" style="width: ${item.value}%"></div>
+                      </div>
+                      <span>${escapeHtml(item.alternative)}</span>
+                  </div>
+              `).join('')}
+          </div>
+      </div>
+      <div class="column">
+          <h3 id="diceTitle">${escapeHtml(character.diceTitle)}</h3>
+          <div id="dice-rolls">
+              <!-- Fixed dice-rolls container without invalid inline style -->
+              <div class="attribute-group">
+                ${character.diceRolls.map(dice => `<span class="attribute">${escapeHtml(dice.key)}：<span style="color: var(--text-color);">${escapeHtml(dice.value)}</span></span>`).join('')}
+              </div>
+          </div>
+          <div class="divider"></div>
+          <div class="message">
+              <h3 id="notesTitle">${escapeHtml(character.notes.title)}</h3>
+              <div id="notes">
+                  ${renderNotes(character.notes.items.slice(0, 4))}
+              </div>
+          </div>
+      </div>
+  </div>
+        ${character.notes.items.length > 4 ? `
+          <div class="notes-overflow">
+            <div class="notes-card">
+              <h3>更多${escapeHtml(character.notes.title)}</h3>
+              <div class="notes-content">
+                  ${renderNotes(character.notes.items.slice(4))}
+              </div></div>
+          </div>
+      <div class="footer">@character.HKTRPG.com 請隨意取用</div>
+  ` : ''}
+        `;
+            // Re-initialize any dynamic elements like the Chart
+            const ctx = document.getElementById('skillsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: character.skills.map(skill => skill.type),
+                    datasets: [{
+                        data: character.skills.map(skill => skill.value),
+                        backgroundColor: 'rgba(255, 105, 180, 0.3)',
+                        borderColor: 'rgba(255, 105, 180, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(255, 105, 180, 1)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: { color: '#4a5568', font: { size: 12 } },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+        const proxyServers = [
+            'https://cors-anywhere.herokuapp.com/',
+            'https://api.codetabs.com/v1/proxy?quest=',
+            'https://corsproxy.io/?url=',
+            'https://thingproxy.freeboard.io/fetch/'
+        ];
+
+        const proxyConfig = {
+            maxRetries: 3,
+            retryDelay: 1000,
+            timeout: 5000,
+            lastSuccessfulServer: null
+        };
+        // NEW: Export image helper functions and cache
+        async function loadImageAsBase64(url, options = {}) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    try {
+                        // Create canvas to convert image to base64
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+
+                        // For avatars, create a square canvas to prevent aspect ratio issues
+                        if (options.forAvatar) {
+                            const size = Math.max(img.naturalWidth, img.naturalHeight);
+                            canvas.width = size;
+                            canvas.height = size;
+
+                            // Center the image in the square canvas
+                            const x = (size - img.naturalWidth) / 2;
+                            const y = (size - img.naturalHeight) / 2;
+                            ctx.drawImage(img, x, y);
+                        } else {
+                            canvas.width = img.naturalWidth;
+                            canvas.height = img.naturalHeight;
+                            ctx.drawImage(img, 0, 0);
+                        }
+
+                        const base64 = canvas.toDataURL('image/png');
+                        resolve(base64);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                img.onerror = () => reject(new Error('Image failed to load'));
+                img.src = url;
+            });
+        }
+
+        async function proxyImage(url, attempt = 0, options = {}) {
+            // First try direct loading with CORS
+            try {
+                return await loadImageAsBase64(url, options);
+            } catch (directError) {
+                console.warn('Direct image loading failed, trying proxy servers:', directError);
+            }
+
+            // Fallback to proxy servers
+            const orderedServers = proxyConfig.lastSuccessfulServer
+                ? [proxyConfig.lastSuccessfulServer, ...proxyServers.filter(s => s !== proxyConfig.lastSuccessfulServer)]
+                : proxyServers;
+
+            // Try all servers in parallel with timeout
+            const fetchPromises = orderedServers.map(server => {
+                const proxyUrl = server + encodeURIComponent(url);
+                return fetchWithTimeout(proxyUrl);
+            });
+
+            try {
+                // Race promises - use first successful response
+                const response = await Promise.any(fetchPromises);
+                const blob = await response.blob();
+                const base64 = await blobToBase64(blob);
+
+                // Cache successful server
+                const successServer = orderedServers.find(server =>
+                    response.url.startsWith(server));
+                if (successServer) {
+                    proxyConfig.lastSuccessfulServer = successServer;
+                }
+
+                return base64;
+
+            } catch (error) {
+                // Retry logic
+                if (attempt < proxyConfig.maxRetries) {
+                    await new Promise(resolve =>
+                        setTimeout(resolve, proxyConfig.retryDelay));
+                    return proxyImage(url, attempt + 1, options);
+                }
+                console.error('All proxy attempts failed:', error);
+
+                // Final fallback: create a placeholder image
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 200;
+                    canvas.height = 200;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#f3f3f3';
+                    ctx.fillRect(0, 0, 200, 200);
+                    ctx.fillStyle = '#666';
+                    ctx.font = '14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('無法載入圖片', 100, 95);
+                    ctx.fillText('Image unavailable', 100, 115);
+                    return canvas.toDataURL('image/png');
+                } catch (fallbackError) {
+                    console.error('Fallback image creation failed:', fallbackError);
+                    return null;
+                }
+            }
+        }
+
+        // Helper function to add timeout to fetch
+        async function fetchWithTimeout(url) {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), proxyConfig.timeout);
+
+            try {
+                const response = await fetch(url, {
+                    signal: controller.signal
+                });
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response;
+            } finally {
+                clearTimeout(timeout);
+            }
+        }
+        function blobToBase64(blob) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        // NEW: Image cache object
+        const imageCache = {
+            base64: null,
+            url: null
+        };
+
+        // NEW: Create progress overlay
+        function createProgressOverlay() {
+            const overlay = document.createElement('div');
+            overlay.className = 'progress-overlay';
+            overlay.innerHTML = `
+                <div class="progress-container">
+                    <div class="progress-text">正在匯出 PNG...</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-status">準備中...</div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            return overlay;
+        }
+
+        // NEW: Update progress function
+        function updateProgress(overlay, progress, status) {
+            const fill = overlay.querySelector('.progress-bar-fill');
+            const statusText = overlay.querySelector('.progress-status');
+            fill.style.width = `${progress}%`;
+            if (status) {
+                statusText.textContent = status;
+            }
+        }
+
+        async function exportToPNG() {
+            const overlay = createProgressOverlay();
+            const headerButtons = document.querySelector('.header-buttons');
+            const buttonsHTML = headerButtons.innerHTML;
+            headerButtons.style.display = 'none';
+
+            // Save original viewport and container state
+            const viewport = document.querySelector('meta[name="viewport"]');
+            const originalViewport = viewport ? viewport.content : '';
+            const container = document.querySelector('.container');
+            const originalWidth = container.style.width || getComputedStyle(container).width;
+
+            try {
+                // Update progress: Start
+                updateProgress(overlay, 10, '準備匯出...');
+
+                // Force desktop viewport and ensure container width is set
+                if (viewport) {
+                    viewport.content = 'width=device-width, initial-scale=1';
+                }
+                // Temporarily set container to auto width to get full dimensions
+                container.style.width = 'auto';
+                container.style.maxWidth = 'none';
+
+                // Wait for layout adjustments
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Handle avatar image
+                const avatarImg = document.getElementById('avatarImage');
+                const currentSrc = avatarImg.src;
+
+                // Update progress: Image processing
+                updateProgress(overlay, 30, '處理圖片中...');
+
+                // Handle image caching and loading
+                if (!currentSrc.startsWith('data:image')) {
+                    if (!imageCache.base64 || imageCache.url !== currentSrc) {
+                        try {
+                            imageCache.base64 = await proxyImage(currentSrc, 0, { forAvatar: true });
+                            imageCache.url = currentSrc;
+                        } catch (error) {
+                            console.warn('Failed to load image, using placeholder:', error);
+                            // Create a placeholder image
+                            const canvas = document.createElement('canvas');
+                            canvas.width = 200;
+                            canvas.height = 200;
+                            const ctx = canvas.getContext('2d');
+                            ctx.fillStyle = '#f3f3f3';
+                            ctx.fillRect(0, 0, 200, 200);
+                            ctx.fillStyle = '#666';
+                            ctx.font = '16px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.fillText('圖片載入失敗', 100, 100);
+                            imageCache.base64 = canvas.toDataURL('image/png');
+                            imageCache.url = currentSrc;
+                        }
+                    }
+                } else {
+                    imageCache.base64 = currentSrc;
+                    imageCache.url = currentSrc;
+                }
+
+                // Pre-load image to ensure it's ready for html2canvas
+                if (imageCache.base64) {
+                    await new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.onload = resolve;
+                        img.onerror = reject;
+                        img.crossOrigin = 'anonymous';
+                        img.src = imageCache.base64;
+                    }).catch(error => {
+                        console.warn('Image pre-load failed, continuing anyway:', error);
+                        // Don't reject, continue with export even if pre-load fails
+                        resolve();
+                    });
+                }
+
+                // Update progress: Preparing canvas
+                updateProgress(overlay, 50, '準備畫布...');
+
+                container.classList.add('exporting', 'no-animations');
+
+                // Update progress: Rendering
+                updateProgress(overlay, 70, '渲染圖片中...');
+
+                const canvas = await html2canvas(container, {
+                    allowTaint: true,
+                    useCORS: true,
+                    backgroundColor: null, // Use transparent background to preserve gradients
+                    scale: 2,
+                    width: container.scrollWidth, // Capture full width of container
+                    height: container.scrollHeight, // Capture full height of container
+                    scrollX: 0, // Start from left edge
+                    scrollY: 0, // Start from top edge
+                    imageTimeout: 10000,
+                    logging: false,
+                    foreignObjectRendering: true, // Better for complex CSS effects
+                    onclone: (doc) => {
+                        // Ensure all images in the cloned document are properly handled
+                        const allImages = doc.querySelectorAll('img');
+                        allImages.forEach(img => {
+                            if (img.src.startsWith('http')) {
+                                img.crossOrigin = 'anonymous';
+                            }
+                        });
+
+                        // Ensure column styling is preserved
+                        const columns = doc.querySelectorAll('.column');
+                        columns.forEach(column => {
+                            column.style.background = 'linear-gradient(to right, #ffffff, #ffffff)';
+                            column.style.borderRadius = '0.5rem';
+                            column.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
+                        });
+
+                        // Ensure message styling is preserved
+                        const messages = doc.querySelectorAll('.message');
+                        messages.forEach(message => {
+                            message.style.background = 'linear-gradient(to right, #d7ffec, #cae1ff)';
+                            message.style.borderRadius = '0.5rem';
+                            message.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
+                        });
+
+                        // Ensure status bars styling is preserved
+                        const statusBars = doc.querySelectorAll('.status-bars');
+                        statusBars.forEach(statusBar => {
+                            statusBar.style.background = 'linear-gradient(to right, #cae1ff, #d7ffec)';
+                            statusBar.style.borderRadius = '0.5rem';
+                            statusBar.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
+                        });
+
+                        const avatarImgClone = doc.querySelector('.avatar-container img');
+                        if (avatarImgClone && imageCache.base64) {
+                            avatarImgClone.crossOrigin = 'anonymous';
+                            avatarImgClone.src = imageCache.base64;
+                            // Ensure proper styling for export
+                            avatarImgClone.style.width = '100%';
+                            avatarImgClone.style.height = '100%';
+                            avatarImgClone.style.objectFit = 'cover';
+                            avatarImgClone.style.objectPosition = 'center';
+                            avatarImgClone.style.border = '5px solid #ffffff';
+                        }
+
+                        // Ensure container styling is preserved
+                        const containerClone = doc.querySelector('.container');
+                        if (containerClone) {
+                            containerClone.style.background = 'linear-gradient(to right, #b5e1fe, #f3f7ff)';
+                            containerClone.style.borderRadius = '0.5rem';
+                            containerClone.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
+                            containerClone.style.width = 'auto';
+                            containerClone.style.maxWidth = 'none';
+                            containerClone.style.position = 'relative';
+                            containerClone.style.overflow = 'visible'; // Ensure content is not clipped
+                        }
+
+                        // Apply exporting styles to cloned document
+                        const style = doc.createElement('style');
+                        style.textContent = `
+                            .exporting img {
+                                image-rendering: -webkit-optimize-contrast;
+                                image-rendering: crisp-edges;
+                            }
+                            .exporting .avatar-container img {
+                                width: 100%;
+                                height: 100%;
+                                object-fit: cover;
+                                object-position: center;
+                            }
+                            .no-animations * {
+                                animation: none !important;
+                                transition: none !important;
+                            }
+                            /* Add extra space above container for PNG export */
+                            
+                            .container {
+                                margin-top: 0px !important;
+                                
+                            }
+                        `;
+                        doc.head.appendChild(style);
+
+                        // Ensure avatar container styling is preserved during export
+                        const avatarContainerClone = doc.querySelector('.avatar-container');
+                        if (avatarContainerClone) {
+                            // Force box-shadow and other visual effects
+                            avatarContainerClone.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
+                            avatarContainerClone.style.border = '4px solid white';
+                            avatarContainerClone.style.borderRadius = '50%';
+                            avatarContainerClone.style.overflow = 'hidden';
+                            avatarContainerClone.style.position = 'relative';
+                            avatarContainerClone.style.display = 'flex';
+                            avatarContainerClone.style.alignItems = 'center';
+                            avatarContainerClone.style.justifyContent = 'center';
+                            avatarContainerClone.style.width = '12rem';
+                            avatarContainerClone.style.height = '12rem';
+                            avatarContainerClone.style.margin = '0 auto 1.5rem';
+                        }
+                    }
+                });
+
+                // Update progress: Creating blob
+                updateProgress(overlay, 85, '產生圖片檔案...');
+
+                // Convert to blob for better memory management
+                const blob = await new Promise(resolve => {
+                    canvas.toBlob(resolve, 'image/png', 1.0);
+                });
+
+                // Create and trigger download
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = `${document.getElementById('snsID')?.innerText || 'character'}_TRPG_Card.png`;
+                link.href = url;
+
+                // Update progress: Finalizing
+                updateProgress(overlay, 95, '完成匯出...');
+
+                // Trigger download and cleanup
+                setTimeout(() => {
+                    link.click();
+                    setTimeout(() => {
+                        URL.revokeObjectURL(url);
+                        updateProgress(overlay, 100, '匯出完成！');
+                        setTimeout(() => {
+                            overlay.remove();
+                        }, 1000);
+                    }, 100);
+                }, 500);
+
+            } catch (error) {
+                console.error('匯出失敗:', error);
+                overlay.querySelector('.progress-text').textContent = '匯出失敗';
+                overlay.querySelector('.progress-status').textContent = '請稍後再試';
+                overlay.querySelector('.progress-bar-fill').style.backgroundColor = '#EF4444';
+
+                setTimeout(() => {
+                    overlay.remove();
+                }, 2000);
+            } finally {
+                // Restore original state
+                if (viewport) {
+                    viewport.content = originalViewport;
+                }
+                container.style.width = originalWidth;
+                container.classList.remove('exporting', 'no-animations');
+                headerButtons.innerHTML = buttonsHTML;
+                headerButtons.style.display = 'block';
+            }
+        }
+
+        // HTML escaping function to prevent XSS
+        function escapeHtml(unsafe) {
+            if (typeof unsafe !== 'string') return unsafe;
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Custom notification function to replace alert
+        function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.message-notification');
+            existingNotifications.forEach(notification => notification.remove());
+
+            // Create new notification
+            const notification = document.createElement('div');
+            notification.className = `message-notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // Trigger animation
+            setTimeout(() => notification.classList.add('show'), 100);
+
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        // URL validation function to prevent javascript: protocol injection
+        function isValidUrl(url) {
+            if (!url || typeof url !== 'string') return false;
+            try {
+                const urlObj = new URL(url);
+                return ['http:', 'https:', 'data:'].includes(urlObj.protocol);
+            } catch {
+                return false;
+            }
+        }
+        
+        function getDataFromUrl() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const jsonData = urlParams.get('data');
+                const v3Data = urlParams.get('v3data');
+
+                if (v3Data) {
+                    // Parse v3 format data
+                    const decodedString = decodeURIComponent(v3Data);
+                    const sections = decodedString.split('~');
+                    const parsed = {};
+
+                    sections.forEach(section => {
+                        const match = section.match(/(\w+)\[(.*?)\]/);
+                        if (match) {
+                            parsed[match[1]] = match[2];
+                        }
+                    });
+
+                    // Convert to sharedData format
+                    const convertedData = {
+                        characterName: parsed.name || "無名氏",
+                        playerName: "",
+                        id: parsed.id || "",
+                        attributes: {
+                            attributesList: {}
+                        },
+                        skills: [],
+                        diceRolls: {},
+                        notes: {
+                            title: "筆記",
+                            items: []
+                        },
+                        diceTitle: "技能",
+                        skillsTitle: "能力分析",
+                        attributeTitle: "基本屬性",
+                        personalityPreferencesTitle: "性格與偏好",
+                        personalityPreferences: {
+                            items: [
+                                { label: '活潑開朗', value: 70, alternative: '靜思內省', icon: 'fas fa-check' },
+                                { label: '實事求是', value: 60, alternative: '敏銳直觀', icon: 'fas fa-star' },
+                                { label: '理性思維', value: 85, alternative: '情感共鳴', icon: 'fas fa-users' }
+                            ]
+                        },
+                        avatarUrl: avatarImageUrl, // Add default avatar
+                    };
+
+                    // Parse state section
+                    if (parsed.state) {
+                        const states = parsed.state.split(';');
+                        states.forEach(state => {
+                            const [key, value] = state.split(':');
+                            if (key && value) {
+                                convertedData.attributes.attributesList[key] = value;
+                            }
+                        });
+                    }
+
+                    // Parse analysis section (skills)
+                    if (parsed.analysis) {
+                        const analyses = parsed.analysis.split(';');
+                        convertedData.skills = analyses
+                            .filter(analysis => analysis)
+                            .map(analysis => {
+                                const [type, value] = analysis.split(':');
+                                return {
+                                    type: type,
+                                    value: parseInt(value) || 0
+                                };
+                            });
+                    }
+
+                    // Parse roll section
+                    if (parsed.roll) {
+                        const rolls = parsed.roll.split(';');
+                        rolls.forEach(roll => {
+                            const [key, value] = roll.split(':');
+                            if (key && value) {
+                                convertedData.diceRolls[key] = value.split(' ')[1] || value;
+                            }
+                        });
+                    }
+
+                    // Parse notes section
+                    if (parsed.notes) {
+                        const notes = parsed.notes.split(';');
+                        convertedData.notes.items = notes
+                            .filter(note => note)
+                            .map(note => {
+                                const [label, value] = note.split(':');
+                                return {
+                                    label: label || "",
+                                    value: value || ""
+                                };
+                            });
+                    }
+
+                    return convertedData;
+                } else if (jsonData) {
+                    // Handle existing JSON format
+                    const data = JSON.parse(decodeURIComponent(atob(jsonData)));
+                    // Ensure default avatar if none exists
+                    data.avatarUrl = data.avatarUrl || avatarImageUrl;
+                    return data;
+                }
+            } catch (error) {
+                console.error('URL參數解析失敗:', error);
+            }
+            return null;
+        }
+
+        // NEW: Generate share link function
+        function generateShareLink() {
+            try {
+                // Create a copy of character data
+                const shareData = { ...character };
+
+                // Remove temporary avatar data
+                delete shareData.avatarTemp;
+
+                // Check if avatarUrl exists and is not a data URL
+                if (shareData.avatarUrl && shareData.avatarUrl.startsWith('data:')) {
+                    delete shareData.avatarUrl;
+                }
+
+                // If no valid avatarUrl exists, use default
+                if (!shareData.avatarUrl) {
+                    shareData.avatarUrl = avatarImageUrl;
+                }
+
+                // Convert character data to JSON string
+                const jsonString = JSON.stringify(shareData);
+
+                // Use encodeURIComponent for UTF-8 encoding
+                const base64Data = btoa(encodeURIComponent(jsonString));
+
+                // Create new URL with only base path (no parameters)
+                const currentUrl = new URL(window.location.href.split('?')[0]);
+
+                // Add only the JSON data parameter
+                currentUrl.searchParams.set('data', base64Data);
+
+                const shareUrl = currentUrl.toString();
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    showNotification('備份連結已複製到剪貼簿!', 'success');
+                }).catch(() => {
+                    showNotification('備份連結: ' + shareUrl, 'info');
+                });
+            } catch (error) {
+                console.error('產生備份連結失敗:', error);
+                showNotification('產生備份連結失敗', 'error');
+            }
+        }
+
+        // Function to save character data to localStorage
+        function saveCharacterToLocalStorage() {
+            try {
+                const dataToSave = JSON.stringify(character);
+                localStorage.setItem('characterData', dataToSave);
+                console.log('Saved to localStorage:', dataToSave);
+            } catch (error) {
+                console.error('Error saving to localStorage:', error);
+            }
+        }
+
+        // Function to load character data from localStorage
+        function loadCharacterFromLocalStorage() {
+            try {
+                const savedData = localStorage.getItem('characterData');
+                if (savedData) {
+                    const parsedData = JSON.parse(savedData);
+                    character = parsedData;
+                    console.log('Loaded from localStorage:', parsedData);
+                    return true;
+                }
+            } catch (error) {
+                console.error('Error loading from localStorage:', error);
+            }
+            return false;
+        }
+
+        // Function to restore default character data
+        function restoreDefaultCharacter() {
+            if (confirm('確定要還原預設角色資料嗎？這將清除所有目前的修改。')) {
+                character = JSON.parse(JSON.stringify(defaultCharacter)); // Deep copy
+                saveCharacterToLocalStorage();
+                renderViewMode();
+            }
+        }
+
+        // NEW: Helper function to render notes
+        function renderNotes(notes) {
+            return notes.map(item =>
+                `<p>${escapeHtml(item.label)}：<span style="color: var(--text-color);">${escapeHtml(item.value)}</span></p>`
+            ).join('');
+        }
+
+        // NEW: Backup/Restore Modal Functions
+        function openBackupRestoreModal() {
+            const modal = document.getElementById('backupRestoreModal');
+            modal.style.display = 'flex';
+            renderSlotGrid();
+        }
+
+        function closeBackupRestoreModal() {
+            const modal = document.getElementById('backupRestoreModal');
+            modal.style.display = 'none';
+        }
+
+        function renderSlotGrid() {
+            const slotGrid = document.getElementById('slotGrid');
+            let html = '';
+
+            for (let i = 1; i <= 99; i++) {
+                const slotKey = `characterSlot_${i}`;
+                const savedData = localStorage.getItem(slotKey);
+
+                let slotClass = 'empty';
+                let avatarHtml = '<i class="fas fa-user"></i>';
+                let characterName = '';
+                let playerName = '';
+                let loadDisabled = 'disabled';
+
+                if (savedData) {
+                    try {
+                        const parsedData = JSON.parse(savedData);
+                        slotClass = 'filled';
+                        loadDisabled = '';
+
+                        // Get avatar
+                        const avatarUrl = parsedData.avatarUrl || avatarImageUrl;
+                        if (avatarUrl && isValidUrl(avatarUrl)) {
+                            avatarHtml = `<img src="${escapeHtml(avatarUrl)}" alt="頭像" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user\\'></i>'">`;
+                        }
+
+                        characterName = parsedData.characterName || '';
+                        playerName = parsedData.playerName || '';
+                    } catch (error) {
+                        console.error(`Error parsing slot ${i}:`, error);
+                    }
+                }
+
+                html += `
+                    <div class="slot-item ${slotClass}">
+                        <div class="slot-number">${i}</div>
+                        <div class="slot-avatar ${savedData ? '' : 'empty'}">
+                            ${avatarHtml}
+                        </div>
+                        <div class="slot-name" title="${escapeHtml(characterName)}">${escapeHtml(characterName || '空槽')}</div>
+                        <div class="slot-player" title="${escapeHtml(playerName)}">${escapeHtml(playerName || '')}</div>
+                        <div class="slot-buttons">
+                            <button class="slot-save" onclick="saveToSlot(${i})">儲存</button>
+                            <button class="slot-load" onclick="loadFromSlot(${i})" ${loadDisabled}>讀取</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            slotGrid.innerHTML = html;
+        }
+
+        function saveToSlot(slotNumber) {
+            try {
+                const slotKey = `characterSlot_${slotNumber}`;
+                const dataToSave = JSON.stringify(character);
+                localStorage.setItem(slotKey, dataToSave);
+
+                showNotification(`角色資料已儲存到槽位 ${slotNumber}`, 'success');
+                renderSlotGrid(); // Refresh the grid to show updated data
+            } catch (error) {
+                console.error('Error saving to slot:', error);
+                showNotification('儲存失敗，請稍後再試', 'error');
+            }
+        }
+
+        function loadFromSlot(slotNumber) {
+            try {
+                const slotKey = `characterSlot_${slotNumber}`;
+                const savedData = localStorage.getItem(slotKey);
+
+                if (!savedData) {
+                    showNotification('此槽位沒有儲存的資料', 'error');
+                    return;
+                }
+
+                const parsedData = JSON.parse(savedData);
+
+                // Validate the data structure
+                if (!parsedData || typeof parsedData !== 'object') {
+                    showNotification('資料格式錯誤', 'error');
+                    return;
+                }
+
+                // Load the character data
+                character = parsedData;
+                saveCharacterToLocalStorage(); // Also save to main storage
+                renderViewMode();
+
+                showNotification(`已從槽位 ${slotNumber} 讀取角色資料`, 'success');
+                closeBackupRestoreModal();
+            } catch (error) {
+                console.error('Error loading from slot:', error);
+                showNotification('讀取失敗，請稍後再試', 'error');
+            }
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('backupRestoreModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeBackupRestoreModal();
+                }
+            });
+        });
+
+        // On page load, prioritize URL data over localStorage
+        const sharedData = getDataFromUrl();
+        if (sharedData) {
+            character = sharedData;
+            saveCharacterToLocalStorage();
+        } else if (!loadCharacterFromLocalStorage()) {
+            character = JSON.parse(JSON.stringify(defaultCharacter)); // Deep copy
+        }
+        renderViewMode();
+    </script>
+
+    <!-- Backup/Restore Modal -->
+    <div id="backupRestoreModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>角色資料備份/讀取</h2>
+                <button class="modal-close" onclick="closeBackupRestoreModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="slotGrid" class="slot-grid">
+                    <!-- Slots will be generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

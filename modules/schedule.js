@@ -8,7 +8,7 @@ const Agenda = require("agenda");
 //const agenda = new Agenda({ mongo: mongoose.mongoose });
 
 // Or override the default collection name:
-const agenda = new Agenda({ db: { address: process.env.mongoURL, collection: 'agendaAtHKTRPG' }, maxConcurrency: 20000, defaultConcurrency: 2000 });
+const agenda = new Agenda({ db: { address: process.env.mongoURL, collection: 'agendaAtHKTRPG' }, maxConcurrency: 20_000, defaultConcurrency: 2000 });
 
 // or pass additional connection options:
 // const agenda = new Agenda({db: {address: mongoConnectionString, collection: 'jobCollectionName', options: {ssl: true}}});
@@ -30,7 +30,9 @@ const agenda = new Agenda({ db: { address: process.env.mongoURL, collection: 'ag
 
 
 agenda.on("fail", (err, job) => {
-    console.error(`#33 Job failed with error: ${err.message}`);
+    console.error(`Job '${job.attrs.name}' failed with error: ${err.message}`);
+    console.error(`Job data: ${JSON.stringify(job.attrs.data, null, 2)}`);
+    console.error(`Error stack: ${err.stack}`);
 });
 /**
  * 對schedule 中發佈的文字進行處理

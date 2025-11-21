@@ -1,0 +1,67 @@
+{
+  "title": "大量變數組合與 if/ifs 分離測試",
+  "type": "story",
+  "introduction": "這是 StoryTeller 測試用劇本。",
+  "coverImage": "",
+  "playerVariables": [
+    { "key": "player_name", "prompt": "請輸入你的冒險者名字：", "placeholder": "例如：測試員" }
+  ],
+  "variables": [],
+  "speakers": [],
+  "gameStats": [
+    { "key": "Strength", "min": 1, "max": 10, "label": "力量 (Strength)" },
+    { "key": "Agility",  "min": 1, "max": 10, "label": "敏捷 (Agility)" },
+    { "key": "Wit",       "min": 1, "max": 10, "label": "智慧 (Wit)" },
+    { "key": "Charm",     "min": 1, "max": 10, "label": "魅力 (Charm)" }
+  ],
+  "ownerId": "0",
+  "initialPage": "0",
+  "pages": {
+    "0": {
+      "id": "0",
+      "title": "變數測試平台",
+      "content": [ { "text": "歡迎，{player_name}！這是測試頁面。" } ],
+      "choices": [
+        { "text": "前往頁面 1", "action": "1" },
+        { "text": "測試跳轉至頁面2（路線 a，力量+2）", "action": "2a", "statChanges": { "Strength": 2 } },
+        { "text": "測試跳轉至頁面2（路線 b，敏捷+3）", "action": "2b", "statChanges": { "Agility": 3 } },
+        { "text": "測試跳轉至頁面2（路線 c，智慧+4）", "action": "2c", "statChanges": { "Wit": 4 } },
+        { "text": "結束遊戲", "action": "END" }
+      ]
+    },
+    "1": {
+      "id": "1",
+      "title": "陰暗的小徑",
+      "content": [ { "text": "你踏上了陰暗的小徑..." } ],
+      "choices": [
+        { "text": "回到起點", "action": "0" },
+        { "text": "前往結局", "action": "100" }
+      ]
+    },
+    "2": {
+      "id": "2",
+      "title": "多分支同頁測試",
+      "content": [
+        { "text": "你來到了同一個頁面（2）。以下是當前屬性：" },
+        { "text": "Strength={Strength}, Agility={Agility}, Wit={Wit}, Charm={Charm}" }
+      ],
+      "choices": [
+        { "text": "回到起點", "action": "0" },
+        { "text": "前往結局", "action": "100" }
+      ]
+    },
+    "100": {
+      "id": "100",
+      "title": "結局",
+      "content": [],
+      "choices": [
+        { "text": "重新開始", "action": "0" },
+        { "text": "結束遊戲", "action": "END" }
+      ],
+      "isEnding": true,
+      "endings": [ { "text": "你順利地完成了這次的探險。" } ]
+    }
+  }
+}
+
+ 

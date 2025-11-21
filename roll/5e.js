@@ -1,7 +1,7 @@
 "use strict";
 const variables = {};
-const rollbase = require('./rollbase.js');
 const { SlashCommandBuilder } = require('discord.js');
+const rollbase = require('./rollbase.js');
 const gameName = function () {
     return '【5E工具 - .5ebuild】'
 }
@@ -50,8 +50,7 @@ const initialize = function () {
  * 
  * **/
 const rollDiceCommand = async function ({
-    mainMsg,
-    inputStr,
+    mainMsg
 }) {
     let rply = {
         default: 'on',
@@ -105,7 +104,7 @@ const discordCommand = [
     {
         data: new SlashCommandBuilder()
             .setName('5ebuild')
-            .setDescription('5e屬性產生器')
+            .setDescription('DnD 5e屬性產生器')
         ,
         async execute() {
             return `.5ebuild`

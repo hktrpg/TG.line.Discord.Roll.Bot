@@ -2,12 +2,13 @@
 if (!process.env.mongoURL) {
     return;
 }
+const { SlashCommandBuilder } = require('discord.js');
 const checkMongodb = require('../modules/dbWatchdog.js');
 const debugMode = (process.env.DEBUG) ? true : false;
 let variables = {};
-const rollDice = require('./rollbase');
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
+const rollDice = require('./rollbase');
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
 const EN_RECOVER_TIME = 10 * 60 * 1000; //每10分鐘回複一點;
 const gameName = function () {
@@ -25,7 +26,7 @@ const prefixs = function () {
 }
 
 const convertRegex = function (str) {
-    return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+    return str.replaceAll(/([.?*+^$[\]\\(){}|-])/g, String.raw`\$1`);
 };
 const regexMain = new RegExp(/^((-)?\d):(.*)/, 'igm');
 const regexExp = new RegExp(/^exp:(.*)/, 'im');
@@ -186,7 +187,7 @@ exp:SAN
             */
             lv = await VIP.viplevelCheckUser(userid);
             let gpLv = await VIP.viplevelCheckGroup(groupid);
-            lv = (gpLv > lv) ? gpLv : lv;
+            lv = Math.max(gpLv, lv);
             limit = FUNCTION_LIMIT[lv];
             check = await schema.eventList.find({
                 userID: userid
@@ -235,7 +236,7 @@ exp:SAN
             try {
                 doc = await schema.eventList.updateOne(filter, listDatas, opt);
             } catch (error) {
-                console.error('新增事件 GET ERROR: ', error)
+                console.error('新增事件 GET ERROR:', error)
                 rply.text = '新增事件失敗\n因為 ' + error.message
                 return rply;
             }
@@ -285,7 +286,7 @@ exp:SAN
                 await temp.save();
 
             } catch (error) {
-                console.error('新增事件 GET ERROR: ', error)
+                console.error('新增事件 GET ERROR:', error)
                 rply.text = '新增事件失敗\n因為 ' + error.message
                 return rply;
             }
@@ -303,7 +304,7 @@ exp:SAN
             filter = {
                 userID: userid,
                 title: {
-                    $regex: new RegExp('^' + convertRegex(inputStr.replace(/^\.event\s+delete\s+/ig, '').replace(/\s+$/, '')) + '$', "i")
+                    $regex: new RegExp('^' + convertRegex(inputStr.replaceAll(/^\.event\s+delete\s+/ig, '').replace(/\s+$/, '')) + '$', "i")
                 }
             }
             doc = await schema.eventList.findOne(filter);
@@ -427,7 +428,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                     rply.text += "\n" + doc[index].title + "\n";
                     if (doc[index].expName) rply.text += '經驗值的名稱: ' + doc[index].expName + "\n";
                     rply.text += (doc[index].chainTitle) ? `系列名稱: ${doc[index].chainTitle} \n` : '';
-                    if (mainMsg[2] && mainMsg[2].match(new RegExp('^' + convertRegex(doc[index].title) + '$', 'i'))) {
+                    if (mainMsg[2] && new RegExp('^' + convertRegex(doc[index].title) + '$', 'i').test(mainMsg[2])) {
                         rply.text += getDetail(doc[index]) + '\n';
                     }
                 }
@@ -481,7 +482,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                 const targetEventName = convertRegex(mainMsg[1]);
                 let eventMode = '';
                 let eventList = [];
-                if (targetEventName.match(/^random$/i)) {
+                if (/^random$/i.test(targetEventName)) {
                     eventMode = 'random';
                 } else {
                     if (eventMember.energy < 10) {
@@ -529,7 +530,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                             return rply;
                         } else {
                             eventList = await schema.eventList.aggregate([{ $sample: { size: 1 } }]);
-                            if (eventList.length == 0) {
+                            if (eventList.length === 0) {
                                 rply.text = '未有人新增事件，你可以成為第一個事件產生者!'
                                 return rply;
                             }
@@ -625,10 +626,10 @@ function getDetail(doc) {
 }
 
 async function analysicInputData(inputStr) {
-    let MainData = (inputStr.match(regexMain)) ? inputStr.match(regexMain) : '';
-    let ExpName = (inputStr.match(regexExp)) ? inputStr.match(regexExp)[1].replace(/^\s+/, '').replace(/\s+$/, '') : '';
-    let eventName = (inputStr.match(regexName)) ? inputStr.match(regexName)[1].replace(/^\s+/, '').replace(/\s+$/, '') : '';
-    let eventChain = (inputStr.match(regexChainTitle)) ? inputStr.match(regexChainTitle)[1].replace(/^\s+/, '').replace(/\s+$/, '') : '';
+    let MainData = (regexMain.test(inputStr)) ? inputStr.match(regexMain) : '';
+    let ExpName = (regexExp.test(inputStr)) ? inputStr.match(regexExp)[1].replace(/^\s+/, '').replace(/\s+$/, '') : '';
+    let eventName = (regexName.test(inputStr)) ? inputStr.match(regexName)[1].replace(/^\s+/, '').replace(/\s+$/, '') : '';
+    let eventChain = (regexChainTitle.test(inputStr)) ? inputStr.match(regexChainTitle)[1].replace(/^\s+/, '').replace(/\s+$/, '') : '';
     let result = {
         expName: ExpName,
         MainData: MainData,
@@ -650,14 +651,104 @@ async function analysicDetail(data) {
     return info;
 }
 
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('event')
+            .setDescription('【事件功能】管理你的事件')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('add')
+                    .setDescription('新增事件')
+                    .addStringOption(option => 
+                        option.setName('name')
+                            .setDescription('事件名稱')
+                            .setRequired(true))
+                    .addStringOption(option => 
+                        option.setName('content')
+                            .setDescription('事件內容 (格式: 0:內容;內容 1:內容 -1:內容)')
+                            .setRequired(true))
+                    .addStringOption(option => 
+                        option.setName('chain')
+                            .setDescription('系列名稱 (選填)'))
+                    .addStringOption(option => 
+                        option.setName('exp')
+                            .setDescription('經驗值名稱 (選填)')))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('delete')
+                    .setDescription('刪除事件')
+                    .addStringOption(option => 
+                        option.setName('name')
+                            .setDescription('事件名稱')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('show')
+                    .setDescription('顯示你新增的所有事件及賺取EXP')
+                    .addStringOption(option => 
+                        option.setName('name')
+                            .setDescription('事件名稱 (選填)')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('useexp')
+                    .setDescription('在群組中使用賺取的EXP'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('enter')
+                    .setDescription('進入事件')
+                    .addStringOption(option => 
+                        option.setName('name')
+                            .setDescription('事件名稱或系列名稱，輸入random進入隨機事件')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            
+            switch (subcommand) {
+                case 'add': {
+                    const name = interaction.options.getString('name');
+                    const content = interaction.options.getString('content');
+                    const chain = interaction.options.getString('chain');
+                    const exp = interaction.options.getString('exp');
+                    
+                    let command = `.event add\nname:${name}`;
+                    if (chain) command += `\nchain:${chain}`;
+                    if (exp) command += `\nexp:${exp}`;
+                    command += `\n${content}`;
+                    
+                    return command;
+                }
+                case 'delete': {
+                    const name = interaction.options.getString('name');
+                    return `.event delete ${name}`;
+                }
+                case 'show': {
+                    const name = interaction.options.getString('name');
+                    return name ? `.event show ${name}` : `.event show`;
+                }
+                case 'useexp': {
+                    return `.event useExp`;
+                }
+                case 'enter': {
+                    const name = interaction.options.getString('name');
+                    return `.evt ${name}`;
+                }
+                default:
+                    return `.event help`;
+            }
+        }
+    }
+];
 
 module.exports = {
-    rollDiceCommand: rollDiceCommand,
-    initialize: initialize,
-    getHelpMessage: getHelpMessage,
-    prefixs: prefixs,
-    gameType: gameType,
-    gameName: gameName
+    rollDiceCommand,
+    initialize,
+    getHelpMessage,
+    prefixs,
+    gameType,
+    gameName,
+    discordCommand
 };
 
 
@@ -777,14 +868,14 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                         activityList: {
                             $each: [{
                                 date: Date.now(),
-                                activityDetail: `你在${Math.max(isNaN(thisMember.multiEXPTimes) ? 0 : thisMember.multiEXPTimes, times)} 次內都會有 ${Math.max(isNaN(thisMember.multiEXP) ? 0 : thisMember.multiEXP, multi)} 倍${expName}  `
+                                activityDetail: `你在${Math.max(Number.isNaN(thisMember.multiEXPTimes) ? 0 : thisMember.multiEXPTimes, times)} 次內都會有 ${Math.max(Number.isNaN(thisMember.multiEXP) ? 0 : thisMember.multiEXP, multi)} 倍${expName}  `
                             }],
                             $sort: { date: -1 },
                             $slice: 10
                         },
                     }
                 })
-                return `你在${Math.max(isNaN(thisMember.multiEXPTimes) ? 0 : thisMember.multiEXPTimes, times)} 次內都會有 ${Math.max(isNaN(thisMember.multiEXP) ? 0 : thisMember.multiEXP, multi)} 倍${expName} `;
+                return `你在${Math.max(Number.isNaN(thisMember.multiEXPTimes) ? 0 : thisMember.multiEXPTimes, times)} 次內都會有 ${Math.max(Number.isNaN(thisMember.multiEXP) ? 0 : thisMember.multiEXP, multi)} 倍${expName} `;
             }
         case 3:
             //  群組所有人增加1點經驗
@@ -982,7 +1073,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                             $each:
                                 [{
                                     date: Date.now(),
-                                    activityDetail: `你${Math.max(isNaN(thisMember.stopExp) ? 0 : thisMember.stopExp, times)} 次內會失去得到${expName} 的機會`
+                                    activityDetail: `你${Math.max(Number.isNaN(thisMember.stopExp) ? 0 : thisMember.stopExp, times)} 次內會失去得到${expName} 的機會`
                                 }],
                             $sort: { date: -1 },
                             $slice: 10
@@ -991,7 +1082,7 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                 })
 
 
-                return `你在未來${Math.max(isNaN(thisMember.stopExp) ? 0 : thisMember.stopExp, times)} 次都會失去得到${expName} 的機會`;
+                return `你在未來${Math.max(Number.isNaN(thisMember.stopExp) ? 0 : thisMember.stopExp, times)} 次都會失去得到${expName} 的機會`;
             }
 
         case -3:
@@ -1125,14 +1216,14 @@ async function eventProcessExp({ randomDetail, groupid, eventList, thisMember })
                         activityList: {
                             $each: [{
                                 date: Date.now(),
-                                activityDetail: `你接下來${Math.max(thisMember.decreaseEXPTimes, times)} 次發言都會減少 ${Math.max(isNaN(thisMember.decreaseEXP) ? 0 : thisMember.decreaseEXP, exp)} ${expName}  `
+                                activityDetail: `你接下來${Math.max(thisMember.decreaseEXPTimes, times)} 次發言都會減少 ${Math.max(Number.isNaN(thisMember.decreaseEXP) ? 0 : thisMember.decreaseEXP, exp)} ${expName}  `
                             }],
                             $sort: { date: -1 },
                             $slice: 10
                         }
                     }
                 })
-                return `你在未來 ${Math.max(isNaN(thisMember.decreaseEXPTimes) ? 0 : thisMember.decreaseEXPTimes, times)} 次發言都會減少 ${Math.max(isNaN(thisMember.decreaseEXP) ? 0 : thisMember.decreaseEXP, exp)} ${expName} `;
+                return `你在未來 ${Math.max(Number.isNaN(thisMember.decreaseEXPTimes) ? 0 : thisMember.decreaseEXPTimes, times)} 次發言都會減少 ${Math.max(Number.isNaN(thisMember.decreaseEXP) ? 0 : thisMember.decreaseEXP, exp)} ${expName} `;
             }
 
         default:
@@ -1149,7 +1240,7 @@ async function calXP(eventList, thisMemberLV, type) {
         case "exp": {
             //正面事件  把負面的數字相加
             let eventPosit = eventList.detail.map(item => {
-                if (item.result < 0 && !isNaN(item.result)) {
+                if (item.result < 0 && !Number.isNaN(item.result)) {
                     return item.result;
                 } else return 0
             });
@@ -1163,7 +1254,7 @@ async function calXP(eventList, thisMemberLV, type) {
 
             typeNumber *= (Math.abs(createEventerLV - thisMemberLV) / 20 + 1);
 
-            typeNumber *= ((eventPositiveLV ^ 2) / 20 + 1) > 1 ? ((eventPositiveLV ^ 2) / 20 + 1) : 1;
+            typeNumber *= Math.max((eventPositiveLV ^ 2) / 20 + 1, 1);
 
             typeNumber *= (eventPosit.length / 5 + 1);
 
@@ -1172,7 +1263,7 @@ async function calXP(eventList, thisMemberLV, type) {
         case "expNeg": {
             //負面事件  把正面的數字相加
             let eventNeg = eventList.detail.map(item => {
-                if (item.result > 0 && !isNaN(item.result)) {
+                if (item.result > 0 && !Number.isNaN(item.result)) {
                     return item.result;
                 } else return 0
             });
@@ -1187,7 +1278,7 @@ async function calXP(eventList, thisMemberLV, type) {
 
             typeNumber *= (Math.abs(createEventerLV - thisMemberLV) / 20 + 1);
 
-            typeNumber *= ((eventNegLV ^ 2) / 20 + 1) > 1 ? ((eventNegLV ^ 2) / 20 + 1) : 1;
+            typeNumber *= Math.max((eventNegLV ^ 2) / 20 + 1, 1);
 
             typeNumber *= (eventNeg.length / 5 + 1);
 
@@ -1196,7 +1287,7 @@ async function calXP(eventList, thisMemberLV, type) {
         case "times": {
             let createEventerLV = await findMaxLv(eventList.userID);
             typeNumber = await rollDice.DiceINT(5, ((createEventerLV - thisMemberLV) > 0) ? Math.min(createEventerLV - thisMemberLV, 20) : 1);
-            if (isNaN(typeNumber)) typeNumber = 1;
+            if (Number.isNaN(typeNumber)) typeNumber = 1;
             if (typeNumber < 1) typeNumber = 1;
             return typeNumber;
         }

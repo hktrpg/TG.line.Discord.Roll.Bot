@@ -1,14 +1,14 @@
 "use strict";
-const winston = require('winston');
 const path = require('path');
-const { format } = require('logform');
+const winston = require('winston');
+const { format } = winston;
 const schema = require('./schema.js');
 
 // 常數配置
 const CONFIG = {
     MAX_ERR_RETRY: 3,
     RETRY_TIME: 15 * 1000,
-    MONGOD_CHECK_INTERVAL: 10 * 60 * 1000,
+    MONGOD_CHECK_INTERVAL: 10 * 60 * 1000, // 10 minutes
     MAX_ERR_RESPAWN: 10,
     LOG_FILE_SIZE: 5 * 1024 * 1024,
     MAX_LOG_FILES: 5
@@ -88,8 +88,8 @@ class DbWatchdog {
             );
 
             this.__dbErrorReset();
-        } catch (err) {
-            console.error('dbConnectionError updateRecords #36 error: ', err.name);
+        } catch (error) {
+            console.error('dbConnectionError updateRecords #36 error:', error.name);
             this.dbErrOccurs();
         }
     }
@@ -115,11 +115,13 @@ class DbWatchdog {
                     + currentdate.getMinutes() + ":"
                     + currentdate.getSeconds();
                 try {
-                    this.logger.info(`${datetime}  mongodbState: ${JSON.stringify(ans.connections)}`);
+                    // Only log if there's an error or connection is not successful
+                    if (!ans.ok || ans.status !== "connected") {
+                        this.logger.error(`${datetime}  mongodbState: ${JSON.stringify(ans)}`);
+                    }
                 } catch (error) {
-
+                    this.logger.error(`Error logging MongoDB state: ${error.message}`);
                 }
-
             },
             CONFIG.MONGOD_CHECK_INTERVAL
         );

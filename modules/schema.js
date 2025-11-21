@@ -590,7 +590,53 @@ const getMongoDBState = async () => {
     try {
         // Instead of using serverStatus, we'll do a simple ping to check connection
         await mongoose.connection.db.command({ ping: 1 });
-        return { ok: 1, status: 'connected' };
+
+        // Get connection pool information
+        const client = mongoose.connection.getClient();
+        let connections = {
+            readyState: mongoose.connection.readyState,
+            name: mongoose.connection.name,
+            host: mongoose.connection.host,
+            port: mongoose.connection.port,
+            db: mongoose.connection.db ? mongoose.connection.db.databaseName : null
+        };
+
+        // Try to get connection pool details if available
+        if (client?.topology) {
+            try {
+                const pools = client.topology.s?.description?.servers || [];
+                let totalConnections = 0;
+                let poolDetails = [];
+
+                for (const server of pools) {
+                    const pool = server.s?.pool;
+                    if (pool) {
+                        totalConnections += pool.totalConnectionCount || 0;
+                        poolDetails.push({
+                            address: server.address,
+                            totalConnectionCount: pool.totalConnectionCount || 0,
+                            availableConnectionCount: pool.availableConnectionCount || 0,
+                            pendingConnectionCount: pool.pendingConnectionCount || 0,
+                            borrowedConnectionCount: pool.borrowedConnectionCount || 0
+                        });
+                    }
+                }
+
+                connections.pool = {
+                    totalConnections,
+                    poolDetails
+                };
+            } catch (poolError) {
+                // Silently ignore pool detail errors
+                connections.pool = { error: 'Unable to get pool details' };
+            }
+        }
+
+        return {
+            ok: 1,
+            status: 'connected',
+            connections
+        };
     } catch (error) {
         console.error('Failed to get MongoDB state:', error);
         return null;

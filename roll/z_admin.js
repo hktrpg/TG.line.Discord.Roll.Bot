@@ -450,8 +450,8 @@ const rollDiceCommand = async function ({
             case /^mongod$/i.test(mainMsg[1]): {
                 if (!adminSecret) return rply;
                 if (userid !== adminSecret) return rply;
-                let mongod = await schema.mongodbState();
-                rply.text = JSON.stringify(mongod.connections);
+                let mongod = await schema.mongodbStateCheck();
+                rply.text = JSON.stringify(mongod ? mongod.connections : 'Connection check failed');
                 rply.quotes = true;
                 return rply;
             }

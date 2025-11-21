@@ -573,27 +573,58 @@ async function count() {
 		// 獲取所有分群 ID
 		const allClusterIds = [...client.cluster.ids.keys()];
 
-		// 並行收集資料，但個別處理錯誤
-		const [guildStats, memberStats] = await Promise.all([
-			collectClusterStats(allClusterIds,
-				async (clusterId) => {
-					// 先檢查集群是否存在
-					const clusterExists = await client.cluster.evalOnManager(`!!this.clusters.get(${clusterId})`);
-					if (!clusterExists) return [0];
-					return await client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.size).then(sizes => sizes.reduce((a, b) => a + b, 0))`);
-				},
-				'guilds'
-			),
-			collectClusterStats(allClusterIds,
-				async (clusterId) => {
-					// 先檢查集群是否存在
-					const clusterExists = await client.cluster.evalOnManager(`!!this.clusters.get(${clusterId})`);
-					if (!clusterExists) return [0];
-					return await client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0)).then(counts => counts.reduce((a, b) => a + b, 0))`);
-				},
-				'members'
-			)
+		// 使用全局 broadcastEval 並按集群分組結果
+		const [guildStatsRaw, memberStatsRaw] = await Promise.all([
+			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size })),
+			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) }))
 		]);
+
+		// 按集群分組統計資料
+		const guildStatsByCluster = new Map();
+		const memberStatsByCluster = new Map();
+
+		guildStatsRaw.forEach(({ clusterId, guildCount }) => {
+			if (!guildStatsByCluster.has(clusterId)) {
+				guildStatsByCluster.set(clusterId, []);
+			}
+			guildStatsByCluster.get(clusterId).push(guildCount);
+		});
+
+		memberStatsRaw.forEach(({ clusterId, memberCount }) => {
+			if (!memberStatsByCluster.has(clusterId)) {
+				memberStatsByCluster.set(clusterId, []);
+			}
+			memberStatsByCluster.get(clusterId).push(memberCount);
+		});
+
+		// 轉換為預期的格式
+		const guildStats = { results: [], errors: [], successCount: 0, errorCount: 0 };
+		const memberStats = { results: [], errors: [], successCount: 0, errorCount: 0 };
+
+		allClusterIds.forEach(clusterId => {
+			const guildData = guildStatsByCluster.get(clusterId);
+			const memberData = memberStatsByCluster.get(clusterId);
+
+			if (guildData) {
+				guildStats.results.push({
+					clusterId,
+					data: guildData,
+					duration: 0,
+					success: true
+				});
+				guildStats.successCount++;
+			}
+
+			if (memberData) {
+				memberStats.results.push({
+					clusterId,
+					data: memberData,
+					duration: 0,
+					success: true
+				});
+				memberStats.successCount++;
+			}
+		});
 
 		// 計算總數
 		let totalGuilds = 0;
@@ -636,28 +667,50 @@ async function count2() {
 		// 獲取所有分群 ID
 		const allClusterIds = [...client.cluster.ids.keys()];
 
-		// 並行收集資料，但允許個別失敗
-		const promises = allClusterIds.map(async (clusterId) => {
-			try {
-				// 先檢查集群是否存在
-				const clusterExists = await client.cluster.evalOnManager(`!!this.clusters.get(${clusterId})`);
-				if (!clusterExists) {
-					console.warn(`分群 ${clusterId} 不存在，跳過統計收集`);
-					return { guildResult: [0], memberResult: [0], success: false };
-				}
+		// 使用全局 broadcastEval 並按集群分組結果
+		const [guildStatsRaw, memberStatsRaw] = await Promise.all([
+			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size })),
+			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) }))
+		]);
 
-				const [guildResult, memberResult] = await Promise.all([
-					client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.size).then(sizes => sizes.reduce((a, b) => a + b, 0))`),
-					client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0)).then(counts => counts.reduce((a, b) => a + b, 0))`)
-				]);
-				return { guildResult, memberResult, success: true };
-			} catch (error) {
-				console.warn(`無法從分群 ${clusterId} 獲取統計資料:`, error.message);
-				return { guildResult: [0], memberResult: [0], success: false };
+		// 按集群分組統計資料
+		const guildStatsByCluster = new Map();
+		const memberStatsByCluster = new Map();
+
+		guildStatsRaw.forEach(({ clusterId, guildCount }) => {
+			if (!guildStatsByCluster.has(clusterId)) {
+				guildStatsByCluster.set(clusterId, []);
 			}
+			guildStatsByCluster.get(clusterId).push(guildCount);
 		});
 
-		const results = await Promise.all(promises);
+		memberStatsRaw.forEach(({ clusterId, memberCount }) => {
+			if (!memberStatsByCluster.has(clusterId)) {
+				memberStatsByCluster.set(clusterId, []);
+			}
+			memberStatsByCluster.get(clusterId).push(memberCount);
+		});
+
+		// 轉換為預期的格式
+		const results = allClusterIds.map(clusterId => {
+			const guildData = guildStatsByCluster.get(clusterId);
+			const memberData = memberStatsByCluster.get(clusterId);
+
+			if (guildData && memberData) {
+				return {
+					guildResult: guildData,
+					memberResult: memberData,
+					success: true
+				};
+			} else {
+				console.warn(`分群 ${clusterId} 無統計資料，跳過`);
+				return {
+					guildResult: [0],
+					memberResult: [0],
+					success: false
+				};
+			}
+		});
 
 		// 計算總數，只從成功的分群收集資料
 		let totalGuilds = 0;
@@ -1036,34 +1089,52 @@ async function getAllshardIds() {
 		const allClusterIds = [...client.cluster.ids.keys()];
 		const currentClusterId = client.cluster.id;
 
-		// 收集所有分群狀態，允許個別失敗
-		const statusPromises = allClusterIds.map(async (clusterId) => {
-			try {
-				const [wsStatus, wsPing] = await Promise.all([
-					client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.ws.status)`),
-					client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.ws.ping)`)
-				]);
+		// 使用全局 broadcastEval 並按集群分組結果
+		const [wsStatusRaw, wsPingRaw] = await Promise.all([
+			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, wsStatus: c.ws.status })),
+			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, wsPing: c.ws.ping }))
+		]);
 
+		// 按集群分組狀態資料
+		const statusByCluster = new Map();
+
+		wsStatusRaw.forEach(({ clusterId, wsStatus }) => {
+			if (!statusByCluster.has(clusterId)) {
+				statusByCluster.set(clusterId, { wsStatus: [], wsPing: [] });
+			}
+			statusByCluster.get(clusterId).wsStatus.push(wsStatus);
+		});
+
+		wsPingRaw.forEach(({ clusterId, wsPing }) => {
+			if (!statusByCluster.has(clusterId)) {
+				statusByCluster.set(clusterId, { wsStatus: [], wsPing: [] });
+			}
+			statusByCluster.get(clusterId).wsPing.push(wsPing);
+		});
+
+		// 轉換為預期的格式
+		const statusResults = allClusterIds.map(clusterId => {
+			const clusterData = statusByCluster.get(clusterId);
+
+			if (clusterData) {
 				return {
 					clusterId,
-					wsStatus: Array.isArray(wsStatus) ? wsStatus : [],
-					wsPing: Array.isArray(wsPing) ? wsPing : [],
+					wsStatus: clusterData.wsStatus,
+					wsPing: clusterData.wsPing,
 					success: true,
 					duration: Date.now()
 				};
-			} catch (error) {
-				console.warn(`無法獲取分群 ${clusterId} 狀態:`, error.message);
+			} else {
+				console.warn(`無法獲取分群 ${clusterId} 狀態`);
 				return {
 					clusterId,
 					wsStatus: [],
 					wsPing: [],
 					success: false,
-					error: error.message
+					error: `分群 ${clusterId} 無狀態資料`
 				};
 			}
 		});
-
-		const statusResults = await Promise.all(statusPromises);
 
 		// WebSocket status mapping
 		const statusMap = {
@@ -2734,31 +2805,44 @@ async function __handlingInteractionMessage(message) {
 				deferOptions.ephemeral = true;
 			}
 
-			// Use Promise.race to prevent hanging on deferral
-			const deferPromise = message.isCommand()
-				? message.deferReply(deferOptions)
-				: message.isButton() || message.isStringSelectMenu?.() || message.isUserSelectMenu?.() || message.isRoleSelectMenu?.()
-				? message.deferUpdate()
-				: message.deferReply(deferOptions);
+			// Determine defer method based on interaction type
+			let deferPromise;
+			if (message.isCommand()) {
+				deferPromise = message.deferReply(deferOptions);
+			} else if (message.isButton() || message.isStringSelectMenu?.() || message.isUserSelectMenu?.() || message.isRoleSelectMenu?.()) {
+				deferPromise = message.deferUpdate();
+			} else {
+				deferPromise = message.deferReply(deferOptions);
+			}
 
-			// Timeout after 2.5 seconds to leave buffer for Discord's 3-second limit
+			// Use a shorter timeout and catch specific errors
 			await Promise.race([
 				deferPromise,
-				new Promise((_, reject) => setTimeout(() => reject(new Error('Defer timeout')), 2500))
+				new Promise((_, reject) => setTimeout(() => reject(new Error('Defer timeout')), 2000))
 			]);
 		}
 	} catch (deferError) {
 		const deferDuration = Date.now() - deferStartTime;
 
-		// If interaction has already expired, log and return early
-		if (deferError.code === 10_062 || deferError.message?.includes('timeout')) {
+		// If interaction has already expired or is unknown, log and return early
+		if (String(deferError.code) === '10062' || deferError.message?.includes('timeout') || deferError.message?.includes('expired')) {
 			console.error(`Interaction expired before deferral (${deferDuration}ms): ${interactionId}`);
 			return;
 		}
 
-		// Handle other deferral errors
+		// For other deferral errors, try to send a regular reply as fallback
+		try {
+			if (!message.replied && !message.deferred) {
+				await message.reply({ content: '處理中，請稍候...', ephemeral: true });
+			}
+		} catch (fallbackError) {
+			console.error(`Fallback reply also failed (${deferDuration}ms): ${fallbackError.message} | Command: ${interactionId}`);
+			return;
+		}
+
+		// Log the original deferral error
 		console.error(`Failed to defer interaction (${deferDuration}ms): ${deferError.message} | Command: ${interactionId} | Code: ${deferError.code}`);
-		return;
+		// Continue processing since we sent a fallback reply
 	}
 
 	const deferDuration = Date.now() - deferStartTime;

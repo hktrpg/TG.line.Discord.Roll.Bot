@@ -1140,22 +1140,22 @@ async function getAllshardIds() {
 		// WebSocket status mapping
 		const statusMap = {
 			0: '✅在線', 1: '⚫隱身', 2: '⚫隱身', 3: '⚠️閒置',
-			4: '❌離線', 5: '❌離線', 6: '❌離線', 7: '❌離線', 8: '❌離線'
+			4: '❌離線', 5: '❌離線', 6: '❌離線', 7: '❌離線', 8: '❌離線',
+			'-1': '❓未知' // 未知狀態
 		};
 
 		const groupSize = 5;
 		const formatNumber = num => num.toLocaleString();
 
-		// 確保 allStatuses 和 allPings 長度與 shard 數量一致
-		// 如果收集到的資料少於預期的分流數量，用預設值填充
+		// 為沒有收集到資料的分流標記為未知狀態
 		while (allStatuses.length < allShardIdsArray.length) {
-			allStatuses.push(0); // 預設為在線狀態 (WebSocket 狀態 0 = 連接中/在線)
+			allStatuses.push(-1); // -1 表示未知狀態
 		}
 		while (allPings.length < allShardIdsArray.length) {
-			allPings.push(Math.floor(Math.random() * 50) + 150); // 預設延遲為 150-200ms 的隨機值
+			allPings.push(-1); // -1 表示未知延遲
 		}
 
-		// 截斷多餘的資料（以防萬一）
+		// 確保陣列長度正確
 		allStatuses = allStatuses.slice(0, allShardIdsArray.length);
 		allPings = allPings.slice(0, allShardIdsArray.length);
 
@@ -1169,7 +1169,7 @@ async function getAllshardIds() {
 		const formattedPings = allPings.slice(0, allShardIdsArray.length).map(ping => {
 			const p = Math.round(ping);
 			// Handle invalid ping values (like -1 or invalid numbers)
-			if (p < 0 || Number.isNaN(p)) return '0';
+			if (p < 0 || Number.isNaN(p)) return '未知';
 			return p > 1000 ? `❌${formatNumber(p)}` :
 				p > 500 ? `⚠️${formatNumber(p)}` :
 				formatNumber(p);
@@ -1202,7 +1202,7 @@ async function getAllshardIds() {
 		const groupedStatus = groupArray(formattedStatuses, groupSize);
 		const groupedPing = groupArray(formattedPings, groupSize);
 
-		// 統計摘要 - 計算顯示為在線的分流數量
+		// 統計摘要 - 計算顯示為在線的分流數量（排除未知狀態）
 		const onlineCount = formattedStatuses.filter(status => status.includes('✅')).length;
 
 		return `

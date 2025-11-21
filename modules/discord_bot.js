@@ -676,41 +676,25 @@ async function count2() {
 			memberStatsByCluster.get(clusterId).push(memberCount);
 		}
 
-		// 轉換為預期的格式
-		const results = allClusterIds.map(clusterId => {
-			const guildData = guildStatsByCluster.get(clusterId);
-			const memberData = memberStatsByCluster.get(clusterId);
-
-			if (guildData && memberData) {
-				return {
-					guildResult: guildData,
-					memberResult: memberData,
-					success: true
-				};
-			} else {
-				// 靜默跳過沒有統計資料的分群
-				return {
-					guildResult: [0],
-					memberResult: [0],
-					success: false
-				};
-			}
-		});
-
-		// 計算總數，只從成功的分群收集資料
+		// 計算總數 - 直接從所有收集到的資料中計算
 		let totalGuilds = 0;
 		let totalMembers = 0;
-		let successfulClusters = 0;
 
-		for (const { guildResult, memberResult, success } of results) {
-			if (success) successfulClusters++;
-			if (guildResult && Array.isArray(guildResult)) {
-				totalGuilds += guildResult.reduce((acc, count) => acc + (count || 0), 0);
-			}
-			if (memberResult && Array.isArray(memberResult)) {
-				totalMembers += memberResult.reduce((acc, count) => acc + (count || 0), 0);
+		// 計算所有集群的總數
+		for (const guildData of guildStatsByCluster.values()) {
+			if (guildData && Array.isArray(guildData)) {
+				totalGuilds += guildData.reduce((acc, count) => acc + (count || 0), 0);
 			}
 		}
+
+		for (const memberData of memberStatsByCluster.values()) {
+			if (memberData && Array.isArray(memberData)) {
+				totalMembers += memberData.reduce((acc, count) => acc + (count || 0), 0);
+			}
+		}
+
+		// 計算成功的集群數量
+		const successfulClusters = guildStatsByCluster.size;
 
 		const status = successfulClusters === allClusterIds.length ? '✅' : `⚠️${successfulClusters}/${allClusterIds.length}`;
 		return (`${status} ${totalGuilds}群組📶 ${totalMembers}會員📶`);

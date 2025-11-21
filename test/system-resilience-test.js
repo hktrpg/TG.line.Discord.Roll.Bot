@@ -1,11 +1,8 @@
-#!/usr/bin/env node
 
 /**
  * 系統復原力測試腳本
  * 測試關鍵組件是否正常運作
  */
-
-const path = require('path');
 
 // 測試模組載入
 console.log('🔍 測試系統組件載入...');
@@ -16,7 +13,7 @@ try {
     console.log('✅ dbWatchdog 載入成功');
 
     // 測試 healthMonitor
-    const healthMonitor = require('../modules/healthMonitor.js');
+    const healthMonitor = require('../modules/health-monitor.js');
     console.log('✅ healthMonitor 載入成功');
 
     // 測試斷路器功能
@@ -43,5 +40,5 @@ try {
 } catch (error) {
     console.error('❌ 測試失敗:', error.message);
     console.error('請檢查程式碼語法和依賴項');
-    process.exit(1);
+    throw error;
 }

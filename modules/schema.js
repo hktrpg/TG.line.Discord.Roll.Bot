@@ -626,7 +626,7 @@ const getMongoDBState = async () => {
                     totalConnections,
                     poolDetails
                 };
-            } catch (poolError) {
+            } catch {
                 // Silently ignore pool detail errors
                 connections.pool = { error: 'Unable to get pool details' };
             }

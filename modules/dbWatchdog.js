@@ -198,8 +198,6 @@ class DbWatchdog {
         setInterval(
             async () => {
                 try {
-                    const healthReport = this.getHealthReport();
-
                     // 如果斷路器處於 OPEN 狀態，嘗試恢復
                     if (this.circuitBreaker.state === 'OPEN') {
                         const recovered = await this.attemptRecovery();
@@ -309,7 +307,6 @@ class DbWatchdog {
 
     // 健康狀態報告
     getHealthReport() {
-        const now = Date.now();
         const successRate = this.healthMetrics.totalOperations > 0
             ? (this.healthMetrics.successfulOperations / this.healthMetrics.totalOperations) * 100
             : 100;
@@ -323,7 +320,7 @@ class DbWatchdog {
             const mongoose = require('./db-connector.js').mongoose;
             mongooseReadyState = mongoose?.connection?.readyState ?? 0;
             isActuallyConnected = mongooseReadyState === 1; // 1 = connected
-        } catch (error) {
+        } catch {
             // 如果無法訪問 mongoose，使用手動追蹤的狀態
             isActuallyConnected = this.connectionState.isConnected;
             mongooseReadyState = isActuallyConnected ? 1 : 0;

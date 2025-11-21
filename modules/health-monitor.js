@@ -79,7 +79,7 @@ class HealthMonitor extends EventEmitter {
         });
 
         // 檢查不健康的集群數量
-        const unhealthyClusters = Array.from(this.metrics.clusterHealth.values())
+        const unhealthyClusters = [...this.metrics.clusterHealth.values()]
             .filter(cluster => cluster.status !== 'healthy').length;
 
         if (unhealthyClusters > this.alertThresholds.maxUnhealthyClusters) {
@@ -123,7 +123,6 @@ class HealthMonitor extends EventEmitter {
     }
 
     raiseAlert(alertType, data) {
-        const alertKey = `${alertType}_${Date.now()}`;
         const lastAlert = this.alerts.get(alertType);
 
         // 檢查是否在冷卻期間內
@@ -172,9 +171,9 @@ class HealthMonitor extends EventEmitter {
             },
             clusters: {
                 total: this.metrics.clusterHealth.size,
-                unhealthy: Array.from(this.metrics.clusterHealth.values())
+                unhealthy: [...this.metrics.clusterHealth.values()]
                     .filter(c => c.status !== 'healthy').length,
-                details: Array.from(this.metrics.clusterHealth.entries()).map(([id, health]) => ({
+                details: [...this.metrics.clusterHealth.entries()].map(([id, health]) => ({
                     id,
                     status: health.status,
                     lastUpdate: health.lastUpdate,
@@ -183,8 +182,8 @@ class HealthMonitor extends EventEmitter {
             },
             database: dbHealth,
             alerts: {
-                active: Array.from(this.alerts.keys()),
-                recent: Array.from(this.alerts.values()).slice(-5) // 最近 5 個警報
+                active: [...this.alerts.keys()],
+                recent: [...this.alerts.values()].slice(-5) // 最近 5 個警報
             },
             system: {
                 memory: process.memoryUsage(),

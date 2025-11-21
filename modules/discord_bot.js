@@ -21,7 +21,6 @@ const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, 
 
 const multiServer = require('../modules/multi-server')
 const checkMongodb = require('../modules/dbWatchdog.js');
-const errorCount = [];
 const { rollText } = require('./getRoll');
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 const buttonStyles = [ButtonStyle.Danger, ButtonStyle.Primary, ButtonStyle.Secondary, ButtonStyle.Success, ButtonStyle.Danger]
@@ -41,7 +40,7 @@ const EXPUP = require('./level').EXPUP || function () { };
 const courtMessage = require('./logs').courtMessage || function () { };
 
 const newMessage = require('./message');
-const healthMonitor = require('./healthMonitor');
+const healthMonitor = require('./health-monitor');
 
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const shardid = client.cluster.id;
@@ -551,36 +550,6 @@ function __privateMsg({ trigger, mainMsg, inputStr }) {
 }
 
 
-// 增強的統計收集函數 - 支援部分分群失敗
-async function collectClusterStats(clusterIds, operation, operationName) {
-    const results = [];
-    const errors = [];
-
-    for (const clusterId of clusterIds) {
-        try {
-            const startTime = Date.now();
-            const result = await operation(clusterId);
-            const duration = Date.now() - startTime;
-
-            results.push({
-                clusterId,
-                data: result,
-                duration,
-                success: true
-            });
-        } catch (error) {
-            errors.push({
-                clusterId,
-                error: error.message,
-                timestamp: new Date().toISOString()
-            });
-
-            console.warn(`統計收集失敗 - ${operationName} 分群 ${clusterId}:`, error.message);
-        }
-    }
-
-    return { results, errors, successCount: results.length, errorCount: errors.length };
-}
 
 async function count() {
 	if (!client.cluster) return '';
@@ -599,25 +568,25 @@ async function count() {
 		const guildStatsByCluster = new Map();
 		const memberStatsByCluster = new Map();
 
-		guildStatsRaw.forEach(({ clusterId, guildCount }) => {
+		for (const { clusterId, guildCount } of guildStatsRaw) {
 			if (!guildStatsByCluster.has(clusterId)) {
 				guildStatsByCluster.set(clusterId, []);
 			}
 			guildStatsByCluster.get(clusterId).push(guildCount);
-		});
+		}
 
-		memberStatsRaw.forEach(({ clusterId, memberCount }) => {
+		for (const { clusterId, memberCount } of memberStatsRaw) {
 			if (!memberStatsByCluster.has(clusterId)) {
 				memberStatsByCluster.set(clusterId, []);
 			}
 			memberStatsByCluster.get(clusterId).push(memberCount);
-		});
+		}
 
 		// 轉換為預期的格式
 		const guildStats = { results: [], errors: [], successCount: 0, errorCount: 0 };
 		const memberStats = { results: [], errors: [], successCount: 0, errorCount: 0 };
 
-		allClusterIds.forEach(clusterId => {
+		for (const clusterId of allClusterIds) {
 			const guildData = guildStatsByCluster.get(clusterId);
 			const memberData = memberStatsByCluster.get(clusterId);
 
@@ -640,25 +609,25 @@ async function count() {
 				});
 				memberStats.successCount++;
 			}
-		});
+		}
 
 		// 計算總數
 		let totalGuilds = 0;
 		let totalMembers = 0;
 		let successfulClusters = 0;
 
-		guildStats.results.forEach(({ data: guildSizes }) => {
+		for (const { data: guildSizes } of guildStats.results) {
 			if (guildSizes && Array.isArray(guildSizes)) {
 				totalGuilds += guildSizes.reduce((acc, count) => acc + (count || 0), 0);
 				successfulClusters++;
 			}
-		});
+		}
 
-		memberStats.results.forEach(({ data: memberCounts }) => {
+		for (const { data: memberCounts } of memberStats.results) {
 			if (memberCounts && Array.isArray(memberCounts)) {
 				totalMembers += memberCounts.reduce((acc, count) => acc + (count || 0), 0);
 			}
-		});
+		}
 
 		const totalClusters = allClusterIds.length;
 		let statusIndicators = [];
@@ -693,19 +662,19 @@ async function count2() {
 		const guildStatsByCluster = new Map();
 		const memberStatsByCluster = new Map();
 
-		guildStatsRaw.forEach(({ clusterId, guildCount }) => {
+		for (const { clusterId, guildCount } of guildStatsRaw) {
 			if (!guildStatsByCluster.has(clusterId)) {
 				guildStatsByCluster.set(clusterId, []);
 			}
 			guildStatsByCluster.get(clusterId).push(guildCount);
-		});
+		}
 
-		memberStatsRaw.forEach(({ clusterId, memberCount }) => {
+		for (const { clusterId, memberCount } of memberStatsRaw) {
 			if (!memberStatsByCluster.has(clusterId)) {
 				memberStatsByCluster.set(clusterId, []);
 			}
 			memberStatsByCluster.get(clusterId).push(memberCount);
-		});
+		}
 
 		// 轉換為預期的格式
 		const results = allClusterIds.map(clusterId => {
@@ -733,7 +702,7 @@ async function count2() {
 		let totalMembers = 0;
 		let successfulClusters = 0;
 
-		results.forEach(({ guildResult, memberResult, success }) => {
+		for (const { guildResult, memberResult, success } of results) {
 			if (success) successfulClusters++;
 			if (guildResult && Array.isArray(guildResult)) {
 				totalGuilds += guildResult.reduce((acc, count) => acc + (count || 0), 0);
@@ -741,7 +710,7 @@ async function count2() {
 			if (memberResult && Array.isArray(memberResult)) {
 				totalMembers += memberResult.reduce((acc, count) => acc + (count || 0), 0);
 			}
-		});
+		}
 
 		const status = successfulClusters === allClusterIds.length ? '✅' : `⚠️${successfulClusters}/${allClusterIds.length}`;
 		return (`${status} ${totalGuilds}群組📶 ${totalMembers}會員📶`);
@@ -863,19 +832,6 @@ process.on('SIGTERM', async () => {
 	await gracefulShutdown();
 });
 
-function respawnCluster(err) {
-	if (!/CLUSTERING_NO_CHILD_EXISTS/i.test(err.toString())) return;
-	let number = err.toString().match(/\d+$/i);
-	if (!errorCount[number]) errorCount[number] = 0;
-	errorCount[number]++;
-	if (errorCount[number] > 3) {
-		try {
-			client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
-		} catch (error) {
-			console.error('respawnCluster #480 error', (error && error.name), (error && error.message), (error && error.reason));
-		}
-	}
-}
 function respawnCluster2() {
 	try {
 		client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
@@ -2459,6 +2415,7 @@ const convertRegex = function (str = "") {
 	return new RegExp(str.replaceAll(/([.?*+^$[\]\\(){}|-])/g, String.raw`\$1`));
 };
 
+// eslint-disable-next-line no-unused-vars
 const connect = function () {
 	ws = new WebSocket('ws://127.0.0.1:53589');
 	ws.on('open', function open() {
@@ -2801,7 +2758,6 @@ async function __handlingReplyMessage(message, result) {
 }
 
 async function __handlingInteractionMessage(message) {
-	const interactionStartTime = Date.now();
 	const interactionId = message.commandName || message.component?.label || message.customId || 'unknown';
 
 	// Set isInteraction flag for all interaction types

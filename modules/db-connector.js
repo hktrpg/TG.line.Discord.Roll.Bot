@@ -45,7 +45,7 @@ let connectionCooldown = false; // 連接冷卻期，避免過度連接嘗試
 function getDbWatchdog() {
     try {
         return require('./dbWatchdog.js');
-    } catch (error) {
+    } catch {
         // 如果加載失敗，靜默忽略
         return null;
     }
@@ -97,7 +97,7 @@ async function connect(retries = 0) {
         try {
             await sharedConnectionPromise;
             return mongoose.connection.readyState === 1;
-        } catch (error) {
+        } catch {
             console.log('Existing connection attempt failed, will retry...');
             sharedConnectionPromise = null;
         }
@@ -109,7 +109,7 @@ async function connect(retries = 0) {
         return new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
                 reject(new Error('Connection timeout'));
-            }, 30000);
+            }, 30_000);
 
             mongoose.connection.once('connected', () => {
                 clearTimeout(timeout);
@@ -223,7 +223,7 @@ async function connect(retries = 0) {
             // Set cooldown period
             connectionCooldown = true;
             // Schedule a retry after a longer delay
-            const RETRY_DELAY = 60000;
+            const RETRY_DELAY = 60_000;
             setTimeout(() => {
                 console.log('Attempting to reconnect to MongoDB after extended delay...');
                 connect(0);

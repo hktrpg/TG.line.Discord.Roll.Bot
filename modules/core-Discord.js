@@ -17,8 +17,6 @@ require("./ds-deploy-commands");
 // Global variables to track shutdown status
 let isShuttingDown = false;
 let shutdownTimeout = null;
-const SHUTDOWN_TIMEOUT = 30_000; // 30 seconds
-const GRACEFUL_SHUTDOWN_SIGNAL = 'SIGTERM';
 
 // Graceful shutdown function
 async function gracefulShutdown() {

@@ -41,6 +41,7 @@ const EXPUP = require('./level').EXPUP || function () { };
 const courtMessage = require('./logs').courtMessage || function () { };
 
 const newMessage = require('./message');
+const healthMonitor = require('./healthMonitor');
 
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const shardid = client.cluster.id;
@@ -535,24 +536,84 @@ function __privateMsg({ trigger, mainMsg, inputStr }) {
 }
 
 
+// 增強的統計收集函數 - 支援部分分群失敗
+async function collectClusterStats(clusterIds, operation, operationName) {
+    const results = [];
+    const errors = [];
+
+    for (const clusterId of clusterIds) {
+        try {
+            const startTime = Date.now();
+            const result = await operation(clusterId);
+            const duration = Date.now() - startTime;
+
+            results.push({
+                clusterId,
+                data: result,
+                duration,
+                success: true
+            });
+        } catch (error) {
+            errors.push({
+                clusterId,
+                error: error.message,
+                timestamp: new Date().toISOString()
+            });
+
+            console.warn(`統計收集失敗 - ${operationName} 分群 ${clusterId}:`, error.message);
+        }
+    }
+
+    return { results, errors, successCount: results.length, errorCount: errors.length };
+}
+
 async function count() {
 	if (!client.cluster) return '';
 
 	try {
-		const [guildSizes, memberCounts] = await Promise.all([
-			client.cluster.fetchClientValues('guilds.cache.size'),
-			client.cluster.broadcastEval(c =>
-				c.guilds.cache
-					.filter(guild => guild.available)
-					.reduce((acc, guild) => acc + guild.memberCount, 0)
+		// 獲取所有分群 ID
+		const allClusterIds = [...client.cluster.ids.keys()];
+
+		// 並行收集資料，但個別處理錯誤
+		const [guildStats, memberStats] = await Promise.all([
+			collectClusterStats(allClusterIds,
+				async (clusterId) => await client.cluster.evalOnManager(`this.clusters.get(${clusterId}).fetchClientValues('guilds.cache.size')`),
+				'guilds'
+			),
+			collectClusterStats(allClusterIds,
+				async (clusterId) => await client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))`),
+				'members'
 			)
 		]);
 
-		const totalGuilds = guildSizes.reduce((acc, count) => acc + count, 0);
-		const totalMembers = memberCounts.reduce((acc, count) => acc + count, 0);
+		// 計算總數
+		let totalGuilds = 0;
+		let totalMembers = 0;
+		let successfulClusters = 0;
+
+		guildStats.results.forEach(({ data: guildSizes }) => {
+			if (guildSizes && Array.isArray(guildSizes)) {
+				totalGuilds += guildSizes.reduce((acc, count) => acc + (count || 0), 0);
+				successfulClusters++;
+			}
+		});
+
+		memberStats.results.forEach(({ data: memberCounts }) => {
+			if (memberCounts && Array.isArray(memberCounts)) {
+				totalMembers += memberCounts.reduce((acc, count) => acc + (count || 0), 0);
+			}
+		});
+
+		const totalClusters = allClusterIds.length;
+		let statusIndicators = [];
+		if (successfulClusters < totalClusters) {
+			statusIndicators.push(`⚠️ ${successfulClusters}/${totalClusters} 分群正常`);
+		}
+
+		const statusText = statusIndicators.length > 0 ? ` (${statusIndicators.join(', ')})` : '';
 
 		return `群組總數: ${totalGuilds.toLocaleString()}
-│ 　• 會員總數: ${totalMembers.toLocaleString()}`;
+│ 　• 會員總數: ${totalMembers.toLocaleString()}${statusText}`;
 	} catch (error) {
 		console.error(`Discord統計錯誤: ${error}`);
 		return '無法獲取統計資料';
@@ -561,23 +622,49 @@ async function count() {
 
 async function count2() {
 	if (!client.cluster) return '🌼bothelp | hktrpg.com🍎';
-	const promises = [
-		client.cluster.fetchClientValues('guilds.cache.size'),
-		client.cluster
-			.broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))
-	];
 
-	return Promise.all(promises)
-		.then(results => {
-			const totalGuilds = results[0].reduce((acc, guildCount) => acc + guildCount, 0);
-			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
-			return (` ${totalGuilds}群組📶-\n ${totalMembers}會員📶`);
-		})
-		.catch((error) => {
-			console.error(`disocrdbot #617 error ${error}`)
-			respawnCluster(error);
-			return '🌼bothelp | hktrpg.com🍎';
+	try {
+		// 獲取所有分群 ID
+		const allClusterIds = [...client.cluster.ids.keys()];
+
+		// 並行收集資料，但允許個別失敗
+		const promises = allClusterIds.map(async (clusterId) => {
+			try {
+				const [guildResult, memberResult] = await Promise.all([
+					client.cluster.evalOnManager(`this.clusters.get(${clusterId}).fetchClientValues('guilds.cache.size')`),
+					client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))`)
+				]);
+				return { guildResult, memberResult, success: true };
+			} catch (error) {
+				console.warn(`無法從分群 ${clusterId} 獲取統計資料:`, error.message);
+				return { guildResult: [0], memberResult: [0], success: false };
+			}
 		});
+
+		const results = await Promise.all(promises);
+
+		// 計算總數，只從成功的分群收集資料
+		let totalGuilds = 0;
+		let totalMembers = 0;
+		let successfulClusters = 0;
+
+		results.forEach(({ guildResult, memberResult, success }) => {
+			if (success) successfulClusters++;
+			if (guildResult && Array.isArray(guildResult)) {
+				totalGuilds += guildResult.reduce((acc, count) => acc + (count || 0), 0);
+			}
+			if (memberResult && Array.isArray(memberResult)) {
+				totalMembers += memberResult.reduce((acc, count) => acc + (count || 0), 0);
+			}
+		});
+
+		const status = successfulClusters === allClusterIds.length ? '✅' : `⚠️${successfulClusters}/${allClusterIds.length}`;
+		return (`${status} ${totalGuilds}群組📶 ${totalMembers}會員📶`);
+	} catch (error) {
+		console.error(`disocrdbot #617 error: ${error.message}`);
+		// 不要在這裡重生分群 - 讓分群管理器處理它
+		return '🌼bothelp | hktrpg.com🍎';
+	}
 }
 
 // handle the error event
@@ -605,31 +692,60 @@ process.on('unhandledRejection', error => {
 // Global variables to track shutdown status
 let isShuttingDown = false;
 let shutdownTimeout = null;
+const SHUTDOWN_TIMEOUT = 15_000; // 15 seconds for Discord bot
 
 // Graceful shutdown function
-async function gracefulShutdown() {
-	if (isShuttingDown) return;
+async function gracefulShutdown(signal = 'unknown') {
+	if (isShuttingDown) {
+		console.log(`[Discord Bot] Shutdown already in progress, ignoring signal: ${signal}`);
+		return;
+	}
 	isShuttingDown = true;
 
-	console.log('[Discord Bot] Starting graceful shutdown...');
+	console.log(`[Discord Bot] Starting graceful shutdown (signal: ${signal})...`);
 
 	// Clear shutdown timeout
 	if (shutdownTimeout) {
 		clearTimeout(shutdownTimeout);
 	}
 
+	// Set a hard timeout to force exit if graceful shutdown takes too long
+	shutdownTimeout = setTimeout(() => {
+		console.error('[Discord Bot] Graceful shutdown timed out, force exiting...');
+		process.exit(1);
+	}, SHUTDOWN_TIMEOUT);
+
 	try {
-		// Close WebSocket connection
+		// 通知健康監控器
+		healthMonitor.emit('shutdown', { signal, timestamp: new Date() });
+
+		// 停止心跳監控器
+		if (heartbeatInterval) {
+			clearInterval(heartbeatInterval);
+			heartbeatInterval = null;
+		}
+
+		// 關閉 WebSocket 連線
 		if (ws) {
 			console.log('[Discord Bot] Closing WebSocket connection...');
 			ws.close();
 		}
 
-		// Destroy Discord client
+		// 銷毀 Discord 客戶端
 		if (client) {
 			console.log('[Discord Bot] Destroying Discord client...');
-			await client.destroy();
-			console.log('[Discord Bot] Discord client destroyed.');
+			// 設定較短的超時以避免阻塞
+			const destroyPromise = client.destroy();
+			const timeoutPromise = new Promise((_, reject) =>
+				setTimeout(() => reject(new Error('Client destroy timeout')), 5000)
+			);
+
+			try {
+				await Promise.race([destroyPromise, timeoutPromise]);
+				console.log('[Discord Bot] Discord client destroyed.');
+			} catch (error) {
+				console.warn('[Discord Bot] Client destroy timed out or failed:', error.message);
+			}
 		}
 
 		console.log('[Discord Bot] Graceful shutdown completed');
@@ -900,35 +1016,72 @@ async function getAllshardIds() {
 	if (!client.cluster) return '';
 
 	try {
-		const [shardIds, wsStatus, wsPing, clusterId] = await Promise.all([
-			[...client.cluster.ids.keys()],
-			client.cluster.broadcastEval(c => c.ws.status),
-			client.cluster.broadcastEval(c => c.ws.ping),
-			client.cluster.id
-		]);
+		// 獲取所有分群 ID
+		const allClusterIds = [...client.cluster.ids.keys()];
+		const currentClusterId = client.cluster.id;
 
-		// WebSocket status mapping - Discord.js uses numeric status codes
+		// 收集所有分群狀態，允許個別失敗
+		const statusPromises = allClusterIds.map(async (clusterId) => {
+			try {
+				const [wsStatus, wsPing] = await Promise.all([
+					client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.ws.status)`),
+					client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.ws.ping)`)
+				]);
+
+				return {
+					clusterId,
+					wsStatus: Array.isArray(wsStatus) ? wsStatus : [],
+					wsPing: Array.isArray(wsPing) ? wsPing : [],
+					success: true,
+					duration: Date.now()
+				};
+			} catch (error) {
+				console.warn(`無法獲取分群 ${clusterId} 狀態:`, error.message);
+				return {
+					clusterId,
+					wsStatus: [],
+					wsPing: [],
+					success: false,
+					error: error.message
+				};
+			}
+		});
+
+		const statusResults = await Promise.all(statusPromises);
+
+		// WebSocket status mapping
 		const statusMap = {
-			0: '✅在線',     // READY
-			1: '⚫隱身',     // CONNECTING
-			2: '⚫隱身',     // RECONNECTING
-			3: '⚠️閒置',     // IDLE
-			4: '❌離線',     // NEARLY
-			5: '❌離線',     // DISCONNECTED
-			6: '❌離線',     // WAITING_FOR_GUILDS
-			7: '❌離線',     // IDENTIFYING
-			8: '❌離線'      // RESUMING
+			0: '✅在線', 1: '⚫隱身', 2: '⚫隱身', 3: '⚠️閒置',
+			4: '❌離線', 5: '❌離線', 6: '❌離線', 7: '❌離線', 8: '❌離線'
 		};
 
 		const groupSize = 5;
 		const formatNumber = num => num.toLocaleString();
 
-		// 轉換狀態和延遲
-		const onlineStatus = wsStatus.map(status => {
-			const mappedStatus = statusMap[status];
-			return mappedStatus ? mappedStatus : `❓未知(${status})`;
+		// 收集所有可用的狀態資料
+		let allShardIds = [];
+		let allStatuses = [];
+		let allPings = [];
+		let errorClusters = 0;
+
+		statusResults.forEach(({ clusterId, wsStatus, wsPing, success }) => {
+			if (success && Array.isArray(wsStatus) && Array.isArray(wsPing)) {
+				const shardCount = wsStatus.length;
+				for (let i = 0; i < shardCount; i++) {
+					allShardIds.push(`${clusterId}-${i}`);
+					allStatuses.push(statusMap[wsStatus[i]] || `❓未知(${wsStatus[i]})`);
+					allPings.push(Math.round(wsPing[i] || 0));
+				}
+			} else {
+				errorClusters++;
+				allShardIds.push(`${clusterId}-❌`);
+				allStatuses.push('❌離線');
+				allPings.push(0);
+			}
 		});
-		const pingTimes = wsPing.map(ping => {
+
+		// 轉換延遲時間
+		const pingTimes = allPings.map(ping => {
 			const p = Math.round(ping);
 			return p > 1000 ? `❌${formatNumber(p)}` :
 				p > 500 ? `⚠️${formatNumber(p)}` :
@@ -958,21 +1111,27 @@ async function getAllshardIds() {
 			}).join('\n');
 		};
 
-		const groupedIds = groupArray(shardIds, groupSize);
-		const groupedStatus = groupArray(onlineStatus, groupSize);
+		const groupedIds = groupArray(allShardIds, groupSize);
+		const groupedStatus = groupArray(allStatuses, groupSize);
 		const groupedPing = groupArray(pingTimes, groupSize);
 
 		// 統計摘要
-		const totalShards = onlineStatus.length;
-		const onlineCount = onlineStatus.filter(s => typeof s === 'string' && s.includes('✅')).length;
+		const totalShards = allStatuses.length;
+		const onlineCount = allStatuses.filter(s => typeof s === 'string' && s.includes('✅')).length;
+		const successfulClusters = statusResults.filter(r => r.success).length;
+		const totalClusters = allClusterIds.length;
+
+		const statusNote = errorClusters > 0
+			? `\n│ ⚠️ ${errorClusters} 個分群連線異常`
+			: '';
 
 		return `
 ├────── 🔄分流狀態 ──────
 │ 概況統計:
-│ 　• 目前分流: ${clusterId}
+│ 　• 目前分流: ${currentClusterId}
 │ 　• 分流總數: ${totalShards}
-│ 　• 在線分流: ${onlineCount}
-│
+│ 　• 在線分流: ${onlineCount}${statusNote}
+
 ├────── 🔍分流列表 ──────
 │ 已啟動分流:
 ${formatGroup(groupedIds)}
@@ -1421,6 +1580,9 @@ async function handlingResponMessage(message, answer = '') {
 			const ping = Number(Date.now() - message.createdTimestamp);
 			const pingStatus = ping > 1000 ? '❌' : ping > 500 ? '⚠️' : '✅';
 
+			// 獲取健康狀態摘要
+			const healthSummary = healthMonitor.getStatusSummary();
+
 			rplyVal.text += `
 			【📊 Discord統計資訊】
 			╭────── 🌐使用統計 ──────
@@ -1428,6 +1590,12 @@ async function handlingResponMessage(message, answer = '') {
 			│ 　• ${countResult}
 			│ 連線延遲:
 			│ 　• ${pingStatus} ${ping}ms
+			│ 系統狀態:
+			│ 　• ${healthSummary.summary}
+			│ 　• ${healthSummary.details.interactions}
+			│ 　• ${healthSummary.details.clusters}
+			│ 　• ${healthSummary.details.database}
+			│ 　• ${healthSummary.details.alerts}
 			${shardResult}`;
 		}
 
@@ -2532,47 +2700,68 @@ async function __handlingReplyMessage(message, result) {
 }
 
 async function __handlingInteractionMessage(message) {
+	const interactionStartTime = Date.now();
+	const interactionId = message.commandName || message.component?.label || message.customId || 'unknown';
+
 	// Set isInteraction flag for all interaction types
 	message.isInteraction = true;
 
 	// Immediately defer ALL interactions to prevent timeout
 	// This must happen within 3 seconds of receiving the interaction
+	const deferStartTime = Date.now();
 	try {
 		if (!message.deferred && !message.replied) {
-			if (message.isCommand()) {
-				await message.deferReply();
-			} else if (message.isButton()) {
-				await message.deferUpdate();
-			} else {
-				// For other interaction types, use deferReply as fallback
-				await message.deferReply();
+			let deferOptions = {};
+
+			// Add ephemeral flag for certain commands to reduce spam
+			if (message.isCommand() && ['state', 'help', 'bothelp', 'info'].includes(message.commandName)) {
+				deferOptions.ephemeral = true;
 			}
+
+			// Use Promise.race to prevent hanging on deferral
+			const deferPromise = message.isCommand()
+				? message.deferReply(deferOptions)
+				: message.isButton() || message.isStringSelectMenu?.() || message.isUserSelectMenu?.() || message.isRoleSelectMenu?.()
+				? message.deferUpdate()
+				: message.deferReply(deferOptions);
+
+			// Timeout after 2.5 seconds to leave buffer for Discord's 3-second limit
+			await Promise.race([
+				deferPromise,
+				new Promise((_, reject) => setTimeout(() => reject(new Error('Defer timeout')), 2500))
+			]);
 		}
 	} catch (deferError) {
+		const deferDuration = Date.now() - deferStartTime;
+
 		// If interaction has already expired, log and return early
-		if (deferError.code === 10_062) { // Unknown interaction code
-			console.error(`Interaction expired before immediate deferral: ${message.commandName || message.component?.label || 'unknown'}`);
+		if (deferError.code === 10_062 || deferError.message?.includes('timeout')) {
+			console.error(`Interaction expired before deferral (${deferDuration}ms): ${interactionId}`);
 			return;
 		}
+
 		// Handle other deferral errors
-		console.error(`Failed to defer interaction: ${deferError.message} | Command: ${message.commandName || message.component?.label || 'unknown'} | Code: ${deferError.code}`);
-		// Try to respond with an error message if possible
-		try {
-			if (!message.replied && !message.deferred) {
-				await message.reply({ content: '處理請求時發生錯誤，請稍後再試。', ephemeral: true });
-			}
-		} catch (replyError) {
-			console.error(`Failed to send error reply: ${replyError.message}`);
-		}
+		console.error(`Failed to defer interaction (${deferDuration}ms): ${deferError.message} | Command: ${interactionId} | Code: ${deferError.code}`);
 		return;
+	}
+
+	const deferDuration = Date.now() - deferStartTime;
+	if (deferDuration > 1000) { // Log slow deferrals
+		console.warn(`Slow interaction deferral (${deferDuration}ms): ${interactionId}`);
 	}
 
 	switch (true) {
 		case message.isCommand():
 			{
+				const commandStartTime = Date.now();
+				let success = false;
+
 				try {
 					const answer = await handlingCommand(message);
-					if (!answer) return;
+					if (!answer) {
+						success = true; // 命令正常處理但無回應
+						return;
+					}
 
 					// Handle both string and object answers
 					let result;
@@ -2585,7 +2774,8 @@ async function __handlingInteractionMessage(message) {
 						result = await handlingResponMessage(message, answer);
 					}
 
-					return replilyMessage(message, result);
+					await replilyMessage(message, result);
+					success = true;
 				} catch (error) {
 					console.error('Command processing error:', error);
 					try {
@@ -2599,11 +2789,22 @@ async function __handlingInteractionMessage(message) {
 						// If even error reporting fails, just log it
 						console.error('Failed to send error response:', replyError.message);
 					}
+				} finally {
+					const duration = Date.now() - commandStartTime;
+					healthMonitor.emit('interactionProcessed', {
+						type: 'command',
+						commandName: message.commandName,
+						duration,
+						success
+					});
 				}
 			}
 			break; // Add break statement to avoid fall-through
 		case message.isButton():
 			{
+				const buttonStartTime = Date.now();
+				let success = false;
+
 				try {
 					const answer = handlingButtonCommand(message);
 					const result = await handlingResponMessage(message, answer);
@@ -2747,6 +2948,14 @@ async function __handlingInteractionMessage(message) {
 				} catch (error) {
 					// Global error handling for the entire button interaction block
 					console.error(`Global button interaction error: ${error?.message || error}`, error);
+				} finally {
+					const duration = Date.now() - buttonStartTime;
+					healthMonitor.emit('interactionProcessed', {
+						type: 'button',
+						buttonLabel: message.component?.label,
+						duration,
+						success
+					});
 				}
 				return;
 			}

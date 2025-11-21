@@ -17,6 +17,8 @@ require("./ds-deploy-commands");
 // Global variables to track shutdown status
 let isShuttingDown = false;
 let shutdownTimeout = null;
+const SHUTDOWN_TIMEOUT = 30_000; // 30 seconds
+const GRACEFUL_SHUTDOWN_SIGNAL = 'SIGTERM';
 
 // Graceful shutdown function
 async function gracefulShutdown() {
@@ -103,7 +105,7 @@ let heartbeatStarted = false;
 manager.on('clusterCreate', shard => {
     console.log(`[Cluster] Launched cluster #${shard.id}`);
 
-    shard.on('ready', () => {
+    shard.on('spawn', () => {
         const maxShard = Math.ceil(shard.manager.totalShards / 3);
         console.log(`[Cluster ${shard.id}] Ready with ${shard.manager.totalShards} total shards. Max shards per cluster: ${maxShard}`);
 

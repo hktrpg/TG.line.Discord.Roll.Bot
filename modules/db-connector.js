@@ -3,6 +3,7 @@
 // Requirements
 const mongoose = require('mongoose');
 const cachegoose = require('recachegoose');
+const dbWatchdog = require('./dbWatchdog.js');
 // const schedule = require('node-schedule');
 
 // 配置參數
@@ -67,20 +68,25 @@ async function connect(retries = 0) {
     try {
         connectionAttempts++;
         console.log(`Attempting to connect to MongoDB (Attempt ${connectionAttempts})`);
+
+        // 直接連線，不使用斷路器（因為斷路器會阻擋重試）
         await mongoose.connect(config.mongoUrl, {
-            connectTimeoutMS: config.connectTimeout,
-            socketTimeoutMS: config.socketTimeout,
-            serverSelectionTimeoutMS: config.serverSelectionTimeout,
-            maxPoolSize: config.poolSize,
-            minPoolSize: config.minPoolSize,
-            heartbeatFrequencyMS: config.heartbeatInterval,
-            maxIdleTimeMS: config.maxIdleTimeMS,
-            w: config.w,
-            retryWrites: config.retryWrites,
-            autoIndex: config.autoIndex,
-            useNewUrlParser: config.useNewUrlParser,
-            useUnifiedTopology: config.useUnifiedTopology
-        });
+                connectTimeoutMS: config.connectTimeout,
+                socketTimeoutMS: config.socketTimeout,
+                serverSelectionTimeoutMS: config.serverSelectionTimeout,
+    bufferMaxEntries: 0,  // Disable mongoose buffering
+    bufferCommands: false, // Disable mongoose buffering
+                maxPoolSize: config.poolSize,
+                minPoolSize: config.minPoolSize,
+                heartbeatFrequencyMS: config.heartbeatInterval,
+                maxIdleTimeMS: config.maxIdleTimeMS,
+                w: config.w,
+                retryWrites: config.retryWrites,
+                autoIndex: config.autoIndex,
+                useNewUrlParser: config.useNewUrlParser,
+                useUnifiedTopology: config.useUnifiedTopology
+            });
+        }, 'mongodb_connection');
 
         console.log(`MongoDB connected successfully. Connection state: ${connectionStates[mongoose.connection.readyState]}`);
         isConnected = true;
@@ -105,9 +111,19 @@ async function connect(retries = 0) {
         if (retries < config.maxRetries) {
             const backoffTime = calculateBackoffTime(retries);
             console.log(`Retrying connection in ${Math.round(backoffTime/1000)} seconds... (${retries + 1}/${config.maxRetries})`);
-            await new Promise(resolve => setTimeout(resolve, backoffTime));
+
+            // Add jitter to prevent thundering herd
+            const jitter = Math.random() * 1000;
+            await new Promise(resolve => setTimeout(resolve, backoffTime + jitter));
             return connect(retries + 1);
         }
+
+        console.error('MongoDB connection failed after all retries. Will retry periodically.');
+        // Schedule a retry after a longer delay
+        setTimeout(() => {
+            console.log('Attempting to reconnect to MongoDB after extended delay...');
+            connect(0);
+        }, 60000); // Retry after 1 minute
 
         return false;
     }

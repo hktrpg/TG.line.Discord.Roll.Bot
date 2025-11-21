@@ -15,11 +15,11 @@ const config = {
     restartTime: '30 04 */3 * *',
     connectTimeout: 120_000,    // 2 minutes
     socketTimeout: 120_000,     // 2 minutes
-    poolSize: 4,              // 連線池大小 - Discord shard bot 每個 cluster 4 個連接
+    poolSize: 8,              // 連線池大小 - Discord shard bot 每個 cluster 8 個連接 (平衡效能與資源)
     minPoolSize: 2,           // 最小連線池大小
     heartbeatInterval: 10_000,  // 心跳檢測間隔
     serverSelectionTimeout: 30_000,  // Increased from 5000 to 30000 (30 seconds)
-    maxIdleTimeMS: 60_000,     // 最大閒置時間
+    maxIdleTimeMS: 30_000,     // 最大閒置時間 (30 秒積極回收閒置連接)
     w: 'majority',            // 寫入確認級別
     retryWrites: true,        // 啟用寫入重試
     autoIndex: true,          // 自動建立索引
@@ -416,6 +416,25 @@ if (!initialized) {
         console.error('Failed to initialize MongoDB connection:', error);
     });
 }
+
+// 每 5 分鐘印一次連接池狀態（除錯神器）
+setInterval(() => {
+    try {
+        const client = mongoose.connection.getClient();
+        if (client?.topology) {
+            const pools = client.topology.s?.description?.servers || [];
+            let total = 0;
+            pools.forEach((server) => {
+                const pool = server.s?.pool;
+                if (pool) total += pool.totalConnectionCount || 0;
+            });
+            const clusterId = process.env.CLUSTER_ID || process.env.SHARD_ID || 'unknown';
+            console.log(`[MongoDB] Current active connections: ${total} (Cluster ${clusterId})`);
+        }
+    } catch (error) {
+        // Silently ignore errors in monitoring
+    }
+}, 300_000); // 5 minutes
 
 // 匯出
 module.exports = {

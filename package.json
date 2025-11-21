@@ -41,7 +41,7 @@
     "@zetetic/duckduckgo-images-api": "https://github.com/zeteticl/duckduckgo-images-api.git#master",
     "agenda": "^4.2.1",
     "axios": "^1.8.2",
-    "axios-retry": "^3.2.4",
+    "axios-retry": "^4.5.0",
     "bcdice": "^4.5.0",
     "bcryptjs": "^3.0.2",
     "chai": "^4.3.4",

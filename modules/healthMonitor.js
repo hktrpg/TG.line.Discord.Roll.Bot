@@ -139,7 +139,7 @@ class HealthMonitor extends EventEmitter {
         };
 
         this.alerts.set(alertType, alert);
-        console.error(`[ALERT] ${alertType}:`, data);
+        // 移除 console.error 輸出以減少日誌噪音
 
         // 發出警報事件
         this.emit('alert', alert);

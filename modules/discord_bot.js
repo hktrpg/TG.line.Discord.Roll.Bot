@@ -217,12 +217,13 @@ client.once('clientReady', async () => {
 	// eslint-disable-next-line no-unused-vars
 	const refreshId2 = setInterval(async () => {
 		try {
+			let activityText;
 			switch (switchSetActivity % 2) {
 				case 1:
 					client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
 					break;
 				default:
-					const activityText = await count2();
+					activityText = await count2();
 					if (activityText && typeof activityText === 'string') {
 						client.user.setActivity(activityText);
 					} else {
@@ -718,7 +719,7 @@ async function count2() {
 					success: true
 				};
 			} else {
-				console.warn(`分群 ${clusterId} 無統計資料，跳過`);
+				// 靜默跳過沒有統計資料的分群
 				return {
 					guildResult: [0],
 					memberResult: [0],
@@ -1689,9 +1690,6 @@ async function handlingResponMessage(message, answer = '') {
 			const ping = Number(Date.now() - message.createdTimestamp);
 			const pingStatus = ping > 1000 ? '❌' : ping > 500 ? '⚠️' : '✅';
 
-			// 獲取健康狀態摘要
-			const healthSummary = healthMonitor.getStatusSummary();
-
 			rplyVal.text += `
 			【📊 Discord統計資訊】
 			╭────── 🌐使用統計 ──────
@@ -1699,12 +1697,6 @@ async function handlingResponMessage(message, answer = '') {
 			│ 　• ${countResult}
 			│ 連線延遲:
 			│ 　• ${pingStatus} ${ping}ms
-			│ 系統狀態:
-			│ 　• ${healthSummary.summary}
-			│ 　• ${healthSummary.details.interactions}
-			│ 　• ${healthSummary.details.clusters}
-			│ 　• ${healthSummary.details.database}
-			│ 　• ${healthSummary.details.alerts}
 			${shardResult}`;
 		}
 

@@ -216,15 +216,30 @@ client.once('clientReady', async () => {
 	//await sleep(6);
 	// eslint-disable-next-line no-unused-vars
 	const refreshId2 = setInterval(async () => {
-		switch (switchSetActivity % 2) {
-			case 1:
-				client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
-				break;
-			default:
-				client.user.setActivity(await count2());
-				break;
+		try {
+			switch (switchSetActivity % 2) {
+				case 1:
+					client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
+					break;
+				default:
+					const activityText = await count2();
+					if (activityText && typeof activityText === 'string') {
+						client.user.setActivity(activityText);
+					} else {
+						console.warn('count2() 返回無效活動文字:', activityText);
+						client.user.setActivity('🌼bothelp | hktrpg.com🍎');
+					}
+					break;
+			}
+			switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
+		} catch (error) {
+			console.error('設定活動狀態時發生錯誤:', error);
+			try {
+				client.user.setActivity('🌼bothelp | hktrpg.com🍎');
+			} catch (fallbackError) {
+				console.error('設定備用活動狀態也失敗:', fallbackError);
+			}
 		}
-		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
 	}, 180_000);
 });
 
@@ -1085,16 +1100,80 @@ async function getAllshardIds() {
 	if (!client.cluster) return '';
 
 	try {
-		// 獲取所有分群 ID
-		const allClusterIds = [...client.cluster.ids.keys()];
+		// 獲取當前分群 ID
 		const currentClusterId = client.cluster.id;
 
-		const [shardIds, wsStatus, wsPing, clusterId] = await Promise.all([
-			[...client.cluster.ids.keys()],
-			client.cluster.broadcastEval(c => c.ws.status),
-			client.cluster.broadcastEval(c => c.ws.ping),
-			client.cluster.id
-		]);
+		// 獲取總分流數量
+		const { getInfo } = require('discord-hybrid-sharding');
+		let totalShards = 1; // 預設值
+
+		// 檢查環境變數中是否指定了分流數量
+		if (process.env.DISCORD_TOTAL_SHARDS) {
+			totalShards = Number.parseInt(process.env.DISCORD_TOTAL_SHARDS, 10);
+		} else {
+			// 優先使用 client.cluster.ids.size，如果不可用則使用 getInfo()
+			try {
+				if (client.cluster && client.cluster.ids) {
+					totalShards = client.cluster.ids.size;
+				} else {
+					const info = getInfo();
+					if (info && info.TOTAL_SHARDS) {
+						totalShards = info.TOTAL_SHARDS;
+					}
+				}
+			} catch (error) {
+				console.warn('無法獲取分流資訊:', error.message);
+			}
+		}
+
+		// 確保至少有 1 個分流
+		totalShards = Math.max(1, totalShards);
+
+		// 生成所有 shard IDs (0 到 totalShards-1)
+		const allShardIdsArray = Array.from({ length: totalShards }, (_, i) => i);
+
+		// 嘗試收集實際的狀態資料
+		let allStatuses = [];
+		let allPings = [];
+
+		try {
+			const [wsStatusRaw, wsPingRaw] = await Promise.all([
+				client.cluster.broadcastEval(c => c.ws.status),
+				client.cluster.broadcastEval(c => c.ws.ping)
+			]);
+
+		// 處理狀態資料
+		if (Array.isArray(wsStatusRaw) && wsStatusRaw.length > 0) {
+			if (Array.isArray(wsStatusRaw[0])) {
+				// 巢狀陣列，需要展開
+				for (const clusterStatuses of wsStatusRaw) {
+					if (Array.isArray(clusterStatuses)) {
+						allStatuses.push(...clusterStatuses);
+					}
+				}
+			} else {
+				// 單層陣列
+				allStatuses = [...wsStatusRaw];
+			}
+		}
+
+		// 處理延遲資料
+		if (Array.isArray(wsPingRaw) && wsPingRaw.length > 0) {
+			if (Array.isArray(wsPingRaw[0])) {
+				// 巢狀陣列，需要展開
+				for (const clusterPings of wsPingRaw) {
+					if (Array.isArray(clusterPings)) {
+						allPings.push(...clusterPings);
+					}
+				}
+			} else {
+				// 單層陣列
+				allPings = [...wsPingRaw];
+			}
+		}
+		} catch (error) {
+			console.warn('收集分流狀態時發生錯誤，使用預設值:', error.message);
+		}
 
 		// WebSocket status mapping
 		const statusMap = {
@@ -1105,20 +1184,29 @@ async function getAllshardIds() {
 		const groupSize = 5;
 		const formatNumber = num => num.toLocaleString();
 
-		// 轉換狀態和延遲
-		const onlineStatus = wsStatus.map(status => {
+		// 確保 allStatuses 和 allPings 長度與 shard 數量一致
+		while (allStatuses.length < allShardIdsArray.length) {
+			allStatuses.push(0); // 預設為在線狀態
+		}
+		while (allPings.length < allShardIdsArray.length) {
+			allPings.push(0); // 預設延遲為 0
+		}
+
+		// 轉換狀態格式
+		const formattedStatuses = allStatuses.slice(0, allShardIdsArray.length).map(status => {
 			const mappedStatus = statusMap[status];
 			return mappedStatus ? mappedStatus : `❓未知(${status})`;
 		});
-		const pingTimes = wsPing.map(ping => {
+
+		// 轉換延遲格式 - 處理無效的 ping 值
+		const formattedPings = allPings.slice(0, allShardIdsArray.length).map(ping => {
 			const p = Math.round(ping);
-			// Handle invalid ping values (like -1)
-			if (p < 0) return formatNumber(0); // Show 0 for invalid pings
+			// Handle invalid ping values (like -1 or invalid numbers)
+			if (p < 0 || Number.isNaN(p)) return '0';
 			return p > 1000 ? `❌${formatNumber(p)}` :
 				p > 500 ? `⚠️${formatNumber(p)}` :
-					formatNumber(p);
+				formatNumber(p);
 		});
-
 
 		// 分組函數
 		const groupArray = (arr, size) => arr.reduce((acc, curr, i) => {
@@ -1139,29 +1227,24 @@ async function getAllshardIds() {
 					const prefix = hasNonOnline ? '❗' : '│';
 					return `${prefix} 　• 群組${range}　${group.join(", ")}`;
 				}
+				// 對於分流列表，直接顯示分流ID
 				return `│ 　• 群組${range}　${group.join(", ")}`;
 			}).join('\n');
 		};
 
-		const groupedIds = groupArray(shardIds, groupSize);
-		const groupedStatus = groupArray(onlineStatus, groupSize);
-		const groupedPing = groupArray(pingTimes, groupSize);
+		const groupedStatus = groupArray(formattedStatuses, groupSize);
+		const groupedPing = groupArray(formattedPings, groupSize);
 
-		// 統計摘要
-		const totalShards = onlineStatus.length;
-		const onlineCount = onlineStatus.filter(s => typeof s === 'string' && s.includes('✅')).length;
+		// 統計摘要 - 使用實際收集到的分流數量
+		const onlineCount = formattedStatuses.filter(s => typeof s === 'string' && s.includes('✅')).length;
 
 		return `
 ├────── 🔄分流狀態 ──────
 │ 概況統計:
-│ 　• 目前分流: ${clusterId}
+│ 　• 目前分流: ${currentClusterId}
 │ 　• 分流總數: ${totalShards}
 │ 　• 在線分流: ${onlineCount}
 
-├────── 🔍分流列表 ──────
-│ 已啟動分流:
-${formatGroup(groupedIds)}
-│
 ├────── ⚡連線狀態 ──────
 │ 各分流狀態:
 ${formatGroup(groupedStatus, true)}

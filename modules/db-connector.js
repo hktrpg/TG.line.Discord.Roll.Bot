@@ -490,36 +490,7 @@ if (!initialized) {
     });
 }
 
-// 只在連接數量變化或每 30 分鐘印一次連接池狀態
-const MONITORING_INTERVAL = 30 * 60 * 1000; // 30 minutes
-let lastConnectionCount = -1;
-let lastMonitoringTime = 0;
 
-setInterval(() => {
-    try {
-        const client = mongoose.connection.getClient();
-        if (client?.topology) {
-            const pools = client.topology.s?.description?.servers || [];
-            let total = 0;
-            for (const server of pools) {
-                const pool = server.s?.pool;
-                if (pool) total += pool.totalConnectionCount || 0;
-            }
-
-            const now = Date.now();
-            const clusterId = process.env.CLUSTER_ID || process.env.SHARD_ID || 'unknown';
-
-            // 只在連接數量變化或超過 30 分鐘時記錄
-            if (total !== lastConnectionCount || (now - lastMonitoringTime) >= MONITORING_INTERVAL) {
-                console.log(`[MongoDB] Current active connections: ${total} (Cluster ${clusterId})`);
-                lastConnectionCount = total;
-                lastMonitoringTime = now;
-            }
-        }
-    } catch {
-        // Silently ignore errors in monitoring
-    }
-}, 5 * 60 * 1000); // Check every 5 minutes but only log when needed
 
 // 匯出
 module.exports = {

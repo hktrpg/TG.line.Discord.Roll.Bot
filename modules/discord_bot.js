@@ -1089,52 +1089,12 @@ async function getAllshardIds() {
 		const allClusterIds = [...client.cluster.ids.keys()];
 		const currentClusterId = client.cluster.id;
 
-		// 使用全局 broadcastEval 並按集群分組結果
-		const [wsStatusRaw, wsPingRaw] = await Promise.all([
-			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, wsStatus: c.ws.status })),
-			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, wsPing: c.ws.ping }))
+		const [shardIds, wsStatus, wsPing, clusterId] = await Promise.all([
+			[...client.cluster.ids.keys()],
+			client.cluster.broadcastEval(c => c.ws.status),
+			client.cluster.broadcastEval(c => c.ws.ping),
+			client.cluster.id
 		]);
-
-		// 按集群分組狀態資料
-		const statusByCluster = new Map();
-
-		wsStatusRaw.forEach(({ clusterId, wsStatus }) => {
-			if (!statusByCluster.has(clusterId)) {
-				statusByCluster.set(clusterId, { wsStatus: [], wsPing: [] });
-			}
-			statusByCluster.get(clusterId).wsStatus.push(wsStatus);
-		});
-
-		wsPingRaw.forEach(({ clusterId, wsPing }) => {
-			if (!statusByCluster.has(clusterId)) {
-				statusByCluster.set(clusterId, { wsStatus: [], wsPing: [] });
-			}
-			statusByCluster.get(clusterId).wsPing.push(wsPing);
-		});
-
-		// 轉換為預期的格式
-		const statusResults = allClusterIds.map(clusterId => {
-			const clusterData = statusByCluster.get(clusterId);
-
-			if (clusterData) {
-				return {
-					clusterId,
-					wsStatus: clusterData.wsStatus,
-					wsPing: clusterData.wsPing,
-					success: true,
-					duration: Date.now()
-				};
-			} else {
-				console.warn(`無法獲取分群 ${clusterId} 狀態`);
-				return {
-					clusterId,
-					wsStatus: [],
-					wsPing: [],
-					success: false,
-					error: `分群 ${clusterId} 無狀態資料`
-				};
-			}
-		});
 
 		// WebSocket status mapping
 		const statusMap = {
@@ -1145,35 +1105,20 @@ async function getAllshardIds() {
 		const groupSize = 5;
 		const formatNumber = num => num.toLocaleString();
 
-		// 收集所有可用的狀態資料
-		let allShardIds = [];
-		let allStatuses = [];
-		let allPings = [];
-		let errorClusters = 0;
-
-		statusResults.forEach(({ clusterId, wsStatus, wsPing, success }) => {
-			if (success && Array.isArray(wsStatus) && Array.isArray(wsPing)) {
-				const shardCount = wsStatus.length;
-				for (let i = 0; i < shardCount; i++) {
-					allShardIds.push(`${clusterId}-${i}`);
-					allStatuses.push(statusMap[wsStatus[i]] || `❓未知(${wsStatus[i]})`);
-					allPings.push(Math.round(wsPing[i] || 0));
-				}
-			} else {
-				errorClusters++;
-				allShardIds.push(`${clusterId}-❌`);
-				allStatuses.push('❌離線');
-				allPings.push(0);
-			}
+		// 轉換狀態和延遲
+		const onlineStatus = wsStatus.map(status => {
+			const mappedStatus = statusMap[status];
+			return mappedStatus ? mappedStatus : `❓未知(${status})`;
 		});
-
-		// 轉換延遲時間
-		const pingTimes = allPings.map(ping => {
+		const pingTimes = wsPing.map(ping => {
 			const p = Math.round(ping);
+			// Handle invalid ping values (like -1)
+			if (p < 0) return formatNumber(0); // Show 0 for invalid pings
 			return p > 1000 ? `❌${formatNumber(p)}` :
 				p > 500 ? `⚠️${formatNumber(p)}` :
 					formatNumber(p);
 		});
+
 
 		// 分組函數
 		const groupArray = (arr, size) => arr.reduce((acc, curr, i) => {
@@ -1198,26 +1143,20 @@ async function getAllshardIds() {
 			}).join('\n');
 		};
 
-		const groupedIds = groupArray(allShardIds, groupSize);
-		const groupedStatus = groupArray(allStatuses, groupSize);
+		const groupedIds = groupArray(shardIds, groupSize);
+		const groupedStatus = groupArray(onlineStatus, groupSize);
 		const groupedPing = groupArray(pingTimes, groupSize);
 
 		// 統計摘要
-		const totalShards = allStatuses.length;
-		const onlineCount = allStatuses.filter(s => typeof s === 'string' && s.includes('✅')).length;
-		const successfulClusters = statusResults.filter(r => r.success).length;
-		const totalClusters = allClusterIds.length;
-
-		const statusNote = errorClusters > 0
-			? `\n│ ⚠️ ${errorClusters} 個分群連線異常`
-			: '';
+		const totalShards = onlineStatus.length;
+		const onlineCount = onlineStatus.filter(s => typeof s === 'string' && s.includes('✅')).length;
 
 		return `
 ├────── 🔄分流狀態 ──────
 │ 概況統計:
-│ 　• 目前分流: ${currentClusterId}
+│ 　• 目前分流: ${clusterId}
 │ 　• 分流總數: ${totalShards}
-│ 　• 在線分流: ${onlineCount}${statusNote}
+│ 　• 在線分流: ${onlineCount}
 
 ├────── 🔍分流列表 ──────
 │ 已啟動分流:

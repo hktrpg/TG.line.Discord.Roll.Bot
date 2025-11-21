@@ -3,7 +3,7 @@
 // Requirements
 const mongoose = require('mongoose');
 const cachegoose = require('recachegoose');
-const dbWatchdog = require('./dbWatchdog.js');
+// const dbWatchdog = require('./dbWatchdog.js'); // Removed to break circular dependency
 // const schedule = require('node-schedule');
 
 // 配置參數
@@ -13,13 +13,14 @@ const config = {
     baseRetryInterval: 1000,  // 基礎重試間隔
     maxRetryInterval: 30_000,  // 最大重試間隔
     restartTime: '30 04 */3 * *',
-    connectTimeout: 120_000,    // 2 minutes
-    socketTimeout: 120_000,     // 2 minutes
-    poolSize: 8,              // 連線池大小 - Discord shard bot 每個 cluster 8 個連接 (平衡效能與資源)
-    minPoolSize: 2,           // 最小連線池大小
-    heartbeatInterval: 10_000,  // 心跳檢測間隔
-    serverSelectionTimeout: 30_000,  // Increased from 5000 to 30000 (30 seconds)
-    maxIdleTimeMS: 30_000,     // 最大閒置時間 (30 秒積極回收閒置連接)
+    connectTimeout: 180_000,    // 3 minutes (increased for sharding)
+    socketTimeout: 180_000,     // 3 minutes (increased for sharding)
+    poolSize: 3,              // 連線池大小 - Reduced for multi-shard environment (每個 cluster 3 個連接)
+    minPoolSize: 1,           // 最小連線池大小 - Reduced
+    heartbeatInterval: 15_000,  // 心跳檢測間隔 - Increased to reduce load
+    serverSelectionTimeout: 60_000,  // Increased to 60 seconds for better stability with multiple shards
+    maxIdleTimeMS: 60_000,     // 最大閒置時間 - Increased to reduce connection churn
+    bufferCommands: true,     // Enable command buffering to allow operations before connection
     w: 'majority',            // 寫入確認級別
     retryWrites: true,        // 啟用寫入重試
     autoIndex: true,          // 自動建立索引
@@ -37,6 +38,18 @@ let isConnected = false;
 let connectionAttempts = 0;
 let isInitializing = false; // 防止重複初始化
 let reconnecting = false; // 防止重複重新連接
+let sharedConnectionPromise = null; // 共享連接 Promise，避免多個 shard 重複建立連接
+let connectionCooldown = false; // 連接冷卻期，避免過度連接嘗試
+
+// 延遲加載 dbWatchdog 以避免循環依賴
+function getDbWatchdog() {
+    try {
+        return require('./dbWatchdog.js');
+    } catch (error) {
+        // 如果加載失敗，靜默忽略
+        return null;
+    }
+}
 // const master = require.main?.filename.includes('index');
 
 // MongoDB 配置
@@ -63,12 +76,31 @@ function calculateBackoffTime(attempt) {
     return backoffTime + Math.random() * 1000; // 添加隨機抖動
 }
 
-// 建立連線 - 強制只建立一個連接
+// 建立連線 - 強制只建立一個連接，支援多 shard 共享
 async function connect(retries = 0) {
     // 檢查是否已經有活躍連接
     if (mongoose.connection.readyState === 1 && isConnected) {
         console.log('MongoDB connection already active, skipping...');
         return true;
+    }
+
+    // 如果正在冷卻期，等待一下
+    if (connectionCooldown) {
+        console.log('Connection in cooldown period, waiting...');
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        connectionCooldown = false;
+    }
+
+    // 如果有正在進行的連接嘗試，返回該 Promise
+    if (sharedConnectionPromise) {
+        console.log('Waiting for existing connection attempt...');
+        try {
+            await sharedConnectionPromise;
+            return mongoose.connection.readyState === 1;
+        } catch (error) {
+            console.log('Existing connection attempt failed, will retry...');
+            sharedConnectionPromise = null;
+        }
     }
 
     // 如果正在連接中，等待連接完成
@@ -86,37 +118,42 @@ async function connect(retries = 0) {
                 resolve(true);
             });
 
-            mongoose.connection.once('error', (error) => {
+            mongoose.connection.once('error', (connectionError) => {
                 clearTimeout(timeout);
-                console.error('MongoDB connection failed while waiting:', error.message);
+                console.error('MongoDB connection failed while waiting:', connectionError.message);
                 isConnected = false;
-                reject(error);
+                reject(connectionError);
+            }).on('error', () => {
+                // Ignore additional errors during connection attempt
             });
         });
     }
 
-    try {
-        connectionAttempts++;
-        console.log(`Attempting to connect to MongoDB (Attempt ${connectionAttempts}) - ReadyState: ${mongoose.connection.readyState}`);
+    // 建立共享連接 Promise
+    sharedConnectionPromise = (async () => {
+        try {
+            connectionAttempts++;
+            console.log(`Attempting to connect to MongoDB (Attempt ${connectionAttempts}) - ReadyState: ${mongoose.connection.readyState}`);
 
-        // 只有在真正斷開連接時才建立新連接
-        if (mongoose.connection.readyState === 0) { // disconnected
-            console.log('Creating new MongoDB connection...');
-            await mongoose.connect(config.mongoUrl, {
-                connectTimeoutMS: config.connectTimeout,
-                socketTimeoutMS: config.socketTimeout,
-                serverSelectionTimeoutMS: config.serverSelectionTimeout,
-                maxPoolSize: config.poolSize,
-                minPoolSize: config.minPoolSize,
-                heartbeatFrequencyMS: config.heartbeatInterval,
-                maxIdleTimeMS: config.maxIdleTimeMS,
-                w: config.w,
-                retryWrites: config.retryWrites,
-                autoIndex: config.autoIndex,
-                useNewUrlParser: config.useNewUrlParser,
-                useUnifiedTopology: config.useUnifiedTopology
-            });
-        } else if (mongoose.connection.readyState === 3) { // disconnecting
+            // 只有在真正斷開連接時才建立新連接
+            if (mongoose.connection.readyState === 0) { // disconnected
+                console.log('Creating new MongoDB connection...');
+                await mongoose.connect(config.mongoUrl, {
+                    connectTimeoutMS: config.connectTimeout,
+                    socketTimeoutMS: config.socketTimeout,
+                    serverSelectionTimeoutMS: config.serverSelectionTimeout,
+                    maxPoolSize: config.poolSize,
+                    minPoolSize: config.minPoolSize,
+                    heartbeatFrequencyMS: config.heartbeatInterval,
+                    maxIdleTimeMS: config.maxIdleTimeMS,
+                    bufferCommands: config.bufferCommands,
+                    w: config.w,
+                    retryWrites: config.retryWrites,
+                    autoIndex: config.autoIndex,
+                    useNewUrlParser: config.useNewUrlParser,
+                    useUnifiedTopology: config.useUnifiedTopology
+                });
+            } else if (mongoose.connection.readyState === 3) { // disconnecting
             console.log('Waiting for disconnect to complete before reconnecting...');
             // 等待斷開完成，然後建立新連接
             await new Promise(resolve => {
@@ -139,6 +176,8 @@ async function connect(retries = 0) {
                 minPoolSize: config.minPoolSize,
                 heartbeatFrequencyMS: config.heartbeatInterval,
                 maxIdleTimeMS: config.maxIdleTimeMS,
+ 
+                bufferCommands: config.bufferCommands,
                 w: config.w,
                 retryWrites: config.retryWrites,
                 autoIndex: config.autoIndex,
@@ -150,44 +189,55 @@ async function connect(retries = 0) {
             return true;
         }
 
-        console.log(`MongoDB connected successfully. Connection state: ${connectionStates[mongoose.connection.readyState]}`);
-        isConnected = true;
-        connectionAttempts = 0;
+            console.log(`MongoDB connected successfully. Connection state: ${connectionStates[mongoose.connection.readyState]}`);
+            isConnected = true;
+            connectionAttempts = 0;
 
-        // 監聽連線事件
-        setupConnectionListeners();
+            // 監聽連線事件
+            setupConnectionListeners();
 
-        // 設置連線池監控
-        setupPoolMonitoring();
+            // 設置連線池監控
+            setupPoolMonitoring();
 
-        return true;
+            return true;
+        } catch (error) {
+            console.error(`MongoDB Connection Error: ${error.message}`);
+            isConnected = false;
+
+            // 特別處理認證錯誤
+            if (error.message.includes('bad auth') || error.message.includes('Authentication failed')) {
+                console.error('MongoDB Authentication Error: Please check your credentials');
+            }
+
+            if (retries < config.maxRetries) {
+                const backoffTime = calculateBackoffTime(retries);
+                console.log(`Retrying connection in ${Math.round(backoffTime/1000)} seconds... (${retries + 1}/${config.maxRetries})`);
+
+                // Add jitter to prevent thundering herd
+                const jitter = Math.random() * 1000;
+                await new Promise(resolve => setTimeout(resolve, backoffTime + jitter));
+                return connect(retries + 1);
+            }
+
+            console.error('MongoDB connection failed after all retries. Will retry periodically.');
+            // Set cooldown period
+            connectionCooldown = true;
+            // Schedule a retry after a longer delay
+            const RETRY_DELAY = 60000;
+            setTimeout(() => {
+                console.log('Attempting to reconnect to MongoDB after extended delay...');
+                connect(0);
+            }, RETRY_DELAY);
+
+            throw error; // Throw error so Promise rejects
+        }
+    })();
+
+    try {
+        return await sharedConnectionPromise;
     } catch (error) {
-        console.error(`MongoDB Connection Error: ${error.message}`);
-        isConnected = false;
-
-        // 特別處理認證錯誤
-        if (error.message.includes('bad auth') || error.message.includes('Authentication failed')) {
-            console.error('MongoDB Authentication Error: Please check your credentials');
-        }
-
-        if (retries < config.maxRetries) {
-            const backoffTime = calculateBackoffTime(retries);
-            console.log(`Retrying connection in ${Math.round(backoffTime/1000)} seconds... (${retries + 1}/${config.maxRetries})`);
-
-            // Add jitter to prevent thundering herd
-            const jitter = Math.random() * 1000;
-            await new Promise(resolve => setTimeout(resolve, backoffTime + jitter));
-            return connect(retries + 1);
-        }
-
-        console.error('MongoDB connection failed after all retries. Will retry periodically.');
-        // Schedule a retry after a longer delay
-        setTimeout(() => {
-            console.log('Attempting to reconnect to MongoDB after extended delay...');
-            connect(0);
-        }, 60000); // Retry after 1 minute
-
-        return false;
+        sharedConnectionPromise = null; // Reset on failure
+        throw error;
     }
 }
 
@@ -223,6 +273,7 @@ function setupConnectionListeners() {
         connectionAttempts = 0;
 
         // 更新 dbWatchdog 的連接狀態
+        const dbWatchdog = getDbWatchdog();
         if (dbWatchdog && dbWatchdog.connectionState) {
             dbWatchdog.connectionState.isConnected = true;
             dbWatchdog.connectionState.lastConnectionTime = new Date();
@@ -235,6 +286,7 @@ function setupConnectionListeners() {
         connectionAttempts = 0;
 
         // 更新 dbWatchdog 的連接狀態
+        const dbWatchdog = getDbWatchdog();
         if (dbWatchdog && dbWatchdog.connectionState) {
             dbWatchdog.connectionState.isConnected = true;
             dbWatchdog.connectionState.lastConnectionTime = new Date();
@@ -438,23 +490,24 @@ if (!initialized) {
 }
 
 // 每 5 分鐘印一次連接池狀態（除錯神器）
+const MONITORING_INTERVAL = 300000;
 setInterval(() => {
     try {
         const client = mongoose.connection.getClient();
         if (client?.topology) {
             const pools = client.topology.s?.description?.servers || [];
             let total = 0;
-            pools.forEach((server) => {
+            for (const server of pools) {
                 const pool = server.s?.pool;
                 if (pool) total += pool.totalConnectionCount || 0;
-            });
+            }
             const clusterId = process.env.CLUSTER_ID || process.env.SHARD_ID || 'unknown';
             console.log(`[MongoDB] Current active connections: ${total} (Cluster ${clusterId})`);
         }
-    } catch (error) {
+    } catch {
         // Silently ignore errors in monitoring
     }
-}, 300_000); // 5 minutes
+}, MONITORING_INTERVAL);
 
 // 匯出
 module.exports = {

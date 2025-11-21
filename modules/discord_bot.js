@@ -1202,35 +1202,8 @@ async function getAllshardIds() {
 		const groupedStatus = groupArray(formattedStatuses, groupSize);
 		const groupedPing = groupArray(formattedPings, groupSize);
 
-		// 統計摘要 - 計算實際在線的分流數量
-		// 由於我們填充了預設值，我們需要根據實際收集的資料來計算在線數量
-		let onlineCount = 0;
-		try {
-			const [actualWsStatuses] = await Promise.all([
-				client.cluster.broadcastEval(c => c.ws.status)
-			]);
-
-			// 計算實際在線的分流數量
-			if (Array.isArray(actualWsStatuses)) {
-				if (Array.isArray(actualWsStatuses[0])) {
-					// 巢狀陣列
-					for (const clusterStatuses of actualWsStatuses) {
-						if (Array.isArray(clusterStatuses)) {
-							onlineCount += clusterStatuses.filter(status => status === 0).length; // 0 = 在線
-						}
-					}
-				} else {
-					// 單層陣列
-					onlineCount = actualWsStatuses.filter(status => status === 0).length;
-				}
-			}
-		} catch (error) {
-			// 如果無法獲取實際狀態，使用總分流數量的一半作為估計
-			onlineCount = Math.floor(totalShards / 2);
-		}
-
-		// 確保在線數量不會超過總分流數量
-		onlineCount = Math.min(onlineCount, totalShards);
+		// 統計摘要 - 計算顯示為在線的分流數量
+		const onlineCount = formattedStatuses.filter(status => status.includes('✅')).length;
 
 		return `
 ├────── 🔄分流狀態 ──────

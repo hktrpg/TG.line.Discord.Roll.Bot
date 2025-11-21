@@ -2,7 +2,6 @@
 const path = require('path');
 const winston = require('winston');
 const { format } = winston;
-const mongoose = require('./db-connector.js').mongoose;
 const schema = require('./schema.js');
 
 // 常數配置
@@ -317,9 +316,20 @@ class DbWatchdog {
             ? (this.healthMetrics.successfulOperations / this.healthMetrics.totalOperations) * 100
             : 100;
 
-        // 直接檢查 mongoose 連線狀態
-        const mongooseReadyState = mongoose?.connection?.readyState ?? 0;
-        const isActuallyConnected = mongooseReadyState === 1; // 1 = connected
+        // 嘗試檢查 mongoose 連線狀態，避免循環依賴
+        let mongooseReadyState = 0;
+        let isActuallyConnected = false;
+
+        try {
+            // 動態檢查 mongoose 狀態，避免在模組載入時就建立依賴
+            const mongoose = require('./db-connector.js').mongoose;
+            mongooseReadyState = mongoose?.connection?.readyState ?? 0;
+            isActuallyConnected = mongooseReadyState === 1; // 1 = connected
+        } catch (error) {
+            // 如果無法訪問 mongoose，使用手動追蹤的狀態
+            isActuallyConnected = this.connectionState.isConnected;
+            mongooseReadyState = isActuallyConnected ? 1 : 0;
+        }
 
         let status = 'healthy';
         if (this.healthMetrics.consecutiveFailures > 3) status = 'degraded';
@@ -344,7 +354,7 @@ class DbWatchdog {
             connection: {
                 isConnected: isActuallyConnected,
                 readyState: mongooseReadyState,
-                readyStateText: mongoose ? (['disconnected', 'connected', 'connecting', 'disconnecting'][mongooseReadyState] || 'unknown') : 'mongoose_not_initialized',
+                readyStateText: ['disconnected', 'connected', 'connecting', 'disconnecting'][mongooseReadyState] || 'unknown',
                 lastConnectionTime: this.connectionState.lastConnectionTime,
                 lastDisconnectionTime: this.connectionState.lastDisconnectionTime,
                 reconnectionAttempts: this.connectionState.reconnectionAttempts

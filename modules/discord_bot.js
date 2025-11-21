@@ -576,11 +576,21 @@ async function count() {
 		// 並行收集資料，但個別處理錯誤
 		const [guildStats, memberStats] = await Promise.all([
 			collectClusterStats(allClusterIds,
-				async (clusterId) => await client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.size).then(sizes => sizes.reduce((a, b) => a + b, 0))`),
+				async (clusterId) => {
+					// 先檢查集群是否存在
+					const clusterExists = await client.cluster.evalOnManager(`!!this.clusters.get(${clusterId})`);
+					if (!clusterExists) return [0];
+					return await client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.size).then(sizes => sizes.reduce((a, b) => a + b, 0))`);
+				},
 				'guilds'
 			),
 			collectClusterStats(allClusterIds,
-				async (clusterId) => await client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0)).then(counts => counts.reduce((a, b) => a + b, 0))`),
+				async (clusterId) => {
+					// 先檢查集群是否存在
+					const clusterExists = await client.cluster.evalOnManager(`!!this.clusters.get(${clusterId})`);
+					if (!clusterExists) return [0];
+					return await client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0)).then(counts => counts.reduce((a, b) => a + b, 0))`);
+				},
 				'members'
 			)
 		]);
@@ -629,6 +639,13 @@ async function count2() {
 		// 並行收集資料，但允許個別失敗
 		const promises = allClusterIds.map(async (clusterId) => {
 			try {
+				// 先檢查集群是否存在
+				const clusterExists = await client.cluster.evalOnManager(`!!this.clusters.get(${clusterId})`);
+				if (!clusterExists) {
+					console.warn(`分群 ${clusterId} 不存在，跳過統計收集`);
+					return { guildResult: [0], memberResult: [0], success: false };
+				}
+
 				const [guildResult, memberResult] = await Promise.all([
 					client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.size).then(sizes => sizes.reduce((a, b) => a + b, 0))`),
 					client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0)).then(counts => counts.reduce((a, b) => a + b, 0))`)
@@ -2444,7 +2461,7 @@ if (togGGToken) {
 	const Topgg = require(`@top-gg/sdk`)
 	const api = new Topgg.Api(togGGToken)
 	this.interval = setInterval(async () => {
-		const guilds = await client.cluster.fetchClientValues("guilds.cache.size");
+		const guilds = await client.cluster.broadcastEval(c => c.guilds.cache.size);
 		api.postStats({
 			serverCount: Number.parseInt(guilds.reduce((a, c) => a + c, 0)),
 			shardCount: getInfo().TOTAL_SHARDS,

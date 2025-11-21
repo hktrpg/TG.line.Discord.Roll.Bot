@@ -223,26 +223,24 @@ class DbWatchdog {
             CONFIG.HEALTH_CHECK_INTERVAL
         );
 
-        // 原有的 MongoDB 狀態記錄
+        // 原有的 MongoDB 狀態記錄 - 只在發生錯誤時記錄
         setInterval(
             async () => {
                 try {
                     let ans = await schema.mongodbStateCheck();
                     if (!ans) return;
-                    const currentdate = new Date();
-                    const datetime = "Time: " + currentdate.getDate() + "/"
-                        + (currentdate.getMonth() + 1) + "/"
-                        + currentdate.getFullYear() + " @ "
-                        + currentdate.getHours() + ":"
-                        + currentdate.getMinutes() + ":"
-                        + currentdate.getSeconds();
-                    try {
-                        // Only log if there's an error or connection is not successful
-                        if (!ans.ok || ans.status !== "connected") {
-                            this.logger.error(`${datetime}  mongodbState: ${JSON.stringify(ans)}`);
-                        }
-                    } catch (error) {
-                        this.logger.error(`Error logging MongoDB state: ${error.message}`);
+
+                    // 只在連接狀態不正常時記錄錯誤
+                    if (ans.readyState !== 1) { // 1 = connected
+                        const currentdate = new Date();
+                        const datetime = "Time: " + currentdate.getDate() + "/"
+                            + (currentdate.getMonth() + 1) + "/"
+                            + currentdate.getFullYear() + " @ "
+                            + currentdate.getHours() + ":"
+                            + currentdate.getMinutes() + ":"
+                            + currentdate.getSeconds();
+
+                        this.logger.error(`${datetime}  mongodbState: ${JSON.stringify(ans)}`);
                     }
                 } catch (error) {
                     this.logger.error(`MongoDB state check failed: ${error.message}`);
@@ -282,7 +280,7 @@ class DbWatchdog {
             if (!this.connectionState.isConnected) {
                 this.connectionState.isConnected = true;
                 this.connectionState.lastConnectionTime = new Date();
-                console.log(`[DbWatchdog] 資料庫連線恢復 - 操作: ${operationName}`);
+                //console.log(`[DbWatchdog] 資料庫連線恢復 - 操作: ${operationName}`);
             }
 
             return result;

@@ -327,6 +327,7 @@ async function handleDisconnect() {
     isConnected = false;
 
     // 更新 dbWatchdog 的連接狀態
+    const dbWatchdog = getDbWatchdog();
     if (dbWatchdog && dbWatchdog.connectionState) {
         dbWatchdog.connectionState.isConnected = false;
         dbWatchdog.connectionState.lastDisconnectionTime = new Date();
@@ -489,8 +490,11 @@ if (!initialized) {
     });
 }
 
-// 每 5 分鐘印一次連接池狀態（除錯神器）
-const MONITORING_INTERVAL = 300000;
+// 只在連接數量變化或每 30 分鐘印一次連接池狀態
+const MONITORING_INTERVAL = 30 * 60 * 1000; // 30 minutes
+let lastConnectionCount = -1;
+let lastMonitoringTime = 0;
+
 setInterval(() => {
     try {
         const client = mongoose.connection.getClient();
@@ -501,13 +505,21 @@ setInterval(() => {
                 const pool = server.s?.pool;
                 if (pool) total += pool.totalConnectionCount || 0;
             }
+
+            const now = Date.now();
             const clusterId = process.env.CLUSTER_ID || process.env.SHARD_ID || 'unknown';
-            console.log(`[MongoDB] Current active connections: ${total} (Cluster ${clusterId})`);
+
+            // 只在連接數量變化或超過 30 分鐘時記錄
+            if (total !== lastConnectionCount || (now - lastMonitoringTime) >= MONITORING_INTERVAL) {
+                console.log(`[MongoDB] Current active connections: ${total} (Cluster ${clusterId})`);
+                lastConnectionCount = total;
+                lastMonitoringTime = now;
+            }
         }
     } catch {
         // Silently ignore errors in monitoring
     }
-}, MONITORING_INTERVAL);
+}, 5 * 60 * 1000); // Check every 5 minutes but only log when needed
 
 // 匯出
 module.exports = {

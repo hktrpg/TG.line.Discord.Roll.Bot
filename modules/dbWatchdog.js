@@ -30,16 +30,16 @@ const createLogger = () => {
     });
 
     return winston.createLogger({
-        level: 'info',
+        level: 'warn', // 提高日誌級別，只記錄警告和錯誤
         format: format.combine(
             severityLevelOnly(),
             format.json()
         ),
         transports: [
-            new winston.transports.Console(),
+            // 移除 Console 傳輸以減少控制台輸出
             new winston.transports.File({
                 filename: path.join(__dirname, '..', 'log', 'hktrpg-mongod.log'),
-                level: 'info',
+                level: 'warn', // 只記錄警告和錯誤到檔案
                 maxFiles: CONFIG.MAX_LOG_FILES,
                 maxsize: CONFIG.LOG_FILE_SIZE
             })
@@ -157,6 +157,12 @@ class DbWatchdog {
 
     async __updateRecords() {
         try {
+            // Defensive check for schema availability due to circular dependency
+            if (!schema || !schema.mongodbState) {
+                console.warn('Schema not available for updateRecords');
+                return;
+            }
+
             await schema.mongodbState.updateOne(
                 {},
                 {
@@ -184,6 +190,29 @@ class DbWatchdog {
     }
 
     init() {
+        // Listen to connection events from db-connector
+        try {
+            const { connectionEmitter } = require('./db-connector.js');
+            connectionEmitter.on('connected', (data) => {
+                this.connectionState.isConnected = data.isConnected;
+                this.connectionState.lastConnectionTime = data.lastConnectionTime;
+                this.connectionState.reconnectionAttempts = data.reconnectionAttempts;
+            });
+
+            connectionEmitter.on('reconnected', (data) => {
+                this.connectionState.isConnected = data.isConnected;
+                this.connectionState.lastConnectionTime = data.lastConnectionTime;
+                this.connectionState.reconnectionAttempts = data.reconnectionAttempts;
+            });
+
+            connectionEmitter.on('disconnected', (data) => {
+                this.connectionState.isConnected = data.isConnected;
+                this.connectionState.lastDisconnectionTime = data.lastDisconnectionTime;
+            });
+        } catch (error) {
+            console.warn('Failed to setup connection event listeners:', error.message);
+        }
+
         // 原有的錯誤重試邏輯
         setInterval(
             async () => {
@@ -221,31 +250,8 @@ class DbWatchdog {
             CONFIG.HEALTH_CHECK_INTERVAL
         );
 
-        // 原有的 MongoDB 狀態記錄 - 只在發生錯誤時記錄
-        setInterval(
-            async () => {
-                try {
-                    let ans = await schema.mongodbStateCheck();
-                    if (!ans) return;
-
-                    // 只在連接狀態不正常時記錄錯誤
-                    if (ans.readyState !== 1) { // 1 = connected
-                        const currentdate = new Date();
-                        const datetime = "Time: " + currentdate.getDate() + "/"
-                            + (currentdate.getMonth() + 1) + "/"
-                            + currentdate.getFullYear() + " @ "
-                            + currentdate.getHours() + ":"
-                            + currentdate.getMinutes() + ":"
-                            + currentdate.getSeconds();
-
-                        this.logger.error(`${datetime}  mongodbState: ${JSON.stringify(ans)}`);
-                    }
-                } catch (error) {
-                    this.logger.error(`MongoDB state check failed: ${error.message}`);
-                }
-            },
-            CONFIG.MONGOD_CHECK_INTERVAL
-        );
+        // 原有的 MongoDB 狀態記錄 - 禁用以減少日誌輸出
+        // MongoDB state check disabled to reduce log noise
     }
 
     discordClientRespawn(discordClient, id) {

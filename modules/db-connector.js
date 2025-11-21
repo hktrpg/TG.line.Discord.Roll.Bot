@@ -3,7 +3,7 @@
 // Requirements
 const mongoose = require('mongoose');
 const cachegoose = require('recachegoose');
-// const dbWatchdog = require('./dbWatchdog.js'); // Removed to break circular dependency
+const EventEmitter = require('events');
 // const schedule = require('node-schedule');
 
 // 配置參數
@@ -41,15 +41,9 @@ let reconnecting = false; // 防止重複重新連接
 let sharedConnectionPromise = null; // 共享連接 Promise，避免多個 shard 重複建立連接
 let connectionCooldown = false; // 連接冷卻期，避免過度連接嘗試
 
-// 延遲加載 dbWatchdog 以避免循環依賴
-function getDbWatchdog() {
-    try {
-        return require('./dbWatchdog.js');
-    } catch {
-        // 如果加載失敗，靜默忽略
-        return null;
-    }
-}
+// Event emitter for connection state changes
+const connectionEmitter = new EventEmitter();
+
 // const master = require.main?.filename.includes('index');
 
 // MongoDB 配置
@@ -272,26 +266,24 @@ function setupConnectionListeners() {
         isConnected = true;
         connectionAttempts = 0;
 
-        // 更新 dbWatchdog 的連接狀態
-        const dbWatchdog = getDbWatchdog();
-        if (dbWatchdog && dbWatchdog.connectionState) {
-            dbWatchdog.connectionState.isConnected = true;
-            dbWatchdog.connectionState.lastConnectionTime = new Date();
-            dbWatchdog.connectionState.reconnectionAttempts = connectionAttempts;
-        }
+        // Emit connection event
+        connectionEmitter.emit('connected', {
+            isConnected: true,
+            lastConnectionTime: new Date(),
+            reconnectionAttempts: connectionAttempts
+        });
     });
     mongoose.connection.on('reconnected', () => {
         console.log(`MongoDB reconnected - ReadyState: ${mongoose.connection.readyState}`);
         isConnected = true;
         connectionAttempts = 0;
 
-        // 更新 dbWatchdog 的連接狀態
-        const dbWatchdog = getDbWatchdog();
-        if (dbWatchdog && dbWatchdog.connectionState) {
-            dbWatchdog.connectionState.isConnected = true;
-            dbWatchdog.connectionState.lastConnectionTime = new Date();
-            dbWatchdog.connectionState.reconnectionAttempts = connectionAttempts;
-        }
+        // Emit reconnection event
+        connectionEmitter.emit('reconnected', {
+            isConnected: true,
+            lastConnectionTime: new Date(),
+            reconnectionAttempts: connectionAttempts
+        });
     });
     mongoose.connection.on('connecting', () => {
         console.log(`MongoDB connecting... - ReadyState: ${mongoose.connection.readyState}`);
@@ -326,12 +318,11 @@ async function handleDisconnect() {
     console.log('MongoDB disconnected');
     isConnected = false;
 
-    // 更新 dbWatchdog 的連接狀態
-    const dbWatchdog = getDbWatchdog();
-    if (dbWatchdog && dbWatchdog.connectionState) {
-        dbWatchdog.connectionState.isConnected = false;
-        dbWatchdog.connectionState.lastDisconnectionTime = new Date();
-    }
+    // Emit disconnection event
+    connectionEmitter.emit('disconnected', {
+        isConnected: false,
+        lastDisconnectionTime: new Date()
+    });
 
     // 如果已經在重新連接中，跳過
     if (reconnecting) {
@@ -498,5 +489,6 @@ module.exports = {
     checkHealth,
     restart,
     connect,
-    withTransaction
+    withTransaction,
+    connectionEmitter
 };

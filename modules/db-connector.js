@@ -15,8 +15,8 @@ const config = {
     restartTime: '30 04 */3 * *',
     connectTimeout: 180_000,    // 3 minutes (increased for sharding)
     socketTimeout: 180_000,     // 3 minutes (increased for sharding)
-    poolSize: 3,              // 連線池大小 - Reduced for multi-shard environment (每個 cluster 3 個連接)
-    minPoolSize: 1,           // 最小連線池大小 - Reduced
+    poolSize: 12,              // 連線池大小 - Reduced for multi-shard environment (每個 cluster 3 個連接)
+    minPoolSize: 5,           // 最小連線池大小 - Reduced
     heartbeatInterval: 15_000,  // 心跳檢測間隔 - Increased to reduce load
     serverSelectionTimeout: 60_000,  // Increased to 60 seconds for better stability with multiple shards
     maxIdleTimeMS: 60_000,     // 最大閒置時間 - Increased to reduce connection churn

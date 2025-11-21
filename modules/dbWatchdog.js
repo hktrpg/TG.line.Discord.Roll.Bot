@@ -2,6 +2,7 @@
 const path = require('path');
 const winston = require('winston');
 const { format } = winston;
+const mongoose = require('./db-connector.js').mongoose;
 const schema = require('./schema.js');
 
 // 常數配置
@@ -208,10 +209,10 @@ class DbWatchdog {
                         }
                     }
 
-                    // 定期記錄健康狀態
-                    if (healthReport.status !== 'healthy') {
-                        this.logger.warn('Database health check', healthReport);
-                    }
+                    // 定期記錄健康狀態 - 只在發生錯誤時記錄
+                    // if (healthReport.status !== 'healthy') {
+                    //     this.logger.warn('Database health check', healthReport);
+                    // }
 
                     // 更新最後健康檢查時間
                     this.healthMetrics.lastHealthCheck = new Date();
@@ -316,10 +317,17 @@ class DbWatchdog {
             ? (this.healthMetrics.successfulOperations / this.healthMetrics.totalOperations) * 100
             : 100;
 
+        // 直接檢查 mongoose 連線狀態
+        const mongooseReadyState = mongoose?.connection?.readyState ?? 0;
+        const isActuallyConnected = mongooseReadyState === 1; // 1 = connected
+
         let status = 'healthy';
         if (this.healthMetrics.consecutiveFailures > 3) status = 'degraded';
         if (this.circuitBreaker.state === 'OPEN') status = 'critical';
-        if (!this.connectionState.isConnected) status = 'disconnected';
+        if (!isActuallyConnected) status = 'disconnected';
+
+        // 更新內部狀態以保持同步
+        this.connectionState.isConnected = isActuallyConnected;
 
         return {
             status,
@@ -334,7 +342,9 @@ class DbWatchdog {
                 lastHealthCheck: new Date().toISOString()
             },
             connection: {
-                isConnected: this.connectionState.isConnected,
+                isConnected: isActuallyConnected,
+                readyState: mongooseReadyState,
+                readyStateText: mongoose ? (['disconnected', 'connected', 'connecting', 'disconnecting'][mongooseReadyState] || 'unknown') : 'mongoose_not_initialized',
                 lastConnectionTime: this.connectionState.lastConnectionTime,
                 lastDisconnectionTime: this.connectionState.lastDisconnectionTime,
                 reconnectionAttempts: this.connectionState.reconnectionAttempts

@@ -576,11 +576,11 @@ async function count() {
 		// 並行收集資料，但個別處理錯誤
 		const [guildStats, memberStats] = await Promise.all([
 			collectClusterStats(allClusterIds,
-				async (clusterId) => await client.cluster.evalOnManager(`this.clusters.get(${clusterId}).fetchClientValues('guilds.cache.size')`),
+				async (clusterId) => await client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.size).then(sizes => sizes.reduce((a, b) => a + b, 0))`),
 				'guilds'
 			),
 			collectClusterStats(allClusterIds,
-				async (clusterId) => await client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))`),
+				async (clusterId) => await client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0)).then(counts => counts.reduce((a, b) => a + b, 0))`),
 				'members'
 			)
 		]);
@@ -630,8 +630,8 @@ async function count2() {
 		const promises = allClusterIds.map(async (clusterId) => {
 			try {
 				const [guildResult, memberResult] = await Promise.all([
-					client.cluster.evalOnManager(`this.clusters.get(${clusterId}).fetchClientValues('guilds.cache.size')`),
-					client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))`)
+					client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.size).then(sizes => sizes.reduce((a, b) => a + b, 0))`),
+					client.cluster.evalOnManager(`this.clusters.get(${clusterId}).broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0)).then(counts => counts.reduce((a, b) => a + b, 0))`)
 				]);
 				return { guildResult, memberResult, success: true };
 			} catch (error) {

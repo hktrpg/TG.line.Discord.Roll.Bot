@@ -221,11 +221,25 @@ function setupConnectionListeners() {
         console.log(`MongoDB connection established - ReadyState: ${mongoose.connection.readyState}`);
         isConnected = true;
         connectionAttempts = 0;
+
+        // 更新 dbWatchdog 的連接狀態
+        if (dbWatchdog && dbWatchdog.connectionState) {
+            dbWatchdog.connectionState.isConnected = true;
+            dbWatchdog.connectionState.lastConnectionTime = new Date();
+            dbWatchdog.connectionState.reconnectionAttempts = connectionAttempts;
+        }
     });
     mongoose.connection.on('reconnected', () => {
         console.log(`MongoDB reconnected - ReadyState: ${mongoose.connection.readyState}`);
         isConnected = true;
         connectionAttempts = 0;
+
+        // 更新 dbWatchdog 的連接狀態
+        if (dbWatchdog && dbWatchdog.connectionState) {
+            dbWatchdog.connectionState.isConnected = true;
+            dbWatchdog.connectionState.lastConnectionTime = new Date();
+            dbWatchdog.connectionState.reconnectionAttempts = connectionAttempts;
+        }
     });
     mongoose.connection.on('connecting', () => {
         console.log(`MongoDB connecting... - ReadyState: ${mongoose.connection.readyState}`);
@@ -259,6 +273,12 @@ async function restart() {
 async function handleDisconnect() {
     console.log('MongoDB disconnected');
     isConnected = false;
+
+    // 更新 dbWatchdog 的連接狀態
+    if (dbWatchdog && dbWatchdog.connectionState) {
+        dbWatchdog.connectionState.isConnected = false;
+        dbWatchdog.connectionState.lastDisconnectionTime = new Date();
+    }
 
     // 如果已經在重新連接中，跳過
     if (reconnecting) {

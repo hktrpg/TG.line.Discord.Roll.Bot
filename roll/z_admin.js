@@ -140,7 +140,7 @@ const discordCommand = [
         data: new SlashCommandBuilder()
             .setName('admin')
             .setDescription('【⚙️管理員工具箱】')
-            // 系統監控
+            // System monitoring
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('state')
@@ -153,7 +153,7 @@ const discordCommand = [
                 subcommand
                     .setName('mongod')
                     .setDescription('檢視MongoDB連接狀態'))
-            // 帳號管理
+            // Account management
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('account')
@@ -182,7 +182,7 @@ const discordCommand = [
                 subcommand
                     .setName('disallowrolling')
                     .setDescription('取消頻道網頁擲骰權限'))
-            // 更新通知
+            // Update notifications
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('news')
@@ -198,7 +198,7 @@ const discordCommand = [
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             
-            // 系統監控
+            // System monitoring
             switch (subcommand) {
             case 'state': {
                 return '.admin state';
@@ -240,7 +240,7 @@ const discordCommand = [
         data: new SlashCommandBuilder()
             .setName('root')
             .setDescription('【🔐系統管理員專用】')
-            // 系統重啟
+            // System restart
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('respawn')
@@ -253,7 +253,7 @@ const discordCommand = [
                 subcommand
                     .setName('respawnall')
                     .setDescription('重啟所有服務'))
-            // VIP管理
+            // VIP management
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('addvipgroup')
@@ -298,7 +298,7 @@ const discordCommand = [
                     .addBooleanOption(option =>
                         option.setName('switch')
                             .setDescription('開關狀態')))
-            // 指令註冊
+            // Command registration
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('registeredglobal')
@@ -311,7 +311,7 @@ const discordCommand = [
                         option.setName('id')
                             .setDescription('指令ID')
                             .setRequired(false)))
-            // 加密功能
+            // Encryption functions
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('decrypt')
@@ -320,7 +320,7 @@ const discordCommand = [
                         option.setName('text')
                             .setDescription('加密文字')
                             .setRequired(true)))
-            // 發送通知
+            // Send notifications
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('sendnews')
@@ -332,7 +332,7 @@ const discordCommand = [
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             
-            // 系統重啟
+            // System restart
             switch (subcommand) {
             case 'respawn': {
                 const id = interaction.options.getString('id');
@@ -413,11 +413,11 @@ const rollDiceCommand = async function ({
     let name;
     let temp2;
 
-    // 檢查是否為管理員命令
+    // Check if it's an admin command
     const isAdminCommand = /^[.]admin$/i.test(mainMsg[0]);
     const isRootCommand = /^[.]root$/i.test(mainMsg[0]);
 
-    // 如果是root命令，檢查權限
+    // If it's a root command, check permissions
     if (isRootCommand) {
         if (!adminSecret || userid !== adminSecret) {
             rply.text = "此命令僅限系統管理員使用";
@@ -425,7 +425,7 @@ const rollDiceCommand = async function ({
         }
     }
 
-    // 根據命令類型處理不同的功能
+    // Handle different functions based on command type
     if (isAdminCommand) {
         switch (true) {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
@@ -793,7 +793,7 @@ const rollDiceCommand = async function ({
 }
 
 function checkUserName(text) {
-    //True 即成功
+    // True means success
     return /^[A-Za-z0-9\u3000\u3400-\u4DBF\u4E00-\u9FFF]{4,16}$/.test(text);
 }
 

@@ -184,7 +184,7 @@ const rolldice = async (context) => {
 	}
 	let target = findRollList(context.mainMsg);
 	if (!target) return null;
-	(debugMode) ? console.log('            trigger:', context.inputStr) : '';
+	(debugMode) ? console.log('[analytics]            trigger:', context.inputStr) : '';
 
 	let rollTimes = context.inputStr.match(/^\.(\d{1,2})\s/);
 	
@@ -328,7 +328,7 @@ async function cmdfunction({ result, ...context }) {
 			Time: ${new Date()}`);
 	}
 
-	(debugMode) ? console.log('            inputStr2:', newInputStr) : '';
+	(debugMode) ? console.log('[analytics]            inputStr2:', newInputStr) : '';
 	if (typeof tempResut === 'object' && tempResut !== null) {
 		if (result.characterName) tempResut.text = `${result.characterName} 進行 ${result.characterReRollName} 擲骰\n ${tempResut.text}`
 		return tempResut;
@@ -345,7 +345,7 @@ function z_stop(mainMsg, groupid) {
 
 	const match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()));
 	if (match) {
-		if (debugMode) console.log('Match AND STOP');
+		if (debugMode) console.log('[analytics] Match AND STOP');
 		return true;
 	}
 	return false;

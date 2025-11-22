@@ -282,7 +282,7 @@ async function handleShow(mainMsg, userid, rply) {
 
 async function handleAddEdit(mainMsg, inputStr, userid, groupid, rply) {
     let Card = await analysicInputCharacterCard(inputStr);
-    // 驗證輸入：禁止同名標題與超長內容
+    // Validate input: prohibit duplicate titles and overly long content
     const validationError = await validateCharacterCardInput(Card);
     if (validationError) {
         rply.text = validationError;

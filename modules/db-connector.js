@@ -74,32 +74,32 @@ function calculateBackoffTime(attempt) {
 async function connect(retries = 0) {
     // 檢查是否已經有活躍連接
     if (mongoose.connection.readyState === 1 && isConnected) {
-        console.log('MongoDB connection already active, skipping...');
+        console.log('[db-connector] MongoDB connection already active, skipping...');
         return true;
     }
 
     // 如果正在冷卻期，等待一下
     if (connectionCooldown) {
-        console.log('Connection in cooldown period, waiting...');
+        console.log('[db-connector] Connection in cooldown period, waiting...');
         await new Promise(resolve => setTimeout(resolve, 5000));
         connectionCooldown = false;
     }
 
     // 如果有正在進行的連接嘗試，返回該 Promise
     if (sharedConnectionPromise) {
-        console.log('Waiting for existing connection attempt...');
+        console.log('[db-connector] Waiting for existing connection attempt...');
         try {
             await sharedConnectionPromise;
             return mongoose.connection.readyState === 1;
         } catch {
-            console.log('Existing connection attempt failed, will retry...');
+            console.log('[db-connector] Existing connection attempt failed, will retry...');
             sharedConnectionPromise = null;
         }
     }
 
     // 如果正在連接中，等待連接完成
     if (mongoose.connection.readyState === 2) { // connecting
-        console.log('MongoDB connection in progress, waiting...');
+        console.log('[db-connector] MongoDB connection in progress, waiting...');
         return new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
                 reject(new Error('Connection timeout'));
@@ -107,7 +107,7 @@ async function connect(retries = 0) {
 
             mongoose.connection.once('connected', () => {
                 clearTimeout(timeout);
-                console.log('MongoDB connection established while waiting');
+                console.log('[db-connector] MongoDB connection established while waiting');
                 isConnected = true;
                 resolve(true);
             });
@@ -127,11 +127,11 @@ async function connect(retries = 0) {
     sharedConnectionPromise = (async () => {
         try {
             connectionAttempts++;
-            console.log(`Attempting to connect to MongoDB (Attempt ${connectionAttempts}) - ReadyState: ${mongoose.connection.readyState}`);
+            console.log(`[db-connector] Attempting to connect to MongoDB (Attempt ${connectionAttempts}) - ReadyState: ${mongoose.connection.readyState}`);
 
             // 只有在真正斷開連接時才建立新連接
             if (mongoose.connection.readyState === 0) { // disconnected
-                console.log('Creating new MongoDB connection...');
+                console.log('[db-connector] Creating new MongoDB connection...');
                 await mongoose.connect(config.mongoUrl, {
                     connectTimeoutMS: config.connectTimeout,
                     socketTimeoutMS: config.socketTimeout,
@@ -148,7 +148,7 @@ async function connect(retries = 0) {
                     useUnifiedTopology: config.useUnifiedTopology
                 });
             } else if (mongoose.connection.readyState === 3) { // disconnecting
-            console.log('Waiting for disconnect to complete before reconnecting...');
+            console.log('[db-connector] Waiting for disconnect to complete before reconnecting...');
             // 等待斷開完成，然後建立新連接
             await new Promise(resolve => {
                 const checkState = () => {
@@ -161,7 +161,7 @@ async function connect(retries = 0) {
                 checkState();
             });
 
-            console.log('Reconnecting after disconnect...');
+            console.log('[db-connector] Reconnecting after disconnect...');
             await mongoose.connect(config.mongoUrl, {
                 connectTimeoutMS: config.connectTimeout,
                 socketTimeoutMS: config.socketTimeout,
@@ -179,11 +179,11 @@ async function connect(retries = 0) {
                 useUnifiedTopology: config.useUnifiedTopology
             });
         } else {
-            console.log(`MongoDB connection state is ${mongoose.connection.readyState}, no action needed`);
+            console.log(`[db-connector] MongoDB connection state is ${mongoose.connection.readyState}, no action needed`);
             return true;
         }
 
-            console.log(`MongoDB connected successfully. Connection state: ${connectionStates[mongoose.connection.readyState]}`);
+            console.log(`[db-connector] MongoDB connected successfully. Connection state: ${connectionStates[mongoose.connection.readyState]}`);
             isConnected = true;
             connectionAttempts = 0;
 
@@ -205,7 +205,7 @@ async function connect(retries = 0) {
 
             if (retries < config.maxRetries) {
                 const backoffTime = calculateBackoffTime(retries);
-                console.log(`Retrying connection in ${Math.round(backoffTime/1000)} seconds... (${retries + 1}/${config.maxRetries})`);
+                console.log(`[db-connector] Retrying connection in ${Math.round(backoffTime/1000)} seconds... (${retries + 1}/${config.maxRetries})`);
 
                 // Add jitter to prevent thundering herd
                 const jitter = Math.random() * 1000;
@@ -219,7 +219,7 @@ async function connect(retries = 0) {
             // Schedule a retry after a longer delay
             const RETRY_DELAY = 60_000;
             setTimeout(() => {
-                console.log('Attempting to reconnect to MongoDB after extended delay...');
+                console.log('[db-connector] Attempting to reconnect to MongoDB after extended delay...');
                 connect(0);
             }, RETRY_DELAY);
 
@@ -262,7 +262,7 @@ function setupConnectionListeners() {
     mongoose.connection.on('disconnected', handleDisconnect);
     mongoose.connection.on('error', handleError);
     mongoose.connection.on('connected', () => {
-        console.log(`MongoDB connection established - ReadyState: ${mongoose.connection.readyState}`);
+        console.log(`[db-connector] MongoDB connection established - ReadyState: ${mongoose.connection.readyState}`);
         isConnected = true;
         connectionAttempts = 0;
 
@@ -274,7 +274,7 @@ function setupConnectionListeners() {
         });
     });
     mongoose.connection.on('reconnected', () => {
-        console.log(`MongoDB reconnected - ReadyState: ${mongoose.connection.readyState}`);
+        console.log(`[db-connector] MongoDB reconnected - ReadyState: ${mongoose.connection.readyState}`);
         isConnected = true;
         connectionAttempts = 0;
 
@@ -286,16 +286,16 @@ function setupConnectionListeners() {
         });
     });
     mongoose.connection.on('connecting', () => {
-        console.log(`MongoDB connecting... - ReadyState: ${mongoose.connection.readyState}`);
+        console.log(`[db-connector] MongoDB connecting... - ReadyState: ${mongoose.connection.readyState}`);
     });
     mongoose.connection.on('disconnecting', () => {
-        console.log(`MongoDB disconnecting... - ReadyState: ${mongoose.connection.readyState}`);
+        console.log(`[db-connector] MongoDB disconnecting... - ReadyState: ${mongoose.connection.readyState}`);
     });
 }
 
 // 重新連線
 async function restart() {
-    console.log('Restarting MongoDB connection...');
+    console.log('[db-connector] Restarting MongoDB connection...');
     try {
         if (mongoose.connection.readyState === 1) {
             await mongoose.connection.close();
@@ -315,7 +315,7 @@ async function restart() {
 
 // 斷線處理
 async function handleDisconnect() {
-    console.log('MongoDB disconnected');
+    console.log('[db-connector] MongoDB disconnected');
     isConnected = false;
 
     // Emit disconnection event
@@ -326,7 +326,7 @@ async function handleDisconnect() {
 
     // 如果已經在重新連接中，跳過
     if (reconnecting) {
-        console.log('Reconnection already in progress, skipping...');
+        console.log('[db-connector] Reconnection already in progress, skipping...');
         return;
     }
 
@@ -336,7 +336,7 @@ async function handleDisconnect() {
     const backoffTime = calculateBackoffTime(connectionAttempts);
     setTimeout(async () => {
         if (!isConnected && reconnecting) {
-            console.log(`Attempting to reconnect after ${Math.round(backoffTime/1000)} seconds...`);
+            console.log(`[db-connector] Attempting to reconnect after ${Math.round(backoffTime/1000)} seconds...`);
             try {
                 await restart();
             } catch (error) {
@@ -357,7 +357,7 @@ async function handleError(error) {
 
     // 如果已經在重新連接中，跳過
     if (reconnecting) {
-        console.log('Reconnection already in progress (from error handler), skipping...');
+        console.log('[db-connector] Reconnection already in progress (from error handler), skipping...');
         return;
     }
 
@@ -367,7 +367,7 @@ async function handleError(error) {
     const backoffTime = calculateBackoffTime(connectionAttempts);
     setTimeout(async () => {
         if (!isConnected && reconnecting) {
-            console.log(`Attempting to recover from error after ${Math.round(backoffTime/1000)} seconds...`);
+            console.log(`[db-connector] Attempting to recover from error after ${Math.round(backoffTime/1000)} seconds...`);
             try {
                 await restart();
             } catch (error) {
@@ -416,19 +416,19 @@ let retryInterval = null;
 async function initializeConnection() {
     // 防止重複初始化
     if (isInitializing) {
-        console.log('MongoDB initialization already in progress, skipping...');
+        console.log('[db-connector] MongoDB initialization already in progress, skipping...');
         return;
     }
 
     if (isConnected) {
-        console.log('MongoDB already connected, skipping initialization...');
+        console.log('[db-connector] MongoDB already connected, skipping initialization...');
         return;
     }
 
     isInitializing = true;
 
     try {
-        console.log('Initializing MongoDB connection...');
+        console.log('[db-connector] Initializing MongoDB connection...');
         const success = await connect();
         if (!success) {
             console.error('Failed to establish initial MongoDB connection after all retries');
@@ -442,7 +442,7 @@ async function initializeConnection() {
                     if (retrySuccess) {
                         clearInterval(retryInterval);
                         retryInterval = null;
-                        console.log('Successfully connected to MongoDB after retries');
+                        console.log('[db-connector] Successfully connected to MongoDB after retries');
                     }
                 } catch (error) {
                     console.error('Retry connection error:', error);
@@ -461,7 +461,7 @@ async function initializeConnection() {
                 if (retrySuccess) {
                     clearInterval(retryInterval);
                     retryInterval = null;
-                    console.log('Successfully connected to MongoDB after retries');
+                    console.log('[db-connector] Successfully connected to MongoDB after retries');
                 }
             } catch (error) {
                 console.error('Retry connection error:', error);

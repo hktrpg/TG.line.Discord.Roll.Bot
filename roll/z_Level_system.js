@@ -1,4 +1,4 @@
-//參考
+// Reference
 //https://github.com/cookkkie/mee6
 "use strict";
 if (!process.env.mongoURL) {
@@ -191,7 +191,7 @@ const rollDiceCommand = async function ({
                 groupid: groupid
             }).catch(error => console.error('level_system #164 mongoDB error:', error.name, error.reason));
 
-            //問題: 如果沒有GP 的話, 可以刪除嗎?
+            // Question: If there's no GP, can it be deleted?
             if (!doc || doc.Title.length === 0) {
                 rply.text = "刪除稱號成功。現改回使用預設稱號。"
                 return rply
@@ -225,7 +225,7 @@ const rollDiceCommand = async function ({
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^TitleWord$/i.test(mainMsg[1]): {
             //
-            //稱號Title
+            // Title
             //
             rply.text = checkTools.permissionErrMsg({
                 flag: checkTools.flag.ChkChannelAdmin,

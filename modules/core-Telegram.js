@@ -43,12 +43,12 @@ TGclient.on('message:text', (ctx) => {
                 inputStr = inputStr
                     .replace(new RegExp('@' + robotName + '$', 'i'), '')
                     .replace(new RegExp('^/', 'i'), '');
-            mainMsg = inputStr.match(MESSAGE_SPLITOR); // 定義輸入字串
+            mainMsg = inputStr.match(MESSAGE_SPLITOR); // Define input string
         }
         if (mainMsg && mainMsg[0]) {
             trigger = mainMsg[0].toString().toLowerCase();
         }
-        //指定啟動詞在第一個詞&把大階強制轉成細階
+        // Specify trigger word in first position & force major level to minor level
         let groupid = ((ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') && userid && ctx.chat.id) ? ctx.chat.id : '';
         let privatemsg = 0;
 
@@ -80,13 +80,13 @@ TGclient.on('message:text', (ctx) => {
         let TargetGMTempdiyName = [];
         let TargetGMTempdisplayname = [];
         let tgDisplayname = (ctx.from.first_name) ? ctx.from.first_name : '';
-        //得到暗骰的數據, GM的位置
+        // Get private roll data, GM position
         if (ctx.from.username) displayname = ctx.from.username;
-        //是不是自己.ME 訊息
-        //TRUE 即正常
+        // Is it my own .ME message
+        // TRUE means normal
         let displaynamecheck = true;
         let userrole = 1;
-        //頻道人數
+        // Channel member count
         if (ctx.chat && ctx.chat.id) {
             membercount = await TGclient.api.getChatMemberCount(ctx.chat.id).catch(() => {
                 return 0;
@@ -100,8 +100,8 @@ TGclient.on('message:text', (ctx) => {
         }
         let rplyVal = {};
 
-        // 訊息來到後, 會自動跳到analytics.js進行骰組分析
-        // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+        // After message arrives, automatically jump to analytics.js for dice group analysis
+        // If you want to add or modify dice groups, just modify the conditions in analytics.js and the dice group files in ROLL, then add explanations in HELP.JS.
         if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
             mainMsg.shift();
             rplyVal = await exports.analytics.parseInput({
@@ -173,7 +173,7 @@ TGclient.on('message:text', (ctx) => {
             }
         }
 
-        //LevelUp功能
+        // LevelUp function
         if (groupid && rplyVal && rplyVal.LevelUp) {
             let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}${(candle.checker(userid)) ? ' ' + candle.checker(userid) : ''}\n\t\t${rplyVal.LevelUp}`
             SendToId(groupid, text, options);
@@ -197,7 +197,7 @@ TGclient.on('message:text', (ctx) => {
 
         switch (true) {
             case privatemsg == 1: {
-                // 輸入dr  (指令) 私訊自己
+                // Input dr (command) private message to self
                 //
                 if (ctx.chat.type != 'private') {
                     SendToId(groupid, "@" + displayname + ' 暗骰給自己', options);
@@ -207,7 +207,7 @@ TGclient.on('message:text', (ctx) => {
                 break;
             }
             case privatemsg == 2: {
-                //輸入ddr(指令) 私訊GM及自己
+                // Input ddr(command) private message to GM and self
                 if (ctx.chat.type != 'private') {
                     let targetGMNameTemp = "";
                     for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -224,7 +224,7 @@ TGclient.on('message:text', (ctx) => {
                 break;
             }
             case privatemsg == 3: {
-                //輸入dddr(指令) 私訊GM
+                // Input dddr(command) private message to GM
                 if (ctx.chat.type != 'private') {
                     let targetGMNameTemp = "";
                     for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -270,14 +270,14 @@ let ws;
 let connect = function () {
     ws = new WebSocket('ws://127.0.0.1:53589');
     ws.on('open', function open() {
-        console.log('connected To core-www from Telegram!')
+        console.log('[Telegram] connected To core-www from Telegram!')
         ws.send('connected To core-www from Telegram!');
     });
     ws.on('message', function incoming(data) {
         let object = JSON.parse(data);
         if (object.botname == 'Telegram') {
             if (!object.text) return;
-            console.log('Telegram have message')
+            console.log('[Telegram] Telegram have message')
             TGclient.api.sendMessage(object.target.id, object.text).catch((error) => {
                 console.error("Telegram sendMessage error:", error.message);
             });
@@ -285,7 +285,7 @@ let connect = function () {
         }
         if (object.botname == 'Line') {
             if (!object.text) return;
-            console.log('Line have message')
+            console.log('[Telegram] Line have message')
             process.emit('Line', object.message);
             return;
         }
@@ -296,7 +296,7 @@ let connect = function () {
     });
 
     ws.on('close', function () {
-        console.log('Telegram socket close');
+        console.log('[Telegram] Telegram socket close');
         setTimeout(connect, RECONNECT_INTERVAL);
     });
 };
@@ -332,7 +332,7 @@ async function nonDice(ctx) {
 TGclient.on('message:new_chat_members', async (ctx) => {
     let newUser = await TGclient.api.getMe();
     if (ctx.message.new_chat_member.username == newUser.username) {
-        console.log("Telegram joined");
+        console.log("[Telegram] Telegram joined");
         SendToId(ctx.chat.id, newMessage.joinMessage());
     }
 });

@@ -12,7 +12,7 @@ const Plurk_Client = new PlurkClient(process.env.PLURK_APPKEY, process.env.PLURK
 exports.analytics = require('./analytics');
 Plurk_Client.request('Users/me')
     .then(profile => {
-        console.log(`Plurk 名稱: ${profile.full_name}`);
+        console.log(`[Plurk] Plurk 名稱: ${profile.full_name}`);
         plurkID = profile.id;
     })
     .catch(error => console.error('plurk error:', error.error_text));

@@ -167,7 +167,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /(^[.]event$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]): {
-            events = await analysicInputData(inputStr); //分析輸入的資料
+            events = await analysicInputData(inputStr); // Analyze input data
 
             if (!events || !events.MainData || !events.eventName) {
                 rply.text = `沒有輸入事件或名字，請重新整理內容 格式為
@@ -194,14 +194,14 @@ exp:SAN
             });
             levelLv = await findMaxLv(userid);
 
-            //取得本來的資料, 如有重覆, 以新的覆蓋
+            // Get original data, if duplicate, overwrite with new
             //doc = await schema.event.findOne(filter);
             let mainSplit = await analysicDetail(events.MainData)
             if (mainSplit.length < 3 || mainSplit.length > Number(3 + levelLv)) {
                 rply.text = '新增事件失敗\n一個事件需要至少設定 3 個結果\n你現在的VIP LV最多同時可設定 ' + Number(3 + levelLv) + ' 個事件'
                 return rply;
             }
-            //至少一個是正面
+            // At least one is positive
             let positiveCheck = false;
             for (let index = 0; index < mainSplit.length; index++) {
                 (Number(mainSplit[index].result) > 0) ? positiveCheck = true : null;
@@ -290,8 +290,8 @@ exp:SAN
                 rply.text = '新增事件失敗\n因為 ' + error.message
                 return rply;
             }
-            //增加資料庫
-            //檢查有沒有重覆
+            // Add to database
+            // Check for duplicates
             rply.text = '新增/修改事件 - ' + tempMain.title + '\n經驗值的名稱: ' + tempMain.expName + '\n';
             rply.text += (tempMain.chainTitle) ? `系列名稱: ${tempMain.chainTitle}\n` : '';
             for (let index = 0; index < tempMain.detail.length; index++) {
@@ -328,8 +328,8 @@ exp:SAN
                 rply.text = '刪除事件失敗'
                 return rply;
             }
-            //增加資料庫
-            //檢查有沒有重覆
+            // Add to database
+            // Check for duplicates
             rply.text = '刪除事件成功: ' + doc.title
             return rply;
         }
@@ -404,7 +404,7 @@ exp:SAN
                     eventMember.energy = maxLv + 20;
                 }
 
-                //回複EN
+                // Recover EN
                 let EnergyRecover = Math.round(((new Date(Date.now()) - new Date(eventMember.lastActiveAt))) / EN_RECOVER_TIME);
                 eventMember.energy = Math.min(maxLv + 20, EnergyRecover + eventMember.energy);
                 eventMember.lastActiveAt = new Date(Date.now());
@@ -560,7 +560,7 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
                 await eventMember.save();
                 let randomDetail = eventList[0].detail[await rollDice.Dice(eventList[0].detail.length) - 1];
                 let eventText = [];
-                // 檢查randomDetail是否存在且有event屬性
+                // Check if randomDetail exists and has event property
                 if (randomDetail && randomDetail.event) {
                     eventText = randomDetail.event.split(';').filter(text => text && text.trim());
                 }
@@ -591,12 +591,12 @@ EN: ${eventMember.energy} / ${maxLv + 20} ${ENemoji(Math.round(eventMember.energ
 ╰${line}`;
                 }
 
-                // 確保eventText有內容才進行擲骰
+                // Ensure eventText has content before rolling dice
                 if (!eventText || eventText.length === 0) {
                     rply.text += formatEvent(
                         eventList[0].chainTitle,
                         eventList[0].title,
-                        '無事發生'  // 預設文字
+                        'Nothing happens'  // Default text
                     );
                 } else {
                     rply.text += formatEvent(

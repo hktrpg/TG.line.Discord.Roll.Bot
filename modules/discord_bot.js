@@ -102,7 +102,7 @@ client.on('messageCreate', async message => {
 	try {
 		if (message.author.bot) return;
 
-		// 使用批次處理
+		// Use batch processing
 		const [dbStatus, result] = await Promise.all([
 			checkMongodb.isDbOnline(),
 			handlingResponMessage(message)
@@ -248,7 +248,7 @@ let heartbeatInterval = null;
 client.cluster.on('message', message => {
 	if (message?.type === 'startHeartbeat') {
 		if (client.cluster.id === 0) {
-			console.log('[Cluster 0] Received startHeartbeat signal. Starting heartbeat monitor.');
+			console.log('[discord_bot] [Cluster 0] Received startHeartbeat signal. Starting heartbeat monitor.');
 			startHeartbeatMonitor();
 		}
 	}
@@ -267,7 +267,7 @@ function startHeartbeatMonitor() {
 	}
 	let heartbeat = 0;
 
-	console.log('Discord Heartbeat Monitor Started on Cluster 0.');
+	console.log('[discord_bot] Discord Heartbeat Monitor Started on Cluster 0.');
 
 	heartbeatInterval = setInterval(async () => {
 		const isAwake = await checkWakeUp();
@@ -279,7 +279,7 @@ function startHeartbeatMonitor() {
 		heartbeat++;
 
 		if (Array.isArray(isAwake) && isAwake.length > 0) {
-			console.log(`Discord Heartbeat: Down Shards: ${isAwake.join(',')} - Heartbeat: ${heartbeat}`);
+			console.log(`[discord_bot] Discord Heartbeat: Down Shards: ${isAwake.join(',')} - Heartbeat: ${heartbeat}`);
 			if (heartbeat > WARNING_THRESHOLD && adminSecret) {
 				SendToId(adminSecret, `HKTRPG ID: ${isAwake.join(', ')} 可能下線了 請盡快檢查.`);
 			}
@@ -529,7 +529,7 @@ async function nonDice(message) {
 }
 
 
-//Set Activity 可以自定義正在玩什麼
+// Set Activity can customize what is being played
 
 
 function __privateMsg({ trigger, mainMsg, inputStr }) {
@@ -555,16 +555,16 @@ async function count() {
 	if (!client.cluster) return '';
 
 	try {
-		// 獲取所有分群 ID
+		// Get all subgroup IDs
 		const allClusterIds = [...client.cluster.ids.keys()];
 
-		// 使用全局 broadcastEval 並按集群分組結果
+		// Use global broadcastEval and group results by cluster
 		const [guildStatsRaw, memberStatsRaw] = await Promise.all([
 			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size })),
 			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) }))
 		]);
 
-		// 按集群分組統計資料
+		// Group statistics data by cluster
 		const guildStatsByCluster = new Map();
 		const memberStatsByCluster = new Map();
 
@@ -582,7 +582,7 @@ async function count() {
 			memberStatsByCluster.get(clusterId).push(memberCount);
 		}
 
-		// 轉換為預期的格式
+		// Convert to expected format
 		const guildStats = { results: [], errors: [], successCount: 0, errorCount: 0 };
 		const memberStats = { results: [], errors: [], successCount: 0, errorCount: 0 };
 
@@ -611,7 +611,7 @@ async function count() {
 			}
 		}
 
-		// 計算總數
+		// Calculate totals
 		let totalGuilds = 0;
 		let totalMembers = 0;
 		let successfulClusters = 0;
@@ -649,16 +649,16 @@ async function count2() {
 	if (!client.cluster) return '🌼bothelp | hktrpg.com🍎';
 
 	try {
-		// 獲取所有分群 ID
+		// Get all subgroup IDs
 		const allClusterIds = [...client.cluster.ids.keys()];
 
-		// 使用全局 broadcastEval 並按集群分組結果
+		// Use global broadcastEval and group results by cluster
 		const [guildStatsRaw, memberStatsRaw] = await Promise.all([
 			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size })),
 			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) }))
 		]);
 
-		// 按集群分組統計資料
+		// Group statistics data by cluster
 		const guildStatsByCluster = new Map();
 		const memberStatsByCluster = new Map();
 
@@ -676,11 +676,11 @@ async function count2() {
 			memberStatsByCluster.get(clusterId).push(memberCount);
 		}
 
-		// 計算總數 - 直接從所有收集到的資料中計算
+		// Calculate totals - directly from all collected data
 		let totalGuilds = 0;
 		let totalMembers = 0;
 
-		// 計算所有集群的總數
+		// Calculate totals for all clusters
 		for (const guildData of guildStatsByCluster.values()) {
 			if (guildData && Array.isArray(guildData)) {
 				totalGuilds += guildData.reduce((acc, count) => acc + (count || 0), 0);
@@ -693,14 +693,14 @@ async function count2() {
 			}
 		}
 
-		// 計算成功的集群數量
+		// Calculate number of successful clusters
 		const successfulClusters = guildStatsByCluster.size;
 
 		const status = successfulClusters === allClusterIds.length ? '✅' : `⚠️${successfulClusters}/${allClusterIds.length}`;
 		return (`${status} ${totalGuilds}群組📶 ${totalMembers}會員📶`);
 	} catch (error) {
 		console.error(`disocrdbot #617 error: ${error.message}`);
-		// 不要在這裡重生分群 - 讓分群管理器處理它
+		// Do not respawn subgroups here - let the subgroup manager handle it
 		return '🌼bothelp | hktrpg.com🍎';
 	}
 }
@@ -754,25 +754,25 @@ async function gracefulShutdown(signal = 'unknown') {
 	}, SHUTDOWN_TIMEOUT);
 
 	try {
-		// 通知健康監控器
+		// Notify health monitor
 		healthMonitor.emit('shutdown', { signal, timestamp: new Date() });
 
-		// 停止心跳監控器
+		// Stop heartbeat monitor
 		if (heartbeatInterval) {
 			clearInterval(heartbeatInterval);
 			heartbeatInterval = null;
 		}
 
-		// 關閉 WebSocket 連線
+		// Close WebSocket connection
 		if (ws) {
 			console.log('[Discord Bot] Closing WebSocket connection...');
 			ws.close();
 		}
 
-		// 銷毀 Discord 客戶端
+		// Destroy Discord client
 		if (client) {
 			console.log('[Discord Bot] Destroying Discord client...');
-			// 設定較短的超時以避免阻塞
+			// Set shorter timeout to avoid blocking
 			const destroyPromise = client.destroy();
 			const timeoutPromise = new Promise((_, reject) =>
 				setTimeout(() => reject(new Error('Client destroy timeout')), 5000)
@@ -830,7 +830,7 @@ function respawnCluster2() {
 	agenda.define("scheduleAtMessageDiscord", async (job) => {
 		//const date = new Date(2012, 11, 21, 5, 30, 0);
 		//const date = new Date(Date.now() + 5000);
-		//指定時間一次	
+		// Specify time once	
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
@@ -852,7 +852,7 @@ function respawnCluster2() {
 	agenda.define("scheduleCronMessageDiscord", async (job) => {
 		//const date = new Date(2012, 11, 21, 5, 30, 0);
 		//const date = new Date(Date.now() + 5000);
-		//指定時間一次	
+		// Specify time once	
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
@@ -1162,8 +1162,7 @@ async function getAllshardIds() {
 					const { clusterId, shardIds, wsStatus, wsPing, success } = clusterData;
 					processedClusters.add(clusterId);
 
-					// Debug: log cluster data for troubleshooting
-					console.log(`Cluster ${clusterId}: success=${success}, shardIds=${JSON.stringify(shardIds)}, wsStatus=${wsStatus}, wsPing=${wsPing}`);
+					// Debug: log cluster data for troubleshootin
 
 					// For each shard managed by this cluster, add status
 					if (success && Array.isArray(shardIds) && shardIds.length > 0) {
@@ -1238,10 +1237,7 @@ async function getAllshardIds() {
 		// Format ping/latency values - handle invalid ping values
 		const formattedPings = allPings.slice(0, allShardIdsArray.length).map((ping, index) => {
 			const p = Math.round(ping);
-			// Debug: log first few ping values for troubleshooting
-			if (index < 3) {
-				console.log(`Shard ${index} ping value: ${ping} -> ${p}`);
-			}
+			// Debug: log first few ping values for troubleshootin
 			// Handle invalid ping values (like -1 or invalid numbers)
 			if (p < 0 || Number.isNaN(p) || !Number.isFinite(p)) return '❓';
 			return p > 1000 ? `❌${formatNumber(p)}` :  // High latency (error)
@@ -1643,8 +1639,8 @@ async function handlingResponMessage(message, answer = '') {
 		}
 
 		//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
-		//LINE @名字
-		let mainMsg = (typeof inputStr === 'string') ? inputStr.match(MESSAGE_SPLITOR) : []; //定義輸入.字串
+		// LINE @name
+		let mainMsg = (typeof inputStr === 'string') ? inputStr.match(MESSAGE_SPLITOR) : []; // Define input string
 		let trigger = (mainMsg && mainMsg[0]) ? mainMsg[0].toString().toLowerCase() : '';
 		if (!trigger) return await nonDice(message)
 
@@ -1666,15 +1662,15 @@ async function handlingResponMessage(message, answer = '') {
 		const channelid = (message.channelId) ? message.channelId : '';
 		const userrole = __checkUserRole(groupid, message);
 
-		//得到暗骰的數據, GM的位置
+		// Get private roll data, GM position
 
-		//檢查是不是有權限可以傳信訊
-		//是不是自己.ME 訊息
-		//TRUE 即正常
+		// Check if there are permissions to send messages
+		// Is it my own .ME message
+		// TRUE means normal
 
-		//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
-		//訊息來到後, 會自動跳到analytics.js進行骰組分析
-		//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+		// Set private message mode 0-normal 1-self 2-self+GM 3-GM
+		// After message arrives, automatically jump to analytics.js for dice group analysis
+		// If you want to add or modify dice groups, just modify the conditions in analytics.js and the dice group files in ROLL, then add explanations in HELP.JS.
 
 		rplyVal = await exports.analytics.parseInput({
 			inputStr: inputStr,
@@ -1938,7 +1934,7 @@ async function handlingSendMessage(input) {
 	}
 	switch (true) {
 		case privatemsg == 1:
-			// 輸入dr  (指令) 私訊自己
+			// Input dr (command) private message to self
 			//
 			if (groupid) {
 				await SendToReplychannel(
@@ -1950,7 +1946,7 @@ async function handlingSendMessage(input) {
 			}
 			return;
 		case privatemsg == 2:
-			//輸入ddr(指令) 私訊GM及自己
+			// Input ddr(command) private message to GM and self
 			if (groupid) {
 				let targetGMNameTemp = "";
 				for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -1970,7 +1966,7 @@ async function handlingSendMessage(input) {
 			}
 			return;
 		case privatemsg == 3:
-			//輸入dddr(指令) 私訊GM
+			// Input dddr(command) private message to GM
 			if (groupid) {
 				let targetGMNameTemp = "";
 				for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -2506,7 +2502,7 @@ const convertRegex = function (str = "") {
 const connect = function () {
 	ws = new WebSocket('ws://127.0.0.1:53589');
 	ws.on('open', function open() {
-		console.log(`connectd To core-www from discord! Shard#${shardid}`)
+		console.log(`[discord_bot] connectd To core-www from discord! Shard#${shardid}`)
 		ws.send(`connectd To core-www from discord! Shard#${shardid}`);
 	});
 	ws.on('message', async function incoming(data) {
@@ -2600,7 +2596,7 @@ if (togGGToken) {
 }
 
 async function sendCronWebhook({ channelid, replyText, data }) {
-	console.log(`[Shard ${client.cluster.id}] Starting sendCronWebhook for channel ${channelid}`);
+	console.log(`[discord_bot] [Shard ${client.cluster.id}] Starting sendCronWebhook for channel ${channelid}`);
 	try {
 		const webhookData = await client.cluster.broadcastEval(
 			async (c, { channelId }) => {
@@ -2643,7 +2639,7 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 			return;
 		}
 
-		console.log(`[Shard ${client.cluster.id}] Found webhook ${validWebhookData.id} for channel ${channelid}. Sending message.`);
+		console.log(`[discord_bot] [Shard ${client.cluster.id}] Found webhook ${validWebhookData.id} for channel ${channelid}. Sending message.`);
 		const webhookClient = new WebhookClient({ id: validWebhookData.id, token: validWebhookData.token });
 
 		const messageOptions = {
@@ -2657,7 +2653,7 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 		}
 
 		await webhookClient.send(messageOptions);
-		console.log(`[Shard ${client.cluster.id}] Successfully sent message via webhook to channel ${channelid}.`);
+		console.log(`[discord_bot] [Shard ${client.cluster.id}] Successfully sent message via webhook to channel ${channelid}.`);
 
 	} catch (error) {
 		console.error(`[Shard ${client.cluster.id}] Error in sendCronWebhook for channel ${channelid}: ${error.message}`, error.stack);
@@ -2916,7 +2912,7 @@ async function __handlingInteractionMessage(message) {
 				try {
 					const answer = await handlingCommand(message);
 					if (!answer) {
-						success = true; // 命令正常處理但無回應
+						success = true; // Command processed normally but no response
 						return;
 					}
 
@@ -3134,12 +3130,12 @@ async function __sendMeMessage({ message, rplyVal, groupid }) {
 }
 
 client.on('shardDisconnect', (event, shardID) => {
-	console.log('shardDisconnect:', event, shardID)
+	console.log('[discord_bot] shardDisconnect:', event, shardID)
 });
 
-client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID} resumed connection and replayed ${replayed} events.`));
+client.on('shardResume', (replayed, shardID) => console.log(`[discord_bot] Shard ID ${shardID} resumed connection and replayed ${replayed} events.`));
 
-client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
+client.on('shardReconnecting', id => console.log(`[discord_bot] Shard with ID ${id} reconnected.`));
 
 
 if (debugMode) process.on('warning', e => {

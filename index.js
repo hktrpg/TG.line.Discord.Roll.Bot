@@ -133,7 +133,7 @@ class Logger {
         }
     }
 
-    // 新增：等待所有日誌寫入完成
+    // Added: Wait for all log writes to complete
     async flush() {
         if (this.writeQueue.size > 0) {
             await Promise.all(this.writeQueue);
@@ -223,7 +223,7 @@ async function loadModules(moduleManager) {
                         error: error.message,
                         stack: error.stack
                     });
-                    // 不拋出錯誤，讓其他模塊繼續加載
+                    // Do not throw error, allow other modules to continue loading
                 }
             });
         
@@ -304,7 +304,7 @@ async function init() {
 
         // Handle unhandled promise rejections
         process.on('unhandledRejection', (reason) => {
-            // 檢查是否為數據庫相關錯誤
+            // Check if it's a database-related error
             if (reason.message && (
                 reason.message.includes('MongoDB') ||
                 reason.message.includes('bad auth') ||
@@ -313,12 +313,12 @@ async function init() {
                 reason.message.includes('MongoServerSelectionError')
             )) {
                 errorHandler(reason, 'Database Connection Error');
-                // 不關閉應用程序，讓重連機制處理
+                // Do not close the application, let the reconnection mechanism handle it
                 return;
             }
-            
+
             errorHandler(reason, 'Unhandled Promise Rejection');
-            // 只有在非數據庫錯誤時才關閉應用程序
+            // Only close the application for non-database errors
             if (!reason.message || !reason.message.includes('MongoDB')) {
                 gracefulShutdown(moduleManager);
             }

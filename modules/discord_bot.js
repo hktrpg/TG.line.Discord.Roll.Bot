@@ -2498,7 +2498,7 @@ const convertRegex = function (str = "") {
 	return new RegExp(str.replaceAll(/([.?*+^$[\]\\(){}|-])/g, String.raw`\$1`));
 };
 
-// eslint-disable-next-line no-unused-vars
+
 const connect = function () {
 	ws = new WebSocket('ws://127.0.0.1:53589');
 	ws.on('open', function open() {
@@ -2530,7 +2530,7 @@ const connect = function () {
 		setTimeout(connect, RECONNECT_INTERVAL);
 	});
 };
-
+if (process.env.BROADCAST) connect();
 function handlingButtonCommand(message) {
 	// Safely check if component exists before accessing its label property
 	if (!message || !message.component) {

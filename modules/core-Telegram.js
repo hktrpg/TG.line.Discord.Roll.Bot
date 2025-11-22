@@ -269,7 +269,7 @@ const RECONNECT_INTERVAL = 1 * 1000 * 60;
 let ws;
 
 // eslint-disable-next-line no-unused-vars
-let connect = function () {
+const connect = function () {
     ws = new WebSocket('ws://127.0.0.1:53589');
     ws.on('open', function open() {
         console.log('[Telegram] connected To core-www from Telegram!')
@@ -303,7 +303,7 @@ let connect = function () {
     });
 };
 
-
+//if (process.env.BROADCAST) connect();
 async function nonDice(ctx) {
     try {
         await courtMessage({ result: "", botname: "Telegram", inputStr: "" })

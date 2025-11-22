@@ -353,4 +353,4 @@ function z_stop(mainMsg, groupid) {
 
 module.exports.debugMode = debugMode;
 module.exports.parseInput = parseInput;
-module.exports.findRollList = findRollList
+module.exports.findRollList = findRollList;

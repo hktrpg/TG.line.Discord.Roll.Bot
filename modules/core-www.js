@@ -102,7 +102,7 @@ function createWebServer(options = {}, www) {
         : http.createServer(www);
 
     const protocol = options.key ? 'https' : 'http';
-    console.log(`${protocol} server`);
+    console.log(`[www]${protocol} server`);
     // Ensure malformed requests/sockets are closed and not left hanging
     // to avoid double-emitted socket errors from Node's http(s) server.
     server.on('clientError', (err, socket) => {

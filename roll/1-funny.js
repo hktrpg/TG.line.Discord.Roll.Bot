@@ -42,7 +42,6 @@ class DailyCache {
 	 * Initialize cache - called when application starts
 	 */
 	async initialize() {
-		console.log('----> Initializing daily data cache...1');
 		if (this.isInitialized) return;
 
 		try {
@@ -458,22 +457,16 @@ class TwelveAstro {
  */
 class DailyBigEvent {
 	constructor() {
-		this.data = null;
-		this.lastUpdate = null;
+		// No instance caching - rely entirely on DailyCache
 	}
 
 	/**
-	 * 獲取每日大事
-	 * @param {boolean} forceUpdate - 是否強制更新
+	 * Get big events data (only used during initialization)
+	 * @param {boolean} forceUpdate - Whether to force update
 	 */
-	async getBigEvent(forceUpdate = false) {
+	async getBigEvent() {
 		try {
-			const today = this.getDateKey();
-			if (forceUpdate || !this.data || this.lastUpdate !== today) {
-				this.data = await this.updateBigEvent();
-				this.lastUpdate = today;
-			}
-			return this.data;
+			return await this.updateBigEvent();
 		} catch (error) {
 			console.error('DailyBigEvent getBigEvent error:', error);
 			return '條目出錯';
@@ -524,16 +517,6 @@ class DailyBigEvent {
 		}
 	}
 
-	/**
-	 * 獲取日期鍵
-	 */
-	getDateKey() {
-		const date = new Date();
-		const year = date.getFullYear();
-		const month = ('0' + (date.getMonth() + 1)).slice(-2);
-		const day = ('0' + date.getDate()).slice(-2);
-		return `${year}-${month}-${day}`;
-	}
 }
 
 class Astro {
@@ -762,9 +745,6 @@ const dailyCache = new DailyCache();
 // For backward compatibility, keep old instance names but actually use cache
 const dailyAlmanac = {
 	getAlmanac: () => dailyCache.getAlmanac()
-};
-const dailyAstro = {
-	getAstro: (name) => dailyCache.getAstro(name)
 };
 const joke = new FunnyRandom('./assets/joke.txt');
 const acg = new FunnyRandom('./assets/acg.txt');
@@ -1389,63 +1369,6 @@ function SortIt(input, mainMsg) {
 	}
 	return mainMsg[0] + ' \n→ [ ' + a.join(', ') + ' ]';
 }
-async function axiosDaily(url) {
-	let reply = await fetchData(url);
-	if (reply === '錯誤error') {
-		reply = await fetchData(url.replace('https://ovooa.com', 'http://lkaa.top'));
-	}
-	if (reply === '錯誤error') {
-		reply = `伺服器出現問題，請稍後再試，如果問題持續數天，可以到支援群回報。`;
-	}
-	return reply;
-
-}
-
-async function fetchData(url) {
-	let reply = '';
-	try {
-		const response = await axios.get(encodeURI(url), { timeout: 20_000 });
-		const json = analyzeResponse(response);
-		reply += `${json.title ? json.title + '\n' : ''}`
-		reply += `${json.text && json.text !== '获取成功' ? json.text + '\n' : ''}`
-		reply += `${json.data && json.data.title ? json.data.title + '\n' : ''}`
-		reply += `${json.data && json.data.text ? json.data.text + '\n' : ''}`
-		reply += `${json.data && json.data.Msg ? json.data.Msg + '\n' : ''}`
-		reply = chineseConv.tify(reply);
-		reply += `${json.image ? json.image + '\n' : ''}`
-		reply += `${json.data && json.data.image ? json.data.image + '\n' : ''}`
-		reply = reply.replaceAll(String.raw`\r`, '\n').replaceAll(String.raw`\n`, '\n')
-		return reply || '沒有結果，請檢查內容'
-	} catch (error) {
-		if (error.code !== 'ETIMEDOUT' || error.code !== 'ECONNABORTED' || error.code !== 'ECONNRESET' || error.code !== 'undefined') {
-			return '錯誤error'
-		}
-		//return `'Server connection error, please try again later, error code: ${error.code}`;
-	}
-}
-function analyzeResponse(response) {
-	switch (typeof response) {
-		case 'string':
-			return { data: { text: response } }
-		case 'object':
-			if (response && response.data && response.data.data) {
-				return response.data;
-			}
-			if (response && response.data) {
-				return response;
-			}
-			break;
-		default:
-			break;
-	}
-}
-/*來源自 https://ovooa.com
-	
-http://api.uuouo.cn/
-http://ybapi.top/
-http://weizhinb.top/
-	
-*/
 const discordCommand = [
 
 	{

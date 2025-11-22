@@ -1,9 +1,9 @@
 "use strict";
 
 // Requirements
+const EventEmitter = require('events');
 const mongoose = require('mongoose');
 const cachegoose = require('recachegoose');
-const EventEmitter = require('events');
 // const schedule = require('node-schedule');
 
 // 配置參數

@@ -5,14 +5,14 @@ if (process.env.BROADCAST) {
 	const WebSocket = require('ws');
 	const ws = new WebSocket('ws://127.0.0.1:53589');
 	ws.on('open', function open() {
-		console.log('connected To core-www from Whatsapp!')
+		console.log('[Whatsapp] connected To core-www from Whatsapp!')
 		ws.send('connected To core-www from Whatsapp!');
 	});
 	ws.on('message', async function incoming(data) {
 		let object = JSON.parse(data);
 		if (object.botname == 'Whatsapp') {
 			if (!object.message.text) return;
-			console.log('connect To core-www from Whatsapp!')
+			console.log('[Whatsapp] connect To core-www from Whatsapp!')
 			await SendToId(object.message.target.id, object.message.text);
 			return;
 		}
@@ -72,16 +72,16 @@ async function startUp() {
 		client.initialize().catch(error => {
 			console.error('[WhatsApp Init Error]', error);
 			if (error.message.includes('Failed to launch')) {
-				console.log('請確認已安裝 Google Chrome，或手動設定 Chrome 路徑');
+				console.log('[Whatsapp] 請確認已安裝 Google Chrome，或手動設定 Chrome 路徑');
 			}
 		});
 
 		client.on('qr', (qr) => {
-			console.log('QR RECEIVED');
+			console.log('[Whatsapp] QR RECEIVED');
 			qrcode.generate(qr, { small: true });
 		});
 
-		client.on('ready', () => console.log('Client is ready!'));
+		client.on('ready', () => console.log('[Whatsapp] Client is ready!'));
 
 		client.on('message', async msg => {
 			try {
@@ -129,7 +129,7 @@ async function startUp() {
 		});
 
 		client.on('group_join', async (msg) => {
-			console.log("Whatsapp joined");
+			console.log("[Whatsapp] Whatsapp joined");
 			if (msg.client.info.me._serialized == msg.id.participant)
 				msg.reply(newMessage.joinMessage());
 		});

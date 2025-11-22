@@ -159,7 +159,7 @@ async function getRecords() {
         timeZone: "Asia/HongKong"
     });
 
-    console.log('Rolling Log is Ready')
+    console.log('[logs] Rolling Log is Ready')
     return;
 }
 
@@ -188,37 +188,37 @@ async function courtMessage({ result, botname, inputStr, shardids = 0 }) {
         //SAVE THE LOG
         switch (botname) {
             case "Line": {
-                (debugMode) ? console.log('   Line \'s inputStr:', inputStr) : '';
+                (debugMode) ? console.log('[logs]   Line \'s inputStr:', inputStr) : '';
                 RollingLog.LineCountRoll++;
                 break;
             }
             case "Telegram": {
-                (debugMode) ? console.log('Telegram\'s inputStr:', inputStr) : '';
+                (debugMode) ? console.log('[logs] Telegram\'s inputStr:', inputStr) : '';
                 RollingLog.TelegramCountRoll++;
                 break;
             }
             case "Whatsapp": {
-                (debugMode) ? console.log('Whatsapp\'s inputStr:', inputStr) : '';
+                (debugMode) ? console.log('[logs] Whatsapp\'s inputStr:', inputStr) : '';
                 RollingLog.WhatsappCountRoll++;
                 break;
             }
             case "WWW": {
-                (debugMode) ? console.log('     WWW\'s inputStr:', inputStr) : '';
+                (debugMode) ? console.log('[logs]     WWW\'s inputStr:', inputStr) : '';
                 RollingLog.WWWCountRoll++;
                 break;
             }
             case "Discord": {
-                (debugMode) ? console.log('Discord \'s inputStr:', inputStr) : '';
+                (debugMode) ? console.log('[logs] Discord \'s inputStr:', inputStr) : '';
                 RollingLog.DiscordCountRoll++;
                 break;
             }
             case "Plurk": {
-                (debugMode) ? console.log('Plurk \'s inputStr:', inputStr) : '';
+                (debugMode) ? console.log('[logs] Plurk \'s inputStr:', inputStr) : '';
                 RollingLog.PlurkCountRoll++;
                 break;
             }
             case "Api": {
-                (debugMode) ? console.log('Api \'s inputStr:', inputStr) : '';
+                (debugMode) ? console.log('[logs] Api \'s inputStr:', inputStr) : '';
                 RollingLog.ApiCountRoll++;
                 break;
             }

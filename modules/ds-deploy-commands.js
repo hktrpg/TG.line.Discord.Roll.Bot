@@ -5,7 +5,7 @@ const clientId = process.env.DISCORD_CHANNEL_CLIENTID || "544561773488111636";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 
 if (!channelSecret) {
-    console.error('Discord channel secret is missing!');
+    console.warn('Discord channel secret is missing! Skipping slash command deployment.');
     return;
 }
 
@@ -19,7 +19,7 @@ process.nextTick(() => {
 async function registeredGlobalSlashCommands() {
     try {
         await rest.put(Routes.applicationCommands(clientId), { body: commands });
-        console.log('Successfully registered global commands');
+        console.log('[ds-deploy-commands] Successfully registered global commands');
         return "Successfully registered global commands";
     } catch (error) {
         console.error('Failed to register global commands:', error);
@@ -51,7 +51,7 @@ async function registeredGlobalSlashCommands() {
 async function testRegisteredSlashCommands(guildId) {
     return rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
         .then(() => {
-            console.log('Successfully registered application commands.')
+            console.log('[ds-deploy-commands] Successfully registered application commands.')
             return "Successfully registered application commands." + (guildId);
         })
         .catch(error => {
@@ -138,7 +138,7 @@ async function loadingSlashCommands() {
             console.warn(`Duplicate command names detected. Please fix these before registering: ${duplicates.join(', ')}`);
         }
         
-        console.log(`Loaded ${commands.length} slash commands`);
+        console.log(`[ds-deploy-commands] Loaded ${commands.length} slash commands`);
     } catch (error) {
         console.error('Failed to load commands:', error);
     }

@@ -22,11 +22,17 @@ let channelList = [];
 
 async function getRecords() {
 	if (!checkMongodb.isDbOnline()) return;
-	let result = await schema.multiServer.find({}).catch(error => {
-		console.error('multi-server #20 mongoDB error:', error.name, error.reason)
+	try {
+		let result = await checkMongodb.executeDatabaseOperation(
+			async () => await schema.multiServer.find({}),
+			'multiServer.find'
+		);
+		if (result && result.length > 0) channelList = result;
+	} catch (error) {
+		console.error('multi-server #20 mongoDB error:', error?.name || 'Unknown', error?.reason || error?.message || error)
 		checkMongodb.dbErrOccurs();
-	})
-	if (result.length > 0) channelList = result;
+		return []; // Return empty array on error
+	}
 }
 
 function multiServerChecker(channelid) {

@@ -138,8 +138,8 @@ const rollDiceCommand = async function ({
             try {
 
                 //
-                //增加自定義關鍵字
-                // .ra[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
+                // Add custom keywords
+                // .ra[0] add[1] title[2] random1[3] random2[4] 
                 /*
                 只限四張角色卡.
                 使用VIPCHECK
@@ -209,7 +209,7 @@ const rollDiceCommand = async function ({
             break;
         }
         case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
-            //刪除自定義關鍵字
+            // Delete custom keywords
             if (!mainMsg[2]) {
                 rply.text = '❌ 未輸入骰子名稱';
                 return rply;

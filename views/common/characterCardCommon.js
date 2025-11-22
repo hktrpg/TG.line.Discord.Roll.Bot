@@ -1,5 +1,5 @@
-// Common JavaScript code for character card pages - 重構版本
-// 使用模組化架構，依賴 cardManager, authManager, uiManager, socketManager
+// Common JavaScript code for character card pages - Refactored version
+// Use modular architecture, depends on cardManager, authManager, uiManager, socketManager
 
 let TITLE = "HKTRPG 角色卡";
 // eslint-disable-next-line no-unused-vars
@@ -46,7 +46,7 @@ function debugLog(message, type = 'info', data) {
     }
 }
 
-// Vue Applications - 使用 cardManager
+// Vue Applications - Use cardManager
 let card = null;
 let _cardList = null;
 
@@ -123,10 +123,10 @@ function initializeVueApps(isPublic = false, skipUITemplateLoad = false) {
 
 function initializeVueAppsInternal(isPublic = false, templateContent = null) {
     try {
-        // 使用 cardManager 初始化角色卡
+        // Use cardManager to initialize character card
         cardManager.initializeCard(isPublic, templateContent);
         
-        // 獲取實例引用
+        // Get instance reference
         card = cardManager.getCard();
         _cardList = cardManager.getCardList();
 
@@ -136,7 +136,7 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
         if (!isPublic) {
             authManager.setupLoginForm();
         } else {
-            // 公開頁面：在Vue初始化完成後請求公開清單，使用改進的重試機制
+            // Public page: Request public list after Vue initialization completes, using improved retry mechanism
             this.requestPublicListWithRetry();
         }
     } catch (error) {
@@ -191,28 +191,28 @@ function requestPublicListWithRetry() {
     }
 }
 
-// Login function - 使用 authManager
+// Login function - Use authManager
 function login() {
     authManager.login();
 }
 
-// Logout function - 使用 authManager
+// Logout function - Use authManager
 function logout() {
     authManager.logout();
 }
 
 // Confirm logout function
 function confirmLogout() {
-    // 清除本機登入資訊
+    // Clear local login information
     try { localStorage.removeItem('userName'); } catch {}
     try { localStorage.removeItem('userPassword'); } catch {}
     try { localStorage.removeItem('jwtToken'); } catch {}
     try { localStorage.removeItem('selectedGroupId'); } catch {}
 
-    // 關閉彈窗
+    // Close popup
     $('#logoutModalCenter').modal('hide');
 
-    // 訊息提示並重新載入
+    // Message prompt and reload
     uiManager.showSuccess('已成功登出');
     setTimeout(() => { window.location.reload(); }, 800);
 }
@@ -222,7 +222,7 @@ function confirmSaveChangesAndExitEditMode() {
     if (cardManager && cardManager.getCard) {
         const card = cardManager.getCard();
         if (card) {
-            // 保存變更並退出編輯模式
+            // Save changes and exit edit mode
             card.saveCard();
             card.editMode = false;
             card.editModeBackup = null;
@@ -237,7 +237,7 @@ function confirmExitEditModeWithoutSaving() {
     if (cardManager && cardManager.getCard) {
         const card = cardManager.getCard();
         if (card) {
-            // 退出編輯模式並還原變更
+            // Exit edit mode and restore changes
             card.closeEditMode();
         }
     }
@@ -270,11 +270,11 @@ function readme() {
 }
 
 function selectCard() {
-    // 檢查是否有未保存的變更 - 只在私有頁面且有編輯權限時檢查
+    // Check if there are unsaved changes - only check on private pages with edit permissions
     if (cardManager && cardManager.getCard) {
         const card = cardManager.getCard();
         if (card && !card.isPublic) {
-            // 檢查是否顯示了 floating-save-controls（表示有未保存的變更）
+            // Check if floating-save-controls is displayed (indicates unsaved changes)
             const floatingControls = document.querySelector('.floating-save-controls');
             if (floatingControls) {
                 if (confirm('您有未儲存的變更，確定要離開嗎？未儲存的變更將會遺失。')) {
@@ -289,7 +289,7 @@ function selectCard() {
 
 // Update card function for hybrid UI - 使用 socketManager
 function updateCard() {
-    // 公開頁面禁止儲存
+    // Public pages prohibit saving
     if (card && card.isPublic) {
         uiManager.showInfo('公開頁面僅供瀏覽與擲骰，無法儲存。');
         return;
@@ -317,7 +317,7 @@ function updateCard() {
         cardElement.classList.add('loading');
     }
 
-    // 先進行前端驗證：禁止同名與超長內容
+    // First perform frontend validation: prohibit duplicate names and overly long content
     const clientValidationError = validateClientCardPayload({
         _id: card._id,
         id: card.id,
@@ -343,7 +343,7 @@ function updateCard() {
             _id: card._id,
             id: card.id,
             image: card.image,
-            name: card.name, // 強制帶 name 無論如何
+            name: card.name, // Force include name no matter what
             state: card.state,
             roll: card.roll,
             notes: card.notes,
@@ -355,7 +355,7 @@ function updateCard() {
     socketManager.emitUpdateCard(data);
 }
 
-// 前端驗證：避免同名與欄位長度超標（與後端一致）
+// Frontend validation: avoid duplicate names and field length exceeding limits (consistent with backend)
 function validateClientCardPayload(payload) {
     try {
         if (!payload) return '資料無效';

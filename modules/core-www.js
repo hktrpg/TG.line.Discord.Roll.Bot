@@ -102,7 +102,7 @@ function createWebServer(options = {}, www) {
         : http.createServer(www);
 
     const protocol = options.key ? 'https' : 'http';
-    console.log(`${protocol} server`);
+    console.log(`[www]${protocol} server`);
     // Ensure malformed requests/sockets are closed and not left hanging
     // to avoid double-emitted socket errors from Node's http(s) server.
     server.on('clientError', (err, socket) => {
@@ -110,7 +110,8 @@ function createWebServer(options = {}, www) {
         // Do not attempt to send responses when handling clientError
         try {
             if (socket && !socket.destroyed) {
-                socket.destroy(err);
+                // Don't pass the error to destroy() if socket is already errored
+                socket.destroy();
             }
         } catch (error) {
             // Log the destruction error but don't re-throw
@@ -122,7 +123,8 @@ function createWebServer(options = {}, www) {
     server.on('tlsClientError', (err, socket) => {
         try {
             if (socket && !socket.destroyed) {
-                socket.destroy(err);
+                // Don't pass the error to destroy() if socket is already errored
+                socket.destroy();
             }
         } catch (error) {
             // Log the destruction error but don't re-throw
@@ -130,7 +132,7 @@ function createWebServer(options = {}, www) {
         }
     });
     server.listen(port, () => {
-        console.log("Web Server Started. Link: " + protocol + "://127.0.0.1:" + port);
+        console.log("[www] Web Server Started. Link: " + protocol + "://127.0.0.1:" + port);
     });
 
     return server;
@@ -576,7 +578,7 @@ const registerAutocompleteModules = () => {
                 if (commandModule.autocomplete && typeof commandModule.autocomplete === 'object') {
                     const moduleName = commandModule.autocomplete.moduleName || file.replace('.js', '');
                     autocompleteModules[moduleName] = commandModule.autocomplete;
-                    console.log(`Registered autocomplete module: ${moduleName}`);
+                    console.log(`[www] Registered autocomplete module: ${moduleName}`);
                 }
                 
                 // 檢查模組是否有其他自動完成功能（如招式自動完成）
@@ -584,7 +586,7 @@ const registerAutocompleteModules = () => {
                     if (key.endsWith('Autocomplete') && typeof commandModule[key] === 'object') {
                         const moduleName = commandModule[key].moduleName || key;
                         autocompleteModules[moduleName] = commandModule[key];
-                        console.log(`Registered autocomplete module: ${moduleName}`);
+                        console.log(`[www] Registered autocomplete module: ${moduleName}`);
                     }
                 }
             } catch (error) {
@@ -912,7 +914,7 @@ if (io) {
                 try {
                     const upgraded = await security.upgradePasswordIfLegacy(userName, password, doc.password);
                     if (upgraded) {
-                        console.log(`🔄 Password automatically upgraded for user: ${userName}`);
+                        console.log(`[www] 🔄 Password automatically upgraded for user: ${userName}`);
                         // 重新獲取用戶數據（包含升級後的密碼）
                         doc = await schema.accountPW.findOne({ userName: userName });
                     }
@@ -941,7 +943,7 @@ if (io) {
                             id: doc._id.toString(),
                             userName: userName
                         });
-                        console.log(`🔐 JWT token generated for user: ${userName}`);
+                        console.log(`[www] 🔐 JWT token generated for user: ${userName}`);
                     } catch (error) {
                         console.error('🔐 JWT token generation failed:', error.message);
                     }
@@ -1094,7 +1096,7 @@ if (io) {
                         try {
                             const upgraded = await security.upgradePasswordIfLegacy(userName, password, userDoc.password);
                             if (upgraded) {
-                                console.log(`🔄 Password automatically upgraded for rolling user: ${userName}`);
+                                console.log(`[www] 🔄 Password automatically upgraded for rolling user: ${userName}`);
                                 // 重新獲取用戶數據（包含升級後的密碼）
                                 userDoc = await schema.accountPW.findOne(filter);
                             }
@@ -1494,7 +1496,7 @@ if (isMaster) {
     wss.on('connection', function connection(ws) {
         ws.on('message', function incoming(message) {
             try {
-                console.log('received: %s', message);
+                console.log('[www] received: %s', message);
             } catch (error) {
                 console.error('WebSocket message error:', error);
             }

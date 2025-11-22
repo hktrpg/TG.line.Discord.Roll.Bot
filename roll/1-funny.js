@@ -3,10 +3,12 @@ let variables = {};
 const fs = require('fs');
 const { SlashCommandBuilder } = require('discord.js');
 const axiosRetry = require('axios-retry');
-const chineseConv = require('chinese-conv'); //繁簡轉換
+const chineseConv = require('chinese-conv'); 
 const axios = require('axios');
 const cheerio = require('cheerio');
 const wiki = require('wikijs').default;
+const NodeCache = require('node-cache');
+const schedule = require('node-schedule');
 
 const identity = 'HKTRPG (https://www.hktrpg.com; admin@hktrpg.com) wiki.js';
 const lunisolar = require('lunisolar');
@@ -23,6 +25,119 @@ const gameName = function () {
 }
 
 axiosRetry(axios, { retries: 3 });
+
+/**
+ * DailyCache class - Manages caching for all daily data
+ */
+class DailyCache {
+	constructor() {
+		this.cache = new NodeCache({ stdTTL: 86_400 }); // 24 hours TTL
+		this.twelveAstro = new TwelveAstro();
+		this.dailyBigEvent = new DailyBigEvent();
+		this.dailyAlmanac = new DailyAlmanac();
+		this.isInitialized = false;
+	}
+
+	/**
+	 * Initialize cache - called when application starts
+	 */
+	async initialize() {
+		if (this.isInitialized) return;
+
+		try {
+			// Load all data in parallel
+			await Promise.all([
+				this.updateAstroCache(),
+				this.updateBigEventCache(),
+				this.updateAlmanacCache()
+			]);
+
+			this.isInitialized = true;
+		} catch (error) {
+			console.error('Failed to initialize daily cache:', error);
+		}
+	}
+
+	/**
+	 * Update astrology cache
+	 */
+	async updateAstroCache() {
+		try {
+			const astroData = {};
+			for (const astro of twelveAstro) {
+				const data = await this.twelveAstro.getAstro(astro, true); // force update
+				if (data) {
+					astroData[astro] = data;
+				}
+			}
+			this.cache.set('astro', astroData);
+		} catch (error) {
+			console.error('Failed to update astro cache:', error);
+		}
+	}
+
+	/**
+	 * Update big events cache
+	 */
+	async updateBigEventCache() {
+		try {
+			const bigEventData = await this.dailyBigEvent.getBigEvent(true); // force update
+			if (bigEventData) {
+				this.cache.set('bigEvent', bigEventData);
+			}
+		} catch (error) {
+			console.error('Failed to update big event cache:', error);
+		}
+	}
+
+	/**
+	 * Update almanac cache
+	 */
+	async updateAlmanacCache() {
+		try {
+			const almanacData = await this.dailyAlmanac.getAlmanac(true); // force update
+			if (almanacData) {
+				this.cache.set('almanac', almanacData);
+			}
+		} catch (error) {
+			console.error('Failed to update almanac cache:', error);
+		}
+	}
+
+	/**
+	 * Get astrology data
+	 */
+	getAstro(name) {
+		const astroData = this.cache.get('astro');
+		return astroData ? astroData[name] : null;
+	}
+
+	/**
+	 * Get big events data
+	 */
+	getBigEvent() {
+		return this.cache.get('bigEvent');
+	}
+
+	/**
+	 * Get almanac data
+	 */
+	getAlmanac() {
+		return this.cache.get('almanac');
+	}
+
+	/**
+	 * Setup daily update task
+	 */
+	setupDailyUpdate() {
+		// Update cache every day at 00:00
+		schedule.scheduleJob('0 0 * * *', async () => {
+			console.log('Starting daily cache update...');
+			await this.initialize();
+		});
+	}
+}
+
 const gameType = function () {
 	return 'funny:funny:hktrpg'
 }
@@ -73,7 +188,11 @@ const getHelpMessage = async function () {
 │ 　示例: 每日白羊、每日金牛
 ╰──────────────`
 }
-const initialize = function () {
+const initialize = async function () {
+	// Initialize daily data cache
+	await dailyCache.initialize();
+	// Setup daily update task
+	dailyCache.setupDailyUpdate();
 	return variables;
 }
 
@@ -89,23 +208,23 @@ const rollDiceCommand = async function ({
 	}
 	//let result = {};
 	//		if (trigger.match(/排序/) != null && mainMsg.length >= 3) return exports.funny.SortIt(inputStr, mainMsg);
-	//choice 指令開始於此
+	// Choice command starts here
 	//	if (trigger.match(/choice|隨機|選項|選1/) != null && mainMsg.length >= 3) return exports.funny.choice(inputStr, mainMsg);
-	//tarot 指令
+	// Tarot command
 	/*
 	if (trigger.match(/tarot|塔羅牌|塔羅/) != null) {
-		if (trigger.match(/^單張|^每日|^daily/) != null) return exports.funny.NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
+		if (trigger.match(/^單張|^每日|^daily/) != null) return exports.funny.NomalDrawTarot(mainMsg[1], mainMsg[2]); // Default draw 79 cards
 		if (trigger.match(/^時間|^time/) != null) return exports.funny.MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
 		if (trigger.match(/^大十字|^cross/) != null) return exports.funny.MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
 	}
 	*/
 
-	//FLAG指令開始於此
+	// FLAG command starts here
 	//		if (trigger.match(/立flag|死亡flag/) != null) return exports.funny.BStyleFlagSCRIPTS();
 
-	//鴨霸獸指令開始於此
+	// Duck beast command starts here
 	//		if (trigger.match(/鴨霸獸/) != null) return exports.funny.randomReply();
-	//		if (trigger.match(/運勢/) != null) return exports.funny.randomLuck(mainMsg); //占卜運氣		
+	//		if (trigger.match(/運勢/) != null) return exports.funny.randomLuck(mainMsg); // Fortune telling		
 	/*猜拳指令
 	if (trigger.match(/猜拳/) != null) {
 	return RockPaperScissors(inputStr, mainMsg[1]);
@@ -129,7 +248,7 @@ const rollDiceCommand = async function ({
 		case /塔羅/i.test(mainMsg[0]):
 			rply.quotes = true;
 			if (mainMsg[0].match(/^每日塔羅/) != null)
-				rply.text = NomalDrawTarot(mainMsg[1], mainMsg[2]); //預設抽 79 張
+				rply.text = NomalDrawTarot(mainMsg[1], mainMsg[2]); // Default draw 79 cards
 			if (mainMsg[0].match(/^時間塔羅/) != null)
 				rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
 			if (mainMsg[0].match(/^大十字塔羅/) != null)
@@ -186,113 +305,67 @@ const rollDiceCommand = async function ({
 			return rply;
 		}
 		case /^每日大事$/.test(mainMsg[0]): {
-			const date = new Date();
-			const day = date.getDate();
-			const month = date.getMonth() + 1;
-			let respond = `${month}月${day}日\n\n`;
-			rply.text = await wiki({
-				headers: { 'User-Agent': identity },
-				apiUrl: 'https://zh.wikipedia.org/w/api.php',
-				setpagelanguage: "zh-hant"
-			}).page(`${month}月${day}日`)
-				.then(async page => {
-					let temp = await page.content();
-					let answerFestival = temp.find(v => {
-						return v && v.title.match(/(节日)|(節日)|(习俗)|(假日)|(节假)/)
-					})
-					respond += `${(answerFestival && answerFestival.title) ? `${answerFestival.title}\n` : ''}${(answerFestival && answerFestival.content) ? `${answerFestival.content}\n` : ''}\n`
-					let answerBig = temp.find(v => {
-						return v && v.title.match(/(大事)/)
-					})
-					if (answerBig && answerBig.items) answerBig = answerBig.items;
-
-					for (let index = 0; index < answerBig?.length; index++) {
-
-						respond += `${answerBig[index].title}\n${answerBig[index].content}\n\n`
-					}
-					return chineseConv.tify(respond)
-				})
-				.catch(error => {
-					if (error == 'Error: No article found')
-						return '沒有此條目'
-					else {
-						console.error('每日大事error', error)
-						console.error('每日大事 this.page', this.page)
-
-						return '條目出錯';
-					}
-				})
+			rply.text = await dailyCache.getBigEvent();
 			return rply;
 		}
-		//白羊座、金牛座、雙子座、巨蟹座、獅子座、處女座、天秤座、天蠍座、射手座、摩羯座、水瓶座、雙魚
+		// Aries, Taurus, Gemini, Cancer, Leo, Virgo, Libra, Scorpio, Sagittarius, Capricorn, Aquarius, Pisces
 		case (/^每日白羊$/.test(mainMsg[0]) || /^每日牡羊$/.test(mainMsg[0])): {
-			rply.text = await dailyAstro.getAstro('牡羊')
-			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=白羊&type=json')
+			rply.text = dailyCache.getAstro('牡羊');
 			return rply;
 		}
 
 		case /^每日金牛$/.test(mainMsg[0]): {
-			rply.text = await dailyAstro.getAstro('金牛')
-			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=金牛&type=json')
+			rply.text = dailyCache.getAstro('金牛');
 			return rply;
 		}
 
 		case /^每日雙子$/.test(mainMsg[0]): {
-			rply.text = await dailyAstro.getAstro('雙子')
-			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=双子&type=json')
+			rply.text = dailyCache.getAstro('雙子');
 			return rply;
 		}
 
 		case /^每日巨蟹$/.test(mainMsg[0]): {
-			rply.text = await dailyAstro.getAstro('巨蟹')
-			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=巨蟹&type=json')
+			rply.text = dailyCache.getAstro('巨蟹');
 			return rply;
 		}
 
 		case /^每日獅子$/.test(mainMsg[0]): {
-			rply.text = await dailyAstro.getAstro('獅子')
-			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=狮子&type=json')
+			rply.text = dailyCache.getAstro('獅子');
 			return rply;
 		}
 
 		case /^每日處女$/.test(mainMsg[0]): {
-			rply.text = await dailyAstro.getAstro('處女')
-			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=处女&type=json')
+			rply.text = dailyCache.getAstro('處女');
 			return rply;
 		}
 
 		case (/^每日天秤$/.test(mainMsg[0]) || /^每日天平$/.test(mainMsg[0])): {
-			rply.text = await dailyAstro.getAstro('天秤')
-			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=天秤&type=json')
+			rply.text = dailyCache.getAstro('天秤');
 			return rply;
 		}
 
 		case /^每日天蠍$/.test(mainMsg[0]) || /^每日天蝎$/.test(mainMsg[0]): {
-			rply.text = await dailyAstro.getAstro('天蠍')
-			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=天蝎&type=json')
+			rply.text = dailyCache.getAstro('天蠍');
 			return rply;
 		}
 
 		case (/^每日射手$/.test(mainMsg[0]) || /^每日人馬$/.test(mainMsg[0])): {
-			rply.text = await dailyAstro.getAstro('射手')
-			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=射手&type=json')
+			rply.text = dailyCache.getAstro('射手');
 			return rply;
 		}
 
 		case (/^每日摩羯$/.test(mainMsg[0]) || /^每日山羊$/.test(mainMsg[0])): {
-			rply.text = await dailyAstro.getAstro('摩羯')
-			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=摩羯&type=json')
+			rply.text = dailyCache.getAstro('摩羯');
 			return rply;
 		}
 
 		case (/^每日水瓶$/.test(mainMsg[0]) || /^每日寶瓶$/.test(mainMsg[0])): {
-			rply.text = await dailyAstro.getAstro('水瓶')
-			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=水瓶&type=json')
+			rply.text = dailyCache.getAstro('水瓶');
 			return rply;
 		}
+
 		case /^每日雙魚$/.test(mainMsg[0]): {
-			rply.text = await dailyAstro.getAstro('雙魚')
-			if (!rply.text) rply.text = await axiosDaily('https://ovooa.com/API/xz/api.php?msg=双鱼&type=json')
+			rply.text = dailyCache.getAstro('雙魚');
 			return rply;
 		}
 		default:
@@ -334,16 +407,23 @@ class TwelveAstro {
 	constructor() {
 		this.Astro = [];
 	}
-	async getAstro(name) {
+
+	/**
+	 * 獲取星座運程
+	 * @param {string} name - 星座名稱
+	 * @param {boolean} forceUpdate - 是否強制更新
+	 */
+	async getAstro(name, forceUpdate = false) {
 		try {
 			let astroCode = twelveAstro.indexOf(name);
-			if (!this.Astro[astroCode] || this.Astro[astroCode].date !== this.getDate()) {
+			if (forceUpdate || !this.Astro[astroCode] || this.Astro[astroCode].date !== this.getDate()) {
 				await this.updateAstro(astroCode);
 			}
 			if (this.Astro[astroCode]) {
 				return this.returnStr(this.Astro[astroCode], name);
 			} else return;
-		} catch {
+		} catch (error) {
+			console.error('TwelveAstro getAstro error:', error);
 			return;
 		}
 	}
@@ -372,6 +452,73 @@ class TwelveAstro {
 
 }
 
+/**
+ * DailyBigEvent 類別 - 處理每日大事
+ */
+class DailyBigEvent {
+	constructor() {
+		// No instance caching - rely entirely on DailyCache
+	}
+
+	/**
+	 * Get big events data (only used during initialization)
+	 * @param {boolean} forceUpdate - Whether to force update
+	 */
+	async getBigEvent() {
+		try {
+			return await this.updateBigEvent();
+		} catch (error) {
+			console.error('DailyBigEvent getBigEvent error:', error);
+			return '條目出錯';
+		}
+	}
+
+	/**
+	 * 更新每日大事數據
+	 */
+	async updateBigEvent() {
+		const date = new Date();
+		const day = date.getDate();
+		const month = date.getMonth() + 1;
+		let respond = `${month}月${day}日\n\n`;
+
+		try {
+			const page = await wiki({
+				headers: { 'User-Agent': identity },
+				apiUrl: 'https://zh.wikipedia.org/w/api.php',
+				setpagelanguage: "zh-hant"
+			}).page(`${month}月${day}日`);
+
+			let temp = await page.content();
+			let answerFestival = temp.find(v => {
+				return v && v.title.match(/(节日)|(節日)|(习俗)|(假日)|(节假)/)
+			});
+
+			respond += `${(answerFestival && answerFestival.title) ? `${answerFestival.title}\n` : ''}${(answerFestival && answerFestival.content) ? `${answerFestival.content}\n` : ''}\n`
+
+			let answerBig = temp.find(v => {
+				return v && v.title.match(/(大事)/)
+			});
+
+			if (answerBig && answerBig.items) answerBig = answerBig.items;
+
+			for (let index = 0; index < answerBig?.length; index++) {
+				respond += `${answerBig[index].title}\n${answerBig[index].content}\n\n`
+			}
+
+			return chineseConv.tify(respond);
+		} catch (error) {
+			if (error == 'Error: No article found') {
+				return '沒有此條目';
+			} else {
+				console.error('每日大事 updateBigEvent error:', error);
+				return '條目出錯';
+			}
+		}
+	}
+
+}
+
 class Astro {
 	constructor($, date) {
 		//TODAY_CONTENT
@@ -396,14 +543,18 @@ class DailyAlmanac {
 	constructor() {
 		this.Almanac = {};
 	}
-	async getAlmanac() {
+	/**
+	 * 獲取黃曆
+	 * @param {boolean} forceUpdate - 是否強制更新
+	 */
+	async getAlmanac(forceUpdate = false) {
 		try {
-			if (!this.Almanac || this.Almanac.date !== this.getDate()) await this.updateAlmanac();
+			if (forceUpdate || !this.Almanac || this.Almanac.date !== this.getDate()) await this.updateAlmanac();
 			if (this.Almanac) {
 				return this.returnStr(this.Almanac);
 			} else return;
 		} catch (error) {
-			console.error(error)
+			console.error('DailyAlmanac getAlmanac error:', error)
 			return;
 		}
 	}
@@ -579,8 +730,22 @@ ${Almanac.content}
 		} catch { return ''; }
 	}
 }
-const dailyAlmanac = new DailyAlmanac();
-const dailyAstro = new TwelveAstro();
+// Create daily cache manager
+const dailyCache = new DailyCache();
+
+// Auto-initialize DailyCache when module is loaded
+(async function autoInitialize() {
+	try {
+		await dailyCache.initialize();
+	} catch (error) {
+		console.error('Failed to auto-initialize DailyCache:', error);
+	}
+})();
+
+// For backward compatibility, keep old instance names but actually use cache
+const dailyAlmanac = {
+	getAlmanac: () => dailyCache.getAlmanac()
+};
 const joke = new FunnyRandom('./assets/joke.txt');
 const acg = new FunnyRandom('./assets/acg.txt');
 const slogan = new FunnyRandom('./assets/slogan.txt');
@@ -1204,63 +1369,6 @@ function SortIt(input, mainMsg) {
 	}
 	return mainMsg[0] + ' \n→ [ ' + a.join(', ') + ' ]';
 }
-async function axiosDaily(url) {
-	let reply = await fetchData(url);
-	if (reply === '錯誤error') {
-		reply = await fetchData(url.replace('https://ovooa.com', 'http://lkaa.top'));
-	}
-	if (reply === '錯誤error') {
-		reply = `伺服器出現問題，請稍後再試，如果問題持續數天，可以到支援群回報。`;
-	}
-	return reply;
-
-}
-
-async function fetchData(url) {
-	let reply = '';
-	try {
-		const response = await axios.get(encodeURI(url), { timeout: 20_000 });
-		const json = analyzeResponse(response);
-		reply += `${json.title ? json.title + '\n' : ''}`
-		reply += `${json.text && json.text !== '获取成功' ? json.text + '\n' : ''}`
-		reply += `${json.data && json.data.title ? json.data.title + '\n' : ''}`
-		reply += `${json.data && json.data.text ? json.data.text + '\n' : ''}`
-		reply += `${json.data && json.data.Msg ? json.data.Msg + '\n' : ''}`
-		reply = chineseConv.tify(reply);
-		reply += `${json.image ? json.image + '\n' : ''}`
-		reply += `${json.data && json.data.image ? json.data.image + '\n' : ''}`
-		reply = reply.replaceAll(String.raw`\r`, '\n').replaceAll(String.raw`\n`, '\n')
-		return reply || '沒有結果，請檢查內容'
-	} catch (error) {
-		if (error.code !== 'ETIMEDOUT' || error.code !== 'ECONNABORTED' || error.code !== 'ECONNRESET' || error.code !== 'undefined') {
-			return '錯誤error'
-		}
-		//return `'伺服器連線出現問題，請稍後再試，錯誤代碼: ${error.code}`;
-	}
-}
-function analyzeResponse(response) {
-	switch (typeof response) {
-		case 'string':
-			return { data: { text: response } }
-		case 'object':
-			if (response && response.data && response.data.data) {
-				return response.data;
-			}
-			if (response && response.data) {
-				return response;
-			}
-			break;
-		default:
-			break;
-	}
-}
-/*來源自 https://ovooa.com
-	
-http://api.uuouo.cn/
-http://ybapi.top/
-http://weizhinb.top/
-	
-*/
 const discordCommand = [
 
 	{

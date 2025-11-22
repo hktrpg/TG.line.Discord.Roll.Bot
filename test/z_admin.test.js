@@ -43,7 +43,8 @@ jest.mock('../modules/schema.js', () => ({
     updateOne: jest.fn(),
     find: jest.fn()
   },
-  mongodbState: jest.fn().mockResolvedValue({ connections: [] })
+  mongodbState: jest.fn().mockResolvedValue({ connections: [] }),
+  mongodbStateCheck: jest.fn().mockResolvedValue({ connections: [] })
 }));
 
 jest.mock('../modules/check.js', () => ({

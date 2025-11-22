@@ -132,7 +132,7 @@ let handleEvent = async function (event) {
 	if (event.type !== 'message' || event.message.type !== 'text') {
 		if (event.type == "join" && roomorgroupid) {
 			// 新加入群組時, 傳送MESSAGE
-			console.log("Line joined");
+			console.log("[Line] Line joined");
 			replyMessagebyReplyToken(event, newMessage.joinMessage());
 		}
 		await nonDice(event);
@@ -424,7 +424,7 @@ async function read() {
 })();
 const server = https.createServer(options, app);
 server.listen(port, () => {
-	console.log(`Line BOT listening on ${port}`);
+	console.log(`[Line] Line BOT listening on ${port}`);
 });
 
 // Handle malformed client requests to prevent socket warnings

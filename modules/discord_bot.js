@@ -21,7 +21,6 @@ const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, 
 
 const multiServer = require('../modules/multi-server')
 const checkMongodb = require('../modules/dbWatchdog.js');
-const errorCount = [];
 const { rollText } = require('./getRoll');
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 const buttonStyles = [ButtonStyle.Danger, ButtonStyle.Primary, ButtonStyle.Secondary, ButtonStyle.Success, ButtonStyle.Danger]
@@ -41,6 +40,7 @@ const EXPUP = require('./level').EXPUP || function () { };
 const courtMessage = require('./logs').courtMessage || function () { };
 
 const newMessage = require('./message');
+const healthMonitor = require('./health-monitor');
 
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const shardid = client.cluster.id;
@@ -102,7 +102,7 @@ client.on('messageCreate', async message => {
 	try {
 		if (message.author.bot) return;
 
-		// 使用批次處理
+		// Use batch processing
 		const [dbStatus, result] = await Promise.all([
 			checkMongodb.isDbOnline(),
 			handlingResponMessage(message)
@@ -207,7 +207,6 @@ client.on('messageReactionRemove', async (reaction, user) => {
 
 client.once('clientReady', async () => {
 	initInteractionCommands();
-	if (process.env.BROADCAST) connect();
 	//	if (shardid === 0) getSchedule();
 	client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
 	console.log(`Discord: Logged in as ${client.user.tag}!`);
@@ -216,15 +215,31 @@ client.once('clientReady', async () => {
 	//await sleep(6);
 	// eslint-disable-next-line no-unused-vars
 	const refreshId2 = setInterval(async () => {
-		switch (switchSetActivity % 2) {
-			case 1:
-				client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
-				break;
-			default:
-				client.user.setActivity(await count2());
-				break;
+		try {
+			let activityText;
+			switch (switchSetActivity % 2) {
+				case 1:
+					client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
+					break;
+				default:
+					activityText = await count2();
+					if (activityText && typeof activityText === 'string') {
+						client.user.setActivity(activityText);
+					} else {
+						console.warn('count2() 返回無效活動文字:', activityText);
+						client.user.setActivity('🌼bothelp | hktrpg.com🍎');
+					}
+					break;
+			}
+			switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
+		} catch (error) {
+			console.error('設定活動狀態時發生錯誤:', error);
+			try {
+				client.user.setActivity('🌼bothelp | hktrpg.com🍎');
+			} catch (fallbackError) {
+				console.error('設定備用活動狀態也失敗:', fallbackError);
+			}
 		}
-		switchSetActivity = (switchSetActivity % 2) ? 2 : 3;
 	}, 180_000);
 });
 
@@ -233,7 +248,7 @@ let heartbeatInterval = null;
 client.cluster.on('message', message => {
 	if (message?.type === 'startHeartbeat') {
 		if (client.cluster.id === 0) {
-			console.log('[Cluster 0] Received startHeartbeat signal. Starting heartbeat monitor.');
+			console.log('[discord_bot] [Cluster 0] Received startHeartbeat signal. Starting heartbeat monitor.');
 			startHeartbeatMonitor();
 		}
 	}
@@ -252,7 +267,7 @@ function startHeartbeatMonitor() {
 	}
 	let heartbeat = 0;
 
-	console.log('Discord Heartbeat Monitor Started on Cluster 0.');
+	console.log('[discord_bot] Discord Heartbeat Monitor Started on Cluster 0.');
 
 	heartbeatInterval = setInterval(async () => {
 		const isAwake = await checkWakeUp();
@@ -264,7 +279,7 @@ function startHeartbeatMonitor() {
 		heartbeat++;
 
 		if (Array.isArray(isAwake) && isAwake.length > 0) {
-			console.log(`Discord Heartbeat: Down Shards: ${isAwake.join(',')} - Heartbeat: ${heartbeat}`);
+			console.log(`[discord_bot] Discord Heartbeat: Down Shards: ${isAwake.join(',')} - Heartbeat: ${heartbeat}`);
 			if (heartbeat > WARNING_THRESHOLD && adminSecret) {
 				SendToId(adminSecret, `HKTRPG ID: ${isAwake.join(', ')} 可能下線了 請盡快檢查.`);
 			}
@@ -514,7 +529,7 @@ async function nonDice(message) {
 }
 
 
-//Set Activity 可以自定義正在玩什麼
+// Set Activity can customize what is being played
 
 
 function __privateMsg({ trigger, mainMsg, inputStr }) {
@@ -535,24 +550,95 @@ function __privateMsg({ trigger, mainMsg, inputStr }) {
 }
 
 
+
 async function count() {
 	if (!client.cluster) return '';
 
 	try {
-		const [guildSizes, memberCounts] = await Promise.all([
-			client.cluster.fetchClientValues('guilds.cache.size'),
-			client.cluster.broadcastEval(c =>
-				c.guilds.cache
-					.filter(guild => guild.available)
-					.reduce((acc, guild) => acc + guild.memberCount, 0)
-			)
+		// Get all subgroup IDs
+		const allClusterIds = [...client.cluster.ids.keys()];
+
+		// Use global broadcastEval and group results by cluster
+		const [guildStatsRaw, memberStatsRaw] = await Promise.all([
+			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size })),
+			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) }))
 		]);
 
-		const totalGuilds = guildSizes.reduce((acc, count) => acc + count, 0);
-		const totalMembers = memberCounts.reduce((acc, count) => acc + count, 0);
+		// Group statistics data by cluster
+		const guildStatsByCluster = new Map();
+		const memberStatsByCluster = new Map();
+
+		for (const { clusterId, guildCount } of guildStatsRaw) {
+			if (!guildStatsByCluster.has(clusterId)) {
+				guildStatsByCluster.set(clusterId, []);
+			}
+			guildStatsByCluster.get(clusterId).push(guildCount);
+		}
+
+		for (const { clusterId, memberCount } of memberStatsRaw) {
+			if (!memberStatsByCluster.has(clusterId)) {
+				memberStatsByCluster.set(clusterId, []);
+			}
+			memberStatsByCluster.get(clusterId).push(memberCount);
+		}
+
+		// Convert to expected format
+		const guildStats = { results: [], errors: [], successCount: 0, errorCount: 0 };
+		const memberStats = { results: [], errors: [], successCount: 0, errorCount: 0 };
+
+		for (const clusterId of allClusterIds) {
+			const guildData = guildStatsByCluster.get(clusterId);
+			const memberData = memberStatsByCluster.get(clusterId);
+
+			if (guildData) {
+				guildStats.results.push({
+					clusterId,
+					data: guildData,
+					duration: 0,
+					success: true
+				});
+				guildStats.successCount++;
+			}
+
+			if (memberData) {
+				memberStats.results.push({
+					clusterId,
+					data: memberData,
+					duration: 0,
+					success: true
+				});
+				memberStats.successCount++;
+			}
+		}
+
+		// Calculate totals
+		let totalGuilds = 0;
+		let totalMembers = 0;
+		let successfulClusters = 0;
+
+		for (const { data: guildSizes } of guildStats.results) {
+			if (guildSizes && Array.isArray(guildSizes)) {
+				totalGuilds += guildSizes.reduce((acc, count) => acc + (count || 0), 0);
+				successfulClusters++;
+			}
+		}
+
+		for (const { data: memberCounts } of memberStats.results) {
+			if (memberCounts && Array.isArray(memberCounts)) {
+				totalMembers += memberCounts.reduce((acc, count) => acc + (count || 0), 0);
+			}
+		}
+
+		const totalClusters = allClusterIds.length;
+		let statusIndicators = [];
+		if (successfulClusters < totalClusters) {
+			statusIndicators.push(`⚠️ ${successfulClusters}/${totalClusters} 分群正常`);
+		}
+
+		const statusText = statusIndicators.length > 0 ? ` (${statusIndicators.join(', ')})` : '';
 
 		return `群組總數: ${totalGuilds.toLocaleString()}
-│ 　• 會員總數: ${totalMembers.toLocaleString()}`;
+│ 　• 會員總數: ${totalMembers.toLocaleString()}${statusText}`;
 	} catch (error) {
 		console.error(`Discord統計錯誤: ${error}`);
 		return '無法獲取統計資料';
@@ -561,23 +647,62 @@ async function count() {
 
 async function count2() {
 	if (!client.cluster) return '🌼bothelp | hktrpg.com🍎';
-	const promises = [
-		client.cluster.fetchClientValues('guilds.cache.size'),
-		client.cluster
-			.broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))
-	];
 
-	return Promise.all(promises)
-		.then(results => {
-			const totalGuilds = results[0].reduce((acc, guildCount) => acc + guildCount, 0);
-			const totalMembers = results[1].reduce((acc, memberCount) => acc + memberCount, 0);
-			return (` ${totalGuilds}群組📶-\n ${totalMembers}會員📶`);
-		})
-		.catch((error) => {
-			console.error(`disocrdbot #617 error ${error}`)
-			respawnCluster(error);
-			return '🌼bothelp | hktrpg.com🍎';
-		});
+	try {
+		// Get all subgroup IDs
+		const allClusterIds = [...client.cluster.ids.keys()];
+
+		// Use global broadcastEval and group results by cluster
+		const [guildStatsRaw, memberStatsRaw] = await Promise.all([
+			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size })),
+			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) }))
+		]);
+
+		// Group statistics data by cluster
+		const guildStatsByCluster = new Map();
+		const memberStatsByCluster = new Map();
+
+		for (const { clusterId, guildCount } of guildStatsRaw) {
+			if (!guildStatsByCluster.has(clusterId)) {
+				guildStatsByCluster.set(clusterId, []);
+			}
+			guildStatsByCluster.get(clusterId).push(guildCount);
+		}
+
+		for (const { clusterId, memberCount } of memberStatsRaw) {
+			if (!memberStatsByCluster.has(clusterId)) {
+				memberStatsByCluster.set(clusterId, []);
+			}
+			memberStatsByCluster.get(clusterId).push(memberCount);
+		}
+
+		// Calculate totals - directly from all collected data
+		let totalGuilds = 0;
+		let totalMembers = 0;
+
+		// Calculate totals for all clusters
+		for (const guildData of guildStatsByCluster.values()) {
+			if (guildData && Array.isArray(guildData)) {
+				totalGuilds += guildData.reduce((acc, count) => acc + (count || 0), 0);
+			}
+		}
+
+		for (const memberData of memberStatsByCluster.values()) {
+			if (memberData && Array.isArray(memberData)) {
+				totalMembers += memberData.reduce((acc, count) => acc + (count || 0), 0);
+			}
+		}
+
+		// Calculate number of successful clusters
+		const successfulClusters = guildStatsByCluster.size;
+
+		const status = successfulClusters === allClusterIds.length ? '✅' : `⚠️${successfulClusters}/${allClusterIds.length}`;
+		return (`${status} ${totalGuilds}群組📶 ${totalMembers}會員📶`);
+	} catch (error) {
+		console.error(`disocrdbot #617 error: ${error.message}`);
+		// Do not respawn subgroups here - let the subgroup manager handle it
+		return '🌼bothelp | hktrpg.com🍎';
+	}
 }
 
 // handle the error event
@@ -605,20 +730,39 @@ process.on('unhandledRejection', error => {
 // Global variables to track shutdown status
 let isShuttingDown = false;
 let shutdownTimeout = null;
+const SHUTDOWN_TIMEOUT = 15_000; // 15 seconds for Discord bot
 
 // Graceful shutdown function
-async function gracefulShutdown() {
-	if (isShuttingDown) return;
+async function gracefulShutdown(signal = 'unknown') {
+	if (isShuttingDown) {
+		console.log(`[Discord Bot] Shutdown already in progress, ignoring signal: ${signal}`);
+		return;
+	}
 	isShuttingDown = true;
 
-	console.log('[Discord Bot] Starting graceful shutdown...');
+	console.log(`[Discord Bot] Starting graceful shutdown (signal: ${signal})...`);
 
 	// Clear shutdown timeout
 	if (shutdownTimeout) {
 		clearTimeout(shutdownTimeout);
 	}
 
+	// Set a hard timeout to force exit if graceful shutdown takes too long
+	shutdownTimeout = setTimeout(() => {
+		console.error('[Discord Bot] Graceful shutdown timed out, force exiting...');
+		process.exit(1);
+	}, SHUTDOWN_TIMEOUT);
+
 	try {
+		// Notify health monitor
+		healthMonitor.emit('shutdown', { signal, timestamp: new Date() });
+
+		// Stop heartbeat monitor
+		if (heartbeatInterval) {
+			clearInterval(heartbeatInterval);
+			heartbeatInterval = null;
+		}
+
 		// Close WebSocket connection
 		if (ws) {
 			console.log('[Discord Bot] Closing WebSocket connection...');
@@ -628,8 +772,18 @@ async function gracefulShutdown() {
 		// Destroy Discord client
 		if (client) {
 			console.log('[Discord Bot] Destroying Discord client...');
-			await client.destroy();
-			console.log('[Discord Bot] Discord client destroyed.');
+			// Set shorter timeout to avoid blocking
+			const destroyPromise = client.destroy();
+			const timeoutPromise = new Promise((_, reject) =>
+				setTimeout(() => reject(new Error('Client destroy timeout')), 5000)
+			);
+
+			try {
+				await Promise.race([destroyPromise, timeoutPromise]);
+				console.log('[Discord Bot] Discord client destroyed.');
+			} catch (error) {
+				console.warn('[Discord Bot] Client destroy timed out or failed:', error.message);
+			}
 		}
 
 		console.log('[Discord Bot] Graceful shutdown completed');
@@ -662,19 +816,6 @@ process.on('SIGTERM', async () => {
 	await gracefulShutdown();
 });
 
-function respawnCluster(err) {
-	if (!/CLUSTERING_NO_CHILD_EXISTS/i.test(err.toString())) return;
-	let number = err.toString().match(/\d+$/i);
-	if (!errorCount[number]) errorCount[number] = 0;
-	errorCount[number]++;
-	if (errorCount[number] > 3) {
-		try {
-			client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
-		} catch (error) {
-			console.error('respawnCluster #480 error', (error && error.name), (error && error.message), (error && error.reason));
-		}
-	}
-}
 function respawnCluster2() {
 	try {
 		client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
@@ -689,7 +830,7 @@ function respawnCluster2() {
 	agenda.define("scheduleAtMessageDiscord", async (job) => {
 		//const date = new Date(2012, 11, 21, 5, 30, 0);
 		//const date = new Date(Date.now() + 5000);
-		//指定時間一次	
+		// Specify time once	
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
@@ -711,7 +852,7 @@ function respawnCluster2() {
 	agenda.define("scheduleCronMessageDiscord", async (job) => {
 		//const date = new Date(2012, 11, 21, 5, 30, 0);
 		//const date = new Date(Date.now() + 5000);
-		//指定時間一次	
+		// Specify time once	
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
 		let text = await rollText(data.replyText);
@@ -896,53 +1037,222 @@ async function checkWakeUp() {
 
 }
 
+// Get comprehensive shard status information across all clusters
+// Returns formatted statistics for Discord bot sharding status
 async function getAllshardIds() {
 	if (!client.cluster) return '';
 
 	try {
-		const [shardIds, wsStatus, wsPing, clusterId] = await Promise.all([
-			[...client.cluster.ids.keys()],
-			client.cluster.broadcastEval(c => c.ws.status),
-			client.cluster.broadcastEval(c => c.ws.ping),
-			client.cluster.id
-		]);
+		// Get current cluster ID for display purposes
+		const currentClusterId = client.cluster.id;
 
-		// WebSocket status mapping - Discord.js uses numeric status codes
+		// Determine total number of shards - prioritize actual detection over defaults
+		const { getInfo } = require('discord-hybrid-sharding');
+		let totalShards;
+
+		// Check environment variables first for explicit configuration
+		if (process.env.DISCORD_TOTAL_SHARDS) {
+			totalShards = Number.parseInt(process.env.DISCORD_TOTAL_SHARDS, 10);
+		} else if (process.env.SHARD_COUNT) {
+			totalShards = Number.parseInt(process.env.SHARD_COUNT, 10);
+		} else {
+			// Dynamically detect from runtime information
+			try {
+				const info = getInfo();
+				if (info && info.TOTAL_SHARDS) {
+					totalShards = info.TOTAL_SHARDS;
+				} else if (client.cluster && client.cluster.ids) {
+					// Fallback to number of active clusters (may not be accurate for total shards)
+					totalShards = client.cluster.ids.size;
+				}
+			} catch (error) {
+				console.warn('Unable to retrieve shard information:', error.message);
+			}
+		}
+
+		// Final fallback: use cluster count if still no shard count
+		if (!totalShards && client.cluster && client.cluster.ids) {
+			totalShards = client.cluster.ids.size;
+		}
+
+		// Ensure we have at least 1 shard as absolute minimum
+		totalShards = totalShards || 1;
+
+		// Generate array of all shard IDs (0 to totalShards-1)
+		const allShardIdsArray = Array.from({ length: totalShards }, (_, i) => i);
+
+		// Attempt to collect actual status data - use fault-tolerant mode for partial cluster failures
+		let allStatuses = [];
+		let allPings = [];
+
+		try {
+			// Use simplified fault-tolerant mode: collect all cluster data directly with timeout handling
+			const timeoutPromise = new Promise((_, reject) => {
+				setTimeout(() => reject(new Error('Shard status collection timeout')), 8000); // 8 second total timeout
+			});
+
+			const evalPromise = Promise.race([
+				client.cluster.broadcastEval(
+					c => {
+						// Ensure ping value is a valid number
+						let pingValue = c.ws?.ping;
+						if (typeof pingValue !== 'number' || Number.isNaN(pingValue) || pingValue < 0) {
+							pingValue = -1; // Mark invalid values as -1
+						}
+
+						return {
+							clusterId: c.cluster.id,
+							shardIds: c.shard?.ids || [],
+							wsStatus: c.ws?.status ?? -1,
+							wsPing: Math.round(pingValue),
+							success: true
+						};
+					},
+					{ timeout: 5000 } // 5 second cluster evaluation timeout
+				),
+				timeoutPromise
+			]);
+
+			let clusterDataRaw = [];
+			try {
+				clusterDataRaw = await evalPromise;
+			} catch (error) {
+				console.warn('broadcastEval timeout, using fallback collection method:', error.message);
+				// If primary broadcastEval fails, use simplified method
+				try {
+					clusterDataRaw = await Promise.race([
+						client.cluster.broadcastEval(c => {
+							// Fallback method also ensures ping value validity
+							let pingValue = c.ws?.ping;
+							if (typeof pingValue !== 'number' || Number.isNaN(pingValue) || pingValue < 0) {
+								pingValue = -1;
+							}
+
+							return {
+								clusterId: c.cluster.id,
+								shardIds: [], // Use empty array when unable to retrieve
+								wsStatus: c.ws?.status ?? -1,
+								wsPing: Math.round(pingValue),
+								success: false // Mark as incomplete data
+							};
+						}),
+						new Promise((_, reject) => setTimeout(() => reject(new Error('Fallback collection also timed out')), 3000))
+					]);
+				} catch (fallbackError) {
+					console.warn('Fallback collection also failed:', fallbackError.message);
+					// If all methods fail, populate with default values
+					const clusterCount = client.cluster?.ids?.size || Math.ceil(totalShards / 2);
+					for (let i = 0; i < clusterCount; i++) {
+						clusterDataRaw.push({
+							clusterId: i,
+							shardIds: [],
+							wsStatus: -1,
+							wsPing: -1,
+							success: false
+						});
+					}
+				}
+			}
+
+			// Process cluster data, allowing for partial data missing
+			const processedClusters = new Set();
+
+			for (const clusterData of clusterDataRaw) {
+				if (clusterData && typeof clusterData === 'object') {
+					const { clusterId, shardIds, wsStatus, wsPing, success } = clusterData;
+					processedClusters.add(clusterId);
+
+					// Debug: log cluster data for troubleshootin
+
+					// For each shard managed by this cluster, add status
+					if (success && Array.isArray(shardIds) && shardIds.length > 0) {
+						// If we successfully got shard IDs, use them
+						for (let i = 0; i < shardIds.length; i++) {
+							allStatuses.push(wsStatus); // Cluster's WebSocket status applies to all its shards
+							allPings.push(wsPing);
+						}
+					} else {
+						// If unable to get shard IDs, assume 2 shards per cluster (based on configuration)
+						const assumedShardsPerCluster = 2;
+						for (let i = 0; i < assumedShardsPerCluster; i++) {
+							allStatuses.push(wsStatus !== undefined ? wsStatus : -1);
+							allPings.push(wsPing !== undefined ? wsPing : -1);
+						}
+					}
+				}
+			}
+
+			// Check if any expected clusters completely failed to respond, fill with default values
+			const expectedClusters = client.cluster?.ids ? [...client.cluster.ids.keys()] : [];
+			for (const expectedClusterId of expectedClusters) {
+				if (!processedClusters.has(expectedClusterId)) {
+					console.warn(`Cluster ${expectedClusterId} completely failed to respond, filling with default values`);
+					const assumedShardsPerCluster = 2;
+					for (let i = 0; i < assumedShardsPerCluster; i++) {
+						allStatuses.push(-1); // -1 indicates cluster did not respond
+						allPings.push(-1);
+					}
+				}
+			}
+
+		} catch (error) {
+			console.warn('Major error occurred while collecting shard status, using default values:', error.message);
+			// If entire process fails, populate with default values
+			const assumedShardsPerCluster = 2;
+			const totalClusters = client.cluster?.ids?.size || Math.ceil(totalShards / assumedShardsPerCluster);
+			for (let i = 0; i < totalClusters * assumedShardsPerCluster; i++) {
+				allStatuses.push(-1);
+				allPings.push(-1);
+			}
+		}
+
+		// WebSocket status mapping - Discord.js status codes to display symbols
 		const statusMap = {
-			0: '✅在線',     // READY
-			1: '⚫隱身',     // CONNECTING
-			2: '⚫隱身',     // RECONNECTING
-			3: '⚠️閒置',     // IDLE
-			4: '❌離線',     // NEARLY
-			5: '❌離線',     // DISCONNECTED
-			6: '❌離線',     // WAITING_FOR_GUILDS
-			7: '❌離線',     // IDENTIFYING
-			8: '❌離線'      // RESUMING
+			0: '✅在線', 1: '⚫隱身', 2: '⚫隱身', 3: '⚠️閒置',
+			4: '❌', 5: '❌', 6: '❌', 7: '❌', 8: '❌',
+			'-1': '❓' // Unknown status (used for failed/unresponsive clusters)
 		};
 
 		const groupSize = 5;
 		const formatNumber = num => num.toLocaleString();
 
-		// 轉換狀態和延遲
-		const onlineStatus = wsStatus.map(status => {
+		// Ensure we have the correct number of status data entries
+		while (allStatuses.length < allShardIdsArray.length) {
+			allStatuses.push(-1); // -1 indicates unknown status
+		}
+		while (allPings.length < allShardIdsArray.length) {
+			allPings.push(-1); // -1 indicates unknown latency
+		}
+
+		// Ensure array lengths are correct - truncate excess data
+		allStatuses = allStatuses.slice(0, allShardIdsArray.length);
+		allPings = allPings.slice(0, allShardIdsArray.length);
+
+		// Format status values using the status mapping
+		const formattedStatuses = allStatuses.slice(0, allShardIdsArray.length).map(status => {
 			const mappedStatus = statusMap[status];
-			return mappedStatus ? mappedStatus : `❓未知(${status})`;
-		});
-		const pingTimes = wsPing.map(ping => {
-			const p = Math.round(ping);
-			return p > 1000 ? `❌${formatNumber(p)}` :
-				p > 500 ? `⚠️${formatNumber(p)}` :
-					formatNumber(p);
+			return mappedStatus ? mappedStatus : `❓`;
 		});
 
-		// 分組函數
+		// Format ping/latency values - handle invalid ping values
+		const formattedPings = allPings.slice(0, allShardIdsArray.length).map((ping) => {
+			const p = Math.round(ping);
+			// Debug: log first few ping values for troubleshootin
+			// Handle invalid ping values (like -1 or invalid numbers)
+			if (p < 0 || Number.isNaN(p) || !Number.isFinite(p)) return '❓';
+			return p > 1000 ? `❌${formatNumber(p)}` :  // High latency (error)
+				p > 500 ? `⚠️${formatNumber(p)}` :     // Medium latency (warning)
+				formatNumber(p);                       // Normal latency
+		});
+
+		// Group array into chunks for display formatting
 		const groupArray = (arr, size) => arr.reduce((acc, curr, i) => {
 			const groupIndex = Math.floor(i / size);
 			(acc[groupIndex] = acc[groupIndex] || []).push(curr);
 			return acc;
 		}, []);
 
-		// 格式化分組
+		// Format grouped data for display with range indicators
 		const formatGroup = (groupedData, isStatus = false) => {
 			return groupedData.map((group, index) => {
 				const start = index * groupSize;
@@ -950,33 +1260,31 @@ async function getAllshardIds() {
 				const range = `${start}-${end}`;
 
 				if (isStatus) {
+					// For status display, use warning icon if any shard is not online
 					const hasNonOnline = group.some(status => typeof status === 'string' && !status.includes('✅'));
 					const prefix = hasNonOnline ? '❗' : '│';
 					return `${prefix} 　• 群組${range}　${group.join(", ")}`;
 				}
+				// For shard lists, display shard IDs directly
 				return `│ 　• 群組${range}　${group.join(", ")}`;
 			}).join('\n');
 		};
 
-		const groupedIds = groupArray(shardIds, groupSize);
-		const groupedStatus = groupArray(onlineStatus, groupSize);
-		const groupedPing = groupArray(pingTimes, groupSize);
+		const groupedStatus = groupArray(formattedStatuses, groupSize);
+		const groupedPing = groupArray(formattedPings, groupSize);
 
-		// 統計摘要
-		const totalShards = onlineStatus.length;
-		const onlineCount = onlineStatus.filter(s => typeof s === 'string' && s.includes('✅')).length;
+		// Statistics summary - count shards displayed as online (excluding unknown status)
+		const onlineCount = formattedStatuses.filter(status => status.includes('✅')).length;
 
+		// Return formatted statistics display
+		// Format and return the complete statistics display
 		return `
 ├────── 🔄分流狀態 ──────
 │ 概況統計:
-│ 　• 目前分流: ${clusterId}
+│ 　• 目前分流: ${currentClusterId}
 │ 　• 分流總數: ${totalShards}
 │ 　• 在線分流: ${onlineCount}
-│
-├────── 🔍分流列表 ──────
-│ 已啟動分流:
-${formatGroup(groupedIds)}
-│
+
 ├────── ⚡連線狀態 ──────
 │ 各分流狀態:
 ${formatGroup(groupedStatus, true)}
@@ -1331,8 +1639,8 @@ async function handlingResponMessage(message, answer = '') {
 		}
 
 		//DISCORD <@!USERID> <@!399923133368042763> <@!544563333488111636>
-		//LINE @名字
-		let mainMsg = (typeof inputStr === 'string') ? inputStr.match(MESSAGE_SPLITOR) : []; //定義輸入.字串
+		// LINE @name
+		let mainMsg = (typeof inputStr === 'string') ? inputStr.match(MESSAGE_SPLITOR) : []; // Define input string
 		let trigger = (mainMsg && mainMsg[0]) ? mainMsg[0].toString().toLowerCase() : '';
 		if (!trigger) return await nonDice(message)
 
@@ -1354,15 +1662,15 @@ async function handlingResponMessage(message, answer = '') {
 		const channelid = (message.channelId) ? message.channelId : '';
 		const userrole = __checkUserRole(groupid, message);
 
-		//得到暗骰的數據, GM的位置
+		// Get private roll data, GM position
 
-		//檢查是不是有權限可以傳信訊
-		//是不是自己.ME 訊息
-		//TRUE 即正常
+		// Check if there are permissions to send messages
+		// Is it my own .ME message
+		// TRUE means normal
 
-		//設定私訊的模式 0-普通 1-自己 2-自己+GM 3-GM
-		//訊息來到後, 會自動跳到analytics.js進行骰組分析
-		//如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+		// Set private message mode 0-normal 1-self 2-self+GM 3-GM
+		// After message arrives, automatically jump to analytics.js for dice group analysis
+		// If you want to add or modify dice groups, just modify the conditions in analytics.js and the dice group files in ROLL, then add explanations in HELP.JS.
 
 		rplyVal = await exports.analytics.parseInput({
 			inputStr: inputStr,
@@ -1626,7 +1934,7 @@ async function handlingSendMessage(input) {
 	}
 	switch (true) {
 		case privatemsg == 1:
-			// 輸入dr  (指令) 私訊自己
+			// Input dr (command) private message to self
 			//
 			if (groupid) {
 				await SendToReplychannel(
@@ -1638,7 +1946,7 @@ async function handlingSendMessage(input) {
 			}
 			return;
 		case privatemsg == 2:
-			//輸入ddr(指令) 私訊GM及自己
+			// Input ddr(command) private message to GM and self
 			if (groupid) {
 				let targetGMNameTemp = "";
 				for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -1658,7 +1966,7 @@ async function handlingSendMessage(input) {
 			}
 			return;
 		case privatemsg == 3:
-			//輸入dddr(指令) 私訊GM
+			// Input dddr(command) private message to GM
 			if (groupid) {
 				let targetGMNameTemp = "";
 				for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -2190,10 +2498,11 @@ const convertRegex = function (str = "") {
 	return new RegExp(str.replaceAll(/([.?*+^$[\]\\(){}|-])/g, String.raw`\$1`));
 };
 
+
 const connect = function () {
 	ws = new WebSocket('ws://127.0.0.1:53589');
 	ws.on('open', function open() {
-		console.log(`connectd To core-www from discord! Shard#${shardid}`)
+		console.log(`[discord_bot] connectd To core-www from discord! Shard#${shardid}`)
 		ws.send(`connectd To core-www from discord! Shard#${shardid}`);
 	});
 	ws.on('message', async function incoming(data) {
@@ -2221,7 +2530,7 @@ const connect = function () {
 		setTimeout(connect, RECONNECT_INTERVAL);
 	});
 };
-
+if (process.env.BROADCAST) connect();
 function handlingButtonCommand(message) {
 	// Safely check if component exists before accessing its label property
 	if (!message || !message.component) {
@@ -2277,7 +2586,7 @@ if (togGGToken) {
 	const Topgg = require(`@top-gg/sdk`)
 	const api = new Topgg.Api(togGGToken)
 	this.interval = setInterval(async () => {
-		const guilds = await client.cluster.fetchClientValues("guilds.cache.size");
+		const guilds = await client.cluster.broadcastEval(c => c.guilds.cache.size);
 		api.postStats({
 			serverCount: Number.parseInt(guilds.reduce((a, c) => a + c, 0)),
 			shardCount: getInfo().TOTAL_SHARDS,
@@ -2287,7 +2596,7 @@ if (togGGToken) {
 }
 
 async function sendCronWebhook({ channelid, replyText, data }) {
-	console.log(`[Shard ${client.cluster.id}] Starting sendCronWebhook for channel ${channelid}`);
+	console.log(`[discord_bot] [Shard ${client.cluster.id}] Starting sendCronWebhook for channel ${channelid}`);
 	try {
 		const webhookData = await client.cluster.broadcastEval(
 			async (c, { channelId }) => {
@@ -2330,7 +2639,7 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 			return;
 		}
 
-		console.log(`[Shard ${client.cluster.id}] Found webhook ${validWebhookData.id} for channel ${channelid}. Sending message.`);
+		console.log(`[discord_bot] [Shard ${client.cluster.id}] Found webhook ${validWebhookData.id} for channel ${channelid}. Sending message.`);
 		const webhookClient = new WebhookClient({ id: validWebhookData.id, token: validWebhookData.token });
 
 		const messageOptions = {
@@ -2344,7 +2653,7 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 		}
 
 		await webhookClient.send(messageOptions);
-		console.log(`[Shard ${client.cluster.id}] Successfully sent message via webhook to channel ${channelid}.`);
+		console.log(`[discord_bot] [Shard ${client.cluster.id}] Successfully sent message via webhook to channel ${channelid}.`);
 
 	} catch (error) {
 		console.error(`[Shard ${client.cluster.id}] Error in sendCronWebhook for channel ${channelid}: ${error.message}`, error.stack);
@@ -2532,47 +2841,80 @@ async function __handlingReplyMessage(message, result) {
 }
 
 async function __handlingInteractionMessage(message) {
+	const interactionId = message.commandName || message.component?.label || message.customId || 'unknown';
+
 	// Set isInteraction flag for all interaction types
 	message.isInteraction = true;
 
 	// Immediately defer ALL interactions to prevent timeout
 	// This must happen within 3 seconds of receiving the interaction
+	const deferStartTime = Date.now();
 	try {
 		if (!message.deferred && !message.replied) {
-			if (message.isCommand()) {
-				await message.deferReply();
-			} else if (message.isButton()) {
-				await message.deferUpdate();
-			} else {
-				// For other interaction types, use deferReply as fallback
-				await message.deferReply();
+			let deferOptions = {};
+
+			// Add ephemeral flag for certain commands to reduce spam
+			if (message.isCommand() && ['state', 'help', 'bothelp', 'info'].includes(message.commandName)) {
+				deferOptions.flags = MessageFlags.Ephemeral;
 			}
+
+			// Determine defer method based on interaction type
+			let deferPromise;
+			if (message.isCommand()) {
+				deferPromise = message.deferReply(deferOptions);
+			} else if (message.isButton() || message.isStringSelectMenu?.() || message.isUserSelectMenu?.() || message.isRoleSelectMenu?.()) {
+				deferPromise = message.deferUpdate();
+			} else {
+				deferPromise = message.deferReply(deferOptions);
+			}
+
+			// Use a shorter timeout and catch specific errors
+			await Promise.race([
+				deferPromise,
+				new Promise((_, reject) => setTimeout(() => reject(new Error('Defer timeout')), 2000))
+			]);
 		}
 	} catch (deferError) {
-		// If interaction has already expired, log and return early
-		if (deferError.code === 10_062) { // Unknown interaction code
-			console.error(`Interaction expired before immediate deferral: ${message.commandName || message.component?.label || 'unknown'}`);
+		const deferDuration = Date.now() - deferStartTime;
+
+		// If interaction has already expired or is unknown, log and return early
+		if (String(deferError.code) === '10062' || deferError.message?.includes('timeout') || deferError.message?.includes('expired')) {
+			console.error(`Interaction expired before deferral (${deferDuration}ms): ${interactionId}`);
 			return;
 		}
-		// Handle other deferral errors
-		console.error(`Failed to defer interaction: ${deferError.message} | Command: ${message.commandName || message.component?.label || 'unknown'} | Code: ${deferError.code}`);
-		// Try to respond with an error message if possible
+
+		// For other deferral errors, try to send a regular reply as fallback
 		try {
 			if (!message.replied && !message.deferred) {
-				await message.reply({ content: '處理請求時發生錯誤，請稍後再試。', ephemeral: true });
+				await message.reply({ content: '處理中，請稍候...', flags: MessageFlags.Ephemeral });
 			}
-		} catch (replyError) {
-			console.error(`Failed to send error reply: ${replyError.message}`);
+		} catch (fallbackError) {
+			console.error(`Fallback reply also failed (${deferDuration}ms): ${fallbackError.message} | Command: ${interactionId}`);
+			return;
 		}
-		return;
+
+		// Log the original deferral error
+		console.error(`Failed to defer interaction (${deferDuration}ms): ${deferError.message} | Command: ${interactionId} | Code: ${deferError.code}`);
+		// Continue processing since we sent a fallback reply
+	}
+
+	const deferDuration = Date.now() - deferStartTime;
+	if (deferDuration > 1000) { // Log slow deferrals
+		console.warn(`Slow interaction deferral (${deferDuration}ms): ${interactionId}`);
 	}
 
 	switch (true) {
 		case message.isCommand():
 			{
+				const commandStartTime = Date.now();
+				let success = false;
+
 				try {
 					const answer = await handlingCommand(message);
-					if (!answer) return;
+					if (!answer) {
+						success = true; // Command processed normally but no response
+						return;
+					}
 
 					// Handle both string and object answers
 					let result;
@@ -2585,7 +2927,8 @@ async function __handlingInteractionMessage(message) {
 						result = await handlingResponMessage(message, answer);
 					}
 
-					return replilyMessage(message, result);
+					await replilyMessage(message, result);
+					success = true;
 				} catch (error) {
 					console.error('Command processing error:', error);
 					try {
@@ -2599,11 +2942,22 @@ async function __handlingInteractionMessage(message) {
 						// If even error reporting fails, just log it
 						console.error('Failed to send error response:', replyError.message);
 					}
+				} finally {
+					const duration = Date.now() - commandStartTime;
+					healthMonitor.emit('interactionProcessed', {
+						type: 'command',
+						commandName: message.commandName,
+						duration,
+						success
+					});
 				}
 			}
 			break; // Add break statement to avoid fall-through
 		case message.isButton():
 			{
+				const buttonStartTime = Date.now();
+				let success = false;
+
 				try {
 					const answer = handlingButtonCommand(message);
 					const result = await handlingResponMessage(message, answer);
@@ -2747,6 +3101,14 @@ async function __handlingInteractionMessage(message) {
 				} catch (error) {
 					// Global error handling for the entire button interaction block
 					console.error(`Global button interaction error: ${error?.message || error}`, error);
+				} finally {
+					const duration = Date.now() - buttonStartTime;
+					healthMonitor.emit('interactionProcessed', {
+						type: 'button',
+						buttonLabel: message.component?.label,
+						duration,
+						success
+					});
 				}
 				return;
 			}
@@ -2768,12 +3130,12 @@ async function __sendMeMessage({ message, rplyVal, groupid }) {
 }
 
 client.on('shardDisconnect', (event, shardID) => {
-	console.log('shardDisconnect:', event, shardID)
+	console.log('[discord_bot] shardDisconnect:', event, shardID)
 });
 
-client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID} resumed connection and replayed ${replayed} events.`));
+client.on('shardResume', (replayed, shardID) => console.log(`[discord_bot] Shard ID ${shardID} resumed connection and replayed ${replayed} events.`));
 
-client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
+client.on('shardReconnecting', id => console.log(`[discord_bot] Shard with ID ${id} reconnected.`));
 
 
 if (debugMode) process.on('warning', e => {

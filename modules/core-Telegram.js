@@ -267,6 +267,8 @@ function SendToId(targetid, text, options) {
 
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
 let ws;
+
+// eslint-disable-next-line no-unused-vars
 let connect = function () {
     ws = new WebSocket('ws://127.0.0.1:53589');
     ws.on('open', function open() {

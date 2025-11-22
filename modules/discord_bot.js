@@ -1235,7 +1235,7 @@ async function getAllshardIds() {
 		});
 
 		// Format ping/latency values - handle invalid ping values
-		const formattedPings = allPings.slice(0, allShardIdsArray.length).map((ping, index) => {
+		const formattedPings = allPings.slice(0, allShardIdsArray.length).map((ping) => {
 			const p = Math.round(ping);
 			// Debug: log first few ping values for troubleshootin
 			// Handle invalid ping values (like -1 or invalid numbers)
@@ -2855,7 +2855,7 @@ async function __handlingInteractionMessage(message) {
 
 			// Add ephemeral flag for certain commands to reduce spam
 			if (message.isCommand() && ['state', 'help', 'bothelp', 'info'].includes(message.commandName)) {
-				deferOptions.ephemeral = true;
+				deferOptions.flags = MessageFlags.Ephemeral;
 			}
 
 			// Determine defer method based on interaction type
@@ -2886,7 +2886,7 @@ async function __handlingInteractionMessage(message) {
 		// For other deferral errors, try to send a regular reply as fallback
 		try {
 			if (!message.replied && !message.deferred) {
-				await message.reply({ content: '處理中，請稍候...', ephemeral: true });
+				await message.reply({ content: '處理中，請稍候...', flags: MessageFlags.Ephemeral });
 			}
 		} catch (fallbackError) {
 			console.error(`Fallback reply also failed (${deferDuration}ms): ${fallbackError.message} | Command: ${interactionId}`);

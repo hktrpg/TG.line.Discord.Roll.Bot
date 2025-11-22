@@ -110,7 +110,8 @@ function createWebServer(options = {}, www) {
         // Do not attempt to send responses when handling clientError
         try {
             if (socket && !socket.destroyed) {
-                socket.destroy(err);
+                // Don't pass the error to destroy() if socket is already errored
+                socket.destroy();
             }
         } catch (error) {
             // Log the destruction error but don't re-throw
@@ -122,7 +123,8 @@ function createWebServer(options = {}, www) {
     server.on('tlsClientError', (err, socket) => {
         try {
             if (socket && !socket.destroyed) {
-                socket.destroy(err);
+                // Don't pass the error to destroy() if socket is already errored
+                socket.destroy();
             }
         } catch (error) {
             // Log the destruction error but don't re-throw

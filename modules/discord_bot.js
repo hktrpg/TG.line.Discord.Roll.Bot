@@ -1037,136 +1037,226 @@ async function checkWakeUp() {
 
 }
 
+// Get comprehensive shard status information across all clusters
+// Returns formatted statistics for Discord bot sharding status
 async function getAllshardIds() {
 	if (!client.cluster) return '';
 
 	try {
-		// 獲取當前分群 ID
+		// Get current cluster ID for display purposes
 		const currentClusterId = client.cluster.id;
 
-		// 獲取總分流數量 - 只依賴實際檢測，無預設值
+		// Determine total number of shards - prioritize actual detection over defaults
 		const { getInfo } = require('discord-hybrid-sharding');
 		let totalShards;
 
-		// 優先檢查環境變數
+		// Check environment variables first for explicit configuration
 		if (process.env.DISCORD_TOTAL_SHARDS) {
 			totalShards = Number.parseInt(process.env.DISCORD_TOTAL_SHARDS, 10);
 		} else if (process.env.SHARD_COUNT) {
 			totalShards = Number.parseInt(process.env.SHARD_COUNT, 10);
 		} else {
-			// 從運行時資訊動態獲取
+			// Dynamically detect from runtime information
 			try {
 				const info = getInfo();
 				if (info && info.TOTAL_SHARDS) {
 					totalShards = info.TOTAL_SHARDS;
 				} else if (client.cluster && client.cluster.ids) {
+					// Fallback to number of active clusters (may not be accurate for total shards)
 					totalShards = client.cluster.ids.size;
 				}
 			} catch (error) {
-				console.warn('無法獲取分流資訊:', error.message);
+				console.warn('Unable to retrieve shard information:', error.message);
 			}
 		}
 
-		// 如果無法獲取分流數量，使用當前集群數量作為備用
+		// Final fallback: use cluster count if still no shard count
 		if (!totalShards && client.cluster && client.cluster.ids) {
 			totalShards = client.cluster.ids.size;
 		}
 
-		// 如果還是沒有，設定為最小值 1
+		// Ensure we have at least 1 shard as absolute minimum
 		totalShards = totalShards || 1;
 
-		// 生成所有 shard IDs (0 到 totalShards-1)
+		// Generate array of all shard IDs (0 to totalShards-1)
 		const allShardIdsArray = Array.from({ length: totalShards }, (_, i) => i);
 
-		// 嘗試收集實際的狀態資料
+		// Attempt to collect actual status data - use fault-tolerant mode for partial cluster failures
 		let allStatuses = [];
 		let allPings = [];
 
 		try {
-			const [wsStatusRaw, wsPingRaw] = await Promise.all([
-				client.cluster.broadcastEval(c => c.ws.status),
-				client.cluster.broadcastEval(c => c.ws.ping)
+			// Use simplified fault-tolerant mode: collect all cluster data directly with timeout handling
+			const timeoutPromise = new Promise((_, reject) => {
+				setTimeout(() => reject(new Error('Shard status collection timeout')), 8000); // 8 second total timeout
+			});
+
+			const evalPromise = Promise.race([
+				client.cluster.broadcastEval(
+					c => {
+						// Ensure ping value is a valid number
+						let pingValue = c.ws?.ping;
+						if (typeof pingValue !== 'number' || Number.isNaN(pingValue) || pingValue < 0) {
+							pingValue = -1; // Mark invalid values as -1
+						}
+
+						return {
+							clusterId: c.cluster.id,
+							shardIds: c.shard?.ids || [],
+							wsStatus: c.ws?.status ?? -1,
+							wsPing: Math.round(pingValue),
+							success: true
+						};
+					},
+					{ timeout: 5000 } // 5 second cluster evaluation timeout
+				),
+				timeoutPromise
 			]);
 
-		// 處理狀態資料
-		if (Array.isArray(wsStatusRaw) && wsStatusRaw.length > 0) {
-			if (Array.isArray(wsStatusRaw[0])) {
-				// 巢狀陣列，需要展開
-				for (const clusterStatuses of wsStatusRaw) {
-					if (Array.isArray(clusterStatuses)) {
-						allStatuses.push(...clusterStatuses);
-					}
-				}
-			} else {
-				// 單層陣列
-				allStatuses = [...wsStatusRaw];
-			}
-		}
+			let clusterDataRaw = [];
+			try {
+				clusterDataRaw = await evalPromise;
+			} catch (error) {
+				console.warn('broadcastEval timeout, using fallback collection method:', error.message);
+				// If primary broadcastEval fails, use simplified method
+				try {
+					clusterDataRaw = await Promise.race([
+						client.cluster.broadcastEval(c => {
+							// Fallback method also ensures ping value validity
+							let pingValue = c.ws?.ping;
+							if (typeof pingValue !== 'number' || Number.isNaN(pingValue) || pingValue < 0) {
+								pingValue = -1;
+							}
 
-		// 處理延遲資料
-		if (Array.isArray(wsPingRaw) && wsPingRaw.length > 0) {
-			if (Array.isArray(wsPingRaw[0])) {
-				// 巢狀陣列，需要展開
-				for (const clusterPings of wsPingRaw) {
-					if (Array.isArray(clusterPings)) {
-						allPings.push(...clusterPings);
+							return {
+								clusterId: c.cluster.id,
+								shardIds: [], // Use empty array when unable to retrieve
+								wsStatus: c.ws?.status ?? -1,
+								wsPing: Math.round(pingValue),
+								success: false // Mark as incomplete data
+							};
+						}),
+						new Promise((_, reject) => setTimeout(() => reject(new Error('Fallback collection also timed out')), 3000))
+					]);
+				} catch (fallbackError) {
+					console.warn('Fallback collection also failed:', fallbackError.message);
+					// If all methods fail, populate with default values
+					const clusterCount = client.cluster?.ids?.size || Math.ceil(totalShards / 2);
+					for (let i = 0; i < clusterCount; i++) {
+						clusterDataRaw.push({
+							clusterId: i,
+							shardIds: [],
+							wsStatus: -1,
+							wsPing: -1,
+							success: false
+						});
 					}
 				}
-			} else {
-				// 單層陣列
-				allPings = [...wsPingRaw];
 			}
-		}
+
+			// Process cluster data, allowing for partial data missing
+			const processedClusters = new Set();
+
+			for (const clusterData of clusterDataRaw) {
+				if (clusterData && typeof clusterData === 'object') {
+					const { clusterId, shardIds, wsStatus, wsPing, success } = clusterData;
+					processedClusters.add(clusterId);
+
+					// Debug: log cluster data for troubleshooting
+					console.log(`Cluster ${clusterId}: success=${success}, shardIds=${JSON.stringify(shardIds)}, wsStatus=${wsStatus}, wsPing=${wsPing}`);
+
+					// For each shard managed by this cluster, add status
+					if (success && Array.isArray(shardIds) && shardIds.length > 0) {
+						// If we successfully got shard IDs, use them
+						for (let i = 0; i < shardIds.length; i++) {
+							allStatuses.push(wsStatus); // Cluster's WebSocket status applies to all its shards
+							allPings.push(wsPing);
+						}
+					} else {
+						// If unable to get shard IDs, assume 2 shards per cluster (based on configuration)
+						const assumedShardsPerCluster = 2;
+						for (let i = 0; i < assumedShardsPerCluster; i++) {
+							allStatuses.push(wsStatus !== undefined ? wsStatus : -1);
+							allPings.push(wsPing !== undefined ? wsPing : -1);
+						}
+					}
+				}
+			}
+
+			// Check if any expected clusters completely failed to respond, fill with default values
+			const expectedClusters = client.cluster?.ids ? [...client.cluster.ids.keys()] : [];
+			for (const expectedClusterId of expectedClusters) {
+				if (!processedClusters.has(expectedClusterId)) {
+					console.warn(`Cluster ${expectedClusterId} completely failed to respond, filling with default values`);
+					const assumedShardsPerCluster = 2;
+					for (let i = 0; i < assumedShardsPerCluster; i++) {
+						allStatuses.push(-1); // -1 indicates cluster did not respond
+						allPings.push(-1);
+					}
+				}
+			}
+
 		} catch (error) {
-			console.warn('收集分流狀態時發生錯誤，使用預設值:', error.message);
+			console.warn('Major error occurred while collecting shard status, using default values:', error.message);
+			// If entire process fails, populate with default values
+			const assumedShardsPerCluster = 2;
+			const totalClusters = client.cluster?.ids?.size || Math.ceil(totalShards / assumedShardsPerCluster);
+			for (let i = 0; i < totalClusters * assumedShardsPerCluster; i++) {
+				allStatuses.push(-1);
+				allPings.push(-1);
+			}
 		}
 
-		// WebSocket status mapping
+		// WebSocket status mapping - Discord.js status codes to display symbols
 		const statusMap = {
 			0: '✅在線', 1: '⚫隱身', 2: '⚫隱身', 3: '⚠️閒置',
-			4: '❌離線', 5: '❌離線', 6: '❌離線', 7: '❌離線', 8: '❌離線',
-			'-1': '❓未知' // 未知狀態
+			4: '❌', 5: '❌', 6: '❌', 7: '❌', 8: '❌',
+			'-1': '❓' // Unknown status (used for failed/unresponsive clusters)
 		};
 
 		const groupSize = 5;
 		const formatNumber = num => num.toLocaleString();
 
-		// 為沒有收集到資料的分流標記為未知狀態
+		// Ensure we have the correct number of status data entries
 		while (allStatuses.length < allShardIdsArray.length) {
-			allStatuses.push(-1); // -1 表示未知狀態
+			allStatuses.push(-1); // -1 indicates unknown status
 		}
 		while (allPings.length < allShardIdsArray.length) {
-			allPings.push(-1); // -1 表示未知延遲
+			allPings.push(-1); // -1 indicates unknown latency
 		}
 
-		// 確保陣列長度正確
+		// Ensure array lengths are correct - truncate excess data
 		allStatuses = allStatuses.slice(0, allShardIdsArray.length);
 		allPings = allPings.slice(0, allShardIdsArray.length);
 
-		// 轉換狀態格式
+		// Format status values using the status mapping
 		const formattedStatuses = allStatuses.slice(0, allShardIdsArray.length).map(status => {
 			const mappedStatus = statusMap[status];
-			return mappedStatus ? mappedStatus : `❓未知(${status})`;
+			return mappedStatus ? mappedStatus : `❓`;
 		});
 
-		// 轉換延遲格式 - 處理無效的 ping 值
-		const formattedPings = allPings.slice(0, allShardIdsArray.length).map(ping => {
+		// Format ping/latency values - handle invalid ping values
+		const formattedPings = allPings.slice(0, allShardIdsArray.length).map((ping, index) => {
 			const p = Math.round(ping);
+			// Debug: log first few ping values for troubleshooting
+			if (index < 3) {
+				console.log(`Shard ${index} ping value: ${ping} -> ${p}`);
+			}
 			// Handle invalid ping values (like -1 or invalid numbers)
-			if (p < 0 || Number.isNaN(p)) return '未知';
-			return p > 1000 ? `❌${formatNumber(p)}` :
-				p > 500 ? `⚠️${formatNumber(p)}` :
-				formatNumber(p);
+			if (p < 0 || Number.isNaN(p) || !Number.isFinite(p)) return '❓';
+			return p > 1000 ? `❌${formatNumber(p)}` :  // High latency (error)
+				p > 500 ? `⚠️${formatNumber(p)}` :     // Medium latency (warning)
+				formatNumber(p);                       // Normal latency
 		});
 
-		// 分組函數
+		// Group array into chunks for display formatting
 		const groupArray = (arr, size) => arr.reduce((acc, curr, i) => {
 			const groupIndex = Math.floor(i / size);
 			(acc[groupIndex] = acc[groupIndex] || []).push(curr);
 			return acc;
 		}, []);
 
-		// 格式化分組
+		// Format grouped data for display with range indicators
 		const formatGroup = (groupedData, isStatus = false) => {
 			return groupedData.map((group, index) => {
 				const start = index * groupSize;
@@ -1174,11 +1264,12 @@ async function getAllshardIds() {
 				const range = `${start}-${end}`;
 
 				if (isStatus) {
+					// For status display, use warning icon if any shard is not online
 					const hasNonOnline = group.some(status => typeof status === 'string' && !status.includes('✅'));
 					const prefix = hasNonOnline ? '❗' : '│';
 					return `${prefix} 　• 群組${range}　${group.join(", ")}`;
 				}
-				// 對於分流列表，直接顯示分流ID
+				// For shard lists, display shard IDs directly
 				return `│ 　• 群組${range}　${group.join(", ")}`;
 			}).join('\n');
 		};
@@ -1186,9 +1277,11 @@ async function getAllshardIds() {
 		const groupedStatus = groupArray(formattedStatuses, groupSize);
 		const groupedPing = groupArray(formattedPings, groupSize);
 
-		// 統計摘要 - 計算顯示為在線的分流數量（排除未知狀態）
+		// Statistics summary - count shards displayed as online (excluding unknown status)
 		const onlineCount = formattedStatuses.filter(status => status.includes('✅')).length;
 
+		// Return formatted statistics display
+		// Format and return the complete statistics display
 		return `
 ├────── 🔄分流狀態 ──────
 │ 概況統計:

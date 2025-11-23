@@ -33,7 +33,6 @@ class DailyCache {
 	constructor() {
 		this.cache = new NodeCache({ stdTTL: 86_400 }); // 24 hours TTL
 		this.twelveAstro = new TwelveAstro();
-		this.dailyAlmanac = new DailyAlmanac();
 		this.isInitialized = false;
 	}
 
@@ -73,10 +72,13 @@ class DailyCache {
 				this.updateAstroCacheForDate(dayAfterTomorrow)
 			]);
 
-			// Prewarm today's big event data
-			await this.updateBigEventCache();
+			// Prewarm today's big event and almanac data
+			await Promise.all([
+				this.updateBigEventCache(),
+				this.updateAlmanacCache()
+			]);
 
-			console.log('Astro and big event cache prewarmed for today, tomorrow, and day-after-tomorrow');
+			console.log('Astro, big event, and almanac cache prewarmed for today, tomorrow, and day-after-tomorrow');
 		} catch (error) {
 			console.error('Failed to update astro cache:', error);
 		}
@@ -119,7 +121,7 @@ class DailyCache {
 	 */
 	async updateAlmanacCache() {
 		try {
-			const almanacData = await this.dailyAlmanac.getAlmanac(true); // force update
+			const almanacData = await this.twelveAstro.getAlmanac(null, true); // force update
 			if (almanacData) {
 				this.cache.set('almanac', almanacData);
 			}
@@ -127,6 +129,10 @@ class DailyCache {
 			console.error('Failed to update almanac cache:', error);
 		}
 	}
+
+	/**
+	 * Update almanac cache
+	 */
 
 	/**
 	 * Get astrology data for today
@@ -189,10 +195,31 @@ class DailyCache {
 
 
 	/**
-	 * Get almanac data
+	 * Get almanac data for today
 	 */
-	getAlmanac() {
-		return this.cache.get('almanac');
+	async getAlmanac() {
+		const today = this.twelveAstro.getDate();
+		let almanacData = this.cache.get('almanac');
+
+		// If not in cache, fetch it asynchronously
+		if (!almanacData) {
+			try {
+				console.log(`Cache miss for almanac on ${today}, fetching data...`);
+				almanacData = await this.twelveAstro.getAlmanac(today, false);
+				if (almanacData) {
+					this.cache.set('almanac', almanacData);
+					console.log(`Successfully cached almanac data`);
+				} else {
+					console.log(`Almanac data is empty, returning error`);
+					return '獲取黃曆資料時發生錯誤，請稍後再試';
+				}
+			} catch (error) {
+				console.error(`Failed to fetch almanac data:`, error);
+				return '獲取黃曆資料時發生錯誤，請稍後再試';
+			}
+		}
+
+		return almanacData;
 	}
 
 	/**
@@ -206,11 +233,14 @@ class DailyCache {
 			const dayAfterTomorrow = this.twelveAstro.getDayAfterTomorrowDate();
 			console.log(`Starting day-after-tomorrow astro cache update for ${dayAfterTomorrow}...`);
 			await this.updateAstroCacheForDate(dayAfterTomorrow);
-			// Also update tomorrow's big event data
+			// Also update tomorrow's big event and almanac data
 			const tomorrow = this.twelveAstro.getTomorrowDate();
-			console.log(`Starting tomorrow big event cache update for ${tomorrow}...`);
-			await this.twelveAstro.getBigEvent(tomorrow, true);
-			console.log(`Tomorrow big event cache update completed for ${tomorrow}`);
+			console.log(`Starting tomorrow big event and almanac cache update for ${tomorrow}...`);
+			await Promise.all([
+				this.twelveAstro.getBigEvent(tomorrow, true),
+				this.twelveAstro.getAlmanac(tomorrow, true)
+			]);
+			console.log(`Tomorrow big event and almanac cache update completed for ${tomorrow}`);
 			console.log(`Day-after-tomorrow astro cache update completed for ${dayAfterTomorrow}`);
 		};
 
@@ -375,7 +405,7 @@ const rollDiceCommand = async function ({
 		return rply;
 	}
 	if (/^每日黃曆$/.test(mainMsg[0])) {
-		rply.text = await dailyAlmanac.getAlmanac();
+		rply.text = await dailyCache.getAlmanac();
 		return rply;
 	}
 	if (/^每日毒湯$/.test(mainMsg[0])) {
@@ -489,6 +519,7 @@ class TwelveAstro {
 	constructor() {
 		this.Astro = {}; // Date-based caching: { date: { astroCode: astroData } }
 		this.BigEvent = {}; // Date-based caching for big events: { date: bigEventData }
+		this.Almanac = {}; // Date-based caching for almanac: { date: almanacData }
 	}
 
 	/**
@@ -629,67 +660,56 @@ class TwelveAstro {
 		}
 	}
 
-}
-
-
-class Astro {
-	constructor($, date) {
-		//TODAY_CONTENT
-		this.TODAY_CONTENT = $('.TODAY_CONTENT').text().replaceAll('                ', '');
-		this.TODAY_WORD = $('.TODAY_WORD').text();
-		this.TODAY_LUCKY_NUMBER = this.matchImgUrl($, 0)
-		this.TODAY_LUCKY_COLOR = this.matchImgUrl($, 1)
-		this.TODAY_LUCKY_DIRECTION = this.matchImgUrl($, 2)
-		this.TODAY_LUCKY_TIME = this.matchImgUrl($, 3)
-		this.TODAY_LUCKY_ASTRO = this.matchImgUrl($, 4)
-		this.date = date;
-	}
-	matchImgUrl($, num) {
-		const LUCKY = $('.TODAY_LUCKY .LUCKY').text().match(/\S+/g);
-		return LUCKY[num];
-
-	}
-}
-
-
-class DailyAlmanac {
-	constructor() {
-		this.Almanac = {};
-	}
 	/**
 	 * 獲取黃曆
+	 * @param {string} date - 日期 (optional, defaults to today)
 	 * @param {boolean} forceUpdate - 是否強制更新
 	 */
-	async getAlmanac(forceUpdate = false) {
+	async getAlmanac(date = null, forceUpdate = false) {
 		try {
-			if (forceUpdate || !this.Almanac || this.Almanac.date !== this.getDate()) await this.updateAlmanac();
-			if (this.Almanac) {
-				return this.returnStr(this.Almanac);
-			} else return;
+			const targetDate = date || this.getDate();
+
+			if (forceUpdate || !this.Almanac[targetDate]) {
+				await this.updateAlmanac(targetDate);
+			}
+
+			if (this.Almanac[targetDate]) {
+				return this.returnAlmanacStr(this.Almanac[targetDate]);
+			}
+			return null;
 		} catch (error) {
-			console.error('DailyAlmanac getAlmanac error:', error)
-			return;
+			console.error('TwelveAstro getAlmanac error:', error);
+			return null;
 		}
 	}
 
-	returnStr(Almanac) {
-		return `今日黃曆 - ${Almanac.date}
-${Almanac.content}
+	/**
+	 * 格式化黃曆輸出
+	 * @param {Object} almanac - 黃曆物件
+	 */
+	returnAlmanacStr(almanac) {
+		return `今日黃曆 - ${almanac.date}
+${almanac.content}
 	`;
 	}
 
-
-	async updateAlmanac() {
-		const now = new Date();
+	/**
+	 * 更新黃曆數據
+	 * @param {string} date - 日期
+	 */
+	async updateAlmanac(date) {
+		const targetDate = new Date(date);
+		const now = new Date(targetDate); // Use the target date for calculations
 		const lsr = lunisolar(now, { lang: 'zh' });
-		const date = this.getDate();
+		const almanacDate = this.getAlmanacDate(targetDate);
 		const content = this.buildContent(lsr, now);
-		this.Almanac = { date, content };
+		this.Almanac[date] = { date: almanacDate, content };
 	}
-	getDate() {
-		let year = new Date().getFullYear();
-		let month = ((new Date().getMonth() + 1))
-		let day = (new Date().getDate())
+
+	getAlmanacDate(d) {
+		let year = d.getFullYear();
+		let month = d.getMonth() + 1;
+		let day = d.getDate();
 		return `${year}年${month}月${day}日`;
 	}
 
@@ -707,7 +727,7 @@ ${Almanac.content}
 		const monthGanzhi = monthSB.toString();
 		const dayGanzhi = daySB.toString();
 		const zodiac = this.branchToAnimal(yearSB.branch.name);
-		const fetal = lsr.fetalGod;
+		const fetal = String(lsr.fetalGod || '');
 
 		// Get takeSound information for year, month, and day
 		const yearTakeSound = yearSB.takeSound;
@@ -835,14 +855,31 @@ ${Almanac.content}
 			default: return '';
 		}
 	}
-	getPengZuTaboo(daySB) {
-		try {
-			const arr = (daySB && daySB.gods) ? daySB.gods.filter(g => g.name && g.name.includes('彭祖')).map(g => g.name) : [];
-			if (arr.length > 0) return arr.join(' ');
-			return '';
-		} catch { return ''; }
+
+}
+
+
+class Astro {
+	constructor($, date) {
+		//TODAY_CONTENT
+		this.TODAY_CONTENT = $('.TODAY_CONTENT').text().replaceAll('                ', '');
+		this.TODAY_WORD = $('.TODAY_WORD').text();
+		this.TODAY_LUCKY_NUMBER = this.matchImgUrl($, 0)
+		this.TODAY_LUCKY_COLOR = this.matchImgUrl($, 1)
+		this.TODAY_LUCKY_DIRECTION = this.matchImgUrl($, 2)
+		this.TODAY_LUCKY_TIME = this.matchImgUrl($, 3)
+		this.TODAY_LUCKY_ASTRO = this.matchImgUrl($, 4)
+		this.date = date;
+	}
+	matchImgUrl($, num) {
+		const LUCKY = $('.TODAY_LUCKY .LUCKY').text().match(/\S+/g);
+		return LUCKY[num];
+
 	}
 }
+
+
+
 // Create daily cache manager
 const dailyCache = new DailyCache();
 
@@ -856,9 +893,6 @@ const dailyCache = new DailyCache();
 })();
 
 // For backward compatibility, keep old instance names but actually use cache
-const dailyAlmanac = {
-	getAlmanac: () => dailyCache.getAlmanac()
-};
 const joke = new FunnyRandom('./assets/joke.txt');
 const acg = new FunnyRandom('./assets/acg.txt');
 const slogan = new FunnyRandom('./assets/slogan.txt');

@@ -59,20 +59,42 @@ class DailyCache {
 	}
 
 	/**
-	 * Update astrology cache
+	 * Update astrology cache - prewarm today, tomorrow, and day-after-tomorrow data
 	 */
 	async updateAstroCache() {
 		try {
+			const today = this.twelveAstro.getDate();
+			const tomorrow = this.twelveAstro.getTomorrowDate();
+			const dayAfterTomorrow = this.twelveAstro.getDayAfterTomorrowDate();
+
+			// Prewarm today's, tomorrow's, and day-after-tomorrow's data
+			await Promise.all([
+				this.updateAstroCacheForDate(today),
+				this.updateAstroCacheForDate(tomorrow),
+				this.updateAstroCacheForDate(dayAfterTomorrow)
+			]);
+
+			console.log('Astro cache prewarmed for today, tomorrow, and day-after-tomorrow');
+		} catch (error) {
+			console.error('Failed to update astro cache:', error);
+		}
+	}
+
+	/**
+	 * Update astrology cache for specific date
+	 */
+	async updateAstroCacheForDate(date) {
+		try {
 			const astroData = {};
 			for (const astro of twelveAstro) {
-				const data = await this.twelveAstro.getAstro(astro, true); // force update
+				const data = await this.twelveAstro.getAstro(astro, date, true); // force update for specific date
 				if (data) {
 					astroData[astro] = data;
 				}
 			}
-			this.cache.set('astro', astroData);
+			this.cache.set(`astro_${date}`, astroData);
 		} catch (error) {
-			console.error('Failed to update astro cache:', error);
+			console.error(`Failed to update astro cache for ${date}:`, error);
 		}
 	}
 
@@ -105,10 +127,32 @@ class DailyCache {
 	}
 
 	/**
-	 * Get astrology data
+	 * Get astrology data for today
 	 */
-	getAstro(name) {
-		const astroData = this.cache.get('astro');
+	async getAstro(name) {
+		const today = this.twelveAstro.getDate();
+		let astroData = this.getAstroForDate(name, today);
+
+		// If not in cache, fetch it asynchronously
+		if (!astroData) {
+			try {
+				console.log(`Cache miss for ${name} on ${today}, fetching data...`);
+				astroData = await this.twelveAstro.getAstro(name, today, false);
+				console.log(`Successfully fetched astro data for ${name}`);
+			} catch (error) {
+				console.error(`Failed to fetch astro data for ${name}:`, error);
+				return '獲取星座資料時發生錯誤，請稍後再試';
+			}
+		}
+
+		return astroData;
+	}
+
+	/**
+	 * Get astrology data for specific date
+	 */
+	getAstroForDate(name, date) {
+		const astroData = this.cache.get(`astro_${date}`);
 		return astroData ? astroData[name] : null;
 	}
 
@@ -130,11 +174,28 @@ class DailyCache {
 	 * Setup daily update task
 	 */
 	setupDailyUpdate() {
-		// Update cache every day at 00:00
-		schedule.scheduleJob('0 0 * * *', async () => {
-			console.log('Starting daily cache update...');
-			await this.initialize();
-		});
+		// Update day-after-tomorrow's data at 23:45-00:00, let TTL handle expiration
+		// This ensures we always have data available for the next few days
+
+		const updateDayAfterTomorrow = async () => {
+			const dayAfterTomorrow = this.twelveAstro.getDayAfterTomorrowDate();
+			console.log(`Starting day-after-tomorrow astro cache update for ${dayAfterTomorrow}...`);
+			await this.updateAstroCacheForDate(dayAfterTomorrow);
+			console.log(`Day-after-tomorrow astro cache update completed for ${dayAfterTomorrow}`);
+		};
+
+		// Schedule updates from 23:45 to 00:00 every 20 seconds for day-after-tomorrow's data
+		// This gives us 5 updates: 23:45:00, 23:45:20, 23:45:40, 23:46:00, 23:46:20
+		let minute = 45;
+		let second = 0;
+		for (let i = 0; i < 5; i++) { // 5 updates to cover 23:45-00:00
+			schedule.scheduleJob(`${second} ${minute} 23 * * *`, updateDayAfterTomorrow);
+			second += 20;
+			if (second >= 60) {
+				second -= 60;
+				minute += 1;
+			}
+		}
 	}
 }
 
@@ -231,145 +292,136 @@ const rollDiceCommand = async function ({
 	}
 */
 
-	switch (true) {
-		case /^help$/i.test(mainMsg[1]):
-			rply.text = await this.getHelpMessage();
-			rply.buttonCreate = ['隨機 跑團 溫習 打遊戲', '排序 A君 C君 F君 G君', '.re 簽到', '.re 1d100', '今日運勢', '每日塔羅', '立FLAG', '每日大事', '每日笑話', '每日廢話', '每日一言', '每日黃曆', '每日毒湯', '每日情話', '每日靈簽', '每日淺草簽', '每日動漫', '每日解答']
-			return rply;
-		case /^排序|排序$/i.test(mainMsg[0]) && (mainMsg.length >= 4):
-			rply.text = SortIt(inputStr, mainMsg);
-			return rply;
-		case /^隨機|^choice|隨機$|choice$/i.test(mainMsg[0]) && (mainMsg.length >= 3):
-			rply.text = choice(inputStr, mainMsg);
-			return rply;
-		case /^每日解答$/i.test(mainMsg[0]):
-			rply.text = dailyAnswerChoice(inputStr);
-			return rply;
-		case /塔羅/i.test(mainMsg[0]):
-			rply.quotes = true;
-			if (mainMsg[0].match(/^每日塔羅/) != null)
-				rply.text = NomalDrawTarot(mainMsg[1], mainMsg[2]); // Default draw 79 cards
-			if (mainMsg[0].match(/^時間塔羅/) != null)
-				rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
-			if (mainMsg[0].match(/^大十字塔羅/) != null)
-				rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
-			rply.buttonCreate = ['每日塔羅', '時間塔羅', '大十字塔羅']
-			return rply;
-		case (/立flag$|^立flag/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,25}/g).length <= 1):
-			rply.text = BStyleFlagSCRIPTS();
-			return rply;
-		case /^鴨霸獸$/i.test(mainMsg[0]):
-			rply.text = randomReply();
-			return rply;
-		case (/運勢$|^運勢/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,40}/g).length <= 1):
-			rply.text = randomLuck(mainMsg);
-
-			return rply;
-		case /^每日笑話$/.test(mainMsg[0]): {
-			rply.text = joke.getFunnyRandomResult();
-
-			return rply;
-		}
-		case /^每日動漫$/.test(mainMsg[0]): {
-			rply.text = acg.getFunnyRandomResult();
-			return rply;
-		}
-		case /^每日一言$/.test(mainMsg[0]): {
-			rply.text = slogan.getFunnyRandomResult();
-			return rply;
-		}
-		case /^每日黃曆$/.test(mainMsg[0]): {
-			rply.text = await dailyAlmanac.getAlmanac();
-			return rply;
-		}
-		case /^每日毒湯$/.test(mainMsg[0]): {
-			rply.text = blackjoke.getFunnyRandomResult();
-			return rply;
-		}
-		case /^每日情話$/.test(mainMsg[0]): {
-			rply.text = mlove.getFunnyRandomResult();
-			return rply;
-		}
-		case /^每日靈簽$/.test(mainMsg[0]): {
-			rply.text = watchMusic.getRandomWatchMusic100()
-			return rply;
-		}
-		case /^每日淺草簽$/.test(mainMsg[0]): {
-			rply.text = asakusa100.getRandomAsakusa100();
-			return rply;
-		}
-		case /^每日廢話$/.test(mainMsg[0]): {
-			const name = mainMsg[1] || displaynameDiscord || tgDisplayname || displayname || '你';
-			const req = DailyFuckUp.generateArticles(name);
-			rply.text = req;
-			return rply;
-		}
-		case /^每日大事$/.test(mainMsg[0]): {
-			rply.text = await dailyCache.getBigEvent();
-			return rply;
-		}
-		// Aries, Taurus, Gemini, Cancer, Leo, Virgo, Libra, Scorpio, Sagittarius, Capricorn, Aquarius, Pisces
-		case (/^每日白羊$/.test(mainMsg[0]) || /^每日牡羊$/.test(mainMsg[0])): {
-			rply.text = dailyCache.getAstro('牡羊');
-			return rply;
-		}
-
-		case /^每日金牛$/.test(mainMsg[0]): {
-			rply.text = dailyCache.getAstro('金牛');
-			return rply;
-		}
-
-		case /^每日雙子$/.test(mainMsg[0]): {
-			rply.text = dailyCache.getAstro('雙子');
-			return rply;
-		}
-
-		case /^每日巨蟹$/.test(mainMsg[0]): {
-			rply.text = dailyCache.getAstro('巨蟹');
-			return rply;
-		}
-
-		case /^每日獅子$/.test(mainMsg[0]): {
-			rply.text = dailyCache.getAstro('獅子');
-			return rply;
-		}
-
-		case /^每日處女$/.test(mainMsg[0]): {
-			rply.text = dailyCache.getAstro('處女');
-			return rply;
-		}
-
-		case (/^每日天秤$/.test(mainMsg[0]) || /^每日天平$/.test(mainMsg[0])): {
-			rply.text = dailyCache.getAstro('天秤');
-			return rply;
-		}
-
-		case /^每日天蠍$/.test(mainMsg[0]) || /^每日天蝎$/.test(mainMsg[0]): {
-			rply.text = dailyCache.getAstro('天蠍');
-			return rply;
-		}
-
-		case (/^每日射手$/.test(mainMsg[0]) || /^每日人馬$/.test(mainMsg[0])): {
-			rply.text = dailyCache.getAstro('射手');
-			return rply;
-		}
-
-		case (/^每日摩羯$/.test(mainMsg[0]) || /^每日山羊$/.test(mainMsg[0])): {
-			rply.text = dailyCache.getAstro('摩羯');
-			return rply;
-		}
-
-		case (/^每日水瓶$/.test(mainMsg[0]) || /^每日寶瓶$/.test(mainMsg[0])): {
-			rply.text = dailyCache.getAstro('水瓶');
-			return rply;
-		}
-
-		case /^每日雙魚$/.test(mainMsg[0]): {
-			rply.text = dailyCache.getAstro('雙魚');
-			return rply;
-		}
-		default:
-			break;
+	if (/^help$/i.test(mainMsg[1])) {
+		rply.text = await this.getHelpMessage();
+		rply.buttonCreate = ['隨機 跑團 溫習 打遊戲', '排序 A君 C君 F君 G君', '.re 簽到', '.re 1d100', '今日運勢', '每日塔羅', '立FLAG', '每日大事', '每日笑話', '每日廢話', '每日一言', '每日黃曆', '每日毒湯', '每日情話', '每日靈簽', '每日淺草簽', '每日動漫', '每日解答']
+		return rply;
+	}
+	if (/^排序|排序$/i.test(mainMsg[0]) && (mainMsg.length >= 4)) {
+		rply.text = SortIt(inputStr, mainMsg);
+		return rply;
+	}
+	if (/^隨機|^choice|隨機$|choice$/i.test(mainMsg[0]) && (mainMsg.length >= 3)) {
+		rply.text = choice(inputStr, mainMsg);
+		return rply;
+	}
+	if (/^每日解答$/i.test(mainMsg[0])) {
+		rply.text = dailyAnswerChoice(inputStr);
+		return rply;
+	}
+	if (/塔羅/i.test(mainMsg[0])) {
+		rply.quotes = true;
+		if (mainMsg[0].match(/^每日塔羅/) != null)
+			rply.text = NomalDrawTarot(mainMsg[1], mainMsg[2]); // Default draw 79 cards
+		if (mainMsg[0].match(/^時間塔羅/) != null)
+			rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
+		if (mainMsg[0].match(/^大十字塔羅/) != null)
+			rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
+		rply.buttonCreate = ['每日塔羅', '時間塔羅', '大十字塔羅']
+		return rply;
+	}
+	if ((/立flag$|^立flag/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,25}/g).length <= 1)) {
+		rply.text = BStyleFlagSCRIPTS();
+		return rply;
+	}
+	if (/^鴨霸獸$/i.test(mainMsg[0])) {
+		rply.text = randomReply();
+		return rply;
+	}
+	if ((/運勢$|^運勢/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,40}/g).length <= 1)) {
+		rply.text = randomLuck(mainMsg);
+		return rply;
+	}
+	if (/^每日笑話$/.test(mainMsg[0])) {
+		rply.text = joke.getFunnyRandomResult();
+		return rply;
+	}
+	if (/^每日動漫$/.test(mainMsg[0])) {
+		rply.text = acg.getFunnyRandomResult();
+		return rply;
+	}
+	if (/^每日一言$/.test(mainMsg[0])) {
+		rply.text = slogan.getFunnyRandomResult();
+		return rply;
+	}
+	if (/^每日黃曆$/.test(mainMsg[0])) {
+		rply.text = await dailyAlmanac.getAlmanac();
+		return rply;
+	}
+	if (/^每日毒湯$/.test(mainMsg[0])) {
+		rply.text = blackjoke.getFunnyRandomResult();
+		return rply;
+	}
+	if (/^每日情話$/.test(mainMsg[0])) {
+		rply.text = mlove.getFunnyRandomResult();
+		return rply;
+	}
+	if (/^每日靈簽$/.test(mainMsg[0])) {
+		rply.text = watchMusic.getRandomWatchMusic100()
+		return rply;
+	}
+	if (/^每日淺草簽$/.test(mainMsg[0])) {
+		rply.text = asakusa100.getRandomAsakusa100();
+		return rply;
+	}
+	if (/^每日廢話$/.test(mainMsg[0])) {
+		const name = mainMsg[1] || displaynameDiscord || tgDisplayname || displayname || '你';
+		const req = DailyFuckUp.generateArticles(name);
+		rply.text = req;
+		return rply;
+	}
+	if (/^每日大事$/.test(mainMsg[0])) {
+		rply.text = await dailyCache.getBigEvent();
+		return rply;
+	}
+	// Aries, Taurus, Gemini, Cancer, Leo, Virgo, Libra, Scorpio, Sagittarius, Capricorn, Aquarius, Pisces
+	if ((/^每日白羊$/.test(mainMsg[0]) || /^每日牡羊$/.test(mainMsg[0]))) {
+		rply.text = await dailyCache.getAstro('牡羊');
+		return rply;
+	}
+	if (/^每日金牛$/.test(mainMsg[0])) {
+		rply.text = await dailyCache.getAstro('金牛');
+		return rply;
+	}
+	if (/^每日雙子$/.test(mainMsg[0])) {
+		rply.text = await dailyCache.getAstro('雙子');
+		return rply;
+	}
+	if (/^每日巨蟹$/.test(mainMsg[0])) {
+		rply.text = await dailyCache.getAstro('巨蟹');
+		return rply;
+	}
+	if (/^每日獅子$/.test(mainMsg[0])) {
+		rply.text = await dailyCache.getAstro('獅子');
+		return rply;
+	}
+	if (/^每日處女$/.test(mainMsg[0])) {
+		rply.text = await dailyCache.getAstro('處女');
+		return rply;
+	}
+	if ((/^每日天秤$/.test(mainMsg[0]) || /^每日天平$/.test(mainMsg[0]))) {
+		rply.text = await dailyCache.getAstro('天秤');
+		return rply;
+	}
+	if ((/^每日天蠍$/.test(mainMsg[0]) || /^每日天蝎$/.test(mainMsg[0]))) {
+		rply.text = await dailyCache.getAstro('天蠍');
+		return rply;
+	}
+	if ((/^每日射手$/.test(mainMsg[0]) || /^每日人馬$/.test(mainMsg[0]))) {
+		rply.text = await dailyCache.getAstro('射手');
+		return rply;
+	}
+	if ((/^每日摩羯$/.test(mainMsg[0]) || /^每日山羊$/.test(mainMsg[0]))) {
+		rply.text = await dailyCache.getAstro('摩羯');
+		return rply;
+	}
+	if ((/^每日水瓶$/.test(mainMsg[0]) || /^每日寶瓶$/.test(mainMsg[0]))) {
+		rply.text = await dailyCache.getAstro('水瓶');
+		return rply;
+	}
+	if (/^每日雙魚$/.test(mainMsg[0])) {
+		rply.text = await dailyCache.getAstro('雙魚');
+		return rply;
 	}
 }
 
@@ -405,22 +457,26 @@ const twelveAstro = [
 
 class TwelveAstro {
 	constructor() {
-		this.Astro = [];
+		this.Astro = {}; // Change to object for date-based caching: { date: { code: astroData } }
 	}
 
 	/**
 	 * 獲取星座運程
 	 * @param {string} name - 星座名稱
+	 * @param {string} date - 日期 (optional, defaults to today)
 	 * @param {boolean} forceUpdate - 是否強制更新
 	 */
-	async getAstro(name, forceUpdate = false) {
+	async getAstro(name, date = null, forceUpdate = false) {
 		try {
+			const targetDate = date || this.getDate();
 			let astroCode = twelveAstro.indexOf(name);
-			if (forceUpdate || !this.Astro[astroCode] || this.Astro[astroCode].date !== this.getDate()) {
-				await this.updateAstro(astroCode);
+
+			if (forceUpdate || !this.Astro[targetDate] || !this.Astro[targetDate][astroCode]) {
+				await this.updateAstro(astroCode, targetDate);
 			}
-			if (this.Astro[astroCode]) {
-				return this.returnStr(this.Astro[astroCode], name);
+
+			if (this.Astro[targetDate] && this.Astro[targetDate][astroCode]) {
+				return this.returnStr(this.Astro[targetDate][astroCode], name);
 			} else return;
 		} catch (error) {
 			console.error('TwelveAstro getAstro error:', error);
@@ -429,24 +485,51 @@ class TwelveAstro {
 	}
 
 	returnStr(astro, name) {
-		return `今日${name}座運程
-你的幸運數字：${astro.TODAY_LUCKY_NUMBER}	
+		return `今日${name}座運程(${astro.date})
+你的幸運數字：${astro.TODAY_LUCKY_NUMBER}
 你的幸運星座：${astro.TODAY_LUCKY_ASTRO}
 短語：${astro.TODAY_WORD}${astro.TODAY_CONTENT}
 	`;
 	}
 
+	async updateAstro(code, date) {
+		let res = await axios.get(`https://astro.click108.com.tw/daily_${code}.php?iAstro=${code}&iType=0&iAcDay=${date}`);
+		const $ = cheerio.load(res.data);
 
-	async updateAstro(code) {
-		let date = this.getDate();
-		let res = await axios.get(`https://astro.click108.com.tw/daily_${code}.php?iAcDay=${date}&iAstro=${code}`);
-		const $ = cheerio.load(res.data)
-		this.Astro[code] = new Astro($, date);
+		if (!this.Astro[date]) {
+			this.Astro[date] = {};
+		}
+		this.Astro[date][code] = new Astro($, date);
 	}
+
 	getDate() {
 		let year = new Date().getFullYear();
 		let month = ('0' + (new Date().getMonth() + 1)).slice(-2);
 		let day = ('0' + new Date().getDate()).slice(-2);
+		return `${year}-${month}-${day}`;
+	}
+
+	/**
+	 * Get date string for tomorrow
+	 */
+	getTomorrowDate() {
+		let tomorrow = new Date();
+		tomorrow.setDate(tomorrow.getDate() + 1);
+		let year = tomorrow.getFullYear();
+		let month = ('0' + (tomorrow.getMonth() + 1)).slice(-2);
+		let day = ('0' + tomorrow.getDate()).slice(-2);
+		return `${year}-${month}-${day}`;
+	}
+
+	/**
+	 * Get date string for day after tomorrow
+	 */
+	getDayAfterTomorrowDate() {
+		let dayAfterTomorrow = new Date();
+		dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+		let year = dayAfterTomorrow.getFullYear();
+		let month = ('0' + (dayAfterTomorrow.getMonth() + 1)).slice(-2);
+		let day = ('0' + dayAfterTomorrow.getDate()).slice(-2);
 		return `${year}-${month}-${day}`;
 	}
 

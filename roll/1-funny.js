@@ -33,7 +33,6 @@ class DailyCache {
 	constructor() {
 		this.cache = new NodeCache({ stdTTL: 86_400 }); // 24 hours TTL
 		this.twelveAstro = new TwelveAstro();
-		this.dailyBigEvent = new DailyBigEvent();
 		this.dailyAlmanac = new DailyAlmanac();
 		this.isInitialized = false;
 	}
@@ -67,14 +66,17 @@ class DailyCache {
 			const tomorrow = this.twelveAstro.getTomorrowDate();
 			const dayAfterTomorrow = this.twelveAstro.getDayAfterTomorrowDate();
 
-			// Prewarm today's, tomorrow's, and day-after-tomorrow's data
+			// Prewarm today's, tomorrow's, and day-after-tomorrow's astro data
 			await Promise.all([
 				this.updateAstroCacheForDate(today),
 				this.updateAstroCacheForDate(tomorrow),
 				this.updateAstroCacheForDate(dayAfterTomorrow)
 			]);
 
-			console.log('Astro cache prewarmed for today, tomorrow, and day-after-tomorrow');
+			// Prewarm today's big event data
+			await this.updateBigEventCache();
+
+			console.log('Astro and big event cache prewarmed for today, tomorrow, and day-after-tomorrow');
 		} catch (error) {
 			console.error('Failed to update astro cache:', error);
 		}
@@ -103,7 +105,7 @@ class DailyCache {
 	 */
 	async updateBigEventCache() {
 		try {
-			const bigEventData = await this.dailyBigEvent.getBigEvent(true); // force update
+			const bigEventData = await this.twelveAstro.getBigEvent(null, true); // force update
 			if (bigEventData) {
 				this.cache.set('bigEvent', bigEventData);
 			}
@@ -149,6 +151,35 @@ class DailyCache {
 	}
 
 	/**
+	 * Get big event data for today
+	 */
+	async getBigEvent() {
+		const today = this.twelveAstro.getDate();
+		let bigEventData = this.cache.get('bigEvent');
+
+		// If not in cache, fetch it asynchronously
+		if (!bigEventData) {
+			try {
+				console.log(`Cache miss for big event on ${today}, fetching data...`);
+				bigEventData = await this.twelveAstro.getBigEvent(today, false);
+				console.log(`Big event fetch result:`, bigEventData ? 'success' : 'null/empty');
+				if (bigEventData) {
+					this.cache.set('bigEvent', bigEventData);
+					console.log(`Successfully cached big event data`);
+				} else {
+					console.log(`Big event data is empty, returning error`);
+					return '獲取大事資料時發生錯誤，請稍後再試';
+				}
+			} catch (error) {
+				console.error(`Failed to fetch big event data:`, error);
+				return '獲取大事資料時發生錯誤，請稍後再試';
+			}
+		}
+
+		return bigEventData;
+	}
+
+	/**
 	 * Get astrology data for specific date
 	 */
 	getAstroForDate(name, date) {
@@ -156,12 +187,6 @@ class DailyCache {
 		return astroData ? astroData[name] : null;
 	}
 
-	/**
-	 * Get big events data
-	 */
-	getBigEvent() {
-		return this.cache.get('bigEvent');
-	}
 
 	/**
 	 * Get almanac data
@@ -181,6 +206,11 @@ class DailyCache {
 			const dayAfterTomorrow = this.twelveAstro.getDayAfterTomorrowDate();
 			console.log(`Starting day-after-tomorrow astro cache update for ${dayAfterTomorrow}...`);
 			await this.updateAstroCacheForDate(dayAfterTomorrow);
+			// Also update tomorrow's big event data
+			const tomorrow = this.twelveAstro.getTomorrowDate();
+			console.log(`Starting tomorrow big event cache update for ${tomorrow}...`);
+			await this.twelveAstro.getBigEvent(tomorrow, true);
+			console.log(`Tomorrow big event cache update completed for ${tomorrow}`);
 			console.log(`Day-after-tomorrow astro cache update completed for ${dayAfterTomorrow}`);
 		};
 
@@ -457,7 +487,8 @@ const twelveAstro = [
 
 class TwelveAstro {
 	constructor() {
-		this.Astro = {}; // Change to object for date-based caching: { date: { code: astroData } }
+		this.Astro = {}; // Date-based caching: { date: { astroCode: astroData } }
+		this.BigEvent = {}; // Date-based caching for big events: { date: bigEventData }
 	}
 
 	/**
@@ -533,36 +564,34 @@ class TwelveAstro {
 		return `${year}-${month}-${day}`;
 	}
 
-}
-
-/**
- * DailyBigEvent 類別 - 處理每日大事
- */
-class DailyBigEvent {
-	constructor() {
-		// No instance caching - rely entirely on DailyCache
-	}
-
 	/**
-	 * Get big events data (only used during initialization)
-	 * @param {boolean} forceUpdate - Whether to force update
+	 * 獲取每日大事
+	 * @param {string} date - 日期 (optional, defaults to today)
+	 * @param {boolean} forceUpdate - 是否強制更新
 	 */
-	async getBigEvent() {
+	async getBigEvent(date = null, forceUpdate = false) {
 		try {
-			return await this.updateBigEvent();
+			const targetDate = date || this.getDate();
+
+			if (forceUpdate || !this.BigEvent[targetDate]) {
+				await this.updateBigEvent(targetDate);
+			}
+
+			return this.BigEvent[targetDate] || null;
 		} catch (error) {
-			console.error('DailyBigEvent getBigEvent error:', error);
+			console.error('TwelveAstro getBigEvent error:', error);
 			return '條目出錯';
 		}
 	}
 
 	/**
 	 * 更新每日大事數據
+	 * @param {string} date - 日期
 	 */
-	async updateBigEvent() {
-		const date = new Date();
-		const day = date.getDate();
-		const month = date.getMonth() + 1;
+	async updateBigEvent(date) {
+		const targetDate = new Date(date);
+		const day = targetDate.getDate();
+		const month = targetDate.getMonth() + 1;
 		let respond = `${month}月${day}日\n\n`;
 
 		try {
@@ -589,18 +618,19 @@ class DailyBigEvent {
 				respond += `${answerBig[index].title}\n${answerBig[index].content}\n\n`
 			}
 
-			return chineseConv.tify(respond);
+			this.BigEvent[date] = chineseConv.tify(respond);
 		} catch (error) {
 			if (error == 'Error: No article found') {
-				return '沒有此條目';
+				this.BigEvent[date] = '沒有此條目';
 			} else {
 				console.error('每日大事 updateBigEvent error:', error);
-				return '條目出錯';
+				this.BigEvent[date] = '條目出錯';
 			}
 		}
 	}
 
 }
+
 
 class Astro {
 	constructor($, date) {

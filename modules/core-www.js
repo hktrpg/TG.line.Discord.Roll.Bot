@@ -786,6 +786,14 @@ www.get('/busstop', async (req, res) => {
     res.sendFile(process.cwd() + '/views/busstop.html');
 });
 
+www.get('/pixel-grimoire', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    res.sendFile(process.cwd() + '/views/pixel-grimoire.html');
+});
+
 
 
 

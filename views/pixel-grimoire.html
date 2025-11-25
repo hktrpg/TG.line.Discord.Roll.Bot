@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Grimoire</title>
+    <style>
+        /* 像素藝術主題變數 */
+        :root {
+            --pixel-scale: 2;
+            --grid-size: 32px;
+            --sprite-size: 32px;
+            --animation-speed: 0.3s;
+
+            /* 像素調色盤 */
+            --bg-primary: #2d1b69;
+            --bg-secondary: #1a1a2e;
+            --bg-tertiary: #16213e;
+            --accent-primary: #ff6b6b;
+            --accent-secondary: #4ecdc4;
+            --accent-tertiary: #ffe66d;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --border-color: #3a3a5c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* 像素網格背景 */
+        .pixel-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(var(--border-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
+            background-size: var(--grid-size) var(--grid-size);
+            opacity: 0.1;
+            z-index: -1;
+        }
+
+        /* 主容器 - 新的三區域佈局 */
+        .grimoire-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            grid-template-rows: 60px 1fr 100px;
+            height: 100vh;
+            width: 100vw;
+            grid-template-areas:
+                "nav status-bar"
+                "nav game-area"
+                "nav toolbar";
+        }
+
+        /* 導航欄 */
+        .nav-sidebar {
+            grid-area: nav;
+            background: var(--bg-tertiary);
+            border-right: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            overflow: hidden;
+        }
+
+        .nav-sidebar.collapsed {
+            width: 60px;
+        }
+
+        /* 狀態BAR */
+        .status-bar {
+            grid-area: status-bar;
+            background: linear-gradient(90deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border-bottom: 2px solid var(--border-color);
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: flex-end;
+            padding-bottom: 5px;
+        }
+
+
+        .status-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(76, 205, 196, 0.1), transparent);
+            animation: status-scan 3s infinite;
+        }
+
+        @keyframes status-scan {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+
+        /* 遊戲區域 */
+        .game-area {
+            grid-area: game-area;
+            position: relative;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            overflow: hidden;
+        }
+
+        /* 導航項目 */
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            text-decoration: none;
+            border-bottom: 1px solid var(--border-color);
+            transition: all var(--animation-speed);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border-left: 3px solid var(--accent-tertiary);
+        }
+
+        .nav-item.active {
+            background: var(--accent-secondary);
+            color: var(--bg-primary);
+            border-left: 3px solid var(--accent-tertiary);
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .nav-text {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .nav-sidebar.collapsed .nav-text {
+            display: none;
+        }
+
+        .nav-sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding: 12px;
+        }
+
+        /* 收起/展開按鈕 */
+        .nav-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all var(--animation-speed);
+            z-index: 100;
+        }
+
+        .nav-toggle:hover {
+            background: var(--accent-primary);
+            border-color: var(--accent-tertiary);
+            color: var(--bg-primary);
+        }
+
+        /* 像素精靈 */
+        .pixel-sprite {
+            position: absolute;
+            width: var(--sprite-size);
+            height: var(--sprite-size);
+            background: var(--accent-primary);
+            border: 1px solid var(--accent-tertiary);
+            transition: all var(--animation-speed) ease;
+            z-index: 10;
+        }
+
+        /* 精靈動畫 */
+        @keyframes sprite-bounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-4px) scale(1.1); }
+        }
+
+        @keyframes sprite-walk {
+            0% { background-position: 0 0; }
+            25% { background-position: -32px 0; }
+            50% { background-position: -64px 0; }
+            75% { background-position: -32px 0; }
+            100% { background-position: 0 0; }
+        }
+
+        .sprite-walking {
+            animation: sprite-walk 0.8s steps(4) infinite;
+        }
+
+        .sprite-active {
+            animation: sprite-bounce 2s infinite;
+            box-shadow: 0 0 8px var(--accent-primary);
+        }
+
+        /* 精靈樣式變體 */
+        .sprite-gm {
+            background: var(--accent-secondary);
+            border-color: var(--accent-tertiary);
+        }
+
+        .sprite-player {
+            background: var(--accent-primary);
+            border-color: var(--accent-secondary);
+        }
+
+        .sprite-npc {
+            background: var(--accent-tertiary);
+            border-color: var(--accent-primary);
+        }
+
+
+
+        /* 底部工具欄 */
+        .toolbar {
+            grid-area: toolbar;
+            background: var(--bg-tertiary);
+            border-top: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 15px;
+        }
+
+        .toolbar-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 0;
+            color: var(--text-primary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all var(--animation-speed);
+        }
+
+        .toolbar-item:hover {
+            background: var(--accent-secondary);
+            border-color: var(--accent-tertiary);
+            color: var(--bg-primary);
+        }
+
+        /* 像素指示器 */
+        .pixel-indicator {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-tertiary);
+            display: inline-block;
+            margin-right: 4px;
+            animation: indicator-pulse 2s infinite;
+        }
+
+        @keyframes indicator-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* 精靈標籤 */
+        .sprite-label {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            padding: 2px 6px;
+            font-size: 10px;
+            border: 1px solid var(--border-color);
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity var(--animation-speed);
+        }
+
+        .pixel-sprite:hover .sprite-label {
+            opacity: 1;
+        }
+
+        /* 移動路徑指示 */
+        .move-path {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent-secondary);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: path-fade 1s forwards;
+        }
+
+        @keyframes path-fade {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0); }
+        }
+
+        /* 障礙物 */
+        .obstacle {
+            position: absolute;
+            background: var(--accent-primary);
+            border: 1px solid var(--accent-tertiary);
+            pointer-events: none;
+            animation: obstacle-move 8s linear infinite;
+        }
+
+        .obstacle.wall {
+            width: 8px;
+            height: 20px;
+            background: var(--accent-primary);
+        }
+
+        .obstacle.spike {
+            width: 6px;
+            height: 12px;
+            background: var(--accent-tertiary);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        }
+
+        .obstacle.block {
+            width: 12px;
+            height: 16px;
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        @keyframes obstacle-move {
+            0% { right: -20px; }
+            100% { right: 100vw; }
+        }
+
+        /* 精靈跳躍動畫 */
+        .sprite-jumping {
+            animation: sprite-jump 0.6s ease-out;
+        }
+
+        @keyframes sprite-jump {
+            0% { transform: translateY(0) scale(1); }
+            25% { transform: translateY(-15px) scale(1.1); }
+            50% { transform: translateY(-20px) scale(1.2); }
+            75% { transform: translateY(-15px) scale(1.1); }
+            100% { transform: translateY(0) scale(1); }
+        }
+
+        /* 攻擊動畫 */
+        .sprite-attacking {
+            animation: sprite-attack 0.3s ease-out;
+        }
+
+        @keyframes sprite-attack {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3) rotate(15deg); }
+            100% { transform: scale(1); }
+        }
+
+        /* 破碎效果 */
+        .break-effect {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent-tertiary);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: break-particle 1s ease-out forwards;
+        }
+
+        @keyframes break-particle {
+            0% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.5) translateY(-20px);
+            }
+        }
+
+        /* 遊戲狀態指示器 */
+        .game-status {
+            position: absolute;
+            top: 5px;
+            right: 20px;
+            font-size: 12px;
+            color: var(--accent-secondary);
+            font-family: 'Courier New', monospace;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body>
+    <div class="pixel-grid"></div>
+
+    <div class="grimoire-container">
+        <!-- 導航欄 -->
+        <div class="nav-sidebar" id="navSidebar">
+            <button class="nav-toggle" id="navToggle" title="切換導航欄">◀</button>
+
+            <div class="nav-item active" data-section="dashboard">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-text">儀表板</div>
+            </div>
+
+            <div class="nav-item" data-section="campaign">
+                <div class="nav-icon">📜</div>
+                <div class="nav-text">跑團管理</div>
+            </div>
+
+            <div class="nav-item" data-section="characters">
+                <div class="nav-icon">👥</div>
+                <div class="nav-text">角色卡</div>
+            </div>
+
+            <div class="nav-item" data-section="dice">
+                <div class="nav-icon">🎲</div>
+                <div class="nav-text">擲骰</div>
+            </div>
+
+            <div class="nav-item" data-section="codex">
+                <div class="nav-icon">📚</div>
+                <div class="nav-text">萬物圖鑑</div>
+            </div>
+
+            <div class="nav-item" data-section="chat">
+                <div class="nav-icon">💬</div>
+                <div class="nav-text">聊天室</div>
+            </div>
+
+            <div class="nav-item" data-section="settings">
+                <div class="nav-icon">⚙️</div>
+                <div class="nav-text">設定</div>
+            </div>
+        </div>
+
+        <!-- 狀態BAR -->
+        <div class="status-bar" id="statusBar">
+            <!-- 像素精靈們 -->
+            <div class="pixel-sprite sprite-gm sprite-active" id="gmSprite" style="left: 50px; top: 10px;">
+                <div class="sprite-label">GM - 魔法師</div>
+            </div>
+
+            <div class="pixel-sprite sprite-player sprite-walking" id="player1" style="left: 120px; top: 15px;">
+                <div class="sprite-label">玩家1 - 戰士</div>
+            </div>
+
+            <div class="pixel-sprite sprite-player" id="player2" style="left: 190px; top: 8px;">
+                <div class="sprite-label">玩家2 - 盜賊</div>
+            </div>
+
+            <div class="pixel-sprite sprite-npc" id="npc1" style="left: 260px; top: 12px;">
+                <div class="sprite-label">NPC - 村民</div>
+            </div>
+        </div>
+
+        <!-- 遊戲區域 -->
+        <div class="game-area" id="gameArea">
+            <!-- 空的游戏区域 -->
+        </div>
+
+        <!-- 底部工具欄 -->
+        <div class="toolbar">
+            <div class="toolbar-item">
+                <span>🎯</span>
+                <span>擲骰</span>
+            </div>
+
+            <div class="toolbar-item">
+                <span>📋</span>
+                <span>角色卡</span>
+            </div>
+
+            <div class="toolbar-item">
+                <span>💬</span>
+                <span>聊天</span>
+            </div>
+
+            <div class="toolbar-item">
+                <span>🗺️</span>
+                <span>地圖</span>
+            </div>
+
+            <div class="toolbar-item" style="margin-left: auto;">
+                <span>⚙️</span>
+                <span>設定</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // UI 管理系統
+        class UIManager {
+            constructor() {
+                this.navCollapsed = false;
+                this.initNavigation();
+                this.initStatusUpdates();
+            }
+
+            initNavigation() {
+                const navToggle = document.getElementById('navToggle');
+                const navSidebar = document.getElementById('navSidebar');
+
+                navToggle.addEventListener('click', () => {
+                    this.navCollapsed = !this.navCollapsed;
+                    navSidebar.classList.toggle('collapsed');
+
+                    // 更新按鈕圖示
+                    navToggle.textContent = this.navCollapsed ? '▶' : '◀';
+                    navToggle.title = this.navCollapsed ? '展開導航欄' : '收起導航欄';
+                });
+
+                // 導航項目點擊
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+                    });
+                });
+            }
+
+            initStatusUpdates() {
+                // 每秒更新狀態
+                setInterval(() => {
+                    this.updateStatusBar();
+                }, 1000);
+
+            }
+
+            updateStatusBar() {
+                // 不再更新任何显示内容，保持纯像素体验
+            }
+
+
+        }
+
+        // 精靈管理系統
+        class SpriteManager {
+            constructor() {
+                this.sprites = [];
+                this.statusBar = document.getElementById('statusBar');
+                this.isAnimating = true;
+                this.isGameMode = false;
+                this.obstacles = [];
+                this.score = 0;
+                this.gameSpeed = 2;
+                this.initSprites();
+                this.initGameElements();
+                this.startMovementCycle();
+                this.startObstacleSpawner();
+            }
+
+            initGameElements() {
+                // 添加游戏状态指示器
+                const statusIndicator = document.createElement('div');
+                statusIndicator.className = 'game-status';
+                statusIndicator.id = 'gameStatus';
+                statusIndicator.textContent = '觀察模式';
+                this.statusBar.appendChild(statusIndicator);
+
+                // 启动碰撞检测
+                this.startCollisionDetection();
+            }
+
+            startObstacleSpawner() {
+                setInterval(() => {
+                    if (this.isGameMode && Math.random() < 0.4) { // 40% 概率生成障碍物
+                        this.spawnObstacle();
+                    }
+                }, 3000); // 每3秒尝试生成
+            }
+
+            spawnObstacle() {
+                const obstacleTypes = ['wall', 'spike', 'block'];
+                const randomType = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
+
+                const obstacle = document.createElement('div');
+                obstacle.className = `obstacle ${randomType}`;
+                obstacle.style.bottom = '0px';
+                obstacle.style.right = '-20px';
+
+                // 根据类型设置不同的起始位置
+                if (randomType === 'wall') {
+                    obstacle.style.height = Math.random() * 15 + 10 + 'px'; // 10-25px高
+                } else if (randomType === 'spike') {
+                    obstacle.style.bottom = Math.random() * 10 + 'px'; // 0-10px
+                } else if (randomType === 'block') {
+                    obstacle.style.bottom = Math.random() * 8 + 'px'; // 0-8px
+                }
+
+                this.statusBar.appendChild(obstacle);
+
+                // 清理超出屏幕的障碍物
+                setTimeout(() => {
+                    if (obstacle.parentNode) {
+                        obstacle.parentNode.removeChild(obstacle);
+                    }
+                }, 9000); // 9秒后清理
+            }
+
+            startCollisionDetection() {
+                setInterval(() => {
+                    if (!this.isGameMode) return;
+
+                    this.sprites.forEach(sprite => {
+                        // 检查与障碍物的碰撞
+                        const obstacles = this.statusBar.querySelectorAll('.obstacle');
+                        obstacles.forEach(obstacle => {
+                            if (this.checkCollision(sprite.element, obstacle)) {
+                                this.handleCollision(sprite, obstacle);
+                            }
+                        });
+                    });
+                }, 50); // 每50ms检测一次
+            }
+
+            checkCollision(sprite, obstacle) {
+                const spriteRect = sprite.getBoundingClientRect();
+                const obstacleRect = obstacle.getBoundingClientRect();
+
+                return !(spriteRect.right < obstacleRect.left ||
+                        spriteRect.left > obstacleRect.right ||
+                        spriteRect.bottom < obstacleRect.top ||
+                        spriteRect.top > obstacleRect.bottom);
+            }
+
+            handleCollision(sprite, obstacle) {
+                const obstacleType = obstacle.className.split(' ')[1];
+
+                if (obstacleType === 'wall' || obstacleType === 'block') {
+                    // 可以打破的障碍物
+                    if (this.tryBreakObstacle(sprite, obstacle)) {
+                        this.breakObstacle(obstacle);
+                        this.score += 10;
+                        this.updateGameStatus();
+                    }
+                } else if (obstacleType === 'spike') {
+                    // 尖刺 - 受伤效果
+                    this.spriteHurt(sprite);
+                    this.score = Math.max(0, this.score - 5);
+                    this.updateGameStatus();
+                }
+            }
+
+            tryBreakObstacle(sprite, obstacle) {
+                // 检查精灵是否在攻击状态
+                if (sprite.element.classList.contains('sprite-attacking')) {
+                    return true;
+                }
+                return false;
+            }
+
+            breakObstacle(obstacle) {
+                // 创建破碎效果
+                for (let i = 0; i < 8; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'break-effect';
+                    particle.style.left = (obstacle.offsetLeft + Math.random() * obstacle.offsetWidth) + 'px';
+                    particle.style.top = (obstacle.offsetTop + Math.random() * obstacle.offsetHeight) + 'px';
+                    this.statusBar.appendChild(particle);
+
+                    setTimeout(() => {
+                        if (particle.parentNode) {
+                            particle.parentNode.removeChild(particle);
+                        }
+                    }, 1000);
+                }
+
+                // 移除障碍物
+                if (obstacle.parentNode) {
+                    obstacle.parentNode.removeChild(obstacle);
+                }
+            }
+
+            spriteHurt(sprite) {
+                sprite.element.style.filter = 'brightness(2) saturate(2) hue-rotate(120deg)';
+                setTimeout(() => {
+                    sprite.element.style.filter = '';
+                }, 300);
+            }
+
+            updateGameStatus() {
+                const statusIndicator = document.getElementById('gameStatus');
+                statusIndicator.textContent = `遊戲模式 - 分數: ${this.score}`;
+            }
+
+            spriteJump(sprite) {
+                if (sprite.element.classList.contains('sprite-jumping')) return;
+
+                sprite.element.classList.add('sprite-jumping');
+                setTimeout(() => {
+                    sprite.element.classList.remove('sprite-jumping');
+                }, 600);
+            }
+
+            spriteAttack(sprite) {
+                if (sprite.element.classList.contains('sprite-attacking')) return;
+
+                sprite.element.classList.add('sprite-attacking');
+                setTimeout(() => {
+                    sprite.element.classList.remove('sprite-attacking');
+                }, 300);
+            }
+
+            toggleGameMode() {
+                this.isGameMode = !this.isGameMode;
+                const statusIndicator = document.getElementById('gameStatus');
+
+                if (this.isGameMode) {
+                    statusIndicator.textContent = '遊戲模式 - 分數: 0';
+                    this.score = 0;
+                    // 清除所有现有障碍物
+                    const obstacles = this.statusBar.querySelectorAll('.obstacle');
+                    obstacles.forEach(obstacle => {
+                        if (obstacle.parentNode) {
+                            obstacle.parentNode.removeChild(obstacle);
+                        }
+                    });
+                } else {
+                    statusIndicator.textContent = '觀察模式';
+                    // 清除所有障碍物
+                    const obstacles = this.statusBar.querySelectorAll('.obstacle');
+                    obstacles.forEach(obstacle => {
+                        if (obstacle.parentNode) {
+                            obstacle.parentNode.removeChild(obstacle);
+                        }
+                    });
+                }
+            }
+
+            initSprites() {
+                // 初始化游戏元素
+                this.initGameElements();
+
+                // 初始化現有的精靈
+                document.querySelectorAll('.pixel-sprite').forEach((sprite, index) => {
+                    this.sprites.push({
+                        element: sprite,
+                        id: sprite.id || `sprite-${index}`,
+                        x: parseInt(sprite.style.left) || 0,
+                        y: parseInt(sprite.style.top) || 0,
+                        targetX: null,
+                        targetY: null,
+                        speed: 2,
+                        isMoving: false
+                    });
+                });
+            }
+
+            moveSprite(sprite, targetX, targetY) {
+                if (!this.isAnimating) return;
+
+                // 限制在status-bar范围内
+                const statusBar = document.getElementById('statusBar');
+                const maxX = statusBar.clientWidth - 32; // 精灵宽度
+                const maxY = statusBar.clientHeight - 32; // 精灵高度
+
+                sprite.targetX = Math.max(0, Math.min(maxX, targetX));
+                sprite.targetY = Math.max(0, Math.min(maxY, targetY));
+                sprite.isMoving = true;
+
+                // 添加移動路徑指示
+                this.showMovePath(sprite.x, sprite.y, sprite.targetX, sprite.targetY);
+            }
+
+            showMovePath(fromX, fromY, toX, toY) {
+                const pathPoint = document.createElement('div');
+                pathPoint.className = 'move-path';
+                pathPoint.style.left = (toX + 16) + 'px'; // 居中
+                pathPoint.style.top = (toY + 16) + 'px';
+
+                const statusBar = document.getElementById('statusBar');
+                statusBar.appendChild(pathPoint);
+
+                // 自動清理
+                setTimeout(() => {
+                    if (pathPoint.parentNode) {
+                        pathPoint.parentNode.removeChild(pathPoint);
+                    }
+                }, 1000);
+            }
+
+            updateSpritePositions() {
+                this.sprites.forEach(sprite => {
+                    if (sprite.isMoving && sprite.targetX !== null && sprite.targetY !== null) {
+                        const dx = sprite.targetX - sprite.x;
+                        const dy = sprite.targetY - sprite.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance < sprite.speed) {
+                            // 抵達目標
+                            sprite.x = sprite.targetX;
+                            sprite.y = sprite.targetY;
+                            sprite.targetX = null;
+                            sprite.targetY = null;
+                            sprite.isMoving = false;
+                            sprite.element.classList.remove('sprite-walking');
+                        } else {
+                            // 繼續移動
+                            const ratio = sprite.speed / distance;
+                            sprite.x += dx * ratio;
+                            sprite.y += dy * ratio;
+                            sprite.element.classList.add('sprite-walking');
+                        }
+
+                        sprite.element.style.left = sprite.x + 'px';
+                        sprite.element.style.top = sprite.y + 'px';
+                    }
+                });
+            }
+
+            startMovementCycle() {
+                setInterval(() => {
+                    this.updateSpritePositions();
+                }, 50); // 20 FPS
+
+                // 每5秒隨機移動一個精靈
+                setInterval(() => {
+                    if (this.isAnimating && Math.random() < 0.3) { // 30% 機率
+                        const randomSprite = this.sprites[Math.floor(Math.random() * this.sprites.length)];
+                        const statusBar = document.getElementById('statusBar');
+                        const newX = Math.random() * (statusBar.clientWidth - 32);
+                        const newY = Math.random() * (statusBar.clientHeight - 32);
+                        this.moveSprite(randomSprite, newX, newY);
+                    }
+                }, 5000);
+            }
+
+            toggleAnimations() {
+                this.isAnimating = !this.isAnimating;
+                if (!this.isAnimating) {
+                    document.querySelectorAll('.pixel-sprite').forEach(sprite => {
+                        sprite.classList.remove('sprite-walking', 'sprite-active');
+                    });
+                } else {
+                    document.querySelectorAll('.pixel-sprite.sprite-gm').forEach(sprite => {
+                        sprite.classList.add('sprite-active');
+                    });
+                }
+            }
+
+            addSprite(type = 'player') {
+                const statusBar = document.getElementById('statusBar');
+                const newX = Math.random() * (statusBar.clientWidth - 32);
+                const newY = Math.random() * (statusBar.clientHeight - 32);
+
+                const sprite = document.createElement('div');
+                sprite.className = `pixel-sprite sprite-${type}`;
+                sprite.style.left = newX + 'px';
+                sprite.style.top = newY + 'px';
+
+                const label = document.createElement('div');
+                label.className = 'sprite-label';
+                label.textContent = `新增${type === 'player' ? '玩家' : type === 'npc' ? 'NPC' : 'GM'}`;
+                sprite.appendChild(label);
+
+                statusBar.appendChild(sprite);
+
+                const spriteData = {
+                    element: sprite,
+                    id: `new-sprite-${Date.now()}`,
+                    x: newX,
+                    y: newY,
+                    targetX: null,
+                    targetY: null,
+                    speed: 2,
+                    isMoving: false
+                };
+
+                this.sprites.push(spriteData);
+                return spriteData;
+            }
+
+            resetPositions() {
+                const basePositions = [
+                    { x: 50, y: 10 },   // GM
+                    { x: 120, y: 15 },  // Player 1
+                    { x: 190, y: 8 },   // Player 2
+                    { x: 260, y: 12 }   // NPC
+                ];
+
+                this.sprites.forEach((sprite, index) => {
+                    const pos = basePositions[index] || { x: 50 + (index * 70), y: 10 };
+                    sprite.x = pos.x;
+                    sprite.y = pos.y;
+                    sprite.targetX = null;
+                    sprite.targetY = null;
+                    sprite.isMoving = false;
+
+                    sprite.element.style.left = pos.x + 'px';
+                    sprite.element.style.top = pos.y + 'px';
+                    sprite.element.classList.remove('sprite-walking');
+                });
+            }
+        }
+
+        // 初始化
+        const spriteManager = new SpriteManager();
+
+
+        // 點擊精靈移動或控制
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('pixel-sprite')) {
+                if (spriteManager.isGameMode) {
+                    // 游戏模式：点击精灵进行攻击
+                    const spriteData = spriteManager.sprites.find(s => s.element === e.target);
+                    if (spriteData) {
+                        spriteManager.spriteAttack(spriteData);
+                    }
+                } else {
+                    // 观察模式：点击移动精灵
+                    const rect = document.getElementById('statusBar').getBoundingClientRect();
+                    const targetX = e.clientX - rect.left - 16; // 居中
+                    const targetY = e.clientY - rect.top - 16;
+
+                    const spriteData = spriteManager.sprites.find(s => s.element === e.target);
+                    if (spriteData) {
+                        spriteManager.moveSprite(spriteData, targetX, targetY);
+                    }
+                }
+            }
+        });
+
+        // 鍵盤控制
+        document.addEventListener('keydown', (e) => {
+            const gmSprite = spriteManager.sprites.find(s => s.element.id === 'gmSprite');
+            if (!gmSprite) return;
+
+            let newX = gmSprite.x;
+            let newY = gmSprite.y;
+            const moveDistance = 32; // 一個網格
+
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    if (this.isGameMode) {
+                        // 游戏模式：跳跃
+                        this.spriteJump(gmSprite);
+                    } else {
+                        newY -= moveDistance;
+                    }
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    newY += moveDistance;
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    newX -= moveDistance;
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    if (this.isGameMode) {
+                        // 游戏模式：攻击
+                        this.spriteAttack(gmSprite);
+                    } else {
+                        newX += moveDistance;
+                    }
+                    break;
+                case ' ':
+                case 'Space':
+                    // 空格键切换游戏模式
+                    this.toggleGameMode();
+                    break;
+            }
+
+            // 邊界檢查 - 在status-bar范围内
+            const statusBar = document.getElementById('statusBar');
+            newX = Math.max(0, Math.min(newX, statusBar.clientWidth - 32));
+            newY = Math.max(0, Math.min(newY, statusBar.clientHeight - 32));
+
+            if (newX !== gmSprite.x || newY !== gmSprite.y) {
+                spriteManager.moveSprite(gmSprite, newX, newY);
+            }
+        });
+
+        // 視窗調整大小處理
+        window.addEventListener('resize', () => {
+            // 可以添加響應式調整邏輯
+        });
+
+        // 載入完成提示
+        console.log('Pixel Grimoire loaded');
+        console.log('💡 使用 WASD 或方向鍵控制 GM 精靈');
+        console.log('👆 點擊精靈可將其移動到該位置');
+    </script>
+</body>
+</html>

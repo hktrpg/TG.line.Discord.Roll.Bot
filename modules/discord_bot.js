@@ -15,12 +15,13 @@ exports.analytics = require('./analytics');
 const debugMode = !!process.env.DEBUG;
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/igm);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
-const adminSecret = process.env.ADMIN_SECRET || '';
+// adminSecret removed - no longer needed after custom heartbeat monitoring removal
 const { Client } = Discord;
 const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType, MessageFlags, WebhookClient } = Discord;
 
 // Multi-server functionality temporarily disabled
 // const multiServer = require('../modules/multi-server')
+// const adminSecret = process.env.ADMIN_SECRET || '';
 const checkMongodb = require('../modules/dbWatchdog.js');
 const errorCount = [];
 const { rollText } = require('./getRoll');
@@ -242,90 +243,8 @@ client.once('clientReady', async () => {
 });
 
 
-let heartbeatInterval = null;
-client.cluster.on('message', message => {
-	if (message?.type === 'startHeartbeat') {
-		if (client.cluster.id === 0) {
-			console.log('[Discord Bot] Received startHeartbeat signal. Starting heartbeat monitor.');
-			startHeartbeatMonitor();
-		}
-	}
-});
-
-function startHeartbeatMonitor() {
-	if (heartbeatInterval) {
-		clearInterval(heartbeatInterval);
-	}
-
-	const HEARTBEAT_CHECK_INTERVAL = 1000 * 120; // 2 minutes - reduced frequency
-	const WARNING_THRESHOLD = 5; // 10 minutes - increased tolerance
-	const CRITICAL_THRESHOLD = 10; // 20 minutes - increased tolerance
-	const restartServer = () => {
-		console.error('[Discord Bot] CRITICAL: Persistent heartbeat failures detected');
-		console.error(`[Discord Bot] Heartbeat failures: ${heartbeat} times (threshold: 30)`);
-		console.error('[Discord Bot] All recovery attempts failed. Manual intervention required.');
-		console.error('[Discord Bot] Consider checking: network connectivity, Discord API status, server resources');
-
-		// Instead of dangerous sudo reboot, throw error to trigger PM2 restart
-		throw new Error(`CRITICAL: Heartbeat monitoring failed after ${heartbeat} attempts. Process restart required.`);
-	}
-	let heartbeat = 0;
-
-	console.log('[Discord Bot] Heartbeat monitor started on Cluster 0.');
-	console.log(`[Discord Bot] Heartbeat check interval: ${HEARTBEAT_CHECK_INTERVAL/1000}s`);
-	console.log(`[Discord Bot] Warning threshold: ${WARNING_THRESHOLD} failures (${WARNING_THRESHOLD * HEARTBEAT_CHECK_INTERVAL/1000/60} min)`);
-	console.log(`[Discord Bot] Critical threshold: ${CRITICAL_THRESHOLD} failures (${CRITICAL_THRESHOLD * HEARTBEAT_CHECK_INTERVAL/1000/60} min)`);
-
-	heartbeatInterval = setInterval(async () => {
-		const isAwake = await checkWakeUp();
-		if (isAwake === true) {
-			heartbeat = 0;
-			return;
-		}
-
-		heartbeat++;
-
-		if (Array.isArray(isAwake) && isAwake.length > 0) {
-			console.log(`Discord Heartbeat: Down Shards: ${isAwake.join(',')} - Heartbeat: ${heartbeat}`);
-			if (heartbeat > WARNING_THRESHOLD && adminSecret) {
-				SendToId(adminSecret, `HKTRPG ID: ${isAwake.join(', ')} 可能下線了 請盡快檢查.`);
-			}
-			if (heartbeat > CRITICAL_THRESHOLD) {
-			console.error('[Discord Bot] Attempting to respawn unhealthy shards');
-				console.error(`[Discord Bot] Unhealthy shards: ${isAwake.join(', ')} (Heartbeat failures: ${heartbeat})`);
-				
-				for (const shardId of isAwake) {
-					console.error(`[Heartbeat] Attempting to respawn shard ${shardId}`);
-					try {
-						// Use the cluster manager's respawn method with proper error handling
-						const cluster = client.cluster.manager.clusters.get(shardId);
-						if (cluster) {
-							await cluster.respawn({ delay: 7000, timeout: -1 });
-							console.log(`[Discord Bot] Respawn command sent successfully for shard ${shardId}`);
-						} else {
-							console.error(`[Discord Bot] Cluster ${shardId} not found in manager`);
-						}
-					} catch (error) {
-						console.error(`[Discord Bot] Failed to respawn shard ${shardId}:`, error.message);
-						console.error(`[Discord Bot] Error details:`, error);
-					}
-				}
-			}
-		} else {
-			console.log(`Discord Heartbeat: checkWakeUp failed. Heartbeat: ${heartbeat}`);
-			if (heartbeat > WARNING_THRESHOLD && adminSecret) {
-				SendToId(adminSecret, 'HKTRPG Heartbeat check failed. 可能有部份服務下線了 請盡快檢查.');
-			}
-		}
-
-		if (heartbeat > 30) {
-			console.error('[Discord Bot] CRITICAL: Maximum heartbeat failures reached');
-			console.error(`[Discord Bot] Heartbeat failures: ${heartbeat} (Threshold: 30)`);
-			console.error('[Discord Bot] Initiating emergency process restart...');
-			restartServer();
-		}
-	}, HEARTBEAT_CHECK_INTERVAL);
-}
+// Heartbeat monitoring is now handled by discord-hybrid-sharding's HeartbeatManager
+// Removed custom heartbeat monitoring to prevent conflicts and simplify architecture
 
 async function replilyMessage(message, result) {
 	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>${candle.checker(message.member.id)}\n` : '';
@@ -1140,34 +1059,7 @@ async function newRoleReact(channel, message) {
 
 
 }
-async function checkWakeUp() {
-	try {
-		const promises = [
-			client.cluster.broadcastEval(c => c.ws.status)
-		];
-
-		const results = await Promise.all(promises);
-		const shardStatuses = results[0];
-
-		// Check for shards that are not in READY state (status !== 0)
-		const unhealthyShards = shardStatuses.reduce((unhealthy, status, shardId) => {
-			if (status !== 0) { // 0 = READY, others indicate connection issues
-				unhealthy.push(shardId);
-			}
-			return unhealthy;
-		}, []);
-
-		if (unhealthyShards.length > 0) {
-			console.log(`[Discord Bot] Found ${unhealthyShards.length} unhealthy shard(s): ${unhealthyShards.join(', ')}`);
-			return unhealthyShards; // Return array of unhealthy shard IDs
-		} else {
-			return true; // All shards are healthy
-		}
-	} catch (error) {
-		console.error('[Discord Bot] Heartbeat check failed:', error.message);
-		return false; // Check failed, assume unhealthy state
-	}
-}
+// checkWakeUp function removed - heartbeat monitoring now handled by HeartbeatManager
 
 async function getAllshardIds() {
 	if (!client.cluster) return '';

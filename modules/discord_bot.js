@@ -794,27 +794,8 @@ async function gracefulShutdown(signal = 'unknown') {
 	}
 }
 
-process.on('SIGINT', async () => {
-	console.log('[Discord Bot] Received SIGINT signal');
-	// Set force shutdown timeout
-	shutdownTimeout = setTimeout(() => {
-		console.log('[Discord Bot] Force shutdown after timeout');
-		process.exit(1);
-	}, 15_000); // 15 second timeout
-
-	await gracefulShutdown();
-});
-
-process.on('SIGTERM', async () => {
-	console.log('[Discord Bot] Received SIGTERM signal');
-	// Set force shutdown timeout
-	shutdownTimeout = setTimeout(() => {
-		console.log('[Discord Bot] Force shutdown after timeout');
-		process.exit(1);
-	}, 15_000); // 15 second timeout
-
-	await gracefulShutdown();
-});
+// SIGINT and SIGTERM handling is managed by index.js for coordinated shutdown
+// This module will be shut down through the gracefulShutdown function called from index.js
 
 function respawnCluster2() {
 	try {
@@ -2500,37 +2481,61 @@ const convertRegex = function (str = "") {
 
 
 const connect = function () {
-	ws = new WebSocket('ws://127.0.0.1:53589');
-	ws.on('open', function open() {
-		console.log(`[discord_bot] connectd To core-www from discord! Shard#${shardid}`)
-		ws.send(`connectd To core-www from discord! Shard#${shardid}`);
-	});
-	ws.on('message', async function incoming(data) {
-		//if (shardid !== 0) return;
-		const object = JSON.parse(data);
-		if (object.botname !== 'Discord') return;
-
-		try {
-			let channel = await client.channels.cache.get(object.message.target.id);
-			if (channel) {
-				await channel.send(object.message.text)
-			}
-		}
-		catch (error) {
-			console.error(`disocrdbot #99 error`, (error && error.name), (error && error.message), (error && error.reason))
-		};
+	// Only attempt WebSocket connection if MASTER env var is set (indicating core-www WebSocket server should be running)
+	if (!process.env.MASTER) {
+		console.log('[discord_bot] Skipping WebSocket connection - MASTER environment variable not set');
 		return;
+	}
 
-	});
-	ws.on('error', (error) => {
-		console.error('Discord socket error', (error && error.name), (error && error.message), (error && error.reason));
-	});
-	ws.on('close', function () {
-		console.error('Discord socket close');
-		setTimeout(connect, RECONNECT_INTERVAL);
-	});
+	try {
+		ws = new WebSocket('ws://127.0.0.1:53589');
+		ws.on('open', function open() {
+			console.log(`[discord_bot] Connected to core-www from discord! Shard#${shardid}`)
+			ws.send(`Connected to core-www from discord! Shard#${shardid}`);
+		});
+		ws.on('message', async function incoming(data) {
+			//if (shardid !== 0) return;
+			const object = JSON.parse(data);
+			if (object.botname !== 'Discord') return;
+
+			try {
+				let channel = await client.channels.cache.get(object.message.target.id);
+				if (channel) {
+					await channel.send(object.message.text)
+				}
+			}
+			catch (error) {
+				console.error(`discord_bot WebSocket message error`, (error && error.name), (error && error.message), (error && error.reason))
+			};
+			return;
+
+		});
+		ws.on('error', (error) => {
+			// Only log connection errors if MASTER is set, otherwise it's expected
+			if (process.env.MASTER) {
+				console.warn('Discord WebSocket connection error (will retry):', (error && error.message));
+			}
+		});
+		ws.on('close', function () {
+			if (process.env.MASTER) {
+				console.log('Discord WebSocket connection closed, will retry in', RECONNECT_INTERVAL / 1000, 'seconds');
+				setTimeout(connect, RECONNECT_INTERVAL);
+			}
+		});
+	} catch (error) {
+		if (process.env.MASTER) {
+			console.error('Failed to create WebSocket connection:', error.message);
+			setTimeout(connect, RECONNECT_INTERVAL);
+		}
+	}
 };
-if (process.env.BROADCAST) connect();
+
+// Only attempt WebSocket connection if both BROADCAST and MASTER env vars are set
+if (process.env.BROADCAST && process.env.MASTER) {
+	connect();
+} else if (process.env.BROADCAST && !process.env.MASTER) {
+	console.log('[discord_bot] BROADCAST is enabled but MASTER is not set - WebSocket connection skipped');
+}
 function handlingButtonCommand(message) {
 	// Safely check if component exists before accessing its label property
 	if (!message || !message.component) {

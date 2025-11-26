@@ -5,7 +5,6 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
 
-const DELAY = Number(process.env.DISCORDDELAY) || 1000 * 7;
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 5000;
 
@@ -244,10 +243,16 @@ process.on('SIGTERM', async () => {
 
 // Start clusters
 manager.spawn({
-    
-    
+
+
     amount: 'auto'
 }).catch(error => {
     console.error('[Cluster] Failed to spawn clusters:', error);
     process.exit(1);
 });
+
+// Export shutdown method for coordinated shutdown from index.js
+module.exports.shutdown = async function() {
+    console.log('[core-Discord] Shutdown requested from index.js');
+    await gracefulShutdown('coordinated');
+};

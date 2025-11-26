@@ -29,7 +29,7 @@ const config = {
 };
 
 if (!config.mongoUrl) {
-    console.error('MongoDB URL is not configured');
+    console.error('[db-connector] MongoDB URL is not configured');
     return;
 }
 
@@ -114,7 +114,7 @@ async function connect(retries = 0) {
 
             mongoose.connection.once('error', (connectionError) => {
                 clearTimeout(timeout);
-                console.error('MongoDB connection failed while waiting:', connectionError.message);
+                console.error('[db-connector] MongoDB connection failed while waiting:', connectionError.message);
                 isConnected = false;
                 reject(connectionError);
             }).on('error', () => {
@@ -194,12 +194,12 @@ async function connect(retries = 0) {
 
             return true;
         } catch (error) {
-            console.error(`MongoDB Connection Error: ${error.message}`);
+            console.error(`[db-connector] MongoDB Connection Error: ${error.message}`);
             isConnected = false;
 
             // 特別處理認證錯誤
             if (error.message.includes('bad auth') || error.message.includes('Authentication failed')) {
-                console.error('MongoDB Authentication Error: Please check your credentials');
+                console.error('[db-connector] MongoDB Authentication Error: Please check your credentials');
             }
 
             if (retries < config.maxRetries) {
@@ -211,7 +211,7 @@ async function connect(retries = 0) {
                 return connect(retries + 1);
             }
 
-            console.error('MongoDB connection failed after all retries. Will retry periodically.');
+            console.error('[db-connector] MongoDB connection failed after all retries. Will retry periodically.');
             // Set cooldown period
             connectionCooldown = true;
             // Schedule a retry after a longer delay
@@ -237,11 +237,11 @@ function setupPoolMonitoring() {
     const client = mongoose.connection.getClient();
     if (client.topology) {
         client.topology.on('timeout', (event) => {
-            console.warn('MongoDB operation timeout:', event);
+            console.warn('[db-connector] MongoDB operation timeout:', event);
         });
         
         client.topology.on('error', (error) => {
-            console.error('MongoDB topology error:', error);
+            console.error('[db-connector] MongoDB topology error:', error);
         });
     }
 }
@@ -298,12 +298,12 @@ async function restart() {
         isConnected = false;
         const success = await connect();
         if (!success) {
-            console.error('Restart failed to establish connection');
+            console.error('[db-connector] Restart failed to establish connection');
             return false;
         }
         return true;
     } catch (error) {
-        console.error('Restart failed:', error);
+        console.error('[db-connector] Restart failed:', error);
         return false;
     }
 }
@@ -335,7 +335,7 @@ async function handleDisconnect() {
             try {
                 await restart();
             } catch (error) {
-                console.error('Reconnection attempt failed:', error);
+                console.error('[db-connector] Reconnection attempt failed:', error);
             } finally {
                 reconnecting = false;
             }
@@ -347,7 +347,7 @@ async function handleDisconnect() {
 
 // 錯誤處理
 async function handleError(error) {
-    console.error('MongoDB connection error:', error);
+    console.error('[db-connector] MongoDB connection error:', error);
     isConnected = false;
     
     // 如果已經在重新連接中，跳過
@@ -366,7 +366,7 @@ async function handleError(error) {
             try {
                 await restart();
             } catch (error) {
-                console.error('Recovery attempt failed:', error);
+                console.error('[db-connector] Recovery attempt failed:', error);
             } finally {
                 reconnecting = false;
             }
@@ -426,7 +426,7 @@ async function initializeConnection() {
         console.log('[db-connector] Initializing MongoDB connection...');
         const success = await connect();
         if (!success) {
-            console.error('Failed to establish initial MongoDB connection after all retries');
+            console.error('[db-connector] Failed to establish initial MongoDB connection after all retries');
             // 設置定期重試
             if (retryInterval) {
                 clearInterval(retryInterval);
@@ -440,12 +440,12 @@ async function initializeConnection() {
                         console.log('[db-connector] Successfully connected to MongoDB after retries');
                     }
                 } catch (error) {
-                    console.error('Retry connection error:', error);
+                    console.error('[db-connector] Retry connection error:', error);
                 }
             }, config.maxRetryInterval);
         }
     } catch (error) {
-        console.error('Initial connection error:', error);
+        console.error('[db-connector] Initial connection error:', error);
         // 設置定期重試
         if (retryInterval) {
             clearInterval(retryInterval);
@@ -459,7 +459,7 @@ async function initializeConnection() {
                     console.log('[db-connector] Successfully connected to MongoDB after retries');
                 }
             } catch (error) {
-                console.error('Retry connection error:', error);
+                console.error('[db-connector] Retry connection error:', error);
             }
         }, config.maxRetryInterval);
     } finally {
@@ -472,7 +472,7 @@ let initialized = false;
 if (!initialized) {
     initialized = true;
     initializeConnection().catch(error => {
-        console.error('Failed to initialize MongoDB connection:', error);
+        console.error('[db-connector] Failed to initialize MongoDB connection:', error);
     });
 }
 

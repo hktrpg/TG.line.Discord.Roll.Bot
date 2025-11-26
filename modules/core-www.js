@@ -71,7 +71,7 @@ const initSSL = () => {
             ca: ca ? fs.readFileSync(ca) : null
         };
     } catch (error) {
-        console.error('SSL key reading error:', error.message);
+        console.error('[Web Server] SSL key reading error:', error.message);
         return {};
     }
 };
@@ -83,9 +83,9 @@ const initSSL = () => {
 
 
 process.on('uncaughtException', (warning) => {
-    console.error('uncaughtException', warning); // Print the warning name
-    console.warn(warning.name); // Print the warning name
-    console.warn(warning.message); // Print the warning message
+    console.error('[Web Server] Uncaught exception:', warning);
+    console.warn('[Web Server] Error name:', warning.name);
+    console.warn('[Web Server] Error message:', warning.message);
     // const clock = setTimeout(createWebServer, 60000 * 5);
 });
 
@@ -102,7 +102,7 @@ function createWebServer(options = {}, www) {
         : http.createServer(www);
 
     const protocol = options.key ? 'https' : 'http';
-    console.log(`${protocol} server`);
+        console.log(`[Web Server] ${protocol} server`);
     // Ensure malformed requests/sockets are closed and not left hanging
     // to avoid double-emitted socket errors from Node's http(s) server.
     server.on('clientError', (err, socket) => {
@@ -114,7 +114,7 @@ function createWebServer(options = {}, www) {
             }
         } catch (error) {
             // Log the destruction error but don't re-throw
-            console.error('Error destroying socket in clientError handler:', error.message);
+            console.error('[Web Server] Error destroying socket in clientError handler:', error.message);
         }
     });
 
@@ -126,11 +126,11 @@ function createWebServer(options = {}, www) {
             }
         } catch (error) {
             // Log the destruction error but don't re-throw
-            console.error('Error destroying socket in tlsClientError handler:', error.message);
+            console.error('[Web Server] Error destroying socket in tlsClientError handler:', error.message);
         }
     });
     server.listen(port, () => {
-        console.log("Web Server Started. Link: " + protocol + "://127.0.0.1:" + port);
+        console.log(`[Web Server] Server started. Link: ${protocol}://127.0.0.1:${port}`);
     });
 
     return server;
@@ -251,7 +251,7 @@ www.get('/api/local', async (req, res) => {
         res.writeHead(200, { 'Content-type': 'application/json' });
         res.end(`{"message":"${jsonEscape(rplyVal.text)}"}`);
     } catch (error) {
-        console.error('Error in /api/local:', error.message);
+        console.error('[Web Server] Error in /api/local:', error.message);
         res.writeHead(200, { 'Content-type': 'application/json' });
         res.end(String.raw`{"message":""}`);
     }
@@ -409,7 +409,7 @@ www.get('/api/dice-commands', async (req, res) => {
                     });
                 }
             } catch (error) {
-                console.error(`Error processing file ${file}:`, error);
+                console.error(`[Web Server] Error processing file ${file}:`, error);
             }
         }
     }
@@ -588,7 +588,7 @@ const registerAutocompleteModules = () => {
                     }
                 }
             } catch (error) {
-                console.error(`Failed to register autocomplete module from ${file}:`, error);
+                console.error(`[Web Server] Failed to register autocomplete module from ${file}:`, error);
             }
         }
     }
@@ -659,7 +659,7 @@ www.get('/api/autocomplete/:module', async (req, res) => {
         
         monitor.recordRequest(module, 'success', Date.now() - startTime, true);
     } catch (error) {
-        console.error('Autocomplete search error:', error);
+        console.error('[Web Server] Autocomplete search error:', error);
         monitor.recordRequest(module, 'error', Date.now() - startTime, false);
         res.status(500).json({ error: 'Search failed' });
     }
@@ -839,7 +839,7 @@ if (io) {
                              origin.match(/^https?:\/\/.*\.hktrpg\.com$/);
             
             if (!isAllowed) {
-                console.warn('🔒 Rejected connection from invalid origin:', origin);
+                console.warn('[Web Server] 🔒 Rejected connection from invalid origin:', origin);
                 return next(new Error('Invalid origin'));
             }
         }
@@ -856,7 +856,7 @@ if (io) {
                 // 🔒 驗證輸入
                 const validation = security.validateCredentials(message);
                 if (!validation.valid) {
-                    console.warn('🔒 Invalid credentials format:', validation.error, 'from IP:', socket.handshake.address);
+                    console.warn('[Web Server] 🔒 Invalid credentials format:', validation.error, 'from IP:', socket.handshake.address);
                     socket.emit('getListInfo', {
                         temp: null,
                         id: [],
@@ -875,7 +875,7 @@ if (io) {
 
                 let doc = await schema.accountPW.findOne(filter)
                     .catch(error => {
-                        console.error('🔒 MongoDB error during authentication:', error.message);
+                        console.error('[Web Server] 🔒 MongoDB error during authentication:', error.message);
                         socket.emit('getListInfo', {
                             temp: null,
                             id: [],
@@ -886,7 +886,7 @@ if (io) {
                     });
 
                 if (!doc) {
-                    console.warn('🔒 User not found:', userName, 'from IP:', socket.handshake.address);
+                    console.warn('[Web Server] 🔒 User not found:', userName, 'from IP:', socket.handshake.address);
                     socket.emit('getListInfo', {
                         temp: null,
                         id: [],
@@ -898,7 +898,7 @@ if (io) {
 
                 const isValid = await verifyPasswordSecure(password, doc.password);
                 if (!isValid) {
-                    console.warn('🔒 Invalid password for user:', userName, 'from IP:', socket.handshake.address);
+                    console.warn('[Web Server] 🔒 Invalid password for user:', userName, 'from IP:', socket.handshake.address);
                     socket.emit('getListInfo', {
                         temp: null,
                         id: [],
@@ -912,12 +912,12 @@ if (io) {
                 try {
                     const upgraded = await security.upgradePasswordIfLegacy(userName, password, doc.password);
                     if (upgraded) {
-                        console.log(`🔄 Password automatically upgraded for user: ${userName}`);
+                        console.log(`[Web Server] 🔄 Password automatically upgraded for user: ${userName}`);
                         // 重新獲取用戶數據（包含升級後的密碼）
                         doc = await schema.accountPW.findOne({ userName: userName });
                     }
                 } catch (error) {
-                    console.error('🔄 Password upgrade failed:', error.message);
+                    console.error('[Web Server] 🔄 Password upgrade failed:', error.message);
                     // 升級失敗不影響登入流程
                 }
                 
@@ -926,7 +926,7 @@ if (io) {
                 if (doc.id) {
                     temp = await schema.characterCard.find({ id: doc.id })
                         .catch(error => {
-                            console.error('🔒 MongoDB error:', error.message);
+                            console.error('[Web Server] 🔒 MongoDB error:', error.message);
                             return null;
                         });
                 }
@@ -941,16 +941,16 @@ if (io) {
                             id: doc._id.toString(),
                             userName: userName
                         });
-                        console.log(`🔐 JWT token generated for user: ${userName}`);
+                        console.log(`[Web Server] 🔐 JWT token generated for user: ${userName}`);
                     } catch (error) {
-                        console.error('🔐 JWT token generation failed:', error.message);
+                        console.error('[Web Server] 🔐 JWT token generation failed:', error.message);
                     }
                 }
                 
                 socket.emit('getListInfo', { temp, id, token: jwtToken });
                 
             } catch (error) {
-                console.error('🔒 getListInfo error:', error.message);
+                console.error('[Web Server] 🔒 getListInfo error:', error.message);
                 socket.emit('getListInfo', { temp: null, id: [] });
             }
         })
@@ -968,7 +968,7 @@ if (io) {
                     temp
                 })
             } catch (error) {
-                console.error('www #170 mongoDB error:', error.name, error.reason)
+                console.error('[Web Server] MongoDB error:', error.name, error.reason)
             }
 
         })
@@ -1017,7 +1017,7 @@ if (io) {
                             userName: message.userName
                         });
                         if (!validation.valid) {
-                            console.warn('🔒 Invalid JWT auth for rolling:', validation.error);
+                            console.warn('[Web Server] 🔒 Invalid JWT auth for rolling:', validation.error);
                             return;
                         }
                         
@@ -1027,7 +1027,7 @@ if (io) {
                             userName: String(userName).trim()
                         };
 
-                        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('www #214 mongoDB error:', error.name, error.message));
+                        let doc = await schema.accountPW.findOne(filter).catch(error => console.error('[Web Server] MongoDB error:', error.name, error.message));
                         
                         if (doc) {
                             // 🔒 JWT token已經驗證了用戶身份，不需要密碼驗證
@@ -1050,7 +1050,7 @@ if (io) {
                             }
                         }
                     } catch (error) {
-                        console.error('Error handling selectedGroupId in rolling event:', error.message);
+                        console.error('[Web Server] Error handling selectedGroupId in rolling event:', error.message);
                     }
                 }
                 // Legacy support for rollTarget
@@ -1059,7 +1059,7 @@ if (io) {
                         // 🔒 驗證憑證
                         const validation = security.validateCredentials(message);
                         if (!validation.valid) {
-                            console.warn('🔒 Invalid credentials for rolling:', validation.error);
+                            console.warn('[Web Server] 🔒 Invalid credentials for rolling:', validation.error);
                             return;
                         }
                         
@@ -1074,19 +1074,19 @@ if (io) {
                         
                         let userDoc = await schema.accountPW.findOne(filter)
                             .catch(error => {
-                                console.error('🔒 MongoDB error:', error.message);
+                                console.error('[Web Server] 🔒 MongoDB error:', error.message);
                                 return null;
                             });
                         
                         if (!userDoc) {
-                            console.warn('🔒 User not found for rolling');
+                            console.warn('[Web Server] 🔒 User not found for rolling');
                             return;
                         }
                         
                         // 🔒 驗證密碼
                         const isValid = await verifyPasswordSecure(password, userDoc.password);
                         if (!isValid) {
-                            console.warn('🔒 Invalid password for rolling');
+                            console.warn('[Web Server] 🔒 Invalid password for rolling');
                             return;
                         }
                         
@@ -1094,12 +1094,12 @@ if (io) {
                         try {
                             const upgraded = await security.upgradePasswordIfLegacy(userName, password, userDoc.password);
                             if (upgraded) {
-                                console.log(`🔄 Password automatically upgraded for rolling user: ${userName}`);
+                                console.log(`[Web Server] 🔄 Password automatically upgraded for rolling user: ${userName}`);
                                 // 重新獲取用戶數據（包含升級後的密碼）
                                 userDoc = await schema.accountPW.findOne(filter);
                             }
                         } catch (error) {
-                            console.error('🔄 Password upgrade failed for rolling:', error.message);
+                            console.error('[Web Server] 🔄 Password upgrade failed for rolling:', error.message);
                             // 升級失敗不影響擲骰流程
                         }
                         
@@ -1110,12 +1110,12 @@ if (io) {
                         
                         let allowRollingResult = await schema.allowRolling.findOne(filter2)
                             .catch(error => {
-                                console.error('🔒 MongoDB error:', error.message);
+                                console.error('[Web Server] 🔒 MongoDB error:', error.message);
                                 return null;
                             });
                         
                         if (!allowRollingResult) {
-                            console.warn('🔒 Rolling not allowed for this target');
+                            console.warn('[Web Server] 🔒 Rolling not allowed for this target');
                             return;
                         }
                         
@@ -1127,7 +1127,7 @@ if (io) {
                             });
                         }
                     } catch (error) {
-                        console.error('🔒 Rolling error:', error.message);
+                        console.error('[Web Server] 🔒 Rolling error:', error.message);
                     }
                 }
             }
@@ -1156,7 +1156,7 @@ if (io) {
                 
                 let doc = await schema.accountPW.findOne(filter)
                     .catch(error => {
-                        console.error('🔒 MongoDB error:', error.message);
+                        console.error('[Web Server] 🔒 MongoDB error:', error.message);
                         return null;
                     });
                 
@@ -1200,7 +1200,7 @@ if (io) {
                 });
                 
                 if (!validation.valid) {
-                    console.warn('🔒 Invalid JWT auth for updateCard:', validation.error);
+                    console.warn('[Web Server] 🔒 Invalid JWT auth for updateCard:', validation.error);
                     socket.emit('updateCard', false);
                     return;
                 }
@@ -1214,13 +1214,13 @@ if (io) {
                 
                 let doc = await schema.accountPW.findOne(filter)
                     .catch(error => {
-                        console.error('🔒 MongoDB error:', error.message);
+                        console.error('[Web Server] 🔒 MongoDB error:', error.message);
                         return null;
                     });
                 
                 // 🔒 JWT token已經驗證了用戶身份，不需要密碼驗證
                 if (!doc) {
-                    console.warn('🔒 User not found for updateCard:', userName);
+                    console.warn('[Web Server] 🔒 User not found for updateCard:', userName);
                     socket.emit('updateCard', false);
                     return;
                 }
@@ -1251,7 +1251,7 @@ if (io) {
                             notes: message.card.notes,
                         }
                     }).catch(error => {
-                        console.error('🔒 MongoDB error:', error.message);
+                        console.error('[Web Server] 🔒 MongoDB error:', error.message);
                         return null;
                     });
                 }
@@ -1259,7 +1259,7 @@ if (io) {
                 socket.emit('updateCard', !!temp);
                 
             } catch (error) {
-                console.error('🔒 updateCard error:', error.message);
+                console.error('[Web Server] 🔒 updateCard error:', error.message);
                 socket.emit('updateCard', false);
             }
         })
@@ -1289,7 +1289,7 @@ if (io) {
             // 🔒 使用安全的輸入驗證
             const validation = security.validateChatMessage(msg);
             if (!validation.valid) {
-                console.warn('🔒 Invalid chat message:', validation.error,
+                console.warn('[Web Server] 🔒 Invalid chat message:', validation.error,
                     'from IP:', socket.handshake.address,
                     'msg data:', JSON.stringify(msg).slice(0, 200));
 
@@ -1391,7 +1391,7 @@ async function verifyPasswordSecure(password, hash) {
         // Use the security module which handles both legacy and new hashes
         return await security.verifyPassword(password, hash);
     } catch (error) {
-        console.error('🔒 Password verification error:', error.message);
+        console.error('[Web Server] 🔒 Password verification error:', error.message);
         return false;
     }
 }

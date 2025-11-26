@@ -418,18 +418,13 @@ async function init() {
 
         // Handle uncaught exceptions
         process.on('uncaughtException', (err) => {
-            const timestamp = new Date().toISOString();
             const stack = err.stack || new Error('Uncaught exception stack trace').stack;
             const stackLines = stack ? stack.split('\n').slice(0, 20).join('\n') : 'No stack trace available';
             
-            console.error('[Uncaught Exception] ========== UNCAUGHT EXCEPTION TRIGGERED ==========');
-            console.error(`[Uncaught Exception] Timestamp: ${timestamp}`);
-            console.error(`[Uncaught Exception] Error Name: ${err.name}`);
-            console.error(`[Uncaught Exception] Error Message: ${err.message}`);
-            console.error(`[Uncaught Exception] PID: ${process.pid}, PPID: ${process.ppid}`);
-            console.error(`[Uncaught Exception] Stack Trace:\n${stackLines}`);
-            console.error('[Uncaught Exception] This will trigger graceful shutdown!');
-            console.error('[Uncaught Exception] ==========================================');
+            console.error('[System] Uncaught exception triggered');
+            console.error(`[System] Error: ${err.name}: ${err.message}`);
+            console.error(`[System] Stack trace:\n${stackLines}`);
+            console.error('[System] This will trigger graceful shutdown');
             
             errorHandler(err, 'Uncaught Exception');
             gracefulShutdown(moduleManager);
@@ -450,8 +445,8 @@ async function init() {
                 isShuttingDown,
                 stack: stackLines
             });
-            console.error(`[Main Process] Process.exit(${code}) called at ${timestamp} (PID: ${process.pid})`);
-            console.error(`[Main Process] Stack Trace:\n${stackLines}`);
+            console.error(`[System] Process.exit(${code}) called (PID: ${process.pid})`);
+            console.error(`[System] Stack trace:\n${stackLines}`);
             
             return originalExit.call(process, code);
         };
@@ -459,7 +454,7 @@ async function init() {
         // Track process exit event
         process.on('exit', (code) => {
             logger.info(`[Main Process] Process exiting with code: ${code} (PID: ${process.pid})`);
-            console.error(`[Main Process] Process exiting with code: ${code} (PID: ${process.pid})`);
+            console.error(`[System] Process exiting with code: ${code} (PID: ${process.pid})`);
         });
 
         // Handle unhandled promise rejections
@@ -473,14 +468,13 @@ async function init() {
                 if (reasonCode === 'EPIPE' || reasonCode === 'ERR_IPC_CHANNEL_CLOSED' ||
                     reasonMessage.includes('EPIPE') || reasonMessage.includes('Channel closed') ||
                     reasonMessage.includes('write EPIPE') || reasonMessage.includes('ERR_IPC_CHANNEL_CLOSED')) {
-                    console.log('[Unhandled Rejection] Ignoring IPC channel errors during shutdown (expected)');
+                    console.log('[System] Ignoring IPC channel errors during shutdown (expected)');
                     return;
                 }
-                console.log(`[Unhandled Rejection] Shutdown in progress, ignoring: ${reasonMessage}`);
+                console.log(`[System] Shutdown in progress, ignoring: ${reasonMessage}`);
                 return;
             }
             
-            const timestamp = new Date().toISOString();
             const reasonMessage = reason && reason.message ? reason.message : String(reason);
             const reasonCode = reason && reason.code ? reason.code : null;
             const reasonStack = reason && reason.stack ? reason.stack : new Error('Unhandled rejection stack trace').stack;
@@ -512,24 +506,17 @@ async function init() {
                 (reasonMessage && nonCriticalErrorMessages.some(msg => reasonMessage.includes(msg)));
             
             if (isNonCriticalError) {
-                console.log(`[Unhandled Rejection] Non-critical error detected, logging but NOT triggering shutdown: ${reasonMessage}`);
-                console.error('[Unhandled Rejection] ========== NON-CRITICAL ERROR (NO SHUTDOWN) ==========');
-                console.error(`[Unhandled Rejection] Timestamp: ${timestamp}`);
-                console.error(`[Unhandled Rejection] Error: ${reasonMessage}`);
-                console.error(`[Unhandled Rejection] Code: ${reasonCode || 'N/A'}`);
-                console.error('[Unhandled Rejection] ==========================================');
+                console.log(`[System] Non-critical error detected, logging but NOT triggering shutdown: ${reasonMessage}`);
+                console.error(`[System] Non-critical error: ${reasonMessage} (Code: ${reasonCode || 'N/A'})`);
                 errorHandler(reason, 'Non-Critical Error (Ignored)');
                 return;
             }
             
-            console.error('[Unhandled Rejection] ========== UNHANDLED REJECTION TRIGGERED ==========');
-            console.error(`[Unhandled Rejection] Timestamp: ${timestamp}`);
-            console.error(`[Unhandled Rejection] Reason Type: ${typeof reason}`);
-            console.error(`[Unhandled Rejection] Reason: ${reasonMessage}`);
-            if (reason && reason.name) console.error(`[Unhandled Rejection] Error Name: ${reason.name}`);
-            if (reasonCode) console.error(`[Unhandled Rejection] Error Code: ${reasonCode}`);
-            console.error(`[Unhandled Rejection] PID: ${process.pid}, PPID: ${process.ppid}`);
-            console.error(`[Unhandled Rejection] Stack Trace:\n${stackLines}`);
+            console.error('[System] Unhandled rejection triggered');
+            console.error(`[System] Reason: ${reasonMessage}`);
+            if (reason && reason.name) console.error(`[System] Error name: ${reason.name}`);
+            if (reasonCode) console.error(`[System] Error code: ${reasonCode}`);
+            console.error(`[System] Stack trace:\n${stackLines}`);
             
             // 檢查是否為數據庫相關錯誤
             if (reasonMessage && (
@@ -539,15 +526,13 @@ async function init() {
                 reasonMessage.includes('connection timed out') ||
                 reasonMessage.includes('MongoServerSelectionError')
             )) {
-                console.error('[Unhandled Rejection] Detected as database connection error, will NOT shutdown');
-                console.error('[Unhandled Rejection] ==========================================');
+                console.error('[System] Detected as database connection error, will NOT shutdown');
                 errorHandler(reason, 'Database Connection Error');
                 // 不關閉應用程序，讓重連機制處理
                 return;
             }
             
-            console.error('[Unhandled Rejection] This will trigger graceful shutdown!');
-            console.error('[Unhandled Rejection] ==========================================');
+            console.error('[System] This will trigger graceful shutdown');
             errorHandler(reason, 'Unhandled Promise Rejection');
             // 只有在非數據庫錯誤時才關閉應用程序
             if (!reasonMessage || !reasonMessage.includes('MongoDB')) {

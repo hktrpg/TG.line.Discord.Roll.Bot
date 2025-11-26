@@ -189,7 +189,7 @@ const rollDiceCommand = async function ({
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #164 mongoDB error:', error.name, error.reason));
+            }).catch(error => console.error('[Level System] MongoDB error:', error.name, error.reason));
 
             //問題: 如果沒有GP 的話, 可以刪除嗎?
             if (!doc || doc.Title.length === 0) {
@@ -209,7 +209,7 @@ const rollDiceCommand = async function ({
             }
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #184 mongoDB error:', error.name, error.reason));
+            }).catch(error => console.error('[Level System] MongoDB error:', error.name, error.reason));
             if (!doc || doc.Title.length === 0) {
                 rply.text = "正在使用預設稱號。"
                 return rply
@@ -244,7 +244,7 @@ const rollDiceCommand = async function ({
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #212 mongoDB error:', error.name, error.reason));
+            }).catch(error => console.error('[Level System] MongoDB error:', error.name, error.reason));
 
             // Add null check for doc before accessing doc.Title
             if (!doc) {
@@ -265,7 +265,7 @@ const rollDiceCommand = async function ({
                 $set: {
                     "Title": temprply
                 }
-            }).catch(error => console.error('level_system #227 mongoDB error:', error.name, error.reason));
+            }).catch(error => console.error('[Level System] MongoDB error:', error.name, error.reason));
             rply.text = '新增稱號成功: \n'
             for (let te = 0; te < temprply.length; te++) {
                 if (temprply[te])

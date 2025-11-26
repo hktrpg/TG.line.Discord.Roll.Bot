@@ -232,7 +232,7 @@ async function handlePublicUnpublic(mainMsg, inputStr, userid, rply) {
         doc.public = /^public+/i.test(mainMsg[1]);
         await doc.save();
     } catch (error) {
-        console.error('GET ERROR 修改失敗' + error);
+        console.error('[Character] Update failed:', error);
         rply.text = '修改失敗\n' + error;
         return rply;
     }
@@ -244,7 +244,7 @@ async function handleShow(mainMsg, userid, rply) {
     let filter = { id: userid };
     if (/^show\d+/i.test(mainMsg[1])) {
         let index = Number.parseInt(mainMsg[1].replace(/^show/i, ''));
-        let doc = await schema.characterCard.findOne(filter).skip(index).catch(error => console.error('char show0 GET ERROR:', error));
+        let doc = await schema.characterCard.findOne(filter).skip(index).catch(error => console.error('[Character] MongoDB error in show0:', error));
         if (!doc) {
             rply.text = `
 ╭──── ⚠️錯誤提示 ────
@@ -256,7 +256,7 @@ async function handleShow(mainMsg, userid, rply) {
         return rply;
     } else {
         rply.text += '╭──── 📋角色卡列表 ────\n';
-        let doc = await schema.characterCard.find(filter).catch(error => console.error('char show GET ERROR:', error));
+        let doc = await schema.characterCard.find(filter).catch(error => console.error('[Character] MongoDB error in show:', error));
         rply.buttonCreate = [];
         rply.text += doc.reduce((text, { name }, index) => {
             rply.buttonCreate.push(`.char use ${name}`);
@@ -312,7 +312,7 @@ async function handleAddEdit(mainMsg, inputStr, userid, groupid, rply) {
     try {
         await schema.characterCard.updateOne(filter, Card, opt);
     } catch (error) {
-        console.error('新增角色卡 GET ERROR:', error);
+        console.error('[Character] Add character card error:', error);
         rply.text = '新增角色卡失敗\n因為 ' + error.message;
         return rply;
     }
@@ -343,7 +343,7 @@ async function handleUseNonuse(mainMsg, inputStr, userid, groupid, channelid, rp
             cardId: doc._id
         }, opt);
     } catch (error) {
-        console.error('GET ERROR 修改失敗' + error);
+        console.error('[Character] Update failed:', error);
         rply.text = '修改失敗\n' + error;
         return rply;
     }
@@ -363,7 +363,7 @@ async function handleDelete(mainMsg, inputStr, userid, rply) {
         await schema.characterCard.findOneAndRemove(filter);
         await schema.characterGpSwitch.deleteMany(filterRemove);
     } catch (error) {
-        console.error('刪除角色卡 GET ERROR:  ', error);
+        console.error('[Character] Delete character card error:', error);
         rply.text = '刪除角色卡失敗';
         return rply;
     }
@@ -458,7 +458,7 @@ async function handleSet(mainMsg, inputStr, userid, groupid, channelid, rply) {
         } catch (error) {
             console.error('doc error', doc);
             console.error('inputSTR:', inputStr);
-            console.error('doc SAVE  GET ERROR:', error);
+            console.error('[Character] Document save error:', error);
             console.error('更新角色卡失敗:', error);
             rply.text = '更新角色卡失敗';
             return rply;

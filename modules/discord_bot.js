@@ -131,7 +131,7 @@ client.on('messageCreate', async message => {
 		}
 
 	} catch (error) {
-		console.error('Discord messageCreate error:', error?.message);
+		console.error('[Discord Bot] messageCreate error:', error?.message);
 	}
 
 });
@@ -154,7 +154,7 @@ client.on('guildCreate', async guild => {
 	} catch (error) {
 		if (error.message === 'Missing Access') return;
 		if (error.message === 'Missing Permissions') return;
-		console.error('discord bot guildCreate  #114 error', (error && error.name), (error && error.message), (error && error.reason));
+		console.error('[Discord Bot] guildCreate error:', (error && error.name), (error && error.message), (error && error.reason));
 	}
 })
 
@@ -163,7 +163,7 @@ client.on('interactionCreate', async message => {
 		if (message.user && message.user.bot) return;
 		return __handlingInteractionMessage(message);
 	} catch (error) {
-		console.error('discord bot interactionCreate #123 error', (error && error.name), (error && error.message), (error && error.reason));
+		console.error('[Discord Bot] interactionCreate error:', (error && error.name), (error && error.message), (error && error.reason));
 	}
 });
 
@@ -174,7 +174,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId })
 		.cache(30)
 		.catch(error => {
-			console.error('discord_bot #802 mongoDB error:', error.name, error.reason)
+			console.error('[Discord Bot] MongoDB error in messageReactionAdd:', error.name, error.reason)
 			checkMongodb.dbErrOccurs();
 		})
 	try {
@@ -190,7 +190,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 			reaction.users.remove(user.id);
 		}
 	} catch (error) {
-		console.error('Discord bot messageReactionAdd #249', (error && error.name), (error && error.message), (error && error.reason))
+		console.error('[Discord Bot] messageReactionAdd error:', (error && error.name), (error && error.message), (error && error.reason))
 	}
 
 });
@@ -198,7 +198,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 client.on('messageReactionRemove', async (reaction, user) => {
 	if (!checkMongodb.isDbOnline()) return;
 	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error:', error.name, error.reason))
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('[Discord Bot] MongoDB error in messageReactionRemove:', error.name, error.reason))
 	try {
 		if (!list || list.length === 0) return;
 		const detail = list.detail;
@@ -210,7 +210,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
 		}
 	} catch (error) {
 		if (error.message === 'Unknown Member') return;
-		console.error('Discord bot messageReactionRemove #268', (error && error.name), (error && error.message), (error && error.reason))
+		console.error('[Discord Bot] messageReactionRemove error:', (error && error.name), (error && error.message), (error && error.reason))
 	}
 });
 
@@ -474,7 +474,7 @@ async function sendMessage({ target, replyText, quotes = false, components = nul
 			if (error.message !== 'Cannot send messages to this user' &&
 				error.message !== 'Missing Permissions' &&
 				error.message !== 'Missing Access') {
-				console.error('Discord message send error:', error.message, 'chunk:', chunk);
+				console.error('[Discord Bot] Message send error:', error.message, 'chunk:', chunk);
 			}
 		}
 	}
@@ -485,7 +485,7 @@ async function SendToId(targetid, replyText, quotes = false) {
 		const user = await client.users.fetch(targetid);
 		await sendMessage({ target: user, replyText, quotes });
 	} catch (error) {
-		console.error('Discord SendToId error:', error.message);
+		console.error('[Discord Bot] SendToId error:', error.message);
 	}
 }
 
@@ -606,7 +606,7 @@ async function count() {
 		return `群組總數: ${totalGuilds.toLocaleString()}
 │ 　• 會員總數: ${totalMembers.toLocaleString()}`;
 	} catch (error) {
-		console.error(`Discord統計錯誤: ${error}`);
+		console.error(`[Discord Bot] Statistics error: ${error}`);
 		return '無法獲取統計資料';
 	}
 }
@@ -647,7 +647,7 @@ async function count2() {
 			console.error(`[Count2] Stack: ${error && error.stack}`);
 			console.error(`[Count2] PID: ${process.pid}, PPID: ${process.ppid}`);
 			console.error('[Count2] ==========================================');
-			console.error(`disocrdbot #617 error ${error}`);
+			console.error(`[Discord Bot] Error in message handling:`, error);
 			respawnCluster(error);
 			return '🌼bothelp | hktrpg.com🍎';
 		});
@@ -667,7 +667,7 @@ process.on('unhandledRejection', error => {
 	// user_id: Value "&" is not snowflake.
 
 
-	console.error('Discord Unhandled promise rejection:', (error));
+	console.error('[Discord Bot] Unhandled promise rejection:', (error));
 	// Removed process.send as it was causing ERR_IPC_CHANNEL_CLOSED on shutdown
 	// process.send({
 	// 	type: "process:msg",
@@ -985,7 +985,7 @@ function respawnCluster2() {
 		try {
 			await job.remove();
 		} catch (error) {
-			console.error("Discord Error removing job from collection:scheduleAtMessageDiscord", error);
+			console.error("[Discord Bot] Error removing job from collection:scheduleAtMessageDiscord", error);
 		}
 	})
 
@@ -1012,7 +1012,7 @@ function respawnCluster2() {
 				)
 			}
 		} catch (error) {
-			console.error("Discord Error removing job from collection:scheduleCronMessageDiscord", error);
+			console.error("[Discord Bot] Error removing job from collection:scheduleCronMessageDiscord", error);
 		}
 
 	})
@@ -1123,7 +1123,7 @@ async function roleReact(channelid, message) {
 		for (let index = 0; index < detail.length; index++) {
 			sendMessage.react(detail[index].emoji);
 		}
-		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('discord_bot #786 mongoDB error:', error.name, error.reason))
+		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('[Discord Bot] MongoDB error in roleReact update:', error.name, error.reason))
 
 	} catch {
 		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限', channelid });
@@ -1171,7 +1171,7 @@ async function checkWakeUp() {
 			//	else return true;
 		})
 		.catch(error => {
-			console.error(`disocrdbot #836 error`, (error && error.name), (error && error.message), (error && error.reason))
+			console.error(`[Discord Bot] Error in message handling:`, (error && error.name), (error && error.message), (error && error.reason))
 			return false
 		});
 
@@ -1267,7 +1267,7 @@ ${formatGroup(groupedStatus, true)}
 ${formatGroup(groupedPing)}
 ╰──────────────`;
 	} catch (error) {
-		console.error('Discord分流監控錯誤:', error);
+		console.error('[Discord Bot] Shard monitoring error:', error);
 		return `
 ├────── ⚠️錯誤信息 ──────
 │ 無法獲取分流狀態
@@ -1700,7 +1700,7 @@ async function handlingResponMessage(message, answer = '') {
 					SendToId(userid, newMessage.firstTimeMessage(), true);
 				}
 			} catch (error) {
-				console.error(`discord bot error #236`, (error && error.name && error.message));
+				console.error(`[Discord Bot] Error in message handling:`, (error && error.name && error.message));
 			}
 
 		if (rplyVal.state) {
@@ -1861,7 +1861,7 @@ const sendFiles = async (message, rplyVal, userid) => {
 			fs.unlinkSync(rplyVal.fileLink[index]);
 		}
 		catch (error) {
-			console.error('discord bot error #1082', (error?.name, error?.message), rplyVal.fileLink[index]);
+			console.error('[Discord Bot] Error in file handling:', (error?.name, error?.message), rplyVal.fileLink[index]);
 		}
 
 	}
@@ -2524,16 +2524,16 @@ const connect = function () {
 			}
 		}
 		catch (error) {
-			console.error(`disocrdbot #99 error`, (error && error.name), (error && error.message), (error && error.reason))
+			console.error(`[Discord Bot] Error in WebSocket message handling:`, (error && error.name), (error && error.message), (error && error.reason))
 		};
 		return;
 
 	});
 	ws.on('error', (error) => {
-		console.error('Discord socket error', (error && error.name), (error && error.message), (error && error.reason));
+		console.error('[Discord Bot] Socket error:', (error && error.name), (error && error.message), (error && error.reason));
 	});
 	ws.on('close', function () {
-		console.error('Discord socket close');
+		console.error('[Discord Bot] Socket closed');
 		setTimeout(connect, RECONNECT_INTERVAL);
 	});
 };
@@ -2689,6 +2689,7 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 	}
 }
 async function handlingMultiServerMessage(message) {
+	return;
 	if (!process.env.mongoURL) return;
 	let target = multiServer.multiServerChecker(message.channel.id)
 	if (!target) return;
@@ -3095,12 +3096,12 @@ async function __sendMeMessage({ message, rplyVal, groupid }) {
 }
 
 client.on('shardDisconnect', (event, shardID) => {
-	console.log('shardDisconnect:', event, shardID)
+	console.log(`[Discord Bot] Shard ${shardID} disconnected:`, event)
 });
 
-client.on('shardResume', (replayed, shardID) => console.log(`Shard ID ${shardID} resumed connection and replayed ${replayed} events.`));
+client.on('shardResume', (replayed, shardID) => console.log(`[Discord Bot] Shard ${shardID} resumed connection and replayed ${replayed} events.`));
 
-client.on('shardReconnecting', id => console.log(`Shard with ID ${id} reconnected.`));
+client.on('shardReconnecting', id => console.log(`[Discord Bot] Shard ${id} reconnecting.`));
 
 
 if (debugMode) process.on('warning', e => {

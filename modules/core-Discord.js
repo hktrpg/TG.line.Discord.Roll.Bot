@@ -251,42 +251,25 @@ manager.on('clusterCreate', shard => {
     const errorHandler = (event, error) => {
         // Don't handle errors if shutting down
         if (isShuttingDown) return;
-
-        const timestamp = new Date().toISOString();
-        const stack = new Error('Error handler stack trace').stack;
-        const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
         
-        console.error(`[Cluster ${shard.id}] ${event}:`, error);
-        console.error(`[Cluster ${shard.id}] Error Handler - Timestamp: ${timestamp}`);
-        console.error(`[Cluster ${shard.id}] Error Handler - PID: ${process.pid}, PPID: ${process.ppid}`);
+        console.error(`[Cluster] Cluster ${shard.id} ${event}:`, error);
         
         // Add retry logic
         if (event === 'death') {
             const exitCode = error && typeof error === 'string' ? error.match(/Exit code: (\d+)/)?.[1] : 'unknown';
-            console.error('[Cluster Death] ========== CLUSTER DEATH RESPAWN TRIGGERED ==========');
-            console.error(`[Cluster Death] Timestamp: ${timestamp}`);
-            console.error(`[Cluster Death] Cluster ID: ${shard.id}`);
-            console.error(`[Cluster Death] Exit Code: ${exitCode}`);
-            console.error(`[Cluster Death] Error: ${error}`);
-            console.error(`[Cluster Death] PID: ${process.pid}, PPID: ${process.ppid}`);
-            console.error(`[Cluster Death] Stack Trace:\n${stackLines}`);
-            console.error('[Cluster Death] ==========================================');
+            console.error(`[Cluster] Cluster ${shard.id} death detected. Exit code: ${exitCode}`);
             
             setTimeout(() => {
                 if (!isShuttingDown) {
-                    console.error(`[Cluster Death] Attempting to respawn cluster ${shard.id} after ${RETRY_DELAY}ms delay`);
+                    console.log(`[Cluster] Attempting to respawn cluster ${shard.id} after ${RETRY_DELAY}ms delay`);
                     try {
                         shard.respawn({ timeout: 60_000 });
-                        console.error(`[Cluster Death] Respawn command sent for cluster ${shard.id}`);
+                        console.log(`[Cluster] Respawn command sent for cluster ${shard.id}`);
                     } catch (error_) {
-                        console.error('[Cluster Death] ========== CLUSTER DEATH RESPAWN ERROR ==========');
-                        console.error(`[Cluster Death] Error Name: ${error_ && error_.name}`);
-                        console.error(`[Cluster Death] Error Message: ${error_ && error_.message}`);
-                        console.error(`[Cluster Death] Stack: ${error_ && error_.stack}`);
-                        console.error('[Cluster Death] ==========================================');
+                        console.error(`[Cluster] Respawn error for cluster ${shard.id}:`, error_ && error_.message);
                     }
                 } else {
-                    console.error(`[Cluster Death] Shutdown in progress, skipping respawn for cluster ${shard.id}`);
+                    console.log(`[Cluster] Shutdown in progress, skipping respawn for cluster ${shard.id}`);
                 }
             }, RETRY_DELAY);
         }
@@ -324,14 +307,8 @@ manager.on('clusterCreate', shard => {
     });
     
     shard.on('error', (error) => {
-        const timestamp = new Date().toISOString();
-        console.error('[Cluster Manager] ========== CLUSTER ERROR EVENT ==========');
-        console.error(`[Cluster Manager] Timestamp: ${timestamp}`);
-        console.error(`[Cluster Manager] Cluster ID: ${shard.id}`);
-        console.error(`[Cluster Manager] Error: ${error.message || error}`);
-        console.error(`[Cluster Manager] Error Stack: ${error.stack}`);
-        console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
-        console.error('[Cluster Manager] ==========================================');
+        console.error(`[Cluster] Cluster ${shard.id} error:`, error.message || error);
+        if (error.stack) console.error(`[Cluster] Stack trace:\n${error.stack}`);
         errorHandler('Error', error);
     });
 });
@@ -343,16 +320,6 @@ manager.on("clusterCreate", cluster => {
         if (isShuttingDown) return;
 
         if (message.respawn === true && message.id !== null && message.id !== undefined) {
-            const timestamp = new Date().toISOString();
-            const stack = new Error('Respawn message stack trace').stack;
-            const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
-            
-            console.error('[Cluster Message] ========== RESPAWN MESSAGE RECEIVED ==========');
-            console.error(`[Cluster Message] Timestamp: ${timestamp}`);
-            console.error(`[Cluster Message] Target Cluster ID: ${message.id}`);
-            console.error(`[Cluster Message] PID: ${process.pid}, PPID: ${process.ppid}`);
-            console.error(`[Cluster Message] Stack Trace:\n${stackLines}`);
-            console.error('[Cluster Message] ==========================================');
             console.log(`[Cluster] Respawning cluster ${message.id}`);
             
             try {
@@ -391,7 +358,6 @@ manager.on("clusterCreate", cluster => {
             console.error(`[Cluster Message] Total Clusters: ${manager.clusters.size}`);
             console.error(`[Cluster Message] PID: ${process.pid}, PPID: ${process.ppid}`);
             console.error(`[Cluster Message] Stack Trace:\n${stackLines}`);
-            console.error('[Cluster Message] ==========================================');
             console.log('[Cluster] Initiating full cluster respawn');
             
             try {
@@ -400,13 +366,8 @@ manager.on("clusterCreate", cluster => {
                     respawnDelay: 5000,          // 5 seconds
                     timeout: 1000 * 60 * 5       // 5 minutes timeout
                 });
-                console.error('[Cluster Message] Successfully initiated respawnAll for all clusters');
+                console.log('[Cluster] Successfully initiated respawnAll for all clusters');
             } catch (error) {
-                console.error('[Cluster Message] ========== RESPAWN ALL ERROR ==========');
-                console.error(`[Cluster Message] Error Name: ${error && error.name}`);
-                console.error(`[Cluster Message] Error Message: ${error && error.message}`);
-                console.error(`[Cluster Message] Stack: ${error && error.stack}`);
-                console.error('[Cluster Message] ==========================================');
                 console.error('[Cluster] Failed to respawn all clusters:', error);
             }
         }

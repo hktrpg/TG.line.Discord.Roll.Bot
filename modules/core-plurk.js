@@ -12,10 +12,10 @@ const Plurk_Client = new PlurkClient(process.env.PLURK_APPKEY, process.env.PLURK
 exports.analytics = require('./analytics');
 Plurk_Client.request('Users/me')
     .then(profile => {
-        console.log(`Plurk 名稱: ${profile.full_name}`);
+        console.log(`[Plurk] Name: ${profile.full_name}`);
         plurkID = profile.id;
     })
-    .catch(error => console.error('plurk error:', error.error_text));
+    .catch(error => console.error('[Plurk] Error:', error.error_text));
 
 
 
@@ -37,7 +37,7 @@ function startCometConnection() {
         reconnectAttempts = 0;
         //console.log('Plurk comet connection started');
     } catch (error) {
-        console.error('Failed to start Plurk comet connection:', error.message);
+        console.error('[Plurk] Failed to start comet connection:', error.message);
         scheduleReconnect();
     }
 }
@@ -49,13 +49,13 @@ function stopCometConnection() {
         cometConnected = false;
         //console.log('Plurk comet connection stopped');
     } catch (error) {
-        console.error('Error stopping Plurk comet connection:', error.message);
+        console.error('[Plurk] Error stopping comet connection:', error.message);
     }
 }
 
 function scheduleReconnect() {
     if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-        console.error(`Plurk comet reconnection failed after ${MAX_RECONNECT_ATTEMPTS} attempts`);
+        console.error(`[Plurk] Comet reconnection failed after ${MAX_RECONNECT_ATTEMPTS} attempts`);
         return;
     }
 
@@ -72,7 +72,7 @@ startCometConnection();
 
 // Add error handling for comet connection
 Plurk_Client.on('error', (error) => {
-    console.error('Plurk comet connection error:', error.message);
+    console.error('[Plurk] Comet connection error:', error.message);
     cometConnected = false;
     scheduleReconnect();
 });
@@ -86,13 +86,13 @@ Plurk_Client.on('close', () => {
 // Initial alerts setup with error handling
 Plurk_Client.request('Alerts/addAllAsFriends')
     .catch(error => {
-        console.error('Failed to add all as friends:', error.message || error.error_text);
+        console.error('[Plurk] Failed to add all as friends:', error.message || error.error_text);
     });
 
 function intervalFunc() {
     Plurk_Client.request('Alerts/addAllAsFriends')
         .catch(error => {
-            console.error('Failed to refresh alerts:', error.message || error.error_text);
+            console.error('[Plurk] Failed to refresh alerts:', error.message || error.error_text);
         });
 
     // Restart comet connection periodically to prevent timeouts
@@ -219,7 +219,7 @@ async function sendMessage(response, rplyVal) {
         await Plurk_Client.request('Responses/responseAdd', { plurk_id: response, content: rplyVal.toString().match(/[\s\S]{1,300}/g)[0], qualifier: 'says' })
     } catch (error) {
         if (error.error_text !== "anti-flood-same-content")
-            console.error('plurk error:', error.error_text);
+            console.error('[Plurk] Error:', error.error_text);
     }
     return;
 

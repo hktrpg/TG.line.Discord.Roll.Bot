@@ -580,7 +580,7 @@ const getMongoDBState = async () => {
         await mongoose.connection.db.command({ ping: 1 });
         return { ok: 1, status: 'connected' };
     } catch (error) {
-        console.error('Failed to get MongoDB state:', error);
+        console.error('[Schema] Failed to get MongoDB state:', error);
         return null;
     }
 };

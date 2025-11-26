@@ -55,7 +55,7 @@ class DbWatchdog {
     dbErrOccurs() {
         this.dbConnErr.retry++;
         this.dbConnErr.timeStamp = Date.now();
-        console.error('dbConnectionError dbErrOccurs #17 error times#', this.dbConnErr.retry);
+        console.error(`[dbWatchdog] Database connection error occurred. Error count: ${this.dbConnErr.retry}`);
     }
 
     isDbOnline() {
@@ -69,7 +69,7 @@ class DbWatchdog {
     __dbErrorReset() {
         if (this.dbConnErr.retry > 0) {
             this.dbConnErr.retry = 0;
-            console.error('dbConnectionError dbErrorReset #25 dbConnErr.retry Reset');
+            console.log('[dbWatchdog] Database connection error counter reset');
         }
     }
 

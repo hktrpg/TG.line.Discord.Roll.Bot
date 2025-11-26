@@ -2,7 +2,7 @@
 "use strict";
 const fs = require('node:fs');
 
-const { ClusterClient, getInfo } = require('discord-hybrid-sharding');
+const { ClusterClient, getInfo, AutoResharderClusterClient } = require('discord-hybrid-sharding');
 const Discord = require('discord.js');
 const isImageURL = require('image-url-validator').default;
 const WebSocket = require('ws');
@@ -34,6 +34,23 @@ client.on('clientReady', () => {
 	discordClientConfig.updateWithClient(client);
 });
 client.cluster = new ClusterClient(client);
+
+// AutoResharder client for automatic re-sharding
+new AutoResharderClusterClient(client.cluster, {
+    // OPTIONAL: Default is 60e3 which sends every minute the data / cluster
+    sendDataIntervalMS: 60e3,
+    // OPTIONAL: Default is a valid function for discord.js Client's
+    sendDataFunction: (cluster) => {
+        return {
+            clusterId: cluster.id,
+            shardData: cluster.info.SHARD_LIST.map(shardId => ({
+                shardId,
+                guildCount: cluster.client.guilds.cache.filter(g => g.shardId === shardId).size
+            }))
+        }
+    }
+});
+
 client.login(channelSecret);
 const MESSAGE_SPLITOR = (/\S+/ig);
 const link = process.env.WEB_LINK;
@@ -88,7 +105,7 @@ async function getOwnerClusterIdByGuild(guildId) {
 					return null;
 				}
 			},
-			{ context: { gid: guildId } }
+			{ context: { gid: guildId }, timeout: 10000 }
 		);
 		if (Array.isArray(results)) {
 			const id = results.find(v => Number.isInteger(v));
@@ -505,7 +522,7 @@ async function count() {
 				c.guilds.cache
 					.filter(guild => guild.available)
 					.reduce((acc, guild) => acc + guild.memberCount, 0)
-			)
+			, { timeout: 10000 })
 		]);
 
 		const totalGuilds = guildSizes.reduce((acc, count) => acc + count, 0);
@@ -524,7 +541,7 @@ async function count2() {
 	const promises = [
 		client.cluster.fetchClientValues('guilds.cache.size'),
 		client.cluster
-			.broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0))
+			.broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0), { timeout: 10000 })
 	];
 
 	return Promise.all(promises)
@@ -1066,8 +1083,8 @@ async function getAllshardIds() {
 
 	try {
 		const [wsStatus, wsPing, clusterId] = await Promise.all([
-			client.cluster.broadcastEval(c => c.ws.status),
-			client.cluster.broadcastEval(c => c.ws.ping),
+			client.cluster.broadcastEval(c => c.ws.status, { timeout: 10000 }),
+			client.cluster.broadcastEval(c => c.ws.ping, { timeout: 10000 }),
 			client.cluster.id
 		]);
 
@@ -1906,7 +1923,7 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
 						return null;
 					}
 				},
-				{ context: { channelId: channelid, textContent: text, pollContent: pollText, emojis: POLL_EMOJIS.slice(0, maxOptions), targetClusterId: ownerClusterId } }
+				{ context: { channelId: channelid, textContent: text, pollContent: pollText, emojis: POLL_EMOJIS.slice(0, maxOptions), targetClusterId: ownerClusterId }, timeout: 15000 }
 			);
 		} catch (error) {
 			// Handle IPC channel closed errors gracefully
@@ -2125,7 +2142,7 @@ async function tallyStPoll(messageId, fallbackData) {
 						return { shardId: c.cluster?.id || 0, counts, createdTimestamp: createdTs };
 					} catch { return null; }
 				},
-				{ context: { channelId: data.channelid, messageId, optionCount: data.options.length, emojis: POLL_EMOJIS } }
+				{ context: { channelId: data.channelid, messageId, optionCount: data.options.length, emojis: POLL_EMOJIS }, timeout: 15000 }
 			);
 		} catch (error) {
 			// Handle IPC channel closed errors gracefully
@@ -2197,7 +2214,7 @@ async function tallyStPoll(messageId, fallbackData) {
 							return true;
 						} catch { return false; }
 					},
-					{ context: { channelId: data.channelid, messageId, content: `本輪未收到投票（連續 ${nextDisplay} 次）。`, targetClusterId: ownerClusterId } }
+					{ context: { channelId: data.channelid, messageId, content: `本輪未收到投票（連續 ${nextDisplay} 次）。`, targetClusterId: ownerClusterId }, timeout: 10000 }
 				);
 			} catch { }
 			if (nextRaw >= 4) {
@@ -2215,7 +2232,7 @@ async function tallyStPoll(messageId, fallbackData) {
 								return true;
 							} catch { return false; }
 						},
-						{ context: { channelId: data.channelid, messageId, content: '連續 4 次無人投票，已自動暫停本局。', targetClusterId: ownerClusterId } }
+						{ context: { channelId: data.channelid, messageId, content: '連續 4 次無人投票，已自動暫停本局。', targetClusterId: ownerClusterId }, timeout: 10000 }
 					);
 				} catch { }
 				try {
@@ -2250,7 +2267,7 @@ async function tallyStPoll(messageId, fallbackData) {
 									return true;
 								} catch { return false; }
 							},
-							{ context: { channelId: data.channelid, content: rplyVal.text } }
+							{ context: { channelId: data.channelid, content: rplyVal.text }, timeout: 10000 }
 						);
 					}
 				} catch (error) {
@@ -2310,7 +2327,7 @@ async function tallyStPoll(messageId, fallbackData) {
 						return true;
 					} catch { return false; }
 				},
-				{ context: { channelId: data.channelid, messageId, content: `投票結束，選中：${POLL_EMOJIS[pick]} ${picked.label}（${max} 票）`, targetClusterId: ownerClusterId } }
+				{ context: { channelId: data.channelid, messageId, content: `投票結束，選中：${POLL_EMOJIS[pick]} ${picked.label}（${max} 票）`, targetClusterId: ownerClusterId }, timeout: 10000 }
 			);
 		} catch { }
 
@@ -2354,7 +2371,7 @@ async function tallyStPoll(messageId, fallbackData) {
 									return true;
 								} catch { return false; }
 							},
-							{ context: { channelId: data.channelid, content: rplyVal.text, targetClusterId: ownerClusterId } }
+							{ context: { channelId: data.channelid, content: rplyVal.text, targetClusterId: ownerClusterId }, timeout: 10000 }
 						);
 					}
 				}
@@ -2516,7 +2533,7 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 						threadId: isThread ? channelId : null
 					};
 				},
-				{ context: { channelId: channelid } }
+				{ context: { channelId: channelid }, timeout: 15000 }
 			);
 		} catch (error) {
 			// Handle IPC channel closed errors gracefully

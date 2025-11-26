@@ -11,7 +11,7 @@ const RETRY_DELAY = 5000;
 
 const agenda = require('../modules/schedule')?.agenda;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
-const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
+const { ClusterManager, HeartbeatManager, AutoResharderManager } = require('discord-hybrid-sharding');
 require("./ds-deploy-commands");
 
 // Global variables to track shutdown status
@@ -190,10 +190,33 @@ const clusterOptions = {
     restarts: {
         max: 5,
         interval: 60_000 * 10 // 10 minutes
+    },
+    // Queue options for complex codebases
+    queue: {
+        auto: true, // Auto queue clusters, can be set to false for manual control
     }
 };
 
 const manager = new ClusterManager('./modules/discord_bot.js', clusterOptions);
+
+// AutoResharder configuration for automatic re-sharding
+manager.autoresharder = new AutoResharderManager(manager, {
+    /* minimum amount of guilds each shard should contain */
+    MinGuildsPerShard: 1400, // or auto
+
+    /* maximum amount of guilds each shard should contain -> if exceeded it auto. "re-shards" the bot */
+    MaxGuildsPerShard: 2400,
+
+    /* OPTIONAL: RestartOptions which should be used for the ClusterManager */
+    restartOptions: {
+        /** The restartMode of the clusterManager, gracefulSwitch = waits until all new clusters have spawned with maintenance mode, rolling = Once the Cluster is Ready, the old cluster will be killed  */
+        restartMode: 'rolling', // or 'gracefulSwitch'
+        /** The delay to wait between each cluster spawn */
+        delay: 7e3, // any number > 0 | above 7 prevents api ratelimit
+        /** The readyTimeout to wait until the cluster spawn promise is rejected */
+        timeout: -1,
+    },
+});
 
 // Improved event handling
 let heartbeatStarted = false;
@@ -515,6 +538,21 @@ process.on('exit', (code) => {
     console.error(`[Cluster] Process exiting with code: ${code} (PID: ${process.pid})`);
 });
 
+// Queue control system for complex codebases
+if (clusterOptions.queue && clusterOptions.queue.auto === false) {
+    // Manual queue control - spawn and then manually trigger next
+    manager.on('clusterCreate', cluster => {
+        cluster.on('ready', () => {
+            // When a cluster is ready, spawn the next one in queue
+            setTimeout(() => {
+                if (!isShuttingDown) {
+                    manager.queue.next();
+                }
+            }, 1000); // Small delay to prevent overwhelming
+        });
+    });
+}
+
 // Start clusters
 // console.error('[Cluster Manager] ========== STARTING CLUSTER SPAWN ==========');
 // console.error(`[Cluster Manager] Timestamp: ${new Date().toISOString()}`);
@@ -532,6 +570,15 @@ manager.spawn({
     // console.error(`[Cluster Manager] Total Clusters to spawn: ${manager.totalClusters}`);
     // console.error(`[Cluster Manager] Total Shards: ${manager.totalShards}`);
     // console.error('[Cluster Manager] ==========================================');
+
+    // If manual queue control is enabled, start the queue
+    if (clusterOptions.queue && clusterOptions.queue.auto === false) {
+        setTimeout(() => {
+            if (!isShuttingDown) {
+                manager.queue.next();
+            }
+        }, DELAY);
+    }
 }).catch(error => {
     // const exitTimestamp = new Date().toISOString();
     // const exitStack = new Error('Spawn error stack trace').stack;

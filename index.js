@@ -235,8 +235,53 @@ async function loadModules(moduleManager) {
     }
 }
 
+// Detailed signal tracking function
+function logSignalDetails(signal, moduleName) {
+    const timestamp = new Date().toISOString();
+    const pid = process.pid;
+    const ppid = process.ppid;
+    const uptime = process.uptime();
+    const memoryUsage = process.memoryUsage();
+    
+    // Get stack trace (excluding this function and the signal handler)
+    const stack = new Error('Signal stack trace').stack;
+    const stackLines = stack ? stack.split('\n').slice(3).join('\n') : 'No stack trace available';
+    
+    const details = {
+        signal,
+        timestamp,
+        pid,
+        ppid,
+        uptime: `${uptime.toFixed(2)}s`,
+        memoryUsage: {
+            rss: `${(memoryUsage.rss / 1024 / 1024).toFixed(2)} MB`,
+            heapUsed: `${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`,
+            heapTotal: `${(memoryUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`
+        },
+        env: {
+            SHARD_ID: process.env.SHARD_ID || 'N/A',
+            CLUSTER_ID: process.env.CLUSTER_ID || 'N/A',
+            NODE_ENV: process.env.NODE_ENV || 'N/A'
+        },
+        stack: stackLines
+    };
+    
+    logger.error(`[${moduleName}] ========== SIGNAL DETAILED LOG ==========`, details);
+    console.error(`[${moduleName}] [ERROR] Received ${signal} signal at ${timestamp} (PID: ${pid}, PPID: ${ppid})`);
+    console.error(`[${moduleName}] Stack Trace:\n${stackLines}`);
+}
+
+// Global shutdown flag
+let isShuttingDown = false;
+
 // Graceful Shutdown
 async function gracefulShutdown(moduleManager) {
+    if (isShuttingDown) {
+        logger.warn('Shutdown already in progress, ignoring duplicate call');
+        return;
+    }
+    isShuttingDown = true;
+    
     logger.info('Starting graceful shutdown...');
     
     // Unload all loaded modules in parallel
@@ -254,6 +299,13 @@ async function gracefulShutdown(moduleManager) {
     
     // Flush any pending logs before exit
     await logger.flush();
+    
+    // Log exit with details
+    const exitStack = new Error('Process exit stack trace').stack;
+    logger.info('Calling process.exit(0)', {
+        stack: exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace'
+    });
+    
     // eslint-disable-next-line n/no-process-exit
     process.exit(0);
 }
@@ -274,11 +326,27 @@ async function init() {
 
         // Setup shutdown handlers with delay to allow Discord modules to handle their own shutdown
         process.on('SIGTERM', () => {
+            logSignalDetails('SIGTERM', 'Main Process');
+            
+            // Prevent multiple simultaneous shutdowns
+            if (isShuttingDown) {
+                logger.warn('Shutdown already in progress, ignoring SIGTERM');
+                return;
+            }
+            
             logger.info('Received SIGTERM signal, starting graceful shutdown...');
             // Give Discord modules time to handle their own shutdown
             setTimeout(() => gracefulShutdown(moduleManager), 5000);
         });
         process.on('SIGINT', () => {
+            logSignalDetails('SIGINT', 'Main Process');
+            
+            // Prevent multiple simultaneous shutdowns
+            if (isShuttingDown) {
+                logger.warn('Shutdown already in progress, ignoring SIGINT');
+                return;
+            }
+            
             logger.info('Received SIGINT signal, starting graceful shutdown...');
             // Give Discord modules time to handle their own shutdown
             setTimeout(() => gracefulShutdown(moduleManager), 5000);
@@ -300,6 +368,33 @@ async function init() {
         process.on('uncaughtException', (err) => {
             errorHandler(err, 'Uncaught Exception');
             gracefulShutdown(moduleManager);
+        });
+
+        // Track process.exit calls
+        const originalExit = process.exit;
+        process.exit = function(code) {
+            const timestamp = new Date().toISOString();
+            const stack = new Error('Process exit stack trace').stack;
+            const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+            
+            logger.error('[Main Process] ========== PROCESS.EXIT CALLED ==========', {
+                exitCode: code,
+                timestamp,
+                pid: process.pid,
+                ppid: process.ppid,
+                isShuttingDown,
+                stack: stackLines
+            });
+            console.error(`[Main Process] Process.exit(${code}) called at ${timestamp} (PID: ${process.pid})`);
+            console.error(`[Main Process] Stack Trace:\n${stackLines}`);
+            
+            return originalExit.call(process, code);
+        };
+        
+        // Track process exit event
+        process.on('exit', (code) => {
+            logger.info(`[Main Process] Process exiting with code: ${code} (PID: ${process.pid})`);
+            console.error(`[Main Process] Process exiting with code: ${code} (PID: ${process.pid})`);
         });
 
         // Handle unhandled promise rejections

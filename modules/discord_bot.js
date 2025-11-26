@@ -606,9 +606,47 @@ process.on('unhandledRejection', error => {
 let isShuttingDown = false;
 let shutdownTimeout = null;
 
+// Detailed signal tracking function
+function logSignalDetails(signal, moduleName) {
+	const timestamp = new Date().toISOString();
+	const pid = process.pid;
+	const ppid = process.ppid;
+	const uptime = process.uptime();
+	const memoryUsage = process.memoryUsage();
+	
+	// Get stack trace (excluding this function and the signal handler)
+	const stack = new Error('Signal stack trace').stack;
+	const stackLines = stack ? stack.split('\n').slice(3).join('\n') : 'No stack trace available';
+	
+	console.log(`[${moduleName}] ========== SIGNAL DETAILED LOG ==========`);
+	console.log(`[${moduleName}] Signal: ${signal}`);
+	console.log(`[${moduleName}] Timestamp: ${timestamp}`);
+	console.log(`[${moduleName}] Process ID: ${pid}`);
+	console.log(`[${moduleName}] Parent Process ID: ${ppid}`);
+	console.log(`[${moduleName}] Uptime: ${uptime.toFixed(2)}s`);
+	console.log(`[${moduleName}] Memory Usage: ${JSON.stringify({
+		rss: `${(memoryUsage.rss / 1024 / 1024).toFixed(2)} MB`,
+		heapUsed: `${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`,
+		heapTotal: `${(memoryUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`
+	})}`);
+	console.log(`[${moduleName}] Environment Variables:`);
+	console.log(`[${moduleName}]   - SHARD_ID: ${process.env.SHARD_ID || 'N/A'}`);
+	console.log(`[${moduleName}]   - CLUSTER_ID: ${process.env.CLUSTER_ID || 'N/A'}`);
+	console.log(`[${moduleName}]   - NODE_ENV: ${process.env.NODE_ENV || 'N/A'}`);
+	console.log(`[${moduleName}] Stack Trace:`);
+	console.log(`[${moduleName}] ${stackLines}`);
+	console.log(`[${moduleName}] ==========================================`);
+	
+	// Also log to stderr for better visibility
+	console.error(`[${moduleName}] [ERROR] Received ${signal} signal at ${timestamp} (PID: ${pid}, PPID: ${ppid})`);
+}
+
 // Graceful shutdown function
 async function gracefulShutdown() {
-	if (isShuttingDown) return;
+	if (isShuttingDown) {
+		console.log('[Discord Bot] Shutdown already in progress, ignoring duplicate call');
+		return;
+	}
 	isShuttingDown = true;
 
 	console.log('[Discord Bot] Starting graceful shutdown...');
@@ -616,6 +654,7 @@ async function gracefulShutdown() {
 	// Clear shutdown timeout
 	if (shutdownTimeout) {
 		clearTimeout(shutdownTimeout);
+		shutdownTimeout = null;
 	}
 
 	try {
@@ -636,12 +675,20 @@ async function gracefulShutdown() {
 		process.exit(0);
 	} catch (error) {
 		console.error('[Discord Bot] Error during shutdown:', error);
+		console.error('[Discord Bot] Shutdown error stack:', error.stack);
 		process.exit(1);
 	}
 }
 
 process.on('SIGINT', async () => {
-	console.log('[Discord Bot] Received SIGINT signal');
+	logSignalDetails('SIGINT', 'Discord Bot');
+	
+	// Prevent multiple simultaneous shutdowns
+	if (isShuttingDown) {
+		console.log('[Discord Bot] Shutdown already in progress, ignoring SIGINT');
+		return;
+	}
+	
 	// Set force shutdown timeout
 	shutdownTimeout = setTimeout(() => {
 		console.log('[Discord Bot] Force shutdown after timeout');
@@ -652,7 +699,14 @@ process.on('SIGINT', async () => {
 });
 
 process.on('SIGTERM', async () => {
-	console.log('[Discord Bot] Received SIGTERM signal');
+	logSignalDetails('SIGTERM', 'Discord Bot');
+	
+	// Prevent multiple simultaneous shutdowns
+	if (isShuttingDown) {
+		console.log('[Discord Bot] Shutdown already in progress, ignoring SIGTERM');
+		return;
+	}
+	
 	// Set force shutdown timeout
 	shutdownTimeout = setTimeout(() => {
 		console.log('[Discord Bot] Force shutdown after timeout');
@@ -660,6 +714,29 @@ process.on('SIGTERM', async () => {
 	}, 15_000); // 15 second timeout
 
 	await gracefulShutdown();
+});
+
+// Track process.exit calls
+const originalExit = process.exit;
+process.exit = function(code) {
+	const timestamp = new Date().toISOString();
+	const stack = new Error('Process exit stack trace').stack;
+	const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+	
+	console.error('[Discord Bot] ========== PROCESS.EXIT CALLED ==========');
+	console.error(`[Discord Bot] Exit Code: ${code}`);
+	console.error(`[Discord Bot] Timestamp: ${timestamp}`);
+	console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
+	console.error(`[Discord Bot] Is Shutting Down: ${isShuttingDown}`);
+	console.error(`[Discord Bot] Stack Trace:\n${stackLines}`);
+	console.error('[Discord Bot] ==========================================');
+	
+	return originalExit.call(process, code);
+};
+
+// Track process exit event
+process.on('exit', (code) => {
+	console.error(`[Discord Bot] Process exiting with code: ${code} (PID: ${process.pid})`);
 });
 
 function respawnCluster(err) {

@@ -18,9 +18,47 @@ require("./ds-deploy-commands");
 let isShuttingDown = false;
 let shutdownTimeout = null;
 
+// Detailed signal tracking function
+function logSignalDetails(signal, moduleName) {
+    const timestamp = new Date().toISOString();
+    const pid = process.pid;
+    const ppid = process.ppid;
+    const uptime = process.uptime();
+    const memoryUsage = process.memoryUsage();
+    
+    // Get stack trace (excluding this function and the signal handler)
+    const stack = new Error('Signal stack trace').stack;
+    const stackLines = stack ? stack.split('\n').slice(3).join('\n') : 'No stack trace available';
+    
+    console.log(`[${moduleName}] ========== SIGNAL DETAILED LOG ==========`);
+    console.log(`[${moduleName}] Signal: ${signal}`);
+    console.log(`[${moduleName}] Timestamp: ${timestamp}`);
+    console.log(`[${moduleName}] Process ID: ${pid}`);
+    console.log(`[${moduleName}] Parent Process ID: ${ppid}`);
+    console.log(`[${moduleName}] Uptime: ${uptime.toFixed(2)}s`);
+    console.log(`[${moduleName}] Memory Usage: ${JSON.stringify({
+        rss: `${(memoryUsage.rss / 1024 / 1024).toFixed(2)} MB`,
+        heapUsed: `${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`,
+        heapTotal: `${(memoryUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`
+    })}`);
+    console.log(`[${moduleName}] Environment Variables:`);
+    console.log(`[${moduleName}]   - SHARD_ID: ${process.env.SHARD_ID || 'N/A'}`);
+    console.log(`[${moduleName}]   - CLUSTER_ID: ${process.env.CLUSTER_ID || 'N/A'}`);
+    console.log(`[${moduleName}]   - NODE_ENV: ${process.env.NODE_ENV || 'N/A'}`);
+    console.log(`[${moduleName}] Stack Trace:`);
+    console.log(`[${moduleName}] ${stackLines}`);
+    console.log(`[${moduleName}] ==========================================`);
+    
+    // Also log to stderr for better visibility
+    console.error(`[${moduleName}] [ERROR] Received ${signal} signal at ${timestamp} (PID: ${pid}, PPID: ${ppid})`);
+}
+
 // Graceful shutdown function
 async function gracefulShutdown() {
-    if (isShuttingDown) return;
+    if (isShuttingDown) {
+        console.log('[Cluster] Shutdown already in progress, ignoring duplicate call');
+        return;
+    }
     isShuttingDown = true;
 
     console.log('[Cluster] Starting graceful shutdown...');
@@ -28,6 +66,7 @@ async function gracefulShutdown() {
     // Clear shutdown timeout
     if (shutdownTimeout) {
         clearTimeout(shutdownTimeout);
+        shutdownTimeout = null;
     }
 
     try {
@@ -72,6 +111,7 @@ async function gracefulShutdown() {
         process.exit(0);
     } catch (error) {
         console.error('[Cluster] Error during shutdown:', error);
+        console.error('[Cluster] Shutdown error stack:', error.stack);
         process.exit(1);
     }
 }
@@ -222,7 +262,14 @@ manager.extend(
 
 // Process signal handling
 process.on('SIGTERM', async () => {
-    console.log('[Cluster] Received SIGTERM signal');
+    logSignalDetails('SIGTERM', 'Cluster');
+    
+    // Prevent multiple simultaneous shutdowns
+    if (isShuttingDown) {
+        console.log('[Cluster] Shutdown already in progress, ignoring SIGTERM');
+        return;
+    }
+    
     // Set force shutdown timeout
     shutdownTimeout = setTimeout(() => {
         console.log('[Cluster] Force shutdown after timeout');
@@ -233,7 +280,14 @@ process.on('SIGTERM', async () => {
 });
 
 process.on('SIGINT', async () => {
-    console.log('[Cluster] Received SIGINT signal');
+    logSignalDetails('SIGINT', 'Cluster');
+    
+    // Prevent multiple simultaneous shutdowns
+    if (isShuttingDown) {
+        console.log('[Cluster] Shutdown already in progress, ignoring SIGINT');
+        return;
+    }
+    
     // Set force shutdown timeout
     shutdownTimeout = setTimeout(() => {
         console.log('[Cluster] Force shutdown after timeout');
@@ -241,6 +295,29 @@ process.on('SIGINT', async () => {
     }, 30_000); // 30 second timeout
 
     await gracefulShutdown();
+});
+
+// Track process.exit calls
+const originalExit = process.exit;
+process.exit = function(code) {
+    const timestamp = new Date().toISOString();
+    const stack = new Error('Process exit stack trace').stack;
+    const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+    
+    console.error('[Cluster] ========== PROCESS.EXIT CALLED ==========');
+    console.error(`[Cluster] Exit Code: ${code}`);
+    console.error(`[Cluster] Timestamp: ${timestamp}`);
+    console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+    console.error(`[Cluster] Is Shutting Down: ${isShuttingDown}`);
+    console.error(`[Cluster] Stack Trace:\n${stackLines}`);
+    console.error('[Cluster] ==========================================');
+    
+    return originalExit.call(process, code);
+};
+
+// Track process exit event
+process.on('exit', (code) => {
+    console.error(`[Cluster] Process exiting with code: ${code} (PID: ${process.pid})`);
 });
 
 // Start clusters

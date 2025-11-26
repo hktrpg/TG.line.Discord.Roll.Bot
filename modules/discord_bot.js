@@ -1716,26 +1716,37 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
 		// Prefer sending only on the cluster that owns this guild to avoid flakiness
 		let ownerClusterId = null;
 		try { ownerClusterId = await getOwnerClusterIdByGuild(groupid); } catch { }
-		const results = await client.cluster.broadcastEval(
-			async (c, { channelId, textContent, pollContent, emojis, targetClusterId }) => {
-				try {
-					if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return null;
-					const channel = await c.channels.fetch(channelId).catch(() => null);
-					if (!channel) return null;
-					if (textContent && String(textContent).trim().length > 0) {
-						try { await channel.send({ content: textContent }); } catch { /* ignore */ }
+		let results = null;
+		try {
+			results = await client.cluster.broadcastEval(
+				async (c, { channelId, textContent, pollContent, emojis, targetClusterId }) => {
+					try {
+						if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return null;
+						const channel = await c.channels.fetch(channelId).catch(() => null);
+						if (!channel) return null;
+						if (textContent && String(textContent).trim().length > 0) {
+							try { await channel.send({ content: textContent }); } catch { /* ignore */ }
+						}
+						const msg = await channel.send({ content: pollContent });
+						for (let i = 0; i < emojis.length; i++) {
+							try { await msg.react(emojis[i]); } catch { /* ignore */ }
+						}
+						return { messageId: msg.id, channelId: msg.channelId, shardId: c.cluster?.id || 0, createdTimestamp: msg.createdTimestamp };
+					} catch {
+						return null;
 					}
-					const msg = await channel.send({ content: pollContent });
-					for (let i = 0; i < emojis.length; i++) {
-						try { await msg.react(emojis[i]); } catch { /* ignore */ }
-					}
-					return { messageId: msg.id, channelId: msg.channelId, shardId: c.cluster?.id || 0, createdTimestamp: msg.createdTimestamp };
-				} catch {
-					return null;
-				}
-			},
-			{ context: { channelId: channelid, textContent: text, pollContent: pollText, emojis: POLL_EMOJIS.slice(0, maxOptions), targetClusterId: ownerClusterId } }
-		);
+				},
+				{ context: { channelId: channelid, textContent: text, pollContent: pollText, emojis: POLL_EMOJIS.slice(0, maxOptions), targetClusterId: ownerClusterId } }
+			);
+		} catch (error) {
+			// Handle IPC channel closed errors gracefully
+			if (error && error.code === 'ERR_IPC_CHANNEL_CLOSED') {
+				console.warn(`[createStPollByChannel] IPC channel closed, skipping poll creation for channel ${channelid}`);
+				return;
+			}
+			// Re-throw other errors
+			throw error;
+		}
 
 		const found = Array.isArray(results) ? results.find(Boolean) : null;
 		if (!found) {
@@ -1914,36 +1925,50 @@ async function tallyStPoll(messageId, fallbackData) {
 			}
 		} catch { }
 		// Count reactions on the owning shard using broadcastEval
-		const shardResults = await client.cluster.broadcastEval(
-			async (c, { channelId, messageId, optionCount, emojis }) => {
-				try {
-					const channel = await c.channels.fetch(channelId).catch(() => null);
-					if (!channel) return null;
-					let msg = await channel.messages.fetch(messageId).catch(() => null);
-					if (!msg) return null;
-					if (msg.partial) { try { msg = await msg.fetch(); } catch { } }
-					const createdTs = Number(msg.createdTimestamp) || Date.now();
-					const counts = [];
-					for (let i = 0; i < optionCount; i++) {
-						const emoji = emojis[i];
-						const reaction = msg.reactions.cache.find(r => r.emoji.name === emoji);
-						let num = 0;
-						if (reaction) {
-							try {
-								const users = await reaction.users.fetch();
-								const filtered = users.filter(u => !u.bot);
-								num = filtered.size;
-							} catch {
-								num = Math.max(0, (reaction.count || 0) - 1);
+		let shardResults = null;
+		try {
+			shardResults = await client.cluster.broadcastEval(
+				async (c, { channelId, messageId, optionCount, emojis }) => {
+					try {
+						const channel = await c.channels.fetch(channelId).catch(() => null);
+						if (!channel) return null;
+						let msg = await channel.messages.fetch(messageId).catch(() => null);
+						if (!msg) return null;
+						if (msg.partial) { try { msg = await msg.fetch(); } catch { } }
+						const createdTs = Number(msg.createdTimestamp) || Date.now();
+						const counts = [];
+						for (let i = 0; i < optionCount; i++) {
+							const emoji = emojis[i];
+							const reaction = msg.reactions.cache.find(r => r.emoji.name === emoji);
+							let num = 0;
+							if (reaction) {
+								try {
+									const users = await reaction.users.fetch();
+									const filtered = users.filter(u => !u.bot);
+									num = filtered.size;
+								} catch {
+									num = Math.max(0, (reaction.count || 0) - 1);
+								}
 							}
+							counts.push(num);
 						}
-						counts.push(num);
-					}
-					return { shardId: c.cluster?.id || 0, counts, createdTimestamp: createdTs };
-				} catch { return null; }
-			},
-			{ context: { channelId: data.channelid, messageId, optionCount: data.options.length, emojis: POLL_EMOJIS } }
-		);
+						return { shardId: c.cluster?.id || 0, counts, createdTimestamp: createdTs };
+					} catch { return null; }
+				},
+				{ context: { channelId: data.channelid, messageId, optionCount: data.options.length, emojis: POLL_EMOJIS } }
+			);
+		} catch (error) {
+			// Handle IPC channel closed errors gracefully
+			if (error && error.code === 'ERR_IPC_CHANNEL_CLOSED') {
+				console.warn(`[tallyStPoll] IPC channel closed, skipping poll tally for message ${messageId}`);
+				const d = stPolls.get(messageId);
+				if (d) d.completed = true;
+				setTimeout(() => stPolls.delete(messageId), 60_000);
+				return;
+			}
+			// Re-throw other errors
+			throw error;
+		}
 		const found = Array.isArray(shardResults) ? shardResults.find(v => v && Array.isArray(v.counts)) : null;
 		if (!found) {
 			const d = stPolls.get(messageId);
@@ -2289,40 +2314,51 @@ if (togGGToken) {
 async function sendCronWebhook({ channelid, replyText, data }) {
 	console.log(`[Shard ${client.cluster.id}] Starting sendCronWebhook for channel ${channelid}`);
 	try {
-		const webhookData = await client.cluster.broadcastEval(
-			async (c, { channelId }) => {
-				const channel = await c.channels.fetch(channelId).catch(() => null);
-				if (!channel) return null;
+		let webhookData = null;
+		try {
+			webhookData = await client.cluster.broadcastEval(
+				async (c, { channelId }) => {
+					const channel = await c.channels.fetch(channelId).catch(() => null);
+					if (!channel) return null;
 
-				const isThread = channel.isThread();
-				const targetChannel = isThread ? await c.channels.fetch(channel.parentId).catch(() => null) : channel;
-				if (!targetChannel) return null;
+					const isThread = channel.isThread();
+					const targetChannel = isThread ? await c.channels.fetch(channel.parentId).catch(() => null) : channel;
+					if (!targetChannel) return null;
 
-				let webhooks = await targetChannel.fetchWebhooks().catch(() => []);
-				let webhook = webhooks.find(wh => wh.owner.id === c.user.id);
+					let webhooks = await targetChannel.fetchWebhooks().catch(() => []);
+					let webhook = webhooks.find(wh => wh.owner.id === c.user.id);
 
-				if (!webhook) {
-					try {
-						webhook = await targetChannel.createWebhook({
-							name: "HKTRPG .me Function",
-							avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png"
-						});
-					} catch (error) {
-						console.error(`[Shard ${c.cluster.id}] Failed to create webhook in channel ${targetChannel.id}: ${error.message}`);
-						return null;
+					if (!webhook) {
+						try {
+							webhook = await targetChannel.createWebhook({
+								name: "HKTRPG .me Function",
+								avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png"
+							});
+						} catch (error) {
+							console.error(`[Shard ${c.cluster.id}] Failed to create webhook in channel ${targetChannel.id}: ${error.message}`);
+							return null;
+						}
 					}
-				}
-				return {
-					id: webhook.id,
-					token: webhook.token,
-					isThread: isThread,
-					threadId: isThread ? channelId : null
-				};
-			},
-			{ context: { channelId: channelid } }
-		);
+					return {
+						id: webhook.id,
+						token: webhook.token,
+						isThread: isThread,
+						threadId: isThread ? channelId : null
+					};
+				},
+				{ context: { channelId: channelid } }
+			);
+		} catch (error) {
+			// Handle IPC channel closed errors gracefully
+			if (error && error.code === 'ERR_IPC_CHANNEL_CLOSED') {
+				console.warn(`[sendCronWebhook] IPC channel closed, skipping webhook creation for channel ${channelid}`);
+				return;
+			}
+			// Re-throw other errors
+			throw error;
+		}
 
-		const validWebhookData = webhookData.find(Boolean);
+		const validWebhookData = webhookData && Array.isArray(webhookData) ? webhookData.find(Boolean) : null;
 
 		if (!validWebhookData) {
 			console.error(`[Shard ${client.cluster.id}] Could not find or create a webhook for channel ${channelid} on any shard. Falling back to regular message.`);

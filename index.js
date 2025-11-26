@@ -458,16 +458,70 @@ async function init() {
 
         // Handle unhandled promise rejections
         process.on('unhandledRejection', (reason) => {
+            // Prevent multiple simultaneous shutdowns
+            if (isShuttingDown) {
+                const reasonMessage = reason && reason.message ? reason.message : String(reason);
+                const reasonCode = reason && reason.code ? reason.code : null;
+                
+                // Log but ignore errors during shutdown (expected behavior)
+                if (reasonCode === 'EPIPE' || reasonCode === 'ERR_IPC_CHANNEL_CLOSED' ||
+                    reasonMessage.includes('EPIPE') || reasonMessage.includes('Channel closed') ||
+                    reasonMessage.includes('write EPIPE') || reasonMessage.includes('ERR_IPC_CHANNEL_CLOSED')) {
+                    console.log('[Unhandled Rejection] Ignoring IPC channel errors during shutdown (expected)');
+                    return;
+                }
+                console.log(`[Unhandled Rejection] Shutdown in progress, ignoring: ${reasonMessage}`);
+                return;
+            }
+            
             const timestamp = new Date().toISOString();
             const reasonMessage = reason && reason.message ? reason.message : String(reason);
+            const reasonCode = reason && reason.code ? reason.code : null;
             const reasonStack = reason && reason.stack ? reason.stack : new Error('Unhandled rejection stack trace').stack;
             const stackLines = reasonStack ? reasonStack.split('\n').slice(0, 20).join('\n') : 'No stack trace available';
+            
+            // List of error types that should NOT trigger shutdown
+            const nonCriticalErrors = [
+                'EPIPE',
+                'ERR_IPC_CHANNEL_CLOSED',
+                'CLUSTERING_NO_CHILD_EXISTS',
+                'ECONNREFUSED', // Connection refused (may be temporary)
+                'ETIMEDOUT',    // Timeout errors (may be temporary)
+            ];
+            
+            const nonCriticalErrorMessages = [
+                'EPIPE',
+                'Channel closed',
+                'write EPIPE',
+                'ERR_IPC_CHANNEL_CLOSED',
+                'CLUSTERING_NO_CHILD_EXISTS',
+                'Connection refused',
+                'timeout',
+                'ETIMEDOUT',
+            ];
+            
+            // Check if this is a non-critical error that should not trigger shutdown
+            const isNonCriticalError = 
+                (reasonCode && nonCriticalErrors.includes(reasonCode)) ||
+                (reasonMessage && nonCriticalErrorMessages.some(msg => reasonMessage.includes(msg)));
+            
+            if (isNonCriticalError) {
+                console.log(`[Unhandled Rejection] Non-critical error detected, logging but NOT triggering shutdown: ${reasonMessage}`);
+                console.error('[Unhandled Rejection] ========== NON-CRITICAL ERROR (NO SHUTDOWN) ==========');
+                console.error(`[Unhandled Rejection] Timestamp: ${timestamp}`);
+                console.error(`[Unhandled Rejection] Error: ${reasonMessage}`);
+                console.error(`[Unhandled Rejection] Code: ${reasonCode || 'N/A'}`);
+                console.error('[Unhandled Rejection] ==========================================');
+                errorHandler(reason, 'Non-Critical Error (Ignored)');
+                return;
+            }
             
             console.error('[Unhandled Rejection] ========== UNHANDLED REJECTION TRIGGERED ==========');
             console.error(`[Unhandled Rejection] Timestamp: ${timestamp}`);
             console.error(`[Unhandled Rejection] Reason Type: ${typeof reason}`);
             console.error(`[Unhandled Rejection] Reason: ${reasonMessage}`);
             if (reason && reason.name) console.error(`[Unhandled Rejection] Error Name: ${reason.name}`);
+            if (reasonCode) console.error(`[Unhandled Rejection] Error Code: ${reasonCode}`);
             console.error(`[Unhandled Rejection] PID: ${process.pid}, PPID: ${process.ppid}`);
             console.error(`[Unhandled Rejection] Stack Trace:\n${stackLines}`);
             

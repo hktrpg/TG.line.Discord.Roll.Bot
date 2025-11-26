@@ -161,7 +161,15 @@ async function gracefulShutdown() {
                 process.exit(0);
             }, { timeout: 15_000 });
         } catch (error) {
-            console.warn('[Cluster] broadcastEval during shutdown encountered an error:', error);
+            // Ignore IPC channel errors during shutdown (expected when clusters are already closed)
+            const errorCode = error.code || (error.message && error.message.includes('EPIPE') ? 'EPIPE' : null);
+            const errorMessage = error.message || String(error);
+            if (errorCode === 'EPIPE' || errorCode === 'ERR_IPC_CHANNEL_CLOSED' || 
+                errorMessage.includes('EPIPE') || errorMessage.includes('Channel closed')) {
+                console.log('[Cluster] Ignoring IPC channel errors during shutdown (expected behavior)');
+            } else {
+                console.warn('[Cluster] broadcastEval during shutdown encountered an error:', error);
+            }
         }
 
         console.log('[Cluster] Graceful shutdown completed');

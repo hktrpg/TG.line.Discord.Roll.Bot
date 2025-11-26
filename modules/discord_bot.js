@@ -620,12 +620,24 @@ async function count2() {
 			return (` ${totalGuilds}群組📶-\n ${totalMembers}會員📶`);
 		})
 		.catch((error) => {
+			const errorMessage = error && error.message ? error.message : String(error);
+			const errorCode = error && error.code ? error.code : null;
+			
+			// Ignore CLUSTERING_NO_CHILD_EXISTS errors (cluster not ready yet, normal during startup)
+			if (errorMessage.includes('CLUSTERING_NO_CHILD_EXISTS') || 
+			    errorCode === 'EPIPE' || errorCode === 'ERR_IPC_CHANNEL_CLOSED' ||
+			    errorMessage.includes('EPIPE') || errorMessage.includes('Channel closed')) {
+				console.log(`[Count2] Ignoring expected error during cluster startup: ${errorMessage}`);
+				return '🌼bothelp | hktrpg.com🍎';
+			}
+			
 			const timestamp = new Date().toISOString();
 			console.error('[Count2] ========== COUNT2 ERROR RESPAWN TRIGGERED ==========');
 			console.error(`[Count2] Timestamp: ${timestamp}`);
 			console.error(`[Count2] Error: ${error}`);
 			console.error(`[Count2] Error Name: ${error && error.name}`);
-			console.error(`[Count2] Error Message: ${error && error.message}`);
+			console.error(`[Count2] Error Message: ${errorMessage}`);
+			console.error(`[Count2] Error Code: ${errorCode || 'N/A'}`);
 			console.error(`[Count2] Stack: ${error && error.stack}`);
 			console.error(`[Count2] PID: ${process.pid}, PPID: ${process.ppid}`);
 			console.error('[Count2] ==========================================');
@@ -2668,7 +2680,6 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 	}
 }
 async function handlingMultiServerMessage(message) {
-	return;
 	if (!process.env.mongoURL) return;
 	let target = multiServer.multiServerChecker(message.channel.id)
 	if (!target) return;

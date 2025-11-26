@@ -18,61 +18,9 @@ require("./ds-deploy-commands");
 let isShuttingDown = false;
 let shutdownTimeout = null;
 
-// Detailed signal tracking function
+// Detailed signal tracking function (disabled to reduce noise)
 function logSignalDetails() {
     // Function body commented out to reduce noise as per user request
-    /*
-    const timestamp = new Date().toISOString();
-    const pid = process.pid;
-    const ppid = process.ppid;
-    const uptime = process.uptime();
-    const memoryUsage = process.memoryUsage();
-    
-    // Get stack trace (excluding this function and the signal handler)
-    const stack = new Error('Signal stack trace').stack;
-    const stackLines = stack ? stack.split('\n').slice(3).join('\n') : 'No stack trace available';
-    
-    // Try to get parent process information (with shorter timeout to avoid blocking)
-    let parentInfo = 'Unable to read parent process info';
-    try {
-        const { execSync } = require('child_process');
-        if (ppid && ppid !== 1) {
-            try {
-                // Try to get parent process command (Linux/Unix) with shorter timeout
-                const parentCmd = execSync(`ps -p ${ppid} -o comm= 2>/dev/null || ps -p ${ppid} -o command= 2>/dev/null || echo "N/A"`, { encoding: 'utf8', timeout: 500, maxBuffer: 1024 }).trim();
-                parentInfo = `Parent Process (${ppid}): ${parentCmd || 'N/A'}`;
-            } catch (error) {
-                // If timeout or error, just log the PPID
-                parentInfo = `Parent Process (${ppid}): Read timeout/error (${error.code || error.message})`;
-            }
-        } else if (ppid === 1) {
-            parentInfo = 'Parent Process (1): init/systemd (orphaned process or direct system management)';
-        }
-    } catch (error) {
-        parentInfo = `Error reading parent info: ${error.message}`;
-    }
-    
-    // Check PM2 environment variables
-    const pm2Info = {
-        PM2_HOME: process.env.PM2_HOME || 'N/A',
-        PM2_INSTANCE_ID: process.env.pm_id || process.env.NODE_APP_INSTANCE || 'N/A',
-        PM2_PUBLIC_KEY: process.env.PM2_PUBLIC_KEY ? 'SET' : 'N/A',
-        PM2_SECRET_KEY: process.env.PM2_SECRET_KEY ? 'SET' : 'N/A',
-        PM2_SERVE_PATH: process.env.PM2_SERVE_PATH || 'N/A',
-        PM2_INTERACTOR_PID: process.env.PM2_INTERACTOR_PID || 'N/A'
-    };
-    
-    // Additional PM2 diagnostic info
-    const pm2Diagnostics = {
-        isPM2: !!(process.env.PM2_HOME || process.env.pm_id),
-        instanceId: process.env.pm_id || process.env.NODE_APP_INSTANCE || 'N/A',
-        appName: process.env.name || 'N/A',
-        execMode: process.env.exec_mode || 'N/A'
-    };
-    
-    // console.log(`[${moduleName}] ========== SIGNAL DETAILED LOG ==========`);
-    // ... logs ...
-    */
 }
 
 // Graceful shutdown function
@@ -123,15 +71,6 @@ async function gracefulShutdown() {
                         await client.destroy();
                     }
                 } catch (error) { void error; }
-                // const exitTimestamp = new Date().toISOString();
-                // const exitStack = new Error('Process exit stack trace').stack;
-                // const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
-                // console.error('[Cluster] ========== PROCESS.EXIT(0) CALLED (BROADCAST EVAL) ==========');
-                // console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
-                // console.error(`[Cluster] Exit Code: 0 (Normal shutdown after broadcastEval)`);
-                // console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
-                // console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
-                // console.error('[Cluster] ==========================================');
                 process.exit(0);
             }, { timeout: 15_000 });
         } catch (error) {
@@ -146,30 +85,10 @@ async function gracefulShutdown() {
             }
         }
 
-        // console.log('[Cluster] Graceful shutdown completed');
-        // const exitTimestamp = new Date().toISOString();
-        // const exitStack = new Error('Process exit stack trace').stack;
-        // const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
-        // console.error('[Cluster] ========== PROCESS.EXIT(0) CALLED ==========');
-        // console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
-        // console.error(`[Cluster] Exit Code: 0 (Normal shutdown)`);
-        // console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
-        // console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
-        // console.error('[Cluster] ==========================================');
         process.exit(0);
     } catch (error) {
         console.error('[Cluster] Error during shutdown:', error);
         console.error('[Cluster] Shutdown error stack:', error.stack);
-        // const exitTimestamp = new Date().toISOString();
-        // const exitStack = new Error('Process exit stack trace').stack;
-        // const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
-        // console.error('[Cluster] ========== PROCESS.EXIT(1) CALLED (ERROR) ==========');
-        // console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
-        // console.error(`[Cluster] Exit Code: 1 (Error during shutdown)`);
-        // console.error(`[Cluster] Error: ${error.message}`);
-        // console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
-        // console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
-        // console.error('[Cluster] ==========================================');
         process.exit(1);
     }
 }
@@ -223,37 +142,15 @@ manager.autoresharder = new AutoResharderManager(manager, {
 // Improved event handling
 let heartbeatStarted = false;
 manager.on('clusterCreate', shard => {
-    // const timestamp = new Date().toISOString();
-    // console.error('[Cluster Manager] ========== CLUSTER CREATED ==========');
-    // console.error(`[Cluster Manager] Timestamp: ${timestamp}`);
-    // console.error(`[Cluster Manager] Cluster ID: ${shard.id}`);
-    // console.error(`[Cluster Manager] Total Clusters: ${shard.manager.clusters.size}/${shard.manager.totalClusters}`);
-    // console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
-    // console.error('[Cluster Manager] ==========================================');
-    // console.log(`[Cluster] Launched cluster #${shard.id}`);
 
     shard.on('ready', () => {
-        // const timestamp = new Date().toISOString();
-        // const maxShard = Math.ceil(shard.manager.totalShards / 3);
-        // console.error('[Cluster Manager] ========== CLUSTER READY ==========');
-        // console.error(`[Cluster Manager] Timestamp: ${timestamp}`);
-        // console.error(`[Cluster Manager] Cluster ID: ${shard.id}`);
-        // console.error(`[Cluster Manager] Total Shards: ${shard.manager.totalShards}`);
-        // console.error(`[Cluster Manager] Max Shards per Cluster: ${maxShard}`);
-        // console.error(`[Cluster Manager] Ready Clusters: ${[...shard.manager.clusters.values()].filter(c => c.ready).length}/${shard.manager.clusters.size}`);
-        // console.error(`[Cluster Manager] Total Clusters: ${shard.manager.clusters.size}/${shard.manager.totalClusters}`);
-        // console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
-        // console.error('[Cluster Manager] ==========================================');
-        // console.log(`[Cluster ${shard.id}] Ready with ${shard.manager.totalShards} total shards. Max shards per cluster: ${maxShard}`);
 
         if (heartbeatStarted) {
-            // console.error(`[Cluster Manager] Heartbeat already started, skipping for cluster ${shard.id}`);
             return;
         }
 
         // Ensure all clusters have been created before checking if they are ready
         if (shard.manager.clusters.size !== shard.manager.totalClusters) {
-            // console.error(`[Cluster Manager] Waiting for all clusters to be created. Current: ${shard.manager.clusters.size}, Expected: ${shard.manager.totalClusters}`);
             return;
         }
 
@@ -261,15 +158,7 @@ manager.on('clusterCreate', shard => {
 
         if (allReady) {
             heartbeatStarted = true;
-            // console.error('[Cluster Manager] ========== ALL CLUSTERS READY ==========');
-            // console.error(`[Cluster Manager] Timestamp: ${new Date().toISOString()}`);
-            // console.error(`[Cluster Manager] Broadcasting startHeartbeat message`);
-            // console.error('[Cluster Manager] ==========================================');
-            // console.log('[Cluster] All clusters are ready. Broadcasting startHeartbeat message.');
             shard.manager.broadcast({ type: 'startHeartbeat' });
-        } else {
-            // const readyCount = [...shard.manager.clusters.values()].filter(c => c.ready).length;
-            // console.error(`[Cluster Manager] Not all clusters ready yet. Ready: ${readyCount}/${shard.manager.clusters.size}`);
         }
     });
 
@@ -301,33 +190,14 @@ manager.on('clusterCreate', shard => {
     };
 
     shard.on('disconnect', () => {
-        // const timestamp = new Date().toISOString();
-        // console.error('[Cluster Manager] ========== CLUSTER DISCONNECT ==========');
-        // console.error(`[Cluster Manager] Timestamp: ${timestamp}`);
-        // console.error(`[Cluster Manager] Cluster ID: ${shard.id}`);
-        // console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
-        // console.error('[Cluster Manager] ==========================================');
         errorHandler('Disconnect');
     });
-    
+
     shard.on('reconnecting', () => {
-        // const timestamp = new Date().toISOString();
-        // console.error('[Cluster Manager] ========== CLUSTER RECONNECTING ==========');
-        // console.error(`[Cluster Manager] Timestamp: ${timestamp}`);
-        // console.error(`[Cluster Manager] Cluster ID: ${shard.id}`);
-        // console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
-        // console.error('[Cluster Manager] ==========================================');
         // console.log(`[Cluster ${shard.id}] Reconnecting...`);
     });
-    
+
     shard.on('death', (process) => {
-        // const timestamp = new Date().toISOString();
-        // console.error('[Cluster Manager] ========== CLUSTER DEATH EVENT ==========');
-        // console.error(`[Cluster Manager] Timestamp: ${timestamp}`);
-        // console.error(`[Cluster Manager] Cluster ID: ${shard.id}`);
-        // console.error(`[Cluster Manager] Exit Code: ${process.exitCode}`);
-        // console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
-        // console.error('[Cluster Manager] ==========================================');
         errorHandler('Death', `Exit code: ${process.exitCode}`);
     });
     
@@ -520,18 +390,6 @@ process.on('SIGINT', async () => {
 // Track process.exit calls
 const originalExit = process.exit;
 process.exit = function(code) {
-    // const timestamp = new Date().toISOString();
-    // const stack = new Error('Process exit stack trace').stack;
-    // const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
-    
-    // console.error('[Cluster] ========== PROCESS.EXIT CALLED ==========');
-    // console.error(`[Cluster] Exit Code: ${code}`);
-    // console.error(`[Cluster] Timestamp: ${timestamp}`);
-    // console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
-    // console.error(`[Cluster] Is Shutting Down: ${isShuttingDown}`);
-    // console.error(`[Cluster] Stack Trace:\n${stackLines}`);
-    // console.error('[Cluster] ==========================================');
-    
     return originalExit.call(process, code);
 };
 
@@ -556,23 +414,11 @@ if (clusterOptions.queue && clusterOptions.queue.auto === false) {
 }
 
 // Start clusters
-// console.error('[Cluster Manager] ========== STARTING CLUSTER SPAWN ==========');
-// console.error(`[Cluster Manager] Timestamp: ${new Date().toISOString()}`);
-// console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
-// console.error(`[Cluster Manager] Spawn Options: timeout=-1, delay=${DELAY}ms, amount=auto`);
-// console.error('[Cluster Manager] ==========================================');
-
 manager.spawn({
     timeout: -1,
     delay: DELAY,
     amount: 'auto'
 }).then(() => {
-    // console.error('[Cluster Manager] ========== CLUSTER SPAWN INITIATED ==========');
-    // console.error(`[Cluster Manager] Timestamp: ${new Date().toISOString()}`);
-    // console.error(`[Cluster Manager] Total Clusters to spawn: ${manager.totalClusters}`);
-    // console.error(`[Cluster Manager] Total Shards: ${manager.totalShards}`);
-    // console.error('[Cluster Manager] ==========================================');
-
     // If manual queue control is enabled, start the queue
     if (clusterOptions.queue && clusterOptions.queue.auto === false) {
         setTimeout(() => {
@@ -582,17 +428,6 @@ manager.spawn({
         }, DELAY);
     }
 }).catch(error => {
-    // const exitTimestamp = new Date().toISOString();
-    // const exitStack = new Error('Spawn error stack trace').stack;
-    // const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
-    // console.error('[Cluster] ========== PROCESS.EXIT(1) CALLED (SPAWN FAILED) ==========');
-    // console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
-    // console.error(`[Cluster] Exit Code: 1 (Failed to spawn clusters)`);
-    // console.error(`[Cluster] Error: ${error.message}`);
-    // console.error(`[Cluster] Error Stack: ${error.stack}`);
-    // console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
-    // console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
-    // console.error('[Cluster] ==========================================');
     console.error('[Cluster] Failed to spawn clusters:', error);
     process.exit(1);
 });

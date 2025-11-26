@@ -105,7 +105,7 @@ async function getOwnerClusterIdByGuild(guildId) {
 					return null;
 				}
 			},
-			{ context: { gid: guildId }, timeout: 10000 }
+			{ context: { gid: guildId }, timeout: 10_000 }
 		);
 		if (Array.isArray(results)) {
 			const id = results.find(v => Number.isInteger(v));
@@ -133,7 +133,7 @@ client.on('messageCreate', async message => {
 				console.error(`[MongoDB] Reason: MongoDB connection failed, isDbRespawn() returned true`);
 				console.error(`[MongoDB] PID: ${process.pid}, PPID: ${process.ppid}`);
 				console.error('[MongoDB] ==========================================');
-				respawnCluster2();
+				respawnCluster(null, true);
 			}
 			// Option: return here if handlingResponMessage requires DB
 			// Or proceed with caution. Assuming handlingResponMessage needs DB:
@@ -522,7 +522,7 @@ async function count() {
 				c.guilds.cache
 					.filter(guild => guild.available)
 					.reduce((acc, guild) => acc + guild.memberCount, 0)
-			, { timeout: 10000 })
+			, { timeout: 10_000 })
 		]);
 
 		const totalGuilds = guildSizes.reduce((acc, count) => acc + count, 0);
@@ -541,7 +541,7 @@ async function count2() {
 	const promises = [
 		client.cluster.fetchClientValues('guilds.cache.size'),
 		client.cluster
-			.broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0), { timeout: 10000 })
+			.broadcastEval(c => c.guilds.cache.filter((guild) => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0), { timeout: 10_000 })
 	];
 
 	return Promise.all(promises)
@@ -555,10 +555,9 @@ async function count2() {
 			const errorCode = error && error.code ? error.code : null;
 			
 			// Ignore CLUSTERING_NO_CHILD_EXISTS errors (cluster not ready yet, normal during startup)
-			if (errorMessage.includes('CLUSTERING_NO_CHILD_EXISTS') || 
+			if (errorMessage.includes('CLUSTERING_NO_CHILD_EXISTS') ||
 			    errorCode === 'EPIPE' || errorCode === 'ERR_IPC_CHANNEL_CLOSED' ||
 			    errorMessage.includes('EPIPE') || errorMessage.includes('Channel closed')) {
-				// console.log(`[Count2] Ignoring expected error during cluster startup: ${errorMessage}`);
 				return '🌼bothelp | hktrpg.com🍎';
 			}
 			
@@ -605,90 +604,6 @@ let isShuttingDown = false;
 let shutdownTimeout = null;
 
 // Detailed signal tracking function
-function logSignalDetails() {
-    // Function body commented out to reduce noise
-    /*
-	const timestamp = new Date().toISOString();
-	const pid = process.pid;
-	const ppid = process.ppid;
-	const uptime = process.uptime();
-	const memoryUsage = process.memoryUsage();
-	
-	// Get stack trace (excluding this function and the signal handler)
-	const stack = new Error('Signal stack trace').stack;
-	const stackLines = stack ? stack.split('\n').slice(3).join('\n') : 'No stack trace available';
-	
-	// Try to get parent process information (with shorter timeout to avoid blocking)
-	let parentInfo = 'Unable to read parent process info';
-	try {
-		const { execSync } = require('child_process');
-		if (ppid && ppid !== 1) {
-			try {
-				// Try to get parent process command (Linux/Unix) with shorter timeout
-				const parentCmd = execSync(`ps -p ${ppid} -o comm= 2>/dev/null || ps -p ${ppid} -o command= 2>/dev/null || echo "N/A"`, { encoding: 'utf8', timeout: 500, maxBuffer: 1024 }).trim();
-				parentInfo = `Parent Process (${ppid}): ${parentCmd || 'N/A'}`;
-			} catch (error) {
-				// If timeout or error, just log the PPID
-				parentInfo = `Parent Process (${ppid}): Read timeout/error (${error.code || error.message})`;
-			}
-		} else if (ppid === 1) {
-			parentInfo = 'Parent Process (1): init/systemd (orphaned process or direct system management)';
-		}
-	} catch (error) {
-		parentInfo = `Error reading parent info: ${error.message}`;
-	}
-	
-	// Check PM2 environment variables
-	const pm2Info = {
-		PM2_HOME: process.env.PM2_HOME || 'N/A',
-		PM2_INSTANCE_ID: process.env.pm_id || process.env.NODE_APP_INSTANCE || 'N/A',
-		PM2_PUBLIC_KEY: process.env.PM2_PUBLIC_KEY ? 'SET' : 'N/A',
-		PM2_SECRET_KEY: process.env.PM2_SECRET_KEY ? 'SET' : 'N/A',
-		PM2_SERVE_PATH: process.env.PM2_SERVE_PATH || 'N/A',
-		PM2_INTERACTOR_PID: process.env.PM2_INTERACTOR_PID || 'N/A'
-	};
-	
-	// Additional PM2 diagnostic info
-	const pm2Diagnostics = {
-		isPM2: !!(process.env.PM2_HOME || process.env.pm_id),
-		instanceId: process.env.pm_id || process.env.NODE_APP_INSTANCE || 'N/A',
-		appName: process.env.name || 'N/A',
-		execMode: process.env.exec_mode || 'N/A'
-	};
-    */
-	
-	// console.log(`[${moduleName}] ========== SIGNAL DETAILED LOG ==========`);
-	// console.log(`[${moduleName}] Signal: ${signal}`);
-	// console.log(`[${moduleName}] Timestamp: ${timestamp}`);
-	// console.log(`[${moduleName}] Process ID: ${pid}`);
-	// console.log(`[${moduleName}] Parent Process ID: ${ppid}`);
-	// console.log(`[${moduleName}] ${parentInfo}`);
-	// console.log(`[${moduleName}] PM2 Environment:`);
-	// console.log(`[${moduleName}]   - PM2_HOME: ${pm2Info.PM2_HOME}`);
-	// console.log(`[${moduleName}]   - PM2_INSTANCE_ID: ${pm2Info.PM2_INSTANCE_ID}`);
-	// console.log(`[${moduleName}]   - PM2_KEYS_SET: ${pm2Info.PM2_PUBLIC_KEY !== 'N/A' && pm2Info.PM2_SECRET_KEY !== 'N/A' ? 'YES' : 'NO'}`);
-	// console.log(`[${moduleName}]   - Is PM2 Managed: ${pm2Diagnostics.isPM2 ? 'YES' : 'NO'}`);
-	// console.log(`[${moduleName}]   - App Name: ${pm2Diagnostics.appName}`);
-	// console.log(`[${moduleName}]   - Exec Mode: ${pm2Diagnostics.execMode}`);
-	// console.log(`[${moduleName}]   - Instance ID: ${pm2Diagnostics.instanceId}`);
-	// console.log(`[${moduleName}] Uptime: ${uptime.toFixed(2)}s`);
-	// console.log(`[${moduleName}] Memory Usage: ${JSON.stringify({
-	// 	rss: `${(memoryUsage.rss / 1024 / 1024).toFixed(2)} MB`,
-	// 	heapUsed: `${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`,
-	// 	heapTotal: `${(memoryUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`
-	// })}`);
-	// console.log(`[${moduleName}] Environment Variables:`);
-	// console.log(`[${moduleName}]   - SHARD_ID: ${process.env.SHARD_ID || 'N/A'}`);
-	// console.log(`[${moduleName}]   - CLUSTER_ID: ${process.env.CLUSTER_ID || 'N/A'}`);
-	// console.log(`[${moduleName}]   - NODE_ENV: ${process.env.NODE_ENV || 'N/A'}`);
-	// console.log(`[${moduleName}] Stack Trace:`);
-	// console.log(`[${moduleName}] ${stackLines}`);
-	// console.log(`[${moduleName}] ==========================================`);
-	
-	// Also log to stderr for better visibility
-	// console.error(`[${moduleName}] [ERROR] Received ${signal} signal at ${timestamp} (PID: ${pid}, PPID: ${ppid})`);
-	// console.error(`[${moduleName}] [ERROR] ${parentInfo}`);
-}
 
 // Graceful shutdown function
 async function gracefulShutdown() {
@@ -720,36 +635,15 @@ async function gracefulShutdown() {
 			console.log('[Discord Bot] Discord client destroyed.');
 		}
 
-		// console.log('[Discord Bot] Graceful shutdown completed');
-		// const exitTimestamp = new Date().toISOString();
-		// const exitStack = new Error('Process exit stack trace').stack;
-		// const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
-		// console.error('[Discord Bot] ========== PROCESS.EXIT(0) CALLED ==========');
-		// console.error(`[Discord Bot] Timestamp: ${exitTimestamp}`);
-		// console.error(`[Discord Bot] Exit Code: 0 (Normal shutdown)`);
-		// console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
-		// console.error(`[Discord Bot] Stack Trace:\n${exitStackLines}`);
-		// console.error('[Discord Bot] ==========================================');
 		process.exit(0);
 	} catch (error) {
 		console.error('[Discord Bot] Error during shutdown:', error);
 		console.error('[Discord Bot] Shutdown error stack:', error.stack);
-		// const exitTimestamp = new Date().toISOString();
-		// const exitStack = new Error('Process exit stack trace').stack;
-		// const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
-		// console.error('[Discord Bot] ========== PROCESS.EXIT(1) CALLED (ERROR) ==========');
-		// console.error(`[Discord Bot] Timestamp: ${exitTimestamp}`);
-		// console.error(`[Discord Bot] Exit Code: 1 (Error during shutdown)`);
-		// console.error(`[Discord Bot] Error: ${error.message}`);
-		// console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
-		// console.error(`[Discord Bot] Stack Trace:\n${exitStackLines}`);
-		// console.error('[Discord Bot] ==========================================');
 		process.exit(1);
 	}
 }
 
 process.on('SIGINT', async () => {
-	logSignalDetails('SIGINT', 'Discord Bot');
 	
 	// Prevent multiple simultaneous shutdowns
 	if (isShuttingDown) {
@@ -777,7 +671,6 @@ process.on('SIGINT', async () => {
 });
 
 process.on('SIGTERM', async () => {
-	logSignalDetails('SIGTERM', 'Discord Bot');
 	
 	// Prevent multiple simultaneous shutdowns
 	if (isShuttingDown) {
@@ -807,18 +700,6 @@ process.on('SIGTERM', async () => {
 // Track process.exit calls
 const originalExit = process.exit;
 process.exit = function(code) {
-	// const timestamp = new Date().toISOString();
-	// const stack = new Error('Process exit stack trace').stack;
-	// const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
-	
-	// console.error('[Discord Bot] ========== PROCESS.EXIT CALLED ==========');
-	// console.error(`[Discord Bot] Exit Code: ${code}`);
-	// console.error(`[Discord Bot] Timestamp: ${timestamp}`);
-	// console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
-	// console.error(`[Discord Bot] Is Shutting Down: ${isShuttingDown}`);
-	// console.error(`[Discord Bot] Stack Trace:\n${stackLines}`);
-	// console.error('[Discord Bot] ==========================================');
-	
 	return originalExit.call(process, code);
 };
 
@@ -827,60 +708,43 @@ process.on('exit', (code) => {
 	console.error(`[Discord Bot] Process exiting with code: ${code} (PID: ${process.pid})`);
 });
 
-function respawnCluster(err) {
-	if (!/CLUSTERING_NO_CHILD_EXISTS/i.test(err.toString())) return;
-	let number = err.toString().match(/\d+$/i);
-	if (!errorCount[number]) errorCount[number] = 0;
-	errorCount[number]++;
-	
+function respawnCluster(err, forceRespawn = false) {
 	const timestamp = new Date().toISOString();
 	const stack = new Error('Respawn stack trace').stack;
 	const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
-	
+
 	console.error('[Respawn] ========== RESPAWN CLUSTER TRIGGERED ==========');
 	console.error(`[Respawn] Timestamp: ${timestamp}`);
 	console.error(`[Respawn] Cluster ID: ${client.cluster.id}`);
-	console.error(`[Respawn] Error: ${err.toString()}`);
-	console.error(`[Respawn] Error Count for cluster ${number}: ${errorCount[number]}`);
-	console.error(`[Respawn] PID: ${process.pid}, PPID: ${process.ppid}`);
-	console.error(`[Respawn] Stack Trace:\n${stackLines}`);
-	console.error('[Respawn] ==========================================');
-	
-	if (errorCount[number] > 3) {
-		console.error(`[Respawn] Error count exceeded threshold (3), triggering respawn for cluster ${client.cluster.id}`);
-		try {
-			client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
-			console.error(`[Respawn] Respawn command sent successfully for cluster ${client.cluster.id}`);
-		} catch (error) {
-			console.error('[Respawn] ========== RESPAWN CLUSTER ERROR ==========');
-			console.error(`[Respawn] Error Name: ${error && error.name}`);
-			console.error(`[Respawn] Error Message: ${error && error.message}`);
-			console.error(`[Respawn] Error Reason: ${error && error.reason}`);
-			console.error(`[Respawn] Stack: ${error && error.stack}`);
-			console.error('[Respawn] ==========================================');
-		}
-	} else {
-		console.error(`[Respawn] Error count (${errorCount[number]}) below threshold (3), not respawning yet`);
+	console.error(`[Respawn] Force Respawn: ${forceRespawn}`);
+	if (err) {
+		console.error(`[Respawn] Error: ${err.toString()}`);
 	}
-}
-function respawnCluster2() {
-	const timestamp = new Date().toISOString();
-	const stack = new Error('Respawn2 stack trace').stack;
-	const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
-	
-	console.error('[Respawn] ========== RESPAWN CLUSTER2 TRIGGERED ==========');
-	console.error(`[Respawn] Timestamp: ${timestamp}`);
-	console.error(`[Respawn] Cluster ID: ${client.cluster.id}`);
 	console.error(`[Respawn] PID: ${process.pid}, PPID: ${process.ppid}`);
 	console.error(`[Respawn] Stack Trace:\n${stackLines}`);
 	console.error('[Respawn] ==========================================');
-	
+
+	// Check error count threshold unless forceRespawn is true
+	if (!forceRespawn && err && /CLUSTERING_NO_CHILD_EXISTS/i.test(err.toString())) {
+		let number = err.toString().match(/\d+$/i);
+		if (!errorCount[number]) errorCount[number] = 0;
+		errorCount[number]++;
+
+		console.error(`[Respawn] Error Count for cluster ${number}: ${errorCount[number]}`);
+
+		if (errorCount[number] <= 3) {
+			console.error(`[Respawn] Error count (${errorCount[number]}) below threshold (3), not respawning yet`);
+			return;
+		}
+		console.error(`[Respawn] Error count exceeded threshold (3), triggering respawn for cluster ${client.cluster.id}`);
+	}
+
 	try {
 		console.error(`[Respawn] Sending respawn command for cluster ${client.cluster.id}`);
 		client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
 		console.error(`[Respawn] Respawn command sent successfully for cluster ${client.cluster.id}`);
 	} catch (error) {
-		console.error('[Respawn] ========== RESPAWN CLUSTER2 ERROR ==========');
+		console.error('[Respawn] ========== RESPAWN CLUSTER ERROR ==========');
 		console.error(`[Respawn] Error Name: ${error && error.name}`);
 		console.error(`[Respawn] Error Message: ${error && error.message}`);
 		console.error(`[Respawn] Error Reason: ${error && error.reason}`);
@@ -1083,8 +947,8 @@ async function getAllshardIds() {
 
 	try {
 		const [wsStatus, wsPing, clusterId] = await Promise.all([
-			client.cluster.broadcastEval(c => c.ws.status, { timeout: 10000 }),
-			client.cluster.broadcastEval(c => c.ws.ping, { timeout: 10000 }),
+			client.cluster.broadcastEval(c => c.ws.status, { timeout: 10_000 }),
+			client.cluster.broadcastEval(c => c.ws.ping, { timeout: 10_000 }),
 			client.cluster.id
 		]);
 
@@ -1585,7 +1449,7 @@ async function handlingResponMessage(message, answer = '') {
 			console.error(`[User Command] Channel ID: ${channelid}`);
 			console.error(`[User Command] PID: ${process.pid}, PPID: ${process.ppid}`);
 			console.error('[User Command] ==========================================');
-			respawnCluster2();
+			respawnCluster(null, true);
 		}
 		if (!rplyVal.text && !rplyVal.LevelUp) return;
 		if (process.env.mongoURL)
@@ -1923,7 +1787,7 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
 						return null;
 					}
 				},
-				{ context: { channelId: channelid, textContent: text, pollContent: pollText, emojis: POLL_EMOJIS.slice(0, maxOptions), targetClusterId: ownerClusterId }, timeout: 15000 }
+				{ context: { channelId: channelid, textContent: text, pollContent: pollText, emojis: POLL_EMOJIS.slice(0, maxOptions), targetClusterId: ownerClusterId }, timeout: 15_000 }
 			);
 		} catch (error) {
 			// Handle IPC channel closed errors gracefully
@@ -2142,7 +2006,7 @@ async function tallyStPoll(messageId, fallbackData) {
 						return { shardId: c.cluster?.id || 0, counts, createdTimestamp: createdTs };
 					} catch { return null; }
 				},
-				{ context: { channelId: data.channelid, messageId, optionCount: data.options.length, emojis: POLL_EMOJIS }, timeout: 15000 }
+				{ context: { channelId: data.channelid, messageId, optionCount: data.options.length, emojis: POLL_EMOJIS }, timeout: 15_000 }
 			);
 		} catch (error) {
 			// Handle IPC channel closed errors gracefully
@@ -2214,7 +2078,7 @@ async function tallyStPoll(messageId, fallbackData) {
 							return true;
 						} catch { return false; }
 					},
-					{ context: { channelId: data.channelid, messageId, content: `本輪未收到投票（連續 ${nextDisplay} 次）。`, targetClusterId: ownerClusterId }, timeout: 10000 }
+					{ context: { channelId: data.channelid, messageId, content: `本輪未收到投票（連續 ${nextDisplay} 次）。`, targetClusterId: ownerClusterId }, timeout: 10_000 }
 				);
 			} catch { }
 			if (nextRaw >= 4) {
@@ -2232,7 +2096,7 @@ async function tallyStPoll(messageId, fallbackData) {
 								return true;
 							} catch { return false; }
 						},
-						{ context: { channelId: data.channelid, messageId, content: '連續 4 次無人投票，已自動暫停本局。', targetClusterId: ownerClusterId }, timeout: 10000 }
+						{ context: { channelId: data.channelid, messageId, content: '連續 4 次無人投票，已自動暫停本局。', targetClusterId: ownerClusterId }, timeout: 10_000 }
 					);
 				} catch { }
 				try {
@@ -2267,7 +2131,7 @@ async function tallyStPoll(messageId, fallbackData) {
 									return true;
 								} catch { return false; }
 							},
-							{ context: { channelId: data.channelid, content: rplyVal.text }, timeout: 10000 }
+							{ context: { channelId: data.channelid, content: rplyVal.text }, timeout: 10_000 }
 						);
 					}
 				} catch (error) {
@@ -2327,7 +2191,7 @@ async function tallyStPoll(messageId, fallbackData) {
 						return true;
 					} catch { return false; }
 				},
-				{ context: { channelId: data.channelid, messageId, content: `投票結束，選中：${POLL_EMOJIS[pick]} ${picked.label}（${max} 票）`, targetClusterId: ownerClusterId }, timeout: 10000 }
+				{ context: { channelId: data.channelid, messageId, content: `投票結束，選中：${POLL_EMOJIS[pick]} ${picked.label}（${max} 票）`, targetClusterId: ownerClusterId }, timeout: 10_000 }
 			);
 		} catch { }
 
@@ -2371,7 +2235,7 @@ async function tallyStPoll(messageId, fallbackData) {
 									return true;
 								} catch { return false; }
 							},
-							{ context: { channelId: data.channelid, content: rplyVal.text, targetClusterId: ownerClusterId }, timeout: 10000 }
+							{ context: { channelId: data.channelid, content: rplyVal.text, targetClusterId: ownerClusterId }, timeout: 10_000 }
 						);
 					}
 				}
@@ -2533,7 +2397,7 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 						threadId: isThread ? channelId : null
 					};
 				},
-				{ context: { channelId: channelid }, timeout: 15000 }
+				{ context: { channelId: channelid }, timeout: 15_000 }
 			);
 		} catch (error) {
 			// Handle IPC channel closed errors gracefully
@@ -2637,7 +2501,6 @@ function __checkUserRole(groupid, message) {
 		if (groupid && message.channel && message.channel.permissionsFor(message.member) && message.channel.permissionsFor(message.member).has(PermissionsBitField.Flags.ManageChannels)) return 2;
 		return 1;
 	} catch {
-		//	console.log('error', error)
 		return 1;
 	}
 

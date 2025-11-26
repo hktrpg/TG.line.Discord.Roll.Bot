@@ -19,7 +19,7 @@ let isShuttingDown = false;
 let shutdownTimeout = null;
 
 // Detailed signal tracking function
-function logSignalDetails(_signal, _moduleName) {
+function logSignalDetails() {
     // Function body commented out to reduce noise as per user request
     /*
     const timestamp = new Date().toISOString();

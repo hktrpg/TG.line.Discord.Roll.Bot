@@ -82,13 +82,17 @@ class Logger {
     }
 
     formatMessage(level, message, meta = {}) {
-        const timestamp = new Date().toISOString();
+        // const timestamp = new Date().toISOString();
         // 🔒 Sanitize meta data before logging
         const sanitizedMeta = this.sanitizeData(meta);
         const metaStr = Object.keys(sanitizedMeta).length > 0 ? ` ${JSON.stringify(sanitizedMeta)}` : '';
         // 🔒 Sanitize message
         const sanitizedMessage = this.sanitizeData(message);
-        return `[${timestamp}] [${level.toUpperCase()}] ${sanitizedMessage}${metaStr}`;
+        
+        // Use [System] prefix for index.js logs to match [Module] format
+        // Map 'info' to 'System', 'error' to 'System Error', etc. if needed, or just use [System] for all
+        const prefix = level === 'error' ? 'System Error' : 'System';
+        return `[${prefix}] ${sanitizedMessage}${metaStr}`;
     }
 
     async writeToFile(message, isError = false) {
@@ -236,7 +240,7 @@ async function loadModules(moduleManager) {
 }
 
 // Detailed signal tracking function
-function logSignalDetails(_signal, _moduleName) {
+function logSignalDetails() {
     /*
     const timestamp = new Date().toISOString();
     const pid = process.pid;

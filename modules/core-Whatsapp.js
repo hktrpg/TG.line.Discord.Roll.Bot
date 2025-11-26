@@ -5,14 +5,14 @@ if (process.env.BROADCAST) {
 	const WebSocket = require('ws');
 	const ws = new WebSocket('ws://127.0.0.1:53589');
 	ws.on('open', function open() {
-		console.log('connected To core-www from Whatsapp!')
+		console.log('[Whatsapp] Connected to core-www!')
 		ws.send('connected To core-www from Whatsapp!');
 	});
 	ws.on('message', async function incoming(data) {
 		let object = JSON.parse(data);
 		if (object.botname == 'Whatsapp') {
 			if (!object.message.text) return;
-			console.log('connect To core-www from Whatsapp!')
+			console.log('[Whatsapp] Connected to core-www!')
 			await SendToId(object.message.target.id, object.message.text);
 			return;
 		}

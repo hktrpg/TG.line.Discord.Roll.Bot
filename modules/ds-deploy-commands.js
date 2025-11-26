@@ -138,7 +138,7 @@ async function loadingSlashCommands() {
             console.warn(`Duplicate command names detected. Please fix these before registering: ${duplicates.join(', ')}`);
         }
         
-        console.log(`Loaded ${commands.length} slash commands`);
+        console.log(`[Discord Bot] Loaded ${commands.length} slash commands`);
     } catch (error) {
         console.error('Failed to load commands:', error);
     }

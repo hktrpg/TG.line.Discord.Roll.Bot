@@ -222,7 +222,7 @@ client.once('clientReady', async () => {
 	if (process.env.BROADCAST) connect();
 	//	if (shardid === 0) getSchedule();
 	client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
-	console.log(`Discord: Logged in as ${client.user.tag}!`);
+	console.log(`[Discord Bot] Logged in as ${client.user.tag}!`);
 	let switchSetActivity = 0;
 
 	//await sleep(6);
@@ -680,7 +680,7 @@ let isShuttingDown = false;
 let shutdownTimeout = null;
 
 // Detailed signal tracking function
-function logSignalDetails(_signal, _moduleName) {
+function logSignalDetails() {
     // Function body commented out to reduce noise
     /*
 	const timestamp = new Date().toISOString();
@@ -2509,7 +2509,7 @@ const convertRegex = function (str = "") {
 const connect = function () {
 	ws = new WebSocket('ws://127.0.0.1:53589');
 	ws.on('open', function open() {
-		console.log(`connectd To core-www from discord! Shard#${shardid}`)
+		console.log(`[Discord Bot] Connected to core-www from discord! Shard#${shardid}`)
 		ws.send(`connectd To core-www from discord! Shard#${shardid}`);
 	});
 	ws.on('message', async function incoming(data) {

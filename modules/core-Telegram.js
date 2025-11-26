@@ -270,33 +270,33 @@ let ws;
 let connect = function () {
     ws = new WebSocket('ws://127.0.0.1:53589');
     ws.on('open', function open() {
-        console.log('connected To core-www from Telegram!')
+        console.log('[Telegram] Connected to core-www!')
         ws.send('connected To core-www from Telegram!');
     });
     ws.on('message', function incoming(data) {
         let object = JSON.parse(data);
         if (object.botname == 'Telegram') {
             if (!object.text) return;
-            console.log('Telegram have message')
+            console.log('[Telegram] Message received')
             TGclient.api.sendMessage(object.target.id, object.text).catch((error) => {
-                console.error("Telegram sendMessage error:", error.message);
+                console.error("[Telegram] sendMessage error:", error.message);
             });
             return;
         }
         if (object.botname == 'Line') {
             if (!object.text) return;
-            console.log('Line have message')
+            console.log('[Line] Message received')
             process.emit('Line', object.message);
             return;
         }
 
     });
     ws.on('error', (error) => {
-        console.error('Telegram socket error', error);
+        console.error('[Telegram] Socket error', error);
     });
 
     ws.on('close', function () {
-        console.log('Telegram socket close');
+        console.log('[Telegram] Socket closed');
         setTimeout(connect, RECONNECT_INTERVAL);
     });
 };

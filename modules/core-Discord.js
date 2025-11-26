@@ -79,10 +79,10 @@ async function gracefulShutdown() {
 // Configuration options
 const clusterOptions = {
     token: channelSecret,
-    shardsPerClusters: 2,
+    shardsPerClusters: 1,
     totalShards: 'auto',
     mode: 'process',
-    spawnTimeout: -1,
+    
     respawn: false, // Disable auto respawn, manually controlled
     retry: {
         attempts: MAX_RETRY_ATTEMPTS,
@@ -246,8 +246,8 @@ process.on('SIGINT', async () => {
 
 // Start clusters
 manager.spawn({
-    timeout: -1,
-    delay: DELAY,
+    
+    
     amount: 'auto'
 }).catch(error => {
     console.error('[Cluster] Failed to spawn clusters:', error);

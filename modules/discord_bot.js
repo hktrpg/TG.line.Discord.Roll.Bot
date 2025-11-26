@@ -240,7 +240,7 @@ client.once('clientReady', async () => {
 				console.error('設定備用活動狀態也失敗:', fallbackError);
 			}
 		}
-	}, 180_000);
+	}, 600_000);
 });
 
 

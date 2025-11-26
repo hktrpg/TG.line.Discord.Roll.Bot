@@ -262,41 +262,87 @@ function startHeartbeatMonitor() {
 	const HEARTBEAT_CHECK_INTERVAL = 1000 * 60;
 	const WARNING_THRESHOLD = 3;
 	const CRITICAL_THRESHOLD = 5;
-	const restartServer = () => {
-		require('child_process').exec('sudo reboot');
-	}
+	const MAX_HEARTBEAT_FAILURES = 30; // Increased from 20 to reduce false positives
 	let heartbeat = 0;
+	let consecutiveCheckFailures = 0; // Track checkWakeUp function failures separately
+	let lastSuccessfulCheck = Date.now();
 
 	console.log('[discord_bot] Discord Heartbeat Monitor Started on Cluster 0.');
 
 	heartbeatInterval = setInterval(async () => {
-		const isAwake = await checkWakeUp();
-		if (isAwake === true) {
-			heartbeat = 0;
-			return;
-		}
-
-		heartbeat++;
-
-		if (Array.isArray(isAwake) && isAwake.length > 0) {
-			console.log(`[discord_bot] Discord Heartbeat: Down Shards: ${isAwake.join(',')} - Heartbeat: ${heartbeat}`);
-			if (heartbeat > WARNING_THRESHOLD && adminSecret) {
-				SendToId(adminSecret, `HKTRPG ID: ${isAwake.join(', ')} 可能下線了 請盡快檢查.`);
+		try {
+			const isAwake = await checkWakeUp();
+			
+			// Reset counters on successful check
+			if (isAwake === true) {
+				heartbeat = 0;
+				consecutiveCheckFailures = 0;
+				lastSuccessfulCheck = Date.now();
+				return;
 			}
-			if (heartbeat > CRITICAL_THRESHOLD) {
-				for (const shardId of isAwake) {
-					client.cluster.evalOnManager(`this.clusters.get(${shardId}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
+
+			// Handle array result (down shards)
+			if (Array.isArray(isAwake) && isAwake.length > 0) {
+				heartbeat++;
+				console.log(`[discord_bot] Discord Heartbeat: Down Shards: ${isAwake.join(',')} - Heartbeat: ${heartbeat}`);
+				
+				if (heartbeat > WARNING_THRESHOLD && adminSecret) {
+					SendToId(adminSecret, `HKTRPG ID: ${isAwake.join(', ')} 可能下線了 請盡快檢查.`);
+				}
+				
+				if (heartbeat > CRITICAL_THRESHOLD) {
+					console.log(`[discord_bot] Attempting to respawn down shards: ${isAwake.join(', ')}`);
+					for (const shardId of isAwake) {
+						try {
+							await client.cluster.evalOnManager(`this.clusters.get(${shardId}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
+						} catch (respawnError) {
+							console.error(`[discord_bot] Failed to respawn shard ${shardId}:`, respawnError.message);
+						}
+					}
+					// Reset heartbeat after attempting respawn
+					heartbeat = 0;
+				}
+			} else {
+				// checkWakeUp returned false or error
+				consecutiveCheckFailures++;
+				console.log(`[discord_bot] Discord Heartbeat: checkWakeUp failed. Consecutive failures: ${consecutiveCheckFailures}, Total heartbeat failures: ${heartbeat}`);
+				
+				// Only increment heartbeat if we haven't had a successful check in a while
+				const timeSinceLastSuccess = Date.now() - lastSuccessfulCheck;
+				if (timeSinceLastSuccess > HEARTBEAT_CHECK_INTERVAL * 5) {
+					heartbeat++;
+				}
+				
+				if (consecutiveCheckFailures > WARNING_THRESHOLD && adminSecret) {
+					SendToId(adminSecret, `HKTRPG Heartbeat check failed ${consecutiveCheckFailures} times. 可能有部份服務下線了 請盡快檢查.`);
+				}
+				
+				// Log detailed error information
+				if (consecutiveCheckFailures > 5) {
+					console.error(`[discord_bot] Heartbeat check has failed ${consecutiveCheckFailures} consecutive times. Last successful check: ${new Date(lastSuccessfulCheck).toISOString()}`);
 				}
 			}
-		} else {
-			console.log(`Discord Heartbeat: checkWakeUp failed. Heartbeat: ${heartbeat}`);
-			if (heartbeat > WARNING_THRESHOLD && adminSecret) {
-				SendToId(adminSecret, 'HKTRPG Heartbeat check failed. 可能有部份服務下線了 請盡快檢查.');
-			}
-		}
 
-		if (heartbeat > 20) {
-			restartServer();
+			// Only restart server if we have persistent failures AND no successful checks for a very long time
+			// This prevents false positives from temporary IPC issues
+			const timeSinceLastSuccess = Date.now() - lastSuccessfulCheck;
+			if (heartbeat > MAX_HEARTBEAT_FAILURES && timeSinceLastSuccess > HEARTBEAT_CHECK_INTERVAL * 15) {
+				console.error(`[discord_bot] CRITICAL: Heartbeat failures exceeded threshold (${heartbeat} failures, last success: ${new Date(lastSuccessfulCheck).toISOString()}). Server restart may be needed.`);
+				if (adminSecret) {
+					SendToId(adminSecret, `⚠️ CRITICAL: HKTRPG Heartbeat 失敗 ${heartbeat} 次，最後成功檢查時間: ${new Date(lastSuccessfulCheck).toISOString()}。可能需要手動重啟服務器。`);
+				}
+				// DO NOT automatically restart server - let admin decide
+				// Instead, just log the critical state
+				console.error('[discord_bot] Automatic server restart disabled. Please manually investigate and restart if needed.');
+			}
+		} catch (error) {
+			consecutiveCheckFailures++;
+			console.error(`[discord_bot] Error in heartbeat monitor:`, error.message || error);
+			
+			// Don't increment heartbeat for monitor errors, only for actual shard failures
+			if (consecutiveCheckFailures > 10) {
+				console.error(`[discord_bot] Heartbeat monitor has encountered ${consecutiveCheckFailures} consecutive errors. This may indicate a system issue.`);
+			}
 		}
 	}, HEARTBEAT_CHECK_INTERVAL);
 }
@@ -993,29 +1039,70 @@ async function newRoleReact(channel, message) {
 
 }
 async function checkWakeUp() {
-	const promises = [
-		client.cluster.broadcastEval(c => c.ws.status)
-	];
-	return Promise.all(promises)
-		.then(results => {
-			const indexes = results[0].reduce((r, n, i) => {
-				n !== 0 && r.push(i);
-				return r;
-			}, []);
-			if (indexes.length > 0) {
-				// Would call checkMongodb.discordClientRespawn for each index if needed
-				return indexes;
-			}
-			else return true;
-			//if (results[0].length !== number || results[0].reduce((a, b) => a + b, 0) >= 1)
-			//		return false
-			//	else return true;
-		})
-		.catch(error => {
-			console.error(`disocrdbot #836 error`, (error && error.name), (error && error.message), (error && error.reason))
-			return false
-		});
+	// Check if client and cluster are available
+	if (!client || !client.cluster) {
+		console.warn('[checkWakeUp] Client or cluster not available');
+		return false;
+	}
 
+	try {
+		const promises = [
+			client.cluster.broadcastEval(c => {
+				try {
+					return c.ws ? c.ws.status : -1;
+				} catch {
+					return -1;
+				}
+			}, { timeout: 10_000 }) // Add timeout to prevent hanging
+		];
+		
+		const results = await Promise.all(promises);
+		
+		// Check if results are valid
+		if (!results || !Array.isArray(results) || !results[0] || !Array.isArray(results[0])) {
+			console.warn('[checkWakeUp] Invalid results format:', results);
+			return false;
+		}
+		
+		const indexes = results[0].reduce((r, n, i) => {
+			// Status 0 means Ready, non-zero means not ready
+			if (n !== 0 && n !== -1) {
+				r.push(i);
+			}
+			return r;
+		}, []);
+		
+		if (indexes.length > 0) {
+			// Return array of down shard indexes
+			return indexes;
+		} else {
+			// All shards are ready
+			return true;
+		}
+	} catch (error) {
+		// Check for IPC channel closed errors (expected during shutdown)
+		if (error.code === 'ERR_IPC_CHANNEL_CLOSED' || 
+		    error.message?.includes('Channel closed') ||
+		    error.message?.includes('IPC_CHANNEL_CLOSED')) {
+			console.warn('[checkWakeUp] IPC channel closed (expected during shutdown):', error.message);
+			return false; // Return false but don't treat as critical error
+		}
+		
+		// Check for timeout errors
+		if (error.name === 'TimeoutError' || error.message?.includes('timeout')) {
+			console.warn('[checkWakeUp] Broadcast eval timeout:', error.message);
+			return false; // Return false but don't treat as critical error
+		}
+		
+		// Log other errors
+		console.error(`[checkWakeUp] Error checking shard status:`, {
+			name: error.name,
+			message: error.message,
+			reason: error.reason,
+			code: error.code
+		});
+		return false;
+	}
 }
 
 // Get comprehensive shard status information across all clusters

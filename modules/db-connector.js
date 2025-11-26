@@ -13,13 +13,13 @@ const config = {
     baseRetryInterval: 1000,  // 基礎重試間隔
     maxRetryInterval: 30_000,  // 最大重試間隔
     restartTime: '30 04 */3 * *',
-    connectTimeout: 180_000,    // 3 minutes (increased for sharding)
-    socketTimeout: 180_000,     // 3 minutes (increased for sharding)
-    poolSize: 12,              // 連線池大小 - Reduced for multi-shard environment (每個 cluster 3 個連接)
-    minPoolSize: 5,           // 最小連線池大小 - Reduced
-    heartbeatInterval: 15_000,  // 心跳檢測間隔 - Increased to reduce load
-    serverSelectionTimeout: 60_000,  // Increased to 60 seconds for better stability with multiple shards
-    maxIdleTimeMS: 60_000,     // 最大閒置時間 - Increased to reduce connection churn
+    connectTimeout: 30_000,    // Reduced to 30s (fail fast)
+    socketTimeout: 45_000,     // Reduced to 45s
+    poolSize: 5,               // Reduced for 56 clusters (56 * 5 = 280 connections)
+    minPoolSize: 1,            // Minimal connection
+    heartbeatInterval: 10_000,  // Frequent check
+    serverSelectionTimeout: 5_000,  // Fail fast (5s) to prevent blocking Heartbeat
+    maxIdleTimeMS: 30_000,     // Close idle connections faster
     bufferCommands: true,     // Enable command buffering to allow operations before connection
     w: 'majority',            // 寫入確認級別
     retryWrites: true,        // 啟用寫入重試

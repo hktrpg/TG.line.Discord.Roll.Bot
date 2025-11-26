@@ -5,7 +5,7 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
 
-const DELAY = Number(process.env.DISCORDDELAY) || 1000 * 7;
+const DELAY = Number(process.env.DISCORDDELAY) || 1000 * 15;
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 5000;
 
@@ -478,7 +478,7 @@ if (agenda) {
 // Heartbeat management
 manager.extend(
     new HeartbeatManager({
-        interval: 10000,          // Increased interval to 10s to reduce load
+        interval: 10_000,          // Increased interval to 10s to reduce load
         maxMissedHeartbeats: 10,  // Increased tolerance to 100s total (allows for 60s DB timeouts)
         onMissedHeartbeat: (cluster) => {
             if (!isShuttingDown) {

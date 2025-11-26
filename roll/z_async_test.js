@@ -113,9 +113,6 @@ const rollDiceCommand = async function ({
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /[.]wiki/i.test(mainMsg[0]):
 			rply.text = await searchWikipedia(mainMsg[1].toLowerCase());
-						return error
-					}
-				})
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /^[.]tran$/i.test(mainMsg[0]):
 			rply.text = await translate(inputStr.replace(mainMsg[0], ""), {

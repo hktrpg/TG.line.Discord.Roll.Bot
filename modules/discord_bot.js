@@ -2671,6 +2671,7 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 	}
 }
 async function handlingMultiServerMessage(message) {
+	return;
 	if (!process.env.mongoURL) return;
 	let target = multiServer.multiServerChecker(message.channel.id)
 	if (!target) return;

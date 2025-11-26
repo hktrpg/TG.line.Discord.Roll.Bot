@@ -576,7 +576,7 @@ const registerAutocompleteModules = () => {
                 if (commandModule.autocomplete && typeof commandModule.autocomplete === 'object') {
                     const moduleName = commandModule.autocomplete.moduleName || file.replace('.js', '');
                     autocompleteModules[moduleName] = commandModule.autocomplete;
-                    console.log(`Registered autocomplete module: ${moduleName}`);
+                    // console.log(`Registered autocomplete module: ${moduleName}`);
                 }
                 
                 // 檢查模組是否有其他自動完成功能（如招式自動完成）
@@ -584,7 +584,7 @@ const registerAutocompleteModules = () => {
                     if (key.endsWith('Autocomplete') && typeof commandModule[key] === 'object') {
                         const moduleName = commandModule[key].moduleName || key;
                         autocompleteModules[moduleName] = commandModule[key];
-                        console.log(`Registered autocomplete module: ${moduleName}`);
+                        // console.log(`Registered autocomplete module: ${moduleName}`);
                     }
                 }
             } catch (error) {

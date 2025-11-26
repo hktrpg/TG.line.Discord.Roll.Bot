@@ -1,6 +1,6 @@
 "use strict";
 
-require('dotenv').config({ override: true });
+require('dotenv').config({ override: true, quiet: true });
 const fs = require('fs').promises;
 const path = require('path');
 

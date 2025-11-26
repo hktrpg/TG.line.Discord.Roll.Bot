@@ -224,37 +224,37 @@ const manager = new ClusterManager('./modules/discord_bot.js', clusterOptions);
 // Improved event handling
 let heartbeatStarted = false;
 manager.on('clusterCreate', shard => {
-    const timestamp = new Date().toISOString();
-    console.error('[Cluster Manager] ========== CLUSTER CREATED ==========');
-    console.error(`[Cluster Manager] Timestamp: ${timestamp}`);
-    console.error(`[Cluster Manager] Cluster ID: ${shard.id}`);
-    console.error(`[Cluster Manager] Total Clusters: ${shard.manager.clusters.size}/${shard.manager.totalClusters}`);
-    console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
-    console.error('[Cluster Manager] ==========================================');
-    console.log(`[Cluster] Launched cluster #${shard.id}`);
+    // const timestamp = new Date().toISOString();
+    // console.error('[Cluster Manager] ========== CLUSTER CREATED ==========');
+    // console.error(`[Cluster Manager] Timestamp: ${timestamp}`);
+    // console.error(`[Cluster Manager] Cluster ID: ${shard.id}`);
+    // console.error(`[Cluster Manager] Total Clusters: ${shard.manager.clusters.size}/${shard.manager.totalClusters}`);
+    // console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
+    // console.error('[Cluster Manager] ==========================================');
+    // console.log(`[Cluster] Launched cluster #${shard.id}`);
 
     shard.on('ready', () => {
-        const timestamp = new Date().toISOString();
-        const maxShard = Math.ceil(shard.manager.totalShards / 3);
-        console.error('[Cluster Manager] ========== CLUSTER READY ==========');
-        console.error(`[Cluster Manager] Timestamp: ${timestamp}`);
-        console.error(`[Cluster Manager] Cluster ID: ${shard.id}`);
-        console.error(`[Cluster Manager] Total Shards: ${shard.manager.totalShards}`);
-        console.error(`[Cluster Manager] Max Shards per Cluster: ${maxShard}`);
-        console.error(`[Cluster Manager] Ready Clusters: ${[...shard.manager.clusters.values()].filter(c => c.ready).length}/${shard.manager.clusters.size}`);
-        console.error(`[Cluster Manager] Total Clusters: ${shard.manager.clusters.size}/${shard.manager.totalClusters}`);
-        console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
-        console.error('[Cluster Manager] ==========================================');
-        console.log(`[Cluster ${shard.id}] Ready with ${shard.manager.totalShards} total shards. Max shards per cluster: ${maxShard}`);
+        // const timestamp = new Date().toISOString();
+        // const maxShard = Math.ceil(shard.manager.totalShards / 3);
+        // console.error('[Cluster Manager] ========== CLUSTER READY ==========');
+        // console.error(`[Cluster Manager] Timestamp: ${timestamp}`);
+        // console.error(`[Cluster Manager] Cluster ID: ${shard.id}`);
+        // console.error(`[Cluster Manager] Total Shards: ${shard.manager.totalShards}`);
+        // console.error(`[Cluster Manager] Max Shards per Cluster: ${maxShard}`);
+        // console.error(`[Cluster Manager] Ready Clusters: ${[...shard.manager.clusters.values()].filter(c => c.ready).length}/${shard.manager.clusters.size}`);
+        // console.error(`[Cluster Manager] Total Clusters: ${shard.manager.clusters.size}/${shard.manager.totalClusters}`);
+        // console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
+        // console.error('[Cluster Manager] ==========================================');
+        // console.log(`[Cluster ${shard.id}] Ready with ${shard.manager.totalShards} total shards. Max shards per cluster: ${maxShard}`);
 
         if (heartbeatStarted) {
-            console.error(`[Cluster Manager] Heartbeat already started, skipping for cluster ${shard.id}`);
+            // console.error(`[Cluster Manager] Heartbeat already started, skipping for cluster ${shard.id}`);
             return;
         }
 
         // Ensure all clusters have been created before checking if they are ready
         if (shard.manager.clusters.size !== shard.manager.totalClusters) {
-            console.error(`[Cluster Manager] Waiting for all clusters to be created. Current: ${shard.manager.clusters.size}, Expected: ${shard.manager.totalClusters}`);
+            // console.error(`[Cluster Manager] Waiting for all clusters to be created. Current: ${shard.manager.clusters.size}, Expected: ${shard.manager.totalClusters}`);
             return;
         }
 
@@ -262,15 +262,15 @@ manager.on('clusterCreate', shard => {
 
         if (allReady) {
             heartbeatStarted = true;
-            console.error('[Cluster Manager] ========== ALL CLUSTERS READY ==========');
-            console.error(`[Cluster Manager] Timestamp: ${new Date().toISOString()}`);
-            console.error(`[Cluster Manager] Broadcasting startHeartbeat message`);
-            console.error('[Cluster Manager] ==========================================');
-            console.log('[Cluster] All clusters are ready. Broadcasting startHeartbeat message.');
+            // console.error('[Cluster Manager] ========== ALL CLUSTERS READY ==========');
+            // console.error(`[Cluster Manager] Timestamp: ${new Date().toISOString()}`);
+            // console.error(`[Cluster Manager] Broadcasting startHeartbeat message`);
+            // console.error('[Cluster Manager] ==========================================');
+            // console.log('[Cluster] All clusters are ready. Broadcasting startHeartbeat message.');
             shard.manager.broadcast({ type: 'startHeartbeat' });
         } else {
-            const readyCount = [...shard.manager.clusters.values()].filter(c => c.ready).length;
-            console.error(`[Cluster Manager] Not all clusters ready yet. Ready: ${readyCount}/${shard.manager.clusters.size}`);
+            // const readyCount = [...shard.manager.clusters.values()].filter(c => c.ready).length;
+            // console.error(`[Cluster Manager] Not all clusters ready yet. Ready: ${readyCount}/${shard.manager.clusters.size}`);
         }
     });
 
@@ -319,23 +319,23 @@ manager.on('clusterCreate', shard => {
     };
 
     shard.on('disconnect', () => {
-        const timestamp = new Date().toISOString();
-        console.error('[Cluster Manager] ========== CLUSTER DISCONNECT ==========');
-        console.error(`[Cluster Manager] Timestamp: ${timestamp}`);
-        console.error(`[Cluster Manager] Cluster ID: ${shard.id}`);
-        console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
-        console.error('[Cluster Manager] ==========================================');
+        // const timestamp = new Date().toISOString();
+        // console.error('[Cluster Manager] ========== CLUSTER DISCONNECT ==========');
+        // console.error(`[Cluster Manager] Timestamp: ${timestamp}`);
+        // console.error(`[Cluster Manager] Cluster ID: ${shard.id}`);
+        // console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
+        // console.error('[Cluster Manager] ==========================================');
         errorHandler('Disconnect');
     });
     
     shard.on('reconnecting', () => {
-        const timestamp = new Date().toISOString();
-        console.error('[Cluster Manager] ========== CLUSTER RECONNECTING ==========');
-        console.error(`[Cluster Manager] Timestamp: ${timestamp}`);
-        console.error(`[Cluster Manager] Cluster ID: ${shard.id}`);
-        console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
-        console.error('[Cluster Manager] ==========================================');
-        console.log(`[Cluster ${shard.id}] Reconnecting...`);
+        // const timestamp = new Date().toISOString();
+        // console.error('[Cluster Manager] ========== CLUSTER RECONNECTING ==========');
+        // console.error(`[Cluster Manager] Timestamp: ${timestamp}`);
+        // console.error(`[Cluster Manager] Cluster ID: ${shard.id}`);
+        // console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
+        // console.error('[Cluster Manager] ==========================================');
+        // console.log(`[Cluster ${shard.id}] Reconnecting...`);
     });
     
     shard.on('death', (process) => {
@@ -572,22 +572,22 @@ process.on('exit', (code) => {
 });
 
 // Start clusters
-console.error('[Cluster Manager] ========== STARTING CLUSTER SPAWN ==========');
-console.error(`[Cluster Manager] Timestamp: ${new Date().toISOString()}`);
-console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
-console.error(`[Cluster Manager] Spawn Options: timeout=-1, delay=${DELAY}ms, amount=auto`);
-console.error('[Cluster Manager] ==========================================');
+// console.error('[Cluster Manager] ========== STARTING CLUSTER SPAWN ==========');
+// console.error(`[Cluster Manager] Timestamp: ${new Date().toISOString()}`);
+// console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
+// console.error(`[Cluster Manager] Spawn Options: timeout=-1, delay=${DELAY}ms, amount=auto`);
+// console.error('[Cluster Manager] ==========================================');
 
 manager.spawn({
     timeout: -1,
     delay: DELAY,
     amount: 'auto'
 }).then(() => {
-    console.error('[Cluster Manager] ========== CLUSTER SPAWN INITIATED ==========');
-    console.error(`[Cluster Manager] Timestamp: ${new Date().toISOString()}`);
-    console.error(`[Cluster Manager] Total Clusters to spawn: ${manager.totalClusters}`);
-    console.error(`[Cluster Manager] Total Shards: ${manager.totalShards}`);
-    console.error('[Cluster Manager] ==========================================');
+    // console.error('[Cluster Manager] ========== CLUSTER SPAWN INITIATED ==========');
+    // console.error(`[Cluster Manager] Timestamp: ${new Date().toISOString()}`);
+    // console.error(`[Cluster Manager] Total Clusters to spawn: ${manager.totalClusters}`);
+    // console.error(`[Cluster Manager] Total Shards: ${manager.totalShards}`);
+    // console.error('[Cluster Manager] ==========================================');
 }).catch(error => {
     const exitTimestamp = new Date().toISOString();
     const exitStack = new Error('Spawn error stack trace').stack;

@@ -667,7 +667,7 @@ class TwelveAstro {
 			}
 
 			this.BigEvent[date] = chineseConv.tify(respond);
-			console.log(`每日大事更新成功: ${date}`);
+			// console.log(`每日大事更新成功: ${date}`);
 		} catch (error) {
 			console.warn(`每日大事更新失敗 (嘗試 ${retryCount + 1}/${maxRetries + 1}): ${date}`, error.message);
 

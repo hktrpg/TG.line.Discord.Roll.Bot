@@ -127,11 +127,11 @@ async function connect(retries = 0) {
     sharedConnectionPromise = (async () => {
         try {
             connectionAttempts++;
-            console.log(`[db-connector] Attempting to connect to MongoDB (Attempt ${connectionAttempts}) - ReadyState: ${mongoose.connection.readyState}`);
+            // console.log(`[db-connector] Attempting to connect to MongoDB (Attempt ${connectionAttempts}) - ReadyState: ${mongoose.connection.readyState}`);
 
             // 只有在真正斷開連接時才建立新連接
             if (mongoose.connection.readyState === 0) { // disconnected
-                console.log('[db-connector] Creating new MongoDB connection...');
+                // console.log('[db-connector] Creating new MongoDB connection...');
                 await mongoose.connect(config.mongoUrl, {
                     connectTimeoutMS: config.connectTimeout,
                     socketTimeoutMS: config.socketTimeout,
@@ -161,7 +161,7 @@ async function connect(retries = 0) {
                     checkState();
                 });
 
-                console.log('[db-connector] Reconnecting after disconnect...');
+                // console.log('[db-connector] Reconnecting after disconnect...');
                 await mongoose.connect(config.mongoUrl, {
                     connectTimeoutMS: config.connectTimeout,
                     socketTimeoutMS: config.socketTimeout,

@@ -633,7 +633,7 @@ async function count2() {
 			if (errorMessage.includes('CLUSTERING_NO_CHILD_EXISTS') || 
 			    errorCode === 'EPIPE' || errorCode === 'ERR_IPC_CHANNEL_CLOSED' ||
 			    errorMessage.includes('EPIPE') || errorMessage.includes('Channel closed')) {
-				console.log(`[Count2] Ignoring expected error during cluster startup: ${errorMessage}`);
+				// console.log(`[Count2] Ignoring expected error during cluster startup: ${errorMessage}`);
 				return '🌼bothelp | hktrpg.com🍎';
 			}
 			

@@ -618,11 +618,43 @@ function logSignalDetails(signal, moduleName) {
 	const stack = new Error('Signal stack trace').stack;
 	const stackLines = stack ? stack.split('\n').slice(3).join('\n') : 'No stack trace available';
 	
+	// Try to get parent process information
+	let parentInfo = 'Unable to read parent process info';
+	try {
+		const { execSync } = require('child_process');
+		if (ppid && ppid !== 1) {
+			try {
+				// Try to get parent process command (Linux/Unix)
+				const parentCmd = execSync(`ps -p ${ppid} -o comm= 2>/dev/null || ps -p ${ppid} -o command= 2>/dev/null || echo "N/A"`, { encoding: 'utf8', timeout: 1000 }).trim();
+				parentInfo = `Parent Process (${ppid}): ${parentCmd || 'N/A'}`;
+			} catch (error) {
+				parentInfo = `Parent Process (${ppid}): Unable to read (${error.message})`;
+			}
+		} else if (ppid === 1) {
+			parentInfo = 'Parent Process (1): init/systemd (orphaned process or direct system management)';
+		}
+	} catch (error) {
+		parentInfo = `Error reading parent info: ${error.message}`;
+	}
+	
+	// Check PM2 environment variables
+	const pm2Info = {
+		PM2_HOME: process.env.PM2_HOME || 'N/A',
+		PM2_INSTANCE_ID: process.env.pm_id || process.env.NODE_APP_INSTANCE || 'N/A',
+		PM2_PUBLIC_KEY: process.env.PM2_PUBLIC_KEY ? 'SET' : 'N/A',
+		PM2_SECRET_KEY: process.env.PM2_SECRET_KEY ? 'SET' : 'N/A'
+	};
+	
 	console.log(`[${moduleName}] ========== SIGNAL DETAILED LOG ==========`);
 	console.log(`[${moduleName}] Signal: ${signal}`);
 	console.log(`[${moduleName}] Timestamp: ${timestamp}`);
 	console.log(`[${moduleName}] Process ID: ${pid}`);
 	console.log(`[${moduleName}] Parent Process ID: ${ppid}`);
+	console.log(`[${moduleName}] ${parentInfo}`);
+	console.log(`[${moduleName}] PM2 Environment:`);
+	console.log(`[${moduleName}]   - PM2_HOME: ${pm2Info.PM2_HOME}`);
+	console.log(`[${moduleName}]   - PM2_INSTANCE_ID: ${pm2Info.PM2_INSTANCE_ID}`);
+	console.log(`[${moduleName}]   - PM2_KEYS_SET: ${pm2Info.PM2_PUBLIC_KEY !== 'N/A' && pm2Info.PM2_SECRET_KEY !== 'N/A' ? 'YES' : 'NO'}`);
 	console.log(`[${moduleName}] Uptime: ${uptime.toFixed(2)}s`);
 	console.log(`[${moduleName}] Memory Usage: ${JSON.stringify({
 		rss: `${(memoryUsage.rss / 1024 / 1024).toFixed(2)} MB`,
@@ -639,6 +671,7 @@ function logSignalDetails(signal, moduleName) {
 	
 	// Also log to stderr for better visibility
 	console.error(`[${moduleName}] [ERROR] Received ${signal} signal at ${timestamp} (PID: ${pid}, PPID: ${ppid})`);
+	console.error(`[${moduleName}] [ERROR] ${parentInfo}`);
 }
 
 // Graceful shutdown function

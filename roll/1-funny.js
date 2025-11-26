@@ -673,8 +673,9 @@ class TwelveAstro {
 
 			// 如果還有重試次數，進行重試
 			if (retryCount < maxRetries) {
-				console.log(`重試每日大事更新: ${date} (第 ${retryCount + 1} 次)`);
-				await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1))); // 遞增延遲
+				const delay = 5000 * (retryCount + 1); // 遞增延遲：5秒、10秒、15秒
+				console.log(`重試每日大事更新: ${date} (第 ${retryCount + 1} 次)，等待 ${delay / 1000} 秒後重試`);
+				await new Promise(resolve => setTimeout(resolve, delay));
 				return this.updateBigEvent(date, retryCount + 1);
 			}
 

@@ -247,17 +247,18 @@ function logSignalDetails(signal, moduleName) {
     const stack = new Error('Signal stack trace').stack;
     const stackLines = stack ? stack.split('\n').slice(3).join('\n') : 'No stack trace available';
     
-    // Try to get parent process information
+    // Try to get parent process information (with shorter timeout to avoid blocking)
     let parentInfo = 'Unable to read parent process info';
     try {
         const { execSync } = require('child_process');
         if (ppid && ppid !== 1) {
             try {
-                // Try to get parent process command (Linux/Unix)
-                const parentCmd = execSync(`ps -p ${ppid} -o comm= 2>/dev/null || ps -p ${ppid} -o command= 2>/dev/null || echo "N/A"`, { encoding: 'utf8', timeout: 1000 }).trim();
+                // Try to get parent process command (Linux/Unix) with shorter timeout
+                const parentCmd = execSync(`ps -p ${ppid} -o comm= 2>/dev/null || ps -p ${ppid} -o command= 2>/dev/null || echo "N/A"`, { encoding: 'utf8', timeout: 500, maxBuffer: 1024 }).trim();
                 parentInfo = `Parent Process (${ppid}): ${parentCmd || 'N/A'}`;
             } catch (error) {
-                parentInfo = `Parent Process (${ppid}): Unable to read (${error.message})`;
+                // If timeout or error, just log the PPID
+                parentInfo = `Parent Process (${ppid}): Read timeout/error (${error.code || error.message})`;
             }
         } else if (ppid === 1) {
             parentInfo = 'Parent Process (1): init/systemd (orphaned process or direct system management)';
@@ -271,7 +272,17 @@ function logSignalDetails(signal, moduleName) {
         PM2_HOME: process.env.PM2_HOME || 'N/A',
         PM2_INSTANCE_ID: process.env.pm_id || process.env.NODE_APP_INSTANCE || 'N/A',
         PM2_PUBLIC_KEY: process.env.PM2_PUBLIC_KEY ? 'SET' : 'N/A',
-        PM2_SECRET_KEY: process.env.PM2_SECRET_KEY ? 'SET' : 'N/A'
+        PM2_SECRET_KEY: process.env.PM2_SECRET_KEY ? 'SET' : 'N/A',
+        PM2_SERVE_PATH: process.env.PM2_SERVE_PATH || 'N/A',
+        PM2_INTERACTOR_PID: process.env.PM2_INTERACTOR_PID || 'N/A'
+    };
+    
+    // Additional PM2 diagnostic info
+    const pm2Diagnostics = {
+        isPM2: !!(process.env.PM2_HOME || process.env.pm_id),
+        instanceId: process.env.pm_id || process.env.NODE_APP_INSTANCE || 'N/A',
+        appName: process.env.name || 'N/A',
+        execMode: process.env.exec_mode || 'N/A'
     };
     
     const details = {
@@ -281,6 +292,7 @@ function logSignalDetails(signal, moduleName) {
         ppid,
         parentInfo,
         pm2Info,
+        pm2Diagnostics,
         uptime: `${uptime.toFixed(2)}s`,
         memoryUsage: {
             rss: `${(memoryUsage.rss / 1024 / 1024).toFixed(2)} MB`,
@@ -299,6 +311,9 @@ function logSignalDetails(signal, moduleName) {
     console.error(`[${moduleName}] [ERROR] Received ${signal} signal at ${timestamp} (PID: ${pid}, PPID: ${ppid})`);
     console.error(`[${moduleName}] [ERROR] ${parentInfo}`);
     console.error(`[${moduleName}] [ERROR] PM2 Instance ID: ${pm2Info.PM2_INSTANCE_ID}`);
+    console.error(`[${moduleName}] [ERROR] Is PM2 Managed: ${pm2Diagnostics.isPM2 ? 'YES' : 'NO'}`);
+    console.error(`[${moduleName}] [ERROR] App Name: ${pm2Diagnostics.appName}`);
+    console.error(`[${moduleName}] [ERROR] Exec Mode: ${pm2Diagnostics.execMode}`);
     console.error(`[${moduleName}] Stack Trace:\n${stackLines}`);
 }
 

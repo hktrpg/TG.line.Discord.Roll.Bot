@@ -245,6 +245,8 @@ process.on('SIGINT', async () => {
 
 // Start clusters
 manager.spawn({
+    timeout: -1,
+    delay: DELAY,
     amount: 'auto'
 }).catch(error => {
     console.error('[Cluster] Failed to spawn clusters:', error);

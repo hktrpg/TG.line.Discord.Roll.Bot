@@ -109,6 +109,12 @@ client.on('messageCreate', async message => {
 		]);
 
 		if (!dbStatus && checkMongodb.isDbRespawn()) {
+			const timestamp = new Date().toISOString();
+			console.error('[MongoDB] ========== MONGODB RESPAWN TRIGGERED ==========');
+			console.error(`[MongoDB] Timestamp: ${timestamp}`);
+			console.error(`[MongoDB] Reason: MongoDB connection failed, isDbRespawn() returned true`);
+			console.error(`[MongoDB] PID: ${process.pid}, PPID: ${process.ppid}`);
+			console.error('[MongoDB] ==========================================');
 			respawnCluster2();
 		}
 
@@ -248,7 +254,29 @@ function startHeartbeatMonitor() {
 	const WARNING_THRESHOLD = 3;
 	const CRITICAL_THRESHOLD = 5;
 	const restartServer = () => {
-		require('child_process').exec('sudo reboot');
+		const timestamp = new Date().toISOString();
+		const stack = new Error('Server restart stack trace').stack;
+		const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+		
+		console.error('[Server Restart] ========== SERVER RESTART TRIGGERED ==========');
+		console.error(`[Server Restart] Timestamp: ${timestamp}`);
+		console.error(`[Server Restart] Reason: Heartbeat failed ${heartbeat} times (threshold: 20)`);
+		console.error(`[Server Restart] PID: ${process.pid}, PPID: ${process.ppid}`);
+		console.error(`[Server Restart] Command: sudo reboot`);
+		console.error(`[Server Restart] Stack Trace:\n${stackLines}`);
+		console.error('[Server Restart] ==========================================');
+		
+		require('child_process').exec('sudo reboot', (error, stdout, stderr) => {
+			if (error) {
+				console.error('[Server Restart] ========== SERVER RESTART ERROR ==========');
+				console.error(`[Server Restart] Error: ${error.message}`);
+				console.error(`[Server Restart] Code: ${error.code}`);
+				console.error(`[Server Restart] Stderr: ${stderr}`);
+				console.error('[Server Restart] ==========================================');
+			} else {
+				console.error('[Server Restart] Server restart command executed successfully');
+			}
+		});
 	}
 	let heartbeat = 0;
 
@@ -269,8 +297,22 @@ function startHeartbeatMonitor() {
 				SendToId(adminSecret, `HKTRPG ID: ${isAwake.join(', ')} 可能下線了 請盡快檢查.`);
 			}
 			if (heartbeat > CRITICAL_THRESHOLD) {
+				const timestamp = new Date().toISOString();
+				console.error('[Heartbeat] ========== HEARTBEAT RESPAWN TRIGGERED ==========');
+				console.error(`[Heartbeat] Timestamp: ${timestamp}`);
+				console.error(`[Heartbeat] Heartbeat Count: ${heartbeat} (Threshold: ${CRITICAL_THRESHOLD})`);
+				console.error(`[Heartbeat] Down Shards: ${isAwake.join(', ')}`);
+				console.error(`[Heartbeat] PID: ${process.pid}, PPID: ${process.ppid}`);
+				console.error('[Heartbeat] ==========================================');
+				
 				for (const shardId of isAwake) {
-					client.cluster.evalOnManager(`this.clusters.get(${shardId}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
+					console.error(`[Heartbeat] Attempting to respawn shard ${shardId}`);
+					try {
+						client.cluster.evalOnManager(`this.clusters.get(${shardId}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
+						console.error(`[Heartbeat] Respawn command sent for shard ${shardId}`);
+					} catch (error) {
+						console.error(`[Heartbeat] Failed to respawn shard ${shardId}:`, error.message);
+					}
 				}
 			}
 		} else {
@@ -281,6 +323,10 @@ function startHeartbeatMonitor() {
 		}
 
 		if (heartbeat > 20) {
+			console.error('[Heartbeat] ========== HEARTBEAT RESTART SERVER TRIGGERED ==========');
+			console.error(`[Heartbeat] Heartbeat Count: ${heartbeat} (Threshold: 20)`);
+			console.error(`[Heartbeat] This will restart the entire server!`);
+			console.error('[Heartbeat] ==========================================');
 			restartServer();
 		}
 	}, HEARTBEAT_CHECK_INTERVAL);
@@ -574,7 +620,16 @@ async function count2() {
 			return (` ${totalGuilds}群組📶-\n ${totalMembers}會員📶`);
 		})
 		.catch((error) => {
-			console.error(`disocrdbot #617 error ${error}`)
+			const timestamp = new Date().toISOString();
+			console.error('[Count2] ========== COUNT2 ERROR RESPAWN TRIGGERED ==========');
+			console.error(`[Count2] Timestamp: ${timestamp}`);
+			console.error(`[Count2] Error: ${error}`);
+			console.error(`[Count2] Error Name: ${error && error.name}`);
+			console.error(`[Count2] Error Message: ${error && error.message}`);
+			console.error(`[Count2] Stack: ${error && error.stack}`);
+			console.error(`[Count2] PID: ${process.pid}, PPID: ${process.ppid}`);
+			console.error('[Count2] ==========================================');
+			console.error(`disocrdbot #617 error ${error}`);
 			respawnCluster(error);
 			return '🌼bothelp | hktrpg.com🍎';
 		});
@@ -720,10 +775,29 @@ async function gracefulShutdown() {
 		}
 
 		console.log('[Discord Bot] Graceful shutdown completed');
+		const exitTimestamp = new Date().toISOString();
+		const exitStack = new Error('Process exit stack trace').stack;
+		const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+		console.error('[Discord Bot] ========== PROCESS.EXIT(0) CALLED ==========');
+		console.error(`[Discord Bot] Timestamp: ${exitTimestamp}`);
+		console.error(`[Discord Bot] Exit Code: 0 (Normal shutdown)`);
+		console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
+		console.error(`[Discord Bot] Stack Trace:\n${exitStackLines}`);
+		console.error('[Discord Bot] ==========================================');
 		process.exit(0);
 	} catch (error) {
 		console.error('[Discord Bot] Error during shutdown:', error);
 		console.error('[Discord Bot] Shutdown error stack:', error.stack);
+		const exitTimestamp = new Date().toISOString();
+		const exitStack = new Error('Process exit stack trace').stack;
+		const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+		console.error('[Discord Bot] ========== PROCESS.EXIT(1) CALLED (ERROR) ==========');
+		console.error(`[Discord Bot] Timestamp: ${exitTimestamp}`);
+		console.error(`[Discord Bot] Exit Code: 1 (Error during shutdown)`);
+		console.error(`[Discord Bot] Error: ${error.message}`);
+		console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
+		console.error(`[Discord Bot] Stack Trace:\n${exitStackLines}`);
+		console.error('[Discord Bot] ==========================================');
 		process.exit(1);
 	}
 }
@@ -739,6 +813,16 @@ process.on('SIGINT', async () => {
 	
 	// Set force shutdown timeout
 	shutdownTimeout = setTimeout(() => {
+		const exitTimestamp = new Date().toISOString();
+		const exitStack = new Error('Force shutdown timeout stack trace').stack;
+		const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+		console.error('[Discord Bot] ========== FORCE SHUTDOWN TIMEOUT (SIGINT) ==========');
+		console.error(`[Discord Bot] Timestamp: ${exitTimestamp}`);
+		console.error(`[Discord Bot] Reason: Graceful shutdown timeout (15 seconds)`);
+		console.error(`[Discord Bot] Exit Code: 1 (Force shutdown)`);
+		console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
+		console.error(`[Discord Bot] Stack Trace:\n${exitStackLines}`);
+		console.error('[Discord Bot] ==========================================');
 		console.log('[Discord Bot] Force shutdown after timeout');
 		process.exit(1);
 	}, 15_000); // 15 second timeout
@@ -757,6 +841,16 @@ process.on('SIGTERM', async () => {
 	
 	// Set force shutdown timeout
 	shutdownTimeout = setTimeout(() => {
+		const exitTimestamp = new Date().toISOString();
+		const exitStack = new Error('Force shutdown timeout stack trace').stack;
+		const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+		console.error('[Discord Bot] ========== FORCE SHUTDOWN TIMEOUT (SIGTERM) ==========');
+		console.error(`[Discord Bot] Timestamp: ${exitTimestamp}`);
+		console.error(`[Discord Bot] Reason: Graceful shutdown timeout (15 seconds)`);
+		console.error(`[Discord Bot] Exit Code: 1 (Force shutdown)`);
+		console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
+		console.error(`[Discord Bot] Stack Trace:\n${exitStackLines}`);
+		console.error('[Discord Bot] ==========================================');
 		console.log('[Discord Bot] Force shutdown after timeout');
 		process.exit(1);
 	}, 15_000); // 15 second timeout
@@ -792,19 +886,60 @@ function respawnCluster(err) {
 	let number = err.toString().match(/\d+$/i);
 	if (!errorCount[number]) errorCount[number] = 0;
 	errorCount[number]++;
+	
+	const timestamp = new Date().toISOString();
+	const stack = new Error('Respawn stack trace').stack;
+	const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+	
+	console.error('[Respawn] ========== RESPAWN CLUSTER TRIGGERED ==========');
+	console.error(`[Respawn] Timestamp: ${timestamp}`);
+	console.error(`[Respawn] Cluster ID: ${client.cluster.id}`);
+	console.error(`[Respawn] Error: ${err.toString()}`);
+	console.error(`[Respawn] Error Count for cluster ${number}: ${errorCount[number]}`);
+	console.error(`[Respawn] PID: ${process.pid}, PPID: ${process.ppid}`);
+	console.error(`[Respawn] Stack Trace:\n${stackLines}`);
+	console.error('[Respawn] ==========================================');
+	
 	if (errorCount[number] > 3) {
+		console.error(`[Respawn] Error count exceeded threshold (3), triggering respawn for cluster ${client.cluster.id}`);
 		try {
 			client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
+			console.error(`[Respawn] Respawn command sent successfully for cluster ${client.cluster.id}`);
 		} catch (error) {
-			console.error('respawnCluster #480 error', (error && error.name), (error && error.message), (error && error.reason));
+			console.error('[Respawn] ========== RESPAWN CLUSTER ERROR ==========');
+			console.error(`[Respawn] Error Name: ${error && error.name}`);
+			console.error(`[Respawn] Error Message: ${error && error.message}`);
+			console.error(`[Respawn] Error Reason: ${error && error.reason}`);
+			console.error(`[Respawn] Stack: ${error && error.stack}`);
+			console.error('[Respawn] ==========================================');
 		}
+	} else {
+		console.error(`[Respawn] Error count (${errorCount[number]}) below threshold (3), not respawning yet`);
 	}
 }
 function respawnCluster2() {
+	const timestamp = new Date().toISOString();
+	const stack = new Error('Respawn2 stack trace').stack;
+	const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+	
+	console.error('[Respawn] ========== RESPAWN CLUSTER2 TRIGGERED ==========');
+	console.error(`[Respawn] Timestamp: ${timestamp}`);
+	console.error(`[Respawn] Cluster ID: ${client.cluster.id}`);
+	console.error(`[Respawn] PID: ${process.pid}, PPID: ${process.ppid}`);
+	console.error(`[Respawn] Stack Trace:\n${stackLines}`);
+	console.error('[Respawn] ==========================================');
+	
 	try {
+		console.error(`[Respawn] Sending respawn command for cluster ${client.cluster.id}`);
 		client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
+		console.error(`[Respawn] Respawn command sent successfully for cluster ${client.cluster.id}`);
 	} catch (error) {
-		console.error('respawnCluster2 error', (error && error.name), (error && error.message), (error && error.reason));
+		console.error('[Respawn] ========== RESPAWN CLUSTER2 ERROR ==========');
+		console.error(`[Respawn] Error Name: ${error && error.name}`);
+		console.error(`[Respawn] Error Message: ${error && error.message}`);
+		console.error(`[Respawn] Error Reason: ${error && error.reason}`);
+		console.error(`[Respawn] Stack: ${error && error.stack}`);
+		console.error('[Respawn] ==========================================');
 	}
 }
 
@@ -1524,7 +1659,17 @@ async function handlingResponMessage(message, answer = '') {
 		if (rplyVal.sendImage) sendBufferImage(message, rplyVal, userid)
 		if (rplyVal.dmFileLink?.length > 0) await sendDmFiles(message, rplyVal)
 		if (rplyVal.fileLink?.length > 0) sendFiles(message, rplyVal, userid)
-		if (rplyVal.respawn) respawnCluster2();
+		if (rplyVal.respawn) {
+			const timestamp = new Date().toISOString();
+			console.error('[User Command] ========== USER COMMAND RESPAWN TRIGGERED ==========');
+			console.error(`[User Command] Timestamp: ${timestamp}`);
+			console.error(`[User Command] Reason: User command triggered respawn (rplyVal.respawn = true)`);
+			console.error(`[User Command] User ID: ${userid}`);
+			console.error(`[User Command] Channel ID: ${channelid}`);
+			console.error(`[User Command] PID: ${process.pid}, PPID: ${process.ppid}`);
+			console.error('[User Command] ==========================================');
+			respawnCluster2();
+		}
 		if (!rplyVal.text && !rplyVal.LevelUp) return;
 		if (process.env.mongoURL)
 			try {

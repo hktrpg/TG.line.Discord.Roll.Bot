@@ -149,6 +149,15 @@ async function gracefulShutdown() {
                         await client.destroy();
                     }
                 } catch (error) { void error; }
+                const exitTimestamp = new Date().toISOString();
+                const exitStack = new Error('Process exit stack trace').stack;
+                const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+                console.error('[Cluster] ========== PROCESS.EXIT(0) CALLED (BROADCAST EVAL) ==========');
+                console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
+                console.error(`[Cluster] Exit Code: 0 (Normal shutdown after broadcastEval)`);
+                console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+                console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
+                console.error('[Cluster] ==========================================');
                 process.exit(0);
             }, { timeout: 15_000 });
         } catch (error) {
@@ -156,10 +165,29 @@ async function gracefulShutdown() {
         }
 
         console.log('[Cluster] Graceful shutdown completed');
+        const exitTimestamp = new Date().toISOString();
+        const exitStack = new Error('Process exit stack trace').stack;
+        const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+        console.error('[Cluster] ========== PROCESS.EXIT(0) CALLED ==========');
+        console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
+        console.error(`[Cluster] Exit Code: 0 (Normal shutdown)`);
+        console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+        console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
+        console.error('[Cluster] ==========================================');
         process.exit(0);
     } catch (error) {
         console.error('[Cluster] Error during shutdown:', error);
         console.error('[Cluster] Shutdown error stack:', error.stack);
+        const exitTimestamp = new Date().toISOString();
+        const exitStack = new Error('Process exit stack trace').stack;
+        const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+        console.error('[Cluster] ========== PROCESS.EXIT(1) CALLED (ERROR) ==========');
+        console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
+        console.error(`[Cluster] Exit Code: 1 (Error during shutdown)`);
+        console.error(`[Cluster] Error: ${error.message}`);
+        console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+        console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
+        console.error('[Cluster] ==========================================');
         process.exit(1);
     }
 }
@@ -212,17 +240,41 @@ manager.on('clusterCreate', shard => {
         // Don't handle errors if shutting down
         if (isShuttingDown) return;
 
+        const timestamp = new Date().toISOString();
+        const stack = new Error('Error handler stack trace').stack;
+        const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+        
         console.error(`[Cluster ${shard.id}] ${event}:`, error);
+        console.error(`[Cluster ${shard.id}] Error Handler - Timestamp: ${timestamp}`);
+        console.error(`[Cluster ${shard.id}] Error Handler - PID: ${process.pid}, PPID: ${process.ppid}`);
+        
         // Add retry logic
         if (event === 'death') {
+            const exitCode = error && typeof error === 'string' ? error.match(/Exit code: (\d+)/)?.[1] : 'unknown';
+            console.error('[Cluster Death] ========== CLUSTER DEATH RESPAWN TRIGGERED ==========');
+            console.error(`[Cluster Death] Timestamp: ${timestamp}`);
+            console.error(`[Cluster Death] Cluster ID: ${shard.id}`);
+            console.error(`[Cluster Death] Exit Code: ${exitCode}`);
+            console.error(`[Cluster Death] Error: ${error}`);
+            console.error(`[Cluster Death] PID: ${process.pid}, PPID: ${process.ppid}`);
+            console.error(`[Cluster Death] Stack Trace:\n${stackLines}`);
+            console.error('[Cluster Death] ==========================================');
+            
             setTimeout(() => {
                 if (!isShuttingDown) {
-                    console.log(`[Cluster ${shard.id}] Attempting to respawn...`);
+                    console.error(`[Cluster Death] Attempting to respawn cluster ${shard.id} after ${RETRY_DELAY}ms delay`);
                     try {
                         shard.respawn({ timeout: 60_000 });
+                        console.error(`[Cluster Death] Respawn command sent for cluster ${shard.id}`);
                     } catch (error_) {
-                        console.error(`[Cluster ${shard.id}] Failed to respawn:`, error_);
+                        console.error('[Cluster Death] ========== CLUSTER DEATH RESPAWN ERROR ==========');
+                        console.error(`[Cluster Death] Error Name: ${error_ && error_.name}`);
+                        console.error(`[Cluster Death] Error Message: ${error_ && error_.message}`);
+                        console.error(`[Cluster Death] Stack: ${error_ && error_.stack}`);
+                        console.error('[Cluster Death] ==========================================');
                     }
+                } else {
+                    console.error(`[Cluster Death] Shutdown in progress, skipping respawn for cluster ${shard.id}`);
                 }
             }, RETRY_DELAY);
         }
@@ -241,33 +293,70 @@ manager.on("clusterCreate", cluster => {
         if (isShuttingDown) return;
 
         if (message.respawn === true && message.id !== null && message.id !== undefined) {
+            const timestamp = new Date().toISOString();
+            const stack = new Error('Respawn message stack trace').stack;
+            const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+            
+            console.error('[Cluster Message] ========== RESPAWN MESSAGE RECEIVED ==========');
+            console.error(`[Cluster Message] Timestamp: ${timestamp}`);
+            console.error(`[Cluster Message] Target Cluster ID: ${message.id}`);
+            console.error(`[Cluster Message] PID: ${process.pid}, PPID: ${process.ppid}`);
+            console.error(`[Cluster Message] Stack Trace:\n${stackLines}`);
+            console.error('[Cluster Message] ==========================================');
             console.log(`[Cluster] Respawning cluster ${message.id}`);
+            
             try {
                 const targetCluster = manager.clusters.get(Number(message.id));
                 if (targetCluster) {
+                    console.error(`[Cluster Message] Found target cluster ${message.id}, initiating respawn`);
                     await targetCluster.respawn({
                         delay: 1000,
                         timeout: 60_000
                     });
+                    console.error(`[Cluster Message] Successfully respawned cluster ${message.id}`);
                     console.log(`[Cluster] Successfully respawned cluster ${message.id}`);
                 } else {
+                    console.error(`[Cluster Message] Cluster ${message.id} not found in manager.clusters`);
+                    console.error(`[Cluster Message] Available clusters: ${[...manager.clusters.keys()].join(', ')}`);
                     console.error(`[Cluster] Cluster ${message.id} not found`);
                 }
             } catch (error) {
+                console.error('[Cluster Message] ========== RESPAWN MESSAGE ERROR ==========');
+                console.error(`[Cluster Message] Error Name: ${error && error.name}`);
+                console.error(`[Cluster Message] Error Message: ${error && error.message}`);
+                console.error(`[Cluster Message] Stack: ${error && error.stack}`);
+                console.error('[Cluster Message] ==========================================');
                 console.error(`[Cluster] Failed to respawn cluster ${message.id}:`, error);
             }
             return;
         }
 
         if (message.respawnall === true) {
+            const timestamp = new Date().toISOString();
+            const stack = new Error('RespawnAll message stack trace').stack;
+            const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+            
+            console.error('[Cluster Message] ========== RESPAWN ALL MESSAGE RECEIVED ==========');
+            console.error(`[Cluster Message] Timestamp: ${timestamp}`);
+            console.error(`[Cluster Message] Total Clusters: ${manager.clusters.size}`);
+            console.error(`[Cluster Message] PID: ${process.pid}, PPID: ${process.ppid}`);
+            console.error(`[Cluster Message] Stack Trace:\n${stackLines}`);
+            console.error('[Cluster Message] ==========================================');
             console.log('[Cluster] Initiating full cluster respawn');
+            
             try {
                 await manager.respawnAll({
                     clusterDelay: 1000 * 60 * 1, // 1 minutes between clusters
                     respawnDelay: 5000,          // 5 seconds
                     timeout: 1000 * 60 * 5       // 5 minutes timeout
                 });
+                console.error('[Cluster Message] Successfully initiated respawnAll for all clusters');
             } catch (error) {
+                console.error('[Cluster Message] ========== RESPAWN ALL ERROR ==========');
+                console.error(`[Cluster Message] Error Name: ${error && error.name}`);
+                console.error(`[Cluster Message] Error Message: ${error && error.message}`);
+                console.error(`[Cluster Message] Stack: ${error && error.stack}`);
+                console.error('[Cluster Message] ==========================================');
                 console.error('[Cluster] Failed to respawn all clusters:', error);
             }
         }
@@ -279,14 +368,32 @@ if (agenda) {
     agenda.define('dailyDiscordMaintenance', async () => {
         if (isShuttingDown) return;
 
+        const timestamp = new Date().toISOString();
+        const stack = new Error('Daily maintenance stack trace').stack;
+        const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+        
+        console.error('[Schedule] ========== DAILY MAINTENANCE RESPAWN TRIGGERED ==========');
+        console.error(`[Schedule] Timestamp: ${timestamp}`);
+        console.error(`[Schedule] Task: dailyDiscordMaintenance`);
+        console.error(`[Schedule] Total Clusters: ${manager.clusters.size}`);
+        console.error(`[Schedule] PID: ${process.pid}, PPID: ${process.ppid}`);
+        console.error(`[Schedule] Stack Trace:\n${stackLines}`);
+        console.error('[Schedule] ==========================================');
         console.log('[Schedule] Running daily Discord maintenance');
+        
         try {
             await manager.respawnAll({
                 clusterDelay: 1000 * 60,
                 respawnDelay: 500,
                 timeout: 1000 * 60 * 2
             });
+            console.error('[Schedule] Daily maintenance respawnAll completed successfully');
         } catch (error) {
+            console.error('[Schedule] ========== DAILY MAINTENANCE ERROR ==========');
+            console.error(`[Schedule] Error Name: ${error && error.name}`);
+            console.error(`[Schedule] Error Message: ${error && error.message}`);
+            console.error(`[Schedule] Stack: ${error && error.stack}`);
+            console.error('[Schedule] ==========================================');
             console.error('[Schedule] Failed to perform maintenance:', error);
         }
     });
@@ -320,6 +427,16 @@ process.on('SIGTERM', async () => {
     
     // Set force shutdown timeout
     shutdownTimeout = setTimeout(() => {
+        const exitTimestamp = new Date().toISOString();
+        const exitStack = new Error('Force shutdown timeout stack trace').stack;
+        const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+        console.error('[Cluster] ========== FORCE SHUTDOWN TIMEOUT (SIGTERM) ==========');
+        console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
+        console.error(`[Cluster] Reason: Graceful shutdown timeout (30 seconds)`);
+        console.error(`[Cluster] Exit Code: 1 (Force shutdown)`);
+        console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+        console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
+        console.error('[Cluster] ==========================================');
         console.log('[Cluster] Force shutdown after timeout');
         process.exit(1);
     }, 30_000); // 30 second timeout
@@ -338,6 +455,16 @@ process.on('SIGINT', async () => {
     
     // Set force shutdown timeout
     shutdownTimeout = setTimeout(() => {
+        const exitTimestamp = new Date().toISOString();
+        const exitStack = new Error('Force shutdown timeout stack trace').stack;
+        const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+        console.error('[Cluster] ========== FORCE SHUTDOWN TIMEOUT (SIGINT) ==========');
+        console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
+        console.error(`[Cluster] Reason: Graceful shutdown timeout (30 seconds)`);
+        console.error(`[Cluster] Exit Code: 1 (Force shutdown)`);
+        console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+        console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
+        console.error('[Cluster] ==========================================');
         console.log('[Cluster] Force shutdown after timeout');
         process.exit(1);
     }, 30_000); // 30 second timeout
@@ -374,6 +501,17 @@ manager.spawn({
     delay: DELAY,
     amount: 'auto'
 }).catch(error => {
+    const exitTimestamp = new Date().toISOString();
+    const exitStack = new Error('Spawn error stack trace').stack;
+    const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+    console.error('[Cluster] ========== PROCESS.EXIT(1) CALLED (SPAWN FAILED) ==========');
+    console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
+    console.error(`[Cluster] Exit Code: 1 (Failed to spawn clusters)`);
+    console.error(`[Cluster] Error: ${error.message}`);
+    console.error(`[Cluster] Error Stack: ${error.stack}`);
+    console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+    console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
+    console.error('[Cluster] ==========================================');
     console.error('[Cluster] Failed to spawn clusters:', error);
     process.exit(1);
 });

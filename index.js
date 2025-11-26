@@ -412,6 +412,19 @@ async function init() {
 
         // Handle uncaught exceptions
         process.on('uncaughtException', (err) => {
+            const timestamp = new Date().toISOString();
+            const stack = err.stack || new Error('Uncaught exception stack trace').stack;
+            const stackLines = stack ? stack.split('\n').slice(0, 20).join('\n') : 'No stack trace available';
+            
+            console.error('[Uncaught Exception] ========== UNCAUGHT EXCEPTION TRIGGERED ==========');
+            console.error(`[Uncaught Exception] Timestamp: ${timestamp}`);
+            console.error(`[Uncaught Exception] Error Name: ${err.name}`);
+            console.error(`[Uncaught Exception] Error Message: ${err.message}`);
+            console.error(`[Uncaught Exception] PID: ${process.pid}, PPID: ${process.ppid}`);
+            console.error(`[Uncaught Exception] Stack Trace:\n${stackLines}`);
+            console.error('[Uncaught Exception] This will trigger graceful shutdown!');
+            console.error('[Uncaught Exception] ==========================================');
+            
             errorHandler(err, 'Uncaught Exception');
             gracefulShutdown(moduleManager);
         });
@@ -445,22 +458,39 @@ async function init() {
 
         // Handle unhandled promise rejections
         process.on('unhandledRejection', (reason) => {
+            const timestamp = new Date().toISOString();
+            const reasonMessage = reason && reason.message ? reason.message : String(reason);
+            const reasonStack = reason && reason.stack ? reason.stack : new Error('Unhandled rejection stack trace').stack;
+            const stackLines = reasonStack ? reasonStack.split('\n').slice(0, 20).join('\n') : 'No stack trace available';
+            
+            console.error('[Unhandled Rejection] ========== UNHANDLED REJECTION TRIGGERED ==========');
+            console.error(`[Unhandled Rejection] Timestamp: ${timestamp}`);
+            console.error(`[Unhandled Rejection] Reason Type: ${typeof reason}`);
+            console.error(`[Unhandled Rejection] Reason: ${reasonMessage}`);
+            if (reason && reason.name) console.error(`[Unhandled Rejection] Error Name: ${reason.name}`);
+            console.error(`[Unhandled Rejection] PID: ${process.pid}, PPID: ${process.ppid}`);
+            console.error(`[Unhandled Rejection] Stack Trace:\n${stackLines}`);
+            
             // 檢查是否為數據庫相關錯誤
-            if (reason.message && (
-                reason.message.includes('MongoDB') ||
-                reason.message.includes('bad auth') ||
-                reason.message.includes('Authentication failed') ||
-                reason.message.includes('connection timed out') ||
-                reason.message.includes('MongoServerSelectionError')
+            if (reasonMessage && (
+                reasonMessage.includes('MongoDB') ||
+                reasonMessage.includes('bad auth') ||
+                reasonMessage.includes('Authentication failed') ||
+                reasonMessage.includes('connection timed out') ||
+                reasonMessage.includes('MongoServerSelectionError')
             )) {
+                console.error('[Unhandled Rejection] Detected as database connection error, will NOT shutdown');
+                console.error('[Unhandled Rejection] ==========================================');
                 errorHandler(reason, 'Database Connection Error');
                 // 不關閉應用程序，讓重連機制處理
                 return;
             }
             
+            console.error('[Unhandled Rejection] This will trigger graceful shutdown!');
+            console.error('[Unhandled Rejection] ==========================================');
             errorHandler(reason, 'Unhandled Promise Rejection');
             // 只有在非數據庫錯誤時才關閉應用程序
-            if (!reason.message || !reason.message.includes('MongoDB')) {
+            if (!reasonMessage || !reasonMessage.includes('MongoDB')) {
                 gracefulShutdown(moduleManager);
             }
         });

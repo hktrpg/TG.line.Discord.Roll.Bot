@@ -418,6 +418,15 @@ manager.extend(
         onMissedHeartbeat: (cluster) => {
             if (!isShuttingDown) {
                 console.warn(`[Heartbeat] Cluster ${cluster.id} missed a heartbeat (Tolerance: ${10 - cluster.missedHeartbeats} remaining)`);
+                // If cluster consistently misses heartbeats, trigger respawn
+                if (cluster.missedHeartbeats >= 8) { // After 80 seconds of missed heartbeats
+                    console.error(`[Heartbeat] Cluster ${cluster.id} missed too many heartbeats, triggering respawn`);
+                    try {
+                        cluster.respawn({ delay: 7000, timeout: -1 });
+                    } catch (error) {
+                        console.error(`[Heartbeat] Failed to respawn cluster ${cluster.id}:`, error.message);
+                    }
+                }
             }
         },
         onClusterReady: (cluster) => {

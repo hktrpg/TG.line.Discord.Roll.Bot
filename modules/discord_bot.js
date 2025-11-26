@@ -257,26 +257,24 @@ function startHeartbeatMonitor() {
 		clearInterval(heartbeatInterval);
 	}
 
-	const HEARTBEAT_CHECK_INTERVAL = 1000 * 60;
-	const WARNING_THRESHOLD = 3;
-	const CRITICAL_THRESHOLD = 5;
+	const HEARTBEAT_CHECK_INTERVAL = 1000 * 120; // 2 minutes - reduced frequency
+	const WARNING_THRESHOLD = 5; // 10 minutes - increased tolerance
+	const CRITICAL_THRESHOLD = 10; // 20 minutes - increased tolerance
 	const restartServer = () => {
-		console.error('[Discord Bot] Server restart triggered: Heartbeat failed multiple times');
-		console.error(`[Discord Bot] Reason: Heartbeat failed ${heartbeat} times (threshold: 20)`);
-		console.error(`[Discord Bot] Command: sudo reboot`);
-		
-		require('child_process').exec('sudo reboot', (error) => {
-			if (error) {
-				console.error('[Discord Bot] Server restart error:', error.message);
-				console.error(`[Discord Bot] Error code: ${error.code}`);
-			} else {
-				console.log('[Discord Bot] Server restart command executed successfully');
-			}
-		});
+		console.error('[Discord Bot] CRITICAL: Persistent heartbeat failures detected');
+		console.error(`[Discord Bot] Heartbeat failures: ${heartbeat} times (threshold: 30)`);
+		console.error('[Discord Bot] All recovery attempts failed. Manual intervention required.');
+		console.error('[Discord Bot] Consider checking: network connectivity, Discord API status, server resources');
+
+		// Instead of dangerous sudo reboot, throw error to trigger PM2 restart
+		throw new Error(`CRITICAL: Heartbeat monitoring failed after ${heartbeat} attempts. Process restart required.`);
 	}
 	let heartbeat = 0;
 
 	console.log('[Discord Bot] Heartbeat monitor started on Cluster 0.');
+	console.log(`[Discord Bot] Heartbeat check interval: ${HEARTBEAT_CHECK_INTERVAL/1000}s`);
+	console.log(`[Discord Bot] Warning threshold: ${WARNING_THRESHOLD} failures (${WARNING_THRESHOLD * HEARTBEAT_CHECK_INTERVAL/1000/60} min)`);
+	console.log(`[Discord Bot] Critical threshold: ${CRITICAL_THRESHOLD} failures (${CRITICAL_THRESHOLD * HEARTBEAT_CHECK_INTERVAL/1000/60} min)`);
 
 	heartbeatInterval = setInterval(async () => {
 		const isAwake = await checkWakeUp();
@@ -293,21 +291,23 @@ function startHeartbeatMonitor() {
 				SendToId(adminSecret, `HKTRPG ID: ${isAwake.join(', ')} 可能下線了 請盡快檢查.`);
 			}
 			if (heartbeat > CRITICAL_THRESHOLD) {
-				const timestamp = new Date().toISOString();
-				console.error('[Heartbeat] ========== HEARTBEAT RESPAWN TRIGGERED ==========');
-				console.error(`[Heartbeat] Timestamp: ${timestamp}`);
-				console.error(`[Heartbeat] Heartbeat Count: ${heartbeat} (Threshold: ${CRITICAL_THRESHOLD})`);
-				console.error(`[Heartbeat] Down Shards: ${isAwake.join(', ')}`);
-				console.error(`[Heartbeat] PID: ${process.pid}, PPID: ${process.ppid}`);
-				console.error('[Heartbeat] ==========================================');
+			console.error('[Discord Bot] Attempting to respawn unhealthy shards');
+				console.error(`[Discord Bot] Unhealthy shards: ${isAwake.join(', ')} (Heartbeat failures: ${heartbeat})`);
 				
 				for (const shardId of isAwake) {
 					console.error(`[Heartbeat] Attempting to respawn shard ${shardId}`);
 					try {
-						client.cluster.evalOnManager(`this.clusters.get(${shardId}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
-						console.error(`[Heartbeat] Respawn command sent for shard ${shardId}`);
+						// Use the cluster manager's respawn method with proper error handling
+						const cluster = client.cluster.manager.clusters.get(shardId);
+						if (cluster) {
+							await cluster.respawn({ delay: 7000, timeout: -1 });
+							console.log(`[Discord Bot] Respawn command sent successfully for shard ${shardId}`);
+						} else {
+							console.error(`[Discord Bot] Cluster ${shardId} not found in manager`);
+						}
 					} catch (error) {
-						console.error(`[Heartbeat] Failed to respawn shard ${shardId}:`, error.message);
+						console.error(`[Discord Bot] Failed to respawn shard ${shardId}:`, error.message);
+						console.error(`[Discord Bot] Error details:`, error);
 					}
 				}
 			}
@@ -318,11 +318,10 @@ function startHeartbeatMonitor() {
 			}
 		}
 
-		if (heartbeat > 20) {
-			console.error('[Heartbeat] ========== HEARTBEAT RESTART SERVER TRIGGERED ==========');
-			console.error(`[Heartbeat] Heartbeat Count: ${heartbeat} (Threshold: 20)`);
-			console.error(`[Heartbeat] This will restart the entire server!`);
-			console.error('[Heartbeat] ==========================================');
+		if (heartbeat > 30) {
+			console.error('[Discord Bot] CRITICAL: Maximum heartbeat failures reached');
+			console.error(`[Discord Bot] Heartbeat failures: ${heartbeat} (Threshold: 30)`);
+			console.error('[Discord Bot] Initiating emergency process restart...');
 			restartServer();
 		}
 	}, HEARTBEAT_CHECK_INTERVAL);
@@ -1142,29 +1141,32 @@ async function newRoleReact(channel, message) {
 
 }
 async function checkWakeUp() {
-	const promises = [
-		client.cluster.broadcastEval(c => c.ws.status)
-	];
-	return Promise.all(promises)
-		.then(results => {
-			const indexes = results[0].reduce((r, n, i) => {
-				n !== 0 && r.push(i);
-				return r;
-			}, []);
-			if (indexes.length > 0) {
-				// Would call checkMongodb.discordClientRespawn for each index if needed
-				return indexes;
-			}
-			else return true;
-			//if (results[0].length !== number || results[0].reduce((a, b) => a + b, 0) >= 1)
-			//		return false
-			//	else return true;
-		})
-		.catch(error => {
-			console.error(`[Discord Bot] Error in message handling:`, (error && error.name), (error && error.message), (error && error.reason))
-			return false
-		});
+	try {
+		const promises = [
+			client.cluster.broadcastEval(c => c.ws.status)
+		];
 
+		const results = await Promise.all(promises);
+		const shardStatuses = results[0];
+
+		// Check for shards that are not in READY state (status !== 0)
+		const unhealthyShards = shardStatuses.reduce((unhealthy, status, shardId) => {
+			if (status !== 0) { // 0 = READY, others indicate connection issues
+				unhealthy.push(shardId);
+			}
+			return unhealthy;
+		}, []);
+
+		if (unhealthyShards.length > 0) {
+			console.log(`[Discord Bot] Found ${unhealthyShards.length} unhealthy shard(s): ${unhealthyShards.join(', ')}`);
+			return unhealthyShards; // Return array of unhealthy shard IDs
+		} else {
+			return true; // All shards are healthy
+		}
+	} catch (error) {
+		console.error('[Discord Bot] Heartbeat check failed:', error.message);
+		return false; // Check failed, assume unhealthy state
+	}
 }
 
 async function getAllshardIds() {

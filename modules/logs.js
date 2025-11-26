@@ -134,6 +134,7 @@ async function pushToDefiniteLog() {
 }
 
 async function getRecords() {
+    return;
     if (!checkMongodb.isDbOnline()) return;
     let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => {
         console.error('log # 131 mongoDB error:', error.name, error.reason)

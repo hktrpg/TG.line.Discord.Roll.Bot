@@ -30,6 +30,7 @@ async function getRecords() {
 }
 
 function multiServerChecker(channelid) {
+	return false;
 	if (channelList.length === 0) return false;
 	let channel = channelList.find(v => {
 		return v.channelid == channelid;

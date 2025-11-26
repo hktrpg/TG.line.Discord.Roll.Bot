@@ -236,7 +236,8 @@ async function loadModules(moduleManager) {
 }
 
 // Detailed signal tracking function
-function logSignalDetails(signal, moduleName) {
+function logSignalDetails(_signal, _moduleName) {
+    /*
     const timestamp = new Date().toISOString();
     const pid = process.pid;
     const ppid = process.ppid;
@@ -285,36 +286,37 @@ function logSignalDetails(signal, moduleName) {
         execMode: process.env.exec_mode || 'N/A'
     };
     
-    const details = {
-        signal,
-        timestamp,
-        pid,
-        ppid,
-        parentInfo,
-        pm2Info,
-        pm2Diagnostics,
-        uptime: `${uptime.toFixed(2)}s`,
-        memoryUsage: {
-            rss: `${(memoryUsage.rss / 1024 / 1024).toFixed(2)} MB`,
-            heapUsed: `${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`,
-            heapTotal: `${(memoryUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`
-        },
-        env: {
-            SHARD_ID: process.env.SHARD_ID || 'N/A',
-            CLUSTER_ID: process.env.CLUSTER_ID || 'N/A',
-            NODE_ENV: process.env.NODE_ENV || 'N/A'
-        },
-        stack: stackLines
-    };
+    // const details = {
+    //     signal,
+    //     timestamp,
+    //     pid,
+    //     ppid,
+    //     parentInfo,
+    //     pm2Info,
+    //     pm2Diagnostics,
+    //     uptime: `${uptime.toFixed(2)}s`,
+    //     memoryUsage: {
+    //         rss: `${(memoryUsage.rss / 1024 / 1024).toFixed(2)} MB`,
+    //         heapUsed: `${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`,
+    //         heapTotal: `${(memoryUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`
+    //     },
+    //     env: {
+    //         SHARD_ID: process.env.SHARD_ID || 'N/A',
+    //         CLUSTER_ID: process.env.CLUSTER_ID || 'N/A',
+    //         NODE_ENV: process.env.NODE_ENV || 'N/A'
+    //     },
+    //     stack: stackLines
+    // };
     
-    logger.error(`[${moduleName}] ========== SIGNAL DETAILED LOG ==========`, details);
-    console.error(`[${moduleName}] [ERROR] Received ${signal} signal at ${timestamp} (PID: ${pid}, PPID: ${ppid})`);
-    console.error(`[${moduleName}] [ERROR] ${parentInfo}`);
-    console.error(`[${moduleName}] [ERROR] PM2 Instance ID: ${pm2Info.PM2_INSTANCE_ID}`);
-    console.error(`[${moduleName}] [ERROR] Is PM2 Managed: ${pm2Diagnostics.isPM2 ? 'YES' : 'NO'}`);
-    console.error(`[${moduleName}] [ERROR] App Name: ${pm2Diagnostics.appName}`);
-    console.error(`[${moduleName}] [ERROR] Exec Mode: ${pm2Diagnostics.execMode}`);
-    console.error(`[${moduleName}] Stack Trace:\n${stackLines}`);
+    // logger.error(`[${moduleName}] ========== SIGNAL DETAILED LOG ==========`, details);
+    // console.error(`[${moduleName}] [ERROR] Received ${signal} signal at ${timestamp} (PID: ${pid}, PPID: ${ppid})`);
+    // console.error(`[${moduleName}] [ERROR] ${parentInfo}`);
+    // console.error(`[${moduleName}] [ERROR] PM2 Instance ID: ${pm2Info.PM2_INSTANCE_ID}`);
+    // console.error(`[${moduleName}] [ERROR] Is PM2 Managed: ${pm2Diagnostics.isPM2 ? 'YES' : 'NO'}`);
+    // console.error(`[${moduleName}] [ERROR] App Name: ${pm2Diagnostics.appName}`);
+    // console.error(`[${moduleName}] [ERROR] Exec Mode: ${pm2Diagnostics.execMode}`);
+    // console.error(`[${moduleName}] Stack Trace:\n${stackLines}`);
+    */
 }
 
 // Global shutdown flag

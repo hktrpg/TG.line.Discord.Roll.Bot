@@ -19,7 +19,9 @@ let isShuttingDown = false;
 let shutdownTimeout = null;
 
 // Detailed signal tracking function
-function logSignalDetails(signal, moduleName) {
+function logSignalDetails(_signal, _moduleName) {
+    // Function body commented out to reduce noise as per user request
+    /*
     const timestamp = new Date().toISOString();
     const pid = process.pid;
     const ppid = process.ppid;
@@ -68,37 +70,9 @@ function logSignalDetails(signal, moduleName) {
         execMode: process.env.exec_mode || 'N/A'
     };
     
-    console.log(`[${moduleName}] ========== SIGNAL DETAILED LOG ==========`);
-    console.log(`[${moduleName}] Signal: ${signal}`);
-    console.log(`[${moduleName}] Timestamp: ${timestamp}`);
-    console.log(`[${moduleName}] Process ID: ${pid}`);
-    console.log(`[${moduleName}] Parent Process ID: ${ppid}`);
-    console.log(`[${moduleName}] ${parentInfo}`);
-    console.log(`[${moduleName}] PM2 Environment:`);
-    console.log(`[${moduleName}]   - PM2_HOME: ${pm2Info.PM2_HOME}`);
-    console.log(`[${moduleName}]   - PM2_INSTANCE_ID: ${pm2Info.PM2_INSTANCE_ID}`);
-    console.log(`[${moduleName}]   - PM2_KEYS_SET: ${pm2Info.PM2_PUBLIC_KEY !== 'N/A' && pm2Info.PM2_SECRET_KEY !== 'N/A' ? 'YES' : 'NO'}`);
-    console.log(`[${moduleName}]   - Is PM2 Managed: ${pm2Diagnostics.isPM2 ? 'YES' : 'NO'}`);
-    console.log(`[${moduleName}]   - App Name: ${pm2Diagnostics.appName}`);
-    console.log(`[${moduleName}]   - Exec Mode: ${pm2Diagnostics.execMode}`);
-    console.log(`[${moduleName}]   - Instance ID: ${pm2Diagnostics.instanceId}`);
-    console.log(`[${moduleName}] Uptime: ${uptime.toFixed(2)}s`);
-    console.log(`[${moduleName}] Memory Usage: ${JSON.stringify({
-        rss: `${(memoryUsage.rss / 1024 / 1024).toFixed(2)} MB`,
-        heapUsed: `${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`,
-        heapTotal: `${(memoryUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`
-    })}`);
-    console.log(`[${moduleName}] Environment Variables:`);
-    console.log(`[${moduleName}]   - SHARD_ID: ${process.env.SHARD_ID || 'N/A'}`);
-    console.log(`[${moduleName}]   - CLUSTER_ID: ${process.env.CLUSTER_ID || 'N/A'}`);
-    console.log(`[${moduleName}]   - NODE_ENV: ${process.env.NODE_ENV || 'N/A'}`);
-    console.log(`[${moduleName}] Stack Trace:`);
-    console.log(`[${moduleName}] ${stackLines}`);
-    console.log(`[${moduleName}] ==========================================`);
-    
-    // Also log to stderr for better visibility
-    console.error(`[${moduleName}] [ERROR] Received ${signal} signal at ${timestamp} (PID: ${pid}, PPID: ${ppid})`);
-    console.error(`[${moduleName}] [ERROR] ${parentInfo}`);
+    // console.log(`[${moduleName}] ========== SIGNAL DETAILED LOG ==========`);
+    // ... logs ...
+    */
 }
 
 // Graceful shutdown function
@@ -149,15 +123,15 @@ async function gracefulShutdown() {
                         await client.destroy();
                     }
                 } catch (error) { void error; }
-                const exitTimestamp = new Date().toISOString();
-                const exitStack = new Error('Process exit stack trace').stack;
-                const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
-                console.error('[Cluster] ========== PROCESS.EXIT(0) CALLED (BROADCAST EVAL) ==========');
-                console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
-                console.error(`[Cluster] Exit Code: 0 (Normal shutdown after broadcastEval)`);
-                console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
-                console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
-                console.error('[Cluster] ==========================================');
+                // const exitTimestamp = new Date().toISOString();
+                // const exitStack = new Error('Process exit stack trace').stack;
+                // const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+                // console.error('[Cluster] ========== PROCESS.EXIT(0) CALLED (BROADCAST EVAL) ==========');
+                // console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
+                // console.error(`[Cluster] Exit Code: 0 (Normal shutdown after broadcastEval)`);
+                // console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+                // console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
+                // console.error('[Cluster] ==========================================');
                 process.exit(0);
             }, { timeout: 15_000 });
         } catch (error) {
@@ -172,30 +146,30 @@ async function gracefulShutdown() {
             }
         }
 
-        console.log('[Cluster] Graceful shutdown completed');
-        const exitTimestamp = new Date().toISOString();
-        const exitStack = new Error('Process exit stack trace').stack;
-        const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
-        console.error('[Cluster] ========== PROCESS.EXIT(0) CALLED ==========');
-        console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
-        console.error(`[Cluster] Exit Code: 0 (Normal shutdown)`);
-        console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
-        console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
-        console.error('[Cluster] ==========================================');
+        // console.log('[Cluster] Graceful shutdown completed');
+        // const exitTimestamp = new Date().toISOString();
+        // const exitStack = new Error('Process exit stack trace').stack;
+        // const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+        // console.error('[Cluster] ========== PROCESS.EXIT(0) CALLED ==========');
+        // console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
+        // console.error(`[Cluster] Exit Code: 0 (Normal shutdown)`);
+        // console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+        // console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
+        // console.error('[Cluster] ==========================================');
         process.exit(0);
     } catch (error) {
         console.error('[Cluster] Error during shutdown:', error);
         console.error('[Cluster] Shutdown error stack:', error.stack);
-        const exitTimestamp = new Date().toISOString();
-        const exitStack = new Error('Process exit stack trace').stack;
-        const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
-        console.error('[Cluster] ========== PROCESS.EXIT(1) CALLED (ERROR) ==========');
-        console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
-        console.error(`[Cluster] Exit Code: 1 (Error during shutdown)`);
-        console.error(`[Cluster] Error: ${error.message}`);
-        console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
-        console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
-        console.error('[Cluster] ==========================================');
+        // const exitTimestamp = new Date().toISOString();
+        // const exitStack = new Error('Process exit stack trace').stack;
+        // const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+        // console.error('[Cluster] ========== PROCESS.EXIT(1) CALLED (ERROR) ==========');
+        // console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
+        // console.error(`[Cluster] Exit Code: 1 (Error during shutdown)`);
+        // console.error(`[Cluster] Error: ${error.message}`);
+        // console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+        // console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
+        // console.error('[Cluster] ==========================================');
         process.exit(1);
     }
 }
@@ -339,13 +313,13 @@ manager.on('clusterCreate', shard => {
     });
     
     shard.on('death', (process) => {
-        const timestamp = new Date().toISOString();
-        console.error('[Cluster Manager] ========== CLUSTER DEATH EVENT ==========');
-        console.error(`[Cluster Manager] Timestamp: ${timestamp}`);
-        console.error(`[Cluster Manager] Cluster ID: ${shard.id}`);
-        console.error(`[Cluster Manager] Exit Code: ${process.exitCode}`);
-        console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
-        console.error('[Cluster Manager] ==========================================');
+        // const timestamp = new Date().toISOString();
+        // console.error('[Cluster Manager] ========== CLUSTER DEATH EVENT ==========');
+        // console.error(`[Cluster Manager] Timestamp: ${timestamp}`);
+        // console.error(`[Cluster Manager] Cluster ID: ${shard.id}`);
+        // console.error(`[Cluster Manager] Exit Code: ${process.exitCode}`);
+        // console.error(`[Cluster Manager] PID: ${process.pid}, PPID: ${process.ppid}`);
+        // console.error('[Cluster Manager] ==========================================');
         errorHandler('Death', `Exit code: ${process.exitCode}`);
     });
     
@@ -551,17 +525,17 @@ process.on('SIGINT', async () => {
 // Track process.exit calls
 const originalExit = process.exit;
 process.exit = function(code) {
-    const timestamp = new Date().toISOString();
-    const stack = new Error('Process exit stack trace').stack;
-    const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+    // const timestamp = new Date().toISOString();
+    // const stack = new Error('Process exit stack trace').stack;
+    // const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
     
-    console.error('[Cluster] ========== PROCESS.EXIT CALLED ==========');
-    console.error(`[Cluster] Exit Code: ${code}`);
-    console.error(`[Cluster] Timestamp: ${timestamp}`);
-    console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
-    console.error(`[Cluster] Is Shutting Down: ${isShuttingDown}`);
-    console.error(`[Cluster] Stack Trace:\n${stackLines}`);
-    console.error('[Cluster] ==========================================');
+    // console.error('[Cluster] ========== PROCESS.EXIT CALLED ==========');
+    // console.error(`[Cluster] Exit Code: ${code}`);
+    // console.error(`[Cluster] Timestamp: ${timestamp}`);
+    // console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+    // console.error(`[Cluster] Is Shutting Down: ${isShuttingDown}`);
+    // console.error(`[Cluster] Stack Trace:\n${stackLines}`);
+    // console.error('[Cluster] ==========================================');
     
     return originalExit.call(process, code);
 };
@@ -589,17 +563,17 @@ manager.spawn({
     // console.error(`[Cluster Manager] Total Shards: ${manager.totalShards}`);
     // console.error('[Cluster Manager] ==========================================');
 }).catch(error => {
-    const exitTimestamp = new Date().toISOString();
-    const exitStack = new Error('Spawn error stack trace').stack;
-    const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
-    console.error('[Cluster] ========== PROCESS.EXIT(1) CALLED (SPAWN FAILED) ==========');
-    console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
-    console.error(`[Cluster] Exit Code: 1 (Failed to spawn clusters)`);
-    console.error(`[Cluster] Error: ${error.message}`);
-    console.error(`[Cluster] Error Stack: ${error.stack}`);
-    console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
-    console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
-    console.error('[Cluster] ==========================================');
+    // const exitTimestamp = new Date().toISOString();
+    // const exitStack = new Error('Spawn error stack trace').stack;
+    // const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+    // console.error('[Cluster] ========== PROCESS.EXIT(1) CALLED (SPAWN FAILED) ==========');
+    // console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
+    // console.error(`[Cluster] Exit Code: 1 (Failed to spawn clusters)`);
+    // console.error(`[Cluster] Error: ${error.message}`);
+    // console.error(`[Cluster] Error Stack: ${error.stack}`);
+    // console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+    // console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
+    // console.error('[Cluster] ==========================================');
     console.error('[Cluster] Failed to spawn clusters:', error);
     process.exit(1);
 });

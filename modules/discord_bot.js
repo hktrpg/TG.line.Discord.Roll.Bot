@@ -680,7 +680,9 @@ let isShuttingDown = false;
 let shutdownTimeout = null;
 
 // Detailed signal tracking function
-function logSignalDetails(signal, moduleName) {
+function logSignalDetails(_signal, _moduleName) {
+    // Function body commented out to reduce noise
+    /*
 	const timestamp = new Date().toISOString();
 	const pid = process.pid;
 	const ppid = process.ppid;
@@ -728,38 +730,39 @@ function logSignalDetails(signal, moduleName) {
 		appName: process.env.name || 'N/A',
 		execMode: process.env.exec_mode || 'N/A'
 	};
+    */
 	
-	console.log(`[${moduleName}] ========== SIGNAL DETAILED LOG ==========`);
-	console.log(`[${moduleName}] Signal: ${signal}`);
-	console.log(`[${moduleName}] Timestamp: ${timestamp}`);
-	console.log(`[${moduleName}] Process ID: ${pid}`);
-	console.log(`[${moduleName}] Parent Process ID: ${ppid}`);
-	console.log(`[${moduleName}] ${parentInfo}`);
-	console.log(`[${moduleName}] PM2 Environment:`);
-	console.log(`[${moduleName}]   - PM2_HOME: ${pm2Info.PM2_HOME}`);
-	console.log(`[${moduleName}]   - PM2_INSTANCE_ID: ${pm2Info.PM2_INSTANCE_ID}`);
-	console.log(`[${moduleName}]   - PM2_KEYS_SET: ${pm2Info.PM2_PUBLIC_KEY !== 'N/A' && pm2Info.PM2_SECRET_KEY !== 'N/A' ? 'YES' : 'NO'}`);
-	console.log(`[${moduleName}]   - Is PM2 Managed: ${pm2Diagnostics.isPM2 ? 'YES' : 'NO'}`);
-	console.log(`[${moduleName}]   - App Name: ${pm2Diagnostics.appName}`);
-	console.log(`[${moduleName}]   - Exec Mode: ${pm2Diagnostics.execMode}`);
-	console.log(`[${moduleName}]   - Instance ID: ${pm2Diagnostics.instanceId}`);
-	console.log(`[${moduleName}] Uptime: ${uptime.toFixed(2)}s`);
-	console.log(`[${moduleName}] Memory Usage: ${JSON.stringify({
-		rss: `${(memoryUsage.rss / 1024 / 1024).toFixed(2)} MB`,
-		heapUsed: `${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`,
-		heapTotal: `${(memoryUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`
-	})}`);
-	console.log(`[${moduleName}] Environment Variables:`);
-	console.log(`[${moduleName}]   - SHARD_ID: ${process.env.SHARD_ID || 'N/A'}`);
-	console.log(`[${moduleName}]   - CLUSTER_ID: ${process.env.CLUSTER_ID || 'N/A'}`);
-	console.log(`[${moduleName}]   - NODE_ENV: ${process.env.NODE_ENV || 'N/A'}`);
-	console.log(`[${moduleName}] Stack Trace:`);
-	console.log(`[${moduleName}] ${stackLines}`);
-	console.log(`[${moduleName}] ==========================================`);
+	// console.log(`[${moduleName}] ========== SIGNAL DETAILED LOG ==========`);
+	// console.log(`[${moduleName}] Signal: ${signal}`);
+	// console.log(`[${moduleName}] Timestamp: ${timestamp}`);
+	// console.log(`[${moduleName}] Process ID: ${pid}`);
+	// console.log(`[${moduleName}] Parent Process ID: ${ppid}`);
+	// console.log(`[${moduleName}] ${parentInfo}`);
+	// console.log(`[${moduleName}] PM2 Environment:`);
+	// console.log(`[${moduleName}]   - PM2_HOME: ${pm2Info.PM2_HOME}`);
+	// console.log(`[${moduleName}]   - PM2_INSTANCE_ID: ${pm2Info.PM2_INSTANCE_ID}`);
+	// console.log(`[${moduleName}]   - PM2_KEYS_SET: ${pm2Info.PM2_PUBLIC_KEY !== 'N/A' && pm2Info.PM2_SECRET_KEY !== 'N/A' ? 'YES' : 'NO'}`);
+	// console.log(`[${moduleName}]   - Is PM2 Managed: ${pm2Diagnostics.isPM2 ? 'YES' : 'NO'}`);
+	// console.log(`[${moduleName}]   - App Name: ${pm2Diagnostics.appName}`);
+	// console.log(`[${moduleName}]   - Exec Mode: ${pm2Diagnostics.execMode}`);
+	// console.log(`[${moduleName}]   - Instance ID: ${pm2Diagnostics.instanceId}`);
+	// console.log(`[${moduleName}] Uptime: ${uptime.toFixed(2)}s`);
+	// console.log(`[${moduleName}] Memory Usage: ${JSON.stringify({
+	// 	rss: `${(memoryUsage.rss / 1024 / 1024).toFixed(2)} MB`,
+	// 	heapUsed: `${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`,
+	// 	heapTotal: `${(memoryUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`
+	// })}`);
+	// console.log(`[${moduleName}] Environment Variables:`);
+	// console.log(`[${moduleName}]   - SHARD_ID: ${process.env.SHARD_ID || 'N/A'}`);
+	// console.log(`[${moduleName}]   - CLUSTER_ID: ${process.env.CLUSTER_ID || 'N/A'}`);
+	// console.log(`[${moduleName}]   - NODE_ENV: ${process.env.NODE_ENV || 'N/A'}`);
+	// console.log(`[${moduleName}] Stack Trace:`);
+	// console.log(`[${moduleName}] ${stackLines}`);
+	// console.log(`[${moduleName}] ==========================================`);
 	
 	// Also log to stderr for better visibility
-	console.error(`[${moduleName}] [ERROR] Received ${signal} signal at ${timestamp} (PID: ${pid}, PPID: ${ppid})`);
-	console.error(`[${moduleName}] [ERROR] ${parentInfo}`);
+	// console.error(`[${moduleName}] [ERROR] Received ${signal} signal at ${timestamp} (PID: ${pid}, PPID: ${ppid})`);
+	// console.error(`[${moduleName}] [ERROR] ${parentInfo}`);
 }
 
 // Graceful shutdown function
@@ -792,30 +795,30 @@ async function gracefulShutdown() {
 			console.log('[Discord Bot] Discord client destroyed.');
 		}
 
-		console.log('[Discord Bot] Graceful shutdown completed');
-		const exitTimestamp = new Date().toISOString();
-		const exitStack = new Error('Process exit stack trace').stack;
-		const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
-		console.error('[Discord Bot] ========== PROCESS.EXIT(0) CALLED ==========');
-		console.error(`[Discord Bot] Timestamp: ${exitTimestamp}`);
-		console.error(`[Discord Bot] Exit Code: 0 (Normal shutdown)`);
-		console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
-		console.error(`[Discord Bot] Stack Trace:\n${exitStackLines}`);
-		console.error('[Discord Bot] ==========================================');
+		// console.log('[Discord Bot] Graceful shutdown completed');
+		// const exitTimestamp = new Date().toISOString();
+		// const exitStack = new Error('Process exit stack trace').stack;
+		// const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+		// console.error('[Discord Bot] ========== PROCESS.EXIT(0) CALLED ==========');
+		// console.error(`[Discord Bot] Timestamp: ${exitTimestamp}`);
+		// console.error(`[Discord Bot] Exit Code: 0 (Normal shutdown)`);
+		// console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
+		// console.error(`[Discord Bot] Stack Trace:\n${exitStackLines}`);
+		// console.error('[Discord Bot] ==========================================');
 		process.exit(0);
 	} catch (error) {
 		console.error('[Discord Bot] Error during shutdown:', error);
 		console.error('[Discord Bot] Shutdown error stack:', error.stack);
-		const exitTimestamp = new Date().toISOString();
-		const exitStack = new Error('Process exit stack trace').stack;
-		const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
-		console.error('[Discord Bot] ========== PROCESS.EXIT(1) CALLED (ERROR) ==========');
-		console.error(`[Discord Bot] Timestamp: ${exitTimestamp}`);
-		console.error(`[Discord Bot] Exit Code: 1 (Error during shutdown)`);
-		console.error(`[Discord Bot] Error: ${error.message}`);
-		console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
-		console.error(`[Discord Bot] Stack Trace:\n${exitStackLines}`);
-		console.error('[Discord Bot] ==========================================');
+		// const exitTimestamp = new Date().toISOString();
+		// const exitStack = new Error('Process exit stack trace').stack;
+		// const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+		// console.error('[Discord Bot] ========== PROCESS.EXIT(1) CALLED (ERROR) ==========');
+		// console.error(`[Discord Bot] Timestamp: ${exitTimestamp}`);
+		// console.error(`[Discord Bot] Exit Code: 1 (Error during shutdown)`);
+		// console.error(`[Discord Bot] Error: ${error.message}`);
+		// console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
+		// console.error(`[Discord Bot] Stack Trace:\n${exitStackLines}`);
+		// console.error('[Discord Bot] ==========================================');
 		process.exit(1);
 	}
 }
@@ -879,17 +882,17 @@ process.on('SIGTERM', async () => {
 // Track process.exit calls
 const originalExit = process.exit;
 process.exit = function(code) {
-	const timestamp = new Date().toISOString();
-	const stack = new Error('Process exit stack trace').stack;
-	const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+	// const timestamp = new Date().toISOString();
+	// const stack = new Error('Process exit stack trace').stack;
+	// const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
 	
-	console.error('[Discord Bot] ========== PROCESS.EXIT CALLED ==========');
-	console.error(`[Discord Bot] Exit Code: ${code}`);
-	console.error(`[Discord Bot] Timestamp: ${timestamp}`);
-	console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
-	console.error(`[Discord Bot] Is Shutting Down: ${isShuttingDown}`);
-	console.error(`[Discord Bot] Stack Trace:\n${stackLines}`);
-	console.error('[Discord Bot] ==========================================');
+	// console.error('[Discord Bot] ========== PROCESS.EXIT CALLED ==========');
+	// console.error(`[Discord Bot] Exit Code: ${code}`);
+	// console.error(`[Discord Bot] Timestamp: ${timestamp}`);
+	// console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
+	// console.error(`[Discord Bot] Is Shutting Down: ${isShuttingDown}`);
+	// console.error(`[Discord Bot] Stack Trace:\n${stackLines}`);
+	// console.error('[Discord Bot] ==========================================');
 	
 	return originalExit.call(process, code);
 };

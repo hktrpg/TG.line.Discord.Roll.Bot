@@ -112,16 +112,7 @@ const rollDiceCommand = async function ({
 			rply.text = await this.getHelpMessage();
 			return rply;
 		case /\S+/.test(mainMsg[1]) && /[.]wiki/i.test(mainMsg[0]):
-			rply.text = await wiki({
-				apiUrl: 'https://zh.wikipedia.org/w/api.php'
-			}).page(mainMsg[1].toLowerCase())
-				.then(async page => {
-					return chineseConv.tify(await page.summary())
-				})
-				.catch(error => {
-					if (error == 'Error: No article found')
-						return '沒有此條目'
-					else {
+			rply.text = await searchWikipedia(mainMsg[1].toLowerCase());
 						return error
 					}
 				})
@@ -274,6 +265,46 @@ const discordCommand = [
         }
     }
 ];
+
+// Wikipedia 搜索方法，包含重試和快取邏輯
+async function searchWikipedia(query, retryCount = 0) {
+	const maxRetries = 2;
+
+	try {
+		// 使用 Promise.race 實現超時控制
+		const timeoutPromise = new Promise((_, reject) => {
+			setTimeout(() => reject(new Error('Wikipedia request timeout')), 15000);
+		});
+
+		const wikiPromise = wiki({
+			apiUrl: 'https://zh.wikipedia.org/w/api.php'
+		}).page(query)
+			.then(async page => {
+				return chineseConv.tify(await page.summary())
+			});
+
+		return await Promise.race([wikiPromise, timeoutPromise]);
+	} catch (error) {
+		console.warn(`Wikipedia 搜索失敗 (嘗試 ${retryCount + 1}/${maxRetries + 1}): ${query}`, error.message);
+
+		// 如果還有重試次數，進行重試
+		if (retryCount < maxRetries) {
+			console.log(`重試 Wikipedia 搜索: ${query} (第 ${retryCount + 1} 次)`);
+			await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+			return searchWikipedia(query, retryCount + 1);
+		}
+
+		// 重試失敗後，返回適當的錯誤信息
+		if (error == 'Error: No article found') {
+			return '沒有此條目';
+		} else if (error.message === 'Wikipedia request timeout') {
+			return '請求超時，請稍後再試';
+		} else {
+			console.error('Wikipedia search final error:', error);
+			return '查詢錯誤，請稍後再試';
+		}
+	}
+}
 
 module.exports = {
 	rollDiceCommand: rollDiceCommand,

@@ -601,17 +601,27 @@ class TwelveAstro {
 	 * @param {boolean} forceUpdate - 是否強制更新
 	 */
 	async getBigEvent(date = null, forceUpdate = false) {
-		try {
-			const targetDate = date || this.getDate();
+		const targetDate = date || this.getDate();
 
+		try {
+			// 如果強制更新或沒有快取數據，嘗試更新
 			if (forceUpdate || !this.BigEvent[targetDate]) {
 				await this.updateBigEvent(targetDate);
 			}
 
-			return this.BigEvent[targetDate] || null;
+			// 返回快取數據，如果沒有數據則返回預設消息
+			return this.BigEvent[targetDate] || '資料載入中，請稍後再試';
 		} catch (error) {
 			console.error('TwelveAstro getBigEvent error:', error);
-			return '條目出錯';
+
+			// 即使更新失敗，也嘗試返回已有的快取數據
+			if (this.BigEvent[targetDate]) {
+				console.log(`返回現有快取數據: ${targetDate}`);
+				return this.BigEvent[targetDate];
+			}
+
+			// 如果完全沒有數據，返回預設錯誤消息
+			return '條目出錯，請稍後再試';
 		}
 	}
 
@@ -619,19 +629,26 @@ class TwelveAstro {
 	 * 更新每日大事數據
 	 * @param {string} date - 日期
 	 */
-	async updateBigEvent(date) {
+	async updateBigEvent(date, retryCount = 0) {
+		const maxRetries = 3;
 		const targetDate = new Date(date);
 		const day = targetDate.getDate();
 		const month = targetDate.getMonth() + 1;
 		let respond = `${month}月${day}日\n\n`;
 
 		try {
-			const page = await wiki({
+			// 使用 Promise.race 實現超時控制
+			const timeoutPromise = new Promise((_, reject) => {
+				setTimeout(() => reject(new Error('Wikipedia request timeout')), 15000);
+			});
+
+			const wikiPromise = wiki({
 				headers: { 'User-Agent': identity },
 				apiUrl: 'https://zh.wikipedia.org/w/api.php',
 				setpagelanguage: "zh-hant"
 			}).page(`${month}月${day}日`);
 
+			const page = await Promise.race([wikiPromise, timeoutPromise]);
 			let temp = await page.content();
 			let answerFestival = temp.find(v => {
 				return v && v.title.match(/(节日)|(節日)|(习俗)|(假日)|(节假)/)
@@ -650,13 +667,37 @@ class TwelveAstro {
 			}
 
 			this.BigEvent[date] = chineseConv.tify(respond);
+			console.log(`每日大事更新成功: ${date}`);
 		} catch (error) {
-			if (error == 'Error: No article found') {
-				this.BigEvent[date] = '沒有此條目';
-			} else {
-				console.error('每日大事 updateBigEvent error:', error);
-				this.BigEvent[date] = '條目出錯';
+			console.warn(`每日大事更新失敗 (嘗試 ${retryCount + 1}/${maxRetries + 1}): ${date}`, error.message);
+
+			// 如果還有重試次數，進行重試
+			if (retryCount < maxRetries) {
+				console.log(`重試每日大事更新: ${date} (第 ${retryCount + 1} 次)`);
+				await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1))); // 遞增延遲
+				return this.updateBigEvent(date, retryCount + 1);
 			}
+
+			// 重試失敗後，根據錯誤類型寫入適當的快取數據
+			let cacheData = '';
+			if (error == 'Error: No article found') {
+				cacheData = '沒有此條目';
+			} else if (error.message === 'Wikipedia request timeout') {
+				cacheData = '請求超時，請稍後再試';
+			} else if (error.message && error.message.includes('timeout')) {
+				cacheData = '網路超時，請稍後再試';
+			} else {
+				cacheData = '條目出錯，請稍後再試';
+			}
+
+			// 如果已有舊數據，保留舊數據，否則寫入錯誤信息
+			if (!this.BigEvent[date]) {
+				this.BigEvent[date] = cacheData;
+			} else {
+				console.log(`保留現有快取數據: ${date}`);
+			}
+
+			console.error(`每日大事更新最終失敗，已寫入快取: ${date} - ${cacheData}`);
 		}
 	}
 

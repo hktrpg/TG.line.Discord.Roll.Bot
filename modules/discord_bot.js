@@ -112,7 +112,7 @@ client.on('messageCreate', async message => {
 			respawnCluster2();
 		}
 
-		await handlingMultiServerMessage(message);
+		//await handlingMultiServerMessage(message);
 
 		if (result?.text) {
 			return handlingSendMessage(result);

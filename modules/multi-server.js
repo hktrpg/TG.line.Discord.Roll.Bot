@@ -21,6 +21,7 @@ let channelList = [];
 
 
 async function getRecords() {
+	return;
 	if (!checkMongodb.isDbOnline()) return;
 	try {
 		let result = await checkMongodb.executeDatabaseOperation(

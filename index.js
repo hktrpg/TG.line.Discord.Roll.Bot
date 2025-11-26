@@ -143,6 +143,9 @@ class Logger {
 
 const logger = new Logger();
 
+// Global shutdown flag
+let isShuttingDown = false;
+
 // Unified Error Handler
 const errorHandler = (error, context) => {
     logger.error(`Error in ${context}:`, {
@@ -273,15 +276,41 @@ async function init() {
         logger.info('Application started successfully');
 
         // Setup shutdown handlers with delay to allow Discord modules to handle their own shutdown
-        process.on('SIGTERM', () => {
-            logger.info('Received SIGTERM signal, starting graceful shutdown...');
+        let shutdownInProgress = false;
+        const handleShutdown = async (signal) => {
+            if (shutdownInProgress) {
+                logger.warn(`Received ${signal} signal but shutdown already in progress`);
+                return;
+            }
+            shutdownInProgress = true;
+            isShuttingDown = true;
+            logger.info(`Received ${signal} signal, starting graceful shutdown...`);
+            if (signal === 'SIGINT') {
+                logger.info('SIGINT stack trace:', new Error().stack);
+            }
             // Give Discord modules time to handle their own shutdown
-            setTimeout(() => gracefulShutdown(moduleManager), 5000);
+            try {
+                await gracefulShutdown(moduleManager);
+            } catch (error) {
+                logger.error('Error during graceful shutdown:', {
+                    error: error.message,
+                    stack: error.stack
+                });
+                process.exit(1);
+            }
+        };
+
+        process.on('SIGTERM', () => {
+            handleShutdown('SIGTERM').catch(err => {
+                logger.error('Error handling SIGTERM:', err);
+                process.exit(1);
+            });
         });
         process.on('SIGINT', () => {
-            logger.info('Received SIGINT signal, starting graceful shutdown...');
-            // Give Discord modules time to handle their own shutdown
-            setTimeout(() => gracefulShutdown(moduleManager), 5000);
+            handleShutdown('SIGINT').catch(err => {
+                logger.error('Error handling SIGINT:', err);
+                process.exit(1);
+            });
         });
 
         // Handle process warnings
@@ -298,14 +327,34 @@ async function init() {
 
         // Handle uncaught exceptions
         process.on('uncaughtException', (err) => {
+            if (isShuttingDown) {
+                logger.error('Uncaught exception during shutdown, forcing exit:', {
+                    error: err.message,
+                    stack: err.stack
+                });
+                process.exit(1);
+                return;
+            }
+            isShuttingDown = true;
             errorHandler(err, 'Uncaught Exception');
-            gracefulShutdown(moduleManager);
+            // Use setTimeout to allow error logging to complete
+            setTimeout(async () => {
+                try {
+                    await gracefulShutdown(moduleManager);
+                } catch (shutdownError) {
+                    logger.error('Error during graceful shutdown:', {
+                        error: shutdownError.message,
+                        stack: shutdownError.stack
+                    });
+                    process.exit(1);
+                }
+            }, 1000);
         });
 
         // Handle unhandled promise rejections
         process.on('unhandledRejection', (reason) => {
             // Check if it's a database-related error
-            if (reason.message && (
+            if (reason && reason.message && (
                 reason.message.includes('MongoDB') ||
                 reason.message.includes('bad auth') ||
                 reason.message.includes('Authentication failed') ||
@@ -317,10 +366,59 @@ async function init() {
                 return;
             }
 
+            // Check for IPC channel closed errors (common during cluster shutdown)
+            if (reason && (
+                (reason.code === 'ERR_IPC_CHANNEL_CLOSED') ||
+                (reason.message && reason.message.includes('Channel closed')) ||
+                (reason.message && reason.message.includes('IPC_CHANNEL_CLOSED'))
+            )) {
+                // These are expected during cluster shutdown, just log and ignore
+                logger.warn('IPC channel closed (expected during shutdown):', {
+                    error: reason.message || reason
+                });
+                return;
+            }
+
+            // Check for other known non-critical errors
+            if (reason && reason.message && (
+                reason.message.includes('Unknown Role') ||
+                reason.message.includes('Cannot send messages to this user') ||
+                reason.message.includes('Unknown Channel') ||
+                reason.message.includes('Missing Access') ||
+                reason.message.includes('Missing Permissions') ||
+                reason.message.includes('Unknown interaction') ||
+                reason.message.includes('INTERACTION_NOT_REPLIED') ||
+                reason.message.includes('Invalid Form Body')
+            )) {
+                // These are Discord API errors that don't require shutdown
+                logger.warn('Discord API error (non-critical):', {
+                    error: reason.message
+                });
+                return;
+            }
+
+            if (isShuttingDown) {
+                logger.warn('Unhandled rejection during shutdown:', {
+                    error: reason?.message || reason
+                });
+                return;
+            }
+
             errorHandler(reason, 'Unhandled Promise Rejection');
-            // Only close the application for non-database errors
-            if (!reason.message || !reason.message.includes('MongoDB')) {
-                gracefulShutdown(moduleManager);
+            // Only close the application for critical errors
+            if (reason && reason.message && !reason.message.includes('MongoDB')) {
+                isShuttingDown = true;
+                setTimeout(async () => {
+                    try {
+                        await gracefulShutdown(moduleManager);
+                    } catch (shutdownError) {
+                        logger.error('Error during graceful shutdown:', {
+                            error: shutdownError.message,
+                            stack: shutdownError.stack
+                        });
+                        process.exit(1);
+                    }
+                }, 1000);
             }
         });
 

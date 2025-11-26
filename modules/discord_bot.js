@@ -19,7 +19,8 @@ const adminSecret = process.env.ADMIN_SECRET || '';
 const { Client } = Discord;
 const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType, MessageFlags, WebhookClient } = Discord;
 
-const multiServer = require('../modules/multi-server')
+// Multi-server functionality temporarily disabled
+// const multiServer = require('../modules/multi-server')
 const checkMongodb = require('../modules/dbWatchdog.js');
 const errorCount = [];
 const { rollText } = require('./getRoll');
@@ -245,7 +246,7 @@ let heartbeatInterval = null;
 client.cluster.on('message', message => {
 	if (message?.type === 'startHeartbeat') {
 		if (client.cluster.id === 0) {
-			console.log('[Cluster 0] Received startHeartbeat signal. Starting heartbeat monitor.');
+			console.log('[Discord Bot] Received startHeartbeat signal. Starting heartbeat monitor.');
 			startHeartbeatMonitor();
 		}
 	}
@@ -260,33 +261,22 @@ function startHeartbeatMonitor() {
 	const WARNING_THRESHOLD = 3;
 	const CRITICAL_THRESHOLD = 5;
 	const restartServer = () => {
-		const timestamp = new Date().toISOString();
-		const stack = new Error('Server restart stack trace').stack;
-		const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+		console.error('[Discord Bot] Server restart triggered: Heartbeat failed multiple times');
+		console.error(`[Discord Bot] Reason: Heartbeat failed ${heartbeat} times (threshold: 20)`);
+		console.error(`[Discord Bot] Command: sudo reboot`);
 		
-		console.error('[Server Restart] ========== SERVER RESTART TRIGGERED ==========');
-		console.error(`[Server Restart] Timestamp: ${timestamp}`);
-		console.error(`[Server Restart] Reason: Heartbeat failed ${heartbeat} times (threshold: 20)`);
-		console.error(`[Server Restart] PID: ${process.pid}, PPID: ${process.ppid}`);
-		console.error(`[Server Restart] Command: sudo reboot`);
-		console.error(`[Server Restart] Stack Trace:\n${stackLines}`);
-		console.error('[Server Restart] ==========================================');
-		
-		require('child_process').exec('sudo reboot', (error, stdout, stderr) => {
+		require('child_process').exec('sudo reboot', (error) => {
 			if (error) {
-				console.error('[Server Restart] ========== SERVER RESTART ERROR ==========');
-				console.error(`[Server Restart] Error: ${error.message}`);
-				console.error(`[Server Restart] Code: ${error.code}`);
-				console.error(`[Server Restart] Stderr: ${stderr}`);
-				console.error('[Server Restart] ==========================================');
+				console.error('[Discord Bot] Server restart error:', error.message);
+				console.error(`[Discord Bot] Error code: ${error.code}`);
 			} else {
-				console.error('[Server Restart] Server restart command executed successfully');
+				console.log('[Discord Bot] Server restart command executed successfully');
 			}
 		});
 	}
 	let heartbeat = 0;
 
-	console.log('Discord Heartbeat Monitor Started on Cluster 0.');
+	console.log('[Discord Bot] Heartbeat monitor started on Cluster 0.');
 
 	heartbeatInterval = setInterval(async () => {
 		const isAwake = await checkWakeUp();
@@ -2688,8 +2678,10 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 		}
 	}
 }
-async function handlingMultiServerMessage(message) {
+async function handlingMultiServerMessage() {
 	return;
+	// Multi-server functionality temporarily disabled
+	/*
 	if (!process.env.mongoURL) return;
 	let target = multiServer.multiServerChecker(message.channel.id)
 	if (!target) return;
@@ -2715,15 +2707,17 @@ async function handlingMultiServerMessage(message) {
 
 	}
 	return;
+	*/
 }
-function multiServerTarget(message) {
-	const obj = {
-		content: message.content,
-		username: message?._member?.nickname || message?._member?.displayName,
-		avatarURL: message.author.displayAvatarURL()
-	};
-	return obj;
-}
+// Multi-server functionality temporarily disabled
+// function multiServerTarget(message) {
+// 	const obj = {
+// 		content: message.content,
+// 		username: message?._member?.nickname || message?._member?.displayName,
+// 		avatarURL: message.author.displayAvatarURL()
+// 	};
+// 	return obj;
+// }
 
 function __checkUserRole(groupid, message) {
 	/**

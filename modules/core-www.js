@@ -1494,9 +1494,9 @@ if (isMaster) {
     wss.on('connection', function connection(ws) {
         ws.on('message', function incoming(message) {
             try {
-                console.log('received: %s', message);
+                console.log('[Web Server] Received:', message.toString());
             } catch (error) {
-                console.error('WebSocket message error:', error);
+                console.error('[Web Server] WebSocket message error:', error);
             }
         });
 

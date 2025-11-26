@@ -1065,8 +1065,7 @@ async function getAllshardIds() {
 	if (!client.cluster) return '';
 
 	try {
-		const [shardIds, wsStatus, wsPing, clusterId] = await Promise.all([
-			[...client.cluster.ids.keys()],
+		const [wsStatus, wsPing, clusterId] = await Promise.all([
 			client.cluster.broadcastEval(c => c.ws.status),
 			client.cluster.broadcastEval(c => c.ws.ping),
 			client.cluster.id
@@ -1123,24 +1122,20 @@ async function getAllshardIds() {
 			}).join('\n');
 		};
 
-		const groupedIds = groupArray(shardIds, groupSize);
 		const groupedStatus = groupArray(onlineStatus, groupSize);
 		const groupedPing = groupArray(pingTimes, groupSize);
 
 		// 統計摘要
-		const totalShards = onlineStatus.length;
+		const actualShards = onlineStatus.length;
+		const expectedShards = client.cluster.manager?.totalShards || actualShards;
 		const onlineCount = onlineStatus.filter(s => typeof s === 'string' && s.includes('✅')).length;
 
 		return `
 ├────── 🔄分流狀態 ──────
 │ 概況統計:
 │ 　• 目前分流: ${clusterId}
-│ 　• 分流總數: ${totalShards}
+│ 　• 分流總數: ${expectedShards}
 │ 　• 在線分流: ${onlineCount}
-│
-├────── 🔍分流列表 ──────
-│ 已啟動分流:
-${formatGroup(groupedIds)}
 │
 ├────── ⚡連線狀態 ──────
 │ 各分流狀態:

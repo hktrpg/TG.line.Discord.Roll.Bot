@@ -65,7 +65,14 @@ async function gracefulShutdown() {
                 process.exit(0);
             }, { timeout: 15_000 });
         } catch (error) {
-            console.warn('[Cluster] broadcastEval during shutdown encountered an error:', error);
+            // Handle specific error types during shutdown
+            if (error.code === 'EPIPE' || error.message?.includes('EPIPE')) {
+                console.warn('[Cluster] Pipe closed during shutdown (expected during cluster termination)');
+            } else if (error.code === 'ECONNRESET' || error.message?.includes('ECONNRESET')) {
+                console.warn('[Cluster] Connection reset during shutdown (expected during cluster termination)');
+            } else {
+                console.warn('[Cluster] broadcastEval during shutdown encountered an error:', error.message || error);
+            }
         }
 
         console.log('[Cluster] Graceful shutdown completed');
@@ -233,16 +240,7 @@ process.on('SIGTERM', async () => {
     await gracefulShutdown();
 });
 
-process.on('SIGINT', async () => {
-    console.log('[Cluster] Received SIGINT signal');
-    // Set force shutdown timeout
-    shutdownTimeout = setTimeout(() => {
-        console.log('[Cluster] Force shutdown after timeout');
-        process.exit(1);
-    }, 30_000); // 30 second timeout
-
-    await gracefulShutdown();
-});
+// SIGINT handling is managed by index.js for coordinated shutdown
 
 // Start clusters
 manager.spawn({

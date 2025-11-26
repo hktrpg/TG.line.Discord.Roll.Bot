@@ -13,19 +13,20 @@ const config = {
     baseRetryInterval: 1000,  // 基礎重試間隔
     maxRetryInterval: 30_000,  // 最大重試間隔
     restartTime: '30 04 */3 * *',
-    connectTimeout: 30_000,    // Reduced to 30s (fail fast)
-    socketTimeout: 45_000,     // Reduced to 45s
+    connectTimeout: 60_000,    // Increased to 60s for sharded deployments
+    socketTimeout: 60_000,     // Increased to 60s for better stability
     poolSize: 5,               // Reduced for 56 clusters (56 * 5 = 280 connections)
-    minPoolSize: 1,            // Minimal connection
+    minPoolSize: 2,           // Maintain minimum connections
     heartbeatInterval: 10_000,  // Frequent check
-    serverSelectionTimeout: 5_000,  // Fail fast (5s) to prevent blocking Heartbeat
+    serverSelectionTimeout: 15_000,  // Increased to 15s for sharded deployments
     maxIdleTimeMS: 30_000,     // Close idle connections faster
     bufferCommands: true,     // Enable command buffering to allow operations before connection
     w: 'majority',            // 寫入確認級別
     retryWrites: true,        // 啟用寫入重試
     autoIndex: true,          // 自動建立索引
     useNewUrlParser: true,    // 使用新的 URL 解析器
-    useUnifiedTopology: true  // 使用新的拓撲引擎
+    useUnifiedTopology: true, // 使用新的拓撲引擎
+    maxPoolSize: 10           // Allow more connections per cluster
 };
 
 if (!config.mongoUrl) {
@@ -136,7 +137,7 @@ async function connect(retries = 0) {
                     connectTimeoutMS: config.connectTimeout,
                     socketTimeoutMS: config.socketTimeout,
                     serverSelectionTimeoutMS: config.serverSelectionTimeout,
-                    maxPoolSize: config.poolSize,
+                    maxPoolSize: config.maxPoolSize,
                     minPoolSize: config.minPoolSize,
                     heartbeatFrequencyMS: config.heartbeatInterval,
                     maxIdleTimeMS: config.maxIdleTimeMS,
@@ -166,7 +167,7 @@ async function connect(retries = 0) {
                     connectTimeoutMS: config.connectTimeout,
                     socketTimeoutMS: config.socketTimeout,
                     serverSelectionTimeoutMS: config.serverSelectionTimeout,
-                    maxPoolSize: config.poolSize,
+                    maxPoolSize: config.maxPoolSize,
                     minPoolSize: config.minPoolSize,
                     heartbeatFrequencyMS: config.heartbeatInterval,
                     maxIdleTimeMS: config.maxIdleTimeMS,

@@ -78,6 +78,13 @@ class DbWatchdog {
             console.warn('[dbWatchdog] Schema or mongodbState model not available, skipping update');
             return;
         }
+
+        // Check if mongoose connection is actually ready before attempting update
+        if (require('./db-connector.js').mongoose.connection.readyState !== 1) {
+            console.warn('[dbWatchdog] MongoDB connection not ready, skipping error record update');
+            return;
+        }
+
         try {
             await schema.mongodbState.updateOne(
                 {},
@@ -96,7 +103,7 @@ class DbWatchdog {
             // DB is likely down, just log it but DO NOT increment retry count here
             // causing a double count (one from original error, one from this update failure)
             console.warn('[dbWatchdog] Failed to update error record (DB likely offline):', error.message);
-            // Removed: this.dbErrOccurs(); 
+            // Removed: this.dbErrOccurs();
         }
     }
 
@@ -111,7 +118,7 @@ class DbWatchdog {
         );
         setInterval(
             async () => {
-                let ans = await schema.mongodbState();
+                let ans = await schema.mongodbStateCheck();
                 if (!ans) return;
                 const currentdate = new Date();
                 const datetime = "Time: " + currentdate.getDate() + "/"

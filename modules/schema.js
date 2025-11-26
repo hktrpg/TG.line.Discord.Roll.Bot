@@ -573,6 +573,14 @@ const myNameRecordSchema = new Schema({
 // First check if model already exists (to avoid model overwrite warning)
 const MyNameRecord = mongoose.models.MyNameRecord || mongoose.model('MyNameRecord', myNameRecordSchema);
 
+// MongoDB state tracking schema
+const mongodbStateSchema = mongoose.model('mongodbState', new mongoose.Schema({
+    errorDate: { type: Date, default: Date.now },
+    createdAt: { type: Date, default: Date.now }
+}, {
+    timestamps: true
+}));
+
 // MongoDB state check function
 const getMongoDBState = async () => {
     try {
@@ -591,7 +599,8 @@ const getMongoDBState = async () => {
 
 
 module.exports = {
-    mongodbState: getMongoDBState,
+    mongodbState: mongodbStateSchema,
+    mongodbStateCheck: getMongoDBState,
     randomAns: randomAnswerSchema,
     multiServer: multiServerSchema,
     block: blockSchema,

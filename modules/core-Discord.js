@@ -185,6 +185,8 @@ const clusterOptions = {
         attempts: MAX_RETRY_ATTEMPTS,
         delay: RETRY_DELAY
     },
+    // Add execArgv for Node.js command-line options (recommended by discord.js sharding guide)
+    execArgv: ['--trace-warnings'],
     // Add reconnection and backoff options
     fetchTimeout: 30_000,
     restarts: {

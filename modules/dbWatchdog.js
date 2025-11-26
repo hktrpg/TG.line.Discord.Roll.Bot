@@ -74,6 +74,10 @@ class DbWatchdog {
     }
 
     async __updateRecords() {
+        if (!schema || !schema.mongodbState) {
+            console.warn('[dbWatchdog] Schema or mongodbState model not available, skipping update');
+            return;
+        }
         try {
             await schema.mongodbState.updateOne(
                 {},
@@ -89,8 +93,10 @@ class DbWatchdog {
 
             this.__dbErrorReset();
         } catch (error) {
-            console.error('dbConnectionError updateRecords #36 error:', error.name);
-            this.dbErrOccurs();
+            // DB is likely down, just log it but DO NOT increment retry count here
+            // causing a double count (one from original error, one from this update failure)
+            console.warn('[dbWatchdog] Failed to update error record (DB likely offline):', error.message);
+            // Removed: this.dbErrOccurs(); 
         }
     }
 

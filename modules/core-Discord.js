@@ -203,7 +203,7 @@ async function gracefulShutdown() {
 // Configuration options
 const clusterOptions = {
     token: channelSecret,
-    shardsPerClusters: 1,
+    shardsPerClusters: 2,     // Increased from 1 to 2. Reduces process count from 56 to 28. Saves ~50% RAM and DB connections.
     totalShards: 'auto',
     mode: 'process',
     respawn: false, // Disable auto respawn, manually controlled

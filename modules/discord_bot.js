@@ -102,21 +102,27 @@ client.on('messageCreate', async message => {
 	try {
 		if (message.author.bot) return;
 
-		// 使用批次處理
-		const [dbStatus, result] = await Promise.all([
-			checkMongodb.isDbOnline(),
-			handlingResponMessage(message)
-		]);
-
-		if (!dbStatus && checkMongodb.isDbRespawn()) {
-			const timestamp = new Date().toISOString();
-			console.error('[MongoDB] ========== MONGODB RESPAWN TRIGGERED ==========');
-			console.error(`[MongoDB] Timestamp: ${timestamp}`);
-			console.error(`[MongoDB] Reason: MongoDB connection failed, isDbRespawn() returned true`);
-			console.error(`[MongoDB] PID: ${process.pid}, PPID: ${process.ppid}`);
-			console.error('[MongoDB] ==========================================');
-			respawnCluster2();
+		// Check DB status first (Fail Fast)
+		const dbStatus = checkMongodb.isDbOnline();
+		
+		if (!dbStatus) {
+			// If DB is offline, check if we need to respawn, but DON'T process the message if it depends on DB
+			if (checkMongodb.isDbRespawn()) {
+				const timestamp = new Date().toISOString();
+				console.error('[MongoDB] ========== MONGODB RESPAWN TRIGGERED ==========');
+				console.error(`[MongoDB] Timestamp: ${timestamp}`);
+				console.error(`[MongoDB] Reason: MongoDB connection failed, isDbRespawn() returned true`);
+				console.error(`[MongoDB] PID: ${process.pid}, PPID: ${process.ppid}`);
+				console.error('[MongoDB] ==========================================');
+				respawnCluster2();
+			}
+			// Option: return here if handlingResponMessage requires DB
+			// Or proceed with caution. Assuming handlingResponMessage needs DB:
+			// return; 
 		}
+
+		// Process message only if DB is likely fine, or let it run if logic handles offline DB
+		const result = await handlingResponMessage(message);
 
 		await handlingMultiServerMessage(message);
 

@@ -77,8 +77,6 @@ class DailyCache {
 				this.updateBigEventCache(),
 				this.updateAlmanacCache()
 			]);
-
-			console.log('Astro, big event, and almanac cache prewarmed for today, tomorrow, and day-after-tomorrow');
 		} catch (error) {
 			console.error('Failed to update astro cache:', error);
 		}

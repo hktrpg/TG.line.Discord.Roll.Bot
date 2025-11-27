@@ -132,8 +132,6 @@ client.on('messageCreate', async message => {
 		}
 
 		// Process message only if DB is likely fine, or let it run if logic handles offline DB
-		const result = await handlingResponMessage(message);
-
 		await handlingMultiServerMessage(message);
 
 		if (result?.text) {

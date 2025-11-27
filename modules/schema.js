@@ -418,7 +418,19 @@ const agendaAtHKTRPGSchema = mongoose.model('agendaAtHKTRPG', new mongoose.Schem
     lastModifiedBy: String,
     roleName: String,
     imageLink: String
-}, { collection: "agendaAtHKTRPG" }));
+}, { 
+    collection: "agendaAtHKTRPG",
+    // 性能優化索引：根據 Agenda 文檔建議
+    // 參考：https://github.com/agenda/agenda#performance
+    indexes: [
+        // Agenda 內部查詢使用的複合索引
+        { name: 1, nextRunAt: 1, priority: -1, lockedAt: 1, disabled: 1 },
+        // 用於查找和鎖定任務的索引（Agenda 內部使用）
+        { nextRunAt: 1, lockedAt: 1, disabled: 1 },
+        // 用於查找死鎖任務的索引
+        { name: 1, disabled: 1, lockedAt: 1 }
+    ]
+}));
 
 // Message related schemas
 const firstTimeMessageSchema = mongoose.model('firstTimeMessage', new mongoose.Schema({

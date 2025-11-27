@@ -4,59 +4,64 @@ if (!process.env.mongoURL) {
 }
 const restartTime = '55 4 * * *';
 const Agenda = require("agenda");
-//const mongoConnectionString = "mongodb://127.0.0.1/agenda";
-//const agenda = new Agenda({ mongo: mongoose.mongoose });
+const dbConnector = require('./db-connector.js');
+const mongoose = dbConnector.mongoose;
 
-// Or override the default collection name:
-// 優化配置：減少對 MongoDB 的頻繁查詢
 const agenda = new Agenda({ 
-    db: { 
-        address: process.env.mongoURL, 
-        collection: 'agendaAtHKTRPG' 
-    }, 
-    maxConcurrency: 20_000, 
-    defaultConcurrency: 2000,
-    // 關鍵優化：將處理間隔從默認 5 秒增加到 30 秒
-    // 這可以大幅減少對 MongoDB 的查詢頻率，降低寫入鎖競爭
-    processEvery: 'one minute'  
+    db: {
+        address: process.env.mongoURL,
+        collection: 'agendaAtHKTRPG',
+        options: {
+            maxPoolSize: 50,
+            minPoolSize: 5,
+            serverSelectionTimeoutMS: 30_000,
+            socketTimeoutMS: 45_000,
+            connectTimeoutMS: 30_000
+        }
+    },
+    maxConcurrency: 1000,
+    defaultConcurrency: 50,
+    processEvery: '30 seconds',
+    lockLifetime: 10 * 60 * 1000,
+    defaultLockLifetime: 10 * 60 * 1000
 });
 
-// or pass additional connection options:
-// const agenda = new Agenda({db: {address: mongoConnectionString, collection: 'jobCollectionName', options: {ssl: true}}});
-
-// or pass in an existing mongodb-native MongoClient instance
-// const agenda = new Agenda({mongo: myMongoClient});
-
-
-
 (async function () {
-    // IIFE to give access to async/await
     try {
-        await agenda.start()
+        const waitForConnection = dbConnector.waitForConnection;
+        if (waitForConnection) {
+            await waitForConnection(30_000);
+        } else {
+            let attempts = 0;
+            while (mongoose.connection.readyState !== 1 && attempts < 30) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                attempts++;
+            }
+        }
+        
+        if (mongoose.connection.readyState !== 1) {
+            console.error('[Schedule] MongoDB connection not ready, cannot start Agenda');
+            return;
+        }
+        
+        await agenda.start();
         await agenda.every(restartTime, '0455restartdiscord');
     } catch (error) {
-        console.error(`agenda start error #25`, error)
+        console.error(`[Schedule] Agenda start error:`, error);
+        console.error(`[Schedule] Error stack:`, error.stack);
     }
 })();
 
-
 agenda.on("fail", (err, job) => {
-    console.error(`Job '${job.attrs.name}' failed with error: ${err.message}`);
-    console.error(`Job data: ${JSON.stringify(job.attrs.data, null, 2)}`);
-    console.error(`Error stack: ${err.stack}`);
+    console.error(`[Schedule] Job '${job.attrs.name}' failed: ${err.message}`);
+    if (job.attrs.failCount >= 3) {
+        console.error(`[Schedule] Job '${job.attrs.name}' failed after 3 attempts`);
+    }
 });
-/**
- * 對schedule 中發佈的文字進行處理
- *
- * 先擲骰一次
- *
- * 有沒有結果，也把內容進行REPLACE
- * 支援{}類置換，
- * 
- */
 
-//discordSchedule.scheduleAtMessage
-
+agenda.on("error", (err) => {
+    console.error(`[Schedule] Agenda error: ${err.message}`);
+});
 
 module.exports = {
     agenda

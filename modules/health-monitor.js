@@ -97,7 +97,7 @@ class HealthMonitor extends EventEmitter {
             if (this.metrics.memoryHistory.length >= 10) {
                 const recent = this.metrics.memoryHistory.slice(-10);
                 const oldest = recent[0].rss;
-                const newest = recent[recent.length - 1].rss;
+                const newest = recent.at(-1).rss;
                 const growth = newest - oldest;
 
                 // Alert if memory grows more than 100MB in 50 minutes
@@ -116,7 +116,7 @@ class HealthMonitor extends EventEmitter {
     }
 
     getMemoryReport() {
-        const latest = this.metrics.memoryHistory[this.metrics.memoryHistory.length - 1];
+        const latest = this.metrics.memoryHistory.at(-1);
         const oldest = this.metrics.memoryHistory[0];
 
         return {

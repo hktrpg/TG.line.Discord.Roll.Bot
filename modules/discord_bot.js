@@ -98,7 +98,7 @@ function cleanupStoryTellerMaps() {
     let cleanedStreaks = 0;
     for (const [channelId] of stNoVoteStreak.entries()) {
         // Check if channel still has active polls
-        const hasActivePoll = Array.from(stPolls.values()).some(p => p.channelid === channelId && !p.completed);
+        const hasActivePoll = [...stPolls.values()].some(p => p.channelid === channelId && !p.completed);
         if (!hasActivePoll) {
             // Check if last poll was more than 24 hours ago
             const lastPollTime = stLastPollStartedAt.get(channelId) || 0;
@@ -114,7 +114,7 @@ function cleanupStoryTellerMaps() {
     for (const [channelId, timestamp] of stLastPollStartedAt.entries()) {
         if ((now - timestamp) > LAST_POLL_MAX_AGE) {
             // Only delete if no active polls exist
-            const hasActivePoll = Array.from(stPolls.values()).some(p => p.channelid === channelId && !p.completed);
+            const hasActivePoll = [...stPolls.values()].some(p => p.channelid === channelId && !p.completed);
             if (!hasActivePoll) {
                 stLastPollStartedAt.delete(channelId);
                 cleanedTimestamps++;

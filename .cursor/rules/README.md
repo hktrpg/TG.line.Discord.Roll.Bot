@@ -6,6 +6,7 @@ This directory contains Cursor Project Rules for the HKTRPG bot development. The
 
 - **Solo Developer**: One person maintaining the codebase
 - **Large User Base**: Hundreds of thousands of users depend on stability
+- **Production Environment**: 4GB RAM, 2 vCPUs, 128GB NVMe (Low-resource)
 - **Priority**: Stability > Features > Perfect Code
 - **Philosophy**: "If it works, don't fix it" - Practical over perfect
 
@@ -65,6 +66,12 @@ This directory contains Cursor Project Rules for the HKTRPG bot development. The
 - **Purpose**: Practical design patterns for solo developer
 - **Key Topics**: Manager pattern, module pattern, avoid over-engineering, stability first
 
+### 10. `database-security.mdc` - Database & Security Rules
+- **Type**: Apply to Specific Files (`modules/db-connector.js`, `modules/records.js`, `modules/schema.js`, `modules/config/**/*.js`, `utils/security.js`)
+- **Scope**: Database operations, security, resource management
+- **Purpose**: Database best practices and security for low-resource production environment
+- **Key Topics**: Connection pooling, query optimization, input validation, memory management, CSP, rate limiting
+
 ## Rule Application Priority
 
 Rules are applied in this order:
@@ -76,11 +83,20 @@ Rules are applied in this order:
 
 ### Before Writing Code
 1. **Stability check** - Is this modifying stable, working code? Only modify if necessary
-2. Check `package.json` - Does a package provide this functionality?
-3. Check existing code - How is similar functionality implemented?
-4. Follow ESLint rules - Run `yarn lint` before committing
-5. Use classes for complex logic
-6. Write tests for critical/new features (skip stable code)
+2. **Resource check** - Will this work within 4GB RAM and 2 vCPUs?
+3. Check `package.json` - Does a package provide this functionality?
+4. Check existing code - How is similar functionality implemented?
+5. Follow ESLint rules - Run `yarn lint` before committing
+6. Use classes for complex logic
+7. Write tests for critical/new features (skip stable code)
+
+### Database & Security
+- **Use shared connection** - Never create new MongoDB connections
+- **Validate all inputs** - Use `InputValidator` from `records.js`
+- **Use indexes** - Always index frequently queried fields
+- **Limit results** - Use `.limit()` and pagination
+- **Cache wisely** - Small, frequently accessed data only
+- **Monitor memory** - Keep under 3GB heap usage
 
 ### File Organization
 - **Temporary files**: `temp/` directory
@@ -99,12 +115,14 @@ Rules are applied in this order:
 
 ### Key Principles (Solo Developer Focus)
 1. **Stability first**: If it works, don't fix it - Only modify when necessary
-2. **Practical over perfect**: Simple, working code is better than perfect architecture
-3. **Package-first**: Use existing packages before writing custom code
-4. **Class-first**: Use classes for stateful operations
-5. **Fast iteration**: Get it working, improve later based on feedback
-6. **Test what matters**: Critical functionality > New features > Edge cases
-7. **Maintainable**: Write code you can understand and fix later
+2. **Resource-aware**: Optimize for 4GB RAM, 2 vCPUs - Memory efficiency critical
+3. **Security-first**: Always validate inputs, use parameterized queries
+4. **Practical over perfect**: Simple, working code is better than perfect architecture
+5. **Package-first**: Use existing packages before writing custom code
+6. **Class-first**: Use classes for stateful operations
+7. **Fast iteration**: Get it working, improve later based on feedback
+8. **Test what matters**: Critical functionality > New features > Edge cases
+9. **Maintainable**: Write code you can understand and fix later
 
 ## Solo Developer Guidelines
 

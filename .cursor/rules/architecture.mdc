@@ -5,97 +5,71 @@ alwaysApply: false
 
 # Architecture & Design Patterns
 
-## Design Principles
+## Solo Developer Principles (Priority)
+
+### 1. Stability Over Perfection
+- **Don't refactor working code** - If it works and serves users well, leave it alone
+- **Fix bugs, not architecture** - Only change architecture when fixing bugs or adding features
+- **Incremental improvements** - Make small, safe improvements rather than large refactors
+- **Test before changing** - Always verify changes don't break existing functionality
+
+### 2. Practical Over Perfect
+- **Simple solutions first** - Use the simplest solution that works
+- **Avoid over-engineering** - Don't add complexity "just in case"
+- **Focus on users** - Prioritize features that help users over perfect code
+- **Maintainability matters** - Write code you can understand and fix later
+
+### 3. Fast Development
+- **Get it working first** - Implement features quickly, optimize later if needed
+- **Allow shortcuts** - Simple, working code is better than complex, perfect code
+- **Iterate based on feedback** - Improve based on actual usage, not theoretical needs
+
+## Design Principles (When Needed)
 
 ### 1. Single Responsibility Principle
 - Each module/class should have one clear purpose
 - Avoid god classes that do too much
-- Split large modules into smaller, focused ones
+- Split large modules only when they become hard to maintain
 
 ### 2. DRY (Don't Repeat Yourself)
-- Extract common logic into reusable functions/classes
+- Extract common logic when you see repetition (3+ times)
 - Use shared utilities instead of duplicating code
-- Create helper functions for repeated patterns
+- But don't over-abstract - simple duplication is sometimes fine
 
-### 3. Open/Closed Principle
-- Open for extension, closed for modification
-- Use inheritance or composition for extending functionality
-- Avoid modifying existing working code unnecessarily
+### 3. Keep It Simple
+- Prefer simple solutions over complex patterns
+- Use existing patterns from the codebase
+- Don't introduce new patterns unless necessary
 
-### 4. Dependency Injection
-- Pass dependencies as parameters
-- Avoid global state when possible
-- Make dependencies explicit
+## Practical Design Patterns (Use When Helpful)
 
-## Design Patterns
-
-### Class-Based Patterns
-
-#### Manager Pattern
-Use for managing resources or state:
+### Manager Pattern (Most Common)
+Use for managing resources or state - this is the most useful pattern in this codebase:
 ```javascript
 class ResourceManager {
     constructor() {
         this.resources = new Map();
+        this.initialized = false;
     }
     
     async initialize() {
-        // Setup
+        if (this.initialized) return;
+        // Setup logic
+        this.initialized = true;
     }
     
     async shutdown() {
-        // Cleanup
+        // Cleanup logic
+        this.initialized = false;
     }
 }
 ```
-Examples: `VIPManager`, `ModuleManager`, `PageConfigManager`
+**Examples in codebase**: `VIPManager`, `ModuleManager`, `PageConfigManager`
 
-#### Factory Pattern
-Use for creating objects based on conditions:
-```javascript
-class DiceRollerFactory {
-    static createRoller(gameType) {
-        switch (gameType) {
-            case 'coc': return new CocRoller();
-            case 'dnd': return new DndRoller();
-            default: return new BaseRoller();
-        }
-    }
-}
-```
+**When to use**: Managing state, resources, or configuration that needs initialization/cleanup
 
-#### Strategy Pattern
-Use for interchangeable algorithms:
-```javascript
-class RollStrategy {
-    roll() {
-        throw new Error('Must implement roll()');
-    }
-}
-
-class CocRollStrategy extends RollStrategy {
-    roll() {
-        // COC-specific rolling
-    }
-}
-```
-
-#### Observer Pattern
-Use for event-driven architecture:
-```javascript
-const EventEmitter = require('events');
-
-class GameEventEmitter extends EventEmitter {
-    emitGameEvent(eventType, data) {
-        this.emit(eventType, data);
-    }
-}
-```
-Example: `Records` class extends `EventEmitter`
-
-### Module Patterns
-
-#### Module Initialization Pattern
+### Module Pattern (Standard)
+Use for modules that need initialization - follow existing patterns:
 ```javascript
 module.exports = {
     async initialize() {
@@ -112,18 +86,36 @@ module.exports = {
     }
 };
 ```
+**When to use**: Modules loaded by `index.js` that need setup/teardown
 
-#### Singleton Pattern (when needed)
+### Observer Pattern (When Needed)
+Use EventEmitter for event-driven code - only when events are actually needed:
 ```javascript
-class Singleton {
-    constructor() {
-        if (Singleton.instance) {
-            return Singleton.instance;
-        }
-        Singleton.instance = this;
+const EventEmitter = require('events');
+
+class GameEventEmitter extends EventEmitter {
+    emitGameEvent(eventType, data) {
+        this.emit(eventType, data);
     }
 }
 ```
+**Example in codebase**: `Records` class extends `EventEmitter`
+
+**When to use**: When you actually need multiple listeners for events (not just for "good design")
+
+## When NOT to Use Design Patterns
+
+### Avoid Over-Engineering
+- ❌ **Don't use Factory Pattern** - Simple switch/if statements are fine
+- ❌ **Don't use Strategy Pattern** - Functions work just as well
+- ❌ **Don't use Singleton** - Module exports are already singletons in Node.js
+- ❌ **Don't add patterns "just in case"** - Add them when you actually need them
+
+### Simple Alternatives
+- Use functions instead of Strategy pattern
+- Use switch/if instead of Factory pattern
+- Use module exports instead of Singleton pattern
+- Use simple objects/classes instead of complex hierarchies
 
 ## Architecture Layers
 
@@ -320,19 +312,18 @@ const utils = require('./utils.js');
 - Avoid memory leaks
 - Monitor memory usage
 
-## Scalability
+## Scalability (When Needed)
 
-### Horizontal Scaling
+### Current Architecture Supports Scaling
+- Discord module already uses clustering/sharding
+- Database connection pooling is in place
 - Stateless design where possible
-- Use external state storage (database)
-- Handle multiple instances gracefully
-- Use clustering/sharding (see Discord module)
 
-### Vertical Scaling
-- Optimize algorithms
-- Use efficient data structures
-- Minimize resource usage
-- Profile and optimize bottlenecks
+### Optimization Strategy
+- **Don't optimize prematurely** - Only optimize when there's a real performance problem
+- **Measure first** - Profile before optimizing
+- **Simple optimizations first** - Caching, indexes, connection pooling
+- **Complex optimizations last** - Only when simple solutions don't work
 
 ## Security Considerations
 
@@ -348,16 +339,15 @@ const utils = require('./utils.js');
 - Sanitize logs (see `index.js` Logger)
 - Handle errors without exposing internals
 
-## Documentation
+## Documentation (Pragmatic)
 
 ### Code Documentation
-- Document public APIs
-- Use JSDoc comments for functions
-- Explain complex logic
-- Document design decisions
+- Document **complex logic** and **non-obvious code**
+- Use JSDoc for public APIs when helpful
+- **Don't over-document** - Code should be self-explanatory
+- Comment **why**, not **what**
 
 ### Architecture Documentation
-- Document system architecture
-- Explain design patterns used
-- Document data flow
-- Maintain README files
+- Document **important decisions** and **gotchas**
+- Update README when architecture changes significantly
+- **Don't document obvious things** - Focus on what's not obvious

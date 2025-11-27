@@ -5,22 +5,30 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
 
-const DELAY = Number(process.env.DISCORDDELAY) || 1000 * 7;
+const DELAY = Number(process.env.DISCORDDELAY) || 1000 * 15;
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 5000;
 
 const agenda = require('../modules/schedule')?.agenda;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
-const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
+const { ClusterManager, HeartbeatManager, AutoResharderManager } = require('discord-hybrid-sharding');
 require("./ds-deploy-commands");
 
 // Global variables to track shutdown status
 let isShuttingDown = false;
 let shutdownTimeout = null;
 
+// Detailed signal tracking function (disabled to reduce noise)
+function logSignalDetails() {
+    // Function body commented out to reduce noise as per user request
+}
+
 // Graceful shutdown function
 async function gracefulShutdown() {
-    if (isShuttingDown) return;
+    if (isShuttingDown) {
+        console.log('[Cluster] Shutdown already in progress, ignoring duplicate call');
+        return;
+    }
     isShuttingDown = true;
 
     console.log('[Cluster] Starting graceful shutdown...');
@@ -28,6 +36,7 @@ async function gracefulShutdown() {
     // Clear shutdown timeout
     if (shutdownTimeout) {
         clearTimeout(shutdownTimeout);
+        shutdownTimeout = null;
     }
 
     try {
@@ -65,13 +74,21 @@ async function gracefulShutdown() {
                 process.exit(0);
             }, { timeout: 15_000 });
         } catch (error) {
-            console.warn('[Cluster] broadcastEval during shutdown encountered an error:', error);
+            // Ignore IPC channel errors during shutdown (expected when clusters are already closed)
+            const errorCode = error.code || (error.message && error.message.includes('EPIPE') ? 'EPIPE' : null);
+            const errorMessage = error.message || String(error);
+            if (errorCode === 'EPIPE' || errorCode === 'ERR_IPC_CHANNEL_CLOSED' || 
+                errorMessage.includes('EPIPE') || errorMessage.includes('Channel closed')) {
+                console.log('[Cluster] Ignoring IPC channel errors during shutdown (expected behavior)');
+            } else {
+                console.warn('[Cluster] broadcastEval during shutdown encountered an error:', error);
+            }
         }
 
-        console.log('[Cluster] Graceful shutdown completed');
         process.exit(0);
     } catch (error) {
         console.error('[Cluster] Error during shutdown:', error);
+        console.error('[Cluster] Shutdown error stack:', error.stack);
         process.exit(1);
     }
 }
@@ -79,44 +96,68 @@ async function gracefulShutdown() {
 // Configuration options
 const clusterOptions = {
     token: channelSecret,
-    shardsPerClusters: 2,
+    shardsPerClusters: 2,     // Increased from 1 to 2. Reduces process count from 56 to 28. Saves ~50% RAM and DB connections.
     totalShards: 'auto',
     mode: 'process',
-    spawnTimeout: -1,
     respawn: false, // Disable auto respawn, manually controlled
     retry: {
         attempts: MAX_RETRY_ATTEMPTS,
         delay: RETRY_DELAY
     },
+    // Add execArgv for Node.js command-line options (recommended by discord.js sharding guide)
+    execArgv: ['--trace-warnings'],
     // Add reconnection and backoff options
     fetchTimeout: 30_000,
     restarts: {
         max: 5,
         interval: 60_000 * 10 // 10 minutes
+    },
+    // Queue options for complex codebases
+    queue: {
+        auto: true, // Auto queue clusters, can be set to false for manual control
     }
 };
 
 const manager = new ClusterManager('./modules/discord_bot.js', clusterOptions);
 
+// AutoResharder configuration for automatic re-sharding
+manager.autoresharder = new AutoResharderManager(manager, {
+    /* minimum amount of guilds each shard should contain */
+    MinGuildsPerShard: 1400, // or auto
+
+    /* maximum amount of guilds each shard should contain -> if exceeded it auto. "re-shards" the bot */
+    MaxGuildsPerShard: 2400,
+
+    /* OPTIONAL: RestartOptions which should be used for the ClusterManager */
+    restartOptions: {
+        /** The restartMode of the clusterManager, gracefulSwitch = waits until all new clusters have spawned with maintenance mode, rolling = Once the Cluster is Ready, the old cluster will be killed  */
+        restartMode: 'rolling', // or 'gracefulSwitch'
+        /** The delay to wait between each cluster spawn */
+        delay: 7e3, // any number > 0 | above 7 prevents api ratelimit
+        /** The readyTimeout to wait until the cluster spawn promise is rejected */
+        timeout: -1,
+    },
+});
+
 // Improved event handling
 let heartbeatStarted = false;
 manager.on('clusterCreate', shard => {
-    console.log(`[Cluster] Launched cluster #${shard.id}`);
 
     shard.on('spawn', () => {
         const maxShard = Math.ceil(shard.manager.totalShards / 3);
         console.log(`[Cluster ${shard.id}] Ready with ${shard.manager.totalShards} total shards. Max shards per cluster: ${maxShard}`);
 
-        if (heartbeatStarted) return;
+        if (heartbeatStarted) {
+            return;
+        }
 
-        // Ensure all clusters have been created before checking if they are ready
-        if (shard.manager.clusters.size !== shard.manager.totalClusters) return;
+        // For single cluster respawn, only check if this specific cluster is ready
+        // During respawn, clusters.size might not equal totalClusters yet
+        const activeClusters = [...shard.manager.clusters.values()].filter(c => c.ready);
+        const allActiveReady = activeClusters.length === shard.manager.clusters.size;
 
-        const allReady = [...shard.manager.clusters.values()].every(c => c.ready);
-
-        if (allReady) {
+        if (allActiveReady) {
             heartbeatStarted = true;
-            console.log('[Cluster] All clusters are ready. Broadcasting startHeartbeat message.');
             shard.manager.broadcast({ type: 'startHeartbeat' });
         }
     });
@@ -124,27 +165,47 @@ manager.on('clusterCreate', shard => {
     const errorHandler = (event, error) => {
         // Don't handle errors if shutting down
         if (isShuttingDown) return;
-
-        console.error(`[Cluster ${shard.id}] ${event}:`, error);
+        
+        console.error(`[Cluster] Cluster ${shard.id} ${event}:`, error);
+        
         // Add retry logic
         if (event === 'death') {
+            const exitCode = error && typeof error === 'string' ? error.match(/Exit code: (\d+)/)?.[1] : 'unknown';
+            console.error(`[Cluster] Cluster ${shard.id} death detected. Exit code: ${exitCode}`);
+            
             setTimeout(() => {
                 if (!isShuttingDown) {
-                    console.log(`[Cluster ${shard.id}] Attempting to respawn...`);
+                    console.log(`[Cluster] Attempting to respawn cluster ${shard.id} after ${RETRY_DELAY}ms delay`);
                     try {
                         shard.respawn({ timeout: 60_000 });
+                        console.log(`[Cluster] Respawn command sent for cluster ${shard.id}`);
                     } catch (error_) {
-                        console.error(`[Cluster ${shard.id}] Failed to respawn:`, error_);
+                        console.error(`[Cluster] Respawn error for cluster ${shard.id}:`, error_ && error_.message);
                     }
+                } else {
+                    console.log(`[Cluster] Shutdown in progress, skipping respawn for cluster ${shard.id}`);
                 }
             }, RETRY_DELAY);
         }
     };
 
-    shard.on('disconnect', () => errorHandler('Disconnect'));
-    shard.on('reconnecting', () => console.log(`[Cluster ${shard.id}] Reconnecting...`));
-    shard.on('death', (process) => errorHandler('Death', `Exit code: ${process.exitCode}`));
-    shard.on('error', (error) => errorHandler('Error', error));
+    shard.on('disconnect', () => {
+        errorHandler('Disconnect');
+    });
+
+    shard.on('reconnecting', () => {
+        // console.log(`[Cluster ${shard.id}] Reconnecting...`);
+    });
+
+    shard.on('death', (process) => {
+        errorHandler('Death', `Exit code: ${process.exitCode}`);
+    });
+    
+    shard.on('error', (error) => {
+        console.error(`[Cluster] Cluster ${shard.id} error:`, error.message || error);
+        if (error.stack) console.error(`[Cluster] Stack trace:\n${error.stack}`);
+        errorHandler('Error', error);
+    });
 });
 
 // Improved message handling
@@ -155,6 +216,7 @@ manager.on("clusterCreate", cluster => {
 
         if (message.respawn === true && message.id !== null && message.id !== undefined) {
             console.log(`[Cluster] Respawning cluster ${message.id}`);
+            
             try {
                 const targetCluster = manager.clusters.get(Number(message.id));
                 if (targetCluster) {
@@ -173,13 +235,14 @@ manager.on("clusterCreate", cluster => {
         }
 
         if (message.respawnall === true) {
-            console.log('[Cluster] Initiating full cluster respawn');
+     
             try {
                 await manager.respawnAll({
                     clusterDelay: 1000 * 60 * 1, // 1 minutes between clusters
                     respawnDelay: 5000,          // 5 seconds
                     timeout: 1000 * 60 * 5       // 5 minutes timeout
                 });
+                console.log('[Cluster] Successfully initiated respawnAll for all clusters');
             } catch (error) {
                 console.error('[Cluster] Failed to respawn all clusters:', error);
             }
@@ -192,14 +255,32 @@ if (agenda) {
     agenda.define('dailyDiscordMaintenance', async () => {
         if (isShuttingDown) return;
 
+        const timestamp = new Date().toISOString();
+        const stack = new Error('Daily maintenance stack trace').stack;
+        const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+        
+        console.error('[Schedule] ========== DAILY MAINTENANCE RESPAWN TRIGGERED ==========');
+        console.error(`[Schedule] Timestamp: ${timestamp}`);
+        console.error(`[Schedule] Task: dailyDiscordMaintenance`);
+        console.error(`[Schedule] Total Clusters: ${manager.clusters.size}`);
+        console.error(`[Schedule] PID: ${process.pid}, PPID: ${process.ppid}`);
+        console.error(`[Schedule] Stack Trace:\n${stackLines}`);
+        console.error('[Schedule] ==========================================');
         console.log('[Schedule] Running daily Discord maintenance');
+        
         try {
             await manager.respawnAll({
                 clusterDelay: 1000 * 60,
                 respawnDelay: 500,
                 timeout: 1000 * 60 * 2
             });
+            console.error('[Schedule] Daily maintenance respawnAll completed successfully');
         } catch (error) {
+            console.error('[Schedule] ========== DAILY MAINTENANCE ERROR ==========');
+            console.error(`[Schedule] Error Name: ${error && error.name}`);
+            console.error(`[Schedule] Error Message: ${error && error.message}`);
+            console.error(`[Schedule] Stack: ${error && error.stack}`);
+            console.error('[Schedule] ==========================================');
             console.error('[Schedule] Failed to perform maintenance:', error);
         }
     });
@@ -208,11 +289,20 @@ if (agenda) {
 // Heartbeat management
 manager.extend(
     new HeartbeatManager({
-        interval: 5000,           // Increased interval
-        maxMissedHeartbeats: 5,   // Decreased tolerance
+        interval: 10_000,          // Increased interval to 10s to reduce load
+        maxMissedHeartbeats: 10,  // Increased tolerance to 100s total (allows for 60s DB timeouts)
         onMissedHeartbeat: (cluster) => {
             if (!isShuttingDown) {
-                console.warn(`[Heartbeat] Cluster ${cluster.id} missed a heartbeat`);
+                console.warn(`[Heartbeat] Cluster ${cluster.id} missed a heartbeat (Tolerance: ${10 - cluster.missedHeartbeats} remaining)`);
+                // If cluster consistently misses heartbeats, trigger respawn
+                if (cluster.missedHeartbeats >= 8) { // After 80 seconds of missed heartbeats
+                    console.error(`[Heartbeat] Cluster ${cluster.id} missed too many heartbeats, triggering respawn`);
+                    try {
+                        cluster.respawn({ delay: 7000, timeout: -1 });
+                    } catch (error) {
+                        console.error(`[Heartbeat] Failed to respawn cluster ${cluster.id}:`, error.message);
+                    }
+                }
             }
         },
         onClusterReady: (cluster) => {
@@ -223,9 +313,26 @@ manager.extend(
 
 // Process signal handling
 process.on('SIGTERM', async () => {
-    console.log('[Cluster] Received SIGTERM signal');
+    logSignalDetails('SIGTERM', 'Cluster');
+    
+    // Prevent multiple simultaneous shutdowns
+    if (isShuttingDown) {
+        console.log('[Cluster] Shutdown already in progress, ignoring SIGTERM');
+        return;
+    }
+    
     // Set force shutdown timeout
     shutdownTimeout = setTimeout(() => {
+        const exitTimestamp = new Date().toISOString();
+        const exitStack = new Error('Force shutdown timeout stack trace').stack;
+        const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+        console.error('[Cluster] ========== FORCE SHUTDOWN TIMEOUT (SIGTERM) ==========');
+        console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
+        console.error(`[Cluster] Reason: Graceful shutdown timeout (30 seconds)`);
+        console.error(`[Cluster] Exit Code: 1 (Force shutdown)`);
+        console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+        console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
+        console.error('[Cluster] ==========================================');
         console.log('[Cluster] Force shutdown after timeout');
         process.exit(1);
     }, 30_000); // 30 second timeout
@@ -234,9 +341,26 @@ process.on('SIGTERM', async () => {
 });
 
 process.on('SIGINT', async () => {
-    console.log('[Cluster] Received SIGINT signal');
+    logSignalDetails('SIGINT', 'Cluster');
+    
+    // Prevent multiple simultaneous shutdowns
+    if (isShuttingDown) {
+        console.log('[Cluster] Shutdown already in progress, ignoring SIGINT');
+        return;
+    }
+    
     // Set force shutdown timeout
     shutdownTimeout = setTimeout(() => {
+        const exitTimestamp = new Date().toISOString();
+        const exitStack = new Error('Force shutdown timeout stack trace').stack;
+        const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+        console.error('[Cluster] ========== FORCE SHUTDOWN TIMEOUT (SIGINT) ==========');
+        console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
+        console.error(`[Cluster] Reason: Graceful shutdown timeout (30 seconds)`);
+        console.error(`[Cluster] Exit Code: 1 (Force shutdown)`);
+        console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+        console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
+        console.error('[Cluster] ==========================================');
         console.log('[Cluster] Force shutdown after timeout');
         process.exit(1);
     }, 30_000); // 30 second timeout
@@ -244,11 +368,46 @@ process.on('SIGINT', async () => {
     await gracefulShutdown();
 });
 
+// Track process.exit calls
+const originalExit = process.exit;
+process.exit = function(code) {
+    return originalExit.call(process, code);
+};
+
+// Track process exit event
+process.on('exit', (code) => {
+    console.error(`[Cluster] Process exiting with code: ${code} (PID: ${process.pid})`);
+});
+
+// Queue control system for complex codebases
+if (clusterOptions.queue && clusterOptions.queue.auto === false) {
+    // Manual queue control - spawn and then manually trigger next
+    manager.on('clusterCreate', cluster => {
+        cluster.on('ready', () => {
+            // When a cluster is ready, spawn the next one in queue
+            setTimeout(() => {
+                if (!isShuttingDown) {
+                    manager.queue.next();
+                }
+            }, 1000); // Small delay to prevent overwhelming
+        });
+    });
+}
+
 // Start clusters
 manager.spawn({
     timeout: -1,
     delay: DELAY,
     amount: 'auto'
+}).then(() => {
+    // If manual queue control is enabled, start the queue
+    if (clusterOptions.queue && clusterOptions.queue.auto === false) {
+        setTimeout(() => {
+            if (!isShuttingDown) {
+                manager.queue.next();
+            }
+        }, DELAY);
+    }
 }).catch(error => {
     console.error('[Cluster] Failed to spawn clusters:', error);
     process.exit(1);

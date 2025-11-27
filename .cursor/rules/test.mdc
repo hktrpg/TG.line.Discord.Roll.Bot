@@ -1,0 +1,322 @@
+---
+description: Testing standards and patterns using Jest
+globs:
+  - "test/**/*.js"
+  - "**/*.test.js"
+alwaysApply: false
+---
+
+# Testing Rules (Pragmatic Approach for Solo Developer)
+
+## Testing Philosophy
+- **Test critical functionality** - Focus on what matters most
+- **Test new features** - Ensure new code works correctly
+- **Skip stable code** - If it works and hasn't changed, don't add tests
+- **Fast development** - Don't let testing slow down feature delivery
+
+## Testing Framework
+- **Use Jest** for all tests (see `package.json`)
+- Test files: `*.test.js` or in `test/` directory
+- Run tests: `yarn test`
+
+## Test Structure
+
+### Standard Test File Pattern
+```javascript
+// Mock dependencies
+jest.mock('../modules/schema.js', () => ({
+    modelName: {
+        findOne: jest.fn(),
+        updateOne: jest.fn()
+    }
+}));
+
+jest.mock('../modules/level', () => ({
+    EXPUP: jest.fn()
+}));
+
+// Import module under test
+const moduleUnderTest = require('../modules/moduleName');
+
+describe('ModuleName Tests', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    describe('Feature Group', () => {
+        test('should do something', async () => {
+            // Arrange
+            const input = 'test';
+            
+            // Act
+            const result = await moduleUnderTest.function(input);
+            
+            // Assert
+            expect(result).toBeDefined();
+        });
+    });
+});
+```
+
+## Mocking Patterns
+
+### Mock Dependencies
+- Mock external modules at the top of test file
+- Mock database schemas (see `test/analytics.test.js`)
+- Mock modules that have side effects
+- Use `jest.fn()` for function mocks
+
+### Mock Examples
+```javascript
+// Mock schema
+jest.mock('../modules/schema.js', () => ({
+    characterCard: {
+        findOne: jest.fn().mockResolvedValue({ name: 'Test' }),
+        updateOne: jest.fn().mockResolvedValue({})
+    }
+}));
+
+// Mock VIP module
+jest.mock('../modules/veryImportantPerson', () => ({
+    viplevelCheckGroup: jest.fn().mockResolvedValue(5)
+}));
+```
+
+## Test Organization
+
+### Describe Blocks
+- Use `describe` for grouping related tests
+- Nest `describe` blocks for sub-features
+- Use descriptive names: `describe('FeatureName Tests', () => {})`
+
+### Test Cases
+- Use `test` or `it` for individual test cases
+- Use descriptive test names: `test('should return error when input is invalid', () => {})`
+- Follow Arrange-Act-Assert pattern
+
+## Testing Patterns
+
+### Async Testing
+```javascript
+test('should handle async operation', async () => {
+    const result = await asyncFunction();
+    expect(result).toBeDefined();
+});
+```
+
+### Error Testing
+```javascript
+test('should throw error on invalid input', async () => {
+    await expect(functionUnderTest(invalidInput)).rejects.toThrow();
+});
+```
+
+### Mock Function Testing
+```javascript
+test('should call database function', async () => {
+    const mockFindOne = jest.fn().mockResolvedValue({});
+    schema.modelName.findOne = mockFindOne;
+    
+    await functionUnderTest();
+    
+    expect(mockFindOne).toHaveBeenCalled();
+});
+```
+
+## Test Priority (What to Test First)
+
+### Priority 1: Critical Functionality (Must Test)
+- ✅ **Core dice rolling logic** - Users depend on this
+- ✅ **Database operations** - Data integrity is critical
+- ✅ **Authentication/Authorization** - Security critical
+- ✅ **Payment/billing** (if applicable) - Financial critical
+- ✅ **Error-prone areas** - Code that has broken before
+
+### Priority 2: New Features (Should Test)
+- ✅ **New functionality** - Ensure it works before release
+- ✅ **Complex logic** - Hard-to-understand code needs tests
+- ✅ **Integration points** - External API calls, database queries
+
+### Priority 3: Nice to Have (Skip if Time-Pressed)
+- ⚠️ **Edge cases** - Test when you have time
+- ⚠️ **Boundary conditions** - Test when fixing bugs
+- ⚠️ **Simple functions** - Often not worth testing
+
+### Don't Test
+- ❌ **Stable, unchanged code** - If it works, leave it alone
+- ❌ **Simple getters/setters** - Obvious code doesn't need tests
+- ❌ **Third-party code** - Test your usage, not their code
+- ❌ **Private/internal functions** - Test public APIs instead
+
+### Coverage Goals (Realistic)
+- **Critical paths**: Test thoroughly
+- **New features**: Test main functionality
+- **Overall coverage**: Don't aim for 100% - aim for confidence
+- **Focus on bugs**: Test areas that have caused problems before
+
+## Test Data
+
+### Test Fixtures
+- Use consistent test data
+- Create reusable test fixtures
+- Use realistic data when possible
+- Clean up test data after tests
+
+### Example Test Data
+```javascript
+const testUser = {
+    userId: 'test-user-123',
+    userName: 'TestUser',
+    groupId: 'test-group-456'
+};
+
+const testCharacter = {
+    userid: 'test-user-123',
+    groupid: 'test-group-456',
+    name: 'TestCharacter',
+    state: 'HP:15/15'
+};
+```
+
+## Common Test Patterns
+
+### Testing Roll Commands
+```javascript
+describe('Roll Command Tests', () => {
+    test('should process valid dice roll', async () => {
+        const params = {
+            inputStr: '1d100',
+            userId: 'user123',
+            groupId: 'group456'
+        };
+        
+        const result = await rollDiceCommand(params);
+        
+        expect(result).toHaveProperty('text');
+        expect(result.text).toContain('結果');
+    });
+});
+```
+
+### Testing Database Operations
+```javascript
+test('should save to database', async () => {
+    const mockUpdateOne = jest.fn().mockResolvedValue({});
+    schema.modelName.updateOne = mockUpdateOne;
+    
+    await saveData({ groupid: 'test', data: 'value' });
+    
+    expect(mockUpdateOne).toHaveBeenCalledWith(
+        { groupid: 'test' },
+        { $set: { data: 'value' } },
+        expect.any(Object)
+    );
+});
+```
+
+### Testing Error Handling
+```javascript
+test('should handle database error', async () => {
+    schema.modelName.findOne = jest.fn().mockRejectedValue(
+        new Error('Database error')
+    );
+    
+    await expect(functionUnderTest()).rejects.toThrow('Database error');
+});
+```
+
+## Test File Naming
+
+### Conventions
+- Test file: `moduleName.test.js`
+- Test directory: `test/moduleName.test.js`
+- Match test file to source file name
+- Group related tests in same file
+
+## Setup and Teardown
+
+### Before/After Hooks
+```javascript
+describe('Test Suite', () => {
+    beforeEach(() => {
+        // Setup before each test
+        jest.clearAllMocks();
+    });
+    
+    afterEach(() => {
+        // Cleanup after each test
+    });
+    
+    beforeAll(() => {
+        // Setup once before all tests
+    });
+    
+    afterAll(() => {
+        // Cleanup once after all tests
+    });
+});
+```
+
+## Best Practices (Pragmatic)
+
+### Do's
+- ✅ **Test critical functionality** - Focus on what matters
+- ✅ **Test new features** - Ensure they work before release
+- ✅ **Test error cases** - Especially for critical paths
+- ✅ **Mock external dependencies** - Don't use real services
+- ✅ **Use descriptive test names** - Help yourself understand later
+- ✅ **Test one thing per test case** - Keep tests simple
+
+### Don'ts
+- ❌ **Don't test stable code** - If it works, don't add tests
+- ❌ **Don't test implementation details** - Test behavior, not internals
+- ❌ **Don't write overly complex tests** - Simple tests are better
+- ❌ **Don't aim for 100% coverage** - Focus on confidence, not numbers
+- ❌ **Don't let tests slow development** - Skip non-critical tests when needed
+
+### When to Skip Tests
+- ✅ **Stable, unchanged code** - It works, don't touch it
+- ✅ **Simple, obvious functions** - Self-explanatory code
+- ✅ **Time pressure** - Features > Tests (but test critical stuff)
+- ✅ **Prototype/experimental code** - Test when it becomes stable
+
+## Running Tests
+
+### Commands
+```bash
+# Run all tests
+yarn test
+
+# Run specific test file
+yarn test test/moduleName.test.js
+
+# Run tests in watch mode
+yarn test --watch
+
+# Run tests with coverage
+yarn test --coverage
+```
+
+## Quick Testing Guide
+
+### For New Features
+1. Write basic test for main functionality
+2. Test error cases if critical
+3. Run tests before committing
+4. Skip edge cases if time-pressed
+
+### For Bug Fixes
+1. Write test that reproduces the bug
+2. Fix the bug
+3. Verify test passes
+4. Keep the test (helps prevent regression)
+
+### For Stable Code
+1. **Don't add tests** - If it works, leave it alone
+2. Only add tests if you're modifying it
+3. Focus on the changes you're making
+
+## Integration with CI/CD
+- Critical tests should pass before merging
+- Don't fail build on low coverage - focus on critical tests passing
+- Use test results to catch regressions, not enforce perfection

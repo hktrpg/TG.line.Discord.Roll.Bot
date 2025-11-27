@@ -281,7 +281,7 @@ const connect = function () {
             if (!object.text) return;
             console.log('[Telegram] Telegram have message')
             TGclient.api.sendMessage(object.target.id, object.text).catch((error) => {
-                console.error("Telegram sendMessage error:", error.message);
+                console.error("[Telegram] sendMessage error:", error.message);
             });
             return;
         }
@@ -294,7 +294,7 @@ const connect = function () {
 
     });
     ws.on('error', (error) => {
-        console.error('Telegram socket error', error);
+        console.error('[Telegram] Socket error', error);
     });
 
     ws.on('close', function () {

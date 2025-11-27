@@ -33,7 +33,7 @@ async function getUserProfile(event, userid) {
 	try {
 		// Validate userid before making API calls
 		if (!userid || userid.trim() === '') {
-			console.error(`LINE getProfile error: Invalid userId provided (${userid})`);
+			console.error(`[Line] getProfile error: Invalid userId provided (${userid})`);
 			return null;
 		}
 
@@ -48,9 +48,9 @@ async function getUserProfile(event, userid) {
 		return profile;
 	} catch (error) {
 		if (error.status === 404) {
-			console.error(`LINE getProfile error: User profile not accessible (${userid})`);
+			console.error(`[Line] getProfile error: User profile not accessible (${userid})`);
 		} else {
-			console.error(`LINE getProfile error: ${error.status} - ${error.message} (userId: ${userid})`);
+			console.error(`[Line] getProfile error: ${error.status} - ${error.message} (userId: ${userid})`);
 		}
 		return null;
 	}
@@ -71,7 +71,7 @@ app.post('/', line.middleware(config), async (req, res) => {
 		const result = await Promise.all(req.body.events.map(handleEvent));
 		res.json(result);
 	} catch (error) {
-		console.error('LINE event processing error:', error.message);
+		console.error('[Line] Event processing error:', error.message);
 		res.status(500).end();
 	}
 });
@@ -79,7 +79,7 @@ app.post('/', line.middleware(config), async (req, res) => {
 // Add error handling middleware for signature validation failures
 app.use((error, req, res, next) => {
 	if (error.message && (error.message.includes('signature') || error.message.includes('no signature'))) {
-		console.error('LINE webhook signature verification failed:', error.message);
+		console.error('[Line] Webhook signature verification failed:', error.message);
 		return res.status(401).json({ error: 'Invalid signature' });
 	}
 	next(error);
@@ -301,7 +301,7 @@ let handleEvent = async function (event) {
 	}
 	return;
 	} catch (error) {
-		console.error('LINE handleEvent error:', error.message);
+		console.error('[Line] handleEvent error:', error.message);
 		// Don't re-throw the error to prevent it from bubbling up to Promise.all
 	}
 }
@@ -314,7 +314,7 @@ async function __sendMeMessage({ event, rplyVal, roomorgroupid }) {
 			replyToken: event.replyToken,
 			messages: messages
 		}).catch((error) => {
-			console.error('#60 line err', error.status);
+			console.error('[Line] Error:', error.status);
 		});
 	} else {
 		SendToId(event.source.userId, rplyVal.myspeck.content);
@@ -332,11 +332,11 @@ let replyMessagebyReplyToken = function (event, Reply) {
 		// Handle reply message errors
 		const statusCode = error.status;
 		if (statusCode === 404) {
-			console.error('LINE replyMessage 404: Invalid reply token or user blocked bot');
+			console.error('[Line] replyMessage 404: Invalid reply token or user blocked bot');
 		} else if (statusCode === 400) {
-			console.error('LINE replyMessage 400: Invalid message format');
+			console.error('[Line] replyMessage 400: Invalid message format');
 		} else {
-			console.error(`LINE replyMessage error (${statusCode})`);
+			console.error(`[Line] replyMessage error (${statusCode})`);
 		}
 
 		// Fallback for image messages
@@ -349,7 +349,7 @@ let replyMessagebyReplyToken = function (event, Reply) {
 				replyToken: event.replyToken,
 				messages: [tempB]
 			}).catch((fallbackError) => {
-				console.error(`LINE replyMessage fallback error (${fallbackError.status})`);
+				console.error(`[Line] replyMessage fallback error (${fallbackError.status})`);
 			});
 		}
 	});
@@ -471,7 +471,7 @@ if (agenda && agenda.agenda && lineAgenda) {
 		try {
 			await job.remove();
 		} catch (error) {
-			console.error("LINE: Error removing job from collection:scheduleAtMessageLine", error);
+			console.error("[Line] Error removing job from collection:scheduleAtMessageLine", error);
 		}
 	});
 
@@ -491,7 +491,7 @@ if (agenda && agenda.agenda && lineAgenda) {
 				)
 			}
 		} catch (error) {
-			console.error("Line Error removing job from collection:scheduleCronMessageLine", error);
+			console.error("[Line] Error removing job from collection:scheduleCronMessageLine", error);
 		}
 	});
 }
@@ -499,11 +499,11 @@ if (agenda && agenda.agenda && lineAgenda) {
 
 app.on('UnhandledPromiseRejection', error => {
 	// Will print "unhandledRejection err is not defined"
-	console.error('Line UnhandledPromiseRejection:', error.message);
+	console.error('[Line] Unhandled promise rejection:', error.message);
 });
 app.on('unhandledRejection', error => {
 	// Will print "unhandledRejection err is not defined"
-	console.error('Line unhandledRejection:', error.message);
+	console.error('[Line] Unhandled rejection:', error.message);
 });
 function SendToId(targetid, Reply) {
 	const temp = HandleMessage(Reply);
@@ -516,11 +516,11 @@ function SendToId(targetid, Reply) {
 		if (statusCode === 429) return; // Rate limit, ignore
 
 		if (statusCode === 404) {
-			console.error(`LINE pushMessage 404: User not found or blocked bot (${targetid})`);
+			console.error(`[Line] pushMessage 404: User not found or blocked bot (${targetid})`);
 		} else if (statusCode === 400) {
-			console.error('LINE pushMessage 400: Invalid message format');
+			console.error('[Line] pushMessage 400: Invalid message format');
 		} else {
-			console.error(`LINE pushMessage error (${statusCode}): ${targetid}`);
+			console.error(`[Line] pushMessage error (${statusCode}): ${targetid}`);
 		}
 	});
 }
@@ -550,7 +550,7 @@ async function nonDice(event) {
 			replyMessagebyReplyToken(event, LevelUp.text);
 		}
 	} catch (error) {
-		console.error('LINE nonDice processing error:', error.message);
+		console.error('[Line] nonDice processing error:', error.message);
 	}
 	return null;
 }

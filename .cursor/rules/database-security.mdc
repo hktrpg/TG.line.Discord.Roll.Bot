@@ -1,0 +1,378 @@
+---
+description: Database, security, and resource management rules for low-resource production environment
+globs:
+  - "modules/db-connector.js"
+  - "modules/records.js"
+  - "modules/schema.js"
+  - "modules/config/**/*.js"
+  - "utils/security.js"
+alwaysApply: false
+---
+
+# Database & Security Rules
+
+## Production Environment Constraints
+
+### Hardware Limits
+- **RAM**: 4096 MB (4 GB) - Very limited
+- **CPU**: 2 vCPUs - Limited processing power
+- **Storage**: 128 GB NVMe - Adequate but monitor usage
+- **OS**: Linux
+
+### Resource Management Priority
+1. **Memory efficiency** - Critical for 4GB RAM
+2. **Connection pooling** - Minimize database connections
+3. **Caching strategy** - Balance memory vs performance
+4. **Query optimization** - Reduce database load
+
+## Database Connection Management
+
+### Connection Pool Configuration
+- **Use shared connections** - Multiple shards share one MongoDB connection (see `db-connector.js`)
+- **Optimize pool size** - Balance between concurrency and memory:
+  - `maxPoolSize: 50` - Reasonable for 2 vCPUs
+  - `minPoolSize: 5` - Maintain minimum connections
+  - `maxIdleTimeMS: 30_000` - Close idle connections quickly
+- **Connection timeouts** - Prevent hanging connections:
+  - `connectTimeoutMS: 30_000` - 30 seconds max
+  - `socketTimeoutMS: 45_000` - 45 seconds for slow queries
+  - `serverSelectionTimeoutMS: 30_000` - 30 seconds server selection
+
+### Connection Best Practices
+```javascript
+// ✅ GOOD: Use shared connection from db-connector.js
+const mongoose = require('./db-connector.js').mongoose;
+
+// ❌ BAD: Don't create new connections
+// const mongoose = require('mongoose');
+// await mongoose.connect(url); // Creates duplicate connection
+```
+
+### Connection State Management
+- Check `mongoose.connection.readyState` before operations
+- Use `waitForConnection()` helper when needed
+- Handle disconnections gracefully with retry logic
+- Use exponential backoff for reconnection (see `db-connector.js`)
+
+## Database Query Optimization
+
+### Index Usage
+- **Always use indexes** for frequently queried fields (see `schema.js`)
+- **Compound indexes** for common query patterns:
+  ```javascript
+  // Example: { groupid: 1, userid: 1 } for findOne({ groupid, userid })
+  indexes: [
+      { groupid: 1, userid: 1 }
+  ]
+  ```
+- **Index order matters** - Put most selective field first
+- **Don't over-index** - Each index uses memory and slows writes
+
+### Query Patterns
+- **Use `findOne()`** instead of `find().limit(1)` when possible
+- **Limit result sets** - Use `.limit()` for large collections
+- **Project fields** - Only fetch needed fields: `.find({}, { name: 1, email: 1 })`
+- **Avoid N+1 queries** - Batch operations when possible
+
+### Query Examples
+```javascript
+// ✅ GOOD: Use index, limit results
+const result = await schema.modelName.findOne(
+    { groupid, userid }, // Uses compound index
+    { name: 1, level: 1 } // Project only needed fields
+);
+
+// ✅ GOOD: Batch operations
+const [user1, user2] = await Promise.all([
+    schema.modelName.findOne({ userid: '1' }),
+    schema.modelName.findOne({ userid: '2' })
+]);
+
+// ❌ BAD: Fetching all documents
+const all = await schema.modelName.find({}); // Could be huge!
+
+// ❌ BAD: N+1 query pattern
+for (const id of ids) {
+    await schema.modelName.findOne({ userid: id }); // Multiple queries
+}
+```
+
+## Caching Strategy (Memory-Conscious)
+
+### Cache Configuration
+- **TTL-based caching** - Use `NodeCache` with TTL (see `records.js`)
+- **Cache TTL**: 300 seconds (5 minutes) - Balance freshness vs memory
+- **Cache size limits** - Monitor cache memory usage
+- **Cache invalidation** - Clear cache on updates
+
+### When to Cache
+✅ **Cache these:**
+- Frequently accessed, rarely changed data
+- Expensive queries (aggregations, joins)
+- User permissions/VIP levels
+- Configuration data
+
+❌ **Don't cache these:**
+- Frequently updated data
+- Large result sets (> 1MB)
+- User-specific data (unless very common)
+- Real-time data
+
+### Cache Patterns
+```javascript
+// ✅ GOOD: Cache with TTL
+const CACHE_TTL = 300; // 5 minutes
+const cache = new NodeCache({ stdTTL: CACHE_TTL });
+
+// Check cache first
+const cacheKey = `model:${groupId}`;
+const cached = cache.get(cacheKey);
+if (cached) return cached;
+
+// Query database
+const result = await schema.modelName.findOne({ groupid });
+cache.set(cacheKey, result);
+return result;
+
+// ❌ BAD: Caching everything
+cache.set('allUsers', allUsers); // Could be huge!
+```
+
+## Memory Management
+
+### Memory Limits for 4GB RAM
+- **Node.js heap**: ~2-3 GB max (leave 1GB for system)
+- **Database connections**: ~50 connections max
+- **Cache size**: Monitor and limit (use TTL)
+- **Event listeners**: Clean up properly
+
+### Memory Best Practices
+- **Clean up event listeners** - Use `removeAllListeners()` when needed
+- **Release resources** - Close connections, clear caches on shutdown
+- **Monitor memory usage** - Use `process.memoryUsage()` for debugging
+- **Avoid memory leaks**:
+  - Don't store large arrays in memory
+  - Clear caches periodically
+  - Use streaming for large data
+
+### Memory Patterns
+```javascript
+// ✅ GOOD: Clean up listeners
+mongoose.connection.removeAllListeners('disconnected');
+mongoose.connection.on('disconnected', handleDisconnect);
+
+// ✅ GOOD: Limit cache size
+const cache = new NodeCache({ 
+    stdTTL: 300,
+    maxKeys: 1000 // Limit cache entries
+});
+
+// ❌ BAD: Storing large arrays
+const allMessages = await schema.chatRoom.find({}); // Could be huge!
+// Better: Use pagination or streaming
+```
+
+## Security Rules
+
+### Input Validation (Critical)
+- **Always validate user input** - Use `InputValidator` from `records.js`
+- **Sanitize strings** - Trim, limit length, check format
+- **Validate object structure** - Check for prototype pollution
+- **Validate groupId/userId** - Check type, length, format
+
+### Input Validation Patterns
+```javascript
+// ✅ GOOD: Use InputValidator
+const InputValidator = require('./records.js').InputValidator;
+
+// Sanitize groupId
+try {
+    const sanitized = InputValidator.sanitizeGroupId(groupId);
+} catch (error) {
+    return { error: 'Invalid groupId' };
+}
+
+// Validate objects
+try {
+    InputValidator.sanitizeObject(query);
+} catch (error) {
+    return { error: 'Invalid query' };
+}
+
+// ❌ BAD: Direct use without validation
+const result = await schema.modelName.findOne({ groupid: userInput }); // Dangerous!
+```
+
+### SQL Injection Prevention (MongoDB)
+- **Use Mongoose queries** - Never use string concatenation
+- **Parameterized queries** - Mongoose handles this automatically
+- **Validate query structure** - Check for suspicious patterns
+
+### NoSQL Injection Prevention
+- **Validate query objects** - Check for `$where`, `$regex` abuse
+- **Sanitize user input** - Don't allow users to construct queries directly
+- **Use schema validation** - Mongoose schemas provide validation
+
+### Security Patterns
+```javascript
+// ✅ GOOD: Mongoose handles parameterization
+await schema.modelName.findOne({ groupid: userInput }); // Safe
+
+// ✅ GOOD: Validate before query
+const sanitized = InputValidator.sanitizeGroupId(userInput);
+await schema.modelName.findOne({ groupid: sanitized });
+
+// ❌ BAD: String concatenation (even if using MongoDB)
+const query = `{ groupid: "${userInput}" }`; // Dangerous!
+
+// ❌ BAD: Allowing user to construct query
+const userQuery = JSON.parse(userInput); // Dangerous!
+await schema.modelName.findOne(userQuery);
+```
+
+## Content Security Policy (CSP)
+
+### CSP Configuration
+- **Use CSP config** from `modules/config/csp.js`
+- **Restrict sources** - Only allow trusted domains
+- **Avoid 'unsafe-inline'** when possible (legacy code may need it)
+- **Monitor CSP violations** - Log and review violations
+
+### CSP Best Practices
+- **Minimize 'unsafe-inline'** - Use nonces or hashes when possible
+- **Restrict script sources** - Only allow trusted CDNs
+- **Use 'self'** for same-origin resources
+- **Test CSP** - Ensure it doesn't break functionality
+
+## Rate Limiting
+
+### Rate Limit Configuration
+- **Use RateLimiterMemory** - In-memory rate limiting (see `core-www.js`)
+- **Configure per endpoint** - Different limits for different operations
+- **Balance security vs usability** - Don't block legitimate users
+
+### Rate Limit Patterns
+```javascript
+// ✅ GOOD: Per-endpoint rate limiting
+const rateLimitConfig = {
+    chatRoom: { points: 90, duration: 60 },    // 90 requests per minute
+    card: { points: 300, duration: 60 },        // 300 requests per minute
+    api: { points: 10_000, duration: 10 }       // 10k requests per 10 seconds
+};
+
+// ❌ BAD: No rate limiting
+// Allows abuse and DoS attacks
+```
+
+## Error Handling (Security-Aware)
+
+### Error Messages
+- **Don't expose internals** - Generic error messages for users
+- **Log detailed errors** - But sanitize sensitive data
+- **Handle database errors** - Don't expose connection strings or schema details
+
+### Error Patterns
+```javascript
+// ✅ GOOD: Generic user message, detailed log
+try {
+    await databaseOperation();
+} catch (error) {
+    logger.error('Database operation failed', { error: error.message, context });
+    return { error: 'Operation failed. Please try again.' }; // Generic
+}
+
+// ❌ BAD: Exposing internals
+catch (error) {
+    return { error: `MongoDB error: ${error.message}` }; // Exposes DB
+}
+```
+
+## Schema Design (Low-Resource)
+
+### Schema Best Practices
+- **Use indexes wisely** - Only index frequently queried fields
+- **Limit document size** - Avoid storing large blobs in MongoDB
+- **Use compound indexes** - For common query patterns
+- **Set reasonable limits** - `maxlength` for strings, array size limits
+
+### Schema Patterns
+```javascript
+// ✅ GOOD: Indexed fields, size limits
+const schema = new mongoose.Schema({
+    groupid: { type: String, index: true },
+    name: { type: String, maxlength: 50 }, // Limit size
+    data: { type: Array, maxlength: 100 }  // Limit array size
+}, {
+    indexes: [
+        { groupid: 1, userid: 1 } // Compound index
+    ]
+});
+
+// ❌ BAD: No indexes, unlimited size
+const schema = new mongoose.Schema({
+    groupid: String, // No index
+    data: Array      // No limit
+});
+```
+
+## Performance Monitoring
+
+### What to Monitor
+- **Memory usage** - `process.memoryUsage()`
+- **Database connection pool** - Active/idle connections
+- **Query performance** - Slow queries (> 1 second)
+- **Cache hit rate** - Monitor cache effectiveness
+
+### Monitoring Patterns
+```javascript
+// Monitor memory
+const memory = process.memoryUsage();
+if (memory.heapUsed > 3_000_000_000) { // 3GB
+    console.warn('[Memory] High memory usage:', memory);
+}
+
+// Monitor connections
+const poolStats = mongoose.connection.db.serverStatus().connections;
+console.log('[DB] Active connections:', poolStats.current);
+```
+
+## Low-Resource Optimization Checklist
+
+### Before Adding Database Code
+- [ ] Will this query use an index?
+- [ ] Is the result set limited?
+- [ ] Is caching appropriate?
+- [ ] Is input validated?
+- [ ] Will this work with connection pooling?
+- [ ] Is memory usage reasonable?
+
+### Database Operations Checklist
+- [ ] Use shared mongoose connection
+- [ ] Check connection state before query
+- [ ] Use appropriate indexes
+- [ ] Limit result sets
+- [ ] Validate all inputs
+- [ ] Handle errors gracefully
+- [ ] Clean up resources
+
+## Common Anti-Patterns to Avoid
+
+❌ **Don't:**
+- Create multiple MongoDB connections
+- Fetch all documents without limit
+- Cache large result sets
+- Skip input validation
+- Expose database errors to users
+- Store large blobs in MongoDB
+- Create too many indexes
+- Ignore connection state
+
+✅ **Do:**
+- Use shared connection from `db-connector.js`
+- Use indexes for queries
+- Limit and paginate results
+- Validate all inputs
+- Cache small, frequently accessed data
+- Monitor memory usage
+- Clean up resources
+- Handle errors securely

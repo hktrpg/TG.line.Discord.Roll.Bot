@@ -79,7 +79,7 @@ class CandleChecker {
         this.todayCandle = matchingCandle ? (matchingCandle.candle || _DEFAULT_CANDLE) : '';
         this.todayCandleCache = this.todayCandle;
 
-        console.log(`[CandleChecker] Today is ${this.today.Month}/${this.today.Date}, isCandleDay: ${this.isCandleDay}, candle: ${this.checker()}`);
+        // console.log(`[CandleChecker] Today is ${this.today.Month}/${this.today.Date}, isCandleDay: ${this.isCandleDay}, candle: ${this.checker()}`);
     }
 
     #importDates() {

@@ -1,0 +1,107 @@
+---
+description: General development rules and principles for HKTRPG bot project
+alwaysApply: true
+---
+
+# HKTRPG Development Rules - General
+
+## Core Principles
+
+### 1. Package-First Approach
+- **ALWAYS check if a package in `package.json` provides the functionality before writing new code**
+- Reference official documentation for package APIs (discord.js, mongoose, mathjs, etc.)
+- Prefer using well-maintained packages over custom implementations
+- Example: Use `@dice-roller/rpg-dice-roller` for dice rolling instead of custom logic
+
+### 2. Code Style & Language
+- **All code, comments, and commit messages MUST be in English**
+- User-facing messages can be in Traditional Chinese (繁體中文)
+- Follow existing code patterns and conventions
+- Maintain consistency with existing codebase style
+
+### 3. Class-First Design
+- **Prefer classes over standalone functions** for:
+  - Stateful operations
+  - Reusable components
+  - Complex logic that benefits from encapsulation
+- Examples: `Logger`, `ModuleManager`, `VIPManager`, `PageConfigManager`, `Records`
+- Use classes for better maintainability and extensibility
+
+### 4. Stability First (Critical for Production)
+- **If it works, don't fix it** - Don't modify stable, working code unnecessarily
+- **Fix bugs, don't refactor** - Only refactor when necessary for bug fixes or new features
+- **Test before changing** - Always test changes thoroughly, especially for production code
+- **Incremental changes** - Make small, safe changes rather than large refactors
+- **Preserve working patterns** - Follow existing code patterns even if they're not "perfect"
+
+### 5. Pragmatic Development (Solo Developer Focus)
+- **Practical over perfect** - Prioritize functionality and stability over perfect architecture
+- **Allow shortcuts** - Use simple solutions when they work, avoid over-engineering
+- **Fast iteration** - Implement features quickly, optimize later if needed
+- **Focus on users** - Prioritize features that benefit users over code perfection
+- **Maintainability matters** - Write code that you can understand and maintain later
+
+### 6. Sustainable Architecture
+- Use simple design patterns when they help (Manager, Module patterns)
+- Avoid hardcoded values - use constants, configuration, or environment variables
+- Design for maintainability, not perfection
+- Prefer simple, working solutions over complex architectures
+
+### 7. Clean Code Principles
+- Single Responsibility Principle - each module/class should have one clear purpose
+- DRY (Don't Repeat Yourself) - extract common logic into reusable functions/classes
+- Meaningful variable and function names
+- Keep functions small and focused
+- Proper error handling with try-catch blocks
+
+### 8. Modern JavaScript Practices
+- Use modern ES6+ features (arrow functions, destructuring, async/await, etc.)
+- Prefer `const` over `let`, avoid `var`
+- Use template literals for string interpolation
+- Use async/await over callbacks when possible
+- Use object destructuring for cleaner code
+
+### 9. File Organization
+- **Temporary/one-time files**: Place in `temp/` directory
+- **New documentation**: Place in `MD/` directory
+- Follow existing directory structure:
+  - `modules/` - Core modules and utilities
+  - `roll/` - Dice rolling functionality
+  - `views/` - Frontend HTML/JS files
+  - `test/` - Test files
+  - `assets/` - Static assets
+
+### 10. ESLint Compliance
+- **MUST follow rules defined in `eslint.config.mjs`**
+- File naming: Use kebab-case, except for legacy files (z_*.js, core-*.js, etc.)
+- Run `yarn lint` before committing
+- Fix linting errors with `yarn lint:fix` when possible
+
+### 11. Error Handling
+- Always use try-catch for async operations
+- Provide meaningful error messages
+- Log errors appropriately (use logger, not console.error in production)
+- Handle edge cases gracefully
+
+### 12. Testing (Pragmatic Approach)
+- Write tests for **critical functionality** and **new features**
+- Test **error-prone areas** (dice rolling, database operations)
+- **Skip tests for stable code** - If it works and hasn't changed, don't add tests
+- Use Jest testing framework when writing tests
+- Test files should be named `*.test.js`
+- **Priority**: Core features > New features > Edge cases
+
+## Package Management
+- **Use yarn, NOT npm** for package management
+- Install packages: `yarn add <package>`
+- Update packages: `yarn upgrade <package>`
+- Check `package.json` for existing packages before adding new ones
+
+## Code Review Checklist (Solo Developer)
+- [ ] Code follows ESLint rules (run `yarn lint`)
+- [ ] Uses existing packages where possible
+- [ ] Proper error handling (try-catch for async)
+- [ ] English comments
+- [ ] Follows existing code patterns
+- [ ] Doesn't break existing functionality
+- [ ] Tests written for critical/new features (if applicable)

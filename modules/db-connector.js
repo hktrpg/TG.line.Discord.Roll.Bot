@@ -23,13 +23,13 @@ const config = {
     bufferCommands: true,     // Enable command buffering to allow operations before connection
     w: 'majority',            // 寫入確認級別
     retryWrites: true,        // 啟用寫入重試
-    autoIndex: true,          // 自動建立索引
+    autoIndex: true,          // 自動建立索引（生產環境可設為 false 提升啟動速度）
     useNewUrlParser: true,    // 使用新的 URL 解析器
     useUnifiedTopology: true  // 使用新的拓撲引擎
 };
 
 if (!config.mongoUrl) {
-    console.error('MongoDB URL is not configured');
+    console.error('[db-connector] MongoDB URL is not configured');
     return;
 }
 
@@ -240,11 +240,11 @@ function setupPoolMonitoring() {
     const client = mongoose.connection.getClient();
     if (client.topology) {
         client.topology.on('timeout', (event) => {
-            console.warn('MongoDB operation timeout:', event);
+            console.warn('[db-connector] MongoDB operation timeout:', event);
         });
         
         client.topology.on('error', (error) => {
-            console.error('MongoDB topology error:', error);
+            console.error('[db-connector] MongoDB topology error:', error);
         });
     }
 }
@@ -303,12 +303,12 @@ async function restart() {
         isConnected = false;
         const success = await connect();
         if (!success) {
-            console.error('Restart failed to establish connection');
+            console.error('[db-connector] Restart failed to establish connection');
             return false;
         }
         return true;
     } catch (error) {
-        console.error('Restart failed:', error);
+        console.error('[db-connector] Restart failed:', error);
         return false;
     }
 }
@@ -352,7 +352,7 @@ async function handleDisconnect() {
 
 // 錯誤處理
 async function handleError(error) {
-    console.error('MongoDB connection error:', error);
+    console.error('[db-connector] MongoDB connection error:', error);
     isConnected = false;
 
     // 如果已經在重新連接中，跳過
@@ -431,7 +431,7 @@ async function initializeConnection() {
         console.log('[db-connector] Initializing MongoDB connection...');
         const success = await connect();
         if (!success) {
-            console.error('Failed to establish initial MongoDB connection after all retries');
+            console.error('[db-connector] Failed to establish initial MongoDB connection after all retries');
             // 設置定期重試
             if (retryInterval) {
                 clearInterval(retryInterval);
@@ -445,12 +445,12 @@ async function initializeConnection() {
                         console.log('[db-connector] Successfully connected to MongoDB after retries');
                     }
                 } catch (error) {
-                    console.error('Retry connection error:', error);
+                    console.error('[db-connector] Retry connection error:', error);
                 }
             }, config.maxRetryInterval);
         }
     } catch (error) {
-        console.error('Initial connection error:', error);
+        console.error('[db-connector] Initial connection error:', error);
         // 設置定期重試
         if (retryInterval) {
             clearInterval(retryInterval);
@@ -464,7 +464,7 @@ async function initializeConnection() {
                     console.log('[db-connector] Successfully connected to MongoDB after retries');
                 }
             } catch (error) {
-                console.error('Retry connection error:', error);
+                console.error('[db-connector] Retry connection error:', error);
             }
         }, config.maxRetryInterval);
     } finally {

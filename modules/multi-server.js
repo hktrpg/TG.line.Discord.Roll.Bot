@@ -10,7 +10,7 @@ let channelList = [];
 	try {
 		await getRecords();
 	} catch {
-		console.error('error: multiserver message#10')
+		console.error('[Multi-Server] Error in message handling')
 		setTimeout(async () => {
 			await getRecords();
 		}, TEN_SECOND)
@@ -21,6 +21,7 @@ let channelList = [];
 
 
 async function getRecords() {
+	return;
 	if (!checkMongodb.isDbOnline()) return;
 	try {
 		let result = await checkMongodb.executeDatabaseOperation(
@@ -36,6 +37,7 @@ async function getRecords() {
 }
 
 function multiServerChecker(channelid) {
+	return false;
 	if (channelList.length === 0) return false;
 	let channel = channelList.find(v => {
 		return v.channelid == channelid;

@@ -23,7 +23,7 @@ const rollModules = new Map();
 			}
 		}
 	} catch (error) {
-		console.error('Error initializing roll modules:', error);
+		console.error('[Analytics] Error initializing roll modules:', error);
 	}
 }());
 
@@ -43,7 +43,7 @@ function getRollModule(moduleName) {
 				exports[moduleInfo.name] = exports[moduleInfo.name].initialize();
 			}
 		} catch (error) {
-			console.error(`Error loading module ${moduleInfo.name}:`, error);
+			console.error(`[Analytics] Error loading module ${moduleInfo.name}:`, error);
 			return null;
 		}
 	}
@@ -133,7 +133,7 @@ const parseInput = async (params) => {
 			result = { ...result, ...rollDiceResult };
 		}
 	} catch (error) {
-		console.error(`rolldice GET ERROR:
+		console.error(`[Analytics] rolldice GET ERROR:
 			Stack: ${error.stack}
 			Name: ${error.name}
 			Input: ${context.inputStr}
@@ -275,11 +275,11 @@ async function stateText() {
 	// 使用 Promise.all 同時獲取所有統計數據
 	const [levelSystemCount, characterCardCount, userCount] = await Promise.all([
 		schema.trpgLevelSystem.countDocuments({ Switch: '1' })
-			.catch(error => console.error('analytics #266 mongoDB error:', error.name, error.reason)),
+			.catch(error => console.error('[Analytics] MongoDB error:', error.name, error.reason)),
 		schema.characterCard.countDocuments({})
-			.catch(error => console.error('analytics #267 mongoDB error:', error.name, error.reason)),
+			.catch(error => console.error('[Analytics] MongoDB error:', error.name, error.reason)),
 		schema.firstTimeMessage.countDocuments({})
-			.catch(error => console.error('analytics #268 mongoDB error:', error.name, error.reason))
+			.catch(error => console.error('[Analytics] MongoDB error:', error.name, error.reason))
 	]);
 
 	return `【📊 HKTRPG系統狀態報告】
@@ -321,7 +321,7 @@ async function cmdfunction({ result, ...context }) {
 			mainMsg
 		}));
 	} catch (error) {
-		console.error(`cmdfunction GET ERROR:
+		console.error(`[Analytics] cmdfunction GET ERROR:
 			Error: ${error}
 			Input: ${newInputStr}
 			Botname: ${context.botname}

@@ -1,6 +1,6 @@
 "use strict";
 
-require('dotenv').config({ override: true });
+require('dotenv').config({ override: true, quiet: true });
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -82,13 +82,17 @@ class Logger {
     }
 
     formatMessage(level, message, meta = {}) {
-        const timestamp = new Date().toISOString();
+        // const timestamp = new Date().toISOString();
         // 🔒 Sanitize meta data before logging
         const sanitizedMeta = this.sanitizeData(meta);
         const metaStr = Object.keys(sanitizedMeta).length > 0 ? ` ${JSON.stringify(sanitizedMeta)}` : '';
         // 🔒 Sanitize message
         const sanitizedMessage = this.sanitizeData(message);
-        return `[${timestamp}] [${level.toUpperCase()}] ${sanitizedMessage}${metaStr}`;
+        
+        // Use [System] prefix for index.js logs to match [Module] format
+        // Map 'info' to 'System', 'error' to 'System Error', etc. if needed, or just use [System] for all
+        const prefix = level === 'error' ? 'System Error' : 'System';
+        return `[${prefix}] ${sanitizedMessage}${metaStr}`;
     }
 
     async writeToFile(message, isError = false) {
@@ -235,8 +239,101 @@ async function loadModules(moduleManager) {
     }
 }
 
+// Detailed signal tracking function
+function logSignalDetails() {
+    /*
+    const timestamp = new Date().toISOString();
+    const pid = process.pid;
+    const ppid = process.ppid;
+    const uptime = process.uptime();
+    const memoryUsage = process.memoryUsage();
+    
+    // Get stack trace (excluding this function and the signal handler)
+    const stack = new Error('Signal stack trace').stack;
+    const stackLines = stack ? stack.split('\n').slice(3).join('\n') : 'No stack trace available';
+    
+    // Try to get parent process information (with shorter timeout to avoid blocking)
+    let parentInfo = 'Unable to read parent process info';
+    try {
+        const { execSync } = require('child_process');
+        if (ppid && ppid !== 1) {
+            try {
+                // Try to get parent process command (Linux/Unix) with shorter timeout
+                const parentCmd = execSync(`ps -p ${ppid} -o comm= 2>/dev/null || ps -p ${ppid} -o command= 2>/dev/null || echo "N/A"`, { encoding: 'utf8', timeout: 500, maxBuffer: 1024 }).trim();
+                parentInfo = `Parent Process (${ppid}): ${parentCmd || 'N/A'}`;
+            } catch (error) {
+                // If timeout or error, just log the PPID
+                parentInfo = `Parent Process (${ppid}): Read timeout/error (${error.code || error.message})`;
+            }
+        } else if (ppid === 1) {
+            parentInfo = 'Parent Process (1): init/systemd (orphaned process or direct system management)';
+        }
+    } catch (error) {
+        parentInfo = `Error reading parent info: ${error.message}`;
+    }
+    
+    // Check PM2 environment variables
+    const pm2Info = {
+        PM2_HOME: process.env.PM2_HOME || 'N/A',
+        PM2_INSTANCE_ID: process.env.pm_id || process.env.NODE_APP_INSTANCE || 'N/A',
+        PM2_PUBLIC_KEY: process.env.PM2_PUBLIC_KEY ? 'SET' : 'N/A',
+        PM2_SECRET_KEY: process.env.PM2_SECRET_KEY ? 'SET' : 'N/A',
+        PM2_SERVE_PATH: process.env.PM2_SERVE_PATH || 'N/A',
+        PM2_INTERACTOR_PID: process.env.PM2_INTERACTOR_PID || 'N/A'
+    };
+    
+    // Additional PM2 diagnostic info
+    const pm2Diagnostics = {
+        isPM2: !!(process.env.PM2_HOME || process.env.pm_id),
+        instanceId: process.env.pm_id || process.env.NODE_APP_INSTANCE || 'N/A',
+        appName: process.env.name || 'N/A',
+        execMode: process.env.exec_mode || 'N/A'
+    };
+    
+    // const details = {
+    //     signal,
+    //     timestamp,
+    //     pid,
+    //     ppid,
+    //     parentInfo,
+    //     pm2Info,
+    //     pm2Diagnostics,
+    //     uptime: `${uptime.toFixed(2)}s`,
+    //     memoryUsage: {
+    //         rss: `${(memoryUsage.rss / 1024 / 1024).toFixed(2)} MB`,
+    //         heapUsed: `${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`,
+    //         heapTotal: `${(memoryUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`
+    //     },
+    //     env: {
+    //         SHARD_ID: process.env.SHARD_ID || 'N/A',
+    //         CLUSTER_ID: process.env.CLUSTER_ID || 'N/A',
+    //         NODE_ENV: process.env.NODE_ENV || 'N/A'
+    //     },
+    //     stack: stackLines
+    // };
+    
+    // logger.error(`[${moduleName}] ========== SIGNAL DETAILED LOG ==========`, details);
+    // console.error(`[${moduleName}] [ERROR] Received ${signal} signal at ${timestamp} (PID: ${pid}, PPID: ${ppid})`);
+    // console.error(`[${moduleName}] [ERROR] ${parentInfo}`);
+    // console.error(`[${moduleName}] [ERROR] PM2 Instance ID: ${pm2Info.PM2_INSTANCE_ID}`);
+    // console.error(`[${moduleName}] [ERROR] Is PM2 Managed: ${pm2Diagnostics.isPM2 ? 'YES' : 'NO'}`);
+    // console.error(`[${moduleName}] [ERROR] App Name: ${pm2Diagnostics.appName}`);
+    // console.error(`[${moduleName}] [ERROR] Exec Mode: ${pm2Diagnostics.execMode}`);
+    // console.error(`[${moduleName}] Stack Trace:\n${stackLines}`);
+    */
+}
+
+// Global shutdown flag
+let isShuttingDown = false;
+
 // Graceful Shutdown
 async function gracefulShutdown(moduleManager) {
+    if (isShuttingDown) {
+        logger.warn('Shutdown already in progress, ignoring duplicate call');
+        return;
+    }
+    isShuttingDown = true;
+    
     logger.info('Starting graceful shutdown...');
     
     // Unload all loaded modules in parallel
@@ -254,6 +351,13 @@ async function gracefulShutdown(moduleManager) {
     
     // Flush any pending logs before exit
     await logger.flush();
+    
+    // Log exit with details
+    const exitStack = new Error('Process exit stack trace').stack;
+    logger.info('Calling process.exit(0)', {
+        stack: exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace'
+    });
+    
     // eslint-disable-next-line n/no-process-exit
     process.exit(0);
 }
@@ -274,11 +378,27 @@ async function init() {
 
         // Setup shutdown handlers with delay to allow Discord modules to handle their own shutdown
         process.on('SIGTERM', () => {
+            logSignalDetails('SIGTERM', 'Main Process');
+            
+            // Prevent multiple simultaneous shutdowns
+            if (isShuttingDown) {
+                logger.warn('Shutdown already in progress, ignoring SIGTERM');
+                return;
+            }
+            
             logger.info('Received SIGTERM signal, starting graceful shutdown...');
             // Give Discord modules time to handle their own shutdown
             setTimeout(() => gracefulShutdown(moduleManager), 5000);
         });
         process.on('SIGINT', () => {
+            logSignalDetails('SIGINT', 'Main Process');
+            
+            // Prevent multiple simultaneous shutdowns
+            if (isShuttingDown) {
+                logger.warn('Shutdown already in progress, ignoring SIGINT');
+                return;
+            }
+            
             logger.info('Received SIGINT signal, starting graceful shutdown...');
             // Give Discord modules time to handle their own shutdown
             setTimeout(() => gracefulShutdown(moduleManager), 5000);
@@ -298,8 +418,43 @@ async function init() {
 
         // Handle uncaught exceptions
         process.on('uncaughtException', (err) => {
+            const stack = err.stack || new Error('Uncaught exception stack trace').stack;
+            const stackLines = stack ? stack.split('\n').slice(0, 20).join('\n') : 'No stack trace available';
+            
+            console.error('[System] Uncaught exception triggered');
+            console.error(`[System] Error: ${err.name}: ${err.message}`);
+            console.error(`[System] Stack trace:\n${stackLines}`);
+            console.error('[System] This will trigger graceful shutdown');
+            
             errorHandler(err, 'Uncaught Exception');
             gracefulShutdown(moduleManager);
+        });
+
+        // Track process.exit calls
+        const originalExit = process.exit;
+        process.exit = function(code) {
+            const timestamp = new Date().toISOString();
+            const stack = new Error('Process exit stack trace').stack;
+            const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+            
+            logger.error('[Main Process] ========== PROCESS.EXIT CALLED ==========', {
+                exitCode: code,
+                timestamp,
+                pid: process.pid,
+                ppid: process.ppid,
+                isShuttingDown,
+                stack: stackLines
+            });
+            console.error(`[System] Process.exit(${code}) called (PID: ${process.pid})`);
+            console.error(`[System] Stack trace:\n${stackLines}`);
+            
+            return originalExit.call(process, code);
+        };
+        
+        // Track process exit event
+        process.on('exit', (code) => {
+            logger.info(`[Main Process] Process exiting with code: ${code} (PID: ${process.pid})`);
+            console.error(`[System] Process exiting with code: ${code} (PID: ${process.pid})`);
         });
 
         // Handle unhandled promise rejections
@@ -312,6 +467,7 @@ async function init() {
                 reason.message.includes('connection timed out') ||
                 reason.message.includes('MongoServerSelectionError')
             )) {
+                console.error('[System] Detected as database connection error, will NOT shutdown');
                 errorHandler(reason, 'Database Connection Error');
                 // Do not close the application, let the reconnection mechanism handle it
                 return;

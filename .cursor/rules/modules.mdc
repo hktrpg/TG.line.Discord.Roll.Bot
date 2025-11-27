@@ -1,0 +1,205 @@
+---
+description: Development rules for modules directory - core functionality and utilities
+globs:
+  - "modules/**/*.js"
+alwaysApply: false
+---
+
+# Modules Directory Rules
+
+## Purpose
+The `modules/` directory contains core functionality, utilities, and platform integrations.
+
+## Key Modules Reference
+
+### Core Platform Modules
+- `core-Discord.js` - Discord bot integration
+- `core-Line.js` - Line bot integration
+- `core-Telegram.js` - Telegram bot integration
+- `core-Whatsapp.js` - WhatsApp bot integration
+- `core-www.js` - Web server (Express.js)
+- `core-plurk.js` - Plurk integration
+
+### Database & Data Management
+- `schema.js` - Mongoose schema definitions
+- `db-connector.js` - MongoDB connection management
+- `dbWatchdog.js` - Database health monitoring
+- `records.js` - Database operations (uses class pattern)
+
+### Utilities
+- `analytics.js` - Message processing and routing
+- `level.js` - Level/XP system
+- `logs.js` - Logging functionality
+- `message.js` - Message utilities
+- `translate.js` - Translation services
+- `schedule.js` - Job scheduling (Agenda)
+- `pool.js` - Connection pooling
+- `veryImportantPerson.js` - VIP management (uses class pattern)
+
+## Module Structure Pattern
+
+### Standard Module Format
+```javascript
+"use strict";
+
+// Environment check
+if (!process.env.REQUIRED_ENV) {
+    return;
+}
+
+// Dependencies
+const mongoose = require('./db-connector.js').mongoose;
+const schema = require('./schema.js');
+
+// Class-based modules (preferred)
+class ModuleManager {
+    constructor() {
+        // Initialize state
+    }
+    
+    async initialize() {
+        // Setup logic
+    }
+}
+
+// Export
+module.exports = ModuleManager;
+```
+
+## Database Modules
+
+### Schema Definitions (`schema.js`)
+- Use Mongoose Schema for all models
+- Add proper indexes (see existing schemas)
+- Use consistent naming: `groupid`, `userid` (lowercase)
+- Follow existing schema patterns
+
+### Database Operations (`records.js`)
+- Use the `Records` class pattern
+- Extend `DatabaseOperation` for custom operations
+- Handle errors properly
+- Use transactions when needed
+
+### Connection Management (`db-connector.js`)
+- Use the exported `mongoose` instance
+- Don't create new connections
+- Handle connection errors gracefully
+
+## Platform Integration Modules
+
+### Discord (`core-Discord.js`)
+- Use Discord.js v14 patterns
+- Handle sharding/clustering properly
+- Use slash commands (see `ds-deploy-commands.js`)
+- Follow existing event handling patterns
+
+### Web Server (`core-www.js`)
+- Use Express.js patterns
+- Follow existing route structure
+- Use middleware appropriately
+- Handle errors with proper status codes
+
+## Class-Based Modules
+
+### Preferred Pattern
+```javascript
+class FeatureManager {
+    constructor() {
+        this.cache = new Map();
+        this.initialized = false;
+    }
+    
+    async initialize() {
+        if (this.initialized) return;
+        // Setup logic
+        this.initialized = true;
+    }
+    
+    async shutdown() {
+        // Cleanup logic
+        this.initialized = false;
+    }
+}
+
+const manager = new FeatureManager();
+module.exports = manager;
+```
+
+## Module Initialization
+
+### For Modules Loaded by index.js
+- Implement `initialize()` method if needed
+- Implement `shutdown()` method for cleanup
+- Handle initialization errors gracefully
+
+```javascript
+module.exports = {
+    async initialize() {
+        // Setup
+    },
+    
+    async shutdown() {
+        // Cleanup
+    },
+    
+    // Other exports
+};
+```
+
+## Error Handling
+- Use try-catch for all async operations
+- Log errors with context
+- Don't let errors crash the entire module
+- Return meaningful error messages
+
+## Caching Patterns
+- Use `Map` or `node-cache` for in-memory caching
+- Implement cache invalidation strategies
+- See `veryImportantPerson.js` for cache example
+
+## Environment Variables
+- Check required env vars at module top
+- Use defaults when appropriate
+- Document required env vars in comments
+
+## Testing
+- Test modules in `test/` directory
+- Mock dependencies (see `test/analytics.test.js`)
+- Test both success and error cases
+- Test initialization and shutdown
+
+## Common Patterns
+
+### VIP/Level Checking
+```javascript
+const VIP = require('./veryImportantPerson');
+const level = require('./level');
+
+// Check VIP level
+const vipLevel = await VIP.viplevelCheckGroup(groupId);
+
+// Check user level
+const userLevel = await level.getUserLevel(userId, groupId);
+```
+
+### Database Query
+```javascript
+const schema = require('./schema.js');
+
+// Find one
+const result = await schema.modelName.findOne({ groupid });
+
+// Update
+await schema.modelName.updateOne(
+    { groupid },
+    { $set: { field: value } },
+    { upsert: true }
+);
+```
+
+### Logging
+```javascript
+// Use console.log/error for module logs
+console.log('[ModuleName] Message');
+console.error('[ModuleName] Error:', error);
+```

@@ -1,0 +1,208 @@
+---
+description: Pragmatic development principles for solo developer - stability, practicality, and fast iteration
+alwaysApply: true
+---
+
+# Pragmatic Development Rules
+
+## Solo Developer Principles
+
+### 1. Stability First (Critical)
+- **If it works, don't fix it** - Stable code serving users is more valuable than perfect code
+- **Fix bugs, don't refactor** - Only change code when fixing bugs or adding features
+- **Test before changing** - Always verify changes don't break existing functionality
+- **Incremental changes** - Make small, safe changes rather than large refactors
+- **Preserve working patterns** - Follow existing code patterns even if they're not "perfect"
+
+### 2. Practical Over Perfect
+- **Simple solutions first** - Use the simplest solution that works
+- **Avoid over-engineering** - Don't add complexity "just in case"
+- **Focus on users** - Prioritize features that help users over perfect code
+- **Maintainability matters** - Write code you can understand and fix later
+- **Allow shortcuts** - Simple, working code is better than complex, perfect code
+
+### 3. Fast Development
+- **Get it working first** - Implement features quickly, optimize later if needed
+- **Iterate based on feedback** - Improve based on actual usage, not theoretical needs
+- **Don't let perfect be the enemy of good** - Ship features, improve later
+- **Focus on value** - Prioritize features that provide value to users
+
+## Stability Priority Rules
+
+### When to Modify Code
+✅ **DO modify when:**
+- Fixing a bug
+- Adding a new feature
+- Improving performance (if there's a real problem)
+- Fixing security issues
+- Making code more maintainable (when it's causing problems)
+
+❌ **DON'T modify when:**
+- Code works and serves users well
+- "It could be better" - only change if it's causing problems
+- "It's not perfect" - perfect is the enemy of good
+- "It doesn't follow best practices" - if it works, that's the best practice
+
+### Code Change Decision Tree
+1. **Is there a bug?** → Fix it
+2. **Is there a new feature needed?** → Add it
+3. **Is it causing problems?** → Fix the problems
+4. **Is it just "not perfect"?** → Leave it alone
+
+## Practical Development Guidelines
+
+### Quick Decision Making
+- **Use existing patterns** - Don't invent new patterns unless necessary
+- **Copy working code** - If something works, use it as a template
+- **Simple over complex** - Choose the simpler solution
+- **Package over custom** - Use packages when they work
+
+### Allowed Shortcuts
+✅ **These shortcuts are fine:**
+- Simple functions instead of classes (when appropriate)
+- Duplication over premature abstraction (when duplication is small)
+- Simple if/switch instead of Strategy pattern
+- Direct calls instead of dependency injection (when simple)
+- Module-level state instead of classes (when simple)
+
+❌ **Avoid these shortcuts:**
+- Skipping error handling
+- Hardcoding values that should be configurable
+- Ignoring security concerns
+- Breaking existing functionality
+
+### Fast Feature Development
+1. **Implement basic functionality** - Get it working
+2. **Test critical paths** - Ensure it doesn't break
+3. **Handle errors** - Don't crash on errors
+4. **Ship it** - Get it to users
+5. **Iterate** - Improve based on feedback
+
+## Maintenance Strategy
+
+### Code Quality Balance
+- **Good enough** is better than perfect
+- **Maintainable** is more important than elegant
+- **Working** is more important than beautiful
+- **Stable** is more important than modern
+
+### When to Refactor
+Only refactor when:
+- Code is causing bugs
+- Code is hard to maintain (and causing problems)
+- Code needs to support new features
+- Performance is actually a problem
+
+Don't refactor when:
+- Code works fine
+- "It could be better"
+- "It's not modern"
+- "It doesn't follow patterns"
+
+## Error Handling (Pragmatic)
+
+### Error Handling Priority
+1. **Don't crash** - Handle errors gracefully
+2. **Log errors** - But don't over-log
+3. **Return sensible defaults** - When possible
+4. **Fail fast** - For critical errors that can't be recovered
+
+### Error Handling Patterns
+```javascript
+// Simple error handling - good enough
+try {
+    const result = await operation();
+    return result;
+} catch (error) {
+    logger.error('Operation failed', { error: error.message });
+    return null; // or default value
+}
+
+// Don't over-engineer error handling
+// Simple try-catch is often enough
+```
+
+## Testing Strategy (Pragmatic)
+
+### Test What Matters
+- **Critical functionality** - Core features users depend on
+- **New features** - Ensure they work before release
+- **Bug fixes** - Prevent regressions
+- **Error-prone code** - Code that has broken before
+
+### Skip Tests For
+- Stable, unchanged code
+- Simple, obvious functions
+- Code that's working fine
+- Edge cases (unless critical)
+
+### Testing Philosophy
+- **Confidence over coverage** - Test enough to be confident
+- **Critical over complete** - Focus on what matters
+- **Fast over thorough** - When time is limited
+
+## Performance (When It Matters)
+
+### Optimization Strategy
+- **Don't optimize prematurely** - Only optimize when there's a real problem
+- **Measure first** - Profile before optimizing
+- **Simple optimizations first** - Caching, indexes, connection pooling
+- **User experience matters** - Optimize what users notice
+
+### When to Optimize
+✅ Optimize when:
+- Users report slowness
+- Performance monitoring shows problems
+- Simple optimizations help (caching, indexes)
+
+❌ Don't optimize when:
+- "It could be faster"
+- "Best practices say to optimize"
+- No actual performance problem
+
+## Documentation (Minimal)
+
+### What to Document
+- **Complex logic** - Non-obvious code
+- **Important decisions** - Why something was done
+- **Gotchas** - Things that might trip you up later
+- **Public APIs** - When helpful
+
+### What NOT to Document
+- Obvious code
+- Self-explanatory functions
+- Standard patterns
+- "What" - Code should show what it does
+
+### Documentation Philosophy
+- **Less is more** - Good code documents itself
+- **Comment why, not what** - Explain decisions, not code
+- **Update when changing** - Keep docs in sync with code
+
+## Decision Making Framework
+
+### Quick Decisions
+When faced with a choice:
+1. **What's simplest?** - Choose the simpler option
+2. **What works?** - Choose what works
+3. **What's maintainable?** - Choose what you can fix later
+4. **What helps users?** - Prioritize user value
+
+### Avoid Analysis Paralysis
+- **Make a decision** - Don't overthink
+- **Implement it** - See if it works
+- **Iterate** - Improve based on results
+- **Don't perfect** - Good enough is good enough
+
+## Summary: Solo Developer Mantras
+
+1. **If it works, don't fix it**
+2. **Simple over complex**
+3. **Practical over perfect**
+4. **Users over code**
+5. **Fast iteration over perfect planning**
+6. **Good enough is good enough**
+7. **Fix bugs, don't refactor**
+8. **Test what matters**
+9. **Document what's not obvious**
+10. **Ship features, improve later**

@@ -13,7 +13,7 @@ let security;
 try {
     security = require('../utils/security.js');
 } catch {
-    console.warn('⚠️ Security utilities not found, using basic validation');
+    console.warn('[Records] ⚠️ Security utilities not found, using basic validation');
 }
 
 // Cache configuration
@@ -135,7 +135,7 @@ class DatabaseOperation {
             });
             return result;
         } catch (error) {
-            console.error(`[ERROR] Database operation failed:`, error);
+            console.error(`[Records] Database operation failed:`, error);
             throw error;
         }
     }
@@ -145,7 +145,7 @@ class DatabaseOperation {
             const result = await this.schema.find(query, options);
             return result;
         } catch (error) {
-            console.error(`[ERROR] Database find operation failed:`, error);
+            console.error(`[Records] Database find operation failed:`, error);
             throw error;
         }
     }
@@ -155,7 +155,7 @@ class DatabaseOperation {
             const count = await this.schema.countDocuments(query);
             return count;
         } catch (error) {
-            console.error(`[ERROR] Count documents operation failed:`, error);
+            console.error(`[Records] Count documents operation failed:`, error);
             throw error;
         }
     }
@@ -165,7 +165,7 @@ class DatabaseOperation {
             const result = await this.schema.deleteMany(query);
             return result;
         } catch (error) {
-            console.error(`[ERROR] Delete many operation failed:`, error);
+            console.error(`[Records] Delete many operation failed:`, error);
             throw error;
         }
     }
@@ -191,7 +191,7 @@ class Records extends EventEmitter {
                 try {
                     query.groupid = InputValidator.sanitizeGroupId(query.groupid);
                 } catch (error) {
-                    console.error(`[SECURITY] Invalid groupId:`, error.message);
+                    console.error(`[Records] [SECURITY] Invalid groupId:`, error.message);
                     callback(null);
                     return;
                 }
@@ -203,7 +203,7 @@ class Records extends EventEmitter {
                     InputValidator.sanitizeObject(query);
                 }
             } catch (error) {
-                console.error(`[SECURITY] Suspicious query object:`, error.message);
+                console.error(`[Records] [SECURITY] Suspicious query object:`, error.message);
                 callback(null);
                 return;
             }
@@ -227,7 +227,7 @@ class Records extends EventEmitter {
 
             callback(document);
         } catch (error) {
-            console.error(`[ERROR] Database operation failed for ${databaseName}:`, error);
+            console.error(`[Records] Database operation failed for ${databaseName}:`, error);
             callback(null);
         }
     }
@@ -261,12 +261,36 @@ class Records extends EventEmitter {
     // Generic get operation
     async get(target, callback) {
         try {
+            // Check database connection before attempting operation
+            const dbConnector = require('./db-connector.js');
+            const mongoose = dbConnector.mongoose;
+
+            // Wait for connection if not ready (with timeout)
+            if (mongoose.connection.readyState !== 1) {
+                const maxWaitTime = 10000; // 10 seconds
+                const startTime = Date.now();
+                
+                // Wait for connection with timeout
+                while (mongoose.connection.readyState !== 1 && (Date.now() - startTime) < maxWaitTime) {
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+
+                // If still not connected after waiting, return empty array
+                if (mongoose.connection.readyState !== 1) {
+                    console.warn(`[Records] MongoDB connection not ready for ${target}, returning empty array`);
+                    callback([]);
+                    return;
+                }
+            }
+
             if (schema[target]) {
                 const documents = await schema[target].find({});
                 callback(documents);
+            } else {
+                callback([]);
             }
         } catch (error) {
-            console.error(`Failed to get documents from ${target}:`, error);
+            console.error(`[Records] Failed to get documents from ${target}:`, error);
             callback([]);
         }
     }
@@ -286,7 +310,7 @@ class Records extends EventEmitter {
                 }
             });
         } catch (error) {
-            console.error(`[ERROR] Failed to push trpgDatabaseFunction:`, error);
+            console.error(`[Records] Failed to push trpgDatabaseFunction:`, error);
             callback(null);
         }
     }
@@ -305,7 +329,7 @@ class Records extends EventEmitter {
                 }
             });
         } catch (error) {
-            console.error(`[ERROR] Failed to set trpgDatabaseFunction:`, error);
+            console.error(`[Records] Failed to set trpgDatabaseFunction:`, error);
             callback(null);
         }
     }
@@ -324,7 +348,7 @@ class Records extends EventEmitter {
                 }
             });
         } catch (error) {
-            console.error(`[ERROR] Failed to push trpgDatabaseAllGroup:`, error);
+            console.error(`[Records] Failed to push trpgDatabaseAllGroup:`, error);
             callback(null);
         }
     }
@@ -343,7 +367,7 @@ class Records extends EventEmitter {
                 }
             });
         } catch (error) {
-            console.error(`[ERROR] Failed to set trpgDatabaseAllGroup:`, error);
+            console.error(`[Records] Failed to set trpgDatabaseAllGroup:`, error);
             callback(null);
         }
     }
@@ -466,7 +490,7 @@ class Records extends EventEmitter {
             // 🔒 使用增强的输入验证
             const validation = InputValidator.validateChatMessage(message);
             if (!validation.valid) {
-                console.error(`[SECURITY] Invalid chat message: ${validation.error}`);
+                console.error(`[Records] [SECURITY] Invalid chat message: ${validation.error}`);
                 throw new Error(`Invalid chat message: ${validation.error}`);
             }
 
@@ -506,7 +530,7 @@ class Records extends EventEmitter {
                 time: { $lt: oldestMessages[overflowCount - 1].time }
             });
         } catch (error) {
-            console.error('[ERROR] Chat room push failed:', error.message);
+            console.error('[Records] Chat room push failed:', error.message);
             throw error;
         }
     }
@@ -531,7 +555,7 @@ class Records extends EventEmitter {
 
             callback(messages);
         } catch (error) {
-            console.error('Chat room get failed:', error);
+            console.error('[Records] Chat room get failed:', error);
             callback([]);
         }
     }
@@ -590,7 +614,7 @@ class Records extends EventEmitter {
 
             return message;
         } catch (error) {
-            console.error(`[ERROR] Failed to find forwarded message:`, error);
+            console.error(`[Records] Failed to find forwarded message:`, error);
             return null;
         }
     }
@@ -606,7 +630,7 @@ class Records extends EventEmitter {
             });
 
             if (existingMessage) {
-                console.error(`[ERROR] Duplicate fixedId detected for user ${data.userId}: ${data.fixedId}`);
+                console.error(`[Records] Duplicate fixedId detected for user ${data.userId}: ${data.fixedId}`);
                 console.error(`[ERROR] Existing message:`, JSON.stringify(existingMessage));
 
                 // Get a new fixedId for this user

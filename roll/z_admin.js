@@ -12,14 +12,14 @@ if (password) {
     if (password.length > 32) {
         // Truncate if too long
         password = password.slice(0, 32);
-        console.warn('⚠️ CRYPTO_SECRET truncated to 32 characters for AES-256-CTR');
+        console.warn('[Admin] ⚠️ CRYPTO_SECRET truncated to 32 characters for AES-256-CTR');
     } else if (password.length < 32) {
         // Pad with zeros if too short
         password = password.padEnd(32, '0');
-        console.warn('⚠️ CRYPTO_SECRET padded to 32 characters for AES-256-CTR');
+        console.warn('[Admin] ⚠️ CRYPTO_SECRET padded to 32 characters for AES-256-CTR');
     }
 } else {
-    console.error('❌ CRYPTO_SECRET environment variable is not set');
+    console.error('[Admin] ❌ CRYPTO_SECRET environment variable is not set');
 }
 
 const algorithm = 'aes-256-ctr';
@@ -468,7 +468,7 @@ const rollDiceCommand = async function ({
                         "id": userid
                     });
                 } catch (error) {
-                    console.error('registerChannel ERROR:', error);
+                    console.error('[Admin] registerChannel error:', error);
                     rply.text += JSON.stringify(error);
                     return rply;
                 }
@@ -478,7 +478,7 @@ const rollDiceCommand = async function ({
                         "channel.id": channelid || groupid
                     });
                 } catch (error) {
-                    console.error('registerChannel ERROR:', error);
+                    console.error('[Admin] registerChannel error:', error);
                     rply.text += JSON.stringify(error);
                     return rply;
                 }
@@ -511,7 +511,7 @@ const rollDiceCommand = async function ({
                             "titleName": titleName
                         }
                     });
-                    await temp.save().catch(error => console.error('admin #138 mongoDB error:', error.name, error.reason));
+                    await temp.save().catch(error => console.error('[Admin] MongoDB error:', error.name, error.reason));
                     rply.text = "註冊成功。如果想使用角色卡，請到\nhttps://card.hktrpg.com/";
                     if (!await checkGpAllow(channelid || groupid)) {
                         rply.text += '\n此頻道並未被Admin允許經網頁擲骰，請Admin在此頻道輸入\n.admin  allowrolling';
@@ -538,7 +538,7 @@ const rollDiceCommand = async function ({
                         }
                     });
                 } catch (error) {
-                    console.error('unregisterChannel ERROR:', error);
+                    console.error('[Admin] unregisterChannel error:', error);
                     rply.text += JSON.stringify(error);
                     return rply;
                 }
@@ -558,7 +558,7 @@ const rollDiceCommand = async function ({
                         "id": channelid || groupid
                     });
                 } catch (error) {
-                    console.error('disAllowrolling ERROR:', error);
+                    console.error('[Admin] disAllowrolling error:', error);
                     rply.text += JSON.stringify(error);
                     return rply;
                 }
@@ -586,7 +586,7 @@ const rollDiceCommand = async function ({
                         returnNewDocument: true
                     });
                 } catch (error) {
-                    console.error('Allowrolling ERROR:', error);
+                    console.error('[Admin] Allowrolling error:', error);
                     rply.text += JSON.stringify(error);
                     return rply;
                 }
@@ -622,7 +622,7 @@ const rollDiceCommand = async function ({
                         "userName": name
                     });
                 } catch (error) {
-                    console.error('ACCOUNT ERROR:', error);
+                    console.error('[Admin] Account error:', error);
                     rply.text += JSON.stringify(error);
                     return rply;
                 }
@@ -643,7 +643,7 @@ const rollDiceCommand = async function ({
                         returnNewDocument: true
                     });
                 } catch (error) {
-                    console.error('ACCOUNT ERROR:', error);
+                    console.error('[Admin] Account error:', error);
                     rply.text += JSON.stringify(error);
                     return rply;
                 }
@@ -666,7 +666,7 @@ const rollDiceCommand = async function ({
                         rply.text = "更新成功\n你已開啓更新通知功能";
                     }
                 } catch (error) {
-                    console.error('新增VIP GET ERROR:', error)
+                    console.error('[Admin] Add VIP error:', error)
                     rply.text = '更新失敗\n因為 ' + error.message
                 }
                 return rply;
@@ -685,7 +685,7 @@ const rollDiceCommand = async function ({
                         rply.text = "更新成功\n你已關閉更新通知功能";
                     }
                 } catch (error) {
-                    console.error('新增VIP GET ERROR:', error)
+                    console.error('[Admin] Add VIP error:', error)
                     rply.text = '更新失敗\n因為 ' + error.message
                 }
                 return rply;
@@ -738,7 +738,7 @@ const rollDiceCommand = async function ({
                             rply.text = "更新失敗：未找到指定的群組";
                         }
                     } catch (error) {
-                        console.error('新增VIP群組錯誤:', error);
+                        console.error('[Admin] Add VIP group error:', error);
                         rply.text = '新增VIP群組失敗\n原因: ' + error.message;
                     }
                 } catch (error) {
@@ -766,7 +766,7 @@ const rollDiceCommand = async function ({
                             rply.text = "更新失敗：未找到指定的用戶";
                         }
                     } catch (error) {
-                        console.error('新增VIP用戶錯誤:', error);
+                        console.error('[Admin] Add VIP user error:', error);
                         rply.text = '新增VIP用戶失敗\n原因: ' + error.message;
                     }
                 } catch (error) {
@@ -875,7 +875,7 @@ async function store(mainMsg, mode) {
 
 function encrypt(text) {
     if (!password) {
-        console.error('❌ CRYPTO_SECRET environment variable is not set');
+        console.error('[Admin] ❌ CRYPTO_SECRET environment variable is not set');
         return 'ENCRYPTION_ERROR: CRYPTO_SECRET not configured';
     }
     
@@ -886,7 +886,7 @@ function encrypt(text) {
         encrypted = Buffer.concat([encrypted, cipher.final()]);
         return iv.toString('hex') + ':' + encrypted.toString('hex');
     } catch (error) {
-        console.error('❌ Encryption failed:', error.message);
+        console.error('[Admin] ❌ Encryption failed:', error.message);
         return 'ENCRYPTION_ERROR: ' + error.message;
     }
 }
@@ -895,7 +895,7 @@ function encrypt(text) {
 
 function decrypt(text) {
     if (!password) {
-        console.error('❌ CRYPTO_SECRET environment variable is not set');
+        console.error('[Admin] ❌ CRYPTO_SECRET environment variable is not set');
         return 'DECRYPTION_ERROR: CRYPTO_SECRET not configured';
     }
     
@@ -908,7 +908,7 @@ function decrypt(text) {
         decrypted = Buffer.concat([decrypted, decipher.final()]);
         return decrypted.toString();
     } catch (error) {
-        console.error('❌ Decryption failed:', error.message);
+        console.error('[Admin] ❌ Decryption failed:', error.message);
         return 'DECRYPTION_ERROR: ' + error.message;
     }
 }

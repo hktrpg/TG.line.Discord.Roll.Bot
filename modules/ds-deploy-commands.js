@@ -90,7 +90,14 @@ async function testRegisteredSlashCommands(guildId) {
 
 function pushArraySlashCommands(arrayCommands) {
     for (const file of arrayCommands) {
-        commands.push(file.data.toJSON());
+        const commandData = file.data.toJSON();
+        // Check if command with same name already exists
+        const existingIndex = commands.findIndex(cmd => cmd.name === commandData.name);
+        if (existingIndex !== -1) {
+            console.warn(`[WARNING] Duplicate command name detected: '${commandData.name}' - skipping duplicate from ${file}`);
+            continue;
+        }
+        commands.push(commandData);
     }
 }
 

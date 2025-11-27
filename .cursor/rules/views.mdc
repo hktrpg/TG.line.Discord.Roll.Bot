@@ -1,0 +1,230 @@
+---
+description: Development rules for views directory - frontend HTML, CSS, and JavaScript
+globs:
+  - "views/**/*.{js,html}"
+alwaysApply: false
+---
+
+# Views Directory Rules
+
+## Purpose
+The `views/` directory contains frontend files: HTML templates, CSS, and client-side JavaScript.
+
+## Directory Structure
+- `views/common/` - Shared components and utilities
+- `views/css/` - Stylesheets
+- `views/js/` - Client-side JavaScript
+- `views/includes/` - HTML includes/templates
+- `views/image/` - Image assets
+
+## Key Files Reference
+
+### Common Components
+- `common/pageConfigManager.js` - Page configuration manager (class-based)
+- `common/templateGenerator.js` - Template generation utilities
+- `common/generatePages.js` - Page generation script
+
+### Main Pages
+- `index.html` - Main web interface
+- `characterCard.html` - Private character card page
+- `characterCardPublic.html` - Public character card page
+- `discordLog.html` - Discord log viewer
+
+## Class-Based Architecture
+
+### Use Classes for Complex Components
+- Follow `PageConfigManager` pattern for configuration
+- Use classes for stateful components
+- Implement proper initialization and cleanup
+
+```javascript
+class ComponentManager {
+    constructor() {
+        this.state = {};
+        this.initialized = false;
+    }
+    
+    initialize() {
+        if (this.initialized) return;
+        // Setup
+        this.initialized = true;
+    }
+    
+    destroy() {
+        // Cleanup
+        this.initialized = false;
+    }
+}
+```
+
+## HTML Structure
+
+### Template Pattern
+- Use consistent HTML structure
+- Follow Bootstrap 4 patterns (see existing pages)
+- Use semantic HTML
+- Include proper meta tags
+
+### Character Card Pages
+- Reference `characterCard.html` and `characterCardPublic.html`
+- Use `baseCharacterCard.html` pattern for shared templates
+- Support both private and public views
+
+## CSS Guidelines
+
+### CSS Organization
+- Use CSS variables (see `css/variables.css`)
+- Follow existing CSS structure
+- Use Bootstrap 4 utilities when possible
+- Avoid `!important` - use higher specificity instead
+
+### CSS Loading Order
+1. `variables.css` - CSS variables
+2. `utilities.css` - Utility classes
+3. `card.css` - Card-specific styles
+4. `modern-card.css` - Modern styles
+5. `hybrid-card-optimized.css` - Hybrid styles
+6. `bootstrap.min.css` - Bootstrap framework
+
+### Bootstrap Integration
+- Use Bootstrap 4 classes
+- Override Bootstrap styles in `bootstrap-overrides.css`
+- Use CSS variables for theming
+- Maintain Bootstrap compatibility
+
+## JavaScript Patterns
+
+### Client-Side JS
+- Use modern ES6+ features
+- Handle async operations properly
+- Use event delegation
+- Clean up event listeners
+
+### Socket.io Integration
+- Use Socket.io for real-time updates
+- Handle connection/disconnection events
+- Emit and listen to events consistently
+- See existing socket patterns in character card pages
+
+```javascript
+// Socket pattern
+socket.on('eventName', function(data) {
+    // Handle event
+});
+
+socket.emit('eventName', data);
+```
+
+## Page Generation
+
+### Using generatePages.js
+- Run `node views/common/generatePages.js` to generate pages
+- Don't edit generated pages directly
+- Edit templates instead
+- Regenerate after template changes
+
+### Template Variables
+- Use consistent variable naming
+- Document template variables
+- Provide defaults for optional variables
+
+## Form Handling
+
+### Character Card Forms
+- Validate input client-side
+- Use consistent form structure
+- Handle form submission with Socket.io or fetch
+- Show loading states
+- Display success/error messages
+
+## Responsive Design
+
+### Mobile Support
+- Use Bootstrap responsive classes
+- Test on mobile devices
+- Use viewport meta tag
+- Ensure touch-friendly interfaces
+
+## Accessibility
+
+### Best Practices
+- Use semantic HTML elements
+- Include alt text for images
+- Use ARIA labels when needed
+- Ensure keyboard navigation works
+- Maintain color contrast
+
+## Performance
+
+### Optimization
+- Minimize DOM manipulation
+- Use event delegation
+- Lazy load images when possible
+- Minimize CSS/JS file sizes
+- Use caching appropriately
+
+## Common Patterns
+
+### Page Initialization
+```javascript
+$(document).ready(function() {
+    // Initialize components
+    componentManager.initialize();
+    
+    // Setup socket listeners
+    setupSocketListeners();
+    
+    // Load initial data
+    loadInitialData();
+});
+```
+
+### Socket Event Handling
+```javascript
+socket.on('cardUpdated', function(data) {
+    if (data && data.success) {
+        showSuccessMessage();
+        updateUI(data);
+    } else {
+        showErrorMessage();
+    }
+});
+```
+
+### Form Submission
+```javascript
+$('#form').on('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = getFormData();
+    
+    try {
+        const response = await submitForm(formData);
+        handleSuccess(response);
+    } catch (error) {
+        handleError(error);
+    }
+});
+```
+
+## Testing
+
+### Client-Side Testing
+- Test JavaScript functionality
+- Test form validation
+- Test Socket.io events
+- Test responsive design
+- Use browser dev tools for debugging
+
+## File Organization
+
+### Naming Conventions
+- HTML files: `kebab-case.html`
+- JS files: `camelCase.js` or `kebab-case.js` (follow existing patterns)
+- CSS files: `kebab-case.css`
+
+### File Locations
+- Shared components: `common/`
+- Page-specific JS: `js/` or inline in HTML
+- Styles: `css/`
+- Images: `image/`

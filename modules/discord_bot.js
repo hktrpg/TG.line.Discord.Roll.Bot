@@ -2,7 +2,7 @@
 "use strict";
 const fs = require('node:fs');
 
-const { ClusterClient, getInfo } = require('discord-hybrid-sharding');
+const { ClusterClient, getInfo, AutoResharderClusterClient } = require('discord-hybrid-sharding');
 const Discord = require('discord.js');
 const isImageURL = require('image-url-validator').default;
 const WebSocket = require('ws');
@@ -15,11 +15,13 @@ exports.analytics = require('./analytics');
 const debugMode = !!process.env.DEBUG;
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/igm);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
-const adminSecret = process.env.ADMIN_SECRET || '';
+// adminSecret removed - no longer needed after custom heartbeat monitoring removal
 const { Client } = Discord;
 const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType, MessageFlags, WebhookClient } = Discord;
 
-const multiServer = require('../modules/multi-server')
+// Multi-server functionality temporarily disabled
+// const multiServer = require('../modules/multi-server')
+// const adminSecret = process.env.ADMIN_SECRET || '';
 const checkMongodb = require('../modules/dbWatchdog.js');
 const { rollText } = require('./getRoll');
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
@@ -31,6 +33,23 @@ client.on('clientReady', () => {
 	discordClientConfig.updateWithClient(client);
 });
 client.cluster = new ClusterClient(client);
+
+// AutoResharder client for automatic re-sharding
+new AutoResharderClusterClient(client.cluster, {
+    // OPTIONAL: Default is 60e3 which sends every minute the data / cluster
+    sendDataIntervalMS: 60e3,
+    // OPTIONAL: Default is a valid function for discord.js Client's
+    sendDataFunction: (cluster) => {
+        return {
+            clusterId: cluster.id,
+            shardData: cluster.info.SHARD_LIST.map(shardId => ({
+                shardId,
+                guildCount: cluster.client.guilds.cache.filter(g => g.shardId === shardId).size
+            }))
+        }
+    }
+});
+
 client.login(channelSecret);
 const MESSAGE_SPLITOR = (/\S+/ig);
 const link = process.env.WEB_LINK;
@@ -86,7 +105,7 @@ async function getOwnerClusterIdByGuild(guildId) {
 					return null;
 				}
 			},
-			{ context: { gid: guildId } }
+			{ context: { gid: guildId }, timeout: 10_000 }
 		);
 		if (Array.isArray(results)) {
 			const id = results.find(v => Number.isInteger(v));
@@ -112,6 +131,9 @@ client.on('messageCreate', async message => {
 			respawnCluster2();
 		}
 
+		// Process message only if DB is likely fine, or let it run if logic handles offline DB
+		const result = await handlingResponMessage(message);
+
 		await handlingMultiServerMessage(message);
 
 		if (result?.text) {
@@ -119,7 +141,7 @@ client.on('messageCreate', async message => {
 		}
 
 	} catch (error) {
-		console.error('Discord messageCreate error:', error?.message);
+		console.error('[Discord Bot] messageCreate error:', error?.message);
 	}
 
 });
@@ -142,7 +164,7 @@ client.on('guildCreate', async guild => {
 	} catch (error) {
 		if (error.message === 'Missing Access') return;
 		if (error.message === 'Missing Permissions') return;
-		console.error('discord bot guildCreate  #114 error', (error && error.name), (error && error.message), (error && error.reason));
+		console.error('[Discord Bot] guildCreate error:', (error && error.name), (error && error.message), (error && error.reason));
 	}
 })
 
@@ -151,7 +173,7 @@ client.on('interactionCreate', async message => {
 		if (message.user && message.user.bot) return;
 		return __handlingInteractionMessage(message);
 	} catch (error) {
-		console.error('discord bot interactionCreate #123 error', (error && error.name), (error && error.message), (error && error.reason));
+		console.error('[Discord Bot] interactionCreate error:', (error && error.name), (error && error.message), (error && error.reason));
 	}
 });
 
@@ -162,7 +184,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId })
 		.cache(30)
 		.catch(error => {
-			console.error('discord_bot #802 mongoDB error:', error.name, error.reason)
+			console.error('[Discord Bot] MongoDB error in messageReactionAdd:', error.name, error.reason)
 			checkMongodb.dbErrOccurs();
 		})
 	try {
@@ -178,7 +200,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 			reaction.users.remove(user.id);
 		}
 	} catch (error) {
-		console.error('Discord bot messageReactionAdd #249', (error && error.name), (error && error.message), (error && error.reason))
+		console.error('[Discord Bot] messageReactionAdd error:', (error && error.name), (error && error.message), (error && error.reason))
 	}
 
 });
@@ -186,7 +208,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 client.on('messageReactionRemove', async (reaction, user) => {
 	if (!checkMongodb.isDbOnline()) return;
 	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('discord_bot #817 mongoDB error:', error.name, error.reason))
+	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('[Discord Bot] MongoDB error in messageReactionRemove:', error.name, error.reason))
 	try {
 		if (!list || list.length === 0) return;
 		const detail = list.detail;
@@ -198,18 +220,19 @@ client.on('messageReactionRemove', async (reaction, user) => {
 		}
 	} catch (error) {
 		if (error.message === 'Unknown Member') return;
-		console.error('Discord bot messageReactionRemove #268', (error && error.name), (error && error.message), (error && error.reason))
+		console.error('[Discord Bot] messageReactionRemove error:', (error && error.name), (error && error.message), (error && error.reason))
 	}
 });
 
 
 
 
-client.once('clientReady', async () => {
+client.on('clientReady', async () => {
 	initInteractionCommands();
 	//	if (shardid === 0) getSchedule();
 	client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
-	console.log(`Discord: Logged in as ${client.user.tag}!`);
+	console.log(`[Discord Bot] Logged in as ${client.user.tag}!`);
+	client.cluster.triggerReady();
 	let switchSetActivity = 0;
 
 	//await sleep(6);
@@ -437,7 +460,7 @@ async function sendMessage({ target, replyText, quotes = false, components = nul
 			if (error.message !== 'Cannot send messages to this user' &&
 				error.message !== 'Missing Permissions' &&
 				error.message !== 'Missing Access') {
-				console.error('Discord message send error:', error.message, 'chunk:', chunk);
+				console.error('[Discord Bot] Message send error:', error.message, 'chunk:', chunk);
 			}
 		}
 	}
@@ -448,7 +471,7 @@ async function SendToId(targetid, replyText, quotes = false) {
 		const user = await client.users.fetch(targetid);
 		await sendMessage({ target: user, replyText, quotes });
 	} catch (error) {
-		console.error('Discord SendToId error:', error.message);
+		console.error('[Discord Bot] SendToId error:', error.message);
 	}
 }
 
@@ -640,7 +663,7 @@ async function count() {
 		return `群組總數: ${totalGuilds.toLocaleString()}
 │ 　• 會員總數: ${totalMembers.toLocaleString()}${statusText}`;
 	} catch (error) {
-		console.error(`Discord統計錯誤: ${error}`);
+		console.error(`[Discord Bot] Statistics error: ${error}`);
 		return '無法獲取統計資料';
 	}
 }
@@ -719,7 +742,7 @@ process.on('unhandledRejection', error => {
 	// user_id: Value "&" is not snowflake.
 
 
-	console.error('Discord Unhandled promise rejection:', (error));
+	console.error('[Discord Bot] Unhandled promise rejection:', (error));
 	// Removed process.send as it was causing ERR_IPC_CHANNEL_CLOSED on shutdown
 	// process.send({
 	// 	type: "process:msg",
@@ -731,6 +754,8 @@ process.on('unhandledRejection', error => {
 let isShuttingDown = false;
 let shutdownTimeout = null;
 const SHUTDOWN_TIMEOUT = 15_000; // 15 seconds for Discord bot
+
+// Detailed signal tracking function
 
 // Graceful shutdown function
 async function gracefulShutdown(signal = 'unknown') {
@@ -745,6 +770,7 @@ async function gracefulShutdown(signal = 'unknown') {
 	// Clear shutdown timeout
 	if (shutdownTimeout) {
 		clearTimeout(shutdownTimeout);
+		shutdownTimeout = null;
 	}
 
 	// Set a hard timeout to force exit if graceful shutdown takes too long
@@ -786,18 +812,34 @@ async function gracefulShutdown(signal = 'unknown') {
 			}
 		}
 
-		console.log('[Discord Bot] Graceful shutdown completed');
 		process.exit(0);
 	} catch (error) {
 		console.error('[Discord Bot] Error during shutdown:', error);
+		console.error('[Discord Bot] Shutdown error stack:', error.stack);
 		process.exit(1);
 	}
 }
 
 process.on('SIGINT', async () => {
-	console.log('[Discord Bot] Received SIGINT signal');
+	
+	// Prevent multiple simultaneous shutdowns
+	if (isShuttingDown) {
+		console.log('[Discord Bot] Shutdown already in progress, ignoring SIGINT');
+		return;
+	}
+	
 	// Set force shutdown timeout
 	shutdownTimeout = setTimeout(() => {
+		const exitTimestamp = new Date().toISOString();
+		const exitStack = new Error('Force shutdown timeout stack trace').stack;
+		const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+		console.error('[Discord Bot] ========== FORCE SHUTDOWN TIMEOUT (SIGINT) ==========');
+		console.error(`[Discord Bot] Timestamp: ${exitTimestamp}`);
+		console.error(`[Discord Bot] Reason: Graceful shutdown timeout (15 seconds)`);
+		console.error(`[Discord Bot] Exit Code: 1 (Force shutdown)`);
+		console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
+		console.error(`[Discord Bot] Stack Trace:\n${exitStackLines}`);
+		console.error('[Discord Bot] ==========================================');
 		console.log('[Discord Bot] Force shutdown after timeout');
 		process.exit(1);
 	}, 15_000); // 15 second timeout
@@ -806,9 +848,25 @@ process.on('SIGINT', async () => {
 });
 
 process.on('SIGTERM', async () => {
-	console.log('[Discord Bot] Received SIGTERM signal');
+	
+	// Prevent multiple simultaneous shutdowns
+	if (isShuttingDown) {
+		console.log('[Discord Bot] Shutdown already in progress, ignoring SIGTERM');
+		return;
+	}
+	
 	// Set force shutdown timeout
 	shutdownTimeout = setTimeout(() => {
+		const exitTimestamp = new Date().toISOString();
+		const exitStack = new Error('Force shutdown timeout stack trace').stack;
+		const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+		console.error('[Discord Bot] ========== FORCE SHUTDOWN TIMEOUT (SIGTERM) ==========');
+		console.error(`[Discord Bot] Timestamp: ${exitTimestamp}`);
+		console.error(`[Discord Bot] Reason: Graceful shutdown timeout (15 seconds)`);
+		console.error(`[Discord Bot] Exit Code: 1 (Force shutdown)`);
+		console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
+		console.error(`[Discord Bot] Stack Trace:\n${exitStackLines}`);
+		console.error('[Discord Bot] ==========================================');
 		console.log('[Discord Bot] Force shutdown after timeout');
 		process.exit(1);
 	}, 15_000); // 15 second timeout
@@ -818,9 +876,16 @@ process.on('SIGTERM', async () => {
 
 function respawnCluster2() {
 	try {
+		console.error(`[Respawn] Sending respawn command for cluster ${client.cluster.id}`);
 		client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
+		console.error(`[Respawn] Respawn command sent successfully for cluster ${client.cluster.id}`);
 	} catch (error) {
-		console.error('respawnCluster2 error', (error && error.name), (error && error.message), (error && error.reason));
+		console.error('[Respawn] ========== RESPAWN CLUSTER ERROR ==========');
+		console.error(`[Respawn] Error Name: ${error && error.name}`);
+		console.error(`[Respawn] Error Message: ${error && error.message}`);
+		console.error(`[Respawn] Error Reason: ${error && error.reason}`);
+		console.error(`[Respawn] Stack: ${error && error.stack}`);
+		console.error('[Respawn] ==========================================');
 	}
 }
 
@@ -845,7 +910,7 @@ function respawnCluster2() {
 		try {
 			await job.remove();
 		} catch (error) {
-			console.error("Discord Error removing job from collection:scheduleAtMessageDiscord", error);
+			console.error("[Discord Bot] Error removing job from collection:scheduleAtMessageDiscord", error);
 		}
 	})
 
@@ -872,7 +937,7 @@ function respawnCluster2() {
 				)
 			}
 		} catch (error) {
-			console.error("Discord Error removing job from collection:scheduleCronMessageDiscord", error);
+			console.error("[Discord Bot] Error removing job from collection:scheduleCronMessageDiscord", error);
 		}
 
 	})
@@ -983,7 +1048,7 @@ async function roleReact(channelid, message) {
 		for (let index = 0; index < detail.length; index++) {
 			sendMessage.react(detail[index].emoji);
 		}
-		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('discord_bot #786 mongoDB error:', error.name, error.reason))
+		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('[Discord Bot] MongoDB error in roleReact update:', error.name, error.reason))
 
 	} catch {
 		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限', channelid });
@@ -1011,31 +1076,7 @@ async function newRoleReact(channel, message) {
 
 
 }
-async function checkWakeUp() {
-	const promises = [
-		client.cluster.broadcastEval(c => c.ws.status)
-	];
-	return Promise.all(promises)
-		.then(results => {
-			const indexes = results[0].reduce((r, n, i) => {
-				n !== 0 && r.push(i);
-				return r;
-			}, []);
-			if (indexes.length > 0) {
-				// Would call checkMongodb.discordClientRespawn for each index if needed
-				return indexes;
-			}
-			else return true;
-			//if (results[0].length !== number || results[0].reduce((a, b) => a + b, 0) >= 1)
-			//		return false
-			//	else return true;
-		})
-		.catch(error => {
-			console.error(`disocrdbot #836 error`, (error && error.name), (error && error.message), (error && error.reason))
-			return false
-		});
-
-}
+// checkWakeUp function removed - heartbeat monitoring now handled by HeartbeatManager
 
 // Get comprehensive shard status information across all clusters
 // Returns formatted statistics for Discord bot sharding status
@@ -1294,7 +1335,7 @@ ${formatGroup(groupedStatus, true)}
 ${formatGroup(groupedPing)}
 ╰──────────────`;
 	} catch (error) {
-		console.error('Discord分流監控錯誤:', error);
+		console.error('[Discord Bot] Shard monitoring error:', error);
 		return `
 ├────── ⚠️錯誤信息 ──────
 │ 無法獲取分流狀態
@@ -1707,7 +1748,17 @@ async function handlingResponMessage(message, answer = '') {
 		if (rplyVal.sendImage) sendBufferImage(message, rplyVal, userid)
 		if (rplyVal.dmFileLink?.length > 0) await sendDmFiles(message, rplyVal)
 		if (rplyVal.fileLink?.length > 0) sendFiles(message, rplyVal, userid)
-		if (rplyVal.respawn) respawnCluster2();
+		if (rplyVal.respawn) {
+			const timestamp = new Date().toISOString();
+			console.error('[User Command] ========== USER COMMAND RESPAWN TRIGGERED ==========');
+			console.error(`[User Command] Timestamp: ${timestamp}`);
+			console.error(`[User Command] Reason: User command triggered respawn (rplyVal.respawn = true)`);
+			console.error(`[User Command] User ID: ${userid}`);
+			console.error(`[User Command] Channel ID: ${channelid}`);
+			console.error(`[User Command] PID: ${process.pid}, PPID: ${process.ppid}`);
+			console.error('[User Command] ==========================================');
+			respawnCluster(null, true);
+		}
 		if (!rplyVal.text && !rplyVal.LevelUp) return;
 		if (process.env.mongoURL)
 			try {
@@ -1717,7 +1768,7 @@ async function handlingResponMessage(message, answer = '') {
 					SendToId(userid, newMessage.firstTimeMessage(), true);
 				}
 			} catch (error) {
-				console.error(`discord bot error #236`, (error && error.name && error.message));
+				console.error(`[Discord Bot] Error in message handling:`, (error && error.name && error.message));
 			}
 
 		if (rplyVal.state) {
@@ -1878,7 +1929,7 @@ const sendFiles = async (message, rplyVal, userid) => {
 			fs.unlinkSync(rplyVal.fileLink[index]);
 		}
 		catch (error) {
-			console.error('discord bot error #1082', (error?.name, error?.message), rplyVal.fileLink[index]);
+			console.error('[Discord Bot] Error in file handling:', (error?.name, error?.message), rplyVal.fileLink[index]);
 		}
 
 	}
@@ -2024,26 +2075,37 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
 		// Prefer sending only on the cluster that owns this guild to avoid flakiness
 		let ownerClusterId = null;
 		try { ownerClusterId = await getOwnerClusterIdByGuild(groupid); } catch { }
-		const results = await client.cluster.broadcastEval(
-			async (c, { channelId, textContent, pollContent, emojis, targetClusterId }) => {
-				try {
-					if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return null;
-					const channel = await c.channels.fetch(channelId).catch(() => null);
-					if (!channel) return null;
-					if (textContent && String(textContent).trim().length > 0) {
-						try { await channel.send({ content: textContent }); } catch { /* ignore */ }
+		let results = null;
+		try {
+			results = await client.cluster.broadcastEval(
+				async (c, { channelId, textContent, pollContent, emojis, targetClusterId }) => {
+					try {
+						if (Number.isInteger(targetClusterId) && (c.cluster?.id !== targetClusterId)) return null;
+						const channel = await c.channels.fetch(channelId).catch(() => null);
+						if (!channel) return null;
+						if (textContent && String(textContent).trim().length > 0) {
+							try { await channel.send({ content: textContent }); } catch { /* ignore */ }
+						}
+						const msg = await channel.send({ content: pollContent });
+						for (let i = 0; i < emojis.length; i++) {
+							try { await msg.react(emojis[i]); } catch { /* ignore */ }
+						}
+						return { messageId: msg.id, channelId: msg.channelId, shardId: c.cluster?.id || 0, createdTimestamp: msg.createdTimestamp };
+					} catch {
+						return null;
 					}
-					const msg = await channel.send({ content: pollContent });
-					for (let i = 0; i < emojis.length; i++) {
-						try { await msg.react(emojis[i]); } catch { /* ignore */ }
-					}
-					return { messageId: msg.id, channelId: msg.channelId, shardId: c.cluster?.id || 0, createdTimestamp: msg.createdTimestamp };
-				} catch {
-					return null;
-				}
-			},
-			{ context: { channelId: channelid, textContent: text, pollContent: pollText, emojis: POLL_EMOJIS.slice(0, maxOptions), targetClusterId: ownerClusterId } }
-		);
+				},
+				{ context: { channelId: channelid, textContent: text, pollContent: pollText, emojis: POLL_EMOJIS.slice(0, maxOptions), targetClusterId: ownerClusterId }, timeout: 15_000 }
+			);
+		} catch (error) {
+			// Handle IPC channel closed errors gracefully
+			if (error && error.code === 'ERR_IPC_CHANNEL_CLOSED') {
+				console.warn(`[createStPollByChannel] IPC channel closed, skipping poll creation for channel ${channelid}`);
+				return;
+			}
+			// Re-throw other errors
+			throw error;
+		}
 
 		const found = Array.isArray(results) ? results.find(Boolean) : null;
 		if (!found) {
@@ -2222,36 +2284,50 @@ async function tallyStPoll(messageId, fallbackData) {
 			}
 		} catch { }
 		// Count reactions on the owning shard using broadcastEval
-		const shardResults = await client.cluster.broadcastEval(
-			async (c, { channelId, messageId, optionCount, emojis }) => {
-				try {
-					const channel = await c.channels.fetch(channelId).catch(() => null);
-					if (!channel) return null;
-					let msg = await channel.messages.fetch(messageId).catch(() => null);
-					if (!msg) return null;
-					if (msg.partial) { try { msg = await msg.fetch(); } catch { } }
-					const createdTs = Number(msg.createdTimestamp) || Date.now();
-					const counts = [];
-					for (let i = 0; i < optionCount; i++) {
-						const emoji = emojis[i];
-						const reaction = msg.reactions.cache.find(r => r.emoji.name === emoji);
-						let num = 0;
-						if (reaction) {
-							try {
-								const users = await reaction.users.fetch();
-								const filtered = users.filter(u => !u.bot);
-								num = filtered.size;
-							} catch {
-								num = Math.max(0, (reaction.count || 0) - 1);
+		let shardResults = null;
+		try {
+			shardResults = await client.cluster.broadcastEval(
+				async (c, { channelId, messageId, optionCount, emojis }) => {
+					try {
+						const channel = await c.channels.fetch(channelId).catch(() => null);
+						if (!channel) return null;
+						let msg = await channel.messages.fetch(messageId).catch(() => null);
+						if (!msg) return null;
+						if (msg.partial) { try { msg = await msg.fetch(); } catch { } }
+						const createdTs = Number(msg.createdTimestamp) || Date.now();
+						const counts = [];
+						for (let i = 0; i < optionCount; i++) {
+							const emoji = emojis[i];
+							const reaction = msg.reactions.cache.find(r => r.emoji.name === emoji);
+							let num = 0;
+							if (reaction) {
+								try {
+									const users = await reaction.users.fetch();
+									const filtered = users.filter(u => !u.bot);
+									num = filtered.size;
+								} catch {
+									num = Math.max(0, (reaction.count || 0) - 1);
+								}
 							}
+							counts.push(num);
 						}
-						counts.push(num);
-					}
-					return { shardId: c.cluster?.id || 0, counts, createdTimestamp: createdTs };
-				} catch { return null; }
-			},
-			{ context: { channelId: data.channelid, messageId, optionCount: data.options.length, emojis: POLL_EMOJIS } }
-		);
+						return { shardId: c.cluster?.id || 0, counts, createdTimestamp: createdTs };
+					} catch { return null; }
+				},
+				{ context: { channelId: data.channelid, messageId, optionCount: data.options.length, emojis: POLL_EMOJIS }, timeout: 15_000 }
+			);
+		} catch (error) {
+			// Handle IPC channel closed errors gracefully
+			if (error && error.code === 'ERR_IPC_CHANNEL_CLOSED') {
+				console.warn(`[tallyStPoll] IPC channel closed, skipping poll tally for message ${messageId}`);
+				const d = stPolls.get(messageId);
+				if (d) d.completed = true;
+				setTimeout(() => stPolls.delete(messageId), 60_000);
+				return;
+			}
+			// Re-throw other errors
+			throw error;
+		}
 		const found = Array.isArray(shardResults) ? shardResults.find(v => v && Array.isArray(v.counts)) : null;
 		if (!found) {
 			const d = stPolls.get(messageId);
@@ -2310,7 +2386,7 @@ async function tallyStPoll(messageId, fallbackData) {
 							return true;
 						} catch { return false; }
 					},
-					{ context: { channelId: data.channelid, messageId, content: `本輪未收到投票（連續 ${nextDisplay} 次）。`, targetClusterId: ownerClusterId } }
+					{ context: { channelId: data.channelid, messageId, content: `本輪未收到投票（連續 ${nextDisplay} 次）。`, targetClusterId: ownerClusterId }, timeout: 10_000 }
 				);
 			} catch { }
 			if (nextRaw >= 4) {
@@ -2328,7 +2404,7 @@ async function tallyStPoll(messageId, fallbackData) {
 								return true;
 							} catch { return false; }
 						},
-						{ context: { channelId: data.channelid, messageId, content: '連續 4 次無人投票，已自動暫停本局。', targetClusterId: ownerClusterId } }
+						{ context: { channelId: data.channelid, messageId, content: '連續 4 次無人投票，已自動暫停本局。', targetClusterId: ownerClusterId }, timeout: 10_000 }
 					);
 				} catch { }
 				try {
@@ -2363,7 +2439,7 @@ async function tallyStPoll(messageId, fallbackData) {
 									return true;
 								} catch { return false; }
 							},
-							{ context: { channelId: data.channelid, content: rplyVal.text } }
+							{ context: { channelId: data.channelid, content: rplyVal.text }, timeout: 10_000 }
 						);
 					}
 				} catch (error) {
@@ -2423,7 +2499,7 @@ async function tallyStPoll(messageId, fallbackData) {
 						return true;
 					} catch { return false; }
 				},
-				{ context: { channelId: data.channelid, messageId, content: `投票結束，選中：${POLL_EMOJIS[pick]} ${picked.label}（${max} 票）`, targetClusterId: ownerClusterId } }
+				{ context: { channelId: data.channelid, messageId, content: `投票結束，選中：${POLL_EMOJIS[pick]} ${picked.label}（${max} 票）`, targetClusterId: ownerClusterId }, timeout: 10_000 }
 			);
 		} catch { }
 
@@ -2467,7 +2543,7 @@ async function tallyStPoll(messageId, fallbackData) {
 									return true;
 								} catch { return false; }
 							},
-							{ context: { channelId: data.channelid, content: rplyVal.text, targetClusterId: ownerClusterId } }
+							{ context: { channelId: data.channelid, content: rplyVal.text, targetClusterId: ownerClusterId }, timeout: 10_000 }
 						);
 					}
 				}
@@ -2517,16 +2593,16 @@ const connect = function () {
 			}
 		}
 		catch (error) {
-			console.error(`disocrdbot #99 error`, (error && error.name), (error && error.message), (error && error.reason))
+			console.error(`[Discord Bot] Error in WebSocket message handling:`, (error && error.name), (error && error.message), (error && error.reason))
 		};
 		return;
 
 	});
 	ws.on('error', (error) => {
-		console.error('Discord socket error', (error && error.name), (error && error.message), (error && error.reason));
+		console.error('[Discord Bot] Socket error:', (error && error.name), (error && error.message), (error && error.reason));
 	});
 	ws.on('close', function () {
-		console.error('Discord socket close');
+		console.error('[Discord Bot] Socket closed');
 		setTimeout(connect, RECONNECT_INTERVAL);
 	});
 };
@@ -2598,40 +2674,51 @@ if (togGGToken) {
 async function sendCronWebhook({ channelid, replyText, data }) {
 	console.log(`[discord_bot] [Shard ${client.cluster.id}] Starting sendCronWebhook for channel ${channelid}`);
 	try {
-		const webhookData = await client.cluster.broadcastEval(
-			async (c, { channelId }) => {
-				const channel = await c.channels.fetch(channelId).catch(() => null);
-				if (!channel) return null;
+		let webhookData = null;
+		try {
+			webhookData = await client.cluster.broadcastEval(
+				async (c, { channelId }) => {
+					const channel = await c.channels.fetch(channelId).catch(() => null);
+					if (!channel) return null;
 
-				const isThread = channel.isThread();
-				const targetChannel = isThread ? await c.channels.fetch(channel.parentId).catch(() => null) : channel;
-				if (!targetChannel) return null;
+					const isThread = channel.isThread();
+					const targetChannel = isThread ? await c.channels.fetch(channel.parentId).catch(() => null) : channel;
+					if (!targetChannel) return null;
 
-				let webhooks = await targetChannel.fetchWebhooks().catch(() => []);
-				let webhook = webhooks.find(wh => wh.owner.id === c.user.id);
+					let webhooks = await targetChannel.fetchWebhooks().catch(() => []);
+					let webhook = webhooks.find(wh => wh.owner.id === c.user.id);
 
-				if (!webhook) {
-					try {
-						webhook = await targetChannel.createWebhook({
-							name: "HKTRPG .me Function",
-							avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png"
-						});
-					} catch (error) {
-						console.error(`[Shard ${c.cluster.id}] Failed to create webhook in channel ${targetChannel.id}: ${error.message}`);
-						return null;
+					if (!webhook) {
+						try {
+							webhook = await targetChannel.createWebhook({
+								name: "HKTRPG .me Function",
+								avatar: "https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png"
+							});
+						} catch (error) {
+							console.error(`[Shard ${c.cluster.id}] Failed to create webhook in channel ${targetChannel.id}: ${error.message}`);
+							return null;
+						}
 					}
-				}
-				return {
-					id: webhook.id,
-					token: webhook.token,
-					isThread: isThread,
-					threadId: isThread ? channelId : null
-				};
-			},
-			{ context: { channelId: channelid } }
-		);
+					return {
+						id: webhook.id,
+						token: webhook.token,
+						isThread: isThread,
+						threadId: isThread ? channelId : null
+					};
+				},
+				{ context: { channelId: channelid }, timeout: 15_000 }
+			);
+		} catch (error) {
+			// Handle IPC channel closed errors gracefully
+			if (error && error.code === 'ERR_IPC_CHANNEL_CLOSED') {
+				console.warn(`[sendCronWebhook] IPC channel closed, skipping webhook creation for channel ${channelid}`);
+				return;
+			}
+			// Re-throw other errors
+			throw error;
+		}
 
-		const validWebhookData = webhookData.find(Boolean);
+		const validWebhookData = webhookData && Array.isArray(webhookData) ? webhookData.find(Boolean) : null;
 
 		if (!validWebhookData) {
 			console.error(`[Shard ${client.cluster.id}] Could not find or create a webhook for channel ${channelid} on any shard. Falling back to regular message.`);
@@ -2670,7 +2757,10 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 		}
 	}
 }
-async function handlingMultiServerMessage(message) {
+async function handlingMultiServerMessage() {
+	return;
+	// Multi-server functionality temporarily disabled
+	/*
 	if (!process.env.mongoURL) return;
 	let target = multiServer.multiServerChecker(message.channel.id)
 	if (!target) return;
@@ -2696,15 +2786,17 @@ async function handlingMultiServerMessage(message) {
 
 	}
 	return;
+	*/
 }
-function multiServerTarget(message) {
-	const obj = {
-		content: message.content,
-		username: message?._member?.nickname || message?._member?.displayName,
-		avatarURL: message.author.displayAvatarURL()
-	};
-	return obj;
-}
+// Multi-server functionality temporarily disabled
+// function multiServerTarget(message) {
+// 	const obj = {
+// 		content: message.content,
+// 		username: message?._member?.nickname || message?._member?.displayName,
+// 		avatarURL: message.author.displayAvatarURL()
+// 	};
+// 	return obj;
+// }
 
 function __checkUserRole(groupid, message) {
 	/**
@@ -2718,7 +2810,6 @@ function __checkUserRole(groupid, message) {
 		if (groupid && message.channel && message.channel.permissionsFor(message.member) && message.channel.permissionsFor(message.member).has(PermissionsBitField.Flags.ManageChannels)) return 2;
 		return 1;
 	} catch {
-		//	console.log('error', error)
 		return 1;
 	}
 

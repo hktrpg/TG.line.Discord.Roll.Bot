@@ -1,0 +1,638 @@
+---
+description: Security utilities and best practices using utils/security.js
+globs:
+  - "utils/security.js"
+  - "**/*auth*.js"
+  - "**/*security*.js"
+  - "**/*login*.js"
+alwaysApply: false
+---
+
+# Security Utilities Rules
+
+## Purpose
+The `utils/security.js` module provides comprehensive security utilities for authentication, encryption, input validation, and secure data handling. **Always use these utilities** instead of implementing custom security code.
+
+## Key Features
+
+### 1. Environment Variable Management
+- **Auto-generates secure keys** - Automatically creates missing environment variables
+- **Loads .env file** - Reads and applies environment variables
+- **Required keys**: `JWT_SECRET`, `SALT`, `SESSION_SECRET`, `ENCRYPTION_KEY`, `API_SECRET`
+
+### 2. Password Hashing & Verification
+- **bcrypt-based** - Uses `bcryptjs` for secure password hashing
+- **Legacy support** - Supports migration from old SHA256 hashes
+- **Auto-upgrade** - Automatically upgrades legacy passwords on login
+
+### 3. Input Validation & Sanitization
+- **NoSQL injection prevention** - Validates input types and structure
+- **XSS protection** - Detects suspicious patterns
+- **Length limits** - Enforces reasonable input limits
+
+### 4. JWT Authentication
+- **Token generation** - Creates JWT tokens for user sessions
+- **Token verification** - Validates and decodes JWT tokens
+- **Socket.IO middleware** - Authentication middleware for Socket.IO
+
+### 5. Origin Validation
+- **CORS protection** - Validates request origins
+- **Whitelist-based** - Only allows trusted domains
+- **Socket.IO middleware** - Origin validation for Socket.IO connections
+
+### 6. Data Encryption/Decryption
+- **AES encryption** - Encrypts sensitive data using AES
+- **HMAC generation** - Creates data integrity signatures
+- **HMAC verification** - Verifies data integrity
+
+## Usage Patterns
+
+### Password Hashing
+
+```javascript
+const security = require('../utils/security.js');
+
+// ✅ GOOD: Hash password on registration
+async function registerUser(userName, password) {
+    const hashedPassword = await security.hashPassword(password);
+    await schema.accountPW.create({
+        userName,
+        password: hashedPassword
+    });
+}
+
+// ✅ GOOD: Verify password on login
+async function loginUser(userName, password) {
+    const user = await schema.accountPW.findOne({ userName });
+    if (!user) return false;
+    
+    const isValid = await security.verifyPassword(password, user.password);
+    if (isValid) {
+        // Auto-upgrade legacy passwords
+        await security.upgradePasswordIfLegacy(userName, password, user.password);
+        return true;
+    }
+    return false;
+}
+
+// ❌ BAD: Don't hash passwords manually
+const badHash = crypto.createHash('sha256').update(password).digest('hex');
+```
+
+### Input Validation
+
+```javascript
+const security = require('../utils/security.js');
+
+// ✅ GOOD: Validate chat messages
+function handleChatMessage(msg) {
+    const validation = security.validateChatMessage(msg);
+    if (!validation.valid) {
+        return { error: validation.error };
+    }
+    
+    // Use validated data
+    const { name, msg, roomNumber } = validation.data;
+    // Process message...
+}
+
+// ✅ GOOD: Validate credentials
+function handleLogin(credentials) {
+    const validation = security.validateCredentials(credentials);
+    if (!validation.valid) {
+        return { error: validation.error };
+    }
+    
+    const { userName, userPassword } = validation.data;
+    // Process login...
+}
+
+// ✅ GOOD: Sanitize input
+function searchUsers(query) {
+    const sanitized = security.sanitizeInput(query, 100);
+    return schema.users.find({ name: { $regex: sanitized } });
+}
+
+// ❌ BAD: Direct use without validation
+function badHandleMessage(msg) {
+    // No validation - vulnerable to NoSQL injection
+    await schema.chatRoom.create(msg);
+}
+```
+
+### JWT Authentication
+
+```javascript
+const security = require('../utils/security.js');
+
+// ✅ GOOD: Generate token on login
+async function loginUser(userName, password) {
+    const user = await verifyCredentials(userName, password);
+    if (!user) return null;
+    
+    const token = security.generateToken({
+        id: user._id.toString(),
+        userName: user.userName
+    });
+    
+    return { token, user };
+}
+
+// ✅ GOOD: Verify token on protected routes
+function protectedRoute(req, res, next) {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const decoded = security.verifyToken(token);
+    if (!decoded) {
+        return res.status(401).json({ error: 'Invalid token' });
+    }
+    
+    req.user = decoded;
+    next();
+}
+
+// ✅ GOOD: Validate JWT auth data
+function handleJWTAuth(authData) {
+    const validation = security.validateJWTAuth(authData);
+    if (!validation.valid) {
+        return { error: validation.error };
+    }
+    
+    const { userId, userName } = validation.data;
+    // Process authenticated request...
+}
+
+// ❌ BAD: Manual token verification
+function badVerifyToken(token) {
+    // Don't manually decode - use security.verifyToken()
+    const decoded = jwt.decode(token); // Not secure!
+}
+```
+
+### Origin Validation
+
+```javascript
+const security = require('../utils/security.js');
+
+// ✅ GOOD: Validate origin in Express middleware
+function corsMiddleware(req, res, next) {
+    const origin = req.headers.origin;
+    if (origin && security.validateOrigin(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    next();
+}
+
+// ✅ GOOD: Use Socket.IO origin middleware
+const io = require('socket.io')(server);
+io.use(security.socketOriginMiddleware);
+
+// ❌ BAD: Allow all origins
+function badCors(req, res, next) {
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Dangerous!
+    next();
+}
+```
+
+### Data Encryption
+
+```javascript
+const security = require('../utils/security.js');
+
+// ✅ GOOD: Encrypt sensitive data before storage
+async function saveSensitiveData(userId, sensitiveData) {
+    const encrypted = security.encryptData(sensitiveData);
+    await schema.userData.create({
+        userId,
+        encryptedData: encrypted
+    });
+}
+
+// ✅ GOOD: Decrypt data when retrieving
+async function getSensitiveData(userId) {
+    const record = await schema.userData.findOne({ userId });
+    if (!record) return null;
+    
+    const decrypted = security.decryptData(record.encryptedData);
+    return decrypted;
+}
+
+// ✅ GOOD: Generate HMAC for data integrity
+function sendSecureData(data) {
+    const signature = security.generateHMAC(JSON.stringify(data));
+    return {
+        data,
+        signature
+    };
+}
+
+// ✅ GOOD: Verify HMAC
+function receiveSecureData(payload) {
+    const { data, signature } = payload;
+    const isValid = security.verifyHMAC(
+        JSON.stringify(data),
+        signature
+    );
+    
+    if (!isValid) {
+        throw new Error('Data integrity check failed');
+    }
+    
+    return data;
+}
+
+// ❌ BAD: Store sensitive data in plain text
+async function badSaveData(userId, password) {
+    await schema.users.create({
+        userId,
+        password: password // Plain text - dangerous!
+    });
+}
+```
+
+### Socket.IO Authentication
+
+```javascript
+const security = require('../utils/security.js');
+const io = require('socket.io')(server);
+
+// ✅ GOOD: Use authentication middleware
+io.use(security.socketAuthMiddleware);
+io.use(security.socketOriginMiddleware);
+
+io.on('connection', (socket) => {
+    // socket.userId and socket.userName are available
+    console.log(`User ${socket.userName} connected`);
+});
+
+// ❌ BAD: No authentication
+io.on('connection', (socket) => {
+    // Anyone can connect - dangerous!
+});
+```
+
+### Log Sanitization
+
+```javascript
+const security = require('../utils/security.js');
+
+// ✅ GOOD: Sanitize logs before writing
+function logUserAction(user, action) {
+    const sanitized = security.sanitizeLogData({
+        userName: user.userName,
+        password: user.password, // Will be redacted
+        token: user.token,       // Will be redacted
+        action
+    });
+    
+    logger.info('User action', sanitized);
+    // Output: { userName: 'user', password: '[REDACTED]', token: '[REDACTED]', action: 'login' }
+}
+
+// ❌ BAD: Log sensitive data directly
+function badLog(user) {
+    logger.info('User login', user); // Logs password and token!
+}
+```
+
+## Environment Variables
+
+### Required Variables (Auto-generated)
+The module automatically generates these if missing:
+- `JWT_SECRET` - 32 bytes hex - JWT signing secret
+- `SALT` - 16 bytes hex - Password hashing salt (legacy)
+- `SESSION_SECRET` - 32 bytes hex - Session secret
+- `ENCRYPTION_KEY` - 32 bytes base64 - Data encryption key
+- `API_SECRET` - 24 bytes hex - API authentication secret
+
+### Environment Setup
+```javascript
+// ✅ GOOD: Module auto-loads .env file
+// No manual setup needed - security.js handles it
+
+// ❌ BAD: Don't manually set environment variables in code
+process.env.JWT_SECRET = 'hardcoded-secret'; // Dangerous!
+```
+
+## Security Best Practices
+
+### Password Security
+✅ **DO:**
+- Always hash passwords before storage
+- Use `hashPassword()` and `verifyPassword()` from security.js
+- Enable auto-upgrade for legacy passwords
+- Use strong passwords (enforced by `validateCredentials()`)
+
+❌ **DON'T:**
+- Store passwords in plain text
+- Use weak hashing algorithms (MD5, SHA1)
+- Skip password validation
+- Log passwords
+
+### Input Validation
+✅ **DO:**
+- Always validate user input before processing
+- Use `validateChatMessage()`, `validateCredentials()`, etc.
+- Sanitize input with `sanitizeInput()`
+- Check for XSS patterns
+
+❌ **DON'T:**
+- Trust user input
+- Skip validation for "internal" APIs
+- Allow users to construct queries directly
+- Process unvalidated data
+
+### Authentication
+✅ **DO:**
+- Use JWT tokens for stateless authentication
+- Validate tokens on every protected route
+- Use `socketAuthMiddleware` for Socket.IO
+- Set appropriate token expiration
+
+❌ **DON'T:**
+- Store tokens in localStorage (use httpOnly cookies)
+- Skip token validation
+- Use weak secrets
+- Expose token secrets
+
+### Data Encryption
+✅ **DO:**
+- Encrypt sensitive data before storage
+- Use `encryptData()` and `decryptData()`
+- Generate HMAC for data integrity
+- Verify HMAC before processing
+
+❌ **DON'T:**
+- Store sensitive data in plain text
+- Skip encryption for "non-critical" data
+- Use weak encryption keys
+- Skip integrity checks
+
+### Origin Validation
+✅ **DO:**
+- Validate origins for CORS
+- Use `validateOrigin()` for API endpoints
+- Use `socketOriginMiddleware` for Socket.IO
+- Maintain whitelist of trusted domains
+
+❌ **DON'T:**
+- Allow all origins (`*`)
+- Skip origin validation
+- Trust origin headers blindly
+
+## Common Patterns
+
+### Login Flow
+```javascript
+const security = require('../utils/security.js');
+
+async function login(userName, password) {
+    // 1. Validate input
+    const validation = security.validateCredentials({ userName, userPassword: password });
+    if (!validation.valid) {
+        return { error: validation.error };
+    }
+    
+    // 2. Find user
+    const user = await schema.accountPW.findOne({ userName: validation.data.userName });
+    if (!user) {
+        return { error: 'Invalid credentials' };
+    }
+    
+    // 3. Verify password
+    const isValid = await security.verifyPassword(validation.data.userPassword, user.password);
+    if (!isValid) {
+        return { error: 'Invalid credentials' };
+    }
+    
+    // 4. Upgrade legacy password if needed
+    await security.upgradePasswordIfLegacy(userName, password, user.password);
+    
+    // 5. Generate token
+    const token = security.generateToken({
+        id: user._id.toString(),
+        userName: user.userName
+    });
+    
+    return { token, user: { id: user._id, userName: user.userName } };
+}
+```
+
+### Protected Route Pattern
+```javascript
+const security = require('../utils/security.js');
+
+function requireAuth(req, res, next) {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token) {
+        return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const decoded = security.verifyToken(token);
+    if (!decoded) {
+        return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+    
+    req.user = decoded;
+    next();
+}
+
+// Usage
+app.get('/api/profile', requireAuth, async (req, res) => {
+    const user = await schema.users.findOne({ _id: req.user.userId });
+    res.json(user);
+});
+```
+
+### Secure Data Storage Pattern
+```javascript
+const security = require('../utils/security.js');
+
+async function saveUserSecret(userId, secret) {
+    // Encrypt before storage
+    const encrypted = security.encryptData(secret);
+    
+    await schema.userSecrets.findOneAndUpdate(
+        { userId },
+        { encryptedSecret: encrypted },
+        { upsert: true }
+    );
+}
+
+async function getUserSecret(userId) {
+    const record = await schema.userSecrets.findOne({ userId });
+    if (!record) return null;
+    
+    // Decrypt when retrieving
+    return security.decryptData(record.encryptedSecret);
+}
+```
+
+## Error Handling
+
+### Security Error Patterns
+```javascript
+const security = require('../utils/security.js');
+
+// ✅ GOOD: Generic error messages for users
+try {
+    const token = security.generateToken(user);
+} catch (error) {
+    logger.error('Token generation failed', { error: error.message, userId: user.id });
+    return { error: 'Authentication failed. Please try again.' }; // Generic
+}
+
+// ✅ GOOD: Detailed logs, sanitized
+try {
+    const validation = security.validateCredentials(credentials);
+} catch (error) {
+    const sanitized = security.sanitizeLogData(credentials);
+    logger.error('Validation failed', { error: error.message, input: sanitized });
+    return { error: 'Invalid input' };
+}
+
+// ❌ BAD: Expose security details
+catch (error) {
+    return { error: `JWT_SECRET missing: ${error.message}` }; // Exposes internals
+}
+```
+
+## Dependencies
+
+### Required Packages
+- `crypto-js` - Data encryption/decryption
+- `jsonwebtoken` - JWT token generation/verification (optional, but recommended)
+- `bcryptjs` - Password hashing (optional, but recommended)
+
+### Package Installation
+```bash
+# Install required packages
+yarn add crypto-js jsonwebtoken bcryptjs
+```
+
+## Security Checklist
+
+### Before Implementing Authentication
+- [ ] Use `security.hashPassword()` for password storage
+- [ ] Use `security.verifyPassword()` for password verification
+- [ ] Validate credentials with `security.validateCredentials()`
+- [ ] Generate JWT tokens with `security.generateToken()`
+- [ ] Verify tokens with `security.verifyToken()`
+- [ ] Use `security.socketAuthMiddleware` for Socket.IO
+
+### Before Processing User Input
+- [ ] Validate input with appropriate validator (`validateChatMessage`, `validateCredentials`, etc.)
+- [ ] Sanitize input with `security.sanitizeInput()`
+- [ ] Check for XSS patterns
+- [ ] Enforce length limits
+
+### Before Storing Sensitive Data
+- [ ] Encrypt data with `security.encryptData()`
+- [ ] Generate HMAC with `security.generateHMAC()` if needed
+- [ ] Never store plain text passwords or tokens
+
+### Before Logging
+- [ ] Sanitize logs with `security.sanitizeLogData()`
+- [ ] Remove sensitive fields (password, token, secret)
+- [ ] Don't log full request bodies
+
+## Common Anti-Patterns to Avoid
+
+❌ **Don't:**
+- Implement custom password hashing (use `hashPassword()`)
+- Skip input validation
+- Store sensitive data in plain text
+- Log passwords or tokens
+- Allow all origins (`*`)
+- Manually decode JWT tokens (use `verifyToken()`)
+- Hardcode secrets in code
+- Skip encryption for "non-critical" data
+
+✅ **Do:**
+- Always use security utilities from `utils/security.js`
+- Validate all user input
+- Encrypt sensitive data
+- Sanitize logs
+- Use proper authentication middleware
+- Follow security best practices
+- Keep secrets in environment variables
+
+## Integration with Other Modules
+
+### With Database Operations
+```javascript
+const security = require('../utils/security.js');
+const schema = require('../modules/schema.js');
+
+// Validate before database operations
+const validation = security.validateChatMessage(msg);
+if (!validation.valid) {
+    return { error: validation.error };
+}
+
+// Use validated data
+await schema.chatRoom.create(validation.data);
+```
+
+### With Express Routes
+```javascript
+const security = require('../utils/security.js');
+const express = require('express');
+const app = express();
+
+// CORS middleware
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (origin && security.validateOrigin(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    next();
+});
+
+// Protected route
+app.get('/api/data', (req, res, next) => {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    const decoded = security.verifyToken(token);
+    if (!decoded) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    req.user = decoded;
+    next();
+}, (req, res) => {
+    res.json({ data: 'protected data' });
+});
+```
+
+### With Socket.IO
+```javascript
+const security = require('../utils/security.js');
+const io = require('socket.io')(server);
+
+// Apply security middleware
+io.use(security.socketAuthMiddleware);
+io.use(security.socketOriginMiddleware);
+
+io.on('connection', (socket) => {
+    // socket.userId and socket.userName are available
+    socket.on('message', async (msg) => {
+        const validation = security.validateChatMessage(msg);
+        if (!validation.valid) {
+            socket.emit('error', validation.error);
+            return;
+        }
+        // Process message...
+    });
+});
+```
+
+## Notes
+
+- **Auto-initialization**: The module automatically ensures environment variables exist and loads `.env` file on require
+- **Legacy support**: Supports migration from old password hashing methods
+- **Error handling**: All functions handle errors gracefully and return appropriate values
+- **Performance**: Uses efficient algorithms (bcrypt, AES) suitable for production
+- **Compatibility**: Works with existing codebase patterns and conventions

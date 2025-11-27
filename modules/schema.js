@@ -86,7 +86,7 @@ const trpgCommandSchema = mongoose.model('trpgCommand', {
 });
 
 // Level system schemas
-const trpgLevelSystemSchema = mongoose.model('trpgLevelSystem', {
+const trpgLevelSystemSchema = mongoose.model('trpgLevelSystem', new mongoose.Schema({
     groupid: { type: String, index: true },
     LevelUpWord: String,
     RankWord: String,
@@ -105,9 +105,14 @@ const trpgLevelSystemSchema = mongoose.model('trpgLevelSystem', {
             default: Date.now
         }
     }]
-});
+}, {
+    // 複合索引：優化常見查詢模式 findOne({ groupid, SwitchV2: true })
+    indexes: [
+        { groupid: 1, SwitchV2: 1 }  // 用於查找啟用 SwitchV2 的群組配置
+    ]
+}));
 
-const trpgLevelSystemMemberSchema = mongoose.model('trpgLevelSystemMember', {
+const trpgLevelSystemMemberSchema = mongoose.model('trpgLevelSystemMember', new mongoose.Schema({
     groupid: { type: String, index: true },
     userid: { type: String, index: true },
     name: { type: String, index: true },
@@ -123,7 +128,12 @@ const trpgLevelSystemMemberSchema = mongoose.model('trpgLevelSystemMember', {
         type: Date,
         default: Date.now
     }
-});
+}, {
+    // 複合索引：優化常見查詢模式 findOne({ groupid, userid })
+    indexes: [
+        { groupid: 1, userid: 1 }  // 用於查找特定群組中的特定用戶
+    ]
+}));
 
 const trpgDarkRollingSchema = mongoose.model('trpgDarkRolling', {
     groupid: { type: String, index: true },
@@ -186,6 +196,12 @@ const veryImportantPersonSchema = mongoose.model('veryImportantPerson', new mong
     notes: String,
     code: String,
     switch: Boolean
+}, {
+    // 複合索引：優化同時查詢 gpid 和 id 的情況
+    indexes: [
+        { gpid: 1, id: 1 },  // 用於查找特定群組中的特定用戶
+        { id: 1, gpid: 1 }   // 反向索引，用於查找用戶在哪些群組中
+    ]
 }));
 
 const codeListSchema = mongoose.model('codelist', new mongoose.Schema({
@@ -206,6 +222,11 @@ const characterGroupSwitchSchema = mongoose.model('characterGpSwitch', new mongo
     id: { type: String, index: true },
     name: String,
     cardId: { type: String, index: true }
+}, {
+    // 複合索引：優化同時查詢 id 和 cardId 的情況
+    indexes: [
+        { id: 1, cardId: 1 }  // 用於查找特定用戶的特定卡片
+    ]
 }));
 
 const accountPasswordSchema = mongoose.model('accountPW', new mongoose.Schema({
@@ -379,6 +400,12 @@ const developmentRollingRecordSchema = mongoose.model('developmentRollingRecord'
     skillResult: Number,
     skillPerStyle: String,
     userName: String
+}, {
+    // 複合索引：優化同時查詢 groupID 和 userID 的情況
+    indexes: [
+        { groupID: 1, userID: 1 },  // 用於查找特定群組中的特定用戶記錄
+        { userID: 1, date: -1 }     // 用於按用戶和日期排序查詢
+    ]
 }));
 
 // Schedule related schemas
@@ -391,7 +418,19 @@ const agendaAtHKTRPGSchema = mongoose.model('agendaAtHKTRPG', new mongoose.Schem
     lastModifiedBy: String,
     roleName: String,
     imageLink: String
-}, { collection: "agendaAtHKTRPG" }));
+}, { 
+    collection: "agendaAtHKTRPG",
+    // 性能優化索引：根據 Agenda 文檔建議
+    // 參考：https://github.com/agenda/agenda#performance
+    indexes: [
+        // Agenda 內部查詢使用的複合索引
+        { name: 1, nextRunAt: 1, priority: -1, lockedAt: 1, disabled: 1 },
+        // 用於查找和鎖定任務的索引（Agenda 內部使用）
+        { nextRunAt: 1, lockedAt: 1, disabled: 1 },
+        // 用於查找死鎖任務的索引
+        { name: 1, disabled: 1, lockedAt: 1 }
+    ]
+}));
 
 // Message related schemas
 const firstTimeMessageSchema = mongoose.model('firstTimeMessage', new mongoose.Schema({
@@ -405,8 +444,13 @@ const firstTimeMessageSchema = mongoose.model('firstTimeMessage', new mongoose.S
 
 const newsMessageSchema = mongoose.model('theNewsMessage', new mongoose.Schema({
     userID: { type: String, index: true },
-    botname: String,
+    botname: { type: String, index: true },
     switch: Boolean
+}, {
+    // 複合索引：優化同時查詢 userID 和 botname 的情況
+    indexes: [
+        { userID: 1, botname: 1 }  // 用於查找特定用戶的特定機器人設置
+    ]
 }));
 
 const userNameSchema = mongoose.model('myName', new mongoose.Schema({
@@ -430,6 +474,12 @@ const roleReactSchema = mongoose.model('roleReact', new mongoose.Schema({
         roleID: String,
         emoji: String,
     }]
+}, {
+    // 複合索引優化：同時查詢 groupid 和 messageID 時性能提升
+    // 索引順序：groupid 在前（選擇性更高），messageID 在後
+    indexes: [
+        { groupid: 1, messageID: 1 }  // 複合索引，優化常見查詢模式
+    ]
 }));
 
 const roleInvitesSchema = mongoose.model('roleInvites', new mongoose.Schema({
@@ -437,13 +487,23 @@ const roleInvitesSchema = mongoose.model('roleInvites', new mongoose.Schema({
     invitesLink: String,
     groupid: { type: String, index: true },
     serial: { type: Number, index: true }
+}, {
+    // 複合索引：優化同時查詢 groupid 和 roleID 的情況
+    indexes: [
+        { groupid: 1, roleID: 1 }  // 用於查找特定群組中的特定角色邀請
+    ]
 }));
 
 // Channel related schemas
 const translateChannelSchema = mongoose.model('translateChannel', new mongoose.Schema({
-    groupid: String,
-    channelid: String,
+    groupid: { type: String, index: true },
+    channelid: { type: String, index: true },
     switch: Boolean
+}, {
+    // 複合索引：優化同時查詢 groupid 和 channelid 的情況
+    indexes: [
+        { groupid: 1, channelid: 1 }  // 用於查找特定群組中的特定頻道
+    ]
 }));
 
 const bcdiceRegeditSchema = mongoose.model('bcdiceRegedit', new mongoose.Schema({
@@ -457,12 +517,18 @@ const bcdiceRegeditSchema = mongoose.model('bcdiceRegedit', new mongoose.Schema(
 }));
 
 const multiServerSchema = mongoose.model('multiServer', new mongoose.Schema({
-    channelid: String,
+    channelid: { type: String, index: true },
     multiId: String,
     guildName: String,
     channelName: String,
-    guildID: String,
-    botname: String
+    guildID: { type: String, index: true },
+    botname: { type: String, index: true }
+}, {
+    // 複合索引：優化常見查詢模式
+    indexes: [
+        { channelid: 1, botname: 1 },  // 用於查找特定頻道和機器人
+        { guildID: 1, channelid: 1 }   // 用於查找特定伺服器中的頻道
+    ]
 }));
 
 // Story related schemas
@@ -533,7 +599,9 @@ const storyRunSchema = mongoose.model('storyRun', new mongoose.Schema({
     indexes: [
         { story: 1, createdAt: -1 },
         { groupID: 1, createdAt: -1 },
-        { starterID: 1, createdAt: -1 }
+        { starterID: 1, createdAt: -1 },
+        // 複合索引：優化常見查詢模式 findOne({ channelID, isEnded: false })
+        { channelID: 1, isEnded: 1 }  // 用於查找頻道中未結束的故事運行
     ]
 }));
 
@@ -638,7 +706,7 @@ const getMongoDBState = async () => {
             connections
         };
     } catch (error) {
-        console.error('Failed to get MongoDB state:', error);
+        console.error('[Schema] Failed to get MongoDB state:', error);
         return null;
     }
 };

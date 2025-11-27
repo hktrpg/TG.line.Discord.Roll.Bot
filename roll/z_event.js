@@ -236,7 +236,7 @@ exp:SAN
             try {
                 doc = await schema.eventList.updateOne(filter, listDatas, opt);
             } catch (error) {
-                console.error('新增事件 GET ERROR:', error)
+                console.error('[Event] Add event error:', error)
                 rply.text = '新增事件失敗\n因為 ' + error.message
                 return rply;
             }
@@ -286,7 +286,7 @@ exp:SAN
                 await temp.save();
 
             } catch (error) {
-                console.error('新增事件 GET ERROR:', error)
+                console.error('[Event] Add event error:', error)
                 rply.text = '新增事件失敗\n因為 ' + error.message
                 return rply;
             }
@@ -324,7 +324,7 @@ exp:SAN
                     }
                 })
             } catch (error) {
-                console.error('刪除事件 GET ERROR:  ', error)
+                console.error('[Event] Delete event error:', error)
                 rply.text = '刪除事件失敗'
                 return rply;
             }

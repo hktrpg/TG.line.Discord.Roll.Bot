@@ -72,7 +72,7 @@ const rollDiceCommand = async function ({
                 const num = rollbase.Dice(100_000_000);
                 const multiId = `${time}_${num}`
                 await schema.multiServer.findOneAndUpdate({ guildID: channel.guildId }, { channelid: mainMsg[2], multiId, guildID: channel.guildId, guildName: channel.guild.name, channelName: channel.name, botname }, { upsert: true }).catch(error => {
-                    console.error('multiserver #78 mongoDB error:', error.name, error.reason)
+                    console.error('[Multi-Server] MongoDB error:', error.name, error.reason)
                     return
                 });
                 await multiServer.getRecords();
@@ -80,7 +80,7 @@ const rollDiceCommand = async function ({
                 //，想把其他頻道加入，請輸入\n .chatroom join ${multiId} (其他頻道的ID)
                 return rply;
             } catch {
-                console.error('multiserver create error')
+                console.error('[Multi-Server] Create error')
             }
             return
         }
@@ -103,14 +103,14 @@ const rollDiceCommand = async function ({
                 let max = await schema.multiServer.find({ multiId: mainMsg[2] })
                 if (max.length >= 2) return;
                 await schema.multiServer.findOneAndUpdate({ guildID: channel.guildId }, { channelid: mainMsg[3], multiId: mainMsg[2], guildID: channel.guildId, guildName: channel.guild.name, channelName: channel.name, botname }, { upsert: true }).catch(error => {
-                    console.error('multiserver #93 mongoDB error:', error.name, error.reason)
+                    console.error('[Multi-Server] MongoDB error:', error.name, error.reason)
                     return
                 });
                 await multiServer.getRecords();
                 rply.text = `已把${channel.guild.name} - ${channel.name}新增到聊天室，想把其他頻道加入，請輸入 .join ${mainMsg[2]} (其他頻道的ID)`
                 return rply;
             } catch {
-                console.error('multiserver join error')
+                console.error('[Multi-Server] Join error')
             }
             return;
         }

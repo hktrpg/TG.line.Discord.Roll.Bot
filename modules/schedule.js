@@ -8,7 +8,18 @@ const Agenda = require("agenda");
 //const agenda = new Agenda({ mongo: mongoose.mongoose });
 
 // Or override the default collection name:
-const agenda = new Agenda({ db: { address: process.env.mongoURL, collection: 'agendaAtHKTRPG' }, maxConcurrency: 20_000, defaultConcurrency: 2000 });
+// 優化配置：減少對 MongoDB 的頻繁查詢
+const agenda = new Agenda({ 
+    db: { 
+        address: process.env.mongoURL, 
+        collection: 'agendaAtHKTRPG' 
+    }, 
+    maxConcurrency: 20_000, 
+    defaultConcurrency: 2000,
+    // 關鍵優化：將處理間隔從默認 5 秒增加到 30 秒
+    // 這可以大幅減少對 MongoDB 的查詢頻率，降低寫入鎖競爭
+    processEvery: 'one minute'  
+});
 
 // or pass additional connection options:
 // const agenda = new Agenda({db: {address: mongoConnectionString, collection: 'jobCollectionName', options: {ssl: true}}});

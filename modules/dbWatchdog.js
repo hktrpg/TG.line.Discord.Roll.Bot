@@ -79,14 +79,36 @@ class DbWatchdog {
             return;
         }
 
+        const dbConnector = require('./db-connector.js');
+        const mongoose = dbConnector.mongoose;
+
         // Check if mongoose connection is actually ready before attempting update
-        if (require('./db-connector.js').mongoose.connection.readyState !== 1) {
+        if (mongoose.connection.readyState !== 1) {
             console.warn('[dbWatchdog] MongoDB connection not ready, skipping error record update');
             return;
         }
 
         try {
-            await schema.mongodbState.updateOne(
+            // Wait for connection to be fully ready (with timeout)
+            const maxWaitTime = 5000; // 5 seconds
+            const startTime = Date.now();
+            while (mongoose.connection.readyState !== 1 && (Date.now() - startTime) < maxWaitTime) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            if (mongoose.connection.readyState !== 1) {
+                console.warn('[dbWatchdog] MongoDB connection not ready after waiting, skipping update');
+                return;
+            }
+
+            // Use the model correctly - mongodbState is a Mongoose model
+            const MongoDBState = schema.mongodbState;
+            if (!MongoDBState || typeof MongoDBState.updateOne !== 'function') {
+                console.warn('[dbWatchdog] mongodbState.updateOne is not a function, model may not be initialized');
+                return;
+            }
+
+            await MongoDBState.updateOne(
                 {},
                 {
                     $set: {

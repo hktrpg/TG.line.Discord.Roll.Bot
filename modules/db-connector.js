@@ -13,20 +13,23 @@ const config = {
     baseRetryInterval: 1000,  // 基礎重試間隔
     maxRetryInterval: 30_000,  // 最大重試間隔
     restartTime: '30 04 */3 * *',
-    connectTimeout: 60_000,    // Increased to 60s for sharded deployments
-    socketTimeout: 60_000,     // Increased to 60s for better stability
-    poolSize: 5,               // Reduced for 56 clusters (56 * 5 = 280 connections)
-    minPoolSize: 2,           // Maintain minimum connections
-    heartbeatInterval: 10_000,  // Frequent check
-    serverSelectionTimeout: 15_000,  // Increased to 15s for sharded deployments
-    maxIdleTimeMS: 30_000,     // Close idle connections faster
-    bufferCommands: true,     // Enable command buffering to allow operations before connection
+    // 連接超時設定 - 針對高併發啟動優化
+    connectTimeout: 30_000,    // 30秒連接超時（平衡啟動速度和穩定性）
+    socketTimeout: 45_000,     // 45秒 Socket 超時，避免慢查詢中途斷開
+    // 連接池設定 - 優化資源使用
+    // 注意：多 shard 共享連接，實際總連接數 = maxPoolSize * 共享連接數
+    // 當前架構：多 shard 共享一個連接，所以 maxPoolSize 可以設大一些
+    maxPoolSize: 50,          // 增加連接池大小，支持高併發讀寫
+    minPoolSize: 5,           // 維持最小連接數，減少連接建立開銷
+    heartbeatInterval: 10_000,  // 心跳檢查間隔
+    serverSelectionTimeout: 30_000,  // 30秒服務器選擇超時（應對啟動時高負載）
+    maxIdleTimeMS: 30_000,     // 關閉空閒連接時間
+    bufferCommands: true,     // 啟用命令緩衝，允許連接前操作
     w: 'majority',            // 寫入確認級別
     retryWrites: true,        // 啟用寫入重試
-    autoIndex: true,          // 自動建立索引
+    autoIndex: true,          // 自動建立索引（生產環境可設為 false 提升啟動速度）
     useNewUrlParser: true,    // 使用新的 URL 解析器
-    useUnifiedTopology: true, // 使用新的拓撲引擎
-    maxPoolSize: 10           // Allow more connections per cluster
+    useUnifiedTopology: true  // 使用新的拓撲引擎
 };
 
 if (!config.mongoUrl) {
@@ -477,6 +480,40 @@ if (!initialized) {
     });
 }
 
+// 等待連接就緒的輔助函數
+async function waitForConnection(timeout = 30_000) {
+    const startTime = Date.now();
+    
+    // 如果已經連接，直接返回
+    if (mongoose.connection.readyState === 1 && isConnected) {
+        return true;
+    }
+
+    // 等待連接建立
+    return new Promise((resolve, reject) => {
+        const checkInterval = setInterval(() => {
+            if (mongoose.connection.readyState === 1 && isConnected) {
+                clearInterval(checkInterval);
+                resolve(true);
+            } else if (Date.now() - startTime > timeout) {
+                clearInterval(checkInterval);
+                reject(new Error('Connection timeout'));
+            }
+        }, 100);
+
+        // 監聽連接事件
+        const onConnected = () => {
+            clearInterval(checkInterval);
+            connectionEmitter.removeListener('connected', onConnected);
+            connectionEmitter.removeListener('reconnected', onConnected);
+            resolve(true);
+        };
+
+        connectionEmitter.once('connected', onConnected);
+        connectionEmitter.once('reconnected', onConnected);
+    });
+}
+
 // 匯出
 module.exports = {
     mongoose,
@@ -484,5 +521,6 @@ module.exports = {
     restart,
     connect,
     withTransaction,
-    connectionEmitter
+    connectionEmitter,
+    waitForConnection
 };

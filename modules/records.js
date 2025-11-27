@@ -261,9 +261,33 @@ class Records extends EventEmitter {
     // Generic get operation
     async get(target, callback) {
         try {
+            // Check database connection before attempting operation
+            const dbConnector = require('./db-connector.js');
+            const mongoose = dbConnector.mongoose;
+
+            // Wait for connection if not ready (with timeout)
+            if (mongoose.connection.readyState !== 1) {
+                const maxWaitTime = 10000; // 10 seconds
+                const startTime = Date.now();
+                
+                // Wait for connection with timeout
+                while (mongoose.connection.readyState !== 1 && (Date.now() - startTime) < maxWaitTime) {
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+
+                // If still not connected after waiting, return empty array
+                if (mongoose.connection.readyState !== 1) {
+                    console.warn(`[Records] MongoDB connection not ready for ${target}, returning empty array`);
+                    callback([]);
+                    return;
+                }
+            }
+
             if (schema[target]) {
                 const documents = await schema[target].find({});
                 callback(documents);
+            } else {
+                callback([]);
             }
         } catch (error) {
             console.error(`[Records] Failed to get documents from ${target}:`, error);

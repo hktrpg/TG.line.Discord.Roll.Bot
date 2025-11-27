@@ -72,6 +72,12 @@ This directory contains Cursor Project Rules for the HKTRPG bot development. The
 - **Purpose**: Database best practices and security for low-resource production environment
 - **Key Topics**: Connection pooling, query optimization, input validation, memory management, CSP, rate limiting
 
+### 11. `security.mdc` - Security Utilities Rules
+- **Type**: Apply to Specific Files (`utils/security.js`, `**/*auth*.js`, `**/*security*.js`, `**/*login*.js`)
+- **Scope**: Security utilities and authentication
+- **Purpose**: Standards for using security utilities from `utils/security.js`
+- **Key Topics**: Password hashing, JWT authentication, input validation, data encryption, origin validation, log sanitization
+
 ## Rule Application Priority
 
 Rules are applied in this order:

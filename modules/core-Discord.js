@@ -149,14 +149,12 @@ manager.on('clusterCreate', shard => {
             return;
         }
 
-        // Ensure all clusters have been created before checking if they are ready
-        if (shard.manager.clusters.size !== shard.manager.totalClusters) {
-            return;
-        }
+        // For single cluster respawn, only check if this specific cluster is ready
+        // During respawn, clusters.size might not equal totalClusters yet
+        const activeClusters = [...shard.manager.clusters.values()].filter(c => c.ready);
+        const allActiveReady = activeClusters.length === shard.manager.clusters.size;
 
-        const allReady = [...shard.manager.clusters.values()].every(c => c.ready);
-
-        if (allReady) {
+        if (allActiveReady) {
             heartbeatStarted = true;
             shard.manager.broadcast({ type: 'startHeartbeat' });
         }
@@ -220,41 +218,22 @@ manager.on("clusterCreate", cluster => {
             try {
                 const targetCluster = manager.clusters.get(Number(message.id));
                 if (targetCluster) {
-                    console.error(`[Cluster Message] Found target cluster ${message.id}, initiating respawn`);
                     await targetCluster.respawn({
                         delay: 1000,
                         timeout: 60_000
                     });
-                    console.error(`[Cluster Message] Successfully respawned cluster ${message.id}`);
                     console.log(`[Cluster] Successfully respawned cluster ${message.id}`);
                 } else {
-                    console.error(`[Cluster Message] Cluster ${message.id} not found in manager.clusters`);
-                    console.error(`[Cluster Message] Available clusters: ${[...manager.clusters.keys()].join(', ')}`);
                     console.error(`[Cluster] Cluster ${message.id} not found`);
                 }
             } catch (error) {
-                console.error('[Cluster Message] ========== RESPAWN MESSAGE ERROR ==========');
-                console.error(`[Cluster Message] Error Name: ${error && error.name}`);
-                console.error(`[Cluster Message] Error Message: ${error && error.message}`);
-                console.error(`[Cluster Message] Stack: ${error && error.stack}`);
-                console.error('[Cluster Message] ==========================================');
                 console.error(`[Cluster] Failed to respawn cluster ${message.id}:`, error);
             }
             return;
         }
 
         if (message.respawnall === true) {
-            const timestamp = new Date().toISOString();
-            const stack = new Error('RespawnAll message stack trace').stack;
-            const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
-            
-            console.error('[Cluster Message] ========== RESPAWN ALL MESSAGE RECEIVED ==========');
-            console.error(`[Cluster Message] Timestamp: ${timestamp}`);
-            console.error(`[Cluster Message] Total Clusters: ${manager.clusters.size}`);
-            console.error(`[Cluster Message] PID: ${process.pid}, PPID: ${process.ppid}`);
-            console.error(`[Cluster Message] Stack Trace:\n${stackLines}`);
-            console.log('[Cluster] Initiating full cluster respawn');
-            
+     
             try {
                 await manager.respawnAll({
                     clusterDelay: 1000 * 60 * 1, // 1 minutes between clusters

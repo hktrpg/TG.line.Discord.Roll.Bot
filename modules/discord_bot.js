@@ -236,12 +236,13 @@ client.on('messageReactionRemove', async (reaction, user) => {
 
 
 
-client.once('clientReady', async () => {
+client.on('clientReady', async () => {
 	initInteractionCommands();
 	if (process.env.BROADCAST) connect();
 	//	if (shardid === 0) getSchedule();
 	client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
 	console.log(`[Discord Bot] Logged in as ${client.user.tag}!`);
+	client.cluster.triggerReady();
 	let switchSetActivity = 0;
 
 	//await sleep(6);

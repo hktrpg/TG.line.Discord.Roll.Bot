@@ -61,15 +61,71 @@ const courtMessage = require('./logs').courtMessage || function () { };
 const newMessage = require('./message');
 const healthMonitor = require('./health-monitor');
 
+const timerManager = require('./timer-manager');
+
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const shardid = client.cluster.id;
 let ws;
+let isReconnecting = false; // Prevent multiple reconnection attempts
 
 // StoryTeller reaction poll support
 const POLL_EMOJIS = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯', '🇰', '🇱', '🇲', '🇳', '🇴', '🇵', '🇶', '🇷', '🇸', '🇹'];
-const stPolls = new Map(); // messageId -> { channelid, groupid, options, originMessage, completed?: boolean }
+const stPolls = new Map(); // messageId -> { channelid, groupid, options, originMessage, completed?: boolean, createdAt?: number }
 const stNoVoteStreak = new Map(); // channelId -> consecutive no-vote count
 const stLastPollStartedAt = new Map(); // channelId -> timestamp of latest poll start
+
+// Cleanup function for StoryTeller Maps to prevent memory leaks
+function cleanupStoryTellerMaps() {
+    const now = Date.now();
+    const POLL_MAX_AGE = 2 * 60 * 60 * 1000; // 2 hours - polls should be cleaned up after completion + buffer
+    const STREAK_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours - streaks for inactive channels
+    const LAST_POLL_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours - last poll timestamps for inactive channels
+
+    // Clean up completed or old polls
+    let cleanedPolls = 0;
+    for (const [messageId, pollData] of stPolls.entries()) {
+        const createdAt = pollData.createdAt || 0;
+        const age = now - createdAt;
+        if (pollData.completed || age > POLL_MAX_AGE) {
+            stPolls.delete(messageId);
+            cleanedPolls++;
+        }
+    }
+
+    // Clean up old no-vote streaks (channels inactive for 24 hours)
+    // Note: We can't track last access easily, so we'll clean up very old entries
+    // In practice, active channels will keep updating these maps
+    let cleanedStreaks = 0;
+    for (const [channelId] of stNoVoteStreak.entries()) {
+        // Check if channel still has active polls
+        const hasActivePoll = Array.from(stPolls.values()).some(p => p.channelid === channelId && !p.completed);
+        if (!hasActivePoll) {
+            // Check if last poll was more than 24 hours ago
+            const lastPollTime = stLastPollStartedAt.get(channelId) || 0;
+            if (lastPollTime && (now - lastPollTime) > STREAK_MAX_AGE) {
+                stNoVoteStreak.delete(channelId);
+                cleanedStreaks++;
+            }
+        }
+    }
+
+    // Clean up old last poll timestamps
+    let cleanedTimestamps = 0;
+    for (const [channelId, timestamp] of stLastPollStartedAt.entries()) {
+        if ((now - timestamp) > LAST_POLL_MAX_AGE) {
+            // Only delete if no active polls exist
+            const hasActivePoll = Array.from(stPolls.values()).some(p => p.channelid === channelId && !p.completed);
+            if (!hasActivePoll) {
+                stLastPollStartedAt.delete(channelId);
+                cleanedTimestamps++;
+            }
+        }
+    }
+
+    if (cleanedPolls > 0 || cleanedStreaks > 0 || cleanedTimestamps > 0) {
+        console.log(`[Discord Bot] Cleaned up StoryTeller maps: ${cleanedPolls} polls, ${cleanedStreaks} streaks, ${cleanedTimestamps} timestamps`);
+    }
+}
 
 // Helper: check if StoryTeller run in this channel is paused
 async function isStoryTellerRunPausedByChannel(channelId) {
@@ -233,9 +289,14 @@ client.on('clientReady', async () => {
 	client.cluster.triggerReady();
 	let switchSetActivity = 0;
 
+	// Start periodic cleanup of StoryTeller Maps to prevent memory leaks
+	timerManager.setInterval(() => {
+		cleanupStoryTellerMaps();
+	}, 60 * 60 * 1000); // Run cleanup every hour
+
 	//await sleep(6);
 	// eslint-disable-next-line no-unused-vars
-	const refreshId2 = setInterval(async () => {
+	const refreshId2 = timerManager.setInterval(async () => {
 		try {
 			let activityText;
 			switch (switchSetActivity % 2) {
@@ -264,63 +325,7 @@ client.on('clientReady', async () => {
 	}, 180_000);
 });
 
-
-let heartbeatInterval = null;
-client.cluster.on('message', message => {
-	if (message?.type === 'startHeartbeat') {
-		if (client.cluster.id === 0) {
-			console.log('[discord_bot] [Cluster 0] Received startHeartbeat signal. Starting heartbeat monitor.');
-			startHeartbeatMonitor();
-		}
-	}
-});
-
-function startHeartbeatMonitor() {
-	if (heartbeatInterval) {
-		clearInterval(heartbeatInterval);
-	}
-
-	const HEARTBEAT_CHECK_INTERVAL = 1000 * 60;
-	const WARNING_THRESHOLD = 3;
-	const CRITICAL_THRESHOLD = 5;
-	const restartServer = () => {
-		require('child_process').exec('sudo reboot');
-	}
-	let heartbeat = 0;
-
-	console.log('[discord_bot] Discord Heartbeat Monitor Started on Cluster 0.');
-
-	heartbeatInterval = setInterval(async () => {
-		const isAwake = await checkWakeUp();
-		if (isAwake === true) {
-			heartbeat = 0;
-			return;
-		}
-
-		heartbeat++;
-
-		if (Array.isArray(isAwake) && isAwake.length > 0) {
-			console.log(`[discord_bot] Discord Heartbeat: Down Shards: ${isAwake.join(',')} - Heartbeat: ${heartbeat}`);
-			if (heartbeat > WARNING_THRESHOLD && adminSecret) {
-				SendToId(adminSecret, `HKTRPG ID: ${isAwake.join(', ')} 可能下線了 請盡快檢查.`);
-			}
-			if (heartbeat > CRITICAL_THRESHOLD) {
-				for (const shardId of isAwake) {
-					client.cluster.evalOnManager(`this.clusters.get(${shardId}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
-				}
-			}
-		} else {
-			console.log(`Discord Heartbeat: checkWakeUp failed. Heartbeat: ${heartbeat}`);
-			if (heartbeat > WARNING_THRESHOLD && adminSecret) {
-				SendToId(adminSecret, 'HKTRPG Heartbeat check failed. 可能有部份服務下線了 請盡快檢查.');
-			}
-		}
-
-		if (heartbeat > 20) {
-			restartServer();
-		}
-	}, HEARTBEAT_CHECK_INTERVAL);
-}
+// Custom heartbeat monitoring removed - heartbeat monitoring is now handled by HeartbeatManager in core-Discord.js
 
 async function replilyMessage(message, result) {
 	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>${candle.checker(message.member.id)}\n` : '';
@@ -781,16 +786,34 @@ async function gracefulShutdown(signal = 'unknown') {
 		// Notify health monitor
 		healthMonitor.emit('shutdown', { signal, timestamp: new Date() });
 
-		// Stop heartbeat monitor
-		if (heartbeatInterval) {
-			clearInterval(heartbeatInterval);
-			heartbeatInterval = null;
-		}
+		// Clear all tracked timers
+		timerManager.shutdown();
+
+		// Heartbeat monitoring is handled by HeartbeatManager in core-Discord.js
 
 		// Close WebSocket connection
 		if (ws) {
 			console.log('[Discord Bot] Closing WebSocket connection...');
-			ws.close();
+			isReconnecting = false; // Prevent reconnection attempts during shutdown
+			try {
+				ws.removeAllListeners(); // Remove all listeners to prevent reconnection
+				ws.close();
+			} catch (error) {
+				console.warn('[Discord Bot] Error closing WebSocket:', error.message);
+			}
+		}
+
+		// Remove all event listeners before destroying client
+		if (client) {
+			console.log('[Discord Bot] Removing event listeners...');
+			// Remove Discord client event listeners
+			client.removeAllListeners();
+			
+			// Remove process event listeners (except shutdown handlers)
+			process.removeAllListeners('unhandledRejection');
+			if (debugMode) {
+				process.removeAllListeners('warning');
+			}
 		}
 
 		// Destroy Discord client
@@ -799,7 +822,7 @@ async function gracefulShutdown(signal = 'unknown') {
 			// Set shorter timeout to avoid blocking
 			const destroyPromise = client.destroy();
 			const timeoutPromise = new Promise((_, reject) =>
-				setTimeout(() => reject(new Error('Client destroy timeout')), 5000)
+				timerManager.setTimeout(() => reject(new Error('Client destroy timeout')), 5000)
 			);
 
 			try {
@@ -827,7 +850,7 @@ process.on('SIGINT', async () => {
 	}
 	
 	// Set force shutdown timeout
-	shutdownTimeout = setTimeout(() => {
+	shutdownTimeout = timerManager.setTimeout(() => {
 		const exitTimestamp = new Date().toISOString();
 		const exitStack = new Error('Force shutdown timeout stack trace').stack;
 		const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
@@ -854,7 +877,7 @@ process.on('SIGTERM', async () => {
 	}
 	
 	// Set force shutdown timeout
-	shutdownTimeout = setTimeout(() => {
+	shutdownTimeout = timerManager.setTimeout(() => {
 		const exitTimestamp = new Date().toISOString();
 		const exitStack = new Error('Force shutdown timeout stack trace').stack;
 		const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
@@ -2206,7 +2229,9 @@ async function createStPollCore({ sentMessage, groupid, payload }) {
 	for (let i = 0; i < maxOptions; i++) {
 		try { await sentMessage.react(POLL_EMOJIS[i]); } catch (error) { console.error('poll react failed', error?.message); }
 	}
-	stPolls.set(sentMessage.id, {
+		stPolls.set(sentMessage.id, {
+		createdAt: Date.now(), // Track creation time for cleanup
+			createdAt: Date.now(), // Track creation time for cleanup
 		channelid: sentMessage.channelId,
 		groupid,
 		options: payload.options.slice(0, maxOptions),
@@ -2574,11 +2599,27 @@ const convertRegex = function (str = "") {
 
 
 const connect = function () {
+	// Prevent multiple reconnection attempts
+	if (isReconnecting) {
+		console.log('[Discord Bot] WebSocket reconnection already in progress, skipping...');
+		return;
+	}
+
+	// Check if WebSocket is already connected
+	if (ws && ws.readyState === WebSocket.OPEN) {
+		console.log('[Discord Bot] WebSocket already connected, skipping...');
+		return;
+	}
+
+	isReconnecting = true;
 	ws = new WebSocket('ws://127.0.0.1:53589');
+	
 	ws.on('open', function open() {
 		console.log(`[discord_bot] connectd To core-www from discord! Shard#${shardid}`)
 		ws.send(`connectd To core-www from discord! Shard#${shardid}`);
+		isReconnecting = false; // Reset flag on successful connection
 	});
+	
 	ws.on('message', async function incoming(data) {
 		//if (shardid !== 0) return;
 		const object = JSON.parse(data);
@@ -2596,12 +2637,23 @@ const connect = function () {
 		return;
 
 	});
+	
 	ws.on('error', (error) => {
 		console.error('[Discord Bot] Socket error:', (error && error.name), (error && error.message), (error && error.reason));
+		isReconnecting = false; // Reset flag on error to allow retry
 	});
+	
 	ws.on('close', function () {
 		console.error('[Discord Bot] Socket closed');
-		setTimeout(connect, RECONNECT_INTERVAL);
+		isReconnecting = false; // Reset flag before scheduling reconnect
+		// Only schedule reconnect if not shutting down
+		if (!isShuttingDown) {
+			timerManager.setTimeout(() => {
+				if (!isShuttingDown) {
+					connect();
+				}
+			}, RECONNECT_INTERVAL);
+		}
 	});
 };
 if (process.env.BROADCAST) connect();
@@ -2659,7 +2711,7 @@ if (togGGToken) {
 	if (shardid !== (getInfo().TOTAL_SHARDS - 1)) return;
 	const Topgg = require(`@top-gg/sdk`)
 	const api = new Topgg.Api(togGGToken)
-	this.interval = setInterval(async () => {
+	timerManager.setInterval(async () => {
 		const guilds = await client.cluster.broadcastEval(c => c.guilds.cache.size);
 		api.postStats({
 			serverCount: Number.parseInt(guilds.reduce((a, c) => a + c, 0)),

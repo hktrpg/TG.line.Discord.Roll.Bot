@@ -4,6 +4,7 @@ if (!process.env.mongoURL) return;
 const debugMode = (process.env.DEBUG) ? true : false;
 const schema = require('./schema.js');
 const checkMongodb = require('./dbWatchdog.js');
+const timerManager = require('./timer-manager');
 //50次 多少條訊息會上傳一次LOG
 const ONE_HOUR = 1 * 60 * 60 * 1000;
 const FIVE_MINUTES = 5 * 60 * 1000;
@@ -42,7 +43,7 @@ const RollingLog = {
     }
     try {
         // const loopLogFiveMinutes = setInterval(saveLog, FIVE_MINUTES);
-        setInterval(saveLog, FIVE_MINUTES);
+        timerManager.setInterval(saveLog, FIVE_MINUTES);
     } catch (error) {
         console.error(`log error #35 ${error}`)
     }

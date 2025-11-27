@@ -2,6 +2,7 @@
 
 const EventEmitter = require('events');
 const dbWatchdog = require('./dbWatchdog.js');
+const timerManager = require('./timer-manager');
 
 class HealthMonitor extends EventEmitter {
     constructor() {
@@ -13,7 +14,10 @@ class HealthMonitor extends EventEmitter {
             failedInteractions: 0,
             slowResponses: 0,
             clusterHealth: new Map(),
-            lastHealthCheck: null
+            lastHealthCheck: null,
+            memoryHistory: [], // Track memory usage over time
+            mapSizes: {}, // Track Map/Set sizes
+            connectionPoolUsage: null
         };
         this.alertThresholds = {
             maxFailedInteractions: 10,
@@ -26,7 +30,10 @@ class HealthMonitor extends EventEmitter {
 
     init() {
         // 定期健康檢查
-        setInterval(() => this.performHealthCheck(), 60 * 1000); // 每分鐘檢查一次
+        this.healthCheckInterval = timerManager.setInterval(() => this.performHealthCheck(), 60 * 1000); // 每分鐘檢查一次
+
+        // 定期記憶體監控
+        this.memoryMonitorInterval = timerManager.setInterval(() => this.collectMemoryMetrics(), 5 * 60 * 1000); // 每5分鐘收集一次
 
         // 監聽各種事件
         this.on('interactionProcessed', this.handleInteractionProcessed.bind(this));
@@ -48,6 +55,83 @@ class HealthMonitor extends EventEmitter {
         } catch (error) {
             console.error('[HealthMonitor] Health check failed:', error);
         }
+    }
+
+    collectMemoryMetrics() {
+        try {
+            const memUsage = process.memoryUsage();
+            const timestamp = Date.now();
+
+            // Collect memory metrics
+            const memoryData = {
+                timestamp,
+                rss: Math.round(memUsage.rss / 1024 / 1024), // MB
+                heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024), // MB
+                heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024), // MB
+                external: Math.round(memUsage.external / 1024 / 1024) // MB
+            };
+
+            // Keep last 100 entries (about 8 hours of data at 5min intervals)
+            this.metrics.memoryHistory.push(memoryData);
+            if (this.metrics.memoryHistory.length > 100) {
+                this.metrics.memoryHistory.shift();
+            }
+
+            // Collect MongoDB connection pool info
+            try {
+                const dbConnector = require('./db-connector.js');
+                const mongoose = dbConnector.mongoose;
+                if (mongoose && mongoose.connection && mongoose.connection.readyState === 1) {
+                    this.metrics.connectionPoolUsage = {
+                        timestamp,
+                        readyState: mongoose.connection.readyState,
+                        host: mongoose.connection.host,
+                        name: mongoose.connection.name
+                    };
+                }
+            } catch (error) {
+                // Ignore if MongoDB connection info is not available
+            }
+
+            // Check for memory leaks (if RSS grows continuously)
+            if (this.metrics.memoryHistory.length >= 10) {
+                const recent = this.metrics.memoryHistory.slice(-10);
+                const oldest = recent[0].rss;
+                const newest = recent[recent.length - 1].rss;
+                const growth = newest - oldest;
+
+                // Alert if memory grows more than 100MB in 50 minutes
+                if (growth > 100) {
+                    this.raiseAlert('memoryGrowth', {
+                        growthMB: growth,
+                        currentRSS: newest,
+                        timeWindow: '50 minutes'
+                    });
+                }
+            }
+
+        } catch (error) {
+            console.error('[HealthMonitor] Memory metrics collection failed:', error);
+        }
+    }
+
+    getMemoryReport() {
+        const latest = this.metrics.memoryHistory[this.metrics.memoryHistory.length - 1];
+        const oldest = this.metrics.memoryHistory[0];
+
+        return {
+            current: latest || null,
+            peak: this.metrics.memoryHistory.length > 0
+                ? this.metrics.memoryHistory.reduce((max, entry) => entry.rss > max.rss ? entry : max, this.metrics.memoryHistory[0])
+                : null,
+            trend: oldest && latest ? {
+                rssChange: latest.rss - oldest.rss,
+                heapUsedChange: latest.heapUsed - oldest.heapUsed,
+                timeSpan: latest.timestamp - oldest.timestamp
+            } : null,
+            historyLength: this.metrics.memoryHistory.length,
+            connectionPool: this.metrics.connectionPoolUsage
+        };
     }
 
     handleInteractionProcessed(data) {
@@ -149,7 +233,8 @@ class HealthMonitor extends EventEmitter {
             highInteractionFailureRate: 'critical',
             multipleUnhealthyClusters: 'warning',
             databaseError: 'critical',
-            mongodbDisconnected: 'critical'
+            mongodbDisconnected: 'critical',
+            memoryGrowth: 'warning'
         };
         return severityMap[alertType] || 'info';
     }
@@ -187,6 +272,7 @@ class HealthMonitor extends EventEmitter {
             },
             system: {
                 memory: process.memoryUsage(),
+                memoryReport: this.getMemoryReport(),
                 cpu: process.cpuUsage(),
                 nodeVersion: process.version
             }
@@ -231,6 +317,6 @@ class HealthMonitor extends EventEmitter {
 const healthMonitor = new HealthMonitor();
 
 // 定期清理舊警報
-setInterval(() => healthMonitor.cleanupOldAlerts(), 60 * 60 * 1000); // 每小時清理一次
+timerManager.setInterval(() => healthMonitor.cleanupOldAlerts(), 60 * 60 * 1000); // 每小時清理一次
 
 module.exports = healthMonitor;

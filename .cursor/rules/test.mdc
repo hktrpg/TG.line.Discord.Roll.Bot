@@ -1,0 +1,277 @@
+---
+description: Testing standards and patterns using Jest
+globs:
+  - "test/**/*.js"
+  - "**/*.test.js"
+alwaysApply: false
+---
+
+# Testing Rules
+
+## Testing Framework
+- **Use Jest** for all tests (see `package.json`)
+- Test files: `*.test.js` or in `test/` directory
+- Run tests: `yarn test`
+
+## Test Structure
+
+### Standard Test File Pattern
+```javascript
+// Mock dependencies
+jest.mock('../modules/schema.js', () => ({
+    modelName: {
+        findOne: jest.fn(),
+        updateOne: jest.fn()
+    }
+}));
+
+jest.mock('../modules/level', () => ({
+    EXPUP: jest.fn()
+}));
+
+// Import module under test
+const moduleUnderTest = require('../modules/moduleName');
+
+describe('ModuleName Tests', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    describe('Feature Group', () => {
+        test('should do something', async () => {
+            // Arrange
+            const input = 'test';
+            
+            // Act
+            const result = await moduleUnderTest.function(input);
+            
+            // Assert
+            expect(result).toBeDefined();
+        });
+    });
+});
+```
+
+## Mocking Patterns
+
+### Mock Dependencies
+- Mock external modules at the top of test file
+- Mock database schemas (see `test/analytics.test.js`)
+- Mock modules that have side effects
+- Use `jest.fn()` for function mocks
+
+### Mock Examples
+```javascript
+// Mock schema
+jest.mock('../modules/schema.js', () => ({
+    characterCard: {
+        findOne: jest.fn().mockResolvedValue({ name: 'Test' }),
+        updateOne: jest.fn().mockResolvedValue({})
+    }
+}));
+
+// Mock VIP module
+jest.mock('../modules/veryImportantPerson', () => ({
+    viplevelCheckGroup: jest.fn().mockResolvedValue(5)
+}));
+```
+
+## Test Organization
+
+### Describe Blocks
+- Use `describe` for grouping related tests
+- Nest `describe` blocks for sub-features
+- Use descriptive names: `describe('FeatureName Tests', () => {})`
+
+### Test Cases
+- Use `test` or `it` for individual test cases
+- Use descriptive test names: `test('should return error when input is invalid', () => {})`
+- Follow Arrange-Act-Assert pattern
+
+## Testing Patterns
+
+### Async Testing
+```javascript
+test('should handle async operation', async () => {
+    const result = await asyncFunction();
+    expect(result).toBeDefined();
+});
+```
+
+### Error Testing
+```javascript
+test('should throw error on invalid input', async () => {
+    await expect(functionUnderTest(invalidInput)).rejects.toThrow();
+});
+```
+
+### Mock Function Testing
+```javascript
+test('should call database function', async () => {
+    const mockFindOne = jest.fn().mockResolvedValue({});
+    schema.modelName.findOne = mockFindOne;
+    
+    await functionUnderTest();
+    
+    expect(mockFindOne).toHaveBeenCalled();
+});
+```
+
+## Test Coverage
+
+### What to Test
+- ✅ Public functions/APIs
+- ✅ Error cases
+- ✅ Edge cases
+- ✅ Boundary conditions
+- ✅ Integration points
+- ❌ Private/internal functions (unless critical)
+
+### Coverage Goals
+- Aim for high coverage of critical paths
+- Focus on business logic
+- Test error handling
+- Test validation logic
+
+## Test Data
+
+### Test Fixtures
+- Use consistent test data
+- Create reusable test fixtures
+- Use realistic data when possible
+- Clean up test data after tests
+
+### Example Test Data
+```javascript
+const testUser = {
+    userId: 'test-user-123',
+    userName: 'TestUser',
+    groupId: 'test-group-456'
+};
+
+const testCharacter = {
+    userid: 'test-user-123',
+    groupid: 'test-group-456',
+    name: 'TestCharacter',
+    state: 'HP:15/15'
+};
+```
+
+## Common Test Patterns
+
+### Testing Roll Commands
+```javascript
+describe('Roll Command Tests', () => {
+    test('should process valid dice roll', async () => {
+        const params = {
+            inputStr: '1d100',
+            userId: 'user123',
+            groupId: 'group456'
+        };
+        
+        const result = await rollDiceCommand(params);
+        
+        expect(result).toHaveProperty('text');
+        expect(result.text).toContain('結果');
+    });
+});
+```
+
+### Testing Database Operations
+```javascript
+test('should save to database', async () => {
+    const mockUpdateOne = jest.fn().mockResolvedValue({});
+    schema.modelName.updateOne = mockUpdateOne;
+    
+    await saveData({ groupid: 'test', data: 'value' });
+    
+    expect(mockUpdateOne).toHaveBeenCalledWith(
+        { groupid: 'test' },
+        { $set: { data: 'value' } },
+        expect.any(Object)
+    );
+});
+```
+
+### Testing Error Handling
+```javascript
+test('should handle database error', async () => {
+    schema.modelName.findOne = jest.fn().mockRejectedValue(
+        new Error('Database error')
+    );
+    
+    await expect(functionUnderTest()).rejects.toThrow('Database error');
+});
+```
+
+## Test File Naming
+
+### Conventions
+- Test file: `moduleName.test.js`
+- Test directory: `test/moduleName.test.js`
+- Match test file to source file name
+- Group related tests in same file
+
+## Setup and Teardown
+
+### Before/After Hooks
+```javascript
+describe('Test Suite', () => {
+    beforeEach(() => {
+        // Setup before each test
+        jest.clearAllMocks();
+    });
+    
+    afterEach(() => {
+        // Cleanup after each test
+    });
+    
+    beforeAll(() => {
+        // Setup once before all tests
+    });
+    
+    afterAll(() => {
+        // Cleanup once after all tests
+    });
+});
+```
+
+## Best Practices
+
+### Do's
+- ✅ Write tests before or alongside code
+- ✅ Test one thing per test case
+- ✅ Use descriptive test names
+- ✅ Mock external dependencies
+- ✅ Clean up after tests
+- ✅ Test error cases
+
+### Don'ts
+- ❌ Test implementation details
+- ❌ Write tests that depend on each other
+- ❌ Use real database/external services
+- ❌ Write overly complex tests
+- ❌ Skip error case testing
+
+## Running Tests
+
+### Commands
+```bash
+# Run all tests
+yarn test
+
+# Run specific test file
+yarn test test/moduleName.test.js
+
+# Run tests in watch mode
+yarn test --watch
+
+# Run tests with coverage
+yarn test --coverage
+```
+
+## Integration with CI/CD
+- Tests should pass before merging
+- Use test results in CI pipeline
+- Report test coverage
+- Fail build on test failures

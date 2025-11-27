@@ -1,0 +1,204 @@
+---
+description: Node.js CommonJS coding standards and patterns
+globs:
+  - "**/*.js"
+  - "!**/*.mjs"
+alwaysApply: false
+---
+
+# Node.js CommonJS Standards
+
+## Module System
+- **Use CommonJS** (`require`/`module.exports`), NOT ES modules
+- Exception: `*.mjs` files can use ES modules (see `eslint.config.mjs`)
+
+## File Structure Pattern
+
+### Standard Module Pattern
+```javascript
+"use strict";
+
+// Environment checks at top
+if (!process.env.REQUIRED_VAR) {
+    return;
+}
+
+// Dependencies
+const package = require('package-name');
+const localModule = require('./local-module');
+
+// Constants
+const CONSTANT_VALUE = 'value';
+
+// Classes or Functions
+class MyClass {
+    constructor() {
+        // Initialization
+    }
+}
+
+// Exports
+module.exports = {
+    MyClass,
+    exportedFunction
+};
+```
+
+## Environment Variables
+- Check required environment variables at the top of the file
+- Use `process.env.VAR_NAME` with proper defaults when needed
+- Example pattern:
+```javascript
+if (!process.env.mongoURL) {
+    return;
+}
+```
+
+## Error Handling
+- Always use try-catch for async operations
+- Provide context in error messages
+- Log errors appropriately (use logger from `index.js` pattern)
+
+```javascript
+try {
+    const result = await asyncOperation();
+    return result;
+} catch (error) {
+    logger.error(`Error in operation: ${error.message}`, { context });
+    throw error;
+}
+```
+
+## Async/Await Pattern
+- Prefer async/await over callbacks
+- Use Promise.all for parallel operations
+- Handle errors properly
+
+```javascript
+async function loadData() {
+    try {
+        const [data1, data2] = await Promise.all([
+            fetchData1(),
+            fetchData2()
+        ]);
+        return { data1, data2 };
+    } catch (error) {
+        // Error handling
+    }
+}
+```
+
+## Class Definitions
+- Use classes for stateful operations
+- Follow existing class patterns (see `index.js`, `modules/records.js`)
+- Include proper initialization and cleanup methods
+
+```javascript
+class MyManager {
+    constructor() {
+        this.cache = new Map();
+    }
+
+    async initialize() {
+        // Initialization logic
+    }
+
+    async shutdown() {
+        // Cleanup logic
+    }
+}
+```
+
+## Constants & Configuration
+- Define constants at the top of the file
+- Use UPPER_SNAKE_CASE for constants
+- Group related constants in objects
+
+```javascript
+const CONFIG = {
+    MAX_RETRIES: 3,
+    TIMEOUT: 5000
+};
+
+const ERROR_MESSAGES = {
+    NOT_FOUND: 'Resource not found',
+    INVALID_INPUT: 'Invalid input provided'
+};
+```
+
+## Function Exports
+- Export functions/classes that are used elsewhere
+- Use named exports for clarity
+- Document exported functions with JSDoc comments
+
+```javascript
+/**
+ * Processes user input and returns result
+ * @param {string} input - User input string
+ * @returns {Promise<Object>} Processed result
+ */
+async function processInput(input) {
+    // Implementation
+}
+
+module.exports = {
+    processInput,
+    helperFunction
+};
+```
+
+## File Naming
+- Follow ESLint rules: Use kebab-case for new files
+- Legacy files (z_*.js, core-*.js) are exceptions
+- Test files: `*.test.js`
+
+## Node.js Version
+- Target Node.js >=18 (see `package.json` engines)
+- Use features available in Node.js 18+
+- Avoid deprecated Node.js APIs
+
+## Common Patterns
+
+### Module Initialization Pattern
+```javascript
+// For modules that need initialization (see index.js)
+module.exports = {
+    async initialize() {
+        // Setup logic
+    },
+    
+    async shutdown() {
+        // Cleanup logic
+    }
+};
+```
+
+### Database Query Pattern
+```javascript
+const schema = require('../modules/schema.js');
+
+async function getData(query) {
+    try {
+        const result = await schema.modelName.findOne(query);
+        return result;
+    } catch (error) {
+        logger.error('Database query failed', { error, query });
+        throw error;
+    }
+}
+```
+
+### Event Emitter Pattern
+```javascript
+const EventEmitter = require('events');
+
+class MyEmitter extends EventEmitter {
+    constructor() {
+        super();
+    }
+    
+    emitEvent(data) {
+        this.emit('event', data);
+    }
+}
+```

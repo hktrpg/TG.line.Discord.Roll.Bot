@@ -1,0 +1,363 @@
+---
+description: Architecture patterns, design principles, and sustainable code practices
+alwaysApply: false
+---
+
+# Architecture & Design Patterns
+
+## Design Principles
+
+### 1. Single Responsibility Principle
+- Each module/class should have one clear purpose
+- Avoid god classes that do too much
+- Split large modules into smaller, focused ones
+
+### 2. DRY (Don't Repeat Yourself)
+- Extract common logic into reusable functions/classes
+- Use shared utilities instead of duplicating code
+- Create helper functions for repeated patterns
+
+### 3. Open/Closed Principle
+- Open for extension, closed for modification
+- Use inheritance or composition for extending functionality
+- Avoid modifying existing working code unnecessarily
+
+### 4. Dependency Injection
+- Pass dependencies as parameters
+- Avoid global state when possible
+- Make dependencies explicit
+
+## Design Patterns
+
+### Class-Based Patterns
+
+#### Manager Pattern
+Use for managing resources or state:
+```javascript
+class ResourceManager {
+    constructor() {
+        this.resources = new Map();
+    }
+    
+    async initialize() {
+        // Setup
+    }
+    
+    async shutdown() {
+        // Cleanup
+    }
+}
+```
+Examples: `VIPManager`, `ModuleManager`, `PageConfigManager`
+
+#### Factory Pattern
+Use for creating objects based on conditions:
+```javascript
+class DiceRollerFactory {
+    static createRoller(gameType) {
+        switch (gameType) {
+            case 'coc': return new CocRoller();
+            case 'dnd': return new DndRoller();
+            default: return new BaseRoller();
+        }
+    }
+}
+```
+
+#### Strategy Pattern
+Use for interchangeable algorithms:
+```javascript
+class RollStrategy {
+    roll() {
+        throw new Error('Must implement roll()');
+    }
+}
+
+class CocRollStrategy extends RollStrategy {
+    roll() {
+        // COC-specific rolling
+    }
+}
+```
+
+#### Observer Pattern
+Use for event-driven architecture:
+```javascript
+const EventEmitter = require('events');
+
+class GameEventEmitter extends EventEmitter {
+    emitGameEvent(eventType, data) {
+        this.emit(eventType, data);
+    }
+}
+```
+Example: `Records` class extends `EventEmitter`
+
+### Module Patterns
+
+#### Module Initialization Pattern
+```javascript
+module.exports = {
+    async initialize() {
+        // Setup
+    },
+    
+    async shutdown() {
+        // Cleanup
+    },
+    
+    // Public API
+    publicMethod() {
+        // Implementation
+    }
+};
+```
+
+#### Singleton Pattern (when needed)
+```javascript
+class Singleton {
+    constructor() {
+        if (Singleton.instance) {
+            return Singleton.instance;
+        }
+        Singleton.instance = this;
+    }
+}
+```
+
+## Architecture Layers
+
+### 1. Entry Point (`index.js`)
+- Application initialization
+- Module loading
+- Error handling
+- Graceful shutdown
+
+### 2. Core Modules (`modules/`)
+- Platform integrations (Discord, Line, etc.)
+- Database operations
+- Utilities and helpers
+- Shared business logic
+
+### 3. Feature Modules (`roll/`)
+- Game system implementations
+- Dice rolling logic
+- Character management
+- Admin commands
+
+### 4. Presentation Layer (`views/`)
+- HTML templates
+- Client-side JavaScript
+- CSS/styles
+- User interface
+
+### 5. Data Layer (`modules/schema.js`)
+- Database schemas
+- Data models
+- Validation rules
+
+## Configuration Management
+
+### Environment Variables
+- Use `process.env` for configuration
+- Check required vars at module top
+- Provide sensible defaults when possible
+- Document required environment variables
+
+### Constants
+- Define constants at module top
+- Group related constants in objects
+- Use UPPER_SNAKE_CASE naming
+- Avoid magic numbers/strings
+
+```javascript
+const CONFIG = {
+    MAX_RETRIES: 3,
+    TIMEOUT: 5000,
+    CACHE_DURATION: 5 * 60 * 1000
+};
+```
+
+## Error Handling Architecture
+
+### Error Handling Strategy
+- Use try-catch for async operations
+- Provide context in error messages
+- Log errors appropriately
+- Don't let errors crash the application
+- Handle errors at appropriate levels
+
+### Error Propagation
+```javascript
+async function processData() {
+    try {
+        const data = await fetchData();
+        return process(data);
+    } catch (error) {
+        logger.error('Failed to process data', { error, context });
+        throw error; // Re-throw if caller should handle
+    }
+}
+```
+
+## Caching Strategy
+
+### When to Cache
+- Expensive database queries
+- External API calls
+- Computed values
+- Frequently accessed data
+
+### Cache Patterns
+```javascript
+class CachedDataManager {
+    constructor() {
+        this.cache = new Map();
+        this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
+    }
+    
+    async getData(key) {
+        const cached = this.cache.get(key);
+        if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+            return cached.data;
+        }
+        
+        const data = await fetchData(key);
+        this.cache.set(key, { data, timestamp: Date.now() });
+        return data;
+    }
+}
+```
+
+## Database Architecture
+
+### Schema Design
+- Use Mongoose schemas
+- Add proper indexes
+- Use consistent field naming
+- Follow existing schema patterns
+
+### Query Patterns
+- Use Mongoose methods over raw queries
+- Implement proper error handling
+- Use transactions when needed
+- Optimize queries with indexes
+
+### Connection Management
+- Use shared mongoose instance
+- Handle connection errors
+- Implement reconnection logic
+- Monitor connection health
+
+## Async/Await Patterns
+
+### Sequential Operations
+```javascript
+const result1 = await operation1();
+const result2 = await operation2(result1);
+return result2;
+```
+
+### Parallel Operations
+```javascript
+const [result1, result2, result3] = await Promise.all([
+    operation1(),
+    operation2(),
+    operation3()
+]);
+```
+
+### Error Handling in Parallel
+```javascript
+const results = await Promise.allSettled([
+    operation1(),
+    operation2(),
+    operation3()
+]);
+
+results.forEach((result, index) => {
+    if (result.status === 'rejected') {
+        logger.error(`Operation ${index} failed`, result.reason);
+    }
+});
+```
+
+## Code Organization
+
+### File Structure
+- One main class/function per file
+- Related utilities in same directory
+- Clear separation of concerns
+- Logical directory structure
+
+### Import Organization
+```javascript
+// 1. Node.js built-ins
+const fs = require('fs');
+const path = require('path');
+
+// 2. External packages
+const mongoose = require('mongoose');
+const express = require('express');
+
+// 3. Local modules
+const schema = require('./schema.js');
+const utils = require('./utils.js');
+```
+
+## Performance Considerations
+
+### Optimization Strategies
+- Cache expensive operations
+- Use database indexes
+- Minimize database queries
+- Use connection pooling
+- Optimize async operations
+
+### Memory Management
+- Clean up event listeners
+- Release resources in shutdown
+- Avoid memory leaks
+- Monitor memory usage
+
+## Scalability
+
+### Horizontal Scaling
+- Stateless design where possible
+- Use external state storage (database)
+- Handle multiple instances gracefully
+- Use clustering/sharding (see Discord module)
+
+### Vertical Scaling
+- Optimize algorithms
+- Use efficient data structures
+- Minimize resource usage
+- Profile and optimize bottlenecks
+
+## Security Considerations
+
+### Input Validation
+- Validate all user input
+- Sanitize data before database operations
+- Use parameterized queries
+- Check permissions before operations
+
+### Sensitive Data
+- Don't log sensitive information
+- Use environment variables for secrets
+- Sanitize logs (see `index.js` Logger)
+- Handle errors without exposing internals
+
+## Documentation
+
+### Code Documentation
+- Document public APIs
+- Use JSDoc comments for functions
+- Explain complex logic
+- Document design decisions
+
+### Architecture Documentation
+- Document system architecture
+- Explain design patterns used
+- Document data flow
+- Maintain README files

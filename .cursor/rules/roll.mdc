@@ -1,0 +1,253 @@
+---
+description: Development rules for roll directory - dice rolling and TRPG game systems
+globs:
+  - "roll/**/*.js"
+alwaysApply: false
+---
+
+# Roll Directory Rules
+
+## Purpose
+The `roll/` directory contains dice rolling functionality and TRPG game system implementations.
+
+## Key Files Reference
+
+### Core Rolling
+- `rollbase.js` - Base dice rolling functionality
+- `0-advroll.js` - Advanced rolling features
+- `1-funny.js` - Fun/entertainment commands
+- `2-coc.js` - Call of Cthulhu system
+
+### Game Systems
+- `5e.js` - D&D 5th Edition
+- `fate.js` - Fate system
+- `wod.js` - World of Darkness
+- `pf2e.js` - Pathfinder 2E
+- `digmon.js` - Digimon system
+- `pokemon.js` - Pokemon system
+
+### Character & Management
+- `z_character.js` - Character card management
+- `z_admin.js` - Admin commands
+- `z_event.js` - Event system
+- `z_Level_system.js` - Level/XP system
+- `z_trpgDatabase.js` - TRPG database
+- `z-story-teller.js` - Story teller system
+
+## Module Structure Pattern
+
+### Standard Roll Module Format
+```javascript
+"use strict";
+
+// Dependencies
+const math = require('mathjs');
+const { DiceRoll } = require('@dice-roller/rpg-dice-roller');
+const schema = require('../modules/schema.js');
+
+// Constants
+const GAME_NAME = () => '【Game Name】';
+const GAME_TYPE = () => 'game:system:hktrpg';
+
+// Prefix patterns
+const prefixs = () => [
+    { first: /^\.command$/i, second: null }
+];
+
+// Main function
+async function rollDiceCommand(params) {
+    // Implementation
+}
+
+// Exports
+module.exports = {
+    gameName: GAME_NAME,
+    gameType: GAME_TYPE,
+    prefixs,
+    rollDiceCommand
+};
+```
+
+## Dice Rolling Standards
+
+### Use @dice-roller/rpg-dice-roller
+- **Prefer** `DiceRoll` class from `@dice-roller/rpg-dice-roller`
+- Only use custom dice logic if package doesn't support the use case
+- See `rollbase.js` for integration examples
+
+### Dice Limits
+- Follow limits defined in `rollbase.js`:
+  - MAX_DICE_COUNT: 1000
+  - MAX_DICE_SIDES: 90,000,000
+  - MAX_ROLL_TIMES: 30
+- Validate input before processing
+- Return clear error messages for invalid input
+
+### Error Messages
+- Use Traditional Chinese for user-facing error messages
+- Provide helpful error messages
+- Follow existing error message patterns
+
+## Game System Implementation
+
+### Required Exports
+Every roll module MUST export:
+- `gameName()` - Returns game name string
+- `gameType()` - Returns game type identifier
+- `prefixs()` - Returns array of prefix patterns
+- `rollDiceCommand(params)` - Main command handler
+
+### Prefix Patterns
+```javascript
+const prefixs = () => [
+    { first: /^\.command$/i, second: null },
+    { first: /^\.cmd$/i, second: /^subcommand$/i }
+];
+```
+
+### Command Handler Signature
+```javascript
+async function rollDiceCommand(params) {
+    const {
+        inputStr,      // Full input string
+        mainMsg,      // Parsed message array
+        userId,       // User ID
+        groupId,      // Group ID
+        userName,     // User name
+        platform,     // Platform (discord, line, etc.)
+        // ... other params
+    } = params;
+    
+    // Implementation
+    return {
+        text: 'Result message',
+        // Other return properties
+    };
+}
+```
+
+## Character Card Integration
+
+### Using Character Cards
+- Reference `z_character.js` for character card patterns
+- Use schema from `modules/schema.js`
+- Support character card variables in dice rolls
+- Example: `.ch set HP:15/15` then use `{HP}` in rolls
+
+### Character Card Patterns
+```javascript
+const schema = require('../modules/schema.js');
+
+// Get character card
+const character = await schema.characterCard.findOne({
+    userid: userId,
+    groupid: groupId,
+    using: true
+});
+
+// Use character state
+if (character && character.state) {
+    // Parse state variables
+}
+```
+
+## Database Integration
+
+### Schema Usage
+- Use schemas from `modules/schema.js`
+- Don't create duplicate schemas
+- Use proper indexes
+- Handle database errors
+
+### Common Patterns
+```javascript
+const schema = require('../modules/schema.js');
+
+// Find with groupid
+const data = await schema.modelName.findOne({ groupid });
+
+// Update with upsert
+await schema.modelName.updateOne(
+    { groupid, userid },
+    { $set: { field: value } },
+    { upsert: true, runValidators: true }
+);
+```
+
+## Math Operations
+
+### Use Math.js
+- Use `math.evaluate()` for mathematical expressions
+- Validate expressions before evaluation
+- Handle math errors gracefully
+- See `rollbase.js` for examples
+
+```javascript
+const math = require('mathjs');
+
+try {
+    const result = math.evaluate(expression);
+    return result;
+} catch (error) {
+    return { error: 'Invalid expression' };
+}
+```
+
+## Message Formatting
+
+### Response Format
+- Use consistent message formatting
+- Support multi-line responses
+- Use emojis appropriately (see existing commands)
+- Format numbers and results clearly
+
+### Traditional Chinese Messages
+- User-facing messages should be in Traditional Chinese
+- Follow existing message patterns
+- Use consistent terminology
+
+## Admin Commands (z_admin.js)
+
+### Admin Command Pattern
+- Check VIP level before allowing admin commands
+- Use `VIP.viplevelCheckGroup(groupId)` for permission checks
+- Provide clear error messages for unauthorized access
+- Log admin actions
+
+## Testing
+
+### Test Patterns
+- Test dice rolling logic
+- Test error cases (invalid input, limits)
+- Test game-specific rules
+- Mock database calls
+- See `test/` directory for examples
+
+## Common Patterns
+
+### Input Validation
+```javascript
+// Validate dice count
+if (diceCount > DICE_LIMITS.MAX_DICE_COUNT) {
+    return { text: ERROR_MESSAGES.DICE_COUNT_LIMIT };
+}
+```
+
+### Variable Substitution
+```javascript
+// Replace character variables
+let expression = inputStr;
+if (character && character.state) {
+    expression = expression.replace(/\{(\w+)\}/g, (match, key) => {
+        return getStateValue(character.state, key) || match;
+    });
+}
+```
+
+### Result Formatting
+```javascript
+return {
+    text: `【結果】${result}\n${details}`,
+    // Other properties
+};
+```

@@ -1,0 +1,112 @@
+---
+description: Rules for using packages and APIs - prefer package functionality over custom code
+alwaysApply: false
+---
+
+# Package Usage Guidelines
+
+## Priority: Use Package Features First
+
+### Before Writing New Code
+1. **Check `package.json`** - Does a package already provide this functionality?
+2. **Read official documentation** - Understand the package's API and best practices
+3. **Search existing codebase** - See how the package is used elsewhere
+4. **Only write custom code** if the package doesn't support your use case
+
+## Key Packages & Their Usage
+
+### Discord.js (v14)
+- **Reference**: https://discord.js.org/docs/
+- Use `SlashCommandBuilder` for slash commands (see `modules/ds-deploy-commands.js`)
+- Use `MessageFlags` for ephemeral messages
+- Follow Discord.js patterns from existing code in `modules/core-Discord.js`
+
+### Mongoose (v6)
+- **Reference**: https://mongoosejs.com/docs/
+- Use Schema definitions from `modules/schema.js` as reference
+- Prefer Mongoose methods over raw MongoDB queries
+- Use proper indexing (see existing schemas)
+
+### Math.js
+- **Reference**: https://mathjs.org/docs/
+- Use `math.evaluate()` for mathematical expressions
+- Use `mathjs` constants and functions instead of custom math logic
+- See `roll/rollbase.js` for examples
+
+### @dice-roller/rpg-dice-roller
+- **Reference**: https://dice-roller.github.io/documentation/
+- Use `DiceRoll` class for dice rolling
+- Prefer this package over custom dice logic
+- See `roll/rollbase.js` for integration examples
+
+### Express.js
+- **Reference**: https://expressjs.com/en/guide/routing.html
+- Follow patterns in `modules/core-www.js`
+- Use middleware appropriately
+- Handle routes consistently
+
+### Agenda (Job Scheduling)
+- **Reference**: https://github.com/agenda/agenda
+- Use for scheduled tasks (see `modules/schedule.js`)
+- Prefer Agenda over `setTimeout`/`setInterval` for persistent jobs
+
+### Other Important Packages
+- **axios**: Use for HTTP requests (see `modules/translate.js`)
+- **moment/moment-timezone**: Use for date/time operations
+- **sharp**: Use for image processing
+- **socket.io**: Use for real-time communication (see `views/`)
+
+## Package Usage Patterns
+
+### Example: Using Discord.js Slash Commands
+```javascript
+const { SlashCommandBuilder } = require('discord.js');
+const { MessageFlags } = require('discord.js');
+
+// Follow the pattern from ds-deploy-commands.js
+const command = new SlashCommandBuilder()
+    .setName('example')
+    .setDescription('Example command');
+```
+
+### Example: Using Mongoose
+```javascript
+const schema = require('../modules/schema.js');
+
+// Use existing schemas, don't create duplicates
+await schema.characterCard.findOne({ userid: userId });
+```
+
+### Example: Using Math.js
+```javascript
+const math = require('mathjs');
+
+// Use math.evaluate for expressions
+const result = math.evaluate('2 + 2 * 3');
+```
+
+## Anti-Patterns to Avoid
+
+❌ **Don't**: Write custom dice rolling when `@dice-roller/rpg-dice-roller` exists
+❌ **Don't**: Write custom HTTP client when `axios` is available
+❌ **Don't**: Write custom date parsing when `moment` is available
+❌ **Don't**: Write custom image processing when `sharp` is available
+❌ **Don't**: Duplicate package functionality unnecessarily
+
+✅ **Do**: Check package documentation first
+✅ **Do**: Use package features before writing custom code
+✅ **Do**: Follow package best practices
+✅ **Do**: Reference existing code that uses the package
+
+## When to Write Custom Code
+
+Only write custom implementations when:
+1. Package doesn't support the specific use case
+2. Package has performance issues for your use case
+3. Package is deprecated or unmaintained
+4. Custom code is significantly simpler for your specific needs
+
+Even then, consider:
+- Creating a wrapper class around the package
+- Contributing to the package if it's open source
+- Documenting why custom code was necessary

@@ -1,0 +1,92 @@
+---
+description: General development rules and principles for HKTRPG bot project
+alwaysApply: true
+---
+
+# HKTRPG Development Rules - General
+
+## Core Principles
+
+### 1. Package-First Approach
+- **ALWAYS check if a package in `package.json` provides the functionality before writing new code**
+- Reference official documentation for package APIs (discord.js, mongoose, mathjs, etc.)
+- Prefer using well-maintained packages over custom implementations
+- Example: Use `@dice-roller/rpg-dice-roller` for dice rolling instead of custom logic
+
+### 2. Code Style & Language
+- **All code, comments, and commit messages MUST be in English**
+- User-facing messages can be in Traditional Chinese (繁體中文)
+- Follow existing code patterns and conventions
+- Maintain consistency with existing codebase style
+
+### 3. Class-First Design
+- **Prefer classes over standalone functions** for:
+  - Stateful operations
+  - Reusable components
+  - Complex logic that benefits from encapsulation
+- Examples: `Logger`, `ModuleManager`, `VIPManager`, `PageConfigManager`, `Records`
+- Use classes for better maintainability and extensibility
+
+### 4. Sustainable Architecture
+- Use design patterns (Factory, Strategy, Observer, etc.) when appropriate
+- Avoid hardcoded values - use constants, configuration, or environment variables
+- Design for extensibility and maintainability
+- Avoid one-time solutions - write reusable, testable code
+
+### 5. Clean Code Principles
+- Single Responsibility Principle - each module/class should have one clear purpose
+- DRY (Don't Repeat Yourself) - extract common logic into reusable functions/classes
+- Meaningful variable and function names
+- Keep functions small and focused
+- Proper error handling with try-catch blocks
+
+### 6. Modern JavaScript Practices
+- Use modern ES6+ features (arrow functions, destructuring, async/await, etc.)
+- Prefer `const` over `let`, avoid `var`
+- Use template literals for string interpolation
+- Use async/await over callbacks when possible
+- Use object destructuring for cleaner code
+
+### 7. File Organization
+- **Temporary/one-time files**: Place in `temp/` directory
+- **New documentation**: Place in `MD/` directory
+- Follow existing directory structure:
+  - `modules/` - Core modules and utilities
+  - `roll/` - Dice rolling functionality
+  - `views/` - Frontend HTML/JS files
+  - `test/` - Test files
+  - `assets/` - Static assets
+
+### 8. ESLint Compliance
+- **MUST follow rules defined in `eslint.config.mjs`**
+- File naming: Use kebab-case, except for legacy files (z_*.js, core-*.js, etc.)
+- Run `yarn lint` before committing
+- Fix linting errors with `yarn lint:fix` when possible
+
+### 9. Error Handling
+- Always use try-catch for async operations
+- Provide meaningful error messages
+- Log errors appropriately (use logger, not console.error in production)
+- Handle edge cases gracefully
+
+### 10. Testing
+- Write tests for new features in `test/` directory
+- Use Jest testing framework
+- Follow existing test patterns (mock dependencies, use describe/it blocks)
+- Test files should be named `*.test.js`
+
+## Package Management
+- **Use yarn, NOT npm** for package management
+- Install packages: `yarn add <package>`
+- Update packages: `yarn upgrade <package>`
+- Check `package.json` for existing packages before adding new ones
+
+## Code Review Checklist
+- [ ] Code follows ESLint rules
+- [ ] Uses existing packages where possible
+- [ ] Uses classes for complex logic
+- [ ] No hardcoded values
+- [ ] Proper error handling
+- [ ] English comments
+- [ ] Tests written (if applicable)
+- [ ] Follows existing code patterns

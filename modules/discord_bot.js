@@ -1778,7 +1778,7 @@ async function handlingResponMessage(message, answer = '') {
 			console.error(`[User Command] Channel ID: ${channelid}`);
 			console.error(`[User Command] PID: ${process.pid}, PPID: ${process.ppid}`);
 			console.error('[User Command] ==========================================');
-			respawnCluster(null, true);
+			respawnCluster2();
 		}
 		if (!rplyVal.text && !rplyVal.LevelUp) return;
 		if (process.env.mongoURL)
@@ -2230,7 +2230,6 @@ async function createStPollCore({ sentMessage, groupid, payload }) {
 		try { await sentMessage.react(POLL_EMOJIS[i]); } catch (error) { console.error('poll react failed', error?.message); }
 	}
 		stPolls.set(sentMessage.id, {
-		createdAt: Date.now(), // Track creation time for cleanup
 			createdAt: Date.now(), // Track creation time for cleanup
 		channelid: sentMessage.channelId,
 		groupid,

@@ -89,7 +89,7 @@ class HealthMonitor extends EventEmitter {
                         name: mongoose.connection.name
                     };
                 }
-            } catch (error) {
+            } catch {
                 // Ignore if MongoDB connection info is not available
             }
 

@@ -3303,7 +3303,7 @@ async function __handlingInteractionMessage(message) {
 	}
 
 	const deferDuration = Date.now() - deferStartTime;
-	if (deferDuration > 1000) { // Log slow deferrals
+	if (deferDuration > 2500) { // Log slow deferrals
 		console.warn(`Slow interaction deferral (${deferDuration}ms): ${interactionId}`);
 	}
 

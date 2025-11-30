@@ -37,6 +37,8 @@ const pattNotes = /\s+-no\s+(\S+)/ig;
 const pattSwitch = /\s+-s\s+(\S+)/ig;
 const deploy = require('../modules/ds-deploy-commands.js');
 //const VIP = require('../modules/veryImportantPerson');
+const dbProtectionLayer = require('../modules/db-protection-layer.js');
+const clusterProtection = require('../modules/cluster-protection.js');
 const gameName = function () {
     return '【Admin Tool】.admin debug state account news on'
 }
@@ -70,10 +72,10 @@ const getHelpMessage = async function () {
 │ 　• .admin mongod
 │ 　  - 檢視MongoDB連接狀態
 │
-│ 分流健康狀態:
+│ 系統保護狀態:
 │ 　• .admin clusterhealth
-│ 　  - 檢視Discord分流健康狀態
-│ 　  - 顯示分流活躍度與統計
+│ 　  - 檢視數據庫與分流保護層狀態
+│ 　  - 顯示降級模式與集群健康統計
 │
 ├────── 👤帳號管理 ──────
 │ 網頁版角色卡設定:
@@ -466,8 +468,21 @@ const rollDiceCommand = async function ({
                 try {
                     // Import the health report function from discord_bot.js
                     const healthReport = globalThis.getClusterHealthReport();
-                    rply.text = '🔍 **Cluster Health Report**\n\n' +
-                        `📊 **Summary:**\n` +
+                    const dbStatus = dbProtectionLayer.getStatusReport();
+                    const clusterProtectionStatus = clusterProtection.getStatusReport();
+
+                    rply.text = '🔍 **System Protection Status**\n\n' +
+                        `🛡️ **Database Protection Layer:**\n` +
+                        `• Mode: ${dbStatus.isDegradedMode ? '🔴 DEGRADED' : '🟢 NORMAL'}\n` +
+                        `• Connection State: ${dbStatus.dbConnectionState === 1 ? '✅ Connected' : '❌ Disconnected'}\n` +
+                        `• Consecutive Failures: ${dbStatus.consecutiveFailures}\n` +
+                        `• Cache Size: ${dbStatus.cacheSize} items\n` +
+                        `• Pending Sync: ${dbStatus.pendingSyncOperations} operations\n\n` +
+                        `📊 **Cluster Protection Layer:**\n` +
+                        `• Unhealthy Clusters: ${clusterProtectionStatus.unhealthyCount}\n` +
+                        `• Health Timeout: ${clusterProtectionStatus.healthTimeout / 1000}s\n` +
+                        `• Max Retries: ${clusterProtectionStatus.maxRetries}\n\n` +
+                        `📋 **Cluster Health Report:**\n` +
                         `• Total Clusters: ${healthReport.summary.totalClusters}\n` +
                         `• Active Clusters: ${healthReport.summary.activeClusters}\n` +
                         `• Ready Clusters: ${healthReport.summary.readyClusters}\n` +
@@ -483,7 +498,7 @@ const rollDiceCommand = async function ({
                         ).join('\n');
                     rply.quotes = true;
                 } catch (error) {
-                    rply.text = `❌ Cluster health check failed: ${error.message}`;
+                    rply.text = `❌ System protection status check failed: ${error.message}`;
                 }
                 return rply;
             }

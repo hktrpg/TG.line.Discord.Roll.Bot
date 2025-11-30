@@ -14,6 +14,11 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const { ClusterManager, HeartbeatManager, AutoResharderManager } = require('discord-hybrid-sharding');
 require("./ds-deploy-commands");
 
+// Initialize database protection layer for automatic health monitoring and recovery
+// This initializes the singleton instance which starts health monitoring automatically
+require('./db-protection-layer.js'); // eslint-disable-line no-unused-vars
+console.log('[Core-Discord] Database protection layer initialized with automatic health monitoring');
+
 // Global variables to track shutdown status
 let isShuttingDown = false;
 let shutdownTimeout = null;

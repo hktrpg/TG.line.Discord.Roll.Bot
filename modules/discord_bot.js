@@ -10,6 +10,8 @@ const WebSocket = require('ws');
 const candle = require('../modules/candleDays.js');
 const records = require('../modules/records.js');
 const schema = require('../modules/schema.js');
+const clusterProtection = require('../modules/cluster-protection.js');
+// const dbProtectionLayer = require('../modules/db-protection-layer.js'); // Reserved for future database protection
 
 exports.analytics = require('./analytics');
 const debugMode = !!process.env.DEBUG;
@@ -683,15 +685,23 @@ async function count() {
 			return '⚠️ 無法取得統計資料 - 所有分流均離線';
 		}
 
-		// Use global broadcastEval and group results by cluster
+		// Use protected broadcastEval to prevent cluster failures from affecting statistics
 		const [guildStatsRaw, memberStatsRaw] = await Promise.all([
-			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size })).catch(error => {
-				logClusterDiagnostics(error, 'count-guildStats');
-				throw error;
+			clusterProtection.safeBroadcastEval(client, c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size }), {
+				timeout: 8000,
+				skipUnhealthy: true
+			}).catch(error => {
+				logClusterDiagnostics(error, 'count-guildStats-protected');
+				console.warn('[Statistics] Guild stats collection failed, using partial data');
+				return []; // Return empty array instead of throwing
 			}),
-			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) })).catch(error => {
-				logClusterDiagnostics(error, 'count-memberStats');
-				throw error;
+			clusterProtection.safeBroadcastEval(client, c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) }), {
+				timeout: 8000,
+				skipUnhealthy: true
+			}).catch(error => {
+				logClusterDiagnostics(error, 'count-memberStats-protected');
+				console.warn('[Statistics] Member stats collection failed, using partial data');
+				return []; // Return empty array instead of throwing
 			})
 		]);
 
@@ -1307,7 +1317,7 @@ async function getAllshardIds() {
 				});
 
 				evalPromise = Promise.race([
-				client.cluster.broadcastEval(
+				clusterProtection.safeBroadcastEval(client,
 					c => {
 						// Try multiple methods to get ping/latency information
 						let pingValue = c.ws?.ping;
@@ -1361,7 +1371,10 @@ async function getAllshardIds() {
 							pingSource: 'unknown'
 						};
 					},
-					{ timeout: 5000 } // 5 second cluster evaluation timeout
+					{
+						timeout: 8000, // Increased from 5 to 8 seconds for latency measurement
+						isLatencyMeasurement: true // Special handling for latency measurements
+					}
 				),
 					timeoutPromise
 				]);
@@ -1380,7 +1393,7 @@ async function getAllshardIds() {
 				if (clustersHealthy) {
 					try {
 						clusterDataRaw = await Promise.race([
-						client.cluster.broadcastEval(c => {
+						clusterProtection.safeBroadcastEval(client, c => {
 							// Try multiple methods to get ping/latency information (fallback mode)
 							let pingValue = c.ws?.ping;
 

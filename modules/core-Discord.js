@@ -99,7 +99,7 @@ const clusterOptions = {
     shardsPerClusters: 2,     // Increased from 1 to 2. Reduces process count from 56 to 28. Saves ~50% RAM and DB connections.
     totalShards: 'auto',
     mode: 'process',
-    respawn: false, // Disable auto respawn, manually controlled
+    respawn: true, // Enable auto respawn to prevent CLUSTERING_NO_CHILD_EXISTS
     retry: {
         attempts: MAX_RETRY_ATTEMPTS,
         delay: RETRY_DELAY
@@ -109,8 +109,8 @@ const clusterOptions = {
     // Add reconnection and backoff options
     fetchTimeout: 30_000,
     restarts: {
-        max: 5,
-        interval: 60_000 * 10 // 10 minutes
+        max: 3, // Reduced from 5 to prevent excessive restarts
+        interval: 60_000 * 5 // Reduced from 10 minutes to 5 minutes
     },
     // Queue options for complex codebases
     queue: {
@@ -165,25 +165,43 @@ manager.on('clusterCreate', shard => {
     const errorHandler = (event, error) => {
         // Don't handle errors if shutting down
         if (isShuttingDown) return;
-        
-        console.error(`[Cluster] Cluster ${shard.id} ${event}:`, error);
-        
-        // Add retry logic
+
+        const timestamp = new Date().toISOString();
+        console.error(`[${timestamp}] [Cluster] Cluster ${shard.id} ${event}:`, error);
+
+        // Add detailed diagnostics for cluster death
         if (event === 'death') {
             const exitCode = error && typeof error === 'string' ? error.match(/Exit code: (\d+)/)?.[1] : 'unknown';
-            console.error(`[Cluster] Cluster ${shard.id} death detected. Exit code: ${exitCode}`);
-            
+            console.error(`[${timestamp}] [Cluster] Cluster ${shard.id} death detected. Exit code: ${exitCode}`);
+
+            // Log cluster state for debugging
+            console.error(`[${timestamp}] [Cluster] Cluster ${shard.id} diagnostics:`, {
+                ready: shard.ready,
+                thread: !!shard.thread,
+                totalClusters: shard.manager.totalClusters,
+                activeClusters: [...shard.manager.clusters.values()].filter(c => c.ready).length,
+                totalShards: shard.manager.totalShards,
+                respawnEnabled: shard.manager.respawn
+            });
+
+            // Don't manually respawn if auto-respawn is enabled
+            if (shard.manager.respawn) {
+                console.log(`[${timestamp}] [Cluster] Auto-respawn enabled, letting ClusterManager handle respawn for cluster ${shard.id}`);
+                return;
+            }
+
+            // Manual respawn for legacy compatibility (though auto-respawn is now enabled)
             setTimeout(() => {
                 if (!isShuttingDown) {
-                    console.log(`[Cluster] Attempting to respawn cluster ${shard.id} after ${RETRY_DELAY}ms delay`);
+                    console.log(`[${timestamp}] [Cluster] Attempting manual respawn for cluster ${shard.id} after ${RETRY_DELAY}ms delay`);
                     try {
                         shard.respawn({ timeout: 60_000 });
-                        console.log(`[Cluster] Respawn command sent for cluster ${shard.id}`);
+                        console.log(`[${timestamp}] [Cluster] Manual respawn command sent for cluster ${shard.id}`);
                     } catch (error_) {
-                        console.error(`[Cluster] Respawn error for cluster ${shard.id}:`, error_ && error_.message);
+                        console.error(`[${timestamp}] [Cluster] Manual respawn error for cluster ${shard.id}:`, error_?.message || error_);
                     }
                 } else {
-                    console.log(`[Cluster] Shutdown in progress, skipping respawn for cluster ${shard.id}`);
+                    console.log(`[${timestamp}] [Cluster] Shutdown in progress, skipping respawn for cluster ${shard.id}`);
                 }
             }, RETRY_DELAY);
         }

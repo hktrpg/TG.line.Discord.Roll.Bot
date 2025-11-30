@@ -70,6 +70,11 @@ const getHelpMessage = async function () {
 │ 　• .admin mongod
 │ 　  - 檢視MongoDB連接狀態
 │
+│ 分流健康狀態:
+│ 　• .admin clusterhealth
+│ 　  - 檢視Discord分流健康狀態
+│ 　  - 顯示分流活躍度與統計
+│
 ├────── 👤帳號管理 ──────
 │ 網頁版角色卡設定:
 │ 　• .admin account [使用者名稱] [密碼]
@@ -453,6 +458,33 @@ const rollDiceCommand = async function ({
                 let mongod = await schema.mongodbStateCheck();
                 rply.text = JSON.stringify(mongod ? mongod.connections : 'Connection check failed');
                 rply.quotes = true;
+                return rply;
+            }
+            case /^clusterhealth$/i.test(mainMsg[1]): {
+                if (!adminSecret) return rply;
+                if (userid !== adminSecret) return rply;
+                try {
+                    // Import the health report function from discord_bot.js
+                    const healthReport = globalThis.getClusterHealthReport();
+                    rply.text = '🔍 **Cluster Health Report**\n\n' +
+                        `📊 **Summary:**\n` +
+                        `• Total Clusters: ${healthReport.summary.totalClusters}\n` +
+                        `• Active Clusters: ${healthReport.summary.activeClusters}\n` +
+                        `• Ready Clusters: ${healthReport.summary.readyClusters}\n` +
+                        `• Dead Clusters: ${healthReport.summary.deadClusters}\n` +
+                        `• Total Shards: ${healthReport.summary.totalShards}\n\n` +
+                        `🔧 **Process Info:**\n` +
+                        `• PID: ${healthReport.processInfo.pid}\n` +
+                        `• Uptime: ${Math.floor(healthReport.processInfo.uptime / 3600)}h ${Math.floor((healthReport.processInfo.uptime % 3600) / 60)}m\n` +
+                        `• Memory: ${healthReport.processInfo.memoryMB}MB\n\n` +
+                        `📋 **Cluster Details:**\n` +
+                        healthReport.clusters.map(c =>
+                            `• Cluster ${c.id}: ${c.ready ? '✅' : '❌'} ${c.alive ? '🟢' : '🔴'} (${c.shards} shards, ${c.uptime}s uptime)`
+                        ).join('\n');
+                    rply.quotes = true;
+                } catch (error) {
+                    rply.text = `❌ Cluster health check failed: ${error.message}`;
+                }
                 return rply;
             }
             case /^registerChannel$/i.test(mainMsg[1]):

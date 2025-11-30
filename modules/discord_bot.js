@@ -577,6 +577,89 @@ function __privateMsg({ trigger, mainMsg, inputStr }) {
 
 
 
+// Enhanced cluster diagnostics function for CLUSTERING_NO_CHILD_EXISTS errors
+function logClusterDiagnostics(error, context = '') {
+	if (!error || !error.message || !error.message.includes('CLUSTERING_NO_CHILD_EXISTS')) {
+		return;
+	}
+
+	const timestamp = new Date().toISOString();
+	const diagnostics = {
+		timestamp,
+		context,
+		error: error.message,
+		clusterState: {
+			totalClusters: client.cluster?.ids?.size || 0,
+			availableClusterIds: [...(client.cluster?.ids?.keys() || [])],
+			activeClusters: 0,
+			readyClusters: 0,
+			clusterDetails: []
+		},
+		processInfo: {
+			pid: process.pid,
+			uptime: Math.floor(process.uptime()),
+			memoryUsage: process.memoryUsage(),
+		}
+	};
+
+	// Collect detailed cluster information
+	if (client.cluster) {
+		const clusters = client.cluster.clusters;
+		diagnostics.clusterState.clusterDetails = [...clusters.values()].map(cluster => ({
+			id: cluster.id,
+			ready: cluster.ready,
+			alive: cluster.alive,
+			lastHeartbeat: cluster.lastHeartbeat || null,
+			shards: cluster.shards?.size || 0
+		}));
+
+		diagnostics.clusterState.activeClusters = diagnostics.clusterState.clusterDetails.filter(c => c.alive).length;
+		diagnostics.clusterState.readyClusters = diagnostics.clusterState.clusterDetails.filter(c => c.ready).length;
+	}
+
+	console.error(`[${timestamp}] 🔍 CLUSTERING_NO_CHILD_EXISTS Diagnostics [${context}]:`, JSON.stringify(diagnostics, null, 2));
+}
+
+// Cluster health monitoring function - can be called manually or periodically
+function getClusterHealthReport() {
+	if (!client.cluster) {
+		return { error: 'No cluster manager available' };
+	}
+
+	const timestamp = new Date().toISOString();
+	const clusters = client.cluster.clusters;
+	const clusterDetails = [...clusters.values()].map(cluster => ({
+		id: cluster.id,
+		ready: cluster.ready,
+		alive: cluster.alive,
+		lastHeartbeat: cluster.lastHeartbeat || null,
+		shards: cluster.shards?.size || 0,
+		uptime: cluster.ready ? Math.floor((Date.now() - cluster.readyAt) / 1000) : 0
+	}));
+
+	const report = {
+		timestamp,
+		summary: {
+			totalClusters: client.cluster.ids.size,
+			activeClusters: clusterDetails.filter(c => c.alive).length,
+			readyClusters: clusterDetails.filter(c => c.ready).length,
+			deadClusters: clusterDetails.filter(c => !c.alive).length,
+			totalShards: clusterDetails.reduce((sum, c) => sum + c.shards, 0)
+		},
+		clusters: clusterDetails,
+		processInfo: {
+			pid: process.pid,
+			uptime: Math.floor(process.uptime()),
+			memoryMB: Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
+		}
+	};
+
+	return report;
+}
+
+// Export for external access (can be called from admin commands)
+globalThis.getClusterHealthReport = getClusterHealthReport;
+
 async function count() {
 	if (!client.cluster) return '';
 
@@ -602,8 +685,14 @@ async function count() {
 
 		// Use global broadcastEval and group results by cluster
 		const [guildStatsRaw, memberStatsRaw] = await Promise.all([
-			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size })),
-			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) }))
+			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size })).catch(error => {
+				logClusterDiagnostics(error, 'count-guildStats');
+				throw error;
+			}),
+			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) })).catch(error => {
+				logClusterDiagnostics(error, 'count-memberStats');
+				throw error;
+			})
 		]);
 
 		// Group statistics data by cluster
@@ -1285,6 +1374,7 @@ async function getAllshardIds() {
 				}
 				// clusterDataRaw is already populated with defaults if no healthy clusters
 			} catch (error) {
+				logClusterDiagnostics(error, 'statistics-main-broadcastEval');
 				console.warn('broadcastEval timeout, using fallback collection method:', error.message);
 				// If primary broadcastEval fails, use simplified method (only if we have healthy clusters)
 				if (clustersHealthy) {
@@ -1345,6 +1435,7 @@ async function getAllshardIds() {
 							new Promise((_, reject) => setTimeout(() => reject(new Error('Fallback collection also timed out')), 3000))
 						]);
 					} catch (fallbackError) {
+						logClusterDiagnostics(fallbackError, 'statistics-fallback-broadcastEval');
 						console.warn('Fallback collection also failed:', fallbackError.message);
 						// If all methods fail, populate with default values
 						clusterDataRaw = [];

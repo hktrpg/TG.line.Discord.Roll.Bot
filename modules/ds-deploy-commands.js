@@ -5,7 +5,7 @@ const clientId = process.env.DISCORD_CHANNEL_CLIENTID || "544561773488111636";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 
 if (!channelSecret) {
-    console.warn('Discord channel secret is missing! Skipping slash command deployment.');
+    //console.warn('Discord channel secret is missing! Skipping slash command deployment.');
     return;
 }
 

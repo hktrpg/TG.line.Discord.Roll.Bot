@@ -267,7 +267,7 @@ class Records extends EventEmitter {
 
             // Wait for connection if not ready (with timeout)
             if (mongoose.connection.readyState !== 1) {
-                const maxWaitTime = 10000; // 10 seconds
+                const maxWaitTime = 10_000; // 10 seconds
                 const startTime = Date.now();
                 
                 // Wait for connection with timeout

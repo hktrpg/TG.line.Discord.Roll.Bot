@@ -78,7 +78,7 @@ class DailyCache {
 				this.updateAlmanacCache()
 			]);
 
-			console.log('Astro, big event, and almanac cache prewarmed for today, tomorrow, and day-after-tomorrow');
+			//console.log('Astro, big event, and almanac cache prewarmed for today, tomorrow, and day-after-tomorrow');
 		} catch (error) {
 			console.error('Failed to update astro cache:', error);
 		}
@@ -328,9 +328,9 @@ const rollDiceCommand = async function ({
 		text: ''
 	}
 	//let result = {};
-	//		if (trigger.match(/排序/) != null && mainMsg.length >= 3) return exports.funny.SortIt(inputStr, mainMsg);
+	//		if (trigger.match(/sort|排序/) != null && mainMsg.length >= 3) return exports.funny.SortIt(inputStr, mainMsg);
 	// Choice command starts here
-	//	if (trigger.match(/choice|隨機|選項|選1/) != null && mainMsg.length >= 3) return exports.funny.choice(inputStr, mainMsg);
+	//	if (trigger.match(/choice|隨機|選項|選1/) != null && mainMsg.length >= 3) return exports.funny.choice(inputStr, mainMsg); // Random choice or selection
 	// Tarot command
 	/*
 	if (trigger.match(/tarot|塔羅牌|塔羅/) != null) {
@@ -341,10 +341,10 @@ const rollDiceCommand = async function ({
 	*/
 
 	// FLAG command starts here
-	//		if (trigger.match(/立flag|死亡flag/) != null) return exports.funny.BStyleFlagSCRIPTS();
+	//		if (trigger.match(/立flag|死亡flag/) != null) return exports.funny.BStyleFlagSCRIPTS(); // Death flags
 
 	// Duck beast command starts here
-	//		if (trigger.match(/鴨霸獸/) != null) return exports.funny.randomReply();
+	//		if (trigger.match(/鴨霸獸/) != null) return exports.funny.randomReply(); // Duck beast (character reference)
 	//		if (trigger.match(/運勢/) != null) return exports.funny.randomLuck(mainMsg); // Fortune telling		
 	/*猜拳指令
 	if (trigger.match(/猜拳/) != null) {

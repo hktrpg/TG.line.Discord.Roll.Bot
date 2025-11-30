@@ -5,6 +5,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const schema = require('./schema.js');
 const checkMongodb = require('./dbWatchdog.js');
+const timerManager = require('./timer-manager');
 
 // 使用 Map 來做使用者快取
 const userCache = new Map();
@@ -41,8 +42,8 @@ function updateMessageCache() {
 // 使用防抖動的計時器
 let updateTimer;
 const startUpdateTimer = () => {
-    if (updateTimer) clearInterval(updateTimer);
-    updateTimer = setInterval(updateMessageCache, 60 * 60 * 1000);
+    if (updateTimer) timerManager.clearInterval(updateTimer);
+    updateTimer = timerManager.setInterval(updateMessageCache, 60 * 60 * 1000);
 };
 
 // 初始設定

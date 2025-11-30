@@ -289,8 +289,8 @@ if (agenda) {
 // Heartbeat management
 manager.extend(
     new HeartbeatManager({
-        interval: 10_000,          // Increased interval to 10s to reduce load
-        maxMissedHeartbeats: 10,  // Increased tolerance to 100s total (allows for 60s DB timeouts)
+        interval: 15_000,          // Optimized interval to 15s to reduce load (increased from 10s)
+        maxMissedHeartbeats: 10,  // Increased tolerance to 150s total (allows for 60s DB timeouts)
         onMissedHeartbeat: (cluster) => {
             if (!isShuttingDown) {
                 console.warn(`[Heartbeat] Cluster ${cluster.id} missed a heartbeat (Tolerance: ${10 - cluster.missedHeartbeats} remaining)`);

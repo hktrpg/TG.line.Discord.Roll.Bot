@@ -1,0 +1,212 @@
+---
+description: ESLint configuration and rules for HKTRPG bot project
+alwaysApply: true
+---
+
+# ESLint Rules and Configuration
+
+## Overview
+
+This project uses ESLint to maintain code quality and consistency. The configuration is defined in `eslint.config.mjs` and must be followed by all contributors.
+
+## Core ESLint Configuration
+
+### Base Configuration
+- **ESLint Recommended**: Uses `js.configs.recommended` as the base
+- **Unicorn Plugin**: `eslint-plugin-unicorn` with `flat/recommended` config
+- **Node Plugin**: `eslint-plugin-n` with `flat/recommended` config
+- **Import Plugin**: `eslint-plugin-import` for import/export validation
+
+### Environment Settings
+```javascript
+ecmaVersion: 2022,
+sourceType: "commonjs",
+globals: {
+  ...globals.browser,
+  ...globals.node,
+  ...globals.jest,
+  // Custom globals
+  "$": "readonly", // jQuery
+  "Vue": "readonly", // Vue.js
+  "io": "readonly", // Socket.io
+  "expect": "readonly", // Jest
+  "describe": "readonly", // Jest
+  "it": "readonly", // Jest
+  "beforeEach": "readonly", // Jest
+  "afterEach": "readonly", // Jest
+  "beforeAll": "readonly", // Jest
+  "afterAll": "readonly", // Jest
+  "test": "readonly", // Jest
+}
+```
+
+## Key ESLint Rules
+
+### Code Quality Rules
+
+#### Error Prevention
+- **`no-undef`**: Prevents use of undeclared variables
+  - **Example**: `respawnCluster` was undefined, fixed by using `respawnCluster2()`
+- **`no-unused-vars`**: Prevents unused variables
+  - **Example**: Removed unused imports in disabled functions
+- **`no-unreachable`**: Prevents unreachable code after return statements
+  - **Example**: Removed unreachable code in `getRecords()` functions
+
+#### Code Style
+- **`unicorn/prefer-spread`**: Prefer spread operator over `Array.from()`
+- **`unicorn/prefer-at`**: Prefer `.at()` over `[array.length - index]`
+- **`unicorn/numeric-separators-style`**: Use numeric separators for large numbers
+  - **Example**: `10000` → `10_000`
+
+### Import/Export Rules
+- **`import/no-unresolved`**: Ensures imports can be resolved
+- **`import/no-unused-modules`**: Prevents unused module imports
+
+### Node.js Specific Rules
+- **`n/no-deprecated-api`**: Prevents use of deprecated Node.js APIs
+- **`n/no-missing-import`**: Ensures imports exist
+- **`n/no-unpublished-import`**: Prevents importing unpublished packages
+
+### Unicorn Plugin Rules
+- **`unicorn/prefer-node-protocol`**: Prefer `node:` protocol for Node.js built-ins
+- **`unicorn/prefer-module`**: Prefer ES modules (when applicable)
+- **`unicorn/no-array-method-this-argument`**: Avoid `this` argument in array methods
+- **`unicorn/prefer-string-replace-all`**: Prefer `String.replaceAll()` over regex
+
+## File Naming Conventions
+
+- **Default**: Use kebab-case for file names
+- **Exceptions**: Legacy files may use different naming:
+  - `z_*.js` - Admin/utility functions
+  - `core-*.js` - Core platform integrations
+  - `*_test.js` - Test files
+
+## Ignoring Patterns
+
+The following files/directories are ignored by ESLint:
+```
+coverage/**
+node_modules/**
+dist/**
+build/**
+tmp/**
+temp/**
+*.log
+.env*
+*.min.js
+*.bundle.js
+```
+
+## Running ESLint
+
+### Check for Errors
+```bash
+yarn lint
+```
+
+### Auto-fix (when possible)
+```bash
+yarn lint:fix
+```
+
+### Check Specific Files
+```bash
+yarn lint modules/discord_bot.js
+```
+
+## Common ESLint Errors and Fixes
+
+### 1. `no-undef` - Undefined Variable
+```javascript
+// ❌ Error
+respawnCluster(null, true);
+
+// ✅ Fix
+respawnCluster2(); // Use correct function name
+```
+
+### 2. `no-unused-vars` - Unused Variables
+```javascript
+// ❌ Error
+const checkMongodb = require('../modules/dbWatchdog.js');
+
+// ✅ Fix (if not used)
+const checkMongodb = require('../modules/dbWatchdog.js');
+// Use checkMongodb or comment out
+```
+
+### 3. `no-unreachable` - Unreachable Code
+```javascript
+// ❌ Error
+function test() {
+  return; // Early return
+  console.log('This is unreachable'); // Error
+}
+
+// ✅ Fix
+function test() {
+  return; // Early return
+  // console.log('This is unreachable'); // Commented out
+}
+```
+
+### 4. `unicorn/numeric-separators-style` - Numeric Separators
+```javascript
+// ❌ Error
+const timeout = 10000;
+
+// ✅ Fix
+const timeout = 10_000;
+```
+
+## ESLint in Development Workflow
+
+### Pre-commit Hook
+- Run `yarn lint` before committing
+- Fix any linting errors before pushing
+
+### CI/CD Integration
+- ESLint runs automatically in CI pipeline
+- Failures prevent deployment
+
+### IDE Integration
+- Configure your editor to show ESLint errors in real-time
+- Auto-fix on save when possible
+
+## Custom Rules and Overrides
+
+### File-specific Overrides
+Some files may have specific rule overrides due to legacy code or special requirements.
+
+### Temporary Disables
+Use ESLint disable comments sparingly:
+```javascript
+// eslint-disable-next-line no-unused-vars
+const tempVariable = 'temporary';
+```
+
+## Best Practices
+
+1. **Run ESLint Regularly**: Check code quality frequently during development
+2. **Fix Issues Promptly**: Address linting errors as soon as they appear
+3. **Understand Rules**: Know why each rule exists and its purpose
+4. **Consistent Style**: Maintain consistent code style across the project
+5. **Team Communication**: Discuss rule changes with the team
+
+## Troubleshooting
+
+### False Positives
+If ESLint reports a false positive, consider:
+1. Updating ESLint configuration
+2. Using ESLint disable comments (with explanation)
+3. Reporting to ESLint project if it's a bug
+
+### Performance Issues
+For large files, ESLint may be slow. Consider:
+1. Breaking large files into smaller modules
+2. Using `.eslintignore` for problematic files
+3. Running ESLint on specific files rather than entire project
+
+---
+
+*This document should be updated when ESLint configuration changes.*

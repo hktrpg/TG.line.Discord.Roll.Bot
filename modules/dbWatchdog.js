@@ -3,6 +3,7 @@ const path = require('path');
 const winston = require('winston');
 const { format } = winston;
 const schema = require('./schema.js');
+const timerManager = require('./timer-manager');
 
 // Constant configuration
 const CONFIG = {
@@ -123,7 +124,10 @@ class DbWatchdog {
             lastHealthCheck: null,
             consecutiveFailures: 0,
             averageResponseTime: 0,
-            responseTimes: []
+            responseTimes: [],
+            slowQueries: [], // Track slow queries (> 1 second)
+            queryStats: new Map(), // Track query performance by operation name
+            cacheHitRate: { hits: 0, misses: 0 } // Track cache performance
         };
         this.connectionState = {
             isConnected: false,
@@ -228,7 +232,7 @@ class DbWatchdog {
         }
 
         // Original error retry logic
-        setInterval(
+        this.retryInterval = timerManager.setInterval(
             async () => {
                 if (!this.isDbOnline()) {
                     await this.__updateRecords();
@@ -238,7 +242,7 @@ class DbWatchdog {
         );
 
         // Enhanced health check
-        setInterval(
+        this.healthCheckInterval = timerManager.setInterval(
             async () => {
                 try {
                     // If circuit breaker is in OPEN state, try recovery
@@ -272,7 +276,7 @@ class DbWatchdog {
         discordClient.cluster.send({ respawn: true, id });
     }
 
-    // Enhanced database operation wrapper
+    // Enhanced database operation wrapper with query performance monitoring
     async executeDatabaseOperation(operation, operationName = 'unknown') {
         const startTime = Date.now();
         this.healthMetrics.totalOperations++;
@@ -293,6 +297,38 @@ class DbWatchdog {
 
             // Update average response time
             this.healthMetrics.averageResponseTime = this.healthMetrics.responseTimes.reduce((a, b) => a + b, 0) / this.healthMetrics.responseTimes.length;
+
+            // Track slow queries (> 1 second)
+            if (duration > 1000) {
+                const slowQuery = {
+                    operation: operationName,
+                    duration,
+                    timestamp: new Date()
+                };
+                this.healthMetrics.slowQueries.push(slowQuery);
+                // Keep last 50 slow queries
+                if (this.healthMetrics.slowQueries.length > 50) {
+                    this.healthMetrics.slowQueries.shift();
+                }
+                console.warn(`[DbWatchdog] Slow query detected: ${operationName} took ${duration}ms`);
+            }
+
+            // Track query stats by operation name
+            if (!this.healthMetrics.queryStats.has(operationName)) {
+                this.healthMetrics.queryStats.set(operationName, {
+                    count: 0,
+                    totalDuration: 0,
+                    minDuration: Infinity,
+                    maxDuration: 0,
+                    slowQueries: 0
+                });
+            }
+            const stats = this.healthMetrics.queryStats.get(operationName);
+            stats.count++;
+            stats.totalDuration += duration;
+            stats.minDuration = Math.min(stats.minDuration, duration);
+            stats.maxDuration = Math.max(stats.maxDuration, duration);
+            if (duration > 1000) stats.slowQueries++;
 
             // Update connection status
             if (!this.connectionState.isConnected) {
@@ -334,12 +370,27 @@ class DbWatchdog {
         // Try to check mongoose connection status, avoid circular dependency
         let mongooseReadyState = 0;
         let isActuallyConnected = false;
+        let connectionPoolInfo = null;
 
         try {
             // Dynamically check mongoose status, avoid creating dependencies during module loading
             const mongoose = require('./db-connector.js').mongoose;
             mongooseReadyState = mongoose?.connection?.readyState ?? 0;
             isActuallyConnected = mongooseReadyState === 1; // 1 = connected
+
+            // Get connection pool information
+            if (mongoose && mongoose.connection && mongoose.connection.readyState === 1) {
+                const client = mongoose.connection.getClient();
+                if (client && client.topology) {
+                    // Try to get pool stats
+                    connectionPoolInfo = {
+                        readyState: mongooseReadyState,
+                        host: mongoose.connection.host,
+                        name: mongoose.connection.name,
+                        // Note: Detailed pool stats require MongoDB driver API access
+                    };
+                }
+            }
         } catch {
             // If unable to access mongoose, use manually tracked status
             isActuallyConnected = this.connectionState.isConnected;
@@ -354,6 +405,24 @@ class DbWatchdog {
         // Update internal status to maintain synchronization
         this.connectionState.isConnected = isActuallyConnected;
 
+        // Calculate cache hit rate
+        const totalCacheOps = this.healthMetrics.cacheHitRate.hits + this.healthMetrics.cacheHitRate.misses;
+        const cacheHitRate = totalCacheOps > 0
+            ? (this.healthMetrics.cacheHitRate.hits / totalCacheOps) * 100
+            : 0;
+
+        // Get query performance stats
+        const queryStats = {};
+        for (const [opName, stats] of this.healthMetrics.queryStats.entries()) {
+            queryStats[opName] = {
+                count: stats.count,
+                avgDuration: Math.round(stats.totalDuration / stats.count),
+                minDuration: stats.minDuration === Infinity ? 0 : stats.minDuration,
+                maxDuration: stats.maxDuration,
+                slowQueries: stats.slowQueries
+            };
+        }
+
         return {
             status,
             successRate: Math.round(successRate * 100) / 100,
@@ -364,6 +433,15 @@ class DbWatchdog {
                 failedOperations: this.healthMetrics.failedOperations,
                 consecutiveFailures: this.healthMetrics.consecutiveFailures,
                 averageResponseTime: Math.round(this.healthMetrics.averageResponseTime),
+                slowQueriesCount: this.healthMetrics.slowQueries.length,
+                recentSlowQueries: this.healthMetrics.slowQueries.slice(-10), // Last 10 slow queries
+                queryStats: queryStats,
+                cacheHitRate: Math.round(cacheHitRate * 100) / 100,
+                cacheStats: {
+                    hits: this.healthMetrics.cacheHitRate.hits,
+                    misses: this.healthMetrics.cacheHitRate.misses,
+                    total: totalCacheOps
+                },
                 lastHealthCheck: new Date().toISOString()
             },
             connection: {
@@ -372,7 +450,8 @@ class DbWatchdog {
                 readyStateText: ['disconnected', 'connected', 'connecting', 'disconnecting'][mongooseReadyState] || 'unknown',
                 lastConnectionTime: this.connectionState.lastConnectionTime,
                 lastDisconnectionTime: this.connectionState.lastDisconnectionTime,
-                reconnectionAttempts: this.connectionState.reconnectionAttempts
+                reconnectionAttempts: this.connectionState.reconnectionAttempts,
+                poolInfo: connectionPoolInfo
             }
         };
     }

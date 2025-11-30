@@ -287,7 +287,7 @@ client.on('clientReady', async () => {
 	initInteractionCommands();
 	//	if (shardid === 0) getSchedule();
 	client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
-	console.log(`[Discord Bot] Logged in as ${client.user.tag}!`);
+	console.log(`[Discord Bot #${shardid}] Logged in as ${client.user.tag}!`);
 	client.cluster.triggerReady();
 	let switchSetActivity = 0;
 

@@ -46,7 +46,7 @@
     "bcryptjs": "^3.0.2",
     "chai": "^4.3.4",
     "cheerio": "1.0.0-rc.12",
-    "chinese-conv": "^1.0.1",
+    "chinese-conv": "^4.0.0",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
     "discord-hybrid-sharding": "^3.0.1",

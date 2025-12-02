@@ -72,26 +72,82 @@ async function gracefulShutdown(exitProcess = true) {
             console.warn(`[Cluster] maintenance trigger failed: ${error.message}`);
         }
 
+        // First, try to gracefully destroy all Discord clients
         try {
+            console.log('[Cluster] Broadcasting destroy command to all clusters...');
             await manager.broadcastEval(async (client) => {
                 try {
                     if (client && typeof client.destroy === 'function') {
+                        console.log('[Cluster] Destroying Discord client...');
                         await client.destroy();
+                        console.log('[Cluster] Discord client destroyed successfully');
                     }
-                } catch (error) { void error; }
-                process.exit(0);
-            }, { timeout: 15_000 });
+                } catch (error) {
+                    console.warn('[Cluster] Error destroying client:', error.message);
+                }
+                // Don't call process.exit here - let the manager handle it
+            }, { timeout: 30_000 });
+            console.log('[Cluster] All clients notified to destroy');
         } catch (error) {
-            // Ignore IPC channel errors during shutdown (expected when clusters are already closed)
-            const errorCode = error.code || (error.message && error.message.includes('EPIPE') ? 'EPIPE' : null);
+            // Handle IPC and other expected errors during shutdown
+            const errorCode = error.code || '';
             const errorMessage = error.message || String(error);
-            if (errorCode === 'EPIPE' || errorCode === 'ERR_IPC_CHANNEL_CLOSED' || 
-                errorMessage.includes('EPIPE') || errorMessage.includes('Channel closed')) {
+            if (errorCode === 'EPIPE' || errorCode === 'ERR_IPC_CHANNEL_CLOSED' ||
+                errorCode === 'ERR_IPC_DISCONNECTED' || errorCode === 'ECONNRESET' ||
+                errorMessage.includes('EPIPE') || errorMessage.includes('Channel closed') ||
+                errorMessage.includes('IPC') || errorMessage.includes('disconnected') ||
+                errorMessage.includes('Connection lost') || errorMessage.includes('socket hang up')) {
                 console.log('[Cluster] Ignoring IPC channel errors during shutdown (expected behavior)');
             } else {
                 console.warn('[Cluster] broadcastEval during shutdown encountered an error:', error);
             }
         }
+
+        // Wait a bit for clients to finish destroying
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Now destroy the cluster manager itself
+        try {
+            console.log('[Cluster] Destroying cluster manager...');
+            if (manager) {
+                // Try different destroy methods based on the library version
+                switch ('function') {
+                case typeof manager.destroy: {
+                    await manager.destroy();
+                    console.log('[Cluster] Cluster manager destroyed successfully');
+                
+                break;
+                }
+                case typeof manager.close: {
+                    await manager.close();
+                    console.log('[Cluster] Cluster manager closed successfully');
+                
+                break;
+                }
+                case typeof manager.broadcastEval: {
+                    // For hybrid sharding, try to broadcast exit command
+                    console.log('[Cluster] Broadcasting exit command to all clusters...');
+                    try {
+                        await manager.broadcastEval(() => {
+                            console.log('[Cluster] Received exit command, shutting down...');
+                            process.exit(0);
+                        }, { timeout: 10_000 });
+                    } catch (broadcastError) {
+                        void broadcastError; // Ignore broadcast errors during shutdown
+                        console.log('[Cluster] Broadcast exit completed (some clusters may have already exited)');
+                    }
+                
+                break;
+                }
+                // No default
+                }
+            }
+        } catch (error) {
+            console.warn('[Cluster] Error destroying cluster manager:', error.message);
+        }
+
+        // Give a moment for everything to settle
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Close database connection before exit
         try {

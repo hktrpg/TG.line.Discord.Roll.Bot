@@ -410,6 +410,23 @@ async function withTransaction(callback) {
     }
 }
 
+// Graceful disconnect function
+async function disconnect() {
+    try {
+        console.log('[db-connector] Disconnecting from MongoDB...');
+        if (mongoose.connection.readyState === 1) {
+            await mongoose.connection.close();
+            console.log('[db-connector] Successfully disconnected from MongoDB');
+        } else {
+            console.log('[db-connector] MongoDB connection already closed or not connected');
+        }
+        isConnected = false;
+    } catch (error) {
+        console.error('[db-connector] Error during disconnect:', error);
+        throw error;
+    }
+}
+
 // Initial connection
 let retryInterval = null;
 
@@ -489,6 +506,7 @@ module.exports = {
     checkHealth,
     restart,
     connect,
+    disconnect,
     withTransaction,
     connectionEmitter
 };

@@ -12,6 +12,7 @@ const records = require('../modules/records.js');
 const schema = require('../modules/schema.js');
 const clusterProtection = require('../modules/cluster-protection.js');
 // const dbProtectionLayer = require('../modules/db-protection-layer.js'); // Reserved for future database protection
+const dbConnector = require('../modules/db-connector.js');
 
 exports.analytics = require('./analytics');
 const debugMode = !!process.env.DEBUG;
@@ -52,7 +53,61 @@ new AutoResharderClusterClient(client.cluster, {
     }
 });
 
-client.login(channelSecret);
+// Login to Discord with error handling to prevent restart loops
+async function loginWithErrorHandling() {
+    // Register critical error handlers BEFORE login
+    client.on('error', (error) => {
+        console.error('[Discord Bot] Discord Client Error:', error.message);
+    });
+
+    client.on('warn', (warning) => {
+        console.warn('[Discord Bot] Discord Client Warning:', warning);
+    });
+
+    client.on('shardError', (error, shardId) => {
+        console.error(`[Discord Bot] Shard ${shardId} Error:`, error.message);
+    });
+
+    client.on('shardDisconnect', (event, shardId) => {
+        console.warn(`[Discord Bot] Shard ${shardId} Disconnected:`, event);
+    });
+
+    client.on('shardReconnecting', (shardId) => {
+        console.log(`[Discord Bot] Shard ${shardId} Reconnecting...`);
+    });
+
+    client.on('shardResume', (shardId, replayedEvents) => {
+        console.log(`[Discord Bot] Shard ${shardId} Resumed (${replayedEvents} events replayed)`);
+    });
+
+    try {
+        await client.login(channelSecret);
+        console.log('[Discord Bot] Successfully logged in to Discord');
+    } catch (error) {
+        console.error('[Discord Bot] Failed to login to Discord:', error.message);
+        console.error('[Discord Bot] Login error details:', {
+            name: error.name,
+            message: error.message,
+            code: error.code,
+            status: error.httpStatus
+        });
+
+        // If login fails (e.g., invalid token), suspend execution instead of exiting
+        // This prevents ClusterManager from respawning in a loop
+        console.error('[Discord Bot] Login failed - suspending execution to prevent restart loop');
+        console.error('[Discord Bot] Process will remain alive but inactive until configuration is fixed');
+
+        // Suspend execution with periodic heartbeat to keep process alive
+        setInterval(() => {
+            console.log('[Discord Bot] Suspended due to login failure - check Discord token configuration');
+        }, 60000); // Log every minute
+
+        return; // Don't proceed with bot initialization
+    }
+}
+
+loginWithErrorHandling();
+
 const MESSAGE_SPLITOR = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const mongo = process.env.mongoURL
@@ -962,6 +1017,15 @@ async function gracefulShutdown(signal = 'unknown') {
 			} catch (error) {
 				console.warn('[Discord Bot] Client destroy timed out or failed:', error.message);
 			}
+		}
+
+		// Close database connection before exit
+		try {
+			console.log('[Discord Bot] Closing database connection...');
+			await dbConnector.disconnect();
+			console.log('[Discord Bot] Database connection closed.');
+		} catch (error) {
+			console.warn('[Discord Bot] Error closing database connection:', error.message);
 		}
 
 		process.exit(0);

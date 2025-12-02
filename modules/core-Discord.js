@@ -19,6 +19,9 @@ require("./ds-deploy-commands");
 require('./db-protection-layer.js'); // eslint-disable-line no-unused-vars
 console.log('[Core-Discord] Database protection layer initialized with automatic health monitoring');
 
+// Import database connector for graceful shutdown
+const dbConnector = require('./db-connector.js');
+
 // Global variables to track shutdown status
 let isShuttingDown = false;
 let shutdownTimeout = null;
@@ -29,7 +32,7 @@ function logSignalDetails() {
 }
 
 // Graceful shutdown function
-async function gracefulShutdown() {
+async function gracefulShutdown(exitProcess = true) {
     if (isShuttingDown) {
         console.log('[Cluster] Shutdown already in progress, ignoring duplicate call');
         return;
@@ -90,7 +93,18 @@ async function gracefulShutdown() {
             }
         }
 
-        process.exit(0);
+        // Close database connection before exit
+        try {
+            console.log('[Cluster] Closing database connection...');
+            await dbConnector.disconnect();
+            console.log('[Cluster] Database connection closed.');
+        } catch (error) {
+            console.warn('[Cluster] Error closing database connection:', error.message);
+        }
+
+        if (exitProcess) {
+            process.exit(0);
+        }
     } catch (error) {
         console.error('[Cluster] Error during shutdown:', error);
         console.error('[Cluster] Shutdown error stack:', error.stack);
@@ -233,6 +247,17 @@ manager.on('clusterCreate', shard => {
 
 // Improved message handling
 manager.on("clusterCreate", cluster => {
+    // Handle IPC process errors (like EPIPE)
+    if (cluster.process) {
+        cluster.process.on('error', (error) => {
+            if (error.code === 'EPIPE') {
+                console.warn(`[Cluster ${cluster.id}] IPC EPIPE error (child process likely dead)`);
+            } else {
+                console.error(`[Cluster ${cluster.id}] Child process error:`, error);
+            }
+        });
+    }
+
     cluster.on("message", async message => {
         // Don't handle respawn messages if shutting down
         if (isShuttingDown) return;
@@ -334,73 +359,6 @@ manager.extend(
     })
 );
 
-// Process signal handling
-process.on('SIGTERM', async () => {
-    logSignalDetails('SIGTERM', 'Cluster');
-    
-    // Prevent multiple simultaneous shutdowns
-    if (isShuttingDown) {
-        console.log('[Cluster] Shutdown already in progress, ignoring SIGTERM');
-        return;
-    }
-    
-    // Set force shutdown timeout
-    shutdownTimeout = setTimeout(() => {
-        const exitTimestamp = new Date().toISOString();
-        const exitStack = new Error('Force shutdown timeout stack trace').stack;
-        const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
-        console.error('[Cluster] ========== FORCE SHUTDOWN TIMEOUT (SIGTERM) ==========');
-        console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
-        console.error(`[Cluster] Reason: Graceful shutdown timeout (30 seconds)`);
-        console.error(`[Cluster] Exit Code: 1 (Force shutdown)`);
-        console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
-        console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
-        console.error('[Cluster] ==========================================');
-        console.log('[Cluster] Force shutdown after timeout');
-        process.exit(1);
-    }, 30_000); // 30 second timeout
-
-    await gracefulShutdown();
-});
-
-process.on('SIGINT', async () => {
-    logSignalDetails('SIGINT', 'Cluster');
-    
-    // Prevent multiple simultaneous shutdowns
-    if (isShuttingDown) {
-        console.log('[Cluster] Shutdown already in progress, ignoring SIGINT');
-        return;
-    }
-    
-    // Set force shutdown timeout
-    shutdownTimeout = setTimeout(() => {
-        const exitTimestamp = new Date().toISOString();
-        const exitStack = new Error('Force shutdown timeout stack trace').stack;
-        const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
-        console.error('[Cluster] ========== FORCE SHUTDOWN TIMEOUT (SIGINT) ==========');
-        console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
-        console.error(`[Cluster] Reason: Graceful shutdown timeout (30 seconds)`);
-        console.error(`[Cluster] Exit Code: 1 (Force shutdown)`);
-        console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
-        console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
-        console.error('[Cluster] ==========================================');
-        console.log('[Cluster] Force shutdown after timeout');
-        process.exit(1);
-    }, 30_000); // 30 second timeout
-
-    await gracefulShutdown();
-});
-
-// Track process.exit calls
-const originalExit = process.exit;
-process.exit = function(code) {
-    return originalExit.call(process, code);
-};
-
-// Track process exit event
-process.on('exit', (code) => {
-    console.error(`[Cluster] Process exiting with code: ${code} (PID: ${process.pid})`);
-});
 
 // Queue control system for complex codebases
 if (clusterOptions.queue && clusterOptions.queue.auto === false) {
@@ -435,3 +393,74 @@ manager.spawn({
     console.error('[Cluster] Failed to spawn clusters:', error);
     process.exit(1);
 });
+
+// Export shutdown function for use by index.js when running as module
+async function shutdown() {
+    return gracefulShutdown(false); // Don't exit process when called as module
+}
+
+// Only setup signal handlers when running standalone (not when required by index.js)
+if (require.main === module) {
+    // Process signal handling
+    process.on('SIGTERM', async () => {
+        logSignalDetails('SIGTERM', 'Cluster');
+
+        // Prevent multiple simultaneous shutdowns
+        if (isShuttingDown) {
+            console.log('[Cluster] Shutdown already in progress, ignoring SIGTERM');
+            return;
+        }
+
+        // Set force shutdown timeout
+        shutdownTimeout = setTimeout(() => {
+            const exitTimestamp = new Date().toISOString();
+            const exitStack = new Error('Force shutdown timeout stack trace').stack;
+            const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+            console.error('[Cluster] ========== FORCE SHUTDOWN TIMEOUT (SIGTERM) ==========');
+            console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
+            console.error(`[Cluster] Reason: Graceful shutdown timeout (30 seconds)`);
+            console.error(`[Cluster] Exit Code: 1 (Force shutdown)`);
+            console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+            console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
+            console.error('[Cluster] ==========================================');
+            console.log('[Cluster] Force shutdown after timeout');
+            process.exit(1);
+        }, 30_000); // 30 second timeout
+
+        await gracefulShutdown();
+    });
+
+    process.on('SIGINT', async () => {
+        logSignalDetails('SIGINT', 'Cluster');
+
+        // Prevent multiple simultaneous shutdowns
+        if (isShuttingDown) {
+            console.log('[Cluster] Shutdown already in progress, ignoring SIGINT');
+            return;
+        }
+
+        // Set force shutdown timeout
+        shutdownTimeout = setTimeout(() => {
+            const exitTimestamp = new Date().toISOString();
+            const exitStack = new Error('Force shutdown timeout stack trace').stack;
+            const exitStackLines = exitStack ? exitStack.split('\n').slice(2).join('\n') : 'No stack trace available';
+            console.error('[Cluster] ========== FORCE SHUTDOWN TIMEOUT (SIGINT) ==========');
+            console.error(`[Cluster] Timestamp: ${exitTimestamp}`);
+            console.error(`[Cluster] Reason: Graceful shutdown timeout (30 seconds)`);
+            console.error(`[Cluster] Exit Code: 1 (Force shutdown)`);
+            console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+            console.error(`[Cluster] Stack Trace:\n${exitStackLines}`);
+            console.error('[Cluster] ==========================================');
+            console.log('[Cluster] Force shutdown after timeout');
+            process.exit(1);
+        }, 30_000); // 30 second timeout
+
+        await gracefulShutdown();
+    });
+}
+
+// Export functions for use when required as module
+module.exports = {
+    shutdown,
+    manager
+};

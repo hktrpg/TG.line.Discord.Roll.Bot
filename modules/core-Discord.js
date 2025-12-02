@@ -16,7 +16,7 @@ require("./ds-deploy-commands");
 
 // Initialize database protection layer for automatic health monitoring and recovery
 // This initializes the singleton instance which starts health monitoring automatically
-require('./db-protection-layer.js'); // eslint-disable-line no-unused-vars
+require('./db-protection-layer.js');  
 console.log('[Core-Discord] Database protection layer initialized with automatic health monitoring');
 
 // Import database connector for graceful shutdown

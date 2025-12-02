@@ -100,7 +100,7 @@ async function loginWithErrorHandling() {
         // Suspend execution with periodic heartbeat to keep process alive
         setInterval(() => {
             console.log('[Discord Bot] Suspended due to login failure - check Discord token configuration');
-        }, 60000); // Log every minute
+        }, 60_000); // Log every minute
 
         return; // Don't proceed with bot initialization
     }
@@ -740,25 +740,42 @@ async function count() {
 			return '⚠️ 無法取得統計資料 - 所有分流均離線';
 		}
 
-		// Use protected broadcastEval to prevent cluster failures from affecting statistics
-		const [guildStatsRaw, memberStatsRaw] = await Promise.all([
-			clusterProtection.safeBroadcastEval(client, c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size }), {
-				timeout: 8000,
-				skipUnhealthy: true
-			}).catch(error => {
-				logClusterDiagnostics(error, 'count-guildStats-protected');
-				console.warn('[Statistics] Guild stats collection failed, using partial data');
-				return []; // Return empty array instead of throwing
-			}),
-			clusterProtection.safeBroadcastEval(client, c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) }), {
-				timeout: 8000,
-				skipUnhealthy: true
-			}).catch(error => {
-				logClusterDiagnostics(error, 'count-memberStats-protected');
-				console.warn('[Statistics] Member stats collection failed, using partial data');
-				return []; // Return empty array instead of throwing
-			})
-		]);
+		// Use standard broadcastEval to collect data from all clusters (including potentially unhealthy ones)
+		// Fall back to safeBroadcastEval only if standard method fails
+		let guildStatsRaw, memberStatsRaw;
+
+		try {
+			// Try standard broadcastEval first - this should collect from ALL clusters
+			[guildStatsRaw, memberStatsRaw] = await Promise.all([
+				client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size })),
+				client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) }))
+			]);
+		} catch (error) {
+			console.warn('[Statistics] Standard broadcastEval failed, falling back to safe broadcastEval:', error.message);
+
+			// Fall back to protected broadcastEval
+			[guildStatsRaw, memberStatsRaw] = await Promise.all([
+				clusterProtection.safeBroadcastEval(client, c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size }), {
+					timeout: 8000,
+					skipUnhealthy: true
+				}).catch(error => {
+					logClusterDiagnostics(error, 'count-guildStats-protected');
+					console.warn('[Statistics] Guild stats collection failed, using partial data');
+					return []; // Return empty array instead of throwing
+				}),
+				clusterProtection.safeBroadcastEval(client, c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) }), {
+					timeout: 8000,
+					skipUnhealthy: true
+				}).catch(error => {
+					logClusterDiagnostics(error, 'count-memberStats-protected');
+					console.warn('[Statistics] Member stats collection failed, using partial data');
+					return []; // Return empty array instead of throwing
+				})
+			]);
+		}
+
+		// Log collection summary
+		console.log(`[Statistics] Successfully collected data from ${guildStatsRaw.length} clusters for guild stats and ${memberStatsRaw.length} clusters for member stats`);
 
 		// Group statistics data by cluster
 		const guildStatsByCluster = new Map();

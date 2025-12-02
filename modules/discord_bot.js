@@ -762,68 +762,22 @@ async function count() {
 			console.log(`[Statistics] Sample member data:`, memberStatsRaw.slice(0, 3));
 		}
 
-		// Group statistics data by cluster
-		const guildStatsByCluster = new Map();
-		const memberStatsByCluster = new Map();
-
-		for (const { clusterId, guildCount } of guildStatsRaw) {
-			if (!guildStatsByCluster.has(clusterId)) {
-				guildStatsByCluster.set(clusterId, []);
-			}
-			guildStatsByCluster.get(clusterId).push(guildCount);
-		}
-
-		for (const { clusterId, memberCount } of memberStatsRaw) {
-			if (!memberStatsByCluster.has(clusterId)) {
-				memberStatsByCluster.set(clusterId, []);
-			}
-			memberStatsByCluster.get(clusterId).push(memberCount);
-		}
-
-		// Convert to expected format
-		const guildStats = { results: [], errors: [], successCount: 0, errorCount: 0 };
-		const memberStats = { results: [], errors: [], successCount: 0, errorCount: 0 };
-
-		for (const clusterId of allClusterIds) {
-			const guildData = guildStatsByCluster.get(clusterId);
-			const memberData = memberStatsByCluster.get(clusterId);
-
-			if (guildData) {
-				guildStats.results.push({
-					clusterId,
-					data: guildData,
-					duration: 0,
-					success: true
-				});
-				guildStats.successCount++;
-			}
-
-			if (memberData) {
-				memberStats.results.push({
-					clusterId,
-					data: memberData,
-					duration: 0,
-					success: true
-				});
-				memberStats.successCount++;
-			}
-		}
-
-		// Calculate totals
+		// Calculate totals directly from broadcastEval results
+		// Each entry is { clusterId: X, guildCount: Y } from one cluster
 		let totalGuilds = 0;
 		let totalMembers = 0;
 		let successfulClusters = 0;
 
-		for (const { data: guildSizes } of guildStats.results) {
-			if (guildSizes && Array.isArray(guildSizes)) {
-				totalGuilds += guildSizes.reduce((acc, count) => acc + (count || 0), 0);
+		for (const { guildCount } of guildStatsRaw) {
+			if (typeof guildCount === 'number' && guildCount >= 0) {
+				totalGuilds += guildCount;
 				successfulClusters++;
 			}
 		}
 
-		for (const { data: memberCounts } of memberStats.results) {
-			if (memberCounts && Array.isArray(memberCounts)) {
-				totalMembers += memberCounts.reduce((acc, count) => acc + (count || 0), 0);
+		for (const { memberCount } of memberStatsRaw) {
+			if (typeof memberCount === 'number' && memberCount >= 0) {
+				totalMembers += memberCount;
 			}
 		}
 

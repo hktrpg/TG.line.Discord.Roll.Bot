@@ -407,16 +407,67 @@ class RetryManager {
 const adminSecret = process.env.ADMIN_SECRET;
 const TRANSLATE_LIMIT_PERSONAL = [2500, 100_000, 150_000, 250_000, 350_000, 550_000, 650_000, 750_000];
 
+// Analysis report and processing limits for large files
+const ANALYSIS_REPORT_LIMITS = {
+    // Character count thresholds for analysis report simplification
+    SIZE_THRESHOLDS: {
+        VERY_LARGE: 2_000_000,       // 2M chars - simplified time estimation
+        LARGE: 500_000               // 500k chars - rough time estimation
+    },
+
+    // Time estimation parameters
+    TIME_ESTIMATION: {
+        CHARS_PER_HOUR: 200_000,     // Rough chars processed per hour for large files
+        FILE_PROCESSING_BASE_TIME: 30 // Base seconds for file processing
+    }
+};
+
+// Text processing constants
+const TEXT_PROCESSING_CONSTANTS = {
+    CHUNK_SIZE: 512,                 // 512B micro-chunks for true non-blocking processing
+    MAX_CHUNKS: 20000,               // Maximum chunks to process before stopping
+    PROGRESS_LOG_INTERVAL: 200,      // Log progress every N chunks
+    YIELD_INTERVAL: 5                // Yield every N chunks for better responsiveness
+};
+
+// Glossary generation limits to prevent excessive API calls for large files
+const GLOSSARY_GENERATION_LIMITS = {
+    // Character count thresholds for adaptive sampling
+    SIZE_THRESHOLDS: {
+        EXTREMELY_LARGE: 5_000_000,  // 5M chars - minimal sampling
+        VERY_LARGE: 2_000_000,       // 2M chars - limited sampling
+        LARGE: 1_000_000,            // 1M chars - moderate sampling
+        MEDIUM_LARGE: 500_000        // 500k chars - standard sampling
+    },
+
+    // Maximum samples per size category
+    MAX_SAMPLES: {
+        EXTREMELY_LARGE: 5,          // 5 samples for >5M chars
+        VERY_LARGE: 10,              // 10 samples for 2-5M chars
+        LARGE: 15,                   // 15 samples for 1-2M chars
+        MEDIUM_LARGE: 20,            // 20 samples for 500k-1M chars
+        SMALL: 30                    // 30 samples max for smaller files
+    },
+
+    // Sampling intervals (0-based indices)
+    SAMPLING_INTERVALS: {
+        EXTREMELY_LARGE: 10,         // Every 10th chunk for >5M chars (0-based: 9)
+        VERY_LARGE: 6,               // Every 6th chunk for 1-2M chars (0-based: 5)
+        MEDIUM_LARGE: 4,             // Every 4th chunk for 500k-1M chars (0-based: 3)
+        SMALL: 3                     // Every 3rd chunk for smaller files (0-based: 2)
+    }
+};
+
 // File processing limits for CentOS VPS environment
 const FILE_PROCESSING_LIMITS = {
     // File size limits in MB
     MAX_FILE_SIZE: {
         PDF: 50,      // 50MB for PDF files
-        DOCX: 25,     // 25MB for DOCX files
+        DOCX: 25,     // 25MB for DOCX files  
         IMAGE: 20,    // 20MB for image files
         TEXT: 10      // 10MB for text files
     },
-
+    
     // Processing time limits in seconds
     MAX_PROCESSING_TIME: {
         PDF: 120,     // 2 minutes for PDF
@@ -424,21 +475,17 @@ const FILE_PROCESSING_LIMITS = {
         IMAGE: 180,   // 3 minutes for OCR
         TEXT: 30      // 30 seconds for text
     },
-
+    
     // Memory limits for processing
     MAX_MEMORY_USAGE: 512 * 1024 * 1024, // 512MB
-
+    
     // Supported file extensions
     SUPPORTED_EXTENSIONS: {
         PDF: ['pdf'],
         DOCX: ['docx'],
         IMAGE: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp'],
         TEXT: ['txt']
-    },
-
-    // Queue limits
-    MAX_CONCURRENT_FILES: 2,  // Maximum concurrent file processing
-    MAX_QUEUE_SIZE: 10       // Maximum queue size
+    }
 };
 
 const variables = {};
@@ -617,29 +664,45 @@ class OpenAI {
 
     // Get current model for translation with TOKEN limit filter
     getCurrentModelForTranslation(modelTier) {
+        console.log(`[GLOSSARY_DEBUG] getCurrentModelForTranslation called with modelTier: ${modelTier}`);
+
         if (modelTier === 'LOW' && AI_CONFIG.MODELS.LOW.models && AI_CONFIG.MODELS.LOW.models.length > 0) {
+            console.log(`[GLOSSARY_DEBUG] LOW tier has ${AI_CONFIG.MODELS.LOW.models.length} models, filtering for TOKEN >= 10000`);
+
             // Filter models with TOKEN >= 10000
-            const validModels = AI_CONFIG.MODELS.LOW.models.filter(model => 
+            const validModels = AI_CONFIG.MODELS.LOW.models.filter(model =>
                 model.token && model.token >= 10_000
             );
-            
+
+            console.log(`[GLOSSARY_DEBUG] Found ${validModels.length} valid models with TOKEN >= 10000:`, validModels.map(m => `${m.name}(${m.token})`).join(', '));
+
             if (validModels.length === 0) {
-                console.error(`[TRANSLATE_MODEL] No LOW models with TOKEN >= 10000 found. Available models: ${AI_CONFIG.MODELS.LOW.models.map(m => `${m.name}(${m.token})`).join(', ')}`);
+                console.error(`[GLOSSARY_DEBUG] No LOW models with TOKEN >= 10000 found. Available models: ${AI_CONFIG.MODELS.LOW.models.map(m => `${m.name}(${m.token})`).join(', ')}`);
                 return null;
             }
             
             // Use the same cycling logic but with filtered models
             const validIndex = this.retryManager.currentModelIndex % validModels.length;
             const model = validModels[validIndex];
+            console.log(`[GLOSSARY_DEBUG] Selected model index ${validIndex}/${validModels.length - 1}: ${model?.name || 'NONE'}`);
+
             if (model) {
+                console.log(`[GLOSSARY_DEBUG] Returning selected model: ${model.name} (${model.token} tokens)`);
                 return model;
             }
             // Fallback to first valid model if current index is invalid
-            console.warn(`[TRANSLATE_MODEL] Invalid model index ${this.retryManager.currentModelIndex}, falling back to first valid model`);
+            console.warn(`[GLOSSARY_DEBUG] Invalid model index ${this.retryManager.currentModelIndex}, falling back to first valid model`);
             this.retryManager.currentModelIndex = 0;
-            return validModels[0];
+            const fallbackModel = validModels[0];
+            console.log(`[GLOSSARY_DEBUG] Fallback model: ${fallbackModel?.name || 'NONE'}`);
+            return fallbackModel;
         }
-        return AI_CONFIG.MODELS[modelTier];
+
+        // For other tiers (MEDIUM, HIGH), return the config directly
+        console.log(`[GLOSSARY_DEBUG] Using non-LOW tier model: ${modelTier}`);
+        const modelConfig = AI_CONFIG.MODELS[modelTier];
+        console.log(`[GLOSSARY_DEBUG] Model config:`, modelConfig ? `${modelConfig.display || modelTier}` : 'NONE');
+        return modelConfig;
     }
 
     // Cycle through LOW tier models with cooldown awareness
@@ -834,10 +897,6 @@ class ImageAi extends OpenAI {
 class TranslateAi extends OpenAI {
     constructor() {
         super();
-        // File processing queue to prevent blocking the Discord shard
-        this.fileProcessingQueue = [];
-        this.activeFileProcessing = 0;
-        this.processingInterval = null;
     }
     
     // Helper method to send Discord progress messages
@@ -858,177 +917,10 @@ class TranslateAi extends OpenAI {
     }
     
     // Validate file before processing
-    // Pre-check file sizes and estimate text length before processing
-    async preCheckFileSizes(discordMessage, discordClient, vipLevel, textLimit) {
-        const attachments = [];
-
-        // Collect attachments from current message
-        if (discordMessage?.type === 0 && discordMessage?.attachments?.size > 0) {
-            attachments.push(...discordMessage.attachments.values());
-        }
-
-        // Collect attachments from replied message
-        if (discordMessage?.type === 19) {
-            try {
-                const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
-                const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId);
-                if (referenceMessage?.attachments?.size > 0) {
-                    attachments.push(...referenceMessage.attachments.values());
-                }
-            } catch (error) {
-                console.error('[FILE_PRECHECK] Error fetching reference message:', error);
-                // Continue without replied attachments if there's an error
-            }
-        }
-
-        if (attachments.length === 0) {
-            return { error: null }; // No attachments, proceed normally
-        }
-
-        let estimatedTextLength = 0;
-        const oversizedFiles = [];
-
-        for (const attachment of attachments) {
-            const fileSize = attachment.size;
-            const sizeInMB = fileSize / (1024 * 1024);
-
-            // Check if file exceeds maximum allowed size
-            if (sizeInMB > 50) { // 50MB absolute maximum
-                oversizedFiles.push(`${attachment.name} (${sizeInMB.toFixed(1)}MB)`);
-                continue;
-            }
-
-            // Estimate text length based on file type and size
-            const extension = attachment.name.toLowerCase().split('.').pop();
-            let estimatedChars = 0;
-
-            if (attachment.contentType?.match(/text/i)) {
-                // Text files: assume reasonable compression ratio
-                estimatedChars = Math.min(fileSize * 0.5, fileSize); // Conservative estimate
-            } else if (['pdf'].includes(extension)) {
-                // PDF files: vary greatly, but scanned PDFs can be very large
-                // Conservative estimate: 1 page per 50KB for scanned, or 1 page per 5KB for text
-                const estimatedPages = Math.max(1, Math.ceil(fileSize / (50 * 1024))); // Assume scanned PDF
-                estimatedChars = estimatedPages * 2000; // 2000 chars per page average
-            } else if (['docx'].includes(extension)) {
-                // DOCX files: similar to PDFs but usually smaller
-                const estimatedPages = Math.max(1, Math.ceil(fileSize / (100 * 1024)));
-                estimatedChars = estimatedPages * 1500; // 1500 chars per page average
-            } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp'].includes(extension)) {
-                // Image files: OCR can extract varying amounts
-                // Assume 500-2000 characters per MB for typical documents
-                estimatedChars = sizeInMB * 1000;
-            }
-
-            estimatedTextLength += estimatedChars;
-
-            // If a single file would exceed 80% of the limit, flag it
-            if (estimatedChars > textLimit * 0.8) {
-                oversizedFiles.push(`${attachment.name} (估計 ${estimatedChars.toLocaleString()} 字)`);
-            }
-        }
-
-        // Check if total estimated text exceeds limit
-        if (estimatedTextLength > textLimit) {
-            const totalEstimated = estimatedTextLength.toLocaleString();
-            return {
-                error: `預估文字總長度過大 (${totalEstimated} 字)，超過 VIP LV${vipLevel} 限制 (${textLimit.toLocaleString()} 字)\n` +
-                       `請減少文件大小或分批處理\n\n` +
-                       (oversizedFiles.length > 0 ? `大文件: ${oversizedFiles.join(', ')}\n` : '') +
-                       `建議: 將大文件分割成較小的部分，或使用較小的檔案`
-            };
-        }
-
-        // Check for individual oversized files
-        if (oversizedFiles.length > 0) {
-            return {
-                error: `部分文件過大，可能導致處理失敗:\n${oversizedFiles.join('\n')}\n\n` +
-                       `建議檔案大小:\n• PDF: < 10MB\n• DOCX: < 5MB\n• 圖片: < 2MB\n• 文字: < 1MB`
-            };
-        }
-
-        return { error: null }; // All checks passed
-    }
-
-    // Queue file processing to prevent blocking the main thread
-    async queueFileProcessing(task) {
-        return new Promise((resolve, reject) => {
-            this.fileProcessingQueue.push({ task, resolve, reject });
-
-            // Limit queue size to prevent memory issues
-            if (this.fileProcessingQueue.length > FILE_PROCESSING_LIMITS.MAX_QUEUE_SIZE) {
-                const removed = this.fileProcessingQueue.shift();
-                removed.reject(new Error('隊列已滿，請稍後再試'));
-            }
-
-            this.processFileQueue();
-        });
-    }
-
-    // Process the file queue asynchronously
-    async processFileQueue() {
-        if (this.processingInterval) return; // Already processing
-
-        this.processingInterval = setInterval(async () => {
-            if (this.activeFileProcessing >= FILE_PROCESSING_LIMITS.MAX_CONCURRENT_FILES) {
-                return; // Wait for current tasks to complete
-            }
-
-            if (this.fileProcessingQueue.length === 0) {
-                clearInterval(this.processingInterval);
-                this.processingInterval = null;
-                return;
-            }
-
-            const { task, resolve, reject } = this.fileProcessingQueue.shift();
-            this.activeFileProcessing++;
-
-            try {
-                // Use setImmediate to defer execution and prevent blocking
-                setImmediate(async () => {
-                    try {
-                        const result = await task();
-                        resolve(result);
-                    } catch (error) {
-                        console.error('[FILE_QUEUE] Task failed:', error);
-                        // Provide user-friendly error message
-                        const userError = error.message || '文件處理失敗，請檢查檔案格式和大小';
-                        reject(new Error(userError));
-                    } finally {
-                        this.activeFileProcessing--;
-                    }
-                });
-            } catch (error) {
-                console.error('[FILE_QUEUE] Queue processing error:', error);
-                this.activeFileProcessing--;
-                reject(new Error('文件處理系統錯誤，請稍後再試'));
-            }
-        }, 100); // Check queue every 100ms
-    }
-
-    // Cleanup method to be called when shutting down
-    cleanup() {
-        if (this.processingInterval) {
-            clearInterval(this.processingInterval);
-            this.processingInterval = null;
-        }
-
-        // Clear the queue and reject all pending tasks
-        while (this.fileProcessingQueue.length > 0) {
-            const { reject } = this.fileProcessingQueue.shift();
-            reject(new Error('系統關閉，文件處理已取消'));
-        }
-
-        // Force garbage collection if available
-        if (global.gc) {
-            global.gc();
-        }
-    }
-
     validateFile(filename, contentType, fileSize) {
         const extension = filename.toLowerCase().split('.').pop();
         const sizeInMB = fileSize / (1024 * 1024);
-        
+
         // Check if file extension is supported
         let fileType = null;
         for (const [type, extensions] of Object.entries(FILE_PROCESSING_LIMITS.SUPPORTED_EXTENSIONS)) {
@@ -1037,14 +929,14 @@ class TranslateAi extends OpenAI {
                 break;
             }
         }
-        
+
         if (!fileType) {
             return {
                 valid: false,
                 error: `不支援的文件格式: ${extension}\n支援格式: PDF, DOCX, 圖像文件 (JPG, PNG, GIF 等), TXT`
             };
         }
-        
+
         // Check file size limit
         const maxSize = FILE_PROCESSING_LIMITS.MAX_FILE_SIZE[fileType];
         if (sizeInMB > maxSize) {
@@ -1053,7 +945,7 @@ class TranslateAi extends OpenAI {
                 error: `檔案大小超過限制 ${maxSize} MB\n當前檔案大小: ${sizeInMB.toFixed(2)} MB\n檔案格式: ${fileType}`
             };
         }
-        
+
         // Check memory usage (rough estimate)
         if (fileSize > FILE_PROCESSING_LIMITS.MAX_MEMORY_USAGE) {
             return {
@@ -1061,14 +953,367 @@ class TranslateAi extends OpenAI {
                 error: `檔案過大，可能導致記憶體不足\n建議檔案大小: < ${(FILE_PROCESSING_LIMITS.MAX_MEMORY_USAGE / (1024 * 1024)).toFixed(0)} MB`
             };
         }
-        
+
         return {
             valid: true,
             fileType: fileType,
             sizeInMB: sizeInMB
         };
     }
-    
+
+    // Estimate character count from file metadata without downloading full content
+    async estimateFileContentSize(attachment, fileType, userVipLevel) {
+        const limit = TRANSLATE_LIMIT_PERSONAL[userVipLevel];
+        const sizeInMB = attachment.size / (1024 * 1024);
+
+        // Conservative character estimates based on file type and compression
+        const estimates = {
+            PDF: {
+                // PDFs can be text-heavy or image-heavy, estimate conservatively
+                charsPerMB: 50_000, // Conservative estimate: ~50k chars per MB
+                compressionRatio: 0.1 // PDFs can be highly compressed
+            },
+            DOCX: {
+                // DOCX files are typically text-heavy
+                charsPerMB: 200_000, // ~200k chars per MB
+                compressionRatio: 0.3
+            },
+            IMAGE: {
+                // OCR typically produces much less text than image size suggests
+                charsPerMB: 5_000, // Very conservative for OCR text
+                compressionRatio: 0.05
+            },
+            TEXT: {
+                // Text files are uncompressed, but may have encoding overhead
+                charsPerMB: 1_000_000, // ~1M chars per MB for plain text
+                compressionRatio: 0.8
+            }
+        };
+
+        const estimate = estimates[fileType];
+        if (!estimate) {
+            return {
+                canProcess: false,
+                estimatedChars: 0,
+                reason: `無法估計檔案類型: ${fileType}`
+            };
+        }
+
+        // Calculate estimated character count with conservative multiplier
+        const estimatedChars = Math.floor(sizeInMB * estimate.charsPerMB * estimate.compressionRatio);
+
+        // Check if estimated size exceeds VIP limit (with 20% buffer for safety)
+        const bufferLimit = Math.floor(limit * 0.8);
+        const canProcess = estimatedChars <= bufferLimit;
+
+        return {
+            canProcess,
+            estimatedChars,
+            limit: limit, // Return actual limit, not buffer limit
+            reason: canProcess ? null : `預估內容過大 (${estimatedChars.toLocaleString()} 字) 超過VIP限制 (${limit.toLocaleString()} 字)`
+        };
+    }
+
+    // Early validation of attachments before any processing
+    async validateAttachmentsEarly(attachments, userVipLevel) {
+        if (!attachments || attachments.length === 0) {
+            return { valid: true, totalEstimatedChars: 0 };
+        }
+
+        const limit = TRANSLATE_LIMIT_PERSONAL[userVipLevel];
+        let totalEstimatedChars = 0;
+        const validationResults = [];
+
+        for (const attachment of attachments) {
+            const filename = attachment.name || 'unknown';
+            const fileSize = attachment.size || 0;
+
+            // Basic file validation first
+            const basicValidation = this.validateFile(filename, attachment.contentType, fileSize);
+            if (!basicValidation.valid) {
+                return {
+                    valid: false,
+                    error: basicValidation.error,
+                    totalEstimatedChars: 0
+                };
+            }
+
+            // Estimate content size
+            const estimate = await this.estimateFileContentSize(attachment, basicValidation.fileType, userVipLevel);
+            totalEstimatedChars += estimate.estimatedChars;
+
+            validationResults.push({
+                filename,
+                fileType: basicValidation.fileType,
+                sizeInMB: basicValidation.sizeInMB,
+                estimatedChars: estimate.estimatedChars,
+                canProcess: estimate.canProcess
+            });
+
+            // Stop if any file exceeds limits individually
+            if (!estimate.canProcess) {
+                return {
+                    valid: false,
+                    error: `${filename}: ${estimate.reason}`,
+                    totalEstimatedChars,
+                    validationResults
+                };
+            }
+
+            // Check cumulative total against actual VIP limit
+            if (totalEstimatedChars > limit) {
+                return {
+                    valid: false,
+                    error: `附件總預估內容 (${totalEstimatedChars.toLocaleString()} 字) 超過VIP限制 (${limit.toLocaleString()} 字)`,
+                    totalEstimatedChars,
+                    validationResults
+                };
+            }
+        }
+
+        return {
+            valid: true,
+            totalEstimatedChars,
+            validationResults
+        };
+    }
+
+    // Process large files in chunks to avoid memory issues
+    async processFileInChunks(attachment, fileType, chunkSize = 1024 * 1024, maxChunks = 10) {
+        try {
+            console.log(`[CHUNK_PROCESS] Starting chunked processing for ${attachment.name} (${fileType})`);
+
+            const response = await fetch(attachment.url);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const contentLength = parseInt(response.headers.get('content-length') || '0');
+            const totalSize = attachment.size;
+
+            // For small files, process normally
+            if (totalSize <= chunkSize) {
+                const buffer = await response.buffer();
+                return await this.processAttachmentFile(buffer, attachment.name, attachment.contentType);
+            }
+
+            // For large files, process in chunks
+            let processedText = '';
+            let chunksProcessed = 0;
+            let bytesProcessed = 0;
+
+            // Create a readable stream from the response
+            const reader = response.body.getReader();
+            const chunks = [];
+
+            try {
+                while (chunksProcessed < maxChunks) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    chunks.push(value);
+                    bytesProcessed += value.length;
+                    chunksProcessed++;
+
+                    // If we have enough chunks or reached reasonable size, process them
+                    if (chunks.length >= 3 || bytesProcessed >= chunkSize * 2) {
+                        const combinedBuffer = Buffer.concat(chunks);
+
+                        try {
+                            let chunkText = '';
+                            if (fileType === 'PDF') {
+                                chunkText = await this.processPdfFile(combinedBuffer, `${attachment.name}_chunk_${chunksProcessed}`, null, null);
+                            } else if (fileType === 'DOCX') {
+                                chunkText = await this.processDocxFile(combinedBuffer, `${attachment.name}_chunk_${chunksProcessed}`);
+                            } else if (fileType === 'IMAGE') {
+                                chunkText = await this.processImageFile(combinedBuffer, `${attachment.name}_chunk_${chunksProcessed}`, null, null);
+                            } else if (fileType === 'TEXT') {
+                                // Use optimized text processing for better memory management
+                                chunkText = combinedBuffer.toString('utf8');
+                            }
+
+                            if (chunkText && chunkText.trim().length > 0) {
+                                processedText += `[分段 ${chunksProcessed}]\n${chunkText}\n\n`;
+                            }
+
+                            // Clear chunks to free memory
+                            chunks.length = 0;
+
+                            // Safety check - if we're getting too much text, stop processing
+                            if (processedText.length > 500_000) { // 500k chars limit per file
+                                console.warn(`[CHUNK_PROCESS] Stopping processing of ${attachment.name} - too much content generated`);
+                                break;
+                            }
+                        } catch (error) {
+                            console.error(`[CHUNK_PROCESS] Error processing chunk ${chunksProcessed} of ${attachment.name}:`, error);
+                            // Continue with next chunk rather than failing completely
+                        }
+                    }
+
+                    // Safety check for total bytes
+                    if (bytesProcessed >= totalSize * 0.8) { // Process up to 80% of file
+                        console.log(`[CHUNK_PROCESS] Processed 80% of ${attachment.name}, stopping to prevent memory issues`);
+                        break;
+                    }
+                }
+            } finally {
+                reader.releaseLock();
+            }
+
+            if (!processedText || processedText.trim().length === 0) {
+                throw new Error('無法從檔案中提取文字內容');
+            }
+
+            console.log(`[CHUNK_PROCESS] Completed chunked processing for ${attachment.name}, extracted ${processedText.length} characters`);
+            return processedText.trim();
+
+        } catch (error) {
+            console.error(`[CHUNK_PROCESS] Error in chunked processing of ${attachment.name}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Specialized processing for large text files to prevent memory blocking
+     * Downloads and processes text in chunks to avoid freezing the event loop
+     */
+    async processLargeTextFile(attachment, userid = null, chunkSize = TEXT_PROCESSING_CONSTANTS.CHUNK_SIZE) {
+        try {
+            // Determine max characters based on user's VIP level
+            let maxChars = TRANSLATE_LIMIT_PERSONAL[0]; // Default for non-VIP users
+            if (userid) {
+                const lv = await VIP.viplevelCheckUser(userid);
+                maxChars = TRANSLATE_LIMIT_PERSONAL[lv] || TRANSLATE_LIMIT_PERSONAL[0];
+            }
+
+            console.log(`[TEXT_PROCESS] Starting optimized text processing for ${attachment.name} (max: ${maxChars.toLocaleString()} chars, VIP level: ${userid ? 'checked' : 'none'})`);
+
+            // Download the full file first (but we'll process it in chunks)
+            // Use streaming approach to avoid loading entire file into memory
+            const https = require('https');
+            const http = require('http');
+            const url = new URL(attachment.url);
+
+            let processedText = '';
+            let totalChars = 0;
+            let chunksProcessed = 0;
+
+            // Stream the file content instead of loading it all at once
+            const streamText = new Promise((resolve, reject) => {
+                const client = url.protocol === 'https:' ? https : http;
+
+                const request = client.get(url, (response) => {
+                    if (response.statusCode !== 200) {
+                        reject(new Error(`HTTP ${response.statusCode}: ${response.statusMessage}`));
+                        return;
+                    }
+
+                    let buffer = '';
+                    let isDone = false;
+
+                    const processBuffer = () => {
+                        if (isDone || totalChars >= maxChars) return;
+
+                        // Safety check: prevent buffer from growing too large
+                        if (buffer.length > chunkSize * 20) {
+                            console.warn(`[TEXT_PROCESS] Buffer too large (${buffer.length}), truncating`);
+                            buffer = buffer.substring(0, chunkSize * 10);
+                        }
+
+                        // Process only a limited number of chunks per call to maintain responsiveness
+                        let chunksInThisCall = 0;
+                        const maxChunksPerCall = TEXT_PROCESSING_CONSTANTS.YIELD_INTERVAL * 2;
+
+                        while (buffer.length > 0 && totalChars < maxChars && !isDone && chunksInThisCall < maxChunksPerCall) {
+                            const chunkSizeToProcess = Math.min(chunkSize, buffer.length);
+                            const chunkText = buffer.substring(0, chunkSizeToProcess);
+                            const chunkChars = chunkText.length;
+
+                            // Check if adding this chunk would exceed our limit
+                            if (totalChars + chunkChars > maxChars) {
+                                const remainingChars = maxChars - totalChars;
+                                const partialText = chunkText.substring(0, remainingChars);
+                                processedText += partialText;
+                                totalChars += remainingChars;
+                                console.log(`[TEXT_PROCESS] Reached character limit (${maxChars.toLocaleString()}), stopping`);
+                                isDone = true;
+                                break;
+                            } else {
+                                processedText += chunkText;
+                                totalChars += chunkChars;
+                                buffer = buffer.substring(chunkSizeToProcess);
+                                chunksProcessed++;
+                                chunksInThisCall++;
+
+                                // Progress logging
+                                if (chunksProcessed % TEXT_PROCESSING_CONSTANTS.PROGRESS_LOG_INTERVAL === 0) {
+                                    console.log(`[TEXT_PROCESS] Processed ${chunksProcessed} chunks, ${totalChars.toLocaleString()} characters from ${attachment.name}`);
+                                }
+                            }
+
+                            // Yield control after processing a few chunks
+                            if (chunksInThisCall >= TEXT_PROCESSING_CONSTANTS.YIELD_INTERVAL) {
+                                setImmediate(processBuffer);
+                                return;
+                            }
+                        }
+
+                        // Continue processing if there's more buffer and we're not done
+                        if (buffer.length > chunkSize && !isDone && totalChars < maxChars) {
+                            setImmediate(processBuffer);
+                        }
+                    };
+
+                    response.on('data', (chunk) => {
+                        if (isDone) return;
+
+                        buffer += chunk.toString('utf8');
+
+                        // Process buffer more aggressively to maintain responsiveness
+                        if (buffer.length > chunkSize) {
+                            processBuffer();
+                        }
+                    });
+
+                    response.on('end', () => {
+                        if (!isDone) {
+                            // Process remaining buffer
+                            processBuffer();
+                        }
+                        resolve();
+                    });
+
+                    response.on('error', (error) => {
+                        reject(error);
+                    });
+                });
+
+                request.on('error', (error) => {
+                    reject(error);
+                });
+            });
+
+            await streamText;
+
+            if (!processedText || processedText.trim().length === 0) {
+                throw new Error('無法從文字檔案中提取內容');
+            }
+
+            console.log(`[TEXT_PROCESS] Completed optimized text processing for ${attachment.name}, extracted ${totalChars.toLocaleString()} characters`);
+
+            // Add a note about truncation for very large files
+            if (totalChars >= maxChars) {
+                processedText = `[檔案過大，已截斷至 ${maxChars.toLocaleString()} 字元]\n\n${processedText}`;
+            }
+
+            return processedText.trim();
+
+        } catch (error) {
+            console.error(`[TEXT_PROCESS] Error in optimized text processing of ${attachment.name}:`, error);
+            throw error;
+        }
+    }
+
     // Enhanced error response generator
     generateFileProcessingError(error, filename, fileType) {
         const errorMessage = error.message || error.toString();
@@ -1114,30 +1359,18 @@ class TranslateAi extends OpenAI {
                 return await this.processPdfWithOcr(buffer, filename, discordMessage, userid);
             }
 
-            // Create timeout promise with resource cleanup
-            let timeoutId;
+            // Create timeout promise
             const timeoutPromise = new Promise((_, reject) => {
-                timeoutId = setTimeout(() => {
-                    // Force garbage collection hint for large buffers
-                    if (global.gc) {
-                        global.gc();
-                    }
+                setTimeout(() => {
                     reject(new Error('timeout'));
                 }, FILE_PROCESSING_LIMITS.MAX_PROCESSING_TIME.PDF * 1000);
             });
-
+            
             // Create processing promise
             const processPromise = pdfParseFn(buffer);
-
-            try {
-                // Race between processing and timeout
-                const data = await Promise.race([processPromise, timeoutPromise]);
-                clearTimeout(timeoutId); // Clear timeout on success
-                return data;
-            } catch (error) {
-                clearTimeout(timeoutId); // Clear timeout on error
-                throw error;
-            }
+            
+            // Race between processing and timeout
+            const data = await Promise.race([processPromise, timeoutPromise]);
             
             
             // Check if extracted text is too short (likely a scanned PDF)
@@ -1172,18 +1405,13 @@ class TranslateAi extends OpenAI {
                 throw new Error('no text');
             }
 
-            // Create timeout promise for PDF to image conversion with cleanup
-            let timeoutId;
+            // Create timeout promise for PDF to image conversion
             const timeoutPromise = new Promise((_, reject) => {
-                timeoutId = setTimeout(() => {
-                    // Force garbage collection hint for large buffers
-                    if (global.gc) {
-                        global.gc();
-                    }
+                setTimeout(() => {
                     reject(new Error('timeout'));
                 }, FILE_PROCESSING_LIMITS.MAX_PROCESSING_TIME.PDF * 1000);
             });
-
+            
             // Convert PDF to PNG images using pdf-to-png-converter
             // This provides better quality images compared to pdf-parse
             const convertPromise = pdfToPng(buffer, {
@@ -1192,18 +1420,11 @@ class TranslateAi extends OpenAI {
                 viewportScale: 2, // 2x scale for better OCR quality
                 verbosityLevel: 0 // Suppress logs
             });
-
-            let pngPages;
-            try {
-                pngPages = await Promise.race([
-                    imagePool.run(() => convertPromise),
-                    timeoutPromise
-                ]);
-                clearTimeout(timeoutId); // Clear timeout on success
-            } catch (error) {
-                clearTimeout(timeoutId); // Clear timeout on error
-                throw error;
-            }
+            
+            const pngPages = await Promise.race([
+                imagePool.run(() => convertPromise),
+                timeoutPromise
+            ]);
             
             //console.log(`[PDF_OCR_PROCESS] PDF converted to ${pngPages.length} PNG images for ${filename}`);
             
@@ -1262,14 +1483,9 @@ class TranslateAi extends OpenAI {
         try {
             //console.log(`[OCR_BUFFER_PROCESS] Starting OCR for ${filename}`);
             
-            // Create timeout promise with resource cleanup
-            let timeoutId;
+            // Create timeout promise
             const timeoutPromise = new Promise((_, reject) => {
-                timeoutId = setTimeout(() => {
-                    // Force garbage collection hint for large image buffers
-                    if (global.gc) {
-                        global.gc();
-                    }
+                setTimeout(() => {
                     reject(new Error('timeout'));
                 }, FILE_PROCESSING_LIMITS.MAX_PROCESSING_TIME.IMAGE * 1000);
             });
@@ -1298,21 +1514,12 @@ class TranslateAi extends OpenAI {
             ));
             
             // Race between OCR and timeout
-            let result;
-            try {
-                result = await Promise.race([ocrPromise, timeoutPromise]);
-                clearTimeout(timeoutId); // Clear timeout on success
-            } catch (error) {
-                clearTimeout(timeoutId); // Clear timeout on error
-                throw error;
-            }
-
-            const { data: { text } } = result;
-
+            const { data: { text } } = await Promise.race([ocrPromise, timeoutPromise]);
+            
             if (!text || text.trim().length === 0) {
                 throw new Error('no text');
             }
-
+            
             //console.log(`[OCR_BUFFER_PROCESS] OCR completed for ${filename}`);
             return text.trim();
         } catch (error) {
@@ -1383,49 +1590,42 @@ class TranslateAi extends OpenAI {
     async processAttachmentFile(buffer, filename, contentType, discordMessage = null, userid = null) {
         const extension = filename.toLowerCase().split('.').pop();
         const fileSize = buffer.length;
-
+        
         // Validate file before processing
         const validation = this.validateFile(filename, contentType, fileSize);
         if (!validation.valid) {
             throw new Error(validation.error);
         }
-
+        
         const fileType = validation.fileType;
-
-        // Use queue for heavy processing tasks to prevent blocking
-        if (['PDF', 'DOCX', 'IMAGE'].includes(fileType)) {
-            return await this.queueFileProcessing(async () => {
-                try {
-                    // PDF files
-                    if (fileType === 'PDF') {
-                        return await this.processPdfFile(buffer, filename, discordMessage, userid);
-                    }
-
-                    // DOCX files
-                    if (fileType === 'DOCX') {
-                        return await this.processDocxFile(buffer, filename);
-                    }
-
-                    // Image files
-                    if (fileType === 'IMAGE') {
-                        return await this.processImageFile(buffer, filename, discordMessage, userid);
-                    }
-
-                    throw new Error(`不支援的文件格式: ${extension || contentType}`);
-                } catch (error) {
-                    // Generate enhanced error message
-                    const enhancedError = this.generateFileProcessingError(error, filename, fileType);
-                    throw new Error(enhancedError);
-                }
-            });
+        
+        try {
+            // PDF files
+            if (fileType === 'PDF') {
+                return await this.processPdfFile(buffer, filename, discordMessage, userid);
+            }
+            
+            // DOCX files
+            if (fileType === 'DOCX') {
+                return await this.processDocxFile(buffer, filename);
+            }
+            
+            // Image files
+            if (fileType === 'IMAGE') {
+                return await this.processImageFile(buffer, filename, discordMessage, userid);
+            }
+            
+            // Text files (fallback to original behavior)
+            if (fileType === 'TEXT') {
+                return buffer.toString('utf8');
+            }
+            
+            throw new Error(`不支援的文件格式: ${extension || contentType}`);
+        } catch (error) {
+            // Generate enhanced error message
+            const enhancedError = this.generateFileProcessingError(error, filename, fileType);
+            throw new Error(enhancedError);
         }
-
-        // Text files (lightweight, process directly)
-        if (fileType === 'TEXT') {
-            return buffer.toString('utf8');
-        }
-
-        throw new Error(`不支援的文件格式: ${extension || contentType}`);
     }
     
     // Sanitize mixed AI outputs to extract a valid JSON string (array or object)
@@ -1495,16 +1695,23 @@ class TranslateAi extends OpenAI {
     
     // Generate glossary entries from a text sample using the current AI model
     async generateGlossaryFromText(textSample, mode, modelTier = 'LOW') {
+        console.log(`[GLOSSARY_DEBUG] generateGlossaryFromText called with textSample length: ${textSample?.length || 0}, modelTier: ${modelTier}`);
+
         try {
             const currentModel = this.getCurrentModelForTranslation(modelTier);
+            console.log(`[GLOSSARY_DEBUG] Selected model for glossary:`, currentModel ? `${currentModel.name} (${currentModel.token} tokens)` : 'NONE');
             if (!currentModel) {
                 console.error(`[GLOSSARY] No valid model found for tier ${modelTier} with TOKEN >= 10000`);
                 return {};
             }
             const modelName = currentModel.name || mode.name;
+            console.log(`[GLOSSARY_DEBUG] Using model: ${modelName} for API call`);
 
             const systemInstruction = `你是一位專業的術語學家，請從給定文本中抽取專有名詞與關鍵術語，並以 JSON 陣列輸出，每個元素包含 original 與 translation（正體中文）。只輸出 JSON，勿加解說。`;
             const userContent = `文本：\n---\n${textSample}\n---\n請輸出格式：[ {"original": "...", "translation": "..."}, ... ]`;
+
+            console.log(`[GLOSSARY_DEBUG] Sending API request to ${modelName}...`);
+            const apiStartTime = Date.now();
 
             let response = await this.openai.chat.completions.create({
                 model: modelName,
@@ -1515,9 +1722,14 @@ class TranslateAi extends OpenAI {
                 ]
             })
 
+            const apiDuration = Date.now() - apiStartTime;
+            console.log(`[GLOSSARY_DEBUG] API call completed in ${apiDuration}ms`);
+
             this.retryManager.resetCounters();
 
             let jsonText = null;
+            console.log(`[GLOSSARY_DEBUG] Processing API response, status: ${response.status}`);
+
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
                 const dataStr = response.data;
                 const dataArray = dataStr.split('\n\n').filter(Boolean);
@@ -1530,63 +1742,200 @@ class TranslateAi extends OpenAI {
                 jsonText = contents;
             } else {
                 jsonText = response.choices[0].message.content;
+                console.log(`[GLOSSARY_DEBUG] Using response.choices[0].message.content`);
             }
+
+            console.log(`[GLOSSARY_DEBUG] Raw JSON text length: ${jsonText?.length || 0}`);
+            console.log(`[GLOSSARY_DEBUG] Raw JSON text preview: ${jsonText?.substring(0, 200)}...`);
 
             // Cleanup and safely parse JSON
             if (typeof jsonText === 'string') {
                 jsonText = this.sanitizeJsonContent(jsonText);
+                console.log(`[GLOSSARY_DEBUG] After sanitization, length: ${jsonText.length}`);
             }
             try {
+                console.log(`[GLOSSARY_DEBUG] Attempting to parse JSON...`);
                 const glossaryArray = JSON.parse(jsonText);
+                console.log(`[GLOSSARY_DEBUG] JSON parsed successfully, array length: ${Array.isArray(glossaryArray) ? glossaryArray.length : 'not array'}`);
+
                 const glossary = {};
+                let validItems = 0;
                 for (const item of (Array.isArray(glossaryArray) ? glossaryArray : [])) {
                     if (item && item.original && item.translation) {
                         glossary[item.original] = item.translation;
+                        validItems++;
                     }
                 }
+                console.log(`[GLOSSARY_DEBUG] Valid glossary items: ${validItems}/${glossaryArray.length}`);
+                console.log(`[GLOSSARY_DEBUG] Generated glossary keys: [${Object.keys(glossary).slice(0, 10).join(', ')}]`);
                 return glossary;
             } catch (error) {
-                console.warn('[GLOSSARY] Failed to parse JSON glossary. Returning empty glossary.', error?.message || error);
+                console.warn('[GLOSSARY_DEBUG] Failed to parse JSON glossary. Returning empty glossary.', {
+                    error: error?.message || error,
+                    jsonText: jsonText?.substring(0, 500)
+                });
                 return {};
             }
         } catch (error) {
+            console.error('[GLOSSARY_DEBUG] Exception in generateGlossaryFromText:', {
+                error: error?.message || error,
+                modelTier,
+                textSampleLength: textSample?.length || 0,
+                stack: error?.stack
+            });
+
             // Do not retry on local JSON parsing/formatting issues
             if (error instanceof SyntaxError) {
-                console.warn('[GLOSSARY] SyntaxError during glossary generation. Returning empty glossary.');
+                console.warn('[GLOSSARY_DEBUG] SyntaxError during glossary generation. Returning empty glossary.');
                 return {};
             }
+            console.log('[GLOSSARY_DEBUG] Retrying API call due to error...');
             return await this.handleApiError(error, this.generateGlossaryFromText, modelTier, true, textSample, mode, modelTier);
         }
     }
 
     // Build an aggregated glossary from selected chunks when chunk count is large
-    async buildAutoGlossaryFromChunks(chunks, mode, modelTier = 'LOW') {
-        if (!Array.isArray(chunks) || chunks.length === 0) return {};
+    async buildAutoGlossaryFromChunks(chunks, mode, modelTier = 'LOW', discordMessage = null, userid = null) {
+        console.log(`[GLOSSARY_DEBUG] Starting buildAutoGlossaryFromChunks with ${chunks.length} chunks, modelTier: ${modelTier}`);
+
+        if (!Array.isArray(chunks) || chunks.length === 0) {
+            console.log(`[GLOSSARY_DEBUG] No chunks to process, returning empty glossary`);
+            return {};
+        }
 
         const total = chunks.length;
-        const selectedIndices = new Set();
-        // First and second
-        if (total >= 1) selectedIndices.add(0);
-        if (total >= 2) selectedIndices.add(1);
-        // Last three
-        for (let i = Math.max(0, total - 3); i < total; i++) selectedIndices.add(i);
-        // Every multiple of 3 by human count: 3,6,9... -> 0-based 2,5,8...
-        for (let i = 2; i < total; i += 3) selectedIndices.add(i);
+        const totalChars = chunks.reduce((sum, chunk) => sum + (chunk?.length || 0), 0);
+        console.log(`[GLOSSARY_DEBUG] Total chunks: ${total}, total characters: ${totalChars}`);
 
-        // Limit the number of samples to avoid excessive API calls
-        const MAX_SAMPLES = 24;
-        const ordered = [...selectedIndices].sort((a, b) => a - b).slice(0, MAX_SAMPLES);
+        const selectedIndices = new Set();
+
+        console.log(`[GLOSSARY_DEBUG] Determining sampling strategy for ${totalChars} characters`);
+
+        // Adaptive sampling based on file size with reasonable maximum samples
+        let maxSamples;
+        if (totalChars > GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.EXTREMELY_LARGE) {
+            console.log(`[GLOSSARY_DEBUG] Using EXTREMELY_LARGE strategy (${totalChars} > ${GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.EXTREMELY_LARGE})`);
+            // For extremely large files (>5M chars), use minimal sampling
+            maxSamples = GLOSSARY_GENERATION_LIMITS.MAX_SAMPLES.EXTREMELY_LARGE;
+            if (total >= 1) selectedIndices.add(0); // First chunk
+            if (total >= 2) selectedIndices.add(1); // Second chunk
+            if (total >= 3) selectedIndices.add(total - 1); // Last chunk
+        } else if (totalChars > GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.VERY_LARGE) {
+            console.log(`[GLOSSARY_DEBUG] Using VERY_LARGE strategy (${totalChars} > ${GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.VERY_LARGE})`);
+            // For very large files (2-5M chars), use limited sampling
+            maxSamples = GLOSSARY_GENERATION_LIMITS.MAX_SAMPLES.VERY_LARGE;
+            if (total >= 1) selectedIndices.add(0);
+            if (total >= 2) selectedIndices.add(1);
+            // Last two
+            for (let i = Math.max(0, total - 2); i < total; i++) selectedIndices.add(i);
+            // Every multiple of interval: 10,20,30... -> 0-based 9,19,29...
+            for (let i = GLOSSARY_GENERATION_LIMITS.SAMPLING_INTERVALS.EXTREMELY_LARGE - 1; i < total; i += GLOSSARY_GENERATION_LIMITS.SAMPLING_INTERVALS.EXTREMELY_LARGE) selectedIndices.add(i);
+        } else if (totalChars > GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.LARGE) {
+            console.log(`[GLOSSARY_DEBUG] Using LARGE strategy (${totalChars} > ${GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.LARGE})`);
+            // For large files (1-2M chars), use moderate sampling
+            maxSamples = GLOSSARY_GENERATION_LIMITS.MAX_SAMPLES.LARGE;
+            // First and second
+            if (total >= 1) selectedIndices.add(0);
+            if (total >= 2) selectedIndices.add(1);
+            // Last three
+            for (let i = Math.max(0, total - 3); i < total; i++) selectedIndices.add(i);
+            // Every multiple of interval: 6,12,18... -> 0-based 5,11,17...
+            for (let i = GLOSSARY_GENERATION_LIMITS.SAMPLING_INTERVALS.VERY_LARGE - 1; i < total; i += GLOSSARY_GENERATION_LIMITS.SAMPLING_INTERVALS.VERY_LARGE) selectedIndices.add(i);
+        } else if (totalChars > GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.MEDIUM_LARGE) {
+            console.log(`[GLOSSARY_DEBUG] Using MEDIUM_LARGE strategy (${totalChars} > ${GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.MEDIUM_LARGE})`);
+            // For medium-large files, use standard sampling
+            maxSamples = GLOSSARY_GENERATION_LIMITS.MAX_SAMPLES.MEDIUM_LARGE;
+            // First and second
+            if (total >= 1) selectedIndices.add(0);
+            if (total >= 2) selectedIndices.add(1);
+            // Last three
+            for (let i = Math.max(0, total - 3); i < total; i++) selectedIndices.add(i);
+            // Every multiple of interval: 4,8,12... -> 0-based 3,7,11...
+            for (let i = GLOSSARY_GENERATION_LIMITS.SAMPLING_INTERVALS.MEDIUM_LARGE - 1; i < total; i += GLOSSARY_GENERATION_LIMITS.SAMPLING_INTERVALS.MEDIUM_LARGE) selectedIndices.add(i);
+        } else {
+            console.log(`[GLOSSARY_DEBUG] Using SMALL strategy (${totalChars} <= ${GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.MEDIUM_LARGE})`);
+            // For smaller files, use original logic with maximum sample limit
+            maxSamples = GLOSSARY_GENERATION_LIMITS.MAX_SAMPLES.SMALL;
+            // First and second
+            if (total >= 1) selectedIndices.add(0);
+            if (total >= 2) selectedIndices.add(1);
+            // Last three
+            for (let i = Math.max(0, total - 3); i < total; i++) selectedIndices.add(i);
+            // Every multiple of interval by human count: 3,6,9... -> 0-based 2,5,8...
+            for (let i = GLOSSARY_GENERATION_LIMITS.SAMPLING_INTERVALS.SMALL - 1; i < total; i += GLOSSARY_GENERATION_LIMITS.SAMPLING_INTERVALS.SMALL) selectedIndices.add(i);
+        }
+
+        const ordered = [...selectedIndices].sort((a, b) => a - b).slice(0, maxSamples);
+        console.log(`[GLOSSARY_DEBUG] Selected ${ordered.length} chunks out of ${total} for processing: [${ordered.join(', ')}]`);
+        console.log(`[GLOSSARY_DEBUG] Max samples allowed: ${maxSamples}`);
 
         const aggregated = {};
+        console.log(`[GLOSSARY_DEBUG] Starting to process ${ordered.length} chunks...`);
+
         for (const idx of ordered) {
-            // Respect batch delay to reduce rate-limit
-            if (idx !== ordered[0]) {
-                await this.retryManager.waitSeconds(RETRY_CONFIG.GENERAL.batchDelay);
+            const chunkNumber = ordered.indexOf(idx) + 1;
+            console.log(`[GLOSSARY_DEBUG] Processing chunk ${chunkNumber}/${ordered.length} (index: ${idx}, length: ${chunks[idx]?.length || 0} chars)`);
+
+            // Send progress message to Discord
+            if (discordMessage && userid) {
+                const progressMsg = `📚 正在生成專業術語對照表... (${chunkNumber}/${ordered.length})`;
+                await this.sendProgressMessage(discordMessage, userid, progressMsg);
             }
+
             const sample = chunks[idx];
-            const partial = await this.generateGlossaryFromText(sample, mode, modelTier);
-            Object.assign(aggregated, partial);
+
+            // 實現指數退避重試邏輯
+            const maxRetries = 10;
+            const baseDelay = 5; // 5秒基礎延遲
+            let retryCount = 0;
+            let chunkSuccess = false;
+            let partial = {};
+
+            while (retryCount <= maxRetries && !chunkSuccess) {
+                try {
+                    console.log(`[GLOSSARY_DEBUG] Processing chunk ${idx} (attempt ${retryCount + 1}/${maxRetries + 1})`);
+                    const startTime = Date.now();
+
+                    partial = await this.generateGlossaryFromText(sample, mode, modelTier);
+                    const duration = Date.now() - startTime;
+                    const termCount = Object.keys(partial).length;
+
+                    console.log(`[GLOSSARY_DEBUG] Chunk ${idx} succeeded on attempt ${retryCount + 1}, generated ${termCount} terms in ${duration}ms`);
+                    chunkSuccess = true;
+
+                } catch (error) {
+                    retryCount++;
+                    console.error(`[GLOSSARY_DEBUG] Chunk ${idx} failed on attempt ${retryCount}/${maxRetries + 1}:`, error?.message || error);
+
+                    if (retryCount > maxRetries) {
+                        console.error(`[GLOSSARY_DEBUG] Chunk ${idx} failed permanently after ${maxRetries} retries - skipping this chunk`);
+                        partial = {}; // 清空結果，繼續處理其他 chunks
+                        break;
+                    }
+
+                    // 指數退避：5秒, 10秒, 20秒, 40秒, 80秒, 160秒, 320秒, 640秒, 1280秒, 2560秒
+                    const delay = baseDelay * Math.pow(2, retryCount - 1);
+                    console.log(`[GLOSSARY_DEBUG] Retrying chunk ${idx} in ${delay} seconds...`);
+
+                    // 發送重試進度消息給用戶
+                    if (discordMessage && userid) {
+                        const retryMsg = `⚠️ 術語表處理失敗，正在重試 chunk ${chunkNumber}... (${retryCount}/${maxRetries})`;
+                        await this.sendProgressMessage(discordMessage, userid, retryMsg);
+                    }
+
+                    await this.waitSeconds(delay);
+                }
+            }
+
+            // 如果成功，合併結果
+            if (chunkSuccess && Object.keys(partial).length > 0) {
+                Object.assign(aggregated, partial);
+            }
         }
+
+        const totalTerms = Object.keys(aggregated).length;
+        console.log(`[GLOSSARY_DEBUG] Glossary generation completed. Total terms: ${totalTerms}`);
+        console.log(`[GLOSSARY_DEBUG] Sample terms:`, Object.entries(aggregated).slice(0, 5).map(([k, v]) => `${k} -> ${v}`).join(', '));
         return aggregated;
     }
     async getText(str, mode, discordMessage, discordClient, userid = null) {
@@ -1596,17 +1945,17 @@ class TranslateAi extends OpenAI {
         let splitLength;
         if (mode.models && Array.isArray(mode.models) && mode.models.length > 0) {
             // Filter models that will actually be used for translation (TOKEN >= 10000)
-            const validTranslateModels = mode.models.filter(model => 
+            const validTranslateModels = mode.models.filter(model =>
                 model.token && model.token >= 10_000
             );
-            
+
             if (validTranslateModels.length > 0) {
                 // Use MIN token across valid translation models only
                 splitLength = validTranslateModels.reduce((min, m) => {
                     const t = Number.isFinite(m.token) ? m.token : min;
                     return Math.min(min, t);
                 }, Number.POSITIVE_INFINITY);
-                
+
                 if (!Number.isFinite(splitLength)) {
                     splitLength = validTranslateModels[0].token || 4000;
                 }
@@ -1628,75 +1977,182 @@ class TranslateAi extends OpenAI {
             text.push(str);
             textLength += str.length;
         }
+
+        // Early validation of attachments before processing
+        if (userid) {
+            const lv = await VIP.viplevelCheckUser(userid);
+            const limit = TRANSLATE_LIMIT_PERSONAL[lv];
+
+            // Collect all attachments first
+            const allAttachments = [];
+
+            // Current message attachments
+            if (discordMessage?.type === 0 && discordMessage?.attachments?.size > 0) {
+                allAttachments.push(...Array.from(discordMessage.attachments.values()));
+            }
+
+            // Replied message attachments
+            if (discordMessage?.type === 19) {
+                const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
+                const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId);
+                if (referenceMessage?.attachments?.size > 0) {
+                    allAttachments.push(...Array.from(referenceMessage.attachments.values()));
+                }
+            }
+
+            // Early validation
+            if (allAttachments.length > 0) {
+                const earlyValidation = await this.validateAttachmentsEarly(allAttachments, lv);
+                if (!earlyValidation.valid) {
+                    throw new Error(earlyValidation.error);
+                }
+
+                // Reserve space for estimated attachment content
+                textLength += earlyValidation.totalEstimatedChars;
+                if (textLength > limit) {
+                    throw new Error(`預估總內容長度 (${textLength.toLocaleString()} 字) 超過VIP LV${lv}限制 (${limit.toLocaleString()} 字)`);
+                }
+
+                console.log(`[EARLY_VALIDATION] Estimated total content: ${textLength} chars, VIP limit: ${limit} chars`);
+            }
+        }
         
-        // Process attachments from current message
+        // Process attachments from current message with chunked processing
         if (discordMessage?.type === 0 && discordMessage?.attachments?.size > 0) {
             const attachments = [...discordMessage.attachments.values()];
             for (const attachment of attachments) {
                 try {
-                    // Check if it's a text file (original behavior)
-                    if (attachment.contentType?.match(/text/i)) {
-                        const response = await fetch(attachment.url);
-                        const data = await response.text();
-                        textLength += data.length;
-                        text.push(data);
+                    const filename = attachment.name || 'unknown';
+                    const fileSize = attachment.size || 0;
+                    const sizeInMB = fileSize / (1024 * 1024);
+
+                    // Determine file type
+                    const extension = filename.toLowerCase().split('.').pop();
+                    let fileType = null;
+                    for (const [type, extensions] of Object.entries(FILE_PROCESSING_LIMITS.SUPPORTED_EXTENSIONS)) {
+                        if (extensions.includes(extension)) {
+                            fileType = type;
+                            break;
+                        }
+                    }
+
+                    let extractedText = '';
+
+                    // Use specialized processing for large files (> 2MB)
+                    if (sizeInMB > 2 && fileType) {
+                        if (fileType === 'TEXT') {
+                            // Use optimized text processing for large text files
+                            console.log(`[ATTACHMENT_PROCESS] Using optimized text processing for large text file: ${filename} (${sizeInMB.toFixed(2)}MB)`);
+                            extractedText = await this.processLargeTextFile(attachment, userid);
+                        } else {
+                            // Use chunked processing for other file types
+                            console.log(`[ATTACHMENT_PROCESS] Using chunked processing for large file: ${filename} (${sizeInMB.toFixed(2)}MB)`);
+                            extractedText = await this.processFileInChunks(attachment, fileType);
+                        }
                     } else {
-                        // Process PDF, DOCX, and image files
-                        try {
+                        // Check if it's a text file (original behavior for small files)
+                        if (attachment.contentType?.match(/text/i) || fileType === 'TEXT') {
+                            const response = await fetch(attachment.url);
+                            const data = await response.text();
+                            extractedText = data;
+                        } else if (fileType) {
+                            // Process PDF, DOCX, and image files (original method for smaller files)
                             const response = await fetch(attachment.url);
                             const buffer = await response.buffer();
-                            const extractedText = await this.processAttachmentFile(buffer, attachment.name, attachment.contentType, discordMessage, userid);
-                            if (extractedText && extractedText.trim().length > 0) {
-                                textLength += extractedText.length;
-                                text.push(`[來自文件: ${attachment.name}]\n${extractedText}`);
+                            extractedText = await this.processAttachmentFile(buffer, filename, attachment.contentType, discordMessage, userid);
+                        } else {
+                            throw new Error(`不支援的文件格式: ${extension}`);
+                        }
+                    }
+
+                    if (extractedText && extractedText.trim().length > 0) {
+                        textLength += extractedText.length;
+                        text.push(`[來自文件: ${filename}]\n${extractedText}`);
+
+                        // Progressive limit check during processing
+                        if (userid) {
+                            const lv = await VIP.viplevelCheckUser(userid);
+                            const limit = TRANSLATE_LIMIT_PERSONAL[lv];
+                            if (textLength > limit) {
+                                throw new Error(`處理文件時超過VIP限制。目前已處理 ${textLength.toLocaleString()} 字，VIP LV${lv}限制為 ${limit.toLocaleString()} 字`);
                             }
-                        } catch (fileError) {
-                            console.error(`[ATTACHMENT_PROCESS] Failed to process ${attachment.name}:`, fileError);
-                            // Continue processing other files, but log the error
-                            text.push(`[文件處理失敗: ${attachment.name}]\n錯誤: ${fileError.message}`);
                         }
                     }
                 } catch (error) {
                     console.error(`[ATTACHMENT_PROCESS] Error processing ${attachment.name}:`, error);
                     // Use the enhanced error message from processAttachmentFile
-                    text.push(`[文件處理錯誤]\n${error.message}`);
+                    text.push(`[文件處理錯誤: ${attachment.name}]\n${error.message}`);
                 }
             }
         }
         
-        // Process attachments from replied message
+        // Process attachments from replied message with chunked processing
         if (discordMessage?.type === 19) {
             const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
             const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId);
             const attachments = [...referenceMessage.attachments.values()];
             for (const attachment of attachments) {
                 try {
-                    // Check if it's a text file (original behavior)
-                    if (attachment.contentType?.match(/text/i)) {
-                        const response = await fetch(attachment.url);
-                        const data = await response.text();
-                        textLength += data.length;
-                        text.push(data);
+                    const filename = attachment.name || 'unknown';
+                    const fileSize = attachment.size || 0;
+                    const sizeInMB = fileSize / (1024 * 1024);
+
+                    // Determine file type
+                    const extension = filename.toLowerCase().split('.').pop();
+                    let fileType = null;
+                    for (const [type, extensions] of Object.entries(FILE_PROCESSING_LIMITS.SUPPORTED_EXTENSIONS)) {
+                        if (extensions.includes(extension)) {
+                            fileType = type;
+                            break;
+                        }
+                    }
+
+                    let extractedText = '';
+
+                    // Use specialized processing for large files (> 2MB)
+                    if (sizeInMB > 2 && fileType) {
+                        if (fileType === 'TEXT') {
+                            // Use optimized text processing for large text files
+                            console.log(`[REPLY_ATTACHMENT_PROCESS] Using optimized text processing for large text file: ${filename} (${sizeInMB.toFixed(2)}MB)`);
+                            extractedText = await this.processLargeTextFile(attachment, userid);
+                        } else {
+                            // Use chunked processing for other file types
+                            console.log(`[REPLY_ATTACHMENT_PROCESS] Using chunked processing for large file: ${filename} (${sizeInMB.toFixed(2)}MB)`);
+                            extractedText = await this.processFileInChunks(attachment, fileType);
+                        }
                     } else {
-                        // Process PDF, DOCX, and image files
-                        try {
+                        // Check if it's a text file (original behavior for small files)
+                        if (attachment.contentType?.match(/text/i) || fileType === 'TEXT') {
+                            const response = await fetch(attachment.url);
+                            const data = await response.text();
+                            extractedText = data;
+                        } else if (fileType) {
+                            // Process PDF, DOCX, and image files (original method for smaller files)
                             const response = await fetch(attachment.url);
                             const buffer = await response.buffer();
-                            const extractedText = await this.processAttachmentFile(buffer, attachment.name, attachment.contentType, discordMessage, userid);
-                            if (extractedText && extractedText.trim().length > 0) {
-                                textLength += extractedText.length;
-                                text.push(`[來自回覆文件: ${attachment.name}]\n${extractedText}`);
+                            extractedText = await this.processAttachmentFile(buffer, filename, attachment.contentType, discordMessage, userid);
+                        } else {
+                            throw new Error(`不支援的文件格式: ${extension}`);
+                        }
+                    }
+
+                    if (extractedText && extractedText.trim().length > 0) {
+                        textLength += extractedText.length;
+                        text.push(`[來自回覆文件: ${filename}]\n${extractedText}`);
+
+                        // Progressive limit check during processing
+                        if (userid) {
+                            const lv = await VIP.viplevelCheckUser(userid);
+                            const limit = TRANSLATE_LIMIT_PERSONAL[lv];
+                            if (textLength > limit) {
+                                throw new Error(`處理回覆文件時超過VIP限制。目前已處理 ${textLength.toLocaleString()} 字，VIP LV${lv}限制為 ${limit.toLocaleString()} 字`);
                             }
-                        } catch (fileError) {
-                            console.error(`[REPLY_ATTACHMENT_PROCESS] Failed to process ${attachment.name}:`, fileError);
-                            // Continue processing other files, but log the error
-                            text.push(`[回覆文件處理失敗: ${attachment.name}]\n錯誤: ${fileError.message}`);
                         }
                     }
                 } catch (error) {
                     console.error(`[REPLY_ATTACHMENT_PROCESS] Error processing ${attachment.name}:`, error);
                     // Use the enhanced error message from processAttachmentFile
-                    text.push(`[回覆文件處理錯誤]\n${error.message}`);
+                    text.push(`[回覆文件處理錯誤: ${attachment.name}]\n${error.message}`);
                 }
             }
         }
@@ -1771,6 +2227,15 @@ class TranslateAi extends OpenAI {
             if (!cleanedContent || cleanedContent.trim().length === 0) {
                 console.warn(`[TRANSLATE_CHAT] Empty or invalid response for model: ${modelName}`);
                 console.warn(`[TRANSLATE_CHAT] Raw response:`, JSON.stringify(response, null, 2));
+
+                // Check if this is a network error that should be retried
+                const hasNetworkError = response?.choices?.[0]?.error?.message?.includes('Network connection lost');
+                if (hasNetworkError) {
+                    console.log(`[TRANSLATE_CHAT] Network error detected, throwing to trigger retry`);
+                    throw new Error('Network connection lost');
+                }
+
+                // For other empty responses, return error message (will be retried by translateText)
                 return `翻譯失敗：模型 ${modelName} 返回空內容，請稍後再試。`;
             }
             
@@ -1793,8 +2258,8 @@ class TranslateAi extends OpenAI {
             const previousTranslatedContext = index > 0 ? response[index - 1] : '';
             const nextOriginalContext = (index + 1 < inputScript.length) ? inputScript[index + 1] : '';
 
-            // Per-chunk retry windows: if we hit final rate-limit message, wait for cooldowns and try again
-            const MAX_CHUNK_WINDOWS = 6; // up to 6 cooldown windows per chunk
+            // Per-chunk retry windows: if we hit final rate-limit message or network errors, wait for cooldowns and try again
+            const MAX_CHUNK_WINDOWS = 10; // up to 10 retry windows per chunk for rate limits and network errors
             let windowAttempt = 0;
             let result = '';
             while (true) {
@@ -1807,23 +2272,40 @@ class TranslateAi extends OpenAI {
                     glossary
                 );
 
-                // If not a final rate-limit message, accept the result
-                if (typeof result !== 'string' || !/API\s*請求頻率限制已達上限/.test(result)) {
+                // If not a final rate-limit message or network error, accept the result
+                const isRateLimitError = typeof result === 'string' && /API\s*請求頻率限制已達上限/.test(result);
+                const isNetworkError = typeof result === 'string' && /Network connection lost|翻譯失敗：模型.*返回空內容/.test(result);
+                const isOtherError = typeof result === 'string' && /無法找到有效的.*模型/.test(result);
+
+                if (!isRateLimitError && !isNetworkError && !isOtherError) {
                     break;
                 }
 
                 windowAttempt++;
                 if (windowAttempt >= MAX_CHUNK_WINDOWS) {
-                    console.warn(`[TRANSLATE_CHUNK_RETRY] idx=${index} hit max windows, returning last error message`);
+                    console.warn(`[TRANSLATE_CHUNK_RETRY] idx=${index} hit max retry windows (${MAX_CHUNK_WINDOWS}), giving up`);
+                    // Return a user-friendly error message instead of technical error
+                    result = `[翻譯失敗：段落 ${index + 1} 重試 ${MAX_CHUNK_WINDOWS} 次後仍無法完成，請稍後再試]`;
                     break;
                 }
 
-                // Compute a safe wait time based on model cooldowns (LOW tier) and keyset cycle
-                let waitSec = RETRY_CONFIG.GENERAL.keysetCycleDelay;
-                if (modelTier === 'LOW' && AI_CONFIG.MODELS.LOW?.models?.length) {
-                    const minRemain = this.retryManager.minCooldownRemaining(AI_CONFIG.MODELS.LOW.models);
-                    const padding = RETRY_CONFIG.MODEL_CYCLING.allModelsCooldownPadding || 0;
-                    waitSec = Math.max(waitSec, minRemain + padding);
+                // Compute wait time based on error type
+                let waitSec;
+                if (isNetworkError) {
+                    // For network errors, use shorter exponential backoff starting from 5 seconds
+                    const baseDelay = 5;
+                    const exponentialDelay = baseDelay * Math.pow(2, windowAttempt - 1);
+                    waitSec = Math.min(exponentialDelay, 60); // Cap at 60 seconds for network errors
+                    console.log(`[TRANSLATE_CHUNK_RETRY] Network error retry ${windowAttempt}/${MAX_CHUNK_WINDOWS}, waiting ${waitSec}s`);
+                } else {
+                    // For rate limit errors, use the existing logic
+                    waitSec = RETRY_CONFIG.GENERAL.keysetCycleDelay;
+                    if (modelTier === 'LOW' && AI_CONFIG.MODELS.LOW?.models?.length) {
+                        const minRemain = this.retryManager.minCooldownRemaining(AI_CONFIG.MODELS.LOW.models);
+                        const padding = RETRY_CONFIG.MODEL_CYCLING.allModelsCooldownPadding || 0;
+                        waitSec = Math.max(waitSec, minRemain + padding);
+                    }
+                    console.log(`[TRANSLATE_CHUNK_RETRY] Rate limit retry ${windowAttempt}/${MAX_CHUNK_WINDOWS}, waiting ${waitSec}s`);
                 }
                 waitSec = this.retryManager.jitterDelay(waitSec);
                 //console.log(`[TRANSLATE_CHUNK_RETRY] idx=${index} window=${windowAttempt} wait=${waitSec}s`);
@@ -1858,13 +2340,24 @@ class TranslateAi extends OpenAI {
         let lv = await VIP.viplevelCheckUser(userid);
         let limit = TRANSLATE_LIMIT_PERSONAL[lv];
 
-        // Pre-check file sizes before processing to prevent resource exhaustion
-        const fileCheckResult = await this.preCheckFileSizes(discordMessage, discordClient, lv, limit);
-        if (fileCheckResult.error) {
-            return { text: fileCheckResult.error };
+        let translateScript, textLength;
+        try {
+            const result = await this.getText(inputStr, mode, discordMessage, discordClient, userid);
+            translateScript = result.translateScript;
+            textLength = result.textLength;
+        } catch (error) {
+            // Handle validation errors thrown from getText
+            if (error.message.includes('超過VIP限制') ||
+                error.message.includes('預估總內容長度') ||
+                error.message.includes('檔案大小超過限制') ||
+                error.message.includes('不支援的文件格式')) {
+                return { text: error.message };
+            }
+            // Re-throw other errors
+            throw error;
         }
 
-        let { translateScript, textLength } = await this.getText(inputStr, mode, discordMessage, discordClient, userid);
+        // Final check (though getText should have caught most issues already)
         if (textLength > limit) return { text: `輸入的文字太多了，請分批輸入，你是VIP LV${lv}，限制為${limit}字` };
         if (textLength === 0) return { text: '沒有找到需要翻譯的內容，請檢查文件內容或稍後再試。' };
         
@@ -1877,62 +2370,94 @@ class TranslateAi extends OpenAI {
             // Get the actual model that will be used for translation
             const actualModel = this.getCurrentModelForTranslation(modelTier);
             const modelDisplay = actualModel ? actualModel.display : (mode.display || modelTier);
-            
+
             // Check if there are any attachments that need processing
             const hasAttachments = discordMessage?.attachments?.size > 0;
             const hasReplyAttachments = discordMessage?.type === 19 && discordMessage?.reference;
             const needsFileProcessing = hasAttachments || hasReplyAttachments;
-            
-            // Dynamic time estimation based on content analysis
+
+            // Simplified time estimation for large files to avoid lag
             let estimatedTime = 0;
-            
-            // Add file processing time if needed
-            if (needsFileProcessing) {
-                estimatedTime += 30; // Base 30 seconds for file processing
+            let timeStr = '';
+
+            if (textLength > ANALYSIS_REPORT_LIMITS.SIZE_THRESHOLDS.VERY_LARGE) {
+                // For very large files, use simplified estimation
+                timeStr = '數小時 (分段處理中)';
+            } else if (textLength > ANALYSIS_REPORT_LIMITS.SIZE_THRESHOLDS.LARGE) {
+                // For large files, use rough estimation
+                const hours = Math.max(1, Math.ceil(textLength / ANALYSIS_REPORT_LIMITS.TIME_ESTIMATION.CHARS_PER_HOUR));
+                timeStr = `${hours}小時以上`;
+            } else {
+                // For smaller files, use detailed estimation
+                // Add file processing time if needed
+                if (needsFileProcessing) {
+                    estimatedTime += ANALYSIS_REPORT_LIMITS.TIME_ESTIMATION.FILE_PROCESSING_BASE_TIME;
+                }
+
+                // Glossary generation time estimation (dynamic based on chunk count)
+                if (textLength > 20_000) {
+                    // Base time for glossary generation: 2 minutes
+                    // Additional time per chunk: 0.5-1 minute depending on content complexity
+                    const baseGlossaryTime = 2 * 60; // 2 minutes base
+                    const perChunkTime = Math.min(60, Math.max(30, chunkCount * 8)); // 30-60 seconds per chunk, max 1 minute
+                    const complexityFactor = Math.min(1.5, Math.max(0.8, textLength / 50_000)); // 0.8-1.5x based on text length
+                    estimatedTime += Math.round((baseGlossaryTime + perChunkTime) * complexityFactor);
+                }
+
+                // Translation chunk time estimation (dynamic based on content complexity)
+                const baseChunkTime = 90; // 90 seconds base per chunk
+                const complexityFactor = Math.min(1.3, Math.max(0.7, textLength / (chunkCount * 5000))); // Complexity based on avg chars per chunk
+                const avgChunkTime = Math.round(baseChunkTime * complexityFactor);
+                estimatedTime += chunkCount * avgChunkTime;
+
+                timeStr = estimatedTime < 60 ? `${estimatedTime}秒` : `${Math.ceil(estimatedTime / 60)}分鐘`;
             }
-            
-            // Glossary generation time estimation (dynamic based on chunk count)
-            if (textLength > 20_000) {
-                // Base time for glossary generation: 2 minutes
-                // Additional time per chunk: 0.5-1 minute depending on content complexity
-                const baseGlossaryTime = 2 * 60; // 2 minutes base
-                const perChunkTime = Math.min(60, Math.max(30, chunkCount * 8)); // 30-60 seconds per chunk, max 1 minute
-                const complexityFactor = Math.min(1.5, Math.max(0.8, textLength / 50_000)); // 0.8-1.5x based on text length
-                estimatedTime += Math.round((baseGlossaryTime + perChunkTime) * complexityFactor);
+
+            let analysisMessage = `🔍 **翻譯分析報告**\n`;
+
+            // Optimize display for very large files to prevent UI lag
+            if (textLength > 10_000_000) {
+                // For extremely large files, show simplified info
+                analysisMessage += `📊 內容長度: ${Math.round(textLength / 1_000_000)}M+ 字\n`;
+            } else if (textLength > 1_000_000) {
+                // For large files, show in millions
+                analysisMessage += `📊 內容長度: ${(textLength / 1_000_000).toFixed(1)}M 字\n`;
+            } else {
+                // For normal files, show full count
+                analysisMessage += `📊 內容長度: ${textLength.toLocaleString()} 字\n`;
             }
-            
-            // Translation chunk time estimation (dynamic based on content complexity)
-            const baseChunkTime = 90; // 90 seconds base per chunk
-            const complexityFactor = Math.min(1.3, Math.max(0.7, textLength / (chunkCount * 5000))); // Complexity based on avg chars per chunk
-            const avgChunkTime = Math.round(baseChunkTime * complexityFactor);
-            estimatedTime += chunkCount * avgChunkTime;
-            
-            const timeStr = estimatedTime < 60 ? `${estimatedTime}秒` : `${Math.ceil(estimatedTime / 60)}分鐘`;
-            
-            let analysisMessage = `🔍 **翻譯分析報告**\n` +
-                `📊 內容長度: ${textLength.toLocaleString()} 字\n` +
-                `📝 分段數量: ${chunkCount} 段\n` +
-                `⏱️ 預估時間: ${timeStr}\n` +
+
+            // Only show chunk count for smaller files to avoid lag
+            if (textLength <= 500_000) {
+                analysisMessage += `📝 分段數量: ${chunkCount} 段\n`;
+            }
+
+            analysisMessage += `⏱️ 預估時間: ${timeStr}\n` +
                 `🤖 使用模型: ${modelDisplay} (可能會中途更換)\n`;
-            
+
             if (needsFileProcessing) {
                 analysisMessage += `📎 檢測到附件，將進行文件處理\n`;
             }
-            
+
+            if (textLength > 2_000_000) {
+                analysisMessage += `⚡ 大型檔案將使用優化處理模式\n`;
+            }
+
             analysisMessage += `\n開始翻譯中，請稍候...`;
-            
+
             await this.sendProgressMessage(discordMessage, userid, analysisMessage);
         }
         
         // Auto-build glossary if text length is large (over 20,000 characters)
+        // Use adaptive sampling with maximum 30 samples for all file sizes
         let autoGlossary = null;
         if (textLength > 20_000) {
             try {
                 if (showProgress && discordMessage && userid) {
-                    await this.sendProgressMessage(discordMessage, userid, 
+                    await this.sendProgressMessage(discordMessage, userid,
                         `📚 正在生成專業術語對照表...`);
                 }
-                autoGlossary = await this.buildAutoGlossaryFromChunks(translateScript, mode, modelTier);
+                autoGlossary = await this.buildAutoGlossaryFromChunks(translateScript, mode, modelTier, discordMessage, userid);
             } catch (error) {
                 console.error('[GLOSSARY] 自動生成 Glossary 失敗，將在無 Glossary 情況下繼續翻譯。', error);
             }
@@ -2243,13 +2768,26 @@ class CommandHandler {
             };
         }
 
-        const { filetext, sendfile, text } = await translateAi.handleTranslate(
-            inputStr, discordMessage, discordClient, userid, modelConfig, modelType
-        );
+        try {
+            const { filetext, sendfile, text } = await translateAi.handleTranslate(
+                inputStr, discordMessage, discordClient, userid, modelConfig, modelType
+            );
 
-        filetext && (rply.fileText = filetext);
-        sendfile && (rply.fileLink = [sendfile]);
-        text && (rply.text = text);
+            filetext && (rply.fileText = filetext);
+            sendfile && (rply.fileLink = [sendfile]);
+            text && (rply.text = text);
+        } catch (error) {
+            // Handle early validation errors from getText method
+            if (error.message.includes('超過VIP限制') ||
+                error.message.includes('預估總內容長度') ||
+                error.message.includes('檔案大小超過限制') ||
+                error.message.includes('不支援的文件格式')) {
+                rply.text = error.message;
+            } else {
+                // Re-throw other errors to be handled by the existing error handling
+                throw error;
+            }
+        }
 
         return rply;
     }

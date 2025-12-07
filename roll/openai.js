@@ -412,11 +412,11 @@ const FILE_PROCESSING_LIMITS = {
     // File size limits in MB
     MAX_FILE_SIZE: {
         PDF: 50,      // 50MB for PDF files
-        DOCX: 25,     // 25MB for DOCX files  
+        DOCX: 25,     // 25MB for DOCX files
         IMAGE: 20,    // 20MB for image files
         TEXT: 10      // 10MB for text files
     },
-    
+
     // Processing time limits in seconds
     MAX_PROCESSING_TIME: {
         PDF: 120,     // 2 minutes for PDF
@@ -424,17 +424,21 @@ const FILE_PROCESSING_LIMITS = {
         IMAGE: 180,   // 3 minutes for OCR
         TEXT: 30      // 30 seconds for text
     },
-    
+
     // Memory limits for processing
     MAX_MEMORY_USAGE: 512 * 1024 * 1024, // 512MB
-    
+
     // Supported file extensions
     SUPPORTED_EXTENSIONS: {
         PDF: ['pdf'],
         DOCX: ['docx'],
         IMAGE: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp'],
         TEXT: ['txt']
-    }
+    },
+
+    // Queue limits
+    MAX_CONCURRENT_FILES: 2,  // Maximum concurrent file processing
+    MAX_QUEUE_SIZE: 10       // Maximum queue size
 };
 
 const variables = {};
@@ -830,6 +834,10 @@ class ImageAi extends OpenAI {
 class TranslateAi extends OpenAI {
     constructor() {
         super();
+        // File processing queue to prevent blocking the Discord shard
+        this.fileProcessingQueue = [];
+        this.activeFileProcessing = 0;
+        this.processingInterval = null;
     }
     
     // Helper method to send Discord progress messages
@@ -850,6 +858,173 @@ class TranslateAi extends OpenAI {
     }
     
     // Validate file before processing
+    // Pre-check file sizes and estimate text length before processing
+    async preCheckFileSizes(discordMessage, discordClient, vipLevel, textLimit) {
+        const attachments = [];
+
+        // Collect attachments from current message
+        if (discordMessage?.type === 0 && discordMessage?.attachments?.size > 0) {
+            attachments.push(...discordMessage.attachments.values());
+        }
+
+        // Collect attachments from replied message
+        if (discordMessage?.type === 19) {
+            try {
+                const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
+                const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId);
+                if (referenceMessage?.attachments?.size > 0) {
+                    attachments.push(...referenceMessage.attachments.values());
+                }
+            } catch (error) {
+                console.error('[FILE_PRECHECK] Error fetching reference message:', error);
+                // Continue without replied attachments if there's an error
+            }
+        }
+
+        if (attachments.length === 0) {
+            return { error: null }; // No attachments, proceed normally
+        }
+
+        let estimatedTextLength = 0;
+        const oversizedFiles = [];
+
+        for (const attachment of attachments) {
+            const fileSize = attachment.size;
+            const sizeInMB = fileSize / (1024 * 1024);
+
+            // Check if file exceeds maximum allowed size
+            if (sizeInMB > 50) { // 50MB absolute maximum
+                oversizedFiles.push(`${attachment.name} (${sizeInMB.toFixed(1)}MB)`);
+                continue;
+            }
+
+            // Estimate text length based on file type and size
+            const extension = attachment.name.toLowerCase().split('.').pop();
+            let estimatedChars = 0;
+
+            if (attachment.contentType?.match(/text/i)) {
+                // Text files: assume reasonable compression ratio
+                estimatedChars = Math.min(fileSize * 0.5, fileSize); // Conservative estimate
+            } else if (['pdf'].includes(extension)) {
+                // PDF files: vary greatly, but scanned PDFs can be very large
+                // Conservative estimate: 1 page per 50KB for scanned, or 1 page per 5KB for text
+                const estimatedPages = Math.max(1, Math.ceil(fileSize / (50 * 1024))); // Assume scanned PDF
+                estimatedChars = estimatedPages * 2000; // 2000 chars per page average
+            } else if (['docx'].includes(extension)) {
+                // DOCX files: similar to PDFs but usually smaller
+                const estimatedPages = Math.max(1, Math.ceil(fileSize / (100 * 1024)));
+                estimatedChars = estimatedPages * 1500; // 1500 chars per page average
+            } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp'].includes(extension)) {
+                // Image files: OCR can extract varying amounts
+                // Assume 500-2000 characters per MB for typical documents
+                estimatedChars = sizeInMB * 1000;
+            }
+
+            estimatedTextLength += estimatedChars;
+
+            // If a single file would exceed 80% of the limit, flag it
+            if (estimatedChars > textLimit * 0.8) {
+                oversizedFiles.push(`${attachment.name} (估計 ${estimatedChars.toLocaleString()} 字)`);
+            }
+        }
+
+        // Check if total estimated text exceeds limit
+        if (estimatedTextLength > textLimit) {
+            const totalEstimated = estimatedTextLength.toLocaleString();
+            return {
+                error: `預估文字總長度過大 (${totalEstimated} 字)，超過 VIP LV${vipLevel} 限制 (${textLimit.toLocaleString()} 字)\n` +
+                       `請減少文件大小或分批處理\n\n` +
+                       (oversizedFiles.length > 0 ? `大文件: ${oversizedFiles.join(', ')}\n` : '') +
+                       `建議: 將大文件分割成較小的部分，或使用較小的檔案`
+            };
+        }
+
+        // Check for individual oversized files
+        if (oversizedFiles.length > 0) {
+            return {
+                error: `部分文件過大，可能導致處理失敗:\n${oversizedFiles.join('\n')}\n\n` +
+                       `建議檔案大小:\n• PDF: < 10MB\n• DOCX: < 5MB\n• 圖片: < 2MB\n• 文字: < 1MB`
+            };
+        }
+
+        return { error: null }; // All checks passed
+    }
+
+    // Queue file processing to prevent blocking the main thread
+    async queueFileProcessing(task) {
+        return new Promise((resolve, reject) => {
+            this.fileProcessingQueue.push({ task, resolve, reject });
+
+            // Limit queue size to prevent memory issues
+            if (this.fileProcessingQueue.length > FILE_PROCESSING_LIMITS.MAX_QUEUE_SIZE) {
+                const removed = this.fileProcessingQueue.shift();
+                removed.reject(new Error('隊列已滿，請稍後再試'));
+            }
+
+            this.processFileQueue();
+        });
+    }
+
+    // Process the file queue asynchronously
+    async processFileQueue() {
+        if (this.processingInterval) return; // Already processing
+
+        this.processingInterval = setInterval(async () => {
+            if (this.activeFileProcessing >= FILE_PROCESSING_LIMITS.MAX_CONCURRENT_FILES) {
+                return; // Wait for current tasks to complete
+            }
+
+            if (this.fileProcessingQueue.length === 0) {
+                clearInterval(this.processingInterval);
+                this.processingInterval = null;
+                return;
+            }
+
+            const { task, resolve, reject } = this.fileProcessingQueue.shift();
+            this.activeFileProcessing++;
+
+            try {
+                // Use setImmediate to defer execution and prevent blocking
+                setImmediate(async () => {
+                    try {
+                        const result = await task();
+                        resolve(result);
+                    } catch (error) {
+                        console.error('[FILE_QUEUE] Task failed:', error);
+                        // Provide user-friendly error message
+                        const userError = error.message || '文件處理失敗，請檢查檔案格式和大小';
+                        reject(new Error(userError));
+                    } finally {
+                        this.activeFileProcessing--;
+                    }
+                });
+            } catch (error) {
+                console.error('[FILE_QUEUE] Queue processing error:', error);
+                this.activeFileProcessing--;
+                reject(new Error('文件處理系統錯誤，請稍後再試'));
+            }
+        }, 100); // Check queue every 100ms
+    }
+
+    // Cleanup method to be called when shutting down
+    cleanup() {
+        if (this.processingInterval) {
+            clearInterval(this.processingInterval);
+            this.processingInterval = null;
+        }
+
+        // Clear the queue and reject all pending tasks
+        while (this.fileProcessingQueue.length > 0) {
+            const { reject } = this.fileProcessingQueue.shift();
+            reject(new Error('系統關閉，文件處理已取消'));
+        }
+
+        // Force garbage collection if available
+        if (global.gc) {
+            global.gc();
+        }
+    }
+
     validateFile(filename, contentType, fileSize) {
         const extension = filename.toLowerCase().split('.').pop();
         const sizeInMB = fileSize / (1024 * 1024);
@@ -939,18 +1114,30 @@ class TranslateAi extends OpenAI {
                 return await this.processPdfWithOcr(buffer, filename, discordMessage, userid);
             }
 
-            // Create timeout promise
+            // Create timeout promise with resource cleanup
+            let timeoutId;
             const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => {
+                timeoutId = setTimeout(() => {
+                    // Force garbage collection hint for large buffers
+                    if (global.gc) {
+                        global.gc();
+                    }
                     reject(new Error('timeout'));
                 }, FILE_PROCESSING_LIMITS.MAX_PROCESSING_TIME.PDF * 1000);
             });
-            
+
             // Create processing promise
             const processPromise = pdfParseFn(buffer);
-            
-            // Race between processing and timeout
-            const data = await Promise.race([processPromise, timeoutPromise]);
+
+            try {
+                // Race between processing and timeout
+                const data = await Promise.race([processPromise, timeoutPromise]);
+                clearTimeout(timeoutId); // Clear timeout on success
+                return data;
+            } catch (error) {
+                clearTimeout(timeoutId); // Clear timeout on error
+                throw error;
+            }
             
             
             // Check if extracted text is too short (likely a scanned PDF)
@@ -985,13 +1172,18 @@ class TranslateAi extends OpenAI {
                 throw new Error('no text');
             }
 
-            // Create timeout promise for PDF to image conversion
+            // Create timeout promise for PDF to image conversion with cleanup
+            let timeoutId;
             const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => {
+                timeoutId = setTimeout(() => {
+                    // Force garbage collection hint for large buffers
+                    if (global.gc) {
+                        global.gc();
+                    }
                     reject(new Error('timeout'));
                 }, FILE_PROCESSING_LIMITS.MAX_PROCESSING_TIME.PDF * 1000);
             });
-            
+
             // Convert PDF to PNG images using pdf-to-png-converter
             // This provides better quality images compared to pdf-parse
             const convertPromise = pdfToPng(buffer, {
@@ -1000,11 +1192,18 @@ class TranslateAi extends OpenAI {
                 viewportScale: 2, // 2x scale for better OCR quality
                 verbosityLevel: 0 // Suppress logs
             });
-            
-            const pngPages = await Promise.race([
-                imagePool.run(() => convertPromise),
-                timeoutPromise
-            ]);
+
+            let pngPages;
+            try {
+                pngPages = await Promise.race([
+                    imagePool.run(() => convertPromise),
+                    timeoutPromise
+                ]);
+                clearTimeout(timeoutId); // Clear timeout on success
+            } catch (error) {
+                clearTimeout(timeoutId); // Clear timeout on error
+                throw error;
+            }
             
             //console.log(`[PDF_OCR_PROCESS] PDF converted to ${pngPages.length} PNG images for ${filename}`);
             
@@ -1063,9 +1262,14 @@ class TranslateAi extends OpenAI {
         try {
             //console.log(`[OCR_BUFFER_PROCESS] Starting OCR for ${filename}`);
             
-            // Create timeout promise
+            // Create timeout promise with resource cleanup
+            let timeoutId;
             const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => {
+                timeoutId = setTimeout(() => {
+                    // Force garbage collection hint for large image buffers
+                    if (global.gc) {
+                        global.gc();
+                    }
                     reject(new Error('timeout'));
                 }, FILE_PROCESSING_LIMITS.MAX_PROCESSING_TIME.IMAGE * 1000);
             });
@@ -1094,12 +1298,21 @@ class TranslateAi extends OpenAI {
             ));
             
             // Race between OCR and timeout
-            const { data: { text } } = await Promise.race([ocrPromise, timeoutPromise]);
-            
+            let result;
+            try {
+                result = await Promise.race([ocrPromise, timeoutPromise]);
+                clearTimeout(timeoutId); // Clear timeout on success
+            } catch (error) {
+                clearTimeout(timeoutId); // Clear timeout on error
+                throw error;
+            }
+
+            const { data: { text } } = result;
+
             if (!text || text.trim().length === 0) {
                 throw new Error('no text');
             }
-            
+
             //console.log(`[OCR_BUFFER_PROCESS] OCR completed for ${filename}`);
             return text.trim();
         } catch (error) {
@@ -1170,42 +1383,49 @@ class TranslateAi extends OpenAI {
     async processAttachmentFile(buffer, filename, contentType, discordMessage = null, userid = null) {
         const extension = filename.toLowerCase().split('.').pop();
         const fileSize = buffer.length;
-        
+
         // Validate file before processing
         const validation = this.validateFile(filename, contentType, fileSize);
         if (!validation.valid) {
             throw new Error(validation.error);
         }
-        
+
         const fileType = validation.fileType;
-        
-        try {
-            // PDF files
-            if (fileType === 'PDF') {
-                return await this.processPdfFile(buffer, filename, discordMessage, userid);
-            }
-            
-            // DOCX files
-            if (fileType === 'DOCX') {
-                return await this.processDocxFile(buffer, filename);
-            }
-            
-            // Image files
-            if (fileType === 'IMAGE') {
-                return await this.processImageFile(buffer, filename, discordMessage, userid);
-            }
-            
-            // Text files (fallback to original behavior)
-            if (fileType === 'TEXT') {
-                return buffer.toString('utf8');
-            }
-            
-            throw new Error(`不支援的文件格式: ${extension || contentType}`);
-        } catch (error) {
-            // Generate enhanced error message
-            const enhancedError = this.generateFileProcessingError(error, filename, fileType);
-            throw new Error(enhancedError);
+
+        // Use queue for heavy processing tasks to prevent blocking
+        if (['PDF', 'DOCX', 'IMAGE'].includes(fileType)) {
+            return await this.queueFileProcessing(async () => {
+                try {
+                    // PDF files
+                    if (fileType === 'PDF') {
+                        return await this.processPdfFile(buffer, filename, discordMessage, userid);
+                    }
+
+                    // DOCX files
+                    if (fileType === 'DOCX') {
+                        return await this.processDocxFile(buffer, filename);
+                    }
+
+                    // Image files
+                    if (fileType === 'IMAGE') {
+                        return await this.processImageFile(buffer, filename, discordMessage, userid);
+                    }
+
+                    throw new Error(`不支援的文件格式: ${extension || contentType}`);
+                } catch (error) {
+                    // Generate enhanced error message
+                    const enhancedError = this.generateFileProcessingError(error, filename, fileType);
+                    throw new Error(enhancedError);
+                }
+            });
         }
+
+        // Text files (lightweight, process directly)
+        if (fileType === 'TEXT') {
+            return buffer.toString('utf8');
+        }
+
+        throw new Error(`不支援的文件格式: ${extension || contentType}`);
     }
     
     // Sanitize mixed AI outputs to extract a valid JSON string (array or object)
@@ -1422,12 +1642,18 @@ class TranslateAi extends OpenAI {
                         text.push(data);
                     } else {
                         // Process PDF, DOCX, and image files
-                        const response = await fetch(attachment.url);
-                        const buffer = await response.buffer();
-                        const extractedText = await this.processAttachmentFile(buffer, attachment.name, attachment.contentType, discordMessage, userid);
-                        if (extractedText && extractedText.trim().length > 0) {
-                            textLength += extractedText.length;
-                            text.push(`[來自文件: ${attachment.name}]\n${extractedText}`);
+                        try {
+                            const response = await fetch(attachment.url);
+                            const buffer = await response.buffer();
+                            const extractedText = await this.processAttachmentFile(buffer, attachment.name, attachment.contentType, discordMessage, userid);
+                            if (extractedText && extractedText.trim().length > 0) {
+                                textLength += extractedText.length;
+                                text.push(`[來自文件: ${attachment.name}]\n${extractedText}`);
+                            }
+                        } catch (fileError) {
+                            console.error(`[ATTACHMENT_PROCESS] Failed to process ${attachment.name}:`, fileError);
+                            // Continue processing other files, but log the error
+                            text.push(`[文件處理失敗: ${attachment.name}]\n錯誤: ${fileError.message}`);
                         }
                     }
                 } catch (error) {
@@ -1453,12 +1679,18 @@ class TranslateAi extends OpenAI {
                         text.push(data);
                     } else {
                         // Process PDF, DOCX, and image files
-                        const response = await fetch(attachment.url);
-                        const buffer = await response.buffer();
-                        const extractedText = await this.processAttachmentFile(buffer, attachment.name, attachment.contentType, discordMessage, userid);
-                        if (extractedText && extractedText.trim().length > 0) {
-                            textLength += extractedText.length;
-                            text.push(`[來自回覆文件: ${attachment.name}]\n${extractedText}`);
+                        try {
+                            const response = await fetch(attachment.url);
+                            const buffer = await response.buffer();
+                            const extractedText = await this.processAttachmentFile(buffer, attachment.name, attachment.contentType, discordMessage, userid);
+                            if (extractedText && extractedText.trim().length > 0) {
+                                textLength += extractedText.length;
+                                text.push(`[來自回覆文件: ${attachment.name}]\n${extractedText}`);
+                            }
+                        } catch (fileError) {
+                            console.error(`[REPLY_ATTACHMENT_PROCESS] Failed to process ${attachment.name}:`, fileError);
+                            // Continue processing other files, but log the error
+                            text.push(`[回覆文件處理失敗: ${attachment.name}]\n錯誤: ${fileError.message}`);
                         }
                     }
                 } catch (error) {
@@ -1625,6 +1857,13 @@ class TranslateAi extends OpenAI {
     async handleTranslate(inputStr, discordMessage, discordClient, userid, mode, modelTier = 'LOW') {
         let lv = await VIP.viplevelCheckUser(userid);
         let limit = TRANSLATE_LIMIT_PERSONAL[lv];
+
+        // Pre-check file sizes before processing to prevent resource exhaustion
+        const fileCheckResult = await this.preCheckFileSizes(discordMessage, discordClient, lv, limit);
+        if (fileCheckResult.error) {
+            return { text: fileCheckResult.error };
+        }
+
         let { translateScript, textLength } = await this.getText(inputStr, mode, discordMessage, discordClient, userid);
         if (textLength > limit) return { text: `輸入的文字太多了，請分批輸入，你是VIP LV${lv}，限制為${limit}字` };
         if (textLength === 0) return { text: '沒有找到需要翻譯的內容，請檢查文件內容或稍後再試。' };

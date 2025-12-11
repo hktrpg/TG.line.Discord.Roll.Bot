@@ -67,9 +67,20 @@ async function gracefulShutdown(exitProcess = true) {
         // Notify clusters and destroy client instances
         console.log('[Cluster] Notifying clusters and destroying clients...');
         try {
-            manager.triggerMaintenance('Shutting down');
+            await manager.triggerMaintenance('Shutting down');
         } catch (error) {
-            console.warn(`[Cluster] maintenance trigger failed: ${error.message}`);
+            // Handle IPC and other expected errors during shutdown
+            const errorCode = error.code || '';
+            const errorMessage = error.message || String(error);
+            if (errorCode === 'EPIPE' || errorCode === 'ERR_IPC_CHANNEL_CLOSED' ||
+                errorCode === 'ERR_IPC_DISCONNECTED' || errorCode === 'ECONNRESET' ||
+                errorMessage.includes('EPIPE') || errorMessage.includes('Channel closed') ||
+                errorMessage.includes('IPC') || errorMessage.includes('disconnected') ||
+                errorMessage.includes('Connection lost') || errorMessage.includes('socket hang up')) {
+                console.log('[Cluster] Ignoring IPC channel errors during triggerMaintenance (expected behavior)');
+            } else {
+                console.warn(`[Cluster] maintenance trigger failed: ${error.message}`);
+            }
         }
 
         // First, try to gracefully destroy all Discord clients
@@ -133,10 +144,20 @@ async function gracefulShutdown(exitProcess = true) {
                             process.exit(0);
                         }, { timeout: 10_000 });
                     } catch (broadcastError) {
-                        void broadcastError; // Ignore broadcast errors during shutdown
-                        console.log('[Cluster] Broadcast exit completed (some clusters may have already exited)');
+                        // Handle IPC and other expected errors during shutdown
+                        const errorCode = broadcastError.code || '';
+                        const errorMessage = broadcastError.message || String(broadcastError);
+                        if (errorCode === 'EPIPE' || errorCode === 'ERR_IPC_CHANNEL_CLOSED' ||
+                            errorCode === 'ERR_IPC_DISCONNECTED' || errorCode === 'ECONNRESET' ||
+                            errorMessage.includes('EPIPE') || errorMessage.includes('Channel closed') ||
+                            errorMessage.includes('IPC') || errorMessage.includes('disconnected') ||
+                            errorMessage.includes('Connection lost') || errorMessage.includes('socket hang up')) {
+                            console.log('[Cluster] Ignoring IPC channel errors during broadcastEval exit (expected behavior)');
+                        } else {
+                            console.warn('[Cluster] Broadcast exit error:', broadcastError.message);
+                        }
                     }
-                
+
                 break;
                 }
                 // No default

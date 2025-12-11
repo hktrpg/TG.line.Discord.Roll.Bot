@@ -12,6 +12,7 @@ const config = {
     maxRetries: 5,
     baseRetryInterval: 1000,  // Base retry interval
     maxRetryInterval: 30_000,  // Maximum retry interval
+    maxTotalRetryTime: 300_000, // Maximum total time for all retries (5 minutes)
     restartTime: '30 04 */3 * *',
     connectTimeout: 180_000,    // 3 minutes (increased for sharding)
     socketTimeout: 180_000,     // 3 minutes (increased for sharding)
@@ -40,6 +41,7 @@ let isInitializing = false; // Prevent duplicate initialization
 let reconnecting = false; // Prevent duplicate reconnection
 let sharedConnectionPromise = null; // Shared connection Promise to avoid multiple shards creating duplicate connections
 let connectionCooldown = false; // Connection cooldown period to avoid excessive connection attempts
+let connectionStartTime = null; // Track when connection attempts started
 
 // Event emitter for connection state changes
 const connectionEmitter = new EventEmitter();
@@ -68,6 +70,52 @@ function calculateBackoffTime(attempt) {
         config.maxRetryInterval
     );
     return backoffTime + Math.random() * 1000; // Add random jitter
+}
+
+// Classify MongoDB errors to determine if they are permanent or temporary
+function classifyMongoDBError(error) {
+    const message = error.message || String(error);
+
+    // Permanent errors (don't retry)
+    const permanentErrors = [
+        'bad auth',
+        'Authentication failed',
+        'not authorized',
+        'Invalid credentials',
+        'MongoServerError: bad auth',
+        'MongoError: bad auth'
+    ];
+
+    // Temporary errors (retry)
+    const temporaryErrors = [
+        'connection timed out',
+        'Server selection timed out',
+        'ECONNREFUSED',
+        'ENOTFOUND',
+        'ECONNRESET',
+        'ETIMEDOUT',
+        'connect ETIMEDOUT',
+        'connect ECONNREFUSED',
+        'PoolClearedError',
+        'connection  to .* closed',
+        'topology was destroyed',
+        'connection is closed'
+    ];
+
+    for (const permanentError of permanentErrors) {
+        if (message.includes(permanentError)) {
+            return 'permanent';
+        }
+    }
+
+    for (const temporaryError of temporaryErrors) {
+        if (message.includes(temporaryError)) {
+            return 'temporary';
+        }
+    }
+
+    // Default to temporary for unknown errors
+    return 'temporary';
 }
 
 // Establish connection - Force only one connection, support multi-shard sharing
@@ -127,6 +175,11 @@ async function connect(retries = 0) {
     sharedConnectionPromise = (async () => {
         try {
             connectionAttempts++;
+            // Track start time for total retry time limit
+            if (!connectionStartTime) {
+                connectionStartTime = Date.now();
+            }
+
             console.log(`[db-connector] Attempting to connect to MongoDB (Attempt ${connectionAttempts}) - ReadyState: ${mongoose.connection.readyState}`);
 
             // Only create new connection when truly disconnected
@@ -186,6 +239,7 @@ async function connect(retries = 0) {
             console.log(`[db-connector] MongoDB connected successfully. Connection state: ${connectionStates[mongoose.connection.readyState]}`);
             isConnected = true;
             connectionAttempts = 0;
+            connectionStartTime = null; // Reset retry timer on successful connection
 
             // Listen for connection events
             setupConnectionListeners();
@@ -198,14 +252,49 @@ async function connect(retries = 0) {
             console.error(`MongoDB Connection Error: ${error.message}`);
             isConnected = false;
 
-            // Special handling for authentication errors
-            if (error.message.includes('bad auth') || error.message.includes('Authentication failed')) {
-                console.error('MongoDB Authentication Error: Please check your credentials');
+            // Classify the error
+            const errorType = classifyMongoDBError(error);
+
+            // Special handling for authentication errors (permanent)
+            if (errorType === 'permanent') {
+                console.error('MongoDB Permanent Error (will not retry):', error.message);
+                // Reset connection tracking
+                connectionStartTime = null;
+                connectionCooldown = true;
+
+                // For permanent errors, wait longer before next attempt
+                const PERMANENT_ERROR_DELAY = 300_000; // 5 minutes
+                setTimeout(() => {
+                    console.log('[db-connector] Attempting to reconnect after permanent error delay...');
+                    connectionCooldown = false;
+                    connect(0);
+                }, PERMANENT_ERROR_DELAY);
+
+                throw error;
             }
 
+            // Check total retry time limit
+            const elapsedTime = Date.now() - (connectionStartTime || Date.now());
+            if (elapsedTime > config.maxTotalRetryTime) {
+                console.error(`MongoDB connection failed after ${Math.round(elapsedTime/1000)} seconds of attempts. Giving up for now.`);
+                connectionStartTime = null;
+                connectionCooldown = true;
+
+                // Schedule a retry after extended delay
+                const EXTENDED_RETRY_DELAY = 300_000; // 5 minutes
+                setTimeout(() => {
+                    console.log('[db-connector] Attempting to reconnect after extended delay...');
+                    connectionCooldown = false;
+                    connect(0);
+                }, EXTENDED_RETRY_DELAY);
+
+                throw error;
+            }
+
+            // Check retry count limit
             if (retries < config.maxRetries) {
                 const backoffTime = calculateBackoffTime(retries);
-                console.log(`[db-connector] Retrying connection in ${Math.round(backoffTime/1000)} seconds... (${retries + 1}/${config.maxRetries})`);
+                console.log(`[db-connector] Retrying connection in ${Math.round(backoffTime/1000)} seconds... (${retries + 1}/${config.maxRetries}, elapsed: ${Math.round(elapsedTime/1000)}s)`);
 
                 // Add jitter to prevent thundering herd
                 const jitter = Math.random() * 1000;
@@ -213,13 +302,16 @@ async function connect(retries = 0) {
                 return connect(retries + 1);
             }
 
-            console.error('MongoDB connection failed after all retries. Will retry periodically.');
+            console.error(`MongoDB connection failed after ${config.maxRetries} retries and ${Math.round(elapsedTime/1000)} seconds. Will retry periodically.`);
             // Set cooldown period
             connectionCooldown = true;
-            // Schedule a retry after a longer delay
-            const RETRY_DELAY = 60_000;
+            connectionStartTime = null;
+
+            // Schedule a retry after extended delay
+            const RETRY_DELAY = 120_000; // 2 minutes (increased from 1 minute)
             setTimeout(() => {
                 console.log('[db-connector] Attempting to reconnect to MongoDB after extended delay...');
+                connectionCooldown = false;
                 connect(0);
             }, RETRY_DELAY);
 

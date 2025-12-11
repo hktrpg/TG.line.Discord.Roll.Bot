@@ -4,6 +4,8 @@ const winston = require('winston');
 const { format } = winston;
 const schema = require('./schema.js');
 const timerManager = require('./timer-manager');
+const os = require('os');
+const fs = require('fs').promises;
 
 // Constant configuration
 const CONFIG = {
@@ -17,7 +19,13 @@ const CONFIG = {
     CIRCUIT_BREAKER_RECOVERY_TIMEOUT: 60 * 1000, // 1 minute
     CONNECTION_RETRY_ATTEMPTS: 5,
     CONNECTION_RETRY_DELAY: 5000, // 5 seconds
-    HEALTH_CHECK_INTERVAL: 30 * 1000 // 30 seconds
+    HEALTH_CHECK_INTERVAL: 30 * 1000, // 30 seconds
+    // System resource monitoring thresholds
+    MEMORY_WARNING_THRESHOLD: 85, // Warn when memory usage > 85%
+    MEMORY_CRITICAL_THRESHOLD: 95, // Critical when memory usage > 95%
+    DISK_WARNING_THRESHOLD: 90, // Warn when disk usage > 90%
+    DISK_CRITICAL_THRESHOLD: 95, // Critical when disk usage > 95%
+    RESOURCE_CHECK_INTERVAL: 60 * 1000 // Check system resources every minute
 };
 
 // Create custom logger
@@ -135,6 +143,13 @@ class DbWatchdog {
             lastDisconnectionTime: null,
             reconnectionAttempts: 0
         };
+        this.systemResources = {
+            memoryUsage: null,
+            diskUsage: null,
+            lastResourceCheck: null,
+            resourceWarnings: [],
+            resourceCritical: []
+        };
         this.init();
     }
 
@@ -156,6 +171,145 @@ class DbWatchdog {
         if (this.dbConnErr.retry > 0) {
             this.dbConnErr.retry = 0;
             console.log('[dbWatchdog] Database connection error counter reset');
+        }
+    }
+
+    // System resource monitoring methods
+    async checkMemoryUsage() {
+        try {
+            const totalMemory = os.totalmem();
+            const freeMemory = os.freemem();
+            const usedMemory = totalMemory - freeMemory;
+            const memoryUsagePercent = (usedMemory / totalMemory) * 100;
+
+            this.systemResources.memoryUsage = {
+                total: totalMemory,
+                free: freeMemory,
+                used: usedMemory,
+                usagePercent: Math.round(memoryUsagePercent * 100) / 100,
+                timestamp: new Date()
+            };
+
+            return this.systemResources.memoryUsage;
+        } catch (error) {
+            console.warn('[dbWatchdog] Failed to check memory usage:', error.message);
+            return null;
+        }
+    }
+
+    async checkDiskUsage() {
+        try {
+            // Check disk usage for the current working directory
+            const cwd = process.cwd();
+            const stats = await fs.statvfs(cwd);
+
+            if (stats) {
+                const totalSpace = stats.f_blocks * stats.f_frsize;
+                const freeSpace = stats.f_available * stats.f_frsize;
+                const usedSpace = totalSpace - freeSpace;
+                const diskUsagePercent = (usedSpace / totalSpace) * 100;
+
+                this.systemResources.diskUsage = {
+                    total: totalSpace,
+                    free: freeSpace,
+                    used: usedSpace,
+                    usagePercent: Math.round(diskUsagePercent * 100) / 100,
+                    mountPoint: cwd,
+                    timestamp: new Date()
+                };
+            } else {
+                // Fallback for systems without statvfs
+                this.systemResources.diskUsage = {
+                    total: 0,
+                    free: 0,
+                    used: 0,
+                    usagePercent: 0,
+                    mountPoint: cwd,
+                    timestamp: new Date(),
+                    note: 'statvfs not available'
+                };
+            }
+
+            return this.systemResources.diskUsage;
+        } catch (error) {
+            // Fallback for Windows or systems without statvfs
+            try {
+                // Simple fallback - just record that we attempted to check
+                this.systemResources.diskUsage = {
+                    total: 0,
+                    free: 0,
+                    used: 0,
+                    usagePercent: 0,
+                    mountPoint: process.cwd(),
+                    timestamp: new Date(),
+                    note: 'Disk check not available on this platform'
+                };
+            } catch (fallbackError) {
+                console.warn('[dbWatchdog] Failed to check disk usage:', error.message);
+            }
+            return this.systemResources.diskUsage;
+        }
+    }
+
+    async checkSystemResources() {
+        try {
+            const [memoryInfo, diskInfo] = await Promise.all([
+                this.checkMemoryUsage(),
+                this.checkDiskUsage()
+            ]);
+
+            this.systemResources.lastResourceCheck = new Date();
+
+            // Check for resource warnings and critical levels
+            const warnings = [];
+            const critical = [];
+
+            if (memoryInfo && memoryInfo.usagePercent >= CONFIG.MEMORY_CRITICAL_THRESHOLD) {
+                critical.push(`Memory usage critical: ${memoryInfo.usagePercent}%`);
+            } else if (memoryInfo && memoryInfo.usagePercent >= CONFIG.MEMORY_WARNING_THRESHOLD) {
+                warnings.push(`Memory usage high: ${memoryInfo.usagePercent}%`);
+            }
+
+            if (diskInfo && diskInfo.usagePercent >= CONFIG.DISK_CRITICAL_THRESHOLD) {
+                critical.push(`Disk usage critical: ${diskInfo.usagePercent}% (${diskInfo.mountPoint})`);
+            } else if (diskInfo && diskInfo.usagePercent >= CONFIG.DISK_WARNING_THRESHOLD) {
+                warnings.push(`Disk usage high: ${diskInfo.usagePercent}% (${diskInfo.mountPoint})`);
+            }
+
+            // Log warnings and critical alerts
+            if (critical.length > 0) {
+                console.error(`[dbWatchdog] CRITICAL SYSTEM RESOURCES: ${critical.join(', ')}`);
+                this.systemResources.resourceCritical.push({
+                    timestamp: new Date(),
+                    issues: critical
+                });
+            }
+
+            if (warnings.length > 0) {
+                console.warn(`[dbWatchdog] SYSTEM RESOURCE WARNING: ${warnings.join(', ')}`);
+                this.systemResources.resourceWarnings.push({
+                    timestamp: new Date(),
+                    issues: warnings
+                });
+            }
+
+            // Keep only last 50 resource alerts
+            if (this.systemResources.resourceWarnings.length > 50) {
+                this.systemResources.resourceWarnings = this.systemResources.resourceWarnings.slice(-50);
+            }
+            if (this.systemResources.resourceCritical.length > 50) {
+                this.systemResources.resourceCritical = this.systemResources.resourceCritical.slice(-50);
+            }
+
+            return {
+                memory: memoryInfo,
+                disk: diskInfo,
+                warnings: warnings.length,
+                critical: critical.length
+            };
+        } catch (error) {
+            console.warn('[dbWatchdog] Failed to check system resources:', error.message);
+            return null;
         }
     }
 
@@ -266,6 +420,18 @@ class DbWatchdog {
                 }
             },
             CONFIG.HEALTH_CHECK_INTERVAL
+        );
+
+        // System resource monitoring
+        this.resourceCheckInterval = timerManager.setInterval(
+            async () => {
+                try {
+                    await this.checkSystemResources();
+                } catch (error) {
+                    console.warn(`[dbWatchdog] System resource check failed: ${error.message}`);
+                }
+            },
+            CONFIG.RESOURCE_CHECK_INTERVAL
         );
 
         // Original MongoDB status recording - disabled to reduce log output
@@ -452,6 +618,19 @@ class DbWatchdog {
                 lastDisconnectionTime: this.connectionState.lastDisconnectionTime,
                 reconnectionAttempts: this.connectionState.reconnectionAttempts,
                 poolInfo: connectionPoolInfo
+            },
+            systemResources: {
+                memory: this.systemResources.memoryUsage,
+                disk: this.systemResources.diskUsage,
+                lastResourceCheck: this.systemResources.lastResourceCheck,
+                resourceWarnings: this.systemResources.resourceWarnings.slice(-10), // Last 10 warnings
+                resourceCritical: this.systemResources.resourceCritical.slice(-10), // Last 10 critical alerts
+                thresholds: {
+                    memoryWarning: CONFIG.MEMORY_WARNING_THRESHOLD,
+                    memoryCritical: CONFIG.MEMORY_CRITICAL_THRESHOLD,
+                    diskWarning: CONFIG.DISK_WARNING_THRESHOLD,
+                    diskCritical: CONFIG.DISK_CRITICAL_THRESHOLD
+                }
             }
         };
     }

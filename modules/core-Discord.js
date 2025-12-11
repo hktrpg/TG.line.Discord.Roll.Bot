@@ -5,7 +5,7 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
 
-const DELAY = Number(process.env.DISCORDDELAY) || 1000 * 15;
+const DELAY = Number(process.env.DISCORDDELAY) || 1000 * 30;
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 5000;
 

@@ -16,7 +16,7 @@ const config = {
     restartTime: '30 04 */3 * *',
     connectTimeout: 180_000,    // 3 minutes (increased for sharding)
     socketTimeout: 180_000,     // 3 minutes (increased for sharding)
-    poolSize: 25,               // Connection pool size - Optimized for 4K+ groups per shard with high traffic
+    poolSize: 200,               // Connection pool size - Optimized for 4K+ groups per shard with high traffic
     minPoolSize: 8,            // Minimum connection pool size - Maintains baseline performance
     heartbeatInterval: 15_000,  // Heartbeat detection interval - Increased to reduce load
     serverSelectionTimeout: 60_000,  // Increased to 60 seconds for better stability with multiple shards

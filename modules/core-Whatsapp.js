@@ -217,7 +217,7 @@ async function processMessage(msg, groupInfo, client) {
 		getContact = await msg.getContact();
 		displayname = (getContact && getContact.pushname) || (getContact && getContact.name) || '';
 	} catch (error) {
-		console.error('[WhatsApp] Failed to get contact:', error.message);
+		//console.error('[WhatsApp] Failed to get contact:', error.message);
 		getContact = null;
 		displayname = '';
 

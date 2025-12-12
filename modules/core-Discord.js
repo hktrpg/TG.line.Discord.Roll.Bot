@@ -103,8 +103,13 @@ let heartbeatStarted = false;
 manager.on('clusterCreate', shard => {
 
     shard.on('ready', () => {
-        const maxShard = Math.ceil(shard.manager.totalShards / 3);
-        console.log(`[Cluster ${shard.id}] Ready with ${shard.manager.totalShards} total shards. Max shards per cluster: ${maxShard}`);
+        // Get cluster configuration values
+        const totalShards = shard.manager.totalShards;
+        const totalClusters = shard.manager.totalClusters;
+        const shardsPerCluster = shard.manager.shardsPerClusters || 
+                                 (totalClusters > 0 ? Math.ceil(totalShards / totalClusters) : 3);
+        
+        console.log(`[Cluster ${shard.id}] Ready with ${totalShards} total shards. Max cluster: ${totalClusters}. Per cluster: ${shardsPerCluster}`);
 
         if (heartbeatStarted) return;
 

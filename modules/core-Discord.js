@@ -5,7 +5,7 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
 
-const DELAY = Number(process.env.DISCORDDELAY) || 1000 * 7;
+const DELAY = Number(process.env.DISCORDDELAY) || 1000 * 20;
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 5000;
 
@@ -79,7 +79,7 @@ async function gracefulShutdown() {
 // Configuration options (simplified as per attachment)
 const clusterOptions = {
     token: channelSecret,
-    shardsPerClusters: 2,
+    shardsPerClusters: 3,
     totalShards: 'auto',
     mode: 'process',
     spawnTimeout: -1,

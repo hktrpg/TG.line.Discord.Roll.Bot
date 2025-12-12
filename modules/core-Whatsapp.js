@@ -212,13 +212,14 @@ async function processMessage(msg, groupInfo, client) {
 
 	userid = msg.author;
 	let getContact;
-	let displayname = '';
+	displayname = '';
 	try {
 		getContact = await msg.getContact();
 		displayname = (getContact && getContact.pushname) || (getContact && getContact.name) || '';
 	} catch (error) {
 		console.error('[WhatsApp] Failed to get contact:', error.message);
 		getContact = null;
+		displayname = '';
 
 		// Fallback: try to get display name from message author info
 		if (msg.author && typeof msg.author === 'string') {

@@ -423,16 +423,16 @@ class DbWatchdog {
         );
 
         // System resource monitoring
-        this.resourceCheckInterval = timerManager.setInterval(
-            async () => {
-                try {
-                    await this.checkSystemResources();
-                } catch (error) {
-                    console.warn(`[dbWatchdog] System resource check failed: ${error.message}`);
-                }
-            },
-            CONFIG.RESOURCE_CHECK_INTERVAL
-        );
+        // this.resourceCheckInterval = timerManager.setInterval(
+        //     async () => {
+        //         try {
+        //             await this.checkSystemResources();
+        //         } catch (error) {
+        //             console.warn(`[dbWatchdog] System resource check failed: ${error.message}`);
+        //         }
+        //     },
+        //     CONFIG.RESOURCE_CHECK_INTERVAL
+        // );
 
         // Original MongoDB status recording - disabled to reduce log output
         // MongoDB state check disabled to reduce log noise

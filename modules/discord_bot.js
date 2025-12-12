@@ -241,6 +241,11 @@ client.on('messageCreate', async message => {
 		]);
 
 		if (!dbStatus && checkMongodb.isDbRespawn()) {
+			console.error(`[Discord Bot] ========== DATABASE RESPAWN TRIGGERED ==========`);
+			console.error(`[Discord Bot] Database status: ${dbStatus}, isDbRespawn: ${checkMongodb.isDbRespawn()}`);
+			console.error(`[Discord Bot] Cluster ID: ${client.cluster.id}`);
+			console.error(`[Discord Bot] Timestamp: ${new Date().toISOString()}`);
+			console.error(`[Discord Bot] ==========================================`);
 			respawnCluster2();
 		}
 
@@ -1049,7 +1054,8 @@ process.on('SIGTERM', async () => {
 function respawnCluster2() {
 	try {
 		console.error(`[Respawn] Sending respawn command for cluster ${client.cluster.id}`);
-		client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
+		// 使用與手動觸發相同的方法，發送訊息給 cluster manager
+		client.cluster.send({ respawn: true, id: client.cluster.id });
 		console.error(`[Respawn] Respawn command sent successfully for cluster ${client.cluster.id}`);
 	} catch (error) {
 		console.error('[Respawn] ========== RESPAWN CLUSTER ERROR ==========');

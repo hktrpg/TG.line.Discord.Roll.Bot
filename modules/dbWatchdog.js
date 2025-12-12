@@ -121,7 +121,9 @@ class DbWatchdog {
     constructor() {
         this.dbConnErr = {
             timeStamp: Date.now(),
-            retry: 0
+            retry: 0,
+            consecutiveSuccesses: 0, // 連續成功次數，用於判斷是否真正恢復
+            lastSuccessTime: null
         };
         this.logger = createLogger();
         this.circuitBreaker = new CircuitBreaker();
@@ -156,6 +158,8 @@ class DbWatchdog {
     dbErrOccurs() {
         this.dbConnErr.retry++;
         this.dbConnErr.timeStamp = Date.now();
+        // 發生錯誤時重置連續成功計數
+        this.dbConnErr.consecutiveSuccesses = 0;
         console.error(`[dbWatchdog] Database connection error occurred. Error count: ${this.dbConnErr.retry}`);
     }
 
@@ -164,13 +168,23 @@ class DbWatchdog {
     }
 
     isDbRespawn() {
-        return (this.dbConnErr.retry > CONFIG.MAX_ERR_RESPAWN);
+        // 檢查錯誤計數是否超過閾值，且錯誤是在最近5分鐘內發生的
+        const timeWindow = 5 * 60 * 1000; // 5 minutes
+        const now = Date.now();
+        const timeSinceLastError = now - this.dbConnErr.timeStamp;
+
+        return (this.dbConnErr.retry > CONFIG.MAX_ERR_RESPAWN) && (timeSinceLastError < timeWindow);
     }
 
     __dbErrorReset() {
-        if (this.dbConnErr.retry > 0) {
+        // 只有在連續成功3次後才重置錯誤計數，避免輕易重置
+        this.dbConnErr.consecutiveSuccesses++;
+        this.dbConnErr.lastSuccessTime = Date.now();
+
+        if (this.dbConnErr.consecutiveSuccesses >= 3 && this.dbConnErr.retry > 0) {
+            console.log(`[dbWatchdog] Database connection stable after ${this.dbConnErr.consecutiveSuccesses} consecutive successes, resetting error counter`);
             this.dbConnErr.retry = 0;
-            console.log('[dbWatchdog] Database connection error counter reset');
+            this.dbConnErr.consecutiveSuccesses = 0;
         }
     }
 

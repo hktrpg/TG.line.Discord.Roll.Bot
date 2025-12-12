@@ -265,19 +265,61 @@ class Records extends EventEmitter {
             const dbConnector = require('./db-connector.js');
             const mongoose = dbConnector.mongoose;
 
-            // Wait for connection if not ready (with timeout)
-            if (mongoose.connection.readyState !== 1) {
-                const maxWaitTime = 10_000; // 10 seconds
-                const startTime = Date.now();
-                
-                // Wait for connection with timeout
-                while (mongoose.connection.readyState !== 1 && (Date.now() - startTime) < maxWaitTime) {
-                    await new Promise(resolve => setTimeout(resolve, 200));
+            // Check connection status more reliably using multiple sources (compatible with Mongoose 9)
+            let isConnectionReady = false;
+            try {
+                // First check: Use checkHealth from db-connector
+                const health = dbConnector.checkHealth();
+                // Connection is ready if: readyState is 1 (connected) or 2 (connecting), and isConnected flag is true
+                // State 2 (connecting) is acceptable as operations can be buffered
+                isConnectionReady = health.isConnected && (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2);
+            } catch {
+                // Fallback: Check readyState directly (1 = connected, 2 = connecting)
+                isConnectionReady = mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2;
+            }
+
+            // If not ready, try to wait for connection to be established
+            if (!isConnectionReady) {
+                // If connection is disconnected (state 0), try to initiate connection
+                if (mongoose.connection.readyState === 0) {
+                    try {
+                        // Attempt to connect (this will wait for existing connection attempt if one exists)
+                        await dbConnector.connect();
+                        // Re-check connection status after connect attempt
+                        const health = dbConnector.checkHealth();
+                        isConnectionReady = health.isConnected && (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2);
+                    } catch (error) {
+                        // Connection attempt failed, will check again below
+                        console.warn(`[Records] Connection attempt failed for ${target}:`, error.message);
+                    }
+                }
+
+                // If still not ready, wait with timeout
+                if (!isConnectionReady) {
+                    const maxWaitTime = 10_000; // 10 seconds
+                    const startTime = Date.now();
+                    
+                    // Wait for connection with timeout
+                    while (!isConnectionReady && (Date.now() - startTime) < maxWaitTime) {
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                        
+                        // Re-check connection status
+                        try {
+                            const health = dbConnector.checkHealth();
+                            isConnectionReady = health.isConnected && (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2);
+                        } catch {
+                            isConnectionReady = mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2;
+                        }
+                    }
                 }
 
                 // If still not connected after waiting, return empty array
-                if (mongoose.connection.readyState !== 1) {
-                    console.warn(`[Records] MongoDB connection not ready for ${target}, returning empty array`);
+                if (!isConnectionReady) {
+                    // Only log warning if connection is actually disconnected (state 0, 3, or 4)
+                    const readyState = mongoose.connection.readyState;
+                    if (readyState === 0 || readyState === 3 || readyState === 4) {
+                        console.warn(`[Records] MongoDB connection not ready for ${target} (state: ${readyState}), returning empty array`);
+                    }
                     callback([]);
                     return;
                 }

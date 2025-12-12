@@ -173,8 +173,13 @@ async function gracefulShutdown(exitProcess = true) {
         // Close database connection before exit
         try {
             console.log('[Cluster] Closing database connection...');
-            await dbConnector.disconnect();
-            console.log('[Cluster] Database connection closed.');
+            const mongoose = dbConnector.mongoose;
+            if (mongoose.connection.readyState === 1) {
+                await mongoose.connection.close();
+                console.log('[Cluster] Database connection closed.');
+            } else {
+                console.log('[Cluster] Database connection already closed or not connected');
+            }
         } catch (error) {
             console.warn('[Cluster] Error closing database connection:', error.message);
         }

@@ -28,20 +28,44 @@ const agenda = new Agenda({
 
 (async function () {
     try {
-        const waitForConnection = dbConnector.waitForConnection;
-        if (waitForConnection) {
-            await waitForConnection(30_000);
-        } else {
-            let attempts = 0;
-            while (mongoose.connection.readyState !== 1 && attempts < 30) {
+        // Wait for MongoDB connection with improved check (compatible with Mongoose 9)
+        let isConnectionReady = false;
+        let attempts = 0;
+        const maxAttempts = 30;
+        
+        while (!isConnectionReady && attempts < maxAttempts) {
+            try {
+                // Check connection status using checkHealth
+                const health = dbConnector.checkHealth();
+                // Connection is ready if: readyState is 1 (connected) or 2 (connecting), and isConnected flag is true
+                // State 2 (connecting) is acceptable as operations can be buffered
+                isConnectionReady = health.isConnected && (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2);
+            } catch {
+                // Fallback: Check readyState directly (1 = connected, 2 = connecting)
+                isConnectionReady = mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2;
+            }
+            
+            if (!isConnectionReady) {
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 attempts++;
             }
         }
         
-        if (mongoose.connection.readyState !== 1) {
-            console.error('[Schedule] MongoDB connection not ready, cannot start Agenda');
-            return;
+        // Final check before starting Agenda
+        if (!isConnectionReady) {
+            const readyState = mongoose.connection.readyState;
+            // Only log error if connection is actually disconnected (state 0, 3, or 4)
+            if (readyState === 0 || readyState === 3 || readyState === 4) {
+                console.error(`[Schedule] MongoDB connection not ready (state: ${readyState}), cannot start Agenda`);
+            } else {
+                // If connecting (state 2), try to start anyway as Mongoose can buffer operations
+                console.warn(`[Schedule] MongoDB connection still connecting (state: ${readyState}), attempting to start Agenda anyway`);
+            }
+            
+            // If not connected and not connecting, return early
+            if (readyState === 0 || readyState === 3 || readyState === 4) {
+                return;
+            }
         }
         
         await agenda.start();

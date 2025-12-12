@@ -1,11 +1,11 @@
 "use strict";
 const path = require('path');
+const os = require('os');
+const fs = require('fs').promises;
 const winston = require('winston');
 const { format } = winston;
 const schema = require('./schema.js');
 const timerManager = require('./timer-manager');
-const os = require('os');
-const fs = require('fs').promises;
 
 // Constant configuration
 const CONFIG = {
@@ -152,6 +152,7 @@ class DbWatchdog {
             resourceWarnings: [],
             resourceCritical: []
         };
+        this.lastConnectionWarningTime = null; // Track last warning time to suppress repeated warnings
         this.init();
     }
 
@@ -258,7 +259,7 @@ class DbWatchdog {
                     timestamp: new Date(),
                     note: 'Disk check not available on this platform'
                 };
-            } catch (fallbackError) {
+            } catch {
                 console.warn('[dbWatchdog] Failed to check disk usage:', error.message);
             }
             return this.systemResources.diskUsage;
@@ -336,9 +337,36 @@ class DbWatchdog {
         const dbConnector = require('./db-connector.js');
         const mongoose = dbConnector.mongoose;
 
-        // Check if mongoose connection is actually ready before attempting update
-        if (mongoose.connection.readyState !== 1) {
-            console.warn('[dbWatchdog] MongoDB connection not ready, skipping error record update');
+        // Check connection status more reliably using multiple sources
+        let isConnectionReady = false;
+        try {
+            // First check: Use tracked connection state (updated from connectionEmitter events)
+            if (this.connectionState.isConnected) {
+                isConnectionReady = true;
+            } else {
+                // Second check: Use checkHealth from db-connector
+                const health = dbConnector.checkHealth();
+                // Connection is ready if: readyState is 1 (connected) or 2 (connecting), and isConnected flag is true
+                // State 2 (connecting) is acceptable as operations can be buffered
+                isConnectionReady = health.isConnected && (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2);
+            }
+        } catch {
+            // Fallback: Check readyState directly (1 = connected, 2 = connecting)
+            isConnectionReady = mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2;
+        }
+
+        if (!isConnectionReady) {
+            // Only log warning if connection is actually disconnected (state 0 or 3)
+            // Don't log if it's just connecting (state 2) to reduce noise
+            const readyState = mongoose.connection.readyState;
+            if (readyState === 0 || readyState === 3) {
+                // Suppress repeated warnings - only log once per minute
+                const now = Date.now();
+                if (!this.lastConnectionWarningTime || (now - this.lastConnectionWarningTime) > 60_000) {
+                    console.warn('[dbWatchdog] MongoDB connection not ready, skipping error record update');
+                    this.lastConnectionWarningTime = now;
+                }
+            }
             return;
         }
 

@@ -983,8 +983,13 @@ async function gracefulShutdown(signal = 'unknown') {
 		// Close database connection before exit
 		try {
 			console.log('[Discord Bot] Closing database connection...');
-			await dbConnector.disconnect();
-			console.log('[Discord Bot] Database connection closed.');
+			const mongoose = dbConnector.mongoose;
+			if (mongoose.connection.readyState === 1) {
+				await mongoose.connection.close();
+				console.log('[Discord Bot] Database connection closed.');
+			} else {
+				console.log('[Discord Bot] Database connection already closed or not connected');
+			}
 		} catch (error) {
 			console.warn('[Discord Bot] Error closing database connection:', error.message);
 		}

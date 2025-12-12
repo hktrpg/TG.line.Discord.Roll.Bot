@@ -106,9 +106,9 @@ manager.on('clusterCreate', shard => {
         // Get cluster configuration values
         const totalShards = shard.manager.totalShards;
         const totalClusters = shard.manager.totalClusters;
-        const shardsPerCluster = shard.manager.shardsPerClusters || 
-                                 (totalClusters > 0 ? Math.ceil(totalShards / totalClusters) : 3);
-        
+        const shardsPerCluster = shard.manager.shardsPerClusters ||
+            (totalClusters > 0 ? Math.ceil(totalShards / totalClusters) : 3);
+
         console.log(`[Cluster ${shard.id}] Ready with ${totalShards} total shards. Max cluster: ${totalClusters}. Per cluster: ${shardsPerCluster}`);
 
         if (heartbeatStarted) return;
@@ -156,7 +156,7 @@ manager.on('clusterCreate', shard => {
     shard.on('death', (process) => {
         errorHandler('Death', `Exit code: ${process.exitCode}`);
     });
-    
+
     shard.on('error', (error) => {
         console.error(`[Cluster] Cluster ${shard.id} error:`, error.message || error);
         if (error.stack) console.error(`[Cluster] Stack trace:\n${error.stack}`);
@@ -183,7 +183,7 @@ manager.on("clusterCreate", cluster => {
 
         if (message.respawn === true && message.id !== null && message.id !== undefined) {
             console.log(`[Cluster] Respawning cluster ${message.id}`);
-            
+
             try {
                 const targetCluster = manager.clusters.get(Number(message.id));
                 if (targetCluster) {
@@ -202,7 +202,7 @@ manager.on("clusterCreate", cluster => {
         }
 
         if (message.respawnall === true) {
-     
+
             try {
                 await manager.respawnAll({
                     clusterDelay: 1000 * 60 * 1, // 1 minutes between clusters
@@ -225,7 +225,7 @@ if (agenda) {
         const timestamp = new Date().toISOString();
         const stack = new Error('Daily maintenance stack trace').stack;
         const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
-        
+
         console.error('[Schedule] ========== DAILY MAINTENANCE RESPAWN TRIGGERED ==========');
         console.error(`[Schedule] Timestamp: ${timestamp}`);
         console.error(`[Schedule] Task: dailyDiscordMaintenance`);
@@ -234,7 +234,7 @@ if (agenda) {
         console.error(`[Schedule] Stack Trace:\n${stackLines}`);
         console.error('[Schedule] ==========================================');
         console.log('[Schedule] Running daily Discord maintenance');
-        
+
         try {
             await manager.respawnAll({
                 clusterDelay: 1000 * 60,

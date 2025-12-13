@@ -173,7 +173,7 @@ const rollDiceCommand = async function ({
             }
 
             try {
-                let myNames = await schema.myName.findOneAndRemove({ userID: userid, shortName: mainMsg[2] })
+                let myNames = await schema.myName.findOneAndDelete({ userID: userid, shortName: mainMsg[2] })
                 if (myNames) {
                     rply.text = `移除成功，${myNames}`
                     rply.quotes = true;

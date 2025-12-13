@@ -360,7 +360,7 @@ async function handleDelete(mainMsg, inputStr, userid, rply) {
     }
     try {
         let filterRemove = { cardId: doc._id };
-        await schema.characterCard.findOneAndRemove(filter);
+        await schema.characterCard.findOneAndDelete(filter);
         await schema.characterGpSwitch.deleteMany(filterRemove);
     } catch (error) {
         console.error('[Character] Delete character card error:', error);

@@ -104,10 +104,8 @@ https://line.me/R/ti/p/svMLqy9Mik`
                         }
                     }
                 }
-            }, {
-                safe: true
             })
-            rply.text = (temp && temp.nModified) ? '已移除 ' + name + ' 的先攻值' : '找不到' + name + '的先攻值';
+            rply.text = (temp && temp.modifiedCount) ? '已移除 ' + name + ' 的先攻值' : '找不到' + name + '的先攻值';
             return rply;
         case /(^[.]in$)/i.test(mainMsg[0]) && /^clear$/i.test(mainMsg[1]):
             temp = await schema.init.deleteOne({

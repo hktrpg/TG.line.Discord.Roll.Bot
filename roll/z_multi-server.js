@@ -116,7 +116,7 @@ const rollDiceCommand = async function ({
         }
         case /^exit$/i.test(mainMsg[1]): {
             if (!mainMsg[2] && userrole == 3) {
-                await schema.multiServer.findOneAndRemove({ channelid: channelid }).catch(error => {
+                await schema.multiServer.findOneAndDelete({ channelid: channelid }).catch(error => {
                     console.error('multiserver #101 mongoDB error:', error.name, error.reason)
                     return
                 });
@@ -130,7 +130,7 @@ const rollDiceCommand = async function ({
                 const v = member.members.find(Boolean)
                 const role = channel.permissionsFor(v).has(PermissionsBitField.Flags.ManageChannels)
                 if (!role) return;
-                await schema.multiServer.findOneAndRemove({ channelid: mainMsg[2] }).catch(error => {
+                await schema.multiServer.findOneAndDelete({ channelid: mainMsg[2] }).catch(error => {
                     console.error('multiserver #112 mongoDB error:', error.name, error.reason)
                     return
                 });

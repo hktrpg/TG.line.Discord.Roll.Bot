@@ -119,7 +119,7 @@ const rollDiceCommand = async function ({
                 return rply
             }
             try {
-                let myNames = await schema.roleReact.findOneAndRemove({ groupid: groupid, serial: mainMsg[2] }).catch(error => console.error('role #111 mongoDB error:', error.name, error.reason));
+                let myNames = await schema.roleReact.findOneAndDelete({ groupid: groupid, serial: mainMsg[2] }).catch(error => console.error('role #111 mongoDB error:', error.name, error.reason));
                 if (myNames) {
                     rply.text = `移除成功，#${myNames.serial}\n${myNames.message}`
                     return rply
@@ -239,7 +239,7 @@ rply.text = `輸入資料失敗，
                 return rply
             }
             try {
-                let myNames = await schema.roleReact.findOneAndRemove({ groupid: groupid, serial: mainMsg[2] }).catch(error => console.error('role #111 mongoDB error: ', error.name, error.reason));
+                let myNames = await schema.roleReact.findOneAndDelete({ groupid: groupid, serial: mainMsg[2] }).catch(error => console.error('role #111 mongoDB error: ', error.name, error.reason));
                 if (myNames) {
                     rply.text = `移除成功，#${myNames.serial}\n${myNames.message}`
                     return rply
@@ -519,7 +519,7 @@ function checkroleInvites(inputStr) {
                 return rply
             }
             try {
-                let myNames = await schema.roleInvites.findOneAndRemove({ groupid: groupid, serial: mainMsg[2] })
+                let myNames = await schema.roleInvites.findOneAndDelete({ groupid: groupid, serial: mainMsg[2] })
                 if (myNames) {
                     rply.text = `移除成功，#${myNames.serial}\n${myNames.invitesLink}`
                     return rply

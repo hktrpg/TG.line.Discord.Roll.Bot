@@ -601,7 +601,7 @@ const rollDiceCommand = async function ({
                     return rply;
                 }
                 try {
-                    doc = await schema.allowRolling.findOneAndRemove({
+                    doc = await schema.allowRolling.findOneAndDelete({
                         "id": channelid || groupid
                     });
                 } catch (error) {
@@ -630,7 +630,7 @@ const rollDiceCommand = async function ({
                         }
                     }, {
                         upsert: true,
-                        returnNewDocument: true
+                        returnDocument: 'after'
                     });
                 } catch (error) {
                     console.error('[Admin] Allowrolling error:', error);
@@ -687,7 +687,7 @@ const rollDiceCommand = async function ({
                         }
                     }, {
                         upsert: true,
-                        returnNewDocument: true
+                        returnDocument: 'after'
                     });
                 } catch (error) {
                     console.error('[Admin] Account error:', error);

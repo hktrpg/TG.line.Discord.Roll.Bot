@@ -313,7 +313,7 @@ exp:SAN
                 return rply
             }
             try {
-                await schema.eventList.findOneAndRemove(filter);
+                await schema.eventList.findOneAndDelete(filter);
                 await schema.eventMember.updateOne({
                     userID: userid
                 }, {

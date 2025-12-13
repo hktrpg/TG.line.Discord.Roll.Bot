@@ -145,7 +145,7 @@ const rollDiceCommand = async function ({
                 rply.text = `此骰表ID沒有回應，請檢查是不是正確\nhttps://bcdice.org/systems/\n\n使用例子: .bc use CthulhuTech`
                 return rply;
             }
-            let doc = await schema.bcdiceRegedit.findOneAndUpdate(filter, { trpgId: mainMsg[2] }, { upsert: true, returnDocument: 'after', returnNewDocument: true }).catch(() => null)
+            let doc = await schema.bcdiceRegedit.findOneAndUpdate(filter, { trpgId: mainMsg[2] }, { upsert: true, returnDocument: 'after' }).catch(() => null)
             if (doc) rply.text = `已更新BcDice，現在此頻道正在使用 ${doc.trpgId}
 
             使用說明: \n${help}
@@ -163,7 +163,7 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
-            let doc = await schema.bcdiceRegedit.findOneAndDelete(filter, { returnDocument: true }).catch(error => console.error(error))
+            let doc = await schema.bcdiceRegedit.findOneAndDelete(filter).catch(error => console.error(error))
             if (doc) rply.text = `已刪除BcDice的設定`
             else rply.text = `刪除失敗，請以後再嘗試`
             return rply;

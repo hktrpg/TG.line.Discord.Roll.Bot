@@ -14,16 +14,22 @@ const config = {
     maxRetryInterval: 30_000,  // Maximum retry interval
     maxTotalRetryTime: 300_000, // Maximum total time for all retries (5 minutes)
     restartTime: '30 04 */3 * *',
-    connectTimeout: 180_000,    // 3 minutes (increased for sharding)
-    socketTimeout: 180_000,     // 3 minutes (increased for sharding)
-    poolSize: 200,               // Connection pool size - Optimized for 4K+ groups per shard with high traffic
-    minPoolSize: 8,            // Minimum connection pool size - Maintains baseline performance
-    heartbeatInterval: 15_000,  // Heartbeat detection interval - Increased to reduce load
-    serverSelectionTimeout: 60_000,  // Increased to 60 seconds for better stability with multiple shards
-    maxIdleTimeMS: 90_000,      // Maximum idle time - Increased from 60s to 90s to close idle connections faster
-    bufferCommands: true,     // Enable command buffering to allow operations before connection
-    w: 'majority',            // Write confirmation level
-    retryWrites: true,        // Enable write retries
+    // Timeout settings optimized for local MongoDB
+    connectTimeout: 30_000,     // 30 seconds - Local MongoDB should connect quickly
+    socketTimeout: 60_000,     // 60 seconds - Reduced from 180s for faster failure detection
+    // Each connection uses ~1-2MB RAM, so 80 connections = ~160MB
+    // Reduced from 200 to balance memory (4GB RAM) vs performance (104K guilds)
+    poolSize: 200,                // Max pool size 
+    minPoolSize: 5,              // Min pool size - Lower to save memory, connections will scale up as needed
+    // Heartbeat: Local MongoDB doesn't need frequent checks
+    heartbeatInterval: 30_000,  // 30 seconds - Reduced frequency for local MongoDB (was 15s)
+    // Server selection: Local MongoDB should be fast
+    serverSelectionTimeout: 10_000,  // 10 seconds - Local MongoDB should respond quickly (was 60s)
+    // Idle connection cleanup: Close idle connections faster to save memory
+    maxIdleTimeMS: 30_000,       // 30 seconds - Close idle connections quickly (was 90s)
+    bufferCommands: true,       // Enable command buffering to allow operations before connection
+    w: 1,                        // Write concern: 1 (local MongoDB, no replica set) - Changed from 'majority'
+    retryWrites: true,          // Enable write retries
     autoIndex: process.env.DEBUG  // Enable auto-indexing only in debug mode
     // Note: useNewUrlParser and useUnifiedTopology are removed in Mongoose 6+ (now default behavior)
 };

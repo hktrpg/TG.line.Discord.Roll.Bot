@@ -1638,7 +1638,7 @@ async function getAllshardIds() {
 
 		// WebSocket status mapping - Discord.js status codes to display symbols
 		const statusMap = {
-			0: '✅在線', 1: '⚫隱身', 2: '⚫隱身', 3: '⚠️閒置',
+			0: '✅', 1: '⚫', 2: '⚫', 3: '⚠️',
 			4: '❌', 5: '❌', 6: '❌', 7: '❌', 8: '❌',
 			'-1': '❓' // Unknown status (used for failed/unresponsive clusters)
 		};
@@ -1697,7 +1697,7 @@ async function getAllshardIds() {
 
 				if (isStatus) {
 					// For status display, use warning icon if any shard is not online
-					const hasNonOnline = group.some(status => typeof status === 'string' && !status.includes('✅'));
+					const hasNonOnline = group.some(status => typeof status === 'string' && status !== '✅');
 					const prefix = hasNonOnline ? '❗' : '│';
 					return `${prefix} 　• 群組${range}　${group.join(", ")}`;
 				}
@@ -1710,7 +1710,7 @@ async function getAllshardIds() {
 		const groupedPing = groupArray(formattedPings, groupSize);
 
 		// Statistics summary - count shards displayed as online (excluding unknown status)
-		const onlineCount = formattedStatuses.filter(status => status.includes('✅')).length;
+		const onlineCount = formattedStatuses.filter(status => status === '✅').length;
 
 		// Return formatted statistics display
 		// Format and return the complete statistics display

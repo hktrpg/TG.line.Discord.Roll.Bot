@@ -827,26 +827,41 @@ async function count2() {
 
 		// Use global broadcastEval and group results by cluster
 		const [guildStatsRaw, memberStatsRaw] = await Promise.all([
-			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size })),
-			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) }))
+			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size })).catch(() => []),
+			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) })).catch(() => [])
 		]);
 
 		// Group statistics data by cluster
 		const guildStatsByCluster = new Map();
 		const memberStatsByCluster = new Map();
+		const respondedClusterIds = new Set(); // Track which clusters actually responded
 
-		for (const { clusterId, guildCount } of guildStatsRaw) {
-			if (!guildStatsByCluster.has(clusterId)) {
-				guildStatsByCluster.set(clusterId, []);
+		// Process guild stats
+		if (Array.isArray(guildStatsRaw)) {
+			for (const stat of guildStatsRaw) {
+				if (stat && typeof stat === 'object' && 'clusterId' in stat) {
+					const { clusterId, guildCount } = stat;
+					respondedClusterIds.add(clusterId);
+					if (!guildStatsByCluster.has(clusterId)) {
+						guildStatsByCluster.set(clusterId, []);
+					}
+					guildStatsByCluster.get(clusterId).push(guildCount || 0);
+				}
 			}
-			guildStatsByCluster.get(clusterId).push(guildCount);
 		}
 
-		for (const { clusterId, memberCount } of memberStatsRaw) {
-			if (!memberStatsByCluster.has(clusterId)) {
-				memberStatsByCluster.set(clusterId, []);
+		// Process member stats
+		if (Array.isArray(memberStatsRaw)) {
+			for (const stat of memberStatsRaw) {
+				if (stat && typeof stat === 'object' && 'clusterId' in stat) {
+					const { clusterId, memberCount } = stat;
+					respondedClusterIds.add(clusterId);
+					if (!memberStatsByCluster.has(clusterId)) {
+						memberStatsByCluster.set(clusterId, []);
+					}
+					memberStatsByCluster.get(clusterId).push(memberCount || 0);
+				}
 			}
-			memberStatsByCluster.get(clusterId).push(memberCount);
 		}
 
 		// Calculate totals - directly from all collected data
@@ -866,10 +881,16 @@ async function count2() {
 			}
 		}
 
-		// Calculate number of successful clusters
-		const successfulClusters = guildStatsByCluster.size;
+		// Calculate number of successful clusters - use Set to get unique cluster IDs that responded
+		const successfulClusters = respondedClusterIds.size;
+		const totalClusters = allClusterIds.length;
 
-		const status = successfulClusters === allClusterIds.length ? '✅' : `⚠️${successfulClusters}/${allClusterIds.length}`;
+		// Allow up to 10% cluster failure before showing warning (for resilience)
+		// If 90%+ clusters responded, consider it healthy
+		const responseRate = totalClusters > 0 ? (successfulClusters / totalClusters) : 0;
+		const isHealthy = responseRate >= 0.9 || successfulClusters === totalClusters;
+
+		const status = isHealthy ? '✅' : `⚠️${successfulClusters}/${totalClusters}`;
 		return (`${status} ${totalGuilds}群組📶 ${totalMembers}會員📶`);
 	} catch (error) {
 		console.error(`disocrdbot #617 error: ${error.message}`);

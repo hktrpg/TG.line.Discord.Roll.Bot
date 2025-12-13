@@ -7,7 +7,7 @@ jest.mock('../modules/schema', () => ({
     multiServer: {
         findOneAndUpdate: jest.fn(),
         find: jest.fn(),
-        findOneAndRemove: jest.fn()
+        findOneAndDelete: jest.fn()
     }
 }));
 

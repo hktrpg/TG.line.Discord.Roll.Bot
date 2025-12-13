@@ -25,7 +25,7 @@ jest.mock('../modules/schema.js', () => ({
         findOne: jest.fn(),
         find: jest.fn(),
         findOneAndUpdate: jest.fn(),
-        findOneAndRemove: jest.fn(),
+        findOneAndDelete: jest.fn(),
         updateOne: jest.fn()
     },
     characterGpSwitch: {
@@ -260,7 +260,7 @@ describe('Character Module Tests', () => {
             name: 'TestChar',
             _id: 'testid'
         });
-        schema.characterCard.findOneAndRemove.mockResolvedValue({ ok: 1 });
+        schema.characterCard.findOneAndDelete.mockResolvedValue({ ok: 1 });
         schema.characterGpSwitch.deleteMany.mockResolvedValue({ ok: 1 });
         characterModule.rollDiceCommand.mockResolvedValueOnce({
             type: 'text',
@@ -276,5 +276,30 @@ describe('Character Module Tests', () => {
         expect(result.type).toBe('text');
         expect(result.text).toContain('刪除角色卡成功');
         expect(result.text).toContain('TestChar');
+    });
+
+    test('Test character delete command uses findOneAndDelete (Mongoose v9 compatible)', async () => {
+        const mockCharacter = {
+            name: 'TestChar',
+            _id: 'testid'
+        };
+        schema.characterCard.findOne.mockResolvedValue(mockCharacter);
+        schema.characterCard.findOneAndDelete.mockResolvedValue(mockCharacter);
+        schema.characterGpSwitch.deleteMany.mockResolvedValue({ deletedCount: 1 });
+
+        // Verify that findOneAndDelete is called, not findOneAndRemove
+        await characterModule.rollDiceCommand({
+            mainMsg: ['.char', 'delete', 'TestChar'],
+            inputStr: '.char delete TestChar',
+            userid: 'testuser'
+        });
+
+        expect(schema.characterCard.findOneAndDelete).toHaveBeenCalled();
+        expect(schema.characterCard.findOneAndDelete).toHaveBeenCalledWith(
+            expect.objectContaining({
+                id: 'testuser',
+                name: expect.any(RegExp)
+            })
+        );
     });
 }); 

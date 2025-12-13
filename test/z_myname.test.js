@@ -8,7 +8,7 @@ jest.mock('../modules/schema.js', () => ({
         find: jest.fn(),
         findOne: jest.fn(),
         findOneAndUpdate: jest.fn(),
-        findOneAndRemove: jest.fn(),
+        findOneAndDelete: jest.fn(),
         countDocuments: jest.fn(),
         deleteOne: jest.fn()
     }
@@ -248,7 +248,7 @@ describe('MyName Module Tests', () => {
     });
 
     test('Test delete character by shortName', async () => {
-        schema.myName.findOneAndRemove.mockResolvedValue({
+        schema.myName.findOneAndDelete.mockResolvedValue({
             name: '泉心',
             shortName: '泉'
         });

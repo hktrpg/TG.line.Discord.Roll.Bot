@@ -34,7 +34,7 @@ jest.mock('../modules/schema.js', () => ({
   allowRolling: {
     findOne: jest.fn(),
     findOneAndUpdate: jest.fn(),
-    findOneAndRemove: jest.fn()
+    findOneAndDelete: jest.fn()
   },
   veryImportantPerson: {
     updateOne: jest.fn()

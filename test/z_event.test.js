@@ -8,7 +8,7 @@ jest.mock('../modules/schema.js', () => ({
         find: jest.fn(),
         findOne: jest.fn(),
         updateOne: jest.fn(),
-        findOneAndRemove: jest.fn(),
+        findOneAndDelete: jest.fn(),
         aggregate: jest.fn()
     },
     eventMember: {
@@ -79,7 +79,7 @@ describe('Event Module Tests', () => {
         schema.eventList.find.mockResolvedValue([]);
         schema.eventList.findOne.mockResolvedValue(null);
         schema.eventList.updateOne.mockResolvedValue({});
-        schema.eventList.findOneAndRemove.mockResolvedValue({});
+        schema.eventList.findOneAndDelete.mockResolvedValue({});
         schema.eventList.aggregate.mockResolvedValue([]);
         schema.eventMember.findOne.mockResolvedValue(null);
         schema.eventMember.updateOne.mockResolvedValue({});

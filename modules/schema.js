@@ -7,58 +7,58 @@ const mongoose = require('./db-connector.js').mongoose;
 const { Schema } = mongoose;
 
 // Chat related schemas
-const chatTestSchema = mongoose.model('chattest', {
+const chatTestSchema = mongoose.model('chattest', new mongoose.Schema({
     default: String,
     text: String,
     type: { type: String, index: true }
-});
+}));
 
-const blockSchema = mongoose.model('block', {
+const blockSchema = mongoose.model('block', new mongoose.Schema({
     groupid: { type: String, index: true },
     blockfunction: Array
-});
+}));
 
 // Random answer related schemas
-const randomAnswerSchema = mongoose.model('randomAns', {
+const randomAnswerSchema = mongoose.model('randomAns', new mongoose.Schema({
     groupid: { type: String, index: true },
     randomAnsfunction: Array
-});
+}));
 
-const randomAnswerPersonalSchema = mongoose.model('randomAnsPersonal', {
+const randomAnswerPersonalSchema = mongoose.model('randomAnsPersonal', new mongoose.Schema({
     userid: { type: String, index: true },
     title: String,
     answer: Array,
     serial: { type: Number, index: true }
-});
+}));
 
-const randomAnswerAllGroupSchema = mongoose.model('randomAnsAllgroup', {
+const randomAnswerAllGroupSchema = mongoose.model('randomAnsAllgroup', new mongoose.Schema({
     randomAnsAllgroup: Array
-});
+}));
 
-const randomAnswerServerSchema = mongoose.model('randomAnsServer', {
+const randomAnswerServerSchema = mongoose.model('randomAnsServer', new mongoose.Schema({
     title: { type: String, index: true },
     answer: Array,
     serial: { type: Number, index: true }
-});
+}));
 
 // TRPG related schemas
-const trpgDatabaseSchema = mongoose.model('trpgDatabase', {
+const trpgDatabaseSchema = mongoose.model('trpgDatabase', new mongoose.Schema({
     groupid: { type: String, index: true },
     trpgDatabasefunction: [{
         topic: { type: String, index: true },
         contact: String
     }]
-});
+}));
 
-const trpgDatabaseAllGroupSchema = mongoose.model('trpgDatabaseAllgroup', {
+const trpgDatabaseAllGroupSchema = mongoose.model('trpgDatabaseAllgroup', new mongoose.Schema({
     trpgDatabaseAllgroup: [{
         topic: String,
         contact: String
     }]
-});
+}));
 
 // Group settings schema
-const groupSettingsSchema = mongoose.model('GroupSetting', {
+const groupSettingsSchema = mongoose.model('GroupSetting', new mongoose.Schema({
     groupid: { type: String, index: true },
     togm: Array,
     user: [{
@@ -75,15 +75,15 @@ const groupSettingsSchema = mongoose.model('GroupSetting', {
         Permission: String,
         Abiliy: Array
     }]
-});
+}));
 
-const trpgCommandSchema = mongoose.model('trpgCommand', {
+const trpgCommandSchema = mongoose.model('trpgCommand', new mongoose.Schema({
     groupid: { type: String, index: true },
     trpgCommandfunction: [{
         topic: { type: String, index: true },
         contact: String
     }]
-});
+}));
 
 // Level system schemas
 const trpgLevelSystemSchema = mongoose.model('trpgLevelSystem', new mongoose.Schema({
@@ -135,17 +135,17 @@ const trpgLevelSystemMemberSchema = mongoose.model('trpgLevelSystemMember', new 
     ]
 }));
 
-const trpgDarkRollingSchema = mongoose.model('trpgDarkRolling', {
+const trpgDarkRollingSchema = mongoose.model('trpgDarkRolling', new mongoose.Schema({
     groupid: { type: String, index: true },
     trpgDarkRollingfunction: [{
         userid: { type: String, index: true },
         diyName: String,
         displayname: String
     }]
-});
+}));
 
 // Logging schemas
-const realTimeRollingLogSchema = mongoose.model('RealTimeRollingLog', {
+const realTimeRollingLogSchema = mongoose.model('RealTimeRollingLog', new mongoose.Schema({
     RealTimeRollingLogfunction: {
         StartTime: String,
         LastTimeLog: { type: Date, index: true },
@@ -165,9 +165,9 @@ const realTimeRollingLogSchema = mongoose.model('RealTimeRollingLog', {
         ApiCountRoll: Number,
         ApiCountText: Number
     }
-});
+}));
 
-const rollingLogSchema = mongoose.model('RollingLog', {
+const rollingLogSchema = mongoose.model('RollingLog', new mongoose.Schema({
     RollingLogfunction: {
         LogTime: { type: String, index: true },
         DiscordCountRoll: Number,
@@ -183,7 +183,7 @@ const rollingLogSchema = mongoose.model('RollingLog', {
         PlurkCountRoll: Number,
         PlurkCountText: Number
     }
-});
+}));
 
 // Character and user related schemas
 const veryImportantPersonSchema = mongoose.model('veryImportantPerson', new mongoose.Schema({

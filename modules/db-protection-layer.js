@@ -184,7 +184,8 @@ class DBProtectionLayer extends EventEmitter {
                 throw new Error(`Collection ${collectionName} not available`);
             }
 
-            const results = await schema[collectionName].find(query, null, options);
+            // Use options object directly (Mongoose 9 compatible)
+            const results = await schema[collectionName].find(query, options);
             this.consecutiveFailures = 0; // 重置失敗計數
             return results;
         } catch (error) {

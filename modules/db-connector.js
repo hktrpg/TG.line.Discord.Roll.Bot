@@ -87,8 +87,9 @@ function classifyMongoDBError(error) {
         'Authentication failed',
         'not authorized',
         'Invalid credentials',
-        'MongoServerError: bad auth',
-        'MongoError: bad auth'
+        'MongoServerError: bad auth'
+        // Note: 'MongoError' was replaced by 'MongoServerError' in MongoDB Driver 4.x+
+        // Keeping only MongoServerError for Mongoose 9 compatibility
     ];
 
     // Temporary errors (retry)

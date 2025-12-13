@@ -34,10 +34,24 @@ const config = {
     // Note: useNewUrlParser and useUnifiedTopology are removed in Mongoose 6+ (now default behavior)
 };
 
-if (!config.mongoUrl) {
-    console.error('[db-connector] MongoDB URL is not configured');
-    return;
-}
+// Early exit handler - wrap the entire module in a function to allow early return
+(function() {
+    if (!config.mongoUrl) {
+        console.error('[db-connector] MongoDB URL is not configured');
+        // Export empty object if mongoURL is not configured
+        module.exports = {
+            mongoose: mongoose,
+            connect: async () => { throw new Error('MongoDB URL is not configured'); },
+            checkHealth: () => ({ isConnected: false }),
+            getConnection: () => null,
+            waitForConnection: async () => { throw new Error('MongoDB URL is not configured'); },
+            restart: async () => { throw new Error('MongoDB URL is not configured'); },
+            disconnect: async () => {},
+            withTransaction: async () => { throw new Error('MongoDB URL is not configured'); },
+            connectionEmitter: new EventEmitter()
+        };
+        return;
+    }
 
 // Connection status
 let isConnected = false;
@@ -645,13 +659,14 @@ if (!initialized) {
 
 
 // Export
-module.exports = {
-    mongoose,
-    checkHealth,
-    waitForConnection,
-    restart,
-    connect,    
-    disconnect,
-    withTransaction,
-    connectionEmitter
-};
+    module.exports = {
+        mongoose,
+        checkHealth,
+        waitForConnection,
+        restart,
+        connect,    
+        disconnect,
+        withTransaction,
+        connectionEmitter
+    };
+})();

@@ -178,9 +178,8 @@ describe('Stop Module Tests', () => {
     test('Test show command', async () => {
         records.get.mockResolvedValue([{
             groupid: 'testgroup',
-                blockfunction: ['test1', 'test2']
-            }]);
-        });
+            blockfunction: ['test1', 'test2']
+        }]);
 
         stopModule.rollDiceCommand.mockImplementation(async ({ mainMsg, groupid }) => {
             if (mainMsg[1] === 'show') {
@@ -205,9 +204,8 @@ describe('Stop Module Tests', () => {
     test('Test show command with no keywords', async () => {
         records.get.mockResolvedValue([{
             groupid: 'testgroup',
-                blockfunction: []
-            }]);
-        });
+            blockfunction: []
+        }]);
 
         stopModule.rollDiceCommand.mockResolvedValue({
             type: 'text',

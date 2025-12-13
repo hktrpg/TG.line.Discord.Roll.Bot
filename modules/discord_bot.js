@@ -73,11 +73,11 @@ async function loginWithErrorHandling() {
     });
 
     client.on('shardReconnecting', (shardId) => {
-        console.log(`[Discord Bot] Shard ${shardId} Reconnecting...`);
+        // Shard reconnecting - log removed
     });
 
     client.on('shardResume', (shardId, replayedEvents) => {
-        console.log(`[Discord Bot] Shard ${shardId} Resumed (${replayedEvents} events replayed)`);
+        // Shard resumed - log removed
     });
 
     try {
@@ -3647,9 +3647,13 @@ client.on('shardDisconnect', (event, shardID) => {
 	console.log('[discord_bot] shardDisconnect:', event, shardID)
 });
 
-client.on('shardResume', (replayed, shardID) => console.log(`[discord_bot] Shard ID ${shardID} resumed connection and replayed ${replayed} events.`));
+client.on('shardResume', (replayed, shardID) => {
+    // Shard resumed - log removed
+});
 
-client.on('shardReconnecting', id => console.log(`[discord_bot] Shard with ID ${id} reconnected.`));
+client.on('shardReconnecting', id => {
+    // Shard reconnecting - log removed
+});
 
 
 if (debugMode) process.on('warning', e => {

@@ -170,12 +170,12 @@ const handleEditCommand = async (mainMsg, groupid, response, permissionError, li
     };
 
     try {
-        if (existingCommand) {
+    if (existingCommand) {
             await records.editsetTrpgCommandFunction('trpgCommand', updatedCommand);
-            response.text = `編輯成功: ${mainMsg[2]}\n${newContact}`;
-        } else {
+        response.text = `編輯成功: ${mainMsg[2]}\n${newContact}`;
+    } else {
             await records.pushTrpgCommandFunction('trpgCommand', updatedCommand);
-            response.text = `新增成功: ${mainMsg[2]}\n${newContact}`;
+        response.text = `新增成功: ${mainMsg[2]}\n${newContact}`;
         }
         await updateCommandData();
     } catch (error) {
@@ -199,7 +199,7 @@ const handleDeleteAllCommands = async (groupid, response, permissionError) => {
             try {
                 await records.setTrpgCommandFunction('trpgCommand', entry);
                 await updateCommandData();
-                response.text = '已刪除所有關鍵字';
+            response.text = '已刪除所有關鍵字';
             } catch (error) {
                 console.error('[z_saveCommand] Failed to delete all commands:', error);
                 response.text = '刪除失敗，請稍後再試';
@@ -225,7 +225,7 @@ const handleDeleteSpecificCommand = async (mainMsg, groupid, response, permissio
                 try {
                     await records.setTrpgCommandFunction('trpgCommand', entry);
                     await updateCommandData();
-                    response.text = `刪除成功: ${mainMsg[2]}: ${target.topic} \n ${target.contact}`;
+                response.text = `刪除成功: ${mainMsg[2]}: ${target.topic} \n ${target.contact}`;
                 } catch (error) {
                     console.error('[z_saveCommand] Failed to delete command:', error);
                     response.text = '刪除失敗，請稍後再試';

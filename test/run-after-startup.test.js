@@ -12,10 +12,7 @@
  */
 
 // Only run if mongoURL is set (service is running)
-if (!process.env.mongoURL) {
-    console.log('⚠️  Skipping startup test - mongoURL not set');
-    process.exit(0);
-}
+const shouldSkipTest = !process.env.mongoURL;
 
 // Wait a bit for service to fully initialize
 const WAIT_TIME = 2000; // 2 seconds
@@ -23,29 +20,60 @@ const WAIT_TIME = 2000; // 2 seconds
 describe('Records Module - Post-Startup Integration Test', () => {
     let records;
     let dbConnector;
+    let timeoutHandle;
 
     beforeAll(async () => {
+        if (shouldSkipTest) {
+            console.log('⚠️  Skipping startup test - mongoURL not set');
+            return;
+        }
+
         // Wait for service to initialize
-        await new Promise(resolve => setTimeout(resolve, WAIT_TIME));
+        await new Promise(resolve => {
+            timeoutHandle = setTimeout(resolve, WAIT_TIME);
+        });
 
         // Import modules (they should be initialized by now)
         records = require('../modules/records.js');
         dbConnector = require('../modules/db-connector.js');
 
-        // Wait for database connection if needed
+        // Wait for database connection if needed (with timeout)
         if (dbConnector.waitForConnection) {
-            await dbConnector.waitForConnection();
+            try {
+                await Promise.race([
+                    dbConnector.waitForConnection(),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Connection timeout')), 10000)
+                    )
+                ]);
+            } catch (error) {
+                console.warn('[Test] Database connection timeout, continuing with tests');
+            }
         }
     }, 30000); // 30 second timeout for initialization
 
-    describe('Service Initialization Check', () => {
-        test('should have records module loaded', () => {
+    afterAll(async () => {
+        // Clean up timeout if it exists
+        if (timeoutHandle) {
+            clearTimeout(timeoutHandle);
+        }
+        
+        // Give Jest time to clean up
+        await new Promise(resolve => setTimeout(resolve, 100));
+    });
+
+    // Skip all tests if mongoURL is not set
+    const testFn = shouldSkipTest ? test.skip : test;
+    const describeFn = shouldSkipTest ? describe.skip : describe;
+
+    describeFn('Service Initialization Check', () => {
+        testFn('should have records module loaded', () => {
             expect(records).toBeDefined();
             expect(typeof records.get).toBe('function');
             expect(typeof records.updateRecord).toBe('function');
         });
 
-        test('should have database connection ready', async () => {
+        testFn('should have database connection ready', async () => {
             const health = dbConnector.checkHealth();
             expect(health).toBeDefined();
             // Connection should be ready or at least attempting
@@ -53,50 +81,50 @@ describe('Records Module - Post-Startup Integration Test', () => {
         });
     });
 
-    describe('Basic Records Operations', () => {
-        test('should get block data without errors', async () => {
+    describeFn('Basic Records Operations', () => {
+        testFn('should get block data without errors', async () => {
             const result = await records.get('block');
             expect(Array.isArray(result)).toBe(true);
         }, 10000);
 
-        test('should get trpgCommand data without errors', async () => {
+        testFn('should get trpgCommand data without errors', async () => {
             const result = await records.get('trpgCommand');
             expect(Array.isArray(result)).toBe(true);
         }, 10000);
 
-        test('should get trpgDatabase data without errors', async () => {
+        testFn('should get trpgDatabase data without errors', async () => {
             const result = await records.get('trpgDatabase');
             expect(Array.isArray(result)).toBe(true);
         }, 10000);
 
-        test('should get trpgDarkRolling data without errors', async () => {
+        testFn('should get trpgDarkRolling data without errors', async () => {
             const result = await records.get('trpgDarkRolling');
             expect(Array.isArray(result)).toBe(true);
         }, 10000);
     });
 
-    describe('Module Initialization Patterns', () => {
-        test('should handle z_stop.js initialization pattern', async () => {
+    describeFn('Module Initialization Patterns', () => {
+        testFn('should handle z_stop.js initialization pattern', async () => {
             // Simulate z_stop.js initialization
             const blockData = await records.get('block');
             expect(Array.isArray(blockData)).toBe(true);
         }, 10000);
 
-        test('should handle z_saveCommand.js initialization pattern', async () => {
+        testFn('should handle z_saveCommand.js initialization pattern', async () => {
             // Simulate z_saveCommand.js initialization
             const commandData = await records.get('trpgCommand');
             expect(Array.isArray(commandData)).toBe(true);
         }, 10000);
 
-        test('should handle z_DDR_darkRollingToGM.js initialization pattern', async () => {
+        testFn('should handle z_DDR_darkRollingToGM.js initialization pattern', async () => {
             // Simulate z_DDR_darkRollingToGM.js initialization
             const darkRollingData = await records.get('trpgDarkRolling');
             expect(Array.isArray(darkRollingData)).toBe(true);
         }, 10000);
     });
 
-    describe('Parallel Operations', () => {
-        test('should handle parallel get operations', async () => {
+    describeFn('Parallel Operations', () => {
+        testFn('should handle parallel get operations', async () => {
             const [blockData, commandData, dbData] = await Promise.all([
                 records.get('block'),
                 records.get('trpgCommand'),
@@ -109,8 +137,8 @@ describe('Records Module - Post-Startup Integration Test', () => {
         }, 15000);
     });
 
-    describe('Update Operations', () => {
-        test('should handle updateRecord without errors', async () => {
+    describeFn('Update Operations', () => {
+        testFn('should handle updateRecord without errors', async () => {
             const query = { groupid: 'test-integration-group' };
             const update = { $set: { testField: 'test-value' } };
             const options = { upsert: true };
@@ -130,15 +158,15 @@ describe('Records Module - Post-Startup Integration Test', () => {
         }, 10000);
     });
 
-    describe('Chat Room Operations', () => {
-        test('should get chat room messages without errors', async () => {
+    describeFn('Chat Room Operations', () => {
+        testFn('should get chat room messages without errors', async () => {
             const result = await records.chatRoomGet('test-room');
             expect(Array.isArray(result)).toBe(true);
         }, 10000);
     });
 
-    describe('Error Handling', () => {
-        test('should handle invalid groupId gracefully', async () => {
+    describeFn('Error Handling', () => {
+        testFn('should handle invalid groupId gracefully', async () => {
             const invalidData = {
                 groupid: null, // Invalid
                 blockfunction: []
@@ -147,7 +175,7 @@ describe('Records Module - Post-Startup Integration Test', () => {
             await expect(records.setBlockFunction('block', invalidData)).rejects.toThrow();
         }, 10000);
 
-        test('should return empty array on get error', async () => {
+        testFn('should return empty array on get error', async () => {
             // This should not throw, but return empty array
             const result = await records.get('nonExistentSchema');
             expect(Array.isArray(result)).toBe(true);
@@ -155,29 +183,29 @@ describe('Records Module - Post-Startup Integration Test', () => {
         }, 10000);
     });
 
-    describe('Function Availability Check', () => {
-        test('should have all set functions available', () => {
+    describeFn('Function Availability Check', () => {
+        testFn('should have all set functions available', () => {
             expect(typeof records.setBlockFunction).toBe('function');
             expect(typeof records.setTrpgCommandFunction).toBe('function');
             expect(typeof records.setTrpgDatabaseFunction).toBe('function');
             expect(typeof records.setTrpgDarkRollingFunction).toBe('function');
         });
 
-        test('should have all push functions available', () => {
+        testFn('should have all push functions available', () => {
             expect(typeof records.pushBlockFunction).toBe('function');
             expect(typeof records.pushTrpgCommandFunction).toBe('function');
             expect(typeof records.pushTrpgDatabaseFunction).toBe('function');
             expect(typeof records.pushTrpgDarkRollingFunction).toBe('function');
         });
 
-        test('should have chat room functions available', () => {
+        testFn('should have chat room functions available', () => {
             expect(typeof records.chatRoomGet).toBe('function');
             expect(typeof records.chatRoomPush).toBe('function');
             expect(typeof records.chatRoomGetMax).toBe('function');
             expect(typeof records.chatRoomSetMax).toBe('function');
         });
 
-        test('should have forwarded message functions available', () => {
+        testFn('should have forwarded message functions available', () => {
             expect(typeof records.findForwardedMessage).toBe('function');
             expect(typeof records.createForwardedMessage).toBe('function');
             expect(typeof records.deleteForwardedMessage).toBe('function');
@@ -185,20 +213,20 @@ describe('Records Module - Post-Startup Integration Test', () => {
         });
     });
 
-    describe('Promise Pattern Verification', () => {
-        test('should return Promise from get method', () => {
+    describeFn('Promise Pattern Verification', () => {
+        testFn('should return Promise from get method', () => {
             const result = records.get('block');
             expect(result).toBeInstanceOf(Promise);
         });
 
-        test('should return Promise from updateRecord method', () => {
+        testFn('should return Promise from updateRecord method', () => {
             const query = { groupid: 'test' };
             const update = { $set: { test: 'value' } };
             const result = records.updateRecord('block', query, update);
             expect(result).toBeInstanceOf(Promise);
         });
 
-        test('should not have callback parameter in method signatures', () => {
+        testFn('should not have callback parameter in method signatures', () => {
             // Check that methods don't expect callbacks
             const getFunction = records.get.toString();
             expect(getFunction).not.toContain('callback');

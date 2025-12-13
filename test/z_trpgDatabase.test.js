@@ -199,9 +199,8 @@ describe('TRPG Database Module Tests', () => {
         VIP.viplevelCheckGroup.mockResolvedValue(0);
         records.get.mockResolvedValue([{
             groupid: 'testgroup',
-                trpgDatabasefunction: Array(30).fill({ topic: 'test', contact: 'content' })
-            }]);
-        });
+            trpgDatabasefunction: Array(30).fill({ topic: 'test', contact: 'content' })
+        }]);
 
         trpgDatabaseModule.rollDiceCommand.mockResolvedValue({
             type: 'text',
@@ -221,12 +220,11 @@ describe('TRPG Database Module Tests', () => {
     test('Test db show command', async () => {
         records.get.mockResolvedValue([{
             groupid: 'testgroup',
-                trpgDatabasefunction: [
-                    { topic: 'test1', contact: 'content1' },
-                    { topic: 'test2', contact: 'content2' }
-                ]
-            }]);
-        });
+            trpgDatabasefunction: [
+                { topic: 'test1', contact: 'content1' },
+                { topic: 'test2', contact: 'content2' }
+            ]
+        }]);
 
         trpgDatabaseModule.rollDiceCommand.mockImplementation(async ({ mainMsg, groupid }) => {
             if (mainMsg[1] === 'show') {
@@ -253,9 +251,8 @@ describe('TRPG Database Module Tests', () => {
     test('Test db show command with no entries', async () => {
         records.get.mockResolvedValue([{
             groupid: 'testgroup',
-                trpgDatabasefunction: []
-            }]);
-        });
+            trpgDatabasefunction: []
+        }]);
 
         trpgDatabaseModule.rollDiceCommand.mockResolvedValue({
             type: 'text',

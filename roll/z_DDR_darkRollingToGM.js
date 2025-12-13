@@ -259,7 +259,7 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                         try {
                             await records.setTrpgDarkRollingFunction('trpgDarkRolling', temp);
                             trpgDarkRollingfunction.trpgDarkRollingfunction = await records.get('trpgDarkRolling');
-                            deleted = true;
+                        deleted = true;
                         } catch (error) {
                             console.error('[z_DDR_darkRollingToGM] Failed to delete dark rolling function:', error);
                         }

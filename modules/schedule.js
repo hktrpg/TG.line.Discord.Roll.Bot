@@ -69,7 +69,7 @@ const agenda = new Agenda({
         }
         
         await agenda.start();
-        await agenda.every(restartTime, '0455restartdiscord');
+        await agenda.every(restartTime, 'dailyDiscordMaintenance');
     } catch (error) {
         console.error(`[Schedule] Agenda start error:`, error);
         console.error(`[Schedule] Error stack:`, error.stack);

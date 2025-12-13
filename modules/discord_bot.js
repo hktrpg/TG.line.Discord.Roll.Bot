@@ -1298,30 +1298,77 @@ async function getAllshardIds() {
 		// Check environment variables first for explicit configuration
 		if (process.env.DISCORD_TOTAL_SHARDS) {
 			totalShards = Number.parseInt(process.env.DISCORD_TOTAL_SHARDS, 10);
+			console.log(`[Statistics] Using TOTAL_SHARDS from environment: ${totalShards}`);
 		} else if (process.env.SHARD_COUNT) {
 			totalShards = Number.parseInt(process.env.SHARD_COUNT, 10);
+			console.log(`[Statistics] Using SHARD_COUNT from environment: ${totalShards}`);
 		} else {
 			// Dynamically detect from runtime information
 			try {
 				const info = getInfo();
 				if (info && info.TOTAL_SHARDS) {
 					totalShards = info.TOTAL_SHARDS;
-				} else if (client.cluster && client.cluster.ids) {
-					// Fallback to number of active clusters (may not be accurate for total shards)
-					totalShards = client.cluster.ids.size;
+					console.log(`[Statistics] Detected TOTAL_SHARDS from getInfo(): ${totalShards}`);
+				} else {
+					// Try to calculate from cluster manager
+					if (client.cluster && client.cluster.manager) {
+						// Access manager.totalShards if available
+						const managerTotalShards = client.cluster.manager.totalShards;
+						if (managerTotalShards && managerTotalShards !== 'auto') {
+							totalShards = Number.parseInt(managerTotalShards, 10);
+							console.log(`[Statistics] Using totalShards from cluster manager: ${totalShards}`);
+						}
+					}
+					
+					// If still no shard count, try to calculate from cluster data
+					if (!totalShards && client.cluster && client.cluster.clusters) {
+						// Sum up all shards from all clusters
+						let calculatedTotal = 0;
+						for (const cluster of client.cluster.clusters.values()) {
+							if (cluster.shards) {
+								calculatedTotal += cluster.shards.size || 0;
+							}
+						}
+						if (calculatedTotal > 0) {
+							totalShards = calculatedTotal;
+							console.log(`[Statistics] Calculated totalShards from cluster data: ${totalShards}`);
+						}
+					}
+					
+					// Last resort: use cluster count * estimated shards per cluster (NOT recommended)
+					if (!totalShards && client.cluster && client.cluster.ids) {
+						const clusterCount = client.cluster.ids.size;
+						// Estimate 3 shards per cluster (matches core-Discord.js default)
+						totalShards = clusterCount * 3;
+						console.warn(`[Statistics] WARNING: Using estimated totalShards (${clusterCount} clusters * 3): ${totalShards}. This may be inaccurate!`);
+					}
 				}
 			} catch (error) {
-				console.warn('Unable to retrieve shard information:', error.message);
+				console.warn('[Statistics] Unable to retrieve shard information:', error.message);
 			}
-		}
-
-		// Final fallback: use cluster count if still no shard count
-		if (!totalShards && client.cluster && client.cluster.ids) {
-			totalShards = client.cluster.ids.size;
 		}
 
 		// Ensure we have at least 1 shard as absolute minimum
 		totalShards = totalShards || 1;
+		console.log(`[Statistics] Final totalShards: ${totalShards}`);
+
+		// Calculate shards per cluster dynamically
+		let shardsPerCluster;
+		const totalClustersForCalc = client.cluster?.ids?.size || 1;
+		try {
+			const info = getInfo();
+			if (info && info.SHARD_LIST) {
+				// If we can get shard list, calculate from actual data
+				shardsPerCluster = Math.ceil(totalShards / totalClustersForCalc);
+			} else {
+				// Fallback: calculate from cluster manager if available
+				shardsPerCluster = Math.ceil(totalShards / totalClustersForCalc);
+			}
+		} catch {
+			// Final fallback: use 3 as default (matches core-Discord.js config)
+			shardsPerCluster = Math.ceil(totalShards / totalClustersForCalc) || 3;
+		}
+		console.log(`[Statistics] Calculated shardsPerCluster: ${shardsPerCluster} (totalShards: ${totalShards}, totalClusters: ${totalClustersForCalc})`);
 
 		// Generate array of all shard IDs (0 to totalShards-1)
 		const allShardIdsArray = Array.from({ length: totalShards }, (_, i) => i);
@@ -1536,9 +1583,19 @@ async function getAllshardIds() {
 							allPings.push(wsPing);
 						}
 					} else {
-						// If unable to get shard IDs, assume 2 shards per cluster (based on configuration)
-						const assumedShardsPerCluster = 2;
-						for (let i = 0; i < assumedShardsPerCluster; i++) {
+						// If unable to get shard IDs, use dynamically calculated shards per cluster
+						// Calculate shards for this specific cluster based on total shards and cluster distribution
+						const clusterIndex = clusterId;
+						const clusterCountForCalc = client.cluster?.ids?.size || 1;
+						const calculatedShardsPerCluster = Math.ceil(totalShards / clusterCountForCalc);
+						
+						// For the last cluster, it might have fewer shards
+						const isLastCluster = clusterIndex === clusterCountForCalc - 1;
+						const shardsForThisCluster = isLastCluster 
+							? totalShards - (clusterIndex * calculatedShardsPerCluster)
+							: calculatedShardsPerCluster;
+						
+						for (let i = 0; i < shardsForThisCluster; i++) {
 							allStatuses.push(wsStatus !== undefined ? wsStatus : -1);
 							allPings.push(wsPing !== undefined ? wsPing : -1);
 						}
@@ -1548,11 +1605,21 @@ async function getAllshardIds() {
 
 			// Check if any expected clusters completely failed to respond, fill with default values
 			const expectedClusters = client.cluster?.ids ? [...client.cluster.ids.keys()] : [];
+			const expectedClusterCount = expectedClusters.length || 1;
 			for (const expectedClusterId of expectedClusters) {
 				if (!processedClusters.has(expectedClusterId)) {
 					console.warn(`Cluster ${expectedClusterId} completely failed to respond, filling with default values`);
-					const assumedShardsPerCluster = 2;
-					for (let i = 0; i < assumedShardsPerCluster; i++) {
+					// Calculate shards for this specific cluster dynamically
+					const clusterIndex = expectedClusterId;
+					const calculatedShardsPerCluster = Math.ceil(totalShards / expectedClusterCount);
+					
+					// For the last cluster, it might have fewer shards
+					const isLastCluster = clusterIndex === expectedClusterCount - 1;
+					const shardsForThisCluster = isLastCluster 
+						? totalShards - (clusterIndex * calculatedShardsPerCluster)
+						: calculatedShardsPerCluster;
+					
+					for (let i = 0; i < shardsForThisCluster; i++) {
 						allStatuses.push(-1); // -1 indicates cluster did not respond
 						allPings.push(-1);
 					}
@@ -1561,10 +1628,9 @@ async function getAllshardIds() {
 
 		} catch (error) {
 			console.warn('Major error occurred while collecting shard status, using default values:', error.message);
-			// If entire process fails, populate with default values
-			const assumedShardsPerCluster = 2;
-			const totalClusters = client.cluster?.ids?.size || Math.ceil(totalShards / assumedShardsPerCluster);
-			for (let i = 0; i < totalClusters * assumedShardsPerCluster; i++) {
+			// If entire process fails, populate with default values using dynamic calculation
+			// Fill with unknown status for all shards
+			for (let i = 0; i < totalShards; i++) {
 				allStatuses.push(-1);
 				allPings.push(-1);
 			}

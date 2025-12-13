@@ -650,7 +650,7 @@ module.exports = {
     checkHealth,
     waitForConnection,
     restart,
-    connect,
+    connect,    
     disconnect,
     withTransaction,
     connectionEmitter

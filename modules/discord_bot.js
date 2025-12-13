@@ -758,14 +758,6 @@ async function count() {
 			})
 		]);
 
-		// Debug: Log detailed collection results
-		console.log(`[Statistics] Collected ${guildStatsRaw.length} guild entries and ${memberStatsRaw.length} member entries`);
-		if (guildStatsRaw.length > 0) {
-			console.log(`[Statistics] Sample guild data:`, guildStatsRaw.slice(0, 3));
-		}
-		if (memberStatsRaw.length > 0) {
-			console.log(`[Statistics] Sample member data:`, memberStatsRaw.slice(0, 3));
-		}
 
 		// Calculate totals directly from broadcastEval results
 		// Each entry is { clusterId: X, guildCount: Y } from one cluster

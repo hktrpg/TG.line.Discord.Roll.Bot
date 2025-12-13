@@ -87,11 +87,7 @@ const databaseOperations = {
      */
     async getGroupDatabase() {
         try {
-            const database = await new Promise((resolve) => {
-                records.get('trpgDatabase', (msgs) => {
-                    resolve(msgs);
-                });
-            });
+            const database = await records.get('trpgDatabase');
             return database;
         } catch (error) {
             console.error('Get group database error:', error);
@@ -104,11 +100,7 @@ const databaseOperations = {
      */
     async getGlobalDatabase() {
         try {
-            const database = await new Promise((resolve) => {
-                records.get('trpgDatabaseAllgroup', (msgs) => {
-                    resolve(msgs);
-                });
-            });
+            const database = await records.get('trpgDatabaseAllgroup');
             return database;
         } catch (error) {
             console.error('Get global database error:', error);
@@ -126,11 +118,7 @@ const databaseOperations = {
 
             if (groupData) {
                 groupData.trpgDatabasefunction = [];
-                await new Promise((resolve) => {
-                    records.setTrpgDatabaseFunction('trpgDatabase', groupData, () => {
-                        resolve();
-                    });
-                });
+                await records.setTrpgDatabaseFunction('trpgDatabase', groupData);
             }
         } catch (error) {
             console.error('Delete all group data error:', error);
@@ -147,11 +135,7 @@ const databaseOperations = {
 
             if (groupData && index >= 0 && index < groupData.trpgDatabasefunction.length) {
                 groupData.trpgDatabasefunction.splice(index, 1);
-                await new Promise((resolve) => {
-                    records.setTrpgDatabaseFunction('trpgDatabase', groupData, () => {
-                        resolve();
-                    });
-                });
+                await records.setTrpgDatabaseFunction('trpgDatabase', groupData);
             }
         } catch (error) {
             console.error('Delete group data by index error:', error);
@@ -564,7 +548,7 @@ const rollDiceCommand = async function ({
             const newEntry = createDatabaseEntry(groupid, mainMsg[2], content);
 
             // 保存到數據庫
-            records.pushTrpgDatabaseFunction('trpgDatabase', newEntry, () => { });
+            await records.pushTrpgDatabaseFunction('trpgDatabase', newEntry);
 
             // 獲取當前索引
             const currentIndex = (groupData?.trpgDatabasefunction?.length || 0) + 1;
@@ -759,7 +743,7 @@ const rollDiceCommand = async function ({
             const newEntry = createGlobalDatabaseEntry(mainMsg[2], content);
 
             // 保存到數據庫
-            records.pushTrpgDatabaseAllGroup('trpgDatabaseAllgroup', newEntry, () => { });
+            await records.pushTrpgDatabaseAllGroup('trpgDatabaseAllgroup', newEntry);
 
             // 獲取當前索引
             const allItems = database.reduce((acc, group) => {

@@ -184,7 +184,7 @@ class Records extends EventEmitter {
         }
     }
 
-    async updateRecord(databaseName, query, update, options, callback) {
+    async updateRecord(databaseName, query, update, options = {}) {
         try {
             // 🔒 Sanitize groupId if present in query
             if (query && query.groupid) {
@@ -192,8 +192,7 @@ class Records extends EventEmitter {
                     query.groupid = InputValidator.sanitizeGroupId(query.groupid);
                 } catch (error) {
                     console.error(`[Records] [SECURITY] Invalid groupId:`, error.message);
-                    callback(null);
-                    return;
+                    throw error;
                 }
             }
             
@@ -204,8 +203,7 @@ class Records extends EventEmitter {
                 }
             } catch (error) {
                 console.error(`[Records] [SECURITY] Suspicious query object:`, error.message);
-                callback(null);
-                return;
+                throw error;
             }
             
             // Validate input data if schema exists
@@ -225,41 +223,41 @@ class Records extends EventEmitter {
                 cache.set(cacheKey, document);
             }
 
-            callback(document);
+            return document;
         } catch (error) {
             console.error(`[Records] Database operation failed for ${databaseName}:`, error);
-            callback(null);
+            throw error;
         }
     }
 
     // Group block function operations
-    setBlockFunction(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { blockfunction: data.blockfunction } }, { upsert: true }, callback);
+    async setBlockFunction(databaseName, data) {
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { blockfunction: data.blockfunction } }, { upsert: true });
     }
 
-    pushBlockFunction(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { blockfunction: data.blockfunction } }, { new: true, upsert: true }, callback);
+    async pushBlockFunction(databaseName, data) {
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { blockfunction: data.blockfunction } }, { new: true, upsert: true });
     }
 
     // Random answer operations
-    pushRandomAnswerFunction(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { randomAnsfunction: data.randomAnsfunction } }, { new: true, upsert: true }, callback);
+    async pushRandomAnswerFunction(databaseName, data) {
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { randomAnsfunction: data.randomAnsfunction } }, { new: true, upsert: true });
     }
 
-    setRandomAnswerFunction(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { randomAnsfunction: data.randomAnsfunction } }, { upsert: true }, callback);
+    async setRandomAnswerFunction(databaseName, data) {
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { randomAnsfunction: data.randomAnsfunction } }, { upsert: true });
     }
 
-    pushRandomAnswerAllGroup(databaseName, data, callback) {
-        this.updateRecord(databaseName, {}, { $push: { randomAnsAllgroup: data.randomAnsAllgroup } }, { new: true, upsert: true }, callback);
+    async pushRandomAnswerAllGroup(databaseName, data) {
+        return await this.updateRecord(databaseName, {}, { $push: { randomAnsAllgroup: data.randomAnsAllgroup } }, { new: true, upsert: true });
     }
 
-    setRandomAnswerAllGroup(databaseName, data, callback) {
-        this.updateRecord(databaseName, {}, { $set: { randomAnsAllgroup: data.randomAnsAllgroup } }, { upsert: true }, callback);
+    async setRandomAnswerAllGroup(databaseName, data) {
+        return await this.updateRecord(databaseName, {}, { $set: { randomAnsAllgroup: data.randomAnsAllgroup } }, { upsert: true });
     }
 
     // Generic get operation
-    async get(target, callback) {
+    async get(target) {
         try {
             // Check database connection before attempting operation
             const dbConnector = require('./db-connector.js');
@@ -320,177 +318,151 @@ class Records extends EventEmitter {
                     if (readyState === 0 || readyState === 3 || readyState === 4) {
                         console.warn(`[Records] MongoDB connection not ready for ${target} (state: ${readyState}), returning empty array`);
                     }
-                    callback([]);
-                    return;
+                    return [];
                 }
             }
 
             if (schema[target]) {
                 const documents = await schema[target].find({});
-                callback(documents);
+                return documents;
             } else {
-                callback([]);
+                return [];
             }
         } catch (error) {
             console.error(`[Records] Failed to get documents from ${target}:`, error);
-            callback([]);
+            return [];
         }
     }
 
     // TRPG database operations
-    async pushTrpgDatabaseFunction(databaseName, data, callback) {
+    async pushTrpgDatabaseFunction(databaseName, data) {
         try {
             const query = { groupid: data.groupid };
             const update = { $push: { trpgDatabasefunction: data.trpgDatabasefunction[0] } };
             const options = { new: true, upsert: true };
 
-            const result = await this.updateRecord(databaseName, query, update, options, (doc) => {
-                if (doc) {
-                    callback(doc);
-                } else {
-                    callback(null);
-                }
-            });
+            return await this.updateRecord(databaseName, query, update, options);
         } catch (error) {
             console.error(`[Records] Failed to push trpgDatabaseFunction:`, error);
-            callback(null);
+            throw error;
         }
     }
 
-    async setTrpgDatabaseFunction(databaseName, data, callback) {
+    async setTrpgDatabaseFunction(databaseName, data) {
         try {
             const query = { groupid: data.groupid };
             const update = { $set: { trpgDatabasefunction: data.trpgDatabasefunction } };
             const options = { new: true, upsert: true };
 
-            const result = await this.updateRecord(databaseName, query, update, options, (doc) => {
-                if (doc) {
-                    callback(doc);
-                } else {
-                    callback(null);
-                }
-            });
+            return await this.updateRecord(databaseName, query, update, options);
         } catch (error) {
             console.error(`[Records] Failed to set trpgDatabaseFunction:`, error);
-            callback(null);
+            throw error;
         }
     }
 
-    async pushTrpgDatabaseAllGroup(databaseName, data, callback) {
+    async pushTrpgDatabaseAllGroup(databaseName, data) {
         try {
             const query = { groupid: data.groupid };
             const update = { $push: { trpgDatabaseAllgroup: data.trpgDatabaseAllgroup[0] } };
             const options = { new: true, upsert: true };
 
-            const result = await this.updateRecord(databaseName, query, update, options, (doc) => {
-                if (doc) {
-                    callback(doc);
-                } else {
-                    callback(null);
-                }
-            });
+            return await this.updateRecord(databaseName, query, update, options);
         } catch (error) {
             console.error(`[Records] Failed to push trpgDatabaseAllGroup:`, error);
-            callback(null);
+            throw error;
         }
     }
 
-    async setTrpgDatabaseAllGroup(databaseName, data, callback) {
+    async setTrpgDatabaseAllGroup(databaseName, data) {
         try {
             const query = { groupid: data.groupid };
             const update = { $set: { trpgDatabaseAllgroup: data.trpgDatabaseAllgroup } };
             const options = { new: true, upsert: true };
 
-            const result = await this.updateRecord(databaseName, query, update, options, (doc) => {
-                if (doc) {
-                    callback(doc);
-                } else {
-                    callback(null);
-                }
-            });
+            return await this.updateRecord(databaseName, query, update, options);
         } catch (error) {
             console.error(`[Records] Failed to set trpgDatabaseAllGroup:`, error);
-            callback(null);
+            throw error;
         }
     }
 
     // Group settings operations
-    pushGroupSettingFunction(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { GroupSettingfunction: data.GroupSettingfunction } }, { new: true, upsert: true }, callback);
+    async pushGroupSettingFunction(databaseName, data) {
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { GroupSettingfunction: data.GroupSettingfunction } }, { new: true, upsert: true });
     }
 
-    setGroupSettingFunction(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { GroupSettingfunction: data.GroupSettingfunction } }, { upsert: true }, callback);
+    async setGroupSettingFunction(databaseName, data) {
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { GroupSettingfunction: data.GroupSettingfunction } }, { upsert: true });
     }
 
     // TRPG command operations
-    pushTrpgCommandFunction(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { trpgCommandfunction: data.trpgCommandfunction } }, { new: true, upsert: true }, callback);
+    async pushTrpgCommandFunction(databaseName, data) {
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { trpgCommandfunction: data.trpgCommandfunction } }, { new: true, upsert: true });
     }
 
-    setTrpgCommandFunction(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { trpgCommandfunction: data.trpgCommandfunction } }, { upsert: true }, callback);
+    async setTrpgCommandFunction(databaseName, data) {
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { trpgCommandfunction: data.trpgCommandfunction } }, { upsert: true });
     }
 
-    editsetTrpgCommandFunction(databaseName, data, callback) {
+    async editsetTrpgCommandFunction(databaseName, data) {
         const topicRegex = new RegExp(`^${data.trpgCommandfunction[0]?.topic}$`, 'i');
-        this.updateRecord(databaseName, { groupid: data.groupid, "trpgCommandfunction.topic": topicRegex }, { $set: { "trpgCommandfunction.$.contact": data.trpgCommandfunction[0].contact } }, { new: true, upsert: false }, callback);
+        return await this.updateRecord(databaseName, { groupid: data.groupid, "trpgCommandfunction.topic": topicRegex }, { $set: { "trpgCommandfunction.$.contact": data.trpgCommandfunction[0].contact } }, { new: true, upsert: false });
     }
 
     // TRPG dark rolling operations
-    pushTrpgDarkRollingFunction(databaseName, data, callback) {
+    async pushTrpgDarkRollingFunction(databaseName, data) {
         const entry = Array.isArray(data.trpgDarkRollingfunction)
             ? data.trpgDarkRollingfunction[0]
             : data.trpgDarkRollingfunction;
-        this.updateRecord(
+        return await this.updateRecord(
             databaseName,
             { groupid: data.groupid },
             { $push: { trpgDarkRollingfunction: entry } },
-            { new: true, upsert: true },
-            callback
+            { new: true, upsert: true }
         );
     }
 
-    setTrpgDarkRollingFunction(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { trpgDarkRollingfunction: data.trpgDarkRollingfunction } }, { upsert: true }, callback);
+    async setTrpgDarkRollingFunction(databaseName, data) {
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { trpgDarkRollingfunction: data.trpgDarkRollingfunction } }, { upsert: true });
     }
 
     // TRPG level system operations
-    pushTrpgLevelSystemFunction(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { trpgLevelSystemfunction: data.trpgLevelSystemfunction } }, { new: true, upsert: true }, callback);
+    async pushTrpgLevelSystemFunction(databaseName, data) {
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { trpgLevelSystemfunction: data.trpgLevelSystemfunction } }, { new: true, upsert: true });
     }
 
-    setTrpgLevelSystemFunctionLevelUpWord(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { LevelUpWord: data.LevelUpWord } }, { upsert: true, setDefaultsOnInsert: true }, callback);
+    async setTrpgLevelSystemFunctionLevelUpWord(databaseName, data) {
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { LevelUpWord: data.LevelUpWord } }, { upsert: true, setDefaultsOnInsert: true });
     }
 
-    setTrpgLevelSystemFunctionRankWord(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { RankWord: data.RankWord } }, { upsert: true, setDefaultsOnInsert: true }, callback);
+    async setTrpgLevelSystemFunctionRankWord(databaseName, data) {
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { RankWord: data.RankWord } }, { upsert: true, setDefaultsOnInsert: true });
     }
 
-    setTrpgLevelSystemFunctionConfig(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { Switch: data.Switch, Hidden: data.Hidden } }, { upsert: true, setDefaultsOnInsert: true }, callback);
+    async setTrpgLevelSystemFunctionConfig(databaseName, data) {
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { Switch: data.Switch, Hidden: data.Hidden } }, { upsert: true, setDefaultsOnInsert: true });
     }
 
-    setTrpgLevelSystemFunctionNewUser(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { trpgLevelSystemfunction: data.trpgLevelSystemfunction } }, { upsert: true }, callback);
+    async setTrpgLevelSystemFunctionNewUser(databaseName, data) {
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { trpgLevelSystemfunction: data.trpgLevelSystemfunction } }, { upsert: true });
     }
 
-    setTrpgLevelSystemFunctionTitleWord(databaseName, data, callback) {
-        this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { Title: data.Title } }, { upsert: true, setDefaultsOnInsert: true }, callback);
+    async setTrpgLevelSystemFunctionTitleWord(databaseName, data) {
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $set: { Title: data.Title } }, { upsert: true, setDefaultsOnInsert: true });
     }
 
-    setTrpgLevelSystemFunctionExpUp(databaseName, groupData, levelData, callback) {
-        this.updateRecord(databaseName, { groupid: groupData.groupid }, { $set: { trpgLevelSystemfunction: levelData } }, {}, callback);
+    async setTrpgLevelSystemFunctionExpUp(databaseName, groupData, levelData) {
+        return await this.updateRecord(databaseName, { groupid: groupData.groupid }, { $set: { trpgLevelSystemfunction: levelData } }, {});
     }
 
-    maxTrpgLevelSystemFunctionExpUp(databaseName, userId, exp, level, groupData, levelData, callback) {
-        this.updateRecord(databaseName, { groupid: groupData.groupid, 'trpgLevelSystemfunction.userid': userId }, { $max: { 'trpgLevelSystemfunction.$.EXP': exp, 'trpgLevelSystemfunction.$.Level': level } }, {}, callback);
+    async maxTrpgLevelSystemFunctionExpUp(databaseName, userId, exp, level, groupData, levelData) {
+        return await this.updateRecord(databaseName, { groupid: groupData.groupid, 'trpgLevelSystemfunction.userid': userId }, { $max: { 'trpgLevelSystemfunction.$.EXP': exp, 'trpgLevelSystemfunction.$.Level': level } }, {});
     }
 
     // Logging operations
-    setTrpgSaveLogFunctionRealTime(databaseName, data, callback) {
-        this.updateRecord(databaseName, {}, {
+    async setTrpgSaveLogFunctionRealTime(databaseName, data) {
+        return await this.updateRecord(databaseName, {}, {
             $setOnInsert: { "RealTimeRollingLogfunction.StartTime": data.StartTime },
             $set: { "RealTimeRollingLogfunction.LogTime": data.LogTime, "RealTimeRollingLogfunction.LastTimeLog": data.LastTimeLog },
             $max: {
@@ -505,11 +477,11 @@ class Records extends EventEmitter {
                 "RealTimeRollingLogfunction.WWWCountRoll": data.WWWCountRoll,
                 "RealTimeRollingLogfunction.WWWCountText": data.WWWCountText
             }
-        }, { upsert: true, setDefaultsOnInsert: true }, callback);
+        }, { upsert: true, setDefaultsOnInsert: true });
     }
 
-    maxTrpgSaveLogFunction(databaseName, data, callback) {
-        this.updateRecord(databaseName, { "RollingLogfunction.LogTime": { '$gte': data.start, '$lte': data.end } }, {
+    async maxTrpgSaveLogFunction(databaseName, data) {
+        return await this.updateRecord(databaseName, { "RollingLogfunction.LogTime": { '$gte': data.start, '$lte': data.end } }, {
             $set: { "RollingLogfunction.LogTime": data.LogTime },
             $max: {
                 "RollingLogfunction.DiscordCountRoll": data.DiscordCountRoll,
@@ -523,7 +495,7 @@ class Records extends EventEmitter {
                 "RollingLogfunction.WWWCountRoll": data.WWWCountRoll,
                 "RollingLogfunction.WWWCountText": data.WWWCountText
             }
-        }, { upsert: true }, callback);
+        }, { upsert: true });
     }
 
     // Chat room operations
@@ -577,14 +549,13 @@ class Records extends EventEmitter {
         }
     }
 
-    async chatRoomGet(roomNumber, callback) {
+    async chatRoomGet(roomNumber) {
         try {
             // Check cache first
             const cacheKey = `chatRoom:${roomNumber}`;
             const cachedMessages = cache.get(cacheKey);
             if (cachedMessages) {
-                callback(cachedMessages);
-                return;
+                return cachedMessages;
             }
 
             // Always return messages in chronological order with a deterministic tiebreaker
@@ -595,10 +566,10 @@ class Records extends EventEmitter {
             // Update cache
             cache.set(cacheKey, messages);
 
-            callback(messages);
+            return messages;
         } catch (error) {
             console.error('[Records] Chat room get failed:', error);
-            callback([]);
+            return [];
         }
     }
 

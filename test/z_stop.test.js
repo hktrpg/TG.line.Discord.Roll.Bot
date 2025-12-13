@@ -153,14 +153,12 @@ describe('Stop Module Tests', () => {
 
     test('Test add command with limit reached', async () => {
         VIP.viplevelCheckGroup.mockResolvedValue(0);
-        records.get.mockImplementation((type, callback) => {
-            callback([{
-                _doc: {
-                    groupid: 'testgroup',
-                    blockfunction: Array(30).fill('test')
-                }
-            }]);
-        });
+        records.get.mockResolvedValue([{
+            _doc: {
+                groupid: 'testgroup',
+                blockfunction: Array(30).fill('test')
+            }
+        }]);
 
         stopModule.rollDiceCommand.mockResolvedValue({
             type: 'text',
@@ -178,9 +176,8 @@ describe('Stop Module Tests', () => {
     });
 
     test('Test show command', async () => {
-        records.get.mockImplementation((type, callback) => {
-            callback([{
-                groupid: 'testgroup',
+        records.get.mockResolvedValue([{
+            groupid: 'testgroup',
                 blockfunction: ['test1', 'test2']
             }]);
         });
@@ -206,9 +203,8 @@ describe('Stop Module Tests', () => {
     });
 
     test('Test show command with no keywords', async () => {
-        records.get.mockImplementation((type, callback) => {
-            callback([{
-                groupid: 'testgroup',
+        records.get.mockResolvedValue([{
+            groupid: 'testgroup',
                 blockfunction: []
             }]);
         });

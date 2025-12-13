@@ -11,9 +11,15 @@ const VIP = require('../modules/veryImportantPerson');
 
 let trpgCommandData = {};
 
-records.get('trpgCommand', (msgs) => {
-    trpgCommandData.commands = msgs;
-});
+// Initialize data asynchronously
+(async () => {
+    try {
+        trpgCommandData.commands = await records.get('trpgCommand');
+    } catch (error) {
+        console.error('[z_saveCommand] Failed to initialize trpgCommand data:', error);
+        trpgCommandData.commands = [];
+    }
+})();
 
 const FUNCTION_LIMIT = [30, 200, 200, 300, 300, 300, 300, 300];
 
@@ -77,16 +83,16 @@ const rollDiceCommand = async ({ inputStr, mainMsg, groupid, userrole }) => {
             return response;
 
         case /^\.cmd$/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && !/^(add|edit|del|show)$/i.test(mainMsg[2]):
-            return handleAddCommand(inputStr, mainMsg, groupid, response, permissionError, limit);
+            return await handleAddCommand(inputStr, mainMsg, groupid, response, permissionError, limit);
 
         case /^\.cmd$/i.test(mainMsg[0]) && /^edit$/i.test(mainMsg[1]) && !/^(add|edit|del|show)$/i.test(mainMsg[2]):
-            return handleEditCommand(mainMsg, groupid, response, permissionError, limit);
+            return await handleEditCommand(mainMsg, groupid, response, permissionError, limit);
 
         case /^\.cmd$/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
-            return handleDeleteAllCommands(groupid, response, permissionError);
+            return await handleDeleteAllCommands(groupid, response, permissionError);
 
         case /^\.cmd$/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
-            return handleDeleteSpecificCommand(mainMsg, groupid, response, permissionError);
+            return await handleDeleteSpecificCommand(mainMsg, groupid, response, permissionError);
 
         case /^\.cmd$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             return handleShowCommands(groupid, response);
@@ -99,7 +105,7 @@ const rollDiceCommand = async ({ inputStr, mainMsg, groupid, userrole }) => {
     }
 }
 
-const handleAddCommand = (inputStr, mainMsg, groupid, response, permissionError, limit) => {
+const handleAddCommand = async (inputStr, mainMsg, groupid, response, permissionError, limit) => {
     if (!mainMsg[2]) response.text += ' 沒有標題.\n\n';
     if (!mainMsg[3]) response.text += ' 沒有擲骰指令\n格式為\n.cmd add (關鍵字) (指令)\n';
     if (mainMsg[3] && mainMsg[3].toLowerCase() === ".cmd") response.text += '指令不可以儲存.cmd\n\n';
@@ -125,15 +131,20 @@ const handleAddCommand = (inputStr, mainMsg, groupid, response, permissionError,
         }]
     };
 
-    records.pushTrpgCommandFunction('trpgCommand', newCommand, () => {
-        updateCommandData();
-    });
+    try {
+        await records.pushTrpgCommandFunction('trpgCommand', newCommand);
+        await updateCommandData();
+    } catch (error) {
+        console.error('[z_saveCommand] Failed to push command:', error);
+        response.text = '新增失敗，請稍後再試';
+        return response;
+    }
 
     response.text = `新增成功: 可使用.cmd \n${mainMsg[2]}\n${newCommand.trpgCommandfunction[0].contact}`;
     return response;
 }
 
-const handleEditCommand = (mainMsg, groupid, response, permissionError, limit) => {
+const handleEditCommand = async (mainMsg, groupid, response, permissionError, limit) => {
     if (!mainMsg[2]) response.text += '沒有標題。\n\n';
     if (mainMsg.length < 4) response.text += '沒有擲骰指令\n格式為\n.cmd edit (關鍵字) (指令)\n\n\n';
     if (mainMsg[3] && mainMsg[3].toLowerCase() === ".cmd") response.text += '指令不可以儲存.cmd。\n\n';
@@ -158,22 +169,25 @@ const handleEditCommand = (mainMsg, groupid, response, permissionError, limit) =
         }]
     };
 
-    if (existingCommand) {
-        records.editsetTrpgCommandFunction('trpgCommand', updatedCommand, () => {
-            updateCommandData();
-        });
-        response.text = `編輯成功: ${mainMsg[2]}\n${newContact}`;
-    } else {
-        records.pushTrpgCommandFunction('trpgCommand', updatedCommand, () => {
-            updateCommandData();
-        });
-        response.text = `新增成功: ${mainMsg[2]}\n${newContact}`;
+    try {
+        if (existingCommand) {
+            await records.editsetTrpgCommandFunction('trpgCommand', updatedCommand);
+            response.text = `編輯成功: ${mainMsg[2]}\n${newContact}`;
+        } else {
+            await records.pushTrpgCommandFunction('trpgCommand', updatedCommand);
+            response.text = `新增成功: ${mainMsg[2]}\n${newContact}`;
+        }
+        await updateCommandData();
+    } catch (error) {
+        console.error('[z_saveCommand] Failed to edit/push command:', error);
+        response.text = '操作失敗，請稍後再試';
+        return response;
     }
 
     return response;
 }
 
-const handleDeleteAllCommands = (groupid, response, permissionError) => {
+const handleDeleteAllCommands = async (groupid, response, permissionError) => {
     if (permissionError) {
         response.text = permissionError;
         return response;
@@ -182,16 +196,20 @@ const handleDeleteAllCommands = (groupid, response, permissionError) => {
     for (const entry of trpgCommandData.commands) {
         if (entry.groupid === groupid) {
             entry.trpgCommandfunction = [];
-            records.setTrpgCommandFunction('trpgCommand', entry, () => {
-                updateCommandData();
-            });
-            response.text = '已刪除所有關鍵字';
+            try {
+                await records.setTrpgCommandFunction('trpgCommand', entry);
+                await updateCommandData();
+                response.text = '已刪除所有關鍵字';
+            } catch (error) {
+                console.error('[z_saveCommand] Failed to delete all commands:', error);
+                response.text = '刪除失敗，請稍後再試';
+            }
         }
     }
     return response;
 }
 
-const handleDeleteSpecificCommand = (mainMsg, groupid, response, permissionError) => {
+const handleDeleteSpecificCommand = async (mainMsg, groupid, response, permissionError) => {
     if (!mainMsg[2]) response.text += '沒有關鍵字. ';
     if (response.text || permissionError) {
         response.text += permissionError;
@@ -204,10 +222,14 @@ const handleDeleteSpecificCommand = (mainMsg, groupid, response, permissionError
             if (index >= 0 && index < entry.trpgCommandfunction.length) {
                 const target = entry.trpgCommandfunction[index]; // get target before deletion
                 entry.trpgCommandfunction.splice(index, 1);
-                records.setTrpgCommandFunction('trpgCommand', entry, () => {
-                    updateCommandData();
-                });
-                response.text = `刪除成功: ${mainMsg[2]}: ${target.topic} \n ${target.contact}`;
+                try {
+                    await records.setTrpgCommandFunction('trpgCommand', entry);
+                    await updateCommandData();
+                    response.text = `刪除成功: ${mainMsg[2]}: ${target.topic} \n ${target.contact}`;
+                } catch (error) {
+                    console.error('[z_saveCommand] Failed to delete command:', error);
+                    response.text = '刪除失敗，請稍後再試';
+                }
             } else {
                 response.text = '沒有相關關鍵字. \n請使用.cmd show 顯示列表\n\n';
             }
@@ -301,10 +323,12 @@ const findCommandByTopic = (topic, groupid) => {
     return null;
 }
 
-const updateCommandData = () => {
-    records.get('trpgCommand', (msgs) => {
-        trpgCommandData.commands = msgs;
-    });
+const updateCommandData = async () => {
+    try {
+        trpgCommandData.commands = await records.get('trpgCommand');
+    } catch (error) {
+        console.error('[z_saveCommand] Failed to update command data:', error);
+    }
 }
 
 const discordCommand = [

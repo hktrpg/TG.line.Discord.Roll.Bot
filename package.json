@@ -11,6 +11,9 @@
   "scripts": {
     "start": "node index.js",
     "test": "jest",
+    "test:records": "jest test/records-integration.test.js",
+    "test:startup": "jest test/run-after-startup.test.js",
+    "test:all": "jest test/records-integration.test.js test/run-after-startup.test.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },

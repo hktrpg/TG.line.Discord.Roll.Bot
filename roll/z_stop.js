@@ -4,9 +4,16 @@ if (!process.env.mongoURL) {
 }
 let save = {};
 const records = require('../modules/records.js');
-records.get('block', (msgs) => {
-    save.save = msgs
-})
+
+// Initialize data asynchronously
+(async () => {
+    try {
+        save.save = await records.get('block');
+    } catch (error) {
+        console.error('[z_stop] Failed to initialize block data:', error);
+        save.save = [];
+    }
+})();
 const checkTools = require('../modules/check.js');
 const VIP = require('../modules/veryImportantPerson');
 const FUNCTION_LIMIT = [30, 200, 200, 300, 300, 300, 300, 300];
@@ -100,12 +107,14 @@ const rollDiceCommand = async function ({
                 groupid: groupid,
                 blockfunction: mainMsg[2]
             }
-            records.pushBlockFunction('block', temp, () => {
-                records.get('block', (msgs) => {
-                    save.save = msgs
-                })
-            })
-            rply.text = '新增成功: ' + mainMsg[2]
+            try {
+                await records.pushBlockFunction('block', temp);
+                save.save = await records.get('block');
+                rply.text = '新增成功: ' + mainMsg[2];
+            } catch (error) {
+                console.error('[z_stop] Failed to push block function:', error);
+                rply.text = '新增失敗，請稍後再試';
+            }
 
             return rply;
         }
@@ -124,12 +133,14 @@ const rollDiceCommand = async function ({
                 if (save.save[i].groupid == groupid) {
                     let temp = save.save[i]
                     temp.blockfunction = []
-                    records.set('block', temp, () => {
-                        records.get('block', (msgs) => {
-                            save.save = msgs
-                        })
-                    })
-                    rply.text = '刪除所有關鍵字'
+                    try {
+                        await records.setBlockFunction('block', temp);
+                        save.save = await records.get('block');
+                        rply.text = '刪除所有關鍵字';
+                    } catch (error) {
+                        console.error('[z_stop] Failed to delete all block functions:', error);
+                        rply.text = '刪除失敗，請稍後再試';
+                    }
                 }
             }
             return rply;
@@ -149,21 +160,25 @@ const rollDiceCommand = async function ({
                 if (save.save[i].groupid == groupid && mainMsg[2] < save.save[i].blockfunction.length && mainMsg[2] >= 0) {
                     let temp = save.save[i]
                     temp.blockfunction.splice(mainMsg[2], 1)
-                    records.set('block', temp, () => {
-                        records.get('block', (msgs) => {
-                            save.save = msgs
-                        })
-                    })
-
+                    try {
+                        await records.setBlockFunction('block', temp);
+                        save.save = await records.get('block');
+                        rply.text = '刪除成功: ' + mainMsg[2];
+                    } catch (error) {
+                        console.error('[z_stop] Failed to delete block function:', error);
+                        rply.text = '刪除失敗，請稍後再試';
+                    }
                 }
-                rply.text = '刪除成功: ' + mainMsg[2]
             }
             return rply;
 
         case /^show$/i.test(mainMsg[1]): {
-            records.get('block', (msgs) => {
-                save.save = msgs
-            })
+            try {
+                save.save = await records.get('block');
+            } catch (error) {
+                console.error('[z_stop] Failed to get block data:', error);
+                save.save = [];
+            }
 
             rply.text = checkTools.permissionErrMsg({
                 flag : checkTools.flag.ChkChannel,

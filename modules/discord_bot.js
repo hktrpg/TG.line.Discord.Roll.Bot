@@ -881,27 +881,102 @@ async function checkShardHealth() {
     }
 
     try {
-        // 獲取總 shard 數量
-        const totalShards = client.cluster.ids.size;
+        // 獲取總 shard 數量 - 使用與統計函數相同的邏輯
+        const { getInfo } = require('discord-hybrid-sharding');
+        let totalShards;
+
+        // 動態檢測運行時資訊
+        try {
+            const info = getInfo();
+            if (info && info.TOTAL_SHARDS) {
+                totalShards = info.TOTAL_SHARDS;
+                console.log(`[ShardFix] Detected TOTAL_SHARDS from getInfo(): ${totalShards}`);
+            } else {
+                // 嘗試從 cluster manager 獲取
+                if (client.cluster && client.cluster.manager) {
+                    const managerTotalShards = client.cluster.manager.totalShards;
+                    if (managerTotalShards && managerTotalShards !== 'auto') {
+                        totalShards = Number.parseInt(managerTotalShards, 10);
+                        console.log(`[ShardFix] Using totalShards from cluster manager: ${totalShards}`);
+                    }
+                }
+
+                // 如果還是沒有 shard 數量，嘗試從 cluster 資料計算
+                if (!totalShards && client.cluster && client.cluster.clusters) {
+                    let calculatedTotal = 0;
+                    for (const cluster of client.cluster.clusters.values()) {
+                        if (cluster.shards) {
+                            calculatedTotal += cluster.shards.size || 0;
+                        }
+                    }
+                    if (calculatedTotal > 0) {
+                        totalShards = calculatedTotal;
+                        console.log(`[ShardFix] Calculated totalShards from cluster data: ${totalShards}`);
+                    }
+                }
+
+                // 最後手段：使用 cluster 數量 * 預估每 cluster shard 數
+                if (!totalShards && client.cluster && client.cluster.ids) {
+                    const clusterCount = client.cluster.ids.size;
+                    totalShards = clusterCount * 3; // 預估 3 shards per cluster
+                    console.warn(`[ShardFix] WARNING: Using estimated totalShards (${clusterCount} clusters * 3): ${totalShards}. This may be inaccurate!`);
+                }
+            }
+        } catch (error) {
+            console.warn('[ShardFix] Unable to retrieve shard information:', error.message);
+        }
+
+        // 確保有合理的預設值
+        totalShards = totalShards || 1;
+        console.log(`[ShardFix] Final totalShards for health check: ${totalShards}`);
+
         const shardHealthResults = [];
 
         console.log(`[ShardFix] Checking health for ${totalShards} shards across ${client.cluster.ids.size} clusters`);
 
+        // 計算每cluster的shard數量（使用與core-Discord.js相同的邏輯）
+        const clusterCount = client.cluster.ids.size;
+        const shardsPerCluster = clusterCount > 0 ? Math.ceil(totalShards / clusterCount) : 3;
+
+        console.log(`[ShardFix] Using shardsPerCluster: ${shardsPerCluster} (${totalShards} shards / ${clusterCount} clusters)`);
+
         // 使用 broadcastEval 來檢查所有 clusters 的 shard 狀態
-        const clusterResults = await client.cluster.broadcastEval((c) => {
+        const clusterResults = await client.cluster.broadcastEval((c, context) => {
             // 檢查 cluster 對象的可用屬性
+            const { totalShards, shardsPerCluster } = context;
 
             const results = [];
+            const clusterId = c.cluster?.id || 0;
 
             try {
-                // 方法1: 通過 c.info.SHARD_LIST (如果存在)
-                if (c.info && c.info.SHARD_LIST) {
-                    console.log(`[ShardFix] Cluster ${c.cluster?.id} using SHARD_LIST:`, c.info.SHARD_LIST);
+                // 動態計算此 cluster 負責的 shards
+                const startShard = clusterId * shardsPerCluster;
+                const endShard = Math.min((clusterId + 1) * shardsPerCluster, totalShards);
+                const assignedShards = [];
+                for (let i = startShard; i < endShard; i++) {
+                    assignedShards.push(i);
+                }
 
-                    for (const shardId of c.info.SHARD_LIST) {
+                console.log(`[ShardFix] Cluster ${clusterId} assigned shards:`, assignedShards);
+
+                // 方法1: 通過 c.info.SHARD_LIST (如果存在且匹配計算的shards)
+                if (c.info && c.info.SHARD_LIST && Array.isArray(c.info.SHARD_LIST)) {
+                    console.log(`[ShardFix] Cluster ${clusterId} using SHARD_LIST:`, c.info.SHARD_LIST);
+
+                    // 檢查SHARD_LIST是否與計算的shards匹配，如果不匹配則使用計算的
+                    const shardListMatches = c.info.SHARD_LIST.length === assignedShards.length &&
+                        c.info.SHARD_LIST.every((shardId, index) => shardId === assignedShards[index]);
+
+                    const shardsToCheck = shardListMatches ? c.info.SHARD_LIST : assignedShards;
+
+                    if (!shardListMatches) {
+                        console.warn(`[ShardFix] Cluster ${clusterId} SHARD_LIST doesn't match calculated shards, using calculated:`, assignedShards);
+                    }
+
+                    for (const shardId of shardsToCheck) {
                         const shard = c.client?.ws?.shards?.get(shardId);
                         results.push({
-                            clusterId: c.cluster?.id || 0,
+                            clusterId: clusterId,
                             shardId: shardId,
                             status: shard?.status || 'unknown',
                             ping: shard?.ping || -1,
@@ -912,35 +987,51 @@ async function checkShardHealth() {
                 }
                 // 方法2: 通過 c.client.ws.shards 直接獲取所有 shards
                 else if (c.client?.ws?.shards) {
-                    console.log(`[ShardFix] Cluster ${c.cluster?.id} using client.ws.shards`);
+                    console.log(`[ShardFix] Cluster ${clusterId} using client.ws.shards`);
 
-                    for (const [shardId, shard] of c.client.ws.shards) {
+                    // 只檢查分配給此cluster的shards
+                    for (const shardId of assignedShards) {
+                        const shard = c.client.ws.shards.get(shardId);
+                        if (shard) {
+                            results.push({
+                                clusterId: clusterId,
+                                shardId: Number(shardId),
+                                status: shard.status || 'unknown',
+                                ping: shard.ping || -1,
+                                ready: !!shard.readyTimestamp,
+                                responsive: (shard.status === 'ready') || !!shard.readyTimestamp
+                            });
+                        } else {
+                            // 如果shard不存在，標記為unknown
+                            results.push({
+                                clusterId: clusterId,
+                                shardId: shardId,
+                                status: 'unknown',
+                                ping: -1,
+                                ready: false,
+                                responsive: false
+                            });
+                        }
+                    }
+                }
+                // 方法3: 如果都沒有，使用計算的shard分配
+                else {
+                    console.warn(`[ShardFix] Cluster ${clusterId} has no shard access, using calculated shards:`, assignedShards);
+                    for (const shardId of assignedShards) {
                         results.push({
-                            clusterId: c.cluster?.id || 0,
-                            shardId: Number(shardId),
-                            status: shard.status || 'unknown',
-                            ping: shard.ping || -1,
-                            ready: !!shard.readyTimestamp,
-                            responsive: (shard.status === 'ready') || !!shard.readyTimestamp
+                            clusterId: clusterId,
+                            shardId: shardId,
+                            status: 'assumed_healthy', // 假設配置正確時是健康的
+                            ping: -1,
+                            ready: true,
+                            responsive: true
                         });
                     }
                 }
-                // 方法3: 如果都沒有，嘗試創建一個假設的 shard 0
-                else {
-                    console.warn(`[ShardFix] Cluster ${c.cluster?.id} has no shard access, assuming shard 0`);
-                    results.push({
-                        clusterId: c.cluster?.id || 0,
-                        shardId: 0,
-                        status: 'assumed_healthy', // 假設單 shard 設置是健康的
-                        ping: -1,
-                        ready: true,
-                        responsive: true
-                    });
-                }
             } catch (error) {
-                console.error(`[ShardFix] Error in cluster ${c.cluster?.id}:`, error.message);
+                console.error(`[ShardFix] Error in cluster ${clusterId}:`, error.message);
                 results.push({
-                    clusterId: c.cluster?.id || -1,
+                    clusterId: clusterId,
                     shardId: -1,
                     status: 'error',
                     ping: -1,
@@ -949,9 +1040,9 @@ async function checkShardHealth() {
                 });
             }
 
-            console.log(`[ShardFix] Cluster ${c.cluster?.id} returning ${results.length} shard results`);
+            console.log(`[ShardFix] Cluster ${clusterId} returning ${results.length} shard results`);
             return results;
-        }).catch((error) => {
+        }, { context: { totalShards, shardsPerCluster } }).catch((error) => {
             console.error('[ShardFix] broadcastEval failed:', error.message);
             return [];
         });
@@ -1771,57 +1862,48 @@ async function getAllshardIds() {
 		let totalShards;
 		let totalClusters = client.cluster?.ids?.size || 0;
 
-		// Check environment variables first for explicit configuration
-		if (process.env.DISCORD_TOTAL_SHARDS) {
-			totalShards = Number.parseInt(process.env.DISCORD_TOTAL_SHARDS, 10);
-			console.log(`[Statistics] Using TOTAL_SHARDS from environment: ${totalShards}`);
-		} else if (process.env.SHARD_COUNT) {
-			totalShards = Number.parseInt(process.env.SHARD_COUNT, 10);
-			console.log(`[Statistics] Using SHARD_COUNT from environment: ${totalShards}`);
-		} else {
-			// Dynamically detect from runtime information
-			try {
-				const info = getInfo();
-				if (info && info.TOTAL_SHARDS) {
-					totalShards = info.TOTAL_SHARDS;
-					console.log(`[Statistics] Detected TOTAL_SHARDS from getInfo(): ${totalShards}`);
-				} else {
-					// Try to calculate from cluster manager
-					if (client.cluster && client.cluster.manager) {
-						// Access manager.totalShards if available
-						const managerTotalShards = client.cluster.manager.totalShards;
-						if (managerTotalShards && managerTotalShards !== 'auto') {
-							totalShards = Number.parseInt(managerTotalShards, 10);
-							console.log(`[Statistics] Using totalShards from cluster manager: ${totalShards}`);
-						}
-					}
-					
-					// If still no shard count, try to calculate from cluster data
-					if (!totalShards && client.cluster && client.cluster.clusters) {
-						// Sum up all shards from all clusters
-						let calculatedTotal = 0;
-						for (const cluster of client.cluster.clusters.values()) {
-							if (cluster.shards) {
-								calculatedTotal += cluster.shards.size || 0;
-							}
-						}
-						if (calculatedTotal > 0) {
-							totalShards = calculatedTotal;
-							console.log(`[Statistics] Calculated totalShards from cluster data: ${totalShards}`);
-						}
-					}
-					
-					// Last resort: use cluster count * estimated shards per cluster (NOT recommended)
-					if (!totalShards && client.cluster && client.cluster.ids) {
-						const clusterCount = client.cluster.ids.size;
-						// Estimate 3 shards per cluster (matches core-Discord.js default)
-						totalShards = clusterCount * 3;
-						console.warn(`[Statistics] WARNING: Using estimated totalShards (${clusterCount} clusters * 3): ${totalShards}. This may be inaccurate!`);
+		// Dynamically detect from runtime information
+		try {
+			const info = getInfo();
+			if (info && info.TOTAL_SHARDS) {
+				totalShards = info.TOTAL_SHARDS;
+				console.log(`[Statistics] Detected TOTAL_SHARDS from getInfo(): ${totalShards}`);
+			} else {
+				// Try to calculate from cluster manager
+				if (client.cluster && client.cluster.manager) {
+					// Access manager.totalShards if available
+					const managerTotalShards = client.cluster.manager.totalShards;
+					if (managerTotalShards && managerTotalShards !== 'auto') {
+						totalShards = Number.parseInt(managerTotalShards, 10);
+						console.log(`[Statistics] Using totalShards from cluster manager: ${totalShards}`);
 					}
 				}
-			} catch (error) {
-				console.warn('[Statistics] Unable to retrieve shard information:', error.message);
+
+				// If still no shard count, try to calculate from cluster data
+				if (!totalShards && client.cluster && client.cluster.clusters) {
+					// Sum up all shards from all clusters
+					let calculatedTotal = 0;
+					for (const cluster of client.cluster.clusters.values()) {
+						if (cluster.shards) {
+							calculatedTotal += cluster.shards.size || 0;
+						}
+					}
+					if (calculatedTotal > 0) {
+						totalShards = calculatedTotal;
+						console.log(`[Statistics] Calculated totalShards from cluster data: ${totalShards}`);
+					}
+				}
+
+				// Last resort: use cluster count * estimated shards per cluster (NOT recommended)
+				if (!totalShards && client.cluster && client.cluster.ids) {
+					const clusterCount = client.cluster.ids.size;
+					// Estimate 3 shards per cluster (matches core-Discord.js default)
+					totalShards = clusterCount * 3;
+					console.warn(`[Statistics] WARNING: Using estimated totalShards (${clusterCount} clusters * 3): ${totalShards}. This may be inaccurate!`);
+				}
 			}
+		} catch (error) {
+			console.warn('[Statistics] Unable to retrieve shard information:', error.message);
 		}
 
 		// Ensure we have at least 1 shard as absolute minimum

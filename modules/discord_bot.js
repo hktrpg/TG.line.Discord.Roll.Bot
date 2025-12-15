@@ -43,13 +43,72 @@ new AutoResharderClusterClient(client.cluster, {
     sendDataIntervalMS: 60e3,
     // OPTIONAL: Default is a valid function for discord.js Client's
     sendDataFunction: (cluster) => {
-        return {
-            clusterId: cluster.id,
-            shardData: cluster.info.SHARD_LIST.map(shardId => ({
-                shardId,
-                guildCount: cluster.client.guilds.cache.filter(g => g.shardId === shardId).size
-            }))
+        try {
+            // Validate cluster object structure
+            if (!cluster || typeof cluster.id !== 'number') {
+                console.error('[AutoResharder] Invalid cluster object - returning safe defaults');
+                return { clusterId: -1, shardData: [] };
+            }
+
+            if (!cluster.info || !Array.isArray(cluster.info.SHARD_LIST)) {
+                console.error('[AutoResharder] Invalid cluster info or SHARD_LIST - returning empty shardData');
+                return { clusterId: cluster.id, shardData: [] };
+            }
+
+            if (!cluster.client || !cluster.client.guilds || !cluster.client.guilds.cache) {
+                console.error('[AutoResharder] Invalid cluster client guilds cache - returning empty shardData');
+                return { clusterId: cluster.id, shardData: [] };
+            }
+
+            const shardData = cluster.info.SHARD_LIST.map(shardId => {
+                try {
+                    const guilds = cluster.client.guilds.cache.filter(g => g.shardId === shardId);
+                    // Use .size for Collection, fallback to .length for arrays
+                    const guildCount = guilds.size !== undefined ? guilds.size : (guilds.length || 0);
+                    return {
+                        shardId: shardId,
+                        guildCount: guildCount
+                    };
+                } catch (error) {
+                    console.error(`[AutoResharder] Error processing shard ${shardId}:`, error.message);
+                    return {
+                        shardId: shardId,
+                        guildCount: 0
+                    };
+                }
+            });
+
+            return {
+                clusterId: cluster.id,
+                shardData: shardData
+            };
+        } catch (error) {
+            console.error('[AutoResharder] sendDataFunction error:', error.message);
+            return {
+                clusterId: cluster?.id || -1,
+                shardData: []
+            };
         }
+    }
+});
+
+// Global error handler for AutoResharder and cluster-related promise rejections
+process.on('unhandledRejection', (reason) => {
+    const error = reason instanceof Error ? reason : new Error(String(reason));
+
+    // Check if this is an AutoResharderClusterClient error
+    if (error.message && error.message.includes('NO CHILD/MASTER EXISTS OR SUPPLIED CLUSTER_MANAGER_MODE IS INCORRECT')) {
+        // Use the dedicated diagnostics function
+        logAutoResharderDiagnostics(error, 'Unhandled Rejection');
+
+        // Don't crash the process, just log the error
+        return;
+    }
+
+    // Handle other unhandled rejections normally
+    console.error('[Discord Bot] Unhandled Promise Rejection:', error.message);
+    if (error.stack) {
+        console.error('[Discord Bot] Stack trace:', error.stack);
     }
 });
 
@@ -72,11 +131,11 @@ async function loginWithErrorHandling() {
         console.warn(`[Discord Bot] Shard ${shardId} Disconnected:`, event);
     });
 
-    client.on('shardReconnecting', (shardId) => {
+    client.on('shardReconnecting', () => {
         // Shard reconnecting - log removed
     });
 
-    client.on('shardResume', (shardId, replayedEvents) => {
+    client.on('shardResume', () => {
         // Shard resumed - log removed
     });
 
@@ -639,6 +698,36 @@ function __privateMsg({ trigger, mainMsg, inputStr }) {
 
 
 
+// Function to identify which cluster failed based on error and responding clusters
+function identifyFailedCluster(error, respondingClusters = [], totalClustersOverride = null) {
+	try {
+		// Try to extract cluster ID from error message
+		const clusterIdMatch = error.message?.match(/ClusterId:\s*(\d+)/);
+		if (clusterIdMatch) {
+			return Number.parseInt(clusterIdMatch[1], 10);
+		}
+
+		// If we have responding clusters info, find which one is missing
+		if (Array.isArray(respondingClusters) && respondingClusters.length > 0) {
+			const totalClusters = totalClustersOverride || client.cluster?.ids?.size || 0;
+			const allClusterIds = Array.from({ length: totalClusters }, (_, i) => i);
+			const missingClusters = allClusterIds.filter(id => !respondingClusters.includes(id));
+
+			if (missingClusters.length === 1) {
+				return missingClusters[0];
+			} else if (missingClusters.length > 1) {
+				console.warn(`[Statistics] Multiple clusters may have failed: ${missingClusters.join(', ')}`);
+				return missingClusters[0]; // Return first failed cluster
+			}
+		}
+
+		return null; // Could not identify specific failed cluster
+	} catch (parseError) {
+		console.warn('[Statistics] Error identifying failed cluster:', parseError.message);
+		return null;
+	}
+}
+
 // Enhanced cluster diagnostics function for CLUSTERING_NO_CHILD_EXISTS errors
 function logClusterDiagnostics(error, context = '') {
 	if (!error || !error.message || !error.message.includes('CLUSTERING_NO_CHILD_EXISTS')) {
@@ -719,6 +808,62 @@ function getClusterHealthReport() {
 	return report;
 }
 
+// AutoResharder diagnostics function for NO CHILD/MASTER EXISTS errors
+function logAutoResharderDiagnostics(error, context = '') {
+	if (!error || !error.message || !error.message.includes('NO CHILD/MASTER EXISTS OR SUPPLIED CLUSTER_MANAGER_MODE IS INCORRECT')) {
+		return;
+	}
+
+	const timestamp = new Date().toISOString();
+	const clusterId = client.cluster?.id || 'unknown';
+	const shardList = client.cluster?.info?.SHARD_LIST || [];
+
+	const diagnostics = {
+		timestamp,
+		context,
+		error: error.message,
+		clusterId,
+		shardList,
+		clusterState: {
+			totalClusters: client.cluster?.ids?.size || 0,
+			availableClusterIds: [...(client.cluster?.ids?.keys() || [])],
+			activeClusters: 0,
+			readyClusters: 0,
+			clusterDetails: []
+		},
+		processInfo: {
+			pid: process.pid,
+			uptime: Math.floor(process.uptime()),
+			memoryUsage: process.memoryUsage(),
+		},
+		possibleCauses: [
+			'Cluster manager not properly initialized',
+			'Cluster client disconnected from manager',
+			'Invalid cluster manager mode configuration',
+			'Race condition during cluster startup/shutdown',
+			'AutoResharder trying to access cluster before ready'
+		]
+	};
+
+	// Collect detailed cluster information
+	if (client.cluster) {
+		const clusters = client.cluster.clusters;
+		diagnostics.clusterState.clusterDetails = [...clusters.values()].map(cluster => ({
+			id: cluster.id,
+			ready: cluster.ready,
+			alive: cluster.alive,
+			lastHeartbeat: cluster.lastHeartbeat || null,
+			shards: cluster.shards?.size || 0,
+			uptime: cluster.ready ? Math.floor((Date.now() - cluster.readyAt) / 1000) : 0
+		}));
+
+		diagnostics.clusterState.activeClusters = diagnostics.clusterState.clusterDetails.filter(c => c.alive).length;
+		diagnostics.clusterState.readyClusters = diagnostics.clusterState.clusterDetails.filter(c => c.ready).length;
+	}
+
+	console.error(`[${timestamp}] 🔄 AutoResharder Diagnostics [${context}] - Cluster ${clusterId} (Shards: ${shardList.join(', ')}):`, JSON.stringify(diagnostics, null, 2));
+}
+
 // Export for external access (can be called from admin commands)
 globalThis.getClusterHealthReport = getClusterHealthReport;
 
@@ -747,13 +892,51 @@ async function count() {
 
 		// Force use standard broadcastEval - safeBroadcastEval has issues with cluster filtering
 		console.log('[Statistics] Using standard broadcastEval for all clusters');
+
+		// Try to identify which clusters are responding
+		let respondingClusters = [];
+		let actualTotalClusters = client.cluster?.ids?.size || 1;
+		try {
+			respondingClusters = await client.cluster.broadcastEval(c => c.cluster.id).catch(() => []);
+			console.log(`[Statistics] Found ${respondingClusters.length}/${actualTotalClusters} responding clusters`);
+		} catch (error) {
+			console.warn('[Statistics] Could not identify responding clusters:', error.message);
+		}
+
 		const [guildStatsRaw, memberStatsRaw] = await Promise.all([
-			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size })).catch(error => {
+			client.cluster.broadcastEval(c => {
+				try {
+					return { clusterId: c.cluster.id, guildCount: c.guilds.cache.size };
+				} catch (error) {
+					console.error(`[Statistics] Guild stats error in cluster ${c.cluster?.id}:`, error.message);
+					return { clusterId: c.cluster?.id || -1, guildCount: 0, error: error.message };
+				}
+			}).catch(error => {
 				console.warn('[Statistics] Guild stats collection failed:', error.message);
+				// Try to identify which cluster failed
+				const failedClusterId = identifyFailedCluster(error, respondingClusters, actualTotalClusters);
+				if (failedClusterId !== null) {
+					console.warn(`[Statistics] Likely failed cluster for guild stats: ${failedClusterId}`);
+				}
 				return []; // Return empty array instead of throwing
 			}),
-			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) })).catch(error => {
+			client.cluster.broadcastEval(c => {
+				try {
+					return {
+						clusterId: c.cluster.id,
+						memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0)
+					};
+				} catch (error) {
+					console.error(`[Statistics] Member stats error in cluster ${c.cluster?.id}:`, error.message);
+					return { clusterId: c.cluster?.id || -1, memberCount: 0, error: error.message };
+				}
+			}).catch(error => {
 				console.warn('[Statistics] Member stats collection failed:', error.message);
+				// Try to identify which cluster failed
+				const failedClusterId = identifyFailedCluster(error, respondingClusters, actualTotalClusters);
+				if (failedClusterId !== null) {
+					console.warn(`[Statistics] Likely failed cluster for member stats: ${failedClusterId}`);
+				}
 				return []; // Return empty array instead of throwing
 			})
 		]);
@@ -818,9 +1001,50 @@ async function count2() {
 		}
 
 		// Use global broadcastEval and group results by cluster
+		// Try to identify which clusters are responding
+		let respondingClusters2 = [];
+		let actualTotalClusters2 = client.cluster?.ids?.size || 1;
+		try {
+			respondingClusters2 = await client.cluster.broadcastEval(c => c.cluster.id).catch(() => []);
+			console.log(`[Statistics] count2() - Found ${respondingClusters2.length}/${actualTotalClusters2} responding clusters`);
+		} catch (error) {
+			console.warn('[Statistics] count2() - Could not identify responding clusters:', error.message);
+		}
+
 		const [guildStatsRaw, memberStatsRaw] = await Promise.all([
-			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size })).catch(() => []),
-			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) })).catch(() => [])
+			client.cluster.broadcastEval(c => {
+				try {
+					return { clusterId: c.cluster.id, guildCount: c.guilds.cache.size };
+				} catch (error) {
+					console.error(`[Statistics] count2() - Guild stats error in cluster ${c.cluster?.id}:`, error.message);
+					return { clusterId: c.cluster?.id || -1, guildCount: 0, error: error.message };
+				}
+			}).catch(error => {
+				console.warn('[Statistics] count2() - Guild stats collection failed:', error.message);
+				const failedClusterId = identifyFailedCluster(error, respondingClusters2, actualTotalClusters2);
+				if (failedClusterId !== null) {
+					console.warn(`[Statistics] count2() - Likely failed cluster for guild stats: ${failedClusterId}`);
+				}
+				return [];
+			}),
+			client.cluster.broadcastEval(c => {
+				try {
+					return {
+						clusterId: c.cluster.id,
+						memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0)
+					};
+				} catch (error) {
+					console.error(`[Statistics] count2() - Member stats error in cluster ${c.cluster?.id}:`, error.message);
+					return { clusterId: c.cluster?.id || -1, memberCount: 0, error: error.message };
+				}
+			}).catch(error => {
+				console.warn('[Statistics] count2() - Member stats collection failed:', error.message);
+				const failedClusterId = identifyFailedCluster(error, respondingClusters2, actualTotalClusters2);
+				if (failedClusterId !== null) {
+					console.warn(`[Statistics] count2() - Likely failed cluster for member stats: ${failedClusterId}`);
+				}
+				return [];
+			})
 		]);
 
 		// Group statistics data by cluster
@@ -3647,11 +3871,11 @@ client.on('shardDisconnect', (event, shardID) => {
 	console.log('[discord_bot] shardDisconnect:', event, shardID)
 });
 
-client.on('shardResume', (replayed, shardID) => {
+client.on('shardResume', () => {
     // Shard resumed - log removed
 });
 
-client.on('shardReconnecting', id => {
+client.on('shardReconnecting', () => {
     // Shard reconnecting - log removed
 });
 

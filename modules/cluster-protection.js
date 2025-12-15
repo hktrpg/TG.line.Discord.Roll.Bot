@@ -60,13 +60,16 @@ class ClusterProtection {
                 lastError = error;
                 console.warn('[Cluster-Protection] broadcastEval attempt ' + (attempt + 1) + ' failed:', error.message);
 
-                // 如果是 CLUSTERING_NO_CHILD_EXISTS，記錄不健康的集群
-                if (error.message && error.message.includes('CLUSTERING_NO_CHILD_EXISTS')) {
-                    const clusterId = this.extractClusterIdFromError(error.message);
-                    if (clusterId !== null) {
-                        this.unhealthyClusters.add(clusterId);
-                        console.warn('[Cluster-Protection] Marked cluster ' + clusterId + ' as unhealthy');
-                    }
+                // Try to identify which cluster failed
+                const failedClusterId = this.extractClusterIdFromError(error.message);
+                if (failedClusterId !== null) {
+                    console.warn(`[Cluster-Protection] Identified failed cluster: ${failedClusterId}`);
+                    this.unhealthyClusters.add(failedClusterId);
+                    console.warn('[Cluster-Protection] Marked cluster ' + failedClusterId + ' as unhealthy');
+                } else {
+                    // If we can't identify the specific cluster, try to find missing clusters
+                    console.warn('[Cluster-Protection] Could not identify specific failed cluster, attempting to detect missing clusters');
+                    this.detectMissingClusters(client);
                 }
 
                 // 如果不是最後一次嘗試，等待後重試
@@ -230,6 +233,46 @@ class ClusterProtection {
         const count = this.unhealthyClusters.size;
         this.unhealthyClusters.clear();
         console.log('[Cluster-Protection] Reset unhealthy cluster tracking (' + count + ' clusters cleared)');
+    }
+
+    /**
+     * 檢測缺少的集群（沒有回應的集群）
+     */
+    async detectMissingClusters(client) {
+        if (!client || !client.cluster) return;
+
+        try {
+            // 嘗試獲取所有集群 ID
+            const allClusterIds = client.cluster.ids ? [...client.cluster.ids.keys()] : [];
+
+            if (allClusterIds.length === 0) {
+                console.warn('[Cluster-Protection] No cluster IDs available for detection');
+                return;
+            }
+
+            // 嘗試簡單的健康檢查來識別哪些集群沒有回應
+            const healthCheck = await this.withTimeout(
+                client.cluster.broadcastEval(() => ({ clusterId: (client?.cluster) ? client.cluster.id : -1 })).catch(() => []),
+                2000
+            ).catch(() => []);
+
+            const respondingClusterIds = healthCheck
+                .filter(result => result && result.clusterId >= 0)
+                .map(result => result.clusterId);
+
+            const missingClusters = allClusterIds.filter(id => !respondingClusterIds.includes(id));
+
+            if (missingClusters.length > 0) {
+                console.warn(`[Cluster-Protection] Detected missing/unresponsive clusters: ${missingClusters.join(', ')}`);
+                for (const clusterId of missingClusters) {
+                    this.unhealthyClusters.add(clusterId);
+                }
+            } else {
+                console.log(`[Cluster-Protection] All ${allClusterIds.length} clusters are responding`);
+            }
+        } catch (error) {
+            console.warn('[Cluster-Protection] Failed to detect missing clusters:', error.message);
+        }
     }
 
     /**

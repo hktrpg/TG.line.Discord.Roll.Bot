@@ -608,17 +608,29 @@ class OpenAI {
     watchEnvironment() {
         fs2.watch('.env', (eventType) => {
             if (eventType === 'change') {
-                let tempEnv = dotenv.config({ override: true })
-                process.env = tempEnv.parsed;
-                console.log('.env Changed')
-                this.currentApiKeyIndex = 0;
-                this.retryManager.resetCounters();
-                this.addApiKey();
-                if (this.apiKeys.length === 0) return;
-                this.openai = new OpenAIApi({
-                    apiKey: this.apiKeys[0]?.apiKey,
-                    baseURL: this.apiKeys[0]?.baseURL,
-                });
+                try {
+                    let tempEnv = dotenv.config({ override: false })
+                    if (tempEnv.parsed) {
+                        // Only update OpenAI-related environment variables to avoid breaking cluster manager
+                        const openaiPrefixes = ['OPENAI_', 'AI_MODEL_'];
+                        for (const [key, value] of Object.entries(tempEnv.parsed)) {
+                            if (openaiPrefixes.some(prefix => key.startsWith(prefix))) {
+                                process.env[key] = value;
+                            }
+                        }
+                        console.log('.env Changed - Updated OpenAI environment variables')
+                        this.currentApiKeyIndex = 0;
+                        this.retryManager.resetCounters();
+                        this.addApiKey();
+                        if (this.apiKeys.length === 0) return;
+                        this.openai = new OpenAIApi({
+                            apiKey: this.apiKeys[0]?.apiKey,
+                            baseURL: this.apiKeys[0]?.baseURL,
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error reloading .env file:', error.message);
+                }
             }
         });
     }

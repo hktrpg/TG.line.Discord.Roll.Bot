@@ -1766,9 +1766,10 @@ async function getAllshardIds() {
 		// Get current cluster ID for display purposes
 		const currentClusterId = client.cluster.id;
 
-		// Determine total number of shards - prioritize actual detection over defaults
+		// Determine total number of shards and clusters - prioritize actual detection over defaults
 		const { getInfo } = require('discord-hybrid-sharding');
 		let totalShards;
+		let totalClusters = client.cluster?.ids?.size || 0;
 
 		// Check environment variables first for explicit configuration
 		if (process.env.DISCORD_TOTAL_SHARDS) {
@@ -1855,18 +1856,24 @@ async function getAllshardIds() {
 		try {
 			// Check cluster health before broadcastEval
 			let clustersHealthy = true;
-			let totalClusters = client.cluster?.ids?.size || 0;
+			let respondingClusters = [];
 			try {
-				// Simple health check: try to get cluster count via broadcastEval
-				const healthCheck = await client.cluster.broadcastEval(() => true).catch(() => []);
-				clustersHealthy = healthCheck && healthCheck.length > 0;
-				totalClusters = healthCheck?.length || totalClusters;
+				// Get detailed health check: identify which clusters are actually responding
+				const healthCheck = await client.cluster.broadcastEval(c => ({
+					clusterId: c.cluster.id,
+					isAlive: true,
+					shardCount: c.shard?.ids?.length || 0
+				})).catch(() => []);
+				respondingClusters = healthCheck || [];
+				clustersHealthy = respondingClusters.length > 0;
+				totalClusters = client.cluster?.ids?.size || respondingClusters.length;
 			} catch (error) {
 				console.warn('[Statistics] Cluster health check failed:', error.message);
 				clustersHealthy = false;
+				respondingClusters = [];
 			}
 
-			console.log(`[Statistics] Cluster health check: ${clustersHealthy ? 'healthy' : 'unhealthy'} (${totalClusters} total clusters)`);
+			console.log(`[Statistics] Cluster health check: ${clustersHealthy ? 'healthy' : 'unhealthy'} (${respondingClusters.length}/${totalClusters} responding clusters)`);
 
 			let evalPromise;
 
@@ -2040,15 +2047,13 @@ async function getAllshardIds() {
 				}
 			}
 
-			// Process cluster data, allowing for partial data missing
+			// Process cluster data - only assign status to shards managed by responding clusters
 			const processedClusters = new Set();
 
 			for (const clusterData of clusterDataRaw) {
 				if (clusterData && typeof clusterData === 'object') {
 					const { clusterId, shardIds, wsStatus, wsPing, success } = clusterData;
 					processedClusters.add(clusterId);
-
-					// Debug: log cluster data for troubleshootin
 
 					// For each shard managed by this cluster, add status
 					if (success && Array.isArray(shardIds) && shardIds.length > 0) {
@@ -2059,17 +2064,17 @@ async function getAllshardIds() {
 						}
 					} else {
 						// If unable to get shard IDs, use dynamically calculated shards per cluster
-						// Calculate shards for this specific cluster based on total shards and cluster distribution
+						// But only for clusters that actually responded
 						const clusterIndex = clusterId;
-						const clusterCountForCalc = client.cluster?.ids?.size || 1;
+						const clusterCountForCalc = totalClusters;
 						const calculatedShardsPerCluster = Math.ceil(totalShards / clusterCountForCalc);
-						
+
 						// For the last cluster, it might have fewer shards
 						const isLastCluster = clusterIndex === clusterCountForCalc - 1;
-						const shardsForThisCluster = isLastCluster 
+						const shardsForThisCluster = isLastCluster
 							? totalShards - (clusterIndex * calculatedShardsPerCluster)
 							: calculatedShardsPerCluster;
-						
+
 						for (let i = 0; i < shardsForThisCluster; i++) {
 							allStatuses.push(wsStatus !== undefined ? wsStatus : -1);
 							allPings.push(wsPing !== undefined ? wsPing : -1);
@@ -2078,22 +2083,22 @@ async function getAllshardIds() {
 				}
 			}
 
-			// Check if any expected clusters completely failed to respond, fill with default values
+			// For clusters that didn't respond at all, mark their shards as offline (-1)
 			const expectedClusters = client.cluster?.ids ? [...client.cluster.ids.keys()] : [];
-			const expectedClusterCount = expectedClusters.length || 1;
 			for (const expectedClusterId of expectedClusters) {
 				if (!processedClusters.has(expectedClusterId)) {
-					console.warn(`Cluster ${expectedClusterId} completely failed to respond, filling with default values`);
+					console.warn(`Cluster ${expectedClusterId} completely failed to respond, marking shards as offline`);
 					// Calculate shards for this specific cluster dynamically
 					const clusterIndex = expectedClusterId;
-					const calculatedShardsPerCluster = Math.ceil(totalShards / expectedClusterCount);
-					
+					const clusterCountForCalc = expectedClusters.length;
+					const calculatedShardsPerCluster = Math.ceil(totalShards / clusterCountForCalc);
+
 					// For the last cluster, it might have fewer shards
-					const isLastCluster = clusterIndex === expectedClusterCount - 1;
-					const shardsForThisCluster = isLastCluster 
+					const isLastCluster = clusterIndex === clusterCountForCalc - 1;
+					const shardsForThisCluster = isLastCluster
 						? totalShards - (clusterIndex * calculatedShardsPerCluster)
 						: calculatedShardsPerCluster;
-					
+
 					for (let i = 0; i < shardsForThisCluster; i++) {
 						allStatuses.push(-1); // -1 indicates cluster did not respond
 						allPings.push(-1);
@@ -2193,6 +2198,7 @@ async function getAllshardIds() {
 ├────── 🔄分流狀態 ──────
 │ 概況統計:
 │ 　• 目前分流: ${currentClusterId}
+│ 　• 總集群數: ${totalClusters}
 │ 　• 分流總數: ${totalShards}
 │ 　• 在線分流: ${onlineCount}
 

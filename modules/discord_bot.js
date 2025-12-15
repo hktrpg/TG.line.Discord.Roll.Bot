@@ -867,6 +867,265 @@ function logAutoResharderDiagnostics(error, context = '') {
 // Export for external access (can be called from admin commands)
 globalThis.getClusterHealthReport = getClusterHealthReport;
 
+// Shard health monitoring and auto-fix system
+let shardFixInProgress = false;
+let unresponsiveShards = new Set();
+let shardFixInterval = null;
+
+/**
+ * 檢查所有 shard 的存活狀態
+ */
+async function checkShardHealth() {
+    if (!client.cluster) {
+        return { error: 'No cluster manager available' };
+    }
+
+    try {
+        // 獲取總 shard 數量
+        const totalShards = client.cluster.ids.size;
+        const shardHealthResults = [];
+
+        console.log(`[ShardFix] Checking health for ${totalShards} shards across ${client.cluster.ids.size} clusters`);
+
+        // 使用 broadcastEval 來檢查所有 clusters 的 shard 狀態
+        const clusterResults = await client.cluster.broadcastEval((c) => {
+            // 檢查 cluster 對象的可用屬性
+
+            const results = [];
+
+            try {
+                // 方法1: 通過 c.info.SHARD_LIST (如果存在)
+                if (c.info && c.info.SHARD_LIST) {
+                    console.log(`[ShardFix] Cluster ${c.cluster?.id} using SHARD_LIST:`, c.info.SHARD_LIST);
+
+                    for (const shardId of c.info.SHARD_LIST) {
+                        const shard = c.client?.ws?.shards?.get(shardId);
+                        results.push({
+                            clusterId: c.cluster?.id || 0,
+                            shardId: shardId,
+                            status: shard?.status || 'unknown',
+                            ping: shard?.ping || -1,
+                            ready: !!shard?.readyTimestamp,
+                            responsive: (shard?.status === 'ready') || !!shard?.readyTimestamp
+                        });
+                    }
+                }
+                // 方法2: 通過 c.client.ws.shards 直接獲取所有 shards
+                else if (c.client?.ws?.shards) {
+                    console.log(`[ShardFix] Cluster ${c.cluster?.id} using client.ws.shards`);
+
+                    for (const [shardId, shard] of c.client.ws.shards) {
+                        results.push({
+                            clusterId: c.cluster?.id || 0,
+                            shardId: Number(shardId),
+                            status: shard.status || 'unknown',
+                            ping: shard.ping || -1,
+                            ready: !!shard.readyTimestamp,
+                            responsive: (shard.status === 'ready') || !!shard.readyTimestamp
+                        });
+                    }
+                }
+                // 方法3: 如果都沒有，嘗試創建一個假設的 shard 0
+                else {
+                    console.warn(`[ShardFix] Cluster ${c.cluster?.id} has no shard access, assuming shard 0`);
+                    results.push({
+                        clusterId: c.cluster?.id || 0,
+                        shardId: 0,
+                        status: 'assumed_healthy', // 假設單 shard 設置是健康的
+                        ping: -1,
+                        ready: true,
+                        responsive: true
+                    });
+                }
+            } catch (error) {
+                console.error(`[ShardFix] Error in cluster ${c.cluster?.id}:`, error.message);
+                results.push({
+                    clusterId: c.cluster?.id || -1,
+                    shardId: -1,
+                    status: 'error',
+                    ping: -1,
+                    ready: false,
+                    responsive: false
+                });
+            }
+
+            console.log(`[ShardFix] Cluster ${c.cluster?.id} returning ${results.length} shard results`);
+            return results;
+        }).catch((error) => {
+            console.error('[ShardFix] broadcastEval failed:', error.message);
+            return [];
+        });
+
+        // 處理所有 cluster 的結果
+        const allShardResults = clusterResults.flat();
+        console.log(`[ShardFix] Collected ${allShardResults.length} shard results from ${clusterResults.length} clusters`);
+
+        // 為每個 shard 建立結果
+        for (let shardId = 0; shardId < totalShards; shardId++) {
+            const shardResult = allShardResults.find(r => r.shardId === shardId);
+
+            if (shardResult) {
+                shardHealthResults.push(shardResult);
+
+                // 如果 shard 沒有回應，加入 unresponsive 列表
+                if (!shardResult.responsive) {
+                    unresponsiveShards.add(shardId);
+                    console.warn(`[ShardFix] Shard ${shardId} (Cluster ${shardResult.clusterId}) is unresponsive - Status: ${shardResult.status}, Ready: ${shardResult.ready}`);
+                } else {
+                    console.log(`[ShardFix] Shard ${shardId} (Cluster ${shardResult.clusterId}) is healthy - Status: ${shardResult.status}, Ping: ${shardResult.ping}ms`);
+                }
+            } else {
+                // 如果沒有找到 shard 結果，視為未知狀態
+                console.warn(`[ShardFix] No result found for shard ${shardId}, marking as unknown`);
+                shardHealthResults.push({
+                    shardId,
+                    clusterId: 'unknown',
+                    status: 'unknown',
+                    ping: -1,
+                    ready: false,
+                    responsive: false
+                });
+                unresponsiveShards.add(shardId);
+            }
+        }
+
+        return {
+            timestamp: new Date().toISOString(),
+            totalShards,
+            healthyShards: shardHealthResults.filter(s => s.responsive).length,
+            unhealthyShards: shardHealthResults.filter(s => !s.responsive).length,
+            unresponsiveShards: [...unresponsiveShards],
+            shardDetails: shardHealthResults
+        };
+    } catch (error) {
+        console.error('[ShardFix] Error in checkShardHealth:', error.message);
+        return { error: error.message };
+    }
+}
+
+/**
+ * 開始自動修復 unresponsive shards
+ */
+function startShardFix() {
+    if (shardFixInProgress) {
+        return { message: 'Shard fix is already in progress', inProgress: true };
+    }
+
+    if (unresponsiveShards.size === 0) {
+        return { message: 'No unresponsive shards to fix', inProgress: false };
+    }
+
+    shardFixInProgress = true;
+    console.log(`[ShardFix] Starting automatic shard fix for ${unresponsiveShards.size} unresponsive shards`);
+
+    let shardIterator = unresponsiveShards.values();
+    let currentShard = shardIterator.next();
+
+    shardFixInterval = setInterval(async () => {
+        if (currentShard.done) {
+            // 所有 shards 都處理完了，檢查是否還有 unresponsive 的
+            console.log('[ShardFix] All shards processed, checking for remaining issues...');
+
+            // 重新檢查所有 shards 的狀態
+            const healthReport = await checkShardHealth();
+
+            if (healthReport.unresponsiveShards && healthReport.unresponsiveShards.length > 0) {
+                // 還有 unresponsive shards，繼續處理
+                unresponsiveShards = new Set(healthReport.unresponsiveShards);
+                shardIterator = unresponsiveShards.values();
+                currentShard = shardIterator.next();
+                console.log(`[ShardFix] Found ${unresponsiveShards.size} remaining unresponsive shards, continuing...`);
+            } else {
+                // 所有 shards 都修復了
+                console.log('[ShardFix] All shards are now responsive, stopping auto-fix');
+                stopShardFix();
+            }
+            return;
+        }
+
+        const shardId = currentShard.value;
+        console.log(`[ShardFix] Attempting to respawn shard ${shardId}`);
+
+        try {
+            // 找到負責這個 shard 的 cluster
+            const clusterResult = await client.cluster.broadcastEval((c, targetShardId) => {
+                if (c.info && c.info.SHARD_LIST && c.info.SHARD_LIST.includes(targetShardId)) {
+                    return { clusterId: c.cluster.id, hasShard: true };
+                }
+                return null;
+            }, { cluster: null }, shardId).catch(() => []);
+
+            const targetCluster = clusterResult ? clusterResult.find(r => r !== null) : null;
+
+            if (targetCluster) {
+                console.log(`[ShardFix] Respawning shard ${shardId} via cluster ${targetCluster.clusterId}`);
+
+                // 發送 respawn 命令給對應的 cluster
+                await client.cluster.broadcastEval((c, data) => {
+                    if (c.cluster.id === data.clusterId) {
+                        // 在目標 cluster 中重啟 shard
+                        const shard = c.client.ws.shards.get(data.shardId);
+                        if (shard) {
+                            console.log(`[ShardFix] Destroying shard ${data.shardId} in cluster ${c.cluster.id}`);
+                            shard.destroy();
+                            // Discord.js 會自動重新連接 shard
+                        }
+                    }
+                }, { cluster: targetCluster.clusterId }, { clusterId: targetCluster.clusterId, shardId });
+
+                // 從 unresponsive 列表中移除
+                unresponsiveShards.delete(shardId);
+                console.log(`[ShardFix] Successfully initiated respawn for shard ${shardId}`);
+            } else {
+                console.error(`[ShardFix] Cannot find cluster responsible for shard ${shardId}`);
+            }
+        } catch (error) {
+            console.error(`[ShardFix] Failed to respawn shard ${shardId}:`, error.message);
+        }
+
+        // 移動到下一個 shard
+        currentShard = shardIterator.next();
+
+    }, 20_000); // 每 20 秒處理一個 shard
+
+    return {
+        message: `Started automatic shard fix for ${unresponsiveShards.size} unresponsive shards`,
+        unresponsiveShards: [...unresponsiveShards],
+        inProgress: true
+    };
+}
+
+/**
+ * 停止自動修復
+ */
+function stopShardFix() {
+    if (shardFixInterval) {
+        clearInterval(shardFixInterval);
+        shardFixInterval = null;
+    }
+    shardFixInProgress = false;
+    unresponsiveShards.clear();
+    console.log('[ShardFix] Stopped automatic shard fix');
+    return { message: 'Stopped automatic shard fix', inProgress: false };
+}
+
+/**
+ * 獲取 shard fix 狀態
+ */
+function getShardFixStatus() {
+    return {
+        inProgress: shardFixInProgress,
+        unresponsiveShards: [...unresponsiveShards],
+        totalUnresponsive: unresponsiveShards.size
+    };
+}
+
+// Export functions for admin commands
+globalThis.checkShardHealth = checkShardHealth;
+globalThis.startShardFix = startShardFix;
+globalThis.stopShardFix = stopShardFix;
+globalThis.getShardFixStatus = getShardFixStatus;
+
 async function count() {
 	if (!client.cluster) return '';
 

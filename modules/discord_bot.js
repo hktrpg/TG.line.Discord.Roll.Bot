@@ -890,7 +890,7 @@ async function checkShardHealth() {
             const info = getInfo();
             if (info && info.TOTAL_SHARDS) {
                 totalShards = info.TOTAL_SHARDS;
-                console.log(`[ShardFix] Detected TOTAL_SHARDS from getInfo(): ${totalShards}`);
+                //console.log(`[ShardFix] Detected TOTAL_SHARDS from getInfo(): ${totalShards}`);
 
                 // If getInfo returns suspiciously low shard count, try other methods
                 const clusterCount = client.cluster?.ids?.size || 1;
@@ -920,7 +920,7 @@ async function checkShardHealth() {
                     }
                     if (calculatedTotal > 0) {
                         totalShards = calculatedTotal;
-                        console.log(`[ShardFix] Calculated totalShards from cluster data: ${totalShards}`);
+                        //console.log(`[ShardFix] Calculated totalShards from cluster data: ${totalShards}`);
                     }
                 }
 

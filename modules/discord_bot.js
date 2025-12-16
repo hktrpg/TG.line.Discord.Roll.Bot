@@ -1356,7 +1356,7 @@ async function count2() {
 		let actualTotalClusters2 = client.cluster?.ids?.size || 1;
 		try {
 			respondingClusters2 = await client.cluster.broadcastEval(c => c.cluster.id).catch(() => []);
-			console.log(`[Statistics] count2() - Found ${respondingClusters2.length}/${actualTotalClusters2} responding clusters`);
+			//console.log(`[Statistics] count2() - Found ${respondingClusters2.length}/${actualTotalClusters2} responding clusters`);
 		} catch (error) {
 			console.warn('[Statistics] count2() - Could not identify responding clusters:', error.message);
 		}

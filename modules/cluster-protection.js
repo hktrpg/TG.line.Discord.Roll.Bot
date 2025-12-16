@@ -25,6 +25,7 @@ class ClusterProtection {
         const timeout = (options && options.timeout) || 10_000;
         const retries = (options && options.retries) || this.maxRetries;
         const skipUnhealthy = (options && options.skipUnhealthy) !== false;
+        const context = (options && options.context) || {};
 
         // For latency measurements, be more lenient with unhealthy clusters
         // as they might have recovered
@@ -37,12 +38,13 @@ class ClusterProtection {
                 // 如果啟用跳過不健康集群，使用過濾後的集群列表
                 // 但是對於延遲測量，即使有不健康集群也嘗試，因為它們可能已經恢復
                 if (skipUnhealthy && this.unhealthyClusters.size > 0 && !isLatencyMeasurement) {
-                    return await this.filteredBroadcastEval(client, evalFunction, timeout, isLatencyMeasurement);
+                    return await this.filteredBroadcastEval(client, evalFunction, timeout, isLatencyMeasurement, context);
                 }
 
-                // 標準 broadcastEval
+                // 標準 broadcastEval with context support
+                const broadcastOptions = Object.keys(context).length > 0 ? { context } : {};
                 const result = await this.withTimeout(
-                    client.cluster.broadcastEval(evalFunction),
+                    client.cluster.broadcastEval(evalFunction, broadcastOptions),
                     timeout
                 );
 
@@ -94,7 +96,7 @@ class ClusterProtection {
     /**
      * 過濾後的 broadcastEval，只對健康的集群執行
      */
-    async filteredBroadcastEval(client, evalFunction, timeout, isLatencyMeasurement) {
+    async filteredBroadcastEval(client, evalFunction, timeout, isLatencyMeasurement, context = {}) {
         try {
             // 獲取所有集群 ID
             const clusterIds = client.cluster && client.cluster.ids ? client.cluster.ids.values() : [];
@@ -126,8 +128,12 @@ class ClusterProtection {
 
             // 對每個目標集群執行評估函數
             const promises = targetClusterIds.map((clusterId) => {
+                const broadcastOptions = Object.keys(context).length > 0
+                    ? { cluster: clusterId, context }
+                    : { cluster: clusterId };
+
                 return this.withTimeout(
-                    client.cluster.broadcastEval(evalFunction, { cluster: clusterId }),
+                    client.cluster.broadcastEval(evalFunction, broadcastOptions),
                     timeout
                 ).catch((error) => {
                     if (isLatencyMeasurement) {

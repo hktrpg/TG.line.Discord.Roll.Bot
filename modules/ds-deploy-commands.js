@@ -9,14 +9,17 @@ if (!channelSecret) {
     return;
 }
 
-const commands = [];
+// Command management with singleton pattern
+let commands = [];
+let commandsLoaded = false;
+let loadingPromise = null;
+
 const rest = new REST({ version: '10' }).setToken(channelSecret);
 
-process.nextTick(() => {
-    loadingSlashCommands();
-});
-
 async function registeredGlobalSlashCommands() {
+    // Ensure commands are loaded before registering
+    await loadingSlashCommands();
+
     try {
         await rest.put(Routes.applicationCommands(clientId), { body: commands });
         console.log('[ds-deploy-commands] Successfully registered global commands');
@@ -49,6 +52,9 @@ async function registeredGlobalSlashCommands() {
 }
 
 async function testRegisteredSlashCommands(guildId) {
+    // Ensure commands are loaded before registering
+    await loadingSlashCommands();
+
     return rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
         .then(() => {
             console.log('[ds-deploy-commands] Successfully registered application commands.')
@@ -124,33 +130,55 @@ function checkDuplicateCommands() {
     return null;
 }
 
-// Update loadingSlashCommands to check for duplicates
+// Thread-safe singleton command loading
 async function loadingSlashCommands() {
-    try {
-        // Clear commands array before loading to prevent duplicates from multiple module loads
-        commands.length = 0;
-        const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js'));
-        for (const file of commandFiles) {
-            try {
-                const command = require(`../roll/${file}`);
-                if (command?.discordCommand?.length > 0) {
-                    pushArraySlashCommands(command.discordCommand);
-                }
-            } catch (error) {
-                console.error(`Failed to load command from ${file}:`, error);
-            }
-        }
-        
-        // Check for duplicates after loading all commands
-        const duplicates = checkDuplicateCommands();
-        if (duplicates) {
-            console.warn(`Duplicate command names detected. Please fix these before registering: ${duplicates.join(', ')}`);
-        }
-        
-        console.log(`[ds-deploy-commands] Loaded ${commands.length} slash commands`);
-    } catch (error) {
-        console.error('Failed to load commands:', error);
+    // Return existing promise if loading is in progress
+    if (loadingPromise) {
+        return loadingPromise;
     }
+
+    // Return immediately if already loaded
+    if (commandsLoaded) {
+        return Promise.resolve();
+    }
+
+    // Create loading promise
+    loadingPromise = (async () => {
+        try {
+            console.log('[ds-deploy-commands] Loading slash commands...');
+
+            // Ensure clean state
+            commands = [];
+
+            const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js'));
+            for (const file of commandFiles) {
+                try {
+                    const command = require(`../roll/${file}`);
+                    if (command?.discordCommand?.length > 0) {
+                        pushArraySlashCommands(command.discordCommand);
+                    }
+                } catch (error) {
+                    console.error(`Failed to load command from ${file}:`, error);
+                }
+            }
+
+            // Check for duplicates after loading all commands
+            const duplicates = checkDuplicateCommands();
+            if (duplicates) {
+                console.warn(`Duplicate command names detected. Please fix these before registering: ${duplicates.join(', ')}`);
+            }
+
+            commandsLoaded = true;
+            console.log(`[ds-deploy-commands] Successfully loaded ${commands.length} slash commands`);
+        } catch (error) {
+            console.error('Failed to load commands:', error);
+            throw error;
+        } finally {
+            loadingPromise = null;
+        }
+    })();
+
+    return loadingPromise;
 }
 
 function removeSlashCommands(guildId) {
@@ -166,11 +194,21 @@ function removeSlashCommands(guildId) {
         });
 }
 
+// Public initialization function for external callers
+async function initializeCommands() {
+    return loadingSlashCommands();
+}
+
+// Export functions and utilities
 module.exports = {
+    initializeCommands,
     registeredGlobalSlashCommands,
     testRegisteredSlashCommands,
     removeSlashCommands,
-    checkDuplicateCommands
+    checkDuplicateCommands,
+    // Export for testing/debugging
+    getCommandCount: () => commands.length,
+    isLoaded: () => commandsLoaded
 };
 //https://github.com/discordjs/guide/tree/main/code-samples/creating-your-bot/command-handling
 //https://discordjs.guide/creating-your-bot/creating-commands.html#command-deployment-script

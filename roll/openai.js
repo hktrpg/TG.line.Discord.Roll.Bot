@@ -425,7 +425,7 @@ const ANALYSIS_REPORT_LIMITS = {
 // Text processing constants
 const TEXT_PROCESSING_CONSTANTS = {
     CHUNK_SIZE: 512,                 // 512B micro-chunks for true non-blocking processing
-    MAX_CHUNKS: 20000,               // Maximum chunks to process before stopping
+    MAX_CHUNKS: 20_000,               // Maximum chunks to process before stopping
     PROGRESS_LOG_INTERVAL: 200,      // Log progress every N chunks
     YIELD_INTERVAL: 5                // Yield every N chunks for better responsiveness
 };
@@ -992,7 +992,7 @@ class TranslateAi extends OpenAI {
             },
             IMAGE: {
                 // OCR typically produces much less text than image size suggests
-                charsPerMB: 5_000, // Very conservative for OCR text
+                charsPerMB: 5000, // Very conservative for OCR text
                 compressionRatio: 0.05
             },
             TEXT: {
@@ -1100,7 +1100,7 @@ class TranslateAi extends OpenAI {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
-            const contentLength = parseInt(response.headers.get('content-length') || '0');
+            const contentLength = Number.parseInt(response.headers.get('content-length') || '0');
             const totalSize = attachment.size;
 
             // For small files, process normally
@@ -1133,15 +1133,29 @@ class TranslateAi extends OpenAI {
 
                         try {
                             let chunkText = '';
-                            if (fileType === 'PDF') {
+                            switch (fileType) {
+                            case 'PDF': {
                                 chunkText = await this.processPdfFile(combinedBuffer, `${attachment.name}_chunk_${chunksProcessed}`, null, null);
-                            } else if (fileType === 'DOCX') {
+                            
+                            break;
+                            }
+                            case 'DOCX': {
                                 chunkText = await this.processDocxFile(combinedBuffer, `${attachment.name}_chunk_${chunksProcessed}`);
-                            } else if (fileType === 'IMAGE') {
+                            
+                            break;
+                            }
+                            case 'IMAGE': {
                                 chunkText = await this.processImageFile(combinedBuffer, `${attachment.name}_chunk_${chunksProcessed}`, null, null);
-                            } else if (fileType === 'TEXT') {
+                            
+                            break;
+                            }
+                            case 'TEXT': {
                                 // Use optimized text processing for better memory management
                                 chunkText = combinedBuffer.toString('utf8');
+                            
+                            break;
+                            }
+                            // No default
                             }
 
                             if (chunkText && chunkText.trim().length > 0) {
@@ -1229,7 +1243,7 @@ class TranslateAi extends OpenAI {
                         // Safety check: prevent buffer from growing too large
                         if (buffer.length > chunkSize * 20) {
                             console.warn(`[TEXT_PROCESS] Buffer too large (${buffer.length}), truncating`);
-                            buffer = buffer.substring(0, chunkSize * 10);
+                            buffer = buffer.slice(0, Math.max(0, chunkSize * 10));
                         }
 
                         // Process only a limited number of chunks per call to maintain responsiveness
@@ -1238,13 +1252,13 @@ class TranslateAi extends OpenAI {
 
                         while (buffer.length > 0 && totalChars < maxChars && !isDone && chunksInThisCall < maxChunksPerCall) {
                             const chunkSizeToProcess = Math.min(chunkSize, buffer.length);
-                            const chunkText = buffer.substring(0, chunkSizeToProcess);
+                            const chunkText = buffer.slice(0, Math.max(0, chunkSizeToProcess));
                             const chunkChars = chunkText.length;
 
                             // Check if adding this chunk would exceed our limit
                             if (totalChars + chunkChars > maxChars) {
                                 const remainingChars = maxChars - totalChars;
-                                const partialText = chunkText.substring(0, remainingChars);
+                                const partialText = chunkText.slice(0, Math.max(0, remainingChars));
                                 processedText += partialText;
                                 totalChars += remainingChars;
                                 console.log(`[TEXT_PROCESS] Reached character limit (${maxChars.toLocaleString()}), stopping`);
@@ -1253,7 +1267,7 @@ class TranslateAi extends OpenAI {
                             } else {
                                 processedText += chunkText;
                                 totalChars += chunkChars;
-                                buffer = buffer.substring(chunkSizeToProcess);
+                                buffer = buffer.slice(Math.max(0, chunkSizeToProcess));
                                 chunksProcessed++;
                                 chunksInThisCall++;
 
@@ -1758,7 +1772,7 @@ class TranslateAi extends OpenAI {
             }
 
             console.log(`[GLOSSARY_DEBUG] Raw JSON text length: ${jsonText?.length || 0}`);
-            console.log(`[GLOSSARY_DEBUG] Raw JSON text preview: ${jsonText?.substring(0, 200)}...`);
+            console.log(`[GLOSSARY_DEBUG] Raw JSON text preview: ${jsonText?.slice(0, 200)}...`);
 
             // Cleanup and safely parse JSON
             if (typeof jsonText === 'string') {
@@ -1784,7 +1798,7 @@ class TranslateAi extends OpenAI {
             } catch (error) {
                 console.warn('[GLOSSARY_DEBUG] Failed to parse JSON glossary. Returning empty glossary.', {
                     error: error?.message || error,
-                    jsonText: jsonText?.substring(0, 500)
+                    jsonText: jsonText?.slice(0, 500)
                 });
                 return {};
             }
@@ -2000,7 +2014,7 @@ class TranslateAi extends OpenAI {
 
             // Current message attachments
             if (discordMessage?.type === 0 && discordMessage?.attachments?.size > 0) {
-                allAttachments.push(...Array.from(discordMessage.attachments.values()));
+                allAttachments.push(...discordMessage.attachments.values());
             }
 
             // Replied message attachments
@@ -2008,7 +2022,7 @@ class TranslateAi extends OpenAI {
                 const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
                 const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId);
                 if (referenceMessage?.attachments?.size > 0) {
-                    allAttachments.push(...Array.from(referenceMessage.attachments.values()));
+                    allAttachments.push(...referenceMessage.attachments.values());
                 }
             }
 

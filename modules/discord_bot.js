@@ -4038,10 +4038,10 @@ async function __handlingInteractionMessage(message) {
 			return;
 		}
 
-		// For other deferral errors, try to send a regular reply as fallback
+		// For other deferral errors, try to send a followUp as fallback
 		try {
 			if (!message.replied && !message.deferred) {
-				await message.reply({ content: '處理中，請稍候...', flags: MessageFlags.Ephemeral });
+				await message.followUp({ content: '處理中，請稍候...', ephemeral: true });
 			}
 		} catch (fallbackError) {
 			console.error(`Fallback reply also failed (${deferDuration}ms): ${fallbackError.message} | Command: ${interactionId}`);

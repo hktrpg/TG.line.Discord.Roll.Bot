@@ -66,12 +66,12 @@ const schemaNames = [
     'chatRoom', 'forwardedMessage'
 ];
 
-schemaNames.forEach(name => {
+for (const name of schemaNames) {
     mockSchemas[name] = {
         ...mockSchemaMethods,
         modelName: name
     };
-});
+}
 
 // Create a mock constructor for ChatRoomModel
 const MockChatRoomModel = jest.fn(function(data) {
@@ -99,14 +99,14 @@ const records = require('../modules/records.js');
 
 describe('Records Module Integration Tests', () => {
     // Set default timeout for all tests
-    jest.setTimeout(15000);
+    jest.setTimeout(15_000);
 
     beforeEach(() => {
         // Reset all mocks before each test
         jest.clearAllMocks();
         
         // Setup default mock return values
-        Object.keys(mockSchemas).forEach(name => {
+        for (const name of Object.keys(mockSchemas)) {
             const schema = mockSchemas[name];
             if (name === 'chatRoom') {
                 // ChatRoomModel is a constructor, handle differently
@@ -125,7 +125,7 @@ describe('Records Module Integration Tests', () => {
                     schema.save.mockResolvedValue({ _id: 'test-id' });
                 }
             }
-        });
+        }
     });
 
     describe('Basic Get Operations', () => {
@@ -461,7 +461,7 @@ describe('Records Module Integration Tests', () => {
             // Should return empty array when connection not ready
             expect(Array.isArray(result)).toBe(true);
             expect(result.length).toBe(0);
-        }, 15000);
+        }, 15_000);
     });
 
     describe('Cache Operations', () => {
@@ -578,7 +578,7 @@ describe('Records Module - Service Startup Integration', () => {
         const darkRollingData = await records.get('trpgDarkRolling');
         expect(darkRollingData).toBeDefined();
         expect(Array.isArray(darkRollingData)).toBe(true);
-    }, 15000);
+    }, 15_000);
 
     test('should handle parallel initialization', async () => {
         // Ensure connection is ready to avoid waiting
@@ -603,5 +603,5 @@ describe('Records Module - Service Startup Integration', () => {
         expect(Array.isArray(commandData)).toBe(true);
         expect(dbData).toBeDefined();
         expect(Array.isArray(dbData)).toBe(true);
-    }, 15000);
+    }, 15_000);
 });

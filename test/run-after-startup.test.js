@@ -43,14 +43,14 @@ describe('Records Module - Post-Startup Integration Test', () => {
                 await Promise.race([
                     dbConnector.waitForConnection(),
                     new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error('Connection timeout')), 10000)
+                        setTimeout(() => reject(new Error('Connection timeout')), 10_000)
                     )
                 ]);
             } catch (error) {
                 console.warn('[Test] Database connection timeout, continuing with tests');
             }
         }
-    }, 30000); // 30 second timeout for initialization
+    }, 30_000); // 30 second timeout for initialization
 
     afterAll(async () => {
         // Clean up timeout if it exists
@@ -85,22 +85,22 @@ describe('Records Module - Post-Startup Integration Test', () => {
         testFn('should get block data without errors', async () => {
             const result = await records.get('block');
             expect(Array.isArray(result)).toBe(true);
-        }, 10000);
+        }, 10_000);
 
         testFn('should get trpgCommand data without errors', async () => {
             const result = await records.get('trpgCommand');
             expect(Array.isArray(result)).toBe(true);
-        }, 10000);
+        }, 10_000);
 
         testFn('should get trpgDatabase data without errors', async () => {
             const result = await records.get('trpgDatabase');
             expect(Array.isArray(result)).toBe(true);
-        }, 10000);
+        }, 10_000);
 
         testFn('should get trpgDarkRolling data without errors', async () => {
             const result = await records.get('trpgDarkRolling');
             expect(Array.isArray(result)).toBe(true);
-        }, 10000);
+        }, 10_000);
     });
 
     describeFn('Module Initialization Patterns', () => {
@@ -108,19 +108,19 @@ describe('Records Module - Post-Startup Integration Test', () => {
             // Simulate z_stop.js initialization
             const blockData = await records.get('block');
             expect(Array.isArray(blockData)).toBe(true);
-        }, 10000);
+        }, 10_000);
 
         testFn('should handle z_saveCommand.js initialization pattern', async () => {
             // Simulate z_saveCommand.js initialization
             const commandData = await records.get('trpgCommand');
             expect(Array.isArray(commandData)).toBe(true);
-        }, 10000);
+        }, 10_000);
 
         testFn('should handle z_DDR_darkRollingToGM.js initialization pattern', async () => {
             // Simulate z_DDR_darkRollingToGM.js initialization
             const darkRollingData = await records.get('trpgDarkRolling');
             expect(Array.isArray(darkRollingData)).toBe(true);
-        }, 10000);
+        }, 10_000);
     });
 
     describeFn('Parallel Operations', () => {
@@ -134,7 +134,7 @@ describe('Records Module - Post-Startup Integration Test', () => {
             expect(Array.isArray(blockData)).toBe(true);
             expect(Array.isArray(commandData)).toBe(true);
             expect(Array.isArray(dbData)).toBe(true);
-        }, 15000);
+        }, 15_000);
     });
 
     describeFn('Update Operations', () => {
@@ -155,14 +155,14 @@ describe('Records Module - Post-Startup Integration Test', () => {
                     throw error; // Unexpected error
                 }
             }
-        }, 10000);
+        }, 10_000);
     });
 
     describeFn('Chat Room Operations', () => {
         testFn('should get chat room messages without errors', async () => {
             const result = await records.chatRoomGet('test-room');
             expect(Array.isArray(result)).toBe(true);
-        }, 10000);
+        }, 10_000);
     });
 
     describeFn('Error Handling', () => {
@@ -173,14 +173,14 @@ describe('Records Module - Post-Startup Integration Test', () => {
             };
 
             await expect(records.setBlockFunction('block', invalidData)).rejects.toThrow();
-        }, 10000);
+        }, 10_000);
 
         testFn('should return empty array on get error', async () => {
             // This should not throw, but return empty array
             const result = await records.get('nonExistentSchema');
             expect(Array.isArray(result)).toBe(true);
             expect(result.length).toBe(0);
-        }, 10000);
+        }, 10_000);
     });
 
     describeFn('Function Availability Check', () => {

@@ -112,7 +112,7 @@ const rollDiceCommand = async function ({
             move_target: mainMsg.find(arg => /^--move-target=(.*)$/i.test(arg))?.match(/^--move-target=(.*)$/i)?.[1],
             move_type: mainMsg.find(arg => /^--move-type=(.*)$/i.test(arg))?.match(/^--move-type=(.*)$/i)?.[1],
             has_jogress: mainMsg.some(arg => /^--has-jogress$/i.test(arg)),
-            no_jogress: mainMsg.some(arg => /^--no-jogress$/i.test(arg)),
+            no_jogress:/p mainMsg.some(arg => /^--no-jogress$/i.test(arg)),
             has_item: mainMsg.some(arg => /^--has-item$/i.test(arg)),
             no_item: mainMsg.some(arg => /^--no-item$/i.test(arg)),
             can_ride: mainMsg.some(arg => /^--can-ride$/i.test(arg)),

@@ -127,6 +127,8 @@ function checkDuplicateCommands() {
 // Update loadingSlashCommands to check for duplicates
 async function loadingSlashCommands() {
     try {
+        // Clear commands array before loading to prevent duplicates from multiple module loads
+        commands.length = 0;
         const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js'));
         for (const file of commandFiles) {
             try {

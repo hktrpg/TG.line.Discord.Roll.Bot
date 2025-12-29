@@ -217,11 +217,20 @@ class YourClass {
 ### 2. 系統自動處理
 
 一旦完成上述配置，系統會自動：
-1. 註冊自動完成模組
-2. 為相關選項添加自動完成功能
-3. 處理API請求
-4. 渲染下拉選單
-5. 處理用戶交互
+
+#### 對於標準配置 (有 `autocomplete: true`):
+1. Discord API 接收 autocomplete 請求
+2. 系統提供有限的選項列表 (最多 25 個)
+3. 前端使用相同的配置進行增強
+
+#### 對於 Discord 端不使用 Autocomplete 的配置:
+1. Discord API 將選項視為普通文字輸入
+2. 後端 `/api/dice-commands` API 檢查 `autocompleteModule` 屬性
+3. 自動為前端構造完整的 autocomplete 配置
+4. 前端獲得完整的搜尋和下拉功能
+5. Discord 端保持簡單的文字輸入體驗
+
+**技術細節**: 後端通過檢查選項是否存在 `autocompleteModule` 屬性來決定是否為前端啟用 autocomplete，而不管 Discord 端是否啟用。這樣可以靈活地為不同平台提供最適合的體驗。
 
 ## 配置選項
 
@@ -236,15 +245,50 @@ class YourClass {
 ```
 
 ### Discord選項配置
+
+#### 標準配置 (Discord 端啟用 Autocomplete)
 ```javascript
-{
-    autocompleteModule: 'digimon',            // 對應的模組名稱
-    autocompleteSearchFields: ['display', 'value'], // 搜尋字段
-    autocompleteLimit: 8,                     // 最大顯示數量
-    autocompleteMinQueryLength: 1,            // 最小查詢長度
-    autocompleteNoResultsText: '找不到相關結果' // 無結果提示
-}
+.addStringOption(option => {
+    const opt = option.setName('name')
+        .setDescription('數碼寶貝名稱')
+        .setRequired(true)
+        .setAutocomplete(true); // 啟用 Discord 端 autocomplete
+
+    opt.autocompleteModule = 'digimon';
+    opt.autocompleteSearchFields = ['display', 'value', 'metadata.zh-cn-name'];
+    opt.autocompleteLimit = 8;
+    opt.autocompleteMinQueryLength = 1;
+    opt.autocompleteNoResultsText = '找不到相關的數碼寶貝';
+
+    return opt;
+})
 ```
+
+#### Discord 端不使用 Autocomplete 的配置 (推薦用於大型數據集)
+當數據集超過 25 個選項時，Discord 的 autocomplete 會因為限制而失敗。此時建議使用此配置：
+
+```javascript
+.addStringOption(option => {
+    const opt = option.setName('name')
+        .setDescription('數碼寶貝名稱')
+        .setRequired(true);
+        // 注意：不設置 .setAutocomplete(true)
+
+    // 網頁版自動完成配置 (Discord 端不使用)
+    opt.autocompleteModule = 'digimon';
+    opt.autocompleteSearchFields = ['display', 'value', 'metadata.zh-cn-name'];
+    opt.autocompleteLimit = 8;
+    opt.autocompleteMinQueryLength = 1;
+    opt.autocompleteNoResultsText = '找不到相關的數碼寶貝';
+
+    return opt;
+})
+```
+
+**適用場景**:
+- 數據集超過 25 個選項 (如寶可夢、數碼寶貝等)
+- Discord 的 autocomplete 顯示 "loading options failed"
+- 想要在 Discord 端保持簡單的文字輸入體驗
 
 ### 前端配置
 ```javascript
@@ -406,6 +450,8 @@ module.exports = {
 ```
 
 #### Discord選項配置示例
+
+**標準配置 (小型數據集):**
 ```javascript
 // 在 discordCommand 中配置
 .addStringOption(option => {
@@ -413,13 +459,33 @@ module.exports = {
         .setDescription('數碼寶貝名稱或編號')
         .setRequired(true)
         .setAutocomplete(true);
-    
+
     opt.autocompleteModule = 'digimon';
     opt.autocompleteSearchFields = ['display', 'value', 'metadata.zh-cn-name'];
     opt.autocompleteLimit = 8;
     opt.autocompleteMinQueryLength = 1;
     opt.autocompleteNoResultsText = '找不到相關的數碼寶貝';
-    
+
+    return opt;
+})
+```
+
+**Discord 端不使用 Autocomplete 配置 (大型數據集):**
+```javascript
+// 在 discordCommand 中配置
+.addStringOption(option => {
+    const opt = option.setName('name')
+        .setDescription('數碼寶貝名稱或編號')
+        .setRequired(true);
+        // 注意：不設置 .setAutocomplete(true)
+
+    // 網頁版自動完成配置
+    opt.autocompleteModule = 'digimon';
+    opt.autocompleteSearchFields = ['display', 'value', 'metadata.zh-cn-name'];
+    opt.autocompleteLimit = 8;
+    opt.autocompleteMinQueryLength = 1;
+    opt.autocompleteNoResultsText = '找不到相關的數碼寶貝';
+
     return opt;
 })
 ```
@@ -706,6 +772,49 @@ class YourGameClass {
 - 防抖渲染
 - 智能更新
 
+## Discord 端不使用 Autocomplete 的配置方式
+
+### 為什麼需要這種配置？
+
+Discord 的 slash command autocomplete 有以下限制：
+- 每次請求最多返回 25 個選項
+- 對於大型數據集（如寶可夢 800+、數碼寶貝 200+），無法提供完整的選項列表
+- 會導致 "loading options failed" 錯誤
+
+### 配置方式
+
+當數據集超過 25 個選項時，建議使用這種配置：
+
+```javascript
+.addStringOption(option => {
+    const opt = option.setName('name')
+        .setDescription('項目名稱')
+        .setRequired(true);
+        // 不設置 .setAutocomplete(true)
+
+    // 保留網頁版配置
+    opt.autocompleteModule = 'your_module';
+    opt.autocompleteSearchFields = ['display', 'value'];
+    opt.autocompleteLimit = 8;
+    // ... 其他配置
+
+    return opt;
+})
+```
+
+### 工作原理
+
+1. **Discord 端**: 視為普通文字輸入，沒有 autocomplete 限制
+2. **網頁端**: 後端自動檢測 `autocompleteModule` 屬性，為前端構造完整的 autocomplete 配置
+3. **用戶體驗**: Discord 端簡單輸入，網頁端享受完整搜尋功能
+
+### 適用場景
+
+- ✅ 大型數據集 (數百個選項)
+- ✅ 避免 Discord autocomplete 限制
+- ✅ 想要在 Discord 端保持簡潔體驗
+- ✅ 網頁端需要強大的搜尋功能
+
 ## 常見問題與解決方案
 
 ### 1. 自動完成不顯示
@@ -835,3 +944,4 @@ searchForAutocomplete(query, limit = 10) {
 - **v4.0**: 添加智能定位和防抖搜尋
 - **v5.0**: 完善文檔和錯誤處理
 - **v6.0**: 添加快速模板和最佳實踐指南
+- **v7.0**: 添加 Discord 端不使用 Autocomplete 的配置方式，解決大型數據集的限制問題

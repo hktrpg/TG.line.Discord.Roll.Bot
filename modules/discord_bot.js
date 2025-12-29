@@ -4040,7 +4040,7 @@ async function __handlingInteractionMessage(message) {
 
 		// For other deferral errors, try to send a followUp as fallback
 		try {
-			if (!message.replied && !message.deferred) {
+			if (!message.replied && !message.deferred && typeof message.followUp === 'function') {
 				await message.followUp({ content: '處理中，請稍候...', ephemeral: true });
 			}
 		} catch (fallbackError) {

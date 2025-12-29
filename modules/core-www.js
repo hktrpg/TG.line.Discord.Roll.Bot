@@ -317,7 +317,7 @@ www.get('/api/dice-commands', async (req, res) => {
                                     
                                     // 為支持自動完成的選項添加配置
                                     const optionsWithAutocomplete = (sub.options || []).map(option => {
-                                        if (option.autocomplete === true) {
+                                        if (option.autocompleteModule) {
                                             return {
                                                 ...option,
                                                 autocomplete: {
@@ -374,7 +374,7 @@ www.get('/api/dice-commands', async (req, res) => {
                                 
                                 // 為支持自動完成的選項添加配置
                                 const optionsWithAutocomplete = (commandJson.options || []).map(option => {
-                                    if (option.autocomplete === true) {
+                                    if (option.autocompleteModule) {
                                         return {
                                             ...option,
                                             autocomplete: {

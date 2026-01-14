@@ -250,7 +250,7 @@ describe('DBProtectionLayer', () => {
 
             expect(result).toEqual(mockData);
             expect(dbProtectionLayer.syncQueue).toHaveLength(initialQueueLength + 1);
-            expect(dbProtectionLayer.syncQueue[dbProtectionLayer.syncQueue.length - 1]).toMatchObject({
+            expect(dbProtectionLayer.syncQueue.at(-1)).toMatchObject({
                 collectionName: 'testCollection',
                 operation: 'create',
                 data: mockData

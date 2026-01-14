@@ -1100,7 +1100,6 @@ class TranslateAi extends OpenAI {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
-            const contentLength = Number.parseInt(response.headers.get('content-length') || '0');
             const totalSize = attachment.size;
 
             // For small files, process normally

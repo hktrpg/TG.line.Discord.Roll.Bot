@@ -32,17 +32,16 @@ jest.mock('../modules/db-connector.js', () => {
 const mockSchemas = {};
 
 // Create a mock query chain for find().sort()
-const createMockQueryChain = (mockResult) => {
-    const chain = {
-        sort: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
-        skip: jest.fn().mockReturnThis(),
-        then: (resolve) => Promise.resolve(mockResult).then(resolve),
-        catch: (reject) => Promise.resolve(mockResult).catch(reject)
-    };
-    // Make it a Promise-like object
-    return Object.assign(Promise.resolve(mockResult), chain);
-};
+class MockQueryChain extends Promise {
+    constructor(mockResult) {
+        super((resolve) => setTimeout(() => resolve(mockResult), 0));
+        this.sort = jest.fn().mockReturnValue(this);
+        this.limit = jest.fn().mockReturnValue(this);
+        this.skip = jest.fn().mockReturnValue(this);
+    }
+}
+
+const createMockQueryChain = (mockResult) => new MockQueryChain(mockResult);
 
 const mockSchemaMethods = {
     findOneAndUpdate: jest.fn(),

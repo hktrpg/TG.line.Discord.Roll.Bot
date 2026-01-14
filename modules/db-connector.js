@@ -532,12 +532,8 @@ async function waitForConnection(timeout = 30_000) {
 
     // If disconnected, try to connect
     if (mongoose.connection.readyState === 0) {
-        try {
-            await connect();
-            return mongoose.connection.readyState === 1 && isConnected;
-        } catch (error) {
-            throw error;
-        }
+        await connect();
+        return mongoose.connection.readyState === 1 && isConnected;
     }
 
     // For other states, wait with polling

@@ -1965,7 +1965,7 @@ async function getAllshardIds() {
 				})).catch(() => []);
 				respondingClusters = healthCheck || [];
 				clustersHealthy = respondingClusters.length > 0;
-				totalClusters = client.cluster?.ids?.size || respondingClusters.length;
+				totalClusters = client.cluster?.ids?.size ?? respondingClusters.length;
 			} catch (error) {
 				console.warn('[Statistics] Cluster health check failed:', error.message);
 				clustersHealthy = false;
@@ -2019,7 +2019,6 @@ async function getAllshardIds() {
 								// Try to get individual shard ping first
 								let pingValue = -1;
 								let status = -1;
-								let pingSource = 'unknown';
 
 								// Method 1: Direct shard ping (most accurate for individual shards)
 								try {
@@ -2027,9 +2026,8 @@ async function getAllshardIds() {
 									if (shard && typeof shard.ping === 'number' && !Number.isNaN(shard.ping) && shard.ping >= 0) {
 										pingValue = Math.round(shard.ping);
 										status = shard.status || 0;
-										pingSource = 'shard';
 									}
-								} catch (shardError) {
+								} catch {
 									// Ignore shard access errors, try other methods
 								}
 
@@ -2037,30 +2035,27 @@ async function getAllshardIds() {
 								if (pingValue === -1 && c.ws?.ping !== undefined && typeof c.ws.ping === 'number' && !Number.isNaN(c.ws.ping) && c.ws.ping >= 0) {
 									pingValue = Math.round(c.ws.ping);
 									status = c.ws.status || 0;
-									pingSource = 'websocket';
 								}
 
 								// Method 3: Cluster-level ping
 								if (pingValue === -1 && c.shard?.ping !== undefined && typeof c.shard.ping === 'number' && !Number.isNaN(c.shard.ping) && c.shard.ping >= 0) {
 									pingValue = Math.round(c.shard.ping);
 									status = c.shard.status || 0;
-									pingSource = 'cluster';
 								}
 
 								// If still no ping, use estimation based on uptime
 								if (pingValue === -1) {
 									const uptime = c.uptime;
-									if (uptime && uptime > 10000) { // At least 10 seconds uptime
+									if (uptime && uptime > 10_000) { // At least 10 seconds uptime
 										pingValue = Math.floor(Math.random() * 100) + 50; // 50-150ms range
 										status = 0; // Assume healthy
-										pingSource = 'estimated';
 									}
 								}
 
 								shardPings.push(pingValue);
 								shardStatuses.push(status);
 
-							} catch (error) {
+							} catch {
 								// Complete failure for this shard
 								shardPings.push(-1);
 								shardStatuses.push(-1);
@@ -2197,7 +2192,7 @@ async function getAllshardIds() {
 
 			for (const clusterData of clusterDataRaw) {
 				if (clusterData && typeof clusterData === 'object') {
-					const { clusterId, assignedShards, shardPings, shardStatuses, success } = clusterData;
+					const { clusterId, assignedShards, shardPings, shardStatuses } = clusterData;
 					processedClusters.add(clusterId);
 
 					let actualAssignedShards = assignedShards;
@@ -2223,10 +2218,10 @@ async function getAllshardIds() {
 
 					// Ensure we have ping and status data for all assigned shards
 					if (!Array.isArray(actualShardPings) || actualShardPings.length !== actualAssignedShards.length) {
-						actualShardPings = new Array(actualAssignedShards.length).fill(-1);
+						actualShardPings = Array.from({length: actualAssignedShards.length}).fill(-1);
 					}
 					if (!Array.isArray(actualShardStatuses) || actualShardStatuses.length !== actualAssignedShards.length) {
-						actualShardStatuses = new Array(actualAssignedShards.length).fill(-1);
+						actualShardStatuses = Array.from({length: actualAssignedShards.length}).fill(-1);
 					}
 
 					// Add data for each shard managed by this cluster

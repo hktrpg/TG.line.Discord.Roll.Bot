@@ -46,7 +46,7 @@ describe('Records Module - Post-Startup Integration Test', () => {
                         setTimeout(() => reject(new Error('Connection timeout')), 10_000)
                     )
                 ]);
-            } catch (error) {
+            } catch {
                 console.warn('[Test] Database connection timeout, continuing with tests');
             }
         }

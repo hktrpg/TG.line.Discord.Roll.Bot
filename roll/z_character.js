@@ -52,7 +52,7 @@ function numberToEmoji(num, minDigits = 2) {
     const numStr = String(num).padStart(minDigits, '0');
     
     // Convert each digit to emoji
-    return numStr.split('').map(digit => emojiMap[digit] || digit).join('');
+    return [...numStr].map(digit => emojiMap[digit] || digit).join('');
 }
 
 /*

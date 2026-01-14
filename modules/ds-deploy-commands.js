@@ -139,7 +139,7 @@ async function loadingSlashCommands() {
 
     // Return immediately if already loaded
     if (commandsLoaded) {
-        return Promise.resolve();
+        return;
     }
 
     // Create loading promise

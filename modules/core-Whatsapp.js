@@ -89,8 +89,8 @@ async function startUp() {
 				if (!msg || !msg.body || msg.fromMe || msg.isForwarded) return;
 				
 				// Validate required properties
-				if (!msg.from || typeof msg.getContact !== 'function') {
-					console.error('[WhatsApp] Invalid message object - missing required properties');
+				if (!msg.from) {
+					console.error('[WhatsApp] Invalid message object - missing msg.from');
 					return;
 				}
 
@@ -212,13 +212,29 @@ async function processMessage(msg, groupInfo, client) {
 
 	userid = msg.author;
 	let getContact;
+	displayname = '';
 	try {
 		getContact = await msg.getContact();
-	} catch (error) {
-		console.error('[WhatsApp] Failed to get contact:', error.message);
+		displayname = (getContact && getContact.pushname) || (getContact && getContact.name) || '';
+	} catch {
+		//console.error('[WhatsApp] Failed to get contact:', error.message);
 		getContact = null;
+		displayname = '';
+
+		// Fallback: try to get display name from message author info
+		if (msg.author && typeof msg.author === 'string') {
+			// Extract a basic display name from the author ID if possible
+			const authorParts = msg.author.split('@');
+			if (authorParts[0]) {
+				displayname = authorParts[0];
+			}
+		}
+
+		// If still no display name, use a generic one
+		if (!displayname) {
+			displayname = 'Unknown User';
+		}
 	}
-	displayname = (getContact && getContact.pushname) || '';
 	let rplyVal = {};
 	if (mainMsg && mainMsg[0])
 		trigger = mainMsg[0].toString().toLowerCase();

@@ -473,9 +473,28 @@ async function init() {
                 return;
             }
 
+            // Check if it's an IPC error during shutdown (expected behavior)
+            const errorCode = reason.code || '';
+            const errorMessage = reason.message || String(reason);
+            if (errorCode === 'EPIPE' || errorCode === 'ERR_IPC_CHANNEL_CLOSED' ||
+                errorCode === 'ERR_IPC_DISCONNECTED' || errorCode === 'ECONNRESET' ||
+                errorMessage.includes('EPIPE') || errorMessage.includes('Channel closed') ||
+                errorMessage.includes('IPC') || errorMessage.includes('disconnected') ||
+                errorMessage.includes('Connection lost') || errorMessage.includes('socket hang up')) {
+                console.error('[System] Detected as IPC error during shutdown, will NOT trigger additional shutdown');
+                errorHandler(reason, 'Shutdown IPC Error (Expected)');
+                // Do not close the application again, shutdown is already in progress
+                return;
+            }
+
             errorHandler(reason, 'Unhandled Promise Rejection');
-            // Only close the application for non-database errors
-            if (!reason.message || !reason.message.includes('MongoDB')) {
+            // Only close the application for non-database and non-shutdown IPC errors
+            if (!reason.message || (!reason.message.includes('MongoDB') &&
+                !(errorCode === 'EPIPE' || errorCode === 'ERR_IPC_CHANNEL_CLOSED' ||
+                  errorCode === 'ERR_IPC_DISCONNECTED' || errorCode === 'ECONNRESET' ||
+                  errorMessage.includes('EPIPE') || errorMessage.includes('Channel closed') ||
+                  errorMessage.includes('IPC') || errorMessage.includes('disconnected') ||
+                  errorMessage.includes('Connection lost') || errorMessage.includes('socket hang up')))) {
                 gracefulShutdown(moduleManager);
             }
         });

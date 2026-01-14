@@ -7,7 +7,7 @@ jest.mock('../modules/schema.js', () => ({
     roleReact: {
         find: jest.fn(),
         findOne: jest.fn(),
-        findOneAndRemove: jest.fn(),
+        findOneAndDelete: jest.fn(),
         countDocuments: jest.fn()
     }
 }));
@@ -213,7 +213,7 @@ describe('Role Module Tests', () => {
     });
 
     test('Test delete command', async () => {
-        schema.roleReact.findOneAndRemove.mockResolvedValue({
+        schema.roleReact.findOneAndDelete.mockResolvedValue({
             serial: 1,
             message: '2023/10/25 12:00 - ID: 123456789'
         });

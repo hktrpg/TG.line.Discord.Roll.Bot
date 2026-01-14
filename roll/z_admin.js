@@ -37,6 +37,8 @@ const pattNotes = /\s+-no\s+(\S+)/ig;
 const pattSwitch = /\s+-s\s+(\S+)/ig;
 const deploy = require('../modules/ds-deploy-commands.js');
 //const VIP = require('../modules/veryImportantPerson');
+const dbProtectionLayer = require('../modules/db-protection-layer.js');
+const clusterProtection = require('../modules/cluster-protection.js');
 const gameName = function () {
     return '【Admin Tool】.admin debug state account news on'
 }
@@ -69,6 +71,11 @@ const getHelpMessage = async function () {
 │ 資料庫狀態:
 │ 　• .admin mongod
 │ 　  - 檢視MongoDB連接狀態
+│
+│ 系統保護狀態:
+│ 　• .admin clusterhealth
+│ 　  - 檢視數據庫與分流保護層狀態
+│ 　  - 顯示降級模式與集群健康統計
 │
 ├────── 👤帳號管理 ──────
 │ 網頁版角色卡設定:
@@ -130,6 +137,16 @@ const getHelpMessage = async function () {
 │ 　• .root decrypt [加密文字]
 │ 　  - 解密文字
 │
+│ Shard 修復:
+│ 　• .root fixshard check
+│ 　  - 檢查所有 shard 狀態
+│ 　• .root fixshard start
+│ 　  - 開始自動修復 unresponsive shards
+│ 　• .root fixshard stop
+│ 　  - 停止自動修復
+│ 　• .root fixshard status
+│ 　  - 查看修復狀態
+
 │ 發送通知:
 │ 　• .root send News [訊息]
 │ 　  - 發送更新通知
@@ -328,7 +345,22 @@ const discordCommand = [
                     .addStringOption(option =>
                         option.setName('message')
                             .setDescription('通知訊息')
-                            .setRequired(true))),
+                            .setRequired(true)))
+            // Shard fix
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('fixshard')
+                    .setDescription('Shard 修復工具')
+                    .addStringOption(option =>
+                        option.setName('action')
+                            .setDescription('動作 (check/start/stop/status)')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: 'check - 檢查所有 shard 狀態', value: 'check' },
+                                { name: 'start - 開始自動修復', value: 'start' },
+                                { name: 'stop - 停止自動修復', value: 'stop' },
+                                { name: 'status - 查看修復狀態', value: 'status' }
+                            ))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             
@@ -375,6 +407,10 @@ const discordCommand = [
             case 'sendnews': {
                 const message = interaction.options.getString('message');
                 return `.root send News ${message}`;
+            }
+            case 'fixshard': {
+                const action = interaction.options.getString('action');
+                return `.root fixshard ${action}`;
             }
             // No default
             }
@@ -453,6 +489,46 @@ const rollDiceCommand = async function ({
                 let mongod = await schema.mongodbStateCheck();
                 rply.text = JSON.stringify(mongod ? mongod.connections : 'Connection check failed');
                 rply.quotes = true;
+                return rply;
+            }
+            case /^clusterhealth$/i.test(mainMsg[1]): {
+                if (!adminSecret) return rply;
+                if (userid !== adminSecret) return rply;
+                try {
+                    // Import the health report function from discord_bot.js
+                    const healthReport = globalThis.getClusterHealthReport();
+                    const dbStatus = dbProtectionLayer.getStatusReport();
+                    const clusterProtectionStatus = clusterProtection.getStatusReport();
+
+                    rply.text = '🔍 **System Protection Status**\n\n' +
+                        `🛡️ **Database Protection Layer:**\n` +
+                        `• Mode: ${dbStatus.isDegradedMode ? '🔴 DEGRADED' : '🟢 NORMAL'}\n` +
+                        `• Connection State: ${dbStatus.dbConnectionState === 1 ? '✅ Connected' : '❌ Disconnected'}\n` +
+                        `• Consecutive Failures: ${dbStatus.consecutiveFailures}\n` +
+                        `• Cache Size: ${dbStatus.cacheSize} items\n` +
+                        `• Pending Sync: ${dbStatus.pendingSyncOperations} operations\n\n` +
+                        `📊 **Cluster Protection Layer:**\n` +
+                        `• Unhealthy Clusters: ${clusterProtectionStatus.unhealthyCount}\n` +
+                        `• Health Timeout: ${clusterProtectionStatus.healthTimeout / 1000}s\n` +
+                        `• Max Retries: ${clusterProtectionStatus.maxRetries}\n\n` +
+                        `📋 **Cluster Health Report:**\n` +
+                        `• Total Clusters: ${healthReport.summary.totalClusters}\n` +
+                        `• Active Clusters: ${healthReport.summary.activeClusters}\n` +
+                        `• Ready Clusters: ${healthReport.summary.readyClusters}\n` +
+                        `• Dead Clusters: ${healthReport.summary.deadClusters}\n` +
+                        `• Total Shards: ${healthReport.summary.totalShards}\n\n` +
+                        `🔧 **Process Info:**\n` +
+                        `• PID: ${healthReport.processInfo.pid}\n` +
+                        `• Uptime: ${Math.floor(healthReport.processInfo.uptime / 3600)}h ${Math.floor((healthReport.processInfo.uptime % 3600) / 60)}m\n` +
+                        `• Memory: ${healthReport.processInfo.memoryMB}MB\n\n` +
+                        `📋 **Cluster Details:**\n` +
+                        healthReport.clusters.map(c =>
+                            `• Cluster ${c.id}: ${c.ready ? '✅' : '❌'} ${c.alive ? '🟢' : '🔴'} (${c.shards} shards, ${c.uptime}s uptime)`
+                        ).join('\n');
+                    rply.quotes = true;
+                } catch (error) {
+                    rply.text = `❌ System protection status check failed: ${error.message}`;
+                }
                 return rply;
             }
             case /^registerChannel$/i.test(mainMsg[1]):
@@ -554,7 +630,7 @@ const rollDiceCommand = async function ({
                     return rply;
                 }
                 try {
-                    doc = await schema.allowRolling.findOneAndRemove({
+                    doc = await schema.allowRolling.findOneAndDelete({
                         "id": channelid || groupid
                     });
                 } catch (error) {
@@ -583,7 +659,7 @@ const rollDiceCommand = async function ({
                         }
                     }, {
                         upsert: true,
-                        returnNewDocument: true
+                        returnDocument: 'after'
                     });
                 } catch (error) {
                     console.error('[Admin] Allowrolling error:', error);
@@ -640,7 +716,7 @@ const rollDiceCommand = async function ({
                         }
                     }, {
                         upsert: true,
-                        returnNewDocument: true
+                        returnDocument: 'after'
                     });
                 } catch (error) {
                     console.error('[Admin] Account error:', error);
@@ -782,6 +858,70 @@ const rollDiceCommand = async function ({
                 let target = await schema.theNewsMessage.find({ botname: botname, switch: true });
                 rply.sendNews = inputStr.replace(/\s?\S+\s+\S+\s+/, '');
                 rply.target = target;
+                return rply;
+            }
+            case /^fixshard$/i.test(mainMsg[1]): {
+                const action = mainMsg[2]?.toLowerCase();
+
+                if (!action) {
+                    rply.text = '請指定動作：check, start, stop, status\n' +
+                               '• check - 檢查所有 shard 狀態\n' +
+                               '• start - 開始自動修復 unresponsive shards\n' +
+                               '• stop - 停止自動修復\n' +
+                               '• status - 查看修復狀態';
+                    return rply;
+                }
+
+                try {
+                    switch (action) {
+                        case 'check': {
+                            const healthReport = await globalThis.checkShardHealth();
+                            if (healthReport.error) {
+                                rply.text = `❌ 檢查失敗：${healthReport.error}`;
+                            } else {
+                                rply.text = `🔍 Shard 健康檢查報告\n` +
+                                           `📊 總共：${healthReport.totalShards} 個 shards\n` +
+                                           `✅ 正常：${healthReport.healthyShards} 個\n` +
+                                           `❌ 異常：${healthReport.unhealthyShards} 個\n` +
+                                           `${healthReport.unresponsiveShards.length > 0 ?
+                                               `🚨 無回應：${healthReport.unresponsiveShards.join(', ')}\n` +
+                                               `💡 使用 .root fixshard start 開始自動修復` :
+                                               `🎉 所有 shards 都正常運作！`}`;
+                            }
+                            break;
+                        }
+                        case 'start': {
+                            const result = globalThis.startShardFix();
+                            rply.text = result.inProgress ?
+                                `🔧 已開始自動修復 ${result.unresponsiveShards.length} 個無回應 shards\n` +
+                                `⏱️ 每 20 秒處理一個 shard\n` +
+                                `📝 無回應 shards：${result.unresponsiveShards.join(', ')}` :
+                                result.message;
+                            break;
+                        }
+                        case 'stop': {
+                            const result = globalThis.stopShardFix();
+                            rply.text = result.message;
+                            break;
+                        }
+                        case 'status': {
+                            const status = globalThis.getShardFixStatus();
+                            rply.text = `📊 Shard 修復狀態\n` +
+                                       `🔧 修復中：${status.inProgress ? '是' : '否'}\n` +
+                                       `🚨 無回應 shards：${status.totalUnresponsive > 0 ?
+                                           status.unresponsiveShards.join(', ') :
+                                           '無'}`;
+                            break;
+                        }
+                        default: {
+                            rply.text = '無效的動作。請使用：check, start, stop, status';
+                        }
+                    }
+                } catch (error) {
+                    console.error('[Admin] fixshard error:', error);
+                    rply.text = `❌ 操作失敗：${error.message}`;
+                }
+
                 return rply;
             }
             default:

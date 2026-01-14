@@ -2898,16 +2898,15 @@ const discordCommand = [
                     .addStringOption(option => {
                         const opt = option.setName('name')
                             .setDescription('數碼寶貝名稱或編號')
-                            .setRequired(true)
-                            .setAutocomplete(true);
-                        
-                        // 添加自動完成配置到選項對象
+                            .setRequired(true);
+
+                        // 網頁版自動完成配置 (Discord 端不使用 autocomplete)
                         opt.autocompleteModule = 'digimon';
                         opt.autocompleteSearchFields = ['display', 'value', 'metadata.zh-cn-name'];
                         opt.autocompleteLimit = 8;
                         opt.autocompleteMinQueryLength = 1;
                         opt.autocompleteNoResultsText = '找不到相關的數碼寶貝';
-                        
+
                         return opt;
                     }))
             .addSubcommand(subcommand =>
@@ -2917,29 +2916,27 @@ const discordCommand = [
                     .addStringOption(option => {
                         const opt = option.setName('from')
                             .setDescription('起始數碼寶貝名稱或編號')
-                            .setRequired(true)
-                            .setAutocomplete(true);
-                        
+                            .setRequired(true);
+
                         opt.autocompleteModule = 'digimon';
                         opt.autocompleteSearchFields = ['display', 'value', 'metadata.zh-cn-name'];
                         opt.autocompleteLimit = 8;
                         opt.autocompleteMinQueryLength = 1;
                         opt.autocompleteNoResultsText = '找不到相關的數碼寶貝';
-                        
+
                         return opt;
                     })
                     .addStringOption(option => {
                         const opt = option.setName('to')
                             .setDescription('目標數碼寶貝名稱或編號')
-                            .setRequired(true)
-                            .setAutocomplete(true);
-                        
+                            .setRequired(true);
+
                         opt.autocompleteModule = 'digimon';
                         opt.autocompleteSearchFields = ['display', 'value', 'metadata.zh-cn-name'];
                         opt.autocompleteLimit = 8;
                         opt.autocompleteMinQueryLength = 1;
                         opt.autocompleteNoResultsText = '找不到相關的數碼寶貝';
-                        
+
                         return opt;
                     }))
             .addSubcommand(subcommand =>
@@ -2949,16 +2946,15 @@ const discordCommand = [
                     .addStringOption(option => {
                         const opt = option.setName('keyword')
                             .setDescription('招式或數碼寶貝名稱關鍵字')
-                            .setRequired(false)
-                            .setAutocomplete(true);
-                        
-                        // 添加自動完成配置到選項對象
+                            .setRequired(false);
+
+                        // 網頁版自動完成配置 (Discord 端不使用 autocomplete)
                         opt.autocompleteModule = 'digimon_moves';
                         opt.autocompleteSearchFields = ['display', 'value', 'metadata.digimon', 'metadata.element', 'metadata.type', 'metadata.digimonId'];
                         opt.autocompleteLimit = 8;
                         opt.autocompleteMinQueryLength = 1;
                         opt.autocompleteNoResultsText = '找不到相關的招式';
-                        
+
                         return opt;
                     })
                     .addStringOption(option =>

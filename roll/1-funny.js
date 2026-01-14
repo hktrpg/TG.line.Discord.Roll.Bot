@@ -523,10 +523,10 @@ class TwelveAstro {
 	}
 
 	/**
-	 * 獲取星座運程
-	 * @param {string} name - 星座名稱
-	 * @param {string} date - 日期 (optional, defaults to today)
-	 * @param {boolean} forceUpdate - 是否強制更新
+	 * Get astrology fortune
+	 * @param {string} name - Astrology name
+	 * @param {string} date - Date (optional, defaults to today)
+	 * @param {boolean} forceUpdate - Whether to force update
 	 */
 	async getAstro(name, date = null, forceUpdate = false) {
 		try {
@@ -596,9 +596,9 @@ class TwelveAstro {
 	}
 
 	/**
-	 * 獲取每日大事
-	 * @param {string} date - 日期 (optional, defaults to today)
-	 * @param {boolean} forceUpdate - 是否強制更新
+	 * Get daily events
+	 * @param {string} date - Date (optional, defaults to today)
+	 * @param {boolean} forceUpdate - Whether to force update
 	 */
 	async getBigEvent(date = null, forceUpdate = false) {
 		try {
@@ -616,8 +616,8 @@ class TwelveAstro {
 	}
 
 	/**
-	 * 更新每日大事數據
-	 * @param {string} date - 日期
+	 * Update daily events data
+	 * @param {string} date - Date
 	 */
 	async updateBigEvent(date) {
 		const targetDate = new Date(date);
@@ -625,45 +625,70 @@ class TwelveAstro {
 		const month = targetDate.getMonth() + 1;
 		let respond = `${month}月${day}日\n\n`;
 
-		try {
-			const page = await wiki({
-				headers: { 'User-Agent': identity },
-				apiUrl: 'https://zh.wikipedia.org/w/api.php',
-				setpagelanguage: "zh-hant"
-			}).page(`${month}月${day}日`);
+		// Retry logic for network failures
+		let retries = 3;
+		let lastError = null;
 
-			let temp = await page.content();
-			let answerFestival = temp.find(v => {
-				return v && v.title.match(/(节日)|(節日)|(习俗)|(假日)|(节假)/)
-			});
+		for (let attempt = 0; attempt < retries; attempt++) {
+			try {
+				const page = await wiki({
+					headers: { 'User-Agent': identity },
+					apiUrl: 'https://zh.wikipedia.org/w/api.php',
+					setpagelanguage: "zh-hant",
+					timeout: 10_000 // 10 second timeout
+				}).page(`${month}月${day}日`);
 
-			respond += `${(answerFestival && answerFestival.title) ? `${answerFestival.title}\n` : ''}${(answerFestival && answerFestival.content) ? `${answerFestival.content}\n` : ''}\n`
+				let temp = await page.content();
+				let answerFestival = temp.find(v => {
+					return v && v.title.match(/(节日)|(節日)|(习俗)|(假日)|(节假)/)
+				});
 
-			let answerBig = temp.find(v => {
-				return v && v.title.match(/(大事)/)
-			});
+				respond += `${(answerFestival && answerFestival.title) ? `${answerFestival.title}\n` : ''}${(answerFestival && answerFestival.content) ? `${answerFestival.content}\n` : ''}\n`
 
-			if (answerBig && answerBig.items) answerBig = answerBig.items;
+				let answerBig = temp.find(v => {
+					return v && v.title.match(/(大事)/)
+				});
 
-			for (let index = 0; index < answerBig?.length; index++) {
-				respond += `${answerBig[index].title}\n${answerBig[index].content}\n\n`
+				if (answerBig && answerBig.items) answerBig = answerBig.items;
+
+				for (let index = 0; index < answerBig?.length; index++) {
+					respond += `${answerBig[index].title}\n${answerBig[index].content}\n\n`
+				}
+
+				this.BigEvent[date] = chineseConv.tify(respond);
+				return; // Success, exit retry loop
+
+			} catch (error) {
+				lastError = error;
+
+				// If it's a timeout or network error, retry with exponential backoff
+				if (error.code === 'ETIMEDOUT' || error.code === 'ECONNRESET' || error.code === 'ENOTFOUND') {
+					if (attempt < retries - 1) {
+						// Wait 10 seconds * (attempt + 1) for exponential backoff (10s, 20s, 30s)
+						const waitTime = 10_000 * (attempt + 1);
+						await new Promise(resolve => setTimeout(resolve, waitTime));
+						continue;
+					}
+				}
+
+				// For other errors or if we've exhausted retries, break
+				break;
 			}
+		}
 
-			this.BigEvent[date] = chineseConv.tify(respond);
-		} catch (error) {
-			if (error == 'Error: No article found') {
-				this.BigEvent[date] = '沒有此條目';
-			} else {
-				console.error('每日大事 updateBigEvent error:', error);
-				this.BigEvent[date] = '條目出錯';
-			}
+		// Handle final failure - only log after all retries failed
+		if (lastError == 'Error: No article found') {
+			this.BigEvent[date] = '沒有此條目';
+		} else {
+			console.error(`Daily events updateBigEvent failed after ${retries} retries, final error:`, lastError.message);
+			this.BigEvent[date] = '條目出錯';
 		}
 	}
 
 	/**
-	 * 獲取黃曆
-	 * @param {string} date - 日期 (optional, defaults to today)
-	 * @param {boolean} forceUpdate - 是否強制更新
+	 * Get almanac
+	 * @param {string} date - Date (optional, defaults to today)
+	 * @param {boolean} forceUpdate - Whether to force update
 	 */
 	async getAlmanac(date = null, forceUpdate = false) {
 		try {
@@ -684,8 +709,8 @@ class TwelveAstro {
 	}
 
 	/**
-	 * 格式化黃曆輸出
-	 * @param {Object} almanac - 黃曆物件
+	 * Format almanac output
+	 * @param {Object} almanac - Almanac object
 	 */
 	returnAlmanacStr(almanac) {
 		return `今日黃曆 - ${almanac.date}
@@ -694,8 +719,8 @@ ${almanac.content}
 	}
 
 	/**
-	 * 更新黃曆數據
-	 * @param {string} date - 日期
+	 * Update almanac data
+	 * @param {string} date - Date
 	 */
 	async updateAlmanac(date) {
 		const targetDate = new Date(date);
@@ -937,7 +962,7 @@ const watchMusic = new WatchMusic100();
 
 
 /**
- * 占卜&其他
+ * Divination & Others
  */
 
 function BStyleFlagSCRIPTS() {

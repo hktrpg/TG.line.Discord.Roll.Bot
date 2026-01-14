@@ -1,5 +1,7 @@
 "use strict";
 const path = require('path');
+const os = require('os');
+const fs = require('fs').promises;
 const winston = require('winston');
 const { format } = winston;
 const schema = require('./schema.js');
@@ -17,7 +19,13 @@ const CONFIG = {
     CIRCUIT_BREAKER_RECOVERY_TIMEOUT: 60 * 1000, // 1 minute
     CONNECTION_RETRY_ATTEMPTS: 5,
     CONNECTION_RETRY_DELAY: 5000, // 5 seconds
-    HEALTH_CHECK_INTERVAL: 30 * 1000 // 30 seconds
+    HEALTH_CHECK_INTERVAL: 30 * 1000, // 30 seconds
+    // System resource monitoring thresholds
+    MEMORY_WARNING_THRESHOLD: 85, // Warn when memory usage > 85%
+    MEMORY_CRITICAL_THRESHOLD: 95, // Critical when memory usage > 95%
+    DISK_WARNING_THRESHOLD: 90, // Warn when disk usage > 90%
+    DISK_CRITICAL_THRESHOLD: 95, // Critical when disk usage > 95%
+    RESOURCE_CHECK_INTERVAL: 60 * 1000 // Check system resources every minute
 };
 
 // Create custom logger
@@ -113,7 +121,9 @@ class DbWatchdog {
     constructor() {
         this.dbConnErr = {
             timeStamp: Date.now(),
-            retry: 0
+            retry: 0,
+            consecutiveSuccesses: 0, // 連續成功次數，用於判斷是否真正恢復
+            lastSuccessTime: null
         };
         this.logger = createLogger();
         this.circuitBreaker = new CircuitBreaker();
@@ -135,12 +145,22 @@ class DbWatchdog {
             lastDisconnectionTime: null,
             reconnectionAttempts: 0
         };
+        this.systemResources = {
+            memoryUsage: null,
+            diskUsage: null,
+            lastResourceCheck: null,
+            resourceWarnings: [],
+            resourceCritical: []
+        };
+        this.lastConnectionWarningTime = null; // Track last warning time to suppress repeated warnings
         this.init();
     }
 
     dbErrOccurs() {
         this.dbConnErr.retry++;
         this.dbConnErr.timeStamp = Date.now();
+        // 發生錯誤時重置連續成功計數
+        this.dbConnErr.consecutiveSuccesses = 0;
         console.error(`[dbWatchdog] Database connection error occurred. Error count: ${this.dbConnErr.retry}`);
     }
 
@@ -149,13 +169,162 @@ class DbWatchdog {
     }
 
     isDbRespawn() {
-        return (this.dbConnErr.retry > CONFIG.MAX_ERR_RESPAWN);
+        // 檢查錯誤計數是否超過閾值，且錯誤是在最近5分鐘內發生的
+        const timeWindow = 5 * 60 * 1000; // 5 minutes
+        const now = Date.now();
+        const timeSinceLastError = now - this.dbConnErr.timeStamp;
+
+        return (this.dbConnErr.retry > CONFIG.MAX_ERR_RESPAWN) && (timeSinceLastError < timeWindow);
     }
 
     __dbErrorReset() {
-        if (this.dbConnErr.retry > 0) {
+        // 只有在連續成功3次後才重置錯誤計數，避免輕易重置
+        this.dbConnErr.consecutiveSuccesses++;
+        this.dbConnErr.lastSuccessTime = Date.now();
+
+        if (this.dbConnErr.consecutiveSuccesses >= 3 && this.dbConnErr.retry > 0) {
+            console.log(`[dbWatchdog] Database connection stable after ${this.dbConnErr.consecutiveSuccesses} consecutive successes, resetting error counter`);
             this.dbConnErr.retry = 0;
-            console.log('[dbWatchdog] Database connection error counter reset');
+            this.dbConnErr.consecutiveSuccesses = 0;
+        }
+    }
+
+    // System resource monitoring methods
+    async checkMemoryUsage() {
+        try {
+            const totalMemory = os.totalmem();
+            const freeMemory = os.freemem();
+            const usedMemory = totalMemory - freeMemory;
+            const memoryUsagePercent = (usedMemory / totalMemory) * 100;
+
+            this.systemResources.memoryUsage = {
+                total: totalMemory,
+                free: freeMemory,
+                used: usedMemory,
+                usagePercent: Math.round(memoryUsagePercent * 100) / 100,
+                timestamp: new Date()
+            };
+
+            return this.systemResources.memoryUsage;
+        } catch (error) {
+            console.warn('[dbWatchdog] Failed to check memory usage:', error.message);
+            return null;
+        }
+    }
+
+    async checkDiskUsage() {
+        try {
+            // Check disk usage for the current working directory
+            const cwd = process.cwd();
+            const stats = await fs.statvfs(cwd);
+
+            if (stats) {
+                const totalSpace = stats.f_blocks * stats.f_frsize;
+                const freeSpace = stats.f_available * stats.f_frsize;
+                const usedSpace = totalSpace - freeSpace;
+                const diskUsagePercent = (usedSpace / totalSpace) * 100;
+
+                this.systemResources.diskUsage = {
+                    total: totalSpace,
+                    free: freeSpace,
+                    used: usedSpace,
+                    usagePercent: Math.round(diskUsagePercent * 100) / 100,
+                    mountPoint: cwd,
+                    timestamp: new Date()
+                };
+            } else {
+                // Fallback for systems without statvfs
+                this.systemResources.diskUsage = {
+                    total: 0,
+                    free: 0,
+                    used: 0,
+                    usagePercent: 0,
+                    mountPoint: cwd,
+                    timestamp: new Date(),
+                    note: 'statvfs not available'
+                };
+            }
+
+            return this.systemResources.diskUsage;
+        } catch (error) {
+            // Fallback for Windows or systems without statvfs
+            try {
+                // Simple fallback - just record that we attempted to check
+                this.systemResources.diskUsage = {
+                    total: 0,
+                    free: 0,
+                    used: 0,
+                    usagePercent: 0,
+                    mountPoint: process.cwd(),
+                    timestamp: new Date(),
+                    note: 'Disk check not available on this platform'
+                };
+            } catch {
+                console.warn('[dbWatchdog] Failed to check disk usage:', error.message);
+            }
+            return this.systemResources.diskUsage;
+        }
+    }
+
+    async checkSystemResources() {
+        try {
+            const [memoryInfo, diskInfo] = await Promise.all([
+                this.checkMemoryUsage(),
+                this.checkDiskUsage()
+            ]);
+
+            this.systemResources.lastResourceCheck = new Date();
+
+            // Check for resource warnings and critical levels
+            const warnings = [];
+            const critical = [];
+
+            if (memoryInfo && memoryInfo.usagePercent >= CONFIG.MEMORY_CRITICAL_THRESHOLD) {
+                critical.push(`Memory usage critical: ${memoryInfo.usagePercent}%`);
+            } else if (memoryInfo && memoryInfo.usagePercent >= CONFIG.MEMORY_WARNING_THRESHOLD) {
+                warnings.push(`Memory usage high: ${memoryInfo.usagePercent}%`);
+            }
+
+            if (diskInfo && diskInfo.usagePercent >= CONFIG.DISK_CRITICAL_THRESHOLD) {
+                critical.push(`Disk usage critical: ${diskInfo.usagePercent}% (${diskInfo.mountPoint})`);
+            } else if (diskInfo && diskInfo.usagePercent >= CONFIG.DISK_WARNING_THRESHOLD) {
+                warnings.push(`Disk usage high: ${diskInfo.usagePercent}% (${diskInfo.mountPoint})`);
+            }
+
+            // Log warnings and critical alerts
+            if (critical.length > 0) {
+                console.error(`[dbWatchdog] CRITICAL SYSTEM RESOURCES: ${critical.join(', ')}`);
+                this.systemResources.resourceCritical.push({
+                    timestamp: new Date(),
+                    issues: critical
+                });
+            }
+
+            if (warnings.length > 0) {
+                console.warn(`[dbWatchdog] SYSTEM RESOURCE WARNING: ${warnings.join(', ')}`);
+                this.systemResources.resourceWarnings.push({
+                    timestamp: new Date(),
+                    issues: warnings
+                });
+            }
+
+            // Keep only last 50 resource alerts
+            if (this.systemResources.resourceWarnings.length > 50) {
+                this.systemResources.resourceWarnings = this.systemResources.resourceWarnings.slice(-50);
+            }
+            if (this.systemResources.resourceCritical.length > 50) {
+                this.systemResources.resourceCritical = this.systemResources.resourceCritical.slice(-50);
+            }
+
+            return {
+                memory: memoryInfo,
+                disk: diskInfo,
+                warnings: warnings.length,
+                critical: critical.length
+            };
+        } catch (error) {
+            console.warn('[dbWatchdog] Failed to check system resources:', error.message);
+            return null;
         }
     }
 
@@ -168,9 +337,36 @@ class DbWatchdog {
         const dbConnector = require('./db-connector.js');
         const mongoose = dbConnector.mongoose;
 
-        // Check if mongoose connection is actually ready before attempting update
-        if (mongoose.connection.readyState !== 1) {
-            console.warn('[dbWatchdog] MongoDB connection not ready, skipping error record update');
+        // Check connection status more reliably using multiple sources
+        let isConnectionReady = false;
+        try {
+            // First check: Use tracked connection state (updated from connectionEmitter events)
+            if (this.connectionState.isConnected) {
+                isConnectionReady = true;
+            } else {
+                // Second check: Use checkHealth from db-connector
+                const health = dbConnector.checkHealth();
+                // Connection is ready if: readyState is 1 (connected) or 2 (connecting), and isConnected flag is true
+                // State 2 (connecting) is acceptable as operations can be buffered
+                isConnectionReady = health.isConnected && (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2);
+            }
+        } catch {
+            // Fallback: Check readyState directly (1 = connected, 2 = connecting)
+            isConnectionReady = mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2;
+        }
+
+        if (!isConnectionReady) {
+            // Only log warning if connection is actually disconnected (state 0 or 3)
+            // Don't log if it's just connecting (state 2) to reduce noise
+            const readyState = mongoose.connection.readyState;
+            if (readyState === 0 || readyState === 3) {
+                // Suppress repeated warnings - only log once per minute
+                const now = Date.now();
+                if (!this.lastConnectionWarningTime || (now - this.lastConnectionWarningTime) > 60_000) {
+                    console.warn('[dbWatchdog] MongoDB connection not ready, skipping error record update');
+                    this.lastConnectionWarningTime = now;
+                }
+            }
             return;
         }
 
@@ -267,6 +463,18 @@ class DbWatchdog {
             },
             CONFIG.HEALTH_CHECK_INTERVAL
         );
+
+        // System resource monitoring
+        // this.resourceCheckInterval = timerManager.setInterval(
+        //     async () => {
+        //         try {
+        //             await this.checkSystemResources();
+        //         } catch (error) {
+        //             console.warn(`[dbWatchdog] System resource check failed: ${error.message}`);
+        //         }
+        //     },
+        //     CONFIG.RESOURCE_CHECK_INTERVAL
+        // );
 
         // Original MongoDB status recording - disabled to reduce log output
         // MongoDB state check disabled to reduce log noise
@@ -452,6 +660,19 @@ class DbWatchdog {
                 lastDisconnectionTime: this.connectionState.lastDisconnectionTime,
                 reconnectionAttempts: this.connectionState.reconnectionAttempts,
                 poolInfo: connectionPoolInfo
+            },
+            systemResources: {
+                memory: this.systemResources.memoryUsage,
+                disk: this.systemResources.diskUsage,
+                lastResourceCheck: this.systemResources.lastResourceCheck,
+                resourceWarnings: this.systemResources.resourceWarnings.slice(-10), // Last 10 warnings
+                resourceCritical: this.systemResources.resourceCritical.slice(-10), // Last 10 critical alerts
+                thresholds: {
+                    memoryWarning: CONFIG.MEMORY_WARNING_THRESHOLD,
+                    memoryCritical: CONFIG.MEMORY_CRITICAL_THRESHOLD,
+                    diskWarning: CONFIG.DISK_WARNING_THRESHOLD,
+                    diskCritical: CONFIG.DISK_CRITICAL_THRESHOLD
+                }
             }
         };
     }

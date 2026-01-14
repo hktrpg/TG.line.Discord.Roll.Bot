@@ -793,16 +793,15 @@ const discordCommand = [
                     .addStringOption(option => {
                         const opt = option.setName('name')
                             .setDescription('寶可夢名稱或編號')
-                            .setRequired(true)
-                            .setAutocomplete(true);
-                        
-                        // 添加自動完成配置
+                            .setRequired(true);
+
+                        // 網頁版自動完成配置 (Discord 端不使用 autocomplete)
                         opt.autocompleteModule = 'pokemon';
                         opt.autocompleteSearchFields = ['display', 'value', 'metadata.alias', 'metadata.type', 'metadata.id'];
                         opt.autocompleteLimit = 8;
                         opt.autocompleteMinQueryLength = 1;
                         opt.autocompleteNoResultsText = '找不到相關的寶可夢';
-                        
+
                         return opt;
                     })
                     .addBooleanOption(option =>
@@ -816,16 +815,15 @@ const discordCommand = [
                     .addStringOption(option => {
                         const opt = option.setName('name')
                             .setDescription('招式名稱')
-                            .setRequired(true)
-                            .setAutocomplete(true);
-                        
-                        // 添加自動完成配置
+                            .setRequired(true);
+
+                        // 網頁版自動完成配置 (Discord 端不使用 autocomplete)
                         opt.autocompleteModule = 'pokemon_moves';
                         opt.autocompleteSearchFields = ['display', 'value', 'metadata.alias', 'metadata.type'];
                         opt.autocompleteLimit = 8;
                         opt.autocompleteMinQueryLength = 1;
                         opt.autocompleteNoResultsText = '找不到相關的招式';
-                        
+
                         return opt;
                     }))
             .addSubcommand(subcommand =>
@@ -835,31 +833,29 @@ const discordCommand = [
                     .addStringOption(option => {
                         const opt = option.setName('attacker')
                             .setDescription('攻擊方(招式名稱或屬性)')
-                            .setRequired(true)
-                            .setAutocomplete(true);
-                        
-                        // 添加自動完成配置
+                            .setRequired(true);
+
+                        // 網頁版自動完成配置 (Discord 端不使用 autocomplete)
                         opt.autocompleteModule = 'pokemon_moves';
                         opt.autocompleteSearchFields = ['display', 'value', 'metadata.alias', 'metadata.type'];
                         opt.autocompleteLimit = 8;
                         opt.autocompleteMinQueryLength = 1;
                         opt.autocompleteNoResultsText = '找不到相關的招式或屬性';
-                        
+
                         return opt;
                     })
                     .addStringOption(option => {
                         const opt = option.setName('defender')
                             .setDescription('防守方(寶可夢名稱/編號或屬性)')
-                            .setRequired(true)
-                            .setAutocomplete(true);
-                        
-                        // 添加自動完成配置
+                            .setRequired(true);
+
+                        // 網頁版自動完成配置 (Discord 端不使用 autocomplete)
                         opt.autocompleteModule = 'pokemon';
                         opt.autocompleteSearchFields = ['display', 'value', 'metadata.alias', 'metadata.type', 'metadata.id'];
                         opt.autocompleteLimit = 8;
                         opt.autocompleteMinQueryLength = 1;
                         opt.autocompleteNoResultsText = '找不到相關的寶可夢或屬性';
-                        
+
                         return opt;
                     })
                     .addStringOption(option =>

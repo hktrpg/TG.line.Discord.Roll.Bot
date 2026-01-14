@@ -95,7 +95,7 @@ describe('Init Module Tests', () => {
             save: mockSave
         });
         
-        schema.init.updateOne.mockResolvedValue({ nModified: 1 });
+        schema.init.updateOne.mockResolvedValue({ modifiedCount: 1 });
         schema.init.deleteOne.mockResolvedValue({ deletedCount: 1 });
         
         // Setup rollDiceCommand implementation
@@ -147,11 +147,9 @@ describe('Init Module Tests', () => {
                                 }
                             }
                         }
-                    }, {
-                        safe: true
                     });
                     
-                    rply.text = (temp && temp.nModified) ? '已移除 ' + name + ' 的先攻值' : '找不到' + name + '的先攻值';
+                    rply.text = (temp && temp.modifiedCount) ? '已移除 ' + name + ' 的先攻值' : '找不到' + name + '的先攻值';
                     return rply;
                     
                 case /(^[.]in$)/i.test(mainMsg[0]) && /^clear$/i.test(mainMsg[1]):
@@ -412,7 +410,7 @@ describe('Init Module Tests', () => {
     });
     
     test('Test rollDiceCommand with remove command fails for non-existent character', async () => {
-        schema.init.updateOne.mockResolvedValue({ nModified: 0 });
+        schema.init.updateOne.mockResolvedValue({ modifiedCount: 0 });
         
         const result = await mockInitModule.rollDiceCommand({
             mainMsg: ['.in', 'remove', 'Non-existent'],

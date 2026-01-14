@@ -317,7 +317,7 @@ www.get('/api/dice-commands', async (req, res) => {
                                     
                                     // 為支持自動完成的選項添加配置
                                     const optionsWithAutocomplete = (sub.options || []).map(option => {
-                                        if (option.autocomplete === true) {
+                                        if (option.autocompleteModule) {
                                             return {
                                                 ...option,
                                                 autocomplete: {
@@ -374,7 +374,7 @@ www.get('/api/dice-commands', async (req, res) => {
                                 
                                 // 為支持自動完成的選項添加配置
                                 const optionsWithAutocomplete = (commandJson.options || []).map(option => {
-                                    if (option.autocomplete === true) {
+                                    if (option.autocompleteModule) {
                                         return {
                                             ...option,
                                             autocomplete: {
@@ -1274,10 +1274,14 @@ if (io) {
         io.emit("online", onlineCount);
         // 發送紀錄最大值
         socket.emit("maxRecord", records.chatRoomGetMax());
-        setTimeout(() => {
-            records.chatRoomGet("公共房間", (msgs) => {
+        setTimeout(async () => {
+            try {
+                const msgs = await records.chatRoomGet("公共房間");
                 socket.emit("chatRecord", msgs);
-            });
+            } catch (error) {
+                console.error('[Web Server] Failed to get chat room messages:', error);
+                socket.emit("chatRecord", []);
+            }
         }, 200);
 
 
@@ -1325,10 +1329,14 @@ if (io) {
             // 因此我們直接 return ，終止函式執行。
             if (!msg) return;
             let roomNumber = msg || "公共房間";
-            setTimeout(() => {
-                records.chatRoomGet(roomNumber, (msgs) => {
+            setTimeout(async () => {
+                try {
+                    const msgs = await records.chatRoomGet(roomNumber);
                     socket.emit("chatRecord", msgs);
-                });
+                } catch (error) {
+                    console.error('[Web Server] Failed to get chat room messages:', error);
+                    socket.emit("chatRecord", []);
+                }
             }, 150);
 
         });

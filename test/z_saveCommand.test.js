@@ -7,10 +7,10 @@ jest.mock('../modules/check.js', () => ({
 }));
 
 jest.mock('../modules/records.js', () => ({
-    get: jest.fn((type, callback) => callback([])),
-    pushTrpgCommandFunction: jest.fn((type, data, callback) => callback()),
-    editsetTrpgCommandFunction: jest.fn((type, data, callback) => callback()),
-    setTrpgCommandFunction: jest.fn((type, data, callback) => callback())
+    get: jest.fn(() => Promise.resolve([])),
+    pushTrpgCommandFunction: jest.fn(() => Promise.resolve({})),
+    editsetTrpgCommandFunction: jest.fn(() => Promise.resolve({})),
+    setTrpgCommandFunction: jest.fn(() => Promise.resolve({}))
 }));
 
 jest.mock('../modules/veryImportantPerson', () => ({
@@ -110,15 +110,13 @@ describe('Save Command Module Tests', () => {
     });
 
     test('Test add command with duplicate keyword', async () => {
-        records.get.mockImplementation((type, callback) => {
-            callback([{
+        records.get.mockResolvedValue([{
                 groupid: 'testgroup',
                 trpgCommandfunction: [{
                     topic: 'pc1鬥毆',
                     contact: 'cc 80 鬥毆'
                 }]
             }]);
-        });
 
         saveCommandModule.rollDiceCommand.mockResolvedValue({
             type: 'text',
@@ -154,15 +152,13 @@ describe('Save Command Module Tests', () => {
     });
 
     test('Test show command', async () => {
-        records.get.mockImplementation((type, callback) => {
-            callback([{
+        records.get.mockResolvedValue([{
                 groupid: 'testgroup',
                 trpgCommandfunction: [{
                     topic: 'pc1鬥毆',
                     contact: 'cc 80 鬥毆'
                 }]
             }]);
-        });
 
         saveCommandModule.rollDiceCommand.mockResolvedValue({
             type: 'text',
@@ -180,15 +176,13 @@ describe('Save Command Module Tests', () => {
     });
 
     test('Test delete specific command', async () => {
-        records.get.mockImplementation((type, callback) => {
-            callback([{
+        records.get.mockResolvedValue([{
                 groupid: 'testgroup',
                 trpgCommandfunction: [{
                     topic: 'pc1鬥毆',
                     contact: 'cc 80 鬥毆'
                 }]
             }]);
-        });
 
         saveCommandModule.rollDiceCommand.mockResolvedValue({
             type: 'text',
@@ -222,15 +216,13 @@ describe('Save Command Module Tests', () => {
     });
 
     test('Test execute saved command', async () => {
-        records.get.mockImplementation((type, callback) => {
-            callback([{
+        records.get.mockResolvedValue([{
                 groupid: 'testgroup',
                 trpgCommandfunction: [{
                     topic: 'pc1鬥毆',
                     contact: 'cc 80 鬥毆'
                 }]
             }]);
-        });
 
         saveCommandModule.rollDiceCommand.mockResolvedValue({
             type: 'text',
@@ -249,15 +241,13 @@ describe('Save Command Module Tests', () => {
     });
 
     test('Test command limit reached', async () => {
-        records.get.mockImplementation((type, callback) => {
-            callback([{
+        records.get.mockResolvedValue([{
                 groupid: 'testgroup',
                 trpgCommandfunction: Array(30).fill({
                     topic: 'command',
                     contact: 'content'
                 })
             }]);
-        });
 
         VIP.viplevelCheckGroup.mockResolvedValue(0);
 

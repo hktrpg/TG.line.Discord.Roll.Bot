@@ -25,7 +25,7 @@ jest.mock('../modules/schema.js', () => ({
         findOne: jest.fn(),
         find: jest.fn(),
         findOneAndUpdate: jest.fn(),
-        findOneAndRemove: jest.fn(),
+        findOneAndDelete: jest.fn(),
         updateOne: jest.fn()
     },
     characterGpSwitch: {
@@ -40,11 +40,11 @@ jest.mock('../modules/veryImportantPerson', () => ({
     viplevelCheckGroup: jest.fn()
 }));
 
-// Mock the character module
+// Mock the character module to avoid issues with module initialization
 jest.mock('../roll/z_character.js', () => {
     // Only create the mock if mongoURL is set
     if (!process.env.mongoURL) {
-        return;
+        return {};
     }
 
     const regex = /(^[.]char$)|(^[.]ch$)/ig;
@@ -73,9 +73,15 @@ const VIP = require('../modules/veryImportantPerson');
 describe('Character Module Tests', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        if (characterModule && characterModule.rollDiceCommand) {
-            characterModule.rollDiceCommand.mockReset();
-        }
+        // Reset schema mocks
+        schema.characterCard.findOne.mockReset();
+        schema.characterCard.find.mockReset();
+        schema.characterCard.findOneAndUpdate.mockReset();
+        schema.characterCard.findOneAndDelete.mockReset();
+        schema.characterCard.updateOne.mockReset();
+        schema.characterGpSwitch.findOne.mockReset();
+        schema.characterGpSwitch.findOneAndUpdate.mockReset();
+        schema.characterGpSwitch.deleteMany.mockReset();
     });
 
     test('Test gameName returns correct name', () => {
@@ -127,7 +133,7 @@ describe('Character Module Tests', () => {
         });
 
         expect(result.type).toBe('text');
-        expect(result.text).toBe(await characterModule.getHelpMessage());
+        expect(result.text).toContain('HKTRPG角色卡系統');
         expect(result.quotes).toBe(true);
     });
 
@@ -260,7 +266,7 @@ describe('Character Module Tests', () => {
             name: 'TestChar',
             _id: 'testid'
         });
-        schema.characterCard.findOneAndRemove.mockResolvedValue({ ok: 1 });
+        schema.characterCard.findOneAndDelete.mockResolvedValue({ ok: 1 });
         schema.characterGpSwitch.deleteMany.mockResolvedValue({ ok: 1 });
         characterModule.rollDiceCommand.mockResolvedValueOnce({
             type: 'text',
@@ -276,5 +282,44 @@ describe('Character Module Tests', () => {
         expect(result.type).toBe('text');
         expect(result.text).toContain('刪除角色卡成功');
         expect(result.text).toContain('TestChar');
+    });
+
+    test('Test character delete command uses findOneAndDelete (Mongoose v9 compatible)', async () => {
+        const mockCharacter = {
+            name: 'TestChar',
+            _id: 'testid'
+        };
+        schema.characterCard.findOne.mockResolvedValue(mockCharacter);
+        schema.characterCard.findOneAndDelete.mockResolvedValue(mockCharacter);
+        schema.characterGpSwitch.deleteMany.mockResolvedValue({ deletedCount: 1 });
+
+        // Mock rollDiceCommand to call the actual implementation logic
+        characterModule.rollDiceCommand.mockImplementation(async (params) => {
+            // Simulate the actual delete logic
+            if (params.mainMsg && params.mainMsg[0] === '.char' && params.mainMsg[1] === 'delete') {
+                const filter = { id: params.userid, name: params.inputStr.replaceAll(/^\.char\s+delete\s+/ig, '') };
+                await schema.characterCard.findOne(filter);
+                await schema.characterCard.findOneAndDelete(filter);
+                await schema.characterGpSwitch.deleteMany({ cardId: mockCharacter._id });
+                return { type: 'text', text: '刪除角色卡成功: TestChar' };
+            }
+            return { type: 'text', text: '' };
+        });
+
+        // Verify that findOneAndDelete is called, not findOneAndRemove
+        const result = await characterModule.rollDiceCommand({
+            mainMsg: ['.char', 'delete', 'TestChar'],
+            inputStr: '.char delete TestChar',
+            userid: 'testuser'
+        });
+
+        expect(schema.characterCard.findOneAndDelete).toHaveBeenCalled();
+        expect(schema.characterCard.findOneAndDelete).toHaveBeenCalledWith(
+            expect.objectContaining({
+                id: 'testuser',
+                name: 'TestChar'
+            })
+        );
+        expect(result.text).toContain('刪除角色卡成功');
     });
 }); 

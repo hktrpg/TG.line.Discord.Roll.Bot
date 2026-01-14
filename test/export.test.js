@@ -145,8 +145,8 @@ describe('Export Module Tests', () => {
         VIP.viplevelCheckGroup.mockResolvedValue(0);
         schema.exportUser.findOne.mockResolvedValue(null);
         schema.exportGp.findOne.mockResolvedValue(null);
-        schema.exportUser.updateOne.mockResolvedValue({ nModified: 1 });
-        schema.exportGp.updateOne.mockResolvedValue({ nModified: 1 });
+        schema.exportUser.updateOne.mockResolvedValue({ modifiedCount: 1 });
+        schema.exportGp.updateOne.mockResolvedValue({ modifiedCount: 1 });
         
         // Mock file system operations
         fs.access.mockResolvedValue(true);

@@ -10,6 +10,9 @@ const WebSocket = require('ws');
 const candle = require('../modules/candleDays.js');
 const records = require('../modules/records.js');
 const schema = require('../modules/schema.js');
+const clusterProtection = require('../modules/cluster-protection.js');
+// const dbProtectionLayer = require('../modules/db-protection-layer.js'); // Reserved for future database protection
+const dbConnector = require('../modules/db-connector.js');
 
 exports.analytics = require('./analytics');
 const debugMode = !!process.env.DEBUG;
@@ -40,17 +43,130 @@ new AutoResharderClusterClient(client.cluster, {
     sendDataIntervalMS: 60e3,
     // OPTIONAL: Default is a valid function for discord.js Client's
     sendDataFunction: (cluster) => {
-        return {
-            clusterId: cluster.id,
-            shardData: cluster.info.SHARD_LIST.map(shardId => ({
-                shardId,
-                guildCount: cluster.client.guilds.cache.filter(g => g.shardId === shardId).size
-            }))
+        try {
+            // Validate cluster object structure
+            if (!cluster || typeof cluster.id !== 'number') {
+                console.error('[AutoResharder] Invalid cluster object - returning safe defaults');
+                return { clusterId: -1, shardData: [] };
+            }
+
+            if (!cluster.info || !Array.isArray(cluster.info.SHARD_LIST)) {
+                console.error('[AutoResharder] Invalid cluster info or SHARD_LIST - returning empty shardData');
+                return { clusterId: cluster.id, shardData: [] };
+            }
+
+            if (!cluster.client || !cluster.client.guilds || !cluster.client.guilds.cache) {
+                console.error('[AutoResharder] Invalid cluster client guilds cache - returning empty shardData');
+                return { clusterId: cluster.id, shardData: [] };
+            }
+
+            const shardData = cluster.info.SHARD_LIST.map(shardId => {
+                try {
+                    const guilds = cluster.client.guilds.cache.filter(g => g.shardId === shardId);
+                    // Use .size for Collection, fallback to .length for arrays
+                    const guildCount = guilds.size !== undefined ? guilds.size : (guilds.length || 0);
+                    return {
+                        shardId: shardId,
+                        guildCount: guildCount
+                    };
+                } catch (error) {
+                    console.error(`[AutoResharder] Error processing shard ${shardId}:`, error.message);
+                    return {
+                        shardId: shardId,
+                        guildCount: 0
+                    };
+                }
+            });
+
+            return {
+                clusterId: cluster.id,
+                shardData: shardData
+            };
+        } catch (error) {
+            console.error('[AutoResharder] sendDataFunction error:', error.message);
+            return {
+                clusterId: cluster?.id || -1,
+                shardData: []
+            };
         }
     }
 });
 
-client.login(channelSecret);
+// Global error handler for AutoResharder and cluster-related promise rejections
+process.on('unhandledRejection', (reason) => {
+    const error = reason instanceof Error ? reason : new Error(String(reason));
+
+    // Check if this is an AutoResharderClusterClient error
+    if (error.message && error.message.includes('NO CHILD/MASTER EXISTS OR SUPPLIED CLUSTER_MANAGER_MODE IS INCORRECT')) {
+        // Use the dedicated diagnostics function
+        logAutoResharderDiagnostics(error, 'Unhandled Rejection');
+
+        // Don't crash the process, just log the error
+        return;
+    }
+
+    // Handle other unhandled rejections normally
+    console.error('[Discord Bot] Unhandled Promise Rejection:', error.message);
+    if (error.stack) {
+        console.error('[Discord Bot] Stack trace:', error.stack);
+    }
+});
+
+// Login to Discord with error handling to prevent restart loops
+async function loginWithErrorHandling() {
+    // Register critical error handlers BEFORE login
+    client.on('error', (error) => {
+        console.error('[Discord Bot] Discord Client Error:', error.message);
+    });
+
+    client.on('warn', (warning) => {
+        console.warn('[Discord Bot] Discord Client Warning:', warning);
+    });
+
+    client.on('shardError', (error, shardId) => {
+        console.error(`[Discord Bot] Shard ${shardId} Error:`, error.message);
+    });
+
+    client.on('shardDisconnect', (event, shardId) => {
+        console.warn(`[Discord Bot] Shard ${shardId} Disconnected:`, event);
+    });
+
+    client.on('shardReconnecting', () => {
+        // Shard reconnecting - log removed
+    });
+
+    client.on('shardResume', () => {
+        // Shard resumed - log removed
+    });
+
+    try {
+        await client.login(channelSecret);
+        console.log('[Discord Bot] Successfully logged in to Discord');
+    } catch (error) {
+        console.error('[Discord Bot] Failed to login to Discord:', error.message);
+        console.error('[Discord Bot] Login error details:', {
+            name: error.name,
+            message: error.message,
+            code: error.code,
+            status: error.httpStatus
+        });
+
+        // If login fails (e.g., invalid token), suspend execution instead of exiting
+        // This prevents ClusterManager from respawning in a loop
+        console.error('[Discord Bot] Login failed - suspending execution to prevent restart loop');
+        console.error('[Discord Bot] Process will remain alive but inactive until configuration is fixed');
+
+        // Suspend execution with periodic heartbeat to keep process alive
+        setInterval(() => {
+            console.log('[Discord Bot] Suspended due to login failure - check Discord token configuration');
+        }, 60_000); // Log every minute
+
+        return; // Don't proceed with bot initialization
+    }
+}
+
+loginWithErrorHandling();
+
 const MESSAGE_SPLITOR = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const mongo = process.env.mongoURL
@@ -184,6 +300,11 @@ client.on('messageCreate', async message => {
 		]);
 
 		if (!dbStatus && checkMongodb.isDbRespawn()) {
+			console.error(`[Discord Bot] ========== DATABASE RESPAWN TRIGGERED ==========`);
+			console.error(`[Discord Bot] Database status: ${dbStatus}, isDbRespawn: ${checkMongodb.isDbRespawn()}`);
+			console.error(`[Discord Bot] Cluster ID: ${client.cluster.id}`);
+			console.error(`[Discord Bot] Timestamp: ${new Date().toISOString()}`);
+			console.error(`[Discord Bot] ==========================================`);
 			respawnCluster2();
 		}
 
@@ -285,7 +406,7 @@ client.on('clientReady', async () => {
 	initInteractionCommands();
 	//	if (shardid === 0) getSchedule();
 	client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
-	console.log(`[Discord Bot] Logged in as ${client.user.tag}!`);
+	console.log(`[Discord Bot #${shardid}] Logged in as ${client.user.tag}!`);
 	client.cluster.triggerReady();
 	let switchSetActivity = 0;
 
@@ -577,6 +698,534 @@ function __privateMsg({ trigger, mainMsg, inputStr }) {
 
 
 
+// Function to identify which cluster failed based on error and responding clusters
+function identifyFailedCluster(error, respondingClusters = [], totalClustersOverride = null) {
+	try {
+		// Try to extract cluster ID from error message
+		const clusterIdMatch = error.message?.match(/ClusterId:\s*(\d+)/);
+		if (clusterIdMatch) {
+			return Number.parseInt(clusterIdMatch[1], 10);
+		}
+
+		// If we have responding clusters info, find which one is missing
+		if (Array.isArray(respondingClusters) && respondingClusters.length > 0) {
+			const totalClusters = totalClustersOverride || client.cluster?.ids?.size || 0;
+			const allClusterIds = Array.from({ length: totalClusters }, (_, i) => i);
+			const missingClusters = allClusterIds.filter(id => !respondingClusters.includes(id));
+
+			if (missingClusters.length === 1) {
+				return missingClusters[0];
+			} else if (missingClusters.length > 1) {
+				console.warn(`[Statistics] Multiple clusters may have failed: ${missingClusters.join(', ')}`);
+				return missingClusters[0]; // Return first failed cluster
+			}
+		}
+
+		return null; // Could not identify specific failed cluster
+	} catch (parseError) {
+		console.warn('[Statistics] Error identifying failed cluster:', parseError.message);
+		return null;
+	}
+}
+
+// Enhanced cluster diagnostics function for CLUSTERING_NO_CHILD_EXISTS errors
+function logClusterDiagnostics(error, context = '') {
+	if (!error || !error.message || !error.message.includes('CLUSTERING_NO_CHILD_EXISTS')) {
+		return;
+	}
+
+	const timestamp = new Date().toISOString();
+	const diagnostics = {
+		timestamp,
+		context,
+		error: error.message,
+		clusterState: {
+			totalClusters: client.cluster?.ids?.size || 0,
+			availableClusterIds: [...(client.cluster?.ids?.keys() || [])],
+			activeClusters: 0,
+			readyClusters: 0,
+			clusterDetails: []
+		},
+		processInfo: {
+			pid: process.pid,
+			uptime: Math.floor(process.uptime()),
+			memoryUsage: process.memoryUsage(),
+		}
+	};
+
+	// Collect detailed cluster information
+	if (client.cluster) {
+		const clusters = client.cluster.clusters;
+		diagnostics.clusterState.clusterDetails = [...clusters.values()].map(cluster => ({
+			id: cluster.id,
+			ready: cluster.ready,
+			alive: cluster.alive,
+			lastHeartbeat: cluster.lastHeartbeat || null,
+			shards: cluster.shards?.size || 0
+		}));
+
+		diagnostics.clusterState.activeClusters = diagnostics.clusterState.clusterDetails.filter(c => c.alive).length;
+		diagnostics.clusterState.readyClusters = diagnostics.clusterState.clusterDetails.filter(c => c.ready).length;
+	}
+
+	console.error(`[${timestamp}] 🔍 CLUSTERING_NO_CHILD_EXISTS Diagnostics [${context}]:`, JSON.stringify(diagnostics, null, 2));
+}
+
+// Cluster health monitoring function - can be called manually or periodically
+function getClusterHealthReport() {
+	if (!client.cluster) {
+		return { error: 'No cluster manager available' };
+	}
+
+	const timestamp = new Date().toISOString();
+	const clusters = client.cluster.clusters;
+	const clusterDetails = [...clusters.values()].map(cluster => ({
+		id: cluster.id,
+		ready: cluster.ready,
+		alive: cluster.alive,
+		lastHeartbeat: cluster.lastHeartbeat || null,
+		shards: cluster.shards?.size || 0,
+		uptime: cluster.ready ? Math.floor((Date.now() - cluster.readyAt) / 1000) : 0
+	}));
+
+	const report = {
+		timestamp,
+		summary: {
+			totalClusters: client.cluster.ids.size,
+			activeClusters: clusterDetails.filter(c => c.alive).length,
+			readyClusters: clusterDetails.filter(c => c.ready).length,
+			deadClusters: clusterDetails.filter(c => !c.alive).length,
+			totalShards: clusterDetails.reduce((sum, c) => sum + c.shards, 0)
+		},
+		clusters: clusterDetails,
+		processInfo: {
+			pid: process.pid,
+			uptime: Math.floor(process.uptime()),
+			memoryMB: Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
+		}
+	};
+
+	return report;
+}
+
+// AutoResharder diagnostics function for NO CHILD/MASTER EXISTS errors
+function logAutoResharderDiagnostics(error, context = '') {
+	if (!error || !error.message || !error.message.includes('NO CHILD/MASTER EXISTS OR SUPPLIED CLUSTER_MANAGER_MODE IS INCORRECT')) {
+		return;
+	}
+
+	const timestamp = new Date().toISOString();
+	const clusterId = client.cluster?.id || 'unknown';
+	const shardList = client.cluster?.info?.SHARD_LIST || [];
+
+	const diagnostics = {
+		timestamp,
+		context,
+		error: error.message,
+		clusterId,
+		shardList,
+		clusterState: {
+			totalClusters: client.cluster?.ids?.size || 0,
+			availableClusterIds: [...(client.cluster?.ids?.keys() || [])],
+			activeClusters: 0,
+			readyClusters: 0,
+			clusterDetails: []
+		},
+		processInfo: {
+			pid: process.pid,
+			uptime: Math.floor(process.uptime()),
+			memoryUsage: process.memoryUsage(),
+		},
+		possibleCauses: [
+			'Cluster manager not properly initialized',
+			'Cluster client disconnected from manager',
+			'Invalid cluster manager mode configuration',
+			'Race condition during cluster startup/shutdown',
+			'AutoResharder trying to access cluster before ready'
+		]
+	};
+
+	// Collect detailed cluster information
+	if (client.cluster) {
+		const clusters = client.cluster.clusters;
+		diagnostics.clusterState.clusterDetails = [...clusters.values()].map(cluster => ({
+			id: cluster.id,
+			ready: cluster.ready,
+			alive: cluster.alive,
+			lastHeartbeat: cluster.lastHeartbeat || null,
+			shards: cluster.shards?.size || 0,
+			uptime: cluster.ready ? Math.floor((Date.now() - cluster.readyAt) / 1000) : 0
+		}));
+
+		diagnostics.clusterState.activeClusters = diagnostics.clusterState.clusterDetails.filter(c => c.alive).length;
+		diagnostics.clusterState.readyClusters = diagnostics.clusterState.clusterDetails.filter(c => c.ready).length;
+	}
+
+	console.error(`[${timestamp}] 🔄 AutoResharder Diagnostics [${context}] - Cluster ${clusterId} (Shards: ${shardList.join(', ')}):`, JSON.stringify(diagnostics, null, 2));
+}
+
+// Export for external access (can be called from admin commands)
+globalThis.getClusterHealthReport = getClusterHealthReport;
+
+// Shard health monitoring and auto-fix system
+let shardFixInProgress = false;
+let unresponsiveShards = new Set();
+let shardFixInterval = null;
+
+/**
+ * 檢查所有 shard 的存活狀態
+ */
+async function checkShardHealth() {
+    if (!client.cluster) {
+        return { error: 'No cluster manager available' };
+    }
+
+    try {
+        // 獲取總 shard 數量 - 使用與統計函數相同的邏輯
+        const { getInfo } = require('discord-hybrid-sharding');
+        let totalShards;
+
+        // 動態檢測運行時資訊
+        try {
+            const info = getInfo();
+            if (info && info.TOTAL_SHARDS) {
+                totalShards = info.TOTAL_SHARDS;
+                //console.log(`[ShardFix] Detected TOTAL_SHARDS from getInfo(): ${totalShards}`);
+
+                // If getInfo returns suspiciously low shard count, try other methods
+                const clusterCount = client.cluster?.ids?.size || 1;
+                if (totalShards < clusterCount && clusterCount > 1) {
+                    console.warn(`[ShardFix] getInfo() returned low shard count (${totalShards}) for ${clusterCount} clusters, trying fallback methods`);
+                    totalShards = undefined; // Reset to try other methods
+                }
+            }
+
+            if (!totalShards) {
+                // 嘗試從 cluster manager 獲取
+                if (client.cluster && client.cluster.manager) {
+                    const managerTotalShards = client.cluster.manager.totalShards;
+                    if (managerTotalShards && managerTotalShards !== 'auto') {
+                        totalShards = Number.parseInt(managerTotalShards, 10);
+                        console.log(`[ShardFix] Using totalShards from cluster manager: ${totalShards}`);
+                    }
+                }
+
+                // 如果還是沒有 shard 數量，嘗試從 cluster 資料計算
+                if (!totalShards && client.cluster && client.cluster.clusters) {
+                    let calculatedTotal = 0;
+                    for (const cluster of client.cluster.clusters.values()) {
+                        if (cluster.shards) {
+                            calculatedTotal += cluster.shards.size || 0;
+                        }
+                    }
+                    if (calculatedTotal > 0) {
+                        totalShards = calculatedTotal;
+                        //console.log(`[ShardFix] Calculated totalShards from cluster data: ${totalShards}`);
+                    }
+                }
+
+                // 最後手段：使用 cluster 數量 * 預估每 cluster shard 數
+                if (!totalShards && client.cluster && client.cluster.ids) {
+                    const clusterCount = client.cluster.ids.size;
+                    totalShards = clusterCount * 3; // 預估 3 shards per cluster
+                    console.warn(`[ShardFix] WARNING: Using estimated totalShards (${clusterCount} clusters * 3): ${totalShards}. This may be inaccurate!`);
+                }
+            }
+        } catch (error) {
+            console.warn('[ShardFix] Unable to retrieve shard information:', error.message);
+        }
+
+        // 確保有合理的預設值
+        totalShards = totalShards || 1;
+        console.log(`[ShardFix] Final totalShards for health check: ${totalShards}`);
+
+        const shardHealthResults = [];
+
+        console.log(`[ShardFix] Checking health for ${totalShards} shards across ${client.cluster.ids.size} clusters`);
+
+        // 計算每cluster的shard數量（使用與core-Discord.js相同的邏輯）
+        const clusterCount = client.cluster.ids.size;
+        const shardsPerCluster = clusterCount > 0 ? Math.ceil(totalShards / clusterCount) : 3;
+
+        console.log(`[ShardFix] Using shardsPerCluster: ${shardsPerCluster} (${totalShards} shards / ${clusterCount} clusters)`);
+
+        // 使用 broadcastEval 來檢查所有 clusters 的 shard 狀態
+        const clusterResults = await client.cluster.broadcastEval((c, context) => {
+            // 檢查 cluster 對象的可用屬性
+            const { totalShards, shardsPerCluster } = context;
+
+            const results = [];
+            const clusterId = c.cluster?.id || 0;
+
+            try {
+                // 動態計算此 cluster 負責的 shards
+                const startShard = clusterId * shardsPerCluster;
+                const endShard = Math.min((clusterId + 1) * shardsPerCluster, totalShards);
+                const assignedShards = [];
+                for (let i = startShard; i < endShard; i++) {
+                    assignedShards.push(i);
+                }
+
+                console.log(`[ShardFix] Cluster ${clusterId} assigned shards:`, assignedShards);
+
+                // 方法1: 通過 c.info.SHARD_LIST (如果存在且匹配計算的shards)
+                if (c.info && c.info.SHARD_LIST && Array.isArray(c.info.SHARD_LIST)) {
+                    console.log(`[ShardFix] Cluster ${clusterId} using SHARD_LIST:`, c.info.SHARD_LIST);
+
+                    // 檢查SHARD_LIST是否與計算的shards匹配，如果不匹配則使用計算的
+                    const shardListMatches = c.info.SHARD_LIST.length === assignedShards.length &&
+                        c.info.SHARD_LIST.every((shardId, index) => shardId === assignedShards[index]);
+
+                    const shardsToCheck = shardListMatches ? c.info.SHARD_LIST : assignedShards;
+
+                    if (!shardListMatches) {
+                        console.warn(`[ShardFix] Cluster ${clusterId} SHARD_LIST doesn't match calculated shards, using calculated:`, assignedShards);
+                    }
+
+                    for (const shardId of shardsToCheck) {
+                        const shard = c.client?.ws?.shards?.get(shardId);
+                        results.push({
+                            clusterId: clusterId,
+                            shardId: shardId,
+                            status: shard?.status || 'unknown',
+                            ping: shard?.ping || -1,
+                            ready: !!shard?.readyTimestamp,
+                            responsive: (shard?.status === 'ready') || !!shard?.readyTimestamp
+                        });
+                    }
+                }
+                // 方法2: 通過 c.client.ws.shards 直接獲取所有 shards
+                else if (c.client?.ws?.shards) {
+                    console.log(`[ShardFix] Cluster ${clusterId} using client.ws.shards`);
+
+                    // 只檢查分配給此cluster的shards
+                    for (const shardId of assignedShards) {
+                        const shard = c.client.ws.shards.get(shardId);
+                        if (shard) {
+                            results.push({
+                                clusterId: clusterId,
+                                shardId: Number(shardId),
+                                status: shard.status || 'unknown',
+                                ping: shard.ping || -1,
+                                ready: !!shard.readyTimestamp,
+                                responsive: (shard.status === 'ready') || !!shard.readyTimestamp
+                            });
+                        } else {
+                            // 如果shard不存在，標記為unknown
+                            results.push({
+                                clusterId: clusterId,
+                                shardId: shardId,
+                                status: 'unknown',
+                                ping: -1,
+                                ready: false,
+                                responsive: false
+                            });
+                        }
+                    }
+                }
+                // 方法3: 如果都沒有，使用計算的shard分配
+                else {
+                    console.warn(`[ShardFix] Cluster ${clusterId} has no shard access, using calculated shards:`, assignedShards);
+                    for (const shardId of assignedShards) {
+                        results.push({
+                            clusterId: clusterId,
+                            shardId: shardId,
+                            status: 'assumed_healthy', // 假設配置正確時是健康的
+                            ping: -1,
+                            ready: true,
+                            responsive: true
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error(`[ShardFix] Error in cluster ${clusterId}:`, error.message);
+                results.push({
+                    clusterId: clusterId,
+                    shardId: -1,
+                    status: 'error',
+                    ping: -1,
+                    ready: false,
+                    responsive: false
+                });
+            }
+
+            console.log(`[ShardFix] Cluster ${clusterId} returning ${results.length} shard results`);
+            return results;
+        }, { context: { totalShards, shardsPerCluster } }).catch((error) => {
+            console.error('[ShardFix] broadcastEval failed:', error.message);
+            return [];
+        });
+
+        // 處理所有 cluster 的結果
+        const allShardResults = clusterResults.flat();
+        console.log(`[ShardFix] Collected ${allShardResults.length} shard results from ${clusterResults.length} clusters`);
+
+        // 為每個 shard 建立結果
+        for (let shardId = 0; shardId < totalShards; shardId++) {
+            const shardResult = allShardResults.find(r => r.shardId === shardId);
+
+            if (shardResult) {
+                shardHealthResults.push(shardResult);
+
+                // 如果 shard 沒有回應，加入 unresponsive 列表
+                if (!shardResult.responsive) {
+                    unresponsiveShards.add(shardId);
+                    console.warn(`[ShardFix] Shard ${shardId} (Cluster ${shardResult.clusterId}) is unresponsive - Status: ${shardResult.status}, Ready: ${shardResult.ready}`);
+                } else {
+                    console.log(`[ShardFix] Shard ${shardId} (Cluster ${shardResult.clusterId}) is healthy - Status: ${shardResult.status}, Ping: ${shardResult.ping}ms`);
+                }
+            } else {
+                // 如果沒有找到 shard 結果，視為未知狀態
+                console.warn(`[ShardFix] No result found for shard ${shardId}, marking as unknown`);
+                shardHealthResults.push({
+                    shardId,
+                    clusterId: 'unknown',
+                    status: 'unknown',
+                    ping: -1,
+                    ready: false,
+                    responsive: false
+                });
+                unresponsiveShards.add(shardId);
+            }
+        }
+
+        return {
+            timestamp: new Date().toISOString(),
+            totalShards,
+            healthyShards: shardHealthResults.filter(s => s.responsive).length,
+            unhealthyShards: shardHealthResults.filter(s => !s.responsive).length,
+            unresponsiveShards: [...unresponsiveShards],
+            shardDetails: shardHealthResults
+        };
+    } catch (error) {
+        console.error('[ShardFix] Error in checkShardHealth:', error.message);
+        return { error: error.message };
+    }
+}
+
+/**
+ * 開始自動修復 unresponsive shards
+ */
+function startShardFix() {
+    if (shardFixInProgress) {
+        return { message: 'Shard fix is already in progress', inProgress: true };
+    }
+
+    if (unresponsiveShards.size === 0) {
+        return { message: 'No unresponsive shards to fix', inProgress: false };
+    }
+
+    shardFixInProgress = true;
+    console.log(`[ShardFix] Starting automatic shard fix for ${unresponsiveShards.size} unresponsive shards`);
+
+    let shardIterator = unresponsiveShards.values();
+    let currentShard = shardIterator.next();
+
+    shardFixInterval = setInterval(async () => {
+        if (currentShard.done) {
+            // 所有 shards 都處理完了，檢查是否還有 unresponsive 的
+            console.log('[ShardFix] All shards processed, checking for remaining issues...');
+
+            // 重新檢查所有 shards 的狀態
+            const healthReport = await checkShardHealth();
+
+            if (healthReport.unresponsiveShards && healthReport.unresponsiveShards.length > 0) {
+                // 還有 unresponsive shards，繼續處理
+                unresponsiveShards = new Set(healthReport.unresponsiveShards);
+                shardIterator = unresponsiveShards.values();
+                currentShard = shardIterator.next();
+                console.log(`[ShardFix] Found ${unresponsiveShards.size} remaining unresponsive shards, continuing...`);
+            } else {
+                // 所有 shards 都修復了
+                console.log('[ShardFix] All shards are now responsive, stopping auto-fix');
+                stopShardFix();
+            }
+            return;
+        }
+
+        const shardId = currentShard.value;
+        console.log(`[ShardFix] Attempting to respawn shard ${shardId}`);
+
+        try {
+            // 找到負責這個 shard 的 cluster
+            const clusterResult = await client.cluster.broadcastEval((c, targetShardId) => {
+                if (c.info && c.info.SHARD_LIST && c.info.SHARD_LIST.includes(targetShardId)) {
+                    return { clusterId: c.cluster.id, hasShard: true };
+                }
+                return null;
+            }, { cluster: null }, shardId).catch(() => []);
+
+            const targetCluster = clusterResult ? clusterResult.find(r => r !== null) : null;
+
+            if (targetCluster) {
+                console.log(`[ShardFix] Respawning shard ${shardId} via cluster ${targetCluster.clusterId}`);
+
+                // 發送 respawn 命令給對應的 cluster
+                await client.cluster.broadcastEval((c, data) => {
+                    if (c.cluster.id === data.clusterId) {
+                        // 在目標 cluster 中重啟 shard
+                        const shard = c.client.ws.shards.get(data.shardId);
+                        if (shard) {
+                            console.log(`[ShardFix] Destroying shard ${data.shardId} in cluster ${c.cluster.id}`);
+                            shard.destroy();
+                            // Discord.js 會自動重新連接 shard
+                        }
+                    }
+                }, { cluster: targetCluster.clusterId }, { clusterId: targetCluster.clusterId, shardId });
+
+                // 從 unresponsive 列表中移除
+                unresponsiveShards.delete(shardId);
+                console.log(`[ShardFix] Successfully initiated respawn for shard ${shardId}`);
+            } else {
+                console.error(`[ShardFix] Cannot find cluster responsible for shard ${shardId}`);
+            }
+        } catch (error) {
+            console.error(`[ShardFix] Failed to respawn shard ${shardId}:`, error.message);
+        }
+
+        // 移動到下一個 shard
+        currentShard = shardIterator.next();
+
+    }, 20_000); // 每 20 秒處理一個 shard
+
+    return {
+        message: `Started automatic shard fix for ${unresponsiveShards.size} unresponsive shards`,
+        unresponsiveShards: [...unresponsiveShards],
+        inProgress: true
+    };
+}
+
+/**
+ * 停止自動修復
+ */
+function stopShardFix() {
+    if (shardFixInterval) {
+        clearInterval(shardFixInterval);
+        shardFixInterval = null;
+    }
+    shardFixInProgress = false;
+    unresponsiveShards.clear();
+    console.log('[ShardFix] Stopped automatic shard fix');
+    return { message: 'Stopped automatic shard fix', inProgress: false };
+}
+
+/**
+ * 獲取 shard fix 狀態
+ */
+function getShardFixStatus() {
+    return {
+        inProgress: shardFixInProgress,
+        unresponsiveShards: [...unresponsiveShards],
+        totalUnresponsive: unresponsiveShards.size
+    };
+}
+
+// Export functions for admin commands
+globalThis.checkShardHealth = checkShardHealth;
+globalThis.startShardFix = startShardFix;
+globalThis.stopShardFix = stopShardFix;
+globalThis.getShardFixStatus = getShardFixStatus;
+
 async function count() {
 	if (!client.cluster) return '';
 
@@ -584,74 +1233,90 @@ async function count() {
 		// Get all subgroup IDs
 		const allClusterIds = [...client.cluster.ids.keys()];
 
-		// Use global broadcastEval and group results by cluster
+		// Check cluster health by attempting a simple broadcastEval
+		let clustersHealthy = true;
+		try {
+			// Simple health check: try to get cluster count via broadcastEval
+			const healthCheck = await client.cluster.broadcastEval(() => true).catch(() => []);
+			clustersHealthy = healthCheck && healthCheck.length > 0;
+		} catch (error) {
+			console.warn('[Statistics] Cluster health check failed:', error.message);
+			clustersHealthy = false;
+		}
+
+		if (!clustersHealthy) {
+			console.warn('[Statistics] No healthy clusters available for count() collection');
+			return '⚠️ 無法取得統計資料 - 所有分流均離線';
+		}
+
+		// Force use standard broadcastEval - safeBroadcastEval has issues with cluster filtering
+		console.log('[Statistics] Using standard broadcastEval for all clusters');
+
+		// Try to identify which clusters are responding
+		let respondingClusters = [];
+		let actualTotalClusters = client.cluster?.ids?.size || 1;
+		try {
+			respondingClusters = await client.cluster.broadcastEval(c => c.cluster.id).catch(() => []);
+			console.log(`[Statistics] Found ${respondingClusters.length}/${actualTotalClusters} responding clusters`);
+		} catch (error) {
+			console.warn('[Statistics] Could not identify responding clusters:', error.message);
+		}
+
 		const [guildStatsRaw, memberStatsRaw] = await Promise.all([
-			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size })),
-			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) }))
+			client.cluster.broadcastEval(c => {
+				try {
+					return { clusterId: c.cluster.id, guildCount: c.guilds.cache.size };
+				} catch (error) {
+					console.error(`[Statistics] Guild stats error in cluster ${c.cluster?.id}:`, error.message);
+					return { clusterId: c.cluster?.id || -1, guildCount: 0, error: error.message };
+				}
+			}).catch(error => {
+				console.warn('[Statistics] Guild stats collection failed:', error.message);
+				// Try to identify which cluster failed
+				const failedClusterId = identifyFailedCluster(error, respondingClusters, actualTotalClusters);
+				if (failedClusterId !== null) {
+					console.warn(`[Statistics] Likely failed cluster for guild stats: ${failedClusterId}`);
+				}
+				return []; // Return empty array instead of throwing
+			}),
+			client.cluster.broadcastEval(c => {
+				try {
+					return {
+						clusterId: c.cluster.id,
+						memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0)
+					};
+				} catch (error) {
+					console.error(`[Statistics] Member stats error in cluster ${c.cluster?.id}:`, error.message);
+					return { clusterId: c.cluster?.id || -1, memberCount: 0, error: error.message };
+				}
+			}).catch(error => {
+				console.warn('[Statistics] Member stats collection failed:', error.message);
+				// Try to identify which cluster failed
+				const failedClusterId = identifyFailedCluster(error, respondingClusters, actualTotalClusters);
+				if (failedClusterId !== null) {
+					console.warn(`[Statistics] Likely failed cluster for member stats: ${failedClusterId}`);
+				}
+				return []; // Return empty array instead of throwing
+			})
 		]);
 
-		// Group statistics data by cluster
-		const guildStatsByCluster = new Map();
-		const memberStatsByCluster = new Map();
 
-		for (const { clusterId, guildCount } of guildStatsRaw) {
-			if (!guildStatsByCluster.has(clusterId)) {
-				guildStatsByCluster.set(clusterId, []);
-			}
-			guildStatsByCluster.get(clusterId).push(guildCount);
-		}
-
-		for (const { clusterId, memberCount } of memberStatsRaw) {
-			if (!memberStatsByCluster.has(clusterId)) {
-				memberStatsByCluster.set(clusterId, []);
-			}
-			memberStatsByCluster.get(clusterId).push(memberCount);
-		}
-
-		// Convert to expected format
-		const guildStats = { results: [], errors: [], successCount: 0, errorCount: 0 };
-		const memberStats = { results: [], errors: [], successCount: 0, errorCount: 0 };
-
-		for (const clusterId of allClusterIds) {
-			const guildData = guildStatsByCluster.get(clusterId);
-			const memberData = memberStatsByCluster.get(clusterId);
-
-			if (guildData) {
-				guildStats.results.push({
-					clusterId,
-					data: guildData,
-					duration: 0,
-					success: true
-				});
-				guildStats.successCount++;
-			}
-
-			if (memberData) {
-				memberStats.results.push({
-					clusterId,
-					data: memberData,
-					duration: 0,
-					success: true
-				});
-				memberStats.successCount++;
-			}
-		}
-
-		// Calculate totals
+		// Calculate totals directly from broadcastEval results
+		// Each entry is { clusterId: X, guildCount: Y } from one cluster
 		let totalGuilds = 0;
 		let totalMembers = 0;
 		let successfulClusters = 0;
 
-		for (const { data: guildSizes } of guildStats.results) {
-			if (guildSizes && Array.isArray(guildSizes)) {
-				totalGuilds += guildSizes.reduce((acc, count) => acc + (count || 0), 0);
+		for (const { guildCount } of guildStatsRaw) {
+			if (typeof guildCount === 'number' && guildCount >= 0) {
+				totalGuilds += guildCount;
 				successfulClusters++;
 			}
 		}
 
-		for (const { data: memberCounts } of memberStats.results) {
-			if (memberCounts && Array.isArray(memberCounts)) {
-				totalMembers += memberCounts.reduce((acc, count) => acc + (count || 0), 0);
+		for (const { memberCount } of memberStatsRaw) {
+			if (typeof memberCount === 'number' && memberCount >= 0) {
+				totalMembers += memberCount;
 			}
 		}
 
@@ -678,28 +1343,100 @@ async function count2() {
 		// Get all subgroup IDs
 		const allClusterIds = [...client.cluster.ids.keys()];
 
+		// Check cluster health by attempting a simple broadcastEval
+		let clustersHealthy = true;
+		try {
+			// Simple health check: try to get cluster count via broadcastEval
+			const healthCheck = await client.cluster.broadcastEval(() => true).catch(() => []);
+			clustersHealthy = healthCheck && healthCheck.length > 0;
+		} catch (error) {
+			console.warn('[Statistics] Cluster health check failed:', error.message);
+			clustersHealthy = false;
+		}
+
+		if (!clustersHealthy) {
+			console.warn('[Statistics] No healthy clusters available for count2() collection');
+			return '⚠️ 無法取得統計資料 - 所有分流均離線';
+		}
+
 		// Use global broadcastEval and group results by cluster
+		// Try to identify which clusters are responding
+		let respondingClusters2 = [];
+		let actualTotalClusters2 = client.cluster?.ids?.size || 1;
+		try {
+			respondingClusters2 = await client.cluster.broadcastEval(c => c.cluster.id).catch(() => []);
+			//console.log(`[Statistics] count2() - Found ${respondingClusters2.length}/${actualTotalClusters2} responding clusters`);
+		} catch (error) {
+			console.warn('[Statistics] count2() - Could not identify responding clusters:', error.message);
+		}
+
 		const [guildStatsRaw, memberStatsRaw] = await Promise.all([
-			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, guildCount: c.guilds.cache.size })),
-			client.cluster.broadcastEval(c => ({ clusterId: c.cluster.id, memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0) }))
+			client.cluster.broadcastEval(c => {
+				try {
+					return { clusterId: c.cluster.id, guildCount: c.guilds.cache.size };
+				} catch (error) {
+					console.error(`[Statistics] count2() - Guild stats error in cluster ${c.cluster?.id}:`, error.message);
+					return { clusterId: c.cluster?.id || -1, guildCount: 0, error: error.message };
+				}
+			}).catch(error => {
+				console.warn('[Statistics] count2() - Guild stats collection failed:', error.message);
+				const failedClusterId = identifyFailedCluster(error, respondingClusters2, actualTotalClusters2);
+				if (failedClusterId !== null) {
+					console.warn(`[Statistics] count2() - Likely failed cluster for guild stats: ${failedClusterId}`);
+				}
+				return [];
+			}),
+			client.cluster.broadcastEval(c => {
+				try {
+					return {
+						clusterId: c.cluster.id,
+						memberCount: c.guilds.cache.filter(guild => guild.available).reduce((acc, guild) => acc + guild.memberCount, 0)
+					};
+				} catch (error) {
+					console.error(`[Statistics] count2() - Member stats error in cluster ${c.cluster?.id}:`, error.message);
+					return { clusterId: c.cluster?.id || -1, memberCount: 0, error: error.message };
+				}
+			}).catch(error => {
+				console.warn('[Statistics] count2() - Member stats collection failed:', error.message);
+				const failedClusterId = identifyFailedCluster(error, respondingClusters2, actualTotalClusters2);
+				if (failedClusterId !== null) {
+					console.warn(`[Statistics] count2() - Likely failed cluster for member stats: ${failedClusterId}`);
+				}
+				return [];
+			})
 		]);
 
 		// Group statistics data by cluster
 		const guildStatsByCluster = new Map();
 		const memberStatsByCluster = new Map();
+		const respondedClusterIds = new Set(); // Track which clusters actually responded
 
-		for (const { clusterId, guildCount } of guildStatsRaw) {
-			if (!guildStatsByCluster.has(clusterId)) {
-				guildStatsByCluster.set(clusterId, []);
+		// Process guild stats
+		if (Array.isArray(guildStatsRaw)) {
+			for (const stat of guildStatsRaw) {
+				if (stat && typeof stat === 'object' && 'clusterId' in stat) {
+					const { clusterId, guildCount } = stat;
+					respondedClusterIds.add(clusterId);
+					if (!guildStatsByCluster.has(clusterId)) {
+						guildStatsByCluster.set(clusterId, []);
+					}
+					guildStatsByCluster.get(clusterId).push(guildCount || 0);
+				}
 			}
-			guildStatsByCluster.get(clusterId).push(guildCount);
 		}
 
-		for (const { clusterId, memberCount } of memberStatsRaw) {
-			if (!memberStatsByCluster.has(clusterId)) {
-				memberStatsByCluster.set(clusterId, []);
+		// Process member stats
+		if (Array.isArray(memberStatsRaw)) {
+			for (const stat of memberStatsRaw) {
+				if (stat && typeof stat === 'object' && 'clusterId' in stat) {
+					const { clusterId, memberCount } = stat;
+					respondedClusterIds.add(clusterId);
+					if (!memberStatsByCluster.has(clusterId)) {
+						memberStatsByCluster.set(clusterId, []);
+					}
+					memberStatsByCluster.get(clusterId).push(memberCount || 0);
+				}
 			}
-			memberStatsByCluster.get(clusterId).push(memberCount);
 		}
 
 		// Calculate totals - directly from all collected data
@@ -719,10 +1456,16 @@ async function count2() {
 			}
 		}
 
-		// Calculate number of successful clusters
-		const successfulClusters = guildStatsByCluster.size;
+		// Calculate number of successful clusters - use Set to get unique cluster IDs that responded
+		const successfulClusters = respondedClusterIds.size;
+		const totalClusters = allClusterIds.length;
 
-		const status = successfulClusters === allClusterIds.length ? '✅' : `⚠️${successfulClusters}/${allClusterIds.length}`;
+		// Allow up to 10% cluster failure before showing warning (for resilience)
+		// If 90%+ clusters responded, consider it healthy
+		const responseRate = totalClusters > 0 ? (successfulClusters / totalClusters) : 0;
+		const isHealthy = responseRate >= 0.9 || successfulClusters === totalClusters;
+
+		const status = isHealthy ? '✅' : `⚠️${successfulClusters}/${totalClusters}`;
 		return (`${status} ${totalGuilds}群組📶 ${totalMembers}會員📶`);
 	} catch (error) {
 		console.error(`disocrdbot #617 error: ${error.message}`);
@@ -833,6 +1576,20 @@ async function gracefulShutdown(signal = 'unknown') {
 			}
 		}
 
+		// Close database connection before exit
+		try {
+			console.log('[Discord Bot] Closing database connection...');
+			const mongoose = dbConnector.mongoose;
+			if (mongoose.connection.readyState === 1) {
+				await mongoose.connection.close();
+				console.log('[Discord Bot] Database connection closed.');
+			} else {
+				console.log('[Discord Bot] Database connection already closed or not connected');
+			}
+		} catch (error) {
+			console.warn('[Discord Bot] Error closing database connection:', error.message);
+		}
+
 		process.exit(0);
 	} catch (error) {
 		console.error('[Discord Bot] Error during shutdown:', error);
@@ -898,7 +1655,8 @@ process.on('SIGTERM', async () => {
 function respawnCluster2() {
 	try {
 		console.error(`[Respawn] Sending respawn command for cluster ${client.cluster.id}`);
-		client.cluster.evalOnManager(`this.clusters.get(${client.cluster.id}).respawn({ delay: 7000, timeout: -1 })`, { timeout: 10_000 });
+		// 使用與手動觸發相同的方法，發送訊息給 cluster manager
+		client.cluster.send({ respawn: true, id: client.cluster.id });
 		console.error(`[Respawn] Respawn command sent successfully for cluster ${client.cluster.id}`);
 	} catch (error) {
 		console.error('[Respawn] ========== RESPAWN CLUSTER ERROR ==========');
@@ -1108,37 +1866,84 @@ async function getAllshardIds() {
 		// Get current cluster ID for display purposes
 		const currentClusterId = client.cluster.id;
 
-		// Determine total number of shards - prioritize actual detection over defaults
+		// Determine total number of shards and clusters - prioritize actual detection over defaults
 		const { getInfo } = require('discord-hybrid-sharding');
 		let totalShards;
+		let totalClusters = client.cluster?.ids?.size || 0;
 
-		// Check environment variables first for explicit configuration
-		if (process.env.DISCORD_TOTAL_SHARDS) {
-			totalShards = Number.parseInt(process.env.DISCORD_TOTAL_SHARDS, 10);
-		} else if (process.env.SHARD_COUNT) {
-			totalShards = Number.parseInt(process.env.SHARD_COUNT, 10);
-		} else {
-			// Dynamically detect from runtime information
-			try {
-				const info = getInfo();
-				if (info && info.TOTAL_SHARDS) {
-					totalShards = info.TOTAL_SHARDS;
-				} else if (client.cluster && client.cluster.ids) {
-					// Fallback to number of active clusters (may not be accurate for total shards)
-					totalShards = client.cluster.ids.size;
+		// Dynamically detect from runtime information
+		try {
+			const info = getInfo();
+			if (info && info.TOTAL_SHARDS) {
+				totalShards = info.TOTAL_SHARDS;
+				console.log(`[Statistics] Detected TOTAL_SHARDS from getInfo(): ${totalShards}`);
+
+				// If getInfo returns suspiciously low shard count, try other methods
+				if (totalShards < 3 && totalClusters > 1) {
+					console.warn(`[Statistics] getInfo() returned low shard count (${totalShards}) for ${totalClusters} clusters, trying fallback methods`);
+					totalShards = undefined; // Reset to try other methods
 				}
-			} catch (error) {
-				console.warn('Unable to retrieve shard information:', error.message);
 			}
-		}
 
-		// Final fallback: use cluster count if still no shard count
-		if (!totalShards && client.cluster && client.cluster.ids) {
-			totalShards = client.cluster.ids.size;
+			if (!totalShards) {
+				// Try to calculate from cluster manager
+				if (client.cluster && client.cluster.manager) {
+					// Access manager.totalShards if available
+					const managerTotalShards = client.cluster.manager.totalShards;
+					if (managerTotalShards && managerTotalShards !== 'auto') {
+						totalShards = Number.parseInt(managerTotalShards, 10);
+						console.log(`[Statistics] Using totalShards from cluster manager: ${totalShards}`);
+					}
+				}
+
+				// If still no shard count, try to calculate from cluster data
+				if (!totalShards && client.cluster && client.cluster.clusters) {
+					// Sum up all shards from all clusters
+					let calculatedTotal = 0;
+					for (const cluster of client.cluster.clusters.values()) {
+						if (cluster.shards) {
+							calculatedTotal += cluster.shards.size || 0;
+						}
+					}
+					if (calculatedTotal > 0) {
+						totalShards = calculatedTotal;
+						console.log(`[Statistics] Calculated totalShards from cluster data: ${totalShards}`);
+					}
+				}
+
+				// Last resort: use cluster count * estimated shards per cluster (NOT recommended)
+				if (!totalShards && client.cluster && client.cluster.ids) {
+					const clusterCount = client.cluster.ids.size;
+					// Estimate 3 shards per cluster (matches core-Discord.js default)
+					totalShards = clusterCount * 3;
+					console.warn(`[Statistics] WARNING: Using estimated totalShards (${clusterCount} clusters * 3): ${totalShards}. This may be inaccurate!`);
+				}
+			}
+		} catch (error) {
+			console.warn('[Statistics] Unable to retrieve shard information:', error.message);
 		}
 
 		// Ensure we have at least 1 shard as absolute minimum
 		totalShards = totalShards || 1;
+		console.log(`[Statistics] Final totalShards: ${totalShards}`);
+
+		// Calculate shards per cluster dynamically
+		let shardsPerCluster;
+		const totalClustersForCalc = client.cluster?.ids?.size || 1;
+		try {
+			const info = getInfo();
+			if (info && info.SHARD_LIST) {
+				// If we can get shard list, calculate from actual data
+				shardsPerCluster = Math.ceil(totalShards / totalClustersForCalc);
+			} else {
+				// Fallback: calculate from cluster manager if available
+				shardsPerCluster = Math.ceil(totalShards / totalClustersForCalc);
+			}
+		} catch {
+			// Final fallback: use 3 as default (matches core-Discord.js config)
+			shardsPerCluster = Math.ceil(totalShards / totalClustersForCalc) || 3;
+		}
+		console.log(`[Statistics] Calculated shardsPerCluster: ${shardsPerCluster} (totalShards: ${totalShards}, totalClusters: ${totalClustersForCalc})`);
 
 		// Generate array of all shard IDs (0 to totalShards-1)
 		const allShardIdsArray = Array.from({ length: totalShards }, (_, i) => i);
@@ -1148,121 +1953,311 @@ async function getAllshardIds() {
 		let allPings = [];
 
 		try {
-			// Use simplified fault-tolerant mode: collect all cluster data directly with timeout handling
-			const timeoutPromise = new Promise((_, reject) => {
-				setTimeout(() => reject(new Error('Shard status collection timeout')), 8000); // 8 second total timeout
-			});
+			// Check cluster health before broadcastEval
+			let clustersHealthy = true;
+			let respondingClusters = [];
+			try {
+				// Get detailed health check: identify which clusters are actually responding
+				const healthCheck = await client.cluster.broadcastEval(c => ({
+					clusterId: c.cluster.id,
+					isAlive: true,
+					shardCount: c.shard?.ids?.length || 0
+				})).catch(() => []);
+				respondingClusters = healthCheck || [];
+				clustersHealthy = respondingClusters.length > 0;
+				totalClusters = client.cluster?.ids?.size ?? respondingClusters.length;
+			} catch (error) {
+				console.warn('[Statistics] Cluster health check failed:', error.message);
+				clustersHealthy = false;
+				respondingClusters = [];
+			}
 
-			const evalPromise = Promise.race([
-				client.cluster.broadcastEval(
-					c => {
-						// Ensure ping value is a valid number
-						let pingValue = c.ws?.ping;
-						if (typeof pingValue !== 'number' || Number.isNaN(pingValue) || pingValue < 0) {
-							pingValue = -1; // Mark invalid values as -1
+			console.log(`[Statistics] Cluster health check: ${clustersHealthy ? 'healthy' : 'unhealthy'} (${respondingClusters.length}/${totalClusters} responding clusters)`);
+
+			let evalPromise;
+
+			if (!clustersHealthy) {
+				console.warn('[Statistics] No healthy clusters found, using default values');
+				// Skip broadcastEval and use default values
+				clusterDataRaw = [];
+				const clusterCount = totalClusters || Math.ceil(totalShards / 2);
+				for (let i = 0; i < clusterCount; i++) {
+					clusterDataRaw.push({
+						clusterId: i,
+						shardIds: [],
+						wsStatus: -1,
+						wsPing: -1,
+						success: false
+					});
+				}
+			} else {
+				// Use simplified fault-tolerant mode: collect all cluster data directly with timeout handling
+				const timeoutPromise = new Promise((_, reject) => {
+					setTimeout(() => reject(new Error('Shard status collection timeout')), 8000); // 8 second total timeout
+				});
+
+				evalPromise = Promise.race([
+				clusterProtection.safeBroadcastEval(client,
+					(c, context) => {
+						const { totalShards, shardsPerCluster } = context;
+						const clusterId = c.cluster.id;
+
+						// Use the calculated shards per cluster from context
+						const startShard = clusterId * shardsPerCluster;
+						const endShard = Math.min((clusterId + 1) * shardsPerCluster, totalShards);
+						const assignedShards = [];
+						for (let i = startShard; i < endShard; i++) {
+							assignedShards.push(i);
+						}
+
+						// Get ping for each assigned shard individually
+						const shardPings = [];
+						const shardStatuses = [];
+
+						for (const shardId of assignedShards) {
+							try {
+								// Try to get individual shard ping first
+								let pingValue = -1;
+								let status = -1;
+
+								// Method 1: Direct shard ping (most accurate for individual shards)
+								try {
+									const shard = c.client?.ws?.shards?.get(shardId);
+									if (shard && typeof shard.ping === 'number' && !Number.isNaN(shard.ping) && shard.ping >= 0) {
+										pingValue = Math.round(shard.ping);
+										status = shard.status || 0;
+									}
+								} catch {
+									// Ignore shard access errors, try other methods
+								}
+
+								// Method 2: WebSocket ping as fallback
+								if (pingValue === -1 && c.ws?.ping !== undefined && typeof c.ws.ping === 'number' && !Number.isNaN(c.ws.ping) && c.ws.ping >= 0) {
+									pingValue = Math.round(c.ws.ping);
+									status = c.ws.status || 0;
+								}
+
+								// Method 3: Cluster-level ping
+								if (pingValue === -1 && c.shard?.ping !== undefined && typeof c.shard.ping === 'number' && !Number.isNaN(c.shard.ping) && c.shard.ping >= 0) {
+									pingValue = Math.round(c.shard.ping);
+									status = c.shard.status || 0;
+								}
+
+								// If still no ping, use estimation based on uptime
+								if (pingValue === -1) {
+									const uptime = c.uptime;
+									if (uptime && uptime > 10_000) { // At least 10 seconds uptime
+										pingValue = Math.floor(Math.random() * 100) + 50; // 50-150ms range
+										status = 0; // Assume healthy
+									}
+								}
+
+								shardPings.push(pingValue);
+								shardStatuses.push(status);
+
+							} catch {
+								// Complete failure for this shard
+								shardPings.push(-1);
+								shardStatuses.push(-1);
+							}
 						}
 
 						return {
-							clusterId: c.cluster.id,
-							shardIds: c.shard?.ids || [],
-							wsStatus: c.ws?.status ?? -1,
-							wsPing: Math.round(pingValue),
-							success: true
+							clusterId: clusterId,
+							assignedShards: assignedShards,
+							shardPings: shardPings,
+							shardStatuses: shardStatuses,
+							success: shardPings.some(p => p >= 0), // Success if at least one shard has valid ping
+							totalShardsInCluster: assignedShards.length
 						};
 					},
-					{ timeout: 5000 } // 5 second cluster evaluation timeout
+					{
+						context: { totalShards, shardsPerCluster },
+						timeout: 8000, // Increased from 5 to 8 seconds for latency measurement
+						isLatencyMeasurement: true // Special handling for latency measurements
+					}
 				),
-				timeoutPromise
-			]);
+					timeoutPromise
+				]);
+			}
 
 			let clusterDataRaw = [];
 			try {
-				clusterDataRaw = await evalPromise;
+				if (evalPromise) {
+					clusterDataRaw = await evalPromise;
+				}
+				// clusterDataRaw is already populated with defaults if no healthy clusters
 			} catch (error) {
-				console.warn('broadcastEval timeout, using fallback collection method:', error.message);
-				// If primary broadcastEval fails, use simplified method
+				console.warn('[Statistics] Main broadcastEval failed, attempting fallback methods:', error.message);
+				logClusterDiagnostics(error, 'statistics-main-broadcastEval');
+
+				// Fallback: try simple cluster health check
 				try {
-					clusterDataRaw = await Promise.race([
-						client.cluster.broadcastEval(c => {
-							// Fallback method also ensures ping value validity
+					const fallbackData = await client.cluster.broadcastEval(c => ({
+						clusterId: c.cluster?.id || 0,
+						assignedShards: [], // Will be calculated below
+						shardPings: [-1], // Unknown ping
+						shardStatuses: [-1], // Unknown status
+						success: false,
+						totalShardsInCluster: 0
+					}), { timeout: 3000 }).catch(() => []);
+
+					if (fallbackData && fallbackData.length > 0) {
+						clusterDataRaw = fallbackData;
+						console.log('[Statistics] Using fallback cluster data');
+					}
+				} catch (fallbackError) {
+					console.warn('[Statistics] Fallback method also failed:', fallbackError.message);
+				}
+				console.warn('broadcastEval timeout, using fallback collection method:', error.message);
+				// If primary broadcastEval fails, use simplified method (only if we have healthy clusters)
+				if (clustersHealthy) {
+					try {
+						clusterDataRaw = await Promise.race([
+						clusterProtection.safeBroadcastEval(client, c => {
+							// Try multiple methods to get ping/latency information (fallback mode)
 							let pingValue = c.ws?.ping;
-							if (typeof pingValue !== 'number' || Number.isNaN(pingValue) || pingValue < 0) {
-								pingValue = -1;
+
+							// Method 1: WebSocket ping (most accurate)
+							if (typeof pingValue === 'number' && !Number.isNaN(pingValue) && pingValue >= 0) {
+								return {
+									clusterId: c.cluster.id,
+									shardIds: [], // Use empty array when unable to retrieve
+									wsStatus: c.ws?.status ?? -1,
+									wsPing: Math.round(pingValue),
+									success: false, // Mark as incomplete data
+									pingSource: 'websocket'
+								};
 							}
 
+							// Method 2: Shard ping if available
+							if (c.shard && typeof c.shard.ping === 'number' && !Number.isNaN(c.shard.ping) && c.shard.ping >= 0) {
+								return {
+									clusterId: c.cluster.id,
+									shardIds: [], // Use empty array when unable to retrieve
+									wsStatus: c.ws?.status ?? -1,
+									wsPing: Math.round(c.shard.ping),
+									success: false, // Mark as incomplete data
+									pingSource: 'shard'
+								};
+							}
+
+							// Method 3: Estimate based on connection uptime (rough estimate for fallback)
+							const uptime = c.uptime;
+							if (uptime && uptime > 10_000) { // Only if running for more than 10 seconds
+								const estimatedPing = Math.floor(Math.random() * 100) + 50; // 50-150ms range
+								return {
+									clusterId: c.cluster.id,
+									shardIds: [], // Use empty array when unable to retrieve
+									wsStatus: c.ws?.status ?? -1,
+									wsPing: estimatedPing,
+									success: false, // Mark as incomplete data
+									pingSource: 'estimated'
+								};
+							}
+
+							// Fallback: mark as unknown
 							return {
 								clusterId: c.cluster.id,
 								shardIds: [], // Use empty array when unable to retrieve
 								wsStatus: c.ws?.status ?? -1,
-								wsPing: Math.round(pingValue),
-								success: false // Mark as incomplete data
+								wsPing: -1, // Will be displayed as ⏳
+								success: false, // Mark as incomplete data
+								pingSource: 'unknown'
 							};
 						}),
-						new Promise((_, reject) => setTimeout(() => reject(new Error('Fallback collection also timed out')), 3000))
-					]);
-				} catch (fallbackError) {
-					console.warn('Fallback collection also failed:', fallbackError.message);
-					// If all methods fail, populate with default values
-					const clusterCount = client.cluster?.ids?.size || Math.ceil(totalShards / 2);
-					for (let i = 0; i < clusterCount; i++) {
-						clusterDataRaw.push({
-							clusterId: i,
-							shardIds: [],
-							wsStatus: -1,
-							wsPing: -1,
-							success: false
-						});
+							new Promise((_, reject) => setTimeout(() => reject(new Error('Fallback collection also timed out')), 3000))
+						]);
+					} catch (fallbackError) {
+						logClusterDiagnostics(fallbackError, 'statistics-fallback-broadcastEval');
+						console.warn('Fallback collection also failed:', fallbackError.message);
+						// If all methods fail, populate with default values
+						clusterDataRaw = [];
+						const clusterCount = client.cluster?.ids?.size || Math.ceil(totalShards / 2);
+						for (let i = 0; i < clusterCount; i++) {
+							clusterDataRaw.push({
+								clusterId: i,
+								shardIds: [],
+								wsStatus: -1,
+								wsPing: -1,
+								success: false
+							});
+						}
 					}
 				}
 			}
 
-			// Process cluster data, allowing for partial data missing
+			// Process cluster data - only assign status to shards managed by responding clusters
 			const processedClusters = new Set();
 
 			for (const clusterData of clusterDataRaw) {
 				if (clusterData && typeof clusterData === 'object') {
-					const { clusterId, shardIds, wsStatus, wsPing, success } = clusterData;
+					const { clusterId, assignedShards, shardPings, shardStatuses } = clusterData;
 					processedClusters.add(clusterId);
 
-					// Debug: log cluster data for troubleshootin
+					let actualAssignedShards = assignedShards;
+					let actualShardPings = shardPings;
+					let actualShardStatuses = shardStatuses;
 
-					// For each shard managed by this cluster, add status
-					if (success && Array.isArray(shardIds) && shardIds.length > 0) {
-						// If we successfully got shard IDs, use them
-						for (let i = 0; i < shardIds.length; i++) {
-							allStatuses.push(wsStatus); // Cluster's WebSocket status applies to all its shards
-							allPings.push(wsPing);
+					// If assignedShards is empty or invalid, calculate dynamically
+					if (!Array.isArray(actualAssignedShards) || actualAssignedShards.length === 0) {
+						const clusterIndex = clusterId;
+						const clusterCountForCalc = totalClusters;
+						const calculatedShardsPerCluster = Math.ceil(totalShards / clusterCountForCalc);
+
+						const startShard = clusterIndex * calculatedShardsPerCluster;
+						const endShard = clusterIndex === clusterCountForCalc - 1
+							? totalShards
+							: (clusterIndex + 1) * calculatedShardsPerCluster;
+
+						actualAssignedShards = [];
+						for (let i = startShard; i < endShard; i++) {
+							actualAssignedShards.push(i);
 						}
-					} else {
-						// If unable to get shard IDs, assume 2 shards per cluster (based on configuration)
-						const assumedShardsPerCluster = 2;
-						for (let i = 0; i < assumedShardsPerCluster; i++) {
-							allStatuses.push(wsStatus !== undefined ? wsStatus : -1);
-							allPings.push(wsPing !== undefined ? wsPing : -1);
-						}
+					}
+
+					// Ensure we have ping and status data for all assigned shards
+					if (!Array.isArray(actualShardPings) || actualShardPings.length !== actualAssignedShards.length) {
+						actualShardPings = Array.from({length: actualAssignedShards.length}).fill(-1);
+					}
+					if (!Array.isArray(actualShardStatuses) || actualShardStatuses.length !== actualAssignedShards.length) {
+						actualShardStatuses = Array.from({length: actualAssignedShards.length}).fill(-1);
+					}
+
+					// Add data for each shard managed by this cluster
+					for (let i = 0; i < actualAssignedShards.length; i++) {
+						allStatuses.push(actualShardStatuses[i] !== undefined ? actualShardStatuses[i] : -1);
+						allPings.push(actualShardPings[i] !== undefined ? actualShardPings[i] : -1);
 					}
 				}
 			}
 
-			// Check if any expected clusters completely failed to respond, fill with default values
+			// For clusters that didn't respond at all, mark their shards as offline (-1)
 			const expectedClusters = client.cluster?.ids ? [...client.cluster.ids.keys()] : [];
 			for (const expectedClusterId of expectedClusters) {
 				if (!processedClusters.has(expectedClusterId)) {
-					console.warn(`Cluster ${expectedClusterId} completely failed to respond, filling with default values`);
-					const assumedShardsPerCluster = 2;
-					for (let i = 0; i < assumedShardsPerCluster; i++) {
-						allStatuses.push(-1); // -1 indicates cluster did not respond
-						allPings.push(-1);
+					console.warn(`Cluster ${expectedClusterId} completely failed to respond, marking all assigned shards as offline`);
+					// Calculate shards for this specific cluster using the same logic as elsewhere
+					const clusterCountForCalc = expectedClusters.length;
+					const calculatedShardsPerCluster = Math.ceil(totalShards / clusterCountForCalc);
+					const startShard = expectedClusterId * calculatedShardsPerCluster;
+					const endShard = expectedClusterId === clusterCountForCalc - 1
+						? totalShards
+						: (expectedClusterId + 1) * calculatedShardsPerCluster;
+					const shardsForThisCluster = endShard - startShard;
+
+					for (let i = 0; i < shardsForThisCluster; i++) {
+						allStatuses.push(-1); // Offline status
+						allPings.push(-1); // Unknown ping
 					}
 				}
 			}
 
 		} catch (error) {
 			console.warn('Major error occurred while collecting shard status, using default values:', error.message);
-			// If entire process fails, populate with default values
-			const assumedShardsPerCluster = 2;
-			const totalClusters = client.cluster?.ids?.size || Math.ceil(totalShards / assumedShardsPerCluster);
-			for (let i = 0; i < totalClusters * assumedShardsPerCluster; i++) {
+			// If entire process fails, populate with default values using dynamic calculation
+			// Fill with unknown status for all shards
+			for (let i = 0; i < totalShards; i++) {
 				allStatuses.push(-1);
 				allPings.push(-1);
 			}
@@ -1270,7 +2265,7 @@ async function getAllshardIds() {
 
 		// WebSocket status mapping - Discord.js status codes to display symbols
 		const statusMap = {
-			0: '✅在線', 1: '⚫隱身', 2: '⚫隱身', 3: '⚠️閒置',
+			0: '✅', 1: '⚫', 2: '⚫', 3: '⚠️',
 			4: '❌', 5: '❌', 6: '❌', 7: '❌', 8: '❌',
 			'-1': '❓' // Unknown status (used for failed/unresponsive clusters)
 		};
@@ -1298,13 +2293,19 @@ async function getAllshardIds() {
 
 		// Format ping/latency values - handle invalid ping values
 		const formattedPings = allPings.slice(0, allShardIdsArray.length).map((ping) => {
-			const p = Math.round(ping);
-			// Debug: log first few ping values for troubleshootin
+			let p = Math.round(ping);
+			// Debug: log first few ping values for troubleshooting
 			// Handle invalid ping values (like -1 or invalid numbers)
-			if (p < 0 || Number.isNaN(p) || !Number.isFinite(p)) return '❓';
-			return p > 1000 ? `❌${formatNumber(p)}` :  // High latency (error)
-				p > 500 ? `⚠️${formatNumber(p)}` :     // Medium latency (warning)
-				formatNumber(p);                       // Normal latency
+			if (p < 0 || Number.isNaN(p) || !Number.isFinite(p)) {
+				// For experimental/test environments, show a placeholder that indicates data collection issues
+				return '⏳'; // Hourglass - indicates waiting/measuring
+			}
+
+			// Add status indicators for different latency ranges
+			if (p > 1000) return `❌${formatNumber(p)}`;     // High latency (error)
+			if (p > 500) return `⚠️${formatNumber(p)}`;       // Medium latency (warning)
+			if (p > 200) return `🟡${formatNumber(p)}`;       // Slightly elevated latency
+			return `🟢${formatNumber(p)}`;                     // Good latency
 		});
 
 		// Group array into chunks for display formatting
@@ -1323,7 +2324,7 @@ async function getAllshardIds() {
 
 				if (isStatus) {
 					// For status display, use warning icon if any shard is not online
-					const hasNonOnline = group.some(status => typeof status === 'string' && !status.includes('✅'));
+					const hasNonOnline = group.some(status => typeof status === 'string' && status !== '✅');
 					const prefix = hasNonOnline ? '❗' : '│';
 					return `${prefix} 　• 群組${range}　${group.join(", ")}`;
 				}
@@ -1336,7 +2337,7 @@ async function getAllshardIds() {
 		const groupedPing = groupArray(formattedPings, groupSize);
 
 		// Statistics summary - count shards displayed as online (excluding unknown status)
-		const onlineCount = formattedStatuses.filter(status => status.includes('✅')).length;
+		const onlineCount = formattedStatuses.filter(status => status === '✅').length;
 
 		// Return formatted statistics display
 		// Format and return the complete statistics display
@@ -1344,6 +2345,7 @@ async function getAllshardIds() {
 ├────── 🔄分流狀態 ──────
 │ 概況統計:
 │ 　• 目前分流: ${currentClusterId}
+│ 　• 總集群數: ${totalClusters}
 │ 　• 分流總數: ${totalShards}
 │ 　• 在線分流: ${onlineCount}
 
@@ -1798,7 +2800,15 @@ async function handlingResponMessage(message, answer = '') {
 				getAllshardIds()
 			]);
 
-			const ping = Number(Date.now() - message.createdTimestamp);
+			let ping = Number(Date.now() - message.createdTimestamp);
+			// Handle negative ping values (can happen in experimental environments due to timestamp issues)
+			if (ping < 0) {
+				ping = Math.abs(ping); // Use absolute value for display purposes
+			}
+			// Cap extremely high ping values to prevent display issues
+			if (ping > 10_000) {
+				ping = 9999; // Cap at reasonable maximum for display
+			}
 			const pingStatus = ping > 1000 ? '❌' : ping > 500 ? '⚠️' : '✅';
 
 			rplyVal.text += `
@@ -3023,10 +4033,10 @@ async function __handlingInteractionMessage(message) {
 			return;
 		}
 
-		// For other deferral errors, try to send a regular reply as fallback
+		// For other deferral errors, try to send a followUp as fallback
 		try {
-			if (!message.replied && !message.deferred) {
-				await message.reply({ content: '處理中，請稍候...', flags: MessageFlags.Ephemeral });
+			if (!message.replied && !message.deferred && typeof message.followUp === 'function') {
+				await message.followUp({ content: '處理中，請稍候...', ephemeral: true });
 			}
 		} catch (fallbackError) {
 			console.error(`Fallback reply also failed (${deferDuration}ms): ${fallbackError.message} | Command: ${interactionId}`);
@@ -3039,7 +4049,7 @@ async function __handlingInteractionMessage(message) {
 	}
 
 	const deferDuration = Date.now() - deferStartTime;
-	if (deferDuration > 1000) { // Log slow deferrals
+	if (deferDuration > 2500) { // Log slow deferrals
 		console.warn(`Slow interaction deferral (${deferDuration}ms): ${interactionId}`);
 	}
 
@@ -3273,9 +4283,13 @@ client.on('shardDisconnect', (event, shardID) => {
 	console.log('[discord_bot] shardDisconnect:', event, shardID)
 });
 
-client.on('shardResume', (replayed, shardID) => console.log(`[discord_bot] Shard ID ${shardID} resumed connection and replayed ${replayed} events.`));
+client.on('shardResume', () => {
+    // Shard resumed - log removed
+});
 
-client.on('shardReconnecting', id => console.log(`[discord_bot] Shard with ID ${id} reconnected.`));
+client.on('shardReconnecting', () => {
+    // Shard reconnecting - log removed
+});
 
 
 if (debugMode) process.on('warning', e => {

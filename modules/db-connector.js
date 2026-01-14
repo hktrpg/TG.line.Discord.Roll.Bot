@@ -12,26 +12,46 @@ const config = {
     maxRetries: 5,
     baseRetryInterval: 1000,  // Base retry interval
     maxRetryInterval: 30_000,  // Maximum retry interval
+    maxTotalRetryTime: 300_000, // Maximum total time for all retries (5 minutes)
     restartTime: '30 04 */3 * *',
-    connectTimeout: 180_000,    // 3 minutes (increased for sharding)
-    socketTimeout: 180_000,     // 3 minutes (increased for sharding)
-    poolSize: 5,                // Connection pool size - Optimized for 28+ shards (reduced from 12 to 5 per shard)
-    minPoolSize: 2,             // Minimum connection pool size - Reduced from 5 to 2
-    heartbeatInterval: 15_000,  // Heartbeat detection interval - Increased to reduce load
-    serverSelectionTimeout: 60_000,  // Increased to 60 seconds for better stability with multiple shards
-    maxIdleTimeMS: 90_000,      // Maximum idle time - Increased from 60s to 90s to close idle connections faster
-    bufferCommands: true,     // Enable command buffering to allow operations before connection
-    w: 'majority',            // Write confirmation level
-    retryWrites: true,        // Enable write retries
-    autoIndex: process.env.DEBUG,  // Enable auto-indexing only in debug mode
-    useNewUrlParser: true,    // Use new URL parser
-    useUnifiedTopology: true  // Use new topology engine
+    // Timeout settings optimized for local MongoDB
+    connectTimeout: 30_000,     // 30 seconds - Local MongoDB should connect quickly
+    socketTimeout: 60_000,     // 60 seconds - Reduced from 180s for faster failure detection
+    // Each connection uses ~1-2MB RAM, so 80 connections = ~160MB
+    // Reduced from 200 to balance memory (4GB RAM) vs performance (104K guilds)
+    poolSize: 200,                // Max pool size 
+    minPoolSize: 5,              // Min pool size - Lower to save memory, connections will scale up as needed
+    // Heartbeat: Local MongoDB doesn't need frequent checks
+    heartbeatInterval: 30_000,  // 30 seconds - Reduced frequency for local MongoDB (was 15s)
+    // Server selection: Local MongoDB should be fast
+    serverSelectionTimeout: 10_000,  // 10 seconds - Local MongoDB should respond quickly (was 60s)
+    // Idle connection cleanup: Close idle connections faster to save memory
+    maxIdleTimeMS: 30_000,       // 30 seconds - Close idle connections quickly (was 90s)
+    bufferCommands: true,       // Enable command buffering to allow operations before connection
+    w: 1,                        // Write concern: 1 (local MongoDB, no replica set) - Changed from 'majority'
+    retryWrites: true,          // Enable write retries
+    autoIndex: process.env.DEBUG  // Enable auto-indexing only in debug mode
+    // Note: useNewUrlParser and useUnifiedTopology are removed in Mongoose 6+ (now default behavior)
 };
 
-if (!config.mongoUrl) {
-    console.error('[db-connector] MongoDB URL is not configured');
-    return;
-}
+// Early exit handler - wrap the entire module in a function to allow early return
+(function() {
+    if (!config.mongoUrl) {
+        console.error('[db-connector] MongoDB URL is not configured');
+        // Export empty object if mongoURL is not configured
+        module.exports = {
+            mongoose: mongoose,
+            connect: async () => { throw new Error('MongoDB URL is not configured'); },
+            checkHealth: () => ({ isConnected: false }),
+            getConnection: () => null,
+            waitForConnection: async () => { throw new Error('MongoDB URL is not configured'); },
+            restart: async () => { throw new Error('MongoDB URL is not configured'); },
+            disconnect: async () => {},
+            withTransaction: async () => { throw new Error('MongoDB URL is not configured'); },
+            connectionEmitter: new EventEmitter()
+        };
+        return;
+    }
 
 // Connection status
 let isConnected = false;
@@ -40,6 +60,7 @@ let isInitializing = false; // Prevent duplicate initialization
 let reconnecting = false; // Prevent duplicate reconnection
 let sharedConnectionPromise = null; // Shared connection Promise to avoid multiple shards creating duplicate connections
 let connectionCooldown = false; // Connection cooldown period to avoid excessive connection attempts
+let connectionStartTime = null; // Track when connection attempts started
 
 // Event emitter for connection state changes
 const connectionEmitter = new EventEmitter();
@@ -68,6 +89,53 @@ function calculateBackoffTime(attempt) {
         config.maxRetryInterval
     );
     return backoffTime + Math.random() * 1000; // Add random jitter
+}
+
+// Classify MongoDB errors to determine if they are permanent or temporary
+function classifyMongoDBError(error) {
+    const message = error.message || String(error);
+
+    // Permanent errors (don't retry)
+    const permanentErrors = [
+        'bad auth',
+        'Authentication failed',
+        'not authorized',
+        'Invalid credentials',
+        'MongoServerError: bad auth'
+        // Note: 'MongoError' was replaced by 'MongoServerError' in MongoDB Driver 4.x+
+        // Keeping only MongoServerError for Mongoose 9 compatibility
+    ];
+
+    // Temporary errors (retry)
+    const temporaryErrors = [
+        'connection timed out',
+        'Server selection timed out',
+        'ECONNREFUSED',
+        'ENOTFOUND',
+        'ECONNRESET',
+        'ETIMEDOUT',
+        'connect ETIMEDOUT',
+        'connect ECONNREFUSED',
+        'PoolClearedError',
+        'connection  to .* closed',
+        'topology was destroyed',
+        'connection is closed'
+    ];
+
+    for (const permanentError of permanentErrors) {
+        if (message.includes(permanentError)) {
+            return 'permanent';
+        }
+    }
+
+    for (const temporaryError of temporaryErrors) {
+        if (message.includes(temporaryError)) {
+            return 'temporary';
+        }
+    }
+
+    // Default to temporary for unknown errors
+    return 'temporary';
 }
 
 // Establish connection - Force only one connection, support multi-shard sharing
@@ -127,6 +195,11 @@ async function connect(retries = 0) {
     sharedConnectionPromise = (async () => {
         try {
             connectionAttempts++;
+            // Track start time for total retry time limit
+            if (!connectionStartTime) {
+                connectionStartTime = Date.now();
+            }
+
             console.log(`[db-connector] Attempting to connect to MongoDB (Attempt ${connectionAttempts}) - ReadyState: ${mongoose.connection.readyState}`);
 
             // Only create new connection when truly disconnected
@@ -143,49 +216,47 @@ async function connect(retries = 0) {
                     bufferCommands: config.bufferCommands,
                     w: config.w,
                     retryWrites: config.retryWrites,
-                    autoIndex: config.autoIndex,
-                    useNewUrlParser: config.useNewUrlParser,
-                    useUnifiedTopology: config.useUnifiedTopology
+                    autoIndex: config.autoIndex
+                    // Note: useNewUrlParser and useUnifiedTopology removed (default in Mongoose 6+)
                 });
             } else if (mongoose.connection.readyState === 3) { // disconnecting
-            console.log('[db-connector] Waiting for disconnect to complete before reconnecting...');
-            // Wait for disconnect to complete, then create new connection
-            await new Promise(resolve => {
-                const checkState = () => {
-                    if (mongoose.connection.readyState === 0) {
-                        resolve();
-                    } else {
-                        setTimeout(checkState, 100);
-                    }
-                };
-                checkState();
-            });
+                console.log('[db-connector] Waiting for disconnect to complete before reconnecting...');
+                // Wait for disconnect to complete, then create new connection
+                await new Promise(resolve => {
+                    const checkState = () => {
+                        if (mongoose.connection.readyState === 0) {
+                            resolve();
+                        } else {
+                            setTimeout(checkState, 100);
+                        }
+                    };
+                    checkState();
+                });
 
-            console.log('[db-connector] Reconnecting after disconnect...');
-            await mongoose.connect(config.mongoUrl, {
-                connectTimeoutMS: config.connectTimeout,
-                socketTimeoutMS: config.socketTimeout,
-                serverSelectionTimeoutMS: config.serverSelectionTimeout,
-                maxPoolSize: config.poolSize,
-                minPoolSize: config.minPoolSize,
-                heartbeatFrequencyMS: config.heartbeatInterval,
-                maxIdleTimeMS: config.maxIdleTimeMS,
- 
-                bufferCommands: config.bufferCommands,
-                w: config.w,
-                retryWrites: config.retryWrites,
-                autoIndex: config.autoIndex,
-                useNewUrlParser: config.useNewUrlParser,
-                useUnifiedTopology: config.useUnifiedTopology
-            });
-        } else {
-            console.log(`[db-connector] MongoDB connection state is ${mongoose.connection.readyState}, no action needed`);
-            return true;
-        }
+                console.log('[db-connector] Reconnecting after disconnect...');
+                await mongoose.connect(config.mongoUrl, {
+                    connectTimeoutMS: config.connectTimeout,
+                    socketTimeoutMS: config.socketTimeout,
+                    serverSelectionTimeoutMS: config.serverSelectionTimeout,
+                    maxPoolSize: config.poolSize,
+                    minPoolSize: config.minPoolSize,
+                    heartbeatFrequencyMS: config.heartbeatInterval,
+                    maxIdleTimeMS: config.maxIdleTimeMS,
+                    bufferCommands: config.bufferCommands,
+                    w: config.w,
+                    retryWrites: config.retryWrites,
+                    autoIndex: config.autoIndex
+                    // Note: useNewUrlParser and useUnifiedTopology removed (default in Mongoose 6+)
+                });
+            } else {
+                console.log(`[db-connector] MongoDB connection state is ${mongoose.connection.readyState}, no action needed`);
+                return true;
+            }
 
             console.log(`[db-connector] MongoDB connected successfully. Connection state: ${connectionStates[mongoose.connection.readyState]}`);
             isConnected = true;
             connectionAttempts = 0;
+            connectionStartTime = null; // Reset retry timer on successful connection
 
             // Listen for connection events
             setupConnectionListeners();
@@ -198,14 +269,49 @@ async function connect(retries = 0) {
             console.error(`MongoDB Connection Error: ${error.message}`);
             isConnected = false;
 
-            // Special handling for authentication errors
-            if (error.message.includes('bad auth') || error.message.includes('Authentication failed')) {
-                console.error('MongoDB Authentication Error: Please check your credentials');
+            // Classify the error
+            const errorType = classifyMongoDBError(error);
+
+            // Special handling for authentication errors (permanent)
+            if (errorType === 'permanent') {
+                console.error('MongoDB Permanent Error (will not retry):', error.message);
+                // Reset connection tracking
+                connectionStartTime = null;
+                connectionCooldown = true;
+
+                // For permanent errors, wait longer before next attempt
+                const PERMANENT_ERROR_DELAY = 300_000; // 5 minutes
+                setTimeout(() => {
+                    console.log('[db-connector] Attempting to reconnect after permanent error delay...');
+                    connectionCooldown = false;
+                    connect(0);
+                }, PERMANENT_ERROR_DELAY);
+
+                throw error;
             }
 
+            // Check total retry time limit
+            const elapsedTime = Date.now() - (connectionStartTime || Date.now());
+            if (elapsedTime > config.maxTotalRetryTime) {
+                console.error(`MongoDB connection failed after ${Math.round(elapsedTime / 1000)} seconds of attempts. Giving up for now.`);
+                connectionStartTime = null;
+                connectionCooldown = true;
+
+                // Schedule a retry after extended delay
+                const EXTENDED_RETRY_DELAY = 300_000; // 5 minutes
+                setTimeout(() => {
+                    console.log('[db-connector] Attempting to reconnect after extended delay...');
+                    connectionCooldown = false;
+                    connect(0);
+                }, EXTENDED_RETRY_DELAY);
+
+                throw error;
+            }
+
+            // Check retry count limit
             if (retries < config.maxRetries) {
                 const backoffTime = calculateBackoffTime(retries);
-                console.log(`[db-connector] Retrying connection in ${Math.round(backoffTime/1000)} seconds... (${retries + 1}/${config.maxRetries})`);
+                console.log(`[db-connector] Retrying connection in ${Math.round(backoffTime / 1000)} seconds... (${retries + 1}/${config.maxRetries}, elapsed: ${Math.round(elapsedTime / 1000)}s)`);
 
                 // Add jitter to prevent thundering herd
                 const jitter = Math.random() * 1000;
@@ -213,13 +319,16 @@ async function connect(retries = 0) {
                 return connect(retries + 1);
             }
 
-            console.error('MongoDB connection failed after all retries. Will retry periodically.');
+            console.error(`MongoDB connection failed after ${config.maxRetries} retries and ${Math.round(elapsedTime / 1000)} seconds. Will retry periodically.`);
             // Set cooldown period
             connectionCooldown = true;
-            // Schedule a retry after a longer delay
-            const RETRY_DELAY = 60_000;
+            connectionStartTime = null;
+
+            // Schedule a retry after extended delay
+            const RETRY_DELAY = 120_000; // 2 minutes (increased from 1 minute)
             setTimeout(() => {
                 console.log('[db-connector] Attempting to reconnect to MongoDB after extended delay...');
+                connectionCooldown = false;
                 connect(0);
             }, RETRY_DELAY);
 
@@ -242,7 +351,7 @@ function setupPoolMonitoring() {
         client.topology.on('timeout', (event) => {
             console.warn('[db-connector] MongoDB operation timeout:', event);
         });
-        
+
         client.topology.on('error', (error) => {
             console.error('[db-connector] MongoDB topology error:', error);
         });
@@ -336,7 +445,7 @@ async function handleDisconnect() {
     const backoffTime = calculateBackoffTime(connectionAttempts);
     setTimeout(async () => {
         if (!isConnected && reconnecting) {
-            console.log(`[db-connector] Attempting to reconnect after ${Math.round(backoffTime/1000)} seconds...`);
+            console.log(`[db-connector] Attempting to reconnect after ${Math.round(backoffTime / 1000)} seconds...`);
             try {
                 await restart();
             } catch (error) {
@@ -367,7 +476,7 @@ async function handleError(error) {
     const backoffTime = calculateBackoffTime(connectionAttempts);
     setTimeout(async () => {
         if (!isConnected && reconnecting) {
-            console.log(`[db-connector] Attempting to recover from error after ${Math.round(backoffTime/1000)} seconds...`);
+            console.log(`[db-connector] Attempting to recover from error after ${Math.round(backoffTime / 1000)} seconds...`);
             try {
                 await restart();
             } catch (error) {
@@ -382,7 +491,8 @@ async function handleError(error) {
 }
 
 // Periodic reconnection
-// const restartMongo = schedule.scheduleJob(config.restartTime, restart);
+//
+//  const restartMongo = schedule.scheduleJob(config.restartTime, restart);
 
 // Health check
 function checkHealth() {
@@ -392,6 +502,50 @@ function checkHealth() {
         connectionAttempts,
         lastError: mongoose.connection.error
     };
+}
+
+// Wait for connection to be ready (with timeout)
+async function waitForConnection(timeout = 30_000) {
+    // If already connected, return immediately
+    if (mongoose.connection.readyState === 1 && isConnected) {
+        return true;
+    }
+
+    // If connecting, wait for connection to complete
+    if (mongoose.connection.readyState === 2) {
+        return new Promise((resolve, reject) => {
+            const timeoutId = setTimeout(() => {
+                reject(new Error('Connection timeout'));
+            }, timeout);
+
+            mongoose.connection.once('connected', () => {
+                clearTimeout(timeoutId);
+                resolve(true);
+            });
+
+            mongoose.connection.once('error', (error) => {
+                clearTimeout(timeoutId);
+                reject(error);
+            });
+        });
+    }
+
+    // If disconnected, try to connect
+    if (mongoose.connection.readyState === 0) {
+        await connect();
+        return mongoose.connection.readyState === 1 && isConnected;
+    }
+
+    // For other states, wait with polling
+    const startTime = Date.now();
+    while ((Date.now() - startTime) < timeout) {
+        if (mongoose.connection.readyState === 1 && isConnected) {
+            return true;
+        }
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    throw new Error('Connection timeout');
 }
 
 // Transaction support
@@ -407,6 +561,23 @@ async function withTransaction(callback) {
         throw error;
     } finally {
         session.endSession();
+    }
+}
+
+// Graceful disconnect function
+async function disconnect() {
+    try {
+        console.log('[db-connector] Disconnecting from MongoDB...');
+        if (mongoose.connection.readyState === 1) {
+            await mongoose.connection.close();
+            console.log('[db-connector] Successfully disconnected from MongoDB');
+        } else {
+            console.log('[db-connector] MongoDB connection already closed or not connected');
+        }
+        isConnected = false;
+    } catch (error) {
+        console.error('[db-connector] Error during disconnect:', error);
+        throw error;
     }
 }
 
@@ -484,11 +655,14 @@ if (!initialized) {
 
 
 // Export
-module.exports = {
-    mongoose,
-    checkHealth,
-    restart,
-    connect,
-    withTransaction,
-    connectionEmitter
-};
+    module.exports = {
+        mongoose,
+        checkHealth,
+        waitForConnection,
+        restart,
+        connect,    
+        disconnect,
+        withTransaction,
+        connectionEmitter
+    };
+})();

@@ -11,6 +11,9 @@
   "scripts": {
     "start": "node index.js",
     "test": "jest",
+    "test:records": "jest test/records-integration.test.js",
+    "test:startup": "jest test/run-after-startup.test.js",
+    "test:all": "jest test/records-integration.test.js test/run-after-startup.test.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
@@ -72,7 +75,7 @@
     "mathjs": "^9.3.0",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.35",
-    "mongoose": "^6",
+    "mongoose": "^9",
     "node-cache": "^5.1.2",
     "node-schedule": "^2.1.0",
     "node-telegram-bot-api": "^0.66.0",
@@ -91,7 +94,7 @@
     "socket.io-client": "^2.4.0",
     "tesseract.js": "^6.0.1",
     "timer": "^1.0.1",
-    "whatsapp-web.js": "^1.34.1",
+    "whatsapp-web.js": "^1.34.2",
     "wikijs": "6.4.1",
     "winston": "^3.11.0",
     "ws": "^8.18.3"
@@ -110,6 +113,7 @@
   "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^9.30.1",
+    "baseline-browser-mapping": "^2.9.14",
     "eslint": "^9.30.1",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-n": "^17.21.0",

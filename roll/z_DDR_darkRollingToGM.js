@@ -42,9 +42,16 @@ if (!DB_READY) {
     };
 } else {
 const trpgDarkRollingfunction = {};
-records.get('trpgDarkRolling', (msgs) => {
-    trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
-})
+
+// Initialize data asynchronously
+(async () => {
+    try {
+        trpgDarkRollingfunction.trpgDarkRollingfunction = await records.get('trpgDarkRolling');
+    } catch (error) {
+        console.error('[z_DDR_darkRollingToGM] Failed to initialize trpgDarkRolling data:', error);
+        trpgDarkRollingfunction.trpgDarkRollingfunction = [];
+    }
+})();
 const gameName = function () {
     return '【暗骰GM功能】 .drgm (addgm del show) dr ddr dddr'
 }
@@ -180,13 +187,14 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
 
             }
             if (checkifsamename == 0) {
-                records.pushTrpgDarkRollingFunction('trpgDarkRolling', temp, () => {
-                    records.get('trpgDarkRolling', (msgs) => {
-                        trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
-                    })
-                })
-                rply.text = '新增成功: ' + (mainMsg[2] || displayname ||
-                    "")
+                try {
+                    await records.pushTrpgDarkRollingFunction('trpgDarkRolling', temp);
+                    trpgDarkRollingfunction.trpgDarkRollingfunction = await records.get('trpgDarkRolling');
+                    rply.text = '新增成功: ' + (mainMsg[2] || displayname || "");
+                } catch (error) {
+                    console.error('[z_DDR_darkRollingToGM] Failed to push dark rolling function:', error);
+                    rply.text = '新增失敗，請稍後再試';
+                }
             } else rply.text = '新增失敗. 你已在GM列表'
             return rply;
         } case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]): {
@@ -211,12 +219,14 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                     matched = true;
                     let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
                     temp.trpgDarkRollingfunction = []
-                    records.setTrpgDarkRollingFunction('trpgDarkRolling', temp, () => {
-                        records.get('trpgDarkRolling', (msgs) => {
-                            trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
-                        })
-                    })
-                    rply.text = '刪除所有在表GM'
+                    try {
+                        await records.setTrpgDarkRollingFunction('trpgDarkRolling', temp);
+                        trpgDarkRollingfunction.trpgDarkRollingfunction = await records.get('trpgDarkRolling');
+                        rply.text = '刪除所有在表GM';
+                    } catch (error) {
+                        console.error('[z_DDR_darkRollingToGM] Failed to delete all dark rolling functions:', error);
+                        rply.text = '刪除失敗，請稍後再試';
+                    }
                 }
             }
             if (!matched) {
@@ -246,12 +256,13 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                     if (mainMsg[2] < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length && mainMsg[2] >= 0) {
                         let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
                         temp.trpgDarkRollingfunction.splice(mainMsg[2], 1)
-                        records.setTrpgDarkRollingFunction('trpgDarkRolling', temp, () => {
-                            records.get('trpgDarkRolling', (msgs) => {
-                                trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
-                            })
-                        })
+                        try {
+                            await records.setTrpgDarkRollingFunction('trpgDarkRolling', temp);
+                            trpgDarkRollingfunction.trpgDarkRollingfunction = await records.get('trpgDarkRolling');
                         deleted = true;
+                        } catch (error) {
+                            console.error('[z_DDR_darkRollingToGM] Failed to delete dark rolling function:', error);
+                        }
                     }
                 }
             }
@@ -265,9 +276,12 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //
             if (channelid)
                 groupid = channelid
-            records.get('trpgDarkRolling', (msgs) => {
-                trpgDarkRollingfunction.trpgDarkRollingfunction = msgs
-            })
+            try {
+                trpgDarkRollingfunction.trpgDarkRollingfunction = await records.get('trpgDarkRolling');
+            } catch (error) {
+                console.error('[z_DDR_darkRollingToGM] Failed to get dark rolling data:', error);
+                trpgDarkRollingfunction.trpgDarkRollingfunction = [];
+            }
             if (groupid) {
                 let temp = 0;
                 if (trpgDarkRollingfunction.trpgDarkRollingfunction)

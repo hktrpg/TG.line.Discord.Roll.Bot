@@ -28,6 +28,33 @@ const discordLinkRegex = new RegExp(/https:\/\/discord\.com\/channels\/(\d+)\/(\
 const opt = { upsert: true, runValidators: true };
 const convertRegex = str => str.replaceAll(/([.?*+^$[\]\\(){}|-])/g, String.raw`\$1`);
 
+/**
+ * Convert number to emoji digits with zero-padding
+ * @param {number} num - The number to convert
+ * @param {number} minDigits - Minimum number of digits (for zero-padding)
+ * @returns {string} Emoji representation of the number
+ */
+function numberToEmoji(num, minDigits = 2) {
+    const emojiMap = {
+        '0': '0️⃣',
+        '1': '1️⃣',
+        '2': '2️⃣',
+        '3': '3️⃣',
+        '4': '4️⃣',
+        '5': '5️⃣',
+        '6': '6️⃣',
+        '7': '7️⃣',
+        '8': '8️⃣',
+        '9': '9️⃣'
+    };
+    
+    // Convert to string and pad with zeros
+    const numStr = String(num).padStart(minDigits, '0');
+    
+    // Convert each digit to emoji
+    return [...numStr].map(digit => emojiMap[digit] || digit).join('');
+}
+
 /*
 TODO?
 COC export to roll20?
@@ -258,9 +285,16 @@ async function handleShow(mainMsg, userid, rply) {
         rply.text += '╭──── 📋角色卡列表 ────\n';
         let doc = await schema.characterCard.find(filter).catch(error => console.error('[Character] MongoDB error in show:', error));
         rply.buttonCreate = [];
+        
+        // Calculate minimum digits needed for zero-padding
+        // If total count >= 10, pad to 2 digits; if >= 100, pad to 3 digits, etc.
+        const totalCount = doc.length;
+        const minDigits = totalCount >= 10 ? String(totalCount - 1).length : 1;
+        
         rply.text += doc.reduce((text, { name }, index) => {
             rply.buttonCreate.push(`.char use ${name}`);
-            return text + `│ ${index}️⃣ ${name}\n`;
+            const emojiNumber = numberToEmoji(index, minDigits);
+            return text + `│ ${emojiNumber} ${name}\n`;
         }, '');
 
         rply.text += `
@@ -360,7 +394,7 @@ async function handleDelete(mainMsg, inputStr, userid, rply) {
     }
     try {
         let filterRemove = { cardId: doc._id };
-        await schema.characterCard.findOneAndRemove(filter);
+        await schema.characterCard.findOneAndDelete(filter);
         await schema.characterGpSwitch.deleteMany(filterRemove);
     } catch (error) {
         console.error('[Character] Delete character card error:', error);

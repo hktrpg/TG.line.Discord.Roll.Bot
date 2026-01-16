@@ -4,7 +4,7 @@
  * Provides utilities for testing with or without MongoDB
  */
 
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose'); // Unused, commented out
 
 // Mock database for tests without MongoDB
 class MockDatabase {
@@ -19,7 +19,7 @@ class MockDatabase {
 
     // Mock collection methods
     async find(query = {}) {
-        const collection = Array.from(this.data.values());
+        const collection = [...this.data.values()];
         // Simple query filtering (can be extended)
         return collection.filter(item => {
             for (const [key, value] of Object.entries(query)) {
@@ -54,7 +54,7 @@ class MockDatabase {
 
     async deleteMany(query = {}) {
         const toDelete = await this.find(query);
-        toDelete.forEach(item => this.data.delete(item._id));
+        for (const item of toDelete) this.data.delete(item._id);
         return { acknowledged: true, deletedCount: toDelete.length };
     }
 
@@ -105,7 +105,7 @@ const TestDataFactory = {
 // Enhanced mock setup
 const createEnhancedMock = (schemaName, mockData = []) => {
     const mockDb = new MockDatabase();
-    mockData.forEach(data => mockDb.insertOne(data));
+    for (const data of mockData) mockDb.insertOne(data);
 
     return {
         findOne: jest.fn((query) => mockDb.findOne(query)),
@@ -131,7 +131,7 @@ const TestConfig = {
     shouldRunIntegrationTests: () => TestConfig.hasMongoDB() && process.env.RUN_INTEGRATION_TESTS === 'true',
 
     // Get test timeout based on test type
-    getTestTimeout: (isIntegration = false) => isIntegration ? 30000 : 5000,
+    getTestTimeout: (isIntegration = false) => isIntegration ? 30_000 : 5000,
 
     // Setup test environment
     setupTestEnvironment: () => {

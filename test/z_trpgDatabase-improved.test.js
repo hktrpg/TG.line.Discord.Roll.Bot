@@ -125,7 +125,7 @@ trpgDatabaseModule.rollDiceCommand.mockImplementation(async ({
             rply.text = `🗑️ 已刪除標題為 "${mainMsg[2]}" 的項目\n\n💡 使用方式:\n• 查看列表: .db show\n• 新增項目: .db add 標題 內容\n• 刪除項目: .db del 標題/編號\n\n刪除成功`;
             return rply;
 
-        case /(^[.]db$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
+        case /(^[.]db$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
             if (!groupid) {
                 rply.text = '❌ 不在群組中';
                 return rply;
@@ -145,13 +145,14 @@ trpgDatabaseModule.rollDiceCommand.mockImplementation(async ({
 
             const items = currentGroupData.trpgDatabasefunction;
             rply.text = '📚 資料庫列表\n';
-            items.forEach((item, index) => {
+            for (const [index, item] of items.entries()) {
                 rply.text += `#${index + 1}：${item.topic}\n`;
-            });
+            }
             rply.quotes = true;
             return rply;
+        }
 
-        case /(^[.]db$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]):
+        case /(^[.]db$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]): {
             if (!groupid) {
                 rply.text = '❌ 不在群組中';
                 return rply;
@@ -175,8 +176,8 @@ trpgDatabaseModule.rollDiceCommand.mockImplementation(async ({
             queryFoundItem = queryItems.find(item => item.topic === mainMsg[1]);
 
             if (!queryFoundItem) {
-                const index = parseInt(mainMsg[1]) - 1;
-                if (!isNaN(index) && index >= 0 && index < queryItems.length) {
+                const index = Number.parseInt(mainMsg[1]) - 1;
+                if (!Number.isNaN(index) && index >= 0 && index < queryItems.length) {
                     queryFoundItem = queryItems[index];
                 }
             }
@@ -189,6 +190,7 @@ trpgDatabaseModule.rollDiceCommand.mockImplementation(async ({
                 rply.text = '沒有相關關鍵字.';
             }
             return rply;
+        }
 
         default:
             rply.text = '未知指令';
@@ -244,7 +246,7 @@ const cleanupTestData = async () => {
 describe('TRPG Database Module - Improved Tests', () => {
     beforeAll(async () => {
         await setupTestData();
-    }, 30000);
+    }, 30_000);
 
     afterAll(async () => {
         await cleanupTestData();
@@ -407,6 +409,6 @@ describe('TRPG Database Module - Improved Tests', () => {
                 console.error('❌ Database connection failed:', error);
                 throw error;
             }
-        }, 10000);
+        }, 10_000);
     });
 });

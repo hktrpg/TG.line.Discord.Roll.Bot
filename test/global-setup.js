@@ -5,10 +5,9 @@
  * without requiring external MongoDB instances
  */
 
-const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
-module.exports = async () => {
+async function globalSetup() {
     try {
         // Check if we should use real MongoDB (for production testing)
         if (process.env.USE_REAL_MONGODB === 'true' && process.env.mongoURL) {
@@ -26,7 +25,7 @@ module.exports = async () => {
         process.env.MONGODB_MEMORY_SERVER_URI = mongoUri;
 
         // Store server instance for cleanup
-        global.__MONGOSERVER__ = mongoServer;
+        globalThis.__MONGOSERVER__ = mongoServer;
 
         console.log('✅ In-memory MongoDB server started successfully');
         console.log('📍 MongoDB URI:', mongoUri);
@@ -35,4 +34,6 @@ module.exports = async () => {
         console.error('❌ Failed to start in-memory MongoDB server:', error);
         throw error;
     }
-};
+}
+
+module.exports = globalSetup;

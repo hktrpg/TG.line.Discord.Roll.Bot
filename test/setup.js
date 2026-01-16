@@ -12,9 +12,9 @@ expect.extend({
     toBeValidResponse(received) {
         const pass = received &&
             typeof received === 'object' &&
-            received.hasOwnProperty('default') &&
-            received.hasOwnProperty('type') &&
-            received.hasOwnProperty('text');
+            Object.prototype.hasOwnProperty.call(received, 'default') &&
+            Object.prototype.hasOwnProperty.call(received, 'type') &&
+            Object.prototype.hasOwnProperty.call(received, 'text');
 
         return {
             message: () => `expected ${received} to be a valid response object`,
@@ -35,7 +35,7 @@ expect.extend({
 });
 
 // Global test utilities
-global.testUtils = require('./test-utils');
+globalThis.testUtils = require('./test-utils');
 
 // Setup console spy for cleaner test output
 const originalConsole = { ...console };
@@ -50,4 +50,4 @@ afterAll(() => {
 });
 
 // Increase timeout for async tests
-jest.setTimeout(10000);
+jest.setTimeout(10_000);

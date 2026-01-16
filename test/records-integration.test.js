@@ -42,6 +42,7 @@ class MockQueryChain {
         this.catch = jest.fn().mockReturnValue(this);
     }
 
+    // eslint-disable-next-line unicorn/no-thenable
     then(callback) {
         if (callback) {
             try {

@@ -29,7 +29,7 @@ module.exports = {
     ],
 
     // Test timeouts
-    timeout: 10000,
+    timeout: 10_000,
 
     // Setup files to run before everything else
     setupFiles: ['<rootDir>/test/setup-env.js'],
@@ -37,9 +37,6 @@ module.exports = {
     // Always use global setup for in-memory MongoDB
     globalSetup: '<rootDir>/test/global-setup.js',
     globalTeardown: '<rootDir>/test/global-teardown.js',
-
-    // Setup files to run after environment setup
-    setupFilesAfterEnv: ['<rootDir>/test/setup-after-env.js'],
 
     // Transform patterns to ignore problematic modules
     transformIgnorePatterns: [

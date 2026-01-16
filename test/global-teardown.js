@@ -6,16 +6,18 @@
 
 const mongoose = require('mongoose');
 
-module.exports = async () => {
+async function globalTeardown() {
     // Close mongoose connection
     if (mongoose.connection.readyState !== 0) {
         await mongoose.connection.close();
     }
 
     // Stop in-memory MongoDB server
-    if (global.__MONGOSERVER__) {
-        await global.__MONGOSERVER__.stop();
+    if (globalThis.__MONGOSERVER__) {
+        await globalThis.__MONGOSERVER__.stop();
     }
 
     console.log('🗄️  Stopped in-memory MongoDB server');
-};
+}
+
+module.exports = globalTeardown;

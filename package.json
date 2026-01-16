@@ -11,9 +11,12 @@
   "scripts": {
     "start": "node index.js",
     "test": "jest",
+    "test:unit": "jest --testPathIgnorePatterns=integration",
+    "test:integration": "RUN_INTEGRATION_TESTS=true jest --testPathPattern=integration",
     "test:records": "jest test/records-integration.test.js",
     "test:startup": "jest test/run-after-startup.test.js",
     "test:all": "jest test/records-integration.test.js test/run-after-startup.test.js",
+    "test:improved": "jest test/z_trpgDatabase-improved.test.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
@@ -120,6 +123,8 @@
     "eslint-plugin-unicorn": "^59.0.1",
     "globals": "^16.3.0",
     "jest": "^28.1.2",
+    "jest-junit": "^16.0.0",
+    "mongodb-memory-server": "^11.0.1",
     "proxyquire": "^2.1.3",
     "yarn-audit-fix": "^9.3.10"
   },

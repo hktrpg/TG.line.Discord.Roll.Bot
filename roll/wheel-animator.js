@@ -21,11 +21,11 @@ const WHEEL_COLORS = [
     '#f43f5e', // Rose 500
 ];
 
-// Default settings
+// Default settings - optimized for speed
 const DEFAULT_SETTINGS = {
-    duration: 3, // seconds
-    fps: 15,
-    size: 600,
+    duration: 1.5, // seconds - reduced from 3 for faster generation
+    fps: 10, // reduced from 15 for faster generation
+    size: 500, // reduced from 600 for faster processing
     pointerColor: '#ffffff',
     borderColor: '#1e293b',
     backgroundColor: '#0f172a'
@@ -183,7 +183,7 @@ async function generateWheelGif(options, settings = {}, selectedIndex = null) {
     // Add small random offset for natural feel
     const randomOffset = (Math.random() - 0.5) * sliceAngle * 0.2; // Reduced random offset for better alignment
     const targetRotation = Math.PI / 2 - segmentCenterAngle + randomOffset;
-    const minRotations = 8 * Math.PI * 2;
+    const minRotations = 3 * Math.PI * 2; // Reduced from 8 to 3 for faster animation
     const totalRotation = minRotations + targetRotation;
 
     // Create temp directory
@@ -211,8 +211,16 @@ async function generateWheelGif(options, settings = {}, selectedIndex = null) {
     encoder.setDelay(frameDelay); // Delay in milliseconds
     encoder.writeHeader();
 
-    // Generate and add frames
+    // Generate and add frames - optimized for speed
+    // Use batch processing and yield to event loop periodically
+    const bgColor = hexToRgb(finalSettings.backgroundColor);
+    
     for (let i = 0; i <= totalFrames; i++) {
+        // Yield to event loop every 5 frames to prevent blocking
+        if (i > 0 && i % 5 === 0) {
+            await new Promise(resolve => setImmediate(resolve));
+        }
+        
         const currentTime = i * (1000 / fps);
         let progress = Math.min(currentTime / durationMs, 1);
         const easedProgress = easeOutQuart(progress);
@@ -221,14 +229,14 @@ async function generateWheelGif(options, settings = {}, selectedIndex = null) {
         // Generate SVG
         const svg = generateWheelSVG(normalizedOptions, currentRot, finalSettings);
         
-        // Convert SVG to PNG buffer using sharp
+        // Convert SVG to PNG buffer using sharp (in pool to avoid blocking)
         const pngBuffer = await imagePool.run(() => 
             sharp(Buffer.from(svg))
                 .png()
                 .toBuffer()
         );
         
-        // Get raw pixel data (RGBA)
+        // Get raw pixel data (RGBA) - optimized processing
         const { data } = await imagePool.run(() =>
             sharp(pngBuffer)
                 .ensureAlpha()
@@ -236,12 +244,11 @@ async function generateWheelGif(options, settings = {}, selectedIndex = null) {
                 .toBuffer({ resolveWithObject: true })
         );
 
-        // Convert to pixel array format expected by gif-encoder
-        // gif-encoder expects pixels as a flat array [r, g, b, a, r, g, b, a, ...]
+        // Convert to pixel array format - optimized processing
         // Blend alpha channel with background for better quality
-        const bgColor = hexToRgb(finalSettings.backgroundColor);
         const pixels = [];
-        for (let j = 0; j < data.length; j += 4) {
+        const dataLength = data.length;
+        for (let j = 0; j < dataLength; j += 4) {
             const r = data[j];
             const g = data[j + 1];
             const b = data[j + 2];

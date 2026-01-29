@@ -371,14 +371,10 @@ const rollDiceCommand = async function ({
 					// Select random option
 					const selectedIndex = rollbase.Dice(array.length) - 1;
 					
-					// Generate wheel animation GIF
+					// Generate wheel animation GIF - use optimized defaults
 					const gifPath = await wheelAnimator.generateWheelGif(
 						array,
-						{
-							duration: 3,
-							fps: 15,
-							size: 600
-						},
+						{}, // Use optimized defaults (1.5s, 10fps, 500px)
 						selectedIndex
 					);
 

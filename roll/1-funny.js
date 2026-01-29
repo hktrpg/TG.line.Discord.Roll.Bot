@@ -368,6 +368,14 @@ const rollDiceCommand = async function ({
 			try {
 				const array = inputStr.replace(mainMsg[0], '').match(/\S+/ig);
 				if (array && array.length >= 2) {
+					// If too many options, fallback to text version
+					const MAX_OPTIONS_FOR_ANIMATION = 12;
+					if (array.length > MAX_OPTIONS_FOR_ANIMATION) {
+						// Fallback to text version for too many options
+						rply.text = choice(inputStr, mainMsg);
+						return rply;
+					}
+
 					// Select random option
 					const selectedIndex = rollbase.Dice(array.length) - 1;
 					

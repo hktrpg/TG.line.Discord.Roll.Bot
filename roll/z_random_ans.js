@@ -180,6 +180,13 @@ const rollDiceCommand = async function ({
             const selectedIndex = rollbase.Dice(options.length) - 1;
             const selectedValue = processedOptions[selectedIndex];
 
+            // If too many options, fallback to text version
+            const MAX_OPTIONS_FOR_ANIMATION = 12;
+            if (processedOptions.length > MAX_OPTIONS_FOR_ANIMATION) {
+                rply.text = `🎲 **${temp[0]}**\n🎯 結果：**${selectedValue}**\n\n💡 提示：選項過多（${processedOptions.length}個），已自動切換為文字版本`;
+                return rply;
+            }
+
             try {
                 // Generate wheel animation GIF - use optimized defaults
                 const gifPath = await wheelAnimator.generateWheelGif(

@@ -119,6 +119,8 @@ class CircuitBreaker {
 
 class DbWatchdog {
     constructor() {
+        /** Optional getter for bot/shard/cluster context when logging (e.g. "Discord cluster 1, shards [0-18]") */
+        this.logContextGetter = null;
         this.dbConnErr = {
             timeStamp: Date.now(),
             retry: 0,
@@ -162,6 +164,15 @@ class DbWatchdog {
         // 發生錯誤時重置連續成功計數
         this.dbConnErr.consecutiveSuccesses = 0;
         console.error(`[dbWatchdog] Database connection error occurred. Error count: ${this.dbConnErr.retry}`);
+    }
+
+    /**
+     * Register an optional getter that returns a string describing the current bot instance
+     * (e.g. "Discord cluster 1, shards [0-18]"). Used when logging "MongoDB connection not ready".
+     * @param {(() => string | null) | null} getter - Function returning context string, or null to clear
+     */
+    setLogContextGetter(getter) {
+        this.logContextGetter = getter ?? null;
     }
 
     isDbOnline() {
@@ -363,7 +374,18 @@ class DbWatchdog {
                 // Suppress repeated warnings - only log once per minute
                 const now = Date.now();
                 if (!this.lastConnectionWarningTime || (now - this.lastConnectionWarningTime) > 60_000) {
-                    console.warn('[dbWatchdog] MongoDB connection not ready, skipping error record update');
+                    let logMsg = '[dbWatchdog] MongoDB connection not ready, skipping error record update';
+                    if (typeof this.logContextGetter === 'function') {
+                        try {
+                            const ctx = this.logContextGetter();
+                            if (ctx && typeof ctx === 'string') {
+                                logMsg += ` (${ctx})`;
+                            }
+                        } catch {
+                            // Ignore getter errors to avoid masking the main warning
+                        }
+                    }
+                    console.warn(logMsg);
                     this.lastConnectionWarningTime = now;
                 }
             }

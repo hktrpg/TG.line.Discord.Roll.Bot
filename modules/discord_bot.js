@@ -37,6 +37,17 @@ client.on('clientReady', () => {
 });
 client.cluster = new ClusterClient(client);
 
+// Register Discord cluster/shard context for dbWatchdog logs (e.g. "MongoDB connection not ready")
+checkMongodb.setLogContextGetter(() => {
+    const clusterId = client.cluster?.id;
+    const shardList = client.cluster?.info?.SHARD_LIST;
+    if (clusterId === undefined && !shardList) return null;
+    const shardsStr = Array.isArray(shardList) && shardList.length > 0
+        ? `shards [${shardList.join(', ')}]`
+        : 'shards (pending)';
+    return `Discord cluster ${clusterId ?? '?'}, ${shardsStr}`;
+});
+
 // AutoResharder client for automatic re-sharding
 new AutoResharderClusterClient(client.cluster, {
     // OPTIONAL: Default is 60e3 which sends every minute the data / cluster

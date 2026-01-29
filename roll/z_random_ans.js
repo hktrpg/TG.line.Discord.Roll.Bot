@@ -1027,7 +1027,12 @@ const discordCommand = [
                     .setName('rroll')
                     .setDescription('使用群組骰子(可重複)')
                     .addStringOption(option => option.setName('name').setDescription('骰子名稱').setRequired(true))
-                    .addIntegerOption(option => option.setName('times').setDescription('擲骰次數，預設1次，最多30次').setMinValue(1).setMaxValue(30))),
+                    .addIntegerOption(option => option.setName('times').setDescription('擲骰次數，預設1次，最多30次').setMinValue(1).setMaxValue(30)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('aroll')
+                    .setDescription('使用群組骰子(動畫版)')
+                    .addStringOption(option => option.setName('name').setDescription('骰子名稱').setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             
@@ -1054,6 +1059,10 @@ const discordCommand = [
                     const rrollName = interaction.options.getString('name');
                     const rrollTimes = interaction.options.getInteger('times') || 1;
                     return rrollTimes > 1 ? `.rra${rrollTimes} ${rrollName}` : `.rra ${rrollName}`;
+                }
+                case 'aroll': {
+                    const arollName = interaction.options.getString('name');
+                    return `.raa ${arollName}`;
                 }
             }
         }

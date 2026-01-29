@@ -371,7 +371,14 @@ const rollDiceCommand = async function ({
 					// If too many options, fallback to text version
 					const MAX_OPTIONS_FOR_ANIMATION = 12;
 					if (array.length > MAX_OPTIONS_FOR_ANIMATION) {
-						// Fallback to text version for too many options
+						rply.text = choice(inputStr, mainMsg);
+						return rply;
+					}
+					// If any option text is too long, fallback to text version
+					const hasTooLongOption = array.some(opt =>
+						wheelAnimator.effectiveTextLength(opt) > wheelAnimator.MAX_OPTION_EFFECTIVE_LENGTH
+					);
+					if (hasTooLongOption) {
 						rply.text = choice(inputStr, mainMsg);
 						return rply;
 					}

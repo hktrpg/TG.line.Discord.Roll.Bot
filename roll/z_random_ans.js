@@ -186,6 +186,14 @@ const rollDiceCommand = async function ({
                 rply.text = `🎲 **${temp[0]}**\n🎯 結果：**${selectedValue}**\n\n💡 提示：選項過多（${processedOptions.length}個），已自動切換為文字版本`;
                 return rply;
             }
+            // If any option text is too long, fallback to text version
+            const hasTooLongOption = processedOptions.some(opt =>
+                wheelAnimator.effectiveTextLength(opt) > wheelAnimator.MAX_OPTION_EFFECTIVE_LENGTH
+            );
+            if (hasTooLongOption) {
+                rply.text = `🎲 **${temp[0]}**\n🎯 結果：**${selectedValue}**\n\n💡 提示：選項字數過多，已自動切換為文字版本`;
+                return rply;
+            }
 
             try {
                 // Generate wheel animation GIF - use optimized defaults

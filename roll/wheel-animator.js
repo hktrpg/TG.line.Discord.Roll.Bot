@@ -40,6 +40,75 @@ function easeOutQuart(t) {
     return 1 - Math.pow(1 - t, 4);
 }
 
+/** Max effective length per option; if exceeded, caller should use text version */
+const MAX_OPTION_EFFECTIVE_LENGTH = 36;
+
+/**
+ * Effective text length: full-width (CJK etc.) = 1, half-width (ASCII) = 0.5
+ */
+function effectiveTextLength(str) {
+    if (!str || typeof str !== 'string') return 0;
+    let len = 0;
+    for (let i = 0; i < str.length; i++) {
+        const code = str.charCodeAt(i);
+        len += (code > 0xff) ? 1 : 0.5;
+    }
+    return len;
+}
+
+/**
+ * Get max characters per line based on option count and wheel geometry
+ * Returns { maxEffective: number, maxRaw: number }.
+ * - maxEffective: max effective length per line (for wrap; full-width=1, half-width=0.5)
+ * - maxRaw: max raw character count per line (for circle; half-width digits often render full-width in SVG)
+ */
+function getMaxCharsPerLine(optionCount, radius, fontSize = 28) {
+    if (optionCount < 2) return { maxEffective: 10, maxRaw: 10 };
+    const sliceAngle = (2 * Math.PI) / optionCount;
+    const textRadius = radius * 0.55;
+    const chordLength = 2 * textRadius * Math.sin(sliceAngle / 2);
+    const charsByChord = Math.floor(chordLength / fontSize);
+    const maxLineWidthPx = 2 * (radius - textRadius);
+    const charsByCircle = Math.floor(maxLineWidthPx / fontSize);
+    const effective = Math.max(2, Math.min(Math.min(charsByChord, charsByCircle), 12));
+    const raw = Math.max(2, charsByCircle);
+    return { maxEffective: effective, maxRaw: raw };
+}
+
+/**
+ * Wrap text into lines by effective length and optionally by raw char count; maxLines caps total lines
+ * @param {number} [maxRawCharsPerLine] - if set, no line may exceed this many characters (keeps half-width digits inside circle)
+ * Returns { lines: string[], truncated: boolean }
+ */
+function wrapText(text, maxCharsPerLine, maxLines = 3, maxRawCharsPerLine = null) {
+    const safe = String(text).trim();
+    if (!safe) return { lines: [''], truncated: false };
+    const lines = [];
+    let currentLine = '';
+    let currentEffLen = 0;
+    let i = 0;
+    for (; i < safe.length && lines.length < maxLines; i++) {
+        const c = safe[i];
+        const w = (safe.charCodeAt(i) > 0xff) ? 1 : 0.5;
+        const wouldExceedEffective = currentEffLen + w > maxCharsPerLine && currentLine.length > 0;
+        const wouldExceedRaw = maxRawCharsPerLine != null && currentLine.length >= maxRawCharsPerLine;
+        if ((wouldExceedEffective || wouldExceedRaw) && currentLine.length > 0) {
+            lines.push(currentLine);
+            currentLine = c;
+            currentEffLen = w;
+        } else {
+            currentLine += c;
+            currentEffLen += w;
+        }
+    }
+    if (currentLine.length > 0) lines.push(currentLine);
+    const truncated = i < safe.length;
+    if (truncated && lines.length > 0) {
+        lines[lines.length - 1] = lines[lines.length - 1] + '…';
+    }
+    return { lines: lines.slice(0, maxLines), truncated };
+}
+
 /**
  * Escape XML/SVG special characters
  */
@@ -86,25 +155,35 @@ function generateWheelSVG(options, rotation, settings) {
         segmentsSVG += `<path d="M ${centerX} ${centerY} L ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY} Z" 
             fill="${color}" stroke="${borderColor}" stroke-width="2"/>`;
 
-        // Add text - positioned closer to center
+        // Add text - position and size by option count
         const textAngle = startAngle + sliceAngle / 2;
-        const textRadius = radius * 0.55; // Move text closer to center (was radius - 20)
+        const textRadius = radius * 0.55;
         const textX = centerX + textRadius * Math.cos(textAngle - Math.PI / 2);
         const textY = centerY + textRadius * Math.sin(textAngle - Math.PI / 2);
-        
-        let displayText = escapeXml(option.text || '');
-        if (displayText.length > 20) {
-            displayText = displayText.substring(0, 17) + '...';
-        }
 
-        // Larger font size and better text positioning
-        // Text rotation: rotate text in opposite direction (add 180 degrees)
-        // This makes text face the opposite direction from the arc
+        const optionCount = options.length;
+        const fontSize = optionCount <= 4 ? 28 : optionCount <= 8 ? 24 : 20;
+        const { maxEffective, maxRaw } = getMaxCharsPerLine(optionCount, radius, fontSize);
+        const maxLines = optionCount <= 4 ? 3 : optionCount <= 8 ? 2 : 2;
+        const lineHeight = 1.15;
+        // For 2–3 options, also limit raw char count so half-width digits don't overflow (SVG often renders them full-width)
+        const maxRawCharsPerLine = optionCount <= 3 ? maxRaw : null;
+
+        const rawText = option.text || '';
+        const { lines: wrappedLines } = wrapText(rawText, maxEffective, maxLines, maxRawCharsPerLine);
+        const displayLines = wrappedLines.map(line => escapeXml(line));
+
         const textRotation = (textAngle * 180 / Math.PI) + 90 + 180;
+        const tspanContent = displayLines.map((line, lineIndex) => {
+            const dy = lineIndex === 0
+                ? -((displayLines.length - 1) / 2) * lineHeight
+                : lineHeight;
+            return `<tspan x="${textX}" dy="${dy}em">${line}</tspan>`;
+        }).join('');
         textSVG += `<text x="${textX}" y="${textY}" 
             text-anchor="middle" dominant-baseline="middle" 
-            fill="#ffffff" font-family="Arial, sans-serif" font-size="28" font-weight="bold"
-            transform="rotate(${textRotation} ${textX} ${textY})">${displayText}</text>`;
+            fill="#ffffff" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="bold"
+            transform="rotate(${textRotation} ${textX} ${textY})">${tspanContent}</text>`;
     });
 
     // Pointer SVG (triangle at right side) - larger arrow
@@ -294,5 +373,7 @@ function hexToRgb(hex) {
 module.exports = {
     generateWheelGif,
     WHEEL_COLORS,
-    DEFAULT_SETTINGS
+    DEFAULT_SETTINGS,
+    MAX_OPTION_EFFECTIVE_LENGTH,
+    effectiveTextLength
 };

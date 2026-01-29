@@ -10,6 +10,7 @@ const checkTools = require('../modules/check.js');
 const VIP = require('../modules/veryImportantPerson');
 const rollbase = require('./rollbase.js');
 exports.z_Level_system = require('./z_Level_system');
+const wheelAnimator = require('./wheel-animator.js');
 const opt = {
     upsert: true,
     runValidators: true
@@ -25,7 +26,7 @@ const gameType = function () {
 }
 const prefixs = function () {
     return [{
-        first: /(^[.](r|)ra(\d+|p|p\d+|s|s\d+|)$)/ig,
+        first: /(^[.](r|)ra(\d+|p|p\d+|s|s\d+|a|a\d+|)$)/ig,
         second: null
     }]
 }
@@ -53,6 +54,10 @@ const getHelpMessage = async function () {
 │ ■ 一般抽選:
 │ • .ra 骰子名稱/編號
 │   隨機抽出一個結果
+│
+│ ■ 動畫抽選:
+│ • .raa 骰子名稱/編號
+│   隨機抽出一個結果(動畫版)
 │
 │ ■ 多重抽選:
 │ • .ra次數 骰子1 骰子2...
@@ -134,6 +139,77 @@ const rollDiceCommand = async function ({
             rply.text = await this.getHelpMessage();
             rply.quotes = true;
             return rply;
+        case /(^[.]raa(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
+            // Animated wheel version - only supports single roll
+            if (!groupid) {
+                rply.text = '❌ 此功能必須在群組中使用';
+                return rply;
+            }
+
+            getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+            if (!getData) {
+                rply.text = '❌ 找不到骰組資料';
+                return rply;
+            }
+
+            // Find the dice
+            temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[1].toLowerCase());
+            if (!temp && /^\d+$/.test(mainMsg[1])) {
+                temp = getData.randomAnsfunction[mainMsg[1]];
+            }
+            if (!temp) {
+                rply.text = `❌ 找不到名為「${mainMsg[1]}」的骰子\n💡 請使用 .ra show 檢視可用的骰子清單`;
+                return rply;
+            }
+
+            // Get options (skip first element which is the dice name)
+            const options = temp.slice(1);
+            if (options.length === 0) {
+                rply.text = '❌ 此骰子沒有選項';
+                return rply;
+            }
+
+            // Replace special codes in options
+            const processedOptions = [];
+            for (const opt of options) {
+                const processed = await replaceAsync(opt, /{(.*?)}/ig, replacer);
+                processedOptions.push(processed);
+            }
+
+            // Select random option
+            const selectedIndex = rollbase.Dice(options.length) - 1;
+            const selectedValue = processedOptions[selectedIndex];
+
+            // If too many options, fallback to text version
+            const MAX_OPTIONS_FOR_ANIMATION = 12;
+            if (processedOptions.length > MAX_OPTIONS_FOR_ANIMATION) {
+                rply.text = `🎲 **${temp[0]}**\n🎯 結果：**${selectedValue}**\n\n💡 提示：選項過多（${processedOptions.length}個），已自動切換為文字版本`;
+                return rply;
+            }
+
+            try {
+                // Generate wheel animation GIF - use optimized defaults
+                const gifPath = await wheelAnimator.generateWheelGif(
+                    processedOptions,
+                    {}, // Use optimized defaults (1.5s, 10fps, 500px)
+                    selectedIndex
+                );
+
+                // Set file link for Discord
+                if (!rply.fileLink) {
+                    rply.fileLink = [];
+                }
+                rply.fileLink.push(gifPath);
+                rply.fileText = `🎲 **${temp[0]}**\n🎯 結果：`;
+
+                return rply;
+            } catch (error) {
+                console.error('[Random Ans] Wheel animation error:', error);
+                // Fallback to text-only result if animation fails
+                rply.text = `❌ 動畫生成失敗：${error.message}\n🎲 **${temp[0]}**\n🎯 結果：**${selectedValue}**`;
+                return rply;
+            }
+        }
         case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]): {
             try {
 
@@ -954,7 +1030,12 @@ const discordCommand = [
                     .setName('rroll')
                     .setDescription('使用群組骰子(可重複)')
                     .addStringOption(option => option.setName('name').setDescription('骰子名稱').setRequired(true))
-                    .addIntegerOption(option => option.setName('times').setDescription('擲骰次數，預設1次，最多30次').setMinValue(1).setMaxValue(30))),
+                    .addIntegerOption(option => option.setName('times').setDescription('擲骰次數，預設1次，最多30次').setMinValue(1).setMaxValue(30)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('aroll')
+                    .setDescription('使用群組骰子(動畫版)')
+                    .addStringOption(option => option.setName('name').setDescription('骰子名稱').setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             
@@ -981,6 +1062,10 @@ const discordCommand = [
                     const rrollName = interaction.options.getString('name');
                     const rrollTimes = interaction.options.getInteger('times') || 1;
                     return rrollTimes > 1 ? `.rra${rrollTimes} ${rrollName}` : `.rra ${rrollName}`;
+                }
+                case 'aroll': {
+                    const arollName = interaction.options.getString('name');
+                    return `.raa ${arollName}`;
                 }
             }
         }

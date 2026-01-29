@@ -16,6 +16,7 @@ const { fetalGod } = require('@lunisolar/plugin-fetalgod');
 const { takeSound } = require('@lunisolar/plugin-takesound');
 const { theGods } = require('@lunisolar/plugin-thegods');
 const rollbase = require('./rollbase.js');
+const wheelAnimator = require('./wheel-animator.js');
 lunisolar.extend(fetalGod);
 lunisolar.extend(takeSound);
 lunisolar.extend(theGods);
@@ -362,6 +363,43 @@ const rollDiceCommand = async function ({
 		return rply;
 	}
 	if (/^隨機|^choice|隨機$|choice$/i.test(mainMsg[0]) && (mainMsg.length >= 3)) {
+		// In Discord environment, generate animated wheel
+		if (displaynameDiscord) {
+			try {
+				const array = inputStr.replace(mainMsg[0], '').match(/\S+/ig);
+				if (array && array.length >= 2) {
+					// If too many options, fallback to text version
+					const MAX_OPTIONS_FOR_ANIMATION = 12;
+					if (array.length > MAX_OPTIONS_FOR_ANIMATION) {
+						// Fallback to text version for too many options
+						rply.text = choice(inputStr, mainMsg);
+						return rply;
+					}
+
+					// Select random option
+					const selectedIndex = rollbase.Dice(array.length) - 1;
+					
+					// Generate wheel animation GIF - use optimized defaults
+					const gifPath = await wheelAnimator.generateWheelGif(
+						array,
+						{}, // Use optimized defaults (1.5s, 10fps, 500px)
+						selectedIndex
+					);
+
+					// Set file link for Discord
+					if (!rply.fileLink) {
+						rply.fileLink = [];
+					}
+					rply.fileLink.push(gifPath);
+					rply.text = `${mainMsg[0]} [ ${array.join(' ')} ]\n🎯 結果：`;
+					return rply;
+				}
+			} catch (error) {
+				console.error('[Funny] Wheel animation error:', error);
+				// Fallback to text-only result if animation fails
+			}
+		}
+		// Default text response
 		rply.text = choice(inputStr, mainMsg);
 		return rply;
 	}

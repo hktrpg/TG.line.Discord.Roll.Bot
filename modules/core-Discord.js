@@ -5,7 +5,7 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
 
-const DELAY = Number(process.env.DISCORDDELAY) || 1000 * 20;
+const DELAY = 1000 * 20;
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 5000;
 
@@ -273,7 +273,7 @@ manager.extend(
 // Start clusters (simplified as per attachment)
 manager.spawn({
     timeout: -1,
-    delay: DELAY,
+    
     amount: 'auto'
 }).catch(error => {
     console.error('[Cluster] Failed to spawn clusters:', error);

@@ -370,7 +370,22 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		});
 		if (findEmoji) {
 			const member = await reaction.message.guild.members.fetch(user.id);
-			member.roles.add(findEmoji.roleID.replaceAll(/\D/g, ''))
+			const roleId = findEmoji.roleID.replaceAll(/\D/g, '');
+			try {
+				await member.roles.add(roleId);
+			} catch (error) {
+				// Handle specific Discord API errors
+				if (error.code === 10_011) { // Unknown Role
+					console.warn(`[Discord Bot] Role ${roleId} not found or no permission to assign`);
+					return;
+				}
+				if (error.code === 50_013) { // Missing Permissions
+					console.warn(`[Discord Bot] Missing permissions to assign role ${roleId}`);
+					return;
+				}
+				// Re-throw other errors to be caught by outer catch
+				throw error;
+			}
 		} else {
 			reaction.users.remove(user.id);
 		}
@@ -390,7 +405,22 @@ client.on('messageReactionRemove', async (reaction, user) => {
 		for (let index = 0; index < detail.length; index++) {
 			if (detail[index].emoji === reaction.emoji.name || detail[index].emoji === `<:${reaction.emoji.name}:${reaction.emoji.id}>`) {
 				const member = await reaction.message.guild.members.fetch(user.id);
-				member.roles.remove(detail[index].roleID.replaceAll(/\D/g, ''))
+				const roleId = detail[index].roleID.replaceAll(/\D/g, '');
+				try {
+					await member.roles.remove(roleId);
+				} catch (error) {
+					// Handle specific Discord API errors
+					if (error.code === 10_011) { // Unknown Role
+						console.warn(`[Discord Bot] Role ${roleId} not found or no permission to remove`);
+						return;
+					}
+					if (error.code === 50_013) { // Missing Permissions
+						console.warn(`[Discord Bot] Missing permissions to remove role ${roleId}`);
+						return;
+					}
+					// Re-throw other errors to be caught by outer catch
+					throw error;
+				}
 			}
 		}
 	} catch (error) {
@@ -1476,6 +1506,16 @@ async function count2() {
 
 // handle the error event
 process.on('unhandledRejection', error => {
+	// Check error code for Discord API errors
+	if (error.code === 10_011) return; // Unknown Role
+	if (error.code === 50_013) return; // Missing Permissions
+	if (error.code === 50_001) return; // Missing Access
+	if (error.code === 10_003) return; // Unknown Channel
+	if (error.code === 50_007) return; // Cannot send messages to this user
+	if (error.code === 10_062) return; // Unknown interaction
+	if (error.code === 50_035) return; // Invalid Form Body
+	
+	// Check error message for backward compatibility
 	if (error.message === "Unknown Role") return;
 	if (error.message === "Cannot send messages to this user") return;
 	if (error.message === "Unknown Channel") return;

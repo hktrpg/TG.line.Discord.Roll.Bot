@@ -140,8 +140,17 @@ const uploadImage = async (discordMessage, discordClient) => {
 
         rply.text = (response.ok && response.files && response.files[0].url) ? response.files[0].original_url : '上傳失敗，請檢查圖片內容\n';
     } catch (error) {
-        console.error('Error uploading image:', error);
-        rply.text = '上傳失敗，請檢查圖片內容\n';
+        // Handle specific error cases
+        if (error.response && error.response.status === 503) {
+            console.error('Error uploading image: imgbox.com service unavailable (503)');
+            rply.text = '上傳失敗，圖片服務暫時無法使用，請稍後再試\n';
+        } else if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') {
+            console.error('Error uploading image: Connection timeout or reset');
+            rply.text = '上傳失敗，連線逾時，請稍後再試\n';
+        } else {
+            console.error('Error uploading image:', error);
+            rply.text = '上傳失敗，請檢查圖片內容\n';
+        }
     }
 
     return rply;

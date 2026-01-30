@@ -38,10 +38,6 @@ function getRollModule(moduleName) {
 	if (!exports[moduleInfo.name]) {
 		try {
 			exports[moduleInfo.name] = require(moduleInfo.path);
-			// Special handling for z_stop module
-			if (moduleInfo.name === 'z_stop' && exports[moduleInfo.name].initialize) {
-				exports[moduleInfo.name] = exports[moduleInfo.name].initialize();
-			}
 		} catch (error) {
 			console.error(`[Analytics] Error loading module ${moduleInfo.name}:`, error);
 			return null;
@@ -338,9 +334,12 @@ async function cmdfunction({ result, ...context }) {
 
 function z_stop(mainMsg, groupid) {
 	const zStopModule = getRollModule('z_stop');
-	if (!zStopModule || !zStopModule.save) return false;
+	if (!zStopModule || typeof zStopModule.initialize !== 'function') return false;
 
-	const groupInfo = zStopModule.save.find(e => e.groupid == groupid);
+	const saveData = zStopModule.initialize();
+	if (!saveData || !saveData.save) return false;
+
+	const groupInfo = saveData.save.find(e => e.groupid == groupid);
 	if (!groupInfo || !groupInfo.blockfunction) return false;
 
 	const match = groupInfo.blockfunction.find(e => mainMsg[0].toLowerCase().includes(e.toLowerCase()));

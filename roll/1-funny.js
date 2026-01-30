@@ -265,7 +265,7 @@ const gameType = function () {
 }
 const prefixs = function () {
 	return [{
-		first: /^排序|排序$|^隨機|隨機$|^choice|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸|^每日笑話$|^每日動漫$|^每日一言$|^每日廢話$|^每日黃曆$|^每日毒湯$|^每日情話$|^每日靈簽$|^每日淺草簽$|^每日大事$|^每日解答$|^每日白羊$|^每日牡羊$|^每日金牛$|^每日雙子$|^每日巨蟹$|^每日獅子$|^每日處女$|^每日天秤$|^每日天平$|^每日天蠍$|^每日天蝎$|^每日射手$|^每日人馬$|^每日摩羯$|^每日山羊$|^每日水瓶$|^每日寶瓶$|^每日雙魚$/i,
+		first: /^排序|排序$|^隨機|隨機$|^choice|^\.wl|^每日塔羅|^時間塔羅|^大十字塔羅|立flag|運勢|鴨霸獸|^每日笑話$|^每日動漫$|^每日一言$|^每日廢話$|^每日黃曆$|^每日毒湯$|^每日情話$|^每日靈簽$|^每日淺草簽$|^每日大事$|^每日解答$|^每日白羊$|^每日牡羊$|^每日金牛$|^每日雙子$|^每日巨蟹$|^每日獅子$|^每日處女$|^每日天秤$|^每日天平$|^每日天蠍$|^每日天蝎$|^每日射手$|^每日人馬$|^每日摩羯$|^每日山羊$|^每日水瓶$|^每日寶瓶$|^每日雙魚$/i,
 		second: null
 	}]
 }
@@ -277,6 +277,11 @@ const getHelpMessage = async function () {
 │ 【選擇】choice/隨機
 │ 　格式: (問題)(選項1)(選項2)...
 │ 　示例: 隨機收到聖誕禮物 1 2 3
+│ 
+│ 【輪盤動畫】.wl /輪盤
+│ 　格式: .wl 選項1 選項2 選項3...
+│ 　示例: .wl 選項A 選項B 選項C
+│ 　說明: 動畫轉盤抽選（Discord專用，最多12個選項）
 │ 
 │ 【排序】排序
 │ 　格式: (問題)(選項1)(選項2)...
@@ -363,52 +368,59 @@ const rollDiceCommand = async function ({
 		return rply;
 	}
 	if (/^隨機|^choice|隨機$|choice$/i.test(mainMsg[0]) && (mainMsg.length >= 3)) {
-		// In Discord environment, generate animated wheel
-		if (displaynameDiscord) {
-			try {
-				const array = inputStr.replace(mainMsg[0], '').match(/\S+/ig);
-				if (array && array.length >= 2) {
-					// If too many options, fallback to text version
-					const MAX_OPTIONS_FOR_ANIMATION = 12;
-					if (array.length > MAX_OPTIONS_FOR_ANIMATION) {
-						rply.text = choice(inputStr, mainMsg);
-						return rply;
-					}
-					// If any option text is too long, fallback to text version
-					const hasTooLongOption = array.some(opt =>
-						wheelAnimator.effectiveTextLength(opt) > wheelAnimator.MAX_OPTION_EFFECTIVE_LENGTH
-					);
-					if (hasTooLongOption) {
-						rply.text = choice(inputStr, mainMsg);
-						return rply;
-					}
-
-					// Select random option
-					const selectedIndex = rollbase.Dice(array.length) - 1;
-					
-					// Generate wheel animation GIF - use optimized defaults
-					const gifPath = await wheelAnimator.generateWheelGif(
-						array,
-						{}, // Use optimized defaults (1.5s, 10fps, 500px)
-						selectedIndex
-					);
-
-					// Set file link for Discord
-					if (!rply.fileLink) {
-						rply.fileLink = [];
-					}
-					rply.fileLink.push(gifPath);
-					rply.text = `${mainMsg[0]} [ ${array.join(' ')} ]\n🎯 結果：`;
-					return rply;
-				}
-			} catch (error) {
-				console.error('[Funny] Wheel animation error:', error);
-				// Fallback to text-only result if animation fails
-			}
-		}
-		// Default text response
+		// Text version only
 		rply.text = choice(inputStr, mainMsg);
 		return rply;
+	}
+	if (/^\.wl$/i.test(mainMsg[0]) && (mainMsg.length >= 2)) {
+		// Wheel animation version - .wl command (must have dot)
+		if (!displaynameDiscord) {
+			rply.text = '❌ 此功能僅在 Discord 環境下可用';
+			return rply;
+		}
+		try {
+			const array = inputStr.replace(mainMsg[0], '').trim().match(/\S+/ig);
+			if (!array || array.length < 2) {
+				rply.text = '❌ 至少需要2個選項\n💡 使用方式：.wl 選項1 選項2 選項3...';
+				return rply;
+			}
+			// If too many options, fallback to text version
+			const MAX_OPTIONS_FOR_ANIMATION = 12;
+			if (array.length > MAX_OPTIONS_FOR_ANIMATION) {
+				rply.text = `❌ 選項過多（${array.length}個），最多支援12個選項\n💡 使用文字版：隨機 ${array.join(' ')}`;
+				return rply;
+			}
+			// If any option text is too long, fallback to text version
+			const hasTooLongOption = array.some(opt =>
+				wheelAnimator.effectiveTextLength(opt) > wheelAnimator.MAX_OPTION_EFFECTIVE_LENGTH
+			);
+			if (hasTooLongOption) {
+				rply.text = `❌ 選項字數過多，已自動切換為文字版本\n💡 使用文字版：隨機 ${array.join(' ')}`;
+				return rply;
+			}
+
+			// Select random option
+			const selectedIndex = rollbase.Dice(array.length) - 1;
+			
+			// Generate wheel animation GIF - use optimized defaults
+			const gifPath = await wheelAnimator.generateWheelGif(
+				array,
+				{}, // Use optimized defaults (1.5s, 10fps, 500px)
+				selectedIndex
+			);
+
+			// Set file link for Discord
+			if (!rply.fileLink) {
+				rply.fileLink = [];
+			}
+			rply.fileLink.push(gifPath);
+			rply.text = `🎲 **輪盤抽選**\n📋 [ ${array.join(' ')} ]\n🎯 結果：`;
+			return rply;
+		} catch (error) {
+			console.error('[Funny] Wheel animation error:', error);
+			rply.text = `❌ 動畫生成失敗：${error.message}\n💡 使用文字版：隨機 ${inputStr.replace(mainMsg[0], '').trim()}`;
+			return rply;
+		}
 	}
 	if (/^每日解答$/i.test(mainMsg[0])) {
 		rply.text = dailyAnswerChoice(inputStr);
@@ -1623,6 +1635,18 @@ const discordCommand = [
 			const text = interaction.options.getString('text')
 			if (text !== null)
 				return `隨機 ${text}`
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('輪盤')
+			.setDescription('進行輪盤Wheel動畫抽選（動畫版.wl）')
+			.addStringOption(option => option.setName('text').setDescription('輸入所有選項，以空格分隔 如 選項A 選項B 選項C').setRequired(true))
+		,
+		async execute(interaction) {
+			const text = interaction.options.getString('text')
+			if (text !== null)
+				return `.wl ${text}`
 		}
 	},
 	{

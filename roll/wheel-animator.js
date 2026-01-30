@@ -1,31 +1,35 @@
 "use strict";
 
-const sharp = require('sharp');
-const GifEncoder = require('gif-encoder');
 const fs = require('fs');
 const path = require('path');
+const sharp = require('sharp');
+const GifEncoder = require('gif-encoder');
 const { getPool } = require('../modules/pool');
 const imagePool = getPool('image');
 
 // Color palette for wheel segments
+// Modern, vibrant colors with high contrast for better visibility and aesthetics
+// Colors are carefully chosen to be distinct even after GIF compression (using setQuality(1))
 const WHEEL_COLORS = [
-    '#ef4444', // Red 500
-    '#f97316', // Orange 500
-    '#f59e0b', // Amber 500
-    '#84cc16', // Lime 500
-    '#10b981', // Emerald 500
-    '#06b6d4', // Cyan 500
-    '#3b82f6', // Blue 500
-    '#8b5cf6', // Violet 500
-    '#d946ef', // Fuchsia 500
-    '#f43f5e', // Rose 500
+    '#ef4444', // Vibrant Red - Modern and eye-catching
+    '#10b981', // Emerald Green - Fresh and appealing
+    '#d946ef', // Fuchsia - Bold and modern
+    '#f43f5e', // Rose - Bold and modern
+    '#3b82f6', // Bright Blue - Clean and modern
+    '#f59e0b', // Amber/Gold - Warm and distinctive
+    '#8b5cf6', // Vivid Purple - Rich and elegant
+    '#06b6d4', // Cyan - Cool and energetic
+    '#f97316', // Vibrant Orange - Energetic and warm
+    '#ec4899', // Hot Pink - Bold and modern
+    '#14b8a6', // Teal - Sophisticated
+    '#eab308', // Yellow - Bright and cheerful
 ];
 
 // Default settings - optimized for speed
 const DEFAULT_SETTINGS = {
-    duration: 1.5, // seconds - reduced from 3 for faster generation
-    fps: 10, // reduced from 15 for faster generation
-    size: 500, // reduced from 600 for faster processing
+    duration: 1.5, // seconds - optimized for fast generation (1s animation)
+    fps: 8, // optimized for fast generation (8 frames = faster encoding)
+    size: 500, // optimized for fast processing (smaller = faster)
     pointerColor: '#ffffff',
     borderColor: '#1e293b',
     backgroundColor: '#0f172a'
@@ -50,8 +54,8 @@ function effectiveTextLength(str) {
     if (!str || typeof str !== 'string') return 0;
     let len = 0;
     for (let i = 0; i < str.length; i++) {
-        const code = str.charCodeAt(i);
-        len += (code > 0xff) ? 1 : 0.5;
+        const code = str.codePointAt(i);
+        len += (code > 0xFF) ? 1 : 0.5;
     }
     return len;
 }
@@ -89,7 +93,7 @@ function wrapText(text, maxCharsPerLine, maxLines = 3, maxRawCharsPerLine = null
     let i = 0;
     for (; i < safe.length && lines.length < maxLines; i++) {
         const c = safe[i];
-        const w = (safe.charCodeAt(i) > 0xff) ? 1 : 0.5;
+        const w = (safe.codePointAt(i) > 0xFF) ? 1 : 0.5;
         const wouldExceedEffective = currentEffLen + w > maxCharsPerLine && currentLine.length > 0;
         const wouldExceedRaw = maxRawCharsPerLine != null && currentLine.length >= maxRawCharsPerLine;
         if ((wouldExceedEffective || wouldExceedRaw) && currentLine.length > 0) {
@@ -104,7 +108,7 @@ function wrapText(text, maxCharsPerLine, maxLines = 3, maxRawCharsPerLine = null
     if (currentLine.length > 0) lines.push(currentLine);
     const truncated = i < safe.length;
     if (truncated && lines.length > 0) {
-        lines[lines.length - 1] = lines[lines.length - 1] + '…';
+        lines[lines.length - 1] = lines.at(-1) + '…';
     }
     return { lines: lines.slice(0, maxLines), truncated };
 }
@@ -113,7 +117,7 @@ function wrapText(text, maxCharsPerLine, maxLines = 3, maxRawCharsPerLine = null
  * Escape XML/SVG special characters
  */
 function escapeXml(unsafe) {
-    return unsafe.replace(/[<>&'"]/g, (c) => {
+    return unsafe.replaceAll(/[<>&'"]/g, (c) => {
         switch (c) {
             case '<': return '&lt;';
             case '>': return '&gt;';
@@ -139,11 +143,13 @@ function generateWheelSVG(options, rotation, settings) {
     let segmentsSVG = '';
     let textSVG = '';
 
-    options.forEach((option, index) => {
+    for (const [index, option] of options.entries()) {
         const startAngle = index * sliceAngle;
         const endAngle = startAngle + sliceAngle;
-        const color = option.color || WHEEL_COLORS[index % WHEEL_COLORS.length];
-        
+        // Use option.color (which should always be set by generateWheelGif)
+        // Fallback to generateUniqueColor for safety
+        const color = option.color || generateUniqueColor(index, options.length);
+
         // Calculate arc points
         const startX = centerX + radius * Math.cos(startAngle - Math.PI / 2);
         const startY = centerY + radius * Math.sin(startAngle - Math.PI / 2);
@@ -184,7 +190,7 @@ function generateWheelSVG(options, rotation, settings) {
             text-anchor="middle" dominant-baseline="middle" 
             fill="#ffffff" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="bold"
             transform="rotate(${textRotation} ${textX} ${textY})">${tspanContent}</text>`;
-    });
+    }
 
     // Pointer SVG (triangle at right side) - larger arrow
     const pointerX = size - 10;
@@ -222,18 +228,22 @@ function generateWheelSVG(options, rotation, settings) {
 async function generateWheelGif(options, settings = {}, selectedIndex = null) {
     // Merge settings with defaults
     const finalSettings = { ...DEFAULT_SETTINGS, ...settings };
-    
+
+    // Shuffle color palette for each wheel generation to create variety
+    const shuffledColors = shuffleArray(WHEEL_COLORS);
+
     // Normalize options to objects with text property
+    // Use generateUniqueColor with shuffled colors to ensure all options have distinct colors
     const normalizedOptions = options.map((opt, index) => {
         if (typeof opt === 'string') {
             return {
                 text: opt,
-                color: WHEEL_COLORS[index % WHEEL_COLORS.length]
+                color: generateUniqueColor(index, options.length, shuffledColors)
             };
         }
         return {
             text: opt.text || String(opt),
-            color: opt.color || WHEEL_COLORS[index % WHEEL_COLORS.length]
+            color: opt.color || generateUniqueColor(index, options.length, shuffledColors)
         };
     });
 
@@ -247,22 +257,23 @@ async function generateWheelGif(options, settings = {}, selectedIndex = null) {
     if (targetIndex === null || targetIndex < 0 || targetIndex >= normalizedOptions.length) {
         targetIndex = Math.floor(Math.random() * normalizedOptions.length);
     }
-    
+
     // Calculate rotation to land on selected segment
-    // Ensure the selected segment is upright (text facing up) when it stops at the pointer
-    // Pointer is at 0 radians (right side, 3 o'clock)
-    // We want the selected segment's center to align with the pointer
-    // But we also want the text to be upright (not rotated)
-    // So we need to rotate so that the segment center is at the pointer position
-    // Segment centers are measured from top (12 o'clock = -π/2), going counter-clockwise
+    // Pointer is at 3 o'clock position (90° from top, or π/2 radians)
+    // Segments are arranged CLOCKWISE from top (12 o'clock):
+    //   - Segment 0 starts at 0° (top), spans to sliceAngle
+    //   - Segment 1 starts at sliceAngle, spans to 2*sliceAngle
+    //   - etc.
+    // Segment center angle = targetIndex * sliceAngle + sliceAngle/2
     const segmentCenterAngle = targetIndex * sliceAngle + sliceAngle / 2;
-    // Convert segment center angle from top reference to right reference (canvas coordinates)
-    // Top is -π/2, so segment center from right is: segmentCenterAngle - π/2
-    // To align with pointer (0 radians), rotate by: -(segmentCenterAngle - π/2) = π/2 - segmentCenterAngle
-    // Add small random offset for natural feel
-    const randomOffset = (Math.random() - 0.5) * sliceAngle * 0.2; // Reduced random offset for better alignment
+    // To align segment center with pointer at 90° (π/2):
+    //   - After rotation R, segment center is at: segmentCenterAngle + R
+    //   - We want: segmentCenterAngle + R = π/2
+    //   - So: R = π/2 - segmentCenterAngle
+    // Add small random offset for natural feel (±10% of slice width)
+    const randomOffset = (Math.random() - 0.5) * sliceAngle * 0.2;
     const targetRotation = Math.PI / 2 - segmentCenterAngle + randomOffset;
-    const minRotations = 3 * Math.PI * 2; // Reduced from 8 to 3 for faster animation
+    const minRotations = 3 * Math.PI * 2; 
     const totalRotation = minRotations + targetRotation;
 
     // Create temp directory
@@ -270,7 +281,7 @@ async function generateWheelGif(options, settings = {}, selectedIndex = null) {
     if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
     }
-    const filename = `wheel_${Date.now()}_${Math.random().toString(36).substring(7)}.gif`;
+    const filename = `wheel_${Date.now()}_${Math.random().toString(36).slice(7)}.gif`;
     const filepath = path.join(tempDir, filename);
 
     // Generate frames
@@ -288,18 +299,20 @@ async function generateWheelGif(options, settings = {}, selectedIndex = null) {
 
     // Configure encoder
     encoder.setDelay(frameDelay); // Delay in milliseconds
+    encoder.setQuality(2); // Balanced quality (1-20, lower=better quality but slower, 5=good balance)
+    encoder.setRepeat(-1); // Play once and stop (0 = loop forever, -1 = play once)
     encoder.writeHeader();
 
     // Generate and add frames - optimized for speed
     // Use batch processing and yield to event loop periodically
     const bgColor = hexToRgb(finalSettings.backgroundColor);
-    
+
     for (let i = 0; i <= totalFrames; i++) {
         // Yield to event loop every 5 frames to prevent blocking
         if (i > 0 && i % 5 === 0) {
             await new Promise(resolve => setImmediate(resolve));
         }
-        
+
         const currentTime = i * (1000 / fps);
         let progress = Math.min(currentTime / durationMs, 1);
         const easedProgress = easeOutQuart(progress);
@@ -307,14 +320,15 @@ async function generateWheelGif(options, settings = {}, selectedIndex = null) {
 
         // Generate SVG
         const svg = generateWheelSVG(normalizedOptions, currentRot, finalSettings);
-        
+
         // Convert SVG to PNG buffer using sharp (in pool to avoid blocking)
-        const pngBuffer = await imagePool.run(() => 
+        // Use fast compression for better performance
+        const pngBuffer = await imagePool.run(() =>
             sharp(Buffer.from(svg))
-                .png()
+                .png({ compressionLevel: 0, effort: 1 }) // Fast compression for speed
                 .toBuffer()
         );
-        
+
         // Get raw pixel data (RGBA) - optimized processing
         const { data } = await imagePool.run(() =>
             sharp(pngBuffer)
@@ -332,12 +346,12 @@ async function generateWheelGif(options, settings = {}, selectedIndex = null) {
             const g = data[j + 1];
             const b = data[j + 2];
             const a = data[j + 3] / 255;
-            
+
             // Blend with background color (gif doesn't support alpha)
-            pixels.push(Math.round(r * a + bgColor.r * (1 - a)));
-            pixels.push(Math.round(g * a + bgColor.g * (1 - a)));
-            pixels.push(Math.round(b * a + bgColor.b * (1 - a)));
-            pixels.push(255); // Full opacity for GIF
+            const blendedR = Math.round(r * a + bgColor.r * (1 - a));
+            const blendedG = Math.round(g * a + bgColor.g * (1 - a));
+            const blendedB = Math.round(b * a + bgColor.b * (1 - a));
+            pixels.push(blendedR, blendedG, blendedB, 255);
         }
 
         // Add frame to encoder
@@ -364,10 +378,78 @@ async function generateWheelGif(options, settings = {}, selectedIndex = null) {
 function hexToRgb(hex) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
+        r: Number.parseInt(result[1], 16),
+        g: Number.parseInt(result[2], 16),
+        b: Number.parseInt(result[3], 16)
     } : { r: 15, g: 23, b: 42 }; // Default to backgroundColor
+}
+
+/**
+ * Shuffle array using Fisher-Yates algorithm
+ * @param {Array} array - Array to shuffle (creates a copy, doesn't modify original)
+ * @returns {Array} Shuffled copy of the array
+ */
+function shuffleArray(array) {
+    const shuffled = [...array]; // Create a copy
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
+/**
+ * Generate unique color for each option using HSL color space
+ * Ensures all options have distinct colors regardless of option count
+ * @param {number} index - Option index
+ * @param {number} totalCount - Total number of options
+ * @param {Array} colorPalette - Optional shuffled color palette to use
+ * @returns {string} Hex color string
+ */
+function generateUniqueColor(index, totalCount, colorPalette = WHEEL_COLORS) {
+    // If total count is within predefined palette, use it for consistency
+    if (totalCount <= colorPalette.length) {
+        return colorPalette[index];
+    }
+
+    // For more options, generate colors dynamically using HSL
+    // Distribute hues evenly across the color wheel
+    const hue = (index * 360 / totalCount) % 360;
+
+    // Use high saturation and medium lightness for vibrant, distinguishable colors
+    const saturation = 70 + (index % 3) * 10; // Vary saturation slightly (70-90%)
+    const lightness = 50 + (index % 2) * 5; // Vary lightness slightly (50-55%)
+
+    // Convert HSL to RGB
+    const h = hue / 360;
+    const s = saturation / 100;
+    const l = lightness / 100;
+
+    let r, g, b;
+    if (s === 0) {
+        r = g = b = l;
+    } else {
+        const hue2rgb = (p, q, t) => {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1 / 6) return p + (q - p) * 6 * t;
+            if (t < 1 / 2) return q;
+            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+            return p;
+        };
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1 / 3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1 / 3);
+    }
+
+    const toHex = (x) => {
+        const hex = Math.round(x * 255).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+    };
+
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
 module.exports = {

@@ -4049,6 +4049,8 @@ async function __handlingInteractionMessage(message) {
 
 	// Immediately defer ALL interactions to prevent timeout
 	// This must happen within 3 seconds of receiving the interaction
+	// Discord will reject with code 10062 if interaction expires (3 seconds)
+	// Discord.js has its own HTTP timeout (45 seconds) for handling network issues
 	const deferStartTime = Date.now();
 	try {
 		if (!message.deferred && !message.replied) {
@@ -4069,33 +4071,39 @@ async function __handlingInteractionMessage(message) {
 				deferPromise = message.deferReply(deferOptions);
 			}
 
-			// Use a shorter timeout and catch specific errors
-			await Promise.race([
-				deferPromise,
-				new Promise((_, reject) => setTimeout(() => reject(new Error('Defer timeout')), 2000))
-			]);
+			// Remove artificial timeout - let Discord.js handle it naturally
+			// Discord will reject with code 10062 if interaction expires (3 seconds)
+			// Discord.js HTTP timeout (45s) will handle network issues
+			await deferPromise;
 		}
 	} catch (deferError) {
 		const deferDuration = Date.now() - deferStartTime;
 
-		// If interaction has already expired or is unknown, log and return early
-		if (String(deferError.code) === '10062' || deferError.message?.includes('timeout') || deferError.message?.includes('expired')) {
+		// Check if interaction expired (Discord error code 10062)
+		// This is the only error that means the interaction is truly expired
+		if (deferError.code === 10_062 || String(deferError.code) === '10_062') {
 			console.error(`Interaction expired before deferral (${deferDuration}ms): ${interactionId}`);
 			return;
 		}
 
-		// For other deferral errors, try to send a followUp as fallback
+		// For other deferral errors (network issues, rate limits, etc.), log and try fallback
+		console.error(`Failed to defer interaction (${deferDuration}ms): ${deferError.message} | Command: ${interactionId} | Code: ${deferError.code}`);
+		
+		// Try to send a followUp as fallback (only if interaction is still valid)
 		try {
 			if (!message.replied && !message.deferred && typeof message.followUp === 'function') {
 				await message.followUp({ content: '處理中，請稍候...', ephemeral: true });
 			}
 		} catch (fallbackError) {
-			console.error(`Fallback reply also failed (${deferDuration}ms): ${fallbackError.message} | Command: ${interactionId}`);
+			// If fallback also fails, check if interaction expired
+			if (fallbackError.code === 10_062 || String(fallbackError.code) === '10_062') {
+				console.error(`Fallback reply failed - interaction expired (${deferDuration}ms): ${interactionId}`);
+			} else {
+				console.error(`Fallback reply also failed (${deferDuration}ms): ${fallbackError.message} | Command: ${interactionId}`);
+			}
 			return;
 		}
 
-		// Log the original deferral error
-		console.error(`Failed to defer interaction (${deferDuration}ms): ${deferError.message} | Command: ${interactionId} | Code: ${deferError.code}`);
 		// Continue processing since we sent a fallback reply
 	}
 

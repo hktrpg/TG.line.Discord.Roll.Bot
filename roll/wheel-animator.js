@@ -1,9 +1,9 @@
 "use strict";
 
-const sharp = require('sharp');
-const GifEncoder = require('gif-encoder');
 const fs = require('fs');
 const path = require('path');
+const sharp = require('sharp');
+const GifEncoder = require('gif-encoder');
 const { getPool } = require('../modules/pool');
 const imagePool = getPool('image');
 
@@ -50,8 +50,8 @@ function effectiveTextLength(str) {
     if (!str || typeof str !== 'string') return 0;
     let len = 0;
     for (let i = 0; i < str.length; i++) {
-        const code = str.charCodeAt(i);
-        len += (code > 0xff) ? 1 : 0.5;
+        const code = str.codePointAt(i);
+        len += (code > 0xFF) ? 1 : 0.5;
     }
     return len;
 }
@@ -89,7 +89,7 @@ function wrapText(text, maxCharsPerLine, maxLines = 3, maxRawCharsPerLine = null
     let i = 0;
     for (; i < safe.length && lines.length < maxLines; i++) {
         const c = safe[i];
-        const w = (safe.charCodeAt(i) > 0xff) ? 1 : 0.5;
+        const w = (safe.codePointAt(i) > 0xFF) ? 1 : 0.5;
         const wouldExceedEffective = currentEffLen + w > maxCharsPerLine && currentLine.length > 0;
         const wouldExceedRaw = maxRawCharsPerLine != null && currentLine.length >= maxRawCharsPerLine;
         if ((wouldExceedEffective || wouldExceedRaw) && currentLine.length > 0) {
@@ -104,7 +104,7 @@ function wrapText(text, maxCharsPerLine, maxLines = 3, maxRawCharsPerLine = null
     if (currentLine.length > 0) lines.push(currentLine);
     const truncated = i < safe.length;
     if (truncated && lines.length > 0) {
-        lines[lines.length - 1] = lines[lines.length - 1] + '…';
+        lines[lines.length - 1] = lines.at(-1) + '…';
     }
     return { lines: lines.slice(0, maxLines), truncated };
 }
@@ -113,7 +113,7 @@ function wrapText(text, maxCharsPerLine, maxLines = 3, maxRawCharsPerLine = null
  * Escape XML/SVG special characters
  */
 function escapeXml(unsafe) {
-    return unsafe.replace(/[<>&'"]/g, (c) => {
+    return unsafe.replaceAll(/[<>&'"]/g, (c) => {
         switch (c) {
             case '<': return '&lt;';
             case '>': return '&gt;';
@@ -139,7 +139,7 @@ function generateWheelSVG(options, rotation, settings) {
     let segmentsSVG = '';
     let textSVG = '';
 
-    options.forEach((option, index) => {
+    for (const [index, option] of options.entries()) {
         const startAngle = index * sliceAngle;
         const endAngle = startAngle + sliceAngle;
         const color = option.color || WHEEL_COLORS[index % WHEEL_COLORS.length];
@@ -184,7 +184,7 @@ function generateWheelSVG(options, rotation, settings) {
             text-anchor="middle" dominant-baseline="middle" 
             fill="#ffffff" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="bold"
             transform="rotate(${textRotation} ${textX} ${textY})">${tspanContent}</text>`;
-    });
+    }
 
     // Pointer SVG (triangle at right side) - larger arrow
     const pointerX = size - 10;
@@ -270,7 +270,7 @@ async function generateWheelGif(options, settings = {}, selectedIndex = null) {
     if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
     }
-    const filename = `wheel_${Date.now()}_${Math.random().toString(36).substring(7)}.gif`;
+    const filename = `wheel_${Date.now()}_${Math.random().toString(36).slice(7)}.gif`;
     const filepath = path.join(tempDir, filename);
 
     // Generate frames
@@ -334,10 +334,10 @@ async function generateWheelGif(options, settings = {}, selectedIndex = null) {
             const a = data[j + 3] / 255;
             
             // Blend with background color (gif doesn't support alpha)
-            pixels.push(Math.round(r * a + bgColor.r * (1 - a)));
-            pixels.push(Math.round(g * a + bgColor.g * (1 - a)));
-            pixels.push(Math.round(b * a + bgColor.b * (1 - a)));
-            pixels.push(255); // Full opacity for GIF
+            const blendedR = Math.round(r * a + bgColor.r * (1 - a));
+            const blendedG = Math.round(g * a + bgColor.g * (1 - a));
+            const blendedB = Math.round(b * a + bgColor.b * (1 - a));
+            pixels.push(blendedR, blendedG, blendedB, 255);
         }
 
         // Add frame to encoder
@@ -364,9 +364,9 @@ async function generateWheelGif(options, settings = {}, selectedIndex = null) {
 function hexToRgb(hex) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
+        r: Number.parseInt(result[1], 16),
+        g: Number.parseInt(result[2], 16),
+        b: Number.parseInt(result[3], 16)
     } : { r: 15, g: 23, b: 42 }; // Default to backgroundColor
 }
 

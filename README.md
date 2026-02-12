@@ -12,6 +12,10 @@
     <a href="https://patreon.com/HKTRPG" title="Donate to this project using Patreon"><img src="https://img.shields.io/badge/patreon-donate-red.svg" alt="Patreon donate button" /></a>
 </p>
 
+<p align="center">
+    <strong>If you love it, <a href="https://www.patreon.com/HKTRPG" title="Support on Patreon">buy me a tea</a> ☕</strong>
+</p>
+
 # 【HKTRPG擲骰BOT】
 
 - 最後更新時間![最後更新時間](https://img.shields.io/github/last-commit/hktrpg/TG.line.Discord.Roll.Bot)

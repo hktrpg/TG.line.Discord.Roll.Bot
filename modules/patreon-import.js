@@ -126,11 +126,22 @@ async function runImport(csvContent, options = {}) {
     const report = [];
     const keys = [];
     const errors = [];
+    const keyMessages = [];
     const newMemberKeys = new Set(); // keys of members created in this run
+    const summary = {
+        added: 0,
+        updated: 0,
+        offFormer: 0,
+        offNotActive: 0,
+        errors: 0,
+        activeTotal: 0,
+        formerTotal: 0
+    };
 
     if (typeof csvContent !== 'string') {
         errors.push('CSV 內容必須為字串');
-        return { report, keys, errors };
+        summary.errors = errors.length;
+        return { report, keys, errors, summary, keyMessages };
     }
 
     const { headers, rows } = parseCSV(csvContent);
@@ -138,11 +149,13 @@ async function runImport(csvContent, options = {}) {
     if (headerError) {
         errors.push(headerError);
         report.push('CSV 格式錯誤');
-        return { report, keys, errors };
+        summary.errors = errors.length;
+        return { report, keys, errors, summary, keyMessages };
     }
     if (rows.length === 0) {
         report.push('CSV 無資料或格式錯誤');
-        return { report, keys, errors };
+        summary.errors = errors.length;
+        return { report, keys, errors, summary, keyMessages };
     }
 
     // Sort by Last Updated descending (newest first)
@@ -183,6 +196,7 @@ async function runImport(csvContent, options = {}) {
                         { $set: { switch: false }, $push: { history: { at: new Date(), action: 'off' } } }
                     );
                     report.push(`[Former patron] ${name} → 已關閉權限`);
+                    summary.offFormer++;
                 } catch (e) {
                     errors.push(`OFF ${name}: ${e.message}`);
                 }
@@ -200,6 +214,7 @@ async function runImport(csvContent, options = {}) {
                         { $set: { switch: false }, $push: { history: { at: new Date(), action: 'off' } } }
                     );
                     report.push(`[Not Active] ${name} → 已關閉權限`);
+                    summary.offNotActive++;
                 } catch (e) {
                     errors.push(`OFF ${name}: ${e.message}`);
                 }
@@ -249,6 +264,8 @@ async function runImport(csvContent, options = {}) {
                 await patreonSync.syncMemberSlotsToVip(newDoc);
                 report.push(`[新增] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
                 report.push(key);
+                keyMessages.push(`[新增] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟\n${key}`);
+                summary.added++;
             } catch (e) {
                 errors.push(`Add ${name}: ${e.message}`);
             }
@@ -281,12 +298,14 @@ async function runImport(csvContent, options = {}) {
                     keys.push(displayKey);
                     report.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
                     report.push(displayKey);
+                    keyMessages.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟\n${displayKey}`);
                 } else {
                     report.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
                 }
             } else {
                 report.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
             }
+            summary.updated++;
         } catch (e) {
             errors.push(`Update ${name}: ${e.message}`);
         }
@@ -311,7 +330,11 @@ async function runImport(csvContent, options = {}) {
         report.push(`  ${t}: ${formerByTier[t]}`);
     }
 
-    return { report, keys, errors };
+    summary.activeTotal = activeTotal;
+    summary.formerTotal = formerTotal;
+    summary.errors = errors.length;
+
+    return { report, keys, errors, summary, keyMessages };
 }
 
 module.exports = {

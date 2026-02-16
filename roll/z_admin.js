@@ -882,7 +882,7 @@ const rollDiceCommand = async function ({
                     let newKeyPlain = null;
                     if (!existed) {
                         newKeyPlain = generatePatreonKey();
-                        const normalized = (newKeyPlain || '').replaceAll(/\s/g, '').replaceAll(/-/g, '').toUpperCase();
+                        const normalized = (newKeyPlain || '').replaceAll(/\s/g, '').replaceAll('-', '').toUpperCase();
                         setFields.keyHash = security.hashPatreonKey(normalized);
                         setFields.keyEncrypted = security.encryptWithCryptoSecret(newKeyPlain);
                     }
@@ -928,7 +928,7 @@ const rollDiceCommand = async function ({
                     }
                     await patreonSync.clearVipEntriesByPatreonKey(doc);
                     const newKey = generatePatreonKey();
-                    const normalized = (newKey || '').replaceAll(/\s/g, '').replaceAll(/-/g, '').toUpperCase();
+                    const normalized = (newKey || '').replaceAll(/\s/g, '').replaceAll('-', '').toUpperCase();
                     const keyHash = security.hashPatreonKey(normalized);
                     const keyEncrypted = security.encryptWithCryptoSecret(newKey);
                     await schema.patreonMember.updateOne(
@@ -1031,11 +1031,43 @@ const rollDiceCommand = async function ({
                 try {
                     const patreonImport = require('../modules/patreon-import.js');
                     const result = await patreonImport.runImport(csvContent, { keyMode });
-                    let text = '【Patreon CSV 匯入報告】\n' + result.report.join('\n');
-                    if (result.errors.length > 0) {
-                        text += '\n\n【錯誤】\n' + result.errors.join('\n');
+                    const summary = result.summary || {};
+                    let dmStatusText = 'KEY 私訊：本次無需發送';
+
+                    if (Array.isArray(result.keyMessages) && result.keyMessages.length > 0) {
+                        try {
+                            if (!discordClient || !userid) {
+                                throw new Error('Discord client unavailable');
+                            }
+                            const adminUser = await discordClient.users.fetch(userid);
+                            const dmBody = [
+                                '【Patreon CSV KEY 明細】',
+                                `模式: ${keyMode === 'newonly' ? 'newonly (只新會員)' : 'allkeys (全部)'}`,
+                                '',
+                                ...result.keyMessages
+                            ].join('\n');
+                            const chunks = dmBody.match(/[\s\S]{1,1800}/g) || [];
+                            for (const chunk of chunks) {
+                                await adminUser.send(chunk);
+                            }
+                            dmStatusText = `KEY 私訊：已發送 ${result.keyMessages.length} 筆`;
+                        } catch (error) {
+                            dmStatusText = `KEY 私訊：失敗 (${error.message})`;
+                        }
                     }
-                    rply.text = text;
+
+                    const lines = [
+                        '【Patreon CSV 匯入摘要】',
+                        `新增: ${summary.added || 0}`,
+                        `更新: ${summary.updated || 0}`,
+                        `關閉(Former): ${summary.offFormer || 0}`,
+                        `關閉(Not Active): ${summary.offNotActive || 0}`,
+                        `錯誤: ${summary.errors || 0}`,
+                        `Active Patron(本CSV): ${summary.activeTotal || 0}`,
+                        `Former Patron(本CSV): ${summary.formerTotal || 0}`,
+                        dmStatusText
+                    ];
+                    rply.text = lines.join('\n');
                 } catch (error) {
                     console.error('[Admin] importpatreon error:', error);
                     rply.text = 'importpatreon 失敗: ' + error.message;

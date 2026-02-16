@@ -788,6 +788,16 @@ function generateHMAC(data, key = null) {
 }
 
 /**
+ * Hash Patreon key for DB lookup (deterministic). Use with normalized 16-char key.
+ * @param {string} normalizedKey - Already normalized key (no dashes, uppercase)
+ * @returns {string} SHA-256 hex digest
+ */
+function hashPatreonKey(normalizedKey) {
+    if (!normalizedKey || typeof normalizedKey !== 'string') return '';
+    return crypto.createHash('sha256').update(normalizedKey, 'utf8').digest('hex');
+}
+
+/**
  * 驗證資料完整性
  * @param {string} data - 原始資料
  * @param {string} signature - 預期的簽名
@@ -840,6 +850,7 @@ module.exports = {
     encryptWithCryptoSecret,
     decryptWithCryptoSecret,
     getCryptoSecretKey,
+    hashPatreonKey,
     generateHMAC,
     verifyHMAC,
     

@@ -801,14 +801,14 @@ function getPatreonKeyFromRequest(req) {
 
 // Ignore dashes and spaces so "Y8YW-JQIP-WDJ3-LB1Q" and "Y8YWJQIPWDJ3LB1Q" both work.
 function normalizePatreonKey(key) {
-    return (typeof key === 'string' ? key : '').replace(/[\s\-]/g, '').toUpperCase();
+    return (typeof key === 'string' ? key : '').replaceAll(/[\s-]/g, '').toUpperCase();
 }
 
 async function findPatreonMemberByKey(key) {
     const normalized = normalizePatreonKey(key);
     if (!normalized || normalized.length !== 16) return null;
-    const list = await schema.patreonMember.find({ switch: true }).lean();
-    return list.find(doc => normalizePatreonKey(doc.key) === normalized) || null;
+    const hashed = security.hashPatreonKey(normalized);
+    return await schema.patreonMember.findOne({ switch: true, keyHash: hashed }).lean();
 }
 
 function toMemberResponse(doc) {
@@ -843,8 +843,8 @@ www.post('/api/patreon/validate', async (req, res) => {
         return;
     }
     try {
-        const rawKey = (req.body && req.body.key) ? req.body.key : '';
-        const member = await findPatreonMemberByKey(rawKey);
+        const key = getPatreonKeyFromRequest(req);
+        const member = await findPatreonMemberByKey(key);
         if (!member) {
             res.status(401).json({ error: 'Invalid or inactive key' });
             return;
@@ -901,10 +901,10 @@ www.put('/api/patreon/me/slots', async (req, res) => {
             switch: !!(s && s.switch !== false)
         }));
         await schema.patreonMember.updateOne(
-            { key: member.key },
+            { _id: member._id },
             { $set: { slots: normalizedSlots } }
         );
-        const updated = await schema.patreonMember.findOne({ key: member.key }).lean();
+        const updated = await schema.patreonMember.findOne({ _id: member._id }).lean();
         await patreonSync.syncMemberSlotsToVip(updated);
         res.json(toMemberResponse(updated));
     } catch (err) {
@@ -934,16 +934,16 @@ www.patch('/api/patreon/me/slot/:index', async (req, res) => {
         const newSwitch = body.switch !== undefined ? !!body.switch : !member.slots[index].switch;
         member.slots[index].switch = newSwitch;
         await schema.patreonMember.updateOne(
-            { key: member.key },
+            { _id: member._id },
             { $set: { slots: member.slots } }
         );
         await patreonSync.syncSlotToVip(
             member.slots[index],
             member.level,
-            member.key,
+            member.keyHash,
             member.name || member.patreonName
         );
-        const updated = await schema.patreonMember.findOne({ key: member.key }).lean();
+        const updated = await schema.patreonMember.findOne({ _id: member._id }).lean();
         res.json(toMemberResponse(updated));
     } catch (err) {
         console.error('[Web Server] Patreon slot toggle error:', err.message);

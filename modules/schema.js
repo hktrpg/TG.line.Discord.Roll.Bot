@@ -219,7 +219,10 @@ const codeListSchema = mongoose.model('codelist', new mongoose.Schema({
 
 const patreonMemberSchema = mongoose.model('patreonMember', new mongoose.Schema({
     patreonName: { type: String, required: true, unique: true, index: true },
-    key: { type: String, required: true, unique: true, index: true },
+    /** SHA-256 hash of normalized key for lookup. */
+    keyHash: { type: String, required: true, unique: true, index: true },
+    /** KEY encrypted with CRYPTO_SECRET (utils/security encryptWithCryptoSecret). */
+    keyEncrypted: { type: String, required: true },
     level: { type: Number, required: true },
     name: String,
     notes: String,
@@ -244,7 +247,7 @@ const patreonMemberSchema = mongoose.model('patreonMember', new mongoose.Schema(
     }]
 }, {
     indexes: [
-        { key: 1 },
+        { keyHash: 1 },
         { patreonName: 1 }
     ]
 }));

@@ -233,8 +233,7 @@
                 if (keyToSend.length !== 16) return null;
                 const res = await fetch('/api/patreon/validate', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key: keyToSend })
+                    headers: { 'X-Patreon-Key': keyToSend }
                 });
                 if (res.status === 401) return null;
                 if (!res.ok) throw new Error('Server error');

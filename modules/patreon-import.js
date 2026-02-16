@@ -6,8 +6,6 @@
  * Uses CRYPTO_SECRET for encryption (utils/security), never regens KEY.
  */
 
-const fs = require('fs');
-const path = require('path');
 const schema = require('./schema.js');
 const patreonTiers = require('./patreon-tiers.js');
 const patreonSync = require('./patreon-sync.js');
@@ -90,34 +88,58 @@ function parseLastUpdated(s) {
     return isNaN(d.getTime()) ? 0 : d.getTime();
 }
 
+/** Required CSV headers (Patreon export format). */
+const REQUIRED_CSV_HEADERS = ['Name', 'Patron Status', 'Tier', 'Last Updated'];
+
+/**
+ * Get plain key for display from member doc (decrypt keyEncrypted).
+ * @param {Object} doc - patreonMember doc
+ * @returns {string|null}
+ */
+function getDisplayKey(doc) {
+    if (!doc || !doc.keyEncrypted) return null;
+    const d = security.decryptWithCryptoSecret(doc.keyEncrypted);
+    return (d && !d.startsWith('DECRYPTION_ERROR')) ? d : null;
+}
+
+/**
+ * Validate CSV has required columns. Returns null if valid, or error string.
+ * @param {string[]} headers
+ * @returns {string|null}
+ */
+function validateCSVHeaders(headers) {
+    if (!headers || !Array.isArray(headers)) return 'CSV 缺少標題列';
+    const missing = REQUIRED_CSV_HEADERS.filter(h => !headers.includes(h));
+    if (missing.length) return `CSV 缺少必要欄位: ${missing.join(', ')}（請使用 Patreon 匯出的會員名單格式）`;
+    return null;
+}
+
 /**
  * Run Patreon CSV import: update DB (add/on/off), store encrypted Email/Discord,
- * return report and keys. Never regens KEY.
- * @param {string} csvPathOrContent - File path (relative to cwd) or raw CSV string
+ * return report and keys. Never regens KEY. Accepts only raw CSV string (no file path).
+ * @param {string} csvContent - Raw CSV string (e.g. from attachment)
  * @param {{ keyMode: 'all'|'newonly' }} options - all: list all keys for members in CSV; newonly: only keys for newly added members
  * @returns {Promise<{ report: string[], keys: string[], errors: string[] }>}
  */
-async function runImport(csvPathOrContent, options = {}) {
+async function runImport(csvContent, options = {}) {
     const keyMode = options.keyMode || 'all';
     const report = [];
     const keys = [];
     const errors = [];
     const newMemberKeys = new Set(); // keys of members created in this run
 
-    let csvContent;
-    const resolved = path.resolve(process.cwd(), csvPathOrContent);
-    if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
-        try {
-            csvContent = fs.readFileSync(resolved, 'utf8');
-        } catch (e) {
-            errors.push('Read file failed: ' + e.message);
-            return { report, keys, errors };
-        }
-    } else {
-        csvContent = csvPathOrContent;
+    if (typeof csvContent !== 'string') {
+        errors.push('CSV 內容必須為字串');
+        return { report, keys, errors };
     }
 
-    const { rows } = parseCSV(csvContent);
+    const { headers, rows } = parseCSV(csvContent);
+    const headerError = validateCSVHeaders(headers);
+    if (headerError) {
+        errors.push(headerError);
+        report.push('CSV 格式錯誤');
+        return { report, keys, errors };
+    }
     if (rows.length === 0) {
         report.push('CSV 無資料或格式錯誤');
         return { report, keys, errors };
@@ -155,7 +177,7 @@ async function runImport(csvPathOrContent, options = {}) {
             formerByTier[tierLabel] = (formerByTier[tierLabel] || 0) + 1;
             if (existing && existing.switch) {
                 try {
-                    await patreonSync.clearVipEntriesByPatreonKey(existing.key);
+                    await patreonSync.clearVipEntriesByPatreonKey(existing);
                     await schema.patreonMember.updateOne(
                         { patreonName: name },
                         { $set: { switch: false }, $push: { history: { at: new Date(), action: 'off' } } }
@@ -172,7 +194,7 @@ async function runImport(csvPathOrContent, options = {}) {
         if (!isActive) {
             if (existing && existing.switch) {
                 try {
-                    await patreonSync.clearVipEntriesByPatreonKey(existing.key);
+                    await patreonSync.clearVipEntriesByPatreonKey(existing);
                     await schema.patreonMember.updateOne(
                         { patreonName: name },
                         { $set: { switch: false }, $push: { history: { at: new Date(), action: 'off' } } }
@@ -196,7 +218,7 @@ async function runImport(csvPathOrContent, options = {}) {
         const discordEncrypted = encrypt(row['Discord']);
 
         if (!existing) {
-            // New member: add with new KEY (never regen)
+            // New member: add with new KEY (never regen), store encrypted
             const zAdmin = require('../roll/z_admin.js');
             const key = typeof zAdmin.generatePatreonKey === 'function' ? zAdmin.generatePatreonKey() : null;
             if (!key) {
@@ -204,10 +226,14 @@ async function runImport(csvPathOrContent, options = {}) {
                 continue;
             }
             try {
+                const normalized = (key || '').replaceAll(/\s/g, '').replaceAll(/-/g, '').toUpperCase();
+                const keyHash = security.hashPatreonKey(normalized);
+                const keyEncrypted = security.encryptWithCryptoSecret(key);
                 const historyEntry = { at: new Date(), action: 'on' };
-                await schema.patreonMember.create({
+                const newDoc = await schema.patreonMember.create({
                     patreonName: name,
-                    key,
+                    keyHash,
+                    keyEncrypted,
                     level,
                     name: name,
                     switch: true,
@@ -220,7 +246,7 @@ async function runImport(csvPathOrContent, options = {}) {
                 });
                 newMemberKeys.add(key);
                 keys.push(key);
-                await patreonSync.syncMemberSlotsToVip({ key, level, name, patreonName: name, slots: [] });
+                await patreonSync.syncMemberSlotsToVip(newDoc);
                 report.push(`[新增] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
                 report.push(key);
             } catch (e) {
@@ -250,9 +276,14 @@ async function runImport(csvPathOrContent, options = {}) {
             const doc = await schema.patreonMember.findOne({ patreonName: name });
             await patreonSync.syncMemberSlotsToVip(doc);
             if (keyMode === 'all') {
-                keys.push(doc.key);
-                report.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
-                report.push(doc.key);
+                const displayKey = getDisplayKey(doc);
+                if (displayKey) {
+                    keys.push(displayKey);
+                    report.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
+                    report.push(displayKey);
+                } else {
+                    report.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
+                }
             } else {
                 report.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
             }
@@ -287,5 +318,6 @@ module.exports = {
     parseCSV,
     parseCSVLine,
     parseLastUpdated,
+    validateCSVHeaders,
     runImport
 };

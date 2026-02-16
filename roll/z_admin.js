@@ -879,8 +879,12 @@ const rollDiceCommand = async function ({
                     const existed = await schema.patreonMember.findOne({ patreonName }).lean();
                     const historyEntry = { at: new Date(), action: switchOn ? 'on' : 'off' };
                     const setFields = { level, notes, switch: switchOn, name: patreonName };
+                    let newKeyPlain = null;
                     if (!existed) {
-                        setFields.key = generatePatreonKey();
+                        newKeyPlain = generatePatreonKey();
+                        const normalized = (newKeyPlain || '').replaceAll(/\s/g, '').replaceAll(/-/g, '').toUpperCase();
+                        setFields.keyHash = security.hashPatreonKey(normalized);
+                        setFields.keyEncrypted = security.encryptWithCryptoSecret(newKeyPlain);
                     }
                     doc = await schema.patreonMember.findOneAndUpdate(
                         { patreonName },
@@ -901,8 +905,8 @@ const rollDiceCommand = async function ({
                     }
                     const tierLabel = patreonTiers.getTierLabel(level);
                     rply.text = `已${existed ? '更新' : '新增'} Patreon 會員\n名稱: ${patreonName}\nTier: ${tierLabel}\n狀態: ${switchOn ? '開啟' : '關閉'}`;
-                    if (!existed) {
-                        rply.text += `\n\n🔑 KEY (請妥善交給該會員，勿留在頻道):\n${doc.key}`;
+                    if (!existed && newKeyPlain) {
+                        rply.text += `\n\n🔑 KEY (請妥善交給該會員，勿留在頻道):\n${newKeyPlain}`;
                     }
                 } catch (error) {
                     console.error('[Admin] addpatreon error:', error);
@@ -922,9 +926,15 @@ const rollDiceCommand = async function ({
                         rply.text = '找不到該 Patreon 會員: ' + patreonNameRegen;
                         return rply;
                     }
+                    await patreonSync.clearVipEntriesByPatreonKey(doc);
                     const newKey = generatePatreonKey();
-                    doc.key = newKey;
-                    await doc.save();
+                    const normalized = (newKey || '').replaceAll(/\s/g, '').replaceAll(/-/g, '').toUpperCase();
+                    const keyHash = security.hashPatreonKey(normalized);
+                    const keyEncrypted = security.encryptWithCryptoSecret(newKey);
+                    await schema.patreonMember.updateOne(
+                        { patreonName: patreonNameRegen },
+                        { $set: { keyHash, keyEncrypted } }
+                    );
                     rply.text = `已為 ${patreonNameRegen} 重新產生 KEY。\n⚠️ 舊 KEY 已失效，無法再登入網站。\n\n🔑 新 KEY (請妥善交給該會員，勿留在頻道):\n${newKey}`;
                 } catch (error) {
                     console.error('[Admin] regenkeypatreon error:', error);
@@ -968,7 +978,7 @@ const rollDiceCommand = async function ({
                         rply.text = '找不到該 Patreon 會員: ' + patreonNameOff;
                         return rply;
                     }
-                    await patreonSync.clearVipEntriesByPatreonKey(doc.key);
+                    await patreonSync.clearVipEntriesByPatreonKey(doc);
                     await schema.patreonMember.updateOne(
                         { patreonName: patreonNameOff },
                         { $set: { switch: false }, $push: { history: { at: new Date(), action: 'off' } } }
@@ -995,22 +1005,34 @@ const rollDiceCommand = async function ({
                     rply.text = '請只上傳一個 .csv 附件';
                     return rply;
                 }
+                const attachment = csvFiles[0];
+                const MAX_CSV_SIZE_BYTES = 5 * 1024 * 1024;
+                if ((attachment.size || 0) > MAX_CSV_SIZE_BYTES) {
+                    rply.text = `CSV 附件不得超過 ${MAX_CSV_SIZE_BYTES / 1024 / 1024}MB`;
+                    return rply;
+                }
+                const contentType = (attachment.contentType || '').toLowerCase();
+                const allowedTypes = ['text/csv', 'application/csv', 'text/plain', 'application/octet-stream'];
+                if (contentType && !allowedTypes.includes(contentType)) {
+                    rply.text = '僅接受 CSV 或文字檔（Content-Type: text/csv, application/csv, text/plain）';
+                    return rply;
+                }
                 const keyModeRaw = (mainMsg[2] || 'allkeys').toLowerCase();
                 const keyMode = keyModeRaw === 'newonly' ? 'newonly' : 'all';
                 let csvContent;
                 try {
-                    const response = await fetch(csvFiles[0].url);
+                    const response = await fetch(attachment.url);
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     csvContent = await response.text();
-                } catch (e) {
-                    rply.text = '讀取附件失敗: ' + (e.message || e);
+                } catch (error) {
+                    rply.text = '讀取附件失敗: ' + (error.message || error);
                     return rply;
                 }
                 try {
                     const patreonImport = require('../modules/patreon-import.js');
                     const result = await patreonImport.runImport(csvContent, { keyMode });
                     let text = '【Patreon CSV 匯入報告】\n' + result.report.join('\n');
-                    if (result.errors.length) {
+                    if (result.errors.length > 0) {
                         text += '\n\n【錯誤】\n' + result.errors.join('\n');
                     }
                     rply.text = text;

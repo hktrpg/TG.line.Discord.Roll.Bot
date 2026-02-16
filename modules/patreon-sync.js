@@ -4,20 +4,21 @@ const schema = require('./schema.js');
 
 const PATREON_NOTES_PREFIX = "patreon:";
 
-function notesForKey(key) {
-    return PATREON_NOTES_PREFIX + key;
+/** @param {string} keyHash - keyHash for notes identifier */
+function notesForKey(keyHash) {
+    return PATREON_NOTES_PREFIX + (keyHash || '');
 }
 
 /**
  * Sync a single slot to veryImportantPerson: upsert (switch on) or remove/disable (switch off).
  * @param {Object} slot - { targetId, targetType, platform, name, switch }
  * @param {number} level - VIP level from patreon member
- * @param {string} key - Patreon member key (for notes marker)
+ * @param {string} keyHash - keyHash (for notes marker)
  * @param {string} memberName - Fallback name
  */
-async function syncSlotToVip(slot, level, key, memberName) {
+async function syncSlotToVip(slot, level, keyHash, memberName) {
     if (!slot || !slot.targetId) return;
-    const notes = notesForKey(key);
+    const notes = notesForKey(keyHash);
     const isChannel = slot.targetType === "channel";
     const filter = isChannel
         ? { gpid: slot.targetId, notes }
@@ -40,11 +41,11 @@ async function syncSlotToVip(slot, level, key, memberName) {
 
 /**
  * Sync all slots of a patreon member document to veryImportantPerson.
- * @param {Object} member - patreonMember doc with key, level, name, slots
+ * @param {Object} member - patreonMember doc with keyHash, level, name, slots
  */
 async function syncMemberSlotsToVip(member) {
-    if (!member || !member.key) return;
-    const notes = notesForKey(member.key);
+    if (!member || !member.keyHash) return;
+    const notes = notesForKey(member.keyHash);
     const level = member.level;
     const memberName = member.name || member.patreonName;
 
@@ -70,11 +71,12 @@ async function syncMemberSlotsToVip(member) {
 }
 
 /**
- * Clear all veryImportantPerson rows that were created from this patreon key (e.g. on .root offpatreon).
- * @param {string} key - Patreon member key
+ * Clear all veryImportantPerson rows that were created from this patreon member (e.g. on .root offpatreon).
+ * @param {Object} member - patreonMember doc (use keyHash)
  */
-async function clearVipEntriesByPatreonKey(key) {
-    const notes = notesForKey(key);
+async function clearVipEntriesByPatreonKey(member) {
+    if (!member || !member.keyHash) return;
+    const notes = notesForKey(member.keyHash);
     await schema.veryImportantPerson.updateMany(
         { notes },
         { $set: { switch: false } }

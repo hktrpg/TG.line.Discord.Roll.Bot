@@ -318,6 +318,59 @@ const discordCommand = [
                     .addBooleanOption(option =>
                         option.setName('switch')
                             .setDescription('開關狀態')))
+            // Patreon management
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('addpatreon')
+                    .setDescription('新增/更新 Patreon 會員')
+                    .addStringOption(option =>
+                        option.setName('patreon_name')
+                            .setDescription('Patreon 名稱（避免空白）')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('tier')
+                            .setDescription('Patreon Tier')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: 'A 調查員', value: 'A' },
+                                { name: 'B 神秘學家', value: 'B' },
+                                { name: 'C 教主', value: 'C' },
+                                { name: 'D KP', value: 'D' },
+                                { name: 'E 支援者', value: 'E' },
+                                { name: 'F ??????', value: 'F' }
+                            ))
+                    .addStringOption(option =>
+                        option.setName('notes')
+                            .setDescription('備註（避免空白）')
+                            .setRequired(false))
+                    .addBooleanOption(option =>
+                        option.setName('switch')
+                            .setDescription('開關狀態')
+                            .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('regenkeypatreon')
+                    .setDescription('重設 Patreon 會員 KEY')
+                    .addStringOption(option =>
+                        option.setName('patreon_name')
+                            .setDescription('Patreon 名稱（避免空白）')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('onpatreon')
+                    .setDescription('開啟 Patreon 會員狀態')
+                    .addStringOption(option =>
+                        option.setName('patreon_name')
+                            .setDescription('Patreon 名稱（避免空白）')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('offpatreon')
+                    .setDescription('關閉 Patreon 會員狀態')
+                    .addStringOption(option =>
+                        option.setName('patreon_name')
+                            .setDescription('Patreon 名稱（避免空白）')
+                            .setRequired(true)))
             // Command registration
             .addSubcommand(subcommand =>
                 subcommand
@@ -363,6 +416,22 @@ const discordCommand = [
                                 { name: 'start - 開始自動修復', value: 'start' },
                                 { name: 'stop - 停止自動修復', value: 'stop' },
                                 { name: 'status - 查看修復狀態', value: 'status' }
+                            )))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('importpatreon')
+                    .setDescription('匯入 Patreon CSV（附件）')
+                    .addAttachmentOption(option =>
+                        option.setName('file')
+                            .setDescription('Patreon 匯出的 .csv 檔案')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('mode')
+                            .setDescription('KEY 顯示模式')
+                            .setRequired(false)
+                            .addChoices(
+                                { name: 'allkeys - 所有 KEY', value: 'allkeys' },
+                                { name: 'newonly - 只有新會員 KEY', value: 'newonly' }
                             ))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
@@ -392,6 +461,28 @@ const discordCommand = [
                 const switch_ = interaction.options.getBoolean('switch') ?? true;
                 return `.root addVipUser -i ${id} -l ${level} -n ${name} -no ${notes} -s ${switch_}`;
             }
+            case 'addpatreon': {
+                const patreonName = interaction.options.getString('patreon_name');
+                const tier = interaction.options.getString('tier');
+                const notes = interaction.options.getString('notes') || '';
+                const switch_ = interaction.options.getBoolean('switch');
+                let cmd = `.root addpatreon ${patreonName} tier=${tier}`;
+                if (notes) cmd += ` -no ${notes}`;
+                if (switch_ !== null) cmd += ` -s ${switch_ ? 'on' : 'off'}`;
+                return cmd;
+            }
+            case 'regenkeypatreon': {
+                const patreonName = interaction.options.getString('patreon_name');
+                return `.root regenkeypatreon ${patreonName}`;
+            }
+            case 'onpatreon': {
+                const patreonName = interaction.options.getString('patreon_name');
+                return `.root onpatreon ${patreonName}`;
+            }
+            case 'offpatreon': {
+                const patreonName = interaction.options.getString('patreon_name');
+                return `.root offpatreon ${patreonName}`;
+            }
             case 'registeredglobal': {
                 return '.root registeredGlobal';
             }
@@ -414,6 +505,23 @@ const discordCommand = [
             case 'fixshard': {
                 const action = interaction.options.getString('action');
                 return `.root fixshard ${action}`;
+            }
+            case 'importpatreon': {
+                const file = interaction.options.getAttachment('file');
+                const mode = interaction.options.getString('mode') || 'allkeys';
+                const fileName = (file && file.name) ? file.name.toLowerCase() : '';
+                if (!file || !fileName.endsWith('.csv')) {
+                    return '請上傳 .csv 附件（Patreon 匯出格式）';
+                }
+
+                // Bridge slash attachment into the existing .root importpatreon flow.
+                // The root handler reads discordMessage.attachments.
+                interaction.attachments = new Map([[file.id || 'patreon_csv', file]]);
+                return {
+                    inputStr: `.root importpatreon ${mode}`,
+                    discordMessage: interaction,
+                    isInteraction: true
+                };
             }
             // No default
             }
@@ -1011,10 +1119,18 @@ const rollDiceCommand = async function ({
                     rply.text = `CSV 附件不得超過 ${MAX_CSV_SIZE_BYTES / 1024 / 1024}MB`;
                     return rply;
                 }
-                const contentType = (attachment.contentType || '').toLowerCase();
-                const allowedTypes = ['text/csv', 'application/csv', 'text/plain', 'application/octet-stream'];
+                const rawContentType = (attachment.contentType || '').toLowerCase();
+                const contentType = rawContentType.split(';')[0].trim();
+                const allowedTypes = [
+                    'text/csv',
+                    'application/csv',
+                    'text/plain',
+                    'application/octet-stream',
+                    'application/vnd.ms-excel',
+                    'text/comma-separated-values'
+                ];
                 if (contentType && !allowedTypes.includes(contentType)) {
-                    rply.text = '僅接受 CSV 或文字檔（Content-Type: text/csv, application/csv, text/plain）';
+                    rply.text = '僅接受 CSV 或文字檔（Content-Type: text/csv, application/csv, application/vnd.ms-excel, text/plain）';
                     return rply;
                 }
                 const keyModeRaw = (mainMsg[2] || 'allkeys').toLowerCase();

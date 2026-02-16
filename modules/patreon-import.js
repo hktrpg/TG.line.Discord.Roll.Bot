@@ -311,7 +311,45 @@ async function runImport(csvContent, options = {}) {
         }
     }
 
-    if (keyMode === 'newonly') {
+    if (keyMode === 'all') {
+        // Force "allkeys": always send the current active Patreon key list.
+        // This is independent from whether members were changed in this import.
+        const allActiveMembers = await schema.patreonMember.find({ switch: true }).sort({ patreonName: 1 }).lean();
+        keys.length = 0;
+        keyMessages.length = 0;
+        for (const member of allActiveMembers) {
+            const displayKey = getDisplayKey(member);
+            const tierLabel = patreonTiers.getTierLabel(member.level);
+            if (displayKey) {
+                keys.push(displayKey);
+                keyMessages.push(`[現行] ${member.patreonName} Tier ${tierLabel}\n${displayKey}`);
+            } else {
+                // If key cannot be decrypted, rotate to a fresh key so allkeys can still be delivered.
+                try {
+                    const zAdmin = require('../roll/z_admin.js');
+                    const newKey = typeof zAdmin.generatePatreonKey === 'function' ? zAdmin.generatePatreonKey() : null;
+                    if (!newKey) {
+                        throw new Error('無法產生新 KEY');
+                    }
+                    const normalized = (newKey || '').replaceAll(/\s/g, '').replaceAll('-', '').toUpperCase();
+                    const keyHash = security.hashPatreonKey(normalized);
+                    const keyEncrypted = security.encryptWithCryptoSecret(newKey);
+                    await patreonSync.clearVipEntriesByPatreonKey(member);
+                    await schema.patreonMember.updateOne(
+                        { _id: member._id },
+                        { $set: { keyHash, keyEncrypted } }
+                    );
+                    const updated = await schema.patreonMember.findOne({ _id: member._id }).lean();
+                    await patreonSync.syncMemberSlotsToVip(updated);
+                    keys.push(newKey);
+                    keyMessages.push(`[現行] ${member.patreonName} Tier ${tierLabel}\n${newKey}`);
+                    summary.updated++;
+                } catch (error) {
+                    errors.push(`Reset key ${member.patreonName}: ${error.message}`);
+                }
+            }
+        }
+    } else if (keyMode === 'newonly') {
         keys.length = 0;
         keys.push(...newMemberKeys);
     }

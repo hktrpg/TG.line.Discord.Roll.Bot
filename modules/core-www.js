@@ -21,6 +21,8 @@ const cspConfig = require('../modules/config/csp.js');
 const mainCharacter = require('../roll/z_character').mainCharacter;
 const security = require('../utils/security.js');
 const schema = require('./schema.js');
+const patreonTiers = require('./patreon-tiers.js');
+const patreonSync = require('./patreon-sync.js');
 
 const www = express();
 //const loglink = (LOGLINK) ? LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
@@ -44,7 +46,8 @@ const rateLimitConfig = {
     chatRoom: { points: 90, duration: 60 },
     card: { points: 300, duration: 60 }, // Increased from 120 to 300 for better testing experience
     cardRead: { points: 500, duration: 60 }, // Separate limit for read operations (public cards, list info)
-    api: { points: 10_000, duration: 10 }
+    api: { points: 10_000, duration: 10 },
+    patreon: { points: 30, duration: 60 }  // Stricter for key-based endpoints
 };
 
 const rateLimits = Object.entries(rateLimitConfig).reduce((acc, [key, config]) => {
@@ -153,7 +156,7 @@ www.use(helmet({
 }));
 www.use(cors({
     origin: /\.hktrpg\.com$/, // Accepts all subdomains of hktrpg.com
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH'],
     allowedHeaders: [
         'Content-Type',
         'Authorization'
@@ -162,6 +165,7 @@ www.use(cors({
     maxAge: 86_400,
     optionsSuccessStatus: 200
 }));
+www.use(express.json({ limit: '100kb' }));
 
 www.get('*/favicon.ico', async (req, res) => {
     if (await checkRateLimit('api', req.ip)) {
@@ -788,8 +792,164 @@ www.get('/busstop', async (req, res) => {
     res.sendFile(process.cwd() + '/views/busstop.html');
 });
 
+// ---------- Patreon dashboard and API ----------
+// Key only from header to avoid leaking via URL (query), Referer, or logs.
+function getPatreonKeyFromRequest(req) {
+    const raw = req.headers['x-patreon-key'];
+    return (typeof raw === 'string' ? raw : '') || '';
+}
 
+// Ignore dashes and spaces so "Y8YW-JQIP-WDJ3-LB1Q" and "Y8YWJQIPWDJ3LB1Q" both work.
+function normalizePatreonKey(key) {
+    return (typeof key === 'string' ? key : '').replace(/[\s\-]/g, '').toUpperCase();
+}
 
+async function findPatreonMemberByKey(key) {
+    const normalized = normalizePatreonKey(key);
+    if (!normalized || normalized.length !== 16) return null;
+    const list = await schema.patreonMember.find({ switch: true }).lean();
+    return list.find(doc => normalizePatreonKey(doc.key) === normalized) || null;
+}
+
+function toMemberResponse(doc) {
+    if (!doc) return null;
+    const maxSlots = patreonTiers.getMaxSlotsForLevel(doc.level);
+    const tierLabel = patreonTiers.getTierLabel(doc.level);
+    return {
+        patreonName: doc.patreonName,
+        level: doc.level,
+        tierLabel,
+        name: doc.name,
+        notes: doc.notes,
+        switch: doc.switch,
+        startDate: doc.startDate,
+        history: doc.history || [],
+        slots: doc.slots || [],
+        maxSlots
+    };
+}
+
+www.get('/patreon', async (req, res) => {
+    if (await checkRateLimit('card', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    res.sendFile(path.join(process.cwd(), 'views', 'patreon.html'));
+});
+
+www.post('/api/patreon/validate', async (req, res) => {
+    if (await checkRateLimit('patreon', req.ip)) {
+        res.status(429).json({ error: 'Too many requests' });
+        return;
+    }
+    try {
+        const rawKey = (req.body && req.body.key) ? req.body.key : '';
+        const member = await findPatreonMemberByKey(rawKey);
+        if (!member) {
+            res.status(401).json({ error: 'Invalid or inactive key' });
+            return;
+        }
+        res.json(toMemberResponse(member));
+    } catch (err) {
+        console.error('[Web Server] Patreon validate error:', err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+www.get('/api/patreon/me', async (req, res) => {
+    if (await checkRateLimit('patreon', req.ip)) {
+        res.status(429).json({ error: 'Too many requests' });
+        return;
+    }
+    try {
+        const key = getPatreonKeyFromRequest(req);
+        const member = await findPatreonMemberByKey(key);
+        if (!member) {
+            res.status(401).json({ error: 'Invalid or inactive key' });
+            return;
+        }
+        res.json(toMemberResponse(member));
+    } catch (err) {
+        console.error('[Web Server] Patreon me error:', err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+www.put('/api/patreon/me/slots', async (req, res) => {
+    if (await checkRateLimit('patreon', req.ip)) {
+        res.status(429).json({ error: 'Too many requests' });
+        return;
+    }
+    try {
+        const key = getPatreonKeyFromRequest(req);
+        const member = await findPatreonMemberByKey(key);
+        if (!member) {
+            res.status(401).json({ error: 'Invalid or inactive key' });
+            return;
+        }
+        const slots = req.body && Array.isArray(req.body.slots) ? req.body.slots : [];
+        const maxSlots = patreonTiers.getMaxSlotsForLevel(member.level);
+        if (slots.length > maxSlots) {
+            res.status(400).json({ error: `Slots exceed tier limit (${maxSlots})` });
+            return;
+        }
+        const normalizedSlots = slots.slice(0, maxSlots).map(s => ({
+            targetId: s && String(s.targetId || '').trim(),
+            targetType: s && (s.targetType === 'channel' ? 'channel' : 'user'),
+            platform: s && String(s.platform || ''),
+            name: s && String(s.name || ''),
+            switch: !!(s && s.switch !== false)
+        }));
+        await schema.patreonMember.updateOne(
+            { key: member.key },
+            { $set: { slots: normalizedSlots } }
+        );
+        const updated = await schema.patreonMember.findOne({ key: member.key }).lean();
+        await patreonSync.syncMemberSlotsToVip(updated);
+        res.json(toMemberResponse(updated));
+    } catch (err) {
+        console.error('[Web Server] Patreon slots update error:', err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+www.patch('/api/patreon/me/slot/:index', async (req, res) => {
+    if (await checkRateLimit('patreon', req.ip)) {
+        res.status(429).json({ error: 'Too many requests' });
+        return;
+    }
+    try {
+        const key = getPatreonKeyFromRequest(req);
+        const member = await findPatreonMemberByKey(key);
+        if (!member) {
+            res.status(401).json({ error: 'Invalid or inactive key' });
+            return;
+        }
+        const index = parseInt(req.params.index, 10);
+        if (isNaN(index) || index < 0 || index >= (member.slots || []).length) {
+            res.status(400).json({ error: 'Invalid slot index' });
+            return;
+        }
+        const body = req.body || {};
+        const newSwitch = body.switch !== undefined ? !!body.switch : !member.slots[index].switch;
+        member.slots[index].switch = newSwitch;
+        await schema.patreonMember.updateOne(
+            { key: member.key },
+            { $set: { slots: member.slots } }
+        );
+        await patreonSync.syncSlotToVip(
+            member.slots[index],
+            member.level,
+            member.key,
+            member.name || member.patreonName
+        );
+        const updated = await schema.patreonMember.findOne({ key: member.key }).lean();
+        res.json(toMemberResponse(updated));
+    } catch (err) {
+        console.error('[Web Server] Patreon slot toggle error:', err.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
 
 www.get('/log/:id', async (req, res) => {
     if (await checkRateLimit('api', req.ip)) {

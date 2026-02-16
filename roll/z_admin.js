@@ -6,23 +6,12 @@ const opt = {
 }
 // const salt = process.env.SALT; // No longer needed with new security module
 const crypto = require('crypto');
-// 🔧 Auto-fix CRYPTO_SECRET length for AES-256-CTR compatibility
-let password = process.env.CRYPTO_SECRET;
-if (password) {
-    if (password.length > 32) {
-        // Truncate if too long
-        password = password.slice(0, 32);
-        console.warn('[Admin] ⚠️ CRYPTO_SECRET truncated to 32 characters for AES-256-CTR');
-    } else if (password.length < 32) {
-        // Pad with zeros if too short
-        password = password.padEnd(32, '0');
-        console.warn('[Admin] ⚠️ CRYPTO_SECRET padded to 32 characters for AES-256-CTR');
-    }
-} else {
+const security = require('../utils/security.js');
+// CRYPTO_SECRET is used via security.encryptWithCryptoSecret / decryptWithCryptoSecret
+let password = security.getCryptoSecretKey && security.getCryptoSecretKey();
+if (!password) {
     console.error('[Admin] ❌ CRYPTO_SECRET environment variable is not set');
 }
-
-const algorithm = 'aes-256-ctr';
 //32bit ASCII
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id
@@ -39,6 +28,8 @@ const deploy = require('../modules/ds-deploy-commands.js');
 //const VIP = require('../modules/veryImportantPerson');
 const dbProtectionLayer = require('../modules/db-protection-layer.js');
 const clusterProtection = require('../modules/cluster-protection.js');
+const patreonTiers = require('../modules/patreon-tiers.js');
+const patreonSync = require('../modules/patreon-sync.js');
 const gameName = function () {
     return '【Admin Tool】.admin debug state account news on'
 }
@@ -126,6 +117,18 @@ const getHelpMessage = async function () {
 │ 　  - 新增VIP群組
 │ 　• .root addVipUser -i ID -l LV -n NAME -no NOTES -s SWITCH
 │ 　  - 新增VIP用戶
+│
+│ Patreon 會員:
+│ 　• .root addpatreon PATREON_NAME tier=A|B|C|D|E|F [-no NOTES] [-s on|off]
+│ 　  - 新增時產生 KEY；更新時只改 TIER/備註/狀態，KEY 不變
+│ 　• .root regenkeypatreon PATREON_NAME
+│ 　  - 重新產生 KEY，舊 KEY 即時失效
+│ 　• .root onpatreon PATREON_NAME
+│ 　  - 開啟該會員狀態
+│ 　• .root offpatreon PATREON_NAME
+│ 　  - 關閉該會員狀態 (並收回其已分配的 VIP)
+│ 　• .root importpatreon [allkeys|newonly]
+│ 　  - 上傳一個 .csv 附件（Patreon 匯出）自動 add/on/off；僅接受 .csv。allkeys=顯示所有 KEY，newonly=僅顯示新會員 KEY
 │
 │ 指令註冊:
 │ 　• .root registeredGlobal
@@ -435,7 +438,8 @@ const rollDiceCommand = async function ({
     displaynameDiscord,
     membercount,
     titleName,
-    discordClient
+    discordClient,
+    discordMessage
 }) {
     let rply = {
         default: 'on',
@@ -481,7 +485,7 @@ const rollDiceCommand = async function ({
                 rply.text += (displaynameDiscord) ? '\ndisplaynameDiscord: ' + displaynameDiscord : '';
                 rply.text += (membercount) ? '\nmembercount: ' + membercount : '';
                 if (!password) return rply;
-                rply.text = 'Debug encrypt Data: \n' + encrypt(rply.text);
+                rply.text = 'Debug encrypt Data: \n' + security.encryptWithCryptoSecret(rply.text);
                 return rply;
             case /^mongod$/i.test(mainMsg[1]): {
                 if (!adminSecret) return rply;
@@ -849,10 +853,180 @@ const rollDiceCommand = async function ({
                     rply.text = error.message;
                 }
                 return rply;
+            case /^addpatreon$/i.test(mainMsg[1]): {
+                const patreonName = mainMsg[2];
+                if (!patreonName) {
+                    rply.text = '請提供 Patreon 會員名稱，例: .root addpatreon userabc tier=A';
+                    return rply;
+                }
+                const tierMatch = inputStr.match(/tier=([A-Fa-f])/i);
+                const tierLetter = tierMatch ? tierMatch[1].toUpperCase() : null;
+                const level = tierLetter ? patreonTiers.tierLetterToLevel(tierLetter) : null;
+                if (level == null) {
+                    rply.text = '請指定 tier=A|B|C|D|E|F，例: .root addpatreon userabc tier=A';
+                    return rply;
+                }
+                const notesMatch = inputStr.match(/\s+-no\s+(\S+)/i);
+                const switchMatch = inputStr.match(/\s+-s\s+(\S+)/i);
+                let notes = '';
+                if (notesMatch && notesMatch[1] && !notesMatch[1].startsWith('-')) notes = notesMatch[1];
+                let switchOn = true;
+                if (switchMatch) {
+                    const v = switchMatch[1].toLowerCase();
+                    if (v === 'false' || v === 'off') switchOn = false;
+                }
+                try {
+                    const existed = await schema.patreonMember.findOne({ patreonName }).lean();
+                    const historyEntry = { at: new Date(), action: switchOn ? 'on' : 'off' };
+                    const setFields = { level, notes, switch: switchOn, name: patreonName };
+                    if (!existed) {
+                        setFields.key = generatePatreonKey();
+                    }
+                    doc = await schema.patreonMember.findOneAndUpdate(
+                        { patreonName },
+                        {
+                            $set: setFields,
+                            $setOnInsert: {
+                                patreonName,
+                                startDate: new Date(),
+                                slots: []
+                            },
+                            $push: { history: historyEntry }
+                        },
+                        { upsert: true, new: true, runValidators: true }
+                    );
+                    if (!doc) {
+                        rply.text = '新增 Patreon 會員失敗';
+                        return rply;
+                    }
+                    const tierLabel = patreonTiers.getTierLabel(level);
+                    rply.text = `已${existed ? '更新' : '新增'} Patreon 會員\n名稱: ${patreonName}\nTier: ${tierLabel}\n狀態: ${switchOn ? '開啟' : '關閉'}`;
+                    if (!existed) {
+                        rply.text += `\n\n🔑 KEY (請妥善交給該會員，勿留在頻道):\n${doc.key}`;
+                    }
+                } catch (error) {
+                    console.error('[Admin] addpatreon error:', error);
+                    rply.text = 'addpatreon 失敗: ' + error.message;
+                }
+                return rply;
+            }
+            case /^regenkeypatreon$/i.test(mainMsg[1]): {
+                const patreonNameRegen = mainMsg[2];
+                if (!patreonNameRegen) {
+                    rply.text = '請提供 Patreon 會員名稱，例: .root regenkeypatreon userabc';
+                    return rply;
+                }
+                try {
+                    doc = await schema.patreonMember.findOne({ patreonName: patreonNameRegen });
+                    if (!doc) {
+                        rply.text = '找不到該 Patreon 會員: ' + patreonNameRegen;
+                        return rply;
+                    }
+                    const newKey = generatePatreonKey();
+                    doc.key = newKey;
+                    await doc.save();
+                    rply.text = `已為 ${patreonNameRegen} 重新產生 KEY。\n⚠️ 舊 KEY 已失效，無法再登入網站。\n\n🔑 新 KEY (請妥善交給該會員，勿留在頻道):\n${newKey}`;
+                } catch (error) {
+                    console.error('[Admin] regenkeypatreon error:', error);
+                    rply.text = 'regenkeypatreon 失敗: ' + error.message;
+                }
+                return rply;
+            }
+            case /^onpatreon$/i.test(mainMsg[1]): {
+                const patreonNameOn = mainMsg[2];
+                if (!patreonNameOn) {
+                    rply.text = '請提供 Patreon 會員名稱，例: .root onpatreon userabc';
+                    return rply;
+                }
+                try {
+                    doc = await schema.patreonMember.findOneAndUpdate(
+                        { patreonName: patreonNameOn },
+                        { $set: { switch: true }, $push: { history: { at: new Date(), action: 'on' } } },
+                        { new: true }
+                    );
+                    if (!doc) {
+                        rply.text = '找不到該 Patreon 會員: ' + patreonNameOn;
+                        return rply;
+                    }
+                    await patreonSync.syncMemberSlotsToVip(doc);
+                    rply.text = `已開啟 Patreon 會員: ${patreonNameOn}`;
+                } catch (error) {
+                    console.error('[Admin] onpatreon error:', error);
+                    rply.text = 'onpatreon 失敗: ' + error.message;
+                }
+                return rply;
+            }
+            case /^offpatreon$/i.test(mainMsg[1]): {
+                const patreonNameOff = mainMsg[2];
+                if (!patreonNameOff) {
+                    rply.text = '請提供 Patreon 會員名稱，例: .root offpatreon userabc';
+                    return rply;
+                }
+                try {
+                    doc = await schema.patreonMember.findOne({ patreonName: patreonNameOff });
+                    if (!doc) {
+                        rply.text = '找不到該 Patreon 會員: ' + patreonNameOff;
+                        return rply;
+                    }
+                    await patreonSync.clearVipEntriesByPatreonKey(doc.key);
+                    await schema.patreonMember.updateOne(
+                        { patreonName: patreonNameOff },
+                        { $set: { switch: false }, $push: { history: { at: new Date(), action: 'off' } } }
+                    );
+                    rply.text = `已關閉 Patreon 會員: ${patreonNameOff}，並已收回其分配的 VIP`;
+                } catch (error) {
+                    console.error('[Admin] offpatreon error:', error);
+                    rply.text = 'offpatreon 失敗: ' + error.message;
+                }
+                return rply;
+            }
+            case /^importpatreon$/i.test(mainMsg[1]): {
+                if (!discordMessage?.attachments?.size) {
+                    rply.text = '請上傳一個 .csv 附件（僅接受 .csv 格式），例: .root importpatreon [allkeys|newonly] 並附上 CSV 檔案';
+                    return rply;
+                }
+                const attachments = [...discordMessage.attachments.values()];
+                const csvFiles = attachments.filter(a => (a.name || '').toLowerCase().endsWith('.csv'));
+                if (csvFiles.length === 0) {
+                    rply.text = '請上傳一個 .csv 附件（僅接受 .csv 格式）';
+                    return rply;
+                }
+                if (csvFiles.length > 1) {
+                    rply.text = '請只上傳一個 .csv 附件';
+                    return rply;
+                }
+                const keyModeRaw = (mainMsg[2] || 'allkeys').toLowerCase();
+                const keyMode = keyModeRaw === 'newonly' ? 'newonly' : 'all';
+                let csvContent;
+                try {
+                    const response = await fetch(csvFiles[0].url);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    csvContent = await response.text();
+                } catch (e) {
+                    rply.text = '讀取附件失敗: ' + (e.message || e);
+                    return rply;
+                }
+                try {
+                    const patreonImport = require('../modules/patreon-import.js');
+                    const result = await patreonImport.runImport(csvContent, { keyMode });
+                    let text = '【Patreon CSV 匯入報告】\n' + result.report.join('\n');
+                    if (result.errors.length) {
+                        text += '\n\n【錯誤】\n' + result.errors.join('\n');
+                    }
+                    if (result.keys.length) {
+                        text += '\n\n🔑 KEY 列表（請妥善保管，勿留在頻道）:\n' + result.keys.join('\n');
+                    }
+                    rply.text = text;
+                } catch (error) {
+                    console.error('[Admin] importpatreon error:', error);
+                    rply.text = 'importpatreon 失敗: ' + error.message;
+                }
+                return rply;
+            }
             case /^decrypt$/i.test(mainMsg[1]):
                 if (!mainMsg[2]) return rply;
                 if (!password) return rply;
-                rply.text = decrypt(mainMsg[2]);
+                rply.text = security.decryptWithCryptoSecret(mainMsg[2]);
                 return rply;
             case /^send$/i.test(mainMsg[1]) && /^News$/i.test(mainMsg[2]): {
                 let target = await schema.theNewsMessage.find({ botname: botname, switch: true });
@@ -956,6 +1130,26 @@ function checkPassword(text) {
     return /^[A-Za-z0-9!@#$%^&*]{6,16}$/.test(text);
 }
 
+/**
+ * Generate a secure Patreon key: XXXX-XXXX-XXXX-XXXX (uppercase alphanumeric).
+ * @returns {string}
+ */
+function generatePatreonKey() {
+    const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const SEGMENT_LEN = 4;
+    const SEGMENTS = 4;
+    let out = '';
+    const bytes = crypto.randomBytes(SEGMENT_LEN * SEGMENTS);
+    for (let i = 0; i < bytes.length; i++) {
+        out += CHARS[bytes[i] % CHARS.length];
+    }
+    const parts = [];
+    for (let s = 0; s < SEGMENTS; s++) {
+        parts.push(out.slice(s * SEGMENT_LEN, (s + 1) * SEGMENT_LEN));
+    }
+    return parts.join('-');
+}
+
 async function store(mainMsg, mode) {
     const resultId = pattId.exec(mainMsg);
     const resultGP = pattGP.exec(mainMsg);
@@ -1013,46 +1207,6 @@ async function store(mainMsg, mode) {
 
 
 
-function encrypt(text) {
-    if (!password) {
-        console.error('[Admin] ❌ CRYPTO_SECRET environment variable is not set');
-        return 'ENCRYPTION_ERROR: CRYPTO_SECRET not configured';
-    }
-    
-    try {
-        let iv = crypto.randomBytes(16);
-        let cipher = crypto.createCipheriv(algorithm, Buffer.from(password, 'utf8'), iv);
-        let encrypted = cipher.update(text);
-        encrypted = Buffer.concat([encrypted, cipher.final()]);
-        return iv.toString('hex') + ':' + encrypted.toString('hex');
-    } catch (error) {
-        console.error('[Admin] ❌ Encryption failed:', error.message);
-        return 'ENCRYPTION_ERROR: ' + error.message;
-    }
-}
-
-
-
-function decrypt(text) {
-    if (!password) {
-        console.error('[Admin] ❌ CRYPTO_SECRET environment variable is not set');
-        return 'DECRYPTION_ERROR: CRYPTO_SECRET not configured';
-    }
-    
-    try {
-        let textParts = text.split(':');
-        let iv = Buffer.from(textParts.shift(), 'hex');
-        let encryptedText = Buffer.from(textParts.join(':'), 'hex');
-        let decipher = crypto.createDecipheriv(algorithm, Buffer.from(password, 'utf8'), iv);
-        let decrypted = decipher.update(encryptedText);
-        decrypted = Buffer.concat([decrypted, decipher.final()]);
-        return decrypted.toString();
-    } catch (error) {
-        console.error('[Admin] ❌ Decryption failed:', error.message);
-        return 'DECRYPTION_ERROR: ' + error.message;
-    }
-}
-
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,
@@ -1060,7 +1214,8 @@ module.exports = {
     prefixs: prefixs,
     gameType: gameType,
     gameName: gameName,
-    discordCommand: discordCommand
+    discordCommand: discordCommand,
+    generatePatreonKey
 };
 /**
 

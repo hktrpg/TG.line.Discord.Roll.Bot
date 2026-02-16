@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#2f3136">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>Patreon 會員管理 @ HKTRPG</title>
+    <script>
+        (function () {
+            const theme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+        integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous">
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --card-bg: #ffffff;
+            --card-border: #dee2e6;
+            --input-bg: #ffffff;
+            --input-border: #ced4da;
+            --footer-bg: #f8f9fa;
+        }
+        [data-theme="dark"] {
+            --bg-color: #36393f;
+            --text-color: #dcddde;
+            --card-bg: #2f3136;
+            --card-border: #202225;
+            --input-bg: #40444b;
+            --input-border: #202225;
+            --footer-bg: #2f3136;
+        }
+        /* Override style.css so patreon page can scroll (style.css sets body overflow:hidden for chat layout) */
+        html, body {
+            overflow: auto !important;
+            min-height: 100%;
+            height: auto !important;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-top: 1rem;
+            padding-bottom: 2rem;
+        }
+        .patreon-key-input { font-family: monospace; letter-spacing: 0.1em; }
+        .slot-row { align-items: center; }
+        .slot-row .form-control { min-height: 38px; background-color: var(--input-bg); border-color: var(--input-border); color: var(--text-color); }
+        .slot-row select.form-control { background-color: var(--input-bg); border-color: var(--input-border); color: var(--text-color); }
+        .badge-tier { font-size: 0.9rem; }
+        .history-list { max-height: 120px; overflow-y: auto; }
+        .btn-slot-toggle { min-width: 60px; }
+        .card { background-color: var(--card-bg); border-color: var(--card-border); }
+        .card-body { color: var(--text-color); }
+        .text-muted { color: rgba(220, 221, 222, 0.7) !important; }
+        [data-theme="dark"] .text-muted { color: rgba(220, 221, 222, 0.6) !important; }
+        [data-theme="dark"] .border-bottom { border-color: var(--card-border) !important; }
+        .footer-copyright { background-color: var(--footer-bg); color: var(--text-color); }
+        .footer-copyright a { color: #5865f2; }
+        /* Slot header row: same grid as slot rows so columns align on PC */
+        .slot-header { font-weight: 600; font-size: 0.875rem; color: var(--text-color); padding: 0.5rem 0; border-bottom: 2px solid var(--card-border); margin-bottom: 0.5rem; }
+        .slot-header .slot-header-col { padding: 0 0.75rem; line-height: 38px; }
+        /* Mobile */
+        @media (max-width: 576px) {
+            .slot-row .col { flex: 0 0 100%; max-width: 100%; margin-bottom: 0.25rem; }
+            .btn-slot-toggle { min-width: 50px; }
+            .slot-header { display: none; }
+            .btn-logout-patreon { width: 100%; }
+        }
+        /* PC: same Bootstrap grid, no table - just max-width and logout size */
+        @media (min-width: 768px) {
+            .patreon-page-wrap { max-width: 960px; margin-left: auto; margin-right: auto; }
+            .patreon-dashboard-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+            .btn-logout-patreon { font-size: 1rem; padding: 0.5rem 1rem; min-width: 120px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div id="header"></div>
+
+    <div class="container-fluid px-3 px-md-4 py-3 patreon-page-wrap">
+        <h1 class="h4 mb-3">Patreon 會員管理</h1>
+        <p class="text-muted small">輸入管理員提供的 KEY 以查看狀態與管理分配名額。</p>
+
+        <!-- Key entry -->
+        <div id="keySection" class="card mb-4">
+            <div class="card-body">
+                <label for="patreonKey">Patreon KEY</label>
+                <div class="input-group">
+                    <input type="text" id="patreonKey" class="form-control patreon-key-input" placeholder="可含 - 或省略，例：Y8YW-JQIP-WDJ3-LB1Q" autocomplete="off">
+                    <div class="input-group-append">
+                        <button type="button" id="btnLogin" class="btn btn-primary">登入</button>
+                    </div>
+                </div>
+                <div id="keyError" class="invalid-feedback d-none"></div>
+            </div>
+        </div>
+
+        <!-- Dashboard (hidden until key valid) -->
+        <div id="dashboardSection" class="d-none">
+            <div class="patreon-dashboard-header">
+                <h2 class="h5 mb-0">會員狀態</h2>
+                <button type="button" id="btnLogout" class="btn btn-danger btn-logout-patreon">
+                    <i class="fas fa-sign-out-alt mr-1" aria-hidden="true"></i>登出
+                </button>
+            </div>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>會員名稱</strong> <span id="memberName"></span></p>
+                            <p class="mb-1"><strong>現時 TIER</strong> <span id="tierLabel" class="badge badge-tier badge-info"></span></p>
+                            <p class="mb-1"><strong>會員狀態</strong> <span id="memberStatus" class="badge badge-success">開啟</span></p>
+                            <p class="mb-1"><strong>會員開始時間</strong> <span id="startDate"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>可用的格數</strong> <span id="maxSlots"></span></p>
+                            <p class="mb-1"><strong>曾經的 ON/OFF</strong></p>
+                            <ul id="historyList" class="list-unstyled small history-list mb-0"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="h6 mb-2">名額分配 (User / Channel ID)</h3>
+            <p class="text-muted small mb-2">填寫要授予 VIP 的 User 或 Channel ID、平台與名稱，並以開關控制是否生效。</p>
+            <div id="slotsContainer" class="mb-3"></div>
+            <button type="button" id="btnSaveSlots" class="btn btn-primary">儲存名額</button>
+            <div id="saveResult" class="mt-2 small"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div id="footer"></div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+    <script>
+        $(function () {
+            $("#header").load("includes/header.html", function () {
+                var titleEl = document.getElementById("title");
+                if (titleEl) titleEl.textContent = "Patreon 會員管理";
+                if (typeof Iconify !== "undefined" && Iconify.scan) {
+                    Iconify.scan(document.getElementById("header"));
+                }
+            });
+            $("#footer").load("includes/footer.html", function () {
+                if (typeof Iconify !== "undefined" && Iconify.scan) {
+                    Iconify.scan(document.getElementById("footer"));
+                }
+            });
+        });
+    </script>
+    <script>
+        (function () {
+            const KEY_STORAGE = 'patreon_key';
+            let memberData = null;
+
+            const keySection = document.getElementById('keySection');
+            const dashboardSection = document.getElementById('dashboardSection');
+            const patreonKeyInput = document.getElementById('patreonKey');
+            const btnLogin = document.getElementById('btnLogin');
+            const btnLogout = document.getElementById('btnLogout');
+            const keyError = document.getElementById('keyError');
+            const btnSaveSlots = document.getElementById('btnSaveSlots');
+            const saveResult = document.getElementById('saveResult');
+
+            function normalizeKey(key) {
+                return (key || '').replace(/[\s\-]/g, '').toUpperCase();
+            }
+
+            function formatKeyWithDashes(key) {
+                var k = (key || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 16);
+                if (!k.length) return '';
+                var parts = [];
+                for (var i = 0; i < k.length; i += 4) parts.push(k.slice(i, i + 4));
+                return parts.join('-');
+            }
+
+            function getKey() {
+                return (patreonKeyInput.value || sessionStorage.getItem(KEY_STORAGE) || '').trim();
+            }
+
+            function getKeyForApi() {
+                return normalizeKey(getKey());
+            }
+
+            function setKey(key) {
+                var normalized = normalizeKey(key);
+                patreonKeyInput.value = formatKeyWithDashes(normalized);
+                sessionStorage.setItem(KEY_STORAGE, normalized.length === 16 ? normalized : (key || ''));
+            }
+
+            function onPatreonKeyInput() {
+                var raw = patreonKeyInput.value;
+                var formatted = formatKeyWithDashes(raw);
+                if (formatted !== raw) {
+                    var pos = formatted.length;
+                    patreonKeyInput.value = formatted;
+                    patreonKeyInput.setSelectionRange(pos, pos);
+                }
+            }
+
+            function clearKey() {
+                patreonKeyInput.value = '';
+                sessionStorage.removeItem(KEY_STORAGE);
+                memberData = null;
+            }
+
+            function showError(msg) {
+                keyError.textContent = msg || 'Invalid or inactive key';
+                keyError.classList.remove('d-none');
+                patreonKeyInput.classList.add('is-invalid');
+            }
+
+            function clearError() {
+                keyError.classList.add('d-none');
+                patreonKeyInput.classList.remove('is-invalid');
+            }
+
+            async function validateKey(key) {
+                var keyToSend = normalizeKey(key);
+                if (keyToSend.length !== 16) return null;
+                const res = await fetch('/api/patreon/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: keyToSend })
+                });
+                if (res.status === 401) return null;
+                if (!res.ok) throw new Error('Server error');
+                return res.json();
+            }
+
+            async function loadMe() {
+                const key = getKeyForApi();
+                const res = await fetch('/api/patreon/me', {
+                    headers: { 'X-Patreon-Key': key }
+                });
+                if (res.status === 401) return null;
+                if (!res.ok) throw new Error('Server error');
+                return res.json();
+            }
+
+            function formatDate(d) {
+                if (!d) return '—';
+                const date = new Date(d);
+                return isNaN(date.getTime()) ? '—' : date.toLocaleString('zh-Hant');
+            }
+
+            function renderDashboard(data) {
+                memberData = data;
+                document.getElementById('memberName').textContent = data.patreonName || data.name || '—';
+                document.getElementById('tierLabel').textContent = data.tierLabel || '—';
+                document.getElementById('memberStatus').textContent = data.switch ? '開啟' : '關閉';
+                document.getElementById('memberStatus').className = 'badge ' + (data.switch ? 'badge-success' : 'badge-secondary');
+                document.getElementById('startDate').textContent = formatDate(data.startDate);
+                document.getElementById('maxSlots').textContent = (data.slots ? data.slots.length : 0) + ' / ' + (data.maxSlots || 0);
+
+                const historyList = document.getElementById('historyList');
+                historyList.innerHTML = '';
+                (data.history || []).slice().reverse().slice(0, 20).forEach(function (h) {
+                    const li = document.createElement('li');
+                    li.textContent = formatDate(h.at) + ' ' + (h.action === 'on' ? 'ON' : 'OFF');
+                    historyList.appendChild(li);
+                });
+
+                renderSlots(data.slots || [], data.maxSlots || 0);
+            }
+
+            function renderSlots(slots, maxSlots) {
+                const container = document.getElementById('slotsContainer');
+                container.innerHTML = '';
+                var headerRow = document.createElement('div');
+                headerRow.className = 'row slot-header';
+                headerRow.innerHTML = '<div class="col-12 col-md-3 slot-header-col">User/Channel ID</div><div class="col-6 col-md-2 slot-header-col">類型</div><div class="col-6 col-md-2 slot-header-col">平台</div><div class="col-8 col-md-2 slot-header-col">名稱</div><div class="col-4 col-md-2 slot-header-col">開關</div>';
+                container.appendChild(headerRow);
+                const total = Math.max(maxSlots, slots.length, 1);
+                for (let i = 0; i < total; i++) {
+                    const s = slots[i] || { targetId: '', targetType: 'user', platform: 'Discord', name: '', switch: true };
+                    const row = document.createElement('div');
+                    row.className = 'row slot-row mb-2 border-bottom pb-2';
+                    row.innerHTML =
+                        '<div class="col-12 col-md-3"><input type="text" class="form-control form-control-sm slot-targetId" placeholder="User/Channel ID" value="' + (s.targetId || '').replace(/"/g, '&quot;') + '"></div>' +
+                        '<div class="col-6 col-md-2"><select class="form-control form-control-sm slot-targetType"><option value="user"' + (s.targetType === 'channel' ? '' : ' selected') + '>User</option><option value="channel"' + (s.targetType === 'channel' ? ' selected' : '') + '>Channel</option></select></div>' +
+                        '<div class="col-6 col-md-2"><select class="form-control form-control-sm slot-platform"><option value="Discord"' + (s.platform === 'Discord' ? ' selected' : '') + '>Discord</option><option value="Line"' + (s.platform === 'Line' ? ' selected' : '') + '>Line</option><option value="Telegram"' + (s.platform === 'Telegram' ? ' selected' : '') + '>Telegram</option></select></div>' +
+                        '<div class="col-8 col-md-2"><input type="text" class="form-control form-control-sm slot-name" placeholder="名稱" value="' + (s.name || '').replace(/"/g, '&quot;') + '"></div>' +
+                        '<div class="col-4 col-md-2"><button type="button" class="btn btn-sm btn-slot-toggle ' + (s.switch ? 'btn-success' : 'btn-outline-secondary') + '" data-index="' + i + '" data-switch="' + (s.switch ? '1' : '0') + '">' + (s.switch ? 'ON' : 'OFF') + '</button></div>';
+                    container.appendChild(row);
+                }
+                container.querySelectorAll('.btn-slot-toggle').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        const next = btn.getAttribute('data-switch') !== '1';
+                        btn.setAttribute('data-switch', next ? '1' : '0');
+                        btn.textContent = next ? 'ON' : 'OFF';
+                        btn.className = 'btn btn-sm btn-slot-toggle ' + (next ? 'btn-success' : 'btn-outline-secondary');
+                    });
+                });
+            }
+
+            function collectSlotsFromForm() {
+                const rows = document.querySelectorAll('#slotsContainer .slot-row');
+                const slots = [];
+                rows.forEach(function (row) {
+                    const targetId = (row.querySelector('.slot-targetId') || {}).value || '';
+                    const targetType = (row.querySelector('.slot-targetType') || {}).value || 'user';
+                    const platform = (row.querySelector('.slot-platform') || {}).value || 'Discord';
+                    const name = (row.querySelector('.slot-name') || {}).value || '';
+                    const btn = row.querySelector('.btn-slot-toggle');
+                    const sw = btn && btn.getAttribute('data-switch') === '1';
+                    slots.push({ targetId: targetId.trim(), targetType, platform, name: name.trim(), switch: sw });
+                });
+                return slots;
+            }
+
+            async function saveSlots() {
+                const key = getKeyForApi();
+                const slots = collectSlotsFromForm();
+                saveResult.textContent = '儲存中…';
+                saveResult.className = 'mt-2 small text-muted';
+                try {
+                    const res = await fetch('/api/patreon/me/slots', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'X-Patreon-Key': key },
+                        body: JSON.stringify({ slots: slots })
+                    });
+                    if (res.status === 401) { showDashboard(false); return; }
+                    if (!res.ok) {
+                        const err = await res.json().catch(function () { return {}; });
+                        saveResult.textContent = err.error || '儲存失敗';
+                        saveResult.className = 'mt-2 small text-danger';
+                        return;
+                    }
+                    const data = await res.json();
+                    renderDashboard(data);
+                    saveResult.textContent = '已儲存名額。';
+                    saveResult.className = 'mt-2 small text-success';
+                } catch (e) {
+                    saveResult.textContent = '網路錯誤，請稍後再試。';
+                    saveResult.className = 'mt-2 small text-danger';
+                }
+            }
+
+            function showDashboard(show) {
+                if (show) {
+                    keySection.classList.add('d-none');
+                    dashboardSection.classList.remove('d-none');
+                } else {
+                    clearKey();
+                    keySection.classList.remove('d-none');
+                    dashboardSection.classList.add('d-none');
+                }
+            }
+
+            btnLogin.addEventListener('click', async function () {
+                const key = getKey();
+                clearError();
+                if (!key) { showError('請輸入 KEY'); return; }
+                btnLogin.disabled = true;
+                try {
+                    const data = await validateKey(key);
+                    if (data) {
+                        setKey(key);
+                        renderDashboard(data);
+                        showDashboard(true);
+                    } else {
+                        showError('KEY 無效或會員已關閉');
+                    }
+                } catch (e) {
+                    showError('連線失敗，請稍後再試');
+                }
+                btnLogin.disabled = false;
+            });
+
+            patreonKeyInput.addEventListener('input', onPatreonKeyInput);
+            patreonKeyInput.addEventListener('paste', function () {
+                setTimeout(onPatreonKeyInput, 0);
+            });
+            patreonKeyInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') btnLogin.click();
+            });
+
+            btnLogout.addEventListener('click', function () {
+                showDashboard(false);
+                clearError();
+            });
+
+            btnSaveSlots.addEventListener('click', saveSlots);
+
+            (function init() {
+                const savedKey = sessionStorage.getItem(KEY_STORAGE);
+                if (savedKey) {
+                    patreonKeyInput.value = formatKeyWithDashes(savedKey) || savedKey;
+                    validateKey(savedKey).then(function (data) {
+                        if (data) {
+                            renderDashboard(data);
+                            showDashboard(true);
+                        } else {
+                            sessionStorage.removeItem(KEY_STORAGE);
+                        }
+                    });
+                }
+            })();
+        })();
+    </script>
+</body>
+</html>

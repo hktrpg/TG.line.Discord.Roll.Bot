@@ -829,6 +829,70 @@ function toMemberResponse(doc) {
     };
 }
 
+const PATREON_SLOT_RULES = {
+    TARGET_ID_MAX: 64,
+    NAME_MAX: 50,
+    ALLOWED_PLATFORMS: ['Discord', 'Line', 'Telegram'],
+    // Allow common ID tokens only; no whitespace or control chars.
+    TARGET_ID_PATTERN: /^[A-Za-z0-9_.:@-]+$/
+};
+
+/**
+ * Normalize and validate one Patreon slot payload.
+ * Empty targetId is allowed (unused slot), consistent with current UI.
+ * @param {any} rawSlot
+ * @param {number} index - 0-based slot index
+ * @returns {{ valid: boolean, slot?: object, error?: string }}
+ */
+function normalizeAndValidatePatreonSlot(rawSlot, index) {
+    const slot = rawSlot || {};
+    const targetId = String(slot.targetId || '').trim();
+    const targetType = slot.targetType === 'channel' ? 'channel' : 'user';
+    const platform = String(slot.platform || '').trim();
+    const name = String(slot.name || '').trim();
+    const sw = !!(slot.switch !== false);
+
+    if (targetId.length > PATREON_SLOT_RULES.TARGET_ID_MAX) {
+        return {
+            valid: false,
+            error: `Slot #${index + 1}: targetId too long (max ${PATREON_SLOT_RULES.TARGET_ID_MAX})`
+        };
+    }
+    if (name.length > PATREON_SLOT_RULES.NAME_MAX) {
+        return {
+            valid: false,
+            error: `Slot #${index + 1}: name too long (max ${PATREON_SLOT_RULES.NAME_MAX})`
+        };
+    }
+
+    // For non-empty IDs, enforce a safe token format.
+    if (targetId && !PATREON_SLOT_RULES.TARGET_ID_PATTERN.test(targetId)) {
+        return {
+            valid: false,
+            error: `Slot #${index + 1}: targetId contains invalid characters`
+        };
+    }
+
+    // Keep platform strict to current supported list.
+    if (!PATREON_SLOT_RULES.ALLOWED_PLATFORMS.includes(platform)) {
+        return {
+            valid: false,
+            error: `Slot #${index + 1}: invalid platform (Discord/Line/Telegram only)`
+        };
+    }
+
+    return {
+        valid: true,
+        slot: {
+            targetId,
+            targetType,
+            platform,
+            name,
+            switch: sw
+        }
+    };
+}
+
 www.get('/patreon', async (req, res) => {
     if (await checkRateLimit('card', req.ip)) {
         res.status(429).end();
@@ -893,13 +957,16 @@ www.put('/api/patreon/me/slots', async (req, res) => {
             res.status(400).json({ error: `Slots exceed tier limit (${maxSlots})` });
             return;
         }
-        const normalizedSlots = slots.slice(0, maxSlots).map(s => ({
-            targetId: s && String(s.targetId || '').trim(),
-            targetType: s && (s.targetType === 'channel' ? 'channel' : 'user'),
-            platform: s && String(s.platform || ''),
-            name: s && String(s.name || ''),
-            switch: !!(s && s.switch !== false)
-        }));
+        const trimmedSlots = slots.slice(0, maxSlots);
+        const normalizedSlots = [];
+        for (let i = 0; i < trimmedSlots.length; i++) {
+            const validated = normalizeAndValidatePatreonSlot(trimmedSlots[i], i);
+            if (!validated.valid) {
+                res.status(400).json({ error: validated.error || 'Invalid slot payload' });
+                return;
+            }
+            normalizedSlots.push(validated.slot);
+        }
         await schema.patreonMember.updateOne(
             { _id: member._id },
             { $set: { slots: normalizedSlots } }

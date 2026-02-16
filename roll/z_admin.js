@@ -1013,9 +1013,6 @@ const rollDiceCommand = async function ({
                     if (result.errors.length) {
                         text += '\n\n【錯誤】\n' + result.errors.join('\n');
                     }
-                    if (result.keys.length) {
-                        text += '\n\n🔑 KEY 列表（請妥善保管，勿留在頻道）:\n' + result.keys.join('\n');
-                    }
                     rply.text = text;
                 } catch (error) {
                     console.error('[Admin] importpatreon error:', error);

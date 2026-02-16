@@ -128,12 +128,19 @@ async function runImport(csvPathOrContent, options = {}) {
 
     const encrypt = (text) => (text != null && text !== '') ? security.encryptWithCryptoSecret(String(text)) : '';
 
+    /** Stats: active/former counts and by tier (CSV tier name) */
+    let activeTotal = 0;
+    const activeByTier = {};
+    let formerTotal = 0;
+    const formerByTier = {};
+
     for (const row of rows) {
         const name = (row['Name'] || '').trim();
         if (!name) continue;
 
         const patronStatus = (row['Patron Status'] || '').trim();
         const tierName = (row['Tier'] || '').trim();
+        const tierLabel = tierName || '(未設定)';
         const level = patreonTiers.csvTierNameToLevel(tierName);
         const isActive = patronStatus === 'Active patron';
         const isFormer = patronStatus === 'Former patron';
@@ -144,6 +151,8 @@ async function runImport(csvPathOrContent, options = {}) {
 
         // Former patron: do not add new KEY; if was ON -> turn OFF and report
         if (isFormer) {
+            formerTotal++;
+            formerByTier[tierLabel] = (formerByTier[tierLabel] || 0) + 1;
             if (existing && existing.switch) {
                 try {
                     await patreonSync.clearVipEntriesByPatreonKey(existing.key);
@@ -175,6 +184,10 @@ async function runImport(csvPathOrContent, options = {}) {
             }
             continue;
         }
+
+        // Count active (all Active patrons in CSV, including 無名調查員)
+        activeTotal++;
+        activeByTier[tierLabel] = (activeByTier[tierLabel] || 0) + 1;
 
         // Active but tier not 調查員+ : do not add, do not create KEY; leave existing as-is (no auto OFF)
         if (level == null) continue;
@@ -209,6 +222,7 @@ async function runImport(csvPathOrContent, options = {}) {
                 keys.push(key);
                 await patreonSync.syncMemberSlotsToVip({ key, level, name, patreonName: name, slots: [] });
                 report.push(`[新增] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
+                report.push(key);
             } catch (e) {
                 errors.push(`Add ${name}: ${e.message}`);
             }
@@ -237,8 +251,11 @@ async function runImport(csvPathOrContent, options = {}) {
             await patreonSync.syncMemberSlotsToVip(doc);
             if (keyMode === 'all') {
                 keys.push(doc.key);
+                report.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
+                report.push(doc.key);
+            } else {
+                report.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
             }
-            report.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
         } catch (e) {
             errors.push(`Update ${name}: ${e.message}`);
         }
@@ -247,9 +264,20 @@ async function runImport(csvPathOrContent, options = {}) {
     if (keyMode === 'newonly') {
         keys.length = 0;
         keys.push(...newMemberKeys);
-        report.push(`\n此匯入僅顯示新加入會員的 KEY（共 ${newMemberKeys.size} 個）`);
-    } else {
-        report.push(`\n已列出所有處理中會員的 KEY（共 ${keys.length} 個）`);
+    }
+
+    // Append 加入統計
+    report.push('');
+    report.push('─── 加入統計（本 CSV）───');
+    report.push(`Active Patron 總數: ${activeTotal}`);
+    const activeTiers = Object.keys(activeByTier).sort();
+    for (const t of activeTiers) {
+        report.push(`  ${t}: ${activeByTier[t]}`);
+    }
+    report.push(`Former Patron 總數: ${formerTotal}`);
+    const formerTiers = Object.keys(formerByTier).sort();
+    for (const t of formerTiers) {
+        report.push(`  ${t}: ${formerByTier[t]}`);
     }
 
     return { report, keys, errors };

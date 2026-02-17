@@ -1747,7 +1747,7 @@ class TranslateAi extends OpenAI {
                     { role: 'system', content: systemInstruction },
                     { role: 'user', content: userContent }
                 ], "reasoning": {
-                    "exclude": true
+                    
                 }
             })
 
@@ -2231,7 +2231,7 @@ class TranslateAi extends OpenAI {
                 ],
                 signal: controller.signal, "reasoning": {
                     
-                    "exclude": true
+                    
                 }
             })
             clearTimeout(timer);
@@ -2676,7 +2676,7 @@ class ChatAi extends OpenAI {
                     }
                 ], "reasoning": {
                     
-                    "exclude": true
+                    
                 }
 
             })

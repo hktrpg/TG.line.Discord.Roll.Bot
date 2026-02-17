@@ -1166,7 +1166,16 @@ const discordCommand = [
                     .setName('rroll')
                     .setDescription('使用全服務器骰子(可重複)')
                     .addStringOption(option => option.setName('name').setDescription('骰子名稱').setRequired(true))
-                    .addIntegerOption(option => option.setName('times').setDescription('擲骰次數，預設1次，最多30次').setMinValue(1).setMaxValue(30))),
+                    .addIntegerOption(option => option.setName('times').setDescription('擲骰次數，預設1次，最多30次').setMinValue(1).setMaxValue(30)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('change')
+                    .setDescription('管理員專用：同步舊資料到全服務器骰子'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('del')
+                    .setDescription('管理員專用：按序號刪除全服務器骰子')
+                    .addStringOption(option => option.setName('serials').setDescription('序號，可填多個並以空格分隔').setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             
@@ -1189,6 +1198,13 @@ const discordCommand = [
                     const rrollName = interaction.options.getString('name');
                     const rrollTimes = interaction.options.getInteger('times') || 1;
                     return rrollTimes > 1 ? `.rras${rrollTimes} ${rrollName}` : `.rras ${rrollName}`;
+                }
+                case 'change': {
+                    return `.ras change`;
+                }
+                case 'del': {
+                    const serials = interaction.options.getString('serials');
+                    return `.ras delete ${serials}`;
                 }
             }
         }

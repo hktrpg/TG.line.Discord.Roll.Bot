@@ -181,17 +181,41 @@ async function loadingSlashCommands() {
     return loadingPromise;
 }
 
-function removeSlashCommands(guildId) {
-    //remove all old command, devlopment only
-    rest.get(Routes.applicationGuildCommands(clientId, guildId))
-        .then(data => {
-            const promises = [];
-            for (const command of data) {
-                const deleteUrl = `${Routes.applicationGuildCommands(clientId, guildId)}/${command.id}`;
-                promises.push(rest.delete(deleteUrl));
-            }
-            return Promise.all(promises);
-        });
+async function removeSlashCommands(guildId) {
+    // Remove all guild application commands for the specified guild (development / cleanup only)
+    try {
+        const data = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
+        if (!Array.isArray(data) || data.length === 0) {
+            console.log(`[ds-deploy-commands] No guild commands to remove for guild ${guildId}`);
+            return `No guild slash commands found for guild ${guildId}`;
+        }
+
+        // 刪除時個別處理 10063 / 404（Unknown application command），避免整批失敗
+        await Promise.all(
+            data.map(command =>
+                rest
+                    .delete(Routes.applicationGuildCommand(clientId, guildId, command.id))
+                    .catch(error => {
+                        const code = error && String(error.code);
+                        const status = error && error.status;
+                        const isUnknownCommand = code === '10063' || status === 404;
+                        if (isUnknownCommand) {
+                            console.warn(
+                                `[ds-deploy-commands] Command ${command.id} already gone (Unknown application command) for guild ${guildId}`,
+                            );
+                            return null;
+                        }
+                        throw error;
+                    }),
+            ),
+        );
+
+        console.log(`[ds-deploy-commands] Removed ${data.length} guild commands for guild ${guildId}`);
+        return `Successfully removed ${data.length} guild slash commands for guild ${guildId}`;
+    } catch (error) {
+        console.error('[ds-deploy-commands] Failed to remove guild commands:', error);
+        return `Failed to remove guild slash commands for guild ${guildId}: ${error.message}`;
+    }
 }
 
 // Public initialization function for external callers

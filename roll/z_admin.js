@@ -141,6 +141,8 @@ const getHelpMessage = async function () {
 │ 　  - 註冊全局指令
 │ 　• .root testRegistered [ID]
 │ 　  - 測試指令註冊狀態
+│ 　• .root removeSlashCommands [ID]
+│ 　  - 移除指定群組的 Slash 指令（未給 ID 則使用目前群組）
 │
 │ 加密功能:
 │ 　• .root decrypt [加密文字]
@@ -397,6 +399,14 @@ const discordCommand = [
                         option.setName('id')
                             .setDescription('指令ID')
                             .setRequired(false)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('removeslashcommands')
+                    .setDescription('移除指定群組的 Slash 指令')
+                    .addStringOption(option =>
+                        option.setName('id')
+                            .setDescription('群組 ID（留空則為目前群組）')
+                            .setRequired(false)))
             // Encryption functions
             .addSubcommand(subcommand =>
                 subcommand
@@ -506,6 +516,14 @@ const discordCommand = [
                     return '錯誤：未提供ID且無法獲取當前群組ID';
                 }
                 return `.root testRegistered ${targetId}`;
+            }
+            case 'removeslashcommands': {
+                const id = interaction.options.getString('id');
+                const targetId = id || interaction.guildId;
+                if (!targetId) {
+                    return '錯誤：未提供ID且無法獲取當前群組ID';
+                }
+                return `.root removeSlashCommands ${targetId}`;
             }
             case 'decrypt': {
                 const text = interaction.options.getString('text');
@@ -925,6 +943,28 @@ const rollDiceCommand = async function ({
                     return rply;
                 }
                 rply.text = await deploy.testRegisteredSlashCommands(targetId);
+                return rply;
+            }
+            case /^removeSlashCommands$/i.test(mainMsg[1]): {
+                const targetId = mainMsg[2] || groupid;
+                console.log('[Admin] .root removeSlashCommands called', {
+                    rawInput: inputStr,
+                    mainMsg,
+                    groupid,
+                    resolvedTargetId: targetId
+                });
+                if (!targetId) {
+                    rply.text = "錯誤：未提供ID且無法獲取當前群組ID";
+                    return rply;
+                }
+                try {
+                    const resultMsg = await deploy.removeSlashCommands(targetId);
+                    console.log('[Admin] removeSlashCommands result', { targetId, resultMsg });
+                    rply.text = resultMsg || `已發送請求，移除群組 ${targetId} 的 Slash 指令`;
+                } catch (error) {
+                    console.error('[Admin] removeSlashCommands error:', error);
+                    rply.text = `移除 Slash 指令失敗：${error.message}`;
+                }
                 return rply;
             }
             case /^respawn$/i.test(mainMsg[1]):

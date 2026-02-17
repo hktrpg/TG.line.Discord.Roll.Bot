@@ -832,7 +832,7 @@ function toMemberResponse(doc) {
 const PATREON_SLOT_RULES = {
     TARGET_ID_MAX: 64,
     NAME_MAX: 50,
-    ALLOWED_PLATFORMS: ['Discord', 'Line', 'Telegram'],
+    ALLOWED_PLATFORMS: ['discord', 'line', 'telegram', 'whatsapp'],
     // Allow common ID tokens only; no whitespace or control chars.
     TARGET_ID_PATTERN: /^[A-Za-z0-9_.:@-]+$/
 };
@@ -847,7 +847,8 @@ const PATREON_SLOT_RULES = {
 function normalizeAndValidatePatreonSlot(rawSlot, index) {
     const slot = rawSlot || {};
     const targetId = String(slot.targetId || '').trim();
-    const targetType = slot.targetType === 'channel' ? 'channel' : 'user';
+    const targetTypeRaw = String(slot.targetType || '').trim();
+    const targetType = targetTypeRaw === 'channel' ? 'channel' : (targetTypeRaw === 'user' ? 'user' : '');
     const platform = String(slot.platform || '').trim();
     const name = String(slot.name || '').trim();
     const sw = !!(slot.switch !== false);
@@ -873,11 +874,32 @@ function normalizeAndValidatePatreonSlot(rawSlot, index) {
         };
     }
 
-    // Keep platform strict to current supported list.
-    if (!PATREON_SLOT_RULES.ALLOWED_PLATFORMS.includes(platform)) {
+    // Empty targetId means this slot is unused: don't force platform selection.
+    if (!targetId) {
+        return {
+            valid: true,
+            slot: {
+                targetId: '',
+                targetType: '',
+                platform: '',
+                name,
+                switch: sw
+            }
+        };
+    }
+
+    if (!targetType) {
         return {
             valid: false,
-            error: `Slot #${index + 1}: invalid platform (Discord/Line/Telegram only)`
+            error: `Slot #${index + 1}: target type is required when targetId is set`
+        };
+    }
+
+    // For used slots, keep platform strict to current supported list.
+    if (!PATREON_SLOT_RULES.ALLOWED_PLATFORMS.includes(platform.toLowerCase())) {
+        return {
+            valid: false,
+            error: `Slot #${index + 1}: invalid platform (Discord/Line/Telegram/WhatsApp only)`
         };
     }
 
@@ -891,6 +913,80 @@ function normalizeAndValidatePatreonSlot(rawSlot, index) {
             switch: sw
         }
     };
+}
+
+function slotHasTarget(slot) {
+    return !!(slot && String(slot.targetId || '').trim());
+}
+
+function formatSlotDetail(slot, index) {
+    const targetId = String((slot && slot.targetId) || '').trim() || '-';
+    const targetType = String((slot && slot.targetType) || '').trim() || '-';
+    const platform = String((slot && slot.platform) || '').trim() || '-';
+    const name = String((slot && slot.name) || '').trim() || '-';
+    return `slot#${index + 1} ${targetId} - ${targetType} - ${platform} - ${name}`;
+}
+
+function buildSlotHistoryEntries(oldSlots, newSlots) {
+    const entries = [];
+    const maxLen = Math.max(oldSlots.length, newSlots.length);
+    for (let i = 0; i < maxLen; i++) {
+        const oldSlot = oldSlots[i] || { targetId: '', targetType: '', platform: '', name: '', switch: true };
+        const newSlot = newSlots[i] || { targetId: '', targetType: '', platform: '', name: '', switch: true };
+        const oldHas = slotHasTarget(oldSlot);
+        const newHas = slotHasTarget(newSlot);
+
+        if (!oldHas && newHas) {
+            entries.push({
+                at: new Date(),
+                action: 'add',
+                source: 'web',
+                reason: 'slot_add',
+                detail: formatSlotDetail(newSlot, i)
+            });
+            continue;
+        }
+        if (oldHas && !newHas) {
+            entries.push({
+                at: new Date(),
+                action: 'remove',
+                source: 'web',
+                reason: 'slot_remove',
+                detail: formatSlotDetail(oldSlot, i)
+            });
+            continue;
+        }
+        if (!oldHas && !newHas) continue;
+
+        const changedMeta = (
+            String(oldSlot.targetId || '') !== String(newSlot.targetId || '') ||
+            String(oldSlot.targetType || '') !== String(newSlot.targetType || '') ||
+            String(oldSlot.platform || '') !== String(newSlot.platform || '') ||
+            String(oldSlot.name || '') !== String(newSlot.name || '')
+        );
+        if (changedMeta) {
+            entries.push({
+                at: new Date(),
+                action: 'update',
+                source: 'web',
+                reason: 'slot_update',
+                detail: `${formatSlotDetail(oldSlot, i)} -> ${formatSlotDetail(newSlot, i)}`
+            });
+        }
+
+        const oldSwitch = !!oldSlot.switch;
+        const newSwitch = !!newSlot.switch;
+        if (oldSwitch !== newSwitch) {
+            entries.push({
+                at: new Date(),
+                action: newSwitch ? 'on' : 'off',
+                source: 'web',
+                reason: 'slot_toggle',
+                detail: formatSlotDetail(newSlot, i)
+            });
+        }
+    }
+    return entries;
 }
 
 www.get('/patreon', async (req, res) => {
@@ -967,9 +1063,15 @@ www.put('/api/patreon/me/slots', async (req, res) => {
             }
             normalizedSlots.push(validated.slot);
         }
+        const oldSlots = Array.isArray(member.slots) ? member.slots : [];
+        const historyEntries = buildSlotHistoryEntries(oldSlots, normalizedSlots);
+        const updateDoc = { $set: { slots: normalizedSlots } };
+        if (historyEntries.length > 0) {
+            updateDoc.$push = { history: { $each: historyEntries } };
+        }
         await schema.patreonMember.updateOne(
             { _id: member._id },
-            { $set: { slots: normalizedSlots } }
+            updateDoc
         );
         const updated = await schema.patreonMember.findOne({ _id: member._id }).lean();
         await patreonSync.syncMemberSlotsToVip(updated);
@@ -1000,9 +1102,22 @@ www.patch('/api/patreon/me/slot/:index', async (req, res) => {
         const body = req.body || {};
         const newSwitch = body.switch !== undefined ? !!body.switch : !member.slots[index].switch;
         member.slots[index].switch = newSwitch;
+        const toggleHistory = slotHasTarget(member.slots[index])
+            ? [{
+                at: new Date(),
+                action: newSwitch ? 'on' : 'off',
+                source: 'web',
+                reason: 'slot_toggle',
+                detail: formatSlotDetail(member.slots[index], index)
+            }]
+            : [];
+        const updateDoc = { $set: { slots: member.slots } };
+        if (toggleHistory.length > 0) {
+            updateDoc.$push = { history: { $each: toggleHistory } };
+        }
         await schema.patreonMember.updateOne(
             { _id: member._id },
-            { $set: { slots: member.slots } }
+            updateDoc
         );
         await patreonSync.syncSlotToVip(
             member.slots[index],

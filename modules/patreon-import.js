@@ -193,7 +193,10 @@ async function runImport(csvContent, options = {}) {
                     await patreonSync.clearVipEntriesByPatreonKey(existing);
                     await schema.patreonMember.updateOne(
                         { patreonName: name },
-                        { $set: { switch: false }, $push: { history: { at: new Date(), action: 'off' } } }
+                        {
+                            $set: { switch: false },
+                            $push: { history: { at: new Date(), action: 'off', source: 'import', reason: 'former_patron' } }
+                        }
                     );
                     report.push(`[Former patron] ${name} → 已關閉權限`);
                     summary.offFormer++;
@@ -211,7 +214,10 @@ async function runImport(csvContent, options = {}) {
                     await patreonSync.clearVipEntriesByPatreonKey(existing);
                     await schema.patreonMember.updateOne(
                         { patreonName: name },
-                        { $set: { switch: false }, $push: { history: { at: new Date(), action: 'off' } } }
+                        {
+                            $set: { switch: false },
+                            $push: { history: { at: new Date(), action: 'off', source: 'import', reason: 'not_active' } }
+                        }
                     );
                     report.push(`[Not Active] ${name} → 已關閉權限`);
                     summary.offNotActive++;
@@ -244,7 +250,7 @@ async function runImport(csvContent, options = {}) {
                 const normalized = (key || '').replaceAll(/\s/g, '').replaceAll(/-/g, '').toUpperCase();
                 const keyHash = security.hashPatreonKey(normalized);
                 const keyEncrypted = security.encryptWithCryptoSecret(key);
-                const historyEntry = { at: new Date(), action: 'on' };
+                const historyEntry = { at: new Date(), action: 'on', source: 'import', reason: 'new_active_member' };
                 const newDoc = await schema.patreonMember.create({
                     patreonName: name,
                     keyHash,
@@ -274,20 +280,25 @@ async function runImport(csvContent, options = {}) {
 
         // Existing: update level, encrypted fields, lastUpdated; ensure ON (no KEY regen)
         try {
-            const historyEntry = { at: new Date(), action: 'on' };
+            const shouldTurnOn = !existing.switch;
+            const updateDoc = {
+                $set: {
+                    level,
+                    name: name,
+                    switch: true,
+                    emailEncrypted,
+                    discordEncrypted,
+                    lastUpdatedFromPatreon: lastUpdatedDate || new Date()
+                }
+            };
+            if (shouldTurnOn) {
+                updateDoc.$push = {
+                    history: { at: new Date(), action: 'on', source: 'import', reason: 'reactivated_by_import' }
+                };
+            }
             await schema.patreonMember.updateOne(
                 { patreonName: name },
-                {
-                    $set: {
-                        level,
-                        name: name,
-                        switch: true,
-                        emailEncrypted,
-                        discordEncrypted,
-                        lastUpdatedFromPatreon: lastUpdatedDate || new Date()
-                    },
-                    $push: { history: historyEntry }
-                },
+                updateDoc,
                 { runValidators: true }
             );
             const doc = await schema.patreonMember.findOne({ patreonName: name });

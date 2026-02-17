@@ -236,7 +236,10 @@ const patreonMemberSchema = mongoose.model('patreonMember', new mongoose.Schema(
     lastUpdatedFromPatreon: Date,
     history: [{
         at: { type: Date, default: Date.now },
-        action: { type: String, enum: ['on', 'off'] }
+        action: { type: String, enum: ['on', 'off', 'add', 'remove', 'update'] },
+        source: String,
+        reason: String,
+        detail: String
     }],
     slots: [{
         targetId: String,

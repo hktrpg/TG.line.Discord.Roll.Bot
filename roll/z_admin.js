@@ -58,6 +58,7 @@ const getHelpMessage = async function () {
 │ 　• .admin id
 │ 　  - 自動顯示你的用戶ID
 │ 　  - 自動顯示當前群組ID
+│ 　  - 所有平台皆可使用
 │
 │ 除錯功能:
 │ 　• .admin debug
@@ -1013,7 +1014,12 @@ const rollDiceCommand = async function ({
                 }
                 try {
                     const existed = await schema.patreonMember.findOne({ patreonName }).lean();
-                    const historyEntry = { at: new Date(), action: switchOn ? 'on' : 'off' };
+                    const historyEntry = {
+                        at: new Date(),
+                        action: switchOn ? 'on' : 'off',
+                        source: 'admin',
+                        reason: existed ? 'admin_update' : 'admin_create'
+                    };
                     const setFields = { level, notes, switch: switchOn, name: patreonName };
                     let newKeyPlain = null;
                     if (!existed) {
@@ -1087,7 +1093,10 @@ const rollDiceCommand = async function ({
                 try {
                     doc = await schema.patreonMember.findOneAndUpdate(
                         { patreonName: patreonNameOn },
-                        { $set: { switch: true }, $push: { history: { at: new Date(), action: 'on' } } },
+                        {
+                            $set: { switch: true },
+                            $push: { history: { at: new Date(), action: 'on', source: 'admin', reason: 'manual_on' } }
+                        },
                         { new: true }
                     );
                     if (!doc) {
@@ -1117,7 +1126,10 @@ const rollDiceCommand = async function ({
                     await patreonSync.clearVipEntriesByPatreonKey(doc);
                     await schema.patreonMember.updateOne(
                         { patreonName: patreonNameOff },
-                        { $set: { switch: false }, $push: { history: { at: new Date(), action: 'off' } } }
+                        {
+                            $set: { switch: false },
+                            $push: { history: { at: new Date(), action: 'off', source: 'admin', reason: 'manual_off' } }
+                        }
                     );
                     rply.text = `已關閉 Patreon 會員: ${patreonNameOff}，並已收回其分配的 VIP`;
                 } catch (error) {

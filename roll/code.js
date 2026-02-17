@@ -1,62 +1,215 @@
 "use strict";
-const variables = {};
 const axios = require('axios');
+const { SlashCommandBuilder } = require('discord.js');
+
+const variables = {};
+const COMMAND_COOLDOWN_MS = 10_000;
+const OUTPUT_LIMIT = 1500;
+const JDOODLE_ENDPOINT = process.env.JDOODLE_ENDPOINT;
+const JDOODLE_CLIENT_ID = process.env.JDOODLE_CLIENT_ID;
+const JDOODLE_CLIENT_SECRET = process.env.JDOODLE_CLIENT_SECRET;
+const POPULAR_LANGUAGES = ['javascript', 'typescript', 'python', 'java', 'c', 'c++', 'go', 'rust', 'php', 'ruby'];
+const JDoodleLanguageMap = {
+    javascript: { language: 'nodejs', versionIndex: process.env.JDOODLE_VERSION_NODEJS || '4' },
+    typescript: { language: 'typescript', versionIndex: process.env.JDOODLE_VERSION_TYPESCRIPT || '4' },
+    python: { language: 'python3', versionIndex: process.env.JDOODLE_VERSION_PYTHON || '4' },
+    java: { language: 'java', versionIndex: process.env.JDOODLE_VERSION_JAVA || '4' },
+    c: { language: 'c', versionIndex: process.env.JDOODLE_VERSION_C || '5' },
+    'c++': { language: 'cpp17', versionIndex: process.env.JDOODLE_VERSION_CPP || '0' },
+    go: { language: 'go', versionIndex: process.env.JDOODLE_VERSION_GO || '4' },
+    rust: { language: 'rust', versionIndex: process.env.JDOODLE_VERSION_RUST || '4' },
+    php: { language: 'php', versionIndex: process.env.JDOODLE_VERSION_PHP || '4' },
+    ruby: { language: 'ruby', versionIndex: process.env.JDOODLE_VERSION_RUBY || '4' }
+};
+const LANGUAGE_ALIAS = {
+    js: 'javascript',
+    nodejs: 'javascript',
+    ts: 'typescript',
+    py: 'python',
+    python3: 'python',
+    cpp: 'c++',
+    cxx: 'c++',
+    cc: 'c++',
+    cpp17: 'c++',
+    golang: 'go',
+    rs: 'rust',
+    rb: 'ruby'
+};
+const userCooldown = new Map();
+
 const gameName = function () {
-    return '【.code [語言] [指令]】'
-}
+    return '[.code lang code]';
+};
 const gameType = function () {
-    return 'funny:code:hktrpg'
-}
+    return 'funny:code:hktrpg';
+};
 const prefixs = function () {
-    //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
-    //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
-    //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
-    ///^(?=.*he)(?!.*da).*$/ig
     return [{
-        first: /^\.code$/i,second: null
-    }]
-}
+        first: /^\.code$/i,
+        second: null
+    }];
+};
 const getHelpMessage = function () {
-    return `【🔠程式碼執行系統】
-╭────── 💻代碼運行 ──────
-│ 指令格式:
-│ .code [程式語言] 
-│ [程式碼內容]
-│
-│ 🛠️系統說明:
-│ 　• 使用Piston API執行程式
-│ 　• 即時編譯並返回結果
-│ 　• 支援多行程式碼
-│
-│ ✅支援的程式語言:
-│ 　• JavaScript (js)
-│ 　• Java (java)
-│
-│ 📝使用範例:
-.code js
-console.log("Hello World!");
-│
-.code java
-public class Main {
-public static void main(String[] args) {
-         System.out.println("Hello World!");
-     }
- }
-╰──────────────`
-}
+    return [
+        'HKTRPG',
+        '[Code Playground - JDoodle]',
+        'Usage:',
+        '.code list',
+        '.code <lang> <code>',
+        '',
+        'Examples:',
+        '.code py print("Hello")',
+        '.code cpp #include <iostream> ...',
+        '',
+        'Popular languages:',
+        'javascript, typescript, python, java, c, c++, go, rust, php, ruby',
+        '',
+        'Required env:',
+        'JDOODLE_CLIENT_ID, JDOODLE_CLIENT_SECRET, JDOODLE_ENDPOINT'
+    ].join('\n');
+};
 const initialize = function () {
     return variables;
+};
+
+class JDoodleService {
+    resolveLanguage(languageInput) {
+        const normalized = String(languageInput || '').trim().toLowerCase();
+        const canonical = LANGUAGE_ALIAS[normalized] || normalized;
+        if (!JDoodleLanguageMap[canonical]) {
+            return null;
+        }
+        return {
+            canonical,
+            ...JDoodleLanguageMap[canonical]
+        };
+    }
+
+    getPopularLanguageList() {
+        return POPULAR_LANGUAGES.filter(language => Boolean(JDoodleLanguageMap[language]));
+    }
+
+    prepareCode(canonicalLanguage, code) {
+        const trimmed = stripCodeBlock(code).trim();
+        if (canonicalLanguage === 'java' && !/\bclass\s+\w+/i.test(trimmed)) {
+            return `public class Main {\n  public static void main(String[] args) {\n    ${trimmed}\n  }\n}`;
+        }
+        return trimmed;
+    }
+
+    async run(languageInput, code) {
+        if (!JDOODLE_CLIENT_ID || !JDOODLE_CLIENT_SECRET) {
+            return { error: 'missing-jdoodle-credentials' };
+        }
+
+        const runtime = this.resolveLanguage(languageInput);
+        if (!runtime) return { error: 'unsupported-language' };
+
+        const preparedCode = this.prepareCode(runtime.canonical, code);
+        const response = await axios.post(JDOODLE_ENDPOINT, {
+            clientId: JDOODLE_CLIENT_ID,
+            clientSecret: JDOODLE_CLIENT_SECRET,
+            script: preparedCode,
+            language: runtime.language,
+            versionIndex: runtime.versionIndex,
+            stdin: ''
+        }, { timeout: 15_000 });
+
+        return { runtime, data: response.data || {} };
+    }
 }
 
-const rollDiceCommand = async function ({
-    inputStr,
-    mainMsg
-}) {
-    let rply = {
+const jdoodleService = new JDoodleService();
+
+function stripCodeBlock(code) {
+    const raw = String(code || '').trim();
+    if (!raw.startsWith('```')) return raw;
+    return raw.replace(/^```[\w#+.-]*\s*/i, '').replace(/\s*```$/i, '').trim();
+}
+
+function extractCodeText(inputStr) {
+    const text = String(inputStr || '');
+    const pattern = /^\.code\s+\S+\s*/i;
+    return text.replace(pattern, '').trim();
+}
+
+function formatResultText(result) {
+    const output = String(result?.output || result?.stderr || result?.error || 'No output').trim();
+    if (output.length <= OUTPUT_LIMIT) return output;
+    return `${output.slice(0, OUTPUT_LIMIT)}\n...(truncated)`;
+}
+
+function formatLanguageExamples(languages) {
+    const numberEmojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+    const examples = {
+        javascript: '.code js console.log("Hello JS");',
+        typescript: '.code ts const n:number = 7; console.log(n);',
+        python: '.code py print("Hello Python")',
+        java: '.code java System.out.println("Hello Java");',
+        c: '.code c\n```c\n#include <stdio.h>\nint main() {\n  printf("Hello C\\n");\n  return 0;\n}\n```',
+        'c++': '.code cpp\n```cpp\n#include <iostream>\nint main() {\n  std::cout << "Hello C++" << std::endl;\n  return 0;\n}\n```',
+        go: '.code go package main; import "fmt"; func main(){fmt.Println("Hello Go")}',
+        rust: '.code rs fn main(){println!("Hello Rust");}',
+        php: '.code php <?php echo "Hello PHP\\n";',
+        ruby: '.code rb puts "Hello Ruby"'
+    };
+
+    return languages
+        .map((language, index) => `${numberEmojis[index] || `${index + 1}.`} ${language}\n${examples[language] || `.code ${language} ...`}`)
+        .join('\n\n');
+}
+
+function buildExecutionErrorMessage(error) {
+    const status = error?.response?.status;
+    if (status === 401) {
+        return 'JDoodle request rejected (401). Check JDOODLE_CLIENT_ID/JDOODLE_CLIENT_SECRET.';
+    }
+    if (status === 403) {
+        return 'JDoodle request rejected (403). Account or quota may be restricted.';
+    }
+    if (status === 429) {
+        return 'JDoodle rate limit reached (429). Please try again later.';
+    }
+    if (status) {
+        return `Execution failed (HTTP ${status}), try again later.`;
+    }
+    return 'Execution failed, try again later.';
+}
+
+function checkUserCooldown(userid) {
+    if (!userid) return null;
+    const now = Date.now();
+    const previous = userCooldown.get(userid) || 0;
+    const waitMs = previous + COMMAND_COOLDOWN_MS - now;
+    if (waitMs > 0) return Math.ceil(waitMs / 1000);
+    return null;
+}
+function markUserCooldown(userid) {
+    if (!userid) return;
+    userCooldown.set(userid, Date.now());
+}
+
+function isCodeServiceEnabled() {
+    return Boolean(
+        String(JDOODLE_CLIENT_ID || '').trim() &&
+        String(JDOODLE_CLIENT_SECRET || '').trim() &&
+        String(JDOODLE_ENDPOINT || '').trim()
+    );
+}
+
+const rollDiceCommand = async function ({ inputStr, mainMsg, userid }) {
+    const rply = {
         default: 'on',
         type: 'text',
         text: ''
     };
+    const subCommand = (mainMsg[1] || '').toLowerCase();
+
+    if (!isCodeServiceEnabled()) {
+        rply.text = 'Code playground is not enabled. Please set JDOODLE_CLIENT_ID, JDOODLE_CLIENT_SECRET and JDOODLE_ENDPOINT.';
+        return rply;
+    }
+
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = this.getHelpMessage();
@@ -64,94 +217,107 @@ const rollDiceCommand = async function ({
             return rply;
         }
 
-        case /^java/i.test(mainMsg[1] || ''): {
-            const code = inputStr.replace(/\.code\s+java\s?/i, '');
-            const java = new Java(code);
-            const result = await java.run();
-            rply.text = result.run.output;
+        case /^(langs?|list)$/i.test(subCommand): {
+            try {
+                const available = jdoodleService.getPopularLanguageList();
+                rply.text = available.length > 0
+                    ? [
+                        '[Popular Languages + Examples]',
+                        formatLanguageExamples(available)
+                    ].join('\n')
+                    : 'Cannot fetch language list now, try again later.';
+            } catch (error) {
+                console.error('[code] Language list error:', error.message);
+                rply.text = buildExecutionErrorMessage(error);
+            }
             return rply;
         }
 
-        case /^js/i.test(mainMsg[1] || ''): {
-            const code = inputStr.replace(/\.code\s+js\s?/i, '');
-            const js = new JS(code);
-            const result = await js.run();
-            rply.text = result.run.output;
+        case /^\S/.test(mainMsg[1] || ''): {
+            const waitSeconds = checkUserCooldown(userid);
+            if (waitSeconds) {
+                rply.text = `Please wait ${waitSeconds}s before next run.`;
+                return rply;
+            }
+
+            const code = extractCodeText(inputStr);
+            if (!code) {
+                rply.text = 'Please provide code content.';
+                return rply;
+            }
+
+            try {
+                const execution = await jdoodleService.run(mainMsg[1], code);
+                if (execution.error === 'missing-jdoodle-credentials') {
+                    rply.text = 'Missing JDoodle credentials. Set JDOODLE_CLIENT_ID and JDOODLE_CLIENT_SECRET.';
+                    return rply;
+                }
+                if (execution.error === 'unsupported-language') {
+                    rply.text = 'Unsupported language. Use .code langs';
+                    return rply;
+                }
+                markUserCooldown(userid);
+                rply.text = `[${execution.runtime.canonical}]\n${formatResultText(execution.data)}`;
+            } catch (error) {
+                console.error('[code] JDoodle execute error:', error.message);
+                rply.text = buildExecutionErrorMessage(error);
+            }
             return rply;
         }
 
-        default: {
-            break;
+        default:
+            return rply;
+    }
+};
+
+const discordCommand = [
+    {
+        data: new SlashCommandBuilder()
+            .setName('code')
+            .setDescription('Run code with JDoodle playground')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('list')
+                    .setDescription('Show popular language list and examples'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('run')
+                    .setDescription('Run code')
+                    .addStringOption(option =>
+                        option.setName('lang')
+                            .setDescription('Choose a language')
+                            .addChoices(
+                                { name: 'JavaScript (js)', value: 'js' },
+                                { name: 'TypeScript (ts)', value: 'ts' },
+                                { name: 'Python (py)', value: 'py' },
+                                { name: 'Java', value: 'java' },
+                                { name: 'C', value: 'c' },
+                                { name: 'C++ (cpp)', value: 'cpp' },
+                                { name: 'Go', value: 'go' },
+                                { name: 'Rust (rs)', value: 'rs' },
+                                { name: 'PHP', value: 'php' },
+                                { name: 'Ruby (rb)', value: 'rb' }
+                            )
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('content')
+                            .setDescription('Code content to execute')
+                            .setRequired(true))),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+
+            if (subcommand === 'list') {
+                return '.code list';
+            }
+            if (subcommand === 'run') {
+                const lang = interaction.options.getString('lang') || '';
+                const content = interaction.options.getString('content') || '';
+                return `.code ${lang} ${content}`;
+            }
+            return '.code';
         }
     }
-}
-
-class Piston {
-    constructor() {
-        this.url = "https://emkc.org/api/v2/piston/execute";
-        this.args = [];
-        this.stdin = '';
-        this.compile_timeout = 10_000;
-        this.run_timeout = 3000;
-        this.compile_memory_limit = -1;
-        this.run_memory_limit = -1;
-
-    }
-    async run() {
-        try {
-            const response = await axios.post(this.url, {
-                language: this.language,
-                version: this.version,
-                files: [
-                    {
-                        name: this.name,
-                        content: this.code
-                    }
-                ],
-                args: this.args,
-                stdin: this.stdin,
-                compile_timeout: this.compile_timeout,
-                run_timeout: this.run_timeout,
-                compile_memory_limit: this.compile_memory_limit,
-                run_memory_limit: this.run_memory_limit
-            });
-            return response.data;
-        }
-        catch (error) {
-            console.error(error);
-            return "error";
-        }
-    }
-}
-
-
-class JS extends Piston {
-    constructor(code) {
-        super();
-        this.code = code;
-        this.language = "javascript";
-        this.name = "temp.js";
-        this.version = "18.15.0";
-    }
-}
-
-class Java extends Piston {
-    constructor(code) {
-        super();
-        this.name = "main.java";
-        this.code = (code.includes("class ")) ? code : `
-        import java.util.*;
-public class main {
-  public static void main(String[] args) {
-   ${code}
-  }
-}`;
-        this.language = "java";
-        this.version = "15.0.2";
-    }
-}
-
-const discordCommand = []
+];
 const webCommand = false;
 module.exports = {
     rollDiceCommand,
@@ -163,373 +329,3 @@ module.exports = {
     discordCommand,
     webCommand
 };
-
-/**
-
-[{
-    "language": "matl",
-    "version": "22.5.0",
-    "aliases": []
-}, {
-    "language": "matl",
-    "version": "22.7.4",
-    "aliases": []
-}, {
-    "language": "bash",
-    "version": "5.2.0",
-    "aliases": ["sh"]
-}, {
-    "language": "befunge93",
-    "version": "0.2.0",
-    "aliases": ["b93"]
-}, {
-    "language": "bqn",
-    "version": "1.0.0",
-    "aliases": []
-}, {
-    "language": "brachylog",
-    "version": "1.0.0",
-    "aliases": []
-}, {
-    "language": "brainfuck",
-    "version": "2.7.3",
-    "aliases": ["bf"]
-}, {
-    "language": "cjam",
-    "version": "0.6.5",
-    "aliases": []
-}, {
-    "language": "clojure",
-    "version": "1.10.3",
-    "aliases": ["clojure", "clj"]
-}, {
-    "language": "cobol",
-    "version": "3.1.2",
-    "aliases": ["cob"]
-}, {
-    "language": "coffeescript",
-    "version": "2.5.1",
-    "aliases": ["coffeescript", "coffee"]
-}, {
-    "language": "cow",
-    "version": "1.0.0",
-    "aliases": ["cow"]
-}, {
-    "language": "crystal",
-    "version": "0.36.1",
-    "aliases": ["crystal", "cr"]
-}, {
-    "language": "dart",
-    "version": "2.19.6",
-    "aliases": []
-}, {
-    "language": "dash",
-    "version": "0.5.11",
-    "aliases": ["dash"]
-}, {
-    "language": "typescript",
-    "version": "1.32.3",
-    "aliases": ["deno", "deno-ts"],
-    "runtime": "deno"
-}, {
-    "language": "javascript",
-    "version": "1.32.3",
-    "aliases": ["deno-js"],
-    "runtime": "deno"
-}, {
-    "language": "basic.net",
-    "version": "5.0.201",
-    "aliases": ["basic", "visual-basic", "visual-basic.net", "vb", "vb.net", "vb-dotnet", "dotnet-vb", "basic-dotnet", "dotnet-basic"],
-    "runtime": "dotnet"
-}, {
-    "language": "fsharp.net",
-    "version": "5.0.201",
-    "aliases": ["fsharp", "fs", "f#", "fs.net", "f#.net", "fsharp-dotnet", "fs-dotnet", "f#-dotnet", "dotnet-fsharp", "dotnet-fs", "dotnet-fs"],
-    "runtime": "dotnet"
-}, {
-    "language": "csharp.net",
-    "version": "5.0.201",
-    "aliases": ["csharp", "c#", "cs", "c#.net", "cs.net", "c#-dotnet", "cs-dotnet", "csharp-dotnet", "dotnet-c#", "dotnet-cs", "dotnet-csharp"],
-    "runtime": "dotnet"
-}, {
-    "language": "fsi",
-    "version": "5.0.201",
-    "aliases": ["fsx", "fsharp-interactive", "f#-interactive", "dotnet-fsi", "fsi-dotnet", "fsi.net"],
-    "runtime": "dotnet"
-}, {
-    "language": "dragon",
-    "version": "1.9.8",
-    "aliases": []
-}, {
-    "language": "elixir",
-    "version": "1.11.3",
-    "aliases": ["elixir", "exs"]
-}, {
-    "language": "emacs",
-    "version": "27.1.0",
-    "aliases": ["emacs", "el", "elisp"]
-}, {
-    "language": "emojicode",
-    "version": "1.0.2",
-    "aliases": ["emojic"]
-}, {
-    "language": "erlang",
-    "version": "23.0.0",
-    "aliases": ["erlang", "erl", "escript"]
-}, {
-    "language": "file",
-    "version": "0.0.1",
-    "aliases": ["executable", "elf", "binary"]
-}, {
-    "language": "forte",
-    "version": "1.0.0",
-    "aliases": ["forter"]
-}, {
-    "language": "forth",
-    "version": "0.7.3",
-    "aliases": ["gforth"]
-}, {
-    "language": "freebasic",
-    "version": "1.9.0",
-    "aliases": ["bas", "fbc", "basic", "qbasic", "quickbasic"]
-}, {
-    "language": "awk",
-    "version": "5.1.0",
-    "aliases": ["gawk"],
-    "runtime": "gawk"
-}, {
-    "language": "c",
-    "version": "10.2.0",
-    "aliases": ["gcc"],
-    "runtime": "gcc"
-}, {
-    "language": "c++",
-    "version": "10.2.0",
-    "aliases": ["cpp", "g++"],
-    "runtime": "gcc"
-}, {
-    "language": "d",
-    "version": "10.2.0",
-    "aliases": ["gdc"],
-    "runtime": "gcc"
-}, {
-    "language": "fortran",
-    "version": "10.2.0",
-    "aliases": ["fortran", "f90"],
-    "runtime": "gcc"
-}, {
-    "language": "go",
-    "version": "1.16.2",
-    "aliases": ["go", "golang"]
-}, {
-    "language": "golfscript",
-    "version": "1.0.0",
-    "aliases": ["golfscript"]
-}, {
-    "language": "groovy",
-    "version": "3.0.7",
-    "aliases": ["groovy", "gvy"]
-}, {
-    "language": "haskell",
-    "version": "9.0.1",
-    "aliases": ["haskell", "hs"]
-}, {
-    "language": "husk",
-    "version": "1.0.0",
-    "aliases": []
-}, {
-    "language": "iverilog",
-    "version": "11.0.0",
-    "aliases": ["verilog", "vvp"]
-}, {
-    "language": "japt",
-    "version": "2.0.0",
-    "aliases": ["japt"]
-}, {
-    "language": "java",
-    "version": "15.0.2",
-    "aliases": []
-}, {
-    "language": "jelly",
-    "version": "0.1.31",
-    "aliases": []
-}, {
-    "language": "julia",
-    "version": "1.8.5",
-    "aliases": ["jl"]
-}, {
-    "language": "kotlin",
-    "version": "1.8.20",
-    "aliases": ["kt"]
-}, {
-    "language": "lisp",
-    "version": "2.1.2",
-    "aliases": ["lisp", "cl", "sbcl", "commonlisp"]
-}, {
-    "language": "llvm_ir",
-    "version": "12.0.1",
-    "aliases": ["llvm", "llvm-ir", "ll"]
-}, {
-    "language": "lolcode",
-    "version": "0.11.2",
-    "aliases": ["lol", "lci"]
-}, {
-    "language": "lua",
-    "version": "5.4.4",
-    "aliases": []
-}, {
-    "language": "csharp",
-    "version": "6.12.0",
-    "aliases": ["mono", "mono-csharp", "mono-c#", "mono-cs", "c#", "cs"],
-    "runtime": "mono"
-}, {
-    "language": "basic",
-    "version": "6.12.0",
-    "aliases": ["vb", "mono-vb", "mono-basic", "visual-basic", "visual basic"],
-    "runtime": "mono"
-}, {
-    "language": "nasm",
-    "version": "2.15.5",
-    "aliases": ["asm", "nasm32"],
-    "runtime": "nasm"
-}, {
-    "language": "nasm64",
-    "version": "2.15.5",
-    "aliases": ["asm64"],
-    "runtime": "nasm"
-}, {
-    "language": "nim",
-    "version": "1.6.2",
-    "aliases": []
-}, {
-    "language": "javascript",
-    "version": "18.15.0",
-    "aliases": ["node-javascript", "node-js", "javascript", "js"],
-    "runtime": "node"
-}, {
-    "language": "ocaml",
-    "version": "4.12.0",
-    "aliases": ["ocaml", "ml"]
-}, {
-    "language": "octave",
-    "version": "8.1.0",
-    "aliases": ["matlab", "m"]
-}, {
-    "language": "osabie",
-    "version": "1.0.1",
-    "aliases": ["osabie", "05AB1E", "usable"]
-}, {
-    "language": "paradoc",
-    "version": "0.6.0",
-    "aliases": ["paradoc"]
-}, {
-    "language": "pascal",
-    "version": "3.2.2",
-    "aliases": ["freepascal", "pp", "pas"]
-}, {
-    "language": "perl",
-    "version": "5.36.0",
-    "aliases": ["pl"]
-}, {
-    "language": "php",
-    "version": "8.2.3",
-    "aliases": []
-}, {
-    "language": "ponylang",
-    "version": "0.39.0",
-    "aliases": ["pony", "ponyc"]
-}, {
-    "language": "prolog",
-    "version": "8.2.4",
-    "aliases": ["prolog", "plg"]
-}, {
-    "language": "pure",
-    "version": "0.68.0",
-    "aliases": []
-}, {
-    "language": "powershell",
-    "version": "7.1.4",
-    "aliases": ["ps", "pwsh", "ps1"],
-    "runtime": "pwsh"
-}, {
-    "language": "pyth",
-    "version": "1.0.0",
-    "aliases": ["pyth"]
-}, {
-    "language": "python2",
-    "version": "2.7.18",
-    "aliases": ["py2", "python2"]
-}, {
-    "language": "python",
-    "version": "3.10.0",
-    "aliases": ["py", "py3", "python3", "python3.10"]
-}, {
-    "language": "racket",
-    "version": "8.3.0",
-    "aliases": ["rkt"]
-}, {
-    "language": "raku",
-    "version": "6.100.0",
-    "aliases": ["raku", "rakudo", "perl6", "p6", "pl6"]
-}, {
-    "language": "retina",
-    "version": "1.2.0",
-    "aliases": ["ret"]
-}, {
-    "language": "rockstar",
-    "version": "1.0.0",
-    "aliases": ["rock", "rocky"]
-}, {
-    "language": "rscript",
-    "version": "4.1.1",
-    "aliases": ["r"]
-}, {
-    "language": "ruby",
-    "version": "3.0.1",
-    "aliases": ["ruby3", "rb"]
-}, {
-    "language": "rust",
-    "version": "1.68.2",
-    "aliases": ["rs"]
-}, {
-    "language": "samarium",
-    "version": "0.3.1",
-    "aliases": ["sm"]
-}, {
-    "language": "scala",
-    "version": "3.2.2",
-    "aliases": ["sc"]
-}, {
-    "language": "smalltalk",
-    "version": "3.2.3",
-    "aliases": ["st"]
-}, {
-    "language": "sqlite3",
-    "version": "3.36.0",
-    "aliases": ["sqlite", "sql"]
-}, {
-    "language": "swift",
-    "version": "5.3.3",
-    "aliases": ["swift"]
-}, {
-    "language": "typescript",
-    "version": "5.0.3",
-    "aliases": ["ts", "node-ts", "tsc", "typescript5", "ts5"]
-}, {
-    "language": "vlang",
-    "version": "0.3.3",
-    "aliases": ["v"]
-}, {
-    "language": "vyxal",
-    "version": "2.4.1",
-    "aliases": []
-}, {
-    "language": "yeethon",
-    "version": "3.10.0",
-    "aliases": ["yeethon3"]
-}, {
-    "language": "zig",
-    "version": "0.10.1",
-    "aliases": []
-}]
-*/

@@ -131,10 +131,10 @@
             </div>
 
             <h3 class="h6 mb-2">名額分配</h3>
-            <p class="text-muted small mb-1">設定每個名額要授予給哪個帳號或頻道，儲存後即會同步 VIP 權限。</p>
+            <p class="text-muted small mb-1">設定每個名額要授予給哪個帳號或伺服器(群組)，儲存後即會同步 VIP 權限。</p>
             <p class="text-muted small mb-2">
                 欄位說明：<br>
-                • <strong>目標 ID</strong>：要授權的使用者 ID 或頻道 ID（例：Discord User ID / Channel ID）<br>
+                • <strong>目標 ID</strong>：要授權的使用者 ID 或伺服器(群組) ID（例：Discord User ID / Channel ID）<br>
                 • <strong>ID 類型</strong>：選擇這筆 ID 是 User 還是 Channel<br>
                 • <strong>平台</strong>：此 ID 所屬平台（Discord / Line / Telegram）<br>
                 • <strong>顯示名稱</strong>：備註用名稱，方便你辨識對象（可留空）<br>
@@ -142,7 +142,7 @@
             </p>
             <p class="text-muted small mb-2">
                 如何取得 ID：<br>
-                • <strong>Discord</strong>：到「使用者設定 → 進階」開啟「開發者模式」，右鍵使用者或頻道後選「複製 ID」<br>
+                • <strong>Discord</strong>：可在目標伺服器(群組)直接輸入 <code>.admin id</code> 取得你的用戶ID與群組ID；或到「使用者設定 → 進階」開啟「開發者模式」後右鍵複製 ID<br>
                 • <strong>Line</strong>：請先用機器人提供的查詢指令/綁定流程取得對應 ID（不同群組與用戶 ID 不同）<br>
                 • <strong>Telegram</strong>：可透過機器人查詢指令或 @userinfobot 類工具查 User ID / Chat ID
             </p>
@@ -304,7 +304,7 @@
                     row.className = 'row slot-row mb-2 border-bottom pb-2';
                     row.innerHTML =
                         '<div class="col-12 col-md-3"><input type="text" class="form-control form-control-sm slot-targetId" placeholder="目標 ID（User / Channel）" value="' + (s.targetId || '').replace(/"/g, '&quot;') + '"></div>' +
-                        '<div class="col-6 col-md-2"><select class="form-control form-control-sm slot-targetType"><option value="user"' + (s.targetType === 'channel' ? '' : ' selected') + '>User</option><option value="channel"' + (s.targetType === 'channel' ? ' selected' : '') + '>Channel</option></select></div>' +
+                        '<div class="col-6 col-md-2"><select class="form-control form-control-sm slot-targetType"><option value="user"' + (s.targetType === 'channel' ? '' : ' selected') + '>使用者</option><option value="channel"' + (s.targetType === 'channel' ? ' selected' : '') + '>伺服器(群組)</option></select></div>' +
                         '<div class="col-6 col-md-2"><select class="form-control form-control-sm slot-platform"><option value="Discord"' + (s.platform === 'Discord' ? ' selected' : '') + '>Discord</option><option value="Line"' + (s.platform === 'Line' ? ' selected' : '') + '>Line</option><option value="Telegram"' + (s.platform === 'Telegram' ? ' selected' : '') + '>Telegram</option></select></div>' +
                         '<div class="col-8 col-md-2"><input type="text" class="form-control form-control-sm slot-name" placeholder="顯示名稱（可留空）" value="' + (s.name || '').replace(/"/g, '&quot;') + '"></div>' +
                         '<div class="col-4 col-md-2"><button type="button" class="btn btn-sm btn-slot-toggle ' + (s.switch ? 'btn-success' : 'btn-outline-secondary') + '" data-index="' + i + '" data-switch="' + (s.switch ? '1' : '0') + '">' + (s.switch ? 'ON' : 'OFF') + '</button></div>';

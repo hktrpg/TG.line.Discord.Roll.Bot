@@ -54,6 +54,11 @@ const getHelpMessage = async function () {
 │ 　  - 檢視Rollbot運行狀態
 │ 　  - 顯示系統資源使用
 │
+│ ID查詢:
+│ 　• .admin id
+│ 　  - 自動顯示你的用戶ID
+│ 　  - 自動顯示當前群組ID
+│
 │ 除錯功能:
 │ 　• .admin debug
 │ 　  - 取得群組詳細資料
@@ -171,6 +176,10 @@ const discordCommand = [
                     .setDescription('取得群組詳細資料，顯示設定狀態'))
             .addSubcommand(subcommand =>
                 subcommand
+                    .setName('id')
+                    .setDescription('顯示自己的用戶ID與當前群組ID'))
+            .addSubcommand(subcommand =>
+                subcommand
                     .setName('mongod')
                     .setDescription('檢視MongoDB連接狀態'))
             // Account management
@@ -225,6 +234,9 @@ const discordCommand = [
             }
             case 'debug': {
                 return '.admin debug';
+            }
+            case 'id': {
+                return '.admin id';
             }
             case 'mongod': {
                 return '.admin mongod';
@@ -595,6 +607,22 @@ const rollDiceCommand = async function ({
                 if (!password) return rply;
                 rply.text = 'Debug encrypt Data: \n' + security.encryptWithCryptoSecret(rply.text);
                 return rply;
+            case /^id$/i.test(mainMsg[1]): {
+                const currentUserId = userid || 'N/A';
+                const currentGroupId = groupid || '（目前為私訊，無群組ID）';
+                const currentChannelId = channelid || 'N/A';
+                rply.text = [
+                    '【ID 查詢】',
+                    `用戶ID: ${currentUserId}`,
+                    `群組ID: ${currentGroupId}`,
+                    `頻道ID: ${currentChannelId}`,
+                    '',
+                    'Patreon 管理頁:',
+                    'https://patreon.hktrpg.com',
+                    '（以上 ID 可用於 Patreon 管理頁的名額分配設定）'
+                ].join('\n');
+                return rply;
+            }
             case /^mongod$/i.test(mainMsg[1]): {
                 if (!adminSecret) return rply;
                 if (userid !== adminSecret) return rply;

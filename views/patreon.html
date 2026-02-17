@@ -130,8 +130,22 @@
                 </div>
             </div>
 
-            <h3 class="h6 mb-2">名額分配 (User / Channel ID)</h3>
-            <p class="text-muted small mb-2">填寫要授予 VIP 的 User 或 Channel ID、平台與名稱，並以開關控制是否生效。</p>
+            <h3 class="h6 mb-2">名額分配</h3>
+            <p class="text-muted small mb-1">設定每個名額要授予給哪個帳號或頻道，儲存後即會同步 VIP 權限。</p>
+            <p class="text-muted small mb-2">
+                欄位說明：<br>
+                • <strong>目標 ID</strong>：要授權的使用者 ID 或頻道 ID（例：Discord User ID / Channel ID）<br>
+                • <strong>ID 類型</strong>：選擇這筆 ID 是 User 還是 Channel<br>
+                • <strong>平台</strong>：此 ID 所屬平台（Discord / Line / Telegram）<br>
+                • <strong>顯示名稱</strong>：備註用名稱，方便你辨識對象（可留空）<br>
+                • <strong>開關</strong>：ON 代表這格生效、OFF 代表暫停這格
+            </p>
+            <p class="text-muted small mb-2">
+                如何取得 ID：<br>
+                • <strong>Discord</strong>：到「使用者設定 → 進階」開啟「開發者模式」，右鍵使用者或頻道後選「複製 ID」<br>
+                • <strong>Line</strong>：請先用機器人提供的查詢指令/綁定流程取得對應 ID（不同群組與用戶 ID 不同）<br>
+                • <strong>Telegram</strong>：可透過機器人查詢指令或 @userinfobot 類工具查 User ID / Chat ID
+            </p>
             <div id="slotsContainer" class="mb-3"></div>
             <button type="button" id="btnSaveSlots" class="btn btn-primary">儲存名額</button>
             <div id="saveResult" class="mt-2 small"></div>
@@ -281,7 +295,7 @@
                 container.innerHTML = '';
                 var headerRow = document.createElement('div');
                 headerRow.className = 'row slot-header';
-                headerRow.innerHTML = '<div class="col-12 col-md-3 slot-header-col">User/Channel ID</div><div class="col-6 col-md-2 slot-header-col">類型</div><div class="col-6 col-md-2 slot-header-col">平台</div><div class="col-8 col-md-2 slot-header-col">名稱</div><div class="col-4 col-md-2 slot-header-col">開關</div>';
+                headerRow.innerHTML = '<div class="col-12 col-md-3 slot-header-col">目標 ID</div><div class="col-6 col-md-2 slot-header-col">ID 類型</div><div class="col-6 col-md-2 slot-header-col">平台</div><div class="col-8 col-md-2 slot-header-col">顯示名稱</div><div class="col-4 col-md-2 slot-header-col">開關</div>';
                 container.appendChild(headerRow);
                 const total = Math.max(maxSlots, slots.length, 1);
                 for (let i = 0; i < total; i++) {
@@ -289,10 +303,10 @@
                     const row = document.createElement('div');
                     row.className = 'row slot-row mb-2 border-bottom pb-2';
                     row.innerHTML =
-                        '<div class="col-12 col-md-3"><input type="text" class="form-control form-control-sm slot-targetId" placeholder="User/Channel ID" value="' + (s.targetId || '').replace(/"/g, '&quot;') + '"></div>' +
+                        '<div class="col-12 col-md-3"><input type="text" class="form-control form-control-sm slot-targetId" placeholder="目標 ID（User / Channel）" value="' + (s.targetId || '').replace(/"/g, '&quot;') + '"></div>' +
                         '<div class="col-6 col-md-2"><select class="form-control form-control-sm slot-targetType"><option value="user"' + (s.targetType === 'channel' ? '' : ' selected') + '>User</option><option value="channel"' + (s.targetType === 'channel' ? ' selected' : '') + '>Channel</option></select></div>' +
                         '<div class="col-6 col-md-2"><select class="form-control form-control-sm slot-platform"><option value="Discord"' + (s.platform === 'Discord' ? ' selected' : '') + '>Discord</option><option value="Line"' + (s.platform === 'Line' ? ' selected' : '') + '>Line</option><option value="Telegram"' + (s.platform === 'Telegram' ? ' selected' : '') + '>Telegram</option></select></div>' +
-                        '<div class="col-8 col-md-2"><input type="text" class="form-control form-control-sm slot-name" placeholder="名稱" value="' + (s.name || '').replace(/"/g, '&quot;') + '"></div>' +
+                        '<div class="col-8 col-md-2"><input type="text" class="form-control form-control-sm slot-name" placeholder="顯示名稱（可留空）" value="' + (s.name || '').replace(/"/g, '&quot;') + '"></div>' +
                         '<div class="col-4 col-md-2"><button type="button" class="btn btn-sm btn-slot-toggle ' + (s.switch ? 'btn-success' : 'btn-outline-secondary') + '" data-index="' + i + '" data-switch="' + (s.switch ? '1' : '0') + '">' + (s.switch ? 'ON' : 'OFF') + '</button></div>';
                     container.appendChild(row);
                 }

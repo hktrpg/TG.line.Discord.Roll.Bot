@@ -6,6 +6,7 @@ const opt = {
 }
 // const salt = process.env.SALT; // No longer needed with new security module
 const crypto = require('crypto');
+const { SlashCommandBuilder } = require('discord.js');
 const security = require('../utils/security.js');
 // CRYPTO_SECRET is used via security.encryptWithCryptoSecret / decryptWithCryptoSecret
 let password = security.getCryptoSecretKey && security.getCryptoSecretKey();
@@ -15,7 +16,6 @@ if (!password) {
 //32bit ASCII
 const adminSecret = process.env.ADMIN_SECRET;
 //admin id
-const { SlashCommandBuilder } = require('discord.js');
 const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
 const pattId = /\s+-i\s+(\S+)/ig;

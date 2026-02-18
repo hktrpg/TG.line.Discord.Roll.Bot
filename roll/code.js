@@ -5,9 +5,6 @@ const { SlashCommandBuilder } = require('discord.js');
 const variables = {};
 const COMMAND_COOLDOWN_MS = 10_000;
 const OUTPUT_LIMIT = 1500;
-const JDOODLE_ENDPOINT = process.env.JDOODLE_ENDPOINT;
-const JDOODLE_CLIENT_ID = process.env.JDOODLE_CLIENT_ID;
-const JDOODLE_CLIENT_SECRET = process.env.JDOODLE_CLIENT_SECRET;
 const POPULAR_LANGUAGES = ['javascript', 'typescript', 'python', 'java', 'c', 'c++', 'go', 'rust', 'php', 'ruby'];
 const PISTON_ENDPOINT = 'https://emkc.org/api/v2/piston/execute';
 const PistonLanguageMap = {
@@ -22,18 +19,7 @@ const PistonLanguageMap = {
     php: 'php',
     ruby: 'ruby'
 };
-const JDoodleLanguageMap = {
-    javascript: { language: 'nodejs', versionIndex: process.env.JDOODLE_VERSION_NODEJS || '4' },
-    typescript: { language: 'typescript', versionIndex: process.env.JDOODLE_VERSION_TYPESCRIPT || '4' },
-    python: { language: 'python3', versionIndex: process.env.JDOODLE_VERSION_PYTHON || '4' },
-    java: { language: 'java', versionIndex: process.env.JDOODLE_VERSION_JAVA || '4' },
-    c: { language: 'c', versionIndex: process.env.JDOODLE_VERSION_C || '5' },
-    'c++': { language: 'cpp17', versionIndex: process.env.JDOODLE_VERSION_CPP || '0' },
-    go: { language: 'go', versionIndex: process.env.JDOODLE_VERSION_GO || '4' },
-    rust: { language: 'rust', versionIndex: process.env.JDOODLE_VERSION_RUST || '4' },
-    php: { language: 'php', versionIndex: process.env.JDOODLE_VERSION_PHP || '4' },
-    ruby: { language: 'ruby', versionIndex: process.env.JDOODLE_VERSION_RUBY || '4' }
-};
+// Legacy JDoodle mapping kept for reference only; execution now uses Piston API.
 const LANGUAGE_ALIAS = {
     js: 'javascript',
     nodejs: 'javascript',
@@ -177,11 +163,25 @@ function formatLanguageExamples(languages) {
         typescript: '.code ts const n:number = 7; console.log(n);',
         python: '.code py print("Hello Python")',
         java: '.code java System.out.println("Hello Java");',
-        c: '.code c\n```c\n#include <stdio.h>\nint main() {\n  printf("Hello C\\n");\n  return 0;\n}\n```',
-        'c++': '.code cpp\n```cpp\n#include <iostream>\nint main() {\n  std::cout << "Hello C++" << std::endl;\n  return 0;\n}\n```',
+        c: String.raw`.code c
+\`\`\`c
+#include <stdio.h>
+int main() {
+  printf("Hello C\n");
+  return 0;
+}
+\`\`\``,
+        'c++': String.raw`.code cpp
+\`\`\`cpp
+#include <iostream>
+int main() {
+  std::cout << "Hello C++" << std::endl;
+  return 0;
+}
+\`\`\``,
         go: '.code go package main; import "fmt"; func main(){fmt.Println("Hello Go")}',
         rust: '.code rs fn main(){println!("Hello Rust");}',
-        php: '.code php <?php echo "Hello PHP\\n";',
+        php: String.raw`.code php <?php echo "Hello PHP\n";`,
         ruby: '.code rb puts "Hello Ruby"'
     };
 
@@ -288,7 +288,7 @@ const rollDiceCommand = async function ({ inputStr, mainMsg, userid }) {
             try {
                 const execution = await codeService.run(mainMsg[1], code);
                 if (execution.error === 'unsupported-language') {
-                    return undefined; // Return undefined for unknown language as test expects
+                    return; // Return undefined for unknown language as test expects
                 }
                 markUserCooldown(userid);
                 rply.text = formatResultText(execution.data);
@@ -300,7 +300,7 @@ const rollDiceCommand = async function ({ inputStr, mainMsg, userid }) {
         }
 
         default:
-            return undefined;
+            return;
     }
 };
 

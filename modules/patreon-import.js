@@ -6,13 +6,10 @@
  * Uses CRYPTO_SECRET for encryption (utils/security), never regens KEY.
  */
 
+const security = require('../utils/security.js');
 const schema = require('./schema.js');
 const patreonTiers = require('./patreon-tiers.js');
 const patreonSync = require('./patreon-sync.js');
-const security = require('../utils/security.js');
-
-/** Patreon CSV column names we use */
-const CSV_COLS = ['Name', 'Email', 'Discord', 'Patron Status', 'Tier', 'Last Updated'];
 
 /**
  * Parse a single CSV line into fields (handles quoted fields with commas).
@@ -31,15 +28,15 @@ function parseCSVLine(line) {
                 if (next === -1) {
                     end = line.length;
                     break;
-                }
+            }
                 if (line[next + 1] === '"') {
                     end = next + 2;
                     continue;
-                }
+            }
                 end = next;
                 break;
             }
-            fields.push(line.slice(i, end).replace(/""/g, '"'));
+            fields.push(line.slice(i, end).replaceAll('""', '"'));
             i = end + 1;
             if (line[i] === ',') i++;
             continue;
@@ -69,9 +66,10 @@ function parseCSV(csvContent) {
     for (let i = 1; i < lines.length; i++) {
         const values = parseCSVLine(lines[i]);
         const row = {};
-        headers.forEach((h, idx) => {
-            row[h] = values[idx] !== undefined ? String(values[idx]).trim() : '';
-        });
+        for (let idx = 0; idx < headers.length; idx++) {
+            const header = headers[idx];
+            row[header] = values[idx] !== undefined ? String(values[idx]).trim() : '';
+        }
         rows.push(row);
     }
     return { headers, rows };
@@ -84,8 +82,8 @@ function parseCSV(csvContent) {
  */
 function parseLastUpdated(s) {
     if (!s) return 0;
-    const d = new Date(s.replace(' ', 'T'));
-    return isNaN(d.getTime()) ? 0 : d.getTime();
+    const d = new Date(s.replaceAll(' ', 'T'));
+    return Number.isNaN(d.getTime()) ? 0 : d.getTime();
 }
 
 /** Required CSV headers (Patreon export format). */
@@ -110,7 +108,7 @@ function getDisplayKey(doc) {
 function validateCSVHeaders(headers) {
     if (!headers || !Array.isArray(headers)) return 'CSV 缺少標題列';
     const missing = REQUIRED_CSV_HEADERS.filter(h => !headers.includes(h));
-    if (missing.length) return `CSV 缺少必要欄位: ${missing.join(', ')}（請使用 Patreon 匯出的會員名單格式）`;
+    if (missing.length > 0) return `CSV 缺少必要欄位: ${missing.join(', ')}（請使用 Patreon 匯出的會員名單格式）`;
     return null;
 }
 
@@ -200,8 +198,8 @@ async function runImport(csvContent, options = {}) {
                     );
                     report.push(`[Former patron] ${name} → 已關閉權限`);
                     summary.offFormer++;
-                } catch (e) {
-                    errors.push(`OFF ${name}: ${e.message}`);
+                } catch (error) {
+                    errors.push(`OFF ${name}: ${error.message}`);
                 }
             }
             continue;
@@ -221,8 +219,8 @@ async function runImport(csvContent, options = {}) {
                     );
                     report.push(`[Not Active] ${name} → 已關閉權限`);
                     summary.offNotActive++;
-                } catch (e) {
-                    errors.push(`OFF ${name}: ${e.message}`);
+                } catch (error) {
+                    errors.push(`OFF ${name}: ${error.message}`);
                 }
             }
             continue;
@@ -247,7 +245,7 @@ async function runImport(csvContent, options = {}) {
                 continue;
             }
             try {
-                const normalized = (key || '').replaceAll(/\s/g, '').replaceAll(/-/g, '').toUpperCase();
+                const normalized = (key || '').replaceAll(/\s/g, '').replaceAll('-', '').toUpperCase();
                 const keyHash = security.hashPatreonKey(normalized);
                 const keyEncrypted = security.encryptWithCryptoSecret(key);
                 const historyEntry = { at: new Date(), action: 'on', source: 'import', reason: 'new_active_member' };
@@ -268,12 +266,14 @@ async function runImport(csvContent, options = {}) {
                 newMemberKeys.add(key);
                 keys.push(key);
                 await patreonSync.syncMemberSlotsToVip(newDoc);
-                report.push(`[新增] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
-                report.push(key);
+                report.push(
+                    `[新增] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`,
+                    key
+                );
                 keyMessages.push(`[新增] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟\n${key}`);
                 summary.added++;
-            } catch (e) {
-                errors.push(`Add ${name}: ${e.message}`);
+            } catch (error) {
+                errors.push(`Add ${name}: ${error.message}`);
             }
             continue;
         }
@@ -307,8 +307,10 @@ async function runImport(csvContent, options = {}) {
                 const displayKey = getDisplayKey(doc);
                 if (displayKey) {
                     keys.push(displayKey);
-                    report.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
-                    report.push(displayKey);
+                    report.push(
+                        `[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`,
+                        displayKey
+                    );
                     keyMessages.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟\n${displayKey}`);
                 } else {
                     report.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
@@ -317,8 +319,8 @@ async function runImport(csvContent, options = {}) {
                 report.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
             }
             summary.updated++;
-        } catch (e) {
-            errors.push(`Update ${name}: ${e.message}`);
+        } catch (error) {
+            errors.push(`Update ${name}: ${error.message}`);
         }
     }
 
@@ -334,7 +336,7 @@ async function runImport(csvContent, options = {}) {
             if (displayKey) {
                 keys.push(displayKey);
                 keyMessages.push(`[現行] ${member.patreonName} Tier ${tierLabel}\n${displayKey}`);
-            } else {
+                } else {
                 // If key cannot be decrypted, rotate to a fresh key so allkeys can still be delivered.
                 try {
                     const zAdmin = require('../roll/z_admin.js');
@@ -366,9 +368,11 @@ async function runImport(csvContent, options = {}) {
     }
 
     // Append 加入統計
-    report.push('');
-    report.push('─── 加入統計（本 CSV）───');
-    report.push(`Active Patron 總數: ${activeTotal}`);
+    report.push(
+        '',
+        '─── 加入統計（本 CSV）───',
+        `Active Patron 總數: ${activeTotal}`
+    );
     const activeTiers = Object.keys(activeByTier).sort();
     for (const t of activeTiers) {
         report.push(`  ${t}: ${activeByTier[t]}`);

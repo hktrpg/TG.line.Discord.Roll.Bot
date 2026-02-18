@@ -436,16 +436,21 @@ const discordCommand = [
             ),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
-            
-            if (subcommand === 'add') {
+
+            switch (subcommand) {
+            case 'add': {
                 const details = interaction.options.getString('details');
                 const messageId = interaction.options.getString('message_id');
                 return `.roleReact add ${details} [[messageID]] ${messageId}`;
-            } else if (subcommand === 'show') {
-                return `.roleReact show`;
-            } else if (subcommand === 'delete') {
+            }
+            case 'show':
+                return '.roleReact show';
+            case 'delete': {
                 const serial = interaction.options.getString('serial');
                 return `.roleReact delete ${serial}`;
+            }
+            default:
+                return;
             }
         }
     }

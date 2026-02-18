@@ -1017,8 +1017,8 @@ www.post('/api/patreon/validate', async (req, res) => {
             return;
         }
         res.json(toMemberResponse(member));
-    } catch (err) {
-        console.error('[Web Server] Patreon validate error:', err.message);
+    } catch (error) {
+        console.error('[Web Server] Patreon validate error:', error.message);
         res.status(500).json({ error: 'Server error' });
     }
 });
@@ -1036,8 +1036,8 @@ www.get('/api/patreon/me', async (req, res) => {
             return;
         }
         res.json(toMemberResponse(member));
-    } catch (err) {
-        console.error('[Web Server] Patreon me error:', err.message);
+    } catch (error) {
+        console.error('[Web Server] Patreon me error:', error.message);
         res.status(500).json({ error: 'Server error' });
     }
 });
@@ -1083,8 +1083,8 @@ www.put('/api/patreon/me/slots', async (req, res) => {
         const updated = await schema.patreonMember.findOne({ _id: member._id }).lean();
         await patreonSync.syncMemberSlotsToVip(updated);
         res.json(toMemberResponse(updated));
-    } catch (err) {
-        console.error('[Web Server] Patreon slots update error:', err.message);
+    } catch (error) {
+        console.error('[Web Server] Patreon slots update error:', error.message);
         res.status(500).json({ error: 'Server error' });
     }
 });
@@ -1101,8 +1101,8 @@ www.patch('/api/patreon/me/slot/:index', async (req, res) => {
             res.status(401).json({ error: 'Invalid or inactive key' });
             return;
         }
-        const index = parseInt(req.params.index, 10);
-        if (isNaN(index) || index < 0 || index >= (member.slots || []).length) {
+        const index = Number.parseInt(req.params.index, 10);
+        if (Number.isNaN(index) || index < 0 || index >= (member.slots || []).length) {
             res.status(400).json({ error: 'Invalid slot index' });
             return;
         }
@@ -1134,8 +1134,8 @@ www.patch('/api/patreon/me/slot/:index', async (req, res) => {
         );
         const updated = await schema.patreonMember.findOne({ _id: member._id }).lean();
         res.json(toMemberResponse(updated));
-    } catch (err) {
-        console.error('[Web Server] Patreon slot toggle error:', err.message);
+    } catch (error) {
+        console.error('[Web Server] Patreon slot toggle error:', error.message);
         res.status(500).json({ error: 'Server error' });
     }
 });

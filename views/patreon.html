@@ -38,6 +38,45 @@
             --input-border: #202225;
             --footer-bg: #2f3136;
         }
+        /* Header dark mode support */
+        [data-theme="dark"] .navbar {
+            background-color: #2f3136 !important;
+            border-bottom-color: #202225 !important;
+        }
+        [data-theme="dark"] .navbar-light {
+            background-color: #2f3136 !important;
+        }
+        [data-theme="dark"] .navbar .navbar-brand,
+        [data-theme="dark"] .navbar .nav-link {
+            color: #dcddde !important;
+        }
+        [data-theme="dark"] .navbar .nav-link:hover {
+            color: #ffffff !important;
+        }
+        [data-theme="dark"] .navbar .navbar-toggler {
+            border-color: #40444b;
+        }
+        [data-theme="dark"] .navbar .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28220, 221, 222, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+        [data-theme="dark"] .navbar .dropdown-menu {
+            background-color: #2f3136;
+            border-color: #202225;
+        }
+        [data-theme="dark"] .navbar .dropdown-item {
+            color: #dcddde;
+        }
+        [data-theme="dark"] .navbar .dropdown-item:hover {
+            background-color: #40444b;
+            color: #ffffff;
+        }
+        [data-theme="dark"] .navbar .iconify {
+            color: #dcddde !important;
+        }
+        [data-theme="dark"] .navbar .badge {
+            background-color: #dc3545 !important;
+            color: #ffffff !important;
+        }
         /* Override style.css so patreon page can scroll (style.css sets body overflow:hidden for chat layout) */
         html, body {
             overflow: auto !important;

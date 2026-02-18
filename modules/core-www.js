@@ -159,13 +159,20 @@ www.use(cors({
     methods: ['GET', 'POST', 'PUT', 'PATCH'],
     allowedHeaders: [
         'Content-Type',
-        'Authorization'
+        'Authorization',
+        'x-line-signature'
     ],
     credentials: true,
     maxAge: 86_400,
     optionsSuccessStatus: 200
 }));
-www.use(express.json({ limit: '100kb' }));
+// Line webhook needs raw body for signature verification - must skip express.json
+www.use((req, res, next) => {
+    if (req.method === 'POST' && req.headers['x-line-signature']) {
+        return next();
+    }
+    express.json({ limit: '100kb' })(req, res, next);
+});
 
 www.get('*/favicon.ico', async (req, res) => {
     if (await checkRateLimit('api', req.ip)) {

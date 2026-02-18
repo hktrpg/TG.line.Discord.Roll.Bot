@@ -325,6 +325,8 @@ function logSignalDetails() {
 
 // Global shutdown flag
 let isShuttingDown = false;
+// Set when SIGINT received - used to suppress Puppeteer's process.exit(130)
+let sigintReceived = false;
 
 // Graceful Shutdown
 async function gracefulShutdown(moduleManager) {
@@ -392,13 +394,14 @@ async function init() {
         });
         process.on('SIGINT', () => {
             logSignalDetails('SIGINT', 'Main Process');
-            
+            sigintReceived = true;
+
             // Prevent multiple simultaneous shutdowns
             if (isShuttingDown) {
                 logger.warn('Shutdown already in progress, ignoring SIGINT');
                 return;
             }
-            
+
             logger.info('Received SIGINT signal, starting graceful shutdown...');
             // Give Discord modules time to handle their own shutdown
             setTimeout(() => gracefulShutdown(moduleManager), 5000);
@@ -436,6 +439,12 @@ async function init() {
             const timestamp = new Date().toISOString();
             const stack = new Error('Process exit stack trace').stack;
             const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+            
+            // Puppeteer (WhatsApp) calls process.exit(130) on SIGINT - suppress so graceful shutdown can complete
+            if (code === 130 && sigintReceived) {
+                logger.info('[Main Process] Suppressing Puppeteer process.exit(130) - graceful shutdown in progress');
+                return;
+            }
             
             logger.error('[Main Process] ========== PROCESS.EXIT CALLED ==========', {
                 exitCode: code,

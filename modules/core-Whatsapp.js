@@ -58,6 +58,8 @@ const normalPuppeteer = {
 const newMessage = require('./message');
 
 exports.analytics = require('./analytics');
+
+let whatsappClient = null;
 const rollText = require('./getRoll').rollText;
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)$/i);
 const MESSAGE_SPLITOR = (/\S+/ig);
@@ -68,6 +70,7 @@ async function startUp() {
 			authStrategy: new LocalAuth(),
 			puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer
 		});
+		whatsappClient = client;
 
 		client.initialize().catch(error => {
 			console.error('[WhatsApp Init Error]', error);
@@ -481,5 +484,17 @@ async function SendToId(targetid, rplyVal, client) {
 }
 
 // Unhandled rejections are handled by the main application error handler in index.js
+
+exports.shutdown = async function shutdown() {
+	if (whatsappClient) {
+		try {
+			await whatsappClient.destroy();
+			console.log('[WhatsApp] Client destroyed');
+		} catch (error) {
+			console.error('[WhatsApp] Shutdown error:', error.message);
+		}
+		whatsappClient = null;
+	}
+};
 
 startUp();

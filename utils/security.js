@@ -691,6 +691,76 @@ function decryptData(encryptedData, key = null) {
     }
 }
 
+/** Algorithm for CRYPTO_SECRET encryption (must match z_admin / Patreon storage). */
+const CRYPTO_SECRET_ALGORITHM = 'aes-256-ctr';
+
+/**
+ * Get 32-byte key from CRYPTO_SECRET (pad or truncate for AES-256-CTR).
+ * @returns {string|null} 32-char key or null if CRYPTO_SECRET not set
+ */
+function getCryptoSecretKey() {
+    let password = process.env.CRYPTO_SECRET;
+    if (!password) return null;
+    if (password.length > 32) {
+        password = password.slice(0, 32);
+    } else if (password.length < 32) {
+        password = password.padEnd(32, '0');
+    }
+    return password;
+}
+
+/**
+ * Encrypt text with CRYPTO_SECRET (AES-256-CTR). Same as z_admin encrypt.
+ * Use for Patreon Email/Discord and any feature that shares CRYPTO_SECRET.
+ * @param {string} text - Plain text to encrypt
+ * @returns {string} iv:hex:encryptedHex or error placeholder string
+ */
+function encryptWithCryptoSecret(text) {
+    const password = getCryptoSecretKey();
+    if (!password) {
+        console.error('[security] CRYPTO_SECRET not set');
+        return 'ENCRYPTION_ERROR: CRYPTO_SECRET not configured';
+    }
+    if (text == null) text = '';
+    if (typeof text !== 'string') text = String(text);
+    try {
+        const iv = crypto.randomBytes(16);
+        const cipher = crypto.createCipheriv(CRYPTO_SECRET_ALGORITHM, Buffer.from(password, 'utf8'), iv);
+        let encrypted = cipher.update(text, 'utf8');
+        encrypted = Buffer.concat([encrypted, cipher.final()]);
+        return iv.toString('hex') + ':' + encrypted.toString('hex');
+    } catch (error) {
+        console.error('[security] encryptWithCryptoSecret failed:', error.message);
+        return 'ENCRYPTION_ERROR: ' + error.message;
+    }
+}
+
+/**
+ * Decrypt text encrypted with encryptWithCryptoSecret (CRYPTO_SECRET).
+ * @param {string} text - iv:hex:encryptedHex format
+ * @returns {string} Decrypted string or error placeholder
+ */
+function decryptWithCryptoSecret(text) {
+    const password = getCryptoSecretKey();
+    if (!password) {
+        console.error('[security] CRYPTO_SECRET not set');
+        return 'DECRYPTION_ERROR: CRYPTO_SECRET not configured';
+    }
+    if (!text || typeof text !== 'string') return '';
+    try {
+        const textParts = text.split(':');
+        const iv = Buffer.from(textParts.shift(), 'hex');
+        const encryptedText = Buffer.from(textParts.join(':'), 'hex');
+        const decipher = crypto.createDecipheriv(CRYPTO_SECRET_ALGORITHM, Buffer.from(password, 'utf8'), iv);
+        let decrypted = decipher.update(encryptedText);
+        decrypted = Buffer.concat([decrypted, decipher.final()]);
+        return decrypted.toString('utf8');
+    } catch (error) {
+        console.error('[security] decryptWithCryptoSecret failed:', error.message);
+        return 'DECRYPTION_ERROR: ' + error.message;
+    }
+}
+
 /**
  * 產生資料摘要（HMAC）
  * @param {string} data - 要產生摘要的資料
@@ -715,6 +785,16 @@ function generateHMAC(data, key = null) {
         console.error('HMAC generation failed:', error.message);
         throw new Error('HMAC generation failed');
     }
+}
+
+/**
+ * Hash Patreon key for DB lookup (deterministic). Use with normalized 16-char key.
+ * @param {string} normalizedKey - Already normalized key (no dashes, uppercase)
+ * @returns {string} SHA-256 hex digest
+ */
+function hashPatreonKey(normalizedKey) {
+    if (!normalizedKey || typeof normalizedKey !== 'string') return '';
+    return crypto.createHash('sha256').update(normalizedKey, 'utf8').digest('hex');
 }
 
 /**
@@ -767,6 +847,10 @@ module.exports = {
     // 🔐 資料加密/解密
     encryptData,
     decryptData,
+    encryptWithCryptoSecret,
+    decryptWithCryptoSecret,
+    getCryptoSecretKey,
+    hashPatreonKey,
     generateHMAC,
     verifyHMAC,
     

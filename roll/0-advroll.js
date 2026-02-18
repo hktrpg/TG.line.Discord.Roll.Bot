@@ -170,6 +170,69 @@ const discordCommand = [
 			else return `需要輸入兩個數字\n 如 .int 20 50`
 
 		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('d66')
+			.setDescription('D66 擲骰')
+			.addStringOption(option => option.setName('text').setDescription('附加說明').setRequired(false)),
+		async execute(interaction) {
+			const text = interaction.options.getString('text');
+			return text ? `d66 ${text}` : 'd66';
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('d66s')
+			.setDescription('D66s 擲骰（小者在前）')
+			.addStringOption(option => option.setName('text').setDescription('附加說明').setRequired(false)),
+		async execute(interaction) {
+			const text = interaction.options.getString('text');
+			return text ? `d66s ${text}` : 'd66s';
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('d66n')
+			.setDescription('D66n 擲骰（大者在前）')
+			.addStringOption(option => option.setName('text').setDescription('附加說明').setRequired(false)),
+		async execute(interaction) {
+			const text = interaction.options.getString('text');
+			return text ? `d66n ${text}` : 'd66n';
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('broll')
+			.setDescription('進階B骰，如 5B10, 5B10S, 5B10>=5')
+			.addStringOption(option => option.setName('expression').setDescription('例如 5B10、5B10S>=5').setRequired(true))
+			.addStringOption(option => option.setName('arg1').setDescription('可選: 額外參數或說明').setRequired(false))
+			.addStringOption(option => option.setName('arg2').setDescription('可選: 額外參數或說明').setRequired(false)),
+		async execute(interaction) {
+			const expression = interaction.options.getString('expression');
+			const arg1 = interaction.options.getString('arg1');
+			const arg2 = interaction.options.getString('arg2');
+			let cmd = expression;
+			if (arg1) cmd += ` ${arg1}`;
+			if (arg2) cmd += ` ${arg2}`;
+			return cmd;
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('uroll')
+			.setDescription('進階U骰，如 5U10 8 或 5U10 8 9')
+			.addStringOption(option => option.setName('expression').setDescription('例如 5U10').setRequired(true))
+			.addStringOption(option => option.setName('threshold').setDescription('觸發加骰的數字，如 8').setRequired(true))
+			.addStringOption(option => option.setName('target').setDescription('可選: 成功門檻，如 9').setRequired(false)),
+		async execute(interaction) {
+			const expression = interaction.options.getString('expression');
+			const threshold = interaction.options.getString('threshold');
+			const target = interaction.options.getString('target');
+			let cmd = `${expression} ${threshold}`;
+			if (target) cmd += ` ${target}`;
+			return cmd;
+		}
 	}
 ];
 

@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#2f3136">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>Patreon 會員管理 @ HKTRPG</title>
+    <script>
+        (function () {
+            const theme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+        integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous">
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --card-bg: #ffffff;
+            --card-border: #dee2e6;
+            --input-bg: #ffffff;
+            --input-border: #ced4da;
+            --footer-bg: #f8f9fa;
+        }
+        [data-theme="dark"] {
+            --bg-color: #36393f;
+            --text-color: #dcddde;
+            --card-bg: #2f3136;
+            --card-border: #202225;
+            --input-bg: #40444b;
+            --input-border: #202225;
+            --footer-bg: #2f3136;
+        }
+        /* Override style.css so patreon page can scroll (style.css sets body overflow:hidden for chat layout) */
+        html, body {
+            overflow: auto !important;
+            min-height: 100%;
+            height: auto !important;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-top: 1rem;
+            padding-bottom: 2rem;
+        }
+        .patreon-key-input { font-family: monospace; letter-spacing: 0.1em; }
+        .slot-row { align-items: center; }
+        .slot-row .form-control { min-height: 38px; background-color: var(--input-bg); border-color: var(--input-border); color: var(--text-color); }
+        .slot-row select.form-control { background-color: var(--input-bg); border-color: var(--input-border); color: var(--text-color); }
+        .badge-tier { font-size: 0.9rem; }
+        .history-list { max-height: 220px; overflow-y: auto; }
+        .history-item { border: 1px solid var(--card-border); border-radius: 6px; padding: 0.4rem 0.55rem; margin-bottom: 0.45rem; background-color: var(--input-bg); }
+        .history-line-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.25rem; }
+        .history-time { font-size: 0.8rem; color: rgba(220, 221, 222, 0.75); }
+        .history-action-badge { font-size: 0.72rem; padding: 0.18rem 0.42rem; border-radius: 999px; font-weight: 600; }
+        .history-action-on { background: #2f855a; color: #fff; }
+        .history-action-off { background: #718096; color: #fff; }
+        .history-action-add { background: #2b6cb0; color: #fff; }
+        .history-action-remove { background: #c53030; color: #fff; }
+        .history-action-update { background: #805ad5; color: #fff; }
+        .history-detail { font-size: 0.82rem; line-height: 1.35; }
+        .history-detail-row { margin-top: 0.12rem; }
+        .history-detail-label { color: rgba(220, 221, 222, 0.72); margin-right: 0.25rem; }
+        .history-source { font-size: 0.75rem; color: rgba(220, 221, 222, 0.72); }
+        .btn-slot-toggle { min-width: 60px; }
+        .card { background-color: var(--card-bg); border-color: var(--card-border); }
+        .card-body { color: var(--text-color); }
+        .text-muted { color: rgba(220, 221, 222, 0.7) !important; }
+        [data-theme="dark"] .text-muted { color: rgba(220, 221, 222, 0.6) !important; }
+        [data-theme="dark"] .border-bottom { border-color: var(--card-border) !important; }
+        .footer-copyright { background-color: var(--footer-bg); color: var(--text-color); }
+        .footer-copyright a { color: #5865f2; }
+        /* Slot header row: same grid as slot rows so columns align on PC */
+        .slot-header { font-weight: 600; font-size: 0.875rem; color: var(--text-color); padding: 0.5rem 0; border-bottom: 2px solid var(--card-border); margin-bottom: 0.5rem; }
+        .slot-header .slot-header-col { padding: 0 0.75rem; line-height: 38px; }
+        /* Mobile */
+        @media (max-width: 576px) {
+            .slot-row .col { flex: 0 0 100%; max-width: 100%; margin-bottom: 0.25rem; }
+            .btn-slot-toggle { min-width: 50px; }
+            .slot-header { display: none; }
+            .btn-logout-patreon { width: 100%; }
+        }
+        /* PC: same Bootstrap grid, no table - just max-width and logout size */
+        @media (min-width: 768px) {
+            .patreon-page-wrap { max-width: 960px; margin-left: auto; margin-right: auto; }
+            .patreon-dashboard-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+            .btn-logout-patreon { font-size: 1rem; padding: 0.5rem 1rem; min-width: 120px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div id="header"></div>
+
+    <div class="container-fluid px-3 px-md-4 py-3 patreon-page-wrap">
+        <h1 class="h4 mb-3">Patreon 會員管理</h1>
+        <p class="text-muted small">輸入管理員提供的 KEY 以查看狀態與管理分配名額。</p>
+        <div class="alert alert-info py-2 px-3 small mb-3" role="alert">
+            <div class="mb-1"><strong>為什麼加入 HKTRPG Patreon？</strong></div>
+            <div>• 可提升你的群組/帳號為 VIP，解鎖更高功能上限（關鍵字、角色卡、定時訊息、TRPG 扮演發言等）。</div>
+            <div>• 依方案可取得 5 / 10 個 VIP 名額，適合個人或團隊管理。</div>
+            <div>• 高階方案可代托管你命名的骰子機械人（Discord / Line / Telegram）。</div>
+            <div>• 可加入 Discord 支援群，意見回饋更即時：<a href="https://support.hktrpg.com" target="_blank" rel="noopener noreferrer">support.hktrpg.com</a></div>
+            <div class="mt-1">使用方式：先到 Patreon 訂閱對應方案，再向管理員取得 Patreon KEY，回到此頁登入即可管理名額。</div>
+            <a href="https://www.patreon.com/HKTRPG" target="_blank" rel="noopener noreferrer" class="ml-1">前往 HKTRPG Patreon 頁面</a>
+        </div>
+
+        <!-- Key entry -->
+        <div id="keySection" class="card mb-4">
+            <div class="card-body">
+                <label for="patreonKey">Patreon KEY</label>
+                <div class="input-group">
+                    <input type="text" id="patreonKey" class="form-control patreon-key-input" placeholder="可含 - 或省略，例：Y8YW-JQIP-WDJ3-LB1Q" autocomplete="off">
+                    <div class="input-group-append">
+                        <button type="button" id="btnLogin" class="btn btn-primary">登入</button>
+                    </div>
+                </div>
+                <div id="keyError" class="invalid-feedback d-none"></div>
+            </div>
+        </div>
+
+        <!-- Dashboard (hidden until key valid) -->
+        <div id="dashboardSection" class="d-none">
+            <div class="patreon-dashboard-header">
+                <h2 class="h5 mb-0">會員狀態</h2>
+                <button type="button" id="btnLogout" class="btn btn-danger btn-logout-patreon">
+                    <i class="fas fa-sign-out-alt mr-1" aria-hidden="true"></i>登出
+                </button>
+            </div>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>會員名稱</strong> <span id="memberName"></span></p>
+                            <p class="mb-1"><strong>現時 TIER</strong> <span id="tierLabel" class="badge badge-tier badge-info"></span></p>
+                            <p class="mb-1"><strong>會員狀態</strong> <span id="memberStatus" class="badge badge-success">開啟</span></p>
+                            <p class="mb-1"><strong>會員開始時間</strong> <span id="startDate"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>可用的格數</strong> <span id="maxSlots"></span></p>
+                            <p class="mb-1"><strong>操作紀錄</strong></p>
+                            <ul id="historyList" class="list-unstyled small history-list mb-0"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="h6 mb-2">名額分配</h3>
+            <p class="text-muted small mb-1">設定每個名額要授予給哪個帳號或伺服器(群組)，儲存後即會同步 VIP 權限。</p>
+            <p class="text-muted small mb-2">
+                欄位說明：<br>
+                • <strong>目標 ID</strong>：要授權的使用者 ID 或伺服器(群組) ID（例：Discord User ID / Channel ID）<br>
+                • <strong>ID 類型</strong>：選擇這筆 ID 是 User 還是 Channel<br>
+                • <strong>平台</strong>：此 ID 所屬平台（Discord / Line / Telegram）<br>
+                • <strong>顯示名稱</strong>：備註用名稱，方便你辨識對象（可留空）<br>
+                • <strong>啟用狀態</strong>：啟用 ＝ 這格立即生效並同步權限；停用 ＝ 暫停這格權限（設定會保留，之後可再啟用）
+            </p>
+            <p class="text-muted small mb-2">
+                如何取得 ID：<br>
+                • <strong>所有平台</strong>：可直接在目標對話輸入 <code>.admin id</code> 取得你的用戶ID與群組ID（Discord / Line / Telegram / WhatsApp 皆可）<br>
+                • <strong>Discord（替代方式）</strong>：到「使用者設定 → 進階」開啟「開發者模式」後右鍵複製 ID<br>
+                • <strong>Line</strong>：請先用機器人提供的查詢指令/綁定流程取得對應 ID（不同群組與用戶 ID 不同）<br>
+                • <strong>Telegram</strong>：可透過機器人查詢指令或 @userinfobot 類工具查 User ID / Chat ID
+            </p>
+            <div id="slotsContainer" class="mb-3"></div>
+            <button type="button" id="btnSaveSlots" class="btn btn-primary">儲存名額</button>
+            <div id="saveResult" class="mt-2 small"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div id="footer"></div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+    <script>
+        $(function () {
+            $("#header").load("includes/header.html", function () {
+                var titleEl = document.getElementById("title");
+                if (titleEl) titleEl.textContent = "Patreon 會員管理";
+                if (typeof Iconify !== "undefined" && Iconify.scan) {
+                    Iconify.scan(document.getElementById("header"));
+                }
+            });
+            $("#footer").load("includes/footer.html", function () {
+                if (typeof Iconify !== "undefined" && Iconify.scan) {
+                    Iconify.scan(document.getElementById("footer"));
+                }
+            });
+        });
+    </script>
+    <script>
+        (function () {
+            const KEY_STORAGE = 'patreon_key';
+            let memberData = null;
+
+            const keySection = document.getElementById('keySection');
+            const dashboardSection = document.getElementById('dashboardSection');
+            const patreonKeyInput = document.getElementById('patreonKey');
+            const btnLogin = document.getElementById('btnLogin');
+            const btnLogout = document.getElementById('btnLogout');
+            const keyError = document.getElementById('keyError');
+            const btnSaveSlots = document.getElementById('btnSaveSlots');
+            const saveResult = document.getElementById('saveResult');
+
+            function normalizeKey(key) {
+                return (key || '').replace(/[\s\-]/g, '').toUpperCase();
+            }
+
+            function formatKeyWithDashes(key) {
+                var k = (key || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 16);
+                if (!k.length) return '';
+                var parts = [];
+                for (var i = 0; i < k.length; i += 4) parts.push(k.slice(i, i + 4));
+                return parts.join('-');
+            }
+
+            function getKey() {
+                return (patreonKeyInput.value || sessionStorage.getItem(KEY_STORAGE) || '').trim();
+            }
+
+            function getKeyForApi() {
+                return normalizeKey(getKey());
+            }
+
+            function setKey(key) {
+                var normalized = normalizeKey(key);
+                patreonKeyInput.value = formatKeyWithDashes(normalized);
+                sessionStorage.setItem(KEY_STORAGE, normalized.length === 16 ? normalized : (key || ''));
+            }
+
+            function onPatreonKeyInput() {
+                var raw = patreonKeyInput.value;
+                var formatted = formatKeyWithDashes(raw);
+                if (formatted !== raw) {
+                    var pos = formatted.length;
+                    patreonKeyInput.value = formatted;
+                    patreonKeyInput.setSelectionRange(pos, pos);
+                }
+            }
+
+            function clearKey() {
+                patreonKeyInput.value = '';
+                sessionStorage.removeItem(KEY_STORAGE);
+                memberData = null;
+            }
+
+            function showError(msg) {
+                keyError.textContent = msg || 'Invalid or inactive key';
+                keyError.classList.remove('d-none');
+                patreonKeyInput.classList.add('is-invalid');
+            }
+
+            function clearError() {
+                keyError.classList.add('d-none');
+                patreonKeyInput.classList.remove('is-invalid');
+            }
+
+            async function validateKey(key) {
+                var keyToSend = normalizeKey(key);
+                if (keyToSend.length !== 16) return null;
+                const res = await fetch('/api/patreon/validate', {
+                    method: 'POST',
+                    headers: { 'X-Patreon-Key': keyToSend }
+                });
+                if (res.status === 401) return null;
+                if (!res.ok) throw new Error('Server error');
+                return res.json();
+            }
+
+            async function loadMe() {
+                const key = getKeyForApi();
+                const res = await fetch('/api/patreon/me', {
+                    headers: { 'X-Patreon-Key': key }
+                });
+                if (res.status === 401) return null;
+                if (!res.ok) throw new Error('Server error');
+                return res.json();
+            }
+
+            function formatDate(d) {
+                if (!d) return '—';
+                const date = new Date(d);
+                return isNaN(date.getTime()) ? '—' : date.toLocaleString('zh-Hant');
+            }
+
+            function toZhAction(action) {
+                const map = {
+                    on: '開啟',
+                    off: '關閉',
+                    add: '新增',
+                    remove: '移除',
+                    update: '更新'
+                };
+                return map[String(action || '').toLowerCase()] || '紀錄';
+            }
+
+            function toZhSource(source) {
+                const map = {
+                    web: '網頁',
+                    admin: '管理員',
+                    import: '匯入'
+                };
+                return map[String(source || '').toLowerCase()] || (source || '系統');
+            }
+
+            function toZhTargetType(targetType) {
+                const key = String(targetType || '').toLowerCase();
+                if (key === 'user') return '使用者';
+                if (key === 'channel') return '伺服器(群組)';
+                return targetType || '—';
+            }
+
+            function parseSlotDetail(detailText) {
+                const raw = String(detailText || '').trim();
+                const m = raw.match(/^slot#(\d+)\s+(.+?)\s*-\s*(.+?)\s*-\s*(.+?)\s*-\s*(.+)$/i);
+                if (!m) return null;
+                return {
+                    slotNo: m[1],
+                    targetId: m[2],
+                    targetType: toZhTargetType(m[3]),
+                    platform: m[4] || '—',
+                    name: m[5] || '—'
+                };
+            }
+
+            function formatSlotDetail(detail) {
+                const raw = String(detail || '').trim();
+                if (!raw) return '';
+
+                const parseOne = function (text) {
+                    const parsed = parseSlotDetail(text);
+                    if (!parsed) return text;
+                    return `第 ${parsed.slotNo} 格｜目標ID: ${parsed.targetId}｜ID 類型: ${parsed.targetType}｜平台: ${parsed.platform}｜顯示名稱: ${parsed.name}`;
+                };
+
+                if (raw.indexOf('->') >= 0) {
+                    const parts = raw.split('->');
+                    const fromText = parseOne((parts[0] || '').trim());
+                    const toText = parseOne((parts[1] || '').trim());
+                    return `由「${fromText}」\n改為「${toText}」`;
+                }
+                return parseOne(raw);
+            }
+
+            function formatHistoryText(h) {
+                const dateText = formatDate(h.at);
+                const actionText = toZhAction(h.action);
+                const sourceText = toZhSource(h.source);
+                const detailText = formatSlotDetail(h.detail);
+                if (detailText) {
+                    return `${dateText}｜${actionText}（${sourceText}）\n${detailText}`;
+                }
+                return `${dateText}｜${actionText}（${sourceText}）`;
+            }
+
+            function appendSlotDetailRows(parent, parsed) {
+                const pairs = [
+                    ['位置', `第 ${parsed.slotNo} 格`],
+                    ['目標ID', parsed.targetId || '—'],
+                    ['ID 類型', parsed.targetType || '—'],
+                    ['平台', parsed.platform || '—'],
+                    ['顯示名稱', parsed.name || '—']
+                ];
+                pairs.forEach(function (pair) {
+                    const row = document.createElement('div');
+                    row.className = 'history-detail-row';
+                    const label = document.createElement('span');
+                    label.className = 'history-detail-label';
+                    label.textContent = pair[0] + '：';
+                    const value = document.createElement('span');
+                    value.textContent = pair[1];
+                    row.appendChild(label);
+                    row.appendChild(value);
+                    parent.appendChild(row);
+                });
+            }
+
+            function getActionClass(action) {
+                const key = String(action || '').toLowerCase();
+                if (key === 'on') return 'history-action-on';
+                if (key === 'off') return 'history-action-off';
+                if (key === 'add') return 'history-action-add';
+                if (key === 'remove') return 'history-action-remove';
+                if (key === 'update') return 'history-action-update';
+                return 'history-action-off';
+            }
+
+            function buildHistoryItem(h) {
+                const li = document.createElement('li');
+                li.className = 'history-item';
+
+                const top = document.createElement('div');
+                top.className = 'history-line-top';
+
+                const left = document.createElement('div');
+                const badge = document.createElement('span');
+                badge.className = 'history-action-badge ' + getActionClass(h.action);
+                badge.textContent = toZhAction(h.action);
+                left.appendChild(badge);
+
+                const right = document.createElement('div');
+                right.className = 'history-time';
+                right.textContent = formatDate(h.at);
+
+                top.appendChild(left);
+                top.appendChild(right);
+                li.appendChild(top);
+
+                const source = document.createElement('div');
+                source.className = 'history-source';
+                const sourceKey = String(h.source || '').toLowerCase();
+                if (sourceKey && sourceKey !== 'web') {
+                    source.textContent = '來源：' + toZhSource(h.source);
+                    li.appendChild(source);
+                }
+
+                const detailWrap = document.createElement('div');
+                detailWrap.className = 'history-detail' + (sourceKey && sourceKey !== 'web' ? ' mt-1' : '');
+                const detailRaw = String(h.detail || '').trim();
+                if (!detailRaw) {
+                    const row = document.createElement('div');
+                    row.className = 'history-detail-row';
+                    row.textContent = '（無詳細內容）';
+                    detailWrap.appendChild(row);
+                } else if (detailRaw.indexOf('->') >= 0) {
+                    const parts = detailRaw.split('->');
+                    const fromParsed = parseSlotDetail((parts[0] || '').trim());
+                    const toParsed = parseSlotDetail((parts[1] || '').trim());
+                    const fromTitle = document.createElement('div');
+                    fromTitle.className = 'history-detail-row';
+                    fromTitle.textContent = '變更前：';
+                    detailWrap.appendChild(fromTitle);
+                    if (fromParsed) appendSlotDetailRows(detailWrap, fromParsed);
+                    const toTitle = document.createElement('div');
+                    toTitle.className = 'history-detail-row mt-1';
+                    toTitle.textContent = '變更後：';
+                    detailWrap.appendChild(toTitle);
+                    if (toParsed) appendSlotDetailRows(detailWrap, toParsed);
+                } else {
+                    const parsed = parseSlotDetail(detailRaw);
+                    if (parsed) {
+                        appendSlotDetailRows(detailWrap, parsed);
+                    } else {
+                        const row = document.createElement('div');
+                        row.className = 'history-detail-row';
+                        row.textContent = formatSlotDetail(detailRaw);
+                        detailWrap.appendChild(row);
+                    }
+                }
+                li.appendChild(detailWrap);
+                return li;
+            }
+
+            function renderDashboard(data) {
+                memberData = data;
+                document.getElementById('memberName').textContent = data.patreonName || data.name || '—';
+                document.getElementById('tierLabel').textContent = data.tierLabel || '—';
+                document.getElementById('memberStatus').textContent = data.switch ? '開啟' : '關閉';
+                document.getElementById('memberStatus').className = 'badge ' + (data.switch ? 'badge-success' : 'badge-secondary');
+                document.getElementById('startDate').textContent = formatDate(data.startDate);
+                document.getElementById('maxSlots').textContent = (data.slots ? data.slots.length : 0) + ' / ' + (data.maxSlots || 0);
+
+                const historyList = document.getElementById('historyList');
+                historyList.innerHTML = '';
+                (data.history || []).slice().reverse().slice(0, 20).forEach(function (h) {
+                    historyList.appendChild(buildHistoryItem(h));
+                });
+
+                renderSlots(data.slots || [], data.maxSlots || 0);
+            }
+
+            function renderSlots(slots, maxSlots) {
+                const container = document.getElementById('slotsContainer');
+                container.innerHTML = '';
+                var headerRow = document.createElement('div');
+                headerRow.className = 'row slot-header';
+                headerRow.innerHTML = '<div class="col-12 col-md-3 slot-header-col">目標 ID</div><div class="col-6 col-md-2 slot-header-col">ID 類型</div><div class="col-6 col-md-2 slot-header-col">平台</div><div class="col-8 col-md-2 slot-header-col">顯示名稱</div><div class="col-4 col-md-2 slot-header-col">啟用狀態</div>';
+                container.appendChild(headerRow);
+                const total = Math.max(maxSlots, slots.length, 1);
+                for (let i = 0; i < total; i++) {
+                    const s = slots[i] || { targetId: '', targetType: '', platform: '', name: '', switch: true };
+                    const row = document.createElement('div');
+                    row.className = 'row slot-row mb-2 border-bottom pb-2';
+                    row.innerHTML =
+                        '<div class="col-12 col-md-3"><input type="text" class="form-control form-control-sm slot-targetId" placeholder="目標 ID（User / Channel）" value="' + (s.targetId || '').replace(/"/g, '&quot;') + '"></div>' +
+                        '<div class="col-6 col-md-2"><select class="form-control form-control-sm slot-targetType"><option value=""' + ((s.targetType !== 'user' && s.targetType !== 'channel') ? ' selected' : '') + '>請選擇</option><option value="user"' + (s.targetType === 'user' ? ' selected' : '') + '>使用者</option><option value="channel"' + (s.targetType === 'channel' ? ' selected' : '') + '>伺服器(群組)</option></select></div>' +
+                        '<div class="col-6 col-md-2"><select class="form-control form-control-sm slot-platform"><option value=""' + ((s.platform !== 'Discord' && s.platform !== 'Line' && s.platform !== 'Telegram' && s.platform !== 'Whatsapp' && s.platform !== 'WhatsApp') ? ' selected' : '') + '>請選擇</option><option value="Discord"' + (s.platform === 'Discord' ? ' selected' : '') + '>Discord</option><option value="Line"' + (s.platform === 'Line' ? ' selected' : '') + '>Line</option><option value="Telegram"' + (s.platform === 'Telegram' ? ' selected' : '') + '>Telegram</option><option value="WhatsApp"' + (s.platform === 'WhatsApp' || s.platform === 'Whatsapp' ? ' selected' : '') + '>WhatsApp</option></select></div>' +
+                        '<div class="col-8 col-md-2"><input type="text" class="form-control form-control-sm slot-name" placeholder="顯示名稱（可留空）" value="' + (s.name || '').replace(/"/g, '&quot;') + '"></div>' +
+                        '<div class="col-4 col-md-2"><button type="button" class="btn btn-sm btn-slot-toggle ' + (s.switch ? 'btn-success' : 'btn-outline-secondary') + '" data-index="' + i + '" data-switch="' + (s.switch ? '1' : '0') + '">' + (s.switch ? '啟用' : '停用') + '</button></div>';
+                    container.appendChild(row);
+                }
+                container.querySelectorAll('.btn-slot-toggle').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        const next = btn.getAttribute('data-switch') !== '1';
+                        btn.setAttribute('data-switch', next ? '1' : '0');
+                        btn.textContent = next ? '啟用' : '停用';
+                        btn.className = 'btn btn-sm btn-slot-toggle ' + (next ? 'btn-success' : 'btn-outline-secondary');
+                    });
+                });
+            }
+
+            function collectSlotsFromForm() {
+                const rows = document.querySelectorAll('#slotsContainer .slot-row');
+                const slots = [];
+                rows.forEach(function (row) {
+                    const targetId = (row.querySelector('.slot-targetId') || {}).value || '';
+                    const targetType = (row.querySelector('.slot-targetType') || {}).value || '';
+                    const platform = (row.querySelector('.slot-platform') || {}).value || '';
+                    const name = (row.querySelector('.slot-name') || {}).value || '';
+                    const btn = row.querySelector('.btn-slot-toggle');
+                    const sw = btn && btn.getAttribute('data-switch') === '1';
+                    const normalizedTargetId = targetId.trim();
+                    // Only submit used slots. Empty rows are treated as unassigned.
+                    if (!normalizedTargetId) return;
+                    slots.push({
+                        targetId: normalizedTargetId,
+                        targetType,
+                        platform,
+                        name: name.trim(),
+                        switch: sw
+                    });
+                });
+                return slots;
+            }
+
+            async function saveSlots() {
+                const key = getKeyForApi();
+                const slots = collectSlotsFromForm();
+                saveResult.textContent = '儲存中…';
+                saveResult.className = 'mt-2 small text-muted';
+                try {
+                    const res = await fetch('/api/patreon/me/slots', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'X-Patreon-Key': key },
+                        body: JSON.stringify({ slots: slots })
+                    });
+                    if (res.status === 401) { showDashboard(false); return; }
+                    if (!res.ok) {
+                        const err = await res.json().catch(function () { return {}; });
+                        saveResult.textContent = err.error || '儲存失敗';
+                        saveResult.className = 'mt-2 small text-danger';
+                        return;
+                    }
+                    const data = await res.json();
+                    renderDashboard(data);
+                    saveResult.textContent = '已儲存名額。';
+                    saveResult.className = 'mt-2 small text-success';
+                } catch (e) {
+                    saveResult.textContent = '網路錯誤，請稍後再試。';
+                    saveResult.className = 'mt-2 small text-danger';
+                }
+            }
+
+            function showDashboard(show) {
+                if (show) {
+                    keySection.classList.add('d-none');
+                    dashboardSection.classList.remove('d-none');
+                } else {
+                    clearKey();
+                    keySection.classList.remove('d-none');
+                    dashboardSection.classList.add('d-none');
+                }
+            }
+
+            btnLogin.addEventListener('click', async function () {
+                const key = getKey();
+                clearError();
+                if (!key) { showError('請輸入 KEY'); return; }
+                btnLogin.disabled = true;
+                try {
+                    const data = await validateKey(key);
+                    if (data) {
+                        setKey(key);
+                        renderDashboard(data);
+                        showDashboard(true);
+                    } else {
+                        showError('KEY 無效或會員已關閉');
+                    }
+                } catch (e) {
+                    showError('連線失敗，請稍後再試');
+                }
+                btnLogin.disabled = false;
+            });
+
+            patreonKeyInput.addEventListener('input', onPatreonKeyInput);
+            patreonKeyInput.addEventListener('paste', function () {
+                setTimeout(onPatreonKeyInput, 0);
+            });
+            patreonKeyInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') btnLogin.click();
+            });
+
+            btnLogout.addEventListener('click', function () {
+                showDashboard(false);
+                clearError();
+            });
+
+            btnSaveSlots.addEventListener('click', saveSlots);
+
+            (function init() {
+                const savedKey = sessionStorage.getItem(KEY_STORAGE);
+                if (savedKey) {
+                    patreonKeyInput.value = formatKeyWithDashes(savedKey) || savedKey;
+                    validateKey(savedKey).then(function (data) {
+                        if (data) {
+                            renderDashboard(data);
+                            showDashboard(true);
+                        } else {
+                            sessionStorage.removeItem(KEY_STORAGE);
+                        }
+                    });
+                }
+            })();
+        })();
+    </script>
+</body>
+</html>

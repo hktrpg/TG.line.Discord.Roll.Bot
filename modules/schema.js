@@ -217,6 +217,44 @@ const codeListSchema = mongoose.model('codelist', new mongoose.Schema({
     notes: String,
 }));
 
+const patreonMemberSchema = mongoose.model('patreonMember', new mongoose.Schema({
+    patreonName: { type: String, required: true, unique: true, index: true },
+    /** SHA-256 hash of normalized key for lookup. */
+    keyHash: { type: String, required: true, unique: true, index: true },
+    /** KEY encrypted with CRYPTO_SECRET (utils/security encryptWithCryptoSecret). */
+    keyEncrypted: { type: String, required: true },
+    level: { type: Number, required: true },
+    name: String,
+    notes: String,
+    switch: { type: Boolean, default: true },
+    startDate: { type: Date, default: Date.now },
+    /** Encrypted with CRYPTO_SECRET (utils/security encryptWithCryptoSecret) */
+    emailEncrypted: String,
+    /** Encrypted with CRYPTO_SECRET */
+    discordEncrypted: String,
+    /** Last Updated from Patreon CSV import */
+    lastUpdatedFromPatreon: Date,
+    history: [{
+        at: { type: Date, default: Date.now },
+        action: { type: String, enum: ['on', 'off', 'add', 'remove', 'update'] },
+        source: String,
+        reason: String,
+        detail: String
+    }],
+    slots: [{
+        targetId: String,
+        targetType: { type: String, enum: ['user', 'channel'], default: 'user' },
+        platform: String,
+        name: String,
+        switch: { type: Boolean, default: true }
+    }]
+}, {
+    indexes: [
+        { keyHash: 1 },
+        { patreonName: 1 }
+    ]
+}));
+
 const characterGroupSwitchSchema = mongoose.model('characterGpSwitch', new mongoose.Schema({
     gpid: Array,
     id: { type: String, index: true },
@@ -737,6 +775,7 @@ module.exports = {
     veryImportantPerson: veryImportantPersonSchema,
     characterGpSwitch: characterGroupSwitchSchema,
     codelist: codeListSchema,
+    patreonMember: patreonMemberSchema,
     chatRoom: chatRoomSchema,
     exportGp: exportGroupSchema,
     exportUser: exportUserSchema,

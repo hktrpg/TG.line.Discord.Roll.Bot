@@ -406,6 +406,21 @@ const discordCommand = [
             .setDescription('【身分組管理】點擊表情符號自動分配身分組')
             .addSubcommand(subcommand =>
                 subcommand
+                    .setName('add')
+                    .setDescription('新增反應配置')
+                    .addStringOption(option =>
+                        option.setName('details')
+                            .setDescription('格式: 身分組ID 表情符號，可輸入多組（以空白或換行分隔）')
+                            .setRequired(true)
+                    )
+                    .addStringOption(option =>
+                        option.setName('message_id')
+                            .setDescription('要綁定反應的訊息ID')
+                            .setRequired(true)
+                    )
+            )
+            .addSubcommand(subcommand =>
+                subcommand
                     .setName('show')
                     .setDescription('顯示現有配置')
             )
@@ -421,12 +436,21 @@ const discordCommand = [
             ),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
-            
-            if (subcommand === 'show') {
-                return `.roleReact show`;
-            } else if (subcommand === 'delete') {
+
+            switch (subcommand) {
+            case 'add': {
+                const details = interaction.options.getString('details');
+                const messageId = interaction.options.getString('message_id');
+                return `.roleReact add ${details} [[messageID]] ${messageId}`;
+            }
+            case 'show':
+                return '.roleReact show';
+            case 'delete': {
                 const serial = interaction.options.getString('serial');
                 return `.roleReact delete ${serial}`;
+            }
+            default:
+                return;
             }
         }
     }

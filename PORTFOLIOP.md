@@ -5,16 +5,35 @@
 
 ## 目錄
 
-- [網上角色卡](#網上角色卡)
-- [擲骰機器人](#hktrpg-擲骰bot)
-- [擲骰平台](#擲骰平台)
-- [跑團平台](#跑團平台)
-- [跑團工具](#跑團工具)
-- [ROLL20 相關開發](#roll20)
-- [FoundryVTT 相關開發](#foundryvtt)
-- [代托管服務](#代托管骰子機械人及foundry-vtt)
-- [TRPG 百科](#trpg-wiki-百科)
-- [TRPG 資源](#trpg資源)
+- [HKTRPG 作品集](#hktrpg-作品集)
+  - [目錄](#目錄)
+  - [網上角色卡](#網上角色卡)
+    - [Discord 連動角色卡](#discord-連動角色卡)
+    - [無限恐怖 TRPG 角色卡](#無限恐怖-trpg-角色卡)
+    - [其他角色卡分享](#其他角色卡分享)
+  - [HKTRPG 擲骰BOT](#hktrpg-擲骰bot)
+    - [支援平台](#支援平台)
+    - [功能特色](#功能特色)
+  - [擲骰平台](#擲骰平台)
+    - [手機擲骰](#手機擲骰)
+    - [TRPG擲骰聊天室](#trpg擲骰聊天室)
+  - [跑團平台](#跑團平台)
+    - [烏冬](#烏冬)
+    - [冰丼](#冰丼)
+  - [ROLL20](#roll20)
+  - [FoundryVTT](#foundryvtt)
+    - [模組開發](#模組開發)
+    - [系統貢獻](#系統貢獻)
+    - [教學資源](#教學資源)
+  - [跑團工具](#跑團工具)
+    - [文章亂碼器](#文章亂碼器)
+  - [代托管骰子機械人及Foundry VTT](#代托管骰子機械人及foundry-vtt)
+  - [TRPG WIKI 百科](#trpg-wiki-百科)
+  - [TRPG資源](#trpg資源)
+    - [文章](#文章)
+    - [教學影片](#教學影片)
+    - [跑團紀錄](#跑團紀錄)
+  - [HKTRPG 名人堂 Hall of Fame](#hktrpg-名人堂-hall-of-fame)
 
 HKTRPG 興趣使然地創作及維護 TRPG 工具，包括多種平台與服務。歡迎加入我們的社群：
 - [HKTRPG 研究社 Facebook](https://www.facebook.com/groups/HKTRPG)
@@ -50,11 +69,13 @@ HKTRPG 興趣使然地創作及維護 TRPG 工具，包括多種平台與服務�
 已經開發四年的骰子機械人，因為一個[教學文檔](https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/edit#heading=h.91v9osx4fxtt)而誕生。
 
 ### 支援平台
-- [LINE](https://line.me/R/ti/p/svMLqy9Mik)
-- [Discord](https://discordapp.com/oauth2/authorize?&client_id=544462904037081138&scope=bot&permissions=8)
-- [Telegram](http://t.me/hktrpg_bot)
-- [Plurk](https://www.plurk.com/hktrpg)
-- Whatsapp（私人使用中）
+
+- [LINE](https://line.hktrpg.com/)
+- [Discord](https://discord.hktrpg.com/)
+- [Telegram](http://telegram.hktrpg.com/)
+- [Plurk](https://plurk.hktrpg.com/)
+- [Whatsapp](https://api.whatsapp.com/send?phone=85294427421&text=運勢)
+- [Web版](https://rollbot.hktrpg.com/)
 
 ### 功能特色
 [29種功能詳情](https://bothelp.hktrpg.com/)，包括：

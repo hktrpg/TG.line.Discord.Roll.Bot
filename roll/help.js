@@ -349,24 +349,27 @@ https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/
 			rply.text = `【🎲 HKTRPG擲骰機器人】
 ╭──────────────────
 │ 🌐 官方網站
-│ https://www.hktrpg.com/
+│ https://bothelp.hktrpg.com/
+│ 
+│ 📚 TRPG百科
+│ https://wiki.hktrpg.com/
 │
 │ 💬 官方支援群
 │ https://support.hktrpg.com
 │
 │ 🤖 邀請機器人
-│ LINE:    http://bit.ly/HKTRPG_LINE
-│ Discord: https://discord.hktrpg.com
-│ Telegram: http://t.me/hktrpg_bot
+│ LINE:    http://line.hktrpg.com/
+│ Discord: https://discord.hktrpg.com/
+│ Telegram: http://telegram.hktrpg.com/
 │ Web版:    https://rollbot.hktrpg.com/
-│ Plurk版: https://www.plurk.com/HKTRPG
+│ Plurk版: https://plurk.hktrpg.com/
 │ 快速擲骰: https://roll.hktrpg.com/
 | WhatsApp: https://api.whatsapp.com/send?phone=85294427421&text=運勢
 │
 │ 📱 社群連結
 │ FB社團:   https://www.facebook.com/groups/HKTRPG
 │ 贊助支持: https://www.patreon.com/HKTRPG
-│ GitHub:   http://bit.ly/HKTRPG_GITHUB
+│ GitHub:   http://github.hktrpg.com/
 ╰──────────────────
 `
 			return rply;

@@ -269,6 +269,10 @@ function readme() {
     uiManager.showModal('readmeModalCenter');
 }
 
+function showDetailedHelp() {
+    uiManager.showModal('detailedHelpModal');
+}
+
 function selectCard() {
     // Check if there are unsaved changes - only check on private pages with edit permissions
     if (cardManager && cardManager.getCard) {
@@ -426,6 +430,8 @@ globalThis.confirmLogout = confirmLogout;
 globalThis.confirmSaveChangesAndExitEditMode = confirmSaveChangesAndExitEditMode;
 globalThis.confirmExitEditModeWithoutSaving = confirmExitEditModeWithoutSaving;
 globalThis.readme = readme;
+globalThis.showDetailedHelp = showDetailedHelp;
+globalThis.showHelp = readme;
 globalThis.selectCard = selectCard;
 globalThis.updateCard = updateCard;
 globalThis.showError = showError;

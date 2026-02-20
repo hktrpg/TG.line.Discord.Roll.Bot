@@ -21,12 +21,12 @@ const TIER_LETTER_TO_LEVEL = {
 };
 
 const TIER_LABELS = {
-    1: "A 調查員",
-    2: "B 神秘學家",
-    3: "C 教主",
-    4: "D KP",
-    5: "E 支援者",
-    6: "F ??????"
+    1: "Tier A: 調查員",
+    2: "Tier B: 神秘學家",
+    3: "Tier C: 教主",
+    4: "Tier D: KP",
+    5: "Tier E: 支援者",
+    6: "Tier F: ??????"
 };
 
 function getMaxSlotsForLevel(level) {

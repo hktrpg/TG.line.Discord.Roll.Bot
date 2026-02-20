@@ -267,10 +267,10 @@ async function runImport(csvContent, options = {}) {
                 keys.push(key);
                 await patreonSync.syncMemberSlotsToVip(newDoc);
                 report.push(
-                    `[新增] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`,
+                    `[新增] ${name} ${patreonTiers.getTierLabel(level)} → 已開啟`,
                     key
                 );
-                keyMessages.push(`[新增] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟\n${key}`);
+                keyMessages.push(`[新增] ${name} ${patreonTiers.getTierLabel(level)} → 已開啟\n${key}`);
                 summary.added++;
             } catch (error) {
                 errors.push(`Add ${name}: ${error.message}`);
@@ -308,15 +308,15 @@ async function runImport(csvContent, options = {}) {
                 if (displayKey) {
                     keys.push(displayKey);
                     report.push(
-                        `[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`,
+                        `[更新] ${name} ${patreonTiers.getTierLabel(level)} → 已開啟`,
                         displayKey
                     );
-                    keyMessages.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟\n${displayKey}`);
+                    keyMessages.push(`[更新] ${name} ${patreonTiers.getTierLabel(level)} → 已開啟\n${displayKey}`);
                 } else {
-                    report.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
+                    report.push(`[更新] ${name} ${patreonTiers.getTierLabel(level)} → 已開啟`);
                 }
             } else {
-                report.push(`[更新] ${name} Tier ${patreonTiers.getTierLabel(level)} → 已開啟`);
+                report.push(`[更新] ${name} ${patreonTiers.getTierLabel(level)} → 已開啟`);
             }
             summary.updated++;
         } catch (error) {
@@ -335,7 +335,7 @@ async function runImport(csvContent, options = {}) {
             const tierLabel = patreonTiers.getTierLabel(member.level);
             if (displayKey) {
                 keys.push(displayKey);
-                keyMessages.push(`[現行] ${member.patreonName} Tier ${tierLabel}\n${displayKey}`);
+                keyMessages.push(`[現行] ${member.patreonName} ${tierLabel}\n${displayKey}`);
                 } else {
                 // If key cannot be decrypted, rotate to a fresh key so allkeys can still be delivered.
                 try {
@@ -355,7 +355,7 @@ async function runImport(csvContent, options = {}) {
                     const updated = await schema.patreonMember.findOne({ _id: member._id }).lean();
                     await patreonSync.syncMemberSlotsToVip(updated);
                     keys.push(newKey);
-                    keyMessages.push(`[現行] ${member.patreonName} Tier ${tierLabel}\n${newKey}`);
+                    keyMessages.push(`[現行] ${member.patreonName} ${tierLabel}\n${newKey}`);
                     summary.updated++;
                 } catch (error) {
                     errors.push(`Reset key ${member.patreonName}: ${error.message}`);

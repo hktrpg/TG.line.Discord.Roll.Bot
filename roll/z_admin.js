@@ -1154,7 +1154,7 @@ const rollDiceCommand = async function ({
                         return rply;
                     }
                     const tierLabel = patreonTiers.getTierLabel(level);
-                    rply.text = `已${existed ? '更新' : '新增'} Patreon 會員\n名稱: ${patreonName}\nTier: ${tierLabel}\n狀態: ${switchOn ? '開啟' : '關閉'}`;
+                    rply.text = `已${existed ? '更新' : '新增'} Patreon 會員\n名稱: ${patreonName}\n等級: ${tierLabel}\n狀態: ${switchOn ? '開啟' : '關閉'}`;
                     if (!existed && newKeyPlain) {
                         rply.text += `\n\n🔑 KEY (請妥善交給該會員，勿留在頻道):\n${newKeyPlain}`;
                     }

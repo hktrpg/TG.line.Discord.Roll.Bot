@@ -25,7 +25,7 @@ const pattName = /\s+-n\s+(\S+)/ig;
 const pattNotes = /\s+-no\s+(\S+)/ig;
 const pattSwitch = /\s+-s\s+(\S+)/ig;
 const deploy = require('../modules/ds-deploy-commands.js');
-//const VIP = require('../modules/veryImportantPerson');
+const { viplevelCheckUser, viplevelCheckGroup } = require('../modules/veryImportantPerson.js');
 const dbProtectionLayer = require('../modules/db-protection-layer.js');
 const clusterProtection = require('../modules/cluster-protection.js');
 const patreonTiers = require('../modules/patreon-tiers.js');
@@ -44,6 +44,9 @@ const prefixs = function () {
     }, {
         first: /^[.]root$/i,
         second: null
+    }, {
+        first: /^[.]patreon$/i,
+        second: null
     }]
 }
 const getHelpMessage = async function () {
@@ -55,10 +58,14 @@ const getHelpMessage = async function () {
 │ 　  - 顯示系統資源使用
 │
 │ ID查詢:
-│ 　• .admin id
+│ 　• .admin id 或 .patreon id
 │ 　  - 自動顯示你的用戶ID
 │ 　  - 自動顯示當前群組ID
 │ 　  - 所有平台皆可使用
+│
+│ Patreon / VIP 等級:
+│ 　• .patreon level
+│ 　  - 查詢自己與當前群組的 VIP（Patreon）等級
 │
 │ 除錯功能:
 │ 　• .admin debug
@@ -559,6 +566,30 @@ const discordCommand = [
             
             return '無效的指令';
         }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('patreon')
+            .setDescription('Patreon / VIP 查詢')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('id')
+                    .setDescription('顯示自己的用戶ID與當前群組ID'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('level')
+                    .setDescription('查詢自己與當前群組的 VIP（Patreon）等級')),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            switch (subcommand) {
+            case 'id':
+                return '.patreon id';
+            case 'level':
+                return '.patreon level';
+            default:
+                return '.patreon id';
+            }
+        }
     }
 ];
 
@@ -595,6 +626,7 @@ const rollDiceCommand = async function ({
     // Check if it's an admin command
     const isAdminCommand = /^[.]admin$/i.test(mainMsg[0]);
     const isRootCommand = /^[.]root$/i.test(mainMsg[0]);
+    const isPatreonCommand = /^[.]patreon$/i.test(mainMsg[0]);
 
     // If it's a root command, check permissions
     if (isRootCommand) {
@@ -925,6 +957,42 @@ const rollDiceCommand = async function ({
                 }
                 return rply;
             default:
+                return rply;
+        }
+    } else if (isPatreonCommand) {
+        switch (true) {
+            case /^id$/i.test(mainMsg[1]): {
+                const currentUserId = userid || 'N/A';
+                const currentGroupId = groupid || '（目前為私訊，無群組ID）';
+                const currentChannelId = channelid || 'N/A';
+                rply.text = [
+                    '【ID 查詢】',
+                    `用戶ID: ${currentUserId}`,
+                    `群組ID: ${currentGroupId}`,
+                    `頻道ID: ${currentChannelId}`,
+                    '',
+                    'Patreon 管理頁:',
+                    'https://patreon.hktrpg.com',
+                    '（以上 ID 可用於 Patreon 管理頁的名額分配設定）'
+                ].join('\n');
+                return rply;
+            }
+            case /^level$/i.test(mainMsg[1]): {
+                const userLevel = await viplevelCheckUser(userid);
+                const groupLevel = await viplevelCheckGroup(groupid || '');
+                const userLabel = patreonTiers.getTierLabel(userLevel) || (userLevel ? `Level ${userLevel}` : '無');
+                const groupLabel = patreonTiers.getTierLabel(groupLevel) || (groupLevel ? `Level ${groupLevel}` : '無');
+                rply.text = [
+                    '【Patreon / VIP 等級】',
+                    `你的 VIP 等級: ${userLevel} (${userLabel})`,
+                    `本群組 VIP 等級: ${groupLevel} (${groupLabel})`,
+                    '',
+                    'Patreon 管理頁: https://patreon.hktrpg.com'
+                ].join('\n');
+                return rply;
+            }
+            default:
+                rply.text = '可用指令：.patreon id（查 ID）、.patreon level（查自己與群組 VIP 等級）';
                 return rply;
         }
     } else if (isRootCommand) {

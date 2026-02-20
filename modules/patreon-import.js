@@ -251,6 +251,7 @@ async function runImport(csvContent, options = {}) {
                 const historyEntry = { at: new Date(), action: 'on', source: 'import', reason: 'new_active_member' };
                 const newDoc = await schema.patreonMember.create({
                     patreonName: name,
+                    key: keyHash,
                     keyHash,
                     keyEncrypted,
                     level,
@@ -288,7 +289,8 @@ async function runImport(csvContent, options = {}) {
                     switch: true,
                     emailEncrypted,
                     discordEncrypted,
-                    lastUpdatedFromPatreon: lastUpdatedDate || new Date()
+                    lastUpdatedFromPatreon: lastUpdatedDate || new Date(),
+                    key: existing.keyHash
                 }
             };
             if (shouldTurnOn) {
@@ -350,7 +352,7 @@ async function runImport(csvContent, options = {}) {
                     await patreonSync.clearVipEntriesByPatreonKey(member);
                     await schema.patreonMember.updateOne(
                         { _id: member._id },
-                        { $set: { keyHash, keyEncrypted } }
+                        { $set: { keyHash, keyEncrypted, key: keyHash } }
                     );
                     const updated = await schema.patreonMember.findOne({ _id: member._id }).lean();
                     await patreonSync.syncMemberSlotsToVip(updated);

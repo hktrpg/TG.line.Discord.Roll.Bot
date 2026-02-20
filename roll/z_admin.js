@@ -1136,6 +1136,8 @@ const rollDiceCommand = async function ({
                         setFields.keyHash = security.hashPatreonKey(normalized);
                         setFields.keyEncrypted = security.encryptWithCryptoSecret(newKeyPlain);
                     }
+                    // Set key so legacy unique index key_1 has no duplicate null (E11000)
+                    setFields.key = (existed && existed.keyHash) ? existed.keyHash : setFields.keyHash;
                     doc = await schema.patreonMember.findOneAndUpdate(
                         { patreonName },
                         {
@@ -1160,7 +1162,12 @@ const rollDiceCommand = async function ({
                     }
                 } catch (error) {
                     console.error('[Admin] addpatreon error:', error);
-                    rply.text = 'addpatreon 失敗: ' + error.message;
+                    const MONGO_DUP_KEY = 11e3; // 11000 MongoDB duplicate key
+                    const msg = String(error.message || '');
+                    const isKeyNullDup = error.code === MONGO_DUP_KEY && (msg.includes('key') && msg.includes('null'));
+                    rply.text = isKeyNullDup
+                        ? 'addpatreon 失敗: 資料庫有舊的 key 唯一索引導致重複。請在 MongoDB 執行:\ndb.patreonmembers.dropIndex("key_1")\n然後再試一次。'
+                        : 'addpatreon 失敗: ' + error.message;
                 }
                 return rply;
             }
@@ -1183,7 +1190,7 @@ const rollDiceCommand = async function ({
                     const keyEncrypted = security.encryptWithCryptoSecret(newKey);
                     await schema.patreonMember.updateOne(
                         { patreonName: patreonNameRegen },
-                        { $set: { keyHash, keyEncrypted } }
+                        { $set: { keyHash, keyEncrypted, key: keyHash } }
                     );
                     rply.text = `已為 ${patreonNameRegen} 重新產生 KEY。\n⚠️ 舊 KEY 已失效，無法再登入網站。\n\n🔑 新 KEY (請妥善交給該會員，勿留在頻道):\n${newKey}`;
                 } catch (error) {

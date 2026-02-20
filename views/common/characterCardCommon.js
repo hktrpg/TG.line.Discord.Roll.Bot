@@ -222,8 +222,10 @@ function confirmSaveChangesAndExitEditMode() {
     if (cardManager && cardManager.getCard) {
         const card = cardManager.getCard();
         if (card) {
-            // Save changes and exit edit mode
-            card.saveCard();
+            // Save changes via global updateCard, then exit edit mode
+            if (typeof globalThis.updateCard === 'function') {
+                globalThis.updateCard();
+            }
             card.editMode = false;
             card.editModeBackup = null;
             card.hasUnsavedChanges = false;
@@ -267,6 +269,10 @@ function _addElement(message, type, closeDelay, allowHtml = false) {
 // Modal Functions
 function readme() {
     uiManager.showModal('readmeModalCenter');
+}
+
+function showDetailedHelp() {
+    uiManager.showModal('detailedHelpModal');
 }
 
 function selectCard() {
@@ -426,6 +432,8 @@ globalThis.confirmLogout = confirmLogout;
 globalThis.confirmSaveChangesAndExitEditMode = confirmSaveChangesAndExitEditMode;
 globalThis.confirmExitEditModeWithoutSaving = confirmExitEditModeWithoutSaving;
 globalThis.readme = readme;
+globalThis.showDetailedHelp = showDetailedHelp;
+globalThis.showHelp = readme;
 globalThis.selectCard = selectCard;
 globalThis.updateCard = updateCard;
 globalThis.showError = showError;

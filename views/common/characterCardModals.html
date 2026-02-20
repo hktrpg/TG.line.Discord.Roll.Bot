@@ -121,11 +121,67 @@
                         <li>點擊說明按鈕查看使用說明</li>
                     </ol>
                     <h6>詳細說明：</h6>
-                    <p>請訪問 <a href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot/wiki/Character-Card" target="_blank">GitHub Wiki</a> 查看完整使用說明。</p>
+                    <p>請訪問 <a href="https://bothelp.hktrpg.com/hktrpg-guan-fang-shi-yong-jiao-xue/trpg-gong-neng/kai-shi-jin-hang-trpg/jiao-se-ka" target="_blank" rel="noopener">官方使用教學 - 角色卡</a> 查看完整使用說明。</p>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Help Modal (普通及特殊用法) -->
+<div class="modal fade" id="detailedHelpModal" tabindex="-1" role="dialog" aria-labelledby="detailedHelpModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailedHelpModalTitle"><i class="fas fa-info-circle me-2"></i>角色卡詳細說明</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="readme-content">
+                    <p class="text-muted small mb-3">以下為<strong>本網站（網頁版）</strong>專用操作說明。Discord／聊天軟件指令請見文末連結。</p>
+                    <h6 class="text-primary">一、普通用法</h6>
+                    <ul class="mb-3">
+                        <li><strong>登入與選卡</strong>：登入後點「選擇角色卡」挑選要使用的角色；儲存後資料會與 Discord／聊天軟件同步。</li>
+                        <li><strong>角色名稱下方的資訊標籤</strong>：名稱下方會顯示一排小標籤（例如 DB、職業、特徵等），方便快速看到重點。標籤來源為：(1) 若角色卡有「角色詳細」資料（label／value），會顯示在此；(2) 「狀態」區塊中「僅填當前值、且為非數字」的項目（如職業、特徵、DB＋1D4 等）也會自動出現在標籤列。最多顯示 6 個，僅供顯示、不影響擲骰。</li>
+                        <li><strong>狀態</strong>：點 ± 可加減當前值；點「編輯模式」可修改項目名稱、當前值、最大值，或新增／刪除項目。</li>
+                        <li><strong>擲骰</strong>：點項目旁的骰子圖示會依該項公式擲骰。公式填寫擲骰指令即可，可含 <code>{變數}</code>（見下方），<strong>不需</strong>尖括號。</li>
+                        <li><strong>筆記</strong>：純文字備註；內容過長時會出現按鈕，點擊可開彈窗查看全文。</li>
+                        <li><strong>頭像</strong>：在編輯模式中填寫圖片 URL，僅接受 http/https，不接受內網或 localhost。</li>
+                    </ul>
+                    <h6 class="text-primary">二、特殊用法（網頁上可用的設定與語法）</h6>
+                    <ul class="mb-3">
+                        <li><strong>擲骰頻道</strong>（私人卡）：在「擲骰頻道」區塊選擇要轉發擲骰結果的 Discord 頻道。該群組須已由管理員在 Discord 端完成允許擲骰與登記頻道。</li>
+                        <li><strong>公開／私人</strong>：可將角色卡設為「公開」，則會出現在<a href="https://publiccard.hktrpg.com/" target="_blank" rel="noopener">公開角色卡頁面</a>供他人瀏覽與擲骰；改回「私人」即隱藏。</li>
+                        <li><strong>變數引用</strong>：在擲骰公式中用 <code>{項目名}</code> 引用該角色「狀態」區塊的數值，項目名須與狀態項目一致（英文大小寫不拘）。系統會先將 <code>{項目名}</code> 替換成該狀態的當前值，再送出擲骰。</li>
+                        <li><strong>擲骰語法（網頁版）</strong>：在「擲骰」項目欄位中<strong>直接填寫擲骰指令</strong>。</li>
+                        <li><strong>先擲技能檢定、後擲傷害</strong>：例如小型棍狀物（警棍等），可設兩個擲骰項目——「鬥毆」填 <code>CC 49</code> 或 <code>CC {鬥毆}</code>（技能檢定），「傷害」填 <code>1d6{db}</code>（傷害骰＋體格加值；DB 欄位值已含 +，故不必寫成 1d6+{db}）；先點鬥毆、再點傷害即可。</li>
+                        <li><strong>公式範例與過程說明</strong>（假設狀態欄位如下）：<br>
+                            <table class="table table-sm table-bordered mt-2 mb-1 small" style="max-width:360px;">
+                                <thead><tr><th>HP</th><th>幸運</th><th>DB</th><th>鬥毆</th></tr></thead>
+                                <tbody><tr><td>11</td><td>60</td><td>+1D4</td><td>49</td></tr></tbody>
+                            </table>
+                            <table class="table table-sm table-bordered mt-2 mb-0 small">
+                                <thead><tr><th>欄位填寫</th><th>替換過程</th><th>實際擲骰結果</th></tr></thead>
+                                <tbody>
+                                    <tr><td><code>1d{HP}</code></td><td>{HP} → 11</td><td>先變成 <code>1d11</code>，擲一顆 11 面骰</td></tr>
+                                    <tr><td><code>1d100+{hp}</code></td><td>{hp} → 11（與 HP 同項，大小寫不拘）</td><td>先變成 <code>1d100+11</code>，擲 1d100 再加 11</td></tr>
+                                    <tr><td><code>CC {幸運}</code></td><td>{幸運} → 60</td><td>先變成 <code>cc 60</code>，進行 CoC 技能檢定（60%）</td></tr>
+                                    <tr><td><code>CC 49</code> 或 <code>CC {鬥毆}</code></td><td>固定 49，或 {鬥毆}→49</td><td>技能檢定（鬥毆等），常用於「先擲鬥毆」</td></tr>
+                                    <tr><td><code>1d6{db}</code>（棍／傷害）</td><td>{db} → +1D4（欄位值已含 +）</td><td>先變成 <code>1d6+1d4</code>，擲 1d6 與 1d4 相加，常用於「後擲傷害」</td></tr>
+                                </tbody>
+                            </table>
+                        </li>
+                    </ul>
+                    <p class="mb-0 text-muted small">Discord／Telegram／Line 聊天指令（.char、.ch、.forward 等）請參考 <a href="https://bothelp.hktrpg.com/hktrpg-guan-fang-shi-yong-jiao-xue/trpg-gong-neng/kai-shi-jin-hang-trpg/jiao-se-ka" target="_blank" rel="noopener">官方使用教學 - 角色卡</a>。</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
             </div>
         </div>
     </div>

@@ -395,13 +395,13 @@
     color: var(--color-primary);
 }
 
-/* 操作按鈕區域 */
+/* 操作按鈕區域：兩欄排列避免單一直行，靠右對齊 */
 .action-controls {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(2, auto);
     gap: var(--spacing-sm);
     margin: var(--spacing-lg) 0;
-    justify-content: center;
-    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .action-btn {
@@ -416,6 +416,7 @@
     align-items: center;
     gap: var(--spacing-sm);
     box-shadow: var(--shadow-sm);
+    white-space: nowrap;
 }
 
 .action-btn.primary {
@@ -1077,13 +1078,14 @@
     }
 
     .action-controls {
-        flex-direction: column;
-        align-items: center;
+        grid-template-columns: 1fr;
+        justify-content: stretch;
+        align-items: stretch;
     }
 
     .action-btn {
         width: 100%;
-        max-width: 300px;
+        max-width: none;
         justify-content: center;
     }
 }

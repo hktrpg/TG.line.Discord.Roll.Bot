@@ -161,10 +161,10 @@
                         <li><strong>擲骰語法（網頁版）</strong>：在「擲骰」項目欄位中<strong>直接填寫擲骰指令</strong>。</li>
                         <li><strong>先擲技能檢定、後擲傷害</strong>：例如小型棍狀物（警棍等），可設兩個擲骰項目——「鬥毆」填 <code>CC 49</code> 或 <code>CC {鬥毆}</code>（技能檢定），「傷害」填 <code>1d6{db}</code>（傷害骰＋體格加值；DB 欄位值已含 +，故不必寫成 1d6+{db}）；先點鬥毆、再點傷害即可。</li>
                         <li><strong>擲骰結果提示</strong>：擲骰後結果會顯示在畫面右上區塊。(1) 滑鼠移上該則結果時，不會自動消失，且該則位置會固定不位移（其他則消失時不會被擠上去），方便閱讀。(2) 可點該則右上角的釘選圖示（📌），釘選後會一直保留直到重新整理頁面或再點一次取消釘選。</li>
-                        <li><strong>公式範例與過程說明</strong>（假設狀態欄位如下）：<br>
+                        <li><strong>公式範例與過程說明</strong>（假設狀態欄位如下，DB 為 +1d4）：<br>
                             <table class="table table-sm table-bordered mt-2 mb-1 small" style="max-width:360px;">
                                 <thead><tr><th>HP</th><th>幸運</th><th>DB</th><th>鬥毆</th></tr></thead>
-                                <tbody><tr><td>11</td><td>60</td><td>+1D4</td><td>49</td></tr></tbody>
+                                <tbody><tr><td>11</td><td>60</td><td>+1d4</td><td>49</td></tr></tbody>
                             </table>
                             <table class="table table-sm table-bordered mt-2 mb-0 small">
                                 <thead><tr><th>欄位填寫</th><th>替換過程</th><th>實際擲骰結果</th></tr></thead>
@@ -173,7 +173,7 @@
                                     <tr><td><code>1d100+{hp}</code></td><td>{hp} → 11（與 HP 同項，大小寫不拘）</td><td>先變成 <code>1d100+11</code>，擲 1d100 再加 11</td></tr>
                                     <tr><td><code>CC {幸運}</code></td><td>{幸運} → 60</td><td>先變成 <code>cc 60</code>，進行 CoC 技能檢定（60%）</td></tr>
                                     <tr><td><code>CC 49</code> 或 <code>CC {鬥毆}</code></td><td>固定 49，或 {鬥毆}→49</td><td>技能檢定（鬥毆等），常用於「先擲鬥毆」</td></tr>
-                                    <tr><td><code>1d6{db}</code>（棍／傷害）</td><td>{db} → +1D4（欄位值已含 +）</td><td>先變成 <code>1d6+1d4</code>，擲 1d6 與 1d4 相加，常用於「後擲傷害」</td></tr>
+                                    <tr><td><code>1d6{db}</code>（棍／傷害）</td><td>{db} → +1d4（欄位值已含 +）</td><td>先變成 <code>1d6+1d4</code>，擲 1d6 與 1d4 相加，常用於「後擲傷害」</td></tr>
                                 </tbody>
                             </table>
                         </li>

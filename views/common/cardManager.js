@@ -221,7 +221,7 @@ class CardManager {
                             debugLog(`openNoteModal failed: ${error && error.message}`, 'error');
                         }
                     },
-                    // 載入測試數據
+                    // 載入測試數據（包含詳細說明中的範例）
                     loadTestData() {
                         this.name = "測試角色";
                         this.state = [
@@ -229,21 +229,27 @@ class CardManager {
                             { name: 'MP', itemA: '16', itemB: '16' },
                             { name: 'SAN', itemA: '80', itemB: '80' },
                             { name: '體格', itemA: '1', itemB: '' },
-                            { name: 'DB', itemA: '＋1D4', itemB: '' },
+                            { name: 'DB', itemA: '+1d4', itemB: '' },
                             { name: 'MOV', itemA: '8', itemB: '' },
                             { name: '護甲', itemA: '0', itemB: '' },
+                            { name: '幸運', itemA: '60', itemB: '' },
+                            { name: '鬥毆', itemA: '49', itemB: '' },
                             { name: '職業', itemA: '保險調查員', itemB: '' },
                             { name: '特徵', itemA: '野外活動愛好者', itemB: '' }
                         ].filter(item => item && item.name);
                         
                         this.roll = [
+                            { name: 'HP擲骰', itemA: '1d{HP}' },
+                            { name: '1d100+HP', itemA: '1d100+{hp}' },
+                            { name: '幸運檢定', itemA: 'CC {幸運}' },
+                            { name: '鬥毆', itemA: 'CC 49' },
+                            { name: '鬥毆（變數）', itemA: 'CC {鬥毆}' },
+                            { name: '棍+db', itemA: '1d6{db}' },
                             { name: '心理學', itemA: '10' },
                             { name: '信譽', itemA: '0' },
                             { name: '偵查', itemA: '25' },
-                            { name: '鬥毆', itemA: '25' },
                             { name: '魔法', itemA: '1' },
-                            { name: '小刀', itemA: '25' },
-                            { name: '幸運', itemA: '50' }
+                            { name: '小刀', itemA: '1d4+1{db}' }
                         ].filter(item => item && item.name);
                         
                         this.notes = [
@@ -1009,21 +1015,26 @@ class CardManager {
                                 { name: 'MP', itemA: '16', itemB: '16' },
                                 { name: 'SAN', itemA: '80', itemB: '80' },
                                 { name: '體格', itemA: '1', itemB: '' },
-                                { name: 'DB', itemA: '＋1D4', itemB: '' },
+                                { name: 'DB', itemA: '+1d4', itemB: '' },
                                 { name: 'MOV', itemA: '8', itemB: '' },
                                 { name: '護甲', itemA: '0', itemB: '' },
+                                { name: '幸運', itemA: '60', itemB: '' },
+                                { name: '鬥毆', itemA: '49', itemB: '' },
                                 { name: '職業', itemA: '保險調查員', itemB: '' },
                                 { name: '特徵', itemA: '野外活動愛好者', itemB: '' }
                             ],
                             roll: [
-                                { name: '心理學', itemA: 'CC 10' },
+                                { name: 'HP擲骰', itemA: '1d{HP}' },
+                                { name: '1d100+HP', itemA: '1d100+{hp}' },
+                                { name: '幸運檢定', itemA: 'CC {幸運}' },
+                                { name: '鬥毆', itemA: 'CC 49' },
+                                { name: '鬥毆（變數）', itemA: 'CC {鬥毆}' },
+                                { name: '棍+db', itemA: '1d6{db}' },
+                                { name: '心理學', itemA: '10' },
                                 { name: '信譽', itemA: 'CC 5' },
                                 { name: '偵查', itemA: 'CC 25' },
-                                { name: '鬥毆', itemA: 'CC 25' },
-                                { name: '魔法', itemA: 'CC 1' },
-                                { name: '小刀', itemA: 'CC 25' },
-                                { name: '幸運', itemA: 'CC 50' },
-                                { name: '占卜', itemA: 'CC 80' },
+                                { name: 'sc', itemA: '.sc {SAN}' },
+                                { name: '小刀', itemA: '1d4+1{db}' }
                             ],
                             notes: [
                                 { name: '調查筆記', itemA: '這是測試筆記內容' },

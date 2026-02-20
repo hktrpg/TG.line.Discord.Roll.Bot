@@ -141,6 +141,11 @@ const RETRY_CONFIG = {
         BAD_REQUEST: {
             status: 400,
             noRetry: true           // Don't retry on bad requests
+        },
+        // Model no longer available (e.g. OpenRouter 404, end of testing period)
+        NOT_FOUND: {
+            status: 404,
+            modelUnavailableCooldownSeconds: 3600  // Long cooldown so we don't retry deprecated model
         }
     },
 
@@ -806,15 +811,22 @@ class OpenAI {
 
         this.retryManager.globalRetryCount++;
 
-        // Handle model cycling for LOW tier rate limits and also for generic server/unknown errors
-        if (this.retryManager.shouldCycleModel(modelTier, errorType) || (modelTier === 'LOW' && (errorType === 'SERVER_ERROR' || errorType === 'UNKNOWN'))) {
+        // Handle model cycling for LOW tier: rate limits, NOT_FOUND (e.g. model deprecated/404), server/unknown errors
+        const shouldCycle = this.retryManager.shouldCycleModel(modelTier, errorType) ||
+            (modelTier === 'LOW' && (errorType === 'SERVER_ERROR' || errorType === 'UNKNOWN' || errorType === 'NOT_FOUND'));
+        if (shouldCycle) {
             // Put the failed model on cooldown to avoid immediate reuse
             const failedModel = isTranslation ? this.getCurrentModelForTranslation(modelTier) : this.getCurrentModel(modelTier);
             if (failedModel?.name) {
                 const headerRetryAfter = Number.parseInt(error?.response?.headers?.['retry-after'] || error?.headers?.['retry-after']);
-                const coolSeconds = Number.isFinite(headerRetryAfter) && headerRetryAfter > 0
+                let coolSeconds = Number.isFinite(headerRetryAfter) && headerRetryAfter > 0
                     ? headerRetryAfter
                     : (RETRY_CONFIG.MODEL_CYCLING.perModelCooldownSeconds || 60);
+                // Use long cooldown for NOT_FOUND (model no longer available) so we don't retry deprecated model
+                if (errorType === 'NOT_FOUND') {
+                    const notFoundConfig = RETRY_CONFIG.ERROR_TYPES.NOT_FOUND;
+                    coolSeconds = notFoundConfig?.modelUnavailableCooldownSeconds ?? 3600;
+                }
                 this.retryManager.setModelCooldown(failedModel.name, coolSeconds);
             }
 
@@ -866,7 +878,12 @@ class OpenAI {
             if (errorType === 'RATE_LIMIT') {
                 return `API 請求頻率限制已達上限，已嘗試循環所有可用資源，請稍後再試。\n循環包括：\n- API金鑰: ${this.apiKeys.length} 個\n- ${modelTier === 'LOW' ? `LOW模型: ${AI_CONFIG.MODELS.LOW.models.length} 個` : '單一模型'}\n- 全域重試: ${this.retryManager.globalRetryCount} 次\n ${cleanInput}`;
             }
-            return `AI error: ${error.status}.\n ${cleanInput}`;
+            // Include provider message (e.g. OpenRouter "model end of testing period") when present
+            const providerMessage = error.error?.message || error.message;
+            const statusPart = error.status != null ? `AI error: ${error.status}.` : 'AI error.';
+            const detailPart = (typeof providerMessage === 'string' && providerMessage.trim())
+                ? ` ${providerMessage.trim()}` : '';
+            return `${statusPart}${detailPart}\n ${cleanInput}`;
         }
         return `AI error.\n ${cleanInput}`;
     }

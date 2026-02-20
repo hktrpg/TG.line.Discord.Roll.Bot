@@ -219,6 +219,8 @@ const codeListSchema = mongoose.model('codelist', new mongoose.Schema({
 
 const patreonMemberSchema = mongoose.model('patreonMember', new mongoose.Schema({
     patreonName: { type: String, required: true, unique: true, index: true },
+    /** Legacy/compat: set to keyHash so legacy index key_1 has no duplicate null (E11000). Do not add unique here. */
+    key: { type: String },
     /** SHA-256 hash of normalized key for lookup. */
     keyHash: { type: String, required: true, unique: true, index: true },
     /** KEY encrypted with CRYPTO_SECRET (utils/security encryptWithCryptoSecret). */

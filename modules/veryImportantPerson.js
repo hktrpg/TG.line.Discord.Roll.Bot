@@ -35,13 +35,14 @@ class VIPManager {
             await this.refreshCache();
         }
 
-        // 根據類型選擇查詢條件
+        // 根據類型選擇查詢條件；同一 id 可能有多筆（手動 + Patreon），取最高 level
         const searchKey = type === 'group' ? 'gpid' : 'id';
 
-        const vipInfo = this.vipCache?.find(item =>
+        const matches = (this.vipCache || []).filter(item =>
             item[searchKey] === id && item.switch !== false
         );
-        return vipInfo?.level || 0;
+        if (matches.length === 0) return 0;
+        return Math.max(...matches.map(item => Number(item.level) || 0));
     }
 }
 

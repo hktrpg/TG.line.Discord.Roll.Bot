@@ -811,11 +811,12 @@ function normalizePatreonKey(key) {
     return (typeof key === 'string' ? key : '').replaceAll(/[\s-]/g, '').toUpperCase();
 }
 
+/** Find member by key (allowed to log in even when switch is false). */
 async function findPatreonMemberByKey(key) {
     const normalized = normalizePatreonKey(key);
     if (!normalized || normalized.length !== 16) return null;
     const hashed = security.hashPatreonKey(normalized);
-    return await schema.patreonMember.findOne({ switch: true, keyHash: hashed }).lean();
+    return await schema.patreonMember.findOne({ keyHash: hashed }).lean();
 }
 
 function toMemberResponse(doc) {
@@ -1054,6 +1055,10 @@ www.put('/api/patreon/me/slots', async (req, res) => {
             res.status(401).json({ error: 'Invalid or inactive key' });
             return;
         }
+        if (!member.switch) {
+            res.status(403).json({ error: 'Membership is disabled. You cannot change slots.' });
+            return;
+        }
         const slots = req.body && Array.isArray(req.body.slots) ? req.body.slots : [];
         const maxSlots = patreonTiers.getMaxSlotsForLevel(member.level);
         if (slots.length > maxSlots) {
@@ -1099,6 +1104,10 @@ www.patch('/api/patreon/me/slot/:index', async (req, res) => {
         const member = await findPatreonMemberByKey(key);
         if (!member) {
             res.status(401).json({ error: 'Invalid or inactive key' });
+            return;
+        }
+        if (!member.switch) {
+            res.status(403).json({ error: 'Membership is disabled. You cannot change slots.' });
             return;
         }
         const index = Number.parseInt(req.params.index, 10);

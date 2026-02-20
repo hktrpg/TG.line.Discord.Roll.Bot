@@ -25,7 +25,7 @@ const pattName = /\s+-n\s+(\S+)/ig;
 const pattNotes = /\s+-no\s+(\S+)/ig;
 const pattSwitch = /\s+-s\s+(\S+)/ig;
 const deploy = require('../modules/ds-deploy-commands.js');
-//const VIP = require('../modules/veryImportantPerson');
+const { viplevelCheckUser, viplevelCheckGroup } = require('../modules/veryImportantPerson.js');
 const dbProtectionLayer = require('../modules/db-protection-layer.js');
 const clusterProtection = require('../modules/cluster-protection.js');
 const patreonTiers = require('../modules/patreon-tiers.js');
@@ -44,6 +44,9 @@ const prefixs = function () {
     }, {
         first: /^[.]root$/i,
         second: null
+    }, {
+        first: /^[.]patreon$/i,
+        second: null
     }]
 }
 const getHelpMessage = async function () {
@@ -55,10 +58,14 @@ const getHelpMessage = async function () {
 │ 　  - 顯示系統資源使用
 │
 │ ID查詢:
-│ 　• .admin id
+│ 　• .admin id 或 .patreon id
 │ 　  - 自動顯示你的用戶ID
 │ 　  - 自動顯示當前群組ID
 │ 　  - 所有平台皆可使用
+│
+│ Patreon / VIP 等級:
+│ 　• .patreon level
+│ 　  - 查詢自己與當前群組的 VIP（Patreon）等級
 │
 │ 除錯功能:
 │ 　• .admin debug
@@ -559,6 +566,30 @@ const discordCommand = [
             
             return '無效的指令';
         }
+    },
+    {
+        data: new SlashCommandBuilder()
+            .setName('patreon')
+            .setDescription('Patreon / VIP 查詢')
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('id')
+                    .setDescription('顯示自己的用戶ID與當前群組ID'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('level')
+                    .setDescription('查詢自己與當前群組的 VIP（Patreon）等級')),
+        async execute(interaction) {
+            const subcommand = interaction.options.getSubcommand();
+            switch (subcommand) {
+            case 'id':
+                return '.patreon id';
+            case 'level':
+                return '.patreon level';
+            default:
+                return '.patreon id';
+            }
+        }
     }
 ];
 
@@ -595,6 +626,7 @@ const rollDiceCommand = async function ({
     // Check if it's an admin command
     const isAdminCommand = /^[.]admin$/i.test(mainMsg[0]);
     const isRootCommand = /^[.]root$/i.test(mainMsg[0]);
+    const isPatreonCommand = /^[.]patreon$/i.test(mainMsg[0]);
 
     // If it's a root command, check permissions
     if (isRootCommand) {
@@ -927,6 +959,42 @@ const rollDiceCommand = async function ({
             default:
                 return rply;
         }
+    } else if (isPatreonCommand) {
+        switch (true) {
+            case /^id$/i.test(mainMsg[1]): {
+                const currentUserId = userid || 'N/A';
+                const currentGroupId = groupid || '（目前為私訊，無群組ID）';
+                const currentChannelId = channelid || 'N/A';
+                rply.text = [
+                    '【ID 查詢】',
+                    `用戶ID: ${currentUserId}`,
+                    `群組ID: ${currentGroupId}`,
+                    `頻道ID: ${currentChannelId}`,
+                    '',
+                    'Patreon 管理頁:',
+                    'https://patreon.hktrpg.com',
+                    '（以上 ID 可用於 Patreon 管理頁的名額分配設定）'
+                ].join('\n');
+                return rply;
+            }
+            case /^level$/i.test(mainMsg[1]): {
+                const userLevel = await viplevelCheckUser(userid);
+                const groupLevel = await viplevelCheckGroup(groupid || '');
+                const userLabel = patreonTiers.getTierLabel(userLevel) || (userLevel ? `Level ${userLevel}` : '無');
+                const groupLabel = patreonTiers.getTierLabel(groupLevel) || (groupLevel ? `Level ${groupLevel}` : '無');
+                rply.text = [
+                    '【Patreon / VIP 等級】',
+                    `你的 VIP 等級: ${userLevel} (${userLabel})`,
+                    `本群組 VIP 等級: ${groupLevel} (${groupLabel})`,
+                    '',
+                    'Patreon 管理頁: https://patreon.hktrpg.com'
+                ].join('\n');
+                return rply;
+            }
+            default:
+                rply.text = '可用指令：.patreon id（查 ID）、.patreon level（查自己與群組 VIP 等級）';
+                return rply;
+        }
     } else if (isRootCommand) {
         switch (true) {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
@@ -1068,6 +1136,8 @@ const rollDiceCommand = async function ({
                         setFields.keyHash = security.hashPatreonKey(normalized);
                         setFields.keyEncrypted = security.encryptWithCryptoSecret(newKeyPlain);
                     }
+                    // Set key so legacy unique index key_1 has no duplicate null (E11000)
+                    setFields.key = (existed && existed.keyHash) ? existed.keyHash : setFields.keyHash;
                     doc = await schema.patreonMember.findOneAndUpdate(
                         { patreonName },
                         {
@@ -1086,13 +1156,18 @@ const rollDiceCommand = async function ({
                         return rply;
                     }
                     const tierLabel = patreonTiers.getTierLabel(level);
-                    rply.text = `已${existed ? '更新' : '新增'} Patreon 會員\n名稱: ${patreonName}\nTier: ${tierLabel}\n狀態: ${switchOn ? '開啟' : '關閉'}`;
+                    rply.text = `已${existed ? '更新' : '新增'} Patreon 會員\n名稱: ${patreonName}\n等級: ${tierLabel}\n狀態: ${switchOn ? '開啟' : '關閉'}`;
                     if (!existed && newKeyPlain) {
                         rply.text += `\n\n🔑 KEY (請妥善交給該會員，勿留在頻道):\n${newKeyPlain}`;
                     }
                 } catch (error) {
                     console.error('[Admin] addpatreon error:', error);
-                    rply.text = 'addpatreon 失敗: ' + error.message;
+                    const MONGO_DUP_KEY = 11e3; // 11000 MongoDB duplicate key
+                    const msg = String(error.message || '');
+                    const isKeyNullDup = error.code === MONGO_DUP_KEY && (msg.includes('key') && msg.includes('null'));
+                    rply.text = isKeyNullDup
+                        ? 'addpatreon 失敗: 資料庫有舊的 key 唯一索引導致重複。請在 MongoDB 執行:\ndb.patreonmembers.dropIndex("key_1")\n然後再試一次。'
+                        : 'addpatreon 失敗: ' + error.message;
                 }
                 return rply;
             }
@@ -1115,7 +1190,7 @@ const rollDiceCommand = async function ({
                     const keyEncrypted = security.encryptWithCryptoSecret(newKey);
                     await schema.patreonMember.updateOne(
                         { patreonName: patreonNameRegen },
-                        { $set: { keyHash, keyEncrypted } }
+                        { $set: { keyHash, keyEncrypted, key: keyHash } }
                     );
                     rply.text = `已為 ${patreonNameRegen} 重新產生 KEY。\n⚠️ 舊 KEY 已失效，無法再登入網站。\n\n🔑 新 KEY (請妥善交給該會員，勿留在頻道):\n${newKey}`;
                 } catch (error) {

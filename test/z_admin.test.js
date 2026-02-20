@@ -82,10 +82,12 @@ describe('Admin Module Tests', () => {
   test('Test prefixs returns correct patterns', () => {
     const patterns = adminModule.prefixs();
     expect(Array.isArray(patterns)).toBe(true);
-    expect(patterns.length).toBe(2);
+    expect(patterns.length).toBe(3);
     expect(patterns[0].first).toBeInstanceOf(RegExp);
     expect(patterns[0].first.test('.admin')).toBe(true);
     expect(patterns[0].second).toBeNull();
+    expect(patterns[1].first.test('.root')).toBe(true);
+    expect(patterns[2].first.test('.patreon')).toBe(true);
   });
 
   test('Test getHelpMessage returns help text', async () => {

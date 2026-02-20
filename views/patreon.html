@@ -193,6 +193,9 @@
 
             <h3 class="h6 mb-2">名額分配</h3>
             <p class="text-muted small mb-1">設定每個名額要授予給哪個帳號或伺服器(群組)，儲存後即會同步 VIP 權限。</p>
+            <p class="alert alert-warning py-2 px-3 small mb-2" role="alert">
+                <strong>延遲說明：</strong>儲存後資料庫會立即更新，但機器人端有約 <strong>最多 5 分鐘</strong> 的快取更新延遲，在此期間於 Discord / Line / Telegram 查詢 VIP 等級（如 <code>.patreon level</code>）可能尚未反映最新狀態，請稍候再試。
+            </p>
             <p class="text-muted small mb-2">
                 欄位說明：<br>
                 • <strong>目標 ID</strong>：要授權的使用者 ID 或伺服器(群組) ID（例：Discord User ID / Channel ID）<br>
@@ -211,6 +214,27 @@
             <div id="slotsContainer" class="mb-3"></div>
             <button type="button" id="btnSaveSlots" class="btn btn-primary">儲存名額</button>
             <div id="saveResult" class="mt-2 small"></div>
+        </div>
+    </div>
+
+    <!-- Modal: 權限已關閉 -->
+    <div class="modal fade" id="permissionDisabledModal" tabindex="-1" role="dialog" aria-labelledby="permissionDisabledModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header alert-warning">
+                    <h5 class="modal-title" id="permissionDisabledModalTitle">會員權限已關閉</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">您的 Patreon 會員權限目前已關閉，無法變更名額分配。您仍可登入查看狀態。</p>
+                    <p class="mb-0 mt-2 text-muted small">若有疑問請聯絡管理員。<br><a href="https://www.patreon.com/HKTRPG" target="_blank" rel="noopener noreferrer">https://www.patreon.com/HKTRPG</a></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">我知道了</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -516,6 +540,20 @@
                 });
 
                 renderSlots(data.slots || [], data.maxSlots || 0);
+
+                var saveBtn = document.getElementById('btnSaveSlots');
+                if (saveBtn) {
+                    saveBtn.disabled = !data.switch;
+                    saveBtn.title = data.switch ? '' : '權限已關閉，無法儲存';
+                }
+            }
+
+            function showPermissionDisabledModal() {
+                if (typeof $ !== 'undefined' && $.fn.modal) {
+                    $('#permissionDisabledModal').modal('show');
+                } else {
+                    alert('您的 Patreon 會員權限目前已關閉，無法變更名額。若有疑問請聯絡管理員。\nhttps://www.patreon.com/HKTRPG');
+                }
             }
 
             function renderSlots(slots, maxSlots) {
@@ -584,6 +622,12 @@
                         body: JSON.stringify({ slots: slots })
                     });
                     if (res.status === 401) { showDashboard(false); return; }
+                    if (res.status === 403) {
+                        saveResult.textContent = '會員權限已關閉，無法變更名額。';
+                        saveResult.className = 'mt-2 small text-danger';
+                        showPermissionDisabledModal();
+                        return;
+                    }
                     if (!res.ok) {
                         const err = await res.json().catch(function () { return {}; });
                         saveResult.textContent = err.error || '儲存失敗';
@@ -622,8 +666,9 @@
                         setKey(key);
                         renderDashboard(data);
                         showDashboard(true);
+                        if (!data.switch) showPermissionDisabledModal();
                     } else {
-                        showError('KEY 無效或會員已關閉');
+                        showError('KEY 無效或已過期');
                     }
                 } catch (e) {
                     showError('連線失敗，請稍後再試');
@@ -654,6 +699,7 @@
                         if (data) {
                             renderDashboard(data);
                             showDashboard(true);
+                            if (!data.switch) showPermissionDisabledModal();
                         } else {
                             sessionStorage.removeItem(KEY_STORAGE);
                         }

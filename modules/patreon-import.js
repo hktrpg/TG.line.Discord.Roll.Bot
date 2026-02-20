@@ -181,12 +181,19 @@ async function runImport(csvContent, options = {}) {
         const lastUpdatedDate = lastUpdatedStr ? new Date(lastUpdatedStr.replace(' ', 'T')) : null;
 
         const existing = await schema.patreonMember.findOne({ patreonName: name }).lean();
+        const isHonoraryLifetime = level === patreonTiers.LEVEL_HONORARY_LIFETIME;
 
         // Former patron: do not add new KEY; if was ON -> turn OFF and report
+        // Exception: Honorary Member(Lifetime) should never be turned off (permanent status)
         if (isFormer) {
             formerTotal++;
             formerByTier[tierLabel] = (formerByTier[tierLabel] || 0) + 1;
             if (existing && existing.switch) {
+                // Skip turning off Honorary Member(Lifetime) - they are permanent
+                if (isHonoraryLifetime || existing.level === patreonTiers.LEVEL_HONORARY_LIFETIME) {
+                    report.push(`[Former patron] ${name} → 永久會員，保持開啟狀態`);
+                    continue;
+                }
                 try {
                     await patreonSync.clearVipEntriesByPatreonKey(existing);
                     await schema.patreonMember.updateOne(
@@ -206,8 +213,14 @@ async function runImport(csvContent, options = {}) {
         }
 
         // Not Active (e.g. Declined): if was ON -> turn OFF and report
+        // Exception: Honorary Member(Lifetime) should never be turned off (permanent status)
         if (!isActive) {
             if (existing && existing.switch) {
+                // Skip turning off Honorary Member(Lifetime) - they are permanent
+                if (isHonoraryLifetime || existing.level === patreonTiers.LEVEL_HONORARY_LIFETIME) {
+                    report.push(`[Not Active] ${name} → 永久會員，保持開啟狀態`);
+                    continue;
+                }
                 try {
                     await patreonSync.clearVipEntriesByPatreonKey(existing);
                     await schema.patreonMember.updateOne(
@@ -280,6 +293,21 @@ async function runImport(csvContent, options = {}) {
         }
 
         // Existing: update level, encrypted fields, lastUpdated; ensure ON (no KEY regen)
+        // Skip update for Honorary Member(Lifetime) - they are permanent and should not be changed once set
+        const isExistingHonorary = existing && (level === patreonTiers.LEVEL_HONORARY_LIFETIME || existing.level === patreonTiers.LEVEL_HONORARY_LIFETIME);
+        if (isExistingHonorary) {
+            // Honorary Member(Lifetime) already exists - skip update to preserve permanent status
+            report.push(`[跳過] ${name} ${patreonTiers.getTierLabel(level)} → 永久會員，已存在，不變更`);
+            if (keyMode === 'all') {
+                const displayKey = getDisplayKey(existing);
+                if (displayKey) {
+                    keys.push(displayKey);
+                    keyMessages.push(`[現行] ${name} ${patreonTiers.getTierLabel(existing.level || level)}\n${displayKey}`);
+                }
+            }
+            continue;
+        }
+
         try {
             const shouldTurnOn = !existing.switch;
             const updateDoc = {

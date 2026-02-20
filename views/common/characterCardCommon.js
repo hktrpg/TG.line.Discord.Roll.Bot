@@ -222,8 +222,10 @@ function confirmSaveChangesAndExitEditMode() {
     if (cardManager && cardManager.getCard) {
         const card = cardManager.getCard();
         if (card) {
-            // Save changes and exit edit mode
-            card.saveCard();
+            // Save changes via global updateCard, then exit edit mode
+            if (typeof globalThis.updateCard === 'function') {
+                globalThis.updateCard();
+            }
             card.editMode = false;
             card.editModeBackup = null;
             card.hasUnsavedChanges = false;

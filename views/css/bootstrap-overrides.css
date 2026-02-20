@@ -74,6 +74,35 @@
     /* Shadow effect */
 }
 
+/* Pin button: show on hover; when pinned always visible */
+#alerts-container .alert-toolbar {
+    z-index: 10;
+    pointer-events: none;
+}
+#alerts-container .alert-toolbar button {
+    pointer-events: auto;
+}
+#alerts-container .alert-pin-btn {
+    opacity: 0 !important;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    color: rgba(0, 0, 0, 0.7) !important;
+    visibility: visible !important;
+}
+#alerts-container .alert-pin-btn:hover {
+    background-color: rgba(255, 255, 255, 0.5) !important;
+    color: rgba(0, 0, 0, 0.9) !important;
+}
+#alerts-container .alert:hover .alert-pin-btn,
+#alerts-container .alert.alert-pinned .alert-pin-btn {
+    opacity: 1 !important;
+}
+#alerts-container .alert.alert-pinned .alert-pin-btn i {
+    transform: rotate(-45deg);
+}
+#alerts-container .alert-pin-btn i.fas {
+    font-size: 12px;
+}
+
 .alert.alert-custom.alert-success {
     background-color: var(--color-success-light);
     color: var(--color-success-dark);

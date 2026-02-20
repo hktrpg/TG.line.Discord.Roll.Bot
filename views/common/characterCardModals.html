@@ -160,6 +160,7 @@
                         <li><strong>變數引用</strong>：在擲骰公式中用 <code>{項目名}</code> 引用該角色「狀態」區塊的數值，項目名須與狀態項目一致（英文大小寫不拘）。系統會先將 <code>{項目名}</code> 替換成該狀態的當前值，再送出擲骰。</li>
                         <li><strong>擲骰語法（網頁版）</strong>：在「擲骰」項目欄位中<strong>直接填寫擲骰指令</strong>。</li>
                         <li><strong>先擲技能檢定、後擲傷害</strong>：例如小型棍狀物（警棍等），可設兩個擲骰項目——「鬥毆」填 <code>CC 49</code> 或 <code>CC {鬥毆}</code>（技能檢定），「傷害」填 <code>1d6{db}</code>（傷害骰＋體格加值；DB 欄位值已含 +，故不必寫成 1d6+{db}）；先點鬥毆、再點傷害即可。</li>
+                        <li><strong>擲骰結果提示</strong>：擲骰後結果會顯示在畫面右上區塊。(1) 滑鼠移上該則結果時，不會自動消失，且該則位置會固定不位移（其他則消失時不會被擠上去），方便閱讀。(2) 可點該則右上角的釘選圖示（📌），釘選後會一直保留直到重新整理頁面或再點一次取消釘選。</li>
                         <li><strong>公式範例與過程說明</strong>（假設狀態欄位如下）：<br>
                             <table class="table table-sm table-bordered mt-2 mb-1 small" style="max-width:360px;">
                                 <thead><tr><th>HP</th><th>幸運</th><th>DB</th><th>鬥毆</th></tr></thead>

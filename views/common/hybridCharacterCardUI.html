@@ -30,12 +30,7 @@
                         <template v-else>
                         <i class="fas fa-user-circle me-2"></i>
                         </template>
-                        <template v-if="editMode">
-                          <input type="text" v-model="name" placeholder="角色名稱" class="edit-input" style="max-width: 320px; margin-right: 8px;" @input="handleEditChange()">
-                        </template>
-                        <template v-else>
-                          {{ name || '未命名角色' }}
-                        </template>
+                        {{ name || '未命名角色' }}
                     </h2>
                     <div v-if="editMode" class="mb-2">
                         <input type="text" v-model="image" placeholder="角色圖片 URL (http/https)" class="edit-input" style="max-width: 480px;" @input="handleEditChange()">

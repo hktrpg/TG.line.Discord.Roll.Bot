@@ -59,6 +59,7 @@ class UIManager {
 
     /**
      * 顯示警告訊息
+     * Hover 時不自動關閉；右上角有 pin 按鈕，pin 後保留至 refresh 或 unpin
      * @param {string} message - 訊息內容
      * @param {string} type - 訊息類型 (success, danger, warning, info)
      * @param {number} closeDelay - 自動關閉延遲時間（毫秒）
@@ -66,36 +67,93 @@ class UIManager {
      */
     showAlert(message, type = "info", closeDelay = 5000, allowHtml = false) {
         const container = this.createAlertContainer();
-        
         const alert = document.createElement('div');
-        alert.className = `alert text-wrap text-break alert-dismissible fade show alert-${type}`;
-        
-        // 添加關閉按鈕
+        alert.className = `alert text-wrap text-break alert-dismissible fade show alert-${type} alert-with-pin`;
+        alert.style.position = 'relative';
+
+        const toolbar = document.createElement('div');
+        toolbar.className = 'alert-toolbar';
+        toolbar.style.cssText = 'position:absolute;top:4px;right:8px;display:flex;align-items:center;gap:4px;';
+
+        const pinButton = document.createElement('button');
+        pinButton.type = 'button';
+        pinButton.className = 'alert-pin-btn';
+        pinButton.setAttribute('aria-label', '釘選');
+        // Use text fallback if Font Awesome not loaded: 📌 or 📍
+        pinButton.innerHTML = '<i class="fas fa-thumbtack"></i><span style="display:none;">📌</span>';
+        pinButton.title = '釘選（保持顯示至重新整理或取消釘選）';
+        pinButton.style.cssText = 'background:rgba(255,255,255,0.3);border:none;cursor:pointer;padding:4px 8px;font-size:14px;border-radius:4px;z-index:10;min-width:24px;min-height:24px;display:flex;align-items:center;justify-content:center;';
+        toolbar.append(pinButton);
+
         const closeButton = document.createElement('button');
         closeButton.type = 'button';
         closeButton.className = 'close';
         closeButton.dataset.dismiss = 'alert';
         closeButton.innerHTML = '&times;';
-        alert.append(closeButton);
-        
-        // 添加訊息內容
+        closeButton.setAttribute('aria-label', '關閉');
+        closeButton.addEventListener('click', () => { if (alert.parentNode) alert.remove(); });
+        toolbar.append(closeButton);
+
+        alert.append(toolbar);
+
+        const body = document.createElement('div');
+        body.className = 'alert-body';
+        body.style.paddingRight = '48px';
         if (allowHtml) {
-            alert.innerHTML += message;
+            body.innerHTML = message;
         } else {
-            alert.append(document.createTextNode(this.sanitizeHtml(message)));
+            body.textContent = this.sanitizeHtml(message);
         }
+        alert.append(body);
 
         container.insertBefore(alert, container.firstChild);
-        
-        // 自動關閉
-        if (closeDelay) {
-            setTimeout(() => {
-                if (alert.parentNode) {
-                    alert.remove();
+
+        if (typeof container._hoverCount === 'undefined') container._hoverCount = 0;
+
+        let closeTimeoutId = null;
+        const scheduleClose = () => {
+            if (alert._pinned || !closeDelay) return;
+            if (closeTimeoutId) clearTimeout(closeTimeoutId);
+            const tryRemove = () => {
+                if (container._hoverCount > 0) {
+                    closeTimeoutId = setTimeout(tryRemove, 500);
+                    return;
                 }
-            }, closeDelay);
-        }
-        
+                if (alert.parentNode) alert.remove();
+            };
+            closeTimeoutId = setTimeout(tryRemove, closeDelay);
+        };
+
+        alert.addEventListener('mouseenter', () => {
+            container._hoverCount++;
+            if (closeTimeoutId) {
+                clearTimeout(closeTimeoutId);
+                closeTimeoutId = null;
+            }
+        });
+        alert.addEventListener('mouseleave', () => {
+            container._hoverCount--;
+            if (container._hoverCount < 0) container._hoverCount = 0;
+            if (!alert._pinned) scheduleClose();
+        });
+
+        pinButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            alert._pinned = !alert._pinned;
+            if (alert._pinned) {
+                if (closeTimeoutId) { clearTimeout(closeTimeoutId); closeTimeoutId = null; }
+                alert.classList.add('alert-pinned');
+                pinButton.innerHTML = '<i class="fas fa-thumbtack"></i>';
+                pinButton.title = '取消釘選';
+            } else {
+                alert.classList.remove('alert-pinned');
+                pinButton.innerHTML = '<i class="fas fa-thumbtack"></i>';
+                pinButton.title = '釘選（保持顯示至重新整理或取消釘選）';
+                scheduleClose();
+            }
+        });
+
+        scheduleClose();
         this.alerts.push(alert);
     }
 

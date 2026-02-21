@@ -356,7 +356,15 @@
                 return isNaN(date.getTime()) ? '—' : date.toLocaleString('zh-Hant');
             }
 
-            function toZhAction(action) {
+            function toZhAction(action, reason) {
+                const key = String(action || '').toLowerCase();
+                // First record (member start): 會員開始
+                if (key === 'on') {
+                    const r = String(reason || '').toLowerCase();
+                    if (r === 'new_active_member' || r === 'honorary_lifetime_former_in_csv' || r === 'admin_create') {
+                        return '會員開始';
+                    }
+                }
                 const map = {
                     on: '開啟',
                     off: '關閉',
@@ -364,7 +372,7 @@
                     remove: '移除',
                     update: '更新'
                 };
-                return map[String(action || '').toLowerCase()] || '紀錄';
+                return map[key] || '紀錄';
             }
 
             function toZhSource(source) {
@@ -417,7 +425,7 @@
 
             function formatHistoryText(h) {
                 const dateText = formatDate(h.at);
-                const actionText = toZhAction(h.action);
+                const actionText = toZhAction(h.action, h.reason);
                 const sourceText = toZhSource(h.source);
                 const detailText = formatSlotDetail(h.detail);
                 if (detailText) {
@@ -458,6 +466,25 @@
                 return 'history-action-off';
             }
 
+            /** Return a short label for history entries that have no detail (action/source/reason only). */
+            function getHistoryDetailLabel(h) {
+                var action = String(h.action || '').toLowerCase();
+                var source = String(h.source || '').toLowerCase();
+                var reason = String(h.reason || '').toLowerCase();
+                if (action === 'on') {
+                    if (reason === 'new_active_member' || reason === 'honorary_lifetime_former_in_csv' || reason === 'admin_create') return '會員開始';
+                    if (reason === 'reactivated_by_import') return '匯入時重新開啟';
+                    if (source === 'admin' && reason === 'admin_update') return '管理員更新會員資料';
+                    if (source === 'admin' && reason === 'manual_on') return '管理員手動開啟';
+                }
+                if (action === 'off') {
+                    if (source === 'import' && reason === 'former_patron') return '曾為贊助者，已關閉權限';
+                    if (source === 'import' && reason === 'not_active') return '非有效贊助，已關閉權限';
+                    if (source === 'admin' && reason === 'manual_off') return '管理員手動關閉';
+                }
+                return '';
+            }
+
             function buildHistoryItem(h) {
                 const li = document.createElement('li');
                 li.className = 'history-item';
@@ -468,7 +495,7 @@
                 const left = document.createElement('div');
                 const badge = document.createElement('span');
                 badge.className = 'history-action-badge ' + getActionClass(h.action);
-                badge.textContent = toZhAction(h.action);
+                badge.textContent = toZhAction(h.action, h.reason);
                 left.appendChild(badge);
 
                 const right = document.createElement('div');
@@ -493,7 +520,7 @@
                 if (!detailRaw) {
                     const row = document.createElement('div');
                     row.className = 'history-detail-row';
-                    row.textContent = '（無詳細內容）';
+                    row.textContent = getHistoryDetailLabel(h) || '（無詳細內容）';
                     detailWrap.appendChild(row);
                 } else if (detailRaw.indexOf('->') >= 0) {
                     const parts = detailRaw.split('->');

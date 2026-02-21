@@ -105,11 +105,17 @@ class CardManager {
                     try {
                         const path = (window && window.location && window.location.pathname) ? window.location.pathname : '';
                         const isTestPage = /cardtest/i.test(path);
-                        if (isTestPage) {
+                        const hasCredentials = (() => {
+                            try {
+                                const u = localStorage.getItem('userName');
+                                const p = localStorage.getItem('userPassword');
+                                return !!(u && p);
+                            } catch { return false; }
+                        })();
+                        if (isTestPage || !hasCredentials) {
                             this.loadTestData();
                         } else {
-                            debugLog('Skipping test data seeding on non-test page', 'info');
-                            // 確保啟動時為乾淨狀態
+                            debugLog('User has credentials, starting with clean state', 'info');
                             this.name = '';
                             this.image = '';
                             this.state = [];
@@ -223,7 +229,7 @@ class CardManager {
                     },
                     // 載入測試數據（包含詳細說明中的範例）
                     loadTestData() {
-                        this.name = "測試角色";
+                        this.name = "吾是示範";
                         this.state = [
                             { name: 'HP', itemA: '11', itemB: '11' },
                             { name: 'MP', itemA: '16', itemB: '16' },
@@ -1003,12 +1009,12 @@ class CardManager {
                     }
                 },
                 computed: {
-                    // 產出測試角色項目
+                    // 產出吾是示範項目
                     testItem() {
                         return {
                             _id: '_test_',
                             id: '_test_',
-                            name: '測試角色',
+                            name: '吾是示範',
                             image: 'https://images2.imgbox.com/ea/b2/Bn8DmRTW_o.png',
                             state: [
                                 { name: 'HP', itemA: '11', itemB: '11' },
@@ -1043,7 +1049,7 @@ class CardManager {
                             public: false
                         };
                     },
-                    // 含測試角色置頂的清單，避免重複
+                    // 含吾是示範置頂的清單，避免重複
                     listWithTest() {
                         const base = Array.isArray(this.list) ? this.list : [];
                         // 避免與伺服器回傳同 _id 重覆

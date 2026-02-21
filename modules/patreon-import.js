@@ -183,11 +183,53 @@ async function runImport(csvContent, options = {}) {
         const existing = await schema.patreonMember.findOne({ patreonName: name }).lean();
         const isHonoraryLifetime = level === patreonTiers.LEVEL_HONORARY_LIFETIME;
 
-        // Former patron: do not add new KEY; if was ON -> turn OFF and report
-        // Exception: Honorary Member(Lifetime) should never be turned off (permanent status)
+        // Former patron: normally do not add new members; if was ON -> turn OFF and report.
+        // Special case 悠久者(名譽會員) - Honorary Member(Lifetime): even when Former, still create and produce KEY.
         if (isFormer) {
             formerTotal++;
             formerByTier[tierLabel] = (formerByTier[tierLabel] || 0) + 1;
+            // 悠久者 is special: Former 也會生產 — create member + KEY if not in DB yet
+            if (isHonoraryLifetime && !existing) {
+                const emailEncrypted = encrypt(row['Email']);
+                const discordEncrypted = encrypt(row['Discord']);
+                const zAdmin = require('../roll/z_admin.js');
+                const key = typeof zAdmin.generatePatreonKey === 'function' ? zAdmin.generatePatreonKey() : null;
+                if (!key) {
+                    errors.push(`無法產生 KEY（永久會員）: ${name}`);
+                    continue;
+                }
+                try {
+                    const normalized = (key || '').replaceAll(/\s/g, '').replaceAll('-', '').toUpperCase();
+                    const keyHash = security.hashPatreonKey(normalized);
+                    const keyEncrypted = security.encryptWithCryptoSecret(key);
+                    const historyEntry = { at: new Date(), action: 'on', source: 'import', reason: 'honorary_lifetime_former_in_csv' };
+                    const newDoc = await schema.patreonMember.create({
+                        patreonName: name,
+                        key: keyHash,
+                        keyHash,
+                        keyEncrypted,
+                        level: patreonTiers.LEVEL_HONORARY_LIFETIME,
+                        name: name,
+                        switch: true,
+                        startDate: new Date(),
+                        emailEncrypted,
+                        discordEncrypted,
+                        lastUpdatedFromPatreon: lastUpdatedDate || new Date(),
+                        history: [historyEntry],
+                        slots: []
+                    });
+                    newMemberKeys.add(key);
+                    keys.push(key);
+                    await patreonSync.syncMemberSlotsToVip(newDoc);
+                    const honoraryLabel = patreonTiers.getTierLabel(patreonTiers.LEVEL_HONORARY_LIFETIME);
+                    report.push(`[新增 永久會員] ${name} ${honoraryLabel} → 已建立 KEY（CSV 為 Former，仍予保留）`, key);
+                    keyMessages.push(`[新增 永久會員] ${name} ${honoraryLabel}\n${key}`);
+                    summary.added++;
+                } catch (error) {
+                    errors.push(`Add 永久會員 ${name}: ${error.message}`);
+                }
+                continue;
+            }
             if (existing && existing.switch) {
                 // Skip turning off Honorary Member(Lifetime) - they are permanent
                 if (isHonoraryLifetime || existing.level === patreonTiers.LEVEL_HONORARY_LIFETIME) {

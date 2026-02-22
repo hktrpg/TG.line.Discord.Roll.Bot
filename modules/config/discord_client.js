@@ -21,17 +21,17 @@ const clientConfig = {
     sweepers: {
         ...Options.DefaultSweeperSettings,
         messages: {
-            interval: 1800, // Every hour...
-            lifetime: 900,  // Remove messages older than 30 minutes.
+            interval: 900,  // Every 15 minutes
+            lifetime: 300,  // Remove messages older than 5 minutes
         },
         users: {
-            interval: 1800, // Every hour...
-            lifetime: 900,  // Remove messages older than 30 minutes.
+            interval: 900,
+            lifetime: 300,
             filter: () => null,
         },
         threads: {
-            interval: 1800, // Every hour...
-            lifetime: 900,  // Remove messages older than 30 minutes.
+            interval: 900,
+            lifetime: 300,
         }
     },
     makeCache: Options.cacheWithLimits({
@@ -40,13 +40,13 @@ const clientConfig = {
         GuildBanManager: 0, // guild.bans
         GuildInviteManager: 0, // guild.invites
         GuildMemberManager: {
-            maxSize: 200,
+            maxSize: 10,
             // This will be configured after client is initialized
             // We can't use client.user.id here as client is not yet defined
             keepOverLimit: () => false, // Will be overridden later
         }, // guild.members
         GuildStickerManager: 0, // guild.stickers
-        MessageManager: 200, // channel.messages
+        MessageManager: 50, // channel.messages
         //PermissionOverwriteManager: 200, // channel.permissionOverwrites
         PresenceManager: 0, // guild.presences
         ReactionManager: 200, // message.reactions (must be >0 to tally poll reactions)
@@ -54,7 +54,7 @@ const clientConfig = {
         StageInstanceManager: 0, // guild.stageInstances
         ThreadManager: 0, // channel.threads
         ThreadMemberManager: 0, // threadchannel.members
-        UserManager: 200, // client.users
+        UserManager: 50, // client.users
         VoiceStateManager: 0,// guild.voiceStates
 
         //GuildManager: 200, // roles require guilds

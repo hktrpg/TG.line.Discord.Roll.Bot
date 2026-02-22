@@ -22,7 +22,7 @@ const clientConfig = {
         ...Options.DefaultSweeperSettings,
         messages: {
             interval: 900,  // Every 15 minutes
-            lifetime: 300,  // Remove messages older than 5 minutes
+            lifetime: 600,  // Remove messages older than 10 minutes (keep roleReact/poll messages usable)
         },
         users: {
             interval: 900,
@@ -46,7 +46,7 @@ const clientConfig = {
             keepOverLimit: () => false, // Will be overridden later
         }, // guild.members
         GuildStickerManager: 0, // guild.stickers
-        MessageManager: 50, // channel.messages
+        MessageManager: 100, // channel.messages (min 100 so messages with reactions stay for roleReact/poll)
         //PermissionOverwriteManager: 200, // channel.permissionOverwrites
         PresenceManager: 0, // guild.presences
         ReactionManager: 200, // message.reactions (must be >0 to tally poll reactions)

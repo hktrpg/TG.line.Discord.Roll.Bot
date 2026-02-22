@@ -23,16 +23,22 @@ const config = {
     minPoolSize: 5,              // Min pool size - Lower to save memory, connections will scale up as needed
     // Heartbeat: Local MongoDB doesn't need frequent checks
     heartbeatInterval: 30_000,  // 30 seconds - Reduced frequency for local MongoDB (was 15s)
-    // Server selection: Local MongoDB should be fast
-    serverSelectionTimeout: 10_000,  // 10 seconds - Local MongoDB should respond quickly (was 60s)
-    // Idle connection cleanup: Close idle connections faster to save memory
-    maxIdleTimeMS: 30_000,       // 30 seconds - Close idle connections quickly (was 90s)
+    // Server selection: 20s to allow reconnection under burst load
+    serverSelectionTimeout: 20_000,  // 20 seconds
+    // Idle connection cleanup: 2 min to reduce connection churn on MongoDB (was 30s)
+    maxIdleTimeMS: 120_000,      // 120 seconds
     bufferCommands: true,       // Enable command buffering to allow operations before connection
     w: 1,                        // Write concern: 1 (local MongoDB, no replica set) - Changed from 'majority'
     retryWrites: true,          // Enable write retries
     autoIndex: process.env.DEBUG  // Enable auto-indexing only in debug mode
     // Note: useNewUrlParser and useUnifiedTopology are removed in Mongoose 6+ (now default behavior)
 };
+
+// Cap pool per process when running multiple clusters (e.g. discord-hybrid-sharding)
+const maxTotalConns = parseInt(process.env.MONGODB_MAX_TOTAL_CONNECTIONS, 10) || 100;
+const totalClusters = parseInt(process.env.DISCORD_TOTAL_CLUSTERS, 10) || 20;
+config.poolSize = Math.max(2, Math.floor(maxTotalConns / totalClusters));
+config.minPoolSize = 1;
 
 // Early exit handler - wrap the entire module in a function to allow early return
 (function() {
@@ -48,7 +54,8 @@ const config = {
             restart: async () => { throw new Error('MongoDB URL is not configured'); },
             disconnect: async () => {},
             withTransaction: async () => { throw new Error('MongoDB URL is not configured'); },
-            connectionEmitter: new EventEmitter()
+            connectionEmitter: new EventEmitter(),
+            notifyShuttingDown: () => {}
         };
         return;
     }
@@ -61,6 +68,11 @@ let reconnecting = false; // Prevent duplicate reconnection
 let sharedConnectionPromise = null; // Shared connection Promise to avoid multiple shards creating duplicate connections
 let connectionCooldown = false; // Connection cooldown period to avoid excessive connection attempts
 let connectionStartTime = null; // Track when connection attempts started
+let isShuttingDown = false; // When true, do not schedule restart on disconnect/error
+
+function notifyShuttingDown() {
+    isShuttingDown = true;
+}
 
 // Event emitter for connection state changes
 const connectionEmitter = new EventEmitter();
@@ -94,6 +106,18 @@ function calculateBackoffTime(attempt) {
 // Classify MongoDB errors to determine if they are permanent or temporary
 function classifyMongoDBError(error) {
     const message = error.message || String(error);
+    const name = error.name || '';
+
+    // Closed errors (client/pool/topology closed - do not retry, especially during shutdown)
+    const closedErrorNames = [
+        'MongoClientClosedError',
+        'MongoPoolClosedError',
+        'MongoTopologyClosedError',
+        'MongoExpiredSessionError'
+    ];
+    if (closedErrorNames.some(n => name.includes(n) || message.includes(n))) {
+        return 'closed';
+    }
 
     // Permanent errors (don't retry)
     const permanentErrors = [
@@ -266,11 +290,17 @@ async function connect(retries = 0) {
 
             return true;
         } catch (error) {
+            if (isShuttingDown) throw error;
             console.error(`MongoDB Connection Error: ${error.message}`);
             isConnected = false;
 
             // Classify the error
             const errorType = classifyMongoDBError(error);
+
+            // When shutting down, do not retry closed errors
+            if (isShuttingDown && errorType === 'closed') {
+                throw error;
+            }
 
             // Special handling for authentication errors (permanent)
             if (errorType === 'permanent') {
@@ -406,9 +436,6 @@ function setupConnectionListeners() {
 async function restart() {
     console.log('[db-connector] Restarting MongoDB connection...');
     try {
-        if (mongoose.connection.readyState === 1) {
-            await mongoose.connection.close();
-        }
         isConnected = false;
         const success = await connect();
         if (!success) {
@@ -424,6 +451,7 @@ async function restart() {
 
 // Handle disconnection
 async function handleDisconnect() {
+    if (isShuttingDown) return;
     console.log('[db-connector] MongoDB disconnected');
     isConnected = false;
 
@@ -461,6 +489,7 @@ async function handleDisconnect() {
 
 // Error handling
 async function handleError(error) {
+    if (isShuttingDown) return;
     console.error('[db-connector] MongoDB connection error:', error);
     isConnected = false;
 
@@ -660,9 +689,10 @@ if (!initialized) {
         checkHealth,
         waitForConnection,
         restart,
-        connect,    
+        connect,
         disconnect,
         withTransaction,
-        connectionEmitter
+        connectionEmitter,
+        notifyShuttingDown
     };
 })();

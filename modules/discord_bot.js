@@ -302,6 +302,7 @@ async function getOwnerClusterIdByGuild(guildId) {
 
 client.on('messageCreate', async message => {
 	try {
+		if (isShuttingDown) return;
 		if (message.author.bot) return;
 
 		// Use batch processing
@@ -310,14 +311,16 @@ client.on('messageCreate', async message => {
 			handlingResponMessage(message)
 		]);
 
-		if (!dbStatus && checkMongodb.isDbRespawn()) {
-			console.error(`[Discord Bot] ========== DATABASE RESPAWN TRIGGERED ==========`);
-			console.error(`[Discord Bot] Database status: ${dbStatus}, isDbRespawn: ${checkMongodb.isDbRespawn()}`);
-			console.error(`[Discord Bot] Cluster ID: ${client.cluster.id}`);
-			console.error(`[Discord Bot] Timestamp: ${new Date().toISOString()}`);
-			console.error(`[Discord Bot] ==========================================`);
-			respawnCluster2();
-		}
+		// DB-triggered cluster respawn disabled: respawn causes all clusters to reconnect at once,
+		// overwhelming MongoDB and CLUSTERING_READY_TIMEOUT. Let db-connector retry + circuit breaker handle recovery.
+		// if (process.env.DB_RESPAWN_ENABLED === '1' && !dbStatus && checkMongodb.isDbRespawn()) {
+		// 	console.error(`[Discord Bot] ========== DATABASE RESPAWN TRIGGERED ==========`);
+		// 	console.error(`[Discord Bot] Database status: ${dbStatus}, isDbRespawn: ${checkMongodb.isDbRespawn()}`);
+		// 	console.error(`[Discord Bot] Cluster ID: ${client.cluster.id}`);
+		// 	console.error(`[Discord Bot] Timestamp: ${new Date().toISOString()}`);
+		// 	console.error(`[Discord Bot] ==========================================`);
+		// 	respawnCluster2();
+		// }
 
 		// Process message only if DB is likely fine, or let it run if logic handles offline DB
 		await handlingMultiServerMessage(message);
@@ -365,6 +368,7 @@ client.on('interactionCreate', async message => {
 
 
 client.on('messageReactionAdd', async (reaction, user) => {
+	if (isShuttingDown) return;
 	if (!checkMongodb.isDbOnline()) return;
 	if (reaction.me) return;
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId })
@@ -407,6 +411,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 });
 
 client.on('messageReactionRemove', async (reaction, user) => {
+	if (isShuttingDown) return;
 	if (!checkMongodb.isDbOnline()) return;
 	if (reaction.me) return;
 	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('[Discord Bot] MongoDB error in messageReactionRemove:', error.name, error.reason))
@@ -1626,6 +1631,9 @@ async function gracefulShutdown(signal = 'unknown') {
 				console.warn('[Discord Bot] Client destroy timed out or failed:', error.message);
 			}
 		}
+
+		// Notify db-connector so it does not schedule restart when we close the connection
+		dbConnector.notifyShuttingDown();
 
 		// Close database connection before exit
 		try {

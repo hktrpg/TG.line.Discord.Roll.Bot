@@ -1272,8 +1272,16 @@ globalThis.startShardFix = startShardFix;
 globalThis.stopShardFix = stopShardFix;
 globalThis.getShardFixStatus = getShardFixStatus;
 
+const COUNT_CACHE_MS = 30_000;
+let cachedCount = null;
+let cachedCountTime = 0;
+
 async function count() {
 	if (!client.cluster) return '';
+
+	if (Date.now() - cachedCountTime < COUNT_CACHE_MS && cachedCount !== null) {
+		return cachedCount;
+	}
 
 	try {
 		// Get all subgroup IDs
@@ -1374,8 +1382,10 @@ async function count() {
 
 		const statusText = statusIndicators.length > 0 ? ` (${statusIndicators.join(', ')})` : '';
 
-		return `群組總數: ${totalGuilds.toLocaleString()}
+		cachedCount = `群組總數: ${totalGuilds.toLocaleString()}
 │ 　• 會員總數: ${totalMembers.toLocaleString()}${statusText}`;
+		cachedCountTime = Date.now();
+		return cachedCount;
 	} catch (error) {
 		console.error(`[Discord Bot] Statistics error: ${error}`);
 		return '無法獲取統計資料';

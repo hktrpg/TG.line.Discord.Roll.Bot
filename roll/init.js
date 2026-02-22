@@ -266,7 +266,7 @@ https://line.me/R/ti/p/svMLqy9Mik`
         case /(^[.]initn$)/i.test(mainMsg[0]):
             temp = await schema.init.findOne({
                 "groupID": channelid || groupid
-            });
+            }).lean();
             if (!temp) {
                 rply.text = "找不到先攻表, 如有疑問, 可以輸入.init help 觀看說明"
                 return rply;

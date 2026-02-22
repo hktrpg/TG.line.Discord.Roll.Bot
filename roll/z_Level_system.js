@@ -209,7 +209,7 @@ const rollDiceCommand = async function ({
             }
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('[Level System] MongoDB error:', error.name, error.reason));
+            }).lean().catch(error => console.error('[Level System] MongoDB error:', error.name, error.reason));
             if (!doc || doc.Title.length === 0) {
                 rply.text = "正在使用預設稱號。"
                 return rply
@@ -244,7 +244,7 @@ const rollDiceCommand = async function ({
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('[Level System] MongoDB error:', error.name, error.reason));
+            }).lean().catch(error => console.error('[Level System] MongoDB error:', error.name, error.reason));
 
             // Add null check for doc before accessing doc.Title
             if (!doc) {
@@ -280,7 +280,7 @@ const rollDiceCommand = async function ({
             }
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #242 mongoDB error:', error.name, error.reason));
+            }).lean().catch(error => console.error('level_system #242 mongoDB error:', error.name, error.reason));
             if (!doc || !doc.LevelUpWord) {
                 rply.text = '正在使用預設升級語. ';
                 return rply;
@@ -301,7 +301,7 @@ const rollDiceCommand = async function ({
 
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #262 mongoDB error:', error.name, error.reason));
+            }).lean().catch(error => console.error('level_system #262 mongoDB error:', error.name, error.reason));
             
             if (!doc) {
                 doc = new schema.trpgLevelSystem({
@@ -353,7 +353,7 @@ const rollDiceCommand = async function ({
             }
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #294 mongoDB error:', error.name, error.reason));
+            }).lean().catch(error => console.error('level_system #294 mongoDB error:', error.name, error.reason));
             if (!doc || !doc.RankWord) {
                 rply.text = '正在使用預設查詢語. ';
                 return rply;
@@ -425,7 +425,7 @@ const rollDiceCommand = async function ({
             }
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
-            }).catch(error => console.error('level_system #345 mongoDB error:', error.name, error.reason));
+            }).lean().catch(error => console.error('level_system #345 mongoDB error:', error.name, error.reason));
             rply.text = '現在設定: ' + '\n經驗值功能: ';
             rply.text += (doc && doc.SwitchV2) ? '啟動\n升級通知功能: ' : '關閉\n升級通知功能: ';
             rply.text += (doc && doc.HiddenV2) ? '啟動' : '關閉';
@@ -538,7 +538,7 @@ const rollDiceCommand = async function ({
                 groupid: groupid
             }).sort({
                 EXP: -1
-            }).catch(error => console.error('level_system #453 mongoDB error:', error.name, error.reason));
+            }).lean().catch(error => console.error('level_system #453 mongoDB error:', error.name, error.reason));
             //要尋找其中自己的userid
             let myselfIndex = docMember.map(function (members) {
                 return members.userid;
@@ -602,7 +602,7 @@ const rollDiceCommand = async function ({
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid,
                 SwitchV2: true
-            }).catch(error => console.error('level_system #514 mongoDB error:', error.name, error.reason));
+            }).lean().catch(error => console.error('level_system #514 mongoDB error:', error.name, error.reason));
             if (!doc || !doc.SwitchV2) {
                 rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
                     \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
@@ -613,7 +613,7 @@ const rollDiceCommand = async function ({
                 groupid: groupid
             }).sort({
                 EXP: -1
-            }).limit(RankNumber).catch(error => console.error('level_system #525 mongoDB error:', error.name, error.reason));
+            }).limit(RankNumber).lean().catch(error => console.error('level_system #525 mongoDB error:', error.name, error.reason));
             if (docMember.length === 0) {
                 rply.text = '此群組未有足夠資料\n'
                 return rply;
@@ -625,7 +625,7 @@ const rollDiceCommand = async function ({
         case /(^[.]level$)/i.test(mainMsg[0]) && /^showMeAtTheWorld$/i.test(mainMsg[1]): {
             //顯示自己的排名
             let myExp = await schema.trpgLevelSystemMember.findOne({ groupid: groupid, userid: userid })
-                .catch(error => console.error('level_system #537 mongoDB error:', error.name, error.reason));
+                .lean().catch(error => console.error('level_system #537 mongoDB error:', error.name, error.reason));
             if (!myExp || !myExp.EXP) {
                 rply.text = "未有找到你的資料，請檢查有沒有開啓經驗值功能";
                 return rply;
@@ -647,7 +647,7 @@ const rollDiceCommand = async function ({
             }
             let docMember = await schema.trpgLevelSystemMember.find({}, { name: 1, EXP: 1, Level: 1 }).sort({
                 EXP: -1
-            }).limit(RankNumber).catch(error => console.error('level_system #559 mongoDB error:', error.name, error.reason));
+            }).limit(RankNumber).lean().catch(error => console.error('level_system #559 mongoDB error:', error.name, error.reason));
             let docMemberCount = await schema.trpgLevelSystemMember.countDocuments({}).catch(error => console.error('level_system #560 mongoDB error:', error.name, error.reason));
 
             if (docMember.length === 0) {

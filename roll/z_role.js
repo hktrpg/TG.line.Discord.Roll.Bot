@@ -108,7 +108,7 @@ const rollDiceCommand = async function ({
         }
         //new Type role React
         case /^\.roleReact$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            let list = await schema.roleReact.find({ groupid: groupid }).catch(error => console.error('role #188 mongoDB error:', error.name, error.reason));
+            let list = await schema.roleReact.find({ groupid: groupid }).lean().catch(error => console.error('role #188 mongoDB error:', error.name, error.reason));
             rply.text = roleReactList(list);
             return rply;
         }
@@ -196,7 +196,7 @@ rply.text = `輸入資料失敗，
             let year = dateObj.getFullYear();
             let hour = dateObj.getHours()
             let minute = dateObj.getMinutes()
-            let listSerial = await schema.roleReact.find({ groupid: groupid }, "serial").catch(error => console.error('role #268 mongoDB error:', error.name, error.reason));
+            let listSerial = await schema.roleReact.find({ groupid: groupid }, "serial").lean().catch(error => console.error('role #268 mongoDB error:', error.name, error.reason));
             let serial = findTheNextSerial(listSerial);
             let myName = new schema.roleReact({
                 message: `${year}/${month}/${day}  ${hour}:${minute} - ID: ${checkName.messageID}`,
@@ -288,7 +288,7 @@ rply.text = `輸入資料失敗，
                 rply.quotes = true;
                 return rply;
             }
-            let list = await schema.roleReact.find({ groupid: groupid }, 'serial').catch(error => console.error('role #161 mongoDB error: ', error.name, error.reason));
+            let list = await schema.roleReact.find({ groupid: groupid }, 'serial').lean().catch(error => console.error('role #161 mongoDB error: ', error.name, error.reason));
             let myName = new schema.roleReact({
                 message: checkName.message,
                 groupid: groupid,
@@ -498,7 +498,7 @@ case /^\.roleInvites$/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]): {
         return rply;
     }
     for (let index = 0; index < checkName.length; index++) {
-        let list = await schema.roleInvites.find({ groupid: groupid }, 'serial');
+        let list = await schema.roleInvites.find({ groupid: groupid }, 'serial').lean();
         const myName = new schema.roleInvites({
             groupid: groupid,
             serial: findTheNextSerial(list),
@@ -532,7 +532,7 @@ function checkroleInvites(inputStr) {
 }
 
   case /^\.roleInvites$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-            let list = await schema.roleInvites.find({ groupid: groupid });
+            let list = await schema.roleInvites.find({ groupid: groupid }).lean();
             rply.text = roleInvitesList(list);
             return rply;
         }

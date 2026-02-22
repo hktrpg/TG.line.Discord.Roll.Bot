@@ -271,7 +271,7 @@ async function handleShow(mainMsg, userid, rply) {
     let filter = { id: userid };
     if (/^show\d+/i.test(mainMsg[1])) {
         let index = Number.parseInt(mainMsg[1].replace(/^show/i, ''));
-        let doc = await schema.characterCard.findOne(filter).skip(index).catch(error => console.error('[Character] MongoDB error in show0:', error));
+        let doc = await schema.characterCard.findOne(filter).skip(index).lean().catch(error => console.error('[Character] MongoDB error in show0:', error));
         if (!doc) {
             rply.text = `
 ╭──── ⚠️錯誤提示 ────
@@ -283,7 +283,7 @@ async function handleShow(mainMsg, userid, rply) {
         return rply;
     } else {
         rply.text += '╭──── 📋角色卡列表 ────\n';
-        let doc = await schema.characterCard.find(filter).catch(error => console.error('[Character] MongoDB error in show:', error));
+        let doc = await schema.characterCard.find(filter).lean().catch(error => console.error('[Character] MongoDB error in show:', error));
         rply.buttonCreate = [];
         
         // Calculate minimum digits needed for zero-padding
@@ -330,13 +330,13 @@ async function handleAddEdit(mainMsg, inputStr, userid, groupid, rply) {
     let gpLv = await VIP.viplevelCheckGroup(groupid);
     lv = Math.max(gpLv, lv);
     let limit = FUNCTION_LIMIT[lv];
-    let check = await schema.characterCard.find({ id: userid });
+    let check = await schema.characterCard.find({ id: userid }).lean();
     if (check.length >= limit) {
         rply.text = '你的角色卡上限為' + limit + '張' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
         return rply;
     }
     let filter = { id: userid, name: new RegExp('^' + convertRegex(Card.name) + '$', "i") };
-    let doc = await schema.characterCard.findOne(filter);
+    let doc = await schema.characterCard.findOne(filter).lean();
     if (doc) {
         doc.name = Card.name;
         Card.state = await Merge(doc.state, Card.state, 'name');

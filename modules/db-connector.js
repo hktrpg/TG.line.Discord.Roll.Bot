@@ -72,6 +72,10 @@ let isShuttingDown = false; // When true, do not schedule restart on disconnect/
 
 function notifyShuttingDown() {
     isShuttingDown = true;
+    if (retryInterval) {
+        clearInterval(retryInterval);
+        retryInterval = null;
+    }
 }
 
 // Event emitter for connection state changes
@@ -472,6 +476,10 @@ async function handleDisconnect() {
     // Use exponential backoff for retries
     const backoffTime = calculateBackoffTime(connectionAttempts);
     setTimeout(async () => {
+        if (isShuttingDown) {
+            reconnecting = false;
+            return;
+        }
         if (!isConnected && reconnecting) {
             console.log(`[db-connector] Attempting to reconnect after ${Math.round(backoffTime / 1000)} seconds...`);
             try {
@@ -504,6 +512,10 @@ async function handleError(error) {
     // Use exponential backoff for retries
     const backoffTime = calculateBackoffTime(connectionAttempts);
     setTimeout(async () => {
+        if (isShuttingDown) {
+            reconnecting = false;
+            return;
+        }
         if (!isConnected && reconnecting) {
             console.log(`[db-connector] Attempting to recover from error after ${Math.round(backoffTime / 1000)} seconds...`);
             try {

@@ -10,6 +10,15 @@ const timerManager = require('./timer-manager');
 // 使用 Map 來做使用者快取
 const userCache = new Map();
 
+// Clear user cache every 24 hours to prevent unbounded memory growth
+const USER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+let userCacheClearInterval;
+function startUserCacheClearInterval() {
+    if (userCacheClearInterval) timerManager.clearInterval(userCacheClearInterval);
+    userCacheClearInterval = timerManager.setInterval(() => userCache.clear(), USER_CACHE_TTL_MS);
+}
+startUserCacheClearInterval();
+
 // 讀取訊息檔案的工具函數
 const readJsonFile = (filename) => {
     try {

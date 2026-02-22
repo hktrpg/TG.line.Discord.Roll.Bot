@@ -167,7 +167,7 @@ const realTimeRollingLogSchema = mongoose.model('RealTimeRollingLog', new mongoo
     }
 }));
 
-const rollingLogSchema = mongoose.model('RollingLog', new mongoose.Schema({
+const rollingLogSchemaDef = new mongoose.Schema({
     RollingLogfunction: {
         LogTime: { type: String, index: true },
         DiscordCountRoll: Number,
@@ -183,7 +183,9 @@ const rollingLogSchema = mongoose.model('RollingLog', new mongoose.Schema({
         PlurkCountRoll: Number,
         PlurkCountText: Number
     }
-}));
+}, { timestamps: true });
+rollingLogSchemaDef.index({ createdAt: 1 }, { expireAfterSeconds: 7776000 }); // 90 days TTL
+const rollingLogSchema = mongoose.model('RollingLog', rollingLogSchemaDef);
 
 // Character and user related schemas
 const veryImportantPersonSchema = mongoose.model('veryImportantPerson', new mongoose.Schema({

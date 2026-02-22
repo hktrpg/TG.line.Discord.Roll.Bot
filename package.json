@@ -9,7 +9,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node --max-old-space-size=3072 index.js",
     "test": "jest",
     "test:unit": "jest --testPathIgnorePatterns=integration",
     "test:integration": "RUN_INTEGRATION_TESTS=true jest --testPathPattern=integration",

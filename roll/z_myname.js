@@ -137,7 +137,7 @@ const rollDiceCommand = async function ({
             rply.text = checkBotname(botname, rply);
             if (rply.text) return rply;
 
-            let myNames = await schema.myName.find({ userID: userid });
+            let myNames = await schema.myName.find({ userID: userid }).lean();
             if (groupid) {
                 let result = showNames(myNames);
                 if (typeof result == 'string') rply.text = result;
@@ -230,7 +230,7 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             rply.text = `已新增角色 - ${myName.name}`;
-            let myNames = await schema.myName.find({ userID: userid });
+            let myNames = await schema.myName.find({ userID: userid }).lean();
             let nameResult = showName(myNames, myName.name);
             if (groupid) {
                 rply.myNames = [nameResult];
@@ -302,14 +302,14 @@ const rollDiceCommand = async function ({
                 let checkName = checkMeName(mainMsg[0]);
                 let myName;
                 if (typeof checkName == 'number') {
-                    let myNameFind = await schema.myName.find({ userID: userid }).skip(((checkName - 1) < 0 ? 1 : (checkName - 1))).limit(1);
+                    let myNameFind = await schema.myName.find({ userID: userid }).skip(((checkName - 1) < 0 ? 1 : (checkName - 1))).limit(1).lean();
                     if (myNameFind && myNameFind.length > 0) {
                         myName = myNameFind[0];
                     }
                 }
                 if (!myName) {
                     try {
-                        myName = await schema.myName.findOne({ userID: userid, shortName: new RegExp('^' + convertRegex(checkName) + '$', 'i') });
+                        myName = await schema.myName.findOne({ userID: userid, shortName: new RegExp('^' + convertRegex(checkName) + '$', 'i') }).lean();
                     } catch (error) {
                         console.error('Error finding myName by shortName:', error);
                         return rply;

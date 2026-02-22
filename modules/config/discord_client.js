@@ -46,7 +46,7 @@ const clientConfig = {
             keepOverLimit: () => false, // Will be overridden later
         }, // guild.members
         GuildStickerManager: 0, // guild.stickers
-        MessageManager: 100, // channel.messages (min 100 so messages with reactions stay for roleReact/poll)
+        MessageManager: 200, // channel.messages (min 100 so messages with reactions stay for roleReact/poll)
         //PermissionOverwriteManager: 200, // channel.permissionOverwrites
         PresenceManager: 0, // guild.presences
         ReactionManager: 200, // message.reactions (must be >0 to tally poll reactions)

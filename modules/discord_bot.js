@@ -744,6 +744,17 @@ function __privateMsg({ trigger, mainMsg, inputStr }) {
 
 
 
+// Total cluster count: use cluster.count (CLUSTER_COUNT), not cluster.ids.size (shards in this worker)
+function getTotalClusterCount(c) {
+	if (!c?.cluster) return 0;
+	if (typeof c.cluster.count === 'number') return c.cluster.count;
+	try {
+		const info = require('discord-hybrid-sharding').getInfo();
+		if (typeof info?.CLUSTER_COUNT === 'number') return info.CLUSTER_COUNT;
+	} catch (e) { /* ignore */ }
+	return 0;
+}
+
 // Function to identify which cluster failed based on error and responding clusters
 function identifyFailedCluster(error, respondingClusters = [], totalClustersOverride = null) {
 	try {
@@ -755,7 +766,7 @@ function identifyFailedCluster(error, respondingClusters = [], totalClustersOver
 
 		// If we have responding clusters info, find which one is missing
 		if (Array.isArray(respondingClusters) && respondingClusters.length > 0) {
-			const totalClusters = totalClustersOverride || client.cluster?.ids?.size || 0;
+			const totalClusters = (totalClustersOverride ?? getTotalClusterCount(client)) || 0;
 			const allClusterIds = Array.from({ length: totalClusters }, (_, i) => i);
 			const missingClusters = allClusterIds.filter(id => !respondingClusters.includes(id));
 
@@ -786,8 +797,8 @@ function logClusterDiagnostics(error, context = '') {
 		context,
 		error: error.message,
 		clusterState: {
-			totalClusters: client.cluster?.ids?.size || 0,
-			availableClusterIds: [...(client.cluster?.ids?.keys() || [])],
+			totalClusters: getTotalClusterCount(client) || 0,
+			availableClusterIds: Array.from({ length: getTotalClusterCount(client) || 0 }, (_, i) => i),
 			activeClusters: 0,
 			readyClusters: 0,
 			clusterDetails: []
@@ -837,7 +848,7 @@ function getClusterHealthReport() {
 	const report = {
 		timestamp,
 		summary: {
-			totalClusters: client.cluster.ids.size,
+			totalClusters: getTotalClusterCount(client),
 			activeClusters: clusterDetails.filter(c => c.alive).length,
 			readyClusters: clusterDetails.filter(c => c.ready).length,
 			deadClusters: clusterDetails.filter(c => !c.alive).length,
@@ -871,8 +882,8 @@ function logAutoResharderDiagnostics(error, context = '') {
 		clusterId,
 		shardList,
 		clusterState: {
-			totalClusters: client.cluster?.ids?.size || 0,
-			availableClusterIds: [...(client.cluster?.ids?.keys() || [])],
+			totalClusters: getTotalClusterCount(client) || 0,
+			availableClusterIds: Array.from({ length: getTotalClusterCount(client) || 0 }, (_, i) => i),
 			activeClusters: 0,
 			readyClusters: 0,
 			clusterDetails: []
@@ -939,7 +950,7 @@ async function checkShardHealth() {
                 //console.log(`[ShardFix] Detected TOTAL_SHARDS from getInfo(): ${totalShards}`);
 
                 // If getInfo returns suspiciously low shard count, try other methods
-                const clusterCount = client.cluster?.ids?.size || 1;
+                const clusterCount = getTotalClusterCount(client) || 1;
                 if (totalShards < clusterCount && clusterCount > 1) {
                     console.warn(`[ShardFix] getInfo() returned low shard count (${totalShards}) for ${clusterCount} clusters, trying fallback methods`);
                     totalShards = undefined; // Reset to try other methods
@@ -971,8 +982,8 @@ async function checkShardHealth() {
                 }
 
                 // 最後手段：使用 cluster 數量 * 預估每 cluster shard 數
-                if (!totalShards && client.cluster && client.cluster.ids) {
-                    const clusterCount = client.cluster.ids.size;
+                if (!totalShards && client.cluster) {
+                    const clusterCount = getTotalClusterCount(client) || 1;
                     totalShards = clusterCount * 3; // 預估 3 shards per cluster
                     console.warn(`[ShardFix] WARNING: Using estimated totalShards (${clusterCount} clusters * 3): ${totalShards}. This may be inaccurate!`);
                 }
@@ -987,10 +998,10 @@ async function checkShardHealth() {
 
         const shardHealthResults = [];
 
-        console.log(`[ShardFix] Checking health for ${totalShards} shards across ${client.cluster.ids.size} clusters`);
+        const clusterCount = getTotalClusterCount(client) || 1;
+        console.log(`[ShardFix] Checking health for ${totalShards} shards across ${clusterCount} clusters`);
 
         // 計算每cluster的shard數量（使用與core-Discord.js相同的邏輯）
-        const clusterCount = client.cluster.ids.size;
         const shardsPerCluster = clusterCount > 0 ? Math.ceil(totalShards / clusterCount) : 3;
 
         console.log(`[ShardFix] Using shardsPerCluster: ${shardsPerCluster} (${totalShards} shards / ${clusterCount} clusters)`);
@@ -1284,8 +1295,9 @@ async function count() {
 	}
 
 	try {
-		// Get all subgroup IDs
-		const allClusterIds = [...client.cluster.ids.keys()];
+		// Get all cluster IDs (0 .. totalClusters-1), not shard IDs
+		const actualTotalClusters = getTotalClusterCount(client) || 1;
+		const allClusterIds = Array.from({ length: actualTotalClusters }, (_, i) => i);
 
 		// Check cluster health by attempting a simple broadcastEval
 		let clustersHealthy = true;
@@ -1308,7 +1320,6 @@ async function count() {
 
 		// Try to identify which clusters are responding
 		let respondingClusters = [];
-		let actualTotalClusters = client.cluster?.ids?.size || 1;
 		try {
 			respondingClusters = await client.cluster.broadcastEval(c => c.cluster.id).catch(() => []);
 			console.log(`[Statistics] Found ${respondingClusters.length}/${actualTotalClusters} responding clusters`);
@@ -1396,8 +1407,9 @@ async function count2() {
 	if (!client.cluster) return '🌼bothelp | hktrpg.com🍎';
 
 	try {
-		// Get all subgroup IDs
-		const allClusterIds = [...client.cluster.ids.keys()];
+		// Get all cluster IDs (0 .. totalClusters-1), not shard IDs
+		const actualTotalClusters2 = getTotalClusterCount(client) || 1;
+		const allClusterIds = Array.from({ length: actualTotalClusters2 }, (_, i) => i);
 
 		// Check cluster health by attempting a simple broadcastEval
 		let clustersHealthy = true;
@@ -1418,7 +1430,6 @@ async function count2() {
 		// Use global broadcastEval and group results by cluster
 		// Try to identify which clusters are responding
 		let respondingClusters2 = [];
-		let actualTotalClusters2 = client.cluster?.ids?.size || 1;
 		try {
 			respondingClusters2 = await client.cluster.broadcastEval(c => c.cluster.id).catch(() => []);
 			//console.log(`[Statistics] count2() - Found ${respondingClusters2.length}/${actualTotalClusters2} responding clusters`);
@@ -1938,7 +1949,7 @@ async function getAllshardIds() {
 		// Determine total number of shards and clusters - prioritize actual detection over defaults
 		const { getInfo } = require('discord-hybrid-sharding');
 		let totalShards;
-		let totalClusters = client.cluster?.ids?.size || 0;
+		let totalClusters = getTotalClusterCount(client) || 0;
 
 		// Dynamically detect from runtime information
 		try {
@@ -1981,8 +1992,8 @@ async function getAllshardIds() {
 				}
 
 				// Last resort: use cluster count * estimated shards per cluster (NOT recommended)
-				if (!totalShards && client.cluster && client.cluster.ids) {
-					const clusterCount = client.cluster.ids.size;
+				if (!totalShards && client.cluster) {
+					const clusterCount = getTotalClusterCount(client) || 1;
 					// Estimate 3 shards per cluster (matches core-Discord.js default)
 					totalShards = clusterCount * 3;
 					console.warn(`[Statistics] WARNING: Using estimated totalShards (${clusterCount} clusters * 3): ${totalShards}. This may be inaccurate!`);
@@ -1998,7 +2009,7 @@ async function getAllshardIds() {
 
 		// Calculate shards per cluster dynamically
 		let shardsPerCluster;
-		const totalClustersForCalc = client.cluster?.ids?.size || 1;
+		const totalClustersForCalc = getTotalClusterCount(client) || 1;
 		try {
 			const info = getInfo();
 			if (info && info.SHARD_LIST) {
@@ -2034,7 +2045,7 @@ async function getAllshardIds() {
 				})).catch(() => []);
 				respondingClusters = healthCheck || [];
 				clustersHealthy = respondingClusters.length > 0;
-				totalClusters = client.cluster?.ids?.size ?? respondingClusters.length;
+				totalClusters = getTotalClusterCount(client) ?? respondingClusters.length;
 			} catch (error) {
 				console.warn('[Statistics] Cluster health check failed:', error.message);
 				clustersHealthy = false;
@@ -2242,7 +2253,7 @@ async function getAllshardIds() {
 						console.warn('Fallback collection also failed:', fallbackError.message);
 						// If all methods fail, populate with default values
 						clusterDataRaw = [];
-						const clusterCount = client.cluster?.ids?.size || Math.ceil(totalShards / 2);
+						const clusterCount = getTotalClusterCount(client) || Math.ceil(totalShards / 2);
 						for (let i = 0; i < clusterCount; i++) {
 							clusterDataRaw.push({
 								clusterId: i,
@@ -2302,7 +2313,7 @@ async function getAllshardIds() {
 			}
 
 			// For clusters that didn't respond at all, mark their shards as offline (-1)
-			const expectedClusters = client.cluster?.ids ? [...client.cluster.ids.keys()] : [];
+			const expectedClusters = Array.from({ length: totalClusters }, (_, i) => i);
 			for (const expectedClusterId of expectedClusters) {
 				if (!processedClusters.has(expectedClusterId)) {
 					console.warn(`Cluster ${expectedClusterId} completely failed to respond, marking all assigned shards as offline`);

@@ -1316,13 +1316,13 @@ async function count() {
 		}
 
 		// Force use standard broadcastEval - safeBroadcastEval has issues with cluster filtering
-		console.log('[Statistics] Using standard broadcastEval for all clusters');
+		if (debugMode) console.log('[Statistics] Using standard broadcastEval for all clusters');
 
 		// Try to identify which clusters are responding
 		let respondingClusters = [];
 		try {
 			respondingClusters = await client.cluster.broadcastEval(c => c.cluster.id).catch(() => []);
-			console.log(`[Statistics] Found ${respondingClusters.length}/${actualTotalClusters} responding clusters`);
+			if (debugMode) console.log(`[Statistics] Found ${respondingClusters.length}/${actualTotalClusters} responding clusters`);
 		} catch (error) {
 			console.warn('[Statistics] Could not identify responding clusters:', error.message);
 		}
@@ -1339,9 +1339,7 @@ async function count() {
 				console.warn('[Statistics] Guild stats collection failed:', error.message);
 				// Try to identify which cluster failed
 				const failedClusterId = identifyFailedCluster(error, respondingClusters, actualTotalClusters);
-				if (failedClusterId !== null) {
-					console.warn(`[Statistics] Likely failed cluster for guild stats: ${failedClusterId}`);
-				}
+				if (failedClusterId !== null) console.warn(`[Statistics] Likely failed cluster for guild stats: ${failedClusterId}`);
 				return []; // Return empty array instead of throwing
 			}),
 			client.cluster.broadcastEval(c => {
@@ -1358,9 +1356,7 @@ async function count() {
 				console.warn('[Statistics] Member stats collection failed:', error.message);
 				// Try to identify which cluster failed
 				const failedClusterId = identifyFailedCluster(error, respondingClusters, actualTotalClusters);
-				if (failedClusterId !== null) {
-					console.warn(`[Statistics] Likely failed cluster for member stats: ${failedClusterId}`);
-				}
+				if (failedClusterId !== null) console.warn(`[Statistics] Likely failed cluster for member stats: ${failedClusterId}`);
 				return []; // Return empty array instead of throwing
 			})
 		]);
@@ -1447,9 +1443,7 @@ async function count2() {
 			}).catch(error => {
 				console.warn('[Statistics] count2() - Guild stats collection failed:', error.message);
 				const failedClusterId = identifyFailedCluster(error, respondingClusters2, actualTotalClusters2);
-				if (failedClusterId !== null) {
-					console.warn(`[Statistics] count2() - Likely failed cluster for guild stats: ${failedClusterId}`);
-				}
+				if (failedClusterId !== null) console.warn(`[Statistics] count2() - Likely failed cluster for guild stats: ${failedClusterId}`);
 				return [];
 			}),
 			client.cluster.broadcastEval(c => {
@@ -1465,9 +1459,7 @@ async function count2() {
 			}).catch(error => {
 				console.warn('[Statistics] count2() - Member stats collection failed:', error.message);
 				const failedClusterId = identifyFailedCluster(error, respondingClusters2, actualTotalClusters2);
-				if (failedClusterId !== null) {
-					console.warn(`[Statistics] count2() - Likely failed cluster for member stats: ${failedClusterId}`);
-				}
+				if (failedClusterId !== null) console.warn(`[Statistics] count2() - Likely failed cluster for member stats: ${failedClusterId}`);
 				return [];
 			}),
 			// 使用者總數：與 analytics 一致，用 firstTimeMessage 唯一使用者數（非 Discord 會員加總）
@@ -1959,7 +1951,7 @@ async function getAllshardIds() {
 			const info = getInfo();
 			if (info && info.TOTAL_SHARDS) {
 				totalShards = info.TOTAL_SHARDS;
-				console.log(`[Statistics] Detected TOTAL_SHARDS from getInfo(): ${totalShards}`);
+				if (debugMode) console.log(`[Statistics] Detected TOTAL_SHARDS from getInfo(): ${totalShards}`);
 
 				// If getInfo returns suspiciously low shard count, try other methods
 				if (totalShards < 3 && totalClusters > 1) {
@@ -1975,7 +1967,7 @@ async function getAllshardIds() {
 					const managerTotalShards = client.cluster.manager.totalShards;
 					if (managerTotalShards && managerTotalShards !== 'auto') {
 						totalShards = Number.parseInt(managerTotalShards, 10);
-						console.log(`[Statistics] Using totalShards from cluster manager: ${totalShards}`);
+						if (debugMode) console.log(`[Statistics] Using totalShards from cluster manager: ${totalShards}`);
 					}
 				}
 
@@ -1990,7 +1982,7 @@ async function getAllshardIds() {
 					}
 					if (calculatedTotal > 0) {
 						totalShards = calculatedTotal;
-						console.log(`[Statistics] Calculated totalShards from cluster data: ${totalShards}`);
+						if (debugMode) console.log(`[Statistics] Calculated totalShards from cluster data: ${totalShards}`);
 					}
 				}
 
@@ -2008,7 +2000,7 @@ async function getAllshardIds() {
 
 		// Ensure we have at least 1 shard as absolute minimum
 		totalShards = totalShards || 1;
-		console.log(`[Statistics] Final totalShards: ${totalShards}`);
+		if (debugMode) console.log(`[Statistics] Final totalShards: ${totalShards}`);
 
 		// Calculate shards per cluster dynamically
 		let shardsPerCluster;
@@ -2026,7 +2018,7 @@ async function getAllshardIds() {
 			// Final fallback: use 3 as default (matches core-Discord.js config)
 			shardsPerCluster = Math.ceil(totalShards / totalClustersForCalc) || 3;
 		}
-		console.log(`[Statistics] Calculated shardsPerCluster: ${shardsPerCluster} (totalShards: ${totalShards}, totalClusters: ${totalClustersForCalc})`);
+		if (debugMode) console.log(`[Statistics] Calculated shardsPerCluster: ${shardsPerCluster} (totalShards: ${totalShards}, totalClusters: ${totalClustersForCalc})`);
 
 		// Generate array of all shard IDs (0 to totalShards-1)
 		const allShardIdsArray = Array.from({ length: totalShards }, (_, i) => i);
@@ -2055,7 +2047,7 @@ async function getAllshardIds() {
 				respondingClusters = [];
 			}
 
-			console.log(`[Statistics] Cluster health check: ${clustersHealthy ? 'healthy' : 'unhealthy'} (${respondingClusters.length}/${totalClusters} responding clusters)`);
+			if (debugMode) console.log(`[Statistics] Cluster health check: ${clustersHealthy ? 'healthy' : 'unhealthy'} (${respondingClusters.length}/${totalClusters} responding clusters)`);
 
 			let evalPromise;
 
@@ -2187,7 +2179,7 @@ async function getAllshardIds() {
 
 					if (fallbackData && fallbackData.length > 0) {
 						clusterDataRaw = fallbackData;
-						console.log('[Statistics] Using fallback cluster data');
+						if (debugMode) console.log('[Statistics] Using fallback cluster data');
 					}
 				} catch (fallbackError) {
 					console.warn('[Statistics] Fallback method also failed:', fallbackError.message);

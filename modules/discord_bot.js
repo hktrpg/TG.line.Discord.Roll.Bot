@@ -1393,8 +1393,7 @@ async function count() {
 
 		const statusText = statusIndicators.length > 0 ? ` (${statusIndicators.join(', ')})` : '';
 
-		cachedCount = `群組總數: ${totalGuilds.toLocaleString()}
-│ 　• 會員總數: ${totalMembers.toLocaleString()}${statusText}`;
+		cachedCount = `群組總數: ${totalGuilds.toLocaleString()}${statusText}`;
 		cachedCountTime = Date.now();
 		return cachedCount;
 	} catch (error) {
@@ -1437,7 +1436,7 @@ async function count2() {
 			console.warn('[Statistics] count2() - Could not identify responding clusters:', error.message);
 		}
 
-		const [guildStatsRaw, memberStatsRaw] = await Promise.all([
+		const [guildStatsRaw, memberStatsRaw, userCount] = await Promise.all([
 			client.cluster.broadcastEval(c => {
 				try {
 					return { clusterId: c.cluster.id, guildCount: c.guilds.cache.size };
@@ -1470,7 +1469,11 @@ async function count2() {
 					console.warn(`[Statistics] count2() - Likely failed cluster for member stats: ${failedClusterId}`);
 				}
 				return [];
-			})
+			}),
+			// 使用者總數：與 analytics 一致，用 firstTimeMessage 唯一使用者數（非 Discord 會員加總）
+			(schema && schema.firstTimeMessage && typeof schema.firstTimeMessage.countDocuments === 'function')
+				? schema.firstTimeMessage.countDocuments({}).catch(() => 0)
+				: Promise.resolve(0)
 		]);
 
 		// Group statistics data by cluster
@@ -1533,7 +1536,7 @@ async function count2() {
 		const isHealthy = responseRate >= 0.9 || successfulClusters === totalClusters;
 
 		const status = isHealthy ? '✅' : `⚠️${successfulClusters}/${totalClusters}`;
-		return (`${status} ${totalGuilds}群組📶 ${totalMembers}會員📶`);
+		return (`${status} ${totalGuilds}群組📶 ${typeof userCount === 'number' ? userCount : 0}使用者📶`);
 	} catch (error) {
 		console.error(`disocrdbot #617 error: ${error.message}`);
 		// Do not respawn subgroups here - let the subgroup manager handle it

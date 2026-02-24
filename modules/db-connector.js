@@ -35,8 +35,8 @@ const config = {
 };
 
 // Cap pool per process when running multiple clusters (e.g. discord-hybrid-sharding)
-const maxTotalConns = parseInt(process.env.MONGODB_MAX_TOTAL_CONNECTIONS, 10) || 100;
-const totalClusters = parseInt(process.env.DISCORD_TOTAL_CLUSTERS, 10) || 20;
+const maxTotalConns = Number.parseInt(process.env.MONGODB_MAX_TOTAL_CONNECTIONS, 10) || 100;
+const totalClusters = Number.parseInt(process.env.DISCORD_TOTAL_CLUSTERS, 10) || 20;
 config.poolSize = Math.max(2, Math.floor(maxTotalConns / totalClusters));
 config.minPoolSize = 1;
 

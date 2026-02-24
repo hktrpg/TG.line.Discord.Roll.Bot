@@ -184,7 +184,7 @@ const rollingLogSchemaDef = new mongoose.Schema({
         PlurkCountText: Number
     }
 }, { timestamps: true });
-rollingLogSchemaDef.index({ createdAt: 1 }, { expireAfterSeconds: 7776000 }); // 90 days TTL
+rollingLogSchemaDef.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 90 }); // 90 days TTL
 const rollingLogSchema = mongoose.model('RollingLog', rollingLogSchemaDef);
 
 // Character and user related schemas

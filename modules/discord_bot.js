@@ -306,7 +306,7 @@ client.on('messageCreate', async message => {
 		if (message.author.bot) return;
 
 		// Use batch processing
-		const [dbStatus, result] = await Promise.all([
+		const [, result] = await Promise.all([
 			checkMongodb.isDbOnline(),
 			handlingResponMessage(message)
 		]);
@@ -404,13 +404,13 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		} else {
 			try {
 				await reaction.users.remove(user.id);
-			} catch (removeErr) {
-				if (removeErr.code === 50_013) {
+			} catch (error) {
+				if (error.code === 50_013) {
 					// Missing Permissions (Manage Messages) - bot cannot remove other users' reactions
 					// Silently ignore; invalid emoji reaction will remain
 					return;
 				}
-				throw removeErr;
+				throw error;
 			}
 		}
 	} catch (error) {
@@ -760,7 +760,10 @@ function getTotalClusterCount(c) {
 	try {
 		const info = require('discord-hybrid-sharding').getInfo();
 		if (typeof info?.CLUSTER_COUNT === 'number') return info.CLUSTER_COUNT;
-	} catch (e) { /* ignore */ }
+	} catch (error) {
+		void error;
+		/* ignore */
+	}
 	return 0;
 }
 
@@ -1336,7 +1339,7 @@ async function count() {
 			console.warn('[Statistics] Could not identify responding clusters:', error.message);
 		}
 
-		const [guildStatsRaw, memberStatsRaw] = await Promise.all([
+		const [guildStatsRaw] = await Promise.all([
 			client.cluster.broadcastEval(c => {
 				try {
 					return { clusterId: c.cluster.id, guildCount: c.guilds.cache.size };
@@ -1374,19 +1377,12 @@ async function count() {
 		// Calculate totals directly from broadcastEval results
 		// Each entry is { clusterId: X, guildCount: Y } from one cluster
 		let totalGuilds = 0;
-		let totalMembers = 0;
 		let successfulClusters = 0;
 
 		for (const { guildCount } of guildStatsRaw) {
 			if (typeof guildCount === 'number' && guildCount >= 0) {
 				totalGuilds += guildCount;
 				successfulClusters++;
-			}
-		}
-
-		for (const { memberCount } of memberStatsRaw) {
-			if (typeof memberCount === 'number' && memberCount >= 0) {
-				totalMembers += memberCount;
 			}
 		}
 
@@ -1512,18 +1508,11 @@ async function count2() {
 
 		// Calculate totals - directly from all collected data
 		let totalGuilds = 0;
-		let totalMembers = 0;
 
 		// Calculate totals for all clusters
 		for (const guildData of guildStatsByCluster.values()) {
 			if (guildData && Array.isArray(guildData)) {
 				totalGuilds += guildData.reduce((acc, count) => acc + (count || 0), 0);
-			}
-		}
-
-		for (const memberData of memberStatsByCluster.values()) {
-			if (memberData && Array.isArray(memberData)) {
-				totalMembers += memberData.reduce((acc, count) => acc + (count || 0), 0);
 			}
 		}
 

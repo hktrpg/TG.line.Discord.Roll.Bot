@@ -108,7 +108,7 @@ class UIManager {
 
         container.insertBefore(alert, container.firstChild);
 
-        if (typeof container._hoverCount === 'undefined') container._hoverCount = 0;
+        if (container._hoverCount === undefined) container._hoverCount = 0;
 
         let closeTimeoutId = null;
         const scheduleClose = () => {

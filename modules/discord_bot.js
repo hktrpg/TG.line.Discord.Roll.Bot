@@ -402,7 +402,16 @@ client.on('messageReactionAdd', async (reaction, user) => {
 				throw error;
 			}
 		} else {
-			reaction.users.remove(user.id);
+			try {
+				await reaction.users.remove(user.id);
+			} catch (removeErr) {
+				if (removeErr.code === 50_013) {
+					// Missing Permissions (Manage Messages) - bot cannot remove other users' reactions
+					// Silently ignore; invalid emoji reaction will remain
+					return;
+				}
+				throw removeErr;
+			}
 		}
 	} catch (error) {
 		console.error('[Discord Bot] messageReactionAdd error:', (error && error.name), (error && error.message), (error && error.reason))

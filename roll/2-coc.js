@@ -1241,10 +1241,11 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 					userID: userID,
 					skillName: "",
 					skillPerStyle: 'normal',
-				}).sort({ date: 1 }).limit(countNumber - 10).catch(error => console.error('coc #733 mongoDB error:', error.name, error.reason));
+				}).sort({ date: 1 }).limit(countNumber - 10).select('_id').lean().catch(error => console.error('coc #733 mongoDB error:', error.name, error.reason));
 
-				for (const doc of moreThanTen) {
-					await schema.developmentRollingRecord.deleteOne({ _id: doc._id }).catch(error => console.error('coc #736 mongoDB error:', error.name, error.reason));
+				if (moreThanTen && moreThanTen.length > 0) {
+					const ids = moreThanTen.map(doc => doc._id);
+					await schema.developmentRollingRecord.deleteMany({ _id: { $in: ids } }).catch(error => console.error('coc #736 mongoDB error:', error.name, error.reason));
 				}
 			}
 
@@ -1276,10 +1277,11 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 					groupID: channelid || groupid,
 					userID: userID,
 					skillPerStyle: skillPerStyle,
-				}).sort({ date: 1 }).limit(countNumber - 10).catch(error => console.error('coc #768 mongoDB error:', error.name, error.reason));
+				}).sort({ date: 1 }).limit(countNumber - 10).select('_id').lean().catch(error => console.error('coc #768 mongoDB error:', error.name, error.reason));
 
-				for (const doc of moreThanTen) {
-					await schema.developmentRollingRecord.deleteOne({ _id: doc._id }).catch(error => console.error('coc #771 mongoDB error:', error.name, error.reason));
+				if (moreThanTen && moreThanTen.length > 0) {
+					const ids = moreThanTen.map(doc => doc._id);
+					await schema.developmentRollingRecord.deleteMany({ _id: { $in: ids } }).catch(error => console.error('coc #771 mongoDB error:', error.name, error.reason));
 				}
 			}
 		}

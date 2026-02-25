@@ -146,7 +146,7 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
-            getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+            getData = await schema.randomAns.findOne({ groupid: groupid }).lean().catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
             if (!getData) {
                 rply.text = '❌ 找不到骰組資料';
                 return rply;
@@ -397,7 +397,7 @@ const rollDiceCommand = async function ({
             }
             if (times < 1) times = 1;
 
-            getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+            getData = await schema.randomAns.findOne({ groupid: groupid }).lean().catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
             if (!getData) {
                 rply.text = '❌ 找不到骰組資料';
                 return rply;
@@ -558,7 +558,7 @@ const rollDiceCommand = async function ({
                 }
                 return rply;
             }
-            getData = await schema.randomAnsPersonal.find({ "userid": userid }).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+            getData = await schema.randomAnsPersonal.find({ "userid": userid }).lean().catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
             if (!getData || getData.length === 0) {
                 rply.text = '沒有已設定的骰子.\n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組(.rap)變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
                 return rply
@@ -700,7 +700,7 @@ const rollDiceCommand = async function ({
                 }
                 return rply;
             }
-            getData = await schema.randomAnsServer.find({}).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+            getData = await schema.randomAnsServer.find({}).lean().catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
             if (!getData || getData.length === 0) {
                 rply.text = '沒有已設定的骰子.\n本功能已改版，\n.rap 轉成個人專用的骰組，\n原全服群組(.rap)變成.ras\n .ra => random answer (group) \n.rap => random answer personal \n .ras => random answer server'
                 return rply
@@ -717,19 +717,20 @@ const rollDiceCommand = async function ({
             {
                 if (!adminSecret) return rply;
                 if (userid !== adminSecret) return rply;
-                let allData = await schema.randomAnsAllgroup.findOne({}).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+                let allData = await schema.randomAnsAllgroup.findOne({}).lean().catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+                if (!allData || !allData.randomAnsAllgroup) {
+                    rply.text = '❌ 找不到 randomAnsAllgroup 資料';
+                    return rply;
+                }
                 let dataList = allData.randomAnsAllgroup;
 
-                for (let index = 0; index < dataList.length; index++) {
-                    //randomAnsServer
-                    const [, ...rest] = dataList[index];
-                    let newAnswer = new schema.randomAnsServer({
-                        title: dataList[index][0],
-                        answer: rest,
-                        serial: index + 1
-                    })
-                    await newAnswer.save().catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
-
+                const toInsert = dataList.map((item, index) => ({
+                    title: item[0],
+                    answer: item.slice(1),
+                    serial: index + 1
+                }));
+                if (toInsert.length > 0) {
+                    await schema.randomAnsServer.insertMany(toInsert).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
                 }
                 rply.text = dataList.length + ' Done';
                 return rply

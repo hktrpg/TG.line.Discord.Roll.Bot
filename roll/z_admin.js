@@ -140,8 +140,8 @@ const getHelpMessage = async function () {
 │ 　  - 開啟該會員狀態
 │ 　• .root offpatreon PATREON_NAME
 │ 　  - 關閉該會員狀態 (並收回其已分配的 VIP)
-│ 　• .root importpatreon [allkeys|newonly]
-│ 　  - 上傳一個 .csv 附件（Patreon 匯出）自動 add/on/off；僅接受 .csv。allkeys=顯示所有 KEY，newonly=僅顯示新會員 KEY
+│ 　• .root importpatreon [allkeys|newonly] [-email]
+│ 　  - 上傳 .csv 自動同步會員。allkeys=全KEY，newonly=新KEY。-email=產生電郵內容檔
 │
 │ 指令註冊:
 │ 　• .root registeredGlobal
@@ -462,7 +462,11 @@ const discordCommand = [
                             .addChoices(
                                 { name: 'allkeys - 所有 KEY', value: 'allkeys' },
                                 { name: 'newonly - 只有新會員 KEY', value: 'newonly' }
-                            ))),
+                            ))
+                    .addBooleanOption(option =>
+                        option.setName('email')
+                            .setDescription('是否產生 Email 內容檔案')
+                            .setRequired(false))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             
@@ -547,6 +551,7 @@ const discordCommand = [
             case 'importpatreon': {
                 const file = interaction.options.getAttachment('file');
                 const mode = interaction.options.getString('mode') || 'allkeys';
+                const email = interaction.options.getBoolean('email') || false;
                 const fileName = (file && file.name) ? file.name.toLowerCase() : '';
                 if (!file || !fileName.endsWith('.csv')) {
                     return '請上傳 .csv 附件（Patreon 匯出格式）';
@@ -555,8 +560,12 @@ const discordCommand = [
                 // Bridge slash attachment into the existing .root importpatreon flow.
                 // The root handler reads discordMessage.attachments.
                 interaction.attachments = new Map([[file.id || 'patreon_csv', file]]);
+                let command = `.root importpatreon ${mode}`;
+                if (email) {
+                    command += ' -email';
+                }
                 return {
-                    inputStr: `.root importpatreon ${mode}`,
+                    inputStr: command,
                     discordMessage: interaction,
                     isInteraction: true
                 };
@@ -1255,7 +1264,7 @@ const rollDiceCommand = async function ({
             }
             case /^importpatreon$/i.test(mainMsg[1]): {
                 if (!discordMessage?.attachments?.size) {
-                    rply.text = '請上傳一個 .csv 附件（僅接受 .csv 格式），例: .root importpatreon [allkeys|newonly] 並附上 CSV 檔案';
+                    rply.text = '請上傳一個 .csv 附件（僅接受 .csv 格式），例: .root importpatreon [allkeys|newonly] [-email] 並附上 CSV 檔案';
                     return rply;
                 }
                 const attachments = [...discordMessage.attachments.values()];
@@ -1290,6 +1299,8 @@ const rollDiceCommand = async function ({
                 }
                 const keyModeRaw = (mainMsg[2] || 'allkeys').toLowerCase();
                 const keyMode = keyModeRaw === 'newonly' ? 'newonly' : 'all';
+                const generateEmail = /\s-email/i.test(inputStr);
+
                 let csvContent;
                 try {
                     const response = await fetch(attachment.url);
@@ -1301,9 +1312,10 @@ const rollDiceCommand = async function ({
                 }
                 try {
                     const patreonImport = require('../modules/patreon-import.js');
-                    const result = await patreonImport.runImport(csvContent, { keyMode });
+                    const result = await patreonImport.runImport(csvContent, { keyMode, generateEmail });
                     const summary = result.summary || {};
                     let dmStatusText = 'KEY 私訊：本次無需發送';
+                    let emailStatusText = '';
 
                     if (Array.isArray(result.keyMessages) && result.keyMessages.length > 0) {
                         try {
@@ -1327,6 +1339,26 @@ const rollDiceCommand = async function ({
                         }
                     }
 
+                    if (result.emailContent) {
+                        try {
+                            if (!discordClient || !userid) {
+                                throw new Error('Discord client unavailable');
+                            }
+                            const adminUser = await discordClient.users.fetch(userid);
+                            await adminUser.send({
+                                content: '【Patreon Email 內容】',
+                                files: [{
+                                    attachment: Buffer.from(result.emailContent, 'utf8'),
+                                    name: 'patreon_emails.txt'
+                                }]
+                            });
+                            emailStatusText = 'Email 檔案：已發送';
+                        } catch (error) {
+                            emailStatusText = `Email 檔案：失敗 (${error.message})`;
+                        }
+                    }
+
+
                     const lines = [
                         '【Patreon CSV 匯入摘要】',
                         `新增: ${summary.added || 0}`,
@@ -1338,6 +1370,7 @@ const rollDiceCommand = async function ({
                         `Former Patron(本CSV): ${summary.formerTotal || 0}`,
                         dmStatusText
                     ];
+                    if (emailStatusText) lines.push(emailStatusText);
                     rply.text = lines.join('\n');
                 } catch (error) {
                     console.error('[Admin] importpatreon error:', error);

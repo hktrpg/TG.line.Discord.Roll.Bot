@@ -161,37 +161,11 @@ async function runImport(csvContent, options = {}) {
 
     const generateEmailBlock = (name, email, key) => {
         if (!name || !email || !key) return '';
-        const body = `歡迎${name}成為我們HKTRPG 的patreon，感謝支持!
-如果想升級的話，最近在實驗新的網頁版管理方式VIP功能
-可以更直觀的管理
-
-首先請登入
-https://patreon.hktrpg.com/
-並輸入你的專用KEY:
-
-${key}
-
-然後你想升級「個人帳號」的話
-請直接對HKTRPG(或有HKTRPG)使用指令
-/patreon id
-並把 用戶ID 貼到網站
-
-如果是想升級「伺服器/群組」的話，
-請在該「伺服器/群組」使用指令
-/patreon id
-並把 群組ID 貼到網站
-
-最後按 儲存名額 即可
-
-你可以使用 /patreon level 確認升級狀態
-但機器人端有約 最多 5 分鐘 的快取更新延遲
-所以通常尚未反映最新狀態，請稍候再試。`;
-
         return `===
 email: ${email}
-subject: HKTRPG的patreon會員使用方法
-body:
-${body}`;
+subject: HKTRPG Patreon 會員功能已開通 - 使用指引
+username: ${name}
+key: ${key}`;
     };
 
     if (typeof csvContent !== 'string') {

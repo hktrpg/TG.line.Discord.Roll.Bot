@@ -2912,7 +2912,11 @@ const discordCommand = [
             .addStringOption(option =>
                 option.setName('message')
                     .setDescription('要討論的內容')
-                    .setRequired(true))
+                    .setRequired(false))
+            .addAttachmentOption(option =>
+                option.setName('file')
+                    .setDescription('要討論的檔案 (支援 .txt, .pdf, .docx, 圖像)')
+                    .setRequired(false))
             .addStringOption(option =>
                 option.setName('model')
                     .setDescription('AI模型選擇')
@@ -2925,7 +2929,23 @@ const discordCommand = [
         async execute(interaction) {
             const modelType = interaction.options.getString('model') || AI_CONFIG.MODELS.LOW.type;
             const model = Object.values(AI_CONFIG.MODELS).find(m => m.type === modelType);
-            return `${model.prefix.chat} ${interaction.options.getString('message')}`;
+            const message = interaction.options.getString('message');
+            const file = interaction.options.getAttachment('file');
+
+            if (!message && !file) {
+                return '請提供討論內容或檔案。';
+            }
+
+            if (file) {
+                interaction.attachments = new Map([[file.id, file]]);
+                return {
+                    inputStr: `${model.prefix.chat} ${message || ''}`.trim(),
+                    discordMessage: interaction,
+                    isInteraction: true
+                };
+            }
+
+            return `${model.prefix.chat} ${message}`;
         }
     },
     {
@@ -2935,7 +2955,11 @@ const discordCommand = [
             .addStringOption(option =>
                 option.setName('text')
                     .setDescription('要翻譯的文字內容')
-                    .setRequired(true))
+                    .setRequired(false))
+            .addAttachmentOption(option =>
+                option.setName('file')
+                    .setDescription('要翻譯的檔案 (支援 .txt, .pdf, .docx, 圖像)')
+                    .setRequired(false))
             .addStringOption(option =>
                 option.setName('model')
                     .setDescription('AI模型選擇')
@@ -2948,7 +2972,23 @@ const discordCommand = [
         async execute(interaction) {
             const modelType = interaction.options.getString('model') || AI_CONFIG.MODELS.LOW.type;
             const model = Object.values(AI_CONFIG.MODELS).find(m => m.type === modelType);
-            return `${model.prefix.translate} ${interaction.options.getString('text')}`;
+            const text = interaction.options.getString('text');
+            const file = interaction.options.getAttachment('file');
+            
+            if (!text && !file) {
+                return '請提供文字或檔案進行翻譯。';
+            }
+            
+            if (file) {
+                interaction.attachments = new Map([[file.id, file]]);
+                return {
+                    inputStr: `${model.prefix.translate} ${text || ''}`.trim(),
+                    discordMessage: interaction,
+                    isInteraction: true
+                };
+            }
+            
+            return `${model.prefix.translate} ${text}`;
         }
     },
     {

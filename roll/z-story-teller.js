@@ -2564,32 +2564,123 @@ const discordCommand = [
     {
         data: new SlashCommandBuilder()
             .setName('st')
-            .setDescription('StoryTeller 控制')
+            .setDescription('StoryTeller 互動故事系統')
+            .addSubcommand(sub =>
+                sub
+                    .setName('start')
+                    .setDescription('啟動劇本')
+                    .addStringOption(opt => opt.setName('key').setDescription('劇本的 alias 或標題').setRequired(true))
+                    .addStringOption(opt =>
+                        opt.setName('mode')
+                            .setDescription('參與模式')
+                            .addChoices(
+                                { name: '僅發起者 (alone)', value: 'alone' },
+                                { name: '任何人 (all)', value: 'all' },
+                                { name: 'Discord 投票 (poll)', value: 'poll' }
+                            )
+                    )
+                    .addIntegerOption(opt => opt.setName('minutes').setDescription('投票時長（分鐘，預設 3）'))
+            )
             .addSubcommand(sub =>
                 sub
                     .setName('list')
                     .setDescription('列出可啟動劇本')
-                    .addStringOption(opt => opt.setName('alias').setDescription('可選：指定 alias 查看詳情'))
+                    .addStringOption(opt => opt.setName('alias').setDescription('指定 alias 查看詳情'))
             )
             .addSubcommand(sub =>
                 sub
                     .setName('mylist')
-                    .setDescription('列出我的劇本')
-            )
-            .addSubcommand(sub =>
-                sub
-                    .setName('end')
-                    .setDescription('結束當前故事')
+                    .setDescription('列出我所屬的劇本')
             )
             .addSubcommand(sub =>
                 sub
                     .setName('pause')
-                    .setDescription('暫停當前故事')
+                    .setDescription('暫停目前故事')
+            )
+            .addSubcommand(sub =>
+                sub
+                    .setName('continue')
+                    .setDescription('繼續之前的故事')
+                    .addStringOption(opt => opt.setName('runid').setDescription('遊戲 ID（可選）'))
+            )
+            .addSubcommand(sub =>
+                sub
+                    .setName('end')
+                    .setDescription('結束目前故事')
+            )
+            .addSubcommand(sub =>
+                sub
+                    .setName('goto')
+                    .setDescription('跳至指定頁面或選擇')
+                    .addStringOption(opt => opt.setName('page').setDescription('頁面 ID').setRequired(true))
+            )
+            .addSubcommand(sub =>
+                sub
+                    .setName('set')
+                    .setDescription('設定玩家變數')
+                    .addStringOption(opt => opt.setName('var').setDescription('變數名稱 (如 name)').setRequired(true))
+                    .addStringOption(opt => opt.setName('value').setDescription('設定值').setRequired(true))
+            )
+            .addSubcommand(sub =>
+                sub
+                    .setName('import')
+                    .setDescription('匯入新劇本 (.json 或 .txt)')
+                    .addAttachmentOption(opt => opt.setName('file').setDescription('劇本檔案').setRequired(true))
+                    .addStringOption(opt => opt.setName('alias').setDescription('劇本 alias (選填)'))
+                    .addStringOption(opt => opt.setName('title').setDescription('劇本標題 (選填)'))
+            )
+            .addSubcommand(sub =>
+                sub
+                    .setName('update')
+                    .setDescription('更新現有劇本')
+                    .addAttachmentOption(opt => opt.setName('file').setDescription('新的劇本檔案').setRequired(true))
+                    .addStringOption(opt => opt.setName('alias').setDescription('劇本 alias').setRequired(true))
+                    .addStringOption(opt => opt.setName('title').setDescription('新的劇本標題 (選填)'))
+            )
+            .addSubcommand(sub =>
+                sub
+                    .setName('delete')
+                    .setDescription('刪除劇本')
+                    .addStringOption(opt => opt.setName('alias').setDescription('劇本 alias').setRequired(true))
+            )
+            .addSubcommand(sub =>
+                sub
+                    .setName('export')
+                    .setDescription('匯出劇本 (私訊傳送)')
+                    .addStringOption(opt => opt.setName('alias').setDescription('劇本 alias').setRequired(true))
+            )
+            .addSubcommand(sub =>
+                sub
+                    .setName('verify')
+                    .setDescription('驗證劇本格式')
+                    .addStringOption(opt => opt.setName('alias').setDescription('劇本 alias').setRequired(true))
+            )
+            .addSubcommand(sub =>
+                sub
+                    .setName('allow')
+                    .setDescription('設定劇本啟動權限')
+                    .addStringOption(opt => opt.setName('alias').setDescription('劇本 alias').setRequired(true))
+                    .addStringOption(opt =>
+                        opt.setName('scope')
+                            .setDescription('開放範圍')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: '僅作者 (AUTHOR)', value: 'AUTHOR' },
+                                { name: '當前群組', value: 'CURRENT' },
+                                { name: '公開 (all)', value: 'all' }
+                            )
+                    )
+            )
+            .addSubcommand(sub =>
+                sub
+                    .setName('disallow')
+                    .setDescription('取消劇本啟動權限')
+                    .addStringOption(opt => opt.setName('alias').setDescription('劇本 alias').setRequired(true))
             )
             .addSubcommand(sub =>
                 sub
                     .setName('edit')
-                    .setDescription('設定參與權限')
+                    .setDescription('設定參與權限 (當前遊戲)')
                     .addStringOption(opt =>
                         opt
                             .setName('mode')
@@ -2610,17 +2701,79 @@ const discordCommand = [
         async execute(interaction) {
             const sub = interaction.options.getSubcommand();
             switch (sub) {
+                case 'start': {
+                    const key = interaction.options.getString('key');
+                    const mode = interaction.options.getString('mode');
+                    const minutes = interaction.options.getInteger('minutes');
+                    let cmd = `.st start ${key}`;
+                    if (mode) cmd += ` ${mode}`;
+                    if (mode === 'poll' && minutes) cmd += ` ${minutes}`;
+                    return cmd;
+                }
                 case 'list': {
                     const alias = interaction.options.getString('alias');
-                    if (alias) return `.st list ${alias}`;
-                    return `.st list`;
+                    return alias ? `.st list ${alias}` : `.st list`;
                 }
                 case 'mylist':
                     return `.st mylist`;
-                case 'end':
-                    return `.st end`;
                 case 'pause':
                     return `.st pause`;
+                case 'continue': {
+                    const runid = interaction.options.getString('runid');
+                    return runid ? `.st continue ${runid}` : `.st continue`;
+                }
+                case 'end':
+                    return `.st end`;
+                case 'goto': {
+                    const page = interaction.options.getString('page');
+                    return `.st goto ${page}`;
+                }
+                case 'set': {
+                    const v = interaction.options.getString('var');
+                    const val = interaction.options.getString('value');
+                    return `.st set ${v} ${val}`;
+                }
+                case 'import': {
+                    const file = interaction.options.getAttachment('file');
+                    const alias = interaction.options.getString('alias');
+                    const title = interaction.options.getString('title');
+                    let cmd = `.st import`;
+                    if (alias) cmd += ` ${alias}`;
+                    if (title) cmd += ` ${title}`;
+                    interaction.attachments = new Map([[file.id, file]]);
+                    return { inputStr: cmd, discordMessage: interaction, isInteraction: true };
+                }
+                case 'update': {
+                    const file = interaction.options.getAttachment('file');
+                    const alias = interaction.options.getString('alias');
+                    const title = interaction.options.getString('title');
+                    let cmd = `.st update ${alias}`;
+                    if (title) cmd += ` ${title}`;
+                    interaction.attachments = new Map([[file.id, file]]);
+                    return { inputStr: cmd, discordMessage: interaction, isInteraction: true };
+                }
+                case 'delete': {
+                    const alias = interaction.options.getString('alias');
+                    return `.st delete ${alias}`;
+                }
+                case 'export': {
+                    const alias = interaction.options.getString('alias');
+                    return `.st export ${alias}`;
+                }
+                case 'verify': {
+                    const alias = interaction.options.getString('alias');
+                    return `.st verify ${alias}`;
+                }
+                case 'allow': {
+                    const alias = interaction.options.getString('alias');
+                    const scope = interaction.options.getString('scope');
+                    if (scope === 'CURRENT') return `.st allow ${alias}`;
+                    return `.st allow ${alias} ${scope}`;
+                }
+                case 'disallow': {
+                    const alias = interaction.options.getString('alias');
+                    return `.st disallow ${alias}`;
+                }
                 case 'edit': {
                     const mode = interaction.options.getString('mode');
                     const minutes = interaction.options.getInteger('minutes');

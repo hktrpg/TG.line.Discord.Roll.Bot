@@ -46,7 +46,7 @@
     "@vitalets/google-translate-api": "^9",
     "@zetetic/duckduckgo-images-api": "https://github.com/zeteticl/duckduckgo-images-api.git#master",
     "agenda": "^4.2.1",
-    "axios": "^1.8.2",
+    "axios": "^1.13.5",
     "axios-retry": "^3.2.4",
     "bcdice": "^4.5.0",
     "bcryptjs": "^3.0.2",

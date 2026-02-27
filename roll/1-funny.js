@@ -308,7 +308,7 @@ const getHelpMessage = async function () {
 │ 🏮 每日靈簽 - 抽取觀音簽
 │ 🎋 每日淺草簽 - 抽取淺草簽
 │ 📜 每日大事 - 歷史上的今天
-│ ❓ 每日解答 - 解答你的疑問
+│ ❓ 每日解答 - 答案之書-解答你的疑問
 │ 
 │ 星座運程：
 │ 　格式: 每日(星座)
@@ -1755,6 +1755,10 @@ const discordCommand = [
 				subcommand
 					.setName('大事')
 					.setDescription('顯示今天歷史上的大事'))
+			.addSubcommand(subcommand =>
+				subcommand
+					.setName('解答')
+					.setDescription('答案之書-解答你的疑問'))
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('笑話')

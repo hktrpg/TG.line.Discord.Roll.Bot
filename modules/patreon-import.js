@@ -94,10 +94,32 @@ const REQUIRED_CSV_HEADERS = ['Name', 'Patron Status', 'Tier', 'Last Updated'];
  * @param {Object} doc - patreonMember doc
  * @returns {string|null}
  */
+/**
+ * Get plain key for display from member doc (decrypt keyEncrypted).
+ * Adds validation to ensure decrypted key matches expected format.
+ * @param {Object} doc - patreonMember doc
+ * @returns {string|null}
+ */
 function getDisplayKey(doc) {
     if (!doc || !doc.keyEncrypted) return null;
-    const d = security.decryptWithCryptoSecret(doc.keyEncrypted);
-    return (d && !d.startsWith('DECRYPTION_ERROR')) ? d : null;
+    const decryptedKey = security.decryptWithCryptoSecret(doc.keyEncrypted);
+
+    // Validate decrypted key format: XXXX-XXXX-XXXX-XXXX (19 characters)
+    const isValidKeyFormat = typeof decryptedKey === 'string' &&
+                             /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(decryptedKey);
+
+    if (isValidKeyFormat) {
+        return decryptedKey;
+    } else if (decryptedKey && decryptedKey.startsWith('DECRYPTION_ERROR')) {
+        console.warn('[patreon-import] getDisplayKey: Decryption failed for keyEncrypted. Error:', decryptedKey);
+    } else {
+        console.warn(
+            '[patreon-import] getDisplayKey: Decryption resulted in invalid key format.',
+            'Original encrypted data:', doc.keyEncrypted,
+            'Decrypted output:', decryptedKey
+        );
+    }
+    return null;
 }
 
 /**
@@ -117,14 +139,15 @@ function validateCSVHeaders(headers) {
  * return report and keys. Never regens KEY. Accepts only raw CSV string (no file path).
  * @param {string} csvContent - Raw CSV string (e.g. from attachment)
  * @param {{ keyMode: 'all'|'newonly' }} options - all: list all keys for members in CSV; newonly: only keys for newly added members
- * @returns {Promise<{ report: string[], keys: string[], errors: string[] }>}
+ * @returns {Promise<{ report: string[], keys: string[], errors: string[], summary: object, keyMessages: string[], emailContent: string|null }>}
  */
 async function runImport(csvContent, options = {}) {
-    const keyMode = options.keyMode || 'all';
+    const { keyMode = 'all', generateEmail = false } = options;
     const report = [];
     const keys = [];
     const errors = [];
     const keyMessages = [];
+    const emailBlocks = [];
     const newMemberKeys = new Set(); // keys of members created in this run
     const summary = {
         added: 0,
@@ -136,10 +159,19 @@ async function runImport(csvContent, options = {}) {
         formerTotal: 0
     };
 
+    const generateEmailBlock = (name, email, key) => {
+        if (!name || !email || !key) return '';
+        return `===
+email: ${email}
+subject: HKTRPG Patreon 會員功能已開通 - 使用指引
+username: ${name}
+key: ${key}`;
+    };
+
     if (typeof csvContent !== 'string') {
         errors.push('CSV 內容必須為字串');
         summary.errors = errors.length;
-        return { report, keys, errors, summary, keyMessages };
+        return { report, keys, errors, summary, keyMessages, emailContent: null };
     }
 
     const { headers, rows } = parseCSV(csvContent);
@@ -148,12 +180,12 @@ async function runImport(csvContent, options = {}) {
         errors.push(headerError);
         report.push('CSV 格式錯誤');
         summary.errors = errors.length;
-        return { report, keys, errors, summary, keyMessages };
+        return { report, keys, errors, summary, keyMessages, emailContent: null };
     }
     if (rows.length === 0) {
         report.push('CSV 無資料或格式錯誤');
         summary.errors = errors.length;
-        return { report, keys, errors, summary, keyMessages };
+        return { report, keys, errors, summary, keyMessages, emailContent: null };
     }
 
     // Sort by Last Updated descending (newest first)
@@ -220,6 +252,12 @@ async function runImport(csvContent, options = {}) {
                     });
                     newMemberKeys.add(key);
                     keys.push(key);
+                    if (generateEmail) {
+                        const email = row['Email'];
+                        if (email) {
+                            emailBlocks.push(generateEmailBlock(name, email, key));
+                        }
+                    }
                     await patreonSync.syncMemberSlotsToVip(newDoc);
                     const honoraryLabel = patreonTiers.getTierLabel(patreonTiers.LEVEL_HONORARY_LIFETIME);
                     report.push(`[新增 永久會員] ${name} ${honoraryLabel} → 已建立 KEY（CSV 為 Former，仍予保留）`, key);
@@ -321,6 +359,12 @@ async function runImport(csvContent, options = {}) {
                 });
                 newMemberKeys.add(key);
                 keys.push(key);
+                if (generateEmail) {
+                    const email = row['Email'];
+                    if (email) {
+                        emailBlocks.push(generateEmailBlock(name, email, key));
+                    }
+                }
                 await patreonSync.syncMemberSlotsToVip(newDoc);
                 report.push(
                     `[新增] ${name} ${patreonTiers.getTierLabel(level)} → 已開啟`,
@@ -345,6 +389,12 @@ async function runImport(csvContent, options = {}) {
                 if (displayKey) {
                     keys.push(displayKey);
                     keyMessages.push(`[現行] ${name} ${patreonTiers.getTierLabel(existing.level || level)}\n${displayKey}`);
+                    if (generateEmail) {
+                        const email = row['Email'];
+                        if (email) {
+                            emailBlocks.push(generateEmailBlock(name, email, displayKey));
+                        }
+                    }
                 }
             }
             continue;
@@ -379,6 +429,12 @@ async function runImport(csvContent, options = {}) {
                 const displayKey = getDisplayKey(doc);
                 if (displayKey) {
                     keys.push(displayKey);
+                    if (generateEmail) {
+                        const email = row['Email'];
+                        if (email) {
+                            emailBlocks.push(generateEmailBlock(name, email, displayKey));
+                        }
+                    }
                     report.push(
                         `[更新] ${name} ${patreonTiers.getTierLabel(level)} → 已開啟`,
                         displayKey
@@ -408,6 +464,12 @@ async function runImport(csvContent, options = {}) {
             if (displayKey) {
                 keys.push(displayKey);
                 keyMessages.push(`[現行] ${member.patreonName} ${tierLabel}\n${displayKey}`);
+                if (generateEmail) {
+                    const email = member.emailEncrypted ? security.decryptWithCryptoSecret(member.emailEncrypted) : null;
+                    if (email) {
+                        emailBlocks.push(generateEmailBlock(member.patreonName, email, displayKey));
+                    }
+                }
                 } else {
                 // If key cannot be decrypted, rotate to a fresh key so allkeys can still be delivered.
                 try {
@@ -428,6 +490,12 @@ async function runImport(csvContent, options = {}) {
                     await patreonSync.syncMemberSlotsToVip(updated);
                     keys.push(newKey);
                     keyMessages.push(`[現行] ${member.patreonName} ${tierLabel}\n${newKey}`);
+                    if (generateEmail) {
+                        const email = member.emailEncrypted ? security.decryptWithCryptoSecret(member.emailEncrypted) : null;
+                        if (email) {
+                            emailBlocks.push(generateEmailBlock(member.patreonName, email, newKey));
+                        }
+                    }
                     summary.updated++;
                 } catch (error) {
                     errors.push(`Reset key ${member.patreonName}: ${error.message}`);
@@ -459,7 +527,9 @@ async function runImport(csvContent, options = {}) {
     summary.formerTotal = formerTotal;
     summary.errors = errors.length;
 
-    return { report, keys, errors, summary, keyMessages };
+    const emailContent = generateEmail ? emailBlocks.join('\n') : null;
+
+    return { report, keys, errors, summary, keyMessages, emailContent };
 }
 
 module.exports = {

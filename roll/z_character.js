@@ -774,7 +774,8 @@ const colorEmoji2 = [
 async function showCharacter(Card, mode) {
     let returnStr = '';
     if (mode == 'addMode') {
-        returnStr += '新增/修改成功\n';
+        returnStr += '✅ 新增/修改成功！\n';
+        returnStr += '✨ 建議前往網頁版進行更詳細的編輯： https://card.hktrpg.com/ \n\n';
     }
     returnStr += Card.name + '　\n';
     let a = 0;

@@ -2800,16 +2800,36 @@
                     state.max_record = amount;
                 });
 
-                state.socket.on('chatRecord', async (msgs) => {
-                    if (!Array.isArray(msgs) || msgs.length === 0) return;
-                    
-                    // 🐛 FIX: 檢查房間並記錄目前房間，避免競態條件
-                    const batchRoom = msgs[0].roomNumber;
+                state.socket.on('chatRecord', async (msgs, roomNumber) => {
+                    // 如果 roomNumber 未定義（舊版伺服器），且 msgs 有內容，則從第一條訊息推斷
+                    const batchRoom = roomNumber || (Array.isArray(msgs) && msgs.length > 0 ? msgs[0].roomNumber : null);
                     const currentRoom = chatroomManager.currentRoom;
-                    
-                    // 只處理當前房間的歷史記錄
-                    if (batchRoom !== currentRoom) {
-                        console.log(`🔄 Ignoring history for room ${batchRoom}, current: ${currentRoom}`);
+
+                    // 1. 如果完全無法確定房間，或房間不匹配，則忽略
+                    if (!batchRoom || batchRoom !== currentRoom) {
+                        if (batchRoom) console.log(`🔄 Ignoring history for room ${batchRoom}, current: ${currentRoom}`);
+                        return;
+                    }
+
+                    // 2. 如果 msgs 是空的，表示該房間沒有歷史紀錄
+                    if (!Array.isArray(msgs) || msgs.length === 0) {
+                        console.log(`📜 No history for room ${batchRoom}`);
+                        state.isHistoryLoading = false;
+                        // 沖掉可能積壓的 live 訊息
+                        if (state.pendingLive.length) {
+                            state.pendingLive.sort((a, b) => {
+                                const ta = new Date(a.time).getTime();
+                                const tb = new Date(b.time).getTime();
+                                if (ta !== tb) return ta - tb;
+                                const ida = (a._id || '').toString();
+                                const idb = (b._id || '').toString();
+                                return ida.localeCompare(idb);
+                            });
+                            for (const msg of state.pendingLive) {
+                                await uiManager.addMessageToBox(msg);
+                            }
+                            state.pendingLive = [];
+                        }
                         return;
                     }
 
@@ -4240,13 +4260,7 @@
                 if (joinForm) {
                     joinForm.addEventListener("submit", (e) => {
                         e.preventDefault();
-                        const input = document.getElementById("joinRoomNumber");
-                        const roomName = input.value.trim();
-
-                        if (roomName && !chatroomManager.rooms.has(roomName)) {
-                            chatroomManager.addRoom(roomName);
-                            input.value = '';
-                        }
+                        joinRoomModal.submit();
                     });
                 }
             },

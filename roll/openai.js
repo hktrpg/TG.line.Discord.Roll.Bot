@@ -2756,16 +2756,15 @@ class CommandHandler {
         const hasArg = !!mainMsg[1];
         const hasReply = !!(replyMessage && replyMessage.trim().length > 0);
 
-        // Check if there are attachments (for translation commands)
+        // Check if there are attachments
         const hasAttachments = discordMessage && discordMessage.attachments && discordMessage.attachments.size > 0;
         const hasReplyAttachments = discordMessage && discordMessage.type === 19 && discordMessage.reference;
 
         const command = mainMsg[0].toLowerCase().replace(/^\./, '');
-        const isTranslateCommand = ['ait', 'aitm', 'aith'].includes(command);
 
         if (!hasArg && hasReply) {
             params.inputStr = `${replyMessage}`;
-        } else if (mainMsg[1] === 'help' || (!hasArg && !hasReply && !(isTranslateCommand && (hasAttachments || hasReplyAttachments)))) {
+        } else if (mainMsg[1] === 'help' || (!hasArg && !hasReply && !hasAttachments && !hasReplyAttachments)) {
             return { text: getHelpMessage(), quotes: true };
         }
 
@@ -2866,7 +2865,7 @@ class CommandHandler {
     }
 
     async handleChatCommand(params) {
-        const { inputStr, mainMsg, userid, botname, discordMessage } = params;
+        const { inputStr, mainMsg, userid, botname, discordMessage, discordClient } = params;
         const rply = { default: 'on', type: 'text', text: '', quotes: true };
 
         let modelType = 'LOW';
@@ -2887,9 +2886,23 @@ class CommandHandler {
         let processedInput = inputStr;
         // Only process Discord-specific logic if we're on Discord
         if (botname === "Discord" && discordMessage) {
+            try {
+                const currentModel = chatAi.getCurrentModel(modelType);
+                const result = await translateAi.getText(inputStr, currentModel, discordMessage, discordClient, userid);
+                if (result.translateScript && result.translateScript.length > 0) {
+                    processedInput = result.translateScript.join('\n');
+                }
+            } catch (error) {
+                if (error.message.includes('超過VIP限制') || error.message.includes('檔案大小')) {
+                    rply.text = error.message;
+                    return rply;
+                }
+                console.error('[CHAT_FILE_ERROR]', error);
+            }
+
             const replyContent = await handleMessage.getReplyContent(discordMessage);
             if (replyContent) {
-                processedInput = `${replyContent}\n${inputStr.replace(/^\.ai[mh]?/i, '')} `;
+                processedInput = `${replyContent}\n${processedInput.replace(/^\.ai[mh]?/i, '')} `;
             }
         }
 

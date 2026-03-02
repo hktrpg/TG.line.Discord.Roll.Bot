@@ -113,6 +113,10 @@ dotenv.config({ override: true });
 const VIP = require('../modules/veryImportantPerson');
 const handleMessage = require('../modules/discord/handleMessage');
 
+const debugLog = (...args) => {
+    if (process.env.DEBUG) console.log(...args);
+};
+
 // Unified Retry Configuration
 const RETRY_CONFIG = {
     // Maximum retry attempts per API key set
@@ -365,8 +369,8 @@ class RetryManager {
 
     // Log retry attempt
     logRetry() {
-        //console.log(`[RETRY] ${errorType} Error: ${error.status || error.code} - ${error.message}`);
-        //console.log(`[RETRY] Global: ${this.globalRetryCount}, Model: ${this.modelRetryCount}, Delay: ${delay}s`);
+        //debugLog(`[RETRY] ${errorType} Error: ${error.status || error.code} - ${error.message}`);
+        //debugLog(`[RETRY] Global: ${this.globalRetryCount}, Model: ${this.modelRetryCount}, Delay: ${delay}s`);
     }
 
     // Mark a model as cooling down for given seconds
@@ -625,7 +629,7 @@ class OpenAI {
                                 process.env[key] = value;
                             }
                         }
-                        console.log('.env Changed - Updated OpenAI environment variables')
+                        if (process.env.DEBUG) debugLog(`.env Changed - Updated OpenAI environment variables`)
                         this.currentApiKeyIndex = 0;
                         this.retryManager.resetCounters();
                         this.addApiKey();
@@ -683,17 +687,17 @@ class OpenAI {
 
     // Get current model for translation with TOKEN limit filter
     getCurrentModelForTranslation(modelTier) {
-        console.log(`[GLOSSARY_DEBUG] getCurrentModelForTranslation called with modelTier: ${modelTier}`);
+        debugLog(`[GLOSSARY_DEBUG] getCurrentModelForTranslation called with modelTier: ${modelTier}`);
 
         if (modelTier === 'LOW' && AI_CONFIG.MODELS.LOW.models && AI_CONFIG.MODELS.LOW.models.length > 0) {
-            console.log(`[GLOSSARY_DEBUG] LOW tier has ${AI_CONFIG.MODELS.LOW.models.length} models, filtering for TOKEN >= 10000`);
+            debugLog(`[GLOSSARY_DEBUG] LOW tier has ${AI_CONFIG.MODELS.LOW.models.length} models, filtering for TOKEN >= 10000`);
 
             // Filter models with TOKEN >= 10000
             const validModels = AI_CONFIG.MODELS.LOW.models.filter(model =>
                 model.token && model.token >= 10_000
             );
 
-            console.log(`[GLOSSARY_DEBUG] Found ${validModels.length} valid models with TOKEN >= 10000:`, validModels.map(m => `${m.name}(${m.token})`).join(', '));
+            debugLog(`[GLOSSARY_DEBUG] Found ${validModels.length} valid models with TOKEN >= 10000:`, validModels.map(m => `${m.name}(${m.token})`).join(', '));
 
             if (validModels.length === 0) {
                 console.error(`[GLOSSARY_DEBUG] No LOW models with TOKEN >= 10000 found. Available models: ${AI_CONFIG.MODELS.LOW.models.map(m => `${m.name}(${m.token})`).join(', ')}`);
@@ -703,24 +707,24 @@ class OpenAI {
             // Use the same cycling logic but with filtered models
             const validIndex = this.retryManager.currentModelIndex % validModels.length;
             const model = validModels[validIndex];
-            console.log(`[GLOSSARY_DEBUG] Selected model index ${validIndex}/${validModels.length - 1}: ${model?.name || 'NONE'}`);
+            debugLog(`[GLOSSARY_DEBUG] Selected model index ${validIndex}/${validModels.length - 1}: ${model?.name || 'NONE'}`);
 
             if (model) {
-                console.log(`[GLOSSARY_DEBUG] Returning selected model: ${model.name} (${model.token} tokens)`);
+                debugLog(`[GLOSSARY_DEBUG] Returning selected model: ${model.name} (${model.token} tokens)`);
                 return model;
             }
             // Fallback to first valid model if current index is invalid
             console.warn(`[GLOSSARY_DEBUG] Invalid model index ${this.retryManager.currentModelIndex}, falling back to first valid model`);
             this.retryManager.currentModelIndex = 0;
             const fallbackModel = validModels[0];
-            console.log(`[GLOSSARY_DEBUG] Fallback model: ${fallbackModel?.name || 'NONE'}`);
+            debugLog(`[GLOSSARY_DEBUG] Fallback model: ${fallbackModel?.name || 'NONE'}`);
             return fallbackModel;
         }
 
         // For other tiers (MEDIUM, HIGH), return the config directly
-        console.log(`[GLOSSARY_DEBUG] Using non-LOW tier model: ${modelTier}`);
+        debugLog(`[GLOSSARY_DEBUG] Using non-LOW tier model: ${modelTier}`);
         const modelConfig = AI_CONFIG.MODELS[modelTier];
-        console.log(`[GLOSSARY_DEBUG] Model config:`, modelConfig ? `${modelConfig.display || modelTier}` : 'NONE');
+        debugLog(`[GLOSSARY_DEBUG] Model config:`, modelConfig ? `${modelConfig.display || modelTier}` : 'NONE');
         return modelConfig;
     }
 
@@ -740,7 +744,7 @@ class OpenAI {
         if (nextIdx === null) {
             const minRemain = this.retryManager.minCooldownRemaining(models) + (RETRY_CONFIG.MODEL_CYCLING.allModelsCooldownPadding || 0);
             const wait = this.retryManager.jitterDelay(minRemain);
-            //console.log(`[MODEL_CYCLE] All LOW models cooling down; waiting ${wait}s before retrying`);
+            //debugLog(`[MODEL_CYCLE] All LOW models cooling down; waiting ${wait}s before retrying`);
             await this.retryManager.waitSeconds(wait);
             return { waitedSeconds: wait };
         }
@@ -749,7 +753,7 @@ class OpenAI {
         const currentModel = models[this.retryManager.currentModelIndex];
 
         if (currentModel) {
-            //console.log(`[MODEL_CYCLE] Cycling to LOW model ${this.retryManager.currentModelIndex + 1}/${models.length}: ${currentModel.display} (${currentModel.name})`);
+            //debugLog(`[MODEL_CYCLE] Cycling to LOW model ${this.retryManager.currentModelIndex + 1}/${models.length}: ${currentModel.display} (${currentModel.name})`);
         } else {
             console.error(`[MODEL_CYCLE] Invalid model at index ${this.retryManager.currentModelIndex}`);
             this.retryManager.currentModelIndex = 0; // Reset to first model
@@ -782,7 +786,7 @@ class OpenAI {
         if (nextIdx === null) {
             const minRemain = this.retryManager.minCooldownRemaining(validModels) + (RETRY_CONFIG.MODEL_CYCLING.allModelsCooldownPadding || 0);
             const wait = this.retryManager.jitterDelay(minRemain);
-            //console.log(`[TRANSLATE_MODEL_CYCLE] All valid LOW models cooling down; waiting ${wait}s before retrying`);
+            //debugLog(`[TRANSLATE_MODEL_CYCLE] All valid LOW models cooling down; waiting ${wait}s before retrying`);
             await this.retryManager.waitSeconds(wait);
             return { waitedSeconds: wait };
         }
@@ -791,7 +795,7 @@ class OpenAI {
         const currentModel = validModels[this.retryManager.currentModelIndex];
 
         if (currentModel) {
-            //console.log(`[TRANSLATE_MODEL_CYCLE] Cycling to valid LOW model ${this.retryManager.currentModelIndex + 1}/${validModels.length}: ${currentModel.display} (${currentModel.name}) - TOKEN: ${currentModel.token}`);
+            //debugLog(`[TRANSLATE_MODEL_CYCLE] Cycling to valid LOW model ${this.retryManager.currentModelIndex + 1}/${validModels.length}: ${currentModel.display} (${currentModel.name}) - TOKEN: ${currentModel.token}`);
         } else {
             console.error(`[TRANSLATE_MODEL_CYCLE] Invalid model at index ${this.retryManager.currentModelIndex}`);
             this.retryManager.currentModelIndex = 0; // Reset to first model
@@ -1112,7 +1116,7 @@ class TranslateAi extends OpenAI {
     // Process large files in chunks to avoid memory issues
     async processFileInChunks(attachment, fileType, chunkSize = 1024 * 1024, maxChunks = 10) {
         try {
-            console.log(`[CHUNK_PROCESS] Starting chunked processing for ${attachment.name} (${fileType})`);
+            debugLog(`[CHUNK_PROCESS] Starting chunked processing for ${attachment.name} (${fileType})`);
 
             const response = await fetch(attachment.url);
             if (!response.ok) {
@@ -1196,7 +1200,7 @@ class TranslateAi extends OpenAI {
 
                     // Safety check for total bytes
                     if (bytesProcessed >= totalSize * 0.8) { // Process up to 80% of file
-                        console.log(`[CHUNK_PROCESS] Processed 80% of ${attachment.name}, stopping to prevent memory issues`);
+                        debugLog(`[CHUNK_PROCESS] Processed 80% of ${attachment.name}, stopping to prevent memory issues`);
                         break;
                     }
                 }
@@ -1208,7 +1212,7 @@ class TranslateAi extends OpenAI {
                 throw new Error('無法從檔案中提取文字內容');
             }
 
-            console.log(`[CHUNK_PROCESS] Completed chunked processing for ${attachment.name}, extracted ${processedText.length} characters`);
+            debugLog(`[CHUNK_PROCESS] Completed chunked processing for ${attachment.name}, extracted ${processedText.length} characters`);
             return processedText.trim();
 
         } catch (error) {
@@ -1230,7 +1234,7 @@ class TranslateAi extends OpenAI {
                 maxChars = TRANSLATE_LIMIT_PERSONAL[lv] || TRANSLATE_LIMIT_PERSONAL[0];
             }
 
-            console.log(`[TEXT_PROCESS] Starting optimized text processing for ${attachment.name} (max: ${maxChars.toLocaleString()} chars, VIP level: ${userid ? 'checked' : 'none'})`);
+            debugLog(`[TEXT_PROCESS] Starting optimized text processing for ${attachment.name} (max: ${maxChars.toLocaleString()} chars, VIP level: ${userid ? 'checked' : 'none'})`);
 
             // Download the full file first (but we'll process it in chunks)
             // Use streaming approach to avoid loading entire file into memory
@@ -1279,7 +1283,7 @@ class TranslateAi extends OpenAI {
                                 const partialText = chunkText.slice(0, Math.max(0, remainingChars));
                                 processedText += partialText;
                                 totalChars += remainingChars;
-                                console.log(`[TEXT_PROCESS] Reached character limit (${maxChars.toLocaleString()}), stopping`);
+                                debugLog(`[TEXT_PROCESS] Reached character limit (${maxChars.toLocaleString()}), stopping`);
                                 isDone = true;
                                 break;
                             } else {
@@ -1291,7 +1295,7 @@ class TranslateAi extends OpenAI {
 
                                 // Progress logging
                                 if (chunksProcessed % TEXT_PROCESSING_CONSTANTS.PROGRESS_LOG_INTERVAL === 0) {
-                                    console.log(`[TEXT_PROCESS] Processed ${chunksProcessed} chunks, ${totalChars.toLocaleString()} characters from ${attachment.name}`);
+                                    debugLog(`[TEXT_PROCESS] Processed ${chunksProcessed} chunks, ${totalChars.toLocaleString()} characters from ${attachment.name}`);
                                 }
                             }
 
@@ -1343,7 +1347,7 @@ class TranslateAi extends OpenAI {
                 throw new Error('無法從文字檔案中提取內容');
             }
 
-            console.log(`[TEXT_PROCESS] Completed optimized text processing for ${attachment.name}, extracted ${totalChars.toLocaleString()} characters`);
+            debugLog(`[TEXT_PROCESS] Completed optimized text processing for ${attachment.name}, extracted ${totalChars.toLocaleString()} characters`);
 
             // Add a note about truncation for very large files
             if (totalChars >= maxChars) {
@@ -1390,7 +1394,7 @@ class TranslateAi extends OpenAI {
     // Process PDF files and extract text with timeout and OCR fallback
     async processPdfFile(buffer, filename = 'document.pdf', discordMessage = null, userid = null) {
         try {
-            // console.log(`[PDF_PROCESS] Starting PDF processing for ${filename}`);
+            // debugLog(`[PDF_PROCESS] Starting PDF processing for ${filename}`);
 
             // Try to load pdf-parse at runtime; if unavailable, fall back to OCR path
             const pdfParseFn = loadPdfParseSafely();
@@ -1430,7 +1434,7 @@ class TranslateAi extends OpenAI {
                 return await this.processPdfWithOcr(buffer, filename, discordMessage, userid);
             }
 
-            //console.log(`[PDF_PROCESS] PDF text extraction successful for ${filename}`);
+            //debugLog(`[PDF_PROCESS] PDF text extraction successful for ${filename}`);
             return data.text.trim();
         } catch (error) {
             console.error('[PDF_PROCESS] Error processing PDF:', error);
@@ -1441,7 +1445,7 @@ class TranslateAi extends OpenAI {
     // Process PDF with OCR by converting pages to images first
     async processPdfWithOcr(buffer, filename = 'document.pdf', discordMessage = null, userid = null) {
         try {
-            //console.log(`[PDF_OCR_PROCESS] Starting PDF to image conversion for ${filename}`);
+            //debugLog(`[PDF_OCR_PROCESS] Starting PDF to image conversion for ${filename}`);
 
             const pdfToPng = loadPdfToPngSafely();
             if (!pdfToPng) {
@@ -1470,7 +1474,7 @@ class TranslateAi extends OpenAI {
                 timeoutPromise
             ]);
 
-            //console.log(`[PDF_OCR_PROCESS] PDF converted to ${pngPages.length} PNG images for ${filename}`);
+            //debugLog(`[PDF_OCR_PROCESS] PDF converted to ${pngPages.length} PNG images for ${filename}`);
 
             if (!pngPages || pngPages.length === 0) {
                 throw new Error('no text');
@@ -1482,8 +1486,8 @@ class TranslateAi extends OpenAI {
                 const pageData = pngPages[i];
                 const pageNumber = pageData.pageNumber;
 
-                //console.log(`[PDF_OCR_PROCESS] Processing page ${pageNumber}/${pngPages.length} for ${filename}`);
-                //console.log(`[PDF_OCR_PROCESS] Page ${pageNumber} dimensions: ${pageData.width}x${pageData.height}`);
+                //debugLog(`[PDF_OCR_PROCESS] Processing page ${pageNumber}/${pngPages.length} for ${filename}`);
+                //debugLog(`[PDF_OCR_PROCESS] Page ${pageNumber} dimensions: ${pageData.width}x${pageData.height}`);
 
                 if (discordMessage && userid) {
                     await this.sendProgressMessage(discordMessage, userid,
@@ -1507,7 +1511,7 @@ class TranslateAi extends OpenAI {
             }
 
             const combinedText = allTexts.join('\n\n');
-            //console.log(`[PDF_OCR_PROCESS] PDF OCR completed for ${filename}, extracted ${combinedText.length} characters`);
+            //debugLog(`[PDF_OCR_PROCESS] PDF OCR completed for ${filename}, extracted ${combinedText.length} characters`);
 
             // Send completion message
             if (discordMessage && userid) {
@@ -1525,7 +1529,7 @@ class TranslateAi extends OpenAI {
     // Process image buffer with OCR (separate from file processing)
     async processImageBufferWithOcr(imageBuffer, filename = 'image', discordMessage = null, userid = null) {
         try {
-            //console.log(`[OCR_BUFFER_PROCESS] Starting OCR for ${filename}`);
+            //debugLog(`[OCR_BUFFER_PROCESS] Starting OCR for ${filename}`);
 
             // Create timeout promise
             const timeoutPromise = new Promise((_, reject) => {
@@ -1544,7 +1548,7 @@ class TranslateAi extends OpenAI {
                     logger: m => {
                         if (m.status === 'recognizing text') {
                             const progress = Math.round(m.progress * 100);
-                            //console.log(`[OCR_BUFFER_PROCESS] Progress: ${progress}%`);
+                            //debugLog(`[OCR_BUFFER_PROCESS] Progress: ${progress}%`);
 
                             // Send progress updates every 25%
                             if (discordMessage && userid && progress >= lastProgressUpdate + 25) {
@@ -1564,7 +1568,7 @@ class TranslateAi extends OpenAI {
                 throw new Error('no text');
             }
 
-            //console.log(`[OCR_BUFFER_PROCESS] OCR completed for ${filename}`);
+            //debugLog(`[OCR_BUFFER_PROCESS] OCR completed for ${filename}`);
             return text.trim();
         } catch (error) {
             console.error('[OCR_BUFFER_PROCESS] Error processing image buffer:', error);
@@ -1576,7 +1580,7 @@ class TranslateAi extends OpenAI {
     // eslint-disable-next-line no-unused-vars
     async processDocxFile(buffer, filename = 'document.docx') {
         try {
-            //console.log(`[DOCX_PROCESS] Starting DOCX processing for ${filename}`);
+            //debugLog(`[DOCX_PROCESS] Starting DOCX processing for ${filename}`);
 
             // Create timeout promise
             const timeoutPromise = new Promise((_, reject) => {
@@ -1595,7 +1599,7 @@ class TranslateAi extends OpenAI {
                 throw new Error('no text');
             }
 
-            //console.log(`[DOCX_PROCESS] DOCX processing completed for ${filename}`);
+            //debugLog(`[DOCX_PROCESS] DOCX processing completed for ${filename}`);
             return result.value.trim();
         } catch (error) {
             console.error('[DOCX_PROCESS] Error processing DOCX:', error);
@@ -1606,7 +1610,7 @@ class TranslateAi extends OpenAI {
     // Process image files using OCR with timeout and progress updates
     async processImageFile(buffer, filename = 'image', discordMessage = null, userid = null) {
         try {
-            //console.log(`[OCR_PROCESS] Starting OCR for ${filename}`);
+            //debugLog(`[OCR_PROCESS] Starting OCR for ${filename}`);
 
             // Send initial OCR start message
             if (discordMessage && userid) {
@@ -1739,22 +1743,22 @@ class TranslateAi extends OpenAI {
 
     // Generate glossary entries from a text sample using the current AI model
     async generateGlossaryFromText(textSample, mode, modelTier = 'LOW') {
-        console.log(`[GLOSSARY_DEBUG] generateGlossaryFromText called with textSample length: ${textSample?.length || 0}, modelTier: ${modelTier}`);
+        debugLog(`[GLOSSARY_DEBUG] generateGlossaryFromText called with textSample length: ${textSample?.length || 0}, modelTier: ${modelTier}`);
 
         try {
             const currentModel = this.getCurrentModelForTranslation(modelTier);
-            console.log(`[GLOSSARY_DEBUG] Selected model for glossary:`, currentModel ? `${currentModel.name} (${currentModel.token} tokens)` : 'NONE');
+            debugLog(`[GLOSSARY_DEBUG] Selected model for glossary:`, currentModel ? `${currentModel.name} (${currentModel.token} tokens)` : 'NONE');
             if (!currentModel) {
                 console.error(`[GLOSSARY] No valid model found for tier ${modelTier} with TOKEN >= 10000`);
                 return {};
             }
             const modelName = currentModel.name || mode.name;
-            console.log(`[GLOSSARY_DEBUG] Using model: ${modelName} for API call`);
+            debugLog(`[GLOSSARY_DEBUG] Using model: ${modelName} for API call`);
 
             const systemInstruction = `你是一位專業的術語學家，請從給定文本中抽取專有名詞與關鍵術語，並以 JSON 陣列輸出，每個元素包含 original 與 translation（正體中文）。只輸出 JSON，勿加解說。`;
             const userContent = `文本：\n---\n${textSample}\n---\n請輸出格式：[ {"original": "...", "translation": "..."}, ... ]`;
 
-            console.log(`[GLOSSARY_DEBUG] Sending API request to ${modelName}...`);
+            debugLog(`[GLOSSARY_DEBUG] Sending API request to ${modelName}...`);
             const apiStartTime = Date.now();
 
             let response = await this.openai.chat.completions.create({
@@ -1769,12 +1773,12 @@ class TranslateAi extends OpenAI {
             })
 
             const apiDuration = Date.now() - apiStartTime;
-            console.log(`[GLOSSARY_DEBUG] API call completed in ${apiDuration}ms`);
+            debugLog(`[GLOSSARY_DEBUG] API call completed in ${apiDuration}ms`);
 
             this.retryManager.resetCounters();
 
             let jsonText = null;
-            console.log(`[GLOSSARY_DEBUG] Processing API response, status: ${response.status}`);
+            debugLog(`[GLOSSARY_DEBUG] Processing API response, status: ${response.status}`);
 
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
                 const dataStr = response.data;
@@ -1788,21 +1792,21 @@ class TranslateAi extends OpenAI {
                 jsonText = contents;
             } else {
                 jsonText = response.choices[0].message.content;
-                console.log(`[GLOSSARY_DEBUG] Using response.choices[0].message.content`);
+                debugLog(`[GLOSSARY_DEBUG] Using response.choices[0].message.content`);
             }
 
-            console.log(`[GLOSSARY_DEBUG] Raw JSON text length: ${jsonText?.length || 0}`);
-            console.log(`[GLOSSARY_DEBUG] Raw JSON text preview: ${jsonText?.slice(0, 200)}...`);
+            debugLog(`[GLOSSARY_DEBUG] Raw JSON text length: ${jsonText?.length || 0}`);
+            debugLog(`[GLOSSARY_DEBUG] Raw JSON text preview: ${jsonText?.slice(0, 200)}...`);
 
             // Cleanup and safely parse JSON
             if (typeof jsonText === 'string') {
                 jsonText = this.sanitizeJsonContent(jsonText);
-                console.log(`[GLOSSARY_DEBUG] After sanitization, length: ${jsonText.length}`);
+                debugLog(`[GLOSSARY_DEBUG] After sanitization, length: ${jsonText.length}`);
             }
             try {
-                console.log(`[GLOSSARY_DEBUG] Attempting to parse JSON...`);
+                debugLog(`[GLOSSARY_DEBUG] Attempting to parse JSON...`);
                 const glossaryArray = JSON.parse(jsonText);
-                console.log(`[GLOSSARY_DEBUG] JSON parsed successfully, array length: ${Array.isArray(glossaryArray) ? glossaryArray.length : 'not array'}`);
+                debugLog(`[GLOSSARY_DEBUG] JSON parsed successfully, array length: ${Array.isArray(glossaryArray) ? glossaryArray.length : 'not array'}`);
 
                 const glossary = {};
                 let validItems = 0;
@@ -1812,8 +1816,8 @@ class TranslateAi extends OpenAI {
                         validItems++;
                     }
                 }
-                console.log(`[GLOSSARY_DEBUG] Valid glossary items: ${validItems}/${glossaryArray.length}`);
-                console.log(`[GLOSSARY_DEBUG] Generated glossary keys: [${Object.keys(glossary).slice(0, 10).join(', ')}]`);
+                debugLog(`[GLOSSARY_DEBUG] Valid glossary items: ${validItems}/${glossaryArray.length}`);
+                debugLog(`[GLOSSARY_DEBUG] Generated glossary keys: [${Object.keys(glossary).slice(0, 10).join(', ')}]`);
                 return glossary;
             } catch (error) {
                 console.warn('[GLOSSARY_DEBUG] Failed to parse JSON glossary. Returning empty glossary.', {
@@ -1835,39 +1839,39 @@ class TranslateAi extends OpenAI {
                 console.warn('[GLOSSARY_DEBUG] SyntaxError during glossary generation. Returning empty glossary.');
                 return {};
             }
-            console.log('[GLOSSARY_DEBUG] Retrying API call due to error...');
+            debugLog('[GLOSSARY_DEBUG] Retrying API call due to error...');
             return await this.handleApiError(error, this.generateGlossaryFromText, modelTier, true, textSample, mode, modelTier);
         }
     }
 
     // Build an aggregated glossary from selected chunks when chunk count is large
     async buildAutoGlossaryFromChunks(chunks, mode, modelTier = 'LOW', discordMessage = null, userid = null) {
-        console.log(`[GLOSSARY_DEBUG] Starting buildAutoGlossaryFromChunks with ${chunks.length} chunks, modelTier: ${modelTier}`);
+        debugLog(`[GLOSSARY_DEBUG] Starting buildAutoGlossaryFromChunks with ${chunks.length} chunks, modelTier: ${modelTier}`);
 
         if (!Array.isArray(chunks) || chunks.length === 0) {
-            console.log(`[GLOSSARY_DEBUG] No chunks to process, returning empty glossary`);
+            debugLog(`[GLOSSARY_DEBUG] No chunks to process, returning empty glossary`);
             return {};
         }
 
         const total = chunks.length;
         const totalChars = chunks.reduce((sum, chunk) => sum + (chunk?.length || 0), 0);
-        console.log(`[GLOSSARY_DEBUG] Total chunks: ${total}, total characters: ${totalChars}`);
+        debugLog(`[GLOSSARY_DEBUG] Total chunks: ${total}, total characters: ${totalChars}`);
 
         const selectedIndices = new Set();
 
-        console.log(`[GLOSSARY_DEBUG] Determining sampling strategy for ${totalChars} characters`);
+        debugLog(`[GLOSSARY_DEBUG] Determining sampling strategy for ${totalChars} characters`);
 
         // Adaptive sampling based on file size with reasonable maximum samples
         let maxSamples;
         if (totalChars > GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.EXTREMELY_LARGE) {
-            console.log(`[GLOSSARY_DEBUG] Using EXTREMELY_LARGE strategy (${totalChars} > ${GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.EXTREMELY_LARGE})`);
+            debugLog(`[GLOSSARY_DEBUG] Using EXTREMELY_LARGE strategy (${totalChars} > ${GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.EXTREMELY_LARGE})`);
             // For extremely large files (>5M chars), use minimal sampling
             maxSamples = GLOSSARY_GENERATION_LIMITS.MAX_SAMPLES.EXTREMELY_LARGE;
             if (total >= 1) selectedIndices.add(0); // First chunk
             if (total >= 2) selectedIndices.add(1); // Second chunk
             if (total >= 3) selectedIndices.add(total - 1); // Last chunk
         } else if (totalChars > GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.VERY_LARGE) {
-            console.log(`[GLOSSARY_DEBUG] Using VERY_LARGE strategy (${totalChars} > ${GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.VERY_LARGE})`);
+            debugLog(`[GLOSSARY_DEBUG] Using VERY_LARGE strategy (${totalChars} > ${GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.VERY_LARGE})`);
             // For very large files (2-5M chars), use limited sampling
             maxSamples = GLOSSARY_GENERATION_LIMITS.MAX_SAMPLES.VERY_LARGE;
             if (total >= 1) selectedIndices.add(0);
@@ -1877,7 +1881,7 @@ class TranslateAi extends OpenAI {
             // Every multiple of interval: 10,20,30... -> 0-based 9,19,29...
             for (let i = GLOSSARY_GENERATION_LIMITS.SAMPLING_INTERVALS.EXTREMELY_LARGE - 1; i < total; i += GLOSSARY_GENERATION_LIMITS.SAMPLING_INTERVALS.EXTREMELY_LARGE) selectedIndices.add(i);
         } else if (totalChars > GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.LARGE) {
-            console.log(`[GLOSSARY_DEBUG] Using LARGE strategy (${totalChars} > ${GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.LARGE})`);
+            debugLog(`[GLOSSARY_DEBUG] Using LARGE strategy (${totalChars} > ${GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.LARGE})`);
             // For large files (1-2M chars), use moderate sampling
             maxSamples = GLOSSARY_GENERATION_LIMITS.MAX_SAMPLES.LARGE;
             // First and second
@@ -1888,7 +1892,7 @@ class TranslateAi extends OpenAI {
             // Every multiple of interval: 6,12,18... -> 0-based 5,11,17...
             for (let i = GLOSSARY_GENERATION_LIMITS.SAMPLING_INTERVALS.VERY_LARGE - 1; i < total; i += GLOSSARY_GENERATION_LIMITS.SAMPLING_INTERVALS.VERY_LARGE) selectedIndices.add(i);
         } else if (totalChars > GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.MEDIUM_LARGE) {
-            console.log(`[GLOSSARY_DEBUG] Using MEDIUM_LARGE strategy (${totalChars} > ${GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.MEDIUM_LARGE})`);
+            debugLog(`[GLOSSARY_DEBUG] Using MEDIUM_LARGE strategy (${totalChars} > ${GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.MEDIUM_LARGE})`);
             // For medium-large files, use standard sampling
             maxSamples = GLOSSARY_GENERATION_LIMITS.MAX_SAMPLES.MEDIUM_LARGE;
             // First and second
@@ -1899,7 +1903,7 @@ class TranslateAi extends OpenAI {
             // Every multiple of interval: 4,8,12... -> 0-based 3,7,11...
             for (let i = GLOSSARY_GENERATION_LIMITS.SAMPLING_INTERVALS.MEDIUM_LARGE - 1; i < total; i += GLOSSARY_GENERATION_LIMITS.SAMPLING_INTERVALS.MEDIUM_LARGE) selectedIndices.add(i);
         } else {
-            console.log(`[GLOSSARY_DEBUG] Using SMALL strategy (${totalChars} <= ${GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.MEDIUM_LARGE})`);
+            debugLog(`[GLOSSARY_DEBUG] Using SMALL strategy (${totalChars} <= ${GLOSSARY_GENERATION_LIMITS.SIZE_THRESHOLDS.MEDIUM_LARGE})`);
             // For smaller files, use original logic with maximum sample limit
             maxSamples = GLOSSARY_GENERATION_LIMITS.MAX_SAMPLES.SMALL;
             // First and second
@@ -1912,15 +1916,15 @@ class TranslateAi extends OpenAI {
         }
 
         const ordered = [...selectedIndices].sort((a, b) => a - b).slice(0, maxSamples);
-        console.log(`[GLOSSARY_DEBUG] Selected ${ordered.length} chunks out of ${total} for processing: [${ordered.join(', ')}]`);
-        console.log(`[GLOSSARY_DEBUG] Max samples allowed: ${maxSamples}`);
+        debugLog(`[GLOSSARY_DEBUG] Selected ${ordered.length} chunks out of ${total} for processing: [${ordered.join(', ')}]`);
+        debugLog(`[GLOSSARY_DEBUG] Max samples allowed: ${maxSamples}`);
 
         const aggregated = {};
-        console.log(`[GLOSSARY_DEBUG] Starting to process ${ordered.length} chunks...`);
+        debugLog(`[GLOSSARY_DEBUG] Starting to process ${ordered.length} chunks...`);
 
         for (const idx of ordered) {
             const chunkNumber = ordered.indexOf(idx) + 1;
-            console.log(`[GLOSSARY_DEBUG] Processing chunk ${chunkNumber}/${ordered.length} (index: ${idx}, length: ${chunks[idx]?.length || 0} chars)`);
+            debugLog(`[GLOSSARY_DEBUG] Processing chunk ${chunkNumber}/${ordered.length} (index: ${idx}, length: ${chunks[idx]?.length || 0} chars)`);
 
             // Send progress message to Discord
             if (discordMessage && userid) {
@@ -1939,14 +1943,14 @@ class TranslateAi extends OpenAI {
 
             while (retryCount <= maxRetries && !chunkSuccess) {
                 try {
-                    console.log(`[GLOSSARY_DEBUG] Processing chunk ${idx} (attempt ${retryCount + 1}/${maxRetries + 1})`);
+                    debugLog(`[GLOSSARY_DEBUG] Processing chunk ${idx} (attempt ${retryCount + 1}/${maxRetries + 1})`);
                     const startTime = Date.now();
 
                     partial = await this.generateGlossaryFromText(sample, mode, modelTier);
                     const duration = Date.now() - startTime;
                     const termCount = Object.keys(partial).length;
 
-                    console.log(`[GLOSSARY_DEBUG] Chunk ${idx} succeeded on attempt ${retryCount + 1}, generated ${termCount} terms in ${duration}ms`);
+                    debugLog(`[GLOSSARY_DEBUG] Chunk ${idx} succeeded on attempt ${retryCount + 1}, generated ${termCount} terms in ${duration}ms`);
                     chunkSuccess = true;
 
                 } catch (error) {
@@ -1961,7 +1965,7 @@ class TranslateAi extends OpenAI {
 
                     // 指數退避：5秒, 10秒, 20秒, 40秒, 80秒, 160秒, 320秒, 640秒, 1280秒, 2560秒
                     const delay = baseDelay * Math.pow(2, retryCount - 1);
-                    console.log(`[GLOSSARY_DEBUG] Retrying chunk ${idx} in ${delay} seconds...`);
+                    debugLog(`[GLOSSARY_DEBUG] Retrying chunk ${idx} in ${delay} seconds...`);
 
                     // 發送重試進度消息給用戶
                     if (discordMessage && userid) {
@@ -1980,8 +1984,8 @@ class TranslateAi extends OpenAI {
         }
 
         const totalTerms = Object.keys(aggregated).length;
-        console.log(`[GLOSSARY_DEBUG] Glossary generation completed. Total terms: ${totalTerms}`);
-        console.log(`[GLOSSARY_DEBUG] Sample terms:`, Object.entries(aggregated).slice(0, 5).map(([k, v]) => `${k} -> ${v}`).join(', '));
+        debugLog(`[GLOSSARY_DEBUG] Glossary generation completed. Total terms: ${totalTerms}`);
+        debugLog(`[GLOSSARY_DEBUG] Sample terms:`, Object.entries(aggregated).slice(0, 5).map(([k, v]) => `${k} -> ${v}`).join(', '));
         return aggregated;
     }
     async getText(str, mode, discordMessage, discordClient, userid = null) {
@@ -2033,7 +2037,7 @@ class TranslateAi extends OpenAI {
             const allAttachments = [];
 
             // Current message attachments
-            if (discordMessage?.type === 0 && discordMessage?.attachments?.size > 0) {
+            if ((discordMessage?.type === 0 || discordMessage?.type === 2) && discordMessage?.attachments?.size > 0) {
                 allAttachments.push(...discordMessage.attachments.values());
             }
 
@@ -2059,12 +2063,12 @@ class TranslateAi extends OpenAI {
                     throw new Error(`預估總內容長度 (${textLength.toLocaleString()} 字) 超過VIP LV${lv}限制 (${limit.toLocaleString()} 字)`);
                 }
 
-                console.log(`[EARLY_VALIDATION] Estimated total content: ${textLength} chars, VIP limit: ${limit} chars`);
+                debugLog(`[EARLY_VALIDATION] Estimated total content: ${textLength} chars, VIP limit: ${limit} chars`);
             }
         }
 
         // Process attachments from current message with chunked processing
-        if (discordMessage?.type === 0 && discordMessage?.attachments?.size > 0) {
+        if ((discordMessage?.type === 0 || discordMessage?.type === 2) && discordMessage?.attachments?.size > 0) {
             const attachments = [...discordMessage.attachments.values()];
             for (const attachment of attachments) {
                 try {
@@ -2088,11 +2092,11 @@ class TranslateAi extends OpenAI {
                     if (sizeInMB > 2 && fileType) {
                         if (fileType === 'TEXT') {
                             // Use optimized text processing for large text files
-                            console.log(`[ATTACHMENT_PROCESS] Using optimized text processing for large text file: ${filename} (${sizeInMB.toFixed(2)}MB)`);
+                            debugLog(`[ATTACHMENT_PROCESS] Using optimized text processing for large text file: ${filename} (${sizeInMB.toFixed(2)}MB)`);
                             extractedText = await this.processLargeTextFile(attachment, userid);
                         } else {
                             // Use chunked processing for other file types
-                            console.log(`[ATTACHMENT_PROCESS] Using chunked processing for large file: ${filename} (${sizeInMB.toFixed(2)}MB)`);
+                            debugLog(`[ATTACHMENT_PROCESS] Using chunked processing for large file: ${filename} (${sizeInMB.toFixed(2)}MB)`);
                             extractedText = await this.processFileInChunks(attachment, fileType);
                         }
                     } else {
@@ -2159,11 +2163,11 @@ class TranslateAi extends OpenAI {
                     if (sizeInMB > 2 && fileType) {
                         if (fileType === 'TEXT') {
                             // Use optimized text processing for large text files
-                            console.log(`[REPLY_ATTACHMENT_PROCESS] Using optimized text processing for large text file: ${filename} (${sizeInMB.toFixed(2)}MB)`);
+                            debugLog(`[REPLY_ATTACHMENT_PROCESS] Using optimized text processing for large text file: ${filename} (${sizeInMB.toFixed(2)}MB)`);
                             extractedText = await this.processLargeTextFile(attachment, userid);
                         } else {
                             // Use chunked processing for other file types
-                            console.log(`[REPLY_ATTACHMENT_PROCESS] Using chunked processing for large file: ${filename} (${sizeInMB.toFixed(2)}MB)`);
+                            debugLog(`[REPLY_ATTACHMENT_PROCESS] Using chunked processing for large file: ${filename} (${sizeInMB.toFixed(2)}MB)`);
                             extractedText = await this.processFileInChunks(attachment, fileType);
                         }
                     } else {
@@ -2280,7 +2284,7 @@ class TranslateAi extends OpenAI {
                 // Check if this is a network error that should be retried
                 const hasNetworkError = response?.choices?.[0]?.error?.message?.includes('Network connection lost');
                 if (hasNetworkError) {
-                    console.log(`[TRANSLATE_CHAT] Network error detected, throwing to trigger retry`);
+                    debugLog(`[TRANSLATE_CHAT] Network error detected, throwing to trigger retry`);
                     throw new Error('Network connection lost');
                 }
 
@@ -2345,7 +2349,7 @@ class TranslateAi extends OpenAI {
                     const baseDelay = 5;
                     const exponentialDelay = baseDelay * Math.pow(2, windowAttempt - 1);
                     waitSec = Math.min(exponentialDelay, 60); // Cap at 60 seconds for network errors
-                    console.log(`[TRANSLATE_CHUNK_RETRY] Network error retry ${windowAttempt}/${MAX_CHUNK_WINDOWS}, waiting ${waitSec}s`);
+                    debugLog(`[TRANSLATE_CHUNK_RETRY] Network error retry ${windowAttempt}/${MAX_CHUNK_WINDOWS}, waiting ${waitSec}s`);
                 } else {
                     // For rate limit errors, use the existing logic
                     waitSec = RETRY_CONFIG.GENERAL.keysetCycleDelay;
@@ -2354,10 +2358,10 @@ class TranslateAi extends OpenAI {
                         const padding = RETRY_CONFIG.MODEL_CYCLING.allModelsCooldownPadding || 0;
                         waitSec = Math.max(waitSec, minRemain + padding);
                     }
-                    console.log(`[TRANSLATE_CHUNK_RETRY] Rate limit retry ${windowAttempt}/${MAX_CHUNK_WINDOWS}, waiting ${waitSec}s`);
+                    debugLog(`[TRANSLATE_CHUNK_RETRY] Rate limit retry ${windowAttempt}/${MAX_CHUNK_WINDOWS}, waiting ${waitSec}s`);
                 }
                 waitSec = this.retryManager.jitterDelay(waitSec);
-                //console.log(`[TRANSLATE_CHUNK_RETRY] idx=${index} window=${windowAttempt} wait=${waitSec}s`);
+                //debugLog(`[TRANSLATE_CHUNK_RETRY] idx=${index} window=${windowAttempt} wait=${waitSec}s`);
 
                 await this.retryManager.waitSeconds(waitSec);
                 // Open a fresh retry window
@@ -2516,8 +2520,8 @@ class TranslateAi extends OpenAI {
         response = response.join('\n');
 
         // Debug logging for final response
-        //console.log(`[HANDLE_TRANSLATE] Final response length: ${response.length}`);
-        //console.log(`[HANDLE_TRANSLATE] First 200 chars of response:`, response.substring(0, 200));
+        //debugLog(`[HANDLE_TRANSLATE] Final response length: ${response.length}`);
+        //debugLog(`[HANDLE_TRANSLATE] First 200 chars of response:`, response.substring(0, 200));
 
         if (!response || response.trim().length === 0) {
             console.error(`[HANDLE_TRANSLATE] Empty final response!`);

@@ -61,6 +61,7 @@ const trpgDatabaseAllGroupSchema = mongoose.model('trpgDatabaseAllgroup', new mo
 const groupSettingsSchema = mongoose.model('GroupSetting', new mongoose.Schema({
     groupid: { type: String, index: true },
     togm: Array,
+    GroupSettingfunction: Array,
     user: [{
         userid: {
             type: String, index: true,

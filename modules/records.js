@@ -363,7 +363,7 @@ class Records extends EventEmitter {
 
     async pushTrpgDatabaseAllGroup(databaseName, data) {
         try {
-            const query = { groupid: data.groupid };
+            const query = {};
             const update = { $push: { trpgDatabaseAllgroup: data.trpgDatabaseAllgroup[0] } };
             const options = { new: true, upsert: true };
 
@@ -376,7 +376,7 @@ class Records extends EventEmitter {
 
     async setTrpgDatabaseAllGroup(databaseName, data) {
         try {
-            const query = { groupid: data.groupid };
+            const query = {};
             const update = { $set: { trpgDatabaseAllgroup: data.trpgDatabaseAllgroup } };
             const options = { new: true, upsert: true };
 

@@ -458,6 +458,7 @@ key: ${key}`;
         const allActiveMembers = await schema.patreonMember.find({ switch: true }).sort({ patreonName: 1 }).lean();
         keys.length = 0;
         keyMessages.length = 0;
+        emailBlocks.length = 0;
         for (const member of allActiveMembers) {
             const displayKey = getDisplayKey(member);
             const tierLabel = patreonTiers.getTierLabel(member.level);

@@ -1635,10 +1635,10 @@ if (io) {
         setTimeout(async () => {
             try {
                 const msgs = await records.chatRoomGet("公共房間");
-                socket.emit("chatRecord", msgs);
+                socket.emit("chatRecord", msgs, "公共房間");
             } catch (error) {
                 console.error('[Web Server] Failed to get chat room messages:', error);
-                socket.emit("chatRecord", []);
+                socket.emit("chatRecord", [], "公共房間");
             }
         }, 200);
 
@@ -1690,10 +1690,10 @@ if (io) {
             setTimeout(async () => {
                 try {
                     const msgs = await records.chatRoomGet(roomNumber);
-                    socket.emit("chatRecord", msgs);
+                    socket.emit("chatRecord", msgs, roomNumber);
                 } catch (error) {
                     console.error('[Web Server] Failed to get chat room messages:', error);
-                    socket.emit("chatRecord", []);
+                    socket.emit("chatRecord", [], roomNumber);
                 }
             }, 150);
 

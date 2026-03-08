@@ -93,7 +93,12 @@ const clusterOptions = {
     restarts: {
         max: 5,
         interval: 60_000 * 10 // 10 minutes
-    }
+    },
+    execArgv: [
+        "--max-old-space-size=128",
+        "--optimize-for-size",
+        "--gc-interval=100"
+    ],
 };
 
 const manager = new ClusterManager('./modules/discord_bot.js', clusterOptions);

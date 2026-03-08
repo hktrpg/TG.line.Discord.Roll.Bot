@@ -269,13 +269,18 @@ async function stateText() {
 	const formatNumber = (num) => num.toString().replaceAll(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 	// 使用 Promise.all 同時獲取所有統計數據
+	// 無條件的全表 count 改為 estimatedDocumentCount，避免 COLLSCAN（狀態報告用近似值即可）
 	const [levelSystemCount, characterCardCount, userCount] = await Promise.all([
 		schema.trpgLevelSystem.countDocuments({ Switch: '1' })
 			.catch(error => console.error('[Analytics] MongoDB error:', error.name, error.reason)),
-		schema.characterCard.countDocuments({})
-			.catch(error => console.error('[Analytics] MongoDB error:', error.name, error.reason)),
-		schema.firstTimeMessage.countDocuments({})
-			.catch(error => console.error('[Analytics] MongoDB error:', error.name, error.reason))
+		(schema.characterCard && typeof schema.characterCard.estimatedDocumentCount === 'function')
+			? schema.characterCard.estimatedDocumentCount()
+				.catch(error => console.error('[Analytics] MongoDB error:', error.name, error.reason))
+			: Promise.resolve(0),
+		(schema.firstTimeMessage && typeof schema.firstTimeMessage.estimatedDocumentCount === 'function')
+			? schema.firstTimeMessage.estimatedDocumentCount()
+				.catch(error => console.error('[Analytics] MongoDB error:', error.name, error.reason))
+			: Promise.resolve(0)
 	]);
 
 	return `【📊 HKTRPG系統狀態報告】

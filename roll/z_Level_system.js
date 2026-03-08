@@ -648,7 +648,13 @@ const rollDiceCommand = async function ({
             let docMember = await schema.trpgLevelSystemMember.find({}, { name: 1, EXP: 1, Level: 1 }).sort({
                 EXP: -1
             }).limit(RankNumber).lean().catch(error => console.error('level_system #559 mongoDB error:', error.name, error.reason));
-            let docMemberCount = await schema.trpgLevelSystemMember.countDocuments({}).catch(error => console.error('level_system #560 mongoDB error:', error.name, error.reason));
+            // 世界排行榜總人數用近似值即可，避免全表 COLLSCAN
+            let docMemberCount = (schema.trpgLevelSystemMember && typeof schema.trpgLevelSystemMember.estimatedDocumentCount === 'function')
+                ? await schema.trpgLevelSystemMember.estimatedDocumentCount().catch(error => {
+                    console.error('level_system #560 mongoDB error:', error.name, error.reason);
+                    return 0;
+                })
+                : 0;
 
             if (docMember.length === 0) {
                 rply.text = '此群組未有足夠資料\n'

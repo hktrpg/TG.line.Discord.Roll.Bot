@@ -413,7 +413,7 @@ if (process.env.mongoURL) {
         botname: String
     }, {
         indexes: [
-            { userID: 1, botname: 1 }
+            { userID: 1, botname: 1, unique: true }
         ]
     }));
 

@@ -45,17 +45,26 @@ const herokuPuppeteer = {
 	handleSIGHUP: false
 };
 
+// Puppeteer launch options: args and execArgv must live here (passed to launch() by whatsapp-web.js).
 const normalPuppeteer = {
 	headless: true,
 	handleSIGINT: false,
 	handleSIGTERM: false,
 	handleSIGHUP: false,
+	execArgv: [
+		'--optimize-for-size',
+		'--gc-interval=100'
+	],
 	args: [
 		'--no-sandbox',
 		'--disable-setuid-sandbox',
-		'--disable-dev-shm-usage',
+		'--disable-dev-shm-usage', // Prevents crash when /dev/shm is too small (e.g. Docker)
+		'--disable-extensions',
 		'--disable-accelerated-2d-canvas',
+		'--no-first-run',
 		'--disable-gpu'
+		// Optional for low-RAM (e.g. 4GB): '--no-zygote', '--single-process'
+		// --single-process is deprecated and may cause instability; enable only if needed.
 	],
 	'executablePath': process.platform === 'win32'
 		? String.raw`C:\Program Files\Google\Chrome\Application\chrome.exe`
@@ -77,16 +86,7 @@ async function startUp() {
 	try {
 		const client = new Client({
 			authStrategy: new LocalAuth(),
-			puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer,
-			execArgv: [
-				"--optimize-for-size",
-				"--gc-interval=100"
-			], args: [
-				'--no-sandbox',
-				'--disable-dev-shm-usage', // 防止在 /dev/shm 空間不足時崩潰
-				'--disable-accelerated-2d-canvas',
-				'--single-process', // 強制單進程，這對 4GB RAM 機器非常有用
-			],
+			puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer
 		});
 		whatsappClient = client;
 

@@ -85,7 +85,7 @@ async function newUserChecker(userid, botname) {
         const user = await schema.firstTimeMessage.findOne({
             userID: hash,
             botname
-        });
+        }).lean();
 
         if (!user) {
             userCache.set(cacheKey, true);

@@ -129,9 +129,10 @@ const trpgLevelSystemMemberSchema = mongoose.model('trpgLevelSystemMember', new 
         default: Date.now
     }
 }, {
-    // 複合索引：優化常見查詢模式 findOne({ groupid, userid })
+    // 複合索引：優化常見查詢模式 findOne({ groupid, userid }) 與排名 countDocuments({ groupid, EXP: { $gt } })
     indexes: [
-        { groupid: 1, userid: 1 }  // 用於查找特定群組中的特定用戶
+        { groupid: 1, userid: 1 },   // 用於查找特定群組中的特定用戶
+        { groupid: 1, EXP: -1 }     // 用於排名：依 EXP 降序，支援 countDocuments({ groupid, EXP: { $gt } })
     ]
 }));
 

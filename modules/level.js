@@ -9,6 +9,44 @@ exports.rollbase = require('../roll/rollbase');
 const retry = { number: 0, times: 0 };
 let tempSwitchV2 = [{ groupid: '', SwitchV2: false }];
 
+// In-memory cache for group level config (gpInfo) to avoid DB on every EXPUP when group has level on
+const GP_INFO_CACHE_TTL_MS = 5 * 60 * 1000;  // 5 minutes
+const GP_INFO_CACHE_MAX = 2000;
+const gpInfoCache = new Map();  // groupid -> { gpInfo: plain object, at: number }
+
+function pruneGpInfoCacheIfNeeded() {
+    if (gpInfoCache.size <= GP_INFO_CACHE_MAX) return;
+    const toDelete = gpInfoCache.size - GP_INFO_CACHE_MAX;
+    const keys = [...gpInfoCache.keys()].slice(0, toDelete);
+    for (const k of keys) gpInfoCache.delete(k);
+}
+
+/**
+ * Get group level config (only when SwitchV2 is true). Uses in-memory cache to avoid DB on every message.
+ * @param {string} groupid
+ * @returns {Promise<object|null>} Plain gpInfo or null if group has level off or not found
+ */
+async function getGroupLevelConfig(groupid) {
+    const cached = gpInfoCache.get(groupid);
+    if (cached && (Date.now() - cached.at) < GP_INFO_CACHE_TTL_MS) return cached.gpInfo;
+
+    const doc = await schema.trpgLevelSystem.findOne({ groupid, SwitchV2: true }).lean().catch(() => null);
+    if (!doc || !doc.SwitchV2) return null;
+
+    const gpInfo = doc;
+    gpInfoCache.set(groupid, { gpInfo, at: Date.now() });
+    pruneGpInfoCacheIfNeeded();
+    return gpInfo;
+}
+
+/**
+ * Clear cached level config for a group (call after .level config / LevelUpWord / RankWord / TitleWord save).
+ * @param {string} groupid
+ */
+function invalidateGroupConfig(groupid) {
+    gpInfoCache.delete(groupid);
+}
+
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage) {
     if (!groupid) return;
 
@@ -21,8 +59,8 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     if (filterSwitchV2 && !filterSwitchV2.SwitchV2) return;
     if (!checkMongodb.isDbOnline()) return;
 
-    const gpInfo = await schema.trpgLevelSystem.findOne({ groupid, SwitchV2: true }).cache(60).catch(error => {
-        console.error('level #26 mongoDB error:', error.name, error.reason);
+    const gpInfo = await getGroupLevelConfig(groupid).catch(error => {
+        console.error('level #26 mongoDB error:', error.name, error.reason ?? error.message);
         checkMongodb.dbErrOccurs();
         retry.number++;
         retry.times = new Date();
@@ -30,17 +68,18 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
             reply.respawn = true;
             return reply;
         }
+        return null;
     });
 
     if (!filterSwitchV2) {
-        tempSwitchV2.push({ groupid, SwitchV2: gpInfo ? gpInfo.SwitchV2 : false });
+        tempSwitchV2.push({ groupid, SwitchV2: !!gpInfo });
     }
 
-    if (!gpInfo || !gpInfo.SwitchV2) return;
+    if (!gpInfo) return;
     if (!checkMongodb.isDbOnline()) return;
 
     let userInfo = await schema.trpgLevelSystemMember.findOne({ groupid, userid }).cache(60).catch(error => {
-        console.error('level #46 mongoDB error:', error.name, error.reason);
+        console.error('level #46 mongoDB error:', error.name, error.reason ?? error.message);
         checkMongodb.dbErrOccurs();
     });
 
@@ -112,15 +151,18 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discor
     let username = userInfo.name;
     let userlevel = userInfo.Level;
     let userexp = userInfo.EXP;
-    let usermember_count = Math.max(membercount);
+    let usermember_count = Math.max(membercount, 1);  // avoid division by zero for ranking %
 
-    let docMember = await schema.trpgLevelSystemMember.find({ groupid }).sort({ EXP: -1 }).catch(error => {
-        console.error('level #120 mongoDB error:', error.name, error.reason);
+    // Rank = count of members with EXP strictly greater than this user, +1 (avoids loading all members)
+    const countAbove = await schema.trpgLevelSystemMember.countDocuments({
+        groupid,
+        EXP: { $gt: userInfo.EXP }
+    }).catch(error => {
+        console.error('level #120 mongoDB error:', error.name, error.reason ?? error.message);
         checkMongodb.dbErrOccurs();
+        return 0;
     });
-
-    let myselfIndex = docMember.map(members => members.userid).indexOf(userInfo.userid);
-    let userRanking = myselfIndex + 1;
+    const userRanking = countAbove + 1;
     let userRankingPer = Math.ceil(userRanking / usermember_count * 10_000) / 100 + '%';
     let userTitle = await checkTitle(userlevel, gpInfo.Title);
 
@@ -152,7 +194,7 @@ async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord,
     };
 
     await new schema.trpgLevelSystemMember(temp).save().catch(error => {
-        console.error('level #144 mongoDB error:', error.name, error.reason);
+        console.error('level #144 mongoDB error:', error.name, error.reason ?? error.message);
         checkMongodb.dbErrOccurs();
     });
 }
@@ -216,5 +258,7 @@ const checkTitle = async function (userlvl, DBTitle) {
 
 module.exports = {
     EXPUP,
-    tempSwitchV2
+    tempSwitchV2,
+    getGroupLevelConfig,
+    invalidateGroupConfig
 };

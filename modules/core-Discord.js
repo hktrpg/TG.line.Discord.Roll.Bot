@@ -95,7 +95,7 @@ const clusterOptions = {
         interval: 60_000 * 10 // 10 minutes
     },
     execArgv: [
-        "--max-old-space-size=128",
+        "--max-old-space-size=256",
         "--optimize-for-size",
         "--gc-interval=100"
     ],

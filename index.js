@@ -441,7 +441,7 @@ async function init() {
             const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
             const isFromPuppeteer = stack && /puppeteer|launch\.js/.test(stack);
 
-            // Puppeteer (WhatsApp) registers SIGINT before us and calls process.exit(130) first - suppress and do graceful shutdown
+            // If something (e.g. legacy Puppeteer behavior) calls process.exit(130) on SIGINT, suppress and do graceful shutdown instead
             if (code === 130 && (sigintReceived || isFromPuppeteer)) {
                 logger.info('[Main Process] Suppressing process.exit(130) (Puppeteer/SIGINT) - starting graceful shutdown');
                 sigintReceived = true;

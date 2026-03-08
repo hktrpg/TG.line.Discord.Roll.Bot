@@ -34,13 +34,22 @@ let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM')
 // 	upsert: true,
 // 	runValidators: true
 // }
+// Disable Puppeteer's built-in SIGINT/SIGTERM handlers so the main process (index.js) owns
+// graceful shutdown. Otherwise Puppeteer calls process.exit(130) on SIGINT and can trigger
+// process-manager restarts or race with our shutdown.
 const herokuPuppeteer = {
 	headless: true,
-	'executablePath': '/app/.apt/usr/bin/google-chrome-stable'
+	'executablePath': '/app/.apt/usr/bin/google-chrome-stable',
+	handleSIGINT: false,
+	handleSIGTERM: false,
+	handleSIGHUP: false
 };
 
 const normalPuppeteer = {
 	headless: true,
+	handleSIGINT: false,
+	handleSIGTERM: false,
+	handleSIGHUP: false,
 	args: [
 		'--no-sandbox',
 		'--disable-setuid-sandbox',

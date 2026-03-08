@@ -439,13 +439,18 @@ async function init() {
             const timestamp = new Date().toISOString();
             const stack = new Error('Process exit stack trace').stack;
             const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
-            
-            // Puppeteer (WhatsApp) calls process.exit(130) on SIGINT - suppress so graceful shutdown can complete
-            if (code === 130 && sigintReceived) {
-                logger.info('[Main Process] Suppressing Puppeteer process.exit(130) - graceful shutdown in progress');
+            const isFromPuppeteer = stack && /puppeteer|launch\.js/.test(stack);
+
+            // Puppeteer (WhatsApp) registers SIGINT before us and calls process.exit(130) first - suppress and do graceful shutdown
+            if (code === 130 && (sigintReceived || isFromPuppeteer)) {
+                logger.info('[Main Process] Suppressing process.exit(130) (Puppeteer/SIGINT) - starting graceful shutdown');
+                sigintReceived = true;
+                if (!isShuttingDown) {
+                    gracefulShutdown(moduleManager);
+                }
                 return;
             }
-            
+
             logger.error('[Main Process] ========== PROCESS.EXIT CALLED ==========', {
                 exitCode: code,
                 timestamp,

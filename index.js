@@ -396,6 +396,11 @@ async function init() {
             logSignalDetails('SIGINT', 'Main Process');
             sigintReceived = true;
 
+            // Log who might have sent SIGINT (pid, ppid, uptime) to help find cron/PM2/script
+            const uptimeSec = process.uptime().toFixed(1);
+            logger.info('[SIGINT] pid=%s ppid=%s uptime=%ss (If you did not press Ctrl+C, check PM2 cron_restart, or what sends SIGINT to this process)',
+                process.pid, process.ppid, uptimeSec);
+
             // Prevent multiple simultaneous shutdowns
             if (isShuttingDown) {
                 logger.warn('Shutdown already in progress, ignoring SIGINT');

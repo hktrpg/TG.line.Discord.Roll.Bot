@@ -198,6 +198,7 @@ const rollDiceCommand = async function ({
             }
             doc.Title = [];
             await doc.save();
+            tempSwitchV2.invalidateGroupConfig(groupid);
             rply.text = "刪除稱號成功。現改回使用預設稱號。"
             return rply
 
@@ -265,7 +266,8 @@ const rollDiceCommand = async function ({
                 $set: {
                     "Title": temprply
                 }
-            }).catch(error => console.error('[Level System] MongoDB error:', error.name, error.reason));
+            }).catch(error => console.error('[Level System] MongoDB error:', error.name, error.reason ?? error.message));
+            tempSwitchV2.invalidateGroupConfig(groupid);
             rply.text = '新增稱號成功: \n'
             for (let te = 0; te < temprply.length; te++) {
                 if (temprply[te])
@@ -310,7 +312,8 @@ const rollDiceCommand = async function ({
             }
             
             doc.LevelUpWord = "";
-            await doc.save().catch(error => console.error('level_system #264 mongoDB error:', error.name, error.reason));
+            await doc.save().catch(error => console.error('level_system #264 mongoDB error:', error.name, error.reason ?? error.message));
+            tempSwitchV2.invalidateGroupConfig(groupid);
             rply.text = "刪除升級語成功."
             return rply;
         }
@@ -341,7 +344,8 @@ const rollDiceCommand = async function ({
             }
             
             doc.LevelUpWord = inputStr.replace(/\s?.*\s+\w+\s+/i, '');
-            await doc.save().catch(error => console.error('level_system #282 mongoDB error:', error.name, error.reason));
+            await doc.save().catch(error => console.error('level_system #282 mongoDB error:', error.name, error.reason ?? error.message));
+            tempSwitchV2.invalidateGroupConfig(groupid);
             rply.text = "新增升級語成功.\n" + inputStr.replace(/\s?.*\s+\w+\s+/i, '');
 
             return rply;
@@ -384,6 +388,7 @@ const rollDiceCommand = async function ({
             
             doc.RankWord = "";
             await doc.save();
+            tempSwitchV2.invalidateGroupConfig(groupid);
             rply.text = "刪除查詢語成功."
             return rply;
         }
@@ -415,6 +420,7 @@ const rollDiceCommand = async function ({
             
             doc.RankWord = inputStr.replace(/\s?.*\s+\w+\s+/i, '');
             await doc.save();
+            tempSwitchV2.invalidateGroupConfig(groupid);
             rply.text = "新增查詢語成功.\n" + inputStr.replace(/\s?.*\s+\w+\s+/i, '');
             return rply;
         }
@@ -462,40 +468,44 @@ const rollDiceCommand = async function ({
                     doc.SwitchV2 = false;
                     doc.HiddenV2 = false;
                     await doc.save();
+                    tempSwitchV2.invalidateGroupConfig(groupid);
                     let temp = tempSwitchV2.tempSwitchV2.find(function (group) {
                         return group.groupid == groupid;
                     });
-                    temp.SwitchV2 = false;
+                    if (temp) temp.SwitchV2 = false;
                     break;
                 }
                 case '01': {
                     doc.SwitchV2 = false;
                     doc.HiddenV2 = true;
                     await doc.save();
+                    tempSwitchV2.invalidateGroupConfig(groupid);
                     let temp = tempSwitchV2.tempSwitchV2.find(function (group) {
                         return group.groupid == groupid;
                     });
-                    temp.SwitchV2 = false;
+                    if (temp) temp.SwitchV2 = false;
                     break;
                 }
                 case '11': {
                     doc.SwitchV2 = true;
                     doc.HiddenV2 = true;
                     await doc.save();
+                    tempSwitchV2.invalidateGroupConfig(groupid);
                     let temp = tempSwitchV2.tempSwitchV2.find(function (group) {
                         return group.groupid == groupid;
                     });
-                    temp.SwitchV2 = true;
+                    if (temp) temp.SwitchV2 = true;
                     break;
                 }
                 case '10': {
                     doc.SwitchV2 = true;
                     doc.HiddenV2 = false;
                     await doc.save();
+                    tempSwitchV2.invalidateGroupConfig(groupid);
                     let temp = tempSwitchV2.tempSwitchV2.find(function (group) {
                         return group.groupid == groupid;
                     });
-                    temp.SwitchV2 = true;
+                    if (temp) temp.SwitchV2 = true;
                 }
                     break;
                 default:
@@ -521,14 +531,12 @@ const rollDiceCommand = async function ({
                 rply.text = '出現問題，你沒有UserID。'
                 return rply
             }
-            let doc = await schema.trpgLevelSystem.findOne({
-                groupid: groupid,
-                SwitchV2: true
-            }).catch(error => {
-                console.error('level_system #442 mongoDB error:', error.name, error.reason)
+            let doc = await tempSwitchV2.getGroupLevelConfig(groupid).catch(error => {
+                console.error('level_system #442 mongoDB error:', error.name, error.reason ?? error.message);
                 checkMongodb.dbErrOccurs();
+                return null;
             });
-            if (!doc || !doc.SwitchV2) {
+            if (!doc) {
                 rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
                     \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
                     \n 00的話代表不啓動功能'
@@ -599,11 +607,11 @@ const rollDiceCommand = async function ({
                 if (mainMsg[2] > 20)
                     RankNumber = 20
             }
-            let doc = await schema.trpgLevelSystem.findOne({
-                groupid: groupid,
-                SwitchV2: true
-            }).lean().catch(error => console.error('level_system #514 mongoDB error:', error.name, error.reason));
-            if (!doc || !doc.SwitchV2) {
+            let doc = await tempSwitchV2.getGroupLevelConfig(groupid).catch(error => {
+                console.error('level_system #514 mongoDB error:', error.name, error.reason ?? error.message);
+                return null;
+            });
+            if (!doc) {
                 rply.text = '此群組並有沒有開啓LEVEL功能. \n.level config 11 代表啓動功能 \
                     \n 數字11代表等級升級時會進行通知，10代表不會自動通知，\
                     \n 00的話代表不啓動功能\n'
@@ -613,7 +621,7 @@ const rollDiceCommand = async function ({
                 groupid: groupid
             }).sort({
                 EXP: -1
-            }).limit(RankNumber).lean().catch(error => console.error('level_system #525 mongoDB error:', error.name, error.reason));
+            }).limit(RankNumber).lean().catch(error => console.error('level_system #525 mongoDB error:', error.name, error.reason ?? error.message));
             if (docMember.length === 0) {
                 rply.text = '此群組未有足夠資料\n'
                 return rply;

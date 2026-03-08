@@ -3697,8 +3697,8 @@ const connect = function () {
 	ws = new WebSocket('ws://127.0.0.1:53589');
 	
 	ws.on('open', function open() {
-		console.log(`[discord_bot] connectd To core-www from discord! Shard#${shardid}`)
-		ws.send(`connectd To core-www from discord! Shard#${shardid}`);
+		console.log(`[discord_bot] connected To core-www from discord! Shard#${shardid}`)
+		ws.send(`connected To core-www from discord! Shard#${shardid}`);
 		isReconnecting = false; // Reset flag on successful connection
 	});
 	

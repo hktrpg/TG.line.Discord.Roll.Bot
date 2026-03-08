@@ -15,7 +15,9 @@ jest.mock('../modules/level.js', () => ({
     tempSwitchV2: [{
         groupid: 'testgroup',
         SwitchV2: true
-    }]
+    }],
+    getGroupLevelConfig: jest.fn(),
+    invalidateGroupConfig: jest.fn()
 }));
 
 jest.mock('../modules/schema.js', () => ({

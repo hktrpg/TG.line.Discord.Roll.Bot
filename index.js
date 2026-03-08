@@ -396,6 +396,10 @@ async function init() {
             logSignalDetails('SIGINT', 'Main Process');
             sigintReceived = true;
 
+            // Log who might have sent SIGINT (pid, ppid, uptime) to help find cron/PM2/script
+            const uptimeSec = process.uptime().toFixed(1);
+            logger.info(`[SIGINT] pid=${process.pid} ppid=${process.ppid} uptime=${uptimeSec}s (If you did not press Ctrl+C, check PM2 cron_restart, or what sends SIGINT to this process)`);
+
             // Prevent multiple simultaneous shutdowns
             if (isShuttingDown) {
                 logger.warn('Shutdown already in progress, ignoring SIGINT');
@@ -439,13 +443,18 @@ async function init() {
             const timestamp = new Date().toISOString();
             const stack = new Error('Process exit stack trace').stack;
             const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
-            
-            // Puppeteer (WhatsApp) calls process.exit(130) on SIGINT - suppress so graceful shutdown can complete
-            if (code === 130 && sigintReceived) {
-                logger.info('[Main Process] Suppressing Puppeteer process.exit(130) - graceful shutdown in progress');
+            const isFromPuppeteer = stack && /puppeteer|launch\.js/.test(stack);
+
+            // If something (e.g. legacy Puppeteer behavior) calls process.exit(130) on SIGINT, suppress and do graceful shutdown instead
+            if (code === 130 && (sigintReceived || isFromPuppeteer)) {
+                logger.info('[Main Process] Suppressing process.exit(130) (Puppeteer/SIGINT) - starting graceful shutdown');
+                sigintReceived = true;
+                if (!isShuttingDown) {
+                    gracefulShutdown(moduleManager);
+                }
                 return;
             }
-            
+
             logger.error('[Main Process] ========== PROCESS.EXIT CALLED ==========', {
                 exitCode: code,
                 timestamp,

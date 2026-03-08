@@ -28,6 +28,7 @@ const config = {
     // Idle connection cleanup: 2 min to reduce connection churn on MongoDB (was 30s)
     maxIdleTimeMS: 120_000,      // 120 seconds
     bufferCommands: true,       // Enable command buffering to allow operations before connection
+    bufferTimeoutMS: 30_000,    // 30s - wait longer for connection before "buffering timed out" (default 10s)
     w: 1,                        // Write concern: 1 (local MongoDB, no replica set) - Changed from 'majority'
     retryWrites: true,          // Enable write retries
     autoIndex: process.env.DEBUG  // Enable auto-indexing only in debug mode
@@ -85,6 +86,10 @@ const connectionEmitter = new EventEmitter();
 
 // MongoDB configuration
 mongoose.set('strictQuery', false);
+// Wait longer for connection before "buffering timed out" (Mongoose default 10s)
+if (config.bufferTimeoutMS != null) {
+    mongoose.set('bufferTimeoutMS', config.bufferTimeoutMS);
+}
 cachegoose(mongoose, {
     engine: 'memory'
 });

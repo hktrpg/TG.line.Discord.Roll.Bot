@@ -129,8 +129,10 @@ if (process.env.mongoURL) {
             default: Date.now
         }
     }, {
+        // Compound indexes: findOne({ groupid, userid }) and ranking countDocuments({ groupid, EXP: { $gt } })
         indexes: [
-            { groupid: 1, userid: 1 }
+            { groupid: 1, userid: 1 },
+            { groupid: 1, EXP: -1 }
         ]
     }));
 

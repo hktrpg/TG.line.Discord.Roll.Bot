@@ -68,7 +68,22 @@ async function startUp() {
 	try {
 		const client = new Client({
 			authStrategy: new LocalAuth(),
-			puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer
+			puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer,
+			execArgv: [
+				"--max-old-space-size=128",
+				"--optimize-for-size",
+				"--gc-interval=100"
+			], args: [
+				'--no-sandbox',
+				'--disable-setuid-sandbox',
+				'--disable-extensions',
+				'--disable-dev-shm-usage', // 防止在 /dev/shm 空間不足時崩潰
+				'--disable-accelerated-2d-canvas',
+				'--no-first-run',
+				'--no-zygote',
+				'--single-process', // 強制單進程，這對 4GB RAM 機器非常有用
+				'--disable-gpu'
+			],
 		});
 		whatsappClient = client;
 
@@ -90,7 +105,7 @@ async function startUp() {
 			try {
 				// Validate message object
 				if (!msg || !msg.body || msg.fromMe || msg.isForwarded) return;
-				
+
 				// Validate required properties
 				if (!msg.from) {
 					console.error('[WhatsApp] Invalid message object - missing msg.from');
@@ -395,7 +410,7 @@ async function SendToReply(msg, rplyVal, userid) {
 		if (i == 0 || i == 1 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 2 || i == rplyVal.text.toString().match(/[\s\S]{1,2000}/g).length - 1) {
 			const messageText = `${(candle.checker(userid)) ? candle.checker(userid) + ' ' : ''}${rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i]}`;
 			const imageMatch = rplyVal.text.toString().match(/[\s\S]{1,2000}/g)[i].match(imageUrl) || null;
-			
+
 			try {
 				if (imageMatch && imageMatch.length > 0) {
 					try {
@@ -453,12 +468,12 @@ async function SendToId(targetid, rplyVal, client) {
 		}
 
 		const textChunks = rplyVal.text.toString().match(/[\s\S]{1,2000}/g) || [];
-		
+
 		for (let i = 0; i < textChunks.length; i++) {
 			if (i == 0 || i == 1 || i == textChunks.length - 2 || i == textChunks.length - 1) {
 				const chunk = textChunks[i];
 				const imageMatch = chunk.match(imageUrl) || null;
-				
+
 				if (imageMatch && imageMatch.length > 0) {
 					try {
 						let imageVaild = await isImageURL(imageMatch[0]);
@@ -470,7 +485,7 @@ async function SendToId(targetid, rplyVal, client) {
 						console.error('[WhatsApp] SendToId image error:', error.message);
 					}
 				}
-				
+
 				try {
 					await client.sendMessage(targetid, chunk);
 				} catch (error) {

@@ -73,25 +73,25 @@ function firstTimeMessage() {
 
 async function newUserChecker(userid, botname) {
     if (!checkMongodb.isDbOnline()) return false;
-    
+
     const hash = crypto.createHash('sha256')
         .update(userid.toString())
         .digest('base64');
-    
+
     const cacheKey = `${hash}:${botname}`;
     if (userCache.has(cacheKey)) return false;
 
     try {
-        const user = await schema.firstTimeMessage.findOne({ 
-            userID: hash, 
-            botname 
+        const user = await schema.firstTimeMessage.findOne({
+            userID: hash,
+            botname
         });
 
         if (!user) {
             userCache.set(cacheKey, true);
-            await new schema.firstTimeMessage({ 
-                userID: hash, 
-                botname 
+            await new schema.firstTimeMessage({
+                userID: hash,
+                botname
             }).save();
             return true;
         }

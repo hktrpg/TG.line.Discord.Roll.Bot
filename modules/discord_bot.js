@@ -1467,9 +1467,9 @@ async function count2() {
 				if (failedClusterId !== null) console.warn(`[Statistics] count2() - Likely failed cluster for member stats: ${failedClusterId}`);
 				return [];
 			}),
-			// 使用者總數：與 analytics 一致，用 firstTimeMessage 唯一使用者數（非 Discord 會員加總）
-			(schema && schema.firstTimeMessage && typeof schema.firstTimeMessage.countDocuments === 'function')
-				? schema.firstTimeMessage.countDocuments({}).catch(() => 0)
+			// 使用者總數：與 analytics 一致，用 firstTimeMessage 近似數（estimatedDocumentCount 避免 COLLSCAN）
+			(schema && schema.firstTimeMessage && typeof schema.firstTimeMessage.estimatedDocumentCount === 'function')
+				? schema.firstTimeMessage.estimatedDocumentCount().catch(() => 0)
 				: Promise.resolve(0)
 		]);
 

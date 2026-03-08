@@ -480,7 +480,7 @@ const firstTimeMessageSchema = mongoose.model('firstTimeMessage', new mongoose.S
     botname: String
 }, {
     indexes: [
-        { userID: 1, botname: 1 }
+        { userID: 1, botname: 1, unique: true }  // unique: prevent duplicate first-time records and race double-send
     ]
 }));
 

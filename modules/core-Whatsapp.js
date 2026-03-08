@@ -79,19 +79,13 @@ async function startUp() {
 			authStrategy: new LocalAuth(),
 			puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer,
 			execArgv: [
-				"--max-old-space-size=128",
 				"--optimize-for-size",
 				"--gc-interval=100"
 			], args: [
 				'--no-sandbox',
-				'--disable-setuid-sandbox',
-				'--disable-extensions',
 				'--disable-dev-shm-usage', // 防止在 /dev/shm 空間不足時崩潰
 				'--disable-accelerated-2d-canvas',
-				'--no-first-run',
-				'--no-zygote',
 				'--single-process', // 強制單進程，這對 4GB RAM 機器非常有用
-				'--disable-gpu'
 			],
 		});
 		whatsappClient = client;

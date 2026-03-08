@@ -14,9 +14,6 @@ function resolveShardingInfo() {
     return { shardList: 'auto', totalShards: 'auto' };
 }
 
-const channelFilter = channel => !channel.lastMessageId || 
-    require('discord.js').SnowflakeUtil.deconstruct(channel.lastMessageId).timestamp < Date.now() - 36_000;
-
 const clientConfig = {
     sweepers: {
         ...Options.DefaultSweeperSettings,
@@ -26,8 +23,7 @@ const clientConfig = {
         },
         users: {
             interval: 900,
-            lifetime: 300,
-            filter: () => null,
+            filter: () => null, // Skip sweeping users (GlobalSweepFilter returns null)
         },
         threads: {
             interval: 900,
@@ -59,17 +55,8 @@ const clientConfig = {
 
         //GuildManager: 200, // roles require guilds
         //RoleManager: 200, // cache all roles
-        PermissionOverwrites: 0, // cache all PermissionOverwrites. It only costs memory if the channel it belongs to is cached
-        ChannelManager: {
-            maxSize: Infinity, // prevent automatic caching
-            sweepFilter: () => channelFilter, // remove manually cached channels according to the filter
-            sweepInterval: 3600
-        },
-        GuildChannelManager: {
-            maxSize: Infinity, // prevent automatic caching
-            sweepFilter: () => channelFilter, // remove manually cached channels according to the filter
-            sweepInterval: 3600
-        },
+        PermissionOverwrites: 0, // Do not cache (saves memory; overwrites are on channel when needed)
+        // ChannelManager / GuildChannelManager: not overridden (discord.js does not support customizing them)
     }),
     ...(() => {
         const { shardList, totalShards } = resolveShardingInfo();

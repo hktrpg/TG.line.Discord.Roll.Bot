@@ -12,10 +12,18 @@ const userCache = new Map();
 
 // Clear user cache every 24 hours to prevent unbounded memory growth
 const USER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+// Cap size so that under heavy load we don't grow memory without bound (Map keeps insertion order)
+const USER_CACHE_MAX = 50_000;
 let userCacheClearInterval;
 function startUserCacheClearInterval() {
     if (userCacheClearInterval) timerManager.clearInterval(userCacheClearInterval);
     userCacheClearInterval = timerManager.setInterval(() => userCache.clear(), USER_CACHE_TTL_MS);
+}
+function pruneUserCacheIfNeeded() {
+    if (userCache.size <= USER_CACHE_MAX) return;
+    const toDelete = userCache.size - USER_CACHE_MAX;
+    const keys = [...userCache.keys()].slice(0, toDelete);
+    for (const k of keys) userCache.delete(k);
 }
 startUserCacheClearInterval();
 
@@ -89,6 +97,7 @@ async function newUserChecker(userid, botname) {
 
         if (!user) {
             userCache.set(cacheKey, true);
+            pruneUserCacheIfNeeded();
             await new schema.firstTimeMessage({
                 userID: hash,
                 botname
@@ -97,6 +106,7 @@ async function newUserChecker(userid, botname) {
         }
 
         userCache.set(cacheKey, true);
+        pruneUserCacheIfNeeded();
         return false;
     } catch (error) {
         console.error('newUserChecker Error:', error);

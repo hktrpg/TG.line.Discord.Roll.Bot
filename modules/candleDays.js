@@ -52,6 +52,7 @@ class CandleChecker {
         this.currentYear = null;
         // Cache for April Fools animals to avoid repeated hash calculations
         this.aprilFoolsCache = new Map();
+        this.aprilFoolsCacheMax = 10_000; // cap size to limit memory (one entry per user per year)
 
         this.#importDates();
         this.#updateToday();
@@ -137,6 +138,12 @@ class CandleChecker {
 
             // Cache the result
             this.aprilFoolsCache.set(cacheKey, animal);
+            // Evict oldest entries if over cap (Map keeps insertion order)
+            if (this.aprilFoolsCache.size > this.aprilFoolsCacheMax) {
+                const toDelete = this.aprilFoolsCache.size - this.aprilFoolsCacheMax;
+                const keys = [...this.aprilFoolsCache.keys()].slice(0, toDelete);
+                for (const k of keys) this.aprilFoolsCache.delete(k);
+            }
 
             return animal;
         } catch (error) {

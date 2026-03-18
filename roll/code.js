@@ -35,6 +35,16 @@ const LANGUAGE_ALIAS = {
     rb: 'ruby'
 };
 const userCooldown = new Map();
+const COOLDOWN_TTL_MS = 60 * 60 * 1000; // 1 hour - evict old entries to prevent unbounded growth
+function pruneUserCooldown() {
+    const now = Date.now();
+    const toDelete = [];
+    for (const [userid, ts] of userCooldown.entries()) {
+        if (now - ts > COOLDOWN_TTL_MS) toDelete.push(userid);
+    }
+    for (const userid of toDelete) userCooldown.delete(userid);
+}
+setInterval(pruneUserCooldown, 15 * 60 * 1000); // every 15 minutes
 
 const gameName = function () {
     return '【.code [語言] [指令]】';
@@ -211,6 +221,10 @@ function checkUserCooldown(userid) {
     if (!userid) return null;
     const now = Date.now();
     const previous = userCooldown.get(userid) || 0;
+    if (previous && (now - previous) > COOLDOWN_TTL_MS) {
+        userCooldown.delete(userid);
+        return null;
+    }
     const waitMs = previous + COMMAND_COOLDOWN_MS - now;
     if (waitMs > 0) return Math.ceil(waitMs / 1000);
     return null;

@@ -16,6 +16,7 @@ class DBProtectionLayer extends EventEmitter {
         this.isDegradedMode = false;
         this.memoryCache = new Map();
         this.cacheTTL = 5 * 60 * 1000; // 5分鐘 TTL
+        this.memoryCacheMax = 5000; // cap size to limit memory in degraded mode
         this.healthCheckInterval = 30 * 1000; // 30秒檢查一次
         this.lastHealthCheck = Date.now();
         this.consecutiveFailures = 0;
@@ -23,6 +24,35 @@ class DBProtectionLayer extends EventEmitter {
 
         this.startHealthMonitoring();
         this.setupEventListeners();
+        this.startCacheCleanupInterval();
+    }
+
+    /**
+     * Periodic cleanup: expire TTL entries and cap size (evict oldest non-permanent).
+     */
+    startCacheCleanupInterval() {
+        setInterval(() => {
+            const now = Date.now();
+            const keysToDelete = [];
+            for (const [key, cached] of this.memoryCache.entries()) {
+                if (!cached.permanent && (now - cached.timestamp > this.cacheTTL)) {
+                    keysToDelete.push(key);
+                }
+            }
+            for (const key of keysToDelete) this.memoryCache.delete(key);
+            if (this.memoryCache.size <= this.memoryCacheMax) return;
+            let toDelete = this.memoryCache.size - this.memoryCacheMax;
+            const evictKeys = [];
+            for (const key of this.memoryCache.keys()) {
+                if (toDelete <= 0) break;
+                const c = this.memoryCache.get(key);
+                if (!c.permanent) {
+                    evictKeys.push(key);
+                    toDelete--;
+                }
+            }
+            for (const key of evictKeys) this.memoryCache.delete(key);
+        }, 5 * 60 * 1000); // every 5 minutes
     }
 
     /**
@@ -314,6 +344,19 @@ class DBProtectionLayer extends EventEmitter {
             timestamp: Date.now(),
             permanent
         });
+        // Evict oldest non-permanent if over cap (Map keeps insertion order)
+        if (this.memoryCache.size <= this.memoryCacheMax) return;
+        let toDelete = this.memoryCache.size - this.memoryCacheMax;
+        const evictKeys = [];
+        for (const k of this.memoryCache.keys()) {
+            if (toDelete <= 0) break;
+            const c = this.memoryCache.get(k);
+            if (!c.permanent) {
+                evictKeys.push(k);
+                toDelete--;
+            }
+        }
+        for (const k of evictKeys) this.memoryCache.delete(k);
     }
 
     /**

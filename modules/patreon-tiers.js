@@ -21,6 +21,20 @@ const TIER_LETTER_TO_LEVEL = {
 /** Level 7 = 悠久者(名譽會員) - Honorary Member(Lifetime), permanent tier */
 const LEVEL_HONORARY_LIFETIME = 7;
 
+/** Calendar days of in-bot VIP after Patreon CSV shows Former / Not Active (paid-through style). */
+const PATREON_VIP_GRACE_DAYS = 30;
+
+/**
+ * End date for VIP rows after cancellation detected on import (not for Honorary Lifetime).
+ * @param {Date} [fromDate=new Date()]
+ * @returns {Date}
+ */
+function addVipGraceEndDate(fromDate = new Date()) {
+    const d = new Date(fromDate.getTime());
+    d.setDate(d.getDate() + PATREON_VIP_GRACE_DAYS);
+    return d;
+}
+
 const TIER_LABELS = {
     1: "Tier A: 調查員",
     2: "Tier B: 神秘學家",
@@ -68,6 +82,8 @@ module.exports = {
     TIER_LETTER_TO_LEVEL,
     TIER_LABELS,
     LEVEL_HONORARY_LIFETIME,
+    PATREON_VIP_GRACE_DAYS,
+    addVipGraceEndDate,
     getMaxSlotsForLevel,
     tierLetterToLevel,
     getTierLabel,

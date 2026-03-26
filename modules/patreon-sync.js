@@ -10,13 +10,48 @@ function notesForKey(keyHash) {
 }
 
 /**
+ * Patreon-linked VIP rows: set/clear endDate for grace vs active reactivation.
+ * @param {Object} member - patreonMember doc (switch, vipGraceUntil)
+ * @param {Object} $set - fields to $set (mutated if grace endDate is applied)
+ * @returns {{ $unset?: { endDate: string } }}
+ */
+function endDateOpsForMember(member, $set) {
+    if (!member) return {};
+    if (member.switch === true) {
+        return { $unset: { endDate: '' } };
+    }
+    const until = member.vipGraceUntil ? new Date(member.vipGraceUntil).getTime() : NaN;
+    if (!Number.isNaN(until) && until > Date.now()) {
+        $set.endDate = new Date(until);
+        return {};
+    }
+    return {};
+}
+
+/**
+ * After CSV shows Former/Not Active: keep VIP until graceEnd (Patreon paid-through style).
+ * Only touches rows that are still "on" (switch !== false).
+ * @param {Object} member - patreonMember doc (keyHash)
+ * @param {Date} graceEndDate
+ */
+async function applyVipGraceAfterCancellation(member, graceEndDate) {
+    if (!member || !member.keyHash || !graceEndDate) return;
+    const notes = notesForKey(member.keyHash);
+    await schema.veryImportantPerson.updateMany(
+        { notes, switch: { $ne: false } },
+        { $set: { endDate: graceEndDate } }
+    );
+}
+
+/**
  * Sync a single slot to veryImportantPerson: upsert (switch on) or remove/disable (switch off).
  * @param {Object} slot - { targetId, targetType, platform, name, switch }
  * @param {number} level - VIP level from patreon member
  * @param {string} keyHash - keyHash (for notes marker)
  * @param {string} memberName - Fallback name
+ * @param {Object} [member] - full patreonMember doc for VIP endDate (grace / reactivation)
  */
-async function syncSlotToVip(slot, level, keyHash, memberName) {
+async function syncSlotToVip(slot, level, keyHash, memberName, member) {
     if (!slot || !slot.targetId) return;
     const notes = notesForKey(keyHash);
     const isChannel = slot.targetType === "channel";
@@ -28,9 +63,13 @@ async function syncSlotToVip(slot, level, keyHash, memberName) {
         : { id: slot.targetId, level, name: slot.name || memberName, notes, switch: true };
 
     if (slot.switch) {
+        const $set = { ...update };
+        const extra = endDateOpsForMember(member, $set);
+        const payload = { $set, $setOnInsert: { startDate: new Date() } };
+        if (extra.$unset) payload.$unset = extra.$unset;
         await schema.veryImportantPerson.findOneAndUpdate(
             filter,
-            { $set: update, $setOnInsert: { startDate: new Date() } },
+            payload,
             { upsert: true }
         );
     } else {
@@ -59,9 +98,13 @@ async function syncMemberSlotsToVip(member) {
             const update = isChannel
                 ? { gpid: slot.targetId, level, name: slot.name || memberName, notes, switch: true }
                 : { id: slot.targetId, level, name: slot.name || memberName, notes, switch: true };
+            const $set = { ...update };
+            const extra = endDateOpsForMember(member, $set);
+            const payload = { $set, $setOnInsert: { startDate: new Date() } };
+            if (extra.$unset) payload.$unset = extra.$unset;
             await schema.veryImportantPerson.findOneAndUpdate(
                 filter,
-                { $set: update, $setOnInsert: { startDate: new Date() } },
+                payload,
                 { upsert: true }
             );
         } else {
@@ -79,12 +122,13 @@ async function clearVipEntriesByPatreonKey(member) {
     const notes = notesForKey(member.keyHash);
     await schema.veryImportantPerson.updateMany(
         { notes },
-        { $set: { switch: false } }
+        { $set: { switch: false }, $unset: { endDate: '' } }
     );
 }
 
 module.exports = {
     notesForKey,
+    applyVipGraceAfterCancellation,
     syncSlotToVip,
     syncMemberSlotsToVip,
     clearVipEntriesByPatreonKey

@@ -232,6 +232,8 @@ if (process.env.mongoURL) {
         emailEncrypted: String,
         discordEncrypted: String,
         lastUpdatedFromPatreon: Date,
+        /** After CSV Former/Not Active: VIP slots honor this date (paid-through); cleared on reactivation. */
+        vipGraceUntil: Date,
         history: [{
             at: { type: Date, default: Date.now },
             action: { type: String, enum: ['on', 'off', 'add', 'remove', 'update'] },

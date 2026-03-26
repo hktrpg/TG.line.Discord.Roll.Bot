@@ -274,19 +274,48 @@ key: ${key}`;
                     report.push(`[Former patron] ${name} → 永久會員，保持開啟狀態`);
                     continue;
                 }
+                const graceEnd = patreonTiers.addVipGraceEndDate();
                 try {
-                    await patreonSync.clearVipEntriesByPatreonKey(existing);
+                    await patreonSync.applyVipGraceAfterCancellation(existing, graceEnd);
                     await schema.patreonMember.updateOne(
                         { patreonName: name },
                         {
-                            $set: { switch: false },
+                            $set: { switch: false, vipGraceUntil: graceEnd },
                             $push: { history: { at: new Date(), action: 'off', source: 'import', reason: 'former_patron' } }
                         }
                     );
-                    report.push(`[Former patron] ${name} → 已關閉權限`);
+                    report.push(
+                        `[Former patron] ${name} → 會員資格已關閉，VIP 寬限期至 ${graceEnd.toISOString().slice(0, 10)}（${patreonTiers.PATREON_VIP_GRACE_DAYS} 日）`
+                    );
                     summary.offFormer++;
                 } catch (error) {
                     errors.push(`OFF ${name}: ${error.message}`);
+                }
+                continue;
+            }
+            if (existing && !existing.switch && existing.vipGraceUntil && new Date(existing.vipGraceUntil) > new Date()) {
+                if (!(isHonoraryLifetime || existing.level === patreonTiers.LEVEL_HONORARY_LIFETIME)) {
+                    report.push(
+                        `[Former patron] ${name} → VIP 寬限期保留至 ${new Date(existing.vipGraceUntil).toISOString().slice(0, 10)}`
+                    );
+                }
+                continue;
+            }
+            if (existing && !existing.switch && existing.vipGraceUntil && new Date(existing.vipGraceUntil) <= new Date()) {
+                if (!(isHonoraryLifetime || existing.level === patreonTiers.LEVEL_HONORARY_LIFETIME)) {
+                    try {
+                        await patreonSync.clearVipEntriesByPatreonKey(existing);
+                        await schema.patreonMember.updateOne(
+                            { patreonName: name },
+                            {
+                                $unset: { vipGraceUntil: 1 },
+                                $push: { history: { at: new Date(), action: 'off', source: 'import', reason: 'former_patron_grace_expired' } }
+                            }
+                        );
+                        report.push(`[Former patron] ${name} → 寬限期已結束，已收回 VIP`);
+                    } catch (error) {
+                        errors.push(`Expire grace ${name}: ${error.message}`);
+                    }
                 }
             }
             continue;
@@ -301,19 +330,48 @@ key: ${key}`;
                     report.push(`[Not Active] ${name} → 永久會員，保持開啟狀態`);
                     continue;
                 }
+                const graceEnd = patreonTiers.addVipGraceEndDate();
                 try {
-                    await patreonSync.clearVipEntriesByPatreonKey(existing);
+                    await patreonSync.applyVipGraceAfterCancellation(existing, graceEnd);
                     await schema.patreonMember.updateOne(
                         { patreonName: name },
                         {
-                            $set: { switch: false },
+                            $set: { switch: false, vipGraceUntil: graceEnd },
                             $push: { history: { at: new Date(), action: 'off', source: 'import', reason: 'not_active' } }
                         }
                     );
-                    report.push(`[Not Active] ${name} → 已關閉權限`);
+                    report.push(
+                        `[Not Active] ${name} → 會員資格已關閉，VIP 寬限期至 ${graceEnd.toISOString().slice(0, 10)}（${patreonTiers.PATREON_VIP_GRACE_DAYS} 日）`
+                    );
                     summary.offNotActive++;
                 } catch (error) {
                     errors.push(`OFF ${name}: ${error.message}`);
+                }
+                continue;
+            }
+            if (existing && !existing.switch && existing.vipGraceUntil && new Date(existing.vipGraceUntil) > new Date()) {
+                if (!(isHonoraryLifetime || existing.level === patreonTiers.LEVEL_HONORARY_LIFETIME)) {
+                    report.push(
+                        `[Not Active] ${name} → VIP 寬限期保留至 ${new Date(existing.vipGraceUntil).toISOString().slice(0, 10)}`
+                    );
+                }
+                continue;
+            }
+            if (existing && !existing.switch && existing.vipGraceUntil && new Date(existing.vipGraceUntil) <= new Date()) {
+                if (!(isHonoraryLifetime || existing.level === patreonTiers.LEVEL_HONORARY_LIFETIME)) {
+                    try {
+                        await patreonSync.clearVipEntriesByPatreonKey(existing);
+                        await schema.patreonMember.updateOne(
+                            { patreonName: name },
+                            {
+                                $unset: { vipGraceUntil: 1 },
+                                $push: { history: { at: new Date(), action: 'off', source: 'import', reason: 'not_active_grace_expired' } }
+                            }
+                        );
+                        report.push(`[Not Active] ${name} → 寬限期已結束，已收回 VIP`);
+                    } catch (error) {
+                        errors.push(`Expire grace ${name}: ${error.message}`);
+                    }
                 }
             }
             continue;
@@ -411,7 +469,8 @@ key: ${key}`;
                     discordEncrypted,
                     lastUpdatedFromPatreon: lastUpdatedDate || new Date(),
                     key: existing.keyHash
-                }
+                },
+                $unset: { vipGraceUntil: 1 }
             };
             if (shouldTurnOn) {
                 updateDoc.$push = {
@@ -455,7 +514,13 @@ key: ${key}`;
     if (keyMode === 'all') {
         // Force "allkeys": always send the current active Patreon key list.
         // This is independent from whether members were changed in this import.
-        const allActiveMembers = await schema.patreonMember.find({ switch: true }).sort({ patreonName: 1 }).lean();
+        const now = new Date();
+        const allActiveMembers = await schema.patreonMember.find({
+            $or: [
+                { switch: true },
+                { vipGraceUntil: { $gt: now } }
+            ]
+        }).sort({ patreonName: 1 }).lean();
         keys.length = 0;
         keyMessages.length = 0;
         emailBlocks.length = 0;
@@ -485,7 +550,7 @@ key: ${key}`;
                     await patreonSync.clearVipEntriesByPatreonKey(member);
                     await schema.patreonMember.updateOne(
                         { _id: member._id },
-                        { $set: { keyHash, keyEncrypted, key: keyHash } }
+                        { $set: { keyHash, keyEncrypted, key: keyHash }, $unset: { vipGraceUntil: 1 } }
                     );
                     const updated = await schema.patreonMember.findOne({ _id: member._id }).lean();
                     await patreonSync.syncMemberSlotsToVip(updated);

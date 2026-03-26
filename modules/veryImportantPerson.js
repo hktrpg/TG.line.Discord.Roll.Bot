@@ -38,9 +38,13 @@ class VIPManager {
         // 根據類型選擇查詢條件；同一 id 可能有多筆（手動 + Patreon），取最高 level
         const searchKey = type === 'group' ? 'gpid' : 'id';
 
-        const matches = (this.vipCache || []).filter(item =>
-            item[searchKey] === id && item.switch !== false
-        );
+        const now = Date.now();
+        const matches = (this.vipCache || []).filter(item => {
+            if (item[searchKey] !== id || item.switch === false) return false;
+            const end = item.endDate ? new Date(item.endDate).getTime() : null;
+            if (end != null && !Number.isNaN(end) && end < now) return false;
+            return true;
+        });
         if (matches.length === 0) return 0;
         return Math.max(...matches.map(item => Number(item.level) || 0));
     }

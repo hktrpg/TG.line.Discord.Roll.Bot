@@ -1219,6 +1219,7 @@ const rollDiceCommand = async function ({
                         { patreonName: patreonNameOn },
                         {
                             $set: { switch: true },
+                            $unset: { vipGraceUntil: 1 },
                             $push: { history: { at: new Date(), action: 'on', source: 'admin', reason: 'manual_on' } }
                         },
                         { new: true }

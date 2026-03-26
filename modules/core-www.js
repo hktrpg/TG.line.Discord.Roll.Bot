@@ -830,6 +830,7 @@ function toMemberResponse(doc) {
         name: doc.name,
         notes: doc.notes,
         switch: doc.switch,
+        vipGraceUntil: doc.vipGraceUntil || null,
         startDate: doc.startDate,
         history: doc.history || [],
         slots: doc.slots || [],
@@ -1055,7 +1056,8 @@ www.put('/api/patreon/me/slots', async (req, res) => {
             res.status(401).json({ error: 'Invalid or inactive key' });
             return;
         }
-        if (!member.switch) {
+        const graceOk = member.vipGraceUntil && new Date(member.vipGraceUntil) > new Date();
+        if (!member.switch && !graceOk) {
             res.status(403).json({ error: 'Membership is disabled. You cannot change slots.' });
             return;
         }
@@ -1106,7 +1108,8 @@ www.patch('/api/patreon/me/slot/:index', async (req, res) => {
             res.status(401).json({ error: 'Invalid or inactive key' });
             return;
         }
-        if (!member.switch) {
+        const graceOk = member.vipGraceUntil && new Date(member.vipGraceUntil) > new Date();
+        if (!member.switch && !graceOk) {
             res.status(403).json({ error: 'Membership is disabled. You cannot change slots.' });
             return;
         }
@@ -1139,7 +1142,8 @@ www.patch('/api/patreon/me/slot/:index', async (req, res) => {
             member.slots[index],
             member.level,
             member.keyHash,
-            member.name || member.patreonName
+            member.name || member.patreonName,
+            member
         );
         const updated = await schema.patreonMember.findOne({ _id: member._id }).lean();
         res.json(toMemberResponse(updated));

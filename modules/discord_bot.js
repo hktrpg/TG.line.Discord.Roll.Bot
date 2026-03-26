@@ -357,10 +357,11 @@ client.on('guildCreate', async guild => {
 	}
 })
 
-client.on('interactionCreate', async message => {
+// prependListener: run before any other interaction listeners so deferReply starts ASAP (3s Discord limit).
+client.prependListener('interactionCreate', async message => {
 	try {
 		if (message.user && message.user.bot) return;
-		return __handlingInteractionMessage(message);
+		await __handlingInteractionMessage(message);
 	} catch (error) {
 		console.error('[Discord Bot] interactionCreate error:', (error && error.name), (error && error.message), (error && error.reason));
 	}
@@ -4065,16 +4066,12 @@ async function __handlingReplyMessage(message, result) {
 }
 
 async function __handlingInteractionMessage(message) {
-	const interactionId = message.commandName || message.component?.label || message.customId || 'unknown';
-
-	// Set isInteraction flag for all interaction types
-	message.isInteraction = true;
-
 	// Immediately defer ALL interactions to prevent timeout
 	// This must happen within 3 seconds of receiving the interaction
 	// Discord will reject with code 10062 if interaction expires (3 seconds)
 	// Discord.js has its own HTTP timeout (45 seconds) for handling network issues
 	const deferStartTime = Date.now();
+	const interactionId = message.commandName || message.component?.label || message.customId || 'unknown';
 	try {
 		if (!message.deferred && !message.replied) {
 			let deferOptions = {};
@@ -4129,6 +4126,8 @@ async function __handlingInteractionMessage(message) {
 
 		// Continue processing since we sent a fallback reply
 	}
+
+	message.isInteraction = true;
 
 	const deferDuration = Date.now() - deferStartTime;
 	if (deferDuration > 2500) { // Log slow deferrals

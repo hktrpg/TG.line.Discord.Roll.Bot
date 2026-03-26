@@ -8,6 +8,8 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 const DELAY = 1000 * 10;
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 5000;
+/** discord-hybrid-sharding respawn: allow slow startup (many shards / DB / login). */
+const CLUSTER_RESPAWN_READY_MS = 120_000;
 
 const agenda = require('../modules/schedule')?.agenda;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
@@ -140,7 +142,7 @@ manager.on('clusterCreate', shard => {
                 if (!isShuttingDown) {
                     console.log(`[Cluster ${shard.id}] Attempting to respawn...`);
                     try {
-                        shard.respawn({ timeout: 60_000 });
+                        shard.respawn({ timeout: CLUSTER_RESPAWN_READY_MS });
                     } catch (error_) {
                         console.error(`[Cluster ${shard.id}] Failed to respawn:`, error_);
                     }
@@ -193,7 +195,7 @@ manager.on("clusterCreate", cluster => {
                 if (targetCluster) {
                     await targetCluster.respawn({
                         delay: 1000,
-                        timeout: 60_000
+                        timeout: CLUSTER_RESPAWN_READY_MS
                     });
                     console.log(`[Cluster] Successfully respawned cluster ${message.id}`);
                 } else {

@@ -2047,6 +2047,8 @@ async function getAllshardIds() {
 
 			if (debugMode) console.log(`[Statistics] Cluster health check: ${clustersHealthy ? 'healthy' : 'unhealthy'} (${respondingClusters.length}/${totalClusters} responding clusters)`);
 
+			// Must be declared before the !clustersHealthy branch (that branch assigns to clusterDataRaw).
+			let clusterDataRaw = [];
 			let evalPromise;
 
 			if (!clustersHealthy) {
@@ -2154,7 +2156,6 @@ async function getAllshardIds() {
 				]);
 			}
 
-			let clusterDataRaw = [];
 			try {
 				if (evalPromise) {
 					clusterDataRaw = await evalPromise;

@@ -3397,10 +3397,10 @@ cheerio@1.0.0-rc.12:
     parse5 "^7.0.0"
     parse5-htmlparser2-tree-adapter "^7.0.0"
 
-chinese-conv@^1.0.1:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/chinese-conv/-/chinese-conv-1.1.0.tgz#e5a69f8b3d8dc38c6672eb5c485f67d7cbcbdcc6"
-  integrity sha512-D/ybRVt9ascTbXPqIS+GkTKTlXyExY6a8mBk5JOvsRR48emHfOqFQ2wS8ephnWLim8SYWKR+epq6dTybtgmJ7Q==
+chinese-conv@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/chinese-conv/-/chinese-conv-4.0.0.tgz#2986949d164814a3eb01a18fe58ea7e5dc32525f"
+  integrity sha512-PVBMzvv6CtX1cubaDXfxYscIdbOAHPuY/E2vnfJIzOACX+xIW4NRKRlNsZVI2p5KxGsXyUp7tVHfvQlqZ4yx/w==
 
 chownr@^1.1.1:
   version "1.1.4"

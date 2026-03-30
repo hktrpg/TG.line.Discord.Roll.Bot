@@ -1,0 +1,54 @@
+services:
+  mongodb:
+    image: mongo:8.2
+    container_name: mongodb
+    restart: unless-stopped
+    user: "999:999"
+    ports:
+      - "27069:27017"
+    volumes:
+      - /data/mongodb:/data/db
+      - /data/mongodb/configdb:/data/configdb
+    environment:
+      MONGO_INITDB_DATABASE: hktrpgRollBot
+      MONGO_INITDB_ROOT_USERNAME: hktrpgadmin
+      # Put your own password into ./infra/rocky-docker/.env (or export it in your shell)
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      TZ: Asia/Taipei
+
+  discord-bot:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    container_name: discord-bot
+    restart: unless-stopped
+    user: node
+    depends_on:
+      - mongodb
+    volumes:
+      - ../..:/app
+      - /app/node_modules
+      - /etc/localtime:/etc/localtime:ro
+    env_file:
+      - ./discord-bot/.env
+    environment:
+      TZ: Asia/Taipei
+
+  tg-bot:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    container_name: tg-bot
+    restart: unless-stopped
+    user: node
+    depends_on:
+      - mongodb
+    volumes:
+      - ../..:/app
+      - /app/node_modules
+      - /etc/localtime:/etc/localtime:ro
+    env_file:
+      - ./tg-bot/.env
+    environment:
+      TZ: Asia/Taipei
+

@@ -1,0 +1,10 @@
+[Unit]
+Description=HKTRPG update-logs.sh (refresh current.log via docker compose logs)
+After=docker.service
+
+[Service]
+Type=oneshot
+User=hktrpgbot
+WorkingDirectory=/data/bots
+ExecStart=/data/bots/update-logs.sh
+

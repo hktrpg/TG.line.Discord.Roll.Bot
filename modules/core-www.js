@@ -188,6 +188,43 @@ www.get('/', async (req, res) => {
         res.status(429).end();
         return;
     }
+
+    const hostHeader = req.headers.host || '';
+    const hostname = hostHeader.split(':')[0].toLowerCase();
+
+    // Map subdomains to specific pages.
+    // This only depends on the Host header, so localhost/127.0.0.1 keep existing behavior.
+    if (hostname.startsWith('card.')) {
+        res.sendFile(process.cwd() + '/views/characterCard.html');
+        return;
+    }
+
+    if (hostname.startsWith('publiccard.')) {
+        res.sendFile(process.cwd() + '/views/characterCardPublic.html');
+        return;
+    }
+
+    if (hostname.startsWith('player.')) {
+        res.sendFile(process.cwd() + '/views/namecard/namecard_player.html');
+        return;
+    }
+
+    if (hostname.startsWith('character.')) {
+        res.sendFile(process.cwd() + '/views/namecard/namecard_character.html');
+        return;
+    }
+
+    if (hostname.startsWith('signal.')) {
+        res.sendFile(process.cwd() + '/views/signalToNoise.html');
+        return;
+    }
+
+    if (hostname.startsWith('rollbot.')) {
+        res.sendFile(process.cwd() + '/views/index.html');
+        return;
+    }
+
+    // Default: original behavior (www.hktrpg.com, localhost, 127.0.0.1, others)
     res.sendFile(process.cwd() + '/views/index.html');
 });
 www.get('/api', async (req, res) => {

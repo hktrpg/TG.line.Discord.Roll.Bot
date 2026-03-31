@@ -5,6 +5,7 @@ if (!process.env.LINE_CHANNEL_ACCESSTOKEN || !process.env.LINE_CHANNEL_SECRET) {
 const port = process.env.LINEPORT || 20_831;
 const fs = require('fs');
 const https = require('https');
+const http = require('http');
 const line = require('@line/bot-sdk');
 const candle = require('../modules/candleDays.js');
 const mainLine = Boolean(process.env.DISCORD_CHANNEL_SECRET);
@@ -422,9 +423,11 @@ async function read() {
 (async () => {
 	await read()
 })();
-const server = https.createServer(options, app);
+const useSSL = options && options.key;
+const server = useSSL ? https.createServer(options, app) : http.createServer(app);
 server.listen(port, () => {
-	console.log(`[Line] Line BOT listening on ${port}`);
+	const protocol = useSSL ? 'https' : 'http';
+	console.log(`[Line] Line BOT listening on ${protocol}://127.0.0.1:${port}`);
 });
 
 // Handle malformed client requests to prevent socket warnings

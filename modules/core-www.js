@@ -219,6 +219,16 @@ www.get('/', async (req, res) => {
         return;
     }
 
+    if (hostname.startsWith('roll.') || hostname.startsWith('roll2.')) {
+        res.sendFile(process.cwd() + '/views/roll.html');
+        return;
+    }
+
+    if (hostname.startsWith('patreon.') || hostname.startsWith('patreon2.')) {
+        res.sendFile(process.cwd() + '/views/patreon.html');
+        return;
+    }
+
     if (hostname.startsWith('rollbot.') || hostname.startsWith('rollbot2.') ) {
         res.sendFile(process.cwd() + '/views/index.html');
         return;

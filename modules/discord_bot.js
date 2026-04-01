@@ -3696,7 +3696,10 @@ const connect = function () {
 	}
 
 	isReconnecting = true;
-	ws = new WebSocket('ws://127.0.0.1:53589');
+	const wsHost = process.env.WWW_WS_HOST || '127.0.0.1';
+	const wsPort = process.env.WWW_WS_PORT || '53589';
+	const wsUrl = `ws://${wsHost}:${wsPort}`;
+	ws = new WebSocket(wsUrl);
 	
 	ws.on('open', function open() {
 		console.log(`[discord_bot] connected To core-www from discord! Shard#${shardid}`)

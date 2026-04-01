@@ -270,7 +270,10 @@ let ws;
 
 // eslint-disable-next-line no-unused-vars
 const connect = function () {
-    ws = new WebSocket('ws://127.0.0.1:53589');
+    const wsHost = process.env.WWW_WS_HOST || '127.0.0.1';
+    const wsPort = process.env.WWW_WS_PORT || '53589';
+    const wsUrl = `ws://${wsHost}:${wsPort}`;
+    ws = new WebSocket(wsUrl);
     ws.on('open', function open() {
         console.log('[Telegram] connected To core-www from Telegram!')
         ws.send('connected To core-www from Telegram!');

@@ -33,6 +33,8 @@ const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
 const APIswitch = (process.env.API) ? process.env.API : null;
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
 const isMaster = (process.env.MASTER) ? process.env.MASTER : null;
+const wsPort = Number(process.env.WWW_WS_PORT) || 53_589;
+const wsAllowNonLocal = String(process.env.WWW_WS_ALLOW_NON_LOCAL || '').toLowerCase() === 'true';
 const salt = process.env.SALT;
 let options = {
     key: null,
@@ -1904,9 +1906,13 @@ let sendTo;
 if (isMaster) {
     const WebSocket = require('ws');
     const wss = new WebSocket.Server({
-        port: 53_589,
+        port: wsPort,
         verifyClient: (info) => {
-            return info.req.socket.remoteAddress === "::ffff:127.0.0.1";
+            if (wsAllowNonLocal) {
+                return true;
+            }
+            const remote = info.req.socket.remoteAddress;
+            return remote === '::ffff:127.0.0.1' || remote === '127.0.0.1' || remote === '::1';
         }
     });
 

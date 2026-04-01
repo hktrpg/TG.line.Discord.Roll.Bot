@@ -3,7 +3,10 @@ if (!process.env.WHATSAPP_SWITCH) return;
 
 if (process.env.BROADCAST) {
 	const WebSocket = require('ws');
-	const ws = new WebSocket('ws://127.0.0.1:53589');
+	const wsHost = process.env.WWW_WS_HOST || '127.0.0.1';
+	const wsPort = process.env.WWW_WS_PORT || '53589';
+	const wsUrl = `ws://${wsHost}:${wsPort}`;
+	const ws = new WebSocket(wsUrl);
 	ws.on('open', function open() {
 		console.log('[Whatsapp] connected To core-www from Whatsapp!')
 		ws.send('connected To core-www from Whatsapp!');

@@ -194,32 +194,32 @@ www.get('/', async (req, res) => {
 
     // Map subdomains to specific pages.
     // This only depends on the Host header, so localhost/127.0.0.1 keep existing behavior.
-    if (hostname.startsWith('card.')) {
+    if (hostname.startsWith('card.') || hostname.startsWith('card2.')) {
         res.sendFile(process.cwd() + '/views/characterCard.html');
         return;
     }
 
-    if (hostname.startsWith('publiccard.')) {
+    if (hostname.startsWith('publiccard.') || hostname.startsWith('publiccard2.')) {
         res.sendFile(process.cwd() + '/views/characterCardPublic.html');
         return;
     }
 
-    if (hostname.startsWith('player.')) {
+    if (hostname.startsWith('player.') || hostname.startsWith('player2.')) {
         res.sendFile(process.cwd() + '/views/namecard/namecard_player.html');
         return;
     }
 
-    if (hostname.startsWith('character.')) {
+    if (hostname.startsWith('character.') || hostname.startsWith('character2.')) {
         res.sendFile(process.cwd() + '/views/namecard/namecard_character.html');
         return;
     }
 
-    if (hostname.startsWith('signal.')) {
+    if (hostname.startsWith('signal.') || hostname.startsWith('signal2.')) {
         res.sendFile(process.cwd() + '/views/signalToNoise.html');
         return;
     }
 
-    if (hostname.startsWith('rollbot.')) {
+    if (hostname.startsWith('rollbot.') || hostname.startsWith('rollbot2.') ) {
         res.sendFile(process.cwd() + '/views/index.html');
         return;
     }
@@ -362,7 +362,7 @@ www.get('/api/dice-commands', async (req, res) => {
 
                                 try {
                                     const executeTemplate = await cmd.execute(mockInteraction);
-                                    
+
                                     // 為支持自動完成的選項添加配置
                                     const optionsWithAutocomplete = (sub.options || []).map(option => {
                                         if (option.autocompleteModule) {
@@ -381,7 +381,7 @@ www.get('/api/dice-commands', async (req, res) => {
                                         }
                                         return option;
                                     });
-                                    
+
                                     commands.push({
                                         json: {
                                             name: `${commandJson.name}_${sub.name}`,
@@ -419,7 +419,7 @@ www.get('/api/dice-commands', async (req, res) => {
                             };
                             try {
                                 const executeTemplate = await cmd.execute(mockInteraction);
-                                
+
                                 // 為支持自動完成的選項添加配置
                                 const optionsWithAutocomplete = (commandJson.options || []).map(option => {
                                     if (option.autocompleteModule) {
@@ -438,7 +438,7 @@ www.get('/api/dice-commands', async (req, res) => {
                                     }
                                     return option;
                                 });
-                                
+
                                 commands.push({
                                     json: {
                                         ...commandJson,
@@ -492,7 +492,7 @@ class AutocompleteMonitor {
     constructor() {
         this.stats = new Map();
     }
-    
+
     recordRequest(module, type, duration, success) {
         if (!this.stats.has(module)) {
             this.stats.set(module, {
@@ -504,21 +504,21 @@ class AutocompleteMonitor {
                 lastRequest: Date.now()
             });
         }
-        
+
         const stats = this.stats.get(module);
         stats.requests++;
         stats.totalDuration += duration;
         stats.lastRequest = Date.now();
-        
+
         if (!success) stats.errors++;
         if (type === 'cache_hit') stats.cacheHits++;
         if (type === 'cache_miss') stats.cacheMisses++;
     }
-    
+
     getStats(module) {
         return this.stats.get(module) || null;
     }
-    
+
     getAllStats() {
         return Object.fromEntries(this.stats);
     }
@@ -533,74 +533,74 @@ class AutocompleteCache {
         this.searchCache = new Map();
         this.cleanupInterval = setInterval(() => this.cleanup(), 60_000); // 每分鐘清理一次
     }
-    
+
     set(key, value, ttl = CACHE_CONFIG.TTL) {
         this.cache.set(key, {
             value,
             expires: Date.now() + ttl
         });
-        
+
         // 限制快取大小
         if (this.cache.size > CACHE_CONFIG.MAX_SIZE) {
             const firstKey = this.cache.keys().next().value;
             this.cache.delete(firstKey);
         }
     }
-    
+
     get(key) {
         const item = this.cache.get(key);
         if (!item) return null;
-        
+
         if (Date.now() > item.expires) {
             this.cache.delete(key);
             return null;
         }
-        
+
         return item.value;
     }
-    
+
     setSearch(key, value, ttl = CACHE_CONFIG.SEARCH_TTL) {
         this.searchCache.set(key, {
             value,
             expires: Date.now() + ttl
         });
-        
+
         // 限制搜尋快取大小
         if (this.searchCache.size > CACHE_CONFIG.MAX_SEARCH_CACHE) {
             const firstKey = this.searchCache.keys().next().value;
             this.searchCache.delete(firstKey);
         }
     }
-    
+
     getSearch(key) {
         const item = this.searchCache.get(key);
         if (!item) return null;
-        
+
         if (Date.now() > item.expires) {
             this.searchCache.delete(key);
             return null;
         }
-        
+
         return item.value;
     }
-    
+
     cleanup() {
         const now = Date.now();
-        
+
         // 清理過期快取
         for (const [key, item] of this.cache.entries()) {
             if (now > item.expires) {
                 this.cache.delete(key);
             }
         }
-        
+
         for (const [key, item] of this.searchCache.entries()) {
             if (now > item.expires) {
                 this.searchCache.delete(key);
             }
         }
     }
-    
+
     clear() {
         this.cache.clear();
         this.searchCache.clear();
@@ -613,22 +613,22 @@ const cache = new AutocompleteCache();
 const registerAutocompleteModules = () => {
     const rollDir = path.join(process.cwd(), 'roll');
     const files = fs.readdirSync(rollDir);
-    
+
     const ignoredFiles = ['z_', 'rollbase', 'demo', 'export', 'forward', 'help', 'init', 'request-rolling', 'token', 'edit'];
-    
+
     for (const file of files) {
         if (file.endsWith('.js') && !ignoredFiles.some(prefix => file.startsWith(prefix))) {
             try {
                 const modulePath = path.join(rollDir, file);
                 const commandModule = require(modulePath);
-                
+
                 // 檢查模組是否有自動完成功能
                 if (commandModule.autocomplete && typeof commandModule.autocomplete === 'object') {
                     const moduleName = commandModule.autocomplete.moduleName || file.replace('.js', '');
                     autocompleteModules[moduleName] = commandModule.autocomplete;
                     //console.log(`[www] Registered autocomplete module: ${moduleName}`);
                 }
-                
+
                 // 檢查模組是否有其他自動完成功能（如招式自動完成）
                 for (const key of Object.keys(commandModule)) {
                     if (key.endsWith('Autocomplete') && typeof commandModule[key] === 'object') {
@@ -652,37 +652,37 @@ www.get('/api/autocomplete/:module', async (req, res) => {
     const startTime = Date.now();
     const { module } = req.params;
     const { q, limit = 10 } = req.query;
-    
+
     // 檢查速率限制
     if (await checkRateLimit('api', req.ip)) {
         monitor.recordRequest(module, 'rate_limited', Date.now() - startTime, false);
         res.status(429).json({ error: 'Rate limit exceeded' });
         return;
     }
-    
+
     if (!autocompleteModules[module]) {
         monitor.recordRequest(module, 'not_found', Date.now() - startTime, false);
         return res.status(404).json({ error: 'Module not found' });
     }
-    
+
     try {
         const moduleConfig = autocompleteModules[module];
         const limitNum = Math.min(Number.parseInt(limit, 10), 50); // 限制最大結果數
         let results;
-        
+
         if (q && q.trim().length > 0) {
             // 搜尋請求
             const searchKey = `${module}:search:${q.trim()}:${limitNum}`;
             const cachedResults = cache.getSearch(searchKey);
-            
+
             if (cachedResults) {
                 monitor.recordRequest(module, 'cache_hit', Date.now() - startTime, true);
                 return res.json(cachedResults);
             }
-            
+
             monitor.recordRequest(module, 'cache_miss', 0, true);
             results = await moduleConfig.search(q.trim(), limitNum);
-            
+
             // 快取搜尋結果
             const transformed = results.map(moduleConfig.transform);
             cache.setSearch(searchKey, transformed);
@@ -691,22 +691,22 @@ www.get('/api/autocomplete/:module', async (req, res) => {
             // 獲取所有數據請求
             const dataKey = `${module}:data:${limitNum}`;
             const cachedData = cache.get(dataKey);
-            
+
             if (cachedData) {
                 monitor.recordRequest(module, 'cache_hit', Date.now() - startTime, true);
                 return res.json(cachedData);
             }
-            
+
             monitor.recordRequest(module, 'cache_miss', 0, true);
             results = await moduleConfig.getData();
             results = results.slice(0, limitNum);
-            
+
             // 快取數據
             const transformed = results.map(moduleConfig.transform);
             cache.set(dataKey, transformed);
             res.json(transformed);
         }
-        
+
         monitor.recordRequest(module, 'success', Date.now() - startTime, true);
     } catch (error) {
         console.error('[Web Server] Autocomplete search error:', error);
@@ -1235,19 +1235,19 @@ if (io) {
                 'http://localhost:20721',  // 開發環境
                 'http://127.0.0.1:20721'   // 本機IP開發環境
             ];
-            
-            const isAllowed = allowedOrigins.includes(origin) || 
-                             origin.match(/^https?:\/\/.*\.hktrpg\.com$/);
-            
+
+            const isAllowed = allowedOrigins.includes(origin) ||
+                origin.match(/^https?:\/\/.*\.hktrpg\.com$/);
+
             if (!isAllowed) {
                 console.warn('[Web Server] 🔒 Rejected connection from invalid origin:', origin);
                 return next(new Error('Invalid origin'));
             }
         }
-        
+
         next();
     });
-    
+
     io.on('connection', async (socket) => {
         socket.on('getListInfo', async message => {
             // Use cardRead limit for list info (less restrictive)
@@ -1308,7 +1308,7 @@ if (io) {
                     });
                     return;
                 }
-                
+
                 // 🔄 自動升級密碼（如果使用舊密碼）
                 try {
                     const upgraded = await security.upgradePasswordIfLegacy(userName, password, doc.password);
@@ -1321,7 +1321,7 @@ if (io) {
                     console.error('[Web Server] 🔄 Password upgrade failed:', error.message);
                     // 升級失敗不影響登入流程
                 }
-                
+
                 // 驗證成功，獲取數據
                 let temp;
                 if (doc.id) {
@@ -1331,9 +1331,9 @@ if (io) {
                             return null;
                         });
                 }
-                
+
                 let id = doc.channel || [];
-                
+
                 // 🔐 生成JWT token
                 let jwtToken = null;
                 if (security.generateToken) {
@@ -1347,9 +1347,9 @@ if (io) {
                         console.error('[Web Server] 🔐 JWT token generation failed:', error.message);
                     }
                 }
-                
+
                 socket.emit('getListInfo', { temp, id, token: jwtToken });
-                
+
             } catch (error) {
                 console.error('[Web Server] 🔒 getListInfo error:', error.message);
                 socket.emit('getListInfo', { temp: null, id: [] });
@@ -1421,15 +1421,15 @@ if (io) {
                             console.warn('[Web Server] 🔒 Invalid JWT auth for rolling:', validation.error);
                             return;
                         }
-                        
+
                         const { userName } = validation.data;
-                        
+
                         let filter = {
                             userName: String(userName).trim()
                         };
 
                         let doc = await schema.accountPW.findOne(filter).catch(error => console.error('[Web Server] MongoDB error:', error.name, error.message));
-                        
+
                         if (doc) {
                             // 🔒 JWT token已經驗證了用戶身份，不需要密碼驗證
                             if (doc.channel) {
@@ -1463,34 +1463,34 @@ if (io) {
                             console.warn('[Web Server] 🔒 Invalid credentials for rolling:', validation.error);
                             return;
                         }
-                        
+
                         const { userName, userPassword: password } = validation.data;
-                        
+
                         // 🔒 防止 NoSQL 注入
                         let filter = {
                             userName: String(userName).trim(),
                             "channel.id": String(message.rollTarget.id).trim(),
                             "channel.botname": String(message.rollTarget.botname).trim()
                         };
-                        
+
                         let userDoc = await schema.accountPW.findOne(filter)
                             .catch(error => {
                                 console.error('[Web Server] 🔒 MongoDB error:', error.message);
                                 return null;
                             });
-                        
+
                         if (!userDoc) {
                             console.warn('[Web Server] 🔒 User not found for rolling');
                             return;
                         }
-                        
+
                         // 🔒 驗證密碼
                         const isValid = await verifyPasswordSecure(password, userDoc.password);
                         if (!isValid) {
                             console.warn('[Web Server] 🔒 Invalid password for rolling');
                             return;
                         }
-                        
+
                         // 🔄 自動升級密碼（如果使用舊密碼）
                         try {
                             const upgraded = await security.upgradePasswordIfLegacy(userName, password, userDoc.password);
@@ -1503,23 +1503,23 @@ if (io) {
                             console.error('[Web Server] 🔄 Password upgrade failed for rolling:', error.message);
                             // 升級失敗不影響擲骰流程
                         }
-                        
+
                         let filter2 = {
                             "botname": String(message.rollTarget.botname).trim(),
                             "id": String(message.rollTarget.id).trim()
                         };
-                        
+
                         let allowRollingResult = await schema.allowRolling.findOne(filter2)
                             .catch(error => {
                                 console.error('[Web Server] 🔒 MongoDB error:', error.message);
                                 return null;
                             });
-                        
+
                         if (!allowRollingResult) {
                             console.warn('[Web Server] 🔒 Rolling not allowed for this target');
                             return;
                         }
-                        
+
                         rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
                         if (message.rollTarget.botname && sendTo) {
                             sendTo({
@@ -1547,26 +1547,26 @@ if (io) {
                     socket.emit('removeChannel', { success: false, message: 'Invalid JWT auth' });
                     return;
                 }
-                
+
                 const { userName } = validation.data;
-                
+
                 // 🔒 防止 NoSQL 注入 - 強制型別轉換
                 let filter = {
                     userName: String(userName).trim()
                 };
-                
+
                 let doc = await schema.accountPW.findOne(filter)
                     .catch(error => {
                         console.error('[Web Server] 🔒 MongoDB error:', error.message);
                         return null;
                     });
-                
+
                 // 🔒 JWT token已經驗證了用戶身份，不需要密碼驗證
                 if (!doc) {
                     socket.emit('removeChannel', { success: false, message: 'User not found' });
                     return;
                 }
-                
+
                 const result = await schema.accountPW.updateOne({
                     "userName": userName
                 }, {
@@ -1576,7 +1576,7 @@ if (io) {
                         }
                     }
                 });
-                
+
                 // Send response back to client
                 if (result.modifiedCount > 0) {
                     socket.emit('removeChannel', { success: true, message: 'Channel removed successfully' });
@@ -1599,33 +1599,33 @@ if (io) {
                     token: message.token,
                     userName: message.userName
                 });
-                
+
                 if (!validation.valid) {
                     console.warn('[Web Server] 🔒 Invalid JWT auth for updateCard:', validation.error);
                     socket.emit('updateCard', false);
                     return;
                 }
-                
+
                 const { userName } = validation.data;
 
                 // 🔒 防止 NoSQL 注入
                 let filter = {
                     userName: String(userName).trim()
                 };
-                
+
                 let doc = await schema.accountPW.findOne(filter)
                     .catch(error => {
                         console.error('[Web Server] 🔒 MongoDB error:', error.message);
                         return null;
                     });
-                
+
                 // 🔒 JWT token已經驗證了用戶身份，不需要密碼驗證
                 if (!doc) {
                     console.warn('[Web Server] 🔒 User not found for updateCard:', userName);
                     socket.emit('updateCard', false);
                     return;
                 }
-                
+
                 // 驗證成功，更新卡片
                 let temp;
                 if (doc.id && message.card) {
@@ -1639,7 +1639,7 @@ if (io) {
                     message.card.state = checkNullItem(message.card.state || []);
                     message.card.roll = checkNullItem(message.card.roll || []);
                     message.card.notes = checkNullItem(message.card.notes || []);
-                    
+
                     temp = await schema.characterCard.findOneAndUpdate({
                         id: doc.id,
                         _id: message.card._id
@@ -1656,9 +1656,9 @@ if (io) {
                         return null;
                     });
                 }
-                
+
                 socket.emit('updateCard', !!temp);
-                
+
             } catch (error) {
                 console.error('[Web Server] 🔒 updateCard error:', error.message);
                 socket.emit('updateCard', false);
@@ -1690,7 +1690,7 @@ if (io) {
 
         socket.on("send", async (msg) => {
             if (await limitRaterChatRoom(socket.handshake.address)) return;
-            
+
             // 🔒 使用安全的輸入驗證
             const validation = security.validateChatMessage(msg);
             if (!validation.valid) {

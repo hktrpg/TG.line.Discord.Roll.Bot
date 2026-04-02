@@ -81,7 +81,7 @@ async function gracefulShutdown() {
 // Configuration options (simplified as per attachment)
 const clusterOptions = {
     token: channelSecret,
-    shardsPerClusters: 10,
+    shardsPerClusters: 8,
     totalShards: 'auto',
     mode: 'process',
     spawnTimeout: -1,

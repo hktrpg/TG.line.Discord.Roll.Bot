@@ -348,21 +348,20 @@ class DbWatchdog {
         const dbConnector = require('./db-connector.js');
         const mongoose = dbConnector.mongoose;
 
-        // Check connection status more reliably using multiple sources
+        // Connection readiness should prioritize mongoose readyState.
+        // If readyState is connected/connecting, treat as ready even if tracked flags are temporarily stale.
         let isConnectionReady = false;
         try {
-            // First check: Use tracked connection state (updated from connectionEmitter events)
-            if (this.connectionState.isConnected) {
+            const readyState = mongoose.connection.readyState;
+            if (readyState === 1 || readyState === 2) {
+                isConnectionReady = true;
+            } else if (this.connectionState.isConnected) {
                 isConnectionReady = true;
             } else {
-                // Second check: Use checkHealth from db-connector
                 const health = dbConnector.checkHealth();
-                // Connection is ready if: readyState is 1 (connected) or 2 (connecting), and isConnected flag is true
-                // State 2 (connecting) is acceptable as operations can be buffered
-                isConnectionReady = health.isConnected && (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2);
+                isConnectionReady = !!health.isConnected;
             }
         } catch {
-            // Fallback: Check readyState directly (1 = connected, 2 = connecting)
             isConnectionReady = mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2;
         }
 

@@ -29,6 +29,7 @@ const stream = require('stream');
 const { promisify } = require('util');
 const pipeline = promisify(stream.pipeline);
 const { createWriteStream } = require('fs');
+const path = require('path');
 const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 const moment = require('moment-timezone');
 const { getPool } = require('../modules/pool');
@@ -39,7 +40,8 @@ const checkTools = require('../modules/check.js');
 const gameType = function () {
     return 'Tool:Export:hktrpg'
 }
-const dir = __dirname + '/../tmp/';
+// Directory for exported Discord logs (HTML/txt), shared with web server
+const dir = path.join(__dirname, '..', 'export', path.sep);
 const prefixs = function () {
     return [{
         first: /^[.]discord$/i,

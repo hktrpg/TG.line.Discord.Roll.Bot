@@ -25,8 +25,8 @@ const patreonTiers = require('./patreon-tiers.js');
 const patreonSync = require('./patreon-sync.js');
 
 const www = express();
-//const loglink = (LOGLINK) ? LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
-const LOGLINK = (process.env.LOGLINK) ? process.env.LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
+// Base directory for exported HTML logs, shared with other services
+const LOGLINK = (process.env.LOGLINK) ? process.env.LOGLINK + '/export/' : process.cwd() + '/export/';
 const MESSAGE_SPLITOR = (/\S+/ig)
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;

@@ -42,6 +42,7 @@ typings/
 .vscode/
 
 tmp/
+export/
 
 # Optional npm cache directory
 .npm

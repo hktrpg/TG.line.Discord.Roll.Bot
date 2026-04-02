@@ -180,7 +180,7 @@ loginWithErrorHandling();
 
 const MESSAGE_SPLITOR = (/\S+/ig);
 const link = process.env.WEB_LINK;
-const mongo = process.env.mongoURL
+const mongo = process.env.mongoURL;
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const EXPUP = require('./level').EXPUP || function () { };
 const courtMessage = require('./logs').courtMessage || function () { };
@@ -2906,7 +2906,7 @@ async function handlingResponMessage(message, answer = '') {
 				message.author.send({
 					content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄',
 					files: [
-						new AttachmentBuilder("./tmp/" + rplyVal.discordExport + '.txt')
+						new AttachmentBuilder("./export/" + rplyVal.discordExport + '.txt')
 					]
 				}).catch(error => console.error('Failed to send DM with exported file:', error));
 			} else if (message.user && message.isInteraction) {
@@ -2919,7 +2919,7 @@ async function handlingResponMessage(message, answer = '') {
 					await message.user.send({
 						content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄',
 						files: [
-							new AttachmentBuilder("./tmp/" + rplyVal.discordExport + '.txt')
+							new AttachmentBuilder("./export/" + rplyVal.discordExport + '.txt')
 						]
 					});
 
@@ -2944,7 +2944,7 @@ async function handlingResponMessage(message, answer = '') {
 							content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
 								rplyVal.discordExportHtml[1],
 							files: [
-								"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
+								"./export/" + rplyVal.discordExportHtml[0] + '.html'
 							]
 						}).catch(error => console.error('Failed to send DM with exported HTML file:', error));
 
@@ -2965,7 +2965,7 @@ async function handlingResponMessage(message, answer = '') {
 							content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
 								rplyVal.discordExportHtml[1],
 							files: [
-								"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
+								"./export/" + rplyVal.discordExportHtml[0] + '.html'
 							]
 						});
 					} else {

@@ -1174,7 +1174,6 @@ async function dpRecordSwitch({ onOff = false, groupid = "", channelid = "" }) {
 				switch: onOff
 			}
 		}, {
-			new: true,
 			upsert: true,
 			returnDocument: 'after'
 		}).catch(error => console.error('coc #673 mongoDB error:', error.name, error.reason));
@@ -1215,7 +1214,6 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 				skillResult: skillResult
 			},
 			{
-				new: true,
 				upsert: true,
 				returnDocument: 'after'
 			}).catch(error => console.error('coc #710 mongoDB error:', error.name, error.reason));

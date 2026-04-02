@@ -271,7 +271,7 @@ const rollDiceCommand = async function ({
                 check = await schema.randomAns.updateOne({
                     groupid: groupid
                 }, {
-                    $push: temp, new: true
+                    $push: temp
                 }, opt).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
                 if (check.modifiedCount || check.upsertedCount) {
                     rply.text = `✅ 新增成功\n` +
@@ -514,7 +514,7 @@ const rollDiceCommand = async function ({
                 }
                 if (getData && getData.answer) {
                     getData.answer.push.apply(getData.answer, rest);
-                    let result = await getData.save({ new: true });
+                    let result = await getData.save();
                     rply.text = `更新成功  \n序號: ${result.serial}\n標題: ${result.title}\n內容: ${result.answer}\n\n輸入 .rap ${result.title}\n或 .rap ${result.serial} \n即可使用`
                     return rply;
                 }

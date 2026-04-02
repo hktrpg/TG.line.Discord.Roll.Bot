@@ -245,12 +245,12 @@ class Records extends EventEmitter {
     }
 
     async pushBlockFunction(databaseName, data) {
-        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { blockfunction: data.blockfunction } }, { new: true, upsert: true });
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { blockfunction: data.blockfunction } }, { returnDocument: 'after', upsert: true });
     }
 
     // Random answer operations
     async pushRandomAnswerFunction(databaseName, data) {
-        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { randomAnsfunction: data.randomAnsfunction } }, { new: true, upsert: true });
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { randomAnsfunction: data.randomAnsfunction } }, { returnDocument: 'after', upsert: true });
     }
 
     async setRandomAnswerFunction(databaseName, data) {
@@ -258,7 +258,7 @@ class Records extends EventEmitter {
     }
 
     async pushRandomAnswerAllGroup(databaseName, data) {
-        return await this.updateRecord(databaseName, {}, { $push: { randomAnsAllgroup: data.randomAnsAllgroup } }, { new: true, upsert: true });
+        return await this.updateRecord(databaseName, {}, { $push: { randomAnsAllgroup: data.randomAnsAllgroup } }, { returnDocument: 'after', upsert: true });
     }
 
     async setRandomAnswerAllGroup(databaseName, data) {
@@ -348,7 +348,7 @@ class Records extends EventEmitter {
         try {
             const query = { groupid: data.groupid };
             const update = { $push: { trpgDatabasefunction: data.trpgDatabasefunction[0] } };
-            const options = { new: true, upsert: true };
+            const options = { returnDocument: 'after', upsert: true };
 
             return await this.updateRecord(databaseName, query, update, options);
         } catch (error) {
@@ -361,7 +361,7 @@ class Records extends EventEmitter {
         try {
             const query = { groupid: data.groupid };
             const update = { $set: { trpgDatabasefunction: data.trpgDatabasefunction } };
-            const options = { new: true, upsert: true };
+            const options = { returnDocument: 'after', upsert: true };
 
             return await this.updateRecord(databaseName, query, update, options);
         } catch (error) {
@@ -374,7 +374,7 @@ class Records extends EventEmitter {
         try {
             const query = {};
             const update = { $push: { trpgDatabaseAllgroup: data.trpgDatabaseAllgroup[0] } };
-            const options = { new: true, upsert: true };
+            const options = { returnDocument: 'after', upsert: true };
 
             return await this.updateRecord(databaseName, query, update, options);
         } catch (error) {
@@ -387,7 +387,7 @@ class Records extends EventEmitter {
         try {
             const query = {};
             const update = { $set: { trpgDatabaseAllgroup: data.trpgDatabaseAllgroup } };
-            const options = { new: true, upsert: true };
+            const options = { returnDocument: 'after', upsert: true };
 
             return await this.updateRecord(databaseName, query, update, options);
         } catch (error) {
@@ -398,7 +398,7 @@ class Records extends EventEmitter {
 
     // Group settings operations
     async pushGroupSettingFunction(databaseName, data) {
-        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { GroupSettingfunction: data.GroupSettingfunction } }, { new: true, upsert: true });
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { GroupSettingfunction: data.GroupSettingfunction } }, { returnDocument: 'after', upsert: true });
     }
 
     async setGroupSettingFunction(databaseName, data) {
@@ -407,7 +407,7 @@ class Records extends EventEmitter {
 
     // TRPG command operations
     async pushTrpgCommandFunction(databaseName, data) {
-        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { trpgCommandfunction: data.trpgCommandfunction } }, { new: true, upsert: true });
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { trpgCommandfunction: data.trpgCommandfunction } }, { returnDocument: 'after', upsert: true });
     }
 
     async setTrpgCommandFunction(databaseName, data) {
@@ -416,7 +416,7 @@ class Records extends EventEmitter {
 
     async editsetTrpgCommandFunction(databaseName, data) {
         const topicRegex = new RegExp(`^${data.trpgCommandfunction[0]?.topic}$`, 'i');
-        return await this.updateRecord(databaseName, { groupid: data.groupid, "trpgCommandfunction.topic": topicRegex }, { $set: { "trpgCommandfunction.$.contact": data.trpgCommandfunction[0].contact } }, { new: true, upsert: false });
+        return await this.updateRecord(databaseName, { groupid: data.groupid, "trpgCommandfunction.topic": topicRegex }, { $set: { "trpgCommandfunction.$.contact": data.trpgCommandfunction[0].contact } }, { returnDocument: 'after', upsert: false });
     }
 
     // TRPG dark rolling operations
@@ -428,7 +428,7 @@ class Records extends EventEmitter {
             databaseName,
             { groupid: data.groupid },
             { $push: { trpgDarkRollingfunction: entry } },
-            { new: true, upsert: true }
+            { returnDocument: 'after', upsert: true }
         );
     }
 
@@ -438,7 +438,7 @@ class Records extends EventEmitter {
 
     // TRPG level system operations
     async pushTrpgLevelSystemFunction(databaseName, data) {
-        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { trpgLevelSystemfunction: data.trpgLevelSystemfunction } }, { new: true, upsert: true });
+        return await this.updateRecord(databaseName, { groupid: data.groupid }, { $push: { trpgLevelSystemfunction: data.trpgLevelSystemfunction } }, { returnDocument: 'after', upsert: true });
     }
 
     async setTrpgLevelSystemFunctionLevelUpWord(databaseName, data) {

@@ -1158,7 +1158,7 @@ const rollDiceCommand = async function ({
                             },
                             $push: { history: historyEntry }
                         },
-                        { upsert: true, new: true, runValidators: true }
+                        { upsert: true, returnDocument: 'after', runValidators: true }
                     );
                     if (!doc) {
                         rply.text = '新增 Patreon 會員失敗';
@@ -1222,7 +1222,7 @@ const rollDiceCommand = async function ({
                             $unset: { vipGraceUntil: 1 },
                             $push: { history: { at: new Date(), action: 'on', source: 'admin', reason: 'manual_on' } }
                         },
-                        { new: true }
+                        { returnDocument: 'after' }
                     );
                     if (!doc) {
                         rply.text = '找不到該 Patreon 會員: ' + patreonNameOn;

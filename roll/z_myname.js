@@ -10,7 +10,7 @@ const MAX_HISTORY_RECORDS = 20;
 const opt = {
     upsert: true,
     runValidators: true,
-    new: true
+    returnDocument: 'after'
 }
 const gameName = function () {
     return '【你的名字】.myname / .me .me1 .me泉心'
@@ -384,7 +384,7 @@ async function saveMyNameRecord(groupID, userID, myNameID, name, imageLink, cont
                     }
                 }
             },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
         );
         return record;
     } catch (error) {

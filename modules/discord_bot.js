@@ -3474,7 +3474,7 @@ async function tallyStPoll(messageId, fallbackData) {
 					const updated = await schema.storyRun.findOneAndUpdate(
 						{ channelID: chId, isEnded: false },
 						{ $inc: { stPollNoVoteStreak: 1 } },
-						{ new: true, sort: { updatedAt: -1 } }
+						{ returnDocument: 'after', sort: { updatedAt: -1 } }
 					).lean();
 					if (updated && Number.isFinite(Number(updated.stPollNoVoteStreak))) prev = Number(updated.stPollNoVoteStreak) - 1;
 				}

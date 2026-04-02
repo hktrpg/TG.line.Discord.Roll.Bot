@@ -20,6 +20,8 @@ const CONFIG = {
     CONNECTION_RETRY_ATTEMPTS: 5,
     CONNECTION_RETRY_DELAY: 5000, // 5 seconds
     HEALTH_CHECK_INTERVAL: 30 * 1000, // 30 seconds
+    NOT_READY_RESTART_THRESHOLD: 8, // Auto-restart DB connection after consecutive "not ready" checks
+    NOT_READY_RESTART_COOLDOWN: 60 * 1000, // 60 seconds cooldown between auto-restarts
     // System resource monitoring thresholds
     MEMORY_WARNING_THRESHOLD: 85, // Warn when memory usage > 85%
     MEMORY_CRITICAL_THRESHOLD: 95, // Critical when memory usage > 95%
@@ -155,6 +157,9 @@ class DbWatchdog {
             resourceCritical: []
         };
         this.lastConnectionWarningTime = null; // Track last warning time to suppress repeated warnings
+        this.notReadyConsecutiveCount = 0;
+        this.lastAutoRestartTime = 0;
+        this.autoRestartInProgress = false;
         this.init();
     }
 
@@ -347,6 +352,12 @@ class DbWatchdog {
 
         const dbConnector = require('./db-connector.js');
         const mongoose = dbConnector.mongoose;
+        const health = dbConnector.checkHealth();
+
+        // During graceful shutdown, skip watchdog writes and restart logic to avoid noisy closed/expired errors.
+        if (health.isShuttingDown) {
+            return;
+        }
 
         // Connection readiness should prioritize mongoose readyState.
         // If readyState is connected/connecting, treat as ready even if tracked flags are temporarily stale.
@@ -358,7 +369,6 @@ class DbWatchdog {
             } else if (this.connectionState.isConnected) {
                 isConnectionReady = true;
             } else {
-                const health = dbConnector.checkHealth();
                 isConnectionReady = !!health.isConnected;
             }
         } catch {
@@ -366,6 +376,7 @@ class DbWatchdog {
         }
 
         if (!isConnectionReady) {
+            this.notReadyConsecutiveCount++;
             // Only log warning if connection is actually disconnected (state 0 or 3)
             // Don't log if it's just connecting (state 2) to reduce noise
             const readyState = mongoose.connection.readyState;
@@ -388,8 +399,36 @@ class DbWatchdog {
                     this.lastConnectionWarningTime = now;
                 }
             }
+
+            const now = Date.now();
+            const canAutoRestart =
+                this.notReadyConsecutiveCount >= CONFIG.NOT_READY_RESTART_THRESHOLD &&
+                !this.autoRestartInProgress &&
+                (now - this.lastAutoRestartTime) >= CONFIG.NOT_READY_RESTART_COOLDOWN;
+
+            if (canAutoRestart) {
+                this.autoRestartInProgress = true;
+                this.lastAutoRestartTime = now;
+                try {
+                    console.warn(`[dbWatchdog] MongoDB not ready ${this.notReadyConsecutiveCount} consecutive checks, triggering dbConnector.restart()`);
+                    const restarted = await dbConnector.restart();
+                    if (restarted) {
+                        console.log('[dbWatchdog] dbConnector.restart() succeeded');
+                        this.notReadyConsecutiveCount = 0;
+                    } else {
+                        console.warn('[dbWatchdog] dbConnector.restart() returned false');
+                    }
+                } catch (restartError) {
+                    console.error('[dbWatchdog] Auto-restart failed:', restartError?.message || restartError);
+                } finally {
+                    this.autoRestartInProgress = false;
+                }
+            }
             return;
         }
+
+        // Reset counter once readiness is restored.
+        this.notReadyConsecutiveCount = 0;
 
         try {
             // Defensive check for schema availability due to circular dependency

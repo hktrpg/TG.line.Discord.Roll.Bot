@@ -548,6 +548,7 @@ async function handleError(error) {
 function checkHealth() {
     return {
         isConnected,
+        isShuttingDown,
         state: connectionStates[mongoose.connection.readyState],
         connectionAttempts,
         lastError: mongoose.connection.error

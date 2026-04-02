@@ -23,6 +23,8 @@ if (process.env.BROADCAST) {
 }
 
 const qrcode = require('qrcode-terminal');
+const fs = require('fs');
+const path = require('path');
 const {
 	Client, LocalAuth, MessageMedia
 } = require('whatsapp-web.js');
@@ -76,6 +78,19 @@ const normalPuppeteer = {
 			: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
 };
 
+function cleanupChromeProfileLock() {
+	try {
+		const sessionPath = path.join(process.cwd(), '.wwebjs_auth', 'session');
+		const lockFile = path.join(sessionPath, 'SingletonLock');
+		if (fs.existsSync(lockFile)) {
+			fs.unlinkSync(lockFile);
+			console.log('[WhatsApp] Removed stale Chrome profile lock file');
+		}
+	} catch (error) {
+		console.error('[WhatsApp] Failed to cleanup Chrome profile lock:', error.message);
+	}
+}
+
 const newMessage = require('./message');
 
 exports.analytics = require('./analytics');
@@ -87,6 +102,9 @@ const MESSAGE_SPLITOR = (/\S+/ig);
 
 async function startUp() {
 	try {
+		// 防止因為上一次異常中止留下的 profile lock，導致「browser is already running」錯誤
+		cleanupChromeProfileLock();
+
 		const client = new Client({
 			authStrategy: new LocalAuth(),
 			puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer

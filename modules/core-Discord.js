@@ -211,9 +211,10 @@ manager.on("clusterCreate", cluster => {
 
             try {
                 await manager.respawnAll({
-                    clusterDelay: 1000 * 60 * 1, // 1 minutes between clusters
-                    respawnDelay: 5000,          // 5 seconds
-                    timeout: 1000 * 60 * 5       // 5 minutes timeout
+                    // Faster but still safe rollout for manual respawnall.
+                    clusterDelay: 1000 * 15,     // 15 seconds between clusters
+                    respawnDelay: 1000,          // 1 second between shard respawns
+                    timeout: 1000 * 60 * 3       // 3 minutes timeout per cluster
                 });
                 console.log('[Cluster] Successfully initiated respawnAll for all clusters');
             } catch (error) {
@@ -243,9 +244,9 @@ if (agenda) {
 
         try {
             await manager.respawnAll({
-                clusterDelay: 1000 * 60,
-                respawnDelay: 500,
-                timeout: 1000 * 60 * 2
+                clusterDelay: 1000 * 15,
+                respawnDelay: 1000,
+                timeout: 1000 * 60 * 3
             });
             console.error('[Schedule] Daily maintenance respawnAll completed successfully');
         } catch (error) {

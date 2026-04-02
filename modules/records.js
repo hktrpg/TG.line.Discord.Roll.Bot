@@ -128,10 +128,19 @@ class DatabaseOperation {
 
     async findOneAndUpdate(query, update, options = {}) {
         try {
+            const normalizedOptions = { ...options };
+            // Mongoose 9: `new` is deprecated in findOneAndUpdate/findOneAndReplace.
+            // Keep backward compatibility by translating `new` to `returnDocument`.
+            if (Object.prototype.hasOwnProperty.call(normalizedOptions, 'new')) {
+                normalizedOptions.returnDocument = normalizedOptions.new ? 'after' : 'before';
+                delete normalizedOptions.new;
+            } else if (!Object.prototype.hasOwnProperty.call(normalizedOptions, 'returnDocument')) {
+                normalizedOptions.returnDocument = 'after';
+            }
+
             const result = await this.schema.findOneAndUpdate(query, update, {
-                new: true,
                 runValidators: true,
-                ...options
+                ...normalizedOptions
             });
             return result;
         } catch (error) {

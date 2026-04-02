@@ -38,24 +38,23 @@ client.on('clientReady', () => {
 client.cluster = new ClusterClient(client);
 
 // Register Discord cluster/shard context for dbWatchdog logs (e.g. "MongoDB connection not ready")
-checkMongodb.setLogContextGetter(() => {
+const getDiscordClusterContext = () => {
     const clusterId = client.cluster?.id;
     const shardList = client.cluster?.info?.SHARD_LIST;
-    if (clusterId === undefined && !shardList) return null;
+    const envClusterId = process.env.CLUSTER_ID ?? process.env.CLUSTER ?? '?';
+    const resolvedClusterId = (clusterId !== undefined) ? clusterId : envClusterId;
     const shardsStr = Array.isArray(shardList) && shardList.length > 0
         ? `shards [${shardList.join(', ')}]`
         : 'shards (pending)';
-    return `Discord cluster ${clusterId ?? '?'}, ${shardsStr}`;
+    return `Discord cluster ${resolvedClusterId}, ${shardsStr}`;
+};
+
+checkMongodb.setLogContextGetter(() => {
+    return getDiscordClusterContext();
 });
 
 dbProtectionLayer.setLogContextGetter(() => {
-    const clusterId = client.cluster?.id;
-    const shardList = client.cluster?.info?.SHARD_LIST;
-    if (clusterId === undefined && !shardList) return null;
-    const shardsStr = Array.isArray(shardList) && shardList.length > 0
-        ? `shards [${shardList.join(', ')}]`
-        : 'shards (pending)';
-    return `Discord cluster ${clusterId ?? '?'}, ${shardsStr}`;
+    return getDiscordClusterContext();
 });
 
 // AutoResharder client for automatic re-sharding

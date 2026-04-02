@@ -11,7 +11,7 @@ const candle = require('../modules/candleDays.js');
 const records = require('../modules/records.js');
 const schema = require('../modules/schema.js');
 const clusterProtection = require('../modules/cluster-protection.js');
-// const dbProtectionLayer = require('../modules/db-protection-layer.js'); // Reserved for future database protection
+const dbProtectionLayer = require('../modules/db-protection-layer.js');
 const dbConnector = require('../modules/db-connector.js');
 
 exports.analytics = require('./analytics');
@@ -39,6 +39,16 @@ client.cluster = new ClusterClient(client);
 
 // Register Discord cluster/shard context for dbWatchdog logs (e.g. "MongoDB connection not ready")
 checkMongodb.setLogContextGetter(() => {
+    const clusterId = client.cluster?.id;
+    const shardList = client.cluster?.info?.SHARD_LIST;
+    if (clusterId === undefined && !shardList) return null;
+    const shardsStr = Array.isArray(shardList) && shardList.length > 0
+        ? `shards [${shardList.join(', ')}]`
+        : 'shards (pending)';
+    return `Discord cluster ${clusterId ?? '?'}, ${shardsStr}`;
+});
+
+dbProtectionLayer.setLogContextGetter(() => {
     const clusterId = client.cluster?.id;
     const shardList = client.cluster?.info?.SHARD_LIST;
     if (clusterId === undefined && !shardList) return null;

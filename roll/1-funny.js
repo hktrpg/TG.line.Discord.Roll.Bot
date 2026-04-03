@@ -1673,10 +1673,10 @@ const discordCommand = [
 	{
 		data: new SlashCommandBuilder()
 			.setName('塔羅')
-			.setDescription('進行塔羅占卜')
+			.setDescription('每日塔羅(單張)／時間塔羅／大十字塔羅 — 選擇種類後抽牌')
 			.addStringOption(option =>
 				option.setName('category')
-					.setDescription('塔羅種類')
+					.setDescription('選擇：每日塔羅(單張)、時間塔羅、大十字塔羅')
 					.setRequired(true)
 					.addChoices(
 						{ name: '每日塔羅(單張)', value: '每日塔羅' },
@@ -1687,6 +1687,30 @@ const discordCommand = [
 			const category = interaction.options.getString('category')
 			if (category !== null)
 				return `${category}`
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('時間塔羅')
+			.setDescription('過去、現在、未來三張牌（時間軸塔羅）'),
+		async execute() {
+			return '時間塔羅';
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('每日塔羅')
+			.setDescription('抽一張牌（單張每日塔羅）'),
+		async execute() {
+			return '每日塔羅';
+		}
+	},
+	{
+		data: new SlashCommandBuilder()
+			.setName('大十字塔羅')
+			.setDescription('十張牌：現況、助力、目標、基礎、過去、未來、自我、環境、恐懼、結論（大十字）'),
+		async execute() {
+			return '大十字塔羅';
 		}
 	},
 	{
@@ -1730,7 +1754,7 @@ const discordCommand = [
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('塔羅')
-					.setDescription('抽取一張塔羅牌'))
+					.setDescription('抽一張牌（單張每日塔羅）'))
 			.addSubcommand(subcommand =>
 				subcommand
 					.setName('一言')

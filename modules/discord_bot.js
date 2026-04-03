@@ -22,6 +22,53 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const { Client } = Discord;
 const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType, MessageFlags, WebhookClient } = Discord;
 
+/** Slash commands that defer with Ephemeral (fewer sync checks before deferReply). */
+const EPHEMERAL_DEFER_COMMAND_NAMES = new Set(['state', 'help', 'bothelp', 'info']);
+
+function isDiscordUnknownInteraction(error) {
+	if (!error || typeof error !== 'object') return false;
+	if (error.code === 10_062) return true;
+	if (String(error.code) === '10062' || String(error.code) === '10_062') return true;
+	const msg = error.message;
+	return typeof msg === 'string' && msg.includes('Unknown interaction');
+}
+
+/**
+ * Human-readable label for logs: slash name + optional subcommand group/subcommand; else button label / customId.
+ * @param {import('discord.js').BaseInteraction} [interaction]
+ */
+function getInteractionCommandLabel(interaction) {
+	if (!interaction) return 'unknown';
+	try {
+		if (interaction.isChatInputCommand?.()) {
+			const parts = [interaction.commandName || 'unknown'];
+			const group = interaction.options.getSubcommandGroup(false);
+			const sub = interaction.options.getSubcommand(false);
+			if (group) parts.push(group);
+			if (sub) parts.push(sub);
+			return parts.join(' ');
+		}
+	} catch {
+		// ignore
+	}
+	if (interaction.commandName) return interaction.commandName;
+	if (interaction.component?.label) return interaction.component.label;
+	if (typeof interaction.customId === 'string') return interaction.customId.slice(0, 96);
+	return 'unknown';
+}
+
+/**
+ * Same style as "Slow interaction deferral (…ms): …" — grep: Interaction expired (10062)
+ * @param {string} reason - Stable tag for stats (defer_main_handler, edit_reply, …)
+ * @param {import('discord.js').BaseInteraction} [interaction]
+ * @param {{ durationMs?: number }} [meta]
+ */
+function warnInteraction10062(reason, interaction, meta = {}) {
+	const label = getInteractionCommandLabel(interaction);
+	const dur = meta.durationMs != null ? ` (${meta.durationMs}ms)` : '';
+	console.warn(`Interaction expired (10062) [${reason}]${dur}: ${label}`);
+}
+
 // Multi-server functionality temporarily disabled
 // const multiServer = require('../modules/multi-server')
 // const adminSecret = process.env.ADMIN_SECRET || '';
@@ -540,6 +587,10 @@ async function replilyMessage(message, result) {
 				return await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, flags: MessageFlags.Ephemeral });
 			}
 		} catch (error) {
+			if (isDiscordUnknownInteraction(error)) {
+				warnInteraction10062('replily_no_result', message);
+				return;
+			}
 			console.error('replilyMessage error:', error);
 			return;
 		}
@@ -1552,16 +1603,18 @@ process.on('unhandledRejection', error => {
 	if (error.code === 50_001) return; // Missing Access
 	if (error.code === 10_003) return; // Unknown Channel
 	if (error.code === 50_007) return; // Cannot send messages to this user
-	if (error.code === 10_062) return; // Unknown interaction
 	if (error.code === 50_035) return; // Invalid Form Body
-	
+	if (isDiscordUnknownInteraction(error)) {
+		console.warn('Interaction expired (10062) [unhandled_rejection]: unknown');
+		return;
+	}
+
 	// Check error message for backward compatibility
 	if (error.message === "Unknown Role") return;
 	if (error.message === "Cannot send messages to this user") return;
 	if (error.message === "Unknown Channel") return;
 	if (error.message === "Missing Access") return;
 	if (error.message === "Missing Permissions") return;
-	if (error.message && error.message.includes('Unknown interaction')) return;
 	if (error.message && error.message.includes('INTERACTION_NOT_REPLIED')) return;
 	if (error.message && error.message.includes("Invalid Form Body")) return;
 	// Invalid Form Body
@@ -3966,7 +4019,7 @@ async function sendMessageWithRetry(sendFunction, maxRetries = 3, baseDelay = 10
 			return await sendFunction();
 		} catch (error) {
 			// Don't retry for certain non-retryable errors
-			if (error.code === 10_062 || // Unknown interaction
+			if (isDiscordUnknownInteraction(error) ||
 				error.code === 50_035 || // Invalid Form Body
 				error.code === 50_013 || // Missing Permissions
 				error.message.includes('Missing Access') ||
@@ -3998,12 +4051,11 @@ async function __handlingReplyMessage(message, result) {
 			try {
 				await message.deferReply();
 			} catch (deferError) {
-				// If the interaction is no longer valid, log it but don't crash
-				if (deferError.code === 10_062) { // Unknown interaction code
-					console.error(`Interaction expired before deferral: ${message.commandName || 'unknown'}`);
-					return; // Exit early - can't do anything with an expired interaction
+				if (isDiscordUnknownInteraction(deferError)) {
+					warnInteraction10062('defer_in_reply_handler', message);
+					return;
 				}
-				throw deferError; // Re-throw other unexpected errors
+				throw deferError;
 			}
 		}
 
@@ -4017,13 +4069,11 @@ async function __handlingReplyMessage(message, result) {
 					await sendMessageWithRetry(async () => message.followUp({ embeds: await convQuotes(sendTexts[index]) }));
 				}
 			} catch (error) {
-				// If the interaction is no longer valid, log it but don't crash
-				if (error.code === 10_062) {
-					console.error(`Interaction expired for command: ${message.commandName || 'unknown'}`);
-					return; // Exit early - nothing more we can do
-				} else {
-					throw error; // Re-throw unexpected errors
+				if (isDiscordUnknownInteraction(error)) {
+					warnInteraction10062('edit_reply', message);
+					return;
 				}
+				throw error;
 			}
 			return;
 		}
@@ -4054,15 +4104,15 @@ async function __handlingReplyMessage(message, result) {
 						await message.deferReply();
 						await sendMessageWithRetry(async () => message.editReply({ embeds: await convQuotes(sendText) }));
 					} catch (innerError) {
-						if (innerError.code === 10_062) {
-							console.error(`Interaction expired during reply: ${message.commandName || 'unknown'}`);
-							break; // Stop sending more messages if the interaction is invalid
+						if (isDiscordUnknownInteraction(innerError)) {
+							warnInteraction10062('recover_defer_after_failed_reply', message);
+							break;
 						}
 						console.error('Failed to handle interaction:', innerError.message);
 					}
-				} else if (error.code === 10_062 || error.message.includes('Unknown interaction')) {
-					console.error(`Interaction expired for command: ${message.commandName || 'unknown'}`);
-					break; // Stop sending more messages if the interaction is invalid
+				} else if (isDiscordUnknownInteraction(error)) {
+					warnInteraction10062('interaction_reply_loop', message);
+					break;
 				} else {
 					console.error(`Failed to send message: ${error.message}`);
 					break;
@@ -4076,22 +4126,19 @@ async function __handlingReplyMessage(message, result) {
 }
 
 async function __handlingInteractionMessage(message) {
-	// Immediately defer ALL interactions to prevent timeout
-	// This must happen within 3 seconds of receiving the interaction
-	// Discord will reject with code 10062 if interaction expires (3 seconds)
-	// Discord.js has its own HTTP timeout (45 seconds) for handling network issues
+	// Immediately defer ALL interactions to prevent timeout (Discord ~3s acknowledge window).
+	// Slow logs split: handlerAge = time since interaction.createdTimestamp when this runs (event-loop / IPC delay);
+	// deferHttp = REST round-trip for interaction callback only.
 	const deferStartTime = Date.now();
-	const interactionId = message.commandName || message.component?.label || message.customId || 'unknown';
+	const handlerAgeMs = Date.now() - message.createdTimestamp;
+	const cmdLabel = getInteractionCommandLabel(message);
+	let deferHttpMs = 0;
 	try {
 		if (!message.deferred && !message.replied) {
-			let deferOptions = {};
+			const deferOptions = (message.isCommand() && EPHEMERAL_DEFER_COMMAND_NAMES.has(message.commandName))
+				? { flags: MessageFlags.Ephemeral }
+				: {};
 
-			// Add ephemeral flag for certain commands to reduce spam
-			if (message.isCommand() && ['state', 'help', 'bothelp', 'info'].includes(message.commandName)) {
-				deferOptions.flags = MessageFlags.Ephemeral;
-			}
-
-			// Determine defer method based on interaction type
 			let deferPromise;
 			if (message.isCommand()) {
 				deferPromise = message.deferReply(deferOptions);
@@ -4101,23 +4148,20 @@ async function __handlingInteractionMessage(message) {
 				deferPromise = message.deferReply(deferOptions);
 			}
 
-			// Remove artificial timeout - let Discord.js handle it naturally
-			// Discord will reject with code 10062 if interaction expires (3 seconds)
-			// Discord.js HTTP timeout (45s) will handle network issues
+			const httpStart = Date.now();
 			await deferPromise;
+			deferHttpMs = Date.now() - httpStart;
 		}
 	} catch (deferError) {
 		const deferDuration = Date.now() - deferStartTime;
 
-		// Check if interaction expired (Discord error code 10062)
-		// This is the only error that means the interaction is truly expired
-		if (deferError.code === 10_062 || String(deferError.code) === '10_062') {
-			console.error(`Interaction expired before deferral (${deferDuration}ms): ${interactionId}`);
+		if (isDiscordUnknownInteraction(deferError)) {
+			warnInteraction10062('defer_main_handler', message, { durationMs: deferDuration });
 			return;
 		}
 
 		// For other deferral errors (network issues, rate limits, etc.), log and try fallback
-		console.error(`Failed to defer interaction (${deferDuration}ms): ${deferError.message} | Command: ${interactionId} | Code: ${deferError.code}`);
+		console.error(`Failed to defer interaction (${deferDuration}ms): ${cmdLabel} | Code: ${deferError.code}`);
 		
 		// Try to send a followUp as fallback (only if interaction is still valid)
 		try {
@@ -4125,11 +4169,10 @@ async function __handlingInteractionMessage(message) {
 				await message.followUp({ content: '處理中，請稍候...', ephemeral: true });
 			}
 		} catch (fallbackError) {
-			// If fallback also fails, check if interaction expired
-			if (fallbackError.code === 10_062 || String(fallbackError.code) === '10_062') {
-				console.error(`Fallback reply failed - interaction expired (${deferDuration}ms): ${interactionId}`);
+			if (isDiscordUnknownInteraction(fallbackError)) {
+				warnInteraction10062('defer_fallback_followup', message, { durationMs: deferDuration });
 			} else {
-				console.error(`Fallback reply also failed (${deferDuration}ms): ${fallbackError.message} | Command: ${interactionId}`);
+				console.error(`Fallback reply also failed (${deferDuration}ms): ${cmdLabel} | ${fallbackError.message}`);
 			}
 			return;
 		}
@@ -4140,8 +4183,15 @@ async function __handlingInteractionMessage(message) {
 	message.isInteraction = true;
 
 	const deferDuration = Date.now() - deferStartTime;
-	if (deferDuration > 2500) { // Log slow deferrals
-		console.warn(`Slow interaction deferral (${deferDuration}ms): ${interactionId}`);
+	if (deferDuration > 2500) {
+		console.warn(
+			`Slow interaction deferral (${deferDuration}ms): ${cmdLabel} (handlerAge=${handlerAgeMs}ms deferHttp=${deferHttpMs}ms)`
+		);
+	}
+	if (handlerAgeMs > 2000) {
+		console.warn(
+			`Interaction reached handler late (handlerAge=${handlerAgeMs}ms): ${cmdLabel}`
+		);
 	}
 
 	switch (true) {
@@ -4171,16 +4221,22 @@ async function __handlingInteractionMessage(message) {
 					await replilyMessage(message, result);
 					success = true;
 				} catch (error) {
+					if (isDiscordUnknownInteraction(error)) {
+						warnInteraction10062('command_processing_threw', message);
+						return;
+					}
 					console.error('Command processing error:', error);
 					try {
-						// Try to respond with an error message
 						if (message.deferred && !message.replied) {
 							await message.editReply({ content: '處理命令時發生錯誤，請稍後再試。', flags: MessageFlags.Ephemeral });
 						} else if (!message.replied) {
 							await message.reply({ content: '處理命令時發生錯誤，請稍後再試。', flags: MessageFlags.Ephemeral });
 						}
 					} catch (replyError) {
-						// If even error reporting fails, just log it
+						if (isDiscordUnknownInteraction(replyError)) {
+							warnInteraction10062('command_error_reply_failed', message);
+							return;
+						}
 						console.error('Failed to send error response:', replyError.message);
 					}
 				} finally {

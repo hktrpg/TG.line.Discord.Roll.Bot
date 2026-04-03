@@ -59,9 +59,14 @@ const RollingLog = {
 const getState = async function () {
     let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error(`log # 52 mongoDB error ${getClusterLogContext()}:`, error.name, error.reason));
     if (!theNewData || !theNewData.RealTimeRollingLogfunction) return;
-    theNewData.RealTimeRollingLogfunction.LogTime = theNewData.RealTimeRollingLogfunction.LogTime.replace(/\s+GMT.*$/, '');
-    theNewData.RealTimeRollingLogfunction.StartTime = theNewData.RealTimeRollingLogfunction.StartTime.replace(/\s+GMT.*$/, '');
-    return theNewData.RealTimeRollingLogfunction;
+    const fn = theNewData.RealTimeRollingLogfunction;
+    if (fn.LogTime) {
+        fn.LogTime = fn.LogTime.replace(/\s+GMT.*$/, '');
+    }
+    if (fn.StartTime) {
+        fn.StartTime = fn.StartTime.replace(/\s+GMT.*$/, '');
+    }
+    return fn;
 }
 
 
@@ -72,12 +77,18 @@ async function saveLog() {
     RollingLog.LogTime = Date(Date.now()).toLocaleString("en-US", {
         timeZone: "Asia/HongKong"
     });
+    if (!RollingLog.StartTime) {
+        RollingLog.StartTime = RollingLog.LogTime;
+    }
+    const setFields = {
+        "RealTimeRollingLogfunction.LogTime": RollingLog.LogTime,
+        "RealTimeRollingLogfunction.LastTimeLog": RollingLog.LastTimeLog
+    };
+    if (RollingLog.StartTime) {
+        setFields["RealTimeRollingLogfunction.StartTime"] = RollingLog.StartTime;
+    }
     await schema.RealTimeRollingLog.findOneAndUpdate({}, {
-        $set: {
-            "RealTimeRollingLogfunction.LogTime": RollingLog.LogTime,
-            "RealTimeRollingLogfunction.LastTimeLog": RollingLog.LastTimeLog,
-            "RealTimeRollingLogfunction.StartTime": RollingLog.StartTime
-        },
+        $set: setFields,
         $inc: {
             "RealTimeRollingLogfunction.DiscordCountRoll": RollingLog.DiscordCountRoll,
             "RealTimeRollingLogfunction.DiscordCountText": RollingLog.DiscordCountText,

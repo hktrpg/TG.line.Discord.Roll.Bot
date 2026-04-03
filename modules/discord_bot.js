@@ -2410,44 +2410,40 @@ async function getAllshardIds() {
 					// For status display, use warning icon if any shard is not online
 					const hasNonOnline = group.some(status => typeof status === 'string' && status !== '✅');
 					const prefix = hasNonOnline ? '❗' : '│';
-					return `${prefix} 　• 群組${range}　${group.join(", ")}`;
+					return `${prefix} • 群組${range} ${group.join(", ")}`;
 				}
 				// For shard lists, display shard IDs directly
-				return `│ 　• 群組${range}　${group.join(", ")}`;
+				return `│ • 群組${range} ${group.join(", ")}`;
 			}).join('\n');
 		};
 
 		const groupedStatus = groupArray(formattedStatuses, groupSize);
 		const groupedPing = groupArray(formattedPings, groupSize);
 
-		// Statistics summary - count shards displayed as online (excluding unknown status)
-		const onlineCount = formattedStatuses.filter(status => status === '✅').length;
-
 		// Return formatted statistics display
 		// Format and return the complete statistics display
-		return `
-├────── 🔄分流狀態 ──────
-│ 概況統計:
-│ 　• 目前分流: ${currentClusterId}
-│ 　• 總集群數: ${totalClusters}
-│ 　• 分流總數: ${totalShards}
-│ 　• 在線分流: ${onlineCount}
-
-├────── ⚡連線狀態 ──────
-│ 各分流狀態:
-${formatGroup(groupedStatus, true)}
-│
-├────── 📊延遲統計 ──────
-│ 響應時間(ms):
-${formatGroup(groupedPing)}
-╰──────────────`;
+		return [
+			'├────── 🔄分流狀態 ──────',
+			'│ 概況統計:',
+			`│ • 目前分流: ${currentClusterId}`,
+			`│ • 總集群數: ${totalClusters}`,
+			`│ • 分流總數: ${totalShards}`,
+			'├────── ⚡連線狀態 ──────',
+			'│ 各分流狀態:',
+			formatGroup(groupedStatus, true),
+			'├────── 📊延遲統計 ──────',
+			'│ 響應時間(ms):',
+			formatGroup(groupedPing),
+			'╰──────────────'
+		].join('\n');
 	} catch (error) {
 		console.error('[Discord Bot] Shard monitoring error:', error);
-		return `
-├────── ⚠️錯誤信息 ──────
-│ 無法獲取分流狀態
-│ 請稍後再試
-╰──────────────`;
+		return [
+			'├────── ⚠️錯誤信息 ──────',
+			'│ 無法獲取分流狀態',
+			'│ 請稍後再試',
+			'╰──────────────'
+		].join('\n');
 	}
 }
 
@@ -2895,14 +2891,16 @@ async function handlingResponMessage(message, answer = '') {
 			}
 			const pingStatus = ping > 1000 ? '❌' : ping > 500 ? '⚠️' : '✅';
 
-			rplyVal.text += `
-			【📊 Discord統計資訊】
-			╭────── 🌐使用統計 ──────
-			│ 群組數據:
-			│ 　• ${countResult}
-			│ 連線延遲:
-			│ 　• ${pingStatus} ${ping}ms
-			${shardResult}`;
+			rplyVal.text += [
+				'',
+				'【📊 Discord統計資訊】',
+				'╭────── 🌐使用統計 ──────',
+				'│ 群組數據:',
+				`│ • ${countResult}`,
+				'│ 連線延遲:',
+				`│ ${pingStatus} ${ping}ms`,
+				(shardResult || '').trim()
+			].join('\n');
 		}
 
 

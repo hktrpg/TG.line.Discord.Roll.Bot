@@ -57,16 +57,28 @@ function getInteractionCommandLabel(interaction) {
 	return 'unknown';
 }
 
+/** ms since Discord created the interaction (for diagnosing 3s ack window vs event-loop delay). */
+function interactionHandlerAgeMs(interaction) {
+	if (!interaction || interaction.createdTimestamp == null) return null;
+	return Date.now() - interaction.createdTimestamp;
+}
+
 /**
  * Same style as "Slow interaction deferral (…ms): …" — grep: Interaction expired (10062)
+ * Includes handlerAge when possible: if meta.handlerAgeMs set (e.g. defer at handler entry), use it; else now - createdTimestamp.
  * @param {string} reason - Stable tag for stats (defer_main_handler, edit_reply, …)
  * @param {import('discord.js').BaseInteraction} [interaction]
- * @param {{ durationMs?: number }} [meta]
+ * @param {{ durationMs?: number, handlerAgeMs?: number }} [meta]
  */
 function warnInteraction10062(reason, interaction, meta = {}) {
 	const label = getInteractionCommandLabel(interaction);
 	const dur = meta.durationMs != null ? ` (${meta.durationMs}ms)` : '';
-	console.warn(`Interaction expired (10062) [${reason}]${dur}: ${label}`);
+	let ageSuffix = '';
+	if (interaction?.createdTimestamp != null) {
+		const age = meta.handlerAgeMs != null ? meta.handlerAgeMs : interactionHandlerAgeMs(interaction);
+		if (age != null) ageSuffix = ` handlerAge=${age}ms`;
+	}
+	console.warn(`Interaction expired (10062) [${reason}]${dur}: ${label}${ageSuffix}`);
 }
 
 // Multi-server functionality temporarily disabled
@@ -4156,7 +4168,7 @@ async function __handlingInteractionMessage(message) {
 		const deferDuration = Date.now() - deferStartTime;
 
 		if (isDiscordUnknownInteraction(deferError)) {
-			warnInteraction10062('defer_main_handler', message, { durationMs: deferDuration });
+			warnInteraction10062('defer_main_handler', message, { durationMs: deferDuration, handlerAgeMs });
 			return;
 		}
 
@@ -4170,7 +4182,7 @@ async function __handlingInteractionMessage(message) {
 			}
 		} catch (fallbackError) {
 			if (isDiscordUnknownInteraction(fallbackError)) {
-				warnInteraction10062('defer_fallback_followup', message, { durationMs: deferDuration });
+				warnInteraction10062('defer_fallback_followup', message, { durationMs: deferDuration, handlerAgeMs });
 			} else {
 				console.error(`Fallback reply also failed (${deferDuration}ms): ${cmdLabel} | ${fallbackError.message}`);
 			}

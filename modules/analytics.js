@@ -355,22 +355,66 @@ function rollingLogAggregateOldest() {
 }
 
 /**
+ * Prefer indexed find on createdAt (schema index); fall back to aggregation for legacy rows without createdAt.
+ */
+async function rollingLogSnapshotOldest() {
+	try {
+		const fast = await schema.RollingLog.findOne({ createdAt: { $exists: true, $ne: null } })
+			.sort({ createdAt: 1 })
+			.lean()
+			.exec();
+		if (fast) return fast;
+	} catch (error) {
+		console.error('[Analytics] MongoDB error (RollingLog find oldest):', error.name, error.reason);
+	}
+	try {
+		const rows = await schema.RollingLog.aggregate(rollingLogAggregateOldest());
+		return rows[0] ?? null;
+	} catch (error) {
+		console.error('[Analytics] MongoDB error (RollingLog aggregate oldest):', error.name, error.reason);
+		return null;
+	}
+}
+
+/**
+ * Last snapshot whose createdAt is strictly before / on-or-before bound; aggregation fallback for legacy docs.
+ */
+async function rollingLogSnapshotLastOnOrBefore(bound, strictBefore) {
+	const cmp = strictBefore ? { $lt: bound } : { $lte: bound };
+	try {
+		const fast = await schema.RollingLog.findOne({ createdAt: cmp })
+			.sort({ createdAt: -1 })
+			.lean()
+			.exec();
+		if (fast) return fast;
+	} catch (error) {
+		console.error('[Analytics] MongoDB error (RollingLog find last on/before):', error.name, error.reason);
+	}
+	try {
+		const rows = await schema.RollingLog.aggregate(rollingLogAggregateLastOnOrBefore(bound, strictBefore));
+		return rows[0] ?? null;
+	} catch (error) {
+		console.error('[Analytics] MongoDB error (RollingLog aggregate last on/before):', error.name, error.reason);
+		return null;
+	}
+}
+
+/**
  * @param {unknown} [preloadedFirstEver] - Shared promise or doc for the earliest RollingLog row (same for all months).
- *   When omitted, fetches via aggregation (for tests or standalone use).
+ *   When omitted, fetches via indexed query (with aggregation fallback).
  */
 async function resolveRollingLogFirstEver(preloadedFirstEver) {
 	if (preloadedFirstEver !== undefined) {
 		return await preloadedFirstEver;
 	}
-	const rows = await schema.RollingLog.aggregate(rollingLogAggregateOldest());
-	return rows[0] ?? null;
+	return rollingLogSnapshotOldest();
 }
 
 /**
  * Delta of cumulative *CountRoll fields between last snapshot before month start and last snapshot at/before month end.
  * RollingLog snapshots copy RealTime cumulative totals (see logs.js pushToDefiniteLog).
  * @param {string} [debugLabel] - When DEBUG env is set, logs use this label (e.g. lastMonth / lastYearSameMonth).
- * @param {Promise<object | null> | object | null} [preloadedFirstEver] - Shared oldest snapshot; avoids a third aggregation per call when passed from stateText.
+ * @param {Promise<object | null> | object | null} [preloadedFirstEver] - Shared oldest snapshot; avoids a third query per call when passed from stateText.
  */
 async function monthlyRollDeltas(year, month, debugLabel = '', preloadedFirstEver) {
 	const { start, end } = hkMonthBounds(year, month);
@@ -383,8 +427,8 @@ async function monthlyRollDeltas(year, month, debugLabel = '', preloadedFirstEve
 	];
 	try {
 		const [before, snapEnd, firstEver] = await Promise.all([
-			schema.RollingLog.aggregate(rollingLogAggregateLastOnOrBefore(start, true)).then((r) => r[0] ?? null),
-			schema.RollingLog.aggregate(rollingLogAggregateLastOnOrBefore(end, false)).then((r) => r[0] ?? null),
+			rollingLogSnapshotLastOnOrBefore(start, true),
+			rollingLogSnapshotLastOnOrBefore(end, false),
 			resolveRollingLogFirstEver(preloadedFirstEver)
 		]);
 		if (debugMode) {
@@ -438,7 +482,16 @@ async function monthlyRollDeltas(year, month, debugLabel = '', preloadedFirstEve
 	}
 }
 
+/** Short-lived cache so repeated `.admin state` does not hammer MongoDB. Set ADMIN_STATE_CACHE_SEC=0 to disable. */
+const ADMIN_STATE_CACHE_MS = Math.max(0, Number.parseInt(process.env.ADMIN_STATE_CACHE_SEC || '45', 10) * 1000);
+let stateTextCache = { text: '', expiresAt: 0 };
+
 async function stateText() {
+	const now = Date.now();
+	if (ADMIN_STATE_CACHE_MS > 0 && stateTextCache.text && now < stateTextCache.expiresAt) {
+		return stateTextCache.text;
+	}
+
 	let state = await getState() || '';
 	if (Object.keys(state).length === 0 || !state.LogTime) return '';
 
@@ -464,13 +517,8 @@ async function stateText() {
 	const hkLm = hkLastMonth();
 	const hkLy = hkSameMonthLastYear();
 
-	// One shared "oldest snapshot" query for UI + both monthly delta runs (avoids duplicate full-collection sorts).
-	const oldestRollingPromise = schema.RollingLog.aggregate(rollingLogAggregateOldest())
-		.then((r) => r[0] ?? null)
-		.catch(error => {
-			console.error('[Analytics] MongoDB error (oldest RollingLog):', error.name, error.reason);
-			return null;
-		});
+	// One shared "oldest snapshot" query for UI + both monthly delta runs (indexed find + aggregation fallback).
+	const oldestRollingPromise = rollingLogSnapshotOldest();
 
 	const [levelSystemCount, characterCardCount, userCount, oldestRolling, lastMonthDelta, lastYearDelta] = await Promise.all([
 		schema.trpgLevelSystem.countDocuments({ Switch: '1' })
@@ -528,7 +576,7 @@ async function stateText() {
 	const divTop = '◆ ────────────────────────';
 	const div = '────────────────────────';
 
-	return [
+	const report = [
 		'【 📊 HKTRPG · 系統狀態報告 】',
 		divTop,
 		'⏰ 時間資訊',
@@ -555,6 +603,11 @@ async function stateText() {
 		'🔹 random-js　·　nodeCrypto',
 		divTop
 	].join('\n');
+
+	if (ADMIN_STATE_CACHE_MS > 0) {
+		stateTextCache = { text: report, expiresAt: Date.now() + ADMIN_STATE_CACHE_MS };
+	}
+	return report;
 }
 
 async function cmdfunction({ result, ...context }) {

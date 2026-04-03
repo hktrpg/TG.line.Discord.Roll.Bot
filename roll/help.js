@@ -428,7 +428,7 @@ const discordCommand = [
             .setDescription('HKTRPG擲骰機器人說明')
             .addStringOption(option =>
                 option.setName('category')
-                    .setDescription('選擇要查看的說明類別')
+                    .setDescription('選擇說明類別：版本、擲骰、工具、娛樂、管理等')
                     .setRequired(false)
                     .addChoices(
                         { name: '版本與公告', value: 'ver' },

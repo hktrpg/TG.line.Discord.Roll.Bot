@@ -78,16 +78,28 @@ const normalPuppeteer = {
 			: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
 };
 
+// Chromium lock files left after Docker restart / SIGKILL (LocalAuth userDataDir: .wwebjs_auth/session).
+const CHROME_LOCK_FILES = ['SingletonLock', 'SingletonSocket', 'SingletonCookie'];
+
 function cleanupChromeProfileLock() {
+	const sessionDir = path.join(process.cwd(), '.wwebjs_auth', 'session');
+	const dirs = [sessionDir, path.join(sessionDir, 'Default')];
 	try {
-		const sessionPath = path.join(process.cwd(), '.wwebjs_auth', 'session');
-		const lockFile = path.join(sessionPath, 'SingletonLock');
-		if (fs.existsSync(lockFile)) {
-			fs.unlinkSync(lockFile);
-			console.log('[WhatsApp] Removed stale Chrome profile lock file');
+		for (const dir of dirs) {
+			for (const name of CHROME_LOCK_FILES) {
+				const filePath = path.join(dir, name);
+				try {
+					if (fs.existsSync(filePath)) {
+						fs.rmSync(filePath, { force: true });
+						console.log('[WhatsApp] Removed stale Chrome lock:', filePath);
+					}
+				} catch (error) {
+					console.error('[WhatsApp] Failed to remove lock:', filePath, error.message);
+				}
+			}
 		}
 	} catch (error) {
-		console.error('[WhatsApp] Failed to cleanup Chrome profile lock:', error.message);
+		console.error('[WhatsApp] Lock cleanup failed:', error.message);
 	}
 }
 
@@ -102,7 +114,6 @@ const MESSAGE_SPLITOR = (/\S+/ig);
 
 async function startUp() {
 	try {
-		// 防止因為上一次異常中止留下的 profile lock，導致「browser is already running」錯誤
 		cleanupChromeProfileLock();
 
 		const client = new Client({
@@ -113,7 +124,7 @@ async function startUp() {
 
 		client.initialize().catch(error => {
 			console.error('[WhatsApp Init Error]', error);
-			if (error.message.includes('Failed to launch')) {
+			if (error.message && error.message.includes('Failed to launch')) {
 				console.log('[Whatsapp] 請確認已安裝 Google Chrome，或手動設定 Chrome 路徑');
 			}
 		});
@@ -534,6 +545,8 @@ exports.shutdown = async function shutdown() {
 		}
 		whatsappClient = null;
 	}
+	// Clear Chromium singleton locks after shutdown so Docker restarts / SIGKILL do not leave stale locks.
+	cleanupChromeProfileLock();
 };
 
 startUp();

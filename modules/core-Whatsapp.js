@@ -25,6 +25,10 @@ if (process.env.BROADCAST) {
 const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 const path = require('path');
+// Match LocalAuth dataPath: default .wwebjs_auth under cwd, or set WWEBJS_AUTH_DATA_PATH if your Docker volume is elsewhere.
+const wwebjsAuthRoot = process.env.WWEBJS_AUTH_DATA_PATH
+	? path.resolve(process.env.WWEBJS_AUTH_DATA_PATH)
+	: path.join(process.cwd(), '.wwebjs_auth');
 const {
 	Client, LocalAuth, MessageMedia
 } = require('whatsapp-web.js');
@@ -82,7 +86,7 @@ const normalPuppeteer = {
 const CHROME_LOCK_FILES = ['SingletonLock', 'SingletonSocket', 'SingletonCookie'];
 
 function cleanupChromeProfileLock() {
-	const sessionDir = path.join(process.cwd(), '.wwebjs_auth', 'session');
+	const sessionDir = path.join(wwebjsAuthRoot, 'session');
 	const dirs = [sessionDir, path.join(sessionDir, 'Default')];
 	try {
 		for (const dir of dirs) {
@@ -117,7 +121,7 @@ async function startUp() {
 		cleanupChromeProfileLock();
 
 		const client = new Client({
-			authStrategy: new LocalAuth(),
+			authStrategy: new LocalAuth({ dataPath: wwebjsAuthRoot }),
 			puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer
 		});
 		whatsappClient = client;

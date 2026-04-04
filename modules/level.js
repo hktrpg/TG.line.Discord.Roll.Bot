@@ -203,7 +203,7 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discor
 
     let tempUPWord = gpInfo.LevelUpWord || "恭喜 {user.displayName}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！";
     if (/{user.displayName}/ig.test(tempUPWord)) {
-        let userDisplayName = await getDisplayName(discordMessage) || username || "無名";
+        let userDisplayName = getDisplayName(discordMessage) || username || "無名";
         tempUPWord = tempUPWord.replaceAll(/{user.displayName}/ig, userDisplayName);
     }
 
@@ -234,10 +234,10 @@ async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord,
     });
 }
 
-async function getDisplayName(message) {
+function getDisplayName(message) {
     if (!message) return;
-    const member = await message.guild.members.fetch(message.author);
-    return member ? member.displayName : message.author.username;
+    if (message.member?.displayName) return message.member.displayName;
+    return message.author?.username;
 }
 
 const Title = function () {

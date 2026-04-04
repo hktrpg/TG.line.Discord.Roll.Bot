@@ -2913,9 +2913,9 @@ async function handlingResponMessage(message, answer = '') {
 
 		if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 
-		if (rplyVal.sendImage) sendBufferImage(message, rplyVal, userid)
+		if (rplyVal.sendImage) await sendBufferImage(message, rplyVal, userid)
 		if (rplyVal.dmFileLink?.length > 0) await sendDmFiles(message, rplyVal)
-		if (rplyVal.fileLink?.length > 0) sendFiles(message, rplyVal, userid)
+		if (rplyVal.fileLink?.length > 0) await sendFiles(message, rplyVal, userid)
 		if (rplyVal.respawn) {
 			const timestamp = new Date().toISOString();
 			console.error('[User Command] ========== USER COMMAND RESPAWN TRIGGERED ==========');

@@ -10,6 +10,7 @@ const checkTools = require('../modules/check.js');
 const tempSwitchV2 = require('../modules/level');
 const schema = require('../modules/schema.js');
 const DEFAULT_RANK_WORD = "{user.displayName}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點！\n現在排名是{server.member_count}人中的第{user.Ranking}名！{user.RankingPer}！\n調查經驗是{user.exp}點。 "
+const DEFAULT_LEVEL_UP_WORD = "恭喜 {user.displayName}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！"
 
 const gameName = function () {
     return '【經驗值功能】 .level (show config LevelUpWord RankWord)'
@@ -106,6 +107,35 @@ const checkTitle = async function (userlvl, DBTitle) {
         }
     return temptitle;
 }
+
+async function buildWordPreview(templateWord, { groupid, userid, membercount, tgDisplayname, displaynameDiscord, displayname, doc, discordMessage }) {
+    const docMember = await schema.trpgLevelSystemMember.find({ groupid }).sort({ EXP: -1 }).lean()
+        .catch(error => { console.error('buildWordPreview mongoDB error:', error.name, error.reason); return null; });
+    if (!docMember) return null;
+    const myselfIndex = docMember.findIndex(m => m.userid === userid.toString());
+    if (myselfIndex === -1) return null;
+    const username = tgDisplayname || displaynameDiscord || displayname || '無名';
+    const userlevel = docMember[myselfIndex].Level;
+    const userexp = docMember[myselfIndex].EXP;
+    const usermember_count = Math.max(membercount, docMember.length);
+    const userRanking = myselfIndex + 1;
+    const userRankingPer = Math.ceil(userRanking / usermember_count * 10_000) / 100 + '%';
+    const userTitle = await checkTitle(userlevel, doc?.Title || []);
+    let preview = templateWord
+        .replaceAll(/{user.name}/ig, username)
+        .replaceAll(/{user.level}/ig, userlevel)
+        .replaceAll(/{user.exp}/ig, userexp)
+        .replaceAll(/{user.Ranking}/ig, userRanking)
+        .replaceAll(/{user.RankingPer}/ig, userRankingPer)
+        .replaceAll(/{server.member_count}/ig, usermember_count)
+        .replaceAll(/{user.title}/ig, userTitle);
+    if (/{user.displayName}/ig.test(preview)) {
+        const userDisplayName = getDisplayName(discordMessage) || username || '無名';
+        preview = preview.replaceAll(/{user.displayName}/ig, userDisplayName);
+    }
+    return preview;
+}
+
 const Title = function () {
     let Title = []
     Title[0] = "無名調查員";
@@ -283,12 +313,11 @@ const rollDiceCommand = async function ({
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
             }).lean().catch(error => console.error('level_system #242 mongoDB error:', error.name, error.reason));
-            if (!doc || !doc.LevelUpWord) {
-                rply.text = '正在使用預設升級語. ';
-                return rply;
-            }
-            rply.text = '現在升級語:';
-            rply.text += ("\n") + doc.LevelUpWord;
+            const levelUpTemplate = doc?.LevelUpWord || DEFAULT_LEVEL_UP_WORD;
+            const levelUpLabel = doc?.LevelUpWord ? '現在升級語:' : '正在使用預設升級語:';
+            rply.text = `${levelUpLabel}\n${levelUpTemplate}`;
+            const levelUpPreview = await buildWordPreview(levelUpTemplate, { groupid, userid, membercount, tgDisplayname, displaynameDiscord, displayname, doc, discordMessage });
+            if (levelUpPreview) rply.text += '\n\n【實際效果預覽】\n' + levelUpPreview;
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^LevelUpWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
@@ -358,12 +387,11 @@ const rollDiceCommand = async function ({
             let doc = await schema.trpgLevelSystem.findOne({
                 groupid: groupid
             }).lean().catch(error => console.error('level_system #294 mongoDB error:', error.name, error.reason));
-            if (!doc || !doc.RankWord) {
-                rply.text = '正在使用預設查詢語. ';
-                return rply;
-            }
-            rply.text = '現在查詢語:';
-            rply.text += ("\n") + doc.RankWord;
+            const rankTemplate = doc?.RankWord || DEFAULT_RANK_WORD;
+            const rankLabel = doc?.RankWord ? '現在查詢語:' : '正在使用預設查詢語:';
+            rply.text = `${rankLabel}\n${rankTemplate}`;
+            const rankPreview = await buildWordPreview(rankTemplate, { groupid, userid, membercount, tgDisplayname, displaynameDiscord, displayname, doc, discordMessage });
+            if (rankPreview) rply.text += '\n\n【實際效果預覽】\n' + rankPreview;
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^RankWord$/i.test(mainMsg[1]) && /^del$/i.test(mainMsg[2]): {
@@ -542,56 +570,13 @@ const rollDiceCommand = async function ({
                     \n 00的話代表不啓動功能'
                 return rply
             }
-            let docMember = await schema.trpgLevelSystemMember.find({
-                groupid: groupid
-            }).sort({
-                EXP: -1
-            }).lean().catch(error => console.error('level_system #453 mongoDB error:', error.name, error.reason));
-            //要尋找其中自己的userid
-            let myselfIndex = docMember.map(function (members) {
-                return members.userid;
-            }).indexOf(userid.toString());
-            if (myselfIndex < 0) {
+            const rankWord = doc.RankWord || DEFAULT_RANK_WORD;
+            const rendered = await buildWordPreview(rankWord, { groupid, userid, membercount, tgDisplayname, displaynameDiscord, displayname, doc, discordMessage });
+            if (!rendered) {
                 rply.text = '未有你的資料，請稍後再試。'
                 return rply
             }
-            //6.    ->沒有 使用預設排名語
-            //{user.name} 名字 {user.level} 等級 \
-            //{user.title} 稱號
-            // {user.exp} 經驗值 {user.Ranking} 現在排名 \
-            // {user.RankingPer} 現在排名百分比 \
-            // {server.member_count} 現在頻道中總人數 \
-
-            //rply.text += '資料庫列表:'
-            //1.    讀取 群組有沒有開啓功能
-
-
-            //5.    讀取群組的排名語
-
-            let rankWord = (doc.RankWord) ? doc.RankWord : DEFAULT_RANK_WORD;
-
-            let username = tgDisplayname || displaynameDiscord || displayname || "無名";
-
-            let userlevel = docMember[myselfIndex].Level;
-            let userexp = docMember[myselfIndex].EXP;
-            let usermember_count = Math.max(membercount, docMember.length);
-            let userRanking = myselfIndex + 1;
-            let userRankingPer = Math.ceil(userRanking / usermember_count * 10_000) / 100 + '%';
-            let userTitle = await this.checkTitle(userlevel, doc.Title || []);
-            //Title 首先檢查  trpgLevelSystemfunction.trpgLevelSystemfunction[i].trpgLevelSystemfunction[a].Title[0].Lvl 有沒有那個LV的TITLE
-            //沒有  則使用預設
-
-            //{user.name} 名字 {user.level} 等級 \
-            ////{user.title} 稱號
-            // { user.exp } 經驗值 { user.Ranking } 現在排名 \
-            // { user.RankingPer} 現在排名百分比 \
-            // { server.member_count } 現在頻道中總人數 \
-
-            rply.text = rankWord.replaceAll(/{user.name}/ig, username).replaceAll(/{user.level}/ig, userlevel).replaceAll(/{user.exp}/ig, userexp).replaceAll(/{user.Ranking}/ig, userRanking).replaceAll(/{user.RankingPer}/ig, userRankingPer).replaceAll(/{server.member_count}/ig, usermember_count).replaceAll(/{user.title}/ig, userTitle)
-            if (/{user.displayName}/ig.test(rply.text)) {
-                let userDisplayName = await getDisplayName(discordMessage) || username || "無名";
-                rply.text = rply.text.replaceAll(/{user.displayName}/ig, userDisplayName)
-            }
+            rply.text = rendered;
             return rply;
         }
         case /(^[.]level$)/i.test(mainMsg[0]) && /^showMe$/i.test(mainMsg[1]): {
@@ -961,11 +946,10 @@ module.exports = {
 };
 
 
-async function getDisplayName(message) {
+function getDisplayName(message) {
     if (!message) return;
-    const member = await message.guild.members.fetch(message.author)
-    let nickname = member ? member.displayName : message.author.username;
-    return nickname;
+    if (message.member?.displayName) return message.member.displayName;
+    return message.author?.username;
 }
 
 /*

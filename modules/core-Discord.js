@@ -15,7 +15,28 @@ const agenda = require('../modules/schedule')?.agenda;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
 require("./ds-deploy-commands");
-
+const clusterOptions = {
+    token: channelSecret,
+    shardsPerClusters: 10,
+    totalShards: 'auto',
+    mode: 'process',
+    spawnTimeout: -1,
+    respawn: false, // Disable auto respawn, manually controlled (as per attachment)
+    retry: {
+        attempts: MAX_RETRY_ATTEMPTS,
+        delay: RETRY_DELAY
+    },
+    // Add reconnection and backoff options
+    fetchTimeout: 30_000,
+    restarts: {
+        max: 5,
+        interval: 60_000 * 10 // 10 minutes
+    },
+    execArgv: [
+        "--optimize-for-size",
+        "--gc-interval=100"
+    ],
+};
 // Global variables to track shutdown status
 let isShuttingDown = false;
 let shutdownTimeout = null;
@@ -79,28 +100,7 @@ async function gracefulShutdown() {
 }
 
 // Configuration options (simplified as per attachment)
-const clusterOptions = {
-    token: channelSecret,
-    shardsPerClusters: 10,
-    totalShards: 'auto',
-    mode: 'process',
-    spawnTimeout: -1,
-    respawn: false, // Disable auto respawn, manually controlled (as per attachment)
-    retry: {
-        attempts: MAX_RETRY_ATTEMPTS,
-        delay: RETRY_DELAY
-    },
-    // Add reconnection and backoff options
-    fetchTimeout: 30_000,
-    restarts: {
-        max: 5,
-        interval: 60_000 * 10 // 10 minutes
-    },
-    execArgv: [
-        "--optimize-for-size",
-        "--gc-interval=100"
-    ],
-};
+
 
 const manager = new ClusterManager('./modules/discord_bot.js', clusterOptions);
 

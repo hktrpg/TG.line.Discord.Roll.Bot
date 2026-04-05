@@ -4,6 +4,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const util = require('node:util');
+const { Types: { ObjectId } } = require('mongoose');
 const readdir = util.promisify(fs.readdir);
 
 // Create an index of available roll modules
@@ -288,7 +289,8 @@ function hkLastMonth() {
 }
 
 function hkSameMonthLastYear() {
-	const { y, m } = hkCalendarNow();
+	// Compare last month vs. the same calendar month one year prior (not current month last year)
+	const { y, m } = hkLastMonth();
 	return { y: y - 1, m };
 }
 
@@ -355,9 +357,22 @@ function rollingLogAggregateOldest() {
 }
 
 /**
- * Prefer indexed find on createdAt (schema index); fall back to aggregation for legacy rows without createdAt.
+ * ObjectId boundary for a Date, using the 4-byte timestamp encoded in every ObjectId.
+ * 'min' → lowest ObjectId for that second; 'max' → highest.
+ * This lets us do indexed _id range queries as a fast fallback when createdAt is absent.
+ */
+function objectIdAtTime(date, side) {
+	const secs = Math.floor(date.getTime() / 1000);
+	const tail = side === 'max' ? 'ffffffffffffffff' : '0000000000000000';
+	return new ObjectId(secs.toString(16).padStart(8, '0') + tail);
+}
+
+/**
+ * Prefer indexed find on createdAt (schema index); fall back to _id range (always indexed);
+ * last resort: aggregation for very old docs without reliable timestamps.
  */
 async function rollingLogSnapshotOldest() {
+	// Fast path 1: createdAt index
 	try {
 		const fast = await schema.RollingLog.findOne({ createdAt: { $exists: true, $ne: null } })
 			.sort({ createdAt: 1 })
@@ -365,8 +380,19 @@ async function rollingLogSnapshotOldest() {
 			.exec();
 		if (fast) return fast;
 	} catch (error) {
-		console.error('[Analytics] MongoDB error (RollingLog find oldest):', error.name, error.reason);
+		console.error('[Analytics] MongoDB error (RollingLog find oldest createdAt):', error.name, error.reason);
 	}
+	// Fast path 2: _id sort – ObjectId encodes insertion time, always indexed, no aggregation needed
+	try {
+		const fastById = await schema.RollingLog.findOne()
+			.sort({ _id: 1 })
+			.lean()
+			.exec();
+		if (fastById) return fastById;
+	} catch (error) {
+		console.error('[Analytics] MongoDB error (RollingLog find oldest _id):', error.name, error.reason);
+	}
+	// Slow path: full aggregation fallback
 	try {
 		const rows = await schema.RollingLog.aggregate(rollingLogAggregateOldest());
 		return rows[0] ?? null;
@@ -377,10 +403,11 @@ async function rollingLogSnapshotOldest() {
 }
 
 /**
- * Last snapshot whose createdAt is strictly before / on-or-before bound; aggregation fallback for legacy docs.
+ * Last snapshot at/before bound. Tries createdAt index → _id range (always indexed) → aggregation fallback.
  */
 async function rollingLogSnapshotLastOnOrBefore(bound, strictBefore) {
 	const cmp = strictBefore ? { $lt: bound } : { $lte: bound };
+	// Fast path 1: createdAt index
 	try {
 		const fast = await schema.RollingLog.findOne({ createdAt: cmp })
 			.sort({ createdAt: -1 })
@@ -388,8 +415,21 @@ async function rollingLogSnapshotLastOnOrBefore(bound, strictBefore) {
 			.exec();
 		if (fast) return fast;
 	} catch (error) {
-		console.error('[Analytics] MongoDB error (RollingLog find last on/before):', error.name, error.reason);
+		console.error('[Analytics] MongoDB error (RollingLog find last on/before createdAt):', error.name, error.reason);
 	}
+	// Fast path 2: _id range – ObjectId timestamp is second-accurate and always indexed
+	try {
+		const boundId = objectIdAtTime(bound, strictBefore ? 'min' : 'max');
+		const cmpId = strictBefore ? { $lt: boundId } : { $lte: boundId };
+		const fastById = await schema.RollingLog.findOne({ _id: cmpId })
+			.sort({ _id: -1 })
+			.lean()
+			.exec();
+		if (fastById) return fastById;
+	} catch (error) {
+		console.error('[Analytics] MongoDB error (RollingLog find last on/before _id):', error.name, error.reason);
+	}
+	// Slow path: full aggregation fallback
 	try {
 		const rows = await schema.RollingLog.aggregate(rollingLogAggregateLastOnOrBefore(bound, strictBefore));
 		return rows[0] ?? null;
@@ -483,15 +523,11 @@ async function monthlyRollDeltas(year, month, debugLabel = '', preloadedFirstEve
 }
 
 /** Short-lived cache so repeated `.admin state` does not hammer MongoDB. Set ADMIN_STATE_CACHE_SEC=0 to disable. */
-const ADMIN_STATE_CACHE_MS = Math.max(0, Number.parseInt(process.env.ADMIN_STATE_CACHE_SEC || '45', 10) * 1000);
+const ADMIN_STATE_CACHE_MS = Math.max(0, Number.parseInt(process.env.ADMIN_STATE_CACHE_SEC || '300', 10) * 1000);
 let stateTextCache = { text: '', expiresAt: 0 };
+let stateTextRefreshing = false;
 
-async function stateText() {
-	const now = Date.now();
-	if (ADMIN_STATE_CACHE_MS > 0 && stateTextCache.text && now < stateTextCache.expiresAt) {
-		return stateTextCache.text;
-	}
-
+async function computeStateText() {
 	let state = await getState() || '';
 	if (Object.keys(state).length === 0 || !state.LogTime) return '';
 
@@ -576,7 +612,10 @@ async function stateText() {
 	const divTop = '◆ ────────────────────────';
 	const div = '────────────────────────';
 
-	const report = [
+	const lmLabel = `${hkLm.y % 100}年${hkLm.m}月`;
+	const lyLabel = `${hkLy.y % 100}年${hkLy.m}月`;
+
+	return [
 		'【 📊 HKTRPG · 系統狀態報告 】',
 		divTop,
 		'⏰ 時間資訊',
@@ -584,7 +623,7 @@ async function stateText() {
 		`🗓 最早紀錄 ${startTimeDisplay}`,
 		`🕐 現在時間 ${logTimeDisplay} `,
 		divTop,
-		'🎲 擲骰統計(總數/上月/上年同月)',
+		`🎲 擲骰統計(總數/${lmLabel}/${lyLabel})`,
 		div,
 		`💬 LINE ${tripleLine(state.LineCountRoll, 'LineCountRoll')}`,
 		`🎮 Discord ${tripleLine(state.DiscordCountRoll, 'DiscordCountRoll')}`,
@@ -603,11 +642,47 @@ async function stateText() {
 		'🔹 random-js　·　nodeCrypto',
 		divTop
 	].join('\n');
+}
 
-	if (ADMIN_STATE_CACHE_MS > 0) {
-		stateTextCache = { text: report, expiresAt: Date.now() + ADMIN_STATE_CACHE_MS };
+async function refreshStateCache() {
+	if (stateTextRefreshing) return;
+	// Skip recompute if cache is still fresh (e.g. timer fires after a recent user-triggered refresh)
+	if (ADMIN_STATE_CACHE_MS > 0 && stateTextCache.text && Date.now() < stateTextCache.expiresAt) return;
+	stateTextRefreshing = true;
+	try {
+		const text = await computeStateText();
+		if (text) {
+			stateTextCache = { text, expiresAt: Date.now() + ADMIN_STATE_CACHE_MS };
+		}
+	} catch (error) {
+		console.error('[Analytics] refreshStateCache error:', error.message);
+	} finally {
+		stateTextRefreshing = false;
 	}
-	return report;
+}
+
+async function stateText() {
+	const now = Date.now();
+
+	// Cache valid → return immediately
+	if (stateTextCache.text && now < stateTextCache.expiresAt) {
+		return stateTextCache.text;
+	}
+
+	// Cache stale but exists → return stale immediately, refresh in background
+	if (stateTextCache.text) {
+		refreshStateCache();
+		return stateTextCache.text;
+	}
+
+	// Cache empty (first call) → must wait
+	await refreshStateCache();
+	return stateTextCache.text;
+}
+
+// Pre-warm cache after startup to avoid first-call delay
+if (ADMIN_STATE_CACHE_MS > 0) {
+	setTimeout(() => refreshStateCache().catch(() => {}), 60_000);
 }
 
 async function cmdfunction({ result, ...context }) {

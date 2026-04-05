@@ -2166,47 +2166,40 @@ async function getAllshardIds() {
 
 						for (const shardId of assignedShards) {
 							try {
-								// Try to get individual shard ping first
 								let pingValue = -1;
 								let status = -1;
 
-								// Method 1: Direct shard ping (most accurate for individual shards)
+								// Method 1: per-shard WebSocket object (status always, ping when available)
 								try {
-									const shard = c.client?.ws?.shards?.get(shardId);
-									if (shard && typeof shard.ping === 'number' && !Number.isNaN(shard.ping) && shard.ping >= 0) {
-										pingValue = Math.round(shard.ping);
-										status = shard.status || 0;
+									const shard = c.ws?.shards?.get(shardId);
+									if (shard) {
+										// Status is always reliable, even when ping hasn't been measured yet
+										status = shard.status ?? 0;
+										if (typeof shard.ping === 'number' && !Number.isNaN(shard.ping) && shard.ping >= 0) {
+											pingValue = Math.round(shard.ping);
+										}
 									}
 								} catch {
-									// Ignore shard access errors, try other methods
+									// Ignore, try other methods
 								}
 
-								// Method 2: WebSocket ping as fallback
-								if (pingValue === -1 && c.ws?.ping !== undefined && typeof c.ws.ping === 'number' && !Number.isNaN(c.ws.ping) && c.ws.ping >= 0) {
+								// Method 2: client-level WebSocket ping/status as fallback
+								if (pingValue === -1 && typeof c.ws?.ping === 'number' && !Number.isNaN(c.ws.ping) && c.ws.ping >= 0) {
 									pingValue = Math.round(c.ws.ping);
-									status = c.ws.status || 0;
+								}
+								if (status === -1 && c.ws?.status !== undefined) {
+									status = c.ws.status;
 								}
 
-								// Method 3: Cluster-level ping
-								if (pingValue === -1 && c.shard?.ping !== undefined && typeof c.shard.ping === 'number' && !Number.isNaN(c.shard.ping) && c.shard.ping >= 0) {
+								// Method 3: cluster-level shard ping
+								if (pingValue === -1 && typeof c.shard?.ping === 'number' && !Number.isNaN(c.shard.ping) && c.shard.ping >= 0) {
 									pingValue = Math.round(c.shard.ping);
-									status = c.shard.status || 0;
-								}
-
-								// If still no ping, use estimation based on uptime
-								if (pingValue === -1) {
-									const uptime = c.uptime;
-									if (uptime && uptime > 10_000) { // At least 10 seconds uptime
-										pingValue = Math.floor(Math.random() * 100) + 50; // 50-150ms range
-										status = 0; // Assume healthy
-									}
 								}
 
 								shardPings.push(pingValue);
 								shardStatuses.push(status);
 
 							} catch {
-								// Complete failure for this shard
 								shardPings.push(-1);
 								shardStatuses.push(-1);
 							}
@@ -2231,25 +2224,30 @@ async function getAllshardIds() {
 				]);
 			}
 
-			try {
-				if (evalPromise) {
-					clusterDataRaw = await evalPromise;
-				}
-				// clusterDataRaw is already populated with defaults if no healthy clusters
-			} catch (error) {
-				console.warn('[Statistics] Main broadcastEval failed, attempting fallback methods:', error.message);
+		try {
+			if (evalPromise) {
+				clusterDataRaw = await evalPromise;
+			}
+			// clusterDataRaw is already populated with defaults if no healthy clusters
+		} catch (error) {
+			console.warn('[Statistics] Main broadcastEval failed, attempting fallback methods:', error.message);
 				logClusterDiagnostics(error, 'statistics-main-broadcastEval');
 
 				// Fallback: try simple cluster health check
 				try {
-					const fallbackData = await client.cluster.broadcastEval(c => ({
-						clusterId: c.cluster?.id || 0,
-						assignedShards: [], // Will be calculated below
-						shardPings: [-1], // Unknown ping
-						shardStatuses: [-1], // Unknown status
-						success: false,
-						totalShardsInCluster: 0
-					}), { timeout: 3000 }).catch(() => []);
+					const fallbackData = await client.cluster.broadcastEval(c => {
+						const wsPing = c.ws?.ping;
+						const wsStatus = c.ws?.status ?? -1;
+						const validPing = typeof wsPing === 'number' && !Number.isNaN(wsPing) && wsPing >= 0;
+						return {
+							clusterId: c.cluster?.id || 0,
+							assignedShards: [],
+							shardPings: [validPing ? Math.round(wsPing) : -1],
+							shardStatuses: [wsStatus],
+							success: validPing,
+							totalShardsInCluster: 0
+						};
+					}, { timeout: 3000 }).catch(() => []);
 
 					if (fallbackData && fallbackData.length > 0) {
 						clusterDataRaw = fallbackData;
@@ -2339,14 +2337,14 @@ async function getAllshardIds() {
 			// Process cluster data - only assign status to shards managed by responding clusters
 			const processedClusters = new Set();
 
-			for (const clusterData of clusterDataRaw) {
-				if (clusterData && typeof clusterData === 'object') {
-					const { clusterId, assignedShards, shardPings, shardStatuses } = clusterData;
-					processedClusters.add(clusterId);
+		for (const clusterData of clusterDataRaw) {
+			if (clusterData && typeof clusterData === 'object') {
+				const { clusterId, assignedShards, shardPings, shardStatuses } = clusterData;
+				processedClusters.add(clusterId);
 
-					let actualAssignedShards = assignedShards;
-					let actualShardPings = shardPings;
-					let actualShardStatuses = shardStatuses;
+				let actualAssignedShards = assignedShards;
+				let actualShardPings = shardPings;
+				let actualShardStatuses = shardStatuses;
 
 					// If assignedShards is empty or invalid, calculate dynamically
 					if (!Array.isArray(actualAssignedShards) || actualAssignedShards.length === 0) {

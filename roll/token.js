@@ -75,6 +75,7 @@ const getHelpMessage = function () {
 const rollDiceCommand = async function ({
     inputStr,
     mainMsg,
+    botname,
     discordClient,
     discordMessage,
     displaynameDiscord
@@ -84,6 +85,12 @@ const rollDiceCommand = async function ({
         type: 'text',
         text: ''
     };
+
+    if (botname !== 'Discord') {
+        rply.text = '此功能只能在Discord中使用';
+        return rply;
+    }
+
     switch (true) {
         case /^help$/i.test(mainMsg[1]): {
             rply.text = getHelpMessage();
@@ -283,12 +290,16 @@ const polaroidTokernMaker = async (discordMessage, inputStr, mainMsg, discordCli
 }
 
 const getAvatar = async (discordMessage, discordClient) => {
+    if (!discordMessage) {
+        return null;
+    }
+
     // Handle slash command interactions
     if (discordMessage.interaction) {
         // Check for attachments in the interaction
         if (discordMessage.attachments && discordMessage.attachments.size > 0) {
             const attachmentsArray = [...discordMessage.attachments.values()];
-            const url = attachmentsArray.find(data => data.contentType.match(/image/i));
+            const url = attachmentsArray.find(data => data.contentType && data.contentType.match(/image/i));
             return (url && url.url) || null;
         }
 
@@ -301,7 +312,7 @@ const getAvatar = async (discordMessage, discordClient) => {
                 // Check for attachments in the referenced message
                 if (referenceMessage.attachments && referenceMessage.attachments.size > 0) {
                     const attachmentsArray = [...referenceMessage.attachments.values()];
-                    const url = attachmentsArray.find(data => data.contentType.match(/image/i));
+                    const url = attachmentsArray.find(data => data.contentType && data.contentType.match(/image/i));
                     if (url && url.url) {
                         return url.url;
                     }
@@ -341,7 +352,7 @@ const getAvatar = async (discordMessage, discordClient) => {
     }
     if (discordMessage.type === 0 && discordMessage.attachments.size > 0) {
         const attachmentsArray = [...discordMessage.attachments.values()];
-        const url = attachmentsArray.find(data => data.contentType.match(/image/i));
+        const url = attachmentsArray.find(data => data.contentType && data.contentType.match(/image/i));
         return (url && url.url) || null;
     }
     //19 = reply
@@ -349,7 +360,7 @@ const getAvatar = async (discordMessage, discordClient) => {
         const channel = await discordClient.channels.fetch(discordMessage.reference.channelId);
         const referenceMessage = await channel.messages.fetch(discordMessage.reference.messageId)
         const attachmentsArray = [...referenceMessage.attachments.values()];
-        const url = attachmentsArray.find(data => data.contentType.match(/image/i));
+        const url = attachmentsArray.find(data => data.contentType && data.contentType.match(/image/i));
         return (url && url.url) || null;
     }
     return null;

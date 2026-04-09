@@ -173,6 +173,6 @@ describe('Funny Module Tests', () => {
         
         const tarotCommand = funny.discordCommand.find(cmd => cmd.data && cmd.data.name === '塔羅');
         expect(tarotCommand).toBeDefined();
-        expect(tarotCommand.data.description).toContain('塔羅占卜');
+        expect(tarotCommand.data.description).toContain('每日塔羅(單張)');
     });
 }); 

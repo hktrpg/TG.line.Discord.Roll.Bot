@@ -340,7 +340,8 @@ async function nonDice(ctx) {
 
 
 TGclient.on('message:new_chat_members', async (ctx) => {
-    const botUsername = robotName || (await TGclient.api.getMe().catch(() => null))?.username;
+    const botInfo = await TGclient.api.getMe().catch(() => null);
+    const botUsername = robotName || botInfo?.username;
     if (botUsername && ctx.message.new_chat_member.username == botUsername) {
         console.log("[Telegram] Telegram joined");
         SendToId(ctx.chat.id, newMessage.joinMessage());

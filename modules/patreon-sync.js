@@ -20,7 +20,7 @@ function endDateOpsForMember(member, $set) {
     if (member.switch === true) {
         return { $unset: { endDate: '' } };
     }
-    const until = member.vipGraceUntil ? new Date(member.vipGraceUntil).getTime() : NaN;
+    const until = member.vipGraceUntil ? new Date(member.vipGraceUntil).getTime() : Number.NaN;
     if (!Number.isNaN(until) && until > Date.now()) {
         $set.endDate = new Date(until);
         return {};

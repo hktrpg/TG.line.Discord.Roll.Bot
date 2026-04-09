@@ -377,8 +377,6 @@ async function connect(retries = 0) {
 
     try {
         return await sharedConnectionPromise;
-    } catch (error) {
-        throw error;
     } finally {
         // Always clear shared promise after this attempt settles.
         // Otherwise a resolved promise can be reused forever, and future reconnect attempts

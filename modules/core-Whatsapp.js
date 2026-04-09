@@ -22,9 +22,9 @@ if (process.env.BROADCAST) {
 	});
 }
 
-const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 const path = require('path');
+const qrcode = require('qrcode-terminal');
 // Match LocalAuth dataPath: default .wwebjs_auth under cwd, or set WWEBJS_AUTH_DATA_PATH if your Docker volume is elsewhere.
 const wwebjsAuthRoot = process.env.WWEBJS_AUTH_DATA_PATH
 	? path.resolve(process.env.WWEBJS_AUTH_DATA_PATH)

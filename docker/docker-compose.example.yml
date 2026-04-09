@@ -1,0 +1,61 @@
+services:
+  mongodb:
+    image: mongo:8.2
+    container_name: mongodb
+    restart: unless-stopped
+    ports:
+      - "27069:27017"
+    volumes:
+      - mongodb-data:/data/db
+      - mongodb-config:/data/configdb
+    environment:
+      MONGO_INITDB_DATABASE: hktrpgRollBot
+      MONGO_INITDB_ROOT_USERNAME: hktrpgadmin
+      MONGO_INITDB_ROOT_PASSWORD: change-this-password
+      TZ: Asia/Taipei
+
+  discord-bot:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.discord
+    container_name: discord-bot
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    env_file:
+      - .env.discord
+    environment:
+      TZ: Asia/Taipei
+    volumes:
+      - discord-log:/app/log
+      - discord-export:/app/export
+      - discord-temp:/app/temp
+
+  non-discord-bot:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.non-discord
+    container_name: non-discord-bot
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    env_file:
+      - .env.non-discord
+    environment:
+      TZ: Asia/Taipei
+    volumes:
+      - non-discord-log:/app/log
+      - non-discord-export:/app/export
+      - non-discord-temp:/app/temp
+      - whatsapp-session:/app/.wwebjs_auth
+
+volumes:
+  mongodb-data:
+  mongodb-config:
+  discord-log:
+  discord-export:
+  discord-temp:
+  non-discord-log:
+  non-discord-export:
+  non-discord-temp:
+  whatsapp-session:

@@ -1,0 +1,40 @@
+FROM node:24-alpine
+
+# Install browser dependencies for WhatsApp and fonts shared by image features.
+RUN apk update && apk add --no-cache \
+    tzdata \
+    git \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    fontconfig \
+    font-noto-cjk \
+    && rm -rf /var/cache/apk/*
+
+ENV TZ=Asia/Taipei
+ENV LANG=zh_TW.UTF-8
+ENV LC_ALL=zh_TW.UTF-8
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
+    && ln -s /usr/bin/chromium /usr/bin/chromium-browser || true \
+    && ln -s /usr/bin/chromium /usr/bin/google-chrome || true \
+    && fc-cache -fv
+
+WORKDIR /app
+
+COPY package.json ./
+RUN corepack enable \
+    && yarn install --non-interactive
+
+COPY . .
+
+RUN mkdir -p /app/log /app/export /app/temp /app/.wwebjs_auth \
+    && chown -R node:node /app
+
+USER node
+
+CMD ["node", "index.js"]

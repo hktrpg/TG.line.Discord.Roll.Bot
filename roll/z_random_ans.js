@@ -4,7 +4,8 @@ if (!process.env.mongoURL) {
 }
 const { SlashCommandBuilder } = require('discord.js');
 const checkMongodb = require('../modules/dbWatchdog.js');
-const adminSecret = process.env.ADMIN_SECRET;
+const adminSecrets = parseAdminSecrets(process.env.ADMIN_SECRET);
+const isAdminUser = (userid) => Boolean(userid) && adminSecrets.includes(userid);
 const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
 const VIP = require('../modules/veryImportantPerson');
@@ -715,8 +716,7 @@ const rollDiceCommand = async function ({
             return rply
         case /(^[.](r|)ras(\d+|)$)/i.test(mainMsg[0]) && /^(change)$/i.test(mainMsg[1]):
             {
-                if (!adminSecret) return rply;
-                if (userid !== adminSecret) return rply;
+                if (!isAdminUser(userid)) return rply;
                 let allData = await schema.randomAnsAllgroup.findOne({}).lean().catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
                 if (!allData || !allData.randomAnsAllgroup) {
                     rply.text = '❌ 找不到 randomAnsAllgroup 資料';
@@ -737,8 +737,7 @@ const rollDiceCommand = async function ({
             }
         case /(^[.]ras$)/i.test(mainMsg[0]) && /^(delete)$/i.test(mainMsg[1]):
             {
-                if (!adminSecret) return rply;
-                if (userid !== adminSecret) return rply;
+                if (!isAdminUser(userid)) return rply;
                 const target = mainMsg.slice(2);
                 let dataList = await schema.randomAnsServer.deleteMany(
                     {
@@ -1005,6 +1004,14 @@ function escapeRegExp(target) {
         }
         return target;
     }
+}
+
+function parseAdminSecrets(rawAdminSecret) {
+    if (!rawAdminSecret) return [];
+    return rawAdminSecret
+        .split(/[\s,;]+/)
+        .map(secret => secret.trim())
+        .filter(Boolean);
 }
 
 const discordCommand = [

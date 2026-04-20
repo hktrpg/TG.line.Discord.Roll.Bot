@@ -70,9 +70,22 @@ let sharedConnectionPromise = null; // Shared connection Promise to avoid multip
 let connectionCooldown = false; // Connection cooldown period to avoid excessive connection attempts
 let connectionStartTime = null; // Track when connection attempts started
 let isShuttingDown = false; // When true, do not schedule restart on disconnect/error
+let shutdownGateLogPrinted = false;
+
+function isShutdownGateActive(caller = 'unknown') {
+    if (!isShuttingDown) return false;
+    if (!shutdownGateLogPrinted) {
+        console.warn(`[db-connector] Shutdown gate active, rejecting new connection work (caller: ${caller})`);
+        shutdownGateLogPrinted = true;
+    }
+    return true;
+}
 
 function notifyShuttingDown() {
     isShuttingDown = true;
+    reconnecting = false;
+    connectionCooldown = false;
+    sharedConnectionPromise = null;
     if (retryInterval) {
         clearInterval(retryInterval);
         retryInterval = null;
@@ -173,6 +186,10 @@ function classifyMongoDBError(error) {
 
 // Establish connection - Force only one connection, support multi-shard sharing
 async function connect(retries = 0) {
+    if (isShutdownGateActive('connect')) {
+        throw new Error('Shutdown in progress, connect aborted');
+    }
+
     // Check if there's already an active connection
     if (mongoose.connection.readyState === 1 && isConnected) {
         console.log('[db-connector] MongoDB connection already active, skipping...');
@@ -321,9 +338,12 @@ async function connect(retries = 0) {
                 // For permanent errors, wait longer before next attempt
                 const PERMANENT_ERROR_DELAY = 300_000; // 5 minutes
                 setTimeout(() => {
+                    if (isShuttingDown) return;
                     console.log('[db-connector] Attempting to reconnect after permanent error delay...');
                     connectionCooldown = false;
-                    connect(0);
+                    connect(0).catch((reconnectError) => {
+                        console.error('[db-connector] Reconnect after permanent error delay failed:', reconnectError?.message || reconnectError);
+                    });
                 }, PERMANENT_ERROR_DELAY);
 
                 throw error;
@@ -339,9 +359,12 @@ async function connect(retries = 0) {
                 // Schedule a retry after extended delay
                 const EXTENDED_RETRY_DELAY = 300_000; // 5 minutes
                 setTimeout(() => {
+                    if (isShuttingDown) return;
                     console.log('[db-connector] Attempting to reconnect after extended delay...');
                     connectionCooldown = false;
-                    connect(0);
+                    connect(0).catch((reconnectError) => {
+                        console.error('[db-connector] Reconnect after extended delay failed:', reconnectError?.message || reconnectError);
+                    });
                 }, EXTENDED_RETRY_DELAY);
 
                 throw error;
@@ -366,9 +389,12 @@ async function connect(retries = 0) {
             // Schedule a retry after extended delay
             const RETRY_DELAY = 120_000; // 2 minutes (increased from 1 minute)
             setTimeout(() => {
+                if (isShuttingDown) return;
                 console.log('[db-connector] Attempting to reconnect to MongoDB after extended delay...');
                 connectionCooldown = false;
-                connect(0);
+                connect(0).catch((reconnectError) => {
+                    console.error('[db-connector] Reconnect after retry delay failed:', reconnectError?.message || reconnectError);
+                });
             }, RETRY_DELAY);
 
             throw error; // Throw error so Promise rejects
@@ -445,6 +471,9 @@ function setupConnectionListeners() {
 
 // Reconnect
 async function restart() {
+    if (isShutdownGateActive('restart')) {
+        return false;
+    }
     console.log('[db-connector] Restarting MongoDB connection...');
     try {
         isConnected = false;
@@ -555,6 +584,10 @@ function checkHealth() {
 
 // Wait for connection to be ready (with timeout)
 async function waitForConnection(timeout = 30_000) {
+    if (isShutdownGateActive('waitForConnection')) {
+        throw new Error('Shutdown in progress, waitForConnection aborted');
+    }
+
     // If already connected, return immediately
     if (mongoose.connection.readyState === 1 && isConnected) {
         return true;
@@ -614,9 +647,16 @@ async function withTransaction(callback) {
 }
 
 // Graceful disconnect function
-async function disconnect() {
+async function disconnect(options = {}) {
+    const { permanent = false } = options;
     try {
         console.log('[db-connector] Disconnecting from MongoDB...');
+        reconnecting = false;
+        connectionCooldown = false;
+        sharedConnectionPromise = null;
+        if (permanent) {
+            isShuttingDown = true;
+        }
         if (mongoose.connection.readyState === 1) {
             await mongoose.connection.close();
             console.log('[db-connector] Successfully disconnected from MongoDB');
@@ -634,6 +674,10 @@ async function disconnect() {
 let retryInterval = null;
 
 async function initializeConnection() {
+    if (isShutdownGateActive('initializeConnection')) {
+        return;
+    }
+
     // Prevent duplicate initialization
     if (isInitializing) {
         console.log('[db-connector] MongoDB initialization already in progress, skipping...');
@@ -653,10 +697,20 @@ async function initializeConnection() {
         if (!success) {
             console.error('[db-connector] Failed to establish initial MongoDB connection after all retries');
             // Setup periodic retry
+            if (isShuttingDown) {
+                return;
+            }
             if (retryInterval) {
                 clearInterval(retryInterval);
             }
             retryInterval = setInterval(async () => {
+                if (isShuttingDown) {
+                    if (retryInterval) {
+                        clearInterval(retryInterval);
+                        retryInterval = null;
+                    }
+                    return;
+                }
                 try {
                     const retrySuccess = await connect();
                     if (retrySuccess) {
@@ -672,10 +726,20 @@ async function initializeConnection() {
     } catch (error) {
         console.error('[db-connector] Initial connection error:', error);
         // Setup periodic retry
+        if (isShuttingDown) {
+            return;
+        }
         if (retryInterval) {
             clearInterval(retryInterval);
         }
         retryInterval = setInterval(async () => {
+            if (isShuttingDown) {
+                if (retryInterval) {
+                    clearInterval(retryInterval);
+                    retryInterval = null;
+                }
+                return;
+            }
             try {
                 const retrySuccess = await connect();
                 if (retrySuccess) {

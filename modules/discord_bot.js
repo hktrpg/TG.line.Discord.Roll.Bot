@@ -369,6 +369,8 @@ async function getOwnerClusterIdByGuild(guildId) {
 }
 
 client.on('messageCreate', async message => {
+	const taskId = beginInFlightTask('messageCreate');
+	if (!taskId) return;
 	try {
 		if (isShuttingDown) return;
 		if (message.author.bot) return;
@@ -399,6 +401,8 @@ client.on('messageCreate', async message => {
 
 	} catch (error) {
 		console.error('[Discord Bot] messageCreate error:', error?.message);
+	} finally {
+		endInFlightTask(taskId);
 	}
 
 });
@@ -427,26 +431,33 @@ client.on('guildCreate', async guild => {
 
 // prependListener: run before any other interaction listeners so deferReply starts ASAP (3s Discord limit).
 client.prependListener('interactionCreate', async message => {
+	const taskId = beginInFlightTask('interactionCreate');
+	if (!taskId) return;
 	try {
+		if (isShuttingDown) return;
 		if (message.user && message.user.bot) return;
 		await __handlingInteractionMessage(message);
 	} catch (error) {
 		console.error('[Discord Bot] interactionCreate error:', (error && error.name), (error && error.message), (error && error.reason));
+	} finally {
+		endInFlightTask(taskId);
 	}
 });
 
 
 client.on('messageReactionAdd', async (reaction, user) => {
-	if (isShuttingDown) return;
-	if (!checkMongodb.isDbOnline()) return;
-	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId })
-		.cache(30)
-		.catch(error => {
-			console.error('[Discord Bot] MongoDB error in messageReactionAdd:', error.name, error.reason)
-			checkMongodb.dbErrOccurs();
-		})
+	const taskId = beginInFlightTask('messageReactionAdd');
+	if (!taskId) return;
 	try {
+		if (isShuttingDown) return;
+		if (!checkMongodb.isDbOnline()) return;
+		if (reaction.me) return;
+		const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId })
+			.cache(30)
+			.catch(error => {
+				console.error('[Discord Bot] MongoDB error in messageReactionAdd:', error.name, error.reason)
+				checkMongodb.dbErrOccurs();
+			})
 		if (!list || list.length === 0) return;
 		const detail = list.detail;
 		const findEmoji = detail.find(function (item) {
@@ -484,16 +495,20 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		}
 	} catch (error) {
 		console.error('[Discord Bot] messageReactionAdd error:', (error && error.name), (error && error.message), (error && error.reason))
+	} finally {
+		endInFlightTask(taskId);
 	}
 
 });
 
 client.on('messageReactionRemove', async (reaction, user) => {
-	if (isShuttingDown) return;
-	if (!checkMongodb.isDbOnline()) return;
-	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('[Discord Bot] MongoDB error in messageReactionRemove:', error.name, error.reason))
+	const taskId = beginInFlightTask('messageReactionRemove');
+	if (!taskId) return;
 	try {
+		if (isShuttingDown) return;
+		if (!checkMongodb.isDbOnline()) return;
+		if (reaction.me) return;
+		const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('[Discord Bot] MongoDB error in messageReactionRemove:', error.name, error.reason))
 		if (!list || list.length === 0) return;
 		const detail = list.detail;
 		for (let index = 0; index < detail.length; index++) {
@@ -520,6 +535,8 @@ client.on('messageReactionRemove', async (reaction, user) => {
 	} catch (error) {
 		if (error.message === 'Unknown Member') return;
 		console.error('[Discord Bot] messageReactionRemove error:', (error && error.name), (error && error.message), (error && error.reason))
+	} finally {
+		endInFlightTask(taskId);
 	}
 });
 
@@ -1645,6 +1662,10 @@ process.on('unhandledRejection', error => {
 let isShuttingDown = false;
 let shutdownTimeout = null;
 const SHUTDOWN_TIMEOUT = 15_000; // 15 seconds for Discord bot
+const INFLIGHT_DRAIN_TIMEOUT = 7000;
+const INFLIGHT_POLL_INTERVAL = 100;
+const inFlightTasks = new Map();
+let inFlightTaskSeq = 0;
 
 function safeStringify(value) {
 	try {
@@ -1652,6 +1673,27 @@ function safeStringify(value) {
 	} catch (error) {
 		return `{"serializationError":"${error && error.message ? error.message : 'unknown'}"}`;
 	}
+}
+
+function beginInFlightTask(taskName) {
+	if (isShuttingDown) return null;
+	const taskId = `${taskName}#${++inFlightTaskSeq}`;
+	inFlightTasks.set(taskId, { taskName, startedAt: Date.now() });
+	return taskId;
+}
+
+function endInFlightTask(taskId) {
+	if (!taskId) return;
+	inFlightTasks.delete(taskId);
+}
+
+async function waitForInFlightTasks(timeoutMs = INFLIGHT_DRAIN_TIMEOUT) {
+	const startedAt = Date.now();
+	while ((Date.now() - startedAt) < timeoutMs) {
+		if (inFlightTasks.size === 0) return true;
+		await new Promise(resolve => setTimeout(resolve, INFLIGHT_POLL_INTERVAL));
+	}
+	return inFlightTasks.size === 0;
 }
 
 function logShutdownTrigger({ signal = 'unknown', source = 'unknown', detail = null } = {}) {
@@ -1702,7 +1744,18 @@ async function gracefulShutdown(signal = 'unknown', source = 'unknown', detail =
 		// Notify health monitor
 		healthMonitor.emit('shutdown', { signal, source, detail, timestamp: new Date() });
 
-		// Clear all tracked timers
+		if (inFlightTasks.size > 0) {
+			console.warn(`[Discord Bot] Waiting for ${inFlightTasks.size} in-flight tasks before shutdown...`);
+		}
+		const drained = await waitForInFlightTasks(INFLIGHT_DRAIN_TIMEOUT);
+		if (!drained && inFlightTasks.size > 0) {
+			const pendingPreview = [...inFlightTasks.entries()]
+				.slice(0, 10)
+				.map(([id, task]) => `${id}:${Date.now() - task.startedAt}ms`);
+			console.warn(`[Discord Bot] In-flight drain timeout, pending tasks: ${inFlightTasks.size}, preview: ${pendingPreview.join(', ')}`);
+		}
+
+		// Clear tracked timers only after in-flight work has had a chance to finish.
 		timerManager.shutdown();
 
 		// Heartbeat monitoring is handled by HeartbeatManager in core-Discord.js

@@ -1046,10 +1046,30 @@ const rollDiceCommand = async function ({
             }
             case /^respawn$/i.test(mainMsg[1]):
                 if (mainMsg[2] === null) return rply;
-                discordClient.cluster.send({ respawn: true, id: mainMsg[2] });
+                discordClient.cluster.send({
+                    respawn: true,
+                    id: mainMsg[2],
+                    meta: {
+                        source: 'admin_command',
+                        trigger: '.root respawn',
+                        targetClusterId: mainMsg[2],
+                        userid,
+                        groupid,
+                        channelid
+                    }
+                });
                 return rply;
             case /^respawnall$/i.test(mainMsg[1]):
-                discordClient.cluster.send({ respawnall: true });
+                discordClient.cluster.send({
+                    respawnall: true,
+                    meta: {
+                        source: 'admin_command',
+                        trigger: '.root respawnall',
+                        userid,
+                        groupid,
+                        channelid
+                    }
+                });
                 return rply;
             case /^addVipGroup$/i.test(mainMsg[1]):
                 try {

@@ -41,12 +41,37 @@ const clusterOptions = {
 let isShuttingDown = false;
 let shutdownTimeout = null;
 
+function safeStringify(value) {
+    try {
+        return JSON.stringify(value);
+    } catch (error) {
+        return `{"serializationError":"${error && error.message ? error.message : 'unknown'}"}`;
+    }
+}
+
+function logClusterShutdownTrigger({ signal = 'unknown', source = 'unknown', detail = null } = {}) {
+    const timestamp = new Date().toISOString();
+    const stack = new Error('Cluster shutdown trigger stack').stack;
+    const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+    const detailText = detail ? safeStringify(detail) : '{}';
+
+    console.error('[Cluster] ========== SHUTDOWN TRIGGERED ==========');
+    console.error(`[Cluster] Timestamp: ${timestamp}`);
+    console.error(`[Cluster] Signal: ${signal}`);
+    console.error(`[Cluster] Source: ${source}`);
+    console.error(`[Cluster] Detail: ${detailText}`);
+    console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+    console.error(`[Cluster] Stack Trace:\n${stackLines}`);
+    console.error('[Cluster] =======================================');
+}
+
 // Graceful shutdown function (simplified as per attachment)
-async function gracefulShutdown() {
+async function gracefulShutdown({ signal = 'unknown', source = 'unknown', detail = null } = {}) {
     if (isShuttingDown) return;
     isShuttingDown = true;
 
-    console.log('[Cluster] Starting graceful shutdown...');
+    const detailText = detail ? safeStringify(detail) : '{}';
+    console.log(`[Cluster] Starting graceful shutdown (signal: ${signal}, source: ${source}, detail: ${detailText})...`);
 
     // Clear shutdown timeout
     if (shutdownTimeout) {
@@ -188,7 +213,8 @@ manager.on("clusterCreate", cluster => {
         if (isShuttingDown) return;
 
         if (message.respawn === true && message.id !== null && message.id !== undefined) {
-            console.log(`[Cluster] Respawning cluster ${message.id}`);
+            const meta = message.meta || {};
+            console.log(`[Cluster] Respawning cluster ${message.id} (source: ${meta.source || 'cluster_ipc'}, detail: ${safeStringify(meta)})`);
 
             try {
                 const targetCluster = manager.clusters.get(Number(message.id));
@@ -208,6 +234,8 @@ manager.on("clusterCreate", cluster => {
         }
 
         if (message.respawnall === true) {
+            const meta = message.meta || {};
+            console.log(`[Cluster] Respawning all clusters (source: ${meta.source || 'cluster_ipc'}, detail: ${safeStringify(meta)})`);
 
             try {
                 await manager.respawnAll({
@@ -289,7 +317,16 @@ manager.spawn({
 
 // Export shutdown function for use by index.js when running as module
 async function shutdown() {
-    return gracefulShutdown(); // Simplified as per attachment
+    logClusterShutdownTrigger({
+        signal: 'internal',
+        source: 'module_shutdown',
+        detail: { handler: 'shutdown() export' }
+    });
+    return gracefulShutdown({
+        signal: 'internal',
+        source: 'module_shutdown',
+        detail: { handler: 'shutdown() export' }
+    }); // Simplified as per attachment
 }
 
 // Process signal handling (simplified as per attachment)
@@ -301,7 +338,16 @@ process.on('SIGTERM', async () => {
         process.exit(1);
     }, 30_000); // 30 second timeout
 
-    await gracefulShutdown();
+    logClusterShutdownTrigger({
+        signal: 'SIGTERM',
+        source: 'process_signal',
+        detail: { handler: 'process.on(SIGTERM)' }
+    });
+    await gracefulShutdown({
+        signal: 'SIGTERM',
+        source: 'process_signal',
+        detail: { handler: 'process.on(SIGTERM)' }
+    });
 });
 
 process.on('SIGINT', async () => {
@@ -312,7 +358,16 @@ process.on('SIGINT', async () => {
         process.exit(1);
     }, 30_000); // 30 second timeout
 
-    await gracefulShutdown();
+    logClusterShutdownTrigger({
+        signal: 'SIGINT',
+        source: 'process_signal',
+        detail: { handler: 'process.on(SIGINT)' }
+    });
+    await gracefulShutdown({
+        signal: 'SIGINT',
+        source: 'process_signal',
+        detail: { handler: 'process.on(SIGINT)' }
+    });
 });
 
 // Export functions for use when required as module

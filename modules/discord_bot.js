@@ -1646,17 +1646,45 @@ let isShuttingDown = false;
 let shutdownTimeout = null;
 const SHUTDOWN_TIMEOUT = 15_000; // 15 seconds for Discord bot
 
-// Detailed signal tracking function
+function safeStringify(value) {
+	try {
+		return JSON.stringify(value);
+	} catch (error) {
+		return `{"serializationError":"${error && error.message ? error.message : 'unknown'}"}`;
+	}
+}
+
+function logShutdownTrigger({ signal = 'unknown', source = 'unknown', detail = null } = {}) {
+	const timestamp = new Date().toISOString();
+	const stack = new Error('Discord bot shutdown trigger stack').stack;
+	const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+	const detailText = detail ? safeStringify(detail) : '{}';
+
+	console.error('[Discord Bot] ========== SHUTDOWN TRIGGERED ==========');
+	console.error(`[Discord Bot] Timestamp: ${timestamp}`);
+	console.error(`[Discord Bot] Signal: ${signal}`);
+	console.error(`[Discord Bot] Source: ${source}`);
+	console.error(`[Discord Bot] Detail: ${detailText}`);
+	console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
+	console.error(`[Discord Bot] Stack Trace:\n${stackLines}`);
+	console.error('[Discord Bot] =======================================');
+}
+
+async function requestShutdown({ signal = 'unknown', source = 'unknown', detail = null } = {}) {
+	logShutdownTrigger({ signal, source, detail });
+	await gracefulShutdown(signal, source, detail);
+}
 
 // Graceful shutdown function
-async function gracefulShutdown(signal = 'unknown') {
+async function gracefulShutdown(signal = 'unknown', source = 'unknown', detail = null) {
 	if (isShuttingDown) {
-		console.log(`[Discord Bot] Shutdown already in progress, ignoring signal: ${signal}`);
+		console.log(`[Discord Bot] Shutdown already in progress, ignoring signal: ${signal}, source: ${source}`);
 		return;
 	}
 	isShuttingDown = true;
 
-	console.log(`[Discord Bot] Starting graceful shutdown (signal: ${signal})...`);
+	const detailText = detail ? safeStringify(detail) : '{}';
+	console.log(`[Discord Bot] Starting graceful shutdown (signal: ${signal}, source: ${source}, detail: ${detailText})...`);
 
 	// Clear shutdown timeout
 	if (shutdownTimeout) {
@@ -1672,7 +1700,7 @@ async function gracefulShutdown(signal = 'unknown') {
 
 	try {
 		// Notify health monitor
-		healthMonitor.emit('shutdown', { signal, timestamp: new Date() });
+		healthMonitor.emit('shutdown', { signal, source, detail, timestamp: new Date() });
 
 		// Clear all tracked timers
 		timerManager.shutdown();
@@ -1770,7 +1798,13 @@ process.on('SIGINT', async () => {
 		process.exit(1);
 	}, 15_000); // 15 second timeout
 
-	await gracefulShutdown();
+	await requestShutdown({
+		signal: 'SIGINT',
+		source: 'process_signal',
+		detail: {
+			handler: 'process.on(SIGINT)'
+		}
+	});
 });
 
 process.on('SIGTERM', async () => {
@@ -1797,14 +1831,20 @@ process.on('SIGTERM', async () => {
 		process.exit(1);
 	}, 15_000); // 15 second timeout
 
-	await gracefulShutdown();
+	await requestShutdown({
+		signal: 'SIGTERM',
+		source: 'process_signal',
+		detail: {
+			handler: 'process.on(SIGTERM)'
+		}
+	});
 });
 
-function respawnCluster2() {
+function respawnCluster2(meta = {}) {
 	try {
 		console.error(`[Respawn] Sending respawn command for cluster ${client.cluster.id}`);
 		// 使用與手動觸發相同的方法，發送訊息給 cluster manager
-		client.cluster.send({ respawn: true, id: client.cluster.id });
+		client.cluster.send({ respawn: true, id: client.cluster.id, meta });
 		console.error(`[Respawn] Respawn command sent successfully for cluster ${client.cluster.id}`);
 	} catch (error) {
 		console.error('[Respawn] ========== RESPAWN CLUSTER ERROR ==========');
@@ -2923,7 +2963,12 @@ async function handlingResponMessage(message, answer = '') {
 			console.error(`[User Command] Channel ID: ${channelid}`);
 			console.error(`[User Command] PID: ${process.pid}, PPID: ${process.ppid}`);
 			console.error('[User Command] ==========================================');
-			respawnCluster2();
+			respawnCluster2({
+				source: 'user_command',
+				trigger: 'rplyVal.respawn',
+				userid,
+				channelid
+			});
 		}
 		if (!rplyVal.text && !rplyVal.LevelUp) return;
 		if (process.env.mongoURL)

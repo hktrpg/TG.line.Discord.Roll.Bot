@@ -84,6 +84,18 @@ function traceLifecycle(event, detail = {}) {
     });
 }
 
+function isRoutineIpcMessage(message) {
+    // discord-hybrid-sharding routine telemetry payload
+    // _type 22 + shardData is high-frequency and usually not actionable.
+    return Boolean(
+        message &&
+        message._type === 22 &&
+        message.data &&
+        Number.isInteger(message.data.clusterId) &&
+        Array.isArray(message.data.shardData)
+    );
+}
+
 async function withLifecycleTrace(prefix, detail, operation) {
     const traceId = createTraceId(prefix);
     const context = { traceId };
@@ -341,10 +353,17 @@ manager.on("clusterCreate", cluster => {
     cluster.on("message", async message => {
         // Don't handle respawn messages if shutting down
         if (isShuttingDown) return;
-        console.log(`[Cluster ${cluster.id}] IPC message received`, {
-            runtime: getRuntimeMeta(),
-            message
-        });
+        const verboseIpc = process.env.LOG_VERBOSE_IPC === 'true';
+        const routineIpc = isRoutineIpcMessage(message);
+        const actionableIpc = message?.respawn === true || message?.respawnall === true;
+        const shouldLogIpc = verboseIpc || actionableIpc || !routineIpc;
+
+        if (shouldLogIpc) {
+            console.log(`[Cluster ${cluster.id}] IPC message received`, {
+                runtime: getRuntimeMeta(),
+                message
+            });
+        }
 
         if (message.respawn === true && message.id !== null && message.id !== undefined) {
             const meta = message.meta || {};

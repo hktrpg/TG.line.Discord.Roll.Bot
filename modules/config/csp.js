@@ -64,7 +64,7 @@ const cspConfig = {
         "'unsafe-inline'",
         "https://cdn.jsdelivr.net",
         "https://stackpath.bootstrapcdn.com",
-        "https://max.bootstrapcdn.com",
+        "https://maxcdn.bootstrapcdn.com",
         "https://fonts.googleapis.com",
         "https://cdnjs.cloudflare.com"],
     styleSrcElem: [
@@ -72,7 +72,7 @@ const cspConfig = {
         "'unsafe-inline'",
         "https://cdn.jsdelivr.net",
         "https://stackpath.bootstrapcdn.com",
-        "https://max.bootstrapcdn.com",
+        "https://maxcdn.bootstrapcdn.com",
         "https://fonts.googleapis.com",
         "https://cdnjs.cloudflare.com"
     ],

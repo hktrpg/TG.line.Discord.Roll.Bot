@@ -255,6 +255,8 @@ const courtMessage = require('./logs').courtMessage || function () { };
 
 const newMessage = require('./message');
 const healthMonitor = require('./health-monitor');
+const isAlertEnabled = String(process.env.ALERT || '').trim().toLowerCase() === 'true';
+const alertAdminIds = parseAdminIds(process.env.ADMIN_SECRET);
 
 const timerManager = require('./timer-manager');
 
@@ -262,6 +264,44 @@ const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const shardid = client.cluster.id;
 let ws;
 let isReconnecting = false; // Prevent multiple reconnection attempts
+
+function parseAdminIds(rawAdminSecret) {
+	if (!rawAdminSecret) return [];
+	return rawAdminSecret
+		.split(/[\s,;]+/)
+		.map(id => id.trim())
+		.filter(Boolean);
+}
+
+function formatShardAlertMessage(alert) {
+	const data = alert?.data || {};
+	const totalShards = data.totalShards ?? 'unknown';
+	const unhealthyShards = data.unhealthyShards ?? 'unknown';
+	const unresponsive = Array.isArray(data.unresponsiveShards) ? data.unresponsiveShards : [];
+	const shardList = unresponsive.length > 0 ? unresponsive.join(', ') : 'unknown';
+	const timestamp = new Date(alert?.timestamp || Date.now()).toISOString();
+	return [
+		'[HKTRPG Alert] Shard health issue detected',
+		`Severity: ${alert?.severity || 'unknown'}`,
+		`Time: ${timestamp}`,
+		`Unhealthy shards: ${unhealthyShards}/${totalShards}`,
+		`Unresponsive shard IDs: ${shardList}`
+	].join('\n');
+}
+
+healthMonitor.on('alert', async (alert) => {
+	if (!isAlertEnabled) return;
+	if (!alert || alert.type !== 'shardHealthIssue') return;
+	if (alertAdminIds.length === 0) {
+		console.warn('[Discord Bot] ALERT=true but ADMIN_SECRET is empty, skip shard alert DM.');
+		return;
+	}
+
+	const alertMessage = formatShardAlertMessage(alert);
+	for (const adminId of alertAdminIds) {
+		await SendToId(adminId, alertMessage);
+	}
+});
 
 // StoryTeller reaction poll support
 const POLL_EMOJIS = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯', '🇰', '🇱', '🇲', '🇳', '🇴', '🇵', '🇶', '🇷', '🇸', '🇹'];
@@ -1248,7 +1288,7 @@ async function checkShardHealth() {
             }
         }
 
-        return {
+        const healthSummary = {
             timestamp: new Date().toISOString(),
             totalShards,
             healthyShards: shardHealthResults.filter(s => s.responsive).length,
@@ -1256,6 +1296,16 @@ async function checkShardHealth() {
             unresponsiveShards: [...unresponsiveShards],
             shardDetails: shardHealthResults
         };
+
+		if (healthSummary.unresponsiveShards.length > 0) {
+			healthMonitor.raiseAlert('shardHealthIssue', {
+				totalShards: healthSummary.totalShards,
+				unhealthyShards: healthSummary.unhealthyShards,
+				unresponsiveShards: healthSummary.unresponsiveShards
+			});
+		}
+
+		return healthSummary;
     } catch (error) {
         console.error('[ShardFix] Error in checkShardHealth:', error.message);
         return { error: error.message };

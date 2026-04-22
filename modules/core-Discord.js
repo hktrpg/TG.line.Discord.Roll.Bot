@@ -15,6 +15,7 @@ const agenda = require('../modules/schedule')?.agenda;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
 const childProcess = require('node:child_process');
+const { AsyncLocalStorage } = require('node:async_hooks');
 require("./ds-deploy-commands");
 const clusterOptions = {
     token: channelSecret,
@@ -65,10 +66,41 @@ function stackWithoutHeader(rawStack) {
     return rawStack.split('\n').slice(2).join('\n');
 }
 
+let lifecycleTraceSeq = 0;
+const lifecycleTraceStore = new AsyncLocalStorage();
+
+function createTraceId(prefix = 'trace') {
+    lifecycleTraceSeq += 1;
+    return `${prefix}-${Date.now()}-${lifecycleTraceSeq}`;
+}
+
 function traceLifecycle(event, detail = {}) {
+    const traceContext = lifecycleTraceStore.getStore();
+    const traceId = detail.traceId || traceContext?.traceId || null;
     console.error(`[ClusterTrace] ${event}`, {
         runtime: getRuntimeMeta(),
+        traceId,
         detail
+    });
+}
+
+async function withLifecycleTrace(prefix, detail, operation) {
+    const traceId = createTraceId(prefix);
+    const context = { traceId };
+    traceLifecycle(`${prefix}_start`, { traceId, ...detail });
+    return lifecycleTraceStore.run(context, async () => {
+        try {
+            const result = await operation(traceId);
+            traceLifecycle(`${prefix}_success`, { traceId, ...detail });
+            return result;
+        } catch (error) {
+            traceLifecycle(`${prefix}_error`, {
+                traceId,
+                ...detail,
+                error: error?.message || String(error)
+            });
+            throw error;
+        }
     });
 }
 
@@ -79,7 +111,9 @@ function installChildKillTrace() {
     const originalKill = childProcess.ChildProcess.prototype.kill;
     childProcess.ChildProcess.prototype.kill = function patchedKill(signal, ...rest) {
         const stack = stackWithoutHeader(new Error('ChildProcess.kill trace').stack);
+        const traceContext = lifecycleTraceStore.getStore();
         traceLifecycle('child_process.kill_called', {
+            traceId: traceContext?.traceId || null,
             targetPid: this.pid,
             signal: signal || 'SIGTERM',
             connected: this.connected,
@@ -184,11 +218,16 @@ traceLifecycle('manager_initialized', {
 
 const originalRespawnAll = manager.respawnAll.bind(manager);
 manager.respawnAll = async (...args) => {
-    traceLifecycle('manager_respawnAll_called', {
+    return withLifecycleTrace('respawnAll', {
         args,
         stack: stackWithoutHeader(new Error('manager.respawnAll caller').stack)
+    }, async () => {
+        traceLifecycle('manager_respawnAll_called', {
+            args,
+            stack: stackWithoutHeader(new Error('manager.respawnAll caller').stack)
+        });
+        return originalRespawnAll(...args);
     });
-    return originalRespawnAll(...args);
 };
 
 // Improved event handling
@@ -226,16 +265,22 @@ manager.on('clusterCreate', shard => {
         console.error(`[Cluster ${shard.id}] ${event}:`, error, getRuntimeMeta());
         // Add retry logic (simplified as per attachment)
         if (event === 'death') {
-            setTimeout(() => {
+            setTimeout(async () => {
                 if (!isShuttingDown) {
                     console.log(`[Cluster ${shard.id}] Attempting to respawn...`, getRuntimeMeta());
                     try {
-                        traceLifecycle('cluster_respawn_called', {
+                        await withLifecycleTrace('clusterRespawn', {
                             clusterId: shard.id,
                             source: 'error_handler_death',
                             stack: stackWithoutHeader(new Error('cluster.respawn caller').stack)
+                        }, async () => {
+                            traceLifecycle('cluster_respawn_called', {
+                                clusterId: shard.id,
+                                source: 'error_handler_death',
+                                stack: stackWithoutHeader(new Error('cluster.respawn caller').stack)
+                            });
+                            await shard.respawn({ timeout: CLUSTER_RESPAWN_READY_MS });
                         });
-                        shard.respawn({ timeout: CLUSTER_RESPAWN_READY_MS });
                     } catch (error_) {
                         console.error(`[Cluster ${shard.id}] Failed to respawn:`, error_, getRuntimeMeta());
                     }
@@ -308,15 +353,22 @@ manager.on("clusterCreate", cluster => {
             try {
                 const targetCluster = manager.clusters.get(Number(message.id));
                 if (targetCluster) {
-                    traceLifecycle('cluster_respawn_called', {
+                    await withLifecycleTrace('clusterRespawn', {
                         clusterId: Number(message.id),
                         source: 'ipc_message_respawn',
                         meta,
                         stack: stackWithoutHeader(new Error('cluster.respawn via IPC caller').stack)
-                    });
-                    await targetCluster.respawn({
-                        delay: 1000,
-                        timeout: CLUSTER_RESPAWN_READY_MS
+                    }, async () => {
+                        traceLifecycle('cluster_respawn_called', {
+                            clusterId: Number(message.id),
+                            source: 'ipc_message_respawn',
+                            meta,
+                            stack: stackWithoutHeader(new Error('cluster.respawn via IPC caller').stack)
+                        });
+                        await targetCluster.respawn({
+                            delay: 1000,
+                            timeout: CLUSTER_RESPAWN_READY_MS
+                        });
                     });
                     console.log(`[Cluster] Successfully respawned cluster ${message.id}`);
                 } else {

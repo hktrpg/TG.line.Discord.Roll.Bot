@@ -25,8 +25,12 @@ const patreonTiers = require('./patreon-tiers.js');
 const patreonSync = require('./patreon-sync.js');
 
 const www = express();
-// Base directory for exported HTML logs, shared with other services
-const LOGLINK = (process.env.LOGLINK) ? process.env.LOGLINK + '/export/' : process.cwd() + '/export/';
+const isHttpUrl = (value) => /^https?:\/\//i.test(String(value || '').trim());
+// Base directory for exported HTML logs, shared with other services.
+// LOGLINK may be configured as a public URL; local file serving must always use a filesystem path.
+const exportBaseDir = (!process.env.LOGLINK || isHttpUrl(process.env.LOGLINK))
+    ? path.join(process.cwd(), 'export')
+    : path.resolve(process.env.LOGLINK, 'export');
 const exportHtmlRedirectHosts = (() => {
     const hosts = new Set();
     // Preferred: explicit host list for portability across deployments.
@@ -34,7 +38,9 @@ const exportHtmlRedirectHosts = (() => {
         .split(',')
         .map(host => host.trim().toLowerCase())
         .filter(Boolean);
-    configuredHosts.forEach(host => hosts.add(host));
+    for (const host of configuredHosts) {
+        hosts.add(host);
+    }
 
     // Fallback: infer from WEB_LINK (e.g. https://log.example.com/).
     if (hosts.size === 0 && process.env.WEB_LINK) {
@@ -45,6 +51,17 @@ const exportHtmlRedirectHosts = (() => {
             }
         } catch (error) {
             console.warn('[Web Server] Invalid WEB_LINK for export redirect host inference:', error.message);
+        }
+    }
+    // Also infer from LOGLINK when it is configured as a URL.
+    if (process.env.LOGLINK && isHttpUrl(process.env.LOGLINK)) {
+        try {
+            const url = new URL(process.env.LOGLINK);
+            if (url.hostname) {
+                hosts.add(url.hostname.toLowerCase());
+            }
+        } catch (error) {
+            console.warn('[Web Server] Invalid LOGLINK for export redirect host inference:', error.message);
         }
     }
     return hosts;
@@ -1232,10 +1249,10 @@ www.get('/log/:id', async (req, res) => {
 
     if (req.originalUrl.endsWith('html')) {
         // Sanitize and validate the file path
-        const logPath = path.resolve(LOGLINK, req.params.id);
+        const logPath = path.resolve(exportBaseDir, req.params.id);
 
         // Ensure the resolved path is within the allowed directory and file exists
-        if (!logPath.startsWith(path.resolve(LOGLINK)) || !fs.existsSync(logPath)) {
+        if (!logPath.startsWith(path.resolve(exportBaseDir)) || !fs.existsSync(logPath)) {
             res.sendFile(process.cwd() + '/views/includes/error.html');
             return;
         }

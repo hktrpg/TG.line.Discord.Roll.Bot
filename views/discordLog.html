@@ -2063,10 +2063,9 @@
             drawallDateforChart3();
         }
 
-        document.addEventListener("DOMContentLoaded", function () {
-            initializeVueComponents();
-            initializeCharts();
-        });
+        // NOTE:
+        // This template already initializes Vue/Chart instances earlier in the page.
+        // Avoid double-initialization here, which can break button bindings and chart rendering.
     </script>
 </body>
 <!-- HKTRPG Sad -- 20201015-->

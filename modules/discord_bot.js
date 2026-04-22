@@ -674,8 +674,9 @@ function handlingCountButton(message, mode) {
 	const content = message.message.content;
 	if (!/點擊了「|投擲了「|要求擲骰\/點擊/.test(content)) return;
 	const user = `${(message.member?.nickname || message.user.displayName) ? `${message.member?.nickname || message.user.displayName} (${message.user.username})` : message.user.username}`;
-
-	const button = `${modeString}了「${message.component.label}」`;
+	const buttonLabel = message.component?.label;
+	if (!buttonLabel) return content;
+	const button = `${modeString}了「${buttonLabel}」`;
 	const regexpButton = convertRegex(`${button}`)
 	let newContent = content;
 	if (/要求擲骰\/點擊/.test(newContent)) newContent = '';
@@ -766,9 +767,11 @@ async function sendMessage({ target, replyText, quotes = false, components = nul
 
 			await target.send(messageOptions);
 		} catch (error) {
-			if (error.message !== 'Cannot send messages to this user' &&
-				error.message !== 'Missing Permissions' &&
-				error.message !== 'Missing Access') {
+			const errorMessage = error?.message || '';
+			if (!errorMessage.includes('Cannot send messages to this user') &&
+				!errorMessage.includes('no mutual guilds') &&
+				!errorMessage.includes('Missing Permissions') &&
+				!errorMessage.includes('Missing Access')) {
 				console.error('[Discord Bot] Message send error:', error.message, 'chunk:', chunk);
 			}
 		}
@@ -2067,13 +2070,18 @@ async function repeatMessages(discord, message) {
 		for (let index = 0; index < message.myNames.length; index++) {
 			const element = message.myNames[index];
 			let text = await rollText(element.content);
-			let obj = {
-				content: text,
-				username: element.username,
-				avatarURL: element.avatarURL
-			};
 			let pair = (webhook && webhook.isThread) ? { threadId: discord.channel.id } : {};
-			await webhook.webhook.send({ ...obj, ...pair });
+			const chunks = typeof text === 'string'
+				? text.match(/[\s\S]{1,2000}/g) || ['']
+				: [''];
+			for (const chunk of chunks) {
+				let obj = {
+					content: chunk,
+					username: element.username,
+					avatarURL: element.avatarURL
+				};
+				await webhook.webhook.send({ ...obj, ...pair });
+			}
 
 		}
 

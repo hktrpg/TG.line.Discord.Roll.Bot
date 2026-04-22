@@ -1675,6 +1675,20 @@ function safeStringify(value) {
 	}
 }
 
+function getShutdownRuntimeMeta() {
+	const shardList = client?.cluster?.info?.SHARD_LIST;
+	const clusterId = client?.cluster?.id;
+	return {
+		pid: process.pid,
+		ppid: process.ppid,
+		uptimeSeconds: Number(process.uptime().toFixed(2)),
+		clusterId: Number.isInteger(clusterId) ? clusterId : 'unknown',
+		shardList: Array.isArray(shardList) ? shardList : [],
+		inFlightTaskCount: inFlightTasks.size,
+		isShuttingDown
+	};
+}
+
 function beginInFlightTask(taskName) {
 	if (isShuttingDown) return null;
 	const taskId = `${taskName}#${++inFlightTaskSeq}`;
@@ -1701,13 +1715,14 @@ function logShutdownTrigger({ signal = 'unknown', source = 'unknown', detail = n
 	const stack = new Error('Discord bot shutdown trigger stack').stack;
 	const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
 	const detailText = detail ? safeStringify(detail) : '{}';
+	const runtimeMeta = safeStringify(getShutdownRuntimeMeta());
 
 	console.error('[Discord Bot] ========== SHUTDOWN TRIGGERED ==========');
 	console.error(`[Discord Bot] Timestamp: ${timestamp}`);
 	console.error(`[Discord Bot] Signal: ${signal}`);
 	console.error(`[Discord Bot] Source: ${source}`);
 	console.error(`[Discord Bot] Detail: ${detailText}`);
-	console.error(`[Discord Bot] PID: ${process.pid}, PPID: ${process.ppid}`);
+	console.error(`[Discord Bot] Runtime: ${runtimeMeta}`);
 	console.error(`[Discord Bot] Stack Trace:\n${stackLines}`);
 	console.error('[Discord Bot] =======================================');
 }

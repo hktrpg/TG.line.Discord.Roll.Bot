@@ -49,6 +49,16 @@ function safeStringify(value) {
     }
 }
 
+function getRuntimeMeta() {
+    const uptimeSeconds = Number(process.uptime().toFixed(2));
+    return {
+        pid: process.pid,
+        ppid: process.ppid,
+        uptimeSeconds,
+        memory: process.memoryUsage()
+    };
+}
+
 function logClusterShutdownTrigger({ signal = 'unknown', source = 'unknown', detail = null } = {}) {
     const timestamp = new Date().toISOString();
     const stack = new Error('Cluster shutdown trigger stack').stack;
@@ -132,6 +142,7 @@ const manager = new ClusterManager('./modules/discord_bot.js', clusterOptions);
 // Improved event handling
 let heartbeatStarted = false;
 manager.on('clusterCreate', shard => {
+    console.log(`[Cluster ${shard.id}] Created`, getRuntimeMeta());
 
     shard.on('ready', () => {
         // Get cluster configuration values
@@ -160,16 +171,16 @@ manager.on('clusterCreate', shard => {
         // Don't handle errors if shutting down
         if (isShuttingDown) return;
 
-        console.error(`[Cluster ${shard.id}] ${event}:`, error);
+        console.error(`[Cluster ${shard.id}] ${event}:`, error, getRuntimeMeta());
         // Add retry logic (simplified as per attachment)
         if (event === 'death') {
             setTimeout(() => {
                 if (!isShuttingDown) {
-                    console.log(`[Cluster ${shard.id}] Attempting to respawn...`);
+                    console.log(`[Cluster ${shard.id}] Attempting to respawn...`, getRuntimeMeta());
                     try {
                         shard.respawn({ timeout: CLUSTER_RESPAWN_READY_MS });
                     } catch (error_) {
-                        console.error(`[Cluster ${shard.id}] Failed to respawn:`, error_);
+                        console.error(`[Cluster ${shard.id}] Failed to respawn:`, error_, getRuntimeMeta());
                     }
                 }
             }, RETRY_DELAY);
@@ -177,19 +188,28 @@ manager.on('clusterCreate', shard => {
     };
 
     shard.on('disconnect', () => {
-        errorHandler('Disconnect');
+        errorHandler('Disconnect', {
+            reason: 'Cluster disconnect event',
+            runtime: getRuntimeMeta()
+        });
     });
 
     shard.on('reconnecting', () => {
-        // console.log(`[Cluster ${shard.id}] Reconnecting...`);
+        console.warn(`[Cluster ${shard.id}] Reconnecting...`, getRuntimeMeta());
     });
 
-    shard.on('death', (process) => {
-        errorHandler('Death', `Exit code: ${process.exitCode}`);
+    shard.on('death', (childProcess) => {
+        errorHandler('Death', {
+            message: 'Cluster child process died',
+            exitCode: childProcess.exitCode,
+            signalCode: childProcess.signalCode,
+            killed: childProcess.killed,
+            runtime: getRuntimeMeta()
+        });
     });
 
     shard.on('error', (error) => {
-        console.error(`[Cluster] Cluster ${shard.id} error:`, error.message || error);
+        console.error(`[Cluster] Cluster ${shard.id} error:`, error.message || error, getRuntimeMeta());
         if (error.stack) console.error(`[Cluster] Stack trace:\n${error.stack}`);
         errorHandler('Error', error);
     });
@@ -199,11 +219,19 @@ manager.on('clusterCreate', shard => {
 manager.on("clusterCreate", cluster => {
     // Handle IPC process errors (like EPIPE)
     if (cluster.process) {
+        cluster.process.on('exit', (code, signal) => {
+            console.warn(`[Cluster ${cluster.id}] Child process exit`, {
+                code,
+                signal,
+                runtime: getRuntimeMeta()
+            });
+        });
+
         cluster.process.on('error', (error) => {
             if (error.code === 'EPIPE') {
-                console.warn(`[Cluster ${cluster.id}] IPC EPIPE error (child process likely dead)`);
+                console.warn(`[Cluster ${cluster.id}] IPC EPIPE error (child process likely dead)`, getRuntimeMeta());
             } else {
-                console.error(`[Cluster ${cluster.id}] Child process error:`, error);
+                console.error(`[Cluster ${cluster.id}] Child process error:`, error, getRuntimeMeta());
             }
         });
     }
@@ -211,6 +239,10 @@ manager.on("clusterCreate", cluster => {
     cluster.on("message", async message => {
         // Don't handle respawn messages if shutting down
         if (isShuttingDown) return;
+        console.log(`[Cluster ${cluster.id}] IPC message received`, {
+            runtime: getRuntimeMeta(),
+            message
+        });
 
         if (message.respawn === true && message.id !== null && message.id !== undefined) {
             const meta = message.meta || {};

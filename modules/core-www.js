@@ -27,6 +27,28 @@ const patreonSync = require('./patreon-sync.js');
 const www = express();
 // Base directory for exported HTML logs, shared with other services
 const LOGLINK = (process.env.LOGLINK) ? process.env.LOGLINK + '/export/' : process.cwd() + '/export/';
+const exportHtmlRedirectHosts = (() => {
+    const hosts = new Set();
+    // Preferred: explicit host list for portability across deployments.
+    const configuredHosts = String(process.env.EXPORT_HTML_REDIRECT_HOSTS || '')
+        .split(',')
+        .map(host => host.trim().toLowerCase())
+        .filter(Boolean);
+    configuredHosts.forEach(host => hosts.add(host));
+
+    // Fallback: infer from WEB_LINK (e.g. https://log.example.com/).
+    if (hosts.size === 0 && process.env.WEB_LINK) {
+        try {
+            const url = new URL(process.env.WEB_LINK);
+            if (url.hostname) {
+                hosts.add(url.hostname.toLowerCase());
+            }
+        } catch (error) {
+            console.warn('[Web Server] Invalid WEB_LINK for export redirect host inference:', error.message);
+        }
+    }
+    return hosts;
+})();
 const MESSAGE_SPLITOR = (/\S+/ig)
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
@@ -1224,6 +1246,25 @@ www.get('/log/:id', async (req, res) => {
         // Send error.html for non-html requests
         res.sendFile(process.cwd() + '/views/includes/error.html');
     }
+});
+
+// Backward-compatible shortcut:
+// /<file>.html -> /log/<file>.html
+// This keeps old/shared links working while preserving /log path validation.
+www.get(/^\/([^/]+\.html)$/i, async (req, res, next) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    // Restrict shortcut redirect to configured export-link hosts only.
+    // Use EXPORT_HTML_REDIRECT_HOSTS for multi-domain deployments.
+    const requestHost = String(req.hostname || '').toLowerCase();
+    if (!exportHtmlRedirectHosts.has(requestHost)) {
+        next();
+        return;
+    }
+    const fileName = req.params[0];
+    res.redirect(`/log/${encodeURIComponent(fileName)}`);
 });
 
 www.get('/:xx', async (req, res) => {

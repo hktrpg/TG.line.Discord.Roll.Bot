@@ -224,6 +224,49 @@ www.get('*/favicon.ico', async (req, res) => {
 });
 www.use(favicon(path.join(process.cwd(), 'views/image', 'favicon.ico')));
 
+async function handleApiRequest(req, res) {
+    if (!APIswitch || await limitRaterApi(req.ip)) return;
+
+    if (
+        !req || !req.query || !req.query.msg
+    ) {
+        res.writeHead(200, { 'Content-type': 'application/json' });
+        res.end(String.raw`{"message":"welcome to HKTRPG API.\n To use, please enter the content in query: msg \n like https://api.hktrpg.com?msg=1d100\n command bothelp for tutorials."}`);
+        return;
+    }
+
+    let ip = req.headers['x-forwarded-for'] ||
+        req.socket.remoteAddress ||
+        null;
+    if (ip && await limitRaterApi(ip)) return;
+    let rplyVal = {};
+    let trigger = '';
+    let mainMsg = req.query.msg.match(MESSAGE_SPLITOR); // 定義輸入字串
+    if (mainMsg && mainMsg[0])
+        trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
+
+    // 訊息來到後, 會自動跳到analytics.js進行骰組分析
+    // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+    if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
+        rplyVal = await exports.analytics.parseInput({
+            inputStr: mainMsg.join(' '),
+            botname: "Api"
+        });
+    } else {
+        if (channelKeyword == '') {
+            rplyVal = await exports.analytics.parseInput({
+                inputStr: mainMsg.join(' '),
+                botname: "Api"
+            });
+        }
+    }
+
+    if (!rplyVal || !rplyVal.text) rplyVal.text = '';
+    res.writeHead(200, { 'Content-type': 'application/json' });
+    res.end(`{"message":"${jsonEscape(rplyVal.text)}"}`);
+    return;
+}
+
 www.get('/', async (req, res) => {
     if (await checkRateLimit('api', req.ip)) {
         res.status(429).end();
@@ -232,6 +275,12 @@ www.get('/', async (req, res) => {
 
     const hostHeader = req.headers.host || '';
     const hostname = hostHeader.split(':')[0].toLowerCase();
+
+    // Keep URL on root for api host: https://api.hktrpg.com/?msg=...
+    if (hostname.startsWith('api.') || hostname.startsWith('api2.')) {
+        await handleApiRequest(req, res);
+        return;
+    }
 
     // Map subdomains to specific pages.
     // This only depends on the Host header, so localhost/127.0.0.1 keep existing behavior.
@@ -279,49 +328,7 @@ www.get('/', async (req, res) => {
     res.sendFile(process.cwd() + '/views/index.html');
 });
 www.get('/api', async (req, res) => {
-    if (!APIswitch || await limitRaterApi(req.ip)) return;
-
-    if (
-        !req || !req.query || !req.query.msg
-    ) {
-        res.writeHead(200, { 'Content-type': 'application/json' })
-        res.end(String.raw`{"message":"welcome to HKTRPG API.\n To use, please enter the content in query: msg \n like https://api.hktrpg.com?msg=1d100\n command bothelp for tutorials."}`)
-        return;
-    }
-
-    let ip = req.headers['x-forwarded-for'] ||
-        req.socket.remoteAddress ||
-        null;
-    if (ip && await limitRaterApi(ip)) return;
-    let rplyVal = {}
-    let trigger = '';
-    let mainMsg = req.query.msg.match(MESSAGE_SPLITOR); // 定義輸入字串
-    if (mainMsg && mainMsg[0])
-        trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
-
-    // 訊息來到後, 會自動跳到analytics.js進行骰組分析
-    // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-    if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-        rplyVal = await exports.analytics.parseInput({
-            inputStr: mainMsg.join(' '),
-            botname: "Api"
-        })
-
-    } else {
-        if (channelKeyword == '') {
-            rplyVal = await exports.analytics.parseInput({
-                inputStr: mainMsg.join(' '),
-                botname: "Api"
-            })
-        }
-    }
-
-    if (!rplyVal || !rplyVal.text) rplyVal.text = '';
-    res.writeHead(200, { 'Content-type': 'application/json' })
-    res.end(`{"message":"${jsonEscape(rplyVal.text)}"}`)
-    return;
-
-
+    await handleApiRequest(req, res);
 });
 
 // Local bot endpoint for personal room (no broadcasting/records)

@@ -611,7 +611,7 @@ async function upgradePasswordIfLegacy(userName, password, currentHash) {
                     legacyPassword: currentHash // 備份舊密碼
                 }
             },
-            { new: true }
+            { returnDocument: 'after' }
         );
         
         if (result) {

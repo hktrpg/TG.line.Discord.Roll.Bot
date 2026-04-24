@@ -3,7 +3,10 @@ if (!process.env.WHATSAPP_SWITCH) return;
 
 if (process.env.BROADCAST) {
 	const WebSocket = require('ws');
-	const ws = new WebSocket('ws://127.0.0.1:53589');
+	const wsHost = process.env.WWW_WS_HOST || '127.0.0.1';
+	const wsPort = process.env.WWW_WS_PORT || '53589';
+	const wsUrl = `ws://${wsHost}:${wsPort}`;
+	const ws = new WebSocket(wsUrl);
 	ws.on('open', function open() {
 		console.log('[Whatsapp] connected To core-www from Whatsapp!')
 		ws.send('connected To core-www from Whatsapp!');
@@ -19,7 +22,13 @@ if (process.env.BROADCAST) {
 	});
 }
 
+const fs = require('fs');
+const path = require('path');
 const qrcode = require('qrcode-terminal');
+// Match LocalAuth dataPath: default .wwebjs_auth under cwd, or set WWEBJS_AUTH_DATA_PATH if your Docker volume is elsewhere.
+const wwebjsAuthRoot = process.env.WWEBJS_AUTH_DATA_PATH
+	? path.resolve(process.env.WWEBJS_AUTH_DATA_PATH)
+	: path.join(process.cwd(), '.wwebjs_auth');
 const {
 	Client, LocalAuth, MessageMedia
 } = require('whatsapp-web.js');
@@ -73,6 +82,31 @@ const normalPuppeteer = {
 			: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
 };
 
+// Chromium lock files left after Docker restart / SIGKILL (LocalAuth userDataDir: .wwebjs_auth/session).
+const CHROME_LOCK_FILES = ['SingletonLock', 'SingletonSocket', 'SingletonCookie'];
+
+function cleanupChromeProfileLock() {
+	const sessionDir = path.join(wwebjsAuthRoot, 'session');
+	const dirs = [sessionDir, path.join(sessionDir, 'Default')];
+	try {
+		for (const dir of dirs) {
+			for (const name of CHROME_LOCK_FILES) {
+				const filePath = path.join(dir, name);
+				try {
+					if (fs.existsSync(filePath)) {
+						fs.rmSync(filePath, { force: true });
+						console.log('[WhatsApp] Removed stale Chrome lock:', filePath);
+					}
+				} catch (error) {
+					console.error('[WhatsApp] Failed to remove lock:', filePath, error.message);
+				}
+			}
+		}
+	} catch (error) {
+		console.error('[WhatsApp] Lock cleanup failed:', error.message);
+	}
+}
+
 const newMessage = require('./message');
 
 exports.analytics = require('./analytics');
@@ -84,15 +118,17 @@ const MESSAGE_SPLITOR = (/\S+/ig);
 
 async function startUp() {
 	try {
+		cleanupChromeProfileLock();
+
 		const client = new Client({
-			authStrategy: new LocalAuth(),
+			authStrategy: new LocalAuth({ dataPath: wwebjsAuthRoot }),
 			puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer
 		});
 		whatsappClient = client;
 
 		client.initialize().catch(error => {
 			console.error('[WhatsApp Init Error]', error);
-			if (error.message.includes('Failed to launch')) {
+			if (error.message && error.message.includes('Failed to launch')) {
 				console.log('[Whatsapp] 請確認已安裝 Google Chrome，或手動設定 Chrome 路徑');
 			}
 		});
@@ -513,6 +549,8 @@ exports.shutdown = async function shutdown() {
 		}
 		whatsappClient = null;
 	}
+	// Clear Chromium singleton locks after shutdown so Docker restarts / SIGKILL do not leave stale locks.
+	cleanupChromeProfileLock();
 };
 
 startUp();

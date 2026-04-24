@@ -29,9 +29,14 @@ TGclient.on('message:text', (ctx) => {
         let trigger = "",
             mainMsg = "",
             userid = "";
+        // robotName is set in TGclient.start onStart; fallback only if a message arrives before onStart completes.
         if (!robotName) {
-            let botInfo = await TGclient.api.getMe();
-            robotName = botInfo.username;
+            try {
+                const botInfo = await TGclient.api.getMe();
+                robotName = botInfo.username;
+            } catch (error) {
+                console.error('[Telegram] getMe failed:', error.message);
+            }
         }
         if (ctx.from.id) userid = ctx.from.id;
         const options = {};
@@ -270,7 +275,10 @@ let ws;
 
 // eslint-disable-next-line no-unused-vars
 const connect = function () {
-    ws = new WebSocket('ws://127.0.0.1:53589');
+    const wsHost = process.env.WWW_WS_HOST || '127.0.0.1';
+    const wsPort = process.env.WWW_WS_PORT || '53589';
+    const wsUrl = `ws://${wsHost}:${wsPort}`;
+    ws = new WebSocket(wsUrl);
     ws.on('open', function open() {
         console.log('[Telegram] connected To core-www from Telegram!')
         ws.send('connected To core-www from Telegram!');
@@ -332,8 +340,9 @@ async function nonDice(ctx) {
 
 
 TGclient.on('message:new_chat_members', async (ctx) => {
-    let newUser = await TGclient.api.getMe();
-    if (ctx.message.new_chat_member.username == newUser.username) {
+    const botInfo = await TGclient.api.getMe().catch(() => null);
+    const botUsername = robotName || botInfo?.username;
+    if (botUsername && ctx.message.new_chat_member.username == botUsername) {
         console.log("[Telegram] Telegram joined");
         SendToId(ctx.chat.id, newMessage.joinMessage());
     }
@@ -466,6 +475,7 @@ async function __sendMeMessage({ ctx, rplyVal, }) {
 
 TGclient.start({
     onStart: (botInfo) => {
+        robotName = botInfo.username || '';
         console.log(`[Telegram] Bot started as ${botInfo.username}`);
     },
     onError: (error) => {

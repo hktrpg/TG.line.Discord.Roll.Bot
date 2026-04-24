@@ -11,7 +11,7 @@ const candle = require('../modules/candleDays.js');
 const records = require('../modules/records.js');
 const schema = require('../modules/schema.js');
 const clusterProtection = require('../modules/cluster-protection.js');
-// const dbProtectionLayer = require('../modules/db-protection-layer.js'); // Reserved for future database protection
+const dbProtectionLayer = require('../modules/db-protection-layer.js');
 const dbConnector = require('../modules/db-connector.js');
 
 exports.analytics = require('./analytics');
@@ -21,6 +21,65 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 // adminSecret removed - no longer needed after custom heartbeat monitoring removal
 const { Client } = Discord;
 const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType, MessageFlags, WebhookClient } = Discord;
+
+/** Slash commands that defer with Ephemeral (fewer sync checks before deferReply). */
+const EPHEMERAL_DEFER_COMMAND_NAMES = new Set(['state', 'help', 'bothelp', 'info']);
+
+function isDiscordUnknownInteraction(error) {
+	if (!error || typeof error !== 'object') return false;
+	if (error.code === 10_062) return true;
+	if (String(error.code) === '10062' || String(error.code) === '10_062') return true;
+	const msg = error.message;
+	return typeof msg === 'string' && msg.includes('Unknown interaction');
+}
+
+/**
+ * Human-readable label for logs: slash name + optional subcommand group/subcommand; else button label / customId.
+ * @param {import('discord.js').BaseInteraction} [interaction]
+ */
+function getInteractionCommandLabel(interaction) {
+	if (!interaction) return 'unknown';
+	try {
+		if (interaction.isChatInputCommand?.()) {
+			const parts = [interaction.commandName || 'unknown'];
+			const group = interaction.options.getSubcommandGroup(false);
+			const sub = interaction.options.getSubcommand(false);
+			if (group) parts.push(group);
+			if (sub) parts.push(sub);
+			return parts.join(' ');
+		}
+	} catch {
+		// ignore
+	}
+	if (interaction.commandName) return interaction.commandName;
+	if (interaction.component?.label) return interaction.component.label;
+	if (typeof interaction.customId === 'string') return interaction.customId.slice(0, 96);
+	return 'unknown';
+}
+
+/** ms since Discord created the interaction (for diagnosing 3s ack window vs event-loop delay). */
+function interactionHandlerAgeMs(interaction) {
+	if (!interaction || interaction.createdTimestamp == null) return null;
+	return Date.now() - interaction.createdTimestamp;
+}
+
+/**
+ * Same style as "Slow interaction deferral (…ms): …" — grep: Interaction expired (10062)
+ * Includes handlerAge when possible: if meta.handlerAgeMs set (e.g. defer at handler entry), use it; else now - createdTimestamp.
+ * @param {string} reason - Stable tag for stats (defer_main_handler, edit_reply, …)
+ * @param {import('discord.js').BaseInteraction} [interaction]
+ * @param {{ durationMs?: number, handlerAgeMs?: number }} [meta]
+ */
+function warnInteraction10062(reason, interaction, meta = {}) {
+	const label = getInteractionCommandLabel(interaction);
+	const dur = meta.durationMs != null ? ` (${meta.durationMs}ms)` : '';
+	let ageSuffix = '';
+	if (interaction?.createdTimestamp != null) {
+		const age = meta.handlerAgeMs != null ? meta.handlerAgeMs : interactionHandlerAgeMs(interaction);
+		if (age != null) ageSuffix = ` handlerAge=${age}ms`;
+	}
+	console.warn(`Interaction expired (10062) [${reason}]${dur}: ${label}${ageSuffix}`);
+}
 
 // Multi-server functionality temporarily disabled
 // const multiServer = require('../modules/multi-server')
@@ -38,14 +97,23 @@ client.on('clientReady', () => {
 client.cluster = new ClusterClient(client);
 
 // Register Discord cluster/shard context for dbWatchdog logs (e.g. "MongoDB connection not ready")
-checkMongodb.setLogContextGetter(() => {
+const getDiscordClusterContext = () => {
     const clusterId = client.cluster?.id;
     const shardList = client.cluster?.info?.SHARD_LIST;
-    if (clusterId === undefined && !shardList) return null;
+    const envClusterId = process.env.CLUSTER_ID ?? process.env.CLUSTER ?? '?';
+    const resolvedClusterId = (clusterId !== undefined) ? clusterId : envClusterId;
     const shardsStr = Array.isArray(shardList) && shardList.length > 0
         ? `shards [${shardList.join(', ')}]`
         : 'shards (pending)';
-    return `Discord cluster ${clusterId ?? '?'}, ${shardsStr}`;
+    return `Discord cluster ${resolvedClusterId}, ${shardsStr}`;
+};
+
+checkMongodb.setLogContextGetter(() => {
+    return getDiscordClusterContext();
+});
+
+dbProtectionLayer.setLogContextGetter(() => {
+    return getDiscordClusterContext();
 });
 
 // AutoResharder client for automatic re-sharding
@@ -180,13 +248,15 @@ loginWithErrorHandling();
 
 const MESSAGE_SPLITOR = (/\S+/ig);
 const link = process.env.WEB_LINK;
-const mongo = process.env.mongoURL
+const mongo = process.env.mongoURL;
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const EXPUP = require('./level').EXPUP || function () { };
 const courtMessage = require('./logs').courtMessage || function () { };
 
 const newMessage = require('./message');
 const healthMonitor = require('./health-monitor');
+const isAlertEnabled = String(process.env.ALERT || '').trim().toLowerCase() === 'true';
+const alertAdminIds = parseAdminIds(process.env.ADMIN_SECRET);
 
 const timerManager = require('./timer-manager');
 
@@ -194,6 +264,44 @@ const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const shardid = client.cluster.id;
 let ws;
 let isReconnecting = false; // Prevent multiple reconnection attempts
+
+function parseAdminIds(rawAdminSecret) {
+	if (!rawAdminSecret) return [];
+	return rawAdminSecret
+		.split(/[\s,;]+/)
+		.map(id => id.trim())
+		.filter(Boolean);
+}
+
+function formatShardAlertMessage(alert) {
+	const data = alert?.data || {};
+	const totalShards = data.totalShards ?? 'unknown';
+	const unhealthyShards = data.unhealthyShards ?? 'unknown';
+	const unresponsive = Array.isArray(data.unresponsiveShards) ? data.unresponsiveShards : [];
+	const shardList = unresponsive.length > 0 ? unresponsive.join(', ') : 'unknown';
+	const timestamp = new Date(alert?.timestamp || Date.now()).toISOString();
+	return [
+		'[HKTRPG Alert] Shard health issue detected',
+		`Severity: ${alert?.severity || 'unknown'}`,
+		`Time: ${timestamp}`,
+		`Unhealthy shards: ${unhealthyShards}/${totalShards}`,
+		`Unresponsive shard IDs: ${shardList}`
+	].join('\n');
+}
+
+healthMonitor.on('alert', async (alert) => {
+	if (!isAlertEnabled) return;
+	if (!alert || alert.type !== 'shardHealthIssue') return;
+	if (alertAdminIds.length === 0) {
+		console.warn('[Discord Bot] ALERT=true but ADMIN_SECRET is empty, skip shard alert DM.');
+		return;
+	}
+
+	const alertMessage = formatShardAlertMessage(alert);
+	for (const adminId of alertAdminIds) {
+		await SendToId(adminId, alertMessage);
+	}
+});
 
 // StoryTeller reaction poll support
 const POLL_EMOJIS = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯', '🇰', '🇱', '🇲', '🇳', '🇴', '🇵', '🇶', '🇷', '🇸', '🇹'];
@@ -301,6 +409,8 @@ async function getOwnerClusterIdByGuild(guildId) {
 }
 
 client.on('messageCreate', async message => {
+	const taskId = beginInFlightTask('messageCreate');
+	if (!taskId) return;
 	try {
 		if (isShuttingDown) return;
 		if (message.author.bot) return;
@@ -331,6 +441,8 @@ client.on('messageCreate', async message => {
 
 	} catch (error) {
 		console.error('[Discord Bot] messageCreate error:', error?.message);
+	} finally {
+		endInFlightTask(taskId);
 	}
 
 });
@@ -359,26 +471,33 @@ client.on('guildCreate', async guild => {
 
 // prependListener: run before any other interaction listeners so deferReply starts ASAP (3s Discord limit).
 client.prependListener('interactionCreate', async message => {
+	const taskId = beginInFlightTask('interactionCreate');
+	if (!taskId) return;
 	try {
+		if (isShuttingDown) return;
 		if (message.user && message.user.bot) return;
 		await __handlingInteractionMessage(message);
 	} catch (error) {
 		console.error('[Discord Bot] interactionCreate error:', (error && error.name), (error && error.message), (error && error.reason));
+	} finally {
+		endInFlightTask(taskId);
 	}
 });
 
 
 client.on('messageReactionAdd', async (reaction, user) => {
-	if (isShuttingDown) return;
-	if (!checkMongodb.isDbOnline()) return;
-	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId })
-		.cache(30)
-		.catch(error => {
-			console.error('[Discord Bot] MongoDB error in messageReactionAdd:', error.name, error.reason)
-			checkMongodb.dbErrOccurs();
-		})
+	const taskId = beginInFlightTask('messageReactionAdd');
+	if (!taskId) return;
 	try {
+		if (isShuttingDown) return;
+		if (!checkMongodb.isDbOnline()) return;
+		if (reaction.me) return;
+		const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId })
+			.cache(30)
+			.catch(error => {
+				console.error('[Discord Bot] MongoDB error in messageReactionAdd:', error.name, error.reason)
+				checkMongodb.dbErrOccurs();
+			})
 		if (!list || list.length === 0) return;
 		const detail = list.detail;
 		const findEmoji = detail.find(function (item) {
@@ -416,16 +535,20 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		}
 	} catch (error) {
 		console.error('[Discord Bot] messageReactionAdd error:', (error && error.name), (error && error.message), (error && error.reason))
+	} finally {
+		endInFlightTask(taskId);
 	}
 
 });
 
 client.on('messageReactionRemove', async (reaction, user) => {
-	if (isShuttingDown) return;
-	if (!checkMongodb.isDbOnline()) return;
-	if (reaction.me) return;
-	const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('[Discord Bot] MongoDB error in messageReactionRemove:', error.name, error.reason))
+	const taskId = beginInFlightTask('messageReactionRemove');
+	if (!taskId) return;
 	try {
+		if (isShuttingDown) return;
+		if (!checkMongodb.isDbOnline()) return;
+		if (reaction.me) return;
+		const list = await schema.roleReact.findOne({ messageID: reaction.message.id, groupid: reaction.message.guildId }).catch(error => console.error('[Discord Bot] MongoDB error in messageReactionRemove:', error.name, error.reason))
 		if (!list || list.length === 0) return;
 		const detail = list.detail;
 		for (let index = 0; index < detail.length; index++) {
@@ -452,6 +575,8 @@ client.on('messageReactionRemove', async (reaction, user) => {
 	} catch (error) {
 		if (error.message === 'Unknown Member') return;
 		console.error('[Discord Bot] messageReactionRemove error:', (error && error.name), (error && error.message), (error && error.reason))
+	} finally {
+		endInFlightTask(taskId);
 	}
 });
 
@@ -531,6 +656,10 @@ async function replilyMessage(message, result) {
 				return await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, flags: MessageFlags.Ephemeral });
 			}
 		} catch (error) {
+			if (isDiscordUnknownInteraction(error)) {
+				warnInteraction10062('replily_no_result', message);
+				return;
+			}
 			console.error('replilyMessage error:', error);
 			return;
 		}
@@ -545,8 +674,9 @@ function handlingCountButton(message, mode) {
 	const content = message.message.content;
 	if (!/點擊了「|投擲了「|要求擲骰\/點擊/.test(content)) return;
 	const user = `${(message.member?.nickname || message.user.displayName) ? `${message.member?.nickname || message.user.displayName} (${message.user.username})` : message.user.username}`;
-
-	const button = `${modeString}了「${message.component.label}」`;
+	const buttonLabel = message.component?.label;
+	if (!buttonLabel) return content;
+	const button = `${modeString}了「${buttonLabel}」`;
 	const regexpButton = convertRegex(`${button}`)
 	let newContent = content;
 	if (/要求擲骰\/點擊/.test(newContent)) newContent = '';
@@ -637,9 +767,11 @@ async function sendMessage({ target, replyText, quotes = false, components = nul
 
 			await target.send(messageOptions);
 		} catch (error) {
-			if (error.message !== 'Cannot send messages to this user' &&
-				error.message !== 'Missing Permissions' &&
-				error.message !== 'Missing Access') {
+			const errorMessage = error?.message || '';
+			if (!errorMessage.includes('Cannot send messages to this user') &&
+				!errorMessage.includes('no mutual guilds') &&
+				!errorMessage.includes('Missing Permissions') &&
+				!errorMessage.includes('Missing Access')) {
 				console.error('[Discord Bot] Message send error:', error.message, 'chunk:', chunk);
 			}
 		}
@@ -1159,7 +1291,7 @@ async function checkShardHealth() {
             }
         }
 
-        return {
+        const healthSummary = {
             timestamp: new Date().toISOString(),
             totalShards,
             healthyShards: shardHealthResults.filter(s => s.responsive).length,
@@ -1167,6 +1299,16 @@ async function checkShardHealth() {
             unresponsiveShards: [...unresponsiveShards],
             shardDetails: shardHealthResults
         };
+
+		if (healthSummary.unresponsiveShards.length > 0) {
+			healthMonitor.raiseAlert('shardHealthIssue', {
+				totalShards: healthSummary.totalShards,
+				unhealthyShards: healthSummary.unhealthyShards,
+				unresponsiveShards: healthSummary.unresponsiveShards
+			});
+		}
+
+		return healthSummary;
     } catch (error) {
         console.error('[ShardFix] Error in checkShardHealth:', error.message);
         return { error: error.message };
@@ -1543,16 +1685,18 @@ process.on('unhandledRejection', error => {
 	if (error.code === 50_001) return; // Missing Access
 	if (error.code === 10_003) return; // Unknown Channel
 	if (error.code === 50_007) return; // Cannot send messages to this user
-	if (error.code === 10_062) return; // Unknown interaction
 	if (error.code === 50_035) return; // Invalid Form Body
-	
+	if (isDiscordUnknownInteraction(error)) {
+		console.warn('Interaction expired (10062) [unhandled_rejection]: unknown');
+		return;
+	}
+
 	// Check error message for backward compatibility
 	if (error.message === "Unknown Role") return;
 	if (error.message === "Cannot send messages to this user") return;
 	if (error.message === "Unknown Channel") return;
 	if (error.message === "Missing Access") return;
 	if (error.message === "Missing Permissions") return;
-	if (error.message && error.message.includes('Unknown interaction')) return;
 	if (error.message && error.message.includes('INTERACTION_NOT_REPLIED')) return;
 	if (error.message && error.message.includes("Invalid Form Body")) return;
 	// Invalid Form Body
@@ -1571,18 +1715,86 @@ process.on('unhandledRejection', error => {
 let isShuttingDown = false;
 let shutdownTimeout = null;
 const SHUTDOWN_TIMEOUT = 15_000; // 15 seconds for Discord bot
+const INFLIGHT_DRAIN_TIMEOUT = 7000;
+const INFLIGHT_POLL_INTERVAL = 100;
+const inFlightTasks = new Map();
+let inFlightTaskSeq = 0;
 
-// Detailed signal tracking function
+function safeStringify(value) {
+	try {
+		return JSON.stringify(value);
+	} catch (error) {
+		return `{"serializationError":"${error && error.message ? error.message : 'unknown'}"}`;
+	}
+}
+
+function getShutdownRuntimeMeta() {
+	const shardList = client?.cluster?.info?.SHARD_LIST;
+	const clusterId = client?.cluster?.id;
+	return {
+		pid: process.pid,
+		ppid: process.ppid,
+		uptimeSeconds: Number(process.uptime().toFixed(2)),
+		clusterId: Number.isInteger(clusterId) ? clusterId : 'unknown',
+		shardList: Array.isArray(shardList) ? shardList : [],
+		inFlightTaskCount: inFlightTasks.size,
+		isShuttingDown
+	};
+}
+
+function beginInFlightTask(taskName) {
+	if (isShuttingDown) return null;
+	const taskId = `${taskName}#${++inFlightTaskSeq}`;
+	inFlightTasks.set(taskId, { taskName, startedAt: Date.now() });
+	return taskId;
+}
+
+function endInFlightTask(taskId) {
+	if (!taskId) return;
+	inFlightTasks.delete(taskId);
+}
+
+async function waitForInFlightTasks(timeoutMs = INFLIGHT_DRAIN_TIMEOUT) {
+	const startedAt = Date.now();
+	while ((Date.now() - startedAt) < timeoutMs) {
+		if (inFlightTasks.size === 0) return true;
+		await new Promise(resolve => setTimeout(resolve, INFLIGHT_POLL_INTERVAL));
+	}
+	return inFlightTasks.size === 0;
+}
+
+function logShutdownTrigger({ signal = 'unknown', source = 'unknown', detail = null } = {}) {
+	const timestamp = new Date().toISOString();
+	const stack = new Error('Discord bot shutdown trigger stack').stack;
+	const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+	const detailText = detail ? safeStringify(detail) : '{}';
+	const runtimeMeta = safeStringify(getShutdownRuntimeMeta());
+
+	console.error('[Discord Bot] ========== SHUTDOWN TRIGGERED ==========');
+	console.error(`[Discord Bot] Timestamp: ${timestamp}`);
+	console.error(`[Discord Bot] Signal: ${signal}`);
+	console.error(`[Discord Bot] Source: ${source}`);
+	console.error(`[Discord Bot] Detail: ${detailText}`);
+	console.error(`[Discord Bot] Runtime: ${runtimeMeta}`);
+	console.error(`[Discord Bot] Stack Trace:\n${stackLines}`);
+	console.error('[Discord Bot] =======================================');
+}
+
+async function requestShutdown({ signal = 'unknown', source = 'unknown', detail = null } = {}) {
+	logShutdownTrigger({ signal, source, detail });
+	await gracefulShutdown(signal, source, detail);
+}
 
 // Graceful shutdown function
-async function gracefulShutdown(signal = 'unknown') {
+async function gracefulShutdown(signal = 'unknown', source = 'unknown', detail = null) {
 	if (isShuttingDown) {
-		console.log(`[Discord Bot] Shutdown already in progress, ignoring signal: ${signal}`);
+		console.log(`[Discord Bot] Shutdown already in progress, ignoring signal: ${signal}, source: ${source}`);
 		return;
 	}
 	isShuttingDown = true;
 
-	console.log(`[Discord Bot] Starting graceful shutdown (signal: ${signal})...`);
+	const detailText = detail ? safeStringify(detail) : '{}';
+	console.log(`[Discord Bot] Starting graceful shutdown (signal: ${signal}, source: ${source}, detail: ${detailText})...`);
 
 	// Clear shutdown timeout
 	if (shutdownTimeout) {
@@ -1598,9 +1810,20 @@ async function gracefulShutdown(signal = 'unknown') {
 
 	try {
 		// Notify health monitor
-		healthMonitor.emit('shutdown', { signal, timestamp: new Date() });
+		healthMonitor.emit('shutdown', { signal, source, detail, timestamp: new Date() });
 
-		// Clear all tracked timers
+		if (inFlightTasks.size > 0) {
+			console.warn(`[Discord Bot] Waiting for ${inFlightTasks.size} in-flight tasks before shutdown...`);
+		}
+		const drained = await waitForInFlightTasks(INFLIGHT_DRAIN_TIMEOUT);
+		if (!drained && inFlightTasks.size > 0) {
+			const pendingPreview = [...inFlightTasks.entries()]
+				.slice(0, 10)
+				.map(([id, task]) => `${id}:${Date.now() - task.startedAt}ms`);
+			console.warn(`[Discord Bot] In-flight drain timeout, pending tasks: ${inFlightTasks.size}, preview: ${pendingPreview.join(', ')}`);
+		}
+
+		// Clear tracked timers only after in-flight work has had a chance to finish.
 		timerManager.shutdown();
 
 		// Heartbeat monitoring is handled by HeartbeatManager in core-Discord.js
@@ -1696,7 +1919,13 @@ process.on('SIGINT', async () => {
 		process.exit(1);
 	}, 15_000); // 15 second timeout
 
-	await gracefulShutdown();
+	await requestShutdown({
+		signal: 'SIGINT',
+		source: 'process_signal',
+		detail: {
+			handler: 'process.on(SIGINT)'
+		}
+	});
 });
 
 process.on('SIGTERM', async () => {
@@ -1723,14 +1952,20 @@ process.on('SIGTERM', async () => {
 		process.exit(1);
 	}, 15_000); // 15 second timeout
 
-	await gracefulShutdown();
+	await requestShutdown({
+		signal: 'SIGTERM',
+		source: 'process_signal',
+		detail: {
+			handler: 'process.on(SIGTERM)'
+		}
+	});
 });
 
-function respawnCluster2() {
+function respawnCluster2(meta = {}) {
 	try {
 		console.error(`[Respawn] Sending respawn command for cluster ${client.cluster.id}`);
 		// 使用與手動觸發相同的方法，發送訊息給 cluster manager
-		client.cluster.send({ respawn: true, id: client.cluster.id });
+		client.cluster.send({ respawn: true, id: client.cluster.id, meta });
 		console.error(`[Respawn] Respawn command sent successfully for cluster ${client.cluster.id}`);
 	} catch (error) {
 		console.error('[Respawn] ========== RESPAWN CLUSTER ERROR ==========');
@@ -1835,13 +2070,18 @@ async function repeatMessages(discord, message) {
 		for (let index = 0; index < message.myNames.length; index++) {
 			const element = message.myNames[index];
 			let text = await rollText(element.content);
-			let obj = {
-				content: text,
-				username: element.username,
-				avatarURL: element.avatarURL
-			};
 			let pair = (webhook && webhook.isThread) ? { threadId: discord.channel.id } : {};
-			await webhook.webhook.send({ ...obj, ...pair });
+			const chunks = typeof text === 'string'
+				? text.match(/[\s\S]{1,2000}/g) || ['']
+				: [''];
+			for (const chunk of chunks) {
+				let obj = {
+					content: chunk,
+					username: element.username,
+					avatarURL: element.avatarURL
+				};
+				await webhook.webhook.send({ ...obj, ...pair });
+			}
 
 		}
 
@@ -2092,47 +2332,40 @@ async function getAllshardIds() {
 
 						for (const shardId of assignedShards) {
 							try {
-								// Try to get individual shard ping first
 								let pingValue = -1;
 								let status = -1;
 
-								// Method 1: Direct shard ping (most accurate for individual shards)
+								// Method 1: per-shard WebSocket object (status always, ping when available)
 								try {
-									const shard = c.client?.ws?.shards?.get(shardId);
-									if (shard && typeof shard.ping === 'number' && !Number.isNaN(shard.ping) && shard.ping >= 0) {
-										pingValue = Math.round(shard.ping);
-										status = shard.status || 0;
+									const shard = c.ws?.shards?.get(shardId);
+									if (shard) {
+										// Status is always reliable, even when ping hasn't been measured yet
+										status = shard.status ?? 0;
+										if (typeof shard.ping === 'number' && !Number.isNaN(shard.ping) && shard.ping >= 0) {
+											pingValue = Math.round(shard.ping);
+										}
 									}
 								} catch {
-									// Ignore shard access errors, try other methods
+									// Ignore, try other methods
 								}
 
-								// Method 2: WebSocket ping as fallback
-								if (pingValue === -1 && c.ws?.ping !== undefined && typeof c.ws.ping === 'number' && !Number.isNaN(c.ws.ping) && c.ws.ping >= 0) {
+								// Method 2: client-level WebSocket ping/status as fallback
+								if (pingValue === -1 && typeof c.ws?.ping === 'number' && !Number.isNaN(c.ws.ping) && c.ws.ping >= 0) {
 									pingValue = Math.round(c.ws.ping);
-									status = c.ws.status || 0;
+								}
+								if (status === -1 && c.ws?.status !== undefined) {
+									status = c.ws.status;
 								}
 
-								// Method 3: Cluster-level ping
-								if (pingValue === -1 && c.shard?.ping !== undefined && typeof c.shard.ping === 'number' && !Number.isNaN(c.shard.ping) && c.shard.ping >= 0) {
+								// Method 3: cluster-level shard ping
+								if (pingValue === -1 && typeof c.shard?.ping === 'number' && !Number.isNaN(c.shard.ping) && c.shard.ping >= 0) {
 									pingValue = Math.round(c.shard.ping);
-									status = c.shard.status || 0;
-								}
-
-								// If still no ping, use estimation based on uptime
-								if (pingValue === -1) {
-									const uptime = c.uptime;
-									if (uptime && uptime > 10_000) { // At least 10 seconds uptime
-										pingValue = Math.floor(Math.random() * 100) + 50; // 50-150ms range
-										status = 0; // Assume healthy
-									}
 								}
 
 								shardPings.push(pingValue);
 								shardStatuses.push(status);
 
 							} catch {
-								// Complete failure for this shard
 								shardPings.push(-1);
 								shardStatuses.push(-1);
 							}
@@ -2157,25 +2390,30 @@ async function getAllshardIds() {
 				]);
 			}
 
-			try {
-				if (evalPromise) {
-					clusterDataRaw = await evalPromise;
-				}
-				// clusterDataRaw is already populated with defaults if no healthy clusters
-			} catch (error) {
-				console.warn('[Statistics] Main broadcastEval failed, attempting fallback methods:', error.message);
+		try {
+			if (evalPromise) {
+				clusterDataRaw = await evalPromise;
+			}
+			// clusterDataRaw is already populated with defaults if no healthy clusters
+		} catch (error) {
+			console.warn('[Statistics] Main broadcastEval failed, attempting fallback methods:', error.message);
 				logClusterDiagnostics(error, 'statistics-main-broadcastEval');
 
 				// Fallback: try simple cluster health check
 				try {
-					const fallbackData = await client.cluster.broadcastEval(c => ({
-						clusterId: c.cluster?.id || 0,
-						assignedShards: [], // Will be calculated below
-						shardPings: [-1], // Unknown ping
-						shardStatuses: [-1], // Unknown status
-						success: false,
-						totalShardsInCluster: 0
-					}), { timeout: 3000 }).catch(() => []);
+					const fallbackData = await client.cluster.broadcastEval(c => {
+						const wsPing = c.ws?.ping;
+						const wsStatus = c.ws?.status ?? -1;
+						const validPing = typeof wsPing === 'number' && !Number.isNaN(wsPing) && wsPing >= 0;
+						return {
+							clusterId: c.cluster?.id || 0,
+							assignedShards: [],
+							shardPings: [validPing ? Math.round(wsPing) : -1],
+							shardStatuses: [wsStatus],
+							success: validPing,
+							totalShardsInCluster: 0
+						};
+					}, { timeout: 3000 }).catch(() => []);
 
 					if (fallbackData && fallbackData.length > 0) {
 						clusterDataRaw = fallbackData;
@@ -2265,14 +2503,14 @@ async function getAllshardIds() {
 			// Process cluster data - only assign status to shards managed by responding clusters
 			const processedClusters = new Set();
 
-			for (const clusterData of clusterDataRaw) {
-				if (clusterData && typeof clusterData === 'object') {
-					const { clusterId, assignedShards, shardPings, shardStatuses } = clusterData;
-					processedClusters.add(clusterId);
+		for (const clusterData of clusterDataRaw) {
+			if (clusterData && typeof clusterData === 'object') {
+				const { clusterId, assignedShards, shardPings, shardStatuses } = clusterData;
+				processedClusters.add(clusterId);
 
-					let actualAssignedShards = assignedShards;
-					let actualShardPings = shardPings;
-					let actualShardStatuses = shardStatuses;
+				let actualAssignedShards = assignedShards;
+				let actualShardPings = shardPings;
+				let actualShardStatuses = shardStatuses;
 
 					// If assignedShards is empty or invalid, calculate dynamically
 					if (!Array.isArray(actualAssignedShards) || actualAssignedShards.length === 0) {
@@ -2401,44 +2639,40 @@ async function getAllshardIds() {
 					// For status display, use warning icon if any shard is not online
 					const hasNonOnline = group.some(status => typeof status === 'string' && status !== '✅');
 					const prefix = hasNonOnline ? '❗' : '│';
-					return `${prefix} 　• 群組${range}　${group.join(", ")}`;
+					return `${prefix} • 群組${range} ${group.join(", ")}`;
 				}
 				// For shard lists, display shard IDs directly
-				return `│ 　• 群組${range}　${group.join(", ")}`;
+				return `│ • 群組${range} ${group.join(", ")}`;
 			}).join('\n');
 		};
 
 		const groupedStatus = groupArray(formattedStatuses, groupSize);
 		const groupedPing = groupArray(formattedPings, groupSize);
 
-		// Statistics summary - count shards displayed as online (excluding unknown status)
-		const onlineCount = formattedStatuses.filter(status => status === '✅').length;
-
 		// Return formatted statistics display
 		// Format and return the complete statistics display
-		return `
-├────── 🔄分流狀態 ──────
-│ 概況統計:
-│ 　• 目前分流: ${currentClusterId}
-│ 　• 總集群數: ${totalClusters}
-│ 　• 分流總數: ${totalShards}
-│ 　• 在線分流: ${onlineCount}
-
-├────── ⚡連線狀態 ──────
-│ 各分流狀態:
-${formatGroup(groupedStatus, true)}
-│
-├────── 📊延遲統計 ──────
-│ 響應時間(ms):
-${formatGroup(groupedPing)}
-╰──────────────`;
+		return [
+			'├────── 🔄分流狀態 ──────',
+			'│ 概況統計:',
+			`│ • 目前分流: ${currentClusterId}`,
+			`│ • 總集群數: ${totalClusters}`,
+			`│ • 分流總數: ${totalShards}`,
+			'├────── ⚡連線狀態 ──────',
+			'│ 各分流狀態:',
+			formatGroup(groupedStatus, true),
+			'├────── 📊延遲統計 ──────',
+			'│ 響應時間(ms):',
+			formatGroup(groupedPing),
+			'╰──────────────'
+		].join('\n');
 	} catch (error) {
 		console.error('[Discord Bot] Shard monitoring error:', error);
-		return `
-├────── ⚠️錯誤信息 ──────
-│ 無法獲取分流狀態
-│ 請稍後再試
-╰──────────────`;
+		return [
+			'├────── ⚠️錯誤信息 ──────',
+			'│ 無法獲取分流狀態',
+			'│ 請稍後再試',
+			'╰──────────────'
+		].join('\n');
 	}
 }
 
@@ -2843,9 +3077,9 @@ async function handlingResponMessage(message, answer = '') {
 
 		if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 
-		if (rplyVal.sendImage) sendBufferImage(message, rplyVal, userid)
+		if (rplyVal.sendImage) await sendBufferImage(message, rplyVal, userid)
 		if (rplyVal.dmFileLink?.length > 0) await sendDmFiles(message, rplyVal)
-		if (rplyVal.fileLink?.length > 0) sendFiles(message, rplyVal, userid)
+		if (rplyVal.fileLink?.length > 0) await sendFiles(message, rplyVal, userid)
 		if (rplyVal.respawn) {
 			const timestamp = new Date().toISOString();
 			console.error('[User Command] ========== USER COMMAND RESPAWN TRIGGERED ==========');
@@ -2855,7 +3089,12 @@ async function handlingResponMessage(message, answer = '') {
 			console.error(`[User Command] Channel ID: ${channelid}`);
 			console.error(`[User Command] PID: ${process.pid}, PPID: ${process.ppid}`);
 			console.error('[User Command] ==========================================');
-			respawnCluster2();
+			respawnCluster2({
+				source: 'user_command',
+				trigger: 'rplyVal.respawn',
+				userid,
+				channelid
+			});
 		}
 		if (!rplyVal.text && !rplyVal.LevelUp) return;
 		if (process.env.mongoURL)
@@ -2886,14 +3125,16 @@ async function handlingResponMessage(message, answer = '') {
 			}
 			const pingStatus = ping > 1000 ? '❌' : ping > 500 ? '⚠️' : '✅';
 
-			rplyVal.text += `
-			【📊 Discord統計資訊】
-			╭────── 🌐使用統計 ──────
-			│ 群組數據:
-			│ 　• ${countResult}
-			│ 連線延遲:
-			│ 　• ${pingStatus} ${ping}ms
-			${shardResult}`;
+			rplyVal.text += [
+				'',
+				'【📊 Discord統計資訊】',
+				'╭────── 🌐使用統計 ──────',
+				'│ 群組數據:',
+				`│ • ${countResult}`,
+				'│ 連線延遲:',
+				`│ ${pingStatus} ${ping}ms`,
+				(shardResult || '').trim()
+			].join('\n');
 		}
 
 
@@ -2906,7 +3147,7 @@ async function handlingResponMessage(message, answer = '') {
 				message.author.send({
 					content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄',
 					files: [
-						new AttachmentBuilder("./tmp/" + rplyVal.discordExport + '.txt')
+						new AttachmentBuilder("./export/" + rplyVal.discordExport + '.txt')
 					]
 				}).catch(error => console.error('Failed to send DM with exported file:', error));
 			} else if (message.user && message.isInteraction) {
@@ -2919,7 +3160,7 @@ async function handlingResponMessage(message, answer = '') {
 					await message.user.send({
 						content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄',
 						files: [
-							new AttachmentBuilder("./tmp/" + rplyVal.discordExport + '.txt')
+							new AttachmentBuilder("./export/" + rplyVal.discordExport + '.txt')
 						]
 					});
 
@@ -2944,7 +3185,7 @@ async function handlingResponMessage(message, answer = '') {
 							content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
 								rplyVal.discordExportHtml[1],
 							files: [
-								"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
+								"./export/" + rplyVal.discordExportHtml[0] + '.html'
 							]
 						}).catch(error => console.error('Failed to send DM with exported HTML file:', error));
 
@@ -2965,7 +3206,7 @@ async function handlingResponMessage(message, answer = '') {
 							content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
 								rplyVal.discordExportHtml[1],
 							files: [
-								"./tmp/" + rplyVal.discordExportHtml[0] + '.html'
+								"./export/" + rplyVal.discordExportHtml[0] + '.html'
 							]
 						});
 					} else {
@@ -3465,7 +3706,7 @@ async function tallyStPoll(messageId, fallbackData) {
 					const updated = await schema.storyRun.findOneAndUpdate(
 						{ channelID: chId, isEnded: false },
 						{ $inc: { stPollNoVoteStreak: 1 } },
-						{ new: true, sort: { updatedAt: -1 } }
+						{ returnDocument: 'after', sort: { updatedAt: -1 } }
 					).lean();
 					if (updated && Number.isFinite(Number(updated.stPollNoVoteStreak))) prev = Number(updated.stPollNoVoteStreak) - 1;
 				}
@@ -3696,7 +3937,10 @@ const connect = function () {
 	}
 
 	isReconnecting = true;
-	ws = new WebSocket('ws://127.0.0.1:53589');
+	const wsHost = process.env.WWW_WS_HOST || '127.0.0.1';
+	const wsPort = process.env.WWW_WS_PORT || '53589';
+	const wsUrl = `ws://${wsHost}:${wsPort}`;
+	ws = new WebSocket(wsUrl);
 	
 	ws.on('open', function open() {
 		console.log(`[discord_bot] connected To core-www from discord! Shard#${shardid}`)
@@ -3956,7 +4200,7 @@ async function sendMessageWithRetry(sendFunction, maxRetries = 3, baseDelay = 10
 			return await sendFunction();
 		} catch (error) {
 			// Don't retry for certain non-retryable errors
-			if (error.code === 10_062 || // Unknown interaction
+			if (isDiscordUnknownInteraction(error) ||
 				error.code === 50_035 || // Invalid Form Body
 				error.code === 50_013 || // Missing Permissions
 				error.message.includes('Missing Access') ||
@@ -3988,12 +4232,11 @@ async function __handlingReplyMessage(message, result) {
 			try {
 				await message.deferReply();
 			} catch (deferError) {
-				// If the interaction is no longer valid, log it but don't crash
-				if (deferError.code === 10_062) { // Unknown interaction code
-					console.error(`Interaction expired before deferral: ${message.commandName || 'unknown'}`);
-					return; // Exit early - can't do anything with an expired interaction
+				if (isDiscordUnknownInteraction(deferError)) {
+					warnInteraction10062('defer_in_reply_handler', message);
+					return;
 				}
-				throw deferError; // Re-throw other unexpected errors
+				throw deferError;
 			}
 		}
 
@@ -4007,13 +4250,11 @@ async function __handlingReplyMessage(message, result) {
 					await sendMessageWithRetry(async () => message.followUp({ embeds: await convQuotes(sendTexts[index]) }));
 				}
 			} catch (error) {
-				// If the interaction is no longer valid, log it but don't crash
-				if (error.code === 10_062) {
-					console.error(`Interaction expired for command: ${message.commandName || 'unknown'}`);
-					return; // Exit early - nothing more we can do
-				} else {
-					throw error; // Re-throw unexpected errors
+				if (isDiscordUnknownInteraction(error)) {
+					warnInteraction10062('edit_reply', message);
+					return;
 				}
+				throw error;
 			}
 			return;
 		}
@@ -4044,15 +4285,15 @@ async function __handlingReplyMessage(message, result) {
 						await message.deferReply();
 						await sendMessageWithRetry(async () => message.editReply({ embeds: await convQuotes(sendText) }));
 					} catch (innerError) {
-						if (innerError.code === 10_062) {
-							console.error(`Interaction expired during reply: ${message.commandName || 'unknown'}`);
-							break; // Stop sending more messages if the interaction is invalid
+						if (isDiscordUnknownInteraction(innerError)) {
+							warnInteraction10062('recover_defer_after_failed_reply', message);
+							break;
 						}
 						console.error('Failed to handle interaction:', innerError.message);
 					}
-				} else if (error.code === 10_062 || error.message.includes('Unknown interaction')) {
-					console.error(`Interaction expired for command: ${message.commandName || 'unknown'}`);
-					break; // Stop sending more messages if the interaction is invalid
+				} else if (isDiscordUnknownInteraction(error)) {
+					warnInteraction10062('interaction_reply_loop', message);
+					break;
 				} else {
 					console.error(`Failed to send message: ${error.message}`);
 					break;
@@ -4066,22 +4307,19 @@ async function __handlingReplyMessage(message, result) {
 }
 
 async function __handlingInteractionMessage(message) {
-	// Immediately defer ALL interactions to prevent timeout
-	// This must happen within 3 seconds of receiving the interaction
-	// Discord will reject with code 10062 if interaction expires (3 seconds)
-	// Discord.js has its own HTTP timeout (45 seconds) for handling network issues
+	// Immediately defer ALL interactions to prevent timeout (Discord ~3s acknowledge window).
+	// Slow logs split: handlerAge = time since interaction.createdTimestamp when this runs (event-loop / IPC delay);
+	// deferHttp = REST round-trip for interaction callback only.
 	const deferStartTime = Date.now();
-	const interactionId = message.commandName || message.component?.label || message.customId || 'unknown';
+	const handlerAgeMs = Date.now() - message.createdTimestamp;
+	const cmdLabel = getInteractionCommandLabel(message);
+	let deferHttpMs = 0;
 	try {
 		if (!message.deferred && !message.replied) {
-			let deferOptions = {};
+			const deferOptions = (message.isCommand() && EPHEMERAL_DEFER_COMMAND_NAMES.has(message.commandName))
+				? { flags: MessageFlags.Ephemeral }
+				: {};
 
-			// Add ephemeral flag for certain commands to reduce spam
-			if (message.isCommand() && ['state', 'help', 'bothelp', 'info'].includes(message.commandName)) {
-				deferOptions.flags = MessageFlags.Ephemeral;
-			}
-
-			// Determine defer method based on interaction type
 			let deferPromise;
 			if (message.isCommand()) {
 				deferPromise = message.deferReply(deferOptions);
@@ -4091,23 +4329,20 @@ async function __handlingInteractionMessage(message) {
 				deferPromise = message.deferReply(deferOptions);
 			}
 
-			// Remove artificial timeout - let Discord.js handle it naturally
-			// Discord will reject with code 10062 if interaction expires (3 seconds)
-			// Discord.js HTTP timeout (45s) will handle network issues
+			const httpStart = Date.now();
 			await deferPromise;
+			deferHttpMs = Date.now() - httpStart;
 		}
 	} catch (deferError) {
 		const deferDuration = Date.now() - deferStartTime;
 
-		// Check if interaction expired (Discord error code 10062)
-		// This is the only error that means the interaction is truly expired
-		if (deferError.code === 10_062 || String(deferError.code) === '10_062') {
-			console.error(`Interaction expired before deferral (${deferDuration}ms): ${interactionId}`);
+		if (isDiscordUnknownInteraction(deferError)) {
+			warnInteraction10062('defer_main_handler', message, { durationMs: deferDuration, handlerAgeMs });
 			return;
 		}
 
 		// For other deferral errors (network issues, rate limits, etc.), log and try fallback
-		console.error(`Failed to defer interaction (${deferDuration}ms): ${deferError.message} | Command: ${interactionId} | Code: ${deferError.code}`);
+		console.error(`Failed to defer interaction (${deferDuration}ms): ${cmdLabel} | Code: ${deferError.code}`);
 		
 		// Try to send a followUp as fallback (only if interaction is still valid)
 		try {
@@ -4115,11 +4350,10 @@ async function __handlingInteractionMessage(message) {
 				await message.followUp({ content: '處理中，請稍候...', ephemeral: true });
 			}
 		} catch (fallbackError) {
-			// If fallback also fails, check if interaction expired
-			if (fallbackError.code === 10_062 || String(fallbackError.code) === '10_062') {
-				console.error(`Fallback reply failed - interaction expired (${deferDuration}ms): ${interactionId}`);
+			if (isDiscordUnknownInteraction(fallbackError)) {
+				warnInteraction10062('defer_fallback_followup', message, { durationMs: deferDuration, handlerAgeMs });
 			} else {
-				console.error(`Fallback reply also failed (${deferDuration}ms): ${fallbackError.message} | Command: ${interactionId}`);
+				console.error(`Fallback reply also failed (${deferDuration}ms): ${cmdLabel} | ${fallbackError.message}`);
 			}
 			return;
 		}
@@ -4130,8 +4364,15 @@ async function __handlingInteractionMessage(message) {
 	message.isInteraction = true;
 
 	const deferDuration = Date.now() - deferStartTime;
-	if (deferDuration > 2500) { // Log slow deferrals
-		console.warn(`Slow interaction deferral (${deferDuration}ms): ${interactionId}`);
+	if (deferDuration > 2500) {
+		console.warn(
+			`Slow interaction deferral (${deferDuration}ms): ${cmdLabel} (handlerAge=${handlerAgeMs}ms deferHttp=${deferHttpMs}ms)`
+		);
+	}
+	if (handlerAgeMs > 2000) {
+		console.warn(
+			`Interaction reached handler late (handlerAge=${handlerAgeMs}ms): ${cmdLabel}`
+		);
 	}
 
 	switch (true) {
@@ -4161,16 +4402,22 @@ async function __handlingInteractionMessage(message) {
 					await replilyMessage(message, result);
 					success = true;
 				} catch (error) {
+					if (isDiscordUnknownInteraction(error)) {
+						warnInteraction10062('command_processing_threw', message);
+						return;
+					}
 					console.error('Command processing error:', error);
 					try {
-						// Try to respond with an error message
 						if (message.deferred && !message.replied) {
 							await message.editReply({ content: '處理命令時發生錯誤，請稍後再試。', flags: MessageFlags.Ephemeral });
 						} else if (!message.replied) {
 							await message.reply({ content: '處理命令時發生錯誤，請稍後再試。', flags: MessageFlags.Ephemeral });
 						}
 					} catch (replyError) {
-						// If even error reporting fails, just log it
+						if (isDiscordUnknownInteraction(replyError)) {
+							warnInteraction10062('command_error_reply_failed', message);
+							return;
+						}
 						console.error('Failed to send error response:', replyError.message);
 					}
 				} finally {

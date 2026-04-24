@@ -13,8 +13,9 @@ let password = security.getCryptoSecretKey && security.getCryptoSecretKey();
 if (!password) {
     console.error('[Admin] ❌ CRYPTO_SECRET environment variable is not set');
 }
-//32bit ASCII
-const adminSecret = process.env.ADMIN_SECRET;
+// 32bit ASCII
+const adminSecrets = parseAdminSecrets(process.env.ADMIN_SECRET);
+const isAdminUser = (userid) => Boolean(userid) && adminSecrets.includes(userid);
 //admin id
 const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
@@ -639,7 +640,7 @@ const rollDiceCommand = async function ({
 
     // If it's a root command, check permissions
     if (isRootCommand) {
-        if (!adminSecret || userid !== adminSecret) {
+        if (!isAdminUser(userid)) {
             rply.text = "此命令僅限系統管理員使用";
             return rply;
         }
@@ -684,16 +685,14 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             case /^mongod$/i.test(mainMsg[1]): {
-                if (!adminSecret) return rply;
-                if (userid !== adminSecret) return rply;
+                if (!isAdminUser(userid)) return rply;
                 let mongod = await schema.mongodbStateCheck();
                 rply.text = JSON.stringify(mongod ? mongod.connections : 'Connection check failed');
                 rply.quotes = true;
                 return rply;
             }
             case /^clusterhealth$/i.test(mainMsg[1]): {
-                if (!adminSecret) return rply;
-                if (userid !== adminSecret) return rply;
+                if (!isAdminUser(userid)) return rply;
                 try {
                     // Import the health report function from discord_bot.js
                     const healthReport = globalThis.getClusterHealthReport();
@@ -1046,10 +1045,30 @@ const rollDiceCommand = async function ({
             }
             case /^respawn$/i.test(mainMsg[1]):
                 if (mainMsg[2] === null) return rply;
-                discordClient.cluster.send({ respawn: true, id: mainMsg[2] });
+                discordClient.cluster.send({
+                    respawn: true,
+                    id: mainMsg[2],
+                    meta: {
+                        source: 'admin_command',
+                        trigger: '.root respawn',
+                        targetClusterId: mainMsg[2],
+                        userid,
+                        groupid,
+                        channelid
+                    }
+                });
                 return rply;
             case /^respawnall$/i.test(mainMsg[1]):
-                discordClient.cluster.send({ respawnall: true });
+                discordClient.cluster.send({
+                    respawnall: true,
+                    meta: {
+                        source: 'admin_command',
+                        trigger: '.root respawnall',
+                        userid,
+                        groupid,
+                        channelid
+                    }
+                });
                 return rply;
             case /^addVipGroup$/i.test(mainMsg[1]):
                 try {
@@ -1158,7 +1177,7 @@ const rollDiceCommand = async function ({
                             },
                             $push: { history: historyEntry }
                         },
-                        { upsert: true, new: true, runValidators: true }
+                        { upsert: true, returnDocument: 'after', runValidators: true }
                     );
                     if (!doc) {
                         rply.text = '新增 Patreon 會員失敗';
@@ -1222,7 +1241,7 @@ const rollDiceCommand = async function ({
                             $unset: { vipGraceUntil: 1 },
                             $push: { history: { at: new Date(), action: 'on', source: 'admin', reason: 'manual_on' } }
                         },
-                        { new: true }
+                        { returnDocument: 'after' }
                     );
                     if (!doc) {
                         rply.text = '找不到該 Patreon 會員: ' + patreonNameOn;
@@ -1484,6 +1503,14 @@ async function checkGpAllow(target) {
 function checkPassword(text) {
     //True 即成功
     return /^[A-Za-z0-9!@#$%^&*]{6,16}$/.test(text);
+}
+
+function parseAdminSecrets(rawAdminSecret) {
+    if (!rawAdminSecret) return [];
+    return rawAdminSecret
+        .split(/[\s,;]+/)
+        .map(secret => secret.trim())
+        .filter(Boolean);
 }
 
 /**

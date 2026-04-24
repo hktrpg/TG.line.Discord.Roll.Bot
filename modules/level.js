@@ -1,5 +1,6 @@
 if (!process.env.mongoURL) return;
 
+const NodeCache = require('node-cache');
 const oneMinute = (process.env.DEBUG) ? 1 : 60_000;
 const THIRTY_MINUTES = (process.env.DEBUG) ? 1 : 60_000 * 30;
 const checkMongodb = require('./dbWatchdog.js');
@@ -13,6 +14,11 @@ let tempSwitchV2 = [{ groupid: '', SwitchV2: false }];
 const GP_INFO_CACHE_TTL_MS = 5 * 60 * 1000;  // 5 minutes
 const GP_INFO_CACHE_MAX = 2000;
 const gpInfoCache = new Map();  // groupid -> { gpInfo: plain object, at: number }
+
+// Cache for member speak state to avoid DB read on every message (1-min cooldown path)
+// key: `${groupid}:${userid}`, value: { LastSpeakTime, decreaseEXPTimes, multiEXPTimes, stopExp }
+// TTL 90s = 1-min cooldown + 30s buffer; node-cache handles expiry automatically
+const memberSpeakCache = new NodeCache({ stdTTL: 90, checkperiod: 120 });
 
 function pruneGpInfoCacheIfNeeded() {
     if (gpInfoCache.size <= GP_INFO_CACHE_MAX) return;
@@ -78,6 +84,15 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     if (!gpInfo) return;
     if (!checkMongodb.isDbOnline()) return;
 
+    const memberCacheKey = `${groupid}:${userid}`;
+    const cachedMember = memberSpeakCache.get(memberCacheKey);
+    if (cachedMember && (Date.now() - cachedMember.LastSpeakTime) < oneMinute) {
+        if (cachedMember.decreaseEXPTimes > 0) reply.status += "🧟‍♂️🧟‍♀️";
+        if (cachedMember.multiEXPTimes > 0) reply.status += "🧙‍♂️🧙‍♀️";
+        if (cachedMember.stopExp > 0) reply.status += "☢️☣️";
+        return reply;
+    }
+
     let userInfo = await schema.trpgLevelSystemMember.findOne({ groupid, userid }).catch(error => {
         console.error('level #46 mongoDB error:', error.name, error.reason ?? error.message);
         checkMongodb.dbErrOccurs();
@@ -93,11 +108,25 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     if (userInfo.multiEXPTimes > 0) reply.status += "🧙‍♂️🧙‍♀️";
     if (userInfo.stopExp > 0) reply.status += "☢️☣️";
 
-    if ((Date.now() - userInfo.LastSpeakTime) < oneMinute) return reply;
+    if ((Date.now() - userInfo.LastSpeakTime) < oneMinute) {
+        memberSpeakCache.set(memberCacheKey, {
+            LastSpeakTime: userInfo.LastSpeakTime,
+            decreaseEXPTimes: userInfo.decreaseEXPTimes,
+            multiEXPTimes: userInfo.multiEXPTimes,
+            stopExp: userInfo.stopExp
+        });
+        return reply;
+    }
 
     if (userInfo.stopExp > 0) {
         userInfo.stopExp--;
         await userInfo.save();
+        memberSpeakCache.set(memberCacheKey, {
+            LastSpeakTime: userInfo.LastSpeakTime,
+            decreaseEXPTimes: userInfo.decreaseEXPTimes,
+            multiEXPTimes: userInfo.multiEXPTimes,
+            stopExp: userInfo.stopExp
+        });
         return reply;
     }
 
@@ -136,6 +165,12 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     try {
         if (!checkMongodb.isDbOnline()) return;
         await userInfo.save();
+        memberSpeakCache.set(memberCacheKey, {
+            LastSpeakTime: userInfo.LastSpeakTime,
+            decreaseEXPTimes: userInfo.decreaseEXPTimes,
+            multiEXPTimes: userInfo.multiEXPTimes,
+            stopExp: userInfo.stopExp
+        });
     } catch (error) {
         console.error('mongodb #109 error', error);
         checkMongodb.dbErrOccurs();
@@ -168,7 +203,7 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discor
 
     let tempUPWord = gpInfo.LevelUpWord || "恭喜 {user.displayName}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！";
     if (/{user.displayName}/ig.test(tempUPWord)) {
-        let userDisplayName = await getDisplayName(discordMessage) || username || "無名";
+        let userDisplayName = getDisplayName(discordMessage) || username || "無名";
         tempUPWord = tempUPWord.replaceAll(/{user.displayName}/ig, userDisplayName);
     }
 
@@ -199,10 +234,10 @@ async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord,
     });
 }
 
-async function getDisplayName(message) {
+function getDisplayName(message) {
     if (!message) return;
-    const member = await message.guild.members.fetch(message.author);
-    return member ? member.displayName : message.author.username;
+    if (message.member?.displayName) return message.member.displayName;
+    return message.author?.username;
 }
 
 const Title = function () {

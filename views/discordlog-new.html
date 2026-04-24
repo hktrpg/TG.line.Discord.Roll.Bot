@@ -1,0 +1,1515 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Discord Log Analyzer (New)</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.7/d3.layout.cloud.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.js" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --primary-color: #e85d8f;
+      --primary-color-strong: #d64e81;
+      --primary-soft: #fff1f6;
+      --secondary-color: #8ebee5;
+      --accent-color: #f1c95a;
+      --text-color: #3b3f54;
+      --muted-text: #7a5f6d;
+      --bg-color: #faf8fb;
+      --panel-bg: #ffffff;
+      --panel-soft: #fff7fa;
+      --border-color: #efd9e3;
+      --border-strong: #e8c8d8;
+      --shadow-soft: 0 6px 18px rgba(142, 100, 122, 0.08);
+      --shadow-focus: 0 0 0 0.2rem rgba(232, 93, 143, 0.16);
+      --gradient-main: linear-gradient(90deg, #e85d8f 0%, #f08fb2 100%);
+    }
+
+    body {
+      margin-top: 2%;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: "Noto Sans TC", sans-serif;
+      line-height: 1.6;
+    }
+
+    table {
+      font-family: "Noto Sans TC", sans-serif;
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
+      box-shadow: var(--shadow-soft);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    td,
+    th {
+      border: none;
+      padding: 12px;
+      transition: all 0.3s ease;
+    }
+
+    th {
+      background-color: var(--primary-color);
+      color: #fff;
+      font-weight: 500;
+    }
+
+    tr:hover {
+      background-color: rgba(232, 93, 143, 0.05);
+    }
+
+    .container-fluid {
+      max-width: 1400px;
+      padding: 1.25rem 1.5rem 2rem;
+    }
+
+    .row > div {
+      margin-bottom: 1rem;
+    }
+
+    .card {
+      border-radius: 20px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--border-color);
+      background: var(--panel-bg);
+    }
+
+    .btn {
+      border-radius: 50px;
+      padding: 10px 24px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-info {
+      background: var(--gradient-main);
+      border: 1px solid transparent;
+      box-shadow: 0 4px 14px rgba(232, 93, 143, 0.28);
+    }
+
+    .btn-info:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(232, 93, 143, 0.34);
+    }
+
+    .btn-outline-primary {
+      color: var(--primary-color-strong);
+      border-color: var(--border-strong);
+      background: #fff;
+    }
+
+    .btn-outline-primary:hover {
+      color: #fff;
+      background: var(--gradient-main);
+      border-color: transparent;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="date"],
+    input[type="number"],
+    select {
+      border-radius: 25px;
+      border: 1px solid var(--border-strong);
+      padding: 10px 18px;
+      box-shadow: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primary-color);
+      box-shadow: var(--shadow-focus);
+      outline: none;
+    }
+
+    .table {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: none;
+      border: 1px solid var(--border-color);
+    }
+
+    .table thead th {
+      background: var(--gradient-main);
+      color: #fff;
+      border: none;
+    }
+
+    .table td {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .hero-card {
+      background: linear-gradient(135deg, #ffffff 0%, #fff8fb 70%, #fff3f8 100%);
+      border: 1px solid var(--border-color);
+    }
+
+    .quick-tools {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .quick-tools .btn {
+      padding: 6px 14px;
+      font-size: 0.85rem;
+    }
+
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-color);
+      margin-bottom: 0.75rem;
+    }
+
+    .range-tabs {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: flex-start;
+    }
+
+    .range-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .range-current {
+      font-size: 0.78rem;
+      color: var(--muted-text);
+      line-height: 1.2;
+    }
+
+    .range-chip {
+      border: 1px solid var(--border-strong);
+      background: #fff;
+      color: var(--muted-text);
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      line-height: 1.2;
+    }
+
+    .range-chip:hover {
+      background: var(--primary-soft);
+    }
+
+    .range-chip.active {
+      background: var(--gradient-main);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .compact-row .form-group {
+      margin-bottom: 0.35rem !important;
+    }
+
+    .compact-row label {
+      margin-bottom: 0.2rem;
+      font-size: 0.82rem;
+    }
+
+    .toolbar-card {
+      border: 1px solid var(--border-color);
+      background: linear-gradient(135deg, #fff 0%, #fff8fb 100%);
+    }
+
+    .toolbar-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted-text);
+      margin-bottom: 0.15rem;
+      letter-spacing: 0.02em;
+    }
+
+    .toolbar-divider {
+      border-top: 1px dashed var(--border-strong);
+      margin: 0.45rem 0 0.6rem;
+    }
+
+    .hero-toolbar {
+      margin-top: 0.65rem;
+      padding-top: 0.6rem;
+      border-top: 1px dashed var(--border-strong);
+    }
+
+    .summary-card {
+      padding: 0.9rem 1rem !important;
+    }
+
+    .summary-title {
+      font-size: 0.82rem;
+      color: var(--muted-text);
+      margin-bottom: 0.2rem;
+    }
+
+    .wordcloud-wrap {
+      width: 100%;
+      height: 330px;
+      background: var(--panel-soft);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: inset 0 0 0 1px rgba(255, 92, 138, 0.04);
+      overflow: hidden;
+    }
+
+    #wordcloudCanvas {
+      width: 100%;
+      height: 100%;
+      min-height: 330px;
+    }
+
+    .mono {
+      font-family: Consolas, monospace;
+    }
+
+    .quote-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .quote-tab-btn {
+      border: 1px solid var(--border-strong);
+      background: #fff;
+      color: var(--muted-text);
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .quote-tab-btn.active {
+      background: var(--gradient-main);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .quote-list {
+      max-height: 330px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .quote-item {
+      font-size: 0.86rem;
+      border-bottom: 1px dashed var(--border-color);
+      padding: 6px 2px;
+      color: var(--text-color);
+      word-break: break-word;
+    }
+
+    .quote-item:last-child {
+      border-bottom: none;
+    }
+
+    .insight-card {
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      background: #fff;
+    }
+
+    .heatmap-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .heatmap-toolbar .btn {
+      padding: 2px 8px;
+      font-size: 0.78rem;
+    }
+
+    .heatmap-grid {
+      display: grid;
+      grid-template-rows: repeat(7, 8px);
+      grid-auto-flow: column;
+      grid-auto-columns: 8px;
+      gap: 2px;
+      overflow: hidden;
+      padding-bottom: 6px;
+    }
+
+    .heatmap-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .heatmap-month-header {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .heatmap-month-spacer {
+      min-width: 24px;
+    }
+
+    .heatmap-month-grid {
+      display: grid;
+      grid-template-rows: 1fr;
+      grid-auto-flow: column;
+      grid-auto-columns: 8px;
+      gap: 2px;
+      flex: 1;
+      font-size: 0.7rem;
+      color: #8a7481;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .heatmap-month-label {
+      white-space: nowrap;
+      transform: translateX(2px);
+    }
+
+    .heatmap-weekdays {
+      display: grid;
+      grid-template-rows: repeat(7, 8px);
+      gap: 2px;
+      min-width: 24px;
+      font-size: 0.7rem;
+      color: #8a7481;
+      line-height: 8px;
+      user-select: none;
+    }
+
+    .heat-cell {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      border: 1px solid rgba(27, 31, 35, 0.06);
+      background: #ebedf0;
+      transition: transform 0.12s ease;
+    }
+
+    .heat-cell:hover {
+      transform: scale(1.08);
+    }
+
+    @media (min-width: 1200px) {
+      .heatmap-grid {
+        grid-template-rows: repeat(7, 9px);
+        grid-auto-columns: 9px;
+      }
+
+      .heatmap-month-grid {
+        grid-auto-columns: 9px;
+      }
+
+      .heatmap-weekdays {
+        grid-template-rows: repeat(7, 9px);
+        line-height: 9px;
+      }
+
+      .heat-cell {
+        width: 9px;
+        height: 9px;
+      }
+    }
+
+    .heat-lv1 { background: #c6e48b; }
+    .heat-lv2 { background: #7bc96f; }
+    .heat-lv3 { background: #239a3b; }
+    .heat-lv4 { background: #196127; }
+
+    .mini-list {
+      max-height: 240px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 8px;
+      background: #fffdfd;
+    }
+
+    .mini-item {
+      font-size: 0.82rem;
+      padding: 4px 0;
+      border-bottom: 1px dashed var(--border-color);
+    }
+
+    .mini-item:last-child {
+      border-bottom: none;
+    }
+
+    .heatmap-legend {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.74rem;
+      color: #7a5a6b;
+      margin-top: 8px;
+    }
+
+    .heatmap-months {
+      margin-top: 6px;
+      font-size: 0.74rem;
+      color: #7a5a6b;
+      line-height: 1.4;
+    }
+
+    @media (min-width: 992px) {
+      .toolbar-compact .form-control,
+      .toolbar-compact .form-control-sm {
+        height: 30px;
+        padding-top: 3px;
+        padding-bottom: 3px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="container-fluid py-3">
+    <div class="row mb-3">
+      <div class="col">
+        <div class="card hero-card p-3">
+          <div class="d-flex flex-wrap justify-content-between align-items-center">
+            <div>
+              <h2 class="mb-1">Discord 聊天記錄分析（New）</h2>
+              <small class="text-muted">模組化分析 + 關係分析 + 詞雲修正 + 多時間區間</small>
+            </div>
+            <div class="quick-tools mt-2 mt-md-0">
+              <button class="btn btn-info" @click="loadDemo">載入 DEMO</button>
+              <button class="btn btn-outline-primary" @click="openDecryptModal" v-if="hasEncryptedPayload">解密資料</button>
+            </div>
+          </div>
+          <div class="hero-toolbar toolbar-compact">
+            <div class="range-tabs">
+              <div class="range-row">
+                <button type="button" class="range-chip" :class="{ active: timeRangeMode === 'all' }" @click="setTimeRangeMode('all')">全部</button>
+                <button type="button" class="range-chip" :class="{ active: timeRangeMode === 'thisYear' }" @click="setTimeRangeMode('thisYear')">今年</button>
+                <button type="button" class="range-chip" :class="{ active: timeRangeMode === 'lastYear' }" @click="setTimeRangeMode('lastYear')">去年</button>
+                <button type="button" class="range-chip" :class="{ active: timeRangeMode === 'last1Year' }" @click="setTimeRangeMode('last1Year')">近1年</button>
+                <button type="button" class="range-chip" :class="{ active: timeRangeMode === 'last5Years' }" @click="setTimeRangeMode('last5Years')">近5年</button>
+                <button type="button" class="range-chip" :class="{ active: timeRangeMode === 'nearXMonths' }" @click="setTimeRangeMode('nearXMonths')">近X月</button>
+                <button type="button" class="range-chip" :class="{ active: timeRangeMode === 'nearXYears' }" @click="setTimeRangeMode('nearXYears')">近X年</button>
+                <button type="button" class="range-chip" :class="{ active: timeRangeMode === 'custom' }" @click="setTimeRangeMode('custom')">自訂</button>
+              </div>
+              <div class="range-current">區間：<span class="mono">{{ currentRangeText }}</span></div>
+            </div>
+            <div class="form-row align-items-end compact-row mb-0 mt-2">
+              <div class="form-group col-12 col-md-2" v-if="timeRangeMode === 'nearXMonths'">
+                <div class="toolbar-label">近 X 月</div>
+                <input class="form-control form-control-sm" type="number" min="1" v-model.number="nearXMonths" @change="applyTimeFilter">
+              </div>
+              <div class="form-group col-12 col-md-2" v-if="timeRangeMode === 'nearXYears'">
+                <div class="toolbar-label">近 X 年</div>
+                <input class="form-control form-control-sm" type="number" min="1" v-model.number="nearXYears" @change="applyTimeFilter">
+              </div>
+              <div class="form-group col-12 col-md-2" v-if="timeRangeMode === 'custom'">
+                <div class="toolbar-label">開始日</div>
+                <input class="form-control form-control-sm" type="date" v-model="customStartDate" @change="applyTimeFilter">
+              </div>
+              <div class="form-group col-12 col-md-2" v-if="timeRangeMode === 'custom'">
+                <div class="toolbar-label">結束日</div>
+                <input class="form-control form-control-sm" type="date" v-model="customEndDate" @change="applyTimeFilter">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-3 mb-2"><div class="card summary-card"><div class="summary-title">人類訊息</div><div class="stat-value">{{ summary.humanMessages }}</div></div></div>
+      <div class="col-md-3 mb-2"><div class="card summary-card"><div class="summary-title">Bot 訊息</div><div class="stat-value">{{ summary.botMessages }}</div></div></div>
+      <div class="col-md-3 mb-2"><div class="card summary-card"><div class="summary-title">分析天數</div><div class="stat-value">{{ summary.days }}</div></div></div>
+      <div class="col-md-3 mb-2"><div class="card summary-card"><div class="summary-title">日均訊息</div><div class="stat-value">{{ summary.dailyAvg }}</div></div></div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-4 mb-2"><div class="card p-2"><canvas id="topUsersChart" height="160"></canvas></div></div>
+      <div class="col-md-4 mb-2"><div class="card p-2"><canvas id="ratioChart" height="160"></canvas></div></div>
+      <div class="col-md-4 mb-2"><div class="card p-2"><canvas id="dailyTrendChart" height="160"></canvas></div></div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-lg-7 mb-2">
+        <div class="card p-3">
+          <div class="section-title">高階關係分析</div>
+          <div class="row">
+            <div class="col-md-6 mb-2"><div>發起者占比（首句）</div><div class="mono">{{ relationship.initiatorLeader }}</div></div>
+            <div class="col-md-6 mb-2"><div>收尾者占比（尾句）</div><div class="mono">{{ relationship.closerLeader }}</div></div>
+            <div class="col-md-6 mb-2"><div>平均回覆時間</div><div class="mono">{{ relationship.avgResponse }}</div></div>
+            <div class="col-md-6 mb-2"><div>鍥而不捨（連續追發）</div><div class="mono">{{ relationship.perseverance }}</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-5 mb-2">
+        <div class="card p-3">
+          <div class="section-title">最常講的字（文字雲）</div>
+          <div class="quote-tabs">
+            <button type="button" class="quote-tab-btn" :class="{ active: quoteTab === 'wordcloud' }" @click="setQuoteTab('wordcloud')">詞雲</button>
+            <button type="button" class="quote-tab-btn" :class="{ active: quoteTab === 'keyword' }" @click="setQuoteTab('keyword')">關鍵字</button>
+            <button type="button" class="quote-tab-btn" :class="{ active: quoteTab === 'repeat' }" @click="setQuoteTab('repeat')">熱門複讀</button>
+            <button type="button" class="quote-tab-btn" :class="{ active: quoteTab === 'catchphrase' }" @click="setQuoteTab('catchphrase')">口頭禪</button>
+          </div>
+          <div v-show="quoteTab === 'wordcloud'" class="wordcloud-wrap"><div id="wordcloudCanvas"></div></div>
+          <div v-show="quoteTab === 'keyword'" class="quote-list">
+            <div class="quote-item" v-for="(item, idx) in quoteInsights.keywords" :key="'k-' + idx">{{ idx + 1 }}. {{ item.text }}（{{ item.count }}）</div>
+            <div class="text-muted small" v-if="!quoteInsights.keywords.length">無資料</div>
+          </div>
+          <div v-show="quoteTab === 'repeat'" class="quote-list">
+            <div class="quote-item" v-for="(item, idx) in quoteInsights.repeats" :key="'r-' + idx">{{ idx + 1 }}. {{ item.text }}（{{ item.count }} 次）</div>
+            <div class="text-muted small" v-if="!quoteInsights.repeats.length">無資料</div>
+          </div>
+          <div v-show="quoteTab === 'catchphrase'" class="quote-list">
+            <div class="quote-item" v-for="(item, idx) in quoteInsights.catchphrases" :key="'c-' + idx">{{ idx + 1 }}. {{ item.user }}：{{ item.text }}（{{ item.count }}）</div>
+            <div class="text-muted small" v-if="!quoteInsights.catchphrases.length">無資料</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-lg-6 mb-2">
+        <div class="card p-3 insight-card">
+          <div class="section-title mb-2">活躍熱力圖（GitHub 風格）</div>
+          <div class="heatmap-toolbar">
+            <button type="button" class="btn btn-sm btn-outline-secondary" @click="changeHeatmapYear(-1)">◀</button>
+            <div class="mono">{{ heatmapYear }} 年</div>
+            <button type="button" class="btn btn-sm btn-outline-secondary" @click="changeHeatmapYear(1)">▶</button>
+            <small class="text-muted ml-auto">活躍日 {{ heatmapMeta.activeDays }} / {{ heatmapMeta.totalDays }} ｜ 總訊息 {{ heatmapMeta.totalMessages }}</small>
+          </div>
+          <div class="heatmap-month-header">
+            <div class="heatmap-month-spacer"></div>
+            <div class="heatmap-month-grid">
+              <div
+                v-for="(month, idx) in heatmapMonthLabels"
+                :key="'m-' + idx"
+                class="heatmap-month-label"
+                :style="{ gridColumnStart: month.col + 1 }"
+              >{{ month.label }}</div>
+            </div>
+          </div>
+          <div class="heatmap-wrap">
+            <div class="heatmap-weekdays">
+              <div>日</div>
+              <div>一</div>
+              <div>二</div>
+              <div>三</div>
+              <div>四</div>
+              <div>五</div>
+              <div>六</div>
+            </div>
+            <div class="heatmap-grid">
+              <div
+                v-for="(cell, idx) in heatmapCells"
+                :key="'h-' + idx"
+                class="heat-cell"
+                :class="cell.levelClass"
+                :title="cell.tooltip"
+              ></div>
+            </div>
+          </div>
+          <div class="heatmap-legend">
+            <span>少</span>
+            <span class="heat-cell"></span>
+            <span class="heat-cell heat-lv1"></span>
+            <span class="heat-cell heat-lv2"></span>
+            <span class="heat-cell heat-lv3"></span>
+            <span class="heat-cell heat-lv4"></span>
+            <span>多（單日峰值 {{ heatmapMeta.maxCount }}）</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 mb-2">
+        <div class="card p-3 insight-card">
+          <div class="section-title mb-2">互動配對 Top10</div>
+          <div class="mini-list">
+            <div class="mini-item mono" v-for="(pair, idx) in interactionPairs" :key="'p-' + idx">
+              {{ idx + 1 }}. {{ pair.from }} → {{ pair.to }}（{{ pair.count }}）
+            </div>
+            <div class="text-muted small" v-if="!interactionPairs.length">無資料</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 mb-2">
+        <div class="card p-3 insight-card">
+          <div class="section-title mb-2">未回覆檢測</div>
+          <div class="mini-list">
+            <div class="mini-item" v-for="(item, idx) in unrepliedItems" :key="'u-' + idx">
+              <div class="mono">{{ formatTime(item.timestamp) }}</div>
+              <div>{{ item.userName }}：{{ item.preview }}</div>
+              <div class="text-muted small">等待 {{ item.waitText }}</div>
+            </div>
+            <div class="text-muted small" v-if="!unrepliedItems.length">無資料</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-2">
+      <div class="form-row align-items-end compact-row px-2 pt-2 pb-1">
+        <div class="form-group col-12 col-md-6 mb-0">
+          <div class="toolbar-label">搜尋</div>
+          <input
+            class="form-control form-control-sm"
+            type="search"
+            v-model="keyword"
+            placeholder="搜尋訊息/發信人"
+            name="chat-search-keyword"
+            id="chat-search-keyword"
+            readonly
+            @focus="unlockSearchInput"
+            autocomplete="off"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+          >
+        </div>
+        <div class="form-group col-6 col-md-3 mb-0">
+          <div class="toolbar-label">類型</div>
+          <select class="form-control form-control-sm" v-model="msgFilter">
+            <option value="all">全部</option>
+            <option value="user">使用者</option>
+            <option value="bot">機器人</option>
+            <option value="command">指令</option>
+            <option value="dice">擲骰</option>
+          </select>
+        </div>
+        <div class="form-group col-6 col-md-3 mb-0">
+          <div class="toolbar-label">筆數</div>
+          <select class="form-control form-control-sm" v-model.number="pageSize">
+            <option :value="20">20</option>
+            <option :value="50">50</option>
+            <option :value="100">100</option>
+            <option :value="500">500</option>
+            <option :value="-1">全部</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-striped table-sm mb-0">
+          <thead><tr><th>#</th><th>時間</th><th>發信人</th><th>內容</th></tr></thead>
+          <tbody>
+            <tr v-for="(row, idx) in tableRows" :key="idx">
+              <td>{{ idx + 1 }}</td>
+              <td class="mono">{{ formatTime(row.timestamp) }}</td>
+              <td>{{ row.userName }}<span v-if="row.isbot"> (🤖)</span></td>
+              <td style="white-space: pre-wrap">{{ row.contact }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <div class="modal fade" id="decryptModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">載入聊天資料</h5><button type="button" class="close" data-dismiss="modal"><span>&times;</span></button></div>
+        <div class="modal-body">
+          <form v-if="hasEncryptedPayload" id="decryptForm" @submit.prevent="decryptAndLoad">
+            <p class="text-muted">偵測到加密聊天資料，請輸入密碼解密，或改用 DEMO。</p>
+            <input type="text" name="username" autocomplete="username" class="d-none" tabindex="-1" aria-hidden="true">
+            <input
+              type="password"
+              class="form-control"
+              placeholder="請輸入密碼"
+              v-model="decryptPassword"
+              name="decrypt-chat-password"
+              autocomplete="new-password"
+              data-lpignore="true"
+              data-1p-ignore="true"
+            >
+            <small class="text-danger" v-if="decryptError">{{ decryptError }}</small>
+          </form>
+          <div v-else><p class="text-muted">目前沒有可解密內容，請直接載入 DEMO。</p></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-info" @click="loadDemo">載入 DEMO</button>
+          <button type="submit" form="decryptForm" class="btn btn-warning" v-if="hasEncryptedPayload">開始解密</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" crossorigin="anonymous"></script>
+  <script>
+    function buildDemoData() {
+      const baseTs = 1_714_534_400_000;
+      const users = ["Alice", "Bob", "Cathy", "David"];
+      const texts = [
+        "早安，今天開團嗎？",
+        "晚上八點記得準時",
+        "我會晚十分鐘到",
+        "這段劇情超有感",
+        "明天整理團錄",
+        "下次試試新角色",
+        "笑死，剛剛那段太神",
+        "先攻順序我記一下",
+        "今晚要不要加開一場",
+        "這個判定有點刺激"
+      ];
+      const data = [];
+      for (let i = 0; i < 50; i++) {
+        const timestamp = baseTs + i * 3_600_000 + (i % 5) * 120_000;
+        if (i % 11 === 0) {
+          data.push({
+            timestamp,
+            contact: `.roll 1d100 #測試${i}`,
+            userName: "DiceBot",
+            isbot: true
+          });
+          continue;
+        }
+        if (i % 17 === 0) {
+          data.push({
+            timestamp,
+            contact: `${(i % 20) + 50} 成功`,
+            userName: "DiceBot",
+            isbot: true
+          });
+          continue;
+        }
+        let speaker = users[i % users.length];
+        // Inject a few realistic follow-up bursts so perseverance metrics are visible in DEMO.
+        if (i % 9 === 4 || i % 9 === 5) speaker = "Bob";
+        if (i % 13 === 7 || i % 13 === 8) speaker = "Cathy";
+        data.push({
+          timestamp,
+          contact: texts[i % texts.length],
+          userName: speaker,
+          isbot: false
+        });
+      }
+      return data;
+    }
+    const demoData = buildDemoData();
+    const encryptedPayload = window.aesData || "";
+    const stateStore = { rawData: [], filteredByTime: [], rangeStart: null, rangeEnd: null };
+
+    function tokenizeWords(text) {
+      const cleaned = String(text || "").replace(/[^\w\u4e00-\u9fff\s]/g, " ").trim();
+      if (!cleaned) return [];
+
+      // Prefer built-in CJK word segmentation in modern browsers (Edge/Chromium supported).
+      if (typeof Intl !== "undefined" && typeof Intl.Segmenter === "function") {
+        try {
+          const segmenter = new Intl.Segmenter("zh-Hant", { granularity: "word" });
+          const parts = [];
+          for (const item of segmenter.segment(cleaned)) {
+            const token = String(item.segment || "").trim();
+            if (!token) continue;
+            if (token.length < 2 || token.length > 10) continue;
+            if (/^\d+$/.test(token)) continue;
+            parts.push(token.toLowerCase());
+          }
+          if (parts.length) return parts;
+        } catch (error) {
+          // Fallback below.
+        }
+      }
+
+      // Fallback: split by whitespace and basic CJK bi-grams for contiguous Chinese text.
+      const baseTokens = cleaned.split(/\s+/).filter(Boolean);
+      const out = [];
+      baseTokens.forEach((token) => {
+        const lower = token.toLowerCase();
+        if (/^[\u4e00-\u9fff]+$/.test(lower) && lower.length >= 2) {
+          if (lower.length <= 4) {
+            out.push(lower);
+          } else {
+            for (let i = 0; i < lower.length - 1; i++) {
+              out.push(lower.slice(i, i + 2));
+            }
+          }
+        } else if (lower.length >= 2 && lower.length <= 10 && !/^\d+$/.test(lower)) {
+          out.push(lower);
+        }
+      });
+      return out;
+    }
+
+    function normalizePhrase(text) {
+      let normalized = String(text || "").normalize("NFKC").trim();
+      normalized = normalized.replace(/\s+/g, " ");
+      normalized = normalized.replace(/[!！?？,，.。~～…]+$/g, "");
+      return normalized.trim();
+    }
+
+    function isValidPhrase(text) {
+      if (!text || text.length < 2) return false;
+      if (/^https?:\/\/\S+$/i.test(text)) return false;
+      if (/^[\p{P}\p{S}\d\s]+$/u.test(text)) return false;
+      return true;
+    }
+    const analysisEngine = {
+      sortByTime: (data) => [...data].sort((a, b) => a.timestamp - b.timestamp),
+      getSummary(data) {
+        if (!data.length) return { humanMessages: 0, botMessages: 0, days: 0, dailyAvg: "0.00" };
+        const human = data.filter((i) => !i.isbot).length;
+        const bot = data.filter((i) => i.isbot).length;
+        const lastItem = data[data.length - 1];
+        const days = Math.max(1, Math.ceil((lastItem.timestamp - data[0].timestamp) / 86_400_000));
+        return { humanMessages: human, botMessages: bot, days, dailyAvg: (human / days).toFixed(2) };
+      },
+      getTopUsers(data, maxCount = 6) {
+        const map = {};
+        data.filter((i) => !i.isbot).forEach((i) => { map[i.userName] = (map[i.userName] || 0) + 1; });
+        return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, maxCount);
+      },
+      getUserRatio(data) {
+        const map = {};
+        data.forEach((i) => { map[i.userName] = (map[i.userName] || 0) + 1; });
+        return Object.entries(map).sort((a, b) => b[1] - a[1]);
+      },
+      getDailyTrend(data) {
+        const map = {};
+        data.forEach((i) => {
+          const d = new Date(i.timestamp);
+          const key = [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
+          map[key] = (map[key] || 0) + 1;
+        });
+        return Object.entries(map).sort((a, b) => a[0].localeCompare(b[0]));
+      },
+      getRelationshipMetrics(data) {
+        const humanData = data.filter((i) => !i.isbot);
+        if (!humanData.length) return { initiatorLeader: "無資料", closerLeader: "無資料", avgResponse: "無資料", perseverance: "無資料" };
+        const intervals = [];
+        for (let i = 1; i < humanData.length; i++) {
+          const diff = humanData[i].timestamp - humanData[i - 1].timestamp;
+          if (diff > 0) intervals.push(diff);
+        }
+        const sortedIntervals = intervals.slice().sort((a, b) => a - b);
+        const medianInterval = sortedIntervals.length
+          ? sortedIntervals[Math.floor(sortedIntervals.length / 2)]
+          : 1_800_000;
+        // Adaptive session split: avoid DEMO/low-density logs being split into isolated sessions.
+        const sessionGapMs = Math.max(1_800_000, Math.min(21_600_000, medianInterval * 3));
+        const responseWindowMs = 21_600_000; // 6h upper bound to avoid cross-day skew
+        const initiator = {};
+        const closer = {};
+        const responseSumByUser = {};
+        const responseCountByUser = {};
+        const perseveranceCountByUser = {};
+        const maxStreakByUser = {};
+        const allResponseLatenciesSec = [];
+
+        const formatDuration = (seconds) => {
+          const sec = Math.max(1, Math.round(seconds));
+          if (sec < 60) return `${sec} 秒`;
+          const mins = Math.round(sec / 60);
+          if (mins < 60) return `${mins} 分鐘`;
+          const hours = Math.round((mins / 60) * 10) / 10;
+          return `${hours} 小時`;
+        };
+
+        const getDayKey = (ts) => {
+          const d = new Date(ts);
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        };
+        let previous = null;
+        let currentStreakLen = 0;
+        humanData.forEach((msg, idx) => {
+          const dayChanged = previous ? getDayKey(msg.timestamp) !== getDayKey(previous.timestamp) : false;
+          if (!previous || (msg.timestamp - previous.timestamp) > sessionGapMs || dayChanged) {
+            initiator[msg.userName] = (initiator[msg.userName] || 0) + 1;
+            if (idx > 0) closer[previous.userName] = (closer[previous.userName] || 0) + 1;
+            currentStreakLen = 1;
+          } else {
+            const sameUser = previous.userName === msg.userName;
+            if (!sameUser) {
+              const latencySec = Math.max(1, Math.round((msg.timestamp - previous.timestamp) / 1000));
+              if ((msg.timestamp - previous.timestamp) <= responseWindowMs) {
+                allResponseLatenciesSec.push(latencySec);
+                responseSumByUser[msg.userName] = (responseSumByUser[msg.userName] || 0) + latencySec;
+                responseCountByUser[msg.userName] = (responseCountByUser[msg.userName] || 0) + 1;
+              }
+              currentStreakLen = 1;
+            } else {
+              perseveranceCountByUser[msg.userName] = (perseveranceCountByUser[msg.userName] || 0) + 1;
+              currentStreakLen += 1;
+              maxStreakByUser[msg.userName] = Math.max(maxStreakByUser[msg.userName] || 1, currentStreakLen);
+            }
+          }
+          previous = msg;
+        });
+        if (previous) closer[previous.userName] = (closer[previous.userName] || 0) + 1;
+        const topFromMap = (map) => {
+          const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
+          if (!entries.length) return "無資料";
+          const total = entries.reduce((sum, i) => sum + i[1], 0);
+          const ratio = Math.round((entries[0][1] / Math.max(1, total)) * 100);
+          return `${entries[0][0]} (${entries[0][1]}, ${ratio}%)`;
+        };
+        const avgResponseText = (() => {
+          if (!allResponseLatenciesSec.length) return "無資料";
+          const overallSec = allResponseLatenciesSec.reduce((s, n) => s + n, 0) / allResponseLatenciesSec.length;
+          const fastest = Object.keys(responseSumByUser)
+            .map((name) => ({
+              name,
+              avg: responseSumByUser[name] / Math.max(1, responseCountByUser[name]),
+              count: responseCountByUser[name]
+            }))
+            .filter((i) => i.count >= 1)
+            .sort((a, b) => a.avg - b.avg)[0];
+          if (!fastest) return `整體 ${formatDuration(overallSec)}`;
+          return `整體 ${formatDuration(overallSec)} | 最快 ${fastest.name} ${formatDuration(fastest.avg)}`;
+        })();
+
+        const perseveranceText = (() => {
+          const totalFollowUps = Object.values(perseveranceCountByUser).reduce((s, n) => s + n, 0);
+          const maxStreak = Object.keys(maxStreakByUser)
+            .map((name) => ({ name, streak: maxStreakByUser[name] }))
+            .sort((a, b) => b.streak - a.streak)[0];
+          if (!totalFollowUps && !maxStreak) return "無資料";
+          if (!maxStreak) return `總追發 ${totalFollowUps} 次`;
+          return `總追發 ${totalFollowUps} 次 | 最長 ${maxStreak.name} ${maxStreak.streak} 連發`;
+        })();
+
+        return {
+          initiatorLeader: topFromMap(initiator),
+          closerLeader: topFromMap(closer),
+          avgResponse: avgResponseText,
+          perseverance: perseveranceText
+        };
+      },
+      getAvailableYears(data) {
+        const years = new Set();
+        data.forEach((i) => {
+          if (!i || !i.timestamp) return;
+          years.add(new Date(i.timestamp).getFullYear());
+        });
+        return Array.from(years).sort((a, b) => a - b);
+      },
+      getActivityHeatmap(data, year) {
+        const byDay = {};
+        const humanData = data.filter((i) => !i.isbot);
+        humanData.forEach((i) => {
+          const d = new Date(i.timestamp);
+          if (d.getFullYear() !== year) return;
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          byDay[key] = (byDay[key] || 0) + 1;
+        });
+        const start = new Date(year, 0, 1);
+        const end = new Date(year, 11, 31);
+        const maxCount = Math.max(1, ...Object.values(byDay));
+        const totalMessages = Object.values(byDay).reduce((s, n) => s + n, 0);
+        const cells = [];
+        let totalDays = 0;
+        let activeDays = 0;
+        const firstWeekday = start.getDay(); // 0=Sun
+        const monthHeaders = [];
+        for (let m = 0; m < 12; m++) {
+          const firstDayOfMonth = new Date(year, m, 1);
+          const dayOffset = Math.floor((firstDayOfMonth - start) / 86_400_000);
+          const col = Math.floor((firstWeekday + dayOffset) / 7);
+          monthHeaders.push({ label: `${m + 1}月`, col });
+        }
+        for (let i = 0; i < firstWeekday; i++) {
+          cells.push({ levelClass: "", tooltip: "" });
+        }
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          totalDays += 1;
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          const count = byDay[key] || 0;
+          if (count > 0) activeDays += 1;
+          let level = 0;
+          if (count > 0) {
+            const ratio = count / maxCount;
+            if (ratio >= 0.75) level = 4;
+            else if (ratio >= 0.5) level = 3;
+            else if (ratio >= 0.25) level = 2;
+            else level = 1;
+          }
+          cells.push({
+            levelClass: level ? `heat-lv${level}` : "",
+            tooltip: `${key}: ${count} 則`
+          });
+        }
+        return { cells, activeDays, totalDays, maxCount, totalMessages, monthHeaders };
+      },
+      getInteractionPairsTop10(data) {
+        const rows = data.filter((i) => !i.isbot);
+        const pairMap = {};
+        const maxGapMs = 21_600_000;
+        for (let i = 1; i < rows.length; i++) {
+          const prev = rows[i - 1];
+          const curr = rows[i];
+          if (!prev || !curr) continue;
+          if (prev.userName === curr.userName) continue;
+          if ((curr.timestamp - prev.timestamp) > maxGapMs) continue;
+          const key = `${prev.userName}|||${curr.userName}`;
+          pairMap[key] = (pairMap[key] || 0) + 1;
+        }
+        return Object.entries(pairMap)
+          .map((i) => {
+            const parts = i[0].split("|||");
+            return { from: parts[0], to: parts[1], count: i[1] };
+          })
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 10);
+      },
+      getUnrepliedDetections(data) {
+        const rows = data.filter((i) => !i.isbot);
+        const waitMs = 7_200_000;
+        const output = [];
+        const formatWait = (ms) => {
+          const mins = Math.round(ms / 60_000);
+          if (mins < 60) return `${mins} 分鐘`;
+          const hrs = Math.round((mins / 60) * 10) / 10;
+          return `${hrs} 小時`;
+        };
+        for (let i = 0; i < rows.length; i++) {
+          const current = rows[i];
+          const next = rows[i + 1];
+          if (!current) continue;
+          if (!next) {
+            output.push({
+              timestamp: current.timestamp,
+              userName: current.userName,
+              preview: String(current.contact || "").slice(0, 40),
+              waitText: "直到資料結尾"
+            });
+            continue;
+          }
+          if (next.userName === current.userName) continue;
+          const gap = next.timestamp - current.timestamp;
+          if (gap >= waitMs) {
+            output.push({
+              timestamp: current.timestamp,
+              userName: current.userName,
+              preview: String(current.contact || "").slice(0, 40),
+              waitText: `${formatWait(gap)} 才有回覆`
+            });
+          }
+        }
+        return output.sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
+      },
+      getQuoteInsights(data) {
+        const humanData = data.filter((i) => !i.isbot);
+        const keywordMap = {};
+        const keywordDocFreq = {};
+        const repeatMap = {};
+        const catchphraseMap = {};
+        const stopWords = new Set(["今天", "我們", "你們", "這個", "那個", "可以", "一下", "然後", "就是", "真的", "還有", "一個"]);
+
+        humanData.forEach((msg) => {
+          const text = String(msg.contact || "").trim();
+          if (!text) return;
+          const normalizedText = normalizePhrase(text);
+          if (!isValidPhrase(normalizedText)) return;
+
+          if (normalizedText.length >= 4 && normalizedText.length <= 40) {
+            repeatMap[normalizedText] = (repeatMap[normalizedText] || 0) + 1;
+            const byUserKey = `${msg.userName}::${normalizedText}`;
+            catchphraseMap[byUserKey] = (catchphraseMap[byUserKey] || 0) + 1;
+          }
+
+          const tokens = tokenizeWords(normalizedText);
+          const tokenSet = new Set();
+          tokens.forEach((token) => {
+            const key = token.toLowerCase();
+            if (stopWords.has(key)) return;
+            keywordMap[key] = (keywordMap[key] || 0) + 1;
+            tokenSet.add(key);
+          });
+          tokenSet.forEach((key) => {
+            keywordDocFreq[key] = (keywordDocFreq[key] || 0) + 1;
+          });
+        });
+
+        const totalDocs = Math.max(1, humanData.length);
+        const keywords = Object.entries(keywordMap)
+          .filter((i) => i[1] >= 2)
+          .map((i) => {
+            const tf = i[1];
+            const df = keywordDocFreq[i[0]] || 1;
+            const idf = Math.log((totalDocs + 1) / (df + 1)) + 1;
+            return { text: i[0], count: i[1], score: tf * idf };
+          })
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 12)
+          .map((i) => ({ text: i.text, count: i.count }));
+
+        const repeats = Object.entries(repeatMap).filter((i) => i[1] >= 2).sort((a, b) => b[1] - a[1]).slice(0, 10).map((i) => ({ text: i[0], count: i[1] }));
+        const catchphrases = Object.entries(catchphraseMap).filter((i) => i[1] >= 2).sort((a, b) => b[1] - a[1]).slice(0, 10).map((i) => {
+          const parts = i[0].split("::");
+          return { user: parts[0], text: parts[1], count: i[1] };
+        });
+        return { keywords, repeats, catchphrases };
+      }
+    };
+    const renderEngine = {
+      topUsersChart: null,
+      ratioChart: null,
+      dailyTrendChart: null,
+      destroyCharts() {
+        if (this.topUsersChart) this.topUsersChart.destroy();
+        if (this.ratioChart) this.ratioChart.destroy();
+        if (this.dailyTrendChart) this.dailyTrendChart.destroy();
+      },
+      renderCharts(data) {
+        const topUsers = analysisEngine.getTopUsers(data);
+        const ratio = analysisEngine.getUserRatio(data);
+        const trend = analysisEngine.getDailyTrend(data);
+        this.destroyCharts();
+        this.topUsersChart = new Chart(document.getElementById("topUsersChart").getContext("2d"), {
+          type: "bar",
+          data: { labels: topUsers.map((i) => i[0]), datasets: [{ label: "訊息量排名", data: topUsers.map((i) => i[1]), backgroundColor: "#3742fa" }] },
+          options: { legend: { display: false } }
+        });
+        this.ratioChart = new Chart(document.getElementById("ratioChart").getContext("2d"), {
+          type: "doughnut",
+          data: { labels: ratio.map((i) => i[0]), datasets: [{ data: ratio.map((i) => i[1]), backgroundColor: ["#ff6384", "#36a2eb", "#ffce56", "#4bc0c0", "#9966ff", "#ff9f40"] }] }
+        });
+        this.dailyTrendChart = new Chart(document.getElementById("dailyTrendChart").getContext("2d"), {
+          type: "line",
+          data: { labels: trend.map((i) => i[0]), datasets: [{ label: "每日訊息", data: trend.map((i) => i[1]), borderColor: "#ff6384", fill: false }] },
+          options: { elements: { point: { radius: 1 } } }
+        });
+      },
+      renderWordcloud(data) {
+        const wrap = document.getElementById("wordcloudCanvas");
+        d3.select("#wordcloudCanvas").select("svg").remove();
+        const width = Math.max(280, wrap.clientWidth);
+        const height = Math.max(300, wrap.clientHeight);
+        const text = data.filter((i) => !i.isbot).map((i) => i.contact).join(" ");
+        const tokens = tokenizeWords(text);
+        const freqMap = {};
+        const docFreqMap = {};
+        const docs = [];
+        data.filter((i) => !i.isbot).forEach((item) => {
+          const docTokens = tokenizeWords(String(item.contact || ""));
+          docs.push(docTokens);
+        });
+        tokens.forEach((token) => {
+          const normalized = token.toLowerCase();
+          if (normalized.length < 2 || /^\d+$/.test(normalized)) return;
+          freqMap[normalized] = (freqMap[normalized] || 0) + 1;
+        });
+        docs.forEach((docTokens) => {
+          const uniq = new Set(docTokens.map((t) => t.toLowerCase()));
+          uniq.forEach((token) => {
+            docFreqMap[token] = (docFreqMap[token] || 0) + 1;
+          });
+        });
+        let entries = Object.entries(freqMap).filter((i) => i[1] >= 2).sort((a, b) => b[1] - a[1]).slice(0, 80);
+        // Fallback for short logs/demo data: relax threshold to keep cloud visible.
+        if (!entries.length) {
+          entries = Object.entries(freqMap).filter((i) => i[1] >= 1).sort((a, b) => b[1] - a[1]).slice(0, 80);
+        }
+        if (!entries.length) return;
+        const totalDocs = Math.max(1, docs.length);
+        const scored = entries.map((i) => {
+          const tf = i[1];
+          const df = docFreqMap[i[0]] || 1;
+          const idf = Math.log((totalDocs + 1) / (df + 1)) + 1;
+          return { text: i[0], freq: i[1], score: tf * idf };
+        });
+        scored.sort((a, b) => b.score - a.score);
+        const maxScore = scored[0].score;
+        const minScore = scored[scored.length - 1].score;
+        const sizeScale = d3.scaleLinear().domain([minScore, maxScore]).range([12, 44]);
+        const words = scored.map((i) => ({ text: i.text, size: sizeScale(i.score), freq: i.freq, score: i.score }));
+        const colorScheme = ["#2C3E50", "#E74C3C", "#2980B9", "#8E44AD", "#D35400", "#16A085", "#34495E", "#C0392B"];
+        const fill = d3.scaleOrdinal(colorScheme);
+        d3.layout.cloud().size([width - 24, height - 24]).words(words).padding(3).rotate(() => (Math.random() > 0.82 ? 30 : 0)).font("Noto Sans TC")
+          .fontSize((d) => d.size).spiral("archimedean").on("end", (layoutWords) => {
+            const svg = d3.select("#wordcloudCanvas").append("svg").attr("width", width).attr("height", height);
+            const container = svg.append("g").attr("transform", `translate(${width / 2},${height / 2})`);
+            const texts = container.selectAll("text").data(layoutWords).enter().append("text")
+              .style("font-size", (d) => `${d.size}px`)
+              .style("font-family", "'Microsoft JhengHei', 'Noto Sans TC', sans-serif")
+              .style("fill", (d, i) => fill(i))
+              .style("font-weight", "500")
+              .style("opacity", 0)
+              .style("cursor", "pointer")
+              .attr("text-anchor", "middle")
+              .attr("transform", (d) => `translate(${[d.x, d.y]})rotate(${d.rotate || 0})`)
+              .text((d) => d.text);
+
+            texts.transition().duration(900).delay((d, i) => i * 24).style("opacity", 1);
+
+            texts.each(function () {
+              const textNode = d3.select(this);
+              const originalColor = textNode.style("fill");
+              const originalSize = textNode.style("font-size");
+
+              textNode.on("pointerenter", function (event, d) {
+                d3.select(this).interrupt().transition().duration(180)
+                  .style("font-size", `${d.size * 1.28}px`)
+                  .style("fill", "#ff4757")
+                  .style("font-weight", "bold");
+              });
+
+              textNode.on("pointerleave", function () {
+                d3.select(this).interrupt().transition().duration(180)
+                  .style("font-size", originalSize)
+                  .style("fill", originalColor)
+                  .style("font-weight", "500");
+              });
+            });
+          }).start();
+      }
+    };
+    const appController = {
+      applyTimeRange(data, vm) {
+        if (!data.length) return [];
+        const now = new Date();
+        let start = null;
+        let end = null;
+        if (vm.timeRangeMode === "all") { start = data[0].timestamp; end = data[data.length - 1].timestamp; }
+        else if (vm.timeRangeMode === "thisYear") { start = new Date(now.getFullYear(), 0, 1).getTime(); end = now.getTime(); }
+        else if (vm.timeRangeMode === "lastYear") { start = new Date(now.getFullYear() - 1, 0, 1).getTime(); end = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59).getTime(); }
+        else if (vm.timeRangeMode === "last1Year") { start = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()).getTime(); end = now.getTime(); }
+        else if (vm.timeRangeMode === "last5Years") { start = new Date(now.getFullYear() - 5, now.getMonth(), now.getDate()).getTime(); end = now.getTime(); }
+        else if (vm.timeRangeMode === "nearXMonths") { start = new Date(now.getFullYear(), now.getMonth() - Math.max(1, Number(vm.nearXMonths || 1)), now.getDate()).getTime(); end = now.getTime(); }
+        else if (vm.timeRangeMode === "nearXYears") { start = new Date(now.getFullYear() - Math.max(1, Number(vm.nearXYears || 1)), now.getMonth(), now.getDate()).getTime(); end = now.getTime(); }
+        else if (vm.timeRangeMode === "custom") {
+          if (!vm.customStartDate || !vm.customEndDate) return data;
+          start = new Date(`${vm.customStartDate}T00:00:00`).getTime();
+          end = new Date(`${vm.customEndDate}T23:59:59`).getTime();
+          if (start > end) { const temp = start; start = end; end = temp; }
+        }
+        stateStore.rangeStart = start;
+        stateStore.rangeEnd = end;
+        return data.filter((i) => i.timestamp >= start && i.timestamp <= end);
+      },
+      decryptPayload(cipherText, password) {
+        try {
+          if (!cipherText || !password) return null;
+          const normalizedKey = password.padEnd(16, password).slice(0, 16);
+          const iv = CryptoJS.lib.WordArray.create(new Uint8Array(16));
+          const keyWords = CryptoJS.enc.Utf8.parse(normalizedKey);
+          const decrypted = CryptoJS.AES.decrypt(cipherText, keyWords, { iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 });
+          const jsonText = decrypted.toString(CryptoJS.enc.Utf8);
+          if (!jsonText) return null;
+          return JSON.parse(jsonText).map((item) => ({
+            timestamp: item.t, contact: item.c, userName: item.u, isbot: item.b, attachments: item.a || [], embeds: item.e || [], reply_to: item.r || null
+          }));
+        } catch (error) { return null; }
+      }
+    };
+    function initApp() {
+      return new Vue({
+        el: "#app",
+        data: {
+          hasEncryptedPayload: !!encryptedPayload, decryptPassword: "", decryptError: "", timeRangeMode: "all",
+          nearXMonths: 3, nearXYears: 2, customStartDate: "", customEndDate: "", keyword: "", msgFilter: "all", pageSize: 100,
+          rawDataRef: [],
+          filteredByTimeRef: [],
+          quoteTab: "wordcloud",
+          quoteInsights: { keywords: [], repeats: [], catchphrases: [] },
+          summary: { humanMessages: 0, botMessages: 0, days: 0, dailyAvg: "0.00" },
+          relationship: { initiatorLeader: "無資料", closerLeader: "無資料", avgResponse: "無資料", perseverance: "無資料" },
+          currentRangeText: "-",
+          heatmapYear: new Date().getFullYear(),
+          heatmapYears: [],
+          heatmapCells: [],
+          heatmapMonthLabels: [],
+          heatmapMeta: { activeDays: 0, totalDays: 0, maxCount: 0, totalMessages: 0 },
+          interactionPairs: [],
+          unrepliedItems: []
+        },
+        computed: {
+          analysisRows() {
+            let rows = this.filteredByTimeRef;
+            if (this.msgFilter === "user") rows = rows.filter((i) => !i.isbot);
+            if (this.msgFilter === "bot") rows = rows.filter((i) => i.isbot);
+            if (this.msgFilter === "command") rows = rows.filter((i) => String(i.contact).startsWith("."));
+            if (this.msgFilter === "dice") rows = rows.filter((i) => /\d+[dD]\d+/.test(String(i.contact)));
+            return rows;
+          },
+          visibleRows() {
+            let rows = this.analysisRows;
+            const key = this.keyword.trim().toLowerCase();
+            if (key) rows = rows.filter((i) => String(i.contact).toLowerCase().includes(key) || String(i.userName).toLowerCase().includes(key));
+            return rows;
+          },
+          tableRows() { return this.pageSize < 0 ? this.visibleRows : this.visibleRows.slice(0, this.pageSize); }
+        },
+        watch: {
+          keyword() {},
+          msgFilter() { this.recomputeAndRender(true); },
+          pageSize() {}
+        },
+        methods: {
+          unlockSearchInput(event) {
+            const input = event && event.target;
+            if (!input) return;
+            if (input.hasAttribute("readonly")) {
+              input.removeAttribute("readonly");
+            }
+          },
+          logDebug(stage, extra) {
+            try {
+              const payload = Object.assign({
+                stage,
+                rawDataLength: stateStore.rawData.length,
+                filteredByTimeLength: stateStore.filteredByTime.length,
+                rawDataRefLength: this.rawDataRef.length,
+                filteredByTimeRefLength: this.filteredByTimeRef.length,
+                analysisRowsLength: (this.analysisRows || []).length,
+                visibleRowsLength: (this.visibleRows || []).length,
+                timeRangeMode: this.timeRangeMode,
+                nearXMonths: this.nearXMonths,
+                nearXYears: this.nearXYears,
+                customStartDate: this.customStartDate,
+                customEndDate: this.customEndDate,
+                rangeStart: stateStore.rangeStart,
+                rangeEnd: stateStore.rangeEnd
+              }, extra || {});
+              console.log("[discordlog-new][debug]", payload);
+            } catch (error) {
+              console.log("[discordlog-new][debug] failed to log", error);
+            }
+          },
+          formatTime(ts) {
+            const d = new Date(ts);
+            return `${d.getFullYear()}年${String(d.getMonth() + 1).padStart(2, "0")}月${String(d.getDate()).padStart(2, "0")}日 ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+          },
+          openDecryptModal() {
+            this.decryptError = "";
+            this.logDebug("openDecryptModal");
+            $("#decryptModal").modal("show");
+          },
+          loadDemo() {
+            this.logDebug("loadDemo:before", { demoDataLength: demoData.length });
+            stateStore.rawData = analysisEngine.sortByTime(demoData);
+            this.rawDataRef = stateStore.rawData;
+            this.logDebug("loadDemo:afterSort", {
+              firstDemoTimestamp: stateStore.rawData[0] && stateStore.rawData[0].timestamp,
+              lastDemoTimestamp: stateStore.rawData[stateStore.rawData.length - 1] && stateStore.rawData[stateStore.rawData.length - 1].timestamp
+            });
+            this.timeRangeMode = "all";
+            this.applyTimeFilter();
+            $("#decryptModal").modal("hide");
+            this.logDebug("loadDemo:done");
+          },
+          decryptAndLoad() {
+            this.logDebug("decryptAndLoad:before");
+            const data = appController.decryptPayload(encryptedPayload, this.decryptPassword || "");
+            if (!data) { this.decryptError = "解密失敗，請確認密碼。"; return; }
+            this.decryptError = "";
+            stateStore.rawData = analysisEngine.sortByTime(data);
+            this.rawDataRef = stateStore.rawData;
+            this.timeRangeMode = "all";
+            this.applyTimeFilter();
+            $("#decryptModal").modal("hide");
+            this.logDebug("decryptAndLoad:done", { decryptedDataLength: data.length });
+          },
+          applyTimeFilter() {
+            stateStore.filteredByTime = appController.applyTimeRange(stateStore.rawData, this);
+            this.filteredByTimeRef = stateStore.filteredByTime;
+            const s = stateStore.rangeStart;
+            const e = stateStore.rangeEnd;
+            this.currentRangeText = s && e ? `${this.formatTime(s).slice(0, 11)} ~ ${this.formatTime(e).slice(0, 11)}` : "-";
+            this.logDebug("applyTimeFilter:afterFilter");
+            this.recomputeAndRender(true);
+          },
+          setTimeRangeMode(mode) {
+            this.timeRangeMode = mode;
+            this.applyTimeFilter();
+          },
+          setQuoteTab(tabId) {
+            this.quoteTab = tabId;
+            if (tabId === "wordcloud") {
+              this.$nextTick(() => {
+                renderEngine.renderWordcloud(this.analysisRows);
+              });
+            }
+          },
+          changeHeatmapYear(step) {
+            if (!this.heatmapYears.length) return;
+            const currentIdx = this.heatmapYears.indexOf(this.heatmapYear);
+            const baseIdx = currentIdx >= 0 ? currentIdx : this.heatmapYears.length - 1;
+            const nextIdx = Math.max(0, Math.min(this.heatmapYears.length - 1, baseIdx + step));
+            this.heatmapYear = this.heatmapYears[nextIdx];
+            const heatmap = analysisEngine.getActivityHeatmap(this.analysisRows, this.heatmapYear);
+            this.heatmapCells = heatmap.cells;
+            this.heatmapMonthLabels = heatmap.monthHeaders;
+            this.heatmapMeta = {
+              activeDays: heatmap.activeDays,
+              totalDays: heatmap.totalDays,
+              maxCount: heatmap.maxCount,
+              totalMessages: heatmap.totalMessages
+            };
+          },
+          recomputeAndRender(withCharts) {
+            const base = this.analysisRows;
+            this.summary = analysisEngine.getSummary(base);
+            this.relationship = analysisEngine.getRelationshipMetrics(base);
+            this.quoteInsights = analysisEngine.getQuoteInsights(base);
+            this.interactionPairs = analysisEngine.getInteractionPairsTop10(base);
+            this.unrepliedItems = analysisEngine.getUnrepliedDetections(base);
+            this.heatmapYears = analysisEngine.getAvailableYears(base);
+            if (this.heatmapYears.length) {
+              if (!this.heatmapYears.includes(this.heatmapYear)) {
+                this.heatmapYear = this.heatmapYears[this.heatmapYears.length - 1];
+              }
+              const heatmap = analysisEngine.getActivityHeatmap(base, this.heatmapYear);
+              this.heatmapCells = heatmap.cells;
+              this.heatmapMonthLabels = heatmap.monthHeaders;
+              this.heatmapMeta = {
+                activeDays: heatmap.activeDays,
+                totalDays: heatmap.totalDays,
+                maxCount: heatmap.maxCount,
+                totalMessages: heatmap.totalMessages
+              };
+            } else {
+              this.heatmapCells = [];
+              this.heatmapMonthLabels = [];
+              this.heatmapMeta = { activeDays: 0, totalDays: 0, maxCount: 0, totalMessages: 0 };
+            }
+            this.logDebug("recomputeAndRender:afterSummary", {
+              withCharts,
+              summary: this.summary,
+              relationship: this.relationship,
+              interactionPairsLength: this.interactionPairs.length,
+              unrepliedItemsLength: this.unrepliedItems.length
+            });
+            if (withCharts) {
+              renderEngine.renderCharts(base);
+              if (this.quoteTab === "wordcloud") {
+                renderEngine.renderWordcloud(base);
+              }
+            }
+          }
+        },
+        mounted() {
+          this.logDebug("mounted:begin", { hasEncryptedPayload: this.hasEncryptedPayload });
+          if (this.hasEncryptedPayload) this.openDecryptModal();
+          else this.loadDemo();
+          window.addEventListener("resize", () => {
+            if (this.quoteTab === "wordcloud") {
+              renderEngine.renderWordcloud(this.analysisRows);
+            }
+          });
+          this.logDebug("mounted:end");
+        }
+      });
+    }
+    initApp();
+  </script>
+</body>
+</html>

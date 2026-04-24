@@ -16,6 +16,8 @@ const cspConfig = {
         "https://static.cloudflareinsights.com",
         "https://api.iconify.design",
         "https://html2canvas.hertzen.com",
+        "https://d3js.org",
+        "https://pulipulichen.github.io",
         "https://cdn.jsdelivr.net",
         "wss://rollbot.hktrpg.com",
         "ws://rollbot.hktrpg.com",
@@ -38,6 +40,8 @@ const cspConfig = {
         "https://www.google-analytics.com",
         "https://static.cloudflareinsights.com",
         "https://api.iconify.design",
+        "https://d3js.org",
+        "https://pulipulichen.github.io",
         "https://rollbot.hktrpg.com",
         "wss://card.hktrpg.com",
         "ws://card.hktrpg.com"
@@ -60,6 +64,7 @@ const cspConfig = {
         "'unsafe-inline'",
         "https://cdn.jsdelivr.net",
         "https://stackpath.bootstrapcdn.com",
+        "https://maxcdn.bootstrapcdn.com",
         "https://fonts.googleapis.com",
         "https://cdnjs.cloudflare.com"],
     styleSrcElem: [
@@ -67,6 +72,7 @@ const cspConfig = {
         "'unsafe-inline'",
         "https://cdn.jsdelivr.net",
         "https://stackpath.bootstrapcdn.com",
+        "https://maxcdn.bootstrapcdn.com",
         "https://fonts.googleapis.com",
         "https://cdnjs.cloudflare.com"
     ],
@@ -74,7 +80,9 @@ const cspConfig = {
     fontSrc: [
         "'self'",
         "https://fonts.gstatic.com",
-        "https://cdnjs.cloudflare.com"
+        "https://cdnjs.cloudflare.com",
+        "https://maxcdn.bootstrapcdn.com",
+        "https://fonts.googleapis.com"
     ],
     objectSrc: ["'none'"],
     mediaSrc: ["'self'"],

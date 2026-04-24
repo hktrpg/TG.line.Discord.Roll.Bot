@@ -29,6 +29,7 @@ const stream = require('stream');
 const { promisify } = require('util');
 const pipeline = promisify(stream.pipeline);
 const { createWriteStream } = require('fs');
+const path = require('path');
 const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 const moment = require('moment-timezone');
 const { getPool } = require('../modules/pool');
@@ -39,7 +40,8 @@ const checkTools = require('../modules/check.js');
 const gameType = function () {
     return 'Tool:Export:hktrpg'
 }
-const dir = __dirname + '/../tmp/';
+// Directory for exported Discord logs (HTML/txt), shared with web server
+const dir = path.join(__dirname, '..', 'export', path.sep);
 const prefixs = function () {
     return [{
         first: /^[.]discord$/i,
@@ -473,15 +475,22 @@ const rollDiceCommand = async function ({
                 if (error && error.code === 'ENOENT')
                     await fs.mkdir(dir);
             }
-            data = await fs.readFile(__dirname + '/../views/discordLog.html', 'utf8')
+            data = await fs.readFile(__dirname + '/../views/discordlog-new.html', 'utf8')
             // 在 rollDiceCommand 中使用
             let key = makeid(16); // 使用16位元的金鑰
             let randomLink = makeid(7);
             let encryptedData = lightEncrypt(newRawDate, key);
-            newValue = data.replace(/aesData\s=\s\[\]/,
-                'aesData = "' + encryptedData + '"')
-                .replace(/<h1>聊天紀錄<\/h1>/,
-                    '<h1>' + channelName + ' 的聊天紀錄</h1>');
+            // discordlog-new.html reads encrypted payload from window.aesData.
+            const escapedEncryptedData = JSON.stringify(encryptedData);
+            newValue = data
+                .replace(
+                    /<body>/i,
+                    `<body>\n  <script>window.aesData = ${escapedEncryptedData};</script>`
+                )
+                .replaceAll(
+                    'Discord 聊天記錄分析（New）',
+                    `${channelName} 的聊天紀錄分析`
+                );
             let tempB = key;
             const writeStream = createWriteStream(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html');
             const contentStream = new stream.Readable();

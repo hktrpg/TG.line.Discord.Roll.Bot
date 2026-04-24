@@ -143,6 +143,22 @@ describe('Admin Module Tests', () => {
     expect(result.quotes).toBe(true);
   });
 
+  test('Test rollDiceCommand with mongod command (multi-admin)', async () => {
+    jest.resetModules();
+    process.env.ADMIN_SECRET = 'admin_a, admin_b';
+    // Re-require after env change so module-level admin list is rebuilt
+    const reloadedAdminModule = require('../roll/z_admin.js');
+    const result = await reloadedAdminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'mongod'],
+      userid: 'admin_b'
+    });
+
+    expect(result.type).toBe('text');
+    expect(result.text).toBe('[]');
+    expect(result.quotes).toBe(true);
+    process.env.ADMIN_SECRET = 'test_admin_id';
+  });
+
   test('Test rollDiceCommand with registerChannel (no permission)', async () => {
     checkTools.permissionErrMsg.mockReturnValueOnce('Permission denied');
     

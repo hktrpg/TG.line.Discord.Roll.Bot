@@ -1,5 +1,6 @@
 # Logs
-logs
+logs/*
+!logs/.gitkeep
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -41,7 +42,9 @@ typings/
 
 .vscode/
 
-tmp/
+tmp/*
+!tmp/.gitkeep
+export/
 
 # Optional npm cache directory
 .npm
@@ -68,12 +71,17 @@ tmp/
 .env copy
 modules/whatsapp-session.json
 
-.wwebjs_auth/
-.wwebjs_cache/
+.wwebjs_auth/*
+!.wwebjs_auth/session/
+.wwebjs_auth/session/*
+!.wwebjs_auth/session/.gitkeep
+.wwebjs_cache/*
+!.wwebjs_cache/.gitkeep
 
 yarn.lock
 
-temp/
+temp/*
+!temp/.gitkeep
 
 dist/
 

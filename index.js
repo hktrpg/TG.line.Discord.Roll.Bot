@@ -12,8 +12,9 @@ const config = {
     },
     logging: {
         level: process.env.LOG_LEVEL || 'info',
-        logFile: 'app.log',
-        errorFile: 'error.log'
+        // Use log directory so Docker volumes can mount it safely
+        logFile: path.join(__dirname, 'log', 'app.log'),
+        errorFile: path.join(__dirname, 'log', 'error.log')
     }
 };
 
@@ -28,6 +29,7 @@ class Logger {
         };
         this.currentLevel = this.levels[config.logging.level] || this.levels.info;
         this.writeQueue = new Set();
+        this.fileLoggingDisabled = false;
         
         // 🔒 Sensitive fields to redact
         this.sensitiveFields = new Set([
@@ -96,9 +98,19 @@ class Logger {
     }
 
     async writeToFile(message, isError = false) {
+        if (this.fileLoggingDisabled) {
+            return;
+        }
+
         const file = isError ? config.logging.errorFile : config.logging.logFile;
         const writePromise = fs.appendFile(file, message + '\n', 'utf8')
-            .catch(error => console.error('Failed to write to log file:', error))
+            .catch(error => {
+                console.error('Failed to write to log file:', error);
+                // If we don't have permission (e.g. readonly bind mount), disable further file logging
+                if (error && (error.code === 'EACCES' || error.code === 'EROFS')) {
+                    this.fileLoggingDisabled = true;
+                }
+            })
             .finally(() => this.writeQueue.delete(writePromise));
         
         this.writeQueue.add(writePromise);

@@ -1,0 +1,32 @@
+FROM node:24-alpine
+
+# Install timezone data and CJK fonts for Discord-only features such as token generation.
+RUN apk update && apk add --no-cache \
+    tzdata \
+    git \
+    fontconfig \
+    font-noto-cjk \
+    && rm -rf /var/cache/apk/*
+
+ENV TZ=Asia/Taipei
+ENV LANG=zh_TW.UTF-8
+ENV LC_ALL=zh_TW.UTF-8
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
+    && fc-cache -fv
+
+WORKDIR /app
+
+COPY package.json ./
+RUN corepack enable \
+    && yarn install --non-interactive
+
+COPY . .
+
+RUN mkdir -p /app/log /app/export /app/temp \
+    && chown -R node:node /app
+
+USER node
+
+CMD ["node", "index.js"]

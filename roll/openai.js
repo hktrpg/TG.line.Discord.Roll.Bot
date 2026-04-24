@@ -415,7 +415,8 @@ class RetryManager {
     }
 }
 
-const adminSecret = process.env.ADMIN_SECRET;
+const adminSecrets = parseAdminSecrets(process.env.ADMIN_SECRET);
+const isAdminUser = (userid) => Boolean(userid) && adminSecrets.includes(userid);
 const TRANSLATE_LIMIT_PERSONAL = [2500, 100_000, 150_000, 250_000, 350_000, 550_000, 650_000, 750_000];
 
 // Analysis report and processing limits for large files
@@ -2798,7 +2799,7 @@ class CommandHandler {
             }
             modelType = 'MEDIUM';
         } else if (/^.aith$/i.test(mainMsg[0])) {
-            if (!adminSecret || userid !== adminSecret) {
+            if (!isAdminUser(userid)) {
                 rply.text = `使用 HIGH 翻譯模型需要 HKTRPG 管理員權限`;
                 return rply;
             }
@@ -2857,7 +2858,7 @@ class CommandHandler {
             return rply;
         }
 
-        if (!adminSecret || userid !== adminSecret) {
+        if (!isAdminUser(userid)) {
             rply.text = `使用圖像生成功能需要 HKTRPG 管理員權限`;
             return rply;
         }
@@ -2881,7 +2882,7 @@ class CommandHandler {
             }
             modelType = 'MEDIUM';
         } else if (/^.aih$/i.test(mainMsg[0])) {
-            if (!adminSecret || userid !== adminSecret) {
+            if (!isAdminUser(userid)) {
                 rply.text = `使用 HIGH 對話模型需要 HKTRPG 管理員權限`;
                 return rply;
             }
@@ -3033,6 +3034,14 @@ const discordCommand = [
 ];
 
 const webCommand = false;
+
+function parseAdminSecrets(rawAdminSecret) {
+    if (!rawAdminSecret) return [];
+    return rawAdminSecret
+        .split(/[\s,;]+/)
+        .map(secret => secret.trim())
+        .filter(Boolean);
+}
 
 module.exports = {
     rollDiceCommand,

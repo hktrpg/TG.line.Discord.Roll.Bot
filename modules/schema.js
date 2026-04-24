@@ -185,7 +185,8 @@ if (process.env.mongoURL) {
             PlurkCountText: Number
         }
     }, { timestamps: true });
-    rollingLogSchemaDef.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 90 });
+    // Non-TTL index for time-range queries (e.g. analytics monthly deltas). TTL removed — RollingLog rows are no longer auto-deleted.
+    rollingLogSchemaDef.index({ createdAt: 1 });
     models.RollingLog = mongoose.model('RollingLog', rollingLogSchemaDef);
 
     // Character and user related schemas

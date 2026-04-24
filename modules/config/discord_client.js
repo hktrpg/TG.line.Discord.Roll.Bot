@@ -23,7 +23,7 @@ const clientConfig = {
         },
         users: {
             interval: 900,
-            filter: () => null, // Skip sweeping users (GlobalSweepFilter returns null)
+            filter: () => user => !user.bot, // Sweep non-bot users periodically
         },
         threads: {
             interval: 900,

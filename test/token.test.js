@@ -107,6 +107,7 @@ describe('Token Module Tests', () => {
 
   test('Test rollDiceCommand with help command', async () => {
     const result = await tokenModule.rollDiceCommand({
+      botname: 'Discord',
       mainMsg: ['.token', 'help'],
       inputStr: '.token help'
     });
@@ -125,6 +126,7 @@ describe('Token Module Tests', () => {
     };
 
     const result = await tokenModule.rollDiceCommand({
+      botname: 'Discord',
       mainMsg: ['.tokenupload'],
       inputStr: '.tokenupload',
       discordMessage: mockDiscordMessage,
@@ -144,6 +146,7 @@ describe('Token Module Tests', () => {
     };
 
     const result = await tokenModule.rollDiceCommand({
+      botname: 'Discord',
       mainMsg: ['.token2'],
       inputStr: '.token2\nTest Name\nTest Second Line',
       discordMessage: mockDiscordMessage,
@@ -164,6 +167,7 @@ describe('Token Module Tests', () => {
     };
 
     const result = await tokenModule.rollDiceCommand({
+      botname: 'Discord',
       mainMsg: ['.token3'],
       inputStr: '.token3\nTest Name\nTest Second Line',
       discordMessage: mockDiscordMessage,
@@ -185,6 +189,7 @@ describe('Token Module Tests', () => {
     };
 
     const result = await tokenModule.rollDiceCommand({
+      botname: 'Discord',
       mainMsg: ['.token'],
       inputStr: '.token\nTest Name\nTest Second Line',
       discordMessage: mockDiscordMessage,
@@ -204,6 +209,7 @@ describe('Token Module Tests', () => {
     };
 
     const result = await tokenModule.rollDiceCommand({
+      botname: 'Discord',
       mainMsg: ['.token'],
       inputStr: '.token\nTest Name',
       discordMessage: mockDiscordMessage,
@@ -222,6 +228,7 @@ describe('Token Module Tests', () => {
     };
 
     const result = await tokenModule.rollDiceCommand({
+      botname: 'Discord',
       mainMsg: ['.tokenupload'],
       inputStr: '.tokenupload',
       discordMessage: mockDiscordMessage,
@@ -229,6 +236,17 @@ describe('Token Module Tests', () => {
     });
     
     expect(result.text).toContain('沒有找到reply裡有圖片');
+  });
+
+  test('Test rollDiceCommand blocks non-Discord platforms', async () => {
+    const result = await tokenModule.rollDiceCommand({
+      botname: 'Telegram',
+      mainMsg: ['.token'],
+      inputStr: '.token'
+    });
+
+    expect(result.type).toBe('text');
+    expect(result.text).toBe('此功能只能在Discord中使用');
   });
 
   test('Test getAvatar with direct message', async () => {

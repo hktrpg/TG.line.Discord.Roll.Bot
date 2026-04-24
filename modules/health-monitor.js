@@ -234,7 +234,8 @@ class HealthMonitor extends EventEmitter {
             multipleUnhealthyClusters: 'warning',
             databaseError: 'critical',
             mongodbDisconnected: 'critical',
-            memoryGrowth: 'warning'
+            memoryGrowth: 'warning',
+            shardHealthIssue: 'critical'
         };
         return severityMap[alertType] || 'info';
     }

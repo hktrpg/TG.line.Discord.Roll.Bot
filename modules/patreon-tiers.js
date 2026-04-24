@@ -30,7 +30,7 @@ const PATREON_VIP_GRACE_DAYS = 30;
  * @returns {Date}
  */
 function addVipGraceEndDate(fromDate = new Date()) {
-    const d = new Date(fromDate.getTime());
+    const d = new Date(fromDate);
     d.setDate(d.getDate() + PATREON_VIP_GRACE_DAYS);
     return d;
 }

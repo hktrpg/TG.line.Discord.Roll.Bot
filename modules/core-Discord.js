@@ -13,19 +13,154 @@ const CLUSTER_RESPAWN_READY_MS = 120_000;
 
 const agenda = require('../modules/schedule')?.agenda;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
+const childProcess = require('node:child_process');
+const { AsyncLocalStorage } = require('node:async_hooks');
 const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
 require("./ds-deploy-commands");
-
+const clusterOptions = {
+    token: channelSecret,
+    shardsPerClusters: 10,
+    totalShards: 'auto',
+    mode: 'process',
+    spawnTimeout: -1,
+    respawn: false, // Disable auto respawn, manually controlled (as per attachment)
+    retry: {
+        attempts: MAX_RETRY_ATTEMPTS,
+        delay: RETRY_DELAY
+    },
+    // Add reconnection and backoff options
+    fetchTimeout: 30_000,
+    restarts: {
+        max: 5,
+        interval: 60_000 * 10 // 10 minutes
+    },
+    execArgv: [
+        "--optimize-for-size",
+        "--gc-interval=100"
+    ],
+};
 // Global variables to track shutdown status
 let isShuttingDown = false;
 let shutdownTimeout = null;
 
+function safeStringify(value) {
+    try {
+        return JSON.stringify(value);
+    } catch (error) {
+        return `{"serializationError":"${error && error.message ? error.message : 'unknown'}"}`;
+    }
+}
+
+function getRuntimeMeta() {
+    const uptimeSeconds = Number(process.uptime().toFixed(2));
+    return {
+        pid: process.pid,
+        ppid: process.ppid,
+        uptimeSeconds,
+        memory: process.memoryUsage()
+    };
+}
+
+function stackWithoutHeader(rawStack) {
+    if (!rawStack) return 'No stack trace available';
+    return rawStack.split('\n').slice(2).join('\n');
+}
+
+let lifecycleTraceSeq = 0;
+const lifecycleTraceStore = new AsyncLocalStorage();
+
+function createTraceId(prefix = 'trace') {
+    lifecycleTraceSeq += 1;
+    return `${prefix}-${Date.now()}-${lifecycleTraceSeq}`;
+}
+
+function traceLifecycle(event, detail = {}) {
+    const traceContext = lifecycleTraceStore.getStore();
+    const traceId = detail.traceId || traceContext?.traceId || null;
+    console.error(`[ClusterTrace] ${event}`, {
+        runtime: getRuntimeMeta(),
+        traceId,
+        detail
+    });
+}
+
+function isRoutineIpcMessage(message) {
+    // discord-hybrid-sharding routine telemetry payload
+    // _type 22 + shardData is high-frequency and usually not actionable.
+    return Boolean(
+        message &&
+        message._type === 22 &&
+        message.data &&
+        Number.isInteger(message.data.clusterId) &&
+        Array.isArray(message.data.shardData)
+    );
+}
+
+async function withLifecycleTrace(prefix, detail, operation) {
+    const traceId = createTraceId(prefix);
+    const context = { traceId };
+    traceLifecycle(`${prefix}_start`, { traceId, ...detail });
+    return lifecycleTraceStore.run(context, async () => {
+        try {
+            const result = await operation(traceId);
+            traceLifecycle(`${prefix}_success`, { traceId, ...detail });
+            return result;
+        } catch (error) {
+            traceLifecycle(`${prefix}_error`, {
+                traceId,
+                ...detail,
+                error: error?.message || String(error)
+            });
+            throw error;
+        }
+    });
+}
+
+function installChildKillTrace() {
+    if (installChildKillTrace.installed) return;
+    installChildKillTrace.installed = true;
+
+    const originalKill = childProcess.ChildProcess.prototype.kill;
+    childProcess.ChildProcess.prototype.kill = function patchedKill(signal, ...rest) {
+        const stack = stackWithoutHeader(new Error('ChildProcess.kill trace').stack);
+        const traceContext = lifecycleTraceStore.getStore();
+        traceLifecycle('child_process.kill_called', {
+            traceId: traceContext?.traceId || null,
+            targetPid: this.pid,
+            signal: signal || 'SIGTERM',
+            connected: this.connected,
+            killed: this.killed,
+            spawnfile: this.spawnfile,
+            spawnargs: this.spawnargs,
+            stack
+        });
+        return originalKill.call(this, signal, ...rest);
+    };
+}
+
+function logClusterShutdownTrigger({ signal = 'unknown', source = 'unknown', detail = null } = {}) {
+    const timestamp = new Date().toISOString();
+    const stack = new Error('Cluster shutdown trigger stack').stack;
+    const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
+    const detailText = detail ? safeStringify(detail) : '{}';
+
+    console.error('[Cluster] ========== SHUTDOWN TRIGGERED ==========');
+    console.error(`[Cluster] Timestamp: ${timestamp}`);
+    console.error(`[Cluster] Signal: ${signal}`);
+    console.error(`[Cluster] Source: ${source}`);
+    console.error(`[Cluster] Detail: ${detailText}`);
+    console.error(`[Cluster] PID: ${process.pid}, PPID: ${process.ppid}`);
+    console.error(`[Cluster] Stack Trace:\n${stackLines}`);
+    console.error('[Cluster] =======================================');
+}
+
 // Graceful shutdown function (simplified as per attachment)
-async function gracefulShutdown() {
+async function gracefulShutdown({ signal = 'unknown', source = 'unknown', detail = null } = {}) {
     if (isShuttingDown) return;
     isShuttingDown = true;
 
-    console.log('[Cluster] Starting graceful shutdown...');
+    const detailText = detail ? safeStringify(detail) : '{}';
+    console.log(`[Cluster] Starting graceful shutdown (signal: ${signal}, source: ${source}, detail: ${detailText})...`);
 
     // Clear shutdown timeout
     if (shutdownTimeout) {
@@ -79,34 +214,38 @@ async function gracefulShutdown() {
 }
 
 // Configuration options (simplified as per attachment)
-const clusterOptions = {
-    token: channelSecret,
-    shardsPerClusters: 10,
-    totalShards: 'auto',
-    mode: 'process',
-    spawnTimeout: -1,
-    respawn: false, // Disable auto respawn, manually controlled (as per attachment)
-    retry: {
-        attempts: MAX_RETRY_ATTEMPTS,
-        delay: RETRY_DELAY
-    },
-    // Add reconnection and backoff options
-    fetchTimeout: 30_000,
-    restarts: {
-        max: 5,
-        interval: 60_000 * 10 // 10 minutes
-    },
-    execArgv: [
-        "--optimize-for-size",
-        "--gc-interval=100"
-    ],
-};
+
 
 const manager = new ClusterManager('./modules/discord_bot.js', clusterOptions);
+installChildKillTrace();
+traceLifecycle('manager_initialized', {
+    clusterOptions: {
+        shardsPerClusters: clusterOptions.shardsPerClusters,
+        totalShards: clusterOptions.totalShards,
+        mode: clusterOptions.mode,
+        restarts: clusterOptions.restarts,
+        retry: clusterOptions.retry
+    }
+});
+
+const originalRespawnAll = manager.respawnAll.bind(manager);
+manager.respawnAll = async (...args) => {
+    return withLifecycleTrace('respawnAll', {
+        args,
+        stack: stackWithoutHeader(new Error('manager.respawnAll caller').stack)
+    }, async () => {
+        traceLifecycle('manager_respawnAll_called', {
+            args,
+            stack: stackWithoutHeader(new Error('manager.respawnAll caller').stack)
+        });
+        return originalRespawnAll(...args);
+    });
+};
 
 // Improved event handling
 let heartbeatStarted = false;
 manager.on('clusterCreate', shard => {
+    console.log(`[Cluster ${shard.id}] Created`, getRuntimeMeta());
 
     shard.on('ready', () => {
         // Get cluster configuration values
@@ -135,16 +274,27 @@ manager.on('clusterCreate', shard => {
         // Don't handle errors if shutting down
         if (isShuttingDown) return;
 
-        console.error(`[Cluster ${shard.id}] ${event}:`, error);
+        console.error(`[Cluster ${shard.id}] ${event}:`, error, getRuntimeMeta());
         // Add retry logic (simplified as per attachment)
         if (event === 'death') {
-            setTimeout(() => {
+            setTimeout(async () => {
                 if (!isShuttingDown) {
-                    console.log(`[Cluster ${shard.id}] Attempting to respawn...`);
+                    console.log(`[Cluster ${shard.id}] Attempting to respawn...`, getRuntimeMeta());
                     try {
-                        shard.respawn({ timeout: CLUSTER_RESPAWN_READY_MS });
+                        await withLifecycleTrace('clusterRespawn', {
+                            clusterId: shard.id,
+                            source: 'error_handler_death',
+                            stack: stackWithoutHeader(new Error('cluster.respawn caller').stack)
+                        }, async () => {
+                            traceLifecycle('cluster_respawn_called', {
+                                clusterId: shard.id,
+                                source: 'error_handler_death',
+                                stack: stackWithoutHeader(new Error('cluster.respawn caller').stack)
+                            });
+                            await shard.respawn({ timeout: CLUSTER_RESPAWN_READY_MS });
+                        });
                     } catch (error_) {
-                        console.error(`[Cluster ${shard.id}] Failed to respawn:`, error_);
+                        console.error(`[Cluster ${shard.id}] Failed to respawn:`, error_, getRuntimeMeta());
                     }
                 }
             }, RETRY_DELAY);
@@ -152,19 +302,28 @@ manager.on('clusterCreate', shard => {
     };
 
     shard.on('disconnect', () => {
-        errorHandler('Disconnect');
+        errorHandler('Disconnect', {
+            reason: 'Cluster disconnect event',
+            runtime: getRuntimeMeta()
+        });
     });
 
     shard.on('reconnecting', () => {
-        // console.log(`[Cluster ${shard.id}] Reconnecting...`);
+        console.warn(`[Cluster ${shard.id}] Reconnecting...`, getRuntimeMeta());
     });
 
-    shard.on('death', (process) => {
-        errorHandler('Death', `Exit code: ${process.exitCode}`);
+    shard.on('death', (childProcess) => {
+        errorHandler('Death', {
+            message: 'Cluster child process died',
+            exitCode: childProcess.exitCode,
+            signalCode: childProcess.signalCode,
+            killed: childProcess.killed,
+            runtime: getRuntimeMeta()
+        });
     });
 
     shard.on('error', (error) => {
-        console.error(`[Cluster] Cluster ${shard.id} error:`, error.message || error);
+        console.error(`[Cluster] Cluster ${shard.id} error:`, error.message || error, getRuntimeMeta());
         if (error.stack) console.error(`[Cluster] Stack trace:\n${error.stack}`);
         errorHandler('Error', error);
     });
@@ -174,11 +333,19 @@ manager.on('clusterCreate', shard => {
 manager.on("clusterCreate", cluster => {
     // Handle IPC process errors (like EPIPE)
     if (cluster.process) {
+        cluster.process.on('exit', (code, signal) => {
+            console.warn(`[Cluster ${cluster.id}] Child process exit`, {
+                code,
+                signal,
+                runtime: getRuntimeMeta()
+            });
+        });
+
         cluster.process.on('error', (error) => {
             if (error.code === 'EPIPE') {
-                console.warn(`[Cluster ${cluster.id}] IPC EPIPE error (child process likely dead)`);
+                console.warn(`[Cluster ${cluster.id}] IPC EPIPE error (child process likely dead)`, getRuntimeMeta());
             } else {
-                console.error(`[Cluster ${cluster.id}] Child process error:`, error);
+                console.error(`[Cluster ${cluster.id}] Child process error:`, error, getRuntimeMeta());
             }
         });
     }
@@ -186,16 +353,41 @@ manager.on("clusterCreate", cluster => {
     cluster.on("message", async message => {
         // Don't handle respawn messages if shutting down
         if (isShuttingDown) return;
+        const verboseIpc = process.env.LOG_VERBOSE_IPC === 'true';
+        const routineIpc = isRoutineIpcMessage(message);
+        const actionableIpc = message?.respawn === true || message?.respawnall === true;
+        const shouldLogIpc = verboseIpc || actionableIpc || !routineIpc;
+
+        if (shouldLogIpc) {
+            console.log(`[Cluster ${cluster.id}] IPC message received`, {
+                runtime: getRuntimeMeta(),
+                message
+            });
+        }
 
         if (message.respawn === true && message.id !== null && message.id !== undefined) {
-            console.log(`[Cluster] Respawning cluster ${message.id}`);
+            const meta = message.meta || {};
+            console.log(`[Cluster] Respawning cluster ${message.id} (source: ${meta.source || 'cluster_ipc'}, detail: ${safeStringify(meta)})`);
 
             try {
                 const targetCluster = manager.clusters.get(Number(message.id));
                 if (targetCluster) {
-                    await targetCluster.respawn({
-                        delay: 1000,
-                        timeout: CLUSTER_RESPAWN_READY_MS
+                    await withLifecycleTrace('clusterRespawn', {
+                        clusterId: Number(message.id),
+                        source: 'ipc_message_respawn',
+                        meta,
+                        stack: stackWithoutHeader(new Error('cluster.respawn via IPC caller').stack)
+                    }, async () => {
+                        traceLifecycle('cluster_respawn_called', {
+                            clusterId: Number(message.id),
+                            source: 'ipc_message_respawn',
+                            meta,
+                            stack: stackWithoutHeader(new Error('cluster.respawn via IPC caller').stack)
+                        });
+                        await targetCluster.respawn({
+                            delay: 1000,
+                            timeout: CLUSTER_RESPAWN_READY_MS
+                        });
                     });
                     console.log(`[Cluster] Successfully respawned cluster ${message.id}`);
                 } else {
@@ -208,12 +400,15 @@ manager.on("clusterCreate", cluster => {
         }
 
         if (message.respawnall === true) {
+            const meta = message.meta || {};
+            console.log(`[Cluster] Respawning all clusters (source: ${meta.source || 'cluster_ipc'}, detail: ${safeStringify(meta)})`);
 
             try {
                 await manager.respawnAll({
-                    clusterDelay: 1000 * 60 * 1, // 1 minutes between clusters
-                    respawnDelay: 5000,          // 5 seconds
-                    timeout: 1000 * 60 * 5       // 5 minutes timeout
+                    // Faster but still safe rollout for manual respawnall.
+                    clusterDelay: 1000 * 15,     // 15 seconds between clusters
+                    respawnDelay: 1000,          // 1 second between shard respawns
+                    timeout: 1000 * 60 * 3       // 3 minutes timeout per cluster
                 });
                 console.log('[Cluster] Successfully initiated respawnAll for all clusters');
             } catch (error) {
@@ -243,9 +438,9 @@ if (agenda) {
 
         try {
             await manager.respawnAll({
-                clusterDelay: 1000 * 60,
-                respawnDelay: 500,
-                timeout: 1000 * 60 * 2
+                clusterDelay: 1000 * 15,
+                respawnDelay: 1000,
+                timeout: 1000 * 60 * 3
             });
             console.error('[Schedule] Daily maintenance respawnAll completed successfully');
         } catch (error) {
@@ -288,7 +483,16 @@ manager.spawn({
 
 // Export shutdown function for use by index.js when running as module
 async function shutdown() {
-    return gracefulShutdown(); // Simplified as per attachment
+    logClusterShutdownTrigger({
+        signal: 'internal',
+        source: 'module_shutdown',
+        detail: { handler: 'shutdown() export' }
+    });
+    return gracefulShutdown({
+        signal: 'internal',
+        source: 'module_shutdown',
+        detail: { handler: 'shutdown() export' }
+    }); // Simplified as per attachment
 }
 
 // Process signal handling (simplified as per attachment)
@@ -300,7 +504,16 @@ process.on('SIGTERM', async () => {
         process.exit(1);
     }, 30_000); // 30 second timeout
 
-    await gracefulShutdown();
+    logClusterShutdownTrigger({
+        signal: 'SIGTERM',
+        source: 'process_signal',
+        detail: { handler: 'process.on(SIGTERM)' }
+    });
+    await gracefulShutdown({
+        signal: 'SIGTERM',
+        source: 'process_signal',
+        detail: { handler: 'process.on(SIGTERM)' }
+    });
 });
 
 process.on('SIGINT', async () => {
@@ -311,7 +524,16 @@ process.on('SIGINT', async () => {
         process.exit(1);
     }, 30_000); // 30 second timeout
 
-    await gracefulShutdown();
+    logClusterShutdownTrigger({
+        signal: 'SIGINT',
+        source: 'process_signal',
+        detail: { handler: 'process.on(SIGINT)' }
+    });
+    await gracefulShutdown({
+        signal: 'SIGINT',
+        source: 'process_signal',
+        detail: { handler: 'process.on(SIGINT)' }
+    });
 });
 
 // Export functions for use when required as module

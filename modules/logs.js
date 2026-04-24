@@ -9,6 +9,10 @@ const timerManager = require('./timer-manager');
 const ONE_HOUR = 1 * 60 * 60 * 1000;
 const FIVE_MINUTES = 5 * 60 * 1000;
 let shardid = 0;
+const getClusterLogContext = () => {
+    const clusterId = process.env.CLUSTER_ID ?? process.env.CLUSTER ?? '?';
+    return `(Discord cluster ${clusterId}, shard ${shardid})`;
+};
 //每一小時 24 * 60 * 60 * 1000 多久會上傳一次LOG紀錄 
 const RollingLog = {
     LastTimeLog: "",
@@ -53,11 +57,16 @@ const RollingLog = {
 
 
 const getState = async function () {
-    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error('log # 52 mongoDB error:', error.name, error.reason));
+    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error(`log # 52 mongoDB error ${getClusterLogContext()}:`, error.name, error.reason));
     if (!theNewData || !theNewData.RealTimeRollingLogfunction) return;
-    theNewData.RealTimeRollingLogfunction.LogTime = theNewData.RealTimeRollingLogfunction.LogTime.replace(/\s+GMT.*$/, '');
-    theNewData.RealTimeRollingLogfunction.StartTime = theNewData.RealTimeRollingLogfunction.StartTime.replace(/\s+GMT.*$/, '');
-    return theNewData.RealTimeRollingLogfunction;
+    const fn = theNewData.RealTimeRollingLogfunction;
+    if (fn.LogTime) {
+        fn.LogTime = fn.LogTime.replace(/\s+GMT.*$/, '');
+    }
+    if (fn.StartTime) {
+        fn.StartTime = fn.StartTime.replace(/\s+GMT.*$/, '');
+    }
+    return fn;
 }
 
 
@@ -68,12 +77,18 @@ async function saveLog() {
     RollingLog.LogTime = Date(Date.now()).toLocaleString("en-US", {
         timeZone: "Asia/HongKong"
     });
+    if (!RollingLog.StartTime) {
+        RollingLog.StartTime = RollingLog.LogTime;
+    }
+    const setFields = {
+        "RealTimeRollingLogfunction.LogTime": RollingLog.LogTime,
+        "RealTimeRollingLogfunction.LastTimeLog": RollingLog.LastTimeLog
+    };
+    if (RollingLog.StartTime) {
+        setFields["RealTimeRollingLogfunction.StartTime"] = RollingLog.StartTime;
+    }
     await schema.RealTimeRollingLog.findOneAndUpdate({}, {
-        $set: {
-            "RealTimeRollingLogfunction.LogTime": RollingLog.LogTime,
-            "RealTimeRollingLogfunction.LastTimeLog": RollingLog.LastTimeLog,
-            "RealTimeRollingLogfunction.StartTime": RollingLog.StartTime
-        },
+        $set: setFields,
         $inc: {
             "RealTimeRollingLogfunction.DiscordCountRoll": RollingLog.DiscordCountRoll,
             "RealTimeRollingLogfunction.DiscordCountText": RollingLog.DiscordCountText,
@@ -93,7 +108,7 @@ async function saveLog() {
     }, {
         upsert: true
     }).catch(error => {
-        console.error('log #90 mongoDB error:', error.name, error.reason)
+        console.error(`log #90 mongoDB error ${getClusterLogContext()}:`, error.name, error.reason)
         checkMongodb.dbErrOccurs();
     })
     //把擲骰的次數還原 為0
@@ -109,7 +124,7 @@ async function pushToDefiniteLog() {
     if (shardid !== 0) return;
     //更新最後的RollingLog 儲存時間
     RollingLog.LastTimeLog = Date.now();
-    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error('log #105 mongoDB error:', error.name, error.reason));
+    let theNewData = await schema.RealTimeRollingLog.findOne({}).catch(error => console.error(`log #105 mongoDB error ${getClusterLogContext()}:`, error.name, error.reason));
     if (!theNewData || !theNewData.RealTimeRollingLogfunction) return;
     let temp = {
         RollingLogfunction:

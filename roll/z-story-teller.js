@@ -517,7 +517,7 @@ async function saveRun(context, run) {
             allowedUserIDs: run.allowedUserIDs || [],
             lastActivityAt: run.lastActivityAt || new Date()
         };
-        await db.storyRun.findByIdAndUpdate(run._id, update, { new: true });
+        await db.storyRun.findByIdAndUpdate(run._id, update, { returnDocument: 'after' });
         return;
     }
     const key = getContextKey(context);
@@ -1545,7 +1545,7 @@ const rollDiceCommand = async function ({
                         type: 'story',
                         payload: compiled
                     },
-                    { new: true }
+                    { returnDocument: 'after' }
                 );
                 if (!updated) { rply.text = '更新失敗：未找到可更新的劇本。'; return rply; }
             }
@@ -2153,12 +2153,12 @@ const rollDiceCommand = async function ({
                 if (!doc) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
                 if (String(doc.ownerID) !== String(userid)) { rply.text = '你沒有權限變更此劇本設定。'; return rply; }
                 if (/^author$/i.test(arg3)) {
-                    await db.story.findOneAndUpdate({ alias }, { startPermission: 'AUTHOR_ONLY', allowedGroups: [] }, { new: true });
+                    await db.story.findOneAndUpdate({ alias }, { startPermission: 'AUTHOR_ONLY', allowedGroups: [] }, { returnDocument: 'after' });
                     rply.text = '已設定僅作者可啟動（alias: ' + alias + '）';
                     return rply;
                 }
                 if (/^all$/i.test(arg3)) {
-                    await db.story.findOneAndUpdate({ alias }, { startPermission: 'ANYONE', allowedGroups: [] }, { new: true });
+                    await db.story.findOneAndUpdate({ alias }, { startPermission: 'ANYONE', allowedGroups: [] }, { returnDocument: 'after' });
                     rply.text = '已設定任何人可啟動（alias: ' + alias + '）';
                     return rply;
                 }
@@ -2169,7 +2169,7 @@ const rollDiceCommand = async function ({
                     if (!groupid) { rply.text = '請在群組或頻道中使用 .st allow，或指定 groupId。'; return rply; }
                     if (!groups.includes(groupid)) groups.push(groupid);
                 }
-                await db.story.findOneAndUpdate({ alias }, { startPermission: 'GROUP_ONLY', allowedGroups: groups }, { new: true });
+                await db.story.findOneAndUpdate({ alias }, { startPermission: 'GROUP_ONLY', allowedGroups: groups }, { returnDocument: 'after' });
                 rply.text = '已設定允許的群組/頻道（alias: ' + alias + '）：' + groups.join(', ');
                 return rply;
             }
@@ -2210,7 +2210,7 @@ const rollDiceCommand = async function ({
                 if (targets.length === 0) { rply.text = '請在群組或頻道中使用 .st disallow，或指定 groupId。'; return rply; }
                 const before = groups.length;
                 groups = groups.filter(id => !targets.includes(String(id)));
-                await db.story.findOneAndUpdate({ alias }, { allowedGroups: groups }, { new: true });
+                await db.story.findOneAndUpdate({ alias }, { allowedGroups: groups }, { returnDocument: 'after' });
                 if (before === groups.length) { rply.text = '指定群組/頻道未在允許清單中。'; return rply; }
                 rply.text = '已取消允許（alias: ' + alias + '）：' + (groups.length > 0 ? groups.join(', ') : '(無)');
                 rply.buttonCreate = ['.st allow ' + alias];

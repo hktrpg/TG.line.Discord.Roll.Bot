@@ -25,14 +25,55 @@ const patreonTiers = require('./patreon-tiers.js');
 const patreonSync = require('./patreon-sync.js');
 
 const www = express();
-//const loglink = (LOGLINK) ? LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
-const LOGLINK = (process.env.LOGLINK) ? process.env.LOGLINK + '/tmp/' : process.cwd() + '/tmp/';
+const isHttpUrl = (value) => /^https?:\/\//i.test(String(value || '').trim());
+// Base directory for exported HTML logs, shared with other services.
+// LOGLINK may be configured as a public URL; local file serving must always use a filesystem path.
+const exportBaseDir = (!process.env.LOGLINK || isHttpUrl(process.env.LOGLINK))
+    ? path.join(process.cwd(), 'export')
+    : path.resolve(process.env.LOGLINK, 'export');
+const exportHtmlRedirectHosts = (() => {
+    const hosts = new Set();
+    // Preferred: explicit host list for portability across deployments.
+    const configuredHosts = String(process.env.EXPORT_HTML_REDIRECT_HOSTS || '')
+        .split(',')
+        .map(host => host.trim().toLowerCase())
+        .filter(Boolean);
+    for (const host of configuredHosts) {
+        hosts.add(host);
+    }
+
+    // Fallback: infer from WEB_LINK (e.g. https://log.example.com/).
+    if (hosts.size === 0 && process.env.WEB_LINK) {
+        try {
+            const url = new URL(process.env.WEB_LINK);
+            if (url.hostname) {
+                hosts.add(url.hostname.toLowerCase());
+            }
+        } catch (error) {
+            console.warn('[Web Server] Invalid WEB_LINK for export redirect host inference:', error.message);
+        }
+    }
+    // Also infer from LOGLINK when it is configured as a URL.
+    if (process.env.LOGLINK && isHttpUrl(process.env.LOGLINK)) {
+        try {
+            const url = new URL(process.env.LOGLINK);
+            if (url.hostname) {
+                hosts.add(url.hostname.toLowerCase());
+            }
+        } catch (error) {
+            console.warn('[Web Server] Invalid LOGLINK for export redirect host inference:', error.message);
+        }
+    }
+    return hosts;
+})();
 const MESSAGE_SPLITOR = (/\S+/ig)
 const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
 const APIswitch = (process.env.API) ? process.env.API : null;
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
 const isMaster = (process.env.MASTER) ? process.env.MASTER : null;
+const wsPort = Number(process.env.WWW_WS_PORT) || 53_589;
+const wsAllowNonLocal = String(process.env.WWW_WS_ALLOW_NON_LOCAL || '').toLowerCase() === 'true';
 const salt = process.env.SALT;
 let options = {
     key: null,
@@ -183,21 +224,14 @@ www.get('*/favicon.ico', async (req, res) => {
 });
 www.use(favicon(path.join(process.cwd(), 'views/image', 'favicon.ico')));
 
-www.get('/', async (req, res) => {
-    if (await checkRateLimit('api', req.ip)) {
-        res.status(429).end();
-        return;
-    }
-    res.sendFile(process.cwd() + '/views/index.html');
-});
-www.get('/api', async (req, res) => {
+async function handleApiRequest(req, res) {
     if (!APIswitch || await limitRaterApi(req.ip)) return;
 
     if (
         !req || !req.query || !req.query.msg
     ) {
-        res.writeHead(200, { 'Content-type': 'application/json' })
-        res.end(String.raw`{"message":"welcome to HKTRPG API.\n To use, please enter the content in query: msg \n like https://api.hktrpg.com?msg=1d100\n command bothelp for tutorials."}`)
+        res.writeHead(200, { 'Content-type': 'application/json' });
+        res.end(String.raw`{"message":"welcome to HKTRPG API.\n To use, please enter the content in query: msg \n like https://api.hktrpg.com?msg=1d100\n command bothelp for tutorials."}`);
         return;
     }
 
@@ -205,7 +239,7 @@ www.get('/api', async (req, res) => {
         req.socket.remoteAddress ||
         null;
     if (ip && await limitRaterApi(ip)) return;
-    let rplyVal = {}
+    let rplyVal = {};
     let trigger = '';
     let mainMsg = req.query.msg.match(MESSAGE_SPLITOR); // 定義輸入字串
     if (mainMsg && mainMsg[0])
@@ -217,23 +251,84 @@ www.get('/api', async (req, res) => {
         rplyVal = await exports.analytics.parseInput({
             inputStr: mainMsg.join(' '),
             botname: "Api"
-        })
-
+        });
     } else {
         if (channelKeyword == '') {
             rplyVal = await exports.analytics.parseInput({
                 inputStr: mainMsg.join(' '),
                 botname: "Api"
-            })
+            });
         }
     }
 
     if (!rplyVal || !rplyVal.text) rplyVal.text = '';
-    res.writeHead(200, { 'Content-type': 'application/json' })
-    res.end(`{"message":"${jsonEscape(rplyVal.text)}"}`)
+    res.writeHead(200, { 'Content-type': 'application/json' });
+    res.end(`{"message":"${jsonEscape(rplyVal.text)}"}`);
     return;
+}
 
+www.get('/', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
 
+    const hostHeader = req.headers.host || '';
+    const hostname = hostHeader.split(':')[0].toLowerCase();
+
+    // Keep URL on root for api host: https://api.hktrpg.com/?msg=...
+    if (hostname.startsWith('api.') || hostname.startsWith('api2.')) {
+        await handleApiRequest(req, res);
+        return;
+    }
+
+    // Map subdomains to specific pages.
+    // This only depends on the Host header, so localhost/127.0.0.1 keep existing behavior.
+    if (hostname.startsWith('card.') || hostname.startsWith('card2.')) {
+        res.sendFile(process.cwd() + '/views/characterCard.html');
+        return;
+    }
+
+    if (hostname.startsWith('publiccard.') || hostname.startsWith('publiccard2.')) {
+        res.sendFile(process.cwd() + '/views/characterCardPublic.html');
+        return;
+    }
+
+    if (hostname.startsWith('player.') || hostname.startsWith('player2.')) {
+        res.sendFile(process.cwd() + '/views/namecard/namecard_player.html');
+        return;
+    }
+
+    if (hostname.startsWith('character.') || hostname.startsWith('character2.')) {
+        res.sendFile(process.cwd() + '/views/namecard/namecard_character.html');
+        return;
+    }
+
+    if (hostname.startsWith('signal.') || hostname.startsWith('signal2.')) {
+        res.sendFile(process.cwd() + '/views/signalToNoise.html');
+        return;
+    }
+
+    if (hostname.startsWith('roll.') || hostname.startsWith('roll2.')) {
+        res.sendFile(process.cwd() + '/views/roll.html');
+        return;
+    }
+
+    if (hostname.startsWith('patreon.') || hostname.startsWith('patreon2.')) {
+        res.sendFile(process.cwd() + '/views/patreon.html');
+        return;
+    }
+
+    if (hostname.startsWith('rollbot.') || hostname.startsWith('rollbot2.') ) {
+        res.sendFile(process.cwd() + '/views/index.html');
+        return;
+    }
+
+    // Default: original behavior (www.hktrpg.com, localhost, 127.0.0.1, others)
+    res.sendFile(process.cwd() + '/views/index.html');
+});
+www.get('/api', async (req, res) => {
+    await handleApiRequest(req, res);
 });
 
 // Local bot endpoint for personal room (no broadcasting/records)
@@ -325,7 +420,7 @@ www.get('/api/dice-commands', async (req, res) => {
 
                                 try {
                                     const executeTemplate = await cmd.execute(mockInteraction);
-                                    
+
                                     // 為支持自動完成的選項添加配置
                                     const optionsWithAutocomplete = (sub.options || []).map(option => {
                                         if (option.autocompleteModule) {
@@ -344,7 +439,7 @@ www.get('/api/dice-commands', async (req, res) => {
                                         }
                                         return option;
                                     });
-                                    
+
                                     commands.push({
                                         json: {
                                             name: `${commandJson.name}_${sub.name}`,
@@ -382,7 +477,7 @@ www.get('/api/dice-commands', async (req, res) => {
                             };
                             try {
                                 const executeTemplate = await cmd.execute(mockInteraction);
-                                
+
                                 // 為支持自動完成的選項添加配置
                                 const optionsWithAutocomplete = (commandJson.options || []).map(option => {
                                     if (option.autocompleteModule) {
@@ -401,7 +496,7 @@ www.get('/api/dice-commands', async (req, res) => {
                                     }
                                     return option;
                                 });
-                                
+
                                 commands.push({
                                     json: {
                                         ...commandJson,
@@ -455,7 +550,7 @@ class AutocompleteMonitor {
     constructor() {
         this.stats = new Map();
     }
-    
+
     recordRequest(module, type, duration, success) {
         if (!this.stats.has(module)) {
             this.stats.set(module, {
@@ -467,21 +562,21 @@ class AutocompleteMonitor {
                 lastRequest: Date.now()
             });
         }
-        
+
         const stats = this.stats.get(module);
         stats.requests++;
         stats.totalDuration += duration;
         stats.lastRequest = Date.now();
-        
+
         if (!success) stats.errors++;
         if (type === 'cache_hit') stats.cacheHits++;
         if (type === 'cache_miss') stats.cacheMisses++;
     }
-    
+
     getStats(module) {
         return this.stats.get(module) || null;
     }
-    
+
     getAllStats() {
         return Object.fromEntries(this.stats);
     }
@@ -496,74 +591,74 @@ class AutocompleteCache {
         this.searchCache = new Map();
         this.cleanupInterval = setInterval(() => this.cleanup(), 60_000); // 每分鐘清理一次
     }
-    
+
     set(key, value, ttl = CACHE_CONFIG.TTL) {
         this.cache.set(key, {
             value,
             expires: Date.now() + ttl
         });
-        
+
         // 限制快取大小
         if (this.cache.size > CACHE_CONFIG.MAX_SIZE) {
             const firstKey = this.cache.keys().next().value;
             this.cache.delete(firstKey);
         }
     }
-    
+
     get(key) {
         const item = this.cache.get(key);
         if (!item) return null;
-        
+
         if (Date.now() > item.expires) {
             this.cache.delete(key);
             return null;
         }
-        
+
         return item.value;
     }
-    
+
     setSearch(key, value, ttl = CACHE_CONFIG.SEARCH_TTL) {
         this.searchCache.set(key, {
             value,
             expires: Date.now() + ttl
         });
-        
+
         // 限制搜尋快取大小
         if (this.searchCache.size > CACHE_CONFIG.MAX_SEARCH_CACHE) {
             const firstKey = this.searchCache.keys().next().value;
             this.searchCache.delete(firstKey);
         }
     }
-    
+
     getSearch(key) {
         const item = this.searchCache.get(key);
         if (!item) return null;
-        
+
         if (Date.now() > item.expires) {
             this.searchCache.delete(key);
             return null;
         }
-        
+
         return item.value;
     }
-    
+
     cleanup() {
         const now = Date.now();
-        
+
         // 清理過期快取
         for (const [key, item] of this.cache.entries()) {
             if (now > item.expires) {
                 this.cache.delete(key);
             }
         }
-        
+
         for (const [key, item] of this.searchCache.entries()) {
             if (now > item.expires) {
                 this.searchCache.delete(key);
             }
         }
     }
-    
+
     clear() {
         this.cache.clear();
         this.searchCache.clear();
@@ -576,22 +671,22 @@ const cache = new AutocompleteCache();
 const registerAutocompleteModules = () => {
     const rollDir = path.join(process.cwd(), 'roll');
     const files = fs.readdirSync(rollDir);
-    
+
     const ignoredFiles = ['z_', 'rollbase', 'demo', 'export', 'forward', 'help', 'init', 'request-rolling', 'token', 'edit'];
-    
+
     for (const file of files) {
         if (file.endsWith('.js') && !ignoredFiles.some(prefix => file.startsWith(prefix))) {
             try {
                 const modulePath = path.join(rollDir, file);
                 const commandModule = require(modulePath);
-                
+
                 // 檢查模組是否有自動完成功能
                 if (commandModule.autocomplete && typeof commandModule.autocomplete === 'object') {
                     const moduleName = commandModule.autocomplete.moduleName || file.replace('.js', '');
                     autocompleteModules[moduleName] = commandModule.autocomplete;
                     //console.log(`[www] Registered autocomplete module: ${moduleName}`);
                 }
-                
+
                 // 檢查模組是否有其他自動完成功能（如招式自動完成）
                 for (const key of Object.keys(commandModule)) {
                     if (key.endsWith('Autocomplete') && typeof commandModule[key] === 'object') {
@@ -615,37 +710,37 @@ www.get('/api/autocomplete/:module', async (req, res) => {
     const startTime = Date.now();
     const { module } = req.params;
     const { q, limit = 10 } = req.query;
-    
+
     // 檢查速率限制
     if (await checkRateLimit('api', req.ip)) {
         monitor.recordRequest(module, 'rate_limited', Date.now() - startTime, false);
         res.status(429).json({ error: 'Rate limit exceeded' });
         return;
     }
-    
+
     if (!autocompleteModules[module]) {
         monitor.recordRequest(module, 'not_found', Date.now() - startTime, false);
         return res.status(404).json({ error: 'Module not found' });
     }
-    
+
     try {
         const moduleConfig = autocompleteModules[module];
         const limitNum = Math.min(Number.parseInt(limit, 10), 50); // 限制最大結果數
         let results;
-        
+
         if (q && q.trim().length > 0) {
             // 搜尋請求
             const searchKey = `${module}:search:${q.trim()}:${limitNum}`;
             const cachedResults = cache.getSearch(searchKey);
-            
+
             if (cachedResults) {
                 monitor.recordRequest(module, 'cache_hit', Date.now() - startTime, true);
                 return res.json(cachedResults);
             }
-            
+
             monitor.recordRequest(module, 'cache_miss', 0, true);
             results = await moduleConfig.search(q.trim(), limitNum);
-            
+
             // 快取搜尋結果
             const transformed = results.map(moduleConfig.transform);
             cache.setSearch(searchKey, transformed);
@@ -654,22 +749,22 @@ www.get('/api/autocomplete/:module', async (req, res) => {
             // 獲取所有數據請求
             const dataKey = `${module}:data:${limitNum}`;
             const cachedData = cache.get(dataKey);
-            
+
             if (cachedData) {
                 monitor.recordRequest(module, 'cache_hit', Date.now() - startTime, true);
                 return res.json(cachedData);
             }
-            
+
             monitor.recordRequest(module, 'cache_miss', 0, true);
             results = await moduleConfig.getData();
             results = results.slice(0, limitNum);
-            
+
             // 快取數據
             const transformed = results.map(moduleConfig.transform);
             cache.set(dataKey, transformed);
             res.json(transformed);
         }
-        
+
         monitor.recordRequest(module, 'success', Date.now() - startTime, true);
     } catch (error) {
         console.error('[Web Server] Autocomplete search error:', error);
@@ -1161,10 +1256,10 @@ www.get('/log/:id', async (req, res) => {
 
     if (req.originalUrl.endsWith('html')) {
         // Sanitize and validate the file path
-        const logPath = path.resolve(LOGLINK, req.params.id);
+        const logPath = path.resolve(exportBaseDir, req.params.id);
 
         // Ensure the resolved path is within the allowed directory and file exists
-        if (!logPath.startsWith(path.resolve(LOGLINK)) || !fs.existsSync(logPath)) {
+        if (!logPath.startsWith(path.resolve(exportBaseDir)) || !fs.existsSync(logPath)) {
             res.sendFile(process.cwd() + '/views/includes/error.html');
             return;
         }
@@ -1175,6 +1270,25 @@ www.get('/log/:id', async (req, res) => {
         // Send error.html for non-html requests
         res.sendFile(process.cwd() + '/views/includes/error.html');
     }
+});
+
+// Backward-compatible shortcut:
+// /<file>.html -> /log/<file>.html
+// This keeps old/shared links working while preserving /log path validation.
+www.get(/^\/([^/]+\.html)$/i, async (req, res, next) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    // Restrict shortcut redirect to configured export-link hosts only.
+    // Use EXPORT_HTML_REDIRECT_HOSTS for multi-domain deployments.
+    const requestHost = String(req.hostname || '').toLowerCase();
+    if (!exportHtmlRedirectHosts.has(requestHost)) {
+        next();
+        return;
+    }
+    const fileName = req.params[0];
+    res.redirect(`/log/${encodeURIComponent(fileName)}`);
 });
 
 www.get('/:xx', async (req, res) => {
@@ -1198,19 +1312,19 @@ if (io) {
                 'http://localhost:20721',  // 開發環境
                 'http://127.0.0.1:20721'   // 本機IP開發環境
             ];
-            
-            const isAllowed = allowedOrigins.includes(origin) || 
-                             origin.match(/^https?:\/\/.*\.hktrpg\.com$/);
-            
+
+            const isAllowed = allowedOrigins.includes(origin) ||
+                origin.match(/^https?:\/\/.*\.hktrpg\.com$/);
+
             if (!isAllowed) {
                 console.warn('[Web Server] 🔒 Rejected connection from invalid origin:', origin);
                 return next(new Error('Invalid origin'));
             }
         }
-        
+
         next();
     });
-    
+
     io.on('connection', async (socket) => {
         socket.on('getListInfo', async message => {
             // Use cardRead limit for list info (less restrictive)
@@ -1271,7 +1385,7 @@ if (io) {
                     });
                     return;
                 }
-                
+
                 // 🔄 自動升級密碼（如果使用舊密碼）
                 try {
                     const upgraded = await security.upgradePasswordIfLegacy(userName, password, doc.password);
@@ -1284,7 +1398,7 @@ if (io) {
                     console.error('[Web Server] 🔄 Password upgrade failed:', error.message);
                     // 升級失敗不影響登入流程
                 }
-                
+
                 // 驗證成功，獲取數據
                 let temp;
                 if (doc.id) {
@@ -1294,9 +1408,9 @@ if (io) {
                             return null;
                         });
                 }
-                
+
                 let id = doc.channel || [];
-                
+
                 // 🔐 生成JWT token
                 let jwtToken = null;
                 if (security.generateToken) {
@@ -1310,9 +1424,9 @@ if (io) {
                         console.error('[Web Server] 🔐 JWT token generation failed:', error.message);
                     }
                 }
-                
+
                 socket.emit('getListInfo', { temp, id, token: jwtToken });
-                
+
             } catch (error) {
                 console.error('[Web Server] 🔒 getListInfo error:', error.message);
                 socket.emit('getListInfo', { temp: null, id: [] });
@@ -1384,15 +1498,15 @@ if (io) {
                             console.warn('[Web Server] 🔒 Invalid JWT auth for rolling:', validation.error);
                             return;
                         }
-                        
+
                         const { userName } = validation.data;
-                        
+
                         let filter = {
                             userName: String(userName).trim()
                         };
 
                         let doc = await schema.accountPW.findOne(filter).catch(error => console.error('[Web Server] MongoDB error:', error.name, error.message));
-                        
+
                         if (doc) {
                             // 🔒 JWT token已經驗證了用戶身份，不需要密碼驗證
                             if (doc.channel) {
@@ -1426,34 +1540,34 @@ if (io) {
                             console.warn('[Web Server] 🔒 Invalid credentials for rolling:', validation.error);
                             return;
                         }
-                        
+
                         const { userName, userPassword: password } = validation.data;
-                        
+
                         // 🔒 防止 NoSQL 注入
                         let filter = {
                             userName: String(userName).trim(),
                             "channel.id": String(message.rollTarget.id).trim(),
                             "channel.botname": String(message.rollTarget.botname).trim()
                         };
-                        
+
                         let userDoc = await schema.accountPW.findOne(filter)
                             .catch(error => {
                                 console.error('[Web Server] 🔒 MongoDB error:', error.message);
                                 return null;
                             });
-                        
+
                         if (!userDoc) {
                             console.warn('[Web Server] 🔒 User not found for rolling');
                             return;
                         }
-                        
+
                         // 🔒 驗證密碼
                         const isValid = await verifyPasswordSecure(password, userDoc.password);
                         if (!isValid) {
                             console.warn('[Web Server] 🔒 Invalid password for rolling');
                             return;
                         }
-                        
+
                         // 🔄 自動升級密碼（如果使用舊密碼）
                         try {
                             const upgraded = await security.upgradePasswordIfLegacy(userName, password, userDoc.password);
@@ -1466,23 +1580,23 @@ if (io) {
                             console.error('[Web Server] 🔄 Password upgrade failed for rolling:', error.message);
                             // 升級失敗不影響擲骰流程
                         }
-                        
+
                         let filter2 = {
                             "botname": String(message.rollTarget.botname).trim(),
                             "id": String(message.rollTarget.id).trim()
                         };
-                        
+
                         let allowRollingResult = await schema.allowRolling.findOne(filter2)
                             .catch(error => {
                                 console.error('[Web Server] 🔒 MongoDB error:', error.message);
                                 return null;
                             });
-                        
+
                         if (!allowRollingResult) {
                             console.warn('[Web Server] 🔒 Rolling not allowed for this target');
                             return;
                         }
-                        
+
                         rplyVal.text = '@' + message.cardName + ' - ' + message.item + '\n' + rplyVal.text;
                         if (message.rollTarget.botname && sendTo) {
                             sendTo({
@@ -1510,26 +1624,26 @@ if (io) {
                     socket.emit('removeChannel', { success: false, message: 'Invalid JWT auth' });
                     return;
                 }
-                
+
                 const { userName } = validation.data;
-                
+
                 // 🔒 防止 NoSQL 注入 - 強制型別轉換
                 let filter = {
                     userName: String(userName).trim()
                 };
-                
+
                 let doc = await schema.accountPW.findOne(filter)
                     .catch(error => {
                         console.error('[Web Server] 🔒 MongoDB error:', error.message);
                         return null;
                     });
-                
+
                 // 🔒 JWT token已經驗證了用戶身份，不需要密碼驗證
                 if (!doc) {
                     socket.emit('removeChannel', { success: false, message: 'User not found' });
                     return;
                 }
-                
+
                 const result = await schema.accountPW.updateOne({
                     "userName": userName
                 }, {
@@ -1539,7 +1653,7 @@ if (io) {
                         }
                     }
                 });
-                
+
                 // Send response back to client
                 if (result.modifiedCount > 0) {
                     socket.emit('removeChannel', { success: true, message: 'Channel removed successfully' });
@@ -1562,33 +1676,33 @@ if (io) {
                     token: message.token,
                     userName: message.userName
                 });
-                
+
                 if (!validation.valid) {
                     console.warn('[Web Server] 🔒 Invalid JWT auth for updateCard:', validation.error);
                     socket.emit('updateCard', false);
                     return;
                 }
-                
+
                 const { userName } = validation.data;
 
                 // 🔒 防止 NoSQL 注入
                 let filter = {
                     userName: String(userName).trim()
                 };
-                
+
                 let doc = await schema.accountPW.findOne(filter)
                     .catch(error => {
                         console.error('[Web Server] 🔒 MongoDB error:', error.message);
                         return null;
                     });
-                
+
                 // 🔒 JWT token已經驗證了用戶身份，不需要密碼驗證
                 if (!doc) {
                     console.warn('[Web Server] 🔒 User not found for updateCard:', userName);
                     socket.emit('updateCard', false);
                     return;
                 }
-                
+
                 // 驗證成功，更新卡片
                 let temp;
                 if (doc.id && message.card) {
@@ -1602,7 +1716,7 @@ if (io) {
                     message.card.state = checkNullItem(message.card.state || []);
                     message.card.roll = checkNullItem(message.card.roll || []);
                     message.card.notes = checkNullItem(message.card.notes || []);
-                    
+
                     temp = await schema.characterCard.findOneAndUpdate({
                         id: doc.id,
                         _id: message.card._id
@@ -1619,9 +1733,9 @@ if (io) {
                         return null;
                     });
                 }
-                
+
                 socket.emit('updateCard', !!temp);
-                
+
             } catch (error) {
                 console.error('[Web Server] 🔒 updateCard error:', error.message);
                 socket.emit('updateCard', false);
@@ -1653,7 +1767,7 @@ if (io) {
 
         socket.on("send", async (msg) => {
             if (await limitRaterChatRoom(socket.handshake.address)) return;
-            
+
             // 🔒 使用安全的輸入驗證
             const validation = security.validateChatMessage(msg);
             if (!validation.valid) {
@@ -1857,9 +1971,13 @@ let sendTo;
 if (isMaster) {
     const WebSocket = require('ws');
     const wss = new WebSocket.Server({
-        port: 53_589,
+        port: wsPort,
         verifyClient: (info) => {
-            return info.req.socket.remoteAddress === "::ffff:127.0.0.1";
+            if (wsAllowNonLocal) {
+                return true;
+            }
+            const remote = info.req.socket.remoteAddress;
+            return remote === '::ffff:127.0.0.1' || remote === '127.0.0.1' || remote === '::1';
         }
     });
 

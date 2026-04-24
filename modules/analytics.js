@@ -4,6 +4,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const util = require('node:util');
+const { Types: { ObjectId } } = require('mongoose');
 const readdir = util.promisify(fs.readdir);
 
 // Create an index of available roll modules
@@ -258,19 +259,304 @@ function findRollList(mainMsg) {
 	return null;
 }
 
-async function stateText() {
+/** HK calendar month bounds (UTC+8). `month` is 1–12. */
+function hkMonthBounds(year, month) {
+	const lastDay = new Date(year, month, 0).getDate();
+	const start = new Date(`${year}-${String(month).padStart(2, '0')}-01T00:00:00+08:00`);
+	const end = new Date(`${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59.999+08:00`);
+	return { start, end };
+}
+
+function hkCalendarNow() {
+	const parts = new Intl.DateTimeFormat('en-CA', {
+		timeZone: 'Asia/Hong_Kong',
+		year: 'numeric',
+		month: '2-digit'
+	}).formatToParts(new Date());
+	const y = Number.parseInt(parts.find((p) => p.type === 'year')?.value ?? '0', 10);
+	const m = Number.parseInt(parts.find((p) => p.type === 'month')?.value ?? '0', 10);
+	return { y, m };
+}
+
+function hkLastMonth() {
+	let { y, m } = hkCalendarNow();
+	m -= 1;
+	if (m < 1) {
+		m = 12;
+		y -= 1;
+	}
+	return { y, m };
+}
+
+function hkSameMonthLastYear() {
+	// Compare last month vs. the same calendar month one year prior (not current month last year)
+	const { y, m } = hkLastMonth();
+	return { y: y - 1, m };
+}
+
+/** Parse DB / locale strings (incl. GMT+0800, 台北標準時間, etc.) to a Date. */
+function parseToDate(input) {
+	if (input == null) return null;
+	if (input instanceof Date) return Number.isNaN(input.getTime()) ? null : input;
+	let s = String(input).trim();
+	if (!s) return null;
+	let t = Date.parse(s);
+	if (!Number.isNaN(t)) return new Date(t);
+	s = s.replaceAll(/\s+GMT[+-]\d{2}:?\d{2,4}(?:\s*\([^)]*\))?/gi, '').trim();
+	s = s.replaceAll(/\s*\([^)]*\)\s*$/u, '').trim();
+	t = Date.parse(s);
+	return Number.isNaN(t) ? null : new Date(t);
+}
+
+/**
+ * Snapshot ordering time for RollingLog: prefer Mongoose createdAt, else parsed LogTime (aggregation),
+ * else ObjectId insertion time. Used so legacy rows without timestamps still align with HK month windows.
+ */
+const ROLLING_LOG_EFFECTIVE_AT_STAGE = {
+	$addFields: {
+		effectiveAt: {
+			$ifNull: [
+				'$createdAt',
+				{
+					$ifNull: [
+						{
+							$dateFromString: {
+								dateString: '$RollingLogfunction.LogTime',
+								onError: null,
+								onNull: null
+							}
+						},
+						{ $toDate: '$_id' }
+					]
+				}
+			]
+		}
+	}
+};
+
+const ROLLING_LOG_STRIP_EFFECTIVE_AT = { $project: { effectiveAt: 0 } };
+
+function rollingLogAggregateLastOnOrBefore(bound, strictBefore) {
+	const cmp = strictBefore ? { $lt: bound } : { $lte: bound };
+	return [
+		ROLLING_LOG_EFFECTIVE_AT_STAGE,
+		{ $match: { effectiveAt: cmp } },
+		{ $sort: { effectiveAt: -1 } },
+		{ $limit: 1 },
+		ROLLING_LOG_STRIP_EFFECTIVE_AT
+	];
+}
+
+function rollingLogAggregateOldest() {
+	return [
+		ROLLING_LOG_EFFECTIVE_AT_STAGE,
+		{ $sort: { effectiveAt: 1 } },
+		{ $limit: 1 },
+		ROLLING_LOG_STRIP_EFFECTIVE_AT
+	];
+}
+
+/**
+ * ObjectId boundary for a Date, using the 4-byte timestamp encoded in every ObjectId.
+ * 'min' → lowest ObjectId for that second; 'max' → highest.
+ * This lets us do indexed _id range queries as a fast fallback when createdAt is absent.
+ */
+function objectIdAtTime(date, side) {
+	const secs = Math.floor(date.getTime() / 1000);
+	const tail = side === 'max' ? 'ffffffffffffffff' : '0000000000000000';
+	return new ObjectId(secs.toString(16).padStart(8, '0') + tail);
+}
+
+/**
+ * Prefer indexed find on createdAt (schema index); fall back to _id range (always indexed);
+ * last resort: aggregation for very old docs without reliable timestamps.
+ */
+async function rollingLogSnapshotOldest() {
+	// Fast path 1: createdAt index
+	try {
+		const fast = await schema.RollingLog.findOne({ createdAt: { $exists: true, $ne: null } })
+			.sort({ createdAt: 1 })
+			.lean()
+			.exec();
+		if (fast) return fast;
+	} catch (error) {
+		console.error('[Analytics] MongoDB error (RollingLog find oldest createdAt):', error.name, error.reason);
+	}
+	// Fast path 2: _id sort – ObjectId encodes insertion time, always indexed, no aggregation needed
+	try {
+		const fastById = await schema.RollingLog.findOne()
+			.sort({ _id: 1 })
+			.lean()
+			.exec();
+		if (fastById) return fastById;
+	} catch (error) {
+		console.error('[Analytics] MongoDB error (RollingLog find oldest _id):', error.name, error.reason);
+	}
+	// Slow path: full aggregation fallback
+	try {
+		const rows = await schema.RollingLog.aggregate(rollingLogAggregateOldest());
+		return rows[0] ?? null;
+	} catch (error) {
+		console.error('[Analytics] MongoDB error (RollingLog aggregate oldest):', error.name, error.reason);
+		return null;
+	}
+}
+
+/**
+ * Last snapshot at/before bound. Tries createdAt index → _id range (always indexed) → aggregation fallback.
+ */
+async function rollingLogSnapshotLastOnOrBefore(bound, strictBefore) {
+	const cmp = strictBefore ? { $lt: bound } : { $lte: bound };
+	// Fast path 1: createdAt index
+	try {
+		const fast = await schema.RollingLog.findOne({ createdAt: cmp })
+			.sort({ createdAt: -1 })
+			.lean()
+			.exec();
+		if (fast) return fast;
+	} catch (error) {
+		console.error('[Analytics] MongoDB error (RollingLog find last on/before createdAt):', error.name, error.reason);
+	}
+	// Fast path 2: _id range – ObjectId timestamp is second-accurate and always indexed
+	try {
+		const boundId = objectIdAtTime(bound, strictBefore ? 'min' : 'max');
+		const cmpId = strictBefore ? { $lt: boundId } : { $lte: boundId };
+		const fastById = await schema.RollingLog.findOne({ _id: cmpId })
+			.sort({ _id: -1 })
+			.lean()
+			.exec();
+		if (fastById) return fastById;
+	} catch (error) {
+		console.error('[Analytics] MongoDB error (RollingLog find last on/before _id):', error.name, error.reason);
+	}
+	// Slow path: full aggregation fallback
+	try {
+		const rows = await schema.RollingLog.aggregate(rollingLogAggregateLastOnOrBefore(bound, strictBefore));
+		return rows[0] ?? null;
+	} catch (error) {
+		console.error('[Analytics] MongoDB error (RollingLog aggregate last on/before):', error.name, error.reason);
+		return null;
+	}
+}
+
+/**
+ * @param {unknown} [preloadedFirstEver] - Shared promise or doc for the earliest RollingLog row (same for all months).
+ *   When omitted, fetches via indexed query (with aggregation fallback).
+ */
+async function resolveRollingLogFirstEver(preloadedFirstEver) {
+	if (preloadedFirstEver !== undefined) {
+		return await preloadedFirstEver;
+	}
+	return rollingLogSnapshotOldest();
+}
+
+/**
+ * Delta of cumulative *CountRoll fields between last snapshot before month start and last snapshot at/before month end.
+ * RollingLog snapshots copy RealTime cumulative totals (see logs.js pushToDefiniteLog).
+ * @param {string} [debugLabel] - When DEBUG env is set, logs use this label (e.g. lastMonth / lastYearSameMonth).
+ * @param {Promise<object | null> | object | null} [preloadedFirstEver] - Shared oldest snapshot; avoids a third query per call when passed from stateText.
+ */
+async function monthlyRollDeltas(year, month, debugLabel = '', preloadedFirstEver) {
+	const { start, end } = hkMonthBounds(year, month);
+	const rollFields = [
+		'LineCountRoll',
+		'DiscordCountRoll',
+		'TelegramCountRoll',
+		'WhatsappCountRoll',
+		'WWWCountRoll'
+	];
+	try {
+		const [before, snapEnd, firstEver] = await Promise.all([
+			rollingLogSnapshotLastOnOrBefore(start, true),
+			rollingLogSnapshotLastOnOrBefore(end, false),
+			resolveRollingLogFirstEver(preloadedFirstEver)
+		]);
+		if (debugMode) {
+			const snap = (doc) => (doc
+				? {
+					_id: String(doc._id),
+					createdAt: doc.createdAt?.toISOString?.() ?? doc.createdAt,
+					logTime: doc.RollingLogfunction?.LogTime,
+					effectiveAtGuess: (() => {
+						if (doc.createdAt) return doc.createdAt instanceof Date ? doc.createdAt.toISOString() : String(doc.createdAt);
+						const lt = parseToDate(doc.RollingLogfunction?.LogTime);
+						if (lt) return lt.toISOString();
+						return doc._id?.getTimestamp?.()?.toISOString?.() ?? '—';
+					})()
+				}
+				: null);
+			console.log('[Analytics][DEBUG][stateText] monthlyRollDeltas', debugLabel || '(no label)', {
+				year,
+				month,
+				rangeStart: start.toISOString(),
+				rangeEnd: end.toISOString(),
+				snapshotBeforeMonth: snap(before),
+				snapshotEndOfMonth: snap(snapEnd),
+				firstSnapshotInDb: snap(firstEver),
+				hasSnapEndFunction: Boolean(snapEnd?.RollingLogfunction)
+			});
+		}
+		if (!snapEnd?.RollingLogfunction) {
+			if (debugMode) {
+				console.log('[Analytics][DEBUG][stateText] monthlyRollDeltas', debugLabel || '(no label)', '→ null (no RollingLog snapshot at/before month end; missing data or no pushToDefiniteLog history)');
+			}
+			return null;
+		}
+		const out = {};
+		for (const f of rollFields) {
+			const ev = snapEnd.RollingLogfunction[f] ?? 0;
+			if (before?.RollingLogfunction) {
+				out[f] = Math.max(0, ev - (before.RollingLogfunction[f] ?? 0));
+			} else {
+				const bv = firstEver?.RollingLogfunction?.[f] ?? 0;
+				out[f] = Math.max(0, ev - bv);
+			}
+		}
+		if (debugMode) {
+			console.log('[Analytics][DEBUG][stateText] monthlyRollDeltas', debugLabel || '(no label)', '→ deltas', out);
+		}
+		return out;
+	} catch (error) {
+		console.error('[Analytics] monthlyRollDeltas error:', error.message);
+		return null;
+	}
+}
+
+/** Short-lived cache so repeated `.admin state` does not hammer MongoDB. Set ADMIN_STATE_CACHE_SEC=0 to disable. */
+const ADMIN_STATE_CACHE_MS = Math.max(0, Number.parseInt(process.env.ADMIN_STATE_CACHE_SEC || '300', 10) * 1000);
+let stateTextCache = { text: '', expiresAt: 0 };
+let stateTextRefreshing = false;
+
+async function computeStateText() {
 	let state = await getState() || '';
 	if (Object.keys(state).length === 0 || !state.LogTime) return '';
 
-	const cleanDateTime = (dateStr) => dateStr
-		.replace(' GMT+0800 (Hong Kong Standard Time)', '')
-		.replace(' GMT+0800 (GMT+08:00)', '');
+	/** Human-readable HK time for status UI (Traditional Chinese + 24h, no suffix). */
+	const formatPrettyTimestamp = (input) => {
+		const d = parseToDate(input);
+		if (!d) return '—';
+		return new Intl.DateTimeFormat('zh-Hant-HK', {
+			timeZone: 'Asia/Hong_Kong',
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric',
+			weekday: 'short',
+			hour: '2-digit',
+			minute: '2-digit',
+			second: '2-digit',
+			hour12: false
+		}).format(d);
+	};
 
 	const formatNumber = (num) => num.toString().replaceAll(/\B(?=(\d{3})+(?!\d))/g, ",");
+	const fmtOrDash = (v) => (v == null ? '—' : formatNumber(v));
+	const hkLm = hkLastMonth();
+	const hkLy = hkSameMonthLastYear();
 
-	// 使用 Promise.all 同時獲取所有統計數據
-	// 無條件的全表 count 改為 estimatedDocumentCount，避免 COLLSCAN（狀態報告用近似值即可）
-	const [levelSystemCount, characterCardCount, userCount] = await Promise.all([
+	// One shared "oldest snapshot" query for UI + both monthly delta runs (indexed find + aggregation fallback).
+	const oldestRollingPromise = rollingLogSnapshotOldest();
+
+	const [levelSystemCount, characterCardCount, userCount, oldestRolling, lastMonthDelta, lastYearDelta] = await Promise.all([
 		schema.trpgLevelSystem.countDocuments({ Switch: '1' })
 			.catch(error => console.error('[Analytics] MongoDB error:', error.name, error.reason)),
 		(schema.characterCard && typeof schema.characterCard.estimatedDocumentCount === 'function')
@@ -280,34 +566,123 @@ async function stateText() {
 		(schema.firstTimeMessage && typeof schema.firstTimeMessage.estimatedDocumentCount === 'function')
 			? schema.firstTimeMessage.estimatedDocumentCount()
 				.catch(error => console.error('[Analytics] MongoDB error:', error.name, error.reason))
-			: Promise.resolve(0)
+			: Promise.resolve(0),
+		oldestRollingPromise,
+		monthlyRollDeltas(hkLm.y, hkLm.m, 'lastMonth', oldestRollingPromise),
+		monthlyRollDeltas(hkLy.y, hkLy.m, 'lastYearSameMonth', oldestRollingPromise)
 	]);
 
-	return `【📊 HKTRPG系統狀態報告】
-╭────── ⏰時間資訊 ──────
-│ 系統啟動:
-│   • ${cleanDateTime(state.StartTime)}
-│ 現在時間:
-│   • ${cleanDateTime(state.LogTime)}
-│
-├────── 🎲擲骰統計 ──────
-│ 各平台使用次數:
-│   • Line     ${formatNumber(state.LineCountRoll)}
-│   • Discord  ${formatNumber(state.DiscordCountRoll)}
-│   • Telegram ${formatNumber(state.TelegramCountRoll)}
-│   • Whatsapp ${formatNumber(state.WhatsappCountRoll)}
-│   • 網頁版   ${formatNumber(state.WWWCountRoll)}
-│
-├────── 📊系統數據 ──────
-│ 功能使用統計:
-│   • 經驗值群組 ${formatNumber(levelSystemCount)}
-│   • 角色卡數量 ${formatNumber(characterCardCount)}
-│   • 使用者總數 ${formatNumber(userCount)}
-│
-├────── ⚙️系統資訊 ──────
-│ 隨機數生成:
-│   • random-js  • nodeCrypto
-╰──────────────`;
+	const tripleLine = (total, field) => `${formatNumber(total)}(${fmtOrDash(lastMonthDelta?.[field])}/${fmtOrDash(lastYearDelta?.[field])})`;
+
+	if (debugMode) {
+		console.log('[Analytics][DEBUG][stateText] HK calendar', {
+			now: hkCalendarNow(),
+			lastMonthWindow: hkLm,
+			sameMonthLastYearWindow: hkLy
+		});
+		console.log('[Analytics][DEBUG][stateText] RealTime *CountRoll (report 總數)', {
+			LineCountRoll: state.LineCountRoll,
+			DiscordCountRoll: state.DiscordCountRoll,
+			TelegramCountRoll: state.TelegramCountRoll,
+			WhatsappCountRoll: state.WhatsappCountRoll,
+			WWWCountRoll: state.WWWCountRoll
+		});
+		console.log('[Analytics][DEBUG][stateText] triple display (總數 / 上月 / 上年同月)', {
+			LINE: tripleLine(state.LineCountRoll, 'LineCountRoll'),
+			Discord: tripleLine(state.DiscordCountRoll, 'DiscordCountRoll'),
+			Telegram: tripleLine(state.TelegramCountRoll, 'TelegramCountRoll'),
+			WhatsApp: tripleLine(state.WhatsappCountRoll, 'WhatsappCountRoll'),
+			WWW: tripleLine(state.WWWCountRoll, 'WWWCountRoll')
+		});
+		console.log('[Analytics][DEBUG][stateText] If lastYearSameMonth is —: often no RollingLog rows for that calendar month (no snapshots yet or DB restored without history).');
+	}
+
+	let startTimeDisplay = '—';
+	if (oldestRolling?.RollingLogfunction?.LogTime) {
+		startTimeDisplay = formatPrettyTimestamp(oldestRolling.RollingLogfunction.LogTime);
+	}
+	if (startTimeDisplay === '—' && oldestRolling?.createdAt) {
+		startTimeDisplay = formatPrettyTimestamp(oldestRolling.createdAt);
+	}
+	if (startTimeDisplay === '—' && state.StartTime?.trim()) {
+		startTimeDisplay = formatPrettyTimestamp(state.StartTime);
+	}
+	const logTimeDisplay = formatPrettyTimestamp(state.LogTime);
+
+	const divTop = '◆ ────────────────────────';
+	const div = '────────────────────────';
+
+	const lmLabel = `${hkLm.y % 100}年${hkLm.m}月`;
+	const lyLabel = `${hkLy.y % 100}年${hkLy.m}月`;
+
+	return [
+		'【 📊 HKTRPG · 系統狀態報告 】',
+		divTop,
+		'⏰ 時間資訊',
+		div,
+		`🗓 最早紀錄 ${startTimeDisplay}`,
+		`🕐 現在時間 ${logTimeDisplay} `,
+		divTop,
+		`🎲 擲骰統計(總數/${lmLabel}/${lyLabel})`,
+		div,
+		`💬 LINE ${tripleLine(state.LineCountRoll, 'LineCountRoll')}`,
+		`🎮 Discord ${tripleLine(state.DiscordCountRoll, 'DiscordCountRoll')}`,
+		`✈️ Telegram ${tripleLine(state.TelegramCountRoll, 'TelegramCountRoll')}`,
+		`📱 WhatsApp ${tripleLine(state.WhatsappCountRoll, 'WhatsappCountRoll')}`,
+		`🌐 網頁版 ${tripleLine(state.WWWCountRoll, 'WWWCountRoll')}`,
+		divTop,
+		'📈 系統數據',
+		div,
+		`⭐ 經驗值群組 ${formatNumber(levelSystemCount)}`,
+		`🃏 角色卡數量 ${formatNumber(characterCardCount)}`,
+		`👤 使用者總數 ${formatNumber(userCount)}`,
+		divTop,
+		'⚙️ 隨機數生成工具',
+		div,
+		'🔹 random-js　·　nodeCrypto',
+		divTop
+	].join('\n');
+}
+
+async function refreshStateCache() {
+	if (stateTextRefreshing) return;
+	// Skip recompute if cache is still fresh (e.g. timer fires after a recent user-triggered refresh)
+	if (ADMIN_STATE_CACHE_MS > 0 && stateTextCache.text && Date.now() < stateTextCache.expiresAt) return;
+	stateTextRefreshing = true;
+	try {
+		const text = await computeStateText();
+		if (text) {
+			stateTextCache = { text, expiresAt: Date.now() + ADMIN_STATE_CACHE_MS };
+		}
+	} catch (error) {
+		console.error('[Analytics] refreshStateCache error:', error.message);
+	} finally {
+		stateTextRefreshing = false;
+	}
+}
+
+async function stateText() {
+	const now = Date.now();
+
+	// Cache valid → return immediately
+	if (stateTextCache.text && now < stateTextCache.expiresAt) {
+		return stateTextCache.text;
+	}
+
+	// Cache stale but exists → return stale immediately, refresh in background
+	if (stateTextCache.text) {
+		refreshStateCache();
+		return stateTextCache.text;
+	}
+
+	// Cache empty (first call) → must wait
+	await refreshStateCache();
+	return stateTextCache.text;
+}
+
+// Pre-warm cache after startup to avoid first-call delay
+if (ADMIN_STATE_CACHE_MS > 0) {
+	setTimeout(() => refreshStateCache().catch(() => {}), 60_000);
 }
 
 async function cmdfunction({ result, ...context }) {

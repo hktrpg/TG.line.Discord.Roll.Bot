@@ -13,6 +13,7 @@ const schema = require('./schema.js');
 class DBProtectionLayer extends EventEmitter {
     constructor() {
         super();
+        this.logContextGetter = null;
         this.isDegradedMode = false;
         this.memoryCache = new Map();
         this.cacheTTL = 5 * 60 * 1000; // 5分鐘 TTL
@@ -25,6 +26,25 @@ class DBProtectionLayer extends EventEmitter {
         this.startHealthMonitoring();
         this.setupEventListeners();
         this.startCacheCleanupInterval();
+    }
+
+    /**
+     * Register an optional getter that returns a string describing the current bot instance
+     * (e.g. "Discord cluster 1, shards [0-18]").
+     * @param {(() => string | null) | null} getter - Function returning context string, or null to clear
+     */
+    setLogContextGetter(getter) {
+        this.logContextGetter = getter ?? null;
+    }
+
+    buildContextSuffix() {
+        if (typeof this.logContextGetter !== 'function') return '';
+        try {
+            const ctx = this.logContextGetter();
+            return (ctx && typeof ctx === 'string') ? ` (${ctx})` : '';
+        } catch {
+            return '';
+        }
     }
 
     /**
@@ -183,7 +203,7 @@ class DBProtectionLayer extends EventEmitter {
         if (isHealthy) {
             await this.exitDegradedMode();
         } else {
-            console.warn('[DB-Protection] Still in degraded mode - DB health check failed');
+            console.warn(`[DB-Protection] Still in degraded mode - DB health check failed${this.buildContextSuffix()}`);
             // 設置下一次檢查
             setTimeout(() => {
                 this.attemptExitDegradedMode();

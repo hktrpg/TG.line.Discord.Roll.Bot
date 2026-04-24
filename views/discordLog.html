@@ -1849,7 +1849,7 @@
         function initializeVueComponents() {
             let totallydate = totallyDay(rawData) || "";
             let totallymessage = analysicTotallymessage(rawData);
-            let newTotallyDay = Math.max(1, Number(totallydate.match(/\d+/i)[0]));
+            let newTotallyDay = extractDayCount(totallydate);
             let analysicdate = analysicDate(rawData);
             let top3Date = getTop3Dates(analysicdate);
 
@@ -1885,7 +1885,7 @@
                 },
                 methods: {
                     reNewAaverageMessage(input) {
-                        newTotallyDay = Math.max(1, Number(totallyDay(input).match(/\d+/i)[0]));
+                        newTotallyDay = extractDayCount(totallyDay(input));
                         totallymessage = analysicTotallymessage(input);
                         this.message = (totallymessage[0] / newTotallyDay).toFixed(2) + '個';
                     }
@@ -2037,9 +2037,24 @@
             top3Date.sort((a, b) => b.number - a.number).splice(3);
             top3Date.forEach(e => {
                 let match = e.date.match(/^(\d\d\d\d)(\d\d)(\d\d)/);
+                if (!match) {
+                    return;
+                }
                 e.date = `${match[1]}年${match[2]}月${match[3]}日`;
             });
             return top3Date;
+        }
+
+        function extractDayCount(dayText) {
+            const matched = String(dayText || '').match(/\d+/i);
+            if (!matched || !matched[0]) {
+                return 1;
+            }
+            const parsed = Number(matched[0]);
+            if (Number.isNaN(parsed) || parsed < 1) {
+                return 1;
+            }
+            return parsed;
         }
 
         function initializeCharts() {
@@ -2048,10 +2063,9 @@
             drawallDateforChart3();
         }
 
-        document.addEventListener("DOMContentLoaded", function () {
-            initializeVueComponents();
-            initializeCharts();
-        });
+        // NOTE:
+        // This template already initializes Vue/Chart instances earlier in the page.
+        // Avoid double-initialization here, which can break button bindings and chart rendering.
     </script>
 </body>
 <!-- HKTRPG Sad -- 20201015-->

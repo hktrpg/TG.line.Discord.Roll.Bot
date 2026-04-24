@@ -485,10 +485,10 @@ const rollDiceCommand = async function ({
             newValue = data
                 .replace(
                     /<body>/i,
-                    `<body>\n  <script>window.aesData = ${escapedEncryptedData};<\/script>`
+                    `<body>\n  <script>window.aesData = ${escapedEncryptedData};</script>`
                 )
-                .replace(
-                    /Discord 聊天記錄分析（New）/g,
+                .replaceAll(
+                    'Discord 聊天記錄分析（New）',
                     `${channelName} 的聊天紀錄分析`
                 );
             let tempB = key;

@@ -13,9 +13,9 @@ const CLUSTER_RESPAWN_READY_MS = 120_000;
 
 const agenda = require('../modules/schedule')?.agenda;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
-const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
 const childProcess = require('node:child_process');
 const { AsyncLocalStorage } = require('node:async_hooks');
+const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
 require("./ds-deploy-commands");
 const clusterOptions = {
     token: channelSecret,

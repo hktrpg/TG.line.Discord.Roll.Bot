@@ -37,7 +37,7 @@ describe("records security and connection safeguards", () => {
 
         jest.doMock("../modules/db-connector.js", () => ({
             mongoose: { connection: { readyState } },
-            connect: jest.fn().mockResolvedValue(undefined),
+            connect: jest.fn().mockResolvedValue(),
             checkHealth: jest.fn().mockReturnValue({ isConnected })
         }));
     }

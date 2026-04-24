@@ -21,11 +21,11 @@ describe("db-connector", () => {
     test("supports transaction success and rollback", async () => {
         process.env = { ...originalEnv, mongoURL: "mongodb://example/test" };
 
-        const close = jest.fn().mockResolvedValue(undefined);
+        const close = jest.fn().mockResolvedValue();
         const session = {
             startTransaction: jest.fn(),
-            commitTransaction: jest.fn().mockResolvedValue(undefined),
-            abortTransaction: jest.fn().mockResolvedValue(undefined),
+            commitTransaction: jest.fn().mockResolvedValue(),
+            abortTransaction: jest.fn().mockResolvedValue(),
             endSession: jest.fn()
         };
 
@@ -65,7 +65,7 @@ describe("db-connector", () => {
         const mockConnection = {
             readyState: 1,
             error: null,
-            close: jest.fn().mockResolvedValue(undefined),
+            close: jest.fn().mockResolvedValue(),
             once: jest.fn(),
             on: jest.fn(function () { return this; }),
             removeAllListeners: jest.fn(),

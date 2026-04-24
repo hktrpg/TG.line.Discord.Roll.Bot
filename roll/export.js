@@ -475,15 +475,22 @@ const rollDiceCommand = async function ({
                 if (error && error.code === 'ENOENT')
                     await fs.mkdir(dir);
             }
-            data = await fs.readFile(__dirname + '/../views/discordLog.html', 'utf8')
+            data = await fs.readFile(__dirname + '/../views/discordlog-new.html', 'utf8')
             // 在 rollDiceCommand 中使用
             let key = makeid(16); // 使用16位元的金鑰
             let randomLink = makeid(7);
             let encryptedData = lightEncrypt(newRawDate, key);
-            newValue = data.replace(/aesData\s=\s\[\]/,
-                'aesData = "' + encryptedData + '"')
-                .replace(/<h1>聊天紀錄<\/h1>/,
-                    '<h1>' + channelName + ' 的聊天紀錄</h1>');
+            // discordlog-new.html reads encrypted payload from window.aesData.
+            const escapedEncryptedData = JSON.stringify(encryptedData);
+            newValue = data
+                .replace(
+                    /<body>/i,
+                    `<body>\n  <script>window.aesData = ${escapedEncryptedData};<\/script>`
+                )
+                .replace(
+                    /Discord 聊天記錄分析（New）/g,
+                    `${channelName} 的聊天紀錄分析`
+                );
             let tempB = key;
             const writeStream = createWriteStream(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html');
             const contentStream = new stream.Readable();

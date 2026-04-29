@@ -368,21 +368,18 @@ function objectIdAtTime(date, side) {
 }
 
 /**
- * Prefer indexed find on createdAt (schema index); fall back to _id range (always indexed);
- * last resort: aggregation for very old docs without reliable timestamps.
+ * Oldest RollingLog snapshot by `effectiveAt`: createdAt ?? parsed LogTime ?? ObjectId time (see rollingLogAggregateOldest).
+ * Important: Do NOT use findOne().sort({ createdAt: 1 }) with a createdAt-only filter — legacy rows often lack
+ * createdAt; that query then returns the earliest *among rows that have createdAt* only (e.g. 2026), ignoring older data.
  */
 async function rollingLogSnapshotOldest() {
-	// Fast path 1: createdAt index
 	try {
-		const fast = await schema.RollingLog.findOne({ createdAt: { $exists: true, $ne: null } })
-			.sort({ createdAt: 1 })
-			.lean()
-			.exec();
-		if (fast) return fast;
+		const rows = await schema.RollingLog.aggregate(rollingLogAggregateOldest());
+		if (rows[0]) return rows[0];
 	} catch (error) {
-		console.error('[Analytics] MongoDB error (RollingLog find oldest createdAt):', error.name, error.reason);
+		console.error('[Analytics] MongoDB error (RollingLog aggregate oldest):', error.name, error.reason);
 	}
-	// Fast path 2: _id sort – ObjectId encodes insertion time, always indexed, no aggregation needed
+	// Fallback if aggregation fails: oldest insertion order (indexed _id)
 	try {
 		const fastById = await schema.RollingLog.findOne()
 			.sort({ _id: 1 })
@@ -392,14 +389,7 @@ async function rollingLogSnapshotOldest() {
 	} catch (error) {
 		console.error('[Analytics] MongoDB error (RollingLog find oldest _id):', error.name, error.reason);
 	}
-	// Slow path: full aggregation fallback
-	try {
-		const rows = await schema.RollingLog.aggregate(rollingLogAggregateOldest());
-		return rows[0] ?? null;
-	} catch (error) {
-		console.error('[Analytics] MongoDB error (RollingLog aggregate oldest):', error.name, error.reason);
-		return null;
-	}
+	return null;
 }
 
 /**

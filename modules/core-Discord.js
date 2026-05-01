@@ -12,6 +12,9 @@ const RETRY_DELAY = 5000;
 const CLUSTER_RESPAWN_READY_MS = 120_000;
 const HEARTBEAT_INTERVAL_MS = 5000;
 const HEARTBEAT_MAX_MISSED = Number.parseInt(process.env.DISCORD_HEARTBEAT_MAX_MISSED ?? '12', 10);
+const EVENT_LOOP_MONITOR_INTERVAL_MS = Number.parseInt(process.env.DISCORD_EVENT_LOOP_MONITOR_INTERVAL_MS ?? '5000', 10);
+const EVENT_LOOP_LAG_WARN_MS = Number.parseInt(process.env.DISCORD_EVENT_LOOP_LAG_WARN_MS ?? '1500', 10);
+const HEARTBEAT_DEBUG_LOG = process.env.DISCORD_HEARTBEAT_DEBUG === 'true';
 
 const agenda = require('../modules/schedule')?.agenda;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
@@ -44,6 +47,11 @@ const clusterOptions = {
 // Global variables to track shutdown status
 let isShuttingDown = false;
 let shutdownTimeout = null;
+let eventLoopMonitorTimer = null;
+let eventLoopLagLastMs = 0;
+let eventLoopLagMaxMs = 0;
+let eventLoopLagWarnCount = 0;
+const clusterLastState = new Map();
 
 function safeStringify(value) {
     try {
@@ -66,6 +74,63 @@ function getRuntimeMeta() {
 function stackWithoutHeader(rawStack) {
     if (!rawStack) return 'No stack trace available';
     return rawStack.split('\n').slice(2).join('\n');
+}
+
+function getCompactMemoryMeta() {
+    const memory = process.memoryUsage();
+    return {
+        rss: memory.rss,
+        heapUsed: memory.heapUsed,
+        heapTotal: memory.heapTotal,
+        external: memory.external
+    };
+}
+
+function updateClusterLastState(clusterId, state, detail = {}) {
+    clusterLastState.set(Number(clusterId), {
+        state,
+        at: new Date().toISOString(),
+        detail
+    });
+}
+
+function getClusterLastState(clusterId) {
+    return clusterLastState.get(Number(clusterId)) || null;
+}
+
+function startEventLoopMonitor() {
+    if (eventLoopMonitorTimer) return;
+
+    let expectedAt = Date.now() + EVENT_LOOP_MONITOR_INTERVAL_MS;
+    eventLoopMonitorTimer = setInterval(() => {
+        const now = Date.now();
+        const lagMs = Math.max(0, now - expectedAt);
+        expectedAt = now + EVENT_LOOP_MONITOR_INTERVAL_MS;
+
+        eventLoopLagLastMs = lagMs;
+        if (lagMs > eventLoopLagMaxMs) {
+            eventLoopLagMaxMs = lagMs;
+        }
+
+        if (!isShuttingDown && lagMs >= EVENT_LOOP_LAG_WARN_MS) {
+            eventLoopLagWarnCount += 1;
+            console.warn('[Perf] Event loop lag spike detected', {
+                lagMs,
+                warnThresholdMs: EVENT_LOOP_LAG_WARN_MS,
+                monitorIntervalMs: EVENT_LOOP_MONITOR_INTERVAL_MS,
+                runtime: getRuntimeMeta()
+            });
+        }
+    }, EVENT_LOOP_MONITOR_INTERVAL_MS);
+
+    if (typeof eventLoopMonitorTimer.unref === 'function') {
+        eventLoopMonitorTimer.unref();
+    }
+
+    console.log('[Perf] Event loop monitor started', {
+        monitorIntervalMs: EVENT_LOOP_MONITOR_INTERVAL_MS,
+        warnThresholdMs: EVENT_LOOP_LAG_WARN_MS
+    });
 }
 
 let lifecycleTraceSeq = 0;
@@ -220,14 +285,27 @@ async function gracefulShutdown({ signal = 'unknown', source = 'unknown', detail
 
 const manager = new ClusterManager('./modules/discord_bot.js', clusterOptions);
 installChildKillTrace();
+startEventLoopMonitor();
 traceLifecycle('manager_initialized', {
     clusterOptions: {
         shardsPerClusters: clusterOptions.shardsPerClusters,
         totalShards: clusterOptions.totalShards,
         mode: clusterOptions.mode,
         restarts: clusterOptions.restarts,
-        retry: clusterOptions.retry
+        retry: clusterOptions.retry,
+        heartbeat: {
+            intervalMs: HEARTBEAT_INTERVAL_MS,
+            maxMissedHeartbeats: HEARTBEAT_MAX_MISSED
+        }
     }
+});
+
+manager.on('debug', (message) => {
+    if (!HEARTBEAT_DEBUG_LOG) return;
+    console.log('[Cluster Debug]', {
+        message,
+        runtime: getRuntimeMeta()
+    });
 });
 
 const originalRespawnAll = manager.respawnAll.bind(manager);
@@ -248,6 +326,7 @@ manager.respawnAll = async (...args) => {
 let heartbeatStarted = false;
 manager.on('clusterCreate', shard => {
     console.log(`[Cluster ${shard.id}] Created`, getRuntimeMeta());
+    updateClusterLastState(shard.id, 'created', { pid: shard.process?.pid || null });
 
     shard.on('ready', () => {
         // Get cluster configuration values
@@ -257,6 +336,11 @@ manager.on('clusterCreate', shard => {
             (totalClusters > 0 ? Math.ceil(totalShards / totalClusters) : 3);
 
         console.log(`[Cluster ${shard.id}] Ready with ${totalShards} total shards. Max cluster: ${totalClusters}. Per cluster: ${shardsPerCluster}`);
+        updateClusterLastState(shard.id, 'ready', {
+            totalShards,
+            totalClusters,
+            shardsPerCluster
+        });
 
         if (heartbeatStarted) return;
 
@@ -304,6 +388,7 @@ manager.on('clusterCreate', shard => {
     };
 
     shard.on('disconnect', () => {
+        updateClusterLastState(shard.id, 'disconnect');
         errorHandler('Disconnect', {
             reason: 'Cluster disconnect event',
             runtime: getRuntimeMeta()
@@ -311,10 +396,16 @@ manager.on('clusterCreate', shard => {
     });
 
     shard.on('reconnecting', () => {
+        updateClusterLastState(shard.id, 'reconnecting');
         console.warn(`[Cluster ${shard.id}] Reconnecting...`, getRuntimeMeta());
     });
 
     shard.on('death', (childProcess) => {
+        updateClusterLastState(shard.id, 'death', {
+            exitCode: childProcess.exitCode,
+            signalCode: childProcess.signalCode,
+            killed: childProcess.killed
+        });
         errorHandler('Death', {
             message: 'Cluster child process died',
             exitCode: childProcess.exitCode,
@@ -464,10 +555,28 @@ manager.extend(
         maxMissedHeartbeats: HEARTBEAT_MAX_MISSED,
         onMissedHeartbeat: (cluster) => {
             if (!isShuttingDown) {
-                console.warn(`[Heartbeat] Cluster ${cluster.id} missed a heartbeat`);
+                updateClusterLastState(cluster.id, 'missed_heartbeat');
+                console.warn(`[Heartbeat] Cluster ${cluster.id} missed a heartbeat`, {
+                    heartbeat: {
+                        intervalMs: HEARTBEAT_INTERVAL_MS,
+                        maxMissedHeartbeats: HEARTBEAT_MAX_MISSED
+                    },
+                    eventLoop: {
+                        lastLagMs: eventLoopLagLastMs,
+                        maxLagMs: eventLoopLagMaxMs,
+                        lagWarnCount: eventLoopLagWarnCount
+                    },
+                    clusterLastState: getClusterLastState(cluster.id),
+                    runtime: {
+                        pid: process.pid,
+                        uptimeSeconds: Number(process.uptime().toFixed(2)),
+                        memory: getCompactMemoryMeta()
+                    }
+                });
             }
         },
         onClusterReady: (cluster) => {
+            updateClusterLastState(cluster.id, 'heartbeat_ready');
             console.log(`[Heartbeat] Cluster ${cluster.id} is now ready and sending heartbeats`);
         }
     })

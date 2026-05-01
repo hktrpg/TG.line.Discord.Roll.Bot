@@ -85,8 +85,8 @@ const normalPuppeteer = {
 
 // Chromium lock files left after Docker restart / SIGKILL (LocalAuth userDataDir: .wwebjs_auth/session).
 const CHROME_LOCK_FILES = ['SingletonLock', 'SingletonSocket', 'SingletonCookie'];
-const WHATSAPP_INIT_RETRY_DELAY_MS = 2000;
-const WHATSAPP_MAX_INIT_RETRIES = 1;
+const WHATSAPP_INIT_RETRY_DELAY_MS = 3000;
+const WHATSAPP_MAX_INIT_RETRIES = 3;
 
 function cleanupChromeProfileLock() {
 	const sessionDir = path.join(wwebjsAuthRoot, 'session');
@@ -129,6 +129,14 @@ function killLingeringChromeForSession() {
 	} catch (error) {
 		console.error('[WhatsApp] Failed to kill lingering chrome by session path:', error.message);
 	}
+
+	// Fallback: kill common chromium processes in this container.
+	// This process only runs inside the bot container, so scope is acceptable.
+	try {
+		spawnSync('sh', ['-c', "pkill -f 'chromium|chrome_crashpad|google-chrome' || true"], { stdio: 'ignore' });
+	} catch (error) {
+		console.error('[WhatsApp] Failed to kill lingering chromium processes:', error.message);
+	}
 }
 
 function wait(ms) {
@@ -165,7 +173,7 @@ async function startUp() {
 				console.log(`[WhatsApp] Retrying initialize after stale browser cleanup (${initRetryCount}/${WHATSAPP_MAX_INIT_RETRIES})`);
 				killLingeringChromeForSession();
 				cleanupChromeProfileLock();
-				await wait(WHATSAPP_INIT_RETRY_DELAY_MS);
+				await wait(WHATSAPP_INIT_RETRY_DELAY_MS * initRetryCount);
 				return client.initialize().catch(retryError => {
 					console.error('[WhatsApp Init Retry Error]', retryError);
 				});

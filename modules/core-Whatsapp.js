@@ -87,6 +87,7 @@ const normalPuppeteer = {
 const CHROME_LOCK_FILES = ['SingletonLock', 'SingletonSocket', 'SingletonCookie'];
 const WHATSAPP_INIT_RETRY_DELAY_MS = 3000;
 const WHATSAPP_MAX_INIT_RETRIES = 3;
+const WHATSAPP_RESET_SESSION_ON_LOCK = process.env.WHATSAPP_RESET_SESSION_ON_LOCK !== 'false';
 
 function cleanupChromeProfileLock() {
 	const sessionDir = path.join(wwebjsAuthRoot, 'session');
@@ -143,6 +144,17 @@ function wait(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function resetSessionProfileDir() {
+	const sessionDir = path.join(wwebjsAuthRoot, 'session');
+	try {
+		fs.rmSync(sessionDir, { recursive: true, force: true });
+		fs.mkdirSync(sessionDir, { recursive: true });
+		console.log('[WhatsApp] Recreated session profile directory after repeated lock failures.');
+	} catch (error) {
+		console.error('[WhatsApp] Failed to recreate session profile directory:', error.message);
+	}
+}
+
 const newMessage = require('./message');
 
 exports.analytics = require('./analytics');
@@ -180,6 +192,11 @@ async function startUp() {
 				console.log(`[WhatsApp] Retrying initialize after stale browser cleanup (${retryAttempt}/${WHATSAPP_MAX_INIT_RETRIES})`);
 				killLingeringChromeForSession();
 				cleanupChromeProfileLock();
+				// If lock persists after initial retries, session profile is likely stale/corrupted.
+				// Recreate it once so Chromium can bootstrap a clean profile.
+				if (WHATSAPP_RESET_SESSION_ON_LOCK && retryAttempt >= 2) {
+					resetSessionProfileDir();
+				}
 				await wait(WHATSAPP_INIT_RETRY_DELAY_MS * retryAttempt);
 				await initializeWithRetry(retryAttempt);
 			}

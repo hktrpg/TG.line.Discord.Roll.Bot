@@ -33,8 +33,8 @@ RUN corepack enable \
 
 COPY . .
 
-RUN mkdir -p /app/log /app/export /app/temp /app/.wwebjs_auth \
-    && chown -R node:node /app/log /app/export /app/temp /app/.wwebjs_auth
+#RUN mkdir -p /app/log /app/export /app/temp /app/.wwebjs_auth \
+#    && chown -R node:node /app/log /app/export /app/temp /app/.wwebjs_auth
 
 USER node
 

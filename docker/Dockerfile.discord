@@ -25,8 +25,8 @@ RUN corepack enable \
 
 COPY . .
 
-RUN mkdir -p /app/log /app/export /app/temp \
-    && chown -R node:node /app/log /app/export /app/temp
+#RUN mkdir -p /app/log /app/export /app/temp \
+#    && chown -R node:node /app/log /app/export /app/temp
 
 USER node
 

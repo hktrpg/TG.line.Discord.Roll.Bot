@@ -44,7 +44,8 @@ typings/
 
 tmp/*
 !tmp/.gitkeep
-export/
+export/*
+!export/.gitkeep
 
 # Optional npm cache directory
 .npm
@@ -82,6 +83,8 @@ yarn.lock
 
 temp/*
 !temp/.gitkeep
+whatsapp-session/*
+!whatsapp-session/.gitkeep
 
 dist/
 

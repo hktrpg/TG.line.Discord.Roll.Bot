@@ -170,6 +170,17 @@ function isRecoverableWhatsAppPuppeteerError(reason) {
         errorMessage.includes('Protocol error (Runtime.evaluate): Target closed');
 }
 
+function isRecoverableWhatsAppLocalAuthBusyFileError(reason) {
+    const errorMessage = reason?.message || String(reason || '');
+    const stack = reason?.stack || '';
+    const isWhatsAppLocalAuthStack = /whatsapp-web\.js.*LocalAuth|authStrategies\\LocalAuth/i.test(stack);
+
+    if (!isWhatsAppLocalAuthStack) return false;
+
+    return errorMessage.includes('EBUSY') &&
+        errorMessage.includes('CrashpadMetrics-active.pma');
+}
+
 // Unified Error Handler
 const errorHandler = (error, context) => {
     logger.error(`Error in ${context}:`, {
@@ -503,6 +514,11 @@ async function init() {
             if (isRecoverableWhatsAppPuppeteerError(reason)) {
                 console.error('[System] Detected recoverable WhatsApp/Puppeteer navigation error, will NOT shutdown');
                 errorHandler(reason, 'Recoverable WhatsApp/Puppeteer Error');
+                return;
+            }
+            if (isRecoverableWhatsAppLocalAuthBusyFileError(reason)) {
+                console.error('[System] Detected recoverable WhatsApp LocalAuth busy-file error, will NOT shutdown');
+                errorHandler(reason, 'Recoverable WhatsApp LocalAuth Busy File Error');
                 return;
             }
 

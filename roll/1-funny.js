@@ -595,6 +595,7 @@ class TwelveAstro {
 			'--show-error',
 			'--location',
 			'--max-time', '15',
+			'--insecure',
 			url
 		];
 		const { stdout } = await execFileAsync(curlCommand, args, { maxBuffer: 5 * 1024 * 1024 });

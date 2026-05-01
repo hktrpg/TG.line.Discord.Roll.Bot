@@ -162,23 +162,30 @@ async function startUp() {
 		});
 		whatsappClient = client;
 
-		let initRetryCount = 0;
-		client.initialize().catch(async error => {
-			console.error('[WhatsApp Init Error]', error);
-			if (error.message && error.message.includes('Failed to launch') && !isBrowserAlreadyRunningError(error)) {
-				console.log('[Whatsapp] Browser launch failed. Please confirm Chromium/Chrome is installed and executable path is valid.');
-			}
-			if (isBrowserAlreadyRunningError(error) && initRetryCount < WHATSAPP_MAX_INIT_RETRIES) {
-				initRetryCount += 1;
-				console.log(`[WhatsApp] Retrying initialize after stale browser cleanup (${initRetryCount}/${WHATSAPP_MAX_INIT_RETRIES})`);
+		async function initializeWithRetry(attempt = 0) {
+			try {
+				await client.initialize();
+			} catch (error) {
+				console.error(attempt === 0 ? '[WhatsApp Init Error]' : '[WhatsApp Init Retry Error]', error);
+
+				if (error.message && error.message.includes('Failed to launch') && !isBrowserAlreadyRunningError(error)) {
+					console.log('[Whatsapp] Browser launch failed. Please confirm Chromium/Chrome is installed and executable path is valid.');
+				}
+
+				if (!isBrowserAlreadyRunningError(error) || attempt >= WHATSAPP_MAX_INIT_RETRIES) {
+					return;
+				}
+
+				const retryAttempt = attempt + 1;
+				console.log(`[WhatsApp] Retrying initialize after stale browser cleanup (${retryAttempt}/${WHATSAPP_MAX_INIT_RETRIES})`);
 				killLingeringChromeForSession();
 				cleanupChromeProfileLock();
-				await wait(WHATSAPP_INIT_RETRY_DELAY_MS * initRetryCount);
-				return client.initialize().catch(retryError => {
-					console.error('[WhatsApp Init Retry Error]', retryError);
-				});
+				await wait(WHATSAPP_INIT_RETRY_DELAY_MS * retryAttempt);
+				await initializeWithRetry(retryAttempt);
 			}
-		});
+		}
+
+		void initializeWithRetry();
 
 		client.on('qr', (qr) => {
 			console.log('[Whatsapp] QR RECEIVED');

@@ -1,6 +1,8 @@
 "use strict";
 let variables = {};
 const fs = require('fs');
+const { execFile } = require('node:child_process');
+const { promisify } = require('node:util');
 const { SlashCommandBuilder } = require('discord.js');
 const axiosRetry = require('axios-retry');
 const chineseConv = require('chinese-conv'); 
@@ -9,6 +11,7 @@ const cheerio = require('cheerio');
 const wiki = require('wikijs').default;
 const NodeCache = require('node-cache');
 const schedule = require('node-schedule');
+const execFileAsync = promisify(execFile);
 
 const identity = 'HKTRPG (https://www.hktrpg.com; admin@hktrpg.com) wiki.js';
 const lunisolar = require('lunisolar');
@@ -579,6 +582,28 @@ class TwelveAstro {
 		this.Almanac = {}; // Date-based caching for almanac: { date: almanacData }
 	}
 
+	static isTlsCertificateChainError(error) {
+		return error?.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE' ||
+			error?.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY' ||
+			error?.code === 'SELF_SIGNED_CERT_IN_CHAIN';
+	}
+
+	async fetchAstroHtmlWithCurl(url) {
+		const curlCommand = process.platform === 'win32' ? 'curl.exe' : 'curl';
+		const args = [
+			'--silent',
+			'--show-error',
+			'--location',
+			'--max-time', '15',
+			url
+		];
+		const { stdout } = await execFileAsync(curlCommand, args, { maxBuffer: 5 * 1024 * 1024 });
+		if (!stdout || !stdout.trim()) {
+			throw new Error('curl returned empty response body');
+		}
+		return stdout;
+	}
+
 	/**
 	 * Get astrology fortune
 	 * @param {string} name - Astrology name
@@ -612,8 +637,10 @@ class TwelveAstro {
 	}
 
 	async updateAstro(code, date) {
-		let res = await axios.get(`https://astro.click108.com.tw/daily_${code}.php?iAstro=${code}&iType=0&iAcDay=${date}`);
-		const $ = cheerio.load(res.data);
+		const url = `https://astro.click108.com.tw/daily_${code}.php?iAstro=${code}&iType=0&iAcDay=${date}`;
+		const html = await this.fetchAstroHtmlWithCurl(url);
+
+		const $ = cheerio.load(html);
 
 		if (!this.Astro[date]) {
 			this.Astro[date] = {};

@@ -112,7 +112,9 @@ function cleanupChromeProfileLock() {
 
 function isBrowserAlreadyRunningError(error) {
 	const message = error && error.message ? String(error.message) : '';
-	return message.includes('The browser is already running for');
+	return message.includes('The browser is already running for') ||
+		message.includes('The profile appears to be in use by another Chromium process') ||
+		message.includes('process_singleton_posix');
 }
 
 function killLingeringChromeForSession() {
@@ -155,8 +157,8 @@ async function startUp() {
 		let initRetryCount = 0;
 		client.initialize().catch(async error => {
 			console.error('[WhatsApp Init Error]', error);
-			if (error.message && error.message.includes('Failed to launch')) {
-				console.log('[Whatsapp] 請確認已安裝 Google Chrome，或手動設定 Chrome 路徑');
+			if (error.message && error.message.includes('Failed to launch') && !isBrowserAlreadyRunningError(error)) {
+				console.log('[Whatsapp] Browser launch failed. Please confirm Chromium/Chrome is installed and executable path is valid.');
 			}
 			if (isBrowserAlreadyRunningError(error) && initRetryCount < WHATSAPP_MAX_INIT_RETRIES) {
 				initRetryCount += 1;

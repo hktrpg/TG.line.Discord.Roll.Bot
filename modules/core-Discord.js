@@ -10,6 +10,8 @@ const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 5000;
 /** discord-hybrid-sharding respawn: allow slow startup (many shards / DB / login). */
 const CLUSTER_RESPAWN_READY_MS = 120_000;
+const HEARTBEAT_INTERVAL_MS = 5000;
+const HEARTBEAT_MAX_MISSED = Number.parseInt(process.env.DISCORD_HEARTBEAT_MAX_MISSED ?? '12', 10);
 
 const agenda = require('../modules/schedule')?.agenda;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
@@ -457,8 +459,9 @@ if (agenda) {
 // Heartbeat management (simplified as per attachment)
 manager.extend(
     new HeartbeatManager({
-        interval: 5000,           // Increased interval
-        maxMissedHeartbeats: 5,   // Decreased tolerance
+        interval: HEARTBEAT_INTERVAL_MS,
+        // Keep heartbeat cadence, but allow short stalls (GC/IO spikes) without false respawn.
+        maxMissedHeartbeats: HEARTBEAT_MAX_MISSED,
         onMissedHeartbeat: (cluster) => {
             if (!isShuttingDown) {
                 console.warn(`[Heartbeat] Cluster ${cluster.id} missed a heartbeat`);

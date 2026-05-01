@@ -159,6 +159,17 @@ class Logger {
 
 const logger = new Logger();
 
+function isRecoverableWhatsAppPuppeteerError(reason) {
+    const errorMessage = reason?.message || String(reason || '');
+    const stack = reason?.stack || '';
+    const isWhatsAppOrPuppeteerStack = /whatsapp-web\.js|puppeteer/i.test(stack);
+
+    if (!isWhatsAppOrPuppeteerStack) return false;
+
+    return errorMessage.includes('Execution context was destroyed') ||
+        errorMessage.includes('Protocol error (Runtime.evaluate): Target closed');
+}
+
 // Unified Error Handler
 const errorHandler = (error, context) => {
     logger.error(`Error in ${context}:`, {
@@ -489,6 +500,12 @@ async function init() {
 
         // Handle unhandled promise rejections
         process.on('unhandledRejection', (reason) => {
+            if (isRecoverableWhatsAppPuppeteerError(reason)) {
+                console.error('[System] Detected recoverable WhatsApp/Puppeteer navigation error, will NOT shutdown');
+                errorHandler(reason, 'Recoverable WhatsApp/Puppeteer Error');
+                return;
+            }
+
             // Check if it's a database-related error
             if (reason.message && (
                 reason.message.includes('MongoDB') ||

@@ -192,33 +192,70 @@ process.on('unhandledRejection', (reason) => {
 });
 
 // Login to Discord with error handling to prevent restart loops
+let clientEventHandlersRegistered = false;
+let loginRetryTimer = null;
+
+function parseSessionResetTimestamp(errorMessage = '') {
+	const match = String(errorMessage).match(/resets at ([0-9T:.+-]+Z?)/i);
+	if (!match || !match[1]) return null;
+
+	const resetAt = new Date(match[1]);
+	return Number.isNaN(resetAt.getTime()) ? null : resetAt;
+}
+
+function clearLoginRetryTimer() {
+	if (loginRetryTimer) {
+		clearTimeout(loginRetryTimer);
+		loginRetryTimer = null;
+	}
+}
+
+function scheduleLoginRetryByResetTime(resetAt) {
+	clearLoginRetryTimer();
+
+	const now = Date.now();
+	const targetTime = resetAt instanceof Date ? resetAt.getTime() : now;
+	const delayMs = Math.max(targetTime - now + 2000, 5000);
+
+	console.warn('[Discord Bot] Session limit reached, auto-retry login at:', new Date(now + delayMs).toISOString());
+	loginRetryTimer = setTimeout(() => {
+		loginRetryTimer = null;
+		void loginWithErrorHandling();
+	}, delayMs);
+}
+
 async function loginWithErrorHandling() {
     // Register critical error handlers BEFORE login
-    client.on('error', (error) => {
-        console.error('[Discord Bot] Discord Client Error:', error.message);
-    });
+    if (!clientEventHandlersRegistered) {
+        client.on('error', (error) => {
+            console.error('[Discord Bot] Discord Client Error:', error.message);
+        });
 
-    client.on('warn', (warning) => {
-        console.warn('[Discord Bot] Discord Client Warning:', warning);
-    });
+        client.on('warn', (warning) => {
+            console.warn('[Discord Bot] Discord Client Warning:', warning);
+        });
 
-    client.on('shardError', (error, shardId) => {
-        console.error(`[Discord Bot] Shard ${shardId} Error:`, error.message);
-    });
+        client.on('shardError', (error, shardId) => {
+            console.error(`[Discord Bot] Shard ${shardId} Error:`, error.message);
+        });
 
-    client.on('shardDisconnect', (event, shardId) => {
-        console.warn(`[Discord Bot] Shard ${shardId} Disconnected:`, event);
-    });
+        client.on('shardDisconnect', (event, shardId) => {
+            console.warn(`[Discord Bot] Shard ${shardId} Disconnected:`, event);
+        });
 
-    client.on('shardReconnecting', () => {
-        // Shard reconnecting - log removed
-    });
+        client.on('shardReconnecting', () => {
+            // Shard reconnecting - log removed
+        });
 
-    client.on('shardResume', () => {
-        // Shard resumed - log removed
-    });
+        client.on('shardResume', () => {
+            // Shard resumed - log removed
+        });
+
+        clientEventHandlersRegistered = true;
+    }
 
     try {
+        clearLoginRetryTimer();
         await client.login(channelSecret);
         console.log('[Discord Bot] Successfully logged in to Discord');
     } catch (error) {
@@ -229,6 +266,12 @@ async function loginWithErrorHandling() {
             code: error.code,
             status: error.httpStatus
         });
+
+        const resetAt = parseSessionResetTimestamp(error.message);
+        if (resetAt) {
+            scheduleLoginRetryByResetTime(resetAt);
+            return;
+        }
 
         // If login fails (e.g., invalid token), suspend execution instead of exiting
         // This prevents ClusterManager from respawning in a loop

@@ -24,6 +24,7 @@ if (process.env.BROADCAST) {
 
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('node:child_process');
 const qrcode = require('qrcode-terminal');
 // Match LocalAuth dataPath: default .wwebjs_auth under cwd, or set WWEBJS_AUTH_DATA_PATH if your Docker volume is elsewhere.
 const wwebjsAuthRoot = process.env.WWEBJS_AUTH_DATA_PATH
@@ -84,6 +85,8 @@ const normalPuppeteer = {
 
 // Chromium lock files left after Docker restart / SIGKILL (LocalAuth userDataDir: .wwebjs_auth/session).
 const CHROME_LOCK_FILES = ['SingletonLock', 'SingletonSocket', 'SingletonCookie'];
+const WHATSAPP_INIT_RETRY_DELAY_MS = 2000;
+const WHATSAPP_MAX_INIT_RETRIES = 1;
 
 function cleanupChromeProfileLock() {
 	const sessionDir = path.join(wwebjsAuthRoot, 'session');
@@ -107,6 +110,29 @@ function cleanupChromeProfileLock() {
 	}
 }
 
+function isBrowserAlreadyRunningError(error) {
+	const message = error && error.message ? String(error.message) : '';
+	return message.includes('The browser is already running for');
+}
+
+function killLingeringChromeForSession() {
+	if (process.platform !== 'linux') return;
+
+	const sessionDir = path.join(wwebjsAuthRoot, 'session');
+	const escapedSessionDir = sessionDir.replace(/'/g, `'\\''`);
+	const killBySessionCommand = `pkill -f '--user-data-dir=${escapedSessionDir}' || true`;
+
+	try {
+		spawnSync('sh', ['-c', killBySessionCommand], { stdio: 'ignore' });
+	} catch (error) {
+		console.error('[WhatsApp] Failed to kill lingering chrome by session path:', error.message);
+	}
+}
+
+function wait(ms) {
+	return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 const newMessage = require('./message');
 
 exports.analytics = require('./analytics');
@@ -126,10 +152,21 @@ async function startUp() {
 		});
 		whatsappClient = client;
 
-		client.initialize().catch(error => {
+		let initRetryCount = 0;
+		client.initialize().catch(async error => {
 			console.error('[WhatsApp Init Error]', error);
 			if (error.message && error.message.includes('Failed to launch')) {
 				console.log('[Whatsapp] 請確認已安裝 Google Chrome，或手動設定 Chrome 路徑');
+			}
+			if (isBrowserAlreadyRunningError(error) && initRetryCount < WHATSAPP_MAX_INIT_RETRIES) {
+				initRetryCount += 1;
+				console.log(`[WhatsApp] Retrying initialize after stale browser cleanup (${initRetryCount}/${WHATSAPP_MAX_INIT_RETRIES})`);
+				killLingeringChromeForSession();
+				cleanupChromeProfileLock();
+				await wait(WHATSAPP_INIT_RETRY_DELAY_MS);
+				return client.initialize().catch(retryError => {
+					console.error('[WhatsApp Init Retry Error]', retryError);
+				});
 			}
 		});
 

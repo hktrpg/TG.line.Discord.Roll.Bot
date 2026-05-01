@@ -4,6 +4,7 @@ FROM node:24-alpine
 RUN apk update && apk add --no-cache \
     tzdata \
     git \
+    curl \
     fontconfig \
     font-noto-cjk \
     && rm -rf /var/cache/apk/*
@@ -25,7 +26,7 @@ RUN corepack enable \
 COPY . .
 
 RUN mkdir -p /app/log /app/export /app/temp \
-    && chown -R node:node /app
+    && chown -R node:node /app/log /app/export /app/temp
 
 USER node
 

@@ -4,6 +4,7 @@ FROM node:24-alpine
 RUN apk update && apk add --no-cache \
     tzdata \
     git \
+    curl \
     chromium \
     nss \
     freetype \
@@ -33,7 +34,7 @@ RUN corepack enable \
 COPY . .
 
 RUN mkdir -p /app/log /app/export /app/temp /app/.wwebjs_auth \
-    && chown -R node:node /app
+    && chown -R node:node /app/log /app/export /app/temp /app/.wwebjs_auth
 
 USER node
 

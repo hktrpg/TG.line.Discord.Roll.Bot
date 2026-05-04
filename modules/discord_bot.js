@@ -687,8 +687,13 @@ async function replilyMessage(message, result) {
 					await message.deferReply({ flags: MessageFlags.Ephemeral });
 					await message.editReply({ content: `${displayname}指令沒有得到回應，請檢查內容`, flags: MessageFlags.Ephemeral });
 				} else if (message.deferred && !message.replied) {
-					// If already deferred, edit the reply
-					await message.editReply({ content: `${displayname}指令沒有得到回應，請檢查內容`, flags: MessageFlags.Ephemeral });
+					// Match ephemeral flag to how __handlingInteractionMessage deferred (public vs ephemeral).
+					// Forcing Ephemeral on edit after a public defer can break the interaction webhook (e.g. 50027).
+					const noResponseEdit = { content: `${displayname}指令沒有得到回應，請檢查內容` };
+					if (message.ephemeral) {
+						noResponseEdit.flags = MessageFlags.Ephemeral;
+					}
+					await message.editReply(noResponseEdit);
 				} else if (!message.replied) {
 					// Last resort - try a direct reply
 					await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, flags: MessageFlags.Ephemeral })
@@ -702,6 +707,14 @@ async function replilyMessage(message, result) {
 			if (isDiscordUnknownInteraction(error)) {
 				warnInteraction10062('replily_no_result', message);
 				return;
+			}
+			if (message.isInteraction && error.code === 50_027 && message.channel && typeof message.channel.send === 'function') {
+				try {
+					await message.channel.send(`${displayname}指令沒有得到回應，請檢查內容`);
+					return;
+				} catch (fallbackError) {
+					console.error('replilyMessage fallback channel.send:', fallbackError.message);
+				}
 			}
 			console.error('replilyMessage error:', error);
 			return;

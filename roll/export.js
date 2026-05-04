@@ -37,6 +37,33 @@ const htmlPool = getPool('html');
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const checkTools = require('../modules/check.js');
+
+/**
+ * Tell the user export has started. If the global handler already deferReply()'d the
+ * slash command, we must editReply (not channel.send / reply) so the callback token stays valid.
+ */
+async function sendDiscordExportWaitNotice(discordMessage, userid) {
+    const content = `<@${userid}>\n 請等等，HKTRPG現在開始努力處理，需要一點時間`;
+    try {
+        if (discordMessage?.deferred && !discordMessage.replied) {
+            await discordMessage.editReply({ content });
+            return;
+        }
+        if (discordMessage?.isInteraction && !discordMessage.deferred && !discordMessage.replied) {
+            await discordMessage.reply({ content });
+            return;
+        }
+        if (discordMessage?.isInteraction && typeof discordMessage.followUp === 'function') {
+            await discordMessage.followUp({ content });
+            return;
+        }
+        if (discordMessage?.channel && typeof discordMessage.channel.send === 'function') {
+            await discordMessage.channel.send(content);
+        }
+    } catch (error) {
+        console.error('sendDiscordExportWaitNotice:', error && error.message);
+    }
+}
 const gameType = function () {
     return 'Tool:Export:hktrpg'
 }
@@ -436,11 +463,7 @@ const rollDiceCommand = async function ({
             }
 
 
-            if (discordMessage && discordMessage.channel && typeof discordMessage.channel.send === 'function') {
-                discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
-            } else if (discordMessage && discordMessage.isInteraction) {
-                await discordMessage.reply({ content: "<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間' });
-            }
+            await sendDiscordExportWaitNotice(discordMessage, userid);
             const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
                 discordMessage.guild.members.cache.map(member => member) : [];
             M = await lots_of_messages_getter_HTML(C, demoMode, members, messageLimit);
@@ -586,11 +609,7 @@ const rollDiceCommand = async function ({
             }
 
             console.log('USE EXPORT TXT')
-            if (discordMessage && discordMessage.channel && typeof discordMessage.channel.send === 'function') {
-                discordMessage.channel.send("<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間');
-            } else if (discordMessage && discordMessage.isInteraction) {
-                await discordMessage.reply({ content: "<@" + userid + '>\n' + ' 請等等，HKTRPG現在開始努力處理，需要一點時間' });
-            }
+            await sendDiscordExportWaitNotice(discordMessage, userid);
             const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
                 discordMessage.guild.members.cache.map(member => member) : [];
             M = await lots_of_messages_getter_TXT(C, demoMode, members, messageLimit);

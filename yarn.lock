@@ -6953,9 +6953,9 @@ mongodb@^7.0.0, mongodb@~7.0:
     mongodb-connection-string-url "^7.0.0"
 
 mongoose@^9:
-  version "9.0.1"
-  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-9.0.1.tgz#2b4545ef9218be65eaa5910b475b6025df5c6fdf"
-  integrity sha512-aHPfQx2YX5UwAmMVud7OD4lIz9AEO4jI+oDnRh3lPZq9lrKTiHmOzszVffDMyQHXvrf4NXsJ34kpmAhyYAZGbw==
+  version "9.1.6"
+  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-9.1.6.tgz#98dca5aca71a6145015b6eed5f386b14094f57f6"
+  integrity sha512-ZrtgRsJKtW3od36TVXtAnrNHOO3rqhsqfVut6IzyWyJeLLeLTqW66qej/0qB37GZd5jL06nHfAceTikkfnSqbA==
   dependencies:
     kareem "3.0.0"
     mongodb "~7.0"

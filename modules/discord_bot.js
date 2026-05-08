@@ -687,8 +687,13 @@ async function replilyMessage(message, result) {
 					await message.deferReply({ flags: MessageFlags.Ephemeral });
 					await message.editReply({ content: `${displayname}指令沒有得到回應，請檢查內容`, flags: MessageFlags.Ephemeral });
 				} else if (message.deferred && !message.replied) {
-					// If already deferred, edit the reply
-					await message.editReply({ content: `${displayname}指令沒有得到回應，請檢查內容`, flags: MessageFlags.Ephemeral });
+					// Match ephemeral flag to how __handlingInteractionMessage deferred (public vs ephemeral).
+					// Forcing Ephemeral on edit after a public defer can break the interaction webhook (e.g. 50027).
+					const noResponseEdit = { content: `${displayname}指令沒有得到回應，請檢查內容` };
+					if (message.ephemeral) {
+						noResponseEdit.flags = MessageFlags.Ephemeral;
+					}
+					await message.editReply(noResponseEdit);
 				} else if (!message.replied) {
 					// Last resort - try a direct reply
 					await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, flags: MessageFlags.Ephemeral })
@@ -702,6 +707,14 @@ async function replilyMessage(message, result) {
 			if (isDiscordUnknownInteraction(error)) {
 				warnInteraction10062('replily_no_result', message);
 				return;
+			}
+			if (message.isInteraction && error.code === 50_027 && message.channel && typeof message.channel.send === 'function') {
+				try {
+					await message.channel.send(`${displayname}指令沒有得到回應，請檢查內容`);
+					return;
+				} catch (fallbackError) {
+					console.error('replilyMessage fallback channel.send:', fallbackError.message);
+				}
 			}
 			console.error('replilyMessage error:', error);
 			return;
@@ -1484,6 +1497,50 @@ globalThis.getShardFixStatus = getShardFixStatus;
 const COUNT_CACHE_MS = 30_000;
 let cachedCount = null;
 let cachedCountTime = 0;
+
+/**
+ * Discord Gateway WebSocket RTT for this process (ms), or null if not available yet.
+ */
+function getLocalGatewayPingMs() {
+	try {
+		const ws = client.ws;
+		if (ws && typeof ws.ping === 'number' && Number.isFinite(ws.ping) && ws.ping >= 0) {
+			return Math.round(ws.ping);
+		}
+		const shards = ws?.shards;
+		if (shards && shards.size > 0) {
+			let sum = 0;
+			let n = 0;
+			for (const s of shards.values()) {
+				if (typeof s.ping === 'number' && Number.isFinite(s.ping) && s.ping >= 0) {
+					sum += s.ping;
+					n++;
+				}
+			}
+			if (n > 0) {
+				return Math.round(sum / n);
+			}
+		}
+	} catch {
+		// ignore
+	}
+	return null;
+}
+
+function latencyStatusGateway(ms) {
+	if (ms > 1000) return '❌';
+	if (ms > 500) return '⚠️';
+	if (ms > 200) return '🟡';
+	return '🟢';
+}
+
+/** Workload / pipeline timing (not raw network RTT). */
+function latencyStatusWork(ms) {
+	if (ms > 3000) return '❌';
+	if (ms > 1500) return '⚠️';
+	if (ms > 800) return '🟡';
+	return '🟢';
+}
 
 async function count() {
 	if (!client.cluster) return '';
@@ -3152,21 +3209,27 @@ async function handlingResponMessage(message, answer = '') {
 			}
 
 		if (rplyVal.state) {
+			const createdTs = message.createdTimestamp ?? Date.now();
+			const gatewayPingMs = getLocalGatewayPingMs();
+			const statsT0 = Date.now();
 			const [countResult, shardResult] = await Promise.all([
 				count(),
 				getAllshardIds()
 			]);
+			const statsCollectMs = Date.now() - statsT0;
+			let e2eMs = Number(Date.now() - createdTs);
+			if (e2eMs < 0) {
+				e2eMs = Math.abs(e2eMs);
+			}
+			if (e2eMs > 10_000) {
+				e2eMs = 9999;
+			}
 
-			let ping = Number(Date.now() - message.createdTimestamp);
-			// Handle negative ping values (can happen in experimental environments due to timestamp issues)
-			if (ping < 0) {
-				ping = Math.abs(ping); // Use absolute value for display purposes
-			}
-			// Cap extremely high ping values to prevent display issues
-			if (ping > 10_000) {
-				ping = 9999; // Cap at reasonable maximum for display
-			}
-			const pingStatus = ping > 1000 ? '❌' : ping > 500 ? '⚠️' : '✅';
+			const gatewayLine = gatewayPingMs === null
+				? '│ • WS 連線：—'
+				: `│ • WS 連線：${latencyStatusGateway(gatewayPingMs)} ${gatewayPingMs}ms`;
+			const statsLine = `│ • 全站統計：${latencyStatusWork(statsCollectMs)} ${statsCollectMs}ms`;
+			const e2eLine = `│ • 指令全程：${latencyStatusWork(e2eMs)} ${e2eMs}ms`;
 
 			rplyVal.text += [
 				'',
@@ -3174,8 +3237,10 @@ async function handlingResponMessage(message, answer = '') {
 				'╭────── 🌐使用統計 ──────',
 				'│ 群組數據:',
 				`│ • ${countResult}`,
-				'│ 連線延遲:',
-				`│ ${pingStatus} ${ping}ms`,
+				'│ 耗時(ms)：',
+				gatewayLine,
+				statsLine,
+				e2eLine,
 				(shardResult || '').trim()
 			].join('\n');
 		}

@@ -36,6 +36,8 @@ const EVENT_LOOP_SUMMARY_INTERVAL_MS = rawEventLoopSummaryMs === '0'
     ? 0
     : parsePositiveIntEnv('DISCORD_EVENT_LOOP_SUMMARY_INTERVAL_MS', 600_000);
 const HEARTBEAT_DEBUG_LOG = process.env.DISCORD_HEARTBEAT_DEBUG === 'true';
+/** Always log hybrid-sharding heartbeat-miss / respawn attempts unless set to false. */
+const HEARTBEAT_MISSING_LOG = String(process.env.DISCORD_HEARTBEAT_MISSING_LOG ?? 'true').trim().toLowerCase() !== 'false';
 
 const agenda = require('../modules/schedule')?.agenda;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
@@ -343,10 +345,34 @@ traceLifecycle('manager_initialized', {
     }
 });
 
-manager.on('debug', (message) => {
-    if (!HEARTBEAT_DEBUG_LOG) return;
+manager.on('debug', (message, clusterId) => {
+    const messageStr = typeof message === 'string' ? message : (message == null ? '' : String(message));
+    if (HEARTBEAT_MISSING_LOG && messageStr.includes('[Heartbeat_MISSING]')) {
+        const id = clusterId == null ? null : Number(clusterId);
+        console.warn('[Cluster][Heartbeat_MISSING]', {
+            message: messageStr,
+            clusterId: Number.isFinite(id) ? id : clusterId,
+            clusterLastState: Number.isFinite(id) ? getClusterLastState(id) : null,
+            parentEventLoop: {
+                lastLagMs: eventLoopLagLastMs,
+                maxLagMsSinceProcessStart: eventLoopLagMaxMs,
+                lagWarningsSinceProcessStart: eventLoopLagWarnCount
+            },
+            heartbeat: {
+                intervalMs: HEARTBEAT_INTERVAL_MS,
+                maxMissedHeartbeats: HEARTBEAT_MAX_MISSED
+            },
+            runtime: getRuntimeMeta()
+        });
+    }
+
+    if (!HEARTBEAT_DEBUG_LOG) {
+        return;
+    }
+
     console.log('[Cluster Debug]', {
         message,
+        clusterId,
         runtime: getRuntimeMeta()
     });
 });

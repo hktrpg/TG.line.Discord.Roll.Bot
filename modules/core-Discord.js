@@ -24,7 +24,7 @@ const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
 require("./ds-deploy-commands");
 const clusterOptions = {
     token: channelSecret,
-    shardsPerClusters: 10,
+    shardsPerClusters: 5,
     totalShards: 'auto',
     mode: 'process',
     spawnTimeout: -1,

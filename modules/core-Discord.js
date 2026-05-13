@@ -10,10 +10,31 @@ const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 5000;
 /** discord-hybrid-sharding respawn: allow slow startup (many shards / DB / login). */
 const CLUSTER_RESPAWN_READY_MS = 120_000;
-const HEARTBEAT_INTERVAL_MS = 5000;
-const HEARTBEAT_MAX_MISSED = Number.parseInt(process.env.DISCORD_HEARTBEAT_MAX_MISSED ?? '12', 10);
+
+/** Parse positive int from env; invalid or missing uses fallback. */
+function parsePositiveIntEnv(name, fallback) {
+    const raw = process.env[name];
+    if (raw === undefined || raw === '') {
+        return fallback;
+    }
+
+    const n = Number.parseInt(String(raw), 10);
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+/**
+ * Cluster IPC heartbeat (discord-hybrid-sharding HeartbeatManager on parent).
+ * Too aggressive defaults cause false respawns under GC / DB / CPU spikes → mass Discord reconnects.
+ * Tune: DISCORD_HEARTBEAT_INTERVAL_MS, DISCORD_HEARTBEAT_MAX_MISSED
+ */
+const HEARTBEAT_INTERVAL_MS = parsePositiveIntEnv('DISCORD_HEARTBEAT_INTERVAL_MS', 12_000);
+const HEARTBEAT_MAX_MISSED = parsePositiveIntEnv('DISCORD_HEARTBEAT_MAX_MISSED', 24);
 const EVENT_LOOP_MONITOR_INTERVAL_MS = Number.parseInt(process.env.DISCORD_EVENT_LOOP_MONITOR_INTERVAL_MS ?? '5000', 10);
 const EVENT_LOOP_LAG_WARN_MS = Number.parseInt(process.env.DISCORD_EVENT_LOOP_LAG_WARN_MS ?? '1500', 10);
+const rawEventLoopSummaryMs = process.env.DISCORD_EVENT_LOOP_SUMMARY_INTERVAL_MS;
+const EVENT_LOOP_SUMMARY_INTERVAL_MS = rawEventLoopSummaryMs === '0'
+    ? 0
+    : parsePositiveIntEnv('DISCORD_EVENT_LOOP_SUMMARY_INTERVAL_MS', 600_000);
 const HEARTBEAT_DEBUG_LOG = process.env.DISCORD_HEARTBEAT_DEBUG === 'true';
 
 const agenda = require('../modules/schedule')?.agenda;
@@ -129,8 +150,30 @@ function startEventLoopMonitor() {
 
     console.log('[Perf] Event loop monitor started', {
         monitorIntervalMs: EVENT_LOOP_MONITOR_INTERVAL_MS,
-        warnThresholdMs: EVENT_LOOP_LAG_WARN_MS
+        warnThresholdMs: EVENT_LOOP_LAG_WARN_MS,
+        summaryIntervalMs: EVENT_LOOP_SUMMARY_INTERVAL_MS
     });
+
+    if (EVENT_LOOP_SUMMARY_INTERVAL_MS > 0) {
+        setInterval(() => {
+            if (isShuttingDown) {
+                return;
+            }
+
+            console.log('[Perf] Event loop summary (ClusterManager parent)', {
+                clusterHeartbeat: {
+                    intervalMs: HEARTBEAT_INTERVAL_MS,
+                    maxMissedHeartbeats: HEARTBEAT_MAX_MISSED
+                },
+                parentEventLoop: {
+                    lastLagMs: eventLoopLagLastMs,
+                    maxLagMsSinceProcessStart: eventLoopLagMaxMs,
+                    lagWarningsSinceProcessStart: eventLoopLagWarnCount
+                },
+                hint: 'Missed sharding heartbeats are usually answered by cluster children; if parent lag is low but respawns continue, check [Perf][DiscordClusterWorker] on workers and synchronous/blocking work in discord_bot.js.'
+            });
+        }, EVENT_LOOP_SUMMARY_INTERVAL_MS);
+    }
 }
 
 let lifecycleTraceSeq = 0;
@@ -553,6 +596,7 @@ manager.extend(
         interval: HEARTBEAT_INTERVAL_MS,
         // Keep heartbeat cadence, but allow short stalls (GC/IO spikes) without false respawn.
         maxMissedHeartbeats: HEARTBEAT_MAX_MISSED,
+        // discord-hybrid-sharding HeartbeatManager does not call these before respawn; kept for API compatibility / future library updates.
         onMissedHeartbeat: (cluster) => {
             if (!isShuttingDown) {
                 updateClusterLastState(cluster.id, 'missed_heartbeat');
@@ -582,6 +626,15 @@ manager.extend(
     })
 );
 
+console.log('[Cluster] Hybrid-sharding IPC heartbeat (parent process)', {
+    intervalMs: HEARTBEAT_INTERVAL_MS,
+    maxMissedHeartbeats: HEARTBEAT_MAX_MISSED,
+    env: {
+        DISCORD_HEARTBEAT_INTERVAL_MS: process.env.DISCORD_HEARTBEAT_INTERVAL_MS ?? '(default)',
+        DISCORD_HEARTBEAT_MAX_MISSED: process.env.DISCORD_HEARTBEAT_MAX_MISSED ?? '(default)'
+    },
+    note: 'Library respawns a cluster child when heartbeat acks pile up; worker lag logs: [Perf][DiscordClusterWorker].'
+});
 
 // Start clusters (simplified as per attachment)
 manager.spawn({

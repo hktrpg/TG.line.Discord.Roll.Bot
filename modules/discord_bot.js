@@ -305,6 +305,75 @@ const timerManager = require('./timer-manager');
 
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const shardid = client.cluster.id;
+
+// Lag in this worker delays IPC heartbeat acks → parent may respawn this cluster (mass Discord reconnects).
+const DISCORD_WORKER_EVENT_LOOP_DIAG = String(process.env.DISCORD_WORKER_EVENT_LOOP_DIAG ?? 'true').trim().toLowerCase() !== 'false';
+const DISCORD_WORKER_EVENT_LOOP_MONITOR_MS = (() => {
+	const n = Number.parseInt(process.env.DISCORD_WORKER_EVENT_LOOP_MONITOR_MS ?? '5000', 10);
+	return Number.isFinite(n) && n > 0 ? n : 5000;
+})();
+const DISCORD_WORKER_EVENT_LOOP_LAG_WARN_MS = (() => {
+	const n = Number.parseInt(process.env.DISCORD_WORKER_EVENT_LOOP_LAG_WARN_MS ?? '2000', 10);
+	return Number.isFinite(n) && n > 0 ? n : 2000;
+})();
+const rawWorkerSummaryMs = process.env.DISCORD_WORKER_EVENT_LOOP_SUMMARY_MS;
+const DISCORD_WORKER_EVENT_LOOP_SUMMARY_MS = rawWorkerSummaryMs === '0'
+	? 0
+	: (() => {
+		const n = Number.parseInt(process.env.DISCORD_WORKER_EVENT_LOOP_SUMMARY_MS ?? '600000', 10);
+		return Number.isFinite(n) && n > 0 ? n : 600_000;
+	})();
+
+function startDiscordClusterWorkerEventLoopDiag() {
+	if (!DISCORD_WORKER_EVENT_LOOP_DIAG) {
+		return;
+	}
+
+	let expectedAt = Date.now() + DISCORD_WORKER_EVENT_LOOP_MONITOR_MS;
+	let maxLagSinceSummary = 0;
+	let lagWarnSinceSummary = 0;
+	let lastSummaryAt = Date.now();
+
+	timerManager.setInterval(() => {
+		const now = Date.now();
+		const lagMs = Math.max(0, now - expectedAt);
+		expectedAt = now + DISCORD_WORKER_EVENT_LOOP_MONITOR_MS;
+
+		if (lagMs > maxLagSinceSummary) {
+			maxLagSinceSummary = lagMs;
+		}
+
+		if (lagMs >= DISCORD_WORKER_EVENT_LOOP_LAG_WARN_MS) {
+			lagWarnSinceSummary += 1;
+			console.warn('[Perf][DiscordClusterWorker] Event loop lag (may delay sharding heartbeat IPC ack)', {
+				clusterId: client.cluster?.id,
+				lagMs,
+				warnThresholdMs: DISCORD_WORKER_EVENT_LOOP_LAG_WARN_MS,
+				monitorIntervalMs: DISCORD_WORKER_EVENT_LOOP_MONITOR_MS
+			});
+		}
+
+		if (
+			DISCORD_WORKER_EVENT_LOOP_SUMMARY_MS > 0 &&
+			now - lastSummaryAt >= DISCORD_WORKER_EVENT_LOOP_SUMMARY_MS
+		) {
+			if (maxLagSinceSummary > 0 || lagWarnSinceSummary > 0) {
+				console.warn('[Perf][DiscordClusterWorker] Event loop summary', {
+					clusterId: client.cluster?.id,
+					windowMs: DISCORD_WORKER_EVENT_LOOP_SUMMARY_MS,
+					maxLagMsInWindow: maxLagSinceSummary,
+					lagWarningsInWindow: lagWarnSinceSummary
+				});
+			}
+
+			lastSummaryAt = now;
+			maxLagSinceSummary = 0;
+			lagWarnSinceSummary = 0;
+		}
+	}, DISCORD_WORKER_EVENT_LOOP_MONITOR_MS);
+}
+
+startDiscordClusterWorkerEventLoopDiag();
 let ws;
 let isReconnecting = false; // Prevent multiple reconnection attempts
 

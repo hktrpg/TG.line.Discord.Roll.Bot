@@ -72,9 +72,14 @@ const normalPuppeteer = {
 		'--disable-extensions',
 		'--disable-accelerated-2d-canvas',
 		'--no-first-run',
-		'--disable-gpu'
+		'--disable-gpu',
 		// Optional for low-RAM (e.g. 4GB): '--no-zygote', '--single-process'
 		// --single-process is deprecated and may cause instability; enable only if needed.
+		'--disable-background-timer-throttling',
+		'--disable-backgrounding-occluded-windows',
+		'--disable-renderer-backgrounding',
+		'--disable-features=Translate,AcceptCHFrame,MediaRouter,OptimizationHints,RenderDocument,ProcessPerSiteUpToMainFrameThreshold,IsolateSandboxedIframes',
+		'--no-zygote',
 	],
 	'executablePath': process.platform === 'win32'
 		? String.raw`C:\Program Files\Google\Chrome\Application\chrome.exe`

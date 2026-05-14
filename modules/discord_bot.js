@@ -357,12 +357,17 @@ function startDiscordClusterWorkerEventLoopDiag() {
 			DISCORD_WORKER_EVENT_LOOP_SUMMARY_MS > 0 &&
 			now - lastSummaryAt >= DISCORD_WORKER_EVENT_LOOP_SUMMARY_MS
 		) {
-			if (maxLagSinceSummary > 0 || lagWarnSinceSummary > 0) {
+			// Only emit summary on anomaly (same bar as per-tick lag warn); omit quiet windows (e.g. maxLag 1ms).
+			const summaryAnomaly =
+				lagWarnSinceSummary > 0 ||
+				maxLagSinceSummary >= DISCORD_WORKER_EVENT_LOOP_LAG_WARN_MS;
+			if (summaryAnomaly) {
 				console.warn('[Perf][DiscordClusterWorker] Event loop summary', {
 					clusterId: client.cluster?.id,
 					windowMs: DISCORD_WORKER_EVENT_LOOP_SUMMARY_MS,
 					maxLagMsInWindow: maxLagSinceSummary,
-					lagWarningsInWindow: lagWarnSinceSummary
+					lagWarningsInWindow: lagWarnSinceSummary,
+					warnThresholdMs: DISCORD_WORKER_EVENT_LOOP_LAG_WARN_MS
 				});
 			}
 

@@ -6,7 +6,10 @@ TOPIC="YOUR_SECRET_TOPIC_HERE"
 echo "[$(date)] Starting to monitor tg-bot for WhatsApp QR Code requests..."
 
 # Continuously monitor the container logs and filter for the keyword
-docker logs -f tg-bot 2>&1 | grep --line-buffered "QR RECEIVED" | while read -r line ; do
+echo "[$(date)] Starting to monitor tg-bot for WhatsApp QR Code requests (New logs only)..."
+
+# Use --tail 0 to ignore old logs and only listen to new events
+docker logs -f --tail 0 tg-bot 2>&1 | grep --line-buffered "QR RECEIVED" | while read -r line ; do
     echo "[$(date)] QR Code request detected! Sending push notification..."
 
     curl -s \

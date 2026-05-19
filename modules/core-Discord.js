@@ -125,6 +125,9 @@ function startEventLoopMonitor() {
     if (eventLoopMonitorTimer) return;
 
     let expectedAt = Date.now() + EVENT_LOOP_MONITOR_INTERVAL_MS;
+    let maxLagSinceSummary = 0;
+    let lagWarnSinceSummary = 0;
+
     eventLoopMonitorTimer = setInterval(() => {
         const now = Date.now();
         const lagMs = Math.max(0, now - expectedAt);
@@ -135,8 +138,13 @@ function startEventLoopMonitor() {
             eventLoopLagMaxMs = lagMs;
         }
 
+        if (lagMs > maxLagSinceSummary) {
+            maxLagSinceSummary = lagMs;
+        }
+
         if (!isShuttingDown && lagMs >= EVENT_LOOP_LAG_WARN_MS) {
             eventLoopLagWarnCount += 1;
+            lagWarnSinceSummary += 1;
             console.warn('[Perf] Event loop lag spike detected', {
                 lagMs,
                 warnThresholdMs: EVENT_LOOP_LAG_WARN_MS,
@@ -162,18 +170,28 @@ function startEventLoopMonitor() {
                 return;
             }
 
-            console.log('[Perf] Event loop summary (ClusterManager parent)', {
-                clusterHeartbeat: {
-                    intervalMs: HEARTBEAT_INTERVAL_MS,
-                    maxMissedHeartbeats: HEARTBEAT_MAX_MISSED
-                },
-                parentEventLoop: {
-                    lastLagMs: eventLoopLagLastMs,
-                    maxLagMsSinceProcessStart: eventLoopLagMaxMs,
-                    lagWarningsSinceProcessStart: eventLoopLagWarnCount
-                },
-                hint: 'Missed sharding heartbeats are usually answered by cluster children; if parent lag is low but respawns continue, check [Perf][DiscordClusterWorker] on workers and synchronous/blocking work in discord_bot.js.'
-            });
+            const summaryAnomaly =
+                lagWarnSinceSummary > 0 ||
+                maxLagSinceSummary >= EVENT_LOOP_LAG_WARN_MS;
+
+            if (summaryAnomaly) {
+                console.warn('[Perf] Event loop summary (ClusterManager parent)', {
+                    clusterHeartbeat: {
+                        intervalMs: HEARTBEAT_INTERVAL_MS,
+                        maxMissedHeartbeats: HEARTBEAT_MAX_MISSED
+                    },
+                    parentEventLoop: {
+                        lastLagMs: eventLoopLagLastMs,
+                        maxLagMsInWindow: maxLagSinceSummary,
+                        lagWarningsInWindow: lagWarnSinceSummary,
+                        warnThresholdMs: EVENT_LOOP_LAG_WARN_MS,
+                        windowMs: EVENT_LOOP_SUMMARY_INTERVAL_MS
+                    }
+                });
+            }
+
+            maxLagSinceSummary = 0;
+            lagWarnSinceSummary = 0;
         }, EVENT_LOOP_SUMMARY_INTERVAL_MS);
     }
 }

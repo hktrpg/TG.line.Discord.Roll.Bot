@@ -363,13 +363,20 @@ traceLifecycle('manager_initialized', {
     }
 });
 
+/** clusterId from discord-hybrid-sharding debug is undefined for manager-level messages. */
+function formatClusterDebugId(clusterId) {
+    if (clusterId == null) return 'manager';
+    const id = Number(clusterId);
+    return Number.isFinite(id) ? id : clusterId;
+}
+
 manager.on('debug', (message, clusterId) => {
     const messageStr = typeof message === 'string' ? message : (message == null ? '' : String(message));
     if (HEARTBEAT_MISSING_LOG && messageStr.includes('[Heartbeat_MISSING]')) {
         const id = clusterId == null ? null : Number(clusterId);
         console.warn('[Cluster][Heartbeat_MISSING]', {
             message: messageStr,
-            clusterId: Number.isFinite(id) ? id : clusterId,
+            clusterId: formatClusterDebugId(clusterId),
             clusterLastState: Number.isFinite(id) ? getClusterLastState(id) : null,
             parentEventLoop: {
                 lastLagMs: eventLoopLagLastMs,
@@ -389,8 +396,8 @@ manager.on('debug', (message, clusterId) => {
     }
 
     console.log('[Cluster Debug]', {
-        message,
-        clusterId,
+        message: messageStr,
+        clusterId: formatClusterDebugId(clusterId),
         runtime: getRuntimeMeta()
     });
 });

@@ -33,6 +33,43 @@ function isDiscordUnknownInteraction(error) {
 	return typeof msg === 'string' && msg.includes('Unknown interaction');
 }
 
+/** Compact REST/defer error fields for logs (code alone is often undefined). */
+function formatInteractionErrorDetail(error) {
+	if (!error || typeof error !== 'object') {
+		return `detail=${String(error)}`;
+	}
+	const parts = [];
+	const ctor = error.constructor?.name;
+	if (ctor && ctor !== 'Object') parts.push(`type=${ctor}`);
+	if (error.name) parts.push(`name=${error.name}`);
+	if (error.code != null) parts.push(`code=${error.code}`);
+	if (error.status != null) parts.push(`status=${error.status}`);
+	if (error.method) parts.push(`method=${error.method}`);
+	if (error.url) parts.push(`url=${error.url}`);
+	if (error.retryAfter != null) parts.push(`retryAfter=${error.retryAfter}`);
+	if (error.errno != null) parts.push(`errno=${error.errno}`);
+	if (error.message) parts.push(`message=${error.message}`);
+	const rawCode = error.rawError?.code;
+	if (rawCode != null && rawCode !== error.code) parts.push(`rawCode=${rawCode}`);
+	const cause = error.cause;
+	if (cause && typeof cause === 'object' && cause.message) {
+		parts.push(`cause=${cause.name || 'Error'}:${cause.message}`);
+	} else if (typeof cause === 'string') {
+		parts.push(`cause=${cause}`);
+	}
+	return parts.length > 0 ? parts.join(' ') : 'detail=unknown';
+}
+
+/** Shard/cluster + interaction ids for defer failure correlation. */
+function getInteractionDeferLogContext(interaction, handlerAgeMs) {
+	const parts = [];
+	if (handlerAgeMs != null) parts.push(`handlerAge=${handlerAgeMs}ms`);
+	parts.push(getDiscordClusterContext());
+	if (interaction?.guildId) parts.push(`guild=${interaction.guildId}`);
+	if (interaction?.id) parts.push(`interaction=${interaction.id}`);
+	return parts.join(' ');
+}
+
 /**
  * Human-readable label for logs: slash name + optional subcommand group/subcommand; else button label / customId.
  * @param {import('discord.js').BaseInteraction} [interaction]
@@ -305,6 +342,80 @@ const timerManager = require('./timer-manager');
 
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const shardid = client.cluster.id;
+
+// Lag in this worker delays IPC heartbeat acks → parent may respawn this cluster (mass Discord reconnects).
+const DISCORD_WORKER_EVENT_LOOP_DIAG = String(process.env.DISCORD_WORKER_EVENT_LOOP_DIAG ?? 'true').trim().toLowerCase() !== 'false';
+const DISCORD_WORKER_EVENT_LOOP_MONITOR_MS = (() => {
+	const n = Number.parseInt(process.env.DISCORD_WORKER_EVENT_LOOP_MONITOR_MS ?? '5000', 10);
+	return Number.isFinite(n) && n > 0 ? n : 5000;
+})();
+const DISCORD_WORKER_EVENT_LOOP_LAG_WARN_MS = (() => {
+	const n = Number.parseInt(process.env.DISCORD_WORKER_EVENT_LOOP_LAG_WARN_MS ?? '2000', 10);
+	return Number.isFinite(n) && n > 0 ? n : 2000;
+})();
+const rawWorkerSummaryMs = process.env.DISCORD_WORKER_EVENT_LOOP_SUMMARY_MS;
+const DISCORD_WORKER_EVENT_LOOP_SUMMARY_MS = rawWorkerSummaryMs === '0'
+	? 0
+	: (() => {
+		const n = Number.parseInt(process.env.DISCORD_WORKER_EVENT_LOOP_SUMMARY_MS ?? '600000', 10);
+		return Number.isFinite(n) && n > 0 ? n : 600_000;
+	})();
+
+function startDiscordClusterWorkerEventLoopDiag() {
+	if (!DISCORD_WORKER_EVENT_LOOP_DIAG) {
+		return;
+	}
+
+	let expectedAt = Date.now() + DISCORD_WORKER_EVENT_LOOP_MONITOR_MS;
+	let maxLagSinceSummary = 0;
+	let lagWarnSinceSummary = 0;
+	let lastSummaryAt = Date.now();
+
+	timerManager.setInterval(() => {
+		const now = Date.now();
+		const lagMs = Math.max(0, now - expectedAt);
+		expectedAt = now + DISCORD_WORKER_EVENT_LOOP_MONITOR_MS;
+
+		if (lagMs > maxLagSinceSummary) {
+			maxLagSinceSummary = lagMs;
+		}
+
+		if (lagMs >= DISCORD_WORKER_EVENT_LOOP_LAG_WARN_MS) {
+			lagWarnSinceSummary += 1;
+			console.warn('[Perf][DiscordClusterWorker] Event loop lag (may delay sharding heartbeat IPC ack)', {
+				clusterId: client.cluster?.id,
+				lagMs,
+				warnThresholdMs: DISCORD_WORKER_EVENT_LOOP_LAG_WARN_MS,
+				monitorIntervalMs: DISCORD_WORKER_EVENT_LOOP_MONITOR_MS
+			});
+		}
+
+		if (
+			DISCORD_WORKER_EVENT_LOOP_SUMMARY_MS > 0 &&
+			now - lastSummaryAt >= DISCORD_WORKER_EVENT_LOOP_SUMMARY_MS
+		) {
+			// Only emit summary on anomaly (same bar as per-tick lag warn); omit quiet windows (e.g. maxLag 1ms).
+			const summaryAnomaly =
+				lagWarnSinceSummary > 0 ||
+				maxLagSinceSummary >= DISCORD_WORKER_EVENT_LOOP_LAG_WARN_MS;
+			if (summaryAnomaly) {
+				console.warn('[Perf][DiscordClusterWorker] Event loop summary', {
+					clusterId: client.cluster?.id,
+					windowMs: DISCORD_WORKER_EVENT_LOOP_SUMMARY_MS,
+					maxLagMsInWindow: maxLagSinceSummary,
+					lagWarningsInWindow: lagWarnSinceSummary,
+					warnThresholdMs: DISCORD_WORKER_EVENT_LOOP_LAG_WARN_MS
+				});
+			}
+
+			lastSummaryAt = now;
+			maxLagSinceSummary = 0;
+			lagWarnSinceSummary = 0;
+		}
+	}, DISCORD_WORKER_EVENT_LOOP_MONITOR_MS);
+}
+
+startDiscordClusterWorkerEventLoopDiag();
 let ws;
 let isReconnecting = false; // Prevent multiple reconnection attempts
 
@@ -4344,6 +4455,10 @@ async function __handlingReplyMessage(message, result) {
 					warnInteraction10062('defer_in_reply_handler', message);
 					return;
 				}
+				const replyHandlerAgeMs = interactionHandlerAgeMs(message);
+				console.error(
+					`Failed to defer in reply handler: ${getInteractionCommandLabel(message)} | ${getInteractionDeferLogContext(message, replyHandlerAgeMs)} | ${formatInteractionErrorDetail(deferError)}`
+				);
 				throw deferError;
 			}
 		}
@@ -4422,6 +4537,7 @@ async function __handlingInteractionMessage(message) {
 	const handlerAgeMs = Date.now() - message.createdTimestamp;
 	const cmdLabel = getInteractionCommandLabel(message);
 	let deferHttpMs = 0;
+	let deferHttpStart = null;
 	try {
 		if (!message.deferred && !message.replied) {
 			const deferOptions = (message.isCommand() && EPHEMERAL_DEFER_COMMAND_NAMES.has(message.commandName))
@@ -4437,12 +4553,15 @@ async function __handlingInteractionMessage(message) {
 				deferPromise = message.deferReply(deferOptions);
 			}
 
-			const httpStart = Date.now();
+			deferHttpStart = Date.now();
 			await deferPromise;
-			deferHttpMs = Date.now() - httpStart;
+			deferHttpMs = Date.now() - deferHttpStart;
 		}
 	} catch (deferError) {
 		const deferDuration = Date.now() - deferStartTime;
+		const deferHttpOnErrorMs = deferHttpMs > 0
+			? deferHttpMs
+			: (deferHttpStart != null ? Date.now() - deferHttpStart : null);
 
 		if (isDiscordUnknownInteraction(deferError)) {
 			warnInteraction10062('defer_main_handler', message, { durationMs: deferDuration, handlerAgeMs });
@@ -4450,7 +4569,10 @@ async function __handlingInteractionMessage(message) {
 		}
 
 		// For other deferral errors (network issues, rate limits, etc.), log and try fallback
-		console.error(`Failed to defer interaction (${deferDuration}ms): ${cmdLabel} | Code: ${deferError.code}`);
+		const deferHttpSuffix = deferHttpOnErrorMs != null ? ` deferHttp=${deferHttpOnErrorMs}ms` : '';
+		console.error(
+			`Failed to defer interaction (${deferDuration}ms): ${cmdLabel}${deferHttpSuffix} | ${getInteractionDeferLogContext(message, handlerAgeMs)} | ${formatInteractionErrorDetail(deferError)}`
+		);
 		
 		// Try to send a followUp as fallback (only if interaction is still valid)
 		try {
@@ -4461,7 +4583,9 @@ async function __handlingInteractionMessage(message) {
 			if (isDiscordUnknownInteraction(fallbackError)) {
 				warnInteraction10062('defer_fallback_followup', message, { durationMs: deferDuration, handlerAgeMs });
 			} else {
-				console.error(`Fallback reply also failed (${deferDuration}ms): ${cmdLabel} | ${fallbackError.message}`);
+				console.error(
+					`Fallback reply also failed (${deferDuration}ms): ${cmdLabel}${deferHttpSuffix} | ${getInteractionDeferLogContext(message, handlerAgeMs)} | ${formatInteractionErrorDetail(fallbackError)}`
+				);
 			}
 			return;
 		}

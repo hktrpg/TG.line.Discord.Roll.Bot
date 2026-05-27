@@ -10,11 +10,34 @@ const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 5000;
 /** discord-hybrid-sharding respawn: allow slow startup (many shards / DB / login). */
 const CLUSTER_RESPAWN_READY_MS = 120_000;
-const HEARTBEAT_INTERVAL_MS = 5000;
-const HEARTBEAT_MAX_MISSED = Number.parseInt(process.env.DISCORD_HEARTBEAT_MAX_MISSED ?? '12', 10);
+
+/** Parse positive int from env; invalid or missing uses fallback. */
+function parsePositiveIntEnv(name, fallback) {
+    const raw = process.env[name];
+    if (raw === undefined || raw === '') {
+        return fallback;
+    }
+
+    const n = Number.parseInt(String(raw), 10);
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+/**
+ * Cluster IPC heartbeat (discord-hybrid-sharding HeartbeatManager on parent).
+ * Too aggressive defaults cause false respawns under GC / DB / CPU spikes → mass Discord reconnects.
+ * Tune: DISCORD_HEARTBEAT_INTERVAL_MS, DISCORD_HEARTBEAT_MAX_MISSED
+ */
+const HEARTBEAT_INTERVAL_MS = parsePositiveIntEnv('DISCORD_HEARTBEAT_INTERVAL_MS', 12_000);
+const HEARTBEAT_MAX_MISSED = parsePositiveIntEnv('DISCORD_HEARTBEAT_MAX_MISSED', 24);
 const EVENT_LOOP_MONITOR_INTERVAL_MS = Number.parseInt(process.env.DISCORD_EVENT_LOOP_MONITOR_INTERVAL_MS ?? '5000', 10);
 const EVENT_LOOP_LAG_WARN_MS = Number.parseInt(process.env.DISCORD_EVENT_LOOP_LAG_WARN_MS ?? '1500', 10);
+const rawEventLoopSummaryMs = process.env.DISCORD_EVENT_LOOP_SUMMARY_INTERVAL_MS;
+const EVENT_LOOP_SUMMARY_INTERVAL_MS = rawEventLoopSummaryMs === '0'
+    ? 0
+    : parsePositiveIntEnv('DISCORD_EVENT_LOOP_SUMMARY_INTERVAL_MS', 600_000);
 const HEARTBEAT_DEBUG_LOG = process.env.DISCORD_HEARTBEAT_DEBUG === 'true';
+/** Always log hybrid-sharding heartbeat-miss / respawn attempts unless set to false. */
+const HEARTBEAT_MISSING_LOG = String(process.env.DISCORD_HEARTBEAT_MISSING_LOG ?? 'true').trim().toLowerCase() !== 'false';
 
 const agenda = require('../modules/schedule')?.agenda;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
@@ -24,7 +47,7 @@ const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
 require("./ds-deploy-commands");
 const clusterOptions = {
     token: channelSecret,
-    shardsPerClusters: 10,
+    shardsPerClusters: 5,
     totalShards: 'auto',
     mode: 'process',
     spawnTimeout: -1,
@@ -102,6 +125,9 @@ function startEventLoopMonitor() {
     if (eventLoopMonitorTimer) return;
 
     let expectedAt = Date.now() + EVENT_LOOP_MONITOR_INTERVAL_MS;
+    let maxLagSinceSummary = 0;
+    let lagWarnSinceSummary = 0;
+
     eventLoopMonitorTimer = setInterval(() => {
         const now = Date.now();
         const lagMs = Math.max(0, now - expectedAt);
@@ -112,8 +138,13 @@ function startEventLoopMonitor() {
             eventLoopLagMaxMs = lagMs;
         }
 
+        if (lagMs > maxLagSinceSummary) {
+            maxLagSinceSummary = lagMs;
+        }
+
         if (!isShuttingDown && lagMs >= EVENT_LOOP_LAG_WARN_MS) {
             eventLoopLagWarnCount += 1;
+            lagWarnSinceSummary += 1;
             console.warn('[Perf] Event loop lag spike detected', {
                 lagMs,
                 warnThresholdMs: EVENT_LOOP_LAG_WARN_MS,
@@ -129,8 +160,40 @@ function startEventLoopMonitor() {
 
     console.log('[Perf] Event loop monitor started', {
         monitorIntervalMs: EVENT_LOOP_MONITOR_INTERVAL_MS,
-        warnThresholdMs: EVENT_LOOP_LAG_WARN_MS
+        warnThresholdMs: EVENT_LOOP_LAG_WARN_MS,
+        summaryIntervalMs: EVENT_LOOP_SUMMARY_INTERVAL_MS
     });
+
+    if (EVENT_LOOP_SUMMARY_INTERVAL_MS > 0) {
+        setInterval(() => {
+            if (isShuttingDown) {
+                return;
+            }
+
+            const summaryAnomaly =
+                lagWarnSinceSummary > 0 ||
+                maxLagSinceSummary >= EVENT_LOOP_LAG_WARN_MS;
+
+            if (summaryAnomaly) {
+                console.warn('[Perf] Event loop summary (ClusterManager parent)', {
+                    clusterHeartbeat: {
+                        intervalMs: HEARTBEAT_INTERVAL_MS,
+                        maxMissedHeartbeats: HEARTBEAT_MAX_MISSED
+                    },
+                    parentEventLoop: {
+                        lastLagMs: eventLoopLagLastMs,
+                        maxLagMsInWindow: maxLagSinceSummary,
+                        lagWarningsInWindow: lagWarnSinceSummary,
+                        warnThresholdMs: EVENT_LOOP_LAG_WARN_MS,
+                        windowMs: EVENT_LOOP_SUMMARY_INTERVAL_MS
+                    }
+                });
+            }
+
+            maxLagSinceSummary = 0;
+            lagWarnSinceSummary = 0;
+        }, EVENT_LOOP_SUMMARY_INTERVAL_MS);
+    }
 }
 
 let lifecycleTraceSeq = 0;
@@ -300,10 +363,41 @@ traceLifecycle('manager_initialized', {
     }
 });
 
-manager.on('debug', (message) => {
-    if (!HEARTBEAT_DEBUG_LOG) return;
+/** clusterId from discord-hybrid-sharding debug is undefined for manager-level messages. */
+function formatClusterDebugId(clusterId) {
+    if (clusterId == null) return 'manager';
+    const id = Number(clusterId);
+    return Number.isFinite(id) ? id : clusterId;
+}
+
+manager.on('debug', (message, clusterId) => {
+    const messageStr = typeof message === 'string' ? message : (message == null ? '' : String(message));
+    if (HEARTBEAT_MISSING_LOG && messageStr.includes('[Heartbeat_MISSING]')) {
+        const id = clusterId == null ? null : Number(clusterId);
+        console.warn('[Cluster][Heartbeat_MISSING]', {
+            message: messageStr,
+            clusterId: formatClusterDebugId(clusterId),
+            clusterLastState: Number.isFinite(id) ? getClusterLastState(id) : null,
+            parentEventLoop: {
+                lastLagMs: eventLoopLagLastMs,
+                maxLagMsSinceProcessStart: eventLoopLagMaxMs,
+                lagWarningsSinceProcessStart: eventLoopLagWarnCount
+            },
+            heartbeat: {
+                intervalMs: HEARTBEAT_INTERVAL_MS,
+                maxMissedHeartbeats: HEARTBEAT_MAX_MISSED
+            },
+            runtime: getRuntimeMeta()
+        });
+    }
+
+    if (!HEARTBEAT_DEBUG_LOG) {
+        return;
+    }
+
     console.log('[Cluster Debug]', {
-        message,
+        message: messageStr,
+        clusterId: formatClusterDebugId(clusterId),
         runtime: getRuntimeMeta()
     });
 });
@@ -553,6 +647,7 @@ manager.extend(
         interval: HEARTBEAT_INTERVAL_MS,
         // Keep heartbeat cadence, but allow short stalls (GC/IO spikes) without false respawn.
         maxMissedHeartbeats: HEARTBEAT_MAX_MISSED,
+        // discord-hybrid-sharding HeartbeatManager does not call these before respawn; kept for API compatibility / future library updates.
         onMissedHeartbeat: (cluster) => {
             if (!isShuttingDown) {
                 updateClusterLastState(cluster.id, 'missed_heartbeat');
@@ -582,6 +677,15 @@ manager.extend(
     })
 );
 
+console.log('[Cluster] Hybrid-sharding IPC heartbeat (parent process)', {
+    intervalMs: HEARTBEAT_INTERVAL_MS,
+    maxMissedHeartbeats: HEARTBEAT_MAX_MISSED,
+    env: {
+        DISCORD_HEARTBEAT_INTERVAL_MS: process.env.DISCORD_HEARTBEAT_INTERVAL_MS ?? '(default)',
+        DISCORD_HEARTBEAT_MAX_MISSED: process.env.DISCORD_HEARTBEAT_MAX_MISSED ?? '(default)'
+    },
+    note: 'Library respawns a cluster child when heartbeat acks pile up; worker lag logs: [Perf][DiscordClusterWorker].'
+});
 
 // Start clusters (simplified as per attachment)
 manager.spawn({

@@ -6,7 +6,6 @@ updates:
       interval: "daily"
     labels:
       - "dependencies"
-      - "dependabot"
     commit-message:
       prefix: "chore(deps)"
       include: "scope" 

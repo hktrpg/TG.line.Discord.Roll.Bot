@@ -127,7 +127,7 @@ function killLingeringChromeForSession() {
 	if (process.platform !== 'linux') return;
 
 	const sessionDir = path.join(wwebjsAuthRoot, 'session');
-	const escapedSessionDir = sessionDir.replace(/'/g, `'\\''`);
+	const escapedSessionDir = sessionDir.replaceAll('\'', `'\\''`);
 	const killBySessionCommand = `pkill -f '--user-data-dir=${escapedSessionDir}' || true`;
 
 	try {

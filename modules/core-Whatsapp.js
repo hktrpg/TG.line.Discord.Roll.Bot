@@ -214,7 +214,25 @@ async function startUp() {
 			qrcode.generate(qr, { small: true });
 		});
 
-		client.on('ready', () => console.log('[Whatsapp] Client is ready!'));
+		let hasLoggedReady = false;
+		client.on('ready', () => {
+			if (!hasLoggedReady) {
+				hasLoggedReady = true;
+				console.log('[Whatsapp] Client is ready!');
+			} else {
+				console.log('[Whatsapp] Client is ready (reconnected)!');
+			}
+		});
+
+		client.on('disconnected', (reason) => {
+			console.log('[WhatsApp] Client disconnected:', reason);
+			// The library will usually attempt to reconnect automatically.
+			// A new 'ready' event should fire after successful re-auth/reconnect.
+		});
+
+		client.on('auth_failure', (msg) => {
+			console.error('[WhatsApp] Authentication failure:', msg);
+		});
 
 		client.on('message', async msg => {
 			try {
@@ -246,18 +264,19 @@ async function startUp() {
 			}
 		});
 
-		client.on('message_ack', async (msg, ack) => {
-			if (ack > 0) {
+		// NOTE: Previously called chat.clearMessages() on every ack>0.
+		// This caused frequent "Protocol error (Runtime.callFunctionOn): Execution context was destroyed"
+		// during normal reconnects/page reloads inside puppeteer (whatsapp-web.js internal navigation).
+		// It was also extremely aggressive (per-message) and could affect user-visible chat history.
+		// Removed for stability. If chat history pruning is needed, implement a periodic (e.g. daily) job instead.
+		client.on('message_ack', (msg, ack) => {
+			// Intentionally lightweight. Ack can be used for delivery confirmation if needed in future.
+			// Ack values: 1 = sent to server, 2 = delivered, 3+ = read, etc.
+			if (ack > 0 && process.env.WHATSAPP_DEBUG_ACK) {
+				// Only log when explicitly enabled to avoid noise
 				try {
-					if (msg && typeof msg.getChat === 'function') {
-						const chat = await msg.getChat();
-						await chat.clearMessages();
-					} else {
-						console.error('[WhatsApp] msg.getChat is not available in message_ack');
-					}
-				} catch (error) {
-					console.error('[WhatsApp] message_ack error:', error.message);
-				}
+					console.log('[WhatsApp] ack', ack, msg && msg.id && msg.id._serialized);
+				} catch {}
 			}
 		});
 

@@ -179,6 +179,62 @@ async function startUp() {
 		});
 		whatsappClient = client;
 
+		// Attach all event listeners BEFORE starting initialize(), so we never miss early
+		// 'qr', 'authenticated', or internal state events emitted during the first moments
+		// of puppeteer launch + page bootstrap.
+		// QR printing strategy:
+		// - Print the full (large) QR code *only once* per authentication session / waiting period.
+		//   The WhatsApp library emits 'qr' repeatedly (with a fresh code every ~20-30s) while waiting for scan.
+		//   Re-printing the entire ASCII QR on every refresh spams logs and causes monitoring scripts (check-qrcode.sh + ntfy)
+		//   to send repeated "needs scan" alerts even though it's the same login attempt.
+		// - On refreshes: log a short message only. This keeps "QR RECEIVED" string rare (once per actual need to scan).
+		// - Reset on 'disconnected' so that if auth is lost later and a *new* QR flow starts, we do show the full code again.
+		let qrCodePrintedForSession = false;
+		client.on('qr', (qr) => {
+			if (!qrCodePrintedForSession) {
+				qrCodePrintedForSession = true;
+				console.log('[Whatsapp] QR RECEIVED');
+				qrcode.generate(qr, { small: true });
+			} else {
+				console.log('[Whatsapp] QR code refreshed (new code active). Full QR omitted to reduce log/notify spam. Scan a previous QR from this session if still waiting.');
+			}
+		});
+
+		let hasEverBeenReady = false;
+		let needsReadyLogAfterDisconnect = false;
+		client.on('ready', () => {
+			const now = Date.now();
+			if (!hasEverBeenReady) {
+				hasEverBeenReady = true;
+				needsReadyLogAfterDisconnect = false;
+				qrCodePrintedForSession = false;
+				console.log('[Whatsapp] Client is ready!');
+			} else if (needsReadyLogAfterDisconnect) {
+				needsReadyLogAfterDisconnect = false;
+				qrCodePrintedForSession = false;
+				console.log('[Whatsapp] Client reconnected and is ready!');
+			} else if (now - (globalThis._lastReadyLogTs || 0) > 5000) {
+				// Very rapid duplicate ready events during a single init/connect (seen in some envs / library versions).
+				// Log at most once every 5s to keep logs clean; the first one is always the clean message.
+				globalThis._lastReadyLogTs = now;
+				console.log('[Whatsapp] Client is ready (event replay)');
+			}
+		});
+
+		client.on('disconnected', (reason) => {
+			console.log('[WhatsApp] Client disconnected:', reason);
+			// Next successful ready after this should be announced as a reconnect.
+			needsReadyLogAfterDisconnect = true;
+			// Allow full QR to be printed again if the next flow requires scanning (e.g. session lost).
+			qrCodePrintedForSession = false;
+			// The library will usually attempt to reconnect automatically.
+			// A new 'ready' event should fire after successful re-auth/reconnect.
+		});
+
+		client.on('auth_failure', (msg) => {
+			console.error('[WhatsApp] Authentication failure:', msg);
+		});
+
 		async function initializeWithRetry(attempt = 0) {
 			try {
 				await client.initialize();
@@ -208,31 +264,6 @@ async function startUp() {
 		}
 
 		void initializeWithRetry();
-
-		client.on('qr', (qr) => {
-			console.log('[Whatsapp] QR RECEIVED');
-			qrcode.generate(qr, { small: true });
-		});
-
-		let hasLoggedReady = false;
-		client.on('ready', () => {
-			if (!hasLoggedReady) {
-				hasLoggedReady = true;
-				console.log('[Whatsapp] Client is ready!');
-			} else {
-				console.log('[Whatsapp] Client is ready (reconnected)!');
-			}
-		});
-
-		client.on('disconnected', (reason) => {
-			console.log('[WhatsApp] Client disconnected:', reason);
-			// The library will usually attempt to reconnect automatically.
-			// A new 'ready' event should fire after successful re-auth/reconnect.
-		});
-
-		client.on('auth_failure', (msg) => {
-			console.error('[WhatsApp] Authentication failure:', msg);
-		});
 
 		client.on('message', async msg => {
 			try {

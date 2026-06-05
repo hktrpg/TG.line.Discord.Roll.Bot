@@ -624,7 +624,7 @@ class OpenAI {
                     let tempEnv = dotenv.config({ override: false })
                     if (tempEnv.parsed) {
                         // Only update OpenAI-related environment variables to avoid breaking cluster manager
-                        const openaiPrefixes = ['OPENAI_', 'AI_MODEL_'];
+                        const openaiPrefixes = ['OPENAI_', 'AI_MODEL_', 'OPENROUTER_'];
                         for (const [key, value] of Object.entries(tempEnv.parsed)) {
                             if (openaiPrefixes.some(prefix => key.startsWith(prefix))) {
                                 process.env[key] = value;
@@ -645,6 +645,25 @@ class OpenAI {
                 }
             }
         });
+    }
+
+    // OpenRouter provider routing prefs (e.g. ignore list for https://openrouter.ai/docs/guides/routing/provider-selection )
+    getOpenRouterProviderPrefs() {
+        const raw = process.env.OPENROUTER_IGNORE_PROVIDERS;
+        if (!raw) return null;
+        const ignore = raw
+            .split(/[,;\s]+/)
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+        if (ignore.length === 0) return null;
+        return { ignore };
+    }
+
+    isCurrentUsingOpenRouter() {
+        if (!this.apiKeys || this.apiKeys.length === 0) return false;
+        const idx = (typeof this.currentApiKeyIndex === 'number') ? this.currentApiKeyIndex : 0;
+        const baseURL = this.apiKeys[idx] && this.apiKeys[idx].baseURL;
+        return typeof baseURL === 'string' && baseURL.toLowerCase().includes('openrouter');
     }
 
     // Handle API key cycling and removal
@@ -1762,7 +1781,7 @@ class TranslateAi extends OpenAI {
             debugLog(`[GLOSSARY_DEBUG] Sending API request to ${modelName}...`);
             const apiStartTime = Date.now();
 
-            let response = await this.openai.chat.completions.create({
+            const glossaryPayload = {
                 model: modelName,
                 temperature: 0.2,
                 messages: [
@@ -1771,7 +1790,12 @@ class TranslateAi extends OpenAI {
                 ], "reasoning": {
                     
                 }
-            })
+            };
+            const providerPrefs = this.getOpenRouterProviderPrefs();
+            if (providerPrefs && this.isCurrentUsingOpenRouter()) {
+                glossaryPayload.provider = providerPrefs;
+            }
+            let response = await this.openai.chat.completions.create(glossaryPayload)
 
             const apiDuration = Date.now() - apiStartTime;
             debugLog(`[GLOSSARY_DEBUG] API call completed in ${apiDuration}ms`);
@@ -2244,7 +2268,7 @@ class TranslateAi extends OpenAI {
             const perRequestTimeoutMs = (RETRY_CONFIG.GENERAL.requestTimeoutSec || 45) * 1000;
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), perRequestTimeoutMs);
-            let response = await this.openai.chat.completions.create({
+            const translatePayload = {
                 model: modelName,
                 temperature: 0.2,
                 messages: [
@@ -2255,7 +2279,12 @@ class TranslateAi extends OpenAI {
                     
                     
                 }
-            })
+            };
+            const providerPrefs = this.getOpenRouterProviderPrefs();
+            if (providerPrefs && this.isCurrentUsingOpenRouter()) {
+                translatePayload.provider = providerPrefs;
+            }
+            let response = await this.openai.chat.completions.create(translatePayload)
             clearTimeout(timer);
             this.retryManager.resetCounters();
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {
@@ -2685,7 +2714,7 @@ class ChatAi extends OpenAI {
             }
             const modelName = currentModel.name || mode.name;
 
-            let response = await this.openai.chat.completions.create({
+            const chatPayload = {
                 "model": modelName,
                 "messages": [
                     {
@@ -2701,7 +2730,12 @@ class ChatAi extends OpenAI {
                     
                 }
 
-            })
+            };
+            const providerPrefs = this.getOpenRouterProviderPrefs();
+            if (providerPrefs && this.isCurrentUsingOpenRouter()) {
+                chatPayload.provider = providerPrefs;
+            }
+            let response = await this.openai.chat.completions.create(chatPayload)
             this.retryManager.resetCounters();
 
             if (response.status === 200 && (typeof response.data === 'string' || response.data instanceof String)) {

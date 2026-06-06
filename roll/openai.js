@@ -1788,7 +1788,10 @@ class TranslateAi extends OpenAI {
                     { role: 'system', content: systemInstruction },
                     { role: 'user', content: userContent }
                 ], "reasoning": {
-                    
+                    "enable": false,
+                    "exclude": true,
+                    "effort": "none"
+
                 }
             };
             const providerPrefs = this.getOpenRouterProviderPrefs();
@@ -2276,8 +2279,9 @@ class TranslateAi extends OpenAI {
                     { role: 'user', content: userContent }
                 ],
                 signal: controller.signal, "reasoning": {
-                    
-                    
+                    "enabled": false,
+                    "exclude": true,
+                    "effort": "none"
                 }
             };
             const providerPrefs = this.getOpenRouterProviderPrefs();
@@ -2726,8 +2730,9 @@ class ChatAi extends OpenAI {
                         "content": `${inputStr.replace(/^\.ai[mh]?/i, '')}`
                     }
                 ], "reasoning": {
-                    
-                    
+                    "enabled": false,
+                    "exclude": true,
+                    "effort": "none"
                 }
 
             };
@@ -3026,11 +3031,11 @@ const discordCommand = [
             const model = Object.values(AI_CONFIG.MODELS).find(m => m.type === modelType);
             const text = interaction.options.getString('text');
             const file = interaction.options.getAttachment('file');
-            
+
             if (!text && !file) {
                 return '請提供文字或檔案進行翻譯。';
             }
-            
+
             if (file) {
                 interaction.attachments = new Map([[file.id, file]]);
                 return {
@@ -3039,7 +3044,7 @@ const discordCommand = [
                     isInteraction: true
                 };
             }
-            
+
             return `${model.prefix.translate} ${text}`;
         }
     },

@@ -54,6 +54,7 @@ const getHelpMessage = function () {
 │ • 查看列表: .at show / .cron show
 │ • 刪除任務: .at delete 序號
 │             .cron delete 序號
+│ • 注意：.at 與 .cron 為獨立功能，各自擁有固定序號（不會因刪除其他任務而改變）
 │
 ├──── 👑贊助功能 ────
 │ patreoner可自訂發送者:
@@ -134,11 +135,11 @@ const rollDiceCommand = async function ({
                 const channelJobs = await agenda.agenda.jobs(channelCheck)
                     .catch(error => console.error('agenda error:', error.name, error.reason));
                 const channelJobsText = await showJobs(channelJobs);
-                rply.text = `【本群組列表】\n${groupJobsText}\n\n【本頻道列表】\n${channelJobsText}`;
+                rply.text = `【本群組 .at 列表】\n${groupJobsText}\n\n【本頻道 .at 列表】\n${channelJobsText}`;
             } else if (botname == "Discord" && userrole < 3) {
-                rply.text = `【本頻道列表】\n${rply.text}`;
+                rply.text = `【本頻道 .at 列表】\n${rply.text}`;
             } else {
-                rply.text = `【本群組列表】\n${rply.text}`;
+                rply.text = `【本群組 .at 列表】\n${rply.text}`;
             }
             return rply;
         }
@@ -243,6 +244,7 @@ const rollDiceCommand = async function ({
             await agenda.agenda.schedule(date, callBotname, atData).catch(error => console.error('agenda error:', error.name, error.reason))
             rply.text = `已新增排定內容
 執行時間: ${moment(date).format('YYYY-MM-DD HH:mm')}
+您的序號 #${serial} (固定 ID)
 訊息內容: ${text}`
             return rply;
         }
@@ -282,11 +284,11 @@ const rollDiceCommand = async function ({
                 const channelJobs = await agenda.agenda.jobs(channelCheck)
                     .catch(error => console.error('agenda error:', error.name, error.reason));
                 const channelJobsText = await showCronJobs(channelJobs);
-                rply.text = `【本群組列表】\n${groupJobsText}\n\n【本頻道列表】\n${channelJobsText}`;
+                rply.text = `【本群組 .cron 列表】\n${groupJobsText}\n\n【本頻道 .cron 列表】\n${channelJobsText}`;
             } else if (botname == "Discord" && userrole < 3) {
-                rply.text = `【本頻道列表】\n${rply.text}`;
+                rply.text = `【本頻道 .cron 列表】\n${rply.text}`;
             } else {
-                rply.text = `【本群組列表】\n${rply.text}`;
+                rply.text = `【本群組 .cron 列表】\n${rply.text}`;
             }
             return rply;
         }
@@ -424,7 +426,7 @@ const rollDiceCommand = async function ({
                 scheduleText = '每天';
             }
 
-            rply.text = `已新增排定內容\n將於 ${scheduleText} ${checkTime.hour}:${checkTime.min} (24小時制)運行`;
+            rply.text = `已新增排定內容\n將於 ${scheduleText} ${checkTime.hour}:${checkTime.min} (24小時制)運行\n您的序號 #${serial} (固定 ID)`;
             return rply;
         }
         default: {
@@ -626,19 +628,29 @@ async function showJobs(jobs) {
     let reply = '';
     if (jobs && jobs.length > 0) {
         // Backfill serials for legacy jobs (old jobs without serial get stable ones now)
-        const processedJobs = await ensureSerials(jobs, jobs[0]?.attrs?.name, jobs[0]?.attrs?.data?.groupid);
+        let processedJobs = await ensureSerials(jobs, jobs[0]?.attrs?.name, jobs[0]?.attrs?.data?.groupid);
 
-        reply = '【.at 任務列表】\n';
+        // For .at (one-time), prefer chronological order by next run time for better UX
+        processedJobs = processedJobs.slice().sort((a, b) => {
+            const ta = new Date(a.attrs.nextRunAt).getTime();
+            const tb = new Date(b.attrs.nextRunAt).getTime();
+            if (ta !== tb) return ta - tb;
+            const sa = (a.attrs.data && a.attrs.data.serial) || 0;
+            const sb = (b.attrs.data && b.attrs.data.serial) || 0;
+            return sa - sb;
+        });
+
         for (let index = 0; index < processedJobs.length; index++) {
             let job = processedJobs[index];
             const displayId = (job.attrs.data && job.attrs.data.serial) || (index + 1);
-            const timeStr = job.attrs.nextRunAt.toString().replace(/:\d+\s.*/, '');
+            const timeStr = moment(job.attrs.nextRunAt).format('YYYY-MM-DD HH:mm');
             reply += `────────────────\n`;
             reply += `序號 #${displayId}\n`;
             reply += `下次運行: ${timeStr}\n`;
             reply += `內容: ${job.attrs.data.replyText}\n`;
         }
         reply += `────────────────\n`;
+        reply += `\n💡 序號為固定 ID，刪除請用 .at delete N (N 為上方數字)\n`;
     } else {
         reply = "沒有找到 .at 任務"
     }
@@ -650,7 +662,6 @@ async function showCronJobs(jobs) {
         // Backfill serials for legacy jobs so old .cron tasks also get stable 序號
         const processedJobs = await ensureSerials(jobs, jobs[0]?.attrs?.name, jobs[0]?.attrs?.data?.groupid);
 
-        reply = '【.cron 任務列表】\n';
         for (let index = 0; index < processedJobs.length; index++) {
             let job = processedJobs[index];
             let createAt = job.attrs.data.createAt;
@@ -679,7 +690,7 @@ async function showCronJobs(jobs) {
             }
 
             const displayId = (job.attrs.data && job.attrs.data.serial) || (index + 1);
-            const createStr = createAt ? new Date(createAt).toString().replace(/:\d+\s.*/, '') : '未知';
+            const createStr = createAt ? moment(createAt).format('YYYY-MM-DD HH:mm') : '未知';
             reply += `────────────────\n`;
             reply += `序號 #${displayId}\n`;
             reply += `創建時間: ${createStr}\n`;
@@ -687,6 +698,7 @@ async function showCronJobs(jobs) {
             reply += `內容: ${job.attrs.data.replyText}\n`;
         }
         reply += `────────────────\n`;
+        reply += `\n💡 序號為固定 ID，刪除請用 .cron delete N (N 為上方數字)\n`;
     } else {
         reply = "沒有找到 .cron 任務"
     }

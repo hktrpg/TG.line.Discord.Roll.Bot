@@ -168,7 +168,7 @@ const rollDiceCommand = async function ({
             ).catch(error => console.error('agenda error:', error.name, error.reason))
 
             // Ensure any legacy jobs in this delete query get serials too
-            await ensureSerials(jobs, jobs[0]?.attrs?.data?.groupid).catch(() => {});
+            await ensureSerials(jobs, jobs[0]?.attrs?.name, jobs[0]?.attrs?.data?.groupid).catch(() => {});
 
             const targetNum = Number(mainMsg[2]);
             // Only match by stable serial. No index fallback, to prevent deleting wrong job
@@ -238,7 +238,7 @@ const rollDiceCommand = async function ({
             }
 
             let callBotname = differentPeformAt(botname);
-            const serial = await getNextSerial(groupid);
+            const serial = await getNextSerial(callBotname, groupid);
             const atData = { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, serial };
             await agenda.agenda.schedule(date, callBotname, atData).catch(error => console.error('agenda error:', error.name, error.reason))
             rply.text = `已新增排定內容
@@ -321,7 +321,7 @@ const rollDiceCommand = async function ({
             )
 
             // Ensure any legacy jobs in this delete query get serials too
-            await ensureSerials(jobs, jobs[0]?.attrs?.data?.groupid).catch(() => {});
+            await ensureSerials(jobs, jobs[0]?.attrs?.name, jobs[0]?.attrs?.data?.groupid).catch(() => {});
 
             const targetNum = Number(mainMsg[2]);
             // Only match by stable serial. No index fallback, to prevent deleting wrong job
@@ -398,7 +398,7 @@ const rollDiceCommand = async function ({
             let date = `${checkTime.min} ${checkTime.hour} *${checkTime.days ? `/${checkTime.days}` : ''} * ${(checkTime.weeks.length > 0) ? checkTime.weeks : '*'}`;
 
             let callBotname = differentPeformCron(botname);
-            const serial = await getNextSerial(groupid);
+            const serial = await getNextSerial(callBotname, groupid);
             const cronData = { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, createAt: new Date(Date.now()), serial };
             const job = agenda.agenda.create(callBotname, cronData);
             job.repeatEvery(date);
@@ -457,10 +457,11 @@ function getAndRemoveRoleNameAndLink(input) {
  * Get next stable serial for scheduled jobs within a group.
  * This ensures user-facing 序號 remains fixed even after deletes/adds.
  */
-async function getNextSerial(groupid) {
+async function getNextSerial(jobName, groupid) {
     if (!groupid) return 1;
     try {
         const existing = await schema.agendaAtHKTRPG.find({
+            name: jobName,
             "data.groupid": groupid
         }).sort({ "data.serial": -1 }).limit(1).lean().catch(() => []);
         if (existing && existing.length > 0 && existing[0].data && typeof existing[0].data.serial === 'number') {
@@ -477,14 +478,16 @@ async function getNextSerial(groupid) {
  * Called during show so old jobs gradually get fixed 序號.
  * This mutates the job objects and saves them.
  */
-async function ensureSerials(jobs, groupid) {
-    if (!jobs || jobs.length === 0 || !groupid) return jobs;
+async function ensureSerials(jobs, jobName, groupid) {
+    if (!jobs || jobs.length === 0 || !groupid || !jobName) return jobs;
 
-    // Always get the true global max serial for the entire group (across .at and .cron)
-    // This ensures serials are unique group-wide, even when show/delete queries are channel-filtered (for low-priv Discord users)
+    // Get max serial for this specific job type (name) within the group.
+    // .at and .cron are independent functions, so they have separate serial counters.
+    // This keeps serials stable per type even across channel-scoped views for low-priv users.
     let maxSerial = 0;
     try {
         const maxDoc = await schema.agendaAtHKTRPG.find({
+            name: jobName,
             "data.groupid": groupid
         }).sort({ "data.serial": -1 }).limit(1).lean();
         if (maxDoc && maxDoc.length > 0 && typeof maxDoc[0].data?.serial === 'number') {
@@ -623,22 +626,31 @@ async function showJobs(jobs) {
     let reply = '';
     if (jobs && jobs.length > 0) {
         // Backfill serials for legacy jobs (old jobs without serial get stable ones now)
-        const processedJobs = await ensureSerials(jobs, jobs[0]?.attrs?.data?.groupid);
+        const processedJobs = await ensureSerials(jobs, jobs[0]?.attrs?.name, jobs[0]?.attrs?.data?.groupid);
 
+        reply = '【.at 任務列表】\n';
         for (let index = 0; index < processedJobs.length; index++) {
             let job = processedJobs[index];
             const displayId = (job.attrs.data && job.attrs.data.serial) || (index + 1);
-            reply += `序號#${displayId} 下次運行時間 ${job.attrs.nextRunAt.toString().replace(/:\d+\s.*/, '')}\n${job.attrs.data.replyText}\n\n`;
+            const timeStr = job.attrs.nextRunAt.toString().replace(/:\d+\s.*/, '');
+            reply += `────────────────\n`;
+            reply += `序號 #${displayId}\n`;
+            reply += `下次運行: ${timeStr}\n`;
+            reply += `內容: ${job.attrs.data.replyText}\n`;
         }
-    } else reply = "沒有找到定時任務"
+        reply += `────────────────\n`;
+    } else {
+        reply = "沒有找到 .at 任務"
+    }
     return reply;
 }
 async function showCronJobs(jobs) {
     let reply = '';
     if (jobs && jobs.length > 0) {
         // Backfill serials for legacy jobs so old .cron tasks also get stable 序號
-        const processedJobs = await ensureSerials(jobs, jobs[0]?.attrs?.data?.groupid);
+        const processedJobs = await ensureSerials(jobs, jobs[0]?.attrs?.name, jobs[0]?.attrs?.data?.groupid);
 
+        reply = '【.cron 任務列表】\n';
         for (let index = 0; index < processedJobs.length; index++) {
             let job = processedJobs[index];
             let createAt = job.attrs.data.createAt;
@@ -667,9 +679,17 @@ async function showCronJobs(jobs) {
             }
 
             const displayId = (job.attrs.data && job.attrs.data.serial) || (index + 1);
-            reply += `序號#${displayId} 創建時間 ${createAt ? new Date(createAt).toString().replace(/:\d+\s.*/, '') : '未知'}\n運行資訊: ${scheduleText} ${hour}:${min}\n${job.attrs.data.replyText}\n\n`;
+            const createStr = createAt ? new Date(createAt).toString().replace(/:\d+\s.*/, '') : '未知';
+            reply += `────────────────\n`;
+            reply += `序號 #${displayId}\n`;
+            reply += `創建時間: ${createStr}\n`;
+            reply += `運行: ${scheduleText} ${hour}:${min}\n`;
+            reply += `內容: ${job.attrs.data.replyText}\n`;
         }
-    } else reply = "沒有找到定時任務"
+        reply += `────────────────\n`;
+    } else {
+        reply = "沒有找到 .cron 任務"
+    }
     return reply;
 }
 

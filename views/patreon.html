@@ -132,6 +132,44 @@
             .patreon-dashboard-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
             .btn-logout-patreon { font-size: 1rem; padding: 0.5rem 1rem; min-width: 120px; }
         }
+
+        /* Modal styles to properly follow the page's theme variables (light/dark) */
+        /* Prevents Bootstrap's default .modal and .alert-warning from clashing with custom dark theme */
+        .modal-content {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--card-border);
+        }
+        .modal-header {
+            border-bottom-color: var(--card-border);
+        }
+        .modal-footer {
+            border-top-color: var(--card-border);
+        }
+        .close {
+            color: var(--text-color);
+            text-shadow: none;
+        }
+        [data-theme="dark"] .modal-content {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--card-border);
+        }
+        [data-theme="dark"] .close {
+            color: var(--text-color);
+        }
+
+        /* Warning header: adapt alert-warning for both themes so it follows project style */
+        .modal-header.alert-warning {
+            background-color: #fff3cd;
+            border-bottom-color: #ffeeba;
+            color: #856404;
+        }
+        [data-theme="dark"] .modal-header.alert-warning {
+            background-color: #5c4a1f; /* dark amber tone for warning in dark mode */
+            border-bottom-color: #744210;
+            color: #fef3c7;
+        }
     </style>
 </head>
 <body>

@@ -168,7 +168,7 @@ const rollDiceCommand = async function ({
             ).catch(error => console.error('agenda error:', error.name, error.reason))
 
             // Ensure any legacy jobs in this delete query get serials too
-            await ensureSerials(jobs, jobs[0]?.attrs?.name, jobs[0]?.attrs?.data?.groupid).catch(() => {});
+            await ensureSerials(jobs, jobs[0]?.attrs?.data?.groupid).catch(() => {});
 
             const targetNum = Number(mainMsg[2]);
             // Only match by stable serial. No index fallback, to prevent deleting wrong job
@@ -238,7 +238,7 @@ const rollDiceCommand = async function ({
             }
 
             let callBotname = differentPeformAt(botname);
-            const serial = await getNextSerial(callBotname, groupid);
+            const serial = await getNextSerial(groupid);
             const atData = { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, serial };
             await agenda.agenda.schedule(date, callBotname, atData).catch(error => console.error('agenda error:', error.name, error.reason))
             rply.text = `已新增排定內容
@@ -321,7 +321,7 @@ const rollDiceCommand = async function ({
             )
 
             // Ensure any legacy jobs in this delete query get serials too
-            await ensureSerials(jobs, jobs[0]?.attrs?.name, jobs[0]?.attrs?.data?.groupid).catch(() => {});
+            await ensureSerials(jobs, jobs[0]?.attrs?.data?.groupid).catch(() => {});
 
             const targetNum = Number(mainMsg[2]);
             // Only match by stable serial. No index fallback, to prevent deleting wrong job
@@ -398,7 +398,7 @@ const rollDiceCommand = async function ({
             let date = `${checkTime.min} ${checkTime.hour} *${checkTime.days ? `/${checkTime.days}` : ''} * ${(checkTime.weeks.length > 0) ? checkTime.weeks : '*'}`;
 
             let callBotname = differentPeformCron(botname);
-            const serial = await getNextSerial(callBotname, groupid);
+            const serial = await getNextSerial(groupid);
             const cronData = { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, createAt: new Date(Date.now()), serial };
             const job = agenda.agenda.create(callBotname, cronData);
             job.repeatEvery(date);
@@ -457,11 +457,10 @@ function getAndRemoveRoleNameAndLink(input) {
  * Get next stable serial for scheduled jobs within a group.
  * This ensures user-facing 序號 remains fixed even after deletes/adds.
  */
-async function getNextSerial(jobName, groupid) {
+async function getNextSerial(groupid) {
     if (!groupid) return 1;
     try {
         const existing = await schema.agendaAtHKTRPG.find({
-            name: jobName,
             "data.groupid": groupid
         }).sort({ "data.serial": -1 }).limit(1).lean().catch(() => []);
         if (existing && existing.length > 0 && existing[0].data && typeof existing[0].data.serial === 'number') {
@@ -478,12 +477,24 @@ async function getNextSerial(jobName, groupid) {
  * Called during show so old jobs gradually get fixed 序號.
  * This mutates the job objects and saves them.
  */
-async function ensureSerials(jobs, jobName, groupid) {
-    if (!jobs || jobs.length === 0) return jobs;
+async function ensureSerials(jobs, groupid) {
+    if (!jobs || jobs.length === 0 || !groupid) return jobs;
 
+    // Always get the true global max serial for the entire group (across .at and .cron)
+    // This ensures serials are unique group-wide, even when show/delete queries are channel-filtered (for low-priv Discord users)
     let maxSerial = 0;
-    const toBackfill = [];
+    try {
+        const maxDoc = await schema.agendaAtHKTRPG.find({
+            "data.groupid": groupid
+        }).sort({ "data.serial": -1 }).limit(1).lean();
+        if (maxDoc && maxDoc.length > 0 && typeof maxDoc[0].data?.serial === 'number') {
+            maxSerial = maxDoc[0].data.serial;
+        }
+    } catch (e) {
+        console.error('ensureSerials max query error:', e.message);
+    }
 
+    const toBackfill = [];
     for (const job of jobs) {
         const ser = job.attrs.data && job.attrs.data.serial;
         if (typeof ser === 'number') {
@@ -493,14 +504,22 @@ async function ensureSerials(jobs, jobName, groupid) {
         }
     }
 
-    if (toBackfill.length === 0) return jobs;
+    if (toBackfill.length === 0) {
+        // still sort for consistent order
+        jobs.sort((a, b) => {
+            const sa = (a.attrs.data && a.attrs.data.serial) || 0;
+            const sb = (b.attrs.data && b.attrs.data.serial) || 0;
+            if (sa && sb && sa !== sb) return sa - sb;
+            return String(a.attrs._id || '').localeCompare(String(b.attrs._id || ''));
+        });
+        return jobs;
+    }
 
     for (const job of toBackfill) {
         maxSerial += 1;
         job.attrs.data = job.attrs.data || {};
         job.attrs.data.serial = maxSerial;
 
-        // Persist the serial so it becomes stable from now on
         try {
             await job.save();
         } catch (e) {
@@ -508,7 +527,7 @@ async function ensureSerials(jobs, jobName, groupid) {
         }
     }
 
-    // Re-sort after backfill so display order is by serial
+    // Re-sort the (filtered) list by the now-updated serials
     jobs.sort((a, b) => {
         const sa = (a.attrs.data && a.attrs.data.serial) || 0;
         const sb = (b.attrs.data && b.attrs.data.serial) || 0;
@@ -604,7 +623,7 @@ async function showJobs(jobs) {
     let reply = '';
     if (jobs && jobs.length > 0) {
         // Backfill serials for legacy jobs (old jobs without serial get stable ones now)
-        const processedJobs = await ensureSerials(jobs, jobs[0]?.attrs?.name, jobs[0]?.attrs?.data?.groupid);
+        const processedJobs = await ensureSerials(jobs, jobs[0]?.attrs?.data?.groupid);
 
         for (let index = 0; index < processedJobs.length; index++) {
             let job = processedJobs[index];
@@ -618,7 +637,7 @@ async function showCronJobs(jobs) {
     let reply = '';
     if (jobs && jobs.length > 0) {
         // Backfill serials for legacy jobs so old .cron tasks also get stable 序號
-        const processedJobs = await ensureSerials(jobs, jobs[0]?.attrs?.name, jobs[0]?.attrs?.data?.groupid);
+        const processedJobs = await ensureSerials(jobs, jobs[0]?.attrs?.data?.groupid);
 
         for (let index = 0; index < processedJobs.length; index++) {
             let job = processedJobs[index];

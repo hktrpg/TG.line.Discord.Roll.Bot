@@ -199,7 +199,7 @@ if (process.env.mongoURL) {
         name: String,
         notes: String,
         code: String,
-        switch: Boolean
+        switch: { type: Boolean, default: true }
     }, {
         indexes: [
             { gpid: 1, id: 1 },

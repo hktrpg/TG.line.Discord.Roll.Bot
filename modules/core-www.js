@@ -1035,8 +1035,22 @@ function buildSlotHistoryEntries(oldSlots, newSlots) {
     const entries = [];
     const maxLen = Math.max(oldSlots.length, newSlots.length);
     for (let i = 0; i < maxLen; i++) {
-        const oldSlot = oldSlots[i] || { targetId: '', targetType: '', platform: '', name: '', switch: true };
-        const newSlot = newSlots[i] || { targetId: '', targetType: '', platform: '', name: '', switch: true };
+        const oldRaw = oldSlots[i];
+        const newRaw = newSlots[i];
+        const oldSlot = oldRaw ? {
+            targetId: oldRaw.targetId || '',
+            targetType: oldRaw.targetType || '',
+            platform: oldRaw.platform || '',
+            name: oldRaw.name || '',
+            switch: oldRaw.switch !== false
+        } : { targetId: '', targetType: '', platform: '', name: '', switch: true };
+        const newSlot = newRaw ? {
+            targetId: newRaw.targetId || '',
+            targetType: newRaw.targetType || '',
+            platform: newRaw.platform || '',
+            name: newRaw.name || '',
+            switch: newRaw.switch !== false
+        } : { targetId: '', targetType: '', platform: '', name: '', switch: true };
         const oldHas = slotHasTarget(oldSlot);
         const newHas = slotHasTarget(newSlot);
 
@@ -1078,8 +1092,8 @@ function buildSlotHistoryEntries(oldSlots, newSlots) {
             });
         }
 
-        const oldSwitch = !!oldSlot.switch;
-        const newSwitch = !!newSlot.switch;
+        const oldSwitch = oldSlot.switch;
+        const newSwitch = newSlot.switch;
         if (oldSwitch !== newSwitch) {
             entries.push({
                 at: new Date(),
@@ -1214,7 +1228,8 @@ www.patch('/api/patreon/me/slot/:index', async (req, res) => {
             return;
         }
         const body = req.body || {};
-        const newSwitch = body.switch !== undefined ? !!body.switch : !member.slots[index].switch;
+        const currentSlotSwitch = member.slots[index] && member.slots[index].switch !== false;
+        const newSwitch = body.switch !== undefined ? !!body.switch : !currentSlotSwitch;
         member.slots[index].switch = newSwitch;
         const toggleHistory = slotHasTarget(member.slots[index])
             ? [{

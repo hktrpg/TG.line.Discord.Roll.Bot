@@ -202,7 +202,7 @@
                 • <strong>ID 類型</strong>：選擇這筆 ID 是 User 還是 Channel<br>
                 • <strong>平台</strong>：此 ID 所屬平台（Discord / Line / Telegram）<br>
                 • <strong>顯示名稱</strong>：備註用名稱，方便你辨識對象（可留空）<br>
-                • <strong>啟用狀態</strong>：啟用 ＝ 這格立即生效並同步權限；停用 ＝ 暫停這格權限（設定會保留，之後可再啟用）
+                • <strong>啓用狀態</strong>：啓用中 ＝ 這格立即生效並同步權限；停用中 ＝ 暫停這格權限（設定會保留，之後可再啟用）
             </p>
             <p class="text-muted small mb-2">
                 如何取得 ID：<br>
@@ -238,6 +238,28 @@
         </div>
     </div>
 
+    <!-- Modal: 第一次停用提示 (localStorage 控制，只顯示一次) -->
+    <div class="modal fade" id="slotDisableWarningModal" tabindex="-1" role="dialog" aria-labelledby="slotDisableWarningModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header alert-warning">
+                    <h5 class="modal-title" id="slotDisableWarningModalTitle">提示</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-1">由啓用中轉為停用中，該名額的 VIP 權限將暫停同步。</p>
+                    <p class="mb-0 text-muted small">此提示只會在第一次從啓用中切換為停用時出現，以後不會再顯示。</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="slotDisableCancelBtn" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-warning" id="slotDisableConfirmBtn">確定停用</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <div id="footer"></div>
 
@@ -264,7 +286,9 @@
     <script>
         (function () {
             const KEY_STORAGE = 'patreon_key';
+            const SLOT_DISABLE_WARNING_KEY = 'patreonSlotFirstDisableWarning';
             let memberData = null;
+            let pendingToggleBtn = null;
 
             const keySection = document.getElementById('keySection');
             const dashboardSection = document.getElementById('dashboardSection');
@@ -583,16 +607,38 @@
                 }
             }
 
+            function hasSlotTarget(btn) {
+                if (!btn) return false;
+                const row = (btn.closest ? btn.closest('.slot-row') : null) || btn.parentNode && btn.parentNode.parentNode;
+                if (!row || !row.querySelector) return false;
+                const input = row.querySelector('.slot-targetId');
+                return !!(input && String(input.value || '').trim());
+            }
+
+            function applySlotDisableState(btn) {
+                if (!btn) return;
+                btn.setAttribute('data-switch', '0');
+                btn.textContent = '停用中';
+                btn.className = 'btn btn-sm btn-slot-toggle btn-outline-secondary';
+            }
+
             function renderSlots(slots, maxSlots) {
                 const container = document.getElementById('slotsContainer');
                 container.innerHTML = '';
                 var headerRow = document.createElement('div');
                 headerRow.className = 'row slot-header';
-                headerRow.innerHTML = '<div class="col-12 col-md-3 slot-header-col">目標 ID</div><div class="col-6 col-md-2 slot-header-col">ID 類型</div><div class="col-6 col-md-2 slot-header-col">平台</div><div class="col-8 col-md-2 slot-header-col">顯示名稱</div><div class="col-4 col-md-2 slot-header-col">啟用狀態</div>';
+                headerRow.innerHTML = '<div class="col-12 col-md-3 slot-header-col">目標 ID</div><div class="col-6 col-md-2 slot-header-col">ID 類型</div><div class="col-6 col-md-2 slot-header-col">平台</div><div class="col-8 col-md-2 slot-header-col">顯示名稱</div><div class="col-4 col-md-2 slot-header-col">啓用狀態</div>';
                 container.appendChild(headerRow);
                 const total = Math.max(maxSlots, slots.length, 1);
                 for (let i = 0; i < total; i++) {
-                    const s = slots[i] || { targetId: '', targetType: '', platform: '', name: '', switch: true };
+                    const raw = slots[i];
+                    const s = raw ? {
+                        targetId: raw.targetId || '',
+                        targetType: raw.targetType || '',
+                        platform: raw.platform || '',
+                        name: raw.name || '',
+                        switch: raw.switch !== false
+                    } : { targetId: '', targetType: '', platform: '', name: '', switch: true };
                     const row = document.createElement('div');
                     row.className = 'row slot-row mb-2 border-bottom pb-2';
                     row.innerHTML =
@@ -600,15 +646,36 @@
                         '<div class="col-6 col-md-2"><select class="form-control form-control-sm slot-targetType"><option value=""' + ((s.targetType !== 'user' && s.targetType !== 'channel') ? ' selected' : '') + '>請選擇</option><option value="user"' + (s.targetType === 'user' ? ' selected' : '') + '>使用者</option><option value="channel"' + (s.targetType === 'channel' ? ' selected' : '') + '>伺服器(群組)</option></select></div>' +
                         '<div class="col-6 col-md-2"><select class="form-control form-control-sm slot-platform"><option value=""' + ((s.platform !== 'Discord' && s.platform !== 'Line' && s.platform !== 'Telegram' && s.platform !== 'Whatsapp' && s.platform !== 'WhatsApp') ? ' selected' : '') + '>請選擇</option><option value="Discord"' + (s.platform === 'Discord' ? ' selected' : '') + '>Discord</option><option value="Line"' + (s.platform === 'Line' ? ' selected' : '') + '>Line</option><option value="Telegram"' + (s.platform === 'Telegram' ? ' selected' : '') + '>Telegram</option><option value="WhatsApp"' + (s.platform === 'WhatsApp' || s.platform === 'Whatsapp' ? ' selected' : '') + '>WhatsApp</option></select></div>' +
                         '<div class="col-8 col-md-2"><input type="text" class="form-control form-control-sm slot-name" placeholder="顯示名稱（可留空）" value="' + (s.name || '').replace(/"/g, '&quot;') + '"></div>' +
-                        '<div class="col-4 col-md-2"><button type="button" class="btn btn-sm btn-slot-toggle ' + (s.switch ? 'btn-success' : 'btn-outline-secondary') + '" data-index="' + i + '" data-switch="' + (s.switch ? '1' : '0') + '">' + (s.switch ? '啟用' : '停用') + '</button></div>';
+                        '<div class="col-4 col-md-2"><button type="button" class="btn btn-sm btn-slot-toggle ' + (s.switch ? 'btn-success' : 'btn-outline-secondary') + '" data-index="' + i + '" data-switch="' + (s.switch ? '1' : '0') + '">' + (s.switch ? '啓用中' : '停用中') + '</button></div>';
                     container.appendChild(row);
                 }
                 container.querySelectorAll('.btn-slot-toggle').forEach(function (btn) {
                     btn.addEventListener('click', function () {
-                        const next = btn.getAttribute('data-switch') !== '1';
-                        btn.setAttribute('data-switch', next ? '1' : '0');
-                        btn.textContent = next ? '啟用' : '停用';
-                        btn.className = 'btn btn-sm btn-slot-toggle ' + (next ? 'btn-success' : 'btn-outline-secondary');
+                        const isOn = btn.getAttribute('data-switch') === '1';
+                        if (isOn) {
+                            // 從啓用中切換到停用
+                            if (hasSlotTarget(btn)) {
+                                const alreadyShown = localStorage.getItem(SLOT_DISABLE_WARNING_KEY) === '1';
+                                if (!alreadyShown) {
+                                    pendingToggleBtn = btn;
+                                    if (typeof $ !== 'undefined' && $.fn.modal) {
+                                        $('#slotDisableWarningModal').modal('show');
+                                    } else {
+                                        // fallback
+                                        if (confirm('由啓用中轉為停用中，該名額的 VIP 權限將暫停同步。')) {
+                                            applySlotDisableState(btn);
+                                            localStorage.setItem(SLOT_DISABLE_WARNING_KEY, '1');
+                                        }
+                                    }
+                                    return;
+                                }
+                            }
+                        }
+                        // 一般切換（非第一次警告，或無目標ID，或原本就是關閉）
+                        const nextOn = !isOn;
+                        btn.setAttribute('data-switch', nextOn ? '1' : '0');
+                        btn.textContent = nextOn ? '啓用中' : '停用中';
+                        btn.className = 'btn btn-sm btn-slot-toggle ' + (nextOn ? 'btn-success' : 'btn-outline-secondary');
                     });
                 });
             }
@@ -717,6 +784,44 @@
             });
 
             btnSaveSlots.addEventListener('click', saveSlots);
+
+            // 第一次停用警告 modal 設定（localStorage 控制）
+            (function setupSlotDisableWarningModal() {
+                const modalEl = document.getElementById('slotDisableWarningModal');
+                if (!modalEl) return;
+
+                const confirmBtn = document.getElementById('slotDisableConfirmBtn');
+                const cancelBtn = document.getElementById('slotDisableCancelBtn');
+
+                function clearPending() {
+                    pendingToggleBtn = null;
+                }
+
+                if (confirmBtn) {
+                    confirmBtn.addEventListener('click', function () {
+                        if (pendingToggleBtn) {
+                            applySlotDisableState(pendingToggleBtn);
+                            localStorage.setItem(SLOT_DISABLE_WARNING_KEY, '1');
+                            clearPending();
+                        }
+                        if (typeof $ !== 'undefined' && $.fn.modal) {
+                            $(modalEl).modal('hide');
+                        }
+                    });
+                }
+
+                if (cancelBtn) {
+                    // cancelBtn 已有 data-dismiss="modal"，額外清除 pending
+                    cancelBtn.addEventListener('click', clearPending);
+                }
+
+                // 任何方式關閉 modal 都清除 pending，避免殘留
+                if (typeof $ !== 'undefined' && $.fn.on) {
+                    $(modalEl).on('hidden.bs.modal', clearPending);
+                } else {
+                    modalEl.addEventListener('hidden.bs.modal', clearPending);
+                }
+            })();
 
             (function init() {
                 const savedKey = sessionStorage.getItem(KEY_STORAGE);

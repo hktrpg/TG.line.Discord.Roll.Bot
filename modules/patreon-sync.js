@@ -62,7 +62,7 @@ async function syncSlotToVip(slot, level, keyHash, memberName, member) {
         ? { gpid: slot.targetId, level, name: slot.name || memberName, notes, switch: true }
         : { id: slot.targetId, level, name: slot.name || memberName, notes, switch: true };
 
-    if (slot.switch) {
+    if (slot.switch !== false) {
         const $set = { ...update };
         const extra = endDateOpsForMember(member, $set);
         const payload = { $set, $setOnInsert: { startDate: new Date() } };
@@ -94,7 +94,7 @@ async function syncMemberSlotsToVip(member) {
         const filter = isChannel
             ? { gpid: slot.targetId, notes }
             : { id: slot.targetId, notes };
-        if (slot.switch) {
+        if (slot.switch !== false) {
             const update = isChannel
                 ? { gpid: slot.targetId, level, name: slot.name || memberName, notes, switch: true }
                 : { id: slot.targetId, level, name: slot.name || memberName, notes, switch: true };

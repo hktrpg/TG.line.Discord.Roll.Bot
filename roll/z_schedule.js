@@ -123,7 +123,7 @@ const rollDiceCommand = async function ({
             const jobs = await agenda.agenda.jobs(
                 check
             ).catch(error => console.error('agenda error:', error.name, error.reason))
-            rply.text = showJobs(jobs);
+            rply.text = await showJobs(jobs);
             if (userrole == 3 && botname == "Discord") {
                 const groupJobsText = rply.text;
                 const channelCheck = {
@@ -133,7 +133,7 @@ const rollDiceCommand = async function ({
                 };
                 const channelJobs = await agenda.agenda.jobs(channelCheck)
                     .catch(error => console.error('agenda error:', error.name, error.reason));
-                const channelJobsText = showJobs(channelJobs);
+                const channelJobsText = await showJobs(channelJobs);
                 rply.text = `【本群組列表】\n${groupJobsText}\n\n【本頻道列表】\n${channelJobsText}`;
             } else if (botname == "Discord" && userrole < 3) {
                 rply.text = `【本頻道列表】\n${rply.text}`;
@@ -166,15 +166,22 @@ const rollDiceCommand = async function ({
             const jobs = await agenda.agenda.jobs(
                 check
             ).catch(error => console.error('agenda error:', error.name, error.reason))
-            const jobIndex = Number(mainMsg[2]) - 1;
-            if (!jobs || !Array.isArray(jobs) || jobIndex < 0 || jobIndex >= jobs.length || !jobs[jobIndex]) {
-                rply.text = "找不到該序號, 請使用.at show重新檢查"
+
+            // Ensure any legacy jobs in this delete query get serials too
+            await ensureSerials(jobs, jobs[0]?.attrs?.name, jobs[0]?.attrs?.data?.groupid).catch(() => {});
+
+            const targetNum = Number(mainMsg[2]);
+            // Only match by stable serial. No index fallback, to prevent deleting wrong job
+            // when list changed between show and delete.
+            let targetJob = jobs.find(j => j.attrs.data && j.attrs.data.serial === targetNum);
+            if (!targetJob) {
+                rply.text = "找不到該序號，請使用最新 .at show 的序號"
                 return rply;
             }
             try {
-                let data = jobs[jobIndex];
-                await jobs[jobIndex].remove();
-                rply.text = `已刪除序號#${Number(mainMsg[2])} \n${data.attrs.data.replyText}`;
+                let data = targetJob;
+                await targetJob.remove();
+                rply.text = `已刪除序號#${targetNum} \n${data.attrs.data.replyText}`;
             } catch (error) {
                 console.error("Remove at Error removing job from collection. input:", inputStr, error);
                 rply.text = "刪除時發生錯誤，請稍後再試"
@@ -231,7 +238,9 @@ const rollDiceCommand = async function ({
             }
 
             let callBotname = differentPeformAt(botname);
-            await agenda.agenda.schedule(date, callBotname, { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid }).catch(error => console.error('agenda error:', error.name, error.reason))
+            const serial = await getNextSerial(callBotname, groupid);
+            const atData = { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, serial };
+            await agenda.agenda.schedule(date, callBotname, atData).catch(error => console.error('agenda error:', error.name, error.reason))
             rply.text = `已新增排定內容
 執行時間: ${moment(date).format('YYYY-MM-DD HH:mm')}
 訊息內容: ${text}`
@@ -262,7 +271,7 @@ const rollDiceCommand = async function ({
             const jobs = await agenda.agenda.jobs(
                 check
             ).catch(error => console.error('agenda error:', error.name, error.reason))
-            rply.text = showCronJobs(jobs);
+            rply.text = await showCronJobs(jobs);
             if (userrole == 3 && botname == "Discord") {
                 const groupJobsText = rply.text;
                 const channelCheck = {
@@ -272,7 +281,7 @@ const rollDiceCommand = async function ({
                 };
                 const channelJobs = await agenda.agenda.jobs(channelCheck)
                     .catch(error => console.error('agenda error:', error.name, error.reason));
-                const channelJobsText = showCronJobs(channelJobs);
+                const channelJobsText = await showCronJobs(channelJobs);
                 rply.text = `【本群組列表】\n${groupJobsText}\n\n【本頻道列表】\n${channelJobsText}`;
             } else if (botname == "Discord" && userrole < 3) {
                 rply.text = `【本頻道列表】\n${rply.text}`;
@@ -310,14 +319,26 @@ const rollDiceCommand = async function ({
             const jobs = await agenda.agenda.jobs(
                 check
             )
+
+            // Ensure any legacy jobs in this delete query get serials too
+            await ensureSerials(jobs, jobs[0]?.attrs?.name, jobs[0]?.attrs?.data?.groupid).catch(() => {});
+
+            const targetNum = Number(mainMsg[2]);
+            // Only match by stable serial. No index fallback, to prevent deleting wrong job
+            // when list changed between show and delete.
+            let targetJob = jobs.find(j => j.attrs.data && j.attrs.data.serial === targetNum);
+            if (!targetJob) {
+                rply.text = "找不到該序號，請使用最新 .cron show 的序號"
+                return rply;
+            }
             try {
-                let data = jobs[Number(mainMsg[2]) - 1];
-                await jobs[Number(mainMsg[2]) - 1].remove();
-                rply.text = `已刪除序號#${Number(mainMsg[2])} \n${data.attrs.data.replyText} `;
+                let data = targetJob;
+                await targetJob.remove();
+                rply.text = `已刪除序號#${targetNum} \n${data.attrs.data.replyText} `;
 
             } catch {
                 console.error("Remove Cron Error removing job from collection, input:", inputStr);
-                rply.text = "找不到該序號, 請使用.cron show 重新檢查"
+                rply.text = "刪除時發生錯誤，請稍後再試"
                 return rply;
             }
             return rply;
@@ -377,7 +398,9 @@ const rollDiceCommand = async function ({
             let date = `${checkTime.min} ${checkTime.hour} *${checkTime.days ? `/${checkTime.days}` : ''} * ${(checkTime.weeks.length > 0) ? checkTime.weeks : '*'}`;
 
             let callBotname = differentPeformCron(botname);
-            const job = agenda.agenda.create(callBotname, { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, createAt: new Date(Date.now()) });
+            const serial = await getNextSerial(callBotname, groupid);
+            const cronData = { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, createAt: new Date(Date.now()), serial };
+            const job = agenda.agenda.create(callBotname, cronData);
             job.repeatEvery(date);
 
             try {
@@ -428,6 +451,72 @@ function getAndRemoveRoleNameAndLink(input) {
     let roleName = /^name=(.*)\n/mi.test(input) ? input.match(/^name=(.*)\n/mi)[1] : null;
     let imageLink = /^link=(.*)\n/mi.test(input) ? input.match(/^link=(.*)\n/mi)[1] : null;
     return { newText: input.replace(/^link=.*\n/mi, "").replace(/^name=.*\n/im, ""), roleName, imageLink };
+}
+
+/**
+ * Get next stable serial for scheduled jobs within a group.
+ * This ensures user-facing 序號 remains fixed even after deletes/adds.
+ */
+async function getNextSerial(jobName, groupid) {
+    if (!groupid) return 1;
+    try {
+        const existing = await schema.agendaAtHKTRPG.find({
+            name: jobName,
+            "data.groupid": groupid
+        }).sort({ "data.serial": -1 }).limit(1).lean().catch(() => []);
+        if (existing && existing.length > 0 && existing[0].data && typeof existing[0].data.serial === 'number') {
+            return existing[0].data.serial + 1;
+        }
+    } catch (e) {
+        console.error('getNextSerial error:', e.message);
+    }
+    return 1;
+}
+
+/**
+ * Backfill stable serial for legacy jobs that don't have one yet.
+ * Called during show so old jobs gradually get fixed 序號.
+ * This mutates the job objects and saves them.
+ */
+async function ensureSerials(jobs, jobName, groupid) {
+    if (!jobs || jobs.length === 0) return jobs;
+
+    let maxSerial = 0;
+    const toBackfill = [];
+
+    for (const job of jobs) {
+        const ser = job.attrs.data && job.attrs.data.serial;
+        if (typeof ser === 'number') {
+            maxSerial = Math.max(maxSerial, ser);
+        } else {
+            toBackfill.push(job);
+        }
+    }
+
+    if (toBackfill.length === 0) return jobs;
+
+    for (const job of toBackfill) {
+        maxSerial += 1;
+        job.attrs.data = job.attrs.data || {};
+        job.attrs.data.serial = maxSerial;
+
+        // Persist the serial so it becomes stable from now on
+        try {
+            await job.save();
+        } catch (e) {
+            console.error('Failed to backfill serial for job:', e.message);
+        }
+    }
+
+    // Re-sort after backfill so display order is by serial
+    jobs.sort((a, b) => {
+        const sa = (a.attrs.data && a.attrs.data.serial) || 0;
+        const sb = (b.attrs.data && b.attrs.data.serial) || 0;
+        if (sa && sb && sa !== sb) return sa - sb;
+        return String(a.attrs._id || '').localeCompare(String(b.attrs._id || ''));
+    });
+
+    return jobs;
 }
 
 function differentPeformCron(botname) {
@@ -511,21 +600,28 @@ function checkCronTime(text) {
 
 
 
-function showJobs(jobs) {
+async function showJobs(jobs) {
     let reply = '';
     if (jobs && jobs.length > 0) {
-        for (let index = 0; index < jobs.length; index++) {
-            let job = jobs[index];
-            reply += `序號#${index + 1} 下次運行時間 ${job.attrs.nextRunAt.toString().replace(/:\d+\s.*/, '')}\n${job.attrs.data.replyText}\n\n`;
+        // Backfill serials for legacy jobs (old jobs without serial get stable ones now)
+        const processedJobs = await ensureSerials(jobs, jobs[0]?.attrs?.name, jobs[0]?.attrs?.data?.groupid);
+
+        for (let index = 0; index < processedJobs.length; index++) {
+            let job = processedJobs[index];
+            const displayId = (job.attrs.data && job.attrs.data.serial) || (index + 1);
+            reply += `序號#${displayId} 下次運行時間 ${job.attrs.nextRunAt.toString().replace(/:\d+\s.*/, '')}\n${job.attrs.data.replyText}\n\n`;
         }
     } else reply = "沒有找到定時任務"
     return reply;
 }
-function showCronJobs(jobs) {
+async function showCronJobs(jobs) {
     let reply = '';
     if (jobs && jobs.length > 0) {
-        for (let index = 0; index < jobs.length; index++) {
-            let job = jobs[index];
+        // Backfill serials for legacy jobs so old .cron tasks also get stable 序號
+        const processedJobs = await ensureSerials(jobs, jobs[0]?.attrs?.name, jobs[0]?.attrs?.data?.groupid);
+
+        for (let index = 0; index < processedJobs.length; index++) {
+            let job = processedJobs[index];
             let createAt = job.attrs.data.createAt;
 
             const cronParts = job.attrs.repeatInterval.split(' ');
@@ -551,7 +647,8 @@ function showCronJobs(jobs) {
                 scheduleText = '每天';
             }
 
-            reply += `序號#${index + 1} 創建時間 ${createAt ? new Date(createAt).toString().replace(/:\d+\s.*/, '') : '未知'}\n運行資訊: ${scheduleText} ${hour}:${min}\n${job.attrs.data.replyText}\n\n`;
+            const displayId = (job.attrs.data && job.attrs.data.serial) || (index + 1);
+            reply += `序號#${displayId} 創建時間 ${createAt ? new Date(createAt).toString().replace(/:\d+\s.*/, '') : '未知'}\n運行資訊: ${scheduleText} ${hour}:${min}\n${job.attrs.data.replyText}\n\n`;
         }
     } else reply = "沒有找到定時任務"
     return reply;

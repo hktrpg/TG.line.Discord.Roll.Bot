@@ -607,14 +607,6 @@
                 }
             }
 
-            function hasSlotTarget(btn) {
-                if (!btn) return false;
-                const row = (btn.closest ? btn.closest('.slot-row') : null) || btn.parentNode && btn.parentNode.parentNode;
-                if (!row || !row.querySelector) return false;
-                const input = row.querySelector('.slot-targetId');
-                return !!(input && String(input.value || '').trim());
-            }
-
             function applySlotDisableState(btn) {
                 if (!btn) return;
                 btn.setAttribute('data-switch', '0');
@@ -653,25 +645,23 @@
                     btn.addEventListener('click', function () {
                         const isOn = btn.getAttribute('data-switch') === '1';
                         if (isOn) {
-                            // 從啓用中切換到停用
-                            if (hasSlotTarget(btn)) {
-                                const alreadyShown = localStorage.getItem(SLOT_DISABLE_WARNING_KEY) === '1';
-                                if (!alreadyShown) {
-                                    pendingToggleBtn = btn;
-                                    if (typeof $ !== 'undefined' && $.fn.modal) {
-                                        $('#slotDisableWarningModal').modal('show');
-                                    } else {
-                                        // fallback
-                                        if (confirm('由啓用中轉為停用中，該名額的 VIP 權限將暫停同步。')) {
-                                            applySlotDisableState(btn);
-                                            localStorage.setItem(SLOT_DISABLE_WARNING_KEY, '1');
-                                        }
+                            // 第一次從啓用中切換到停用時顯示提示（不論此時目標ID是否已填入）
+                            const alreadyShown = localStorage.getItem(SLOT_DISABLE_WARNING_KEY) === '1';
+                            if (!alreadyShown) {
+                                pendingToggleBtn = btn;
+                                if (typeof $ !== 'undefined' && $.fn.modal) {
+                                    $('#slotDisableWarningModal').modal('show');
+                                } else {
+                                    // fallback
+                                    if (confirm('由啓用中轉為停用中，該名額的 VIP 權限將暫停同步。')) {
+                                        applySlotDisableState(btn);
+                                        localStorage.setItem(SLOT_DISABLE_WARNING_KEY, '1');
                                     }
-                                    return;
                                 }
+                                return;
                             }
                         }
-                        // 一般切換（非第一次警告，或無目標ID，或原本就是關閉）
+                        // 一般切換（非第一次警告，或原本就是關閉）
                         const nextOn = !isOn;
                         btn.setAttribute('data-switch', nextOn ? '1' : '0');
                         btn.textContent = nextOn ? '啓用中' : '停用中';

@@ -35,9 +35,9 @@ describe('Patreon slots UI (patreon.html) - default switch is always on unless e
   // Replicates the collect logic (only cares about targetId presence + current button state)
   function simulateCollectFromMockRows(mockRows) {
     const slots = [];
-    mockRows.forEach(function (row) {
+    for (const row of mockRows) {
       const targetId = (row.targetInput && row.targetInput.value || '').trim();
-      if (!targetId) return;  // matches "Only submit used slots"
+      if (!targetId) continue;  // matches "Only submit used slots"
       const sw = row.button && row.button.dataSwitch === '1';
       slots.push({
         targetId: targetId,
@@ -46,13 +46,13 @@ describe('Patreon slots UI (patreon.html) - default switch is always on unless e
         name: row.name || '',
         switch: sw
       });
-    });
+    }
     return slots;
   }
 
   describe('default state for new/empty slots', () => {
     it('brand new slot row (no raw data) defaults to turn on', () => {
-      const s = createMockSlotData(undefined);
+      const s = createMockSlotData();
       expect(s.switch).toBe(true);
     });
 

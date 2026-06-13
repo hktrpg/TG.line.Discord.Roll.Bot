@@ -469,8 +469,8 @@ async function getNextSerial(jobName, groupid) {
         if (existing && existing.length > 0 && existing[0].data && typeof existing[0].data.serial === 'number') {
             return existing[0].data.serial + 1;
         }
-    } catch (e) {
-        console.error('getNextSerial error:', e.message);
+    } catch (error) {
+        console.error('getNextSerial error:', error.message);
     }
     return 1;
 }
@@ -495,8 +495,8 @@ async function ensureSerials(jobs, jobName, groupid) {
         if (maxDoc && maxDoc.length > 0 && typeof maxDoc[0].data?.serial === 'number') {
             maxSerial = maxDoc[0].data.serial;
         }
-    } catch (e) {
-        console.error('ensureSerials max query error:', e.message);
+    } catch (error) {
+        console.error('ensureSerials max query error:', error.message);
     }
 
     const toBackfill = [];
@@ -527,8 +527,8 @@ async function ensureSerials(jobs, jobName, groupid) {
 
         try {
             await job.save();
-        } catch (e) {
-            console.error('Failed to backfill serial for job:', e.message);
+        } catch (error) {
+            console.error('Failed to backfill serial for job:', error.message);
         }
     }
 
@@ -631,7 +631,7 @@ async function showJobs(jobs) {
         let processedJobs = await ensureSerials(jobs, jobs[0]?.attrs?.name, jobs[0]?.attrs?.data?.groupid);
 
         // For .at (one-time), prefer chronological order by next run time for better UX
-        processedJobs = processedJobs.slice().sort((a, b) => {
+        processedJobs = [...processedJobs].sort((a, b) => {
             const ta = new Date(a.attrs.nextRunAt).getTime();
             const tb = new Date(b.attrs.nextRunAt).getTime();
             if (ta !== tb) return ta - tb;

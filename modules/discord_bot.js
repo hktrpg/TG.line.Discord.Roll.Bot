@@ -16,6 +16,7 @@ const dbConnector = require('../modules/db-connector.js');
 
 exports.analytics = require('./analytics');
 const debugMode = !!process.env.DEBUG;
+const DEBUG_LOG = process.env.DEBUG_LOG === 'true';
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/igm);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 // adminSecret removed - no longer needed after custom heartbeat monitoring removal
@@ -382,12 +383,25 @@ function startDiscordClusterWorkerEventLoopDiag() {
 
 		if (lagMs >= DISCORD_WORKER_EVENT_LOOP_LAG_WARN_MS) {
 			lagWarnSinceSummary += 1;
-			console.warn('[Perf][DiscordClusterWorker] Event loop lag (may delay sharding heartbeat IPC ack)', {
-				clusterId: client.cluster?.id,
-				lagMs,
-				warnThresholdMs: DISCORD_WORKER_EVENT_LOOP_LAG_WARN_MS,
-				monitorIntervalMs: DISCORD_WORKER_EVENT_LOOP_MONITOR_MS
-			});
+			// Only log per-tick spike details when DEBUG_LOG=true (to avoid log spam in normal operation).
+			// Summary below will still catch persistent problems.
+			if (DEBUG_LOG) {
+				const mem = process.memoryUsage();
+				console.warn('[Perf][DiscordClusterWorker] Event loop lag (may delay sharding heartbeat IPC ack)', {
+					clusterId: client.cluster?.id,
+					lagMs,
+					warnThresholdMs: DISCORD_WORKER_EVENT_LOOP_LAG_WARN_MS,
+					monitorIntervalMs: DISCORD_WORKER_EVENT_LOOP_MONITOR_MS,
+					runtime: {
+						memory: {
+							rss: mem.rss,
+							heapUsed: mem.heapUsed,
+							heapTotal: mem.heapTotal,
+							external: mem.external
+						}
+					}
+				});
+			}
 		}
 
 		if (
@@ -399,13 +413,25 @@ function startDiscordClusterWorkerEventLoopDiag() {
 				lagWarnSinceSummary > 0 ||
 				maxLagSinceSummary >= DISCORD_WORKER_EVENT_LOOP_LAG_WARN_MS;
 			if (summaryAnomaly) {
-				console.warn('[Perf][DiscordClusterWorker] Event loop summary', {
+				const summary = {
 					clusterId: client.cluster?.id,
 					windowMs: DISCORD_WORKER_EVENT_LOOP_SUMMARY_MS,
 					maxLagMsInWindow: maxLagSinceSummary,
 					lagWarningsInWindow: lagWarnSinceSummary,
 					warnThresholdMs: DISCORD_WORKER_EVENT_LOOP_LAG_WARN_MS
-				});
+				};
+				if (DEBUG_LOG) {
+					const mem = process.memoryUsage();
+					summary.runtime = {
+						memory: {
+							rss: mem.rss,
+							heapUsed: mem.heapUsed,
+							heapTotal: mem.heapTotal,
+							external: mem.external
+						}
+					};
+				}
+				console.warn('[Perf][DiscordClusterWorker] Event loop summary', summary);
 			}
 
 			lastSummaryAt = now;

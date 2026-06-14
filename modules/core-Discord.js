@@ -35,7 +35,12 @@ const rawEventLoopSummaryMs = process.env.DISCORD_EVENT_LOOP_SUMMARY_INTERVAL_MS
 const EVENT_LOOP_SUMMARY_INTERVAL_MS = rawEventLoopSummaryMs === '0'
     ? 0
     : parsePositiveIntEnv('DISCORD_EVENT_LOOP_SUMMARY_INTERVAL_MS', 600_000);
-const HEARTBEAT_DEBUG_LOG = process.env.DISCORD_HEARTBEAT_DEBUG === 'true';
+// DEBUG_LOG is a *separate* flag from the general DEBUG.
+// Use DEBUG_LOG=true only when you need the heavy cluster lifecycle traces
+// (full runtime + stacks for respawnAll, child_process.kill, detailed event loop summaries, and cluster debug messages).
+// It is intentionally more verbose and should stay off in normal operation.
+const DEBUG_LOG = process.env.DEBUG_LOG === 'true';
+const HEARTBEAT_DEBUG_LOG = DEBUG_LOG || process.env.DISCORD_HEARTBEAT_DEBUG === 'true';
 /** Always log hybrid-sharding heartbeat-miss / respawn attempts unless set to false. */
 const HEARTBEAT_MISSING_LOG = String(process.env.DISCORD_HEARTBEAT_MISSING_LOG ?? 'true').trim().toLowerCase() !== 'false';
 
@@ -145,12 +150,12 @@ function startEventLoopMonitor() {
         if (!isShuttingDown && lagMs >= EVENT_LOOP_LAG_WARN_MS) {
             eventLoopLagWarnCount += 1;
             lagWarnSinceSummary += 1;
-            console.warn('[Perf] Event loop lag spike detected', {
+            const base = {
                 lagMs,
                 warnThresholdMs: EVENT_LOOP_LAG_WARN_MS,
-                monitorIntervalMs: EVENT_LOOP_MONITOR_INTERVAL_MS,
-                runtime: getRuntimeMeta()
-            });
+                monitorIntervalMs: EVENT_LOOP_MONITOR_INTERVAL_MS
+            };
+            console.warn('[Perf] Event loop lag spike detected', DEBUG_LOG ? { ...base, runtime: getRuntimeMeta() } : base);
         }
     }, EVENT_LOOP_MONITOR_INTERVAL_MS);
 
@@ -175,7 +180,7 @@ function startEventLoopMonitor() {
                 maxLagSinceSummary >= EVENT_LOOP_LAG_WARN_MS;
 
             if (summaryAnomaly) {
-                console.warn('[Perf] Event loop summary (ClusterManager parent)', {
+                const summary = {
                     clusterHeartbeat: {
                         intervalMs: HEARTBEAT_INTERVAL_MS,
                         maxMissedHeartbeats: HEARTBEAT_MAX_MISSED
@@ -187,7 +192,11 @@ function startEventLoopMonitor() {
                         warnThresholdMs: EVENT_LOOP_LAG_WARN_MS,
                         windowMs: EVENT_LOOP_SUMMARY_INTERVAL_MS
                     }
-                });
+                };
+                if (DEBUG_LOG) {
+                    summary.runtime = getRuntimeMeta();
+                }
+                console.warn('[Perf] Event loop summary (ClusterManager parent)', summary);
             }
 
             maxLagSinceSummary = 0;
@@ -205,6 +214,7 @@ function createTraceId(prefix = 'trace') {
 }
 
 function traceLifecycle(event, detail = {}) {
+    if (!DEBUG_LOG) return;
     const traceContext = lifecycleTraceStore.getStore();
     const traceId = detail.traceId || traceContext?.traceId || null;
     console.error(`[ClusterTrace] ${event}`, {
@@ -249,6 +259,8 @@ async function withLifecycleTrace(prefix, detail, operation) {
 function installChildKillTrace() {
     if (installChildKillTrace.installed) return;
     installChildKillTrace.installed = true;
+
+    if (!DEBUG_LOG) return; // only patch and trace kills when detailed debug is enabled
 
     const originalKill = childProcess.ChildProcess.prototype.kill;
     childProcess.ChildProcess.prototype.kill = function patchedKill(signal, ...rest) {
@@ -347,7 +359,9 @@ async function gracefulShutdown({ signal = 'unknown', source = 'unknown', detail
 
 
 const manager = new ClusterManager('./modules/discord_bot.js', clusterOptions);
-installChildKillTrace();
+if (DEBUG_LOG) {
+    installChildKillTrace();
+}
 startEventLoopMonitor();
 traceLifecycle('manager_initialized', {
     clusterOptions: {
@@ -404,6 +418,9 @@ manager.on('debug', (message, clusterId) => {
 
 const originalRespawnAll = manager.respawnAll.bind(manager);
 manager.respawnAll = async (...args) => {
+    if (!DEBUG_LOG) {
+        return originalRespawnAll(...args);
+    }
     return withLifecycleTrace('respawnAll', {
         args,
         stack: stackWithoutHeader(new Error('manager.respawnAll caller').stack)

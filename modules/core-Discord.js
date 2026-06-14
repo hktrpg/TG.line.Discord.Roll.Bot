@@ -40,8 +40,7 @@ const EVENT_LOOP_SUMMARY_INTERVAL_MS = rawEventLoopSummaryMs === '0'
 // (full runtime + stacks for respawnAll, child_process.kill, detailed event loop summaries, and cluster debug messages).
 // It is intentionally more verbose and should stay off in normal operation.
 const DEBUG_LOG = process.env.DEBUG_LOG === 'true';
-const HEARTBEAT_DEBUG_LOG = DEBUG_LOG || process.env.DISCORD_HEARTBEAT_DEBUG === 'true';
-/** Always log hybrid-sharding heartbeat-miss / respawn attempts unless set to false. */
+/** Always log hybrid-sharding heartbeat-miss / respawn attempts unless set to false. This is for real problems and stays on by default. */
 const HEARTBEAT_MISSING_LOG = String(process.env.DISCORD_HEARTBEAT_MISSING_LOG ?? 'true').trim().toLowerCase() !== 'false';
 
 const agenda = require('../modules/schedule')?.agenda;
@@ -405,7 +404,7 @@ manager.on('debug', (message, clusterId) => {
         });
     }
 
-    if (!HEARTBEAT_DEBUG_LOG) {
+    if (!DEBUG_LOG) {
         return;
     }
 

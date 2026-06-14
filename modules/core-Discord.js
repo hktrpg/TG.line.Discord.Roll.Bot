@@ -162,11 +162,13 @@ function startEventLoopMonitor() {
         eventLoopMonitorTimer.unref();
     }
 
-    console.log('[Perf] Event loop monitor started', {
-        monitorIntervalMs: EVENT_LOOP_MONITOR_INTERVAL_MS,
-        warnThresholdMs: EVENT_LOOP_LAG_WARN_MS,
-        summaryIntervalMs: EVENT_LOOP_SUMMARY_INTERVAL_MS
-    });
+    if (DEBUG_LOG) {
+        console.log('[Perf] Event loop monitor started', {
+            monitorIntervalMs: EVENT_LOOP_MONITOR_INTERVAL_MS,
+            warnThresholdMs: EVENT_LOOP_LAG_WARN_MS,
+            summaryIntervalMs: EVENT_LOOP_SUMMARY_INTERVAL_MS
+        });
+    }
 
     if (EVENT_LOOP_SUMMARY_INTERVAL_MS > 0) {
         setInterval(() => {
@@ -435,7 +437,9 @@ manager.respawnAll = async (...args) => {
 // Improved event handling
 let heartbeatStarted = false;
 manager.on('clusterCreate', shard => {
-    console.log(`[Cluster ${shard.id}] Created`, getRuntimeMeta());
+    if (DEBUG_LOG) {
+        console.log(`[Cluster ${shard.id}] Created`, getRuntimeMeta());
+    }
     updateClusterLastState(shard.id, 'created', { pid: shard.process?.pid || null });
 
     shard.on('ready', () => {
@@ -470,12 +474,21 @@ manager.on('clusterCreate', shard => {
         // Don't handle errors if shutting down
         if (isShuttingDown) return;
 
-        console.error(`[Cluster ${shard.id}] ${event}:`, error, getRuntimeMeta());
+        // Always report the basic error (no DEBUG_LOG filter on errors).
+        // Attach heavy runtime details only when DEBUG_LOG is enabled.
+        console.error(`[Cluster ${shard.id}] ${event}:`, error);
+        if (DEBUG_LOG) {
+            console.error(`[Cluster ${shard.id}] ${event} runtime:`, getRuntimeMeta());
+        }
         // Add retry logic (simplified as per attachment)
         if (event === 'death') {
             setTimeout(async () => {
                 if (!isShuttingDown) {
-                    console.log(`[Cluster ${shard.id}] Attempting to respawn...`, getRuntimeMeta());
+                    if (DEBUG_LOG) {
+                        console.log(`[Cluster ${shard.id}] Attempting to respawn...`, getRuntimeMeta());
+                    } else {
+                        console.log(`[Cluster ${shard.id}] Attempting to respawn...`);
+                    }
                     try {
                         await withLifecycleTrace('clusterRespawn', {
                             clusterId: shard.id,
@@ -490,7 +503,10 @@ manager.on('clusterCreate', shard => {
                             await shard.respawn({ timeout: CLUSTER_RESPAWN_READY_MS });
                         });
                     } catch (error_) {
-                        console.error(`[Cluster ${shard.id}] Failed to respawn:`, error_, getRuntimeMeta());
+                        console.error(`[Cluster ${shard.id}] Failed to respawn:`, error_);
+                        if (DEBUG_LOG) {
+                            console.error(`[Cluster ${shard.id}] Failed to respawn runtime:`, getRuntimeMeta());
+                        }
                     }
                 }
             }, RETRY_DELAY);
@@ -499,15 +515,18 @@ manager.on('clusterCreate', shard => {
 
     shard.on('disconnect', () => {
         updateClusterLastState(shard.id, 'disconnect');
-        errorHandler('Disconnect', {
-            reason: 'Cluster disconnect event',
-            runtime: getRuntimeMeta()
-        });
+        const detail = { reason: 'Cluster disconnect event' };
+        if (DEBUG_LOG) detail.runtime = getRuntimeMeta();
+        errorHandler('Disconnect', detail);
     });
 
     shard.on('reconnecting', () => {
         updateClusterLastState(shard.id, 'reconnecting');
-        console.warn(`[Cluster ${shard.id}] Reconnecting...`, getRuntimeMeta());
+        if (DEBUG_LOG) {
+            console.warn(`[Cluster ${shard.id}] Reconnecting...`, getRuntimeMeta());
+        } else {
+            console.warn(`[Cluster ${shard.id}] Reconnecting...`);
+        }
     });
 
     shard.on('death', (childProcess) => {
@@ -516,17 +535,22 @@ manager.on('clusterCreate', shard => {
             signalCode: childProcess.signalCode,
             killed: childProcess.killed
         });
-        errorHandler('Death', {
+        const detail = {
             message: 'Cluster child process died',
             exitCode: childProcess.exitCode,
             signalCode: childProcess.signalCode,
-            killed: childProcess.killed,
-            runtime: getRuntimeMeta()
-        });
+            killed: childProcess.killed
+        };
+        if (DEBUG_LOG) detail.runtime = getRuntimeMeta();
+        errorHandler('Death', detail);
     });
 
     shard.on('error', (error) => {
-        console.error(`[Cluster] Cluster ${shard.id} error:`, error.message || error, getRuntimeMeta());
+        // Always surface cluster error (basic). Runtime detail only under DEBUG_LOG.
+        console.error(`[Cluster] Cluster ${shard.id} error:`, error.message || error);
+        if (DEBUG_LOG) {
+            console.error(`[Cluster] Cluster ${shard.id} error runtime:`, getRuntimeMeta());
+        }
         if (error.stack) console.error(`[Cluster] Stack trace:\n${error.stack}`);
         errorHandler('Error', error);
     });
@@ -537,18 +561,23 @@ manager.on("clusterCreate", cluster => {
     // Handle IPC process errors (like EPIPE)
     if (cluster.process) {
         cluster.process.on('exit', (code, signal) => {
-            console.warn(`[Cluster ${cluster.id}] Child process exit`, {
-                code,
-                signal,
-                runtime: getRuntimeMeta()
-            });
+            const payload = { code, signal };
+            if (DEBUG_LOG) payload.runtime = getRuntimeMeta();
+            console.warn(`[Cluster ${cluster.id}] Child process exit`, payload);
         });
 
         cluster.process.on('error', (error) => {
             if (error.code === 'EPIPE') {
-                console.warn(`[Cluster ${cluster.id}] IPC EPIPE error (child process likely dead)`, getRuntimeMeta());
+                if (DEBUG_LOG) {
+                    console.warn(`[Cluster ${cluster.id}] IPC EPIPE error (child process likely dead)`, getRuntimeMeta());
+                } else {
+                    console.warn(`[Cluster ${cluster.id}] IPC EPIPE error (child process likely dead)`);
+                }
             } else {
-                console.error(`[Cluster ${cluster.id}] Child process error:`, error, getRuntimeMeta());
+                console.error(`[Cluster ${cluster.id}] Child process error:`, error);
+                if (DEBUG_LOG) {
+                    console.error(`[Cluster ${cluster.id}] Child process error runtime:`, getRuntimeMeta());
+                }
             }
         });
     }
@@ -562,10 +591,9 @@ manager.on("clusterCreate", cluster => {
         const shouldLogIpc = verboseIpc || actionableIpc || !routineIpc;
 
         if (shouldLogIpc) {
-            console.log(`[Cluster ${cluster.id}] IPC message received`, {
-                runtime: getRuntimeMeta(),
-                message
-            });
+            const ipcLog = { message };
+            if (DEBUG_LOG) ipcLog.runtime = getRuntimeMeta();
+            console.log(`[Cluster ${cluster.id}] IPC message received`, ipcLog);
         }
 
         if (message.respawn === true && message.id !== null && message.id !== undefined) {
@@ -688,20 +716,24 @@ manager.extend(
         },
         onClusterReady: (cluster) => {
             updateClusterLastState(cluster.id, 'heartbeat_ready');
-            console.log(`[Heartbeat] Cluster ${cluster.id} is now ready and sending heartbeats`);
+            if (DEBUG_LOG) {
+                console.log(`[Heartbeat] Cluster ${cluster.id} is now ready and sending heartbeats`);
+            }
         }
     })
 );
 
-console.log('[Cluster] Hybrid-sharding IPC heartbeat (parent process)', {
-    intervalMs: HEARTBEAT_INTERVAL_MS,
-    maxMissedHeartbeats: HEARTBEAT_MAX_MISSED,
-    env: {
-        DISCORD_HEARTBEAT_INTERVAL_MS: process.env.DISCORD_HEARTBEAT_INTERVAL_MS ?? '(default)',
-        DISCORD_HEARTBEAT_MAX_MISSED: process.env.DISCORD_HEARTBEAT_MAX_MISSED ?? '(default)'
-    },
-    note: 'Library respawns a cluster child when heartbeat acks pile up; worker lag logs: [Perf][DiscordClusterWorker].'
-});
+if (DEBUG_LOG) {
+    console.log('[Cluster] Hybrid-sharding IPC heartbeat (parent process)', {
+        intervalMs: HEARTBEAT_INTERVAL_MS,
+        maxMissedHeartbeats: HEARTBEAT_MAX_MISSED,
+        env: {
+            DISCORD_HEARTBEAT_INTERVAL_MS: process.env.DISCORD_HEARTBEAT_INTERVAL_MS ?? '(default)',
+            DISCORD_HEARTBEAT_MAX_MISSED: process.env.DISCORD_HEARTBEAT_MAX_MISSED ?? '(default)'
+        },
+        note: 'Library respawns a cluster child when heartbeat acks pile up; worker lag logs: [Perf][DiscordClusterWorker].'
+    });
+}
 
 // Start clusters (simplified as per attachment)
 manager.spawn({

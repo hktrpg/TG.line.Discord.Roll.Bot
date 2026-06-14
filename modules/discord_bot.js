@@ -1665,17 +1665,20 @@ function getLocalGatewayPingMs() {
 }
 
 function latencyStatusGateway(ms) {
-	if (ms > 1000) return '❌';
-	if (ms > 500) return '⚠️';
-	if (ms > 200) return '🟡';
+	// Relaxed thresholds: normal Discord WS pings often 150-350ms depending on region/load.
+	// Yellow should only appear for genuinely elevated latency.
+	if (ms > 1500) return '❌';
+	if (ms > 700) return '⚠️';
+	if (ms > 350) return '🟡';
 	return '🟢';
 }
 
-/** Workload / pipeline timing (not raw network RTT). */
+/** Workload / pipeline timing (not raw network RTT). Includes DB, broadcasts, processing. */
 function latencyStatusWork(ms) {
-	if (ms > 3000) return '❌';
-	if (ms > 1500) return '⚠️';
-	if (ms > 800) return '🟡';
+	// Relaxed thresholds: full command e2e or stats collection can legitimately take 500-1200ms.
+	if (ms > 5000) return '❌';
+	if (ms > 2500) return '⚠️';
+	if (ms > 1200) return '🟡';
 	return '🟢';
 }
 
@@ -2851,10 +2854,11 @@ async function getAllshardIds() {
 				return '⏳'; // Hourglass - indicates waiting/measuring
 			}
 
-			// Add status indicators for different latency ranges
-			if (p > 1000) return `❌${formatNumber(p)}`;     // High latency (error)
-			if (p > 500) return `⚠️${formatNumber(p)}`;       // Medium latency (warning)
-			if (p > 200) return `🟡${formatNumber(p)}`;       // Slightly elevated latency
+			// Add status indicators for different latency ranges (same logic as latencyStatusGateway)
+			// Relaxed: normal 150-350ms pings are common and should not trigger yellow.
+			if (p > 1500) return `❌${formatNumber(p)}`;     // Very high latency
+			if (p > 700) return `⚠️${formatNumber(p)}`;       // Concerning latency
+			if (p > 350) return `🟡${formatNumber(p)}`;       // Elevated (under load / distance)
 			return `🟢${formatNumber(p)}`;                     // Good latency
 		});
 

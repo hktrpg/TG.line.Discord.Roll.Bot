@@ -175,17 +175,14 @@
   - .mehistory
 
 ### 🎭 Role Management Commands (身分組管理)
-.roleReact - 身分組反應管理
+.roleReact - 表情反應領取角色（Discord）
+  說明：先在頻道發佈一則訊息，取得 Message ID 後，使用 add 綁定身分組ID + 表情。點擊反應自動領取身分組。支援同一訊息多個表情。受群組 VIP 上限（每個 messageID 一個配置）。
   範例：
   - .roleReact show
-  - .roleReact delete
-  - .roleReact add 🎭 @Role1 遊戲愛好者
+  - .roleReact delete 1
+  - .roleReact add 123456789012345678 🎨 987654321098765432 😊 [[messageID]] 112233445566778899
 
-.roleInvites - 邀請身分組管理
-  範例：
-  - .roleInvites add 邀請碼 @Role1
-  - .roleInvites show
-  - .roleInvites delete 邀請碼
+（注意：.roleInvites 已移除）
 
 ### 🏆 Level System Commands (等級系統)
 .level - 等級系統管理

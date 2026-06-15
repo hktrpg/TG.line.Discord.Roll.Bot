@@ -24,7 +24,51 @@ const { Client } = Discord;
 const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType, MessageFlags, WebhookClient } = Discord;
 
 /** Slash commands that defer with Ephemeral (fewer sync checks before deferReply). */
-const EPHEMERAL_DEFER_COMMAND_NAMES = new Set(['state', 'help', 'bothelp', 'info']);
+const EPHEMERAL_DEFER_COMMAND_NAMES = new Set(['state', 'help', 'bothelp', 'info', 'me', 'mee']);
+
+const ME_WEBHOOK_SEND_ERROR = '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限';
+const ME_WEBHOOK_CREATE_ERROR = '不能新增Webhook.\n 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限';
+
+function isDiscordSlashInteraction(message) {
+	return !!(message?.isInteraction || (message?.isCommand && message.isCommand()));
+}
+
+function shouldUseEphemeralInteractionReply(message, result) {
+	if (result?.ephemeral) return true;
+	if (message?.ephemeral) return true;
+	return message?.isCommand?.() && EPHEMERAL_DEFER_COMMAND_NAMES.has(message.commandName);
+}
+
+async function replyInteractionPrivate(message, content) {
+	if (!content || !isDiscordSlashInteraction(message)) return false;
+	try {
+		const payload = { content };
+		if (shouldUseEphemeralInteractionReply(message)) {
+			payload.flags = MessageFlags.Ephemeral;
+		}
+		if (message.deferred && !message.replied) {
+			await message.editReply(payload);
+		} else if (!message.replied) {
+			await message.reply(payload);
+		} else {
+			await message.followUp({ ...payload, flags: MessageFlags.Ephemeral });
+		}
+		return true;
+	} catch (error) {
+		if (!isDiscordUnknownInteraction(error)) {
+			console.error('replyInteractionPrivate:', error.message);
+		}
+		return false;
+	}
+}
+
+async function sendMeReplyError(discord, replyText) {
+	if (await replyInteractionPrivate(discord, replyText)) return;
+	await SendToReplychannel({
+		replyText,
+		channelid: (discord.channel && discord.channel.id) || discord.channelId
+	});
+}
 
 function isDiscordUnknownInteraction(error) {
 	if (!error || typeof error !== 'object') return false;
@@ -811,6 +855,20 @@ client.on('clientReady', async () => {
 
 async function replilyMessage(message, result) {
 	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>${candle.checker(message.member.id)}\n` : '';
+	if (result && (result.webhookOnly || result.interactionHandled) && message.isInteraction) {
+		if (result.webhookOnly) {
+			try {
+				if (message.deferred || message.replied) {
+					await message.deleteReply();
+				}
+			} catch (error) {
+				if (!isDiscordUnknownInteraction(error)) {
+					console.error('replilyMessage deleteReply (webhookOnly):', error.message);
+				}
+			}
+		}
+		return;
+	}
 	if (result && result.text) {
 		result.text = `${displayname}${result.text}`
 		await __handlingReplyMessage(message, result);
@@ -845,12 +903,19 @@ async function replilyMessage(message, result) {
 				warnInteraction10062('replily_no_result', message);
 				return;
 			}
-			if (message.isInteraction && error.code === 50_027 && message.channel && typeof message.channel.send === 'function') {
-				try {
-					await message.channel.send(`${displayname}指令沒有得到回應，請檢查內容`);
-					return;
-				} catch (fallbackError) {
-					console.error('replilyMessage fallback channel.send:', fallbackError.message);
+			if (message.isInteraction && error.code === 50_027) {
+				const fallbackSent = await replyInteractionPrivate(
+					message,
+					`${displayname}指令沒有得到回應，請檢查內容`
+				);
+				if (fallbackSent) return;
+				if (message.channel && typeof message.channel.send === 'function') {
+					try {
+						await message.channel.send(`${displayname}指令沒有得到回應，請檢查內容`);
+						return;
+					} catch (fallbackError) {
+						console.error('replilyMessage fallback channel.send:', fallbackError.message);
+					}
 				}
 			}
 			console.error('replilyMessage error:', error);
@@ -2303,8 +2368,8 @@ async function repeatMessages(discord, message) {
 
 		// Check if webhook is valid before proceeding
 		if (!webhook || !webhook.webhook) {
-			await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
-			return;
+			await sendMeReplyError(discord, ME_WEBHOOK_SEND_ERROR);
+			return false;
 		}
 
 		for (let index = 0; index < message.myNames.length; index++) {
@@ -2324,11 +2389,12 @@ async function repeatMessages(discord, message) {
 			}
 
 		}
+		return true;
 
 	} catch (error) {
 		console.error('Error in repeatMessages:', error.message);
-		await SendToReplychannel({ replyText: '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: discord.channel.id });
-		return;
+		await sendMeReplyError(discord, ME_WEBHOOK_SEND_ERROR);
+		return false;
 	}
 
 }
@@ -2365,7 +2431,7 @@ async function manageWebhook(discord) {
 	} catch (error) {
 		console.error('manageWebhook error:', error.message);
 		try {
-			await SendToReplychannel({ replyText: '不能新增Webhook.\n 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限', channelid: (discord.channel && discord.channel.id) || discord.channelId });
+			await sendMeReplyError(discord, ME_WEBHOOK_CREATE_ERROR);
 		} catch (sendError) {
 			console.error('Failed to send webhook error message:', sendError.message);
 		}
@@ -3312,8 +3378,18 @@ async function handlingResponMessage(message, answer = '') {
 		if (rplyVal.roleReactFlag) await roleReact(channelid, rplyVal)
 		if (rplyVal.newRoleReactFlag) await newRoleReact(message, rplyVal)
 		if (rplyVal.discordEditMessage) await handlingEditMessage(message, rplyVal)
-		if (rplyVal.myspeck) return await __sendMeMessage({ message, rplyVal, groupid })
-		if (rplyVal.myNames) await repeatMessages(message, rplyVal);
+		if (rplyVal.myspeck) {
+			await __sendMeMessage({ message, rplyVal, groupid });
+			if (message.isInteraction && groupid) return { webhookOnly: true };
+			return;
+		}
+		if (rplyVal.myNames) {
+			const webhookSent = await repeatMessages(message, rplyVal);
+			if (message.isInteraction) {
+				if (webhookSent) return { webhookOnly: true };
+				return { interactionHandled: true };
+			}
+		}
 
 
 		if (rplyVal.sendNews) sendNewstoAll(rplyVal);
@@ -4472,6 +4548,7 @@ async function sendMessageWithRetry(sendFunction, maxRetries = 3, baseDelay = 10
 async function __handlingReplyMessage(message, result) {
 	const text = result.text;
 	const sendTexts = text.toString().match(/[\s\S]{1,2000}/g);
+	const useEphemeralReply = shouldUseEphemeralInteractionReply(message, result);
 
 	try {
 		// For interactions, defer early to avoid timeout
@@ -4479,7 +4556,7 @@ async function __handlingReplyMessage(message, result) {
 			// Defer all interactions by default to avoid timeout issues
 			// This gives commands the full 15-minute window instead of just 3 seconds
 			try {
-				await message.deferReply();
+				await message.deferReply(useEphemeralReply ? { flags: MessageFlags.Ephemeral } : {});
 			} catch (deferError) {
 				if (isDiscordUnknownInteraction(deferError)) {
 					warnInteraction10062('defer_in_reply_handler', message);
@@ -4496,11 +4573,19 @@ async function __handlingReplyMessage(message, result) {
 		// For deferred interactions, use editReply for the first response
 		if (message.deferred && !message.replied) {
 			try {
-				await sendMessageWithRetry(async () => message.editReply({ embeds: await convQuotes(sendTexts[0]) }));
+				const firstReply = { embeds: await convQuotes(sendTexts[0]) };
+				if (useEphemeralReply || message.ephemeral) {
+					firstReply.flags = MessageFlags.Ephemeral;
+				}
+				await sendMessageWithRetry(async () => message.editReply(firstReply));
 
 				// Send follow-up messages for additional content
 				for (let index = 1; index < sendTexts?.length && index < 4; index++) {
-					await sendMessageWithRetry(async () => message.followUp({ embeds: await convQuotes(sendTexts[index]) }));
+					const followUpPayload = { embeds: await convQuotes(sendTexts[index]) };
+					if (useEphemeralReply || message.ephemeral) {
+						followUpPayload.flags = MessageFlags.Ephemeral;
+					}
+					await sendMessageWithRetry(async () => message.followUp(followUpPayload));
 				}
 			} catch (error) {
 				if (isDiscordUnknownInteraction(error)) {
@@ -4517,16 +4602,24 @@ async function __handlingReplyMessage(message, result) {
 			const sendText = sendTexts[index];
 			try {
 				if (index === 0) {
+					const replyPayload = { embeds: await convQuotes(sendText) };
+					if (useEphemeralReply) {
+						replyPayload.flags = MessageFlags.Ephemeral;
+					}
 					if (message.isInteraction && !message.replied) {
-						await sendMessageWithRetry(async () => message.reply({ embeds: await convQuotes(sendText) }));
+						await sendMessageWithRetry(async () => message.reply(replyPayload));
 					} else if (!message.isInteraction) {
-						await sendMessageWithRetry(async () => message.reply({ embeds: await convQuotes(sendText) }));
+						await sendMessageWithRetry(async () => message.reply(replyPayload));
 					}
 				} else {
 					// For subsequent chunks, use message.channel.send for regular messages
 					// and followUp for interactions
 					if (message.isInteraction) {
-						await sendMessageWithRetry(async () => message.followUp({ embeds: await convQuotes(sendText) }));
+						const followUpPayload = { embeds: await convQuotes(sendText) };
+						if (useEphemeralReply || message.ephemeral) {
+							followUpPayload.flags = MessageFlags.Ephemeral;
+						}
+						await sendMessageWithRetry(async () => message.followUp(followUpPayload));
 					} else {
 						await sendMessageWithRetry(async () => message.reply({ embeds: await convQuotes(sendText) }));
 					}

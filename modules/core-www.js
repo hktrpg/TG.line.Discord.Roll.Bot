@@ -23,6 +23,13 @@ const security = require('../utils/security.js');
 const schema = require('./schema.js');
 const patreonTiers = require('./patreon-tiers.js');
 const patreonSync = require('./patreon-sync.js');
+const { buildShortcut } = require('@joshfarrant/shortcuts-js');
+const {
+    URL: shortcutURL,
+    getContentsOfURL,
+    speakText,
+    comment: shortcutComment
+} = require('@joshfarrant/shortcuts-js/actions');
 
 const www = express();
 const isHttpUrl = (value) => /^https?:\/\//i.test(String(value || '').trim());
@@ -974,16 +981,18 @@ www.get('/busstop/shortcut', async (req, res) => {
         if (bound) speakUrl.searchParams.set('bound', bound);
 
         const shortcutBuffer = buildBusEtaShortcut(speakUrl.toString(), name);
-        const safeName = name.replaceAll(/[^\w\u4E00-\u9FFF-]+/g, '_');
+        // Content-Disposition must be Latin-1; Chinese names crash Express header set.
+        const asciiName = `${route || 'bus'}-eta.shortcut`;
         res.set({
             'Content-Type': 'application/octet-stream',
-            'Content-Disposition': `attachment; filename="${safeName}.shortcut"`,
+            'Content-Disposition': `attachment; filename="${asciiName}"`,
             'Cache-Control': 'no-store'
         });
         res.send(shortcutBuffer);
     } catch (error) {
-        console.error('[busstop/shortcut]', error?.message || error);
-        res.status(500).type('text/plain; charset=utf-8').send('無法產生捷徑檔');
+        console.error('[busstop/shortcut]', error);
+        res.status(500).type('text/plain; charset=utf-8')
+            .send(`無法產生捷徑檔: ${error?.message || error}`);
     }
 });
 
@@ -998,17 +1007,9 @@ function formatBusSpeakMessage(route, minutesList) {
 }
 
 function buildBusEtaShortcut(speakUrl, shortcutName) {
-    const { buildShortcut } = require('@joshfarrant/shortcuts-js');
-    const {
-        URL,
-        getContentsOfURL,
-        speakText,
-        comment
-    } = require('@joshfarrant/shortcuts-js/actions');
-
     const actions = [
-        comment({ text: `HKTRPG ${shortcutName}` }),
-        URL({ url: speakUrl }),
+        shortcutComment({ text: `HKTRPG ${shortcutName}` }),
+        shortcutURL({ url: speakUrl }),
         getContentsOfURL({
             method: 'GET',
             headers: {}

@@ -698,6 +698,7 @@
                     refreshEta();
                     state.refreshTimer = setInterval(refreshEta, 30_000);
                 }
+                openNearbyRoutes({ scroll: true });
             }
         }
 
@@ -897,7 +898,7 @@
             const picked = pickBusesForSpeak(state.nearbyRoutes);
             state.speakText = formatMultiRouteSpeak(picked);
             qs('speakPreview').textContent = state.speakText;
-            showShortcutGuide({ scroll: false });
+            syncShortcutLink();
         }
 
         function renderNearbyRoutes() {
@@ -1136,6 +1137,18 @@
             }
         }
 
+        async function openNearbyRoutes({ scroll = true } = {}) {
+            state.nearbyOpen = true;
+            qs('nearbyRoutesPanel')?.classList.remove('hidden');
+            const btn = qs('nearbyRoutesBtn');
+            if (btn) btn.textContent = '收起同站路線選擇';
+            await loadNearbyRoutes();
+            syncShortcutLink();
+            if (scroll) {
+                qs('nearbyRoutesPanel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
         async function toggleNearbyRoutes() {
             if (state.nearbyOpen) {
                 closeNearbyPanel();
@@ -1146,17 +1159,10 @@
                     state.speakText = formatSpeakMessage(route.route, minutes);
                     qs('speakPreview').textContent = state.speakText;
                 }
-                showShortcutGuide({ scroll: false });
+                syncShortcutLink();
                 return;
             }
-
-            state.nearbyOpen = true;
-            qs('nearbyRoutesPanel')?.classList.remove('hidden');
-            const btn = qs('nearbyRoutesBtn');
-            if (btn) btn.textContent = '收起同站路線選擇';
-            await loadNearbyRoutes();
-            showShortcutGuide({ scroll: false });
-            qs('nearbyRoutesPanel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            await openNearbyRoutes({ scroll: true });
         }
 
         function boundText(bound) {
@@ -1298,7 +1304,7 @@
             await refreshEta();
             stopEtaRefresh();
             state.refreshTimer = setInterval(refreshEta, 30_000);
-            showShortcutGuide({ scroll: true });
+            await openNearbyRoutes({ scroll: true });
         }
 
         async function refreshEta() {
@@ -1437,10 +1443,86 @@
             window.speechSynthesis.speak(utter);
         }
 
+        function currentSpeakUrl() {
+            return buildSpeakTextUrl();
+        }
+
+        /** Update step-4 LINK (and related bits) when same-stop selection changes. */
+        function syncShortcutLink() {
+            if (!state.selectedRoute || !state.selectedStop) return;
+            const help = qs('shortcutHelp');
+            if (!help?.querySelector('.guide-box')) {
+                showShortcutGuide({ scroll: false });
+                return;
+            }
+
+            const speakUrl = currentSpeakUrl();
+            if (!speakUrl) return;
+
+            const urlEl = qs('speakUrlText');
+            if (urlEl) urlEl.textContent = speakUrl;
+
+            const isMulti = state.nearbyOpen && state.nearbySelected.size > 1;
+            const modeEl = qs('shortcutModeNote');
+            if (modeEl) {
+                modeEl.innerHTML = isMulti
+                    ? '<br>目前為<strong>同站多路線</strong>模式：捷徑會依你勾選的路線一併朗讀。勾選變更後請重新複製 LINK。'
+                    : '';
+            }
+
+            const { primary: shortcutName, alt: shortcutNameAlt } = shortcutNameSuggestions();
+            const nameEl = qs('shortcutNameHint');
+            if (nameEl) {
+                nameEl.innerHTML = `
+                    預設名稱是「新捷徑」。點頂部名稱，改成好記的名字，例如「${escapeHtml(shortcutName)}」或「${escapeHtml(shortcutNameAlt)}」。
+                `;
+            }
+            const siriEl = qs('shortcutSiriHint');
+            if (siriEl) {
+                siriEl.innerHTML = `
+                    改名後可直接對 Siri 說：<strong>「嘿 Siri，${escapeHtml(shortcutName)}」</strong>
+                    或「嘿 Siri，執行${escapeHtml(shortcutName)}」，就會朗讀到站時間。
+                `;
+            }
+
+            const exampleEl = qs('shortcutExample');
+            if (exampleEl) {
+                exampleEl.textContent = `範例朗讀：${state.speakText || formatSpeakMessage(state.selectedRoute.route, [3, 15, 25])}`;
+            }
+
+            if (navigator.clipboard?.writeText) {
+                navigator.clipboard.writeText(speakUrl).catch(() => { });
+            }
+        }
+
+        function bindShortcutCopyButtons() {
+            const bindCopy = (btnId) => {
+                const btn = qs(btnId);
+                if (!btn || btn.dataset.bound === '1') return;
+                btn.dataset.bound = '1';
+                btn.addEventListener('click', async () => {
+                    const url = currentSpeakUrl();
+                    if (!url) return;
+                    try {
+                        await navigator.clipboard.writeText(url);
+                        const old = btn.textContent;
+                        btn.textContent = '已複製';
+                        setTimeout(() => {
+                            if (btn) btn.textContent = old;
+                        }, 1500);
+                    } catch {
+                        alert('請手動長按步驟 4 的網址複製');
+                    }
+                });
+            };
+            bindCopy('copySpeakUrlBtn');
+            bindCopy('copySpeakUrlBtn2');
+        }
+
         function showShortcutGuide({ scroll = true } = {}) {
             if (!state.selectedRoute || !state.selectedStop) return;
 
-            const speakUrl = buildSpeakTextUrl();
+            const speakUrl = currentSpeakUrl();
             if (!speakUrl) return;
             const { primary: shortcutName, alt: shortcutNameAlt } = shortcutNameSuggestions();
             const isMulti = state.nearbyOpen && state.nearbySelected.size > 1;
@@ -1459,7 +1541,7 @@
                     <p style="margin:0;color:var(--muted);font-size:0.88rem">
                         因 iOS 無法直接匯入未簽名捷徑，請依下列步驟在「捷徑」App 手動建立。
                         朗讀網址已複製到剪貼簿；完整 LINK 見步驟 4。
-                        ${isMulti ? '<br>目前為<strong>同站多路線</strong>模式：捷徑會依你勾選的路線一併朗讀。' : ''}
+                        <span id="shortcutModeNote">${isMulti ? '<br>目前為<strong>同站多路線</strong>模式：捷徑會依你勾選的路線一併朗讀。勾選變更後請重新複製 LINK。' : ''}</span>
                     </p>
                     <div class="guide-actions">
                         <button type="button" id="copySpeakUrlBtn" class="secondary">複製朗讀網址</button>
@@ -1497,42 +1579,26 @@
 
                     <div class="guide-step">
                         <h4>步驟 5：重新命名並用 Siri 叫出</h4>
-                        <p>
+                        <p id="shortcutNameHint">
                             預設名稱是「新捷徑」。點頂部名稱，改成好記的名字，例如「${escapeHtml(shortcutName)}」或「${escapeHtml(shortcutNameAlt)}」。
                         </p>
-                        <p>
+                        <p id="shortcutSiriHint">
                             改名後可直接對 Siri 說：<strong>「嘿 Siri，${escapeHtml(shortcutName)}」</strong>
                             或「嘿 Siri，執行${escapeHtml(shortcutName)}」，就會朗讀到站時間。
                         </p>
                         <p style="margin-bottom:0">
                             提示：名稱愈短愈好記；同一支手機可為不同路線各建一條捷徑，用不同名字給 Siri 呼叫。
-                            ${isMulti ? '若要改路線組合，請在本頁重新勾選後再複製新 LINK。' : ''}
+                            若改了上方勾選的同站路線，步驟 4 的 LINK 會自動更新，請再複製一次。
                         </p>
                     </div>
 
-                    <p style="margin:12px 0 0;color:var(--muted);font-size:0.85rem">
+                    <p id="shortcutExample" style="margin:12px 0 0;color:var(--muted);font-size:0.85rem">
                         範例朗讀：${escapeHtml(state.speakText || formatSpeakMessage(state.selectedRoute.route, [3, 15, 25]))}
                     </p>
                 </div>
             `;
 
-            const bindCopy = (btnId) => {
-                qs(btnId)?.addEventListener('click', async () => {
-                    const btn = qs(btnId);
-                    try {
-                        await navigator.clipboard.writeText(speakUrl);
-                        const old = btn.textContent;
-                        btn.textContent = '已複製';
-                        setTimeout(() => {
-                            if (btn) btn.textContent = old;
-                        }, 1500);
-                    } catch {
-                        alert('請手動長按步驟 4 的網址複製');
-                    }
-                });
-            };
-            bindCopy('copySpeakUrlBtn');
-            bindCopy('copySpeakUrlBtn2');
+            bindShortcutCopyButtons();
 
             if (scroll) {
                 help.scrollIntoView({ behavior: 'smooth', block: 'start' });

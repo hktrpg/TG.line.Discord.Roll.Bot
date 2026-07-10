@@ -1440,21 +1440,10 @@
         }
 
         function shortcutNameSuggestions() {
-            if (isNearbyMultiMode() && state.nearbySelected.size > 1) {
-                const nos = state.nearbyRoutes
-                    .filter((entry) => state.nearbySelected.has(entry.key))
-                    .map((entry) => entry.route)
-                    .slice(0, 3);
-                const joined = nos.join('+');
-                return {
-                    primary: `${joined}出發`,
-                    alt: `${joined}巴士`
-                };
-            }
-            const route = state.selectedRoute?.route || '巴士';
             return {
-                primary: `${route}出發`,
-                alt: `${route}巴士回家`
+                primary: '番工巴士',
+                alt: '放學巴士',
+                extra: '北角巴士'
             };
         }
 
@@ -1498,11 +1487,11 @@
                     : '';
             }
 
-            const { primary: shortcutName, alt: shortcutNameAlt } = shortcutNameSuggestions();
+            const { primary: shortcutName, alt: shortcutNameAlt, extra: shortcutNameExtra } = shortcutNameSuggestions();
             const nameEl = qs('shortcutNameHint');
             if (nameEl) {
                 nameEl.innerHTML = `
-                    預設名稱是「新捷徑」。點頂部名稱，改成好記的名字，例如「${escapeHtml(shortcutName)}」或「${escapeHtml(shortcutNameAlt)}」。
+                    預設名稱是「新捷徑」。點頂部名稱，改成好記的短名字，例如「${escapeHtml(shortcutName)}」、「${escapeHtml(shortcutNameAlt)}」或「${escapeHtml(shortcutNameExtra)}」。
                 `;
             }
             const siriEl = qs('shortcutSiriHint');
@@ -1552,7 +1541,7 @@
 
             const speakUrl = currentSpeakUrl();
             if (!speakUrl) return;
-            const { primary: shortcutName, alt: shortcutNameAlt } = shortcutNameSuggestions();
+            const { primary: shortcutName, alt: shortcutNameAlt, extra: shortcutNameExtra } = shortcutNameSuggestions();
             const isMulti = isNearbyMultiMode() && state.nearbySelected.size > 1;
             const img = (file) => `/image/busstop/${file}`;
 
@@ -1608,7 +1597,7 @@
                     <div class="guide-step">
                         <h4>步驟 5：重新命名並用 Siri 叫出</h4>
                         <p id="shortcutNameHint">
-                            預設名稱是「新捷徑」。點頂部名稱，改成好記的名字，例如「${escapeHtml(shortcutName)}」或「${escapeHtml(shortcutNameAlt)}」。
+                            預設名稱是「新捷徑」。點頂部名稱，改成好記的短名字，例如「${escapeHtml(shortcutName)}」、「${escapeHtml(shortcutNameAlt)}」或「${escapeHtml(shortcutNameExtra)}」。
                         </p>
                         <p id="shortcutSiriHint">
                             改名後可直接對 Siri 說：<strong>「嘿 Siri，${escapeHtml(shortcutName)}」</strong>

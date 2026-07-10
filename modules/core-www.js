@@ -224,6 +224,9 @@ www.get('*/favicon.ico', async (req, res) => {
     res.sendFile(path.join(process.cwd(), 'views/image', 'favicon.ico'));
 });
 www.use(favicon(path.join(process.cwd(), 'views/image', 'favicon.ico')));
+www.use('/image', express.static(path.join(process.cwd(), 'views/image'), {
+    maxAge: '7d'
+}));
 
 async function handleApiRequest(req, res) {
     if (!APIswitch || await limitRaterApi(req.ip)) return;

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">巴士到站預報</title>
+    <title id="pageTitle">IOS Shortcut 搵巴士</title>
     <style>
         :root {
             --bg: #f3f5f8;
@@ -196,6 +196,20 @@
             border: 1px solid var(--line);
             border-radius: 999px;
             padding: 6px 10px;
+            cursor: default;
+            user-select: none;
+            font-weight: 500;
+            box-shadow: none;
+        }
+
+        .step.clickable {
+            cursor: pointer;
+        }
+
+        .step.clickable:hover {
+            border-color: #f3a0ab;
+            color: var(--accent);
+            background: #fff;
         }
 
         .step.on {
@@ -203,6 +217,21 @@
             border-color: #f3a0ab;
             background: var(--accent-soft);
             font-weight: 700;
+        }
+
+        .step.current {
+            box-shadow: 0 0 0 2px rgba(200, 16, 46, 0.2);
+        }
+
+        .step.disabled,
+        .step:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            color: var(--muted);
+            background: #fff;
+            border-color: var(--line);
+            font-weight: 500;
+            box-shadow: none;
         }
 
         .eta-board {
@@ -294,6 +323,76 @@
             color: var(--accent);
         }
 
+        #shortcutHelp {
+            color: var(--text);
+            font-size: 0.92rem;
+            line-height: 1.55;
+        }
+
+        .guide-box {
+            margin-top: 4px;
+            padding: 14px;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+        }
+
+        .guide-box h3 {
+            margin: 0 0 10px;
+            font-size: 1.05rem;
+        }
+
+        .guide-url {
+            display: block;
+            margin: 8px 0 12px;
+            padding: 10px 12px;
+            background: #fff;
+            border: 1px dashed #f3a0ab;
+            border-radius: 10px;
+            word-break: break-all;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.82rem;
+        }
+
+        .guide-step {
+            margin: 16px 0;
+            padding-top: 12px;
+            border-top: 1px solid var(--line);
+        }
+
+        .guide-step:first-of-type {
+            border-top: 0;
+            padding-top: 0;
+        }
+
+        .guide-step h4 {
+            margin: 0 0 8px;
+            font-size: 0.95rem;
+        }
+
+        .guide-step p {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .guide-step img {
+            display: block;
+            width: 100%;
+            max-width: 360px;
+            margin: 0 auto;
+            border-radius: 12px;
+            border: 1px solid #222;
+            box-shadow: var(--shadow);
+        }
+
+        .guide-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
         /* Speak / Shortcut scrape mode: keep text clean */
         #etaList.speak-only {
             background: #fff;
@@ -314,15 +413,15 @@
 
     <div id="builderApp" class="app hidden">
         <div class="hero">
-            <h1>巴士到站預報</h1>
-            <p>搜尋九巴／龍運路線、選擇車站，查看即時到站時間，並產生可朗讀的 iOS 捷徑。</p>
+            <h1>ios 搵巴士</h1>
+            <p>搜尋九巴／龍運路線、選擇車站，查看即時到站時間，並依教學手動建立可朗讀的 iOS 捷徑。</p>
         </div>
 
         <div class="steps" id="stepBar">
-            <div class="step on" data-step="1">1. 搜尋路線</div>
-            <div class="step" data-step="2">2. 選擇方向</div>
-            <div class="step" data-step="3">3. 選擇車站</div>
-            <div class="step" data-step="4">4. 到站時間</div>
+            <button type="button" class="step on current clickable" data-step="1">1. 搜尋路線</button>
+            <button type="button" class="step disabled" data-step="2" disabled>2. 選擇方向</button>
+            <button type="button" class="step disabled" data-step="3" disabled>3. 選擇車站</button>
+            <button type="button" class="step disabled" data-step="4" disabled>4. 到站時間</button>
         </div>
 
         <section class="card" id="searchCard">
@@ -332,8 +431,7 @@
                     maxlength="10">
                 <button id="searchBtn" type="button">搜尋</button>
             </div>
-            <div class="hint">資料來源：KMB / LWB Open Data API（與 <a href="https://hkbus.app/zh" target="_blank"
-                    rel="noopener">hkbus.app</a> 相同官方 ETA）</div>
+            <div class="hint">資料來源：KMB / LWB Open Data API · 參考 <a href="https://hkbus.app/zh" target="_blank" rel="noopener">hkbus.app</a></div>
             <div id="routeResults" class="list" style="margin-top:12px"></div>
         </section>
 
@@ -360,7 +458,7 @@
             <div class="actions">
                 <button type="button" id="refreshEtaBtn" class="secondary">重新整理到站時間</button>
                 <button type="button" id="speakNowBtn" class="ghost">立即朗讀</button>
-                <button type="button" id="createShortcutBtn">產生 iOS 捷徑（朗讀到站）</button>
+                <button type="button" id="createShortcutBtn">顯示 iOS 捷徑教學</button>
                 <button type="button" id="backToStopsBtn" class="secondary">返回車站</button>
             </div>
             <div id="shortcutHelp" class="hint hidden" style="margin-top:12px"></div>
@@ -385,7 +483,10 @@
             selectedStop: null,
             etas: [],
             speakText: '',
-            refreshTimer: null
+            refreshTimer: null,
+            currentStep: 1,
+            maxStep: 1,
+            hasRouteResults: false
         };
 
         function qs(id) {
@@ -404,9 +505,73 @@
         }
 
         function setStep(n) {
+            state.currentStep = n;
+            state.maxStep = Math.max(state.maxStep, n);
             document.querySelectorAll('#stepBar .step').forEach((el) => {
-                el.classList.toggle('on', Number(el.dataset.step) <= n);
+                const step = Number(el.dataset.step);
+                const reachable = step <= state.maxStep;
+                el.classList.toggle('on', step <= n);
+                el.classList.toggle('current', step === n);
+                el.classList.toggle('clickable', reachable);
+                el.classList.toggle('disabled', !reachable);
+                el.disabled = !reachable;
             });
+        }
+
+        function stopEtaRefresh() {
+            if (state.refreshTimer) {
+                clearInterval(state.refreshTimer);
+                state.refreshTimer = null;
+            }
+        }
+
+        function showPanel(panel) {
+            qs('searchCard').classList.toggle('hidden', panel !== 'search');
+            qs('stopCard').classList.toggle('hidden', panel !== 'stop');
+            qs('etaCard').classList.toggle('hidden', panel !== 'eta');
+            if (panel !== 'eta') {
+                qs('shortcutHelp')?.classList.add('hidden');
+            }
+        }
+
+        function goToStep(step) {
+            const target = Number(step);
+            if (!target || target > state.maxStep) return;
+
+            if (target === 1) {
+                stopEtaRefresh();
+                showPanel('search');
+                setStep(1);
+                qs('routeInput')?.focus();
+                return;
+            }
+
+            if (target === 2) {
+                if (!state.hasRouteResults) return;
+                stopEtaRefresh();
+                showPanel('search');
+                setStep(2);
+                qs('routeResults')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                return;
+            }
+
+            if (target === 3) {
+                if (!state.selectedRoute) return;
+                stopEtaRefresh();
+                showPanel('stop');
+                setStep(3);
+                return;
+            }
+
+            if (target === 4) {
+                if (!state.selectedStop || !state.selectedRoute) return;
+                showPanel('eta');
+                setStep(4);
+                if (!state.refreshTimer) {
+                    refreshEta();
+                    state.refreshTimer = setInterval(refreshEta, 30_000);
+                }
+            }
         }
 
         function escapeHtml(str) {
@@ -524,7 +689,13 @@
                 const list = await loadRouteList();
                 const exact = list.filter((r) => r.route === q);
                 const fuzzy = exact.length ? exact : list.filter((r) => r.route.includes(q)).slice(0, 30);
-                setStep(2);
+                state.hasRouteResults = fuzzy.length > 0;
+                if (state.hasRouteResults) {
+                    state.maxStep = Math.max(state.maxStep, 2);
+                    setStep(2);
+                } else {
+                    setStep(1);
+                }
                 renderRouteResults(fuzzy);
             } catch (error) {
                 console.error(error);
@@ -537,12 +708,11 @@
         async function selectRoute(route) {
             state.selectedRoute = route;
             state.selectedStop = null;
+            state.maxStep = Math.max(state.maxStep, 3);
             qs('selectedRouteTitle').textContent = `${route.route} 往 ${route.dest_tc || route.dest_en}`;
             qs('selectedRouteMeta').textContent =
                 `${boundText(route.bound)} · 服務類型 ${route.service_type} · ${route.orig_tc} → ${route.dest_tc}`;
-            qs('searchCard').classList.add('hidden');
-            qs('etaCard').classList.add('hidden');
-            qs('stopCard').classList.remove('hidden');
+            showPanel('stop');
             qs('stopResults').innerHTML = '<div class="status">載入車站中…</div>';
             qs('stopFilter').value = '';
             setStep(3);
@@ -604,14 +774,14 @@
 
         async function selectStop(stop) {
             state.selectedStop = stop;
-            qs('stopCard').classList.add('hidden');
-            qs('etaCard').classList.remove('hidden');
+            state.maxStep = Math.max(state.maxStep, 4);
+            showPanel('eta');
             qs('etaRouteTitle').textContent =
                 `${state.selectedRoute.route} 往 ${state.selectedRoute.dest_tc || ''}`;
             qs('etaStopTitle').textContent = `${stop.name_tc}${stop.name_en ? `（${stop.name_en}）` : ''}`;
             setStep(4);
             await refreshEta();
-            if (state.refreshTimer) clearInterval(state.refreshTimer);
+            stopEtaRefresh();
             state.refreshTimer = setInterval(refreshEta, 30_000);
         }
 
@@ -705,59 +875,100 @@
             window.speechSynthesis.speak(utter);
         }
 
-        function buildShortcutFileUrl() {
-            const route = state.selectedRoute;
-            const stop = state.selectedStop;
-            const url = new URL('/busstop/shortcut', window.location.origin);
-            url.searchParams.set('route', route.route);
-            url.searchParams.set('stop', stop.stop);
-            url.searchParams.set('service_type', route.service_type);
-            url.searchParams.set('bound', route.bound);
-            // ASCII only — Chinese in this URL breaks iOS import-shortcut
-            url.searchParams.set('name', `${route.route}-ETA`);
-            return url.toString();
-        }
-
-        function isAppleMobile() {
-            return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        }
-
-        function createIOSShortcut() {
+        function showShortcutGuide() {
             if (!state.selectedRoute || !state.selectedStop) return;
 
             const speakUrl = buildSpeakTextUrl();
-            const pageUrl = buildEtaPageUrl();
-            const fileUrl = buildShortcutFileUrl();
-            // ASCII only for shortcuts:// query params
-            const name = `${state.selectedRoute.route}-ETA`;
-            const importUrl =
-                `shortcuts://import-shortcut?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(name)}`;
+            const shortcutName = `${state.selectedRoute.route}出發`;
+            const shortcutNameAlt = `${state.selectedRoute.route}巴士回家`;
+            const img = (file) => `/image/busstop/${file}`;
+
+            if (navigator.clipboard?.writeText) {
+                navigator.clipboard.writeText(speakUrl).catch(() => { });
+            }
 
             const help = qs('shortcutHelp');
             help.classList.remove('hidden');
             help.innerHTML = `
-                <strong>正在開啟「捷徑」匯入…</strong><br>
-                應會出現「加入捷徑」畫面（不是空白編輯器）。<br>
-                <br>
-                若沒有自動開啟，請點：
-                <a href="${escapeHtml(importUrl)}">加入「${escapeHtml(name)}」捷徑</a><br>
-                或 <a href="${escapeHtml(fileUrl)}">下載 .shortcut 檔</a> 後用「檔案」開啟。<br>
-                <br>
-                若提示無法匯入／未受信任：iPhone「設定」→「捷徑」→開啟「允許未受信任的捷徑」後再試。<br>
-                <br>
-                捷徑內容：取得 URL 內容（純文字 ETA）→ 朗讀文字<br>
-                <code style="word-break:break-all">${escapeHtml(speakUrl)}</code><br>
-                預覽頁：<a href="${escapeHtml(pageUrl)}" target="_blank" rel="noopener">開啟</a>
+                <div class="guide-box">
+                    <h3>手動新增 iOS 捷徑（朗讀到站）</h3>
+                    <p style="margin:0;color:var(--muted);font-size:0.88rem">
+                        因 iOS 無法直接匯入未簽名捷徑，請依下列步驟在「捷徑」App 手動建立。
+                        朗讀網址已複製到剪貼簿；完整 LINK 見步驟 4。
+                    </p>
+                    <div class="guide-actions">
+                        <button type="button" id="copySpeakUrlBtn" class="secondary">複製朗讀網址</button>
+                        <a href="shortcuts://create-shortcut" style="align-self:center;color:var(--accent);font-weight:700">開啟捷徑 App</a>
+                    </div>
+
+                    <div class="guide-step">
+                        <h4>步驟 1：新增捷徑，搜尋並加入「取得 URL 內容」</h4>
+                        <p>打開「捷徑」→ 右上角 ＋ → 搜尋「取得 url 內容」→ 點選加入。接著把藍色的 URL 改成步驟 4 的朗讀網址。</p>
+                        <img src="${img('01-search-get-url.png')}" alt="搜尋取得 URL 內容" loading="lazy">
+                    </div>
+
+                    <div class="guide-step">
+                        <h4>步驟 2：再加入「朗讀文字」</h4>
+                        <p>繼續「加入動作」→ 搜尋「朗讀文字」→ 點選加入。</p>
+                        <img src="${img('02-search-speak.png')}" alt="搜尋朗讀文字" loading="lazy">
+                    </div>
+
+                    <div class="guide-step">
+                        <h4>步驟 3：把朗讀內容設成「URL 內容」</h4>
+                        <p>點「朗讀文字」裡的「文字」→ 在下方選「URL 內容」（綠色下載圖示那個變數）。</p>
+                        <img src="${img('03-link-variable.png')}" alt="選擇 URL 內容變數" loading="lazy">
+                    </div>
+
+                    <div class="guide-step">
+                        <h4>步驟 4：貼上以下 LINK，完成後應如下圖</h4>
+                        <p>在「取得 URL 的內容」動作中，把 URL 設成：</p>
+                        <code class="guide-url" id="speakUrlText">${escapeHtml(speakUrl)}</code>
+                        <div class="guide-actions" style="margin:0 0 12px">
+                            <button type="button" id="copySpeakUrlBtn2" class="secondary">複製此 LINK</button>
+                        </div>
+                        <p>兩個動作串起來：取得 URL 的內容 → 朗讀文字。完成後每次執行都會朗讀最新到站時間。</p>
+                        <img src="${img('04-final-shortcut.png')}" alt="完成的捷徑範例" loading="lazy">
+                    </div>
+
+                    <div class="guide-step">
+                        <h4>步驟 5：重新命名並用 Siri 叫出</h4>
+                        <p>
+                            預設名稱是「新捷徑」。點頂部名稱，改成好記的名字，例如「${escapeHtml(shortcutName)}」或「${escapeHtml(shortcutNameAlt)}」。
+                        </p>
+                        <p>
+                            改名後可直接對 Siri 說：<strong>「嘿 Siri，${escapeHtml(shortcutName)}」</strong>
+                            或「嘿 Siri，執行${escapeHtml(shortcutName)}」，就會朗讀到站時間。
+                        </p>
+                        <p style="margin-bottom:0">
+                            提示：名稱愈短愈好記；同一支手機可為不同路線各建一條捷徑，用不同名字給 Siri 呼叫。
+                        </p>
+                    </div>
+
+                    <p style="margin:12px 0 0;color:var(--muted);font-size:0.85rem">
+                        範例朗讀：${escapeHtml(state.speakText || formatSpeakMessage(state.selectedRoute.route, [3, 15, 25]))}
+                    </p>
+                </div>
             `;
 
-            if (isAppleMobile()) {
-                // Prefer import of a ready-made shortcut (not empty create-shortcut editor)
-                window.location.href = importUrl;
-            } else {
-                // Desktop: download the .shortcut file
-                window.location.href = fileUrl;
-            }
+            const bindCopy = (btnId) => {
+                qs(btnId)?.addEventListener('click', async () => {
+                    const btn = qs(btnId);
+                    try {
+                        await navigator.clipboard.writeText(speakUrl);
+                        const old = btn.textContent;
+                        btn.textContent = '已複製';
+                        setTimeout(() => {
+                            if (btn) btn.textContent = old;
+                        }, 1500);
+                    } catch {
+                        alert('請手動長按步驟 4 的網址複製');
+                    }
+                });
+            };
+            bindCopy('copySpeakUrlBtn');
+            bindCopy('copySpeakUrlBtn2');
+
+            help.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         // ---- Speak / scrape mode (for iOS Shortcuts) ----
@@ -806,22 +1017,16 @@
                 if (e.key === 'Enter') searchRoutes();
             });
             qs('stopFilter').addEventListener('input', () => renderStops(state.stops));
-            qs('backToRoutesBtn').addEventListener('click', () => {
-                if (state.refreshTimer) clearInterval(state.refreshTimer);
-                qs('stopCard').classList.add('hidden');
-                qs('etaCard').classList.add('hidden');
-                qs('searchCard').classList.remove('hidden');
-                setStep(2);
-            });
-            qs('backToStopsBtn').addEventListener('click', () => {
-                if (state.refreshTimer) clearInterval(state.refreshTimer);
-                qs('etaCard').classList.add('hidden');
-                qs('stopCard').classList.remove('hidden');
-                setStep(3);
-            });
+            qs('backToRoutesBtn').addEventListener('click', () => goToStep(2));
+            qs('backToStopsBtn').addEventListener('click', () => goToStep(3));
             qs('refreshEtaBtn').addEventListener('click', refreshEta);
             qs('speakNowBtn').addEventListener('click', speakNow);
-            qs('createShortcutBtn').addEventListener('click', createIOSShortcut);
+            qs('createShortcutBtn').addEventListener('click', showShortcutGuide);
+
+            document.querySelectorAll('#stepBar .step').forEach((el) => {
+                el.addEventListener('click', () => goToStep(el.dataset.step));
+            });
+            setStep(1);
 
             const { route } = getQueryParams();
             if (route && !getQueryParams().stop) {

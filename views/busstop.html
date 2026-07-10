@@ -4,150 +4,933 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle"> 巴士到達時間</title>
+    <title id="pageTitle">巴士到站預報</title>
     <style>
+        :root {
+            --bg: #f3f5f8;
+            --card: #ffffff;
+            --text: #1a1d24;
+            --muted: #667085;
+            --line: #e4e7ec;
+            --accent: #c8102e;
+            --accent-soft: #fde8eb;
+            --ok: #067647;
+            --warn: #b54708;
+            --shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
+            --radius: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, 'Noto Sans HK', sans-serif;
+            margin: 0;
+            font-family: "Noto Sans HK", "PingFang HK", "Microsoft JhengHei", sans-serif;
+            background:
+                radial-gradient(circle at top right, rgba(200, 16, 46, 0.08), transparent 28%),
+                linear-gradient(180deg, #f8fafc 0%, var(--bg) 100%);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        body.speak-mode {
+            background: #fff;
             max-width: 600px;
-            margin: 20px auto;
+            margin: 0 auto;
             padding: 20px;
-            background-color: #f4f4f4;
         }
 
-        h1 {
+        .app {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+        }
+
+        .hero {
+            margin-bottom: 18px;
+        }
+
+        .hero h1 {
+            margin: 0 0 6px;
+            font-size: 1.7rem;
+            letter-spacing: 0.02em;
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--muted);
+        }
+
+        .search-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        input[type="search"],
+        input[type="text"] {
+            flex: 1;
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 1rem;
+            outline: none;
+            background: #fff;
+        }
+
+        input:focus {
+            border-color: #f3a0ab;
+            box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.12);
+        }
+
+        button {
+            border: 0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            background: var(--accent);
+            color: #fff;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button.secondary {
+            background: #fff;
+            color: var(--text);
+            border: 1px solid var(--line);
+        }
+
+        button.ghost {
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        .hint {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .list {
+            display: grid;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .item {
+            width: 100%;
+            text-align: left;
+            background: #fff;
+            color: var(--text);
+            border: 1px solid var(--line);
+            padding: 12px 14px;
+            border-radius: 12px;
+            display: grid;
+            gap: 4px;
+        }
+
+        .item:hover,
+        .item.active {
+            border-color: #f3a0ab;
+            background: #fff8f9;
+        }
+
+        .item .title {
+            font-size: 1.05rem;
+            font-weight: 800;
+        }
+
+        .item .meta {
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.4;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--accent-soft);
+            color: var(--accent);
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-right: 6px;
+        }
+
+        .steps {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .step {
+            font-size: 0.78rem;
+            color: var(--muted);
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 6px 10px;
+        }
+
+        .step.on {
+            color: var(--accent);
+            border-color: #f3a0ab;
+            background: var(--accent-soft);
+            font-weight: 700;
+        }
+
+        .eta-board {
+            display: grid;
+            gap: 10px;
+        }
+
+        .eta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .eta-row:last-child {
+            border-bottom: 0;
+        }
+
+        .eta-mins {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .eta-mins.soon {
+            color: var(--ok);
+        }
+
+        .eta-mins.late {
+            color: var(--warn);
+        }
+
+        .eta-sub {
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        .speak-box {
+            margin-top: 12px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 12px;
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
+
+        .actions {
+            display: grid;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .status {
             text-align: center;
-            color: #333;
-        }
-
-        #etaList {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .eta-item {
-            margin: 10px 0;
-            font-size: 16px;
-        }
-
-        .loading,
-        .error {
-            text-align: center;
-            color: #555;
+            color: var(--muted);
+            padding: 18px 8px;
         }
 
         .error {
             color: #d32f2f;
+            text-align: center;
+            padding: 12px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .selected-summary {
+            display: grid;
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+
+        .selected-summary strong {
+            font-size: 1.15rem;
+        }
+
+        .footer-note {
+            margin-top: 18px;
+            color: var(--muted);
+            font-size: 0.78rem;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        .footer-note a {
+            color: var(--accent);
+        }
+
+        /* Speak / Shortcut scrape mode: keep text clean */
+        #etaList.speak-only {
+            background: #fff;
+            padding: 0;
+            border: 0;
+            box-shadow: none;
+            font-size: 1.15rem;
+            line-height: 1.7;
         }
     </style>
 </head>
 
 <body>
-    <h1 id="headerTitle"></h1>
-    <div id="etaList" class="loading" data-status="loading">正在加載到達時間資料...</div>
+    <div id="speakApp" class="hidden">
+        <h1 id="headerTitle" class="hidden"></h1>
+        <div id="etaList" class="loading" data-status="loading">正在加載到達時間資料...</div>
+    </div>
+
+    <div id="builderApp" class="app hidden">
+        <div class="hero">
+            <h1>巴士到站預報</h1>
+            <p>搜尋九巴／龍運路線、選擇車站，查看即時到站時間，並產生可朗讀的 iOS 捷徑。</p>
+        </div>
+
+        <div class="steps" id="stepBar">
+            <div class="step on" data-step="1">1. 搜尋路線</div>
+            <div class="step" data-step="2">2. 選擇方向</div>
+            <div class="step" data-step="3">3. 選擇車站</div>
+            <div class="step" data-step="4">4. 到站時間</div>
+        </div>
+
+        <section class="card" id="searchCard">
+            <label class="label" for="routeInput">巴士號碼</label>
+            <div class="search-row">
+                <input id="routeInput" type="search" inputmode="text" autocomplete="off" placeholder="例如 46X、208、N216"
+                    maxlength="10">
+                <button id="searchBtn" type="button">搜尋</button>
+            </div>
+            <div class="hint">資料來源：KMB / LWB Open Data API（與 <a href="https://hkbus.app/zh" target="_blank"
+                    rel="noopener">hkbus.app</a> 相同官方 ETA）</div>
+            <div id="routeResults" class="list" style="margin-top:12px"></div>
+        </section>
+
+        <section class="card hidden" id="stopCard">
+            <div class="selected-summary">
+                <strong id="selectedRouteTitle"></strong>
+                <div class="meta" id="selectedRouteMeta" style="color:var(--muted);font-size:0.9rem"></div>
+            </div>
+            <label class="label">選擇車站</label>
+            <input id="stopFilter" type="search" placeholder="過濾站名…" style="margin-bottom:10px">
+            <div id="stopResults" class="list"></div>
+            <div style="margin-top:10px">
+                <button type="button" class="secondary" id="backToRoutesBtn">返回路線</button>
+            </div>
+        </section>
+
+        <section class="card hidden" id="etaCard">
+            <div class="selected-summary">
+                <strong id="etaRouteTitle"></strong>
+                <div id="etaStopTitle" style="color:var(--muted)"></div>
+            </div>
+            <div id="etaBoard" class="eta-board"></div>
+            <div id="speakPreview" class="speak-box"></div>
+            <div class="actions">
+                <button type="button" id="refreshEtaBtn" class="secondary">重新整理到站時間</button>
+                <button type="button" id="speakNowBtn" class="ghost">立即朗讀</button>
+                <button type="button" id="createShortcutBtn">產生 iOS 捷徑（朗讀到站）</button>
+                <button type="button" id="backToStopsBtn" class="secondary">返回車站</button>
+            </div>
+            <div id="shortcutHelp" class="hint hidden" style="margin-top:12px"></div>
+        </section>
+
+        <div class="footer-note">
+            ETA 約每分鐘更新。API 說明：
+            <a href="https://data.etabus.gov.hk/datagovhk/kmb_eta_data_dictionary.pdf" target="_blank"
+                rel="noopener">KMB ETA Data Dictionary</a>
+        </div>
+    </div>
 
     <script>
-        // 數字轉換成中文的工具
-        function numberToChinese(num) {
-            if (num < 0 || num > 60) return '無效數字';
-            if (num === 0) return '零';
+        const API = 'https://data.etabus.gov.hk/v1/transport/kmb';
+        const BOUND_LABEL = { O: 'outbound', I: 'inbound' };
 
-            const chineseDigits = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
-            const chineseTens = ['十', '二十', '三十', '四十', '五十', '六十'];
+        const state = {
+            routeList: null,
+            stopMap: null,
+            selectedRoute: null,
+            stops: [],
+            selectedStop: null,
+            etas: [],
+            speakText: '',
+            refreshTimer: null
+        };
 
-            if (num < 10) return chineseDigits[num];
-            if (num === 10) return chineseTens[0];
-            if (num < 20) return chineseTens[0] + (num % 10 === 0 ? '' : chineseDigits[num % 10]);
-
-            const ten = Math.floor(num / 10);
-            const one = num % 10;
-            return chineseTens[ten - 1] + (one === 0 ? '' : chineseDigits[one]);
+        function qs(id) {
+            return document.getElementById(id);
         }
 
-        // 從網址參數中提取站點和路線號
         function getQueryParams() {
             const params = new URLSearchParams(window.location.search);
             return {
                 stop: params.get('stop'),
                 route: params.get('route'),
-                direction: params.get('direction') || '1'
+                // legacy param name "direction" was actually service_type
+                serviceType: params.get('service_type') || params.get('direction') || '1',
+                bound: (params.get('bound') || '').toUpperCase()
             };
         }
 
-        async function fetchBusETA() {
-            try {
-                // 從網址參數獲取站點和路線
-                const { stop, route, direction } = getQueryParams();
+        function setStep(n) {
+            document.querySelectorAll('#stepBar .step').forEach((el) => {
+                el.classList.toggle('on', Number(el.dataset.step) <= n);
+            });
+        }
 
-                // 檢查必要參數是否存在
-                if (!stop || !route || !direction) {
-                    document.getElementById('etaList').innerHTML = '<div class="error">錯誤：缺少必要參數。請提供 stop、route 和 direction 參數。</div>';
+        function escapeHtml(str) {
+            return String(str)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;');
+        }
+
+        async function fetchJson(url) {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+        }
+
+        async function loadRouteList() {
+            if (state.routeList) return state.routeList;
+            const cached = sessionStorage.getItem('kmb_route_list_v1');
+            if (cached) {
+                state.routeList = JSON.parse(cached);
+                return state.routeList;
+            }
+            const data = await fetchJson(`${API}/route/`);
+            state.routeList = data.data || [];
+            try {
+                sessionStorage.setItem('kmb_route_list_v1', JSON.stringify(state.routeList));
+            } catch {
+                // ignore quota errors
+            }
+            return state.routeList;
+        }
+
+        async function loadStopMap() {
+            if (state.stopMap) return state.stopMap;
+            const cached = sessionStorage.getItem('kmb_stop_map_v1');
+            if (cached) {
+                state.stopMap = JSON.parse(cached);
+                return state.stopMap;
+            }
+            const data = await fetchJson(`${API}/stop`);
+            const map = {};
+            for (const stop of (data.data || [])) {
+                map[stop.stop] = stop;
+            }
+            state.stopMap = map;
+            try {
+                sessionStorage.setItem('kmb_stop_map_v1', JSON.stringify(map));
+            } catch {
+                // ignore quota errors (stop list is large)
+            }
+            return state.stopMap;
+        }
+
+        function normalizeRouteQuery(q) {
+            return String(q || '').trim().toUpperCase().replaceAll(/\s+/g, '');
+        }
+
+        function minutesUntil(etaIso) {
+            if (!etaIso) return null;
+            const diff = Math.round((new Date(etaIso) - Date.now()) / 60_000);
+            return Math.max(0, diff);
+        }
+
+        function formatSpeakMessage(route, minutesList) {
+            const mins = minutesList.filter((m) => m !== null && m !== undefined);
+            if (mins.length === 0) return `${route} 號巴士暫時沒有到站時間`;
+            if (mins.length === 1) return `${route} 號巴士 於 ${mins[0]}分鐘後有到達`;
+            if (mins.length === 2) return `${route} 號巴士 於 ${mins[0]}分鐘, 及${mins[1]}分鐘後有到達`;
+            const head = mins.slice(0, -1).map((m) => `${m}分鐘`).join(', ');
+            const last = mins.at(-1);
+            return `${route} 號巴士 於 ${head}, 及${last}分鐘後有到達`;
+        }
+
+        function boundText(bound) {
+            return bound === 'I' ? '回程' : '去程';
+        }
+
+        function renderRouteResults(routes) {
+            const box = qs('routeResults');
+            if (!routes.length) {
+                box.innerHTML = '<div class="status">找不到此路線，請再試（例如 46X、5C、N216）</div>';
+                return;
+            }
+            box.innerHTML = routes.map((r, idx) => `
+                <button type="button" class="item" data-idx="${idx}">
+                    <div class="title">
+                        <span class="badge">${escapeHtml(r.route)}</span>
+                        往 ${escapeHtml(r.dest_tc || r.dest_en || '')}
+                    </div>
+                    <div class="meta">
+                        ${boundText(r.bound)} · 服務類型 ${escapeHtml(r.service_type)}
+                        · ${escapeHtml(r.orig_tc || '')} → ${escapeHtml(r.dest_tc || '')}
+                    </div>
+                </button>
+            `).join('');
+
+            box.querySelectorAll('.item').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const route = routes[Number(btn.dataset.idx)];
+                    selectRoute(route);
+                });
+            });
+        }
+
+        async function searchRoutes() {
+            const q = normalizeRouteQuery(qs('routeInput').value);
+            if (!q) {
+                qs('routeResults').innerHTML = '<div class="status">請輸入巴士號碼</div>';
+                return;
+            }
+            qs('routeResults').innerHTML = '<div class="status">搜尋中…</div>';
+            qs('searchBtn').disabled = true;
+            try {
+                const list = await loadRouteList();
+                const exact = list.filter((r) => r.route === q);
+                const fuzzy = exact.length ? exact : list.filter((r) => r.route.includes(q)).slice(0, 30);
+                setStep(2);
+                renderRouteResults(fuzzy);
+            } catch (error) {
+                console.error(error);
+                qs('routeResults').innerHTML = '<div class="error">無法載入路線資料，請稍後再試。</div>';
+            } finally {
+                qs('searchBtn').disabled = false;
+            }
+        }
+
+        async function selectRoute(route) {
+            state.selectedRoute = route;
+            state.selectedStop = null;
+            qs('selectedRouteTitle').textContent = `${route.route} 往 ${route.dest_tc || route.dest_en}`;
+            qs('selectedRouteMeta').textContent =
+                `${boundText(route.bound)} · 服務類型 ${route.service_type} · ${route.orig_tc} → ${route.dest_tc}`;
+            qs('searchCard').classList.add('hidden');
+            qs('etaCard').classList.add('hidden');
+            qs('stopCard').classList.remove('hidden');
+            qs('stopResults').innerHTML = '<div class="status">載入車站中…</div>';
+            qs('stopFilter').value = '';
+            setStep(3);
+
+            try {
+                const direction = BOUND_LABEL[route.bound] || 'outbound';
+                const [routeStop, stopMap] = await Promise.all([
+                    fetchJson(
+                        `${API}/route-stop/${encodeURIComponent(route.route)}/${direction}/${encodeURIComponent(route.service_type)}`
+                    ),
+                    loadStopMap()
+                ]);
+                const stopIds = routeStop.data || [];
+                const stops = stopIds.map((item) => {
+                    const info = stopMap[item.stop] || {};
+                    return {
+                        seq: Number(item.seq),
+                        stop: item.stop,
+                        name_tc: info.name_tc || item.stop,
+                        name_en: info.name_en || ''
+                    };
+                });
+                stops.sort((a, b) => a.seq - b.seq);
+                state.stops = stops;
+                renderStops(stops);
+            } catch (error) {
+                console.error(error);
+                qs('stopResults').innerHTML = '<div class="error">無法載入車站列表。</div>';
+            }
+        }
+
+        function renderStops(stops) {
+            const filter = qs('stopFilter').value.trim().toLowerCase();
+            const filtered = filter
+                ? stops.filter((s) =>
+                    s.name_tc.toLowerCase().includes(filter) ||
+                    s.name_en.toLowerCase().includes(filter) ||
+                    String(s.seq).includes(filter))
+                : stops;
+
+            const box = qs('stopResults');
+            if (!filtered.length) {
+                box.innerHTML = '<div class="status">沒有符合的車站</div>';
+                return;
+            }
+            box.innerHTML = filtered.map((s) => `
+                <button type="button" class="item" data-stop="${escapeHtml(s.stop)}">
+                    <div class="title">${escapeHtml(s.seq)}. ${escapeHtml(s.name_tc)}</div>
+                    <div class="meta">${escapeHtml(s.name_en)}</div>
+                </button>
+            `).join('');
+            box.querySelectorAll('.item').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const stop = state.stops.find((s) => s.stop === btn.dataset.stop);
+                    if (stop) selectStop(stop);
+                });
+            });
+        }
+
+        async function selectStop(stop) {
+            state.selectedStop = stop;
+            qs('stopCard').classList.add('hidden');
+            qs('etaCard').classList.remove('hidden');
+            qs('etaRouteTitle').textContent =
+                `${state.selectedRoute.route} 往 ${state.selectedRoute.dest_tc || ''}`;
+            qs('etaStopTitle').textContent = `${stop.name_tc}${stop.name_en ? `（${stop.name_en}）` : ''}`;
+            setStep(4);
+            await refreshEta();
+            if (state.refreshTimer) clearInterval(state.refreshTimer);
+            state.refreshTimer = setInterval(refreshEta, 30_000);
+        }
+
+        async function refreshEta() {
+            const route = state.selectedRoute;
+            const stop = state.selectedStop;
+            if (!route || !stop) return;
+
+            qs('etaBoard').innerHTML = '<div class="status">更新到站時間…</div>';
+            try {
+                const data = await fetchJson(
+                    `${API}/eta/${stop.stop}/${encodeURIComponent(route.route)}/${encodeURIComponent(route.service_type)}`
+                );
+                let rows = (data.data || []).filter((row) => row.eta);
+                if (route.bound) rows = rows.filter((row) => row.dir === route.bound);
+                // Prefer matching stop sequence when available
+                const sameSeq = rows.filter((row) => Number(row.seq) === Number(stop.seq));
+                if (sameSeq.length) rows = sameSeq;
+                rows.sort((a, b) => Number(a.eta_seq) - Number(b.eta_seq));
+                state.etas = rows;
+
+                const minutes = rows.map((row) => minutesUntil(row.eta));
+                state.speakText = formatSpeakMessage(route.route, minutes);
+                qs('speakPreview').textContent = state.speakText;
+
+                if (!rows.length) {
+                    qs('etaBoard').innerHTML = '<div class="status">暫時沒有到站時間</div>';
                     return;
                 }
 
-                const apiUrl = `https://data.etabus.gov.hk/v1/transport/kmb/eta/${stop}/${route}/${direction}`;
-
-                // 更新頁面標題和標頭
-                const titleText = `${route} 巴士到達時間`;
-                document.getElementById('pageTitle').textContent = titleText;
-                //document.getElementById('headerTitle').textContent = titleText;
-
-                const response = await fetch(apiUrl);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                displayETA(data.data, route);
+                qs('etaBoard').innerHTML = rows.map((row) => {
+                    const mins = minutesUntil(row.eta);
+                    const clock = new Date(row.eta).toLocaleTimeString('zh-HK', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    const cls = mins <= 3 ? 'soon' : (mins >= 30 ? 'late' : '');
+                    const remark = row.rmk_tc ? ` · ${escapeHtml(row.rmk_tc)}` : '';
+                    return `
+                        <div class="eta-row">
+                            <div>
+                                <div>往 ${escapeHtml(row.dest_tc || route.dest_tc || '')}</div>
+                                <div class="eta-sub">${clock}${remark}</div>
+                            </div>
+                            <div class="eta-mins ${cls}">${mins}<span style="font-size:0.85rem"> 分鐘</span></div>
+                        </div>
+                    `;
+                }).join('');
             } catch (error) {
-                const etaList = document.getElementById('etaList');
+                console.error(error);
+                qs('etaBoard').innerHTML = '<div class="error">無法取得到站時間</div>';
+                state.speakText = `${route.route} 號巴士暫時無法取得到站時間`;
+                qs('speakPreview').textContent = state.speakText;
+            }
+        }
+
+        function buildEtaPageUrl() {
+            const route = state.selectedRoute;
+            const stop = state.selectedStop;
+            const url = new URL(window.location.href);
+            url.search = '';
+            url.searchParams.set('route', route.route);
+            url.searchParams.set('stop', stop.stop);
+            url.searchParams.set('service_type', route.service_type);
+            url.searchParams.set('bound', route.bound);
+            return url.toString();
+        }
+
+        /** Plain-text endpoint for iOS Shortcuts (Get Contents of URL → Speak Text). */
+        function buildSpeakTextUrl() {
+            const route = state.selectedRoute;
+            const stop = state.selectedStop;
+            const url = new URL('/busstop/speak', window.location.origin);
+            url.searchParams.set('route', route.route);
+            url.searchParams.set('stop', stop.stop);
+            url.searchParams.set('service_type', route.service_type);
+            url.searchParams.set('bound', route.bound);
+            return url.toString();
+        }
+
+        function speakNow() {
+            const text = state.speakText || qs('speakPreview').textContent;
+            if (!text) return;
+            if (!window.speechSynthesis) {
+                alert('此瀏覽器不支援朗讀');
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'zh-HK';
+            window.speechSynthesis.speak(utter);
+        }
+
+        function xmlEscape(str) {
+            return String(str)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;');
+        }
+
+        function buildShortcutPlist(etaUrl, shortcutName) {
+            // Unsigned Workflow/Shortcuts XML plist.
+            // iOS may ask to review before first run; if import is blocked, use the on-screen manual steps.
+            const uuid1 = crypto.randomUUID().toUpperCase();
+            const uuid2 = crypto.randomUUID().toUpperCase();
+            const uuid3 = crypto.randomUUID().toUpperCase();
+            return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>WFWorkflowClientVersion</key>
+    <string>1300.0.0</string>
+    <key>WFWorkflowClientRelease</key>
+    <string>3.0</string>
+    <key>WFWorkflowMinimumClientVersion</key>
+    <integer>900</integer>
+    <key>WFWorkflowMinimumClientVersionString</key>
+    <string>900</string>
+    <key>WFWorkflowIcon</key>
+    <dict>
+        <key>WFWorkflowIconStartColor</key>
+        <integer>2071128575</integer>
+        <key>WFWorkflowIconGlyphNumber</key>
+        <integer>59511</integer>
+    </dict>
+    <key>WFWorkflowTypes</key>
+    <array>
+        <string>NCWidget</string>
+        <string>WatchKit</string>
+    </array>
+    <key>WFWorkflowInputContentItemClasses</key>
+    <array>
+        <string>WFStringContentItem</string>
+        <string>WFURLContentItem</string>
+    </array>
+    <key>WFWorkflowActions</key>
+    <array>
+        <dict>
+            <key>WFWorkflowActionIdentifier</key>
+            <string>is.workflow.actions.url</string>
+            <key>WFWorkflowActionParameters</key>
+            <dict>
+                <key>UUID</key>
+                <string>${uuid1}</string>
+                <key>WFURLActionURL</key>
+                <string>${xmlEscape(etaUrl)}</string>
+            </dict>
+        </dict>
+        <dict>
+            <key>WFWorkflowActionIdentifier</key>
+            <string>is.workflow.actions.downloadurl</string>
+            <key>WFWorkflowActionParameters</key>
+            <dict>
+                <key>UUID</key>
+                <string>${uuid2}</string>
+                <key>WFHTTPMethod</key>
+                <string>GET</string>
+            </dict>
+        </dict>
+        <dict>
+            <key>WFWorkflowActionIdentifier</key>
+            <string>is.workflow.actions.gettext</string>
+            <key>WFWorkflowActionParameters</key>
+            <dict>
+                <key>UUID</key>
+                <string>${uuid3}</string>
+            </dict>
+        </dict>
+        <dict>
+            <key>WFWorkflowActionIdentifier</key>
+            <string>is.workflow.actions.speaktext</string>
+            <key>WFWorkflowActionParameters</key>
+            <dict>
+                <key>WFSpeakTextLanguage</key>
+                <string>zh_HK</string>
+                <key>WFSpeakTextRate</key>
+                <real>0.5</real>
+            </dict>
+        </dict>
+    </array>
+    <key>WFWorkflowName</key>
+    <string>${xmlEscape(shortcutName)}</string>
+</dict>
+</plist>`;
+        }
+
+        function createIOSShortcut() {
+            if (!state.selectedRoute || !state.selectedStop) return;
+            const speakUrl = buildSpeakTextUrl();
+            const pageUrl = buildEtaPageUrl();
+            const name = `${state.selectedRoute.route}到站朗讀`;
+            const plist = buildShortcutPlist(speakUrl, name);
+            const blob = new Blob([plist], { type: 'application/octet-stream' });
+            const fileName = `${name}.shortcut`;
+            const objectUrl = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = fileName;
+            document.body.append(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(objectUrl), 2_000);
+
+            // Copy plain-text ETA URL for manual shortcut setup
+            if (navigator.clipboard?.writeText) {
+                navigator.clipboard.writeText(speakUrl).catch(() => { });
+            }
+
+            const help = qs('shortcutHelp');
+            help.classList.remove('hidden');
+            help.innerHTML = `
+                已下載 <strong>${escapeHtml(fileName)}</strong>，並已複製純文字 ETA 網址。<br>
+                <br>
+                <strong>iPhone 用法（建議）：</strong><br>
+                1. 開啟「捷徑」→ 新增捷徑<br>
+                2. 加入「取得 URL 的內容」→ URL：<br>
+                &nbsp;&nbsp;<code style="word-break:break-all">${escapeHtml(speakUrl)}</code><br>
+                3. 加入「朗讀文字」（語言選廣東話／香港）<br>
+                4. 執行後會朗讀例如：<br>
+                &nbsp;&nbsp;「${escapeHtml(state.speakText || formatSpeakMessage(state.selectedRoute.route, [3, 15, 25]))}」<br>
+                <br>
+                網頁預覽：<a href="${escapeHtml(pageUrl)}" target="_blank" rel="noopener">開啟到站頁</a>
+                （若 .shortcut 無法直接匯入，請用上方手動步驟；現代 iOS 常需簽名捷徑檔）
+            `;
+
+            // Best-effort: open Shortcuts app create screen on iOS
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            if (isIOS) {
+                setTimeout(() => {
+                    window.location.href = 'shortcuts://create-shortcut';
+                }, 500);
+            }
+        }
+
+        // ---- Speak / scrape mode (for iOS Shortcuts) ----
+        async function fetchBusETASpeakMode() {
+            const { stop, route, serviceType, bound } = getQueryParams();
+            const etaList = qs('etaList');
+            if (!stop || !route) {
+                etaList.innerHTML = '<div class="error">錯誤：缺少必要參數。請提供 stop、route 參數。</div>';
+                etaList.setAttribute('data-status', 'error');
+                return;
+            }
+
+            const titleText = `${route} 巴士到達時間`;
+            qs('pageTitle').textContent = titleText;
+
+            try {
+                const data = await fetchJson(
+                    `${API}/eta/${encodeURIComponent(stop)}/${encodeURIComponent(route)}/${encodeURIComponent(serviceType)}`
+                );
+                let rows = (data.data || []).filter((row) => row.eta);
+                if (bound) rows = rows.filter((row) => row.dir === bound);
+                rows.sort((a, b) => Number(a.eta_seq) - Number(b.eta_seq));
+
+                if (!rows.length) {
+                    etaList.innerHTML = '<div class="error" data-status="error">沒有到達時間資料。</div>';
+                    etaList.setAttribute('data-status', 'error');
+                    return;
+                }
+
+                const minutes = rows.map((row) => minutesUntil(row.eta));
+                const message = formatSpeakMessage(route, minutes);
+                etaList.className = 'speak-only';
+                etaList.textContent = message;
+                etaList.setAttribute('data-status', 'ready');
+            } catch (error) {
                 etaList.innerHTML = '<div class="error">無法加載到達時間資料，請稍後再試。</div>';
                 etaList.setAttribute('data-status', 'error');
                 console.error('Error:', error);
             }
         }
 
-        function displayETA(etaData, route) {
-            const etaList = document.getElementById('etaList');
-            etaList.innerHTML = '';
-            if (!etaData || etaData.length === 0) {
-                etaList.innerHTML = '<div class="error" data-status="error">沒有到達時間資料。</div>';
-                etaList.setAttribute('data-status', 'error');
-                return;
+        function initBuilder() {
+            qs('builderApp').classList.remove('hidden');
+            qs('searchBtn').addEventListener('click', searchRoutes);
+            qs('routeInput').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') searchRoutes();
+            });
+            qs('stopFilter').addEventListener('input', () => renderStops(state.stops));
+            qs('backToRoutesBtn').addEventListener('click', () => {
+                if (state.refreshTimer) clearInterval(state.refreshTimer);
+                qs('stopCard').classList.add('hidden');
+                qs('etaCard').classList.add('hidden');
+                qs('searchCard').classList.remove('hidden');
+                setStep(2);
+            });
+            qs('backToStopsBtn').addEventListener('click', () => {
+                if (state.refreshTimer) clearInterval(state.refreshTimer);
+                qs('etaCard').classList.add('hidden');
+                qs('stopCard').classList.remove('hidden');
+                setStep(3);
+            });
+            qs('refreshEtaBtn').addEventListener('click', refreshEta);
+            qs('speakNowBtn').addEventListener('click', speakNow);
+            qs('createShortcutBtn').addEventListener('click', createIOSShortcut);
+
+            const { route } = getQueryParams();
+            if (route && !getQueryParams().stop) {
+                qs('routeInput').value = route;
+                searchRoutes();
             }
-
-            const now = new Date();
-            const timeDiffs = [];
-
-            // 計算所有巴士的到達時間
-            for (let i = 0; i < etaData.length; i++) {
-                const eta = new Date(etaData[i].eta);
-                const timeDiff = Math.round((eta - now) / 1000 / 60); // 分鐘差
-                const capped = Math.max(0, Math.min(60, timeDiff)); // 限制在 0-60 分鐘
-                timeDiffs.push(numberToChinese(capped));
-            }
-
-            // 根據巴士數量生成訊息
-            let message;
-            if (timeDiffs.length === 1) {
-                message = `${route} 將於${timeDiffs[0]}分鐘後到達`;
-            } else if (timeDiffs.length === 2) {
-                message = `${route} 將於${timeDiffs[0]}和${timeDiffs[1]}分鐘後到達`;
-            } else {
-                // 三班或以上車，用頓號分隔
-                const lastTime = timeDiffs.pop(); // 取出最後一個時間
-                message = `${route} 將於${timeDiffs.join('、')}和${lastTime}分鐘後到達`;
-            }
-
-            const etaItem = document.createElement('div');
-            etaItem.className = 'eta-item';
-            etaItem.textContent = message;
-            etaList.appendChild(etaItem);
-            etaList.setAttribute('data-status', 'ready');
         }
 
-        // 頁面加載時獲取 ETA 資料
-        fetchBusETA();
+        function boot() {
+            const { stop, route } = getQueryParams();
+            if (stop && route) {
+                document.body.classList.add('speak-mode');
+                qs('speakApp').classList.remove('hidden');
+                fetchBusETASpeakMode();
+            } else {
+                initBuilder();
+            }
+        }
+
+        boot();
     </script>
 </body>
 

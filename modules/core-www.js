@@ -894,6 +894,89 @@ www.get('/busstop', async (req, res) => {
     res.sendFile(process.cwd() + '/views/busstop.html');
 });
 
+/**
+ * Plain-text KMB/LWB ETA for iOS Shortcuts (Get Contents of URL → Speak Text).
+ * Query: route, stop, service_type (or legacy direction), bound (O|I, optional)
+ */
+www.get('/busstop/speak', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+
+    const route = String(req.query.route || '').trim().toUpperCase();
+    const stop = String(req.query.stop || '').trim();
+    const serviceType = String(req.query.service_type || req.query.direction || '1').trim();
+    const bound = String(req.query.bound || '').trim().toUpperCase();
+
+    if (!route || !stop) {
+        res.status(400).type('text/plain; charset=utf-8')
+            .send('錯誤：缺少 route 或 stop 參數');
+        return;
+    }
+
+    try {
+        const apiUrl = `https://data.etabus.gov.hk/v1/transport/kmb/eta/${encodeURIComponent(stop)}/${encodeURIComponent(route)}/${encodeURIComponent(serviceType)}`;
+        const payload = await fetchJsonOverHttps(apiUrl);
+        let rows = Array.isArray(payload?.data) ? payload.data.filter(row => row?.eta) : [];
+        if (bound === 'O' || bound === 'I') {
+            rows = rows.filter(row => row.dir === bound);
+        }
+        rows.sort((a, b) => Number(a.eta_seq) - Number(b.eta_seq));
+
+        const minutes = rows.map((row) => {
+            const diff = Math.round((new Date(row.eta) - Date.now()) / 60_000);
+            return Math.max(0, diff);
+        });
+        res.type('text/plain; charset=utf-8').send(formatBusSpeakMessage(route, minutes));
+    } catch (error) {
+        console.error('[busstop/speak]', error?.message || error);
+        res.status(502).type('text/plain; charset=utf-8')
+            .send(`${route} 號巴士暫時無法取得到站時間`);
+    }
+});
+
+function formatBusSpeakMessage(route, minutesList) {
+    const mins = (minutesList || []).filter(m => m !== null && m !== undefined);
+    if (mins.length === 0) return `${route} 號巴士暫時沒有到站時間`;
+    if (mins.length === 1) return `${route} 號巴士 於 ${mins[0]}分鐘後有到達`;
+    if (mins.length === 2) return `${route} 號巴士 於 ${mins[0]}分鐘, 及${mins[1]}分鐘後有到達`;
+    const head = mins.slice(0, -1).map(m => `${m}分鐘`).join(', ');
+    const last = mins.at(-1);
+    return `${route} 號巴士 於 ${head}, 及${last}分鐘後有到達`;
+}
+
+function fetchJsonOverHttps(url) {
+    return new Promise((resolve, reject) => {
+        const request = https.get(url, {
+            headers: {
+                Accept: 'application/json',
+                'User-Agent': 'HKTRPG-BusStop/1.0'
+            },
+            timeout: 10_000
+        }, (response) => {
+            if (response.statusCode && response.statusCode >= 400) {
+                response.resume();
+                reject(new Error(`KMB API HTTP ${response.statusCode}`));
+                return;
+            }
+            const chunks = [];
+            response.on('data', chunk => chunks.push(chunk));
+            response.on('end', () => {
+                try {
+                    resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        });
+        request.on('timeout', () => {
+            request.destroy(new Error('KMB API timeout'));
+        });
+        request.on('error', reject);
+    });
+}
+
 // ---------- Patreon dashboard and API ----------
 // Key only from header to avoid leaking via URL (query), Referer, or logs.
 function getPatreonKeyFromRequest(req) {

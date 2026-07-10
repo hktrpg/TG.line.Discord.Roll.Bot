@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-tw">
+<html lang="zh-tw" class="app-shell-page">
 
 <head>
     <!-- Required meta tags -->
@@ -24,6 +24,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/app-shell.css">
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/cnchar-all/cnchar.all.min.js"></script>
 
@@ -33,11 +34,17 @@
 
 </head>
 
-<body>
-    <div class="container">
-        <div id="header"></div>
+<body class="app-shell-page">
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="container">
+                <div id="header"></div>
+            </div>
+        </header>
 
-        <div class="row">
+        <main class="app-main">
+            <div class="container py-3">
+                <div class="row">
             <div class="col-8  h-75">
                 <div class="input-group">
                     <span class="input-group-text  btn-sm">輸入文字</span>
@@ -111,8 +118,17 @@ That struts and frets his hour upon the stage</textarea>
                 </div>
             </div>
 
-        </div>
-        <!-- Modal -->
+                </div>
+            </div>
+        </main>
+
+        <footer class="app-footer">
+            <div class="container">
+                <div id="footer"></div>
+            </div>
+        </footer>
+    </div>
+
         <!-- Modal -->
         <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -139,12 +155,6 @@ That struts and frets his hour upon the stage</textarea>
                 </div>
             </div>
         </div>
-        <footer>
-            <div id="footer"></div>
-        </footer>
-
-
-    </div>
 
 
     <!-- Optional JavaScript; choose one of the two! -->

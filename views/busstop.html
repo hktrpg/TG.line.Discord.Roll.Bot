@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="zh-HK">
+<html lang="zh-HK" class="app-shell-page">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="pageTitle">IOS Shortcut 搵巴士</title>
+    <link rel="stylesheet" href="css/app-shell.css">
     <style>
         :root {
             --bg: #f3f5f8;
@@ -24,14 +25,13 @@
             box-sizing: border-box;
         }
 
-        body {
-            margin: 0;
-            font-family: "Noto Sans HK", "PingFang HK", "Microsoft JhengHei", sans-serif;
+        html.app-shell-page,
+        html.app-shell-page body {
             background:
                 radial-gradient(circle at top right, rgba(200, 16, 46, 0.08), transparent 28%),
                 linear-gradient(180deg, #f8fafc 0%, var(--bg) 100%);
             color: var(--text);
-            min-height: 100vh;
+            font-family: "Noto Sans HK", "PingFang HK", "Microsoft JhengHei", sans-serif;
         }
 
         body.speak-mode {
@@ -39,16 +39,42 @@
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
+            height: auto !important;
+            max-height: none !important;
+            overflow: auto !important;
+            display: block !important;
+        }
+
+        body.speak-mode .app-shell {
+            display: none !important;
         }
 
         .app {
             max-width: 720px;
             margin: 0 auto;
-            padding: 20px 16px 40px;
+            width: 100%;
+        }
+
+        #builderApp.app-shell {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        #builderApp .app-header {
+            padding: 16px 16px 0;
+            background: transparent;
+        }
+
+        #builderApp .app-main {
+            padding: 0 16px 16px;
+        }
+
+        #builderApp .app-footer {
+            padding: 0 16px 16px;
         }
 
         .hero {
-            margin-bottom: 18px;
+            margin-bottom: 12px;
         }
 
         .hero h1 {
@@ -405,66 +431,70 @@
     </style>
 </head>
 
-<body>
+<body class="app-shell-page">
     <div id="speakApp" class="hidden">
         <h1 id="headerTitle" class="hidden"></h1>
         <div id="etaList" class="loading" data-status="loading">正在加載到達時間資料...</div>
     </div>
 
-    <div id="builderApp" class="app hidden">
-        <div class="hero">
-            <h1>IOS Shortcut 搵巴士</h1>
-            <p>搜尋九巴／龍運路線、選擇車站，查看即時到站時間，並依教學手動建立可朗讀的 iOS 捷徑。</p>
+    <div id="builderApp" class="app app-shell hidden">
+        <div class="app-header">
+            <div class="hero">
+                <h1>IOS Shortcut 搵巴士</h1>
+                <p>搜尋九巴／龍運路線、選擇車站，查看即時到站時間，並依教學手動建立可朗讀的 iOS 捷徑。</p>
+            </div>
+
+            <div class="steps" id="stepBar">
+                <button type="button" class="step on current clickable" data-step="1">1. 搜尋路線</button>
+                <button type="button" class="step disabled" data-step="2" disabled>2. 選擇方向</button>
+                <button type="button" class="step disabled" data-step="3" disabled>3. 選擇車站</button>
+                <button type="button" class="step disabled" data-step="4" disabled>4. 到站時間</button>
+            </div>
         </div>
 
-        <div class="steps" id="stepBar">
-            <button type="button" class="step on current clickable" data-step="1">1. 搜尋路線</button>
-            <button type="button" class="step disabled" data-step="2" disabled>2. 選擇方向</button>
-            <button type="button" class="step disabled" data-step="3" disabled>3. 選擇車站</button>
-            <button type="button" class="step disabled" data-step="4" disabled>4. 到站時間</button>
-        </div>
+        <main class="app-main">
+            <section class="card" id="searchCard">
+                <label class="label" for="routeInput">巴士號碼</label>
+                <div class="search-row">
+                    <input id="routeInput" type="search" inputmode="text" autocomplete="off" placeholder="例如 46X、208、N216"
+                        maxlength="10">
+                    <button id="searchBtn" type="button">搜尋</button>
+                </div>
+                <div class="hint">資料來源：KMB / LWB Open Data API · 參考 <a href="https://hkbus.app/zh" target="_blank" rel="noopener">hkbus.app</a></div>
+                <div id="routeResults" class="list" style="margin-top:12px"></div>
+            </section>
 
-        <section class="card" id="searchCard">
-            <label class="label" for="routeInput">巴士號碼</label>
-            <div class="search-row">
-                <input id="routeInput" type="search" inputmode="text" autocomplete="off" placeholder="例如 46X、208、N216"
-                    maxlength="10">
-                <button id="searchBtn" type="button">搜尋</button>
-            </div>
-            <div class="hint">資料來源：KMB / LWB Open Data API · 參考 <a href="https://hkbus.app/zh" target="_blank" rel="noopener">hkbus.app</a></div>
-            <div id="routeResults" class="list" style="margin-top:12px"></div>
-        </section>
+            <section class="card hidden" id="stopCard">
+                <div class="selected-summary">
+                    <strong id="selectedRouteTitle"></strong>
+                    <div class="meta" id="selectedRouteMeta" style="color:var(--muted);font-size:0.9rem"></div>
+                </div>
+                <label class="label">選擇車站</label>
+                <input id="stopFilter" type="search" placeholder="過濾站名…" style="margin-bottom:10px">
+                <div id="stopResults" class="list"></div>
+                <div style="margin-top:10px">
+                    <button type="button" class="secondary" id="backToRoutesBtn">返回路線</button>
+                </div>
+            </section>
 
-        <section class="card hidden" id="stopCard">
-            <div class="selected-summary">
-                <strong id="selectedRouteTitle"></strong>
-                <div class="meta" id="selectedRouteMeta" style="color:var(--muted);font-size:0.9rem"></div>
-            </div>
-            <label class="label">選擇車站</label>
-            <input id="stopFilter" type="search" placeholder="過濾站名…" style="margin-bottom:10px">
-            <div id="stopResults" class="list"></div>
-            <div style="margin-top:10px">
-                <button type="button" class="secondary" id="backToRoutesBtn">返回路線</button>
-            </div>
-        </section>
+            <section class="card hidden" id="etaCard">
+                <div class="selected-summary">
+                    <strong id="etaRouteTitle"></strong>
+                    <div id="etaStopTitle" style="color:var(--muted)"></div>
+                </div>
+                <div id="etaBoard" class="eta-board"></div>
+                <div id="speakPreview" class="speak-box"></div>
+                <div class="actions">
+                    <button type="button" id="refreshEtaBtn" class="secondary">重新整理到站時間</button>
+                    <button type="button" id="speakNowBtn" class="ghost">立即朗讀</button>
+                    <button type="button" id="createShortcutBtn">顯示 iOS 捷徑教學</button>
+                    <button type="button" id="backToStopsBtn" class="secondary">返回車站</button>
+                </div>
+                <div id="shortcutHelp" class="hint hidden" style="margin-top:12px"></div>
+            </section>
+        </main>
 
-        <section class="card hidden" id="etaCard">
-            <div class="selected-summary">
-                <strong id="etaRouteTitle"></strong>
-                <div id="etaStopTitle" style="color:var(--muted)"></div>
-            </div>
-            <div id="etaBoard" class="eta-board"></div>
-            <div id="speakPreview" class="speak-box"></div>
-            <div class="actions">
-                <button type="button" id="refreshEtaBtn" class="secondary">重新整理到站時間</button>
-                <button type="button" id="speakNowBtn" class="ghost">立即朗讀</button>
-                <button type="button" id="createShortcutBtn">顯示 iOS 捷徑教學</button>
-                <button type="button" id="backToStopsBtn" class="secondary">返回車站</button>
-            </div>
-            <div id="shortcutHelp" class="hint hidden" style="margin-top:12px"></div>
-        </section>
-
-        <div class="footer-note">
+        <div class="app-footer footer-note">
             ETA 約每分鐘更新。API 說明：
             <a href="https://data.etabus.gov.hk/datagovhk/kmb_eta_data_dictionary.pdf" target="_blank"
                 rel="noopener">KMB ETA Data Dictionary</a>

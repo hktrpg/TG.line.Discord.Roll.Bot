@@ -1,0 +1,63 @@
+/**
+ * App shell layout (hkbus-style)
+ * Viewport locked; only .app-main scrolls.
+ *
+ * Structure:
+ * <div class="app-shell">
+ *   <header class="app-header">...</header>  <!-- or #header -->
+ *   <main class="app-main">...</main>
+ *   <footer class="app-footer">...</footer>  <!-- or #footer -->
+ * </div>
+ */
+
+html.app-shell-page,
+html.app-shell-page body {
+    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    margin: 0;
+}
+
+body.app-shell-page,
+html.app-shell-page body {
+    display: flex;
+    flex-direction: column;
+}
+
+.app-shell {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.app-shell > .app-header,
+.app-shell > header,
+.app-shell > #header {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 100;
+}
+
+.app-shell > .app-main {
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+.app-shell > .app-footer,
+.app-shell > footer,
+.app-shell > #footer {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 100;
+}

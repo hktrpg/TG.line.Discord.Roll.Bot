@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-Hant-HK">
+<html lang="zh-Hant-HK" class="app-shell-page">
 <!-- HKTRPG Sad -->
 <head>
     <!-- Required meta tags -->
@@ -22,6 +22,7 @@
     
     <!-- Bootstrap Overrides - Load after Bootstrap to override with higher specificity -->
     <link rel="stylesheet" href="css/bootstrap-overrides.css">
+    <link rel="stylesheet" href="css/app-shell.css">
     
     <!-- Google Fonts - Noto Sans CJK for Chinese character support -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -42,40 +43,43 @@
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
 </head>
 
-<body class="bg-color center container" id="body">
-    <header>
-        <div id="header"></div>
-    </header>
-    <br>
-    
-    <div class="container">
-        <!-- Success Alert -->
-        <div class="alert alert-success alert-dismissible fade show overlay" 
-             style="position: fixed; z-index: 999; display: none;" 
-             role="alert" id="warning-update">
-            <i class="fas fa-check-circle me-2"></i>
-            <strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        
-        <!-- Error Alert -->
-        <div class="alert alert-danger alert-dismissible fade show overlay" 
-             style="position: fixed; z-index: 999; display: none;" 
-             role="alert" id="warning-updateError">
-            <i class="fas fa-exclamation-triangle me-2"></i>
-            <strong>更新失敗!</strong> 請檢查或向HKTRPG回報。
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        
-        <!-- Vue App Container -->
-        <div id="array-rendering" class="container">
-            <!-- Hybrid UI Template will be loaded here -->
-        </div>
+<body class="bg-color center container app-shell-page" id="body">
+    <div class="app-shell">
+        <header class="app-header">
+            <div id="header"></div>
+        </header>
+
+        <main class="app-main">
+            <div class="container">
+                <!-- Success Alert -->
+                <div class="alert alert-success alert-dismissible fade show overlay" 
+                     style="position: fixed; z-index: 999; display: none;" 
+                     role="alert" id="warning-update">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                
+                <!-- Error Alert -->
+                <div class="alert alert-danger alert-dismissible fade show overlay" 
+                     style="position: fixed; z-index: 999; display: none;" 
+                     role="alert" id="warning-updateError">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>更新失敗!</strong> 請檢查或向HKTRPG回報。
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                
+                <!-- Vue App Container -->
+                <div id="array-rendering" class="container">
+                    <!-- Hybrid UI Template will be loaded here -->
+                </div>
+            </div>
+        </main>
+
+        <footer class="app-footer">
+            <div id="footer"></div>
+        </footer>
     </div>
-    
-    <footer>
-        <div id="footer"></div>
-    </footer>
 
     <!-- Common Modals -->
     <div id="commonModals"></div>

@@ -995,11 +995,11 @@ www.get('/busstop/shortcut', async (req, res) => {
 function formatBusSpeakMessage(route, minutesList) {
     const mins = (minutesList || []).filter(m => m !== null && m !== undefined);
     if (mins.length === 0) return `${route} 號巴士暫時沒有到站時間`;
-    if (mins.length === 1) return `${route} 號巴士 於 ${mins[0]}分鐘後有到達`;
-    if (mins.length === 2) return `${route} 號巴士 於 ${mins[0]}分鐘, 及${mins[1]}分鐘後有到達`;
+    if (mins.length === 1) return `${route} 號巴士 於 ${mins[0]}分鐘後到達`;
+    if (mins.length === 2) return `${route} 號巴士 於 ${mins[0]}分鐘, 及${mins[1]}分鐘後到達`;
     const head = mins.slice(0, -1).map(m => `${m}分鐘`).join(', ');
     const last = mins.at(-1);
-    return `${route} 號巴士 於 ${head}, 及${last}分鐘後有到達`;
+    return `${route} 號巴士 於 ${head}, 及${last}分鐘後到達`;
 }
 
 function fetchJsonOverHttps(url) {

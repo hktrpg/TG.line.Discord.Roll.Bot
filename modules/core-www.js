@@ -23,13 +23,7 @@ const security = require('../utils/security.js');
 const schema = require('./schema.js');
 const patreonTiers = require('./patreon-tiers.js');
 const patreonSync = require('./patreon-sync.js');
-const { buildShortcut } = require('@joshfarrant/shortcuts-js');
-const {
-    URL: shortcutURL,
-    getContentsOfURL,
-    speakText,
-    comment: shortcutComment
-} = require('@joshfarrant/shortcuts-js/actions');
+const { buildBusEtaShortcut } = require('./bus-shortcut.js');
 
 const www = express();
 const isHttpUrl = (value) => /^https?:\/\//i.test(String(value || '').trim());
@@ -1004,23 +998,6 @@ function formatBusSpeakMessage(route, minutesList) {
     const head = mins.slice(0, -1).map(m => `${m}分鐘`).join(', ');
     const last = mins.at(-1);
     return `${route} 號巴士 於 ${head}, 及${last}分鐘後有到達`;
-}
-
-function buildBusEtaShortcut(speakUrl, shortcutName) {
-    const actions = [
-        shortcutComment({ text: `HKTRPG ${shortcutName}` }),
-        shortcutURL({ url: speakUrl }),
-        getContentsOfURL({
-            method: 'GET',
-            headers: {}
-        }),
-        speakText({
-            language: 'zh-HK',
-            rate: 0.5,
-            waitUntilFinished: true
-        })
-    ];
-    return buildShortcut(actions);
 }
 
 function fetchJsonOverHttps(url) {

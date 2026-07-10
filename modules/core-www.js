@@ -319,6 +319,11 @@ www.get('/', async (req, res) => {
         return;
     }
 
+    if (hostname.startsWith('bus.') || hostname.startsWith('bus2.')) {
+        res.sendFile(process.cwd() + '/views/busstop.html');
+        return;
+    }
+
     if (hostname.startsWith('rollbot.') || hostname.startsWith('rollbot2.') ) {
         res.sendFile(process.cwd() + '/views/index.html');
         return;

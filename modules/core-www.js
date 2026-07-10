@@ -941,6 +941,52 @@ www.get('/busstop/speak', async (req, res) => {
     }
 });
 
+/**
+ * Downloadable/importable iOS Shortcut (.shortcut binary plist).
+ * Used by: shortcuts://import-shortcut?url=https://.../busstop/shortcut?...
+ */
+www.get('/busstop/shortcut', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+
+    const route = String(req.query.route || '').trim().toUpperCase();
+    const stop = String(req.query.stop || '').trim();
+    const serviceType = String(req.query.service_type || req.query.direction || '1').trim();
+    const bound = String(req.query.bound || '').trim().toUpperCase();
+    const name = String(req.query.name || `${route}到站朗讀`).trim() || `${route}到站朗讀`;
+
+    if (!route || !stop) {
+        res.status(400).type('text/plain; charset=utf-8')
+            .send('錯誤：缺少 route 或 stop 參數');
+        return;
+    }
+
+    try {
+        // Behind Cloudflare Tunnel, prefer public https host from forwarded headers.
+        const proto = String(req.get('x-forwarded-proto') || 'https').split(',')[0].trim() || 'https';
+        const host = String(req.get('x-forwarded-host') || req.get('host') || 'bus.hktrpg.com').split(',')[0].trim();
+        const speakUrl = new URL('/busstop/speak', `${proto}://${host}`);
+        speakUrl.searchParams.set('route', route);
+        speakUrl.searchParams.set('stop', stop);
+        speakUrl.searchParams.set('service_type', serviceType);
+        if (bound) speakUrl.searchParams.set('bound', bound);
+
+        const shortcutBuffer = buildBusEtaShortcut(speakUrl.toString(), name);
+        const safeName = name.replaceAll(/[^\w\u4E00-\u9FFF-]+/g, '_');
+        res.set({
+            'Content-Type': 'application/octet-stream',
+            'Content-Disposition': `attachment; filename="${safeName}.shortcut"`,
+            'Cache-Control': 'no-store'
+        });
+        res.send(shortcutBuffer);
+    } catch (error) {
+        console.error('[busstop/shortcut]', error?.message || error);
+        res.status(500).type('text/plain; charset=utf-8').send('無法產生捷徑檔');
+    }
+});
+
 function formatBusSpeakMessage(route, minutesList) {
     const mins = (minutesList || []).filter(m => m !== null && m !== undefined);
     if (mins.length === 0) return `${route} 號巴士暫時沒有到站時間`;
@@ -949,6 +995,31 @@ function formatBusSpeakMessage(route, minutesList) {
     const head = mins.slice(0, -1).map(m => `${m}分鐘`).join(', ');
     const last = mins.at(-1);
     return `${route} 號巴士 於 ${head}, 及${last}分鐘後有到達`;
+}
+
+function buildBusEtaShortcut(speakUrl, shortcutName) {
+    const { buildShortcut } = require('@joshfarrant/shortcuts-js');
+    const {
+        URL,
+        getContentsOfURL,
+        speakText,
+        comment
+    } = require('@joshfarrant/shortcuts-js/actions');
+
+    const actions = [
+        comment({ text: `HKTRPG ${shortcutName}` }),
+        URL({ url: speakUrl }),
+        getContentsOfURL({
+            method: 'GET',
+            headers: {}
+        }),
+        speakText({
+            language: 'zh-HK',
+            rate: 0.5,
+            waitUntilFinished: true
+        })
+    ];
+    return buildShortcut(actions);
 }
 
 function fetchJsonOverHttps(url) {

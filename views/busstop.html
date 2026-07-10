@@ -705,147 +705,56 @@
             window.speechSynthesis.speak(utter);
         }
 
-        function xmlEscape(str) {
-            return String(str)
-                .replaceAll('&', '&amp;')
-                .replaceAll('<', '&lt;')
-                .replaceAll('>', '&gt;')
-                .replaceAll('"', '&quot;');
+        function buildShortcutFileUrl() {
+            const route = state.selectedRoute;
+            const stop = state.selectedStop;
+            const url = new URL('/busstop/shortcut', window.location.origin);
+            url.searchParams.set('route', route.route);
+            url.searchParams.set('stop', stop.stop);
+            url.searchParams.set('service_type', route.service_type);
+            url.searchParams.set('bound', route.bound);
+            url.searchParams.set('name', `${route.route}到站朗讀`);
+            return url.toString();
         }
 
-        function buildShortcutPlist(etaUrl, shortcutName) {
-            // Unsigned Workflow/Shortcuts XML plist.
-            // iOS may ask to review before first run; if import is blocked, use the on-screen manual steps.
-            const uuid1 = crypto.randomUUID().toUpperCase();
-            const uuid2 = crypto.randomUUID().toUpperCase();
-            const uuid3 = crypto.randomUUID().toUpperCase();
-            return `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>WFWorkflowClientVersion</key>
-    <string>1300.0.0</string>
-    <key>WFWorkflowClientRelease</key>
-    <string>3.0</string>
-    <key>WFWorkflowMinimumClientVersion</key>
-    <integer>900</integer>
-    <key>WFWorkflowMinimumClientVersionString</key>
-    <string>900</string>
-    <key>WFWorkflowIcon</key>
-    <dict>
-        <key>WFWorkflowIconStartColor</key>
-        <integer>2071128575</integer>
-        <key>WFWorkflowIconGlyphNumber</key>
-        <integer>59511</integer>
-    </dict>
-    <key>WFWorkflowTypes</key>
-    <array>
-        <string>NCWidget</string>
-        <string>WatchKit</string>
-    </array>
-    <key>WFWorkflowInputContentItemClasses</key>
-    <array>
-        <string>WFStringContentItem</string>
-        <string>WFURLContentItem</string>
-    </array>
-    <key>WFWorkflowActions</key>
-    <array>
-        <dict>
-            <key>WFWorkflowActionIdentifier</key>
-            <string>is.workflow.actions.url</string>
-            <key>WFWorkflowActionParameters</key>
-            <dict>
-                <key>UUID</key>
-                <string>${uuid1}</string>
-                <key>WFURLActionURL</key>
-                <string>${xmlEscape(etaUrl)}</string>
-            </dict>
-        </dict>
-        <dict>
-            <key>WFWorkflowActionIdentifier</key>
-            <string>is.workflow.actions.downloadurl</string>
-            <key>WFWorkflowActionParameters</key>
-            <dict>
-                <key>UUID</key>
-                <string>${uuid2}</string>
-                <key>WFHTTPMethod</key>
-                <string>GET</string>
-            </dict>
-        </dict>
-        <dict>
-            <key>WFWorkflowActionIdentifier</key>
-            <string>is.workflow.actions.gettext</string>
-            <key>WFWorkflowActionParameters</key>
-            <dict>
-                <key>UUID</key>
-                <string>${uuid3}</string>
-            </dict>
-        </dict>
-        <dict>
-            <key>WFWorkflowActionIdentifier</key>
-            <string>is.workflow.actions.speaktext</string>
-            <key>WFWorkflowActionParameters</key>
-            <dict>
-                <key>WFSpeakTextLanguage</key>
-                <string>zh_HK</string>
-                <key>WFSpeakTextRate</key>
-                <real>0.5</real>
-            </dict>
-        </dict>
-    </array>
-    <key>WFWorkflowName</key>
-    <string>${xmlEscape(shortcutName)}</string>
-</dict>
-</plist>`;
+        function isAppleMobile() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         }
 
         function createIOSShortcut() {
             if (!state.selectedRoute || !state.selectedStop) return;
+
             const speakUrl = buildSpeakTextUrl();
             const pageUrl = buildEtaPageUrl();
+            const fileUrl = buildShortcutFileUrl();
             const name = `${state.selectedRoute.route}到站朗讀`;
-            const plist = buildShortcutPlist(speakUrl, name);
-            const blob = new Blob([plist], { type: 'application/octet-stream' });
-            const fileName = `${name}.shortcut`;
-            const objectUrl = URL.createObjectURL(blob);
-
-            const a = document.createElement('a');
-            a.href = objectUrl;
-            a.download = fileName;
-            document.body.append(a);
-            a.click();
-            a.remove();
-            setTimeout(() => URL.revokeObjectURL(objectUrl), 2_000);
-
-            // Copy plain-text ETA URL for manual shortcut setup
-            if (navigator.clipboard?.writeText) {
-                navigator.clipboard.writeText(speakUrl).catch(() => { });
-            }
+            const importUrl =
+                `shortcuts://import-shortcut?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(name)}`;
 
             const help = qs('shortcutHelp');
             help.classList.remove('hidden');
             help.innerHTML = `
-                已下載 <strong>${escapeHtml(fileName)}</strong>，並已複製純文字 ETA 網址。<br>
+                <strong>正在開啟「捷徑」匯入…</strong><br>
+                應會出現「加入捷徑」畫面（不是空白編輯器）。<br>
                 <br>
-                <strong>iPhone 用法（建議）：</strong><br>
-                1. 開啟「捷徑」→ 新增捷徑<br>
-                2. 加入「取得 URL 的內容」→ URL：<br>
-                &nbsp;&nbsp;<code style="word-break:break-all">${escapeHtml(speakUrl)}</code><br>
-                3. 加入「朗讀文字」（語言選廣東話／香港）<br>
-                4. 執行後會朗讀例如：<br>
-                &nbsp;&nbsp;「${escapeHtml(state.speakText || formatSpeakMessage(state.selectedRoute.route, [3, 15, 25]))}」<br>
+                若沒有自動開啟，請點：
+                <a href="${escapeHtml(importUrl)}">加入「${escapeHtml(name)}」捷徑</a><br>
+                或 <a href="${escapeHtml(fileUrl)}">下載 .shortcut 檔</a> 後用「檔案」開啟。<br>
                 <br>
-                網頁預覽：<a href="${escapeHtml(pageUrl)}" target="_blank" rel="noopener">開啟到站頁</a>
-                （若 .shortcut 無法直接匯入，請用上方手動步驟；現代 iOS 常需簽名捷徑檔）
+                若提示無法匯入／未受信任：iPhone「設定」→「捷徑」→開啟「允許未受信任的捷徑」後再試。<br>
+                <br>
+                捷徑內容：取得 URL 內容（純文字 ETA）→ 朗讀文字<br>
+                <code style="word-break:break-all">${escapeHtml(speakUrl)}</code><br>
+                預覽頁：<a href="${escapeHtml(pageUrl)}" target="_blank" rel="noopener">開啟</a>
             `;
 
-            // Best-effort: open Shortcuts app create screen on iOS
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-            if (isIOS) {
-                setTimeout(() => {
-                    window.location.href = 'shortcuts://create-shortcut';
-                }, 500);
+            if (isAppleMobile()) {
+                // Prefer import of a ready-made shortcut (not empty create-shortcut editor)
+                window.location.href = importUrl;
+            } else {
+                // Desktop: download the .shortcut file
+                window.location.href = fileUrl;
             }
         }
 

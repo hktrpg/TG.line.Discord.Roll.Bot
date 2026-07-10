@@ -905,7 +905,8 @@ www.get('/busstop', async (req, res) => {
 
 /**
  * Plain-text KMB/LWB ETA for iOS Shortcuts (Get Contents of URL → Speak Text).
- * Query: route, stop, service_type (or legacy direction), bound (O|I, optional)
+ * Single: ?route=&stop=&service_type=&bound=
+ * Multi:  ?stop=&routes=251A:1:O,64K:1:I  or 251A:1:O:STOPID (BBI bay)
  */
 www.get('/busstop/speak', async (req, res) => {
     if (await checkRateLimit('api', req.ip)) {
@@ -913,18 +914,25 @@ www.get('/busstop/speak', async (req, res) => {
         return;
     }
 
-    const route = String(req.query.route || '').trim().toUpperCase();
     const stop = String(req.query.stop || '').trim();
+    const multiRoutes = parseBusSpeakRoutesParam(req.query.routes);
+    const route = String(req.query.route || '').trim().toUpperCase();
     const serviceType = String(req.query.service_type || req.query.direction || '1').trim();
     const bound = String(req.query.bound || '').trim().toUpperCase();
 
-    if (!route || !stop) {
+    if (!stop || (!multiRoutes.length && !route)) {
         res.status(400).type('text/plain; charset=utf-8')
-            .send('錯誤：缺少 route 或 stop 參數');
+            .send('錯誤：缺少 stop，以及 route 或 routes 參數');
         return;
     }
 
     try {
+        if (multiRoutes.length) {
+            const text = await buildMultiRouteSpeakText(stop, multiRoutes);
+            res.type('text/plain; charset=utf-8').send(text);
+            return;
+        }
+
         const apiUrl = `https://data.etabus.gov.hk/v1/transport/kmb/eta/${encodeURIComponent(stop)}/${encodeURIComponent(route)}/${encodeURIComponent(serviceType)}`;
         const payload = await fetchJsonOverHttps(apiUrl);
         let rows = Array.isArray(payload?.data) ? payload.data.filter(row => row?.eta) : [];
@@ -940,8 +948,9 @@ www.get('/busstop/speak', async (req, res) => {
         res.type('text/plain; charset=utf-8').send(formatBusSpeakMessage(route, minutes));
     } catch (error) {
         console.error('[busstop/speak]', error?.message || error);
+        const label = multiRoutes[0]?.route || route || '巴士';
         res.status(502).type('text/plain; charset=utf-8')
-            .send(`${route} 號巴士暫時無法取得到站時間`);
+            .send(`${label} 號巴士暫時無法取得到站時間`);
     }
 });
 
@@ -959,13 +968,17 @@ www.get('/busstop/shortcut', async (req, res) => {
     const stop = String(req.query.stop || '').trim();
     const serviceType = String(req.query.service_type || req.query.direction || '1').trim();
     const bound = String(req.query.bound || '').trim().toUpperCase();
+    const multiRoutes = parseBusSpeakRoutesParam(req.query.routes);
     // Keep shortcut name ASCII-only for iOS import-shortcut URL compatibility
-    const rawName = String(req.query.name || `${route}-ETA`).trim() || `${route}-ETA`;
-    const name = rawName.replaceAll(/[^\w.-]+/g, '-') || `${route}-ETA`;
+    const defaultName = multiRoutes.length
+        ? `${multiRoutes.map(r => r.route).slice(0, 3).join('+')}-ETA`
+        : `${route}-ETA`;
+    const rawName = String(req.query.name || defaultName).trim() || defaultName;
+    const name = rawName.replaceAll(/[^\w.+-]+/g, '-') || defaultName;
 
-    if (!route || !stop) {
+    if (!stop || (!multiRoutes.length && !route)) {
         res.status(400).type('text/plain; charset=utf-8')
-            .send('錯誤：缺少 route 或 stop 參數');
+            .send('錯誤：缺少 stop，以及 route 或 routes 參數');
         return;
     }
 
@@ -974,14 +987,24 @@ www.get('/busstop/shortcut', async (req, res) => {
         const proto = String(req.get('x-forwarded-proto') || 'https').split(',')[0].trim() || 'https';
         const host = String(req.get('x-forwarded-host') || req.get('host') || 'bus.hktrpg.com').split(',')[0].trim();
         const speakUrl = new URL('/busstop/speak', `${proto}://${host}`);
-        speakUrl.searchParams.set('route', route);
         speakUrl.searchParams.set('stop', stop);
-        speakUrl.searchParams.set('service_type', serviceType);
-        if (bound) speakUrl.searchParams.set('bound', bound);
+        if (multiRoutes.length) {
+            speakUrl.searchParams.set(
+                'routes',
+                multiRoutes.map((r) => {
+                    const base = `${r.route}:${r.service_type}:${r.dir}`;
+                    return r.stopId ? `${base}:${r.stopId}` : base;
+                }).join(',')
+            );
+        } else {
+            speakUrl.searchParams.set('route', route);
+            speakUrl.searchParams.set('service_type', serviceType);
+            if (bound) speakUrl.searchParams.set('bound', bound);
+        }
 
         const shortcutBuffer = buildBusEtaShortcut(speakUrl.toString(), name);
         // Content-Disposition must be Latin-1; Chinese names crash Express header set.
-        const asciiName = `${route || 'bus'}-eta.shortcut`;
+        const asciiName = `${(multiRoutes[0]?.route || route || 'bus')}-eta.shortcut`;
         res.set({
             'Content-Type': 'application/octet-stream',
             'Content-Disposition': `attachment; filename="${asciiName}"`,
@@ -995,14 +1018,179 @@ www.get('/busstop/shortcut', async (req, res) => {
     }
 });
 
+function formatBusMinutesPhrase(minutesList) {
+    const mins = (minutesList || []).filter(m => m !== null && m !== undefined);
+    if (mins.length === 0) return '';
+    if (mins.length === 1) return `${mins[0]}分鐘`;
+    if (mins.length === 2) return `${mins[0]}分鐘及${mins[1]}分鐘`;
+    const head = mins.slice(0, -1).map(m => `${m}分鐘`).join('、');
+    return `${head}及${mins.at(-1)}分鐘`;
+}
+
 function formatBusSpeakMessage(route, minutesList) {
     const mins = (minutesList || []).filter(m => m !== null && m !== undefined);
     if (mins.length === 0) return `${route} 號巴士暫時沒有到站時間`;
-    if (mins.length === 1) return `${route} 號巴士 於 ${mins[0]}分鐘後到達`;
-    if (mins.length === 2) return `${route} 號巴士 於 ${mins[0]}分鐘, 及${mins[1]}分鐘後到達`;
-    const head = mins.slice(0, -1).map(m => `${m}分鐘`).join(', ');
-    const last = mins.at(-1);
-    return `${route} 號巴士 於 ${head}, 及${last}分鐘後到達`;
+    return `${route} 號巴士 於 ${formatBusMinutesPhrase(mins)}後到達`;
+}
+
+/** Parse routes=251A:1:O,64K:1:I or 251A:1:O:STOPID */
+function parseBusSpeakRoutesParam(raw) {
+    return String(raw || '')
+        .split(',')
+        .map(part => part.trim())
+        .filter(Boolean)
+        .map((part) => {
+            const [routeRaw, serviceRaw = '1', dirRaw = '', stopRaw = ''] = part.split(':');
+            const route = String(routeRaw || '').trim().toUpperCase();
+            const service_type = String(serviceRaw || '1').trim() || '1';
+            const dir = String(dirRaw || '').trim().toUpperCase();
+            const stopId = String(stopRaw || '').trim();
+            if (!route) return null;
+            return {
+                route,
+                service_type,
+                dir,
+                stopId,
+                key: `${route}|${service_type}|${dir}`
+            };
+        })
+        .filter(Boolean);
+}
+
+function minutesUntilEta(eta) {
+    const diff = Math.round((new Date(eta) - Date.now()) / 60_000);
+    return Math.max(0, diff);
+}
+
+/**
+ * Each selected route ≥1 bus; fill to ≥3 total; order by soonest.
+ * Mirrors views/busstop.html pickBusesForSpeak + formatMultiRouteSpeak.
+ */
+function pickBusesForMultiSpeak(routeEntries) {
+    const selected = routeEntries.filter(entry => entry.buses.length);
+    if (!selected.length) return [];
+
+    const allBuses = [];
+    for (const entry of selected) {
+        for (const bus of entry.buses) {
+            allBuses.push({
+                key: entry.key,
+                route: entry.route,
+                minutes: bus.minutes,
+                etaMs: bus.etaMs
+            });
+        }
+    }
+    allBuses.sort((a, b) => a.etaMs - b.etaMs || a.minutes - b.minutes);
+
+    const picked = [];
+    const pickedIds = new Set();
+    const busId = (b) => `${b.key}@${b.etaMs}@${b.minutes}`;
+
+    for (const entry of selected) {
+        const soonest = entry.buses.reduce((best, bus) =>
+            (!best || bus.etaMs < best.etaMs) ? bus : best, null);
+        if (!soonest) continue;
+        const item = {
+            key: entry.key,
+            route: entry.route,
+            minutes: soonest.minutes,
+            etaMs: soonest.etaMs
+        };
+        const id = busId(item);
+        if (!pickedIds.has(id)) {
+            picked.push(item);
+            pickedIds.add(id);
+        }
+    }
+
+    for (const bus of allBuses) {
+        if (picked.length >= 3) break;
+        const id = busId(bus);
+        if (pickedIds.has(id)) continue;
+        picked.push(bus);
+        pickedIds.add(id);
+    }
+
+    picked.sort((a, b) => a.etaMs - b.etaMs || a.minutes - b.minutes);
+    return picked;
+}
+
+function formatMultiRouteSpeakMessage(pickedBuses) {
+    if (!pickedBuses.length) return '暫時沒有到站時間';
+
+    const order = [];
+    const groups = new Map();
+    for (const bus of pickedBuses) {
+        if (!groups.has(bus.key)) {
+            groups.set(bus.key, { route: bus.route, minutes: [] });
+            order.push(bus.key);
+        }
+        groups.get(bus.key).minutes.push(bus.minutes);
+    }
+
+    const parts = order.map((key, index) => {
+        const group = groups.get(key);
+        const mins = [...group.minutes].sort((a, b) => a - b);
+        const minsText = formatBusMinutesPhrase(mins);
+        if (index === 0) return `${group.route} 號巴士 於 ${minsText}後到達`;
+        return `${group.route}於 ${minsText}後到達`;
+    });
+    return parts.join(', ');
+}
+
+async function buildMultiRouteSpeakText(stop, wantedRoutes) {
+    const wantedKeys = new Set(wantedRoutes.map(r => r.key));
+    // Preserve request order for grouping preference when ETAs tie
+    const map = new Map();
+    for (const wanted of wantedRoutes) {
+        map.set(wanted.key, {
+            key: wanted.key,
+            route: wanted.route,
+            buses: []
+        });
+    }
+
+    // Group by bay stop id (fallback to main stop) so BBI multi-route works
+    const byStop = new Map();
+    for (const wanted of wantedRoutes) {
+        const sid = wanted.stopId || stop;
+        if (!byStop.has(sid)) byStop.set(sid, []);
+        byStop.get(sid).push(wanted);
+    }
+
+    for (const [sid] of byStop) {
+        const apiUrl = `https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/${encodeURIComponent(sid)}`;
+        const payload = await fetchJsonOverHttps(apiUrl);
+        const rows = Array.isArray(payload?.data) ? payload.data.filter(row => row?.eta) : [];
+        for (const row of rows) {
+            const key = `${String(row.route || '').toUpperCase()}|${String(row.service_type || '1')}|${String(row.dir || '').toUpperCase()}`;
+            if (!wantedKeys.has(key) || !map.has(key)) continue;
+            // Only accept ETA from this route's intended bay when stopId was provided
+            const intended = wantedRoutes.find(r => r.key === key);
+            if (intended?.stopId && intended.stopId !== sid) continue;
+            const entry = map.get(key);
+            entry.buses.push({
+                minutes: minutesUntilEta(row.eta),
+                etaMs: new Date(row.eta).getTime()
+            });
+        }
+    }
+
+    const entries = [...map.values()].map((entry) => {
+        entry.buses.sort((a, b) => a.etaMs - b.etaMs);
+        const seen = new Set();
+        entry.buses = entry.buses.filter((bus) => {
+            const id = `${bus.etaMs}`;
+            if (seen.has(id)) return false;
+            seen.add(id);
+            return true;
+        });
+        return entry;
+    });
+
+    const picked = pickBusesForMultiSpeak(entries);
+    return formatMultiRouteSpeakMessage(picked);
 }
 
 function fetchJsonOverHttps(url) {

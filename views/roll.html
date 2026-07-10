@@ -39,15 +39,18 @@
         }
 
         .app-shell.roll-shell {
-            max-width: 28rem;
-            margin: 0 auto;
+            max-width: none;
+            width: 100%;
+            margin: 0;
             background-color: #000;
+            border: 0;
+            box-shadow: none;
         }
 
         .roll-header {
             padding: 0.5rem 0.75rem 0.25rem;
             text-align: center;
-            border-bottom: 1px solid #222;
+            border: 0;
         }
 
         .roll-header .navbar-nav {
@@ -74,6 +77,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            border: 0;
         }
 
         .roll-footer {
@@ -81,7 +85,7 @@
             text-align: center;
             font-size: 0.8rem;
             color: #ccc;
-            border-top: 1px solid #222;
+            border: 0;
         }
 
         .roll-footer a {
@@ -97,7 +101,7 @@
             margin: 0 auto;
             clear: both;
             overflow: hidden;
-            border: 1px solid black;
+            border: 0;
         }
 
         .dice-box {
@@ -219,7 +223,7 @@
         }
 
         #resultAll {
-            width: 19em;
+            width: 16em;
             max-width: 100%;
             height: 4em;
             color: #FFFFFF;
@@ -230,6 +234,7 @@
             border-radius: 4px;
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
             line-height: 1px;
+            display: block;
         }
 
         #resultAll:hover {
@@ -489,8 +494,8 @@
                     </div>
                 </div>
 
-                <div style="width: 16em;text-align: center;" class="row">
-                    <button style="width: 19em" id="resultAll" type="button" onclick="ClearAll()"> <span> Clear all
+                <div style="width: 16em;text-align: center;margin-top: 0.5rem;" class="row">
+                    <button id="resultAll" type="button" onclick="ClearAll()"> <span> Clear all
                         </span></button>
                 </div>
             </div>

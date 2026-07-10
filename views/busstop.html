@@ -339,6 +339,14 @@
             overscroll-behavior: contain;
         }
 
+        .nearby-confirm-wrap {
+            margin-top: 12px;
+        }
+
+        .nearby-confirm-wrap button {
+            width: 100%;
+        }
+
         .nearby-item {
             display: flex;
             align-items: flex-start;
@@ -564,8 +572,14 @@
                     <div id="speakPreview" class="speak-box"></div>
                     <div id="nearbyRoutesPanel" class="nearby-panel hidden">
                         <h3>同站路線</h3>
-                        <p class="nearby-hint">列出此站及轉車站附近月台的有到站路線。勾選要一併朗讀的路線：每條至少報一班；最快先報；合計至少 3 班（有資料時）。</p>
+                        <p class="nearby-hint">
+                            以下為此站及轉車站附近月台、目前有到站資料的路線。
+                            若有多於一兩班車可到達目的地，可在此勾選，一併納入朗讀。
+                        </p>
                         <div id="nearbyRoutesList" class="nearby-list"></div>
+                        <div class="nearby-confirm-wrap">
+                            <button type="button" id="confirmNearbyBtn">確認</button>
+                        </div>
                     </div>
                     <div class="actions">
                         <button type="button" id="nearbyRoutesBtn" class="secondary">選擇同站路線</button>
@@ -611,6 +625,7 @@
             maxStep: 1,
             hasRouteResults: false,
             nearbyOpen: false,
+            nearbyActive: false,
             nearbyRoutes: [],
             nearbySelected: new Set()
         };
@@ -657,7 +672,7 @@
             qs('etaCard').classList.toggle('hidden', panel !== 'eta');
             if (panel !== 'eta') {
                 qs('shortcutHelp')?.classList.add('hidden');
-                closeNearbyPanel();
+                closeNearbyPanel({ resetActive: true });
             }
         }
 
@@ -809,11 +824,19 @@
             return routeKey(route.route, route.service_type, route.bound);
         }
 
-        function closeNearbyPanel() {
+        function closeNearbyPanel({ resetActive = false } = {}) {
             state.nearbyOpen = false;
+            if (resetActive) state.nearbyActive = false;
             qs('nearbyRoutesPanel')?.classList.add('hidden');
             const btn = qs('nearbyRoutesBtn');
-            if (btn) btn.textContent = '選擇同站路線';
+            if (btn) {
+                btn.classList.remove('hidden');
+                btn.textContent = state.nearbyActive ? '更改同站路線' : '選擇同站路線';
+            }
+        }
+
+        function isNearbyMultiMode() {
+            return state.nearbyActive && state.nearbySelected.size > 0 && state.nearbyRoutes.length > 0;
         }
 
         /** Pick buses: each selected route ≥1, fastest first, total ≥3 when possible. */
@@ -894,7 +917,8 @@
         }
 
         function updateSpeakFromNearby() {
-            if (!state.nearbyOpen || !state.nearbyRoutes.length) return;
+            if (!isNearbyMultiMode() && !(state.nearbyOpen && state.nearbyRoutes.length)) return;
+            if (!state.nearbyRoutes.length) return;
             const picked = pickBusesForSpeak(state.nearbyRoutes);
             state.speakText = formatMultiRouteSpeak(picked);
             qs('speakPreview').textContent = state.speakText;
@@ -1139,9 +1163,10 @@
 
         async function openNearbyRoutes({ scroll = true } = {}) {
             state.nearbyOpen = true;
+            state.nearbyActive = true;
             qs('nearbyRoutesPanel')?.classList.remove('hidden');
             const btn = qs('nearbyRoutesBtn');
-            if (btn) btn.textContent = '收起同站路線選擇';
+            if (btn) btn.classList.add('hidden');
             await loadNearbyRoutes();
             syncShortcutLink();
             if (scroll) {
@@ -1149,17 +1174,20 @@
             }
         }
 
+        function confirmNearbyRoutes() {
+            if (!state.nearbySelected.size && state.nearbyRoutes[0]) {
+                state.nearbySelected.add(state.nearbyRoutes[0].key);
+            }
+            state.nearbyActive = true;
+            updateSpeakFromNearby();
+            closeNearbyPanel({ resetActive: false });
+            syncShortcutLink();
+            qs('shortcutHelp')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
         async function toggleNearbyRoutes() {
             if (state.nearbyOpen) {
-                closeNearbyPanel();
-                // restore single-route speak text from current etas
-                const route = state.selectedRoute;
-                if (route) {
-                    const minutes = (state.etas || []).map((row) => minutesUntil(row.eta));
-                    state.speakText = formatSpeakMessage(route.route, minutes);
-                    qs('speakPreview').textContent = state.speakText;
-                }
-                syncShortcutLink();
+                confirmNearbyRoutes();
                 return;
             }
             await openNearbyRoutes({ scroll: true });
@@ -1294,7 +1322,7 @@
         async function selectStop(stop) {
             state.selectedStop = stop;
             state.nearbySelected = new Set();
-            closeNearbyPanel();
+            closeNearbyPanel({ resetActive: true });
             state.maxStep = Math.max(state.maxStep, 4);
             showPanel('eta');
             qs('etaRouteTitle').textContent =
@@ -1325,7 +1353,7 @@
                 rows.sort((a, b) => Number(a.eta_seq) - Number(b.eta_seq));
                 state.etas = rows;
 
-                if (!state.nearbyOpen) {
+                if (!isNearbyMultiMode()) {
                     const minutes = rows.map((row) => minutesUntil(row.eta));
                     state.speakText = formatSpeakMessage(route.route, minutes);
                     qs('speakPreview').textContent = state.speakText;
@@ -1354,7 +1382,7 @@
                     }).join('');
                 }
 
-                if (state.nearbyOpen) {
+                if (state.nearbyOpen || state.nearbyActive) {
                     await loadNearbyRoutes();
                 }
 
@@ -1362,7 +1390,7 @@
             } catch (error) {
                 console.error(error);
                 qs('etaBoard').innerHTML = '<div class="error">無法取得到站時間</div>';
-                if (!state.nearbyOpen) {
+                if (!isNearbyMultiMode()) {
                     state.speakText = `${route.route} 號巴士暫時無法取得到站時間`;
                     qs('speakPreview').textContent = state.speakText;
                 }
@@ -1389,7 +1417,7 @@
             url.searchParams.set('stop', stop.stop);
 
             // Multi-route mode: encode checked same-stop routes
-            if (state.nearbyOpen && state.nearbySelected.size > 0) {
+            if (isNearbyMultiMode()) {
                 const selected = state.nearbyRoutes.filter((entry) => state.nearbySelected.has(entry.key));
                 if (selected.length) {
                     const routesParam = selected
@@ -1412,7 +1440,7 @@
         }
 
         function shortcutNameSuggestions() {
-            if (state.nearbyOpen && state.nearbySelected.size > 1) {
+            if (isNearbyMultiMode() && state.nearbySelected.size > 1) {
                 const nos = state.nearbyRoutes
                     .filter((entry) => state.nearbySelected.has(entry.key))
                     .map((entry) => entry.route)
@@ -1462,7 +1490,7 @@
             const urlEl = qs('speakUrlText');
             if (urlEl) urlEl.textContent = speakUrl;
 
-            const isMulti = state.nearbyOpen && state.nearbySelected.size > 1;
+            const isMulti = isNearbyMultiMode() && state.nearbySelected.size > 1;
             const modeEl = qs('shortcutModeNote');
             if (modeEl) {
                 modeEl.innerHTML = isMulti
@@ -1525,7 +1553,7 @@
             const speakUrl = currentSpeakUrl();
             if (!speakUrl) return;
             const { primary: shortcutName, alt: shortcutNameAlt } = shortcutNameSuggestions();
-            const isMulti = state.nearbyOpen && state.nearbySelected.size > 1;
+            const isMulti = isNearbyMultiMode() && state.nearbySelected.size > 1;
             const img = (file) => `/image/busstop/${file}`;
 
             if (navigator.clipboard?.writeText) {
@@ -1664,6 +1692,7 @@
             qs('backToRoutesBtn').addEventListener('click', () => goToStep(2));
             qs('backToStopsBtn').addEventListener('click', () => goToStep(3));
             qs('nearbyRoutesBtn').addEventListener('click', toggleNearbyRoutes);
+            qs('confirmNearbyBtn')?.addEventListener('click', confirmNearbyRoutes);
             qs('speakNowBtn').addEventListener('click', speakNow);
 
             document.querySelectorAll('#stepBar .step').forEach((el) => {

@@ -61,8 +61,49 @@
 }
 
 /* Style alerts container and alerts */
-#alerts-container {
+#alerts-container,
+.alerts-container {
+    position: fixed;
+    z-index: 9999;
     background-color: transparent;
+    margin: 0;
+    /* Desktop: wide enough panel at top-right */
+    top: 4.5rem;
+    right: 1rem;
+    left: auto;
+    width: min(28rem, 42vw);
+    max-width: calc(100vw - 2rem);
+    max-height: min(70vh, 32rem);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    pointer-events: none;
+}
+
+#alerts-container > *,
+.alerts-container > * {
+    pointer-events: auto;
+}
+
+/* Mobile: full-width banner at top (avoid tall narrow column) */
+@media (max-width: 768px) {
+    #alerts-container,
+    .alerts-container {
+        top: 0.5rem;
+        left: 0.5rem;
+        right: 0.5rem;
+        width: auto;
+        max-width: none;
+        max-height: 45vh;
+    }
+
+    #alerts-container .alert,
+    .alerts-container .alert {
+        font-size: 0.95rem;
+        line-height: 1.4;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
 }
 
 #alerts-container .alert {

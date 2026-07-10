@@ -69,3 +69,23 @@ html.app-shell-page body {
     position: relative;
     z-index: 100;
 }
+
+/* Footer inside scroll area: visible when user scrolls to the end */
+.app-main > .app-footer,
+.app-main > footer,
+.app-main > #footer,
+.app-main .site-footer {
+    flex: 0 0 auto;
+    margin-top: 1.5rem;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Legacy: if a page still pins footer as shell sibling, hide that pin on mobile
+   (in-scroll .site-footer remains visible) */
+@media (max-width: 768px) {
+    .app-shell > .app-footer:not(.site-footer),
+    .app-shell > footer:not(.site-footer),
+    .app-shell > #footer:not(.site-footer) {
+        display: none;
+    }
+}

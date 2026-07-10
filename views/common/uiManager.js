@@ -44,15 +44,9 @@ class UIManager {
 
         this.alertContainer = document.createElement('div');
         this.alertContainer.id = 'alerts-container';
+        this.alertContainer.className = 'alerts-container';
         try { this.alertContainer.classList.add('bg-color'); } catch {}
-        this.alertContainer.style.cssText = `
-            position: fixed;
-            width: 30%;
-            left: 60%;
-            top: 15%;
-            margin: 0 auto;
-            z-index: 9999;
-        `;
+        // Layout is controlled by CSS (desktop: top-right; mobile: full-width top)
         document.body.append(this.alertContainer);
         return this.alertContainer;
     }

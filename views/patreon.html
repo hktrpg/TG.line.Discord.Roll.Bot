@@ -78,12 +78,15 @@
             background-color: #dc3545 !important;
             color: #ffffff !important;
         }
-        /* App shell: only middle scrolls (do not unlock body overflow for chat style.css) */
+        /* App shell: only middle scrolls; block pull-to-refresh like hkbus */
         html.app-shell-page,
         html.app-shell-page body {
             overflow: hidden !important;
             height: 100dvh !important;
             max-height: 100dvh !important;
+            overscroll-behavior: none !important;
+            overscroll-behavior-y: none !important;
+            touch-action: manipulation;
         }
         body {
             background-color: var(--bg-color);

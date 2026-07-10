@@ -1,6 +1,7 @@
 /**
  * App shell layout (hkbus-style)
  * Viewport locked; only .app-main scrolls.
+ * overscroll-behavior prevents mobile pull-to-refresh.
  *
  * Structure:
  * <div class="app-shell">
@@ -17,6 +18,10 @@ html.app-shell-page body {
     max-height: 100dvh;
     overflow: hidden;
     margin: 0;
+    /* Block browser pull-to-refresh / scroll chaining */
+    overscroll-behavior: none;
+    overscroll-behavior-y: none;
+    touch-action: manipulation;
 }
 
 body.app-shell-page,
@@ -35,6 +40,7 @@ html.app-shell-page body {
     max-height: 100dvh;
     overflow: hidden;
     min-height: 0;
+    overscroll-behavior: none;
 }
 
 .app-shell > .app-header,
@@ -51,7 +57,9 @@ html.app-shell-page body {
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    /* Keep overscroll inside middle; do not chain to page refresh */
     overscroll-behavior: contain;
+    overscroll-behavior-y: contain;
 }
 
 .app-shell > .app-footer,

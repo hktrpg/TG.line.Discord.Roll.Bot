@@ -179,7 +179,8 @@ function writeUint(buffer, offset, size, value) {
     else buffer.writeBigUInt64BE(BigInt(value), offset);
 }
 
-function buildBusEtaShortcut(speakUrl, shortcutName = '巴士到站朗讀') {
+function buildBusEtaShortcut(speakUrl, shortcutName = 'Bus-ETA') {
+    const safeName = String(shortcutName || 'Bus-ETA').replaceAll(/[^\w.-]+/g, '-') || 'Bus-ETA';
     const workflow = {
         WFWorkflowClientVersion: '1300.0.0',
         WFWorkflowClientRelease: '3.0',
@@ -194,12 +195,12 @@ function buildBusEtaShortcut(speakUrl, shortcutName = '巴士到站朗讀') {
             'WFStringContentItem',
             'WFURLContentItem'
         ],
-        WFWorkflowName: String(shortcutName || '巴士到站朗讀'),
+        WFWorkflowName: safeName,
         WFWorkflowActions: [
             {
                 WFWorkflowActionIdentifier: 'is.workflow.actions.comment',
                 WFWorkflowActionParameters: {
-                    WFCommentActionText: `HKTRPG ${shortcutName}`
+                    WFCommentActionText: `HKTRPG ${safeName}`
                 }
             },
             {

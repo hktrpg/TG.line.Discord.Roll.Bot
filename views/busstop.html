@@ -713,7 +713,8 @@
             url.searchParams.set('stop', stop.stop);
             url.searchParams.set('service_type', route.service_type);
             url.searchParams.set('bound', route.bound);
-            url.searchParams.set('name', `${route.route}到站朗讀`);
+            // ASCII only — Chinese in this URL breaks iOS import-shortcut
+            url.searchParams.set('name', `${route.route}-ETA`);
             return url.toString();
         }
 
@@ -728,7 +729,8 @@
             const speakUrl = buildSpeakTextUrl();
             const pageUrl = buildEtaPageUrl();
             const fileUrl = buildShortcutFileUrl();
-            const name = `${state.selectedRoute.route}到站朗讀`;
+            // ASCII only for shortcuts:// query params
+            const name = `${state.selectedRoute.route}-ETA`;
             const importUrl =
                 `shortcuts://import-shortcut?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(name)}`;
 

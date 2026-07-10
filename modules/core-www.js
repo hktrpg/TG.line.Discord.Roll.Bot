@@ -956,7 +956,9 @@ www.get('/busstop/shortcut', async (req, res) => {
     const stop = String(req.query.stop || '').trim();
     const serviceType = String(req.query.service_type || req.query.direction || '1').trim();
     const bound = String(req.query.bound || '').trim().toUpperCase();
-    const name = String(req.query.name || `${route}到站朗讀`).trim() || `${route}到站朗讀`;
+    // Keep shortcut name ASCII-only for iOS import-shortcut URL compatibility
+    const rawName = String(req.query.name || `${route}-ETA`).trim() || `${route}-ETA`;
+    const name = rawName.replaceAll(/[^\w.-]+/g, '-') || `${route}-ETA`;
 
     if (!route || !stop) {
         res.status(400).type('text/plain; charset=utf-8')

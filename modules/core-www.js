@@ -916,18 +916,23 @@ www.get('/busstop/speak', async (req, res) => {
 
     const stop = String(req.query.stop || '').trim();
     const multiRoutes = parseBusSpeakRoutesParam(req.query.routes);
-    const route = String(req.query.route || '').trim().toUpperCase();
+    const route = sanitizeBusRouteToken(req.query.route);
     const serviceType = String(req.query.service_type || req.query.direction || '1').trim();
     const bound = String(req.query.bound || '').trim().toUpperCase();
 
-    if (!stop || (!multiRoutes.length && !route)) {
+    if (!stop || (multiRoutes.length === 0 && !route)) {
         res.status(400).type('text/plain; charset=utf-8')
             .send('錯誤：缺少 stop，以及 route 或 routes 參數');
         return;
     }
+    if (route && !isValidBusRouteToken(route)) {
+        res.status(400).type('text/plain; charset=utf-8')
+            .send('錯誤：route 參數格式不正確');
+        return;
+    }
 
     try {
-        if (multiRoutes.length) {
+        if (multiRoutes.length > 0) {
             const text = await buildMultiRouteSpeakText(stop, multiRoutes);
             res.type('text/plain; charset=utf-8').send(text);
             return;
@@ -964,21 +969,26 @@ www.get('/busstop/shortcut', async (req, res) => {
         return;
     }
 
-    const route = String(req.query.route || '').trim().toUpperCase();
+    const route = sanitizeBusRouteToken(req.query.route);
     const stop = String(req.query.stop || '').trim();
     const serviceType = String(req.query.service_type || req.query.direction || '1').trim();
     const bound = String(req.query.bound || '').trim().toUpperCase();
     const multiRoutes = parseBusSpeakRoutesParam(req.query.routes);
     // Keep shortcut name ASCII-only for iOS import-shortcut URL compatibility
-    const defaultName = multiRoutes.length
+    const defaultName = multiRoutes.length > 0
         ? `${multiRoutes.map(r => r.route).slice(0, 3).join('+')}-ETA`
         : `${route}-ETA`;
     const rawName = String(req.query.name || defaultName).trim() || defaultName;
     const name = rawName.replaceAll(/[^\w.+-]+/g, '-') || defaultName;
 
-    if (!stop || (!multiRoutes.length && !route)) {
+    if (!stop || (multiRoutes.length === 0 && !route)) {
         res.status(400).type('text/plain; charset=utf-8')
             .send('錯誤：缺少 stop，以及 route 或 routes 參數');
+        return;
+    }
+    if (route && !isValidBusRouteToken(route)) {
+        res.status(400).type('text/plain; charset=utf-8')
+            .send('錯誤：route 參數格式不正確');
         return;
     }
 
@@ -988,7 +998,7 @@ www.get('/busstop/shortcut', async (req, res) => {
         const host = String(req.get('x-forwarded-host') || req.get('host') || 'bus.hktrpg.com').split(',')[0].trim();
         const speakUrl = new URL('/busstop/speak', `${proto}://${host}`);
         speakUrl.searchParams.set('stop', stop);
-        if (multiRoutes.length) {
+        if (multiRoutes.length > 0) {
             speakUrl.searchParams.set(
                 'routes',
                 multiRoutes.map((r) => {
@@ -1014,7 +1024,7 @@ www.get('/busstop/shortcut', async (req, res) => {
     } catch (error) {
         console.error('[busstop/shortcut]', error);
         res.status(500).type('text/plain; charset=utf-8')
-            .send(`無法產生捷徑檔: ${error?.message || error}`);
+            .send('無法產生捷徑檔');
     }
 });
 
@@ -1033,6 +1043,16 @@ function formatBusSpeakMessage(route, minutesList) {
     return `${route} 號巴士 於 ${formatBusMinutesPhrase(mins)}後到達`;
 }
 
+/** Strip user-controlled route tokens to safe A-Z / 0-9 / hyphen only (XSS-safe for plain-text responses). */
+function sanitizeBusRouteToken(raw) {
+    const normalized = String(raw || '').trim().toUpperCase();
+    return normalized.replaceAll(/[^A-Z0-9-]/g, '');
+}
+
+function isValidBusRouteToken(route) {
+    return /^[A-Z0-9][A-Z0-9-]{0,9}$/.test(route);
+}
+
 /** Parse routes=251A:1:O,64K:1:I or 251A:1:O:STOPID */
 function parseBusSpeakRoutesParam(raw) {
     return String(raw || '')
@@ -1041,11 +1061,11 @@ function parseBusSpeakRoutesParam(raw) {
         .filter(Boolean)
         .map((part) => {
             const [routeRaw, serviceRaw = '1', dirRaw = '', stopRaw = ''] = part.split(':');
-            const route = String(routeRaw || '').trim().toUpperCase();
+            const route = sanitizeBusRouteToken(routeRaw);
             const service_type = String(serviceRaw || '1').trim() || '1';
             const dir = String(dirRaw || '').trim().toUpperCase();
             const stopId = String(stopRaw || '').trim();
-            if (!route) return null;
+            if (!route || !isValidBusRouteToken(route)) return null;
             return {
                 route,
                 service_type,
@@ -1068,7 +1088,7 @@ function minutesUntilEta(eta) {
  */
 function pickBusesForMultiSpeak(routeEntries) {
     const selected = routeEntries.filter(entry => entry.buses.length);
-    if (!selected.length) return [];
+    if (selected.length === 0) return [];
 
     const allBuses = [];
     for (const entry of selected) {
@@ -1117,7 +1137,7 @@ function pickBusesForMultiSpeak(routeEntries) {
 }
 
 function formatMultiRouteSpeakMessage(pickedBuses) {
-    if (!pickedBuses.length) return '暫時沒有到站時間';
+    if (pickedBuses.length === 0) return '暫時沒有到站時間';
 
     const order = [];
     const groups = new Map();

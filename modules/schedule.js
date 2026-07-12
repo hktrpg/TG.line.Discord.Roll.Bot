@@ -69,12 +69,15 @@ const agenda = new Agenda({
         }
         
         await agenda.start();
+        // Avoid catch-up on boot: a missed 04:55 run must not respawn clusters at random startup times.
+        await agenda.cancel({ name: 'dailyDiscordMaintenance' });
         await agenda.every(
             restartTime,
             'dailyDiscordMaintenance',
             {},
             {
-                skipImmediate: true
+                skipImmediate: true,
+                timezone: process.env.AGENDA_TIMEZONE || 'Asia/Hong_Kong'
             }
         );
     } catch (error) {

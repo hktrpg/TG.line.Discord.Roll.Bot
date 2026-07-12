@@ -109,7 +109,7 @@ const mammoth = require('mammoth');
 const Tesseract = require('tesseract.js');
 const { getPool } = require('../modules/pool');
 const imagePool = getPool('image');
-dotenv.config({ override: true });
+dotenv.config({ override: true, quiet: true });
 const VIP = require('../modules/veryImportantPerson');
 const handleMessage = require('../modules/discord/handleMessage');
 

@@ -442,8 +442,7 @@ async function loginWithErrorHandling() {
 		loginAttempt += 1;
 		await client.login(channelSecret);
 		loginAttempt = 0;
-		console.log('[Discord Bot] Successfully logged in to Discord');
-	} catch (error) {
+    } catch (error) {
 		console.error('[Discord Bot] Failed to login to Discord:', error.message);
 		console.error('[Discord Bot] Login error details:', {
 			name: error.name,
@@ -4390,7 +4389,9 @@ const connect = function () {
 	ws = new WebSocket(wsUrl);
 	
 	ws.on('open', function open() {
-		console.log(`[discord_bot] connected To core-www from discord! Shard#${shardid}`)
+		if (DEBUG_LOG) {
+			console.log(`[discord_bot] connected To core-www from discord! Shard#${shardid}`)
+		}
 		ws.send(`connected To core-www from discord! Shard#${shardid}`);
 		isReconnecting = false; // Reset flag on successful connection
 	});

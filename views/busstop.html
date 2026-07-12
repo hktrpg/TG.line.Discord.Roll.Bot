@@ -1,153 +1,2130 @@
 <!DOCTYPE html>
-<html lang="zh-HK">
+<html lang="zh-HK" class="app-shell-page">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle"> 巴士到達時間</title>
+    <title id="pageTitle">IOS Shortcut 搵巴士</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+        integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/app-shell.css">
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
     <style>
-        body {
-            font-family: Arial, 'Noto Sans HK', sans-serif;
+        :root {
+            --bg: #f3f5f8;
+            --card: #ffffff;
+            --text: #1a1d24;
+            --muted: #667085;
+            --line: #e4e7ec;
+            --accent: #c8102e;
+            --accent-soft: #fde8eb;
+            --ok: #067647;
+            --warn: #b54708;
+            --shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
+            --radius: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html.app-shell-page,
+        html.app-shell-page body {
+            background:
+                radial-gradient(circle at top right, rgba(200, 16, 46, 0.08), transparent 28%),
+                linear-gradient(180deg, #f8fafc 0%, var(--bg) 100%);
+            color: var(--text);
+            font-family: "Noto Sans HK", "PingFang HK", "Microsoft JhengHei", sans-serif;
+        }
+
+        body.speak-mode {
+            background: #fff;
             max-width: 600px;
-            margin: 20px auto;
+            margin: 0 auto;
             padding: 20px;
-            background-color: #f4f4f4;
+            height: auto !important;
+            max-height: none !important;
+            overflow: auto !important;
+            display: block !important;
         }
 
-        h1 {
+        body.speak-mode .app-shell {
+            display: none !important;
+        }
+
+        #builderApp.app-shell {
+            max-width: none;
+            width: 100%;
+            margin: 0;
+        }
+
+        #builderApp > .app-header.site-top {
+            padding: 0;
+            background: #f8f9fa;
+            border-bottom: 1px solid var(--line);
+        }
+
+        #builderApp > .app-header.site-top .navbar {
+            margin: 0;
+        }
+
+        #builderApp > .app-main {
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        #builderApp.search-fill > .app-main {
+            overflow: hidden;
+        }
+
+        .bus-content {
+            max-width: 720px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 16px 16px 8px;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        #builderApp.search-fill .bus-content {
+            flex: 1;
+            height: 100%;
+            overflow: hidden;
+            padding-bottom: 12px;
+        }
+
+        #builderApp.search-fill .hero,
+        #builderApp.search-fill .steps {
+            flex-shrink: 0;
+        }
+
+        #builderApp.search-fill .footer-note,
+        #builderApp.search-fill .site-footer {
+            display: none;
+        }
+
+        #searchCard {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        #builderApp.search-fill #searchCard {
+            flex: 1;
+            height: 100%;
+            margin-bottom: 0;
+            overflow: hidden;
+        }
+
+        #searchCard > .label,
+        #searchCard > .search-row,
+        #searchCard > .route-board-meta,
+        #searchCard > .route-pad {
+            flex-shrink: 0;
+        }
+
+        .hero {
+            margin-bottom: 12px;
+        }
+
+        .hero h1 {
+            margin: 0 0 6px;
+            font-size: 1.7rem;
+            letter-spacing: 0.02em;
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--muted);
+        }
+
+        .search-row {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+
+        .search-row #routeInput {
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .route-board {
+            margin-top: 12px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fff;
+            flex: 1 1 auto;
+            height: 100%;
+            min-height: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .route-board-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 0.82rem;
+            flex-shrink: 0;
+        }
+
+        .route-pad {
+            margin-top: 12px;
+            height: 248px;
+            flex: 0 0 248px;
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 8px;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .route-pad-num,
+        .route-pad-alpha {
+            height: 100%;
+            min-height: 0;
+            display: grid;
+            gap: 6px;
+        }
+
+        .route-pad-num {
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+        }
+
+        .route-pad-alpha {
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            overflow: hidden;
+        }
+
+        .pad-key {
+            height: 100%;
+            width: 100%;
+            min-height: 0;
+            padding: 0;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--text);
+            font-size: 1.25rem;
+            font-weight: 800;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pad-key:active:not(:disabled) {
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        .pad-key:disabled {
+            opacity: 0.28;
+            background: #f3f4f6;
+        }
+
+        .pad-key.func {
+            font-size: 1rem;
+            color: var(--muted);
+        }
+
+        @media (max-width: 420px) {
+            .route-pad {
+                height: 220px;
+                flex-basis: 220px;
+            }
+
+            .pad-key {
+                font-size: 1.1rem;
+            }
+        }
+
+        .board-row {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 88px 1fr;
+            gap: 10px;
+            align-items: center;
+            text-align: left;
+            background: #fff;
+            color: var(--text);
+            border: 0;
+            border-bottom: 1px solid var(--line);
+            border-radius: 0;
+            padding: 12px 14px;
+            font-weight: 500;
+        }
+
+        .board-row:last-child {
+            border-bottom: 0;
+        }
+
+        .board-row:hover,
+        .board-row:focus-visible {
+            background: #fff8f9;
+        }
+
+        .board-no {
+            display: grid;
+            gap: 2px;
+        }
+
+        .board-route {
+            font-size: 1.35rem;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: 0.02em;
+            color: var(--accent);
+        }
+
+        .board-co {
+            font-size: 0.72rem;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .board-term {
+            display: grid;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .board-dest {
+            font-size: 1.02rem;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        .board-dest span {
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 0.82rem;
+            margin-right: 4px;
+        }
+
+        .board-orig {
+            color: var(--muted);
+            font-size: 0.86rem;
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .board-empty {
+            padding: 28px 16px;
             text-align: center;
-            color: #333;
+            color: var(--muted);
+            font-size: 0.92rem;
         }
 
-        #etaList {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        input[type="search"],
+        input[type="text"] {
+            flex: 1;
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 1rem;
+            outline: none;
+            background: #fff;
         }
 
-        .eta-item {
-            margin: 10px 0;
-            font-size: 16px;
+        input:focus {
+            border-color: #f3a0ab;
+            box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.12);
         }
 
-        .loading,
-        .error {
+        button {
+            border: 0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            background: var(--accent);
+            color: #fff;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button.secondary {
+            background: #fff;
+            color: var(--text);
+            border: 1px solid var(--line);
+        }
+
+        button.ghost {
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        .hint {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .list {
+            display: grid;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .item {
+            width: 100%;
+            text-align: left;
+            background: #fff;
+            color: var(--text);
+            border: 1px solid var(--line);
+            padding: 12px 14px;
+            border-radius: 12px;
+            display: grid;
+            gap: 4px;
+        }
+
+        .item:hover,
+        .item.active {
+            border-color: #f3a0ab;
+            background: #fff8f9;
+        }
+
+        .item .title {
+            font-size: 1.05rem;
+            font-weight: 800;
+        }
+
+        .item .meta {
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.4;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--accent-soft);
+            color: var(--accent);
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-right: 6px;
+        }
+
+        .steps {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .step {
+            font-size: 0.78rem;
+            color: var(--muted);
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 6px 10px;
+            cursor: default;
+            user-select: none;
+            font-weight: 500;
+            box-shadow: none;
+        }
+
+        .step.clickable {
+            cursor: pointer;
+        }
+
+        .step.clickable:hover {
+            border-color: #f3a0ab;
+            color: var(--accent);
+            background: #fff;
+        }
+
+        .step.on {
+            color: var(--accent);
+            border-color: #f3a0ab;
+            background: var(--accent-soft);
+            font-weight: 700;
+        }
+
+        .step.current {
+            box-shadow: 0 0 0 2px rgba(200, 16, 46, 0.2);
+        }
+
+        .step.disabled,
+        .step:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            color: var(--muted);
+            background: #fff;
+            border-color: var(--line);
+            font-weight: 500;
+            box-shadow: none;
+        }
+
+        .eta-board {
+            display: grid;
+            gap: 10px;
+        }
+
+        .eta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .eta-row:last-child {
+            border-bottom: 0;
+        }
+
+        .eta-mins {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .eta-mins.soon {
+            color: var(--ok);
+        }
+
+        .eta-mins.late {
+            color: var(--warn);
+        }
+
+        .eta-sub {
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        .speak-box {
+            margin-top: 12px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 12px;
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
+
+        .nearby-panel {
+            margin-top: 12px;
+            padding: 12px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .nearby-panel h3 {
+            margin: 0 0 8px;
+            font-size: 1rem;
+        }
+
+        .nearby-hint {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .nearby-list {
+            display: grid;
+            gap: 8px;
+            max-height: 280px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+
+        .nearby-confirm-wrap {
+            margin-top: 12px;
+        }
+
+        .nearby-confirm-wrap button {
+            width: 100%;
+        }
+
+        .nearby-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fafbfc;
+            cursor: pointer;
+        }
+
+        .nearby-item.on {
+            border-color: #f3a0ab;
+            background: var(--accent-soft);
+        }
+
+        .nearby-item input {
+            margin-top: 4px;
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .nearby-item .route-no {
+            font-weight: 800;
+            font-size: 1.05rem;
+        }
+
+        .nearby-item .meta {
+            color: var(--muted);
+            font-size: 0.85rem;
+            margin-top: 2px;
+        }
+
+        .nearby-item .mins {
+            margin-left: auto;
+            font-weight: 800;
+            color: var(--accent);
+            white-space: nowrap;
+        }
+
+        .actions {
+            display: grid;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .status {
             text-align: center;
-            color: #555;
+            color: var(--muted);
+            padding: 18px 8px;
         }
 
         .error {
             color: #d32f2f;
+            text-align: center;
+            padding: 12px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .selected-summary {
+            display: grid;
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+
+        .selected-summary strong {
+            font-size: 1.15rem;
+        }
+
+        .footer-note {
+            margin-top: 18px;
+            color: var(--muted);
+            font-size: 0.78rem;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        .footer-note a {
+            color: var(--accent);
+        }
+
+        #shortcutHelp {
+            color: var(--text);
+            font-size: 0.92rem;
+            line-height: 1.55;
+        }
+
+        .guide-box {
+            margin-top: 4px;
+            padding: 14px;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+        }
+
+        .guide-box h3 {
+            margin: 0 0 10px;
+            font-size: 1.05rem;
+        }
+
+        .guide-url {
+            display: block;
+            margin: 8px 0 12px;
+            padding: 10px 12px;
+            background: #fff;
+            border: 1px dashed #f3a0ab;
+            border-radius: 10px;
+            word-break: break-all;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.82rem;
+        }
+
+        .guide-step {
+            margin: 16px 0;
+            padding-top: 12px;
+            border-top: 1px solid var(--line);
+        }
+
+        .guide-step:first-of-type {
+            border-top: 0;
+            padding-top: 0;
+        }
+
+        .guide-step h4 {
+            margin: 0 0 8px;
+            font-size: 0.95rem;
+        }
+
+        .guide-step p {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .guide-step img {
+            display: block;
+            width: 100%;
+            max-width: 360px;
+            margin: 0 auto;
+            border-radius: 12px;
+            border: 1px solid #222;
+            box-shadow: var(--shadow);
+        }
+
+        .guide-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        /* Speak / Shortcut scrape mode: keep text clean */
+        #etaList.speak-only {
+            background: #fff;
+            padding: 0;
+            border: 0;
+            box-shadow: none;
+            font-size: 1.15rem;
+            line-height: 1.7;
         }
     </style>
 </head>
 
-<body>
-    <h1 id="headerTitle"></h1>
-    <div id="etaList" class="loading" data-status="loading">正在加載到達時間資料...</div>
+<body class="app-shell-page">
+    <div id="speakApp" class="hidden">
+        <h1 id="headerTitle" class="hidden"></h1>
+        <div id="etaList" class="loading" data-status="loading">正在加載到達時間資料...</div>
+    </div>
 
+    <div id="builderApp" class="app-shell hidden">
+        <header class="app-header site-top">
+            <div id="header"></div>
+        </header>
+
+        <main class="app-main">
+            <div class="bus-content">
+                <div class="hero">
+                    <h1>IOS Shortcut 搵巴士</h1>
+                    <p>搜尋九巴／龍運路線，選擇車站後建立可朗讀的 iOS 捷徑。</p>
+                </div>
+
+                <div class="steps" id="stepBar">
+                    <button type="button" class="step on current clickable" data-step="1">1. 搜尋路線</button>
+                    <button type="button" class="step disabled" data-step="2" disabled>2. 選擇路線</button>
+                    <button type="button" class="step disabled" data-step="3" disabled>3. 選擇車站</button>
+                    <button type="button" class="step disabled" data-step="4" disabled>4. 到站時間</button>
+                </div>
+
+                <section class="card" id="searchCard">
+                    <label class="label" for="routeInput">路線</label>
+                    <div class="search-row">
+                        <input id="routeInput" type="text" inputmode="none" readonly autocomplete="off"
+                            placeholder="用下方鍵盤輸入，例如 46X" maxlength="10" aria-label="搜尋路線">
+                    </div>
+                    <div class="route-board-meta">
+                        <span id="boardCount">載入路線中…</span>
+                        <span>參考 <a href="https://hkbus.app/zh/board" target="_blank" rel="noopener">hkbus.app</a></span>
+                    </div>
+                    <div id="routeResults" class="route-board" role="listbox" aria-label="路線列表"></div>
+                    <div id="routePad" class="route-pad" aria-label="路線專用鍵盤">
+                        <div id="routePadNum" class="route-pad-num"></div>
+                        <div id="routePadAlpha" class="route-pad-alpha"></div>
+                    </div>
+                </section>
+
+                <section class="card hidden" id="stopCard">
+                    <div class="selected-summary">
+                        <strong id="selectedRouteTitle"></strong>
+                        <div class="meta" id="selectedRouteMeta" style="color:var(--muted);font-size:0.9rem"></div>
+                    </div>
+                    <label class="label">選擇車站</label>
+                    <input id="stopFilter" type="search" placeholder="過濾站名…" style="margin-bottom:10px">
+                    <div id="stopResults" class="list"></div>
+                    <div style="margin-top:10px">
+                        <button type="button" class="secondary" id="backToRoutesBtn">返回路線</button>
+                    </div>
+                </section>
+
+                <section class="card hidden" id="etaCard">
+                    <div class="selected-summary">
+                        <strong id="etaRouteTitle"></strong>
+                        <div id="etaStopTitle" style="color:var(--muted)"></div>
+                    </div>
+                    <div id="etaBoard" class="eta-board"></div>
+                    <div id="speakPreview" class="speak-box"></div>
+                    <div id="nearbyRoutesPanel" class="nearby-panel hidden">
+                        <h3>同站路線</h3>
+                        <p class="nearby-hint">
+                            以下為此站及轉車站附近月台的途經路線（含暫時沒有到站班次者）。
+                            若有多於一兩班車可到達目的地，可在此勾選，一併納入朗讀。
+                        </p>
+                        <div id="nearbyRoutesList" class="nearby-list"></div>
+                        <div class="nearby-confirm-wrap">
+                            <button type="button" id="confirmNearbyBtn">確認</button>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button type="button" id="nearbyRoutesBtn" class="secondary">選擇同站路線</button>
+                        <button type="button" id="speakNowBtn" class="ghost">立即朗讀</button>
+                        <button type="button" id="backToStopsBtn" class="secondary">返回車站</button>
+                    </div>
+                    <div id="shortcutHelp" class="hint" style="margin-top:12px"></div>
+                </section>
+
+                <div class="footer-note">
+                    ETA 約每分鐘更新。<span id="etaLastUpdated"></span>
+                    API 說明：
+                    <a href="https://data.etabus.gov.hk/datagovhk/kmb_eta_data_dictionary.pdf" target="_blank"
+                        rel="noopener">KMB ETA Data Dictionary</a>
+                </div>
+
+                <footer class="app-footer site-footer">
+                    <div id="footer"></div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+        crossorigin="anonymous"></script>
     <script>
-        // 數字轉換成中文的工具
-        function numberToChinese(num) {
-            if (num < 0 || num > 60) return '無效數字';
-            if (num === 0) return '零';
+        const API = 'https://data.etabus.gov.hk/v1/transport/kmb';
+        const BOUND_LABEL = { O: 'outbound', I: 'inbound' };
 
-            const chineseDigits = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
-            const chineseTens = ['十', '二十', '三十', '四十', '五十', '六十'];
+        const state = {
+            routeList: null,
+            stopMap: null,
+            selectedRoute: null,
+            stops: [],
+            selectedStop: null,
+            etas: [],
+            speakText: '',
+            refreshTimer: null,
+            currentStep: 1,
+            maxStep: 1,
+            filteredRoutes: [],
+            searchTimer: null,
+            nearbyOpen: false,
+            nearbyActive: false,
+            nearbyRoutes: [],
+            nearbySelected: new Set()
+        };
 
-            if (num < 10) return chineseDigits[num];
-            if (num === 10) return chineseTens[0];
-            if (num < 20) return chineseTens[0] + (num % 10 === 0 ? '' : chineseDigits[num % 10]);
-
-            const ten = Math.floor(num / 10);
-            const one = num % 10;
-            return chineseTens[ten - 1] + (one === 0 ? '' : chineseDigits[one]);
+        function qs(id) {
+            return document.getElementById(id);
         }
 
-        // 從網址參數中提取站點和路線號
         function getQueryParams() {
             const params = new URLSearchParams(window.location.search);
             return {
                 stop: params.get('stop'),
                 route: params.get('route'),
-                direction: params.get('direction') || '1'
+                // legacy param name "direction" was actually service_type
+                serviceType: params.get('service_type') || params.get('direction') || '1',
+                bound: (params.get('bound') || '').toUpperCase()
             };
         }
 
-        async function fetchBusETA() {
-            try {
-                // 從網址參數獲取站點和路線
-                const { stop, route, direction } = getQueryParams();
+        function setStep(n) {
+            state.currentStep = n;
+            state.maxStep = Math.max(state.maxStep, n);
+            document.querySelectorAll('#stepBar .step').forEach((el) => {
+                const step = Number(el.dataset.step);
+                const reachable = step <= state.maxStep;
+                el.classList.toggle('on', step <= n);
+                el.classList.toggle('current', step === n);
+                el.classList.toggle('clickable', reachable);
+                el.classList.toggle('disabled', !reachable);
+                el.disabled = !reachable;
+            });
+        }
 
-                // 檢查必要參數是否存在
-                if (!stop || !route || !direction) {
-                    document.getElementById('etaList').innerHTML = '<div class="error">錯誤：缺少必要參數。請提供 stop、route 和 direction 參數。</div>';
+        function stopEtaRefresh() {
+            if (state.refreshTimer) {
+                clearInterval(state.refreshTimer);
+                state.refreshTimer = null;
+            }
+        }
+
+        function showPanel(panel) {
+            qs('searchCard').classList.toggle('hidden', panel !== 'search');
+            qs('stopCard').classList.toggle('hidden', panel !== 'stop');
+            qs('etaCard').classList.toggle('hidden', panel !== 'eta');
+            qs('builderApp')?.classList.toggle('search-fill', panel === 'search');
+            if (panel === 'eta') {
+                qs('shortcutHelp')?.classList.remove('hidden');
+            } else {
+                qs('shortcutHelp')?.classList.add('hidden');
+                closeNearbyPanel({ resetActive: true });
+            }
+        }
+
+        function goToStep(step) {
+            const target = Number(step);
+            if (!target || target > state.maxStep) return;
+
+            if (target === 1) {
+                stopEtaRefresh();
+                showPanel('search');
+                setStep(1);
+                qs('routeInput')?.focus();
+                return;
+            }
+
+            if (target === 2) {
+                if (!state.filteredRoutes.length && !state.routeList) return;
+                stopEtaRefresh();
+                showPanel('search');
+                setStep(2);
+                qs('routeResults')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                return;
+            }
+
+            if (target === 3) {
+                if (!state.selectedRoute) return;
+                stopEtaRefresh();
+                showPanel('stop');
+                setStep(3);
+                return;
+            }
+
+            if (target === 4) {
+                if (!state.selectedStop || !state.selectedRoute) return;
+                showPanel('eta');
+                setStep(4);
+                if (!state.refreshTimer) {
+                    refreshEta();
+                    state.refreshTimer = setInterval(refreshEta, 30_000);
+                }
+                openNearbyRoutes({ scroll: true });
+            }
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;');
+        }
+
+        async function fetchJson(url) {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+        }
+
+        async function loadRouteList() {
+            if (state.routeList) return state.routeList;
+            const cached = sessionStorage.getItem('kmb_route_list_v1');
+            if (cached) {
+                state.routeList = JSON.parse(cached);
+                return state.routeList;
+            }
+            const data = await fetchJson(`${API}/route/`);
+            state.routeList = data.data || [];
+            try {
+                sessionStorage.setItem('kmb_route_list_v1', JSON.stringify(state.routeList));
+            } catch {
+                // ignore quota errors
+            }
+            return state.routeList;
+        }
+
+        async function loadStopMap() {
+            if (state.stopMap) return state.stopMap;
+            const cached = sessionStorage.getItem('kmb_stop_map_v1');
+            if (cached) {
+                state.stopMap = JSON.parse(cached);
+                return state.stopMap;
+            }
+            const data = await fetchJson(`${API}/stop`);
+            const map = {};
+            for (const stop of (data.data || [])) {
+                map[stop.stop] = stop;
+            }
+            state.stopMap = map;
+            try {
+                sessionStorage.setItem('kmb_stop_map_v1', JSON.stringify(map));
+            } catch {
+                // ignore quota errors (stop list is large)
+            }
+            return state.stopMap;
+        }
+
+        function normalizeRouteQuery(q) {
+            return String(q || '').trim().toUpperCase().replaceAll(/\s+/g, '');
+        }
+
+        function minutesUntil(etaIso) {
+            if (!etaIso) return null;
+            const diff = Math.round((new Date(etaIso) - Date.now()) / 60_000);
+            return Math.max(0, diff);
+        }
+
+        function setEtaLastUpdated(timestamp) {
+            const el = qs('etaLastUpdated');
+            if (!el) return;
+            const date = timestamp ? new Date(timestamp) : new Date();
+            if (Number.isNaN(date.getTime())) {
+                el.textContent = '';
+                return;
+            }
+            const text = date.toLocaleString('zh-HK', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            el.textContent = `（最後更新時間: ${text}）`;
+        }
+
+        function formatMinutesPhrase(minutesList) {
+            const mins = minutesList.filter((m) => m !== null && m !== undefined);
+            if (mins.length === 0) return '';
+            if (mins.length === 1) return `${mins[0]}分鐘`;
+            if (mins.length === 2) return `${mins[0]}分鐘及${mins[1]}分鐘`;
+            const head = mins.slice(0, -1).map((m) => `${m}分鐘`).join('、');
+            return `${head}及${mins.at(-1)}分鐘`;
+        }
+
+        function formatSpeakMessage(route, minutesList) {
+            const mins = minutesList.filter((m) => m !== null && m !== undefined);
+            if (mins.length === 0) return `${route} 號巴士暫時沒有到站時間`;
+            return `${route} 號巴士 於 ${formatMinutesPhrase(mins)}後到達`;
+        }
+
+        function routeKey(route, serviceType, dir) {
+            return `${route}|${serviceType || '1'}|${dir || ''}`;
+        }
+
+        /** Group same-stop list by route + direction + destination (ignore service_type variants). */
+        function nearbyGroupKey(route, dir, destTc) {
+            return `${route}|${dir || ''}|${destTc || ''}`;
+        }
+
+        function currentRouteKey() {
+            const route = state.selectedRoute;
+            if (!route) return '';
+            return routeKey(route.route, route.service_type, route.bound);
+        }
+
+        function currentNearbyGroupKey() {
+            const route = state.selectedRoute;
+            if (!route) return '';
+            return nearbyGroupKey(route.route, route.bound, route.dest_tc || '');
+        }
+
+        function closeNearbyPanel({ resetActive = false } = {}) {
+            state.nearbyOpen = false;
+            if (resetActive) state.nearbyActive = false;
+            qs('nearbyRoutesPanel')?.classList.add('hidden');
+            const btn = qs('nearbyRoutesBtn');
+            if (btn) {
+                btn.classList.remove('hidden');
+                btn.textContent = state.nearbyActive ? '更改同站路線' : '選擇同站路線';
+            }
+        }
+
+        function isNearbyMultiMode() {
+            return state.nearbyActive && state.nearbySelected.size > 0 && state.nearbyRoutes.length > 0;
+        }
+
+        /** Pick buses: each selected route ≥1, fastest first, total ≥3 when possible. */
+        function pickBusesForSpeak(routeEntries) {
+            const selected = routeEntries.filter((entry) => state.nearbySelected.has(entry.key) && entry.buses.length);
+            if (!selected.length) return [];
+
+            const allBuses = [];
+            for (const entry of selected) {
+                for (const bus of entry.buses) {
+                    allBuses.push({
+                        key: entry.key,
+                        route: entry.route,
+                        minutes: bus.minutes,
+                        etaMs: bus.etaMs
+                    });
+                }
+            }
+            allBuses.sort((a, b) => a.etaMs - b.etaMs || a.minutes - b.minutes);
+
+            const picked = [];
+            const pickedIds = new Set();
+            const busId = (b) => `${b.key}@${b.etaMs}@${b.minutes}`;
+
+            // 1) each selected route: soonest bus
+            for (const entry of selected) {
+                const soonest = entry.buses.reduce((best, bus) =>
+                    (!best || bus.etaMs < best.etaMs) ? bus : best, null);
+                if (!soonest) continue;
+                const item = {
+                    key: entry.key,
+                    route: entry.route,
+                    minutes: soonest.minutes,
+                    etaMs: soonest.etaMs
+                };
+                const id = busId(item);
+                if (!pickedIds.has(id)) {
+                    picked.push(item);
+                    pickedIds.add(id);
+                }
+            }
+
+            // 2) fill to at least 3 from global soonest
+            for (const bus of allBuses) {
+                if (picked.length >= 3) break;
+                const id = busId(bus);
+                if (pickedIds.has(id)) continue;
+                picked.push(bus);
+                pickedIds.add(id);
+            }
+
+            picked.sort((a, b) => a.etaMs - b.etaMs || a.minutes - b.minutes);
+            return picked;
+        }
+
+        function formatMultiRouteSpeak(pickedBuses) {
+            if (!pickedBuses.length) return '暫時沒有到站時間';
+
+            // Group by route, keep route order by earliest picked bus
+            const order = [];
+            const groups = new Map();
+            for (const bus of pickedBuses) {
+                if (!groups.has(bus.key)) {
+                    groups.set(bus.key, { route: bus.route, minutes: [] });
+                    order.push(bus.key);
+                }
+                groups.get(bus.key).minutes.push(bus.minutes);
+            }
+
+            const parts = order.map((key, index) => {
+                const group = groups.get(key);
+                const mins = [...group.minutes].sort((a, b) => a - b);
+                const minsText = formatMinutesPhrase(mins);
+                if (index === 0) return `${group.route} 號巴士 於 ${minsText}後到達`;
+                return `${group.route}於 ${minsText}後到達`;
+            });
+            return parts.join(', ');
+        }
+
+        function updateSpeakFromNearby() {
+            if (!isNearbyMultiMode() && !(state.nearbyOpen && state.nearbyRoutes.length)) return;
+            if (!state.nearbyRoutes.length) return;
+            const picked = pickBusesForSpeak(state.nearbyRoutes);
+            state.speakText = formatMultiRouteSpeak(picked);
+            qs('speakPreview').textContent = state.speakText;
+            syncShortcutLink();
+        }
+
+        function renderNearbyRoutes() {
+            const box = qs('nearbyRoutesList');
+            if (!box) return;
+
+            if (!state.nearbyRoutes.length) {
+                box.innerHTML = '<div class="status">此站暫無其他途經路線</div>';
+                updateSpeakFromNearby();
+                return;
+            }
+
+            box.innerHTML = state.nearbyRoutes.map((entry) => {
+                const checked = state.nearbySelected.has(entry.key) ? 'checked' : '';
+                const next = entry.buses[0];
+                const more = entry.buses.length > 1
+                    ? ` · 另有 ${entry.buses.slice(1, 3).map((b) => `${b.minutes}分`).join('、')}`
+                    : '';
+                const boundTag = entry.sameBound ? '' : ` · ${entry.dir === 'I' ? '回程' : '去程'}`;
+                const bayTag = entry.platform && entry.stopDistance > 5 ? ` · ${entry.platform}` : '';
+                const noEtaTag = entry.buses.length ? '' : ' · 暫無班次';
+                return `
+                    <label class="nearby-item ${checked ? 'on' : ''}">
+                        <input type="checkbox" data-key="${escapeHtml(entry.key)}" ${checked}>
+                        <div>
+                            <div class="route-no">${escapeHtml(entry.route)}</div>
+                            <div class="meta">往 ${escapeHtml(entry.dest_tc || '')}${boundTag}${bayTag}${noEtaTag}${more}</div>
+                        </div>
+                        <div class="mins">${next ? `${next.minutes} 分` : '—'}</div>
+                    </label>
+                `;
+            }).join('');
+
+            box.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+                input.addEventListener('change', () => {
+                    input.closest('.nearby-item')?.classList.toggle('on', input.checked);
+                    if (input.checked) state.nearbySelected.add(input.dataset.key);
+                    else state.nearbySelected.delete(input.dataset.key);
+                    // Keep at least one selected if possible
+                    if (state.nearbySelected.size === 0 && state.nearbyRoutes[0]) {
+                        state.nearbySelected.add(state.nearbyRoutes[0].key);
+                        renderNearbyRoutes();
+                        return;
+                    }
+                    updateSpeakFromNearby();
+                });
+            });
+
+            updateSpeakFromNearby();
+        }
+
+        function haversineMeters(a, b) {
+            const toRad = (d) => (d * Math.PI) / 180;
+            const R = 6_371_000;
+            const dLat = toRad(b.lat - a.lat);
+            const dLon = toRad(b.lon - a.lon);
+            const lat1 = toRad(a.lat);
+            const lat2 = toRad(b.lat);
+            const x = Math.sin(dLat / 2) ** 2
+                + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+            return 2 * R * Math.asin(Math.sqrt(x));
+        }
+
+        function stripStopNameParens(name) {
+            return String(name || '').replaceAll(/\s*\([^)]*\)\s*/g, '').replaceAll(/\s+/g, '').trim();
+        }
+
+        function bbiTokenFromName(name) {
+            const m = String(name || '').match(/([\u4e00-\u9fff]{2,12}轉車站)/);
+            return m ? m[1] : '';
+        }
+
+        function platformTagFromName(name) {
+            const m = String(name || '').match(/\(([A-Z]\d+)\)/);
+            return m ? m[1] : '';
+        }
+
+        /**
+         * KMB gives each BBI bay its own stop id. Cluster nearby bays that belong
+         * to the same interchange, without pulling in unrelated roadside stops.
+         */
+        function shouldIncludeClusterStop(center, other, distanceM) {
+            if (!other?.stop) return false;
+            if (other.stop === center.stop) return true;
+            // Duplicate coordinates / same physical pole
+            if (distanceM <= 5) return true;
+
+            const cn = center.name_tc || '';
+            const on = other.name_tc || '';
+            const baseA = stripStopNameParens(cn);
+            const baseB = stripStopNameParens(on);
+            if (baseA && baseA === baseB && distanceM <= 80) return true;
+
+            const tokenA = bbiTokenFromName(cn);
+            const tokenB = bbiTokenFromName(on);
+            if (distanceM <= 200) {
+                if (tokenA && (tokenB === tokenA || on.includes(tokenA))) return true;
+                if (tokenB && cn.includes(tokenB)) return true;
+                const enA = center.name_en || '';
+                const enB = other.name_en || '';
+                if (/BBI/i.test(enA) && /BBI/i.test(enB)) {
+                    const core = enA.replaceAll(/\(.*?\)/g, ' ').match(/([A-Z][A-Z\s]{3,30}BBI)/i);
+                    if (core && enB.toUpperCase().includes(core[1].trim().toUpperCase())) return true;
+                }
+            }
+            return false;
+        }
+
+        async function findClusterStops(centerStopId) {
+            const stopMap = await loadStopMap();
+            const center = stopMap[centerStopId];
+            if (!center?.lat || !center?.long) {
+                return [{ id: centerStopId, d: 0, name_tc: center?.name_tc || '', name_en: center?.name_en || '' }];
+            }
+            const origin = { lat: Number(center.lat), lon: Number(center.long) };
+            const list = [];
+            for (const [id, info] of Object.entries(stopMap)) {
+                if (!info?.lat || !info?.long) continue;
+                const d = haversineMeters(origin, { lat: Number(info.lat), lon: Number(info.long) });
+                if (!shouldIncludeClusterStop(
+                    { stop: centerStopId, name_tc: center.name_tc, name_en: center.name_en },
+                    { stop: id, name_tc: info.name_tc, name_en: info.name_en },
+                    d
+                )) continue;
+                list.push({
+                    id,
+                    d,
+                    name_tc: info.name_tc || '',
+                    name_en: info.name_en || ''
+                });
+            }
+            list.sort((a, b) => a.d - b.d || a.id.localeCompare(b.id));
+            // Hard cap to keep ETA fan-out reasonable
+            return list.slice(0, 24);
+        }
+
+        async function loadNearbyRoutes() {
+            const stop = state.selectedStop;
+            const route = state.selectedRoute;
+            if (!stop || !route) return;
+
+            const box = qs('nearbyRoutesList');
+            if (box) box.innerHTML = '<div class="status">載入同站路線…</div>';
+
+            try {
+                const cluster = await findClusterStops(stop.stop);
+                const etaBatches = await Promise.all(cluster.map(async (bay) => {
+                    try {
+                        const data = await fetchJson(`${API}/stop-eta/${encodeURIComponent(bay.id)}`);
+                        // Keep ALL routes at the bay, including those with null ETA
+                        return {
+                            ...bay,
+                            rows: data.data || []
+                        };
+                    } catch {
+                        return { ...bay, rows: [] };
+                    }
+                }));
+
+                const map = new Map();
+                for (const bay of etaBatches) {
+                    for (const row of bay.rows) {
+                        if (!row?.route) continue;
+                        const dest = row.dest_tc || '';
+                        const key = nearbyGroupKey(row.route, row.dir, dest);
+                        const serviceType = String(row.service_type || '1');
+                        if (!map.has(key)) {
+                            map.set(key, {
+                                key,
+                                route: row.route,
+                                service_type: serviceType,
+                                dir: row.dir,
+                                dest_tc: dest,
+                                sameBound: row.dir === route.bound,
+                                stopId: bay.id,
+                                stopDistance: bay.d,
+                                stopName: bay.name_tc,
+                                buses: []
+                            });
+                        }
+                        const entry = map.get(key);
+                        if (!entry.dest_tc && dest) entry.dest_tc = dest;
+                        // Prefer service_type 1 as default when no ETA yet
+                        if (serviceType === '1' || Number(serviceType) < Number(entry.service_type || 99)) {
+                            if (!entry.buses.length) entry.service_type = serviceType;
+                        }
+                        // Prefer closer bay as default stopId when no ETA yet
+                        if (bay.d < entry.stopDistance) {
+                            entry.stopId = bay.id;
+                            entry.stopDistance = bay.d;
+                            entry.stopName = bay.name_tc;
+                        }
+                        if (!row.eta) continue;
+                        entry.buses.push({
+                            minutes: minutesUntil(row.eta),
+                            etaMs: new Date(row.eta).getTime(),
+                            eta_seq: Number(row.eta_seq) || 0,
+                            service_type: serviceType,
+                            stopId: bay.id,
+                            stopDistance: bay.d,
+                            stopName: bay.name_tc
+                        });
+                    }
+                }
+
+                const list = [...map.values()].map((entry) => {
+                    entry.buses.sort((a, b) =>
+                        a.etaMs - b.etaMs
+                        || a.stopDistance - b.stopDistance
+                        || a.eta_seq - b.eta_seq
+                    );
+                    const seen = new Set();
+                    entry.buses = entry.buses.filter((bus) => {
+                        // Dedupe identical arrivals across service_type / bay duplicates
+                        const id = `${bus.etaMs}@${bus.minutes}`;
+                        if (seen.has(id)) return false;
+                        seen.add(id);
+                        return true;
+                    });
+                    // Bind speak URL to the bay / service_type of the soonest bus
+                    const soonest = entry.buses[0];
+                    if (soonest) {
+                        entry.stopId = soonest.stopId;
+                        entry.stopDistance = soonest.stopDistance;
+                        entry.stopName = soonest.stopName;
+                        if (soonest.service_type) entry.service_type = soonest.service_type;
+                    }
+                    entry.nextMs = soonest?.etaMs ?? Number.POSITIVE_INFINITY;
+                    entry.platform = platformTagFromName(entry.stopName);
+                    return entry;
+                });
+
+                // Has ETA first, then same-bound, then by soonest / route no
+                list.sort((a, b) => {
+                    const aHas = a.buses.length > 0 ? 0 : 1;
+                    const bHas = b.buses.length > 0 ? 0 : 1;
+                    if (aHas !== bHas) return aHas - bHas;
+                    if (a.sameBound !== b.sameBound) return a.sameBound ? -1 : 1;
+                    return a.nextMs - b.nextMs || a.route.localeCompare(b.route, 'en');
+                });
+
+                state.nearbyRoutes = list;
+                const selfKey = currentNearbyGroupKey();
+                if (!state.nearbySelected.size) {
+                    if (list.some((e) => e.key === selfKey)) state.nearbySelected.add(selfKey);
+                    else if (list[0]) state.nearbySelected.add(list[0].key);
+                } else {
+                    state.nearbySelected = new Set(
+                        [...state.nearbySelected].filter((key) => list.some((e) => e.key === key))
+                    );
+                    if (!state.nearbySelected.size && list[0]) state.nearbySelected.add(list[0].key);
+                }
+
+                renderNearbyRoutes();
+            } catch (error) {
+                console.error(error);
+                if (box) box.innerHTML = '<div class="error">無法載入同站路線</div>';
+            }
+        }
+
+        async function openNearbyRoutes({ scroll = true } = {}) {
+            state.nearbyOpen = true;
+            state.nearbyActive = true;
+            qs('nearbyRoutesPanel')?.classList.remove('hidden');
+            const btn = qs('nearbyRoutesBtn');
+            if (btn) btn.classList.add('hidden');
+            await loadNearbyRoutes();
+            syncShortcutLink();
+            if (scroll) {
+                qs('nearbyRoutesPanel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function confirmNearbyRoutes() {
+            if (!state.nearbySelected.size && state.nearbyRoutes[0]) {
+                state.nearbySelected.add(state.nearbyRoutes[0].key);
+            }
+            state.nearbyActive = true;
+            updateSpeakFromNearby();
+            closeNearbyPanel({ resetActive: false });
+            // Always show shortcut guide after confirm, even when no ETA yet
+            showShortcutGuide({ scroll: true });
+        }
+
+        async function toggleNearbyRoutes() {
+            if (state.nearbyOpen) {
+                confirmNearbyRoutes();
+                return;
+            }
+            await openNearbyRoutes({ scroll: true });
+        }
+
+        function boundText(bound) {
+            return bound === 'I' ? '回程' : '去程';
+        }
+
+        function companyLabel(route) {
+            const no = String(route?.route || '');
+            // Rough split: airport / external routes are usually LWB in this dataset
+            if (/^(A|E|NA|R)\d/i.test(no)) return '龍運';
+            return '九巴';
+        }
+
+        function sortRoutes(a, b) {
+            return a.route.localeCompare(b.route, 'en', { numeric: true })
+                || a.bound.localeCompare(b.bound)
+                || String(a.service_type).localeCompare(String(b.service_type), 'en', { numeric: true });
+        }
+
+        function filterRouteBoard(list, query) {
+            const q = normalizeRouteQuery(query);
+            if (!q) return [...list].sort(sortRoutes);
+            const starts = list.filter((r) => r.route.startsWith(q));
+            if (starts.length) return starts.sort(sortRoutes);
+            return list.filter((r) => r.route.includes(q)).sort(sortRoutes);
+        }
+
+        function renderRouteBoard(routes) {
+            const box = qs('routeResults');
+            const countEl = qs('boardCount');
+            state.filteredRoutes = routes;
+
+            if (countEl) {
+                const q = normalizeRouteQuery(qs('routeInput')?.value);
+                countEl.textContent = q
+                    ? `找到 ${routes.length} 條路線`
+                    : `全部 ${routes.length} 條九巴／龍運路線`;
+            }
+
+            if (!routes.length) {
+                const q = escapeHtml(normalizeRouteQuery(qs('routeInput')?.value) || '');
+                box.innerHTML = `<div class="board-empty">找不到「${q}」相關路線</div>`;
+                return;
+            }
+
+            // Light board rows (hkbus.app style): route no + 往/由
+            const html = routes.map((r, idx) => `
+                <button type="button" class="board-row" role="option" data-idx="${idx}"
+                    aria-label="路線 ${escapeHtml(r.route)} 往 ${escapeHtml(r.dest_tc || '')}，由 ${escapeHtml(r.orig_tc || '')}">
+                    <div class="board-no">
+                        <div class="board-route">${escapeHtml(r.route)}</div>
+                        <div class="board-co">${escapeHtml(companyLabel(r))}</div>
+                    </div>
+                    <div class="board-term">
+                        <div class="board-dest"><span>往</span>${escapeHtml(r.dest_tc || r.dest_en || '')}</div>
+                        <div class="board-orig">由 ${escapeHtml(r.orig_tc || r.orig_en || '')}</div>
+                    </div>
+                </button>
+            `).join('');
+            box.innerHTML = html;
+        }
+
+        function onRouteBoardClick(event) {
+            const btn = event.target.closest('.board-row[data-idx]');
+            if (!btn) return;
+            const route = state.filteredRoutes[Number(btn.dataset.idx)];
+            if (route) selectRoute(route);
+        }
+
+        async function refreshRouteBoard() {
+            const box = qs('routeResults');
+            if (box && !state.routeList) {
+                box.innerHTML = '<div class="board-empty">載入路線中…</div>';
+            }
+            try {
+                const list = await loadRouteList();
+                const filtered = filterRouteBoard(list, qs('routeInput')?.value || '');
+                state.maxStep = Math.max(state.maxStep, 2);
+                renderRouteBoard(filtered);
+                updateRoutePadKeys();
+            } catch (error) {
+                console.error(error);
+                if (box) box.innerHTML = '<div class="board-empty">無法載入路線資料，請稍後再試。</div>';
+                if (qs('boardCount')) qs('boardCount').textContent = '載入失敗';
+            }
+        }
+
+        function scheduleRouteBoardRefresh() {
+            if (state.searchTimer) clearTimeout(state.searchTimer);
+            state.searchTimer = setTimeout(() => {
+                refreshRouteBoard();
+            }, 80);
+        }
+
+        function getPossibleNextChars(query, routeList) {
+            const q = normalizeRouteQuery(query);
+            const counts = {};
+            for (const route of routeList || []) {
+                const no = String(route.route || '');
+                if (!no.startsWith(q)) continue;
+                const next = no.slice(q.length, q.length + 1);
+                if (!next || next === '-') continue;
+                counts[next] = (counts[next] || 0) + 1;
+            }
+            return new Set(Object.keys(counts));
+        }
+
+        function updateRoutePadKeys() {
+            const pad = qs('routePad');
+            if (!pad) return;
+            const possible = getPossibleNextChars(qs('routeInput')?.value || '', state.routeList || []);
+            const q = normalizeRouteQuery(qs('routeInput')?.value || '');
+            pad.querySelectorAll('.pad-key[data-key]').forEach((btn) => {
+                const key = btn.dataset.key;
+                if (key === 'b') {
+                    btn.disabled = q.length === 0;
+                    return;
+                }
+                if (key === 'c') {
+                    btn.disabled = q.length === 0;
+                    return;
+                }
+                // Digits/letters: enable only if some route can continue with this char
+                // When list not loaded yet, keep digits enabled for typing feel
+                if (!state.routeList) {
+                    btn.disabled = false;
+                    return;
+                }
+                btn.disabled = !possible.has(key);
+            });
+        }
+
+        function applyRoutePadKey(key) {
+            const input = qs('routeInput');
+            if (!input) return;
+            let value = normalizeRouteQuery(input.value);
+            if (key === 'b') {
+                value = value.slice(0, -1);
+            } else if (key === 'c') {
+                value = '';
+            } else if (/^[0-9A-Z]$/i.test(key) && value.length < 10) {
+                value += key.toUpperCase();
+            } else {
+                return;
+            }
+            input.value = value;
+            updateRoutePadKeys();
+            scheduleRouteBoardRefresh();
+        }
+
+        function buildRoutePad() {
+            const numBox = qs('routePadNum');
+            const alphaBox = qs('routePadAlpha');
+            if (!numBox || !alphaBox) return;
+
+            const numKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'b', '0', 'c'];
+            numBox.innerHTML = numKeys.map((k) => {
+                if (k === 'b') {
+                    return `<button type="button" class="pad-key func" data-key="b" aria-label="刪除">⌫</button>`;
+                }
+                if (k === 'c') {
+                    return `<button type="button" class="pad-key func" data-key="c" aria-label="清除">C</button>`;
+                }
+                return `<button type="button" class="pad-key" data-key="${k}">${k}</button>`;
+            }).join('');
+
+            // Letters commonly used on KMB/LWB route numbers
+            const alphaKeys = ['A', 'B', 'C', 'D', 'E', 'H', 'K', 'M', 'N', 'P', 'R', 'S', 'T', 'W', 'X'];
+            alphaBox.innerHTML = alphaKeys.map((k) =>
+                `<button type="button" class="pad-key" data-key="${k}">${k}</button>`
+            ).join('');
+
+            const onPadClick = (event) => {
+                const btn = event.target.closest('.pad-key[data-key]');
+                if (!btn || btn.disabled) return;
+                applyRoutePadKey(btn.dataset.key);
+            };
+            numBox.addEventListener('click', onPadClick);
+            alphaBox.addEventListener('click', onPadClick);
+            updateRoutePadKeys();
+        }
+
+        async function selectRoute(route) {
+            state.selectedRoute = route;
+            state.selectedStop = null;
+            state.maxStep = Math.max(state.maxStep, 3);
+            qs('selectedRouteTitle').textContent = `${route.route} 往 ${route.dest_tc || route.dest_en}`;
+            qs('selectedRouteMeta').textContent =
+                `${boundText(route.bound)} · 服務類型 ${route.service_type} · ${route.orig_tc} → ${route.dest_tc}`;
+            showPanel('stop');
+            qs('stopResults').innerHTML = '<div class="status">載入車站中…</div>';
+            qs('stopFilter').value = '';
+            setStep(3);
+
+            try {
+                const direction = BOUND_LABEL[route.bound] || 'outbound';
+                const [routeStop, stopMap] = await Promise.all([
+                    fetchJson(
+                        `${API}/route-stop/${encodeURIComponent(route.route)}/${direction}/${encodeURIComponent(route.service_type)}`
+                    ),
+                    loadStopMap()
+                ]);
+                const stopIds = routeStop.data || [];
+                const stops = stopIds.map((item) => {
+                    const info = stopMap[item.stop] || {};
+                    return {
+                        seq: Number(item.seq),
+                        stop: item.stop,
+                        name_tc: info.name_tc || item.stop,
+                        name_en: info.name_en || ''
+                    };
+                });
+                stops.sort((a, b) => a.seq - b.seq);
+                state.stops = stops;
+                renderStops(stops);
+            } catch (error) {
+                console.error(error);
+                qs('stopResults').innerHTML = '<div class="error">無法載入車站列表。</div>';
+            }
+        }
+
+        function renderStops(stops) {
+            const filter = qs('stopFilter').value.trim().toLowerCase();
+            const filtered = filter
+                ? stops.filter((s) =>
+                    s.name_tc.toLowerCase().includes(filter) ||
+                    s.name_en.toLowerCase().includes(filter) ||
+                    String(s.seq).includes(filter))
+                : stops;
+
+            const box = qs('stopResults');
+            if (!filtered.length) {
+                box.innerHTML = '<div class="status">沒有符合的車站</div>';
+                return;
+            }
+            box.innerHTML = filtered.map((s) => `
+                <button type="button" class="item" data-stop="${escapeHtml(s.stop)}">
+                    <div class="title">${escapeHtml(s.seq)}. ${escapeHtml(s.name_tc)}</div>
+                    <div class="meta">${escapeHtml(s.name_en)}</div>
+                </button>
+            `).join('');
+            box.querySelectorAll('.item').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const stop = state.stops.find((s) => s.stop === btn.dataset.stop);
+                    if (stop) selectStop(stop);
+                });
+            });
+        }
+
+        async function selectStop(stop) {
+            state.selectedStop = stop;
+            state.nearbySelected = new Set();
+            closeNearbyPanel({ resetActive: true });
+            state.maxStep = Math.max(state.maxStep, 4);
+            showPanel('eta');
+            qs('etaRouteTitle').textContent =
+                `${state.selectedRoute.route} 往 ${state.selectedRoute.dest_tc || ''}`;
+            qs('etaStopTitle').textContent = `${stop.name_tc}${stop.name_en ? `（${stop.name_en}）` : ''}`;
+            setStep(4);
+            await refreshEta();
+            stopEtaRefresh();
+            state.refreshTimer = setInterval(refreshEta, 30_000);
+            await openNearbyRoutes({ scroll: true });
+            // Ensure guide is visible even when current ETA is empty
+            showShortcutGuide({ scroll: false });
+        }
+
+        async function refreshEta() {
+            const route = state.selectedRoute;
+            const stop = state.selectedStop;
+            if (!route || !stop) return;
+
+            qs('etaBoard').innerHTML = '<div class="status">更新到站時間…</div>';
+            try {
+                const data = await fetchJson(
+                    `${API}/eta/${stop.stop}/${encodeURIComponent(route.route)}/${encodeURIComponent(route.service_type)}`
+                );
+                let rows = (data.data || []).filter((row) => row.eta);
+                if (route.bound) rows = rows.filter((row) => row.dir === route.bound);
+                // Prefer matching stop sequence when available
+                const sameSeq = rows.filter((row) => Number(row.seq) === Number(stop.seq));
+                if (sameSeq.length) rows = sameSeq;
+                rows.sort((a, b) => Number(a.eta_seq) - Number(b.eta_seq));
+                state.etas = rows;
+
+                if (!isNearbyMultiMode()) {
+                    const minutes = rows.map((row) => minutesUntil(row.eta));
+                    state.speakText = formatSpeakMessage(route.route, minutes);
+                    qs('speakPreview').textContent = state.speakText;
+                }
+
+                if (!rows.length) {
+                    qs('etaBoard').innerHTML = '<div class="status">暫時沒有到站時間</div>';
+                } else {
+                    qs('etaBoard').innerHTML = rows.map((row) => {
+                        const mins = minutesUntil(row.eta);
+                        const clock = new Date(row.eta).toLocaleTimeString('zh-HK', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        const cls = mins <= 3 ? 'soon' : (mins >= 30 ? 'late' : '');
+                        const remark = row.rmk_tc ? ` · ${escapeHtml(row.rmk_tc)}` : '';
+                        return `
+                            <div class="eta-row">
+                                <div>
+                                    <div>往 ${escapeHtml(row.dest_tc || route.dest_tc || '')}</div>
+                                    <div class="eta-sub">${clock}${remark}</div>
+                                </div>
+                                <div class="eta-mins ${cls}">${mins}<span style="font-size:0.85rem"> 分鐘</span></div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // Do not reload 同站路線 on the ETA timer — only when user opens/changes selection.
+                setEtaLastUpdated(data.data_timestamp || rows[0]?.data_timestamp || Date.now());
+            } catch (error) {
+                console.error(error);
+                qs('etaBoard').innerHTML = '<div class="error">無法取得到站時間</div>';
+                if (!isNearbyMultiMode()) {
+                    state.speakText = `${route.route} 號巴士暫時無法取得到站時間`;
+                    qs('speakPreview').textContent = state.speakText;
+                }
+            }
+        }
+
+        function buildEtaPageUrl() {
+            const route = state.selectedRoute;
+            const stop = state.selectedStop;
+            const url = new URL(window.location.href);
+            url.search = '';
+            url.searchParams.set('route', route.route);
+            url.searchParams.set('stop', stop.stop);
+            url.searchParams.set('service_type', route.service_type);
+            url.searchParams.set('bound', route.bound);
+            return url.toString();
+        }
+
+        /** Plain-text endpoint for iOS Shortcuts (Get Contents of URL → Speak Text). */
+        function buildSpeakTextUrl() {
+            const stop = state.selectedStop;
+            if (!stop) return '';
+            const url = new URL('/busstop/speak', window.location.origin);
+            url.searchParams.set('stop', stop.stop);
+
+            // Multi-route mode: encode checked same-stop routes
+            if (isNearbyMultiMode()) {
+                const selected = state.nearbyRoutes.filter((entry) => state.nearbySelected.has(entry.key));
+                if (selected.length) {
+                    const routesParam = selected
+                        .map((entry) => {
+                            const base = `${entry.route}:${entry.service_type}:${entry.dir}`;
+                            return entry.stopId ? `${base}:${entry.stopId}` : base;
+                        })
+                        .join(',');
+                    url.searchParams.set('routes', routesParam);
+                    return url.toString();
+                }
+            }
+
+            const route = state.selectedRoute;
+            if (!route) return '';
+            url.searchParams.set('route', route.route);
+            url.searchParams.set('service_type', route.service_type);
+            url.searchParams.set('bound', route.bound);
+            return url.toString();
+        }
+
+        function shortcutNameSuggestions() {
+            return {
+                primary: '番工巴士',
+                alt: '放學巴士',
+                extra: '北角巴士'
+            };
+        }
+
+        function speakNow() {
+            const text = state.speakText || qs('speakPreview').textContent;
+            if (!text) return;
+            if (!window.speechSynthesis) {
+                alert('此瀏覽器不支援朗讀');
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'zh-HK';
+            window.speechSynthesis.speak(utter);
+        }
+
+        function currentSpeakUrl() {
+            return buildSpeakTextUrl();
+        }
+
+        /** Update step-4 LINK (and related bits) when same-stop selection changes. */
+        function syncShortcutLink() {
+            if (!state.selectedRoute || !state.selectedStop) return;
+            const help = qs('shortcutHelp');
+            if (!help) return;
+            help.classList.remove('hidden');
+
+            if (!help.querySelector('.guide-box')) {
+                showShortcutGuide({ scroll: false });
+                return;
+            }
+
+            const speakUrl = currentSpeakUrl();
+            if (!speakUrl) {
+                // Still keep guide visible; rebuild so user can create shortcut anyway
+                showShortcutGuide({ scroll: false });
+                return;
+            }
+
+            const urlEl = qs('speakUrlText');
+            if (urlEl) urlEl.textContent = speakUrl;
+
+            const isMulti = isNearbyMultiMode() && state.nearbySelected.size > 1;
+            const modeEl = qs('shortcutModeNote');
+            if (modeEl) {
+                modeEl.innerHTML = isMulti
+                    ? '<br>目前為<strong>同站多路線</strong>模式：捷徑會依你勾選的路線一併朗讀。勾選變更後請重新複製 LINK。'
+                    : '';
+            }
+
+            const { primary: shortcutName, alt: shortcutNameAlt, extra: shortcutNameExtra } = shortcutNameSuggestions();
+            const nameEl = qs('shortcutNameHint');
+            if (nameEl) {
+                nameEl.innerHTML = `
+                    預設名稱是「新捷徑」。點頂部名稱，改成好記的短名字，例如「${escapeHtml(shortcutName)}」、「${escapeHtml(shortcutNameAlt)}」或「${escapeHtml(shortcutNameExtra)}」。
+                `;
+            }
+            const siriEl = qs('shortcutSiriHint');
+            if (siriEl) {
+                siriEl.innerHTML = `
+                    改名後可直接對 Siri 說：<strong>「嘿 Siri，${escapeHtml(shortcutName)}」</strong>
+                    或「嘿 Siri，執行${escapeHtml(shortcutName)}」，就會朗讀到站時間。
+                `;
+            }
+
+            const exampleEl = qs('shortcutExample');
+            if (exampleEl) {
+                exampleEl.textContent = `範例朗讀：${state.speakText || formatSpeakMessage(state.selectedRoute.route, [3, 15, 25])}`;
+            }
+
+            if (navigator.clipboard?.writeText) {
+                navigator.clipboard.writeText(speakUrl).catch(() => { });
+            }
+        }
+
+        function bindShortcutCopyButtons() {
+            const bindCopy = (btnId) => {
+                const btn = qs(btnId);
+                if (!btn || btn.dataset.bound === '1') return;
+                btn.dataset.bound = '1';
+                btn.addEventListener('click', async () => {
+                    const url = currentSpeakUrl();
+                    if (!url) return;
+                    try {
+                        await navigator.clipboard.writeText(url);
+                        const old = btn.textContent;
+                        btn.textContent = '已複製';
+                        setTimeout(() => {
+                            if (btn) btn.textContent = old;
+                        }, 1500);
+                    } catch {
+                        alert('請手動長按步驟 4 的網址複製');
+                    }
+                });
+            };
+            bindCopy('copySpeakUrlBtn');
+            bindCopy('copySpeakUrlBtn2');
+        }
+
+        function showShortcutGuide({ scroll = true } = {}) {
+            if (!state.selectedRoute || !state.selectedStop) return;
+
+            const speakUrl = currentSpeakUrl();
+            if (!speakUrl) return;
+            const { primary: shortcutName, alt: shortcutNameAlt, extra: shortcutNameExtra } = shortcutNameSuggestions();
+            const isMulti = isNearbyMultiMode() && state.nearbySelected.size > 1;
+            const img = (file) => `/image/busstop/${file}`;
+
+            if (navigator.clipboard?.writeText) {
+                navigator.clipboard.writeText(speakUrl).catch(() => { });
+            }
+
+            const help = qs('shortcutHelp');
+            if (!help) return;
+            help.classList.remove('hidden');
+            help.innerHTML = `
+                <div class="guide-box">
+                    <h3>手動新增 iOS 捷徑（朗讀到站）</h3>
+                    <p style="margin:0;color:var(--muted);font-size:0.88rem">
+                        因 iOS 無法直接匯入未簽名捷徑，請依下列步驟在「捷徑」App 手動建立。
+                        朗讀網址已複製到剪貼簿；完整 LINK 見步驟 4。
+                        <span id="shortcutModeNote">${isMulti ? '<br>目前為<strong>同站多路線</strong>模式：捷徑會依你勾選的路線一併朗讀。勾選變更後請重新複製 LINK。' : ''}</span>
+                    </p>
+                    <div class="guide-actions">
+                        <button type="button" id="copySpeakUrlBtn" class="secondary">複製朗讀網址</button>
+                        <a href="shortcuts://create-shortcut" style="align-self:center;color:var(--accent);font-weight:700">開啟捷徑 App</a>
+                    </div>
+
+                    <div class="guide-step">
+                        <h4>步驟 1：新增捷徑，搜尋並加入「取得 URL 內容」</h4>
+                        <p>打開「捷徑」→ 右上角 ＋ → 搜尋「取得 url 內容」→ 點選加入。接著把藍色的 URL 改成步驟 4 的朗讀網址。</p>
+                        <img src="${img('01-search-get-url.png')}" alt="搜尋取得 URL 內容" loading="lazy">
+                    </div>
+
+                    <div class="guide-step">
+                        <h4>步驟 2：再加入「朗讀文字」</h4>
+                        <p>繼續「加入動作」→ 搜尋「朗讀文字」→ 點選加入。</p>
+                        <img src="${img('02-search-speak.png')}" alt="搜尋朗讀文字" loading="lazy">
+                    </div>
+
+                    <div class="guide-step">
+                        <h4>步驟 3：把朗讀內容設成「URL 內容」</h4>
+                        <p>點「朗讀文字」裡的「文字」→ 在下方選「URL 內容」（綠色下載圖示那個變數）。</p>
+                        <img src="${img('03-link-variable.png')}" alt="選擇 URL 內容變數" loading="lazy">
+                    </div>
+
+                    <div class="guide-step">
+                        <h4>步驟 4：貼上以下 LINK，完成後應如下圖</h4>
+                        <p>在「取得 URL 的內容」動作中，把 URL 設成：</p>
+                        <code class="guide-url" id="speakUrlText">${escapeHtml(speakUrl)}</code>
+                        <div class="guide-actions" style="margin:0 0 12px">
+                            <button type="button" id="copySpeakUrlBtn2" class="secondary">複製此 LINK</button>
+                        </div>
+                        <p>兩個動作串起來：取得 URL 的內容 → 朗讀文字。完成後每次執行都會朗讀最新到站時間。</p>
+                        <img src="${img('04-final-shortcut.png')}" alt="完成的捷徑範例" loading="lazy">
+                    </div>
+
+                    <div class="guide-step">
+                        <h4>步驟 5：重新命名並用 Siri 叫出</h4>
+                        <p id="shortcutNameHint">
+                            預設名稱是「新捷徑」。點頂部名稱，改成好記的短名字，例如「${escapeHtml(shortcutName)}」、「${escapeHtml(shortcutNameAlt)}」或「${escapeHtml(shortcutNameExtra)}」。
+                        </p>
+                        <p id="shortcutSiriHint">
+                            改名後可直接對 Siri 說：<strong>「嘿 Siri，${escapeHtml(shortcutName)}」</strong>
+                            或「嘿 Siri，執行${escapeHtml(shortcutName)}」，就會朗讀到站時間。
+                        </p>
+                        <p style="margin-bottom:0">
+                            提示：名稱愈短愈好記；同一支手機可為不同路線各建一條捷徑，用不同名字給 Siri 呼叫。
+                            若改了上方勾選的同站路線，步驟 4 的 LINK 會自動更新，請再複製一次。
+                        </p>
+                    </div>
+
+                    <p id="shortcutExample" style="margin:12px 0 0;color:var(--muted);font-size:0.85rem">
+                        範例朗讀：${escapeHtml(state.speakText || formatSpeakMessage(state.selectedRoute.route, [3, 15, 25]))}
+                    </p>
+                </div>
+            `;
+
+            bindShortcutCopyButtons();
+
+            if (scroll) {
+                help.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // ---- Speak / scrape mode (for iOS Shortcuts) ----
+        async function fetchBusETASpeakMode() {
+            const { stop, route, serviceType, bound } = getQueryParams();
+            const etaList = qs('etaList');
+            if (!stop || !route) {
+                etaList.innerHTML = '<div class="error">錯誤：缺少必要參數。請提供 stop、route 參數。</div>';
+                etaList.setAttribute('data-status', 'error');
+                return;
+            }
+
+            const titleText = `${route} 巴士到達時間`;
+            qs('pageTitle').textContent = titleText;
+
+            try {
+                const data = await fetchJson(
+                    `${API}/eta/${encodeURIComponent(stop)}/${encodeURIComponent(route)}/${encodeURIComponent(serviceType)}`
+                );
+                let rows = (data.data || []).filter((row) => row.eta);
+                if (bound) rows = rows.filter((row) => row.dir === bound);
+                rows.sort((a, b) => Number(a.eta_seq) - Number(b.eta_seq));
+
+                if (!rows.length) {
+                    etaList.innerHTML = '<div class="error" data-status="error">沒有到達時間資料。</div>';
+                    etaList.setAttribute('data-status', 'error');
                     return;
                 }
 
-                const apiUrl = `https://data.etabus.gov.hk/v1/transport/kmb/eta/${stop}/${route}/${direction}`;
-
-                // 更新頁面標題和標頭
-                const titleText = `${route} 巴士到達時間`;
-                document.getElementById('pageTitle').textContent = titleText;
-                //document.getElementById('headerTitle').textContent = titleText;
-
-                const response = await fetch(apiUrl);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                displayETA(data.data, route);
+                const minutes = rows.map((row) => minutesUntil(row.eta));
+                const message = formatSpeakMessage(route, minutes);
+                etaList.className = 'speak-only';
+                etaList.textContent = message;
+                etaList.setAttribute('data-status', 'ready');
             } catch (error) {
-                const etaList = document.getElementById('etaList');
                 etaList.innerHTML = '<div class="error">無法加載到達時間資料，請稍後再試。</div>';
                 etaList.setAttribute('data-status', 'error');
                 console.error('Error:', error);
             }
         }
 
-        function displayETA(etaData, route) {
-            const etaList = document.getElementById('etaList');
-            etaList.innerHTML = '';
-            if (!etaData || etaData.length === 0) {
-                etaList.innerHTML = '<div class="error" data-status="error">沒有到達時間資料。</div>';
-                etaList.setAttribute('data-status', 'error');
-                return;
-            }
-
-            const now = new Date();
-            const timeDiffs = [];
-
-            // 計算所有巴士的到達時間
-            for (let i = 0; i < etaData.length; i++) {
-                const eta = new Date(etaData[i].eta);
-                const timeDiff = Math.round((eta - now) / 1000 / 60); // 分鐘差
-                const capped = Math.max(0, Math.min(60, timeDiff)); // 限制在 0-60 分鐘
-                timeDiffs.push(numberToChinese(capped));
-            }
-
-            // 根據巴士數量生成訊息
-            let message;
-            if (timeDiffs.length === 1) {
-                message = `${route} 將於${timeDiffs[0]}分鐘後到達`;
-            } else if (timeDiffs.length === 2) {
-                message = `${route} 將於${timeDiffs[0]}和${timeDiffs[1]}分鐘後到達`;
-            } else {
-                // 三班或以上車，用頓號分隔
-                const lastTime = timeDiffs.pop(); // 取出最後一個時間
-                message = `${route} 將於${timeDiffs.join('、')}和${lastTime}分鐘後到達`;
-            }
-
-            const etaItem = document.createElement('div');
-            etaItem.className = 'eta-item';
-            etaItem.textContent = message;
-            etaList.appendChild(etaItem);
-            etaList.setAttribute('data-status', 'ready');
+        function loadSiteChrome() {
+            $("#header").load("includes/header.html", function () {
+                const titleEl = document.getElementById("title");
+                if (titleEl) titleEl.textContent = "搵巴士";
+                if (typeof Iconify !== "undefined" && Iconify.scan) Iconify.scan();
+            });
+            $("#footer").load("includes/footer.html");
         }
 
-        // 頁面加載時獲取 ETA 資料
-        fetchBusETA();
+        function initBuilder() {
+            qs('builderApp').classList.remove('hidden');
+            loadSiteChrome();
+            buildRoutePad();
+            qs('routeResults')?.addEventListener('click', onRouteBoardClick);
+            // Dedicated pad is primary; keep physical keyboard as fallback when not readonly browsers ignore
+            qs('routeInput').addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace') {
+                    e.preventDefault();
+                    applyRoutePadKey('b');
+                    return;
+                }
+                if (e.key === 'Escape' || (e.key === 'Delete' && (e.ctrlKey || e.metaKey))) {
+                    e.preventDefault();
+                    applyRoutePadKey('c');
+                    return;
+                }
+                if (/^[0-9a-zA-Z]$/.test(e.key)) {
+                    e.preventDefault();
+                    applyRoutePadKey(e.key.toUpperCase());
+                }
+            });
+            qs('stopFilter').addEventListener('input', () => renderStops(state.stops));
+            qs('backToRoutesBtn').addEventListener('click', () => goToStep(2));
+            qs('backToStopsBtn').addEventListener('click', () => goToStep(3));
+            qs('nearbyRoutesBtn').addEventListener('click', toggleNearbyRoutes);
+            qs('confirmNearbyBtn')?.addEventListener('click', confirmNearbyRoutes);
+            qs('speakNowBtn').addEventListener('click', speakNow);
+
+            document.querySelectorAll('#stepBar .step').forEach((el) => {
+                el.addEventListener('click', () => goToStep(el.dataset.step));
+            });
+            setStep(1);
+            qs('builderApp')?.classList.add('search-fill');
+
+            const { route } = getQueryParams();
+            if (route && !getQueryParams().stop) {
+                qs('routeInput').value = normalizeRouteQuery(route);
+            }
+            refreshRouteBoard();
+        }
+
+        function boot() {
+            const { stop, route } = getQueryParams();
+            if (stop && route) {
+                document.body.classList.add('speak-mode');
+                qs('speakApp').classList.remove('hidden');
+                fetchBusETASpeakMode();
+            } else {
+                initBuilder();
+            }
+        }
+
+        boot();
     </script>
 </body>
 

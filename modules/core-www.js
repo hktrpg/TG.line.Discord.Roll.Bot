@@ -23,6 +23,7 @@ const security = require('../utils/security.js');
 const schema = require('./schema.js');
 const patreonTiers = require('./patreon-tiers.js');
 const patreonSync = require('./patreon-sync.js');
+const { buildBusEtaShortcut } = require('./bus-shortcut.js');
 
 const www = express();
 const isHttpUrl = (value) => /^https?:\/\//i.test(String(value || '').trim());
@@ -88,6 +89,8 @@ const rateLimitConfig = {
     card: { points: 300, duration: 60 }, // Increased from 120 to 300 for better testing experience
     cardRead: { points: 500, duration: 60 }, // Separate limit for read operations (public cards, list info)
     api: { points: 10_000, duration: 10 },
+    // Bus speak/shortcut hit external KMB API — keep much tighter than generic api
+    busSpeak: { points: 60, duration: 60 },
     patreon: { points: 30, duration: 60 }  // Stricter for key-based endpoints
 };
 
@@ -223,6 +226,9 @@ www.get('*/favicon.ico', async (req, res) => {
     res.sendFile(path.join(process.cwd(), 'views/image', 'favicon.ico'));
 });
 www.use(favicon(path.join(process.cwd(), 'views/image', 'favicon.ico')));
+www.use('/image', express.static(path.join(process.cwd(), 'views/image'), {
+    maxAge: '7d'
+}));
 
 async function handleApiRequest(req, res) {
     if (!APIswitch || await limitRaterApi(req.ip)) return;
@@ -316,6 +322,11 @@ www.get('/', async (req, res) => {
 
     if (hostname.startsWith('patreon.') || hostname.startsWith('patreon2.')) {
         res.sendFile(process.cwd() + '/views/patreon.html');
+        return;
+    }
+
+    if (hostname.startsWith('bus.') || hostname.startsWith('bus2.')) {
+        res.sendFile(process.cwd() + '/views/busstop.html');
         return;
     }
 
@@ -893,6 +904,439 @@ www.get('/busstop', async (req, res) => {
     }
     res.sendFile(process.cwd() + '/views/busstop.html');
 });
+
+/**
+ * Plain-text KMB/LWB ETA for iOS Shortcuts (Get Contents of URL → Speak Text).
+ * Single: ?route=&stop=&service_type=&bound=
+ * Multi:  ?stop=&routes=251A:1:O,64K:1:I  or 251A:1:O:STOPID (BBI bay)
+ */
+www.get('/busstop/speak', async (req, res) => {
+    if (await checkRateLimit('busSpeak', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+
+    const stop = sanitizeBusStopId(req.query.stop);
+    const multiRoutes = parseBusSpeakRoutesParam(req.query.routes);
+    const route = sanitizeBusRouteToken(req.query.route);
+    const serviceType = sanitizeBusServiceType(req.query.service_type || req.query.direction);
+    const bound = sanitizeBusBound(req.query.bound);
+
+    if (!stop || (multiRoutes.length === 0 && !route)) {
+        res.status(400).type('text/plain; charset=utf-8')
+            .send('錯誤：缺少有效的 stop，以及 route 或 routes 參數');
+        return;
+    }
+    if (route && !isValidBusRouteToken(route)) {
+        res.status(400).type('text/plain; charset=utf-8')
+            .send('錯誤：route 參數格式不正確');
+        return;
+    }
+
+    res.set('Cache-Control', 'no-store');
+
+    try {
+        if (multiRoutes.length > 0) {
+            const text = await Promise.race([
+                buildMultiRouteSpeakText(stop, multiRoutes),
+                new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('bus speak upstream timeout')), BUS_SPEAK_WALL_MS);
+                })
+            ]);
+            res.type('text/plain; charset=utf-8').send(text);
+            return;
+        }
+
+        const apiUrl = `https://data.etabus.gov.hk/v1/transport/kmb/eta/${encodeURIComponent(stop)}/${encodeURIComponent(route)}/${encodeURIComponent(serviceType)}`;
+        const payload = await fetchJsonOverHttps(apiUrl);
+        let rows = Array.isArray(payload?.data) ? payload.data.filter(row => row?.eta) : [];
+        if (bound === 'O' || bound === 'I') {
+            rows = rows.filter(row => row.dir === bound);
+        }
+        rows.sort((a, b) => Number(a.eta_seq) - Number(b.eta_seq));
+
+        const minutes = rows.map((row) => {
+            const diff = Math.round((new Date(row.eta) - Date.now()) / 60_000);
+            return Math.max(0, diff);
+        });
+        res.type('text/plain; charset=utf-8').send(formatBusSpeakMessage(route, minutes));
+    } catch (error) {
+        console.error('[busstop/speak]', error?.message || error);
+        const label = multiRoutes[0]?.route || route || '巴士';
+        res.status(502).type('text/plain; charset=utf-8')
+            .send(`${label} 號巴士暫時無法取得到站時間`);
+    }
+});
+
+/**
+ * Downloadable/importable iOS Shortcut (.shortcut binary plist).
+ * Used by: shortcuts://import-shortcut?url=https://.../busstop/shortcut?...
+ */
+www.get('/busstop/shortcut', async (req, res) => {
+    if (await checkRateLimit('busSpeak', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+
+    const route = sanitizeBusRouteToken(req.query.route);
+    const stop = sanitizeBusStopId(req.query.stop);
+    const serviceType = sanitizeBusServiceType(req.query.service_type || req.query.direction);
+    const bound = sanitizeBusBound(req.query.bound);
+    const multiRoutes = parseBusSpeakRoutesParam(req.query.routes);
+    // Keep shortcut name ASCII-only for iOS import-shortcut URL compatibility
+    const defaultName = multiRoutes.length > 0
+        ? `${multiRoutes.map(r => r.route).slice(0, 3).join('+')}-ETA`
+        : `${route}-ETA`;
+    const rawName = String(req.query.name || defaultName).trim() || defaultName;
+    const name = rawName.replaceAll(/[^\w.+-]+/g, '-') || defaultName;
+
+    if (!stop || (multiRoutes.length === 0 && !route)) {
+        res.status(400).type('text/plain; charset=utf-8')
+            .send('錯誤：缺少有效的 stop，以及 route 或 routes 參數');
+        return;
+    }
+    if (route && !isValidBusRouteToken(route)) {
+        res.status(400).type('text/plain; charset=utf-8')
+            .send('錯誤：route 參數格式不正確');
+        return;
+    }
+
+    try {
+        // Never trust raw Host / X-Forwarded-* for URLs embedded in downloadable shortcuts
+        // (host-header poisoning would make the shortcut fetch an attacker URL).
+        const speakUrl = new URL('/busstop/speak', resolveBusPublicOrigin(req));
+        speakUrl.searchParams.set('stop', stop);
+        if (multiRoutes.length > 0) {
+            speakUrl.searchParams.set(
+                'routes',
+                multiRoutes.map((r) => {
+                    const base = `${r.route}:${r.service_type}:${r.dir}`;
+                    return r.stopId ? `${base}:${r.stopId}` : base;
+                }).join(',')
+            );
+        } else {
+            speakUrl.searchParams.set('route', route);
+            speakUrl.searchParams.set('service_type', serviceType);
+            if (bound) speakUrl.searchParams.set('bound', bound);
+        }
+
+        const shortcutBuffer = buildBusEtaShortcut(speakUrl.toString(), name);
+        // Content-Disposition must be Latin-1; Chinese names crash Express header set.
+        const asciiName = `${(multiRoutes[0]?.route || route || 'bus')}-eta.shortcut`;
+        res.set({
+            'Content-Type': 'application/octet-stream',
+            'Content-Disposition': `attachment; filename="${asciiName}"`,
+            'Cache-Control': 'no-store'
+        });
+        res.send(shortcutBuffer);
+    } catch (error) {
+        console.error('[busstop/shortcut]', error);
+        res.status(500).type('text/plain; charset=utf-8')
+            .send('無法產生捷徑檔');
+    }
+});
+
+function formatBusMinutesPhrase(minutesList) {
+    const mins = (minutesList || []).filter(m => m !== null && m !== undefined);
+    if (mins.length === 0) return '';
+    if (mins.length === 1) return `${mins[0]}分鐘`;
+    if (mins.length === 2) return `${mins[0]}分鐘及${mins[1]}分鐘`;
+    const head = mins.slice(0, -1).map(m => `${m}分鐘`).join('、');
+    return `${head}及${mins.at(-1)}分鐘`;
+}
+
+function formatBusSpeakMessage(route, minutesList) {
+    const mins = (minutesList || []).filter(m => m !== null && m !== undefined);
+    if (mins.length === 0) return `${route} 號巴士暫時沒有到站時間`;
+    return `${route} 號巴士 於 ${formatBusMinutesPhrase(mins)}後到達`;
+}
+
+/** Strip user-controlled route tokens to safe A-Z / 0-9 / hyphen only (XSS-safe for plain-text responses). */
+function sanitizeBusRouteToken(raw) {
+    const normalized = String(raw || '').trim().toUpperCase();
+    return normalized.replaceAll(/[^A-Z0-9-]/g, '');
+}
+
+function isValidBusRouteToken(route) {
+    return /^[A-Z0-9][A-Z0-9-]{0,9}$/.test(route);
+}
+
+/** KMB/LWB stop IDs are alphanumeric (typically 16-char hex-like). */
+function sanitizeBusStopId(raw) {
+    const stop = String(raw || '').trim();
+    return /^[A-Za-z0-9]{1,32}$/.test(stop) ? stop : '';
+}
+
+function sanitizeBusServiceType(raw) {
+    const value = String(raw || '1').trim();
+    return /^\d{1,3}$/.test(value) ? value : '1';
+}
+
+function sanitizeBusBound(raw) {
+    const bound = String(raw || '').trim().toUpperCase();
+    return bound === 'O' || bound === 'I' ? bound : '';
+}
+
+/**
+ * Public origin embedded into downloadable iOS shortcuts.
+ * Prefer BUS_PUBLIC_ORIGIN (https + allowlisted host only); never trust raw X-Forwarded-Host alone.
+ */
+function getBusAllowedPublicHosts() {
+    return new Set([
+        ...exportHtmlRedirectHosts,
+        'bus.hktrpg.com',
+        'www.hktrpg.com',
+        'hktrpg.com'
+    ]);
+}
+
+function resolveBusPublicOrigin(req) {
+    const allowedHosts = getBusAllowedPublicHosts();
+    const configured = String(process.env.BUS_PUBLIC_ORIGIN || '').trim();
+    if (configured) {
+        try {
+            const url = new URL(configured);
+            const hostname = String(url.hostname || '').toLowerCase();
+            if (url.protocol === 'https:' && hostname && allowedHosts.has(hostname)) {
+                return `https://${url.host}`;
+            }
+            console.warn('[busstop/shortcut] BUS_PUBLIC_ORIGIN rejected (need https + allowlisted host):', configured);
+        } catch {
+            console.warn('[busstop/shortcut] Invalid BUS_PUBLIC_ORIGIN, falling back to allowlist');
+        }
+    }
+
+    const forwardedHost = String(req.get('x-forwarded-host') || req.get('host') || '')
+        .split(',')[0]
+        .trim()
+        .toLowerCase();
+    const hostname = forwardedHost.split(':')[0];
+    if (hostname && allowedHosts.has(hostname)) {
+        return `https://${forwardedHost}`;
+    }
+
+    return 'https://bus.hktrpg.com';
+}
+
+const BUS_SPEAK_MAX_ROUTES = 8;
+const BUS_SPEAK_WALL_MS = 12_000;
+const BUS_API_MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
+
+/** Parse routes=251A:1:O,64K:1:I or 251A:1:O:STOPID */
+function parseBusSpeakRoutesParam(raw) {
+    return String(raw || '')
+        .split(',')
+        .map(part => part.trim())
+        .filter(Boolean)
+        .slice(0, BUS_SPEAK_MAX_ROUTES)
+        .map((part) => {
+            const [routeRaw, serviceRaw = '1', dirRaw = '', stopRaw = ''] = part.split(':');
+            const route = sanitizeBusRouteToken(routeRaw);
+            const service_type = sanitizeBusServiceType(serviceRaw);
+            const dir = sanitizeBusBound(dirRaw);
+            const stopId = sanitizeBusStopId(stopRaw);
+            if (!route || !isValidBusRouteToken(route)) return null;
+            return {
+                route,
+                service_type,
+                dir,
+                stopId,
+                key: `${route}|${service_type}|${dir}`
+            };
+        })
+        .filter(Boolean);
+}
+
+function minutesUntilEta(eta) {
+    const diff = Math.round((new Date(eta) - Date.now()) / 60_000);
+    return Math.max(0, diff);
+}
+
+/**
+ * Each selected route ≥1 bus; fill to ≥3 total; order by soonest.
+ * Mirrors views/busstop.html pickBusesForSpeak + formatMultiRouteSpeak.
+ */
+function pickBusesForMultiSpeak(routeEntries) {
+    const selected = routeEntries.filter(entry => entry.buses.length);
+    if (selected.length === 0) return [];
+
+    const allBuses = [];
+    for (const entry of selected) {
+        for (const bus of entry.buses) {
+            allBuses.push({
+                key: entry.key,
+                route: entry.route,
+                minutes: bus.minutes,
+                etaMs: bus.etaMs
+            });
+        }
+    }
+    allBuses.sort((a, b) => a.etaMs - b.etaMs || a.minutes - b.minutes);
+
+    const picked = [];
+    const pickedIds = new Set();
+    const busId = (b) => `${b.key}@${b.etaMs}@${b.minutes}`;
+
+    for (const entry of selected) {
+        const soonest = entry.buses.reduce((best, bus) =>
+            (!best || bus.etaMs < best.etaMs) ? bus : best, null);
+        if (!soonest) continue;
+        const item = {
+            key: entry.key,
+            route: entry.route,
+            minutes: soonest.minutes,
+            etaMs: soonest.etaMs
+        };
+        const id = busId(item);
+        if (!pickedIds.has(id)) {
+            picked.push(item);
+            pickedIds.add(id);
+        }
+    }
+
+    for (const bus of allBuses) {
+        if (picked.length >= 3) break;
+        const id = busId(bus);
+        if (pickedIds.has(id)) continue;
+        picked.push(bus);
+        pickedIds.add(id);
+    }
+
+    picked.sort((a, b) => a.etaMs - b.etaMs || a.minutes - b.minutes);
+    return picked;
+}
+
+function formatMultiRouteSpeakMessage(pickedBuses) {
+    if (pickedBuses.length === 0) return '暫時沒有到站時間';
+
+    const order = [];
+    const groups = new Map();
+    for (const bus of pickedBuses) {
+        if (!groups.has(bus.key)) {
+            groups.set(bus.key, { route: bus.route, minutes: [] });
+            order.push(bus.key);
+        }
+        groups.get(bus.key).minutes.push(bus.minutes);
+    }
+
+    const parts = order.map((key, index) => {
+        const group = groups.get(key);
+        const mins = [...group.minutes].sort((a, b) => a - b);
+        const minsText = formatBusMinutesPhrase(mins);
+        if (index === 0) return `${group.route} 號巴士 於 ${minsText}後到達`;
+        return `${group.route}於 ${minsText}後到達`;
+    });
+    return parts.join(', ');
+}
+
+async function buildMultiRouteSpeakText(stop, wantedRoutes) {
+    const wantedKeys = new Set(wantedRoutes.map(r => r.key));
+    // Preserve request order for grouping preference when ETAs tie
+    const map = new Map();
+    for (const wanted of wantedRoutes) {
+        map.set(wanted.key, {
+            key: wanted.key,
+            route: wanted.route,
+            buses: []
+        });
+    }
+
+    // Group by bay stop id (fallback to main stop) so BBI multi-route works
+    const byStop = new Map();
+    for (const wanted of wantedRoutes) {
+        const sid = wanted.stopId || stop;
+        if (!byStop.has(sid)) byStop.set(sid, []);
+        byStop.get(sid).push(wanted);
+    }
+
+    for (const [sid] of byStop) {
+        const apiUrl = `https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/${encodeURIComponent(sid)}`;
+        const payload = await fetchJsonOverHttps(apiUrl);
+        const rows = Array.isArray(payload?.data) ? payload.data.filter(row => row?.eta) : [];
+        for (const row of rows) {
+            const key = `${String(row.route || '').toUpperCase()}|${String(row.service_type || '1')}|${String(row.dir || '').toUpperCase()}`;
+            if (!wantedKeys.has(key) || !map.has(key)) continue;
+            // Only accept ETA from this route's intended bay when stopId was provided
+            const intended = wantedRoutes.find(r => r.key === key);
+            if (intended?.stopId && intended.stopId !== sid) continue;
+            const entry = map.get(key);
+            entry.buses.push({
+                minutes: minutesUntilEta(row.eta),
+                etaMs: new Date(row.eta).getTime()
+            });
+        }
+    }
+
+    const entries = [...map.values()].map((entry) => {
+        entry.buses.sort((a, b) => a.etaMs - b.etaMs);
+        const seen = new Set();
+        entry.buses = entry.buses.filter((bus) => {
+            const id = `${bus.etaMs}`;
+            if (seen.has(id)) return false;
+            seen.add(id);
+            return true;
+        });
+        return entry;
+    });
+
+    const picked = pickBusesForMultiSpeak(entries);
+    return formatMultiRouteSpeakMessage(picked);
+}
+
+function fetchJsonOverHttps(url) {
+    return new Promise((resolve, reject) => {
+        let parsed;
+        try {
+            parsed = new URL(url);
+        } catch (error) {
+            reject(error);
+            return;
+        }
+        if (parsed.protocol !== 'https:') {
+            reject(new Error('Only HTTPS upstream is allowed'));
+            return;
+        }
+        if (parsed.hostname !== 'data.etabus.gov.hk') {
+            reject(new Error('Unexpected upstream host'));
+            return;
+        }
+
+        const request = https.get(url, {
+            headers: {
+                Accept: 'application/json',
+                'User-Agent': 'HKTRPG-BusStop/1.0'
+            },
+            timeout: 10_000
+        }, (response) => {
+            if (response.statusCode && response.statusCode >= 400) {
+                response.resume();
+                reject(new Error(`KMB API HTTP ${response.statusCode}`));
+                return;
+            }
+            const chunks = [];
+            let total = 0;
+            response.on('data', (chunk) => {
+                total += chunk.length;
+                if (total > BUS_API_MAX_RESPONSE_BYTES) {
+                    request.destroy(new Error('KMB API response too large'));
+                    return;
+                }
+                chunks.push(chunk);
+            });
+            response.on('end', () => {
+                try {
+                    resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        });
+        request.on('timeout', () => {
+            request.destroy(new Error('KMB API timeout'));
+        });
+        request.on('error', reject);
+    });
+}
 
 // ---------- Patreon dashboard and API ----------
 // Key only from header to avoid leaking via URL (query), Referer, or logs.

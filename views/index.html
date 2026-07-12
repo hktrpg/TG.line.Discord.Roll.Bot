@@ -233,14 +233,13 @@
 </head>
 
 <body>
-    <!-- Header -->
-    <div id="header"></div>
+    <!-- App shell: header + body + footer; only middle scrolls (hkbus-style) -->
+    <div class="app-shell">
+        <div id="header"></div>
 
-    <!-- Main Content -->
-    <div class="container-fluid">
-        <div class="row">
+        <div class="app-body">
             <!-- Sidebar -->
-            <div class="col-md-3 col-lg-3 d-md-block sidebar collapse">
+            <aside class="sidebar collapse d-md-block">
                 <div class="sidebar-sticky pt-3">
                     <div class="sidebar-header mb-3">
                         <div class="input-group">
@@ -283,20 +282,16 @@
                         </button>
                     </div>
                 </div>
-            </div>
+            </aside>
 
             <!-- Main Chat Area -->
-            <main role="main" class="col-md-9 ml-sm-auto col-lg-9 px-md-4 d-flex flex-column">
-                <div
-                    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                </div>
-
-                <div class="chat-container flex-grow-1">
+            <main role="main" class="chat-main">
+                <div class="chat-container">
                     <div id="personal-room-notice" class="alert alert-info small p-2 m-2" role="alert" style="display: none; margin-bottom: 0;">
                         <span class="iconify" data-icon="bi:info-circle-fill"></span>
                         個人小屋所有資料只存在本機，伺服器不會儲存。
                     </div>
-                    <div class="overflow-auto" id="container-content">
+                    <div id="container-content">
                         <div id="content" class="p-2">
                             <!-- Messages will be added here -->
                         </div>
@@ -344,8 +339,8 @@
                 </div>
 
                 <!-- Message Input -->
-                <footer class="footer mt-auto py-3">
-                    <div class="container">
+                <footer class="footer">
+                    <div class="footer-input">
                         <form id="send-form" class="needs-validation" novalidate>
                             <div class="input-group">
                                 <textarea class="form-control message-input" name="msg" id="msg" 
@@ -643,13 +638,68 @@
             scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
         }
 
+        /* App shell (hkbus-style): viewport locked, only middle scrolls */
+        html {
+            height: 100%;
+            height: 100dvh;
+            overflow: hidden;
+            overscroll-behavior: none;
+            overscroll-behavior-y: none;
+        }
+
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
             transition: background-color 0.3s, color 0.3s;
-            min-height: 100vh;
+            margin: 0;
+            height: 100%;
+            height: 100dvh;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
+            overscroll-behavior: none;
+            overscroll-behavior-y: none;
+            touch-action: manipulation;
+        }
+
+        .app-shell {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            height: 100dvh;
+            max-height: 100dvh;
+            overflow: hidden;
+            width: 100%;
+            overscroll-behavior: none;
+        }
+
+        .app-body {
+            flex: 1 1 0%;
+            min-height: 0;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+            overscroll-behavior: none;
+        }
+
+        .chat-main {
+            flex: 1 1 0%;
+            min-width: 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--chat-bg);
+        }
+
+        .footer-input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .footer-input .container,
+        .footer-input form {
+            width: 100%;
         }
 
         /* 容器樣式優化 */
@@ -866,25 +916,36 @@
             color: var(--badge-bg);
         }
 
-        /* 聊天室容器樣式優化 */
+        /* Chat area: fills remaining space; only #container-content scrolls */
         .chat-container {
+            flex: 1 1 0%;
+            min-height: 0;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             background: var(--chat-bg);
-            border-radius: 8px;
-            padding: 0.3rem;
-            margin: 0.2rem 0;
-            box-shadow: var(--shadow-md);
-            height: calc(100dvh - var(--header-height) - var(--footer-height));
+            border-radius: 0;
+            padding: 0;
+            margin: 0;
+            box-shadow: none;
+            height: auto;
             position: relative;
         }
 
+        #personal-room-notice {
+            flex-shrink: 0;
+        }
+
         #container-content {
-            flex: 1;
+            flex: 1 1 0%;
+            min-height: 0;
+            overflow-x: hidden;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             scroll-behavior: smooth;
             position: relative;
+            overscroll-behavior: contain;
+            overscroll-behavior-y: contain;
         }
 
         #content {
@@ -893,7 +954,43 @@
             display: flex;
             flex-direction: column;
             gap: 0.1rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Input footer stays pinned in the shell (not page-fixed) */
+        .chat-main > .footer {
+            flex: 0 0 auto;
+            position: relative;
+            bottom: auto;
+            left: auto;
+            right: auto;
+            z-index: 20;
+            width: 100%;
+            background: var(--footer-bg);
+            border-top: 1px solid var(--card-border);
+            padding: 0.5rem;
+            padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+            min-height: var(--footer-height);
+            height: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chat-main > .footer .toggle-button {
+            flex-shrink: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-color);
+            white-space: nowrap;
+            font-size: 0.85rem;
         }
 
         /* 狀態框樣式優化 */
@@ -959,7 +1056,7 @@
         @media (max-width: 768px) {
             #container {
                 padding: 0.3rem;
-                margin-top: 120px;
+                margin-top: 0;
             }
 
             .card {
@@ -988,12 +1085,9 @@
             }
 
             #container-content {
-                height: calc(100dvh - 160px);
+                height: auto;
                 padding: 0.3rem;
                 margin: 0;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-                /* 增加 iOS 滾動順暢度 */
             }
 
             #content {
@@ -1001,44 +1095,11 @@
                 margin-bottom: 0;
             }
 
-            /* 調整 footer 樣式 */
-            .footer {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                z-index: 999;
-                background: var(--footer-bg);
-                border-top: 1px solid var(--card-border);
-                padding: 0.5rem;
-                height: var(--footer-height);
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-            }
-
-            /* 調整主內容區域的邊距 */
-            .main-content {
-                padding-bottom: 1rem;
-                height: calc(100dvh - var(--header-height));
-                min-height: -webkit-fill-available;
-                /* 支援 iOS Safari */
-            }
-
-            /* 確保 body 和 html 高度正確 */
-            html,
-            body {
-                height: 100%;
-                height: -webkit-fill-available;
-                overflow: hidden;
-            }
-
-            body {
-                position: fixed;
-                width: 100%;
-                height: 100%;
-                height: -webkit-fill-available;
-                overflow: hidden;
+            .chat-main > .footer {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                right: auto;
             }
         }
 
@@ -1173,48 +1234,45 @@
             font-weight: bold;
         }
 
-        /* 移動端樣式調整 */
+        /* Mobile: overlay sidebar; keep app-shell scroll model */
         @media (max-width: 768px) {
             .app-container {
                 margin-top: 0;
             }
 
             .sidebar {
-                left: -240px;
-                top: 60px;
+                position: fixed;
+                left: 0;
+                top: var(--header-height);
                 bottom: 0;
+                width: 240px;
+                flex: none;
                 z-index: 1002;
-                height: calc(100dvh - 60px);
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
+                height: auto;
+                transform: translateX(-100%);
+                overflow: hidden;
+                box-shadow: var(--shadow-lg);
                 padding-bottom: env(safe-area-inset-bottom, 0);
-                /* 支援 iOS 安全區域 */
             }
 
             .sidebar.show {
-                left: 0;
+                transform: translateX(0);
             }
 
-            .sidebar.show+.main-content {
-                margin-left: 0;
-            }
-
-            .main-content {
-                margin-left: 0;
-                margin-top: 0;
-                height: calc(100vh - var(--header-height) - var(--footer-height));
+            .chat-main {
+                width: 100%;
             }
 
             .chat-container {
-                position: fixed;
-                top: var(--header-height);
-                bottom: var(--footer-height);
-                left: 0;
-                right: 0;
+                position: relative;
+                top: auto;
+                bottom: auto;
+                left: auto;
+                right: auto;
                 margin: 0;
                 border-radius: 0;
-                height: calc(100dvh - var(--header-height) - var(--footer-height));
-                z-index: 998;
+                height: auto;
+                z-index: auto;
                 padding-bottom: 0;
             }
 
@@ -1222,58 +1280,18 @@
                 padding: 0.2rem;
             }
 
-            /* 調整 footer 樣式 */
-            .footer {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                z-index: 999;
-                background: var(--footer-bg);
-                border-top: 1px solid var(--card-border);
-                padding: 0.5rem;
-                height: var(--footer-height);
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
+            .chat-main > .footer {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                right: auto;
             }
 
-            /* 調整主內容區域的邊距 */
-            .main-content {
-                padding-bottom: 1rem;
-                height: calc(100dvh - var(--header-height));
-                min-height: -webkit-fill-available;
-                /* 支援 iOS Safari */
-            }
-
-            /* 確保 body 和 html 高度正確 */
-            html,
-            body {
-                height: 100%;
-                height: -webkit-fill-available;
-                overflow: hidden;
-            }
-
-            body {
-                position: fixed;
-                width: 100%;
-                height: 100%;
-                height: -webkit-fill-available;
-                overflow: hidden;
-            }
-
-            /* 當側邊欄開啟時隱藏工具列 */
-            .sidebar.show~#header {
-                display: none;
-            }
-
-            /* 調整移動端側邊欄切換按鈕 */
             .mobile-sidebar-toggle {
                 position: fixed;
                 left: 10px;
                 top: 10px;
                 z-index: 1006;
-                /* 提高 z-index 確保在 header 之上 */
                 background: var(--badge-bg);
                 color: var(--badge-text);
                 border: none;
@@ -1290,24 +1308,20 @@
                 font-size: 1.5rem;
             }
 
-            /* 當側邊欄開啟時調整切換按鈕位置 */
-            .sidebar.show~.mobile-sidebar-toggle {
+            .sidebar.show ~ .mobile-sidebar-toggle,
+            body:has(.sidebar.show) .mobile-sidebar-toggle {
                 left: 250px;
             }
 
-            /* 確保側邊欄在工具列之上 */
             .sidebar.show {
                 z-index: 1005;
             }
 
-            /* 調整側邊欄內容的層級 */
             .sidebar-sticky {
                 padding: 0.2rem;
                 padding-bottom: calc(var(--footer-height) + env(safe-area-inset-bottom, 10px));
-                /* 支援 iOS 安全區域 */
             }
 
-            /* 確保側邊欄按鈕在工具列之上 */
             .sidebar-actions {
                 position: sticky;
                 bottom: 0;
@@ -1318,7 +1332,6 @@
                 margin-top: auto;
             }
 
-            /* 調整側邊欄按鈕的樣式 */
             .sidebar-actions .btn {
                 position: relative;
                 z-index: 1008;
@@ -1353,22 +1366,13 @@
                 align-items: center;
                 justify-content: center;
             }
-
-            .sidebar-actions .btn .iconify {
-                font-size: 1.2rem;
-                min-width: 1.2rem;
-                height: 1.2rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
         }
 
-        /* 確保桌面版不受影響 */
+        /* Desktop sidebar actions pinned at bottom of sidebar */
         @media (min-width: 769px) {
-            .footer {
-                position: sticky;
-                bottom: 0;
+            .chat-main > .footer {
+                position: relative;
+                bottom: auto;
             }
 
             .sidebar-sticky {
@@ -1379,14 +1383,11 @@
                 overflow: hidden;
                 padding: 0.3rem;
                 padding-bottom: 0;
-                /* 移除底部padding */
                 position: relative;
-                /* 新增相對定位 */
             }
 
             .sidebar-actions {
                 position: absolute;
-                /* 改為絕對定位 */
                 bottom: 0;
                 left: 0;
                 right: 0;
@@ -1405,9 +1406,8 @@
                 padding: 2px;
                 min-height: 0;
                 background: var(--sidebar-bg);
-                max-height: calc(100vh - 250px);
+                max-height: none;
                 margin-bottom: 120px;
-                /* 為底部按鈕預留空間 */
             }
         }
 
@@ -1417,19 +1417,22 @@
         }
 
         #header {
+            flex: 0 0 auto;
             transition: transform 0.3s ease;
             background: var(--card-bg);
             box-shadow: var(--shadow-md);
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+            position: relative;
+            top: auto;
+            left: auto;
+            right: auto;
             z-index: 1005;
-            padding: 5px;
+            padding: 0 5px;
             width: 100%;
-            height: 60px;
+            height: var(--header-height);
+            min-height: var(--header-height);
             display: flex;
             align-items: center;
+            overflow: visible;
         }
 
         #header .navbar {
@@ -1535,26 +1538,19 @@
                 padding: 8px 0;
             }
 
-            /* 調整主容器位置 */
+            /* Keep shell layout on mobile — no extra top offset */
             .app-container {
-                margin-top: 60px;
-                height: calc(100vh - 60px);
+                margin-top: 0;
+                height: 100%;
             }
 
-            /* 調整側邊欄位置 */
-            .sidebar {
-                top: 60px;
-                height: calc(100vh - 60px);
+            .main-content,
+            .chat-main {
+                margin-top: 0;
+                height: auto;
             }
 
-            /* 調整內容區域 */
-            .main-content {
-                margin-top: 60px;
-                height: calc(100vh - 120px);
-            }
-
-            /* 調整 footer 位置 */
-            .footer {
+            .chat-main > .footer {
                 bottom: 0;
                 z-index: 1003;
             }
@@ -1564,8 +1560,9 @@
         @media (min-width: 769px) {
             #header {
                 position: relative;
-                height: auto;
-                padding: 5px;
+                height: var(--header-height);
+                min-height: var(--header-height);
+                padding: 0 5px;
             }
 
             .app-container {
@@ -1573,36 +1570,40 @@
             }
 
             .sidebar {
-                top: 0;
-                height: 100vh;
+                position: relative;
+                top: auto;
+                height: 100%;
+                transform: none;
             }
 
-            .main-content {
+            .main-content,
+            .chat-main {
                 margin-top: 0;
             }
         }
 
-        /* Add new styles for Discord-like layout */
+        /* Discord-like layout inside app-shell */
         .app-container {
             display: flex;
-            height: calc(100vh - 60px);
-            margin-top: 60px;
+            height: 100%;
+            margin-top: 0;
             position: relative;
         }
 
         .sidebar {
             width: 240px;
+            flex: 0 0 240px;
             background: var(--sidebar-bg);
             border-right: 1px solid var(--sidebar-border);
             display: flex;
             flex-direction: column;
-            transition: all 0.3s ease;
-            position: fixed;
-            top: 60px;
-            bottom: 0;
-            left: 0;
+            transition: transform 0.3s ease, left 0.3s ease;
+            position: relative;
+            top: auto;
+            bottom: auto;
+            left: auto;
             z-index: 1001;
-            height: calc(100dvh - 60px);
+            height: 100%;
             overflow: hidden;
         }
 
@@ -1614,9 +1615,7 @@
             overflow: hidden;
             padding: 0.3rem;
             padding-bottom: 0;
-            /* 移除底部padding */
             position: relative;
-            /* 新增相對定位 */
         }
 
         .sidebar-header {
@@ -1652,7 +1651,8 @@
             padding: 2px;
             min-height: 0;
             background: var(--sidebar-bg);
-            max-height: calc(100vh - 250px);
+            max-height: none;
+            overscroll-behavior: contain;
         }
 
         .sidebar-actions {
@@ -1891,12 +1891,12 @@
             margin-bottom: 0.5rem;
         }
 
-        /* Footer 樣式優化 */
+        /* Footer 樣式優化 — pinned in app-shell, not page-fixed */
         .footer {
-            position: sticky;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            position: relative;
+            bottom: auto;
+            left: auto;
+            right: auto;
             background: var(--footer-bg);
             border-top: 1px solid var(--card-border);
             z-index: 1000;
@@ -1904,14 +1904,15 @@
             display: flex;
             align-items: center;
             padding: 0.5rem;
-            height: var(--footer-height);
+            height: auto;
+            min-height: var(--footer-height);
         }
 
+        .footer .footer-input,
         .footer .container {
             padding: 0;
             flex: 1;
             min-width: 0;
-            /* 防止 flex 項目溢出 */
         }
 
         .footer .toggle-button {
@@ -1945,55 +1946,43 @@
             transform: rotate(180deg);
         }
 
-        /* 移動端樣式調整 */
+        /* Mobile footer stays in shell flow */
         @media (max-width: 768px) {
-            .footer {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                z-index: 999;
-                background: var(--footer-bg);
-                border-top: 1px solid var(--card-border);
-                padding: 0.5rem;
-                height: var(--footer-height);
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
+            .chat-main > .footer {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                right: auto;
             }
 
-            .footer .container {
+            .footer-input {
                 flex: 1;
                 margin-right: 10px;
                 min-width: 0;
-                /* 防止 flex 項目溢出 */
             }
 
-            .footer .toggle-button {
+            .chat-main > .footer .toggle-button {
                 flex-shrink: 0;
-                /* 防止按鈕被壓縮 */
                 padding: 6px 12px;
                 font-size: 0.9rem;
                 margin-left: 0;
             }
 
-            .footer .input-group {
+            .chat-main > .footer .input-group {
                 width: 100%;
             }
 
-            .footer .input-group .form-control {
+            .chat-main > .footer .input-group .form-control {
                 width: 1%;
                 flex: 1;
                 min-width: 0;
-                /* 防止輸入框溢出 */
             }
         }
 
-        /* 確保桌面版不受影響 */
         @media (min-width: 769px) {
-            .footer {
-                position: sticky;
-                bottom: 0;
+            .chat-main > .footer {
+                position: relative;
+                bottom: auto;
             }
         }
 
@@ -2357,6 +2346,105 @@
                 0%, 100% {
                     background: var(--card-bg);
                 }
+            }
+        }
+
+        /* Final app-shell overrides (must win over legacy layout rules) */
+        html, body {
+            height: 100% !important;
+            height: 100dvh !important;
+            max-height: 100dvh !important;
+            overflow: hidden !important;
+            position: static !important;
+            width: 100% !important;
+            overscroll-behavior: none !important;
+            overscroll-behavior-y: none !important;
+            touch-action: manipulation;
+        }
+
+        .app-shell {
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100dvh !important;
+            max-height: 100dvh !important;
+            overflow: hidden !important;
+            overscroll-behavior: none !important;
+        }
+
+        .app-body {
+            flex: 1 1 0% !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+            display: flex !important;
+            overscroll-behavior: none !important;
+        }
+
+        .chat-main {
+            flex: 1 1 0% !important;
+            min-width: 0 !important;
+            min-height: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+            height: auto !important;
+            margin: 0 !important;
+        }
+
+        .chat-container {
+            flex: 1 1 0% !important;
+            min-height: 0 !important;
+            height: auto !important;
+            position: relative !important;
+            top: auto !important;
+            bottom: auto !important;
+            left: auto !important;
+            right: auto !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+        }
+
+        #container-content {
+            flex: 1 1 0% !important;
+            min-height: 0 !important;
+            height: auto !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain !important;
+            overscroll-behavior-y: contain !important;
+        }
+
+        #header {
+            flex: 0 0 auto !important;
+            position: relative !important;
+            height: var(--header-height) !important;
+            min-height: var(--header-height) !important;
+        }
+
+        .chat-main > .footer {
+            flex: 0 0 auto !important;
+            position: relative !important;
+            top: auto !important;
+            bottom: auto !important;
+            left: auto !important;
+            right: auto !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: var(--footer-height);
+        }
+
+        @media (min-width: 769px) {
+            .mobile-sidebar-toggle {
+                display: none !important;
+            }
+
+            .sidebar {
+                position: relative !important;
+                transform: none !important;
+                height: 100% !important;
+                top: auto !important;
+                bottom: auto !important;
+                left: auto !important;
             }
         }
     </style>

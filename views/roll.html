@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant" class="app-shell-page">
 <!--HKTRPG.COM  SAD-->
 
 <head>
@@ -19,22 +19,78 @@
     <meta property="og:type" content="骰子工具" />
     <meta name="author" content="SAD">
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <link rel="stylesheet" href="css/app-shell.css">
     <style>
-        html {
+        html.app-shell-page,
+        html.app-shell-page body {
             font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, "Hiragino Sans GB", "PingFang SC", "Heiti SC", "Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans", sans-serif;
             font-size: 18px;
-            background-color: rgb(0, 0, 0);
+            background-color: #000;
             color: #ffffff;
             touch-action: manipulation;
+            overscroll-behavior: none;
+            overscroll-behavior-y: none;
         }
 
-        body {
-            padding: 0.1rem;
-            margin: 0 auto;
+        body.app-shell-page {
+            padding: 0;
+            margin: 0;
+            justify-content: stretch;
+        }
+
+        .app-shell.roll-shell {
+            max-width: none;
+            width: 100%;
+            margin: 0;
+            background-color: #000;
+            border: 0;
+            box-shadow: none;
+        }
+
+        .roll-header {
+            padding: 0.5rem 0.75rem 0.25rem;
+            text-align: center;
+            border: 0;
+        }
+
+        .roll-header .navbar-nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 0.35rem 0.75rem;
+        }
+
+        .roll-header a {
+            color: #f2f2f2;
+            text-decoration: none;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .roll-header a:hover {
+            color: #EF5858;
+        }
+
+        .roll-main {
+            padding: 0.5rem 0.5rem 1rem;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            touch-action: manipulation;
+            align-items: center;
+            border: 0;
+        }
+
+        .roll-footer {
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #ccc;
+            border: 0;
+            width: 100%;
+        }
+
+        .roll-footer a {
+            color: #EF5858;
         }
 
         button {
@@ -43,19 +99,16 @@
 
         .row {
             width: 100%;
-            margin: 2 0.15em;
+            margin: 0 auto;
             clear: both;
             overflow: hidden;
-            margin: 0 auto;
-            border: 1px solid black;
-
+            border: 0;
         }
 
         .dice-box {
             margin-bottom: 2px;
             width: 8rem;
             height: 4rem;
-            margin: 2 0.15em;
             position: relative;
             float: left;
             overflow: hidden;
@@ -75,21 +128,16 @@
             left: 0;
             top: 0;
             color: #FFFFFF;
-            /*White*/
             background-color: #DD5555;
-            /*Red*/
-            border: 0px solid;
+            border: 0 solid;
             text-align: center;
             line-height: 50px;
             z-index: 600;
-
         }
 
         .dice-up:hover {
             color: #FFFFFF;
-            /*White*/
             background-color: #D84848;
-            /*Darker red then #DD5555*/
         }
 
         .dice-down {
@@ -100,10 +148,8 @@
             left: 0;
             bottom: 0;
             color: #FFFFFF;
-            /*White*/
             background-color: #DD5555;
-            /*Red*/
-            border: 0px solid;
+            border: 0 solid;
             text-align: center;
             line-height: 50px;
             border-radius: 0 0 0 6px;
@@ -111,9 +157,7 @@
 
         .dice-down:hover {
             color: #FFFFFF;
-            /*White*/
             background-color: #D84848;
-            /*Darker red then #DD5555*/
         }
 
         .dice {
@@ -123,19 +167,15 @@
             top: 0;
             right: 0;
             color: #FFFFFF;
-            /*White*/
             background-color: #EF5858;
-            /*Red*/
-            border: 0px solid;
+            border: 0 solid;
             text-align: center;
             font-size: 1.5em;
         }
 
         .dice:hover {
             color: #FFFFFF;
-            /*White*/
             background-color: #E84848;
-            /*Dark red then #EF5858*/
         }
 
         .dice-box span {
@@ -150,19 +190,18 @@
         }
 
         .result {
-            margin: 10px auto 10px auto;
+            margin: 10px auto;
             font-size: 1.5em;
             clear: both;
             color: #FFFFFF;
-            /*White*/
             background-color: #4343D4;
-            /*Blue*/
             text-align: center;
             border-radius: 4px;
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
             width: 11em;
             height: 8em;
-            overflow: auto
+            overflow: auto;
+            overscroll-behavior: contain;
         }
 
         .result span {
@@ -173,47 +212,34 @@
         }
 
         .resultAll {
-            margin: 10px auto 10px auto;
+            margin: 10px auto;
             text-align: center;
             display: none;
             clear: both;
             background-color: #4343D4;
-            /*Blue*/
-            text-align: center;
-            margin: 10px auto;
             border-radius: 10px;
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
             line-height: 30px;
-            width: 30em
+            width: 30em;
         }
 
         #resultAll {
-            width: 30em;
+            width: 16em;
+            max-width: 100%;
             height: 4em;
             color: #FFFFFF;
             background-color: #4343D4;
-            /*Dark Blue*/
             border: 0;
             text-align: center;
             margin: 0 auto;
             border-radius: 4px;
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
             line-height: 1px;
+            display: block;
         }
 
         #resultAll:hover {
             background-color: #3E3ED1;
-            /*Darker blue then #4343D4*/
-        }
-
-        .toggle {
-            width: 15px;
-            height: 15px;
-            margin-bottom: 10px;
-            float: middle;
-            background-color: #1F1C1C;
-            /*Near Black Grey*/
-            border: 1px solid black;
         }
 
         #d2,
@@ -229,33 +255,11 @@
         #d50,
         #d100 {
             color: #000000;
-            /*Black*/
         }
 
-        /* The navigation bar */
-        .navbar {
-            overflow: hidden;
-            text-align: right;
-            position: fixed;
-            /* Set the navbar to fixed position */
-            top: 0;
-            right: 5%;
-        }
-
-        /* Links inside the navbar */
-        .navbar a {
-            float: left;
-            display: block;
-            color: #f2f2f2;
-            text-align: right;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
-
-        /* Change background on mouse-over */
-        .navbar a:hover {
-            background: #ddd;
-            color: black;
+        .dice-board {
+            width: 16em;
+            margin: 0 auto;
         }
     </style>
     <script>
@@ -401,106 +405,108 @@
     </script>
 </head>
 
-<body>
-    <center>
-        <div class="navbar-nav">
-            <a class="nav-item nav-link active" href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">HKTRPG主頁
-            </a>&nbsp;
-            <a class="nav-item nav-link" href="https://card.hktrpg.com/">角色卡</a>&nbsp;
-            <a class="nav-item nav-link" href="https://rollbot.hktrpg.com/">網上聊天擲骰</a>&nbsp;
-            <a class="nav-item nav-link" href="#">簡易擲骰</a>&nbsp;
-            <a class="nav-item nav-link " href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot">
-                <span class="iconify" data-icon="bytesize:github" data-inline="false" data-width="25px"
-                    data-height="25px"></span></a>&nbsp;
-        </div>
-    </center>
-    <table>
-        <div id="resultall" class="result">
-            <span> Result:
-                <p> </span> <span id="result"> </span>
-        </div>
-        <div style="width: 16em" class="row">
-            <div class="dice-box">
-                <!--Array Position: 0-->
-                <button class="dice-up" type="button" onclick="dNumPlus(0, 1, 'd2')"> <span> Up </span> </button>
-                <button class="dice-down" type="button" onclick="dNumTake(0, 1, 'd2')"> <span> Down </span></button>
-                <button class="dice" type="button" onclick="resultRoll(0, 2)"> <span id="d2"> 1 </span><span> d2 </span>
-                </button>
+<body class="app-shell-page">
+    <div class="app-shell roll-shell">
+        <header class="app-header roll-header">
+            <div class="navbar-nav">
+                <a class="nav-item nav-link active" href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">HKTRPG主頁</a>
+                <a class="nav-item nav-link" href="https://card.hktrpg.com/">角色卡</a>
+                <a class="nav-item nav-link" href="https://rollbot.hktrpg.com/">網上聊天擲骰</a>
+                <a class="nav-item nav-link" href="#">簡易擲骰</a>
+                <a class="nav-item nav-link" href="https://bus.hktrpg.com/">搵巴士</a>
+                <a class="nav-item nav-link" href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot">
+                    <span class="iconify" data-icon="bytesize:github" data-inline="false" data-width="25px"
+                        data-height="25px"></span>
+                </a>
+            </div>
+        </header>
 
+        <main class="app-main roll-main">
+            <div id="resultall" class="result">
+                <span> Result:
+                    <p> </span> <span id="result"> </span>
             </div>
 
-            <div class="dice-box">
-                <!--Array Position: 2-->
-                <button class="dice-up" type="button" onclick="dNumPlus(2, 1, 'd6')"> <span> Up </span> </button>
-                <button class="dice-down" type="button" onclick="dNumTake(2, 1, 'd6')"> <span> Down </span></button>
-                <button class="dice" type="button" onclick="resultRoll(2, 6)"> <span id="d6"> 1 </span><span> d6 </span>
-                </button>
+            <div class="dice-board">
+                <div style="width: 16em" class="row">
+                    <div class="dice-box">
+                        <!--Array Position: 0-->
+                        <button class="dice-up" type="button" onclick="dNumPlus(0, 1, 'd2')"> <span> Up </span> </button>
+                        <button class="dice-down" type="button" onclick="dNumTake(0, 1, 'd2')"> <span> Down </span></button>
+                        <button class="dice" type="button" onclick="resultRoll(0, 2)"> <span id="d2"> 1 </span><span> d2 </span>
+                        </button>
+                    </div>
+
+                    <div class="dice-box">
+                        <!--Array Position: 2-->
+                        <button class="dice-up" type="button" onclick="dNumPlus(2, 1, 'd6')"> <span> Up </span> </button>
+                        <button class="dice-down" type="button" onclick="dNumTake(2, 1, 'd6')"> <span> Down </span></button>
+                        <button class="dice" type="button" onclick="resultRoll(2, 6)"> <span id="d6"> 1 </span><span> d6 </span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row" style="width: 16em">
+                    <div class="dice-box">
+                        <!--Array Position: 4-->
+                        <button class="dice-up" type="button" onclick="dNumPlus(3, 1, 'd8')"> <span> Up </span> </button>
+                        <button class="dice-down" type="button" onclick="dNumTake(3, 1, 'd8')"> <span> Down </span></button>
+                        <button class="dice" type="button" onclick="resultRoll(3, 8)"> <span id="d8"> 1 </span><span> d8
+                            </span> </button>
+                    </div>
+                    <div class="dice-box">
+                        <!--Array Position: 4-->
+                        <button class="dice-up" type="button" onclick="dNumPlus(4, 1, 'd10')"> <span> Up </span> </button>
+                        <button class="dice-down" type="button" onclick="dNumTake(4, 1, 'd10')"> <span> Down </span></button>
+                        <button class="dice" type="button" onclick="resultRoll(4, 10)"> <span id="d10"> 1 </span><span> d10
+                            </span> </button>
+                    </div>
+                </div>
+
+                <div class="row" style="width: 16em">
+                    <div class="dice-box">
+                        <!--Array Position: 7-->
+                        <button class="dice-up" type="button" onclick="dNumPlus(5, 1, 'd12')"> <span> Up </span> </button>
+                        <button class="dice-down" type="button" onclick="dNumTake(5, 1, 'd12')"> <span> Down </span></button>
+                        <button class="dice" type="button" onclick="resultRoll(5, 12)"> <span id="d12"> 1 </span><span> d12
+                            </span> </button>
+                    </div>
+                    <div class="dice-box">
+                        <!--Array Position: 7-->
+                        <button class="dice-up" type="button" onclick="dNumPlus(7, 1, 'd20')"> <span> Up </span> </button>
+                        <button class="dice-down" type="button" onclick="dNumTake(7, 1, 'd20')"> <span> Down </span></button>
+                        <button class="dice" type="button" onclick="resultRoll(7, 20)"> <span id="d20"> 1 </span><span> d20
+                            </span> </button>
+                    </div>
+                </div>
+
+                <div class="row" style="width: 16em">
+                    <div class="dice-box">
+                        <!--Array Position: 11-->
+                        <button class="dice-up" type="button" onclick="dNumPlus(11, 1, 'd100')"> <span> Up </span> </button>
+                        <button class="dice-down" type="button" onclick="dNumTake(11, 1, 'd100')"> <span> Down </span></button>
+                        <button class="dice" type="button" onclick="resultRoll(11, 100)"> <span id="d100"> 1 </span><span> d100
+                            </span> </button>
+                    </div>
+                    <div class="dice-box">
+                        <!--Array Position: 8-->
+                        <input class="dice-up" value="1" type="number" id="numDice">
+                        <input class="dice-down" value="4" type="number" id="diceMax">
+                        <button class="dice" type="button" onclick="resultRoll2()"> <span id="dother"> 自定 </span></button>
+                    </div>
+                </div>
+
+                <div style="width: 16em;text-align: center;margin-top: 0.5rem;" class="row">
+                    <button id="resultAll" type="button" onclick="ClearAll()"> <span> Clear all
+                        </span></button>
+                </div>
             </div>
-        </div>
 
-        <div class="row" style="width: 16em">
-            <div class="dice-box">
-                <!--Array Position: 4-->
-                <button class="dice-up" type="button" onclick="dNumPlus(3, 1, 'd8')"> <span> Up </span> </button>
-                <button class="dice-down" type="button" onclick="dNumTake(3, 1, 'd8')"> <span> Down </span></button>
-                <button class="dice" type="button" onclick="resultRoll(3, 8)"> <span id="d8"> 1 </span><span> d8
-                    </span> </button>
-            </div>
-            <div class="dice-box">
-                <!--Array Position: 4-->
-                <button class="dice-up" type="button" onclick="dNumPlus(4, 1, 'd10')"> <span> Up </span> </button>
-                <button class="dice-down" type="button" onclick="dNumTake(4, 1, 'd10')"> <span> Down </span></button>
-                <button class="dice" type="button" onclick="resultRoll(4, 10)"> <span id="d10"> 1 </span><span> d10
-                    </span> </button>
-            </div>
-
-
-
-        </div>
-
-        <div class="row" style="width: 16em">
-
-            <div class="dice-box">
-                <!--Array Position: 7-->
-                <button class="dice-up" type="button" onclick="dNumPlus(5, 1, 'd12')"> <span> Up </span> </button>
-                <button class="dice-down" type="button" onclick="dNumTake(5, 1, 'd12')"> <span> Down </span></button>
-                <button class="dice" type="button" onclick="resultRoll(5, 12)"> <span id="d12"> 1 </span><span> d12
-                    </span> </button>
-            </div>
-            <div class="dice-box">
-                <!--Array Position: 7-->
-                <button class="dice-up" type="button" onclick="dNumPlus(7, 1, 'd20')"> <span> Up </span> </button>
-                <button class="dice-down" type="button" onclick="dNumTake(7, 1, 'd20')"> <span> Down </span></button>
-                <button class="dice" type="button" onclick="resultRoll(7, 20)"> <span id="d20"> 1 </span><span> d20
-                    </span> </button>
-            </div>
-        </div>
-        <div class="row" style="width: 16em">
-            <div class="dice-box">
-                <!--Array Position: 11-->
-                <button class="dice-up" type="button" onclick="dNumPlus(11, 1, 'd100')"> <span> Up </span> </button>
-                <button class="dice-down" type="button" onclick="dNumTake(11, 1, 'd100')"> <span> Down </span></button>
-                <button class="dice" type="button" onclick="resultRoll(11, 100)"> <span id="d100"> 1 </span><span> d100
-                    </span> </button>
-            </div>
-            <div class="dice-box">
-                <!--Array Position: 8-->
-                <input class="dice-up" value=1 type="number" id="numDice"> <span> </span> </input>
-                <input class="dice-down" value=4 type="number" id="diceMax"> <span> </span></input>
-                <button class="dice" type="button" onclick="resultRoll2()"> <span id="dother"> 自定 </span>
-            </div>
-
-
-
-            <div style="width: 16em;text-align: center;" class="row">
-                <button style="width: 19em" id="resultAll" type="button" onclick="ClearAll()"> <span> Clear all
-                    </span></button>
-            </div>
-    </table>
-    <center>
-        <div class="footer-copyright" style=" margin: 2px;">©2020-2021 GNU HKTRPG -
-            <a href="https://www.patreon.com/HKTRPG" title="Support on Patreon">If you love it, buy me a tea</a> ☕
-    </center>
+            <footer class="app-footer site-footer roll-footer">
+                ©2020-2026 GNU HKTRPG -
+                <a href="https://www.patreon.com/HKTRPG" title="Support on Patreon">If you love it, buy me a tea</a> ☕
+            </footer>
+        </main>
     </div>
 </body>
 <!-- Global site tag (gtag.js) - Google Analytics -->

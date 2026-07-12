@@ -276,6 +276,16 @@ process.on('unhandledRejection', (reason) => {
 // Login to Discord with error handling to prevent restart loops
 let clientEventHandlersRegistered = false;
 let loginRetryTimer = null;
+let loginSuspendTimer = null;
+let loginAttempt = 0;
+let isLoginInProgress = false;
+/** Set false on shutdown so pending login retries never call client.login() after destroy. */
+let allowLoginRetries = true;
+
+/** Base delay for transient login retries (exponential backoff). */
+const LOGIN_RETRY_BASE_MS = 5000;
+/** Cap backoff so cluster can recover within hybrid-sharding ready timeout windows. */
+const LOGIN_RETRY_MAX_MS = 60_000;
 
 function parseSessionResetTimestamp(errorMessage = '') {
 	const match = String(errorMessage).match(/resets at ([0-9T:.+-]+Z?)/i);
@@ -292,81 +302,191 @@ function clearLoginRetryTimer() {
 	}
 }
 
-function scheduleLoginRetryByResetTime(resetAt) {
+function clearLoginSuspendTimer() {
+	if (loginSuspendTimer) {
+		clearInterval(loginSuspendTimer);
+		loginSuspendTimer = null;
+	}
+}
+
+/** Cancel pending login retries/suspend heartbeats (called from gracefulShutdown). */
+function abortLoginRetries() {
+	allowLoginRetries = false;
+	clearLoginRetryTimer();
+	clearLoginSuspendTimer();
+}
+
+/**
+ * Transient Discord/network failures that should be retried (e.g. gateway 502 during rolling restart).
+ * Permanent config errors (invalid token) must NOT match here.
+ */
+function isTransientLoginError(error) {
+	if (!error) return false;
+
+	const message = String(error.message || '');
+	const code = error.code;
+	const status = error.httpStatus ?? error.status;
+
+	if ([502, 503, 504, 520, 521, 522, 523, 524].includes(status)) return true;
+	if (typeof code === 'number' && [502, 503, 504].includes(code)) return true;
+
+	// Node network / TLS errors
+	if (typeof code === 'string' && [
+		'ECONNRESET', 'ECONNREFUSED', 'ETIMEDOUT', 'EAI_AGAIN', 'ENOTFOUND',
+		'EPIPE', 'EHOSTUNREACH', 'ENETUNREACH', 'UND_ERR_CONNECT_TIMEOUT',
+		'ECONNABORTED',
+	].includes(code)) return true;
+
+	// Match the exact failure from production: "Unexpected server response: 502"
+	if (/Unexpected server response:\s*(502|503|504|520|521|522|523|524)\b/i.test(message)) return true;
+	if (/socket hang up|temporarily unavailable|getaddrinfo|connect ETIMEDOUT|connect ECONNREFUSED/i.test(message)) return true;
+
+	return false;
+}
+
+function isPermanentLoginError(error) {
+	if (!error) return false;
+
+	const message = String(error.message || '');
+	const code = error.code;
+	const status = error.httpStatus ?? error.status;
+
+	if (status === 401) return true;
+	if (code === 'TokenInvalid' || code === 401) return true;
+	if (/invalid.?token|TOKEN_INVALID|An invalid token was provided/i.test(message)) return true;
+	if (/Used disallowed intents|DisallowedIntents/i.test(message)) return true;
+
+	return false;
+}
+
+function getLoginRetryDelayMs(attempt) {
+	const exp = Math.min(LOGIN_RETRY_BASE_MS * (2 ** Math.max(attempt - 1, 0)), LOGIN_RETRY_MAX_MS);
+	// Small jitter to avoid thundering herd when many clusters retry together
+	const jitter = Math.floor(Math.random() * 1000);
+	return exp + jitter;
+}
+
+function scheduleLoginRetry(delayMs, reason) {
+	if (!allowLoginRetries) return;
 	clearLoginRetryTimer();
 
+	const waitMs = Math.max(delayMs, 1000);
+	console.warn(`[Discord Bot] Login retry scheduled in ${waitMs}ms (${reason}), attempt=${loginAttempt}`);
+	loginRetryTimer = setTimeout(() => {
+		loginRetryTimer = null;
+		if (!allowLoginRetries) return;
+		void loginWithErrorHandling();
+	}, waitMs);
+}
+
+function scheduleLoginRetryByResetTime(resetAt) {
 	const now = Date.now();
 	const targetTime = resetAt instanceof Date ? resetAt.getTime() : now;
 	const delayMs = Math.max(targetTime - now + 2000, 5000);
+	scheduleLoginRetry(delayMs, `session limit resets at ${resetAt.toISOString()}`);
+}
 
-	console.warn('[Discord Bot] Session limit reached, auto-retry login at:', new Date(now + delayMs).toISOString());
-	loginRetryTimer = setTimeout(() => {
-		loginRetryTimer = null;
-		void loginWithErrorHandling();
-	}, delayMs);
+function suspendLoginPermanently(reason) {
+	clearLoginRetryTimer();
+	console.error('[Discord Bot] Login failed permanently - suspending execution to prevent restart loop');
+	console.error(`[Discord Bot] Reason: ${reason}`);
+	console.error('[Discord Bot] Process will remain alive but inactive until configuration is fixed / process restarted');
+
+	if (loginSuspendTimer || !allowLoginRetries) return;
+	loginSuspendTimer = setInterval(() => {
+		console.log(`[Discord Bot] Suspended due to permanent login failure: ${reason}`);
+	}, 60_000);
 }
 
 async function loginWithErrorHandling() {
-    // Register critical error handlers BEFORE login
-    if (!clientEventHandlersRegistered) {
-        client.on('error', (error) => {
-            console.error('[Discord Bot] Discord Client Error:', error.message);
-        });
+	if (!allowLoginRetries) {
+		return;
+	}
+	if (isLoginInProgress) {
+		console.warn('[Discord Bot] Login already in progress, skipping duplicate attempt');
+		return;
+	}
+	isLoginInProgress = true;
 
-        client.on('warn', (warning) => {
-            console.warn('[Discord Bot] Discord Client Warning:', warning);
-        });
+	// Register critical error handlers BEFORE login
+	if (!clientEventHandlersRegistered) {
+		client.on('error', (error) => {
+			console.error('[Discord Bot] Discord Client Error:', error.message);
+		});
 
-        client.on('shardError', (error, shardId) => {
-            console.error(`[Discord Bot] Shard ${shardId} Error:`, error.message);
-        });
+		client.on('warn', (warning) => {
+			console.warn('[Discord Bot] Discord Client Warning:', warning);
+		});
 
-        client.on('shardDisconnect', (event, shardId) => {
-            console.warn(`[Discord Bot] Shard ${shardId} Disconnected:`, event);
-        });
+		client.on('shardError', (error, shardId) => {
+			console.error(`[Discord Bot] Shard ${shardId} Error:`, error.message);
+		});
 
-        client.on('shardReconnecting', () => {
-            // Shard reconnecting - log removed
-        });
+		client.on('shardDisconnect', (event, shardId) => {
+			console.warn(`[Discord Bot] Shard ${shardId} Disconnected:`, event);
+		});
 
-        client.on('shardResume', () => {
-            // Shard resumed - log removed
-        });
+		client.on('shardReconnecting', () => {
+			// Shard reconnecting - log removed
+		});
 
-        clientEventHandlersRegistered = true;
-    }
+		client.on('shardResume', () => {
+			// Shard resumed - log removed
+		});
 
-    try {
-        clearLoginRetryTimer();
-        await client.login(channelSecret);
-        console.log('[Discord Bot] Successfully logged in to Discord');
-    } catch (error) {
-        console.error('[Discord Bot] Failed to login to Discord:', error.message);
-        console.error('[Discord Bot] Login error details:', {
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            status: error.httpStatus
-        });
+		clientEventHandlersRegistered = true;
+	}
 
-        const resetAt = parseSessionResetTimestamp(error.message);
-        if (resetAt) {
-            scheduleLoginRetryByResetTime(resetAt);
-            return;
-        }
+	try {
+		clearLoginRetryTimer();
+		loginAttempt += 1;
+		await client.login(channelSecret);
+		loginAttempt = 0;
+		console.log('[Discord Bot] Successfully logged in to Discord');
+	} catch (error) {
+		console.error('[Discord Bot] Failed to login to Discord:', error.message);
+		console.error('[Discord Bot] Login error details:', {
+			name: error.name,
+			message: error.message,
+			code: error.code,
+			status: error.httpStatus ?? error.status,
+			attempt: loginAttempt,
+		});
 
-        // If login fails (e.g., invalid token), suspend execution instead of exiting
-        // This prevents ClusterManager from respawning in a loop
-        console.error('[Discord Bot] Login failed - suspending execution to prevent restart loop');
-        console.error('[Discord Bot] Process will remain alive but inactive until configuration is fixed');
+		if (!allowLoginRetries) {
+			return;
+		}
 
-        // Suspend execution with periodic heartbeat to keep process alive
-        setInterval(() => {
-            console.log('[Discord Bot] Suspended due to login failure - check Discord token configuration');
-        }, 60_000); // Log every minute
+		const resetAt = parseSessionResetTimestamp(error.message);
+		if (resetAt) {
+			scheduleLoginRetryByResetTime(resetAt);
+			return;
+		}
 
-        return; // Don't proceed with bot initialization
-    }
+		// Transient gateway/network errors (e.g. 502 during rolling restart) - retry, do not suspend
+		if (isTransientLoginError(error) && !isPermanentLoginError(error)) {
+			const delayMs = getLoginRetryDelayMs(loginAttempt);
+			scheduleLoginRetry(delayMs, `transient: ${error.message}`);
+			return;
+		}
+
+		// Permanent config errors only - suspend to avoid ClusterManager restart loops
+		if (isPermanentLoginError(error)) {
+			suspendLoginPermanently(error.message || 'invalid Discord token / intents');
+			return;
+		}
+
+		// Unknown errors: retry a few times, then suspend (safer than hanging forever on bad config)
+		if (loginAttempt < 5) {
+			const delayMs = getLoginRetryDelayMs(loginAttempt);
+			scheduleLoginRetry(delayMs, `unknown error, retrying: ${error.message}`);
+			return;
+		}
+
+		suspendLoginPermanently(error.message || 'unknown login failure after retries');
+	} finally {
+		isLoginInProgress = false;
+	}
 }
 
 loginWithErrorHandling();
@@ -2097,6 +2217,8 @@ async function gracefulShutdown(signal = 'unknown', source = 'unknown', detail =
 		return;
 	}
 	isShuttingDown = true;
+	// Stop pending login retries before destroying the Discord client
+	abortLoginRetries();
 
 	const detailText = detail ? safeStringify(detail) : '{}';
 	console.log(`[Discord Bot] Starting graceful shutdown (signal: ${signal}, source: ${source}, detail: ${detailText})...`);

@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" class="app-shell-page">
 <head>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/app-shell.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="theme-color" content="#2f3136">
@@ -77,15 +78,23 @@
             background-color: #dc3545 !important;
             color: #ffffff !important;
         }
-        /* Override style.css so patreon page can scroll (style.css sets body overflow:hidden for chat layout) */
-        html, body {
-            overflow: auto !important;
-            min-height: 100%;
-            height: auto !important;
+        /* App shell: only middle scrolls; block pull-to-refresh like hkbus */
+        html.app-shell-page,
+        html.app-shell-page body {
+            overflow: hidden !important;
+            height: 100dvh !important;
+            max-height: 100dvh !important;
+            overscroll-behavior: none !important;
+            overscroll-behavior-y: none !important;
+            touch-action: manipulation;
         }
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        .app-main .patreon-page-wrap {
             padding-top: 1rem;
             padding-bottom: 2rem;
         }
@@ -172,13 +181,16 @@
         }
     </style>
 </head>
-<body>
-    <!-- Header -->
-    <div id="header"></div>
+<body class="app-shell-page">
+    <div class="app-shell">
+        <header class="app-header">
+            <div id="header"></div>
+        </header>
 
-    <div class="container-fluid px-3 px-md-4 py-3 patreon-page-wrap">
-        <h1 class="h4 mb-3">Patreon 會員管理</h1>
-        <p class="text-muted small">輸入管理員提供的 KEY 以查看狀態與管理分配名額。</p>
+        <main class="app-main">
+            <div class="container-fluid px-3 px-md-4 py-3 patreon-page-wrap">
+                <h1 class="h4 mb-3">Patreon 會員管理</h1>
+                <p class="text-muted small">輸入管理員提供的 KEY 以查看狀態與管理分配名額。</p>
         <div class="alert alert-info py-2 px-3 small mb-3" role="alert">
             <div class="mb-1"><strong>為什麼加入 HKTRPG Patreon？</strong></div>
             <div>• 可提升你的群組/帳號為 VIP，解鎖更高功能上限（關鍵字、角色卡、定時訊息、TRPG 扮演發言等）。</div>
@@ -253,6 +265,12 @@
             <button type="button" id="btnSaveSlots" class="btn btn-primary">儲存名額</button>
             <div id="saveResult" class="mt-2 small"></div>
         </div>
+
+                <footer class="app-footer site-footer">
+                    <div id="footer"></div>
+                </footer>
+            </div>
+        </main>
     </div>
 
     <!-- Modal: 權限已關閉 -->
@@ -297,9 +315,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Footer -->
-    <div id="footer"></div>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>

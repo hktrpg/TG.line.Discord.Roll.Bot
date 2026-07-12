@@ -1,0 +1,91 @@
+/**
+ * App shell layout (hkbus-style)
+ * Viewport locked; only .app-main scrolls.
+ * overscroll-behavior prevents mobile pull-to-refresh.
+ *
+ * Structure:
+ * <div class="app-shell">
+ *   <header class="app-header">...</header>  <!-- or #header -->
+ *   <main class="app-main">...</main>
+ *   <footer class="app-footer">...</footer>  <!-- or #footer -->
+ * </div>
+ */
+
+html.app-shell-page,
+html.app-shell-page body {
+    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    margin: 0;
+    /* Block browser pull-to-refresh / scroll chaining */
+    overscroll-behavior: none;
+    overscroll-behavior-y: none;
+    touch-action: manipulation;
+}
+
+body.app-shell-page,
+html.app-shell-page body {
+    display: flex;
+    flex-direction: column;
+}
+
+.app-shell {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    min-height: 0;
+    overscroll-behavior: none;
+}
+
+.app-shell > .app-header,
+.app-shell > header,
+.app-shell > #header {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 100;
+}
+
+.app-shell > .app-main {
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    /* Keep overscroll inside middle; do not chain to page refresh */
+    overscroll-behavior: contain;
+    overscroll-behavior-y: contain;
+}
+
+.app-shell > .app-footer,
+.app-shell > footer,
+.app-shell > #footer {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 100;
+}
+
+/* Footer inside scroll area: visible when user scrolls to the end */
+.app-main > .app-footer,
+.app-main > footer,
+.app-main > #footer,
+.app-main .site-footer {
+    flex: 0 0 auto;
+    margin-top: 1.5rem;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Legacy: if a page still pins footer as shell sibling, hide that pin on mobile
+   (in-scroll .site-footer remains visible) */
+@media (max-width: 768px) {
+    .app-shell > .app-footer:not(.site-footer),
+    .app-shell > footer:not(.site-footer),
+    .app-shell > #footer:not(.site-footer) {
+        display: none;
+    }
+}

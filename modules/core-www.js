@@ -89,6 +89,8 @@ const rateLimitConfig = {
     card: { points: 300, duration: 60 }, // Increased from 120 to 300 for better testing experience
     cardRead: { points: 500, duration: 60 }, // Separate limit for read operations (public cards, list info)
     api: { points: 10_000, duration: 10 },
+    // Bus speak/shortcut hit external KMB API — keep much tighter than generic api
+    busSpeak: { points: 60, duration: 60 },
     patreon: { points: 30, duration: 60 }  // Stricter for key-based endpoints
 };
 
@@ -909,20 +911,20 @@ www.get('/busstop', async (req, res) => {
  * Multi:  ?stop=&routes=251A:1:O,64K:1:I  or 251A:1:O:STOPID (BBI bay)
  */
 www.get('/busstop/speak', async (req, res) => {
-    if (await checkRateLimit('api', req.ip)) {
+    if (await checkRateLimit('busSpeak', req.ip)) {
         res.status(429).end();
         return;
     }
 
-    const stop = String(req.query.stop || '').trim();
+    const stop = sanitizeBusStopId(req.query.stop);
     const multiRoutes = parseBusSpeakRoutesParam(req.query.routes);
     const route = sanitizeBusRouteToken(req.query.route);
-    const serviceType = String(req.query.service_type || req.query.direction || '1').trim();
-    const bound = String(req.query.bound || '').trim().toUpperCase();
+    const serviceType = sanitizeBusServiceType(req.query.service_type || req.query.direction);
+    const bound = sanitizeBusBound(req.query.bound);
 
     if (!stop || (multiRoutes.length === 0 && !route)) {
         res.status(400).type('text/plain; charset=utf-8')
-            .send('錯誤：缺少 stop，以及 route 或 routes 參數');
+            .send('錯誤：缺少有效的 stop，以及 route 或 routes 參數');
         return;
     }
     if (route && !isValidBusRouteToken(route)) {
@@ -931,9 +933,16 @@ www.get('/busstop/speak', async (req, res) => {
         return;
     }
 
+    res.set('Cache-Control', 'no-store');
+
     try {
         if (multiRoutes.length > 0) {
-            const text = await buildMultiRouteSpeakText(stop, multiRoutes);
+            const text = await Promise.race([
+                buildMultiRouteSpeakText(stop, multiRoutes),
+                new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('bus speak upstream timeout')), BUS_SPEAK_WALL_MS);
+                })
+            ]);
             res.type('text/plain; charset=utf-8').send(text);
             return;
         }
@@ -964,15 +973,15 @@ www.get('/busstop/speak', async (req, res) => {
  * Used by: shortcuts://import-shortcut?url=https://.../busstop/shortcut?...
  */
 www.get('/busstop/shortcut', async (req, res) => {
-    if (await checkRateLimit('api', req.ip)) {
+    if (await checkRateLimit('busSpeak', req.ip)) {
         res.status(429).end();
         return;
     }
 
     const route = sanitizeBusRouteToken(req.query.route);
-    const stop = String(req.query.stop || '').trim();
-    const serviceType = String(req.query.service_type || req.query.direction || '1').trim();
-    const bound = String(req.query.bound || '').trim().toUpperCase();
+    const stop = sanitizeBusStopId(req.query.stop);
+    const serviceType = sanitizeBusServiceType(req.query.service_type || req.query.direction);
+    const bound = sanitizeBusBound(req.query.bound);
     const multiRoutes = parseBusSpeakRoutesParam(req.query.routes);
     // Keep shortcut name ASCII-only for iOS import-shortcut URL compatibility
     const defaultName = multiRoutes.length > 0
@@ -983,7 +992,7 @@ www.get('/busstop/shortcut', async (req, res) => {
 
     if (!stop || (multiRoutes.length === 0 && !route)) {
         res.status(400).type('text/plain; charset=utf-8')
-            .send('錯誤：缺少 stop，以及 route 或 routes 參數');
+            .send('錯誤：缺少有效的 stop，以及 route 或 routes 參數');
         return;
     }
     if (route && !isValidBusRouteToken(route)) {
@@ -993,10 +1002,9 @@ www.get('/busstop/shortcut', async (req, res) => {
     }
 
     try {
-        // Behind Cloudflare Tunnel, prefer public https host from forwarded headers.
-        const proto = String(req.get('x-forwarded-proto') || 'https').split(',')[0].trim() || 'https';
-        const host = String(req.get('x-forwarded-host') || req.get('host') || 'bus.hktrpg.com').split(',')[0].trim();
-        const speakUrl = new URL('/busstop/speak', `${proto}://${host}`);
+        // Never trust raw Host / X-Forwarded-* for URLs embedded in downloadable shortcuts
+        // (host-header poisoning would make the shortcut fetch an attacker URL).
+        const speakUrl = new URL('/busstop/speak', resolveBusPublicOrigin(req));
         speakUrl.searchParams.set('stop', stop);
         if (multiRoutes.length > 0) {
             speakUrl.searchParams.set(
@@ -1053,18 +1061,80 @@ function isValidBusRouteToken(route) {
     return /^[A-Z0-9][A-Z0-9-]{0,9}$/.test(route);
 }
 
+/** KMB/LWB stop IDs are alphanumeric (typically 16-char hex-like). */
+function sanitizeBusStopId(raw) {
+    const stop = String(raw || '').trim();
+    return /^[A-Za-z0-9]{1,32}$/.test(stop) ? stop : '';
+}
+
+function sanitizeBusServiceType(raw) {
+    const value = String(raw || '1').trim();
+    return /^\d{1,3}$/.test(value) ? value : '1';
+}
+
+function sanitizeBusBound(raw) {
+    const bound = String(raw || '').trim().toUpperCase();
+    return bound === 'O' || bound === 'I' ? bound : '';
+}
+
+/**
+ * Public origin embedded into downloadable iOS shortcuts.
+ * Prefer BUS_PUBLIC_ORIGIN (https + allowlisted host only); never trust raw X-Forwarded-Host alone.
+ */
+function getBusAllowedPublicHosts() {
+    return new Set([
+        ...exportHtmlRedirectHosts,
+        'bus.hktrpg.com',
+        'www.hktrpg.com',
+        'hktrpg.com'
+    ]);
+}
+
+function resolveBusPublicOrigin(req) {
+    const allowedHosts = getBusAllowedPublicHosts();
+    const configured = String(process.env.BUS_PUBLIC_ORIGIN || '').trim();
+    if (configured) {
+        try {
+            const url = new URL(configured);
+            const hostname = String(url.hostname || '').toLowerCase();
+            if (url.protocol === 'https:' && hostname && allowedHosts.has(hostname)) {
+                return `https://${url.host}`;
+            }
+            console.warn('[busstop/shortcut] BUS_PUBLIC_ORIGIN rejected (need https + allowlisted host):', configured);
+        } catch {
+            console.warn('[busstop/shortcut] Invalid BUS_PUBLIC_ORIGIN, falling back to allowlist');
+        }
+    }
+
+    const forwardedHost = String(req.get('x-forwarded-host') || req.get('host') || '')
+        .split(',')[0]
+        .trim()
+        .toLowerCase();
+    const hostname = forwardedHost.split(':')[0];
+    if (hostname && allowedHosts.has(hostname)) {
+        return `https://${forwardedHost}`;
+    }
+
+    return 'https://bus.hktrpg.com';
+}
+
+const BUS_SPEAK_MAX_ROUTES = 8;
+const BUS_SPEAK_WALL_MS = 12_000;
+const BUS_API_MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
+
 /** Parse routes=251A:1:O,64K:1:I or 251A:1:O:STOPID */
 function parseBusSpeakRoutesParam(raw) {
     return String(raw || '')
         .split(',')
         .map(part => part.trim())
         .filter(Boolean)
+        .slice(0, BUS_SPEAK_MAX_ROUTES)
         .map((part) => {
             const [routeRaw, serviceRaw = '1', dirRaw = '', stopRaw = ''] = part.split(':');
             const route = sanitizeBusRouteToken(routeRaw);
-            const service_type = String(serviceRaw || '1').trim() || '1';
-            const dir = String(dirRaw || '').trim().toUpperCase();
-            const stopId = String(stopRaw || '').trim();
+            const service_type = sanitizeBusServiceType(serviceRaw);
+            const dir = sanitizeBusBound(dirRaw);
+            const stopId = sanitizeBusStopId(stopRaw);
             if (!route || !isValidBusRouteToken(route)) return null;
             return {
                 route,
@@ -1215,6 +1285,22 @@ async function buildMultiRouteSpeakText(stop, wantedRoutes) {
 
 function fetchJsonOverHttps(url) {
     return new Promise((resolve, reject) => {
+        let parsed;
+        try {
+            parsed = new URL(url);
+        } catch (error) {
+            reject(error);
+            return;
+        }
+        if (parsed.protocol !== 'https:') {
+            reject(new Error('Only HTTPS upstream is allowed'));
+            return;
+        }
+        if (parsed.hostname !== 'data.etabus.gov.hk') {
+            reject(new Error('Unexpected upstream host'));
+            return;
+        }
+
         const request = https.get(url, {
             headers: {
                 Accept: 'application/json',
@@ -1228,7 +1314,15 @@ function fetchJsonOverHttps(url) {
                 return;
             }
             const chunks = [];
-            response.on('data', chunk => chunks.push(chunk));
+            let total = 0;
+            response.on('data', (chunk) => {
+                total += chunk.length;
+                if (total > BUS_API_MAX_RESPONSE_BYTES) {
+                    request.destroy(new Error('KMB API response too large'));
+                    return;
+                }
+                chunks.push(chunk);
+            });
             response.on('end', () => {
                 try {
                     resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')));

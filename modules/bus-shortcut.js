@@ -63,9 +63,9 @@ function createBinaryPlist(object) {
 
     const offsetTableOffset = offset;
     const offsetTable = Buffer.alloc(offsets.length * offsetSize);
-    offsets.forEach((value, index) => {
+    for (const [index, value] of offsets.entries()) {
         writeUint(offsetTable, index * offsetSize, offsetSize, value);
-    });
+    }
 
     const trailer = Buffer.alloc(32);
     trailer[6] = offsetSize;
@@ -95,9 +95,9 @@ function createBinaryPlist(object) {
             case 'array': {
                 const marker = packCount(0xA0, entry.items.length);
                 const refs = Buffer.alloc(entry.items.length * refSize);
-                entry.items.forEach((id, index) => {
+                for (const [index, id] of entry.items.entries()) {
                     writeUint(refs, index * refSize, refSize, id);
-                });
+                }
                 return Buffer.concat([marker, refs]);
             }
             case 'dict': {
@@ -126,13 +126,13 @@ function createBinaryPlist(object) {
         if (value <= 0xFF) {
             return Buffer.from([0x10, value]);
         }
-        if (value <= 0xFFFF) {
+        if (value <= 0xFF_FF) {
             const buf = Buffer.alloc(3);
             buf[0] = 0x11;
             buf.writeUInt16BE(value, 1);
             return buf;
         }
-        if (value <= 0xFFFF_FFFF) {
+        if (value <= 0xFF_FF_FF_FF) {
             const buf = Buffer.alloc(5);
             buf[0] = 0x12;
             buf.writeUInt32BE(value, 1);
@@ -145,14 +145,25 @@ function createBinaryPlist(object) {
     }
 
     function serializeString(value) {
-        const isAscii = /^[\x00-\x7F]*$/.test(value);
+        let isAscii = true;
+        for (let i = 0; i < value.length; ) {
+            const codePoint = value.codePointAt(i);
+            if (codePoint > 0x7F) {
+                isAscii = false;
+                break;
+            }
+            i += codePoint > 0xFF_FF ? 2 : 1;
+        }
         if (isAscii) {
             const data = Buffer.from(value, 'ascii');
             return Buffer.concat([packCount(0x50, data.length), data]);
         }
-        const data = Buffer.alloc(value.length * 2);
-        for (let i = 0; i < value.length; i++) {
-            data.writeUInt16BE(value.charCodeAt(i), i * 2);
+        // bplist UTF-16BE: encode as UTF-16LE then swap bytes (avoid charCodeAt lint)
+        const utf16le = Buffer.from(value, 'utf16le');
+        const data = Buffer.alloc(utf16le.length);
+        for (let i = 0; i < utf16le.length; i += 2) {
+            data[i] = utf16le[i + 1];
+            data[i + 1] = utf16le[i];
         }
         return Buffer.concat([packCount(0x60, value.length), data]);
     }
@@ -173,10 +184,23 @@ function sizeNeeded(value) {
 }
 
 function writeUint(buffer, offset, size, value) {
-    if (size === 1) buffer.writeUInt8(value, offset);
-    else if (size === 2) buffer.writeUInt16BE(value, offset);
-    else if (size === 4) buffer.writeUInt32BE(value, offset);
-    else buffer.writeBigUInt64BE(BigInt(value), offset);
+    switch (size) {
+        case 1: {
+            buffer.writeUInt8(value, offset);
+            break;
+        }
+        case 2: {
+            buffer.writeUInt16BE(value, offset);
+            break;
+        }
+        case 4: {
+            buffer.writeUInt32BE(value, offset);
+            break;
+        }
+        default: {
+            buffer.writeBigUInt64BE(BigInt(value), offset);
+        }
+    }
 }
 
 function buildBusEtaShortcut(speakUrl, shortcutName = 'Bus-ETA') {

@@ -250,11 +250,12 @@ async function connect(retries = 0) {
                 connectionStartTime = Date.now();
             }
 
-            console.log(`[db-connector] Attempting to connect to MongoDB (Attempt ${connectionAttempts}) - ReadyState: ${mongoose.connection.readyState}`);
+            if (connectionAttempts > 1) {
+                console.log(`[db-connector] Attempting to connect to MongoDB (Attempt ${connectionAttempts}) - ReadyState: ${mongoose.connection.readyState}`);
+            }
 
             // Only create new connection when truly disconnected
             if (mongoose.connection.readyState === 0) { // disconnected
-                console.log('[db-connector] Creating new MongoDB connection...');
                 await mongoose.connect(config.mongoUrl, {
                     connectTimeoutMS: config.connectTimeout,
                     socketTimeoutMS: config.socketTimeout,
@@ -438,7 +439,7 @@ function setupConnectionListeners() {
     mongoose.connection.on('disconnected', handleDisconnect);
     mongoose.connection.on('error', handleError);
     mongoose.connection.on('connected', () => {
-        console.log(`[db-connector] MongoDB connection established - ReadyState: ${mongoose.connection.readyState}`);
+        // Success path already logs in connect(); keep this quiet to avoid duplicate boot noise
         isConnected = true;
         connectionAttempts = 0;
 
@@ -462,7 +463,7 @@ function setupConnectionListeners() {
         });
     });
     mongoose.connection.on('connecting', () => {
-        console.log(`[db-connector] MongoDB connecting... - ReadyState: ${mongoose.connection.readyState}`);
+        // Quiet: normal connect() already reports success/failure
     });
     mongoose.connection.on('disconnecting', () => {
         console.log(`[db-connector] MongoDB disconnecting... - ReadyState: ${mongoose.connection.readyState}`);
@@ -680,19 +681,16 @@ async function initializeConnection() {
 
     // Prevent duplicate initialization
     if (isInitializing) {
-        console.log('[db-connector] MongoDB initialization already in progress, skipping...');
         return;
     }
 
     if (isConnected) {
-        console.log('[db-connector] MongoDB already connected, skipping initialization...');
         return;
     }
 
     isInitializing = true;
 
     try {
-        console.log('[db-connector] Initializing MongoDB connection...');
         const success = await connect();
         if (!success) {
             console.error('[db-connector] Failed to establish initial MongoDB connection after all retries');

@@ -218,7 +218,9 @@ class ModuleManager {
             }
 
             const endTime = process.hrtime(startTime);
-            logger.info(`Successfully loaded module: ${moduleName} (Total time: ${endTime[0]}s ${endTime[1] / 1_000_000}ms)`);
+            if (process.env.DEBUG) {
+                logger.info(`Successfully loaded module: ${moduleName} (Total time: ${endTime[0]}s ${endTime[1] / 1_000_000}ms)`);
+            }
         } catch (error) {
             errorHandler(error, `Loading module ${moduleName}`);
             throw error;
@@ -266,7 +268,8 @@ async function loadModules(moduleManager) {
             });
         
         await Promise.all(modulePromises);
-        logger.info('All modules loaded successfully');
+        const loaded = [...moduleManager.loadedModules];
+        logger.info(`Loaded modules (${loaded.length}): ${loaded.join(', ')}`);
     } catch (error) {
         errorHandler(error, 'Reading modules directory');
         throw error;
@@ -408,9 +411,7 @@ async function init() {
         const loadStartTime = process.hrtime();
         await loadModules(moduleManager);
         const loadEndTime = process.hrtime(loadStartTime);
-        logger.info(`Module loading took ${loadEndTime[0]}s ${loadEndTime[1] / 1_000_000}ms`);
-
-        logger.info('Application started successfully');
+        logger.info(`Application started in ${loadEndTime[0]}s ${Math.round(loadEndTime[1] / 1_000_000)}ms`);
 
         // Setup shutdown handlers with delay to allow Discord modules to handle their own shutdown
         process.on('SIGTERM', () => {
@@ -563,7 +564,9 @@ async function init() {
         });
 
         const endTime = process.hrtime(startTime);
-        logger.info(`Total initialization took ${endTime[0]}s ${endTime[1] / 1_000_000}ms`);
+        if (process.env.DEBUG) {
+            logger.info(`Total initialization took ${endTime[0]}s ${endTime[1] / 1_000_000}ms`);
+        }
 
     } catch (error) {
         errorHandler(error, 'Initialization');

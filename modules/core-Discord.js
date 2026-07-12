@@ -654,6 +654,11 @@ if (agenda) {
     agenda.define('dailyDiscordMaintenance', async () => {
         if (isShuttingDown) return;
 
+        // Missed runs while offline are rescheduled by schedule.js; still ignore accidental early fires.
+        if (process.uptime() < 180) {
+            return;
+        }
+
         const timestamp = new Date().toISOString();
         const stack = new Error('Daily maintenance stack trace').stack;
         const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';

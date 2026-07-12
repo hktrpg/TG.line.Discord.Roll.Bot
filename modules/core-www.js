@@ -149,7 +149,6 @@ function createWebServer(options = {}, www) {
         : http.createServer(www);
 
     const protocol = options.key ? 'https' : 'http';
-    console.log(`[www]${protocol} server`);
     // Ensure malformed requests/sockets are closed and not left hanging
     // to avoid double-emitted socket errors from Node's http(s) server.
     server.on('clientError', (err, socket) => {
@@ -2443,7 +2442,11 @@ if (isMaster) {
     wss.on('connection', function connection(ws) {
         ws.on('message', function incoming(message) {
             try {
-                console.log('[www] received: %s', message);
+                const text = String(message);
+                // Routine shard handshake is noisy on every cluster boot
+                if (!text.startsWith('connected To core-www')) {
+                    console.log('[www] received: %s', text);
+                }
             } catch (error) {
                 console.error('[Web Server] WebSocket message error:', error);
             }

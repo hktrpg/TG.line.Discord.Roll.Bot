@@ -1,5 +1,6 @@
 "use strict";
 
+const i18n = require('../modules/i18n.js');
 const funny = require('../roll/1-funny');
 const rollbase = require('../roll/rollbase');
 
@@ -10,6 +11,10 @@ jest.mock('../roll/rollbase', () => ({
 }));
 
 describe('Funny Module Tests', () => {
+    beforeAll(async () => {
+        await i18n.init();
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
     });

@@ -2,10 +2,11 @@
 if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
-const gameName = function () {
-    return '【要求擲骰/點擊功能】'
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'request_rolling.game_name', '【要求擲骰/點擊功能】');
 }
 
 const gameType = function () {
@@ -17,33 +18,8 @@ const prefixs = function () {
         second: null
     }]
 }
-const getHelpMessage = function () {
-    return `【🎲Discord互動功能】
-╭────── 🎯要求擲骰/點擊 ──────
-│ 指令格式:
-│ 　• .re [選項1], [選項2], ...
-│
-├────── 📋選項格式 ──────
-│ • 擲骰選項:
-│ 　- [x]d[y] [描述]
-│ 　  例: 1d100 哈哈
-│ 　      1d3 SC成功
-│ 　      1d10 SC失敗
-│
-│ • 純文字選項:
-│ 　- [文字]
-│ 　  例: 簽到
-│
-├────── 💡使用說明 ──────
-│ • 僅限Discord使用
-│ • 多個選項用逗號分隔
-│ • 系統會自動生成按鈕
-│ • 其他用戶可點擊參與
-│
-├────── 📝範例指令 ──────
- .re 1d100 哈哈, 1d3 SC成功,
-     1d10 SC失敗, 簽到
-╰──────────────`
+const getHelpMessage = function (params = {}) {
+    return resolveHelp(params, 'request_rolling.help', () => getT({ locale: 'zh-tw' })('request_rolling.help'));
 }
 const initialize = function () {
     return variables;
@@ -51,8 +27,11 @@ const initialize = function () {
 
 const rollDiceCommand = async function ({
     inputStr,
-    mainMsg
+    mainMsg,
+    locale,
+    t
 }) {
+    const i18nParams = { locale, t };
     let rply = {
         default: 'on',
         type: 'text',
@@ -60,7 +39,7 @@ const rollDiceCommand = async function ({
     };
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
-            rply.text = this.getHelpMessage();
+            rply.text = getHelpMessage(i18nParams);
             rply.quotes = true;
             return rply;
         }

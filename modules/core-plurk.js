@@ -6,6 +6,7 @@ let plurkID = '';
 const { PlurkClient } = require('plurk2');
 const EXPUP = require('./level').EXPUP || function () {};
 const courtMessage = require('./logs').courtMessage || function () {};
+const i18n = require('./i18n.js');
 const SIX_MINUTES = 360_000;
 const MESSAGE_SPLITOR = (/\S+/ig);
 const Plurk_Client = new PlurkClient(process.env.PLURK_APPKEY, process.env.PLURK_APPSECRET, process.env.PLURK_TOKENKEY, process.env.PLURK_TOKENSECRET);
@@ -227,7 +228,8 @@ async function sendMessage(response, rplyVal) {
 async function nonDice(groupid, userid, displayname, plurk_id) {
     await courtMessage({ result: "", botname: "Plurk", inputStr: "" })
     if (!groupid || !userid) return;
-    let LevelUp = await EXPUP(groupid, userid, displayname, "", null);
+    const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Plurk' });
+    let LevelUp = await EXPUP(groupid, userid, displayname, "", null, "", null, locale);
     if (groupid && LevelUp && LevelUp.text) {
         await sendMessage(plurk_id, LevelUp.text);
     }

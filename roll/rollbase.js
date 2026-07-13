@@ -8,6 +8,8 @@ const { DiceRoll } = require('@dice-roller/rpg-dice-roller');
 const random = new Random(nodeCrypto);
 const { SlashCommandBuilder } = require('discord.js');
 const { MessageFlags } = require('discord.js');
+const i18n = require('../modules/i18n.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 
 // 常數定義區塊
 const DICE_LIMITS = {
@@ -21,12 +23,24 @@ const DICE_LIMITS = {
   MAX_DISPLAY_LENGTH: 250      // 最大顯示長度
 };
 
-// 錯誤訊息常數
-const ERROR_MESSAGES = {
-  DICE_COUNT_LIMIT: `不支援${DICE_LIMITS.MIN_DICE_COUNT - 1}顆以下及${DICE_LIMITS.MAX_DICE_COUNT}顆以上骰子`,
-  DICE_SIDES_LIMIT: `不支援${DICE_LIMITS.MIN_DICE_SIDES - 1}以下及${DICE_LIMITS.MAX_DICE_SIDES}以上面數`,
-  DISPLAY_LIMIT: '（計算過程太長，僅顯示結果）'
-};
+// Error message keys — resolved via getErrorMessages(t)
+function getErrorMessages(t) {
+  const translate = t || i18n.createTranslator(i18n.DEFAULT_LOCALE);
+  return {
+    DICE_COUNT_LIMIT: translate('rollbase.errors.dice_count_limit', {
+      below: DICE_LIMITS.MIN_DICE_COUNT - 1,
+      above: DICE_LIMITS.MAX_DICE_COUNT
+    }),
+    DICE_SIDES_LIMIT: translate('rollbase.errors.dice_sides_limit', {
+      below: DICE_LIMITS.MIN_DICE_SIDES - 1,
+      above: DICE_LIMITS.MAX_DICE_SIDES
+    }),
+    DISPLAY_LIMIT: translate('rollbase.errors.display_limit'),
+    MAX_ROLL_TIMES: translate('rollbase.errors.max_roll_times', {
+      max: DICE_LIMITS.MAX_ROLL_TIMES
+    })
+  };
+}
 
 // 骰子表達式定義
 const DICE_REGEX = {
@@ -67,8 +81,8 @@ const variables = {};
  * 回傳遊戲名稱
  * @returns {string} 遊戲名稱
  */
-const gameName = function () {
-  return '【基本擲骰】.z xDy kl dh'
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'rollbase.game_name', '【基本擲骰】.z xDy kl dh');
 }
 
 /**
@@ -183,43 +197,10 @@ const prefixs = function () {
 }
 
 ///^(?=.*he)(?!.*da).*$/ig
-const getHelpMessage = function () {
-  // 使用函數而非樣板字符串，確保每次調用都會獲取最新的常數值
-  const helpText = `【🎲基本擲骰系統】
-╭────── 🎯基本格式 ──────
-│ • [骰子]d[面數][運算符][數值]
-│ • 可在指令後方空格加入描述文字
-│
-├────── 🔢進階運算 ──────
-│ 數學運算:
-│ 　• 支援 + - * / ( )
-│ 　• 支援 > < >= <=
-│ 　例: ((2d6+1)*2)-5/2>=10
-│
-├────── ✨特殊擲骰 ──────
-│ 多次擲骰:
-│ 　• [次數] [擲骰指令]
-│ 　• 最多${DICE_LIMITS.MAX_ROLL_TIMES}次
-│ 　例: 5 3D6
-│
-│ 保留/放棄骰值:
-│ 　• kh[N] - 保留最高N個
-│ 　• kl[N] - 保留最低N個
-│ 　• dh[N] - 放棄最高N個
-│ 　• dl[N] - 放棄最低N個
-│
-├────── 📝範例指令 ──────
-│ • (2d6+1)*2 攻撃！
-│ 　結果：(10[5+5]+1)2 = 22
-│
-│ • 3d6kh1
-│ 　保留最高1顆
-│
-│ • 3d6dl2
-│ 　放棄最低2顆
-╰──────────────`;
-
-  return helpText;
+const getHelpMessage = function (params = {}) {
+  return resolveHelp(params, 'rollbase.help', () => getT({ locale: 'zh-tw' })('rollbase.help', {
+    max_roll_times: DICE_LIMITS.MAX_ROLL_TIMES
+  }));
 }
 
 /**
@@ -239,8 +220,12 @@ const initialize = function () {
  */
 const rollDiceCommand = function ({
   mainMsg,
-  inputStr
+  inputStr,
+  locale,
+  t
 }) {
+  const resolvedLocale = locale || i18n.DEFAULT_LOCALE;
+  const translate = t || i18n.createTranslator(resolvedLocale);
   let reply = {
     default: 'on',
     type: 'text',
@@ -254,7 +239,7 @@ const rollDiceCommand = function ({
           reply.text = roll.output;
         } catch (error) {
           reply.text += `${error.name}  \n ${error.message}`;
-          reply.text += `\n 擲骰說明 https://dice-roller.github.io/documentation/guide/notation/dice.html#standard-d-n`
+          reply.text += `\n ${translate('rollbase.errors.rr_error_footer')}`;
         }
 
         return reply;
@@ -262,7 +247,7 @@ const rollDiceCommand = function ({
 
     default:
       try {
-        reply.text = nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2]);
+        reply.text = nomalDiceRoller(mainMsg[0], mainMsg[1], mainMsg[2], resolvedLocale);
         return reply;
       } catch {
         return reply;
@@ -470,7 +455,9 @@ const BuildRollDice = function (inputStr) {
  * @param {string} text2 - 第三參數，通常是描述文字
  * @returns {string} 擲骰結果字串
  */
-const nomalDiceRoller = function (text0, text1, text2) {
+const nomalDiceRoller = function (text0, text1, text2, locale = i18n.DEFAULT_LOCALE) {
+  const translate = i18n.createTranslator(locale);
+  const ERROR_MESSAGES = getErrorMessages(translate);
   // 參數預處理
   const command = text0.toLowerCase();
 
@@ -498,15 +485,19 @@ const nomalDiceRoller = function (text0, text1, text2) {
 
     // 超過上限檢查
     if (rollCount > DICE_LIMITS.MAX_ROLL_TIMES) {
-      return `超過最大擲骰次數 (${DICE_LIMITS.MAX_ROLL_TIMES})`;
+      return ERROR_MESSAGES.MAX_ROLL_TIMES;
     }
 
     const description = text2 ? ` ${text2}` : '';
-    finalString = `${command}次擲骰：\n${text1}${description}\n`;
+    finalString = translate('rollbase.multi_roll_header', {
+      count: command,
+      notation: text1,
+      description
+    });
 
     // 使用 Array.from 替代循環效率更高
     const results = Array.from({ length: rollCount }, (_, i) => {
-      const answer = oneTimeRoll(text1);
+      const answer = oneTimeRoll(text1, locale);
       return answer ? `${i + 1}# ${answer}` : null;
     });
 
@@ -521,7 +512,7 @@ const nomalDiceRoller = function (text0, text1, text2) {
     const description = text1 ? ` ${text1}` : '';
     finalString = `${command}：${description}\n`;
 
-    const answer = oneTimeRoll(command);
+    const answer = oneTimeRoll(command, locale);
     if (!answer) return;
 
     finalString += answer;
@@ -536,7 +527,8 @@ const nomalDiceRoller = function (text0, text1, text2) {
  * @param {string} text0 - 骰子表達式
  * @returns {string} 擲骰結果字串，或空字串（錯誤）
  */
-function oneTimeRoll(text0) {
+function oneTimeRoll(text0, locale = i18n.DEFAULT_LOCALE) {
+  const ERROR_MESSAGES = getErrorMessages(i18n.createTranslator(locale));
   try {
     // 避免重複轉換
     const input = text0.toString();
@@ -612,12 +604,13 @@ const discordCommand = [
           .setRequired(true)),
     async execute(interaction) {
       const notation = interaction.options.getString('notation');
+      const t = interaction._hktrpgT || i18n.createTranslator(i18n.DEFAULT_LOCALE);
       try {
         const roll = new DiceRoll(notation);
         await interaction.reply(roll.output);
       } catch (error) {
         await interaction.reply({
-          content: `${error.name}\n${error.message}\n擲骰說明 https://dice-roller.github.io/documentation/guide/notation/dice.html#standard-d-n`,
+          content: `${error.name}\n${error.message}\n${t('rollbase.errors.rr_error_footer')}`,
           flags: MessageFlags.Ephemeral
         });
       }

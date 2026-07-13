@@ -7,10 +7,11 @@ const { PermissionsBitField } = require('discord.js');
 const VIP = require('../modules/veryImportantPerson');
 const schema = require('../modules/schema')
 const multiServer = require('../modules/multi-server')
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 const rollbase = require('./rollbase.js');
 const FUNCTION_LIMIT = [0, 1, 1, 1, 1, 1, 1, 1];
-const gameName = function () {
-    return '【同步聊天】.chatroom'
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'chatroom.game_name', '【同步聊天】.chatroom');
 }
 
 const gameType = function () {
@@ -26,11 +27,8 @@ const prefixs = function () {
         second: null
     }]
 }
-const getHelpMessage = function () {
-    return `【同步聊天】.chatroom
-    .chatroom create
-    .chatroom join
-`
+const getHelpMessage = function (params = {}) {
+    return resolveHelp(params, 'chatroom.help', () => getT({ locale: 'zh-tw' })('chatroom.help'));
 }
 const initialize = function () {
     return variables;
@@ -43,8 +41,12 @@ const rollDiceCommand = async function ({
     userrole,
     botname,
     channelid,
-    discordClient
+    discordClient,
+    locale,
+    t
 }) {
+    const translate = getT({ locale, t });
+    const i18nParams = { locale, t };
     let rply = {
         default: 'on',
         type: 'text',
@@ -52,7 +54,7 @@ const rollDiceCommand = async function ({
     };
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
-            rply.text = this.getHelpMessage();
+            rply.text = getHelpMessage(i18nParams);
             rply.quotes = true;
             return rply;
         }
@@ -76,7 +78,10 @@ const rollDiceCommand = async function ({
                     return
                 });
                 await multiServer.getRecords();
-                rply.text = `已把${channel.guild.name} - ${channel.name}新增到聊天室`
+                rply.text = translate('chatroom.create_success', {
+                    guild: channel.guild.name,
+                    channel: channel.name
+                });
                 //，想把其他頻道加入，請輸入\n .chatroom join ${multiId} (其他頻道的ID)
                 return rply;
             } catch {
@@ -107,7 +112,11 @@ const rollDiceCommand = async function ({
                     return
                 });
                 await multiServer.getRecords();
-                rply.text = `已把${channel.guild.name} - ${channel.name}新增到聊天室，想把其他頻道加入，請輸入 .join ${mainMsg[2]} (其他頻道的ID)`
+                rply.text = translate('chatroom.join_success', {
+                    guild: channel.guild.name,
+                    channel: channel.name,
+                    multiId: mainMsg[2]
+                });
                 return rply;
             } catch {
                 console.error('[Multi-Server] Join error')
@@ -121,7 +130,7 @@ const rollDiceCommand = async function ({
                     return
                 });
                 await multiServer.getRecords();
-                rply.text = `已移除聊天室`
+                rply.text = translate('chatroom.exit_success');
                 return rply;
             }
             if (mainMsg[2]) {
@@ -135,7 +144,7 @@ const rollDiceCommand = async function ({
                     return
                 });
                 await multiServer.getRecords();
-                rply.text = `已移除聊天室`
+                rply.text = translate('chatroom.exit_success');
                 return rply;
             }
         }

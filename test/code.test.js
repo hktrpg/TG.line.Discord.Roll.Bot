@@ -1,12 +1,17 @@
 "use strict";
 
 const axios = require('axios');
+const i18n = require('../modules/i18n.js');
 const codeModule = require('../roll/code.js');
 
 // Mock axios to avoid real API calls
 jest.mock('axios');
 
 describe('Code Execution Module Tests', () => {
+    beforeAll(async () => {
+        await i18n.init();
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
         // Default mock implementation for axios

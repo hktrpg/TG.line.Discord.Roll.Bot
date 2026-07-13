@@ -17,6 +17,7 @@
         }
     </style>
     <meta charset="utf-8">
+    <script src="/common/www-locale-head.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1,user-scalable=0" />
 
     <!-- Bootstrap CSS -->
@@ -30,7 +31,8 @@
         pinyin('汉语拼音'); // 'hàn yǔ pīn yīn'
     </script>
 
-    <title>文字轉換器 @ HKTRPG</title>
+    <title data-www-i18n="stn_old_page_title">文字轉換器 @ HKTRPG</title>
+    <script src="/common/www-i18n.js"></script>
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
     <script src="https://code.iconify.design/2/2.0.4/iconify.min.js"></script>
 
@@ -38,101 +40,13 @@
 
 <body>
     <div class="container">
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <div class="container-fluid">
-                <a class="navbar-brand">
-                    <span class="badge bg-danger">
-                        文字轉換器
-                        <span class="iconify" data-icon="mdi:dice-multiple-outline" data-inline="false"
-                            style="color: black;" data-width="32" data-height="32"></span>
-                        <span class="iconify" data-icon="bi:chat-square-text" data-inline="false" style="color: black;"
-                            data-width="32" data-height="32"></span>
-                    </span>
-                </a>
-
-
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page"
-                                href="https://www.hktrpg.com/wiki/index.php">主頁</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                角色卡
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="https://card.hktrpg.com/">私人角色卡</a></li>
-                                <li><a class="dropdown-item" href="https://publiccard.hktrpg.com/">公開角色卡</a>
-                                </li>
-                            </ul>
-                        </li>
-
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown1" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                跑團平台
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown1">
-                                <li><a class="dropdown-item" href="https://z01.hktrpg.com/">2.5D - 烏冬</a></li>
-                                <li><a class="dropdown-item" href="https://z02.hktrpg.com/">四平八穩 - 冰丼</a></li>
-                            </ul>
-                        </li>
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown2" role="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                擲骰
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown2">
-                                <li><a class="dropdown-item" href="https://rollbot.hktrpg.com/">聊天室擲骰</a></li>
-                                <li><a class="dropdown-item" href="https://roll.hktrpg.com/">簡易擲骰平台</a></li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item" href="https://discord.hktrpg.com">Discord 骰子機械人</a>
-                                </li>
-                                <li><a class="dropdown-item" href="http://t.me/hktrpg_bot">Telegram 骰子機械人</a></li>
-                                <li><a class="dropdown-item" href="http://bit.ly/HKTRPG_LINE">Line 骰子機械人</a></li>
-                            </ul>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link"
-                                href="https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP">HKTRPG作品集</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="https://www.patreon.com/HKTRPG"><span class="iconify"
-                                    data-icon="logos:patreon"></span>訂閱</a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link" href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot">
-                                <span class="iconify" data-icon="bytesize:github" data-inline="false" data-width="25px"
-                                    data-height="25px"></span>
-                            </a>
-                        </li>
-
-                    </ul>
-
-                </div>
-            </div>
-        </nav>
+        <div id="header"></div>
 
         <div class="row">
             <div class="col-8  h-75">
                 <div class="input-group">
-                    <span class="input-group-text  btn-sm">輸入文字</span>
-                    <textarea class="form-control" aria-label="輸入文字" id="inputText">
+                    <span class="input-group-text  btn-sm" data-www-i18n="stn_input_label">輸入文字</span>
+                    <textarea class="form-control" data-www-i18n-aria="stn_input_label" aria-label="輸入文字" id="inputText">
 人生若只如初見，何事秋風悲畫扇。
 等閒變卻故人心，卻道故人心易變。
 驪山語罷清宵半，淚雨霖鈴終不怨。
@@ -145,20 +59,20 @@ That struts and frets his hour upon the stage</textarea>
                 </div>
                 <div class="col-12">
                     <div class="input-group">
-                        <textarea class="form-control" aria-label="輸出文字" id="outputText"></textarea>
+                        <textarea class="form-control" data-www-i18n-aria="stn_output_aria" aria-label="輸出文字" id="outputText"></textarea>
                         <button class="btn  btn-primary  btn-sm" type="button" id="button-addon2"
-                            onclick="copyToClipBoard()">複製輸出文字</button>
+                            onclick="copyToClipBoard()" data-www-i18n="stn_btn_copy">複製輸出文字</button>
                     </div>
 
                 </div>
                 <div class="col-8">
                     <button class="btn btn-success" type="button" id="inputGroupFileAddon01"
-                        onclick="blockText()">轉換</button>
+                        onclick="blockText()" data-www-i18n="stn_btn_convert">轉換</button>
                     <button class="btn btn-warning" type="button" id="inputGroupFileAddon02"
-                        onclick="plusBlock(1)">增加</button>
-                    <button class="btn btn-dark" type="button" id="inputGroupFileAddon03" onclick="reset()">重置</button>
+                        onclick="plusBlock(1)" data-www-i18n="stn_btn_add_block">增加</button>
+                    <button class="btn btn-dark" type="button" id="inputGroupFileAddon03" onclick="reset()" data-www-i18n="stn_btn_reset">重置</button>
                     <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                        <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
+                        <span class="iconify" data-icon="gg:readme" data-inline="false"></span><span data-www-i18n="stn_btn_help">說明</span>
                     </button>
                 </div>
 
@@ -237,7 +151,7 @@ That struts and frets his hour upon the stage</textarea>
                 <label class="btn btn-outline-primary" for="btn-check-outlined-Z">Z</label>
                 <div class="alert alert-primary align-items-center"
                     style="z-index:-100;position: relative; display: none;" id="alertCopied2" role="alert">
-                    <div>
+                    <div data-www-i18n="stn_copied">
                         已複製
                     </div>
                 </div>
@@ -250,10 +164,10 @@ That struts and frets his hour upon the stage</textarea>
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">說明</h5>
+                        <h5 class="modal-title" id="exampleModalLabel" data-www-i18n="stn_modal_title">說明</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body" data-www-i18n-html="stn_old_modal_body_html">
                         文章亂碼產生器<br>
                         原理是自動抽選一些英文字母作為亂碼<br>
                         附有把文字轉換成拼音的功能<br>
@@ -261,15 +175,13 @@ That struts and frets his hour upon the stage</textarea>
                         也會被轉換<br>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-www-i18n="stn_btn_close">關閉</button>
 
                     </div>
                 </div>
             </div>
         </div>
-        <div class="footer-copyright text-center py-2">©2020-2021 GNU HKTRPG -
-            <a href="https://www.patreon.com/HKTRPG" title="Support on Patreon">If you love it, buy me a tea</a> ☕
-        </div>
+        <div id="footer"></div>
 
 
     </div>
@@ -441,6 +353,41 @@ That struts and frets his hour upon the stage</textarea>
 
             return array;
         }
+    </script>
+    <script>
+        function st(key, options = {}) {
+            if (typeof wwwT !== 'function') return '';
+            return wwwT(key.startsWith('stn_') ? key : `stn_${key}`, options);
+        }
+        async function applyStnOldPageI18n() {
+            if (window.wwwI18n?.ready) await window.wwwI18n.ready;
+            if (typeof wwwApplyDomI18n === 'function') {
+                wwwApplyDomI18n(document.querySelector('.container'));
+                wwwApplyDomI18n(document.getElementById('exampleModal'));
+            }
+            document.title = st('stn_old_page_title') || document.title;
+        }
+    </script>
+    <script src="/common/site-chrome.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script>
+        $(async function () {
+            await applyStnOldPageI18n();
+            const navTitle = st('stn_old_nav_title') || 'Text Converter';
+            if (typeof loadSiteChromeWithI18n === 'function') {
+                loadSiteChromeWithI18n({ title: navTitle });
+            } else {
+                $('#header').load('includes/header.html', function () {
+                    $('#title').text(navTitle);
+                    if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document.getElementById('header'));
+                    if (typeof initWwwLocaleSwitcher === 'function') initWwwLocaleSwitcher(document.getElementById('header'));
+                });
+                $('#footer').load('includes/footer.html', function () {
+                    if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document.getElementById('footer'));
+                });
+            }
+        });
     </script>
     <!-- Option 2: Separate Popper and Bootstrap JS -->
     <!--

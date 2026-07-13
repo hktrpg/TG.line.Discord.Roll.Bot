@@ -2,8 +2,9 @@
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 const rollbase = require('./rollbase.js');
-const gameName = function () {
-    return '【5E工具 - .5ebuild】'
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'dnd5e.game_name', '【5E工具 - .5ebuild】');
 }
 
 const gameType = function () {
@@ -19,12 +20,8 @@ const prefixs = function () {
         second: null
     }]
 }
-const getHelpMessage = function () {
-    return `【⚔️D&D 5E工具箱】
-╭────── 🎲角色創建 ──────
-│ .5eBuild - 5E角色建立器
-│ 　⚔️ 自動計算屬性值
-╰──────────────`
+const getHelpMessage = function (params = {}) {
+    return resolveHelp(params, 'dnd5e.help', () => getT({ locale: 'zh-tw' })('dnd5e.help'));
 }
 const initialize = function () {
     return variables;
@@ -50,8 +47,11 @@ const initialize = function () {
  * 
  * **/
 const rollDiceCommand = async function ({
-    mainMsg
+    mainMsg,
+    locale,
+    t
 }) {
+    const translate = getT({ locale, t });
     let rply = {
         default: 'on',
         type: 'text',
@@ -59,12 +59,12 @@ const rollDiceCommand = async function ({
     };
     switch (true) {
         case /^help$/i.test(mainMsg[1]): {
-            rply.text = this.getHelpMessage();
+            rply.text = getHelpMessage({ locale, t });
             rply.quotes = true;
             return rply;
         }
         case /^\.5eBuild+$/i.test(mainMsg[0]): {
-            rply.text = randomStats();
+            rply.text = randomStats(translate);
             rply.quotes = true;
             return rply;
         }
@@ -74,7 +74,7 @@ const rollDiceCommand = async function ({
     }
 }
 
-const randomStats = function () {
+const randomStats = function (translate) {
     try {
         let roll = [];
         let mod = 0;
@@ -88,12 +88,18 @@ const randomStats = function () {
             mod += Number(roll[i].mod);
         }
         roll.sort((b, a) => a.stats - b.stats);
-        output += '5e 屬性產生器(.6 4D6dl1)\n==================\n';
+        output += translate('dnd5e.stats_header');
         for (let i = 0; i < 6; i++) {
-            output += `**屬性${i + 1}**: ${roll[i].result} (${roll[i].mod > 0 ? '+' : ''}${roll[i].mod})\n`;
+            output += translate('dnd5e.stat_line', {
+                num: i + 1,
+                result: roll[i].result,
+                mod: `${roll[i].mod > 0 ? '+' : ''}${roll[i].mod}`
+            });
         }
-        output += '==================\n';
-        output += `總合 \`[${total}] (${mod > 0 ? '+' : ''}${mod})\``;
+        output += translate('dnd5e.total_line', {
+            total,
+            mod: `${mod > 0 ? '+' : ''}${mod}`
+        });
         return output;
     } catch (error) {
         console.error('#5E工具 - .5ebuild - randomStats Error: ' + error);

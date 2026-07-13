@@ -4,6 +4,7 @@ const NodeCache = require('node-cache');
 const oneMinute = (process.env.DEBUG) ? 1 : 60_000;
 const THIRTY_MINUTES = (process.env.DEBUG) ? 1 : 60_000 * 30;
 const checkMongodb = require('./dbWatchdog.js');
+const i18n = require('./i18n.js');
 const schema = require('./schema.js');
 exports.rollbase = require('../roll/rollbase');
 
@@ -53,7 +54,7 @@ function invalidateGroupConfig(groupid) {
     gpInfoCache.delete(groupid);
 }
 
-async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage) {
+async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage, locale = i18n.DEFAULT_LOCALE) {
     if (!groupid) return;
 
     if (retry.number >= 10 && (Date.now() - retry.times) < THIRTY_MINUTES) return;
@@ -99,11 +100,12 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
     });
 
     if (!userInfo) {
-        await newUser(gpInfo, groupid, userid, displayname, displaynameDiscord, tgDisplayname);
+        await newUser(gpInfo, groupid, userid, displayname, displaynameDiscord, tgDisplayname, locale);
         return;
     }
 
-    userInfo.name = tgDisplayname || displaynameDiscord || displayname || '無名';
+    const t = i18n.createTranslator(locale);
+    userInfo.name = tgDisplayname || displaynameDiscord || displayname || t('level.unnamed');
     if (userInfo.decreaseEXPTimes > 0) reply.status += "🧟‍♂️🧟‍♀️";
     if (userInfo.multiEXPTimes > 0) reply.status += "🧙‍♂️🧙‍♀️";
     if (userInfo.stopExp > 0) reply.status += "☢️☣️";
@@ -178,11 +180,12 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
 
     if (gpInfo.HiddenV2 === false || !levelUP) return reply;
 
-    reply.text = await returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discordMessage);
+    reply.text = await returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discordMessage, locale);
     return reply;
 }
 
-async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discordMessage) {
+async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discordMessage, locale = i18n.DEFAULT_LOCALE) {
+    const t = i18n.createTranslator(locale);
     let username = userInfo.name;
     let userlevel = userInfo.Level;
     let userexp = userInfo.EXP;
@@ -199,11 +202,11 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discor
     });
     const userRanking = countAbove + 1;
     let userRankingPer = Math.ceil(userRanking / usermember_count * 10_000) / 100 + '%';
-    let userTitle = await checkTitle(userlevel, gpInfo.Title);
+    let userTitle = await checkTitle(userlevel, gpInfo.Title, locale);
 
-    let tempUPWord = gpInfo.LevelUpWord || "恭喜 {user.displayName}《{user.title}》，你的克蘇魯神話知識現在是 {user.level}點了！\n現在排名是{server.member_count}人中的第{user.Ranking}名！";
+    let tempUPWord = gpInfo.LevelUpWord || t('level.default_level_up_word');
     if (/{user.displayName}/ig.test(tempUPWord)) {
-        let userDisplayName = getDisplayName(discordMessage) || username || "無名";
+        let userDisplayName = getDisplayName(discordMessage) || username || t('level.unnamed');
         tempUPWord = tempUPWord.replaceAll(/{user.displayName}/ig, userDisplayName);
     }
 
@@ -216,13 +219,14 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discor
         .replaceAll(/{user.title}/ig, userTitle);
 }
 
-async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord, tgDisplayname) {
+async function newUser(gpInfo, groupid, userid, displayname, displaynameDiscord, tgDisplayname, locale = i18n.DEFAULT_LOCALE) {
     if (!checkMongodb.isDbOnline()) return;
 
+    const t = i18n.createTranslator(locale);
     let temp = {
         userid,
         groupid,
-        name: tgDisplayname || displaynameDiscord || displayname || '無名',
+        name: tgDisplayname || displaynameDiscord || displayname || t('level.unnamed'),
         EXP: await exports.rollbase.Dice(9) + 15,
         Level: 0,
         LastSpeakTime: Date.now()
@@ -240,33 +244,20 @@ function getDisplayName(message) {
     return message.author?.username;
 }
 
-const Title = function () {
-    let Title = []
-    Title[0] = "無名調查員";
-    Title[3] = "雀";
-    Title[4] = "調查員";
-    Title[8] = "記者";
-    Title[11] = "偵探";
-    Title[13] = "小熊";
-    Title[14] = "考古家";
-    Title[18] = "神秘學家";
-    Title[21] = "狂信徒";
-    Title[24] = "教主";
-    Title[28] = "眷族";
-    Title[31] = "眷族首領";
-    Title[33] = "南";
-    Title[34] = "化身";
-    Title[38] = "舊神";
-    Title[41] = "舊日支配者";
-    Title[43] = "門";
-    Title[44] = "外神";
-    Title[48] = "KP";
-    Title[53] = "東";
-    Title[54] = "作者";
-    return Title;
+function buildTitleArray(locale = i18n.DEFAULT_LOCALE) {
+    const t = i18n.createTranslator(locale);
+    const titles = t('level.default_titles', { returnObjects: true });
+    const TitleArr = [];
+    if (titles && typeof titles === 'object' && !Array.isArray(titles)) {
+        for (const [lvl, title] of Object.entries(titles)) {
+            TitleArr[Number(lvl)] = title;
+        }
+        return TitleArr;
+    }
+    return TitleArr;
 }
 
-const checkTitle = async function (userlvl, DBTitle) {
+const checkTitle = async function (userlvl, DBTitle, locale = i18n.DEFAULT_LOCALE) {
     let templvl = 0;
     let temptitle = "";
 
@@ -280,10 +271,11 @@ const checkTitle = async function (userlvl, DBTitle) {
     }
 
     if (!temptitle) {
-        for (let g = 0; g < Title().length; g++) {
-            if (userlvl >= g && templvl <= g && Title()[g]) {
+        const titleArr = buildTitleArray(locale);
+        for (let g = 0; g < titleArr.length; g++) {
+            if (userlvl >= g && templvl <= g && titleArr[g]) {
                 templvl = g;
-                temptitle = Title()[g];
+                temptitle = titleArr[g];
             }
         }
     }
@@ -295,5 +287,6 @@ module.exports = {
     EXPUP,
     tempSwitchV2,
     getGroupLevelConfig,
-    invalidateGroupConfig
+    invalidateGroupConfig,
+    checkTitle
 };

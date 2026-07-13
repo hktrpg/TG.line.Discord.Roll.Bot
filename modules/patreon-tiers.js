@@ -6,6 +6,8 @@
  * @see https://www.patreon.com/hktrpg
  */
 
+const i18n = require('./i18n.js');
+
 /** Patreon slot limits: A = 5 groups/users, B or above = 10. Index 0 = non-VIP, 1 = A, 2+ = B~F, 7 = Honorary Lifetime */
 const PATREON_SLOTS_LIMIT = [0, 5, 10, 10, 10, 10, 10, 10, 10];
 
@@ -57,7 +59,16 @@ function tierLetterToLevel(tierLetter) {
     return TIER_LETTER_TO_LEVEL[upper] ?? null;
 }
 
-function getTierLabel(level) {
+function getTierLabel(level, locale) {
+    if (level == null || level === 0) {
+        return '';
+    }
+    const t = i18n.createTranslator(locale || i18n.DEFAULT_LOCALE);
+    const key = `patreon.tier_label_${level}`;
+    const translated = t(key);
+    if (translated && translated !== key) {
+        return translated;
+    }
     return TIER_LABELS[level] ?? `Level ${level}`;
 }
 

@@ -1,7 +1,8 @@
 "use strict";
 const variables = {};
-const gameName = function () {
-    return '【Demo】'
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'demo.game_name', '【Demo】');
 }
 
 const gameType = function () {
@@ -17,12 +18,8 @@ const prefixs = function () {
         second: /^啊$/i
     }]
 }
-const getHelpMessage = function () {
-    return `【🎯示範功能】
-╭────── ℹ️說明 ──────
-│ 只是一個Demo的第一行
-│ 只是一個Demo末行
-╰──────────────`
+const getHelpMessage = function (params = {}) {
+    return resolveHelp(params, 'demo.help', () => getT({ locale: 'zh-tw' })('demo.help'));
 }
 const initialize = function () {
     return variables;
@@ -38,8 +35,12 @@ const rollDiceCommand = async function ({
     displayname,
     channelid,
     displaynameDiscord,
-    membercount
+    membercount,
+    locale,
+    t
 }) {
+    const translate = getT({ locale, t });
+    const i18nParams = { locale, t };
     let rply = {
         default: 'on',
         type: 'text',
@@ -47,16 +48,27 @@ const rollDiceCommand = async function ({
     };
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
-            rply.text = this.getHelpMessage();
+            rply.text = getHelpMessage(i18nParams);
             rply.quotes = true;
             return rply;
         }
         case /^\d+$/i.test(mainMsg[1]): {
-            rply.text = 'Demo' + mainMsg[1] + inputStr + groupid + userid + userrole + botname + displayname + channelid + displaynameDiscord + membercount;
+            rply.text = translate('demo.output_debug', {
+                value: mainMsg[1],
+                inputStr,
+                groupid,
+                userid,
+                userrole,
+                botname,
+                displayname,
+                channelid,
+                displaynameDiscord,
+                membercount
+            });
             return rply;
         }
         case /^\S/.test(mainMsg[1] || ''): {
-            rply.text = 'Demo'
+            rply.text = translate('demo.output');
             return rply;
         }
         default: {

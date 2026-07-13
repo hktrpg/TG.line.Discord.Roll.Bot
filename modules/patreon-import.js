@@ -10,6 +10,7 @@ const security = require('../utils/security.js');
 const schema = require('./schema.js');
 const patreonTiers = require('./patreon-tiers.js');
 const patreonSync = require('./patreon-sync.js');
+const i18n = require('./i18n.js');
 
 /**
  * Parse a single CSV line into fields (handles quoted fields with commas).
@@ -127,10 +128,12 @@ function getDisplayKey(doc) {
  * @param {string[]} headers
  * @returns {string|null}
  */
-function validateCSVHeaders(headers) {
-    if (!headers || !Array.isArray(headers)) return 'CSV 缺少標題列';
+function validateCSVHeaders(headers, t = i18n.createTranslator(i18n.DEFAULT_LOCALE)) {
+    if (!headers || !Array.isArray(headers)) return t('admin.patreon_import_csv_missing_headers');
     const missing = REQUIRED_CSV_HEADERS.filter(h => !headers.includes(h));
-    if (missing.length > 0) return `CSV 缺少必要欄位: ${missing.join(', ')}（請使用 Patreon 匯出的會員名單格式）`;
+    if (missing.length > 0) {
+        return t('admin.patreon_import_csv_missing_columns', { columns: missing.join(', ') });
+    }
     return null;
 }
 
@@ -142,7 +145,8 @@ function validateCSVHeaders(headers) {
  * @returns {Promise<{ report: string[], keys: string[], errors: string[], summary: object, keyMessages: string[], emailContent: string|null }>}
  */
 async function runImport(csvContent, options = {}) {
-    const { keyMode = 'all', generateEmail = false } = options;
+    const { keyMode = 'all', generateEmail = false, locale } = options;
+    const t = i18n.createTranslator(locale || i18n.DEFAULT_LOCALE);
     const report = [];
     const keys = [];
     const errors = [];
@@ -163,27 +167,27 @@ async function runImport(csvContent, options = {}) {
         if (!name || !email || !key) return '';
         return `===
 email: ${email}
-subject: HKTRPG Patreon 會員功能已開通 - 使用指引
+subject: ${t('admin.patreon_import_email_subject')}
 username: ${name}
 key: ${key}`;
     };
 
     if (typeof csvContent !== 'string') {
-        errors.push('CSV 內容必須為字串');
+        errors.push(t('admin.patreon_import_csv_must_be_string'));
         summary.errors = errors.length;
         return { report, keys, errors, summary, keyMessages, emailContent: null };
     }
 
     const { headers, rows } = parseCSV(csvContent);
-    const headerError = validateCSVHeaders(headers);
+    const headerError = validateCSVHeaders(headers, t);
     if (headerError) {
         errors.push(headerError);
-        report.push('CSV 格式錯誤');
+        report.push(t('admin.patreon_import_csv_format_error'));
         summary.errors = errors.length;
         return { report, keys, errors, summary, keyMessages, emailContent: null };
     }
     if (rows.length === 0) {
-        report.push('CSV 無資料或格式錯誤');
+        report.push(t('admin.patreon_import_csv_empty'));
         summary.errors = errors.length;
         return { report, keys, errors, summary, keyMessages, emailContent: null };
     }
@@ -205,7 +209,7 @@ key: ${key}`;
 
         const patronStatus = (row['Patron Status'] || '').trim();
         const tierName = (row['Tier'] || '').trim();
-        const tierLabel = tierName || '(未設定)';
+        const tierLabel = tierName || t('admin.patreon_import_tier_not_set');
         const level = patreonTiers.csvTierNameToLevel(tierName);
         const isActive = patronStatus === 'Active patron';
         const isFormer = patronStatus === 'Former patron';
@@ -227,7 +231,7 @@ key: ${key}`;
                 const zAdmin = require('../roll/z_admin.js');
                 const key = typeof zAdmin.generatePatreonKey === 'function' ? zAdmin.generatePatreonKey() : null;
                 if (!key) {
-                    errors.push(`無法產生 KEY（永久會員）: ${name}`);
+                    errors.push(t('admin.patreon_import_key_failed_honorary', { name }));
                     continue;
                 }
                 try {
@@ -259,19 +263,22 @@ key: ${key}`;
                         }
                     }
                     await patreonSync.syncMemberSlotsToVip(newDoc);
-                    const honoraryLabel = patreonTiers.getTierLabel(patreonTiers.LEVEL_HONORARY_LIFETIME);
-                    report.push(`[新增 永久會員] ${name} ${honoraryLabel} → 已建立 KEY（CSV 為 Former，仍予保留）`, key);
-                    keyMessages.push(`[新增 永久會員] ${name} ${honoraryLabel}\n${key}`);
+                    const honoraryLabel = patreonTiers.getTierLabel(patreonTiers.LEVEL_HONORARY_LIFETIME, locale);
+                    report.push(
+                        t('admin.patreon_import_add_lifetime_report', { name, tier: honoraryLabel }),
+                        key
+                    );
+                    keyMessages.push(`${t('admin.patreon_import_add_lifetime_key', { name, tier: honoraryLabel })}\n${key}`);
                     summary.added++;
                 } catch (error) {
-                    errors.push(`Add 永久會員 ${name}: ${error.message}`);
+                    errors.push(t('admin.patreon_import_add_honorary_error', { name, message: error.message }));
                 }
                 continue;
             }
             if (existing && existing.switch) {
                 // Skip turning off Honorary Member(Lifetime) - they are permanent
                 if (isHonoraryLifetime || existing.level === patreonTiers.LEVEL_HONORARY_LIFETIME) {
-                    report.push(`[Former patron] ${name} → 永久會員，保持開啟狀態`);
+                    report.push(t('admin.patreon_import_former_honorary_on', { name }));
                     continue;
                 }
                 const graceEnd = patreonTiers.addVipGraceEndDate();
@@ -285,18 +292,25 @@ key: ${key}`;
                         }
                     );
                     report.push(
-                        `[Former patron] ${name} → 會員資格已關閉，VIP 寬限期至 ${graceEnd.toISOString().slice(0, 10)}（${patreonTiers.PATREON_VIP_GRACE_DAYS} 日）`
+                        t('admin.patreon_import_former_off', {
+                            name,
+                            date: graceEnd.toISOString().slice(0, 10),
+                            days: patreonTiers.PATREON_VIP_GRACE_DAYS
+                        })
                     );
                     summary.offFormer++;
                 } catch (error) {
-                    errors.push(`OFF ${name}: ${error.message}`);
+                    errors.push(t('admin.patreon_import_off_error', { name, message: error.message }));
                 }
                 continue;
             }
             if (existing && !existing.switch && existing.vipGraceUntil && new Date(existing.vipGraceUntil) > new Date()) {
                 if (!(isHonoraryLifetime || existing.level === patreonTiers.LEVEL_HONORARY_LIFETIME)) {
                     report.push(
-                        `[Former patron] ${name} → VIP 寬限期保留至 ${new Date(existing.vipGraceUntil).toISOString().slice(0, 10)}`
+                        t('admin.patreon_import_former_grace_kept', {
+                            name,
+                            date: new Date(existing.vipGraceUntil).toISOString().slice(0, 10)
+                        })
                     );
                 }
                 continue;
@@ -312,9 +326,9 @@ key: ${key}`;
                                 $push: { history: { at: new Date(), action: 'off', source: 'import', reason: 'former_patron_grace_expired' } }
                             }
                         );
-                        report.push(`[Former patron] ${name} → 寬限期已結束，已收回 VIP`);
+                        report.push(t('admin.patreon_import_former_grace_revoked', { name }));
                     } catch (error) {
-                        errors.push(`Expire grace ${name}: ${error.message}`);
+                        errors.push(t('admin.patreon_import_grace_expire_error', { name, message: error.message }));
                     }
                 }
             }
@@ -327,7 +341,7 @@ key: ${key}`;
             if (existing && existing.switch) {
                 // Skip turning off Honorary Member(Lifetime) - they are permanent
                 if (isHonoraryLifetime || existing.level === patreonTiers.LEVEL_HONORARY_LIFETIME) {
-                    report.push(`[Not Active] ${name} → 永久會員，保持開啟狀態`);
+                    report.push(t('admin.patreon_import_not_active_honorary_on', { name }));
                     continue;
                 }
                 const graceEnd = patreonTiers.addVipGraceEndDate();
@@ -341,18 +355,25 @@ key: ${key}`;
                         }
                     );
                     report.push(
-                        `[Not Active] ${name} → 會員資格已關閉，VIP 寬限期至 ${graceEnd.toISOString().slice(0, 10)}（${patreonTiers.PATREON_VIP_GRACE_DAYS} 日）`
+                        t('admin.patreon_import_not_active_off', {
+                            name,
+                            date: graceEnd.toISOString().slice(0, 10),
+                            days: patreonTiers.PATREON_VIP_GRACE_DAYS
+                        })
                     );
                     summary.offNotActive++;
                 } catch (error) {
-                    errors.push(`OFF ${name}: ${error.message}`);
+                    errors.push(t('admin.patreon_import_off_error', { name, message: error.message }));
                 }
                 continue;
             }
             if (existing && !existing.switch && existing.vipGraceUntil && new Date(existing.vipGraceUntil) > new Date()) {
                 if (!(isHonoraryLifetime || existing.level === patreonTiers.LEVEL_HONORARY_LIFETIME)) {
                     report.push(
-                        `[Not Active] ${name} → VIP 寬限期保留至 ${new Date(existing.vipGraceUntil).toISOString().slice(0, 10)}`
+                        t('admin.patreon_import_not_active_grace_kept', {
+                            name,
+                            date: new Date(existing.vipGraceUntil).toISOString().slice(0, 10)
+                        })
                     );
                 }
                 continue;
@@ -368,9 +389,9 @@ key: ${key}`;
                                 $push: { history: { at: new Date(), action: 'off', source: 'import', reason: 'not_active_grace_expired' } }
                             }
                         );
-                        report.push(`[Not Active] ${name} → 寬限期已結束，已收回 VIP`);
+                        report.push(t('admin.patreon_import_not_active_grace_revoked', { name }));
                     } catch (error) {
-                        errors.push(`Expire grace ${name}: ${error.message}`);
+                        errors.push(t('admin.patreon_import_grace_expire_error', { name, message: error.message }));
                     }
                 }
             }
@@ -392,7 +413,7 @@ key: ${key}`;
             const zAdmin = require('../roll/z_admin.js');
             const key = typeof zAdmin.generatePatreonKey === 'function' ? zAdmin.generatePatreonKey() : null;
             if (!key) {
-                errors.push(`無法產生 KEY: ${name}`);
+                errors.push(t('admin.patreon_import_key_failed', { name }));
                 continue;
             }
             try {
@@ -424,14 +445,15 @@ key: ${key}`;
                     }
                 }
                 await patreonSync.syncMemberSlotsToVip(newDoc);
+                const tierLabelForLevel = patreonTiers.getTierLabel(level, locale);
                 report.push(
-                    `[新增] ${name} ${patreonTiers.getTierLabel(level)} → 已開啟`,
+                    t('admin.patreon_import_added', { name, tier: tierLabelForLevel }),
                     key
                 );
-                keyMessages.push(`[新增] ${name} ${patreonTiers.getTierLabel(level)} → 已開啟\n${key}`);
+                keyMessages.push(`${t('admin.patreon_import_added_key', { name, tier: tierLabelForLevel })}\n${key}`);
                 summary.added++;
             } catch (error) {
-                errors.push(`Add ${name}: ${error.message}`);
+                errors.push(t('admin.patreon_import_add_error', { name, message: error.message }));
             }
             continue;
         }
@@ -441,12 +463,12 @@ key: ${key}`;
         const isExistingHonorary = existing && (level === patreonTiers.LEVEL_HONORARY_LIFETIME || existing.level === patreonTiers.LEVEL_HONORARY_LIFETIME);
         if (isExistingHonorary) {
             // Honorary Member(Lifetime) already exists - skip update to preserve permanent status
-            report.push(`[跳過] ${name} ${patreonTiers.getTierLabel(level)} → 永久會員，已存在，不變更`);
+            report.push(t('admin.patreon_import_skipped_honorary', { name, tier: patreonTiers.getTierLabel(level, locale) }));
             if (keyMode === 'all') {
                 const displayKey = getDisplayKey(existing);
                 if (displayKey) {
                     keys.push(displayKey);
-                    keyMessages.push(`[現行] ${name} ${patreonTiers.getTierLabel(existing.level || level)}\n${displayKey}`);
+                    keyMessages.push(`${t('admin.patreon_import_current_key', { name, tier: patreonTiers.getTierLabel(existing.level || level, locale) })}\n${displayKey}`);
                     if (generateEmail) {
                         const email = row['Email'];
                         if (email) {
@@ -486,6 +508,7 @@ key: ${key}`;
             await patreonSync.syncMemberSlotsToVip(doc);
             if (keyMode === 'all') {
                 const displayKey = getDisplayKey(doc);
+                const tierLabelForLevel = patreonTiers.getTierLabel(level, locale);
                 if (displayKey) {
                     keys.push(displayKey);
                     if (generateEmail) {
@@ -495,19 +518,19 @@ key: ${key}`;
                         }
                     }
                     report.push(
-                        `[更新] ${name} ${patreonTiers.getTierLabel(level)} → 已開啟`,
+                        t('admin.patreon_import_updated', { name, tier: tierLabelForLevel }),
                         displayKey
                     );
-                    keyMessages.push(`[更新] ${name} ${patreonTiers.getTierLabel(level)} → 已開啟\n${displayKey}`);
+                    keyMessages.push(`${t('admin.patreon_import_updated_key', { name, tier: tierLabelForLevel })}\n${displayKey}`);
                 } else {
-                    report.push(`[更新] ${name} ${patreonTiers.getTierLabel(level)} → 已開啟`);
+                    report.push(t('admin.patreon_import_updated', { name, tier: tierLabelForLevel }));
                 }
             } else {
-                report.push(`[更新] ${name} ${patreonTiers.getTierLabel(level)} → 已開啟`);
+                report.push(t('admin.patreon_import_updated', { name, tier: patreonTiers.getTierLabel(level, locale) }));
             }
             summary.updated++;
         } catch (error) {
-            errors.push(`Update ${name}: ${error.message}`);
+            errors.push(t('admin.patreon_import_update_error', { name, message: error.message }));
         }
     }
 
@@ -526,10 +549,10 @@ key: ${key}`;
         emailBlocks.length = 0;
         for (const member of allActiveMembers) {
             const displayKey = getDisplayKey(member);
-            const tierLabel = patreonTiers.getTierLabel(member.level);
+            const tierLabel = patreonTiers.getTierLabel(member.level, locale);
             if (displayKey) {
                 keys.push(displayKey);
-                keyMessages.push(`[現行] ${member.patreonName} ${tierLabel}\n${displayKey}`);
+                keyMessages.push(`${t('admin.patreon_import_current_key', { name: member.patreonName, tier: tierLabel })}\n${displayKey}`);
                 if (generateEmail) {
                     const email = member.emailEncrypted ? security.decryptWithCryptoSecret(member.emailEncrypted) : null;
                     if (email) {
@@ -542,7 +565,7 @@ key: ${key}`;
                     const zAdmin = require('../roll/z_admin.js');
                     const newKey = typeof zAdmin.generatePatreonKey === 'function' ? zAdmin.generatePatreonKey() : null;
                     if (!newKey) {
-                        throw new Error('無法產生新 KEY');
+                        throw new Error(t('admin.patreon_import_key_regen_failed'));
                     }
                     const normalized = (newKey || '').replaceAll(/\s/g, '').replaceAll('-', '').toUpperCase();
                     const keyHash = security.hashPatreonKey(normalized);
@@ -555,7 +578,7 @@ key: ${key}`;
                     const updated = await schema.patreonMember.findOne({ _id: member._id }).lean();
                     await patreonSync.syncMemberSlotsToVip(updated);
                     keys.push(newKey);
-                    keyMessages.push(`[現行] ${member.patreonName} ${tierLabel}\n${newKey}`);
+                    keyMessages.push(`${t('admin.patreon_import_current_key', { name: member.patreonName, tier: tierLabel })}\n${newKey}`);
                     if (generateEmail) {
                         const email = member.emailEncrypted ? security.decryptWithCryptoSecret(member.emailEncrypted) : null;
                         if (email) {
@@ -564,7 +587,7 @@ key: ${key}`;
                     }
                     summary.updated++;
                 } catch (error) {
-                    errors.push(`Reset key ${member.patreonName}: ${error.message}`);
+                    errors.push(t('admin.patreon_import_reset_key_error', { name: member.patreonName, message: error.message }));
                 }
             }
         }
@@ -576,17 +599,17 @@ key: ${key}`;
     // Append 加入統計
     report.push(
         '',
-        '─── 加入統計（本 CSV）───',
-        `Active Patron 總數: ${activeTotal}`
+        t('admin.patreon_import_stats_header'),
+        t('admin.patreon_import_stats_active_total', { count: activeTotal })
     );
     const activeTiers = Object.keys(activeByTier).sort();
-    for (const t of activeTiers) {
-        report.push(`  ${t}: ${activeByTier[t]}`);
+    for (const tierName of activeTiers) {
+        report.push(t('admin.patreon_import_stats_tier_line', { tier: tierName, count: activeByTier[tierName] }));
     }
-    report.push(`Former Patron 總數: ${formerTotal}`);
+    report.push(t('admin.patreon_import_stats_former_total', { count: formerTotal }));
     const formerTiers = Object.keys(formerByTier).sort();
-    for (const t of formerTiers) {
-        report.push(`  ${t}: ${formerByTier[t]}`);
+    for (const tierName of formerTiers) {
+        report.push(t('admin.patreon_import_stats_tier_line', { tier: tierName, count: formerByTier[tierName] }));
     }
 
     summary.activeTotal = activeTotal;

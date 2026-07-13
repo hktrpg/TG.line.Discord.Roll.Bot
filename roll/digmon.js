@@ -3,8 +3,40 @@ const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 const Fuse = require('fuse.js');
 const chineseConv = require('chinese-conv');
-const gameName = function () {
-    return '【數碼寶貝物語時空異客】.digi '
+const i18n = require('../modules/i18n.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+
+function resolveT(translate) {
+    return translate || i18n.createTranslator(i18n.DEFAULT_LOCALE);
+}
+
+function formatSkillExtras(skill, t) {
+    const extras = [];
+    if (skill.critRate > 0) extras.push(`CR:${skill.critRate}`);
+    if (skill.alwaysHits) extras.push(t('digmon.skill_always_hits'));
+    if (skill.HPDrain > 0) extras.push(t('digmon.skill_hp_drain', { value: skill.HPDrain }));
+    if (skill.SPDrain > 0) extras.push(t('digmon.skill_sp_drain', { value: skill.SPDrain }));
+    if (skill.recoil > 0) extras.push(t('digmon.skill_recoil', { value: skill.recoil }));
+    return extras.length > 0 ? ` (${extras.join(' ')})` : '';
+}
+
+function buildFilterDescriptions(filters, t) {
+    const desc = [];
+    if (filters.attr) desc.push(t('digmon.filter_attr', { value: filters.attr }));
+    if (filters.stage) desc.push(t('digmon.filter_stage', { value: filters.stage }));
+    if (filters.move_element) desc.push(t('digmon.filter_move_element', { value: filters.move_element }));
+    if (filters.move_target) desc.push(t('digmon.filter_move_target', { value: filters.move_target }));
+    if (filters.move_type) desc.push(t('digmon.filter_move_type', { value: filters.move_type }));
+    if (filters.has_jogress) desc.push(t('digmon.filter_has_jogress'));
+    if (filters.no_jogress) desc.push(t('digmon.filter_no_jogress'));
+    if (filters.has_item) desc.push(t('digmon.filter_has_item'));
+    if (filters.no_item) desc.push(t('digmon.filter_no_item'));
+    if (filters.can_ride) desc.push(t('digmon.filter_can_ride'));
+    if (filters.no_ride) desc.push(t('digmon.filter_no_ride'));
+    return desc;
+}
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'digmon.game_name', '【數碼寶貝物語時空異客】.digi ');
 }
 const gameType = function () {
     return 'Funny:digimon:hktrpg'
@@ -16,77 +48,20 @@ const prefixs = function () {
         second: null
     }]
 }
-const getHelpMessage = function () {
-    return `【🎮數碼寶貝物語時空異客】(測試中)
-╭────── 📖基礎查詢 ──────
-│ • .digi - 顯示完整指令列表
-│
-├────── 🔍數碼寶貝資料 ──────
-│ 基本查詢:
-│ 　• .digi [名稱/編號]
-│ 　  例: .digi 亞古獸
-│ 　  例: .digi 123
-│
-├────── 🔄進化路線查詢 ──────
-│ 進化路線:
-│ 　• .digi [起始] [目標]
-│ 　  例: .digi 123 323
-│ 　  例: .digi 亞古獸 戰鬥暴龍獸
-│
-├────── ⚔️招式查詢 ──────
-│ 招式搜尋:
-│ 　• .digi -m [關鍵字]
-│ 　  例: .digi -m 火
-│ 　  例: .digi -m 全體
-│ 　  例: .digi -m 病毒種
-│ 功能說明:
-│ 　• 根據關鍵字模糊搜尋招式
-│ 　• 結果按威力排序，最多顯示10筆
-│
-├────── 📋列表篩選查詢 ──────
-│ 列表查詢:
-│ 　• .digi list [參數]
-│ 　  例: .digi list --attr=疫苗種 --stage=完全體
-│ 　  例: .digi list --move-element=火 --has-jogress
-│ 　  例: .digi list --attr=數據種 --can-ride
-│ 篩選參數:
-│ 　• --attr=[疫苗種|數據種|病毒種] - 數碼寶貝屬性
-│ 　• --stage=[幼年期1|成長期|成熟期|完全體|究極體|超究極體] - 進化階段
-│ 　• --move-element=[火|水|冰|電|光|闇|無|-] - 招式屬性
-│ 　• --move-target=[全體敵人|單體敵人|全體隊友|單體隊友|自己] - 招式目標
-│ 　• --move-type=[物理|魔法|輔助|HP%|Debuff|回復] - 招式類型
-│ 　• --has-jogress/--no-jogress - 需要/不需要合體進化
-│ 　• --has-item/--no-item - 需要/不需要道具進化
-│ 　• --can-ride/--no-ride - 可以/不可以騎乘
-│
-├────── 📊資料顯示 ──────
-│ 單一查詢顯示:
-│ 　• 基礎個性(personality)
-│ 　• 可能基礎系譜
-│ 　• 屬性抗性
-│ 　• 受該數碼寶貝特殊技能克制
-│ 　• 出現地點(locations)
-│ 　• 完整進化退化路線
-│
-├────── 🎯進化階段 ──────
-│ 1: 幼年期1    2: 幼年期2
-│ 3: 成長期     4: 成熟期
-│ 5: 完全體     6: 究極體
-│ 7: 超究極體   a: 裝甲體
-│ d: 混合體
-│
-├────── 📚資料來源 ──────
-│ • 數碼寶貝物語時空異客
-╰──────────────`
+const getHelpMessage = function (params = {}) {
+    return resolveHelp(params, 'digmon.help', () => getT({ locale: 'zh-tw' })('digmon.help'));
 }
+
 const initialize = function () {
     return variables;
 }
 
 const rollDiceCommand = async function ({
     mainMsg,
-
+    locale,
+    t
 }) {
+    const translate = getT({ locale, t });
     let rply = {
         default: 'on',
         type: 'text',
@@ -122,11 +97,11 @@ const rollDiceCommand = async function ({
         const hasFilters = Object.values(filters).some(value => value !== undefined && value !== false);
 
         if (!hasFilters) {
-            rply.text = '請提供至少一個篩選參數\n\n支援的篩選參數：\n• --attr=[疫苗種|數據種|病毒種] - 數碼寶貝屬性\n• --stage=[幼年期1|成長期|成熟期|完全體|究極體|超究極體] - 進化階段\n• --move-element=[火|水|冰|電|光|闇|無|-] - 招式屬性\n• --move-target=[全體敵人|單體敵人|全體隊友|單體隊友|自己] - 招式目標\n• --move-type=[物理|魔法|輔助|HP%|Debuff|回復] - 招式類型\n• --has-jogress/--no-jogress - 需要/不需要合體進化\n• --has-item/--no-item - 需要/不需要道具進化\n• --can-ride/--no-ride - 可以/不可以騎乘\n\n範例：.digi list --attr=疫苗種 --stage=完全體';
+            rply.text = translate('digmon.list_filter_help');
             return rply;
         }
 
-        rply.text = variables.digimonDex.searchDigimonList(filters);
+        rply.text = variables.digimonDex.searchDigimonList(filters, translate);
         return rply;
     }
 
@@ -149,17 +124,17 @@ const rollDiceCommand = async function ({
         const hasFilters = Object.values(filters).some(Boolean);
 
         if (!query && !hasFilters) {
-            rply.text = '請提供招式關鍵字';
+            rply.text = translate('digmon.move_keyword_required');
             return rply;
         }
 
-        rply.text = variables.digimonDex.searchMoves(query, filters);
+        rply.text = variables.digimonDex.searchMoves(query, filters, translate);
         return rply;
     }
 
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
-            rply.text = getHelpMessage();
+            rply.text = getHelpMessage({ locale, t });
             rply.quotes = true;
             rply.buttonCreate = ['.digi', '.digi 亞古獸', '.digi 123', '.digi 123 323', '.digi 亞古獸 戰鬥暴龍獸', '.digi list --attr=疫苗種 --stage=完全體']
             return rply;
@@ -199,17 +174,17 @@ const rollDiceCommand = async function ({
                 const toSugs = buildSuggestions(toDetailedForSugs);
 
                 let msg = '';
-                if (!fromDigimon) msg += `找不到起始數碼寶貝：${mainMsg[1]}\n`;
-                if (!toDigimon) msg += `找不到目標數碼寶貝：${mainMsg[2]}\n`;
+                if (!fromDigimon) msg += translate('digmon.path_from_not_found', { name: mainMsg[1] });
+                if (!toDigimon) msg += translate('digmon.path_to_not_found', { name: mainMsg[2] });
                 const sugLines = [];
-                if (fromSugs) sugLines.push(`可能的其他名稱(起始)：${fromSugs}`);
-                if (toSugs) sugLines.push(`可能的其他名稱(目標)：${toSugs}`);
+                if (fromSugs) sugLines.push(translate('digmon.path_suggestions_from', { suggestions: fromSugs }));
+                if (toSugs) sugLines.push(translate('digmon.path_suggestions_to', { suggestions: toSugs }));
                 if (sugLines.length > 0) msg += sugLines.join('\n');
                 rply.text = msg.trim();
                 return rply;
             }
 
-            let text = variables.digimonDex.showEvolutionPaths(fromDigimon, toDigimon);
+            let text = variables.digimonDex.showEvolutionPaths(fromDigimon, toDigimon, translate);
 
             // Append suggestions if fuzzy matched inputs
             const buildSuggestions = (detailed) => {
@@ -228,8 +203,8 @@ const rollDiceCommand = async function ({
             const fromSugs = buildSuggestions(fromDetailed);
             const toSugs = buildSuggestions(toDetailed);
             const sugLines = [];
-            if (fromSugs) sugLines.push(`可能的其他名稱(起始)：${fromSugs}`);
-            if (toSugs) sugLines.push(`可能的其他名稱(目標)：${toSugs}`);
+            if (fromSugs) sugLines.push(translate('digmon.path_suggestions_from', { suggestions: fromSugs }));
+            if (toSugs) sugLines.push(translate('digmon.path_suggestions_to', { suggestions: toSugs }));
             if (sugLines.length > 0) {
                 text += `\n${sugLines.join('\n')}`;
             }
@@ -241,11 +216,11 @@ const rollDiceCommand = async function ({
             // Single parameter: show digimon info
             rply.quotes = true;
             const name = mainMsg[1];
-            rply.text = variables.digimonDex.search(name);
+            rply.text = variables.digimonDex.search(name, translate);
             return rply;
         }
         default: {
-            rply.text = getHelpMessage();
+            rply.text = getHelpMessage({ locale, t });
             rply.quotes = true;
             return rply;
         }
@@ -376,17 +351,14 @@ class Digimon {
     }
 
     // Table-level short label for stage in counter list
-    getLevelLabelForTable(stage) {
+    getLevelLabelForTable(stage, translate) {
         if (!stage) return '-';
         const s = String(stage);
-        if (s === '5') return '完全';
-        if (s === '6') return '究極';
-        if (s === '7') return '超究';
-        if (s === '4') return '成熟';
-        if (s === '3') return '成長';
-        if (s === '2') return '幼2';
-        if (s === '1') return '幼1';
-        return this.getStageName(s);
+        const t = translate ? resolveT(translate) : getT({});
+        const key = `digmon.level_label_${s}`;
+        const label = t(key);
+        if (label && label !== key) return label;
+        return this.getStageName(s, translate);
     }
 
     padEnd(str, len) {
@@ -427,26 +399,26 @@ class Digimon {
         return currentWidth;
     }
 
-    formatCounterTable(counterDigimon) {
+    formatCounterTable(counterDigimon, translate) {
+        const t = resolveT(translate);
         if (!Array.isArray(counterDigimon) || counterDigimon.length === 0) return '';
         let text = '';
-        text += `[受其特殊技能克制]\n`;
-        // headers
-        const h1 = this.padWide('等級', 6);
-        const h2 = this.padWide('名稱', 12);
-        const h3 = this.padWide('倍率', 6);
-        const h4 = this.padWide('傷害(次×力=總)', 16);
-        const h5 = this.padWide('範圍', 6);
+        text += t('digmon.counter_header');
+        const h1 = this.padWide(t('digmon.counter_col_level'), 6);
+        const h2 = this.padWide(t('digmon.counter_col_name'), 12);
+        const h3 = this.padWide(t('digmon.counter_col_mult'), 6);
+        const h4 = this.padWide(t('digmon.counter_col_damage'), 16);
+        const h5 = this.padWide(t('digmon.counter_col_range'), 6);
         text += `${h1}  ${h2}  ${h3}  ${h4}  ${h5}\n`;
         for (const c of counterDigimon) {
-            const level = this.padWide(this.getLevelLabelForTable(c.stage), 6);
+            const level = this.padWide(this.getLevelLabelForTable(c.stage, translate), 6);
             const name = this.padWide(c.name, 12);
             const mult = this.padWide(`×${c.counterValue}`, 6);
             const hitInfo = (typeof c.hits === 'number' && typeof c.power === 'number' && c.hits > 0 && c.power > 0)
                 ? `${c.hits}×${c.power}=${c.hitPower}`
                 : '-';
             const hit = this.padWide(hitInfo, 16);
-            const range = this.padWide(c.isAoE ? '全體' : '-', 6);
+            const range = this.padWide(c.isAoE ? t('digmon.counter_range_aoe') : t('digmon.counter_range_dash'), 6);
             text += `${level}  ${name}  ${mult}  ${hit}  ${range}\n`;
         }
         return text;
@@ -829,38 +801,43 @@ class Digimon {
         return detailed.match;
     }
 
-    getStageName(stage) {
+    getStageName(stage, translate) {
+        const t = translate ? resolveT(translate) : getT({});
+        const localizedStage = (key) => {
+            const text = t(key);
+            return text && text !== key ? text : null;
+        };
+
         if (this.stagesName.length === 0) return stage;
 
         const stageMap = {
-            '1': this.stagesName[0], // 幼年期1
-            '2': this.stagesName[1], // 幼年期2
-            '3': this.stagesName[2], // 成長期
-            '4': this.stagesName[3], // 成熟期
-            '5': this.stagesName[4], // 完全體
-            '6': this.stagesName[5], // 究極體
-            '7': this.stagesName[6], // 超究極體
-            'a': '裝甲體',
-            'd': '混合體'
+            '1': this.stagesName[0],
+            '2': this.stagesName[1],
+            '3': this.stagesName[2],
+            '4': this.stagesName[3],
+            '5': this.stagesName[4],
+            '6': this.stagesName[5],
+            '7': this.stagesName[6],
+            'a': localizedStage('digmon.stage_armor'),
+            'd': localizedStage('digmon.stage_hybrid')
         };
 
-        // Handle composite stages like "4a", "4d", etc.
         if (stage.length > 1) {
             const baseStage = stage[0];
             const suffix = stage[1];
 
             if (suffix === 'a') {
-                // Get the base stage name and add 裝甲體
-                const baseStageName = stageMap[baseStage] || baseStage;
-                return baseStageName + '裝甲體';
+                const baseStageName = localizedStage(`digmon.stage_${baseStage}`) || stageMap[baseStage] || baseStage;
+                const armorSuffix = localizedStage('digmon.stage_armor_suffix');
+                return baseStageName + (armorSuffix || '');
             } else if (suffix === 'd') {
-                // Get the base stage name and add 混合體
-                const baseStageName = stageMap[baseStage] || baseStage;
-                return '混合體(' + baseStageName + ')';
+                const baseStageName = localizedStage(`digmon.stage_${baseStage}`) || stageMap[baseStage] || baseStage;
+                const hybridLabel = localizedStage('digmon.stage_hybrid');
+                return hybridLabel ? `${hybridLabel}(${baseStageName})` : baseStageName;
             }
         }
 
-        return stageMap[stage] || stage;
+        return localizedStage(`digmon.stage_${stage}`) || stageMap[stage] || stage;
     }
 
     getPersonalities(digimonName) {
@@ -1195,24 +1172,22 @@ class Digimon {
         return shuffled.slice(0, count);
     }
 
-    static showDigimon(digimon, digimonInstance) {
+    static showDigimon(digimon, digimonInstance, translate) {
+        const t = resolveT(translate);
         let rply = '';
         try {
-            // Header line
-            const headerLine = `#${digimon.id} 【${digimon.name}】｜${digimonInstance.getStageName(digimon.stage)}｜${(digimon.attribute && digimon.attribute !== 'No Data') ? digimon.attribute : '-'}`;
+            const headerLine = `#${digimon.id} 【${digimon.name}】｜${digimonInstance.getStageName(digimon.stage, translate)}｜${(digimon.attribute && digimon.attribute !== 'No Data') ? digimon.attribute : '-'}`;
             rply += `${headerLine}\n`;
-			// Official link and image url (will auto-embed in web UI if supported)
 			if (digimon.link) {
-				rply += `連結：${digimon.link}\n`;
+				rply += t('digmon.mon_link', { url: digimon.link });
 			}
 			if (digimon.img) {
-				rply += `圖像：${digimon.img}\n`;
+				rply += t('digmon.mon_image', { url: digimon.img });
 			}
-            // Personality
             const displayPersonality = digimonInstance.getDisplayPersonality(digimon);
-            let personalityLine = `個性：${displayPersonality}`;
+            let personalityLine = t('digmon.mon_personality', { personality: displayPersonality });
             if (digimon.rider !== undefined) {
-                personalityLine += ` ｜ 騎乘：${digimon.rider ? '⭕' : '❌'}`;
+                personalityLine += ` ｜ ${t('digmon.mon_rider', { icon: digimon.rider ? '⭕' : '❌' })}`;
             }
             const primarySkill = digimonInstance.getPrimarySkill(digimon);
             if (primarySkill) {
@@ -1221,15 +1196,8 @@ class Digimon {
                 const totalPower = power * maxHits;
                 const elementEmoji = digimonInstance.getElementEmoji(primarySkill.element);
                 const powerString = maxHits > 1 ? `${maxHits}×${power}=${totalPower}` : `${totalPower}`;
-                let extras = [];
-                if (primarySkill.critRate > 0) {
-                    extras.push(`CR:${primarySkill.critRate}`);
-                }
-                if (primarySkill.alwaysHits) {
-                    extras.push('必中');
-                }
-                const extrasString = extras.length > 0 ? ` (${extras.join(' ')})` : '';
-                personalityLine += ` ｜ 威力：${elementEmoji} ${powerString}${extrasString}`;
+                const extrasString = formatSkillExtras(primarySkill, t);
+                personalityLine += ` ｜ ${t('digmon.mon_power', { power: `${elementEmoji} ${powerString}${extrasString}` })}`;
             }
             if (Array.isArray(digimon.special_skills) && digimon.special_skills.length > 0) {
                 const skillsLines = [];
@@ -1237,61 +1205,48 @@ class Digimon {
                     const power = skill.power || 0;
                     const maxHits = skill.maxHits || 1;
                     const totalPower = power * maxHits;
-                    const elementEmoji = digimonInstance.getElementEmoji(skill.element);
                     const powerString = maxHits > 1 ? `${maxHits}×${power}=${totalPower}` : `${totalPower}`;
-                    let extras = [];
-                    if (skill.critRate > 0) {
-                        extras.push(`CR:${skill.critRate}`);
-                    }
-                    if (skill.alwaysHits) {
-                        extras.push('必中');
-                    }
-                    const extrasString = extras.length > 0 ? ` (${extras.join(' ')})` : '';
-                    skillsLines.push(`${elementEmoji} ${powerString}${extrasString}`);
+                    const extrasString = formatSkillExtras(skill, t);
+                    skillsLines.push(`${digimonInstance.getElementEmoji(skill.element)} ${powerString}${extrasString}`);
                 }
-                personalityLine += ` ｜ 威力：${skillsLines.join(' ')}`;
+                personalityLine += ` ｜ ${t('digmon.mon_power', { power: skillsLines.join(' ') })}`;
             }
-            // Append inherited levels (max) if present
             if (Array.isArray(digimon.inheritedLevels) && digimon.inheritedLevels.length > 0) {
                 const numeric = digimon.inheritedLevels
                     .map(v => Number.parseFloat(v))
                     .filter(v => !Number.isNaN(v));
                 if (numeric.length > 0) {
                     const maxInherited = Math.max(...numeric);
-                    personalityLine += ` ｜ 招式最高等級：${maxInherited}`;
+                    personalityLine += ` ｜ ${t('digmon.mon_max_move_level', { level: maxInherited })}`;
                 }
             }
             rply += personalityLine + '\n';
 
-            // Evolution requirements (jogress or item)
-            const requirements = digimonInstance.formatEvolutionRequirements(digimon);
+            const requirements = digimonInstance.formatEvolutionRequirements(digimon, translate);
             if (requirements.length > 0) {
                 rply += requirements.join('\n') + '\n';
             }
-            // Resistances
             if (digimon.elemental_resistances) {
                 const resistances = digimonInstance.formatElementalResistances(digimon.elemental_resistances);
                 if (resistances.length > 0) {
-                    rply += `抗性：${resistances.join(', ')}\n`;
+                    rply += t('digmon.mon_resistances', { list: resistances.join(', ') });
                 }
             }
 
-            // Locations (if any)
             const locations = digimonInstance.getLocations(digimon.name);
             if (locations.length > 0) {
-                rply += `出現地點：${locations.join(', ')}\n`;
+                rply += t('digmon.mon_locations', { list: locations.join(', ') });
             }
 
-            // Immediate evolutions available from this Digimon
             if (Array.isArray(digimon.evolutions) && digimon.evolutions.length > 0) {
                 const nextDigimon = digimon.evolutions
                     .map(name => digimonInstance.getByName(name))
                     .filter(Boolean);
                 if (nextDigimon.length > 0) {
-                    rply += `可進化：\n`;
+                    rply += t('digmon.mon_can_evolve');
                     for (let i = 0; i < nextDigimon.length; i++) {
                         const nd = nextDigimon[i];
-                        const stageLabel = digimonInstance.getStageName(nd.stage);
+                        const stageLabel = digimonInstance.getStageName(nd.stage, translate);
                         const personality = digimonInstance.getDisplayPersonality(nd);
 
                         const primarySkill = digimonInstance.getPrimarySkill(nd);
@@ -1310,22 +1265,8 @@ class Digimon {
                                 const power = skill.power || 0;
                                 const maxHits = skill.maxHits || 1;
                                 const totalPower = power * maxHits;
-
-                                let powerString;
-                                if (maxHits > 1) {
-                                    powerString = `${maxHits}×${power}=${totalPower}`;
-                                } else {
-                                    powerString = `${totalPower}`;
-                                }
-
-                                let extras = [];
-                                if (skill.critRate > 0) {
-                                    extras.push(`CR:${skill.critRate}`);
-                                }
-                                if (skill.alwaysHits) {
-                                    extras.push('必中');
-                                }
-                                const extrasString = extras.length > 0 ? ` (${extras.join(' ')})` : '';
+                                const powerString = maxHits > 1 ? `${maxHits}×${power}=${totalPower}` : `${totalPower}`;
+                                const extrasString = formatSkillExtras(skill, t);
                                 skillsLines.push(`${digimonInstance.getElementEmoji(skill.element)} ${powerString}${extrasString}`);
                             }
                             line += ` ｜ ${skillsLines.join(' ')}`;
@@ -1336,15 +1277,14 @@ class Digimon {
                 }
             }
 
-            // Counter list in table format
             const counterDigimon = digimonInstance.getCounterDigimon(digimon);
             if (counterDigimon.length > 0) {
                 rply += `\n`;
-                rply += digimonInstance.formatCounterTable(counterDigimon);
+                rply += digimonInstance.formatCounterTable(counterDigimon, translate);
             }
 
-            rply += '\n[進化路線]\n';
-            rply += digimonInstance.getEvolutionLinesWithTwoPaths(digimon);
+            rply += `\n${t('digmon.mon_evolution_routes')}`;
+            rply += digimonInstance.getEvolutionLinesWithTwoPaths(digimon, translate);
 
         } catch (error) {
             console.error('digimon display error', error);
@@ -1352,25 +1292,26 @@ class Digimon {
         return rply;
     }
 
-    getEvolutionLineFromStage1(targetDigimon) {
+    getEvolutionLineFromStage1(targetDigimon, translate) {
+        const t = resolveT(translate);
         const path = this.findSimplePathFromStage1(targetDigimon);
         if (path.length === 0) {
-            return '無法找到從幼年期1的進化路線';
+            return t('digmon.path_from_baby_none');
         }
-        return this.formatEvolutionPath(path);
+        return this.formatEvolutionPath(path, '#\uFE0F\u20E3', translate);
     }
 
-    // Format one evolution path into text lines
-    formatEvolutionPath(path, headerMarker = '#\uFE0F\u20E3') { // default '#️⃣'
+    formatEvolutionPath(path, headerMarker = '#\uFE0F\u20E3', translate) {
+        const t = resolveT(translate);
+        const jogressPrefix = t('digmon.jogress_prefix');
         let result = '';
-        // Optional lineage header for stage-1 start
         if (path.length > 0 && path[0].stage === '1') {
             const start = path[0];
-            const lineage = `${start.name}系譜`;
             const personalities = this.getPersonalities(start.name);
-            const chosen = personalities.length > 0 ? personalities[0] : lineage;
+            const lineageKey = `${start.name}系譜`;
+            const chosen = personalities.length > 0 ? personalities[0] : lineageKey;
             const details = this.getLocationsByPersonality(chosen);
-            result += `${headerMarker}${lineage}：出現地點\n`;
+            result += t('digmon.lineage_locations_header', { marker: headerMarker, lineage: chosen });
             for (const detail of details) {
                 result += `${detail.location}(${detail.digimon.join(', ')})\n`;
             }
@@ -1378,7 +1319,7 @@ class Digimon {
 
         for (let i = 0; i < path.length; i++) {
             const d = path[i];
-            const stageLabel = this.getStageName(d.stage);
+            const stageLabel = this.getStageName(d.stage, translate);
             const personality = this.getDisplayPersonality(d);
             const num = this.numberToEmoji(i + 1);
             let line = `${num}${this.padWide(d.name, 12)}｜${stageLabel}｜${personality}`;
@@ -1395,28 +1336,21 @@ class Digimon {
             }
             result += line + '\n';
 
-            // Evolution requirements for this digimon
-            const requirements = this.formatEvolutionRequirements(d);
+            const requirements = this.formatEvolutionRequirements(d, translate);
             if (requirements.length > 0) {
                 for (const req of requirements) {
-                    // For jogress evolution, don't add the digimon name prefix since it's already shown above
-                    if (req.startsWith('合體進化：')) {
+                    if (req.startsWith(jogressPrefix)) {
                         result += `${req}\n`;
                     } else {
                         result += `${d.name} ${req}\n`;
                     }
                 }
             }
-
-            if (d.stage === '1') {
-                // lineage details are shown in the header; skip per-item lineage block
-            }
         }
         return result;
     }
 
-    // Find up to two best evolution paths starting from different stage-1 Digimon
-    getEvolutionLinesWithTwoPaths(targetDigimon) {
+    getEvolutionLinesWithTwoPaths(targetDigimon, translate) {
         // Collect shortest path from each stage-1 start
         const startTime = Date.now();
         const maxTime = 3500;
@@ -1435,8 +1369,7 @@ class Digimon {
         }
 
         if (candidates.length === 0) {
-            // Fallback to legacy single-path logic
-            return this.getEvolutionLineFromStage1(targetDigimon);
+            return this.getEvolutionLineFromStage1(targetDigimon, translate);
         }
 
         // Sort by shortest path first, then by evolution-step personality matches (desc), then overall (desc)
@@ -1452,14 +1385,13 @@ class Digimon {
 
         // If there is no second with different start, show only one as per rule (a)
         if (!second) {
-            return this.formatEvolutionPath(first.path, '#\uFE0F\u20E3');
+            return this.formatEvolutionPath(first.path, '#\uFE0F\u20E3', translate);
         }
 
-        // Show up to two paths
         let out = '';
-        out += this.formatEvolutionPath(first.path, '#\uFE0F\u20E3');
+        out += this.formatEvolutionPath(first.path, '#\uFE0F\u20E3', translate);
         out += '\n';
-        out += this.formatEvolutionPath(second.path, '*\uFE0F\u20E3');
+        out += this.formatEvolutionPath(second.path, '*\uFE0F\u20E3', translate);
         return out;
     }
 
@@ -1723,19 +1655,18 @@ class Digimon {
     }
 
     // Format evolution requirements (jogress or item)
-    formatEvolutionRequirements(digimon) {
+    formatEvolutionRequirements(digimon, translate) {
+        const t = resolveT(translate);
         const requirements = [];
 
-        // Check for jogress (fusion) requirements
         if (digimon.jogressAEng && digimon.jogressBEng) {
             const aName = this.getChineseNameByEngName(digimon.jogressAEng);
             const bName = this.getChineseNameByEngName(digimon.jogressBEng);
-            requirements.push(`合體進化：${aName}＋${bName}`);
+            requirements.push(t('digmon.jogress_requirement', { a: aName, b: bName }));
         }
 
-        // Check for item requirements
         if (digimon.needsItemEng) {
-            requirements.push(`道具進化：${digimon.needsItemEng}`);
+            requirements.push(t('digmon.item_requirement', { item: digimon.needsItemEng }));
         }
 
         return requirements;
@@ -2188,31 +2119,31 @@ class Digimon {
         return score;
     }
 
-    showEvolutionPaths(fromDigimon, toDigimon) {
+    showEvolutionPaths(fromDigimon, toDigimon, translate) {
+        const t = resolveT(translate);
+        const jogressPrefix = t('digmon.jogress_prefix');
         const paths = this.findEvolutionPaths(fromDigimon, toDigimon);
 
         if (paths.length === 0) {
-            return `無法找到從 ${fromDigimon.name} 到 ${toDigimon.name} 的進化路線`;
+            return t('digmon.path_none', { from: fromDigimon.name, to: toDigimon.name });
         }
 
-        let result = `從 ${fromDigimon.name} 到 ${toDigimon.name} 的進化路線：\n\n`;
+        let result = t('digmon.path_header', { from: fromDigimon.name, to: toDigimon.name });
 
         for (let i = 0; i < paths.length; i++) {
             const path = paths[i];
 
             for (let j = 0; j < path.length; j++) {
                 const digimon = path[j];
-                const stageName = this.getStageName(digimon.stage);
+                const stageName = this.getStageName(digimon.stage, translate);
                 const personality = this.getDisplayPersonality(digimon);
                 const num = this.numberToEmoji(j + 1);
-                result += `${num}${this.padEnd(digimon.name, 8)}｜${stageName}｜基礎個性：${personality}\n`;
+                result += `${num}${this.padEnd(digimon.name, 8)}｜${stageName}｜${t('digmon.path_base_personality', { personality })}\n`;
 
-                // Evolution requirements for this digimon
-                const requirements = this.formatEvolutionRequirements(digimon);
+                const requirements = this.formatEvolutionRequirements(digimon, translate);
                 if (requirements.length > 0) {
                     for (const req of requirements) {
-                        // For jogress evolution, don't add the digimon name prefix since it's already shown above
-                        if (req.startsWith('合體進化：')) {
+                        if (req.startsWith(jogressPrefix)) {
                             result += `${req}\n`;
                         } else {
                             result += `${digimon.name} ${req}\n`;
@@ -2226,7 +2157,8 @@ class Digimon {
         return result;
     }
 
-    search(name) {
+    search(name, translate) {
+        const t = resolveT(translate);
         try {
             const detailed = this.findByNameOrIdDetailed(name);
             const digimon = detailed.match;
@@ -2238,12 +2170,11 @@ class Digimon {
                             const zh = c['zh-cn-name'] && c['zh-cn-name'] !== c.name ? ` / ${c['zh-cn-name']}` : '';
                             return `${c.name}${zh}`;
                         });
-                    return `沒有找到相關資料\n可能的其他名稱：${suggestions.join(', ')}`;
+                    return t('digmon.not_found_suggestions', { suggestions: suggestions.join(', ') });
                 }
-                return '沒有找到相關資料';
+                return t('digmon.not_found');
             }
-            let output = Digimon.showDigimon(digimon, this);
-            // If not an exact (100%) match, ALWAYS show possible alternative names
+            let output = Digimon.showDigimon(digimon, this, translate);
             if (detailed.isFuzzy) {
                 let suggestions = [];
                 if (Array.isArray(detailed.candidates)) {
@@ -2254,7 +2185,6 @@ class Digimon {
                             const zh = c['zh-cn-name'] && c['zh-cn-name'] !== c.name ? ` / ${c['zh-cn-name']}` : '';
                             return `${c.name}${zh}`;
                         });
-                    // Fallback: if excluding the chosen leaves no suggestions, include from full candidate list
                     if (suggestions.length === 0) {
                         suggestions = detailed.candidates
                             .slice(0, 6)
@@ -2264,55 +2194,55 @@ class Digimon {
                             });
                     }
                 }
-                output += `\n可能的其他名稱：${suggestions.length > 0 ? suggestions.join(', ') : '-'}`;
+                output += t('digmon.fuzzy_suggestions', { suggestions: suggestions.length > 0 ? suggestions.join(', ') : '-' });
             }
             return output;
         } catch (error) {
             console.error('digimon search error', error);
-            return '發生錯誤';
+            return t('digmon.error');
         }
     }
 
-    getTargetTypeName(skill) {
+    getTargetTypeName(skill, translate) {
+        const t = resolveT(translate);
         if (!skill) return '';
         const codes = this.getTargetTypeCodes();
         const typeMap = {
-            [codes['1 enemy']]: '單體敵人',
-            [codes['all enemies']]: '全體敵人',
-            [codes['1 ally']]: '單體隊友',
-            [codes['all allies']]: '全體隊友',
-            [codes.self]: '自己'
+            [codes['1 enemy']]: t('digmon.target_single_enemy'),
+            [codes['all enemies']]: t('digmon.target_all_enemies'),
+            [codes['1 ally']]: t('digmon.target_single_ally'),
+            [codes['all allies']]: t('digmon.target_all_allies'),
+            [codes.self]: t('digmon.target_self')
         };
         if (typeof skill.targetType === 'number' && typeMap[skill.targetType]) {
             return typeMap[skill.targetType];
         }
 
-        // Fallback for text-based description
         if (typeof skill.description === 'string') {
             const desc = skill.description.toLowerCase();
-            if (desc.includes('all enemies')) return '全體敵人';
-            if (desc.includes('enemy')) return '單體敵人';
-            if (desc.includes('all allies')) return '全體隊友';
-            if (desc.includes('ally')) return '單體隊友';
-            if (desc.includes('self')) return '自己';
+            if (desc.includes('all enemies')) return t('digmon.target_all_enemies');
+            if (desc.includes('enemy')) return t('digmon.target_single_enemy');
+            if (desc.includes('all allies')) return t('digmon.target_all_allies');
+            if (desc.includes('ally')) return t('digmon.target_single_ally');
+            if (desc.includes('self')) return t('digmon.target_self');
         }
-        return '未知';
+        return t('digmon.target_unknown');
     }
 
-    getSkillTypeName(skillType) {
+    getSkillTypeName(skillType, translate) {
+        const t = resolveT(translate);
         if (skillType === null || skillType === undefined) return '';
 
-        // If it's a number, look it up in the reverse map
         if (typeof skillType === 'number' && this.reverseDmgTypes[skillType]) {
             skillType = this.reverseDmgTypes[skillType];
         }
         const map = {
-            'Physical': '物理',
-            'Magic': '魔法',
-            'HP Damage': 'HP%',
-            'Buff': '輔助',
-            'Debuff': 'Debuff',
-            'Recovery': '回復',
+            'Physical': t('digmon.type_physical'),
+            'Magic': t('digmon.type_magic'),
+            'HP Damage': t('digmon.type_hp_damage'),
+            'Buff': t('digmon.type_buff'),
+            'Debuff': t('digmon.type_debuff'),
+            'Recovery': t('digmon.type_recovery'),
         };
         return map[skillType] || skillType;
     }
@@ -2357,7 +2287,8 @@ class Digimon {
         });
     }
 
-    searchMoves(query, filters = {}) {
+    searchMoves(query, filters = {}, translate) {
+        const t = resolveT(translate);
         this.ensureMovesIndex();
         // 1. Flatten all skills
         const augmentedSkills = this._movesAugmented;
@@ -2424,7 +2355,7 @@ class Digimon {
         const top10 = results.slice(0, 10);
 
         if (top10.length === 0) {
-            return `找不到與 "${query}" 相關的招式。`;
+            return t('digmon.moves_not_found', { query });
         }
 
         // Find max widths for alignment
@@ -2441,10 +2372,10 @@ class Digimon {
 
             const extras = [];
             if (skill.critRate > 0) extras.push(`CR:${skill.critRate}`);
-            if (skill.alwaysHits) extras.push('必中');
-            if (skill.HPDrain > 0) extras.push(`HP回復:${skill.HPDrain}%`);
-            if (skill.SPDrain > 0) extras.push(`SP回復:${skill.SPDrain}%`);
-            if (skill.recoil > 0) extras.push(`反作用力:${skill.recoil}%`);
+            if (skill.alwaysHits) extras.push(t('digmon.skill_always_hits'));
+            if (skill.HPDrain > 0) extras.push(t('digmon.skill_hp_drain', { value: skill.HPDrain }));
+            if (skill.SPDrain > 0) extras.push(t('digmon.skill_sp_drain', { value: skill.SPDrain }));
+            if (skill.recoil > 0) extras.push(t('digmon.skill_recoil', { value: skill.recoil }));
             const extrasString = extras.length > 0 ? ` (${extras.join(' ')})` : '';
             const powerWithExtras = powerString + extrasString;
 
@@ -2460,11 +2391,12 @@ class Digimon {
             return { ...item, powerString, extrasString, powerWithExtras };
         });
 
-        let output = `查詢 "${query}" 的招式結果：\n`;
+        let output = t('digmon.moves_result_header', { query });
         for (const [index, item] of processedResults.entries()) {
-            const { skill, digimon, elementName, targetTypeName, stageName, powerWithExtras } = item;
+            const { skill, digimon, elementName, stageName, powerWithExtras } = item;
             const elementEmoji = this.getElementEmoji(skill.element);
-            const skillType = this.getSkillTypeName(skill.type);
+            const targetTypeName = this.getTargetTypeName(skill, translate);
+            const skillType = this.getSkillTypeName(skill.type, translate);
             const num = this.numberToEmoji(index + 1);
 
             let line1 = `${num} ${this.padWide(skill.name, maxNameWidth)} | ${elementEmoji}${elementName} | ${targetTypeName}`;
@@ -2476,7 +2408,7 @@ class Digimon {
             }
 
             const numWidth = (index + 1 >= 10) ? 4 : 3;
-            const line2 = `${' '.repeat(numWidth)}威力: ${this.padWide(powerWithExtras, maxPowerWidth)} | ${this.padWide(digimon.name, maxDigimonNameWidth)} (${stageName} | ${digimon.attribute})`;
+            const line2 = `${' '.repeat(numWidth)}${t('digmon.moves_power_label')} ${this.padWide(powerWithExtras, maxPowerWidth)} | ${this.padWide(digimon.name, maxDigimonNameWidth)} (${this.getStageName(digimon.stage, translate)} | ${digimon.attribute})`;
 
             output += `${line1}\n${line2}\n`;
         }
@@ -2485,7 +2417,8 @@ class Digimon {
     }
 
     // 搜尋數碼寶貝列表（支援各種篩選條件）
-    searchDigimonList(filters) {
+    searchDigimonList(filters, translate) {
+        const t = resolveT(translate);
         let results = [...this.digimonData];
 
         // 篩選數碼寶貝屬性
@@ -2594,47 +2527,27 @@ class Digimon {
 
         // 格式化輸出
         if (results.length === 0) {
-            let filterDesc = [];
-            if (filters.attr) filterDesc.push(`屬性: ${filters.attr}`);
-            if (filters.stage) filterDesc.push(`階段: ${filters.stage}`);
-            if (filters.move_element) filterDesc.push(`招式屬性: ${filters.move_element}`);
-            if (filters.move_target) filterDesc.push(`招式目標: ${filters.move_target}`);
-            if (filters.move_type) filterDesc.push(`招式類型: ${filters.move_type}`);
-            if (filters.has_jogress) filterDesc.push('需要合體進化');
-            if (filters.no_jogress) filterDesc.push('不需要合體進化');
-            if (filters.has_item) filterDesc.push('需要道具進化');
-            if (filters.no_item) filterDesc.push('不需要道具進化');
-            if (filters.can_ride) filterDesc.push('可以騎乘');
-            if (filters.no_ride) filterDesc.push('不可以騎乘');
-
-            const filterText = filterDesc.length > 0 ? `\n應用篩選條件: ${filterDesc.join(', ')}` : '';
-            return `找不到符合條件的數碼寶貝${filterText}`;
+            const filterDesc = buildFilterDescriptions(filters, t);
+            const filterText = filterDesc.length > 0 ? t('digmon.list_filters_applied', { filters: filterDesc.join(', ') }) : '';
+            return t('digmon.list_not_found', { filterText });
         }
 
         const maxDisplay = 25;
         const displayedResults = results.slice(0, maxDisplay);
         const hasMore = results.length > maxDisplay;
 
-        let filterDesc = [];
-        if (filters.attr) filterDesc.push(`屬性: ${filters.attr}`);
-        if (filters.stage) filterDesc.push(`階段: ${filters.stage}`);
-        if (filters.move_element) filterDesc.push(`招式屬性: ${filters.move_element}`);
-        if (filters.move_target) filterDesc.push(`招式目標: ${filters.move_target}`);
-        if (filters.move_type) filterDesc.push(`招式類型: ${filters.move_type}`);
-        if (filters.has_jogress) filterDesc.push('需要合體進化');
-        if (filters.no_jogress) filterDesc.push('不需要合體進化');
-        if (filters.has_item) filterDesc.push('需要道具進化');
-        if (filters.no_item) filterDesc.push('不需要道具進化');
-        if (filters.can_ride) filterDesc.push('可以騎乘');
-        if (filters.no_ride) filterDesc.push('不可以騎乘');
+        const filterDesc = buildFilterDescriptions(filters, t);
+        const filterText = filterDesc.length > 0 ? t('digmon.list_filters_prefix', { filters: filterDesc.join(', ') }) : '';
 
-        const filterText = filterDesc.length > 0 ? `應用篩選條件: ${filterDesc.join(', ')}\n\n` : '';
-
-        let output = `找到 ${results.length} 個符合條件的數碼寶貝${hasMore ? ` (過多，僅顯示前${maxDisplay}個)` : ''}:\n\n${filterText}`;
+        let output = t('digmon.list_found', {
+            count: results.length,
+            truncated: hasMore ? t('digmon.list_truncated', { max: maxDisplay }) : '',
+            filterText
+        });
 
         for (let i = 0; i < displayedResults.length; i++) {
             const digimon = displayedResults[i];
-            const stageName = this.getStageName(digimon.stage);
+            const stageName = this.getStageName(digimon.stage, translate);
             const emojiNum = this.numberToEmoji(i + 1);
             // 只顯示英文名稱，不顯示中文名稱
             const displayName = digimon.name || '';
@@ -2905,7 +2818,7 @@ const discordCommand = [
                         opt.autocompleteSearchFields = ['display', 'value', 'metadata.zh-cn-name'];
                         opt.autocompleteLimit = 8;
                         opt.autocompleteMinQueryLength = 1;
-                        opt.autocompleteNoResultsText = '找不到相關的數碼寶貝';
+                        opt.autocompleteNoResultsKey = 'digmon.autocomplete_no_digimon';
 
                         return opt;
                     }))
@@ -2922,7 +2835,7 @@ const discordCommand = [
                         opt.autocompleteSearchFields = ['display', 'value', 'metadata.zh-cn-name'];
                         opt.autocompleteLimit = 8;
                         opt.autocompleteMinQueryLength = 1;
-                        opt.autocompleteNoResultsText = '找不到相關的數碼寶貝';
+                        opt.autocompleteNoResultsKey = 'digmon.autocomplete_no_digimon';
 
                         return opt;
                     })
@@ -2935,7 +2848,7 @@ const discordCommand = [
                         opt.autocompleteSearchFields = ['display', 'value', 'metadata.zh-cn-name'];
                         opt.autocompleteLimit = 8;
                         opt.autocompleteMinQueryLength = 1;
-                        opt.autocompleteNoResultsText = '找不到相關的數碼寶貝';
+                        opt.autocompleteNoResultsKey = 'digmon.autocomplete_no_digimon';
 
                         return opt;
                     }))
@@ -2953,7 +2866,7 @@ const discordCommand = [
                         opt.autocompleteSearchFields = ['display', 'value', 'metadata.digimon', 'metadata.element', 'metadata.type', 'metadata.digimonId'];
                         opt.autocompleteLimit = 8;
                         opt.autocompleteMinQueryLength = 1;
-                        opt.autocompleteNoResultsText = '找不到相關的招式';
+                        opt.autocompleteNoResultsKey = 'digmon.autocomplete_no_move';
 
                         return opt;
                     })

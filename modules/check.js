@@ -1,9 +1,6 @@
 "use strict";
 
-const __notChannel = "這裡不是群組，這是頻道功能，需要在頻道上使用。\n\n";
-const __notAdmin = "你沒有相關權限，禁止使用這功能，\n你需要有群組管理員權限。\n\n";
-const __notManager = "你沒有相關權限，禁止使用這功能，\n你需要有管理此頻道的權限或群組管理員權限。\n\n";
-const __notDiscord = "這是Discord限定功能。\n\n"
+const i18n = require('./i18n.js');
 
 const role = {
     ban: -1,
@@ -50,19 +47,20 @@ function __isDiscord(botName) {
 }
 
 function permissionErrMsg(arg) {
+    const t = arg.t || i18n.createTranslator(arg.locale || i18n.DEFAULT_LOCALE);
     let msg = "";
 
     if ((arg.flag & 0x1) && !__isChannel(arg.gid))
-        msg += __notChannel;
+        msg += t('common.permission.not_channel');
 
     if ((arg.flag & 0x2) && !__isAdmin(arg.role))
-        msg += __notAdmin;
+        msg += t('common.permission.not_admin');
 
     if ((arg.flag & 0x4) && !__isManager(arg.role))
-        msg += __notManager;
+        msg += t('common.permission.not_manager');
 
     if ((arg.flag & 0x8) && !__isDiscord(arg.name))
-        msg += __notDiscord;
+        msg += t('common.permission.not_discord');
 
     return msg;
 }

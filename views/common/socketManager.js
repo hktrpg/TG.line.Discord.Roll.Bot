@@ -158,7 +158,7 @@ class SocketManager {
         if (result) {
             uiManager.showAlert(result, "warning", 4000, true);
         } else {
-            uiManager.showError("擲骰失敗! 請檢查或向HKTRPG回報。", 4000);
+            uiManager.showError(typeof wwwT === 'function' ? wwwT('roll_failed') : 'Roll failed.', 4000);
             debugLog('Rolling failed', 'error');
         }
     }
@@ -172,7 +172,7 @@ class SocketManager {
         if (result) {
             uiManager.showAlert(result, "warning", 4000, true);
         } else {
-            uiManager.showError("擲骰失敗! 請檢查或向HKTRPG回報。", 4000);
+            uiManager.showError(typeof wwwT === 'function' ? wwwT('roll_failed') : 'Roll failed.', 4000);
             debugLog('Public rolling failed', 'error');
         }
     }
@@ -210,9 +210,14 @@ class SocketManager {
      */
     handleRemoveChannel(result) {
         if (result && result.success) {
-            uiManager.showSuccess('頻道移除成功！', 3000);
+            uiManager.showSuccess(typeof wwwT === 'function' ? wwwT('channel_removed') : 'Channel removed.', 3000);
         } else {
-            uiManager.showError(`頻道移除失敗: ${result ? result.message : '未知錯誤'}`, 5000);
+            const unknown = typeof wwwT === 'function' ? wwwT('unknown_error') : 'Unknown error';
+            const msg = result ? result.message : unknown;
+            uiManager.showError(
+                typeof wwwT === 'function' ? wwwT('channel_remove_failed', { message: msg }) : `Failed to remove channel: ${msg}`,
+                5000
+            );
         }
     }
 

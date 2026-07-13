@@ -44,6 +44,7 @@ jest.mock('../roll/rollbase.js', () => ({
 }));
 
 // Import the module after mocking
+const i18n = require('../modules/i18n.js');
 const _chineseConv = require('chinese-conv');
 const duckImage = require('@zetetic/duckduckgo-images-api');
 const wiki = require('wikijs').default;
@@ -52,6 +53,10 @@ const asyncModule = require('../roll/z_async_test.js');
 const rollbase = require('../roll/rollbase.js');
 
 describe('Async Module Tests', () => {
+  beforeAll(async () => {
+    await i18n.init();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });

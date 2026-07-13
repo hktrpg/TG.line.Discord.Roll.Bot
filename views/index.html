@@ -4,10 +4,11 @@
 <head>
     <link rel="stylesheet" href="css/style.css">
     <meta charset="UTF-8">
+    <script src="/common/www-locale-head.js"></script>
     <meta content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"
         name="viewport" />
-    <title>HKTRPG 擲骰機器人及聊天室 1D100 2D6 查詢指令輸入Bothelp</title>
-    <meta name="description" content="HKTRPG - 線上擲骰聊天室，支援多種TRPG系統">
+    <title data-www-i18n="roll_page_title">HKTRPG 擲骰機器人及聊天室 1D100 2D6 查詢指令輸入Bothelp</title>
+    <meta name="description" data-www-i18n-content="roll_meta_description" content="HKTRPG - 線上擲骰聊天室，支援多種TRPG系統">
     <meta name="theme-color" content="#343a40">
     
     <!-- Security Headers -->
@@ -246,7 +247,7 @@
                             <span class="input-group-text">
                                 <span class="iconify" data-icon="bi:person-fill"></span>
                             </span>
-                            <input type="text" class="form-control" name="name" id="name" placeholder="暱稱"
+                            <input type="text" class="form-control" name="name" id="name" data-www-i18n-placeholder="roll_nickname_placeholder" placeholder="暱稱"
                                 maxlength="50" required>
                         </div>
                         <div class="online-count mt-2">
@@ -257,7 +258,7 @@
                     <div class="chatroom-list">
                         <div class="list-header mb-2">
                             <span class="iconify" data-icon="bi:chat-dots"></span>
-                            <span>聊天室列表</span>
+                            <span data-www-i18n="roll_room_list">聊天室列表</span>
                         </div>
                         <div class="list-content" id="chatroomList">
                             <!-- Chatrooms will be added here dynamically -->
@@ -266,19 +267,19 @@
                     <div class="sidebar-actions mt-3">
                         <button class="btn btn-primary w-100" onclick="joinRoomModal.show()">
                             <span class="iconify" data-icon="bi:plus-circle"></span>
-                            <span>加入聊天室</span>
+                            <span data-www-i18n="roll_join_room">加入聊天室</span>
                         </button>
                         <button class="btn btn-info w-100" onclick="save()">
                             <span class="iconify" data-icon="bi:download"></span>
-                            <span>下載記錄</span>
+                            <span data-www-i18n="roll_download_log">下載記錄</span>
                         </button>
                         <button class="btn btn-dark w-100" onclick="readme()">
                             <span class="iconify" data-icon="bi:question-circle"></span>
-                            <span>使用教學</span>
+                            <span data-www-i18n="roll_help">使用教學</span>
                         </button>
                         <button class="btn btn-secondary w-100" onclick="themeManager.toggleTheme()">
                             <span class="iconify" data-icon="bi:moon-stars"></span>
-                            <span class="theme-text">深色模式</span>
+                            <span class="theme-text" data-www-i18n="roll_dark_mode">深色模式</span>
                         </button>
                     </div>
                 </div>
@@ -289,7 +290,7 @@
                 <div class="chat-container">
                     <div id="personal-room-notice" class="alert alert-info small p-2 m-2" role="alert" style="display: none; margin-bottom: 0;">
                         <span class="iconify" data-icon="bi:info-circle-fill"></span>
-                        個人小屋所有資料只存在本機，伺服器不會儲存。
+                        <span data-www-i18n="roll_personal_notice">個人小屋所有資料只存在本機，伺服器不會儲存。</span>
                     </div>
                     <div id="container-content">
                         <div id="content" class="p-2">
@@ -303,10 +304,10 @@
                     <div class="pad-content">
                         <ul class="nav nav-tabs" id="quick-command-tabs" role="tablist">
                             <li class="nav-item" role="presentation">
-                                <a class="nav-link" id="common-tab" data-toggle="tab" href="#common-commands" role="tab" aria-controls="common-commands" aria-selected="false">常用指令</a>
+                                <a class="nav-link" id="common-tab" data-toggle="tab" href="#common-commands" role="tab" aria-controls="common-commands" aria-selected="false" data-www-i18n="roll_tab_common">常用指令</a>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <a class="nav-link active" id="dice-set-tab" data-toggle="tab" href="#dice-set-commands-panel" role="tab" aria-controls="dice-set-commands-panel" aria-selected="true">骰組</a>
+                                <a class="nav-link active" id="dice-set-tab" data-toggle="tab" href="#dice-set-commands-panel" role="tab" aria-controls="dice-set-commands-panel" aria-selected="true" data-www-i18n="roll_tab_dice_set">骰組</a>
                             </li>
                         </ul>
                         <div class="tab-content" id="quick-command-tabs-content">
@@ -315,13 +316,13 @@
                                     <!-- Buttons will be added dynamically -->
                                 </div>
                                 <div class="custom-input">
-                                    <input type="text" id="customInput" placeholder="自訂指令" onchange="quickInputPad.saveCustom()" onkeypress="if(event.key === 'Enter') quickInputPad.sendCustom()">
-                                    <button class="btn btn-primary" onclick="quickInputPad.sendCustom()">送出</button>
+                                    <input type="text" id="customInput" data-www-i18n-placeholder="roll_custom_cmd_placeholder" placeholder="自訂指令" onchange="quickInputPad.saveCustom()" onkeypress="if(event.key === 'Enter') quickInputPad.sendCustom()">
+                                    <button class="btn btn-primary" onclick="quickInputPad.sendCustom()" data-www-i18n="roll_send">送出</button>
                                 </div>
                             </div>
                             <div class="tab-pane fade show active" id="dice-set-commands-panel" role="tabpanel" aria-labelledby="dice-set-tab">
                                 <div class="dice-set-selector form-group">
-                                     <label for="dice-set-select">選擇骰組:</label>
+                                     <label for="dice-set-select" data-www-i18n="roll_select_dice_set">選擇骰組:</label>
                                      <div class="input-group">
                                         <select class="form-control" id="dice-set-select"></select>
                                         <div class="input-group-append">
@@ -344,7 +345,7 @@
                         <form id="send-form" class="needs-validation" novalidate>
                             <div class="input-group">
                                 <textarea class="form-control message-input" name="msg" id="msg" 
-                                    placeholder="說點什麼？" maxlength="1000" rows="1" required>1d100</textarea>
+                                    data-www-i18n-placeholder="roll_message_placeholder" placeholder="說點什麼？" maxlength="1000" rows="1" required>1d100</textarea>
                                 <div class="input-group-append">
                                     <span class="input-group-text char-counter" id="charCounter">4/1000</span>
                                     <button type="submit" class="btn btn-primary" id="sendBtn">
@@ -356,7 +357,7 @@
                     </div>
                     <div class="toggle-button" onclick="quickInputPad.toggle()">
                         <span class="iconify" data-icon="bi:keyboard"></span>
-                        <span>快速指令</span>
+                        <span data-www-i18n="roll_quick_commands">快速指令</span>
                     </div>
                 </footer>
             </main>
@@ -368,17 +369,17 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="personalClearModalTitle">清空「個人小屋」內容</h5>
+                    <h5 class="modal-title" id="personalClearModalTitle" data-www-i18n="roll_clear_personal_title">清空「個人小屋」內容</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" data-www-i18n="roll_clear_personal_body">
                     此操作將會清除「個人小屋」的訊息。個人小屋的訊息只會儲存在本機，不會上傳到伺服器。清空後無法復原，確定要繼續嗎？
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="button" id="personalClearConfirmBtn" class="btn btn-danger">清空</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" data-www-i18n="roll_btn_cancel">取消</button>
+                    <button type="button" id="personalClearConfirmBtn" class="btn btn-danger" data-www-i18n="roll_btn_clear">清空</button>
                 </div>
             </div>
         </div>
@@ -393,88 +394,17 @@
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="readmeModalLongTitle">使用說明</h5>
+                    <h5 class="modal-title" id="readmeModalLongTitle" data-www-i18n="roll_readme_title">使用說明</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" data-www-i18n-html="roll_readme_html">
                     <h6>基本功能</h6>
-                    <ul>
-                        <li>支援多種擲骰指令：1d100、2d6、1d20 等</li>
-                        <li>可自訂聊天室名稱</li>
-                        <li>支援深色/淺色主題切換</li>
-                        <li>快速輸入常用指令</li>
-                        <li>可儲存聊天記錄</li>
-                        <li>支援多房間同時使用</li>
-                        <li>即時顯示在線人數</li>
-                        <li>支援自訂暱稱</li>
-                    </ul>
-
-                    <h6>使用方式</h6>
-                    <ol>
-                        <li>輸入暱稱（預設為「調查員」+隨機數字，可點擊重新產生按鈕更換）</li>
-                        <li>點擊「加入聊天室」或直接輸入房間名稱</li>
-                        <li>在輸入框輸入擲骰指令或聊天內容</li>
-                        <li>點擊「送出」或按 Enter 鍵發送訊息</li>
-                    </ol>
-
-                    <h6>擲骰指令格式</h6>
-                    <ul>
-                        <li>基本格式：<code>XdY</code>（X為骰子數量，Y為骰子面數）</li>
-                        <li>範例：
-                            <ul>
-                                <li><code>1d100</code>：擲一個100面骰</li>
-                                <li><code>2d6</code>：擲兩個6面骰</li>
-                                <li><code>1d20</code>：擲一個20面骰</li>
-                            </ul>
-                        </li>
-                    </ul>
-
-                    <h6>快速指令功能</h6>
-                    <ul>
-                        <li>點擊「快速指令」按鈕展開常用指令面板</li>
-                        <li>預設提供常用擲骰指令：1d2、1d6、1d8、1d10、1d12、1d20、1d100</li>
-                        <li>可自訂最多5個常用指令</li>
-                        <li>點擊指令即可快速發送</li>
-                    </ul>
-
-                    <h6>其他功能</h6>
-                    <ul>
-                        <li>點擊「快速輸入」可展開常用指令面板</li>
-                        <li>點擊「儲存」可下載聊天記錄（格式：HKTRPG + 房間名稱）</li>
-                        <li>點擊「說明」可檢視此使用說明</li>
-                        <li>點擊「深色模式」可切換主題</li>
-                        <li>點擊「重新產生」可隨機產生新暱稱</li>
-                    </ul>
-
-                    <h6>個人小屋</h6>
-                    <ul>
-                        <li>僅儲存在本機，不會上傳伺服器，其他人無法看到</li>
-                        <li>可與機器人互動；對話只在本機顯示</li>
-                        <li>刪除鍵為「清空內容」（不會移除房間），並會跳出確認</li>
-                        <li>清空後無法復原</li>
-                    </ul>
-
-                    <h6>注意事項</h6>
-                    <ul>
-                        <li>每間房間上限100條訊息</li>
-                        <li>聊天室名稱不可重複</li>
-                        <li>預設房間「公共房間」不可刪除</li>
-                        <li>暱稱長度限制為50個字元</li>
-                        <li>訊息長度限制為1000個字元</li>
-                    </ul>
-
-                    <div class="mt-3">
-                        <p>更多詳細教學請參考：</p>
-                        <a href="https://bothelp.hktrpg.com/" target="_blank" class="btn btn-primary btn-sm">
-                            <span class="iconify" data-icon="bi:link-45deg"></span>
-                            HKTRPG使用教學
-                        </a>
-                    </div>
+                    <!-- zh fallback until i18n loads -->
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" data-www-i18n="roll_btn_close">Close</button>
                 </div>
             </div>
         </div>
@@ -486,7 +416,7 @@
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="joinRoomModalTitle">加入聊天室</h5>
+                    <h5 class="modal-title" id="joinRoomModalTitle" data-www-i18n="roll_join_title">加入聊天室</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -494,20 +424,20 @@
                 <div class="modal-body">
                     <form id="joinRoom-form">
                         <div class="form-group">
-                            <label for="joinRoomNumber">聊天室名稱</label>
+                            <label for="joinRoomNumber" data-www-i18n="roll_join_room_label">聊天室名稱</label>
                             <div class="input-group">
                                 <span class="input-group-text">
                                     <span class="iconify" data-icon="bi:box-arrow-in-right"></span>
                                 </span>
                                 <input type="text" class="form-control" name="joinRoomNumber" id="joinRoomNumber"
-                                    placeholder="輸入聊天室名稱" maxlength="50" required>
+                                    data-www-i18n-placeholder="roll_join_placeholder" placeholder="輸入聊天室名稱" maxlength="50" required>
                             </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" onclick="joinRoomModal.submit()">加入</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" data-www-i18n="roll_btn_cancel">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="joinRoomModal.submit()" data-www-i18n="roll_join_btn">加入</button>
                 </div>
             </div>
         </div>
@@ -518,7 +448,7 @@
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="helpModalLabel">指令說明</h5>
+            <h5 class="modal-title" id="helpModalLabel" data-www-i18n="roll_help_title">指令說明</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -2448,6 +2378,8 @@
             }
         }
     </style>
+    <script src="/common/www-i18n.js"></script>
+    <script src="/common/site-chrome.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
@@ -2457,6 +2389,44 @@
         integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous">
         </script>
     <script>
+
+        function rt(key, options = {}) {
+            if (typeof wwwT !== 'function') return '';
+            return wwwT(key.startsWith('roll_') ? key : `roll_${key}`, options);
+        }
+        function roomDisplayName(room) {
+            if (room === CONFIG.DEFAULT_ROOM) return rt('roll_room_public') || CONFIG.DEFAULT_ROOM;
+            if (room === CONFIG.PERSONAL_ROOM) return rt('roll_room_personal') || CONFIG.PERSONAL_ROOM;
+            return room;
+        }
+        async function applyRollPageI18n() {
+            if (window.wwwI18n?.ready) await window.wwwI18n.ready;
+            if (typeof wwwApplyDomI18n === 'function') {
+                wwwApplyDomI18n(document.querySelector('.app-shell'));
+            }
+            document.title = rt('roll_page_title') || document.title;
+            const meta = document.querySelector('meta[name="description"]');
+            if (meta) meta.setAttribute('content', rt('roll_meta_description') || meta.content);
+            const titleShort = rt('roll_page_title_short') || 'HKTRPG Roll Chat';
+            if (typeof loadSiteChromeWithI18n === 'function') {
+                loadSiteChromeWithI18n({ title: titleShort });
+            } else if (typeof $ === 'function') {
+                $('#header').load('includes/header.html', function () {
+                    $('#title').text(titleShort);
+                    if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document.getElementById('header'));
+                    if (typeof initWwwLocaleSwitcher === 'function') initWwwLocaleSwitcher(document.getElementById('header'));
+                });
+                $('#footer').load('includes/footer.html', function () {
+                    if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document.getElementById('footer'));
+                });
+            }
+            if (themeManager?.updateThemeButton) {
+                const theme = document.documentElement.getAttribute('data-theme') || 'light';
+                themeManager.updateThemeButton(theme);
+            }
+            if (chatroomManager?.renderRooms) chatroomManager.renderRooms();
+        }
+
         // Configuration and Constants
         const CONFIG = {
             DEFAULT_ROOM: "公共房間",
@@ -2622,7 +2592,7 @@
                     return null;
                 }
             },
-            generateName: () => CONFIG.DEFAULT_NAME_PREFIX + Math.floor(Math.random() * 1000) + 1,
+            generateName: () => (rt('roll_name_prefix') || CONFIG.DEFAULT_NAME_PREFIX) + Math.floor(Math.random() * 1000) + 1,
             scrollToBottom: (behavior = 'smooth') => {
                 const container = document.getElementById("container-content");
                 if (!container) return;
@@ -2694,7 +2664,7 @@
                         // Create placeholder
                         const placeholder = document.createElement('div');
                         placeholder.className = 'image-placeholder';
-                        placeholder.innerHTML = '<span class="iconify" data-icon="bi:image"></span><span>載入圖片中...</span>';
+                        placeholder.innerHTML = `<span class="iconify" data-icon="bi:image"></span><span>${rt('roll_img_loading') || '載入圖片中...'}</span>`;
                         
                         // Create actual image (lazy loaded)
                         const img = document.createElement('img');
@@ -2702,7 +2672,7 @@
                         img.referrerPolicy = 'no-referrer';
                         img.setAttribute('data-src', utils.sanitizeUrl(url));
                         img.style.display = 'none';
-                        img.alt = '訊息圖片';
+                        img.alt = rt('roll_msg_image_alt') || '訊息圖片';
                         
                         // 🔧 CORS Error Prevention: Add error suppression for hover events
                         img.addEventListener('error', (e) => {
@@ -2751,7 +2721,7 @@
                                 }
                                 
                                 if (placeholder) {
-                                    placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片載入失敗</span>';
+                                    placeholder.innerHTML = `<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>${rt('roll_img_failed') || '圖片載入失敗'}</span>`;
                                     placeholder.classList.add('error');
                                 }
                                 console.warn('❌ Failed to load image (history):', url);
@@ -2774,7 +2744,7 @@
                                 }
                                 
                                 if (placeholder) {
-                                    placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片載入失敗</span>';
+                                    placeholder.innerHTML = `<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>${rt('roll_img_failed') || '圖片載入失敗'}</span>`;
                                     placeholder.classList.add('error');
                                 }
                                 console.warn('❌ Failed to load image (new message):', url);
@@ -3141,7 +3111,7 @@
                             uiManager.updateCharCount();
                         } catch (error) {
                             console.error('Failed to send message:', error);
-                            alert('發送訊息失敗，請稍後再試');
+                            alert(rt('roll_send_failed') || '發送訊息失敗，請稍後再試');
                         } finally {
                             // 🔒 Security: 完成提交
                             securityManager.setSubmitting(false);
@@ -3269,7 +3239,7 @@
                     }
 
                     if (text) {
-                        text.textContent = theme === 'dark' ? '淺色模式' : '深色模式';
+                        text.textContent = theme === 'dark' ? (rt('roll_light_mode') || '淺色模式') : (rt('roll_dark_mode') || '深色模式');
                     }
                 }, 100);
             }
@@ -3318,17 +3288,17 @@
             // 輸入驗證
             validateInput: (text) => {
                 if (!text || typeof text !== 'string') {
-                    return { valid: false, error: '無效的輸入' };
+                    return { valid: false, error: rt('roll_invalid_input') || '無效的輸入' };
                 }
                 
                 const trimmed = text.trim();
                 
                 if (trimmed.length === 0) {
-                    return { valid: false, error: '訊息不能為空' };
+                    return { valid: false, error: rt('roll_message_empty') || '訊息不能為空' };
                 }
                 
                 if (trimmed.length > securityManager.config.maxMessageLength) {
-                    return { valid: false, error: `訊息長度不能超過 ${securityManager.config.maxMessageLength} 字` };
+                    return { valid: false, error: rt('roll_message_too_long', { max: securityManager.config.maxMessageLength }) || `訊息長度不能超過 ${securityManager.config.maxMessageLength} 字` };
                 }
                 
                 // 檢查是否包含可疑的腳本標籤
@@ -3344,7 +3314,7 @@
                 for (const pattern of suspiciousPatterns) {
                     if (pattern.test(trimmed)) {
                         console.warn('Suspicious input detected:', trimmed.substring(0, 50));
-                        return { valid: false, error: '訊息包含不允許的內容' };
+                        return { valid: false, error: rt('roll_message_blocked') || '訊息包含不允許的內容' };
                     }
                 }
                 
@@ -3365,7 +3335,7 @@
                 if (securityManager.state.messageCount >= securityManager.config.maxMessagesPerMinute) {
                     return {
                         allowed: false,
-                        error: `發送過快，請稍後再試（最多 ${securityManager.config.maxMessagesPerMinute} 則/分鐘）`
+                        error: rt('roll_rate_limit', { max: securityManager.config.maxMessagesPerMinute }) || `發送過快，請稍後再試（最多 ${securityManager.config.maxMessagesPerMinute} 則/分鐘）`
                     };
                 }
                 
@@ -3376,7 +3346,7 @@
             // 防止重複提交
             canSubmit: () => {
                 if (securityManager.state.isSubmitting) {
-                    return { allowed: false, error: '正在發送中，請稍候...' };
+                    return { allowed: false, error: rt('roll_sending_wait') || '正在發送中，請稍候...' };
                 }
                 return { allowed: true };
             },
@@ -3474,7 +3444,7 @@
                 console.error(`[Security] ${context}:`, error);
                 
                 // 返回通用錯誤資訊
-                return '操作失敗，請稍後再試';
+                return rt('roll_operation_failed') || '操作失敗，請稍後再試';
             },
             
             // 初始化安全檢查
@@ -3570,7 +3540,7 @@
                 
                 if (!isSafeSrc) {
                     if (placeholder) {
-                        placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片來源不安全或格式不正確</span>';
+                        placeholder.innerHTML = `<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>${rt('roll_img_unsafe') || '圖片來源不安全或格式不正確'}</span>`;
                         placeholder.classList.remove('loading');
                         placeholder.classList.add('error');
                     }
@@ -3596,7 +3566,7 @@
                 
                 // Update placeholder to loading state
                 if (placeholder) {
-                    placeholder.innerHTML = '<span class="iconify loading-spin" data-icon="bi:arrow-clockwise"></span><span>載入中...</span>';
+                    placeholder.innerHTML = `<span class="iconify loading-spin" data-icon="bi:arrow-clockwise"></span><span>${rt('roll_img_loading_short') || '載入中...'}</span>`;
                     placeholder.classList.add('loading');
                 } else {
                     console.warn('⚠️ No placeholder found for:', src);
@@ -3633,7 +3603,7 @@
                     
                     // Show error state
                     if (placeholder) {
-                        placeholder.innerHTML = '<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>圖片載入失敗</span>';
+                        placeholder.innerHTML = `<span class="iconify" data-icon="bi:exclamation-triangle"></span><span>${rt('roll_img_failed') || '圖片載入失敗'}</span>`;
                         placeholder.classList.remove('loading');
                         placeholder.classList.add('error');
                     }
@@ -3794,7 +3764,7 @@
                     <span class="iconify" data-icon="bi:arrow-down-circle-fill"></span>
                     <span class="new-msg-badge" id="newMsgBadge" style="display: none;">0</span>
                 `;
-                button.title = '回到底部';
+                button.title = rt('roll_scroll_to_bottom') || '回到底部';
                 
                 button.addEventListener('click', () => {
                     this.scrollToBottom('smooth');
@@ -3863,9 +3833,23 @@
                         const quickCommandsManager = {
             data: [],
             activeCommand: null,
+            COC_DESC_PREFIX: '克蘇魯神話TRPG ',
+            getApiLang() {
+                return (window.wwwI18n && window.wwwI18n.locale) || 'zh-tw';
+            },
+            getDiceCommandsUrl() {
+                return `/api/dice-commands?lang=${encodeURIComponent(quickCommandsManager.getApiLang())}`;
+            },
+            trimCommandButtonLabel(text) {
+                const label = String(text || '');
+                if (label.startsWith(quickCommandsManager.COC_DESC_PREFIX)) {
+                    return label.slice(quickCommandsManager.COC_DESC_PREFIX.length).trim();
+                }
+                return label;
+            },
             init: async () => {
                 try {
-                    const response = await fetch('/api/dice-commands');
+                    const response = await fetch(quickCommandsManager.getDiceCommandsUrl());
                     quickCommandsManager.data = await response.json();
                     quickCommandsManager.renderDiceSetOptions();
 
@@ -3916,9 +3900,6 @@
                 const game = quickCommandsManager.data.find(g => g.fileName === fileName);
                 if (!game) return;
 
-                const isCoc = game.gameName.includes('克蘇魯神話');
-                const filterText = '克蘇魯神話TRPG ';
-
                 if (game.commands.length === 1) {
                     const singleCommand = game.commands[0];
                     const hasOptions = singleCommand.json.options && singleCommand.json.options.length > 0;
@@ -3930,11 +3911,7 @@
                         // Single command with no options, just show the button
                         const btn = document.createElement('button');
                         btn.className = 'pad-button';
-                        let buttonText = singleCommand.json.description;
-                        if (isCoc) {
-                            buttonText = buttonText.replace(filterText, '').trim();
-                        }
-                        btn.textContent = buttonText;
+                        btn.textContent = quickCommandsManager.trimCommandButtonLabel(singleCommand.json.description);
                         btn.onclick = () => quickCommandsManager.handleCommandClick(singleCommand, game);
                         commandsContainer.appendChild(btn);
                     }
@@ -3943,11 +3920,7 @@
                     game.commands.forEach(command => {
                         const btn = document.createElement('button');
                         btn.className = 'pad-button';
-                        let buttonText = command.json.description;
-                        if (isCoc) {
-                            buttonText = buttonText.replace(filterText, '').trim();
-                        }
-                        btn.textContent = buttonText;
+                        btn.textContent = quickCommandsManager.trimCommandButtonLabel(command.json.description);
                         btn.onclick = () => quickCommandsManager.handleCommandClick(command, game);
                         commandsContainer.appendChild(btn);
                     });
@@ -4043,7 +4016,7 @@
                                 limit: option.autocomplete.limit || 8,
                                 minQueryLength: option.autocomplete.minQueryLength || 1,
                                 placeholder: option.autocomplete.placeholder || option.description,
-                                noResultsText: option.autocomplete.noResultsText || '找不到相關結果'
+                                noResultsText: option.autocomplete.noResultsText || rt('roll_autocomplete_no_results') || '找不到相關結果'
                             };
                             
                             // 為輸入框添加自動完成
@@ -4070,7 +4043,7 @@
                     boolGroupContainer.className = 'form-group';
                     
                     const boolLabel = document.createElement('label');
-                    boolLabel.textContent = '篩選條件';
+                    boolLabel.textContent = rt('roll_filter_label') || '篩選條件';
                     boolGroupContainer.appendChild(boolLabel);
                     
                     const choiceGroup = document.createElement('div');
@@ -4096,7 +4069,7 @@
 
                 const executeBtn = document.createElement('button');
                 executeBtn.className = 'btn btn-primary btn-block mt-2';
-                executeBtn.textContent = '執行';
+                executeBtn.textContent = rt('roll_execute') || '執行';
                 executeBtn.onclick = quickCommandsManager.executeCommand;
                 inputsContainer.appendChild(executeBtn);
             },
@@ -4118,7 +4091,7 @@
                             isValid = false;
                             const errorEl = document.getElementById(`error-for-${option.name}`);
                             if (errorEl) {
-                                errorEl.textContent = '此為必填欄位';
+                                errorEl.textContent = rt('roll_filter_required') || '此為必填欄位';
                             }
                             
                             const control = inputsContainer.querySelector(`[name="${option.name}"]`) || inputsContainer.querySelector(`[data-name="${option.name}"]`);
@@ -4457,9 +4430,9 @@
                     <div class="chatroom-item ${room === chatroomManager.currentRoom ? 'active' : ''}"
                          onclick="chatroomManager.switchRoom('${room}')">
                         <span class="iconify" data-icon="bi:chat-dots"></span>
-                        <span class="room-name">${room}</span>
+                        <span class="room-name">${roomDisplayName(room)}</span>
                         ${room === CONFIG.PERSONAL_ROOM ? `
-                            <button class=\"delete-btn\" title=\"清空內容\" onclick=\"event.stopPropagation(); chatroomManager.confirmAndClearPersonalRoom()\">
+                            <button class=\"delete-btn\" title=\"${rt('roll_clear_content_title') || '清空內容'}\" onclick=\"event.stopPropagation(); chatroomManager.confirmAndClearPersonalRoom()\">
                                 <span class="iconify" data-icon="bi:x"></span>
                             </button>
                         ` : (room !== CONFIG.DEFAULT_ROOM ? `
@@ -4550,7 +4523,8 @@
         };
 
         // Initialize application
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", async () => {
+            await applyRollPageI18n();
             securityManager.init();  // 🔒 優先初始化安全管理器
             imageLoader.init();      // 🖼️ 初始化圖片懶載入
             socketManager.init();
@@ -4616,15 +4590,6 @@
                 }
             }
         };
-    </script>
-    <script>
-        const TITLE = "HKTRPG 擲骰聊天室";
-        $(function () {
-            $("#header").load("includes/header.html", function () {
-                $("#title").text(TITLE);
-            });
-            $("#footer").load("includes/footer.html");
-        });
     </script>
 
 </body>

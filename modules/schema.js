@@ -422,6 +422,16 @@ if (process.env.mongoURL) {
         ]
     }));
 
+    models.botLocale = mongoose.model('botLocale', new Schema({
+        scope: { type: String, enum: ['group', 'user'], required: true },
+        scopeId: { type: String, required: true },
+        locale: { type: String, default: 'zh-tw', maxlength: 10 }
+    }, {
+        indexes: [
+            { scope: 1, scopeId: 1, unique: true }
+        ]
+    }));
+
     models.theNewsMessage = mongoose.model('theNewsMessage', new Schema({
         userID: { type: String, index: true },
         botname: { type: String, index: true },

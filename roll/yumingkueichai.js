@@ -1,20 +1,17 @@
 "use strict";
 const { SlashCommandBuilder } = require('discord.js');
-let rollbase = require('./rollbase.js');
+const rollbase = require('./rollbase.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 let variables = {};
 
-const gameName = function () {
-    return '【貓貓鬼差】.kc xDy z'
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'kc.game_name', '【貓貓鬼差】.kc xDy z');
 }
 
 const gameType = function () {
     return 'Dice:yumingkueichai:hktrpg'
 }
 const prefixs = function () {
-    //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
-    //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
-    //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
-    ///^(?=.*he)(?!.*da).*$/ig
     return [{
         first: /^[.]KC$/i,
         second: /^(|4|5)d+((\d+)|)$/i
@@ -23,54 +20,20 @@ const prefixs = function () {
         second: null
     }]
 }
-const getHelpMessage = async function () {
-    return `【😺貓貓鬼差系統】
-╭────── 🎲基本格式 ──────
-│ • .kc [x]D[y] [z]
-│
-├────── 🎯參數說明 ──────
-│ [x] - 骰子數量:
-│ 　• 預設值: 4
-│ 　• 可選值: 4或5
-│ 　• 可留空使用預設值
-│
-│ [y] - 修正值:
-│ 　• 範圍: 1-20
-│
-│ [z] - 目標值:
-│ 　• 範圍: 1-20
-│
-├────── 📋判定規則 ──────
-│ 成功條件:
-│ 　• 出現至少一對對子
-│ 　• 達成值 = 剩餘骰子總和
-│
-│ 特殊規則:
-│ 　• 出現兩對對子時
-│ 　  選擇較高者計算
-│
-│ 　• 達成值為3時
-│ 　  視為戲劇性失敗
-│
-├────── 🎮十八啦玩法 ──────
-│ • 投擲4-5顆六面骰
-│ • 找出對子組合
-│ • 計算剩餘點數
-│ • 比較目標值判定
-│
-├────── 📝範例指令 ──────
-│ • .kc 4D10 15
-│ • .kc D8 12
-│ • .kc 5D12 18
-╰──────────────`
+const getHelpMessage = async function (params = {}) {
+    return resolveHelp(params, 'kc.help', () => getT({ locale: 'zh-tw' })('kc.help'));
 }
 const initialize = function () {
     return variables;
 }
 
 const rollDiceCommand = async function ({
-    mainMsg
+    mainMsg,
+    locale,
+    t
 }) {
+    const translate = getT({ locale, t });
+    const i18nParams = { locale, t };
     let rply = {
         default: 'on',
         type: 'text',
@@ -78,42 +41,33 @@ const rollDiceCommand = async function ({
     };
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-            rply.text = await this.getHelpMessage();
+            rply.text = await getHelpMessage(i18nParams);
             return rply;
         case /^(|4|5)d+((\d+)|)$/i.test(mainMsg[1]):
-            rply.text = await compareAllValues(mainMsg[1], mainMsg[2] || "")
+            rply.text = await compareAllValues(mainMsg[1], mainMsg[2] || "", translate);
             return rply;
         default:
             break;
     }
 }
 
-async function compareAllValues(triggermsg, msg) {
+async function compareAllValues(triggermsg, msg, translate) {
+    const t = translate || getT({});
     let result = ""
     let rollresult = []
     let match = /^(|4|5)(d)(\d+|)$/i.exec(triggermsg);
-    //判斷式  [0]4d3,[1]4,[2]d,[3]3  
     let x = match[1] || 4;
     let y = match[3] || 0
     let z = msg || 0
     if (y > 20) y = 20
     if (z > 20) z = 20
     if (z >= 1) {
-        result = "目標值 ≧ " + z + " ：\n"
+        result = t('kc.target_header', { target: z });
     }
     for (let i = 0; i < x; i++) {
         rollresult[i] = rollbase.Dice(6)
     }
-    result += "[ " + rollresult + " ] → "
-    //找到一樣->report  剩下最大兩粒
-    //目標值 ≧ 12：
-    //[1, 3, 5, 3, 3] → 達成值 6 [5,1] → 成功
-    //[1, 3, 5, 3, 3] → 達成值 6 [5,1] → 失敗
-    //============================
-    //[1, 3, 5, 3, 3] → 失敗
-    //[1, 3, 5, 3, 3] → 達成值 3 [1,2] → 戲劇性失敗
-    //[1, 3, 5, 3, 3] → 達成值 6 [5,1]  
-    //
+    result += t('kc.roll_line', { dice: rollresult.toString() });
     let temp = rollresult
     temp.sort(function (a, b) {
         return a - b
@@ -122,10 +76,8 @@ async function compareAllValues(triggermsg, msg) {
     let first = true;
     for (let i = 0; i < temp.length; i++) {
         for (let j = 0; j < i; j++) {
-            //如果有對子, 輸出達成值
             if (temp[j] == temp[i] && first == true) {
                 first = false
-                result += "達成值 "
                 let tempresult = 0;
                 let tempa = 0;
                 let tempb = 0;
@@ -142,7 +94,6 @@ async function compareAllValues(triggermsg, msg) {
                         }
                     }
                 }
-                //如果5D 11112 會變成大失敗, 修正變成 達成值11
                 if (x == 5 && tempa == 2 && tempb == 1 && temp[0] == 1 && temp[1] == 1 && temp[2] == 1 && temp[3] == 1 && temp[4] == 2) {
                     tempa = 1;
                     tempb = 1
@@ -151,25 +102,21 @@ async function compareAllValues(triggermsg, msg) {
                 if (y > 0) {
                     tempresult = Number(tempresult) + Number(y)
                 }
-                result += tempresult + " [" + tempa + "," + tempb + "]"
-                if (y > 0) result += " +" + y
+                result += t('kc.achievement', { total: tempresult, a: tempa, b: tempb });
+                if (y > 0) result += t('kc.modifier', { mod: y });
                 if (tempa == 2 && tempb == 1) {
-                    result += " → 戲劇性失敗"
+                    result += t('kc.dramatic_failure');
                 } else if (z >= 1) {
-                    result += " → "
-                    if (z > tempresult)
-                        result += "失敗"
-                    if (z <= tempresult)
-                        result += "成功"
+                    result += z > tempresult ? t('kc.outcome_fail') : t('kc.outcome_success');
                 }
             }
         }
     }
     if (first == true) {
-        result += "失敗"
+        result += t('kc.fail_no_pair');
     }
     if (Number.isNaN(z)) {
-        result += "；" + z
+        result += t('kc.note_suffix', { note: z });
     }
     return result;
 }

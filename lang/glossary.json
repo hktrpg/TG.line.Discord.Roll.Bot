@@ -1,0 +1,20 @@
+{
+  "terms": {
+    "initiative": {
+      "zh-tw": "先攻",
+      "en": "Initiative"
+    },
+    "character_card": {
+      "zh-tw": "角色卡",
+      "en": "Character Card"
+    },
+    "dark_roll": {
+      "zh-tw": "暗骰",
+      "en": "Secret Roll"
+    },
+    "coc": {
+      "zh-tw": "克蘇魯神話",
+      "en": "Call of Cthulhu"
+    }
+  }
+}

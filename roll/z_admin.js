@@ -31,8 +31,9 @@ const dbProtectionLayer = require('../modules/db-protection-layer.js');
 const clusterProtection = require('../modules/cluster-protection.js');
 const patreonTiers = require('../modules/patreon-tiers.js');
 const patreonSync = require('../modules/patreon-sync.js');
-const gameName = function () {
-    return '【Admin Tool】.admin debug state account news on'
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'admin.game_name', '【Admin Tool】.admin debug state account news on');
 }
 
 const gameType = function () {
@@ -50,126 +51,8 @@ const prefixs = function () {
         second: null
     }]
 }
-const getHelpMessage = async function () {
-    return `【⚙️管理員工具箱】
-╭────── 🔍系統監控 ──────
-│ 狀態查詢:
-│ 　• .admin state
-│ 　  - 檢視Rollbot運行狀態
-│ 　  - 顯示系統資源使用
-│
-│ ID查詢:
-│ 　• .admin id 或 .patreon id
-│ 　  - 自動顯示你的用戶ID
-│ 　  - 自動顯示當前群組ID
-│ 　  - 所有平台皆可使用
-│
-│ Patreon / VIP 等級:
-│ 　• .patreon level
-│ 　  - 查詢自己與當前群組的 VIP（Patreon）等級
-│
-│ 除錯功能:
-│ 　• .admin debug
-│ 　  - 取得群組詳細資料
-│ 　  - 顯示設定狀態
-│
-│ 資料庫狀態:
-│ 　• .admin mongod
-│ 　  - 檢視MongoDB連接狀態
-│
-│ 系統保護狀態:
-│ 　• .admin clusterhealth
-│ 　  - 檢視數據庫與分流保護層狀態
-│ 　  - 顯示降級模式與集群健康統計
-│
-├────── 👤帳號管理 ──────
-│ 網頁版角色卡設定:
-│ 　• .admin account [使用者名稱] [密碼]
-│
-│ 使用者名稱規則:
-│ 　• 長度: 4-16字元
-│ 　• 允許: 中文、英文
-│
-│ 密碼規則:
-│ 　• 長度: 6-16字元
-│ 　• 允許: 英文字母
-│ 　• 特殊符號: !@#$%^&*
-│ 
-│ 需要與HKTRPG獨立聊天設定，
-│ 禁止在群組中使用
-│
-│ 頻道註冊:
-│ 　• .admin registerChannel
-│ 　  - 註冊當前頻道
-│ 　• .admin unregisterChannel
-│ 　  - 取消註冊當前頻道
-│
-│ 擲骰權限:
-│ 　• .admin allowrolling
-│ 　  - 允許頻道使用網頁擲骰
-│ 　• .admin disallowrolling
-│ 　  - 取消頻道網頁擲骰權限
-│
-├────── 📢更新通知 ──────
-│ 開啟通知:
-│ 　• .admin news on
-│ 　  接收HKTRPG更新資訊
-│
-│ 關閉通知:
-│ 　• .admin news off
-│ 　  停止接收更新資訊
-│
-├────── 🔐系統管理員專用 ──────
-│ 系統重啟:
-│ 　• .root respawn [ID]
-│ 　  - 重啟指定ID的服務
-│ 　• .root respawnall
-│ 　  - 重啟所有服務
-│
-│ VIP管理:
-│ 　• .root addVipGroup -i ID -l LV -n NAME -no NOTES -s SWITCH
-│ 　  - 新增VIP群組
-│ 　• .root addVipUser -i ID -l LV -n NAME -no NOTES -s SWITCH
-│ 　  - 新增VIP用戶
-│
-│ Patreon 會員:
-│ 　• .root addpatreon PATREON_NAME tier=A|B|C|D|E|F [-no NOTES] [-s on|off]
-│ 　  - 新增時產生 KEY；更新時只改 TIER/備註/狀態，KEY 不變
-│ 　• .root regenkeypatreon PATREON_NAME
-│ 　  - 重新產生 KEY，舊 KEY 即時失效
-│ 　• .root onpatreon PATREON_NAME
-│ 　  - 開啟該會員狀態
-│ 　• .root offpatreon PATREON_NAME
-│ 　  - 關閉該會員狀態 (並收回其已分配的 VIP)
-│ 　• .root importpatreon [allkeys|newonly] [-email]
-│ 　  - 上傳 .csv 自動同步會員。allkeys=全KEY，newonly=新KEY。-email=產生電郵內容檔
-│
-│ 指令註冊:
-│ 　• .root registeredGlobal
-│ 　  - 註冊全局指令
-│ 　• .root testRegistered [ID]
-│ 　  - 測試指令註冊狀態
-│ 　• .root removeSlashCommands [ID]
-│ 　  - 移除指定群組的 Slash 指令（未給 ID 則使用目前群組）
-│
-│ 加密功能:
-│ 　• .root decrypt [加密文字]
-│ 　  - 解密文字
-│
-│ Shard 修復:
-│ 　• .root fixshard check
-│ 　  - 檢查所有 shard 狀態
-│ 　• .root fixshard start
-│ 　  - 開始自動修復 unresponsive shards
-│ 　• .root fixshard stop
-│ 　  - 停止自動修復
-│ 　• .root fixshard status
-│ 　  - 查看修復狀態
-
-│ 發送通知:
-│ 　• .root send News [訊息]
-│ 　  - 發送更新通知
-╰──────────────`
+const getHelpMessage = function (params = {}) {
+    return resolveHelp(params, 'admin.help', () => getT({ locale: 'zh-tw' })('admin.help'));
 }
 const discordCommand = [
     {
@@ -237,6 +120,7 @@ const discordCommand = [
                             ))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
+            const translate = getT({ locale: interaction._hktrpgLocale, t: interaction._hktrpgT });
             
             // System monitoring
             switch (subcommand) {
@@ -276,7 +160,7 @@ const discordCommand = [
             // No default
             }
             
-            return '無效的指令';
+            return translate('admin.slash_invalid_command');
         }
     },
     {
@@ -470,6 +354,7 @@ const discordCommand = [
                             .setRequired(false))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
+            const translate = getT({ locale: interaction._hktrpgLocale, t: interaction._hktrpgT });
             
             // System restart
             switch (subcommand) {
@@ -525,7 +410,7 @@ const discordCommand = [
                 const id = interaction.options.getString('id');
                 const targetId = id || interaction.guildId;
                 if (!targetId) {
-                    return '錯誤：未提供ID且無法獲取當前群組ID';
+                    return translate('admin.error_missing_target_id');
                 }
                 return `.root testRegistered ${targetId}`;
             }
@@ -533,7 +418,7 @@ const discordCommand = [
                 const id = interaction.options.getString('id');
                 const targetId = id || interaction.guildId;
                 if (!targetId) {
-                    return '錯誤：未提供ID且無法獲取當前群組ID';
+                    return translate('admin.error_missing_target_id');
                 }
                 return `.root removeSlashCommands ${targetId}`;
             }
@@ -555,7 +440,7 @@ const discordCommand = [
                 const email = interaction.options.getBoolean('email') || false;
                 const fileName = (file && file.name) ? file.name.toLowerCase() : '';
                 if (!file || !fileName.endsWith('.csv')) {
-                    return '請上傳 .csv 附件（Patreon 匯出格式）';
+                    return translate('admin.import_csv_upload_required');
                 }
 
                 // Bridge slash attachment into the existing .root importpatreon flow.
@@ -574,7 +459,7 @@ const discordCommand = [
             // No default
             }
             
-            return '無效的指令';
+            return translate('admin.slash_invalid_command');
         }
     },
     {
@@ -619,8 +504,12 @@ const rollDiceCommand = async function ({
     membercount,
     titleName,
     discordClient,
-    discordMessage
+    discordMessage,
+    locale,
+    t
 }) {
+    const translate = getT({ locale, t });
+    const i18nParams = { locale, t };
     let rply = {
         default: 'on',
         type: 'text',
@@ -641,7 +530,7 @@ const rollDiceCommand = async function ({
     // If it's a root command, check permissions
     if (isRootCommand) {
         if (!isAdminUser(userid)) {
-            rply.text = "此命令僅限系統管理員使用";
+            rply.text = translate('admin.root_admin_only');
             return rply;
         }
     }
@@ -650,7 +539,7 @@ const rollDiceCommand = async function ({
     if (isAdminCommand) {
         switch (true) {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-                rply.text = await this.getHelpMessage();
+                rply.text = getHelpMessage(i18nParams);
                 rply.quotes = true;
                 return rply;
             case /^state$/i.test(mainMsg[1]):
@@ -658,36 +547,31 @@ const rollDiceCommand = async function ({
                 rply.quotes = true;
                 return rply;
             case /^debug$/i.test(mainMsg[1]):
-                rply.text = "Debug function" + '\ngroupid: ' + groupid + "\nuserid: " + userid;
-                rply.text += '\nchannelid: ' + channelid;
-                rply.text += (userrole) ? '\nuserrole: ' + userrole : '';
-                rply.text += (botname) ? '\nbotname: ' + botname : '';
-                rply.text += (displayname) ? '\ndisplayname: ' + displayname : '';
-                rply.text += (displaynameDiscord) ? '\ndisplaynameDiscord: ' + displaynameDiscord : '';
-                rply.text += (membercount) ? '\nmembercount: ' + membercount : '';
+                rply.text = translate('admin.debug_plain', {
+                    groupid: groupid || translate('admin.not_available'),
+                    userid: userid || translate('admin.not_available'),
+                    channelid: channelid || translate('admin.not_available'),
+                    userrole_line: userrole ? `\nuserrole: ${userrole}` : '',
+                    botname_line: botname ? `\nbotname: ${botname}` : '',
+                    displayname_line: displayname ? `\ndisplayname: ${displayname}` : '',
+                    displayname_discord_line: displaynameDiscord ? `\ndisplaynameDiscord: ${displaynameDiscord}` : '',
+                    membercount_line: membercount ? `\nmembercount: ${membercount}` : ''
+                });
                 if (!password) return rply;
-                rply.text = 'Debug encrypt Data: \n' + security.encryptWithCryptoSecret(rply.text);
+                rply.text = translate('admin.debug_encrypt_prefix', { data: security.encryptWithCryptoSecret(rply.text) });
                 return rply;
             case /^id$/i.test(mainMsg[1]): {
-                const currentUserId = userid || 'N/A';
-                const currentGroupId = groupid || '（目前為私訊，無群組ID）';
-                const currentChannelId = channelid || 'N/A';
-                rply.text = [
-                    '【ID 查詢】',
-                    `用戶ID: ${currentUserId}`,
-                    `群組ID: ${currentGroupId}`,
-                    `頻道ID: ${currentChannelId}`,
-                    '',
-                    'Patreon 管理頁:',
-                    'https://patreon.hktrpg.com',
-                    '（以上 ID 可用於 Patreon 管理頁的名額分配設定）'
-                ].join('\n');
+                rply.text = translate('admin.id_query', {
+                    user_id: userid || translate('admin.not_available'),
+                    group_id: groupid || translate('admin.id_query_no_group'),
+                    channel_id: channelid || translate('admin.not_available')
+                });
                 return rply;
             }
             case /^mongod$/i.test(mainMsg[1]): {
                 if (!isAdminUser(userid)) return rply;
                 let mongod = await schema.mongodbStateCheck();
-                rply.text = JSON.stringify(mongod ? mongod.connections : 'Connection check failed');
+                rply.text = JSON.stringify(mongod ? mongod.connections : translate('admin.mongod_connection_failed'));
                 rply.quotes = true;
                 return rply;
             }
@@ -699,39 +583,41 @@ const rollDiceCommand = async function ({
                     const dbStatus = dbProtectionLayer.getStatusReport();
                     const clusterProtectionStatus = clusterProtection.getStatusReport();
 
-                    rply.text = '🔍 **System Protection Status**\n\n' +
-                        `🛡️ **Database Protection Layer:**\n` +
-                        `• Mode: ${dbStatus.isDegradedMode ? '🔴 DEGRADED' : '🟢 NORMAL'}\n` +
-                        `• Connection State: ${dbStatus.dbConnectionState === 1 ? '✅ Connected' : '❌ Disconnected'}\n` +
-                        `• Consecutive Failures: ${dbStatus.consecutiveFailures}\n` +
-                        `• Cache Size: ${dbStatus.cacheSize} items\n` +
-                        `• Pending Sync: ${dbStatus.pendingSyncOperations} operations\n\n` +
-                        `📊 **Cluster Protection Layer:**\n` +
-                        `• Unhealthy Clusters: ${clusterProtectionStatus.unhealthyCount}\n` +
-                        `• Health Timeout: ${clusterProtectionStatus.healthTimeout / 1000}s\n` +
-                        `• Max Retries: ${clusterProtectionStatus.maxRetries}\n\n` +
-                        `📋 **Cluster Health Report:**\n` +
-                        `• Total Clusters: ${healthReport.summary.totalClusters}\n` +
-                        `• Active Clusters: ${healthReport.summary.activeClusters}\n` +
-                        `• Ready Clusters: ${healthReport.summary.readyClusters}\n` +
-                        `• Dead Clusters: ${healthReport.summary.deadClusters}\n` +
-                        `• Total Shards: ${healthReport.summary.totalShards}\n\n` +
-                        `🔧 **Process Info:**\n` +
-                        `• PID: ${healthReport.processInfo.pid}\n` +
-                        `• Uptime: ${Math.floor(healthReport.processInfo.uptime / 3600)}h ${Math.floor((healthReport.processInfo.uptime % 3600) / 60)}m\n` +
-                        `• Memory: ${healthReport.processInfo.memoryMB}MB\n\n` +
-                        `📋 **Cluster Details:**\n` +
-                        healthReport.clusters.map(c =>
-                            `• Cluster ${c.id}: ${c.ready ? '✅' : '❌'} ${c.alive ? '🟢' : '🔴'} (${c.shards} shards, ${c.uptime}s uptime)`
-                        ).join('\n');
+                    const clusterDetails = healthReport.clusters.map(c => translate('admin.clusterhealth_detail_line', {
+                        id: c.id,
+                        ready: c.ready ? '✅' : '❌',
+                        alive: c.alive ? '🟢' : '🔴',
+                        shards: c.shards,
+                        uptime: c.uptime
+                    })).join('\n');
+                    rply.text = translate('admin.clusterhealth_report', {
+                        mode: dbStatus.isDegradedMode ? translate('admin.clusterhealth_mode_degraded') : translate('admin.clusterhealth_mode_normal'),
+                        connection: dbStatus.dbConnectionState === 1 ? translate('admin.clusterhealth_connected') : translate('admin.clusterhealth_disconnected'),
+                        consecutive_failures: dbStatus.consecutiveFailures,
+                        cache_size: dbStatus.cacheSize,
+                        pending_sync: dbStatus.pendingSyncOperations,
+                        unhealthy_clusters: clusterProtectionStatus.unhealthyCount,
+                        health_timeout: clusterProtectionStatus.healthTimeout / 1000,
+                        max_retries: clusterProtectionStatus.maxRetries,
+                        total_clusters: healthReport.summary.totalClusters,
+                        active_clusters: healthReport.summary.activeClusters,
+                        ready_clusters: healthReport.summary.readyClusters,
+                        dead_clusters: healthReport.summary.deadClusters,
+                        total_shards: healthReport.summary.totalShards,
+                        pid: healthReport.processInfo.pid,
+                        uptime_h: Math.floor(healthReport.processInfo.uptime / 3600),
+                        uptime_m: Math.floor((healthReport.processInfo.uptime % 3600) / 60),
+                        memory_mb: healthReport.processInfo.memoryMB,
+                        cluster_details: clusterDetails
+                    });
                     rply.quotes = true;
                 } catch (error) {
-                    rply.text = `❌ System protection status check failed: ${error.message}`;
+                    rply.text = translate('admin.clusterhealth_failed', { message: error.message });
                 }
                 return rply;
             }
             case /^registerChannel$/i.test(mainMsg[1]):
-                rply.text = checkTools.permissionErrMsg({
+                rply.text = checkTools.permissionErrMsg({ locale,
                     flag: checkTools.flag.ChkChannel,
                     gid: groupid
                 });
@@ -758,9 +644,9 @@ const rollDiceCommand = async function ({
                     return rply;
                 }
                 if (temp && temp2) {
-                    rply.text = "已註冊這頻道。如果想使用角色卡，請到\nhttps://card.hktrpg.com/";
+                    rply.text = translate('admin.register_channel_already');
                     if (!await checkGpAllow(channelid || groupid)) {
-                        rply.text += '\n此頻道並未被Admin允許經網頁擲骰，請Admin先在此頻道輸入\n.admin  allowrolling進行授權。';
+                        rply.text += `\n${translate('admin.register_channel_allowrolling_required_first')}`;
                     }
                     return rply;
                 }
@@ -771,9 +657,9 @@ const rollDiceCommand = async function ({
                         "titleName": titleName
                     })
                     await temp.save();
-                    rply.text = "註冊成功，如果想使用角色卡，請到\nhttps://card.hktrpg.com/"
+                    rply.text = translate('admin.register_channel_success');
                     if (!await checkGpAllow(channelid || groupid)) {
-                        rply.text += '\n此頻道並未被Admin允許經網頁擲骰，請Admin在此頻道輸入\n.admin  allowrolling';
+                        rply.text += `\n${translate('admin.register_channel_allowrolling_required')}`;
                     }
                     return rply;
                 }
@@ -787,15 +673,15 @@ const rollDiceCommand = async function ({
                         }
                     });
                     await temp.save().catch(error => console.error('[Admin] MongoDB error:', error.name, error.reason));
-                    rply.text = "註冊成功。如果想使用角色卡，請到\nhttps://card.hktrpg.com/";
+                    rply.text = translate('admin.register_channel_success_alt');
                     if (!await checkGpAllow(channelid || groupid)) {
-                        rply.text += '\n此頻道並未被Admin允許經網頁擲骰，請Admin在此頻道輸入\n.admin  allowrolling';
+                        rply.text += `\n${translate('admin.register_channel_allowrolling_required')}`;
                     }
                     return rply;
                 }
                 return rply;
             case /^unregisterChannel$/i.test(mainMsg[1]):
-                rply.text = checkTools.permissionErrMsg({
+                rply.text = checkTools.permissionErrMsg({ locale,
                     flag: checkTools.flag.ChkChannel,
                     gid: groupid
                 });
@@ -817,10 +703,10 @@ const rollDiceCommand = async function ({
                     rply.text += JSON.stringify(error);
                     return rply;
                 }
-                rply.text = "已移除註冊!如果想檢查，請到\nhttps://card.hktrpg.com/"
+                rply.text = translate('admin.unregister_channel_success');
                 return rply;
             case /^disallowrolling$/i.test(mainMsg[1]):
-                rply.text = checkTools.permissionErrMsg({
+                rply.text = checkTools.permissionErrMsg({ locale,
                     flag: checkTools.flag.ChkChannelAdmin,
                     gid: groupid,
                     role: userrole
@@ -837,10 +723,10 @@ const rollDiceCommand = async function ({
                     rply.text += JSON.stringify(error);
                     return rply;
                 }
-                rply.text = "此頻道已被Admin取消使用網頁版角色卡擲骰的權限。\n如Admin希望允許網頁擲骰，可輸入\n.admin allowrolling";
+                rply.text = translate('admin.disallowrolling_success');
                 return rply;
             case /^allowrolling$/i.test(mainMsg[1]):
-                rply.text = checkTools.permissionErrMsg({
+                rply.text = checkTools.permissionErrMsg({ locale,
                     flag: checkTools.flag.ChkChannelAdmin,
                     gid: groupid,
                     role: userrole
@@ -865,28 +751,28 @@ const rollDiceCommand = async function ({
                     rply.text += JSON.stringify(error);
                     return rply;
                 }
-                rply.text = "此頻道已被Admin允許使用網頁版角色卡擲骰，希望經網頁擲骰的玩家可在此頻道輸入以下指令登記。\n.admin registerChannel\n\n如Admin希望取消本頻道的網頁擲骰許可，可輸入\n.admin disallowrolling";
+                rply.text = translate('admin.allowrolling_success');
                 return rply;
             case /^account$/i.test(mainMsg[1]): {
                 if (groupid) {
-                    rply.text = "設定帳號時，請直接和HKTRPG對話，禁止在群組中使用";
+                    rply.text = translate('admin.account_dm_only');
                     return rply;
                 }
                 if (!mainMsg[2]) {
-                    rply.text = "請設定使用者名稱，4-16字，中英文限定，大小階相同";
+                    rply.text = translate('admin.account_username_required');
                     return rply;
                 }
                 if (!mainMsg[3]) {
-                    rply.text = "請設定密碼，6-16字，英文及以下符號限定!@#$%^&*";
+                    rply.text = translate('admin.account_password_required');
                     return rply;
                 }
                 name = mainMsg[2].toLowerCase();
                 if (!checkUserName(name)) {
-                    rply.text = "使用者名稱，4-16字，中英文限定，大小階相同";
+                    rply.text = translate('admin.account_username_invalid');
                     return rply;
                 }
                 if (!checkPassword(mainMsg[3])) {
-                    rply.text = "使用者密碼，6-16字，英文及以下符號限定!@#$%^&*";
+                    rply.text = translate('admin.account_password_invalid');
                     return rply;
                 }
                 // 🔒 Use new secure password hashing
@@ -902,7 +788,7 @@ const rollDiceCommand = async function ({
                     return rply;
                 }
                 if (temp && temp.id != userid) {
-                    rply.text += "重覆用戶名稱"
+                    rply.text += translate('admin.account_username_duplicated');
                     return rply;
                 }
                 try {
@@ -922,8 +808,7 @@ const rollDiceCommand = async function ({
                     rply.text += JSON.stringify(error);
                     return rply;
                 }
-                rply.text += "現在你的帳號是: " + name + "\n" + "密碼: " + mainMsg[3];
-                rply.text += "\n登入位置: https://card.hktrpg.com/ \n如想經網頁擲骰，可以請Admin在頻道中輸入\n.admin  allowrolling\n然後希望擲骰玩家可在該頻道輸入以下指令登記。\n.admin registerChannel";
+                rply.text += translate('admin.account_set_success', { name, password: mainMsg[3] });
                 return rply;
             }
             case /^news$/i.test(mainMsg[1]) && /^on$/i.test(mainMsg[2]):
@@ -938,11 +823,11 @@ const rollDiceCommand = async function ({
                         switch: true
                     }, opt)
                     if (doc) {
-                        rply.text = "更新成功\n你已開啓更新通知功能";
+                        rply.text = translate('admin.news_on_success');
                     }
                 } catch (error) {
                     console.error('[Admin] Add VIP error:', error)
-                    rply.text = '更新失敗\n因為 ' + error.message
+                    rply.text = translate('admin.news_update_failed', { message: error.message });
                 }
                 return rply;
             case /^news$/i.test(mainMsg[1]) && /^off$/i.test(mainMsg[2]):
@@ -957,11 +842,11 @@ const rollDiceCommand = async function ({
                         switch: false
                     }, opt)
                     if (doc) {
-                        rply.text = "更新成功\n你已關閉更新通知功能";
+                        rply.text = translate('admin.news_off_success');
                     }
                 } catch (error) {
                     console.error('[Admin] Add VIP error:', error)
-                    rply.text = '更新失敗\n因為 ' + error.message
+                    rply.text = translate('admin.news_update_failed', { message: error.message });
                 }
                 return rply;
             default:
@@ -970,55 +855,46 @@ const rollDiceCommand = async function ({
     } else if (isPatreonCommand) {
         switch (true) {
             case /^id$/i.test(mainMsg[1]): {
-                const currentUserId = userid || 'N/A';
-                const currentGroupId = groupid || '（目前為私訊，無群組ID）';
-                const currentChannelId = channelid || 'N/A';
-                rply.text = [
-                    '【ID 查詢】',
-                    `用戶ID: ${currentUserId}`,
-                    `群組ID: ${currentGroupId}`,
-                    `頻道ID: ${currentChannelId}`,
-                    '',
-                    'Patreon 管理頁:',
-                    'https://patreon.hktrpg.com',
-                    '（以上 ID 可用於 Patreon 管理頁的名額分配設定）'
-                ].join('\n');
+                rply.text = translate('admin.id_query', {
+                    user_id: userid || translate('admin.not_available'),
+                    group_id: groupid || translate('admin.id_query_no_group'),
+                    channel_id: channelid || translate('admin.not_available')
+                });
                 return rply;
             }
             case /^level$/i.test(mainMsg[1]): {
                 const userLevel = await viplevelCheckUser(userid);
                 const groupLevel = await viplevelCheckGroup(groupid || '');
-                const userLabel = patreonTiers.getTierLabel(userLevel) || (userLevel ? `Level ${userLevel}` : '無');
-                const groupLabel = patreonTiers.getTierLabel(groupLevel) || (groupLevel ? `Level ${groupLevel}` : '無');
-                rply.text = [
-                    '【Patreon / VIP 等級】',
-                    `你的 VIP 等級: ${userLevel} (${userLabel})`,
-                    `本群組 VIP 等級: ${groupLevel} (${groupLabel})`,
-                    '',
-                    'Patreon 管理頁: https://patreon.hktrpg.com'
-                ].join('\n');
+                const userLabel = patreonTiers.getTierLabel(userLevel, locale) || (userLevel ? `Level ${userLevel}` : translate('admin.none'));
+                const groupLabel = patreonTiers.getTierLabel(groupLevel, locale) || (groupLevel ? `Level ${groupLevel}` : translate('admin.none'));
+                rply.text = translate('admin.patreon_level_report', {
+                    user_level: userLevel,
+                    user_label: userLabel,
+                    group_level: groupLevel,
+                    group_label: groupLabel
+                });
                 return rply;
             }
             default:
-                rply.text = '可用指令：.patreon id（查 ID）、.patreon level（查自己與群組 VIP 等級）';
+                rply.text = translate('admin.patreon_available_commands');
                 return rply;
         }
     } else if (isRootCommand) {
         switch (true) {
             case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-                rply.text = await this.getHelpMessage();
+                rply.text = getHelpMessage(i18nParams);
                 rply.quotes = true;
                 return rply;
             case /^registeredGlobal$/i.test(mainMsg[1]):
-                rply.text = await deploy.registeredGlobalSlashCommands();
+                rply.text = await deploy.registeredGlobalSlashCommands(locale);
                 return rply;
             case /^testRegistered$/i.test(mainMsg[1]): {
                 const targetId = mainMsg[2] || groupid;
                 if (!targetId) {
-                    rply.text = "錯誤：未提供ID且無法獲取當前群組ID";
+                    rply.text = translate('admin.error_missing_target_id');
                     return rply;
                 }
-                rply.text = await deploy.testRegisteredSlashCommands(targetId);
+                rply.text = await deploy.testRegisteredSlashCommands(targetId, locale);
                 return rply;
             }
             case /^removeSlashCommands$/i.test(mainMsg[1]): {
@@ -1030,16 +906,16 @@ const rollDiceCommand = async function ({
                     resolvedTargetId: targetId
                 });
                 if (!targetId) {
-                    rply.text = "錯誤：未提供ID且無法獲取當前群組ID";
+                    rply.text = translate('admin.error_missing_target_id');
                     return rply;
                 }
                 try {
-                    const resultMsg = await deploy.removeSlashCommands(targetId);
+                    const resultMsg = await deploy.removeSlashCommands(targetId, locale);
                     console.log('[Admin] removeSlashCommands result', { targetId, resultMsg });
-                    rply.text = resultMsg || `已發送請求，移除群組 ${targetId} 的 Slash 指令`;
+                    rply.text = resultMsg || translate('admin.remove_slash_requested', { target_id: targetId });
                 } catch (error) {
                     console.error('[Admin] removeSlashCommands error:', error);
-                    rply.text = `移除 Slash 指令失敗：${error.message}`;
+                    rply.text = translate('admin.remove_slash_failed', { message: error.message });
                 }
                 return rply;
             }
@@ -1072,7 +948,7 @@ const rollDiceCommand = async function ({
                 return rply;
             case /^addVipGroup$/i.test(mainMsg[1]):
                 try {
-                    filter = await store(inputStr, 'gp');
+                    filter = await store(inputStr, 'gp', translate);
                     try {
                         doc = await schema.veryImportantPerson.findOneAndUpdate({
                             gpid: filter.gpid
@@ -1086,13 +962,19 @@ const rollDiceCommand = async function ({
                             returnDocument: 'after'
                         });
                         if (doc) {
-                            rply.text = `成功更新VIP群組：\n群組ID: ${filter.gpid}\n等級: ${filter.level}\n名稱: ${filter.name}\n備註: ${filter.notes || '無'}\n狀態: ${filter.switch ? '開啟' : '關閉'}`;
+                            rply.text = translate('admin.vip_group_updated', {
+                                group_id: filter.gpid,
+                                level: filter.level,
+                                name: filter.name,
+                                notes: filter.notes || translate('admin.none'),
+                                status: filter.switch ? translate('admin.status_on') : translate('admin.status_off')
+                            });
                         } else {
-                            rply.text = "更新失敗：未找到指定的群組";
+                            rply.text = translate('admin.update_group_not_found');
                         }
                     } catch (error) {
                         console.error('[Admin] Add VIP group error:', error);
-                        rply.text = '新增VIP群組失敗\n原因: ' + error.message;
+                        rply.text = translate('admin.add_vip_group_failed', { message: error.message });
                     }
                 } catch (error) {
                     rply.text = error.message;
@@ -1100,7 +982,7 @@ const rollDiceCommand = async function ({
                 return rply;
             case /^addVipUser$/i.test(mainMsg[1]):
                 try {
-                    filter = await store(inputStr, 'id');
+                    filter = await store(inputStr, 'id', translate);
                     try {
                         doc = await schema.veryImportantPerson.findOneAndUpdate({
                             id: filter.id
@@ -1114,13 +996,19 @@ const rollDiceCommand = async function ({
                             returnDocument: 'after'
                         });
                         if (doc) {
-                            rply.text = `成功更新VIP用戶：\n用戶ID: ${filter.id}\n等級: ${filter.level}\n名稱: ${filter.name}\n備註: ${filter.notes || '無'}\n狀態: ${filter.switch ? '開啟' : '關閉'}`;
+                            rply.text = translate('admin.vip_user_updated', {
+                                user_id: filter.id,
+                                level: filter.level,
+                                name: filter.name,
+                                notes: filter.notes || translate('admin.none'),
+                                status: filter.switch ? translate('admin.status_on') : translate('admin.status_off')
+                            });
                         } else {
-                            rply.text = "更新失敗：未找到指定的用戶";
+                            rply.text = translate('admin.update_user_not_found');
                         }
                     } catch (error) {
                         console.error('[Admin] Add VIP user error:', error);
-                        rply.text = '新增VIP用戶失敗\n原因: ' + error.message;
+                        rply.text = translate('admin.add_vip_user_failed', { message: error.message });
                     }
                 } catch (error) {
                     rply.text = error.message;
@@ -1129,14 +1017,14 @@ const rollDiceCommand = async function ({
             case /^addpatreon$/i.test(mainMsg[1]): {
                 const patreonName = mainMsg[2];
                 if (!patreonName) {
-                    rply.text = '請提供 Patreon 會員名稱，例: .root addpatreon userabc tier=A';
+                    rply.text = translate('admin.add_patreon_name_required');
                     return rply;
                 }
                 const tierMatch = inputStr.match(/tier=([A-Fa-f])/i);
                 const tierLetter = tierMatch ? tierMatch[1].toUpperCase() : null;
                 const level = tierLetter ? patreonTiers.tierLetterToLevel(tierLetter) : null;
                 if (level == null) {
-                    rply.text = '請指定 tier=A|B|C|D|E|F，例: .root addpatreon userabc tier=A';
+                    rply.text = translate('admin.add_patreon_tier_required');
                     return rply;
                 }
                 const notesMatch = inputStr.match(/\s+-no\s+(\S+)/i);
@@ -1180,13 +1068,18 @@ const rollDiceCommand = async function ({
                         { upsert: true, returnDocument: 'after', runValidators: true }
                     );
                     if (!doc) {
-                        rply.text = '新增 Patreon 會員失敗';
+                        rply.text = translate('admin.add_patreon_failed_simple');
                         return rply;
                     }
-                    const tierLabel = patreonTiers.getTierLabel(level);
-                    rply.text = `已${existed ? '更新' : '新增'} Patreon 會員\n名稱: ${patreonName}\n等級: ${tierLabel}\n狀態: ${switchOn ? '開啟' : '關閉'}`;
+                    const tierLabel = patreonTiers.getTierLabel(level, locale);
+                    rply.text = translate('admin.add_patreon_success', {
+                        action: existed ? translate('admin.action_updated') : translate('admin.action_added'),
+                        name: patreonName,
+                        tier_label: tierLabel,
+                        status: switchOn ? translate('admin.status_on') : translate('admin.status_off')
+                    });
                     if (!existed && newKeyPlain) {
-                        rply.text += `\n\n🔑 KEY (請妥善交給該會員，勿留在頻道):\n${newKeyPlain}`;
+                        rply.text += `\n\n${translate('admin.patreon_key_block', { key: newKeyPlain })}`;
                     }
                 } catch (error) {
                     console.error('[Admin] addpatreon error:', error);
@@ -1194,21 +1087,21 @@ const rollDiceCommand = async function ({
                     const msg = String(error.message || '');
                     const isKeyNullDup = error.code === MONGO_DUP_KEY && (msg.includes('key') && msg.includes('null'));
                     rply.text = isKeyNullDup
-                        ? 'addpatreon 失敗: 資料庫有舊的 key 唯一索引導致重複。請在 MongoDB 執行:\ndb.patreonmembers.dropIndex("key_1")\n然後再試一次。'
-                        : 'addpatreon 失敗: ' + error.message;
+                        ? translate('admin.add_patreon_failed_key_index')
+                        : translate('admin.add_patreon_failed', { message: error.message });
                 }
                 return rply;
             }
             case /^regenkeypatreon$/i.test(mainMsg[1]): {
                 const patreonNameRegen = mainMsg[2];
                 if (!patreonNameRegen) {
-                    rply.text = '請提供 Patreon 會員名稱，例: .root regenkeypatreon userabc';
+                    rply.text = translate('admin.regenkey_name_required');
                     return rply;
                 }
                 try {
                     doc = await schema.patreonMember.findOne({ patreonName: patreonNameRegen });
                     if (!doc) {
-                        rply.text = '找不到該 Patreon 會員: ' + patreonNameRegen;
+                        rply.text = translate('admin.patreon_member_not_found', { name: patreonNameRegen });
                         return rply;
                     }
                     await patreonSync.clearVipEntriesByPatreonKey(doc);
@@ -1220,17 +1113,17 @@ const rollDiceCommand = async function ({
                         { patreonName: patreonNameRegen },
                         { $set: { keyHash, keyEncrypted, key: keyHash } }
                     );
-                    rply.text = `已為 ${patreonNameRegen} 重新產生 KEY。\n⚠️ 舊 KEY 已失效，無法再登入網站。\n\n🔑 新 KEY (請妥善交給該會員，勿留在頻道):\n${newKey}`;
+                    rply.text = translate('admin.regenkey_success', { name: patreonNameRegen, key: newKey });
                 } catch (error) {
                     console.error('[Admin] regenkeypatreon error:', error);
-                    rply.text = 'regenkeypatreon 失敗: ' + error.message;
+                    rply.text = translate('admin.regenkey_failed', { message: error.message });
                 }
                 return rply;
             }
             case /^onpatreon$/i.test(mainMsg[1]): {
                 const patreonNameOn = mainMsg[2];
                 if (!patreonNameOn) {
-                    rply.text = '請提供 Patreon 會員名稱，例: .root onpatreon userabc';
+                    rply.text = translate('admin.onpatreon_name_required');
                     return rply;
                 }
                 try {
@@ -1244,27 +1137,27 @@ const rollDiceCommand = async function ({
                         { returnDocument: 'after' }
                     );
                     if (!doc) {
-                        rply.text = '找不到該 Patreon 會員: ' + patreonNameOn;
+                        rply.text = translate('admin.patreon_member_not_found', { name: patreonNameOn });
                         return rply;
                     }
                     await patreonSync.syncMemberSlotsToVip(doc);
-                    rply.text = `已開啟 Patreon 會員: ${patreonNameOn}`;
+                    rply.text = translate('admin.onpatreon_success', { name: patreonNameOn });
                 } catch (error) {
                     console.error('[Admin] onpatreon error:', error);
-                    rply.text = 'onpatreon 失敗: ' + error.message;
+                    rply.text = translate('admin.onpatreon_failed', { message: error.message });
                 }
                 return rply;
             }
             case /^offpatreon$/i.test(mainMsg[1]): {
                 const patreonNameOff = mainMsg[2];
                 if (!patreonNameOff) {
-                    rply.text = '請提供 Patreon 會員名稱，例: .root offpatreon userabc';
+                    rply.text = translate('admin.offpatreon_name_required');
                     return rply;
                 }
                 try {
                     doc = await schema.patreonMember.findOne({ patreonName: patreonNameOff });
                     if (!doc) {
-                        rply.text = '找不到該 Patreon 會員: ' + patreonNameOff;
+                        rply.text = translate('admin.patreon_member_not_found', { name: patreonNameOff });
                         return rply;
                     }
                     await patreonSync.clearVipEntriesByPatreonKey(doc);
@@ -1275,32 +1168,32 @@ const rollDiceCommand = async function ({
                             $push: { history: { at: new Date(), action: 'off', source: 'admin', reason: 'manual_off' } }
                         }
                     );
-                    rply.text = `已關閉 Patreon 會員: ${patreonNameOff}，並已收回其分配的 VIP`;
+                    rply.text = translate('admin.offpatreon_success', { name: patreonNameOff });
                 } catch (error) {
                     console.error('[Admin] offpatreon error:', error);
-                    rply.text = 'offpatreon 失敗: ' + error.message;
+                    rply.text = translate('admin.offpatreon_failed', { message: error.message });
                 }
                 return rply;
             }
             case /^importpatreon$/i.test(mainMsg[1]): {
                 if (!discordMessage?.attachments?.size) {
-                    rply.text = '請上傳一個 .csv 附件（僅接受 .csv 格式），例: .root importpatreon [allkeys|newonly] [-email] 並附上 CSV 檔案';
+                    rply.text = translate('admin.import_csv_attachment_required');
                     return rply;
                 }
                 const attachments = [...discordMessage.attachments.values()];
                 const csvFiles = attachments.filter(a => (a.name || '').toLowerCase().endsWith('.csv'));
                 if (csvFiles.length === 0) {
-                    rply.text = '請上傳一個 .csv 附件（僅接受 .csv 格式）';
+                    rply.text = translate('admin.import_csv_upload_required');
                     return rply;
                 }
                 if (csvFiles.length > 1) {
-                    rply.text = '請只上傳一個 .csv 附件';
+                    rply.text = translate('admin.import_csv_single_only');
                     return rply;
                 }
                 const attachment = csvFiles[0];
                 const MAX_CSV_SIZE_BYTES = 5 * 1024 * 1024;
                 if ((attachment.size || 0) > MAX_CSV_SIZE_BYTES) {
-                    rply.text = `CSV 附件不得超過 ${MAX_CSV_SIZE_BYTES / 1024 / 1024}MB`;
+                    rply.text = translate('admin.import_csv_too_large', { size_mb: MAX_CSV_SIZE_BYTES / 1024 / 1024 });
                     return rply;
                 }
                 const rawContentType = (attachment.contentType || '').toLowerCase();
@@ -1314,7 +1207,7 @@ const rollDiceCommand = async function ({
                     'text/comma-separated-values'
                 ];
                 if (contentType && !allowedTypes.includes(contentType)) {
-                    rply.text = '僅接受 CSV 或文字檔（Content-Type: text/csv, application/csv, application/vnd.ms-excel, text/plain）';
+                    rply.text = translate('admin.import_csv_invalid_content_type');
                     return rply;
                 }
                 const keyModeRaw = (mainMsg[2] || 'allkeys').toLowerCase();
@@ -1327,14 +1220,14 @@ const rollDiceCommand = async function ({
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     csvContent = await response.text();
                 } catch (error) {
-                    rply.text = '讀取附件失敗: ' + (error.message || error);
+                    rply.text = translate('admin.import_csv_read_failed', { message: error.message || error });
                     return rply;
                 }
                 try {
                     const patreonImport = require('../modules/patreon-import.js');
-                    const result = await patreonImport.runImport(csvContent, { keyMode, generateEmail });
+                    const result = await patreonImport.runImport(csvContent, { keyMode, generateEmail, locale });
                     const summary = result.summary || {};
-                    let dmStatusText = 'KEY 私訊：本次無需發送';
+                    let dmStatusText = translate('admin.import_dm_not_needed');
                     let emailStatusText = '';
 
                     if (Array.isArray(result.keyMessages) && result.keyMessages.length > 0) {
@@ -1344,8 +1237,12 @@ const rollDiceCommand = async function ({
                             }
                             const adminUser = await discordClient.users.fetch(userid);
                             const dmBody = [
-                                '【Patreon CSV KEY 明細】',
-                                `模式: ${keyMode === 'newonly' ? 'newonly (只新會員)' : 'allkeys (全部)'}`,
+                                translate('admin.import_dm_title'),
+                                translate('admin.import_dm_mode', {
+                                    mode: keyMode === 'newonly'
+                                        ? translate('admin.import_mode_newonly')
+                                        : translate('admin.import_mode_allkeys')
+                                }),
                                 '',
                                 ...result.keyMessages
                             ].join('\n');
@@ -1353,9 +1250,9 @@ const rollDiceCommand = async function ({
                             for (const chunk of chunks) {
                                 await adminUser.send(chunk);
                             }
-                            dmStatusText = `KEY 私訊：已發送 ${result.keyMessages.length} 筆`;
+                            dmStatusText = translate('admin.import_dm_sent', { count: result.keyMessages.length });
                         } catch (error) {
-                            dmStatusText = `KEY 私訊：失敗 (${error.message})`;
+                            dmStatusText = translate('admin.import_dm_failed', { message: error.message });
                         }
                     }
 
@@ -1366,35 +1263,35 @@ const rollDiceCommand = async function ({
                             }
                             const adminUser = await discordClient.users.fetch(userid);
                             await adminUser.send({
-                                content: '【Patreon Email 內容】',
+                                content: translate('admin.import_email_title'),
                                 files: [{
                                     attachment: Buffer.from(result.emailContent, 'utf8'),
                                     name: 'patreon_emails.txt'
                                 }]
                             });
-                            emailStatusText = 'Email 檔案：已發送';
+                            emailStatusText = translate('admin.import_email_sent');
                         } catch (error) {
-                            emailStatusText = `Email 檔案：失敗 (${error.message})`;
+                            emailStatusText = translate('admin.import_email_failed', { message: error.message });
                         }
                     }
 
 
                     const lines = [
-                        '【Patreon CSV 匯入摘要】',
-                        `新增: ${summary.added || 0}`,
-                        `更新: ${summary.updated || 0}`,
-                        `關閉(Former): ${summary.offFormer || 0}`,
-                        `關閉(Not Active): ${summary.offNotActive || 0}`,
-                        `錯誤: ${summary.errors || 0}`,
-                        `Active Patron(本CSV): ${summary.activeTotal || 0}`,
-                        `Former Patron(本CSV): ${summary.formerTotal || 0}`,
+                        translate('admin.import_summary_title'),
+                        translate('admin.import_summary_added', { count: summary.added || 0 }),
+                        translate('admin.import_summary_updated', { count: summary.updated || 0 }),
+                        translate('admin.import_summary_off_former', { count: summary.offFormer || 0 }),
+                        translate('admin.import_summary_off_not_active', { count: summary.offNotActive || 0 }),
+                        translate('admin.import_summary_errors', { count: summary.errors || 0 }),
+                        translate('admin.import_summary_active_total', { count: summary.activeTotal || 0 }),
+                        translate('admin.import_summary_former_total', { count: summary.formerTotal || 0 }),
                         dmStatusText
                     ];
                     if (emailStatusText) lines.push(emailStatusText);
                     rply.text = lines.join('\n');
                 } catch (error) {
                     console.error('[Admin] importpatreon error:', error);
-                    rply.text = 'importpatreon 失敗: ' + error.message;
+                    rply.text = translate('admin.import_patreon_failed', { message: error.message });
                 }
                 return rply;
             }
@@ -1413,11 +1310,7 @@ const rollDiceCommand = async function ({
                 const action = mainMsg[2]?.toLowerCase();
 
                 if (!action) {
-                    rply.text = '請指定動作：check, start, stop, status\n' +
-                               '• check - 檢查所有 shard 狀態\n' +
-                               '• start - 開始自動修復 unresponsive shards\n' +
-                               '• stop - 停止自動修復\n' +
-                               '• status - 查看修復狀態';
+                    rply.text = translate('admin.fixshard_action_required');
                     return rply;
                 }
 
@@ -1426,25 +1319,28 @@ const rollDiceCommand = async function ({
                         case 'check': {
                             const healthReport = await globalThis.checkShardHealth();
                             if (healthReport.error) {
-                                rply.text = `❌ 檢查失敗：${healthReport.error}`;
+                                rply.text = translate('admin.fixshard_check_failed', { message: healthReport.error });
                             } else {
-                                rply.text = `🔍 Shard 健康檢查報告\n` +
-                                           `📊 總共：${healthReport.totalShards} 個 shards\n` +
-                                           `✅ 正常：${healthReport.healthyShards} 個\n` +
-                                           `❌ 異常：${healthReport.unhealthyShards} 個\n` +
-                                           `${healthReport.unresponsiveShards.length > 0 ?
-                                               `🚨 無回應：${healthReport.unresponsiveShards.join(', ')}\n` +
-                                               `💡 使用 .root fixshard start 開始自動修復` :
-                                               `🎉 所有 shards 都正常運作！`}`;
+                                rply.text = translate('admin.fixshard_check_report', {
+                                    total_shards: healthReport.totalShards,
+                                    healthy_shards: healthReport.healthyShards,
+                                    unhealthy_shards: healthReport.unhealthyShards,
+                                    unresponsive_block: healthReport.unresponsiveShards.length > 0
+                                        ? translate('admin.fixshard_check_unresponsive', {
+                                            shards: healthReport.unresponsiveShards.join(', ')
+                                        })
+                                        : translate('admin.fixshard_check_all_good')
+                                });
                             }
                             break;
                         }
                         case 'start': {
                             const result = globalThis.startShardFix();
                             rply.text = result.inProgress ?
-                                `🔧 已開始自動修復 ${result.unresponsiveShards.length} 個無回應 shards\n` +
-                                `⏱️ 每 20 秒處理一個 shard\n` +
-                                `📝 無回應 shards：${result.unresponsiveShards.join(', ')}` :
+                                translate('admin.fixshard_start_success', {
+                                    count: result.unresponsiveShards.length,
+                                    shards: result.unresponsiveShards.join(', ')
+                                }) :
                                 result.message;
                             break;
                         }
@@ -1455,26 +1351,27 @@ const rollDiceCommand = async function ({
                         }
                         case 'status': {
                             const status = globalThis.getShardFixStatus();
-                            rply.text = `📊 Shard 修復狀態\n` +
-                                       `🔧 修復中：${status.inProgress ? '是' : '否'}\n` +
-                                       `🚨 無回應 shards：${status.totalUnresponsive > 0 ?
-                                           status.unresponsiveShards.join(', ') :
-                                           '無'}`;
+                            rply.text = translate('admin.fixshard_status', {
+                                in_progress: status.inProgress ? translate('admin.yes') : translate('admin.no'),
+                                unresponsive_shards: status.totalUnresponsive > 0
+                                    ? status.unresponsiveShards.join(', ')
+                                    : translate('admin.none')
+                            });
                             break;
                         }
                         default: {
-                            rply.text = '無效的動作。請使用：check, start, stop, status';
+                            rply.text = translate('admin.fixshard_invalid_action');
                         }
                     }
                 } catch (error) {
                     console.error('[Admin] fixshard error:', error);
-                    rply.text = `❌ 操作失敗：${error.message}`;
+                    rply.text = translate('admin.fixshard_operation_failed', { message: error.message });
                 }
 
                 return rply;
             }
             default:
-                rply.text = "無效的系統管理員指令";
+                rply.text = translate('admin.invalid_root_command');
                 return rply;
         }
     }
@@ -1533,7 +1430,7 @@ function generatePatreonKey() {
     return parts.join('-');
 }
 
-async function store(mainMsg, mode) {
+async function store(mainMsg, mode, translate = getT({ locale: 'zh-tw' })) {
     const resultId = pattId.exec(mainMsg);
     const resultGP = pattGP.exec(mainMsg);
     const resultLv = pattLv.exec(mainMsg);
@@ -1544,16 +1441,16 @@ async function store(mainMsg, mode) {
     
     // 檢查必要參數
     if (mode == 'id' && !resultId) {
-        throw new Error('缺少用戶ID (-i 參數)');
+        throw new Error(translate('admin.store_missing_user_id'));
     }
     if (mode == 'gp' && !resultGP) {
-        throw new Error('缺少群組ID (-g 參數)');
+        throw new Error(translate('admin.store_missing_group_id'));
     }
     if (!resultLv) {
-        throw new Error('缺少等級 (-l 參數)');
+        throw new Error(translate('admin.store_missing_level'));
     }
     if (!resultName) {
-        throw new Error('缺少名稱 (-n 參數)');
+        throw new Error(translate('admin.store_missing_name'));
     }
 
     // 設置基本參數

@@ -176,6 +176,9 @@ class CardManager {
                     }
                 },
                 methods: {
+                    t(key, options) {
+                        return typeof wwwT === 'function' ? wwwT(key, options) : key;
+                    },
                     // 是否為徽章屬性（非編輯模式時應隱藏於屬性格）
                     isBadgeAttribute(item) {
                         if (!item) return false;
@@ -778,7 +781,7 @@ class CardManager {
                             });
                         } else {
                             console.error('Global updateCard function not found');
-                            this.showError('儲存功能不可用');
+                            this.showError(typeof wwwT === 'function' ? wwwT('save_unavailable') : 'Save is not available');
                         }
                     },
                     
@@ -873,7 +876,7 @@ class CardManager {
 
                         // 驗證必填欄位
                         if (!item.name || item.name.trim() === '') {
-                            this.showError('請輸入名稱');
+                            this.showError(typeof wwwT === 'function' ? wwwT('enter_name') : 'Please enter a name');
                             return;
                         }
 
@@ -886,8 +889,15 @@ class CardManager {
                         );
 
                         if (duplicateIndex !== -1) {
-                            const formNames = { 0: '狀態', 1: '擲骰', 2: '備註' };
-                            this.showError(`偵測到重複項目名稱: ${formNames[form]}: ${name}`);
+                            const formKeys = { 0: 'form_state', 1: 'form_roll', 2: 'form_notes' };
+                            const formLabel = typeof wwwT === 'function'
+                                ? wwwT(formKeys[form])
+                                : { 0: 'State', 1: 'Roll', 2: 'Notes' }[form];
+                            this.showError(
+                                typeof wwwT === 'function'
+                                    ? wwwT('duplicate_item', { form: formLabel, name })
+                                    : `Duplicate item: ${formLabel}: ${name}`
+                            );
                             return;
                         }
 
@@ -1089,6 +1099,9 @@ class CardManager {
                     }
                 },
                 methods: {
+                    t(key, options) {
+                        return typeof wwwT === 'function' ? wwwT(key, options) : key;
+                    },
                     prevPage() { if (this.page > 1) this.page--; },
                     nextPage() { if (this.page < this.totalPages) this.page++; },
                     getTheSelectedOneByItem(item) {

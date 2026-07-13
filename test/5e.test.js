@@ -2,6 +2,7 @@
 
 const dnd5e = require('../roll/5e.js');
 const rollbase = require('../roll/rollbase.js');
+const i18n = require('../modules/i18n.js');
 
 // Mock Discord.js
 jest.mock('discord.js', () => ({
@@ -17,6 +18,10 @@ jest.mock('../roll/rollbase.js', () => ({
 }));
 
 describe('D&D 5E Module Tests', () => {
+    beforeAll(async () => {
+        await i18n.init();
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
         // Default mock implementation for dice roller

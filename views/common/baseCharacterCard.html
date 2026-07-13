@@ -4,6 +4,7 @@
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
+    <script src="/common/www-locale-head.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     
     <!-- Socket.io -->
@@ -49,7 +50,7 @@
              style="position: fixed; z-index: 999; display: none;" 
              role="alert" id="warning-update">
             <i class="fas fa-check-circle me-2"></i>
-            <strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。
+            <span data-www-i18n-html="alert_update_success_html"><strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。</span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         
@@ -58,7 +59,7 @@
              style="position: fixed; z-index: 999; display: none;" 
              role="alert" id="warning-updateError">
             <i class="fas fa-exclamation-triangle me-2"></i>
-            <strong>更新失敗!</strong> 請檢查或向HKTRPG回報。
+            <span data-www-i18n-html="alert_update_failed_html"><strong>更新失敗!</strong> 請檢查或向HKTRPG回報。</span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         
@@ -86,6 +87,8 @@
     </script>
 
     <!-- Common JavaScript Modules -->
+    <script src="/common/www-i18n.js"></script>
+    <script src="/common/site-chrome.js"></script>
     <script src="/common/cardManager.js"></script>
     <script src="/common/authManager.js"></script>
     <script src="/common/uiManager.js"></script>
@@ -107,6 +110,7 @@
         // Load common modals
         $("#commonModals").load("/common/characterCardModals.html", function() {
             debugLog('Modals loaded', 'info');
+            if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document.getElementById('commonModals'));
         });
         
         // Initialize Vue apps with configuration

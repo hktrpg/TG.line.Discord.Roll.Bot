@@ -17,10 +17,11 @@
         }
     </style>
     <meta charset="utf-8">
+    <script src="/common/www-locale-head.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1,user-scalable=0" />
-    <meta property="og:title" content="文字轉換器 Signal to Noise @ HKTRPG">
+    <meta property="og:title" data-www-i18n-content="stn_og_title" content="文字轉換器 Signal to Noise @ HKTRPG">
     <meta property="og:url" content="https://www.hktrpg.com/tool/randomDelete.html">
-    <meta property="og:description" content="Signal to Noise 可用 文字轉換器">
+    <meta property="og:description" data-www-i18n-content="stn_og_description" content="Signal to Noise 可用 文字轉換器">
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
@@ -29,6 +30,7 @@
     <script src="https://cdn.jsdelivr.net/npm/cnchar-all/cnchar.all.min.js"></script>
 
     <title>文字轉換器 Signal to Noise @ HKTRPG</title>
+    <script src="/common/www-i18n.js"></script>
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
     <script src="https://code.iconify.design/2/2.0.4/iconify.min.js"></script>
 
@@ -47,8 +49,8 @@
                 <div class="row">
             <div class="col-8  h-75">
                 <div class="input-group">
-                    <span class="input-group-text  btn-sm">輸入文字</span>
-                    <textarea class="form-control" aria-label="輸入文字" id="inputText">
+                    <span class="input-group-text btn-sm" data-www-i18n="stn_input_label">輸入文字</span>
+                    <textarea class="form-control" data-www-i18n-aria="stn_input_label" aria-label="輸入文字" id="inputText">
 人生若只如初見，何事秋風悲畫扇。
 等閒變卻故人心，卻道故人心易變。
 驪山語罷清宵半，淚雨霖鈴終不怨。
@@ -61,18 +63,18 @@ That struts and frets his hour upon the stage</textarea>
                 </div>
                 <div class="col-12">
                     <div class="input-group">
-                        <textarea class="form-control" aria-label="輸出文字" id="outputText"></textarea>
-                        <button class="btn  btn-primary  btn-sm" type="button" id="button-addon2"
-                            onclick="copyToClipBoard()">複製輸出文字</button>
+                        <textarea class="form-control" data-www-i18n-aria="stn_output_aria" aria-label="輸出文字" id="outputText"></textarea>
+                        <button class="btn btn-primary btn-sm" type="button" id="button-addon2"
+                            onclick="copyToClipBoard()" data-www-i18n="stn_btn_copy">複製輸出文字</button>
                     </div>
 
                 </div>
                 <div class="col-8">
                     <button class="btn btn-success" type="button" id="inputGroupFileAddon01"
-                        onclick="blockText()">轉換</button>
-                    <button class="btn btn-dark" type="button" id="inputGroupFileAddon03" onclick="reset()">重置</button>
+                        onclick="blockText()" data-www-i18n="stn_btn_convert">轉換</button>
+                    <button class="btn btn-dark" type="button" id="inputGroupFileAddon03" onclick="reset()" data-www-i18n="stn_btn_reset">重置</button>
                     <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                        <span class="iconify" data-icon="gg:readme" data-inline="false"></span>說明
+                        <span class="iconify" data-icon="gg:readme" data-inline="false"></span><span data-www-i18n="stn_btn_help">說明</span>
                     </button>
                 </div>
 
@@ -112,7 +114,7 @@ That struts and frets his hour upon the stage</textarea>
 
                 <div class="alert alert-primary align-items-center"
                     style="z-index:-100;position: relative; display: none;" id="alertCopied2" role="alert">
-                    <div>
+                    <div data-www-i18n="stn_copied">
                         已複製
                     </div>
                 </div>
@@ -133,22 +135,15 @@ That struts and frets his hour upon the stage</textarea>
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">說明</h5>
+                        <h5 class="modal-title" id="exampleModalLabel" data-www-i18n="stn_modal_title">說明</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body" data-www-i18n-html="stn_modal_body_html">
                         Signal to Noise TRPG專用 文章亂碼產生器<br>
-                        這是一款由2名玩家的在星際間傳送書信TRPG遊戲。<br>
-                        期間兩人的書信會被星際間的雜訊干擾，導致信息出現亂碼<br><br>
-
-                        這個亂碼產生器的原理是自動抽選一些英文字母作為亂碼<br>
-                        附有把中文>拼音>中文的功能<br>
-                        所以如果中文文字的拼音也符合亂碼值<br>
-                        也會被轉換<br>
-                        原規則請參考<a href="https://preview.drivethrurpg.com/en/product/367142/Signal-to-Noise">DriveThruRPG Signal to Noise</a>  <br>
+                        <!-- zh fallback until i18n loads -->
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-www-i18n="stn_btn_close">關閉</button>
 
                     </div>
                 </div>
@@ -373,6 +368,27 @@ That struts and frets his hour upon the stage</textarea>
             return array;
         }
     </script>
+    <script>
+        function st(key, options = {}) {
+            if (typeof wwwT !== 'function') return '';
+            return wwwT(key.startsWith('stn_') ? key : `stn_${key}`, options);
+        }
+        async function applyStnPageI18n() {
+            if (window.wwwI18n?.ready) await window.wwwI18n.ready;
+            if (typeof wwwApplyDomI18n === 'function') {
+                wwwApplyDomI18n(document.querySelector('.app-shell'));
+                wwwApplyDomI18n(document.getElementById('exampleModal'));
+            }
+            document.title = st('stn_page_title') || document.title;
+            const ogTitle = document.querySelector('meta[property="og:title"]');
+            if (ogTitle) ogTitle.setAttribute('content', st('stn_og_title') || ogTitle.content);
+            const ogDesc = document.querySelector('meta[property="og:description"]');
+            if (ogDesc) ogDesc.setAttribute('content', st('stn_og_description') || ogDesc.content);
+            const titleEl = document.getElementById('title');
+            if (titleEl) titleEl.textContent = st('stn_nav_title') || titleEl.textContent;
+        }
+    </script>
+    <script src="/common/site-chrome.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     </script>
@@ -383,12 +399,17 @@ That struts and frets his hour upon the stage</textarea>
         integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous">
         </script>
     <script>
-        const TITLE = "文字轉換器 @ Signal to Noise 可用";
-        $(function () {
-            $("#header").load("includes/header.html", function () {
-                $("#title").text(TITLE);
-            });
-            $("#footer").load("includes/footer.html");
+        $(async function () {
+            await applyStnPageI18n();
+            const navTitle = st('stn_nav_title') || 'Signal to Noise';
+            if (typeof loadSiteChromeWithI18n === 'function') {
+                loadSiteChromeWithI18n({ title: navTitle });
+            } else {
+                $('#header').load('includes/header.html', function () {
+                    $('#title').text(navTitle);
+                });
+                $('#footer').load('includes/footer.html');
+            }
         });
     </script>
     <!-- Option 2: Separate Popper and Bootstrap JS -->

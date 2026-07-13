@@ -4,6 +4,7 @@
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
+    <script src="/common/www-locale-head.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     
     <!-- Socket.io -->
@@ -39,7 +40,7 @@
     <!-- Iconify -->
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
     
-    <title>Character Card 角色卡 @ HKTRPG</title>
+    <title data-www-i18n="title_default">Character Card 角色卡 @ HKTRPG</title>
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
 </head>
 
@@ -56,7 +57,7 @@
                      style="position: fixed; z-index: 999; display: none;" 
                      role="alert" id="warning-update">
                     <i class="fas fa-check-circle me-2"></i>
-                    <strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。
+                    <span data-www-i18n-html="alert_update_success_html"><strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。</span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
                 
@@ -65,7 +66,7 @@
                      style="position: fixed; z-index: 999; display: none;" 
                      role="alert" id="warning-updateError">
                     <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>更新失敗!</strong> 請檢查或向HKTRPG回報。
+                    <span data-www-i18n-html="alert_update_failed_html"><strong>更新失敗!</strong> 請檢查或向HKTRPG回報。</span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
                 
@@ -95,6 +96,8 @@
     </script>
 
     <!-- Common JavaScript Modules -->
+    <script src="/common/www-i18n.js"></script>
+    <script src="/common/site-chrome.js"></script>
     <script src="/common/cardManager.js"></script>
     <script src="/common/authManager.js"></script>
     <script src="/common/uiManager.js"></script>
@@ -112,6 +115,7 @@
 
             $("#commonModals").load("/common/characterCardModals.html", function () {
                 debugLog('Modals loaded', 'info');
+                if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document.getElementById('commonModals'));
                 // 模態框載入完成後初始化Vue應用
                 initializeVueApps(IS_PUBLIC, true);
             });
@@ -133,10 +137,12 @@
                     if (card && !card.isPublic) {
                         // 檢查是否有未保存的變更
                         if (card.hasUnsavedChanges) {
-                            // 顯示確認對話框
+                            const leaveMsg = typeof wwwT === 'function'
+                                ? wwwT('unsaved_changes_confirm')
+                                : '您有未儲存的變更，確定要離開嗎？未儲存的變更將會遺失。';
                             event.preventDefault();
-                            event.returnValue = '您有未儲存的變更，確定要離開嗎？未儲存的變更將會遺失。';
-                            return event.returnValue;
+                            event.returnValue = leaveMsg;
+                            return leaveMsg;
                         }
                     }
                 }

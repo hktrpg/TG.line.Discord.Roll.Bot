@@ -1,5 +1,7 @@
 "use strict";
 
+const i18n = require('../modules/i18n.js');
+
 // Mock dependencies
 jest.mock('../roll/rollbase.js', () => ({
   BuildRollDice: jest.fn().mockResolvedValue([1, 2, 3, 4, 5, 6]),
@@ -10,6 +12,10 @@ jest.mock('../roll/rollbase.js', () => ({
 const wodModule = require('../roll/wod.js');
 
 describe('World of Darkness Module Tests', () => {
+  beforeAll(async () => {
+    await i18n.init();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });

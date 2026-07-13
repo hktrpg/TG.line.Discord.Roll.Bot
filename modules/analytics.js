@@ -49,6 +49,7 @@ function getRollModule(moduleName) {
 }
 
 const schema = require('./schema.js');
+const i18n = require('./i18n.js');
 const debugMode = (process.env.DEBUG) ? true : false;
 const MESSAGE_SPLITOR = (/\S+/ig);
 const courtMessage = require('./logs').courtMessage || function () {};
@@ -71,6 +72,8 @@ class RollContext {
 		this.discordMessage = params.discordMessage || null;
 		this.titleName = params.titleName || '';
 		this.tgDisplayname = params.tgDisplayname || '';
+		this.locale = params.locale || i18n.DEFAULT_LOCALE;
+		this.t = params.t || i18n.createTranslator(this.locale);
 		this.mainMsg = this.inputStr.replaceAll(/^\s/g, '').match(MESSAGE_SPLITOR);
 	}
 
@@ -89,13 +92,27 @@ class RollContext {
 			discordClient: this.discordClient,
 			discordMessage: this.discordMessage,
 			titleName: this.titleName,
-			tgDisplayname: this.tgDisplayname
+			tgDisplayname: this.tgDisplayname,
+			locale: this.locale,
+			t: this.t
 		};
 	}
 }
 
 const parseInput = async (params) => {
 	const context = new RollContext(params);
+
+	if (!params.locale) {
+		const channelType = params.discordMessage?.channel?.type;
+		context.locale = await i18n.resolveLocale({
+			groupid: context.groupid,
+			userid: context.userid,
+			channelType,
+			botname: context.botname
+		});
+		context.t = i18n.createTranslator(context.locale);
+	}
+
 	let result = {
 		text: '',
 		type: 'text',
@@ -112,7 +129,8 @@ const parseInput = async (params) => {
 			context.displaynameDiscord,
 			context.membercount,
 			context.tgDisplayname,
-			context.discordMessage
+			context.discordMessage,
+			context.locale
 		);
 		result.LevelUp = tempEXPUP?.text || '';
 		result.statue = tempEXPUP?.statue || '';
@@ -155,8 +173,14 @@ const parseInput = async (params) => {
 			...context.toParams(),
 			result
 		});
+		const t = context.t;
 		if (result.text && characterReRoll.text) {
-			result.text = `${result.characterName} 投擲 ${result.characterReRollName}\n${characterReRoll.text}\n======\n${result.text}`;
+			result.text = t('character.reroll_combined', {
+				name: result.characterName,
+				rollName: result.characterReRollName,
+				roll: characterReRoll.text,
+				original: result.text
+			});
 		} else {
 			result.text = result.text || '';
 			if (characterReRoll && characterReRoll.text) {
@@ -167,7 +191,7 @@ const parseInput = async (params) => {
 
 	// state 功能
 	if (result.state) {
-		result.text = await stateText();
+		result.text = await stateText(context.locale);
 	}
 
 	// courtMessage + saveLog
@@ -514,18 +538,21 @@ async function monthlyRollDeltas(year, month, debugLabel = '', preloadedFirstEve
 
 /** Short-lived cache so repeated `.admin state` does not hammer MongoDB. Set ADMIN_STATE_CACHE_SEC=0 to disable. */
 const ADMIN_STATE_CACHE_MS = Math.max(0, Number.parseInt(process.env.ADMIN_STATE_CACHE_SEC || '300', 10) * 1000);
-let stateTextCache = { text: '', expiresAt: 0 };
-let stateTextRefreshing = false;
+let stateTextCache = {};
+let stateTextRefreshing = {};
 
-async function computeStateText() {
+async function computeStateText(locale = i18n.DEFAULT_LOCALE) {
+	await i18n.init();
+	const t = i18n.createTranslator(locale);
 	let state = await getState() || '';
 	if (Object.keys(state).length === 0 || !state.LogTime) return '';
 
-	/** Human-readable HK time for status UI (Traditional Chinese + 24h, no suffix). */
+	/** Human-readable HK time for status UI (no suffix). */
 	const formatPrettyTimestamp = (input) => {
 		const d = parseToDate(input);
 		if (!d) return '—';
-		return new Intl.DateTimeFormat('zh-Hant-HK', {
+		const intlLocale = locale === 'en' ? 'en-HK' : 'zh-Hant-HK';
+		return new Intl.DateTimeFormat(intlLocale, {
 			timeZone: 'Asia/Hong_Kong',
 			year: 'numeric',
 			month: 'long',
@@ -602,77 +629,81 @@ async function computeStateText() {
 	const divTop = '◆ ────────────────────────';
 	const div = '────────────────────────';
 
-	const lmLabel = `${hkLm.y % 100}年${hkLm.m}月`;
-	const lyLabel = `${hkLy.y % 100}年${hkLy.m}月`;
+	const lmLabel = t('admin.state_report.month_label', { yy: hkLm.y % 100, m: hkLm.m });
+	const lyLabel = t('admin.state_report.month_label', { yy: hkLy.y % 100, m: hkLy.m });
 
 	return [
-		'【 📊 HKTRPG · 系統狀態報告 】',
+		t('admin.state_report.header'),
 		divTop,
-		'⏰ 時間資訊',
+		t('admin.state_report.section_time'),
 		div,
-		`🗓 最早紀錄 ${startTimeDisplay}`,
-		`🕐 現在時間 ${logTimeDisplay} `,
+		t('admin.state_report.earliest_record', { time: startTimeDisplay }),
+		t('admin.state_report.current_time', { time: logTimeDisplay }),
 		divTop,
-		`🎲 擲骰統計(總數/${lmLabel}/${lyLabel})`,
+		t('admin.state_report.section_roll_stats', { lastMonth: lmLabel, lastYear: lyLabel }),
 		div,
-		`💬 LINE ${tripleLine(state.LineCountRoll, 'LineCountRoll')}`,
-		`🎮 Discord ${tripleLine(state.DiscordCountRoll, 'DiscordCountRoll')}`,
-		`✈️ Telegram ${tripleLine(state.TelegramCountRoll, 'TelegramCountRoll')}`,
-		`📱 WhatsApp ${tripleLine(state.WhatsappCountRoll, 'WhatsappCountRoll')}`,
-		`🌐 網頁版 ${tripleLine(state.WWWCountRoll, 'WWWCountRoll')}`,
+		t('admin.state_report.line', { stats: tripleLine(state.LineCountRoll, 'LineCountRoll') }),
+		t('admin.state_report.discord', { stats: tripleLine(state.DiscordCountRoll, 'DiscordCountRoll') }),
+		t('admin.state_report.telegram', { stats: tripleLine(state.TelegramCountRoll, 'TelegramCountRoll') }),
+		t('admin.state_report.whatsapp', { stats: tripleLine(state.WhatsappCountRoll, 'WhatsappCountRoll') }),
+		t('admin.state_report.www', { stats: tripleLine(state.WWWCountRoll, 'WWWCountRoll') }),
 		divTop,
-		'📈 系統數據',
+		t('admin.state_report.section_system'),
 		div,
-		`⭐ 經驗值群組 ${formatNumber(levelSystemCount)}`,
-		`🃏 角色卡數量 ${formatNumber(characterCardCount)}`,
-		`👤 使用者總數 ${formatNumber(userCount)}`,
+		t('admin.state_report.level_groups', { count: formatNumber(levelSystemCount) }),
+		t('admin.state_report.character_cards', { count: formatNumber(characterCardCount) }),
+		t('admin.state_report.users', { count: formatNumber(userCount) }),
 		divTop,
-		'⚙️ 隨機數生成工具',
+		t('admin.state_report.section_rng'),
 		div,
-		'🔹 random-js　·　nodeCrypto',
+		t('admin.state_report.rng_tools'),
 		divTop
 	].join('\n');
 }
 
-async function refreshStateCache() {
-	if (stateTextRefreshing) return;
+async function refreshStateCache(locale = i18n.DEFAULT_LOCALE) {
+	const normalized = i18n.normalizeLocale(locale);
+	if (stateTextRefreshing[normalized]) return;
+	const cache = stateTextCache[normalized];
 	// Skip recompute if cache is still fresh (e.g. timer fires after a recent user-triggered refresh)
-	if (ADMIN_STATE_CACHE_MS > 0 && stateTextCache.text && Date.now() < stateTextCache.expiresAt) return;
-	stateTextRefreshing = true;
+	if (ADMIN_STATE_CACHE_MS > 0 && cache?.text && Date.now() < cache.expiresAt) return;
+	stateTextRefreshing[normalized] = true;
 	try {
-		const text = await computeStateText();
+		const text = await computeStateText(normalized);
 		if (text) {
-			stateTextCache = { text, expiresAt: Date.now() + ADMIN_STATE_CACHE_MS };
+			stateTextCache[normalized] = { text, expiresAt: Date.now() + ADMIN_STATE_CACHE_MS };
 		}
 	} catch (error) {
 		console.error('[Analytics] refreshStateCache error:', error.message);
 	} finally {
-		stateTextRefreshing = false;
+		stateTextRefreshing[normalized] = false;
 	}
 }
 
-async function stateText() {
+async function stateText(locale = i18n.DEFAULT_LOCALE) {
+	const normalized = i18n.normalizeLocale(locale);
 	const now = Date.now();
+	const cache = stateTextCache[normalized] || { text: '', expiresAt: 0 };
 
 	// Cache valid → return immediately
-	if (stateTextCache.text && now < stateTextCache.expiresAt) {
-		return stateTextCache.text;
+	if (cache.text && now < cache.expiresAt) {
+		return cache.text;
 	}
 
 	// Cache stale but exists → return stale immediately, refresh in background
-	if (stateTextCache.text) {
-		refreshStateCache();
-		return stateTextCache.text;
+	if (cache.text) {
+		refreshStateCache(normalized);
+		return cache.text;
 	}
 
 	// Cache empty (first call) → must wait
-	await refreshStateCache();
-	return stateTextCache.text;
+	await refreshStateCache(normalized);
+	return stateTextCache[normalized]?.text || '';
 }
 
 // Pre-warm cache after startup to avoid first-call delay
 if (ADMIN_STATE_CACHE_MS > 0) {
-	setTimeout(() => refreshStateCache().catch(() => {}), 60_000);
+	setTimeout(() => refreshStateCache(i18n.DEFAULT_LOCALE).catch(() => {}), 60_000);
 }
 
 async function cmdfunction({ result, ...context }) {
@@ -695,8 +726,15 @@ async function cmdfunction({ result, ...context }) {
 	}
 
 	(debugMode) ? console.log('[analytics]            inputStr2:', newInputStr) : '';
+	const t = context.t || i18n.createTranslator(context.locale);
 	if (typeof tempResut === 'object' && tempResut !== null) {
-		if (result.characterName) tempResut.text = `${result.characterName} 進行 ${result.characterReRollName} 擲骰\n ${tempResut.text}`
+		if (result.characterName) {
+			tempResut.text = t('character.reroll_perform', {
+				name: result.characterName,
+				rollName: result.characterReRollName,
+				text: tempResut.text
+			});
+		}
 		return tempResut;
 	}
 	return;

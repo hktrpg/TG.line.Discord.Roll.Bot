@@ -6,11 +6,15 @@ jest.mock('../roll/rollbase.js', () => ({
   Dice: jest.fn()
 }));
 
-// Import the module after mocking
+const i18n = require('../modules/i18n.js');
 const kcModule = require('../roll/yumingkueichai.js');
 const rollbase = require('../roll/rollbase.js');
 
 describe('Yuming Kuei Chai Module Tests', () => {
+  beforeAll(async () => {
+    await i18n.init();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });

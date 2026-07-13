@@ -2,6 +2,59 @@
  * 角色卡管理器 - 處理角色卡的核心邏輯
  * 從 characterCardCommon.js 中分離出來的角色卡管理功能
  */
+
+function buildCardDemoData(tr) {
+    const t = (key, fallback) => {
+        if (typeof tr !== 'function') return fallback;
+        const value = tr(`card_demo_${key}`);
+        const raw = String(value || '');
+        if (!raw || raw.includes('card_demo_') || raw.startsWith('www.views.')) {
+            return fallback;
+        }
+        return raw;
+    };
+    const brawl = t('brawl', 'Brawl');
+    const luck = t('luck', 'Luck');
+    return {
+        name: t('name', 'Demo'),
+        image: 'https://images2.imgbox.com/ea/b2/Bn8DmRTW_o.png',
+        state: [
+            { name: 'HP', itemA: '11', itemB: '11' },
+            { name: 'MP', itemA: '16', itemB: '16' },
+            { name: 'SAN', itemA: '80', itemB: '80' },
+            { name: t('build', 'BUILD'), itemA: '1', itemB: '' },
+            { name: 'DB', itemA: '+1d4', itemB: '' },
+            { name: 'MOV', itemA: '8', itemB: '' },
+            { name: t('armor', 'Armor'), itemA: '0', itemB: '' },
+            { name: t('luck', 'Luck'), itemA: '60', itemB: '' },
+            { name: brawl, itemA: '49', itemB: '' },
+            { name: t('occupation', 'Occupation'), itemA: t('occ_value', 'Insurance Investigator'), itemB: '' },
+            { name: t('trait', 'Trait'), itemA: t('trait_value', 'Outdoor enthusiast'), itemB: '' }
+        ],
+        roll: [
+            { name: t('roll_hp', 'HP roll'), itemA: '1d{HP}' },
+            { name: '1d100+HP', itemA: '1d100+{hp}' },
+            { name: t('roll_luck_check', 'Luck check'), itemA: `CC {${luck}}` },
+            { name: brawl, itemA: 'CC 49' },
+            { name: t('roll_brawl_var', 'Brawl (variable)'), itemA: `CC {${brawl}}` },
+            { name: t('club_db', 'Club+db'), itemA: '1d6{db}' },
+            { name: t('psychology', 'Psychology'), itemA: '10' },
+            { name: t('credit', 'Credit Rating'), itemA: '0' },
+            { name: t('investigate', 'Spot Hidden'), itemA: '25' },
+            { name: t('magic', 'Magic'), itemA: '1' },
+            { name: t('knife', 'Knife'), itemA: '1d4+1{db}' }
+        ],
+        notes: [
+            { name: t('note_inv', 'Investigation notes'), itemA: t('note_inv_body', 'Sample note') },
+            { name: t('note_combat', 'Combat log'), itemA: t('note_combat_body', 'Combat log entry') }
+        ],
+        characterDetails: [
+            { label: t('occupation', 'Occupation'), value: t('occ_value', 'Insurance Investigator') },
+            { label: t('trait', 'Trait'), value: t('trait_value', 'Outdoor enthusiast') }
+        ]
+    };
+}
+
 class CardManager {
     constructor() {
         this.card = null;
@@ -112,7 +165,7 @@ class CardManager {
                                 return !!(u && p);
                             } catch { return false; }
                         })();
-                        if (isTestPage || !hasCredentials) {
+                        if ((isTestPage || !hasCredentials) && !this.isPublic) {
                             this.loadTestData();
                         } else {
                             debugLog('User has credentials, starting with clean state', 'info');
@@ -232,46 +285,13 @@ class CardManager {
                     },
                     // 載入測試數據（包含詳細說明中的範例）
                     loadTestData() {
-                        this.name = "吾是示範";
-                        this.state = [
-                            { name: 'HP', itemA: '11', itemB: '11' },
-                            { name: 'MP', itemA: '16', itemB: '16' },
-                            { name: 'SAN', itemA: '80', itemB: '80' },
-                            { name: '體格', itemA: '1', itemB: '' },
-                            { name: 'DB', itemA: '+1d4', itemB: '' },
-                            { name: 'MOV', itemA: '8', itemB: '' },
-                            { name: '護甲', itemA: '0', itemB: '' },
-                            { name: '幸運', itemA: '60', itemB: '' },
-                            { name: '鬥毆', itemA: '49', itemB: '' },
-                            { name: '職業', itemA: '保險調查員', itemB: '' },
-                            { name: '特徵', itemA: '野外活動愛好者', itemB: '' }
-                        ].filter(item => item && item.name);
-                        
-                        this.roll = [
-                            { name: 'HP擲骰', itemA: '1d{HP}' },
-                            { name: '1d100+HP', itemA: '1d100+{hp}' },
-                            { name: '幸運檢定', itemA: 'CC {幸運}' },
-                            { name: '鬥毆', itemA: 'CC 49' },
-                            { name: '鬥毆（變數）', itemA: 'CC {鬥毆}' },
-                            { name: '棍+db', itemA: '1d6{db}' },
-                            { name: '心理學', itemA: '10' },
-                            { name: '信譽', itemA: '0' },
-                            { name: '偵查', itemA: '25' },
-                            { name: '魔法', itemA: '1' },
-                            { name: '小刀', itemA: '1d4+1{db}' }
-                        ].filter(item => item && item.name);
-                        
-                        this.notes = [
-                            { name: '調查筆記', itemA: '這是測試筆記內容' },
-                            { name: '戰鬥記錄', itemA: '戰鬥日誌記錄' }
-                        ].filter(item => item && item.name);
-
-                        this.image = 'https://images2.imgbox.com/ea/b2/Bn8DmRTW_o.png';
-                        
-                        this.characterDetails = [
-                            { label: '職業', value: '保險調查員' },
-                            { label: '特徵', value: '野外活動愛好者' }
-                        ].filter(detail => detail && detail.label && detail.value);
+                        const demo = buildCardDemoData((key, options) => this.t(key, options));
+                        this.name = demo.name;
+                        this.state = demo.state.filter(item => item && item.name);
+                        this.roll = demo.roll.filter(item => item && item.name);
+                        this.notes = demo.notes.filter(item => item && item.name);
+                        this.image = demo.image;
+                        this.characterDetails = demo.characterDetails.filter(detail => detail && detail.label && detail.value);
                         
                         // 保存原始數據
                         this.saveOriginalData();
@@ -1021,47 +1041,30 @@ class CardManager {
                 computed: {
                     // 產出吾是示範項目
                     testItem() {
+                        const demo = buildCardDemoData((key, options) => this.t(key, options));
+                        const roll = demo.roll.map((item, index) => {
+                            if (index === 7) return { ...item, itemA: 'CC 5' };
+                            if (index === 8) return { ...item, itemA: 'CC 25' };
+                            return item;
+                        });
+                        roll.splice(9, 0, { name: 'sc', itemA: '.sc {SAN}' });
                         return {
                             _id: '_test_',
                             id: '_test_',
-                            name: '吾是示範',
-                            image: 'https://images2.imgbox.com/ea/b2/Bn8DmRTW_o.png',
-                            state: [
-                                { name: 'HP', itemA: '11', itemB: '11' },
-                                { name: 'MP', itemA: '16', itemB: '16' },
-                                { name: 'SAN', itemA: '80', itemB: '80' },
-                                { name: '體格', itemA: '1', itemB: '' },
-                                { name: 'DB', itemA: '+1d4', itemB: '' },
-                                { name: 'MOV', itemA: '8', itemB: '' },
-                                { name: '護甲', itemA: '0', itemB: '' },
-                                { name: '幸運', itemA: '60', itemB: '' },
-                                { name: '鬥毆', itemA: '49', itemB: '' },
-                                { name: '職業', itemA: '保險調查員', itemB: '' },
-                                { name: '特徵', itemA: '野外活動愛好者', itemB: '' }
-                            ],
-                            roll: [
-                                { name: 'HP擲骰', itemA: '1d{HP}' },
-                                { name: '1d100+HP', itemA: '1d100+{hp}' },
-                                { name: '幸運檢定', itemA: 'CC {幸運}' },
-                                { name: '鬥毆', itemA: 'CC 49' },
-                                { name: '鬥毆（變數）', itemA: 'CC {鬥毆}' },
-                                { name: '棍+db', itemA: '1d6{db}' },
-                                { name: '心理學', itemA: '10' },
-                                { name: '信譽', itemA: 'CC 5' },
-                                { name: '偵查', itemA: 'CC 25' },
-                                { name: 'sc', itemA: '.sc {SAN}' },
-                                { name: '小刀', itemA: '1d4+1{db}' }
-                            ],
-                            notes: [
-                                { name: '調查筆記', itemA: '這是測試筆記內容' },
-                                { name: '戰鬥記錄', itemA: '戰鬥日誌記錄' }
-                            ],
+                            name: demo.name,
+                            image: demo.image,
+                            state: demo.state,
+                            roll,
+                            notes: demo.notes,
                             public: false
                         };
                     },
                     // 含吾是示範置頂的清單，避免重複
                     listWithTest() {
                         const base = Array.isArray(this.list) ? this.list : [];
+                        if (cardManager.isPublic) {
+                            return base;
+                        }
                         // 避免與伺服器回傳同 _id 重覆
                         const filteredBase = base.filter(x => x && x._id !== this.testItem._id);
                         return [this.testItem, ...filteredBase];

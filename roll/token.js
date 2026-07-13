@@ -18,7 +18,7 @@ const GeoPattern = require('geopattern');
 const { imgbox } = require("imgbox");
 const { getPool } = require('../modules/pool');
 const i18n = require('../modules/i18n.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 const imagePool = getPool('image');
 
 const gameName = function (params = {}) {
@@ -479,10 +479,6 @@ async function addTextOnImage2(token, text = ' ', text2 = ' ', name) {
     } catch {
         return null;
     }
-}
-
-function getInteractionT(interaction) {
-    return interaction._hktrpgT || i18n.createTranslator(i18n.DEFAULT_LOCALE);
 }
 
 async function respondTokenResult(interaction, result, t) {

@@ -5,8 +5,14 @@
     'use strict';
 
     function cardtestT(key, options) {
+        if (typeof wwwPrefixT === 'function') {
+            return wwwPrefixT('cardtest_', key, options);
+        }
         if (typeof wwwT !== 'function') {
             return key;
+        }
+        if (key.startsWith('www.') || key.startsWith('cardtest_')) {
+            return wwwT(key, options);
         }
         return wwwT(`cardtest_${key}`, options);
     }
@@ -37,7 +43,7 @@
             wwwApplyDomI18n(document.body);
         }
         if (typeof loadSiteChromeWithI18n === 'function') {
-            loadSiteChromeWithI18n({ title: cardtestT(navKey) });
+            loadSiteChromeWithI18n({ titleResolver: () => cardtestT(navKey) });
         }
     }
 

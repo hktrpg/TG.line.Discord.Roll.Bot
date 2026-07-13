@@ -6,15 +6,26 @@ class SocketManager {
     constructor() {
         // Socket.io connection with reconnection options
         // More conservative settings to avoid excessive reconnections during testing
-        this.socket = io({
-            reconnection: true,
-            reconnectionAttempts: 5, // Reduced from 10 to 5
-            reconnectionDelay: 2000, // Increased from 1000 to 2000
-            reconnectionDelayMax: 10_000, // Increased from 5000 to 10000
-            randomizationFactor: 0.5,
-            // Add timeout to prevent hanging connections
-            timeout: 20_000
-        });
+        const socketOptions = typeof getWwwSocketIoOptions === 'function'
+            ? getWwwSocketIoOptions({
+                reconnection: true,
+                reconnectionAttempts: 5, // Reduced from 10 to 5
+                reconnectionDelay: 2000, // Increased from 1000 to 2000
+                reconnectionDelayMax: 10_000, // Increased from 5000 to 10000
+                randomizationFactor: 0.5,
+                // Add timeout to prevent hanging connections
+                timeout: 20_000
+            })
+            : {
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 2000,
+                reconnectionDelayMax: 10_000,
+                randomizationFactor: 0.5,
+                timeout: 20_000,
+                query: { lang: 'zh-tw' }
+            };
+        this.socket = io(socketOptions);
 
         this.eventHandlers = new Map();
         this.publicListProcessed = false;

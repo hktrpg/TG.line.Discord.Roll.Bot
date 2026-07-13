@@ -3,12 +3,19 @@
  * Requires jQuery, www-i18n.js (optional but recommended).
  * @param {object} [options]
  * @param {string} [options.title] - Text for #title in navbar brand
+ * @param {function} [options.titleResolver] - Called when header HTML is ready (wins over options.title)
  */
 function loadSiteChromeWithI18n(options = {}) {
-    const titleText = options.title || '';
+    const resolveTitle = () => {
+        if (typeof options.titleResolver === 'function') {
+            return options.titleResolver() || '';
+        }
+        return options.title || '';
+    };
 
     $('#header').load('includes/header.html', function () {
         const titleEl = document.getElementById('title');
+        const titleText = resolveTitle();
         if (titleEl && titleText) {
             titleEl.textContent = titleText;
         }

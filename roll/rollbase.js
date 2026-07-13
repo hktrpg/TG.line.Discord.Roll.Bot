@@ -9,7 +9,7 @@ const random = new Random(nodeCrypto);
 const { SlashCommandBuilder } = require('discord.js');
 const { MessageFlags } = require('discord.js');
 const i18n = require('../modules/i18n.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 
 // 常數定義區塊
 const DICE_LIMITS = {
@@ -604,7 +604,7 @@ const discordCommand = [
           .setRequired(true)),
     async execute(interaction) {
       const notation = interaction.options.getString('notation');
-      const t = interaction._hktrpgT || i18n.createTranslator(i18n.DEFAULT_LOCALE);
+      const t = getInteractionT(interaction);
       try {
         const roll = new DiceRoll(notation);
         await interaction.reply(roll.output);

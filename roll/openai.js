@@ -112,7 +112,7 @@ const imagePool = getPool('image');
 dotenv.config({ override: true, quiet: true });
 const VIP = require('../modules/veryImportantPerson');
 const handleMessage = require('../modules/discord/handleMessage');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 const i18n = require('../modules/i18n.js');
 
 function isOpenAiValidationError(message) {
@@ -3016,7 +3016,7 @@ const discordCommand = [
                         { name: AI_CONFIG.MODELS.HIGH.display, value: AI_CONFIG.MODELS.HIGH.type }
                     )),
         async execute(interaction) {
-            const t = interaction._hktrpgT || i18n.createTranslator(i18n.DEFAULT_LOCALE);
+            const t = getInteractionT(interaction);
             const modelType = interaction.options.getString('model') || AI_CONFIG.MODELS.LOW.type;
             const model = Object.values(AI_CONFIG.MODELS).find(m => m.type === modelType);
             const message = interaction.options.getString('message');
@@ -3060,7 +3060,7 @@ const discordCommand = [
                         { name: AI_CONFIG.MODELS.HIGH.display, value: AI_CONFIG.MODELS.HIGH.type }
                     )),
         async execute(interaction) {
-            const t = interaction._hktrpgT || i18n.createTranslator(i18n.DEFAULT_LOCALE);
+            const t = getInteractionT(interaction);
             const modelType = interaction.options.getString('model') || AI_CONFIG.MODELS.LOW.type;
             const model = Object.values(AI_CONFIG.MODELS).find(m => m.type === modelType);
             const text = interaction.options.getString('text');

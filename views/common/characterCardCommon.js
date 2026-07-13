@@ -1,7 +1,46 @@
 // Common JavaScript code for character card pages - Refactored version
 // Use modular architecture, depends on cardManager, authManager, uiManager, socketManager
 
-let TITLE = typeof wwwT === 'function' ? wwwT('title_default') : 'HKTRPG Character Card';
+let TITLE = 'HKTRPG Character Card';
+window.__wwwUnsavedConfirmMsg = null;
+
+function getUnsavedChangesConfirmMsg() {
+    if (window.__wwwUnsavedConfirmMsg) {
+        return window.__wwwUnsavedConfirmMsg;
+    }
+    if (typeof wwwT === 'function') {
+        return wwwT('unsaved_changes_confirm');
+    }
+    return 'You have unsaved changes. Leave anyway? Unsaved changes will be lost.';
+}
+
+function detectCardPageIsPublic() {
+    if (typeof PAGE_CONFIG !== 'undefined' && PAGE_CONFIG.isPublic === true) {
+        return true;
+    }
+    if (typeof PAGE_CONFIG !== 'undefined' && PAGE_CONFIG.isPublic === false) {
+        return false;
+    }
+    return /characterCardPublic/i.test(globalThis.location?.pathname || '');
+}
+
+function resolveCardPageTitle(isPublic = null) {
+    if (typeof wwwT !== 'function') {
+        if (isPublic === true) return 'HKTRPG Public Character Card';
+        if (isPublic === false) return 'HKTRPG Private Character Card';
+        return 'HKTRPG Character Card';
+    }
+    if (isPublic === true) return wwwT('title_public');
+    if (isPublic === false) return wwwT('title_private');
+    return wwwT('title_default');
+}
+
+function updateNavbarTitle(text) {
+    const titleEl = document.getElementById('title');
+    if (titleEl && text) {
+        titleEl.textContent = text;
+    }
+}
 // eslint-disable-next-line no-unused-vars
 let socket = socketManager.getSocket();
 // XSS Protection function (currently unused)
@@ -50,15 +89,17 @@ function debugLog(message, type = 'info', data) {
 let card = null;
 let _cardList = null;
 
-function initializeVueApps(isPublic = false, skipUITemplateLoad = false) {
+async function initializeVueApps(isPublic = false, skipUITemplateLoad = false) {
     try {
+        if (window.wwwI18n?.ready) {
+            await window.wwwI18n.ready;
+        }
         // Set title based on card type
-        TITLE = isPublic
-            ? (typeof wwwT === 'function' ? wwwT('title_public') : 'HKTRPG Public Character Card')
-            : (typeof wwwT === 'function' ? wwwT('title_private') : 'HKTRPG Private Character Card');
+        TITLE = resolveCardPageTitle(isPublic);
 
         // Update page title
         document.title = `${TITLE} @ HKTRPG`;
+        updateNavbarTitle(TITLE);
 
         // Only load UI template if not already loaded (skipUITemplateLoad = true means UI is already loaded)
         if (!skipUITemplateLoad) {
@@ -250,13 +291,20 @@ function confirmExitEditModeWithoutSaving() {
 }
 
 // DOM Ready Handler
-$(function () {
+$(async function () {
     debugLog('DOM ready, initializing components', 'info');
+    if (window.wwwI18n?.ready) {
+        await window.wwwI18n.ready;
+    }
+    if (typeof wwwT === 'function') {
+        window.__wwwUnsavedConfirmMsg = wwwT('unsaved_changes_confirm');
+    }
+    TITLE = resolveCardPageTitle(detectCardPageIsPublic());
     if (typeof loadSiteChromeWithI18n === 'function') {
-        loadSiteChromeWithI18n({ title: typeof TITLE !== 'undefined' ? TITLE : '' });
+        loadSiteChromeWithI18n({ titleResolver: () => TITLE });
     } else {
         $("#header").load("includes/header.html", function () {
-            $("#title").text(TITLE);
+            updateNavbarTitle(TITLE);
             if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document.getElementById('header'));
         });
         $("#footer").load("includes/footer.html", function () {
@@ -292,7 +340,7 @@ function selectCard() {
             // Check if floating-save-controls is displayed (indicates unsaved changes)
             const floatingControls = document.querySelector('.floating-save-controls');
             if (floatingControls) {
-                const leaveMsg = typeof wwwT === 'function' ? wwwT('unsaved_changes_confirm') : 'You have unsaved changes. Leave anyway?';
+                const leaveMsg = getUnsavedChangesConfirmMsg();
                 if (confirm(leaveMsg)) {
                     uiManager.showModal('cardListModal');
                 }

@@ -6,6 +6,13 @@ function getT(params = {}) {
     return params.t || i18n.createTranslator(params.locale || i18n.DEFAULT_LOCALE);
 }
 
+function getInteractionT(interaction) {
+    if (!interaction) {
+        return i18n.createTranslator(i18n.DEFAULT_LOCALE);
+    }
+    return interaction._hktrpgT || i18n.createTranslator(interaction._hktrpgLocale || i18n.DEFAULT_LOCALE);
+}
+
 function getLocale(params = {}) {
     return params.locale || i18n.DEFAULT_LOCALE;
 }
@@ -43,6 +50,7 @@ function resolveGameName(params, key, zhFallback) {
 
 module.exports = {
     getT,
+    getInteractionT,
     getLocale,
     isEnglish,
     resolveHelp,

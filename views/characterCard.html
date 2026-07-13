@@ -137,9 +137,7 @@
                     if (card && !card.isPublic) {
                         // 檢查是否有未保存的變更
                         if (card.hasUnsavedChanges) {
-                            const leaveMsg = typeof wwwT === 'function'
-                                ? wwwT('unsaved_changes_confirm')
-                                : '您有未儲存的變更，確定要離開嗎？未儲存的變更將會遺失。';
+                            const leaveMsg = getUnsavedChangesConfirmMsg();
                             event.preventDefault();
                             event.returnValue = leaveMsg;
                             return leaveMsg;

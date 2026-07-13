@@ -9,7 +9,7 @@ const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 const checkTools = require('../modules/check.js');
 const schema = require('../modules/schema.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 const gameName = function (params = {}) {
     return resolveGameName(params, 'bcdice.game_name', '【BcDice】.bc');
 }
@@ -196,7 +196,7 @@ const discordCommand = [
                     return `.bc delete`;
                     
                 default: {
-                    const t = interaction._hktrpgT || require('../modules/i18n.js').createTranslator(require('../modules/i18n.js').DEFAULT_LOCALE);
+                    const t = getInteractionT(interaction);
                     return t('bcdice.unknown_subcommand');
                 }
             }

@@ -2481,8 +2481,10 @@ function respawnCluster2(meta = {}) {
 		try {
 			if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
 				await job.remove();
+				const cronLocale = await i18n.resolveLocale({ groupid: data.groupid || '', botname: 'Discord' });
+				const cronT = i18n.createTranslator(cronLocale);
 				SendToReplychannel(
-					{ replyText: i18n.createTranslator(i18n.DEFAULT_LOCALE)('discord.schedule.six_month_remove'), channelid: data.channelid, quotes: true, groupid: data.groupid }
+					{ replyText: cronT('discord.schedule.six_month_remove'), channelid: data.channelid, quotes: true, groupid: data.groupid }
 				)
 			}
 		} catch (error) {
@@ -2605,7 +2607,7 @@ async function manageWebhook(discord) {
 	}
 }
 
-async function roleReact(channelid, message) {
+async function roleReact(channelid, message, discordMessage) {
 	try {
 		const detail = message.roleReactDetail
 		const channel = await client.channels.fetch(channelid);
@@ -2616,7 +2618,7 @@ async function roleReact(channelid, message) {
 		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('[Discord Bot] MongoDB error in roleReact update:', error.name, error.reason))
 
 	} catch {
-		const t = i18n.createTranslator(i18n.DEFAULT_LOCALE);
+		const t = getDiscordT(discordMessage);
 		await SendToReplychannel({ replyText: t('discord.role_react.add_failed'), channelid });
 		return;
 	}
@@ -2635,7 +2637,7 @@ async function newRoleReact(channel, message) {
 		}
 
 	} catch {
-		const t = i18n.createTranslator(i18n.DEFAULT_LOCALE);
+		const t = getDiscordT(channel);
 		await SendToReplychannel({ replyText: t('discord.role_react.add_failed') });
 		return;
 	}
@@ -3153,7 +3155,7 @@ async function getAllshardIds(t) {
 
 async function handlingButtonCreate(message, input) {
 	const buttonsNames = input;
-	const t = message?._hktrpgT || i18n.createTranslator(i18n.DEFAULT_LOCALE);
+	const t = getDiscordT(message);
 
 	// Check if input is empty or not an array
 	if (!buttonsNames || !Array.isArray(buttonsNames) || buttonsNames.length === 0) {
@@ -3211,7 +3213,7 @@ async function handlingButtonCreate(message, input) {
 }
 
 async function handlingRequestRollingCharacter(message, input) {
-	const t = message?._hktrpgT || i18n.createTranslator(i18n.DEFAULT_LOCALE);
+	const t = getDiscordT(message);
 	const buttonsNames = input[0];
 	const characterName = input[1];
 	const charMode = (input[2] == 'char') ? true : false;
@@ -3323,7 +3325,7 @@ async function handlingRequestRollingCharacter(message, input) {
 }
 
 async function handlingRequestRolling(message, buttonsNames, displayname = '') {
-	const t = message?._hktrpgT || i18n.createTranslator(i18n.DEFAULT_LOCALE);
+	const t = getDiscordT(message);
 	const requestRollingPrefix = (name) => t('discord.buttons.request_rolling', { displayname: name });
 	// Check if buttonsNames is empty or not an array
 	if (!buttonsNames || !Array.isArray(buttonsNames) || buttonsNames.length === 0) {
@@ -3458,23 +3460,6 @@ async function handlingResponMessage(message, answer = '') {
 	try {
 		let hasSendPermission = true;
 
-		if (message && (message.isCommand?.() || message.isButton?.()) && message._hktrpgLocale === undefined) {
-			const groupid = message.guildId || '';
-			const userid = (message.author && message.author.id) || (message.user && message.user.id) || '';
-			const channelType = message.channel?.type;
-			message._hktrpgLocale = await i18n.resolveLocale({
-				groupid,
-				userid,
-				channelType,
-				botname: 'Discord'
-			});
-			message._hktrpgT = i18n.createTranslator(message._hktrpgLocale);
-		}
-		/**
-				if (message.guild && message.guild.me) {
-					hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(PermissionsBitField.Flags.SEND_MESSAGES) : false;
-				}
-				 */
 		if (answer) {
 			// Handle both string and object inputs
 			if (typeof answer === 'string') {
@@ -3531,6 +3516,16 @@ async function handlingResponMessage(message, answer = '') {
 		const channelid = (message.channelId) ? message.channelId : '';
 		const userrole = __checkUserRole(groupid, message);
 
+		if (message && message._hktrpgLocale === undefined) {
+			message._hktrpgLocale = await i18n.resolveLocale({
+				groupid,
+				userid,
+				channelType: message.channel?.type,
+				botname: 'Discord'
+			});
+			message._hktrpgT = i18n.createTranslator(message._hktrpgLocale);
+		}
+
 		// Get private roll data, GM position
 
 		// Check if there are permissions to send messages
@@ -3566,7 +3561,7 @@ async function handlingResponMessage(message, answer = '') {
 		if (rplyVal.requestRollingCharacter) await handlingRequestRollingCharacter(message, rplyVal.requestRollingCharacter);
 		if (rplyVal.requestRolling) await handlingRequestRolling(message, rplyVal.requestRolling, displaynameDiscord);
 		if (rplyVal.buttonCreate) rplyVal.buttonCreate = await handlingButtonCreate(message, rplyVal.buttonCreate)
-		if (rplyVal.roleReactFlag) await roleReact(channelid, rplyVal)
+		if (rplyVal.roleReactFlag) await roleReact(channelid, rplyVal, message)
 		if (rplyVal.newRoleReactFlag) await newRoleReact(message, rplyVal)
 		if (rplyVal.discordEditMessage) await handlingEditMessage(message, rplyVal)
 		if (rplyVal.myspeck) {
@@ -3660,7 +3655,7 @@ async function handlingResponMessage(message, answer = '') {
 		}
 
 		if (rplyVal.discordExport) {
-			const t = message._hktrpgT || i18n.createTranslator(i18n.DEFAULT_LOCALE);
+			const t = message._hktrpgT || i18n.createTranslator(message._hktrpgLocale || i18n.DEFAULT_LOCALE);
 			const channelName = message.channel ? message.channel.name : t('discord.export.default_channel');
 			const exportContent = t('discord.export.channel_log', { channelName });
 			if (message.author && typeof message.author.send === 'function') {
@@ -3928,6 +3923,20 @@ async function handlingSendMessage(input) {
 }
 
 // ---- StoryTeller reaction poll helpers ----
+async function resolveDiscordPollTranslator({ groupid, userid, message } = {}) {
+	if (message?._hktrpgT) {
+		return message._hktrpgT;
+	}
+	const locale = message?._hktrpgLocale
+		|| await i18n.resolveLocale({
+			groupid: groupid || '',
+			userid: userid || '',
+			channelType: message?.channel?.type,
+			botname: 'Discord'
+		});
+	return i18n.createTranslator(locale);
+}
+
 async function createStPollByChannel({ channelid, groupid, text, payload }) {
 	try {
 
@@ -3947,7 +3956,7 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
 		}
 
 		// Build poll text once
-		const pollT = i18n.createTranslator(i18n.DEFAULT_LOCALE);
+		const pollT = await resolveDiscordPollTranslator({ groupid });
 		const pollHeader = pollT('discord.story.poll_start_header', { minutes: payload.minutes || 3 });
 		const pollOptions = payload.options.slice(0, maxOptions).map((o, i) => `${POLL_EMOJIS[i]} ${o.label}`).join('\n');
 		const pollText = pollHeader + pollOptions;
@@ -4074,7 +4083,11 @@ async function createStPoll({ message, payload }) {
 		// Ensure the run is still active/continuing (not paused/ended)
 		if (!(await isStoryTellerRunActiveByChannel(message.channelId))) return;
 		// Post under the same channel, immediately after previous content
-		const pollT = i18n.createTranslator(i18n.DEFAULT_LOCALE);
+		const pollT = await resolveDiscordPollTranslator({
+			groupid: message.guildId,
+			userid: message.member?.id || message.author?.id,
+			message
+		});
 		const mention = message.member ? `<@${message.member.id}>` : '';
 		const pollHeader = pollT('discord.story.poll_start_header', { minutes: payload.minutes || 3 });
 		const pollOptions = payload.options.map((o, i) => `${POLL_EMOJIS[i]} ${o.label}`).join('\n');
@@ -4124,12 +4137,11 @@ async function createStPollCore({ sentMessage, groupid, payload }) {
 }
 
 async function tallyStPoll(messageId, fallbackData) {
-	const pollT = i18n.createTranslator(i18n.DEFAULT_LOCALE);
-	// Use in-memory state if present; otherwise fallback to persisted job data
 	const data = stPolls.get(messageId) || (fallbackData && Array.isArray(fallbackData.options)
 		? { channelid: fallbackData.channelid, groupid: fallbackData.groupid, options: fallbackData.options, minutes: Number(fallbackData.minutes || 3), streak: Number(fallbackData.streak || 0) }
 		: null);
 	if (!data) return;
+	const pollT = await resolveDiscordPollTranslator({ groupid: data.groupid });
 	if (data.completed) return;
 	// Abort if run has been paused
 	try {
@@ -4534,7 +4546,7 @@ function handlingButtonCommand(message) {
 	return message.component.label || '';
 }
 async function handlingEditMessage(message, rplyVal) {
-	const t = message?._hktrpgT || i18n.createTranslator(i18n.DEFAULT_LOCALE);
+	const t = getDiscordT(message);
 	try {
 		if (message.type !== 19) return message.reply({ content: t('discord.edit.reply_required') });
 		if (message.channelId !== message.reference.channelId) return message.reply({ content: t('discord.edit.same_channel') });
@@ -4990,7 +5002,7 @@ async function __handlingInteractionMessage(message) {
 						return;
 					}
 					console.error('Command processing error:', error);
-					const errorT = message._hktrpgT || i18n.createTranslator(i18n.DEFAULT_LOCALE);
+					const errorT = message._hktrpgT || i18n.createTranslator(message._hktrpgLocale || i18n.DEFAULT_LOCALE);
 					const errorText = errorT('common.errors.command_error');
 					try {
 						if (message.deferred && !message.replied) {

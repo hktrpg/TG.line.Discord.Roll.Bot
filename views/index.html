@@ -2825,11 +2825,19 @@
         // Socket.IO Management
         const socketManager = {
             init: () => {
-                state.socket = io({
-                    reconnection: true,
-                    reconnectionAttempts: CONFIG.SOCKET_RECONNECT_ATTEMPTS,
-                    reconnectionDelay: CONFIG.SOCKET_RECONNECT_DELAY
-                });
+                const socketOptions = typeof getWwwSocketIoOptions === 'function'
+                    ? getWwwSocketIoOptions({
+                        reconnection: true,
+                        reconnectionAttempts: CONFIG.SOCKET_RECONNECT_ATTEMPTS,
+                        reconnectionDelay: CONFIG.SOCKET_RECONNECT_DELAY
+                    })
+                    : {
+                        reconnection: true,
+                        reconnectionAttempts: CONFIG.SOCKET_RECONNECT_ATTEMPTS,
+                        reconnectionDelay: CONFIG.SOCKET_RECONNECT_DELAY,
+                        query: { lang: 'zh-tw' }
+                    };
+                state.socket = io(socketOptions);
 
                 socketManager.setupEventListeners();
             },

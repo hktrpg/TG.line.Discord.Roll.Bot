@@ -418,9 +418,12 @@ www.get('/api/local', async (req, res) => {
         let rplyVal = {};
         if (mainMsg && mainMsg.length > 0) {
             const processedInput = mainMsg.join(' ');
+            const locale = resolveWwwLocale(req);
             rplyVal = await exports.analytics.parseInput({
                 inputStr: processedInput,
-                botname: "Local"
+                botname: "Local",
+                locale,
+                t: i18n.createTranslator(locale)
             });
         }
         if (!rplyVal || !rplyVal.text) rplyVal = { text: '' };
@@ -1988,7 +1991,9 @@ if (io) {
             if (result && result.characterReRoll) {
                 rplyVal = await exports.analytics.parseInput({
                     inputStr: result.characterReRollItem,
-                    botname: "WWW"
+                    botname: "WWW",
+                    locale: socket._hktrpgLocale,
+                    t: getSocketT(socket)
                 })
             }
 
@@ -2006,7 +2011,9 @@ if (io) {
             if (result && result.characterReRoll) {
                 rplyVal = await exports.analytics.parseInput({
                     inputStr: result.characterReRollItem,
-                    botname: "WWW"
+                    botname: "WWW",
+                    locale: socket._hktrpgLocale,
+                    t: getSocketT(socket)
                 })
             }
 

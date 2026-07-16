@@ -636,6 +636,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
+                    <div data-www-i18n-html="dlog_modal_help_html">
                     這是HKTRPG Discord 骰子機械人的附屬功能，<br>
                     用來分析Discord 頻道的聊天紀錄。<br><br>
                     使用方法：<br>
@@ -647,6 +648,7 @@
                     <a href="https://discord.hktrpg.com"> \HKTRPG骰子機械人/</a><br>
                     P.S. 這是為了寫TRPG團錄功能而開發出來的副產品，有時間可以到YT搜索TRPG，<br>
                     會有很多有趣的REPLAY。
+                    </div>
                     <img class="img-fluid" src="https://i.imgur.com/zuLQzmB.jpg">
                     <img class="img-fluid" src="https://i.imgur.com/JM7UdU5.jpg">
                     <img class="img-fluid" src="https://i.imgur.com/UZmOxOT.jpg">
@@ -1472,7 +1474,11 @@
                                 .style("font-size", "14px")
                                 .style("fill", "#2c3e50")
                                 .style("font-weight", "bold")
-                                .text(`"${d.text}" 出現次數: ${d.freq} (權重: ${d.score.toFixed(2)})`);
+                                .text(dt('dlog_wordcloud_tooltip', {
+                                    text: d.text,
+                                    freq: d.freq,
+                                    score: d.score.toFixed(2)
+                                }));
                         });
 
                         text.on("pointerleave", function () {
@@ -1726,7 +1732,7 @@
                             },
                             scaleLabel: {
                                 display: true,
-                                labelString: '訊息量'
+                                labelString: dt('dlog_chart_y_axis')
                             },
                             ticks: {
                                 beginAtZero: true,

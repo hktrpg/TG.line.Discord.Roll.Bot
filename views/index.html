@@ -3078,7 +3078,7 @@
                         await uiManager.addMessageToBox(userMessage);
 
                         try {
-                            const res = await fetch(`/api/local?msg=${encodeURIComponent(plainMsg)}`);
+                            const res = await fetch(`/api/local?msg=${encodeURIComponent(plainMsg)}&lang=${encodeURIComponent(typeof getWwwLocale === 'function' ? getWwwLocale() : (window.wwwI18n?.locale || 'zh-tw'))}`);
                             const data = await res.json();
                             const reply = (data && data.message) ? data.message.toString() : '';
                             if (reply) {

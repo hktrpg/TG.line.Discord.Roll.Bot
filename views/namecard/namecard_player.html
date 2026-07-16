@@ -1193,28 +1193,33 @@
                 availableTimes: {
                     title: np('section_available_times'),
                     slots: [
-                        { text: "平日早上", filled: false },
-                        { text: "平日中午", filled: false },
-                        { text: "平日晚上", filled: true },
-                        { text: "周末早上", filled: false },
-                        { text: "周末中午", filled: true },
-                        { text: "周末晚上", filled: true }
+                        { text: np('sample_time_weekday_morning'), filled: false },
+                        { text: np('sample_time_weekday_noon'), filled: false },
+                        { text: np('sample_time_weekday_evening'), filled: true },
+                        { text: np('sample_time_weekend_morning'), filled: false },
+                        { text: np('sample_time_weekend_noon'), filled: true },
+                        { text: np('sample_time_weekend_evening'), filled: true }
                     ]
                 },
                 playStyles: {
                     title: np('section_play_styles'),
-                    styles: ["語音", "面團", "文字", "文字+語音"]
+                    styles: [
+                        np('sample_style_voice'),
+                        np('sample_style_inperson'),
+                        np('sample_style_text'),
+                        np('sample_style_text_voice')
+                    ]
                 },
                 platforms: {
                     title: np('section_platforms'),
-                    list: ["CCFOLIA", "Discord", "Roll20", "Google Sheet", "FVTT", "不限"]
+                    list: ["CCFOLIA", "Discord", "Roll20", "Google Sheet", "FVTT", np('sample_platform_any')]
                 },
                 relationships: {
                     title: np('section_relationships'),
                     types: [
-                        { text: "友情關係", fill: "filled-100" },
-                        { text: "情人關係", fill: "filled-25" },
-                        { text: "搭檔關係", fill: "filled-100" }
+                        { text: np('sample_rel_friend'), fill: "filled-100" },
+                        { text: np('sample_rel_romance'), fill: "filled-25" },
+                        { text: np('sample_rel_partner'), fill: "filled-100" }
                     ]
                 },
                 orientations: {
@@ -1232,28 +1237,28 @@
                 preferredModules: {
                     title: np('section_preferred_modules'),
                     modules: [
-                        { text: "傳統經典", percentage: 75 },
-                        { text: "恐怖", percentage: 100 },
-                        { text: "懸疑推理", percentage: 75 },
-                        { text: "戰鬥", percentage: 25 },
-                        { text: "輕鬆歡樂", percentage: 60 },
-                        { text: "情感豐富", percentage: 40 },
-                        { text: "戀愛互動", percentage: 25 },
-                        { text: "現代怪談", percentage: 80 },
-                        { text: "密室", percentage: 10 }
+                        { text: np('sample_mod_classic'), percentage: 75 },
+                        { text: np('sample_mod_horror'), percentage: 100 },
+                        { text: np('sample_mod_mystery'), percentage: 75 },
+                        { text: np('sample_mod_combat'), percentage: 25 },
+                        { text: np('sample_mod_casual'), percentage: 60 },
+                        { text: np('sample_mod_emotional'), percentage: 40 },
+                        { text: np('sample_mod_romance'), percentage: 25 },
+                        { text: np('sample_mod_modern'), percentage: 80 },
+                        { text: np('sample_mod_closed'), percentage: 10 }
                     ]
                 },
                 landmines: {
                     title: np('section_landmines'),
                     items: [
                         { text: "PVP", type: "fine-progress" },
-                        { text: "血腥", type: "like-progress" },
-                        { text: "性描述", type: "fine-progress" },
-                        { text: "獵奇", type: "fine-progress" },
-                        { text: "虐待兒童", type: "mine-progress" },
+                        { text: np('sample_landmine_gore'), type: "like-progress" },
+                        { text: np('sample_landmine_sexual'), type: "fine-progress" },
+                        { text: np('sample_landmine_guro'), type: "fine-progress" },
+                        { text: np('sample_landmine_child'), type: "mine-progress" },
                         { text: "LOST", type: "like-progress" },
-                        { text: "精神疾病", type: "like-progress" },
-                        { text: "藥物", type: "fine-progress" }
+                        { text: np('sample_landmine_mental'), type: "like-progress" },
+                        { text: np('sample_landmine_drugs'), type: "fine-progress" }
                     ]
                 },
                 colorSettings: {
@@ -2257,6 +2262,7 @@ ${isEditMode ? `
 
         async function initNplayerPage() {
             if (window.wwwI18n?.ready) await window.wwwI18n.ready;
+            if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document);
             const defaultData = buildDefaultPlayerData();
             data = getDataFromUrl() || loadFromLocalStorage() || defaultData;
             document.title = np('page_title') || document.title;

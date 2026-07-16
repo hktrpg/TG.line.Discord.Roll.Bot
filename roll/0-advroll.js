@@ -2,8 +2,7 @@
 const mathjs = require('mathjs');
 const { SlashCommandBuilder } = require('discord.js');
 const rollbase = require('./rollbase.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
-const i18n = require('../modules/i18n.js');
+const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 const variables = {};
 const regexxBy = /^((\d+)(b)(\d+))(S?)/i
 const regexxUy = /^(\d+)(u)(\d+)/i
@@ -124,7 +123,7 @@ const discordCommand = [
 			.setDescription('【數學計算】 (不支援擲骰) ')
 			.addStringOption(option => option.setName('text').setDescription('輸入內容').setRequired(true)),
 		async execute(interaction) {
-			const t = interaction._hktrpgT || i18n.createTranslator(i18n.DEFAULT_LOCALE);
+			const t = getInteractionT(interaction);
 			const text = interaction.options.getString('text')
 			if (text !== null)
 				return `.ca ${text}`
@@ -140,7 +139,7 @@ const discordCommand = [
 			.addStringOption(option => option.setName('maxnum').setDescription('輸入第二個數字').setRequired(true))
 		,
 		async execute(interaction) {
-			const t = interaction._hktrpgT || i18n.createTranslator(i18n.DEFAULT_LOCALE);
+			const t = getInteractionT(interaction);
 			const minNum = interaction.options.getString('minnum')
 			const maxNum = interaction.options.getString('maxnum');
 			if (minNum !== null && maxNum !== null)

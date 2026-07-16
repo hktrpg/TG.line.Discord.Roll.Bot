@@ -108,7 +108,7 @@ const rollDiceCommand = async function ({
 			return rply;
 		case /^BASE/i.test(mainMsg[1]):
 			rply.text = await getHelpMessage({ locale, t });
-			rply.buttonCreate = ['dr 1d100', '2d6+10 攻擊', '.5 3d6', '.5 4d6dl1', '.rr 5d10!k2']
+			rply.buttonCreate = ['dr 1d100', translate('help.button_attack_example'), '.5 3d6', '.5 4d6dl1', '.rr 5d10!k2']
 			return rply;
 		case /^about$/i.test(mainMsg[1]):
 			rply.text = translate('help.about');

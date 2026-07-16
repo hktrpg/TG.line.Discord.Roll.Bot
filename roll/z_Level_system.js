@@ -29,7 +29,7 @@ const getHelpMessage = async function (params = {}) {
 const initialize = function () {
     return;
 }
-const checkTitle = async function (userlvl, DBTitle) {
+const checkTitle = async function (userlvl, DBTitle, locale = 'zh-tw') {
     let templvl = 0;
     let temptitle = ""
     if (DBTitle && DBTitle.length > 0) {
@@ -42,31 +42,34 @@ const checkTitle = async function (userlvl, DBTitle) {
             }
         }
     }
-    if (!temptitle)
-        for (let g = 0; g < Title().length; g++) {
+    if (!temptitle) {
+        const titles = Title(locale);
+        for (let g = 0; g < titles.length; g++) {
             if (userlvl >= g) {
-                if (templvl <= g && Title()[g]) {
+                if (templvl <= g && titles[g]) {
                     templvl = g
-                    temptitle = Title()[g];
+                    temptitle = titles[g];
                 }
             }
         }
+    }
     return temptitle;
 }
 
-async function buildWordPreview(templateWord, { groupid, userid, membercount, tgDisplayname, displaynameDiscord, displayname, doc, discordMessage }) {
+async function buildWordPreview(templateWord, { groupid, userid, membercount, tgDisplayname, displaynameDiscord, displayname, doc, discordMessage, locale }) {
+    const translate = getT({ locale });
     const docMember = await schema.trpgLevelSystemMember.find({ groupid }).sort({ EXP: -1 }).lean()
         .catch(error => { console.error('buildWordPreview mongoDB error:', error.name, error.reason); return null; });
     if (!docMember) return null;
     const myselfIndex = docMember.findIndex(m => m.userid === userid.toString());
     if (myselfIndex === -1) return null;
-    const username = tgDisplayname || displaynameDiscord || displayname || getT({})('level.unnamed');
+    const username = tgDisplayname || displaynameDiscord || displayname || translate('level.unnamed');
     const userlevel = docMember[myselfIndex].Level;
     const userexp = docMember[myselfIndex].EXP;
     const usermember_count = Math.max(membercount, docMember.length);
     const userRanking = myselfIndex + 1;
     const userRankingPer = Math.ceil(userRanking / usermember_count * 10_000) / 100 + '%';
-    const userTitle = await checkTitle(userlevel, doc?.Title || []);
+    const userTitle = await checkTitle(userlevel, doc?.Title || [], locale);
     let preview = templateWord
         .replaceAll(/{user.name}/ig, username)
         .replaceAll(/{user.level}/ig, userlevel)
@@ -76,14 +79,14 @@ async function buildWordPreview(templateWord, { groupid, userid, membercount, tg
         .replaceAll(/{server.member_count}/ig, usermember_count)
         .replaceAll(/{user.title}/ig, userTitle);
     if (/{user.displayName}/ig.test(preview)) {
-        const userDisplayName = getDisplayName(discordMessage) || username || getT({})('level.unnamed');
+        const userDisplayName = getDisplayName(discordMessage) || username || translate('level.unnamed');
         preview = preview.replaceAll(/{user.displayName}/ig, userDisplayName);
     }
     return preview;
 }
 
-const Title = function () {
-    const t = getT({});
+const Title = function (locale = 'zh-tw') {
+    const t = getT({ locale });
     const titles = t('level.default_titles', { returnObjects: true });
     let TitleArr = [];
     if (titles && typeof titles === 'object' && !Array.isArray(titles)) {
@@ -273,7 +276,7 @@ const rollDiceCommand = async function ({
             const levelUpTemplate = doc?.LevelUpWord || translate('level.default_level_up_word');
             const levelUpLabel = doc?.LevelUpWord ? translate('level.levelup_custom_label') : translate('level.levelup_default_label');
             rply.text = `${levelUpLabel}\n${levelUpTemplate}`;
-            const levelUpPreview = await buildWordPreview(levelUpTemplate, { groupid, userid, membercount, tgDisplayname, displaynameDiscord, displayname, doc, discordMessage });
+            const levelUpPreview = await buildWordPreview(levelUpTemplate, { groupid, userid, membercount, tgDisplayname, displaynameDiscord, displayname, doc, discordMessage, locale });
             if (levelUpPreview) rply.text += translate('level.preview_label') + levelUpPreview;
             return rply;
         }
@@ -347,7 +350,7 @@ const rollDiceCommand = async function ({
             const rankTemplate = doc?.RankWord || translate('level.default_rank_word');
             const rankLabel = doc?.RankWord ? translate('level.rank_custom_label') : translate('level.rank_default_label');
             rply.text = `${rankLabel}\n${rankTemplate}`;
-            const rankPreview = await buildWordPreview(rankTemplate, { groupid, userid, membercount, tgDisplayname, displaynameDiscord, displayname, doc, discordMessage });
+            const rankPreview = await buildWordPreview(rankTemplate, { groupid, userid, membercount, tgDisplayname, displaynameDiscord, displayname, doc, discordMessage, locale });
             if (rankPreview) rply.text += translate('level.preview_label') + rankPreview;
             return rply;
         }
@@ -525,7 +528,7 @@ const rollDiceCommand = async function ({
                 return rply
             }
             const rankWord = doc.RankWord || translate('level.default_rank_word');
-            const rendered = await buildWordPreview(rankWord, { groupid, userid, membercount, tgDisplayname, displaynameDiscord, displayname, doc, discordMessage });
+            const rendered = await buildWordPreview(rankWord, { groupid, userid, membercount, tgDisplayname, displaynameDiscord, displayname, doc, discordMessage, locale });
             if (!rendered) {
                 rply.text = translate('level.no_user_data');
                 return rply
@@ -670,7 +673,7 @@ const rollDiceCommand = async function ({
                         }
                 answer += translate('level.rank_entry', {
                     rank: Number([b]) + 1,
-                    title: await checkTitle(array[b].Level, tempTitleAll),
+                    title: await checkTitle(array[b].Level, tempTitleAll, locale),
                     name: array[b].name,
                     level: array[b].Level,
                     exp: await kMGTPE(Number.parseInt(array[b].EXP), 1)

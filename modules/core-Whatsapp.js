@@ -345,7 +345,8 @@ function setupAgenda(client) {
 			await SendToId(groupid, { text: text }, client);
 			if ((new Date(Date.now()) - createAt) >= SIX_MONTH) {
 				await job.remove();
-				await SendToId(groupid, { text: i18n.createTranslator(i18n.DEFAULT_LOCALE)('platform.schedule.six_month_remove') }, client);
+				const cronLocale = await i18n.resolveLocale({ groupid: groupid || '', botname: 'Whatsapp' });
+				await SendToId(groupid, { text: i18n.createTranslator(cronLocale)('platform.schedule.six_month_remove') }, client);
 			}
 		} catch (error) {
 			console.error("Schedule Error:", error);

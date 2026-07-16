@@ -398,7 +398,7 @@ const shuffleTarget = function (target) {
  * @param {string} inputStr - 輸入字串
  * @returns {string|undefined} 計算結果字串或 undefined（錯誤）
  */
-const BuildDiceCal = function (inputStr) {
+const BuildDiceCal = function (inputStr, locale = i18n.DEFAULT_LOCALE) {
   // 首先判斷是否是誤啟動（檢查是否有符合骰子格式）
   if (inputStr.toLowerCase().match(DICE_REGEX.SIMPLE) == null) return;
   // 排除小數點
@@ -420,7 +420,10 @@ const BuildDiceCal = function (inputStr) {
   }
 
   // 計算算式
-  let answer = math.evaluate(equation.toString()).toString().replace(/true/i, "成功").replace(/false/i, "失敗");
+  const t = i18n.createTranslator(locale);
+  let answer = math.evaluate(equation.toString()).toString()
+    .replace(/true/i, t('rollbase.bool_true'))
+    .replace(/false/i, t('rollbase.bool_false'));
   finalString = equation + ' = ' + answer;
 
   return finalString;
@@ -528,7 +531,8 @@ const nomalDiceRoller = function (text0, text1, text2, locale = i18n.DEFAULT_LOC
  * @returns {string} 擲骰結果字串，或空字串（錯誤）
  */
 function oneTimeRoll(text0, locale = i18n.DEFAULT_LOCALE) {
-  const ERROR_MESSAGES = getErrorMessages(i18n.createTranslator(locale));
+  const translate = i18n.createTranslator(locale);
+  const ERROR_MESSAGES = getErrorMessages(translate);
   try {
     // 避免重複轉換
     const input = text0.toString();
@@ -568,8 +572,8 @@ function oneTimeRoll(text0, locale = i18n.DEFAULT_LOCALE) {
     // 使用 math.evaluate 計算結果
     const answer = math.evaluate(processedEquation)
       .toString()
-      .replace(/true/i, "成功")
-      .replace(/false/i, "失敗");
+      .replace(/true/i, translate('rollbase.bool_true'))
+      .replace(/false/i, translate('rollbase.bool_false'));
 
     // 檢查方程式長度
     if (equation.length > DICE_LIMITS.MAX_DISPLAY_LENGTH) {

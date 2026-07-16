@@ -4,7 +4,7 @@
   <meta charset="utf-8">
     <script src="/common/www-locale-head.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Discord Log Analyzer (New)</title>
+  <title data-www-i18n="dlogn_page_title">Discord Chat Analytics (New)</title>
   <link rel="stylesheet" href="css/app-shell.css">
   <script src="/common/www-i18n.js"></script>
   <script src="/common/site-chrome.js"></script>
@@ -789,6 +789,7 @@
     let dlognAppVm = null;
     async function applyDlognPageI18n() {
       if (window.wwwI18n?.ready) await window.wwwI18n.ready;
+      if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document);
       document.title = dt('dlogn_page_title') || document.title;
       if (dlognAppVm && typeof dlognAppVm.recomputeAndRender === 'function') {
         dlognAppVm.recomputeAndRender(true);

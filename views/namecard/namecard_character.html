@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <script src="/common/www-locale-head.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TRPG 角色卡</title>
+    <title data-www-i18n="ncard_page_title">TRPG 角色卡</title>
     <script src="/common/www-i18n.js"></script>
     <meta name="description" data-www-i18n-content="ncard_meta_description" content="HKTRPG - TRPG 角色卡 - 透過網頁快速製作 TRPG 角色卡">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1097,42 +1097,42 @@
                     HP: "15 / 15",
                     MP: "10 / 10",
                     san: "60 / 60 ",
-                    幸運: 80,
-                    力量: 55,
-                    敏捷: 40,
-                    意志: 50,
-                    體質: 60,
-                    外貌: 50,
-                    教育: 70,
-                    體型: 50,
-                    智力: 70,
-                    靈感: 70,
-                    體格: 0,
+                    [nc('sample_attr_luck')]: 80,
+                    [nc('sample_attr_str')]: 55,
+                    [nc('sample_attr_dex')]: 40,
+                    [nc('sample_attr_pow')]: 50,
+                    [nc('sample_attr_con')]: 60,
+                    [nc('sample_attr_app')]: 50,
+                    [nc('sample_attr_edu')]: 70,
+                    [nc('sample_attr_siz')]: 50,
+                    [nc('sample_attr_int')]: 70,
+                    [nc('sample_attr_idea')]: 70,
+                    [nc('sample_attr_build')]: 0,
                     DB: 0,
                     MOV: 8
                 }
             },
             skills: [
-                { type: '交際', value: 200 },
-                { type: '學問', value: 180 },
-                { type: '職業', value: 140 },
-                { type: '調查+隱密', value: 160 },
-                { type: '戰鬥', value: 200 },
-                { type: '醫療', value: 20 }
+                { type: nc('sample_skill_social'), value: 200 },
+                { type: nc('sample_skill_knowledge'), value: 180 },
+                { type: nc('sample_skill_occupation'), value: 140 },
+                { type: nc('sample_skill_investigate'), value: 160 },
+                { type: nc('sample_skill_combat'), value: 200 },
+                { type: nc('sample_skill_medicine'), value: 20 }
             ],
             diceRolls: {
-                心理學: "50",
-                信譽: "30",
-                偵查: "25",
-                鬥毆: "15"
+                [nc('sample_dice_psychology')]: "50",
+                [nc('sample_dice_credit')]: "30",
+                [nc('sample_dice_spot')]: "25",
+                [nc('sample_dice_brawl')]: "15"
             },
             notes: {
                 title: nc('section_notes'),
                 items: [
-                    { label: "現金", value: "100,000日元" },
-                    { label: "隨身物品", value: "手機" },
-                    { label: "心靈支柱", value: "思想與信念" },
-                    { label: "資產", value: "車" }
+                    { label: nc('sample_note_cash'), value: nc('sample_note_cash_val') },
+                    { label: nc('sample_note_items'), value: nc('sample_note_items_val') },
+                    { label: nc('sample_note_pillar'), value: nc('sample_note_pillar_val') },
+                    { label: nc('sample_note_assets'), value: nc('sample_note_assets_val') }
                 ]
             },
             diceTitle: nc('section_skills'),
@@ -1141,9 +1141,9 @@
             personalityPreferencesTitle: nc('section_personality'),
             personalityPreferences: {
                 items: [
-                    { label: '活潑開朗', value: 70, alternative: '靜思內省', icon: 'fas fa-check' },
-                    { label: '實事求是', value: 30, alternative: '敏銳直觀', icon: 'fas fa-star' },
-                    { label: '理性思維', value: 15, alternative: '情感共鳴', icon: 'fas fa-users' }
+                    { label: nc('sample_pers_a1'), value: 70, alternative: nc('sample_pers_a1_alt'), icon: 'fas fa-check' },
+                    { label: nc('sample_pers_a2'), value: 30, alternative: nc('sample_pers_a2_alt'), icon: 'fas fa-star' },
+                    { label: nc('sample_pers_a3'), value: 15, alternative: nc('sample_pers_a3_alt'), icon: 'fas fa-users' }
                 ]
             }
         };
@@ -1234,7 +1234,7 @@
   </div>
   <hr>
   <div>
-    <h3>技能</h3>
+    <h3>${nc('section_skills')}</h3>
     <label>${nc('label_dice_title')} <input type="text" id="editDiceTitle" value="${escapeHtml(character.diceTitle)}"></label><br>
     <div id="editDiceRollsContainer">
       <div id="editDiceRollsList">
@@ -1251,7 +1251,7 @@
   </div>
   <hr>
   <div>
-    <h3>筆記</h3>
+    <h3>${nc('section_notes')}</h3>
     <label>${nc('label_notes_title')} <input type="text" id="editNotesTitle" value="${escapeHtml(character.notes.title)}"></label>
     <div id="editNotesItemsContainer">
       <div id="editNotesItemsList">
@@ -1780,8 +1780,7 @@
                     ctx.fillStyle = '#666';
                     ctx.font = '14px Arial';
                     ctx.textAlign = 'center';
-                    ctx.fillText('無法載入圖片', 100, 95);
-                    ctx.fillText('Image unavailable', 100, 115);
+                    ctx.fillText(nc('img_unavailable'), 100, 100);
                     return canvas.toDataURL('image/png');
                 } catch (fallbackError) {
                     console.error('Fallback image creation failed:', fallbackError);
@@ -1829,7 +1828,7 @@
                     <div class="progress-bar-container">
                         <div class="progress-bar-fill" style="width: 0%"></div>
                     </div>
-                    <div class="progress-status">準備中...</div>
+                    <div class="progress-status">${nc('export_status_ready')}</div>
                 </div>
             `;
             document.body.appendChild(overlay);
@@ -1878,7 +1877,7 @@
                 const currentSrc = avatarImg.src;
 
                 // Update progress: Image processing
-                updateProgress(overlay, 30, '處理圖片中...');
+                updateProgress(overlay, 30, nc('export_status_image'));
 
                 // Handle image caching and loading
                 if (!currentSrc.startsWith('data:image')) {
@@ -1898,7 +1897,7 @@
                             ctx.fillStyle = '#666';
                             ctx.font = '16px Arial';
                             ctx.textAlign = 'center';
-                            ctx.fillText('圖片載入失敗', 100, 100);
+                            ctx.fillText(nc('img_load_failed_short'), 100, 100);
                             imageCache.base64 = canvas.toDataURL('image/png');
                             imageCache.url = currentSrc;
                         }
@@ -1924,12 +1923,12 @@
                 }
 
                 // Update progress: Preparing canvas
-                updateProgress(overlay, 50, '準備畫布...');
+                updateProgress(overlay, 50, nc('export_status_canvas'));
 
                 container.classList.add('exporting', 'no-animations');
 
                 // Update progress: Rendering
-                updateProgress(overlay, 70, '渲染圖片中...');
+                updateProgress(overlay, 70, nc('export_status_render'));
 
                 const canvas = await html2canvas(container, {
                     allowTaint: true,
@@ -2046,7 +2045,7 @@
                 });
 
                 // Update progress: Creating blob
-                updateProgress(overlay, 85, '產生圖片檔案...');
+                updateProgress(overlay, 85, nc('export_status_file'));
 
                 // Convert to blob for better memory management
                 const blob = await new Promise(resolve => {
@@ -2077,7 +2076,7 @@
             } catch (error) {
                 console.error('匯出失敗:', error);
                 overlay.querySelector('.progress-text').textContent = nc('export_failed');
-                overlay.querySelector('.progress-status').textContent = '請稍後再試';
+                overlay.querySelector('.progress-status').textContent = nc('export_retry_later');
                 overlay.querySelector('.progress-bar-fill').style.backgroundColor = '#EF4444';
 
                 setTimeout(() => {
@@ -2164,7 +2163,7 @@
 
                     // Convert to sharedData format
                     const convertedData = {
-                        characterName: parsed.name || "無名氏",
+                        characterName: parsed.name || nc('sample_anonymous'),
                         playerName: "",
                         id: parsed.id || "",
                         attributes: {
@@ -2173,18 +2172,18 @@
                         skills: [],
                         diceRolls: {},
                         notes: {
-                            title: "筆記",
+                            title: nc('section_notes'),
                             items: []
                         },
-                        diceTitle: "技能",
-                        skillsTitle: "能力分析",
-                        attributeTitle: "基本屬性",
-                        personalityPreferencesTitle: "性格與偏好",
+                        diceTitle: nc('section_skills'),
+                        skillsTitle: nc('section_skills_analysis'),
+                        attributeTitle: nc('section_attributes'),
+                        personalityPreferencesTitle: nc('section_personality'),
                         personalityPreferences: {
                             items: [
-                                { label: '活潑開朗', value: 70, alternative: '靜思內省', icon: 'fas fa-check' },
-                                { label: '實事求是', value: 60, alternative: '敏銳直觀', icon: 'fas fa-star' },
-                                { label: '理性思維', value: 85, alternative: '情感共鳴', icon: 'fas fa-users' }
+                                { label: nc('sample_pers_a1'), value: 70, alternative: nc('sample_pers_a1_alt'), icon: 'fas fa-check' },
+                                { label: nc('sample_pers_a2'), value: 60, alternative: nc('sample_pers_a2_alt'), icon: 'fas fa-star' },
+                                { label: nc('sample_pers_a3'), value: 85, alternative: nc('sample_pers_a3_alt'), icon: 'fas fa-users' }
                             ]
                         },
                         avatarUrl: avatarImageUrl, // Add default avatar
@@ -2392,11 +2391,11 @@
                         <div class="slot-avatar ${savedData ? '' : 'empty'}">
                             ${avatarHtml}
                         </div>
-                        <div class="slot-name" title="${escapeHtml(characterName)}">${escapeHtml(characterName || '空槽')}</div>
+                        <div class="slot-name" title="${escapeHtml(characterName)}">${escapeHtml(characterName || nc('slot_empty_name'))}</div>
                         <div class="slot-player" title="${escapeHtml(playerName)}">${escapeHtml(playerName || '')}</div>
                         <div class="slot-buttons">
-                            <button class="slot-save" onclick="saveToSlot(${i})">儲存</button>
-                            <button class="slot-load" onclick="loadFromSlot(${i})" ${loadDisabled}>讀取</button>
+                            <button class="slot-save" onclick="saveToSlot(${i})">${nc('btn_slot_save')}</button>
+                            <button class="slot-load" onclick="loadFromSlot(${i})" ${loadDisabled}>${nc('btn_slot_load')}</button>
                         </div>
                     </div>
                 `;
@@ -2461,6 +2460,7 @@
 
         async function initNcardPage() {
             if (window.wwwI18n?.ready) await window.wwwI18n.ready;
+            if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document);
             defaultCharacter = buildDefaultCharacter();
             document.title = nc('page_title') || document.title;
             const sharedData = getDataFromUrl();
@@ -2479,7 +2479,7 @@
     <div id="backupRestoreModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>${nc('backup_modal_title')}</h2>
+                <h2 data-www-i18n="ncard_backup_modal_title">角色資料備份/讀取</h2>
                 <button class="modal-close" onclick="closeBackupRestoreModal()">&times;</button>
             </div>
             <div class="modal-body">

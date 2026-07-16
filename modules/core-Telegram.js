@@ -431,8 +431,9 @@ if (agenda && agenda.agenda) {
         try {
             if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
                 await job.remove();
+                const cronLocale = await i18n.resolveLocale({ groupid: data.groupid || '', botname: 'Telegram' });
                 SendToId(
-                    data.groupid, i18n.createTranslator(i18n.DEFAULT_LOCALE)('platform.schedule.six_month_remove')
+                    data.groupid, i18n.createTranslator(cronLocale)('platform.schedule.six_month_remove')
                 )
             }
         } catch (error) {

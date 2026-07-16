@@ -8,8 +8,7 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const records = require('../modules/records.js');
 const VIP = require('../modules/veryImportantPerson');
-const i18n = require('../modules/i18n.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
 
 const gameName = function (params = {}) {
@@ -334,7 +333,7 @@ const discordCommand = [
                     return command;
                 case 'delete': {
                     const id = interaction.options.getInteger('id');
-                    const t = interaction._hktrpgT || i18n.createTranslator(i18n.DEFAULT_LOCALE);
+                    const t = getInteractionT(interaction);
                     if (id <= 0) {
                         await interaction.reply({ content: t('forward.invalid_id'), flags: MessageFlags.Ephemeral });
                         return null;

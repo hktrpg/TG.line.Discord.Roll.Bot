@@ -14,28 +14,26 @@ class WwwI18n {
     }
 
     fallbackResolveLocale() {
+        if (typeof resolveWwwLocale === 'function') {
+            return resolveWwwLocale();
+        }
+        const defaultLocale = (typeof getWwwDefaultLocale === 'function')
+            ? getWwwDefaultLocale()
+            : (window.HKTRPG_LOCALES?.defaultLocale || 'zh-tw');
         try {
             const params = new URLSearchParams(globalThis.location.search);
             const fromQuery = params.get('lang');
-            if (fromQuery) {
-                return fromQuery.toLowerCase().startsWith('en') ? 'en' : 'zh-tw';
+            if (fromQuery && typeof normalizeWwwLocale === 'function') {
+                return normalizeWwwLocale(fromQuery) || defaultLocale;
             }
             const saved = localStorage.getItem('wwwLocale');
-            if (saved) {
-                return saved.toLowerCase().startsWith('en') ? 'en' : 'zh-tw';
+            if (saved && typeof normalizeWwwLocale === 'function') {
+                return normalizeWwwLocale(saved) || defaultLocale;
             }
         } catch {
             // ignore
         }
-        const langs = (navigator.languages?.length)
-            ? navigator.languages
-            : [navigator.language].filter(Boolean);
-        for (const lang of langs) {
-            const value = String(lang || '').toLowerCase();
-            if (value.startsWith('en')) return 'en';
-            if (value.startsWith('zh')) return 'zh-tw';
-        }
-        return 'zh-tw';
+        return defaultLocale;
     }
 
     async init() {
@@ -136,7 +134,10 @@ function getWwwLocale() {
     if (typeof resolveWwwLocale === 'function') {
         return resolveWwwLocale();
     }
-    return window.wwwI18n?.locale || 'zh-tw';
+    const defaultLocale = (typeof getWwwDefaultLocale === 'function')
+        ? getWwwDefaultLocale()
+        : (window.HKTRPG_LOCALES?.defaultLocale || 'zh-tw');
+    return window.wwwI18n?.locale || defaultLocale;
 }
 
 /**
@@ -181,9 +182,12 @@ window.wwwPrefixT = wwwPrefixT;
  * @param {string} locale
  */
 function setWwwLocale(locale) {
+    const defaultLocale = (typeof getWwwDefaultLocale === 'function')
+        ? getWwwDefaultLocale()
+        : (window.HKTRPG_LOCALES?.defaultLocale || 'zh-tw');
     const normalized = typeof normalizeWwwLocale === 'function'
-        ? (normalizeWwwLocale(locale) || 'zh-tw')
-        : (String(locale).toLowerCase().startsWith('en') ? 'en' : 'zh-tw');
+        ? (normalizeWwwLocale(locale) || defaultLocale)
+        : defaultLocale;
     try {
         localStorage.setItem('wwwLocale', normalized);
     } catch {
@@ -194,6 +198,29 @@ function setWwwLocale(locale) {
     globalThis.location.href = url.toString();
 }
 
+function buildWwwLocaleMenuLinks(itemClass = '') {
+    const meta = window.HKTRPG_LOCALES || {};
+    const supported = meta.supported || Object.keys(meta.definitions || {});
+    const definitions = meta.definitions || {};
+    const classAttr = itemClass ? ` class="${itemClass}"` : '';
+    return supported.map((code) => {
+        const name = definitions[code]?.name || code;
+        const i18nKey = `nav_lang_${code.replaceAll('-', '_')}`;
+        return `<a href="#"${classAttr} data-www-locale="${code}" data-www-i18n="${i18nKey}">${name}</a>`;
+    }).join('\n');
+}
+
+function ensureWwwLocaleMenuItems(container) {
+    const menu = container.querySelector('[data-www-locale-menu]') || container;
+    if (!menu.querySelector('[data-www-locale]')) {
+        const isDropdown = menu.classList.contains('dropdown-menu');
+        menu.innerHTML = buildWwwLocaleMenuLinks(isDropdown ? 'dropdown-item' : '');
+        if (typeof wwwApplyDomI18n === 'function') {
+            wwwApplyDomI18n(menu);
+        }
+    }
+}
+
 /**
  * Wire language dropdown in shared header (#www-locale-switcher) or floating fab (#www-locale-switcher-fab).
  * @param {ParentNode} [root]
@@ -201,7 +228,9 @@ function setWwwLocale(locale) {
 function initWwwLocaleSwitcher(root) {
     const containers = [];
     if (root) {
-        const el = root.querySelector('#www-locale-switcher, #www-locale-switcher-fab');
+        const el = root.querySelector('#www-locale-switcher, #www-locale-switcher-fab') || (
+            root.id === 'www-locale-switcher' || root.id === 'www-locale-switcher-fab' ? root : null
+        );
         if (el) containers.push(el);
     } else {
         for (const el of document.querySelectorAll('#www-locale-switcher, #www-locale-switcher-fab')) {
@@ -210,9 +239,14 @@ function initWwwLocaleSwitcher(root) {
     }
     if (containers.length === 0) return;
 
-    const locale = window.wwwI18n?.locale || 'zh-tw';
+    const defaultLocale = (typeof getWwwDefaultLocale === 'function')
+        ? getWwwDefaultLocale()
+        : (window.HKTRPG_LOCALES?.defaultLocale || 'zh-tw');
+    const locale = window.wwwI18n?.locale || defaultLocale;
 
     for (const container of containers) {
+        ensureWwwLocaleMenuItems(container);
+
         if (!container.dataset.wwwLocaleItemsBound) {
             container.dataset.wwwLocaleItemsBound = '1';
             for (const el of container.querySelectorAll('[data-www-locale]')) {
@@ -327,8 +361,7 @@ function mountWwwLocaleSwitcherFab() {
     </svg>
 </button>
 <div class="www-locale-fab-menu" data-www-locale-menu>
-    <a href="#" data-www-locale="zh-tw" data-www-i18n="nav_lang_zh_tw">繁體中文</a>
-    <a href="#" data-www-locale="en" data-www-i18n="nav_lang_en">English</a>
+    ${buildWwwLocaleMenuLinks()}
 </div>`;
     document.body.appendChild(fab);
     if (typeof wwwApplyDomI18n === 'function') {

@@ -23,7 +23,11 @@ class SocketManager {
                 reconnectionDelayMax: 10_000,
                 randomizationFactor: 0.5,
                 timeout: 20_000,
-                query: { lang: 'zh-tw' }
+                query: {
+                    lang: (typeof getWwwLocale === 'function')
+                        ? getWwwLocale()
+                        : (window.HKTRPG_LOCALES?.defaultLocale || 'zh-tw')
+                }
             };
         this.socket = io(socketOptions);
 

@@ -21,7 +21,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'dnd5e.help', () => getT({ locale: 'zh-tw' })('dnd5e.help'));
+    return resolveHelp(params, 'dnd5e.help');
 }
 const initialize = function () {
     return variables;

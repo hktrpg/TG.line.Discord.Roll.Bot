@@ -22,7 +22,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = async function (params = {}) {
-    return resolveHelp(params, 'fate.help', () => getT({ locale: 'zh-tw' })('fate.help'));
+    return resolveHelp(params, 'fate.help');
 }
 const initialize = function () {
     return variables;

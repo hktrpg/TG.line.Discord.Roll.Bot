@@ -1,6 +1,13 @@
 "use strict";
 
 const models = {};
+const localeDefinitions = require('../lang/locales.json');
+const DEFAULT_BOT_LOCALE = Object.keys(localeDefinitions).find((code) => localeDefinitions[code].default)
+    || Object.keys(localeDefinitions)[0];
+
+if (!DEFAULT_BOT_LOCALE) {
+    throw new Error('[schema] lang/locales.json must define at least one locale');
+}
 
 if (process.env.mongoURL) {
     const mongoose = require('./db-connector.js').mongoose;
@@ -425,7 +432,7 @@ if (process.env.mongoURL) {
     models.botLocale = mongoose.model('botLocale', new Schema({
         scope: { type: String, enum: ['group', 'user'], required: true },
         scopeId: { type: String, required: true },
-        locale: { type: String, default: 'zh-tw', maxlength: 10 }
+        locale: { type: String, default: DEFAULT_BOT_LOCALE, maxlength: 10 }
     }, {
         indexes: [
             { scope: 1, scopeId: 1, unique: true }

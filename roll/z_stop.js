@@ -32,7 +32,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = async function (params = {}) {
-    return resolveHelp(params, 'stop.help', () => getT({ locale: 'zh-tw' })('stop.help'));
+    return resolveHelp(params, 'stop.help');
 }
 const initialize = function () {
     return save;

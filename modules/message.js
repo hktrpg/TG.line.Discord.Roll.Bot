@@ -1,9 +1,11 @@
 "use strict";
 if (!process.env.mongoURL) return;
 
-const fs = require('fs');
-const crypto = require('crypto');
+const fs = require('node:fs');
+const path = require('node:path');
+const crypto = require('node:crypto');
 const schema = require('./schema.js');
+const i18n = require('./i18n.js');
 const checkMongodb = require('./dbWatchdog.js');
 const timerManager = require('./timer-manager');
 
@@ -67,7 +69,8 @@ function joinMessages(messages) {
 
 function getWelcomeLines(type) {
     try {
-        const langData = JSON.parse(fs.readFileSync('./lang/zh-tw.json', 'utf8'));
+        const langPath = path.join(__dirname, '..', 'lang', `${i18n.DEFAULT_LOCALE}.json`);
+        const langData = JSON.parse(fs.readFileSync(langPath, 'utf8'));
         const bodyKey = type === 'join' ? 'join_message' : 'first_time_message';
         const body = langData?.welcome?.[bodyKey];
         const guide = langData?.welcome?.i18n_guide;

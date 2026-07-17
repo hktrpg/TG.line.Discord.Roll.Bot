@@ -68,7 +68,7 @@ const ENemoji = function (per) {
 
 
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'event.help', () => getT({ locale: 'zh-tw' })('event.help'));
+    return resolveHelp(params, 'event.help');
 }
 
 const initialize = function () {

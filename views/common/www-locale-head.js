@@ -1,15 +1,52 @@
 /**
  * Early www locale detection — load in <head> before body so <html lang> matches browser language.
- * Priority: ?lang= → localStorage wwwLocale → navigator.languages → zh-tw
+ * Priority: ?lang= → localStorage wwwLocale → navigator.languages → defaultLocale
+ *
+ * window.HKTRPG_LOCALES is injected by core-www before this file body (from lang/locales.json).
  */
 (function (global) {
     'use strict';
 
+    const meta = global.HKTRPG_LOCALES || {
+        defaultLocale: 'zh-tw',
+        supported: ['zh-tw', 'en'],
+        definitions: {
+            'zh-tw': { prefixes: ['zh-tw', 'zh'], intl: 'zh-Hant-HK' },
+            en: { prefixes: ['en'], intl: 'en' }
+        }
+    };
+
+    function getDefaultLocale() {
+        return meta.defaultLocale || 'zh-tw';
+    }
+
     function normalizeWwwLocale(input) {
         if (input == null || input === '') return null;
         const value = String(input).toLowerCase().replaceAll('_', '-');
-        if (value.startsWith('en')) return 'en';
-        if (value.startsWith('zh')) return 'zh-tw';
+        const definitions = meta.definitions || {};
+        const supported = meta.supported || Object.keys(definitions);
+
+        if (definitions[value] || supported.includes(value)) {
+            return value;
+        }
+
+        const prefixHits = [];
+        for (const code of supported) {
+            const prefixes = definitions[code]?.prefixes || [code];
+            for (const prefix of prefixes) {
+                if (value === prefix || value.startsWith(prefix)) {
+                    prefixHits.push({ code, length: prefix.length });
+                }
+            }
+            // Also accept bare language family for zh (zh-cn → still need zh-tw for Hant; keep zh* → default zh locale)
+            if (code.startsWith('zh') && value.startsWith('zh')) {
+                prefixHits.push({ code, length: 2 });
+            }
+        }
+        if (prefixHits.length > 0) {
+            prefixHits.sort((a, b) => b.length - a.length);
+            return prefixHits[0].code;
+        }
         return null;
     }
 
@@ -31,11 +68,12 @@
             const resolved = normalizeWwwLocale(lang);
             if (resolved) return resolved;
         }
-        return 'zh-tw';
+        return getDefaultLocale();
     }
 
     function wwwLocaleToHtmlLang(locale) {
-        return locale === 'en' ? 'en' : 'zh-Hant-HK';
+        const code = normalizeWwwLocale(locale) || getDefaultLocale();
+        return (meta.definitions?.[code]?.intl) || code;
     }
 
     function applyEarlyWwwHtmlLang() {
@@ -48,10 +86,10 @@
     global.normalizeWwwLocale = normalizeWwwLocale;
     global.resolveWwwLocale = resolveWwwLocale;
     global.wwwLocaleToHtmlLang = wwwLocaleToHtmlLang;
-    global.applyEarlyWwwHtmlLang = applyEarlyWwwHtmlLang;
+    global.getWwwDefaultLocale = getDefaultLocale;
+    global.HKTRPG_LOCALES = meta;
 
-    if (!global.__WWW_LOCALE_HEAD_APPLIED__) {
-        global.__WWW_LOCALE_HEAD_APPLIED__ = true;
+    if (global.document?.documentElement) {
         applyEarlyWwwHtmlLang();
     }
-})(typeof window !== 'undefined' ? window : globalThis);
+})(typeof globalThis === 'undefined' ? window : globalThis);

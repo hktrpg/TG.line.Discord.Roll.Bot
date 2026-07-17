@@ -6,7 +6,8 @@ const { SlashCommandBuilder } = require('discord.js');
 const VIP = require('../modules/veryImportantPerson');
 const limitAtArr = [10, 20, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const { getT, resolveHelp, resolveGameName, DEFAULT_LOCALE } = require('../modules/roll-i18n.js');
+const i18n = require('../modules/i18n.js');
 const MAX_HISTORY_RECORDS = 20;
 const opt = {
     upsert: true,
@@ -32,7 +33,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = async function (params = {}) {
-    return resolveHelp(params, 'myname.help', () => getT({ locale: 'zh-tw' })('myname.help'));
+    return resolveHelp(params, 'myname.help');
 }
 const initialize = function () {
 
@@ -475,13 +476,13 @@ async function getGroupHistory(groupID, botname) {
 }
 
 // Function to format the history records for display
-function formatHistory(records, translate, locale = 'zh-tw') {
+function formatHistory(records, translate, locale = DEFAULT_LOCALE) {
     if (!records || !Array.isArray(records) || records.length === 0) {
         return translate('myname.history_empty');
     }
 
     try {
-        const formatter = new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'zh-TW', {
+        const formatter = new Intl.DateTimeFormat(i18n.toIntlLocale(locale), {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',

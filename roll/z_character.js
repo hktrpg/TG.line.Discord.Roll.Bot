@@ -61,7 +61,7 @@ TODO?
 COC export to roll20?
 */
 
-const getHelpMessage = async (params = {}) => resolveHelp(params, 'character.help', () => getT({ locale: 'zh-tw' })('character.help'));
+const getHelpMessage = async (params = {}) => resolveHelp(params, 'character.help');
 
 const initialize = () => variables;
 

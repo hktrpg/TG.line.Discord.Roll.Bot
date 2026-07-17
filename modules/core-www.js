@@ -60,7 +60,7 @@ function flattenI18nSection(section, prefix, output) {
 function buildWwwI18nBundle(locale) {
     const normalized = i18n.normalizeLocale(locale);
     const t = i18n.createTranslator(normalized);
-    const tZh = i18n.createTranslator('zh-tw');
+    const tDefault = i18n.createTranslator(i18n.DEFAULT_LOCALE);
     const strings = {};
     const fallback = {};
     flattenI18nSection(t('www.views', { returnObjects: true }), 'www.views', strings);
@@ -73,11 +73,11 @@ function buildWwwI18nBundle(locale) {
             }
         }
     }
-    flattenI18nSection(tZh('www.views', { returnObjects: true }), 'www.views', fallback);
-    flattenI18nSection(tZh('www.busstop', { returnObjects: true }), 'www.busstop', fallback);
-    const characterZh = tZh('character', { returnObjects: true });
-    if (characterZh && typeof characterZh === 'object') {
-        for (const [key, value] of Object.entries(characterZh)) {
+    flattenI18nSection(tDefault('www.views', { returnObjects: true }), 'www.views', fallback);
+    flattenI18nSection(tDefault('www.busstop', { returnObjects: true }), 'www.busstop', fallback);
+    const characterDefault = tDefault('character', { returnObjects: true });
+    if (characterDefault && typeof characterDefault === 'object') {
+        for (const [key, value] of Object.entries(characterDefault)) {
             if (key.startsWith('validation_') && typeof value === 'string') {
                 fallback[`character.${key}`] = value;
             }
@@ -765,7 +765,7 @@ www.get('/api/www-i18n', async (req, res) => {
         res.json(buildWwwI18nBundle(resolveWwwLocale(req)));
     } catch (error) {
         console.error('[Web Server] www-i18n bundle error:', error.message);
-        res.status(500).json({ locale: 'zh-tw', strings: {}, fallback: {} });
+        res.status(500).json({ locale: i18n.DEFAULT_LOCALE, strings: {}, fallback: {} });
     }
 });
 
@@ -887,6 +887,27 @@ www.use('/scripts/', async (req, res, next) => {
     }
     next();
 }, express.static(process.cwd() + '/views/scripts/'));
+
+// Inject locale registry into www-locale-head.js (single source: lang/locales.json)
+function sendWwwLocaleHead(req, res) {
+    try {
+        const headPath = path.join(process.cwd(), 'views', 'common', 'www-locale-head.js');
+        const body = fs.readFileSync(headPath, 'utf8');
+        const payload = {
+            defaultLocale: i18n.DEFAULT_LOCALE,
+            supported: i18n.SUPPORTED_LOCALES,
+            definitions: i18n.LOCALE_DEFINITIONS
+        };
+        res.type('application/javascript');
+        res.send(`window.HKTRPG_LOCALES=${JSON.stringify(payload)};\n${body}`);
+    } catch (error) {
+        console.error('[Web Server] www-locale-head inject error:', error.message);
+        res.status(500).type('application/javascript').send('/* www-locale-head failed to load */');
+    }
+}
+
+www.get('/common/www-locale-head.js', sendWwwLocaleHead);
+www.get('/:path/common/www-locale-head.js', sendWwwLocaleHead);
 
 // Add common files route
 www.use('/:path/common/', async (req, res, next) => {
@@ -2553,7 +2574,7 @@ function pickSlashLocalizedField(item, locale, field) {
         return '';
     }
     const locMapKey = field === 'name' ? 'name_localizations' : 'description_localizations';
-    if (locale === 'en' && item[locMapKey] && typeof item[locMapKey] === 'object') {
+    if (locale !== i18n.DEFAULT_LOCALE && item[locMapKey] && typeof item[locMapKey] === 'object') {
         const discordLocale = i18n.toDiscordLocale(locale);
         return item[locMapKey][discordLocale] || item[locMapKey]['en-US'] || item[field];
     }

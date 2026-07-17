@@ -11,35 +11,10 @@ const {
 } = require('./i18n-overlays.js');
 
 /**
- * Single source of truth for bot locales.
- * Add a language here once — aliases, Discord/i18next maps, and lists are derived.
- *
- * @type {Record<string, {
- *   name: string,
- *   i18next: string,
- *   discord: string,
- *   aliases?: string[],
- *   prefixes?: string[],
- *   default?: boolean
- * }>}
+ * Single source of truth: lang/locales.json
+ * Add a language there once — aliases, Discord/i18next/intl maps are derived.
  */
-const LOCALE_DEFINITIONS = {
-    'zh-tw': {
-        name: '正體中文',
-        i18next: 'zh-TW',
-        discord: 'zh-TW',
-        aliases: ['zh-hant', 'zh_hant'],
-        prefixes: ['zh-tw'],
-        default: true
-    },
-    en: {
-        name: 'English',
-        i18next: 'en',
-        discord: 'en-US',
-        aliases: ['en-us', 'en-gb'],
-        prefixes: ['en']
-    }
-};
+const LOCALE_DEFINITIONS = require('../lang/locales.json');
 
 const SUPPORTED_LOCALES = Object.keys(LOCALE_DEFINITIONS);
 const DEFAULT_LOCALE = SUPPORTED_LOCALES.find((code) => LOCALE_DEFINITIONS[code].default) || SUPPORTED_LOCALES[0];
@@ -131,6 +106,13 @@ function getSlashLocaleChoices() {
 function toDiscordLocale(locale) {
     const normalized = normalizeLocale(locale);
     return DISCORD_LOCALE_MAP[normalized] || DISCORD_LOCALE_MAP[DEFAULT_LOCALE];
+}
+
+function toIntlLocale(locale) {
+    const normalized = normalizeLocale(locale);
+    return LOCALE_DEFINITIONS[normalized]?.intl
+        || LOCALE_DEFINITIONS[DEFAULT_LOCALE]?.intl
+        || 'zh-Hant-HK';
 }
 
 function toI18nextLng(locale) {
@@ -425,6 +407,7 @@ module.exports = {
     formatLocaleList,
     getSlashLocaleChoices,
     toDiscordLocale,
+    toIntlLocale,
     createTranslator,
     t,
     init,

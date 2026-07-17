@@ -21,7 +21,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = async function (params = {}) {
-    return resolveHelp(params, 'kc.help', () => getT({ locale: 'zh-tw' })('kc.help'));
+    return resolveHelp(params, 'kc.help');
 }
 const initialize = function () {
     return variables;

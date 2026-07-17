@@ -5,11 +5,11 @@ const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
 const checkMongodb = require('../modules/dbWatchdog.js');
 const rollbase = require('./rollbase.js');
-const { getT, resolveHelp, getLocale, resolveGameName } = require('../modules/roll-i18n.js');
+const { getT, resolveHelp, resolveGameName, isEnglish } = require('../modules/roll-i18n.js');
 const i18n = require('../modules/i18n.js');
 
 function wrapCocZhContent(text, params = {}) {
-	if (getLocale(params) !== 'en') {
+	if (!isEnglish(params)) {
 		return text;
 	}
 	return `${getT(params)('common.zh_only_notice')}\n${text}`;
@@ -17,7 +17,7 @@ function wrapCocZhContent(text, params = {}) {
 
 function formatDpRecordDate(date, locale) {
 	const minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : String(date.getMinutes());
-	if (locale === 'en') {
+	if (isEnglish({ locale })) {
 		return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${minutes}`;
 	}
 	return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${minutes}`;
@@ -40,7 +40,7 @@ const prefixs = function () {
 	]
 }
 const getHelpMessage = function (params = {}) {
-	return resolveHelp(params, 'coc.help', () => getT({ locale: 'zh-tw' })('coc.help'));
+	return resolveHelp(params, 'coc.help');
 }
 const initialize = function () {
 	return {};

@@ -65,7 +65,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = async function (params = {}) {
-    return resolveHelp(params, 'ddr.help', () => getT({ locale: 'zh-tw' })('ddr.help'));
+    return resolveHelp(params, 'ddr.help');
 }
 const initialize = function () {
     return trpgDarkRollingfunction;

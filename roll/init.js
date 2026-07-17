@@ -23,7 +23,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = async function (params = {}) {
-    return resolveHelp(params, 'init.help', () => getT({ locale: 'zh-tw' })('init.help'));
+    return resolveHelp(params, 'init.help');
 }
 const initialize = function () {
     return;

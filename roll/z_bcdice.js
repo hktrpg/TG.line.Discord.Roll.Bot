@@ -28,7 +28,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'bcdice.help', () => getT({ locale: 'zh-tw' })('bcdice.help'));
+    return resolveHelp(params, 'bcdice.help');
 }
 const initialize = function () {
     return variables;

@@ -2,7 +2,7 @@
 
 const { SlashCommandBuilder } = require('discord.js');
 const i18n = require('../modules/i18n.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const { resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 
 const gameName = function (params = {}) {
     return resolveGameName(params, 'lang.game_name', '【語言 Language】');
@@ -20,7 +20,7 @@ const prefixs = function () {
 };
 
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'lang.help', () => getT({ locale: 'zh-tw' })('lang.help'));
+    return resolveHelp(params, 'lang.help');
 };
 
 const initialize = function () {

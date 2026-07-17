@@ -17,34 +17,59 @@ function getLocale(params = {}) {
     return params.locale || i18n.DEFAULT_LOCALE;
 }
 
+function isDefaultLocale(params = {}) {
+    return getLocale(params) === i18n.DEFAULT_LOCALE;
+}
+
+/** @deprecated Prefer isDefaultLocale / getLocale; kept for English-specific content branches */
 function isEnglish(params = {}) {
     return getLocale(params) === 'en';
 }
 
-function resolveHelp(params, key, zhFallback) {
-    if (isEnglish(params)) {
-        const text = getT(params)(key);
+/**
+ * Resolve help text for the request locale.
+ * Non-default locales try their own translation first; missing keys fall back to DEFAULT_LOCALE.
+ *
+ * @param {object} params
+ * @param {string} key
+ * @param {Function|string|object} [fallbackOrOptions] - legacy fallback, or i18n t() options object
+ */
+function resolveHelp(params, key, fallbackOrOptions) {
+    const isOptionsObject = fallbackOrOptions
+        && typeof fallbackOrOptions === 'object'
+        && typeof fallbackOrOptions !== 'function';
+    const tOptions = isOptionsObject ? fallbackOrOptions : undefined;
+    const legacyFallback = isOptionsObject ? undefined : fallbackOrOptions;
+
+    if (!isDefaultLocale(params)) {
+        const text = getT(params)(key, tOptions);
         if (text && text !== key) {
             return text;
         }
     }
-    return typeof zhFallback === 'function' ? zhFallback() : zhFallback;
+    if (typeof legacyFallback === 'function') {
+        return legacyFallback();
+    }
+    if (legacyFallback !== undefined) {
+        return legacyFallback;
+    }
+    return getT({ locale: i18n.DEFAULT_LOCALE })(key, tOptions);
 }
 
 function withPartialTranslationNotice(text, params = {}) {
-    if (!isEnglish(params)) {
+    if (isDefaultLocale(params)) {
         return text;
     }
     const banner = getT(params)('common.errors.partial_translation_banner');
     return `${banner}\n${text}`;
 }
 
-function resolveGameName(params, key, zhFallback) {
+function resolveGameName(params, key, fallback) {
     try {
         const text = getT(params)(key);
-        return text && text !== key ? text : zhFallback;
+        return text && text !== key ? text : fallback;
     } catch {
-        return zhFallback;
+        return fallback;
     }
 }
 
@@ -52,6 +77,7 @@ module.exports = {
     getT,
     getInteractionT,
     getLocale,
+    isDefaultLocale,
     isEnglish,
     resolveHelp,
     resolveGameName,

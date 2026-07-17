@@ -35,7 +35,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'token.help', () => getT({ locale: 'zh-tw' })('token.help'));
+    return resolveHelp(params, 'token.help');
 }
 
 function failWithHelp(translate, params = {}) {

@@ -170,7 +170,7 @@ const prefixs = () => [{
  * @returns {Promise<string>} 幫助信息
  */
 const getHelpMessage = async (params = {}) => {
-    return resolveHelp(params, 'trpgdb.help', () => getT({ locale: 'zh-tw' })('trpgdb.help'));
+    return resolveHelp(params, 'trpgdb.help');
 };
 
 /**

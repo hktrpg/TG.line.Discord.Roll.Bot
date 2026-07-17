@@ -49,7 +49,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'digmon.help', () => getT({ locale: 'zh-tw' })('digmon.help'));
+    return resolveHelp(params, 'digmon.help');
 }
 
 const initialize = function () {

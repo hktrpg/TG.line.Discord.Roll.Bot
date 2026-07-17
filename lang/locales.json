@@ -1,0 +1,19 @@
+{
+  "zh-tw": {
+    "name": "正體中文",
+    "i18next": "zh-TW",
+    "discord": "zh-TW",
+    "intl": "zh-Hant-HK",
+    "aliases": ["zh-hant", "zh_hant"],
+    "prefixes": ["zh-tw"],
+    "default": true
+  },
+  "en": {
+    "name": "English",
+    "i18next": "en",
+    "discord": "en-US",
+    "intl": "en-US",
+    "aliases": ["en-us", "en-gb"],
+    "prefixes": ["en"]
+  }
+}

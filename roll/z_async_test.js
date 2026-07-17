@@ -32,7 +32,7 @@ const prefixs = function () {
 }
 
 const getHelpMessage = async function (params = {}) {
-    return resolveHelp(params, 'wikitools.help', () => getT({ locale: 'zh-tw' })('wikitools.help'));
+    return resolveHelp(params, 'wikitools.help');
 }
 const initialize = function () {
 	return variables;

@@ -37,7 +37,7 @@ const prefixs = function () {
 	]
 }
 const getHelpMessage = function (params = {}) {
-	return resolveHelp(params, 'advroll.help', () => getT({ locale: 'zh-tw' })('advroll.help'));
+	return resolveHelp(params, 'advroll.help');
 }
 
 const initialize = function () {
@@ -62,7 +62,7 @@ const rollDiceCommand = async function ({
 		matchxuy = {}
 	switch (true) {
 		case /^[.][c][a]$/i.test(mainMsg[0]) && (/^help$/i.test(mainMsg[1]) || !mainMsg[1]):
-			rply.text = resolveHelp(i18nParams, 'advroll.help', () => getT({ locale: 'zh-tw' })('advroll.help'));
+			rply.text = resolveHelp(i18nParams, 'advroll.help');
 			rply.quotes = true;
 			return rply;
 		case /^[.][c][a]$/i.test(mainMsg[0]):

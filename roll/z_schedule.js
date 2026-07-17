@@ -31,7 +31,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'schedule.help', () => getT({ locale: 'zh-tw' })('schedule.help'));
+    return resolveHelp(params, 'schedule.help');
 }
 
 function buildCronScheduleText(checkTime, translate) {

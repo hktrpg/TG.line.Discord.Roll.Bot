@@ -34,7 +34,7 @@ const prefixs = () => [{
 }];
 
 const getHelpMessage = async function (params = {}) {
-    return resolveHelp(params, 'cmd.help', () => getT({ locale: 'zh-tw' })('cmd.help'));
+    return resolveHelp(params, 'cmd.help');
 }
 const initialize = () => trpgCommandData;
 

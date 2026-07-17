@@ -2,7 +2,7 @@
 if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const { resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 const gameName = function (params = {}) {
@@ -19,7 +19,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'request_rolling.help', () => getT({ locale: 'zh-tw' })('request_rolling.help'));
+    return resolveHelp(params, 'request_rolling.help');
 }
 const initialize = function () {
     return variables;

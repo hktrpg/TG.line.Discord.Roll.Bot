@@ -22,7 +22,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'pf2e.help', () => getT({ locale: 'zh-tw' })('pf2e.help'));
+    return resolveHelp(params, 'pf2e.help');
 }
 const initialize = function () {
     return variables;

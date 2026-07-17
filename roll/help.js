@@ -1,7 +1,7 @@
 "use strict";
 const fs = require('node:fs');
 const axios = require('axios');
-const { resolveHelp, withPartialTranslationNotice, resolveGameName } = require('../modules/roll-i18n.js');
+const { resolveHelp, withPartialTranslationNotice, resolveGameName, getT, isEnglish } = require('../modules/roll-i18n.js');
 const { SlashCommandBuilder } = require('discord.js');
 const Dice = [],
 	Tool = [],
@@ -67,7 +67,7 @@ const prefixs = function () {
 
 }
 const getHelpMessage = async function (params = {}) {
-	return resolveHelp(params, 'help.base', () => require('../modules/i18n.js').createTranslator('zh-tw')('help.base'));
+	return resolveHelp(params, 'help.base');
 }
 const initialize = function () {
 	return variables;
@@ -85,15 +85,15 @@ const rollDiceCommand = async function ({
 		text: '',
 		quotes: true
 	};
-	const translate = t || require('../modules/i18n.js').createTranslator(locale || 'zh-tw');
+	const translate = getT({ locale, t });
 	const i18nParams = { locale, t };
-	const isEnglish = (locale || 'zh-tw') === 'en';
+	const english = isEnglish({ locale, t });
 	//let result = {};
 	switch (true) {
 		case !mainMsg[1]: {
 			const ver = await version.version();
 			const menuText = translate('help.main_menu_full', { version: ver });
-			if (isEnglish) {
+			if (english) {
 				const banner = translate('common.errors.partial_translation_banner');
 				rply.text = `${banner}\n${menuText}`;
 			} else {

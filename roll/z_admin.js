@@ -52,7 +52,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'admin.help', () => getT({ locale: 'zh-tw' })('admin.help'));
+    return resolveHelp(params, 'admin.help');
 }
 const discordCommand = [
     {
@@ -1430,7 +1430,7 @@ function generatePatreonKey() {
     return parts.join('-');
 }
 
-async function store(mainMsg, mode, translate = getT({ locale: 'zh-tw' })) {
+async function store(mainMsg, mode, translate = getT()) {
     const resultId = pattId.exec(mainMsg);
     const resultGP = pattGP.exec(mainMsg);
     const resultLv = pattLv.exec(mainMsg);

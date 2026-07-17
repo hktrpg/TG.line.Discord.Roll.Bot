@@ -20,7 +20,7 @@ const { takeSound } = require('@lunisolar/plugin-takesound');
 const { theGods } = require('@lunisolar/plugin-thegods');
 const rollbase = require('./rollbase.js');
 const wheelAnimator = require('./wheel-animator.js');
-const { getT, resolveHelp, getLocale, resolveGameName } = require('../modules/roll-i18n.js');
+const { getT, resolveHelp, resolveGameName, isEnglish } = require('../modules/roll-i18n.js');
 lunisolar.extend(fetalGod);
 lunisolar.extend(takeSound);
 lunisolar.extend(theGods);
@@ -303,11 +303,11 @@ const prefixs = function () {
 
 
 const getHelpMessage = async function (params = {}) {
-	return resolveHelp(params, 'funny.help', () => getT({ locale: 'zh-tw' })('funny.help'));
+	return resolveHelp(params, 'funny.help');
 }
 
 function wrapZhOnlyContent(text, params = {}) {
-	if (getLocale(params) !== 'en') {
+	if (!isEnglish(params)) {
 		return text;
 	}
 	return `${getT(params)('common.zh_only_notice')}\n${text}`;
@@ -575,7 +575,7 @@ function pickFunnyRandomContent(instance, translate, keyPrefix, params = {}) {
 		const text = t(key);
 		const translated = Boolean(text && text !== key && text !== fallback);
 		const result = translated ? text : fallback;
-		if (getLocale(params) === 'en' && !translated) {
+		if (isEnglish(params) && !translated) {
 			return `${t('common.zh_only_notice')}\n${result}`;
 		}
 		return result;
@@ -705,7 +705,7 @@ class TwelveAstro {
 	static formatAlmanacOutput(almanac, translate, params = {}) {
 		const t = translate || getT({});
 		let content = almanac.content;
-		if (getLocale(params) === 'en') {
+		if (isEnglish(params)) {
 			content = TwelveAstro.localizeAlmanacContent(content, t);
 		}
 		return `${t('funny.almanac_title', { date: almanac.date })}\n${content}\n\t`;
@@ -1837,7 +1837,7 @@ function dailyAnswerChoice(input, translate, params = {}) {
 	const t = translate || getT({});
 	const { answer, translated } = pickDailyAnswer(t, dailyAnswer);
 	const line = t('funny.daily_answer_line', { input, answer });
-	if (getLocale(params) === 'en' && !translated) {
+	if (isEnglish(params) && !translated) {
 		return `${t('common.zh_only_notice')}\n${line}`;
 	}
 	return line;

@@ -551,7 +551,7 @@ async function computeStateText(locale = i18n.DEFAULT_LOCALE) {
 	const formatPrettyTimestamp = (input) => {
 		const d = parseToDate(input);
 		if (!d) return '—';
-		const intlLocale = locale === 'en' ? 'en-HK' : 'zh-Hant-HK';
+		const intlLocale = i18n.toIntlLocale(locale);
 		return new Intl.DateTimeFormat(intlLocale, {
 			timeZone: 'Asia/Hong_Kong',
 			year: 'numeric',

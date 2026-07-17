@@ -27,7 +27,7 @@ const prefixs = function () {
 }
 
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'forward.help', () => getT({ locale: 'zh-tw' })('forward.help'));
+    return resolveHelp(params, 'forward.help');
 }
 
 function buildForwardList(forwardedMessages, translate, mode) {

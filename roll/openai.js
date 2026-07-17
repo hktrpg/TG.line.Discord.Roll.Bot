@@ -521,7 +521,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'openai.help', () => getT({ locale: 'zh-tw' })('openai.help'));
+    return resolveHelp(params, 'openai.help');
 }
 const initialize = function () {
     return variables;

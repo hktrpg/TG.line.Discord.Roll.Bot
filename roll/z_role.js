@@ -28,7 +28,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'role.help', () => getT({ locale: 'zh-tw' })('role.help'));
+    return resolveHelp(params, 'role.help');
 }
 const initialize = function () {
     return "";

@@ -4,7 +4,7 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 }
 const { SlashCommandBuilder } = require('discord.js');
 const checkTools = require('../modules/check.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const { resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 const variables = {};
 const gameName = function (params = {}) {
     return resolveGameName(params, 'edit.game_name', '【舊信息修改功能】Discord限定');
@@ -20,7 +20,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'edit.help', () => getT({ locale: 'zh-tw' })('edit.help'));
+    return resolveHelp(params, 'edit.help');
 }
 const initialize = function () {
     return variables;

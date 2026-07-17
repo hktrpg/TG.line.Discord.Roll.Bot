@@ -60,7 +60,7 @@ const prefixs = function () {
     }];
 };
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'code.help', () => getT({ locale: 'zh-tw' })('code.help'));
+    return resolveHelp(params, 'code.help');
 };
 const initialize = function () {
     return variables;

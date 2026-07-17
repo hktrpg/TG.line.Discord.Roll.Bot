@@ -33,7 +33,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'pokemon.help', () => getT({ locale: 'zh-tw' })('pokemon.help'));
+    return resolveHelp(params, 'pokemon.help');
 }
 
 const initialize = function () {

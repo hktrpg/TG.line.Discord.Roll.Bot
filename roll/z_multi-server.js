@@ -28,7 +28,7 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'chatroom.help', () => getT({ locale: 'zh-tw' })('chatroom.help'));
+    return resolveHelp(params, 'chatroom.help');
 }
 const initialize = function () {
     return variables;

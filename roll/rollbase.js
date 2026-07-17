@@ -9,7 +9,7 @@ const random = new Random(nodeCrypto);
 const { SlashCommandBuilder } = require('discord.js');
 const { MessageFlags } = require('discord.js');
 const i18n = require('../modules/i18n.js');
-const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const { getInteractionT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 
 // 常數定義區塊
 const DICE_LIMITS = {
@@ -198,9 +198,9 @@ const prefixs = function () {
 
 ///^(?=.*he)(?!.*da).*$/ig
 const getHelpMessage = function (params = {}) {
-  return resolveHelp(params, 'rollbase.help', () => getT({ locale: 'zh-tw' })('rollbase.help', {
+  return resolveHelp(params, 'rollbase.help', {
     max_roll_times: DICE_LIMITS.MAX_ROLL_TIMES
-  }));
+  });
 }
 
 /**

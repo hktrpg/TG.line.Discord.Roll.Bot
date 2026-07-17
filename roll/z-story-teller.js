@@ -41,7 +41,7 @@ const prefixs = function () {
 }
 
 const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'storyteller.help', () => getT({ locale: 'zh-tw' })('storyteller.help'));
+    return resolveHelp(params, 'storyteller.help');
 }
 
 const initialize = function () {
@@ -270,7 +270,7 @@ async function loadStoryByAlias(ownerID, alias) {
     return { storyDoc: null, story: null };
 }
 
-function canStartStory(storyDoc, { userid, groupid, t = getT({ locale: 'zh-tw' }) }) {
+function canStartStory(storyDoc, { userid, groupid, t = getT() }) {
     if (!storyDoc || !storyDoc.startPermission) return { ok: true };
     const perm = String(storyDoc.startPermission).toUpperCase();
     if (perm === 'ANYONE') return { ok: true };
@@ -1031,7 +1031,7 @@ function buildButtonsForPage(story, run) {
 }
 
 // Build poll payload for Discord reaction-based voting
-function buildPollPayloadForPage(story, run, translate = getT({ locale: 'zh-tw' })) {
+function buildPollPayloadForPage(story, run, translate = getT()) {
     const allowedChoices = getAllowedChoicesForCurrentPage(story, run);
     if (!allowedChoices || allowedChoices.length === 0) return null;
     const options = allowedChoices.map((c, i) => ({
@@ -1043,7 +1043,7 @@ function buildPollPayloadForPage(story, run, translate = getT({ locale: 'zh-tw' 
     return { options, minutes };
 }
 
-function attachChoicesOutput({ rply, story, run, botname, translate = getT({ locale: 'zh-tw' }) }) {
+function attachChoicesOutput({ rply, story, run, botname, translate = getT() }) {
     if (!rply || !story || !run) return;
     const isDiscord = String(botname || '').toLowerCase() === 'discord';
     const policy = String(run.participantPolicy || 'ANYONE').toUpperCase();
@@ -1167,7 +1167,7 @@ function estimateJsonErrorLine(text, error) {
     return null;
 }
 
-function validateRunDesignLines(rawText, t = getT({ locale: 'zh-tw' })) {
+function validateRunDesignLines(rawText, t = getT()) {
     const lines = String(rawText || '').split(/\r?\n/);
     const patterns = [
         /^\s*$/,
@@ -1196,7 +1196,7 @@ function validateRunDesignLines(rawText, t = getT({ locale: 'zh-tw' })) {
     return { ok: true };
 }
 
-function validateCompiledStory(story, t = getT({ locale: 'zh-tw' })) {
+function validateCompiledStory(story, t = getT()) {
     if (!story || typeof story !== 'object') return { ok: false, message: t('storyteller.validate_bad_structure') };
     const pageCount = story && story.pages ? Object.keys(story.pages).length : 0;
     if (pageCount > MAX_PAGES) {

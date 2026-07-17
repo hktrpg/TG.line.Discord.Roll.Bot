@@ -9,7 +9,7 @@ const checkMongodb = require('../modules/dbWatchdog.js');
 const checkTools = require('../modules/check.js');
 const tempSwitchV2 = require('../modules/level');
 const schema = require('../modules/schema.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const { getT, resolveHelp, resolveGameName, DEFAULT_LOCALE } = require('../modules/roll-i18n.js');
 
 const gameName = function (params = {}) {
     return resolveGameName(params, 'level.game_name', '【經驗值功能】 .level (show config LevelUpWord RankWord)');
@@ -24,12 +24,12 @@ const prefixs = function () {
     }]
 }
 const getHelpMessage = async function (params = {}) {
-    return resolveHelp(params, 'level.help', () => getT({ locale: 'zh-tw' })('level.help'));
+    return resolveHelp(params, 'level.help');
 }
 const initialize = function () {
     return;
 }
-const checkTitle = async function (userlvl, DBTitle, locale = 'zh-tw') {
+const checkTitle = async function (userlvl, DBTitle, locale = DEFAULT_LOCALE) {
     let templvl = 0;
     let temptitle = ""
     if (DBTitle && DBTitle.length > 0) {
@@ -85,7 +85,7 @@ async function buildWordPreview(templateWord, { groupid, userid, membercount, tg
     return preview;
 }
 
-const Title = function (locale = 'zh-tw') {
+const Title = function (locale = DEFAULT_LOCALE) {
     const t = getT({ locale });
     const titles = t('level.default_titles', { returnObjects: true });
     let TitleArr = [];

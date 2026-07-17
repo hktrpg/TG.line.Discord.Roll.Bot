@@ -54,7 +54,7 @@ async function handleLangCommand(params) {
     }
 
     if (action === 'list') {
-        rply.text = `${t('lang.list_header')}\n${i18n.SUPPORTED_LOCALES.join(', ')}`;
+        rply.text = `${t('lang.list_header')}\n${i18n.formatLocaleList()}`;
         return rply;
     }
 
@@ -63,9 +63,9 @@ async function handleLangCommand(params) {
         return rply;
     }
 
-    const targetLocale = i18n.normalizeLocale(action);
-    if (!i18n.SUPPORTED_LOCALES.includes(targetLocale)) {
-        rply.text = t('lang.unsupported', { locales: i18n.SUPPORTED_LOCALES.join(', ') });
+    const targetLocale = i18n.matchLocale(action);
+    if (!targetLocale) {
+        rply.text = t('lang.unsupported', { locales: i18n.formatLocaleList() });
         return rply;
     }
 
@@ -83,7 +83,7 @@ async function handleLangCommand(params) {
         if (result.reason === 'no_database') {
             rply.text = t('lang.no_database');
         } else if (result.reason === 'unsupported_locale') {
-            rply.text = t('lang.unsupported', { locales: i18n.SUPPORTED_LOCALES.join(', ') });
+            rply.text = t('lang.unsupported', { locales: i18n.formatLocaleList() });
         } else {
             rply.text = t('common.errors.command_error');
         }
@@ -125,8 +125,7 @@ const discordCommand = [
                     .addChoices(
                         { name: '顯示目前語言', value: 'show' },
                         { name: '列出支援語言', value: 'list' },
-                        { name: '設為繁體中文', value: 'zh-tw' },
-                        { name: 'Set English', value: 'en' }
+                        ...i18n.getSlashLocaleChoices()
                     )),
         async execute(interaction) {
             const action = interaction.options.getString('action') || 'show';

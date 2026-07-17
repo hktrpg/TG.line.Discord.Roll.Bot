@@ -10,20 +10,53 @@ const {
     parseOverlayNamespace
 } = require('./i18n-overlays.js');
 
-const DEFAULT_LOCALE = 'zh-tw';
-const SUPPORTED_LOCALES = ['zh-tw', 'en'];
-const I18NEXT_LOCALE_MAP = {
-    'zh-tw': 'zh-TW',
-    en: 'en'
+/**
+ * Single source of truth for bot locales.
+ * Add a language here once — aliases, Discord/i18next maps, and lists are derived.
+ *
+ * @type {Record<string, {
+ *   name: string,
+ *   i18next: string,
+ *   discord: string,
+ *   aliases?: string[],
+ *   prefixes?: string[],
+ *   default?: boolean
+ * }>}
+ */
+const LOCALE_DEFINITIONS = {
+    'zh-tw': {
+        name: '正體中文',
+        i18next: 'zh-TW',
+        discord: 'zh-TW',
+        aliases: ['zh-hant', 'zh_hant'],
+        prefixes: ['zh-tw'],
+        default: true
+    },
+    en: {
+        name: 'English',
+        i18next: 'en',
+        discord: 'en-US',
+        aliases: ['en-us', 'en-gb'],
+        prefixes: ['en']
+    }
 };
+
+const SUPPORTED_LOCALES = Object.keys(LOCALE_DEFINITIONS);
+const DEFAULT_LOCALE = SUPPORTED_LOCALES.find((code) => LOCALE_DEFINITIONS[code].default) || SUPPORTED_LOCALES[0];
+const I18NEXT_LOCALE_MAP = Object.fromEntries(
+    SUPPORTED_LOCALES.map((code) => [code, LOCALE_DEFINITIONS[code].i18next])
+);
+const DISCORD_LOCALE_MAP = Object.fromEntries(
+    SUPPORTED_LOCALES.map((code) => [code, LOCALE_DEFINITIONS[code].discord])
+);
+const I18NEXT_TO_LOCALE = Object.fromEntries(
+    SUPPORTED_LOCALES.map((code) => [LOCALE_DEFINITIONS[code].i18next, code])
+);
+const I18NEXT_LNGS = SUPPORTED_LOCALES.map((code) => LOCALE_DEFINITIONS[code].i18next);
+
 const LANG_DIR = path.join(__dirname, '..', 'lang');
 const CACHE_TTL_SECONDS = 300;
 const CACHE_MAX_KEYS = 100_000;
-
-const DISCORD_LOCALE_MAP = {
-    'zh-tw': 'zh-TW',
-    en: 'en-US'
-};
 
 let initialized = false;
 let initPromise = null;
@@ -34,18 +67,65 @@ const localeCache = new NodeCache({
     useClones: false
 });
 
-function normalizeLocale(input) {
+/**
+ * Match input to a supported locale code, or null if unsupported.
+ * Exact code / aliases win over prefix matches.
+ */
+function matchLocale(input) {
     if (!input || typeof input !== 'string') {
-        return DEFAULT_LOCALE;
+        return null;
     }
     const value = input.trim().toLowerCase();
-    if (value === 'zh-tw' || value === 'zh-hant' || value === 'zh_hant' || value.startsWith('zh-tw')) {
-        return 'zh-tw';
+    if (!value) {
+        return null;
     }
-    if (value === 'en' || value === 'en-us' || value === 'en-gb' || value.startsWith('en')) {
-        return 'en';
+    if (LOCALE_DEFINITIONS[value]) {
+        return value;
     }
-    return SUPPORTED_LOCALES.includes(value) ? value : DEFAULT_LOCALE;
+    for (const code of SUPPORTED_LOCALES) {
+        const def = LOCALE_DEFINITIONS[code];
+        if ((def.aliases || []).includes(value)) {
+            return code;
+        }
+    }
+    // Longer prefixes first so en-au beats en if both exist later
+    const prefixHits = [];
+    for (const code of SUPPORTED_LOCALES) {
+        for (const prefix of LOCALE_DEFINITIONS[code].prefixes || []) {
+            if (value === prefix || value.startsWith(prefix)) {
+                prefixHits.push({ code, length: prefix.length });
+            }
+        }
+    }
+    if (prefixHits.length > 0) {
+        prefixHits.sort((a, b) => b.length - a.length);
+        return prefixHits[0].code;
+    }
+    return null;
+}
+
+function normalizeLocale(input) {
+    return matchLocale(input) || DEFAULT_LOCALE;
+}
+
+function getLocaleName(locale) {
+    const code = normalizeLocale(locale);
+    return LOCALE_DEFINITIONS[code]?.name || code;
+}
+
+/** e.g. "zh-tw 正體中文\nen English" */
+function formatLocaleList() {
+    return SUPPORTED_LOCALES
+        .map((code) => `${code} ${LOCALE_DEFINITIONS[code].name}`)
+        .join('\n');
+}
+
+/** Discord slash choices for setting locale */
+function getSlashLocaleChoices() {
+    return SUPPORTED_LOCALES.map((code) => ({
+        name: `${LOCALE_DEFINITIONS[code].name} (${code})`,
+        value: code
+    }));
 }
 
 function toDiscordLocale(locale) {
@@ -56,6 +136,10 @@ function toDiscordLocale(locale) {
 function toI18nextLng(locale) {
     const normalized = normalizeLocale(locale);
     return I18NEXT_LOCALE_MAP[normalized] || I18NEXT_LOCALE_MAP[DEFAULT_LOCALE];
+}
+
+function fromI18nextLng(lng) {
+    return I18NEXT_TO_LOCALE[lng] || DEFAULT_LOCALE;
 }
 
 function toLocaleFileName(locale) {
@@ -107,13 +191,13 @@ async function init() {
     initPromise = i18next
         .use(Backend)
         .init({
-            fallbackLng: 'zh-TW',
-            supportedLngs: ['zh-TW', 'en'],
-            preload: ['zh-TW', 'en'],
+            fallbackLng: toI18nextLng(DEFAULT_LOCALE),
+            supportedLngs: I18NEXT_LNGS,
+            preload: I18NEXT_LNGS,
             ns: ['translation'],
             defaultNS: 'translation',
             backend: {
-                loadPath: (lng) => path.join(LANG_DIR, toLocaleFileName(lng === 'zh-TW' ? 'zh-tw' : lng))
+                loadPath: (lng) => path.join(LANG_DIR, toLocaleFileName(fromI18nextLng(lng)))
             },
             interpolation: {
                 escapeValue: false
@@ -186,8 +270,8 @@ async function setLocale({ scope, scopeId, locale }) {
         return { ok: false, reason: 'no_database' };
     }
 
-    const normalized = normalizeLocale(locale);
-    if (!SUPPORTED_LOCALES.includes(normalized)) {
+    const normalized = matchLocale(locale);
+    if (!normalized) {
         return { ok: false, reason: 'unsupported_locale' };
     }
 
@@ -252,7 +336,7 @@ function enrichSlashCommandLocalizations(commandData) {
         return commandData;
     }
 
-    const slashConfig = i18next.getResource('zh-TW', 'translation', `slash.${commandData.name}`);
+    const slashConfig = i18next.getResource(toI18nextLng(DEFAULT_LOCALE), 'translation', `slash.${commandData.name}`);
     if (!slashConfig || typeof slashConfig !== 'object') {
         return commandData;
     }
@@ -278,7 +362,7 @@ function enrichSlashCommandLocalizations(commandData) {
 }
 
 function enrichOptionLocalizations(commandName, option) {
-    const optionConfig = i18next.getResource('zh-TW', 'translation', `slash.${commandName}.options.${option.name}`);
+    const optionConfig = i18next.getResource(toI18nextLng(DEFAULT_LOCALE), 'translation', `slash.${commandName}.options.${option.name}`);
     if (!optionConfig) {
         return;
     }
@@ -332,9 +416,14 @@ function getGlossaryTerm(termKey, locale = DEFAULT_LOCALE) {
 }
 
 module.exports = {
+    LOCALE_DEFINITIONS,
     DEFAULT_LOCALE,
     SUPPORTED_LOCALES,
+    matchLocale,
     normalizeLocale,
+    getLocaleName,
+    formatLocaleList,
+    getSlashLocaleChoices,
     toDiscordLocale,
     createTranslator,
     t,

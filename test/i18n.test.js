@@ -32,6 +32,25 @@ describe('i18n module', () => {
         });
     });
 
+    describe('matchLocale', () => {
+        test('returns null for unsupported locales', () => {
+            expect(i18n.matchLocale('ja')).toBeNull();
+            expect(i18n.matchLocale('')).toBeNull();
+            expect(i18n.matchLocale()).toBeNull();
+        });
+
+        test('matches aliases and codes', () => {
+            expect(i18n.matchLocale('zh-hant')).toBe('zh-tw');
+            expect(i18n.matchLocale('en-US')).toBe('en');
+        });
+    });
+
+    describe('formatLocaleList', () => {
+        test('lists code and display name once per locale', () => {
+            expect(i18n.formatLocaleList()).toBe('zh-tw 正體中文\nen English');
+        });
+    });
+
     describe('createTranslator', () => {
         test('returns zh-tw strings by default', () => {
             const t = i18n.createTranslator('zh-tw');

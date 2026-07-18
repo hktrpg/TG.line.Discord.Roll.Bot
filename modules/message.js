@@ -2,7 +2,6 @@
 if (!process.env.mongoURL) return;
 
 const fs = require('node:fs');
-const path = require('node:path');
 const crypto = require('node:crypto');
 const schema = require('./schema.js');
 const i18n = require('./i18n.js');
@@ -67,13 +66,32 @@ function joinMessages(messages) {
     return messages.join("\n");
 }
 
-function getWelcomeLines(type) {
+/**
+ * @param {string|{locale?: string, groupid?: string, userid?: string, channelType?: *, botname?: string}} options
+ */
+async function resolveWelcomeLocale(options = {}) {
+    if (typeof options === 'string') {
+        return i18n.normalizeLocale(options);
+    }
+    if (options.locale) {
+        return i18n.normalizeLocale(options.locale);
+    }
+    await i18n.init();
+    return i18n.resolveLocale({
+        groupid: options.groupid,
+        userid: options.userid,
+        channelType: options.channelType,
+        botname: options.botname
+    });
+}
+
+async function getWelcomeLines(type, locale) {
     try {
-        const langPath = path.join(__dirname, '..', 'lang', `${i18n.DEFAULT_LOCALE}.json`);
-        const langData = JSON.parse(fs.readFileSync(langPath, 'utf8'));
-        const bodyKey = type === 'join' ? 'join_message' : 'first_time_message';
-        const body = langData?.welcome?.[bodyKey];
-        const guide = langData?.welcome?.i18n_guide;
+        await i18n.init();
+        const t = i18n.createTranslator(locale);
+        const bodyKey = type === 'join' ? 'welcome.join_message' : 'welcome.first_time_message';
+        const body = t(bodyKey, { returnObjects: true });
+        const guide = t('welcome.i18n_guide', { returnObjects: true });
         if (Array.isArray(body) && body.length > 0) {
             return [...body, ...(Array.isArray(guide) ? guide : [])];
         }
@@ -85,16 +103,17 @@ function getWelcomeLines(type) {
     return Array.isArray(fallback) ? [...fallback] : [];
 }
 
-function buildWelcomeMessage(type) {
-    return joinMessages(getWelcomeLines(type));
+async function buildWelcomeMessage(type, options = {}) {
+    const locale = await resolveWelcomeLocale(options);
+    return joinMessages(await getWelcomeLines(type, locale));
 }
 
-function joinMessage() {
-    return buildWelcomeMessage('join');
+async function joinMessage(options = {}) {
+    return buildWelcomeMessage('join', options);
 }
 
-function firstTimeMessage() {
-    return buildWelcomeMessage('first_time');
+async function firstTimeMessage(options = {}) {
+    return buildWelcomeMessage('first_time', options);
 }
 
 async function newUserChecker(userid, botname) {
@@ -132,11 +151,11 @@ async function newUserChecker(userid, botname) {
     }
 }
 
-async function maybeSendFirstTimeWelcome(userid, botname = 'Discord') {
+async function maybeSendFirstTimeWelcome(userid, botname = 'Discord', options = {}) {
     if (!userid || !process.env.mongoURL) return false;
     const isNew = await newUserChecker(userid, botname);
     if (!isNew) return false;
-    return firstTimeMessage();
+    return firstTimeMessage({ userid, botname, ...options });
 }
 
 module.exports = {

@@ -45,11 +45,14 @@ describe('lang key parity', () => {
         });
     });
 
-    test('i18n_guide bilingual block exists in both locales', () => {
+    test('i18n_guide exists in both locales with language instructions', () => {
         expect(Array.isArray(zhTw.welcome.i18n_guide)).toBe(true);
         expect(Array.isArray(en.welcome.i18n_guide)).toBe(true);
         expect(zhTw.welcome.i18n_guide.length).toBeGreaterThan(0);
-        expect(en.welcome.i18n_guide).toEqual(zhTw.welcome.i18n_guide);
+        expect(en.welcome.i18n_guide.length).toBeGreaterThan(0);
+        expect(zhTw.welcome.i18n_guide.join('\n')).toMatch(/\.lang en/);
+        expect(en.welcome.i18n_guide.join('\n')).toMatch(/\.lang en/);
+        expect(en.welcome.join_message[0]).toMatch(/Thanks for adding/i);
     });
 
     test('glossary has terms for supported locales', () => {

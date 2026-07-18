@@ -314,8 +314,10 @@ async function startUp() {
 
 		client.on('group_join', async (msg) => {
 			console.log("[Whatsapp] Whatsapp joined");
-			if (msg.client.info.me._serialized == msg.id.participant)
-				msg.reply(newMessage.joinMessage());
+			if (msg.client.info.me._serialized == msg.id.participant) {
+				const groupid = msg.from || msg.chatId || '';
+				msg.reply(await newMessage.joinMessage({ groupid, botname: 'Whatsapp' }));
+			}
 		});
 
 		setupAgenda(client);
@@ -426,6 +428,8 @@ async function processMessage(msg, groupInfo, client) {
 	if (trigger == ".me" || trigger == ".mee") {
 		displaynamecheck = false;
 	}
+	const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Whatsapp' });
+	const t = i18n.createTranslator(locale);
 	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 		mainMsg.shift();
 		rplyVal = await exports.analytics.parseInput({
@@ -436,7 +440,9 @@ async function processMessage(msg, groupInfo, client) {
 			botname: "Whatsapp",
 			displayname: displayname,
 			channelid: channelid,
-			membercount: membercount
+			membercount: membercount,
+			locale,
+			t
 		})
 	} else {
 		if (channelKeyword == '') {
@@ -448,7 +454,9 @@ async function processMessage(msg, groupInfo, client) {
 				botname: "Whatsapp",
 				displayname: displayname,
 				channelid: channelid,
-				membercount: membercount
+				membercount: membercount,
+				locale,
+				t
 			})
 		}
 	}
@@ -478,13 +486,14 @@ async function processMessage(msg, groupInfo, client) {
 			TargetGMTempdisplayname.push(item.displayname);
 		}
 	}
-	return { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid, displaynamecheck };
+	return { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid, displaynamecheck, t };
 }
 
 async function handleReply(result, msg, client) {
-	const { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid, displaynamecheck } = result;
-	const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Whatsapp' });
-	const t = i18n.createTranslator(locale);
+	const { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid, displaynamecheck, t: translate } = result;
+	const t = translate || i18n.createTranslator(
+		await i18n.resolveLocale({ groupid, userid, botname: 'Whatsapp' })
+	);
 	switch (true) {
 		case privatemsg == 1: {
 			if (groupid) {

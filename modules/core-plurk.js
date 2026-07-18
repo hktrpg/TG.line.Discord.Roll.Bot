@@ -133,6 +133,8 @@ Plurk_Client.on('new_plurk', async response => {
 
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+    const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Plurk' });
+    const t = i18n.createTranslator(locale);
     let rplyVal = await exports.analytics.parseInput({
         inputStr: message.replace(/^\s*@hktrpg\s+/i, ''),
         groupid: groupid,
@@ -141,6 +143,8 @@ Plurk_Client.on('new_plurk', async response => {
         botname: "Plurk",
         displayname: displayname,
         channelid: channelid,
+        locale,
+        t
     });
     if (!rplyVal.text && !rplyVal.LevelUp) {
         return;
@@ -188,6 +192,8 @@ Plurk_Client.on('new_response', async response => {
 
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+    const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Plurk' });
+    const t = i18n.createTranslator(locale);
     let rplyVal = await exports.analytics.parseInput({
         inputStr: inputStr,
         groupid: groupid,
@@ -196,6 +202,8 @@ Plurk_Client.on('new_response', async response => {
         botname: "Plurk",
         displayname: displayname,
         channelid: channelid,
+        locale,
+        t
     });
     if (!rplyVal.text && !rplyVal.LevelUp) {
         return;

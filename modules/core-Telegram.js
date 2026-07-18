@@ -104,6 +104,8 @@ TGclient.on('message:text', (ctx) => {
         if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
             (await isAdmin(groupid, userid)) ? userrole = 3 : null;
         }
+        const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Telegram' });
+        const t = i18n.createTranslator(locale);
         let rplyVal = {};
 
         // After message arrives, automatically jump to analytics.js for dice group analysis
@@ -120,7 +122,9 @@ TGclient.on('message:text', (ctx) => {
                 channelid: "",
                 membercount: membercount,
                 titleName: titleName,
-                tgDisplayname: tgDisplayname
+                tgDisplayname: tgDisplayname,
+                locale,
+                t
             })
         } else {
             if (channelKeyword == '') {
@@ -134,7 +138,9 @@ TGclient.on('message:text', (ctx) => {
                     channelid: "",
                     membercount: membercount,
                     titleName: titleName,
-                    tgDisplayname: tgDisplayname
+                    tgDisplayname: tgDisplayname,
+                    locale,
+                    t
                 })
             }
         }
@@ -150,7 +156,12 @@ TGclient.on('message:text', (ctx) => {
             // Send welcome message in the same chat instead of trying to DM the user
             // Telegram bots cannot initiate conversations with users, so we send welcome in context
             try {
-                const welcomeMessage = newMessage.firstTimeMessage();
+                const welcomeMessage = await newMessage.firstTimeMessage({
+                    userid,
+                    groupid,
+                    botname: 'Telegram',
+                    locale
+                });
                 if (welcomeMessage) {
                     const welcomePayload = {
                         chat_id: groupid || ctx.chat.id,
@@ -203,8 +214,6 @@ TGclient.on('message:text', (ctx) => {
 
         switch (true) {
             case privatemsg == 1: {
-                const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Telegram' });
-                const t = i18n.createTranslator(locale);
                 if (ctx.chat.type != 'private') {
                     SendToId(groupid, t('platform.dark_roll.dr_self_with_name', { displayname }), options);
                 }
@@ -213,8 +222,6 @@ TGclient.on('message:text', (ctx) => {
                 break;
             }
             case privatemsg == 2: {
-                const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Telegram' });
-                const t = i18n.createTranslator(locale);
                 if (ctx.chat.type != 'private') {
                     let targetGMNameTemp = "";
                     for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -231,8 +238,6 @@ TGclient.on('message:text', (ctx) => {
                 break;
             }
             case privatemsg == 3: {
-                const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Telegram' });
-                const t = i18n.createTranslator(locale);
                 if (ctx.chat.type != 'private') {
                     let targetGMNameTemp = "";
                     for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -348,15 +353,18 @@ TGclient.on('message:new_chat_members', async (ctx) => {
     const botUsername = robotName || botInfo?.username;
     if (botUsername && ctx.message.new_chat_member.username == botUsername) {
         console.log("[Telegram] Telegram joined");
-        SendToId(ctx.chat.id, newMessage.joinMessage());
+        const groupid = ctx.chat?.id ? String(ctx.chat.id) : '';
+        SendToId(ctx.chat.id, await newMessage.joinMessage({ groupid, botname: 'Telegram' }));
     }
 });
 
 TGclient.on('message:group_chat_created', async (ctx) => {
-    SendToId(ctx.chat.id, newMessage.joinMessage());
+    const groupid = ctx.chat?.id ? String(ctx.chat.id) : '';
+    SendToId(ctx.chat.id, await newMessage.joinMessage({ groupid, botname: 'Telegram' }));
 });
 TGclient.on('message:supergroup_chat_created', async (ctx) => {
-    SendToId(ctx.chat.id, newMessage.joinMessage());
+    const groupid = ctx.chat?.id ? String(ctx.chat.id) : '';
+    SendToId(ctx.chat.id, await newMessage.joinMessage({ groupid, botname: 'Telegram' }));
 });
 
 

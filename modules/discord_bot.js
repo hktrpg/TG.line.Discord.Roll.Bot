@@ -823,13 +823,16 @@ client.on('guildCreate', async guild => {
 			return channel.type === ChannelType.GuildText && channel.permissionsFor(guild.members.me).has(PermissionsBitField.Flags.SendMessages)
 		});
 		if (!channel) return;
-		//	let channelSend = await guild.channels.fetch(channel.id);
+		const welcomeText = await newMessage.joinMessage({
+			groupid: guild.id,
+			botname: 'Discord'
+		});
 		const text = new EmbedBuilder()
 			.setColor('#0099ff')
 			//.setTitle(rplyVal.title)
 			//.setURL('https://discord.js.org/')
 			.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
-			.setDescription(newMessage.joinMessage())
+			.setDescription(welcomeText)
 		await channel.send({ embeds: [text] });
 	} catch (error) {
 		if (error.message === 'Missing Access') return;
@@ -3605,7 +3608,11 @@ async function handlingResponMessage(message, answer = '') {
 
 				const isNew = await newMessage.newUserChecker(userid, "Discord");
 				if (process.env.mongoURL && rplyVal.text && isNew) {
-					SendToId(userid, newMessage.firstTimeMessage(), true);
+					SendToId(userid, await newMessage.firstTimeMessage({
+						userid,
+						botname: 'Discord',
+						locale: message._hktrpgLocale
+					}), true);
 				}
 			} catch (error) {
 				console.error(`[Discord Bot] Error in message handling:`, (error && error.name && error.message));
@@ -4970,7 +4977,9 @@ async function __handlingInteractionMessage(message) {
 					const slashUserId = message.user?.id;
 					if (slashUserId && process.env.mongoURL) {
 						try {
-							const welcomeText = await newMessage.maybeSendFirstTimeWelcome(slashUserId, 'Discord');
+							const welcomeText = await newMessage.maybeSendFirstTimeWelcome(slashUserId, 'Discord', {
+								locale: message._hktrpgLocale
+							});
 							if (welcomeText) {
 								SendToId(slashUserId, welcomeText, true);
 							}

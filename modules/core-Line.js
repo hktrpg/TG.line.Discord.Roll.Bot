@@ -135,7 +135,10 @@ let handleEvent = async function (event) {
 		if (event.type == "join" && roomorgroupid) {
 			// 新加入群組時, 傳送MESSAGE
 			console.log("[Line] Line joined");
-			replyMessagebyReplyToken(event, newMessage.joinMessage());
+			replyMessagebyReplyToken(event, await newMessage.joinMessage({
+				groupid: roomorgroupid,
+				botname: 'Line'
+			}));
 		}
 		await nonDice(event);
 		return null;
@@ -166,6 +169,8 @@ let handleEvent = async function (event) {
 		}
 	}
 
+	const locale = await i18n.resolveLocale({ groupid: roomorgroupid, userid, botname: 'Line' });
+	const t = i18n.createTranslator(locale);
 	let rplyVal = {};
 	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 		//mainMsg.shift()
@@ -176,7 +181,9 @@ let handleEvent = async function (event) {
 			userrole: 3,
 			botname: "Line",
 			displayname: displayname,
-			titleName: titleName
+			titleName: titleName,
+			locale,
+			t
 		})
 	} else {
 		if (channelKeyword == '') {
@@ -187,7 +194,9 @@ let handleEvent = async function (event) {
 				userrole: 3,
 				botname: "Line",
 				displayname: displayname,
-				titleName: titleName
+				titleName: titleName,
+				locale,
+				t
 			});
 		}
 	}
@@ -200,7 +209,12 @@ let handleEvent = async function (event) {
 	if (!rplyVal.text && !rplyVal.LevelUp)
 		return;
 	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Line")) {
-		SendToId(userid, newMessage.firstTimeMessage());
+		SendToId(userid, await newMessage.firstTimeMessage({
+			userid,
+			groupid: roomorgroupid,
+			botname: 'Line',
+			locale
+		}));
 	}
 
 	if (roomorgroupid && rplyVal && rplyVal.LevelUp) {
@@ -225,8 +239,6 @@ let handleEvent = async function (event) {
 	switch (true) {
 		case privatemsg == 1: {
 			// 輸入dr  (指令) 私訊自己
-			const locale = await i18n.resolveLocale({ groupid: roomorgroupid, userid, botname: 'Line' });
-			const t = i18n.createTranslator(locale);
 			if (roomorgroupid && userid) {
 				replyMessagebyReplyToken(event, displayname
 					? t('platform.dark_roll.dr_self_with_name', { displayname })
@@ -241,8 +253,6 @@ let handleEvent = async function (event) {
 			break;
 		}
 		case privatemsg == 2: {
-			const locale = await i18n.resolveLocale({ groupid: roomorgroupid, userid, botname: 'Line' });
-			const t = i18n.createTranslator(locale);
 			//輸入ddr(指令) 私訊GM及自己
 			//房間訊息
 			if (roomorgroupid) {
@@ -269,8 +279,6 @@ let handleEvent = async function (event) {
 			break;
 		}
 		case privatemsg == 3: {
-			const locale = await i18n.resolveLocale({ groupid: roomorgroupid, userid, botname: 'Line' });
-			const t = i18n.createTranslator(locale);
 			//輸入dddr(指令) 私訊GM
 			//如在房中
 			if (roomorgroupid) {

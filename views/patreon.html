@@ -330,15 +330,24 @@
         }
         function patreonLocaleTag() {
             try {
-                const loc = (window.wwwI18n && window.wwwI18n.locale) || 'zh-tw';
-                return loc === 'en' ? 'en-HK' : 'zh-Hant';
+                const loc = (typeof getWwwLocale === 'function')
+                    ? getWwwLocale()
+                    : ((window.wwwI18n && window.wwwI18n.locale) || window.HKTRPG_LOCALES?.defaultLocale);
+                if (typeof wwwLocaleToHtmlLang === 'function') {
+                    return wwwLocaleToHtmlLang(loc);
+                }
+                return window.HKTRPG_LOCALES?.definitions?.[loc]?.intl || loc || 'zh-Hant-HK';
             } catch {
-                return 'zh-Hant';
+                return window.HKTRPG_LOCALES?.definitions?.[window.HKTRPG_LOCALES?.defaultLocale]?.intl || 'zh-Hant-HK';
             }
         }
         function patreonLabelColon() {
             try {
-                return (window.wwwI18n && window.wwwI18n.locale === 'en') ? ': ' : '：';
+                const loc = (typeof getWwwLocale === 'function')
+                    ? getWwwLocale()
+                    : (window.wwwI18n && window.wwwI18n.locale);
+                const defaultLocale = window.HKTRPG_LOCALES?.defaultLocale;
+                return (loc && defaultLocale && loc !== defaultLocale) ? ': ' : '：';
             } catch {
                 return '：';
             }

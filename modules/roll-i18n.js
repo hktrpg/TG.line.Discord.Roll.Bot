@@ -21,9 +21,14 @@ function isDefaultLocale(params = {}) {
     return getLocale(params) === i18n.DEFAULT_LOCALE;
 }
 
+/** Locale code whose i18next id is "en" (from lang/locales.json). */
+const ENGLISH_LOCALE = i18n.SUPPORTED_LOCALES.find(
+    (code) => code === 'en' || i18n.LOCALE_DEFINITIONS[code]?.i18next === 'en'
+);
+
 /** @deprecated Prefer isDefaultLocale / getLocale; kept for English-specific content branches */
 function isEnglish(params = {}) {
-    return getLocale(params) === 'en';
+    return Boolean(ENGLISH_LOCALE) && getLocale(params) === ENGLISH_LOCALE;
 }
 
 /**

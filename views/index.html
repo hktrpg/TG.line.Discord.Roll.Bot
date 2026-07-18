@@ -2835,7 +2835,13 @@
                         reconnection: true,
                         reconnectionAttempts: CONFIG.SOCKET_RECONNECT_ATTEMPTS,
                         reconnectionDelay: CONFIG.SOCKET_RECONNECT_DELAY,
-                        query: { lang: 'zh-tw' }
+                        query: {
+                            lang: (typeof getWwwLocale === 'function')
+                                ? getWwwLocale()
+                                : (window.HKTRPG_LOCALES?.defaultLocale
+                                    || document.documentElement.dataset.wwwLocale
+                                    || 'zh-tw')
+                        }
                     };
                 state.socket = io(socketOptions);
 
@@ -3078,7 +3084,7 @@
                         await uiManager.addMessageToBox(userMessage);
 
                         try {
-                            const res = await fetch(`/api/local?msg=${encodeURIComponent(plainMsg)}&lang=${encodeURIComponent(typeof getWwwLocale === 'function' ? getWwwLocale() : (window.wwwI18n?.locale || 'zh-tw'))}`);
+                            const res = await fetch(`/api/local?msg=${encodeURIComponent(plainMsg)}&lang=${encodeURIComponent(typeof getWwwLocale === 'function' ? getWwwLocale() : (window.wwwI18n?.locale || window.HKTRPG_LOCALES?.defaultLocale || 'zh-tw'))}`);
                             const data = await res.json();
                             const reply = (data && data.message) ? data.message.toString() : '';
                             if (reply) {
@@ -3843,7 +3849,11 @@
             activeCommand: null,
             COC_DESC_PREFIX: '克蘇魯神話TRPG ',
             getApiLang() {
-                return (window.wwwI18n && window.wwwI18n.locale) || 'zh-tw';
+                if (typeof getWwwLocale === 'function') return getWwwLocale();
+                return (window.wwwI18n && window.wwwI18n.locale)
+                    || window.HKTRPG_LOCALES?.defaultLocale
+                    || document.documentElement.dataset.wwwLocale
+                    || 'zh-tw';
             },
             getDiceCommandsUrl() {
                 return `/api/dice-commands?lang=${encodeURIComponent(quickCommandsManager.getApiLang())}`;

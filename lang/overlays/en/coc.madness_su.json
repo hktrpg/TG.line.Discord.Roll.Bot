@@ -1,0 +1,12 @@
+{
+  "madness_su_0": "1) Amnesia: The investigator wakes in an unfamiliar place with no memory of identity.",
+  "madness_su_1": "2) Robbed: The investigator was robbed while incapacitated (Luck roll for treasured possessions).",
+  "madness_su_2": "3) Battered: The investigator wakes injured; HP halved (no major wound).",
+  "madness_su_3": "4) Violence: A violent rampage; targets and casualties are up to the Keeper.",
+  "madness_su_4": "5) Ideology/Beliefs: The investigator acts out a belief in an extreme, delusional way.",
+  "madness_su_5": "6) Significant People: The investigator obsessively sought out a Significant Person.",
+  "madness_su_6": "7) Institutionalized: The investigator wakes in an asylum or jail cell.",
+  "madness_su_7": "8) Flee in Panic: The investigator wakes far away, lost or on a train/bus to nowhere.",
+  "madness_su_8": "9) Phobia: The investigator gains a new phobia (roll 1D100 on the phobia table).",
+  "madness_su_9": "10) Mania: The investigator gains a new mania (roll 1D100 on the mania table)."
+}

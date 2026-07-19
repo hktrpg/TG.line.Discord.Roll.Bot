@@ -68,6 +68,14 @@ describe('i18n module', () => {
             expect(t('funny.daily_answer_0')).toBe('Not necessarily');
         });
 
+        test('loads coc overlay bundles for indexed tables', () => {
+            const t = i18n.createTranslator('en');
+            expect(t('coc.mania_0')).toBeTruthy();
+            expect(t('coc.phobia_0')).toBeTruthy();
+            expect(t('coc.madness_rt_0')).toBeTruthy();
+            expect(t('coc.cult_goal_0')).toBeTruthy();
+        });
+
         test('falls back to zh-tw for missing keys', () => {
             const t = i18n.createTranslator('en');
             expect(t('welcome.i18n_guide.0')).toBeDefined();

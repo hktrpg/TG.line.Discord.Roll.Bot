@@ -44,9 +44,27 @@ Loaded at i18n init and merged into the `translation` namespace (keys unchanged,
 | `funny.fuckup_former.json` | 31 | |
 | `funny.fuckup_after.json` | 44 | |
 | `funny.fuckup_quote.json` | 110 | Celebrity quotes |
+| `coc.mania.json` | 100 | Mania table |
+| `coc.phobia.json` | 100 | Phobia table |
+| `coc.cult_appearance.json` | 100 | Cult appearance |
+| `coc.cult_personality.json` | 100 | Cult personality |
+| `coc.pcbg_personal.json` | 36 | PC personal description |
+| `coc.pcbg_belief.json` | 10 | PC background belief |
+| `coc.pcbg_sig_who.json` | 10 | Significant person (who) |
+| `coc.pcbg_sig_why.json` | 10 | Significant person (why) |
+| `coc.pcbg_location.json` | 10 | Meaningful location |
+| `coc.pcbg_trait.json` | 10 | Trait |
+| `coc.cult_leader.json` | 10 | Cult leader role |
+| `coc.cult_goal.json` | 10 | Cult goals |
+| `coc.madness_rt.json` | 10 | Temporary madness (real-time) |
+| `coc.madness_su.json` | 10 | Temporary madness (summary) |
+| `coc.mythos_book.json` | 106 | Mythos tomes |
+| `coc.mythos_spell.json` | 52 | Mythos spells |
+| `coc.mythos_monster.json` | 44 | Mythos creatures |
+| `coc.mythos_god.json` | 31 | Mythos deities |
 
 **Add new overlay keys:** `node temp/merge-funny-overlay.js <bundle> <start> <count> [en-module.js]`  
-**Migrate pattern to coc:** use `coc.<table>.json` under overlays (not started).
+**COC bulk tables:** `coc.<table>.json` under overlays (d100/d10 tables migrated).
 
 ---
 

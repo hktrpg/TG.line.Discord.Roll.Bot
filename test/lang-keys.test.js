@@ -55,15 +55,6 @@ describe('lang key parity', () => {
         expect(en.welcome.join_message[0]).toMatch(/Thanks for adding/i);
     });
 
-    test('glossary has terms for supported locales', () => {
-        const glossaryPath = path.join(__dirname, '..', 'lang', 'glossary.json');
-        const glossary = JSON.parse(fs.readFileSync(glossaryPath, 'utf8'));
-        for (const term of Object.values(glossary.terms || {})) {
-            expect(term['zh-tw']).toBeTruthy();
-            expect(term.en).toBeTruthy();
-        }
-    });
-
     test('overlay files have identical key structure', () => {
         const overlayRoot = path.join(__dirname, '..', 'lang', 'overlays');
         const zhFiles = fs.readdirSync(path.join(overlayRoot, 'zh-tw')).filter((file) => file.endsWith('.json')).sort();

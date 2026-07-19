@@ -16,7 +16,7 @@ Update this file whenever you migrate a module or add lang keys.
 | Storage | MongoDB `botLocale` (`scope`: `group` / `user`) |
 | Engine | `i18next` + `modules/i18n.js` + `modules/i18n-overlays.js` |
 | Roll helper | `modules/roll-i18n.js` (`getT`, `resolveHelp`, `withPartialTranslationNotice`) |
-| Lang files | `lang/zh-tw.json`, `lang/en.json`, `lang/glossary.json`, `lang/overlays/{locale}/*.json` |
+| Lang files | `lang/zh-tw.json`, `lang/en.json`, `lang/overlays/{locale}/*.json` |
 | Key parity CI | `yarn test:lang` (main JSON + overlay parity) |
 
 **Rules (unchanged):**
@@ -125,7 +125,7 @@ Loaded at i18n init and merged into the `translation` namespace (keys unchanged,
 
 | File | Role |
 |------|------|
-| `modules/i18n.js` | init, locale resolve/set, slash enrichment, glossary, overlay load |
+| `modules/i18n.js` | init, locale resolve/set, slash enrichment, overlay load |
 | `modules/i18n-overlays.js` | overlay discovery, merge into locale bundles |
 | `modules/roll-i18n.js` | Roll-module helpers |
 | `modules/analytics.js` | `RollContext.locale` / `t` → `params`; `.admin state` report; character reroll prefixes | Done (runtime) |
@@ -283,13 +283,6 @@ Deployed via `enrichSlashCommandLocalizations` when slash commands are registere
 Includes: `bothelp`, `lang`, `rr`, `token`, `forward`, `in`, `init`, `initn`, `kc`, `edit`, `re`, `code`, `ca`, `int`, `wd`, `4df`, `5ebuild`, `pf2`, `wiki`, `imagesearch`, `bcdice`, `token2`, `token3`, `tokenupload`, CoC (`ccrt`…`ccpc`), funny (`排序`…`每日`), `drgm`, `dr`, `ddr`, `dddr`, `db`, `dbp`, `ra`, `rap`, `ras`, `myname`, `me`, `mee`, `mehistory`, `cmd`, `level`, `wn`, `wndd`, `wnmod`, `at`, `cron`, `char`, `ch`, `export`, `rolereact`, `ai`, `tran`, `image`, `st`, `event`, `poke`, `digi`, `admin`, `root`, `patreon`.
 
 Re-deploy global slash commands after changing `slash.*` keys.
-
----
-
-## Glossary
-
-`lang/glossary.json` — TRPG term reference for translators (`initiative`, `character_card`, `dark_roll`, `coc`).  
-Not yet auto-injected into runtime strings; use manually when adding en keys.
 
 ---
 

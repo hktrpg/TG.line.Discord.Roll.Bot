@@ -82,17 +82,6 @@ describe('i18n module', () => {
         });
     });
 
-    describe('getGlossaryTerm', () => {
-        test('returns localized TRPG terms', () => {
-            expect(i18n.getGlossaryTerm('initiative', 'en')).toBe('Initiative');
-            expect(i18n.getGlossaryTerm('initiative', 'zh-tw')).toBe('先攻');
-        });
-
-        test('returns null for unknown terms', () => {
-            expect(i18n.getGlossaryTerm('nonexistent')).toBeNull();
-        });
-    });
-
     describe('enrichSlashCommandLocalizations', () => {
         test('adds description localizations for known commands', () => {
             const commandData = {
@@ -135,7 +124,6 @@ describe('lang JSON files', () => {
         const langDir = path.join(__dirname, '..', 'lang');
         expect(fs.existsSync(path.join(langDir, 'zh-tw.json'))).toBe(true);
         expect(fs.existsSync(path.join(langDir, 'en.json'))).toBe(true);
-        expect(fs.existsSync(path.join(langDir, 'glossary.json'))).toBe(true);
         expect(fs.existsSync(path.join(langDir, 'overlays', 'en'))).toBe(true);
         expect(fs.existsSync(path.join(langDir, 'overlays', 'zh-tw'))).toBe(true);
     });

@@ -383,20 +383,6 @@ function clearLocaleCache(scope, scopeId) {
     localeCache.del(getCacheKey(scope, scopeId));
 }
 
-function getGlossaryTerm(termKey, locale = DEFAULT_LOCALE) {
-    try {
-        const glossary = require('../lang/glossary.json');
-        const term = glossary.terms?.[termKey];
-        if (!term) {
-            return null;
-        }
-        const normalized = normalizeLocale(locale);
-        return term[normalized] || term[DEFAULT_LOCALE] || null;
-    } catch {
-        return null;
-    }
-}
-
 module.exports = {
     LOCALE_DEFINITIONS,
     DEFAULT_LOCALE,
@@ -417,6 +403,5 @@ module.exports = {
     buildDescriptionLocalizations,
     enrichSlashCommandLocalizations,
     clearLocaleCache,
-    getGlossaryTerm,
     loadLocaleBundle: require('./i18n-overlays.js').loadLocaleBundle
 };

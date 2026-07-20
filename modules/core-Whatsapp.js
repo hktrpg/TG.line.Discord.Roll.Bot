@@ -276,12 +276,10 @@ async function startUp() {
 					return;
 				}
 
-				// 基本訊息處理
-				const chatDetail = await client.getChatById(msg.from);
-				const groupInfo = chatDetail.isGroup ? {
-					id: chatDetail.id._serialized,
-					memberCount: chatDetail.participants.length - 1
-				} : null;
+				// Avoid relying on getChatById alone: WA Web Jul 2026 renamed id._serialized -> id.$1,
+				// which makes puppeteer evaluate throw opaque "r: r" and drops the whole message handler.
+				// Group detection via @g.us is enough; memberCount is best-effort.
+				const groupInfo = await resolveGroupInfo(msg, client);
 
 				// 分析訊息內容
 				const result = await processMessage(msg, groupInfo, client);
@@ -352,6 +350,36 @@ function setupAgenda(client) {
 	});
 }
 
+/**
+ * Resolve group context without hard-depending on getChatById.
+ * WA Web (Jul 2026) broke id._serialized -> id.$1; getChatById may throw "r: r".
+ * @param {import('whatsapp-web.js').Message} msg
+ * @param {import('whatsapp-web.js').Client} client
+ * @returns {Promise<{id: string, memberCount?: number}|null>}
+ */
+async function resolveGroupInfo(msg, client) {
+	const from = msg && msg.from;
+	if (!from || !String(from).includes('@g.us')) {
+		return null;
+	}
+
+	const groupInfo = { id: from };
+	try {
+		const chatDetail = await client.getChatById(from);
+		const chatId = chatDetail && chatDetail.id &&
+			(chatDetail.id._serialized || chatDetail.id.$1 || from);
+		if (chatId) groupInfo.id = chatId;
+		if (chatDetail && Array.isArray(chatDetail.participants)) {
+			groupInfo.memberCount = Math.max(0, chatDetail.participants.length - 1);
+		}
+	} catch (error) {
+		const errMsg = error && error.message ? error.message : String(error);
+		// Keep handling the message; memberCount stays undefined.
+		console.warn('[WhatsApp] getChatById failed, using @g.us fallback:', errMsg);
+	}
+	return groupInfo;
+}
+
 async function processMessage(msg, groupInfo, client) {
 	let inputStr = msg.body;
 	const mainMsg = inputStr.match(MESSAGE_SPLITOR);
@@ -393,7 +421,7 @@ async function processMessage(msg, groupInfo, client) {
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
 
-	userid = msg.author;
+	userid = msg.author || msg.from;
 	let getContact;
 	displayname = '';
 	try {
@@ -404,10 +432,10 @@ async function processMessage(msg, groupInfo, client) {
 		getContact = null;
 		displayname = '';
 
-		// Fallback: try to get display name from message author info
-		if (msg.author && typeof msg.author === 'string') {
-			// Extract a basic display name from the author ID if possible
-			const authorParts = msg.author.split('@');
+		// Fallback: try to get display name from the best available id
+		const idForName = (msg.author || msg.from || '');
+		if (typeof idForName === 'string') {
+			const authorParts = idForName.split('@');
 			if (authorParts[0]) {
 				displayname = authorParts[0];
 			}

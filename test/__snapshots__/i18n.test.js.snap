@@ -4,4 +4,4 @@ exports[`i18n module zh-tw regression snapshots core zh-tw strings match baselin
 
 exports[`i18n module zh-tw regression snapshots core zh-tw strings match baseline 2`] = `"不支援0顆以下及100顆以上骰子"`;
 
-exports[`i18n module zh-tw regression snapshots core zh-tw strings match baseline 3`] = `"目前語言：zh-tw"`;
+exports[`i18n module zh-tw regression snapshots core zh-tw strings match baseline 3`] = `"目前語言 Current language：zh-tw"`;

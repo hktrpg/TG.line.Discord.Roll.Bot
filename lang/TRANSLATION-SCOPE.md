@@ -23,7 +23,7 @@ Update this file whenever you migrate a module or add lang keys.
 
 - Command prefixes (`.cc`, `bothelp`, etc.) and slash **names** are never translated.
 - User-generated content (character cards, custom replies) does not go through i18n.
-- Welcome message body stays zh-tw; bilingual `welcome.i18n_guide` is appended.
+- Welcome message body (`zh-tw`) is bilingual Chinese/English; bilingual `welcome.i18n_guide` is appended. `en` locale stays English-only.
 - Discord client locale does **not** auto-switch bot replies.
 
 ---
@@ -77,7 +77,7 @@ Loaded at i18n init and merged into the `translation` namespace (keys unchanged,
 | `rollbase` | Basic dice help, multi-roll header, errors, `/rr` error footer | Done |
 | `help` | Main menu, Base help, submenus, about/privacy/link/report, game name | Done (runtime) |
 | `lang` | `.lang` / `/lang` command | Done |
-| `welcome` | Join / first-time messages + `i18n_guide` | Done (body zh-tw; guide bilingual) |
+| `welcome` | Join / first-time messages + `i18n_guide` | Done (zh-tw body bilingual; en English-only; guide bilingual) |
 | `token` | Full help, `.token*` command replies, upload errors, `/token*` slash direct replies | Done |
 | `forward` | `/forward` validation + `.forward` help and all runtime replies | Done |
 | `buttons` | Button labels / empty row padding | Done |

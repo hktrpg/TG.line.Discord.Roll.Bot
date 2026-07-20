@@ -2339,8 +2339,8 @@
     "processing": "Processing, please wait..."
   },
   "init": {
-    "game_name": "【Initiative】 .in (remove clear reroll) .init",
-    "help": "【⚔️ Initiative Tracker】\n╭────── 📋 Commands ──────\n│ • .in [roll/value] [name]\n│ • .init — show table (high→low)\n│ • .initn — show table (low→high)\n│\n├────── 🎲 Add character ──────\n│ Roll format:\n│ 　• .in 1d20+3 Alice\n│ 　• .in 1d3\n│ 　  (uses speaker name if omitted)\n│\n│ Direct value:\n│ 　• .in 80\n│ 　• .in -3+6*3/2.1\n│\n├────── ⚙️ Manage ──────\n│ Reroll:\n│ 　• .in reroll\n│ 　  (reroll with original formula)\n│\n│ Remove:\n│ 　• .in remove [name]\n│ 　• .in clear\n│\n├────── ⭕ Combat rounds ──────\n│ • .init start — start round\n│ • .init next — next turn\n│ • .init [name] — jump to character\n│ • .init end — end round\n│ • .init stats [name] [status]\n│   (attach status text)\n╰──────────────",
+    "game_name": "【Initiative】 .in (remove clear reroll help) .init",
+    "help": "【⚔️ Initiative Tracker】\nIn TRPG combat, turn order is usually decided by initiative.\nSystems like D&D and Infinite Horror need a fresh 1D20+mod each fight,\nso this feature stores your roll formula and supports one-click reroll.\n\n╭────── 📋 Register characters ──────\n│ Usage: .in (roll or number) (name)\n│\n│ (roll or number) required — e.g. 1D20+3 or just 5\n│ (name) optional — if omitted, uses your chat display name\n│ Enter different names multiple times to add more characters\n│\n│ Examples:\n│ 　• .in 1d20+3 Alice\n│ 　• .in 1d3\n│ 　• .in 80\n│ 　• .in -3+6*3/2.1  (supports arithmetic)\n│\n├────── 📊 Show table ──────\n│ • .init  — high to low\n│ • .initn — low to high\n│\n├────── 🎲 Reroll initiative ──────\n│ • .in reroll\n│   Reroll using each character's saved formula\n│   (ideal for systems that reroll every combat)\n│\n├────── ⚙️ Other ──────\n│ • .in remove (name) — remove that character\n│ • .in clear — clear the whole table\n│\n├────── ⭕ Combat rounds ──────\n│ • .init start — start round\n│ • .init next — next turn\n│ • .init [name] — jump to character\n│ • .init end — end round\n│ • .init stats [name] [status]\n│   (attach status text)\n╰──────────────",
     "group_only": "This is a group feature. Use it in a group channel.",
     "line_friend_hint": "\nDue to LINE's behavior, your display name may not appear when rolling in groups. Add the bot as a friend by sending any message:\nhttps://line.me/R/ti/p/@hktrpg",
     "remove_success": "Removed initiative for {{name}}",
@@ -2351,9 +2351,9 @@
     "update_failed": "Failed to update initiative:\n{{error}}",
     "stat_updated": "{{name}} initiative {{action}}",
     "current_init": "Current initiative: {{value}}",
-    "add_hint": "Add: .in [roll or value] [name (optional)]",
+    "add_hint": "【Register Character】\nUsage: .in (roll or number) (name)\n\n(roll or number) required — e.g. 1D20+3 or just 5\n(name) optional — if omitted, uses your chat display name\nEnter different names multiple times to add more characters\n\nExamples:\n• .in 1d20+3 Alice\n• .in 1d3\n• .in 80\n• .in -3+6*3/2.1  (supports arithmetic)\n\nFor full help, type .init help",
     "init_value": "{{name}} initiative is {{value}}",
-    "empty_table": "No characters yet. Add: .in [roll or value] [name]",
+    "empty_table": "No characters on the initiative table yet.\n\n【Register Character】\nUsage: .in (roll or number) (name)\n\n(roll or number) required — e.g. 1D20+3 or just 5\n(name) optional — if omitted, uses your chat display name\nEnter different names multiple times to add more characters\n\nExamples:\n• .in 1d20+3 Alice\n• .in 1d3\n• .in 80\n• .in -3+6*3/2.1  (supports arithmetic)\n\nFor full help, type .init help",
     "combat_end": "Combat round ended",
     "round_updated": "Round updated to {{round}}\n{{table}}",
     "invalid_round": "Please provide a valid positive integer for the round.",

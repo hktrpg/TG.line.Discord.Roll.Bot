@@ -11,7 +11,7 @@ const convertRegex = function (str) {
     return str.replaceAll(/([.?*+^$[\\]|(){}|-])/g, String.raw`\$1`);
 };
 const gameName = function (params = {}) {
-    return resolveGameName(params, 'init.game_name', '【先攻表功能】 .in (remove clear reroll) .init');
+    return resolveGameName(params, 'init.game_name', '【先攻表功能】 .in (remove clear reroll help) .init');
 }
 const gameType = function () {
     return 'Tool:trpgInit:hktrpg'

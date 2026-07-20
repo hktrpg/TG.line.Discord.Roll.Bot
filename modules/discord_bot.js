@@ -1091,31 +1091,36 @@ function handlingCountButton(message, mode) {
 	if (!buttonLabel) return content;
 	const actionKey = mode === 'roll' ? 'discord.buttons.action_rolled' : 'discord.buttons.action_clicked';
 	const button = t(actionKey, { label: buttonLabel });
-	const regexpButton = convertRegex(button);
+	// Match both locales so click/roll lines stay mergeable after language switches
+	const escapedLabel = buttonLabel.replaceAll(/([.?*+^$[\]\\(){}|-])/g, String.raw`\$1`);
+	const matchPattern = mode === 'roll'
+		? new RegExp(String.raw`(?:投擲了|rolled) 「${escapedLabel}」`, 'i')
+		: new RegExp(String.raw`(?:點擊了|clicked) 「${escapedLabel}」`, 'i');
 	let newContent = content;
 	if (/要求擲骰\/點擊|roll \/ click request/i.test(newContent)) newContent = '';
-	if (regexpButton.test(newContent)) {
-		let checkRepeat = checkRepeatName(content, button, user)
+	if (matchPattern.test(newContent)) {
+		const checkRepeat = checkRepeatName(content, matchPattern, user);
 		if (!checkRepeat)
-			newContent = newContent.replace(regexpButton, `、${user} ${button}`)
+			newContent = newContent.replace(matchPattern, `、${user} ${button}`);
 	} else {
-		newContent += `\n${user} ${button}`
+		newContent += `\n${user} ${button}`;
 	}
 	return newContent.slice(0, 1000);
 }
-function checkRepeatName(content, button, user) {
+function checkRepeatName(content, matchPattern, user) {
 	let flag = false;
+	const pattern = matchPattern instanceof RegExp ? matchPattern : convertRegex(matchPattern);
+	const userPattern = convertRegex(user);
 	const everylines = content.split(/\n/);
 	for (const line of everylines) {
-		if (convertRegex(button).test(line)) {
-			let splitNames = line.split('、');
+		if (pattern.test(line)) {
+			const splitNames = line.split('、');
 			for (const name of splitNames) {
-				if (convertRegex(user).test(name) || convertRegex(`${user} ${button}`).test(name)) {
+				if (userPattern.test(name)) {
 					flag = true;
 				}
 			}
 		}
-
 	}
 	return flag;
 }
@@ -5043,6 +5048,18 @@ async function __handlingInteractionMessage(message) {
 				let success = false;
 
 				try {
+					// Resolve locale before button handling — plain-text clicks
+					// (e.g. .re "2","3") return early from handlingResponMessage
+					// and would otherwise fall back to DEFAULT_LOCALE (zh-tw).
+					if (message._hktrpgLocale === undefined) {
+						message._hktrpgLocale = await i18n.resolveLocale({
+							groupid: message.guildId || '',
+							userid: message.user?.id || message.member?.user?.id || '',
+							channelType: message.channel?.type,
+							botname: 'Discord'
+						});
+						message._hktrpgT = i18n.createTranslator(message._hktrpgLocale);
+					}
 					const answer = handlingButtonCommand(message);
 					const result = await handlingResponMessage(message, answer);
 					const messageContent = message?.message?.content || '';

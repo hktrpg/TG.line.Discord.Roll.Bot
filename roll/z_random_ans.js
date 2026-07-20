@@ -293,7 +293,9 @@ const rollDiceCommand = async function ({
             rply.quotes = true;
             getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
             if (!getData || getData.randomAnsfunction.length === 0) {
-                rply.text = translate('random_ans.no_dice_configured');
+                rply.text = translate('random_ans.no_dice_configured', {
+                    version_note: translate('random_ans.version_note')
+                });
                 return rply;
             }
             if (mainMsg[2]) {

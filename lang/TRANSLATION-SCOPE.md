@@ -12,7 +12,7 @@ Update this file whenever you migrate a module or add lang keys.
 | Item | Value |
 |------|-------|
 | Default locale | `zh-tw` (Traditional Chinese) |
-| Opt-in locales | `zh-tw`, `en`, `zh-hans` (aliases: `cn`, `zh-cn`, …) |
+| Opt-in locales | `zh-tw`, `en`, `zh-hans` |
 | Storage | MongoDB `botLocale` (`scope`: `group` / `user`) |
 | Engine | `i18next` + `modules/i18n.js` + `modules/i18n-overlays.js` |
 | Roll helper | `modules/roll-i18n.js` (`getT`, `resolveHelp`, `withPartialTranslationNotice`) |

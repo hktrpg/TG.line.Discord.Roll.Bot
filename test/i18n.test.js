@@ -33,8 +33,16 @@ describe('i18n module', () => {
 
         test('recognizes Simplified Chinese variants', () => {
             expect(i18n.normalizeLocale('zh-hans')).toBe('zh-hans');
-            expect(i18n.normalizeLocale('zh-cn')).toBe('zh-hans');
-            expect(i18n.normalizeLocale('cn')).toBe('zh-hans');
+            expect(i18n.normalizeLocale('zh_hans')).toBe('zh-hans');
+            expect(i18n.normalizeLocale('zh_chs')).toBe('zh-hans');
+            expect(i18n.normalizeLocale('zh-chs')).toBe('zh-hans');
+        });
+
+        test('does not accept cn / zh-cn as bot locale aliases', () => {
+            expect(i18n.matchLocale('cn')).toBeNull();
+            expect(i18n.matchLocale('zh-cn')).toBeNull();
+            expect(i18n.normalizeLocale('cn')).toBe('zh-tw');
+            expect(i18n.normalizeLocale('zh-cn')).toBe('zh-tw');
         });
     });
 
@@ -49,8 +57,9 @@ describe('i18n module', () => {
             expect(i18n.matchLocale('zh-hant')).toBe('zh-tw');
             expect(i18n.matchLocale('en-US')).toBe('en');
             expect(i18n.matchLocale('zh-hans')).toBe('zh-hans');
-            expect(i18n.matchLocale('zh-cn')).toBe('zh-hans');
-            expect(i18n.matchLocale('cn')).toBe('zh-hans');
+            expect(i18n.matchLocale('zh_hans')).toBe('zh-hans');
+            expect(i18n.matchLocale('zh_chs')).toBe('zh-hans');
+            expect(i18n.matchLocale('zh-chs')).toBe('zh-hans');
         });
     });
 

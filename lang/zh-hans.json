@@ -858,34 +858,34 @@
       }
     },
     "運勢": {
-      "description": "查询运势",
+      "description": "运势占卜 / Luck reading",
       "options": {
         "text": {
-          "description": "可输入单一或多个目标，多个目标以空格分隔，例如：TRPG 今日 跑团"
+          "description": "目标（可多个，空格分隔）/ Targets separated by spaces"
         }
       }
     },
     "塔羅": {
-      "description": "每日塔罗(单张)／时间塔罗／大十字塔罗 — 选择种类后抽牌",
+      "description": "塔罗占卜 / Tarot (daily / timeline / Celtic cross)",
       "options": {
         "category": {
-          "description": "选择：每日塔罗(单张)、时间塔罗、大十字塔罗",
+          "description": "种类 / Spread type",
           "choices": {
-            "每日塔羅": "每日塔罗(单张)",
-            "大十字塔羅": "大十字塔罗",
-            "時間塔羅": "时间塔罗"
+            "每日塔羅": "每日塔罗(单张) / Daily",
+            "大十字塔羅": "大十字塔罗 / Celtic cross",
+            "時間塔羅": "时间塔罗 / Timeline"
           }
         }
       }
     },
     "時間塔羅": {
-      "description": "过去、现在、未来三张牌（时间轴塔罗）"
+      "description": "时间塔罗（过去现在未来）/ Three-card timeline"
     },
     "每日塔羅": {
-      "description": "抽一张牌（单张每日塔罗）"
+      "description": "每日塔罗（单张）/ Draw one daily tarot card"
     },
     "大十字塔羅": {
-      "description": "十张牌：现况、助力、目标、基础、过去、未来、自我、环境、恐惧、结论（大十字）"
+      "description": "大十字塔罗（十张）/ Ten-card Celtic cross"
     },
     "立flag": {
       "description": "立FLAG",
@@ -896,68 +896,79 @@
       }
     },
     "每日": {
-      "description": "进行每日功能",
+      "description": "每日功能 / Daily fun (tarot, almanac, horoscope, lots…)",
       "options": {
         "星座": {
-          "description": "显示每日星座运程",
+          "description": "每日星座运程 / Daily horoscope",
           "options": {
             "star": {
-              "description": "哪个星座",
+              "description": "星座 / Zodiac sign",
               "choices": {
-                "每日白羊": "白羊",
-                "每日金牛": "金牛",
-                "每日巨蟹": "巨蟹",
-                "每日獅子": "狮子",
-                "每日雙子": "双子",
-                "每日處女": "处女",
-                "每日天秤": "天秤",
-                "每日天蠍": "天蝎",
-                "每日射手": "射手",
-                "每日摩羯": "摩羯",
-                "每日水瓶": "水瓶",
-                "每日雙魚": "双鱼"
+                "每日白羊": "白羊 / Aries",
+                "每日金牛": "金牛 / Taurus",
+                "每日巨蟹": "巨蟹 / Cancer",
+                "每日獅子": "狮子 / Leo",
+                "每日雙子": "双子 / Gemini",
+                "每日處女": "处女 / Virgo",
+                "每日天秤": "天秤 / Libra",
+                "每日天蠍": "天蝎 / Scorpio",
+                "每日射手": "射手 / Sagittarius",
+                "每日摩羯": "摩羯 / Capricorn",
+                "每日水瓶": "水瓶 / Aquarius",
+                "每日雙魚": "双鱼 / Pisces"
               }
             }
           }
         },
         "塔羅": {
-          "description": "抽一张牌（单张每日塔罗）"
+          "description": "每日塔罗（单张）/ Daily tarot (1 card)"
+        },
+        "時間塔羅": {
+          "description": "时间塔罗（过去现在未来）/ Timeline tarot"
+        },
+        "大十字塔羅": {
+          "description": "大十字塔罗（十张）/ Celtic cross tarot"
         },
         "一言": {
-          "description": "显示一条金句"
+          "description": "每日一言 / Daily quote"
         },
         "毒湯": {
-          "description": "显示一条有毒的鸡汤"
+          "description": "每日毒汤 / Daily roast"
         },
         "情話": {
-          "description": "显示一条情话"
+          "description": "每日情话 / Daily love line"
         },
         "靈簽": {
-          "description": "抽取一条观音签"
+          "description": "每日灵签（观音签）/ Guanyin fortune stick"
         },
         "淺草簽": {
-          "description": "抽取一条浅草签"
+          "description": "每日浅草签 / Asakusa fortune"
         },
         "大事": {
-          "description": "显示今天历史上的大事"
+          "description": "每日大事 / On this day in history"
         },
         "解答": {
-          "description": "答案之书-解答你的疑问"
+          "description": "每日解答（答案之书）/ Book of Answers",
+          "options": {
+            "question": {
+              "description": "心中的问题 / Your question"
+            }
+          }
         },
         "笑話": {
-          "description": "显示一条笑话"
+          "description": "每日笑话 / Daily joke"
         },
         "動漫": {
-          "description": "显示一条动漫金句"
+          "description": "每日动漫 / Daily anime quote"
         },
         "黃曆": {
-          "description": "显示今日黄历"
+          "description": "每日黄历 / Chinese almanac"
         },
         "廢話": {
-          "description": "生产一条你或对像的废话",
+          "description": "每日废话 / Nonsense prose",
           "options": {
             "name": {
-              "description": "可选: 对像的名字，留白则使用你的名字"
+              "description": "对象名字（可选）/ Optional subject name"
             }
           }
         }

@@ -164,6 +164,39 @@ describe('i18n module', () => {
                 expect(enriched.name_localizations?.['en-US']).toBe(enName);
             }
         });
+
+        test('adds Simplified Chinese name_localizations for differing glyphs', () => {
+            const cases = [
+                ['運勢', '运势'],
+                ['塔羅', '塔罗'],
+                ['每日塔羅', '每日塔罗'],
+                ['時間塔羅', '时间塔罗'],
+                ['大十字塔羅', '大十字塔罗'],
+                ['隨機', '随机'],
+                ['輪盤', '轮盘']
+            ];
+            for (const [zhName, hansName] of cases) {
+                const enriched = i18n.enrichSlashCommandLocalizations({
+                    name: zhName,
+                    description: 'test'
+                });
+                expect(enriched.name_localizations?.['zh-CN']).toBe(hansName);
+            }
+
+            const daily = i18n.enrichSlashCommandLocalizations({
+                name: '每日',
+                description: '進行每日功能',
+                options: [
+                    { name: '黃曆', description: '顯示今日黃曆', type: 1 },
+                    { name: '靈簽', description: '抽取一條觀音簽', type: 1 },
+                    { name: '淺草簽', description: '顯示一條淺草簽', type: 1 }
+                ]
+            });
+            expect(daily.options[0].name_localizations?.['zh-CN']).toBe('黄历');
+            expect(daily.options[1].name_localizations?.['zh-CN']).toBe('灵签');
+            expect(daily.options[2].name_localizations?.['zh-CN']).toBe('浅草签');
+            expect(daily.options[0].description_localizations?.['zh-CN']).toContain('黄历');
+        });
     });
 
     describe('zh-tw regression snapshots', () => {

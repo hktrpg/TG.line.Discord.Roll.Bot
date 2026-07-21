@@ -858,7 +858,7 @@
       }
     },
     "運勢": {
-      "description": "查詢運勢",
+      "description": "幫你占卜運勢",
       "options": {
         "text": {
           "description": "可輸入單一或多個目標，多個目標以空格分隔，例如：TRPG 今日 跑團"
@@ -866,7 +866,7 @@
       }
     },
     "塔羅": {
-      "description": "每日塔羅(單張)／時間塔羅／大十字塔羅 — 選擇種類後抽牌",
+      "description": "幫你抽塔羅牌占卜（每日／時間／大十字）",
       "options": {
         "category": {
           "description": "選擇：每日塔羅(單張)、時間塔羅、大十字塔羅",
@@ -879,13 +879,13 @@
       }
     },
     "時間塔羅": {
-      "description": "過去、現在、未來三張牌（時間軸塔羅）"
+      "description": "時間塔羅占卜（過去、現在、未來）"
     },
     "每日塔羅": {
-      "description": "抽一張牌（單張每日塔羅）"
+      "description": "幫你抽塔羅牌占卜（單張）"
     },
     "大十字塔羅": {
-      "description": "十張牌：現況、助力、目標、基礎、過去、未來、自我、環境、恐懼、結論（大十字）"
+      "description": "大十字塔羅占卜（十張）"
     },
     "立flag": {
       "description": "立FLAG",
@@ -896,10 +896,10 @@
       }
     },
     "每日": {
-      "description": "進行每日功能",
+      "description": "每日功能（塔羅、黃曆、星座、靈簽、淺草簽、解答…）",
       "options": {
         "星座": {
-          "description": "顯示每日星座運程",
+          "description": "顯示每日星座運程（如每日白羊、每日金牛、每日巨蟹）",
           "options": {
             "star": {
               "description": "哪個星座",
@@ -921,7 +921,7 @@
           }
         },
         "塔羅": {
-          "description": "抽一張牌（單張每日塔羅）"
+          "description": "抽一張每日塔羅"
         },
         "一言": {
           "description": "顯示一條金句"
@@ -936,13 +936,13 @@
           "description": "抽取一條觀音簽"
         },
         "淺草簽": {
-          "description": "抽取一條淺草簽"
+          "description": "顯示一條淺草簽"
         },
         "大事": {
           "description": "顯示今天歷史上的大事"
         },
         "解答": {
-          "description": "答案之書-解答你的疑問"
+          "description": "心中想著一個問題，給予你命運的指引"
         },
         "笑話": {
           "description": "顯示一條笑話"

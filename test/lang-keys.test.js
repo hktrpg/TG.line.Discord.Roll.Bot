@@ -35,8 +35,8 @@ describe('lang key parity', () => {
     );
     const baseline = 'zh-tw';
 
-    test('all locales include the zh-tw key set; zh-hans matches zh-tw exactly', () => {
-        // en may have extra slash.*.name keys for Discord English name_localizations.
+    test('all locales include the zh-tw key set; zh-hans name extras allowed like en', () => {
+        // en / zh-hans may have extra slash.*.name keys for Discord name_localizations.
         for (const code of LOCALE_CODES) {
             if (code === baseline) continue;
             const onlyInBaseline = keySets[baseline].filter((key) => !keySets[code].includes(key));
@@ -47,7 +47,8 @@ describe('lang key parity', () => {
         }
 
         const onlyInZhHans = keySets['zh-hans'].filter((key) => !keySets[baseline].includes(key));
-        expect(onlyInZhHans).toEqual([]);
+        const unexpected = onlyInZhHans.filter((key) => !/\.name$/.test(key));
+        expect(unexpected).toEqual([]);
     });
 
     test('i18n_guide exists in all locales with language instructions', () => {

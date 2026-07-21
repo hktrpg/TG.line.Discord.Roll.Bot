@@ -854,7 +854,7 @@
     },
     "運勢": {
       "name": "fortune",
-      "description": "Luck reading",
+      "description": "Luck / fortune reading",
       "options": {
         "text": {
           "description": "One or more targets separated by spaces"
@@ -863,7 +863,7 @@
     },
     "塔羅": {
       "name": "tarot",
-      "description": "Daily / timeline / Celtic cross tarot",
+      "description": "Tarot reading (daily / timeline / Celtic cross)",
       "options": {
         "category": {
           "description": "Spread type",
@@ -877,7 +877,7 @@
     },
     "時間塔羅": {
       "name": "time-tarot",
-      "description": "Three-card timeline spread"
+      "description": "Three-card timeline tarot"
     },
     "每日塔羅": {
       "name": "daily-tarot",
@@ -885,7 +885,7 @@
     },
     "大十字塔羅": {
       "name": "celtic-cross",
-      "description": "Ten-card Celtic cross spread"
+      "description": "Ten-card Celtic cross tarot"
     },
     "立flag": {
       "name": "flag",
@@ -898,11 +898,11 @@
     },
     "每日": {
       "name": "daily",
-      "description": "Daily fun content",
+      "description": "Daily fun (tarot, almanac, horoscope, lots, answers…)",
       "options": {
         "星座": {
           "name": "horoscope",
-          "description": "Daily horoscope",
+          "description": "Daily horoscope (e.g. Aries, Taurus, Cancer)",
           "options": {
             "star": {
               "description": "Zodiac sign",
@@ -925,7 +925,7 @@
         },
         "塔羅": {
           "name": "tarot",
-          "description": "Daily tarot (single card)"
+          "description": "Daily tarot (one card)"
         },
         "一言": {
           "name": "quote",
@@ -941,11 +941,11 @@
         },
         "靈簽": {
           "name": "lot",
-          "description": "Guanyin fortune stick"
+          "description": "Draw a Guanyin fortune stick"
         },
         "淺草簽": {
           "name": "asakusa",
-          "description": "Asakusa fortune"
+          "description": "Draw an Asakusa fortune"
         },
         "大事": {
           "name": "history",
@@ -953,7 +953,7 @@
         },
         "解答": {
           "name": "answer",
-          "description": "Book of Answers"
+          "description": "Think of a question — Book of Answers guidance"
         },
         "笑話": {
           "name": "joke",
@@ -965,7 +965,7 @@
         },
         "黃曆": {
           "name": "almanac",
-          "description": "Chinese almanac"
+          "description": "Today's Chinese almanac"
         },
         "廢話": {
           "name": "filler",

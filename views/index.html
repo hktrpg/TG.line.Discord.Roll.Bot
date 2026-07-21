@@ -1238,6 +1238,30 @@
                 font-size: 1.5rem;
             }
 
+            /* Keep title clear of the floating sidebar toggle */
+            #header .navbar {
+                padding-left: 52px;
+            }
+
+            #header .navbar-brand {
+                max-width: calc(100vw - 120px);
+                overflow: hidden;
+            }
+
+            #header .navbar-brand .badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                max-width: 100%;
+                overflow: hidden;
+            }
+
+            #header #title {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
             .sidebar.show ~ .mobile-sidebar-toggle,
             body:has(.sidebar.show) .mobile-sidebar-toggle {
                 left: 250px;
@@ -1420,11 +1444,27 @@
             }
 
             #header .navbar {
-                padding: 0 10px;
+                padding: 0 10px 0 52px;
             }
 
             #header .navbar-brand {
                 font-size: 1rem;
+                max-width: calc(100vw - 120px);
+                overflow: hidden;
+            }
+
+            #header .navbar-brand .badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                max-width: 100%;
+                overflow: hidden;
+            }
+
+            #header #title {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
 
             #header .navbar-toggler {

@@ -118,6 +118,12 @@ class WwwI18n {
             if (!key) continue;
             el.setAttribute('content', t(key));
         }
+        for (const el of root.querySelectorAll('[data-www-bothelp-href]')) {
+            const subPath = el.getAttribute('data-www-bothelp-href') || '';
+            if (typeof getWwwBothelpUrl === 'function') {
+                el.setAttribute('href', getWwwBothelpUrl(this.locale, subPath));
+            }
+        }
     }
 }
 

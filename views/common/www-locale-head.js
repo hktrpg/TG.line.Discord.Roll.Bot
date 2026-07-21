@@ -17,9 +17,9 @@
         defaultLocale: 'zh-tw',
         supported: ['zh-tw', 'en', 'zh-hans'],
         definitions: {
-            'zh-tw': { prefixes: ['zh-tw', 'zh'], intl: 'zh-Hant-HK', name: '正體中文' },
-            en: { prefixes: ['en'], intl: 'en', name: 'English' },
-            'zh-hans': { prefixes: ['zh-hans'], intl: 'zh-Hans', name: '简体中文' }
+            'zh-tw': { prefixes: ['zh-tw', 'zh'], intl: 'zh-Hant-HK', name: '正體中文', bothelpGuide: 'zh-hant' },
+            en: { prefixes: ['en'], intl: 'en', name: 'English', bothelpGuide: 'en' },
+            'zh-hans': { prefixes: ['zh-hans'], intl: 'zh-Hans', name: '简体中文', bothelpGuide: 'zh-hans' }
         }
     };
 
@@ -170,6 +170,24 @@
         return (meta.definitions?.[code]?.intl) || code;
     }
 
+    /**
+     * Locale-specific bothelp guide URL (matches modules/i18n getBothelpUrl).
+     * @param {string} [locale]
+     * @param {string} [subPath]
+     * @returns {string}
+     */
+    function getWwwBothelpUrl(locale, subPath) {
+        const code = normalizeWwwLocale(locale) || getDefaultLocale();
+        const guide = meta.definitions?.[code]?.bothelpGuide
+            || meta.definitions?.[getDefaultLocale()]?.bothelpGuide
+            || 'zh-hant';
+        const base = `https://bothelp.hktrpg.com/guide/${guide}/`;
+        if (!subPath) {
+            return base;
+        }
+        return `${base}${String(subPath).replace(/^\//, '')}`;
+    }
+
     function applyEarlyWwwHtmlLang() {
         const locale = resolveWwwLocale();
         document.documentElement.lang = wwwLocaleToHtmlLang(locale);
@@ -180,6 +198,7 @@
     global.normalizeWwwLocale = normalizeWwwLocale;
     global.resolveWwwLocale = resolveWwwLocale;
     global.wwwLocaleToHtmlLang = wwwLocaleToHtmlLang;
+    global.getWwwBothelpUrl = getWwwBothelpUrl;
     global.getWwwDefaultLocale = getDefaultLocale;
     global.persistWwwLocale = persistWwwLocale;
     global.HKTRPG_LOCALES = meta;

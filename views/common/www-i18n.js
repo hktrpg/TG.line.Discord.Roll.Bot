@@ -20,16 +20,30 @@ class WwwI18n {
         const defaultLocale = (typeof getWwwDefaultLocale === 'function')
             ? getWwwDefaultLocale()
             : (window.HKTRPG_LOCALES?.defaultLocale || 'zh-tw');
+        const normalize = (value) => (typeof normalizeWwwLocale === 'function'
+            ? normalizeWwwLocale(value)
+            : value);
         try {
             const params = new URLSearchParams(globalThis.location.search);
-            const fromQuery = params.get('lang');
-            if (fromQuery && typeof normalizeWwwLocale === 'function') {
-                return normalizeWwwLocale(fromQuery) || defaultLocale;
+            const fromQuery = normalize(params.get('lang'));
+            if (fromQuery) {
+                if (typeof persistWwwLocale === 'function') {
+                    persistWwwLocale(fromQuery);
+                }
+                return fromQuery;
             }
-            const saved = localStorage.getItem('wwwLocale');
-            if (saved && typeof normalizeWwwLocale === 'function') {
-                return normalizeWwwLocale(saved) || defaultLocale;
+            // Shared cookie first (cross-subdomain), then localStorage
+            try {
+                const match = document.cookie.match(/(?:^|; )wwwLocale=([^;]*)/);
+                if (match) {
+                    const fromCookie = normalize(decodeURIComponent(match[1]));
+                    if (fromCookie) return fromCookie;
+                }
+            } catch {
+                // ignore
             }
+            const saved = normalize(localStorage.getItem('wwwLocale'));
+            if (saved) return saved;
         } catch {
             // ignore
         }
@@ -178,7 +192,7 @@ window.getWwwSocketIoOptions = getWwwSocketIoOptions;
 window.wwwPrefixT = wwwPrefixT;
 
 /**
- * Switch www locale and reload page (persists in localStorage + ?lang=).
+ * Switch www locale and reload page (persists shared cookie + localStorage + ?lang=).
  * @param {string} locale
  */
 function setWwwLocale(locale) {
@@ -188,10 +202,14 @@ function setWwwLocale(locale) {
     const normalized = typeof normalizeWwwLocale === 'function'
         ? (normalizeWwwLocale(locale) || defaultLocale)
         : defaultLocale;
-    try {
-        localStorage.setItem('wwwLocale', normalized);
-    } catch {
-        // ignore
+    if (typeof persistWwwLocale === 'function') {
+        persistWwwLocale(normalized);
+    } else {
+        try {
+            localStorage.setItem('wwwLocale', normalized);
+        } catch {
+            // ignore
+        }
     }
     const url = new URL(globalThis.location.href);
     url.searchParams.set('lang', normalized);

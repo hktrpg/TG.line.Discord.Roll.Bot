@@ -65,13 +65,13 @@
     "game_name": "【語言 Language】",
     "current": "目前語言 Current language：{{locale}}",
     "list_header": "支援語言 Supported languages：",
-    "set_success_guild": "【伺服器 Server】回覆語言已設為 / Reply language set to：{{locale}}\n\n行為 Behavior：\n• 此伺服器內，機器人回覆將改用該語言\n  Bot replies in this server will use this language\n• 僅影響本伺服器，不影響其他伺服器或私訊\n  Affects this server only — not other servers or DMs\n• 指令前綴不變（.cc、bothelp、/lang …）\n  Command prefixes unchanged (.cc, bothelp, /lang, …)\n• 還原繁中 / Restore Chinese：.lang zh-tw\n• 改回英文 / Switch to English：.lang en",
-    "set_success_user": "【私訊 DM】個人回覆語言已設為 / Your DM reply language set to：{{locale}}\n\n行為 Behavior：\n• 僅影響你與機器人的私訊回覆\n  Affects only your DMs with the bot\n• 不影響任何伺服器／群組的回覆語言\n  Does not change language in any server/group\n• 指令前綴不變（.cc、bothelp、/lang …）\n  Command prefixes unchanged (.cc, bothelp, /lang, …)\n• 還原繁中 / Restore Chinese：.lang zh-tw\n• 改回英文 / Switch to English：.lang en",
+    "set_success_guild": "【伺服器 Server】回覆語言已設為 / Reply language set to：{{locale}}\n\n行為 Behavior：\n• 此伺服器內，機器人回覆將改用該語言\n  Bot replies in this server will use this language\n• 僅影響本伺服器，不影響其他伺服器或私訊\n  Affects this server only — not other servers or DMs\n• 指令前綴不變（.cc、bothelp、/lang …）\n  Command prefixes unchanged (.cc, bothelp, /lang, …)\n• 還原繁中 / Traditional Chinese：.lang zh-tw\n• 改簡體 / Simplified Chinese：.lang zh-hans\n• 改回英文 / Switch to English：.lang en",
+    "set_success_user": "【私訊 DM】個人回覆語言已設為 / Your DM reply language set to：{{locale}}\n\n行為 Behavior：\n• 僅影響你與機器人的私訊回覆\n  Affects only your DMs with the bot\n• 不影響任何伺服器／群組的回覆語言\n  Does not change language in any server/group\n• 指令前綴不變（.cc、bothelp、/lang …）\n  Command prefixes unchanged (.cc, bothelp, /lang, …)\n• 還原繁中 / Traditional Chinese：.lang zh-tw\n• 改簡體 / Simplified Chinese：.lang zh-hans\n• 改回英文 / Switch to English：.lang en",
     "set_denied": "需要伺服器管理員權限才能變更伺服器語言。\nAdministrator permission required to change server language.",
     "no_database": "需要資料庫連線才能儲存語言設定。\nDatabase connection required to save language settings.",
     "unsupported": "不支援的語言 Unsupported language。\n支援 Supported：{{locales}}",
-    "usage": "用法 Usage：.lang [zh-tw|en|list]  或 / or  /lang",
-    "help": "【🌐 語言 Language】\n╭────── ℹ️ 指令 Commands ──────\n│ .lang          - 顯示本說明\n│                 Show this help\n│ .lang show     - 顯示目前語言\n│                 Show current language\n│ .lang list     - 列出支援語言\n│                 List supported locales\n│ .lang zh-tw    - 設為繁體中文\n│                 Set Traditional Chinese\n│ .lang en       - 設為英文\n│                 Set English\n│ /lang          - Discord slash 版（同上）\n│                 Discord slash (same as above)\n│\n├────── 行為 Behavior ──────\n│ 【伺服器 Server】\n│ • 需管理員權限 Admin permission required\n│ • 影響此伺服器內所有機器人回覆\n│   Changes bot replies for the whole server\n│ • 不影響其他伺服器或私訊\n│   Does not affect other servers or DMs\n│\n│ 【私訊 DM】\n│ • 任何人可設定 Anyone can set\n│ • 僅影響你與機器人的私訊回覆\n│   Affects only your DMs with the bot\n│ • 不影響任何伺服器／群組\n│   Does not change any server/group language\n│\n│ ※ 指令前綴不變 Prefixes unchanged\n│   （.cc / bothelp / /lang …）\n│ ※ 預設語言 Default：繁體中文 zh-tw\n╰──────────────"
+    "usage": "用法 Usage：.lang [zh-tw|zh-hans|en|list]  或 / or  /lang",
+    "help": "【🌐 語言 Language】\n╭────── ℹ️ 指令 Commands ──────\n│ .lang          - 顯示本說明\n│                 Show this help\n│ .lang show     - 顯示目前語言\n│                 Show current language\n│ .lang list     - 列出支援語言\n│                 List supported locales\n│ .lang zh-tw    - 設為繁體中文\n│                 Set Traditional Chinese\n│ .lang zh-hans  - 設為簡體中文\n│                 Set Simplified Chinese\n│ .lang en       - 設為英文\n│                 Set English\n│ /lang          - Discord slash 版（同上）\n│                 Discord slash (same as above)\n│\n├────── 行為 Behavior ──────\n│ 【伺服器 Server】\n│ • 需管理員權限 Admin permission required\n│ • 影響此伺服器內所有機器人回覆\n│   Changes bot replies for the whole server\n│ • 不影響其他伺服器或私訊\n│   Does not affect other servers or DMs\n│\n│ 【私訊 DM】\n│ • 任何人可設定 Anyone can set\n│ • 僅影響你與機器人的私訊回覆\n│   Affects only your DMs with the bot\n│ • 不影響任何伺服器／群組\n│   Does not change any server/group language\n│\n│ ※ 指令前綴不變 Prefixes unchanged\n│   （.cc / bothelp / /lang …）\n│ ※ 預設語言 Default：繁體中文 zh-tw\n╰──────────────"
   },
   "welcome": {
     "join_message": [
@@ -204,14 +204,17 @@
       "│ Default replies: Traditional Chinese",
       "│",
       "│ 【伺服器 Server】管理員 Admin:",
-      "│   .lang en      → 全伺服器英文回覆",
-      "│                 → English replies for server",
-      "│   .lang zh-tw   → 還原繁體中文",
-      "│   /lang en      （slash 版 same as above）",
+      "│   .lang en        → 全伺服器英文回覆",
+      "│                   → English replies for server",
+      "│   .lang zh-hans   → 簡體中文回覆",
+      "│                   → Simplified Chinese replies",
+      "│   .lang zh-tw     → 還原繁體中文",
+      "│   /lang en        （slash 版 same as above）",
       "│",
       "│ 【私訊 DM】個人語言 Personal:",
-      "│   .lang en      → 僅你的 DM 英文",
-      "│                 → English in your DMs only",
+      "│   .lang en        → 僅你的 DM 英文",
+      "│                   → English in your DMs only",
+      "│   .lang zh-hans   → 僅你的 DM 簡體",
       "│",
       "│ ※ 指令前綴不變 Prefixes unchanged",
       "│   .cc  bothelp  /bothelp  /in  …",
@@ -352,6 +355,7 @@
             "show": "顯示目前語言 / Show current",
             "list": "列出支援語言 / List languages",
             "zh-tw": "正體中文 (zh-tw)",
+            "zh-hans": "简体中文 (zh-hans)",
             "en": "English (en)"
           }
         }

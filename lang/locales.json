@@ -15,5 +15,13 @@
     "intl": "en-US",
     "aliases": ["en-us", "en-gb"],
     "prefixes": ["en"]
+  },
+  "zh-hans": {
+    "name": "简体中文",
+    "i18next": "zh-CN",
+    "discord": "zh-CN",
+    "intl": "zh-Hans-CN",
+    "aliases": ["cn", "zh-cn", "zh_cn", "zh_hans", "zh-chs", "zh_chs"],
+    "prefixes": ["zh-hans", "zh-cn"]
   }
 }

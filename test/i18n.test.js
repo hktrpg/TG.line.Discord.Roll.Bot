@@ -30,6 +30,12 @@ describe('i18n module', () => {
             expect(i18n.normalizeLocale('ja')).toBe('zh-tw');
             expect(i18n.normalizeLocale('fr-FR')).toBe('zh-tw');
         });
+
+        test('recognizes Simplified Chinese variants', () => {
+            expect(i18n.normalizeLocale('zh-hans')).toBe('zh-hans');
+            expect(i18n.normalizeLocale('zh-cn')).toBe('zh-hans');
+            expect(i18n.normalizeLocale('cn')).toBe('zh-hans');
+        });
     });
 
     describe('matchLocale', () => {
@@ -42,12 +48,15 @@ describe('i18n module', () => {
         test('matches aliases and codes', () => {
             expect(i18n.matchLocale('zh-hant')).toBe('zh-tw');
             expect(i18n.matchLocale('en-US')).toBe('en');
+            expect(i18n.matchLocale('zh-hans')).toBe('zh-hans');
+            expect(i18n.matchLocale('zh-cn')).toBe('zh-hans');
+            expect(i18n.matchLocale('cn')).toBe('zh-hans');
         });
     });
 
     describe('formatLocaleList', () => {
         test('lists code and display name once per locale', () => {
-            expect(i18n.formatLocaleList()).toBe('zh-tw 正體中文\nen English');
+            expect(i18n.formatLocaleList()).toBe('zh-tw 正體中文\nen English\nzh-hans 简体中文');
         });
     });
 
@@ -172,7 +181,9 @@ describe('lang JSON files', () => {
         const langDir = path.join(__dirname, '..', 'lang');
         expect(fs.existsSync(path.join(langDir, 'zh-tw.json'))).toBe(true);
         expect(fs.existsSync(path.join(langDir, 'en.json'))).toBe(true);
+        expect(fs.existsSync(path.join(langDir, 'zh-hans.json'))).toBe(true);
         expect(fs.existsSync(path.join(langDir, 'overlays', 'en'))).toBe(true);
         expect(fs.existsSync(path.join(langDir, 'overlays', 'zh-tw'))).toBe(true);
+        expect(fs.existsSync(path.join(langDir, 'overlays', 'zh-hans'))).toBe(true);
     });
 });

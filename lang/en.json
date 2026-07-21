@@ -5106,7 +5106,8 @@
       "opttest_result_li3": "✅ Utility class system implemented",
       "opttest_result_li4": "✅ Reduced use of !important",
       "opttest_result_li5": "✅ Improved maintainability and readability",
-      "opttest_result_li6": "✅ Preserved original functionality"
+      "opttest_result_li6": "✅ Preserved original functionality",
+      "nav_lang_zh_hans": "简体中文"
     },
     "api": {
       "rate_limit": "Rate limit exceeded",

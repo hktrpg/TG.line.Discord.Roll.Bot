@@ -5107,7 +5107,8 @@
       "opttest_result_li3": "✅ 工具类别系统已实现",
       "opttest_result_li4": "✅ 减少了!important的使用",
       "opttest_result_li5": "✅ 改善了维护性和可读性",
-      "opttest_result_li6": "✅ 保持了原有功能完整性"
+      "opttest_result_li6": "✅ 保持了原有功能完整性",
+      "nav_lang_zh_hans": "简体中文"
     },
     "api": {
       "rate_limit": "请求过于频繁",

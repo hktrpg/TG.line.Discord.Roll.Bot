@@ -43,6 +43,10 @@ jest.mock('../modules/schema.js', () => ({
     updateOne: jest.fn(),
     find: jest.fn()
   },
+  discordRespawnSchedule: {
+    findOne: jest.fn(),
+    findOneAndUpdate: jest.fn()
+  },
   mongodbState: jest.fn().mockResolvedValue({ connections: [] }),
   mongodbStateCheck: jest.fn().mockResolvedValue({ connections: [] })
 }));
@@ -58,6 +62,16 @@ jest.mock('../modules/check.js', () => ({
 jest.mock('../modules/ds-deploy-commands.js', () => ({
   registeredGlobalSlashCommands: jest.fn(),
   testRegisteredSlashCommands: jest.fn()
+}));
+
+jest.mock('../modules/schedule.js', () => ({
+  agenda: null,
+  JOB_NAME: 'dailyDiscordMaintenance',
+  AGENDA_TIMEZONE: 'Asia/Hong_Kong',
+  SCHEDULE_DOC_KEY: 'default',
+  buildCronExpression: ({ dayOfWeek, hour, minute }) => `${minute} ${hour} * * ${dayOfWeek}`,
+  getRespawnScheduleDoc: jest.fn().mockResolvedValue(null),
+  syncDiscordMaintenanceSchedule: jest.fn().mockResolvedValue({ cancelled: true, registered: false })
 }));
 
 // Import the module after mocking

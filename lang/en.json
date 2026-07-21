@@ -2251,6 +2251,34 @@
         "respawnall": {
           "description": "Restart all services"
         },
+        "mem": {
+          "description": "Show RSS memory per cluster"
+        },
+        "schedule": {
+          "description": "Schedule auto-respawn (opt-in)",
+          "options": {
+            "show": {
+              "description": "Show current schedule"
+            },
+            "set": {
+              "description": "Set weekday and time",
+              "options": {
+                "day": {
+                  "description": "Weekday (0-6 / sun-sat / 日-六)"
+                },
+                "time": {
+                  "description": "Time HH:MM (timezone Asia/Hong_Kong)"
+                }
+              }
+            },
+            "on": {
+              "description": "Enable schedule"
+            },
+            "off": {
+              "description": "Disable schedule"
+            }
+          }
+        },
         "addvipgroup": {
           "description": "Add VIP group",
           "options": {
@@ -3903,7 +3931,7 @@
     "glossary_header": "\n\n----- Glossary -----\n"
   },
   "admin": {
-    "help": "【⚙️ Admin Toolbox】\n╭────── 🔍 System Monitoring ──────\n│ Status check:\n│ 　• .admin state\n│ 　  - Check Rollbot runtime status\n│ 　  - Show system resource usage\n│\n│ ID lookup:\n│ 　• .admin id or .patreon id\n│ 　  - Show your user ID\n│ 　  - Show current group ID\n│ 　  - Works on all platforms\n│\n│ Patreon / VIP level:\n│ 　• .patreon level\n│ 　  - Check your and current group's VIP (Patreon) level\n│\n│ Debug:\n│ 　• .admin debug\n│ 　  - Show detailed group data\n│ 　  - Show setting status\n│\n│ Database status:\n│ 　• .admin mongod\n│ 　  - Check MongoDB connection status\n│\n│ System protection status:\n│ 　• .admin clusterhealth\n│ 　  - Check DB and cluster protection layers\n│ 　  - Show degraded mode and health stats\n│\n├────── 👤 Account Management ──────\n│ Web character card account:\n│ 　• .admin account [username] [password]\n│\n│ Username rules:\n│ 　• Length: 4-16 chars\n│ 　• Allowed: Chinese, English\n│\n│ Password rules:\n│ 　• Length: 6-16 chars\n│ 　• Allowed: letters\n│ 　• Symbols: !@#$%^&*\n│ \n│ Must be configured in direct chat with HKTRPG,\n│ do not use in group channels\n│\n│ Channel registration:\n│ 　• .admin registerChannel\n│ 　  - Register current channel\n│ 　• .admin unregisterChannel\n│ 　  - Unregister current channel\n│\n│ Rolling permission:\n│ 　• .admin allowrolling\n│ 　  - Allow web rolling in this channel\n│ 　• .admin disallowrolling\n│ 　  - Remove web rolling permission\n│\n├────── 📢 Update Notifications ──────\n│ Enable:\n│ 　• .admin news on\n│ 　  Receive HKTRPG updates\n│\n│ Disable:\n│ 　• .admin news off\n│ 　  Stop receiving updates\n│\n├────── 🔐 System Admin Only ──────\n│ Service restart:\n│ 　• .root respawn [ID]\n│ 　  - Restart the service by ID\n│ 　• .root respawnall\n│ 　  - Restart all services\n│\n│ VIP management:\n│ 　• .root addVipGroup -i ID -l LV -n NAME -no NOTES -s SWITCH\n│ 　  - Add VIP group\n│ 　• .root addVipUser -i ID -l LV -n NAME -no NOTES -s SWITCH\n│ 　  - Add VIP user\n│\n│ Patreon members:\n│ 　• .root addpatreon PATREON_NAME tier=A|B|C|D|E|F [-no NOTES] [-s on|off]\n│ 　  - Generate KEY on create; update only tier/notes/status, keep KEY\n│ 　• .root regenkeypatreon PATREON_NAME\n│ 　  - Regenerate KEY, old KEY expires immediately\n│ 　• .root onpatreon PATREON_NAME\n│ 　  - Enable this member\n│ 　• .root offpatreon PATREON_NAME\n│ 　  - Disable this member (and revoke assigned VIP)\n│ 　• .root importpatreon [allkeys|newonly] [-email]\n│ 　  - Upload .csv to sync members. allkeys=all keys, newonly=new keys only. -email=generate email content file\n│\n│ Command registration:\n│ 　• .root registeredGlobal\n│ 　  - Register global commands\n│ 　• .root testRegistered [ID]\n│ 　  - Test command registration status\n│ 　• .root removeSlashCommands [ID]\n│ 　  - Remove Slash commands from target group (uses current group if ID missing)\n│\n│ Encryption:\n│ 　• .root decrypt [encrypted_text]\n│ 　  - Decrypt text\n│\n│ Shard fix:\n│ 　• .root fixshard check\n│ 　  - Check all shard status\n│ 　• .root fixshard start\n│ 　  - Start auto-fixing unresponsive shards\n│ 　• .root fixshard stop\n│ 　  - Stop auto-fix\n│ 　• .root fixshard status\n│ 　  - Show fix status\n\n│ Send notifications:\n│ 　• .root send News [message]\n│ 　  - Send update notification\n╰──────────────",
+    "help": "【⚙️ Admin Toolbox】\n╭────── 🔍 System Monitoring ──────\n│ Status check:\n│ 　• .admin state\n│ 　  - Check Rollbot runtime status\n│ 　  - Show system resource usage\n│\n│ ID lookup:\n│ 　• .admin id or .patreon id\n│ 　  - Show your user ID\n│ 　  - Show current group ID\n│ 　  - Works on all platforms\n│\n│ Patreon / VIP level:\n│ 　• .patreon level\n│ 　  - Check your and current group's VIP (Patreon) level\n│\n│ Debug:\n│ 　• .admin debug\n│ 　  - Show detailed group data\n│ 　  - Show setting status\n│\n│ Database status:\n│ 　• .admin mongod\n│ 　  - Check MongoDB connection status\n│\n│ System protection status:\n│ 　• .admin clusterhealth\n│ 　  - Check DB and cluster protection layers\n│ 　  - Show degraded mode and health stats\n│\n├────── 👤 Account Management ──────\n│ Web character card account:\n│ 　• .admin account [username] [password]\n│\n│ Username rules:\n│ 　• Length: 4-16 chars\n│ 　• Allowed: Chinese, English\n│\n│ Password rules:\n│ 　• Length: 6-16 chars\n│ 　• Allowed: letters\n│ 　• Symbols: !@#$%^&*\n│ \n│ Must be configured in direct chat with HKTRPG,\n│ do not use in group channels\n│\n│ Channel registration:\n│ 　• .admin registerChannel\n│ 　  - Register current channel\n│ 　• .admin unregisterChannel\n│ 　  - Unregister current channel\n│\n│ Rolling permission:\n│ 　• .admin allowrolling\n│ 　  - Allow web rolling in this channel\n│ 　• .admin disallowrolling\n│ 　  - Remove web rolling permission\n│\n├────── 📢 Update Notifications ──────\n│ Enable:\n│ 　• .admin news on\n│ 　  Receive HKTRPG updates\n│\n│ Disable:\n│ 　• .admin news off\n│ 　  Stop receiving updates\n│\n├────── 🔐 System Admin Only ──────\n│ Service restart:\n│ 　• .root respawn [ID]\n│ 　  - Restart the service by ID\n│ 　• .root respawnall\n│ 　  - Restart all services\n│ 　• .root mem  /  /root mem\n│ 　  - Show RSS memory per cluster\n│\n│ Auto-respawn schedule (off by default, opt-in):\n│ 　• /root schedule show|set|on|off\n│ 　• .root schedule\n│ 　  - Show current schedule\n│ 　• .root schedule set <weekday> <HH:MM>\n│ 　  - Set weekday and time (e.g. sun 04:55 / mon 05:00)\n│ 　• .root schedule on\n│ 　  - Enable schedule\n│ 　• .root schedule off\n│ 　  - Disable schedule\n│\n│ VIP management:\n│ 　• .root addVipGroup -i ID -l LV -n NAME -no NOTES -s SWITCH\n│ 　  - Add VIP group\n│ 　• .root addVipUser -i ID -l LV -n NAME -no NOTES -s SWITCH\n│ 　  - Add VIP user\n│\n│ Patreon members:\n│ 　• .root addpatreon PATREON_NAME tier=A|B|C|D|E|F [-no NOTES] [-s on|off]\n│ 　  - Generate KEY on create; update only tier/notes/status, keep KEY\n│ 　• .root regenkeypatreon PATREON_NAME\n│ 　  - Regenerate KEY, old KEY expires immediately\n│ 　• .root onpatreon PATREON_NAME\n│ 　  - Enable this member\n│ 　• .root offpatreon PATREON_NAME\n│ 　  - Disable this member (and revoke assigned VIP)\n│ 　• .root importpatreon [allkeys|newonly] [-email]\n│ 　  - Upload .csv to sync members. allkeys=all keys, newonly=new keys only. -email=generate email content file\n│\n│ Command registration:\n│ 　• .root registeredGlobal\n│ 　  - Register global commands\n│ 　• .root testRegistered [ID]\n│ 　  - Test command registration status\n│ 　• .root removeSlashCommands [ID]\n│ 　  - Remove Slash commands from target group (uses current group if ID missing)\n│\n│ Encryption:\n│ 　• .root decrypt [encrypted_text]\n│ 　  - Decrypt text\n│\n│ Shard fix:\n│ 　• .root fixshard check\n│ 　  - Check all shard status\n│ 　• .root fixshard start\n│ 　  - Start auto-fixing unresponsive shards\n│ 　• .root fixshard stop\n│ 　  - Stop auto-fix\n│ 　• .root fixshard status\n│ 　  - Show fix status\n\n│ Send notifications:\n│ 　• .root send News [message]\n│ 　  - Send update notification\n╰──────────────",
     "game_name": "【Admin Tool】.admin debug state account news on",
     "slash_invalid_command": "Invalid command",
     "error_missing_target_id": "Error: ID not provided and current group ID is unavailable",
@@ -4075,7 +4103,32 @@
     "store_missing_group_id": "Missing group ID (-g parameter)",
     "store_missing_level": "Missing level (-l parameter)",
     "store_missing_name": "Missing name (-n parameter)",
-    "not_available": "N/A"
+    "not_available": "N/A",
+    "mem_discord_only": "This command is Discord-only",
+    "mem_no_data": "No cluster memory data available",
+    "mem_failed": "Memory query failed: {{message}}",
+    "mem_line": "• Cluster {{id}}: RSS {{rss}} MB | Heap {{heap}}/{{heap_total}} MB | Ext {{external}} MB | uptime {{uptime}}s",
+    "mem_report": "📊 **Cluster Memory**\n• Clusters: {{count}}\n• Total RSS: {{total_rss}} MB\n• Host RAM: {{host_used}} / {{host_total}} MB ({{host_percent}}%, free {{host_free}} MB)\n• Warn / Critical: {{warn_at}}% / {{critical_at}}%\n• Per-process heap limit: ~{{heap_limit}} MB\n\n{{lines}}",
+    "schedule_set_usage": "Usage:\n.root schedule set <weekday> <HH:MM>\n.root schedule on|off\n.root schedule\n/root schedule show|set|on|off\n\nWeekday: 0-6 / sun-sat / 日-六\ne.g. .root schedule set sun 04:55\n     .root schedule set mon 05:00\n※ set only saves config; run .root schedule on to enable\nTimezone: Asia/Hong_Kong (override with AGENDA_TIMEZONE)",
+    "schedule_invalid_day": "Invalid weekday. Use 0-6, sun-sat, or 日/一/二/三/四/五/六",
+    "schedule_invalid_time": "Invalid time. Use HH:MM (24h), e.g. 04:55",
+    "schedule_db_unavailable": "Database unavailable; schedule feature disabled",
+    "schedule_set_success": "Schedule saved: every {{weekday}} at {{time}} ({{timezone}})\nStatus: {{enabled}}\n※ If still off, run .root schedule on",
+    "schedule_on_need_set": "Weekday/time not set yet. First run:\n.root schedule set <weekday> <HH:MM>\nthen .root schedule on",
+    "schedule_on_success": "Auto-respawn enabled: every {{weekday}} at {{time}} ({{timezone}})",
+    "schedule_off_success": "Auto-respawn schedule disabled",
+    "schedule_failed": "Schedule operation failed: {{message}}",
+    "schedule_show_empty": "Auto-respawn schedule: not set\nStatus: off (opt-in)\nTimezone: {{timezone}}\n\nSet: .root schedule set <weekday> <HH:MM>\nEnable: .root schedule on",
+    "schedule_show": "Auto-respawn schedule\n• Status: {{enabled}}\n• When: every {{weekday}} at {{time}}\n• Timezone: {{timezone}}\n• Cron: {{cron}}",
+    "schedule_status_on": "ON",
+    "schedule_status_off": "OFF",
+    "weekday_0": "Sunday",
+    "weekday_1": "Monday",
+    "weekday_2": "Tuesday",
+    "weekday_3": "Wednesday",
+    "weekday_4": "Thursday",
+    "weekday_5": "Friday",
+    "weekday_6": "Saturday"
   },
   "patreon": {
     "tier_label_1": "Tier A: Investigator",

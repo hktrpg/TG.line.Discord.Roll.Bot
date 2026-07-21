@@ -660,17 +660,17 @@ if (agenda) {
         }
 
         const timestamp = new Date().toISOString();
-        const stack = new Error('Daily maintenance stack trace').stack;
+        const stack = new Error('Scheduled maintenance stack trace').stack;
         const stackLines = stack ? stack.split('\n').slice(2).join('\n') : 'No stack trace available';
 
-        console.error('[Schedule] ========== DAILY MAINTENANCE RESPAWN TRIGGERED ==========');
+        console.error('[Schedule] ========== SCHEDULED RESPAWN TRIGGERED ==========');
         console.error(`[Schedule] Timestamp: ${timestamp}`);
-        console.error(`[Schedule] Task: dailyDiscordMaintenance`);
+        console.error(`[Schedule] Task: dailyDiscordMaintenance (opt-in .root schedule)`);
         console.error(`[Schedule] Total Clusters: ${manager.clusters.size}`);
         console.error(`[Schedule] PID: ${process.pid}, PPID: ${process.ppid}`);
         console.error(`[Schedule] Stack Trace:\n${stackLines}`);
         console.error('[Schedule] ==========================================');
-        console.log('[Schedule] Running daily Discord maintenance');
+        console.log('[Schedule] Running scheduled Discord respawn');
 
         try {
             await manager.respawnAll({
@@ -678,14 +678,14 @@ if (agenda) {
                 respawnDelay: 1000,
                 timeout: 1000 * 60 * 3
             });
-            console.error('[Schedule] Daily maintenance respawnAll completed successfully');
+            console.error('[Schedule] Scheduled respawnAll completed successfully');
         } catch (error) {
-            console.error('[Schedule] ========== DAILY MAINTENANCE ERROR ==========');
+            console.error('[Schedule] ========== SCHEDULED RESPAWN ERROR ==========');
             console.error(`[Schedule] Error Name: ${error && error.name}`);
             console.error(`[Schedule] Error Message: ${error && error.message}`);
             console.error(`[Schedule] Stack: ${error && error.stack}`);
             console.error('[Schedule] ==========================================');
-            console.error('[Schedule] Failed to perform maintenance:', error);
+            console.error('[Schedule] Failed to perform scheduled respawn:', error);
         }
     });
 }

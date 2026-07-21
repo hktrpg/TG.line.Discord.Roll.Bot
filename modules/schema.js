@@ -439,6 +439,17 @@ if (process.env.mongoURL) {
         ]
     }));
 
+    // Opt-in Discord cluster respawn schedule (.root schedule). Singleton via key.
+    models.discordRespawnSchedule = mongoose.model('discordRespawnSchedule', new Schema({
+        key: { type: String, default: 'default', unique: true },
+        enabled: { type: Boolean, default: false },
+        dayOfWeek: { type: Number, min: 0, max: 6 }, // 0=Sunday … 6=Saturday (cron)
+        hour: { type: Number, min: 0, max: 23 },
+        minute: { type: Number, min: 0, max: 59 },
+        updatedBy: String,
+        updatedAt: { type: Date, default: Date.now }
+    }));
+
     models.theNewsMessage = mongoose.model('theNewsMessage', new Schema({
         userID: { type: String, index: true },
         botname: { type: String, index: true },

@@ -2236,6 +2236,34 @@
         "respawnall": {
           "description": "重啟所有服務"
         },
+        "mem": {
+          "description": "顯示各叢集 RSS 記憶體"
+        },
+        "schedule": {
+          "description": "排程自動 respawn（需手動開啟）",
+          "options": {
+            "show": {
+              "description": "查看目前排程"
+            },
+            "set": {
+              "description": "設定星期與時間",
+              "options": {
+                "day": {
+                  "description": "星期 (0-6 / sun-sat / 日-六)"
+                },
+                "time": {
+                  "description": "時間 HH:MM（時區 Asia/Hong_Kong）"
+                }
+              }
+            },
+            "on": {
+              "description": "開啟排程"
+            },
+            "off": {
+              "description": "關閉排程"
+            }
+          }
+        },
         "addvipgroup": {
           "description": "新增VIP群組",
           "options": {
@@ -3888,7 +3916,7 @@
     "glossary_header": "\n\n----- 名詞對照表 (Glossary) -----\n"
   },
   "admin": {
-    "help": "【⚙️管理員工具箱】\n╭────── 🔍系統監控 ──────\n│ 狀態查詢:\n│ 　• .admin state\n│ 　  - 檢視Rollbot運行狀態\n│ 　  - 顯示系統資源使用\n│\n│ ID查詢:\n│ 　• .admin id 或 .patreon id\n│ 　  - 自動顯示你的用戶ID\n│ 　  - 自動顯示當前群組ID\n│ 　  - 所有平台皆可使用\n│\n│ Patreon / VIP 等級:\n│ 　• .patreon level\n│ 　  - 查詢自己與當前群組的 VIP（Patreon）等級\n│\n│ 除錯功能:\n│ 　• .admin debug\n│ 　  - 取得群組詳細資料\n│ 　  - 顯示設定狀態\n│\n│ 資料庫狀態:\n│ 　• .admin mongod\n│ 　  - 檢視MongoDB連接狀態\n│\n│ 系統保護狀態:\n│ 　• .admin clusterhealth\n│ 　  - 檢視數據庫與分流保護層狀態\n│ 　  - 顯示降級模式與集群健康統計\n│\n├────── 👤帳號管理 ──────\n│ 網頁版角色卡設定:\n│ 　• .admin account [使用者名稱] [密碼]\n│\n│ 使用者名稱規則:\n│ 　• 長度: 4-16字元\n│ 　• 允許: 中文、英文\n│\n│ 密碼規則:\n│ 　• 長度: 6-16字元\n│ 　• 允許: 英文字母\n│ 　• 特殊符號: !@#$%^&*\n│ \n│ 需要與HKTRPG獨立聊天設定，\n│ 禁止在群組中使用\n│\n│ 頻道註冊:\n│ 　• .admin registerChannel\n│ 　  - 註冊當前頻道\n│ 　• .admin unregisterChannel\n│ 　  - 取消註冊當前頻道\n│\n│ 擲骰權限:\n│ 　• .admin allowrolling\n│ 　  - 允許頻道使用網頁擲骰\n│ 　• .admin disallowrolling\n│ 　  - 取消頻道網頁擲骰權限\n│\n├────── 📢更新通知 ──────\n│ 開啟通知:\n│ 　• .admin news on\n│ 　  接收HKTRPG更新資訊\n│\n│ 關閉通知:\n│ 　• .admin news off\n│ 　  停止接收更新資訊\n│\n├────── 🔐系統管理員專用 ──────\n│ 系統重啟:\n│ 　• .root respawn [ID]\n│ 　  - 重啟指定ID的服務\n│ 　• .root respawnall\n│ 　  - 重啟所有服務\n│\n│ VIP管理:\n│ 　• .root addVipGroup -i ID -l LV -n NAME -no NOTES -s SWITCH\n│ 　  - 新增VIP群組\n│ 　• .root addVipUser -i ID -l LV -n NAME -no NOTES -s SWITCH\n│ 　  - 新增VIP用戶\n│\n│ Patreon 會員:\n│ 　• .root addpatreon PATREON_NAME tier=A|B|C|D|E|F [-no NOTES] [-s on|off]\n│ 　  - 新增時產生 KEY；更新時只改 TIER/備註/狀態，KEY 不變\n│ 　• .root regenkeypatreon PATREON_NAME\n│ 　  - 重新產生 KEY，舊 KEY 即時失效\n│ 　• .root onpatreon PATREON_NAME\n│ 　  - 開啟該會員狀態\n│ 　• .root offpatreon PATREON_NAME\n│ 　  - 關閉該會員狀態 (並收回其已分配的 VIP)\n│ 　• .root importpatreon [allkeys|newonly] [-email]\n│ 　  - 上傳 .csv 自動同步會員。allkeys=全KEY，newonly=新KEY。-email=產生電郵內容檔\n│\n│ 指令註冊:\n│ 　• .root registeredGlobal\n│ 　  - 註冊全局指令\n│ 　• .root testRegistered [ID]\n│ 　  - 測試指令註冊狀態\n│ 　• .root removeSlashCommands [ID]\n│ 　  - 移除指定群組的 Slash 指令（未給 ID 則使用目前群組）\n│\n│ 加密功能:\n│ 　• .root decrypt [加密文字]\n│ 　  - 解密文字\n│\n│ Shard 修復:\n│ 　• .root fixshard check\n│ 　  - 檢查所有 shard 狀態\n│ 　• .root fixshard start\n│ 　  - 開始自動修復 unresponsive shards\n│ 　• .root fixshard stop\n│ 　  - 停止自動修復\n│ 　• .root fixshard status\n│ 　  - 查看修復狀態\n\n│ 發送通知:\n│ 　• .root send News [訊息]\n│ 　  - 發送更新通知\n╰──────────────",
+    "help": "【⚙️管理員工具箱】\n╭────── 🔍系統監控 ──────\n│ 狀態查詢:\n│ 　• .admin state\n│ 　  - 檢視Rollbot運行狀態\n│ 　  - 顯示系統資源使用\n│\n│ ID查詢:\n│ 　• .admin id 或 .patreon id\n│ 　  - 自動顯示你的用戶ID\n│ 　  - 自動顯示當前群組ID\n│ 　  - 所有平台皆可使用\n│\n│ Patreon / VIP 等級:\n│ 　• .patreon level\n│ 　  - 查詢自己與當前群組的 VIP（Patreon）等級\n│\n│ 除錯功能:\n│ 　• .admin debug\n│ 　  - 取得群組詳細資料\n│ 　  - 顯示設定狀態\n│\n│ 資料庫狀態:\n│ 　• .admin mongod\n│ 　  - 檢視MongoDB連接狀態\n│\n│ 系統保護狀態:\n│ 　• .admin clusterhealth\n│ 　  - 檢視數據庫與分流保護層狀態\n│ 　  - 顯示降級模式與集群健康統計\n│\n├────── 👤帳號管理 ──────\n│ 網頁版角色卡設定:\n│ 　• .admin account [使用者名稱] [密碼]\n│\n│ 使用者名稱規則:\n│ 　• 長度: 4-16字元\n│ 　• 允許: 中文、英文\n│\n│ 密碼規則:\n│ 　• 長度: 6-16字元\n│ 　• 允許: 英文字母\n│ 　• 特殊符號: !@#$%^&*\n│ \n│ 需要與HKTRPG獨立聊天設定，\n│ 禁止在群組中使用\n│\n│ 頻道註冊:\n│ 　• .admin registerChannel\n│ 　  - 註冊當前頻道\n│ 　• .admin unregisterChannel\n│ 　  - 取消註冊當前頻道\n│\n│ 擲骰權限:\n│ 　• .admin allowrolling\n│ 　  - 允許頻道使用網頁擲骰\n│ 　• .admin disallowrolling\n│ 　  - 取消頻道網頁擲骰權限\n│\n├────── 📢更新通知 ──────\n│ 開啟通知:\n│ 　• .admin news on\n│ 　  接收HKTRPG更新資訊\n│\n│ 關閉通知:\n│ 　• .admin news off\n│ 　  停止接收更新資訊\n│\n├────── 🔐系統管理員專用 ──────\n│ 系統重啟:\n│ 　• .root respawn [ID]\n│ 　  - 重啟指定ID的服務\n│ 　• .root respawnall\n│ 　  - 重啟所有服務\n│ 　• .root mem  /  /root mem\n│ 　  - 顯示各 Cluster RSS 記憶體\n│\n│ 自動 Respawn 排程（預設關閉，需手動開啟）:\n│ 　• /root schedule show|set|on|off\n│ 　• .root schedule\n│ 　  - 查看目前排程\n│ 　• .root schedule set <星期> <HH:MM>\n│ 　  - 設定星期與時間（例: 日 04:55 / mon 05:00）\n│ 　• .root schedule on\n│ 　  - 開啟排程\n│ 　• .root schedule off\n│ 　  - 關閉排程\n│\n│ VIP管理:\n│ 　• .root addVipGroup -i ID -l LV -n NAME -no NOTES -s SWITCH\n│ 　  - 新增VIP群組\n│ 　• .root addVipUser -i ID -l LV -n NAME -no NOTES -s SWITCH\n│ 　  - 新增VIP用戶\n│\n│ Patreon 會員:\n│ 　• .root addpatreon PATREON_NAME tier=A|B|C|D|E|F [-no NOTES] [-s on|off]\n│ 　  - 新增時產生 KEY；更新時只改 TIER/備註/狀態，KEY 不變\n│ 　• .root regenkeypatreon PATREON_NAME\n│ 　  - 重新產生 KEY，舊 KEY 即時失效\n│ 　• .root onpatreon PATREON_NAME\n│ 　  - 開啟該會員狀態\n│ 　• .root offpatreon PATREON_NAME\n│ 　  - 關閉該會員狀態 (並收回其已分配的 VIP)\n│ 　• .root importpatreon [allkeys|newonly] [-email]\n│ 　  - 上傳 .csv 自動同步會員。allkeys=全KEY，newonly=新KEY。-email=產生電郵內容檔\n│\n│ 指令註冊:\n│ 　• .root registeredGlobal\n│ 　  - 註冊全局指令\n│ 　• .root testRegistered [ID]\n│ 　  - 測試指令註冊狀態\n│ 　• .root removeSlashCommands [ID]\n│ 　  - 移除指定群組的 Slash 指令（未給 ID 則使用目前群組）\n│\n│ 加密功能:\n│ 　• .root decrypt [加密文字]\n│ 　  - 解密文字\n│\n│ Shard 修復:\n│ 　• .root fixshard check\n│ 　  - 檢查所有 shard 狀態\n│ 　• .root fixshard start\n│ 　  - 開始自動修復 unresponsive shards\n│ 　• .root fixshard stop\n│ 　  - 停止自動修復\n│ 　• .root fixshard status\n│ 　  - 查看修復狀態\n\n│ 發送通知:\n│ 　• .root send News [訊息]\n│ 　  - 發送更新通知\n╰──────────────",
     "game_name": "【Admin Tool】.admin debug state account news on",
     "slash_invalid_command": "無效的指令",
     "error_missing_target_id": "錯誤：未提供ID且無法獲取當前群組ID",
@@ -4060,7 +4088,32 @@
     "store_missing_group_id": "缺少群組ID (-g 參數)",
     "store_missing_level": "缺少等級 (-l 參數)",
     "store_missing_name": "缺少名稱 (-n 參數)",
-    "not_available": "N/A"
+    "not_available": "N/A",
+    "mem_discord_only": "此指令僅限 Discord 使用",
+    "mem_no_data": "無法取得叢集記憶體資料",
+    "mem_failed": "記憶體查詢失敗：{{message}}",
+    "mem_line": "• 叢集 {{id}}：RSS {{rss}} MB｜Heap {{heap}}/{{heap_total}} MB｜Ext {{external}} MB｜運行 {{uptime}} 秒",
+    "mem_report": "📊 **叢集記憶體**\n• 叢集數：{{count}}\n• RSS 合計：{{total_rss}} MB\n• 主機 RAM：{{host_used}} / {{host_total}} MB（{{host_percent}}%，剩餘 {{host_free}} MB）\n• 警戒／危急：{{warn_at}}%／{{critical_at}}%\n• 單程序 Heap 上限：約 {{heap_limit}} MB\n\n{{lines}}",
+    "schedule_set_usage": "用法：\n.root schedule set <星期> <HH:MM>\n.root schedule on|off\n.root schedule\n/root schedule show|set|on|off\n\n星期可用：0-6 / sun-sat / 日-六\n例：.root schedule set 日 04:55\n　　.root schedule set mon 05:00\n※ set 只儲存設定，需再 .root schedule on 才會啟用\n時區：Asia/Hong_Kong（可用 AGENDA_TIMEZONE 覆寫）",
+    "schedule_invalid_day": "無效的星期。請用 0-6、sun-sat 或 日/一/二/三/四/五/六",
+    "schedule_invalid_time": "無效的時間。請用 HH:MM（24 小時制），例如 04:55",
+    "schedule_db_unavailable": "資料庫未啟用，無法使用排程功能",
+    "schedule_set_success": "已儲存排程：每{{weekday}} {{time}}（{{timezone}}）\n目前狀態：{{enabled}}\n※ 若尚未開啟，請再輸入 .root schedule on",
+    "schedule_on_need_set": "尚未設定星期與時間。請先：\n.root schedule set <星期> <HH:MM>\n再輸入 .root schedule on",
+    "schedule_on_success": "已開啟自動 respawn：每{{weekday}} {{time}}（{{timezone}}）",
+    "schedule_off_success": "已關閉自動 respawn 排程",
+    "schedule_failed": "排程操作失敗：{{message}}",
+    "schedule_show_empty": "自動 respawn 排程：未設定\n狀態：關閉（需手動開啟）\n時區：{{timezone}}\n\n設定：.root schedule set <星期> <HH:MM>\n開啟：.root schedule on",
+    "schedule_show": "自動 respawn 排程\n• 狀態：{{enabled}}\n• 時間：每{{weekday}} {{time}}\n• 時區：{{timezone}}\n• Cron：{{cron}}",
+    "schedule_status_on": "開啟",
+    "schedule_status_off": "關閉",
+    "weekday_0": "星期日",
+    "weekday_1": "星期一",
+    "weekday_2": "星期二",
+    "weekday_3": "星期三",
+    "weekday_4": "星期四",
+    "weekday_5": "星期五",
+    "weekday_6": "星期六"
   },
   "patreon": {
     "tier_label_1": "Tier A: 調查員",

@@ -6,6 +6,8 @@ const opt = {
 }
 // const salt = process.env.SALT; // No longer needed with new security module
 const crypto = require('crypto');
+const os = require('node:os');
+const v8 = require('node:v8');
 const { SlashCommandBuilder } = require('discord.js');
 const security = require('../utils/security.js');
 // CRYPTO_SECRET is used via security.encryptWithCryptoSecret / decryptWithCryptoSecret
@@ -32,6 +34,9 @@ const clusterProtection = require('../modules/cluster-protection.js');
 const patreonTiers = require('../modules/patreon-tiers.js');
 const patreonSync = require('../modules/patreon-sync.js');
 const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const scheduleModule = require('../modules/schedule.js');
+const SCHEDULE_DOC_KEY = scheduleModule.SCHEDULE_DOC_KEY || 'default';
+const AGENDA_TIMEZONE = scheduleModule.AGENDA_TIMEZONE || process.env.AGENDA_TIMEZONE || 'Asia/Hong_Kong';
 const gameName = function (params = {}) {
     return resolveGameName(params, 'admin.game_name', '【Admin Tool】.admin debug state account news on');
 }
@@ -180,6 +185,38 @@ const discordCommand = [
                 subcommand
                     .setName('respawnall')
                     .setDescription('重啟所有服務'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('mem')
+                    .setDescription('顯示各叢集 RSS 記憶體'))
+            .addSubcommandGroup(group =>
+                group
+                    .setName('schedule')
+                    .setDescription('排程自動 respawn（需手動開啟）')
+                    .addSubcommand(subcommand =>
+                        subcommand
+                            .setName('show')
+                            .setDescription('查看目前排程'))
+                    .addSubcommand(subcommand =>
+                        subcommand
+                            .setName('set')
+                            .setDescription('設定星期與時間')
+                            .addStringOption(option =>
+                                option.setName('day')
+                                    .setDescription('星期 (0-6 / sun-sat / 日-六)')
+                                    .setRequired(true))
+                            .addStringOption(option =>
+                                option.setName('time')
+                                    .setDescription('時間 HH:MM（時區 Asia/Hong_Kong）')
+                                    .setRequired(true)))
+                    .addSubcommand(subcommand =>
+                        subcommand
+                            .setName('on')
+                            .setDescription('開啟排程'))
+                    .addSubcommand(subcommand =>
+                        subcommand
+                            .setName('off')
+                            .setDescription('關閉排程')))
             // VIP management
             .addSubcommand(subcommand =>
                 subcommand
@@ -353,9 +390,28 @@ const discordCommand = [
                             .setDescription('是否產生 Email 內容檔案')
                             .setRequired(false))),
         async execute(interaction) {
+            const group = interaction.options.getSubcommandGroup(false);
             const subcommand = interaction.options.getSubcommand();
             const translate = getT({ locale: interaction._hktrpgLocale, t: interaction._hktrpgT });
-            
+
+            if (group === 'schedule') {
+                switch (subcommand) {
+                case 'show':
+                    return '.root schedule';
+                case 'set': {
+                    const day = interaction.options.getString('day');
+                    const time = interaction.options.getString('time');
+                    return `.root schedule set ${day} ${time}`;
+                }
+                case 'on':
+                    return '.root schedule on';
+                case 'off':
+                    return '.root schedule off';
+                default:
+                    return translate('admin.slash_invalid_command');
+                }
+            }
+
             // System restart
             switch (subcommand) {
             case 'respawn': {
@@ -364,6 +420,9 @@ const discordCommand = [
             }
             case 'respawnall': {
                 return '.root respawnall';
+            }
+            case 'mem': {
+                return '.root mem';
             }
             case 'addvipgroup': {
                 const id = interaction.options.getString('id');
@@ -946,6 +1005,200 @@ const rollDiceCommand = async function ({
                     }
                 });
                 return rply;
+            case /^mem$/i.test(mainMsg[1]): {
+                if (!discordClient || !discordClient.cluster) {
+                    rply.text = translate('admin.mem_discord_only');
+                    return rply;
+                }
+                try {
+                    const results = await clusterProtection.safeBroadcastEval(
+                        discordClient,
+                        (client) => {
+                            const v8mod = require('node:v8');
+                            const mem = process.memoryUsage();
+                            const heapStats = v8mod.getHeapStatistics();
+                            return {
+                                clusterId: (client.cluster && client.cluster.id != null) ? client.cluster.id : -1,
+                                rss: mem.rss,
+                                heapUsed: mem.heapUsed,
+                                heapTotal: mem.heapTotal,
+                                external: mem.external,
+                                heapSizeLimit: heapStats.heap_size_limit,
+                                uptime: Math.floor(process.uptime())
+                            };
+                        },
+                        { timeout: 10_000 }
+                    );
+                    const rows = (Array.isArray(results) ? results : [results])
+                        .filter(Boolean)
+                        .sort((a, b) => a.clusterId - b.clusterId);
+                    if (rows.length === 0) {
+                        rply.text = translate('admin.mem_no_data');
+                        return rply;
+                    }
+                    const toMb = (bytes) => (bytes / (1024 * 1024)).toFixed(1);
+                    const lines = rows.map((row) => translate('admin.mem_line', {
+                        id: row.clusterId,
+                        rss: toMb(row.rss),
+                        heap: toMb(row.heapUsed),
+                        heap_total: toMb(row.heapTotal),
+                        external: toMb(row.external),
+                        uptime: row.uptime
+                    }));
+                    const totalRss = rows.reduce((sum, row) => sum + (row.rss || 0), 0);
+                    const hostTotal = os.totalmem();
+                    const hostFree = os.freemem();
+                    const hostUsed = hostTotal - hostFree;
+                    const hostPercent = ((hostUsed / hostTotal) * 100).toFixed(1);
+                    const heapLimit = rows[0].heapSizeLimit || v8.getHeapStatistics().heap_size_limit;
+                    rply.text = translate('admin.mem_report', {
+                        count: rows.length,
+                        total_rss: toMb(totalRss),
+                        lines: lines.join('\n'),
+                        host_total: toMb(hostTotal),
+                        host_used: toMb(hostUsed),
+                        host_free: toMb(hostFree),
+                        host_percent: hostPercent,
+                        heap_limit: toMb(heapLimit),
+                        warn_at: '85',
+                        critical_at: '95'
+                    });
+                    rply.quotes = true;
+                } catch (error) {
+                    console.error('[Admin] .root mem error:', error);
+                    rply.text = translate('admin.mem_failed', { message: error.message });
+                }
+                return rply;
+            }
+            case /^schedule$/i.test(mainMsg[1]): {
+                const action = (mainMsg[2] || 'show').toLowerCase();
+                try {
+                    if (action === 'show' || action === 'status') {
+                        rply.text = await formatRespawnScheduleStatus(translate);
+                        rply.quotes = true;
+                        return rply;
+                    }
+                    if (action === 'set') {
+                        const dayRaw = mainMsg[3];
+                        const timeRaw = mainMsg[4];
+                        if (!dayRaw || !timeRaw) {
+                            rply.text = translate('admin.schedule_set_usage');
+                            return rply;
+                        }
+                        const dayOfWeek = parseWeekday(dayRaw);
+                        if (dayOfWeek === null) {
+                            rply.text = translate('admin.schedule_invalid_day');
+                            return rply;
+                        }
+                        const parsedTime = parseClockTime(timeRaw);
+                        if (!parsedTime) {
+                            rply.text = translate('admin.schedule_invalid_time');
+                            return rply;
+                        }
+                        if (!schema.discordRespawnSchedule) {
+                            rply.text = translate('admin.schedule_db_unavailable');
+                            return rply;
+                        }
+                        const existing = await schema.discordRespawnSchedule.findOne({ key: SCHEDULE_DOC_KEY }).lean();
+                        const doc = await schema.discordRespawnSchedule.findOneAndUpdate(
+                            { key: SCHEDULE_DOC_KEY },
+                            {
+                                $set: {
+                                    dayOfWeek,
+                                    hour: parsedTime.hour,
+                                    minute: parsedTime.minute,
+                                    updatedBy: userid,
+                                    updatedAt: new Date(),
+                                    // Keep previous enabled flag; set alone does not turn on.
+                                    enabled: existing ? Boolean(existing.enabled) : false
+                                },
+                                $setOnInsert: {
+                                    key: SCHEDULE_DOC_KEY
+                                }
+                            },
+                            { ...opt, returnDocument: 'after' }
+                        );
+                        if (scheduleModule && typeof scheduleModule.syncDiscordMaintenanceSchedule === 'function') {
+                            await scheduleModule.syncDiscordMaintenanceSchedule(doc.toObject ? doc.toObject() : doc);
+                        }
+                        rply.text = translate('admin.schedule_set_success', {
+                            weekday: translate(`admin.weekday_${dayOfWeek}`),
+                            time: formatClockTime(parsedTime.hour, parsedTime.minute),
+                            enabled: doc.enabled
+                                ? translate('admin.schedule_status_on')
+                                : translate('admin.schedule_status_off'),
+                            timezone: AGENDA_TIMEZONE
+                        });
+                        rply.quotes = true;
+                        return rply;
+                    }
+                    if (action === 'on') {
+                        if (!schema.discordRespawnSchedule) {
+                            rply.text = translate('admin.schedule_db_unavailable');
+                            return rply;
+                        }
+                        const existing = await schema.discordRespawnSchedule.findOne({ key: SCHEDULE_DOC_KEY }).lean();
+                        if (
+                            !existing
+                            || existing.dayOfWeek == null
+                            || existing.hour == null
+                            || existing.minute == null
+                        ) {
+                            rply.text = translate('admin.schedule_on_need_set');
+                            return rply;
+                        }
+                        const doc = await schema.discordRespawnSchedule.findOneAndUpdate(
+                            { key: SCHEDULE_DOC_KEY },
+                            {
+                                $set: {
+                                    enabled: true,
+                                    updatedBy: userid,
+                                    updatedAt: new Date()
+                                }
+                            },
+                            { ...opt, returnDocument: 'after' }
+                        );
+                        if (scheduleModule && typeof scheduleModule.syncDiscordMaintenanceSchedule === 'function') {
+                            await scheduleModule.syncDiscordMaintenanceSchedule(doc.toObject ? doc.toObject() : doc);
+                        }
+                        rply.text = translate('admin.schedule_on_success', {
+                            weekday: translate(`admin.weekday_${doc.dayOfWeek}`),
+                            time: formatClockTime(doc.hour, doc.minute),
+                            timezone: AGENDA_TIMEZONE
+                        });
+                        rply.quotes = true;
+                        return rply;
+                    }
+                    if (action === 'off') {
+                        if (!schema.discordRespawnSchedule) {
+                            rply.text = translate('admin.schedule_db_unavailable');
+                            return rply;
+                        }
+                        const doc = await schema.discordRespawnSchedule.findOneAndUpdate(
+                            { key: SCHEDULE_DOC_KEY },
+                            {
+                                $set: {
+                                    enabled: false,
+                                    updatedBy: userid,
+                                    updatedAt: new Date()
+                                }
+                            },
+                            { ...opt, returnDocument: 'after' }
+                        );
+                        if (scheduleModule && typeof scheduleModule.syncDiscordMaintenanceSchedule === 'function') {
+                            await scheduleModule.syncDiscordMaintenanceSchedule(doc ? (doc.toObject ? doc.toObject() : doc) : { enabled: false });
+                        }
+                        rply.text = translate('admin.schedule_off_success');
+                        rply.quotes = true;
+                        return rply;
+                    }
+                    rply.text = translate('admin.schedule_set_usage');
+                } catch (error) {
+                    console.error('[Admin] .root schedule error:', error);
+                    rply.text = translate('admin.schedule_failed', { message: error.message });
+                }
+                return rply;
+            }
             case /^addVipGroup$/i.test(mainMsg[1]):
                 try {
                     filter = await store(inputStr, 'gp', translate);
@@ -1408,6 +1661,90 @@ function parseAdminSecrets(rawAdminSecret) {
         .split(/[\s,;]+/)
         .map(secret => secret.trim())
         .filter(Boolean);
+}
+
+/**
+ * Parse weekday token to cron dayOfWeek (0=Sunday … 6=Saturday).
+ * Accepts: 0-6, sun/mon/…, sunday/…, 日/一/…/六, 星期日/週一…
+ * @param {string} raw
+ * @returns {number|null}
+ */
+function parseWeekday(raw) {
+    if (raw == null) return null;
+    const token = String(raw).trim().toLowerCase();
+    if (/^[0-6]$/.test(token)) {
+        return Number(token);
+    }
+    const map = {
+        sun: 0, sunday: 0,
+        mon: 1, monday: 1,
+        tue: 2, tues: 2, tuesday: 2,
+        wed: 3, wednesday: 3,
+        thu: 4, thur: 4, thurs: 4, thursday: 4,
+        fri: 5, friday: 5,
+        sat: 6, saturday: 6,
+        '日': 0, '星期日': 0, '週日': 0, '周日': 0,
+        '一': 1, '星期一': 1, '週一': 1, '周一': 1,
+        '二': 2, '星期二': 2, '週二': 2, '周二': 2,
+        '三': 3, '星期三': 3, '週三': 3, '周三': 3,
+        '四': 4, '星期四': 4, '週四': 4, '周四': 4,
+        '五': 5, '星期五': 5, '週五': 5, '周五': 5,
+        '六': 6, '星期六': 6, '週六': 6, '周六': 6
+    };
+    if (Object.prototype.hasOwnProperty.call(map, token)) {
+        return map[token];
+    }
+    return null;
+}
+
+/**
+ * Parse HH:MM or H:MM (24h).
+ * @param {string} raw
+ * @returns {{ hour: number, minute: number }|null}
+ */
+function parseClockTime(raw) {
+    if (raw == null) return null;
+    const match = String(raw).trim().match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return null;
+    const hour = Number(match[1]);
+    const minute = Number(match[2]);
+    if (!Number.isInteger(hour) || hour < 0 || hour > 23) return null;
+    if (!Number.isInteger(minute) || minute < 0 || minute > 59) return null;
+    return { hour, minute };
+}
+
+function formatClockTime(hour, minute) {
+    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+}
+
+/**
+ * @param {(key: string, opts?: object) => string} translate
+ * @returns {Promise<string>}
+ */
+async function formatRespawnScheduleStatus(translate) {
+    if (!schema.discordRespawnSchedule) {
+        return translate('admin.schedule_db_unavailable');
+    }
+    const doc = await schema.discordRespawnSchedule.findOne({ key: SCHEDULE_DOC_KEY }).lean();
+    if (!doc || doc.dayOfWeek == null || doc.hour == null || doc.minute == null) {
+        return translate('admin.schedule_show_empty', { timezone: AGENDA_TIMEZONE });
+    }
+    const cron = scheduleModule && typeof scheduleModule.buildCronExpression === 'function'
+        ? scheduleModule.buildCronExpression({
+            dayOfWeek: doc.dayOfWeek,
+            hour: doc.hour,
+            minute: doc.minute
+        })
+        : `${doc.minute} ${doc.hour} * * ${doc.dayOfWeek}`;
+    return translate('admin.schedule_show', {
+        enabled: doc.enabled
+            ? translate('admin.schedule_status_on')
+            : translate('admin.schedule_status_off'),
+        weekday: translate(`admin.weekday_${doc.dayOfWeek}`),
+        time: formatClockTime(doc.hour, doc.minute),
+        timezone: AGENDA_TIMEZONE,
+        cron
+    });
 }
 
 /**

@@ -300,13 +300,15 @@
           "description": "Check MongoDB connection status"
         },
         "account": {
-          "description": "Web character card account setup"
-        },
-        "username": {
-          "description": "Username (4–16 chars, Chinese/English)"
-        },
-        "password": {
-          "description": "Password (6–16 chars, letters and !@#$%^&*)"
+          "description": "Web character card account setup",
+          "options": {
+            "username": {
+              "description": "Username (4–16 chars, Chinese/English)"
+            },
+            "password": {
+              "description": "Password (6–16 chars, letters and !@#$%^&*)"
+            }
+          }
         },
         "registerchannel": {
           "description": "Register current channel"
@@ -321,13 +323,15 @@
           "description": "Revoke web rolling in this channel"
         },
         "news": {
-          "description": "Update notification settings"
-        },
-        "status": {
-          "description": "Turn notifications on or off",
-          "choices": {
-            "on": "On",
-            "off": "Off"
+          "description": "Update notification settings",
+          "options": {
+            "status": {
+              "description": "Turn notifications on or off",
+              "choices": {
+                "on": "On",
+                "off": "Off"
+              }
+            }
           }
         }
       }
@@ -351,6 +355,14 @@
       "options": {
         "notation": {
           "description": "e.g. 2d(1*10), 1d(1+2+3)"
+        }
+      }
+    },
+    "hk": {
+      "description": "Basic command mode",
+      "options": {
+        "text": {
+          "description": "Enter a normal HKTRPG text command"
         }
       }
     },
@@ -496,11 +508,19 @@
     "code": {
       "description": "Code playground",
       "options": {
-        "language": {
-          "description": "Language (js, py, java, etc.)"
+        "list": {
+          "description": "Show popular language list and examples"
         },
-        "source": {
-          "description": "Source code"
+        "run": {
+          "description": "Run code",
+          "options": {
+            "lang": {
+              "description": "Choose a language"
+            },
+            "content": {
+              "description": "Code content to execute"
+            }
+          }
         }
       }
     },
@@ -515,25 +535,80 @@
     "int": {
       "description": "Random integer in range (e.g. 20 50)",
       "options": {
-        "min": {
-          "description": "Minimum"
+        "minnum": {
+          "description": "First number"
         },
-        "max": {
-          "description": "Maximum"
+        "maxnum": {
+          "description": "Second number"
+        }
+      }
+    },
+    "d66": {
+      "description": "Roll D66",
+      "options": {
+        "text": {
+          "description": "Optional note"
+        }
+      }
+    },
+    "d66s": {
+      "description": "Roll D66s (low digit first)",
+      "options": {
+        "text": {
+          "description": "Optional note"
+        }
+      }
+    },
+    "d66n": {
+      "description": "Roll D66n (high digit first)",
+      "options": {
+        "text": {
+          "description": "Optional note"
+        }
+      }
+    },
+    "broll": {
+      "description": "Advanced B dice, e.g. 5B10, 5B10S, 5B10>=5",
+      "options": {
+        "expression": {
+          "description": "e.g. 5B10 or 5B10S>=5"
+        },
+        "arg1": {
+          "description": "Optional extra argument or note"
+        },
+        "arg2": {
+          "description": "Optional extra argument or note"
+        }
+      }
+    },
+    "uroll": {
+      "description": "Advanced U dice, e.g. 5U10 8 or 5U10 8 9",
+      "options": {
+        "expression": {
+          "description": "e.g. 5U10"
+        },
+        "threshold": {
+          "description": "Explode / bonus threshold, e.g. 8"
+        },
+        "target": {
+          "description": "Optional success threshold, e.g. 9"
         }
       }
     },
     "wd": {
       "description": "World of Darkness dice pool",
       "options": {
-        "pool": {
-          "description": "Number of dice"
+        "dice_count": {
+          "description": "Number of D10s (1–100)"
         },
-        "difficulty": {
-          "description": "Difficulty (8-10)"
+        "reroll_value": {
+          "description": "Minimum value to reroll (8–10, default 10)"
         },
-        "bonus": {
-          "description": "Bonus successes"
+        "bonus_success": {
+          "description": "Bonus successes (can be negative)"
+        },
+        "description": {
+          "description": "Description text"
         }
       }
     },
@@ -576,22 +651,26 @@
       "description": "BcDice Japanese TRPG dice",
       "options": {
         "roll": {
-          "description": "Roll with BcDice"
+          "description": "Roll with BcDice",
+          "options": {
+            "command": {
+              "description": "Dice command"
+            }
+          }
         },
         "use": {
-          "description": "Register a system ID"
+          "description": "Register a system ID",
+          "options": {
+            "system_id": {
+              "description": "System ID (e.g. Cthulhu, PathFinder)"
+            }
+          }
         },
         "dicehelp": {
           "description": "Show current system help"
         },
         "delete": {
           "description": "Remove registered system ID"
-        },
-        "command": {
-          "description": "Dice command"
-        },
-        "system_id": {
-          "description": "System ID (e.g. Cthulhu, PathFinder)"
         }
       }
     },
@@ -736,6 +815,7 @@
       "description": "CoC spell push consequence roll"
     },
     "排序": {
+      "name": "sort",
       "description": "Random sort",
       "options": {
         "text": {
@@ -744,6 +824,7 @@
       }
     },
     "隨機": {
+      "name": "random",
       "description": "Random pick",
       "options": {
         "text": {
@@ -760,6 +841,7 @@
       }
     },
     "輪盤": {
+      "name": "wheel",
       "description": "Animated wheel pick (.wl)",
       "options": {
         "text": {
@@ -768,6 +850,7 @@
       }
     },
     "運勢": {
+      "name": "fortune",
       "description": "Luck reading",
       "options": {
         "text": {
@@ -776,6 +859,7 @@
       }
     },
     "塔羅": {
+      "name": "tarot",
       "description": "Daily / timeline / Celtic cross tarot",
       "options": {
         "category": {
@@ -789,15 +873,19 @@
       }
     },
     "時間塔羅": {
+      "name": "time-tarot",
       "description": "Three-card timeline spread"
     },
     "每日塔羅": {
+      "name": "daily-tarot",
       "description": "Draw one daily tarot card"
     },
     "大十字塔羅": {
+      "name": "celtic-cross",
       "description": "Ten-card Celtic cross spread"
     },
     "立flag": {
+      "name": "flag",
       "description": "Set a FLAG (joke)",
       "options": {
         "text": {
@@ -806,9 +894,11 @@
       }
     },
     "每日": {
+      "name": "daily",
       "description": "Daily fun content",
       "options": {
         "星座": {
+          "name": "horoscope",
           "description": "Daily horoscope",
           "options": {
             "star": {
@@ -831,39 +921,51 @@
           }
         },
         "塔羅": {
+          "name": "tarot",
           "description": "Daily tarot (single card)"
         },
         "一言": {
+          "name": "quote",
           "description": "Daily quote"
         },
         "毒湯": {
+          "name": "roast",
           "description": "Toxic chicken soup"
         },
         "情話": {
+          "name": "love",
           "description": "Love line"
         },
         "靈簽": {
+          "name": "lot",
           "description": "Guanyin fortune stick"
         },
         "淺草簽": {
+          "name": "asakusa",
           "description": "Asakusa fortune"
         },
         "大事": {
+          "name": "history",
           "description": "On this day in history"
         },
         "解答": {
+          "name": "answer",
           "description": "Book of Answers"
         },
         "笑話": {
+          "name": "joke",
           "description": "Joke"
         },
         "動漫": {
+          "name": "anime",
           "description": "Anime quote"
         },
         "黃曆": {
+          "name": "almanac",
           "description": "Chinese almanac"
         },
         "廢話": {
+          "name": "filler",
           "description": "Generate nonsense prose",
           "options": {
             "name": {
@@ -2136,106 +2238,171 @@
       "description": "System administrator only",
       "options": {
         "respawn": {
-          "description": "Restart service by ID"
+          "description": "Restart service by ID",
+          "options": {
+            "id": {
+              "description": "Service ID"
+            }
+          }
         },
         "respawnall": {
           "description": "Restart all services"
         },
         "addvipgroup": {
-          "description": "Add VIP group"
+          "description": "Add VIP group",
+          "options": {
+            "id": {
+              "description": "Group ID"
+            },
+            "level": {
+              "description": "VIP level"
+            },
+            "name": {
+              "description": "Display name"
+            },
+            "notes": {
+              "description": "Notes"
+            },
+            "switch": {
+              "description": "On/off status"
+            }
+          }
         },
         "addvipuser": {
-          "description": "Add VIP user"
+          "description": "Add VIP user",
+          "options": {
+            "id": {
+              "description": "User ID"
+            },
+            "level": {
+              "description": "VIP level"
+            },
+            "name": {
+              "description": "Display name"
+            },
+            "notes": {
+              "description": "Notes"
+            },
+            "switch": {
+              "description": "On/off status"
+            }
+          }
         },
         "addpatreon": {
-          "description": "Add or update Patreon member"
+          "description": "Add or update Patreon member",
+          "options": {
+            "patreon_name": {
+              "description": "Patreon name (no spaces)"
+            },
+            "tier": {
+              "description": "Patreon tier",
+              "choices": {
+                "A": "A Investigator",
+                "B": "B Occultist",
+                "C": "C Cult Leader",
+                "D": "D Keeper",
+                "E": "E Supporter",
+                "F": "F ??????"
+              }
+            },
+            "notes": {
+              "description": "Notes (no spaces)"
+            },
+            "switch": {
+              "description": "On/off status"
+            }
+          }
         },
         "regenkeypatreon": {
-          "description": "Regenerate Patreon member KEY"
+          "description": "Regenerate Patreon member KEY",
+          "options": {
+            "patreon_name": {
+              "description": "Patreon name (no spaces)"
+            }
+          }
         },
         "onpatreon": {
-          "description": "Enable Patreon member"
+          "description": "Enable Patreon member",
+          "options": {
+            "patreon_name": {
+              "description": "Patreon name (no spaces)"
+            }
+          }
         },
         "offpatreon": {
-          "description": "Disable Patreon member"
+          "description": "Disable Patreon member",
+          "options": {
+            "patreon_name": {
+              "description": "Patreon name (no spaces)"
+            }
+          }
         },
         "registeredglobal": {
           "description": "Register global slash commands"
         },
         "testregistered": {
-          "description": "Test command registration status"
+          "description": "Test command registration status",
+          "options": {
+            "id": {
+              "description": "Command ID"
+            }
+          }
         },
         "removeslashcommands": {
-          "description": "Remove slash commands from a guild"
+          "description": "Remove slash commands from a guild",
+          "options": {
+            "id": {
+              "description": "Guild ID (empty = current guild)"
+            }
+          }
         },
         "decrypt": {
-          "description": "Decrypt text"
+          "description": "Decrypt text",
+          "options": {
+            "text": {
+              "description": "Encrypted text"
+            }
+          }
         },
         "sendnews": {
-          "description": "Send update notification"
+          "description": "Send update notification",
+          "options": {
+            "message": {
+              "description": "Notification message"
+            }
+          }
         },
         "fixshard": {
-          "description": "Shard repair tool"
+          "description": "Shard repair tool",
+          "options": {
+            "action": {
+              "description": "Action (check/start/stop/status)",
+              "choices": {
+                "check": "check — inspect all shards",
+                "start": "start — auto-fix unresponsive shards",
+                "stop": "stop — stop auto-fix",
+                "status": "status — show fix status"
+              }
+            }
+          }
         },
         "importpatreon": {
-          "description": "Import Patreon CSV (attachment)"
-        },
-        "id": {
-          "description": "Service ID / guild ID"
-        },
-        "level": {
-          "description": "VIP level"
-        },
-        "name": {
-          "description": "Display name"
-        },
-        "notes": {
-          "description": "Notes"
-        },
-        "switch": {
-          "description": "On/off status"
-        },
-        "patreon_name": {
-          "description": "Patreon name (no spaces)"
-        },
-        "tier": {
-          "description": "Patreon tier",
-          "choices": {
-            "A": "A Investigator",
-            "B": "B Occultist",
-            "C": "C Cult Leader",
-            "D": "D Keeper",
-            "E": "E Supporter",
-            "F": "F ??????"
+          "description": "Import Patreon CSV (attachment)",
+          "options": {
+            "file": {
+              "description": "Patreon export .csv file"
+            },
+            "mode": {
+              "description": "KEY display mode",
+              "choices": {
+                "allkeys": "allkeys — all keys",
+                "newonly": "newonly — new members only"
+              }
+            },
+            "email": {
+              "description": "Generate email content file"
+            }
           }
-        },
-        "text": {
-          "description": "Encrypted text"
-        },
-        "message": {
-          "description": "Notification message"
-        },
-        "action": {
-          "description": "Action (check/start/stop/status)",
-          "choices": {
-            "check": "check — inspect all shards",
-            "start": "start — auto-fix unresponsive shards",
-            "stop": "stop — stop auto-fix",
-            "status": "status — show fix status"
-          }
-        },
-        "file": {
-          "description": "Patreon export .csv file"
-        },
-        "mode": {
-          "description": "KEY display mode",
-          "choices": {
-            "allkeys": "allkeys — all keys",
-            "newonly": "newonly — new members only"
-          }
-        },
-        "email": {
-          "description": "Generate email content file"
         }
       }
     },
@@ -2406,7 +2573,7 @@
   },
   "coc": {
     "game_name": "【Call of Cthulhu】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg",
-    "help": "【🦑 Call of Cthulhu】\n╭────── 🎲 Checks ──────\n│ COC6: ccb 80  |  COC7: cc 80\n│ Bonus: cc1/cc2  |  Penalty: ccn1/ccn2\n│ Combined: cc 80,40 skill1,skill2\n├────── 💀 Sanity ──────\n│ .sc (SAN) (success)/(failure)\n├────── 📈 Development (.dp) ──────\n│ .dp start/stop/show/showall/auto/clear/clearall\n│ .dp (skill%) (name)\n╰──────────────",
+    "help": "【🦑 Call of Cthulhu RPG】\n╭────── 🎲 Skill Checks ──────\n│ COC6: ccb 80 (skill ≤ 80)\n│ COC7: cc 80 (skill ≤ 80)\n│\n│ 🎯 Bonus dice: cc(1~2)\n│ Example: cc1 80 — one bonus die\n│\n│ ⚠️ Penalty dice: ccn(1~2)\n│ Example: ccn2 80 — two penalty dice\n│\n│ 📊 Combined checks:\n│ 　cc 80,40 Spot Hidden,Brawl\n│ 　cc1 80,40 Spot Hidden,Brawl (bonus)\n│ 　ccn1 80,40 Spot Hidden,Brawl (penalty)\n├────── 💀 Sanity Check ──────\n│ Format: .sc (SAN) (success)/(failure)\n│ Examples:\n│ 　.sc 50\n│ 　.sc 50 1/1d3+1\n│ 　.sc 50 1d10/1d100\n├────── 🏃 Chase & Madness ──────\n│ .chase — chase battle generator\n│ 　※ Uses optional rules and a personal reading of the book;\n│ 　※ Read CoC7th Rulebook Ch.7 「Chase」 before use\n│\n│ ccrt — Bout of Madness (real-time)\n│ ccsu — Bout of Madness (summary)\n├────── 📚 Mythos ──────\n│ .cccc — random mythos organization\n│ .ccdr — random mythos data\n│ .ccpc — casting push-roll consequences\n├────── 👤 Character Creation ──────\n│ .ccpulpbuild — PULP character\n│ .cc6build — COC6 character\n│ .cc7build — COC7 character (ages 7–89)\n│ .cc7build random — COC7 random character\n│\n│ Custom point-buy rolls:\n│ .cc7build .xyz — custom roll method\n│ Example: .cc7build .752\n│ 　7×: 3d6×5\n│ 　5×: (2d6+6)×5\n│ 　2×: 3d6×5\n│ You may enter only . — default is .53\n│ 　= 5× 3d6×5 and 3× (2d6+6)×5\n├────── 📈 Development ──────\n│ Development check:\n│ .dp (skill%) (name)\n│ Example: .dp 50 Ride 80 Brawl 70 60\n│\n│ .cc7bg — random character background\n│\n│ 📝 .dp development log:\n│ Records successful CC rolls and critical success/fumble skills\n│ .dp start — start logging rolls\n│ .dp stop — stop logging rolls\n│ .dp show — show your roll log\n│ .dp showall — show channel roll log\n│ .dp auto — auto-develop and clear log\n│ .dp clear — clear your roll log\n│ .dp clearall — clear all critical success/fumble records\n╰──────────────",
     "dp_not_enabled": "CC development logging is off in this channel. Use .dp start to enable.",
     "dp_no_records": "No CC roll records found.",
     "dp_auto_header": "Auto development checks\n========",

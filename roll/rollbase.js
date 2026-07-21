@@ -611,13 +611,24 @@ const discordCommand = [
       const t = getInteractionT(interaction);
       try {
         const roll = new DiceRoll(notation);
-        await interaction.reply(roll.output);
+        if (interaction.deferred && !interaction.replied) {
+          await interaction.editReply({ content: roll.output });
+        } else if (!interaction.replied) {
+          await interaction.reply(roll.output);
+        }
       } catch (error) {
-        await interaction.reply({
+        const payload = {
           content: `${error.name}\n${error.message}\n${t('rollbase.errors.rr_error_footer')}`,
           flags: MessageFlags.Ephemeral
-        });
+        };
+        if (interaction.deferred && !interaction.replied) {
+          // Deferred replies cannot become ephemeral; show error in the deferred message.
+          await interaction.editReply({ content: payload.content });
+        } else if (!interaction.replied) {
+          await interaction.reply(payload);
+        }
       }
+      return null;
     }
   }
 ];

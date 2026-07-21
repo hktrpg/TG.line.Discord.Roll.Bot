@@ -307,13 +307,15 @@
           "description": "檢視MongoDB連接狀態"
         },
         "account": {
-          "description": "網頁版角色卡設定"
-        },
-        "username": {
-          "description": "使用者名稱 (4-16字元，允許中文、英文)"
-        },
-        "password": {
-          "description": "密碼 (6-16字元，允許英文字母和特殊符號!@#$%^&*)"
+          "description": "網頁版角色卡設定",
+          "options": {
+            "username": {
+              "description": "使用者名稱 (4-16字元，允許中文、英文)"
+            },
+            "password": {
+              "description": "密碼 (6-16字元，允許英文字母和特殊符號!@#$%^&*)"
+            }
+          }
         },
         "registerchannel": {
           "description": "註冊當前頻道"
@@ -328,13 +330,15 @@
           "description": "取消頻道網頁擲骰權限"
         },
         "news": {
-          "description": "更新通知設定"
-        },
-        "status": {
-          "description": "開啟或關閉通知",
-          "choices": {
-            "on": "開啟",
-            "off": "關閉"
+          "description": "更新通知設定",
+          "options": {
+            "status": {
+              "description": "開啟或關閉通知",
+              "choices": {
+                "on": "開啟",
+                "off": "關閉"
+              }
+            }
           }
         }
       }
@@ -358,6 +362,14 @@
       "options": {
         "notation": {
           "description": "例如: 2d(1*10), 1d(1+2+3)"
+        }
+      }
+    },
+    "hk": {
+      "description": "最基本指令模式",
+      "options": {
+        "text": {
+          "description": "輸入平日的HKTRPG文字指令"
         }
       }
     },
@@ -503,11 +515,19 @@
     "code": {
       "description": "程式碼執行系統",
       "options": {
-        "language": {
-          "description": "程式語言 (js, py, java 等)"
+        "list": {
+          "description": "顯示常用語言列表與範例"
         },
-        "source": {
-          "description": "程式碼內容"
+        "run": {
+          "description": "執行程式碼",
+          "options": {
+            "lang": {
+              "description": "選擇語言"
+            },
+            "content": {
+              "description": "要執行的程式碼內容"
+            }
+          }
         }
       }
     },
@@ -522,25 +542,80 @@
     "int": {
       "description": "int 20 50: 立即骰出20-50",
       "options": {
-        "min": {
-          "description": "最小值"
+        "minnum": {
+          "description": "輸入第一個數字"
         },
-        "max": {
-          "description": "最大值"
+        "maxnum": {
+          "description": "輸入第二個數字"
+        }
+      }
+    },
+    "d66": {
+      "description": "D66 擲骰",
+      "options": {
+        "text": {
+          "description": "附加說明"
+        }
+      }
+    },
+    "d66s": {
+      "description": "D66s 擲骰（小者在前）",
+      "options": {
+        "text": {
+          "description": "附加說明"
+        }
+      }
+    },
+    "d66n": {
+      "description": "D66n 擲骰（大者在前）",
+      "options": {
+        "text": {
+          "description": "附加說明"
+        }
+      }
+    },
+    "broll": {
+      "description": "進階B骰，如 5B10, 5B10S, 5B10>=5",
+      "options": {
+        "expression": {
+          "description": "例如 5B10、5B10S>=5"
+        },
+        "arg1": {
+          "description": "可選: 額外參數或說明"
+        },
+        "arg2": {
+          "description": "可選: 額外參數或說明"
+        }
+      }
+    },
+    "uroll": {
+      "description": "進階U骰，如 5U10 8 或 5U10 8 9",
+      "options": {
+        "expression": {
+          "description": "例如 5U10"
+        },
+        "threshold": {
+          "description": "觸發加骰的數字，如 8"
+        },
+        "target": {
+          "description": "可選: 成功門檻，如 9"
         }
       }
     },
     "wd": {
       "description": "世界of黑暗擲骰系統",
       "options": {
-        "pool": {
-          "description": "骰池數量"
+        "dice_count": {
+          "description": "要擲骰的D10數量 (1-100)"
         },
-        "difficulty": {
-          "description": "難度 (8-10)"
+        "reroll_value": {
+          "description": "決定重骰的最小值 (8-10，預設為10)"
         },
-        "bonus": {
-          "description": "額外成功數"
+        "bonus_success": {
+          "description": "額外成功數 (可為正負值)"
+        },
+        "description": {
+          "description": "描述文字"
         }
       }
     },
@@ -583,22 +658,26 @@
       "description": "【BcDice日系擲骰系統】",
       "options": {
         "roll": {
-          "description": "進行BcDice擲骰"
+          "description": "進行BcDice擲骰",
+          "options": {
+            "command": {
+              "description": "擲骰指令"
+            }
+          }
         },
         "use": {
-          "description": "登記使用的骰表ID"
+          "description": "登記使用的骰表ID",
+          "options": {
+            "system_id": {
+              "description": "系統ID (例如: Cthulhu, PathFinder)"
+            }
+          }
         },
         "dicehelp": {
           "description": "查看當前系統說明"
         },
         "delete": {
           "description": "移除使用的骰表ID"
-        },
-        "command": {
-          "description": "擲骰指令"
-        },
-        "system_id": {
-          "description": "系統ID (例如: Cthulhu, PathFinder)"
         }
       }
     },
@@ -2143,106 +2222,171 @@
       "description": "【🔐系統管理員專用】",
       "options": {
         "respawn": {
-          "description": "重啟指定ID的服務"
+          "description": "重啟指定ID的服務",
+          "options": {
+            "id": {
+              "description": "服務ID"
+            }
+          }
         },
         "respawnall": {
           "description": "重啟所有服務"
         },
         "addvipgroup": {
-          "description": "新增VIP群組"
+          "description": "新增VIP群組",
+          "options": {
+            "id": {
+              "description": "群組ID"
+            },
+            "level": {
+              "description": "等級"
+            },
+            "name": {
+              "description": "名稱"
+            },
+            "notes": {
+              "description": "備註"
+            },
+            "switch": {
+              "description": "開關狀態"
+            }
+          }
         },
         "addvipuser": {
-          "description": "新增VIP用戶"
+          "description": "新增VIP用戶",
+          "options": {
+            "id": {
+              "description": "用戶ID"
+            },
+            "level": {
+              "description": "等級"
+            },
+            "name": {
+              "description": "名稱"
+            },
+            "notes": {
+              "description": "備註"
+            },
+            "switch": {
+              "description": "開關狀態"
+            }
+          }
         },
         "addpatreon": {
-          "description": "新增/更新 Patreon 會員"
+          "description": "新增/更新 Patreon 會員",
+          "options": {
+            "patreon_name": {
+              "description": "Patreon 名稱（避免空白）"
+            },
+            "tier": {
+              "description": "Patreon Tier",
+              "choices": {
+                "A": "A 調查員",
+                "B": "B 神秘學家",
+                "C": "C 教主",
+                "D": "D KP",
+                "E": "E 支援者",
+                "F": "F ??????"
+              }
+            },
+            "notes": {
+              "description": "備註（避免空白）"
+            },
+            "switch": {
+              "description": "開關狀態"
+            }
+          }
         },
         "regenkeypatreon": {
-          "description": "重設 Patreon 會員 KEY"
+          "description": "重設 Patreon 會員 KEY",
+          "options": {
+            "patreon_name": {
+              "description": "Patreon 名稱（避免空白）"
+            }
+          }
         },
         "onpatreon": {
-          "description": "開啟 Patreon 會員狀態"
+          "description": "開啟 Patreon 會員狀態",
+          "options": {
+            "patreon_name": {
+              "description": "Patreon 名稱（避免空白）"
+            }
+          }
         },
         "offpatreon": {
-          "description": "關閉 Patreon 會員狀態"
+          "description": "關閉 Patreon 會員狀態",
+          "options": {
+            "patreon_name": {
+              "description": "Patreon 名稱（避免空白）"
+            }
+          }
         },
         "registeredglobal": {
           "description": "註冊全局指令"
         },
         "testregistered": {
-          "description": "測試指令註冊狀態"
+          "description": "測試指令註冊狀態",
+          "options": {
+            "id": {
+              "description": "指令ID"
+            }
+          }
         },
         "removeslashcommands": {
-          "description": "移除指定群組的 Slash 指令"
+          "description": "移除指定群組的 Slash 指令",
+          "options": {
+            "id": {
+              "description": "群組 ID（留空則為目前群組）"
+            }
+          }
         },
         "decrypt": {
-          "description": "解密文字"
+          "description": "解密文字",
+          "options": {
+            "text": {
+              "description": "加密文字"
+            }
+          }
         },
         "sendnews": {
-          "description": "發送更新通知"
+          "description": "發送更新通知",
+          "options": {
+            "message": {
+              "description": "通知訊息"
+            }
+          }
         },
         "fixshard": {
-          "description": "Shard 修復工具"
+          "description": "Shard 修復工具",
+          "options": {
+            "action": {
+              "description": "動作 (check/start/stop/status)",
+              "choices": {
+                "check": "check - 檢查所有 shard 狀態",
+                "start": "start - 開始自動修復",
+                "stop": "stop - 停止自動修復",
+                "status": "status - 查看修復狀態"
+              }
+            }
+          }
         },
         "importpatreon": {
-          "description": "匯入 Patreon CSV（附件）"
-        },
-        "id": {
-          "description": "服務ID / 群組 ID"
-        },
-        "level": {
-          "description": "等級"
-        },
-        "name": {
-          "description": "名稱"
-        },
-        "notes": {
-          "description": "備註"
-        },
-        "switch": {
-          "description": "開關狀態"
-        },
-        "patreon_name": {
-          "description": "Patreon 名稱（避免空白）"
-        },
-        "tier": {
-          "description": "Patreon Tier",
-          "choices": {
-            "A": "A 調查員",
-            "B": "B 神秘學家",
-            "C": "C 教主",
-            "D": "D KP",
-            "E": "E 支援者",
-            "F": "F ??????"
+          "description": "匯入 Patreon CSV（附件）",
+          "options": {
+            "file": {
+              "description": "Patreon 匯出的 .csv 檔案"
+            },
+            "mode": {
+              "description": "KEY 顯示模式",
+              "choices": {
+                "allkeys": "allkeys - 所有 KEY",
+                "newonly": "newonly - 只有新會員 KEY"
+              }
+            },
+            "email": {
+              "description": "是否產生 Email 內容檔案"
+            }
           }
-        },
-        "text": {
-          "description": "加密文字"
-        },
-        "message": {
-          "description": "通知訊息"
-        },
-        "action": {
-          "description": "動作 (check/start/stop/status)",
-          "choices": {
-            "check": "check - 檢查所有 shard 狀態",
-            "start": "start - 開始自動修復",
-            "stop": "stop - 停止自動修復",
-            "status": "status - 查看修復狀態"
-          }
-        },
-        "file": {
-          "description": "Patreon 匯出的 .csv 檔案"
-        },
-        "mode": {
-          "description": "KEY 顯示模式",
-          "choices": {
-            "allkeys": "allkeys - 所有 KEY",
-            "newonly": "newonly - 只有新會員 KEY"
-          }
-        },
-        "email": {
-          "description": "是否產生 Email 內容檔案"
         }
       }
     },
@@ -2413,7 +2557,7 @@
   },
   "coc": {
     "game_name": "【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg",
-    "help": "【🦑克蘇魯神話RPG系統】\n╭────── 🎲基本擲骰 ──────\n│ COC6: ccb 80  |  COC7: cc 80\n│ 獎勵骰: cc1/cc2  |  懲罰骰: ccn1/ccn2\n│ 聯合: cc 80,40 技能1,技能2\n├────── 💀理智 ──────\n│ .sc (SAN) (成功)/(失敗)\n├────── 📈成長紀錄 (.dp) ──────\n│ .dp start/stop/show/showall/auto/clear/clearall\n│ .dp (技能%) (名稱)\n╰──────────────",
+    "help": "【🦑克蘇魯神話RPG系統】\n╭────── 🎲基本擲骰 ──────\n│ COC6版: ccb 80 (技能小於等於80)\n│ COC7版: cc 80 (技能小於等於80)\n│\n│ 🎯獎勵骰: cc(1~2)\n│ 範例: cc1 80 一粒獎勵骰\n│\n│ ⚠️懲罰骰: ccn(1~2)\n│ 範例: ccn2 80 兩粒懲罰骰\n│\n│ 📊聯合檢定:\n│ 　cc 80,40 偵查,鬥毆\n│ 　cc1 80,40 偵查,鬥毆 (獎勵骰)\n│ 　ccn1 80,40 偵查,鬥毆 (懲罰骰)\n├────── 💀理智檢定 ──────\n│ 格式: .sc (SAN值) (成功)/(失敗)\n│ 範例:\n│ 　.sc 50\n│ 　.sc 50 1/1d3+1\n│ 　.sc 50 1d10/1d100\n├────── 🏃追逐與瘋狂 ──────\n│ .chase - 追逐戰產生器\n│ 　※使用可選規則及我對規則書之獨斷理解，\n│ 　※建議使用前詳細閱讀請詳閱CoC7Th規則書第七章「追逐」內容\n│\n│ ccrt - 即時型瘋狂檢定\n│ ccsu - 總結型瘋狂檢定\n├────── 📚神話相關 ──────\n│ .cccc - 隨機產生神話組織\n│ .ccdr - 隨機產生神話資料\n│ .ccpc - 施法推骰後果判定\n├────── 👤角色創建 ──────\n│ .ccpulpbuild - PULP版角色創建\n│ .cc6build - COC6版角色創建\n│ .cc7build - COC7版角色創建(限7-89歲)\n│ .cc7build random - COC7版隨機角色創建\n│\n│ 自由分配點數創建:\n│ .cc7build .xyz - 自訂骰點方式\n│ 範例: .cc7build .752\n│ 　7次: 3d6×5\n│ 　5次: (2d6+6)×5\n│ 　2次: 3d6×5\n│ 可只輸入. 預設值為.53\n│ 　即5次 3d6×5 和3次(2d6+6)×5\n├────── 📈成長相關 ──────\n│ 成長檢定:\n│ .dp (技能%) (名稱)\n│ 範例: .dp 50 騎乘 80 鬥毆 70 60\n│\n│ .cc7bg - 隨機產生角色背景\n│\n│ 📝.dp成長紀錄功能說明:\n│ 會記錄CC功能投擲成功和大成功大失敗的技能\n│ .dp start - 開始記錄擲骰\n│ .dp stop - 停止記錄擲骰\n│ .dp show - 顯示你的擲骰紀錄\n│ .dp showall - 顯示全頻道擲骰紀錄\n│ .dp auto - 自動成長並清除紀錄\n│ .dp clear - 清除你的擲骰紀錄\n│ .dp clearall - 清除所有大成功大失敗紀錄\n╰──────────────",
     "dp_not_enabled": "本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓",
     "dp_no_records": "未有CC擲骰紀錄",
     "dp_auto_header": "自動成長檢定\n========",

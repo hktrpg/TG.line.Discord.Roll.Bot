@@ -200,9 +200,10 @@ const discordCommand = [
     }
 ];
 
-// 自動完成配置
+// 自動完成配置（web + Discord /pf2）
 const autocomplete = {
     moduleName: 'pf2e',
+    autocompleteLimit: 8,
     getData: () => {
         const instance = Pf2e.init();
         return instance.getAllData();

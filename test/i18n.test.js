@@ -98,6 +98,54 @@ describe('i18n module', () => {
             expect(enriched.description_localizations['en-US']).toBeTruthy();
             expect(enriched.options[0].description_localizations).toBeDefined();
         });
+
+        test('adds English name_localizations for Chinese funny commands', () => {
+            const commandData = {
+                name: '每日',
+                description: '進行每日功能',
+                options: [{
+                    name: '黃曆',
+                    description: '顯示今日黃曆',
+                    type: 1
+                }, {
+                    name: '星座',
+                    description: '顯示每日星座運程',
+                    type: 1,
+                    options: [{
+                        name: 'star',
+                        description: '哪個星座',
+                        type: 3,
+                        choices: [{ name: '白羊', value: '每日白羊' }]
+                    }]
+                }]
+            };
+            const enriched = i18n.enrichSlashCommandLocalizations(commandData);
+            expect(enriched.name_localizations['en-US']).toBe('daily');
+            expect(enriched.options[0].name_localizations['en-US']).toBe('almanac');
+            expect(enriched.options[1].name_localizations['en-US']).toBe('horoscope');
+            expect(enriched.options[1].options[0].choices[0].name_localizations['en-US']).toBe('Aries');
+        });
+
+        test('adds English name_localizations for top-level Chinese commands', () => {
+            const cases = [
+                ['排序', 'sort'],
+                ['隨機', 'random'],
+                ['輪盤', 'wheel'],
+                ['運勢', 'fortune'],
+                ['塔羅', 'tarot'],
+                ['時間塔羅', 'time-tarot'],
+                ['每日塔羅', 'daily-tarot'],
+                ['大十字塔羅', 'celtic-cross'],
+                ['立flag', 'flag']
+            ];
+            for (const [zhName, enName] of cases) {
+                const enriched = i18n.enrichSlashCommandLocalizations({
+                    name: zhName,
+                    description: 'test'
+                });
+                expect(enriched.name_localizations?.['en-US']).toBe(enName);
+            }
+        });
     });
 
     describe('zh-tw regression snapshots', () => {

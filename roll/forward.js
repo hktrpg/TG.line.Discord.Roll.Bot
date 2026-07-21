@@ -335,7 +335,12 @@ const discordCommand = [
                     const id = interaction.options.getInteger('id');
                     const t = getInteractionT(interaction);
                     if (id <= 0) {
-                        await interaction.reply({ content: t('forward.invalid_id'), flags: MessageFlags.Ephemeral });
+                        const content = t('forward.invalid_id');
+                        if (interaction.deferred && !interaction.replied) {
+                            await interaction.editReply({ content });
+                        } else if (!interaction.replied) {
+                            await interaction.reply({ content, flags: MessageFlags.Ephemeral });
+                        }
                         return null;
                     }
                     command = `.forward delete ${id}`;

@@ -3447,11 +3447,18 @@ function buttonsStyle(num) {
 
 function initInteractionCommands() {
 	client.commands = new Collection();
+	client.autocompleteByCommand = new Collection();
 	const commandFiles = fs.readdirSync('./roll').filter(file => file.endsWith('.js'));
 	for (const file of commandFiles) {
 		const command = require(`../roll/${file}`);
 		if (command && command.discordCommand) {
-			pushArrayInteractionCommands(command.discordCommand)
+			pushArrayInteractionCommands(command.discordCommand);
+			if (command.autocomplete && typeof command.autocomplete.search === 'function') {
+				for (const slashCmd of command.discordCommand) {
+					const name = slashCmd?.data?.name;
+					if (name) client.autocompleteByCommand.set(name, command.autocomplete);
+				}
+			}
 		}
 
 	}
@@ -3461,6 +3468,43 @@ function pushArrayInteractionCommands(arrayCommands) {
 		client.commands.set(command.data.name, command);
 	}
 
+}
+
+/**
+ * Discord autocomplete (must respond within ~3s; must NOT defer).
+ * Uses roll module `autocomplete.search(query, limit)` when registered.
+ */
+async function handlingAutocomplete(interaction) {
+	const handler = client.autocompleteByCommand?.get(interaction.commandName);
+	if (!handler || typeof handler.search !== 'function') {
+		try {
+			await interaction.respond([]);
+		} catch {
+			// ignore expired / already-responded
+		}
+		return;
+	}
+
+	try {
+		const focused = interaction.options.getFocused(true);
+		const query = focused?.value ?? '';
+		const limit = Math.min(Number(handler.autocompleteLimit) || 25, 25);
+		const results = await handler.search(query, limit) || [];
+		const choices = [];
+		for (const item of results.slice(0, 25)) {
+			const name = String(item.display || item.name || item.value || '').slice(0, 100);
+			const value = String(item.value || item.name || item.display || '').slice(0, 100);
+			if (name && value) choices.push({ name, value });
+		}
+		await interaction.respond(choices);
+	} catch (error) {
+		console.error('[Discord Bot] autocomplete error:', error?.message || error);
+		try {
+			if (!interaction.responded) await interaction.respond([]);
+		} catch {
+			// ignore
+		}
+	}
 }
 
 async function handlingResponMessage(message, answer = '') {
@@ -4893,6 +4937,12 @@ async function __handlingReplyMessage(message, result) {
 }
 
 async function __handlingInteractionMessage(message) {
+	// Autocomplete must respond with interaction.respond() — never defer.
+	if (message.isAutocomplete?.()) {
+		await handlingAutocomplete(message);
+		return;
+	}
+
 	// Immediately defer ALL interactions to prevent timeout (Discord ~3s acknowledge window).
 	// Slow logs split: handlerAge = time since interaction.createdTimestamp when this runs (event-loop / IPC delay);
 	// deferHttp = REST round-trip for interaction callback only.

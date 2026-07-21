@@ -311,6 +311,44 @@ function buildChoiceNameLocalizations(translationKey) {
 }
 
 /**
+ * Build Discord name_localizations for non-default locales.
+ * Default registered name stays Chinese; English clients get the en slug.
+ * Discord requires lowercase a-z / 0-9 / - / _ for Latin names.
+ */
+function buildNameLocalizations(translationKey, defaultName) {
+    const localizations = {};
+    for (const locale of SUPPORTED_LOCALES) {
+        if (locale === DEFAULT_LOCALE) {
+            continue;
+        }
+        const lng = toI18nextLng(locale);
+        if (!i18next.exists(translationKey, { lng })) {
+            continue;
+        }
+        const discordLocale = toDiscordLocale(locale);
+        const text = t(translationKey, { lng: locale });
+        if (!text || text === translationKey || text === defaultName) {
+            continue;
+        }
+        localizations[discordLocale] = text;
+    }
+    return localizations;
+}
+
+function applyNameLocalizations(target, translationKey) {
+    if (!target?.name) {
+        return;
+    }
+    const localizations = buildNameLocalizations(translationKey, target.name);
+    if (Object.keys(localizations).length > 0) {
+        target.name_localizations = {
+            ...target.name_localizations,
+            ...localizations
+        };
+    }
+}
+
+/**
  * Merge Discord slash command localizations from lang JSON onto command payload.
  */
 function enrichSlashCommandLocalizations(commandData) {
@@ -322,6 +360,8 @@ function enrichSlashCommandLocalizations(commandData) {
     if (!slashConfig || typeof slashConfig !== 'object') {
         return commandData;
     }
+
+    applyNameLocalizations(commandData, `slash.${commandData.name}.name`);
 
     if (slashConfig.description) {
         const descKey = `slash.${commandData.name}.description`;
@@ -336,21 +376,25 @@ function enrichSlashCommandLocalizations(commandData) {
 
     if (Array.isArray(commandData.options)) {
         for (const option of commandData.options) {
-            enrichOptionLocalizations(commandData.name, option);
+            enrichOptionLocalizations(commandData.name, option, `slash.${commandData.name}.options`);
         }
     }
 
     return commandData;
 }
 
-function enrichOptionLocalizations(commandName, option) {
-    const optionConfig = i18next.getResource(toI18nextLng(DEFAULT_LOCALE), 'translation', `slash.${commandName}.options.${option.name}`);
+function enrichOptionLocalizations(commandName, option, optionsPath) {
+    const basePath = optionsPath || `slash.${commandName}.options`;
+    const optionPath = `${basePath}.${option.name}`;
+    const optionConfig = i18next.getResource(toI18nextLng(DEFAULT_LOCALE), 'translation', optionPath);
     if (!optionConfig) {
         return;
     }
 
+    applyNameLocalizations(option, `${optionPath}.name`);
+
     if (optionConfig.description) {
-        const localizations = buildDescriptionLocalizations(`slash.${commandName}.options.${option.name}.description`);
+        const localizations = buildDescriptionLocalizations(`${optionPath}.description`);
         if (Object.keys(localizations).length > 0) {
             option.description_localizations = {
                 ...option.description_localizations,
@@ -361,13 +405,13 @@ function enrichOptionLocalizations(commandName, option) {
 
     if (Array.isArray(option.options)) {
         for (const sub of option.options) {
-            enrichOptionLocalizations(commandName, sub);
+            enrichOptionLocalizations(commandName, sub, `${optionPath}.options`);
         }
     }
 
     if (Array.isArray(option.choices) && optionConfig.choices) {
         for (const choice of option.choices) {
-            const choiceKey = `slash.${commandName}.options.${option.name}.choices.${choice.value}`;
+            const choiceKey = `${optionPath}.choices.${choice.value}`;
             const localizations = buildChoiceNameLocalizations(choiceKey);
             if (Object.keys(localizations).length > 0) {
                 choice.name_localizations = {

@@ -347,12 +347,12 @@
       "description": "語言設定 / Language settings",
       "options": {
         "action": {
-          "description": "顯示、列出或設定語言",
+          "description": "顯示、列出或設定語言 / Show, list, or set language",
           "choices": {
-            "show": "顯示目前語言",
-            "list": "列出支援語言",
-            "zh_tw": "設為繁體中文",
-            "en": "設為 English"
+            "show": "顯示目前語言 / Show current",
+            "list": "列出支援語言 / List languages",
+            "zh-tw": "正體中文 (zh-tw)",
+            "en": "English (en)"
           }
         }
       }

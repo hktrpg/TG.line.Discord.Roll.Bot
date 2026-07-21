@@ -337,15 +337,15 @@
       }
     },
     "lang": {
-      "description": "Language settings",
+      "description": "語言設定 / Language settings",
       "options": {
         "action": {
-          "description": "Show, list, or set language",
+          "description": "顯示、列出或設定語言 / Show, list, or set language",
           "choices": {
-            "show": "Show current language",
-            "list": "List supported languages",
-            "zh_tw": "Set Traditional Chinese",
-            "en": "Set English"
+            "show": "顯示目前語言 / Show current",
+            "list": "列出支援語言 / List languages",
+            "zh-tw": "正體中文 (zh-tw)",
+            "en": "English (en)"
           }
         }
       }

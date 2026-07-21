@@ -120,11 +120,11 @@ const discordCommand = [
             .setDescription('語言設定 / Language settings')
             .addStringOption(option =>
                 option.setName('action')
-                    .setDescription('顯示、列出或設定語言')
+                    .setDescription('顯示、列出或設定語言 / Show, list, or set language')
                     .setRequired(false)
                     .addChoices(
-                        { name: '顯示目前語言', value: 'show' },
-                        { name: '列出支援語言', value: 'list' },
+                        { name: '顯示目前語言 / Show current', value: 'show' },
+                        { name: '列出支援語言 / List languages', value: 'list' },
                         ...i18n.getSlashLocaleChoices()
                     )),
         async execute(interaction) {

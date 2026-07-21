@@ -119,17 +119,17 @@ const discordCommand = [
             .setName('lang')
             .setDescription('語言設定 / Language settings')
             .addStringOption(option =>
-                option.setName('action')
-                    .setDescription('顯示、列出或設定語言 / Show, list, or set language')
+                option.setName('language')
+                    .setDescription('選擇語言（不填則顯示目前設定）/ Choose language')
                     .setRequired(false)
                     .addChoices(
+                        ...i18n.getSlashLocaleChoices(),
                         { name: '顯示目前語言 / Show current', value: 'show' },
-                        { name: '列出支援語言 / List languages', value: 'list' },
-                        ...i18n.getSlashLocaleChoices()
+                        { name: '列出支援語言 / List languages', value: 'list' }
                     )),
         async execute(interaction) {
-            const action = interaction.options.getString('action') || 'show';
-            return `.lang ${action}`;
+            const language = interaction.options.getString('language') || 'show';
+            return `.lang ${language}`;
         }
     }
 ];

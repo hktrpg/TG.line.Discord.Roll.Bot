@@ -339,16 +339,16 @@
       }
     },
     "lang": {
-      "description": "語言設定 / Language settings",
+      "description": "Language settings",
       "options": {
-        "action": {
-          "description": "顯示、列出或設定語言 / Show, list, or set language",
+        "language": {
+          "description": "Choose language (omit to show current)",
           "choices": {
-            "show": "顯示目前語言 / Show current",
-            "list": "列出支援語言 / List languages",
-            "zh-tw": "正體中文 (zh-tw)",
-            "zh-hans": "简体中文 (zh-hans)",
-            "en": "English (en)"
+            "zh-tw": "Traditional Chinese (zh-tw)",
+            "zh-hans": "Simplified Chinese (zh-hans)",
+            "en": "English (en)",
+            "show": "Show current language",
+            "list": "List supported languages"
           }
         }
       }

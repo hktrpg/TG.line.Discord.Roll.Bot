@@ -349,14 +349,14 @@
     "lang": {
       "description": "语言设定 / Language settings",
       "options": {
-        "action": {
-          "description": "显示、列出或设定语言 / Show, list, or set language",
+        "language": {
+          "description": "选择语言（不填则显示目前设定）/ Choose language",
           "choices": {
-            "show": "显示目前语言 / Show current",
-            "list": "列出支援语言 / List languages",
             "zh-tw": "正體中文 (zh-tw)",
             "zh-hans": "简体中文 (zh-hans)",
-            "en": "English (en)"
+            "en": "English (en)",
+            "show": "显示目前语言 / Show current",
+            "list": "列出支援语言 / List languages"
           }
         }
       }

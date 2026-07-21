@@ -331,6 +331,14 @@ function injectWwwLocaleFabStyles() {
     box-shadow: 0 2px 8px rgba(0,0,0,0.25);
     transition: background 0.15s ease, transform 0.15s ease;
 }
+#www-locale-switcher-fab .www-locale-fab-btn svg {
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px;
+    flex-shrink: 0;
+    display: block;
+    fill: currentColor;
+}
 #www-locale-switcher-fab .www-locale-fab-btn:hover {
     background: #495057;
     transform: scale(1.05);
@@ -374,7 +382,7 @@ function mountWwwLocaleSwitcherFab() {
 <button type="button" class="www-locale-fab-btn" data-www-locale-toggle
     data-www-i18n-title="nav_language" data-www-i18n-aria="nav_language"
     title="Language" aria-label="Language" aria-haspopup="true" aria-expanded="false">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" style="width:22px;height:22px;flex-shrink:0;display:block" fill="currentColor" aria-hidden="true">
         <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
     </svg>
 </button>

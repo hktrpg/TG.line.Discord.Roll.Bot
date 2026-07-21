@@ -103,6 +103,26 @@ function getSlashLocaleChoices() {
     }));
 }
 
+const BOTHELP_ORIGIN = 'https://bothelp.hktrpg.com';
+
+/**
+ * Locale-specific bothelp guide URL.
+ * zh-tw → /guide/zh-hant/  en → /guide/en/  zh-hans → /guide/zh-hans/
+ * @param {string} [locale]
+ * @param {string} [subPath] optional path under the guide (no leading slash required)
+ */
+function getBothelpUrl(locale, subPath = '') {
+    const code = normalizeLocale(locale);
+    const guide = LOCALE_DEFINITIONS[code]?.bothelpGuide
+        || LOCALE_DEFINITIONS[DEFAULT_LOCALE]?.bothelpGuide
+        || 'zh-hant';
+    const base = `${BOTHELP_ORIGIN}/guide/${guide}/`;
+    if (!subPath) {
+        return base;
+    }
+    return `${base}${String(subPath).replace(/^\//, '')}`;
+}
+
 function toDiscordLocale(locale) {
     const normalized = normalizeLocale(locale);
     return DISCORD_LOCALE_MAP[normalized] || DISCORD_LOCALE_MAP[DEFAULT_LOCALE];
@@ -154,12 +174,16 @@ function loadAllOverlayResourceBundles() {
 }
 
 function createTranslator(locale) {
-    return i18next.getFixedT(toI18nextLng(locale));
+    const fixedT = i18next.getFixedT(toI18nextLng(locale));
+    const bothelp = getBothelpUrl(locale);
+    return (key, options = {}) => fixedT(key, { bothelp, ...options });
 }
 
 function t(key, options = {}) {
-    const lng = toI18nextLng(options.lng || DEFAULT_LOCALE);
-    return i18next.t(key, { ...options, lng });
+    const locale = options.lng || DEFAULT_LOCALE;
+    const lng = toI18nextLng(locale);
+    const bothelp = options.bothelp || getBothelpUrl(locale);
+    return i18next.t(key, { bothelp, ...options, lng });
 }
 
 async function init() {
@@ -436,6 +460,7 @@ module.exports = {
     getLocaleName,
     formatLocaleList,
     getSlashLocaleChoices,
+    getBothelpUrl,
     toDiscordLocale,
     toIntlLocale,
     createTranslator,

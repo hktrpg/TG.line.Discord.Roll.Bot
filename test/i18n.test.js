@@ -69,7 +69,26 @@ describe('i18n module', () => {
         });
     });
 
+    describe('getBothelpUrl', () => {
+        test('maps each locale to its guide path', () => {
+            expect(i18n.getBothelpUrl('zh-tw')).toBe('https://bothelp.hktrpg.com/guide/zh-hant/');
+            expect(i18n.getBothelpUrl('en')).toBe('https://bothelp.hktrpg.com/guide/en/');
+            expect(i18n.getBothelpUrl('zh-hans')).toBe('https://bothelp.hktrpg.com/guide/zh-hans/');
+        });
+
+        test('appends subPath under the guide', () => {
+            expect(i18n.getBothelpUrl('en', 'other-information/yin-si-quan-sheng-ming'))
+                .toBe('https://bothelp.hktrpg.com/guide/en/other-information/yin-si-quan-sheng-ming');
+        });
+    });
+
     describe('createTranslator', () => {
+        test('injects bothelp URL for {{bothelp}} interpolation', () => {
+            const t = i18n.createTranslator('en');
+            expect(t('help.link')).toContain('https://bothelp.hktrpg.com/guide/en/');
+            expect(t('help.privacy')).toContain('https://bothelp.hktrpg.com/guide/en/other-information/');
+        });
+
         test('returns zh-tw strings by default', () => {
             const t = i18n.createTranslator('zh-tw');
             expect(t('lang.usage')).toContain('.lang');

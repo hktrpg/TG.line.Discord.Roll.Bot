@@ -4,6 +4,7 @@
     "i18next": "zh-TW",
     "discord": "zh-TW",
     "intl": "zh-Hant-HK",
+    "bothelpGuide": "zh-hant",
     "aliases": ["zh-hant", "zh_hant"],
     "prefixes": ["zh-tw"],
     "default": true
@@ -13,6 +14,7 @@
     "i18next": "en",
     "discord": "en-US",
     "intl": "en-US",
+    "bothelpGuide": "en",
     "aliases": ["en-us", "en-gb"],
     "prefixes": ["en"]
   },
@@ -21,6 +23,7 @@
     "i18next": "zh-Hans",
     "discord": "zh-CN",
     "intl": "zh-Hans",
+    "bothelpGuide": "zh-hans",
     "aliases": ["zh_hans", "zh_chs", "zh-chs"],
     "prefixes": ["zh-hans"]
   }

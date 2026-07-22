@@ -1,8 +1,8 @@
 "use strict";
 const { SlashCommandBuilder } = require('discord.js');
 const mathjs = require('mathjs');
-let rollbase = require('./rollbase.js');
 const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+let rollbase = require('./rollbase.js');
 let variables = {};
 const gameName = function (params = {}) {
     return resolveGameName(params, 'fate.game_name', '【命運Fate】 .4df(m|-)(加值)');
@@ -62,12 +62,12 @@ const rollDiceCommand = async function ({
                 // eslint-disable-next-line unicorn/prefer-string-replace-all
                 rply.text = translate('fate.roll_header', { input: inputStr.toString().replace(/\r/g, " ").replace(/\n/g, " ") });
                 rply.text += translate('fate.roll_result', { dice: temp, total: ans });
-                let mod = mainMsg[0].replace(/^\.4df/ig, '').replace(/^(\d)/, '+$1').replace(/m/ig, '-').replace(/-/g, ' - ').replace(/\+/g, ' + ');
+                let mod = mainMsg[0].replaceAll(/^\.4df/ig, '').replace(/^(\d)/, '+$1').replaceAll(/m/ig, '-').replaceAll('-', ' - ').replaceAll('+', ' + ');
                 if (mod) {
                     rply.text += translate('fate.mod_result', {
                         mod,
                         final: mathjs.evaluate(ans + mod)
-                    }).replace(/\*/g, ' * ');
+                    }).replaceAll('*', ' * ');
 
                 }
             } catch (error) {

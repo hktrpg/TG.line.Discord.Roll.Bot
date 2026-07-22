@@ -42,3 +42,5 @@ function loadSiteChromeWithI18n(options = {}) {
         }
     });
 }
+
+window.loadSiteChromeWithI18n = loadSiteChromeWithI18n;

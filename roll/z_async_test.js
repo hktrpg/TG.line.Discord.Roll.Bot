@@ -9,8 +9,8 @@ let variables = {};
 const schema = require('../modules/schema.js'); // eslint-disable-line no-unused-vars
 const VIP = require('../modules/veryImportantPerson'); // eslint-disable-line no-unused-vars
 const translateChannel = require('../modules/translate'); // eslint-disable-line no-unused-vars
-const rollbase = require('./rollbase.js');
 const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const rollbase = require('./rollbase.js');
 const FUNCTION_LIMIT = [0, 2, 4, 6, 8, 9, 9, 9]; // eslint-disable-line no-unused-vars
 const opt = { // eslint-disable-line no-unused-vars
 	upsert: true,

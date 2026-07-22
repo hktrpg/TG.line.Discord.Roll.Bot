@@ -1,8 +1,8 @@
 "use strict";
 const mathjs = require('mathjs');
 const { SlashCommandBuilder } = require('discord.js');
-const rollbase = require('./rollbase.js');
 const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const rollbase = require('./rollbase.js');
 const variables = {};
 const regexxBy = /^((\d+)(b)(\d+))(S?)/i
 const regexxUy = /^(\d+)(u)(\d+)/i

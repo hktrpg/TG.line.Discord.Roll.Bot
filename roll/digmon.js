@@ -2393,7 +2393,7 @@ class Digimon {
 
         let output = t('digmon.moves_result_header', { query });
         for (const [index, item] of processedResults.entries()) {
-            const { skill, digimon, elementName, stageName, powerWithExtras } = item;
+            const { skill, digimon, elementName, powerWithExtras } = item;
             const elementEmoji = this.getElementEmoji(skill.element);
             const targetTypeName = this.getTargetTypeName(skill, translate);
             const skillType = this.getSkillTypeName(skill.type, translate);

@@ -1,8 +1,8 @@
 "use strict";
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
-const rollbase = require('./rollbase.js');
 const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const rollbase = require('./rollbase.js');
 const gameName = function (params = {}) {
     return resolveGameName(params, 'dnd5e.game_name', '【5E工具 - .5ebuild】');
 }

@@ -1,8 +1,8 @@
 "use strict";
 const fs = require('node:fs');
 const axios = require('axios');
-const { resolveHelp, withPartialTranslationNotice, resolveGameName, getT, isEnglish } = require('../modules/roll-i18n.js');
 const { SlashCommandBuilder } = require('discord.js');
+const { resolveHelp, withPartialTranslationNotice, resolveGameName, getT, isEnglish } = require('../modules/roll-i18n.js');
 const Dice = [],
 	Tool = [],
 	admin = [],

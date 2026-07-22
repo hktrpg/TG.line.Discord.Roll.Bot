@@ -8,8 +8,8 @@ const debugMode = (process.env.DEBUG) ? true : false;
 let variables = {};
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
-const rollDice = require('./rollbase');
 const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const rollDice = require('./rollbase');
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
 const EN_RECOVER_TIME = 10 * 60 * 1000; //每10分鐘回複一點;
 const gameName = function (params = {}) {

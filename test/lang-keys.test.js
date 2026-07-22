@@ -105,7 +105,7 @@ describe('lang key parity', () => {
                     const fullKey = prefix ? `${prefix}.${key}` : key;
                     if (value && typeof value === 'object' && !Array.isArray(value)) {
                         walk(value, fullKey);
-                    } else if (String(value).includes('\\n') && !String(value).includes('\n')) {
+                    } else if (String(value).includes(String.raw`\n`) && !String(value).includes('\n')) {
                         bad.push(`${locale}:${fullKey}`);
                     }
                 }

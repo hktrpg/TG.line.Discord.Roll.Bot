@@ -1,8 +1,8 @@
 "use strict";
 const { SlashCommandBuilder } = require('discord.js');
 const mathjs = require('mathjs')
-const rollbase = require('./rollbase.js');
 const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const rollbase = require('./rollbase.js');
 let variables = {};
 const gameName = function (params = {}) {
     return resolveGameName(params, 'wn.game_name', '【魔女狩獵之夜】.wn xDn+-y');

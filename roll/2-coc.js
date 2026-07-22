@@ -4,9 +4,9 @@ const { SlashCommandBuilder } = require('discord.js');
 const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
 const checkMongodb = require('../modules/dbWatchdog.js');
-const rollbase = require('./rollbase.js');
 const { getT, resolveHelp, resolveGameName, isEnglish } = require('../modules/roll-i18n.js');
 const i18n = require('../modules/i18n.js');
+const rollbase = require('./rollbase.js');
 
 function wrapCocZhContent(text, params = {}) {
 	if (!isEnglish(params)) {
@@ -2713,7 +2713,6 @@ class XYZBuilder {
 		return ReStr;
 	}
 	ageAdjustment(age, translate) {
-		const t = translate || getT({});
 		let Debuff = 0;
 		let AppDebuff = 0;
 		let EDUinc = 0;

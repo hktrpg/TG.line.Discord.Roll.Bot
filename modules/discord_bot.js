@@ -13,6 +13,7 @@ const schema = require('../modules/schema.js');
 const clusterProtection = require('../modules/cluster-protection.js');
 const dbProtectionLayer = require('../modules/db-protection-layer.js');
 const dbConnector = require('../modules/db-connector.js');
+const checkMongodb = require('../modules/dbWatchdog.js');
 
 exports.analytics = require('./analytics');
 const i18n = require('./i18n.js');
@@ -192,7 +193,6 @@ function warnInteraction10062(reason, interaction, meta = {}) {
 // Multi-server functionality temporarily disabled
 // const multiServer = require('../modules/multi-server')
 // const adminSecret = process.env.ADMIN_SECRET || '';
-const checkMongodb = require('../modules/dbWatchdog.js');
 const { rollText } = require('./getRoll');
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 const buttonStyles = [ButtonStyle.Danger, ButtonStyle.Primary, ButtonStyle.Secondary, ButtonStyle.Success, ButtonStyle.Danger]

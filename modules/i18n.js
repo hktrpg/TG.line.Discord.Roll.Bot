@@ -4,6 +4,7 @@ const path = require('node:path');
 const NodeCache = require('node-cache');
 const i18next = require('i18next');
 const Backend = require('i18next-fs-backend');
+const LOCALE_DEFINITIONS = require('../lang/locales.json');
 const {
     listOverlayFiles,
     readOverlayFile,
@@ -14,7 +15,6 @@ const {
  * Single source of truth: lang/locales.json
  * Add a language there once — aliases, Discord/i18next/intl maps are derived.
  */
-const LOCALE_DEFINITIONS = require('../lang/locales.json');
 
 const SUPPORTED_LOCALES = Object.keys(LOCALE_DEFINITIONS);
 const DEFAULT_LOCALE = SUPPORTED_LOCALES.find((code) => LOCALE_DEFINITIONS[code].default) || SUPPORTED_LOCALES[0];

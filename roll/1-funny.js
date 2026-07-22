@@ -18,9 +18,9 @@ const lunisolar = require('lunisolar');
 const { fetalGod } = require('@lunisolar/plugin-fetalgod');
 const { takeSound } = require('@lunisolar/plugin-takesound');
 const { theGods } = require('@lunisolar/plugin-thegods');
+const { getT, resolveHelp, resolveGameName, isEnglish } = require('../modules/roll-i18n.js');
 const rollbase = require('./rollbase.js');
 const wheelAnimator = require('./wheel-animator.js');
-const { getT, resolveHelp, resolveGameName, isEnglish } = require('../modules/roll-i18n.js');
 lunisolar.extend(fetalGod);
 lunisolar.extend(takeSound);
 lunisolar.extend(theGods);
@@ -667,7 +667,7 @@ class TwelveAstro {
 	async fetchAstroPlain(name, date = null) {
 		const targetDate = date || this.getDate();
 		const astroCode = twelveAstro.indexOf(name);
-		if (astroCode < 0) {
+		if (astroCode === -1) {
 			return null;
 		}
 		await this.updateAstro(astroCode, targetDate);

@@ -17,7 +17,6 @@ const axios = require('axios').default;
 const GeoPattern = require('geopattern');
 const { imgbox } = require("imgbox");
 const { getPool } = require('../modules/pool');
-const i18n = require('../modules/i18n.js');
 const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 const imagePool = getPool('image');
 
@@ -633,7 +632,6 @@ const discordCommand = [
             .addAttachmentOption(option => option.setName('image').setDescription('上傳圖片').setRequired(true)),
         async execute(interaction) {
             const t = getInteractionT(interaction);
-            const i18nParams = { locale: interaction._hktrpgLocale, t };
             try {
                 if (!interaction.deferred && !interaction.replied) {
                     await interaction.deferReply();

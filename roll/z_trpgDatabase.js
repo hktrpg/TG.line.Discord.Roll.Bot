@@ -9,8 +9,8 @@ const records = require('../modules/records.js');
 const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
 const VIP = require('../modules/veryImportantPerson.js');
-const rollbase = require('./rollbase.js');
 const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const rollbase = require('./rollbase.js');
 
 // 常量定義
 const FUNCTION_LIMIT = [30, 200, 200, 300, 300, 300, 300, 300];

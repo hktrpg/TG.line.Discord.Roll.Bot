@@ -85,21 +85,21 @@ function loadHeaderHtml(pageTitle) {
 	return header;
 }
 
-function injectCreditsHeader() {
-	const creditsPath = path.join(siteDir, 'CREDITS.html');
-	if (!fs.existsSync(creditsPath)) {
-		console.warn('skip CREDITS.html (missing)');
+function injectSiteHeader(fileName, pageTitle) {
+	const filePath = path.join(siteDir, fileName);
+	if (!fs.existsSync(filePath)) {
+		console.warn(`skip ${fileName} (missing)`);
 		return;
 	}
-	const header = loadHeaderHtml('名人堂 Hall of Fame');
-	let html = fs.readFileSync(creditsPath, 'utf8');
+	const header = loadHeaderHtml(pageTitle);
+	let html = fs.readFileSync(filePath, 'utf8');
 	if (!html.includes('id="header"')) {
-		console.warn('CREDITS.html has no #header placeholder; skip inject');
+		console.warn(`${fileName} has no #header placeholder; skip inject`);
 		return;
 	}
 	html = html.replaceAll(/<div id="header"><\/div>/g, header);
-	fs.writeFileSync(creditsPath, html, 'utf8');
-	console.log('injected header into CREDITS.html');
+	fs.writeFileSync(filePath, html, 'utf8');
+	console.log(`injected header into ${fileName}`);
 }
 
 function writeHtml(relPath, title, markdown, options = {}) {
@@ -118,7 +118,7 @@ function main() {
 	const portfolioMd = path.join(siteDir, 'PORTFOLIOP.md');
 	const privacyMd = path.join(siteDir, 'PUBLIC_PRIVACY_POLICY.md');
 
-	injectCreditsHeader();
+	injectSiteHeader('CREDITS.html', '名人堂 Hall of Fame');
 
 	if (fs.existsSync(portfolioMd)) {
 		const md = fs.readFileSync(portfolioMd, 'utf8');

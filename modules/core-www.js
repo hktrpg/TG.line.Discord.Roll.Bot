@@ -18,13 +18,13 @@ const {
 
 const candle = require('../modules/candleDays.js');
 const cspConfig = require('../modules/config/csp.js');
-const i18n = require('./i18n.js');
 const mainCharacter = require('../roll/z_character').mainCharacter;
 const security = require('../utils/security.js');
-const schema = require('./schema.js');
+const { buildBusEtaShortcut } = require('./bus-shortcut.js');
+const i18n = require('./i18n.js');
 const patreonTiers = require('./patreon-tiers.js');
 const patreonSync = require('./patreon-sync.js');
-const { buildBusEtaShortcut } = require('./bus-shortcut.js');
+const schema = require('./schema.js');
 
 const www = express();
 const isHttpUrl = (value) => /^https?:\/\//i.test(String(value || '').trim());
@@ -889,7 +889,11 @@ www.use('/scripts/', async (req, res, next) => {
 }, express.static(process.cwd() + '/views/scripts/'));
 
 // Inject locale registry into www-locale-head.js (single source: lang/locales.json)
-function sendWwwLocaleHead(req, res) {
+async function sendWwwLocaleHead(req, res) {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
     try {
         const headPath = path.join(process.cwd(), 'views', 'common', 'www-locale-head.js');
         const body = fs.readFileSync(headPath, 'utf8');
@@ -2588,11 +2592,11 @@ function getBuilderSlashOptionMeta(cmd, subcommandName, optionName) {
     }
     const rootOptions = typeof data.options.find === 'function'
         ? data.options
-        : Array.from(data.options.values?.() ?? data.options);
+        : [...(data.options.values?.() ?? data.options)];
     if (subcommandName) {
         const sub = rootOptions.find((o) => o.name === subcommandName);
         const subOptions = sub?.options
-            ? (typeof sub.options.find === 'function' ? sub.options : Array.from(sub.options.values?.() ?? sub.options))
+            ? (typeof sub.options.find === 'function' ? sub.options : [...(sub.options.values?.() ?? sub.options)])
             : [];
         return subOptions.find((o) => o.name === optionName) ?? null;
     }

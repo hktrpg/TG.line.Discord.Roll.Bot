@@ -1,5 +1,10 @@
 # Deploy docs/public as the GitHub Pages site root.
 # Settings → Pages → Source must be "GitHub Actions".
+#
+# Markdown is converted to HTML at build time (.nojekyll does not render .md).
+# Clean URLs:
+#   /PORTFOLIOP  and /PORTFOLIOP/  → PORTFOLIOP.html / PORTFOLIOP/index.html
+#   /PUBLIC_PRIVACY_POLICY         → PUBLIC_PRIVACY_POLICY.html (pretty URL)
 
 name: Deploy GitHub Pages
 
@@ -8,6 +13,8 @@ on:
     branches: [master, main]
     paths:
       - 'docs/public/**'
+      - 'scripts/build-pages.js'
+      - 'views/includes/header.html'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -33,11 +40,17 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Prepare site root from docs/public
         run: |
           mkdir -p _site
           cp -a docs/public/. _site/
-          touch _site/.nojekyll
+          npm install marked@15 --prefix /tmp/pages-build --no-fund --no-audit
+          NODE_PATH=/tmp/pages-build/node_modules node scripts/build-pages.js _site
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

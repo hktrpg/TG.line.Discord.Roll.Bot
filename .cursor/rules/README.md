@@ -106,7 +106,7 @@ Rules are applied in this order:
 
 ### File Organization
 - **Temporary files**: `temp/` directory
-- **Documentation**: `MD/` directory
+- **Documentation**: `docs/` directory
 - **Core modules**: `modules/` directory
 - **Game systems**: `roll/` directory
 - **Frontend**: `views/` directory
@@ -172,4 +172,4 @@ When updating rules:
 - `eslint.config.mjs` - ESLint configuration
 - `package.json` - Dependencies and scripts
 - `README.md` - Project overview
-- `MD/` - Project documentation
+- `docs/` - Project documentation

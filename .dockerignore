@@ -9,14 +9,11 @@ node_modules
 coverage
 dist
 build
-tmp/*
-!tmp/.gitkeep
 temp/*
 !temp/.gitkeep
 export
-logs/*
-!logs/.gitkeep
-log
+log/*
+!log/.gitkeep
 *.log
 .nyc_output
 .eslintcache

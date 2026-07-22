@@ -89,8 +89,8 @@ coverage/**
 node_modules/**
 dist/**
 build/**
-tmp/**
 temp/**
+log/**
 *.log
 .env*
 *.min.js

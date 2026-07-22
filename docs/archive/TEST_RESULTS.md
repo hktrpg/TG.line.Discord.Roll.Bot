@@ -161,7 +161,7 @@ yarn test:all
 ## 📚 相关文档
 
 - [TEST_USAGE.md](./TEST_USAGE.md) - 测试使用指南
-- [test/README-RECORDS-TEST.md](./test/README-RECORDS-TEST.md) - 详细测试文档
+- [test/README-RECORDS-TEST.md](../../test/README-RECORDS-TEST.md) - 详细测试文档
 - [MIGRATION_COMPLETE.md](./MIGRATION_COMPLETE.md) - 迁移完成文档
 
 ---

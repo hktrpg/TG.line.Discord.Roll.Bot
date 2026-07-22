@@ -277,7 +277,7 @@ async function generateWheelGif(options, settings = {}, selectedIndex = null) {
     const totalRotation = minRotations + targetRotation;
 
     // Create temp directory
-    const tempDir = path.join(__dirname, '../tmp');
+    const tempDir = path.join(__dirname, '../temp');
     if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
     }

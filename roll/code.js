@@ -1,6 +1,7 @@
 "use strict";
 const axios = require('axios');
 const { SlashCommandBuilder } = require('discord.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 
 const variables = {};
 const COMMAND_COOLDOWN_MS = 10_000;
@@ -46,8 +47,8 @@ function pruneUserCooldown() {
 }
 setInterval(pruneUserCooldown, 15 * 60 * 1000); // every 15 minutes
 
-const gameName = function () {
-    return '【.code [語言] [指令]】';
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'code.game_name', '【.code [語言] [指令]】');
 };
 const gameType = function () {
     return 'funny:code:hktrpg';
@@ -58,28 +59,8 @@ const prefixs = function () {
         second: null
     }];
 };
-const getHelpMessage = function () {
-    return `【程式碼執行系統】
-╭────── ℹ️說明 ──────
-│ 使用 .code [程式語言] [程式碼] 來執行程式碼
-│
-│ 支援的程式語言：
-│ • JavaScript (js)
-│ • TypeScript (ts)
-│ • Python (py)
-│ • Java (java)
-│ • C (c)
-│ • C++ (cpp)
-│ • Go (go)
-│ • Rust (rs)
-│ • PHP (php)
-│ • Ruby (rb)
-│
-│ 範例：
-│ .code js console.log("Hello World!");
-│ .code py print("Hello Python")
-│ .code java System.out.println("Hello Java");
-╰──────────────`;
+const getHelpMessage = function (params = {}) {
+    return resolveHelp(params, 'code.help');
 };
 const initialize = function () {
     return variables;
@@ -160,10 +141,11 @@ function extractCodeText(inputStr) {
     return trimmed;
 }
 
-function formatResultText(result) {
-    const output = String(result?.run?.output || result?.output || result?.stderr || result?.error || 'No output').trim();
+function formatResultText(result, translate) {
+    const t = translate || getT({});
+    const output = String(result?.run?.output || result?.output || result?.stderr || result?.error || t('code.no_output')).trim();
     if (output.length <= OUTPUT_LIMIT) return output;
-    return `${output.slice(0, OUTPUT_LIMIT)}\n...(truncated)`;
+    return `${output.slice(0, OUTPUT_LIMIT)}\n${t('code.truncated')}`;
 }
 
 function formatLanguageExamples(languages) {
@@ -200,21 +182,13 @@ int main() {
         .join('\n\n');
 }
 
-function buildExecutionErrorMessage(error) {
+function buildExecutionErrorMessage(error, translate) {
+    const t = translate || getT({});
     const status = error?.response?.status;
-    if (status === 401) {
-        return 'JDoodle request rejected (401). Check JDOODLE_CLIENT_ID/JDOODLE_CLIENT_SECRET.';
-    }
-    if (status === 403) {
-        return 'JDoodle request rejected (403). Account or quota may be restricted.';
-    }
-    if (status === 429) {
-        return 'JDoodle rate limit reached (429). Please try again later.';
-    }
     if (status) {
-        return `Execution failed (HTTP ${status}), try again later.`;
+        return t('code.exec_error_http', { status });
     }
-    return 'Execution failed, try again later.';
+    return t('code.exec_error_generic');
 }
 
 function checkUserCooldown(userid) {
@@ -239,13 +213,15 @@ function isCodeServiceEnabled() {
     return true;
 }
 
-const rollDiceCommand = async function ({ inputStr, mainMsg, userid }) {
+const rollDiceCommand = async function ({ inputStr, mainMsg, userid, locale, t }) {
+    const translate = getT({ locale, t });
+    const i18nParams = { locale, t };
     // If first command is not .code, return help message
     if (mainMsg[0] && !/^\.code$/i.test(mainMsg[0])) {
         const rply = {
             default: 'on',
             type: 'text',
-            text: getHelpMessage(),
+            text: getHelpMessage(i18nParams),
             quotes: true
         };
         return rply;
@@ -259,13 +235,13 @@ const rollDiceCommand = async function ({ inputStr, mainMsg, userid }) {
     const subCommand = (mainMsg[1] || '').toLowerCase();
 
     if (!isCodeServiceEnabled()) {
-        rply.text = 'Code playground is not enabled. Please set JDOODLE_CLIENT_ID, JDOODLE_CLIENT_SECRET and JDOODLE_ENDPOINT.';
+        rply.text = translate('code.service_disabled');
         return rply;
     }
 
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
-            rply.text = getHelpMessage();
+            rply.text = getHelpMessage(i18nParams);
             rply.quotes = true;
             return rply;
         }
@@ -275,13 +251,13 @@ const rollDiceCommand = async function ({ inputStr, mainMsg, userid }) {
                 const available = codeService.getPopularLanguageList();
                 rply.text = available.length > 0
                     ? [
-                        '[Popular Languages + Examples]',
+                        translate('code.langs_header'),
                         formatLanguageExamples(available)
                     ].join('\n')
-                    : 'Cannot fetch language list now, try again later.';
+                    : translate('code.langs_fetch_error');
             } catch (error) {
                 console.error('[code] Language list error:', error.message);
-                rply.text = buildExecutionErrorMessage(error);
+                rply.text = buildExecutionErrorMessage(error, translate);
             }
             return rply;
         }
@@ -289,26 +265,26 @@ const rollDiceCommand = async function ({ inputStr, mainMsg, userid }) {
         case /^\S/.test(mainMsg[1] || ''): {
             const waitSeconds = checkUserCooldown(userid);
             if (waitSeconds) {
-                rply.text = `Please wait ${waitSeconds}s before next run.`;
+                rply.text = translate('code.cooldown', { seconds: waitSeconds });
                 return rply;
             }
 
             const code = extractCodeText(inputStr);
             if (!code) {
-                rply.text = 'Please provide code content.';
+                rply.text = translate('code.no_code');
                 return rply;
             }
 
             try {
                 const execution = await codeService.run(mainMsg[1], code);
                 if (execution.error === 'unsupported-language') {
-                    return; // Return undefined for unknown language as test expects
+                    return;
                 }
                 markUserCooldown(userid);
-                rply.text = formatResultText(execution.data);
+                rply.text = formatResultText(execution.data, translate);
             } catch (error) {
                 console.error('[code] Execute error:', error.message);
-                rply.text = buildExecutionErrorMessage(error);
+                rply.text = buildExecutionErrorMessage(error, translate);
             }
             return rply;
         }

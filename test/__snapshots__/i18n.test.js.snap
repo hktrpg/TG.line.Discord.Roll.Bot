@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`i18n module zh-tw regression snapshots core zh-tw strings match baseline 1`] = `".cc 指令沒有得到回應，請檢查內容"`;
+
+exports[`i18n module zh-tw regression snapshots core zh-tw strings match baseline 2`] = `"不支援0顆以下及100顆以上骰子"`;
+
+exports[`i18n module zh-tw regression snapshots core zh-tw strings match baseline 3`] = `"目前語言 Current language：zh-tw"`;

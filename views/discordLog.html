@@ -4,6 +4,7 @@
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
+    <script src="/common/www-locale-head.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
@@ -16,7 +17,9 @@
     <script src="https://pulipulichen.github.io/jieba-js/jquery.js"></script>
     <script src="https://pulipulichen.github.io/jieba-js/require-jieba-js.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
-    <title>Discord Messager @ HKTRPG</title>
+    <title>Discord 聊天紀錄分析 @ HKTRPG</title>
+    <link rel="stylesheet" href="css/app-shell.css">
+    <script src="/common/www-i18n.js"></script>
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mobile-detect/1.4.4/mobile-detect.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"
@@ -469,72 +472,8 @@
 </head>
 
 <body class="bg-color center" id="body">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light container">
-        <a class="navbar-brand" href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81"><a
-                class="badge badge-pill badge-danger">
-                HKTRPG Discord 聊天紀錄分析<span class="iconify" data-icon="mdi:dice-multiple-outline" data-inline="false"
-                    style="color: black;" data-width="32" data-height="32"></span></span>
-                <span class="iconify" data-icon="bi:chat-square-text" data-inline="false" style="color: black;"
-                    data-width="32" data-height="32"></span>
-            </a></a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
-            aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav">
-                <a class="nav-item nav-link active"
-                    href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">主頁</a>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        角色卡
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="https://card.hktrpg.com/">私人角色卡</a>
-                        <a class="dropdown-item" href="https://publiccard.hktrpg.com/">公開角色卡</a>
-                    </div>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        跑團平台
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="https://z01.hktrpg.com/">2.5D - 烏冬</a>
-                        <a class="dropdown-item" href="https://z02.hktrpg.com/">四平八穩 - 冰丼</a>
-                    </div>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        擲骰
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="https://rollbot.hktrpg.com/">聊天室擲骰</a>
-                        <a class="dropdown-item" href="https://roll.hktrpg.com/">手機簡易擲骰</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="https://discord.hktrpg.com">Discord 骰子機械人</a>
-                        <a class="dropdown-item" href="http://t.me/hktrpg_bot">Telegram 骰子機械人</a>
-                        <a class="dropdown-item" href="http://bit.ly/HKTRPG_LINE">Line 骰子機械人</a>
-                    </div>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link"
-                        href="https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP">HKTRPG作品集</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="https://www.patreon.com/HKTRPG">訂閱</a>
-                </li>
-                <a class="nav-item nav-link " href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot">
-                    <span class="iconify" data-icon="bytesize:github" data-inline="false" data-width="25px"
-                        data-height="25px"></span></a>
-                <a class="nav-item nav-link " href="https://support.hktrpg.com">
-                    <span class="iconify" data-icon="jam:discord" data-inline="false" data-width="25px"
-                        data-height="25px"></span></a>
-            </div>
-        </div>
-    </nav>
+    <div id="header"></div>
+    
     <div id="myNav" class="overlay">
         <div class="overlay-content">
             <div class="spinner-border" style="width: 10rem; height: 10rem; color:chocolate;" role="status">
@@ -544,18 +483,18 @@
     </div>
 
     <div> <br>
-        <h1>聊天紀錄</h1>
+        <h1 data-www-i18n="dlog_h1">聊天紀錄</h1>
         <div class="container-md">
             <div class="row border">
                 <div class="col-md-4 color-01"> <br>
                     <div id="totallyDate">
                         <br>
-                        總共聊天天數 <br>
+                        <span data-www-i18n="dlog_stat_total_days">總共聊天天數</span> <br>
                         <span class="iconify" data-icon="ic:outline-calendar-today" data-inline="false"
                             data-width="30px" data-height="30px"></span>{{ message }}<br><br>
                     </div>
                     <div id="totallyMessage"><br>
-                        總共傳了多少訊息<br>
+                        <span data-www-i18n="dlog_stat_total_messages">總共傳了多少訊息</span><br>
                         <span class="iconify" data-icon="bi:people" data-inline="false" data-width="30px"
                             data-height="30px"></span>{{ message0 }}<br>
                         <span class="iconify" data-icon="ant-design:robot-outlined" data-inline="false"
@@ -568,16 +507,16 @@
                 </div>
                 <div class="col-md-4 color-01"> <br>
                     <div id="averageMessage"><br>
-                        每日平均訊息數量<br><span class="iconify" data-icon="grommet-icons:mail-option" data-inline="false"
+                        <span data-www-i18n="dlog_stat_daily_avg">每日平均訊息數量</span><br><span class="iconify" data-icon="grommet-icons:mail-option" data-inline="false"
                             data-width="30px" data-height="30px"></span>
                         {{ message }}<br>
                     </div>
                     <br>
                     <div id="analysicDate"><br>
-                        最多訊息的三天<br>
+                        <span data-www-i18n="dlog_stat_top3_days">最多訊息的三天</span><br>
                         <div v-for="message in messages">
                             <span class="iconify" data-icon="clarity:talk-bubbles-line" data-inline="false"
-                                data-width="30px" data-height="30px"></span>{{ message.date }} {{ message.number }}條
+                                data-width="30px" data-height="30px"></span>{{ formatTopDate(message) }}
                         </div><br>
                     </div>
                 </div>
@@ -588,7 +527,7 @@
                 <div class="col-md-4 color-02 border">
                     <canvas id="myChart2" width="100" height="80"></canvas>
                 </div>
-                <div class="col-md-4 color-01 border" id="wordCloud">最常講的字 (文字雲)
+                <div class="col-md-4 color-01 border" id="wordCloud"><span data-www-i18n="dlog_word_cloud_title">最常講的字 (文字雲)</span>
                     <div id="tag" style=" height: 250px; width:350px;"></div>
                 </div>
                 <div class="col-md-4 color-02 border">
@@ -601,18 +540,18 @@
 
         <div class="container center table-responsive-md" id="appMain">
             <!-- Button trigger modal -->
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" data-www-i18n="dlog_btn_help">
                 使用說明
             </button>
-            <button class="btn btn-info" v-on:click="loadDemo">載入範例</button>
+            <button class="btn btn-info" v-on:click="loadDemo" data-www-i18n="dlog_btn_load_demo">載入範例</button>
 
             <br><br>
             <div class="form-row">
                 <div class="form-group col-md-3 mx-auto">
                     <div class="input-group mb-3">
                         <input type="password" class="form-control" aria-describedby="passwordHelpBlock"
-                            placeholder="請輸入密碼" id="passw0rd">
-                        <button class="btn btn-warning" v-on:click="reNew">開始解密</button>
+                            data-www-i18n-placeholder="dlog_password_placeholder" placeholder="請輸入密碼" id="passw0rd">
+                        <button class="btn btn-warning" v-on:click="reNew" data-www-i18n="dlog_btn_decrypt">開始解密</button>
                     </div>
                 </div>
             </div>
@@ -620,25 +559,25 @@
             <div class="page-header" style="color: #90CCF4;">
                 <div class="row">
                     <div class="col-md-4" class="form-control">
-                        <input type="text" placeholder="搜尋全部" v-model="filter" />
+                        <input type="text" data-www-i18n-placeholder="dlog_search_placeholder" placeholder="搜尋全部" v-model="filter" />
                     </div>
                     <div class="col-md-4" class="form-control">
                         <select v-model="currentFilter">
-                            <option value="all">全部訊息</option>
-                            <option value="user">只顯示使用者</option>
-                            <option value="bot">只顯示機器人</option>
-                            <option value="command">只顯示指令</option>
-                            <option value="dice">只顯示擲骰</option>
+                            <option value="all" data-www-i18n="dlog_filter_all">全部訊息</option>
+                            <option value="user" data-www-i18n="dlog_filter_user">只顯示使用者</option>
+                            <option value="bot" data-www-i18n="dlog_filter_bot">只顯示機器人</option>
+                            <option value="command" data-www-i18n="dlog_filter_command">只顯示指令</option>
+                            <option value="dice" data-www-i18n="dlog_filter_dice">只顯示擲骰</option>
                         </select>
                     </div>
                     <div class="col-md-4" class="form-control">
                         <select v-model="pageSize">
-                            <option value="20">顯示 20 行</option>
-                            <option value="50">顯示 50 行</option>
-                            <option value="100">顯示 100 行</option>
-                            <option value="500">顯示 500 行</option>
-                            <option value="1000">顯示 1000 行</option>
-                            <option value="-1">顯示全部</option>
+                            <option value="20" data-www-i18n="dlog_show_20">顯示 20 行</option>
+                            <option value="50" data-www-i18n="dlog_show_50">顯示 50 行</option>
+                            <option value="100" data-www-i18n="dlog_show_100">顯示 100 行</option>
+                            <option value="500" data-www-i18n="dlog_show_500">顯示 500 行</option>
+                            <option value="1000" data-www-i18n="dlog_show_1000">顯示 1000 行</option>
+                            <option value="-1" data-www-i18n="dlog_show_all">顯示全部</option>
                         </select>
                     </div>
                 </div>
@@ -648,9 +587,9 @@
                 <thead class="thead ">
                     <tr class="d-flex">
                         <th class="col-md-1" style="color: white;background-color: #90ccf4e0;">#</th>
-                        <th class="col-md-2" style="color: white;background-color: #90ccf4e0;">時間</th>
-                        <th class="col-md-2" style="color: white;background-color:  #90ccf4e0;">發信人(🤖)</th>
-                        <th class="col-md-7" style="color: white;background-color:  #90ccf4e0;">內容</th>
+                        <th class="col-md-2" style="color: white;background-color: #90ccf4e0;" data-www-i18n="dlog_th_time">時間</th>
+                        <th class="col-md-2" style="color: white;background-color:  #90ccf4e0;" data-www-i18n="dlog_th_sender">發信人(🤖)</th>
+                        <th class="col-md-7" style="color: white;background-color:  #90ccf4e0;" data-www-i18n="dlog_th_content">內容</th>
                     </tr>
                 </thead>
                 <tbody class="preline" v-for="(row, index) in filteredRows">
@@ -691,12 +630,13 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">使用說明</h5>
+                    <h5 class="modal-title" id="exampleModalLabel" data-www-i18n="dlog_modal_help_title">使用說明</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
+                    <div data-www-i18n-html="dlog_modal_help_html">
                     這是HKTRPG Discord 骰子機械人的附屬功能，<br>
                     用來分析Discord 頻道的聊天紀錄。<br><br>
                     使用方法：<br>
@@ -708,12 +648,13 @@
                     <a href="https://discord.hktrpg.com"> \HKTRPG骰子機械人/</a><br>
                     P.S. 這是為了寫TRPG團錄功能而開發出來的副產品，有時間可以到YT搜索TRPG，<br>
                     會有很多有趣的REPLAY。
+                    </div>
                     <img class="img-fluid" src="https://i.imgur.com/zuLQzmB.jpg">
                     <img class="img-fluid" src="https://i.imgur.com/JM7UdU5.jpg">
                     <img class="img-fluid" src="https://i.imgur.com/UZmOxOT.jpg">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" data-www-i18n="dlog_btn_close">關閉</button>
                 </div>
             </div>
         </div>
@@ -735,6 +676,59 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.css"
         integrity="sha512-SUJFImtiT87gVCOXl3aGC00zfDl6ggYAw5+oheJvRJ8KBXZrr/TMISSdVJ5bBarbQDRC2pR5Kto3xTR0kpZInA=="
         crossorigin="anonymous" />
+    <script src="/common/site-chrome.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script>
+        function dt(key, options = {}) {
+            if (typeof wwwT !== 'function') return '';
+            return wwwT(key.startsWith('dlog_') ? key : `dlog_${key}`, options);
+        }
+        function formatDlogDuration(days, hours, minutes) {
+            return dt('dlog_duration', { days, hours, minutes });
+        }
+        function formatDlogDateTime(year, month, day, hour, minute, multiline) {
+            const text = dt('dlog_datetime', {
+                year,
+                month,
+                day,
+                hour: String(hour).padStart(2, '0'),
+                minute: String(minute).padStart(2, '0')
+            });
+            return multiline ? text.replace(' ', '\n') : text;
+        }
+        function formatDlogDateOnly(year, month, day) {
+            return dt('dlog_date_only', { year, month, day });
+        }
+        function formatDlogUnitCount(n) {
+            return dt('dlog_unit_count', { n });
+        }
+        function formatTopDate(message) {
+            return dt('dlog_top_date_line', { date: message.date, count: message.number });
+        }
+        async function applyDlogPageI18n() {
+            if (window.wwwI18n?.ready) await window.wwwI18n.ready;
+            if (typeof wwwApplyDomI18n === 'function') {
+                wwwApplyDomI18n(document.body);
+            }
+            document.title = dt('dlog_page_title') || document.title;
+            const titleEl = document.getElementById('title');
+            if (titleEl) titleEl.textContent = dt('dlog_nav_title') || titleEl.textContent;
+        }
+        $(async function () {
+            await applyDlogPageI18n();
+            if (typeof loadSiteChromeWithI18n === 'function') {
+                loadSiteChromeWithI18n({ title: dt('dlog_nav_title') });
+            } else {
+                $('#header').load('includes/header.html', function () {
+                    const titleEl = document.getElementById('title');
+                    if (titleEl) titleEl.textContent = dt('dlog_nav_title');
+                });
+                $('#footer').load('includes/footer.html');
+            }
+        });
+    </script>
+
     <script>
         //https://getbootstrap.com/docs/4.5/components/scrollspy/#list-item-4
         // Object.keys(list);
@@ -819,13 +813,13 @@
         function reNew() {
             const key = document.getElementById("passw0rd").value;
             if (!key || key.length < 4) {
-                alert('請輸入至少4個字元的密碼');
+                alert(dt('dlog_error_password_min'));
                 return;
             }
 
             const newAesData = lightDecrypt(aesData, key);
             if (!newAesData) {
-                alert('解密失敗，請確認密碼是否正確');
+                alert(dt('dlog_error_decrypt_failed'));
                 return;
             }
 
@@ -977,15 +971,14 @@
         let averageMessage = new Vue({
             el: '#averageMessage',
             data: {
-                message: (Math.ceil(totallymessage[0] / newTotallyDay * 100) / 100).toFixed(2) + '個'
+                message: formatDlogUnitCount((Math.ceil(totallymessage[0] / newTotallyDay * 100) / 100).toFixed(2))
             },
             methods: {
                 reNewAaverageMessage: function (input) {
                     newTotallyDay = Number(totallyDay(input).toString().match(/\d+/i)[0]);
                     if (newTotallyDay < 1) newTotallyDay = 1;
                     totallymessage = analysicTotallymessage(input);
-                    this.message = (Math.ceil(totallymessage[0] / newTotallyDay * 100) / 100).toFixed(2) +
-                        '個';
+                    this.message = formatDlogUnitCount((Math.ceil(totallymessage[0] / newTotallyDay * 100) / 100).toFixed(2));
                 }
             },
             updated() {
@@ -1009,7 +1002,7 @@
         top3Date.splice(3, top3Date.length - 1);
         top3Date.forEach((e, i) => {
             let temptop3Date = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
-            top3Date[i].date = [temptop3Date[1], '年', temptop3Date[2], '月', temptop3Date[3], '日'].join('');
+            top3Date[i].date = formatDlogDateOnly(temptop3Date[1], temptop3Date[2], temptop3Date[3]);
         })
         let analysicDateVue = new Vue({
             el: '#analysicDate',
@@ -1017,6 +1010,7 @@
                 messages: top3Date
             },
             methods: {
+                formatTopDate(message) { return formatTopDate(message); },
                 reNewanalysicDate: function (input) {
                     analysicdate = analysicDate(input)
                     allDateforChart3 = JSON.parse(JSON.stringify(analysicdate));
@@ -1027,9 +1021,7 @@
                     top3Date.splice(3, top3Date.length - 1);
                     top3Date.forEach((e, i) => {
                         temptop3Date = e.date.toString().match(/^(\d\d\d\d)(\d\d)(\d\d)/)
-                        top3Date[i].date = [temptop3Date[1], '年', temptop3Date[2], '月',
-                        temptop3Date[3], '日'
-                        ].join('');
+                        top3Date[i].date = formatDlogDateOnly(temptop3Date[1], temptop3Date[2], temptop3Date[3]);
                     })
                     this.messages = top3Date
                 }
@@ -1153,7 +1145,7 @@
                 d++;
                 h = 0;
             }
-            return [d, '天', pad(h), '小時', pad(m), '分鐘'].join('');
+            return formatDlogDuration(d, pad(h), pad(m));
         }
     </script>
     <script>
@@ -1164,7 +1156,7 @@
             let day = date.getDate().toString().padStart(2, '0');
             let dhm2hour = date.getHours();
             let dhm2minute = date.getMinutes();
-            return [year, '年', month, '月', day, '日', ' ', dhm2hour, ':', dhm2minute].join('');
+            return formatDlogDateTime(year, month, day, dhm2hour, dhm2minute);
         };
         const appMain = new Vue({
             el: "#appMain",
@@ -1195,7 +1187,7 @@
                     let day = dhm2date.getDate().toString().padStart(2, '0');
                     let dhm2hour = dhm2date.getHours().toString().padStart(2, '0');
                     let dhm2minute = dhm2date.getMinutes().toString().padStart(2, '0');
-                    return [year, '年', month, '月', day, '日', '\n', dhm2hour, ':', dhm2minute].join('');
+                    return formatDlogDateTime(year, month, day, dhm2hour, dhm2minute, true);
                 },
                 escapeHtml(text) {
                     if (text == null) return '';
@@ -1265,7 +1257,7 @@
                     if (!r) return '';
                     const uname = r.userName ? this.applyHighlight(this.escapeHtml(r.userName)) : 'Unknown';
                     const content = r.contact ? this.applyHighlight(this.escapeHtml(r.contact)) : '';
-                    return `<div class="p-2 mb-1" style="border-left:3px solid #90ccf4;background:#eef6ff;border-radius:4px;">↪ 回覆 ${uname}: <span style=\"white-space:pre-wrap;\">${content}</span></div>`;
+                    return `<div class="p-2 mb-1" style="border-left:3px solid #90ccf4;background:#eef6ff;border-radius:4px;">${dt('dlog_reply_prefix', { user: uname })} <span style=\"white-space:pre-wrap;\">${content}</span></div>`;
                 },
                 renderContent(row) {
                     const base = this.applyHighlight(this.escapeHtml((row && row.contact) || ''));
@@ -1482,7 +1474,11 @@
                                 .style("font-size", "14px")
                                 .style("fill", "#2c3e50")
                                 .style("font-weight", "bold")
-                                .text(`"${d.text}" 出現次數: ${d.freq} (權重: ${d.score.toFixed(2)})`);
+                                .text(dt('dlog_wordcloud_tooltip', {
+                                    text: d.text,
+                                    freq: d.freq,
+                                    score: d.score.toFixed(2)
+                                }));
                         });
 
                         text.on("pointerleave", function () {
@@ -1529,7 +1525,7 @@
                 data: {
                     labels: top6Data,
                     datasets: [{
-                        label: '訊息量排名',
+                        label: dt('dlog_chart_rank'),
                         data: top6Labels,
                         backgroundColor: [
                             'rgba(255, 99, 132, 1)',
@@ -1590,7 +1586,7 @@
                         return e.Labels;
                     }),
                     datasets: [{
-                        label: '聊天比例',
+                        label: dt('dlog_chart_ratio'),
                         data: allUesr.map((e) => {
                             return e.Data;
                         }),
@@ -1628,7 +1624,7 @@
                 options: {
                     title: {
                         display: true,
-                        text: '聊天比例' + ' (共' + Object.keys(peopleTalk).length + '人)',
+                        text: dt('dlog_chart_ratio_title', { n: Object.keys(peopleTalk).length }),
                         fontColor: 'white',
                         fontStyle: 'normal'
                     },
@@ -1664,7 +1660,7 @@
             chart3cfg = {
                 data: {
                     datasets: [{
-                        label: '每日訊息數',
+                        label: dt('dlog_chart_daily'),
                         backgroundColor: 'rgba(255, 99, 132, 1)',
                         borderColor: 'rgba(255,99,132,1)',
                         data: dataCFG,
@@ -1736,7 +1732,7 @@
                             },
                             scaleLabel: {
                                 display: true,
-                                labelString: '訊息量'
+                                labelString: dt('dlog_chart_y_axis')
                             },
                             ticks: {
                                 beginAtZero: true,
@@ -1881,13 +1877,13 @@
             new Vue({
                 el: '#averageMessage',
                 data: {
-                    message: (totallymessage[0] / newTotallyDay).toFixed(2) + '個'
+                    message: formatDlogUnitCount((totallymessage[0] / newTotallyDay).toFixed(2))
                 },
                 methods: {
                     reNewAaverageMessage(input) {
                         newTotallyDay = extractDayCount(totallyDay(input));
                         totallymessage = analysicTotallymessage(input);
-                        this.message = (totallymessage[0] / newTotallyDay).toFixed(2) + '個';
+                        this.message = formatDlogUnitCount((totallymessage[0] / newTotallyDay).toFixed(2));
                     }
                 }
             });
@@ -1895,6 +1891,7 @@
             new Vue({
                 el: '#analysicDate',
                 data: { messages: top3Date },
+                methods: { formatTopDate(message) { return formatTopDate(message); } },
                 methods: {
                     reNewanalysicDate(input) {
                         analysicdate = analysicDate(input);
@@ -1924,7 +1921,12 @@
                     },
                     dhm2(unix_timestamp) {
                         let date = new Date(unix_timestamp);
-                        return `${date.getFullYear()}年${(date.getMonth() + 1).toString().padStart(2, '0')}月${date.getDate().toString().padStart(2, '0')}日\n${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                        const y = date.getFullYear().toString();
+                        const m = (date.getMonth() + 1).toString().padStart(2, '0');
+                        const d = date.getDate().toString().padStart(2, '0');
+                        const h = date.getHours().toString().padStart(2, '0');
+                        const min = date.getMinutes().toString().padStart(2, '0');
+                        return formatDlogDateTime(y, m, d, h, min, true);
                     },
                     escapeHtml(text) {
                         if (text == null) return '';
@@ -1994,7 +1996,7 @@
                         if (!r) return '';
                         const uname = r.userName ? this.applyHighlight(this.escapeHtml(r.userName)) : 'Unknown';
                         const content = r.contact ? this.applyHighlight(this.escapeHtml(r.contact)) : '';
-                        return `<div class=\"p-2 mb-1\" style=\"border-left:3px solid #90ccf4;background:#eef6ff;border-radius:4px;\">↪ 回覆 ${uname}: <span style=\"white-space:pre-wrap;\">${content}</span></div>`;
+                        return `<div class=\"p-2 mb-1\" style=\"border-left:3px solid #90ccf4;background:#eef6ff;border-radius:4px;\">${dt('dlog_reply_prefix', { user: uname })} <span style=\"white-space:pre-wrap;\">${content}</span></div>`;
                     },
                     renderContent(row) {
                         const base = this.applyHighlight(this.escapeHtml((row && row.contact) || ''));
@@ -2040,7 +2042,7 @@
                 if (!match) {
                     return;
                 }
-                e.date = `${match[1]}年${match[2]}月${match[3]}日`;
+                e.date = formatDlogDateOnly(match[1], match[2], match[3]);
             });
             return top3Date;
         }
@@ -2067,6 +2069,7 @@
         // This template already initializes Vue/Chart instances earlier in the page.
         // Avoid double-initialization here, which can break button bindings and chart rendering.
     </script>
+    <footer class="site-footer mt-3"><div id="footer"></div></footer>
 </body>
 <!-- HKTRPG Sad -- 20201015-->
 

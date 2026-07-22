@@ -1,8 +1,13 @@
 "use strict";
 
 const check = require('../modules/check.js');
+const i18n = require('../modules/i18n.js');
 
 describe('Check Module Tests', () => {
+    beforeAll(async () => {
+        await i18n.init();
+    });
+
     describe('Role Constants', () => {
         test('Role constants are correctly defined', () => {
             expect(check.role.ban).toBe(-1);

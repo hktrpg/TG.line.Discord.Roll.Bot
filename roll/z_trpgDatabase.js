@@ -9,6 +9,7 @@ const records = require('../modules/records.js');
 const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
 const VIP = require('../modules/veryImportantPerson.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 const rollbase = require('./rollbase.js');
 
 // 常量定義
@@ -147,7 +148,7 @@ const databaseOperations = {
  * 遊戲功能名稱
  * @returns {string} 功能名稱
  */
-const gameName = () => '【資料庫功能】 .db(p) (add del show 自定關鍵字)';
+const gameName = (params = {}) => resolveGameName(params, 'trpgdb.game_name', '【資料庫功能】 .db(p) (add del show 自定關鍵字)');
 
 /**
  * 遊戲類型
@@ -168,8 +169,8 @@ const prefixs = () => [{
  * 獲取幫助信息
  * @returns {Promise<string>} 幫助信息
  */
-const getHelpMessage = async () => {
-    return `【📚資料庫功能】\n╭──── 💡功能簡介 ────\n│ 資料庫可以儲存和調用自定義內容\n│ 支援文字、數字、表情符號\n│ 分為個人資料庫和全服資料庫\n│\n├──── 📝基本指令 ────\n│ • .db add 關鍵字 內容\n│   新增資料項目\n│ • .db show\n│   顯示資料清單\n│ • .db del 標題\n│   刪除指定標題\n│ • .db 關鍵字/index\n│   顯示資料內容\n│\n├──── 🌐全服指令 ────\n│ • .dbp add/show\n│   新增/顯示全服資料\n│ • .dbp 關鍵字/編號\n│   顯示全服資料內容\n│ • .dbp newType\n│   查看特殊效果範例\n│\n├──── ✨特殊標記 ────\n│ ■ 基礎功能:\n│ • {br} - 換行\n│ • {ran:100} - 隨機1-100\n│ • {random:5-20} - 隨機5-20\n│ • {server.member_count} - 總人數\n│ • {my.name} - 使用者名字\n│\n│ ■ 等級相關(.level):\n│ • {my.level} - 等級\n│ • {my.exp} - 經驗值\n│ • {my.title} - 稱號\n│ • {my.Ranking} - 排名\n│ • {my.RankingPer} - 排名百分比\n│ • {allgp.name} - 隨機成員名\n│ • {allgp.title} - 隨機稱號\n│\n├──── 📖使用範例 ────\n│ 1. 基本資料儲存:\n│ .db add 防具表 皮甲{br}鎖甲{br}板甲\n│\n│ 2. 隨機回應:\n│ .db add 運氣 今天的運氣是{ran:100}分\n│\n│ 3. 動態資訊:\n│ .db add 伺服器 目前有{server.member_count}人\n│ {my.name}的等級是{my.level}\n├──── ⚠️注意事項 ────\n│ • 關鍵字可用中英數+表情\n│ • 未生效時用show重整\n╰──────────────`;
+const getHelpMessage = async (params = {}) => {
+    return resolveHelp(params, 'trpgdb.help');
 };
 
 /**
@@ -247,6 +248,7 @@ function createDatabaseEntry(groupid, topic, content) {
  */
 function checkPermission(params) {
     return checkTools.permissionErrMsg({
+        locale: params.locale,
         flag: checkTools.flag.ChkChannelManager,
         gid: params.groupid,
         role: params.userrole
@@ -260,15 +262,10 @@ function checkPermission(params) {
  * @param {number} pageSize 每頁數量
  * @returns {string} 格式化後的列表
  */
-function formatDatabaseList(items, page = 1, pageSize = 20) {
+function formatDatabaseList(items, page = 1, pageSize = 20, translate) {
+    const t = translate || getT({});
     if (!items || items.length === 0) {
-        return '📝 沒有已設定的關鍵字\n\n' +
-            '💡 使用方式:\n' +
-            '• 新增項目: .db add 標題 內容\n' +
-            '• 查看列表: .db show [頁碼]\n' +
-            '• 使用標題: .db 標題\n' +
-            '• 使用編號: .db 編號\n' +
-            '• 刪除項目: .db del 標題/編號';
+        return t('trpgdb.list_empty') + t('trpgdb.usage_footer');
     }
 
     const totalPages = Math.ceil(items.length / pageSize);
@@ -276,10 +273,8 @@ function formatDatabaseList(items, page = 1, pageSize = 20) {
     const endIndex = Math.min(startIndex + pageSize, items.length);
     const currentItems = items.slice(startIndex, endIndex);
 
-    let output = `📚 資料庫列表 (第 ${page}/${totalPages} 頁)\n`;
-    output += '╭──────────────────────────────────────\n';
+    let output = t('trpgdb.list_header', { page, total: totalPages });
 
-    // 每行顯示2個項目
     for (let i = 0; i < currentItems.length; i += 2) {
         const item1 = currentItems[i];
         const item2 = currentItems[i + 1];
@@ -292,33 +287,24 @@ function formatDatabaseList(items, page = 1, pageSize = 20) {
         if (item2) {
             const padding2 = (globalIndex2 + 1).toString().padStart(2, '0');
             const topic2 = item2.topic.length > 12 ? item2.topic.slice(0, 12) + '...' : item2.topic;
-            output += `│ #${padding1}: ${topic1.padEnd(15)} #${padding2}: ${topic2}\n`;
+            output += t('trpgdb.list_row_pair', {
+                i1: padding1,
+                t1: topic1.padEnd(15),
+                i2: padding2,
+                t2: topic2
+            });
         } else {
-            output += `│ #${padding1}: ${topic1}\n`;
+            output += t('trpgdb.list_row_single', { i: padding1, topic: topic1 });
         }
     }
 
-    output += '╰──────────────────────────────────────\n';
-    output += `📊 共 ${items.length} 個關鍵字\n\n`;
-    output += `💡 使用方式:\n`;
-    output += `• 使用編號: .db 編號\n`;
-    output += `• 使用標題: .db 標題\n`;
-    output += `• 查看列表: .db show [頁碼]\n`;
-    output += `• 新增項目: .db add 標題 內容\n`;
-    output += `• 刪除項目: .db del 標題/編號\n\n`;
-    output += `💡 特殊標記:\n`;
-    output += `• {br} - 換行\n`;
-    output += `• {ran:100} - 隨機1-100\n`;
-    output += `• {random:5-20} - 隨機5-20\n`;
-    output += `• {my.name} - 使用者名字\n`;
-    output += `• {my.level} - 使用者等級\n`;
-    output += `• {my.exp} - 使用者經驗值\n`;
-    output += `• {my.title} - 使用者稱號\n`;
-    output += `• {my.Ranking} - 使用者排名\n`;
-    output += `• {server.member_count} - 伺服器人數`;
+    output += t('trpgdb.list_footer', { count: items.length });
+    output += t('trpgdb.usage_footer');
+    output += '\n\n';
+    output += t('trpgdb.list_special_tags');
 
     if (totalPages > 1) {
-        output += `\n\n💡 使用 .db show ${page + 1} 查看下一頁`;
+        output += t('trpgdb.list_next_page', { page: page + 1 });
     }
 
     return output;
@@ -372,9 +358,10 @@ function createGlobalDatabaseEntry(topic, content) {
  * @param {number} pageSize 每頁數量
  * @returns {string} 格式化後的列表
  */
-function formatGlobalDatabaseList(database, page = 1, pageSize = 20) {
+function formatGlobalDatabaseList(database, page = 1, pageSize = 20, translate) {
+    const t = translate || getT({});
     if (!database || database.length === 0) {
-        return '📝 沒有已設定的關鍵字';
+        return t('trpgdb.list_empty').trimEnd();
     }
 
     const allItems = database.reduce((acc, group) => {
@@ -385,7 +372,7 @@ function formatGlobalDatabaseList(database, page = 1, pageSize = 20) {
     }, []);
 
     if (allItems.length === 0) {
-        return '📝 沒有已設定的關鍵字';
+        return t('trpgdb.list_empty').trimEnd();
     }
 
     const totalPages = Math.ceil(allItems.length / pageSize);
@@ -393,10 +380,8 @@ function formatGlobalDatabaseList(database, page = 1, pageSize = 20) {
     const endIndex = Math.min(startIndex + pageSize, allItems.length);
     const currentItems = allItems.slice(startIndex, endIndex);
 
-    let output = `🌐 全服資料庫列表 (第 ${page}/${totalPages} 頁)\n`;
-    output += '╭──────────────────────────────────────\n';
+    let output = t('trpgdb.global_list_header', { page, total: totalPages });
 
-    // 每行顯示2個項目
     for (let i = 0; i < currentItems.length; i += 2) {
         const item1 = currentItems[i];
         const item2 = currentItems[i + 1];
@@ -409,22 +394,22 @@ function formatGlobalDatabaseList(database, page = 1, pageSize = 20) {
         if (item2) {
             const padding2 = (globalIndex2 + 1).toString().padStart(2, '0');
             const topic2 = item2.topic.length > 12 ? item2.topic.slice(0, 12) + '...' : item2.topic;
-            output += `│ #${padding1}: ${topic1.padEnd(15)} #${padding2}: ${topic2}\n`;
+            output += t('trpgdb.list_row_pair', {
+                i1: padding1,
+                t1: topic1.padEnd(15),
+                i2: padding2,
+                t2: topic2
+            });
         } else {
-            output += `│ #${padding1}: ${topic1}\n`;
+            output += t('trpgdb.list_row_single', { i: padding1, topic: topic1 });
         }
     }
 
-    output += '╰──────────────────────────────────────\n';
-    output += `📊 共 ${allItems.length} 個關鍵字\n\n`;
-    output += `💡 使用方式:\n`;
-    output += `• 使用編號: .dbp 編號\n`;
-    output += `• 使用標題: .dbp 標題\n`;
-    output += `• 查看列表: .dbp show [頁碼]\n`;
-    output += `• 新增項目: .dbp add 標題 內容`;
+    output += t('trpgdb.list_footer', { count: allItems.length });
+    output += t('trpgdb.global_usage_footer');
 
     if (totalPages > 1) {
-        output += `\n\n💡 使用 .dbp show ${page + 1} 查看下一頁`;
+        output += t('trpgdb.global_list_next_page', { page: page + 1 });
     }
 
     return output;
@@ -457,8 +442,11 @@ const rollDiceCommand = async function ({
     userid,
     displayname,
     displaynameDiscord,
-    membercount
+    membercount,
+    locale,
+    t
 }) {
+    const translate = getT({ locale, t });
     let rply = {
         default: 'on',
         type: 'text',
@@ -469,7 +457,7 @@ const rollDiceCommand = async function ({
     let limit = FUNCTION_LIMIT[0];
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-            rply.text = await this.getHelpMessage();
+            rply.text = await getHelpMessage({ locale, t });
             rply.quotes = true;
             return rply;
 
@@ -477,11 +465,11 @@ const rollDiceCommand = async function ({
         case /(^[.]db$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]): {
             // 驗證輸入
             if (!groupid) {
-                rply.text = '❌ 不在群組中';
+                rply.text = translate('trpgdb.not_in_group');
                 return rply;
             }
-            if (!mainMsg[2]) rply.text += '❌ 沒有輸入標題。\n\n';
-            if (!mainMsg[3]) rply.text += '❌ 沒有輸入內容。\n\n';
+            if (!mainMsg[2]) rply.text += translate('trpgdb.no_title');
+            if (!mainMsg[3]) rply.text += translate('trpgdb.no_content');
 
             // 檢查權限
             rply.text += checkPermission({ groupid, userrole });
@@ -499,26 +487,15 @@ const rollDiceCommand = async function ({
 
             // 檢查是否達到上限
             if (isGroupDatabaseFull(groupData, limit)) {
-                rply.text = `⚠️ 關鍵字已達上限 ${limit} 個\n`;
-                rply.text += `💎 支援及解鎖上限: https://www.patreon.com/HKTRPG\n\n`;
-                rply.text += `💡 使用方式:\n`;
-                rply.text += `• 使用編號: .db 編號\n`;
-                rply.text += `• 使用標題: .db 標題\n`;
-                rply.text += `• 查看列表: .db show [頁碼]\n`;
-                rply.text += `• 新增項目: .db add 標題 內容\n`;
-                rply.text += `• 刪除項目: .db del 標題/編號`;
+                rply.text = translate('trpgdb.limit_reached', { limit });
+                rply.text += translate('trpgdb.usage_footer');
                 return rply;
             }
 
             // 檢查關鍵字是否重複
             if (isTopicExists(groupData, mainMsg[2])) {
-                rply.text = '❌ 新增失敗: 標題重複\n\n';
-                rply.text += `💡 使用方式:\n`;
-                rply.text += `• 使用編號: .db 編號\n`;
-                rply.text += `• 使用標題: .db 標題\n`;
-                rply.text += `• 查看列表: .db show [頁碼]\n`;
-                rply.text += `• 新增項目: .db add 標題 內容\n`;
-                rply.text += `• 刪除項目: .db del 標題/編號`;
+                rply.text = translate('trpgdb.duplicate_title');
+                rply.text += translate('trpgdb.usage_footer');
                 return rply;
             }
 
@@ -536,28 +513,22 @@ const rollDiceCommand = async function ({
             // 獲取當前索引
             const currentIndex = (groupData?.trpgDatabasefunction?.length || 0) + 1;
 
-            rply.text = `✅ 新增成功: ${mainMsg[2]}\n\n`;
-            rply.text += `💡 查看方式:\n`;
-            rply.text += `• 使用編號: .db ${currentIndex}\n`;
-            rply.text += `• 使用標題: .db ${mainMsg[2]}\n\n`;
-            rply.text += `💡 其他功能:\n`;
-            rply.text += `• 查看列表: .db show [頁碼]\n`;
-            rply.text += `• 刪除項目: .db del ${currentIndex}`;
+            rply.text = translate('trpgdb.add_success', { title: mainMsg[2] });
+            rply.text += translate('trpgdb.add_success_view', {
+                index: currentIndex,
+                title: mainMsg[2]
+            });
             return rply;
         }
         case /(^[.]db$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]): {
             // 驗證輸入
             if (!groupid) {
-                rply.text = '❌ 不在群組中';
+                rply.text = translate('trpgdb.not_in_group');
                 return rply;
             }
             if (!mainMsg[2]) {
-                rply.text = '❌ 請指定要刪除的標題或編號\n\n';
-                rply.text += `💡 使用方式:\n`;
-                rply.text += `• 刪除項目: .db del 標題\n`;
-                rply.text += `• 刪除編號: .db del 編號\n`;
-                rply.text += `• 查看列表: .db show\n`;
-                rply.text += `• 新增項目: .db add 標題 內容`;
+                rply.text = translate('trpgdb.delete_specify');
+                rply.text += translate('trpgdb.delete_del_hint');
                 return rply;
             }
 
@@ -592,36 +563,26 @@ const rollDiceCommand = async function ({
             }
 
             if (targetIndex === -1) {
-                rply.text = `❌ 找不到標題為 "${mainMsg[2]}" 的項目\n\n`;
-                rply.text += `💡 使用方式:\n`;
-                rply.text += `• 刪除項目: .db del 標題\n`;
-                rply.text += `• 刪除編號: .db del 編號\n`;
-                rply.text += `• 查看列表: .db show\n`;
-                rply.text += `• 新增項目: .db add 標題 內容`;
+                rply.text = translate('trpgdb.not_found_title', { title: mainMsg[2] });
+                rply.text += translate('trpgdb.delete_del_hint');
                 return rply;
             }
 
             // 刪除指定索引的數據
             await databaseOperations.deleteGroupDataByIndex(groupid, targetIndex);
 
-            rply.text = `🗑️ 已刪除標題為 "${targetTopic}" 的項目\n\n`;
-            rply.text += `💡 使用方式:\n`;
-            rply.text += `• 查看列表: .db show\n`;
-            rply.text += `• 新增項目: .db add 標題 內容\n`;
-            rply.text += `• 刪除項目: .db del 標題/編號`;
+            rply.text = translate('trpgdb.deleted', { title: targetTopic });
+            rply.text += translate('trpgdb.delete_after_hint');
             return rply;
         }
         case /(^[.]db$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
             if (!groupid) {
-                rply.text = '❌ 不在群組中';
+                rply.text = translate('trpgdb.not_in_group');
                 return rply;
             }
             // 獲取群組數據庫
             const database = await databaseOperations.getGroupDatabase();
             const groupData = database?.find(data => data.groupid === groupid);
-
-            // 檢查群組
-
 
             // 如果有標題參數,搜索並顯示該標題的內容
             if (mainMsg[2] && !/^\d+$/.test(mainMsg[2])) {
@@ -634,7 +595,7 @@ const rollDiceCommand = async function ({
                     rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
                     return rply;
                 } else {
-                    rply.text = '沒有找到相關關鍵字';
+                    rply.text = translate('trpgdb.not_found_keyword');
                     return rply;
                 }
             }
@@ -643,14 +604,14 @@ const rollDiceCommand = async function ({
             const page = Number.parseInt(mainMsg[2]) || 1;
 
             // 格式化並顯示列表
-            rply.text = formatDatabaseList(groupData?.trpgDatabasefunction, page);
+            rply.text = formatDatabaseList(groupData?.trpgDatabasefunction, page, 20, translate);
             rply.quotes = true;
             return rply;
         }
         case /(^[.]db$)/i.test(mainMsg[0]) && /^\d+$/i.test(mainMsg[1]): {
             // 檢查群組
             if (!groupid) {
-                rply.text = '不在群組中';
+                rply.text = translate('trpgdb.not_in_group_short');
                 return rply;
             }
 
@@ -666,14 +627,14 @@ const rollDiceCommand = async function ({
                 // 處理特殊標記
                 rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
             } else {
-                rply.text = '沒有找到該編號的關鍵字';
+                rply.text = translate('trpgdb.not_found_index');
             }
             return rply;
         }
         case /(^[.]db$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
             // 檢查群組
             if (!groupid) {
-                rply.text = '不在群組.';
+                rply.text = translate('trpgdb.not_in_group_short') + '.';
                 return rply;
             }
 
@@ -689,7 +650,7 @@ const rollDiceCommand = async function ({
             if (content) {
                 rply.text = `【${content.topic}】\n${content.contact}`;
             } else {
-                rply.text = '沒有相關關鍵字.';
+                rply.text = translate('trpgdb.not_found_keyword') + '.';
             }
 
             // 處理特殊標記
@@ -699,11 +660,11 @@ const rollDiceCommand = async function ({
         case /(^[.]dbp$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]): {
             // 驗證輸入
             if (!mainMsg[2]) {
-                rply.text = '❌ 新增失敗: 沒有關鍵字';
+                rply.text = translate('trpgdb.global_no_topic');
                 return rply;
             }
             if (!mainMsg[3]) {
-                rply.text = '❌ 新增失敗: 沒有內容';
+                rply.text = translate('trpgdb.global_no_content');
                 return rply;
             }
 
@@ -712,13 +673,13 @@ const rollDiceCommand = async function ({
 
             // 檢查是否達到上限
             if (isGlobalDatabaseFull(database)) {
-                rply.text = '⚠️ 全服關鍵字已達上限 100 個';
+                rply.text = translate('trpgdb.global_limit');
                 return rply;
             }
 
             // 檢查關鍵字是否重複
             if (isGlobalTopicExists(database, mainMsg[2])) {
-                rply.text = '❌ 新增失敗: 關鍵字重複';
+                rply.text = translate('trpgdb.global_duplicate');
                 return rply;
             }
 
@@ -742,10 +703,11 @@ const rollDiceCommand = async function ({
             }, []);
             const currentIndex = allItems.length + 1;
 
-            rply.text = `✅ 新增成功: ${mainMsg[2]}\n`;
-            rply.text += `💡 查看方式:\n`;
-            rply.text += `• 使用編號: .dbp ${currentIndex}\n`;
-            rply.text += `• 使用標題: .dbp ${mainMsg[2]}`;
+            rply.text = translate('trpgdb.global_add_success', { title: mainMsg[2] });
+            rply.text += translate('trpgdb.global_add_hints', {
+                index: currentIndex,
+                title: mainMsg[2]
+            });
             return rply;
         }
         case /(^[.]dbp$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
@@ -761,7 +723,7 @@ const rollDiceCommand = async function ({
                     rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
                     return rply;
                 } else {
-                    rply.text = '沒有找到相關關鍵字';
+                    rply.text = translate('trpgdb.not_found_keyword');
                     return rply;
                 }
             }
@@ -770,7 +732,7 @@ const rollDiceCommand = async function ({
             const page = Number.parseInt(mainMsg[2]) || 1;
 
             // 格式化並顯示列表
-            rply.text = formatGlobalDatabaseList(database, page);
+            rply.text = formatGlobalDatabaseList(database, page, 20, translate);
             rply.quotes = true;
             return rply;
         }
@@ -793,7 +755,7 @@ const rollDiceCommand = async function ({
                     const content = allItems[numberIndex];
                     rply.text = `【${content.topic}】\n${content.contact}`;
                 } else {
-                    rply.text = '沒有找到該編號的關鍵字';
+                    rply.text = translate('trpgdb.not_found_index');
                 }
             } else {
                 // 查找關鍵字內容
@@ -802,7 +764,7 @@ const rollDiceCommand = async function ({
                 if (content) {
                     rply.text = `【${content.topic}】\n${content.contact}`;
                 } else {
-                    rply.text = '沒有相關關鍵字.';
+                    rply.text = translate('trpgdb.not_found_keyword') + '.';
                 }
             }
 
@@ -957,7 +919,7 @@ const rollDiceCommand = async function ({
                 return temp2.EXP || ' ';
             case /^my.name$/i.test(second):
                 //* {my.name} <---顯示擲骰者名字
-                return displaynameDiscord || displayname || "無名";
+                return displaynameDiscord || displayname || translate('trpgdb.unnamed');
             case /^my.title$/i.test(second):
                 // * {my.title}<---顯示擲骰者稱號
                 temp = await dbOperations.findGp(groupid);

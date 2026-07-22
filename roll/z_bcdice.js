@@ -9,8 +9,9 @@ const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 const checkTools = require('../modules/check.js');
 const schema = require('../modules/schema.js');
-const gameName = function () {
-    return '【BcDice】.bc'
+const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'bcdice.game_name', '【BcDice】.bc');
 }
 
 const gameType = function () {
@@ -26,49 +27,8 @@ const prefixs = function () {
         second: null
     }]
 }
-const getHelpMessage = function () {
-    return `【🎲BcDice日系擲骰系統】
-╭────── 🎯系統簡介 ──────
-│ • 支援100+種日系TRPG骰表
-│ • 完整支援原版擲骰指令
-│ • 可自由切換不同遊戲系統
-│
-├────── 📋使用步驟 ──────
-│ 1. 查找系統ID
-│ 　 在官方網站尋找想用的系統
-│ 　 https://bcdice.org/systems/
-│
-│ 2. 登記系統
-│ 　 .bc use [系統ID]
-│ 　 需要管理員權限
-│
-│ 3. 開始擲骰
-│ 　 .bc [骰子指令]
-│ 　 依照選擇的系統使用指令
-│
-├────── 📚常用指令 ──────
-│ • .bc use PathFinder
-│ 　切換為開拓者系統
-│
-│ • .bc use Insane
-│ 　切換為迷途之人系統
-│
-│ • .bc dicehelp
-│ 　查看當前系統說明
-│
-├────── 🔍熱門系統ID ──────
-│ • 克蘇魯神話: Cthulhu
-│ • 新克蘇魯: Cthulhu7th
-│ • 迷途之人: Insane
-│ • 魔導書大戰: MagicaLogia
-│ • 忍神: ShinobiGami
-│ • 劍世界: SwordWorld
-│
-├────── ⚠️注意事項 ──────
-│ • 需要管理權限才能切換系統
-│ • 每個頻道可設定不同系統
-│ • 指令依各系統規則而異
-╰──────────────`
+const getHelpMessage = function (params = {}) {
+    return resolveHelp(params, 'bcdice.help');
 }
 const initialize = function () {
     return variables;
@@ -80,8 +40,11 @@ const rollDiceCommand = async function ({
     userrole,
     botname,
     channelid,
-    groupid
+    groupid,
+    locale,
+    t
 }) {
+    const translate = getT({ locale, t });
     let rply = {
         default: 'on',
         type: 'text',
@@ -94,23 +57,23 @@ const rollDiceCommand = async function ({
     }
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
-            rply.text = this.getHelpMessage();
+            rply.text = await getHelpMessage({ locale, t });
             rply.quotes = true;
             return rply;
 
         }
         case /^\.kk$/i.test(mainMsg[0]): {
-            let result = await calldice("Kamigakari", mainMsg[1]);
+            let result = await calldice("Kamigakari", mainMsg[1], translate);
             (result) ? rply.text = `${mainMsg[1]} ${(mainMsg[2]) ? mainMsg[2] : ''}\n${result}` : null;
             return rply;
         }
         case /^\.dx$/i.test(mainMsg[0]): {
-            let result = await calldice("DoubleCross", mainMsg[1]);
+            let result = await calldice("DoubleCross", mainMsg[1], translate);
             (result) ? rply.text = `${mainMsg[1]} ${(mainMsg[2]) ? mainMsg[2] : ''}\n${result}` : null;
             return rply;
         }
         case /^\.sw$/i.test(mainMsg[0]): {
-            let result = await calldice("SwordWorld2.5", mainMsg[1]);
+            let result = await calldice("SwordWorld2.5", mainMsg[1], translate);
             (result) ? rply.text = `${mainMsg[1]} ${(mainMsg[2]) ? mainMsg[2] : ''}\n${result}` : null;
             return rply;
         }
@@ -121,14 +84,14 @@ const rollDiceCommand = async function ({
                 rply.text = await callHelp(doc.trpgId) || '';
                 return rply;
             } else {
-                rply.text = `沒有已設定的骰表ID\n\n請輸入ID，ID可以在下列網站找到\nhttps://bcdice.org/systems/ \n\n使用例子: .bc use CthulhuTech`;
+                rply.text = translate('bcdice.no_table_id');
                 rply.quotes = true;
                 return rply;
             }
 
         }
         case /^use+$/i.test(mainMsg[1]): {
-            rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({ locale,
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
@@ -137,24 +100,21 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             if (!mainMsg[2]) {
-                rply.text = `請輸入ID，ID可以在下列網站找到\nhttps://bcdice.org/systems/\n\n使用例子: .bc use CthulhuTech`
+                rply.text = translate('bcdice.enter_id');
                 return rply;
             }
             let help = await callHelp(mainMsg[2]);
             if (!help) {
-                rply.text = `此骰表ID沒有回應，請檢查是不是正確\nhttps://bcdice.org/systems/\n\n使用例子: .bc use CthulhuTech`
+                rply.text = translate('bcdice.invalid_id');
                 return rply;
             }
             let doc = await schema.bcdiceRegedit.findOneAndUpdate(filter, { trpgId: mainMsg[2] }, { upsert: true, returnDocument: 'after' }).catch(() => null)
-            if (doc) rply.text = `已更新BcDice，現在此頻道正在使用 ${doc.trpgId}
-
-            使用說明: \n${help}
-            `
-            else rply.text = `登記失敗，請以後再嘗試`
+            if (doc) rply.text = translate('bcdice.updated', { id: doc.trpgId, help });
+            else rply.text = translate('bcdice.register_failed');
             return rply;
         }
         case /^delete+$/i.test(mainMsg[1]): {
-            rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({ locale,
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
@@ -164,33 +124,23 @@ const rollDiceCommand = async function ({
             }
 
             let doc = await schema.bcdiceRegedit.findOneAndDelete(filter).catch(error => console.error(error))
-            if (doc) rply.text = `已刪除BcDice的設定`
-            else rply.text = `刪除失敗，請以後再嘗試`
+            if (doc) rply.text = translate('bcdice.deleted');
+            else rply.text = translate('bcdice.delete_failed');
             return rply;
         }
         case /^\S/.test(mainMsg[1] || ''): {
             let doc = await schema.bcdiceRegedit.findOne(filter).catch(error => console.error(error))
             if (doc && doc.trpgId) {
-                rply.text = await calldice(doc.trpgId, inputStr.replace(/^\S+/, ''))
+                rply.text = await calldice(doc.trpgId, inputStr.replace(/^\S+/, ''), translate)
                 return rply;
             }
             else {
-                rply.text = '沒有已設定的BcDice 骰表ID\n請查找骰表ID 並輸入 .bc use (id)\nhttps://bcdice.org/systems/'
+                rply.text = translate('bcdice.no_table_configured');
                 return rply;
             }
         }
         default: {
-            rply.text = `這骰組已經整合成BcDice
-使用方法
-首先，先在BcDice官方的骰表ID中找出你所想的系統
-然後輸入.bc use (ID) 進行登記
-現在，你可以以.bc (骰子指令)來進行擲骰了。 
-想看骰子說明可輸入.bc dicehelp
-
-注: 登記需要Admin或頻道管理權限
-
-https://bcdice.org/systems/
-`
+            rply.text = translate('bcdice.default_help');
             return rply;
         }
     }
@@ -245,13 +195,16 @@ const discordCommand = [
                 case 'delete':
                     return `.bc delete`;
                     
-                default:
-                    return '未知的子命令';
+                default: {
+                    const t = getInteractionT(interaction);
+                    return t('bcdice.unknown_subcommand');
+                }
             }
         }
     }
 ];
-async function calldice(gameType, message) {
+async function calldice(gameType, message, translate) {
+    const t = translate || getT({});
     try {
         const loader = new DynamicLoader();
         const GameSystem = await loader.dynamicLoad(gameType);
@@ -262,10 +215,10 @@ async function calldice(gameType, message) {
             `[${new Date().toISOString()}] Error evaluating dice command for command "${message}" using gameType "${gameType}":`,
             error?.stack || 'no stack'
         );
-        return `錯誤：骰子指令運算失敗。
-請確認指令格式是否正確。
-輸入指令: ${message}
-錯誤訊息: ${error?.message || '無訊息'}`;
+        return t('bcdice.eval_error', {
+            input: message,
+            message: error?.message || t('bcdice.no_error_message')
+        });
     }
 }
 async function callHelp(gameType) {

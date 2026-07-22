@@ -1,0 +1,308 @@
+"use strict";
+
+const path = require('node:path');
+const fs = require('node:fs');
+const i18n = require('../modules/i18n.js');
+
+describe('i18n module', () => {
+    beforeAll(async () => {
+        await i18n.init();
+    });
+
+    describe('normalizeLocale', () => {
+        test('defaults to zh-tw for empty input', () => {
+            expect(i18n.normalizeLocale()).toBe('zh-tw');
+            expect(i18n.normalizeLocale('')).toBe('zh-tw');
+        });
+
+        test('recognizes Traditional Chinese variants', () => {
+            expect(i18n.normalizeLocale('zh-TW')).toBe('zh-tw');
+            expect(i18n.normalizeLocale('zh-hant')).toBe('zh-tw');
+        });
+
+        test('recognizes English variants', () => {
+            expect(i18n.normalizeLocale('en')).toBe('en');
+            expect(i18n.normalizeLocale('en-US')).toBe('en');
+            expect(i18n.normalizeLocale('en-GB')).toBe('en');
+        });
+
+        test('falls back unknown locales to zh-tw', () => {
+            expect(i18n.normalizeLocale('ja')).toBe('zh-tw');
+            expect(i18n.normalizeLocale('fr-FR')).toBe('zh-tw');
+        });
+
+        test('recognizes Simplified Chinese variants', () => {
+            expect(i18n.normalizeLocale('zh-hans')).toBe('zh-hans');
+            expect(i18n.normalizeLocale('zh_hans')).toBe('zh-hans');
+            expect(i18n.normalizeLocale('zh_chs')).toBe('zh-hans');
+            expect(i18n.normalizeLocale('zh-chs')).toBe('zh-hans');
+        });
+
+        test('does not accept cn / zh-cn as bot locale aliases', () => {
+            expect(i18n.matchLocale('cn')).toBeNull();
+            expect(i18n.matchLocale('zh-cn')).toBeNull();
+            expect(i18n.normalizeLocale('cn')).toBe('zh-tw');
+            expect(i18n.normalizeLocale('zh-cn')).toBe('zh-tw');
+        });
+    });
+
+    describe('matchLocale', () => {
+        test('returns null for unsupported locales', () => {
+            expect(i18n.matchLocale('ja')).toBeNull();
+            expect(i18n.matchLocale('')).toBeNull();
+            expect(i18n.matchLocale()).toBeNull();
+        });
+
+        test('matches aliases and codes', () => {
+            expect(i18n.matchLocale('zh-hant')).toBe('zh-tw');
+            expect(i18n.matchLocale('en-US')).toBe('en');
+            expect(i18n.matchLocale('zh-hans')).toBe('zh-hans');
+            expect(i18n.matchLocale('zh_hans')).toBe('zh-hans');
+            expect(i18n.matchLocale('zh_chs')).toBe('zh-hans');
+            expect(i18n.matchLocale('zh-chs')).toBe('zh-hans');
+        });
+    });
+
+    describe('formatLocaleList', () => {
+        test('lists code and display name once per locale', () => {
+            expect(i18n.formatLocaleList()).toBe('zh-tw 正體中文\nen English\nzh-hans 简体中文');
+        });
+    });
+
+    describe('getBothelpUrl', () => {
+        test('maps each locale to its guide path', () => {
+            expect(i18n.getBothelpUrl('zh-tw')).toBe('https://bothelp.hktrpg.com/guide/zh-hant/');
+            expect(i18n.getBothelpUrl('en')).toBe('https://bothelp.hktrpg.com/guide/en/');
+            expect(i18n.getBothelpUrl('zh-hans')).toBe('https://bothelp.hktrpg.com/guide/zh-hans/');
+        });
+
+        test('appends subPath under the guide', () => {
+            expect(i18n.getBothelpUrl('en', 'other-information/yin-si-quan-sheng-ming'))
+                .toBe('https://bothelp.hktrpg.com/guide/en/other-information/yin-si-quan-sheng-ming');
+        });
+    });
+
+    describe('createTranslator', () => {
+        test('injects bothelp URL for {{bothelp}} interpolation', () => {
+            const t = i18n.createTranslator('en');
+            expect(t('help.link')).toContain('https://bothelp.hktrpg.com/guide/en/');
+            expect(t('help.privacy')).toContain('https://bothelp.hktrpg.com/guide/en/other-information/');
+        });
+
+        test('returns zh-tw strings by default', () => {
+            const t = i18n.createTranslator('zh-tw');
+            expect(t('lang.usage')).toContain('.lang');
+        });
+
+        test('returns English strings for en locale', () => {
+            const t = i18n.createTranslator('en');
+            expect(t('lang.usage')).toContain('/lang');
+        });
+
+        test('loads funny overlay bundles for indexed content', () => {
+            const t = i18n.createTranslator('en');
+            expect(t('funny.joke_0')).toContain('fan');
+            expect(t('funny.daily_answer_0')).toBe('Not necessarily');
+        });
+
+        test('loads coc overlay bundles for indexed tables', () => {
+            const t = i18n.createTranslator('en');
+            expect(t('coc.mania_0')).toBeTruthy();
+            expect(t('coc.phobia_0')).toBeTruthy();
+            expect(t('coc.madness_rt_0')).toBeTruthy();
+            expect(t('coc.cult_goal_0')).toBeTruthy();
+        });
+
+        test('falls back to zh-tw for missing keys', () => {
+            const t = i18n.createTranslator('en');
+            expect(t('welcome.i18n_guide.0')).toBeDefined();
+        });
+    });
+
+    describe('enrichSlashCommandLocalizations', () => {
+        test('adds description localizations for known commands', () => {
+            const commandData = {
+                name: 'rr',
+                description: 'Roll dice',
+                options: [{
+                    name: 'notation',
+                    description: 'Dice notation',
+                    type: 3
+                }]
+            };
+            const enriched = i18n.enrichSlashCommandLocalizations(commandData);
+            expect(enriched.description_localizations).toBeDefined();
+            expect(enriched.description_localizations['en-US']).toBeTruthy();
+            expect(enriched.options[0].description_localizations).toBeDefined();
+        });
+
+        test('adds English name_localizations for Chinese funny commands', () => {
+            const commandData = {
+                name: '每日',
+                description: '進行每日功能',
+                options: [{
+                    name: '黃曆',
+                    description: '顯示今日黃曆',
+                    type: 1
+                }, {
+                    name: '星座',
+                    description: '顯示每日星座運程',
+                    type: 1,
+                    options: [{
+                        name: 'star',
+                        description: '哪個星座',
+                        type: 3,
+                        choices: [{ name: '白羊', value: '每日白羊' }]
+                    }]
+                }]
+            };
+            const enriched = i18n.enrichSlashCommandLocalizations(commandData);
+            expect(enriched.name_localizations['en-US']).toBe('daily');
+            expect(enriched.options[0].name_localizations['en-US']).toBe('almanac');
+            expect(enriched.options[1].name_localizations['en-US']).toBe('horoscope');
+            expect(enriched.options[1].options[0].choices[0].name_localizations['en-US']).toBe('Aries');
+        });
+
+        test('adds English name_localizations for top-level Chinese commands', () => {
+            const cases = [
+                ['排序', 'sort'],
+                ['隨機', 'random'],
+                ['輪盤', 'wheel'],
+                ['運勢', 'fortune'],
+                ['塔羅', 'tarot'],
+                ['時間塔羅', 'time-tarot'],
+                ['每日塔羅', 'daily-tarot'],
+                ['大十字塔羅', 'celtic-cross'],
+                ['立flag', 'flag']
+            ];
+            for (const [zhName, enName] of cases) {
+                const enriched = i18n.enrichSlashCommandLocalizations({
+                    name: zhName,
+                    description: 'test'
+                });
+                expect(enriched.name_localizations?.['en-US']).toBe(enName);
+            }
+        });
+
+        test('adds Simplified Chinese name_localizations for differing glyphs', () => {
+            const cases = [
+                ['運勢', '运势'],
+                ['塔羅', '塔罗'],
+                ['每日塔羅', '每日塔罗'],
+                ['時間塔羅', '时间塔罗'],
+                ['大十字塔羅', '大十字塔罗'],
+                ['隨機', '随机'],
+                ['輪盤', '轮盘']
+            ];
+            for (const [zhName, hansName] of cases) {
+                const enriched = i18n.enrichSlashCommandLocalizations({
+                    name: zhName,
+                    description: 'test'
+                });
+                expect(enriched.name_localizations?.['zh-CN']).toBe(hansName);
+            }
+
+            const daily = i18n.enrichSlashCommandLocalizations({
+                name: '每日',
+                description: '進行每日功能',
+                options: [
+                    { name: '黃曆', description: '顯示今日黃曆', type: 1 },
+                    { name: '靈簽', description: '抽取一條觀音簽', type: 1 },
+                    { name: '淺草簽', description: '顯示一條淺草簽', type: 1 }
+                ]
+            });
+            expect(daily.options[0].name_localizations?.['zh-CN']).toBe('黄历');
+            expect(daily.options[1].name_localizations?.['zh-CN']).toBe('灵签');
+            expect(daily.options[2].name_localizations?.['zh-CN']).toBe('浅草签');
+            expect(daily.options[0].description_localizations?.['zh-CN']).toContain('黄历');
+        });
+    });
+
+    describe('locale helpers', () => {
+        test('getLocaleName / toDiscordLocale / toIntlLocale / getSlashLocaleChoices', () => {
+            expect(i18n.getLocaleName('zh-tw')).toContain('中文');
+            expect(i18n.getLocaleName('en')).toBe('English');
+            expect(i18n.toDiscordLocale('zh-tw')).toBeTruthy();
+            expect(i18n.toDiscordLocale('en')).toBe('en-US');
+            expect(i18n.toIntlLocale('zh-tw')).toMatch(/zh/i);
+            expect(i18n.toIntlLocale('en')).toMatch(/en/i);
+            const choices = i18n.getSlashLocaleChoices();
+            expect(choices.length).toBe(i18n.SUPPORTED_LOCALES.length);
+            expect(choices[0]).toEqual(expect.objectContaining({
+                name: expect.any(String),
+                value: expect.any(String)
+            }));
+        });
+
+        test('t() honors lng option', () => {
+            expect(i18n.t('lang.game_name', { lng: 'en' })).toContain('Language');
+            expect(i18n.t('lang.game_name', { lng: 'zh-tw' })).toContain('語言');
+        });
+    });
+
+    describe('resolveLocale / setLocale / getLocaleRecord', () => {
+        const originalMongo = process.env.mongoURL;
+
+        afterEach(() => {
+            if (originalMongo === undefined) {
+                delete process.env.mongoURL;
+            } else {
+                process.env.mongoURL = originalMongo;
+            }
+        });
+
+        test('resolveLocale returns default without scope id or mongoURL', async () => {
+            delete process.env.mongoURL;
+            await expect(i18n.resolveLocale({ userid: 'u1' })).resolves.toBe(i18n.DEFAULT_LOCALE);
+            await expect(i18n.resolveLocale({})).resolves.toBe(i18n.DEFAULT_LOCALE);
+        });
+
+        test('setLocale / getLocaleRecord without mongoURL', async () => {
+            delete process.env.mongoURL;
+            await expect(i18n.setLocale({ scope: 'user', scopeId: 'u1', locale: 'en' }))
+                .resolves.toEqual({ ok: false, reason: 'no_database' });
+            await expect(i18n.getLocaleRecord({ scope: 'user', scopeId: 'u1' }))
+                .resolves.toBe(i18n.DEFAULT_LOCALE);
+        });
+
+        test('setLocale rejects unsupported locale when mongoURL is set', async () => {
+            process.env.mongoURL = 'mongodb://localhost/test';
+            await expect(i18n.setLocale({ scope: 'user', scopeId: 'u1', locale: 'ja' }))
+                .resolves.toEqual({ ok: false, reason: 'unsupported_locale' });
+        });
+
+        test('clearLocaleCache is callable', () => {
+            expect(() => i18n.clearLocaleCache('user', 'u1')).not.toThrow();
+        });
+    });
+
+    describe('zh-tw regression snapshots', () => {
+        test('welcome message with i18n_guide stays within Discord embed limit', () => {
+            const zhTw = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'lang', 'zh-tw.json'), 'utf8'));
+            const welcome = [
+                ...zhTw.welcome.join_message,
+                ...zhTw.welcome.i18n_guide
+            ].join('\n');
+            expect(welcome.length).toBeLessThanOrEqual(4096);
+        });
+
+        test('core zh-tw strings match baseline', () => {
+            const t = i18n.createTranslator('zh-tw');
+            expect(t('common.errors.no_response_prefix', { prefix: '.cc ' })).toMatchSnapshot();
+            expect(t('rollbase.errors.dice_count_limit', { below: 0, above: 100 })).toMatchSnapshot();
+            expect(t('lang.current', { locale: 'zh-tw' })).toMatchSnapshot();
+        });
+    });
+});
+
+describe('lang JSON files', () => {
+    test('lang files exist and parse', () => {
+        const langDir = path.join(__dirname, '..', 'lang');
+        expect(fs.existsSync(path.join(langDir, 'zh-tw.json'))).toBe(true);
+        expect(fs.existsSync(path.join(langDir, 'en.json'))).toBe(true);
+        expect(fs.existsSync(path.join(langDir, 'zh-hans.json'))).toBe(true);
+        expect(fs.existsSync(path.join(langDir, 'overlays', 'en'))).toBe(true);
+        expect(fs.existsSync(path.join(langDir, 'overlays', 'zh-tw'))).toBe(true);
+        expect(fs.existsSync(path.join(langDir, 'overlays', 'zh-hans'))).toBe(true);
+    });
+});

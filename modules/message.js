@@ -1,33 +1,32 @@
 "use strict";
 if (!process.env.mongoURL) return;
 
-const fs = require('fs');
-const crypto = require('crypto');
+const fs = require('node:fs');
+const crypto = require('node:crypto');
 const schema = require('./schema.js');
+const i18n = require('./i18n.js');
 const checkMongodb = require('./dbWatchdog.js');
 const timerManager = require('./timer-manager');
 
-// 使用 Map 來做使用者快取
 const userCache = new Map();
-
-// Clear user cache every 24 hours to prevent unbounded memory growth
 const USER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-// Cap size so that under heavy load we don't grow memory without bound (Map keeps insertion order)
 const USER_CACHE_MAX = 50_000;
 let userCacheClearInterval;
+
 function startUserCacheClearInterval() {
     if (userCacheClearInterval) timerManager.clearInterval(userCacheClearInterval);
     userCacheClearInterval = timerManager.setInterval(() => userCache.clear(), USER_CACHE_TTL_MS);
 }
+
 function pruneUserCacheIfNeeded() {
     if (userCache.size <= USER_CACHE_MAX) return;
     const toDelete = userCache.size - USER_CACHE_MAX;
     const keys = [...userCache.keys()].slice(0, toDelete);
     for (const k of keys) userCache.delete(k);
 }
+
 startUserCacheClearInterval();
 
-// 讀取訊息檔案的工具函數
 const readJsonFile = (filename) => {
     try {
         const data = fs.readFileSync(filename);
@@ -43,27 +42,23 @@ const readJsonFile = (filename) => {
     }
 };
 
-// 更新訊息快取的函數
 function updateMessageCache() {
     try {
         const newCache = readJsonFile("./assets/message.json");
         if (Object.keys(newCache).length > 0) {
             messageCache = newCache;
-            //console.log('[MessageCache] Updated successfully');
         }
     } catch (error) {
         console.error('[MessageCache] Update failed:', error);
     }
 }
 
-// 使用防抖動的計時器
 let updateTimer;
 const startUpdateTimer = () => {
     if (updateTimer) timerManager.clearInterval(updateTimer);
     updateTimer = timerManager.setInterval(updateMessageCache, 60 * 60 * 1000);
 };
 
-// 初始設定
 let messageCache = readJsonFile("./assets/message.json");
 startUpdateTimer();
 
@@ -71,12 +66,54 @@ function joinMessages(messages) {
     return messages.join("\n");
 }
 
-function joinMessage() {
-    return joinMessages(messageCache.joinMessage);
+/**
+ * @param {string|{locale?: string, groupid?: string, userid?: string, channelType?: *, botname?: string}} options
+ */
+async function resolveWelcomeLocale(options = {}) {
+    if (typeof options === 'string') {
+        return i18n.normalizeLocale(options);
+    }
+    if (options.locale) {
+        return i18n.normalizeLocale(options.locale);
+    }
+    await i18n.init();
+    return i18n.resolveLocale({
+        groupid: options.groupid,
+        userid: options.userid,
+        channelType: options.channelType,
+        botname: options.botname
+    });
 }
 
-function firstTimeMessage() {
-    return joinMessages(messageCache.firstTimeUseMessage);
+async function getWelcomeLines(type, locale) {
+    try {
+        await i18n.init();
+        const t = i18n.createTranslator(locale);
+        const bodyKey = type === 'join' ? 'welcome.join_message' : 'welcome.first_time_message';
+        const body = t(bodyKey, { returnObjects: true });
+        const guide = t('welcome.i18n_guide', { returnObjects: true });
+        if (Array.isArray(body) && body.length > 0) {
+            return [...body, ...(Array.isArray(guide) ? guide : [])];
+        }
+    } catch (error) {
+        console.error('[Message] Failed to load welcome from lang:', error.message);
+    }
+
+    const fallback = type === 'join' ? messageCache.joinMessage : messageCache.firstTimeUseMessage;
+    return Array.isArray(fallback) ? [...fallback] : [];
+}
+
+async function buildWelcomeMessage(type, options = {}) {
+    const locale = await resolveWelcomeLocale(options);
+    return joinMessages(await getWelcomeLines(type, locale));
+}
+
+async function joinMessage(options = {}) {
+    return buildWelcomeMessage('join', options);
+}
+
+async function firstTimeMessage(options = {}) {
+    return buildWelcomeMessage('first_time', options);
 }
 
 async function newUserChecker(userid, botname) {
@@ -114,8 +151,17 @@ async function newUserChecker(userid, botname) {
     }
 }
 
+async function maybeSendFirstTimeWelcome(userid, botname = 'Discord', options = {}) {
+    if (!userid || !process.env.mongoURL) return false;
+    const isNew = await newUserChecker(userid, botname);
+    if (!isNew) return false;
+    return firstTimeMessage({ userid, botname, ...options });
+}
+
 module.exports = {
     joinMessage,
     newUserChecker,
-    firstTimeMessage
+    firstTimeMessage,
+    buildWelcomeMessage,
+    maybeSendFirstTimeWelcome
 };

@@ -5,6 +5,7 @@ if (!process.env.mongoURL) {
 const { SlashCommandBuilder } = require('discord.js');
 const emojiRegex = require('emoji-regex');
 const VIP = require('../modules/veryImportantPerson');
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 const FUNCTION_LIMIT = [3, 10, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/schema.js');
 let regextemp = emojiRegex().toString();
@@ -13,8 +14,8 @@ const regex = regextemp.replace(/^\//, '').replace(/\/g$/, '')
 const newRoleReactRegixMessageID = /\[\[messageID\]\]\s+(\d+)/is;
 const roleReactRegixDetail = new RegExp(`(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d+>)?)`, 'g')
 const roleReactRegixDetail2 = new RegExp(`^(\\d+)\\s+(${regex}|(<a?)?:\\w+:(\\d+>)?)`,)
-const gameName = function () {
-    return '【身分組管理】.roleReact'
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'role.game_name', '【身分組管理】.roleReact');
 }
 
 const gameType = function () {
@@ -26,55 +27,8 @@ const prefixs = function () {
         second: null
     }]
 }
-const getHelpMessage = function () {
-    return `【👥身分組管理】(Discord限定)
-╭──── 📝系統簡介 ────
-│ • 點擊表情符號自動分配身分組
-│ • 需要管理者權限及相關授權
-│ • 需開啟開發者模式複製ID
-│
-├──── ⚙️基本設定 ────
-│ 1. 開啟開發者模式:
-│    User Setting > Advanced > 
-│    Developer Mode
-│
-│ 2. 準備身分組ID:
-│    Server Setting > Roles > 
-│    右鍵身分組 > Copy ID
-│
-│ 3. 準備訊息ID:
-│    發佈訊息 > 右鍵 > Copy ID
-│
-├──── 💫指令列表 ────
-│ ■ 新增反應配置:
-.roleReact add
-身分組ID 表情符號
-[[messageID]]
-訊息ID
-│
-│ 範例:
-.roleReact add
-232312882291231263 🎨
-123123478897792323 😁
-[[messageID]]
-12312347889779233
-├──── 🎯效果說明 ────
-│ • 訊息12312347889779233出現🎨及😁
-│ • 按下 🎨 獲得「畫家」身分組
-│ • 按下 😁 獲得「大笑」身分組
-├────
-│ ■ 管理指令:
-│ • .roleReact show
-│   顯示現有配置
-│
-│ • .roleReact delete 序號
-│   刪除指定配置
-│
-├──── ⚠️注意事項 ────
-│ • 需要編輯身分組權限
-│ • 需要增加Reaction權限
-│ • 可重複輸入相同信息ID配置更多表情
-╰──────────────`
+const getHelpMessage = function (params = {}) {
+    return resolveHelp(params, 'role.help');
 }
 const initialize = function () {
     return "";
@@ -85,85 +39,67 @@ const rollDiceCommand = async function ({
     mainMsg,
     botname,
     userrole,
-    groupid
+    groupid,
+    locale,
+    t
 }) {
+    const translate = getT({ locale, t });
     let rply = {
         default: 'on',
         type: 'text',
         text: ''
     };
     if (botname !== "Discord") {
-        rply.text = '此功能只能在Discord中使用'
+        rply.text = translate('role.discord_only');
         return rply
     }
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
-            rply.text = this.getHelpMessage();
+            rply.text = getHelpMessage({ locale, t });
             rply.quotes = true;
             return rply;
         }
         case (!groupid || userrole < 3): {
-            rply.text = rejectUser((!groupid) ? 'notInGroup' : (userrole < 3) ? 'notAdmin' : '');
+            rply.text = rejectUser((!groupid) ? 'notInGroup' : (userrole < 3) ? 'notAdmin' : '', translate);
             return rply;
         }
         //new Type role React
         case /^\.roleReact$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
             let list = await schema.roleReact.find({ groupid: groupid }).lean().catch(error => console.error('role #188 mongoDB error:', error.name, error.reason));
-            rply.text = roleReactList(list);
+            rply.text = roleReactList(list, translate);
             return rply;
         }
 
         case /^\.roleReact$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
             if (!mainMsg[2] || !/\d+/i.test(mainMsg[2])) {
-                rply.text = '移除指令為 .roleReact delete (序號) \n 如 .roleReact delete 1'
+                rply.text = translate('role.delete_usage');
                 return rply
             }
             try {
                 let myNames = await schema.roleReact.findOneAndDelete({ groupid: groupid, serial: mainMsg[2] }).catch(error => console.error('role #111 mongoDB error:', error.name, error.reason));
                 if (myNames) {
-                    rply.text = `移除成功，#${myNames.serial}\n${myNames.message}`
+                    rply.text = translate('role.delete_success', { serial: myNames.serial, message: myNames.message });
                     return rply
                 } else {
-                    rply.text = '移除出錯\n移除指令為 .roleReact delete (序號) \n 如 .roleReact delete 1 \n序號請使用.roleReact show 查詢'
+                    rply.text = translate('role.delete_error');
                     return rply
                 }
             } catch (error) {
                 console.error("移除失敗, inputStr:", inputStr, error);
-                rply.text = '移除出錯\n移除指令為 .roleReact delete (序號) \n 如 .roleReact delete 1 \n序號請使用.roleReact show 查詢'
+                rply.text = translate('role.delete_error');
                 return rply
             }
         }
 
         case /^\.roleReact$/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]): {
             if (!mainMsg[5]) {
-rply.text = `輸入資料失敗，
-本功能已改版，需要自行新增信息，並把信息ID填在下面
-
-範例
-.roleReact add
-232312882291231263 🎨 
-123123478897792323 😁 
-[[messageID]]
-946739512439073384
-
-希望取得詳細使用說明請輸入.roleReact help 或到 https://bothelp.hktrpg.com`
+                rply.text = translate('role.input_failed_upgrade');
                 rply.quotes = true;
                 return rply;
             }
             let checkName = checknewroleReact(inputStr);
             if (!checkName || !checkName.detail || !checkName.messageID || checkName.detail.length === 0) {
-                rply.text = `輸入格式錯誤，請確保：
-1. 每行格式為：身分組ID 表情符號
-2. 最後必須包含 [[messageID]] 和訊息ID
-
-正確範例：
-.roleReact add
-232312882291231263 🎨 
-123123478897792323 😁 
-[[messageID]]
-946739512439073384
-
-希望取得詳細使用說明請輸入.roleReact help 或到 https://bothelp.hktrpg.com`
+                rply.text = translate('role.format_error');
                 rply.quotes = true;
                 return rply;
             }
@@ -174,7 +110,7 @@ rply.text = `輸入資料失敗，
                 list.detail.push.apply(list.detail, checkName.detail);
                 await list.save()
                     .catch(error => console.error('role #244 mongoDB error:', error.name, error.reason));
-                rply.text = `已成功更新。你現在可以試試role功能\n可以使用.roleReact show /  delete 操作 ${list.serial}`
+                rply.text = translate('role.update_success', { serial: list.serial });
                 rply.newRoleReactFlag = true;
                 rply.newRoleReactMessageId = checkName.messageID;
                 rply.newRoleReactDetail = checkName.detail;
@@ -186,7 +122,7 @@ rply.text = `輸入資料失敗，
             let limit = FUNCTION_LIMIT[lv];
             let myNamesLength = await schema.roleReact.countDocuments({ groupid: groupid }).catch(error => console.error('role #141 mongoDB error:', error.name, error.reason));
             if (myNamesLength >= limit) {
-                rply.text = '.roleReact 群組上限為' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
+                rply.text = translate('role.limit_reached', { limit });
                 rply.quotes = true;
                 return rply;
             }
@@ -207,14 +143,14 @@ rply.text = `輸入資料失敗，
             })
             try {
                 await myName.save().catch(error => console.error('role #277 mongoDB error:', error.name, error.reason));
-                rply.text = `已成功增加。你現在可以試試role功能\n繼續用add 同樣的messageID 可以新增新的emoji 到同一信息\n刪除可以使用.roleReact delete ${serial}`
+                rply.text = translate('role.add_success', { serial });
                 rply.newRoleReactFlag = true;
                 rply.newRoleReactMessageId = checkName.messageID;
                 rply.newRoleReactDetail = checkName.detail;
                 return rply;
             } catch (error) {
                 console.error('role save error:', error)
-                rply.text = `儲存失敗\n請重新再試，或聯絡HKTRPG作者`;
+                rply.text = translate('role.save_failed');
                 return rply;
             }
         }
@@ -337,14 +273,15 @@ function checknewroleReact(inputStr) {
 
 
 
-const rejectUser = (reason) => {
+const rejectUser = (reason, translate) => {
+    const t = translate || getT({});
     switch (reason) {
         case 'notInGroup':
-            return "這功能只可以在頻道中使用"
+            return t('role.not_in_group');
         case 'notAdmin':
-            return "這功能只可以由伺服器管理員使用"
+            return t('role.not_admin');
         default:
-            return "這功能未能使用"
+            return t('role.unavailable');
     }
 
 }
@@ -352,21 +289,22 @@ const rejectUser = (reason) => {
 
 
 
-function roleReactList(list) {
+function roleReactList(list, translate) {
+    const t = translate || getT({});
     let reply = '';
     if (list && list.length > 0) {
         list.sort(compareSerial);
         for (let index = 0; index < list.length; index++) {
             let item = list[index];
-            reply += `\n序號#${item.serial} \n 新增日期: ${item.message}\n`;
+            reply += t('role.list_entry_header', { serial: item.serial, message: item.message });
             for (let index = 0; index < item.detail.length; index++) {
                 const role = item.detail[index];
-                reply += `身分ID#${role.roleID} emoji: ${role.emoji}\n`;
+                reply += t('role.list_role_line', { roleId: role.roleID, emoji: role.emoji });
 
             }
         }
     }
-    else reply = "沒有找到已設定的react 資料。"
+    else reply = t('role.list_empty');
     return reply;
 }
 

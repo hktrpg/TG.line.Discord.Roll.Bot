@@ -161,6 +161,7 @@ function resetSessionProfileDir() {
 }
 
 const newMessage = require('./message');
+const i18n = require('./i18n.js');
 
 exports.analytics = require('./analytics');
 
@@ -311,8 +312,10 @@ async function startUp() {
 
 		client.on('group_join', async (msg) => {
 			console.log("[Whatsapp] Whatsapp joined");
-			if (msg.client.info.me._serialized == msg.id.participant)
-				msg.reply(newMessage.joinMessage());
+			if (msg.client.info.me._serialized == msg.id.participant) {
+				const groupid = msg.from || msg.chatId || '';
+				msg.reply(await newMessage.joinMessage({ groupid, botname: 'Whatsapp' }));
+			}
 		});
 
 		setupAgenda(client);
@@ -342,7 +345,8 @@ function setupAgenda(client) {
 			await SendToId(groupid, { text: text }, client);
 			if ((new Date(Date.now()) - createAt) >= SIX_MONTH) {
 				await job.remove();
-				await SendToId(groupid, { text: "已運行六個月, 移除此定時訊息" }, client);
+				const cronLocale = await i18n.resolveLocale({ groupid: groupid || '', botname: 'Whatsapp' });
+				await SendToId(groupid, { text: i18n.createTranslator(cronLocale)('platform.schedule.six_month_remove') }, client);
 			}
 		} catch (error) {
 			console.error("Schedule Error:", error);
@@ -452,6 +456,8 @@ async function processMessage(msg, groupInfo, client) {
 	if (trigger == ".me" || trigger == ".mee") {
 		displaynamecheck = false;
 	}
+	const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Whatsapp' });
+	const t = i18n.createTranslator(locale);
 	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 		mainMsg.shift();
 		rplyVal = await exports.analytics.parseInput({
@@ -462,7 +468,9 @@ async function processMessage(msg, groupInfo, client) {
 			botname: "Whatsapp",
 			displayname: displayname,
 			channelid: channelid,
-			membercount: membercount
+			membercount: membercount,
+			locale,
+			t
 		})
 	} else {
 		if (channelKeyword == '') {
@@ -474,7 +482,9 @@ async function processMessage(msg, groupInfo, client) {
 				botname: "Whatsapp",
 				displayname: displayname,
 				channelid: channelid,
-				membercount: membercount
+				membercount: membercount,
+				locale,
+				t
 			})
 		}
 	}
@@ -504,17 +514,20 @@ async function processMessage(msg, groupInfo, client) {
 			TargetGMTempdisplayname.push(item.displayname);
 		}
 	}
-	return { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid, displaynamecheck };
+	return { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid, displaynamecheck, t };
 }
 
 async function handleReply(result, msg, client) {
-	const { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid, displaynamecheck } = result;
+	const { rplyVal, privatemsg, displayname, groupid, TargetGMTempID, TargetGMTempdiyName, TargetGMTempdisplayname, userid, displaynamecheck, t: translate } = result;
+	const t = translate || i18n.createTranslator(
+		await i18n.resolveLocale({ groupid, userid, botname: 'Whatsapp' })
+	);
 	switch (true) {
 		case privatemsg == 1: {
 			if (groupid) {
-				SendDR(msg, "@" + displayname + '暗骰給自己');
+				SendDR(msg, t('platform.dark_roll.dr_self_with_name', { displayname }));
 			}
-			rplyVal.text = "@" + displayname + "的暗骰\n" + rplyVal.text
+			rplyVal.text = t('platform.dark_roll.dm_prefix', { displayname }) + rplyVal.text;
 			await SendToId(userid, rplyVal, client);
 			break;
 		}
@@ -524,9 +537,9 @@ async function handleReply(result, msg, client) {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
 				}
-				SendDR(msg, "@" + displayname + '暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
+				SendDR(msg, t('platform.dark_roll.ddr_in_progress_self_with_name', { displayname, targets: targetGMNameTemp }));
 			}
-			rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
+			rplyVal.text = t('platform.dark_roll.dm_prefix', { displayname }) + rplyVal.text;
 			await SendToId(msg.from, rplyVal, client);
 			for (const element of TargetGMTempID) {
 				if (userid != element)
@@ -540,9 +553,9 @@ async function handleReply(result, msg, client) {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
 				}
-				SendDR(msg, "@" + displayname + '暗骰進行中 \n目標: ' + targetGMNameTemp);
+				SendDR(msg, t('platform.dark_roll.dddr_in_progress_with_name', { displayname, targets: targetGMNameTemp }));
 			}
-			rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
+			rplyVal.text = t('platform.dark_roll.dm_prefix', { displayname }) + rplyVal.text;
 			for (const element of TargetGMTempID) {
 				await SendToId(element, rplyVal, client);
 			}

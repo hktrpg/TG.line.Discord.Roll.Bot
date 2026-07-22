@@ -13,8 +13,10 @@ const schema = require('../modules/schema.js');
 const clusterProtection = require('../modules/cluster-protection.js');
 const dbProtectionLayer = require('../modules/db-protection-layer.js');
 const dbConnector = require('../modules/db-connector.js');
+const checkMongodb = require('../modules/dbWatchdog.js');
 
 exports.analytics = require('./analytics');
+const i18n = require('./i18n.js');
 const debugMode = !!process.env.DEBUG;
 const DEBUG_LOG = process.env.DEBUG_LOG === 'true';
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/igm);
@@ -26,8 +28,8 @@ const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, 
 /** Slash commands that defer with Ephemeral (fewer sync checks before deferReply). */
 const EPHEMERAL_DEFER_COMMAND_NAMES = new Set(['state', 'help', 'bothelp', 'info', 'me', 'mee']);
 
-const ME_WEBHOOK_SEND_ERROR = '不能成功發送扮演發言, 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限';
-const ME_WEBHOOK_CREATE_ERROR = '不能新增Webhook.\n 請檢查你有授權HKTRPG 管理Webhook的權限, \n此為本功能必須權限';
+const ME_WEBHOOK_SEND_ERROR_KEY = 'discord.me.webhook_send_error';
+const ME_WEBHOOK_CREATE_ERROR_KEY = 'discord.me.webhook_create_error';
 
 function isDiscordSlashInteraction(message) {
 	return !!(message?.isInteraction || (message?.isCommand && message.isCommand()));
@@ -62,11 +64,36 @@ async function replyInteractionPrivate(message, content) {
 	}
 }
 
-async function sendMeReplyError(discord, replyText) {
+async function sendMeReplyError(discord, messageKey) {
+	const t = discord?._hktrpgT || i18n.createTranslator(discord?._hktrpgLocale || i18n.DEFAULT_LOCALE);
+	const replyText = t(messageKey);
 	if (await replyInteractionPrivate(discord, replyText)) return;
 	await SendToReplychannel({
 		replyText,
 		channelid: (discord.channel && discord.channel.id) || discord.channelId
+	});
+}
+
+function getDiscordT(source) {
+	if (typeof source === 'function') return source;
+	const locale = typeof source === 'string' ? source : (source?._hktrpgLocale || i18n.DEFAULT_LOCALE);
+	return source?._hktrpgT || i18n.createTranslator(locale);
+}
+
+function formatCountResult(data, translate) {
+	if (data.offline) return translate('discord.stats.all_clusters_offline');
+	if (data.error) return translate('discord.stats.fetch_failed');
+	let statusIndicators = [];
+	if (data.successfulClusters < data.totalClusters) {
+		statusIndicators.push(translate('discord.stats.cluster_partial', {
+			successful: data.successfulClusters,
+			total: data.totalClusters
+		}));
+	}
+	const statusText = statusIndicators.length > 0 ? ` (${statusIndicators.join(', ')})` : '';
+	return translate('discord.stats.guild_total', {
+		count: data.totalGuilds.toLocaleString(),
+		status: statusText
 	});
 }
 
@@ -166,7 +193,6 @@ function warnInteraction10062(reason, interaction, meta = {}) {
 // Multi-server functionality temporarily disabled
 // const multiServer = require('../modules/multi-server')
 // const adminSecret = process.env.ADMIN_SECRET || '';
-const checkMongodb = require('../modules/dbWatchdog.js');
 const { rollText } = require('./getRoll');
 const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
 const buttonStyles = [ButtonStyle.Danger, ButtonStyle.Primary, ButtonStyle.Secondary, ButtonStyle.Success, ButtonStyle.Danger]
@@ -797,13 +823,16 @@ client.on('guildCreate', async guild => {
 			return channel.type === ChannelType.GuildText && channel.permissionsFor(guild.members.me).has(PermissionsBitField.Flags.SendMessages)
 		});
 		if (!channel) return;
-		//	let channelSend = await guild.channels.fetch(channel.id);
+		const welcomeText = await newMessage.joinMessage({
+			groupid: guild.id,
+			botname: 'Discord'
+		});
 		const text = new EmbedBuilder()
 			.setColor('#0099ff')
 			//.setTitle(rplyVal.title)
 			//.setURL('https://discord.js.org/')
 			.setAuthor({ name: 'HKTRPG', url: 'https://www.patreon.com/HKTRPG', iconURL: 'https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png' })
-			.setDescription(newMessage.joinMessage())
+			.setDescription(welcomeText)
 		await channel.send({ embeds: [text] });
 	} catch (error) {
 		if (error.message === 'Missing Access') return;
@@ -927,6 +956,11 @@ client.on('messageReactionRemove', async (reaction, user) => {
 
 
 client.on('clientReady', async () => {
+	try {
+		await i18n.init();
+	} catch (error) {
+		console.error('[Discord Bot] i18n init failed:', error.message);
+	}
 	initInteractionCommands();
 	//	if (shardid === 0) getSchedule();
 	client.user.setActivity(`${candle.checker() || '🌼'}bothelp | hktrpg.com🍎`);
@@ -993,29 +1027,31 @@ async function replilyMessage(message, result) {
 		await __handlingReplyMessage(message, result);
 	}
 	else {
+		const t = message?._hktrpgT || i18n.createTranslator(message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
+		const noResponseText = t('common.errors.no_response_prefix', { prefix: displayname });
 		try {
 			// For interactions, check status and respond appropriately
 			if (message.isInteraction) {
 				if (!message.deferred && !message.replied) {
 					// Defer the reply if we haven't responded yet
 					await message.deferReply({ flags: MessageFlags.Ephemeral });
-					await message.editReply({ content: `${displayname}指令沒有得到回應，請檢查內容`, flags: MessageFlags.Ephemeral });
+					await message.editReply({ content: noResponseText, flags: MessageFlags.Ephemeral });
 				} else if (message.deferred && !message.replied) {
 					// Match ephemeral flag to how __handlingInteractionMessage deferred (public vs ephemeral).
 					// Forcing Ephemeral on edit after a public defer can break the interaction webhook (e.g. 50027).
-					const noResponseEdit = { content: `${displayname}指令沒有得到回應，請檢查內容` };
+					const noResponseEdit = { content: noResponseText };
 					if (message.ephemeral) {
 						noResponseEdit.flags = MessageFlags.Ephemeral;
 					}
 					await message.editReply(noResponseEdit);
 				} else if (!message.replied) {
 					// Last resort - try a direct reply
-					await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, flags: MessageFlags.Ephemeral })
+					await message.reply({ content: noResponseText, flags: MessageFlags.Ephemeral })
 						.catch(error => console.error('Failed to reply to interaction:', error.message));
 				}
 			} else {
 				// For regular messages
-				return await message.reply({ content: `${displayname}指令沒有得到回應，請檢查內容`, flags: MessageFlags.Ephemeral });
+				return await message.reply({ content: noResponseText, flags: MessageFlags.Ephemeral });
 			}
 		} catch (error) {
 			if (isDiscordUnknownInteraction(error)) {
@@ -1025,12 +1061,12 @@ async function replilyMessage(message, result) {
 			if (message.isInteraction && error.code === 50_027) {
 				const fallbackSent = await replyInteractionPrivate(
 					message,
-					`${displayname}指令沒有得到回應，請檢查內容`
+					noResponseText
 				);
 				if (fallbackSent) return;
 				if (message.channel && typeof message.channel.send === 'function') {
 					try {
-						await message.channel.send(`${displayname}指令沒有得到回應，請檢查內容`);
+						await message.channel.send(noResponseText);
 						return;
 					} catch (fallbackError) {
 						console.error('replilyMessage fallback channel.send:', fallbackError.message);
@@ -1047,38 +1083,44 @@ async function replilyMessage(message, result) {
 //inviteDelete
 //messageDelete
 function handlingCountButton(message, mode) {
-	const modeString = (mode === "roll") ? '投擲' : '點擊';
+	const t = message?._hktrpgT || i18n.createTranslator(message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
 	const content = message.message.content;
-	if (!/點擊了「|投擲了「|要求擲骰\/點擊/.test(content)) return;
+	if (!/點擊了「|投擲了「|要求擲骰\/點擊|clicked 「|rolled 「|roll \/ click request/i.test(content)) return;
 	const user = `${(message.member?.nickname || message.user.displayName) ? `${message.member?.nickname || message.user.displayName} (${message.user.username})` : message.user.username}`;
 	const buttonLabel = message.component?.label;
 	if (!buttonLabel) return content;
-	const button = `${modeString}了「${buttonLabel}」`;
-	const regexpButton = convertRegex(`${button}`)
+	const actionKey = mode === 'roll' ? 'discord.buttons.action_rolled' : 'discord.buttons.action_clicked';
+	const button = t(actionKey, { label: buttonLabel });
+	// Match both locales so click/roll lines stay mergeable after language switches
+	const escapedLabel = buttonLabel.replaceAll(/([.?*+^$[\]\\(){}|-])/g, String.raw`\$1`);
+	const matchPattern = mode === 'roll'
+		? new RegExp(String.raw`(?:投擲了|rolled) 「${escapedLabel}」`, 'i')
+		: new RegExp(String.raw`(?:點擊了|clicked) 「${escapedLabel}」`, 'i');
 	let newContent = content;
-	if (/要求擲骰\/點擊/.test(newContent)) newContent = '';
-	if (regexpButton.test(newContent)) {
-		let checkRepeat = checkRepeatName(content, button, user)
+	if (/要求擲骰\/點擊|roll \/ click request/i.test(newContent)) newContent = '';
+	if (matchPattern.test(newContent)) {
+		const checkRepeat = checkRepeatName(content, matchPattern, user);
 		if (!checkRepeat)
-			newContent = newContent.replace(regexpButton, `、${user} ${button}`)
+			newContent = newContent.replace(matchPattern, `、${user} ${button}`);
 	} else {
-		newContent += `\n${user} ${button}`
+		newContent += `\n${user} ${button}`;
 	}
 	return newContent.slice(0, 1000);
 }
-function checkRepeatName(content, button, user) {
+function checkRepeatName(content, matchPattern, user) {
 	let flag = false;
+	const pattern = matchPattern instanceof RegExp ? matchPattern : convertRegex(matchPattern);
+	const userPattern = convertRegex(user);
 	const everylines = content.split(/\n/);
 	for (const line of everylines) {
-		if (convertRegex(button).test(line)) {
-			let splitNames = line.split('、');
+		if (pattern.test(line)) {
+			const splitNames = line.split('、');
 			for (const name of splitNames) {
-				if (convertRegex(user).test(name) || convertRegex(`${user} ${button}`).test(name)) {
+				if (userPattern.test(name)) {
 					flag = true;
 				}
 			}
 		}
-
 	}
 	return flag;
 }
@@ -1213,7 +1255,8 @@ async function nonDice(message) {
 	const displayname = (message.member && message.member.user && message.member.user.tag) || (message.user && message.user.username) || '';
 	const membercount = (message.guild) ? message.guild.memberCount : 0;
 	try {
-		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount, "", message);
+		const locale = message._hktrpgLocale || i18n.DEFAULT_LOCALE;
+		let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount, "", message, locale);
 		if (groupid && LevelUp && LevelUp.text) {
 			// Check if this is an interaction
 			if (message.isInteraction) {
@@ -1816,7 +1859,7 @@ globalThis.stopShardFix = stopShardFix;
 globalThis.getShardFixStatus = getShardFixStatus;
 
 const COUNT_CACHE_MS = 30_000;
-let cachedCount = null;
+let cachedCountData = null;
 let cachedCountTime = 0;
 
 /**
@@ -1866,11 +1909,12 @@ function latencyStatusWork(ms) {
 	return '🟢';
 }
 
-async function count() {
+async function count(t) {
+	const translate = getDiscordT(t);
 	if (!client.cluster) return '';
 
-	if (Date.now() - cachedCountTime < COUNT_CACHE_MS && cachedCount !== null) {
-		return cachedCount;
+	if (Date.now() - cachedCountTime < COUNT_CACHE_MS && cachedCountData !== null) {
+		return formatCountResult(cachedCountData, translate);
 	}
 
 	try {
@@ -1891,7 +1935,7 @@ async function count() {
 
 		if (!clustersHealthy) {
 			console.warn('[Statistics] No healthy clusters available for count() collection');
-			return '⚠️ 無法取得統計資料 - 所有分流均離線';
+			return formatCountResult({ offline: true }, translate);
 		}
 
 		// Force use standard broadcastEval - safeBroadcastEval has issues with cluster filtering
@@ -1954,24 +1998,19 @@ async function count() {
 		}
 
 		const totalClusters = allClusterIds.length;
-		let statusIndicators = [];
-		if (successfulClusters < totalClusters) {
-			statusIndicators.push(`⚠️ ${successfulClusters}/${totalClusters} 分群正常`);
-		}
 
-		const statusText = statusIndicators.length > 0 ? ` (${statusIndicators.join(', ')})` : '';
-
-		cachedCount = `群組總數: ${totalGuilds.toLocaleString()}${statusText}`;
+		cachedCountData = { totalGuilds, successfulClusters, totalClusters };
 		cachedCountTime = Date.now();
-		return cachedCount;
+		return formatCountResult(cachedCountData, translate);
 	} catch (error) {
 		console.error(`[Discord Bot] Statistics error: ${error}`);
-		return '無法獲取統計資料';
+		return formatCountResult({ error: true }, translate);
 	}
 }
 
-async function count2() {
-	if (!client.cluster) return '🌼bothelp | hktrpg.com🍎';
+async function count2(t) {
+	const translate = getDiscordT(t);
+	if (!client.cluster) return translate('discord.stats.activity_fallback');
 
 	try {
 		// Get all cluster IDs (0 .. totalClusters-1), not shard IDs
@@ -1991,7 +2030,7 @@ async function count2() {
 
 		if (!clustersHealthy) {
 			console.warn('[Statistics] No healthy clusters available for count2() collection');
-			return '⚠️ 無法取得統計資料 - 所有分流均離線';
+			return translate('discord.stats.all_clusters_offline');
 		}
 
 		// Use global broadcastEval and group results by cluster
@@ -2093,11 +2132,15 @@ async function count2() {
 		const isHealthy = responseRate >= 0.9 || successfulClusters === totalClusters;
 
 		const status = isHealthy ? '✅' : `⚠️${successfulClusters}/${totalClusters}`;
-		return (`${status} ${totalGuilds}群組📶 ${typeof userCount === 'number' ? userCount : 0}使用者📶`);
+		return translate('discord.stats.count2_line', {
+			status,
+			guilds: totalGuilds,
+			users: typeof userCount === 'number' ? userCount : 0
+		});
 	} catch (error) {
 		console.error(`disocrdbot #617 error: ${error.message}`);
 		// Do not respawn subgroups here - let the subgroup manager handle it
-		return '🌼bothelp | hktrpg.com🍎';
+		return translate('discord.stats.activity_fallback');
 	}
 }
 
@@ -2446,8 +2489,10 @@ function respawnCluster2(meta = {}) {
 		try {
 			if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
 				await job.remove();
+				const cronLocale = await i18n.resolveLocale({ groupid: data.groupid || '', botname: 'Discord' });
+				const cronT = i18n.createTranslator(cronLocale);
 				SendToReplychannel(
-					{ replyText: "已運行六個月, 移除此定時訊息", channelid: data.channelid, quotes: true, groupid: data.groupid }
+					{ replyText: cronT('discord.schedule.six_month_remove'), channelid: data.channelid, quotes: true, groupid: data.groupid }
 				)
 			}
 		} catch (error) {
@@ -2468,6 +2513,16 @@ async function handlingCommand(message) {
 	try {
 		const command = client.commands.get(message.commandName);
 		if (!command) return;
+		const groupid = message.guildId || '';
+		const userid = message.user?.id || message.member?.user?.id || '';
+		const channelType = message.channel?.type;
+		message._hktrpgLocale = await i18n.resolveLocale({
+			groupid,
+			userid,
+			channelType,
+			botname: 'Discord'
+		});
+		message._hktrpgT = i18n.createTranslator(message._hktrpgLocale);
 		let answer = await command.execute(message).catch(() => {
 		})
 		return answer;
@@ -2489,7 +2544,7 @@ async function repeatMessages(discord, message) {
 
 		// Check if webhook is valid before proceeding
 		if (!webhook || !webhook.webhook) {
-			await sendMeReplyError(discord, ME_WEBHOOK_SEND_ERROR);
+			await sendMeReplyError(discord, ME_WEBHOOK_SEND_ERROR_KEY);
 			return false;
 		}
 
@@ -2514,7 +2569,7 @@ async function repeatMessages(discord, message) {
 
 	} catch (error) {
 		console.error('Error in repeatMessages:', error.message);
-		await sendMeReplyError(discord, ME_WEBHOOK_SEND_ERROR);
+		await sendMeReplyError(discord, ME_WEBHOOK_SEND_ERROR_KEY);
 		return false;
 	}
 
@@ -2552,7 +2607,7 @@ async function manageWebhook(discord) {
 	} catch (error) {
 		console.error('manageWebhook error:', error.message);
 		try {
-			await sendMeReplyError(discord, ME_WEBHOOK_CREATE_ERROR);
+			await sendMeReplyError(discord, ME_WEBHOOK_CREATE_ERROR_KEY);
 		} catch (sendError) {
 			console.error('Failed to send webhook error message:', sendError.message);
 		}
@@ -2560,7 +2615,7 @@ async function manageWebhook(discord) {
 	}
 }
 
-async function roleReact(channelid, message) {
+async function roleReact(channelid, message, discordMessage) {
 	try {
 		const detail = message.roleReactDetail
 		const channel = await client.channels.fetch(channelid);
@@ -2571,7 +2626,8 @@ async function roleReact(channelid, message) {
 		await schema.roleReact.findByIdAndUpdate(message.roleReactMongooseId, { messageID: sendMessage.id }).catch(error => console.error('[Discord Bot] MongoDB error in roleReact update:', error.name, error.reason))
 
 	} catch {
-		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限', channelid });
+		const t = getDiscordT(discordMessage);
+		await SendToReplychannel({ replyText: t('discord.role_react.add_failed'), channelid });
 		return;
 	}
 
@@ -2589,7 +2645,8 @@ async function newRoleReact(channel, message) {
 		}
 
 	} catch {
-		await SendToReplychannel({ replyText: '不能成功增加ReAction, 請檢查你有授權HKTRPG 新增ReAction的權限, \n此為本功能必須權限' });
+		const t = getDiscordT(channel);
+		await SendToReplychannel({ replyText: t('discord.role_react.add_failed') });
 		return;
 	}
 
@@ -2600,7 +2657,8 @@ async function newRoleReact(channel, message) {
 
 // Get comprehensive shard status information across all clusters
 // Returns formatted statistics for Discord bot sharding status
-async function getAllshardIds() {
+async function getAllshardIds(t) {
+	const translate = getDiscordT(t);
 	if (!client.cluster) return '';
 
 	try {
@@ -3064,13 +3122,12 @@ async function getAllshardIds() {
 				const range = `${start}-${end}`;
 
 				if (isStatus) {
-					// For status display, use warning icon if any shard is not online
 					const hasNonOnline = group.some(status => typeof status === 'string' && status !== '✅');
-					const prefix = hasNonOnline ? '❗' : '│';
-					return `${prefix} • 群組${range} ${group.join(", ")}`;
+					if (hasNonOnline) {
+						return translate('discord.shards.group_range_warn', { range, items: group.join(', ') });
+					}
 				}
-				// For shard lists, display shard IDs directly
-				return `│ • 群組${range} ${group.join(", ")}`;
+				return translate('discord.shards.group_range', { range, items: group.join(', ') });
 			}).join('\n');
 		};
 
@@ -3080,32 +3137,33 @@ async function getAllshardIds() {
 		// Return formatted statistics display
 		// Format and return the complete statistics display
 		return [
-			'├────── 🔄分流狀態 ──────',
-			'│ 概況統計:',
-			`│ • 目前分流: ${currentClusterId}`,
-			`│ • 總集群數: ${totalClusters}`,
-			`│ • 分流總數: ${totalShards}`,
-			'├────── ⚡連線狀態 ──────',
-			'│ 各分流狀態:',
+			translate('discord.shards.section_status'),
+			translate('discord.shards.overview'),
+			translate('discord.shards.current_cluster', { id: currentClusterId }),
+			translate('discord.shards.total_clusters', { count: totalClusters }),
+			translate('discord.shards.total_shards', { count: totalShards }),
+			translate('discord.shards.section_connection'),
+			translate('discord.shards.shard_status_header'),
 			formatGroup(groupedStatus, true),
-			'├────── 📊延遲統計 ──────',
-			'│ 響應時間(ms):',
+			translate('discord.shards.section_latency'),
+			translate('discord.shards.latency_header'),
 			formatGroup(groupedPing),
-			'╰──────────────'
+			translate('discord.shards.footer')
 		].join('\n');
 	} catch (error) {
 		console.error('[Discord Bot] Shard monitoring error:', error);
 		return [
-			'├────── ⚠️錯誤信息 ──────',
-			'│ 無法獲取分流狀態',
-			'│ 請稍後再試',
-			'╰──────────────'
+			translate('discord.shards.section_error'),
+			translate('discord.shards.error_fetch'),
+			translate('discord.shards.error_retry'),
+			translate('discord.shards.footer')
 		].join('\n');
 	}
 }
 
 async function handlingButtonCreate(message, input) {
 	const buttonsNames = input;
+	const t = getDiscordT(message);
 
 	// Check if input is empty or not an array
 	if (!buttonsNames || !Array.isArray(buttonsNames) || buttonsNames.length === 0) {
@@ -3114,7 +3172,7 @@ async function handlingButtonCreate(message, input) {
 			.addComponents(
 				new ButtonBuilder()
 					.setCustomId('default_button')
-					.setLabel('No buttons available')
+					.setLabel(t('buttons.no_buttons'))
 					.setStyle(ButtonStyle.Secondary)
 			);
 		return [[defaultRow]]; // Return as a nested array to match expected format
@@ -3143,7 +3201,7 @@ async function handlingButtonCreate(message, input) {
 			row[i].addComponents(
 				new ButtonBuilder()
 					.setCustomId(`empty_row_${i}`)
-					.setLabel('Empty')
+					.setLabel(t('buttons.empty'))
 					.setStyle(ButtonStyle.Secondary)
 			);
 		}
@@ -3163,16 +3221,18 @@ async function handlingButtonCreate(message, input) {
 }
 
 async function handlingRequestRollingCharacter(message, input) {
+	const t = getDiscordT(message);
 	const buttonsNames = input[0];
 	const characterName = input[1];
 	const charMode = (input[2] == 'char') ? true : false;
 
 	// Check if buttonsNames is empty or not an array
 	if (!buttonsNames || !Array.isArray(buttonsNames) || buttonsNames.length === 0) {
+		const noSkillsText = t('discord.character.no_skills', { name: characterName });
 		if (message.deferred && !message.replied) {
-			await message.editReply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
+			await message.editReply({ content: noSkillsText });
 		} else {
-			await message.reply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
+			await message.reply({ content: noSkillsText });
 		}
 		return;
 	}
@@ -3200,7 +3260,7 @@ async function handlingRequestRollingCharacter(message, input) {
 			row[i].addComponents(
 				new ButtonBuilder()
 					.setCustomId(`empty_row_${i}`)
-					.setLabel('Empty')
+					.setLabel(t('buttons.empty'))
 					.setStyle(ButtonStyle.Secondary)
 			);
 		}
@@ -3210,17 +3270,20 @@ async function handlingRequestRollingCharacter(message, input) {
 
 	// Check if the first row has components
 	if (arrayRow.length === 0 || !arrayRow[0] || !arrayRow[0][0] || !arrayRow[0][0].components || arrayRow[0][0].components.length === 0) {
+		const noSkillsText = t('discord.character.no_skills', { name: characterName });
 		if (message.deferred && !message.replied) {
-			await message.editReply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
+			await message.editReply({ content: noSkillsText });
 		} else {
-			await message.reply({ content: `${characterName}的角色卡 沒有技能 \n不能產生Button` });
+			await message.reply({ content: noSkillsText });
 		}
 		return;
 	}
 
 	// Check if this is an interaction
 	const isInteraction = message.isInteraction || message.isCommand?.() || message.isButton?.();
-	const contentPrefix = charMode ? `${characterName}的角色` : `${characterName}的角色卡`;
+	const contentPrefix = charMode
+		? t('discord.character.char_label', { name: characterName })
+		: t('discord.character.card_label', { name: characterName });
 
 	// Capture command information for debugging
 	const commandInfo = {
@@ -3270,12 +3333,14 @@ async function handlingRequestRollingCharacter(message, input) {
 }
 
 async function handlingRequestRolling(message, buttonsNames, displayname = '') {
+	const t = getDiscordT(message);
+	const requestRollingPrefix = (name) => t('discord.buttons.request_rolling', { displayname: name });
 	// Check if buttonsNames is empty or not an array
 	if (!buttonsNames || !Array.isArray(buttonsNames) || buttonsNames.length === 0) {
 		if (message.deferred && !message.replied) {
-			await message.editReply({ content: `${displayname}要求擲骰/點擊\n沒有可用的按鈕` });
+			await message.editReply({ content: requestRollingPrefix(displayname) + '\n' + t('buttons.no_buttons') });
 		} else {
-			await message.reply({ content: `${displayname}要求擲骰/點擊\n沒有可用的按鈕` });
+			await message.reply({ content: requestRollingPrefix(displayname) + '\n' + t('buttons.no_buttons') });
 		}
 		return;
 	}
@@ -3303,7 +3368,7 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 			row[i].addComponents(
 				new ButtonBuilder()
 					.setCustomId(`empty_row_${i}`)
-					.setLabel('Empty')
+					.setLabel(t('buttons.empty'))
 					.setStyle(ButtonStyle.Secondary)
 			);
 		}
@@ -3314,9 +3379,9 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 	// Check if the array is empty
 	if (arrayRow.length === 0) {
 		if (message.deferred && !message.replied) {
-			await message.editReply({ content: `${displayname}要求擲骰/點擊\n沒有可用的按鈕` });
+			await message.editReply({ content: requestRollingPrefix(displayname) + '\n' + t('buttons.no_buttons') });
 		} else {
-			await message.reply({ content: `${displayname}要求擲骰/點擊\n沒有可用的按鈕` });
+			await message.reply({ content: requestRollingPrefix(displayname) + '\n' + t('buttons.no_buttons') });
 		}
 		return;
 	}
@@ -3343,17 +3408,17 @@ async function handlingRequestRolling(message, buttonsNames, displayname = '') {
 				// First message - handle based on interaction state
 				if (message.deferred && !message.replied) {
 					// If deferred but not replied, use editReply for first row
-					await message.editReply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] });
+					await message.editReply({ content: requestRollingPrefix(displayname), components: arrayRow[index] });
 				} else {
 					// Otherwise use reply
-					await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] });
+					await message.reply({ content: requestRollingPrefix(displayname), components: arrayRow[index] });
 				}
 			} else if (isInteraction) {
 				// Subsequent messages use followUp for interactions
-				await message.followUp({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] });
+				await message.followUp({ content: requestRollingPrefix(displayname), components: arrayRow[index] });
 			} else {
 				// For regular messages, we can keep using reply
-				await message.reply({ content: `${displayname}要求擲骰/點擊`, components: arrayRow[index] });
+				await message.reply({ content: requestRollingPrefix(displayname), components: arrayRow[index] });
 			}
 		} catch (error) {
 			console.error(`Error in handlingRequestRolling: ${error.message} | Command: ${commandInfo.userCommand} | Row: ${index} | Interaction State: ${JSON.stringify(commandInfo.interactionState)} | Button count: ${buttonsNames.length}`);
@@ -3382,11 +3447,18 @@ function buttonsStyle(num) {
 
 function initInteractionCommands() {
 	client.commands = new Collection();
+	client.autocompleteByCommand = new Collection();
 	const commandFiles = fs.readdirSync('./roll').filter(file => file.endsWith('.js'));
 	for (const file of commandFiles) {
 		const command = require(`../roll/${file}`);
 		if (command && command.discordCommand) {
-			pushArrayInteractionCommands(command.discordCommand)
+			pushArrayInteractionCommands(command.discordCommand);
+			if (command.autocomplete && typeof command.autocomplete.search === 'function') {
+				for (const slashCmd of command.discordCommand) {
+					const name = slashCmd?.data?.name;
+					if (name) client.autocompleteByCommand.set(name, command.autocomplete);
+				}
+			}
 		}
 
 	}
@@ -3398,15 +3470,48 @@ function pushArrayInteractionCommands(arrayCommands) {
 
 }
 
+/**
+ * Discord autocomplete (must respond within ~3s; must NOT defer).
+ * Uses roll module `autocomplete.search(query, limit)` when registered.
+ */
+async function handlingAutocomplete(interaction) {
+	const handler = client.autocompleteByCommand?.get(interaction.commandName);
+	if (!handler || typeof handler.search !== 'function') {
+		try {
+			await interaction.respond([]);
+		} catch {
+			// ignore expired / already-responded
+		}
+		return;
+	}
+
+	try {
+		const focused = interaction.options.getFocused(true);
+		const query = focused?.value ?? '';
+		const limit = Math.min(Number(handler.autocompleteLimit) || 25, 25);
+		const results = await handler.search(query, limit) || [];
+		const choices = [];
+		for (const item of results.slice(0, 25)) {
+			const name = String(item.display || item.name || item.value || '').slice(0, 100);
+			const value = String(item.value || item.name || item.display || '').slice(0, 100);
+			if (name && value) choices.push({ name, value });
+		}
+		await interaction.respond(choices);
+	} catch (error) {
+		console.error('[Discord Bot] autocomplete error:', error?.message || error);
+		try {
+			if (!interaction.responded) await interaction.respond([]);
+		} catch {
+			// ignore
+		}
+	}
+}
+
 async function handlingResponMessage(message, answer = '') {
 	let inputStr = '';
 	try {
 		let hasSendPermission = true;
-		/**
-				if (message.guild && message.guild.me) {
-					hasSendPermission = (message.channel && message.channel.permissionsFor(message.guild.me)) ? message.channel.permissionsFor(message.guild.me).has(PermissionsBitField.Flags.SEND_MESSAGES) : false;
-				}
-				 */
+
 		if (answer) {
 			// Handle both string and object inputs
 			if (typeof answer === 'string') {
@@ -3463,6 +3568,16 @@ async function handlingResponMessage(message, answer = '') {
 		const channelid = (message.channelId) ? message.channelId : '';
 		const userrole = __checkUserRole(groupid, message);
 
+		if (message && message._hktrpgLocale === undefined) {
+			message._hktrpgLocale = await i18n.resolveLocale({
+				groupid,
+				userid,
+				channelType: message.channel?.type,
+				botname: 'Discord'
+			});
+			message._hktrpgT = i18n.createTranslator(message._hktrpgLocale);
+		}
+
 		// Get private roll data, GM position
 
 		// Check if there are permissions to send messages
@@ -3485,7 +3600,9 @@ async function handlingResponMessage(message, answer = '') {
 			membercount: membercount,
 			discordClient: client,
 			discordMessage: message,
-			titleName: titleName
+			titleName: titleName,
+			locale: message?._hktrpgLocale,
+			t: message?._hktrpgT
 		});
 
 		// Ensure isInteraction flag is preserved
@@ -3496,7 +3613,7 @@ async function handlingResponMessage(message, answer = '') {
 		if (rplyVal.requestRollingCharacter) await handlingRequestRollingCharacter(message, rplyVal.requestRollingCharacter);
 		if (rplyVal.requestRolling) await handlingRequestRolling(message, rplyVal.requestRolling, displaynameDiscord);
 		if (rplyVal.buttonCreate) rplyVal.buttonCreate = await handlingButtonCreate(message, rplyVal.buttonCreate)
-		if (rplyVal.roleReactFlag) await roleReact(channelid, rplyVal)
+		if (rplyVal.roleReactFlag) await roleReact(channelid, rplyVal, message)
 		if (rplyVal.newRoleReactFlag) await newRoleReact(message, rplyVal)
 		if (rplyVal.discordEditMessage) await handlingEditMessage(message, rplyVal)
 		if (rplyVal.myspeck) {
@@ -3540,7 +3657,11 @@ async function handlingResponMessage(message, answer = '') {
 
 				const isNew = await newMessage.newUserChecker(userid, "Discord");
 				if (process.env.mongoURL && rplyVal.text && isNew) {
-					SendToId(userid, newMessage.firstTimeMessage(), true);
+					SendToId(userid, await newMessage.firstTimeMessage({
+						userid,
+						botname: 'Discord',
+						locale: message._hktrpgLocale
+					}), true);
 				}
 			} catch (error) {
 				console.error(`[Discord Bot] Error in message handling:`, (error && error.name && error.message));
@@ -3549,10 +3670,11 @@ async function handlingResponMessage(message, answer = '') {
 		if (rplyVal.state) {
 			const createdTs = message.createdTimestamp ?? Date.now();
 			const gatewayPingMs = getLocalGatewayPingMs();
+			const statsT = message._hktrpgT || i18n.createTranslator(message._hktrpgLocale || i18n.DEFAULT_LOCALE);
 			const statsT0 = Date.now();
 			const [countResult, shardResult] = await Promise.all([
-				count(),
-				getAllshardIds()
+				count(statsT),
+				getAllshardIds(statsT)
 			]);
 			const statsCollectMs = Date.now() - statsT0;
 			let e2eMs = Number(Date.now() - createdTs);
@@ -3564,18 +3686,18 @@ async function handlingResponMessage(message, answer = '') {
 			}
 
 			const gatewayLine = gatewayPingMs === null
-				? '│ • WS 連線：—'
-				: `│ • WS 連線：${latencyStatusGateway(gatewayPingMs)} ${gatewayPingMs}ms`;
-			const statsLine = `│ • 全站統計：${latencyStatusWork(statsCollectMs)} ${statsCollectMs}ms`;
-			const e2eLine = `│ • 指令全程：${latencyStatusWork(e2eMs)} ${e2eMs}ms`;
+				? statsT('discord.stats.ws_none')
+				: statsT('discord.stats.ws_ping', { status: latencyStatusGateway(gatewayPingMs), ms: gatewayPingMs });
+			const statsLine = statsT('discord.stats.site_collect', { status: latencyStatusWork(statsCollectMs), ms: statsCollectMs });
+			const e2eLine = statsT('discord.stats.e2e', { status: latencyStatusWork(e2eMs), ms: e2eMs });
 
 			rplyVal.text += [
 				'',
-				'【📊 Discord統計資訊】',
-				'╭────── 🌐使用統計 ──────',
-				'│ 群組數據:',
+				statsT('discord.stats.header'),
+				statsT('discord.stats.section_usage'),
+				statsT('discord.stats.guild_data'),
 				`│ • ${countResult}`,
-				'│ 耗時(ms)：',
+				statsT('discord.stats.timing_header'),
 				gatewayLine,
 				statsLine,
 				e2eLine,
@@ -3589,9 +3711,12 @@ async function handlingResponMessage(message, answer = '') {
 		}
 
 		if (rplyVal.discordExport) {
+			const t = message._hktrpgT || i18n.createTranslator(message._hktrpgLocale || i18n.DEFAULT_LOCALE);
+			const channelName = message.channel ? message.channel.name : t('discord.export.default_channel');
+			const exportContent = t('discord.export.channel_log', { channelName });
 			if (message.author && typeof message.author.send === 'function') {
 				message.author.send({
-					content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄',
+					content: exportContent,
 					files: [
 						new AttachmentBuilder("./export/" + rplyVal.discordExport + '.txt')
 					]
@@ -3604,41 +3729,48 @@ async function handlingResponMessage(message, answer = '') {
 					}
 
 					await message.user.send({
-						content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄',
+						content: exportContent,
 						files: [
 							new AttachmentBuilder("./export/" + rplyVal.discordExport + '.txt')
 						]
 					});
 
 					// Now that we've deferred, use editReply instead of followUp
-					await message.editReply({ content: '已將聊天紀錄發送到您的私訊！', flags: MessageFlags.Ephemeral });
+					await message.editReply({ content: t('discord.export.sent_dm'), flags: MessageFlags.Ephemeral });
 				} catch (error) {
 					console.error('Failed to send DM with exported file:', error);
 					if (message.deferred && !message.replied) {
-						await message.editReply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', flags: MessageFlags.Ephemeral });
+						await message.editReply({ content: t('discord.export.dm_blocked'), flags: MessageFlags.Ephemeral });
 					} else if (!message.deferred && !message.replied) {
-						await message.reply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', flags: MessageFlags.Ephemeral });
+						await message.reply({ content: t('discord.export.dm_blocked'), flags: MessageFlags.Ephemeral });
 					}
 				}
 			}
 		}
 
 		if (rplyVal.discordExportHtml) {
+			const t = message._hktrpgT || i18n.createTranslator(message._hktrpgLocale || i18n.DEFAULT_LOCALE);
+			const channelName = message.channel ? message.channel.name : t('discord.export.default_channel');
+			const passwordContent = t('discord.export.channel_log_password', {
+				channelName,
+				password: rplyVal.discordExportHtml[1]
+			});
 			if (message.author && typeof message.author.send === 'function') {
 				if (!link || !mongo) {
 					message.author.send(
 						{
-							content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
-								rplyVal.discordExportHtml[1],
+							content: passwordContent,
 							files: [
 								"./export/" + rplyVal.discordExportHtml[0] + '.html'
 							]
 						}).catch(error => console.error('Failed to send DM with exported HTML file:', error));
 
 				} else {
-					message.author.send('這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
-						rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
-						link + rplyVal.discordExportHtml[0] + '.html').catch(error => console.error('Failed to send DM with HTML link:', error));
+					message.author.send(t('discord.export.channel_log_password_link', {
+						channelName,
+						password: rplyVal.discordExportHtml[1],
+						url: link + rplyVal.discordExportHtml[0] + '.html'
+					})).catch(error => console.error('Failed to send DM with HTML link:', error));
 				}
 			} else if (message.user && message.isInteraction) {
 				try {
@@ -3649,26 +3781,27 @@ async function handlingResponMessage(message, answer = '') {
 
 					if (!link || !mongo) {
 						await message.user.send({
-							content: '這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
-								rplyVal.discordExportHtml[1],
+							content: passwordContent,
 							files: [
 								"./export/" + rplyVal.discordExportHtml[0] + '.html'
 							]
 						});
 					} else {
-						await message.user.send('這是頻道 ' + (message.channel ? message.channel.name : '頻道') + ' 的聊天紀錄\n 密碼: ' +
-							rplyVal.discordExportHtml[1] + '\n請注意這是暫存檔案，會不定時移除，有需要請自行下載檔案。\n' +
-							link + rplyVal.discordExportHtml[0] + '.html');
+						await message.user.send(t('discord.export.channel_log_password_link', {
+							channelName,
+							password: rplyVal.discordExportHtml[1],
+							url: link + rplyVal.discordExportHtml[0] + '.html'
+						}));
 					}
 
 					// Now use editReply instead of followUp
-					await message.editReply({ content: '已將聊天紀錄發送到您的私訊！', flags: MessageFlags.Ephemeral });
+					await message.editReply({ content: t('discord.export.sent_dm'), flags: MessageFlags.Ephemeral });
 				} catch (error) {
 					console.error('Failed to send DM with exported HTML file:', error);
 					if (message.deferred && !message.replied) {
-						await message.editReply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', flags: MessageFlags.Ephemeral });
+						await message.editReply({ content: t('discord.export.dm_blocked'), flags: MessageFlags.Ephemeral });
 					} else if (!message.deferred && !message.replied) {
-						await message.reply({ content: '無法發送私訊，請確保您沒有封鎖私訊。', flags: MessageFlags.Ephemeral });
+						await message.reply({ content: t('discord.export.dm_blocked'), flags: MessageFlags.Ephemeral });
 					}
 				}
 			}
@@ -3696,8 +3829,9 @@ async function handlingResponMessage(message, answer = '') {
 	}
 }
 const sendBufferImage = async (message, rplyVal, userid) => {
+	const t = message?._hktrpgT || i18n.createTranslator(message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
 	await message.channel.send({
-		content: `<@${userid}>\n你的Token已經送到，現在輸入 .token 為方型，.token2 為圓型 .token3 為按名字決定的隨機顏色，reply 圖片輸入.tokenupload 可以自動上傳`, files: [
+		content: `<@${userid}>\n${t('token.success')}`, files: [
 			new AttachmentBuilder(rplyVal.sendImage)
 		]
 	});
@@ -3750,8 +3884,8 @@ const sendDmFiles = async (message, rplyVal) => {
 		}
 	} catch (error) {
 		console.error('sendDmFiles error:', error?.message);
-		// Update text so the normal send flow posts one error message
-		rplyVal.text = '無法以私訊傳送檔案，請確認私訊設定。';
+		const t = message?._hktrpgT || i18n.createTranslator(message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
+		rplyVal.text = t('discord.dm.file_failed');
 	}
 }
 
@@ -3765,6 +3899,7 @@ async function handlingSendMessage(input) {
 	const quotes = input.quotes
 	const buttonCreate = input.buttonCreate;
 	const pollPayload = input.discordCreatePoll;
+	const t = input.message?._hktrpgT || i18n.createTranslator(input.message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
@@ -3782,10 +3917,10 @@ async function handlingSendMessage(input) {
 			//
 			if (groupid) {
 				await SendToReplychannel(
-					{ replyText: "<@" + userid + '> 暗骰給自己', channelid })
+					{ replyText: t('discord.dark_roll.dr_self_notice', { userid }), channelid })
 			}
 			if (userid) {
-				sendText = "<@" + userid + "> 的暗骰\n" + sendText
+				sendText = t('discord.dark_roll.dm_prefix', { userid }) + sendText
 				SendToId(userid, sendText, true);
 			}
 			return;
@@ -3797,10 +3932,10 @@ async function handlingSendMessage(input) {
 					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
 				await SendToReplychannel(
-					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, channelid });
+					{ replyText: t('discord.dark_roll.ddr_in_progress_self', { userid, targets: targetGMNameTemp }), channelid });
 			}
 			if (userid) {
-				sendText = "<@" + userid + "> 的暗骰\n" + sendText;
+				sendText = t('discord.dark_roll.dm_prefix', { userid }) + sendText;
 			}
 			SendToId(userid, sendText);
 			for (let i = 0; i < TargetGMTempID.length; i++) {
@@ -3817,9 +3952,9 @@ async function handlingSendMessage(input) {
 					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
 				}
 				await SendToReplychannel(
-					{ replyText: "<@" + userid + '> 暗骰進行中 \n目標:  ' + targetGMNameTemp, channelid })
+					{ replyText: t('discord.dark_roll.dddr_in_progress', { userid, targets: targetGMNameTemp }), channelid })
 			}
-			sendText = "<@" + userid + "> 的暗骰\n" + sendText
+			sendText = t('discord.dark_roll.dm_prefix', { userid }) + sendText
 			for (let i = 0; i < TargetGMTempID.length; i++) {
 				SendToId(TargetGMTempID[i], sendText);
 			}
@@ -3844,6 +3979,20 @@ async function handlingSendMessage(input) {
 }
 
 // ---- StoryTeller reaction poll helpers ----
+async function resolveDiscordPollTranslator({ groupid, userid, message } = {}) {
+	if (message?._hktrpgT) {
+		return message._hktrpgT;
+	}
+	const locale = message?._hktrpgLocale
+		|| await i18n.resolveLocale({
+			groupid: groupid || '',
+			userid: userid || '',
+			channelType: message?.channel?.type,
+			botname: 'Discord'
+		});
+	return i18n.createTranslator(locale);
+}
+
 async function createStPollByChannel({ channelid, groupid, text, payload }) {
 	try {
 
@@ -3863,7 +4012,10 @@ async function createStPollByChannel({ channelid, groupid, text, payload }) {
 		}
 
 		// Build poll text once
-		const pollText = `啟動投票，請於 ${payload.minutes || 3} 分鐘內投票\n選項：\n` + payload.options.slice(0, maxOptions).map((o, i) => `${POLL_EMOJIS[i]} ${o.label}`).join('\n');
+		const pollT = await resolveDiscordPollTranslator({ groupid });
+		const pollHeader = pollT('discord.story.poll_start_header', { minutes: payload.minutes || 3 });
+		const pollOptions = payload.options.slice(0, maxOptions).map((o, i) => `${POLL_EMOJIS[i]} ${o.label}`).join('\n');
+		const pollText = pollHeader + pollOptions;
 
 		// Prefer sending only on the cluster that owns this guild to avoid flakiness
 		let ownerClusterId = null;
@@ -3987,7 +4139,15 @@ async function createStPoll({ message, payload }) {
 		// Ensure the run is still active/continuing (not paused/ended)
 		if (!(await isStoryTellerRunActiveByChannel(message.channelId))) return;
 		// Post under the same channel, immediately after previous content
-		const content = `${message.member ? `<@${message.member.id}>` : ''} 啟動投票，請於 ${payload.minutes || 3} 分鐘內投票\n選項：\n` + payload.options.map((o, i) => `${POLL_EMOJIS[i]} ${o.label}`).join('\n');
+		const pollT = await resolveDiscordPollTranslator({
+			groupid: message.guildId,
+			userid: message.member?.id || message.author?.id,
+			message
+		});
+		const mention = message.member ? `<@${message.member.id}>` : '';
+		const pollHeader = pollT('discord.story.poll_start_header', { minutes: payload.minutes || 3 });
+		const pollOptions = payload.options.map((o, i) => `${POLL_EMOJIS[i]} ${o.label}`).join('\n');
+		const content = `${mention}${mention ? ' ' : ''}${pollHeader}${pollOptions}`;
 		const sent = await message.channel.send({ content });
 		await createStPollCore({ sentMessage: sent, groupid: message.guildId, payload });
 	} catch (error) {
@@ -4033,11 +4193,11 @@ async function createStPollCore({ sentMessage, groupid, payload }) {
 }
 
 async function tallyStPoll(messageId, fallbackData) {
-	// Use in-memory state if present; otherwise fallback to persisted job data
 	const data = stPolls.get(messageId) || (fallbackData && Array.isArray(fallbackData.options)
 		? { channelid: fallbackData.channelid, groupid: fallbackData.groupid, options: fallbackData.options, minutes: Number(fallbackData.minutes || 3), streak: Number(fallbackData.streak || 0) }
 		: null);
 	if (!data) return;
+	const pollT = await resolveDiscordPollTranslator({ groupid: data.groupid });
 	if (data.completed) return;
 	// Abort if run has been paused
 	try {
@@ -4180,7 +4340,7 @@ async function tallyStPoll(messageId, fallbackData) {
 							return true;
 						} catch { return false; }
 					},
-					{ context: { channelId: data.channelid, messageId, content: `本輪未收到投票（連續 ${nextDisplay} 次）。`, targetClusterId: ownerClusterId }, timeout: 10_000 }
+					{ context: { channelId: data.channelid, messageId, content: pollT('discord.story.poll_no_vote', { count: nextDisplay }), targetClusterId: ownerClusterId }, timeout: 10_000 }
 				);
 			} catch { }
 			if (nextRaw >= 4) {
@@ -4198,7 +4358,7 @@ async function tallyStPoll(messageId, fallbackData) {
 								return true;
 							} catch { return false; }
 						},
-						{ context: { channelId: data.channelid, messageId, content: '連續 4 次無人投票，已自動暫停本局。', targetClusterId: ownerClusterId }, timeout: 10_000 }
+						{ context: { channelId: data.channelid, messageId, content: pollT('discord.story.poll_paused'), targetClusterId: ownerClusterId }, timeout: 10_000 }
 					);
 				} catch { }
 				try {
@@ -4293,7 +4453,7 @@ async function tallyStPoll(messageId, fallbackData) {
 						return true;
 					} catch { return false; }
 				},
-				{ context: { channelId: data.channelid, messageId, content: `投票結束，選中：${POLL_EMOJIS[pick]} ${picked.label}（${max} 票）`, targetClusterId: ownerClusterId }, timeout: 10_000 }
+				{ context: { channelId: data.channelid, messageId, content: pollT('discord.story.poll_result', { emoji: POLL_EMOJIS[pick], label: picked.label, votes: max }), targetClusterId: ownerClusterId }, timeout: 10_000 }
 			);
 		} catch { }
 
@@ -4442,9 +4602,10 @@ function handlingButtonCommand(message) {
 	return message.component.label || '';
 }
 async function handlingEditMessage(message, rplyVal) {
+	const t = getDiscordT(message);
 	try {
-		if (message.type !== 19) return message.reply({ content: '請Reply 你所想要修改的指定訊息' });
-		if (message.channelId !== message.reference.channelId) return message.reply({ content: '請只修改同一個頻道的訊息' });
+		if (message.type !== 19) return message.reply({ content: t('discord.edit.reply_required') });
+		if (message.channelId !== message.reference.channelId) return message.reply({ content: t('discord.edit.same_channel') });
 		const editReply = rplyVal.discordEditMessage;
 		const channel = await client.channels.fetch(message.reference.channelId);
 		const editMessage = await channel.messages.fetch(message.reference.messageId)
@@ -4458,7 +4619,7 @@ async function handlingEditMessage(message, rplyVal) {
 				const messageid = editMessage.id;
 				const webhooks = await targetChannel.fetchWebhooks();
 				const webhook = webhooks.find(wh => wh.id == editMessage.webhookId);
-				if (!webhook) return message.reply({ content: '找不到這個訊息的webhook，所以不能修改' });
+				if (!webhook) return message.reply({ content: t('discord.edit.no_webhook') });
 				//if type ==11,  add  threadId: message.reference.channelId
 				return await webhook.editMessage(messageid, {
 					content: editReply,
@@ -4467,7 +4628,7 @@ async function handlingEditMessage(message, rplyVal) {
 
 
 			} else
-				return message.reply({ content: '根據Discord的規則，只能修改此BOT(HKTRPG)和Webhook所發出的訊息，請重新檢查' });
+				return message.reply({ content: t('discord.edit.bot_only') });
 	} catch (error) {
 		const errorContext = {
 			message: error.message,
@@ -4776,6 +4937,12 @@ async function __handlingReplyMessage(message, result) {
 }
 
 async function __handlingInteractionMessage(message) {
+	// Autocomplete must respond with interaction.respond() — never defer.
+	if (message.isAutocomplete?.()) {
+		await handlingAutocomplete(message);
+		return;
+	}
+
 	// Immediately defer ALL interactions to prevent timeout (Discord ~3s acknowledge window).
 	// Slow logs split: handlerAge = time since interaction.createdTimestamp when this runs (event-loop / IPC delay);
 	// deferHttp = REST round-trip for interaction callback only.
@@ -4823,7 +4990,8 @@ async function __handlingInteractionMessage(message) {
 		// Try to send a followUp as fallback (only if interaction is still valid)
 		try {
 			if (!message.replied && !message.deferred && typeof message.followUp === 'function') {
-				await message.followUp({ content: '處理中，請稍候...', ephemeral: true });
+				const deferT = message._hktrpgT || i18n.createTranslator(message._hktrpgLocale || i18n.DEFAULT_LOCALE);
+				await message.followUp({ content: deferT('discord.processing'), ephemeral: true });
 			}
 		} catch (fallbackError) {
 			if (isDiscordUnknownInteraction(fallbackError)) {
@@ -4861,6 +5029,19 @@ async function __handlingInteractionMessage(message) {
 
 				try {
 					const answer = await handlingCommand(message);
+					const slashUserId = message.user?.id;
+					if (slashUserId && process.env.mongoURL) {
+						try {
+							const welcomeText = await newMessage.maybeSendFirstTimeWelcome(slashUserId, 'Discord', {
+								locale: message._hktrpgLocale
+							});
+							if (welcomeText) {
+								SendToId(slashUserId, welcomeText, true);
+							}
+						} catch (welcomeError) {
+							console.error('[Discord Bot] first-time welcome error:', welcomeError.message);
+						}
+					}
 					if (!answer) {
 						success = true; // Command processed normally but no response
 						return;
@@ -4885,11 +5066,13 @@ async function __handlingInteractionMessage(message) {
 						return;
 					}
 					console.error('Command processing error:', error);
+					const errorT = message._hktrpgT || i18n.createTranslator(message._hktrpgLocale || i18n.DEFAULT_LOCALE);
+					const errorText = errorT('common.errors.command_error');
 					try {
 						if (message.deferred && !message.replied) {
-							await message.editReply({ content: '處理命令時發生錯誤，請稍後再試。', flags: MessageFlags.Ephemeral });
+							await message.editReply({ content: errorText, flags: MessageFlags.Ephemeral });
 						} else if (!message.replied) {
-							await message.reply({ content: '處理命令時發生錯誤，請稍後再試。', flags: MessageFlags.Ephemeral });
+							await message.reply({ content: errorText, flags: MessageFlags.Ephemeral });
 						}
 					} catch (replyError) {
 						if (isDiscordUnknownInteraction(replyError)) {
@@ -4915,16 +5098,37 @@ async function __handlingInteractionMessage(message) {
 				let success = false;
 
 				try {
+					// Resolve locale before button handling — plain-text clicks
+					// (e.g. .re "2","3") return early from handlingResponMessage
+					// and would otherwise fall back to DEFAULT_LOCALE (zh-tw).
+					if (message._hktrpgLocale === undefined) {
+						message._hktrpgLocale = await i18n.resolveLocale({
+							groupid: message.guildId || '',
+							userid: message.user?.id || message.member?.user?.id || '',
+							channelType: message.channel?.type,
+							botname: 'Discord'
+						});
+						message._hktrpgT = i18n.createTranslator(message._hktrpgLocale);
+					}
 					const answer = handlingButtonCommand(message);
 					const result = await handlingResponMessage(message, answer);
 					const messageContent = message?.message?.content || '';
 					const displayname = (message.member && message.member.id) ? `<@${message.member.id}>\n` : '';
 					const resultText = (result && result.text) || '';
 
+					const btnT = message?._hktrpgT || i18n.createTranslator(message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
+					const cardSuffixPattern = /的角色卡$|(?:'s )?character card$/i;
+
 					// Handle character card buttons
-					if (/的角色卡$/.test(messageContent)) {
+					if (cardSuffixPattern.test(messageContent)) {
 						try {
 							if (resultText) {
+								const rollSuffix = messageContent.replace(cardSuffixPattern, '');
+								const rollContent = btnT('discord.character.rolling', {
+									displayname,
+									suffix: rollSuffix,
+									result: resultText
+								});
 								// Check for forwarding settings
 								const forwardSetting = await records.findForwardedMessage({
 									userId: message.user.id,
@@ -4937,7 +5141,7 @@ async function __handlingInteractionMessage(message) {
 										const targetChannel = await client.channels.fetch(forwardSetting.channelId);
 										if (targetChannel) {
 											await targetChannel.send({
-												content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`
+												content: rollContent
 											});
 											return;
 										}
@@ -4948,7 +5152,7 @@ async function __handlingInteractionMessage(message) {
 								// Fallback to normal reply if forwarding fails
 								try {
 									return await message.followUp({
-										content: `${displayname}${messageContent.replace(/的角色卡$/, '')}進行擲骰 \n${resultText}`
+										content: rollContent
 									});
 								} catch (replyError) {
 									console.error(`Failed to send character card button response: ${replyError.message}`);
@@ -4956,7 +5160,7 @@ async function __handlingInteractionMessage(message) {
 							} else {
 								try {
 									return await message.followUp({
-										content: `${displayname}沒有反應，請檢查按鈕內容`,
+										content: btnT('discord.character.no_reaction', { displayname }),
 										flags: MessageFlags.Ephemeral
 									});
 								} catch (replyError) {
@@ -4969,7 +5173,7 @@ async function __handlingInteractionMessage(message) {
 					}
 
 					// Handle character buttons
-					if (/的角色$/.test(messageContent)) {
+					if (/的角色$|(?:'s )?character$/i.test(messageContent)) {
 						try {
 							// Check for forwarding settings
 							const forwardSetting = await records.findForwardedMessage({

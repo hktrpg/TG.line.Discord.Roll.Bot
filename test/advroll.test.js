@@ -1,6 +1,11 @@
 "use strict";
 
+const i18n = require('../modules/i18n.js');
 const advroll = require('../roll/0-advroll');
+
+beforeAll(async () => {
+    await i18n.init();
+});
 
 test('Test getHelpMessage returns correct help text', () => {
     const helpText = advroll.getHelpMessage();

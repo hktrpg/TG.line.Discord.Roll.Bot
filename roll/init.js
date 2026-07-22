@@ -5,12 +5,13 @@ if (!process.env.mongoURL) {
 const math = require('mathjs')
 const { SlashCommandBuilder } = require('discord.js');
 const schema = require('../modules/schema.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 const rollDice = require('./rollbase').rollDiceCommand;
 const convertRegex = function (str) {
     return str.replaceAll(/([.?*+^$[\\]|(){}|-])/g, String.raw`\$1`);
 };
-const gameName = function () {
-    return '【先攻表功能】 .in (remove clear reroll) .init'
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'init.game_name', '【先攻表功能】 .in (remove clear reroll help) .init');
 }
 const gameType = function () {
     return 'Tool:trpgInit:hktrpg'
@@ -21,42 +22,8 @@ const prefixs = function () {
         second: null
     }]
 }
-const getHelpMessage = async function () {
-    return `【⚔️先攻表系統】
-╭────── 📋基本指令 ──────
-│ • .in [擲骰/數值] [名稱]
-│ • .init - 顯示先攻表(大→小)
-│ • .initn - 顯示先攻表(小→大)
-│
-├────── 🎲新增角色 ──────
-│ 擲骰格式:
-│ 	• .in 1d20+3 角色A
-│ 	• .in 1d3
-│ 	  (無名稱時使用發言者名稱)
-│
-│ 直接指定數值:
-│ 	• .in 80
-│ 	• .in -3+6*3/2.1
-│
-├────── ⚙️管理功能 ──────
-│ 重擲先攻:
-│ 	• .in reroll
-│ 	  (依原有算式重新擲骰)
-│
-│ 移除功能:
-│ 	• .in remove [名稱]
-│ 	  (移除特定角色)
-│ 	• .in clear
-│ 	  (清空整個先攻表)
-│
-├────── ⭕回合功能 ──────
-│ • .init start - 開始戰鬥輪
-│ • .init next - 進入下一回合
-│ • .init [角色名稱] - 跳至指定角色
-│ • .init end - 結束戰鬥輪
-│ • .init stats [角色名稱] [狀態]
-│   (為角色附加狀態)
-╰──────────────`
+const getHelpMessage = async function (params = {}) {
+    return resolveHelp(params, 'init.help');
 }
 const initialize = function () {
     return;
@@ -69,8 +36,12 @@ const rollDiceCommand = async function ({
     displaynameDiscord,
     botname,
     displayname,
-    channelid
+    channelid,
+    locale,
+    t
 }) {
+    const i18nParams = { locale, t };
+    const translate = getT(i18nParams);
     let temp;
     let result;
     let objIndex;
@@ -81,15 +52,14 @@ const rollDiceCommand = async function ({
         text: ''
     };
     if ((/^help$/i.test(mainMsg[1])) && /^[.]in|[.]init$/i.test(mainMsg[0])) {
-        rply.text = await this.getHelpMessage();
+        rply.text = await getHelpMessage(i18nParams);
         rply.quotes = true;
         if (botname == "Line")
-            rply.text += `\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友.
-https://line.me/R/ti/p/svMLqy9Mik`
+            rply.text += translate('init.line_friend_hint');
         return rply;
     }
     if (!groupid && mainMsg[1]) {
-        rply.text = "這是群組功能，請於群組使用。"
+        rply.text = translate('init.group_only');
         return rply;
     }
     switch (true) {
@@ -105,20 +75,22 @@ https://line.me/R/ti/p/svMLqy9Mik`
                     }
                 }
             })
-            rply.text = (temp && temp.modifiedCount) ? '已移除 ' + name + ' 的先攻值' : '找不到' + name + '的先攻值';
+            rply.text = (temp && temp.modifiedCount)
+                ? translate('init.remove_success', { name })
+                : translate('init.remove_not_found', { name });
             return rply;
         case /(^[.]in$)/i.test(mainMsg[0]) && /^clear$/i.test(mainMsg[1]):
             temp = await schema.init.deleteOne({
                 "groupID": channelid || groupid
             })
-            rply.text = (temp) ? '已移除這群組的先攻值' : '找不到這群組的先攻表';
+            rply.text = (temp) ? translate('init.clear_success') : translate('init.clear_not_found');
             return rply;
         case /(^[.]in$)/i.test(mainMsg[0]) && /^reroll$/i.test(mainMsg[1]):
             temp = await schema.init.findOne({
                 "groupID": channelid || groupid
             });
             if (!temp) {
-                rply.text = "找不到先攻表, 如有疑問, 可以輸入.init help 觀看說明"
+                rply.text = translate('init.table_not_found');
                 return rply;
             }
             for (let i = 0; i < temp.list.length; i++) {
@@ -127,38 +99,38 @@ https://line.me/R/ti/p/svMLqy9Mik`
             try {
                 await temp.save();
             } catch (error) {
-                rply.text = "先攻表更新失敗，\n" + error;
+                rply.text = translate('init.update_failed', { error });
                 return rply;
             }
-            rply.text = await showInit(temp)
+            rply.text = await showInit(temp, i18nParams)
             return rply;
         case /(^[.]in$)/i.test(mainMsg[0]) && /^[+-/*]\d+/i.test(mainMsg[1]):
             temp = await schema.init.findOne({
                 "groupID": channelid || groupid
             });
             if (!temp) {
-                rply.text = "找不到先攻表, 如有疑問, 可以輸入.init help 觀看說明"
+                rply.text = translate('init.table_not_found');
                 return rply;
             }
             objIndex = temp.list.findIndex((obj => obj.name.toLowerCase() == name.toLowerCase()));
             if (objIndex == -1) {
-                rply.text = "找不到該角色"
+                rply.text = translate('init.char_not_found', { name });
                 return rply;
             }
             temp.list[objIndex].result = math.evaluate(temp.list[objIndex].result + mainMsg[1])
             try {
                 await temp.save();
             } catch (error) {
-                rply.text = "先攻表更新失敗，\n" + error;
+                rply.text = translate('init.update_failed', { error });
                 return rply;
             }
-            rply.text = temp.list[objIndex].name + '已經 ' + mainMsg[1] + ' 先攻值'
-            rply.text += '\n現在的先攻值:  ' + temp.list[objIndex].result;
+            rply.text = translate('init.stat_updated', { name: temp.list[objIndex].name, action: mainMsg[1] });
+            rply.text += '\n' + translate('init.current_init', { value: temp.list[objIndex].result });
             return rply;
         case /(^[.]in$)/i.test(mainMsg[0]) && /^\w+/i.test(mainMsg[1]):
             result = await countInit(mainMsg[1]);
             if (!result) {
-                rply.text = "新增角色方式\n.in [擲骰公式/先攻值] [角色名稱(選填)] ";
+                rply.text = translate('init.add_hint');
                 return rply;
             }
             temp = await schema.init.findOne({
@@ -176,11 +148,11 @@ https://line.me/R/ti/p/svMLqy9Mik`
                 try {
                     await temp.save();
                 } catch (error) {
-                    rply.text = "先攻表更新失敗，\n" + error;
+                    rply.text = translate('init.update_failed', { error });
                     console.error('init #154 mongoDB error:', error.name, error.reason)
                     return rply;
                 }
-                rply.text = name + ' 的先攻值是 ' + Number(result);
+                rply.text = translate('init.init_value', { name, value: Number(result) });
                 return rply;
             }
             objIndex = temp.list.some((obj => obj.name.toLowerCase() == name.toLowerCase())) ? temp.list.findIndex((obj => obj.name.toLowerCase() == name.toLowerCase())) : temp.list.length || 0;
@@ -192,16 +164,16 @@ https://line.me/R/ti/p/svMLqy9Mik`
             try {
                 await temp.save();
             } catch (error) {
-                rply.text = "先攻表更新失敗，\n" + error;
+                rply.text = translate('init.update_failed', { error });
                 return rply;
             }
-            rply.text = temp.list[objIndex].name + ' 的先攻值是 ' + Number(result);
+            rply.text = translate('init.init_value', { name: temp.list[objIndex].name, value: Number(result) });
             return rply;
 
         case /(^[.]init$)/i.test(mainMsg[0]):
             temp = await schema.init.findOne({ "groupID": channelid || groupid });
             if (!temp) {
-                rply.text = "先攻表未有角色, 新增角色方式\n.in [擲骰公式/先攻值] [角色名稱(選填)]";
+                rply.text = translate('init.empty_table');
                 return rply;
             }
             if (/^start$/i.test(mainMsg[1]) || /^next$/i.test(mainMsg[1]) && !temp.active) {
@@ -219,22 +191,25 @@ https://line.me/R/ti/p/svMLqy9Mik`
             } else if (/^end$/i.test(mainMsg[1])) {
                 temp.active = false;
                 await temp.save();
-                rply.text = "戰鬥輪已結束";
+                rply.text = translate('init.combat_end');
                 return rply;
             } else if (/^round$/i.test(mainMsg[1])) {
                 const newRound = Number.parseInt(mainMsg[2], 10);
                 if (!Number.isNaN(newRound) && newRound > 0) {
                     temp.round = newRound;
                     await temp.save();
-                    rply.text = `回合數已更新為 ${newRound}\n` + await showInit(temp);
+                    rply.text = translate('init.round_updated', {
+                        round: newRound,
+                        table: await showInit(temp, i18nParams)
+                    });
                 } else {
-                    rply.text = "請提供一個有效的正整數作為回合數";
+                    rply.text = translate('init.invalid_round');
                 }
                 return rply;
             } else if (/^stats$/i.test(mainMsg[1])) {
                 const characterName = mainMsg[2];
                 if (!characterName) {
-                    rply.text = "請提供角色名稱";
+                    rply.text = translate('init.name_required');
                     return rply;
                 }
                 const status = mainMsg[3];
@@ -242,13 +217,14 @@ https://line.me/R/ti/p/svMLqy9Mik`
                 if (charIndex !== -1) {
                     temp.list[charIndex].status = status;
                     await temp.save();
+                    const table = await showInit(temp, i18nParams);
                     if (status) {
-                        rply.text = `${characterName} 的狀態已更新為 ${status}\n` + await showInit(temp);
+                        rply.text = translate('init.status_updated', { name: characterName, status, table });
                     } else {
-                        rply.text = `${characterName} 的狀態已清空\n` + await showInit(temp);
+                        rply.text = translate('init.status_cleared', { name: characterName, table });
                     }
                 } else {
-                    rply.text = `找不到角色 ${characterName}`;
+                    rply.text = translate('init.char_not_found', { name: characterName });
                 }
                 return rply;
             } else if (mainMsg[1]) {
@@ -257,21 +233,21 @@ https://line.me/R/ti/p/svMLqy9Mik`
                     temp.turn = charIndex;
                     await temp.save();
                 } else {
-                    rply.text = `找不到角色 ${mainMsg[1]}`;
+                    rply.text = translate('init.char_not_found', { name: mainMsg[1] });
                     return rply;
                 }
             }
-            rply.text = await showInit(temp);
+            rply.text = await showInit(temp, i18nParams);
             return rply;
         case /(^[.]initn$)/i.test(mainMsg[0]):
             temp = await schema.init.findOne({
                 "groupID": channelid || groupid
             }).lean();
             if (!temp) {
-                rply.text = "找不到先攻表, 如有疑問, 可以輸入.init help 觀看說明"
+                rply.text = translate('init.table_not_found');
                 return rply;
             }
-            rply.text = await showInitn(temp)
+            rply.text = await showInitn(temp, i18nParams)
             return rply;
 
         default:
@@ -293,13 +269,14 @@ async function countInit(num) {
     return result;
 }
 
-async function showInit(doc) {
+async function showInit(doc, i18nParams = {}) {
+    const translate = getT(i18nParams);
     doc.list.sort(function (a, b) {
         return b.result - a.result;
     });
 
     if (!doc.active) {
-        let result = '┌──────先攻表──────┐\n';
+        let result = translate('init.table_title') + '\n';
         for (let i = 0; i < doc.list.length; i++) {
             if (i == doc.list.length - 1) {
                 result += "└ ";
@@ -310,12 +287,11 @@ async function showInit(doc) {
             }
             result += doc.list[i].name + ' - ' + doc.list[i].result + '\n';
         }
-        result += '啓動戰鬥輪請輸入 .init start';
+        result += translate('init.table_start_hint');
         return result;
     }
 
-    // Active state
-    let result = `┌─── 第${doc.round}回合 ───┐\n`;
+    let result = translate('init.round_header', { round: doc.round }) + '\n';
     for (let i = 0; i < doc.list.length; i++) {
         let isCurrentTurn = i === doc.turn;
         if (i == doc.list.length - 1) {
@@ -334,11 +310,12 @@ async function showInit(doc) {
         }
         result += '\n';
     }
-    result += '\n指令提示: \n.init next\n.init stats [角色] [狀態]';
+    result += translate('init.command_hint');
     return result;
 }
-async function showInitn(doc) {
-    let result = '┌─────先攻表─────┐\n';
+async function showInitn(doc, i18nParams = {}) {
+    const translate = getT(i18nParams);
+    let result = translate('init.table_title_asc') + '\n';
     doc.list.sort(function (a, b) {
         return a.result - b.result;
     });

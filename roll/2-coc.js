@@ -4,9 +4,26 @@ const { SlashCommandBuilder } = require('discord.js');
 const schema = require('../modules/schema.js');
 const checkTools = require('../modules/check.js');
 const checkMongodb = require('../modules/dbWatchdog.js');
+const { getT, resolveHelp, resolveGameName, isEnglish } = require('../modules/roll-i18n.js');
+const i18n = require('../modules/i18n.js');
 const rollbase = require('./rollbase.js');
-const gameName = function () {
-	return '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg'
+
+function wrapCocZhContent(text, params = {}) {
+	if (!isEnglish(params)) {
+		return text;
+	}
+	return `${getT(params)('common.zh_only_notice')}\n${text}`;
+}
+
+function formatDpRecordDate(date, locale) {
+	const minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : String(date.getMinutes());
+	if (isEnglish({ locale })) {
+		return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${minutes}`;
+	}
+	return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${minutes}`;
+}
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'coc.game_name', '【克蘇魯神話】 cc cc(n)1~2 ccb ccrt ccsu .dp .cc7build .cc6build .cc7bg');
 }
 const gameType = function () {
 	return 'Dice:CoC'
@@ -22,70 +39,8 @@ const prefixs = function () {
 	}
 	]
 }
-const getHelpMessage = function () {
-    return `【🦑克蘇魯神話RPG系統】
-╭────── 🎲基本擲骰 ──────
-│ COC6版: ccb 80  (技能小於等於80)
-│ COC7版: cc 80   (技能小於等於80)
-│ 
-│ 🎯獎勵骰: cc(1~2) 
-│ 範例: cc1 80 一粒獎勵骰
-│ 
-│ ⚠️懲罰骰: ccn(1~2) 
-│ 範例: ccn2 80 兩粒懲罰骰
-│
-│ 📊聯合檢定:
-│ 　cc 80,40 偵查,鬥毆
-│ 　cc1 80,40 偵查,鬥毆 (獎勵骰)
-│ 　ccn1 80,40 偵查,鬥毆 (懲罰骰)
-├────── 💀理智檢定 ──────
-│ 格式: .sc (SAN值) (成功)/(失敗)
-│ 範例:
-│ 　.sc 50
-│ 　.sc 50 1/1d3+1
-│ 　.sc 50 1d10/1d100
-├────── 🏃追逐與瘋狂 ──────
-│ .chase    - 追逐戰產生器
-│ 　※使用可選規則及我對規則書之獨斷理解，
-│ 　※建議使用前詳細閱讀請詳閱CoC7Th規則書第七章「追逐」內容
-│ 
-│ ccrt     - 即時型瘋狂檢定
-│ ccsu     - 總結型瘋狂檢定
-├────── 📚神話相關 ──────
-│ .cccc    - 隨機產生神話組織
-│ .ccdr    - 隨機產生神話資料
-│ .ccpc    - 施法推骰後果判定
-├────── 👤角色創建 ──────
-│ .ccpulpbuild      - PULP版角色創建
-│ .cc6build         - COC6版角色創建
-│ .cc7build        - COC7版角色創建(限7-89歲)
-│ .cc7build random - COC7版隨機角色創建
-│ 
-│ 自由分配點數創建:
-│ .cc7build .xyz   - 自訂骰點方式
-│ 範例: .cc7build .752
-│ 　7次: 3d6×5
-│ 　5次: (2d6+6)×5
-│ 　2次: 3d6×5
-│ 可只輸入. 預設值為.53
-│ 　即5次 3d6×5 和3次(2d6+6)×5
-├────── 📈成長相關 ──────
-│ 成長檢定: 
-│ .dp (技能%) (名稱)
-│ 範例: .dp 50 騎乘 80 鬥毆 70 60
-│ 
-│ .cc7bg - 隨機產生角色背景
-│
-│ 📝.dp成長紀錄功能說明:
-│ 會記錄CC功能投擲成功和大成功大失敗的技能
-│ .dp start   - 開始記錄擲骰
-│ .dp stop    - 停止記錄擲骰
-│ .dp show    - 顯示你的擲骰紀錄
-│ .dp showall - 顯示全頻道擲骰紀錄
-│ .dp auto    - 自動成長並清除紀錄
-│ .dp clear   - 清除你的擲骰紀錄
-│ .dp clearall- 清除所有大成功大失敗紀錄
-╰──────────────`
+const getHelpMessage = function (params = {}) {
+	return resolveHelp(params, 'coc.help');
 }
 const initialize = function () {
 	return {};
@@ -100,8 +55,12 @@ const rollDiceCommand = async function ({
 	displayname,
 	displaynameDiscord,
 	tgDisplayname,
-	botname
+	botname,
+	locale,
+	t
 }) {
+	const i18nParams = { locale, t };
+	const translate = getT(i18nParams);
 	let rply = {
 		default: 'on',
 		type: 'text',
@@ -110,39 +69,39 @@ const rollDiceCommand = async function ({
 	let trigger = mainMsg[0].toLowerCase();
 	switch (true) {
 		case (/^help$/i.test(mainMsg[1])): {
-			rply.text = this.getHelpMessage();
+			rply.text = getHelpMessage(i18nParams);
 			rply.quotes = true;
 			return rply;
 		}
 		case /^ccrt$/i.test(mainMsg[0]): {
-			rply.text = ccrt();
+			rply.text = ccrt(i18nParams);
 			rply.quotes = true;
 			break;
 		}
 		case /^ccsu$/i.test(mainMsg[0]): {
-			rply.text = ccsu();
+			rply.text = ccsu(i18nParams);
 			rply.quotes = true;
 			break;
 		}
 		case /^\.sc$/i.test(mainMsg[0]): {
-			let sc = new SanCheck(mainMsg, botname);
+			let sc = new SanCheck(mainMsg, botname, translate);
 			rply.text = sc.run();
 			rply.buttonCreate = sc.getButton();
 			rply.quotes = true;
 			break;
 		}
 		case /^\.chase$/i.test(mainMsg[0]): {
-			rply.text = chase();
+			rply.text = chase(translate);
 			rply.quotes = true;
 			break;
 		}
 		case (trigger == 'ccb' && mainMsg[1] <= 1000): {
-			rply.text = coc6(mainMsg[1], mainMsg[2]);
+			rply.text = coc6(mainMsg[1], mainMsg[2], translate);
 			break;
 		}
 		//DevelopmentPhase幕間成長指令開始於此
 		case /^\.dp$/i.test(mainMsg[0]) && /^start$/i.test(mainMsg[1]): {
-			rply.text = checkTools.permissionErrMsg({
+			rply.text = checkTools.permissionErrMsg({ locale,
 				flag: checkTools.flag.ChkChannelAdmin,
 				gid: groupid,
 				role: userrole
@@ -150,12 +109,12 @@ const rollDiceCommand = async function ({
 			if (rply.text) {
 				return rply;
 			}
-			rply.text = await dpRecordSwitch({ onOff: true, groupid, channelid });
+			rply.text = await dpRecordSwitch({ onOff: true, groupid, channelid, t: translate });
 			rply.quotes = true;
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^stop$/i.test(mainMsg[1]): {
-			rply.text = checkTools.permissionErrMsg({
+			rply.text = checkTools.permissionErrMsg({ locale,
 				flag: checkTools.flag.ChkChannelAdmin,
 				gid: groupid,
 				role: userrole
@@ -163,12 +122,12 @@ const rollDiceCommand = async function ({
 			if (rply.text) {
 				return rply;
 			}
-			rply.text = await dpRecordSwitch({ onOff: false, groupid, channelid });
+			rply.text = await dpRecordSwitch({ onOff: false, groupid, channelid, t: translate });
 			rply.quotes = true;
 			break;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
-			rply.text = checkTools.permissionErrMsg({
+			rply.text = checkTools.permissionErrMsg({ locale,
 				flag: checkTools.flag.ChkChannel,
 				gid: groupid
 			});
@@ -181,7 +140,7 @@ const rollDiceCommand = async function ({
 				switch: true
 			}).catch(error => console.error('coc #149 mongoDB error:', error.name, error.reason));
 			if (!switchOn) {
-				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
+				rply.text = translate('coc.dp_not_enabled');
 				return rply;
 			}
 			let result = await schema.developmentRollingRecord.find({
@@ -190,38 +149,49 @@ const rollDiceCommand = async function ({
 			}).sort({ date: -1 }).catch(error => console.error('coc #157 mongoDB error:', error.name, error.reason));
 			rply.quotes = true;
 			if (!result || result.length === 0) {
-				rply.text = '未有CC擲骰紀錄';
+				rply.text = translate('coc.dp_no_records');
 				return rply;
 			}
 			let successResult = {
 				data: false,
-				text: `成功的擲骰結果`
+				text: translate('coc.dp_success_header')
 			};
 			let successResultWithoutName = {
 				data: false,
-				text: `=======
-				無記名成功結果`}
-				;
+				text: translate('coc.dp_anonymous_header')
+			};
 			let criticalSuccessNfumbleResult = {
 				data: false,
-				text: `=======
-				大成功與大失敗`}
-				;
+				text: translate('coc.dp_crit_header')
+			};
 			for (let index = 0; index < result.length; index++) {
+				const recordDate = formatDpRecordDate(result[index].date, locale);
 				if (result[index].skillPerStyle == 'normal' && result[index].skillName) {
 					successResult.data = true;
-					successResult.text += `
-					「${result[index].skillName}」	${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()}`
+					successResult.text += translate('coc.dp_record_line', {
+						name: result[index].skillName,
+						percent: result[index].skillPer,
+						date: recordDate
+					});
 				}
 				if (result[index].skillPerStyle == 'normal' && !result[index].skillName) {
 					successResultWithoutName.data = true;
-					successResultWithoutName.text += `
-					「無名技能」	${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()}`
+					successResultWithoutName.text += translate('coc.dp_record_anonymous', {
+						name: translate('coc.unnamed_skill'),
+						percent: result[index].skillPer,
+						date: recordDate
+					});
 				}
 				if (result[index].skillPerStyle == 'criticalSuccess' || result[index].skillPerStyle == 'fumble') {
 					criticalSuccessNfumbleResult.data = true;
-					criticalSuccessNfumbleResult.text += `
-					${(result[index].skillName) ? '「' + result[index].skillName + '」' : '「無名技能」'} ${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()} - ${(result[index].skillPerStyle == 'criticalSuccess') ? '大成功' : '大失敗'}`
+					const skillLabel = result[index].skillName ? `「${result[index].skillName}」` : `「${translate('coc.unnamed_skill')}」`;
+					criticalSuccessNfumbleResult.text += translate('coc.dp_crit_line', {
+						user: '',
+						skill: skillLabel,
+						percent: result[index].skillPer,
+						date: recordDate,
+						result: result[index].skillPerStyle == 'criticalSuccess' ? translate('coc.critical_success') : translate('coc.fumble')
+					});
 				}
 
 			}
@@ -247,7 +217,7 @@ const rollDiceCommand = async function ({
 		}
 
 		case /^\.dp$/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]): {
-			rply.text = checkTools.permissionErrMsg({
+			rply.text = checkTools.permissionErrMsg({ locale,
 				flag: checkTools.flag.ChkChannel,
 				gid: groupid,
 			});
@@ -259,7 +229,7 @@ const rollDiceCommand = async function ({
 				switch: true
 			}).catch(error => console.error('coc #224 mongoDB error:', error.name, error.reason));
 			if (!switchOn) {
-				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
+				rply.text = translate('coc.dp_not_enabled');
 				return rply;
 			}
 			let result = await schema.developmentRollingRecord.find({
@@ -274,23 +244,28 @@ const rollDiceCommand = async function ({
 			rply.quotes = true;
 			let criticalSuccessNfumbleResult = {
 				data: false,
-				text: `大成功與大失敗
-				=======`}
-				;
+				text: translate('coc.dp_crit_header_showall')
+			};
 			for (let index = 0; index < result.length; index++) {
 				if (result[index].skillPerStyle == 'criticalSuccess' || result[index].skillPerStyle == 'fumble') {
 					criticalSuccessNfumbleResult.data = true;
-					criticalSuccessNfumbleResult.text += `
-					${(result[index].userName) ? result[index].userName : '「無名使用者」'} ${(result[index].skillName) ? result[index].skillName : '「無名技能」'} ${result[index].skillPer} - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()} - ${(result[index].skillPerStyle == 'criticalSuccess') ? '大成功' : '大失敗'}`
+					const recordDate = formatDpRecordDate(result[index].date, locale);
+					criticalSuccessNfumbleResult.text += translate('coc.dp_crit_line', {
+						user: result[index].userName ? result[index].userName : translate('coc.unnamed_user'),
+						skill: result[index].skillName ? result[index].skillName : translate('coc.unnamed_skill'),
+						percent: result[index].skillPer,
+						date: recordDate,
+						result: result[index].skillPerStyle == 'criticalSuccess' ? translate('coc.critical_success') : translate('coc.fumble')
+					});
 				}
 
 			}
-			(criticalSuccessNfumbleResult.data) ? rply.text += criticalSuccessNfumbleResult.text : rply.text += "本頻道未有相關紀錄, 請多些擲骰吧!";
+			(criticalSuccessNfumbleResult.data) ? rply.text += criticalSuccessNfumbleResult.text : rply.text += translate('coc.dp_no_crit_records');
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^auto$/i.test(mainMsg[1]): {
 			rply.quotes = true;
-			rply.text = checkTools.permissionErrMsg({
+			rply.text = checkTools.permissionErrMsg({ locale,
 				flag: checkTools.flag.ChkChannel,
 				gid: groupid,
 			});
@@ -303,7 +278,7 @@ const rollDiceCommand = async function ({
 				switch: true
 			}).catch(error => console.error('coc #264 mongoDB error:', error.name, error.reason));
 			if (!switchOn) {
-				rply.text = '本頻道未開啓CC紀錄功能, 請使用 .dp start 開啓'
+				rply.text = translate('coc.dp_not_enabled');
 				return rply;
 			}
 
@@ -313,25 +288,40 @@ const rollDiceCommand = async function ({
 				skillPerStyle: 'normal'
 			}).sort({ date: -1 }).catch(error => console.error('coc #274 mongoDB error:', error.name, error.reason));
 			if (!result || result.length === 0) {
-				rply.text = '未有CC擲骰紀錄';
+				rply.text = translate('coc.dp_no_records');
 				return rply;
 			}
-			rply.text = `自動成長檢定\n========`;
+			rply.text = translate('coc.dp_auto_header');
 			for (let index = 0; index < result.length; index++) {
 				let target = Number(result[index].skillPer);
-				let name = result[index].skillName || '無名技能';
+				let name = result[index].skillName || translate('coc.unnamed_skill');
 				let skill = rollbase.Dice(100);
 				let confident = (target <= 89) ? true : false;
 				if (target > 95) target = 95;
+				const recordDate = formatDpRecordDate(result[index].date, locale);
 				if (skill >= 96 || skill > target) {
 					let improved = rollbase.Dice(10);
-					rply.text += `\n1D100 > ${target} 擲出: ${skill}  →  「${name}」成長成功! 技能增加 ${improved} 點，現在是 ${target + improved} 點。- ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()}`
+					rply.text += translate('coc.dp_growth_success', {
+						target,
+						skill,
+						name,
+						improved,
+						newValue: target + improved,
+						date: recordDate
+					});
 
 					if (confident && ((target + improved) >= 90)) {
-						rply.text += `\n調查員的技能提升到90%以上，他的當前理智值增加${rollbase.Dice(6) + rollbase.Dice(6)}點。`
+						rply.text += translate('coc.dp_growth_san_bonus', {
+							amount: rollbase.Dice(6) + rollbase.Dice(6)
+						});
 					}
 				} else {
-					rply.text += `\n1D100 > ${target} 擲出: ${skill}  →  「${name}」 成長失敗!  - ${result[index].date.getMonth() + 1}月${result[index].date.getDate()}日 ${result[index].date.getHours()}:${(result[index].date.getMinutes() < 10) ? '0' + result[index].date.getMinutes() : result[index].date.getMinutes()}`
+					rply.text += translate('coc.dp_growth_fail', {
+						target,
+						skill,
+						name,
+						date: recordDate
+					});
 				}
 
 			}
@@ -340,12 +330,11 @@ const rollDiceCommand = async function ({
 				userID: userid,
 				skillPerStyle: 'normal'
 			}).catch(error => console.error('coc #302 mongoDB error:', error.name, error.reason));
-			rply.text += `\n--------
-			成長結束，已清除擲骰紀錄`
+			rply.text += translate('coc.dp_growth_end');
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^clear$/i.test(mainMsg[1]): {
-			rply.text = checkTools.permissionErrMsg({
+			rply.text = checkTools.permissionErrMsg({ locale,
 				flag: checkTools.flag.ChkChannel,
 				gid: groupid,
 			});
@@ -360,11 +349,11 @@ const rollDiceCommand = async function ({
 			}).catch(error => console.error('coc #316 mongoDB error:', error.name, error.reason));
 
 			rply.quotes = true;
-			rply.text = `已清除 ${result.deletedCount}項紀錄, 如想大成功大失敗紀錄也清除, 請使用 .dp clearall`
+			rply.text = translate('coc.dp_cleared', { count: result.deletedCount });
 			return rply;
 		}
 		case /^\.dp$/i.test(mainMsg[0]) && /^clearall$/i.test(mainMsg[1]): {
-			rply.text = checkTools.permissionErrMsg({
+			rply.text = checkTools.permissionErrMsg({ locale,
 				flag: checkTools.flag.ChkChannel,
 				gid: groupid,
 			});
@@ -385,68 +374,71 @@ const rollDiceCommand = async function ({
 
 			}).catch(error => console.error('coc #338 mongoDB error:', error.name, error.reason));
 			rply.quotes = true;
-			rply.text = `已清除你在本頻道的所有CC擲骰紀錄, 共計${result.deletedCount}項`
+			rply.text = translate('coc.dp_cleared_all', { count: result.deletedCount });
 			return rply;
 
 		}
 		case (trigger == '.dp' || trigger == '成長檢定' || trigger == '幕間成長'): {
-			rply.text = DevelopmentPhase(mainMsg);
+			rply.text = DevelopmentPhase(mainMsg, translate);
 			rply.quotes = true;
 			break;
 		}
 		case (trigger == 'cc' && mainMsg[1] !== null): {
-			rply.text = await coc7({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, userName: tgDisplayname || displaynameDiscord || displayname });
+			rply.text = await coc7({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, userName: tgDisplayname || displaynameDiscord || displayname, translate });
 			break;
 		}
 		case (trigger == 'cc1' && mainMsg[1] !== null): {
-			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 1, userName: tgDisplayname || displaynameDiscord || displayname });
+			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 1, userName: tgDisplayname || displaynameDiscord || displayname, translate });
 			break;
 		}
 		case (trigger == 'cc2' && mainMsg[1] !== null): {
-			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 2, userName: tgDisplayname || displaynameDiscord || displayname });
+			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 2, userName: tgDisplayname || displaynameDiscord || displayname, translate });
 			break;
 		}
 		case (trigger == 'ccn1' && mainMsg[1] !== null): {
-			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -1, userName: tgDisplayname || displaynameDiscord || displayname });
+			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -1, userName: tgDisplayname || displaynameDiscord || displayname, translate });
 			break;
 		}
 		case (trigger == 'ccn2' && mainMsg[1] !== null): {
-			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -2, userName: tgDisplayname || displaynameDiscord || displayname });
+			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -2, userName: tgDisplayname || displaynameDiscord || displayname, translate });
 			break;
 		}
 
 		case /(^cc7版創角$)|(^[.]cc7build$)/i.test(mainMsg[0]): {
-			rply.text = builder.build(mainMsg[1] || 'random', mainMsg[2]).replaceAll(/\*5/ig, ' * 5').trim();
+			rply.text = wrapCocZhContent(
+				builder.build(mainMsg[1] || 'random', mainMsg[2], translate).replaceAll(/\*5/ig, ' * 5').trim(),
+				i18nParams
+			);
 			rply.quotes = true;
 			break;
 		}
 		case /(^ccpulp版創角$)|(^[.]ccpulpbuild$)/i.test(mainMsg[0]): {
-			rply.text = (buildpulpchar(mainMsg[1])).replaceAll(/\*5/ig, ' * 5');
+			rply.text = (buildpulpchar(translate)).replaceAll(/\*5/ig, ' * 5');
 			rply.quotes = true;
 			break;
 		}
 		case /(^cc6版創角$)|(^[.]cc6build$)/i.test(mainMsg[0]): {
-			rply.text = build6char(mainMsg[1]);
+			rply.text = build6char(translate);
 			rply.quotes = true;
 			break;
 		}
 		case /(^cc7版角色背景$)|(^[.]cc7bg$)/i.test(mainMsg[0]): {
-			rply.text = PcBG();
+			rply.text = PcBG(translate);
 			rply.quotes = true;
 			break;
 		}
 		case /(^\.cccc)/i.test(mainMsg[0]): {
-			rply.text = CreateCult.createCult();
+			rply.text = CreateCult.createCult(translate);
 			rply.quotes = true;
 			return rply;
 		};
 		case /(^\.ccpc)/i.test(mainMsg[0]): {
-			rply.text = MythoyCollection.getMythonData('pushedCasting');
+			rply.text = MythoyCollection.getMythonData('pushedCasting', translate);
 			rply.quotes = true;
 			return rply;
 		};
 		case /(^\.ccdr)/i.test(mainMsg[0]): {
-			rply.text = MythoyCollection.getMythos();
+			rply.text = MythoyCollection.getMythos(translate);
 			rply.quotes = true;
 			return rply;
 		};
@@ -650,49 +642,63 @@ class CreateCult {
 
 	CULT GOALS—MEANS 1-10
 	 */
-	static createCult() {
+	static createCult(translate) {
+		const t = translate || getT({});
 		let cult = {
-			leaderPosition: this.leaderPosition(),
+			leaderPosition: this.leaderPosition(translate),
 			characteristics: this.characteristics(),
-			skill: this.skill(),
-			description: this.description(),
-			personality: this.personality(),
-			spells: this.spells(),
-			sourcesOfPower: this.sourcesOfPower(),
-			cultGoals: this.cultGoals(),
-			cultGoalsMeans: this.cultGoalsMeans(),
+			skill: this.skill(translate),
+			description: this.description(translate),
+			personality: this.personality(translate),
+			spells: this.spells(translate),
+			sourcesOfPower: this.sourcesOfPower(translate),
+			cultGoals: this.cultGoals(translate),
+			cultGoalsMeans: this.cultGoalsMeans(translate),
 		}
-		let cultText = `Cult 產生器
-	首領身份:
+		let cultText = `${t('coc.cult_header')}
+	${t('coc.cult_leader_position')}:
 	${cult.leaderPosition}
 	
-	屬性: 
+	${t('coc.cult_attributes')}: 
 	${cult.characteristics}
 	
-	技能: 
+	${t('coc.cult_skills')}: 
 	${cult.skill}
 
-	法術:
+	${t('coc.cult_spells')}:
 	${cult.spells}
 
-	特質: 
+	${t('coc.cult_traits')}: 
 	${cult.description}
 	
-	個性: 
+	${t('coc.cult_personality')}: 
 	${cult.personality}
 
-	能力來源: 
+	${t('coc.cult_power_source')}: 
 	${cult.sourcesOfPower}
 	==============
-	教派目標:
+	${t('coc.cult_goals')}:
 	${cult.cultGoals}
 
-	實現目標的手段:
+	${t('coc.cult_goals_means')}:
 	${cult.cultGoalsMeans}`
 		return cultText;
 	}
-	static leaderPosition() {
-		return this.LeaderPosition[rollbase.Dice(10) - 1];
+	static getCultText(translate, keySuffix, fallback) {
+		const t = translate || getT({});
+		const key = `coc.${keySuffix}`;
+		const text = t(key);
+		if (text && text !== key) {
+			return text;
+		}
+		return fallback;
+	}
+	static pickCultEntry(translate, keyPrefix, fallbackList) {
+		const index = rollbase.Dice(fallbackList.length) - 1;
+		return this.getCultText(translate, `${keyPrefix}_${index}`, fallbackList[index]);
+	}
+	static leaderPosition(translate) {
+		return this.pickCultEntry(translate, 'cult_leader', this.LeaderPosition);
 	}
 	static characteristics() {
 		//四選一
@@ -709,69 +715,75 @@ class CreateCult {
 		return text;
 	}
 
-	static skill() {
+	static skill(translate) {
 		let text = '';
 		let skillStates = this.SkillStatesSet[rollbase.Dice(this.SkillStatesSet.length) - 1];
 		//使用 Fisher–Yates 洗牌算法隨機排列技能
 		skillStates = this.FisherYates(skillStates);
 		let skillNames = this.WightRandom(this.SkillNameSet(), Object.keys(this.SkillNameSet()).length);
 		for (let i = 0; i < skillStates.length; i++) {
-			text += `${skillNames[i]}: ${skillStates[i]} `;
+			text += `${formatBuildSkillName(skillNames[i], translate)}: ${skillStates[i]} `;
 			if (i % 3 === 0 && i !== 0) {
 				text += '\n';
 			}
 		}
 		return text;
 	}
-	static description() {
-		return this.descriptionSet[rollbase.Dice(this.descriptionSet.length) - 1];
+	static description(translate) {
+		return this.pickCultEntry(translate, 'cult_appearance', this.descriptionSet);
 	}
-	static personality() {
-		return this.traitsSet[rollbase.Dice(this.traitsSet.length) - 1];
+	static personality(translate) {
+		return this.pickCultEntry(translate, 'cult_personality', this.traitsSet);
 	}
-	static spells() {
+	static spells(translate) {
 		let text = '';
 		let num = 0;
 		let spells = this.spellsSet[rollbase.Dice(this.spellsSet.length) - 1];
 		text = rollbase.BuildDiceCal(spells);
 		num = text.match(/\d+$/i)[0];
 		text += '\n';
-		text += ` ${this.getLeaderMythonList(num).join(', ')},`;
+		text += ` ${this.getLeaderMythonList(num, translate).join(', ')},`;
 		text = text.replace(/,$/i, '');
 		return text;
 	}
-	static getLeaderMythonList(count) {
-		const shuffledArr = [...MythoyCollection.Magic];
-		for (let i = shuffledArr.length - 1; i > 0; i--) {
+	static getLeaderMythonList(count, translate) {
+		const t = translate || getT({});
+		const list = MythoyCollection.Magic;
+		const indices = list.map((_, index) => index);
+		for (let i = indices.length - 1; i > 0; i--) {
 			const j = Math.floor(Math.random() * (i + 1));
-			[shuffledArr[i], shuffledArr[j]] = [shuffledArr[j], shuffledArr[i]];
+			[indices[i], indices[j]] = [indices[j], indices[i]];
 		}
-		return shuffledArr.slice(0, count);
+		return indices.slice(0, count).map((index) => {
+			const key = `coc.mythos_spell_${index}`;
+			const text = t(key);
+			return text && text !== key ? text : list[index];
+		});
 	}
-	static sourcesOfPower() {
-		let text = '';
+	static sourcesOfPower(translate) {
+		let index = 0;
 		let num = rollbase.Dice(10);
 		switch (num) {
 			case 1: case 2: case 3:
-				text = this.SourcesOfPowerSet[0];
+				index = 0;
 				break;
 			case 4: case 5: case 6:
-				text = this.SourcesOfPowerSet[1];
+				index = 1;
 				break;
 			case 7: case 8:
-				text = this.SourcesOfPowerSet[2];
+				index = 2;
 				break;
 			case 9: case 10:
-				text = this.SourcesOfPowerSet[3];
+				index = 3;
 				break;
 		}
-		return text;
+		return this.getCultText(translate, `cult_power_${index}`, this.SourcesOfPowerSet[index]);
 	}
-	static cultGoals() {
-		return this.CultWants[rollbase.Dice(this.CultWants.length) - 1];
+	static cultGoals(translate) {
+		return this.pickCultEntry(translate, 'cult_goal', this.CultWants);
 	}
-	static cultGoalsMeans() {
-		return this.CultMeans[rollbase.Dice(this.CultMeans.length) - 1];
+	static cultGoalsMeans(translate) {
+		return this.pickCultEntry(translate, 'cult_means', this.CultMeans);
 	}
 	static WightRandom(options, num_choices) {
 
@@ -1165,7 +1177,8 @@ const cocManias = [
 ];
 
 
-async function dpRecordSwitch({ onOff = false, groupid = "", channelid = "" }) {
+async function dpRecordSwitch({ onOff = false, groupid = "", channelid = "", t }) {
+	const translate = t || i18n.createTranslator(i18n.DEFAULT_LOCALE);
 	try {
 		let result = await schema.developmentConductor.findOneAndUpdate({
 			groupID: channelid || groupid
@@ -1177,11 +1190,12 @@ async function dpRecordSwitch({ onOff = false, groupid = "", channelid = "" }) {
 			upsert: true,
 			returnDocument: 'after'
 		}).catch(error => console.error('coc #673 mongoDB error:', error.name, error.reason));
-		return `現在這頻道的COC 成長紀錄功能為 ${(result.switch) ? '開啓' : '關閉'}
-以後CC擲骰將 ${(result.switch) ? '會' : '不會'}進行紀錄`
+		const state = result.switch ? translate('coc.dp_switch_on') : translate('coc.dp_switch_off');
+		const record = result.switch ? translate('coc.dp_will_record') : translate('coc.dp_wont_record');
+		return translate('coc.dp_switch', { state, record });
 	} catch (error) {
 		console.error(`dpRecordSwitch ERROR ${error.message}`)
-		return '發生錯誤';
+		return translate('coc.dp_error');
 	}
 }
 
@@ -1286,8 +1300,8 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 
 
 	} catch (error) {
-		console.error(`dpRecordSwitch ERROR ${error.message}`)
-		return '發生錯誤';
+		console.error(`dpRecorder ERROR ${error.message}`);
+		return;
 	}
 
 	/**
@@ -1306,7 +1320,8 @@ async function dpRecorder({ userID = "", groupid = "", channelid = "", skillName
 
 }
 
-function DevelopmentPhase(input) {
+function DevelopmentPhase(input, translate) {
+	const t = translate || getT({});
 	let result = ''
 	for (let index = 1; index < input.length; index++) {
 		let target = '',
@@ -1319,13 +1334,14 @@ function DevelopmentPhase(input) {
 			text = input[index + 1];
 			index++;
 		}
-		result += everyTimeDevelopmentPhase(target, text) + '\n' + '\n'
+		result += everyTimeDevelopmentPhase(target, text, t) + '\n' + '\n'
 	}
 	return result;
 
 }
 
-function everyTimeDevelopmentPhase(target, text = '') {
+function everyTimeDevelopmentPhase(target, text = '', translate) {
+	const t = translate || getT({});
 	let result = '';
 	target = Number(target);
 	if (target > 1000) target = 1000;
@@ -1335,50 +1351,83 @@ function everyTimeDevelopmentPhase(target, text = '') {
 	if (target > 95) target = 95;
 	if (skill >= 96 || skill > target) {
 		let improved = rollbase.Dice(10);
-		result = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n擲出: " + skill + " → 成功!\n你的技能增加" + improved + "點，現在是" + (target + improved) + "點。";
+		result = t('coc.dp_check_label', { text }) + "\n" + t('coc.dp_roll_target', { target }) + "\n" + t('coc.dp_rolled', {
+			skill,
+			outcome: t('coc.dp_outcome_success')
+		}) + "\n" + t('coc.dp_success_gain', { improved, newValue: target + improved });
 		if (confident && ((target + improved) >= 90)) {
-			result += `\n調查員的技能提升到90%以上，他的當前理智值增加2D6 > ${rollbase.Dice(6) + rollbase.Dice(6)}點。
-這一項獎勵顯示他經由精通一項技能而獲得自信。`
+			result += t('coc.dp_san_bonus', { amount: rollbase.Dice(6) + rollbase.Dice(6) });
 		}
 	} else {
-		result = "成長或增強檢定: " + text + "\n1D100 > " + target + "\n擲出: " + skill + " → 失敗!\n你的技能沒有變化!";
+		result = t('coc.dp_check_label', { text }) + "\n" + t('coc.dp_roll_target', { target }) + "\n" + t('coc.dp_rolled', {
+			skill,
+			outcome: t('coc.dp_outcome_fail')
+		}) + "\n" + t('coc.dp_fail_no_change');
 	}
 	return result;
 }
-function ccrt() {
+function getMadnessSymptom(translate, type, index) {
+	const t = translate || getT({});
+	const key = `coc.madness_${type}_${index}`;
+	const text = t(key);
+	if (text && text !== key) {
+		return text;
+	}
+	const fallback = type === 'rt' ? cocmadnessrt : cocmadnesssu;
+	return fallback[index];
+}
+
+function getMadnessTableLine(translate, prefix, index, fallbackArr) {
+	const t = translate || getT({});
+	const key = `coc.${prefix}_${index}`;
+	const text = t(key);
+	if (text && text !== key) {
+		return text;
+	}
+	const fallback = fallbackArr[index];
+	return Array.isArray(fallback) ? fallback[0] : fallback;
+}
+
+function getMadnessExtra(params, rollcc, PP) {
+	const translate = getT(params);
+	if (rollcc === 8) {
+		return ` \n${getMadnessTableLine(translate, 'phobia', PP, cocManias)}`;
+	}
+	if (rollcc === 9) {
+		return ` \n${getMadnessTableLine(translate, 'mania', PP, cocPhobias)}`;
+	}
+	return '';
+}
+
+function ccrt(params = {}) {
+	const translate = getT(params);
 	let result = '';
-	//let rollcc = Math.floor(Math.random() * 10);
-	//let time = Math.floor(Math.random() * 10) + 1;
-	//let PP = Math.floor(Math.random() * 100);
 	let rollcc = rollbase.Dice(10) - 1
 	let time = rollbase.Dice(10)
 	let PP = rollbase.Dice(100) - 1
 	if (rollcc <= 7) {
-		result = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數';
-	} else
-		if (rollcc == 8) {
-			result = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocManias[PP];
-		} else
-			if (rollcc == 9) {
-				result = cocmadnessrt[rollcc] + '\n症狀持續' + time + '輪數' + ' \n' + cocPhobias[PP];
-			}
+		result = getMadnessSymptom(translate, 'rt', rollcc) + translate('coc.symptom_rounds', { time });
+	} else if (rollcc === 8) {
+		result = getMadnessSymptom(translate, 'rt', rollcc) + translate('coc.symptom_rounds', { time }) + getMadnessExtra(params, rollcc, PP);
+	} else if (rollcc === 9) {
+		result = getMadnessSymptom(translate, 'rt', rollcc) + translate('coc.symptom_rounds', { time }) + getMadnessExtra(params, rollcc, PP);
+	}
 	return result;
 }
 
-function ccsu() {
+function ccsu(params = {}) {
+	const translate = getT(params);
 	let result = '';
 	let rollcc = rollbase.Dice(10) - 1
 	let time = rollbase.Dice(10)
 	let PP = rollbase.Dice(100) - 1
 	if (rollcc <= 7) {
-		result = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時';
-	} else
-		if (rollcc == 8) {
-			result = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocManias[PP];
-		} else
-			if (rollcc == 9) {
-				result = cocmadnesssu[rollcc] + '\n症狀持續' + time + '小時' + ' \n' + cocPhobias[PP];
-			}
+		result = getMadnessSymptom(translate, 'su', rollcc) + translate('coc.symptom_hours', { time });
+	} else if (rollcc === 8) {
+		result = getMadnessSymptom(translate, 'su', rollcc) + translate('coc.symptom_hours', { time }) + getMadnessExtra(params, rollcc, PP);
+	} else if (rollcc === 9) {
+		result = getMadnessSymptom(translate, 'su', rollcc) + translate('coc.symptom_hours', { time }) + getMadnessExtra(params, rollcc, PP);
+	}
 	return result;
 }
 
@@ -1388,15 +1437,16 @@ function ccsu() {
  * @param {數字 如CB 80 的80} chack 
  * @param {後面的文字,如偵查} text 
  */
-function coc6(chack, text) {
+function coc6(chack, text, translate) {
+	const t = translate || getT({});
 	let result = '';
 	let temp = rollbase.Dice(100);
-	if (temp == 100) result = 'ccb<=' + chack + '\n' + temp + ' → 啊！大失敗！';
+	if (temp == 100) result = t('coc.ccb_line', { check: chack, roll: temp, outcome: t('coc.outcome_fumble') });
 	else
-		if (temp <= chack) result = 'ccb<=' + chack + '\n' + temp + ' → 成功';
-		else result = 'ccb<=' + chack + '\n' + temp + ' → 失敗';
+		if (temp <= chack) result = t('coc.ccb_line', { check: chack, roll: temp, outcome: t('coc.ccb_success') });
+		else result = t('coc.ccb_line', { check: chack, roll: temp, outcome: t('coc.outcome_failure') });
 	if (text)
-		result += '；' + text;
+		result += t('coc.ccb_suffix', { text });
 	return result;
 }
 
@@ -1407,7 +1457,8 @@ function coc6(chack, text) {
  */
 
 
-async function coc7({ chack, text = "", userid, groupid, channelid, userName }) {
+async function coc7({ chack, text = "", userid, groupid, channelid, userName, translate }) {
+	const t = translate || getT({});
 	let result = '';
 	let temp = rollbase.Dice(100);
 	let skillPerStyle = "";
@@ -1415,41 +1466,41 @@ async function coc7({ chack, text = "", userid, groupid, channelid, userName }) 
 	let name = text.split(',');
 	let checkNum = !check.some(i => !Number.isInteger(Number(i)));
 	if (!checkNum) return;
-	if (check.length >= 2) result += '聯合檢定\n'
+	if (check.length >= 2) result += t('coc.combined_check');
 	for (let index = 0; index < check.length; index++) {
 		switch (true) {
 			case (temp == 1): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 恭喜！大成功！';
+				result += t('coc.check_line', { check: check[index], roll: temp, outcome: t('coc.outcome_critical') });
 				skillPerStyle = "criticalSuccess";
 				break;
 			}
 			case (temp == 100): {
-				result = '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 啊！大失敗！';
+				result = t('coc.check_line', { check: check[index], roll: temp, outcome: t('coc.outcome_fumble') });
 				skillPerStyle = "fumble";
 				break;
 			}
 			case (temp >= 96 && check[index] <= 49): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 啊！大失敗！';
+				result += t('coc.check_line', { check: check[index], roll: temp, outcome: t('coc.outcome_fumble') });
 				skillPerStyle = "fumble";
 				break;
 			}
 			case (temp > check[index]): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 失敗';
+				result += t('coc.check_line', { check: check[index], roll: temp, outcome: t('coc.outcome_failure') });
 				skillPerStyle = "failure";
 				break;
 			}
 			case (temp <= check[index] / 5): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 極限成功';
+				result += t('coc.check_line', { check: check[index], roll: temp, outcome: t('coc.outcome_extreme') });
 				skillPerStyle = "normal";
 				break;
 			}
 			case (temp <= check[index] / 2): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 困難成功';
+				result += t('coc.check_line', { check: check[index], roll: temp, outcome: t('coc.outcome_hard') });
 				skillPerStyle = "normal";
 				break;
 			}
 			case (temp <= check[index]): {
-				result += '1D100 ≦ ' + check[index] + "　\n" + temp + ' → 通常成功';
+				result += t('coc.check_line', { check: check[index], roll: temp, outcome: t('coc.outcome_regular') });
 				skillPerStyle = "normal";
 				break;
 			}
@@ -1457,7 +1508,7 @@ async function coc7({ chack, text = "", userid, groupid, channelid, userName }) 
 				break;
 		}
 
-		if (text[index]) result += '：' + (name[index] || '');
+		if (text[index]) result += t('coc.check_name_suffix', { name: name[index] || '' });
 		result += '\n\n'
 		if (userid && groupid && skillPerStyle !== "failure") {
 			await dpRecorder({ userID: userid, groupid, channelid, skillName: name[index], skillPer: check[index], skillPerStyle, skillResult: temp, userName });
@@ -1469,49 +1520,50 @@ async function coc7({ chack, text = "", userid, groupid, channelid, userName }) 
 	return result;
 }
 
-async function coc7chack({ chack, temp, text = "", userid, groupid, channelid, userName, bpdiceNum }) {
+async function coc7chack({ chack, temp, text = "", userid, groupid, channelid, userName, bpdiceNum, translate }) {
+	const t = translate || getT({});
 	let result = '';
 	let skillPerStyle = "";
 	switch (true) {
 		case (temp == 1): {
-			result = temp + ' → 恭喜！大成功！';
+			result = t('coc.roll_outcome', { roll: temp, outcome: t('coc.outcome_critical') });
 			skillPerStyle = "criticalSuccess";
 			break;
 		}
 		case (temp == 100): {
-			result = temp + ' → 啊！大失敗！';
+			result = t('coc.roll_outcome', { roll: temp, outcome: t('coc.outcome_fumble') });
 			skillPerStyle = "fumble";
 			break;
 		}
 		case (temp >= 96 && chack <= 49): {
-			result = temp + ' → 啊！大失敗！';
+			result = t('coc.roll_outcome', { roll: temp, outcome: t('coc.outcome_fumble') });
 			skillPerStyle = "fumble";
 			break;
 		}
 		case (temp > chack): {
-			result = temp + ' → 失敗';
+			result = t('coc.roll_outcome', { roll: temp, outcome: t('coc.outcome_failure') });
 			skillPerStyle = "failure";
 			break;
 		}
 		case (temp <= chack / 5): {
-			result = temp + ' → 極限成功';
+			result = t('coc.roll_outcome', { roll: temp, outcome: t('coc.outcome_extreme') });
 			skillPerStyle = "success";
 			break;
 		}
 		case (temp <= chack / 2): {
-			result = temp + ' → 困難成功';
+			result = t('coc.roll_outcome', { roll: temp, outcome: t('coc.outcome_hard') });
 			skillPerStyle = "success";
 			break;
 		}
 		case (temp <= chack): {
-			result = temp + ' → 通常成功';
+			result = t('coc.roll_outcome', { roll: temp, outcome: t('coc.outcome_regular') });
 			skillPerStyle = "success";
 			break;
 		}
 		default:
 			break;
 	}
-	if (text) result += '：' + text;
+	if (text) result += t('coc.check_name_suffix', { name: text });
 	if (userid && groupid && skillPerStyle !== "failure" && bpdiceNum <= 0) {
 		await dpRecorder({ userID: userid, groupid, channelid, skillName: text, skillPer: chack, skillPerStyle, skillResult: temp, userName });
 	}
@@ -1520,7 +1572,8 @@ async function coc7chack({ chack, temp, text = "", userid, groupid, channelid, u
 
 
 
-async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, userName }) {
+async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, userName, translate }) {
+	const t = translate || getT({});
 	try {
 		let result = '';
 		let temp0 = rollbase.Dice(10) - 1;
@@ -1529,7 +1582,7 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 		let name = (text && text.split(',')) || [];
 		let checkNum = !check.some(i => !Number.isInteger(Number(i)));
 		if (!checkNum) return;
-		if (check.length >= 2) result += '聯合檢定\n'
+		if (check.length >= 2) result += t('coc.combined_check');
 		if (bpdiceNum > 0) {
 			for (let i = 0; i <= bpdiceNum; i++) {
 				let temp = rollbase.Dice(10);
@@ -1543,7 +1596,7 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 
 			for (let index = 0; index < check.length; index++) {
 				let finallyStr = countStr + ' → ' + await coc7chack(
-					{ chack: check[index], temp: Math.min(...countArr), text: name[index], userid, groupid, channelid, userName, bpdiceNum }
+					{ chack: check[index], temp: Math.min(...countArr), text: name[index], userid, groupid, channelid, userName, bpdiceNum, translate: t }
 				);
 				result += '1D100 ≦ ' + check[index] + "　\n" + finallyStr + '\n\n';
 			}
@@ -1563,7 +1616,7 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 
 			for (let index = 0; index < check.length; index++) {
 				let finallyStr = countStr + ' → ' + await coc7chack(
-					{ chack: check[index], temp: Math.max(...countArr), text: name[index], userid, groupid, channelid, bpdiceNum }
+					{ chack: check[index], temp: Math.max(...countArr), text: name[index], userid, groupid, channelid, userName, bpdiceNum, translate: t }
 				);
 				result += '1D100 ≦ ' + check[index] + "  \n" + finallyStr + '\n\n';
 			}
@@ -1573,22 +1626,19 @@ async function coc7bp({ chack, text, userid, groupid, channelid, bpdiceNum, user
 		console.error('error coc #1536', error)
 	}
 }
-function buildpulpchar() {
-	let ReStr = 'Pulp CoC 不使用年齡調整\n';
-	//讀取年齡
-	ReStr += '\nＳＴＲ：' + rollbase.BuildDiceCal('3d6*5');
-	ReStr += '\nＤＥＸ：' + rollbase.BuildDiceCal('3d6*5');
-	ReStr += '\nＰＯＷ：' + rollbase.BuildDiceCal('3d6*5');
-
-	ReStr += '\nＣＯＮ：' + rollbase.BuildDiceCal('3d4*5');
-	ReStr += '\nＡＰＰ：' + rollbase.BuildDiceCal('3d6*5');
-	ReStr += '\nＳＩＺ：' + rollbase.BuildDiceCal('(2d6+6)*5');
-	ReStr += '\nＩＮＴ：' + rollbase.BuildDiceCal('(2d6+6)*5');
-
-
-	ReStr += '\nＥＤＵ：' + rollbase.BuildDiceCal('(2d6+6)*5');
-	ReStr += '\nＬＵＫ：' + rollbase.BuildDiceCal('(2d6+6)*5');
-	ReStr += '\n核心屬性：' + rollbase.BuildDiceCal('(1d6+13)*5');
+function buildpulpchar(translate) {
+	const t = translate || getT({});
+	let ReStr = t('coc.buildpulp_no_age');
+	ReStr += t('coc.build_stat_str') + rollbase.BuildDiceCal('3d6*5');
+	ReStr += t('coc.build_stat_dex') + rollbase.BuildDiceCal('3d6*5');
+	ReStr += t('coc.build_stat_pow') + rollbase.BuildDiceCal('3d6*5');
+	ReStr += t('coc.build_stat_con') + rollbase.BuildDiceCal('3d4*5');
+	ReStr += t('coc.build_stat_app') + rollbase.BuildDiceCal('3d6*5');
+	ReStr += t('coc.build_stat_siz') + rollbase.BuildDiceCal('(2d6+6)*5');
+	ReStr += t('coc.build_stat_int') + rollbase.BuildDiceCal('(2d6+6)*5');
+	ReStr += t('coc.build_stat_edu') + rollbase.BuildDiceCal('(2d6+6)*5');
+	ReStr += t('coc.build_stat_luk') + rollbase.BuildDiceCal('(2d6+6)*5');
+	ReStr += t('coc.buildpulp_core') + rollbase.BuildDiceCal('(1d6+13)*5');
 	return ReStr;
 }
 
@@ -1604,28 +1654,152 @@ function buildpulpchar() {
 
 
 
-function build6char() {
-	let ReStr = '六版核心創角：';
-	ReStr += '\nＳＴＲ：' + rollbase.BuildDiceCal('3d6');
-	ReStr += '\nＤＥＸ：' + rollbase.BuildDiceCal('3d6');
-	ReStr += '\nＣＯＮ：' + rollbase.BuildDiceCal('3d6');
-	ReStr += '\nＰＯＷ：' + rollbase.BuildDiceCal('3d6');
-	ReStr += '\nＡＰＰ：' + rollbase.BuildDiceCal('3d6');
-	ReStr += '\nＩＮＴ：' + rollbase.BuildDiceCal('(2d6+6)');
-	ReStr += '\nＳＩＺ：' + rollbase.BuildDiceCal('(2d6+6)');
-	ReStr += '\nＥＤＵ：' + rollbase.BuildDiceCal('(3d6+3)');
-	ReStr += '\n年收入：' + rollbase.BuildDiceCal('(1d10)');
-	ReStr += '\n調查員的最小起始年齡等於EDU+6，每比起始年齡年老十年，\n調查員增加一點EDU並且加20點職業技能點數。\n當超過40歲後，每老十年，\n從STR,CON,DEX,APP中選擇一個減少一點。';
+function build6char(translate) {
+	const t = translate || getT({});
+	let ReStr = t('coc.build6_header');
+	ReStr += t('coc.build_stat_str') + rollbase.BuildDiceCal('3d6');
+	ReStr += t('coc.build_stat_dex') + rollbase.BuildDiceCal('3d6');
+	ReStr += t('coc.build_stat_con') + rollbase.BuildDiceCal('3d6');
+	ReStr += t('coc.build_stat_pow') + rollbase.BuildDiceCal('3d6');
+	ReStr += t('coc.build_stat_app') + rollbase.BuildDiceCal('3d6');
+	ReStr += t('coc.build_stat_int') + rollbase.BuildDiceCal('(2d6+6)');
+	ReStr += t('coc.build_stat_siz') + rollbase.BuildDiceCal('(2d6+6)');
+	ReStr += t('coc.build_stat_edu') + rollbase.BuildDiceCal('(3d6+3)');
+	ReStr += t('coc.build6_income') + rollbase.BuildDiceCal('(1d10)');
+	ReStr += t('coc.build6_age_note');
 	return ReStr;
 }
+function pickPcbgEntry(translate, prefix, items) {
+	const t = translate || getT({});
+	const index = rollbase.Dice(items.length) - 1;
+	const key = `coc.${prefix}_${index}`;
+	const text = t(key);
+	if (text && text !== key) {
+		return text;
+	}
+	return items[index];
+}
+
 //隨機產生角色背景
-function PcBG() {
-	return '背景描述生成器（僅供娛樂用，不具實際參考價值）\n=======\n調查員是一個' + PersonalDescriptionArr[rollbase.Dice(PersonalDescriptionArr.length) - 1] + '人。\n【信念】：說到這個人，他' + IdeologyBeliefsArr[rollbase.Dice(IdeologyBeliefsArr.length) - 1] + '。\n【重要之人】：對他來說，最重要的人是' + SignificantPeopleArr[rollbase.Dice(SignificantPeopleArr.length) - 1] + '，這個人對他來說之所以重要，是因為' + SignificantPeopleWhyArr[rollbase.Dice(SignificantPeopleWhyArr.length) - 1] + '。\n【意義非凡之地】：對他而言，最重要的地點是' + MeaningfulLocationsArr[rollbase.Dice(MeaningfulLocationsArr.length) - 1] + '。\n【寶貴之物】：他最寶貴的東西就是' + TreasuredPossessionsArr[rollbase.Dice(TreasuredPossessionsArr.length) - 1] + '。\n【特徵】：總括來說，調查員是一個' + TraitsArr[rollbase.Dice(TraitsArr.length) - 1] + '。';
+function PcBG(translate) {
+	const t = translate || getT({});
+	const personal = pickPcbgEntry(translate, 'pcbg_personal', PersonalDescriptionArr);
+	const belief = pickPcbgEntry(translate, 'pcbg_belief', IdeologyBeliefsArr);
+	const significant = pickPcbgEntry(translate, 'pcbg_sig_who', SignificantPeopleArr);
+	const significantWhy = pickPcbgEntry(translate, 'pcbg_sig_why', SignificantPeopleWhyArr);
+	const location = pickPcbgEntry(translate, 'pcbg_location', MeaningfulLocationsArr);
+	const treasure = pickPcbgEntry(translate, 'pcbg_treasure', TreasuredPossessionsArr);
+	const trait = pickPcbgEntry(translate, 'pcbg_trait', TraitsArr);
+	return [
+		t('coc.pcbg_header'),
+		'=======',
+		t('coc.pcbg_person', { desc: personal }),
+		t('coc.pcbg_belief', { belief }),
+		t('coc.pcbg_significant', { who: significant, why: significantWhy }),
+		t('coc.pcbg_location', { place: location }),
+		t('coc.pcbg_treasure', { item: treasure }),
+		t('coc.pcbg_trait', { trait })
+	].join('\n');
+}
+
+const COC_BUILD_SKILL_KEYS = {
+	'心理學': 'build_skill_psychology',
+	'說服': 'build_skill_persuade',
+	'話術': 'build_skill_fast_talk',
+	'恐嚇': 'build_skill_intimidate',
+	'取悅': 'build_skill_charm',
+	'導航': 'build_skill_navigate',
+	'生存': 'build_skill_survival',
+	'跳躍': 'build_skill_jump',
+	'攀爬': 'build_skill_climb',
+	'游泳': 'build_skill_swim',
+	'駕駛（汽車）': 'build_skill_drive_auto',
+	'駕駛（其他）': 'build_skill_drive_other',
+	'潛水': 'build_skill_dive',
+	'騎術': 'build_skill_ride',
+	'潛行': 'build_skill_stealth',
+	'追蹤': 'build_skill_track',
+	'喬裝': 'build_skill_disguise',
+	'鎖匠': 'build_skill_locksmith',
+	'巧手': 'build_skill_sleight_of_hand',
+	'會計': 'build_skill_accounting',
+	'法律': 'build_skill_law',
+	'神秘學': 'build_skill_occult',
+	'歷史': 'build_skill_history',
+	'自然學': 'build_skill_natural_world',
+	'人類學': 'build_skill_anthropology',
+	'考古學': 'build_skill_archaeology',
+	'司法科學': 'build_skill_forensics',
+	'數學': 'build_skill_mathematics',
+	'動物學': 'build_skill_zoology',
+	'電子學': 'build_skill_electronics',
+	'天文學': 'build_skill_astronomy',
+	'地質學': 'build_skill_geology',
+	'生物學': 'build_skill_biology',
+	'物理': 'build_skill_physics',
+	'化學': 'build_skill_chemistry',
+	'密碼學': 'build_skill_cryptography',
+	'氣象學': 'build_skill_meteorology',
+	'植物學': 'build_skill_botany',
+	'學問:': 'build_skill_science',
+	'語言': 'build_skill_language',
+	'美術': 'build_skill_art',
+	'偽造': 'build_skill_forge',
+	'表演': 'build_skill_perform',
+	'攝影': 'build_skill_photography',
+	'藝術／手藝(自選一項)': 'build_skill_art_craft',
+	'操作重機': 'build_skill_heavy_machinery',
+	'機械維修': 'build_skill_mechanical_repair',
+	'電器維修': 'build_skill_electrical_repair',
+	'電腦使用': 'build_skill_computer_use',
+	'動物馴養': 'build_skill_animal_handling',
+	'偵查': 'build_skill_spot_hidden',
+	'聆聽': 'build_skill_listen',
+	'圖書館使用': 'build_skill_library_use',
+	'估價': 'build_skill_appraise',
+	'讀唇': 'build_skill_lip_reading',
+	'閃避': 'build_skill_dodge',
+	'鬥毆': 'build_skill_brawl',
+	'劍': 'build_skill_sword',
+	'投擲': 'build_skill_throw',
+	'弓': 'build_skill_bow',
+	'手槍': 'build_skill_handgun',
+	'步槍／霰彈槍': 'build_skill_rifle_shotgun',
+	'精神分析': 'build_skill_psychoanalysis',
+	'急救': 'build_skill_first_aid',
+	'醫學': 'build_skill_medicine',
+	'藥學': 'build_skill_pharmacy',
+	'催眠': 'build_skill_hypnosis',
+	'鬥毆(刀/劍/棒)': 'build_skill_brawl_blade',
+	'射擊（手槍）': 'build_skill_handgun',
+	'信用評級': 'build7_skill_credit',
+	'博物學': 'build_skill_natural_history',
+	'物理學': 'build_skill_physics',
+	'克蘇魯神話': 'build_skill_cthulhu_mythos',
+	'機械修理': 'build_skill_mechanical_repair',
+	'駕駛汽車': 'build_skill_drive_auto',
+	'藝術/工藝（演技）': 'build_skill_perform'
+};
+
+function formatBuildSkillName(name, translate) {
+	const t = translate || getT({});
+	if (name === '信譽') {
+		return t('coc.build7_skill_credit');
+	}
+	const key = COC_BUILD_SKILL_KEYS[name];
+	if (key) {
+		const text = t(`coc.${key}`);
+		if (text && text !== `coc.${key}`) {
+			return text;
+		}
+	}
+	return name;
 }
 
 class SanCheck {
-	constructor(mainMsg, botname) {
+	constructor(mainMsg, botname, translate) {
 		this.mainMsg = mainMsg;
+		this.translate = translate || getT({});
 		this.rollDice = rollbase.Dice(100);
 		this.currentSan = this.getSanity(mainMsg[1]);
 		this.scMode = this.getScMode(mainMsg[2]);
@@ -1686,26 +1860,28 @@ class SanCheck {
 
 	}
 	runDiscord() {
+		const t = this.translate;
 		let arr = [];
-		let str = `手動San Check模式 \n 請選擇要擲骰的方式\n  1d100 - 基本San Check\n`;
+		let str = t('coc.sc_discord_intro');
 		this.scMode = this.getScMode(this.mainMsg[1]);
 		this.sc = this.getSc(this.mainMsg[1]);
 		this.rollSuccess = this.getRollSuccess(this.sc);
 		this.rollFail = this.getRollFail(this.sc);
 		if (this.rollSuccess) {
-			str += ` ${this.rollSuccess} - 成功時San Check\n`;
+			str += t('coc.sc_discord_success_roll', { roll: this.rollSuccess });
 			arr.push(this.rollSuccess);
 		}
 		if (this.rollFail) {
-			str += ` ${this.rollFail} - 失敗時San Check\n`;
+			str += t('coc.sc_discord_fail_roll', { roll: this.rollFail });
 			arr.push(this.rollFail);
 		}
 		this.buttonCreate.unshift("1d100", ...arr);
 		return str;
 	}
 	run() {
+		const t = this.translate;
 		if (!this.currentSan && this.botname == "Discord") return this.runDiscord();
-		if (!this.currentSan) return '請輸入正確的San值，\n格式是 .sc 50 或 .sc 50 1/3 或 .sc 50 1d3+3/1d100';
+		if (!this.currentSan) return t('coc.sc_invalid_san');
 		const diceFumble = (this.rollDice === 100) || (this.rollDice >= 96 && this.rollDice <= 100 && this.currentSan <= 49);
 		const diceSuccess = this.rollDice <= this.currentSan;
 		const diceFail = this.rollDice > this.currentSan;
@@ -1724,36 +1900,46 @@ class SanCheck {
 	}
 
 	handleDiceFumble() {
+		const t = this.translate;
 		if (!this.scMode) {
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!`;
+			return t('coc.sc_header', { san: this.currentSan, roll: this.rollDice, outcome: t('coc.outcome_fumble') });
 		}
 		if (this.rollFail) {
 			let updatedSan = Math.max(this.currentSan - this.lossSan.rollFumbleLoss, 0);
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!\n失去${this.rollFail}最大值 ${this.lossSan.rollFumbleLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
+			return t('coc.sc_header', { san: this.currentSan, roll: this.rollDice, outcome: t('coc.outcome_fumble') })
+				+ t('coc.sc_fumble_loss', { formula: this.rollFail, loss: this.lossSan.rollFumbleLoss, san: updatedSan })
+				.replace('是NaN點', t('coc.sc_calc_error'));
 		}
-		return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 大失敗!`
+		return t('coc.sc_header', { san: this.currentSan, roll: this.rollDice, outcome: t('coc.outcome_fumble') });
 	}
 	handleDiceSuccess() {
-		//成功
+		const t = this.translate;
 		if (!this.scMode) {
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!`
+			return t('coc.sc_header', { san: this.currentSan, roll: this.rollDice, outcome: t('coc.sc_outcome_success') });
 		}
 		if (this.lossSan) {
 			let updatedSan = Math.max(this.currentSan - this.lossSan.rollSuccessLoss, 0);
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!\n失去${this.rollSuccess} → ${this.lossSan.rollSuccessLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
-		} else
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 成功!\n不需要減少San`
+			return t('coc.sc_header', { san: this.currentSan, roll: this.rollDice, outcome: t('coc.sc_outcome_success') })
+				+ t('coc.sc_success_loss', { formula: this.rollSuccess, loss: this.lossSan.rollSuccessLoss, san: updatedSan })
+				.replace('是NaN點', t('coc.sc_calc_error'));
+		}
+		return t('coc.sc_header', { san: this.currentSan, roll: this.rollDice, outcome: t('coc.sc_outcome_success') })
+			+ t('coc.sc_no_san_loss_success');
 
 	}
 	handleDiceLoss() {
+		const t = this.translate;
 		if (!this.scMode) {
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!`
+			return t('coc.sc_header', { san: this.currentSan, roll: this.rollDice, outcome: t('coc.sc_outcome_fail') });
 		}
 		if (this.lossSan) {
 			let updatedSan = Math.max(this.currentSan - this.lossSan.rollFailLoss, 0);
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!\n失去${this.rollFail} → ${this.lossSan.rollFailLoss}點San\n現在San值是${updatedSan}點`.replace('是NaN點', ' 算式錯誤，未能計算');
-		} else
-			return `San Check\n1d100 ≦ ${this.currentSan}\n擲出:${this.rollDice} → 失敗!\n但不需要減少San`
+			return t('coc.sc_header', { san: this.currentSan, roll: this.rollDice, outcome: t('coc.sc_outcome_fail') })
+				+ t('coc.sc_fail_loss', { formula: this.rollFail, loss: this.lossSan.rollFailLoss, san: updatedSan })
+				.replace('是NaN點', t('coc.sc_calc_error'));
+		}
+		return t('coc.sc_header', { san: this.currentSan, roll: this.rollDice, outcome: t('coc.sc_outcome_fail') })
+			+ t('coc.sc_no_san_loss_fail');
 
 	}
 	getButton() {
@@ -1761,87 +1947,72 @@ class SanCheck {
 	}
 }
 
-function chase() {
-	let rply = `CoC 7ed追逐戰產生器\n`;
+function chase(translate) {
+	const t = translate || getT({});
+	let rply = t('coc.chase_header');
 	let round = rollbase.Dice(5) + 5;
 	for (let index = 0; index < round; index++) {
-		rply += `${chaseGenerator(index)}\n========\n`;
+		rply += `${chaseGenerator(index, t)}\n${t('coc.chase_separator')}`;
 	}
 	return rply;
 }
-function chaseGenerator(num) {
+function chaseGenerator(num, translate) {
+	const t = translate || getT({});
 	let rply = "";
 	let chase = rollbase.Dice(100);
-	let dangerMode = (rollbase.Dice(2) == 1) ? true : false;
+	let dangerMode = (rollbase.Dice(2) == 1);
+	const mode = dangerMode ? t('coc.chase_mode_peril') : t('coc.chase_mode_obstacle');
 	switch (true) {
 		case (chase >= 96): {
-			rply = `地點${num + 1} 極限難度 ${dangerMode ? "險境" : "障礙"}
-			`
+			rply = t('coc.chase_location_extreme', { num: num + 1, mode });
 			let itemsNumber = rollbase.DiceINT(2, 5);
 			let result = shuffle(request);
-			rply += `可能進行的檢定: `;
+			rply += t('coc.chase_checks');
 			for (let index = 0; index < itemsNumber; index++) {
 				rply += `${result[index]} `;
 			}
 			if (dangerMode) {
-				rply += `
-				失敗失去1D10嚴重事故HP傷害
-				及 失去（1D3）點行動點`;
+				rply += t('coc.chase_fail_severe');
 			} else {
 				let blockhp = shuffle(blockHard);
-				rply += `
-				障礙物 HP${blockhp[0]}`
+				rply += t('coc.chase_obstacle_hp', { hp: blockhp[0] });
 			}
-			//1D10嚴重事故
-			//額外失去1（1D3）點行動點
 			break;
 		}
 		case (chase >= 85): {
-			rply = `地點${num + 1} 困難難度 ${dangerMode ? "險境" : "障礙"}
-			`;
+			rply = t('coc.chase_location_hard', { num: num + 1, mode });
 			let itemsNumber = rollbase.DiceINT(2, 5);
 			let result = shuffle(request);
-			rply += `可能進行檢定: `;
+			rply += t('coc.chase_checks');
 			for (let index = 0; index < itemsNumber; index++) {
 				rply += `${result[index]} `;
 			}
 			if (dangerMode) {
-				rply += `
-				失敗失去1D6中度事故HP傷害
-				及 失去（1D3）點行動點`;
+				rply += t('coc.chase_fail_moderate');
 			} else {
 				let blockhp = shuffle(blockIntermediate);
-				rply += `
-				障礙物 HP${blockhp[0]}`
+				rply += t('coc.chase_obstacle_hp', { hp: blockhp[0] });
 			}
-			//1D6中度事故
-			//額外失去1（1D3）點行動點
 			break;
 		}
 		case (chase >= 60): {
-			rply = `地點${num + 1} 一般難度 ${dangerMode ? "險境" : "障礙"}
-			`
+			rply = t('coc.chase_location_regular', { num: num + 1, mode });
 			let itemsNumber = rollbase.DiceINT(2, 5);
 			let result = shuffle(request);
-			rply += `可能進行檢定: `;
+			rply += t('coc.chase_checks');
 			for (let index = 0; index < itemsNumber; index++) {
 				rply += `${result[index]} `;
 			}
 			if (dangerMode) {
-				rply += `
-				失敗失去1D3-1輕微事故HP傷害
-				及 失去（1D3）點行動點`;
+				rply += t('coc.chase_fail_minor');
 			} else {
 				let blockhp = shuffle(blockEasy);
-				rply += `
-				障礙物 HP${blockhp[0]}`
+				rply += t('coc.chase_obstacle_hp', { hp: blockhp[0] });
 			}
-			//1D3-1輕微事故
-			//額外失去1（1D3）點行動點
 			break;
 		}
 		default: {
-			rply = `地點${num + 1} 沒有險境/障礙`
+			rply = t('coc.chase_location_clear', { num: num + 1 });
 			break;
 		}
 	}
@@ -2073,38 +2244,63 @@ const INT = ["隱密類", "職業興趣", "調查類"] // eslint-disable-line no
 class MythoyCollection {
 	constructor() { }
 
-	static getMythos() {
-		return `克蘇魯神話邪神:
-		${this.getMythonData("god")}
+	static getMythos(translate) {
+		const t = translate || getT({});
+		return `${t('coc.mythos_header_god')}
+		${this.getMythonData("god", translate)}
 
-		克蘇魯神話生物:
-		${this.getMythonData("monster")}
+		${t('coc.mythos_header_monster')}
+		${this.getMythonData("monster", translate)}
 
-		克蘇魯神話書籍:
-		${this.getMythonData("MagicBook")}
+		${t('coc.mythos_header_books')}
+		${this.getMythonData("MagicBook", translate)}
 
-		克蘇魯神話法術:
-		${this.getMythonData("magic")}
+		${t('coc.mythos_header_magic')}
+		${this.getMythonData("magic", translate)}
 		`
 	}
-	static getMythonData(dataType) {
-		return this.cases[dataType] ? this.cases[dataType]() : this.cases._default();
+	static getMythonData(dataType, translate) {
+		return this.cases[dataType] ? this.cases[dataType](translate) : this.cases._default(translate);
+	}
+	static getRandomMythosEntry(translate, prefix, fallbackList) {
+		const t = translate || getT({});
+		const index = Math.floor(Math.random() * fallbackList.length);
+		const key = `coc.mythos_${prefix}_${index}`;
+		const text = t(key);
+		if (text && text !== key) {
+			return text;
+		}
+		return fallbackList[index];
 	}
 	static cases = {
-		god: () => { return this.getRandomData(this.MythoyGodList) },
-		monster: () => { return this.getRandomData(this.mosterList) },
-		magic: () => { return this.getRandomData(this.Magic) },
-		MagicBook: () => { return this.getRandomData(this.MagicBookList) },
-		pushedCasting: () => {
-			return `${this.getRandomData(this.pushedCastingRoll)}
-			對於更強大的法術（例如召喚神靈或消耗POW的法術），副作用可能更嚴重：
-			${this.getRandomData(this.pushedPowerfulCastingRoll)}
+		god: (translate) => MythoyCollection.getRandomMythosEntry(translate, 'god', MythoyCollection.MythoyGodList),
+		monster: (translate) => MythoyCollection.getRandomMythosEntry(translate, 'monster', MythoyCollection.mosterList),
+		magic: (translate) => MythoyCollection.getRandomMythosEntry(translate, 'spell', MythoyCollection.Magic),
+		MagicBook: (translate) => MythoyCollection.getRandomMythosEntry(translate, 'book', MythoyCollection.MagicBookList),
+		pushedCasting: (translate) => {
+			const t = translate || getT({});
+			return `${MythoyCollection.getRandomTranslatedRoll(t, 'pushed_casting', MythoyCollection.pushedCastingRollFallback)}
+			${t('coc.mythos_pushed_powerful_intro')}
+			${MythoyCollection.getRandomTranslatedRoll(t, 'pushed_powerful', MythoyCollection.pushedPowerfulCastingRollFallback)}
 			`
 		},
-		_default: () => { return "沒有找到符合的資料" }
+		_default: (translate) => {
+			const t = translate || getT({});
+			return t('coc.mythos_not_found');
+		}
 	}
 	static getRandomData(array) {
 		return array[Math.floor(Math.random() * array.length)];
+	}
+	static getRandomTranslatedRoll(translate, prefix, fallback) {
+		const t = translate || getT({});
+		const index = Math.floor(Math.random() * fallback.length);
+		const key = `coc.${prefix}_${index}`;
+		const text = t(key);
+		if (text && text !== key) {
+			return text;
+		}
+		return fallback[index];
 	}
 	static mosterList = [
 		"拜亞基", "鑽地魔蟲", "星之彩", "蠕行者", "達貢&海德拉（特殊深潜者）", "黑山羊幼崽", "深潜者", "混種深潜者", "巨噬蠕蟲", "空鬼", "古老者", "炎之精", "飛水螅", "無形眷族", "妖鬼", "食屍鬼", "格拉基之僕", "諾弗·刻", "伊斯之偉大種族", "庭達羅斯的獵犬", "恐怖獵手", "羅伊格爾", "米-戈", "夜魘", "人面鼠", "潜沙怪", "蛇人", "外神僕役", "夏蓋妖蟲", "夏塔克鳥", "修格斯", "修格斯主宰(人型)", "修格斯主宰(修格斯形態)", "克蘇魯的星之眷族", "星之精", "喬喬人", "耶庫伯人", "冷蛛", "昆揚人", "月獸", "空鬼", "潛沙怪", "冷原人", "圖姆哈人"
@@ -2113,7 +2309,7 @@ class MythoyCollection {
 	static Magic = ["維瑞之印", "守衛術", "忘卻之波", "肢體凋萎術", "真言術", "折磨術", "靈魂分配術", "耶德·艾塔德放逐術", "束縛術", "祝福刀鋒術", "葛哥洛斯形體扭曲術", "深淵之息", "黃金蜂蜜酒釀造法", "透特之詠", "記憶模糊術", "紐格塔緊握術", "外貌濫用術", "致盲術/複明術", "創造納克-提特之障壁", "拉萊耶造霧術", "僵屍製造術", "腐爛外皮之詛咒", "致死術", "支配術", "阿撒托斯的恐怖詛咒", "蘇萊曼之塵", "舊印開光術", "綠腐術", "恐懼注入術", "血肉熔解術", "心理暗示術", "精神震爆術", "精神交換術", "精神轉移術", "塔昆·阿提普之鏡", "伊本-加茲之粉", "蒲林的埃及十字架", "修德·梅'爾之赤印", "復活術", "枯萎術", "哈斯塔之歌", "請神術", "聯絡術", "通神術", "附魔術", "迷身術（迷惑犧牲者）", "邪眼術", "猶格-索托斯之拳", "血肉防護術", "時空門法術", "召喚術", "束縛術"];
 	static MagicBookList = ["阿齊夫(死靈之書原版)", "死靈之書", "不可名狀的教團", "拉萊耶文本", "格拉基啟示錄", "死靈之書", "戈爾·尼格拉爾", "伊波恩之書", "水中之喀特", "綠之書", "不可名狀的教團", "伊波恩之書", "來自被詛咒者，或（關於古老而恐怖的教團的論文）", "死亡崇拜", "艾歐德之書", "蠕蟲之秘密", "食屍鬼教團", "伊波恩之書", "埃爾特當陶片", "暗黑儀式", "諾姆羊皮卷", "達爾西第四之書", "斯克洛斯之書", "斷罪處刑之書", "智者瑪格洛魯姆", "暗黑大典", "格哈恩殘篇", "納克特抄本", "不可名狀的教團", "伊希之儀式", "刻萊諾殘篇", "狂僧克利薩努斯的懺悔", "迪詹之書", "達貢禱文", "反思錄", "怪物及其族類", "惡魔崇拜", "深淵棲息者", "鉉子七奧書", "亞洲的神秘奧跡，含有從《戈爾·尼格拉爾》中摘抄的注釋", "巨噬蠕蟲頌", "蓋夫抄本", "薩塞克斯手稿", "鑽地啟示錄", "《死靈之書》中的克蘇魯", "伊拉內克紙草", "卡納瑪戈斯聖約書", "水中之喀特", "海底的教團", "真實的魔法", "納斯編年史", "遠古的恐怖", "骷髏黑書", "伊斯提之歌", "來自被詛咒者", "波納佩聖典", "神秘學基礎", "置身高壓水域", "魔法與黑巫術", "黃衣之王", "黑之契經", "《波納佩聖典》所述的史前太平洋", "伊戈爾倫理學", "來自亞狄斯的幻象", "利誇利亞的傳說", "哈利湖啟示錄", "姆-拉斯紙草", "撒都該人的勝利", "新英格蘭樂土上的奇術異事", "混沌之魂", "猶基亞頌歌", "秘密窺視者", "約翰森的敘述", "致夏蓋的安魂彌撒", "艾歐德之書", "越過幻象", "關於新英格蘭的既往巫術", "阿撒托斯及其他", "黑色的瘋狂之神", "伊波恩生平", "全能的奧蘇姆", "地底掘進者", "巨石的子民", "撒拉遜人的宗教儀式", "水鰭書", "波利尼西亞神話學，附有對克蘇魯傳說圈的記錄", "異界的監視者", "科學的奇跡", "薩波斯的卡巴拉", "贊蘇石板", "魚之書", "失落帝國的遺跡", "托斯卡納的宗教儀式", "夜之魍魎", "太平洋史前史：初步調查", "納卡爾之鑰", "宣福者美多迪烏斯", "翡翠石板", "金枝", "易經", "揭開面紗的伊西斯", "所羅門之鑰", "女巫之錘", "諾查丹瑪斯的預言", "西歐的异教巫術崇拜", "光明篇",]
 
-	static pushedCastingRoll = [
+	static pushedCastingRollFallback = [
 		'1: 視力模糊或暫時失明。',
 		'2: 殘缺不全的尖叫聲、聲音或其他噪音。',
 		'3: 強烈的風或其他大氣效應。',
@@ -2123,7 +2319,7 @@ class MythoyCollection {
 		'7: 異臭的硫磺味。',
 		'8: 不小心召喚了神話生物。'
 	]
-	static pushedPowerfulCastingRoll = ['1: 大地震動，牆壁破裂。',
+	static pushedPowerfulCastingRollFallback = ['1: 大地震動，牆壁破裂。',
 		'2: 巨大的雷電聲。',
 		'3: 血從天而降。',
 		'4: 施法者的手被乾枯和燒焦。',
@@ -2134,8 +2330,6 @@ class MythoyCollection {
 	]
 
 }
-
-
 
 class BuilderRegistry {
 	constructor() {
@@ -2151,6 +2345,11 @@ class BuilderRegistry {
 	}
 }
 
+
+function b7(translate, key, options) {
+	return (translate || getT({}))(`coc.build7_${key}`, options);
+}
+
 class Build7Char {
 	constructor() {
 		this.builderRegistry = new BuilderRegistry();
@@ -2164,21 +2363,16 @@ class Build7Char {
 		this.builderRegistry.registerBuilder(name, builderClass);
 	}
 
-	build(text, age) {
+	build(text, age, translate) {
 		for (const [pattern, builderClass] of this.builderRegistry.builders) {
 			if (pattern.test(text)) {
-				return builderClass.build(text, age);
+				return builderClass.build(text, age, translate);
 			}
 		}
 
-		return `你輸入的指令不正確，指令為 
-coc7版創角				： 啓動語 .cc7build (歲數7-89)
-coc7版隨機創角			： 啓動語 .cc7build random 或留空
-coc7版自由分配點數創角	： 啓動語 .cc7build .xyz (歲數15-89)
-
-先以coc7版隨機模式來創角
-${this.defaultRegistry.build()}
-`;
+		return b7(translate, 'invalid_command', {
+			random: this.defaultRegistry.build(text, age, translate)
+		});
 	}
 }
 
@@ -2197,12 +2391,11 @@ class RandomBuilder {
 		return /^random$/i;
 	}
 
-	build() {
-		//設定 因年齡減少的點數 和 EDU加骰次數
+	build(_text, _age, translate) {
+		const t = translate || getT({});
 		let old = rollbase.DiceINT(15, 89);
-		let ReStr = `
-=======coc7版隨機創角=======
-調查員年齡設為：${old}\n`;
+		let ReStr = `${b7(translate, 'random_header')}\n`;
+		ReStr += b7(translate, 'investigator_age', { age: old });
 		let Debuff = 0;
 		let AppDebuff = 0;
 		let EDUinc = 0;
@@ -2211,26 +2404,26 @@ class RandomBuilder {
 			AppDebuff = AppDebuffArr[i];
 			EDUinc = EDUincArr[i];
 		}
-		ReStr += '=======\n';
+		ReStr += b7(translate, 'section_divider');
 		switch (true) {
 			case (old >= 15 && old <= 19):
-				ReStr += '年齡調整：從STR或SIZ中減去' + Debuff + '點\n（請自行手動選擇計算）。\nEDU減去5點。LUK骰兩次取高。';
-				ReStr += '\n=======';
-				ReStr += '\n（以下箭號兩項，減值' + Debuff + '點。）';
+				ReStr += b7(translate, 'age_adj_15_19', { debuff: Debuff });
+				ReStr += b7(translate, 'section_divider');
+				ReStr += b7(translate, 'debuff_hint_two', { debuff: Debuff });
 				break;
 			case (old >= 20 && old <= 39):
-				ReStr += '年齡調整：可做' + EDUinc + '次EDU的成長擲骰。';
-				ReStr += '\n=======';
+				ReStr += b7(translate, 'age_adj_20_39', { eduInc: EDUinc });
+				ReStr += b7(translate, 'section_divider');
 				break;
 			case (old >= 40 && old <= 49):
-				ReStr += '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
-				ReStr += '\n=======';
-				ReStr += '\n（以下箭號三項，自選減去' + Debuff + '點。）';
+				ReStr += b7(translate, 'age_adj_40_49', { debuff: Debuff, appDebuff: AppDebuff, eduInc: EDUinc });
+				ReStr += b7(translate, 'section_divider');
+				ReStr += b7(translate, 'debuff_hint_three', { debuff: Debuff });
 				break;
 			case (old >= 50):
-				ReStr += '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（從一，二或全部三項中選擇）\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
-				ReStr += '\n=======';
-				ReStr += '\n（以下箭號三項，自選減去' + Debuff + '點。）';
+				ReStr += b7(translate, 'age_adj_50_plus', { debuff: Debuff, appDebuff: AppDebuff, eduInc: EDUinc });
+				ReStr += b7(translate, 'section_divider');
+				ReStr += b7(translate, 'debuff_hint_three', { debuff: Debuff });
 				break;
 
 			default:
@@ -2249,77 +2442,76 @@ class RandomBuilder {
 		 */
 		let randomState = shuffle(eightState);
 		let randomStateNumber = checkState(randomState);
-		ReStr += '\nＳＴＲ：' + randomStateNumber[0];
-		if (old >= 40) ReStr += ' ←（可選） ';
-		if (old < 20) ReStr += ' ←（可選）';
+		ReStr += t('coc.build_stat_str') + randomStateNumber[0];
+		if (old >= 40) ReStr += b7(translate, 'optional_marker');
+		if (old < 20) ReStr += b7(translate, 'optional_marker');
 
-		ReStr += '\nＤＥＸ：' + randomStateNumber[1];
-		if (old >= 40) ReStr += ' ← （可選）';
+		ReStr += t('coc.build_stat_dex') + randomStateNumber[1];
+		if (old >= 40) ReStr += b7(translate, 'optional_marker_spaced');
 
-		ReStr += '\nＰＯＷ：' + randomStateNumber[2];
+		ReStr += t('coc.build_stat_pow') + randomStateNumber[2];
 
-		ReStr += '\nＣＯＮ：' + randomStateNumber[3];
-		if (old >= 40) ReStr += ' ← （可選）'
+		ReStr += t('coc.build_stat_con') + randomStateNumber[3];
+		if (old >= 40) ReStr += b7(translate, 'optional_marker_spaced');
 
 		if (old >= 40) {
-			ReStr += '\nＡＰＰ：' + `${randomStateNumber[4]}-${AppDebuff} = ${randomStateNumber[4] - AppDebuff}`;
-		} else ReStr += '\nＡＰＰ：' + randomStateNumber[4];
+			ReStr += t('coc.build_stat_app') + `${randomStateNumber[4]}-${AppDebuff} = ${randomStateNumber[4] - AppDebuff}`;
+		} else ReStr += t('coc.build_stat_app') + randomStateNumber[4];
 
 
-		ReStr += '\nＳＩＺ：' + randomStateNumber[5];
+		ReStr += t('coc.build_stat_siz') + randomStateNumber[5];
 		if (old < 20) {
-			ReStr += ' ←（可選）';
+			ReStr += b7(translate, 'optional_marker');
 		}
 
-		ReStr += '\nＩＮＴ：' + randomStateNumber[6]
+		ReStr += t('coc.build_stat_int') + randomStateNumber[6]
 
-		if (old < 20) ReStr += '\nＥＤＵ：' + randomStateNumber[7];
+		if (old < 20) ReStr += t('coc.build_stat_edu') + randomStateNumber[7];
 		else {
-			ReStr += '\n=======';
-			ReStr += '\nＥＤＵ初始值：' + randomStateNumber[7]
+			ReStr += b7(translate, 'section_divider');
+			ReStr += b7(translate, 'edu_initial', { value: randomStateNumber[7] })
 
 			let tempEDU = + randomStateNumber[7]
 
 			for (let i = 1; i <= EDUinc; i++) {
 				let EDURoll = rollbase.Dice(100);
-				ReStr += '\n第' + i + '次EDU成長 → ' + EDURoll;
+				ReStr += b7(translate, 'edu_growth_roll', { n: i, roll: EDURoll });
 				if (EDURoll > tempEDU) {
 					let EDUplus = rollbase.Dice(10);
-					ReStr += ' → 成長' + EDUplus + '點';
+					ReStr += b7(translate, 'edu_growth_gain', { gain: EDUplus });
 					tempEDU = tempEDU + EDUplus;
 				} else {
-					ReStr += ' → 沒有成長';
+					ReStr += b7(translate, 'edu_no_growth');
 				}
 			}
 			ReStr += '\n';
-			ReStr += '\nＥＤＵ最終值：' + tempEDU;
+			ReStr += b7(translate, 'edu_final', { value: tempEDU });
 		}
-		ReStr += '\n=======';
+		ReStr += b7(translate, 'section_divider');
 		const tempBuildLuck = [rollbase.BuildDiceCal('3d6*5'), rollbase.BuildDiceCal('3d6*5')]
 		const tempLuck = [tempBuildLuck[0].match(/\d+$/), tempBuildLuck[1].match(/\d+$/)]
 
 		if (old < 20) {
-			ReStr += '\nＬＵＫ第一次：' + `${tempBuildLuck[0]} \nＬＵＫ第二次： ${tempBuildLuck[1]}`;
-			ReStr += '\nＬＵＫ最終值：' + Math.max(...tempLuck);
+			ReStr += b7(translate, 'luk_first', { roll: tempBuildLuck[0] });
+			ReStr += b7(translate, 'luk_second', { roll: tempBuildLuck[1] });
+			ReStr += b7(translate, 'luk_final', { value: Math.max(...tempLuck) });
 		}
 		else {
-			ReStr += '\nＬＵＫ：' + `${tempBuildLuck[0]} `;
+			ReStr += b7(translate, 'luk_single', { roll: tempBuildLuck[0] });
 		}
 
-		//ReStr += '\nＬＵＫ：' + rollbase.BuildDiceCal('3d6*5');
-		//if (old < 20) ReStr += '\nＬＵＫ加骰：' + rollbase.BuildDiceCal('3D6*5');
-		ReStr += `\n==本職技能==`
+		ReStr += b7(translate, 'occupation_skills');
 		let occAndOtherSkills = getOccupationSkill(randomState);
 		for (let index = 0; index < occAndOtherSkills.finalOSkillList.length; index++) {
-			ReStr += `\n ${occAndOtherSkills.finalOSkillList[index]} ${eightskillsNumber[index]}`
+			ReStr += `\n ${formatBuildSkillName(occAndOtherSkills.finalOSkillList[index], translate)} ${eightskillsNumber[index]}`
 
 		}
-		ReStr += `\n==其他技能==`
+		ReStr += b7(translate, 'other_skills');
 		for (let index = 0; index < occAndOtherSkills.finalOtherSkillList.length; index++) {
-			ReStr += `\n ${occAndOtherSkills.finalOtherSkillList[index].name} ${occAndOtherSkills.finalOtherSkillList[index].skill + 20}`
+			ReStr += `\n ${formatBuildSkillName(occAndOtherSkills.finalOtherSkillList[index].name, translate)} ${occAndOtherSkills.finalOtherSkillList[index].skill + 20}`
 
 		}
-		ReStr += `\n=======\n${PcBG()}`;
+		ReStr += `\n${b7(translate, 'section_divider')}${PcBG(translate)}`;
 		return ReStr;
 	}
 }
@@ -2329,27 +2521,27 @@ class AgeBuilder {
 		return /^\d+$/i;
 	}
 
-	build(text) {
+	build(text, _age, translate) {
+		const t = translate || getT({});
 		let old = "";
-		let ReStr = "調查員年齡設為：";
+		let ReStr = "";
 		if (text) old = text.replaceAll(/\D/g, '');
 		if (old) {
-			ReStr += old + '\n';
+			ReStr += b7(translate, 'investigator_age', { age: old });
 		}
-		//設定 因年齡減少的點數 和 EDU加骰次數
 		let Debuff = 0;
 		let AppDebuff = 0;
 		let EDUinc = 0;
 		if (old < 7) {
-			ReStr += '\n等等，核心規則或日本拓展沒有適用小於7歲的人物哦。\n先當成15歲處理\n';
+			ReStr += b7(translate, 'age_too_young_7');
 			old = 15;
 		}
 
 		if (old >= 7 && old <= 14) {
-			ReStr += '\n等等，核心規則沒有適用小於15歲的人物哦。\n先使用日本CoC 7th 2020 拓展 - 7到14歲的幼年調查員規則吧\n';
+			ReStr += b7(translate, 'age_too_young_15');
 		}
 		if (old >= 90) {
-			ReStr += '\n等等，核心規則沒有適用於90歲以上的人物哦。\n先當成89歲處理\n';
+			ReStr += b7(translate, 'age_too_old');
 			old = 89;
 		}
 		for (let i = 0; old >= oldArr[i]; i++) {
@@ -2357,131 +2549,131 @@ class AgeBuilder {
 			AppDebuff = AppDebuffArr[i];
 			EDUinc = EDUincArr[i];
 		}
-		ReStr += '=======\n';
+		ReStr += b7(translate, 'section_divider');
 		switch (true) {
 			case (old >= 7 && old <= 14):
 				{
 					if (old >= 7 && old <= 12) {
-						ReStr += '\nＳＴＲ：' + rollbase.BuildDiceCal('3d4*5');
-						ReStr += '\nＤＥＸ：' + rollbase.BuildDiceCal('3d6*5');
-						ReStr += '\nＰＯＷ：' + rollbase.BuildDiceCal('3d6*5');
+						ReStr += t('coc.build_stat_str') + rollbase.BuildDiceCal('3d4*5');
+						ReStr += t('coc.build_stat_dex') + rollbase.BuildDiceCal('3d6*5');
+						ReStr += t('coc.build_stat_pow') + rollbase.BuildDiceCal('3d6*5');
 
-						ReStr += '\nＣＯＮ：' + rollbase.BuildDiceCal('3d4*5');
-						ReStr += '\nＡＰＰ：' + rollbase.BuildDiceCal('3d6*5');
-						ReStr += '\nＳＩＺ：' + rollbase.BuildDiceCal('(2d3+6)*5');
-						ReStr += '\nＩＮＴ：' + rollbase.BuildDiceCal('(2d6+6)*5');
+						ReStr += t('coc.build_stat_con') + rollbase.BuildDiceCal('3d4*5');
+						ReStr += t('coc.build_stat_app') + rollbase.BuildDiceCal('3d6*5');
+						ReStr += t('coc.build_stat_siz') + rollbase.BuildDiceCal('(2d3+6)*5');
+						ReStr += t('coc.build_stat_int') + rollbase.BuildDiceCal('(2d6+6)*5');
 
 					}
 					if (old >= 13 && old <= 14) {
-						ReStr += '\nＳＴＲ：' + rollbase.BuildDiceCal('(2d6+1)*5');
-						ReStr += '\nＤＥＸ：' + rollbase.BuildDiceCal('3d6*5');
-						ReStr += '\nＰＯＷ：' + rollbase.BuildDiceCal('3d6*5');
+						ReStr += t('coc.build_stat_str') + rollbase.BuildDiceCal('(2d6+1)*5');
+						ReStr += t('coc.build_stat_dex') + rollbase.BuildDiceCal('3d6*5');
+						ReStr += t('coc.build_stat_pow') + rollbase.BuildDiceCal('3d6*5');
 
-						ReStr += '\nＣＯＮ：' + rollbase.BuildDiceCal('(2d6+1)*5');
-						ReStr += '\nＡＰＰ：' + rollbase.BuildDiceCal('3d6*5');
-						ReStr += '\nＳＩＺ：' + rollbase.BuildDiceCal('(2d4+6)*5');
-						ReStr += '\nＩＮＴ：' + rollbase.BuildDiceCal('(2d6+6)*5');
+						ReStr += t('coc.build_stat_con') + rollbase.BuildDiceCal('(2d6+1)*5');
+						ReStr += t('coc.build_stat_app') + rollbase.BuildDiceCal('3d6*5');
+						ReStr += t('coc.build_stat_siz') + rollbase.BuildDiceCal('(2d4+6)*5');
+						ReStr += t('coc.build_stat_int') + rollbase.BuildDiceCal('(2d6+6)*5');
 
 					}
 					for (let i = 0; old >= OldArr2020[i]; i++) {
 						EDUinc = EDUincArr2020[i];
 					}
-					ReStr += '\nＥＤＵ：' + EDUinc;
+					ReStr += t('coc.build_stat_edu') + EDUinc;
 					const tempBuildLuck = [rollbase.BuildDiceCal('3d6*5'), rollbase.BuildDiceCal('3d6*5')]
 					const tempLuck = [tempBuildLuck[0].match(/\d+$/), tempBuildLuck[1].match(/\d+$/)]
-					ReStr += '\nＬＵＫ第一次：' + `${tempBuildLuck[0]} \nＬＵＫ第二次： ${tempBuildLuck[1]}`;
-					ReStr += '\nＬＵＫ最終值：' + Math.max(...tempLuck);
-					ReStr += '\n\n幼年調查員的特性：' + rollbase.BuildDiceCal('2d6');
-					ReStr += '\n幼年調查員的家境：' + rollbase.BuildDiceCal('1D100');
-					ReStr += '\n幼年調查員可受「幫忙」的次數：' + Math.round((17 - old) / 3);
+					ReStr += b7(translate, 'luk_first', { roll: tempBuildLuck[0] });
+					ReStr += b7(translate, 'luk_second', { roll: tempBuildLuck[1] });
+					ReStr += b7(translate, 'luk_final', { value: Math.max(...tempLuck) });
+					ReStr += b7(translate, 'young_trait', { roll: rollbase.BuildDiceCal('2d6') });
+					ReStr += b7(translate, 'young_family', { roll: rollbase.BuildDiceCal('1D100') });
+					ReStr += b7(translate, 'young_help', { count: Math.round((17 - old) / 3) });
 					return ReStr;
 				}
 
 			case (old >= 15 && old <= 19):
-				ReStr += '年齡調整：從STR或SIZ中減去' + Debuff + '點\n（請自行手動選擇計算）。\nEDU減去5點。LUK骰兩次取高。';
-				ReStr += '\n=======';
-				ReStr += '\n（以下箭號兩項，減值' + Debuff + '點。）';
+				ReStr += b7(translate, 'age_adj_15_19', { debuff: Debuff });
+				ReStr += b7(translate, 'section_divider');
+				ReStr += b7(translate, 'debuff_hint_two', { debuff: Debuff });
 				break;
 			case (old >= 20 && old <= 39):
-				ReStr += '年齡調整：可做' + EDUinc + '次EDU的成長擲骰。';
-				ReStr += '\n=======';
+				ReStr += b7(translate, 'age_adj_20_39', { eduInc: EDUinc });
+				ReStr += b7(translate, 'section_divider');
 				break;
 			case (old >= 40 && old <= 49):
-				ReStr += '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
-				ReStr += '\n=======';
-				ReStr += '\n（以下箭號三項，自選減去' + Debuff + '點。）';
+				ReStr += b7(translate, 'age_adj_40_49', { debuff: Debuff, appDebuff: AppDebuff, eduInc: EDUinc });
+				ReStr += b7(translate, 'section_divider');
+				ReStr += b7(translate, 'debuff_hint_three', { debuff: Debuff });
 				break;
 			case (old >= 50):
-				ReStr += '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（從一，二或全部三項中選擇）\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
-				ReStr += '\n=======';
-				ReStr += '\n（以下箭號三項，自選減去' + Debuff + '點。）';
+				ReStr += b7(translate, 'age_adj_50_plus', { debuff: Debuff, appDebuff: AppDebuff, eduInc: EDUinc });
+				ReStr += b7(translate, 'section_divider');
+				ReStr += b7(translate, 'debuff_hint_three', { debuff: Debuff });
 				break;
 
 			default:
 				break;
 		}
-		ReStr += '\nＳＴＲ：' + rollbase.BuildDiceCal('3d6*5');
-		if (old >= 40) ReStr += ' ←（可選） ';
-		if (old < 20) ReStr += ' ←（可選）';
+		ReStr += t('coc.build_stat_str') + rollbase.BuildDiceCal('3d6*5');
+		if (old >= 40) ReStr += b7(translate, 'optional_marker');
+		if (old < 20) ReStr += b7(translate, 'optional_marker');
 
-		ReStr += '\nＤＥＸ：' + rollbase.BuildDiceCal('3d6*5');
-		if (old >= 40) ReStr += ' ← （可選）';
+		ReStr += t('coc.build_stat_dex') + rollbase.BuildDiceCal('3d6*5');
+		if (old >= 40) ReStr += b7(translate, 'optional_marker_spaced');
 
-		ReStr += '\nＰＯＷ：' + rollbase.BuildDiceCal('3d6*5');
+		ReStr += t('coc.build_stat_pow') + rollbase.BuildDiceCal('3d6*5');
 
-		ReStr += '\nＣＯＮ：' + rollbase.BuildDiceCal('3d6*5');
-		if (old >= 40) ReStr += ' ← （可選）'
+		ReStr += t('coc.build_stat_con') + rollbase.BuildDiceCal('3d6*5');
+		if (old >= 40) ReStr += b7(translate, 'optional_marker_spaced');
 
 		if (old >= 40) {
-			ReStr += '\nＡＰＰ：' + rollbase.BuildDiceCal('(3d6*5)-' + AppDebuff)
-		} else ReStr += '\nＡＰＰ：' + rollbase.BuildDiceCal('3d6*5');
+			ReStr += t('coc.build_stat_app') + rollbase.BuildDiceCal('(3d6*5)-' + AppDebuff)
+		} else ReStr += t('coc.build_stat_app') + rollbase.BuildDiceCal('3d6*5');
 
 
-		ReStr += '\nＳＩＺ：' + rollbase.BuildDiceCal('(2d6+6)*5');
+		ReStr += t('coc.build_stat_siz') + rollbase.BuildDiceCal('(2d6+6)*5');
 		if (old < 20) {
-			ReStr += ' ←（可選）';
+			ReStr += b7(translate, 'optional_marker');
 		}
 
-		ReStr += '\nＩＮＴ：' + rollbase.BuildDiceCal('(2d6+6)*5');
+		ReStr += t('coc.build_stat_int') + rollbase.BuildDiceCal('(2d6+6)*5');
 
-		if (old < 20) ReStr += '\nＥＤＵ：' + rollbase.BuildDiceCal('((2d6+6)*5)-5');
+		if (old < 20) ReStr += t('coc.build_stat_edu') + rollbase.BuildDiceCal('((2d6+6)*5)-5');
 		else {
 			let firstEDU = '(' + rollbase.BuildRollDice('2d6') + '+6)*5';
-			ReStr += '\n=======';
-			ReStr += '\nＥＤＵ初始值：' + firstEDU + ' = ' + eval(firstEDU);
+			ReStr += b7(translate, 'section_divider');
+			ReStr += b7(translate, 'edu_initial', { value: `${firstEDU} = ${eval(firstEDU)}` });
 
 			let tempEDU = eval(firstEDU);
 
 			for (let i = 1; i <= EDUinc; i++) {
 				let EDURoll = rollbase.Dice(100);
-				ReStr += '\n第' + i + '次EDU成長 → ' + EDURoll;
+				ReStr += b7(translate, 'edu_growth_roll', { n: i, roll: EDURoll });
 				if (EDURoll > tempEDU) {
 					let EDUplus = rollbase.Dice(10);
-					ReStr += ' → 成長' + EDUplus + '點';
+					ReStr += b7(translate, 'edu_growth_gain', { gain: EDUplus });
 					tempEDU = tempEDU + EDUplus;
 				} else {
-					ReStr += ' → 沒有成長';
+					ReStr += b7(translate, 'edu_no_growth');
 				}
 			}
 			ReStr += '\n';
-			ReStr += '\nＥＤＵ最終值：' + tempEDU;
+			ReStr += b7(translate, 'edu_final', { value: tempEDU });
 		}
-		ReStr += '\n=======';
+		ReStr += b7(translate, 'section_divider');
 
 		const tempBuildLuck = [rollbase.BuildDiceCal('3d6*5'), rollbase.BuildDiceCal('3d6*5')]
 		const tempLuck = [tempBuildLuck[0].match(/\d+$/), tempBuildLuck[1].match(/\d+$/)]
 		if (old < 20) {
-			ReStr += '\nＬＵＫ第一次：' + `${tempBuildLuck[0]} \nＬＵＫ第二次： ${tempBuildLuck[1]}`;
-			ReStr += '\nＬＵＫ最終值：' + Math.max(...tempLuck);
+			ReStr += b7(translate, 'luk_first', { roll: tempBuildLuck[0] });
+			ReStr += b7(translate, 'luk_second', { roll: tempBuildLuck[1] });
+			ReStr += b7(translate, 'luk_final', { value: Math.max(...tempLuck) });
 		}
 		else {
-			ReStr += '\nＬＵＫ：' + `${tempBuildLuck[0]} `;
+			ReStr += b7(translate, 'luk_single', { roll: tempBuildLuck[0] });
 		}
 
 
-		//ReStr += '\nＬＵＫ：' + rollbase.BuildDiceCal('3d6*5');
-		//if (old < 20) ReStr += '\nＬＵＫ加骰：' + rollbase.BuildDiceCal('3D6*5');
-		ReStr += '\n=======\n煤油燈特徵: 1D6&1D20 → ' + rollbase.Dice(6) + ',' + rollbase.Dice(20);
+		ReStr += b7(translate, 'kerosene', { d6: rollbase.Dice(6), d20: rollbase.Dice(20) });
 		return ReStr;
 	}
 }
@@ -2491,14 +2683,12 @@ class XYZBuilder {
 		return /^([.])/i;
 	}
 
-	build(text, age) {
+	build(text, age, translate) {
 		this.x = (text.match(/[.]\d+/i) && text[1]) || 5;
 		this.y = (text.match(/[.]\d+/i) && text[2]) || 3;
 		this.z = (text.match(/[.]\d+/i) && text[3]) || 0;
 		this.age = age?.match(/^\d+/i) || 0;
-		let ReStr = `自由分配屬性點數創角方案
-=======
-`;
+		let ReStr = b7(translate, 'xyz_header');
 		for (let i = 0; i < this.x; i++) {
 			ReStr += `${rollbase.BuildDiceCal('3d6*5')}\n`
 		}
@@ -2512,19 +2702,17 @@ class XYZBuilder {
 		}
 		if (this.z) ReStr += `=======\n`
 		if (this.age && !Number.isNaN(Number(this.age))) {
-			ReStr += `${this.ageAdjustment(this.age)}`
-			//設定 因年齡減少的點數 和 EDU加骰次數
+			ReStr += `${this.ageAdjustment(this.age, translate)}`
 		} else {
-			ReStr += `沒有年齡調整\n如果在後面加上年齡，就會自動計算年齡調整 如 
-.cc7build .533 40`;
+			ReStr += b7(translate, 'xyz_no_age');
 			const tempBuildLuck = [rollbase.BuildDiceCal('3d6*5'), rollbase.BuildDiceCal('3d6*5')]
-			ReStr += '\n=======\nＬＵＫ：' + `${tempBuildLuck[0]} `;
+			ReStr += `\n=======${b7(translate, 'luk_single', { roll: tempBuildLuck[0] })}`;
 		}
 
 
 		return ReStr;
 	}
-	ageAdjustment(age) {
+	ageAdjustment(age, translate) {
 		let Debuff = 0;
 		let AppDebuff = 0;
 		let EDUinc = 0;
@@ -2537,23 +2725,23 @@ class XYZBuilder {
 			AppDebuff = AppDebuffArr[i];
 			EDUinc = EDUincArr[i];
 		}
-		ReStr += '年齡：' + newAge + '\n';
+		ReStr += b7(translate, 'xyz_age', { age: newAge });
 		switch (true) {
 			case (newAge >= 15 && newAge <= 19):
-				ReStr += '年齡調整：從STR或SIZ中減去' + Debuff + '點\n（請自行手動選擇計算）。\nEDU減去5點。';
-				ReStr += '\n=======';
+				ReStr += b7(translate, 'age_adj_15_19', { debuff: Debuff });
+				ReStr += b7(translate, 'section_divider');
 				break;
 			case (newAge >= 20 && newAge <= 39):
-				ReStr += '年齡調整：可做' + EDUinc + '次EDU的成長擲骰。';
-				ReStr += '\n=======';
+				ReStr += b7(translate, 'age_adj_20_39', { eduInc: EDUinc });
+				ReStr += b7(translate, 'section_divider');
 				break;
 			case (newAge >= 40 && newAge <= 49):
-				ReStr += '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
-				ReStr += '\n=======';
+				ReStr += b7(translate, 'age_adj_40_49', { debuff: Debuff, appDebuff: AppDebuff, eduInc: EDUinc });
+				ReStr += b7(translate, 'section_divider');
 				break;
 			case (newAge >= 50):
-				ReStr += '年齡調整：從STR、DEX或CON中減去' + Debuff + '點\n（從一，二或全部三項中選擇）\n（請自行手動選擇計算）。\nAPP減去' + AppDebuff + '點。進行' + EDUinc + '次EDU的成長擲骰。';
-				ReStr += '\n=======';
+				ReStr += b7(translate, 'age_adj_50_plus', { debuff: Debuff, appDebuff: AppDebuff, eduInc: EDUinc });
+				ReStr += b7(translate, 'section_divider');
 				break;
 
 			default:
@@ -2561,21 +2749,22 @@ class XYZBuilder {
 		}
 		for (let i = 1; i <= EDUinc; i++) {
 			let EDURoll = rollbase.Dice(100);
-			ReStr += '\n第' + i + '次EDU成長 → ' + EDURoll;
-
+			ReStr += b7(translate, 'edu_growth_roll', { n: i, roll: EDURoll });
 			let EDUplus = rollbase.Dice(10);
-			ReStr += ' → 如果高於現有EDU，則成長' + EDUplus + '點';
+			ReStr += b7(translate, 'edu_growth_conditional', { gain: EDUplus });
 		}
 		const tempBuildLuck = [rollbase.BuildDiceCal('3d6*5'), rollbase.BuildDiceCal('3d6*5')]
 		const tempLuck = [tempBuildLuck[0].match(/\d+$/), tempBuildLuck[1].match(/\d+$/)]
 		if (newAge < 20) {
-			ReStr += '\nＬＵＫ第一次：' + `${tempBuildLuck[0]} \nＬＵＫ第二次： ${tempBuildLuck[1]}`;
-			ReStr += '\nＬＵＫ最終值：' + Math.max(...tempLuck);
+			ReStr += b7(translate, 'luk_first', { roll: tempBuildLuck[0] });
+			ReStr += b7(translate, 'luk_second', { roll: tempBuildLuck[1] });
+			ReStr += b7(translate, 'luk_final', { value: Math.max(...tempLuck) });
 		}
 		else {
-			ReStr += '\n=======\nＬＵＫ：' + `${tempBuildLuck[0]} `;
+			ReStr += b7(translate, 'section_divider');
+			ReStr += b7(translate, 'luk_single', { roll: tempBuildLuck[0] });
 		}
-		ReStr += '\n=======\n煤油燈特徵: 1D6&1D20 → ' + rollbase.Dice(6) + ',' + rollbase.Dice(20);
+		ReStr += b7(translate, 'kerosene', { d6: rollbase.Dice(6), d20: rollbase.Dice(20) });
 		return ReStr;
 	}
 }

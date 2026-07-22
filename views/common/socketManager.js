@@ -6,15 +6,30 @@ class SocketManager {
     constructor() {
         // Socket.io connection with reconnection options
         // More conservative settings to avoid excessive reconnections during testing
-        this.socket = io({
-            reconnection: true,
-            reconnectionAttempts: 5, // Reduced from 10 to 5
-            reconnectionDelay: 2000, // Increased from 1000 to 2000
-            reconnectionDelayMax: 10_000, // Increased from 5000 to 10000
-            randomizationFactor: 0.5,
-            // Add timeout to prevent hanging connections
-            timeout: 20_000
-        });
+        const socketOptions = typeof getWwwSocketIoOptions === 'function'
+            ? getWwwSocketIoOptions({
+                reconnection: true,
+                reconnectionAttempts: 5, // Reduced from 10 to 5
+                reconnectionDelay: 2000, // Increased from 1000 to 2000
+                reconnectionDelayMax: 10_000, // Increased from 5000 to 10000
+                randomizationFactor: 0.5,
+                // Add timeout to prevent hanging connections
+                timeout: 20_000
+            })
+            : {
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 2000,
+                reconnectionDelayMax: 10_000,
+                randomizationFactor: 0.5,
+                timeout: 20_000,
+                query: {
+                    lang: (typeof getWwwLocale === 'function')
+                        ? getWwwLocale()
+                        : (window.HKTRPG_LOCALES?.defaultLocale || 'zh-tw')
+                }
+            };
+        this.socket = io(socketOptions);
 
         this.eventHandlers = new Map();
         this.publicListProcessed = false;
@@ -158,7 +173,7 @@ class SocketManager {
         if (result) {
             uiManager.showAlert(result, "warning", 4000, true);
         } else {
-            uiManager.showError("擲骰失敗! 請檢查或向HKTRPG回報。", 4000);
+            uiManager.showError(typeof wwwT === 'function' ? wwwT('roll_failed') : 'Roll failed.', 4000);
             debugLog('Rolling failed', 'error');
         }
     }
@@ -172,7 +187,7 @@ class SocketManager {
         if (result) {
             uiManager.showAlert(result, "warning", 4000, true);
         } else {
-            uiManager.showError("擲骰失敗! 請檢查或向HKTRPG回報。", 4000);
+            uiManager.showError(typeof wwwT === 'function' ? wwwT('roll_failed') : 'Roll failed.', 4000);
             debugLog('Public rolling failed', 'error');
         }
     }
@@ -210,9 +225,14 @@ class SocketManager {
      */
     handleRemoveChannel(result) {
         if (result && result.success) {
-            uiManager.showSuccess('頻道移除成功！', 3000);
+            uiManager.showSuccess(typeof wwwT === 'function' ? wwwT('channel_removed') : 'Channel removed.', 3000);
         } else {
-            uiManager.showError(`頻道移除失敗: ${result ? result.message : '未知錯誤'}`, 5000);
+            const unknown = typeof wwwT === 'function' ? wwwT('unknown_error') : 'Unknown error';
+            const msg = result ? result.message : unknown;
+            uiManager.showError(
+                typeof wwwT === 'function' ? wwwT('channel_remove_failed', { message: msg }) : `Failed to remove channel: ${msg}`,
+                5000
+            );
         }
     }
 

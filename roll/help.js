@@ -2,6 +2,7 @@
 const fs = require('node:fs');
 const axios = require('axios');
 const { SlashCommandBuilder } = require('discord.js');
+const { resolveHelp, withPartialTranslationNotice, resolveGameName, getT, isEnglish } = require('../modules/roll-i18n.js');
 const Dice = [],
 	Tool = [],
 	admin = [],
@@ -51,8 +52,8 @@ let variables = {};
 
 
 
-const gameName = function () {
-	return '骰子機器人HKTRPG說明';
+const gameName = function (params) {
+	return resolveGameName(params, 'help.game_name', '骰子機器人HKTRPG說明');
 }
 
 const gameType = function () {
@@ -65,50 +66,8 @@ const prefixs = function () {
 	}]
 
 }
-const getHelpMessage = async function () {
-    return `【🎲擲骰系統】
-╭────── 🎯暗骰功能 ──────
-│ • dr [指令] - 結果私訊給你
-│ • ddr/dddr - 私訊給已設定的GM
-│ • .drgm - 查詢GM設定詳情
-│
-├────── 📊基本擲骰 ──────
-│ 標準格式: [次數]d[面數][運算符][修正值]
-│ 
-│ 基本用法:
-│ 　• 2d6+1 - 擲兩顆六面骰+1
-│ 　• (2d6+1)*2 攻撃！
-│ 　  範例輸出: (10[5+5]+1)2 = 22
-│
-│ 進階功能:
-│ 　• .5 3D6 - 投擲5次3d6
-│ 　• 支援四則運算與括號
-│ 　• 支援比較符號 >, <, >=, <=
-│
-│ 保留/放棄骰值:
-│ 　• kh - keep highest 保留最高
-│ 　• kl - keep lowest 保留最低
-│ 　• dh - drop highest 放棄最高
-│ 　• dl - drop lowest 放棄最低
-│ 　
-│ 範例:
-│ 　• 3d6kh1 - 保留最高一顆
-│ 　• 3d6dl2 - 放棄最低兩顆
-│
-├────── 🎲RPG Dice Roller ──────
-│ 使用指令: .rr [骰子表示式]
-│
-│ 特色:
-│ 　• 支援Foundry VTT格式
-│ 　• 提供更詳細的擲骰選項
-│
-│ 範例:
-│ 　• 1d10r1 - 遇1重骰
-│ 　• 5d10!k2 - 爆擊後保留2顆
-│
-│ 📚完整指令說明:
-│ dice-roller.github.io/documentation
-╰──────────────`
+const getHelpMessage = async function (params = {}) {
+	return resolveHelp(params, 'help.base');
 }
 const initialize = function () {
 	return variables;
@@ -116,7 +75,9 @@ const initialize = function () {
 
 
 const rollDiceCommand = async function ({
-	mainMsg
+	mainMsg,
+	t,
+	locale
 }) {
 	let rply = {
 		default: 'on',
@@ -124,258 +85,121 @@ const rollDiceCommand = async function ({
 		text: '',
 		quotes: true
 	};
+	const translate = getT({ locale, t });
+	const i18nParams = { locale, t };
+	const english = isEnglish({ locale, t });
 	//let result = {};
 	switch (true) {
-		case !mainMsg[1]:
-			rply.text = `【HKTRPG擲骰機器人 🎲】v${await version.version()}
-╭───── 👋 歡迎使用 ─────
-│ HKTRPG是跨平台骰子機器人
-│ 支援Discord、Line、Telegram
-│ Whatsapp與網頁版
-│
-├───── 🎯 核心功能 ─────
-│ • 基礎擲骰與暗骰
-│ • 各類TRPG系統骰子
-│ • 自定義骰子
-│ • 角色卡系統
-│ • 先攻表
-│ • 經驗值系統
-│
-├───── 🛠️ 實用工具 ─────
-│ • 資料庫快速查詢
-│ • Discord聊天紀錄匯出
-│ • 定時發送訊息
-│ • 圖片搜尋
-│ • 即時翻譯
-│ • Wiki查詢
-│ • 數學計算
-│
-├───── 📖 查詢指令 ─────
-│ • bothelp ver   - 版本與公告
-│ • bothelp Base  - 基本擲骰指令🎲
-│ • bothelp Dice  - 系統擲骰指令💻
-│ • bothelp Tool  - 輔助工具指令🧰
-│ • bothelp admin - 管理工具指令⚙️
-│ • bothelp funny - 娛樂功能指令😂
-│ • bothelp link  - 相關平台連結🔗
-│ • bothelp privacy- 隱私權條款🔒
-│ • bothelp about - 歷史沿革📜
-│
-├───── 🔗 重要連結 ─────
-│ 📚 使用教學:
-│ https://bothelp.hktrpg.com
-│
-│ 🗂️ 作品集:
-│ https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP
-│
-│ ℹ️ 支援社群:
-│ https://support.hktrpg.com
-│
-│ ☕ 贊助伺服器運行及開放VIP資源:
-│ https://www.patreon.com/HKTRPG
-╰──────────────────`
+		case !mainMsg[1]: {
+			const ver = await version.version();
+			const menuText = translate('help.main_menu_full', { version: ver });
+			if (english) {
+				const banner = translate('common.errors.partial_translation_banner');
+				rply.text = `${banner}\n${menuText}`;
+			} else {
+				rply.text = menuText;
+			}
 			rply.buttonCreate = ['bothelp ver', 'bothelp Base', 'bothelp Dice', 'bothelp Tool', 'bothelp admin', 'bothelp funny', 'bothelp link', 'bothelp privacy', 'bothelp about']
 
 			return rply;
+		}
 		case /^ver$/i.test(mainMsg[1]):
-			rply.text = `${await version.version()}
-最近更新: 
-2019/07/21 香港克警合作 黑ICON紀念
-...前略...
-2022/05 https://www.patreon.com/posts/hktrpg-wu-yue-66190934
-2022/04	https://www.patreon.com/posts/hktrpg-4yue-geng-65565589
-2022/03	https://www.patreon.com/posts/3yue-geng-xin-64158733
-2022/02	https://www.patreon.com/posts/2yue-geng-xin-62329216
-2022/01	https://www.patreon.com/posts/hktrpg-1yue-geng-60706957
-`;
+			rply.text = translate('help.ver_body', { version: await version.version() });
 			return rply;
 		case /^BASE/i.test(mainMsg[1]):
-			rply.text = await getHelpMessage();
-			rply.buttonCreate = ['dr 1d100', '2d6+10 攻擊', '.5 3d6', '.5 4d6dl1', '.rr 5d10!k2']
+			rply.text = await getHelpMessage({ locale, t });
+			rply.buttonCreate = ['dr 1d100', translate('help.button_attack_example'), '.5 3d6', '.5 4d6dl1', '.rr 5d10!k2']
 			return rply;
 		case /^about$/i.test(mainMsg[1]):
-			rply.text = `【HKTRPG歷史淵源 📜】
-╭──── 💫 起源 ────
-│ HKTRPG的誕生來自開源項目
-│ 「機器鴨霸獸」
-│ 最早由LarryLo Retsnimle開發
-│ 
-├──── 🌱 傳承 ────
-│ • 開放源碼的骰子機器人計畫
-│ • 供社群自由使用與開發
-│ • 詳細的程式碼注釋
-│ • 幫助新人學習JS開發
-│
-├──── 📋 授權條款 ────
-│ • GNU通用公共授權條款(GPL)
-│ • 賦予使用者四大自由:
-│   - 自由執行
-│   - 自由學習
-│   - 自由分享
-│   - 自由修改
-│
-├──── 💝 特別感謝 ────
-│ 感謝原始開發者LarryLo的貢獻
-│ 讓更多人能夠參與開發
-│ 共同建立更好的TRPG社群
-│
-╰──────────────────
-原始資料來源:
-https://docs.google.com/document/d/1dYnJqF2_QTp90ld4YXj6X8kgxvjUoHrB4E2seqlDlAk/edit
-`
+			rply.text = translate('help.about');
 			return rply;
 		case /^Dice/i.test(mainMsg[1]):
 			if (/^DICE$/i.test(mainMsg[1])) {
-				rply.text = `【🎲 查看骰子說明】
-╭─────────────
-│ 指令格式: bothelp Dice序號
-│ 例如: bothelp Dice1
-│
-│ 請輸入序號查看詳細內容
-╰─────────────
-`
+				rply.text = translate('help.submenu_dice');
 				rply.buttonCreate = [];
 				for (let num in Dice) {
-					rply.text += num + ": " + Dice[num].gameName() + '\n';
+					rply.text += num + ": " + Dice[num].gameName(i18nParams) + '\n';
 					rply.buttonCreate.push('bothelp Dice' + num);
 				}
 			}
 			if (/^Dice\d+$/i.test(mainMsg[1])) {
 				let temp = mainMsg[1].replace(/^dice/i, '');
 				if (!Dice[temp]) return;
-				rply.text = await Dice[temp].getHelpMessage();
+				rply.text = withPartialTranslationNotice(await Dice[temp].getHelpMessage({ locale, t }), { locale, t });
 			}
 			return rply;
 		case /^Tool/i.test(mainMsg[1]):
 			if (/^Tool$/i.test(mainMsg[1])) {
-				rply.text = `【🛠️ 查看工具說明】
-╭─────────────
-│ 指令格式: bothelp Tool序號
-│ 例如: bothelp Tool1
-│
-│ 請輸入序號查看詳細內容
-╰─────────────
-`
+				rply.text = translate('help.submenu_tool');
 				rply.buttonCreate = [];
 				for (let num in Tool) {
-					rply.text += num + ": " + Tool[num].gameName() + '\n';
+					rply.text += num + ": " + Tool[num].gameName(i18nParams) + '\n';
 					rply.buttonCreate.push('bothelp Tool' + num);
 				}
 			}
 			if (/^Tool\d+$/i.test(mainMsg[1])) {
 				let temp = mainMsg[1].replace(/^Tool/i, '');
 				if (!Tool[temp]) return;
-				rply.text = await Tool[temp].getHelpMessage();
+				rply.text = withPartialTranslationNotice(await Tool[temp].getHelpMessage({ locale, t }), { locale, t });
 			}
 			return rply;
 		case /^privacy/i.test(mainMsg[1]): {
-			rply.text = `【🔒 隱私權聲明】
-╭─────────────
-│ 詳細內容請參閱:
-│ https://bothelp.hktrpg.com/hktrpg-guan-fang-shi-yong-jiao-xue/qi-ta-qing-bao/yin-si-quan-sheng-ming
-╰─────────────`
+			rply.text = translate('help.privacy');
 			return rply;
 		}
 		case /^admin/i.test(mainMsg[1]):
 			if (/^admin$/i.test(mainMsg[1])) {
-				rply.text = `【⚙️ 管理指令說明】
-╭─────────────
-│ 指令格式: bothelp admin序號
-│ 例如: bothelp admin1
-│
-│ 請輸入序號查看詳細內容
-╰─────────────
-`
+				rply.text = translate('help.submenu_admin');
 				rply.buttonCreate = [];
 				for (let num in admin) {
-					rply.text += num + ": " + admin[num].gameName() + '\n';
+					rply.text += num + ": " + admin[num].gameName(i18nParams) + '\n';
 					rply.buttonCreate.push('bothelp admin' + num);
 				}
 			}
 			if (/^admin\d+$/i.test(mainMsg[1])) {
 				let temp = mainMsg[1].replace(/^admin/i, '');
 				if (!admin[temp]) return;
-				rply.text = await admin[temp].getHelpMessage();
+				rply.text = withPartialTranslationNotice(await admin[temp].getHelpMessage({ locale, t }), { locale, t });
 			}
 			return rply;
 
 		case /^funny/i.test(mainMsg[1]):
 			if (/^funny$/i.test(mainMsg[1])) {
-				rply.text = `【😄 娛樂功能說明】
-╭─────────────
-│ 指令格式: bothelp funny序號
-│ 例如: bothelp funny1
-│
-│ 請輸入序號查看詳細內容
-╰─────────────
-`
+				rply.text = translate('help.submenu_funny');
 				rply.buttonCreate = [];
 				for (let num in funny) {
-					rply.text += num + ": " + funny[num].gameName() + '\n';
+					rply.text += num + ": " + funny[num].gameName(i18nParams) + '\n';
 					rply.buttonCreate.push('bothelp Funny' + num);
 				}
 			}
 			if (/^funny\d+$/i.test(mainMsg[1])) {
 				let temp = mainMsg[1].replace(/^funny/i, '');
 				if (!funny[temp]) return;
-				rply.text = await funny[temp].getHelpMessage();
+				rply.text = withPartialTranslationNotice(await funny[temp].getHelpMessage({ locale, t }), { locale, t });
 			}
 			return rply;
 
 		case /^help/i.test(mainMsg[1]):
 			if (/^help$/i.test(mainMsg[1])) {
-				rply.text = `【❓ 說明文件查詢】
-╭─────────────
-│ 指令格式: bothelp help序號
-│ 例如: bothelp help1
-│
-│ 請輸入序號查看詳細內容
-╰─────────────
-`
+				rply.text = translate('help.submenu_help_doc');
 				rply.buttonCreate = [];
 				for (let num in help) {
-					rply.text += num + ": " + help[num].gameName() + '\n';
+					rply.text += num + ": " + help[num].gameName(i18nParams) + '\n';
 					rply.buttonCreate.push('bothelp help' + num);
 				}
 			}
 			if (/^help\d+$/i.test(mainMsg[1])) {
 				let temp = mainMsg[1].replace(/^help/i, '');
 				if (!help[temp]) return;
-				rply.text = await help[temp].getHelpMessage();
+				rply.text = withPartialTranslationNotice(await help[temp].getHelpMessage({ locale, t }), { locale, t });
 			}
 			return rply;
 
 		case /^link/i.test(mainMsg[1]):
-			rply.text = `【🎲 HKTRPG擲骰機器人】
-╭──────────────────
-│ 🌐 官方網站
-│ https://bothelp.hktrpg.com/
-│ 
-│ 📚 TRPG百科
-│ https://wiki.hktrpg.com/
-│
-│ 💬 官方支援群
-│ https://support.hktrpg.com
-│
-│ 🤖 邀請機器人
-│ LINE:    http://line.hktrpg.com/
-│ Discord: https://discord.hktrpg.com/
-│ Telegram: http://telegram.hktrpg.com/
-│ Web版:    https://rollbot.hktrpg.com/
-│ Plurk版: https://plurk.hktrpg.com/
-│ 快速擲骰: https://roll.hktrpg.com/
-| WhatsApp: https://api.whatsapp.com/send?phone=85294427421&text=運勢
-│
-│ 📱 社群連結
-│ FB社團:   https://www.facebook.com/groups/HKTRPG
-│ 贊助支持: https://www.patreon.com/HKTRPG
-│ GitHub:   http://github.hktrpg.com/
-╰──────────────────
-`
+			rply.text = translate('help.link');
 			return rply;
 		case /^req/i.test(mainMsg[1]):
-			rply.text = `請到以下問卷填寫意見，所有意見內容將改善RollBot
-			https://forms.gle/uXq6taCPGJ2M99Gp9`
+			rply.text = translate('help.report');
 			return rply;
 		default:
 			break;

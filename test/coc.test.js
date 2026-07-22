@@ -2,6 +2,7 @@
 
 const coc = require('../roll/2-coc.js');
 const rollbase = require('../roll/rollbase.js');
+const i18n = require('../modules/i18n.js');
 
 // Mock dependencies to avoid issues with schema.js and other modules
 jest.mock('../modules/schema.js', () => ({
@@ -44,6 +45,10 @@ jest.mock('../roll/rollbase.js', () => ({
 }));
 
 describe('Call of Cthulhu Module Tests', () => {
+    beforeAll(async () => {
+        await i18n.init();
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
         // Default mock implementation
@@ -80,8 +85,8 @@ describe('Call of Cthulhu Module Tests', () => {
         const helpText = coc.getHelpMessage();
         expect(helpText).toContain('克蘇魯神話RPG系統');
         expect(helpText).toContain('基本擲骰');
-        expect(helpText).toContain('理智檢定');
-        expect(helpText).toContain('成長相關');
+        expect(helpText).toContain('理智');
+        expect(helpText).toContain('成長紀錄');
     });
 
     test('Test rollDiceCommand with help', async () => {
@@ -284,7 +289,7 @@ describe('Call of Cthulhu Module Tests', () => {
             mainMsg: ['.cc7bg'],
         });
         expect(result.type).toBe('text');
-        expect(result.text).toContain('背景描述生成器');
+        expect(result.text).toContain('調查員背景');
         expect(result.quotes).toBe(true);
     });
 

@@ -112,6 +112,12 @@ const imagePool = getPool('image');
 dotenv.config({ override: true, quiet: true });
 const VIP = require('../modules/veryImportantPerson');
 const handleMessage = require('../modules/discord/handleMessage');
+const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const i18n = require('../modules/i18n.js');
+
+function isOpenAiValidationError(message) {
+    return /超過VIP|VIP LV|exceeds VIP|Unsupported file format|不支援的文件格式|預估總內容|Estimated content|檔案大小超過限制|file size|Cannot extract text|無法從檔案/i.test(message);
+}
 
 const debugLog = (...args) => {
     if (process.env.DEBUG) console.log(...args);
@@ -501,8 +507,8 @@ const FILE_PROCESSING_LIMITS = {
 };
 
 const variables = {};
-const gameName = function () {
-    return '【OpenAi】'
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'openai.game_name', '【OpenAi】');
 }
 
 const gameType = function () {
@@ -514,71 +520,8 @@ const prefixs = function () {
         second: null
     }]
 }
-const getHelpMessage = function () {
-    // Get all LOW models for chat
-    const validLowModels = AI_CONFIG.MODELS.LOW.models;
-
-    // Filter LOW models with TOKEN >= 10,000 for translation
-    const validTranslateModels = validLowModels.filter(model =>
-        model.token && model.token >= 10_000
-    );
-
-    const lowModelDisplays = validLowModels
-        .map((model, index) => {
-            const isDefault = index === 0 ? ' (默認)' : '';
-            return `${AI_CONFIG.MODELS.LOW.prefix.chat} [訊息] - 使用${model.display}${isDefault}`;
-        })
-        .join('\n│ • ');
-
-    const lowTranslateDisplays = validTranslateModels.length > 0
-        ? validTranslateModels
-            .map((model, index) => {
-                const isDefault = index === 0 ? ' (默認)' : '';
-                return `${AI_CONFIG.MODELS.LOW.prefix.translate} [文字內容] - 使用${model.display}${isDefault}翻譯`;
-            })
-            .join('\n│ • ')
-        : `${AI_CONFIG.MODELS.LOW.prefix.translate} [文字內容] - 暫無符合TOKEN≥10,000的LOW模型`;
-
-    return `【🤖AI助手】
-╭────── 🗣️對話功能 ──────
-│ • ${lowModelDisplays}
-│ • ${AI_CONFIG.MODELS.MEDIUM.prefix.chat} [訊息] - 使用${AI_CONFIG.MODELS.MEDIUM.display}
-│ • ${AI_CONFIG.MODELS.HIGH.prefix.chat} [訊息] - 使用${AI_CONFIG.MODELS.HIGH.display}
-│ • 或回覆(Reply)要討論的內容
-│
-├────── 📝翻譯功能 ──────
-│ • ${lowTranslateDisplays}
-│ • ${AI_CONFIG.MODELS.MEDIUM.prefix.translate} [文字內容] - 使用${AI_CONFIG.MODELS.MEDIUM.display}翻譯
-│ • ${AI_CONFIG.MODELS.HIGH.prefix.translate} [文字內容] - 使用${AI_CONFIG.MODELS.HIGH.display}翻譯
-│ • 或上傳附件 或回覆(Reply)要翻譯的內容
-│ • 支援格式: .txt, .pdf, .docx, .jpg, .png, .gif 等圖像
-│ • 檔案大小限制: PDF(50MB), DOCX(25MB), 圖像(20MB), TXT(10MB)
-│ • 轉換為正體中文
-│
-├────── 🖼️圖像生成 ──────
-│ • ${AI_CONFIG.MODELS.IMAGE_LOW.prefix} [描述] - 使用${AI_CONFIG.MODELS.IMAGE_LOW.display}
-│ • ${AI_CONFIG.MODELS.IMAGE_HIGH.prefix} [描述] - 使用${AI_CONFIG.MODELS.IMAGE_HIGH.display}
-│
-├────── ⚠️使用限制 ──────
-│ 一般用戶:
-│ 　• 文字上限2500字
-│
-│ VIP用戶:
-│ 　• 享有更高文字上限
-│ 　• 可使用中級模型(${AI_CONFIG.MODELS.MEDIUM.display})
-│
-├────── 📌注意事項 ──────
-│ • AI翻譯需要處理時間
-│ • 10000字可能需時10分鐘以上
-│ • 系統可能因錯誤而翻譯失敗
-│ • 超過1900字將以.txt檔案回覆
-│ • 對話功能支援所有LOW模型 (共${validLowModels.length}個)
-│ • 翻譯功能僅使用TOKEN≥10,000的模型 (共${validTranslateModels.length}個)
-│ • PDF/DOCX/圖像處理需要額外時間
-│ • 圖像OCR處理較慢，請耐心等待
-│ • 檔案處理有超時限制，複雜檔案可能失敗
-│ • 建議使用較小檔案以確保處理成功
-╰──────────────`
+const getHelpMessage = function (params = {}) {
+    return resolveHelp(params, 'openai.help');
 }
 const initialize = function () {
     return variables;
@@ -600,6 +543,11 @@ class OpenAI {
 
         // Initialize unified retry manager
         this.retryManager = new RetryManager();
+        this._locale = i18n.DEFAULT_LOCALE;
+    }
+
+    getAiT() {
+        return i18n.createTranslator(this._locale || i18n.DEFAULT_LOCALE);
     }
 
     addApiKey() {
@@ -895,12 +843,21 @@ class OpenAI {
 
     // Generate error message for final failure
     generateErrorMessage(error, errorType, modelTier, inputText = '') {
+        const t = this.getAiT();
         const commandType = inputText.match(/^\.(ai|ait|aimage)[mh]?/i)?.[0] || '.ai';
         const cleanInput = inputText.replace(new RegExp(`^${commandType}`, 'i'), '');
 
         if (error instanceof OpenAIApi.APIError) {
             if (errorType === 'RATE_LIMIT') {
-                return `API 請求頻率限制已達上限，已嘗試循環所有可用資源，請稍後再試。\n循環包括：\n- API金鑰: ${this.apiKeys.length} 個\n- ${modelTier === 'LOW' ? `LOW模型: ${AI_CONFIG.MODELS.LOW.models.length} 個` : '單一模型'}\n- 全域重試: ${this.retryManager.globalRetryCount} 次\n ${cleanInput}`;
+                const modelInfo = modelTier === 'LOW'
+                    ? t('openai.rate_limit_low_models', { count: AI_CONFIG.MODELS.LOW.models.length })
+                    : t('openai.rate_limit_single_model');
+                return t('openai.rate_limit_exhausted', {
+                    keyCount: this.apiKeys.length,
+                    modelInfo,
+                    retries: this.retryManager.globalRetryCount,
+                    input: cleanInput
+                });
             }
             // Include provider message (e.g. OpenRouter "model end of testing period") when present
             const providerMessage = error.error?.message || error.message;
@@ -940,7 +897,7 @@ class ImageAi extends OpenAI {
         }
     }
     handleImage(data, input) {
-        if (data?.data?.length === 0) return '沒有輸出的圖片, 請重新輸入描述';
+        if (data?.data?.length === 0) return this.getAiT()('openai.image_no_output');
         let response = `${input}:\n`;
         for (let index = 0; index < data.data.length; index++) {
             response += data.data[index].url + "\n";
@@ -986,26 +943,35 @@ class TranslateAi extends OpenAI {
         }
 
         if (!fileType) {
+            const t = this.getAiT();
             return {
                 valid: false,
-                error: `不支援的文件格式: ${extension}\n支援格式: PDF, DOCX, 圖像文件 (JPG, PNG, GIF 等), TXT`
+                error: t('openai.file_unsupported_format', { extension })
             };
         }
 
         // Check file size limit
         const maxSize = FILE_PROCESSING_LIMITS.MAX_FILE_SIZE[fileType];
         if (sizeInMB > maxSize) {
+            const t = this.getAiT();
             return {
                 valid: false,
-                error: `檔案大小超過限制 ${maxSize} MB\n當前檔案大小: ${sizeInMB.toFixed(2)} MB\n檔案格式: ${fileType}`
+                error: t('openai.file_size_over_limit', {
+                    max: maxSize,
+                    current: sizeInMB.toFixed(2),
+                    type: fileType
+                })
             };
         }
 
         // Check memory usage (rough estimate)
         if (fileSize > FILE_PROCESSING_LIMITS.MAX_MEMORY_USAGE) {
+            const t = this.getAiT();
             return {
                 valid: false,
-                error: `檔案過大，可能導致記憶體不足\n建議檔案大小: < ${(FILE_PROCESSING_LIMITS.MAX_MEMORY_USAGE / (1024 * 1024)).toFixed(0)} MB`
+                error: t('openai.file_too_large_memory', {
+                    max: (FILE_PROCESSING_LIMITS.MAX_MEMORY_USAGE / (1024 * 1024)).toFixed(0)
+                })
             };
         }
 
@@ -1050,7 +1016,7 @@ class TranslateAi extends OpenAI {
             return {
                 canProcess: false,
                 estimatedChars: 0,
-                reason: `無法估計檔案類型: ${fileType}`
+                reason: this.getAiT()('openai.file_type_unknown_estimate', { type: fileType })
             };
         }
 
@@ -1065,7 +1031,10 @@ class TranslateAi extends OpenAI {
             canProcess,
             estimatedChars,
             limit: limit, // Return actual limit, not buffer limit
-            reason: canProcess ? null : `預估內容過大 (${estimatedChars.toLocaleString()} 字) 超過VIP限制 (${limit.toLocaleString()} 字)`
+            reason: canProcess ? null : this.getAiT()('openai.file_estimated_over_limit', {
+                estimated: estimatedChars.toLocaleString(),
+                limit: limit.toLocaleString()
+            })
         };
     }
 
@@ -1119,7 +1088,10 @@ class TranslateAi extends OpenAI {
             if (totalEstimatedChars > limit) {
                 return {
                     valid: false,
-                    error: `附件總預估內容 (${totalEstimatedChars.toLocaleString()} 字) 超過VIP限制 (${limit.toLocaleString()} 字)`,
+                    error: this.getAiT()('openai.attachments_total_over_limit', {
+                        total: totalEstimatedChars.toLocaleString(),
+                        limit: limit.toLocaleString()
+                    }),
                     totalEstimatedChars,
                     validationResults
                 };
@@ -1201,7 +1173,10 @@ class TranslateAi extends OpenAI {
                             }
 
                             if (chunkText && chunkText.trim().length > 0) {
-                                processedText += `[分段 ${chunksProcessed}]\n${chunkText}\n\n`;
+                                processedText += this.getAiT()('openai.chunk_segment_label', {
+                                    n: chunksProcessed,
+                                    text: chunkText
+                                });
                             }
 
                             // Clear chunks to free memory
@@ -1229,7 +1204,7 @@ class TranslateAi extends OpenAI {
             }
 
             if (!processedText || processedText.trim().length === 0) {
-                throw new Error('無法從檔案中提取文字內容');
+                throw new Error(this.getAiT()('openai.file_no_text_extracted'));
             }
 
             debugLog(`[CHUNK_PROCESS] Completed chunked processing for ${attachment.name}, extracted ${processedText.length} characters`);
@@ -1364,14 +1339,16 @@ class TranslateAi extends OpenAI {
             await streamText;
 
             if (!processedText || processedText.trim().length === 0) {
-                throw new Error('無法從文字檔案中提取內容');
+                throw new Error(this.getAiT()('openai.file_no_text_extracted'));
             }
 
             debugLog(`[TEXT_PROCESS] Completed optimized text processing for ${attachment.name}, extracted ${totalChars.toLocaleString()} characters`);
 
             // Add a note about truncation for very large files
             if (totalChars >= maxChars) {
-                processedText = `[檔案過大，已截斷至 ${maxChars.toLocaleString()} 字元]\n\n${processedText}`;
+                processedText = this.getAiT()('openai.file_truncated_note', {
+                    max: maxChars.toLocaleString()
+                }) + processedText;
             }
 
             return processedText.trim();
@@ -1384,31 +1361,35 @@ class TranslateAi extends OpenAI {
 
     // Enhanced error response generator
     generateFileProcessingError(error, filename, fileType) {
+        const t = this.getAiT();
         const errorMessage = error.message || error.toString();
 
         // Check for specific error types
         if (errorMessage.includes('encrypted') || errorMessage.includes('password')) {
-            return `檔案損壞或加密\n檔案: ${filename}\n錯誤: 檔案可能受密碼保護或已損壞，無法提取文字內容`;
+            return t('openai.file_encrypted', { filename });
         }
 
         if (errorMessage.includes('corrupt') || errorMessage.includes('invalid')) {
-            return `檔案損壞或加密\n檔案: ${filename}\n錯誤: 檔案格式無效或已損壞，請檢查檔案完整性`;
+            return t('openai.file_corrupt', { filename });
         }
 
         if (errorMessage.includes('timeout') || errorMessage.includes('time out')) {
-            return `檔案處理超時\n檔案: ${filename}\n錯誤: 檔案過於複雜，處理時間超過限制 (${FILE_PROCESSING_LIMITS.MAX_PROCESSING_TIME[fileType]}秒)`;
+            return t('openai.file_timeout', {
+                filename,
+                seconds: FILE_PROCESSING_LIMITS.MAX_PROCESSING_TIME[fileType]
+            });
         }
 
         if (errorMessage.includes('memory') || errorMessage.includes('out of memory')) {
-            return `記憶體不足\n檔案: ${filename}\n錯誤: 檔案過大導致記憶體不足，請嘗試較小的檔案`;
+            return t('openai.file_memory', { filename });
         }
 
         if (errorMessage.includes('no text') || errorMessage.includes('empty')) {
-            return `無法從附件中提取文字內容\n檔案: ${filename}\n原因: 檔案中包含可識別的文字內容\n建議: 檔案格式支援文字提取（PDF、圖片、Office文件等）`;
+            return t('openai.file_no_text', { filename });
         }
 
         // Generic error response
-        return `檔案處理失敗\n檔案: ${filename}\n錯誤: ${errorMessage}\n請檢查檔案是否完整且格式正確`;
+        return t('openai.file_processing_failed', { filename, error: errorMessage });
     }
 
     // Process PDF files and extract text with timeout and OCR fallback
@@ -1422,7 +1403,7 @@ class TranslateAi extends OpenAI {
                 console.warn(`[PDF_PROCESS] pdf-parse not available; falling back to OCR for ${filename}`);
                 if (discordMessage && userid) {
                     await this.sendProgressMessage(discordMessage, userid,
-                        `⚠️ 無法載入 PDF 解析元件，改用 OCR 方式處理 ${filename}`);
+                        this.getAiT()('openai.progress_pdf_parser_fallback', { filename }));
                 }
                 return await this.processPdfWithOcr(buffer, filename, discordMessage, userid);
             }
@@ -1447,7 +1428,7 @@ class TranslateAi extends OpenAI {
 
                 if (discordMessage && userid) {
                     await this.sendProgressMessage(discordMessage, userid,
-                        `🔍 **PDF 分析結果**\n📄 檔案: ${filename}\n⚠️ 檢測到掃描版 PDF\n🔄 正在轉換為圖像並使用 OCR 處理...`);
+                        this.getAiT()('openai.progress_pdf_scanned', { filename }));
                 }
 
                 // Convert PDF pages to images and then use OCR
@@ -1511,18 +1492,28 @@ class TranslateAi extends OpenAI {
 
                 if (discordMessage && userid) {
                     await this.sendProgressMessage(discordMessage, userid,
-                        `🔍 **PDF OCR 處理中**\n📄 檔案: ${filename}\n📑 頁面: ${pageNumber}/${pngPages.length}\n⏱️ 預估時間: 1-3 分鐘/頁\n\n正在識別第 ${pageNumber} 頁的文字內容...`);
+                        this.getAiT()('openai.progress_pdf_ocr_page', {
+                            filename,
+                            page: pageNumber,
+                            total: pngPages.length
+                        }));
                 }
 
                 try {
                     // Process the page image with OCR using the PNG buffer
                     const pageText = await this.processImageBufferWithOcr(pageData.content, `${filename}_page_${pageNumber}`, discordMessage, userid);
                     if (pageText && pageText.trim().length > 0) {
-                        allTexts.push(`[第 ${pageNumber} 頁]\n${pageText}`);
+                        allTexts.push(this.getAiT()('openai.progress_pdf_ocr_page_header', {
+                            page: pageNumber,
+                            text: pageText
+                        }));
                     }
                 } catch (error) {
                     console.error(`[PDF_OCR_PROCESS] Error processing page ${pageNumber}:`, error);
-                    allTexts.push(`[第 ${pageNumber} 頁 - 處理失敗]\n${error.message}`);
+                    allTexts.push(this.getAiT()('openai.progress_pdf_ocr_page_failed', {
+                        page: pageNumber,
+                        error: error.message
+                    }));
                 }
             }
 
@@ -1536,7 +1527,11 @@ class TranslateAi extends OpenAI {
             // Send completion message
             if (discordMessage && userid) {
                 await this.sendProgressMessage(discordMessage, userid,
-                    `✅ **PDF OCR 處理完成**\n📄 檔案: ${filename}\n📑 處理頁面: ${pngPages.length} 頁\n📝 提取文字長度: ${combinedText.length} 字\n\n開始翻譯分析...`);
+                    this.getAiT()('openai.progress_pdf_ocr_done', {
+                        filename,
+                        pages: pngPages.length,
+                        length: combinedText.length
+                    }));
             }
 
             return combinedText;
@@ -1574,7 +1569,7 @@ class TranslateAi extends OpenAI {
                             if (discordMessage && userid && progress >= lastProgressUpdate + 25) {
                                 lastProgressUpdate = progress;
                                 this.sendProgressMessage(discordMessage, userid,
-                                    `🔍 **OCR 處理進度**\n📷 檔案: ${filename}\n📊 進度: ${progress}%\n\n正在識別文字內容...`).catch(console.error);
+                                    this.getAiT()('openai.progress_ocr_percent', { filename, percent: progress })).catch(console.error);
                             }
                         }
                     }
@@ -1635,7 +1630,7 @@ class TranslateAi extends OpenAI {
             // Send initial OCR start message
             if (discordMessage && userid) {
                 await this.sendProgressMessage(discordMessage, userid,
-                    `🔍 **OCR 相片處理中**\n📷 檔案: ${filename}\n⏱️ 預估時間: 1-3 分鐘\n\n正在分析圖像中的文字內容...`);
+                    this.getAiT()('openai.progress_ocr_image_start', { filename }));
             }
 
             // Use the shared OCR processing method
@@ -1644,7 +1639,7 @@ class TranslateAi extends OpenAI {
             // Send completion message
             if (discordMessage && userid) {
                 await this.sendProgressMessage(discordMessage, userid,
-                    `✅ **OCR 處理完成**\n📷 檔案: ${filename}\n📝 提取文字長度: ${text.length} 字\n\n開始翻譯分析...`);
+                    this.getAiT()('openai.progress_ocr_image_done', { filename, length: text.length }));
             }
 
             return text;
@@ -1688,7 +1683,7 @@ class TranslateAi extends OpenAI {
                 return buffer.toString('utf8');
             }
 
-            throw new Error(`不支援的文件格式: ${extension || contentType}`);
+            throw new Error(this.getAiT()('openai.unsupported_format', { format: extension || contentType }));
         } catch (error) {
             // Generate enhanced error message
             const enhancedError = this.generateFileProcessingError(error, filename, fileType);
@@ -1956,7 +1951,10 @@ class TranslateAi extends OpenAI {
 
             // Send progress message to Discord
             if (discordMessage && userid) {
-                const progressMsg = `📚 正在生成專業術語對照表... (${chunkNumber}/${ordered.length})`;
+                const progressMsg = this.getAiT()('openai.progress_glossary_chunk', {
+                    current: chunkNumber,
+                    total: ordered.length
+                });
                 await this.sendProgressMessage(discordMessage, userid, progressMsg);
             }
 
@@ -1997,7 +1995,11 @@ class TranslateAi extends OpenAI {
 
                     // 發送重試進度消息給用戶
                     if (discordMessage && userid) {
-                        const retryMsg = `⚠️ 術語表處理失敗，正在重試 chunk ${chunkNumber}... (${retryCount}/${maxRetries})`;
+                        const retryMsg = this.getAiT()('openai.progress_glossary_retry', {
+                            current: chunkNumber,
+                            retry: retryCount,
+                            max: maxRetries
+                        });
                         await this.sendProgressMessage(discordMessage, userid, retryMsg);
                     }
 
@@ -2088,7 +2090,11 @@ class TranslateAi extends OpenAI {
                 // Reserve space for estimated attachment content
                 textLength += earlyValidation.totalEstimatedChars;
                 if (textLength > limit) {
-                    throw new Error(`預估總內容長度 (${textLength.toLocaleString()} 字) 超過VIP LV${lv}限制 (${limit.toLocaleString()} 字)`);
+                    throw new Error(this.getAiT()('openai.vip_estimated_over_limit', {
+                        estimated: textLength.toLocaleString(),
+                        lv,
+                        limit: limit.toLocaleString()
+                    }));
                 }
 
                 debugLog(`[EARLY_VALIDATION] Estimated total content: ${textLength} chars, VIP limit: ${limit} chars`);
@@ -2139,27 +2145,31 @@ class TranslateAi extends OpenAI {
                             const buffer = await response.buffer();
                             extractedText = await this.processAttachmentFile(buffer, filename, attachment.contentType, discordMessage, userid);
                         } else {
-                            throw new Error(`不支援的文件格式: ${extension}`);
+                            throw new Error(this.getAiT()('openai.unsupported_format', { format: extension }));
                         }
                     }
 
                     if (extractedText && extractedText.trim().length > 0) {
                         textLength += extractedText.length;
-                        text.push(`[來自文件: ${filename}]\n${extractedText}`);
+                        text.push(this.getAiT()('openai.file_from_document', { filename, text: extractedText }));
 
                         // Progressive limit check during processing
                         if (userid) {
                             const lv = await VIP.viplevelCheckUser(userid);
                             const limit = TRANSLATE_LIMIT_PERSONAL[lv];
                             if (textLength > limit) {
-                                throw new Error(`處理文件時超過VIP限制。目前已處理 ${textLength.toLocaleString()} 字，VIP LV${lv}限制為 ${limit.toLocaleString()} 字`);
+                                throw new Error(this.getAiT()('openai.vip_file_over_limit', {
+                                    current: textLength.toLocaleString(),
+                                    lv,
+                                    limit: limit.toLocaleString()
+                                }));
                             }
                         }
                     }
                 } catch (error) {
                     console.error(`[ATTACHMENT_PROCESS] Error processing ${attachment.name}:`, error);
                     // Use the enhanced error message from processAttachmentFile
-                    text.push(`[文件處理錯誤: ${attachment.name}]\n${error.message}`);
+                    text.push(this.getAiT()('openai.file_process_error_label', { filename: attachment.name, error: error.message }));
                 }
             }
         }
@@ -2210,27 +2220,31 @@ class TranslateAi extends OpenAI {
                             const buffer = await response.buffer();
                             extractedText = await this.processAttachmentFile(buffer, filename, attachment.contentType, discordMessage, userid);
                         } else {
-                            throw new Error(`不支援的文件格式: ${extension}`);
+                            throw new Error(this.getAiT()('openai.unsupported_format', { format: extension }));
                         }
                     }
 
                     if (extractedText && extractedText.trim().length > 0) {
                         textLength += extractedText.length;
-                        text.push(`[來自回覆文件: ${filename}]\n${extractedText}`);
+                        text.push(this.getAiT()('openai.file_from_reply', { filename, text: extractedText }));
 
                         // Progressive limit check during processing
                         if (userid) {
                             const lv = await VIP.viplevelCheckUser(userid);
                             const limit = TRANSLATE_LIMIT_PERSONAL[lv];
                             if (textLength > limit) {
-                                throw new Error(`處理回覆文件時超過VIP限制。目前已處理 ${textLength.toLocaleString()} 字，VIP LV${lv}限制為 ${limit.toLocaleString()} 字`);
+                                throw new Error(this.getAiT()('openai.vip_reply_file_over_limit', {
+                                    current: textLength.toLocaleString(),
+                                    lv,
+                                    limit: limit.toLocaleString()
+                                }));
                             }
                         }
                     }
                 } catch (error) {
                     console.error(`[REPLY_ATTACHMENT_PROCESS] Error processing ${attachment.name}:`, error);
                     // Use the enhanced error message from processAttachmentFile
-                    text.push(`[回覆文件處理錯誤: ${attachment.name}]\n${error.message}`);
+                    text.push(this.getAiT()('openai.file_reply_process_error', { filename: attachment.name, error: error.message }));
                 }
             }
         }
@@ -2255,7 +2269,7 @@ class TranslateAi extends OpenAI {
             const currentModel = this.getCurrentModelForTranslation(modelTier);
             if (!currentModel) {
                 console.error(`[TRANSLATE_AI] No valid model found for tier ${modelTier} with TOKEN >= 10000`);
-                return `無法找到有效的 ${modelTier} 模型（需要 TOKEN >= 10000），請稍後再試。`;
+                return this.getAiT()('openai.model_not_found_translate', { tier: modelTier });
             }
             const modelName = currentModel.name || mode.name;
 
@@ -2323,7 +2337,7 @@ class TranslateAi extends OpenAI {
                 }
 
                 // For other empty responses, return error message (will be retried by translateText)
-                return `翻譯失敗：模型 ${modelName} 返回空內容，請稍後再試。`;
+                return this.getAiT()('openai.translate_empty_response', { model: modelName });
             }
 
             return cleanedContent;
@@ -2372,7 +2386,10 @@ class TranslateAi extends OpenAI {
                 if (windowAttempt >= MAX_CHUNK_WINDOWS) {
                     console.warn(`[TRANSLATE_CHUNK_RETRY] idx=${index} hit max retry windows (${MAX_CHUNK_WINDOWS}), giving up`);
                     // Return a user-friendly error message instead of technical error
-                    result = `[翻譯失敗：段落 ${index + 1} 重試 ${MAX_CHUNK_WINDOWS} 次後仍無法完成，請稍後再試]`;
+                    result = this.getAiT()('openai.progress_chunk_failed_retry', {
+                        index: index + 1,
+                        retries: MAX_CHUNK_WINDOWS
+                    });
                     break;
                 }
 
@@ -2406,7 +2423,7 @@ class TranslateAi extends OpenAI {
             if (!result || result.trim().length === 0) {
                 console.warn(`[TRANSLATE_TEXT] Empty result for chunk ${index + 1}/${totalChunks}`);
                 console.warn(`[TRANSLATE_TEXT] Input chunk:`, inputScript[index].slice(0, 100) + '...');
-                result = `[翻譯失敗：段落 ${index + 1} 無法翻譯]`;
+                result = this.getAiT()('openai.progress_chunk_failed', { index: index + 1 });
             }
 
             response.push(result);
@@ -2417,7 +2434,12 @@ class TranslateAi extends OpenAI {
                 const currentModel = this.getCurrentModelForTranslation(modelTier);
                 const currentModelDisplay = currentModel ? currentModel.display : 'Unknown';
                 await this.sendProgressMessage(discordMessage, userid,
-                    `📝 翻譯進度: ${index + 1}/${totalChunks} 段落完成 (${progress}%)\n🤖 當前模型: ${currentModelDisplay}`);
+                    this.getAiT()('openai.progress_translate_chunk', {
+                        current: index + 1,
+                        total: totalChunks,
+                        percent: progress,
+                        model: currentModelDisplay
+                    }));
             }
         }
         return response;
@@ -2434,10 +2456,8 @@ class TranslateAi extends OpenAI {
             textLength = result.textLength;
         } catch (error) {
             // Handle validation errors thrown from getText
-            if (error.message.includes('超過VIP限制') ||
-                error.message.includes('預估總內容長度') ||
-                error.message.includes('檔案大小超過限制') ||
-                error.message.includes('不支援的文件格式')) {
+            const isValidationError = isOpenAiValidationError;
+            if (isValidationError(error.message)) {
                 return { text: error.message };
             }
             // Re-throw other errors
@@ -2445,8 +2465,11 @@ class TranslateAi extends OpenAI {
         }
 
         // Final check (though getText should have caught most issues already)
-        if (textLength > limit) return { text: `輸入的文字太多了，請分批輸入，你是VIP LV${lv}，限制為${limit}字` };
-        if (textLength === 0) return { text: '沒有找到需要翻譯的內容，請檢查文件內容或稍後再試。' };
+        const t = this.getAiT();
+        if (textLength > limit) {
+            return { text: t('openai.text_over_vip_limit', { lv, limit }) };
+        }
+        if (textLength === 0) return { text: t('openai.no_content_to_translate') };
 
         // Always show progress for all translations
         const showProgress = true;
@@ -2467,13 +2490,13 @@ class TranslateAi extends OpenAI {
             let estimatedTime = 0;
             let timeStr = '';
 
+            const t = this.getAiT();
+
             if (textLength > ANALYSIS_REPORT_LIMITS.SIZE_THRESHOLDS.VERY_LARGE) {
-                // For very large files, use simplified estimation
-                timeStr = '數小時 (分段處理中)';
+                timeStr = t('openai.time_hours_segmented');
             } else if (textLength > ANALYSIS_REPORT_LIMITS.SIZE_THRESHOLDS.LARGE) {
-                // For large files, use rough estimation
                 const hours = Math.max(1, Math.ceil(textLength / ANALYSIS_REPORT_LIMITS.TIME_ESTIMATION.CHARS_PER_HOUR));
-                timeStr = `${hours}小時以上`;
+                timeStr = t('openai.time_hours_plus', { hours });
             } else {
                 // For smaller files, use detailed estimation
                 // Add file processing time if needed
@@ -2497,40 +2520,41 @@ class TranslateAi extends OpenAI {
                 const avgChunkTime = Math.round(baseChunkTime * complexityFactor);
                 estimatedTime += chunkCount * avgChunkTime;
 
-                timeStr = estimatedTime < 60 ? `${estimatedTime}秒` : `${Math.ceil(estimatedTime / 60)}分鐘`;
+                timeStr = estimatedTime < 60
+                    ? t('openai.time_seconds', { seconds: estimatedTime })
+                    : t('openai.time_minutes', { minutes: Math.ceil(estimatedTime / 60) });
             }
 
-            let analysisMessage = `🔍 **翻譯分析報告**\n`;
+            let analysisMessage = t('openai.progress_analysis_header');
 
-            // Optimize display for very large files to prevent UI lag
             if (textLength > 10_000_000) {
-                // For extremely large files, show simplified info
-                analysisMessage += `📊 內容長度: ${Math.round(textLength / 1_000_000)}M+ 字\n`;
+                analysisMessage += t('openai.progress_length_m_plus', {
+                    value: Math.round(textLength / 1_000_000)
+                });
             } else if (textLength > 1_000_000) {
-                // For large files, show in millions
-                analysisMessage += `📊 內容長度: ${(textLength / 1_000_000).toFixed(1)}M 字\n`;
+                analysisMessage += t('openai.progress_length_m', {
+                    value: (textLength / 1_000_000).toFixed(1)
+                });
             } else {
-                // For normal files, show full count
-                analysisMessage += `📊 內容長度: ${textLength.toLocaleString()} 字\n`;
+                analysisMessage += t('openai.progress_length', { count: textLength.toLocaleString() });
             }
 
-            // Only show chunk count for smaller files to avoid lag
             if (textLength <= 500_000) {
-                analysisMessage += `📝 分段數量: ${chunkCount} 段\n`;
+                analysisMessage += t('openai.progress_chunks', { count: chunkCount });
             }
 
-            analysisMessage += `⏱️ 預估時間: ${timeStr}\n` +
-                `🤖 使用模型: ${modelDisplay} (可能會中途更換)\n`;
+            analysisMessage += t('openai.progress_estimated', { time: timeStr }) +
+                t('openai.progress_model', { model: modelDisplay });
 
             if (needsFileProcessing) {
-                analysisMessage += `📎 檢測到附件，將進行文件處理\n`;
+                analysisMessage += t('openai.progress_attachment');
             }
 
             if (textLength > 2_000_000) {
-                analysisMessage += `⚡ 大型檔案將使用優化處理模式\n`;
+                analysisMessage += t('openai.progress_large_file');
             }
 
-            analysisMessage += `\n開始翻譯中，請稍候...`;
+            analysisMessage += t('openai.progress_starting');
 
             await this.sendProgressMessage(discordMessage, userid, analysisMessage);
         }
@@ -2542,7 +2566,7 @@ class TranslateAi extends OpenAI {
             try {
                 if (showProgress && discordMessage && userid) {
                     await this.sendProgressMessage(discordMessage, userid,
-                        `📚 正在生成專業術語對照表...`);
+                        this.getAiT()('openai.progress_glossary_start'));
                 }
                 autoGlossary = await this.buildAutoGlossaryFromChunks(translateScript, mode, modelTier, discordMessage, userid);
             } catch (error) {
@@ -2559,36 +2583,38 @@ class TranslateAi extends OpenAI {
 
         if (!response || response.trim().length === 0) {
             console.error(`[HANDLE_TRANSLATE] Empty final response!`);
-            response = `翻譯失敗：無法生成翻譯結果，請檢查文件內容或稍後再試。`;
+            response = t('openai.progress_translate_failed_empty');
         }
 
         // Send completion message if progress was shown
         if (showProgress && discordMessage && userid) {
-            // 計算翻譯後文字量
             const translatedTextLength = response.length;
             const lengthRatio = textLength > 0 ? (translatedTextLength / textLength * 100).toFixed(1) : 0;
+            const glossaryLine = autoGlossary && Object.keys(autoGlossary).length > 0
+                ? t('openai.progress_translate_done_glossary', { count: Object.keys(autoGlossary).length })
+                : '';
 
             await this.sendProgressMessage(discordMessage, userid,
-                `✅ **翻譯完成！**\n` +
-                `📊 原文長度: ${textLength.toLocaleString()} 字\n` +
-                `📊 譯文長度: ${translatedTextLength.toLocaleString()} 字\n` +
-                `📈 長度比例: ${lengthRatio}%\n` +
-                `📝 完成段落: ${chunkCount} 段\n` +
-                `${autoGlossary && Object.keys(autoGlossary).length > 0 ? `📚 術語對照: ${Object.keys(autoGlossary).length} 項\n` : ''}` +
-                `正在準備輸出...`);
+                t('openai.progress_translate_done', {
+                    source: textLength.toLocaleString(),
+                    output: translatedTextLength.toLocaleString(),
+                    ratio: lengthRatio,
+                    chunks: chunkCount,
+                    glossary_line: glossaryLine
+                }));
         }
 
         if (textLength > 1900) {
             let fileContent = response;
             if (autoGlossary && Object.keys(autoGlossary).length > 0) {
-                const glossaryHeader = '\n\n----- 名詞對照表 (Glossary) -----\n';
+                const glossaryHeader = t('openai.glossary_header');
                 const glossaryBody = Object.entries(autoGlossary)
                     .map(([original, translation]) => `- "${original}" -> "${translation}"`)
                     .join('\n');
                 fileContent += glossaryHeader + glossaryBody + '\n';
             }
             let sendfile = await this.createFile(fileContent);
-            return { fileText: '輸出的文字太多了，請看附件', sendfile };
+            return { fileText: t('openai.progress_output_attachment'), sendfile };
         }
         return { text: response }
 
@@ -2714,7 +2740,7 @@ class ChatAi extends OpenAI {
             const currentModel = this.getCurrentModel(modelTier);
             if (!currentModel) {
                 console.error(`[CHAT_AI] No valid model found for tier ${modelTier}`);
-                return `無法找到有效的 ${modelTier} 模型，請稍後再試。`;
+                return this.getAiT()('openai.model_not_found', { tier: modelTier });
             }
             const modelName = currentModel.name || mode.name;
 
@@ -2789,7 +2815,12 @@ class CommandHandler {
 
     async processCommand(params) {
         // eslint-disable-next-line no-unused-vars
-        const { inputStr, mainMsg, groupid, discordMessage, userid, discordClient, botname } = params;
+        const { inputStr, mainMsg, groupid, discordMessage, userid, discordClient, botname, locale, t } = params;
+        const i18nParams = { locale, t };
+        const resolvedLocale = locale || i18n.DEFAULT_LOCALE;
+        chatAi._locale = resolvedLocale;
+        translateAi._locale = resolvedLocale;
+        imageAi._locale = resolvedLocale;
 
         let replyMessage = "";
         // Only try to get reply content if using Discord
@@ -2809,7 +2840,7 @@ class CommandHandler {
         if (!hasArg && hasReply) {
             params.inputStr = `${replyMessage}`;
         } else if (mainMsg[1] === 'help' || (!hasArg && !hasReply && !hasAttachments && !hasReplyAttachments)) {
-            return { text: getHelpMessage(), quotes: true };
+            return { text: getHelpMessage(i18nParams), quotes: true };
         }
 
         if (this.commands[command]) {
@@ -2820,12 +2851,13 @@ class CommandHandler {
     }
 
     async handleTranslateCommand(params) {
-        const { inputStr, mainMsg, discordMessage, discordClient, userid, botname } = params;
+        const { inputStr, mainMsg, discordMessage, discordClient, userid, botname, locale, t } = params;
+        const translate = getT({ locale, t });
         const rply = { default: 'on', type: 'text', text: '', quotes: true };
 
         // If not using Discord, inform the user
         if (botname !== "Discord") {
-            rply.text = "翻譯功能目前僅支持在 Discord 平台使用。";
+            rply.text = translate('openai.discord_only_translate');
             return rply;
         }
 
@@ -2833,13 +2865,13 @@ class CommandHandler {
         if (/^.aitm$/i.test(mainMsg[0])) {
             let lv = await VIP.viplevelCheckUser(userid);
             if (lv < 1) {
-                rply.text = `使用 MEDIUM 翻譯模型需要 VIP 會員，\n支援 HKTRPG 及升級請到\nhttps://www.patreon.com/hktrpg`;
+                rply.text = translate('openai.vip_required_translate');
                 return rply;
             }
             modelType = 'MEDIUM';
         } else if (/^.aith$/i.test(mainMsg[0])) {
             if (!isAdminUser(userid)) {
-                rply.text = `使用 HIGH 翻譯模型需要 HKTRPG 管理員權限`;
+                rply.text = translate('openai.admin_required_translate');
                 return rply;
             }
             modelType = 'HIGH';
@@ -2853,7 +2885,9 @@ class CommandHandler {
                 model.token && model.token >= 10_000
             );
             if (validModels.length === 0) {
-                rply.text = `沒有可用的翻譯模型（需要 TOKEN >= 10,000）。\n當前 LOW 模型：${AI_CONFIG.MODELS.LOW.models.map(m => `${m.display}(${m.token})`).join(', ')}`;
+                rply.text = translate('openai.no_translate_models', {
+                    models: AI_CONFIG.MODELS.LOW.models.map(m => `${m.display}(${m.token})`).join(', ')
+                });
                 return rply;
             }
             // Create a modified model config with only valid models
@@ -2872,11 +2906,7 @@ class CommandHandler {
             sendfile && (rply.fileLink = [sendfile]);
             text && (rply.text = text);
         } catch (error) {
-            // Handle early validation errors from getText method
-            if (error.message.includes('超過VIP限制') ||
-                error.message.includes('預估總內容長度') ||
-                error.message.includes('檔案大小超過限制') ||
-                error.message.includes('不支援的文件格式')) {
+            if (isOpenAiValidationError(error.message)) {
                 rply.text = error.message;
             } else {
                 // Re-throw other errors to be handled by the existing error handling
@@ -2888,17 +2918,18 @@ class CommandHandler {
     }
 
     async handleImageCommand(params) {
-        const { inputStr, mainMsg, userid, botname } = params;
+        const { inputStr, mainMsg, userid, botname, locale, t } = params;
+        const translate = getT({ locale, t });
         const rply = { default: 'on', type: 'text', text: '', quotes: true };
 
         // If not using Discord, inform the user
         if (botname !== "Discord") {
-            rply.text = "圖像生成功能目前僅支持在 Discord 平台使用。";
+            rply.text = translate('openai.discord_only_image');
             return rply;
         }
 
         if (!isAdminUser(userid)) {
-            rply.text = `使用圖像生成功能需要 HKTRPG 管理員權限`;
+            rply.text = translate('openai.admin_required_image');
             return rply;
         }
 
@@ -2909,20 +2940,21 @@ class CommandHandler {
     }
 
     async handleChatCommand(params) {
-        const { inputStr, mainMsg, userid, botname, discordMessage, discordClient } = params;
+        const { inputStr, mainMsg, userid, botname, discordMessage, discordClient, locale, t } = params;
+        const translate = getT({ locale, t });
         const rply = { default: 'on', type: 'text', text: '', quotes: true };
 
         let modelType = 'LOW';
         if (/^.aim$/i.test(mainMsg[0])) {
             let lv = await VIP.viplevelCheckUser(userid);
             if (lv < 1) {
-                rply.text = `使用 MEDIUM 對話模型需要 VIP 會員，\n支援 HKTRPG 及升級請到\nhttps://www.patreon.com/hktrpg`;
+                rply.text = translate('openai.vip_required_chat');
                 return rply;
             }
             modelType = 'MEDIUM';
         } else if (/^.aih$/i.test(mainMsg[0])) {
             if (!isAdminUser(userid)) {
-                rply.text = `使用 HIGH 對話模型需要 HKTRPG 管理員權限`;
+                rply.text = translate('openai.admin_required_chat');
                 return rply;
             }
             modelType = 'HIGH';
@@ -2937,7 +2969,7 @@ class CommandHandler {
                     processedInput = result.translateScript.join('\n');
                 }
             } catch (error) {
-                if (error.message.includes('超過VIP限制') || error.message.includes('檔案大小')) {
+                if (isOpenAiValidationError(error.message)) {
                     rply.text = error.message;
                     return rply;
                 }
@@ -2984,13 +3016,14 @@ const discordCommand = [
                         { name: AI_CONFIG.MODELS.HIGH.display, value: AI_CONFIG.MODELS.HIGH.type }
                     )),
         async execute(interaction) {
+            const t = getInteractionT(interaction);
             const modelType = interaction.options.getString('model') || AI_CONFIG.MODELS.LOW.type;
             const model = Object.values(AI_CONFIG.MODELS).find(m => m.type === modelType);
             const message = interaction.options.getString('message');
             const file = interaction.options.getAttachment('file');
 
             if (!message && !file) {
-                return '請提供討論內容或檔案。';
+                return t('openai.slash_ai_input_required');
             }
 
             if (file) {
@@ -3027,13 +3060,14 @@ const discordCommand = [
                         { name: AI_CONFIG.MODELS.HIGH.display, value: AI_CONFIG.MODELS.HIGH.type }
                     )),
         async execute(interaction) {
+            const t = getInteractionT(interaction);
             const modelType = interaction.options.getString('model') || AI_CONFIG.MODELS.LOW.type;
             const model = Object.values(AI_CONFIG.MODELS).find(m => m.type === modelType);
             const text = interaction.options.getString('text');
             const file = interaction.options.getAttachment('file');
 
             if (!text && !file) {
-                return '請提供文字或檔案進行翻譯。';
+                return t('openai.slash_tran_input_required');
             }
 
             if (file) {

@@ -1,7 +1,46 @@
 // Common JavaScript code for character card pages - Refactored version
 // Use modular architecture, depends on cardManager, authManager, uiManager, socketManager
 
-let TITLE = "HKTRPG 角色卡";
+let TITLE = 'HKTRPG Character Card';
+window.__wwwUnsavedConfirmMsg = null;
+
+function getUnsavedChangesConfirmMsg() {
+    if (window.__wwwUnsavedConfirmMsg) {
+        return window.__wwwUnsavedConfirmMsg;
+    }
+    if (typeof wwwT === 'function') {
+        return wwwT('unsaved_changes_confirm');
+    }
+    return 'You have unsaved changes. Leave anyway? Unsaved changes will be lost.';
+}
+
+function detectCardPageIsPublic() {
+    if (typeof PAGE_CONFIG !== 'undefined' && PAGE_CONFIG.isPublic === true) {
+        return true;
+    }
+    if (typeof PAGE_CONFIG !== 'undefined' && PAGE_CONFIG.isPublic === false) {
+        return false;
+    }
+    return /characterCardPublic/i.test(globalThis.location?.pathname || '');
+}
+
+function resolveCardPageTitle(isPublic = null) {
+    if (typeof wwwT !== 'function') {
+        if (isPublic === true) return 'HKTRPG Public Character Card';
+        if (isPublic === false) return 'HKTRPG Private Character Card';
+        return 'HKTRPG Character Card';
+    }
+    if (isPublic === true) return wwwT('title_public');
+    if (isPublic === false) return wwwT('title_private');
+    return wwwT('title_default');
+}
+
+function updateNavbarTitle(text) {
+    const titleEl = document.getElementById('title');
+    if (titleEl && text) {
+        titleEl.textContent = text;
+    }
+}
 // eslint-disable-next-line no-unused-vars
 let socket = socketManager.getSocket();
 // XSS Protection function (currently unused)
@@ -50,13 +89,17 @@ function debugLog(message, type = 'info', data) {
 let card = null;
 let _cardList = null;
 
-function initializeVueApps(isPublic = false, skipUITemplateLoad = false) {
+async function initializeVueApps(isPublic = false, skipUITemplateLoad = false) {
     try {
+        if (window.wwwI18n?.ready) {
+            await window.wwwI18n.ready;
+        }
         // Set title based on card type
-        TITLE = isPublic ? "HKTRPG 公開角色卡" : "HKTRPG 私人角色卡";
+        TITLE = resolveCardPageTitle(isPublic);
 
         // Update page title
         document.title = `${TITLE} @ HKTRPG`;
+        updateNavbarTitle(TITLE);
 
         // Only load UI template if not already loaded (skipUITemplateLoad = true means UI is already loaded)
         if (!skipUITemplateLoad) {
@@ -213,7 +256,7 @@ function confirmLogout() {
     $('#logoutModalCenter').modal('hide');
 
     // Message prompt and reload
-    uiManager.showSuccess('已成功登出');
+    uiManager.showSuccess(typeof wwwT === 'function' ? wwwT('logout_success') : 'Logged out successfully');
     setTimeout(() => { window.location.reload(); }, 800);
 }
 
@@ -248,12 +291,26 @@ function confirmExitEditModeWithoutSaving() {
 }
 
 // DOM Ready Handler
-$(function () {
+$(async function () {
     debugLog('DOM ready, initializing components', 'info');
-    $("#header").load("includes/header.html", function () {
-        $("#title").text(TITLE);
-    });
-    $("#footer").load("includes/footer.html");
+    if (window.wwwI18n?.ready) {
+        await window.wwwI18n.ready;
+    }
+    if (typeof wwwT === 'function') {
+        window.__wwwUnsavedConfirmMsg = wwwT('unsaved_changes_confirm');
+    }
+    TITLE = resolveCardPageTitle(detectCardPageIsPublic());
+    if (typeof loadSiteChromeWithI18n === 'function') {
+        loadSiteChromeWithI18n({ titleResolver: () => TITLE });
+    } else {
+        $("#header").load("includes/header.html", function () {
+            updateNavbarTitle(TITLE);
+            if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document.getElementById('header'));
+        });
+        $("#footer").load("includes/footer.html", function () {
+            if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document.getElementById('footer'));
+        });
+    }
 });
 
 // Alert Functions - 使用 uiManager
@@ -283,7 +340,8 @@ function selectCard() {
             // Check if floating-save-controls is displayed (indicates unsaved changes)
             const floatingControls = document.querySelector('.floating-save-controls');
             if (floatingControls) {
-                if (confirm('您有未儲存的變更，確定要離開嗎？未儲存的變更將會遺失。')) {
+                const leaveMsg = getUnsavedChangesConfirmMsg();
+                if (confirm(leaveMsg)) {
                     uiManager.showModal('cardListModal');
                 }
                 return;
@@ -297,7 +355,7 @@ function selectCard() {
 function updateCard() {
     // Public pages prohibit saving
     if (card && card.isPublic) {
-        uiManager.showInfo('公開頁面僅供瀏覽與擲骰，無法儲存。');
+        uiManager.showInfo(typeof wwwT === 'function' ? wwwT('public_readonly_info') : 'Public page is view/roll only.');
         return;
     }
     const userName = localStorage.getItem("userName");
@@ -307,7 +365,7 @@ function updateCard() {
 
     if (!userName || !token) {
         console.log('updateCard failed - missing credentials:', { userName: !!userName, token: !!token });
-        uiManager.showError('請先登入才能更新角色卡');
+        uiManager.showError(typeof wwwT === 'function' ? wwwT('login_required_update') : 'Please log in to update your character card');
         return;
     }
 
@@ -363,13 +421,19 @@ function updateCard() {
 
 // Frontend validation: avoid duplicate names and field length exceeding limits (consistent with backend)
 function validateClientCardPayload(payload) {
+    const v = (key, options) => {
+        if (typeof wwwT === 'function') {
+            return wwwT(`character.validation_${key}`, options);
+        }
+        return key;
+    };
     try {
-        if (!payload) return '資料無效';
+        if (!payload) return v('invalid_input');
         const name = (payload.name || '').toString().trim();
-        if (!name) return '角色卡名稱不可為空';
-        if (name.length > 50) return '角色卡名稱長度不可超過 50 字元';
+        if (!name) return v('name_empty');
+        if (name.length > 50) return v('name_too_long');
 
-        const tooLong = (v, m) => (v || '').toString().length > m;
+        const tooLong = (val, max) => (val || '').toString().length > max;
         const norm = (s) => (s || '').toString().trim().toLowerCase();
         const findDups = (arr) => {
             const seen = new Set();
@@ -386,31 +450,31 @@ function validateClientCardPayload(payload) {
         const rD = findDups(payload.roll);
         const nD = findDups(payload.notes);
         if (sD.length > 0 || rD.length > 0 || nD.length > 0) {
-            let msg = '偵測到重複項目名稱:\n';
-            if (sD.length > 0) msg += `狀態: ${sD.join(', ')}\n`;
-            if (rD.length > 0) msg += `擲骰: ${rD.join(', ')}\n`;
-            if (nD.length > 0) msg += `備註: ${nD.join(', ')}\n`;
+            let msg = v('duplicates_header');
+            if (sD.length > 0) msg += v('dup_state', { names: sD.join(', ') });
+            if (rD.length > 0) msg += v('dup_roll', { names: rD.join(', ') });
+            if (nD.length > 0) msg += v('dup_notes', { names: nD.join(', ') });
             return msg.trim();
         }
 
         for (const it of (payload.state || [])) {
-            if (!it || !it.name || !it.name.toString().trim()) return '狀態項目名稱不可為空';
-            if (tooLong(it.name, 50)) return `狀態「${it.name}」名稱超過 50 字元`;
-            if (tooLong(it.itemA, 50)) return `狀態「${it.name}」當前值超過 50 字元`;
-            if (tooLong(it.itemB, 50)) return `狀態「${it.name}」最大值超過 50 字元`;
+            if (!it || !it.name || !it.name.toString().trim()) return v('state_name_empty');
+            if (tooLong(it.name, 50)) return v('state_name_too_long', { name: it.name });
+            if (tooLong(it.itemA, 50)) return v('state_value_a_too_long', { name: it.name });
+            if (tooLong(it.itemB, 50)) return v('state_value_b_too_long', { name: it.name });
         }
         for (const it of (payload.roll || [])) {
-            if (!it || !it.name || !it.name.toString().trim()) return '擲骰項目名稱不可為空';
-            if (tooLong(it.name, 50)) return `擲骰「${it.name}」名稱超過 50 字元`;
-            if (tooLong(it.itemA, 150)) return `擲骰「${it.name}」內容超過 150 字元`;
+            if (!it || !it.name || !it.name.toString().trim()) return v('roll_name_empty');
+            if (tooLong(it.name, 50)) return v('roll_name_too_long', { name: it.name });
+            if (tooLong(it.itemA, 150)) return v('roll_content_too_long', { name: it.name });
         }
         for (const it of (payload.notes || [])) {
-            if (!it || !it.name || !it.name.toString().trim()) return '備註項目名稱不可為空';
-            if (tooLong(it.name, 50)) return `備註「${it.name}」名稱超過 50 字元`;
-            if (tooLong(it.itemA, 1500)) return `備註「${it.name}」內容超過 1500 字元`;
+            if (!it || !it.name || !it.name.toString().trim()) return v('notes_name_empty');
+            if (tooLong(it.name, 50)) return v('notes_name_too_long', { name: it.name });
+            if (tooLong(it.itemA, 1500)) return v('notes_content_too_long', { name: it.name });
         }
         return null;
-    } catch { return '驗證失敗'; }
+    } catch { return v('failed'); }
 }
 
 // Enhanced error display - 使用 uiManager

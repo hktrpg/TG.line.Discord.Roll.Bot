@@ -3,6 +3,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const { SlashCommandBuilder } = require('discord.js');
 const axios = require('axios').default;
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 
 // Optional persistence via Mongo (gracefully degrade if unavailable)
 let db = {};
@@ -23,8 +24,8 @@ const memoryRuns = new Map();
 
 const variables = {};
 
-const gameName = function () {
-    return '【StoryTeller】 .st';
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'storyteller.game_name', '【StoryTeller】 .st');
 }
 
 const gameType = function () {
@@ -39,69 +40,8 @@ const prefixs = function () {
     }]
 }
 
-const getHelpMessage = function () {
-    return `【📖 互動故事 StoryTeller】
-╭────── 💡 功能亮點 ──────
-│ - 多頁面分支、條件顯示（if/else、ifs）、隨機顯示與結局頁
-│ - 玩家變數、劇本變數、屬性數值，支援運算與條件判斷
-│ - 骰子語法：文字 {2d6}；條件/賦值可用 2d6>=7、3d6+2 等
-│ - 匯入/更新/驗證/匯出 RUN_DESIGN 或 JSON 劇本
-│ - 參與模式：僅發起者 / 所有人 / Discord 投票（計時）
-│ - 自動暫停：閒置超過 1 小時之遊戲將自動暫停
-├────── 🚀 快速開始 ──────
-│ .st start <alias|title> [alone|all|poll x]
-│   啟動劇本。alone 僅發起者；all 任何人；poll 啟用 Discord 投票 x 分鐘（預設 3）
-│ .st list
-│   顯示此處可啟動之劇本清單
-│ .st pause / .st continue [runId]
-│   暫停或繼續當前劇本（跨裝置可用 runId 指定續玩）
-│ .st edit alone|all|poll x
-│   切換參與權限；poll 僅Discord有效（x 分鐘，預設 3）
-│ .st end
-│   結束目前劇本
-├────── 🎯 遊戲進行 ──────
-│ .st goto <page>
-│   跳至指定頁面/選項（介面會提示可用選項）
-│ .st set <var> <value>
-│   設定玩家變數（例：.st set name 小花 / .st set hp 12）
-├────── 🧰 劇本管理 ──────
-│ .st my [alias]
-│   查看自己新增之劇本統計（可加 alias 僅看單一劇本）
-│ .st mylist
-│   顯示自己所有新增之劇本清單
-│ .st list <alias>
-│   顯示該劇本簡介與可用資訊
-│ .st import <alias> [title]
-│   上傳 .json 或 .txt（RUN_DESIGN）以新增劇本（僅Discord）
-│ .st update <alias> [title]
-│   以附件覆蓋既有劇本（僅Discord）
-│ .st delete <alias>
-│   刪除自己擁有的劇本
-│ .st export <alias>
-│   私訊傳送 RUN_DESIGN 文字檔，並於頻道通知（需權限，僅Discord）
-│ .st verify <alias>
-│   JSON → RUN_DESIGN → JSON 可逆性檢查
-├────── 🔐 啟動權限 ──────
-│ .st allow <alias> AUTHOR
-│   僅作者本人可在任何地方啟動（預設）
-│ .st allow <alias>
-│   在目前群組/頻道允許啟動
-│ .st allow <alias> <groupId...>
-│   允許多個指定群組/頻道啟動
-│ .st allow <alias> all
-│   任何人皆可啟動（公開）
-│ .st disallow <alias> [groupId...]
-│   在目前群組/頻道取消允許啟動（或移除指定 groupId）
-├────── 📎 範例 ──────
-│ .st list          | 查看可啟動的劇本清單
-│ .st start 霧之村  | 啟動霧之村劇本
-│ .st set name 小花 | 設定玩家變數
-│ .st goto 12       | 跳至指定頁面
-│ .st pause / .st continue / .st end | 暫停/繼續/結束劇本
-├────── ℹ️ 備註 ──────
-│ - poll、import、export、update 僅於Discord有效；未提供 x 時預設 3 分鐘
-│ - 編寫語法與範例請見： https://bothelp.hktrpg.com/
-╰────────────────`;
+const getHelpMessage = function (params = {}) {
+    return resolveHelp(params, 'storyteller.help');
 }
 
 const initialize = function () {
@@ -330,15 +270,15 @@ async function loadStoryByAlias(ownerID, alias) {
     return { storyDoc: null, story: null };
 }
 
-function canStartStory(storyDoc, { userid, groupid }) {
+function canStartStory(storyDoc, { userid, groupid, t = getT() }) {
     if (!storyDoc || !storyDoc.startPermission) return { ok: true };
     const perm = String(storyDoc.startPermission).toUpperCase();
     if (perm === 'ANYONE') return { ok: true };
-    if (perm === 'AUTHOR_ONLY') return { ok: storyDoc.ownerID === userid, reason: '僅作者可啟動' };
+    if (perm === 'AUTHOR_ONLY') return { ok: storyDoc.ownerID === userid, reason: t('storyteller.perm_author_only') };
     if (perm === 'GROUP_ONLY') {
         const groups = Array.isArray(storyDoc.allowedGroups) ? storyDoc.allowedGroups : [];
-        if (!groupid) return { ok: false, reason: '僅指定群組可啟動' };
-        return { ok: groups.includes(groupid), reason: '未在允許的群組內' };
+        if (!groupid) return { ok: false, reason: t('storyteller.perm_group_only') };
+        return { ok: groups.includes(groupid), reason: t('storyteller.perm_not_in_group') };
     }
     return { ok: true };
 }
@@ -534,9 +474,10 @@ function userCanActOnRun(run, userid) {
     return String(run && run.starterID) === String(userid);
 }
 
-function renderPageText(story, run, pageId) {
+function renderPageText(story, run, pageId, translate) {
+    const t = translate || getT({});
     const page = story.pages[pageId];
-    if (!page) return '找不到此頁面。';
+    if (!page) return t('storyteller.page_missing_inline');
     const scope = buildEvalScope(run);
     const statKeySet = new Set(Array.isArray(story.gameStats) ? story.gameStats.map(s => s.key) : []);
     // const varKeySet = new Set(Array.isArray(story.variables) ? story.variables.map(v => v.key) : []);
@@ -689,12 +630,12 @@ function renderPageText(story, run, pageId) {
     if (Array.isArray(page.choices) && page.choices.length > 0) {
         const choices = getAllowedChoicesForCurrentPage(story, run);
         if (choices.length > 0) {
-            out += '\n可用選項：\n';
+            out += t('storyteller.choices_header');
             for (const c of choices) {
                 const action = String(c.action || '').toUpperCase();
                 const label = interpolate(c.text || '', ctx);
-                if (action === 'END') out += '- ' + label + '（.st end）\n';
-                else out += '- ' + label + '（.st goto ' + c.action + '）\n';
+                if (action === 'END') out += t('storyteller.choice_end', { label });
+                else out += t('storyteller.choice_goto', { label, action: c.action });
             }
         }
     }
@@ -969,26 +910,27 @@ function getMissingPlayerVariables(story, run) {
     return missing;
 }
 
-function renderPlayerSetupPrompt(story, run) {
+function renderPlayerSetupPrompt(story, run, translate) {
+    const t = translate || getT({});
     const req = Array.isArray(story.playerVariables) ? story.playerVariables : [];
     const current = run.playerVariables || {};
     let text = '';
     try {
         if (story && typeof story.introduction === 'string' && story.introduction.trim() !== '') {
-            text += '【簡介】\n' + String(story.introduction) + '\n\n';
+            text += t('storyteller.setup_intro_header', { intro: String(story.introduction) });
         }
     } catch { /* ignore */ }
-    text += '【角色設定】\n請先完成以下項目：\n';
+    text += t('storyteller.setup_header');
     for (let i = 0; i < req.length; i++) {
         const item = req[i];
         const isSet = current[item.key] !== undefined && String(current[item.key]).trim() !== '';
-        const prefix = isSet ? '✔️ 已設定' : (String(i + 1) + '.');
-        text += prefix + ' ' + (item.prompt || ('設定 ' + item.key)) + '\n';
-        if (!isSet && item.placeholder) text += '範例：' + item.placeholder + '\n';
-        if (!isSet) text += '指令：.st set ' + item.key + '   內容\n';
-        else text += '目前：' + current[item.key] + '\n';
+        const prefix = isSet ? t('storyteller.setup_done_prefix') : t('storyteller.setup_item_prefix', { num: i + 1 });
+        text += prefix + ' ' + (item.prompt || t('storyteller.setup_default_prompt', { key: item.key })) + '\n';
+        if (!isSet && item.placeholder) text += t('storyteller.setup_placeholder', { placeholder: item.placeholder });
+        if (!isSet) text += t('storyteller.setup_command', { key: item.key });
+        else text += t('storyteller.setup_current', { value: current[item.key] });
     }
-    text += '\n全部設定完成後，遊戲將自動開始。';
+    text += t('storyteller.setup_footer');
     return text;
 }
 
@@ -1089,28 +1031,28 @@ function buildButtonsForPage(story, run) {
 }
 
 // Build poll payload for Discord reaction-based voting
-function buildPollPayloadForPage(story, run) {
+function buildPollPayloadForPage(story, run, translate = getT()) {
     const allowedChoices = getAllowedChoicesForCurrentPage(story, run);
     if (!allowedChoices || allowedChoices.length === 0) return null;
     const options = allowedChoices.map((c, i) => ({
         index: i,
-        label: c.text || ('選項 ' + (i + 1)),
+        label: c.text || translate('storyteller.choice_fallback', { n: i + 1 }),
         action: String(c.action || '')
     }));
     const minutes = Number((run && run.pollMinutes) || (run && run.variables && run.variables.__pollMinutes)) || 3;
     return { options, minutes };
 }
 
-function attachChoicesOutput({ rply, story, run, botname }) {
+function attachChoicesOutput({ rply, story, run, botname, translate = getT() }) {
     if (!rply || !story || !run) return;
     const isDiscord = String(botname || '').toLowerCase() === 'discord';
     const policy = String(run.participantPolicy || 'ANYONE').toUpperCase();
     if (isDiscord && policy === 'POLL') {
-        const pollPayload = buildPollPayloadForPage(story, run);
+        const pollPayload = buildPollPayloadForPage(story, run, translate);
         if (pollPayload) rply.discordCreatePoll = pollPayload;
         // Strip textual choices block for poll mode
         if (typeof rply.text === 'string') {
-            rply.text = rply.text.replace(/\n可用選項：[\s\S]*$/m, '').trim();
+            rply.text = rply.text.replace(/\n(?:可用選項|Available choices)：[\s\S]*$/m, '').trim();
         }
         return;
     }
@@ -1225,7 +1167,7 @@ function estimateJsonErrorLine(text, error) {
     return null;
 }
 
-function validateRunDesignLines(rawText) {
+function validateRunDesignLines(rawText, t = getT()) {
     const lines = String(rawText || '').split(/\r?\n/);
     const patterns = [
         /^\s*$/,
@@ -1248,17 +1190,17 @@ function validateRunDesignLines(rawText) {
     for (let i = 0; i < lines.length; i++) {
         const line = String(lines[i]).trim();
         if (!patterns.some(re => re.test(line))) {
-            return { ok: false, line: i + 1, message: '未知語法或格式錯誤' };
+            return { ok: false, line: i + 1, message: t('storyteller.validate_unknown_syntax') };
         }
     }
     return { ok: true };
 }
 
-function validateCompiledStory(story) {
-    if (!story || typeof story !== 'object') return { ok: false, message: '故事結構不正確' };
+function validateCompiledStory(story, t = getT()) {
+    if (!story || typeof story !== 'object') return { ok: false, message: t('storyteller.validate_bad_structure') };
     const pageCount = story && story.pages ? Object.keys(story.pages).length : 0;
     if (pageCount > MAX_PAGES) {
-        return { ok: false, message: '頁數超過限制（最多 ' + MAX_PAGES + ' 頁）' };
+        return { ok: false, message: t('storyteller.validate_page_limit', { max: MAX_PAGES }) };
     }
     // check text length per segment
     let hasEnding = false;
@@ -1268,24 +1210,24 @@ function validateCompiledStory(story) {
         if (Array.isArray(page && page.content)) {
             for (const item of page.content) {
                 if (typeof item.text === 'string' && item.text.length > MAX_TEXT_SEGMENT) {
-                    return { ok: false, message: '第 ' + pid + ' 頁內文過長（每段最多 ' + MAX_TEXT_SEGMENT + ' 字）' };
+                    return { ok: false, message: t('storyteller.validate_page_text_long', { page: pid, max: MAX_TEXT_SEGMENT }) };
                 }
             }
         }
         if (page && page.isEnding && Array.isArray(page.endings)) {
             for (const ed of page.endings) {
                 if (typeof ed.text === 'string' && ed.text.length > MAX_TEXT_SEGMENT) {
-                    return { ok: false, message: '第 ' + pid + ' 頁結局文字過長（每段最多 ' + MAX_TEXT_SEGMENT + ' 字）' };
+                    return { ok: false, message: t('storyteller.validate_page_ending_long', { page: pid, max: MAX_TEXT_SEGMENT }) };
                 }
             }
         }
         // Enforce: every [label] must contain at least one [choice]
         if (!Array.isArray(page && page.choices) || (page.choices || []).length === 0) {
-            return { ok: false, message: '第 ' + pid + ' 頁缺少選項（每個 [label] 必須至少包含一個 [choice]）' };
+            return { ok: false, message: t('storyteller.validate_page_no_choice', { page: pid }) };
         }
     }
     if (!hasEnding) {
-        return { ok: false, message: '必須至少包含一個結局頁（[ending]）。' };
+        return { ok: false, message: t('storyteller.validate_no_ending') };
     }
     return { ok: true };
 }
@@ -1301,8 +1243,11 @@ const rollDiceCommand = async function ({
     displayname,
     channelid,
     discordClient,
-    discordMessage
+    discordMessage,
+    locale,
+    t
 }) {
+    const translate = getT({ locale, t });
     let rply = {
         default: 'on',
         type: 'text',
@@ -1314,19 +1259,19 @@ const rollDiceCommand = async function ({
 
     switch (true) {
         case !sub || /^help$/.test(sub): {
-            rply.text = this.getHelpMessage();
+            rply.text = getHelpMessage({ locale, t });
             rply.quotes = true;
             rply.buttonCreate = ['.st mylist', '.st list'];
             return rply;
         }
         case /^importfile$/.test(sub): {
-            rply.text = '此指令已停用。請使用：.st import <alias> [title] 並附加檔案（.json 或 .txt）';
+            rply.text = translate('storyteller.importfile_deprecated');
             return rply;
         }
         case /^import$/.test(sub): {
             // Discord only restriction
             if (String(botname || '').toLowerCase() !== 'discord') {
-                rply.text = '此功能僅在 Discord 上可用。';
+                rply.text = translate('storyteller.discord_only');
                 return rply;
             }
             // .st import <alias> [title] with attachment
@@ -1335,18 +1280,18 @@ const rollDiceCommand = async function ({
             // Get attachment (Discord only)
             const att = await getAttachmentInfo(discordMessage, discordClient);
             if (!att || !att.url) {
-                rply.text = '未偵測到附件。請附加 .json 或 .txt 檔案後再試。';
+                rply.text = translate('storyteller.no_attachment');
                 return rply;
             }
             if (att.size > 0 && att.size > MAX_UPLOAD_BYTES) {
-                rply.text = '檔案過大（上限約 ' + Math.round(MAX_UPLOAD_BYTES / 1024) + 'KB）。請縮小後再上傳。';
+                rply.text = translate('storyteller.file_too_large', { maxKb: Math.round(MAX_UPLOAD_BYTES / 1024) });
                 return rply;
             }
             let rawText = '';
             try {
                 rawText = await downloadText(att.url);
             } catch (error) {
-                rply.text = '下載附件失敗：' + (error.message || '');
+                rply.text = translate('storyteller.download_failed', { error: error.message || '' });
                 return rply;
             }
 
@@ -1360,23 +1305,25 @@ const rollDiceCommand = async function ({
                     compiled = obj && obj.type === 'story' ? obj : obj;
                 } else {
                     // Validate RUN_DESIGN syntax lines first
-                    const lineCheck = validateRunDesignLines(rawText);
+                    const lineCheck = validateRunDesignLines(rawText, translate);
                     if (!lineCheck.ok) {
-                        rply.text = '上傳失敗：第 ' + lineCheck.line + ' 行格式有誤（' + lineCheck.message + '）';
+                        rply.text = translate('storyteller.upload_line_error', { line: lineCheck.line, message: lineCheck.message });
                         return rply;
                     }
                     compiled = compileRunDesignToStory(rawText, { alias: aliasArg || (filename.replace(/\.[^.]+$/, '') || ''), title: customTitle });
                 }
             } catch (error) {
                 parseErrorLine = estimateJsonErrorLine(rawText, error);
-                rply.text = '上傳失敗：無法解析檔案' + (parseErrorLine ? ('（第 ' + parseErrorLine + ' 行）') : '') + '。';
+                rply.text = translate('storyteller.upload_parse_failed', {
+                    lineHint: parseErrorLine ? translate('storyteller.parse_line_hint', { line: parseErrorLine }) : ''
+                });
                 return rply;
             }
 
             // Normalize title/alias
             const alias = (aliasArg || filename.replace(/\.[^.]+$/, '') || 'untitled').trim();
             if (!alias) {
-                rply.text = '請提供 alias 或者將檔名設定為可作為 alias 的名稱。';
+                rply.text = translate('storyteller.alias_required');
                 return rply;
             }
             if (customTitle) compiled.title = customTitle;
@@ -1385,13 +1332,13 @@ const rollDiceCommand = async function ({
             compiled.ownerId = userid;
             // Require author metadata
             if (!compiled.author || String(compiled.author).trim() === '') {
-                rply.text = '上傳失敗：缺少作者。請在檔案中加入 [meta] author "作者名" 後再試。';
+                rply.text = translate('storyteller.upload_missing_author');
                 return rply;
             }
 
             // Validation: pages and segment lengths
-            const v = validateCompiledStory(compiled);
-            if (!v.ok) { rply.text = '上傳失敗：' + v.message; return rply; }
+            const v = validateCompiledStory(compiled, translate);
+            if (!v.ok) { rply.text = translate('storyteller.upload_failed', { message: v.message }); return rply; }
 
             // Enforce alias uniqueness across all users
             let isUpdate = false;
@@ -1402,7 +1349,7 @@ const rollDiceCommand = async function ({
                     existingDoc = await db.story.findOne({ alias }).lean();
                     if (existingDoc) {
                         if (String(existingDoc.ownerID) !== String(userid)) {
-                            rply.text = '此 alias 已被其他使用者使用：' + alias;
+                            rply.text = translate('storyteller.alias_taken', { alias });
                             return rply;
                         }
                         isUpdate = true;
@@ -1418,7 +1365,7 @@ const rollDiceCommand = async function ({
                             if (obj && obj.ownerId === userid) currentCount++;
                             if (String(f).replace(/\.[^.]+$/, '') === alias) {
                                 if (obj && String(obj.ownerId) !== String(userid)) {
-                                    rply.text = '此 alias 已被其他使用者使用：' + alias;
+                                    rply.text = translate('storyteller.alias_taken', { alias });
                                     return rply;
                                 }
                                 isUpdate = true;
@@ -1432,7 +1379,7 @@ const rollDiceCommand = async function ({
                 try { levelIndex = (typeof VIP.viplevelCheckUser === 'function') ? await VIP.viplevelCheckUser(userid) : 0; } catch { levelIndex = 0; }
                 const limit = STORY_LIMIT_BY_LEVEL[Math.max(0, Math.min(STORY_LIMIT_BY_LEVEL.length - 1, Number(levelIndex) || 0))];
                 if (currentCount >= limit) {
-                    rply.text = '你目前的劇本數已達上限（' + limit + '）。若需新增更多，請升級會員或刪除既有劇本。';
+                    rply.text = translate('storyteller.story_limit', { limit });
                     return rply;
                 }
             }
@@ -1471,40 +1418,40 @@ const rollDiceCommand = async function ({
                 fs.writeFileSync(outPath, JSON.stringify(compiled, null, 2), 'utf8');
             } catch { /* ignore */ }
 
-            rply.text = '已匯入劇本：' + (compiled.title || alias) + '（alias: ' + alias + '）';
+            rply.text = translate('storyteller.import_success', { title: compiled.title || alias, alias });
             rply.buttonCreate = ['.st start ' + alias];
             return rply;
         }
         case /^update$/.test(sub): {
             // Discord only restriction
             if (String(botname || '').toLowerCase() !== 'discord') {
-                rply.text = '此功能僅在 Discord 上可用。';
+                rply.text = translate('storyteller.discord_only');
                 return rply;
             }
             // .st update <alias> [title] with attachment
             const alias = (mainMsg[2] || '').trim();
             const customTitle = (mainMsg.slice(3).join(' ') || '').trim();
-            if (!alias) { rply.text = '用法：.st update <alias>（需附加檔案）'; return rply; }
+            if (!alias) { rply.text = translate('storyteller.usage_update'); return rply; }
             // Ensure alias exists and belongs to user
             if (db.story && typeof db.story.findOne === 'function') {
                 const doc = await db.story.findOne({ alias }).lean();
-                if (!doc) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
-                if (String(doc.ownerID) !== String(userid)) { rply.text = '你沒有權限更新此劇本。'; return rply; }
+                if (!doc) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
+                if (String(doc.ownerID) !== String(userid)) { rply.text = translate('storyteller.no_permission_update'); return rply; }
             } else {
                 const p = path.join(__dirname, 'storyTeller', alias + '.json');
-                if (!fs.existsSync(p)) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
+                if (!fs.existsSync(p)) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
                 try {
                     const obj = JSON.parse(fs.readFileSync(p, 'utf8'));
-                    if (obj && String(obj.ownerId) !== String(userid)) { rply.text = '你沒有權限更新此劇本。'; return rply; }
+                    if (obj && String(obj.ownerId) !== String(userid)) { rply.text = translate('storyteller.no_permission_update'); return rply; }
                 } catch { /* ignore parse errors; allow overwrite if file exists and owner matches unknown */ }
             }
 
             // Attachment
             const att = await getAttachmentInfo(discordMessage, discordClient);
-            if (!att || !att.url) { rply.text = '未偵測到附件。請附加 .json 或 .txt 檔案後再試。'; return rply; }
-            if (att.size > 0 && att.size > MAX_UPLOAD_BYTES) { rply.text = '檔案過大（上限約 ' + Math.round(MAX_UPLOAD_BYTES / 1024) + 'KB）。請縮小後再上傳。'; return rply; }
+            if (!att || !att.url) { rply.text = translate('storyteller.no_attachment'); return rply; }
+            if (att.size > 0 && att.size > MAX_UPLOAD_BYTES) { rply.text = translate('storyteller.file_too_large', { maxKb: Math.round(MAX_UPLOAD_BYTES / 1024) }); return rply; }
             let rawText = '';
-            try { rawText = await downloadText(att.url); } catch (error) { rply.text = '下載附件失敗：' + (error.message || ''); return rply; }
+            try { rawText = await downloadText(att.url); } catch (error) { rply.text = translate('storyteller.download_failed', { error: error.message || '' }); return rply; }
             const isLikelyJson = /\.json$/i.test(String(att.filename || '')) || /json/i.test(att.contentType || '');
             let compiled = null;
             try {
@@ -1512,13 +1459,15 @@ const rollDiceCommand = async function ({
                     const obj = JSON.parse(rawText);
                     compiled = obj && obj.type === 'story' ? obj : obj;
                 } else {
-                    const lineCheck = validateRunDesignLines(rawText);
-                    if (!lineCheck.ok) { rply.text = '上傳失敗：第 ' + lineCheck.line + ' 行格式有誤（' + lineCheck.message + '）'; return rply; }
+                    const lineCheck = validateRunDesignLines(rawText, translate);
+                    if (!lineCheck.ok) { rply.text = translate('storyteller.upload_line_error', { line: lineCheck.line, message: lineCheck.message }); return rply; }
                     compiled = compileRunDesignToStory(rawText, { alias, title: customTitle });
                 }
             } catch (error) {
                 const parseErrorLine = estimateJsonErrorLine(rawText, error);
-                rply.text = '上傳失敗：無法解析檔案' + (parseErrorLine ? ('（第 ' + parseErrorLine + ' 行）') : '') + '。';
+                rply.text = translate('storyteller.upload_parse_failed', {
+                    lineHint: parseErrorLine ? translate('storyteller.parse_line_hint', { line: parseErrorLine }) : ''
+                });
                 return rply;
             }
             if (customTitle) compiled.title = customTitle;
@@ -1527,11 +1476,11 @@ const rollDiceCommand = async function ({
             compiled.ownerId = userid;
             // Require author metadata
             if (!compiled.author || String(compiled.author).trim() === '') {
-                rply.text = '更新失敗：缺少作者。請在檔案中加入 [meta] author "作者名" 後再試。';
+                rply.text = translate('storyteller.update_missing_author');
                 return rply;
             }
-            const v = validateCompiledStory(compiled);
-            if (!v.ok) { rply.text = '更新失敗：' + v.message; return rply; }
+            const v = validateCompiledStory(compiled, translate);
+            if (!v.ok) { rply.text = translate('storyteller.update_failed', { message: v.message }); return rply; }
 
             // Persist strictly as update (no create)
             if (db.story && typeof db.story.findOneAndUpdate === 'function') {
@@ -1547,7 +1496,7 @@ const rollDiceCommand = async function ({
                     },
                     { returnDocument: 'after' }
                 );
-                if (!updated) { rply.text = '更新失敗：未找到可更新的劇本。'; return rply; }
+                if (!updated) { rply.text = translate('storyteller.update_not_found'); return rply; }
             }
             try {
                 const outPath = path.join(__dirname, 'storyTeller', alias + '.json');
@@ -1563,18 +1512,18 @@ const rollDiceCommand = async function ({
                 } catch { /* ignore */ }
                 fs.writeFileSync(outPath, JSON.stringify(compiled, null, 2), 'utf8');
             } catch { /* ignore */ }
-            rply.text = '已更新劇本：' + (compiled.title || alias) + '（alias: ' + alias + '）';
+            rply.text = translate('storyteller.update_success', { title: compiled.title || alias, alias });
             rply.buttonCreate = ['.st start ' + alias];
             return rply;
         }
         case /^delete$/.test(sub): {
             const alias = (mainMsg[2] || '').trim();
-            if (!alias) { rply.text = '用法：.st delete <alias>'; return rply; }
+            if (!alias) { rply.text = translate('storyteller.usage_delete'); return rply; }
             // Verify ownership
             if (db.story && typeof db.story.findOne === 'function') {
                 const doc = await db.story.findOne({ alias }).lean();
-                if (!doc) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
-                if (String(doc.ownerID) !== String(userid)) { rply.text = '你沒有權限刪除此劇本。'; return rply; }
+                if (!doc) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
+                if (String(doc.ownerID) !== String(userid)) { rply.text = translate('storyteller.no_permission_delete'); return rply; }
                 if (typeof db.story.findOneAndDelete === 'function') {
                     await db.story.findOneAndDelete({ alias, ownerID: userid });
                 }
@@ -1586,7 +1535,7 @@ const rollDiceCommand = async function ({
                 const p2 = path.join(__dirname, 'storyTeller', alias);
                 if (fs.existsSync(p2)) fs.unlinkSync(p2);
             } catch { /* ignore */ }
-            rply.text = '已刪除劇本（alias: ' + alias + '）';
+            rply.text = translate('storyteller.delete_success', { alias });
             rply.buttonCreate = ['.st list'];
             return rply;
         }
@@ -1604,7 +1553,7 @@ const rollDiceCommand = async function ({
                 else if (p0 === 'poll') {
                     // Discord only restriction for poll mode
                     if (String(botname || '').toLowerCase() !== 'discord') {
-                        rply.text = '投票模式僅在 Discord 上可用。';
+                        rply.text = translate('storyteller.poll_discord_only');
                         return rply;
                     }
                     requestedPolicy = 'poll';
@@ -1624,29 +1573,29 @@ const rollDiceCommand = async function ({
             if (key) {
                 // Start requested with explicit story key
                 const resolved = await resolveStoryForStart({ ownerID: userid, aliasOrTitle: key });
-                if (!resolved.story) { rply.text = '找不到該劇本：' + key; return rply; }
+                if (!resolved.story) { rply.text = translate('storyteller.story_key_not_found', { key }); return rply; }
                 if (resolved.storyDoc) {
-                    const allow = canStartStory(resolved.storyDoc, { userid, groupid });
-                    if (!allow.ok) { rply.text = '無法啟動：' + (allow.reason || '權限不足'); return rply; }
+                    const allow = canStartStory(resolved.storyDoc, { userid, groupid, t: translate });
+                    if (!allow.ok) { rply.text = translate('storyteller.cannot_start', { reason: allow.reason || translate('storyteller.permission_denied') }); return rply; }
                 }
                 if (run && !run.isEnded) {
                     if ((run.storyAlias || '').toLowerCase() !== (resolved.alias || '').toLowerCase()) {
-                        rply.text = '目前此頻道已有進行中的故事：' + (run.storyAlias || '-') + '。請先輸入 .st end 或 .st pause 後再啟動新劇本。';
+                        rply.text = translate('storyteller.channel_busy', { alias: run.storyAlias || '-' });
                         rply.buttonCreate = ['.st end', '.st pause'];
                         return rply;
                     }
                     // Same story: continue
                     const cur = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
                     const story = cur.story;
-                    if (!story) { rply.text = '找不到故事內容，請重新開始。'; return rply; }
+                    if (!story) { rply.text = translate('storyteller.story_content_missing'); return rply; }
                     ensureRunDefaults(run, story);
                     const missing = getMissingPlayerVariables(story, run);
                     if (missing.length > 0) {
-                        rply.text = renderPlayerSetupPrompt(story, run);
+                        rply.text = renderPlayerSetupPrompt(story, run, translate);
                     } else {
-                        const text = renderPageText(story, run, run.currentPageId);
-                        rply.text = '已載入當前進度：\n' + text;
-                        attachChoicesOutput({ rply, story, run, botname });
+                        const text = renderPageText(story, run, run.currentPageId, translate);
+                        rply.text = translate('storyteller.loaded_progress', { text });
+                        attachChoicesOutput({ rply, story, run, botname, translate });
                     }
                     await saveRun(ctx, run);
                     return rply;
@@ -1661,7 +1610,7 @@ const rollDiceCommand = async function ({
                     const limit = STORY_LIMIT_BY_LEVEL[Math.max(0, Math.min(STORY_LIMIT_BY_LEVEL.length - 1, Number(levelIndex) || 0))];
                     const openCnt = await countOpenRunsByStarter(userid);
                     if (openCnt >= limit) {
-                        rply.text = '你目前開啟中的遊戲局數（含暫停）已達上限（' + limit + '）。請先結束部分遊戲後再試或提升VIP等級。';
+                        rply.text = translate('storyteller.run_limit', { limit });
                         return rply;
                     }
                 } catch { /* ignore and proceed */ }
@@ -1687,15 +1636,15 @@ const rollDiceCommand = async function ({
                 run.storyAlias = resolved.alias || (storyDoc ? storyDoc.alias : key);
                 const missing = getMissingPlayerVariables(story, run);
                 let text = '';
-                if (missing.length > 0) text = renderPlayerSetupPrompt(story, run);
+                if (missing.length > 0) text = renderPlayerSetupPrompt(story, run, translate);
                 else {
-                    text = renderPageText(story, run, run.currentPageId);
-                    attachChoicesOutput({ rply, story, run, botname });
+                    text = renderPageText(story, run, run.currentPageId, translate);
+                    attachChoicesOutput({ rply, story, run, botname, translate });
                 }
                 await saveRun(ctx, run);
                 let finalText = '';
                 if (pausedCount > 0) {
-                    finalText = `已自動暫停 ${pausedCount} 個閒置超過1小時的遊戲。\n\n`;
+                    finalText = translate('storyteller.auto_paused_idle', { count: pausedCount });
                 }
                 finalText += text;
                 rply.text = finalText;
@@ -1704,39 +1653,39 @@ const rollDiceCommand = async function ({
 
             // No key provided: continue existing run if any, otherwise ask for key
             if (run && !run.isEnded) {
-                if (!userCanActOnRun(run, userid)) { rply.text = '此局設定為僅發起者可參與。'; return rply; }
+                if (!userCanActOnRun(run, userid)) { rply.text = translate('storyteller.alone_only'); return rply; }
                 const cur = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
                 const story = cur.story;
-                if (!story) { rply.text = '找不到故事內容，請重新開始。'; return rply; }
+                if (!story) { rply.text = translate('storyteller.story_content_missing'); return rply; }
                 ensureRunDefaults(run, story);
                 const missing = getMissingPlayerVariables(story, run);
                 if (missing.length > 0) {
-                    rply.text = renderPlayerSetupPrompt(story, run);
+                    rply.text = renderPlayerSetupPrompt(story, run, translate);
                 } else {
-                    const text = renderPageText(story, run, run.currentPageId);
+                    const text = renderPageText(story, run, run.currentPageId, translate);
                     let finalText = '';
                     if (pausedCount > 0) {
-                        finalText = `已自動暫停 ${pausedCount} 個閒置超過1小時的遊戲。\n\n`;
+                        finalText = translate('storyteller.auto_paused_idle', { count: pausedCount });
                     }
-                    finalText += '已載入當前進度：\n' + text;
+                    finalText += translate('storyteller.loaded_progress', { text });
                     rply.text = finalText;
-                    attachChoicesOutput({ rply, story, run, botname });
+                    attachChoicesOutput({ rply, story, run, botname, translate });
                 }
                 await saveRun(ctx, run);
                 return rply;
             }
-            rply.text = '請輸入 .st start <alias|title> 開始，或使用 .st list 檢視清單。';
+            rply.text = translate('storyteller.start_prompt');
             rply.buttonCreate = ['.st list'];
             return rply;
         }
         case /^pause$/.test(sub): {
             const run = await getActiveRun(ctx);
-            if (!run) { rply.text = '目前沒有進行中的故事。'; return rply; }
-            if (!userCanActOnRun(run, userid)) { rply.text = '此局設定為僅發起者可參與。'; return rply; }
+            if (!run) { rply.text = translate('storyteller.no_active_story'); return rply; }
+            if (!userCanActOnRun(run, userid)) { rply.text = translate('storyteller.alone_only'); return rply; }
             run.isPaused = true;
             run.pausedAt = new Date();
             await saveRun(ctx, run);
-            rply.text = '已暫停（ID：' + (run._id || '-') + '），使用 .st continue ' + (run._id || '') + ' 可繼續。';
+            rply.text = translate('storyteller.paused', { id: run._id || '-' });
             // Provide a continue button for convenience
             rply.buttonCreate = ['.st continue ' + (run._id || '')];
             return rply;
@@ -1747,52 +1696,52 @@ const rollDiceCommand = async function ({
             if (id) {
                 // Block resuming another game if one is already active in this context
                 if (activeRun && !activeRun.isEnded && !activeRun.isPaused && String(activeRun._id) !== String(id)) {
-                    rply.text = '目前此頻道已有進行中的故事：' + (activeRun.storyAlias || '-') + '。請先輸入 .st end 或 .st pause 後再繼續其他遊戲。';
+                    rply.text = translate('storyteller.channel_busy_continue', { alias: activeRun.storyAlias || '-' });
                     rply.buttonCreate = ['.st end', '.st pause'];
                     return rply;
                 }
                 // If the requested id is the same as the active run, just re-render current output without changing state
                 if (activeRun && String(activeRun._id) === String(id)) {
                     const { story } = await loadStoryByAlias(activeRun.storyOwnerID || userid, activeRun.storyAlias);
-                    if (!story) { rply.text = '找不到故事內容，請重新開始。'; return rply; }
-                    const text = renderPageText(story, activeRun, activeRun.currentPageId);
-                    rply.text = '已載入當前進度：\n' + text;
-                    attachChoicesOutput({ rply, story, run: activeRun, botname });
+                    if (!story) { rply.text = translate('storyteller.story_content_missing'); return rply; }
+                    const text = renderPageText(story, activeRun, activeRun.currentPageId, translate);
+                    rply.text = translate('storyteller.loaded_progress', { text });
+                    attachChoicesOutput({ rply, story, run: activeRun, botname, translate });
                     return rply;
                 }
                 // Resume by id
                 let run = null;
                 if (db.storyRun && typeof db.storyRun.findById === 'function') {
                     run = await db.storyRun.findById(id);
-                    if (!run) { rply.text = '找不到該遊戲ID。'; return rply; }
+                    if (!run) { rply.text = translate('storyteller.game_id_not_found'); return rply; }
                     // Enforce same channel/group
                     if ((channelid && String(run.channelID) !== String(channelid)) || (!channelid && groupid && String(run.groupID) !== String(groupid))) {
-                        rply.text = '此遊戲不在目前頻道/群組中。';
+                        rply.text = translate('storyteller.game_not_in_channel');
                         return rply;
                     }
-                    if (!userCanActOnRun(run, userid)) { rply.text = '此局設定為僅發起者可參與。'; return rply; }
+                    if (!userCanActOnRun(run, userid)) { rply.text = translate('storyteller.alone_only'); return rply; }
                 } else {
                     // memory fallback: only current context
                     run = memoryRuns.get(getContextKey(ctx));
-                    if (!run || String(run._id) !== id) { rply.text = '找不到該遊戲ID於此頻道。'; return rply; }
-                    if (!userCanActOnRun(run, userid)) { rply.text = '此局設定為僅發起者可參與。'; return rply; }
+                    if (!run || String(run._id) !== id) { rply.text = translate('storyteller.game_id_not_in_channel'); return rply; }
+                    if (!userCanActOnRun(run, userid)) { rply.text = translate('storyteller.alone_only'); return rply; }
                 }
-                if (run.isEnded) { rply.text = '此遊戲已結束。'; return rply; }
+                if (run.isEnded) { rply.text = translate('storyteller.game_ended'); return rply; }
                 // Resume
                 run.isPaused = false;
                 const { story } = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
-                if (!story) { rply.text = '找不到故事內容，請重新開始。'; return rply; }
-                const text = renderPageText(story, run, run.currentPageId);
+                if (!story) { rply.text = translate('storyteller.story_content_missing'); return rply; }
+                const text = renderPageText(story, run, run.currentPageId, translate);
                 await saveRun(ctx, run);
                 rply.text = text;
-                attachChoicesOutput({ rply, story, run, botname });
+                attachChoicesOutput({ rply, story, run, botname, translate });
                 return rply;
             }
             // Without id: show last output for active run without state changes
             const run = await getActiveRun(ctx);
-            if (!run) { rply.text = '目前沒有進行中的故事。'; return rply; }
+            if (!run) { rply.text = translate('storyteller.no_active_story'); return rply; }
             const { story } = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
-            if (!story) { rply.text = '找不到故事內容，請重新開始。'; return rply; }
+            if (!story) { rply.text = translate('storyteller.story_content_missing'); return rply; }
             // Create a minimal plain-object view to avoid mutating the active run and avoid cloning errors
             const runView = {
                 variables: Object.assign({}, run.variables || {}),
@@ -1801,15 +1750,15 @@ const rollDiceCommand = async function ({
                 currentPageId: String(run.currentPageId || '0'),
                 __statsLocked: !!run.__statsLocked
             };
-            const text = renderPageText(story, runView, runView.currentPageId);
-            rply.text = '已載入當前進度：\n' + text;
-            attachChoicesOutput({ rply, story, run, botname });
+            const text = renderPageText(story, runView, runView.currentPageId, translate);
+            rply.text = translate('storyteller.loaded_progress', { text });
+            attachChoicesOutput({ rply, story, run, botname, translate });
             return rply;
         }
         case /^end$/.test(sub): {
             const run = await getActiveRun(ctx);
-            if (!run) { rply.text = '目前沒有進行中的故事。'; return rply; }
-            if (!userCanActOnRun(run, userid)) { rply.text = '此局設定為僅發起者可參與。'; return rply; }
+            if (!run) { rply.text = translate('storyteller.no_active_story'); return rply; }
+            if (!userCanActOnRun(run, userid)) { rply.text = translate('storyteller.alone_only'); return rply; }
             const { story } = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
             // If on an ending page, capture endingId/text
             try {
@@ -1835,32 +1784,33 @@ const rollDiceCommand = async function ({
             run.isEnded = true;
             run.endedAt = new Date();
             await saveRun(ctx, run);
-            const title = story && story.title ? story.title : '故事';
+            const title = story && story.title ? story.title : translate('storyteller.default_title');
             const started = run.createdAt ? new Date(run.createdAt) : new Date();
             const ended = run.endedAt ? new Date(run.endedAt) : new Date();
             const fmt = (d) => {
                 const pad = (n) => String(n).padStart(2, '0');
                 return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
             };
-            rply.text = '已結束本次故事。\n' +
-                '標題：' + title + '\n' +
-                '開始時間：' + fmt(started) + '\n' +
-                '結束時間：' + fmt(ended);
+            rply.text = translate('storyteller.end_success_detail', {
+                title,
+                started: fmt(started),
+                ended: fmt(ended)
+            });
             rply.buttonCreate = ['.st list'];
             return rply;
         }
         case /^goto$/.test(sub): {
             const target = (mainMsg[2] || '').trim();
-            if (!target) { rply.text = '請提供頁面ID，例如 .st goto 1'; return rply; }
+            if (!target) { rply.text = translate('storyteller.goto_usage'); return rply; }
             const run = await getActiveRun(ctx);
-            if (!run) { rply.text = '請先使用 .st start 開始故事。'; return rply; }
-            if (!userCanActOnRun(run, userid)) { rply.text = '此局設定為僅發起者可參與。'; return rply; }
+            if (!run) { rply.text = translate('storyteller.start_first'); return rply; }
+            if (!userCanActOnRun(run, userid)) { rply.text = translate('storyteller.alone_only'); return rply; }
             const { story } = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
             const missing = getMissingPlayerVariables(story, run);
-            if (missing.length > 0) { rply.text = renderPlayerSetupPrompt(story, run); return rply; }
+            if (missing.length > 0) { rply.text = renderPlayerSetupPrompt(story, run, translate); return rply; }
             // Enforce allowed choices from current page only
             const currentPage = story.pages[run.currentPageId];
-            if (!currentPage) { rply.text = '目前頁面不存在，請重新開始。'; return rply; }
+            if (!currentPage) { rply.text = translate('storyteller.current_page_missing'); return rply; }
             const allowedChoices = getAllowedChoicesForCurrentPage(story, run);
             // Support for 2a, 2b, 2c format: check if target is valid
             const targetStr = String(target || '');
@@ -1917,11 +1867,13 @@ const rollDiceCommand = async function ({
             }
 
             if (!isValidTarget) {
-                let msg = '只能前往當前頁面的可選項目。\n\n可用選項：\n';
+                const ctx = buildEvalScope(run);
+                let msg = translate('storyteller.goto_invalid_target');
                 for (const c of allowedChoices) {
                     const a = String(c.action || '').toUpperCase();
-                    if (a === 'END') msg += '- ' + c.text + '（.st end）\n';
-                    else msg += '- ' + c.text + '（.st goto ' + c.action + '）\n';
+                    const label = interpolate(c.text || '', ctx);
+                    if (a === 'END') msg += translate('storyteller.choice_end', { label });
+                    else msg += translate('storyteller.choice_goto', { label, action: c.action });
                 }
                 rply.text = msg.trim();
                 const btns = [];
@@ -1937,23 +1889,23 @@ const rollDiceCommand = async function ({
             // Check if the actual target page exists
             const targetUpper = String(actualTargetPage).toUpperCase();
             if (targetUpper !== 'END' && !story.pages[actualTargetPage]) {
-                rply.text = '找不到此頁面ID：' + actualTargetPage + '。可用頁面：' + Object.keys(story.pages).join(', ');
+                rply.text = translate('storyteller.page_not_found', { page: actualTargetPage, pages: Object.keys(story.pages).join(', ') });
                 return rply;
             }
             await gotoPage({ story, run, targetPageId: target });
-            const text = renderPageText(story, run, run.currentPageId);
+            const text = renderPageText(story, run, run.currentPageId, translate);
             await saveRun(ctx, run);
             rply.text = text;
-            attachChoicesOutput({ rply, story, run, botname });
+            attachChoicesOutput({ rply, story, run, botname, translate });
             return rply;
         }
         case /^set$/.test(sub): {
             const field = (mainMsg[2] || '').toLowerCase();
             const value = (mainMsg.slice(3).join(' ') || '').trim();
-            if (!field || !value) { rply.text = '用法：.st set name 小花 或 .st set owner_name 阿明'; return rply; }
+            if (!field || !value) { rply.text = translate('storyteller.set_usage'); return rply; }
             const run = await getActiveRun(ctx);
-            if (!run) { rply.text = '請先使用 .st start 開始故事。'; rply.buttonCreate = ['.st start']; return rply; }
-            if (!userCanActOnRun(run, userid)) { rply.text = '此局設定為僅發起者可參與。'; return rply; }
+            if (!run) { rply.text = translate('storyteller.start_first'); rply.buttonCreate = ['.st start']; return rply; }
+            if (!userCanActOnRun(run, userid)) { rply.text = translate('storyteller.alone_only'); return rply; }
             // Map common aliases
             let key = field;
             if (field === 'name') key = 'cat_name';
@@ -1969,22 +1921,22 @@ const rollDiceCommand = async function ({
             } catch { storyRef = null; }
             if (!storyRef) {
                 await saveRun(ctx, run);
-                rply.text = '已設定 ' + key + ' = ' + value + '\n\n目前沒有載入中的劇本內容，請使用 .st start <alias> 重新載入。';
+                rply.text = translate('storyteller.set_no_story', { key, value });
                 return rply;
             }
             ensureRunDefaults(run, storyRef);
             const missing = getMissingPlayerVariables(storyRef, run);
             if (missing.length > 0) {
-                const prompt = renderPlayerSetupPrompt(storyRef, run);
-                rply.text = '已設定 ' + key + ' = ' + value + '\n\n' + prompt;
+                const prompt = renderPlayerSetupPrompt(storyRef, run, translate);
+                rply.text = translate('storyteller.set_with_prompt', { key, value, prompt });
                 await saveRun(ctx, run);
             } else {
                 // All player variables are set, automatically start the game
-                const text = renderPageText(storyRef, run, run.currentPageId);
-                rply.text = '已設定 ' + key + ' = ' + value + '\n\n遊戲開始！\n\n' + text;
+                const text = renderPageText(storyRef, run, run.currentPageId, translate);
+                rply.text = translate('storyteller.set_game_start', { key, value, text });
                 // Persist any [set] effects applied during renderPageText (e.g., initial stats)
                 await saveRun(ctx, run);
-                attachChoicesOutput({ rply, story: storyRef, run, botname });
+                attachChoicesOutput({ rply, story: storyRef, run, botname, translate });
             }
             return rply;
         }
@@ -2037,14 +1989,14 @@ const rollDiceCommand = async function ({
         case /^(export|exportfile)$/.test(sub): {
             // Discord only restriction
             if (String(botname || '').toLowerCase() !== 'discord') {
-                rply.text = '此功能僅在 Discord 上可用。';
+                rply.text = translate('storyteller.discord_only');
                 return rply;
             }
             const alias = (mainMsg[2] || '').trim();
-            if (!alias) { rply.text = '用法：.st export <alias>'; return rply; }
+            if (!alias) { rply.text = translate('storyteller.usage_export'); return rply; }
             const { story } = await loadStoryByAlias(userid, alias);
-            if (!story) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
-            if (story.ownerId && String(story.ownerId) !== String(userid)) { rply.text = '你沒有權限匯出此劇本。'; return rply; }
+            if (!story) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
+            if (story.ownerId && String(story.ownerId) !== String(userid)) { rply.text = translate('storyteller.no_permission_export'); return rply; }
             const txt = exportStoryToRunDesign(story);
             try {
                 const safeAlias = String(alias).replaceAll(/[^a-zA-Z0-9_-]/g, '_').slice(0, 50) || 'story';
@@ -2052,26 +2004,26 @@ const rollDiceCommand = async function ({
                 fs.mkdirSync(outDir, { recursive: true });
                 const outFile = path.join(outDir, safeAlias + '_RUN_DESIGN.txt');
                 fs.writeFileSync(outFile, txt, 'utf8');
-                rply.text = `已將『${alias}』的 RUN_DESIGN 以私訊傳送給你。`;
-                rply.dmFileText = `『${alias}』的 RUN_DESIGN`;
+                rply.text = translate('storyteller.export_success', { alias });
+                rply.dmFileText = translate('storyteller.export_dm_filename', { alias });
                 rply.dmFileLink = [outFile];
             } catch (error) {
-                rply.text = '輸出失敗：' + error.message;
+                rply.text = translate('storyteller.export_failed', { error: error.message });
                 return rply;
             }
             return rply;
         }
         case /^verify$/.test(sub): {
             const alias = (mainMsg[2] || '').trim();
-            if (!alias) { rply.text = '用法：.st verify <alias>'; return rply; }
+            if (!alias) { rply.text = translate('storyteller.usage_verify'); return rply; }
             const { story } = await loadStoryByAlias(userid, alias);
-            if (!story) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
-            if (story.ownerId && String(story.ownerId) !== String(userid)) { rply.text = '你沒有權限驗證此劇本。'; return rply; }
+            if (!story) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
+            if (story.ownerId && String(story.ownerId) !== String(userid)) { rply.text = translate('storyteller.no_permission_verify'); return rply; }
             const txt = exportStoryToRunDesign(story);
             const recompiled = compileRunDesignToStory(txt, { alias, title: story.title });
             const norm = (obj) => JSON.stringify(obj);
             const same = norm(story) === norm(recompiled);
-            rply.text = same ? 'verify: OK（可逆）' : 'verify: 差異（可能存在未支援元素）';
+            rply.text = same ? translate('storyteller.verify_ok') : translate('storyteller.verify_diff');
             return rply;
         }
         case /^list$/.test(sub): {
@@ -2109,32 +2061,36 @@ const rollDiceCommand = async function ({
             }
             if (aliasFilter) {
                 if (rows.length === 0) {
-                    rply.text = '找不到該劇本（alias: ' + aliasFilter + '）';
+                    rply.text = translate('storyteller.story_not_found', { alias: aliasFilter });
                     rply.buttonCreate = ['.st list', '.st mylist'];
                     return rply;
                 }
                 const item = rows[0];
-                rply.text = '【' + item.title + '】\n作者：' + (item.author || '-') + '\n' + (item.introduction || '(無簡介)');
+                rply.text = translate('storyteller.list_detail', {
+                    title: item.title,
+                    author: item.author || '-',
+                    intro: item.introduction || translate('storyteller.no_intro')
+                });
                 rply.buttonCreate = ['.st start ' + item.alias];
                 return rply;
             }
-            let text = '【可啟動的劇本】\n';
+            let text = translate('storyteller.list_header');
             if (rows.length === 0) {
-                text += '(沒有資料)';
+                text += translate('storyteller.list_empty');
                 rply.text = text.trim();
                 rply.buttonCreate = ['.st mylist'];
                 return rply;
             }
             else {
                 for (const r of rows) {
-                    text += '- ' + r.title + ' (alias: ' + r.alias + ')\n';
-                    if (r.author) text += '  - 作者：' + r.author + '\n';
+                    text += translate('storyteller.list_entry', { title: r.title, alias: r.alias });
+                    if (r.author) text += translate('storyteller.list_author', { author: r.author });
                     try {
                         const intro = String(r.introduction || '').trim();
                         if (intro) {
                             const first = intro.split(/\r?\n/)[0] || '';
                             const preview = first.length > 80 ? (first.slice(0, 80) + '…') : first;
-                            text += '  - ' + preview + '\n';
+                            text += translate('storyteller.list_preview', { preview });
                         }
                     } catch { /* ignore */ }
                 }
@@ -2147,38 +2103,38 @@ const rollDiceCommand = async function ({
             const alias = (mainMsg[2] || '').trim();
             const arg3 = (mainMsg[3] || '').trim();
             const moreGroupIds = mainMsg.slice(3).filter(Boolean);
-            if (!alias) { rply.text = '用法：.st allow <alias> AUTHOR|all|[在群組中空白]|<groupId...>'; return rply; }
+            if (!alias) { rply.text = translate('storyteller.usage_allow'); return rply; }
             if (db.story && typeof db.story.findOneAndUpdate === 'function') {
                 const doc = await db.story.findOne({ alias }).lean();
-                if (!doc) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
-                if (String(doc.ownerID) !== String(userid)) { rply.text = '你沒有權限變更此劇本設定。'; return rply; }
+                if (!doc) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
+                if (String(doc.ownerID) !== String(userid)) { rply.text = translate('storyteller.no_permission_settings'); return rply; }
                 if (/^author$/i.test(arg3)) {
                     await db.story.findOneAndUpdate({ alias }, { startPermission: 'AUTHOR_ONLY', allowedGroups: [] }, { returnDocument: 'after' });
-                    rply.text = '已設定僅作者可啟動（alias: ' + alias + '）';
+                    rply.text = translate('storyteller.allow_author_only', { alias });
                     return rply;
                 }
                 if (/^all$/i.test(arg3)) {
                     await db.story.findOneAndUpdate({ alias }, { startPermission: 'ANYONE', allowedGroups: [] }, { returnDocument: 'after' });
-                    rply.text = '已設定任何人可啟動（alias: ' + alias + '）';
+                    rply.text = translate('storyteller.allow_anyone', { alias });
                     return rply;
                 }
                 let groups = Array.isArray(doc.allowedGroups) ? [...doc.allowedGroups] : [];
                 if (moreGroupIds.length > 0) {
                     for (const gid of moreGroupIds) if (!groups.includes(gid)) groups.push(gid);
                 } else {
-                    if (!groupid) { rply.text = '請在群組或頻道中使用 .st allow，或指定 groupId。'; return rply; }
+                    if (!groupid) { rply.text = translate('storyteller.allow_group_required'); return rply; }
                     if (!groups.includes(groupid)) groups.push(groupid);
                 }
                 await db.story.findOneAndUpdate({ alias }, { startPermission: 'GROUP_ONLY', allowedGroups: groups }, { returnDocument: 'after' });
-                rply.text = '已設定允許的群組/頻道（alias: ' + alias + '）：' + groups.join(', ');
+                rply.text = translate('storyteller.allow_groups_set', { alias, groups: groups.join(', ') });
                 return rply;
             }
             // files fallback
             try {
                 const p = path.join(__dirname, 'storyTeller', alias + '.json');
-                if (!fs.existsSync(p)) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
+                if (!fs.existsSync(p)) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
                 const obj = JSON.parse(fs.readFileSync(p, 'utf8'));
-                if (obj && String(obj.ownerId) !== String(userid)) { rply.text = '你沒有權限變更此劇本設定。'; return rply; }
+                if (obj && String(obj.ownerId) !== String(userid)) { rply.text = translate('storyteller.no_permission_settings'); return rply; }
                 obj._meta = obj._meta || {};
                 if (/^author$/i.test(arg3)) { obj._meta.startPermission = 'AUTHOR_ONLY'; obj._meta.allowedGroups = []; }
                 else if (/^all$/i.test(arg3)) { obj._meta.startPermission = 'ANYONE'; obj._meta.allowedGroups = []; }
@@ -2186,42 +2142,45 @@ const rollDiceCommand = async function ({
                     obj._meta.startPermission = 'GROUP_ONLY';
                     obj._meta.allowedGroups = Array.isArray(obj._meta.allowedGroups) ? obj._meta.allowedGroups : [];
                     if (moreGroupIds.length > 0) { for (const gid of moreGroupIds) if (!obj._meta.allowedGroups.includes(gid)) obj._meta.allowedGroups.push(gid); }
-                    else { if (!groupid) { rply.text = '請在群組或頻道中使用 .st allow，或指定 groupId。'; return rply; } if (!obj._meta.allowedGroups.includes(groupid)) obj._meta.allowedGroups.push(groupid); }
+                    else { if (!groupid) { rply.text = translate('storyteller.allow_group_required'); return rply; } if (!obj._meta.allowedGroups.includes(groupid)) obj._meta.allowedGroups.push(groupid); }
                 }
                 fs.writeFileSync(p, JSON.stringify(obj, null, 2), 'utf8');
-                rply.text = '已更新權限設定（alias: ' + alias + '）';
+                rply.text = translate('storyteller.allow_updated', { alias });
                 return rply;
-            } catch (error) { rply.text = '設定失敗：' + (error.message || ''); return rply; }
+            } catch (error) { rply.text = translate('storyteller.settings_failed', { error: error.message || '' }); return rply; }
         }
         case /^disallow$/.test(sub): {
             const alias = (mainMsg[2] || '').trim();
             const removeIds = mainMsg.slice(3).filter(Boolean);
-            if (!alias) { rply.text = '用法：.st disallow <alias> [groupId...]'; return rply; }
+            if (!alias) { rply.text = translate('storyteller.usage_disallow'); return rply; }
             if (db.story && typeof db.story.findOneAndUpdate === 'function') {
                 const doc = await db.story.findOne({ alias }).lean();
-                if (!doc) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
-                if (String(doc.ownerID) !== String(userid)) { rply.text = '你沒有權限變更此劇本設定。'; return rply; }
+                if (!doc) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
+                if (String(doc.ownerID) !== String(userid)) { rply.text = translate('storyteller.no_permission_settings'); return rply; }
                 let groups = Array.isArray(doc.allowedGroups) ? [...doc.allowedGroups] : [];
                 const targets = [...removeIds];
                 if (targets.length === 0) {
                     if (groupid) targets.push(groupid);
                     if (channelid) targets.push(channelid);
                 }
-                if (targets.length === 0) { rply.text = '請在群組或頻道中使用 .st disallow，或指定 groupId。'; return rply; }
+                if (targets.length === 0) { rply.text = translate('storyteller.disallow_group_required'); return rply; }
                 const before = groups.length;
                 groups = groups.filter(id => !targets.includes(String(id)));
                 await db.story.findOneAndUpdate({ alias }, { allowedGroups: groups }, { returnDocument: 'after' });
-                if (before === groups.length) { rply.text = '指定群組/頻道未在允許清單中。'; return rply; }
-                rply.text = '已取消允許（alias: ' + alias + '）：' + (groups.length > 0 ? groups.join(', ') : '(無)');
+                if (before === groups.length) { rply.text = translate('storyteller.disallow_not_in_list'); return rply; }
+                rply.text = translate('storyteller.disallow_removed', {
+                    alias,
+                    groups: groups.length > 0 ? groups.join(', ') : translate('storyteller.none_paren')
+                });
                 rply.buttonCreate = ['.st allow ' + alias];
                 return rply;
             }
             // files fallback
             try {
                 const p = path.join(__dirname, 'storyTeller', alias + '.json');
-                if (!fs.existsSync(p)) { rply.text = '找不到該劇本（alias: ' + alias + '）'; return rply; }
+                if (!fs.existsSync(p)) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
                 const obj = JSON.parse(fs.readFileSync(p, 'utf8'));
-                if (obj && String(obj.ownerId) !== String(userid)) { rply.text = '你沒有權限變更此劇本設定。'; return rply; }
+                if (obj && String(obj.ownerId) !== String(userid)) { rply.text = translate('storyteller.no_permission_settings'); return rply; }
                 obj._meta = obj._meta || {};
                 obj._meta.allowedGroups = Array.isArray(obj._meta.allowedGroups) ? obj._meta.allowedGroups : [];
                 const targets = [...removeIds];
@@ -2229,19 +2188,22 @@ const rollDiceCommand = async function ({
                     if (groupid) targets.push(groupid);
                     if (channelid) targets.push(channelid);
                 }
-                if (targets.length === 0) { rply.text = '請在群組或頻道中使用 .st disallow，或指定 groupId。'; return rply; }
+                if (targets.length === 0) { rply.text = translate('storyteller.disallow_group_required'); return rply; }
                 const before = obj._meta.allowedGroups.length;
                 obj._meta.allowedGroups = obj._meta.allowedGroups.filter(id => !targets.includes(String(id)));
                 fs.writeFileSync(p, JSON.stringify(obj, null, 2), 'utf8');
-                if (before === obj._meta.allowedGroups.length) { rply.text = '指定群組/頻道未在允許清單中。'; return rply; }
-                rply.text = '已取消允許（alias: ' + alias + '）：' + (obj._meta.allowedGroups.length > 0 ? obj._meta.allowedGroups.join(', ') : '(無)');
+                if (before === obj._meta.allowedGroups.length) { rply.text = translate('storyteller.disallow_not_in_list'); return rply; }
+                rply.text = translate('storyteller.disallow_removed', {
+                    alias,
+                    groups: obj._meta.allowedGroups.length > 0 ? obj._meta.allowedGroups.join(', ') : translate('storyteller.none_paren')
+                });
                 rply.buttonCreate = ['.st allow ' + alias];
                 return rply;
-            } catch (error) { rply.text = '設定失敗：' + (error.message || ''); return rply; }
+            } catch (error) { rply.text = translate('storyteller.settings_failed', { error: error.message || '' }); return rply; }
         }
         case /^game$/.test(sub): {
             // Show current running and paused games in this channel/group
-            let text = '【當前遊戲】\n';
+            let text = translate('storyteller.game_header_active');
             const activeRun = await getActiveRun(ctx);
             if (activeRun) {
                 const { story } = await loadStoryByAlias(activeRun.storyOwnerID || userid, activeRun.storyAlias);
@@ -2250,16 +2212,16 @@ const rollDiceCommand = async function ({
                     const pad = (n) => String(n).padStart(2, '0');
                     return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + ' ' + pad(date.getHours()) + ':' + pad(date.getMinutes());
                 };
-                text += '- 標題：' + ((story && story.title) || activeRun.storyAlias || '-') + '\n';
-                text += '- alias：' + (activeRun.storyAlias || '-') + '\n';
-                text += '- 發起人：' + (activeRun.starterName || activeRun.starterID || '-') + '\n';
-                if (activeRun.createdAt) text += '- 發起時間：' + fmt(activeRun.createdAt) + '\n';
-                text += '- 當前頁：' + (activeRun.currentPageId || '-') + '\n';
-                text += (story && story.introduction) ? ('\n【簡介】\n' + story.introduction + '\n') : '';
+                text += translate('storyteller.game_title', { title: (story && story.title) || activeRun.storyAlias || '-' });
+                text += translate('storyteller.game_alias', { alias: activeRun.storyAlias || '-' });
+                text += translate('storyteller.game_starter', { starter: activeRun.starterName || activeRun.starterID || '-' });
+                if (activeRun.createdAt) text += translate('storyteller.game_started', { time: fmt(activeRun.createdAt) });
+                text += translate('storyteller.game_page', { page: activeRun.currentPageId || '-' });
+                text += (story && story.introduction) ? translate('storyteller.game_intro_header', { intro: story.introduction }) : '';
             } else {
-                text += '(無)\n';
+                text += translate('storyteller.game_none') + '\n';
             }
-            text += '\n【暫停中的遊戲】\n';
+            text += translate('storyteller.game_header_paused');
             let paused = [];
             if (db.storyRun && typeof db.storyRun.find === 'function') {
                 const query = { isEnded: false, isPaused: true };
@@ -2271,7 +2233,7 @@ const rollDiceCommand = async function ({
                 if (r && r.isPaused) paused = [r];
             }
             if (paused.length === 0) {
-                text += '(無)';
+                text += translate('storyteller.game_none');
             } else {
                 const fmt = (d) => {
                     const date = new Date(d);
@@ -2279,10 +2241,10 @@ const rollDiceCommand = async function ({
                     return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + ' ' + pad(date.getHours()) + ':' + pad(date.getMinutes());
                 };
                 for (const p of paused) {
-                    text += '- ID：' + (p._id || '-') + '，alias：' + (p.storyAlias || '-') + '\n';
-                    text += '  - 發起人：' + (p.starterName || p.starterID || '-') + '\n';
-                    if (p.createdAt) text += '  - 發起時間：' + fmt(p.createdAt) + '\n';
-                    if (p.pausedAt) text += '  - 暫停時間：' + fmt(p.pausedAt) + '\n';
+                    text += translate('storyteller.game_paused_entry', { id: p._id || '-', alias: p.storyAlias || '-' });
+                    text += translate('storyteller.game_paused_starter', { starter: p.starterName || p.starterID || '-' });
+                    if (p.createdAt) text += translate('storyteller.game_paused_started', { time: fmt(p.createdAt) });
+                    if (p.pausedAt) text += translate('storyteller.game_paused_at', { time: fmt(p.pausedAt) });
                 }
             }
             rply.text = text.trim();
@@ -2307,26 +2269,24 @@ const rollDiceCommand = async function ({
         case /^edit$/.test(sub): {
             const mode = (mainMsg[2] || '').trim().toLowerCase();
             const maybeMinutes = Number(mainMsg[3]) || 0;
-            if (mode !== 'alone' && mode !== 'all' && mode !== 'poll') { rply.text = '用法：.st edit alone|all|poll x'; return rply; }
-            // Discord-only restriction for poll mode should be enforced regardless of run state
+            if (mode !== 'alone' && mode !== 'all' && mode !== 'poll') { rply.text = translate('storyteller.usage_edit'); return rply; }
             if (mode === 'poll') {
                 if (String(botname || '').toLowerCase() !== 'discord') {
-                    rply.text = '投票模式僅在 Discord 上可用。';
+                    rply.text = translate('storyteller.poll_discord_only');
                     return rply;
                 }
             }
             const run = await getActiveRun(ctx);
             if (!run) {
-                // For Discord poll mode tests, gracefully acknowledge even when no run exists
                 if (mode === 'poll' && String(botname || '').toLowerCase() === 'discord') {
                     const minutes = maybeMinutes || 3;
-                    rply.text = '已設定參與權限為：投票（' + minutes + ' 分鐘）';
+                    rply.text = translate('storyteller.edit_poll_set', { minutes });
                     return rply;
                 }
-                rply.text = '目前沒有進行中的故事。';
+                rply.text = translate('storyteller.no_active_story');
                 return rply;
             }
-            if (String(run.starterID) !== String(userid)) { rply.text = '僅發起者可變更參與權限。'; return rply; }
+            if (String(run.starterID) !== String(userid)) { rply.text = translate('storyteller.edit_starter_only'); return rply; }
             switch (mode) {
                 case 'alone':
                     run.participantPolicy = 'ALONE';
@@ -2342,13 +2302,13 @@ const rollDiceCommand = async function ({
                     break;
             }
             await saveRun(ctx, run);
-            if (mode === 'poll') rply.text = '已設定參與權限為：投票（' + (run.pollMinutes || 3) + ' 分鐘）';
-            else rply.text = '已設定參與權限為：' + (mode === 'alone' ? '僅發起者' : '所有人');
+            if (mode === 'poll') rply.text = translate('storyteller.edit_poll_set', { minutes: run.pollMinutes || 3 });
+            else rply.text = mode === 'alone' ? translate('storyteller.edit_alone') : translate('storyteller.edit_all');
             return rply;
         }
         case /^my$/.test(sub): {
             const aliasFilter = (mainMsg[2] || '').trim();
-            let text = '【我的劇本】\n';
+            let text = translate('storyteller.my_header');
             const ownerID = userid;
             const rows = [];
             if (db.story && typeof db.story.find === 'function' && db.storyRun && typeof db.storyRun.countDocuments === 'function') {
@@ -2377,12 +2337,12 @@ const rollDiceCommand = async function ({
                 }
             }
             if (rows.length === 0) {
-                text += '(沒有資料)';
+                text += translate('storyteller.list_empty');
             } else {
                 for (const r of rows) {
-                    text += '- ' + r.title + ' (alias: ' + r.alias + ')\n';
-                    text += '  - Completed: ' + (r.ended || 0) + '\n';
-                    text += '  - In progress: ' + (r.ongoing || 0) + '\n';
+                    text += translate('storyteller.my_entry', { title: r.title, alias: r.alias });
+                    text += translate('storyteller.my_completed', { count: r.ended || 0 });
+                    text += translate('storyteller.my_ongoing', { count: r.ongoing || 0 });
                 }
             }
             rply.text = text.trim();
@@ -2391,7 +2351,7 @@ const rollDiceCommand = async function ({
         }
         case /^mylist$/.test(sub): {
             const ownerID = userid;
-            let text = '【我的劇本清單】\n';
+            let text = translate('storyteller.mylist_header');
             const rows = [];
             if (db.story && typeof db.story.find === 'function') {
                 const stories = await db.story.find({ ownerID }).lean();
@@ -2497,28 +2457,32 @@ const rollDiceCommand = async function ({
                 }
             }
             if (rows.length === 0) {
-                text += '(沒有資料)';
+                text += translate('storyteller.list_empty');
             } else {
                 for (const r of rows) {
-                    text += '- ' + r.title + ' (alias: ' + r.alias + ')\n';
+                    text += translate('storyteller.my_entry', { title: r.title, alias: r.alias });
                     try {
                         const intro = String(r.introduction || '').trim();
                         if (intro) {
                             const first = intro.split(/\r?\n/)[0] || '';
                             const preview = first.length > 80 ? (first.slice(0, 80) + '…') : first;
-                            text += '  - 簡介：' + preview + '\n';
+                            text += translate('storyteller.mylist_intro', { preview });
                         }
                     } catch { /* ignore */ }
                     const perm = String(r.startPermission || '').toUpperCase();
-                    const options = ['僅作者', '任何人', '指定群組'];
+                    const options = [
+                        translate('storyteller.mylist_perm_author'),
+                        translate('storyteller.mylist_perm_anyone'),
+                        translate('storyteller.mylist_perm_group')
+                    ];
                     const activeIndex = (perm === 'AUTHOR_ONLY') ? 0 : (perm === 'ANYONE') ? 1 : (perm === 'GROUP_ONLY') ? 2 : -1;
                     const display = options.map((label, idx) => idx === activeIndex ? ('【' + label + '】') : label).join('/');
-                    text += '  - ' + display + '\n';
+                    text += translate('storyteller.mylist_perm', { display });
                     if (perm === 'GROUP_ONLY') {
-                        text += '    【指定群組】：\n';
+                        text += translate('storyteller.mylist_groups_header');
                         const groups = Array.isArray(r.allowedGroups) ? r.allowedGroups : [];
                         if (groups.length === 0) {
-                            text += '      （未設定）\n';
+                            text += translate('storyteller.mylist_groups_empty');
                         } else {
                             for (const gid of groups) {
                                 let name = '';
@@ -2534,14 +2498,14 @@ const rollDiceCommand = async function ({
                                         } catch { /* ignore */ }
                                     }
                                 }
-                                text += '      ' + (name ? (name + ' - ' + gid) : gid) + '\n';
+                                text += translate('storyteller.mylist_group_line', { line: name ? (name + ' - ' + gid) : gid });
                             }
                         }
                     }
-                    if (typeof r.completed === 'number') text += '  - 完成次數：' + r.completed + '\n';
+                    if (typeof r.completed === 'number') text += translate('storyteller.mylist_completed', { count: r.completed });
                     if (Array.isArray(r.endingStats) && r.endingStats.length > 0) {
-                        text += '  - 結局統計：\n';
-                        for (const es of r.endingStats) text += '    • ' + (es.id || '未知') + '：' + es.count + '\n';
+                        text += translate('storyteller.mylist_endings_header');
+                        for (const es of r.endingStats) text += translate('storyteller.mylist_ending_line', { id: es.id || translate('storyteller.unknown'), count: es.count });
                     }
                 }
             }

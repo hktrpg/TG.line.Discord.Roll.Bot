@@ -18,8 +18,13 @@ jest.mock('mathjs', () => ({
 
 // Import the module after mocking
 const wnModule = require('../roll/wn.js');
+const i18n = require('../modules/i18n.js');
 
 describe('Witch Hunting Night Module Tests', () => {
+  beforeAll(async () => {
+    await i18n.init();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });

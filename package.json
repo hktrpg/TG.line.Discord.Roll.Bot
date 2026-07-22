@@ -11,6 +11,7 @@
   "scripts": {
     "start": "node --max-old-space-size=3072 index.js",
     "test": "jest",
+    "test:lang": "jest test/i18n.test.js test/lang-keys.test.js",
     "test:unit": "jest --testPathIgnorePatterns=integration",
     "test:integration": "RUN_INTEGRATION_TESTS=true jest --testPathPattern=integration",
     "test:records": "jest test/records-integration.test.js",
@@ -68,6 +69,8 @@
     "grammy": "^1.37.0",
     "helmet": "^8.0.0",
     "https": "^1.0.0",
+    "i18next": "^26.3.6",
+    "i18next-fs-backend": "^2.6.6",
     "image-url-validator": "^1.0.4",
     "imgbox": "^1.1.4",
     "jimp": "^0.16.2",
@@ -115,6 +118,16 @@
     "Discord"
   ],
   "license": "MIT",
+  "jest": {
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/setup-i18n.js"
+    ],
+    "testMatch": [
+      "<rootDir>/test/**/*.test.js",
+      "<rootDir>/test/**/*.spec.js"
+    ]
+  },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
     "baseline-browser-mapping": "^2.10.0",

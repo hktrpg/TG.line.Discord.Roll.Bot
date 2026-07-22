@@ -1,10 +1,11 @@
 "use strict";
 const { SlashCommandBuilder } = require('discord.js');
 const mathjs = require('mathjs')
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 const rollbase = require('./rollbase.js');
 let variables = {};
-const gameName = function () {
-    return '【魔女狩獵之夜】.wn xDn+-y'
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'wn.game_name', '【魔女狩獵之夜】.wn xDn+-y');
 }
 
 const gameType = function () {
@@ -16,60 +17,15 @@ const prefixs = function () {
         second: null
     }]
 }
-const getHelpMessage = async function () {
-    return `【🌙魔女狩獵之夜】
-╭────── 🎲標準擲骰 ──────
-│ 指令格式:
-│ 　• .wn [x]D[n]±[y]
-│
-│ 參數說明:
-│ 　x: 骰池數量
-│ 　n: 罪業值(成功判定值)
-│ 　y: 調整值
-│
-│ 判定方式:
-│ 　• 擲xD6，≧4為成功
-│ 　• 預設成功值>3
-│
-├────── ⚔️進階擲骰 ──────
-│ 成敗相抵:
-│ 　• .wn [x]DD[n]±[y]
-│ 　• 雙D模式：成功數-失敗數
-│ 　• 結果可為負數
-│
-├────── ✨魔改規則 ──────
-│ 指令格式:
-│ 　• .wn [x]@D[n]±[y]
-│
-│ 判定方式:
-│ 　• ≦罪業值視為失敗
-│ 　• 可使用DD計算淨成功數
-│
-├────── 📝範例指令 ──────
-│ 標準擲骰:
-│ 　• .wn 3
-│ 　  骰3次D6，≧4成功
-│
-│ 　• .wn 5D4+3
-│ 　  骰5次D6，≧5成功，+3
-│
-│ 成敗相抵:
-│ 　• .wn 3DD6+2
-│ 　  計算淨成功數後+2
-│
-│ 魔改版:
-│ 　• .wn 3@3+3
-│ 　  ≦3失敗，計算後+3
-│
-│ 　• .wn 3@D3+2
-│ 　  成敗相抵後+2
-╰──────────────`
+const getHelpMessage = async function (params = {}) {
+    return resolveHelp(params, 'wn.help');
 }
 const initialize = function () {
     return variables;
 }
 
-const rollDiceCommand = async function ({ mainMsg }) {
+const rollDiceCommand = async function ({ mainMsg, locale, t }) {
+    const translate = getT({ locale, t });
     let rply = {
         default: 'on',
         type: 'text',
@@ -77,14 +33,14 @@ const rollDiceCommand = async function ({ mainMsg }) {
     };
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-            rply.text = await this.getHelpMessage();
+            rply.text = await getHelpMessage({ locale, t });
             rply.quotes = true;
             return rply;
         case /^\d/i.test(mainMsg[1]):
             if (mainMsg[1].replaceAll(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[@]/ig, '')) return;
 
             rply.text = await WN(mainMsg[1]).then(async (result) => {
-                return await WN2(result, mainMsg[2])
+                return await WN2(result, mainMsg[2], translate)
             });
             return rply;
         default:
@@ -140,7 +96,8 @@ async function Dice(msg) {
         return rollbase.BuildRollDice(msg)
     else msg
 }
-async function WN2(key, message) {
+async function WN2(key, message, translate) {
+    const t = translate || getT({});
     //[0]5 [1]^@|^D [2]D [3]!+-5 [4]+-5
     let result = [];
     let success = 0
@@ -153,11 +110,11 @@ async function WN2(key, message) {
     if (method == "@") {
         betterthan = (key[3]) || 4
         if (betterthan >= 6)
-            return "罪業6以上扣除5點罪業，增加一點代價"
+            return t('wn.sin_cost_5');
     }
     if (method && method.toString().toLowerCase() == "d") {
         if (theSins >= 6)
-            return "罪業超過6點時扣除6點罪業，轉化為一點代價"
+            return t('wn.sin_cost_6');
         else
             if (theSins > 3)
                 betterthan = (key[3])
@@ -172,11 +129,10 @@ async function WN2(key, message) {
         else
             False++
     }
-    // time method special > betterthan ; 
     let temp = time + method + special + theSins + '>' + betterthan
     if (message)
-        temp += '； ' + message
-    temp += " \n[" + result + "]"
+        temp += t('wn.roll_comment', { comment: message })
+    temp += t('wn.roll_dice', { results: result })
     let tempAdj = ''
     try {
         tempAdj = mathjs.evaluate(Adjustment)
@@ -184,14 +140,13 @@ async function WN2(key, message) {
         tempAdj = Adjustment
     }
     if (tempAdj)
-        temp += ' ' + tempAdj + '修正'
+        temp += t('wn.adjustment', { adj: tempAdj })
     if (special) {
-        //xD(D)n(+-y)
-        temp += " -> " + mathjs.evaluate(success - False + Adjustment) + "成功"
+        temp += t('wn.net_success', { count: mathjs.evaluate(success - False + Adjustment) });
         return temp
     }
 
-    temp += " - > " + mathjs.evaluate(success + Adjustment) + "成功"
+    temp += t('wn.total_success', { count: mathjs.evaluate(success + Adjustment) });
     return temp
     //export ->
     //6@6-5D

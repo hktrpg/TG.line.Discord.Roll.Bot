@@ -888,7 +888,7 @@ describe('rollDiceCommand', () => {
             has_recoil: false,
             hp_drain: false,
             sp_drain: false
-        });
+        }, expect.any(Function));
         expect(result.text).toBe('Mocked search result for: 疫苗種 電');
     });
 
@@ -901,7 +901,7 @@ describe('rollDiceCommand', () => {
             has_recoil: false,
             hp_drain: false,
             sp_drain: false
-        });
+        }, expect.any(Function));
         expect(result.text).toBe('Mocked search result for: 疫苗種 電');
     });
 
@@ -914,7 +914,7 @@ describe('rollDiceCommand', () => {
             has_recoil: false,
             hp_drain: false,
             sp_drain: false
-        });
+        }, expect.any(Function));
         expect(result.text).toBe('Mocked search result for: 疫苗種 電');
     });
 
@@ -928,7 +928,7 @@ describe('rollDiceCommand', () => {
     test('should handle single Digimon search when no move flag is present', async () => {
         const mainMsg = ['.digi', '亞古獸'];
         const result = await digmon.rollDiceCommand({ mainMsg });
-        expect(searchSpy).toHaveBeenCalledWith('亞古獸');
+        expect(searchSpy).toHaveBeenCalledWith('亞古獸', expect.any(Function));
         expect(searchMovesSpy).not.toHaveBeenCalled();
         expect(showEvolutionPathsSpy).not.toHaveBeenCalled();
         expect(result.text).toBe('Mocked single search for: 亞古獸');
@@ -940,7 +940,7 @@ describe('rollDiceCommand', () => {
 
         expect(findByNameOrIdSpy).toHaveBeenCalledWith('亞古獸');
         expect(findByNameOrIdSpy).toHaveBeenCalledWith('暴龍獸');
-        expect(showEvolutionPathsSpy).toHaveBeenCalledWith({ id: 3, name: '亞古獸' }, { id: 3, name: '暴龍獸' });
+        expect(showEvolutionPathsSpy).toHaveBeenCalledWith({ id: 3, name: '亞古獸' }, { id: 3, name: '暴龍獸' }, expect.any(Function));
         expect(searchMovesSpy).not.toHaveBeenCalled();
         expect(searchSpy).not.toHaveBeenCalled();
         expect(result.text).toBe('Mocked path from 亞古獸 to 暴龍獸');
@@ -984,7 +984,7 @@ describe('Digimon List Search Feature', () => {
             no_item: false,
             can_ride: false,
             no_ride: false
-        });
+        }, expect.any(Function));
         expect(result.quotes).toBe(true);
         expect(result.text).toBe(mockResult);
     });
@@ -1008,7 +1008,7 @@ describe('Digimon List Search Feature', () => {
             no_item: false,
             can_ride: false,
             no_ride: false
-        });
+        }, expect.any(Function));
         expect(result.text).toBe(mockResult);
     });
 
@@ -1031,7 +1031,7 @@ describe('Digimon List Search Feature', () => {
             no_item: false,
             can_ride: true,
             no_ride: false
-        });
+        }, expect.any(Function));
         expect(result.text).toBe(mockResult);
     });
 
@@ -1054,7 +1054,7 @@ describe('Digimon List Search Feature', () => {
             no_item: false,
             can_ride: false,
             no_ride: false
-        });
+        }, expect.any(Function));
         expect(result.text).toBe(mockResult);
     });
 
@@ -1077,7 +1077,7 @@ describe('Digimon List Search Feature', () => {
             no_item: false,
             can_ride: false,
             no_ride: false
-        });
+        }, expect.any(Function));
         expect(result.text).toBe(mockResult);
     });
 
@@ -1113,7 +1113,7 @@ describe('Digimon List Search Feature', () => {
             no_item: false,
             can_ride: false,
             no_ride: false
-        });
+        }, expect.any(Function));
         expect(result.text).toBe(mockResult);
     });
 });

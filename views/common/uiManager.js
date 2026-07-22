@@ -72,10 +72,10 @@ class UIManager {
         const pinButton = document.createElement('button');
         pinButton.type = 'button';
         pinButton.className = 'alert-pin-btn';
-        pinButton.setAttribute('aria-label', '釘選');
+        pinButton.setAttribute('aria-label', typeof wwwT === 'function' ? wwwT('ui_pin') : 'Pin');
         // Use text fallback if Font Awesome not loaded: 📌 or 📍
         pinButton.innerHTML = '<i class="fas fa-thumbtack"></i><span style="display:none;">📌</span>';
-        pinButton.title = '釘選（保持顯示至重新整理或取消釘選）';
+        pinButton.title = typeof wwwT === 'function' ? wwwT('ui_pin_title') : 'Pin';
         pinButton.style.cssText = 'background:rgba(255,255,255,0.3);border:none;cursor:pointer;padding:4px 8px;font-size:14px;border-radius:4px;z-index:10;min-width:24px;min-height:24px;display:flex;align-items:center;justify-content:center;';
         toolbar.append(pinButton);
 
@@ -84,7 +84,7 @@ class UIManager {
         closeButton.className = 'close';
         closeButton.dataset.dismiss = 'alert';
         closeButton.innerHTML = '&times;';
-        closeButton.setAttribute('aria-label', '關閉');
+        closeButton.setAttribute('aria-label', typeof wwwT === 'function' ? wwwT('ui_close') : 'Close');
         closeButton.addEventListener('click', () => { if (alert.parentNode) alert.remove(); });
         toolbar.append(closeButton);
 
@@ -138,11 +138,11 @@ class UIManager {
                 if (closeTimeoutId) { clearTimeout(closeTimeoutId); closeTimeoutId = null; }
                 alert.classList.add('alert-pinned');
                 pinButton.innerHTML = '<i class="fas fa-thumbtack"></i>';
-                pinButton.title = '取消釘選';
+                pinButton.title = typeof wwwT === 'function' ? wwwT('ui_unpin_title') : 'Unpin';
             } else {
                 alert.classList.remove('alert-pinned');
                 pinButton.innerHTML = '<i class="fas fa-thumbtack"></i>';
-                pinButton.title = '釘選（保持顯示至重新整理或取消釘選）';
+                pinButton.title = typeof wwwT === 'function' ? wwwT('ui_pin_title') : 'Pin';
                 scheduleClose();
             }
         });
@@ -180,8 +180,9 @@ class UIManager {
      * @param {number} duration - 顯示時間
      */
     showSuccess(message, duration = 3000) {
+        const title = typeof wwwT === 'function' ? wwwT('ui_success_title') : 'Success!';
         this.showAlert(
-            `<i class="fas fa-check-circle me-2"></i><strong>成功!</strong> ${message}`,
+            `<i class="fas fa-check-circle me-2"></i><strong>${title}</strong> ${message}`,
             "success",
             duration,
             true
@@ -194,8 +195,9 @@ class UIManager {
      * @param {number} duration - 顯示時間
      */
     showError(message, duration = 5000) {
+        const title = typeof wwwT === 'function' ? wwwT('ui_error_title') : 'Error!';
         this.showAlert(
-            `<i class="fas fa-exclamation-triangle me-2"></i><strong>錯誤!</strong> ${message}`,
+            `<i class="fas fa-exclamation-triangle me-2"></i><strong>${title}</strong> ${message}`,
             "danger",
             duration,
             true
@@ -208,8 +210,9 @@ class UIManager {
      * @param {number} duration - 顯示時間
      */
     showWarning(message, duration = 4000) {
+        const title = typeof wwwT === 'function' ? wwwT('ui_warning_title') : 'Warning!';
         this.showAlert(
-            `<i class="fas fa-exclamation-circle me-2"></i><strong>警告!</strong> ${message}`,
+            `<i class="fas fa-exclamation-circle me-2"></i><strong>${title}</strong> ${message}`,
             "warning",
             duration,
             true
@@ -222,8 +225,9 @@ class UIManager {
      * @param {number} duration - 顯示時間
      */
     showInfo(message, duration = 3000) {
+        const title = typeof wwwT === 'function' ? wwwT('ui_info_title') : 'Info';
         this.showAlert(
-            `<i class="fas fa-info-circle me-2"></i><strong>資訊!</strong> ${message}`,
+            `<i class="fas fa-info-circle me-2"></i><strong>${title}</strong> ${message}`,
             "info",
             duration,
             true
@@ -237,9 +241,9 @@ class UIManager {
     showPopup(success) {
         debugLog(`Showing popup with result: ${success}`, 'info');
         if (success) {
-            this.showSuccess("更新成功! 你可以在聊天平台上使用新資料了。", 5000);
+            this.showSuccess(typeof wwwT === 'function' ? wwwT('update_success') : 'Updated successfully.', 5000);
         } else {
-            this.showError("更新失敗! 請檢查或向HKTRPG回報。", 5000);
+            this.showError(typeof wwwT === 'function' ? wwwT('update_failed') : 'Update failed.', 5000);
         }
     }
 

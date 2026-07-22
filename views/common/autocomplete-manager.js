@@ -11,17 +11,28 @@ class AutocompleteManager {
         this.defaultConfig = {
             limit: 8,
             minQueryLength: 1,
-            placeholder: '輸入搜尋關鍵字...',
-            noResultsText: '找不到相關結果',
+            placeholder: 'Enter search keyword...',
+            noResultsText: 'No results found',
             debounceDelay: 300,
-            cacheTimeout: 5 * 60 * 1000, // 5分鐘快取
-            maxCacheSize: 100, // 最大快取項目數
-            enablePrefetch: true, // 啟用預載入
-            prefetchDelay: 1000 // 預載入延遲
+            cacheTimeout: 5 * 60 * 1000, // 5 minutes
+            maxCacheSize: 100,
+            enablePrefetch: true,
+            prefetchDelay: 1000
         };
         
         // 定期清理過期快取
         setInterval(() => this.cleanupCache(), 60_000);
+    }
+
+    getLocalizedDefaults() {
+        if (typeof wwwT !== 'function') {
+            return { ...this.defaultConfig };
+        }
+        return {
+            ...this.defaultConfig,
+            placeholder: wwwT('autocomplete_placeholder'),
+            noResultsText: wwwT('autocomplete_no_results')
+        };
     }
 
     /**
@@ -31,7 +42,7 @@ class AutocompleteManager {
      */
     registerModule(name, config) {
         this.modules[name] = {
-            ...this.defaultConfig,
+            ...this.getLocalizedDefaults(),
             ...config
         };
     }
@@ -57,7 +68,7 @@ class AutocompleteManager {
         }
 
         const autocomplete = new Autocomplete(input, {
-            ...this.defaultConfig,
+            ...this.getLocalizedDefaults(),
             ...config
         });
 
@@ -548,7 +559,13 @@ class Autocomplete {
             if (item.metadata.digimon) metadata.push(`<span class="badge badge-primary">${this.escapeHtml(item.metadata.digimon)}</span>`);
             if (item.metadata.element) metadata.push(`<span class="badge badge-warning">${this.escapeHtml(item.metadata.element)}</span>`);
             if (item.metadata.type) metadata.push(`<span class="badge badge-success">${this.escapeHtml(item.metadata.type)}</span>`);
-            if (item.metadata.power) metadata.push(`<span class="text-muted">威力: ${this.escapeHtml(item.metadata.power)}</span>`);
+            if (item.metadata.power) {
+                const escapedPower = this.escapeHtml(item.metadata.power);
+                const powerText = typeof wwwT === 'function'
+                    ? wwwT('power_label', { value: item.metadata.power })
+                    : `Power: ${escapedPower}`;
+                metadata.push(`<span class="text-muted">${typeof wwwT === 'function' ? this.escapeHtml(powerText) : powerText}</span>`);
+            }
             
             if (metadata.length > 0) {
                 html += `<div class="autocomplete-meta">${metadata.join(' ')}</div>`;

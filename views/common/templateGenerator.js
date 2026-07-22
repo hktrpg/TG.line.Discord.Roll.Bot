@@ -13,7 +13,7 @@ class CharacterCardTemplateGenerator {
     // Generate private character card page
     generatePrivateCard() {
         const config = {
-            TITLE: "Character Card 角色卡",
+            TITLE: "HKTRPG Character Card",
             BODY_CLASS: "",
             CONTAINER_CLASS: "container-fluid px-3 px-md-4 py-3",
             VUE_CONTAINER_CLASS: "container-fluid px-3 px-md-4 py-3",
@@ -27,7 +27,7 @@ class CharacterCardTemplateGenerator {
     // Generate public character card page
     generatePublicCard() {
         const config = {
-            TITLE: "Character Card 角色卡",
+            TITLE: "HKTRPG Public Character Card",
             BODY_CLASS: "center container",
             CONTAINER_CLASS: "container",
             VUE_CONTAINER_CLASS: "container",

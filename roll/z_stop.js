@@ -16,9 +16,10 @@ const records = require('../modules/records.js');
 })();
 const checkTools = require('../modules/check.js');
 const VIP = require('../modules/veryImportantPerson');
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 const FUNCTION_LIMIT = [30, 200, 200, 300, 300, 300, 300, 300];
-const gameName = function () {
-    return '【擲骰開關功能】 .bk (add del show)'
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'stop.game_name', '【擲骰開關功能】 .bk (add del show)');
 }
 
 const gameType = function () {
@@ -30,29 +31,8 @@ const prefixs = function () {
         second: null
     }]
 }
-const getHelpMessage = async function () {
-    return `【🎲擲骰開關功能】
-╭──── 📝系統簡介 ────
-│ • 關閉特定關鍵字的骰子回應
-│ • 符合關鍵字的指令將被過濾
-│ • 無法過濾 b, k, bk 指令
-│
-├──── ⚙️基本指令 ────
-│ • .bk add 關鍵字
-│   新增過濾關鍵字
-│ • .bk show
-│   顯示過濾清單
-│ • .bk del 編號
-│   刪除指定關鍵字
-│ • .bk del all
-│   清空過濾清單
-│
-├──── ⚠️注意事項 ────
-│ • 關鍵字使用模糊比對
-│ • 只能過濾中英數字
-│ • 如設定「D」會過濾全部包含D的指令
-│ • 未生效時請用show重整
-╰──────────────`
+const getHelpMessage = async function (params = {}) {
+    return resolveHelp(params, 'stop.help');
 }
 const initialize = function () {
     return save;
@@ -61,8 +41,11 @@ const initialize = function () {
 const rollDiceCommand = async function ({
     mainMsg,
     groupid,
-    userrole
+    userrole,
+    locale,
+    t
 }) {
+    const translate = getT({ locale, t });
     let rply = {
         default: 'on',
         type: 'text',
@@ -72,14 +55,14 @@ const rollDiceCommand = async function ({
     let limit = FUNCTION_LIMIT[0];
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-            rply.text = await this.getHelpMessage();
+            rply.text = await getHelpMessage({ locale, t });
             rply.quotes = true;
             return rply;
         case /^add$/i.test(mainMsg[1]) && /^\S+$/ig.test(mainMsg[2]): {
             //增加阻擋用關鍵字
             //if (!mainMsg[2]) return;
-            if (!mainMsg[2]) rply.text += '沒有關鍵字. '
-            rply.text += checkTools.permissionErrMsg({
+            if (!mainMsg[2]) rply.text += translate('stop.no_keyword');
+            rply.text += checkTools.permissionErrMsg({ locale,
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole
@@ -89,7 +72,7 @@ const rollDiceCommand = async function ({
             }
 
             if (mainMsg[2].length <= 1 || /bk/ig.test(mainMsg[2])) {
-                rply.text = '至少兩個字，及不可以阻擋bk'
+                rply.text = translate('stop.keyword_too_short');
                 return rply;
             }
             lv = await VIP.viplevelCheckGroup(groupid);
@@ -99,7 +82,7 @@ const rollDiceCommand = async function ({
             });
             if (findVIP)
                 if (findVIP._doc.blockfunction.length >= limit) {
-                    rply.text = '關鍵字上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
+                    rply.text = translate('stop.limit_reached', { limit });
                     return rply;
                 }
 
@@ -110,17 +93,17 @@ const rollDiceCommand = async function ({
             try {
                 await records.pushBlockFunction('block', temp);
                 save.save = await records.get('block');
-                rply.text = '新增成功: ' + mainMsg[2];
+                rply.text = translate('stop.add_success', { keyword: mainMsg[2] });
             } catch (error) {
                 console.error('[z_stop] Failed to push block function:', error);
-                rply.text = '新增失敗，請稍後再試';
+                rply.text = translate('stop.add_failed');
             }
 
             return rply;
         }
         case /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
             //刪除阻擋用關鍵字
-            rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({ locale,
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole
@@ -136,18 +119,18 @@ const rollDiceCommand = async function ({
                     try {
                         await records.setBlockFunction('block', temp);
                         save.save = await records.get('block');
-                        rply.text = '刪除所有關鍵字';
+                        rply.text = translate('stop.delete_all_success');
                     } catch (error) {
                         console.error('[z_stop] Failed to delete all block functions:', error);
-                        rply.text = '刪除失敗，請稍後再試';
+                        rply.text = translate('stop.delete_failed');
                     }
                 }
             }
             return rply;
         case /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
             //刪除阻擋用關鍵字
-            if (!mainMsg[2]) rply.text += '沒有關鍵字. '
-            rply.text += checkTools.permissionErrMsg({
+            if (!mainMsg[2]) rply.text += translate('stop.no_keyword');
+            rply.text += checkTools.permissionErrMsg({ locale,
                 flag : checkTools.flag.ChkChannelManager,
                 gid : groupid,
                 role : userrole
@@ -163,10 +146,10 @@ const rollDiceCommand = async function ({
                     try {
                         await records.setBlockFunction('block', temp);
                         save.save = await records.get('block');
-                        rply.text = '刪除成功: ' + mainMsg[2];
+                        rply.text = translate('stop.delete_success', { index: mainMsg[2] });
                     } catch (error) {
                         console.error('[z_stop] Failed to delete block function:', error);
-                        rply.text = '刪除失敗，請稍後再試';
+                        rply.text = translate('stop.delete_failed');
                     }
                 }
             }
@@ -180,7 +163,7 @@ const rollDiceCommand = async function ({
                 save.save = [];
             }
 
-            rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({ locale,
                 flag : checkTools.flag.ChkChannel,
                 gid : groupid
             });
@@ -191,14 +174,14 @@ const rollDiceCommand = async function ({
             let temp = 0;
             for (let i = 0; i < save.save.length; i++) {
                 if (save.save[i].groupid == groupid) {
-                    rply.text += '阻擋用關鍵字列表:'
+                    rply.text += translate('stop.list_header');
                     for (let a = 0; a < save.save[i].blockfunction.length; a++) {
                         temp = 1
-                        rply.text += ("\n") + a + ": " + save.save[i].blockfunction[a]
+                        rply.text += translate('stop.list_entry', { index: a, keyword: save.save[i].blockfunction[a] });
                     }
                 }
             }
-            if (temp == 0) rply.text = '沒有阻擋用關鍵字. '
+            if (temp == 0) rply.text = translate('stop.no_keywords');
 
             //顯示阻擋用關鍵字
             return rply;

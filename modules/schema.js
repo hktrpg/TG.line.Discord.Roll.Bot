@@ -1,6 +1,13 @@
 "use strict";
 
 const models = {};
+const localeDefinitions = require('../lang/locales.json');
+const DEFAULT_BOT_LOCALE = Object.keys(localeDefinitions).find((code) => localeDefinitions[code].default)
+    || Object.keys(localeDefinitions)[0];
+
+if (!DEFAULT_BOT_LOCALE) {
+    throw new Error('[schema] lang/locales.json must define at least one locale');
+}
 
 if (process.env.mongoURL) {
     const mongoose = require('./db-connector.js').mongoose;
@@ -420,6 +427,27 @@ if (process.env.mongoURL) {
         indexes: [
             { userID: 1, botname: 1, unique: true }
         ]
+    }));
+
+    models.botLocale = mongoose.model('botLocale', new Schema({
+        scope: { type: String, enum: ['group', 'user'], required: true },
+        scopeId: { type: String, required: true },
+        locale: { type: String, default: DEFAULT_BOT_LOCALE, maxlength: 10 }
+    }, {
+        indexes: [
+            { scope: 1, scopeId: 1, unique: true }
+        ]
+    }));
+
+    // Opt-in Discord cluster respawn schedule (.root schedule). Singleton via key.
+    models.discordRespawnSchedule = mongoose.model('discordRespawnSchedule', new Schema({
+        key: { type: String, default: 'default', unique: true },
+        enabled: { type: Boolean, default: false },
+        dayOfWeek: { type: Number, min: 0, max: 6 }, // 0=Sunday … 6=Saturday (cron)
+        hour: { type: Number, min: 0, max: 23 },
+        minute: { type: Number, min: 0, max: 59 },
+        updatedBy: String,
+        updatedAt: { type: Date, default: Date.now }
     }));
 
     models.theNewsMessage = mongoose.model('theNewsMessage', new Schema({

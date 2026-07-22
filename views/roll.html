@@ -1,25 +1,26 @@
 <!DOCTYPE html>
-<html lang="zh-Hant" class="app-shell-page">
+<html lang="zh-Hant-HK" class="app-shell-page">
 <!--HKTRPG.COM  SAD-->
 
 <head>
-    <title>簡易網上擲骰工具 - HKTRPG - Roll Dice Online</title>
     <meta charset="utf-8">
-
+    <script src="/common/www-locale-head.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <!--HKTRPG.COM  SAD-->
-    <meta name="description" content="HKTRPG|TRPG骰子工具。提供D2，D6，D10，D20，D100，自定擲骰功能" />
+    <title>簡易網上擲骰工具 - HKTRPG - Roll Dice Online</title>
+    <meta name="description" data-www-i18n-content="rollm_meta_description" content="HKTRPG|TRPG骰子工具。提供D2，D6，D10，D20，D100，自定擲骰功能" />
     <meta name="keywords"
         content="香港TRPG,HKTRPG,COC,DND,REPLAY,TRPG,TRPG百科,平台,團錄,好玩,桌遊,BG,饅饅來,HKTRPG,ROLL DICE,DICE,擲骰,一鍵,1D100,TRPG,網上擲骰,線上擲骰,在線" />
-    <meta name="application-name" content="簡易線上TRPG擲骰工具 HKTRPG|HKTRPG Roll Dice Online" />
-    <meta property="og:title" content="簡易線上TRPG擲骰工具 - HKTRPG -TRPG Roll Dice Online" />
+    <meta name="application-name" data-www-i18n-content="rollm_meta_application_name" content="簡易線上TRPG擲骰工具 HKTRPG|HKTRPG Roll Dice Online" />
+    <meta property="og:title" data-www-i18n-content="rollm_og_title" content="簡易線上TRPG擲骰工具 - HKTRPG -TRPG Roll Dice Online" />
     <meta property="og:url" content="https://roll.hktrpg.com/" />
-    <meta property="og:description" content="HKTRPG是可以用自己的方式擲骰的工具" />
+    <meta property="og:description" data-www-i18n-content="rollm_og_description" content="HKTRPG是可以用自己的方式擲骰的工具" />
     <meta property="og:image" content="https://www.hktrpg.com/wiki/resources/assets/wiki.png" />
-    <meta property="og:type" content="骰子工具" />
+    <meta property="og:type" data-www-i18n-content="rollm_og_type" content="骰子工具" />
     <meta name="author" content="SAD">
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
     <link rel="stylesheet" href="css/app-shell.css">
+    <script src="/common/www-i18n.js"></script>
+    <script src="/common/site-chrome.js"></script>
     <style>
         html.app-shell-page,
         html.app-shell-page body {
@@ -263,8 +264,20 @@
         }
     </style>
     <script>
+        function rm(key, options = {}) {
+            if (typeof wwwT !== 'function') return '';
+            return wwwT(key.startsWith('rollm_') ? key : `rollm_${key}`, options);
+        }
+        async function applyRollmPageI18n() {
+            if (window.wwwI18n?.ready) await window.wwwI18n.ready;
+            if (typeof wwwApplyDomI18n === 'function') {
+                wwwApplyDomI18n(document.body);
+            }
+            document.title = rm('page_title') || document.title;
+        }
         //COOKIE
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", async () => {
+            await applyRollmPageI18n();
             //let nameInputBox = document.getElementById("result").innerHTML;
             let maxDieValue = getCookie("diceMax");
             let diceNumberValue = getCookie("numDice");
@@ -409,11 +422,11 @@
     <div class="app-shell roll-shell">
         <header class="app-header roll-header">
             <div class="navbar-nav">
-                <a class="nav-item nav-link active" href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">HKTRPG主頁</a>
-                <a class="nav-item nav-link" href="https://card.hktrpg.com/">角色卡</a>
-                <a class="nav-item nav-link" href="https://rollbot.hktrpg.com/">網上聊天擲骰</a>
-                <a class="nav-item nav-link" href="#">簡易擲骰</a>
-                <a class="nav-item nav-link" href="https://bus.hktrpg.com/">搵巴士</a>
+                <a class="nav-item nav-link active" href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81" data-www-i18n="nav_home">HKTRPG主頁</a>
+                <a class="nav-item nav-link" href="https://card.hktrpg.com/" data-www-i18n="nav_cards">角色卡</a>
+                <a class="nav-item nav-link" href="https://rollbot.hktrpg.com/" data-www-i18n="nav_chat_roll">網上聊天擲骰</a>
+                <a class="nav-item nav-link" href="#" data-www-i18n="rollm_nav_simple_roll">簡易擲骰</a>
+                <a class="nav-item nav-link" href="https://bus.hktrpg.com/" data-www-i18n="nav_bus">搵巴士</a>
                 <a class="nav-item nav-link" href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot">
                     <span class="iconify" data-icon="bytesize:github" data-inline="false" data-width="25px"
                         data-height="25px"></span>
@@ -423,7 +436,7 @@
 
         <main class="app-main roll-main">
             <div id="resultall" class="result">
-                <span> Result:
+                <span><span data-www-i18n="rollm_result_label">結果：</span>
                     <p> </span> <span id="result"> </span>
             </div>
 
@@ -431,16 +444,16 @@
                 <div style="width: 16em" class="row">
                     <div class="dice-box">
                         <!--Array Position: 0-->
-                        <button class="dice-up" type="button" onclick="dNumPlus(0, 1, 'd2')"> <span> Up </span> </button>
-                        <button class="dice-down" type="button" onclick="dNumTake(0, 1, 'd2')"> <span> Down </span></button>
+                        <button class="dice-up" type="button" onclick="dNumPlus(0, 1, 'd2')"> <span data-www-i18n="rollm_btn_up">加</span> </button>
+                        <button class="dice-down" type="button" onclick="dNumTake(0, 1, 'd2')"> <span data-www-i18n="rollm_btn_down">減</span></button>
                         <button class="dice" type="button" onclick="resultRoll(0, 2)"> <span id="d2"> 1 </span><span> d2 </span>
                         </button>
                     </div>
 
                     <div class="dice-box">
                         <!--Array Position: 2-->
-                        <button class="dice-up" type="button" onclick="dNumPlus(2, 1, 'd6')"> <span> Up </span> </button>
-                        <button class="dice-down" type="button" onclick="dNumTake(2, 1, 'd6')"> <span> Down </span></button>
+                        <button class="dice-up" type="button" onclick="dNumPlus(2, 1, 'd6')"> <span data-www-i18n="rollm_btn_up">加</span> </button>
+                        <button class="dice-down" type="button" onclick="dNumTake(2, 1, 'd6')"> <span data-www-i18n="rollm_btn_down">減</span></button>
                         <button class="dice" type="button" onclick="resultRoll(2, 6)"> <span id="d6"> 1 </span><span> d6 </span>
                         </button>
                     </div>
@@ -449,15 +462,15 @@
                 <div class="row" style="width: 16em">
                     <div class="dice-box">
                         <!--Array Position: 4-->
-                        <button class="dice-up" type="button" onclick="dNumPlus(3, 1, 'd8')"> <span> Up </span> </button>
-                        <button class="dice-down" type="button" onclick="dNumTake(3, 1, 'd8')"> <span> Down </span></button>
+                        <button class="dice-up" type="button" onclick="dNumPlus(3, 1, 'd8')"> <span data-www-i18n="rollm_btn_up">加</span> </button>
+                        <button class="dice-down" type="button" onclick="dNumTake(3, 1, 'd8')"> <span data-www-i18n="rollm_btn_down">減</span></button>
                         <button class="dice" type="button" onclick="resultRoll(3, 8)"> <span id="d8"> 1 </span><span> d8
                             </span> </button>
                     </div>
                     <div class="dice-box">
                         <!--Array Position: 4-->
-                        <button class="dice-up" type="button" onclick="dNumPlus(4, 1, 'd10')"> <span> Up </span> </button>
-                        <button class="dice-down" type="button" onclick="dNumTake(4, 1, 'd10')"> <span> Down </span></button>
+                        <button class="dice-up" type="button" onclick="dNumPlus(4, 1, 'd10')"> <span data-www-i18n="rollm_btn_up">加</span> </button>
+                        <button class="dice-down" type="button" onclick="dNumTake(4, 1, 'd10')"> <span data-www-i18n="rollm_btn_down">減</span></button>
                         <button class="dice" type="button" onclick="resultRoll(4, 10)"> <span id="d10"> 1 </span><span> d10
                             </span> </button>
                     </div>
@@ -466,15 +479,15 @@
                 <div class="row" style="width: 16em">
                     <div class="dice-box">
                         <!--Array Position: 7-->
-                        <button class="dice-up" type="button" onclick="dNumPlus(5, 1, 'd12')"> <span> Up </span> </button>
-                        <button class="dice-down" type="button" onclick="dNumTake(5, 1, 'd12')"> <span> Down </span></button>
+                        <button class="dice-up" type="button" onclick="dNumPlus(5, 1, 'd12')"> <span data-www-i18n="rollm_btn_up">加</span> </button>
+                        <button class="dice-down" type="button" onclick="dNumTake(5, 1, 'd12')"> <span data-www-i18n="rollm_btn_down">減</span></button>
                         <button class="dice" type="button" onclick="resultRoll(5, 12)"> <span id="d12"> 1 </span><span> d12
                             </span> </button>
                     </div>
                     <div class="dice-box">
                         <!--Array Position: 7-->
-                        <button class="dice-up" type="button" onclick="dNumPlus(7, 1, 'd20')"> <span> Up </span> </button>
-                        <button class="dice-down" type="button" onclick="dNumTake(7, 1, 'd20')"> <span> Down </span></button>
+                        <button class="dice-up" type="button" onclick="dNumPlus(7, 1, 'd20')"> <span data-www-i18n="rollm_btn_up">加</span> </button>
+                        <button class="dice-down" type="button" onclick="dNumTake(7, 1, 'd20')"> <span data-www-i18n="rollm_btn_down">減</span></button>
                         <button class="dice" type="button" onclick="resultRoll(7, 20)"> <span id="d20"> 1 </span><span> d20
                             </span> </button>
                     </div>
@@ -483,8 +496,8 @@
                 <div class="row" style="width: 16em">
                     <div class="dice-box">
                         <!--Array Position: 11-->
-                        <button class="dice-up" type="button" onclick="dNumPlus(11, 1, 'd100')"> <span> Up </span> </button>
-                        <button class="dice-down" type="button" onclick="dNumTake(11, 1, 'd100')"> <span> Down </span></button>
+                        <button class="dice-up" type="button" onclick="dNumPlus(11, 1, 'd100')"> <span data-www-i18n="rollm_btn_up">加</span> </button>
+                        <button class="dice-down" type="button" onclick="dNumTake(11, 1, 'd100')"> <span data-www-i18n="rollm_btn_down">減</span></button>
                         <button class="dice" type="button" onclick="resultRoll(11, 100)"> <span id="d100"> 1 </span><span> d100
                             </span> </button>
                     </div>
@@ -492,17 +505,16 @@
                         <!--Array Position: 8-->
                         <input class="dice-up" value="1" type="number" id="numDice">
                         <input class="dice-down" value="4" type="number" id="diceMax">
-                        <button class="dice" type="button" onclick="resultRoll2()"> <span id="dother"> 自定 </span></button>
+                        <button class="dice" type="button" onclick="resultRoll2()"> <span id="dother" data-www-i18n="rollm_btn_custom">自定</span></button>
                     </div>
                 </div>
 
                 <div style="width: 16em;text-align: center;margin-top: 0.5rem;" class="row">
-                    <button id="resultAll" type="button" onclick="ClearAll()"> <span> Clear all
-                        </span></button>
+                    <button id="resultAll" type="button" onclick="ClearAll()"> <span data-www-i18n="rollm_btn_clear">全部清除</span></button>
                 </div>
             </div>
 
-            <footer class="app-footer site-footer roll-footer">
+            <footer class="app-footer site-footer roll-footer" data-www-i18n-html="footer_copyright_html">
                 ©2020-2026 GNU HKTRPG -
                 <a href="https://www.patreon.com/HKTRPG" title="Support on Patreon">If you love it, buy me a tea</a> ☕
             </footer>

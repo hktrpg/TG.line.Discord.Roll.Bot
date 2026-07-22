@@ -1,6 +1,7 @@
 "use strict";
 const fs = require('node:fs');
 const { REST, Routes } = require('discord.js');
+const i18n = require('./i18n.js');
 const clientId = process.env.DISCORD_CHANNEL_CLIENTID || "544561773488111636";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 
@@ -16,14 +17,19 @@ let loadingPromise = null;
 
 const rest = new REST({ version: '10' }).setToken(channelSecret);
 
-async function registeredGlobalSlashCommands() {
+function deployT(locale) {
+    return i18n.createTranslator(locale || i18n.DEFAULT_LOCALE);
+}
+
+async function registeredGlobalSlashCommands(locale) {
+    const t = deployT(locale);
     // Ensure commands are loaded before registering
     await loadingSlashCommands();
 
     try {
         await rest.put(Routes.applicationCommands(clientId), { body: commands });
         console.log('[ds-deploy-commands] Successfully registered global commands');
-        return "Successfully registered global commands";
+        return t('admin.deploy_global_success');
     } catch (error) {
         console.error('Failed to register global commands:', error);
         
@@ -41,24 +47,25 @@ async function registeredGlobalSlashCommands() {
                     .filter(cmd => existingCommands.includes(cmd.name))
                     .map(cmd => cmd.name);
                 
-                return `Error: 發現重複的全域斜線指令名稱: ${duplicates.join(', ')}`;
+                return t('admin.deploy_duplicate_global', { names: duplicates.join(', ') });
             } catch {
-                return `Error: 發現重複的全域斜線指令名稱，但無法確定哪些指令重複。錯誤: ${error.message}`;
+                return t('admin.deploy_duplicate_unknown', { message: error.message });
             }
         }
         
-        return `Failed to register global commands: ${error.message}`;
+        return t('admin.deploy_global_failed', { message: error.message });
     }
 }
 
-async function testRegisteredSlashCommands(guildId) {
+async function testRegisteredSlashCommands(guildId, locale) {
+    const t = deployT(locale);
     // Ensure commands are loaded before registering
     await loadingSlashCommands();
 
     return rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
         .then(() => {
             console.log('[ds-deploy-commands] Successfully registered application commands.')
-            return "Successfully registered application commands." + (guildId);
+            return t('admin.deploy_guild_success', { guildId });
         })
         .catch(error => {
             console.error(error);
@@ -80,23 +87,24 @@ async function testRegisteredSlashCommands(guildId) {
                                 .filter(cmd => existingCommands.includes(cmd.name))
                                 .map(cmd => cmd.name);
                             
-                            return `Error: 發現重複的斜線指令名稱: ${duplicates.join(', ')}`;
+                            return t('admin.deploy_duplicate_global', { names: duplicates.join(', ') });
                         })
                         .catch(() => {
-                            return `Error: 發現重複的斜線指令名稱，但無法確定哪些指令重複。錯誤: ${error.message}`;
+                            return t('admin.deploy_duplicate_unknown', { message: error.message });
                         });
                 } catch {
-                    return `Error: 發現重複的斜線指令名稱，但無法確定哪些指令重複。錯誤: ${error.message}`;
+                    return t('admin.deploy_duplicate_unknown', { message: error.message });
                 }
             }
             
-            return "Error Global registered application commands: " + error.message;
+            return t('admin.deploy_guild_failed', { message: error.message });
         });
 }
 
 function pushArraySlashCommands(arrayCommands) {
     for (const file of arrayCommands) {
         const commandData = file.data.toJSON();
+        i18n.enrichSlashCommandLocalizations(commandData);
         // Check if command with same name already exists
         const existingIndex = commands.findIndex(cmd => cmd.name === commandData.name);
         if (existingIndex !== -1) {
@@ -146,6 +154,7 @@ async function loadingSlashCommands() {
     loadingPromise = (async () => {
         try {
             console.log('[ds-deploy-commands] Loading slash commands...');
+            await i18n.init();
 
             // Ensure clean state
             commands = [];
@@ -181,13 +190,14 @@ async function loadingSlashCommands() {
     return loadingPromise;
 }
 
-async function removeSlashCommands(guildId) {
+async function removeSlashCommands(guildId, locale) {
+    const t = deployT(locale);
     // Remove all guild application commands for the specified guild (development / cleanup only)
     try {
         const data = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
         if (!Array.isArray(data) || data.length === 0) {
             console.log(`[ds-deploy-commands] No guild commands to remove for guild ${guildId}`);
-            return `No guild slash commands found for guild ${guildId}`;
+            return t('admin.deploy_remove_none', { guildId });
         }
 
         // 刪除時個別處理 10063 / 404（Unknown application command），避免整批失敗
@@ -211,10 +221,10 @@ async function removeSlashCommands(guildId) {
         );
 
         console.log(`[ds-deploy-commands] Removed ${data.length} guild commands for guild ${guildId}`);
-        return `Successfully removed ${data.length} guild slash commands for guild ${guildId}`;
+        return t('admin.deploy_remove_success', { count: data.length, guildId });
     } catch (error) {
         console.error('[ds-deploy-commands] Failed to remove guild commands:', error);
-        return `Failed to remove guild slash commands for guild ${guildId}: ${error.message}`;
+        return t('admin.deploy_remove_failed', { guildId, message: error.message });
     }
 }
 

@@ -18,14 +18,15 @@ const lunisolar = require('lunisolar');
 const { fetalGod } = require('@lunisolar/plugin-fetalgod');
 const { takeSound } = require('@lunisolar/plugin-takesound');
 const { theGods } = require('@lunisolar/plugin-thegods');
+const { getT, resolveHelp, resolveGameName, isEnglish } = require('../modules/roll-i18n.js');
 const rollbase = require('./rollbase.js');
 const wheelAnimator = require('./wheel-animator.js');
 lunisolar.extend(fetalGod);
 lunisolar.extend(takeSound);
 lunisolar.extend(theGods);
 
-const gameName = function () {
-	return '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日淺草簽 每日大事 每日(星座) 每日解答	立flag .me'
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'funny.game_name', '【趣味擲骰】 排序(至少3個選項) choice/隨機(至少2個選項) 運勢 每日塔羅 每日笑話 每日動漫 每日一言 每日廢話 每日黃曆 每日毒湯 每日情話 每日靈簽 每日淺草簽 每日大事 每日(星座) 每日解答	立flag .me');
 }
 
 axiosRetry(axios, { retries: 3 });
@@ -94,10 +95,12 @@ class DailyCache {
 	async updateAstroCacheForDate(date) {
 		try {
 			const astroData = {};
-			for (const astro of twelveAstro) {
-				const data = await this.twelveAstro.getAstro(astro, date, true); // force update for specific date
-				if (data) {
-					astroData[astro] = data;
+			for (let code = 0; code < twelveAstro.length; code++) {
+				const name = twelveAstro[code];
+				await this.twelveAstro.updateAstro(code, date);
+				const raw = this.twelveAstro.Astro[date]?.[code];
+				if (raw) {
+					astroData[name] = TwelveAstro.plainAstro(raw);
 				}
 			}
 			this.cache.set(`astro_${date}`, astroData);
@@ -125,7 +128,9 @@ class DailyCache {
 	 */
 	async updateAlmanacCache() {
 		try {
-			const almanacData = await this.twelveAstro.getAlmanac(null, true); // force update
+			const today = this.twelveAstro.getDate();
+			await this.twelveAstro.updateAlmanac(today);
+			const almanacData = this.twelveAstro.Almanac[today];
 			if (almanacData) {
 				this.cache.set('almanac', almanacData);
 			}
@@ -141,7 +146,8 @@ class DailyCache {
 	/**
 	 * Get astrology data for today
 	 */
-	async getAstro(name) {
+	async getAstro(name, params = {}) {
+		const translate = getT(params);
 		const today = this.twelveAstro.getDate();
 		let astroData = this.getAstroForDate(name, today);
 
@@ -149,21 +155,30 @@ class DailyCache {
 		if (!astroData) {
 			try {
 				console.log(`Cache miss for ${name} on ${today}, fetching data...`);
-				astroData = await this.twelveAstro.getAstro(name, today, false);
+				astroData = await this.twelveAstro.fetchAstroPlain(name, today);
+				if (astroData) {
+					const cached = this.cache.get(`astro_${today}`) || {};
+					cached[name] = astroData;
+					this.cache.set(`astro_${today}`, cached);
+				}
 				console.log(`Successfully fetched astro data for ${name}`);
 			} catch (error) {
 				console.error(`Failed to fetch astro data for ${name}:`, error);
-				return '獲取星座資料時發生錯誤，請稍後再試';
+				return translate('funny.fetch_error_astro');
 			}
 		}
 
-		return astroData;
+		if (!astroData) {
+			return translate('funny.fetch_error_astro');
+		}
+		return TwelveAstro.formatAstroOutput(astroData, name, translate);
 	}
 
 	/**
 	 * Get big event data for today
 	 */
-	async getBigEvent() {
+	async getBigEvent(params = {}) {
+		const translate = getT(params);
 		const today = this.twelveAstro.getDate();
 		let bigEventData = this.cache.get('bigEvent');
 
@@ -178,15 +193,26 @@ class DailyCache {
 					console.log(`Successfully cached big event data`);
 				} else {
 					console.log(`Big event data is empty, returning error`);
-					return '獲取大事資料時發生錯誤，請稍後再試';
+					return translate('funny.fetch_error_big_event');
 				}
 			} catch (error) {
 				console.error(`Failed to fetch big event data:`, error);
-				return '獲取大事資料時發生錯誤，請稍後再試';
+				return translate('funny.fetch_error_big_event');
 			}
 		}
 
-		return bigEventData;
+		return this.localizeBigEvent(bigEventData, translate);
+	}
+
+	localizeBigEvent(text, translate) {
+		const t = translate || getT({});
+		if (text === '沒有此條目') {
+			return t('funny.big_event_no_entry');
+		}
+		if (text === '條目出錯') {
+			return t('funny.big_event_error');
+		}
+		return text;
 	}
 
 	/**
@@ -201,7 +227,8 @@ class DailyCache {
 	/**
 	 * Get almanac data for today
 	 */
-	async getAlmanac() {
+	async getAlmanac(params = {}) {
+		const translate = getT(params);
 		const today = this.twelveAstro.getDate();
 		let almanacData = this.cache.get('almanac');
 
@@ -209,21 +236,22 @@ class DailyCache {
 		if (!almanacData) {
 			try {
 				console.log(`Cache miss for almanac on ${today}, fetching data...`);
-				almanacData = await this.twelveAstro.getAlmanac(today, false);
+				await this.twelveAstro.updateAlmanac(today);
+				almanacData = this.twelveAstro.Almanac[today];
 				if (almanacData) {
 					this.cache.set('almanac', almanacData);
 					console.log(`Successfully cached almanac data`);
 				} else {
 					console.log(`Almanac data is empty, returning error`);
-					return '獲取黃曆資料時發生錯誤，請稍後再試';
+					return translate('funny.fetch_error_almanac');
 				}
 			} catch (error) {
 				console.error(`Failed to fetch almanac data:`, error);
-				return '獲取黃曆資料時發生錯誤，請稍後再試';
+				return translate('funny.fetch_error_almanac');
 			}
 		}
 
-		return almanacData;
+		return TwelveAstro.formatAlmanacOutput(almanacData, translate, params);
 	}
 
 	/**
@@ -274,49 +302,28 @@ const prefixs = function () {
 }
 
 
-const getHelpMessage = async function () {
-	return `【🎲趣味擲骰系統】
-╭────── 🎯隨機功能 ──────
-│ 【選擇】choice/隨機
-│ 　格式: (問題)(選項1)(選項2)...
-│ 　示例: 隨機收到聖誕禮物 1 2 3
-│ 
-│ 【輪盤動畫】.wl /輪盤
-│ 　格式: .wl 選項1 選項2 選項3...
-│ 　示例: .wl 選項A 選項B 選項C
-│ 　說明: 動畫轉盤抽選（Discord專用，最多12個選項）
-│ 
-│ 【排序】排序
-│ 　格式: (問題)(選項1)(選項2)...
-│ 　示例: 交換禮物排序 A君 B君 C君
-│
-│ 【複述】.me
-│ 　格式: .me (句子)
-│ 　示例: .me C君殺死了NPC村民！
-├────── 🔮占卜系統 ──────
-│ 【運勢】訊息包含「運勢」兩字即可
-│ 　格式1: (目標)運勢 
-│ 　格式2: 運勢 (目標1) (目標2) (目標3)...
-│ 　說明: 若提供多個項目且項目名稱少於30字，將顯示多個結果，每行兩個，最多20個
-│ 【塔羅】大十字塔羅/每日塔羅/時間塔羅
-│ 【FLAG】訊息包含「立FLAG」即可
-├────── 📅每日功能 ──────
-│ 🎭 每日笑話 - 顯示趣味笑話
-│ 💫 每日動漫 - 顯示動漫金句
-│ 💭 每日廢話 (名字) - 產生專屬廢話
-│ 💡 每日一言 - 顯示勵志金句
-│ 📆 每日黃曆 - 查看今日宜忌
-│ 🥣 每日毒湯 - 顯示毒雞湯
-│ 💝 每日情話 - 顯示甜蜜情話
-│ 🏮 每日靈簽 - 抽取觀音簽
-│ 🎋 每日淺草簽 - 抽取淺草簽
-│ 📜 每日大事 - 歷史上的今天
-│ ❓ 每日解答 - 答案之書-解答你的疑問
-│ 
-│ 星座運程：
-│ 　格式: 每日(星座)
-│ 　示例: 每日白羊、每日金牛
-╰──────────────`
+const getHelpMessage = async function (params = {}) {
+	return resolveHelp(params, 'funny.help');
+}
+
+function wrapZhOnlyContent(text, params = {}) {
+	if (!isEnglish(params)) {
+		return text;
+	}
+	return `${getT(params)('common.zh_only_notice')}\n${text}`;
+}
+
+function wrapDailyContent(text, params = {}) {
+	const translate = getT(params);
+	const fetchErrors = [
+		translate('funny.fetch_error_astro'),
+		translate('funny.fetch_error_big_event'),
+		translate('funny.fetch_error_almanac')
+	];
+	if (fetchErrors.includes(text)) {
+		return text;
+	}
+	return wrapZhOnlyContent(text, params);
 }
 const initialize = async function () {
 	// Initialize daily data cache
@@ -329,8 +336,12 @@ const initialize = async function () {
 const rollDiceCommand = async function ({
 	inputStr,
 	mainMsg,
-	displayname, displaynameDiscord, tgDisplayname
+	displayname, displaynameDiscord, tgDisplayname,
+	locale,
+	t
 }) {
+	const translate = getT({ locale, t });
+	const i18nParams = { locale, t };
 	let rply = {
 		default: 'on',
 		type: 'text',
@@ -362,35 +373,38 @@ const rollDiceCommand = async function ({
 */
 
 	if (/^help$/i.test(mainMsg[1])) {
-		rply.text = await this.getHelpMessage();
+		rply.text = await getHelpMessage(i18nParams);
 		rply.buttonCreate = ['隨機 跑團 溫習 打遊戲', '排序 A君 C君 F君 G君', '.re 簽到', '.re 1d100', '今日運勢', '每日塔羅', '立FLAG', '每日大事', '每日笑話', '每日廢話', '每日一言', '每日黃曆', '每日毒湯', '每日情話', '每日靈簽', '每日淺草簽', '每日動漫', '每日解答']
 		return rply;
 	}
 	if (/^排序|排序$/i.test(mainMsg[0]) && (mainMsg.length >= 4)) {
-		rply.text = SortIt(inputStr, mainMsg);
+		rply.text = SortIt(inputStr, mainMsg, translate);
 		return rply;
 	}
 	if (/^隨機|^choice|隨機$|choice$/i.test(mainMsg[0]) && (mainMsg.length >= 3)) {
 		// Text version only
-		rply.text = choice(inputStr, mainMsg);
+		rply.text = choice(inputStr, mainMsg, translate);
 		return rply;
 	}
 	if (/^\.wl$/i.test(mainMsg[0]) && (mainMsg.length >= 2)) {
 		// Wheel animation version - .wl command (must have dot)
 		if (!displaynameDiscord) {
-			rply.text = '❌ 此功能僅在 Discord 環境下可用';
+			rply.text = translate('common.errors.discord_only');
 			return rply;
 		}
 		try {
 			const array = inputStr.replace(mainMsg[0], '').trim().match(/\S+/ig);
 			if (!array || array.length < 2) {
-				rply.text = '❌ 至少需要2個選項\n💡 使用方式：.wl 選項1 選項2 選項3...';
+				rply.text = translate('funny.wheel_min_options');
 				return rply;
 			}
 			// If too many options, fallback to text version
 			const MAX_OPTIONS_FOR_ANIMATION = 12;
 			if (array.length > MAX_OPTIONS_FOR_ANIMATION) {
-				rply.text = `❌ 選項過多（${array.length}個），最多支援12個選項\n💡 使用文字版：隨機 ${array.join(' ')}`;
+				rply.text = translate('funny.wheel_max_options', {
+					count: array.length,
+					options: array.join(' ')
+				});
 				return rply;
 			}
 			// If any option text is too long, fallback to text version
@@ -398,7 +412,9 @@ const rollDiceCommand = async function ({
 				wheelAnimator.effectiveTextLength(opt) > wheelAnimator.MAX_OPTION_EFFECTIVE_LENGTH
 			);
 			if (hasTooLongOption) {
-				rply.text = `❌ 選項字數過多，已自動切換為文字版本\n💡 使用文字版：隨機 ${array.join(' ')}`;
+				rply.text = translate('funny.wheel_long_options', {
+					options: array.join(' ')
+				});
 				return rply;
 			}
 
@@ -417,131 +433,155 @@ const rollDiceCommand = async function ({
 				rply.fileLink = [];
 			}
 			rply.fileLink.push(gifPath);
-			rply.text = `🎲 **輪盤抽選**\n📋 [ ${array.join(' ')} ]\n🎯 結果：`;
+			rply.fileText = translate('funny.wheel_result_header', { options: array.join(' ') });
 			return rply;
 		} catch (error) {
 			console.error('[Funny] Wheel animation error:', error);
-			rply.text = `❌ 動畫生成失敗：${error.message}\n💡 使用文字版：隨機 ${inputStr.replace(mainMsg[0], '').trim()}`;
+			rply.text = translate('funny.wheel_anim_failed', {
+				error: error.message,
+				options: inputStr.replace(mainMsg[0], '').trim()
+			});
 			return rply;
 		}
 	}
 	if (/^每日解答$/i.test(mainMsg[0])) {
-		rply.text = dailyAnswerChoice(inputStr);
+		rply.text = dailyAnswerChoice(inputStr, translate, i18nParams);
 		return rply;
 	}
 	if (/塔羅/i.test(mainMsg[0])) {
 		rply.quotes = true;
 		if (mainMsg[0].match(/^每日塔羅/) != null)
-			rply.text = NomalDrawTarot(mainMsg[1], mainMsg[2]); // Default draw 79 cards
+			rply.text = NomalDrawTarot(mainMsg[1], mainMsg[2], translate); // Default draw 79 cards
 		if (mainMsg[0].match(/^時間塔羅/) != null)
-			rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 1);
+			rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 1, translate);
 		if (mainMsg[0].match(/^大十字塔羅/) != null)
-			rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 2);
+			rply.text = MultiDrawTarot(mainMsg[1], mainMsg[2], 2, translate);
 		rply.buttonCreate = ['每日塔羅', '時間塔羅', '大十字塔羅']
 		return rply;
 	}
 	if ((/立flag$|^立flag/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,25}/g).length <= 1)) {
-		rply.text = BStyleFlagSCRIPTS();
+		rply.text = BStyleFlagSCRIPTS(translate);
 		return rply;
 	}
 	if (/^鴨霸獸$/i.test(mainMsg[0])) {
-		rply.text = randomReply();
+		rply.text = randomReply(translate);
 		return rply;
 	}
 	if ((/運勢$|^運勢/i.test(mainMsg[0]) && mainMsg[0].toString().match(/[\s\S]{1,40}/g).length <= 1)) {
-		rply.text = randomLuck(mainMsg);
+		rply.text = randomLuck(mainMsg, translate);
 		return rply;
 	}
 	if (/^每日笑話$/.test(mainMsg[0])) {
-		rply.text = joke.getFunnyRandomResult();
+		rply.text = joke.getFunnyRandomResult(translate, 'joke', i18nParams);
 		return rply;
 	}
 	if (/^每日動漫$/.test(mainMsg[0])) {
-		rply.text = acg.getFunnyRandomResult();
+		rply.text = acg.getFunnyRandomResult(translate, 'acg', i18nParams);
 		return rply;
 	}
 	if (/^每日一言$/.test(mainMsg[0])) {
-		rply.text = slogan.getFunnyRandomResult();
+		rply.text = slogan.getFunnyRandomResult(translate, 'slogan', i18nParams);
 		return rply;
 	}
 	if (/^每日黃曆$/.test(mainMsg[0])) {
-		rply.text = await dailyCache.getAlmanac();
+		rply.text = await dailyCache.getAlmanac(i18nParams);
 		return rply;
 	}
 	if (/^每日毒湯$/.test(mainMsg[0])) {
-		rply.text = blackjoke.getFunnyRandomResult();
+		rply.text = blackjoke.getFunnyRandomResult(translate, 'blackjoke', i18nParams);
 		return rply;
 	}
 	if (/^每日情話$/.test(mainMsg[0])) {
-		rply.text = mlove.getFunnyRandomResult();
+		rply.text = mlove.getFunnyRandomResult(translate, 'mlove', i18nParams);
 		return rply;
 	}
 	if (/^每日靈簽$/.test(mainMsg[0])) {
-		rply.text = watchMusic.getRandomWatchMusic100()
+		rply.text = wrapZhOnlyContent(watchMusic.getRandomWatchMusic100(), i18nParams);
 		return rply;
 	}
 	if (/^每日淺草簽$/.test(mainMsg[0])) {
-		rply.text = asakusa100.getRandomAsakusa100();
+		rply.text = wrapZhOnlyContent(asakusa100.getRandomAsakusa100(), i18nParams);
 		return rply;
 	}
 	if (/^每日廢話$/.test(mainMsg[0])) {
-		const name = mainMsg[1] || displaynameDiscord || tgDisplayname || displayname || '你';
-		const req = DailyFuckUp.generateArticles(name);
-		rply.text = req;
+		const name = mainMsg[1] || displaynameDiscord || tgDisplayname || displayname || translate('funny.default_you');
+		rply.text = DailyFuckUp.generateArticles(name, translate);
 		return rply;
 	}
 	if (/^每日大事$/.test(mainMsg[0])) {
-		rply.text = await dailyCache.getBigEvent();
+		rply.text = wrapDailyContent(await dailyCache.getBigEvent(i18nParams), i18nParams);
 		return rply;
 	}
 	// Aries, Taurus, Gemini, Cancer, Leo, Virgo, Libra, Scorpio, Sagittarius, Capricorn, Aquarius, Pisces
 	if ((/^每日白羊$/.test(mainMsg[0]) || /^每日牡羊$/.test(mainMsg[0]))) {
-		rply.text = await dailyCache.getAstro('牡羊');
+		rply.text = await dailyCache.getAstro('牡羊', i18nParams);
 		return rply;
 	}
 	if (/^每日金牛$/.test(mainMsg[0])) {
-		rply.text = await dailyCache.getAstro('金牛');
+		rply.text = await dailyCache.getAstro('金牛', i18nParams);
 		return rply;
 	}
 	if (/^每日雙子$/.test(mainMsg[0])) {
-		rply.text = await dailyCache.getAstro('雙子');
+		rply.text = await dailyCache.getAstro('雙子', i18nParams);
 		return rply;
 	}
 	if (/^每日巨蟹$/.test(mainMsg[0])) {
-		rply.text = await dailyCache.getAstro('巨蟹');
+		rply.text = await dailyCache.getAstro('巨蟹', i18nParams);
 		return rply;
 	}
 	if (/^每日獅子$/.test(mainMsg[0])) {
-		rply.text = await dailyCache.getAstro('獅子');
+		rply.text = await dailyCache.getAstro('獅子', i18nParams);
 		return rply;
 	}
 	if (/^每日處女$/.test(mainMsg[0])) {
-		rply.text = await dailyCache.getAstro('處女');
+		rply.text = await dailyCache.getAstro('處女', i18nParams);
 		return rply;
 	}
 	if ((/^每日天秤$/.test(mainMsg[0]) || /^每日天平$/.test(mainMsg[0]))) {
-		rply.text = await dailyCache.getAstro('天秤');
+		rply.text = await dailyCache.getAstro('天秤', i18nParams);
 		return rply;
 	}
 	if ((/^每日天蠍$/.test(mainMsg[0]) || /^每日天蝎$/.test(mainMsg[0]))) {
-		rply.text = await dailyCache.getAstro('天蠍');
+		rply.text = await dailyCache.getAstro('天蠍', i18nParams);
 		return rply;
 	}
 	if ((/^每日射手$/.test(mainMsg[0]) || /^每日人馬$/.test(mainMsg[0]))) {
-		rply.text = await dailyCache.getAstro('射手');
+		rply.text = await dailyCache.getAstro('射手', i18nParams);
 		return rply;
 	}
 	if ((/^每日摩羯$/.test(mainMsg[0]) || /^每日山羊$/.test(mainMsg[0]))) {
-		rply.text = await dailyCache.getAstro('摩羯');
+		rply.text = await dailyCache.getAstro('摩羯', i18nParams);
 		return rply;
 	}
 	if ((/^每日水瓶$/.test(mainMsg[0]) || /^每日寶瓶$/.test(mainMsg[0]))) {
-		rply.text = await dailyCache.getAstro('水瓶');
+		rply.text = await dailyCache.getAstro('水瓶', i18nParams);
 		return rply;
 	}
 	if (/^每日雙魚$/.test(mainMsg[0])) {
-		rply.text = await dailyCache.getAstro('雙魚');
+		rply.text = await dailyCache.getAstro('雙魚', i18nParams);
 		return rply;
+	}
+}
+
+function pickFunnyRandomContent(instance, translate, keyPrefix, params = {}) {
+	const t = translate || getT(params);
+	try {
+		const index = rollbase.Dice(instance.random.length) - 1;
+		const fallback = instance.random[index];
+		if (!keyPrefix) {
+			return fallback;
+		}
+		const key = `funny.${keyPrefix}_${index}`;
+		const text = t(key);
+		const translated = Boolean(text && text !== key && text !== fallback);
+		const result = translated ? text : fallback;
+		if (isEnglish(params) && !translated) {
+			return `${t('common.zh_only_notice')}\n${result}`;
+		}
+		return result;
+	} catch (error) {
+		console.error('Funny #330', error);
+		return t('funny.funny_random_error');
 	}
 }
 
@@ -553,13 +593,8 @@ class FunnyRandom {
 		const data = fs.readFileSync(txt, 'utf8').toString();
 		return data.split('\n');
 	}
-	getFunnyRandomResult() {
-		try {
-			return this.random[rollbase.Dice(this.random.length) - 1];
-		} catch (error) {
-			console.error('Funny #330', error);
-			return '出現問題，請以後再試';
-		}
+	getFunnyRandomResult(translate, keyPrefix, params = {}) {
+		return pickFunnyRandomContent(this, translate, keyPrefix, params);
 	}
 }
 
@@ -621,7 +656,7 @@ class TwelveAstro {
 			}
 
 			if (this.Astro[targetDate] && this.Astro[targetDate][astroCode]) {
-				return this.returnStr(this.Astro[targetDate][astroCode], name);
+				return this.formatAstroOutput(this.Astro[targetDate][astroCode], name, getT({}));
 			} else return;
 		} catch (error) {
 			console.error('TwelveAstro getAstro error:', error);
@@ -629,12 +664,124 @@ class TwelveAstro {
 		}
 	}
 
-	returnStr(astro, name) {
-		return `今日${name}座運程(${astro.date})
-你的幸運數字：${astro.TODAY_LUCKY_NUMBER}
-你的幸運星座：${astro.TODAY_LUCKY_ASTRO}
-短語：${astro.TODAY_WORD}${astro.TODAY_CONTENT}
-	`;
+	async fetchAstroPlain(name, date = null) {
+		const targetDate = date || this.getDate();
+		const astroCode = twelveAstro.indexOf(name);
+		if (astroCode === -1) {
+			return null;
+		}
+		await this.updateAstro(astroCode, targetDate);
+		const raw = this.Astro[targetDate]?.[astroCode];
+		return raw ? TwelveAstro.plainAstro(raw) : null;
+	}
+
+	static plainAstro(astro) {
+		return {
+			TODAY_CONTENT: astro.TODAY_CONTENT,
+			TODAY_WORD: astro.TODAY_WORD,
+			TODAY_LUCKY_NUMBER: astro.TODAY_LUCKY_NUMBER,
+			TODAY_LUCKY_COLOR: astro.TODAY_LUCKY_COLOR,
+			TODAY_LUCKY_DIRECTION: astro.TODAY_LUCKY_DIRECTION,
+			TODAY_LUCKY_TIME: astro.TODAY_LUCKY_TIME,
+			TODAY_LUCKY_ASTRO: astro.TODAY_LUCKY_ASTRO,
+			date: astro.date
+		};
+	}
+
+	static formatAstroOutput(astro, nameZh, translate) {
+		const t = translate || getT({});
+		const signKey = `funny.astro_sign_${nameZh}`;
+		const sign = t(signKey);
+		return t('funny.astro_report', {
+			sign: sign === signKey ? nameZh : sign,
+			date: astro.date,
+			number: astro.TODAY_LUCKY_NUMBER,
+			luckySign: astro.TODAY_LUCKY_ASTRO,
+			word: astro.TODAY_WORD,
+			content: astro.TODAY_CONTENT
+		});
+	}
+
+	static formatAlmanacOutput(almanac, translate, params = {}) {
+		const t = translate || getT({});
+		let content = almanac.content;
+		if (isEnglish(params)) {
+			content = TwelveAstro.localizeAlmanacContent(content, t);
+		}
+		return `${t('funny.almanac_title', { date: almanac.date })}\n${content}\n\t`;
+	}
+
+	static localizeAlmanacContent(content, translate) {
+		const t = translate;
+		const labelPairs = [
+			['【宜-通書六十事】', 'almanac_label_good_tongshu'],
+			['【宜-御用六十七事】', 'almanac_label_good_yuyong'],
+			['【宜-民用三十七事】', 'almanac_label_good_min'],
+			['【忌-通書六十事】', 'almanac_label_bad_tongshu'],
+			['【忌-御用六十七事】', 'almanac_label_bad_yuyong'],
+			['【忌-民用三十七事】', 'almanac_label_bad_min'],
+			['【吉神方位】', 'almanac_label_lucky_direction'],
+			['【吉神宜趨】', 'almanac_label_good_gods'],
+			['【凶神宜忌】', 'almanac_label_bad_gods'],
+			['【歲次】', 'almanac_label_year_cycle'],
+			['【胎神】', 'almanac_label_fetal_god'],
+			['【五行】', 'almanac_label_five_elements'],
+			['【沖煞】', 'almanac_label_conflict'],
+			['【納音】', 'almanac_label_na_yin'],
+			['【星期】', 'almanac_label_weekday'],
+			['【星座】', 'almanac_label_zodiac'],
+			['【農曆】', 'almanac_label_lunar'],
+			['—— 當日時辰時局 ——', 'almanac_label_hours_header']
+		];
+		let result = content;
+		for (const [zhLabel, key] of labelPairs) {
+			result = result.replaceAll(zhLabel, t(`funny.${key}`));
+		}
+		const weekdayPairs = [
+			['星期日', 'almanac_weekday_sun'],
+			['星期一', 'almanac_weekday_mon'],
+			['星期二', 'almanac_weekday_tue'],
+			['星期三', 'almanac_weekday_wed'],
+			['星期四', 'almanac_weekday_thu'],
+			['星期五', 'almanac_weekday_fri'],
+			['星期六', 'almanac_weekday_sat']
+		];
+		for (const [zhWeekday, key] of weekdayPairs) {
+			result = result.replaceAll(zhWeekday, t(`funny.${key}`));
+		}
+		const zodiacPairs = [
+			['摩羯座', 'almanac_western_capricorn'],
+			['水瓶座', 'almanac_western_aquarius'],
+			['雙魚座', 'almanac_western_pisces'],
+			['牡羊座', 'almanac_western_aries'],
+			['金牛座', 'almanac_western_taurus'],
+			['雙子座', 'almanac_western_gemini'],
+			['巨蟹座', 'almanac_western_cancer'],
+			['獅子座', 'almanac_western_leo'],
+			['處女座', 'almanac_western_virgo'],
+			['天秤座', 'almanac_western_libra'],
+			['天蠍座', 'almanac_western_scorpio'],
+			['射手座', 'almanac_western_sagittarius']
+		];
+		for (const [zhZodiac, key] of zodiacPairs) {
+			result = result.replaceAll(zhZodiac, t(`funny.${key}`));
+		}
+		const directionPairs = [
+			['煞北', `煞${t('funny.almanac_direction_n')}`],
+			['煞南', `煞${t('funny.almanac_direction_s')}`],
+			['煞東', `煞${t('funny.almanac_direction_e')}`],
+			['煞西', `煞${t('funny.almanac_direction_w')}`]
+		];
+		for (const [zhDirection, enDirection] of directionPairs) {
+			result = result.replaceAll(zhDirection, enDirection);
+		}
+		result = result.replaceAll('：吉 ', `：${t('funny.almanac_lucky')} `);
+		result = result.replaceAll('：凶 ', `：${t('funny.almanac_unlucky')} `);
+		return result;
+	}
+
+	formatAstroOutput(astro, nameZh, translate) {
+		return TwelveAstro.formatAstroOutput(astro, nameZh, translate);
 	}
 
 	async updateAstro(code, date) {
@@ -784,7 +931,7 @@ class TwelveAstro {
 			}
 
 			if (this.Almanac[targetDate]) {
-				return this.returnAlmanacStr(this.Almanac[targetDate]);
+				return this.Almanac[targetDate];
 			}
 			return null;
 		} catch (error) {
@@ -797,10 +944,8 @@ class TwelveAstro {
 	 * Format almanac output
 	 * @param {Object} almanac - Almanac object
 	 */
-	returnAlmanacStr(almanac) {
-		return `今日黃曆 - ${almanac.date}
-${almanac.content}
-	`;
+	returnAlmanacStr(almanac, translate, params = {}) {
+		return TwelveAstro.formatAlmanacOutput(almanac, translate, params);
 	}
 
 	/**
@@ -1050,8 +1195,12 @@ const watchMusic = new WatchMusic100();
  * Divination & Others
  */
 
-function BStyleFlagSCRIPTS() {
-	const rplyArr = ['\
+function BStyleFlagSCRIPTS(translate) {
+	const index = rollbase.Dice(FLAG_SCRIPT_ITEMS.length) - 1;
+	return getFunnyIndexedText(translate, 'flag_script', FLAG_SCRIPT_ITEMS, index);
+}
+
+const FLAG_SCRIPT_ITEMS = ['\
 「打完這仗我就回老家結婚（この戦いが終わったら、故郷に帰って結婚するんだ）」', '\
 「打完這一仗後我請你喝酒」', '\
 別怕！子彈還很多！', '\
@@ -1183,14 +1332,14 @@ function BStyleFlagSCRIPTS() {
 「你們先走我斷後」', '\
 「好耶!」', '\
 「祝你生日快樂」'
-	];
+];
 
-	//	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
-	return rplyArr[rollbase.Dice(rplyArr.length) - 1]
+function randomReply(translate) {
+	const index = rollbase.Dice(DUCK_REPLY_ITEMS.length) - 1;
+	return getFunnyIndexedText(translate, 'duck_reply', DUCK_REPLY_ITEMS, index);
 }
 
-function randomReply() {
-	const rplyArr = ['\
+const DUCK_REPLY_ITEMS = ['\
 你們死定了呃呃呃不要糾結這些……所以是在糾結哪些？', '\
 在澳洲，每過一分鐘就有一隻鴨嘴獸被拔嘴。 \n我到底在共三小。', '\
 嗚噁噁噁噁噁噁，不要隨便叫我。', '\
@@ -1215,25 +1364,50 @@ wwwwwwwwwwwwwwwww', '\
 公道價，八萬一（伸手）。', '\
 你的嘴裡有異音（指）', '\
 幫主說，有人打你的左臉，你就要用肉食性猛擊咬斷他的小腿。'];
-	//	rply.text = rplyArr[Math.floor((Math.random() * (rplyArr.length)) + 0)];
-	return rplyArr[rollbase.Dice(rplyArr.length) - 1];
+
+const LUCK_LEVELS_ZH = ['超吉', '超級上吉', '大吉', '吉', '中吉', '小吉', '吉', '小吉', '吉', '吉', '中吉', '吉', '中吉', '吉', '中吉', '小吉', '末吉', '吉', '中吉', '小吉', '末吉', '中吉', '小吉', '小吉', '吉', '小吉', '末吉', '中吉', '小吉', '凶', '小凶', '沒凶', '大凶', '很凶', '你不要知道比較好呢', '命運在手中,何必問我'];
+const LUCK_ZH_TO_KEY = {
+	'超吉': 'luck_super_great',
+	'超級上吉': 'luck_super_up',
+	'大吉': 'luck_great',
+	'吉': 'luck_good',
+	'中吉': 'luck_mid_good',
+	'小吉': 'luck_small_good',
+	'末吉': 'luck_tail_good',
+	'凶': 'luck_bad',
+	'小凶': 'luck_small_bad',
+	'沒凶': 'luck_not_bad',
+	'大凶': 'luck_very_bad',
+	'很凶': 'luck_terrible',
+	'你不要知道比較好呢': 'luck_secret',
+	'命運在手中,何必問我': 'luck_in_your_hands'
+};
+
+function pickLuckLevel(translate) {
+	const t = translate || getT({});
+	const zh = LUCK_LEVELS_ZH[rollbase.Dice(LUCK_LEVELS_ZH.length) - 1];
+	return t(`funny.${LUCK_ZH_TO_KEY[zh]}`);
 }
 
-function randomLuck(mainMsg) {
-	const rplyArr = ['超吉', '超級上吉', '大吉', '吉', '中吉', '小吉', '吉', '小吉', '吉', '吉', '中吉', '吉', '中吉', '吉', '中吉', '小吉', '末吉', '吉', '中吉', '小吉', '末吉', '中吉', '小吉', '小吉', '吉', '小吉', '末吉', '中吉', '小吉', '凶', '小凶', '沒凶', '大凶', '很凶', '你不要知道比較好呢', '命運在手中,何必問我'];
-
-
+function randomLuck(mainMsg, translate) {
 	const isAllShort = mainMsg.every(msg => msg.length < 30);
 
 	if (isAllShort && mainMsg.length > 1) {
 		const limit = Math.min(mainMsg.length, 20);
 		let result = '';
+		const t = translate || getT({});
 
 		for (let i = 0; i < limit; i += 2) {
-			const luck1 = mainMsg[i] + ' ： ' + rplyArr[rollbase.Dice(rplyArr.length) - 1];
+			const luck1 = t('funny.luck_line', {
+				name: mainMsg[i],
+				luck: pickLuckLevel(translate)
+			});
 
 			if (i + 1 < limit) {
-				const luck2 = mainMsg[i + 1] + ' ： ' + rplyArr[rollbase.Dice(rplyArr.length) - 1];
+				const luck2 = t('funny.luck_line', {
+					name: mainMsg[i + 1],
+					luck: pickLuckLevel(translate)
+				});
 				result += luck1 + '\t' + luck2 + '\n';
 			} else {
 				result += luck1;
@@ -1241,30 +1415,74 @@ function randomLuck(mainMsg) {
 		}
 
 		return result;
-	} else {
-		return mainMsg[0] + ' ： ' + rplyArr[rollbase.Dice(rplyArr.length) - 1];
 	}
+	const t = translate || getT({});
+	return t('funny.luck_line', {
+		name: mainMsg[0],
+		luck: pickLuckLevel(translate)
+	});
 }
 
 /**
  * Tarot塔羅牌
  */
-function MultiDrawTarot(text, text2, type) {
-	let returnStr = '';
-	let cards = rollbase.shuffleTarget(TarotList2);
+function formatTarotUserNote(text, text2) {
+	return `${text ? "\n；" + text : ""}${text2 ? " " + text2 : ""}`;
+}
 
-	const formatText = (prefix, text, text2) => {
-		return `${prefix}\n${text ? "；" + text : ""}${text2 ? " " + text2 : ""}`;
-	};
+function getFunnyIndexedText(translate, keyPrefix, fallbackList, index) {
+	const t = translate || getT({});
+	const key = `funny.${keyPrefix}_${index}`;
+	const text = t(key);
+	const fallback = fallbackList[index];
+	if (text && text !== key) {
+		return text;
+	}
+	return fallback;
+}
+
+function getTarotLabel(translate, index) {
+	return getFunnyIndexedText(translate, 'tarot_label', TarotList2, index);
+}
+
+function getTarotCardLine(translate, index) {
+	const label = getTarotLabel(translate, index);
+	const raw = TarotList[index];
+	if (!raw || !raw.includes('\n')) {
+		return label;
+	}
+	return `${label}\n${raw.slice(raw.indexOf('\n') + 1)}`;
+}
+
+function shuffleTarotIndices(length) {
+	const indices = Array.from({ length }, (_, index) => index);
+	for (let i = indices.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[indices[i], indices[j]] = [indices[j], indices[i]];
+	}
+	return indices;
+}
+
+function pickShuffledTarotCards(translate, count, withUrl = false) {
+	const length = withUrl ? TarotList.length : TarotList2.length;
+	const indices = shuffleTarotIndices(length);
+	return indices.slice(0, count).map((index) => (withUrl ? getTarotCardLine(translate, index) : getTarotLabel(translate, index)));
+}
+
+function MultiDrawTarot(text, text2, type, translate) {
+	const t = translate || getT({});
+	let returnStr = '';
+	const cardCount = type === 2 ? 10 : 3;
+	const cards = pickShuffledTarotCards(t, cardCount, false);
 
 	switch (type) {
 		case 1:
-			returnStr = formatText('【時間塔羅】/每日塔羅/大十字塔羅', text, text2);
-			returnStr += `過去: ${cards[0]}\n現在: ${cards[1]}\n未來: ${cards[2]}\n`;
+			returnStr = t('funny.tarot_time_title') + t('funny.tarot_cmds_time_ref') + formatTarotUserNote(text, text2);
+			returnStr += `\n${t('funny.tarot_past')}: ${cards[0]}\n${t('funny.tarot_present')}: ${cards[1]}\n${t('funny.tarot_future')}: ${cards[2]}\n`;
 			break;
 		case 2:
-			returnStr = formatText('【大十字塔羅】/每日塔羅/時間塔羅', text, text2);
-			returnStr += `現況: ${cards[0]}\n助力: ${cards[1]}\n目標: ${cards[2]}\n基礎: ${cards[3]}\n過去: ${cards[4]}\n未來: ${cards[5]}\n自我: ${cards[6]}\n環境: ${cards[7]}\n恐懼: ${cards[8]}\n結論: ${cards[9]}\n`;
+			returnStr = t('funny.tarot_cross_title') + t('funny.tarot_cmds_cross_ref') + formatTarotUserNote(text, text2);
+			returnStr += `\n${t('funny.tarot_cross_present')}: ${cards[0]}\n${t('funny.tarot_cross_help')}: ${cards[1]}\n${t('funny.tarot_cross_goal')}: ${cards[2]}\n${t('funny.tarot_cross_foundation')}: ${cards[3]}\n${t('funny.tarot_cross_past')}: ${cards[4]}\n${t('funny.tarot_cross_future')}: ${cards[5]}\n${t('funny.tarot_cross_self')}: ${cards[6]}\n${t('funny.tarot_cross_environment')}: ${cards[7]}\n${t('funny.tarot_cross_fear')}: ${cards[8]}\n${t('funny.tarot_cross_outcome')}: ${cards[9]}\n`;
 			break;
 		default:
 			break;
@@ -1273,12 +1491,12 @@ function MultiDrawTarot(text, text2, type) {
 }
 
 
-function NomalDrawTarot(text, text2) {
-	let returnStr = '';
-	returnStr = '【每日塔羅】/大十字塔羅/時間塔羅'
-	returnStr += `${text ? "\n；" + text : ""}${text2 ? " " + text2 : ""}`
-	let ans = rollbase.shuffleTarget(TarotList)
-	returnStr += '\n' + ans[0]
+function NomalDrawTarot(text, text2, translate) {
+	const t = translate || getT({});
+	let returnStr = t('funny.tarot_daily_title') + t('funny.tarot_cmds_daily_ref');
+	returnStr += formatTarotUserNote(text, text2);
+	const cards = pickShuffledTarotCards(t, 1, true);
+	returnStr += '\n' + cards[0];
 	return returnStr;
 }
 
@@ -1605,15 +1823,37 @@ const TarotList2 = ["愚者 ＋",
  *  choice 及SORT
  */
 
-function dailyAnswerChoice(input) {
-	return input + ' \n→ ' + dailyAnswer[rollbase.Dice(dailyAnswer.length) - 1];
-}
-function choice(input, str) {
-	let array = input.replace(str[0], '').match(/\S+/ig);
-	return str[0] + ' [ ' + array.join(' ') + ' ] \n→ ' + array[rollbase.Dice(array.length) - 1];
+function pickDailyAnswer(translate, items) {
+	const t = translate || getT({});
+	const index = rollbase.Dice(items.length) - 1;
+	const key = `funny.daily_answer_${index}`;
+	const text = t(key);
+	const fallback = items[index];
+	const translated = Boolean(text && text !== key && text !== fallback);
+	return { answer: translated ? text : fallback, translated };
 }
 
-function SortIt(input, mainMsg) {
+function dailyAnswerChoice(input, translate, params = {}) {
+	const t = translate || getT({});
+	const { answer, translated } = pickDailyAnswer(t, dailyAnswer);
+	const line = t('funny.daily_answer_line', { input, answer });
+	if (isEnglish(params) && !translated) {
+		return `${t('common.zh_only_notice')}\n${line}`;
+	}
+	return line;
+}
+function choice(input, str, translate) {
+	const t = translate || getT({});
+	let array = input.replace(str[0], '').match(/\S+/ig);
+	return t('funny.choice_result', {
+		cmd: str[0],
+		options: array.join(' '),
+		pick: array[rollbase.Dice(array.length) - 1]
+	});
+}
+
+function SortIt(input, mainMsg, translate) {
+	const t = translate || getT({});
 	let a = input.replace(mainMsg[0], '').match(/\S+/ig);
 	for (let i = a.length - 1; i >= 0; i--) {
 		//let randomIndex = Math.floor(Math.random() * (i + 1));  
@@ -1624,7 +1864,10 @@ function SortIt(input, mainMsg) {
 		a[randomIndex] = a[i];
 		a[i] = itemAtIndex;
 	}
-	return mainMsg[0] + ' \n→ [ ' + a.join(', ') + ' ]';
+	return t('funny.sort_result', {
+		cmd: mainMsg[0],
+		options: a.join(', ')
+	});
 }
 const discordCommand = [
 
@@ -1858,51 +2101,59 @@ const DailyFuckUp = {
 		return number;
 	},
 
-	genCelebrity() {
-		let quotes = DailyFuckUp.randomSentence(DailyFuckUp.celebrityQuotes)
-		quotes = quotes.replace("曾經說過", DailyFuckUp.randomSentence(DailyFuckUp.formerFuck))
-		quotes = quotes.replace("這不禁令我深思", DailyFuckUp.randomSentence(DailyFuckUp.afterFuck))
-		return quotes
+	pickFuckupText(translate, keyPrefix, fallbackList) {
+		const index = Math.floor(Math.random() * fallbackList.length);
+		return getFunnyIndexedText(translate, keyPrefix, fallbackList, index);
 	},
 
-	genDiscuss(subject) {
-		let sentence = DailyFuckUp.randomSentence(DailyFuckUp.discuss);
-		sentence = sentence.replaceAll(RegExp("主題", "g"), subject);
+	genCelebrity(translate) {
+		const t = translate || getT({});
+		let quotes = DailyFuckUp.pickFuckupText(t, 'fuckup_quote', DailyFuckUp.celebrityQuotes);
+		quotes = quotes.replace('曾經說過', DailyFuckUp.pickFuckupText(t, 'fuckup_former', DailyFuckUp.formerFuck));
+		quotes = quotes.replace('這不禁令我深思', DailyFuckUp.pickFuckupText(t, 'fuckup_after', DailyFuckUp.afterFuck));
+		return quotes;
+	},
+
+	genDiscuss(subject, translate) {
+		const t = translate || getT({});
+		let sentence = DailyFuckUp.pickFuckupText(t, 'fuckup_discuss', DailyFuckUp.discuss);
+		sentence = sentence.replaceAll('主題', subject).replaceAll('{subject}', subject);
 		return sentence;
 	},
 
-	addParagraph(chapter) {
-		if (chapter.at(-1) === " ") {
-			chapter = chapter.slice(0, -2)
+	addParagraph(chapter, translate) {
+		const t = translate || getT({});
+		if (chapter.at(-1) === ' ') {
+			chapter = chapter.slice(0, -2);
 		}
-		return "　　" + chapter + "。 "
+		return `${t('funny.fuckup_paragraph_indent')}${chapter}。 `;
 	},
 
-	generateArticles(subject) {
-		let text = []
-		let chapter = "";
+	generateArticles(subject, translate) {
+		const t = translate || getT({});
+		let text = [];
+		let chapter = '';
 		let chapterLength = 0;
 		while (chapterLength < 300) {
 			let num = DailyFuckUp.randomNumber();
 			if (num < 5 && chapter.length > 200) {
-				chapter = DailyFuckUp.addParagraph(chapter) + "\n";;
+				chapter = DailyFuckUp.addParagraph(chapter, t) + '\n';
 				text.push(chapter);
-				chapter = "";
+				chapter = '';
 			} else if (num < 20) {
-				let sentence = DailyFuckUp.genCelebrity();
+				let sentence = DailyFuckUp.genCelebrity(t);
 				chapterLength = chapterLength + sentence.length;
 				chapter = chapter + sentence;
 			} else {
-				let sentence = DailyFuckUp.genDiscuss(subject);
+				let sentence = DailyFuckUp.genDiscuss(subject, t);
 				chapterLength = chapterLength + sentence.length;
 				chapter = chapter + sentence;
 			}
 		}
-		chapter = DailyFuckUp.addParagraph(chapter);
+		chapter = DailyFuckUp.addParagraph(chapter, t);
 		text.push(chapter);
 
-		let result = text.join("\n\n").replace('。。', '。');
-		return result;
+		return text.join('\n\n').replace('。。', '。');
 	},
 
 	discuss: [

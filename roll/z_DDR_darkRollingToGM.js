@@ -3,42 +3,42 @@ const DB_READY = !!process.env.mongoURL;
 const { SlashCommandBuilder } = require('discord.js');
 const records = require('../modules/records.js');
 const checkTools = require('../modules/check.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 
 // When DB is not available: disable the whole feature cleanly
 if (!DB_READY) {
-    const gameName = function () {
-        return '【暗骰GM功能】 .drgm (addgm del show) dr ddr dddr';
+    const gameName = function (params = {}) {
+        return resolveGameName(params, 'ddr.game_name', '【暗骰GM功能】 .drgm (addgm del show) dr ddr dddr');
     };
     const gameType = function () {
         return 'Tool:trpgDarkRolling:hktrpg';
     };
     const prefixs = function () {
-        // No prefixes registered -> command disabled
         return [];
     };
-    const getHelpMessage = async function () {
-        return '暗骰GM功能未啟用：需要資料庫連線';
+    const getHelpMessage = async function (params = {}) {
+        return getT(params)('ddr.no_database');
     };
     const initialize = function () {
         return {};
     };
-    const rollDiceCommand = async function () {
+    const rollDiceCommand = async function (params = {}) {
         return {
             default: 'on',
             type: 'text',
-            text: '暗骰GM功能未啟用：需要資料庫連線'
+            text: getT(params)('ddr.no_database')
         };
     };
     const discordCommand = [];
 
     module.exports = {
-        rollDiceCommand: rollDiceCommand,
-        initialize: initialize,
-        getHelpMessage: getHelpMessage,
-        prefixs: prefixs,
-        gameType: gameType,
-        gameName: gameName,
-        discordCommand: discordCommand
+        rollDiceCommand,
+        initialize,
+        getHelpMessage,
+        prefixs,
+        gameType,
+        gameName,
+        discordCommand
     };
 } else {
 const trpgDarkRollingfunction = {};
@@ -52,8 +52,8 @@ const trpgDarkRollingfunction = {};
         trpgDarkRollingfunction.trpgDarkRollingfunction = [];
     }
 })();
-const gameName = function () {
-    return '【暗骰GM功能】 .drgm (addgm del show) dr ddr dddr'
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'ddr.game_name', '【暗骰GM功能】 .drgm (addgm del show) dr ddr dddr');
 }
 const gameType = function () {
     return 'Tool:trpgDarkRolling:hktrpg'
@@ -64,78 +64,15 @@ const prefixs = function () {
         second: null
     }]
 }
-const getHelpMessage = async function () {
-    return `【🎲暗骰GM系統】
-╭──── 📝系統簡介 ────
-│ • GM專用私骰管理系統
-│ • 可設置多個GM接收暗骰
-│ • 支援自定義GM顯示名稱
-│
-├──── 👑GM管理 ────
-│ ■ 基本指令:
-│ • .drgm addgm
-│   註冊成為GM
-│
-│ • .drgm addgm [代稱]
-│   以特定名稱註冊為GM
-│   不填寫則顯示原名
-│
-│ • .drgm show
-│   顯示目前GM列表
-│
-│ • .drgm del [編號]
-│   刪除指定GM
-│
-│ • .drgm del all
-│   清空所有GM
-│
-├──── 🎲暗骰指令 ────
-│ ■ 三種暗骰模式:
-│
-│ • dr [指令]
-│   結果只傳送給自己
-│   例: dr cc 80 鬥毆
-│
-│ • ddr [指令]
-│   結果傳送給GM和自己
-│   例: ddr cc 80 鬥毆
-│
-│ • dddr [指令]
-│   結果只傳送給GM
-│   例: dddr cc 80 鬥毆
-│
-├──── 💡使用範例 ────
-│ 1️⃣ 設置GM:
-│ • .drgm addgm
-│   以原名註冊為GM
-│
-│ • .drgm addgm 主持人A
-│   以"主持人A"註冊為GM
-│
-│ 2️⃣ 進行暗骰:
-│ • dr 2d6
-│   骰2顆六面骰,自己看結果
-│
-│ • ddr cc 50 潛行
-│   進行潛行檢定
-│   自己和GM都能看到結果
-│
-│ • dddr .sc 1/1d3
-│   進行San Check
-│   只有GM能看到結果
-│
-├──── ⚠️注意事項 ────
-│ • 建議先用.drgm show確認GM
-│ • 可設置多名GM同時收到暗骰
-│ • GM可用代稱保持神秘感
-│ • 刪除時需注意編號更動
-╰──────────────`
+const getHelpMessage = async function (params = {}) {
+    return resolveHelp(params, 'ddr.help');
 }
 const initialize = function () {
     return trpgDarkRollingfunction;
 }
 
-const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, botname, displayname, channelid }) {
+const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, botname, displayname, channelid, locale, t }) {
+    const translate = getT({ locale, t });
     let checkifsamename = 0;
     let rply = {
         default: 'on',
@@ -144,16 +81,16 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
     };
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-            rply.text = await this.getHelpMessage();
+            rply.text = await getHelpMessage({ locale, t });
             rply.quotes = true;
             if (botname == "Line")
-                rply.text += "\n因為Line的機制, 如擲骰時並無顯示用家名字, 請到下列網址,和機器人任意說一句話,成為好友. \n https://line.me/R/ti/p/svMLqy9Mik"
+                rply.text += translate('ddr.line_friend_hint');
             return rply;
         case /(^[.]drgm$)/i.test(mainMsg[0]) && /^addgm$/i.test(mainMsg[1]): {
             //
             //增加自定義關鍵字
             // .drgm[0] addgm[1] 代替名字[2]  
-            rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({ locale,
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
@@ -190,18 +127,18 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                 try {
                     await records.pushTrpgDarkRollingFunction('trpgDarkRolling', temp);
                     trpgDarkRollingfunction.trpgDarkRollingfunction = await records.get('trpgDarkRolling');
-                    rply.text = '新增成功: ' + (mainMsg[2] || displayname || "");
+                    rply.text = translate('ddr.add_success', { name: mainMsg[2] || displayname || '' });
                 } catch (error) {
                     console.error('[z_DDR_darkRollingToGM] Failed to push dark rolling function:', error);
-                    rply.text = '新增失敗，請稍後再試';
+                    rply.text = translate('ddr.add_failed');
                 }
-            } else rply.text = '新增失敗. 你已在GM列表'
+            } else rply.text = translate('ddr.add_duplicate');
             return rply;
         } case /(^[.]drgm$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]): {
             //    
             //刪除所有自定義關鍵字
             //
-            rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({ locale,
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
@@ -222,15 +159,15 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                     try {
                         await records.setTrpgDarkRollingFunction('trpgDarkRolling', temp);
                         trpgDarkRollingfunction.trpgDarkRollingfunction = await records.get('trpgDarkRolling');
-                        rply.text = '刪除所有在表GM';
+                        rply.text = translate('ddr.del_all_success');
                     } catch (error) {
                         console.error('[z_DDR_darkRollingToGM] Failed to delete all dark rolling functions:', error);
-                        rply.text = '刪除失敗，請稍後再試';
+                        rply.text = translate('ddr.del_failed');
                     }
                 }
             }
             if (!matched) {
-                rply.text = '沒有已註冊的暗骰GM. '
+                rply.text = translate('ddr.del_no_gm');
             }
             return rply;
         }
@@ -238,8 +175,8 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             //
             //刪除GM
             //
-            if (!mainMsg[2]) rply.text += '沒有已註冊GM. '
-            const permissionError = checkTools.permissionErrMsg({
+            if (!mainMsg[2]) rply.text += translate('ddr.del_no_gm');
+            const permissionError = checkTools.permissionErrMsg({ locale,
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
@@ -266,7 +203,7 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                     }
                 }
             }
-            rply.text = deleted ? ('刪除成功: ' + mainMsg[2]) : '沒有已註冊的暗骰GM或索引無效. '
+            rply.text = deleted ? translate('ddr.del_success', { index: mainMsg[2] }) : translate('ddr.del_no_index');
 
             return rply;
         }
@@ -287,16 +224,19 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                 if (trpgDarkRollingfunction.trpgDarkRollingfunction)
                     for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
                         if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
-                            rply.text += '已註冊暗骰GM列表:'
+                            rply.text += translate('ddr.show_header');
                             for (let a = 0; a < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
                                 temp = 1
-                                rply.text += ("\n") + a + ": " + (trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName || trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname) + ("\n")
+                                rply.text += translate('ddr.show_entry', {
+                                    index: a,
+                                    name: trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName || trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname
+                                });
                             }
                         }
                     }
-                if (temp == 0) rply.text = '沒有已註冊的暗骰GM. '
+                if (temp == 0) rply.text = translate('ddr.no_gm');
             } else {
-                rply.text = '不在群組. '
+                rply.text = translate('ddr.not_in_group');
             }
             //顯示GM
             rply.text = rply.text.replaceAll(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replaceAll(/,/gm, ', ')

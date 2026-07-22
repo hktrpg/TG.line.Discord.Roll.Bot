@@ -3,9 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
+    <script src="/common/www-locale-head.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TRPG 遊玩喜好卡</title>
-    <meta name="description" content="HKTRPG - 線上TRPG 遊玩喜好卡 - 用於匯出名片">
+    <title data-www-i18n="nplayer_page_title">TRPG 遊玩喜好卡</title>
+    <script src="/common/www-i18n.js"></script>
+    <meta name="description" data-www-i18n-content="nplayer_meta_description" content="HKTRPG - 線上TRPG 遊玩喜好卡 - 用於匯出名片">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1031,7 +1033,7 @@
     <div class="container" id="app"></div>
     <div class="progress-overlay" id="progressOverlay">
         <div class="progress-content">
-            <div class="progress-text" id="progressText">準備匯出...</div>
+            <div class="progress-text" id="progressText" data-www-i18n="nplayer_export_preparing">準備匯出...</div>
             <div class="progress-bar-container">
                 <div class="progress-bar-fill" id="progressBarFill"></div>
             </div>
@@ -1040,90 +1042,90 @@
 
     <!-- 新增：色彩設定按鈕 -->
     <button class="header-btn btn-color" style="position: fixed; top: 10px; right: 10px;"
-        onclick="openColorSettings()">色彩設定</button>
+        onclick="openColorSettings()" data-www-i18n="nplayer_btn_color_settings">色彩設定</button>
 
     <!-- 新增：色彩設定彈出視窗及遮罩 -->
     <div id="colorSettingsOverlay" onclick="closeColorSettings()"></div>
     <div id="colorSettingsModal">
         <div class="modal-header">
-            <h3>色彩設定</h3>
+            <h3 data-www-i18n="nplayer_color_settings_title">色彩設定</h3>
             <button onclick="closeColorSettings()" class="close-btn">×</button>
         </div>
         <div class="color-settings">
             <div class="color-group">
-                <h4>主要顏色</h4>
+                <h4 data-www-i18n="nplayer_color_main">主要顏色</h4>
                 <div class="color-picker-group">
-                    <label>標題文字:</label>
+                    <label data-www-i18n="nplayer_color_title_text">標題文字:</label>
                     <input type="color" id="primaryColor" value="#a78bfa"
                         oninput="updateMainColor('--color-primary', this.value)">
                 </div>
                 <div class="color-picker-group">
-                    <label>主要文字:</label>
+                    <label data-www-i18n="nplayer_color_primary_text">主要文字:</label>
                     <input type="color" id="textPrimaryColor" value="#1f2937"
                         oninput="updateTextColor('primary', this.value)">
                 </div>
                 <div class="color-picker-group">
-                    <label>次要文字:</label>
+                    <label data-www-i18n="nplayer_color_secondary_text">次要文字:</label>
                     <input type="color" id="textSecondaryColor" value="#4b5563"
                         oninput="updateTextColor('secondary', this.value)">
                 </div>
             </div>
 
             <div class="color-group">
-                <h4>後景色漸層</h4>
+                <h4 data-www-i18n="nplayer_color_bg_gradient">後景色漸層</h4>
                 <div class="color-picker-group">
-                    <label>起始色:</label>
+                    <label data-www-i18n="nplayer_color_start">起始色:</label>
                     <input type="color" id="bgGradientStart" value="#516ea7"
                         oninput="updateGradient('background', this.value, document.getElementById('bgGradientEnd').value)">
                 </div>
                 <div class="color-picker-group">
-                    <label>結束色:</label>
+                    <label data-www-i18n="nplayer_color_end">結束色:</label>
                     <input type="color" id="bgGradientEnd" value="#d6e4ff"
                         oninput="updateGradient('background', document.getElementById('bgGradientStart').value, this.value)">
                 </div>
             </div>
 
             <div class="color-group">
-                <h4>前景色漸層</h4>
+                <h4 data-www-i18n="nplayer_color_card_gradient">前景色漸層</h4>
                 <div class="color-picker-group">
-                    <label>起始色:</label>
+                    <label data-www-i18n="nplayer_color_start">起始色:</label>
                     <input type="color" id="cardGradientStart" value="#b5e1fe"
                         oninput="updateGradient('card', this.value, document.getElementById('cardGradientEnd').value)">
                 </div>
                 <div class="color-picker-group">
-                    <label>結束色:</label>
+                    <label data-www-i18n="nplayer_color_end">結束色:</label>
                     <input type="color" id="cardGradientEnd" value="#f3f7ff"
                         oninput="updateGradient('card', document.getElementById('cardGradientStart').value, this.value)">
                 </div>
             </div>
 
             <div class="color-group">
-                <h4>進度條顏色</h4>
+                <h4 data-www-i18n="nplayer_color_progress">進度條顏色</h4>
                 <div class="color-picker-group">
-                    <label>NG色調:</label>
+                    <label data-www-i18n="nplayer_color_ng_tone">NG色調:</label>
                     <input type="color" id="mineColor" value="#f71414"
                         oninput="updateProgressColor('mine', this.value)">
                 </div>
                 <div class="color-picker-group">
-                    <label>接受色調:</label>
+                    <label data-www-i18n="nplayer_color_fine_tone">接受色調:</label>
                     <input type="color" id="fineColor" value="#ffcc00"
                         oninput="updateProgressColor('fine', this.value)">
                 </div>
                 <div class="color-picker-group">
-                    <label>喜愛漸層起始:</label>
+                    <label data-www-i18n="nplayer_color_like_start">喜愛漸層起始:</label>
                     <input type="color" id="likeGradientStart" value="#a78bfa"
                         oninput="updateGradient('progress', this.value, document.getElementById('likeGradientEnd').value)">
                 </div>
                 <div class="color-picker-group">
-                    <label>喜愛漸層結束:</label>
+                    <label data-www-i18n="nplayer_color_like_end">喜愛漸層結束:</label>
                     <input type="color" id="likeGradientEnd" value="#e47eb1"
                         oninput="updateGradient('progress', document.getElementById('likeGradientStart').value, this.value)">
                 </div>
             </div>
             <div class="color-group">
-                <h4>邊框顏色</h4>
+                <h4 data-www-i18n="nplayer_color_border">邊框顏色</h4>
                 <div class="color-picker-group">
-                    <label>邊框色調:</label>
+                    <label data-www-i18n="nplayer_color_border_tone">邊框色調:</label>
                     <input type="color" id="borderColor" value="#e2e8f0" oninput="updateBorderColor(this.value)">
                 </div>
             </div>
@@ -1175,41 +1177,53 @@
             }
             return null;
         }
-        const data = {
-            ...getDataFromUrl() || loadFromLocalStorage() || {
-                title: "TRPG 遊玩喜好卡",
+        let data;
+
+        function np(key, options = {}) {
+            if (typeof wwwT !== 'function') return '';
+            return wwwT(key.startsWith('nplayer_') ? key : `nplayer_${key}`, options);
+        }
+
+        function buildDefaultPlayerData() {
+            return {
+                title: np('default_title'),
                 id: "@HKTRPG",
-                nickname: "吾是 範例",
+                nickname: np('sample_nickname'),
                 avatar: "https://images2.imgbox.com/ea/b2/Bn8DmRTW_o.png",
                 availableTimes: {
-                    title: "可約團時間",
+                    title: np('section_available_times'),
                     slots: [
-                        { text: "平日早上", filled: false },
-                        { text: "平日中午", filled: false },
-                        { text: "平日晚上", filled: true },
-                        { text: "周末早上", filled: false },
-                        { text: "周末中午", filled: true },
-                        { text: "周末晚上", filled: true }
+                        { text: np('sample_time_weekday_morning'), filled: false },
+                        { text: np('sample_time_weekday_noon'), filled: false },
+                        { text: np('sample_time_weekday_evening'), filled: true },
+                        { text: np('sample_time_weekend_morning'), filled: false },
+                        { text: np('sample_time_weekend_noon'), filled: true },
+                        { text: np('sample_time_weekend_evening'), filled: true }
                     ]
                 },
                 playStyles: {
-                    title: "遊玩方式",
-                    styles: ["語音", "面團", "文字", "文字+語音"]
+                    title: np('section_play_styles'),
+                    styles: [
+                        np('sample_style_voice'),
+                        np('sample_style_inperson'),
+                        np('sample_style_text'),
+                        np('sample_style_text_voice')
+                    ]
                 },
                 platforms: {
-                    title: "跑團平台",
-                    list: ["CCFOLIA", "Discord", "Roll20", "Google Sheet", "FVTT", "不限"]
+                    title: np('section_platforms'),
+                    list: ["CCFOLIA", "Discord", "Roll20", "Google Sheet", "FVTT", np('sample_platform_any')]
                 },
                 relationships: {
-                    title: "關係扮演傾向",
+                    title: np('section_relationships'),
                     types: [
-                        { text: "友情關係", fill: "filled-100" },
-                        { text: "情人關係", fill: "filled-25" },
-                        { text: "搭檔關係", fill: "filled-100" }
+                        { text: np('sample_rel_friend'), fill: "filled-100" },
+                        { text: np('sample_rel_romance'), fill: "filled-25" },
+                        { text: np('sample_rel_partner'), fill: "filled-100" }
                     ]
                 },
                 orientations: {
-                    title: "愛情傾向",
+                    title: np('section_orientations'),
                     types: [
                         { text: "NL", percentage: 100 },
                         { text: "BL", percentage: 0 },
@@ -1217,34 +1231,34 @@
                     ]
                 },
                 message: {
-                    title: "想說的話",
-                    content: "我是範例君, 大家多多指教"
+                    title: np('section_message'),
+                    content: np('sample_message')
                 },
                 preferredModules: {
-                    title: "偏好模組類型",
+                    title: np('section_preferred_modules'),
                     modules: [
-                        { text: "傳統經典", percentage: 75 },
-                        { text: "恐怖", percentage: 100 },
-                        { text: "懸疑推理", percentage: 75 },
-                        { text: "戰鬥", percentage: 25 },
-                        { text: "輕鬆歡樂", percentage: 60 },
-                        { text: "情感豐富", percentage: 40 },
-                        { text: "戀愛互動", percentage: 25 },
-                        { text: "現代怪談", percentage: 80 },
-                        { text: "密室", percentage: 10 }
+                        { text: np('sample_mod_classic'), percentage: 75 },
+                        { text: np('sample_mod_horror'), percentage: 100 },
+                        { text: np('sample_mod_mystery'), percentage: 75 },
+                        { text: np('sample_mod_combat'), percentage: 25 },
+                        { text: np('sample_mod_casual'), percentage: 60 },
+                        { text: np('sample_mod_emotional'), percentage: 40 },
+                        { text: np('sample_mod_romance'), percentage: 25 },
+                        { text: np('sample_mod_modern'), percentage: 80 },
+                        { text: np('sample_mod_closed'), percentage: 10 }
                     ]
                 },
                 landmines: {
-                    title: "喜好/地雷題材",
+                    title: np('section_landmines'),
                     items: [
                         { text: "PVP", type: "fine-progress" },
-                        { text: "血腥", type: "like-progress" },
-                        { text: "性描述", type: "fine-progress" },
-                        { text: "獵奇", type: "fine-progress" },
-                        { text: "虐待兒童", type: "mine-progress" },
+                        { text: np('sample_landmine_gore'), type: "like-progress" },
+                        { text: np('sample_landmine_sexual'), type: "fine-progress" },
+                        { text: np('sample_landmine_guro'), type: "fine-progress" },
+                        { text: np('sample_landmine_child'), type: "mine-progress" },
                         { text: "LOST", type: "like-progress" },
-                        { text: "精神疾病", type: "like-progress" },
-                        { text: "藥物", type: "fine-progress" }
+                        { text: np('sample_landmine_mental'), type: "like-progress" },
+                        { text: np('sample_landmine_drugs'), type: "fine-progress" }
                     ]
                 },
                 colorSettings: {
@@ -1267,7 +1281,7 @@
                     },
                     borderColor: '#b5e1fe'
                 }
-            }
+            };
         }
 
         // Add local storage functions
@@ -1298,7 +1312,7 @@
         }
 
         function resetToDefault() {
-            if (confirm('確定要還原預設資料嗎？這將清除所有已儲存的資料。')) {
+            if (confirm(np('restore_confirm'))) {
                 localStorage.removeItem('namecardData');
                 location.reload();
             }
@@ -1313,11 +1327,11 @@
                 currentUrl.searchParams.set('data', base64Data);
 
                 const shareUrl = currentUrl.toString();
-                alert('備份連結已複製到剪貼簿!\n' + shareUrl);
+                alert(`${np('backup_copied')}\n${shareUrl}`);
                 navigator.clipboard.writeText(shareUrl);
             } catch (error) {
                 console.error('產生備份連結失敗:', error);
-                alert('產生備份連結失敗');
+                alert(np('backup_generate_failed'));
             }
         }
 
@@ -1448,25 +1462,25 @@
         // 添加新增array
         function addRelationshipType() {
             saveCurrentFormState();
-            data.relationships.types.push({ text: "新關係", fill: "filled-0" });
+            data.relationships.types.push({ text: np('new_relationship'), fill: "filled-0" });
             renderApp();
         }
 
         function addOrientation() {
             saveCurrentFormState();
-            data.orientations.types.push({ text: "新傾向", percentage: 50 });
+            data.orientations.types.push({ text: np('new_orientation'), percentage: 50 });
             renderApp();
         }
 
         function addPreferredModule() {
             saveCurrentFormState();
-            data.preferredModules.modules.push({ text: "新偏好", percentage: 50 });
+            data.preferredModules.modules.push({ text: np('new_module'), percentage: 50 });
             renderApp();
         }
 
         function addLandmine() {
             saveCurrentFormState();
-            data.landmines.items.push({ text: "新題材", type: "fine-progress" });
+            data.landmines.items.push({ text: np('new_topic'), type: "fine-progress" });
             renderApp();
         }
 
@@ -1592,7 +1606,7 @@
 
             try {
                 overlay.style.display = 'flex';
-                updateProgress(10, '準備圖片資源...');
+                updateProgress(10, np('export_loading_images'));
 
                 // Force desktop viewport
                 if (viewport) {
@@ -1606,7 +1620,7 @@
                 let imageSource = uploadedImage || data.uploadedImage;
                 if (!imageSource) {
                     if (!imageCache.base64 || imageCache.url !== data.avatar) {
-                        updateProgress(20, '載入頭像圖片...');
+                        updateProgress(20, np('export_loading_avatar'));
                         try {
                             imageCache.base64 = await proxyImage(data.avatar);
                             imageCache.url = data.avatar;
@@ -1620,7 +1634,7 @@
                     }
                 }
 
-                updateProgress(40, '準備轉換為圖片...');
+                updateProgress(40, np('export_preparing_canvas'));
 
                 // Pre-load image to ensure it's ready for html2canvas
                 await new Promise((resolve, reject) => {
@@ -1638,7 +1652,7 @@
                 container.classList.add('no-animations');
                 container.style.width = '1024px';
 
-                updateProgress(60, '產生圖片中...');
+                updateProgress(60, np('export_generating'));
 
                 const canvas = await html2canvas(container, {
                     allowTaint: true,
@@ -1659,14 +1673,14 @@
                     }
                 });
 
-                updateProgress(80, '準備下載...');
+                updateProgress(80, np('export_downloading'));
 
                 // Convert to blob instead of data URL for better memory management
                 const blob = await new Promise(resolve => {
                     canvas.toBlob(resolve, 'image/png', 1.0);
                 });
 
-                updateProgress(90, '完成中...');
+                updateProgress(90, np('export_finishing'));
 
                 // Create object URL from blob
                 const url = URL.createObjectURL(blob);
@@ -1679,7 +1693,7 @@
                     link.click();
                     setTimeout(() => {
                         URL.revokeObjectURL(url);
-                        updateProgress(100, '匯出完成！');
+                        updateProgress(100, np('export_done'));
                         setTimeout(() => {
                             overlay.style.display = 'none';
                             progressBarFill.style.width = '0%';
@@ -1689,7 +1703,7 @@
 
             } catch (error) {
                 console.error('匯出失敗:', error);
-                alert('匯出失敗，請稍後再試。錯誤: ' + error.message);
+                alert(np('export_failed_detail', { message: error.message }));
                 overlay.style.display = 'none';
             } finally {
                 // Restore original viewport
@@ -1719,7 +1733,7 @@
             if (input.value) {
                 // Validate URL before setting
                 if (!isValidUrl(input.value)) {
-                    alert('請輸入有效的圖片網址 (http://, https://, 或 data:)');
+                    alert(np('err_invalid_image_url'));
                     input.value = data.avatar; // 恢復原值
                     return;
                 }
@@ -1757,16 +1771,16 @@
                 </div>
                 ${isEditMode ? `
                     <div class="avatar-input-group">
-                        <label class="avatar-label">頭像網址</label>
+                        <label class="avatar-label">${np('label_avatar_url')}</label>
                         <input type="text" id="edit-avatar" class="avatar-input" 
                             value="${escapeHtml(data.avatar)}" 
                             onchange="handleAvatarUrlChange(this)"
-                            placeholder="輸入圖片網址">
+                            placeholder="${np('placeholder_image_url')}">
                         <div class="avatar-drop-zone" id="avatarDropZone">
-                            拖曳圖片至此或點擊上傳
+                            ${np('upload_drag')}
                             <input type="file" id="avatarInput" style="display: none" accept="image/*">
                         </div>
-                        <div class="upload-hint">※上傳的圖片會保存在本地，重新整理頁面後仍會顯示</div>
+                        <div class="upload-hint">${np('upload_hint')}</div>
                     </div>
                 ` : ''}
             </div>
@@ -1774,7 +1788,7 @@
                         ${isEditMode ? `
                             <div class="header-input-group">
                                 <label class="input-label">
-                                    <span>標題:</span>
+                                    <span>${np('label_title')}</span>
                                     <input type="text" id="edit-title" class="header-input" value="${escapeHtml(data.title)}">
                                 </label>
                             </div>
@@ -1784,35 +1798,35 @@
                         ${isEditMode ? `
                             <div class="header-input-group">
                                 <label class="input-label">
-                                    <span>ID:</span>
+                                    <span>${np('label_id')}</span>
                                     <input type="text" id="edit-id" class="header-input" value="${escapeHtml(data.id)}">
                                 </label>
                                 <label class="input-label">
-                                    <span>暱稱:</span>
+                                    <span>${np('label_nickname')}</span>
                                     <input type="text" id="edit-nickname" class="header-input" value="${escapeHtml(data.nickname)}">
                                 </label>
                             </div>
                         ` : `
-                            <p style="margin-top: 0.5rem;">ID: ${escapeHtml(data.id)} | 暱稱: ${escapeHtml(data.nickname)}</p>
+                            <p style="margin-top: 0.5rem;">${np('id_nickname_line', { id: escapeHtml(data.id), nickname: escapeHtml(data.nickname) })}</p>
                         `}
                     </div>
                     <div class="header-buttons">
     ${!isEditMode ? `
         <button class="header-btn btn--export" onclick="exportToPNG()">
-            匯出PNG
+            ${np('btn_export_png')}
         </button>
         <button class="header-btn btn--share" onclick="generateShareLink()">
-            備份連結
+            ${np('btn_backup_link')}
         </button>
         <button class="header-btn btn--reset" onclick="resetToDefault()">
-            還原預設
+            ${np('btn_restore_default')}
         </button>
     ` : ''}
     <button class="header-btn btn--edit" onclick="toggleEditMode()">
-        ${isEditMode ? '取消編輯' : '編輯'}
+        ${isEditMode ? np('btn_cancel_edit') : np('btn_edit')}
     </button>
     ${isEditMode ? `
-        <button class="header-btn save-btn" onclick="saveData()">儲存更改</button>
+        <button class="header-btn save-btn" onclick="saveData()">${np('btn_save_changes')}</button>
     ` : ''}
 </div>
                 </div>
@@ -1847,14 +1861,14 @@
                                 <div class="module-item editing">
                                     <button class="delete-btn" onclick="deletePlayStyle(${index})">×</button>
                                     <div class="edit-section">
-                                        <label class="edit-label">遊玩方式</label>
+                                        <label class="edit-label">${np('label_play_style')}</label>
                                         <input type="text" class="play-style-edit edit-input" value="${escapeHtml(style)}" 
                                             onchange="data.playStyles.styles[${index}] = this.value">
                                     </div>
                                 </div>
                             `).join('')}
                             <button class="add-button" onclick="addPlayStyle()">
-                                <i class="fas fa-plus"></i> 新增方式
+                                <i class="fas fa-plus"></i> ${np('btn_add_style')}
                             </button>
                         ` : `
                             ${data.playStyles.styles.filter(style => style.trim() !== '').map(style => `
@@ -1874,14 +1888,14 @@
                                 <div class="module-item editing">
                                     <button class="delete-btn" onclick="deletePlatform(${index})">×</button>
                                     <div class="edit-section">
-                                        <label class="edit-label">平台名稱</label>
+                                        <label class="edit-label">${np('label_platform_name')}</label>
                                         <input type="text" class="platform-edit edit-input" value="${escapeHtml(platform)}"
                                             onchange="data.platforms.list[${index}] = this.value">
                                     </div>
                                 </div>
                             `).join('')}
                             <button class="add-button" onclick="addPlatform()">
-                                <i class="fas fa-plus"></i> 新增平台
+                                <i class="fas fa-plus"></i> ${np('btn_add_platform')}
                             </button>
                         ` : `
                             ${data.platforms.list.filter(platform => platform.trim() !== '').map(platform => `
@@ -1904,18 +1918,18 @@
                                 <div class="module-item editing">
                                     <button class="delete-btn" onclick="deleteRelationshipType(${index})">×</button>
                                     <div class="edit-section">
-                                        <label class="edit-label">關係名稱</label>
+                                        <label class="edit-label">${np('label_relationship_name')}</label>
                                         <input type="text" class="edit-input" value="${escapeHtml(type.text)}" 
                                             onchange="data.relationships.types[${index}].text = this.value">
                                     </div>
                                     <div class="edit-section">
-                                        <label class="edit-label">關係程度</label>
+                                        <label class="edit-label">${np('label_relationship_level')}</label>
                                         <select class="edit-input relationship-edit" data-text="${escapeHtml(type.text)}">
-                                            <option value="0" ${type.fill === 'filled-0' ? 'selected' : ''}>無</option>
-                                            <option value="25" ${type.fill === 'filled-25' ? 'selected' : ''}>低</option>
-                                            <option value="50" ${type.fill === 'filled-50' ? 'selected' : ''}>中</option>
-                                            <option value="75" ${type.fill === 'filled-75' ? 'selected' : ''}>高</option>
-                                            <option value="100" ${type.fill === 'filled-100' ? 'selected' : ''}>極高</option>
+                                            <option value="0" ${type.fill === 'filled-0' ? 'selected' : ''}>${np('rel_none')}</option>
+                                            <option value="25" ${type.fill === 'filled-25' ? 'selected' : ''}>${np('rel_low')}</option>
+                                            <option value="50" ${type.fill === 'filled-50' ? 'selected' : ''}>${np('rel_mid')}</option>
+                                            <option value="75" ${type.fill === 'filled-75' ? 'selected' : ''}>${np('rel_high')}</option>
+                                            <option value="100" ${type.fill === 'filled-100' ? 'selected' : ''}>${np('rel_max')}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -1927,7 +1941,7 @@
                             `}
                         `).join('')}
                         ${isEditMode ? `<button class="add-button" onclick="addRelationshipType()">
-                            <i class="fas fa-plus"></i> 新增關係
+                            <i class="fas fa-plus"></i> ${np('btn_add_relationship')}
                         </button>` : ''}
                     </div>
 
@@ -1942,12 +1956,12 @@
                                 <div class="module-item editing">
                                     <button class="delete-btn" onclick="deleteOrientation(${index})">×</button>
                                     <div class="edit-section">
-                                        <label class="edit-label">性向名稱</label>
+                                        <label class="edit-label">${np('label_orientation_name')}</label>
                                         <input type="text" class="edit-input" value="${escapeHtml(orientation.text)}" 
                                             onchange="data.orientations.types[${index}].text = this.value">
                                     </div>
                                     <div class="edit-section">
-                                        <label class="edit-label">傾向程度</label>
+                                        <label class="edit-label">${np('label_orientation_level')}</label>
                                         <input type="range" class="orientation-edit edit-slider" 
                                             data-text="${escapeHtml(orientation.text)}"
                                             value="${orientation.percentage}" 
@@ -1964,7 +1978,7 @@
                             `}
                         `).join('')}
                         ${isEditMode ? `<button class="add-button" onclick="addOrientation()">
-                            <i class="fas fa-plus"></i> 新增性向
+                            <i class="fas fa-plus"></i> ${np('btn_add_orientation')}
                         </button>` : ''}
                     </div>
                      <h2>
@@ -1997,12 +2011,12 @@ ${isEditMode ? `
                                 <div class="module-item editing">
                                     <button class="delete-btn" onclick="deletePreferredModule(${index})">×</button>
                                     <div class="edit-section">
-                                        <label class="edit-label">模組名稱</label>
+                                        <label class="edit-label">${np('label_module_name')}</label>
                                         <input type="text" class="edit-input" value="${escapeHtml(module.text)}" 
                                             onchange="data.preferredModules.modules[${index}].text = this.value">
                                     </div>
                                     <div class="edit-section">
-                                        <label class="edit-label">喜好程度</label>
+                                        <label class="edit-label">${np('label_preference_level')}</label>
                                         <input type="range" class="module-edit edit-slider" 
                                             data-text="${escapeHtml(module.text)}"
                                             value="${module.percentage}" 
@@ -2019,7 +2033,7 @@ ${isEditMode ? `
                             `}
                         `).join('')}
                         ${isEditMode ? `<button class="add-button" onclick="addPreferredModule()">
-                            <i class="fas fa-plus"></i> 新增模組
+                            <i class="fas fa-plus"></i> ${np('btn_add_module')}
                         </button>` : ''}
                     </div>
                     </section>
@@ -2030,9 +2044,9 @@ ${isEditMode ? `
                     : escapeHtml(data.landmines.title)}
                     </h2>
                     <p >
-                        <span style="background: var(--progress-mine);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>代表NG, 
-                        <span style="background: var(--progress-fine);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>代表接受, 
-                        <span style="background: var(--progress-gradient);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>代表喜愛
+                        <span style="background: var(--progress-mine);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>${np('landmine_legend_ng')} 
+                        <span style="background: var(--progress-fine);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>${np('landmine_legend_fine')} 
+                        <span style="background: var(--progress-gradient);">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>${np('landmine_legend_like')}
                     </p>
                     <div class="modules">
                         ${data.landmines.items.map((item, index) => `
@@ -2040,16 +2054,16 @@ ${isEditMode ? `
                                 <div class="module-item editing">
                                     <button class="delete-btn" onclick="deleteLandmine(${index})">×</button>
                                     <div class="edit-section">
-                                        <label class="edit-label">題材名稱</label>
+                                        <label class="edit-label">${np('label_topic_name')}</label>
                                         <input type="text" class="edit-input" value="${escapeHtml(item.text)}" 
                                             onchange="data.landmines.items[${index}].text = this.value">
                                     </div>
                                     <div class="edit-section">
-                                        <label class="edit-label">接受程度</label>
+                                        <label class="edit-label">${np('label_acceptance_level')}</label>
                                         <select class="edit-input landmine-edit" data-text="${escapeHtml(item.text)}">
-                                            <option value="mine-progress" ${item.type === 'mine-progress' ? 'selected' : ''}>NG</option>
-                                            <option value="fine-progress" ${item.type === 'fine-progress' ? 'selected' : ''}>接受</option>
-                                            <option value="like-progress" ${item.type === 'like-progress' ? 'selected' : ''}>喜愛</option>
+                                            <option value="mine-progress" ${item.type === 'mine-progress' ? 'selected' : ''}>${np('landmine_ng')}</option>
+                                            <option value="fine-progress" ${item.type === 'fine-progress' ? 'selected' : ''}>${np('landmine_fine')}</option>
+                                            <option value="like-progress" ${item.type === 'like-progress' ? 'selected' : ''}>${np('landmine_like')}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -2061,11 +2075,11 @@ ${isEditMode ? `
                             `}
                         `).join('')}
                         ${isEditMode ? `<button class="add-button" onclick="addLandmine()">
-                            <i class="fas fa-plus"></i> 新增題材
+                            <i class="fas fa-plus"></i> ${np('btn_add_topic')}
                         </button>` : ''}
                     </div>
                 </section>
-                <div class="footer">@player.HKTRPG.com 請隨意取用</div>
+                <div class="footer">${np('footer')}</div>
             `;
 
             if (document.getElementById('colorSettingsModal')) {
@@ -2246,7 +2260,15 @@ ${isEditMode ? `
             reader.readAsDataURL(file);
         }
 
-        renderApp();
+        async function initNplayerPage() {
+            if (window.wwwI18n?.ready) await window.wwwI18n.ready;
+            if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document);
+            const defaultData = buildDefaultPlayerData();
+            data = getDataFromUrl() || loadFromLocalStorage() || defaultData;
+            document.title = np('page_title') || document.title;
+            renderApp();
+        }
+        initNplayerPage();
 
         function openColorSettings() {
             // document.getElementById('colorSettingsOverlay').style.display = 'block';

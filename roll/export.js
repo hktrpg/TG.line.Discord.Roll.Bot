@@ -6,8 +6,8 @@ let variables = {};
 const oneMinuts = (process.env.DEBUG) ? 1 : 60_000;
 const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60_000;
 const crypto = require('crypto');
-const gameName = function () {
-    return '【Discord 頻道輸出工具】'
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'export.game_name', '【Discord 頻道輸出工具】');
 }
 const opt = {
     upsert: true,
@@ -37,13 +37,15 @@ const htmlPool = getPool('html');
 const schema = require('../modules/schema.js');
 const VIP = require('../modules/veryImportantPerson');
 const checkTools = require('../modules/check.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 
 /**
  * Tell the user export has started. If the global handler already deferReply()'d the
  * slash command, we must editReply (not channel.send / reply) so the callback token stays valid.
  */
-async function sendDiscordExportWaitNotice(discordMessage, userid) {
-    const content = `<@${userid}>\n 請等等，HKTRPG現在開始努力處理，需要一點時間`;
+async function sendDiscordExportWaitNotice(discordMessage, userid, t) {
+    const translate = t || require('../modules/i18n.js').createTranslator(require('../modules/i18n.js').DEFAULT_LOCALE);
+    const content = translate('export.processing', { userid });
     try {
         if (discordMessage?.deferred && !discordMessage.replied) {
             await discordMessage.editReply({ content });
@@ -75,45 +77,9 @@ const prefixs = function () {
         second: null
     }]
 }
-const getHelpMessage = async function () {
-    return `【📑聊天紀錄匯出系統】測試進行中
-╭────── 📤匯出格式 ──────
-│ .discord html
-│ 　• 含資料分析功能的網頁版
-│ 　• 使用AES加密保護
-│
-│ .discord txt
-│ 　• 純文字格式匯出
-│ 　• 包含時間戳記
-│
-│ .discord txt -withouttime
-│ 　• 純文字格式匯出
-│ 　• 不含時間戳記
-│
-├────── ⚙️使用需求 ──────
-│ 權限要求:
-│ 　• 使用者需具備頻道管理權限
-│ 　• 或擁有管理員權限
-│ 　• Bot需有讀取頻道權限
-│
-│ 📨匯出方式:
-│ 　• 系統將以私訊發送紀錄
-│
-├────── ⚠️使用限制 ──────
-│ 一般用戶:
-│ 　• 每群組120分鐘限用一次
-│ 　• 每帳號一週限用一次
-│
-│ Patreon訂閱用戶:
-│ 　• 每週可用20次以上
-│ 　• 每分鐘可用一次
-│
-├────── 📌注意事項 ──────
-│ • 紀錄會經過伺服器處理
-│ • 若擔心隱私請謹慎使用
-│ • 此為團錄系統開發測試版
-╰──────────────`
-}
+const getHelpMessage = async function (params = {}) {
+    return resolveHelp(params, 'export.help');
+};
 const initialize = function () {
     return variables;
 }
@@ -127,8 +93,11 @@ const rollDiceCommand = async function ({
     groupid,
     botname,
     userid,
-    userrole
+    userrole,
+    locale,
+    t
 }) {
+    const translate = getT({ locale, t });
     let rply = {
         default: 'on',
         type: 'text',
@@ -221,8 +190,11 @@ const rollDiceCommand = async function ({
                 } else if (element.interaction && element.interaction.commandName) {
                     temp = {
                         timestamp: element.createdTimestamp,
-                        contact: (element.interaction.nickname || element.interaction.user.username) + '使用' + element.interaction.commandName + "\n",
-                        userName: '系統信息',
+                        contact: translate('export.interaction_used', {
+                            user: element.interaction.nickname || element.interaction.user.username,
+                            command: element.interaction.commandName
+                        }),
+                        userName: translate('export.system_info'),
                         isbot: true,
                         attachments: attachments,
                         embeds: embeds,
@@ -231,8 +203,10 @@ const rollDiceCommand = async function ({
                 } else { // Handle other system messages
                      temp = {
                         timestamp: element.createdTimestamp,
-                        contact: element.system ? (element.content || `系統訊息 Type: ${element.type}`) : (element.content || `訊息 Type: ${element.type}`),
-                        userName: element.author ? element.author.username : '系統訊息',
+                        contact: element.system
+                            ? (element.content || translate('export.system_message_type', { type: element.type }))
+                            : (element.content || translate('export.message_type', { type: element.type })),
+                        userName: element.author ? element.author.username : translate('export.system_message'),
                         isbot: true,
                         attachments: [],
                         embeds: [],
@@ -289,7 +263,10 @@ const rollDiceCommand = async function ({
                 if (element.referenced_message) {
                     const repliedTo = element.referenced_message;
                     const repliedToContent = await replaceMentions(repliedTo.content, members);
-                    content = `> 回覆 ${repliedTo.author.username}: ${repliedToContent.split('\n')[0]}\n\n` + content;
+                    content = translate('export.reply_quote', {
+                        username: repliedTo.author.username,
+                        preview: repliedToContent.split('\n')[0]
+                    }) + content;
                 }
 
                 const processedEmbeds = await Promise.all(
@@ -313,8 +290,11 @@ const rollDiceCommand = async function ({
                 } else if (element.interaction && element.interaction.commandName) {
                     temp = {
                         timestamp: element.createdTimestamp,
-                        contact: (element.interaction.nickname || element.interaction.user.username) + '使用' + element.interaction.commandName + "\n",
-                        userName: '系統信息',
+                        contact: translate('export.interaction_used', {
+                            user: element.interaction.nickname || element.interaction.user.username,
+                            command: element.interaction.commandName
+                        }),
+                        userName: translate('export.system_info'),
                         isbot: true,
                         attachments: (element.attachments && element.attachments.size > 0) ? element.attachments.map(attachment => attachment.proxyURL) : [],
                         embeds: processedEmbeds
@@ -380,24 +360,24 @@ const rollDiceCommand = async function ({
 
     switch (true) {
         case /^help$/i.test(mainMsg[1]):
-            rply.text = await this.getHelpMessage();
+            rply.text = await getHelpMessage({ locale, t });
             rply.quotes = true;
             return rply;
         case /^html$/i.test(mainMsg[1]): {
             if (!channelid || !groupid) {
-                rply.text = "這是頻道功能，需要在頻道上使用。"
+                rply.text = translate('export.channel_only');
                 return rply;
             }
             if (!hasReadPermission) {
-                rply.text = "HKTRPG沒有相關權限，禁止使用這功能。\nHKTRPG需要有查看此頻道對話歷史的權限。"
+                rply.text = translate('export.bot_no_permission');
                 return rply;
             }
             if (userrole < 2) {
-                rply.text = "你沒有相關權限，禁止使用這功能。\n你需要有管理此頻道的權限或管理員權限。"
+                rply.text = translate('export.user_no_permission');
                 return rply;
             }
             if (botname !== "Discord") {
-                rply.text = "這是Discord限定功能"
+                rply.text = translate('export.discord_only');
                 return rply;
             }
             let lv = await VIP.viplevelCheckUser(userid);
@@ -416,24 +396,21 @@ const rollDiceCommand = async function ({
                 C = await discordClient.channels.fetch(channelid);
             } catch (error) {
                 if (error) {
-                    rply.text = `出現錯誤(ERROR): 
-                     ${error}`;
+                    rply.text = translate('export.error', { error });
                     return rply;
                 }
             }
             //<0 = DC 未過
             if (gpRemainingTime < 0) {
-                rply.text = `此群組的冷卻時間未過，冷卻剩餘 ${millisToMinutesAndSeconds(gpRemainingTime)} 時間`;
+                rply.text = translate('export.cooldown_gp', { time: millisToMinutesAndSeconds(gpRemainingTime, translate) });
                 return rply;
             }
 
             if (userRemainingTime < 0 && checkUser && checkUser.times >= limit) {
-                rply.text = `你每星期完整下載聊天紀錄的上限為 ${limit} 次，
-冷卻剩餘 ${millisToMinutesAndSeconds(userRemainingTime)} 時間，
-現在正處於Demo模式，可以輸出500條信息，
-                
-支援及解鎖上限 https://www.patreon.com/HKTRPG
-`;
+                rply.text = translate('export.cooldown_user', {
+                    limit,
+                    time: millisToMinutesAndSeconds(userRemainingTime, translate)
+                });
                 demoMode = true;
             }
             /**
@@ -463,12 +440,12 @@ const rollDiceCommand = async function ({
             }
 
 
-            await sendDiscordExportWaitNotice(discordMessage, userid);
+            await sendDiscordExportWaitNotice(discordMessage, userid, translate);
             const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
                 discordMessage.guild.members.cache.map(member => member) : [];
             M = await lots_of_messages_getter_HTML(C, demoMode, members, messageLimit);
             if (!M || !M.sum_messages || M.sum_messages.length === 0) {
-                rply.text = "未能讀取信息";
+                rply.text = translate('export.read_failed');
                 return rply;
             }
             if (!checkUser) {
@@ -520,7 +497,7 @@ const rollDiceCommand = async function ({
                 )
                 .replaceAll(
                     'Discord 聊天記錄分析（New）',
-                    `${channelName} 的聊天紀錄分析`
+                    translate('export.html_title_channel', { channelName })
                 );
             let tempB = key;
             const writeStream = createWriteStream(dir + channelid + '_' + hour + minutes + seconds + '_' + randomLink + '.html');
@@ -539,12 +516,14 @@ const rollDiceCommand = async function ({
                 tempA + '_' + randomLink,
                 tempB
             ]
-            rply.text += `已私訊你 頻道 ${discordMessage.channel.name} 的聊天紀錄
-            你的channel 聊天紀錄 共有 ${totalSize} 項`
+            rply.text += translate('export.success_dm', {
+                channel: discordMessage.channel.name,
+                count: totalSize
+            });
             return rply;
         }
         case /^txt$/i.test(mainMsg[1]): {
-            rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({ locale,
                 flag: checkTools.flag.ChkBot,
                 gid: groupid,
                 role: userrole,
@@ -555,8 +534,7 @@ const rollDiceCommand = async function ({
             }
 
             if (!hasReadPermission) {
-                rply.text = `HKTRPG沒有相關權限，禁止使用這功能。
-                    HKTRPG需要有查看此頻道對話歷史的權限。`
+                rply.text = translate('export.bot_no_permission');
                 return rply;
             }
 
@@ -577,23 +555,21 @@ const rollDiceCommand = async function ({
                 C = await discordClient.channels.fetch(channelid);
             } catch (error) {
                 if (error) {
-                    rply.text = "出現錯誤(ERROR): " + '\n' + error;
+                    rply.text = translate('export.error', { error });
                     return rply;
                 }
             }
             //<0 = DC 未過
             if (gpRemainingTime < 0) {
-                rply.text = "此群組的冷卻時間未過，冷卻剩餘" + millisToMinutesAndSeconds(gpRemainingTime) + '時間';
+                rply.text = translate('export.cooldown_gp', { time: millisToMinutesAndSeconds(gpRemainingTime, translate) });
                 return rply;
             }
 
             if (userRemainingTime < 0 && checkUser && checkUser.times >= limit) {
-                rply.text = `你每星期完整下載聊天紀錄的上限為 ${limit} 次，
-冷卻剩餘 ${millisToMinutesAndSeconds(userRemainingTime)} 時間，
-現在正處於Demo模式，可以輸出500條信息，
-                    
-支援及解鎖上限 https://www.patreon.com/HKTRPG
-                    `;
+                rply.text = translate('export.cooldown_user', {
+                    limit,
+                    time: millisToMinutesAndSeconds(userRemainingTime, translate)
+                });
                 demoMode = true;
             }
 
@@ -609,12 +585,12 @@ const rollDiceCommand = async function ({
             }
 
             console.log('USE EXPORT TXT')
-            await sendDiscordExportWaitNotice(discordMessage, userid);
+            await sendDiscordExportWaitNotice(discordMessage, userid, translate);
             const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
                 discordMessage.guild.members.cache.map(member => member) : [];
             M = await lots_of_messages_getter_TXT(C, demoMode, members, messageLimit);
             if (!M || !M.sum_messages || M.sum_messages.length === 0) {
-                rply.text = "未能讀取信息";
+                rply.text = translate('export.read_failed');
                 return rply;
             }
             if (!checkUser) {
@@ -687,8 +663,10 @@ const rollDiceCommand = async function ({
             ));
 
             rply.discordExport = channelid + '_' + hour + minutes + seconds;
-            rply.text += `已私訊你 頻道  ${discordMessage.channel.name}  的聊天紀錄
-                你的channel聊天紀錄 共有  ${totalSize}  項`
+            rply.text += translate('export.success_dm', {
+                channel: discordMessage.channel.name,
+                count: totalSize
+            });
             console.log('EXPORT TXT DONE')
             return rply;
         }
@@ -760,7 +738,8 @@ function makeid(length) {
     }
     return result;
 }
-const millisToMinutesAndSeconds = (millis) => {
+const millisToMinutesAndSeconds = (millis, translate) => {
+    const t = translate || require('../modules/i18n.js').createTranslator(require('../modules/i18n.js').DEFAULT_LOCALE);
     // Only negate if the value is negative (user is still in cooldown)
     if (millis < 0) {
         millis = millis * -1;
@@ -772,12 +751,13 @@ const millisToMinutesAndSeconds = (millis) => {
 
     let result = '';
     if (days > 0) {
-        result += `${days}天`;
+        result += t('export.time_days', { n: days });
     }
     if (hours > 0 || days > 0) {
-        result += `${hours}小時`;
+        result += t('export.time_hours', { n: hours });
     }
-    result += `${minutes}分鐘${(seconds < 10 ? "0" : "")}${seconds}秒`;
+    const sec = `${(seconds < 10 ? "0" : "")}${seconds}`;
+    result += t('export.time_min_sec', { minutes, seconds: sec });
 
     return result;
 }

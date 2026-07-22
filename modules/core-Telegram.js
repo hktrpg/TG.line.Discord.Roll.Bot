@@ -11,6 +11,7 @@ exports.analytics = require('./analytics');
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const TGclient = new Bot(process.env.TELEGRAM_CHANNEL_SECRET);
 const newMessage = require('./message');
+const i18n = require('./i18n.js');
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 const MESSAGE_SPLITOR = (/\S+/ig);
 
@@ -103,6 +104,8 @@ TGclient.on('message:text', (ctx) => {
         if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
             (await isAdmin(groupid, userid)) ? userrole = 3 : null;
         }
+        const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Telegram' });
+        const t = i18n.createTranslator(locale);
         let rplyVal = {};
 
         // After message arrives, automatically jump to analytics.js for dice group analysis
@@ -119,7 +122,9 @@ TGclient.on('message:text', (ctx) => {
                 channelid: "",
                 membercount: membercount,
                 titleName: titleName,
-                tgDisplayname: tgDisplayname
+                tgDisplayname: tgDisplayname,
+                locale,
+                t
             })
         } else {
             if (channelKeyword == '') {
@@ -133,7 +138,9 @@ TGclient.on('message:text', (ctx) => {
                     channelid: "",
                     membercount: membercount,
                     titleName: titleName,
-                    tgDisplayname: tgDisplayname
+                    tgDisplayname: tgDisplayname,
+                    locale,
+                    t
                 })
             }
         }
@@ -149,7 +156,12 @@ TGclient.on('message:text', (ctx) => {
             // Send welcome message in the same chat instead of trying to DM the user
             // Telegram bots cannot initiate conversations with users, so we send welcome in context
             try {
-                const welcomeMessage = newMessage.firstTimeMessage();
+                const welcomeMessage = await newMessage.firstTimeMessage({
+                    userid,
+                    groupid,
+                    botname: 'Telegram',
+                    locale
+                });
                 if (welcomeMessage) {
                     const welcomePayload = {
                         chat_id: groupid || ctx.chat.id,
@@ -202,25 +214,22 @@ TGclient.on('message:text', (ctx) => {
 
         switch (true) {
             case privatemsg == 1: {
-                // Input dr (command) private message to self
-                //
                 if (ctx.chat.type != 'private') {
-                    SendToId(groupid, "@" + displayname + ' 暗骰給自己', options);
+                    SendToId(groupid, t('platform.dark_roll.dr_self_with_name', { displayname }), options);
                 }
-                rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
+                rplyVal.text = t('platform.dark_roll.dm_prefix', { displayname }) + rplyVal.text;
                 SendToId(userid, rplyVal.text, options);
                 break;
             }
             case privatemsg == 2: {
-                // Input ddr(command) private message to GM and self
                 if (ctx.chat.type != 'private') {
                     let targetGMNameTemp = "";
                     for (let i = 0; i < TargetGMTempID.length; i++) {
                         targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
                     }
-                    SendToId(groupid, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp, options);
+                    SendToId(groupid, t('platform.dark_roll.ddr_in_progress_self_with_name', { displayname, targets: targetGMNameTemp }), options);
                 }
-                rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
+                rplyVal.text = t('platform.dark_roll.dm_prefix', { displayname }) + rplyVal.text;
                 SendToId(userid, rplyVal.text);
                 for (const element of TargetGMTempID) {
                     if (userid != element)
@@ -229,15 +238,14 @@ TGclient.on('message:text', (ctx) => {
                 break;
             }
             case privatemsg == 3: {
-                // Input dddr(command) private message to GM
                 if (ctx.chat.type != 'private') {
                     let targetGMNameTemp = "";
                     for (let i = 0; i < TargetGMTempID.length; i++) {
                         targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
                     }
-                    SendToId(groupid, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp, options);
+                    SendToId(groupid, t('platform.dark_roll.dddr_in_progress_with_name', { displayname, targets: targetGMNameTemp }), options);
                 }
-                rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
+                rplyVal.text = t('platform.dark_roll.dm_prefix', { displayname }) + rplyVal.text;
                 for (const element of TargetGMTempID) {
                     SendToId(element, rplyVal.text);
                 }
@@ -327,7 +335,8 @@ async function nonDice(ctx) {
                 });
 
             }
-            let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount, tgDisplayname);
+            const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Telegram' });
+            let LevelUp = await EXPUP(groupid, userid, displayname, "", membercount, tgDisplayname, null, locale);
             if (groupid && LevelUp && LevelUp.text) {
                 SendToId(groupid, `@${displayname}  ${(LevelUp && LevelUp.statue) ? LevelUp.statue : ''}\n${LevelUp.text}`);
             }
@@ -344,15 +353,18 @@ TGclient.on('message:new_chat_members', async (ctx) => {
     const botUsername = robotName || botInfo?.username;
     if (botUsername && ctx.message.new_chat_member.username == botUsername) {
         console.log("[Telegram] Telegram joined");
-        SendToId(ctx.chat.id, newMessage.joinMessage());
+        const groupid = ctx.chat?.id ? String(ctx.chat.id) : '';
+        SendToId(ctx.chat.id, await newMessage.joinMessage({ groupid, botname: 'Telegram' }));
     }
 });
 
 TGclient.on('message:group_chat_created', async (ctx) => {
-    SendToId(ctx.chat.id, newMessage.joinMessage());
+    const groupid = ctx.chat?.id ? String(ctx.chat.id) : '';
+    SendToId(ctx.chat.id, await newMessage.joinMessage({ groupid, botname: 'Telegram' }));
 });
 TGclient.on('message:supergroup_chat_created', async (ctx) => {
-    SendToId(ctx.chat.id, newMessage.joinMessage());
+    const groupid = ctx.chat?.id ? String(ctx.chat.id) : '';
+    SendToId(ctx.chat.id, await newMessage.joinMessage({ groupid, botname: 'Telegram' }));
 });
 
 
@@ -427,8 +439,9 @@ if (agenda && agenda.agenda) {
         try {
             if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
                 await job.remove();
+                const cronLocale = await i18n.resolveLocale({ groupid: data.groupid || '', botname: 'Telegram' });
                 SendToId(
-                    data.groupid, "已運行六個月, 移除此定時訊息"
+                    data.groupid, i18n.createTranslator(cronLocale)('platform.schedule.six_month_remove')
                 )
             }
         } catch (error) {

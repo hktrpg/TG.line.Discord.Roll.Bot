@@ -8,6 +8,7 @@ const { SlashCommandBuilder } = require('discord.js');
 const checkTools = require('../modules/check.js');
 const records = require('../modules/records.js');
 const VIP = require('../modules/veryImportantPerson');
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 
 let trpgCommandData = {};
 
@@ -23,7 +24,7 @@ let trpgCommandData = {};
 
 const FUNCTION_LIMIT = [30, 200, 200, 300, 300, 300, 300, 300];
 
-const gameName = () => '【儲存擲骰指令功能】 .cmd (add edit del show 自定關鍵字)';
+const gameName = (params = {}) => resolveGameName(params, 'cmd.game_name', '【儲存擲骰指令功能】 .cmd (add edit del show 自定關鍵字)');
 
 const gameType = () => 'Tool:trpgCommand:hktrpg';
 
@@ -32,42 +33,20 @@ const prefixs = () => [{
     second: null
 }];
 
-const getHelpMessage = async function () {
-    return `【💾儲存擲骰指令】
-╭──── 📝指令列表 ────
-│ ■ 基本指令:
-│ • .cmd add 關鍵字 指令
-│   增加新的指令組合
-│ • .cmd edit 關鍵字 指令
-│   修改現有指令內容
-│ • .cmd show
-│   顯示所有關鍵字列表
-│ • .cmd del 編號/all
-│   刪除指定/全部指令
-│
-│ ■ 使用方式:
-│ • .cmd 關鍵字/編號
-│   執行已儲存的指令
-│
-│ ■ 範例說明:
-│ • 儲存: .cmd add pc1鬥毆 cc 80 鬥毆
-│ • 使用: .cmd pc1鬥毆
-│
-│ ■ 注意事項:
-│ • 關鍵字可使用任意字元
-│ • 如未生效請用show重整
-╰──────────────`
+const getHelpMessage = async function (params = {}) {
+    return resolveHelp(params, 'cmd.help');
 }
 const initialize = () => trpgCommandData;
 
-const rollDiceCommand = async ({ inputStr, mainMsg, groupid, userrole }) => {
+const rollDiceCommand = async ({ inputStr, mainMsg, groupid, userrole, locale, t }) => {
+    const translate = getT({ locale, t });
     let response = {
         default: 'on',
         type: 'text',
         text: ''
     };
 
-    const permissionError = checkTools.permissionErrMsg({
+    const permissionError = checkTools.permissionErrMsg({ locale,
         flag: checkTools.flag.ChkChannelManager,
         gid: groupid,
         role: userrole
@@ -78,48 +57,48 @@ const rollDiceCommand = async ({ inputStr, mainMsg, groupid, userrole }) => {
 
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]:
-            response.text = await getHelpMessage();
+            response.text = await getHelpMessage({ locale, t });
             response.quotes = true;
             return response;
 
         case /^\.cmd$/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && !/^(add|edit|del|show)$/i.test(mainMsg[2]):
-            return await handleAddCommand(inputStr, mainMsg, groupid, response, permissionError, limit);
+            return await handleAddCommand(inputStr, mainMsg, groupid, response, permissionError, limit, translate);
 
         case /^\.cmd$/i.test(mainMsg[0]) && /^edit$/i.test(mainMsg[1]) && !/^(add|edit|del|show)$/i.test(mainMsg[2]):
-            return await handleEditCommand(mainMsg, groupid, response, permissionError, limit);
+            return await handleEditCommand(mainMsg, groupid, response, permissionError, limit, translate);
 
         case /^\.cmd$/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^all$/i.test(mainMsg[2]):
-            return await handleDeleteAllCommands(groupid, response, permissionError);
+            return await handleDeleteAllCommands(groupid, response, permissionError, translate);
 
         case /^\.cmd$/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]) && /^\d+$/i.test(mainMsg[2]):
-            return await handleDeleteSpecificCommand(mainMsg, groupid, response, permissionError);
+            return await handleDeleteSpecificCommand(mainMsg, groupid, response, permissionError, translate);
 
         case /^\.cmd$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
-            return handleShowCommands(groupid, response);
+            return handleShowCommands(groupid, response, translate);
 
         case /^\.cmd$/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && !/^(add|edit|del|show)$/i.test(mainMsg[1]):
-            return handleExecuteCommand(mainMsg, groupid, response);
+            return handleExecuteCommand(mainMsg, groupid, response, translate);
 
         default:
             return response;
     }
 }
 
-const handleAddCommand = async (inputStr, mainMsg, groupid, response, permissionError, limit) => {
-    if (!mainMsg[2]) response.text += ' 沒有標題.\n\n';
-    if (!mainMsg[3]) response.text += ' 沒有擲骰指令\n格式為\n.cmd add (關鍵字) (指令)\n';
-    if (mainMsg[3] && mainMsg[3].toLowerCase() === ".cmd") response.text += '指令不可以儲存.cmd\n\n';
+const handleAddCommand = async (inputStr, mainMsg, groupid, response, permissionError, limit, translate) => {
+    if (!mainMsg[2]) response.text += translate('cmd.no_title');
+    if (!mainMsg[3]) response.text += translate('cmd.no_command');
+    if (mainMsg[3] && mainMsg[3].toLowerCase() === ".cmd") response.text += translate('cmd.cannot_save_cmd');
     if (response.text || permissionError) {
         response.text += permissionError;
         return response;
     }
 
     if (isDuplicateCommand(mainMsg[2], groupid)) {
-        response.text = '已有該關鍵字\n請使用.cmd edit 來編輯或.cmd show 顯示列表\n\n';
+        response.text = translate('cmd.duplicate_keyword');
         return response;
     }
     if (isExceedingLimit(groupid, limit)) {
-        response.text = `關鍵字上限${limit}個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n`;
+        response.text = translate('cmd.limit_reached', { limit });
         return response;
     }
 
@@ -136,18 +115,21 @@ const handleAddCommand = async (inputStr, mainMsg, groupid, response, permission
         await updateCommandData();
     } catch (error) {
         console.error('[z_saveCommand] Failed to push command:', error);
-        response.text = '新增失敗，請稍後再試';
+        response.text = translate('cmd.add_failed');
         return response;
     }
 
-    response.text = `新增成功: 可使用.cmd \n${mainMsg[2]}\n${newCommand.trpgCommandfunction[0].contact}`;
+    response.text = translate('cmd.add_success', {
+        keyword: mainMsg[2],
+        command: newCommand.trpgCommandfunction[0].contact
+    });
     return response;
 }
 
-const handleEditCommand = async (mainMsg, groupid, response, permissionError, limit) => {
-    if (!mainMsg[2]) response.text += '沒有標題。\n\n';
-    if (mainMsg.length < 4) response.text += '沒有擲骰指令\n格式為\n.cmd edit (關鍵字) (指令)\n\n\n';
-    if (mainMsg[3] && mainMsg[3].toLowerCase() === ".cmd") response.text += '指令不可以儲存.cmd。\n\n';
+const handleEditCommand = async (mainMsg, groupid, response, permissionError, limit, translate) => {
+    if (!mainMsg[2]) response.text += translate('cmd.no_title_edit');
+    if (mainMsg.length < 4) response.text += translate('cmd.no_command_edit');
+    if (mainMsg[3] && mainMsg[3].toLowerCase() === ".cmd") response.text += translate('cmd.cannot_save_cmd_edit');
     if (response.text || permissionError) {
         response.text += permissionError;
         return response;
@@ -157,7 +139,7 @@ const handleEditCommand = async (mainMsg, groupid, response, permissionError, li
     const existingCommand = findCommandByTopic(mainMsg[2], groupid);
 
     if (!existingCommand && isExceedingLimit(groupid, limit)) {
-        response.text = `關鍵字上限${limit}個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n`;
+        response.text = translate('cmd.limit_reached', { limit });
         return response;
     }
 
@@ -172,22 +154,22 @@ const handleEditCommand = async (mainMsg, groupid, response, permissionError, li
     try {
     if (existingCommand) {
             await records.editsetTrpgCommandFunction('trpgCommand', updatedCommand);
-        response.text = `編輯成功: ${mainMsg[2]}\n${newContact}`;
+        response.text = translate('cmd.edit_success', { keyword: mainMsg[2], command: newContact });
     } else {
             await records.pushTrpgCommandFunction('trpgCommand', updatedCommand);
-        response.text = `新增成功: ${mainMsg[2]}\n${newContact}`;
+        response.text = translate('cmd.add_via_edit_success', { keyword: mainMsg[2], command: newContact });
         }
         await updateCommandData();
     } catch (error) {
         console.error('[z_saveCommand] Failed to edit/push command:', error);
-        response.text = '操作失敗，請稍後再試';
+        response.text = translate('cmd.operation_failed');
         return response;
     }
 
     return response;
 }
 
-const handleDeleteAllCommands = async (groupid, response, permissionError) => {
+const handleDeleteAllCommands = async (groupid, response, permissionError, translate) => {
     if (permissionError) {
         response.text = permissionError;
         return response;
@@ -199,18 +181,18 @@ const handleDeleteAllCommands = async (groupid, response, permissionError) => {
             try {
                 await records.setTrpgCommandFunction('trpgCommand', entry);
                 await updateCommandData();
-            response.text = '已刪除所有關鍵字';
+            response.text = translate('cmd.delete_all_success');
             } catch (error) {
                 console.error('[z_saveCommand] Failed to delete all commands:', error);
-                response.text = '刪除失敗，請稍後再試';
+                response.text = translate('cmd.delete_failed');
             }
         }
     }
     return response;
 }
 
-const handleDeleteSpecificCommand = async (mainMsg, groupid, response, permissionError) => {
-    if (!mainMsg[2]) response.text += '沒有關鍵字. ';
+const handleDeleteSpecificCommand = async (mainMsg, groupid, response, permissionError, translate) => {
+    if (!mainMsg[2]) response.text += translate('cmd.no_keyword');
     if (response.text || permissionError) {
         response.text += permissionError;
         return response;
@@ -225,43 +207,51 @@ const handleDeleteSpecificCommand = async (mainMsg, groupid, response, permissio
                 try {
                     await records.setTrpgCommandFunction('trpgCommand', entry);
                     await updateCommandData();
-                response.text = `刪除成功: ${mainMsg[2]}: ${target.topic} \n ${target.contact}`;
+                response.text = translate('cmd.delete_success', {
+                    index: mainMsg[2],
+                    topic: target.topic,
+                    command: target.contact
+                });
                 } catch (error) {
                     console.error('[z_saveCommand] Failed to delete command:', error);
-                    response.text = '刪除失敗，請稍後再試';
+                    response.text = translate('cmd.delete_failed');
                 }
             } else {
-                response.text = '沒有相關關鍵字. \n請使用.cmd show 顯示列表\n\n';
+                response.text = translate('cmd.keyword_not_found');
             }
         }
     }
     return response;
 }
 
-const handleShowCommands = (groupid, response) => {
+const handleShowCommands = (groupid, response, translate) => {
     if (!groupid) {
-        response.text = '此功能必須在群組中使用. ';
+        response.text = translate('cmd.group_only');
         return response;
     }
 
     let found = false;
     for (const entry of trpgCommandData.commands) {
         if (entry.groupid === groupid) {
-            response.text += '資料庫列表:';
+            response.text += translate('cmd.list_header');
             for (const [index, cmd] of entry.trpgCommandfunction.entries()) {
                 found = true;
-                response.text += `\n${index}: ${cmd.topic}\n${cmd.contact}\n`;
+                response.text += translate('cmd.list_entry', {
+                    index,
+                    topic: cmd.topic,
+                    command: cmd.contact
+                });
             }
         }
     }
 
-    if (!found) response.text = '沒有已設定的關鍵字. ';
+    if (!found) response.text = translate('cmd.no_keywords');
     return response;
 }
 
-const handleExecuteCommand = (mainMsg, groupid, response) => {
+const handleExecuteCommand = (mainMsg, groupid, response, translate) => {
     if (!groupid) {
-        response.text = '此功能必須在群組中使用.';
+        response.text = translate('cmd.group_only_dot');
         return response;
     }
 
@@ -287,7 +277,7 @@ const handleExecuteCommand = (mainMsg, groupid, response) => {
         }
     }
 
-    if (!found) response.text = '沒有相關關鍵字. ';
+    if (!found) response.text = translate('cmd.execute_not_found');
     return response;
 }
 
@@ -385,6 +375,7 @@ const discordCommand = [
                             .setDescription('關鍵字或編號')
                             .setRequired(true))),
         async execute(interaction) {
+            const translate = getT({ locale: interaction._hktrpgLocale, t: interaction._hktrpgT });
             const subcommand = interaction.options.getSubcommand();
             
             switch (subcommand) {
@@ -398,7 +389,7 @@ const discordCommand = [
                     if (keyword && command) {
                         return `.cmd add ${keyword} ${command}`;
                     } else {
-                        return '需要輸入關鍵字和指令內容\n例如: .cmd add pc1鬥毆 cc 80 鬥毆';
+                        return translate('cmd.slash_add_required');
                     }
                 }
                 
@@ -408,7 +399,7 @@ const discordCommand = [
                     if (keyword && command) {
                         return `.cmd edit ${keyword} ${command}`;
                     } else {
-                        return '需要輸入關鍵字和新的指令內容\n例如: .cmd edit pc1鬥毆 cc 85 鬥毆';
+                        return translate('cmd.slash_edit_required');
                     }
                 }
                 
@@ -420,7 +411,7 @@ const discordCommand = [
                     if (target) {
                         return `.cmd del ${target}`;
                     } else {
-                        return '需要輸入編號或all\n例如: .cmd del 1 或 .cmd del all';
+                        return translate('cmd.slash_del_required');
                     }
                 }
                 
@@ -429,12 +420,12 @@ const discordCommand = [
                     if (keyword) {
                         return `.cmd ${keyword}`;
                     } else {
-                        return '需要輸入關鍵字或編號\n例如: .cmd pc1鬥毆';
+                        return translate('cmd.slash_execute_required');
                     }
                 }
                 
                 default:
-                    return '未知的子命令';
+                    return translate('cmd.unknown_subcommand');
             }
         }
     }

@@ -1,12 +1,13 @@
 "use strict";
 const mathjs = require('mathjs');
 const { SlashCommandBuilder } = require('discord.js');
+const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 const rollbase = require('./rollbase.js');
 const variables = {};
 const regexxBy = /^((\d+)(b)(\d+))(S?)/i
 const regexxUy = /^(\d+)(u)(\d+)/i
-const gameName = function () {
-	return '【進階擲骰】 .ca (計算)|D66(sn)|5B10 Dx|5U10 x y|.int x y'
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'advroll.game_name', '【進階擲骰】 .ca (計算)|D66(sn)|5B10 Dx|5U10 x y|.int x y');
 }
 
 const gameType = function () {
@@ -35,38 +36,8 @@ const prefixs = function () {
 	}
 	]
 }
-const getHelpMessage = function () {
-    return `【🎲進階擲骰指南】
-╭────── 📐數學計算 ──────
-│ 指令: .ca (不支援擲骰)
-│ 
-│ 🔢 基本運算: .ca 1.2 * (2 + 4.5)
-│ 📏 單位轉換: 12.7 米 to inch 
-│ 📊 進階算式: sin(45 deg) ^ 2
-│ ⚖️ 重量換算: 5磅轉斤
-│ 📐 長度換算: 10米轉呎 10米=吋
-├────── 🎲特殊擲骰 ──────
-│ D66系列:
-│ 　D66   - 一般D66
-│ 　D66s  - 小數字在前
-│ 　D66n  - 大數字在前
-├────── 🎯進階擲骰 ──────
-│ 基本骰組:
-│ 　5B10   - 不加總的擲骰
-│ 　5B10S  - 不加總並排序
-│
-│ 比較判定:
-│ 　5B10<>=x  - 計算大於小於x的數目
-│ 　5B10 (D)x - 空格=大於，D=小於
-│ 　如: 5B10 5 = 5B10>=5
-│ 　　 5B10 D5 = 5B10<=5
-│
-│ 獎勵骰組:
-│ 　5U10 8   - 每骰出8獲得獎勵骰
-│ 　5U10 8 9 - 計算大於9的數目
-├────── 🎯快速範圍 ──────
-│ .int 20 50 - 立即骰出20-50
-╰──────────────`
+const getHelpMessage = function (params = {}) {
+	return resolveHelp(params, 'advroll.help');
 }
 
 const initialize = function () {
@@ -76,8 +47,12 @@ const initialize = function () {
 const rollDiceCommand = async function ({
 	inputStr,
 	mainMsg,
-	botname
+	botname,
+	locale,
+	t
 }) {
+	const i18nParams = { locale, t };
+	const translate = getT(i18nParams);
 	let rply = {
 		default: 'on',
 		type: 'text',
@@ -87,7 +62,7 @@ const rollDiceCommand = async function ({
 		matchxuy = {}
 	switch (true) {
 		case /^[.][c][a]$/i.test(mainMsg[0]) && (/^help$/i.test(mainMsg[1]) || !mainMsg[1]):
-			rply.text = this.getHelpMessage();
+			rply.text = resolveHelp(i18nParams, 'advroll.help');
 			rply.quotes = true;
 			return rply;
 		case /^[.][c][a]$/i.test(mainMsg[0]):
@@ -101,39 +76,40 @@ const rollDiceCommand = async function ({
 			} catch (error) {
 				//console.error('.ca ERROR FUNCTION', inputStr, error.message);
 				rply.text = inputStr.replace(/\.ca\s+/i, '') + '\n→ ' + error.message;
-				rply.text += `\n注: 本功能只為進行數學計算,不支援擲骰。
-				例如: .ca 1.2 * (2 + 4.5) ， 12.7 米 to inch 
-				sin(45 deg) ^ 2  5磅轉斤 10米轉呎 10米=吋
-				5.08 cm + 2 inch   √(9)`
+				rply.text += translate('advroll.ca_error_footer');
 				return rply;
 			}
 			rply.text = inputStr.replace(/\.ca/i, '') + '\n→ ' + rply.text;
 			return rply;
 		case /^d66$/i.test(mainMsg[0]):
-			rply.text = d66(mainMsg[1])
+			rply.text = d66(mainMsg[1], translate);
 			return rply;
 		case /^d66n$/i.test(mainMsg[0]):
-			rply.text = d66n(mainMsg[1])
+			rply.text = d66n(mainMsg[1], translate);
 			return rply;
 		case /^d66s$/i.test(mainMsg[0]):
-			rply.text = d66s(mainMsg[1])
+			rply.text = d66s(mainMsg[1], translate);
 			return rply;
 		case regexxBy.test(mainMsg[0]): {
 			matchxby = regexxBy.exec(mainMsg[0]);
 			//判斷式 0:"5b10<=80" 1:"5b10" 2:"5" 3:"b" 4:"10" 5:"<=80" 6:"<=" 	7:"<" 8:"=" 	9:"80"
 			let sortMode = (matchxby[5]) ? true : false;
 			if (matchxby && matchxby[4] > 1 && matchxby[4] < 10_000 && matchxby[2] > 0 && matchxby[2] <= 600)
-				rply.text = xBy(mainMsg[0].replace(/S/i, ""), mainMsg[1], mainMsg[2], sortMode, botname);
+				rply.text = xBy(mainMsg[0].replace(/S/i, ""), mainMsg[1], mainMsg[2], sortMode, botname, translate);
 			return rply;
 		}
 		case regexxUy.test(mainMsg[0]) && mainMsg[1] <= 10_000:
 			matchxuy = regexxUy.exec(mainMsg[0]); //判斷式  ['5U10',  '5', 'U', '10']
 			if (matchxuy && matchxuy[1] > 0 && matchxuy[1] <= 600 && matchxuy[3] > 0 && matchxuy[3] <= 10_000) {
-				rply.text = xUy(matchxuy, mainMsg[1], mainMsg[2], mainMsg[3]);
+				rply.text = xUy(matchxuy, mainMsg[1], mainMsg[2], mainMsg[3], translate);
 			}
 			return rply;
 		case /^[.][i][n][t]$/i.test(mainMsg[0]) && mainMsg[1] <= 100_000 && mainMsg[2] <= 100_000:
-			rply.text = '投擲 ' + mainMsg[1] + ' - ' + mainMsg[2] + '：\n→ ' + rollbase.DiceINT(mainMsg[1], mainMsg[2]);
+			rply.text = translate('advroll.int_result', {
+				min: mainMsg[1],
+				max: mainMsg[2],
+				result: rollbase.DiceINT(mainMsg[1], mainMsg[2])
+			});
 			return rply
 		default:
 			break;
@@ -147,11 +123,11 @@ const discordCommand = [
 			.setDescription('【數學計算】 (不支援擲骰) ')
 			.addStringOption(option => option.setName('text').setDescription('輸入內容').setRequired(true)),
 		async execute(interaction) {
+			const t = getInteractionT(interaction);
 			const text = interaction.options.getString('text')
 			if (text !== null)
 				return `.ca ${text}`
-			else return `需要輸入內容\n 如 .ca 1.2 * (2 + 4.5) ， 12.7 米 to inch 
-			sin(45 deg) ^ 2  5磅轉斤 10米轉呎 10米=吋`
+			else return t('advroll.slash_ca_input_required');
 
 		}
 	},
@@ -163,11 +139,12 @@ const discordCommand = [
 			.addStringOption(option => option.setName('maxnum').setDescription('輸入第二個數字').setRequired(true))
 		,
 		async execute(interaction) {
+			const t = getInteractionT(interaction);
 			const minNum = interaction.options.getString('minnum')
 			const maxNum = interaction.options.getString('maxnum');
 			if (minNum !== null && maxNum !== null)
 				return `.int ${minNum} ${maxNum}`
-			else return `需要輸入兩個數字\n 如 .int 20 50`
+			else return t('advroll.slash_int_input_required');
 
 		}
 	},
@@ -256,52 +233,50 @@ module.exports = {
 /**
  * D66 
  */
-function d66(text) {
-	text = (text) ? '：' + text : '：';
-	let returnStr = '';
-	returnStr = 'D66' + text + '\n' + rollbase.Dice(6) + rollbase.Dice(6);
-	return returnStr;
+function d66(text, translate) {
+	const t = translate || getT({});
+	const suffix = text ? t('advroll.d66_suffix', { text }) : t('advroll.d66_suffix_empty');
+	return 'D66' + suffix + '\n' + rollbase.Dice(6) + rollbase.Dice(6);
 }
 /**
  * 
  * D66S 
  */
-function d66s(text) {
-	text = (text) ? '：' + text : '：';
+function d66s(text, translate) {
+	const t = translate || getT({});
+	const suffix = text ? t('advroll.d66_suffix', { text }) : t('advroll.d66_suffix_empty');
 	let temp0 = rollbase.Dice(6);
 	let temp1 = rollbase.Dice(6);
-	let returnStr = '';
 	if (temp0 >= temp1) {
 		let temp2 = temp0;
 		temp0 = temp1;
 		temp1 = temp2;
 	}
-	returnStr = 'D66s' + text + '\n' + temp0 + temp1;
-	return returnStr;
+	return 'D66s' + suffix + '\n' + temp0 + temp1;
 }
 /**
  * D66N 
  */
-function d66n(text) {
-	text = (text) ? '：' + text : '：';
+function d66n(text, translate) {
+	const t = translate || getT({});
+	const suffix = text ? t('advroll.d66_suffix', { text }) : t('advroll.d66_suffix_empty');
 	let temp0 = rollbase.Dice(6);
 	let temp1 = rollbase.Dice(6);
-	let returnStr = '';
 	if (temp0 <= temp1) {
 		let temp2 = temp0;
 		temp0 = temp1;
 		temp1 = temp2;
 	}
 
-	returnStr = 'D66n' + text + '\n' + temp0 + temp1;
-	return returnStr;
+	return 'D66n' + suffix + '\n' + temp0 + temp1;
 }
 /***
  *	xBy 
  *  xBy<>=z  成功數1
  *  xBy Dz   成功數1
  */
-function xBy(triggermsg, text01, text02, sortMode, botname) {
+function xBy(triggermsg, text01, text02, sortMode, botname, translate) {
+	const t = translate || getT({});
 	let regex2 = /(([<]|[>])(|[=]))(\d+.*)/i;
 
 	let temptriggermsg = triggermsg;
@@ -406,8 +381,8 @@ function xBy(triggermsg, text01, text02, sortMode, botname) {
 		}
 	}
 	returnStr += ' → ' + varcou.join(', ');
-	if (match[5]) returnStr += ' \n→ 成功數' + mathjs.evaluate(Number(varsu) + (temptriggermsg || 0));
-	if (text) returnStr += ' ；　' + text;
+	if (match[5]) returnStr += t('advroll.xby_success', { count: mathjs.evaluate(Number(varsu) + (temptriggermsg || 0)) });
+	if (text) returnStr += t('advroll.xby_note', { text });
 	return returnStr;
 }
 /**
@@ -421,7 +396,8 @@ function xBy(triggermsg, text01, text02, sortMode, botname) {
  * (5U10[8]>8) → 1,30[9,8,8,5],1,3,4 → 成功數1 
  */
 
-function xUy(triggermsg, text01, text02, text03) {
+function xUy(triggermsg, text01, text02, text03, translate) {
+	const t = translate || getT({});
 
 	let match = triggermsg //判斷式  5u19,5,u,19, 
 	let returnStr = '(' + triggermsg + '[' + text01 + ']';
@@ -436,7 +412,7 @@ function xUy(triggermsg, text01, text02, text03) {
 	let varcouloop = new Array();
 	let varcounew = new Array();
 	if (text01 <= 2) {
-		returnStr = '加骰最少比2高';
+		returnStr = t('advroll.xuy_min_threshold');
 		return returnStr;
 	}
 
@@ -466,15 +442,15 @@ function xUy(triggermsg, text01, text02, text03) {
 		for (let i = 0; i < varcou.length; i++) {
 			if (Number(varcou[i]) >= Number(text02)) suc++;
 		}
-		returnStr += ' → 成功數' + suc;
+		returnStr += t('advroll.xuy_success', { count: suc });
 	} else
 	//  (5U10[8]) → 17[10,7],4,5,7,4 → 17/37(最大/合計)
 
 	{
-		returnStr += '\n → ' + Math.max.apply(null, varcou);
-		returnStr += '/' + varcou.reduce(function (previousValue, currentValue) {
+		const sum = varcou.reduce(function (previousValue, currentValue) {
 			return previousValue + currentValue;
-		}) + '(最大/合計)';
+		});
+		returnStr += t('advroll.xuy_max_sum', { max: Math.max.apply(null, varcou), sum });
 	}
 	return returnStr;
 }

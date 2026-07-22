@@ -158,13 +158,37 @@ export default [
         cardManager: "readonly",
         socket: "readonly",
         socketManager: "readonly",
-        authManager: "readonly"
+        authManager: "readonly",
+        // Shared across script tags (www-locale-head / www-i18n / page scripts)
+        Iconify: "readonly",
+        PAGE_CONFIG: "readonly",
+        addElement: "readonly",
+        initializeVueApps: "readonly",
+        loadSiteChromeWithI18n: "readonly",
+        wwwT: "readonly",
+        wwwPrefixT: "readonly",
+        wwwApplyDomI18n: "readonly",
+        getWwwLocale: "readonly",
+        getWwwSocketIoOptions: "readonly",
+        getWwwDefaultLocale: "readonly",
+        getWwwBothelpUrl: "readonly",
+        resolveWwwLocale: "readonly",
+        normalizeWwwLocale: "readonly",
+        persistWwwLocale: "readonly",
+        wwwLocaleToHtmlLang: "readonly",
+        initWwwLocaleSwitcher: "readonly",
+        removeWwwLocaleSwitcherFab: "readonly",
+        ensureWwwLocaleSwitcher: "readonly",
+        setWwwLocale: "readonly"
       }
     },
     rules: {
       // Browser-specific relaxed rules
       "unicorn/prefer-global-this": "off",
       "unicorn/prefer-query-selector": "off",
+      "unicorn/prefer-dom-node-dataset": "off",
+      "unicorn/prefer-dom-node-append": "off",
+      "unicorn/no-useless-fallback-in-spread": "off",
       // Legacy browser bundle filenames
       "unicorn/filename-case": ["error", { 
         "case": "kebabCase", 

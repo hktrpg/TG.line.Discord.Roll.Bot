@@ -1,10 +1,11 @@
 "use strict";
 const { SlashCommandBuilder } = require('discord.js');
 const mathjs = require('mathjs');
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 let rollbase = require('./rollbase.js');
 let variables = {};
-const gameName = function () {
-    return '【命運Fate】 .4df(m|-)(加值)'
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'fate.game_name', '【命運Fate】 .4df(m|-)(加值)');
 }
 
 const gameType = function () {
@@ -20,24 +21,8 @@ const prefixs = function () {
         second: null
     }]
 }
-const getHelpMessage = async function () {
-    return `【🎲命運Fate骰系統】
-╭────── 🎯骰子說明 ──────
-│ 命運骰(Fate Dice)組成:
-│ 　• ⊞ 「＋」兩面 (+1)
-│ 　• ⊟ 「－」兩面 (-1)
-│ 　• ▉ 空白兩面 (0)
-│
-├────── 🎲擲骰指令 ──────
-│ 基本指令:
-│ 　• .4df - 擲四顆命運骰
-│
-│ 加入修正值:
-│ 　• .4df3   → 結果+3
-│ 　• .4df+3  → 結果+3
-│ 　• .4dfm4  → 結果-4
-│ 　• .4df-4  → 結果-4
-╰──────────────`
+const getHelpMessage = async function (params = {}) {
+    return resolveHelp(params, 'fate.help');
 }
 const initialize = function () {
     return variables;
@@ -45,8 +30,11 @@ const initialize = function () {
 
 const rollDiceCommand = async function ({
     inputStr,
-    mainMsg
+    mainMsg,
+    locale,
+    t
 }) {
+    const translate = getT({ locale, t });
     let rply = {
         default: 'on',
         type: 'text',
@@ -54,7 +42,7 @@ const rollDiceCommand = async function ({
     };
     switch (true) {
         case /^help$/i.test(mainMsg[1]):
-            rply.text = await this.getHelpMessage();
+            rply.text = await getHelpMessage({ locale, t });
             rply.quotes = true;
             return rply;
         default: {
@@ -72,16 +60,18 @@ const rollDiceCommand = async function ({
             }
             try {
                 // eslint-disable-next-line unicorn/prefer-string-replace-all
-                rply.text = 'Fate ' + inputStr.toString().replace(/\r/g, " ").replace(/\n/g, " ") + '\n' + temp + ' = ' + ans;
-                // eslint-disable-next-line unicorn/prefer-string-replace-all
-                let mod = mainMsg[0].replace(/^\.4df/ig, '').replace(/^(\d)/, '+$1').replace(/m/ig, '-').replace(/-/g, ' - ').replace(/\+/g, ' + ');
+                rply.text = translate('fate.roll_header', { input: inputStr.toString().replace(/\r/g, " ").replace(/\n/g, " ") });
+                rply.text += translate('fate.roll_result', { dice: temp, total: ans });
+                let mod = mainMsg[0].replaceAll(/^\.4df/ig, '').replace(/^(\d)/, '+$1').replaceAll(/m/ig, '-').replaceAll('-', ' - ').replaceAll('+', ' + ');
                 if (mod) {
-                    // eslint-disable-next-line unicorn/prefer-string-replace-all
-                    rply.text += ` ${mod} = ${mathjs.evaluate(ans + mod)}`.replace(/\*/g, ' * ')
+                    rply.text += translate('fate.mod_result', {
+                        mod,
+                        final: mathjs.evaluate(ans + mod)
+                    }).replaceAll('*', ' * ');
 
                 }
             } catch (error) {
-                rply.text = `.4df 輸入出錯 \n${error.message}`
+                rply.text = translate('fate.input_error', { error: error.message });
             }
 
 

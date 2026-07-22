@@ -3,7 +3,7 @@ class PageConfigManager {
     constructor() {
         this.configs = {
             private: {
-                title: "Character Card 角色卡",
+                title: "HKTRPG Character Card",
                 bodyClass: "",
                 containerClass: "container-fluid px-3 px-md-4 py-3",
                 vueContainerClass: "container-fluid px-3 px-md-4 py-3",
@@ -12,7 +12,7 @@ class PageConfigManager {
                 initialization: this.getPrivateInitialization()
             },
             public: {
-                title: "Character Card 角色卡",
+                title: "HKTRPG Public Character Card",
                 bodyClass: "center container",
                 containerClass: "container",
                 vueContainerClass: "container",
@@ -171,17 +171,21 @@ class PageConfigManager {
     // 應用配置到頁面
     applyConfig(pageType) {
         const config = this.generatePageConfig(pageType);
-        
-        // 更新頁面標題
-        document.title = `${config.TITLE} @ HKTRPG`;
-        
+
+        // Prefer live www i18n titles when available
+        let title = config.TITLE;
+        if (typeof wwwT === 'function') {
+            title = pageType === 'public' ? wwwT('title_public') : wwwT('title_private');
+        }
+        document.title = `${title} @ HKTRPG`;
+
         // 更新body類別
         if (config.BODY_CLASS) {
             document.body.className = `bg-color ${config.BODY_CLASS}`;
         }
-        
+
         // 返回配置對象供其他模組使用
-        return config;
+        return { ...config, TITLE: title };
     }
 }
 

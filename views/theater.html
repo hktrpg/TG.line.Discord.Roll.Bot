@@ -8,6 +8,7 @@
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
+    <script src="/common/www-locale-head.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Bootstrap CSS -->
     <script src="/socket.io/socket.io.js"></script>
@@ -18,6 +19,10 @@
 
 
     <title>劇場 @ HKTRPG</title>
+  <link rel="stylesheet" href="css/app-shell.css">
+  <script src="/common/www-i18n.js"></script>
+  <script src="/common/site-chrome.js"></script>
+
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.2/dropzone.min.js"></script>
@@ -38,69 +43,11 @@
 </head>
 
 <body class=" container">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81"><a
-                class="badge badge-pill badge-danger">
-                HKTRPG 帶團劇院平台<span class="iconify" data-icon="mdi:dice-multiple-outline" data-inline="false"
-                    style="color: black;" data-width="32" data-height="32"></span></span>
-                <span class="iconify" data-icon="bi:chat-square-text" data-inline="false" style="color: black;"
-                    data-width="32" data-height="32"></span>
-            </a></a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
-            aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav">
-                <a class="nav-item nav-link active" href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">主頁
-                </a>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        角色卡
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="#">私人角色卡</a>
-                        <a class="dropdown-item" href="https://publiccard.hktrpg.com/">公開角色卡</a>
-                    </div>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        跑團平台
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="https://z01.hktrpg.com/">2.5D - 烏冬</a>
-                        <a class="dropdown-item" href="https://z02.hktrpg.com/">四平八穩 - 冰丼</a>
-                    </div>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        擲骰
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="https://rollbot.hktrpg.com/">聊天室擲骰</a>
-                        <a class="dropdown-item" href="https://roll.hktrpg.com/">簡易擲骰平台</a>
-                    </div>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link"
-                        href="https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP">HKTRPG作品集</a>
-                </li>
-                <a class="nav-item nav-link " href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot">
-                    <span class="iconify" data-icon="bytesize:github" data-inline="false" data-width="25px"
-                        data-height="25px"></span></a>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container">
+    <div id="header"></div>
+<div class="container">
         <div class="row">
             <div class="col-md-8 order-md-1">
-                <h4 class="mb-3">
-                    圖片
-                </h4>
+                <h4 class="mb-3" data-www-i18n="theater_section_image">圖片</h4>
                 <div class="row">
                     <div class="col-md-12 mb-12" id="canvasDIV">
                         <canvas id="main"></canvas>
@@ -109,32 +56,27 @@
                 <hr class="mb-4" />
                 <div class="flex-grow-0 py-3 px-4 border-top">
                     <div class="input-group">
-                        <input type="text" class="form-control" id="text" value="" placeholder="輸入信息">
-                        <button class="btn btn-primary" onclick="createText()">輸入</button>
-                        <button class="btn btn-primary" onclick="clearText()">清除</button>
+                        <input type="text" class="form-control" id="text" value="" data-www-i18n-placeholder="theater_input_placeholder" placeholder="輸入信息">
+                        <button class="btn btn-primary" onclick="createText()" data-www-i18n="theater_btn_submit">輸入</button>
+                        <button class="btn btn-primary" onclick="clearText()" data-www-i18n="theater_btn_clear">清除</button>
                     </div>
                 </div>
                 <hr class="mb-4" />
-                <button class="btn btn-primary btn-lg" onclick="takeScreenshot()" type="submit">
-                    儲存圖片
-                </button>
-                <button class="btn btn-primary btn-lg" type="submit">
-                    傳送到聊天平台
-                </button>
+                <button class="btn btn-primary btn-lg" onclick="takeScreenshot()" type="submit" data-www-i18n="theater_btn_save_image">儲存圖片</button>
+                <button class="btn btn-primary btn-lg" type="submit" data-www-i18n="theater_btn_send_platform">傳送到聊天平台</button>
             </div>
 
-            <div class="col-md-4 order-md-2 mb-4">
-                控制台
+            <div class="col-md-4 order-md-2 mb-4"><span data-www-i18n="theater_console">控制台</span>
                 <hr class="mb-4" />
                 <h4 class="d-flex justify-content-between align-items-center mb-3">
                     <span class="text-muted">
                         <button type="button" class="btn btn-primary" onclick="switchCard('#collapseRoll')"><span
-                                class="iconify" data-icon="fa-solid:dice-d20" data-inline="false"></span>擲骰</button>
+                                class="iconify" data-icon="fa-solid:dice-d20" data-inline="false"></span><span data-www-i18n="theater_tab_roll">擲骰</span></button>
                         <button type="button" class="btn btn-secondary" onclick="switchCard('#collapseBG')"><span
                                 class="iconify" data-icon="fluent:color-background-24-regular"
-                                data-inline="false"></span>背景</button>
+                                data-inline="false"></span><span data-www-i18n="theater_tab_bg">背景</span></button>
                         <button type="button" class="btn btn-success" onclick="switchCard('#collapseCharacter')"><span
-                                class="iconify" data-icon="gg:ghost-character" data-inline="false"></span>角色</button>
+                                class="iconify" data-icon="gg:ghost-character" data-inline="false"></span><span data-www-i18n="theater_tab_character">角色</span></button>
                     </span>
 
                 </h4>
@@ -142,12 +84,12 @@
                     <span class="text-muted">
                         <button type="button" class="btn btn-danger" onclick="switchCard('#collapseFilter')"><span
                                 class="iconify" data-icon="ic:baseline-movie-filter"
-                                data-inline="false"></span>濾鏡</button>
+                                data-inline="false"></span><span data-www-i18n="theater_tab_filter">濾鏡</span></button>
                         <button type="button" class="btn btn-warning" onclick="switchCard('#collapseEffect')"><span
                                 class="iconify" data-icon="cib:adobe-after-effects"
-                                data-inline="false"></span>特效</button>
+                                data-inline="false"></span><span data-www-i18n="theater_tab_effect">特效</span></button>
                         <button type="button" class="btn btn-info" onclick="switchCard('#collapseDialogBox')"><span
-                                class="iconify" data-icon="jam:eye-close" data-inline="false"></span>對話框</button>
+                                class="iconify" data-icon="jam:eye-close" data-inline="false"></span><span data-www-i18n="theater_tab_dialog">對話框</span></button>
                     </span>
 
                 </h4>
@@ -183,25 +125,17 @@
                 <div class="collapse multi-collapse" id="collapseBG">
                     <div class="card p-2">
                         <ul class="list-group mb-3">
-                            預設圖 3-5張
+                            <span data-www-i18n="theater_bg_preset_hint">預設圖 3-5張</span>
                             <div class="dropzone" id="img-upload-BG">
                             </div>
                         </ul>
 
                         <div class="input-group">
 
-                            <button class="btn btn-secondary" onclick="bgEdit('width')">
-                                按闊度
-                            </button>
-                            <button class="btn btn-secondary" onclick="bgEdit('height')">
-                                按高度
-                            </button>
-                            <button class="btn btn-secondary" onclick="bgEdit('fill')">
-                                拉伸
-                            </button>
-                            <button class="btn btn-secondary" onclick="bgEdit('center')">
-                                置中(不縮放)
-                            </button>
+                            <button class="btn btn-secondary" onclick="bgEdit('width')" data-www-i18n="theater_bg_fit_width">按闊度</button>
+                            <button class="btn btn-secondary" onclick="bgEdit('height')" data-www-i18n="theater_bg_fit_height">按高度</button>
+                            <button class="btn btn-secondary" onclick="bgEdit('fill')" data-www-i18n="theater_bg_stretch">拉伸</button>
+                            <button class="btn btn-secondary" onclick="bgEdit('center')" data-www-i18n="theater_bg_center">置中(不縮放)</button>
 
                         </div>
                     </div>
@@ -217,7 +151,7 @@
                 <div class="collapse multi-collapse" id="collapseDialogBox">
                     <div class="card p-2">
                         <ul class="list-group mb-3">
-                            預設圖 2-3張
+                            <span data-www-i18n="theater_dialog_preset_hint">預設圖 2-3張</span>
                             <div class="dropzone" id="img-upload-DialogBox">
                             </div>
                         </ul>
@@ -235,15 +169,9 @@
                 <div class="collapse multi-collapse" id="collapseFilter">
                     <div class="card p-2">
                         <div class="input-group-append">
-                            <button type="submit" class="btn btn-secondary" onclick="filterON()">
-                                套用濾鏡
-                            </button>
-                            <button type="submit" class="btn btn-secondary" onclick="clearFilter()">
-                                移除濾鏡
-                            </button>
-                            <button type="submit" class="btn btn-secondary" onclick="selectAll()">
-                                選取全部圖層
-                            </button>
+                            <button type="submit" class="btn btn-secondary" onclick="filterON()" data-www-i18n="theater_btn_apply_filter">套用濾鏡</button>
+                            <button type="submit" class="btn btn-secondary" onclick="clearFilter()" data-www-i18n="theater_btn_remove_filter">移除濾鏡</button>
+                            <button type="submit" class="btn btn-secondary" onclick="selectAll()" data-www-i18n="theater_btn_select_all_layers">選取全部圖層</button>
                         </div>
                         <div class="card p-2">
                             <select multiple="multiple" name="states[]" id="v-model-select-dynamic"
@@ -259,7 +187,7 @@
                                     data-toggle="collapse" data-target="#collapse01" aria-expanded="false"
                                     aria-controls="collapse01">
                                 <label class="form-check-label" for="filterCheck01">
-                                    模糊 blurFilter
+                                    <span data-www-i18n="theater_filter_blur">模糊 blurFilter</span>
                                 </label>
                             </div>
                             <div id="collapse01" class="collapse" aria-labelledby="heading01"
@@ -278,7 +206,7 @@
                                     data-toggle="collapse" data-target="#collapse02" aria-expanded="false"
                                     aria-controls="collapse02">
                                 <label class="form-check-label" for="filterCheck02">
-                                    文字化 AsciiFilter
+                                    <span data-www-i18n="theater_filter_ascii">文字化 AsciiFilter</span>
                                 </label>
                             </div>
                             <div id="collapse02" class="collapse" aria-labelledby="heading02"
@@ -298,7 +226,7 @@
                                     id="filterCheck03" data-toggle="collapse" data-target="#collapse03"
                                     aria-expanded="false" aria-controls="collapse03">
                                 <label class="form-check-label" for="filterCheck03">
-                                    魚眼 BulgePinchFilter
+                                    <span data-www-i18n="theater_filter_bulge">魚眼 BulgePinchFilter</span>
                                 </label>
                             </div>
                             <div id="collapse03" class="collapse" aria-labelledby="heading03"
@@ -338,7 +266,7 @@
                                     data-toggle="collapse" data-target="#collapse05" aria-expanded="false"
                                     aria-controls="collapse05">
                                 <label class="form-check-label" for="filterCheck05">
-                                    點化 DotFilter
+                                    <span data-www-i18n="theater_filter_dot">點化 DotFilter</span>
                                 </label>
                             </div>
                             <div id="collapse05" class="collapse" aria-labelledby="heading05"
@@ -358,7 +286,7 @@
                                     data-toggle="collapse" data-target="#collapse06" aria-expanded="false"
                                     aria-controls="collapse06">
                                 <label class="form-check-label" for="filterCheck06">
-                                    加噪 NoiseFilter
+                                    <span data-www-i18n="theater_filter_noise">加噪 NoiseFilter</span>
                                 </label>
                             </div>
                             <div id="collapse06" class="collapse" aria-labelledby="heading06"
@@ -378,7 +306,7 @@
                                     data-toggle="collapse" data-target="#collapse07" aria-expanded="false"
                                     aria-controls="collapse07">
                                 <label class="form-check-label" for="filterCheck07">
-                                    CRT化
+                                    <span data-www-i18n="theater_filter_crt">CRT化</span>
                                 </label>
                             </div>
                             <div id="collapse07" class="collapse" aria-labelledby="heading07"
@@ -398,7 +326,7 @@
                                     id="filterCheck08" data-toggle="collapse" data-target="#collapse08"
                                     aria-expanded="false" aria-controls="collapse08">
                                 <label class="form-check-label" for="filterCheck08">
-                                    摺積 ConvolutionFilter
+                                    <span data-www-i18n="theater_filter_convolution">摺積 ConvolutionFilter</span>
                                 </label>
                             </div>
                             <div id="collapse08" class="collapse" aria-labelledby="heading08"
@@ -418,7 +346,7 @@
                                     id="filterCheck09" data-toggle="collapse" data-target="#collapse09"
                                     aria-expanded="false" aria-controls="collapse09">
                                 <label class="form-check-label" for="filterCheck09">
-                                    顏色疊加 ColorOverlayFilter
+                                    <span data-www-i18n="theater_filter_color_overlay">顏色疊加 ColorOverlayFilter</span>
                                 </label>
                             </div>
                             <div id="collapse09" class="collapse" aria-labelledby="heading09"
@@ -436,19 +364,19 @@
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="" id="filterCheck10">
                             <label class="form-check-label" for="filterCheck10">
-                                鏡像反轉
+                                <span data-www-i18n="theater_mirror_flip">鏡像反轉</span>
                             </label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="" id="filterCheck11">
                             <label class="form-check-label" for="filterCheck11">
-                                上下反轉
+                                <span data-www-i18n="theater_vertical_flip">上下反轉</span>
                             </label>
                         </div>
                         <div class="form-check" onclick="unclickAll()">
                             <input class="form-check-input" type="checkbox" value="">
                             <label class="form-check-label" for="unfilterCheck10">
-                                取消勾選
+                                <span data-www-i18n="theater_uncheck_all">取消勾選</span>
                             </label>
                         </div>
                     </div>
@@ -487,15 +415,40 @@
 
 
 
-    <div class="footer-copyright text-center py-2">©2020-2021 GNU HKTRPG -
-        <a href="https://www.patreon.com/HKTRPG" title="Support on Patreon">If you love it, buy me a tea</a> ☕
-    </div>
+    <div id="footer"></div>
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
         integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
     </script>
+<script>
+    function tt(key, options = {}) {
+      if (typeof wwwT !== 'function') return '';
+      return wwwT(key.startsWith('theater_') ? key : `theater_${key}`, options);
+    }
+    async function applyTheaterPageI18n() {
+      if (window.wwwI18n?.ready) await window.wwwI18n.ready;
+      if (typeof wwwApplyDomI18n === 'function') {
+        wwwApplyDomI18n(document.body);
+      }
+      document.title = tt('page_title') || document.title;
+    }
+    $(async function () {
+      await applyTheaterPageI18n();
+      if (typeof loadSiteChromeWithI18n === 'function') {
+        loadSiteChromeWithI18n({ title: tt('nav_title') });
+      } else {
+        $('#header').load('/includes/header.html', function () {
+          if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document.getElementById('header'));
+        });
+        $('#footer').load('/includes/footer.html', function () {
+          if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document.getElementById('footer'));
+        });
+      }
+    });
+</script>
+
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
         integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous">
     </script>
@@ -540,7 +493,10 @@
             'https://images.mihuashi.com/2017/10/26/03/mrantfdaxgbaycgueznm2dvbqmjrc6i3/mrantfdaxgbaycgueznm2dvbqmjrc6i3.jpg'
         );
         createDialogBox('https://i.imgur.com/maCqZFS.png');
-        createText('這是測試，左鍵連點兩下是放大，加上Shift是縮小，Shift+右鍵兩下是刪除')
+        (async () => {
+            if (window.wwwI18n?.ready) await window.wwwI18n.ready;
+            createText(tt('demo_text'));
+        })();
         app.stage.sortChildren();
 
 
@@ -614,7 +570,7 @@
         function selectAll() {
             $('#v-model-select-dynamic').select2('destroy').find('option').prop('selected', 'selected').end().select2({
                 closeOnSelect: false,
-                placeholder: '選取目標圖層',
+                placeholder: tt('select_layer_placeholder'),
                 allowClear: true,
                 scrollAfterSelect: true
             });
@@ -889,7 +845,7 @@
         $(document).ready(function () {
             $('.js-example-basic-multiple').select2({
                 closeOnSelect: false,
-                placeholder: '選取目標圖層',
+                placeholder: tt('select_layer_placeholder'),
                 allowClear: true,
                 scrollAfterSelect: true
             });
@@ -982,7 +938,7 @@
                     $('#v-model-select-dynamic').select2('destroy').find('option').prop('selected',
                         false).end().select2({
                         closeOnSelect: false,
-                        placeholder: '選取目標圖層',
+                        placeholder: tt('select_layer_placeholder'),
                         allowClear: true,
                         scrollAfterSelect: true
                     });
@@ -1005,6 +961,7 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 
+    <div id="footer"></div>
 </body>
 <!-- HKTRPG Sad -- 20201221-->
 <!-- 

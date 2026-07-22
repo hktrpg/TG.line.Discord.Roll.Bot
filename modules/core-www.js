@@ -20,13 +20,71 @@ const candle = require('../modules/candleDays.js');
 const cspConfig = require('../modules/config/csp.js');
 const mainCharacter = require('../roll/z_character').mainCharacter;
 const security = require('../utils/security.js');
-const schema = require('./schema.js');
+const { buildBusEtaShortcut } = require('./bus-shortcut.js');
+const i18n = require('./i18n.js');
 const patreonTiers = require('./patreon-tiers.js');
 const patreonSync = require('./patreon-sync.js');
-const { buildBusEtaShortcut } = require('./bus-shortcut.js');
+const schema = require('./schema.js');
 
 const www = express();
 const isHttpUrl = (value) => /^https?:\/\//i.test(String(value || '').trim());
+
+function resolveWwwLocale(req) {
+    const fromQuery = req?.query?.lang;
+    const fromHeader = req?.headers?.['accept-language']?.split(',')[0];
+    return i18n.normalizeLocale(fromQuery || fromHeader);
+}
+
+function getWwwT(req) {
+    return i18n.createTranslator(resolveWwwLocale(req));
+}
+
+function getSocketT(socket) {
+    return i18n.createTranslator(socket?._hktrpgLocale || i18n.DEFAULT_LOCALE);
+}
+
+function flattenI18nSection(section, prefix, output) {
+    if (!section || typeof section !== 'object') {
+        return;
+    }
+    for (const [key, value] of Object.entries(section)) {
+        const path = prefix ? `${prefix}.${key}` : key;
+        if (value && typeof value === 'object' && !Array.isArray(value)) {
+            flattenI18nSection(value, path, output);
+        } else {
+            output[path] = value;
+        }
+    }
+}
+
+function buildWwwI18nBundle(locale) {
+    const normalized = i18n.normalizeLocale(locale);
+    const t = i18n.createTranslator(normalized);
+    const tDefault = i18n.createTranslator(i18n.DEFAULT_LOCALE);
+    const strings = {};
+    const fallback = {};
+    flattenI18nSection(t('www.views', { returnObjects: true }), 'www.views', strings);
+    flattenI18nSection(t('www.busstop', { returnObjects: true }), 'www.busstop', strings);
+    const character = t('character', { returnObjects: true });
+    if (character && typeof character === 'object') {
+        for (const [key, value] of Object.entries(character)) {
+            if (key.startsWith('validation_') && typeof value === 'string') {
+                strings[`character.${key}`] = value;
+            }
+        }
+    }
+    flattenI18nSection(tDefault('www.views', { returnObjects: true }), 'www.views', fallback);
+    flattenI18nSection(tDefault('www.busstop', { returnObjects: true }), 'www.busstop', fallback);
+    const characterDefault = tDefault('character', { returnObjects: true });
+    if (characterDefault && typeof characterDefault === 'object') {
+        for (const [key, value] of Object.entries(characterDefault)) {
+            if (key.startsWith('validation_') && typeof value === 'string') {
+                fallback[`character.${key}`] = value;
+            }
+        }
+    }
+    return { locale: normalized, strings, fallback };
+}
 // Base directory for exported HTML logs, shared with other services.
 // LOGLINK may be configured as a public URL; local file serving must always use a filesystem path.
 const exportBaseDir = (!process.env.LOGLINK || isHttpUrl(process.env.LOGLINK))
@@ -360,9 +418,12 @@ www.get('/api/local', async (req, res) => {
         let rplyVal = {};
         if (mainMsg && mainMsg.length > 0) {
             const processedInput = mainMsg.join(' ');
+            const locale = resolveWwwLocale(req);
             rplyVal = await exports.analytics.parseInput({
                 inputStr: processedInput,
-                botname: "Local"
+                botname: "Local",
+                locale,
+                t: i18n.createTranslator(locale)
             });
         }
         if (!rplyVal || !rplyVal.text) rplyVal = { text: '' };
@@ -381,6 +442,10 @@ www.get('/api/dice-commands', async (req, res) => {
         return;
     }
 
+    await i18n.init();
+    const locale = resolveWwwLocale(req);
+    const t = i18n.createTranslator(locale);
+    const i18nParams = { locale, t };
     const rollDir = path.join(process.cwd(), 'roll');
     const files = fs.readdirSync(rollDir);
     const commandsData = [];
@@ -394,12 +459,12 @@ www.get('/api/dice-commands', async (req, res) => {
                 const commandModule = require(modulePath);
 
                 if (commandModule.webCommand !== false && commandModule.discordCommand && commandModule.gameName && commandModule.getHelpMessage) {
-                    const gameName = commandModule.gameName();
-                    const helpMessage = await commandModule.getHelpMessage();
+                    const gameName = commandModule.gameName(i18nParams);
+                    const helpMessage = await commandModule.getHelpMessage(i18nParams);
                     const commands = [];
 
                     for (const cmd of commandModule.discordCommand) {
-                        const commandJson = cmd.data.toJSON();
+                        const commandJson = i18n.enrichSlashCommandLocalizations(cmd.data.toJSON());
                         const subcommands = commandJson.options ? commandJson.options.filter(opt => opt.type === 1) : [];
 
                         if (subcommands.length > 0) {
@@ -431,29 +496,18 @@ www.get('/api/dice-commands', async (req, res) => {
                                 try {
                                     const executeTemplate = await cmd.execute(mockInteraction);
 
-                                    // 為支持自動完成的選項添加配置
-                                    const optionsWithAutocomplete = (sub.options || []).map(option => {
-                                        if (option.autocompleteModule) {
-                                            return {
-                                                ...option,
-                                                autocomplete: {
-                                                    enabled: true,
-                                                    module: option.autocompleteModule || 'default',
-                                                    searchFields: option.autocompleteSearchFields || ['display', 'value'],
-                                                    limit: option.autocompleteLimit || 8,
-                                                    minQueryLength: option.autocompleteMinQueryLength || 1,
-                                                    placeholder: option.description,
-                                                    noResultsText: option.autocompleteNoResultsText || '找不到相關結果'
-                                                }
-                                            };
-                                        }
-                                        return option;
-                                    });
+                                    const optionsWithAutocomplete = mapSlashOptionsForWeb(
+                                        sub.options,
+                                        cmd,
+                                        locale,
+                                        t,
+                                        sub.name
+                                    );
 
                                     commands.push({
                                         json: {
                                             name: `${commandJson.name}_${sub.name}`,
-                                            description: sub.description,
+                                            description: pickSlashLocalizedField(sub, locale, 'description'),
                                             options: optionsWithAutocomplete
                                         },
                                         execute: executeTemplate,
@@ -488,28 +542,17 @@ www.get('/api/dice-commands', async (req, res) => {
                             try {
                                 const executeTemplate = await cmd.execute(mockInteraction);
 
-                                // 為支持自動完成的選項添加配置
-                                const optionsWithAutocomplete = (commandJson.options || []).map(option => {
-                                    if (option.autocompleteModule) {
-                                        return {
-                                            ...option,
-                                            autocomplete: {
-                                                enabled: true,
-                                                module: option.autocompleteModule || 'default',
-                                                searchFields: option.autocompleteSearchFields || ['display', 'value'],
-                                                limit: option.autocompleteLimit || 8,
-                                                minQueryLength: option.autocompleteMinQueryLength || 1,
-                                                placeholder: option.description,
-                                                noResultsText: option.autocompleteNoResultsText || '找不到相關結果'
-                                            }
-                                        };
-                                    }
-                                    return option;
-                                });
+                                const optionsWithAutocomplete = mapSlashOptionsForWeb(
+                                    commandJson.options,
+                                    cmd,
+                                    locale,
+                                    t
+                                );
 
                                 commands.push({
                                     json: {
                                         ...commandJson,
+                                        description: pickSlashLocalizedField(commandJson, locale, 'description'),
                                         options: optionsWithAutocomplete
                                     },
                                     execute: executeTemplate,
@@ -716,21 +759,32 @@ const registerAutocompleteModules = () => {
 registerAutocompleteModules();
 
 // 通用自動完成API端點
+www.get('/api/www-i18n', async (req, res) => {
+    try {
+        await i18n.init();
+        res.json(buildWwwI18nBundle(resolveWwwLocale(req)));
+    } catch (error) {
+        console.error('[Web Server] www-i18n bundle error:', error.message);
+        res.status(500).json({ locale: i18n.DEFAULT_LOCALE, strings: {}, fallback: {} });
+    }
+});
+
 www.get('/api/autocomplete/:module', async (req, res) => {
     const startTime = Date.now();
     const { module } = req.params;
     const { q, limit = 10 } = req.query;
+    const t = getWwwT(req);
 
     // 檢查速率限制
     if (await checkRateLimit('api', req.ip)) {
         monitor.recordRequest(module, 'rate_limited', Date.now() - startTime, false);
-        res.status(429).json({ error: 'Rate limit exceeded' });
+        res.status(429).json({ error: t('www.api.rate_limit') });
         return;
     }
 
     if (!autocompleteModules[module]) {
         monitor.recordRequest(module, 'not_found', Date.now() - startTime, false);
-        return res.status(404).json({ error: 'Module not found' });
+        return res.status(404).json({ error: t('www.api.module_not_found') });
     }
 
     try {
@@ -779,7 +833,7 @@ www.get('/api/autocomplete/:module', async (req, res) => {
     } catch (error) {
         console.error('[Web Server] Autocomplete search error:', error);
         monitor.recordRequest(module, 'error', Date.now() - startTime, false);
-        res.status(500).json({ error: 'Search failed' });
+        res.status(500).json({ error: t('www.api.search_failed') });
     }
 });
 
@@ -833,6 +887,31 @@ www.use('/scripts/', async (req, res, next) => {
     }
     next();
 }, express.static(process.cwd() + '/views/scripts/'));
+
+// Inject locale registry into www-locale-head.js (single source: lang/locales.json)
+async function sendWwwLocaleHead(req, res) {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    try {
+        const headPath = path.join(process.cwd(), 'views', 'common', 'www-locale-head.js');
+        const body = fs.readFileSync(headPath, 'utf8');
+        const payload = {
+            defaultLocale: i18n.DEFAULT_LOCALE,
+            supported: i18n.SUPPORTED_LOCALES,
+            definitions: i18n.LOCALE_DEFINITIONS
+        };
+        res.type('application/javascript');
+        res.send(`window.HKTRPG_LOCALES=${JSON.stringify(payload)};\n${body}`);
+    } catch (error) {
+        console.error('[Web Server] www-locale-head inject error:', error.message);
+        res.status(500).type('application/javascript').send('/* www-locale-head failed to load */');
+    }
+}
+
+www.get('/common/www-locale-head.js', sendWwwLocaleHead);
+www.get('/:path/common/www-locale-head.js', sendWwwLocaleHead);
 
 // Add common files route
 www.use('/:path/common/', async (req, res, next) => {
@@ -915,6 +994,7 @@ www.get('/busstop/speak', async (req, res) => {
         return;
     }
 
+    const t = getWwwT(req);
     const stop = sanitizeBusStopId(req.query.stop);
     const multiRoutes = parseBusSpeakRoutesParam(req.query.routes);
     const route = sanitizeBusRouteToken(req.query.route);
@@ -923,12 +1003,12 @@ www.get('/busstop/speak', async (req, res) => {
 
     if (!stop || (multiRoutes.length === 0 && !route)) {
         res.status(400).type('text/plain; charset=utf-8')
-            .send('錯誤：缺少有效的 stop，以及 route 或 routes 參數');
+            .send(t('www.busstop.error_missing_params'));
         return;
     }
     if (route && !isValidBusRouteToken(route)) {
         res.status(400).type('text/plain; charset=utf-8')
-            .send('錯誤：route 參數格式不正確');
+            .send(t('www.busstop.error_invalid_route'));
         return;
     }
 
@@ -937,7 +1017,7 @@ www.get('/busstop/speak', async (req, res) => {
     try {
         if (multiRoutes.length > 0) {
             const text = await Promise.race([
-                buildMultiRouteSpeakText(stop, multiRoutes),
+                buildMultiRouteSpeakText(stop, multiRoutes, t),
                 new Promise((_, reject) => {
                     setTimeout(() => reject(new Error('bus speak upstream timeout')), BUS_SPEAK_WALL_MS);
                 })
@@ -958,12 +1038,12 @@ www.get('/busstop/speak', async (req, res) => {
             const diff = Math.round((new Date(row.eta) - Date.now()) / 60_000);
             return Math.max(0, diff);
         });
-        res.type('text/plain; charset=utf-8').send(formatBusSpeakMessage(route, minutes));
+        res.type('text/plain; charset=utf-8').send(formatBusSpeakMessage(route, minutes, t));
     } catch (error) {
         console.error('[busstop/speak]', error?.message || error);
-        const label = multiRoutes[0]?.route || route || '巴士';
+        const label = multiRoutes[0]?.route || route || t('www.busstop.bus_default');
         res.status(502).type('text/plain; charset=utf-8')
-            .send(`${label} 號巴士暫時無法取得到站時間`);
+            .send(t('www.busstop.eta_unavailable', { route: label }));
     }
 });
 
@@ -977,6 +1057,7 @@ www.get('/busstop/shortcut', async (req, res) => {
         return;
     }
 
+    const t = getWwwT(req);
     const route = sanitizeBusRouteToken(req.query.route);
     const stop = sanitizeBusStopId(req.query.stop);
     const serviceType = sanitizeBusServiceType(req.query.service_type || req.query.direction);
@@ -991,12 +1072,12 @@ www.get('/busstop/shortcut', async (req, res) => {
 
     if (!stop || (multiRoutes.length === 0 && !route)) {
         res.status(400).type('text/plain; charset=utf-8')
-            .send('錯誤：缺少有效的 stop，以及 route 或 routes 參數');
+            .send(t('www.busstop.error_missing_params'));
         return;
     }
     if (route && !isValidBusRouteToken(route)) {
         res.status(400).type('text/plain; charset=utf-8')
-            .send('錯誤：route 參數格式不正確');
+            .send(t('www.busstop.error_invalid_route'));
         return;
     }
 
@@ -1031,23 +1112,28 @@ www.get('/busstop/shortcut', async (req, res) => {
     } catch (error) {
         console.error('[busstop/shortcut]', error);
         res.status(500).type('text/plain; charset=utf-8')
-            .send('無法產生捷徑檔');
+            .send(t('www.busstop.shortcut_failed'));
     }
 });
 
-function formatBusMinutesPhrase(minutesList) {
+function formatBusMinutesPhrase(minutesList, t) {
+    const translate = t || i18n.createTranslator(i18n.DEFAULT_LOCALE);
     const mins = (minutesList || []).filter(m => m !== null && m !== undefined);
     if (mins.length === 0) return '';
-    if (mins.length === 1) return `${mins[0]}分鐘`;
-    if (mins.length === 2) return `${mins[0]}分鐘及${mins[1]}分鐘`;
-    const head = mins.slice(0, -1).map(m => `${m}分鐘`).join('、');
-    return `${head}及${mins.at(-1)}分鐘`;
+    if (mins.length === 1) return translate('www.busstop.minute_one', { n: mins[0] });
+    if (mins.length === 2) return translate('www.busstop.minute_and', { a: mins[0], b: mins[1] });
+    const head = mins.slice(0, -1).map(m => translate('www.busstop.minute_unit', { n: m })).join('、');
+    return translate('www.busstop.minutes_joined', { head, last: mins.at(-1) });
 }
 
-function formatBusSpeakMessage(route, minutesList) {
+function formatBusSpeakMessage(route, minutesList, t) {
+    const translate = t || i18n.createTranslator(i18n.DEFAULT_LOCALE);
     const mins = (minutesList || []).filter(m => m !== null && m !== undefined);
-    if (mins.length === 0) return `${route} 號巴士暫時沒有到站時間`;
-    return `${route} 號巴士 於 ${formatBusMinutesPhrase(mins)}後到達`;
+    if (mins.length === 0) return translate('www.busstop.no_eta', { route });
+    return translate('www.busstop.arrives_in', {
+        route,
+        minutes: formatBusMinutesPhrase(mins, translate)
+    });
 }
 
 /** Strip user-controlled route tokens to safe A-Z / 0-9 / hyphen only (XSS-safe for plain-text responses). */
@@ -1205,8 +1291,9 @@ function pickBusesForMultiSpeak(routeEntries) {
     return picked;
 }
 
-function formatMultiRouteSpeakMessage(pickedBuses) {
-    if (pickedBuses.length === 0) return '暫時沒有到站時間';
+function formatMultiRouteSpeakMessage(pickedBuses, t) {
+    const translate = t || i18n.createTranslator(i18n.DEFAULT_LOCALE);
+    if (pickedBuses.length === 0) return translate('www.busstop.no_eta_any');
 
     const order = [];
     const groups = new Map();
@@ -1221,14 +1308,16 @@ function formatMultiRouteSpeakMessage(pickedBuses) {
     const parts = order.map((key, index) => {
         const group = groups.get(key);
         const mins = [...group.minutes].sort((a, b) => a - b);
-        const minsText = formatBusMinutesPhrase(mins);
-        if (index === 0) return `${group.route} 號巴士 於 ${minsText}後到達`;
-        return `${group.route}於 ${minsText}後到達`;
+        const minsText = formatBusMinutesPhrase(mins, translate);
+        if (index === 0) {
+            return translate('www.busstop.arrives_first', { route: group.route, minutes: minsText });
+        }
+        return translate('www.busstop.arrives_next', { route: group.route, minutes: minsText });
     });
     return parts.join(', ');
 }
 
-async function buildMultiRouteSpeakText(stop, wantedRoutes) {
+async function buildMultiRouteSpeakText(stop, wantedRoutes, t) {
     const wantedKeys = new Set(wantedRoutes.map(r => r.key));
     // Preserve request order for grouping preference when ETAs tie
     const map = new Map();
@@ -1279,7 +1368,7 @@ async function buildMultiRouteSpeakText(stop, wantedRoutes) {
     });
 
     const picked = pickBusesForMultiSpeak(entries);
-    return formatMultiRouteSpeakMessage(picked);
+    return formatMultiRouteSpeakMessage(picked, t);
 }
 
 function fetchJsonOverHttps(url) {
@@ -1357,10 +1446,10 @@ async function findPatreonMemberByKey(key) {
     return await schema.patreonMember.findOne({ keyHash: hashed }).lean();
 }
 
-function toMemberResponse(doc) {
+function toMemberResponse(doc, locale) {
     if (!doc) return null;
     const maxSlots = patreonTiers.getMaxSlotsForLevel(doc.level);
-    const tierLabel = patreonTiers.getTierLabel(doc.level);
+    const tierLabel = patreonTiers.getTierLabel(doc.level, locale);
     return {
         patreonName: doc.patreonName,
         level: doc.level,
@@ -1391,7 +1480,8 @@ const PATREON_SLOT_RULES = {
  * @param {number} index - 0-based slot index
  * @returns {{ valid: boolean, slot?: object, error?: string }}
  */
-function normalizeAndValidatePatreonSlot(rawSlot, index) {
+function normalizeAndValidatePatreonSlot(rawSlot, index, locale) {
+    const t = i18n.createTranslator(locale || i18n.DEFAULT_LOCALE);
     const slot = rawSlot || {};
     const targetId = String(slot.targetId || '').trim();
     const targetTypeRaw = String(slot.targetType || '').trim();
@@ -1403,13 +1493,13 @@ function normalizeAndValidatePatreonSlot(rawSlot, index) {
     if (targetId.length > PATREON_SLOT_RULES.TARGET_ID_MAX) {
         return {
             valid: false,
-            error: `Slot #${index + 1}: targetId too long (max ${PATREON_SLOT_RULES.TARGET_ID_MAX})`
+            error: t('www.patreon.slot_target_id_too_long', { index: index + 1, max: PATREON_SLOT_RULES.TARGET_ID_MAX })
         };
     }
     if (name.length > PATREON_SLOT_RULES.NAME_MAX) {
         return {
             valid: false,
-            error: `Slot #${index + 1}: name too long (max ${PATREON_SLOT_RULES.NAME_MAX})`
+            error: t('www.patreon.slot_name_too_long', { index: index + 1, max: PATREON_SLOT_RULES.NAME_MAX })
         };
     }
 
@@ -1417,7 +1507,7 @@ function normalizeAndValidatePatreonSlot(rawSlot, index) {
     if (targetId && !PATREON_SLOT_RULES.TARGET_ID_PATTERN.test(targetId)) {
         return {
             valid: false,
-            error: `Slot #${index + 1}: targetId contains invalid characters`
+            error: t('www.patreon.slot_target_id_invalid', { index: index + 1 })
         };
     }
 
@@ -1438,7 +1528,7 @@ function normalizeAndValidatePatreonSlot(rawSlot, index) {
     if (!targetType) {
         return {
             valid: false,
-            error: `Slot #${index + 1}: target type is required when targetId is set`
+            error: t('www.patreon.slot_target_type_required', { index: index + 1 })
         };
     }
 
@@ -1446,7 +1536,7 @@ function normalizeAndValidatePatreonSlot(rawSlot, index) {
     if (!PATREON_SLOT_RULES.ALLOWED_PLATFORMS.includes(platform.toLowerCase())) {
         return {
             valid: false,
-            error: `Slot #${index + 1}: invalid platform (Discord/Line/Telegram/WhatsApp only)`
+            error: t('www.patreon.slot_invalid_platform', { index: index + 1 })
         };
     }
 
@@ -1559,72 +1649,76 @@ www.get('/patreon', async (req, res) => {
 });
 
 www.post('/api/patreon/validate', async (req, res) => {
+    const t = getWwwT(req);
     if (await checkRateLimit('patreon', req.ip)) {
-        res.status(429).json({ error: 'Too many requests' });
+        res.status(429).json({ error: t('www.patreon.too_many_requests') });
         return;
     }
     try {
         const key = getPatreonKeyFromRequest(req);
         const member = await findPatreonMemberByKey(key);
         if (!member) {
-            res.status(401).json({ error: 'Invalid or inactive key' });
+            res.status(401).json({ error: t('www.patreon.invalid_key') });
             return;
         }
-        res.json(toMemberResponse(member));
+        res.json(toMemberResponse(member, resolveWwwLocale(req)));
     } catch (error) {
         console.error('[Web Server] Patreon validate error:', error.message);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: t('www.patreon.server_error') });
     }
 });
 
 www.get('/api/patreon/me', async (req, res) => {
+    const t = getWwwT(req);
     if (await checkRateLimit('patreon', req.ip)) {
-        res.status(429).json({ error: 'Too many requests' });
+        res.status(429).json({ error: t('www.patreon.too_many_requests') });
         return;
     }
     try {
         const key = getPatreonKeyFromRequest(req);
         const member = await findPatreonMemberByKey(key);
         if (!member) {
-            res.status(401).json({ error: 'Invalid or inactive key' });
+            res.status(401).json({ error: t('www.patreon.invalid_key') });
             return;
         }
-        res.json(toMemberResponse(member));
+        res.json(toMemberResponse(member, resolveWwwLocale(req)));
     } catch (error) {
         console.error('[Web Server] Patreon me error:', error.message);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: t('www.patreon.server_error') });
     }
 });
 
 www.put('/api/patreon/me/slots', async (req, res) => {
+    const locale = resolveWwwLocale(req);
+    const t = getWwwT(req);
     if (await checkRateLimit('patreon', req.ip)) {
-        res.status(429).json({ error: 'Too many requests' });
+        res.status(429).json({ error: t('www.patreon.too_many_requests') });
         return;
     }
     try {
         const key = getPatreonKeyFromRequest(req);
         const member = await findPatreonMemberByKey(key);
         if (!member) {
-            res.status(401).json({ error: 'Invalid or inactive key' });
+            res.status(401).json({ error: t('www.patreon.invalid_key') });
             return;
         }
         const graceOk = member.vipGraceUntil && new Date(member.vipGraceUntil) > new Date();
         if (!member.switch && !graceOk) {
-            res.status(403).json({ error: 'Membership is disabled. You cannot change slots.' });
+            res.status(403).json({ error: t('www.patreon.membership_disabled') });
             return;
         }
         const slots = req.body && Array.isArray(req.body.slots) ? req.body.slots : [];
         const maxSlots = patreonTiers.getMaxSlotsForLevel(member.level);
         if (slots.length > maxSlots) {
-            res.status(400).json({ error: `Slots exceed tier limit (${maxSlots})` });
+            res.status(400).json({ error: t('www.patreon.slots_exceed_limit', { max: maxSlots }) });
             return;
         }
         const trimmedSlots = slots.slice(0, maxSlots);
         const normalizedSlots = [];
         for (let i = 0; i < trimmedSlots.length; i++) {
-            const validated = normalizeAndValidatePatreonSlot(trimmedSlots[i], i);
+            const validated = normalizeAndValidatePatreonSlot(trimmedSlots[i], i, locale);
             if (!validated.valid) {
-                res.status(400).json({ error: validated.error || 'Invalid slot payload' });
+                res.status(400).json({ error: validated.error || t('www.patreon.invalid_slot_payload') });
                 return;
             }
             normalizedSlots.push(validated.slot);
@@ -1641,33 +1735,34 @@ www.put('/api/patreon/me/slots', async (req, res) => {
         );
         const updated = await schema.patreonMember.findOne({ _id: member._id }).lean();
         await patreonSync.syncMemberSlotsToVip(updated);
-        res.json(toMemberResponse(updated));
+        res.json(toMemberResponse(updated, resolveWwwLocale(req)));
     } catch (error) {
         console.error('[Web Server] Patreon slots update error:', error.message);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: t('www.patreon.server_error') });
     }
 });
 
 www.patch('/api/patreon/me/slot/:index', async (req, res) => {
+    const t = getWwwT(req);
     if (await checkRateLimit('patreon', req.ip)) {
-        res.status(429).json({ error: 'Too many requests' });
+        res.status(429).json({ error: t('www.patreon.too_many_requests') });
         return;
     }
     try {
         const key = getPatreonKeyFromRequest(req);
         const member = await findPatreonMemberByKey(key);
         if (!member) {
-            res.status(401).json({ error: 'Invalid or inactive key' });
+            res.status(401).json({ error: t('www.patreon.invalid_key') });
             return;
         }
         const graceOk = member.vipGraceUntil && new Date(member.vipGraceUntil) > new Date();
         if (!member.switch && !graceOk) {
-            res.status(403).json({ error: 'Membership is disabled. You cannot change slots.' });
+            res.status(403).json({ error: t('www.patreon.membership_disabled') });
             return;
         }
         const index = Number.parseInt(req.params.index, 10);
         if (Number.isNaN(index) || index < 0 || index >= (member.slots || []).length) {
-            res.status(400).json({ error: 'Invalid slot index' });
+            res.status(400).json({ error: t('www.patreon.invalid_slot_index') });
             return;
         }
         const body = req.body || {};
@@ -1699,10 +1794,10 @@ www.patch('/api/patreon/me/slot/:index', async (req, res) => {
             member
         );
         const updated = await schema.patreonMember.findOne({ _id: member._id }).lean();
-        res.json(toMemberResponse(updated));
+        res.json(toMemberResponse(updated, resolveWwwLocale(req)));
     } catch (error) {
         console.error('[Web Server] Patreon slot toggle error:', error.message);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: t('www.patreon.server_error') });
     }
 });
 
@@ -1784,7 +1879,11 @@ if (io) {
     });
 
     io.on('connection', async (socket) => {
+        socket._hktrpgLocale = i18n.normalizeLocale(
+            socket.handshake.query?.lang || socket.handshake.headers?.['accept-language']?.split(',')[0]
+        );
         socket.on('getListInfo', async message => {
+            const t = getSocketT(socket);
             // Use cardRead limit for list info (less restrictive)
             if (await limitRaterCardRead(socket.handshake.address)) return;
 
@@ -1796,7 +1895,7 @@ if (io) {
                     socket.emit('getListInfo', {
                         temp: null,
                         id: [],
-                        error: 'Invalid credentials format',
+                        error: t('www.socket.invalid_credentials_format'),
                         code: 'INVALID_FORMAT'
                     });
                     return;
@@ -1815,7 +1914,7 @@ if (io) {
                         socket.emit('getListInfo', {
                             temp: null,
                             id: [],
-                            error: 'Database connection error',
+                            error: t('www.socket.db_error'),
                             code: 'DB_ERROR'
                         });
                         return null;
@@ -1826,7 +1925,7 @@ if (io) {
                     socket.emit('getListInfo', {
                         temp: null,
                         id: [],
-                        error: 'User not found',
+                        error: t('www.socket.user_not_found'),
                         code: 'USER_NOT_FOUND'
                     });
                     return;
@@ -1838,7 +1937,7 @@ if (io) {
                     socket.emit('getListInfo', {
                         temp: null,
                         id: [],
-                        error: 'Invalid password',
+                        error: t('www.socket.invalid_password'),
                         code: 'INVALID_PASSWORD'
                     });
                     return;
@@ -1917,7 +2016,9 @@ if (io) {
             if (result && result.characterReRoll) {
                 rplyVal = await exports.analytics.parseInput({
                     inputStr: result.characterReRollItem,
-                    botname: "WWW"
+                    botname: "WWW",
+                    locale: socket._hktrpgLocale,
+                    t: getSocketT(socket)
                 })
             }
 
@@ -1935,7 +2036,9 @@ if (io) {
             if (result && result.characterReRoll) {
                 rplyVal = await exports.analytics.parseInput({
                     inputStr: result.characterReRollItem,
-                    botname: "WWW"
+                    botname: "WWW",
+                    locale: socket._hktrpgLocale,
+                    t: getSocketT(socket)
                 })
             }
 
@@ -2070,6 +2173,7 @@ if (io) {
         })
 
         socket.on('removeChannel', async message => {
+            const t = getSocketT(socket);
             if (await limitRaterCard(socket.handshake.address)) return;
             //回傳 message 給發送訊息的 Client
             try {
@@ -2079,7 +2183,7 @@ if (io) {
                     userName: message.userName
                 });
                 if (!validation.valid) {
-                    socket.emit('removeChannel', { success: false, message: 'Invalid JWT auth' });
+                    socket.emit('removeChannel', { success: false, message: t('www.socket.invalid_jwt') });
                     return;
                 }
 
@@ -2098,7 +2202,7 @@ if (io) {
 
                 // 🔒 JWT token已經驗證了用戶身份，不需要密碼驗證
                 if (!doc) {
-                    socket.emit('removeChannel', { success: false, message: 'User not found' });
+                    socket.emit('removeChannel', { success: false, message: t('www.socket.user_not_found') });
                     return;
                 }
 
@@ -2114,13 +2218,13 @@ if (io) {
 
                 // Send response back to client
                 if (result.modifiedCount > 0) {
-                    socket.emit('removeChannel', { success: true, message: 'Channel removed successfully' });
+                    socket.emit('removeChannel', { success: true, message: t('www.socket.channel_removed') });
                 } else {
-                    socket.emit('removeChannel', { success: false, message: 'Channel not found or already removed' });
+                    socket.emit('removeChannel', { success: false, message: t('www.socket.channel_not_found') });
                 }
             } catch (error) {
                 console.error('core-www removeChannel ERROR:', error);
-                socket.emit('removeChannel', { success: false, message: 'Database error: ' + error.message });
+                socket.emit('removeChannel', { success: false, message: t('www.socket.db_error_detail', { message: error.message }) });
             }
 
         })
@@ -2165,7 +2269,7 @@ if (io) {
                 let temp;
                 if (doc.id && message.card) {
                     // 後端驗證：禁止同名與超長內容
-                    const validationError = validateCardPayload(message.card);
+                    const validationError = validateCardPayload(message.card, message.locale);
                     if (validationError) {
                         console.warn('updateCard validation failed:', validationError);
                         socket.emit('updateCard', false);
@@ -2234,7 +2338,7 @@ if (io) {
                     'msg data:', JSON.stringify(msg).slice(0, 200));
 
                 // Send user-friendly error message to client
-                const userFriendlyError = getUserFriendlyError(validation.error);
+                const userFriendlyError = getUserFriendlyError(validation.error, socket._hktrpgLocale);
                 socket.emit('error', {
                     message: userFriendlyError,
                     code: validation.error.replaceAll(/\s+/g, '_').toUpperCase(),
@@ -2343,12 +2447,13 @@ async function verifyPasswordSecure(password, hash) {
 function checkNullItem(target) {
     return target.filter(item => item.name);
 }
-function validateCardPayload(card) {
+function validateCardPayload(card, locale = i18n.DEFAULT_LOCALE) {
+    const t = i18n.createTranslator(locale);
     try {
-        if (!card) return '資料無效';
+        if (!card) return t('character.validation_invalid_input');
         const name = (card.name || '').toString().trim();
-        if (!name) return '角色卡名稱不可為空';
-        if (name.length > 50) return '角色卡名稱長度不可超過 50 字元';
+        if (!name) return t('character.validation_name_empty');
+        if (name.length > 50) return t('character.validation_name_too_long');
 
         const norm = (s) => (s || '').toString().trim().toLowerCase();
         const tooLong = (v, m) => (v || '').toString().length > m;
@@ -2366,27 +2471,27 @@ function validateCardPayload(card) {
         const sD = findDups(card.state);
         const rD = findDups(card.roll);
         const nD = findDups(card.notes);
-        if (sD.length > 0 || rD.length > 0 || nD.length > 0) return '存在重複的項目名稱';
+        if (sD.length > 0 || rD.length > 0 || nD.length > 0) return t('character.validation_duplicate_names');
 
         for (const it of (card.state || [])) {
-            if (!it || !it.name || !it.name.toString().trim()) return '狀態項目名稱不可為空';
-            if (tooLong(it.name, 50)) return `狀態「${it.name}」名稱超過 50 字元`;
-            if (tooLong(it.itemA, 50)) return `狀態「${it.name}」當前值超過 50 字元`;
-            if (tooLong(it.itemB, 50)) return `狀態「${it.name}」最大值超過 50 字元`;
+            if (!it || !it.name || !it.name.toString().trim()) return t('character.validation_state_name_empty');
+            if (tooLong(it.name, 50)) return t('character.validation_state_name_too_long', { name: it.name });
+            if (tooLong(it.itemA, 50)) return t('character.validation_state_value_a_too_long', { name: it.name });
+            if (tooLong(it.itemB, 50)) return t('character.validation_state_value_b_too_long', { name: it.name });
         }
         for (const it of (card.roll || [])) {
-            if (!it || !it.name || !it.name.toString().trim()) return '擲骰項目名稱不可為空';
-            if (tooLong(it.name, 50)) return `擲骰「${it.name}」名稱超過 50 字元`;
-            if (tooLong(it.itemA, 150)) return `擲骰「${it.name}」內容超過 150 字元`;
+            if (!it || !it.name || !it.name.toString().trim()) return t('character.validation_roll_name_empty');
+            if (tooLong(it.name, 50)) return t('character.validation_roll_name_too_long', { name: it.name });
+            if (tooLong(it.itemA, 150)) return t('character.validation_roll_content_too_long', { name: it.name });
         }
         for (const it of (card.notes || [])) {
-            if (!it || !it.name || !it.name.toString().trim()) return '備註項目名稱不可為空';
-            if (tooLong(it.name, 50)) return `備註「${it.name}」名稱超過 50 字元`;
-            if (tooLong(it.itemA, 1500)) return `備註「${it.name}」內容超過 1500 字元`;
+            if (!it || !it.name || !it.name.toString().trim()) return t('character.validation_notes_name_empty');
+            if (tooLong(it.name, 50)) return t('character.validation_notes_name_too_long', { name: it.name });
+            if (tooLong(it.itemA, 1500)) return t('character.validation_notes_content_too_long', { name: it.name });
         }
         return null;
     } catch {
-        return '驗證失敗';
+        return t('character.validation_failed');
     }
 }
 async function loadb(io, records, rplyVal, message) {
@@ -2468,18 +2573,89 @@ if (isMaster) {
 }
 
 // Convert technical validation errors to user-friendly messages
-function getUserFriendlyError(error) {
-    const errorMap = {
-        'Invalid message format': 'Message format is invalid',
-        'Invalid name type': 'Name must be text',
-        'Invalid message type': 'Message content is invalid',
-        'Invalid room number type': 'Room number is invalid',
-        'Invalid name length (1-50 characters)': 'Name must be 1-50 characters long',
-        'Invalid message length (1-2000 characters)': 'Message must be 1-2000 characters long',
-        'Suspicious content detected': 'Message contains suspicious content and was blocked'
+function pickSlashLocalizedField(item, locale, field) {
+    if (!item || typeof item !== 'object') {
+        return '';
+    }
+    const locMapKey = field === 'name' ? 'name_localizations' : 'description_localizations';
+    if (locale !== i18n.DEFAULT_LOCALE && item[locMapKey] && typeof item[locMapKey] === 'object') {
+        const discordLocale = i18n.toDiscordLocale(locale);
+        return item[locMapKey][discordLocale] || item[locMapKey]['en-US'] || item[field];
+    }
+    return item[field];
+}
+
+function getBuilderSlashOptionMeta(cmd, subcommandName, optionName) {
+    const data = cmd?.data;
+    if (!data?.options) {
+        return null;
+    }
+    const rootOptions = typeof data.options.find === 'function'
+        ? data.options
+        : [...(data.options.values?.() ?? data.options)];
+    if (subcommandName) {
+        const sub = rootOptions.find((o) => o.name === subcommandName);
+        const subOptions = sub?.options
+            ? (typeof sub.options.find === 'function' ? sub.options : [...(sub.options.values?.() ?? sub.options)])
+            : [];
+        return subOptions.find((o) => o.name === optionName) ?? null;
+    }
+    return rootOptions.find((o) => o.name === optionName) ?? null;
+}
+
+function mapSlashOptionsForWeb(rawOptions, cmd, locale, t, subcommandName = null) {
+    return (rawOptions || []).map((option) => {
+        const localized = {
+            ...option,
+            description: pickSlashLocalizedField(option, locale, 'description')
+        };
+        if (Array.isArray(option.choices)) {
+            localized.choices = option.choices.map((choice) => ({
+                ...choice,
+                name: pickSlashLocalizedField(choice, locale, 'name')
+            }));
+        }
+        const builderOpt = getBuilderSlashOptionMeta(cmd, subcommandName, option.name);
+        if (builderOpt?.autocompleteModule) {
+            localized.autocomplete = {
+                enabled: true,
+                module: builderOpt.autocompleteModule || 'default',
+                searchFields: builderOpt.autocompleteSearchFields || ['display', 'value'],
+                limit: builderOpt.autocompleteLimit || 8,
+                minQueryLength: builderOpt.autocompleteMinQueryLength || 1,
+                placeholder: localized.description,
+                noResultsText: resolveAutocompleteNoResultsText(builderOpt, t)
+            };
+        }
+        return localized;
+    });
+}
+
+function resolveAutocompleteNoResultsText(option, t) {
+    if (option.autocompleteNoResultsKey) {
+        return t(option.autocompleteNoResultsKey);
+    }
+    return option.autocompleteNoResultsText || t('www.busstop.autocomplete_no_results');
+}
+
+function getUserFriendlyError(error, locale) {
+    const t = i18n.createTranslator(locale || i18n.DEFAULT_LOCALE);
+    const errorKeyMap = {
+        'Invalid message format': 'www.chat_validation.invalid_format',
+        'Invalid name type': 'www.chat_validation.invalid_name_type',
+        'Invalid message type': 'www.chat_validation.invalid_message_type',
+        'Invalid room number type': 'www.chat_validation.invalid_room_type',
+        'Invalid name length (1-50 characters)': 'www.chat_validation.invalid_name_length',
+        'Invalid message length (1-2000 characters)': 'www.chat_validation.invalid_message_length',
+        'Suspicious content detected': 'www.chat_validation.suspicious_content',
+        'Invalid room number': 'www.chat_validation.invalid_room_number'
     };
 
-    return errorMap[error] || 'Invalid message: ' + error;
+    const key = errorKeyMap[error];
+    if (key) {
+        return t(key);
+    }
+    return t('www.chat_validation.invalid_generic', { error });
 }
 
 function jsonEscape(str) {

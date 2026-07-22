@@ -3,9 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
+    <script src="/common/www-locale-head.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TRPG 角色卡</title>
-    <meta name="description" content="HKTRPG - TRPG 角色卡 - 透過網頁快速製作 TRPG 角色卡">
+    <title data-www-i18n="ncard_page_title">TRPG 角色卡</title>
+    <script src="/common/www-i18n.js"></script>
+    <meta name="description" data-www-i18n-content="ncard_meta_description" content="HKTRPG - TRPG 角色卡 - 透過網頁快速製作 TRPG 角色卡">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- NEW: Include SortableJS library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
@@ -1062,184 +1064,92 @@
         ];
         const avatarImageUrl = "https://images2.imgbox.com/ea/b2/Bn8DmRTW_o.png";
 
-        const defaultCharacter = {
-            characterName: "吾是 範例",
-            playerName: "範例君",
+        function personalityIconOptions(selected = '') {
+            const icons = [
+                ['fas fa-check', 'icon_check'],
+                ['fas fa-star', 'icon_star'],
+                ['fas fa-heart', 'icon_heart'],
+                ['fas fa-smile', 'icon_smile'],
+                ['fas fa-thumbs-up', 'icon_thumbs_up'],
+                ['fas fa-lightbulb', 'icon_lightbulb'],
+                ['fas fa-user-friends', 'icon_friends'],
+                ['fas fa-flag', 'icon_flag'],
+                ['fas fa-clipboard-list', 'icon_list'],
+                ['fas fa-comment-dots', 'icon_comment']
+            ];
+            return icons.map(([value, key]) =>
+                `<option value="${value}" ${selected === value ? 'selected' : ''}>${nc(key)}</option>`
+            ).join('');
+        }
+
+        function nc(key, options = {}) {
+            if (typeof wwwT !== 'function') return '';
+            return wwwT(key.startsWith('ncard_') ? key : `ncard_${key}`, options);
+        }
+        function buildDefaultCharacter() {
+            return {
+
+            characterName: nc('sample_character_name'),
+            playerName: nc('sample_player_name'),
             id: "@HKTRPG",
             attributes: {
                 attributesList: {
                     HP: "15 / 15",
                     MP: "10 / 10",
                     san: "60 / 60 ",
-                    幸運: 80,
-                    力量: 55,
-                    敏捷: 40,
-                    意志: 50,
-                    體質: 60,
-                    外貌: 50,
-                    教育: 70,
-                    體型: 50,
-                    智力: 70,
-                    靈感: 70,
-                    體格: 0,
+                    [nc('sample_attr_luck')]: 80,
+                    [nc('sample_attr_str')]: 55,
+                    [nc('sample_attr_dex')]: 40,
+                    [nc('sample_attr_pow')]: 50,
+                    [nc('sample_attr_con')]: 60,
+                    [nc('sample_attr_app')]: 50,
+                    [nc('sample_attr_edu')]: 70,
+                    [nc('sample_attr_siz')]: 50,
+                    [nc('sample_attr_int')]: 70,
+                    [nc('sample_attr_idea')]: 70,
+                    [nc('sample_attr_build')]: 0,
                     DB: 0,
                     MOV: 8
                 }
             },
             skills: [
-                { type: '交際', value: 200 },
-                { type: '學問', value: 180 },
-                { type: '職業', value: 140 },
-                { type: '調查+隱密', value: 160 },
-                { type: '戰鬥', value: 200 },
-                { type: '醫療', value: 20 }
+                { type: nc('sample_skill_social'), value: 200 },
+                { type: nc('sample_skill_knowledge'), value: 180 },
+                { type: nc('sample_skill_occupation'), value: 140 },
+                { type: nc('sample_skill_investigate'), value: 160 },
+                { type: nc('sample_skill_combat'), value: 200 },
+                { type: nc('sample_skill_medicine'), value: 20 }
             ],
             diceRolls: {
-                心理學: "50",
-                信譽: "30",
-                偵查: "25",
-                鬥毆: "15"
+                [nc('sample_dice_psychology')]: "50",
+                [nc('sample_dice_credit')]: "30",
+                [nc('sample_dice_spot')]: "25",
+                [nc('sample_dice_brawl')]: "15"
             },
             notes: {
-                title: "筆記",
+                title: nc('section_notes'),
                 items: [
-                    { label: "現金", value: "100,000日元" },
-                    { label: "隨身物品", value: "手機" },
-                    { label: "心靈支柱", value: "思想與信念" },
-                    { label: "資產", value: "車" }
+                    { label: nc('sample_note_cash'), value: nc('sample_note_cash_val') },
+                    { label: nc('sample_note_items'), value: nc('sample_note_items_val') },
+                    { label: nc('sample_note_pillar'), value: nc('sample_note_pillar_val') },
+                    { label: nc('sample_note_assets'), value: nc('sample_note_assets_val') }
                 ]
             },
-            diceTitle: "技能",
-            skillsTitle: "能力分析",
-            attributeTitle: "基本屬性",
-            personalityPreferencesTitle: '性格與偏好',
+            diceTitle: nc('section_skills'),
+            skillsTitle: nc('section_skills_analysis'),
+            attributeTitle: nc('section_attributes'),
+            personalityPreferencesTitle: nc('section_personality'),
             personalityPreferences: {
                 items: [
-                    { label: '活潑開朗', value: 70, alternative: '靜思內省', icon: 'fas fa-check' },
-                    { label: '實事求是', value: 30, alternative: '敏銳直觀', icon: 'fas fa-star' },
-                    { label: '理性思維', value: 15, alternative: '情感共鳴', icon: 'fas fa-users' }
+                    { label: nc('sample_pers_a1'), value: 70, alternative: nc('sample_pers_a1_alt'), icon: 'fas fa-check' },
+                    { label: nc('sample_pers_a2'), value: 30, alternative: nc('sample_pers_a2_alt'), icon: 'fas fa-star' },
+                    { label: nc('sample_pers_a3'), value: 15, alternative: nc('sample_pers_a3_alt'), icon: 'fas fa-users' }
                 ]
             }
         };
-
-        let character = { ...defaultCharacter };
-
-        document.getElementById('playerName').innerText = character.playerName;
-        document.getElementById('characterName').innerText = character.characterName;
-        document.getElementById('snsID').innerText = character.id;
-        document.getElementById('avatarImage').src = avatarImageUrl;
-
-        // 更新技能類型標題
-        document.getElementById('skillsTitle').innerText = character.skillsTitle;
-
-        // 更新基本屬性標題
-        document.getElementById('attributeTitle').innerText = character.attributeTitle;
-        // 更新技能標題
-        document.getElementById('diceTitle').innerText = character.diceTitle;
-
-        // 更新筆記標題
-        document.getElementById('notesTitle').innerText = character.notes.title;
-
-        // 生成筆記的 HTML
-        const notesHTML = character.notes.items.map(item => {
-            return `<p>${escapeHtml(item.label)}：<span style="color: var(--text-color);">${escapeHtml(item.value)}</span></p>`;
-        }).join('');
-        document.getElementById('notes').innerHTML = notesHTML;
-
-
-
-        // 生成性格與偏好的 HTML
-        const statusItemsHTML = character.personalityPreferences.items.map(item => {
-            return `
-                <div class="status-item">
-                    <i class="${item.icon} icon"></i>
-                    <span>${escapeHtml(item.label)}</span>
-                    <div class="progress-bar">
-                        <div class="progress" style="width: ${item.value}%"></div>
-                    </div>
-                    <span>${escapeHtml(item.alternative)}</span>
-                </div>
-            `;
-        }).join('');
-
-        // 替換原有的性格與偏好內容
-        document.querySelector('.status-bars').innerHTML = `
-            <h3>${escapeHtml(character.personalityPreferencesTitle)}</h3>
-            ${statusItemsHTML}
-        `;
-
-        const attributes = character.attributes;
-        const attributesHTML = `
-            <div class="attribute-group">
-                ${Object.entries(attributes.attributesList).map(([key, value]) => {
-            return `<span class="attribute">${escapeHtml(key)}：<span style="color: var(--text-color);">${escapeHtml(value)}</span></span>`;
-        }).join('')}
-            </div>
-        `;
-        document.getElementById('basic-attributes').innerHTML = attributesHTML;
-
-        const diceRollsHTML = `
-            <div class="attribute-group">
-                ${Object.entries(character.diceRolls).map(([key, value]) => {
-            return `<span class="attribute">${escapeHtml(key)}：<span style="color: var(--text-color);">${escapeHtml(value)}</span></span>`;
-        }).join('')}
-            </div>
-        `;
-        document.getElementById('dice-rolls').innerHTML = diceRollsHTML;
-
-        const ctx = document.getElementById('skillsChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'radar',
-            data: {
-                labels: character.skills.map(skill => skill.type),
-                datasets: [{
-                    data: character.skills.map(skill => skill.value),
-                    backgroundColor: 'rgba(255, 105, 180, 0.3)',
-                    borderColor: 'rgba(255, 105, 180, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(255, 105, 180, 1)'
-                }]
-            },
-            options: {
-                scales: {
-                    r: {
-                        angleLines: {
-                            color: 'rgba(0, 0, 0, 0.1)'
-                        },
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.1)'
-                        },
-                        pointLabels: {
-                            color: '#4a5568',
-                            font: {
-                                size: 12
-                            }
-                        },
-                        suggestedMin: 0,
-                        suggestedMax: 100
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
-            }
-        });
-
-        // Centering logic for player name and character ID
-        const playerNameEl = document.getElementById('playerName');
-        const snsIDEl = document.getElementById('snsID');
-
-        if (!character.playerName) {
-            playerNameEl.style.display = 'none';
-            snsIDEl.style.textAlign = 'center';
-            snsIDEl.style.width = '100%'; // Force full width
-        } else if (!character.id) {
-            snsIDEl.style.display = 'none';
-            playerNameEl.style.textAlign = 'center';
-            playerNameEl.style.width = '100%'; // Force full width
         }
+        let defaultCharacter;
+        let character;
 
         // New editing functionality
         let isEditMode = false;
@@ -1266,100 +1176,100 @@
             const safeAvatarUrl = isValidUrl(avatarImageUrl) ? avatarImageUrl : '';
             
             document.querySelector('.container').innerHTML = `
-  <h2>編輯角色資料</h2>
+  <h2>${nc('edit_title')}</h2>
   <div>
-    <label>角色名字: <input type="text" id="editCharacterName" value="${escapeHtml(character.characterName)}"></label>
-    <label>玩家名字: <input type="text" id="editPlayerName" value="${escapeHtml(character.playerName)}"></label>
+    <label>${nc('label_character_name')} <input type="text" id="editCharacterName" value="${escapeHtml(character.characterName)}"></label>
+    <label>${nc('label_player_name')} <input type="text" id="editPlayerName" value="${escapeHtml(character.playerName)}"></label>
     <label>SNS ID: <input type="text" id="editsnsID" value="${escapeHtml(character.id)}"></label></br>
-     <label class="avatar-label">頭像網址: 
+     <label class="avatar-label">${nc('label_avatar_url')} 
         <input type="text" id="edit-avatar" class="avatar-input" 
             value="${escapeHtml(safeAvatarUrl)}" 
-            placeholder="輸入圖片網址"
+            placeholder="${nc('placeholder_image_url')}"
             onchange="previewAvatarFromUrl(this.value)">
     </label>
     <div class="avatar-upload-zone" id="avatarUploadZone">
         <input type="file" id="avatarFileInput" style="display: none" accept="image/*">
         <i class="fas fa-cloud-upload-alt"></i>
-        <div class="upload-text">拖放圖片或點擊上傳</div>
+        <div class="upload-text">${nc('upload_text')}</div>
         ${document.getElementById('avatarImage').src ?
-                    `<img src="${escapeHtml(document.getElementById('avatarImage').src)}" alt="預覽">` : ''}
+                    `<img src="${escapeHtml(document.getElementById('avatarImage').src)}" alt="${nc('preview_alt')}">` : ''}
     </div>
-    <div class="upload-hint">* 圖片僅用於預覽和匯出，不會保存在備份連結中</div>
+    <div class="upload-hint">${nc('upload_hint')}</div>
   </div>
   <hr>
-    <h2>可拖動項目以重新排序</h2>
+    <h2>${nc('drag_sort_hint')}</h2>
   <div>
 
-    <h3>基本屬性</h3>
- <label>基本屬性標題: <input type="text" id="editAttributeTitle" value="${escapeHtml(character.attributeTitle)}"></label><br>
+    <h3>${nc('section_attributes')}</h3>
+ <label>${nc('label_attr_title')} <input type="text" id="editAttributeTitle" value="${escapeHtml(character.attributeTitle)}"></label><br>
     <div id="editAttributesContainer">
       <div id="editAttributesList">
         ${character.attributes.attributesList.map(attr =>
                         `<div draggable="true" class="draggable">
           <input type="text" class="attr-key" value="${escapeHtml(attr.key)}">
           : <input type="text" class="attr-value" value="${escapeHtml(attr.value)}">
-          <button onclick="removeAttr('${escapeHtml(attr.key)}')" class="btn-remove">移除</button>
+          <button onclick="removeAttr('${escapeHtml(attr.key)}')" class="btn-remove">${nc('btn_remove')}</button>
         </div>`
                     ).join('')}
       </div>
-      <button onclick="addAttribute()" class="btn-add">新增屬性</button>
+      <button onclick="addAttribute()" class="btn-add">${nc('btn_add_attr')}</button>
     </div>
   </div>
   <hr>
   <div>
-    <h3>能力分析</h3>
-     <label>能力分析標題: <input type="text" id="editSkillsTitle" value="${escapeHtml(character.skillsTitle)}"></label><br>
+    <h3>${nc('section_skills_analysis')}</h3>
+     <label>${nc('label_skills_title')} <input type="text" id="editSkillsTitle" value="${escapeHtml(character.skillsTitle)}"></label><br>
     <div id="editSkillsContainer">
       <div id="editSkillsList">
         ${character.skills.map((skill, index) =>
                         `<div draggable="true" class="draggable">
           <input type="text" class="skill-type" value="${escapeHtml(skill.type)}">
           <input type="number" class="skill-value" value="${skill.value}">
-          <button onclick="removeSkill(${index})" class="btn-remove">移除</button>
+          <button onclick="removeSkill(${index})" class="btn-remove">${nc('btn_remove')}</button>
         </div>`
                     ).join('')}
       </div>
-      <button onclick="addSkill()" class="btn-add">新增技能</button>
+      <button onclick="addSkill()" class="btn-add">${nc('btn_add_skill')}</button>
     </div>
   </div>
   <hr>
   <div>
-    <h3>技能</h3>
-    <label>技能標題: <input type="text" id="editDiceTitle" value="${escapeHtml(character.diceTitle)}"></label><br>
+    <h3>${nc('section_skills')}</h3>
+    <label>${nc('label_dice_title')} <input type="text" id="editDiceTitle" value="${escapeHtml(character.diceTitle)}"></label><br>
     <div id="editDiceRollsContainer">
       <div id="editDiceRollsList">
         ${character.diceRolls.map(dice =>
                         `<div draggable="true" class="draggable">
           <input type="text" class="dice-key" value="${escapeHtml(dice.key)}">
           : <input type="text" class="dice-value" value="${escapeHtml(dice.value)}">
-          <button onclick="removeDice('${escapeHtml(dice.key)}')" class="btn-remove">移除</button>
+          <button onclick="removeDice('${escapeHtml(dice.key)}')" class="btn-remove">${nc('btn_remove')}</button>
         </div>`
                     ).join('')}
       </div>
-      <button onclick="addDice()" class="btn-add">新增技能</button>
+      <button onclick="addDice()" class="btn-add">${nc('btn_add_dice')}</button>
     </div>
   </div>
   <hr>
   <div>
-    <h3>筆記</h3>
-    <label>筆記標題: <input type="text" id="editNotesTitle" value="${escapeHtml(character.notes.title)}"></label>
+    <h3>${nc('section_notes')}</h3>
+    <label>${nc('label_notes_title')} <input type="text" id="editNotesTitle" value="${escapeHtml(character.notes.title)}"></label>
     <div id="editNotesItemsContainer">
       <div id="editNotesItemsList">
         ${character.notes.items.map((item, index) =>
                         `<div draggable="true" class="draggable">
           <input type="text" class="note-label" value="${escapeHtml(item.label)}">
           : <input type="text" class="note-value" value="${escapeHtml(item.value)}">
-          <button onclick="removeNote(${index})" class="btn-remove">移除</button>
+          <button onclick="removeNote(${index})" class="btn-remove">${nc('btn_remove')}</button>
         </div>`
                     ).join('')}
       </div>
-      <button onclick="addNote()" class="btn-add">新增筆記</button>
+      <button onclick="addNote()" class="btn-add">${nc('btn_add_note')}</button>
     </div>
   </div>
   <hr>
   <div>
-    <h3>性格與偏好</h3>
-      <label>性格與偏好標題: <input type="text" id="editPersonalityTitle" value="${escapeHtml(character.personalityPreferencesTitle)}"></label>
+    <h3>${nc('section_personality')}</h3>
+      <label>${nc('label_personality_title')} <input type="text" id="editPersonalityTitle" value="${escapeHtml(character.personalityPreferencesTitle)}"></label>
     <div id="editPersonalityContainer">
       <div id="editPersonalityList">
         ${character.personalityPreferences.items.map((item, index) =>
@@ -1368,27 +1278,18 @@
           <input type="number" class="personality-value" value="${item.value}">
           <input type="text" class="personality-alt" value="${escapeHtml(item.alternative)}">
           <select class="personality-icon">
-            <option value="fas fa-check" ${item.icon === 'fas fa-check' ? 'selected' : ''}>打勾</option>
-            <option value="fas fa-star" ${item.icon === 'fas fa-star' ? 'selected' : ''}>星星</option>
-            <option value="fas fa-heart" ${item.icon === 'fas fa-heart' ? 'selected' : ''}>愛心</option>
-            <option value="fas fa-smile" ${item.icon === 'fas fa-smile' ? 'selected' : ''}>笑臉</option>
-            <option value="fas fa-thumbs-up" ${item.icon === 'fas fa-thumbs-up' ? 'selected' : ''}>讚</option>
-            <option value="fas fa-lightbulb" ${item.icon === 'fas fa-lightbulb' ? 'selected' : ''}>燈泡</option>
-            <option value="fas fa-user-friends" ${item.icon === 'fas fa-user-friends' ? 'selected' : ''}>好友</option>
-            <option value="fas fa-flag" ${item.icon === 'fas fa-flag' ? 'selected' : ''}>旗幟</option>
-            <option value="fas fa-clipboard-list" ${item.icon === 'fas fa-clipboard-list' ? 'selected' : ''}>清單</option>
-            <option value="fas fa-comment-dots" ${item.icon === 'fas fa-comment-dots' ? 'selected' : ''}>留言</option>
+            ${personalityIconOptions(item.icon)}
           </select>
-          <button onclick="removePersonality(${index})" class="btn-remove">移除</button>
+          <button onclick="removePersonality(${index})" class="btn-remove">${nc('btn_remove')}</button>
         </div>`
                     ).join('')}
       </div>
-      <button onclick="addPersonality()" class="btn-add">新增性格偏好</button>
+      <button onclick="addPersonality()" class="btn-add">${nc('btn_add_personality')}</button>
     </div>
   </div>
   <br>
-  <button onclick="saveEdit()" class="btn-save">保存修改</button>
-  <button onclick="cancelEdit()" class="btn-cancel">取消</button>
+  <button onclick="saveEdit()" class="btn-save">${nc('btn_save')}</button>
+  <button onclick="cancelEdit()" class="btn-cancel">${nc('btn_cancel')}</button>
             `;
             // NEW: Initialize Sortable with visual feedback settings
             const sortableOptions = {
@@ -1396,7 +1297,7 @@
                 chosenClass: 'sortable-chosen',
                 onStart: function (evt) {
                     evt.item.style.transform = 'scale(1.05)';
-                    evt.item.title = '拖動中...';
+                    evt.item.title = nc('dragging');
                 },
                 onEnd: function (evt) {
                     evt.item.style.transform = 'scale(1)';
@@ -1464,7 +1365,7 @@
                         };
                         reader.readAsDataURL(file);
                     } else {
-                        showNotification('請上傳圖片檔案', 'error');
+                        showNotification(nc('err_upload_image'), 'error');
                     }
                 }
             }
@@ -1568,9 +1469,9 @@
             const attributesList = document.getElementById('editAttributesList');
             attributesList.insertAdjacentHTML('beforeend', `
               <div draggable="true" class="draggable">
-                <input type="text" class="attr-key" placeholder="屬性名稱">
-                : <input type="text" class="attr-value" placeholder="屬性值">
-                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
+                <input type="text" class="attr-key" placeholder="${nc('ph_attr_name')}">
+                : <input type="text" class="attr-value" placeholder="${nc('ph_attr_value')}">
+                <button onclick="this.parentElement.remove()" class="btn-remove">${nc('btn_remove')}</button>
               </div>
             `);
         }
@@ -1582,9 +1483,9 @@
             const container = document.getElementById('editSkillsList');
             container.insertAdjacentHTML('beforeend', `
               <div draggable="true" class="draggable">
-                <input type="text" class="skill-type" placeholder="技能名稱">
-                <input type="number" class="skill-value" placeholder="數值">
-                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
+                <input type="text" class="skill-type" placeholder="${nc('ph_skill_name')}">
+                <input type="number" class="skill-value" placeholder="${nc('ph_skill_value')}">
+                <button onclick="this.parentElement.remove()" class="btn-remove">${nc('btn_remove')}</button>
               </div>
             `);
         }
@@ -1598,9 +1499,9 @@
             const container = document.getElementById('editDiceRollsList');
             container.insertAdjacentHTML('beforeend', `
               <div draggable="true" class="draggable">
-                <input type="text" class="dice-key" placeholder="骰項">
-                : <input type="text" class="dice-value" placeholder="數值">
-                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
+                <input type="text" class="dice-key" placeholder="${nc('ph_dice_key')}">
+                : <input type="text" class="dice-value" placeholder="${nc('ph_skill_value')}">
+                <button onclick="this.parentElement.remove()" class="btn-remove">${nc('btn_remove')}</button>
               </div>
             `);
         }
@@ -1608,7 +1509,7 @@
         function previewAvatarFromUrl(url) {
             // Validate URL before processing
             if (!isValidUrl(url)) {
-                showNotification('請輸入有效的圖片網址 (http://, https://, 或 data:)', 'error');
+                showNotification(nc('err_invalid_image_url'), 'error');
                 const input = document.getElementById('edit-avatar');
                 if (input) input.value = character.avatarTemp || '';
                 return;
@@ -1622,7 +1523,7 @@
                 character.avatarTemp = url; // Store URL in temp storage
             };
             img.onerror = () => {
-                showNotification('圖片載入失敗，請確認網址是否正確', 'error');
+                showNotification(nc('err_image_load_failed'), 'error');
             };
             img.src = url;
         }
@@ -1634,9 +1535,9 @@
             const container = document.getElementById('editNotesItemsList');
             container.insertAdjacentHTML('beforeend', `
               <div draggable="true" class="draggable">
-                <input type="text" class="note-label" placeholder="標籤">
-                : <input type="text" class="note-value" placeholder="內容">
-                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
+                <input type="text" class="note-label" placeholder="${nc('ph_note_label')}">
+                : <input type="text" class="note-value" placeholder="${nc('ph_note_value')}">
+                <button onclick="this.parentElement.remove()" class="btn-remove">${nc('btn_remove')}</button>
               </div>
             `);
         }
@@ -1648,22 +1549,13 @@
             const container = document.getElementById('editPersonalityList');
             container.insertAdjacentHTML('beforeend', `
               <div draggable="true" class="draggable">
-                <input type="text" class="personality-label" placeholder="名稱">
-                <input type="number" class="personality-value" placeholder="數值">
-                <input type="text" class="personality-alt" placeholder="對立">
+                <input type="text" class="personality-label" placeholder="${nc('ph_personality_label')}">
+                <input type="number" class="personality-value" placeholder="${nc('ph_skill_value')}">
+                <input type="text" class="personality-alt" placeholder="${nc('ph_personality_alt')}">
                 <select class="personality-icon">
-                    <option value="fas fa-check">打勾</option>
-                    <option value="fas fa-star">星星</option>
-                    <option value="fas fa-heart">愛心</option>
-                    <option value="fas fa-smile">笑臉</option>
-                    <option value="fas fa-thumbs-up">讚</option>
-                    <option value="fas fa-lightbulb">燈泡</option>
-                    <option value="fas fa-user-friends">好友</option>
-                    <option value="fas fa-flag">旗幟</option>
-                    <option value="fas fa-clipboard-list">清單</option>
-                    <option value="fas fa-comment-dots">留言</option>
+                    ${personalityIconOptions('fas fa-check')}
                 </select>
-                <button onclick="this.parentElement.remove()" class="btn-remove">移除</button>
+                <button onclick="this.parentElement.remove()" class="btn-remove">${nc('btn_remove')}</button>
               </div>
             `);
         }
@@ -1682,10 +1574,10 @@
             container.innerHTML = `
   <!-- Rebuild the view mode using updated character data -->
   <div class="header-buttons">
-      <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">編輯角色</button>
-      <button id="exportBtn" class="btn-export" onclick="exportToPNG()">匯出 PNG</button>
-      <button id="shareBtn" class="btn-backup" onclick="openBackupRestoreModal()">備份/讀取</button>
-      <button id="restoreBtn" class="btn-restore" onclick="restoreDefaultCharacter()">還原預設</button>
+      <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">${nc('btn_edit')}</button>
+      <button id="exportBtn" class="btn-export" onclick="exportToPNG()">${nc('btn_export_png')}</button>
+      <button id="shareBtn" class="btn-backup" onclick="openBackupRestoreModal()">${nc('btn_backup_restore')}</button>
+      <button id="restoreBtn" class="btn-restore" onclick="restoreDefaultCharacter()">${nc('btn_restore_default')}</button>
   </div>
   <div class="grid">
       <div class="column">
@@ -1699,7 +1591,7 @@
               </div>
           </div>
           <div class="avatar-container">
-              <img id="avatarImage" src="${escapeHtml(safeAvatarSrc)}" alt="角色頭像">
+              <img id="avatarImage" src="${escapeHtml(safeAvatarSrc)}" alt="${nc('avatar_alt')}">
           </div>
           <h3 id="attributeTitle">${escapeHtml(character.attributeTitle)}</h3>
           <div id="basic-attributes">
@@ -1747,12 +1639,12 @@
         ${character.notes.items.length > 4 ? `
           <div class="notes-overflow">
             <div class="notes-card">
-              <h3>更多${escapeHtml(character.notes.title)}</h3>
+              <h3>${nc('notes_more', { title: escapeHtml(character.notes.title) })}</h3>
               <div class="notes-content">
                   ${renderNotes(character.notes.items.slice(4))}
               </div></div>
           </div>
-      <div class="footer">@character.HKTRPG.com 請隨意取用</div>
+      <div class="footer">${nc('footer')}</div>
   ` : ''}
         `;
             // Re-initialize any dynamic elements like the Chart
@@ -1888,8 +1780,7 @@
                     ctx.fillStyle = '#666';
                     ctx.font = '14px Arial';
                     ctx.textAlign = 'center';
-                    ctx.fillText('無法載入圖片', 100, 95);
-                    ctx.fillText('Image unavailable', 100, 115);
+                    ctx.fillText(nc('img_unavailable'), 100, 100);
                     return canvas.toDataURL('image/png');
                 } catch (fallbackError) {
                     console.error('Fallback image creation failed:', fallbackError);
@@ -1933,11 +1824,11 @@
             overlay.className = 'progress-overlay';
             overlay.innerHTML = `
                 <div class="progress-container">
-                    <div class="progress-text">正在匯出 PNG...</div>
+                    <div class="progress-text">${nc('exporting_png')}</div>
                     <div class="progress-bar-container">
                         <div class="progress-bar-fill" style="width: 0%"></div>
                     </div>
-                    <div class="progress-status">準備中...</div>
+                    <div class="progress-status">${nc('export_status_ready')}</div>
                 </div>
             `;
             document.body.appendChild(overlay);
@@ -1968,7 +1859,7 @@
 
             try {
                 // Update progress: Start
-                updateProgress(overlay, 10, '準備匯出...');
+                updateProgress(overlay, 10, nc('export_preparing'));
 
                 // Force desktop viewport and ensure container width is set
                 if (viewport) {
@@ -1986,7 +1877,7 @@
                 const currentSrc = avatarImg.src;
 
                 // Update progress: Image processing
-                updateProgress(overlay, 30, '處理圖片中...');
+                updateProgress(overlay, 30, nc('export_status_image'));
 
                 // Handle image caching and loading
                 if (!currentSrc.startsWith('data:image')) {
@@ -2006,7 +1897,7 @@
                             ctx.fillStyle = '#666';
                             ctx.font = '16px Arial';
                             ctx.textAlign = 'center';
-                            ctx.fillText('圖片載入失敗', 100, 100);
+                            ctx.fillText(nc('img_load_failed_short'), 100, 100);
                             imageCache.base64 = canvas.toDataURL('image/png');
                             imageCache.url = currentSrc;
                         }
@@ -2032,12 +1923,12 @@
                 }
 
                 // Update progress: Preparing canvas
-                updateProgress(overlay, 50, '準備畫布...');
+                updateProgress(overlay, 50, nc('export_status_canvas'));
 
                 container.classList.add('exporting', 'no-animations');
 
                 // Update progress: Rendering
-                updateProgress(overlay, 70, '渲染圖片中...');
+                updateProgress(overlay, 70, nc('export_status_render'));
 
                 const canvas = await html2canvas(container, {
                     allowTaint: true,
@@ -2154,7 +2045,7 @@
                 });
 
                 // Update progress: Creating blob
-                updateProgress(overlay, 85, '產生圖片檔案...');
+                updateProgress(overlay, 85, nc('export_status_file'));
 
                 // Convert to blob for better memory management
                 const blob = await new Promise(resolve => {
@@ -2168,14 +2059,14 @@
                 link.href = url;
 
                 // Update progress: Finalizing
-                updateProgress(overlay, 95, '完成匯出...');
+                updateProgress(overlay, 95, nc('export_finishing'));
 
                 // Trigger download and cleanup
                 setTimeout(() => {
                     link.click();
                     setTimeout(() => {
                         URL.revokeObjectURL(url);
-                        updateProgress(overlay, 100, '匯出完成！');
+                        updateProgress(overlay, 100, nc('export_done'));
                         setTimeout(() => {
                             overlay.remove();
                         }, 1000);
@@ -2184,8 +2075,8 @@
 
             } catch (error) {
                 console.error('匯出失敗:', error);
-                overlay.querySelector('.progress-text').textContent = '匯出失敗';
-                overlay.querySelector('.progress-status').textContent = '請稍後再試';
+                overlay.querySelector('.progress-text').textContent = nc('export_failed');
+                overlay.querySelector('.progress-status').textContent = nc('export_retry_later');
                 overlay.querySelector('.progress-bar-fill').style.backgroundColor = '#EF4444';
 
                 setTimeout(() => {
@@ -2272,7 +2163,7 @@
 
                     // Convert to sharedData format
                     const convertedData = {
-                        characterName: parsed.name || "無名氏",
+                        characterName: parsed.name || nc('sample_anonymous'),
                         playerName: "",
                         id: parsed.id || "",
                         attributes: {
@@ -2281,18 +2172,18 @@
                         skills: [],
                         diceRolls: {},
                         notes: {
-                            title: "筆記",
+                            title: nc('section_notes'),
                             items: []
                         },
-                        diceTitle: "技能",
-                        skillsTitle: "能力分析",
-                        attributeTitle: "基本屬性",
-                        personalityPreferencesTitle: "性格與偏好",
+                        diceTitle: nc('section_skills'),
+                        skillsTitle: nc('section_skills_analysis'),
+                        attributeTitle: nc('section_attributes'),
+                        personalityPreferencesTitle: nc('section_personality'),
                         personalityPreferences: {
                             items: [
-                                { label: '活潑開朗', value: 70, alternative: '靜思內省', icon: 'fas fa-check' },
-                                { label: '實事求是', value: 60, alternative: '敏銳直觀', icon: 'fas fa-star' },
-                                { label: '理性思維', value: 85, alternative: '情感共鳴', icon: 'fas fa-users' }
+                                { label: nc('sample_pers_a1'), value: 70, alternative: nc('sample_pers_a1_alt'), icon: 'fas fa-check' },
+                                { label: nc('sample_pers_a2'), value: 60, alternative: nc('sample_pers_a2_alt'), icon: 'fas fa-star' },
+                                { label: nc('sample_pers_a3'), value: 85, alternative: nc('sample_pers_a3_alt'), icon: 'fas fa-users' }
                             ]
                         },
                         avatarUrl: avatarImageUrl, // Add default avatar
@@ -2395,13 +2286,13 @@
 
                 const shareUrl = currentUrl.toString();
                 navigator.clipboard.writeText(shareUrl).then(() => {
-                    showNotification('備份連結已複製到剪貼簿!', 'success');
+                    showNotification(nc('backup_copied'), 'success');
                 }).catch(() => {
-                    showNotification('備份連結: ' + shareUrl, 'info');
+                    showNotification(nc('backup_url') + ' ' + shareUrl, 'info');
                 });
             } catch (error) {
                 console.error('產生備份連結失敗:', error);
-                showNotification('產生備份連結失敗', 'error');
+                showNotification(nc('backup_generate_failed'), 'error');
             }
         }
 
@@ -2434,8 +2325,9 @@
 
         // Function to restore default character data
         function restoreDefaultCharacter() {
-            if (confirm('確定要還原預設角色資料嗎？這將清除所有目前的修改。')) {
-                character = JSON.parse(JSON.stringify(defaultCharacter)); // Deep copy
+            if (confirm(nc('restore_confirm'))) {
+                defaultCharacter = buildDefaultCharacter();
+            character = JSON.parse(JSON.stringify(defaultCharacter));
                 saveCharacterToLocalStorage();
                 renderViewMode();
             }
@@ -2483,7 +2375,7 @@
                         // Get avatar
                         const avatarUrl = parsedData.avatarUrl || avatarImageUrl;
                         if (avatarUrl && isValidUrl(avatarUrl)) {
-                            avatarHtml = `<img src="${escapeHtml(avatarUrl)}" alt="頭像" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user\\'></i>'">`;
+                            avatarHtml = `<img src="${escapeHtml(avatarUrl)}" alt="${nc('slot_avatar_alt')}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user\\'></i>'">`;
                         }
 
                         characterName = parsedData.characterName || '';
@@ -2499,11 +2391,11 @@
                         <div class="slot-avatar ${savedData ? '' : 'empty'}">
                             ${avatarHtml}
                         </div>
-                        <div class="slot-name" title="${escapeHtml(characterName)}">${escapeHtml(characterName || '空槽')}</div>
+                        <div class="slot-name" title="${escapeHtml(characterName)}">${escapeHtml(characterName || nc('slot_empty_name'))}</div>
                         <div class="slot-player" title="${escapeHtml(playerName)}">${escapeHtml(playerName || '')}</div>
                         <div class="slot-buttons">
-                            <button class="slot-save" onclick="saveToSlot(${i})">儲存</button>
-                            <button class="slot-load" onclick="loadFromSlot(${i})" ${loadDisabled}>讀取</button>
+                            <button class="slot-save" onclick="saveToSlot(${i})">${nc('btn_slot_save')}</button>
+                            <button class="slot-load" onclick="loadFromSlot(${i})" ${loadDisabled}>${nc('btn_slot_load')}</button>
                         </div>
                     </div>
                 `;
@@ -2518,11 +2410,11 @@
                 const dataToSave = JSON.stringify(character);
                 localStorage.setItem(slotKey, dataToSave);
 
-                showNotification(`角色資料已儲存到槽位 ${slotNumber}`, 'success');
+                showNotification(nc('slot_saved', { n: slotNumber }), 'success');
                 renderSlotGrid(); // Refresh the grid to show updated data
             } catch (error) {
                 console.error('Error saving to slot:', error);
-                showNotification('儲存失敗，請稍後再試', 'error');
+                showNotification(nc('save_failed'), 'error');
             }
         }
 
@@ -2532,7 +2424,7 @@
                 const savedData = localStorage.getItem(slotKey);
 
                 if (!savedData) {
-                    showNotification('此槽位沒有儲存的資料', 'error');
+                    showNotification(nc('slot_empty'), 'error');
                     return;
                 }
 
@@ -2540,7 +2432,7 @@
 
                 // Validate the data structure
                 if (!parsedData || typeof parsedData !== 'object') {
-                    showNotification('資料格式錯誤', 'error');
+                    showNotification(nc('data_format_error'), 'error');
                     return;
                 }
 
@@ -2549,11 +2441,11 @@
                 saveCharacterToLocalStorage(); // Also save to main storage
                 renderViewMode();
 
-                showNotification(`已從槽位 ${slotNumber} 讀取角色資料`, 'success');
+                showNotification(nc('slot_loaded', { n: slotNumber }), 'success');
                 closeBackupRestoreModal();
             } catch (error) {
                 console.error('Error loading from slot:', error);
-                showNotification('讀取失敗，請稍後再試', 'error');
+                showNotification(nc('read_failed'), 'error');
             }
         }
 
@@ -2566,22 +2458,28 @@
             });
         });
 
-        // On page load, prioritize URL data over localStorage
-        const sharedData = getDataFromUrl();
-        if (sharedData) {
-            character = sharedData;
-            saveCharacterToLocalStorage();
-        } else if (!loadCharacterFromLocalStorage()) {
-            character = JSON.parse(JSON.stringify(defaultCharacter)); // Deep copy
+        async function initNcardPage() {
+            if (window.wwwI18n?.ready) await window.wwwI18n.ready;
+            if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document);
+            defaultCharacter = buildDefaultCharacter();
+            document.title = nc('page_title') || document.title;
+            const sharedData = getDataFromUrl();
+            if (sharedData) {
+                character = sharedData;
+                saveCharacterToLocalStorage();
+            } else if (!loadCharacterFromLocalStorage()) {
+                character = JSON.parse(JSON.stringify(defaultCharacter));
+            }
+            renderViewMode();
         }
-        renderViewMode();
+        initNcardPage();
     </script>
 
     <!-- Backup/Restore Modal -->
     <div id="backupRestoreModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>角色資料備份/讀取</h2>
+                <h2 data-www-i18n="ncard_backup_modal_title">角色資料備份/讀取</h2>
                 <button class="modal-close" onclick="closeBackupRestoreModal()">&times;</button>
             </div>
             <div class="modal-body">

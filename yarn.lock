@@ -5420,6 +5420,16 @@ hyntax@^1.1.9:
   resolved "https://registry.yarnpkg.com/hyntax/-/hyntax-1.1.9.tgz#7fd69747d534dd87e342e1249d60175d93676a39"
   integrity sha512-xjxyDLbVDdLgjPnl4NM+Iu6il3UPmk6PNCBXruQKeuKDc/HtaZx1hk1AtMgw3vsn9YnLZRfoBpPxYMXcoT5KAA==
 
+i18next-fs-backend@^2.6.6:
+  version "2.6.6"
+  resolved "https://registry.yarnpkg.com/i18next-fs-backend/-/i18next-fs-backend-2.6.6.tgz#d7a0b4595cc3d504c9d0b267e527d2b4926d9418"
+  integrity sha512-mYGu6Nt8RIp3X/U8Y+Gej1wo5xmYWmGKLqBGMCC2OCAou5rW5epeHgHmVcw20mJs9Z9+DAPHIxQPNCgFyPRMeg==
+
+i18next@^26.3.6:
+  version "26.3.6"
+  resolved "https://registry.yarnpkg.com/i18next/-/i18next-26.3.6.tgz#599db275c50b66d28a69d8f6c5162c245ce9296b"
+  integrity sha512-Bu5Z2nAXgfVyM8xvW3jk9EKRIuX37PudsrBViThNFx7CR7aaYTpP01cxNB/E4c4UUzTDiAZRstEhsRfPOL/8xA==
+
 iconv-lite@0.4.24:
   version "0.4.24"
   resolved "https://registry.yarnpkg.com/iconv-lite/-/iconv-lite-0.4.24.tgz#2022b4b25fbddc21d2f524974a474aafe733908b"

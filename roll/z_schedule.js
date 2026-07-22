@@ -13,11 +13,12 @@ const agenda = require('../modules/schedule')
 const CRON_REGEX = /^(\d\d)(\d\d)((?:-([1-9]?[1-9]|((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?))){0,1})/i;
 const VALID_DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 const checkTools = require('../modules/check.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 
 
 
-const gameName = function () {
-    return '【定時發訊功能】.at /.cron  mins hours delete show'
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'schedule.game_name', '【定時發訊功能】.at /.cron  mins hours delete show');
 }
 
 const gameType = function () {
@@ -29,49 +30,28 @@ const prefixs = function () {
         second: null
     }]
 }
-const getHelpMessage = function () {
-    return `【⏰定時任務功能】
-╭──── 📅單次定時 [at] ────
-│ • 指定時間: .at 20220604 1900 
-│ • 計時模式: .at 5mins / 5hours 
-│ • 加入訊息及骰子: .at 9mins 五分鐘後擲骰 [[CC 60]]
-│
-╭──── ⌛循環定時 [cron] ────
-│ • 每天定時: .cron 1230 
-│ • 間隔天數: .cron 1921-2
-│ • 指定星期: .cron 1921-wed-mon
-│ • 進階組合: .cron 1921-2-wed-sun
-│ • 加入訊息: .cron 1921 每天七時二十一分
-│ • 加入骰子: .cron 1921 [[CC 80 幸運]]
-│
-├──── 🎲格式說明 ────
-│ • 時間格式: YYYYMMDD HHMM (24小時制)
-│ • 計時單位: mins(分鐘), hours(小時)
-│ • 星期代碼: Sun Mon Tue Wed Thu Fri Sat
-│ • 骰子指令: 使用[[]]包覆
-│
-├──── ⚙️管理指令 ────
-│ • 查看列表: .at show / .cron show
-│ • 刪除任務: .at delete 序號
-│             .cron delete 序號
-│ • 注意：.at 與 .cron 為獨立功能，各自擁有固定序號（不會因刪除其他任務而改變）
-│
-├──── 👑贊助功能 ────
-│ patreoner可自訂發送者:
-│ .cron 2258
-│ name=發送者名稱
-│ link=頭像連結網址
-│ 要發送的訊息內容
-│ [[骰子指令]]
-│
-├──── 📝範例 ────
-.cron 2258 
-name=Sad
-link=https://user-images.githubusercontent.com/23254376/113255717-bd47a300-92fa-11eb-90f2-7ebd00cd372f.png
-wwwww
-[[2d3]]
-hello world
-╰──────────────`
+const getHelpMessage = function (params = {}) {
+    return resolveHelp(params, 'schedule.help');
+}
+
+function buildCronScheduleText(checkTime, translate) {
+    const weekDayNames = checkTime.weeks.map(d => VALID_DAYS[d]);
+    const scheduleTextParts = [];
+    if (checkTime.days) {
+        scheduleTextParts.push(translate('schedule.cron_every_n_days', { days: checkTime.days }));
+    }
+    if (weekDayNames.length > 0) {
+        scheduleTextParts.push(translate('schedule.cron_weekly', { days: weekDayNames.join(',') }));
+    }
+    let scheduleText = scheduleTextParts.join(' ');
+    if (!scheduleText) {
+        scheduleText = translate('schedule.cron_daily');
+    }
+    return scheduleText;
+}
+
+function formatInputErrorHelp(params) {
+    return `${getT(params)('schedule.input_error_header')}\n ${getHelpMessage(params)}`;
 }
 const initialize = function () {
     return "";
@@ -86,28 +66,32 @@ const rollDiceCommand = async function ({
     botname,
     //displayname,
     channelid,
+    locale,
+    t
     // displaynameDiscord,
     //membercount
 }) {
+    const i18nParams = { locale, t };
+    const translate = getT(i18nParams);
     let rply = {
         default: 'on',
         type: 'text',
         text: ''
     };
     if (!differentPeformAt(botname)) {
-        rply.text = '此功能只能在Discord, Telegram中使用'
+        rply.text = translate('schedule.discord_telegram_only');
         return rply
     }
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
-            rply.text = this.getHelpMessage();
+            rply.text = getHelpMessage(i18nParams);
             rply.quotes = true;
             return rply;
         }
         case /^\.at+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
             if (!checkMongodb.isDbOnline()) return;
             if (!groupid) {
-                rply.text = '此功能必須在群組中使用'
+                rply.text = translate('schedule.group_only');
                 return rply
             }
             let check = {}
@@ -124,7 +108,7 @@ const rollDiceCommand = async function ({
             const jobs = await agenda.agenda.jobs(
                 check
             ).catch(error => console.error('agenda error:', error.name, error.reason))
-            rply.text = await showJobs(jobs);
+            rply.text = await showJobs(jobs, translate);
             if (userrole == 3 && botname == "Discord") {
                 const groupJobsText = rply.text;
                 const channelCheck = {
@@ -134,23 +118,23 @@ const rollDiceCommand = async function ({
                 };
                 const channelJobs = await agenda.agenda.jobs(channelCheck)
                     .catch(error => console.error('agenda error:', error.name, error.reason));
-                const channelJobsText = await showJobs(channelJobs);
-                rply.text = `【本群組 .at 列表】\n${groupJobsText}\n\n【本頻道 .at 列表】\n${channelJobsText}`;
+                const channelJobsText = await showJobs(channelJobs, translate);
+                rply.text = translate('schedule.at_list_combined', { groupList: groupJobsText, channelList: channelJobsText });
             } else if (botname == "Discord" && userrole < 3) {
-                rply.text = `【本頻道 .at 列表】\n${rply.text}`;
+                rply.text = translate('schedule.at_list_channel', { list: rply.text });
             } else {
-                rply.text = `【本群組 .at 列表】\n${rply.text}`;
+                rply.text = translate('schedule.at_list_group', { list: rply.text });
             }
             return rply;
         }
         case /^\.at+$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
             if (!checkMongodb.isDbOnline()) return;
             if (!groupid) {
-                rply.text = '此功能必須在群組中使用'
+                rply.text = translate('schedule.group_only');
                 return rply
             }
             if (!mainMsg[2] || !/\d+/i.test(mainMsg[2])) {
-                rply.text = '移除定時訊息指令為 .at delete (序號) \n 如 .at delete 1'
+                rply.text = translate('schedule.at_delete_usage');
                 return rply
             }
             let check = {}
@@ -176,16 +160,19 @@ const rollDiceCommand = async function ({
             // when list changed between show and delete.
             let targetJob = jobs.find(j => j.attrs.data && j.attrs.data.serial === targetNum);
             if (!targetJob) {
-                rply.text = "找不到該序號，請使用最新 .at show 的序號"
+                rply.text = translate('schedule.at_not_found');
                 return rply;
             }
             try {
                 let data = targetJob;
                 await targetJob.remove();
-                rply.text = `已刪除序號#${targetNum} \n${data.attrs.data.replyText}`;
+                rply.text = translate('schedule.at_deleted', {
+                    serial: targetNum,
+                    content: data.attrs.data.replyText
+                });
             } catch (error) {
                 console.error("Remove at Error removing job from collection. input:", inputStr, error);
-                rply.text = "刪除時發生錯誤，請稍後再試"
+                rply.text = translate('schedule.at_delete_error');
                 return rply;
             }
             return rply;
@@ -193,7 +180,7 @@ const rollDiceCommand = async function ({
         case /^\.at+$/i.test(mainMsg[0]): {
             if (!checkMongodb.isDbOnline()) return;
             if (!groupid) {
-                rply.text = '此功能必須在群組中使用'
+                rply.text = translate('schedule.group_only');
                 return rply
             }
             let lv = await VIP.viplevelCheckUser(userid);
@@ -208,7 +195,7 @@ const rollDiceCommand = async function ({
                 check
             ).catch(error => console.error('schedule  #171 mongoDB error:', error.name, error.reason));
             if (checkGroupid >= limit) {
-                rply.text = '.at 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
+                rply.text = translate('schedule.at_limit_reached', { limit });
                 return rply;
             }
             let roleName = getAndRemoveRoleNameAndLink(inputStr);
@@ -216,23 +203,18 @@ const rollDiceCommand = async function ({
 
             let checkTime = checkAtTime(mainMsg[1], mainMsg[2]);
             if (!checkTime || checkTime.time == "Invalid Date") {
-                rply.text = `輸入出錯\n ${this.getHelpMessage()}`;
+                rply.text = formatInputErrorHelp(i18nParams);
                 return rply;
             }
             let text = (checkTime.threeColum) ? inputStr.replace(/^\s?\S+\s+\S+\s+\S+\s+/, '') : inputStr.replace(/^\s?\S+\s+\S+\s+/, '');
             let date = checkTime.time;
             if (roleName.roleName || roleName.imageLink) {
                 if (lv === 0) {
-                    rply.text = `.at裡的角色發言功能只供Patreoner使用，請支持伺服器運作，或自建Server\nhttps://www.patreon.com/HKTRPG`;
+                    rply.text = translate('schedule.patreon_only_at');
                     return rply;
                 }
                 if (!roleName.roleName || !roleName.imageLink) {
-                    rply.text = `請完整設定名字和圖片網址
-                    格式為
-                    .at 時間
-                    name=名字
-                    link=www.sample.com/sample.jpg
-                    XXXXXX信息一堆`;
+                    rply.text = translate('schedule.role_incomplete_at');
                     return rply;
                 }
 
@@ -242,15 +224,16 @@ const rollDiceCommand = async function ({
             const serial = await getNextSerial(callBotname, groupid);
             const atData = { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, serial };
             await agenda.agenda.schedule(date, callBotname, atData).catch(error => console.error('agenda error:', error.name, error.reason))
-            rply.text = `已新增排定內容
-執行時間: ${moment(date).format('YYYY-MM-DD HH:mm')}
-您的序號 #${serial} (固定 ID)
-訊息內容: ${text}`
+            rply.text = translate('schedule.at_added', {
+                time: moment(date).format('YYYY-MM-DD HH:mm'),
+                serial,
+                content: text
+            });
             return rply;
         }
         case /^\.cron+$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
             if (!checkMongodb.isDbOnline()) return;
-            rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({ locale,
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
@@ -273,7 +256,7 @@ const rollDiceCommand = async function ({
             const jobs = await agenda.agenda.jobs(
                 check
             ).catch(error => console.error('agenda error:', error.name, error.reason))
-            rply.text = await showCronJobs(jobs);
+            rply.text = await showCronJobs(jobs, translate);
             if (userrole == 3 && botname == "Discord") {
                 const groupJobsText = rply.text;
                 const channelCheck = {
@@ -283,17 +266,17 @@ const rollDiceCommand = async function ({
                 };
                 const channelJobs = await agenda.agenda.jobs(channelCheck)
                     .catch(error => console.error('agenda error:', error.name, error.reason));
-                const channelJobsText = await showCronJobs(channelJobs);
-                rply.text = `【本群組 .cron 列表】\n${groupJobsText}\n\n【本頻道 .cron 列表】\n${channelJobsText}`;
+                const channelJobsText = await showCronJobs(channelJobs, translate);
+                rply.text = translate('schedule.cron_list_combined', { groupList: groupJobsText, channelList: channelJobsText });
             } else if (botname == "Discord" && userrole < 3) {
-                rply.text = `【本頻道 .cron 列表】\n${rply.text}`;
+                rply.text = translate('schedule.cron_list_channel', { list: rply.text });
             } else {
-                rply.text = `【本群組 .cron 列表】\n${rply.text}`;
+                rply.text = translate('schedule.cron_list_group', { list: rply.text });
             }
             return rply;
         }
         case /^\.cron$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
-            rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({ locale,
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
@@ -303,7 +286,7 @@ const rollDiceCommand = async function ({
             }
 
             if (!mainMsg[2] || !/\d+/i.test(mainMsg[2])) {
-                rply.text = '移除定時訊息指令為 .cron delete (序號) \n 如 .cron delete 1'
+                rply.text = translate('schedule.cron_delete_usage');
                 return rply
             }
             let check = {}
@@ -330,28 +313,31 @@ const rollDiceCommand = async function ({
             // when list changed between show and delete.
             let targetJob = jobs.find(j => j.attrs.data && j.attrs.data.serial === targetNum);
             if (!targetJob) {
-                rply.text = "找不到該序號，請使用最新 .cron show 的序號"
+                rply.text = translate('schedule.cron_not_found');
                 return rply;
             }
             try {
                 let data = targetJob;
                 await targetJob.remove();
-                rply.text = `已刪除序號#${targetNum} \n${data.attrs.data.replyText} `;
+                rply.text = translate('schedule.cron_deleted', {
+                    serial: targetNum,
+                    content: data.attrs.data.replyText
+                });
 
             } catch {
                 console.error("Remove Cron Error removing job from collection, input:", inputStr);
-                rply.text = "刪除時發生錯誤，請稍後再試"
+                rply.text = translate('schedule.cron_delete_error');
                 return rply;
             }
             return rply;
         }
         case /^\.cron+$/i.test(mainMsg[0]): {
-            rply.text = checkTools.permissionErrMsg({
+            rply.text = checkTools.permissionErrMsg({ locale,
                 flag: checkTools.flag.ChkChannelManager,
                 gid: groupid,
                 role: userrole
             });
-            if (!mainMsg[2]) rply.text += '未有內容'
+            if (!mainMsg[2]) rply.text += translate('schedule.no_content');
             if (rply.text) return rply;
 
             let lv = await VIP.viplevelCheckUser(userid);
@@ -366,7 +352,7 @@ const rollDiceCommand = async function ({
                 check
             ).catch(error => console.error('schedule #278 mongoDB error:', error.name, error.reason));
             if (checkGroupid >= limit) {
-                rply.text = '.cron 整個群組上限' + limit + '個\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
+                rply.text = translate('schedule.cron_limit_reached', { limit });
                 return rply;
             }
             let roleName = getAndRemoveRoleNameAndLink(inputStr);
@@ -374,21 +360,16 @@ const rollDiceCommand = async function ({
 
             let checkTime = checkCronTime(mainMsg[1]);
             if (!checkTime || !checkTime.min || !checkTime.hour) {
-                rply.text = `輸入出錯\n ${this.getHelpMessage()} `;
+                rply.text = `${formatInputErrorHelp(i18nParams)} `;
                 return rply;
             }
             if (roleName.roleName || roleName.imageLink) {
                 if (lv === 0) {
-                    rply.text = `.cron裡的角色發言功能只供Patreoner使用，請支持伺服器運作，或自建Server\nhttps://www.patreon.com/HKTRPG`;
+                    rply.text = translate('schedule.patreon_only_cron');
                     return rply;
                 }
                 if (!roleName.roleName || !roleName.imageLink) {
-                    rply.text = `請完整設定名字和圖片網址
-                    格式為
-                    .cron 時間
-                    name=名字
-                    link=www.sample.com/sample.jpg
-                    XXXXXX信息一堆`;
+                    rply.text = translate('schedule.role_incomplete_cron');
                     return rply;
                 }
 
@@ -411,22 +392,14 @@ const rollDiceCommand = async function ({
                 console.error("schedule #301 Error saving job to collection");
             }
 
-            const weekDayNames = checkTime.weeks.map(d => VALID_DAYS[d]);
+            const scheduleText = buildCronScheduleText(checkTime, translate);
 
-            let scheduleTextParts = [];
-            if (checkTime.days) {
-                scheduleTextParts.push(`每隔${checkTime.days}天`);
-            }
-            if (weekDayNames.length > 0) {
-                scheduleTextParts.push(`每個星期的 ${weekDayNames.join(',')}`);
-            }
-
-            let scheduleText = scheduleTextParts.join(' ');
-            if (!scheduleText) {
-                scheduleText = '每天';
-            }
-
-            rply.text = `已新增排定內容\n將於 ${scheduleText} ${checkTime.hour}:${checkTime.min} (24小時制)運行\n您的序號 #${serial} (固定 ID)`;
+            rply.text = translate('schedule.cron_added', {
+                schedule: scheduleText,
+                hour: checkTime.hour,
+                min: checkTime.min,
+                serial
+            });
             return rply;
         }
         default: {
@@ -624,7 +597,8 @@ function checkCronTime(text) {
 
 
 
-async function showJobs(jobs) {
+async function showJobs(jobs, translate) {
+    const t = translate || getT({});
     let reply = '';
     if (jobs && jobs.length > 0) {
         // Backfill serials for legacy jobs (old jobs without serial get stable ones now)
@@ -644,19 +618,20 @@ async function showJobs(jobs) {
             let job = processedJobs[index];
             const displayId = (job.attrs.data && job.attrs.data.serial) || (index + 1);
             const timeStr = moment(job.attrs.nextRunAt).format('YYYY-MM-DD HH:mm');
-            reply += `────────────────\n`;
-            reply += `序號 #${displayId}\n`;
-            reply += `下次運行: ${timeStr}\n`;
-            reply += `內容: ${job.attrs.data.replyText}\n`;
+            reply += t('schedule.job_separator');
+            reply += t('schedule.job_serial', { serial: displayId });
+            reply += t('schedule.job_next_run', { time: timeStr });
+            reply += t('schedule.job_content', { content: job.attrs.data.replyText });
         }
-        reply += `────────────────\n`;
-        reply += `\n💡 序號為固定 ID，刪除請用 .at delete N (N 為上方數字)\n`;
+        reply += t('schedule.job_separator');
+        reply += t('schedule.job_at_tip');
     } else {
-        reply = "沒有找到 .at 任務"
+        reply = t('schedule.no_at_jobs');
     }
     return reply;
 }
-async function showCronJobs(jobs) {
+async function showCronJobs(jobs, translate) {
+    const t = translate || getT({});
     let reply = '';
     if (jobs && jobs.length > 0) {
         // Backfill serials for legacy jobs so old .cron tasks also get stable 序號
@@ -676,31 +651,31 @@ async function showCronJobs(jobs) {
 
             const daysIntervalMatch = dayOfMonth.match(/\*\/(\d+)/);
             if (daysIntervalMatch) {
-                scheduleText += `每隔${daysIntervalMatch[1]}天`;
+                scheduleText += t('schedule.cron_every_n_days', { days: daysIntervalMatch[1] });
             }
 
             if (dayOfWeek !== '*') {
                 const weekDays = dayOfWeek.split(',').map(d => VALID_DAYS[Number.parseInt(d, 10)]).join(',');
                 if (scheduleText) scheduleText += ' ';
-                scheduleText += `每個星期的 ${weekDays}`;
+                scheduleText += t('schedule.cron_weekly', { days: weekDays });
             }
 
             if (!scheduleText) {
-                scheduleText = '每天';
+                scheduleText = t('schedule.cron_daily');
             }
 
             const displayId = (job.attrs.data && job.attrs.data.serial) || (index + 1);
-            const createStr = createAt ? moment(createAt).format('YYYY-MM-DD HH:mm') : '未知';
-            reply += `────────────────\n`;
-            reply += `序號 #${displayId}\n`;
-            reply += `創建時間: ${createStr}\n`;
-            reply += `運行: ${scheduleText} ${hour}:${min}\n`;
-            reply += `內容: ${job.attrs.data.replyText}\n`;
+            const createStr = createAt ? moment(createAt).format('YYYY-MM-DD HH:mm') : t('schedule.unknown_time');
+            reply += t('schedule.job_separator');
+            reply += t('schedule.job_serial', { serial: displayId });
+            reply += t('schedule.job_created', { time: createStr });
+            reply += t('schedule.job_run', { schedule: scheduleText, hour, min });
+            reply += t('schedule.job_content', { content: job.attrs.data.replyText });
         }
-        reply += `────────────────\n`;
-        reply += `\n💡 序號為固定 ID，刪除請用 .cron delete N (N 為上方數字)\n`;
+        reply += t('schedule.job_separator');
+        reply += t('schedule.job_cron_tip');
     } else {
-        reply = "沒有找到 .cron 任務"
+        reply = t('schedule.no_cron_jobs');
     }
     return reply;
 }

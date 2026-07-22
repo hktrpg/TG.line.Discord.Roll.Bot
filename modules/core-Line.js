@@ -28,6 +28,7 @@ const courtMessage = require('./logs').courtMessage || function () {};
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const client = new line.messagingApi.MessagingApiClient(config);
 const newMessage = require('./message');
+const i18n = require('./i18n.js');
 
 // Helper function to get user profile based on context
 async function getUserProfile(event, userid) {
@@ -134,7 +135,10 @@ let handleEvent = async function (event) {
 		if (event.type == "join" && roomorgroupid) {
 			// 新加入群組時, 傳送MESSAGE
 			console.log("[Line] Line joined");
-			replyMessagebyReplyToken(event, newMessage.joinMessage());
+			replyMessagebyReplyToken(event, await newMessage.joinMessage({
+				groupid: roomorgroupid,
+				botname: 'Line'
+			}));
 		}
 		await nonDice(event);
 		return null;
@@ -165,6 +169,8 @@ let handleEvent = async function (event) {
 		}
 	}
 
+	const locale = await i18n.resolveLocale({ groupid: roomorgroupid, userid, botname: 'Line' });
+	const t = i18n.createTranslator(locale);
 	let rplyVal = {};
 	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 		//mainMsg.shift()
@@ -175,7 +181,9 @@ let handleEvent = async function (event) {
 			userrole: 3,
 			botname: "Line",
 			displayname: displayname,
-			titleName: titleName
+			titleName: titleName,
+			locale,
+			t
 		})
 	} else {
 		if (channelKeyword == '') {
@@ -186,7 +194,9 @@ let handleEvent = async function (event) {
 				userrole: 3,
 				botname: "Line",
 				displayname: displayname,
-				titleName: titleName
+				titleName: titleName,
+				locale,
+				t
 			});
 		}
 	}
@@ -199,7 +209,12 @@ let handleEvent = async function (event) {
 	if (!rplyVal.text && !rplyVal.LevelUp)
 		return;
 	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Line")) {
-		SendToId(userid, newMessage.firstTimeMessage());
+		SendToId(userid, await newMessage.firstTimeMessage({
+			userid,
+			groupid: roomorgroupid,
+			botname: 'Line',
+			locale
+		}));
 	}
 
 	if (roomorgroupid && rplyVal && rplyVal.LevelUp) {
@@ -224,16 +239,17 @@ let handleEvent = async function (event) {
 	switch (true) {
 		case privatemsg == 1: {
 			// 輸入dr  (指令) 私訊自己
-			if (roomorgroupid && userid)
-				if (displayname)
-					replyMessagebyReplyToken(event, "@" + displayname + ' 暗骰給自己');
-				else
-					replyMessagebyReplyToken(event, '正在暗骰給自己');
-			if (userid)
-				if (displayname)
-					SendToId(userid, "@" + displayname + '的暗骰\n' + rplyVal.text);
-				else
-					SendToId(userid, rplyVal.text);
+			if (roomorgroupid && userid) {
+				replyMessagebyReplyToken(event, displayname
+					? t('platform.dark_roll.dr_self_with_name', { displayname })
+					: t('platform.dark_roll.dr_self_no_name'));
+			}
+			if (userid) {
+				const text = displayname
+					? t('platform.dark_roll.dm_prefix', { displayname }) + rplyVal.text
+					: rplyVal.text;
+				SendToId(userid, text);
+			}
 			break;
 		}
 		case privatemsg == 2: {
@@ -244,15 +260,14 @@ let handleEvent = async function (event) {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i]);
 				}
-				if (displayname) {
-					replyMessagebyReplyToken(event, "@" + displayname + ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
-				} else
-					replyMessagebyReplyToken(event, ' 暗骰進行中 \n目標: 自己 ' + targetGMNameTemp);
+				replyMessagebyReplyToken(event, displayname
+					? t('platform.dark_roll.ddr_in_progress_self_with_name', { displayname, targets: targetGMNameTemp })
+					: t('platform.dark_roll.ddr_in_progress_self_no_name', { targets: targetGMNameTemp }));
 			}
 
 			//有名字就顯示
 			if (displayname) {
-				rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text;
+				rplyVal.text = t('platform.dark_roll.dm_prefix', { displayname }) + rplyVal.text;
 			}
 			//傳給自己
 			SendToId(userid, rplyVal.text);
@@ -271,14 +286,13 @@ let handleEvent = async function (event) {
 				for (let i = 0; i < TargetGMTempID.length; i++) {
 					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "@" + TargetGMTempdisplayname[i])
 				}
-				if (displayname) {
-					replyMessagebyReplyToken(event, "@" + displayname + ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
-				} else {
-					replyMessagebyReplyToken(event, ' 暗骰進行中 \n目標: ' + targetGMNameTemp)
-				}
+				replyMessagebyReplyToken(event, displayname
+					? t('platform.dark_roll.dddr_in_progress_with_name', { displayname, targets: targetGMNameTemp })
+					: t('platform.dark_roll.dddr_in_progress_no_name', { targets: targetGMNameTemp }));
 			}
-			if (displayname)
-				rplyVal.text = "@" + displayname + " 的暗骰\n" + rplyVal.text
+			if (displayname) {
+				rplyVal.text = t('platform.dark_roll.dm_prefix', { displayname }) + rplyVal.text;
+			}
 			for (const element of TargetGMTempID) {
 				SendToId(element, rplyVal.text);
 			}
@@ -489,8 +503,9 @@ if (agenda && agenda.agenda && lineAgenda) {
 		try {
 			if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
 				await job.remove();
+				const cronLocale = await i18n.resolveLocale({ groupid: data.groupid || '', botname: 'Line' });
 				SendToId(
-					data.groupid, "已運行六個月, 移除此定時訊息"
+					data.groupid, i18n.createTranslator(cronLocale)('platform.schedule.six_month_remove')
 				)
 			}
 		} catch (error) {
@@ -548,7 +563,8 @@ async function nonDice(event) {
 		const profile = await getUserProfile(event, userid);
 		const displayname = (profile && profile.displayName) ? profile.displayName : '';
 
-		const LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null);
+		const locale = await i18n.resolveLocale({ groupid: roomorgroupid, userid, botname: 'Line' });
+		const LevelUp = await EXPUP(roomorgroupid, userid, displayname, "", null, "", null, locale);
 		if (roomorgroupid && LevelUp && LevelUp.text) {
 			replyMessagebyReplyToken(event, LevelUp.text);
 		}

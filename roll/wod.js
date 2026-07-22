@@ -1,10 +1,11 @@
 "use strict";
 const { SlashCommandBuilder } = require('discord.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 let rollbase = require('./rollbase.js');
 let variables = {};
 
-const gameName = function () {
-	return '【WOD黑暗世界】.xWDy'
+const gameName = function (params = {}) {
+    return resolveGameName(params, 'wod.game_name', '【WOD黑暗世界】.xWDy');
 }
 
 const gameType = function () {
@@ -16,50 +17,15 @@ const prefixs = function () {
 		second: null
 	}]
 }
-const getHelpMessage = async function () {
-    return `【🌑世界of黑暗擲骰系統】
-╭────── 🎲基本格式 ──────
-│ • .[骰數]Wd[加骰值][+額外成功數]
-│ • 可在指令後方空格加入描述文字
-│
-├────── 🎯判定規則 ──────
-│ • 骰出8-10為成功
-│ • 10會額外再骰一次
-│ • 加骰值可調整重骰數值
-│ • 可加入固定成功數
-│
-├────── 📊參數說明 ──────
-│ [骰數]:
-│ 　• 要擲骰的D10數量
-│ 　• 1-100之間
-│
-│ [加骰值]:
-│ 　• 決定重骰的最小值
-│ 　• 預設為10
-│ 　• 8-10之間
-│
-│ [額外成功數]:
-│ 　• 加入固定成功數
-│ 　• 可為正負值
-│
-├────── 📝範例指令 ──────
-│ • .3wd8
-│ 　- 擲3顆D10
-│ 　- 8以上成功
-│ 　- 10重骰
-│
-│ • .15wd9+2
-│ 　- 擲15顆D10
-│ 　- 9以上成功
-│ 　- 10重骰
-│ 　- 總成功數+2
-╰──────────────`
+const getHelpMessage = async function (params = {}) {
+    return resolveHelp(params, 'wod.help');
 }
 const initialize = function () {
 	return variables;
 }
 
-const rollDiceCommand = async function ({ mainMsg }) {
+const rollDiceCommand = async function ({ mainMsg, locale, t }) {
+    const translate = getT({ locale, t });
 	let rply = {
 		default: 'on',
 		type: 'text',
@@ -67,7 +33,7 @@ const rollDiceCommand = async function ({ mainMsg }) {
 	};
 	let matchwod = /^[.](\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(mainMsg[0]); //判斷式  [0]3wd8+10,[1]3,[2]wd,[3]8,[4]+10,[5]+,[6]10  
 	if (matchwod && matchwod[1] >= 1 && matchwod[1] <= 600)
-		rply.text = await wod(mainMsg[0], mainMsg[1]);
+		rply.text = await wod(mainMsg[0], mainMsg[1], translate);
 	return rply;
 }
 
@@ -137,21 +103,21 @@ module.exports = {
  * @param {文字描述} text 
  */
 
-async function wod(triggermsg, text) {
+async function wod(triggermsg, text, translate) {
+    const t = translate || getT({});
 
 	let returnStr = triggermsg + ' [';
 	let varcou = 0;
 	let varsu = 0;
-	let match = /^[.](\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(triggermsg); //判斷式  [0]3wd8+10,[1]3,[2]wd,[3]8,[4]+10,[5]+,[6]10  
+	let match = /^[.](\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(triggermsg);
 	if (match[3] == "") {
 		match[3] = 10
 	}
 	if (match[3] <= 3) {
-		return '加骰最少比3高';
+		return t('wod.reroll_min');
 	}
 
 	for (let i = 0; i < Number(match[1]); i++) {
-		//varcou = Math.floor(Math.random() * 10) + 1;
 		varcou = rollbase.Dice(10)
 		returnStr += varcou + ', ';
 		if (varcou >= match[3]) {
@@ -172,9 +138,7 @@ async function wod(triggermsg, text) {
 			varsu--;
 		}
 	}
-	returnStr = returnStr.replace(/[,][ ]$/, '] → ' + varsu + '成功');
-	if (text != null) {
-		returnStr += ' ; ' + text;
-	}
-	return returnStr;
+	const rolls = returnStr.replace(/[,][ ]$/, '');
+	const suffix = text != null ? ' ; ' + text : '';
+	return t('wod.result', { cmd: triggermsg, rolls, count: varsu, suffix });
 }

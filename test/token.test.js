@@ -62,9 +62,14 @@ jest.mock('imgbox', () => ({
 }));
 
 // Import the module after mocking
+const i18n = require('../modules/i18n.js');
 const tokenModule = require('../roll/token.js');
 
 describe('Token Module Tests', () => {
+  beforeAll(async () => {
+    await i18n.init();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });

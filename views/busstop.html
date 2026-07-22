@@ -3,8 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
+    <script src="/common/www-locale-head.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">IOS Shortcut 搵巴士</title>
+    <title id="pageTitle" data-www-i18n="bus_page_title">IOS Shortcut 搵巴士</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
         integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
     <link rel="stylesheet" href="css/app-shell.css">
@@ -748,7 +749,7 @@
 <body class="app-shell-page">
     <div id="speakApp" class="hidden">
         <h1 id="headerTitle" class="hidden"></h1>
-        <div id="etaList" class="loading" data-status="loading">正在加載到達時間資料...</div>
+        <div id="etaList" class="loading" data-status="loading" data-www-i18n="bus_speak_loading">正在加載到達時間資料...</div>
     </div>
 
     <div id="builderApp" class="app-shell hidden">
@@ -759,29 +760,29 @@
         <main class="app-main">
             <div class="bus-content">
                 <div class="hero">
-                    <h1>IOS Shortcut 搵巴士</h1>
-                    <p>搜尋九巴／龍運路線，選擇車站後建立可朗讀的 iOS 捷徑。</p>
+                    <h1 data-www-i18n="bus_hero_title">IOS Shortcut 搵巴士</h1>
+                    <p data-www-i18n="bus_hero_desc">搜尋九巴／龍運路線，選擇車站後建立可朗讀的 iOS 捷徑。</p>
                 </div>
 
                 <div class="steps" id="stepBar">
-                    <button type="button" class="step on current clickable" data-step="1">1. 搜尋路線</button>
-                    <button type="button" class="step disabled" data-step="2" disabled>2. 選擇路線</button>
-                    <button type="button" class="step disabled" data-step="3" disabled>3. 選擇車站</button>
-                    <button type="button" class="step disabled" data-step="4" disabled>4. 到站時間</button>
+                    <button type="button" class="step on current clickable" data-step="1" data-www-i18n="bus_step_1">1. 搜尋路線</button>
+                    <button type="button" class="step disabled" data-step="2" disabled data-www-i18n="bus_step_2">2. 選擇路線</button>
+                    <button type="button" class="step disabled" data-step="3" disabled data-www-i18n="bus_step_3">3. 選擇車站</button>
+                    <button type="button" class="step disabled" data-step="4" disabled data-www-i18n="bus_step_4">4. 到站時間</button>
                 </div>
 
                 <section class="card" id="searchCard">
-                    <label class="label" for="routeInput">路線</label>
+                    <label class="label" for="routeInput" data-www-i18n="bus_label_route">路線</label>
                     <div class="search-row">
                         <input id="routeInput" type="text" inputmode="none" readonly autocomplete="off"
-                            placeholder="用下方鍵盤輸入，例如 46X" maxlength="10" aria-label="搜尋路線">
+                            data-www-i18n-placeholder="bus_placeholder_route" placeholder="用下方鍵盤輸入，例如 46X" maxlength="10" data-www-i18n-aria="bus_aria_route_search">
                     </div>
                     <div class="route-board-meta">
-                        <span id="boardCount">載入路線中…</span>
-                        <span>參考 <a href="https://hkbus.app/zh/board" target="_blank" rel="noopener">hkbus.app</a></span>
+                        <span id="boardCount" data-www-i18n="bus_loading_routes">載入路線中…</span>
+                        <span><span data-www-i18n="bus_reference">參考</span> <a href="https://hkbus.app/zh/board" target="_blank" rel="noopener">hkbus.app</a></span>
                     </div>
-                    <div id="routeResults" class="route-board" role="listbox" aria-label="路線列表"></div>
-                    <div id="routePad" class="route-pad" aria-label="路線專用鍵盤">
+                    <div id="routeResults" class="route-board" role="listbox" data-www-i18n-aria="bus_aria_route_list" aria-label="路線列表"></div>
+                    <div id="routePad" class="route-pad" data-www-i18n-aria="bus_aria_route_pad" aria-label="路線專用鍵盤">
                         <div id="routePadNum" class="route-pad-num"></div>
                         <div id="routePadAlpha" class="route-pad-alpha"></div>
                     </div>
@@ -792,11 +793,11 @@
                         <strong id="selectedRouteTitle"></strong>
                         <div class="meta" id="selectedRouteMeta" style="color:var(--muted);font-size:0.9rem"></div>
                     </div>
-                    <label class="label">選擇車站</label>
-                    <input id="stopFilter" type="search" placeholder="過濾站名…" style="margin-bottom:10px">
+                    <label class="label" data-www-i18n="bus_label_stop">選擇車站</label>
+                    <input id="stopFilter" type="search" data-www-i18n-placeholder="bus_placeholder_stop" placeholder="過濾站名…" style="margin-bottom:10px">
                     <div id="stopResults" class="list"></div>
                     <div style="margin-top:10px">
-                        <button type="button" class="secondary" id="backToRoutesBtn">返回路線</button>
+                        <button type="button" class="secondary" id="backToRoutesBtn" data-www-i18n="bus_btn_back_routes">返回路線</button>
                     </div>
                 </section>
 
@@ -808,27 +809,27 @@
                     <div id="etaBoard" class="eta-board"></div>
                     <div id="speakPreview" class="speak-box"></div>
                     <div id="nearbyRoutesPanel" class="nearby-panel hidden">
-                        <h3>同站路線</h3>
-                        <p class="nearby-hint">
+                        <h3 data-www-i18n="bus_nearby_title">同站路線</h3>
+                        <p class="nearby-hint" data-www-i18n="bus_nearby_hint">
                             以下為此站及轉車站附近月台的途經路線（含暫時沒有到站班次者）。
                             若有多於一兩班車可到達目的地，可在此勾選，一併納入朗讀。
                         </p>
                         <div id="nearbyRoutesList" class="nearby-list"></div>
                         <div class="nearby-confirm-wrap">
-                            <button type="button" id="confirmNearbyBtn">確認</button>
+                            <button type="button" id="confirmNearbyBtn" data-www-i18n="bus_btn_confirm">確認</button>
                         </div>
                     </div>
                     <div class="actions">
-                        <button type="button" id="nearbyRoutesBtn" class="secondary">選擇同站路線</button>
-                        <button type="button" id="speakNowBtn" class="ghost">立即朗讀</button>
-                        <button type="button" id="backToStopsBtn" class="secondary">返回車站</button>
+                        <button type="button" id="nearbyRoutesBtn" class="secondary" data-www-i18n="bus_btn_nearby">選擇同站路線</button>
+                        <button type="button" id="speakNowBtn" class="ghost" data-www-i18n="bus_btn_speak_now">立即朗讀</button>
+                        <button type="button" id="backToStopsBtn" class="secondary" data-www-i18n="bus_btn_back_stops">返回車站</button>
                     </div>
                     <div id="shortcutHelp" class="hint" style="margin-top:12px"></div>
                 </section>
 
                 <div class="footer-note">
-                    ETA 約每分鐘更新。<span id="etaLastUpdated"></span>
-                    API 說明：
+                    <span data-www-i18n="bus_footer_eta">ETA 約每分鐘更新。</span><span id="etaLastUpdated"></span>
+                    <span data-www-i18n="bus_api_label">API 說明：</span>
                     <a href="https://data.etabus.gov.hk/datagovhk/kmb_eta_data_dictionary.pdf" target="_blank"
                         rel="noopener">KMB ETA Data Dictionary</a>
                 </div>
@@ -840,12 +841,47 @@
         </main>
     </div>
 
+    <script src="/common/www-i18n.js"></script>
+    <script src="/common/site-chrome.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
         crossorigin="anonymous"></script>
     <script>
+        function bt(key, options = {}) {
+            if (typeof wwwT !== 'function') return '';
+            if (key.startsWith('www.')) return wwwT(key, options);
+            if (key.startsWith('bus_')) return wwwT(key, options);
+            return wwwT(`bus_${key}`, options);
+        }
+        function bs(key, options = {}) {
+            if (typeof wwwT !== 'function') return '';
+            const full = key.startsWith('www.') ? key : `www.busstop.${key}`;
+            return wwwT(full, options);
+        }
+        function busLocaleTag() {
+            try {
+                const loc = (typeof getWwwLocale === 'function')
+                    ? getWwwLocale()
+                    : ((window.wwwI18n && window.wwwI18n.locale) || window.HKTRPG_LOCALES?.defaultLocale);
+                if (typeof wwwLocaleToHtmlLang === 'function') {
+                    return wwwLocaleToHtmlLang(loc);
+                }
+                return window.HKTRPG_LOCALES?.definitions?.[loc]?.intl || loc || 'zh-Hant-HK';
+            } catch {
+                return window.HKTRPG_LOCALES?.definitions?.[window.HKTRPG_LOCALES?.defaultLocale]?.intl || 'zh-Hant-HK';
+            }
+        }
+        function applyBusStaticI18n() {
+            if (typeof wwwApplyDomI18n === 'function') {
+                wwwApplyDomI18n(document.getElementById('builderApp'));
+                wwwApplyDomI18n(document.getElementById('speakApp'));
+            }
+            const pt = document.getElementById('pageTitle');
+            if (pt && !getQueryParams().route) pt.textContent = bt('bus_page_title');
+        }
+
         const API = 'https://data.etabus.gov.hk/v1/transport/kmb';
         const BOUND_LABEL = { O: 'outbound', I: 'inbound' };
 
@@ -1028,7 +1064,7 @@
                 el.textContent = '';
                 return;
             }
-            const text = date.toLocaleString('zh-HK', {
+            const text = date.toLocaleString(busLocaleTag(), {
                 year: 'numeric',
                 month: '2-digit',
                 day: '2-digit',
@@ -1037,22 +1073,23 @@
                 second: '2-digit',
                 hour12: false
             });
-            el.textContent = `（最後更新時間: ${text}）`;
+            el.textContent = bt('bus_last_updated', { time: text });
         }
 
         function formatMinutesPhrase(minutesList) {
             const mins = minutesList.filter((m) => m !== null && m !== undefined);
             if (mins.length === 0) return '';
-            if (mins.length === 1) return `${mins[0]}分鐘`;
-            if (mins.length === 2) return `${mins[0]}分鐘及${mins[1]}分鐘`;
-            const head = mins.slice(0, -1).map((m) => `${m}分鐘`).join('、');
-            return `${head}及${mins.at(-1)}分鐘`;
+            if (mins.length === 1) return bs('minute_one', { n: mins[0] });
+            if (mins.length === 2) return bs('minute_and', { a: mins[0], b: mins[1] });
+            const sep = busLocaleTag().startsWith('en') ? ', ' : '、';
+            const head = mins.slice(0, -1).map((m) => bs('minute_unit', { n: m })).join(sep);
+            return bs('minutes_joined', { head, last: mins.at(-1) });
         }
 
         function formatSpeakMessage(route, minutesList) {
             const mins = minutesList.filter((m) => m !== null && m !== undefined);
-            if (mins.length === 0) return `${route} 號巴士暫時沒有到站時間`;
-            return `${route} 號巴士 於 ${formatMinutesPhrase(mins)}後到達`;
+            if (mins.length === 0) return bs('no_eta', { route });
+            return bs('arrives_in', { route, minutes: formatMinutesPhrase(mins) });
         }
 
         function routeKey(route, serviceType, dir) {
@@ -1083,7 +1120,7 @@
             const btn = qs('nearbyRoutesBtn');
             if (btn) {
                 btn.classList.remove('hidden');
-                btn.textContent = state.nearbyActive ? '更改同站路線' : '選擇同站路線';
+                btn.textContent = state.nearbyActive ? bt('bus_btn_nearby_change') : bt('bus_btn_nearby');
             }
         }
 
@@ -1145,7 +1182,7 @@
         }
 
         function formatMultiRouteSpeak(pickedBuses) {
-            if (!pickedBuses.length) return '暫時沒有到站時間';
+            if (!pickedBuses.length) return bs('no_eta_any');
 
             // Group by route, keep route order by earliest picked bus
             const order = [];
@@ -1162,8 +1199,8 @@
                 const group = groups.get(key);
                 const mins = [...group.minutes].sort((a, b) => a - b);
                 const minsText = formatMinutesPhrase(mins);
-                if (index === 0) return `${group.route} 號巴士 於 ${minsText}後到達`;
-                return `${group.route}於 ${minsText}後到達`;
+                if (index === 0) return bs('arrives_first', { route: group.route, minutes: minsText });
+                return bs('arrives_next', { route: group.route, minutes: minsText });
             });
             return parts.join(', ');
         }
@@ -1182,7 +1219,7 @@
             if (!box) return;
 
             if (!state.nearbyRoutes.length) {
-                box.innerHTML = '<div class="status">此站暫無其他途經路線</div>';
+                box.innerHTML = `<div class="status">${bt('bus_no_other_routes')}</div>`;
                 updateSpeakFromNearby();
                 return;
             }
@@ -1191,19 +1228,19 @@
                 const checked = state.nearbySelected.has(entry.key) ? 'checked' : '';
                 const next = entry.buses[0];
                 const more = entry.buses.length > 1
-                    ? ` · 另有 ${entry.buses.slice(1, 3).map((b) => `${b.minutes}分`).join('、')}`
+                    ? ` ${bt('bus_more_eta', { list: entry.buses.slice(1, 3).map((b) => bs('minute_unit', { n: b.minutes })).join(busLocaleTag().startsWith('en') ? ', ' : '、') })}`
                     : '';
-                const boundTag = entry.sameBound ? '' : ` · ${entry.dir === 'I' ? '回程' : '去程'}`;
+                const boundTag = entry.sameBound ? '' : ` · ${entry.dir === 'I' ? bt('bus_bound_inbound') : bt('bus_bound_outbound')}`;
                 const bayTag = entry.platform && entry.stopDistance > 5 ? ` · ${entry.platform}` : '';
-                const noEtaTag = entry.buses.length ? '' : ' · 暫無班次';
+                const noEtaTag = entry.buses.length ? '' : bt('bus_no_service');
                 return `
                     <label class="nearby-item ${checked ? 'on' : ''}">
                         <input type="checkbox" data-key="${escapeHtml(entry.key)}" ${checked}>
                         <div>
                             <div class="route-no">${escapeHtml(entry.route)}</div>
-                            <div class="meta">往 ${escapeHtml(entry.dest_tc || '')}${boundTag}${bayTag}${noEtaTag}${more}</div>
+                            <div class="meta">${bt('bus_to_dest', { dest: escapeHtml(entry.dest_tc || '') })}${boundTag}${bayTag}${noEtaTag}${more}</div>
                         </div>
-                        <div class="mins">${next ? `${next.minutes} 分` : '—'}</div>
+                        <div class="mins">${next ? bt('bus_mins_short', { n: next.minutes }) : '—'}</div>
                     </label>
                 `;
             }).join('');
@@ -1317,7 +1354,7 @@
             if (!stop || !route) return;
 
             const box = qs('nearbyRoutesList');
-            if (box) box.innerHTML = '<div class="status">載入同站路線…</div>';
+            if (box) box.innerHTML = `<div class="status">${bt('bus_loading_nearby')}</div>`;
 
             try {
                 const cluster = await findClusterStops(stop.stop);
@@ -1431,7 +1468,7 @@
                 renderNearbyRoutes();
             } catch (error) {
                 console.error(error);
-                if (box) box.innerHTML = '<div class="error">無法載入同站路線</div>';
+                if (box) box.innerHTML = `<div class="error">${bt('bus_load_nearby_failed')}</div>`;
             }
         }
 
@@ -1468,14 +1505,14 @@
         }
 
         function boundText(bound) {
-            return bound === 'I' ? '回程' : '去程';
+            return bound === 'I' ? bt('bus_bound_inbound') : bt('bus_bound_outbound');
         }
 
         function companyLabel(route) {
             const no = String(route?.route || '');
             // Rough split: airport / external routes are usually LWB in this dataset
-            if (/^(A|E|NA|R)\d/i.test(no)) return '龍運';
-            return '九巴';
+            if (/^(A|E|NA|R)\d/i.test(no)) return bt('bus_operator_lwb');
+            return bt('bus_operator_kmb');
         }
 
         function sortRoutes(a, b) {
@@ -1500,27 +1537,27 @@
             if (countEl) {
                 const q = normalizeRouteQuery(qs('routeInput')?.value);
                 countEl.textContent = q
-                    ? `找到 ${routes.length} 條路線`
-                    : `全部 ${routes.length} 條九巴／龍運路線`;
+                    ? bt('bus_routes_found', { count: routes.length })
+                    : bt('bus_routes_all', { count: routes.length });
             }
 
             if (!routes.length) {
                 const q = escapeHtml(normalizeRouteQuery(qs('routeInput')?.value) || '');
-                box.innerHTML = `<div class="board-empty">找不到「${q}」相關路線</div>`;
+                box.innerHTML = `<div class="board-empty">${bt('bus_route_not_found', { q })}</div>`;
                 return;
             }
 
             // Light board rows (hkbus.app style): route no + 往/由
             const html = routes.map((r, idx) => `
                 <button type="button" class="board-row" role="option" data-idx="${idx}"
-                    aria-label="路線 ${escapeHtml(r.route)} 往 ${escapeHtml(r.dest_tc || '')}，由 ${escapeHtml(r.orig_tc || '')}">
+                    aria-label="${escapeHtml(bt('bus_board_row_aria', { route: r.route, dest: r.dest_tc || '', orig: r.orig_tc || '' }))}">
                     <div class="board-no">
                         <div class="board-route">${escapeHtml(r.route)}</div>
                         <div class="board-co">${escapeHtml(companyLabel(r))}</div>
                     </div>
                     <div class="board-term">
-                        <div class="board-dest"><span>往</span>${escapeHtml(r.dest_tc || r.dest_en || '')}</div>
-                        <div class="board-orig">由 ${escapeHtml(r.orig_tc || r.orig_en || '')}</div>
+                        <div class="board-dest"><span>${bt('bus_board_to')}</span>${escapeHtml(r.dest_tc || r.dest_en || '')}</div>
+                        <div class="board-orig">${bt('bus_board_from', { orig: escapeHtml(r.orig_tc || r.orig_en || '') })}</div>
                     </div>
                 </button>
             `).join('');
@@ -1537,7 +1574,7 @@
         async function refreshRouteBoard() {
             const box = qs('routeResults');
             if (box && !state.routeList) {
-                box.innerHTML = '<div class="board-empty">載入路線中…</div>';
+                box.innerHTML = `<div class="board-empty">${bt('bus_loading_routes')}</div>`;
             }
             try {
                 const list = await loadRouteList();
@@ -1547,8 +1584,8 @@
                 updateRoutePadKeys();
             } catch (error) {
                 console.error(error);
-                if (box) box.innerHTML = '<div class="board-empty">無法載入路線資料，請稍後再試。</div>';
-                if (qs('boardCount')) qs('boardCount').textContent = '載入失敗';
+                if (box) box.innerHTML = `<div class="board-empty">${bt('bus_load_routes_failed')}</div>`;
+                if (qs('boardCount')) qs('boardCount').textContent = bt('bus_load_failed');
             }
         }
 
@@ -1623,10 +1660,10 @@
             const numKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'b', '0', 'c'];
             numBox.innerHTML = numKeys.map((k) => {
                 if (k === 'b') {
-                    return `<button type="button" class="pad-key func" data-key="b" aria-label="刪除">⌫</button>`;
+                    return `<button type="button" class="pad-key func" data-key="b" data-www-i18n-aria="bus_pad_delete" aria-label="刪除">⌫</button>`;
                 }
                 if (k === 'c') {
-                    return `<button type="button" class="pad-key func" data-key="c" aria-label="清除">C</button>`;
+                    return `<button type="button" class="pad-key func" data-key="c" data-www-i18n-aria="bus_pad_clear" aria-label="清除">C</button>`;
                 }
                 return `<button type="button" class="pad-key" data-key="${k}">${k}</button>`;
             }).join('');
@@ -1651,11 +1688,11 @@
             state.selectedRoute = route;
             state.selectedStop = null;
             state.maxStep = Math.max(state.maxStep, 3);
-            qs('selectedRouteTitle').textContent = `${route.route} 往 ${route.dest_tc || route.dest_en}`;
+            qs('selectedRouteTitle').textContent = bt('bus_selected_to', { route: route.route, dest: route.dest_tc || route.dest_en });
             qs('selectedRouteMeta').textContent =
-                `${boundText(route.bound)} · 服務類型 ${route.service_type} · ${route.orig_tc} → ${route.dest_tc}`;
+                bt('bus_route_meta', { bound: boundText(route.bound), type: route.service_type, orig: route.orig_tc, dest: route.dest_tc });
             showPanel('stop');
-            qs('stopResults').innerHTML = '<div class="status">載入車站中…</div>';
+            qs('stopResults').innerHTML = `<div class="status">${bt('bus_loading_stops')}</div>`;
             qs('stopFilter').value = '';
             setStep(3);
 
@@ -1682,7 +1719,7 @@
                 renderStops(stops);
             } catch (error) {
                 console.error(error);
-                qs('stopResults').innerHTML = '<div class="error">無法載入車站列表。</div>';
+                qs('stopResults').innerHTML = `<div class="error">${bt('bus_load_stops_failed')}</div>`;
             }
         }
 
@@ -1697,7 +1734,7 @@
 
             const box = qs('stopResults');
             if (!filtered.length) {
-                box.innerHTML = '<div class="status">沒有符合的車站</div>';
+                box.innerHTML = `<div class="status">${bt('bus_no_matching_stops')}</div>`;
                 return;
             }
             box.innerHTML = filtered.map((s) => `
@@ -1721,7 +1758,7 @@
             state.maxStep = Math.max(state.maxStep, 4);
             showPanel('eta');
             qs('etaRouteTitle').textContent =
-                `${state.selectedRoute.route} 往 ${state.selectedRoute.dest_tc || ''}`;
+                bt('bus_selected_to', { route: state.selectedRoute.route, dest: state.selectedRoute.dest_tc || '' });
             qs('etaStopTitle').textContent = `${stop.name_tc}${stop.name_en ? `（${stop.name_en}）` : ''}`;
             setStep(4);
             await refreshEta();
@@ -1737,7 +1774,7 @@
             const stop = state.selectedStop;
             if (!route || !stop) return;
 
-            qs('etaBoard').innerHTML = '<div class="status">更新到站時間…</div>';
+            qs('etaBoard').innerHTML = `<div class="status">${bt('bus_updating_eta')}</div>`;
             try {
                 const data = await fetchJson(
                     `${API}/eta/${stop.stop}/${encodeURIComponent(route.route)}/${encodeURIComponent(route.service_type)}`
@@ -1757,7 +1794,7 @@
                 }
 
                 if (!rows.length) {
-                    qs('etaBoard').innerHTML = '<div class="status">暫時沒有到站時間</div>';
+                    qs('etaBoard').innerHTML = `<div class="status">${bt('bus_no_eta_display')}</div>`;
                 } else {
                     qs('etaBoard').innerHTML = rows.map((row) => {
                         const mins = minutesUntil(row.eta);
@@ -1770,10 +1807,10 @@
                         return `
                             <div class="eta-row">
                                 <div>
-                                    <div>往 ${escapeHtml(row.dest_tc || route.dest_tc || '')}</div>
+                                    <div>${bt('bus_to_dest', { dest: escapeHtml(row.dest_tc || route.dest_tc || '') })}</div>
                                     <div class="eta-sub">${clock}${remark}</div>
                                 </div>
-                                <div class="eta-mins ${cls}">${mins}<span style="font-size:0.85rem"> 分鐘</span></div>
+                                <div class="eta-mins ${cls}">${mins}<span style="font-size:0.85rem"> ${bt('bus_mins_label')}</span></div>
                             </div>
                         `;
                     }).join('');
@@ -1783,9 +1820,9 @@
                 setEtaLastUpdated(data.data_timestamp || rows[0]?.data_timestamp || Date.now());
             } catch (error) {
                 console.error(error);
-                qs('etaBoard').innerHTML = '<div class="error">無法取得到站時間</div>';
+                qs('etaBoard').innerHTML = `<div class="error">${bt('bus_load_eta_failed')}</div>`;
                 if (!isNearbyMultiMode()) {
-                    state.speakText = `${route.route} 號巴士暫時無法取得到站時間`;
+                    state.speakText = bs('eta_unavailable', { route: route.route });
                     qs('speakPreview').textContent = state.speakText;
                 }
             }
@@ -1835,9 +1872,9 @@
 
         function shortcutNameSuggestions() {
             return {
-                primary: '番工巴士',
-                alt: '放學巴士',
-                extra: '北角巴士'
+                primary: bt('bus_shortcut_name_primary') || '番工巴士',
+                alt: bt('bus_shortcut_name_alt') || '放學巴士',
+                extra: bt('bus_shortcut_name_extra') || '北角巴士'
             };
         }
 
@@ -1845,12 +1882,12 @@
             const text = state.speakText || qs('speakPreview').textContent;
             if (!text) return;
             if (!window.speechSynthesis) {
-                alert('此瀏覽器不支援朗讀');
+                alert(bt('bus_speech_not_supported'));
                 return;
             }
             window.speechSynthesis.cancel();
             const utter = new SpeechSynthesisUtterance(text);
-            utter.lang = 'zh-HK';
+            utter.lang = busLocaleTag();
             window.speechSynthesis.speak(utter);
         }
 
@@ -1883,29 +1920,28 @@
             const isMulti = isNearbyMultiMode() && state.nearbySelected.size > 1;
             const modeEl = qs('shortcutModeNote');
             if (modeEl) {
-                modeEl.innerHTML = isMulti
-                    ? '<br>目前為<strong>同站多路線</strong>模式：捷徑會依你勾選的路線一併朗讀。勾選變更後請重新複製 LINK。'
-                    : '';
+                modeEl.innerHTML = isMulti ? bt('bus_guide_multi_mode_html') : '';
             }
 
             const { primary: shortcutName, alt: shortcutNameAlt, extra: shortcutNameExtra } = shortcutNameSuggestions();
             const nameEl = qs('shortcutNameHint');
             if (nameEl) {
-                nameEl.innerHTML = `
-                    預設名稱是「新捷徑」。點頂部名稱，改成好記的短名字，例如「${escapeHtml(shortcutName)}」、「${escapeHtml(shortcutNameAlt)}」或「${escapeHtml(shortcutNameExtra)}」。
-                `;
+                nameEl.innerHTML = bt('bus_guide_name_hint', {
+                    primary: escapeHtml(shortcutName),
+                    alt: escapeHtml(shortcutNameAlt),
+                    extra: escapeHtml(shortcutNameExtra)
+                });
             }
             const siriEl = qs('shortcutSiriHint');
             if (siriEl) {
-                siriEl.innerHTML = `
-                    改名後可直接對 Siri 說：<strong>「嘿 Siri，${escapeHtml(shortcutName)}」</strong>
-                    或「嘿 Siri，執行${escapeHtml(shortcutName)}」，就會朗讀到站時間。
-                `;
+                siriEl.innerHTML = bt('bus_guide_siri_hint', { primary: escapeHtml(shortcutName) });
             }
 
             const exampleEl = qs('shortcutExample');
             if (exampleEl) {
-                exampleEl.textContent = `範例朗讀：${state.speakText || formatSpeakMessage(state.selectedRoute.route, [3, 15, 25])}`;
+                exampleEl.textContent = bt('bus_guide_example', {
+                    text: state.speakText || formatSpeakMessage(state.selectedRoute.route, [3, 15, 25])
+                });
             }
 
             if (navigator.clipboard?.writeText) {
@@ -1924,12 +1960,12 @@
                     try {
                         await navigator.clipboard.writeText(url);
                         const old = btn.textContent;
-                        btn.textContent = '已複製';
+                        btn.textContent = bt('bus_copied');
                         setTimeout(() => {
                             if (btn) btn.textContent = old;
                         }, 1500);
                     } catch {
-                        alert('請手動長按步驟 4 的網址複製');
+                        alert(bt('bus_copy_manual'));
                     }
                 });
             };
@@ -1955,63 +1991,64 @@
             help.classList.remove('hidden');
             help.innerHTML = `
                 <div class="guide-box">
-                    <h3>手動新增 iOS 捷徑（朗讀到站）</h3>
+                    <h3>${escapeHtml(bt('bus_guide_title'))}</h3>
                     <p style="margin:0;color:var(--muted);font-size:0.88rem">
-                        因 iOS 無法直接匯入未簽名捷徑，請依下列步驟在「捷徑」App 手動建立。
-                        朗讀網址已複製到剪貼簿；完整 LINK 見步驟 4。
-                        <span id="shortcutModeNote">${isMulti ? '<br>目前為<strong>同站多路線</strong>模式：捷徑會依你勾選的路線一併朗讀。勾選變更後請重新複製 LINK。' : ''}</span>
+                        ${escapeHtml(bt('bus_guide_intro'))}
+                        <span id="shortcutModeNote">${isMulti ? bt('bus_guide_multi_mode_html') : ''}</span>
                     </p>
                     <div class="guide-actions">
-                        <button type="button" id="copySpeakUrlBtn" class="secondary">複製朗讀網址</button>
-                        <a href="shortcuts://create-shortcut" style="align-self:center;color:var(--accent);font-weight:700">開啟捷徑 App</a>
+                        <button type="button" id="copySpeakUrlBtn" class="secondary">${escapeHtml(bt('bus_btn_copy_speak_url'))}</button>
+                        <a href="shortcuts://create-shortcut" style="align-self:center;color:var(--accent);font-weight:700">${escapeHtml(bt('bus_btn_open_shortcuts'))}</a>
                     </div>
 
                     <div class="guide-step">
-                        <h4>步驟 1：新增捷徑，搜尋並加入「取得 URL 內容」</h4>
-                        <p>打開「捷徑」→ 右上角 ＋ → 搜尋「取得 url 內容」→ 點選加入。接著把藍色的 URL 改成步驟 4 的朗讀網址。</p>
-                        <img src="${img('01-search-get-url.png')}" alt="搜尋取得 URL 內容" loading="lazy">
+                        <h4>${escapeHtml(bt('bus_guide_step1_title'))}</h4>
+                        <p>${escapeHtml(bt('bus_guide_step1_body'))}</p>
+                        <img src="${img('01-search-get-url.png')}" alt="${escapeHtml(bt('bus_guide_step1_title'))}" loading="lazy">
                     </div>
 
                     <div class="guide-step">
-                        <h4>步驟 2：再加入「朗讀文字」</h4>
-                        <p>繼續「加入動作」→ 搜尋「朗讀文字」→ 點選加入。</p>
-                        <img src="${img('02-search-speak.png')}" alt="搜尋朗讀文字" loading="lazy">
+                        <h4>${escapeHtml(bt('bus_guide_step2_title'))}</h4>
+                        <p>${escapeHtml(bt('bus_guide_step2_body'))}</p>
+                        <img src="${img('02-search-speak.png')}" alt="${escapeHtml(bt('bus_guide_step2_title'))}" loading="lazy">
                     </div>
 
                     <div class="guide-step">
-                        <h4>步驟 3：把朗讀內容設成「URL 內容」</h4>
-                        <p>點「朗讀文字」裡的「文字」→ 在下方選「URL 內容」（綠色下載圖示那個變數）。</p>
-                        <img src="${img('03-link-variable.png')}" alt="選擇 URL 內容變數" loading="lazy">
+                        <h4>${escapeHtml(bt('bus_guide_step3_title'))}</h4>
+                        <p>${escapeHtml(bt('bus_guide_step3_body'))}</p>
+                        <img src="${img('03-link-variable.png')}" alt="${escapeHtml(bt('bus_guide_step3_title'))}" loading="lazy">
                     </div>
 
                     <div class="guide-step">
-                        <h4>步驟 4：貼上以下 LINK，完成後應如下圖</h4>
-                        <p>在「取得 URL 的內容」動作中，把 URL 設成：</p>
+                        <h4>${escapeHtml(bt('bus_guide_step4_title'))}</h4>
+                        <p>${escapeHtml(bt('bus_guide_step4_set_url'))}</p>
                         <code class="guide-url" id="speakUrlText">${escapeHtml(speakUrl)}</code>
                         <div class="guide-actions" style="margin:0 0 12px">
-                            <button type="button" id="copySpeakUrlBtn2" class="secondary">複製此 LINK</button>
+                            <button type="button" id="copySpeakUrlBtn2" class="secondary">${escapeHtml(bt('bus_btn_copy_link'))}</button>
                         </div>
-                        <p>兩個動作串起來：取得 URL 的內容 → 朗讀文字。完成後每次執行都會朗讀最新到站時間。</p>
-                        <img src="${img('04-final-shortcut.png')}" alt="完成的捷徑範例" loading="lazy">
+                        <p>${escapeHtml(bt('bus_guide_step4_finish'))}</p>
+                        <img src="${img('04-final-shortcut.png')}" alt="${escapeHtml(bt('bus_guide_step4_title'))}" loading="lazy">
                     </div>
 
                     <div class="guide-step">
-                        <h4>步驟 5：重新命名並用 Siri 叫出</h4>
+                        <h4>${escapeHtml(bt('bus_guide_step5_title'))}</h4>
                         <p id="shortcutNameHint">
-                            預設名稱是「新捷徑」。點頂部名稱，改成好記的短名字，例如「${escapeHtml(shortcutName)}」、「${escapeHtml(shortcutNameAlt)}」或「${escapeHtml(shortcutNameExtra)}」。
+                            ${bt('bus_guide_name_hint', {
+                                primary: escapeHtml(shortcutName),
+                                alt: escapeHtml(shortcutNameAlt),
+                                extra: escapeHtml(shortcutNameExtra)
+                            })}
                         </p>
                         <p id="shortcutSiriHint">
-                            改名後可直接對 Siri 說：<strong>「嘿 Siri，${escapeHtml(shortcutName)}」</strong>
-                            或「嘿 Siri，執行${escapeHtml(shortcutName)}」，就會朗讀到站時間。
+                            ${bt('bus_guide_siri_hint', { primary: escapeHtml(shortcutName) })}
                         </p>
-                        <p style="margin-bottom:0">
-                            提示：名稱愈短愈好記；同一支手機可為不同路線各建一條捷徑，用不同名字給 Siri 呼叫。
-                            若改了上方勾選的同站路線，步驟 4 的 LINK 會自動更新，請再複製一次。
-                        </p>
+                        <p style="margin-bottom:0">${escapeHtml(bt('bus_guide_step5_tip'))}</p>
                     </div>
 
                     <p id="shortcutExample" style="margin:12px 0 0;color:var(--muted);font-size:0.85rem">
-                        範例朗讀：${escapeHtml(state.speakText || formatSpeakMessage(state.selectedRoute.route, [3, 15, 25]))}
+                        ${escapeHtml(bt('bus_guide_example', {
+                            text: state.speakText || formatSpeakMessage(state.selectedRoute.route, [3, 15, 25])
+                        }))}
                     </p>
                 </div>
             `;
@@ -2028,12 +2065,12 @@
             const { stop, route, serviceType, bound } = getQueryParams();
             const etaList = qs('etaList');
             if (!stop || !route) {
-                etaList.innerHTML = '<div class="error">錯誤：缺少必要參數。請提供 stop、route 參數。</div>';
+                etaList.innerHTML = `<div class="error">${bt('bus_speak_error_params')}</div>`;
                 etaList.setAttribute('data-status', 'error');
                 return;
             }
 
-            const titleText = `${route} 巴士到達時間`;
+            const titleText = bt('bus_speak_title', { route });
             qs('pageTitle').textContent = titleText;
 
             try {
@@ -2045,7 +2082,7 @@
                 rows.sort((a, b) => Number(a.eta_seq) - Number(b.eta_seq));
 
                 if (!rows.length) {
-                    etaList.innerHTML = '<div class="error" data-status="error">沒有到達時間資料。</div>';
+                    etaList.innerHTML = `<div class="error" data-status="error">${bt('bus_speak_no_data')}</div>`;
                     etaList.setAttribute('data-status', 'error');
                     return;
                 }
@@ -2056,13 +2093,17 @@
                 etaList.textContent = message;
                 etaList.setAttribute('data-status', 'ready');
             } catch (error) {
-                etaList.innerHTML = '<div class="error">無法加載到達時間資料，請稍後再試。</div>';
+                etaList.innerHTML = `<div class="error">${bt('bus_speak_load_failed')}</div>`;
                 etaList.setAttribute('data-status', 'error');
                 console.error('Error:', error);
             }
         }
 
         function loadSiteChrome() {
+            if (typeof loadSiteChromeWithI18n === 'function') {
+                loadSiteChromeWithI18n({ title: typeof wwwT === 'function' ? wwwT('nav_bus') : '搵巴士' });
+                return;
+            }
             $("#header").load("includes/header.html", function () {
                 const titleEl = document.getElementById("title");
                 if (titleEl) titleEl.textContent = "搵巴士";
@@ -2113,7 +2154,9 @@
             refreshRouteBoard();
         }
 
-        function boot() {
+        async function boot() {
+            if (window.wwwI18n?.ready) await window.wwwI18n.ready;
+            applyBusStaticI18n();
             const { stop, route } = getQueryParams();
             if (stop && route) {
                 document.body.classList.add('speak-mode');

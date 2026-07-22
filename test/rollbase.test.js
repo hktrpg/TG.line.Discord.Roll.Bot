@@ -50,9 +50,14 @@ jest.mock('@dice-roller/rpg-dice-roller', () => ({
 }));
 
 // Import the module after mocking
+const i18n = require('../modules/i18n.js');
 const rollbaseModule = require('../roll/rollbase.js');
 
 describe('Rollbase Module Tests', () => {
+  beforeAll(async () => {
+    await i18n.init();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });

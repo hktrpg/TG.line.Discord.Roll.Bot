@@ -41,18 +41,36 @@
         }
 
         body > .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1030;
             width: 100%;
             margin: 0;
-            background-color: rgba(243, 240, 234, 0.92) !important;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background-color: rgba(243, 240, 234, 0.96) !important;
+            /* Avoid backdrop-filter here: it can trap dropdowns under later layers */
             box-shadow: var(--nav-shadow);
+            overflow: visible;
+        }
+
+        body > .navbar .navbar-collapse,
+        body > .navbar .navbar-nav,
+        body > .navbar .nav-item.dropdown {
+            overflow: visible;
+            position: relative;
+            z-index: 1031;
+        }
+
+        body > .navbar .dropdown-menu {
+            z-index: 1040;
         }
 
         .hof {
+            position: relative;
+            z-index: 1;
             width: min(920px, calc(100% - 2rem));
             margin: 0 auto;
             padding: 2.5rem 0 4rem;
+            isolation: isolate;
         }
 
         .hof-hero {

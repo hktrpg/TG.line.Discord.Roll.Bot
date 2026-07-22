@@ -289,7 +289,7 @@ describe('Call of Cthulhu Module Tests', () => {
             mainMsg: ['.cc7bg'],
         });
         expect(result.type).toBe('text');
-        expect(result.text).toContain('背景描述生成器');
+        expect(result.text).toContain('調查員背景');
         expect(result.quotes).toBe(true);
     });
 

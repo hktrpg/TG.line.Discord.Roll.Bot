@@ -1339,6 +1339,9 @@ class Digimon {
             const requirements = this.formatEvolutionRequirements(d, translate);
             if (requirements.length > 0) {
                 for (const req of requirements) {
+                    if (typeof req !== 'string') {
+                        continue;
+                    }
                     if (req.startsWith(jogressPrefix)) {
                         result += `${req}\n`;
                     } else {

@@ -3,62 +3,249 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta content="width=device-width,initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HKTRPG 名人堂 Hall of Fame</title>
+    <meta name="description" content="HKTRPG 名人堂 — 感謝貢獻者與 Patreon 贊助。">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
     <style>
+        :root {
+            --ink: #141820;
+            --ink-soft: #3a4250;
+            --paper: #f3f0ea;
+            --paper-deep: #e7e2d8;
+            --line: rgba(20, 24, 32, 0.12);
+            --accent: #8b5a2b;
+            --gold: #b08d57;
+            --nav-shadow: 0 1px 0 var(--line);
+        }
+
+        * { box-sizing: border-box; }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
-            font-family: 'Helvetica Neue', 'Microsoft JhengHei', sans-serif;
-            background-color: #f6f6f6;
+            margin: 0;
+            font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -10%, rgba(176, 141, 87, 0.18), transparent 55%),
+                linear-gradient(180deg, #ebe6dc 0%, var(--paper) 28%, #ddd7cb 100%);
+            min-height: 100vh;
         }
 
-        .credits-wrap {
-            max-width: 800px;
-            margin: 1rem auto;
+        body > .navbar {
+            width: 100%;
+            margin: 0;
+            background-color: rgba(243, 240, 234, 0.92) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: var(--nav-shadow);
+        }
+
+        .hof {
+            width: min(920px, calc(100% - 2rem));
+            margin: 0 auto;
+            padding: 2.5rem 0 4rem;
+        }
+
+        .hof-hero {
             text-align: center;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 5px #ccc;
-            background-image: linear-gradient(to bottom, #f9f9f9, #fff);
+            padding: 2.5rem 1rem 2rem;
+            animation: rise 0.8s ease both;
         }
 
-        .credits-wrap h1 {
-            font-size: 36px;
-            font-weight: 700;
-            margin-bottom: 30px;
-            text-shadow: 2px 2px 2px #ccc;
-        }
-
-        .credits-wrap .h2 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-
-        .credits-wrap .h4 {
-            font-size: 18px;
-            font-weight: 500;
-            margin-bottom: 10px;
+        .hof-kicker {
             display: inline-block;
-            animation: float 3s ease-in-out infinite;
+            font-size: 0.75rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--accent);
+            font-weight: 500;
+            margin-bottom: 0.85rem;
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+        .hof-brand {
+            font-family: "Shippori Mincho", "Noto Serif TC", serif;
+            font-size: clamp(2.4rem, 6vw, 3.6rem);
+            font-weight: 700;
+            line-height: 1.15;
+            margin: 0 0 0.4rem;
+            letter-spacing: 0.04em;
         }
 
-        .img-thumbnail {
-            border: 2px solid #fff;
+        .hof-brand span {
+            display: block;
+            font-size: 0.42em;
+            font-weight: 500;
+            letter-spacing: 0.28em;
+            color: var(--ink-soft);
+            margin-top: 0.55rem;
+            text-transform: uppercase;
         }
 
-        .img-thumbnail:hover {
-            transform: scale(1.1);
-            transition: all 0.2s ease-in-out;
-            box-shadow: 0 0 10px #ccc;
+        .hof-lead {
+            max-width: 28rem;
+            margin: 1.25rem auto 0;
+            color: var(--ink-soft);
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        .hof-ornament {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.85rem;
+            margin: 2.25rem 0 2rem;
+            color: var(--gold);
+            animation: rise 0.9s ease 0.12s both;
+        }
+
+        .hof-ornament::before,
+        .hof-ornament::after {
+            content: "";
+            width: min(140px, 22vw);
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        .hof-ornament svg {
+            width: 18px;
+            height: 18px;
+            opacity: 0.85;
+        }
+
+        .hof-section {
+            margin-bottom: 2.75rem;
+            animation: rise 0.85s ease both;
+        }
+
+        .hof-section:nth-of-type(2) { animation-delay: 0.15s; }
+        .hof-section:nth-of-type(3) { animation-delay: 0.28s; }
+
+        .hof-section-title {
+            font-family: "Shippori Mincho", serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 0 0 0.35rem;
+            letter-spacing: 0.06em;
+        }
+
+        .hof-section-note {
+            text-align: center;
+            color: var(--ink-soft);
+            font-size: 0.92rem;
+            margin: 0 0 1.5rem;
+        }
+
+        .founders {
+            display: grid;
+            gap: 0.85rem;
+            max-width: 28rem;
+            margin: 0 auto;
+        }
+
+        .founder {
+            text-align: center;
+            padding: 1rem 1.25rem;
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+        }
+
+        .founder-name {
+            font-family: "Shippori Mincho", serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            margin: 0;
+        }
+
+        .patreon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 0.65rem 1rem;
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .patron-name {
+            text-align: center;
+            font-size: 0.98rem;
+            font-weight: 500;
+            color: var(--ink);
+            padding: 0.55rem 0.35rem;
+            border-bottom: 1px solid var(--line);
+            opacity: 0;
+            transform: translateY(8px);
+            animation: name-in 0.45s ease forwards;
+        }
+
+        .patron-name:nth-child(3n) { animation-delay: 0.04s; }
+        .patron-name:nth-child(3n+1) { animation-delay: 0.08s; }
+        .patron-name:nth-child(3n+2) { animation-delay: 0.12s; }
+
+        .hof-status {
+            text-align: center;
+            color: var(--ink-soft);
+            font-size: 0.95rem;
+            padding: 1rem;
+        }
+
+        .hof-footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--line);
+            color: var(--ink-soft);
+            font-size: 0.88rem;
+            animation: rise 1s ease 0.35s both;
+        }
+
+        .hof-footer a {
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .hof-footer a:hover {
+            color: var(--ink);
+            border-bottom-color: var(--gold);
+        }
+
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes name-in {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+            .patron-name { opacity: 1; transform: none; }
+        }
+
+        @media (max-width: 576px) {
+            .patreon-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .hof {
+                width: min(920px, calc(100% - 1.25rem));
+            }
         }
     </style>
 </head>
@@ -67,22 +254,52 @@
     <!-- Replaced at Pages build time with views/includes/header.html -->
     <div id="header"></div>
 
-    <div class="credits-wrap container p-3">
-        <div class="row justify-content-center h1">HKTRPG名人堂</div>
-        <div class="row justify-content-center h2">感謝對HKTRPG的幫助</div>
-        <div class="row justify-content-center h4">LarryLo</div>
-        <div class="row justify-content-center h4">Retsnimle</div>
-        <div class="row justify-content-center h4">布大獅</div>
-        <div class="row justify-content-center">
-            <img class="img-thumbnail rounded"
-                src="https://upload.wikimedia.org/wikipedia/commons/2/22/Animated_fire_by_nevit.gif" alt="fire">
+    <main class="hof">
+        <header class="hof-hero">
+            <div class="hof-kicker">Hall of Fame</div>
+            <h1 class="hof-brand">
+                HKTRPG
+                <span>名人堂</span>
+            </h1>
+            <p class="hof-lead">因為有人願意幫忙、願意贊助，HKTRPG 才能一直走下去。這頁記下那些名字。</p>
+        </header>
+
+        <div class="hof-ornament" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2l1.2 6.3L20 12l-6.8 3.7L12 22l-1.2-6.3L4 12l6.8-3.7L12 2z"/>
+            </svg>
         </div>
-        <div class="row justify-content-center h2" id="patreon-title">感謝Patreon贊助(根據patreon的加入時間)</div>
-        <div id="patreon-list" class="patreon-names"></div>
-    </div>
+
+        <section class="hof-section" aria-labelledby="founders-title">
+            <h2 id="founders-title" class="hof-section-title">感謝對 HKTRPG 的幫助</h2>
+            <p class="hof-section-note">早期推一把的人</p>
+            <div class="founders">
+                <div class="founder"><p class="founder-name">LarryLo</p></div>
+                <div class="founder"><p class="founder-name">Retsnimle</p></div>
+                <div class="founder"><p class="founder-name">布大獅</p></div>
+            </div>
+        </section>
+
+        <section class="hof-section" aria-labelledby="patreon-title">
+            <h2 id="patreon-title" class="hof-section-title">感謝 Patreon 贊助</h2>
+            <p class="hof-section-note" id="patreon-note">依加入時間排列</p>
+            <div id="patreon-list" class="patreon-grid" aria-live="polite">
+                <div class="hof-status">載入名單中…</div>
+            </div>
+        </section>
+
+        <footer class="hof-footer">
+            <a href="https://www.patreon.com/HKTRPG" target="_blank" rel="noopener noreferrer">在 Patreon 支持 HKTRPG</a>
+            ·
+            <a href="PORTFOLIOP/">作品集</a>
+        </footer>
+    </main>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
         integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
         crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
         integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
@@ -91,28 +308,39 @@
         (function () {
             const listEl = document.getElementById('patreon-list');
             const titleEl = document.getElementById('patreon-title');
-            const jsonUrl = 'patreon.json';
+            const noteEl = document.getElementById('patreon-note');
 
-            fetch(jsonUrl)
+            fetch('patreon.json')
                 .then(function (res) {
-                    return res.ok ? res.json() : Promise.reject(new Error('Failed to load ' + jsonUrl));
+                    return res.ok ? res.json() : Promise.reject(new Error('load failed'));
                 })
                 .then(function (data) {
                     if (data.title && titleEl) {
-                        titleEl.textContent = data.title;
+                        // Keep short heading; put detail in note if present
+                        const raw = String(data.title);
+                        if (raw.includes('(') && noteEl) {
+                            titleEl.textContent = '感謝 Patreon 贊助';
+                            noteEl.textContent = raw.replace(/^感謝Patreon贊助/, '').replace(/^\(|\)$/g, '') || '依加入時間排列';
+                            if (raw.includes('根據patreon的加入時間')) {
+                                noteEl.textContent = '依加入時間排列';
+                            }
+                        } else {
+                            titleEl.textContent = raw;
+                        }
                     }
-                    if (Array.isArray(data.names) && listEl) {
-                        data.names.forEach(function (name) {
-                            const row = document.createElement('div');
-                            row.className = 'row justify-content-center h4';
-                            row.textContent = name.trim();
-                            listEl.appendChild(row);
-                        });
-                    }
+                    if (!Array.isArray(data.names) || !listEl) return;
+                    listEl.innerHTML = '';
+                    data.names.forEach(function (name, index) {
+                        const el = document.createElement('div');
+                        el.className = 'patron-name';
+                        el.textContent = String(name).trim();
+                        el.style.animationDelay = (Math.min(index, 40) * 0.02) + 's';
+                        listEl.appendChild(el);
+                    });
                 })
                 .catch(function () {
                     if (listEl) {
-                        listEl.innerHTML = '<div class="row justify-content-center text-muted">無法載入贊助名單</div>';
+                        listEl.innerHTML = '<div class="hof-status">無法載入贊助名單</div>';
                     }
                 });
         })();

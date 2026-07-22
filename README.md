@@ -48,9 +48,9 @@ Secret rolls, system dice for many TRPG rulesets, custom dice, role management, 
 
 - [HKTRPG Facebook group](https://www.facebook.com/groups/HKTRPG)
 - [TRPG Wiki](https://www.HKTRPG.com/)
-- [Hall of Fame / Credits](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/docs/public/CREDITS.html)
-- [Portfolio](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/docs/public/PORTFOLIOP)
-- [Privacy policy](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/docs/public/PUBLIC_PRIVACY_POLICY)
+- [Hall of Fame / Credits](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/CREDITS.html)
+- [Portfolio](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP)
+- [Privacy policy](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PUBLIC_PRIVACY_POLICY)
 - [Support on Patreon](https://www.patreon.com/HKTRPG)
 
 ### Self-hosting
@@ -84,7 +84,7 @@ Thanks to LarryLo Retsnimle (original open-source bot tutorials), 布大獅 (cod
     - [TRPG API 連結](https://api.hktrpg.com)
   - [HKTRPG 研究社 Facebook](https://www.facebook.com/groups/HKTRPG)
   - [TRPG 百科](https://www.HKTRPG.com/)
-  - [名人堂](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/docs/public/CREDITS.html)
+  - [名人堂](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/CREDITS.html)
   - [贊助HKTRPG](https://www.patreon.com/HKTRPG)
 
 # 鳴謝

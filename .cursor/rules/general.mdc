@@ -71,7 +71,7 @@ alwaysApply: true
   - `test/` - Test files
   - `assets/` - Static assets
   - `docs/` - Project documentation
-  - `docs/public/` - Public GitHub Pages assets
+  - `docs/public/` - GitHub Pages site source (deployed to site root via `.github/workflows/pages.yml`)
   - `docs/archive/` - Historical migration / one-off reports
   - `temp/` - Runtime temporary files
   - `log/` - Runtime logs

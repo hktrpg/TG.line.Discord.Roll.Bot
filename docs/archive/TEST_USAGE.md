@@ -182,7 +182,7 @@ PASS  test/run-after-startup.test.js
 
 ## 📚 相关文档
 
-- [test/README-RECORDS-TEST.md](./test/README-RECORDS-TEST.md) - 详细测试文档
+- [test/README-RECORDS-TEST.md](../../test/README-RECORDS-TEST.md) - 详细测试文档
 - [MIGRATION_COMPLETE.md](./MIGRATION_COMPLETE.md) - 迁移完成文档
 - [FINAL_CHECK_REPORT.md](./FINAL_CHECK_REPORT.md) - 最终检查报告
 

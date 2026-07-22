@@ -1,3 +1,9 @@
+<!-- Language switch -->
+**Language / 語言:** [English](#english) | [繁體中文](#hktrpg擲骰bot)
+
+---
+
+<a id="english"></a>
 
 # RoboYabaso@HKTRPG
 
@@ -15,6 +21,49 @@
 <p align="center">
     <strong>If you love it, <a href="https://www.patreon.com/HKTRPG" title="Support on Patreon">buy me a tea</a> ☕</strong>
 </p>
+
+## English
+
+HKTRPG is a cross-platform TRPG dice bot for **Discord**, **Line**, **Telegram**, **WhatsApp**, **Plurk**, **Web**, and **API**.
+
+### Features
+
+Secret rolls, system dice for many TRPG rulesets, custom dice, role management, channel XP, fortune telling, initiative tracker, character cards, image search, translation, Discord chat export, math, notes, random pick, wiki lookup, quick database queries, scheduled messages, and daily content (jokes, anime, quotes, almanac, and more).
+
+### Get started
+
+- User guide: [bothelp.hktrpg.com](https://bothelp.hktrpg.com/)
+- Support / TRPG Discord: [support.hktrpg.com](https://support.hktrpg.com)
+
+### Invite HKTRPG
+
+- [Discord](https://discord.hktrpg.com)
+- [Telegram](http://t.me/hktrpg_bot)
+- [Line](http://bit.ly/HKTRPG_LINE)
+- [Web](https://rollbot.hktrpg.com/)
+- [Plurk](https://www.plurk.com/HKTRPG)
+- [TRPG API](https://api.hktrpg.com)
+
+### Links
+
+- [HKTRPG Facebook group](https://www.facebook.com/groups/HKTRPG)
+- [TRPG Wiki](https://www.HKTRPG.com/)
+- [Hall of Fame / Credits](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/docs/public/CREDITS.html)
+- [Portfolio](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/docs/public/PORTFOLIOP)
+- [Privacy policy](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/docs/public/PUBLIC_PRIVACY_POLICY)
+- [Support on Patreon](https://www.patreon.com/HKTRPG)
+
+### Self-hosting
+
+1. Copy `.env.copy` to `.env` and fill in bot tokens / MongoDB settings.
+2. `yarn install` then `yarn start` (or use Docker — see [docs/DOCKER_SETUP.md](docs/DOCKER_SETUP.md)).
+3. More project docs live under [`docs/`](docs/).
+
+### Credits
+
+Thanks to LarryLo Retsnimle (original open-source bot tutorials), 布大獅 (code guidance), LOKI Lokinen, 木易 陳, Luo Ray, Vivian (sponsorship), and everyone who helped improve HKTRPG.
+
+---
 
 # 【HKTRPG擲骰BOT】
 
@@ -35,7 +84,7 @@
     - [TRPG API 連結](https://api.hktrpg.com)
   - [HKTRPG 研究社 Facebook](https://www.facebook.com/groups/HKTRPG)
   - [TRPG 百科](https://www.HKTRPG.com/)
-  - [名人堂](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/CREDITS.html)
+  - [名人堂](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/docs/public/CREDITS.html)
   - [贊助HKTRPG](https://www.patreon.com/HKTRPG)
 
 # 鳴謝

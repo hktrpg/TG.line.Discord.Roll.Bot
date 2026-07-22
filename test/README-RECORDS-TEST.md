@@ -139,6 +139,6 @@ yarn test
 
 ## 相关文档
 
-- [MIGRATION_COMPLETE.md](../MIGRATION_COMPLETE.md) - 迁移完成文档
-- [BUGFIX_ASYNC_FUNCTIONS.md](../BUGFIX_ASYNC_FUNCTIONS.md) - async 函数修复
-- [FINAL_CHECK_REPORT.md](../FINAL_CHECK_REPORT.md) - 最终检查报告
+- [MIGRATION_COMPLETE.md](../docs/archive/MIGRATION_COMPLETE.md) - 迁移完成文档
+- [BUGFIX_ASYNC_FUNCTIONS.md](../docs/archive/BUGFIX_ASYNC_FUNCTIONS.md) - async 函数修复
+- [FINAL_CHECK_REPORT.md](../docs/archive/FINAL_CHECK_REPORT.md) - 最终检查报告

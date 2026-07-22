@@ -63,13 +63,18 @@ alwaysApply: true
 
 ### 9. File Organization
 - **Temporary/one-time files**: Place in `temp/` directory
-- **New documentation**: Place in `MD/` directory
+- **New documentation**: Place in `docs/` directory
 - Follow existing directory structure:
   - `modules/` - Core modules and utilities
   - `roll/` - Dice rolling functionality
   - `views/` - Frontend HTML/JS files
   - `test/` - Test files
   - `assets/` - Static assets
+  - `docs/` - Project documentation
+  - `docs/public/` - Public GitHub Pages assets
+  - `docs/archive/` - Historical migration / one-off reports
+  - `temp/` - Runtime temporary files
+  - `log/` - Runtime logs
 
 ### 10. ESLint Compliance
 - **MUST follow rules defined in `eslint.config.mjs`**

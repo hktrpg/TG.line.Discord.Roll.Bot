@@ -218,6 +218,64 @@ describe('i18n module', () => {
         });
     });
 
+    describe('locale helpers', () => {
+        test('getLocaleName / toDiscordLocale / toIntlLocale / getSlashLocaleChoices', () => {
+            expect(i18n.getLocaleName('zh-tw')).toContain('中文');
+            expect(i18n.getLocaleName('en')).toBe('English');
+            expect(i18n.toDiscordLocale('zh-tw')).toBeTruthy();
+            expect(i18n.toDiscordLocale('en')).toBe('en-US');
+            expect(i18n.toIntlLocale('zh-tw')).toMatch(/zh/i);
+            expect(i18n.toIntlLocale('en')).toMatch(/en/i);
+            const choices = i18n.getSlashLocaleChoices();
+            expect(choices.length).toBe(i18n.SUPPORTED_LOCALES.length);
+            expect(choices[0]).toEqual(expect.objectContaining({
+                name: expect.any(String),
+                value: expect.any(String)
+            }));
+        });
+
+        test('t() honors lng option', () => {
+            expect(i18n.t('lang.game_name', { lng: 'en' })).toContain('Language');
+            expect(i18n.t('lang.game_name', { lng: 'zh-tw' })).toContain('語言');
+        });
+    });
+
+    describe('resolveLocale / setLocale / getLocaleRecord', () => {
+        const originalMongo = process.env.mongoURL;
+
+        afterEach(() => {
+            if (originalMongo === undefined) {
+                delete process.env.mongoURL;
+            } else {
+                process.env.mongoURL = originalMongo;
+            }
+        });
+
+        test('resolveLocale returns default without scope id or mongoURL', async () => {
+            delete process.env.mongoURL;
+            await expect(i18n.resolveLocale({ userid: 'u1' })).resolves.toBe(i18n.DEFAULT_LOCALE);
+            await expect(i18n.resolveLocale({})).resolves.toBe(i18n.DEFAULT_LOCALE);
+        });
+
+        test('setLocale / getLocaleRecord without mongoURL', async () => {
+            delete process.env.mongoURL;
+            await expect(i18n.setLocale({ scope: 'user', scopeId: 'u1', locale: 'en' }))
+                .resolves.toEqual({ ok: false, reason: 'no_database' });
+            await expect(i18n.getLocaleRecord({ scope: 'user', scopeId: 'u1' }))
+                .resolves.toBe(i18n.DEFAULT_LOCALE);
+        });
+
+        test('setLocale rejects unsupported locale when mongoURL is set', async () => {
+            process.env.mongoURL = 'mongodb://localhost/test';
+            await expect(i18n.setLocale({ scope: 'user', scopeId: 'u1', locale: 'ja' }))
+                .resolves.toEqual({ ok: false, reason: 'unsupported_locale' });
+        });
+
+        test('clearLocaleCache is callable', () => {
+            expect(() => i18n.clearLocaleCache('user', 'u1')).not.toThrow();
+        });
+    });
+
     describe('zh-tw regression snapshots', () => {
         test('welcome message with i18n_guide stays within Discord embed limit', () => {
             const zhTw = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'lang', 'zh-tw.json'), 'utf8'));

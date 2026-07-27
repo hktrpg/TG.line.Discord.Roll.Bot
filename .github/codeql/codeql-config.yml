@@ -12,3 +12,12 @@ paths-ignore:
   - 'temp/**'
   - 'log/**'
   - 'test/**'
+
+# Mitigated / intentional patterns CodeQL cannot model well:
+# - www-i18n: HTML comes from our own i18n API (not user DOM), then sanitized
+#   (strips scripts + javascript:/data:/vbscript: URL schemes).
+query-filters:
+  - exclude:
+      id: js/xss-through-dom
+      paths:
+        - views/common/www-i18n.js

@@ -2130,8 +2130,17 @@
 
         function sanitizeFaIcon(icon) {
             if (typeof icon !== 'string') return '';
-            const trimmed = icon.trim();
-            return /^(fa[srb]?\s+)?(fa-[\w-]+\s*)+$/.test(trimmed) ? trimmed : '';
+            const parts = icon.trim().split(/\s+/).filter(Boolean);
+            if (parts.length === 0 || parts.length > 6) return '';
+            let start = 0;
+            if (/^fa[srb]?$/i.test(parts[0])) {
+                start = 1;
+            }
+            if (start >= parts.length) return '';
+            for (let i = start; i < parts.length; i++) {
+                if (!/^fa-[a-z0-9-]+$/i.test(parts[i])) return '';
+            }
+            return parts.join(' ');
         }
 
         function sanitizePercent(value) {

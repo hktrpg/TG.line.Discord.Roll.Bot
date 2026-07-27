@@ -85,15 +85,20 @@ class WwwI18n {
     }
 
     /**
-     * Parse HTML, strip dangerous tags/attrs, then set as element children.
+     * Parse HTML from our i18n bundle, strip dangerous tags/attrs, then set as children.
      * @param {Element} el
      * @param {string} html
      */
     setTrustedHtml(el, html) {
         if (!el) return;
-        const doc = new DOMParser().parseFromString(String(html ?? ''), 'text/html');
+        const raw = String(html ?? '');
+        if (!/<[a-z][\s\S]*>/i.test(raw)) {
+            el.textContent = raw;
+            return;
+        }
+        const doc = new DOMParser().parseFromString(raw, 'text/html');
         const body = doc.body;
-        for (const bad of body.querySelectorAll('script,iframe,object,embed,link,style')) {
+        for (const bad of body.querySelectorAll('script,iframe,object,embed,link,style,meta,base,form,input,button,textarea,select')) {
             bad.remove();
         }
         for (const node of body.querySelectorAll('*')) {
@@ -103,7 +108,14 @@ class WwwI18n {
                 if (!attr) continue;
                 const name = attr.name.toLowerCase();
                 const value = (attr.value || '').trim().toLowerCase();
-                if (name.startsWith('on') || value.startsWith('javascript:')) {
+                const isUrlAttr = name === 'href' || name === 'src' || name === 'xlink:href' || name === 'action' || name === 'formaction';
+                if (
+                    name.startsWith('on') ||
+                    value.startsWith('javascript:') ||
+                    value.startsWith('data:') ||
+                    value.startsWith('vbscript:') ||
+                    (isUrlAttr && /^(javascript|data|vbscript):/i.test(value))
+                ) {
                     toRemove.push(attr.name);
                 }
             }

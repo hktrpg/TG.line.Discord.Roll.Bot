@@ -2,7 +2,8 @@
 
 const dns = require('node:dns').promises;
 const net = require('node:net');
-const axios = require('axios');
+const http = require('node:http');
+const https = require('node:https');
 
 const IMAGE_CONTENT_TYPE = /^image\//i;
 const ALLOWED_PROTOCOLS = new Set(['http:', 'https:']);
@@ -73,7 +74,7 @@ function isPrivateOrReservedIp(ip) {
 }
 
 /**
- * Sync checks for host/IP literals (used on redirects where async DNS is unavailable).
+ * Sync checks for host/IP literals.
  * @param {string} hostname
  * @returns {boolean}
  */
@@ -115,8 +116,79 @@ async function isSafeImageTarget(urlOrParsed) {
 }
 
 /**
+ * Build a fetch target pinned to a resolved public IP (avoids DNS rebinding / SSRF).
+ * @param {URL} parsed
+ * @returns {Promise<{ address: string, headers: Record<string, string>, path: string, port: number, protocol: string }|null>}
+ */
+async function resolvePublicFetchTarget(parsed) {
+	if (!(await isSafeImageTarget(parsed))) {
+		return null;
+	}
+	let records;
+	try {
+		records = await dns.lookup(parsed.hostname, { all: true, verbatim: true });
+	} catch {
+		return null;
+	}
+	const publicRecord = (records || []).find((record) => !isPrivateOrReservedIp(record.address));
+	if (!publicRecord) {
+		return null;
+	}
+
+	const isHttps = parsed.protocol === 'https:';
+	const port = parsed.port
+		? Number(parsed.port)
+		: (isHttps ? 443 : 80);
+	const pathWithQuery = `${parsed.pathname || '/'}${parsed.search || ''}`;
+
+	return {
+		address: publicRecord.address,
+		protocol: parsed.protocol,
+		port,
+		path: pathWithQuery,
+		headers: {
+			Host: parsed.host,
+			'User-Agent': 'HKTRPG-ImageCheck/1.0',
+			Accept: 'image/*,*/*;q=0.8'
+		}
+	};
+}
+
+/**
+ * @param {{ address: string, headers: Record<string, string>, path: string, port: number, protocol: string }} target
+ * @param {'HEAD'|'GET'} method
+ * @returns {Promise<string>} content-type header value
+ */
+function requestContentType(target, method) {
+	return new Promise((resolve, reject) => {
+		const lib = target.protocol === 'https:' ? https : http;
+		const req = lib.request({
+			host: target.address,
+			port: target.port,
+			path: target.path,
+			method,
+			headers: method === 'GET'
+				? { ...target.headers, Range: 'bytes=0-0' }
+				: target.headers,
+			timeout: 5000,
+			servername: target.headers.Host.split(':')[0]
+		}, (res) => {
+			const contentType = res.headers['content-type'] || '';
+			res.resume();
+			resolve(contentType);
+		});
+		req.on('timeout', () => {
+			req.destroy(new Error('timeout'));
+		});
+		req.on('error', reject);
+		req.end();
+	});
+}
+
+/**
  * Check whether a URL points to an image (HEAD/GET content-type).
  * Replaces the deprecated image-url-validator (which depended on request).
+ * Fetches via resolved public IP + Host header to mitigate SSRF / DNS rebinding.
  * @param {string} url
  * @returns {Promise<boolean>}
  */
@@ -132,26 +204,13 @@ async function isImageURL(url) {
 		return false;
 	}
 
-	if (!(await isSafeImageTarget(parsed))) {
+	const target = await resolvePublicFetchTarget(parsed);
+	if (!target) {
 		return false;
 	}
 
-	const axiosOptions = {
-		timeout: 5000,
-		maxRedirects: 3,
-		validateStatus: (status) => status >= 200 && status < 400,
-		headers: { 'User-Agent': 'HKTRPG-ImageCheck/1.0' },
-		// axios beforeRedirect is sync — block obvious unsafe hop targets
-		beforeRedirect: (options) => {
-			if (isClearlyUnsafeHostname(options.hostname)) {
-				throw new Error('Redirect target blocked');
-			}
-		}
-	};
-
 	try {
-		const response = await axios.head(url, axiosOptions);
-		const contentType = response.headers['content-type'] || '';
+		const contentType = await requestContentType(target, 'HEAD');
 		if (IMAGE_CONTENT_TYPE.test(contentType)) {
 			return true;
 		}
@@ -160,18 +219,7 @@ async function isImageURL(url) {
 	}
 
 	try {
-		const response = await axios.get(url, {
-			...axiosOptions,
-			responseType: 'stream',
-			headers: {
-				...axiosOptions.headers,
-				Range: 'bytes=0-0'
-			}
-		});
-		const contentType = response.headers['content-type'] || '';
-		if (response.data && typeof response.data.destroy === 'function') {
-			response.data.destroy();
-		}
+		const contentType = await requestContentType(target, 'GET');
 		return IMAGE_CONTENT_TYPE.test(contentType);
 	} catch {
 		return false;

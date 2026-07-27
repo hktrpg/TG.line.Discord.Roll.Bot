@@ -189,25 +189,30 @@ const checkRateLimit = async (type, address) => {
 };
 
 /**
- * Express middleware form recognized by CodeQL (rate-limiter-flexible + req.ip + next).
- * @param {keyof typeof rateLimitConfig} type
- * @param {{ json?: boolean }} [options]
+ * Named Express rate-limit middlewares (CodeQL recognizes rate-limiter-flexible
+ * `.consume(req.ip)` on a concrete RateLimiterMemory instance in the middleware body).
  */
-const rateLimitBy = (type, options = {}) => (req, res, next) => {
-    rateLimits[type].consume(req.ip)
+function rateLimitApi(req, res, next) {
+    rateLimits.api.consume(req.ip)
+        .then(() => next())
+        .catch(() => {
+            if (!res.headersSent) {
+                res.status(429).end();
+            }
+        });
+}
+
+function rateLimitPatreon(req, res, next) {
+    rateLimits.patreon.consume(req.ip)
         .then(() => next())
         .catch(() => {
             if (res.headersSent) return;
-            if (options.json) {
-                const t = typeof getWwwT === 'function' ? getWwwT(req) : null;
-                res.status(429).json({
-                    error: t ? t('www.patreon.too_many_requests') : 'Too Many Requests'
-                });
-                return;
-            }
-            res.status(429).end();
+            const t = typeof getWwwT === 'function' ? getWwwT(req) : null;
+            res.status(429).json({
+                error: t ? t('www.patreon.too_many_requests') : 'Too Many Requests'
+            });
         });
-};
+}
 
 // ============= SSL Configuration =============
 const initSSL = () => {
@@ -474,12 +479,12 @@ www.get('/', async (req, res) => {
     // Default: original behavior (www.hktrpg.com, localhost, 127.0.0.1, others)
     res.sendFile(process.cwd() + '/views/index.html');
 });
-www.get('/api', rateLimitBy('api'), async (req, res) => {
+www.get('/api', rateLimitApi, async (req, res) => {
     await handleApiRequest(req, res, { skipIpLimit: true });
 });
 
 // Local bot endpoint for personal room (no broadcasting/records)
-www.get('/api/local', rateLimitBy('api'), async (req, res) => {
+www.get('/api/local', rateLimitApi, async (req, res) => {
     try {
         const q = (req && req.query && typeof req.query.msg === 'string') ? req.query.msg : '';
         if (!q) {
@@ -510,7 +515,7 @@ www.get('/api/local', rateLimitBy('api'), async (req, res) => {
     }
 });
 
-www.get('/api/dice-commands', rateLimitBy('api'), async (req, res) => {
+www.get('/api/dice-commands', rateLimitApi, async (req, res) => {
     await i18n.init();
     const locale = resolveWwwLocale(req);
     const t = i18n.createTranslator(locale);
@@ -1717,7 +1722,7 @@ www.get('/patreon', async (req, res) => {
     res.sendFile(path.join(process.cwd(), 'views', 'patreon.html'));
 });
 
-www.post('/api/patreon/validate', rateLimitBy('patreon', { json: true }), async (req, res) => {
+www.post('/api/patreon/validate', rateLimitPatreon, async (req, res) => {
     const t = getWwwT(req);
     try {
         const key = getPatreonKeyFromRequest(req);
@@ -1733,7 +1738,7 @@ www.post('/api/patreon/validate', rateLimitBy('patreon', { json: true }), async 
     }
 });
 
-www.get('/api/patreon/me', rateLimitBy('patreon', { json: true }), async (req, res) => {
+www.get('/api/patreon/me', rateLimitPatreon, async (req, res) => {
     const t = getWwwT(req);
     try {
         const key = getPatreonKeyFromRequest(req);
@@ -1749,7 +1754,7 @@ www.get('/api/patreon/me', rateLimitBy('patreon', { json: true }), async (req, r
     }
 });
 
-www.put('/api/patreon/me/slots', rateLimitBy('patreon', { json: true }), async (req, res) => {
+www.put('/api/patreon/me/slots', rateLimitPatreon, async (req, res) => {
     const locale = resolveWwwLocale(req);
     const t = getWwwT(req);
     try {
@@ -1799,7 +1804,7 @@ www.put('/api/patreon/me/slots', rateLimitBy('patreon', { json: true }), async (
     }
 });
 
-www.patch('/api/patreon/me/slot/:index', rateLimitBy('patreon', { json: true }), async (req, res) => {
+www.patch('/api/patreon/me/slot/:index', rateLimitPatreon, async (req, res) => {
     const t = getWwwT(req);
     try {
         const key = getPatreonKeyFromRequest(req);
@@ -1854,7 +1859,7 @@ www.patch('/api/patreon/me/slot/:index', rateLimitBy('patreon', { json: true }),
     }
 });
 
-www.get('/log/:id', rateLimitBy('api'), async (req, res) => {
+www.get('/log/:id', rateLimitApi, async (req, res) => {
     if (req.originalUrl.endsWith('html')) {
         // Sanitize and validate the file path
         const logPath = path.resolve(exportBaseDir, req.params.id);

@@ -14,8 +14,8 @@ Update this file whenever you migrate a module or add lang keys.
 | Default locale | `zh-tw` (Traditional Chinese) |
 | Opt-in locales | `zh-tw`, `en`, `zh-hans` |
 | Storage | MongoDB `botLocale` (`scope`: `group` / `user`) |
-| Engine | `i18next` + `modules/i18n.js` + `modules/i18n-overlays.js` |
-| Roll helper | `modules/roll-i18n.js` (`getT`, `resolveHelp`, `withPartialTranslationNotice`) |
+| Engine | `i18next` + `modules/i18n/i18n.js` + `modules/i18n/i18n-overlays.js` |
+| Roll helper | `modules/i18n/roll-i18n.js` (`getT`, `resolveHelp`, `withPartialTranslationNotice`) |
 | Lang files | `lang/zh-tw.json`, `lang/en.json`, `lang/zh-hans.json`, `lang/overlays/{locale}/*.json` |
 | Key parity CI | `yarn test:lang` (main JSON + overlay parity across all locales) |
 
@@ -125,14 +125,14 @@ Loaded at i18n init and merged into the `translation` namespace (keys unchanged,
 
 | File | Role |
 |------|------|
-| `modules/i18n.js` | init, locale resolve/set, slash enrichment, overlay load |
-| `modules/i18n-overlays.js` | overlay discovery, merge into locale bundles |
-| `modules/roll-i18n.js` | Roll-module helpers |
+| `modules/i18n/i18n.js` | init, locale resolve/set, slash enrichment, overlay load |
+| `modules/i18n/i18n-overlays.js` | overlay discovery, merge into locale bundles |
+| `modules/i18n/roll-i18n.js` | Roll-module helpers |
 | `modules/analytics.js` | `RollContext.locale` / `t` → `params`; `.admin state` report; character reroll prefixes | Done (runtime) |
-| `modules/schema.js` | `botLocale` model |
-| `modules/message.js` | Welcome messages + `i18n_guide` |
+| `modules/db/schema.js` | `botLocale` model |
+| `modules/chat/message.js` | Welcome messages + `i18n_guide` |
 | `modules/ds-deploy-commands.js` | Slash `description_localizations` on deploy |
-| `modules/patreon-import.js` | Patreon CSV import report/errors/keyMessages/email subject (locale via `runImport`) | Done (runtime) |
+| `modules/patreon/patreon-import.js` | Patreon CSV import report/errors/keyMessages/email subject (locale via `runImport`) | Done (runtime) |
 | `roll/lang.js` | `.lang` / `/lang` |
 | `test/i18n.test.js` | normalizeLocale, snapshots, enrichment |
 | `test/lang-keys.test.js` | zh-tw / en key parity |
@@ -291,7 +291,7 @@ Re-deploy global slash commands after changing `slash.*` keys.
 1. Add matching keys to **`lang/zh-tw.json`** and **`lang/en.json`** (keep structure identical).
 2. In the roll module:
    ```javascript
-   const { getT, resolveHelp, withPartialTranslationNotice } = require('../modules/roll-i18n.js');
+   const { getT, resolveHelp, withPartialTranslationNotice } = require('../modules/i18n/roll-i18n.js');
    // rollDiceCommand({ locale, t, ... }) → const translate = getT({ locale, t });
    ```
 3. Bridge slash: return `'.command ...'` (locale resolved in `handlingCommand`).
@@ -434,8 +434,8 @@ Manual: `.lang en` → `bothelp`, `bothelp Base`, `.in 1d20 test`, `/rr` error, 
 - **Lang keys**: +22 per locale (`www.api.*` ×3, `www.patreon.*` ×11, `www.socket.*` ×8)
 
 ### Batch 73 (patreon tier labels + socket chat validation)
-- **`modules/patreon-tiers.js`**: `getTierLabel(level, locale)` via `patreon.tier_label_*`
-- **`roll/z_admin.js`**, **`modules/patreon-import.js`**: Pass locale into `getTierLabel`
+- **`modules/patreon/patreon-tiers.js`**: `getTierLabel(level, locale)` via `patreon.tier_label_*`
+- **`roll/z_admin.js`**, **`modules/patreon/patreon-import.js`**: Pass locale into `getTierLabel`
 - **`modules/core-www.js`**: Patreon API `tierLabel` locale-aware; socket chat validation errors via `www.chat_validation.*`
 - **Lang keys**: +16 per locale (`patreon.tier_label_*` ×7, `www.chat_validation.*` ×8)
 
@@ -468,7 +468,7 @@ Manual: `.lang en` → `bothelp`, `bothelp Base`, `.in 1d20 test`, `/rr` error, 
 - **Lang keys**: +4 (`funny.default_you` ×2 locales; `line_friend_hint` en ×3)
 
 ### Batch 67 (patreon-import runtime i18n)
-- **`modules/patreon-import.js`**: `runImport(csv, { keyMode, generateEmail, locale })`; CSV validation, per-row report lines, `keyMessages`, stats footer, email subject via `admin.patreon_import_*`
+- **`modules/patreon/patreon-import.js`**: `runImport(csv, { keyMode, generateEmail, locale })`; CSV validation, per-row report lines, `keyMessages`, stats footer, email subject via `admin.patreon_import_*`
 - **`roll/z_admin.js`**: Pass `locale` into `runImport` (DM key lines now follow admin locale)
 - **Lang keys**: +35 (`admin.patreon_import_*` ×35 per locale)
 
@@ -493,9 +493,9 @@ Manual: `.lang en` → `bothelp`, `bothelp Base`, `.in 1d20 test`, `/rr` error, 
 - **Lang keys**: +19 (`openai.file_*` ×8, `event.nothing_happened`, existing openai VIP/model keys completed per locale)
 
 ### Batch 63 (check.js + level.js + core-www validation)
-- **`modules/check.js`**: Permission errors via `common.permission.*`; accepts `locale` / `t` in `permissionErrMsg()`
+- **`modules/chat/check.js`**: Permission errors via `common.permission.*`; accepts `locale` / `t` in `permissionErrMsg()`
 - **Roll modules**: All `permissionErrMsg()` call sites pass `locale`
-- **`modules/level.js`**: Default titles, unnamed, level-up word via `level.*`; `EXPUP()` accepts `locale`
+- **`modules/chat/level.js`**: Default titles, unnamed, level-up word via `level.*`; `EXPUP()` accepts `locale`
 - **`modules/analytics.js`** / **`discord_bot.js`**: Pass locale into `EXPUP()`
 - **`modules/core-www.js`**: `validateCardPayload()` uses `character.validation_*`; `/api/dice-commands` autocomplete `noResultsText`
 - **Lang keys**: +10 (`common.permission.*` ×4, `character.validation_*` ×3 per locale)
@@ -599,7 +599,7 @@ Manual: `.lang en` → `bothelp`, `bothelp Base`, `.in 1d20 test`, `/rr` error, 
 - **Lang keys**: +200 overlay (`funny.joke_*` ×100 per locale)
 
 ### Batch 42 (architecture)
-- **`modules/i18n-overlays.js`**: overlay loader; **`modules/i18n.js`** merges `lang/overlays/{locale}/*.json` at init
+- **`modules/i18n/i18n-overlays.js`**: overlay loader; **`modules/i18n/i18n.js`** merges `lang/overlays/{locale}/*.json` at init
 - **Migrated** indexed `funny.*` bulk keys out of `en.json` / `zh-tw.json` into 9 overlay files per locale
 - **`test/lang-keys.test.js`**: parity checks main + overlays; **`temp/merge-funny-overlay.js`** for future batches
 - Main locale JSON: ~5500 → ~4087 lines

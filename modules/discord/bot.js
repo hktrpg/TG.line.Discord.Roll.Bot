@@ -4,19 +4,19 @@ const fs = require('node:fs');
 
 const { ClusterClient, getInfo, AutoResharderClusterClient } = require('discord-hybrid-sharding');
 const Discord = require('discord.js');
-const isImageURL = require('image-url-validator').default;
 const WebSocket = require('ws');
+const isImageURL = require('../../utils/is-image-url.js');
 
-const candle = require('../modules/candleDays.js');
-const records = require('../modules/records.js');
-const schema = require('../modules/schema.js');
-const clusterProtection = require('../modules/cluster-protection.js');
-const dbProtectionLayer = require('../modules/db-protection-layer.js');
-const dbConnector = require('../modules/db-connector.js');
-const checkMongodb = require('../modules/dbWatchdog.js');
+const candle = require('../misc/candleDays.js');
+const records = require('../db/records.js');
+const schema = require('../db/schema.js');
+const clusterProtection = require('../runtime/cluster-protection.js');
+const dbProtectionLayer = require('../db/protection-layer.js');
+const dbConnector = require('../db/connector.js');
+const checkMongodb = require('../db/watchdog.js');
 
-exports.analytics = require('./analytics');
-const i18n = require('./i18n.js');
+exports.analytics = require('../analytics');
+const i18n = require('../i18n/i18n.js');
 const debugMode = !!process.env.DEBUG;
 const DEBUG_LOG = process.env.DEBUG_LOG === 'true';
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/igm);
@@ -191,13 +191,13 @@ function warnInteraction10062(reason, interaction, meta = {}) {
 }
 
 // Multi-server functionality temporarily disabled
-// const multiServer = require('../modules/multi-server')
+// const multiServer = require('./multi-server')
 // const adminSecret = process.env.ADMIN_SECRET || '';
-const { rollText } = require('./getRoll');
-const agenda = require('../modules/schedule') && require('../modules/schedule').agenda;
+const { rollText } = require('../chat/getRoll');
+const agenda = require('../runtime/schedule') && require('../runtime/schedule').agenda;
 const buttonStyles = [ButtonStyle.Danger, ButtonStyle.Primary, ButtonStyle.Secondary, ButtonStyle.Success, ButtonStyle.Danger]
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
-const discordClientConfig = require('./config/discord_client');
+const discordClientConfig = require('../config/discord_client');
 const client = new Client(discordClientConfig);
 client.on('clientReady', () => {
 	discordClientConfig.updateWithClient(client);
@@ -519,16 +519,16 @@ loginWithErrorHandling();
 const MESSAGE_SPLITOR = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const mongo = process.env.mongoURL;
-let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const EXPUP = require('./level').EXPUP || function () { };
-const courtMessage = require('./logs').courtMessage || function () { };
+let TargetGM = (process.env.mongoURL) ? require('../../roll/z_DDR_darkRollingToGM').initialize() : '';
+const EXPUP = require('../chat/level').EXPUP || function () { };
+const courtMessage = require('../chat/logs').courtMessage || function () { };
 
-const newMessage = require('./message');
-const healthMonitor = require('./health-monitor');
+const newMessage = require('../chat/message');
+const healthMonitor = require('../runtime/health-monitor');
 const isAlertEnabled = String(process.env.ALERT || '').trim().toLowerCase() === 'true';
 const alertAdminIds = parseAdminIds(process.env.ADMIN_SECRET);
 
-const timerManager = require('./timer-manager');
+const timerManager = require('../runtime/timer-manager');
 
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const shardid = client.cluster.id;
@@ -3450,7 +3450,7 @@ function initInteractionCommands() {
 	client.autocompleteByCommand = new Collection();
 	const commandFiles = fs.readdirSync('./roll').filter(file => file.endsWith('.js'));
 	for (const file of commandFiles) {
-		const command = require(`../roll/${file}`);
+		const command = require(`../../roll/${file}`);
 		if (command && command.discordCommand) {
 			pushArrayInteractionCommands(command.discordCommand);
 			if (command.autocomplete && typeof command.autocomplete.search === 'function') {

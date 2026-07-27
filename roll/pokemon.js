@@ -3,8 +3,8 @@ const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 const Fuse = require('fuse.js');
 const { randomInt } = require('mathjs');
-const i18n = require('../modules/i18n.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const gameName = function (params = {}) {
     return resolveGameName(params, 'pokemon.game_name', '【PokeRole】.poke ');
 }

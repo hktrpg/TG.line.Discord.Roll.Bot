@@ -2,7 +2,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs');
-const i18n = require('../modules/i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
 
 describe('i18n module', () => {
     beforeAll(async () => {
@@ -116,6 +116,23 @@ describe('i18n module', () => {
         test('falls back to zh-tw for missing keys', () => {
             const t = i18n.createTranslator('en');
             expect(t('welcome.i18n_guide.0')).toBeDefined();
+        });
+
+        test('never returns undefined or null for missing keys', () => {
+            const t = i18n.createTranslator('en');
+            const result = t('this.key.does.not.exist.anywhere.xyz');
+            expect(result).not.toBeUndefined();
+            expect(result).not.toBeNull();
+            expect(typeof result).toBe('string');
+        });
+
+        test('before init returns key string and empty for non-string keys', () => {
+            jest.isolateModules(() => {
+                const fresh = require('../modules/i18n/i18n.js');
+                const t = fresh.createTranslator('en');
+                expect(t('pre.init.key')).toBe('pre.init.key');
+                expect(t(42)).toBe('');
+            });
         });
     });
 

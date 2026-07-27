@@ -48,13 +48,13 @@ function getRollModule(moduleName) {
 	return exports[moduleInfo.name];
 }
 
-const schema = require('./schema.js');
-const i18n = require('./i18n.js');
+const schema = require('./db/schema.js');
+const i18n = require('./i18n/i18n.js');
 const debugMode = (process.env.DEBUG) ? true : false;
 const MESSAGE_SPLITOR = (/\S+/ig);
-const courtMessage = require('./logs').courtMessage || function () {};
-const getState = require('./logs').getState || function () {};
-const EXPUP = require('./level').EXPUP || function () {};
+const courtMessage = require('./chat/logs').courtMessage || function () {};
+const getState = require('./chat/logs').getState || function () {};
+const EXPUP = require('./chat/level').EXPUP || function () {};
 
 // 創建一個統一的上下文類來管理參數
 class RollContext {
@@ -102,6 +102,10 @@ class RollContext {
 const parseInput = async (params) => {
 	const context = new RollContext(params);
 
+	// Always finish i18n load before translating — otherwise t() returns undefined
+	// and replies become the literal string "undefined" (e.g. COC `cc`).
+	await i18n.init();
+
 	if (!params.locale) {
 		const channelType = params.discordMessage?.channel?.type;
 		context.locale = await i18n.resolveLocale({
@@ -110,8 +114,9 @@ const parseInput = async (params) => {
 			channelType,
 			botname: context.botname
 		});
-		context.t = i18n.createTranslator(context.locale);
 	}
+	// Recreate translator after init (params.t may have been built too early).
+	context.t = i18n.createTranslator(context.locale);
 
 	let result = {
 		text: '',

@@ -17,13 +17,13 @@ alwaysApply: false
 
 ### Discord.js (v14)
 - **Reference**: https://discord.js.org/docs/
-- Use `SlashCommandBuilder` for slash commands (see `modules/ds-deploy-commands.js`)
+- Use `SlashCommandBuilder` for slash commands (see `modules/discord/deploy-commands.js`)
 - Use `MessageFlags` for ephemeral messages
 - Follow Discord.js patterns from existing code in `modules/core-Discord.js`
 
 ### Mongoose (v6)
 - **Reference**: https://mongoosejs.com/docs/
-- Use Schema definitions from `modules/schema.js` as reference
+- Use Schema definitions from `modules/db/schema.js` as reference
 - Prefer Mongoose methods over raw MongoDB queries
 - Use proper indexing (see existing schemas)
 
@@ -47,7 +47,7 @@ alwaysApply: false
 
 ### Agenda (Job Scheduling)
 - **Reference**: https://github.com/agenda/agenda
-- Use for scheduled tasks (see `modules/schedule.js`)
+- Use for scheduled tasks (see `modules/runtime/schedule.js`)
 - Prefer Agenda over `setTimeout`/`setInterval` for persistent jobs
 
 ### Other Important Packages
@@ -63,7 +63,7 @@ alwaysApply: false
 const { SlashCommandBuilder } = require('discord.js');
 const { MessageFlags } = require('discord.js');
 
-// Follow the pattern from ds-deploy-commands.js
+// Follow the pattern from discord/deploy-commands.js
 const command = new SlashCommandBuilder()
     .setName('example')
     .setDescription('Example command');
@@ -71,7 +71,7 @@ const command = new SlashCommandBuilder()
 
 ### Example: Using Mongoose
 ```javascript
-const schema = require('../modules/schema.js');
+const schema = require('../modules/db/schema.js');
 
 // Use existing schemas, don't create duplicates
 await schema.characterCard.findOne({ userid: userId });

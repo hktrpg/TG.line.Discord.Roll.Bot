@@ -1,7 +1,7 @@
 "use strict";
 
-const check = require('../modules/check.js');
-const i18n = require('../modules/i18n.js');
+const check = require('../modules/chat/check.js');
+const i18n = require('../modules/i18n/i18n.js');
 
 describe('Check Module Tests', () => {
     beforeAll(async () => {

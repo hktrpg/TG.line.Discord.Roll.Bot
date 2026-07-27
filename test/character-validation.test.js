@@ -4,7 +4,7 @@
 process.env.mongoURL = 'test_mongo_url';
 
 // Mocks
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
     characterCard: {
         find: jest.fn(),
         findOne: jest.fn(),
@@ -15,7 +15,7 @@ jest.mock('../modules/schema.js', () => ({
     }
 }));
 
-jest.mock('../modules/veryImportantPerson', () => ({
+jest.mock('../modules/patreon/veryImportantPerson', () => ({
     viplevelCheckUser: jest.fn(),
     viplevelCheckGroup: jest.fn()
 }));
@@ -24,8 +24,8 @@ jest.mock('../roll/rollbase.js', () => ({ rollDiceCommand: jest.fn() }));
 jest.mock('../roll/2-coc.js', () => ({ rollDiceCommand: jest.fn() }));
 jest.mock('../roll/0-advroll.js', () => ({ rollDiceCommand: jest.fn() }));
 
-const schema = require('../modules/schema.js');
-const VIP = require('../modules/veryImportantPerson');
+const schema = require('../modules/db/schema.js');
+const VIP = require('../modules/patreon/veryImportantPerson');
 // Note: The production module has a top-level early-return that breaks Jest parsing.
 // Here we simulate the add/edit behavior focusing on validation paths only.
 

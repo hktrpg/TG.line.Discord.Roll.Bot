@@ -1,10 +1,10 @@
 "use strict";
 
 // Keep DB offline to exercise in-memory + filesystem fallback
-jest.mock('../modules/schema.js', () => ({}));
+jest.mock('../modules/db/schema.js', () => ({}));
 
 // Keep VIP stable
-jest.mock('../modules/veryImportantPerson.js', () => ({
+jest.mock('../modules/patreon/veryImportantPerson.js', () => ({
     viplevelCheckUser: jest.fn().mockResolvedValue(0)
 }));
 

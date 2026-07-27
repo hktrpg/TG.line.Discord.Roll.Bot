@@ -5,11 +5,11 @@ if (!process.env.mongoURL) {
     return;
 }
 const { SlashCommandBuilder } = require('discord.js');
-const checkMongodb = require('../modules/dbWatchdog.js');
-const checkTools = require('../modules/check.js');
-const tempSwitchV2 = require('../modules/level');
-const schema = require('../modules/schema.js');
-const { getT, resolveHelp, resolveGameName, DEFAULT_LOCALE } = require('../modules/roll-i18n.js');
+const checkMongodb = require('../modules/db/watchdog.js');
+const checkTools = require('../modules/chat/check.js');
+const tempSwitchV2 = require('../modules/chat/level');
+const schema = require('../modules/db/schema.js');
+const { getT, resolveHelp, resolveGameName, DEFAULT_LOCALE } = require('../modules/i18n/roll-i18n.js');
 
 const gameName = function (params = {}) {
     return resolveGameName(params, 'level.game_name', '【經驗值功能】 .level (show config LevelUpWord RankWord)');

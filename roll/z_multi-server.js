@@ -4,10 +4,10 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
 }
 const variables = {};
 const { PermissionsBitField } = require('discord.js');
-const VIP = require('../modules/veryImportantPerson');
-const schema = require('../modules/schema')
-const multiServer = require('../modules/multi-server')
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const VIP = require('../modules/patreon/veryImportantPerson');
+const schema = require('../modules/db/schema.js')
+const multiServer = require('../modules/discord/multi-server')
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const rollbase = require('./rollbase.js');
 const FUNCTION_LIMIT = [0, 1, 1, 1, 1, 1, 1, 1];
 const gameName = function (params = {}) {

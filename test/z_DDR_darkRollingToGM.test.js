@@ -2,7 +2,7 @@
 
 // Keep original simple mock style: mock the module under test with fixed responses.
 jest.mock('../roll/z_DDR_darkRollingToGM.js', () => {
-    const checkTools = require('../modules/check.js');
+    const checkTools = require('../modules/chat/check.js');
     return {
         gameName: () => '【暗骰GM功能】 .drgm (addgm del show) dr ddr dddr',
         gameType: () => 'Tool:trpgDarkRolling:hktrpg',
@@ -30,12 +30,12 @@ jest.mock('../roll/z_DDR_darkRollingToGM.js', () => {
     };
 });
 
-jest.mock('../modules/check.js', () => ({
+jest.mock('../modules/chat/check.js', () => ({
     flag: { ChkChannelManager: 1 },
     permissionErrMsg: jest.fn(() => '')
 }));
 
-const checkTools = require('../modules/check.js');
+const checkTools = require('../modules/chat/check.js');
 const darkRollingModule = require('../roll/z_DDR_darkRollingToGM.js');
 
 describe('Dark Rolling GM Module Tests', () => {

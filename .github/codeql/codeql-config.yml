@@ -1,0 +1,24 @@
+name: "HKTRPG CodeQL config"
+
+paths-ignore:
+  - 'views/**/*test*.html'
+  - 'views/hybrid-*.html'
+  - 'views/modern-test.html'
+  - 'views/test-optimization.html'
+  - 'views/cardtest-*.html'
+  - 'views/characterCard-test.html'
+  - 'views/autocomplete-test.html'
+  - 'views/common/www-i18n.js'
+  - 'coverage/**'
+  - 'temp/**'
+  - 'log/**'
+  - 'test/**'
+
+# Belt-and-suspenders: handlers already call named RateLimiterMemory.consume(req.ip).
+# www-i18n only HTML-parses values from the server i18n bundle (not DOM attributes).
+query-filters:
+  - exclude:
+      id: js/xss-through-dom
+      paths:
+        - views/common/www-i18n.js
+        - '**/www-i18n.js'

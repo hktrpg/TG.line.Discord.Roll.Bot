@@ -2,10 +2,10 @@
 
 const coc = require('../roll/2-coc.js');
 const rollbase = require('../roll/rollbase.js');
-const i18n = require('../modules/i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
 
 // Mock dependencies to avoid issues with schema.js and other modules
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
     developmentConductor: {
         findOne: jest.fn().mockResolvedValue(null),
         findOneAndUpdate: jest.fn().mockResolvedValue({ switch: true })
@@ -18,7 +18,7 @@ jest.mock('../modules/schema.js', () => ({
     }
 }));
 
-jest.mock('../modules/check.js', () => ({
+jest.mock('../modules/chat/check.js', () => ({
     permissionErrMsg: jest.fn().mockReturnValue(null),
     flag: {
         ChkChannel: 1,
@@ -26,7 +26,7 @@ jest.mock('../modules/check.js', () => ({
     }
 }));
 
-jest.mock('../modules/dbWatchdog.js', () => ({
+jest.mock('../modules/db/watchdog.js', () => ({
     isDbOnline: jest.fn().mockReturnValue(true),
     dbErrOccurs: jest.fn()
 }));
@@ -230,6 +230,56 @@ describe('Call of Cthulhu Module Tests', () => {
         expect(result.text).toContain('1D100 ≦ 70');
         expect(result.text).toContain('100');
         expect(result.text).toContain('大失敗');
+    });
+
+    test('Test rollDiceCommand with cc ignores whitespace-only skill', async () => {
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['cc', '   '],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toBeFalsy();
+        expect(rollbase.Dice).not.toHaveBeenCalled();
+    });
+
+    test('Test rollDiceCommand with cc rejects non-integer skill', async () => {
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['cc', 'abc'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.type).toBe('text');
+        expect(result.text).toBe('');
+    });
+
+    test('Test rollDiceCommand with cc rejects empty segment in combined check', async () => {
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['cc', '50,,60'],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.text).toBe('');
+    });
+
+    test('Test rollDiceCommand with cc1 ignores whitespace-only skill', async () => {
+        const result = await coc.rollDiceCommand({
+            mainMsg: ['cc1', '  '],
+            userid: 'testuser',
+            groupid: 'testgroup'
+        });
+        expect(result.text).toBeFalsy();
+    });
+
+    test('Test rollDiceCommand with cc2 / ccn1 / ccn2 ignore blank skill', async () => {
+        for (const cmd of ['cc2', 'ccn1', 'ccn2']) {
+            const result = await coc.rollDiceCommand({
+                mainMsg: [cmd, ''],
+                userid: 'testuser',
+                groupid: 'testgroup'
+            });
+            expect(result.text).toBeFalsy();
+        }
     });
 
     test('Test rollDiceCommand with .sc (Sanity check)', async () => {

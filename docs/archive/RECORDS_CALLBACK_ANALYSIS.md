@@ -3,7 +3,7 @@
 ## 📋 当前状况
 
 ### 当前实现方式
-`modules/records.js` 中的方法使用**混合模式**：
+`modules/db/records.js` 中的方法使用**混合模式**：
 - **内部**: 使用 `async/await`（现代 Promise 模式）
 - **外部接口**: 使用回调函数（传统模式）
 

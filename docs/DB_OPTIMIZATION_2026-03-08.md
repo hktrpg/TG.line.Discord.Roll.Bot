@@ -7,7 +7,7 @@
 | 項目 | 說明 |
 |------|------|
 | **排名改為 countDocuments** | `modules/level.js` 的 `returnTheLevelWord` 原本用 `find({ groupid }).sort({ EXP: -1 })` 載入全群組成員再算排名，改為 `countDocuments({ groupid, EXP: { $gt: userInfo.EXP } }) + 1`，只做一次計數，大群組可大幅減少記憶體與 I/O。 |
-| **複合索引** | `modules/schema.js` 的 `trpgLevelSystemMember` 新增 `{ groupid: 1, EXP: -1 }`，供上述排名查詢使用。 |
+| **複合索引** | `modules/db/schema.js` 的 `trpgLevelSystemMember` 新增 `{ groupid: 1, EXP: -1 }`，供上述排名查詢使用。 |
 | **錯誤日誌** | level.js 內 MongoDB 錯誤改為輸出 `error.reason ?? error.message`，避免只顯示 "MongooseError undefined"。 |
 
 ### 1.2 群組「是否有開 LEVEL」快取（減少每次檢查 DB）

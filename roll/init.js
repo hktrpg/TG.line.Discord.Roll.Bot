@@ -4,8 +4,8 @@ if (!process.env.mongoURL) {
 }
 const math = require('mathjs')
 const { SlashCommandBuilder } = require('discord.js');
-const schema = require('../modules/schema.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const schema = require('../modules/db/schema.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const rollDice = require('./rollbase').rollDiceCommand;
 const convertRegex = function (str) {
     return str.replaceAll(/([.?*+^$[\\]|(){}|-])/g, String.raw`\$1`);

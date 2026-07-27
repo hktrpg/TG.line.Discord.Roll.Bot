@@ -3,11 +3,11 @@ if (!process.env.mongoURL) {
     return;
 }
 const { SlashCommandBuilder } = require('discord.js');
-const VIP = require('../modules/veryImportantPerson');
+const VIP = require('../modules/patreon/veryImportantPerson');
 const limitAtArr = [10, 20, 50, 200, 200, 200, 200, 200];
-const schema = require('../modules/schema.js');
-const { getT, resolveHelp, resolveGameName, DEFAULT_LOCALE } = require('../modules/roll-i18n.js');
-const i18n = require('../modules/i18n.js');
+const schema = require('../modules/db/schema.js');
+const { getT, resolveHelp, resolveGameName, DEFAULT_LOCALE } = require('../modules/i18n/roll-i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
 const MAX_HISTORY_RECORDS = 20;
 const opt = {
     upsert: true,

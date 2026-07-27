@@ -3,7 +3,7 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
 const { SlashCommandBuilder } = require('discord.js');
-const { resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const { resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const variables = {};
 const gameName = function (params = {}) {
     return resolveGameName(params, 'request_rolling.game_name', '【要求擲骰/點擊功能】');

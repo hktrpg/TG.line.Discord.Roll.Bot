@@ -7,8 +7,8 @@
  */
 
 const EventEmitter = require('events');
-const dbConnector = require('./db-connector.js');
 const schema = require('./schema.js');
+const dbConnector = require('./connector.js');
 
 class DBProtectionLayer extends EventEmitter {
     constructor() {

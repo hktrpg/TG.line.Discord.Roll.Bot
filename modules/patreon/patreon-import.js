@@ -6,11 +6,11 @@
  * Uses CRYPTO_SECRET for encryption (utils/security), never regens KEY.
  */
 
-const security = require('../utils/security.js');
-const schema = require('./schema.js');
+const security = require('../../utils/security.js');
+const i18n = require('../i18n/i18n.js');
+const schema = require('../db/schema.js');
 const patreonTiers = require('./patreon-tiers.js');
 const patreonSync = require('./patreon-sync.js');
-const i18n = require('./i18n.js');
 
 /**
  * Parse a single CSV line into fields (handles quoted fields with commas).
@@ -228,7 +228,7 @@ key: ${key}`;
             if (isHonoraryLifetime && !existing) {
                 const emailEncrypted = encrypt(row['Email']);
                 const discordEncrypted = encrypt(row['Discord']);
-                const zAdmin = require('../roll/z_admin.js');
+                const zAdmin = require('../../roll/z_admin.js');
                 const key = typeof zAdmin.generatePatreonKey === 'function' ? zAdmin.generatePatreonKey() : null;
                 if (!key) {
                     errors.push(t('admin.patreon_import_key_failed_honorary', { name }));
@@ -410,7 +410,7 @@ key: ${key}`;
 
         if (!existing) {
             // New member: add with new KEY (never regen), store encrypted
-            const zAdmin = require('../roll/z_admin.js');
+            const zAdmin = require('../../roll/z_admin.js');
             const key = typeof zAdmin.generatePatreonKey === 'function' ? zAdmin.generatePatreonKey() : null;
             if (!key) {
                 errors.push(t('admin.patreon_import_key_failed', { name }));
@@ -562,7 +562,7 @@ key: ${key}`;
                 } else {
                 // If key cannot be decrypted, rotate to a fresh key so allkeys can still be delivered.
                 try {
-                    const zAdmin = require('../roll/z_admin.js');
+                    const zAdmin = require('../../roll/z_admin.js');
                     const newKey = typeof zAdmin.generatePatreonKey === 'function' ? zAdmin.generatePatreonKey() : null;
                     if (!newKey) {
                         throw new Error(t('admin.patreon_import_key_regen_failed'));

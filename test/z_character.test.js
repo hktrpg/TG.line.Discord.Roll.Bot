@@ -20,7 +20,7 @@ jest.mock('../roll/0-advroll.js', () => ({
     rollDiceCommand: jest.fn()
 }));
 
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
     characterCard: {
         findOne: jest.fn(),
         find: jest.fn(),
@@ -35,7 +35,7 @@ jest.mock('../modules/schema.js', () => ({
     }
 }));
 
-jest.mock('../modules/veryImportantPerson', () => ({
+jest.mock('../modules/patreon/veryImportantPerson', () => ({
     viplevelCheckUser: jest.fn(),
     viplevelCheckGroup: jest.fn()
 }));
@@ -67,8 +67,8 @@ const characterModule = require('../roll/z_character.js');
 const rollbase = require('../roll/rollbase.js');
 const _coc = require('../roll/2-coc.js');
 const _advroll = require('../roll/0-advroll.js');
-const schema = require('../modules/schema.js');
-const VIP = require('../modules/veryImportantPerson');
+const schema = require('../modules/db/schema.js');
+const VIP = require('../modules/patreon/veryImportantPerson');
 
 describe('Character Module Tests', () => {
     beforeEach(() => {

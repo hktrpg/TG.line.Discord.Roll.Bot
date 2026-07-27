@@ -1,0 +1,16 @@
+# Codecov configuration for HKTRPG
+# Project can dip briefly after module path reorganizations; patch stays strict.
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        # Allow small overall drops (e.g. file moves counted as new paths).
+        threshold: 2%
+    patch:
+      default:
+        target: 60%
+
+comment:
+  layout: "reach,diff,flags,files"
+  behavior: default

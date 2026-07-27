@@ -1,9 +1,9 @@
 // Mock dependencies
-jest.mock('../modules/veryImportantPerson', () => ({
+jest.mock('../modules/patreon/veryImportantPerson', () => ({
     viplevelCheckUser: jest.fn(() => 1)
 }));
 
-jest.mock('../modules/schema', () => ({
+jest.mock('../modules/db/schema.js', () => ({
     multiServer: {
         findOneAndUpdate: jest.fn(),
         find: jest.fn(),
@@ -11,7 +11,7 @@ jest.mock('../modules/schema', () => ({
     }
 }));
 
-jest.mock('../modules/multi-server', () => ({
+jest.mock('../modules/discord/multi-server', () => ({
     getRecords: jest.fn()
 }));
 

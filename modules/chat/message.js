@@ -3,10 +3,10 @@ if (!process.env.mongoURL) return;
 
 const fs = require('node:fs');
 const crypto = require('node:crypto');
-const schema = require('./schema.js');
-const i18n = require('./i18n.js');
-const checkMongodb = require('./dbWatchdog.js');
-const timerManager = require('./timer-manager');
+const schema = require('../db/schema.js');
+const i18n = require('../i18n/i18n.js');
+const checkMongodb = require('../db/watchdog.js');
+const timerManager = require('../runtime/timer-manager');
 
 const userCache = new Map();
 const USER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;

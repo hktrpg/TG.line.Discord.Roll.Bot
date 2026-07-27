@@ -1,19 +1,19 @@
 // Mock dependencies
-jest.mock('../modules/check.js', () => ({
+jest.mock('../modules/chat/check.js', () => ({
     permissionErrMsg: jest.fn(() => null),
     flag: {
         ChkChannelManager: 1
     }
 }));
 
-jest.mock('../modules/records.js', () => ({
+jest.mock('../modules/db/records.js', () => ({
     get: jest.fn(() => Promise.resolve([])),
     pushTrpgCommandFunction: jest.fn(() => Promise.resolve({})),
     editsetTrpgCommandFunction: jest.fn(() => Promise.resolve({})),
     setTrpgCommandFunction: jest.fn(() => Promise.resolve({}))
 }));
 
-jest.mock('../modules/veryImportantPerson', () => ({
+jest.mock('../modules/patreon/veryImportantPerson', () => ({
     viplevelCheckGroup: jest.fn(() => 1)
 }));
 
@@ -41,9 +41,9 @@ jest.mock('../roll/z_saveCommand.js', () => {
 });
 
 // Import dependencies
-const records = require('../modules/records.js');
-    const _checkTools = require('../modules/check.js');
-const VIP = require('../modules/veryImportantPerson');
+const records = require('../modules/db/records.js');
+    const _checkTools = require('../modules/chat/check.js');
+const VIP = require('../modules/patreon/veryImportantPerson');
 
 // Import module
 const saveCommandModule = require('../roll/z_saveCommand.js');

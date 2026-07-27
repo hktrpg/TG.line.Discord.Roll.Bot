@@ -18,7 +18,7 @@ jest.mock('mathjs', () => ({
 
 // Import the module after mocking
 const wnModule = require('../roll/wn.js');
-const i18n = require('../modules/i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
 
 describe('Witch Hunting Night Module Tests', () => {
   beforeAll(async () => {

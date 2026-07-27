@@ -25,7 +25,7 @@ jest.mock('crypto', () => ({
   })
 }));
 
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
   accountPW: {
     findOne: jest.fn(),
     findOneAndUpdate: jest.fn(),
@@ -51,7 +51,7 @@ jest.mock('../modules/schema.js', () => ({
   mongodbStateCheck: jest.fn().mockResolvedValue({ connections: [] })
 }));
 
-jest.mock('../modules/check.js', () => ({
+jest.mock('../modules/chat/check.js', () => ({
   permissionErrMsg: jest.fn(),
   flag: {
     ChkChannel: 1,
@@ -59,12 +59,12 @@ jest.mock('../modules/check.js', () => ({
   }
 }));
 
-jest.mock('../modules/ds-deploy-commands.js', () => ({
+jest.mock('../modules/discord/deploy-commands.js', () => ({
   registeredGlobalSlashCommands: jest.fn(),
   testRegisteredSlashCommands: jest.fn()
 }));
 
-jest.mock('../modules/schedule.js', () => ({
+jest.mock('../modules/runtime/schedule.js', () => ({
   agenda: null,
   JOB_NAME: 'dailyDiscordMaintenance',
   AGENDA_TIMEZONE: 'Asia/Hong_Kong',
@@ -76,9 +76,9 @@ jest.mock('../modules/schedule.js', () => ({
 
 // Import the module after mocking
 const adminModule = require('../roll/z_admin.js');
-const schema = require('../modules/schema.js');
-const checkTools = require('../modules/check.js');
-    const _deploy = require('../modules/ds-deploy-commands.js');
+const schema = require('../modules/db/schema.js');
+const checkTools = require('../modules/chat/check.js');
+    const _deploy = require('../modules/discord/deploy-commands.js');
 
 describe('Admin Module Tests', () => {
   beforeEach(() => {

@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const axios = require('axios');
 const { SlashCommandBuilder } = require('discord.js');
-const { resolveHelp, withPartialTranslationNotice, resolveGameName, getT, isEnglish } = require('../modules/roll-i18n.js');
+const { resolveHelp, withPartialTranslationNotice, resolveGameName, getT, isEnglish } = require('../modules/i18n/roll-i18n.js');
 const Dice = [],
 	Tool = [],
 	admin = [],

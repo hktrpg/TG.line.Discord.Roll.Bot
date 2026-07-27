@@ -1,7 +1,7 @@
 "use strict";
 const fs = require('node:fs');
 const { REST, Routes } = require('discord.js');
-const i18n = require('./i18n.js');
+const i18n = require('../i18n/i18n.js');
 const clientId = process.env.DISCORD_CHANNEL_CLIENTID || "544561773488111636";
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 
@@ -162,7 +162,7 @@ async function loadingSlashCommands() {
             const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js'));
             for (const file of commandFiles) {
                 try {
-                    const command = require(`../roll/${file}`);
+                    const command = require(`../../roll/${file}`);
                     if (command?.discordCommand?.length > 0) {
                         pushArraySlashCommands(command.discordCommand);
                     }

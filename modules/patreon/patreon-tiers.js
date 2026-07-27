@@ -6,7 +6,7 @@
  * @see https://www.patreon.com/hktrpg
  */
 
-const i18n = require('./i18n.js');
+const i18n = require('../i18n/i18n.js');
 
 /** Patreon slot limits: A = 5 groups/users, B or above = 10. Index 0 = non-VIP, 1 = A, 2+ = B~F, 7 = Honorary Lifetime */
 const PATREON_SLOTS_LIMIT = [0, 5, 10, 10, 10, 10, 10, 10, 10];

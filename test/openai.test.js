@@ -49,7 +49,7 @@ jest.mock('fs', () => ({
   existsSync: jest.fn().mockReturnValue(true)
 }), { virtual: true });
 
-jest.mock('../modules/veryImportantPerson', () => ({
+jest.mock('../modules/patreon/veryImportantPerson', () => ({
   viplevelCheckUser: jest.fn().mockResolvedValue(1)
 }));
 

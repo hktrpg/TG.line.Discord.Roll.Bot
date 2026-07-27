@@ -32,19 +32,19 @@ const { createWriteStream } = require('fs');
 const path = require('path');
 const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 const moment = require('moment-timezone');
-const { getPool } = require('../modules/pool');
+const { getPool } = require('../modules/db/pool');
 const htmlPool = getPool('html');
-const schema = require('../modules/schema.js');
-const VIP = require('../modules/veryImportantPerson');
-const checkTools = require('../modules/check.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const schema = require('../modules/db/schema.js');
+const VIP = require('../modules/patreon/veryImportantPerson');
+const checkTools = require('../modules/chat/check.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 
 /**
  * Tell the user export has started. If the global handler already deferReply()'d the
  * slash command, we must editReply (not channel.send / reply) so the callback token stays valid.
  */
 async function sendDiscordExportWaitNotice(discordMessage, userid, t) {
-    const translate = t || require('../modules/i18n.js').createTranslator(require('../modules/i18n.js').DEFAULT_LOCALE);
+    const translate = t || require('../modules/i18n/i18n.js').createTranslator(require('../modules/i18n/i18n.js').DEFAULT_LOCALE);
     const content = translate('export.processing', { userid });
     try {
         if (discordMessage?.deferred && !discordMessage.replied) {
@@ -739,7 +739,7 @@ function makeid(length) {
     return result;
 }
 const millisToMinutesAndSeconds = (millis, translate) => {
-    const t = translate || require('../modules/i18n.js').createTranslator(require('../modules/i18n.js').DEFAULT_LOCALE);
+    const t = translate || require('../modules/i18n/i18n.js').createTranslator(require('../modules/i18n/i18n.js').DEFAULT_LOCALE);
     // Only negate if the value is negative (user is still in cooldown)
     if (millis < 0) {
         millis = millis * -1;

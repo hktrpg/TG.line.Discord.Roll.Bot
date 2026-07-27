@@ -1,7 +1,7 @@
 "use strict";
 
 // Mock check.js for permission testing
-jest.mock('../modules/check.js', () => ({
+jest.mock('../modules/chat/check.js', () => ({
     permissionErrMsg: jest.fn(),
     flag: {
         ChkManager: 1
@@ -32,7 +32,7 @@ const mockEditModule = {
 };
 
 // Import checkTools after mock is set up
-const checkTools = require('../modules/check.js');
+const checkTools = require('../modules/chat/check.js');
 
 describe('Edit Module Tests', () => {
     beforeEach(() => {

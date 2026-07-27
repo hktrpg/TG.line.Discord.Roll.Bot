@@ -19,22 +19,22 @@ if (!password) {
 const adminSecrets = parseAdminSecrets(process.env.ADMIN_SECRET);
 const isAdminUser = (userid) => Boolean(userid) && adminSecrets.includes(userid);
 //admin id
-const schema = require('../modules/schema.js');
-const checkTools = require('../modules/check.js');
+const schema = require('../modules/db/schema.js');
+const checkTools = require('../modules/chat/check.js');
 const pattId = /\s+-i\s+(\S+)/ig;
 const pattGP = /\s+-g\s+(\S+)/ig;
 const pattLv = /\s+-l\s+(\S+)/ig;
 const pattName = /\s+-n\s+(\S+)/ig;
 const pattNotes = /\s+-no\s+(\S+)/ig;
 const pattSwitch = /\s+-s\s+(\S+)/ig;
-const deploy = require('../modules/ds-deploy-commands.js');
-const { viplevelCheckUser, viplevelCheckGroup } = require('../modules/veryImportantPerson.js');
-const dbProtectionLayer = require('../modules/db-protection-layer.js');
-const clusterProtection = require('../modules/cluster-protection.js');
-const patreonTiers = require('../modules/patreon-tiers.js');
-const patreonSync = require('../modules/patreon-sync.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
-const scheduleModule = require('../modules/schedule.js');
+const deploy = require('../modules/discord/deploy-commands.js');
+const { viplevelCheckUser, viplevelCheckGroup } = require('../modules/patreon/veryImportantPerson.js');
+const dbProtectionLayer = require('../modules/db/protection-layer.js');
+const clusterProtection = require('../modules/runtime/cluster-protection.js');
+const patreonTiers = require('../modules/patreon/patreon-tiers.js');
+const patreonSync = require('../modules/patreon/patreon-sync.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
+const scheduleModule = require('../modules/runtime/schedule.js');
 const SCHEDULE_DOC_KEY = scheduleModule.SCHEDULE_DOC_KEY || 'default';
 const AGENDA_TIMEZONE = scheduleModule.AGENDA_TIMEZONE || process.env.AGENDA_TIMEZONE || 'Asia/Hong_Kong';
 const gameName = function (params = {}) {
@@ -1477,7 +1477,7 @@ const rollDiceCommand = async function ({
                     return rply;
                 }
                 try {
-                    const patreonImport = require('../modules/patreon-import.js');
+                    const patreonImport = require('../modules/patreon/patreon-import.js');
                     const result = await patreonImport.runImport(csvContent, { keyMode, generateEmail, locale });
                     const summary = result.summary || {};
                     let dmStatusText = translate('admin.import_dm_not_needed');
@@ -1755,10 +1755,17 @@ function generatePatreonKey() {
     const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     const SEGMENT_LEN = 4;
     const SEGMENTS = 4;
+    const total = SEGMENT_LEN * SEGMENTS;
+    // Rejection sampling avoids modulo bias (256 is not divisible by 36).
+    const maxUnbiased = 256 - (256 % CHARS.length);
     let out = '';
-    const bytes = crypto.randomBytes(SEGMENT_LEN * SEGMENTS);
-    for (let i = 0; i < bytes.length; i++) {
-        out += CHARS[bytes[i] % CHARS.length];
+    while (out.length < total) {
+        const bytes = crypto.randomBytes(total - out.length);
+        for (const byte of bytes) {
+            if (byte >= maxUnbiased) continue;
+            out += CHARS[byte % CHARS.length];
+            if (out.length >= total) break;
+        }
     }
     const parts = [];
     for (let s = 0; s < SEGMENTS; s++) {

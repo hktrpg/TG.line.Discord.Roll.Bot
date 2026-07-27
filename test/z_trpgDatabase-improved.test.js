@@ -5,7 +5,7 @@
  * Includes security tests to prevent cross-group data access
  */
 
-const records = require('../modules/records.js');
+const records = require('../modules/db/records.js');
 
 // Test data setup - multiple groups to test security isolation
 const testData = {
@@ -44,7 +44,7 @@ const testData = {
 };
 
 // Mock dependencies
-jest.mock('../modules/check.js', () => ({
+jest.mock('../modules/chat/check.js', () => ({
     permissionErrMsg: jest.fn(({ role }) => {
         return role >= 1 ? null : '❌ 權限不足，需要頻道管理員權限';
     }),
@@ -54,7 +54,7 @@ jest.mock('../modules/check.js', () => ({
     }
 }));
 
-jest.mock('../modules/records.js', () => ({
+jest.mock('../modules/db/records.js', () => ({
     get: jest.fn(),
     setTrpgDatabaseFunction: jest.fn(),
     setTrpgDatabaseAllGroup: jest.fn(),
@@ -62,7 +62,7 @@ jest.mock('../modules/records.js', () => ({
     pushTrpgDatabaseAllGroup: jest.fn()
 }));
 
-jest.mock('../modules/veryImportantPerson', () => ({
+jest.mock('../modules/patreon/veryImportantPerson', () => ({
     viplevelCheckGroup: jest.fn(() => 1)
 }));
 

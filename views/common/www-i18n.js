@@ -84,6 +84,48 @@ class WwwI18n {
         return text;
     }
 
+    /**
+     * Parse HTML from our i18n bundle, strip dangerous tags/attrs, then set as children.
+     * @param {Element} el
+     * @param {string} html
+     */
+    setTrustedHtml(el, html) {
+        if (!el) return;
+        const raw = String(html ?? '');
+        if (!/<[a-z][\s\S]*>/i.test(raw)) {
+            el.textContent = raw;
+            return;
+        }
+        const doc = new DOMParser().parseFromString(raw, 'text/html');
+        const body = doc.body;
+        for (const bad of body.querySelectorAll('script,iframe,object,embed,link,style,meta,base,form,input,button,textarea,select')) {
+            bad.remove();
+        }
+        for (const node of body.querySelectorAll('*')) {
+            const toRemove = [];
+            for (let i = 0; i < node.attributes.length; i++) {
+                const attr = node.attributes.item(i);
+                if (!attr) continue;
+                const name = attr.name.toLowerCase();
+                const value = (attr.value || '').trim().toLowerCase();
+                const isUrlAttr = name === 'href' || name === 'src' || name === 'xlink:href' || name === 'action' || name === 'formaction';
+                if (
+                    name.startsWith('on') ||
+                    value.startsWith('javascript:') ||
+                    value.startsWith('data:') ||
+                    value.startsWith('vbscript:') ||
+                    (isUrlAttr && /^(javascript|data|vbscript):/i.test(value))
+                ) {
+                    toRemove.push(attr.name);
+                }
+            }
+            for (const name of toRemove) {
+                node.removeAttribute(name);
+            }
+        }
+        el.replaceChildren(...[...body.childNodes].map((n) => document.importNode(n, true)));
+    }
+
     applyDomI18n(root) {
         if (!root) return;
         const t = (key, options) => this.t(key, options);
@@ -96,7 +138,18 @@ class WwwI18n {
         for (const el of root.querySelectorAll('[data-www-i18n-html]')) {
             const key = el.getAttribute('data-www-i18n-html');
             if (!key) continue;
-            el.innerHTML = t(key);
+            // Only HTML-parse values from the i18n bundle — never echo DOM attributes
+            // (missing keys would otherwise flow attribute text into parseFromString).
+            const fullKey = key.includes('.') ? key : `www.views.${key}`;
+            const fromBundle = this.strings[fullKey]
+                ?? this.fallback[fullKey]
+                ?? this.strings[key]
+                ?? this.fallback[key];
+            if (fromBundle == null) {
+                el.textContent = '';
+                continue;
+            }
+            this.setTrustedHtml(el, fromBundle);
         }
         for (const el of root.querySelectorAll('[data-www-i18n-placeholder]')) {
             const key = el.getAttribute('data-www-i18n-placeholder');

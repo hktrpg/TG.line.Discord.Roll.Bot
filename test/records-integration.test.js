@@ -14,7 +14,7 @@ const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
 // Mock db-connector to use our in-memory mongoose instance
-jest.mock('../modules/db-connector.js', () => {
+jest.mock('../modules/db/connector.js', () => {
     const mongooseInside = require('mongoose');
     return {
         mongoose: mongooseInside,
@@ -25,8 +25,8 @@ jest.mock('../modules/db-connector.js', () => {
 });
 
 // Import real schema and records module AFTER the mock (schema load registers models)
-require('../modules/schema.js');
-const records = require('../modules/records.js');
+require('../modules/db/schema.js');
+const records = require('../modules/db/records.js');
 
 describe('Records Module Real Integration Tests', () => {
     let mongoServer;

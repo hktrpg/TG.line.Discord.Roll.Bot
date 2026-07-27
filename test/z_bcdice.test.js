@@ -43,14 +43,14 @@ jest.mock('bcdice', () => ({
     }))
 }));
 
-jest.mock('../modules/check.js', () => ({
+jest.mock('../modules/chat/check.js', () => ({
     permissionErrMsg: jest.fn(),
     flag: {
         ChkChannelManager: 1
     }
 }));
 
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
     bcdiceRegedit: {
         findOne: jest.fn(),
         findOneAndUpdate: jest.fn(),
@@ -64,8 +64,8 @@ process.env.mongoURL = 'test_mongo_url';
 // Import modules
 const { DynamicLoader } = require('bcdice');
 const bcdiceModule = require('../roll/z_bcdice.js');
-const checkTools = require('../modules/check.js');
-const schema = require('../modules/schema.js');
+const checkTools = require('../modules/chat/check.js');
+const schema = require('../modules/db/schema.js');
 
 describe('BCDice Module Tests', () => {
     beforeEach(() => {

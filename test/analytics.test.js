@@ -1,5 +1,5 @@
 // Mock dependencies
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
     trpgLevelSystem: {
         countDocuments: jest.fn().mockResolvedValue(10)
     },
@@ -11,14 +11,14 @@ jest.mock('../modules/schema.js', () => ({
     }
 }));
 
-jest.mock('../modules/level', () => ({
+jest.mock('../modules/chat/level', () => ({
     EXPUP: jest.fn().mockResolvedValue({
         text: 'Level up!',
         statue: 'active'
     })
 }));
 
-jest.mock('../modules/logs', () => {
+jest.mock('../modules/chat/logs', () => {
     const mockState = {
         LogTime: new Date().toString(),
         StartTime: new Date().toString(),

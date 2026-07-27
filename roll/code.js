@@ -1,7 +1,7 @@
 "use strict";
 const axios = require('axios');
 const { SlashCommandBuilder } = require('discord.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 
 const variables = {};
 const COMMAND_COOLDOWN_MS = 10_000;

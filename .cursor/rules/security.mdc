@@ -566,7 +566,7 @@ yarn add crypto-js jsonwebtoken bcryptjs
 ### With Database Operations
 ```javascript
 const security = require('../utils/security.js');
-const schema = require('../modules/schema.js');
+const schema = require('../modules/db/schema.js');
 
 // Validate before database operations
 const validation = security.validateChatMessage(msg);

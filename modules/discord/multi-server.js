@@ -2,8 +2,8 @@
 if (!process.env.mongoURL) {
     return;
 }
-// const checkMongodb = require('../modules/dbWatchdog.js');
-// const schema = require('./schema.js');
+// const checkMongodb = require('../db/watchdog.js');
+// const schema = require('../db/schema.js');
 const TEN_SECOND = 1000 * 10;
 // let channelList = [];
 (async () => {

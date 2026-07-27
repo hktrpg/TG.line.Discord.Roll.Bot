@@ -1,9 +1,9 @@
 // Mock dependencies
-jest.mock('../modules/dbWatchdog.js', () => ({
+jest.mock('../modules/db/watchdog.js', () => ({
     isDbOnline: jest.fn(() => true)
 }));
 
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
     eventList: {
         find: jest.fn(),
         findOne: jest.fn(),
@@ -27,7 +27,7 @@ jest.mock('../modules/schema.js', () => ({
     }
 }));
 
-jest.mock('../modules/veryImportantPerson', () => ({
+jest.mock('../modules/patreon/veryImportantPerson', () => ({
     viplevelCheckUser: jest.fn(() => 0),
     viplevelCheckGroup: jest.fn(() => 0)
 }));
@@ -64,9 +64,9 @@ process.env.mongoURL = 'test_mongo_url';
 process.env.DEBUG = 'true';
 
 // Import dependencies
-    const _dbWatchdog = require('../modules/dbWatchdog.js');
-const schema = require('../modules/schema.js');
-const VIP = require('../modules/veryImportantPerson');
+    const _dbWatchdog = require('../modules/db/watchdog.js');
+const schema = require('../modules/db/schema.js');
+const VIP = require('../modules/patreon/veryImportantPerson');
 const rollDice = require('../roll/rollbase');
 
 // Import module

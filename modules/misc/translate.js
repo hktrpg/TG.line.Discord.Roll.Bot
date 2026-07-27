@@ -4,7 +4,7 @@
 /*
 const translate = require('@vitalets/google-translate-api');
 
-const schema = require('./schema.js');
+const schema = require('../db/schema.js');
 
 const channelList = [];
 (async () => {

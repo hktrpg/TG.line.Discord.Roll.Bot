@@ -602,7 +602,7 @@ async function upgradePasswordIfLegacy(userName, password, currentHash) {
         const newHash = await hashPassword(password);
         
         // 更新數據庫
-        const schema = require('../modules/schema.js');
+        const schema = require('../modules/db/schema.js');
         const result = await schema.accountPW.findOneAndUpdate(
             { userName: userName },
             { 
@@ -815,6 +815,78 @@ function verifyHMAC(data, signature, key = null) {
 }
 
 // ============================================
+// Process / Socket safety
+// ============================================
+
+/**
+ * Application bugs (e.g. "x is not a function") should be logged, not take down the process.
+ * @param {unknown} reason
+ * @returns {boolean}
+ */
+function isNonFatalApplicationError(reason) {
+    if (!reason) return false;
+    const name = reason.name || (reason.constructor && reason.constructor.name) || '';
+    if (name === 'TypeError' || name === 'ReferenceError' || name === 'RangeError' || name === 'SyntaxError') {
+        return true;
+    }
+    const errorMessage = reason.message || String(reason);
+    return /is not a function|Cannot read propert|is not defined|Cannot set propert/i.test(errorMessage);
+}
+
+/**
+ * Wrap async socket handlers so rejections are logged instead of becoming
+ * process-level unhandledRejection.
+ * @param {string} eventName
+ * @param {(...args: unknown[]) => Promise<unknown>|unknown} handler
+ */
+function safeSocketHandler(eventName, handler) {
+    return async (...args) => {
+        try {
+            await handler(...args);
+        } catch (error) {
+            console.error(`[Web Server] socket '${eventName}' error:`, error?.message || error);
+            if (error?.stack) {
+                console.error(error.stack.split('\n').slice(0, 10).join('\n'));
+            }
+        }
+    };
+}
+
+/**
+ * Build an Express rate-limit guard using rate-limiter-flexible.
+ * @param {{ consume: (key: string) => Promise<unknown> }} limiter
+ * @param {{ json?: boolean, getTranslator?: Function, errorKey?: string, fallbackError?: string }} [options]
+ * @returns {(req: object, res: object) => Promise<boolean>} true if limited (response already sent)
+ */
+function createRateLimitReject(limiter, options = {}) {
+    const {
+        json = false,
+        getTranslator = null,
+        errorKey = 'www.patreon.too_many_requests',
+        fallbackError = 'Too Many Requests'
+    } = options;
+
+    return async function rejectIfRateLimited(req, res) {
+        try {
+            await limiter.consume(req.ip);
+            return false;
+        } catch {
+            if (!res.headersSent) {
+                if (json) {
+                    const t = typeof getTranslator === 'function' ? getTranslator(req) : null;
+                    res.status(429).json({
+                        error: t ? t(errorKey) : fallbackError
+                    });
+                } else {
+                    res.status(429).end();
+                }
+            }
+            return true;
+        }
+    };
+}
+
+// ============================================
 // 導出
 // ============================================
 
@@ -837,6 +909,11 @@ module.exports = {
     // Origin 驗證
     validateOrigin,
     socketOriginMiddleware,
+
+    // Process / Socket safety
+    isNonFatalApplicationError,
+    safeSocketHandler,
+    createRateLimitReject,
 
     // 日誌
     sanitizeLogData,

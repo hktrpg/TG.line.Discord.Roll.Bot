@@ -1,6 +1,6 @@
 "use strict";
 
-const i18n = require('../modules/i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
 const funny = require('../roll/1-funny');
 const rollbase = require('../roll/rollbase');
 

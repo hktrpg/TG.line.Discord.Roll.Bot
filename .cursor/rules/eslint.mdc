@@ -111,7 +111,7 @@ yarn lint:fix
 
 ### Check Specific Files
 ```bash
-yarn lint modules/discord_bot.js
+yarn lint modules/discord/bot.js
 ```
 
 ## Common ESLint Errors and Fixes
@@ -128,10 +128,10 @@ respawnCluster2(); // Use correct function name
 ### 2. `no-unused-vars` - Unused Variables
 ```javascript
 // ❌ Error
-const checkMongodb = require('../modules/dbWatchdog.js');
+const checkMongodb = require('../modules/db/watchdog.js');
 
 // ✅ Fix (if not used)
-const checkMongodb = require('../modules/dbWatchdog.js');
+const checkMongodb = require('../modules/db/watchdog.js');
 // Use checkMongodb or comment out
 ```
 

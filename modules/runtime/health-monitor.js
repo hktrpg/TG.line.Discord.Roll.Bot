@@ -1,7 +1,7 @@
 "use strict";
 
 const EventEmitter = require('events');
-const dbWatchdog = require('./dbWatchdog.js');
+const dbWatchdog = require('../db/watchdog.js');
 const timerManager = require('./timer-manager');
 
 class HealthMonitor extends EventEmitter {
@@ -79,7 +79,7 @@ class HealthMonitor extends EventEmitter {
 
             // Collect MongoDB connection pool info
             try {
-                const dbConnector = require('./db-connector.js');
+                const dbConnector = require('../db/connector.js');
                 const mongoose = dbConnector.mongoose;
                 if (mongoose && mongoose.connection && mongoose.connection.readyState === 1) {
                     this.metrics.connectionPoolUsage = {

@@ -107,13 +107,13 @@ function loadPdfToPngSafely() {
 }
 const mammoth = require('mammoth');
 const Tesseract = require('tesseract.js');
-const { getPool } = require('../modules/pool');
+const { getPool } = require('../modules/db/pool');
 const imagePool = getPool('image');
 dotenv.config({ override: true, quiet: true });
-const VIP = require('../modules/veryImportantPerson');
+const VIP = require('../modules/patreon/veryImportantPerson');
 const handleMessage = require('../modules/discord/handleMessage');
-const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
-const i18n = require('../modules/i18n.js');
+const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
 
 function isOpenAiValidationError(message) {
     return /超過VIP|VIP LV|exceeds VIP|Unsupported file format|不支援的文件格式|預估總內容|Estimated content|檔案大小超過限制|file size|Cannot extract text|無法從檔案/i.test(message);
@@ -619,7 +619,7 @@ class OpenAI {
         const { type } = this.retryManager.getErrorType(error);
 
         if (type === 'UNAUTHORIZED') {
-            console.error('Removing unauthorized API key:', this.apiKeys[this.currentApiKeyIndex]);
+            console.error('Removing unauthorized API key at index', this.currentApiKeyIndex);
             this.apiKeys.splice(this.currentApiKeyIndex, 1);
             if (this.currentApiKeyIndex >= this.apiKeys.length) {
                 this.currentApiKeyIndex = 0;

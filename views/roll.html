@@ -343,24 +343,26 @@
             //			let dNum = document.getElementById("numDice").value;
             //		let dDice = document.getElementById("diceMax").value;			
             let result = 0;
-            const maxDieVal = document.getElementById("diceMax").value;
-            const diceNumber = document.getElementById("numDice").value;
+            const maxDieVal = Number.parseInt(document.getElementById("diceMax").value, 10);
+            const diceNumber = Number.parseInt(document.getElementById("numDice").value, 10);
             if (!diceNumber || !maxDieVal) return;
-            document.getElementById("result").innerHTML += diceNumber + "D" + maxDieVal;
+            const resultEl = document.getElementById("result");
+            resultEl.appendChild(document.createTextNode(diceNumber + "D" + maxDieVal));
             if (diceNumber > 1)
-                document.getElementById("result").innerHTML += "=";
+                resultEl.appendChild(document.createTextNode("="));
             for (let dNum = 0; dNum < diceNumber; dNum++) {
                 let temp = Math.ceil(Math.random() * maxDieVal);
                 result += temp;
                 if (diceNumber > 1) {
-                    document.getElementById("result").innerHTML += " " + temp;
+                    resultEl.appendChild(document.createTextNode(" " + temp));
                 }
                 if (dNum + 1 < diceNumber) {
-                    document.getElementById("result").innerHTML += "+";
+                    resultEl.appendChild(document.createTextNode("+"));
                 }
 
             }
-            document.getElementById("result").innerHTML += "=" + result + "<br/>";
+            resultEl.appendChild(document.createTextNode("=" + result));
+            resultEl.appendChild(document.createElement('br'));
             //                document.getElementById('prevResult').innerHTML = prevResult;
 
             aa();

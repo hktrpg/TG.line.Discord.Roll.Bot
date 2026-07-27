@@ -1,9 +1,9 @@
 "use strict";
 const DB_READY = !!process.env.mongoURL;
 const { SlashCommandBuilder } = require('discord.js');
-const records = require('../modules/records.js');
-const checkTools = require('../modules/check.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const records = require('../modules/db/records.js');
+const checkTools = require('../modules/chat/check.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 
 // When DB is not available: disable the whole feature cleanly
 if (!DB_READY) {

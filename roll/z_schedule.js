@@ -4,16 +4,16 @@ if (!process.env.mongoURL) {
 }
 const { SlashCommandBuilder } = require('discord.js');
 const moment = require('moment');
-const VIP = require('../modules/veryImportantPerson');
-const checkMongodb = require('../modules/dbWatchdog.js');
+const VIP = require('../modules/patreon/veryImportantPerson');
+const checkMongodb = require('../modules/db/watchdog.js');
 const FUNCTION_AT_LIMIT = [5, 25, 50, 200, 200, 200, 200, 200];
-const schema = require('../modules/schema')
+const schema = require('../modules/db/schema.js')
 const FUNCTION_CRON_LIMIT = [2, 15, 30, 45, 99, 99, 99, 99];
-const agenda = require('../modules/schedule')
+const agenda = require('../modules/runtime/schedule')
 const CRON_REGEX = /^(\d\d)(\d\d)((?:-([1-9]?[1-9]|((mon|tues|wed(nes)?|thur(s)?|fri|sat(ur)?|sun)(day)?))){0,1})/i;
 const VALID_DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-const checkTools = require('../modules/check.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const checkTools = require('../modules/chat/check.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 
 
 

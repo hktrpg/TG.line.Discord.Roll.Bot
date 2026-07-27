@@ -6,7 +6,7 @@ jest.mock('../roll/rollbase.js', () => ({
   Dice: jest.fn()
 }));
 
-const i18n = require('../modules/i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
 const kcModule = require('../roll/yumingkueichai.js');
 const rollbase = require('../roll/rollbase.js');
 

@@ -13,7 +13,7 @@ jest.mock('discord.js', () => ({
     }))
 }));
 
-const i18n = require('../modules/i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
 
 describe('roll module i18n smoke tests', () => {
     beforeAll(async () => {

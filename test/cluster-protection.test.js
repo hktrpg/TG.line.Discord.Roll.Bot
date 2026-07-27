@@ -1,6 +1,6 @@
 "use strict";
 
-const clusterProtection = require('../modules/cluster-protection.js');
+const clusterProtection = require('../modules/runtime/cluster-protection.js');
 
 describe('ClusterProtection', () => {
     beforeEach(() => {

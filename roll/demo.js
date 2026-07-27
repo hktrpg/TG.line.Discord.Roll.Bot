@@ -1,6 +1,6 @@
 "use strict";
 const variables = {};
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const gameName = function (params = {}) {
     return resolveGameName(params, 'demo.game_name', '【Demo】');
 }

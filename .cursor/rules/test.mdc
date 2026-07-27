@@ -24,14 +24,14 @@ alwaysApply: false
 ### Standard Test File Pattern
 ```javascript
 // Mock dependencies
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
     modelName: {
         findOne: jest.fn(),
         updateOne: jest.fn()
     }
 }));
 
-jest.mock('../modules/level', () => ({
+jest.mock('../modules/chat/level', () => ({
     EXPUP: jest.fn()
 }));
 
@@ -69,7 +69,7 @@ describe('ModuleName Tests', () => {
 ### Mock Examples
 ```javascript
 // Mock schema
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
     characterCard: {
         findOne: jest.fn().mockResolvedValue({ name: 'Test' }),
         updateOne: jest.fn().mockResolvedValue({})
@@ -77,7 +77,7 @@ jest.mock('../modules/schema.js', () => ({
 }));
 
 // Mock VIP module
-jest.mock('../modules/veryImportantPerson', () => ({
+jest.mock('../modules/patreon/veryImportantPerson', () => ({
     viplevelCheckGroup: jest.fn().mockResolvedValue(5)
 }));
 ```

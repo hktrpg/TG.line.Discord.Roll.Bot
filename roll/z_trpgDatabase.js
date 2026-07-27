@@ -5,11 +5,11 @@ if (!process.env.mongoURL) {
 
 // 導入依賴
 const { SlashCommandBuilder } = require('discord.js');
-const records = require('../modules/records.js');
-const schema = require('../modules/schema.js');
-const checkTools = require('../modules/check.js');
-const VIP = require('../modules/veryImportantPerson.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const records = require('../modules/db/records.js');
+const schema = require('../modules/db/schema.js');
+const checkTools = require('../modules/chat/check.js');
+const VIP = require('../modules/patreon/veryImportantPerson.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const rollbase = require('./rollbase.js');
 
 // 常量定義

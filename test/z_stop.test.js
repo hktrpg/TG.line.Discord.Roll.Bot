@@ -1,11 +1,11 @@
 // Mock dependencies
-jest.mock('../modules/records.js', () => ({
+jest.mock('../modules/db/records.js', () => ({
     get: jest.fn((type, callback) => callback([])),
     set: jest.fn((type, data, callback) => callback()),
     pushblockfunction: jest.fn((type, data, callback) => callback())
 }));
 
-jest.mock('../modules/check.js', () => ({
+jest.mock('../modules/chat/check.js', () => ({
     permissionErrMsg: jest.fn(({ flag, gid, role }) => {
         if (role >= 1 || !flag) return null;
         return '權限不足，需要頻道管理員權限';
@@ -16,7 +16,7 @@ jest.mock('../modules/check.js', () => ({
     }
 }));
 
-jest.mock('../modules/veryImportantPerson', () => ({
+jest.mock('../modules/patreon/veryImportantPerson', () => ({
     viplevelCheckGroup: jest.fn(() => 1)
 }));
 
@@ -44,9 +44,9 @@ jest.mock('../roll/z_stop.js', () => {
 process.env.mongoURL = 'test_mongo_url';
 
 // Import dependencies
-const records = require('../modules/records.js');
-const VIP = require('../modules/veryImportantPerson');
-const checkTools = require('../modules/check.js');
+const records = require('../modules/db/records.js');
+const VIP = require('../modules/patreon/veryImportantPerson');
+const checkTools = require('../modules/chat/check.js');
 
 // Import module
 const stopModule = require('../roll/z_stop.js');

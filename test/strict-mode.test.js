@@ -15,7 +15,7 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 // We need to use the real records module but with a real database
 // However, records.js imports db-connector which might try to connect to a real DB
 // So we mock db-connector to use our in-memory DB
-jest.mock('../modules/db-connector.js', () => {
+jest.mock('../modules/db/connector.js', () => {
     // Inside jest.mock factory, we must require dependencies locally or they must be prefixed with 'mock'
     const mongooseInside = require('mongoose');
     return {
@@ -27,8 +27,8 @@ jest.mock('../modules/db-connector.js', () => {
 });
 
 // Import these AFTER the mock and AFTER setting process.env.mongoURL
-const schema = require('../modules/schema.js');
-const records = require('../modules/records.js');
+const schema = require('../modules/db/schema.js');
+const records = require('../modules/db/records.js');
 
 describe('Database Strict Mode Tests', () => {
     let mongoServer;

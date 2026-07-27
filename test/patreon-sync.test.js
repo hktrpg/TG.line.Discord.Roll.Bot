@@ -7,9 +7,9 @@ const mockSchema = {
     }
 };
 
-jest.mock("../modules/schema.js", () => mockSchema);
+jest.mock("../modules/db/schema.js", () => mockSchema);
 
-const sync = require("../modules/patreon-sync.js");
+const sync = require("../modules/patreon/patreon-sync.js");
 
 describe("patreon-sync", () => {
     beforeEach(() => {

@@ -59,11 +59,8 @@ export default [
           /^z_.*\.js$/,
           /^candleDays\.js$/,
           /^core-.*\.js$/,
-          /^ds-.*\.js$/,
-          /^dbWatchdog\.js$/,
           /^getRoll\.js$/,
           /^veryImportantPerson\.js$/,
-          /^discord_.*\.js$/,
           /^handleMessage\.js$/,
           /^discord_client\.js$/
         ]

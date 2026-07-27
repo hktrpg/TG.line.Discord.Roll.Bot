@@ -1,7 +1,7 @@
 "use strict";
 
 // Mock dependencies
-jest.mock('../modules/check.js', () => ({
+jest.mock('../modules/chat/check.js', () => ({
     permissionErrMsg: jest.fn(),
     flag: {
         ChkBot: 1,
@@ -9,12 +9,12 @@ jest.mock('../modules/check.js', () => ({
     }
 }));
 
-jest.mock('../modules/veryImportantPerson', () => ({
+jest.mock('../modules/patreon/veryImportantPerson', () => ({
     viplevelCheckUser: jest.fn(),
     viplevelCheckGroup: jest.fn()
 }));
 
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
     exportUser: {
         findOne: jest.fn(),
         updateOne: jest.fn()
@@ -94,9 +94,9 @@ const mockExportModule = {
 
 // Import dependencies after mocks are set up
 const fs = require('fs').promises;
-const checkTools = require('../modules/check.js');
-const VIP = require('../modules/veryImportantPerson');
-const schema = require('../modules/schema.js');
+const checkTools = require('../modules/chat/check.js');
+const VIP = require('../modules/patreon/veryImportantPerson');
+const schema = require('../modules/db/schema.js');
 
 describe('Export Module Tests', () => {
     // Setup mock Discord objects

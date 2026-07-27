@@ -1,9 +1,9 @@
 ---
 description: Database, security, and resource management rules for low-resource production environment
 globs:
-  - "modules/db-connector.js"
-  - "modules/records.js"
-  - "modules/schema.js"
+  - "modules/db/connector.js"
+  - "modules/db/records.js"
+  - "modules/db/schema.js"
   - "modules/config/**/*.js"
   - "utils/security.js"
 alwaysApply: false
@@ -28,7 +28,7 @@ alwaysApply: false
 ## Database Connection Management
 
 ### Connection Pool Configuration
-- **Use shared connections** - Multiple shards share one MongoDB connection (see `db-connector.js`)
+- **Use shared connections** - Multiple shards share one MongoDB connection (see `db/connector.js`)
 - **Optimize pool size** - Balance between concurrency and memory:
   - `maxPoolSize: 50` - Reasonable for 2 vCPUs
   - `minPoolSize: 5` - Maintain minimum connections
@@ -40,8 +40,8 @@ alwaysApply: false
 
 ### Connection Best Practices
 ```javascript
-// ✅ GOOD: Use shared connection from db-connector.js
-const mongoose = require('./db-connector.js').mongoose;
+// ✅ GOOD: Use shared connection from db/connector.js
+const mongoose = require('./db/connector.js').mongoose;
 
 // ❌ BAD: Don't create new connections
 // const mongoose = require('mongoose');
@@ -52,7 +52,7 @@ const mongoose = require('./db-connector.js').mongoose;
 - Check `mongoose.connection.readyState` before operations
 - Use `waitForConnection()` helper when needed
 - Handle disconnections gracefully with retry logic
-- Use exponential backoff for reconnection (see `db-connector.js`)
+- Use exponential backoff for reconnection (see `db/connector.js`)
 
 ## Database Query Optimization
 
@@ -183,7 +183,7 @@ const allMessages = await schema.chatRoom.find({}); // Could be huge!
 ### Input Validation Patterns
 ```javascript
 // ✅ GOOD: Use InputValidator
-const InputValidator = require('./records.js').InputValidator;
+const InputValidator = require('./db/records.js').InputValidator;
 
 // Sanitize groupId
 try {
@@ -368,7 +368,7 @@ console.log('[DB] Active connections:', poolStats.current);
 - Ignore connection state
 
 ✅ **Do:**
-- Use shared connection from `db-connector.js`
+- Use shared connection from `db/connector.js`
 - Use indexes for queries
 - Limit and paginate results
 - Validate all inputs

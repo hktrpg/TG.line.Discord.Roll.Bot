@@ -11,7 +11,7 @@
 #### 1. records.js - 改进回调模式为 Promise
 
 **当前问题:**
-`modules/records.js` 中的方法使用回调函数，虽然不是 Mongoose 的回调，但可以改进为更现代的 Promise 模式。
+`modules/db/records.js` 中的方法使用回调函数，虽然不是 Mongoose 的回调，但可以改进为更现代的 Promise 模式。
 
 **修复方案:**
 
@@ -191,7 +191,7 @@ async chatRoomGet(roomNumber, callback) {
 
 2. **基本查询操作**
    ```javascript
-   const schema = require('./modules/schema.js');
+   const schema = require('./modules/db/schema.js');
    const result = await schema.block.findOne({ groupid: 'test' });
    ```
 
@@ -206,7 +206,7 @@ async chatRoomGet(roomNumber, callback) {
 
 4. **records 模块**（如果修改了）
    ```javascript
-   const records = require('./modules/records.js');
+   const records = require('./modules/db/records.js');
    // 测试回调模式
    records.get('block', (docs) => console.log(docs));
    // 测试 Promise 模式

@@ -11,21 +11,37 @@
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <!-- production version, optimized for size and speed -->
-    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
-    <script src="https://d3js.org/d3.v6.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.7/d3.layout.cloud.min.js"></script>
-    <script src="https://pulipulichen.github.io/jieba-js/jquery.js"></script>
-    <script src="https://pulipulichen.github.io/jieba-js/require-jieba-js.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.min.js"
+        integrity="sha384-YVYXhPGIH/Gmcr0W5Rin4PcpcsG1a4pcdUUod1CnbDEJut7XiUaJtSlNKeRLJBPk"
+        crossorigin="anonymous"></script>
+    <script src="https://d3js.org/d3.v6.min.js"
+        integrity="sha384-ma33ZEb8L5emtidZhYJFZNIFdht2E8f5wHQMKQGom0aIx9rRKm86XXCjGxOISpM9"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.7/d3.layout.cloud.min.js"
+        integrity="sha384-s1Bsf1o23cFYYlQji5SxPBE/qUsofzWPCQVsyoO1UvFr7+yAETg9xO6fVLLGB7SK"
+        crossorigin="anonymous"></script>
+    <script src="https://pulipulichen.github.io/jieba-js/jquery.js"
+        integrity="sha384-3ceskX3iaEnIogmQchP8opvBy3Mi7Ce34nWjpBIwVTHfGYWQS9jwHDVRnpKKHJg7"
+        crossorigin="anonymous"></script>
+    <script src="https://pulipulichen.github.io/jieba-js/require-jieba-js.js"
+        integrity="sha384-KktNPuLGKaDDot0DZ6TkS+r+Pdr4zBxSiM+Qus3rKAT8IKg5t/ohQ0FJra/I4RPa"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"
+        integrity="sha384-DRe+1gYJauFEenXeWS8TmYdBmDUqnR5Rcw7ax4KTqOxXWd4NAMP2VPU5H69U7yP9"
+        crossorigin="anonymous"></script>
     <title>Discord 聊天紀錄分析 @ HKTRPG</title>
     <link rel="stylesheet" href="css/app-shell.css">
     <script src="/common/www-i18n.js"></script>
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mobile-detect/1.4.4/mobile-detect.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mobile-detect/1.4.4/mobile-detect.min.js"
+        integrity="sha384-6ACnZyEZgwUvVf5e0sfP2uUkR1gBaqeAkv4zx60upEpBs0WCZ5NESxblmptfOdEb"
+        crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"
         integrity="sha512-nOQuvD9nKirvxDdvQ9OMqe2dgapbPB7vYAMrzJihw5m+aNcf0dX53m6YxM4LgA9u8e9eg9QX+/+mPu8kCNpV2A=="
         crossorigin="anonymous"></script>
-    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"
+        integrity="sha384-jQq64HqdQD5xg0PPkpkCOW3x8Nsfx5UT1qWOpoJxLYy6Ef+5i+8xPoAj/I3B+ZMm"
+        crossorigin="anonymous"></script>
     <!--https://blog.gtwang.org/programming/javascript-aes-symmetric-encryption-tutorial/-->
     <style>
         .center {
@@ -1815,10 +1831,9 @@
                     let inputText = $(that).val().toLowerCase();
                     if (inputText != '') {
                         $('.search-query-sf').remove();
-                        tableBody.prepend(
-                            '<tr class="search-query-sf"><td colspan="6"><strong>Searching for: "' +
-                            $(that).val() +
-                            '"</strong></td></tr>');
+                        const row = $('<tr class="search-query-sf"><td colspan="6"><strong></strong></td></tr>');
+                        row.find('strong').text('Searching for: "' + $(that).val() + '"');
+                        tableBody.prepend(row);
                     } else {
                         $('.search-query-sf').remove();
                     }

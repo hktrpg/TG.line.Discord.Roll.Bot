@@ -1,6 +1,6 @@
 "use strict";
 
-const schema = require('./schema.js');
+const schema = require('../db/schema.js');
 
 const PATREON_NOTES_PREFIX = "patreon:";
 

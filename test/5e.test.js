@@ -2,7 +2,7 @@
 
 const dnd5e = require('../roll/5e.js');
 const rollbase = require('../roll/rollbase.js');
-const i18n = require('../modules/i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
 
 // Mock Discord.js
 jest.mock('discord.js', () => ({

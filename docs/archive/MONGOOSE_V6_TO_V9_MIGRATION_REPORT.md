@@ -31,7 +31,7 @@
 ### 1. **records.js - 回调函数模式** (优先级: 中)
 
 **问题描述:**
-`modules/records.js` 中的方法使用回调函数模式，虽然不是 Mongoose 的回调，但为了代码质量和未来兼容性，建议改为 Promise。
+`modules/db/records.js` 中的方法使用回调函数模式，虽然不是 Mongoose 的回调，但为了代码质量和未来兼容性，建议改为 Promise。
 
 **影响范围:**
 - `updateRecord()` - 使用回调参数
@@ -123,7 +123,7 @@ mongoose.set('strictQuery', false);
 
 ### 中优先级（建议修复）
 1. **records.js 回调函数** - 建议改为 Promise 模式，同时保持向后兼容
-   - 文件: `modules/records.js`
+   - 文件: `modules/db/records.js`
    - 影响方法: `updateRecord`, `get`, `chatRoomGet`, 所有 `set*`/`push*` 方法
 
 ### 低优先级（可选优化）
@@ -207,8 +207,8 @@ mongoose.set('strictQuery', false);
 
 已检查的文件：
 - ✅ `modules/db-connector.js` - 连接配置
-- ✅ `modules/schema.js` - Schema 定义
-- ✅ `modules/records.js` - 数据库操作（需要改进）
+- ✅ `modules/db/schema.js` - Schema 定义
+- ✅ `modules/db/records.js` - 数据库操作（需要改进）
 - ✅ `modules/level.js` - 等级系统
 - ✅ `modules/discord_bot.js` - Discord 机器人
 - ✅ `modules/core-www.js` - Web 服务器

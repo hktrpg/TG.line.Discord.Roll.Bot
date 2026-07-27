@@ -1,17 +1,17 @@
 // Mock dependencies
-jest.mock('../modules/dbWatchdog.js', () => ({
+jest.mock('../modules/db/watchdog.js', () => ({
     isDbOnline: jest.fn(() => true),
     dbErrOccurs: jest.fn()
 }));
 
-jest.mock('../modules/check.js', () => ({
+jest.mock('../modules/chat/check.js', () => ({
     permissionErrMsg: jest.fn(() => null),
     flag: {
         ChkChannelAdmin: 1
     }
 }));
 
-jest.mock('../modules/level.js', () => ({
+jest.mock('../modules/chat/level.js', () => ({
     tempSwitchV2: [{
         groupid: 'testgroup',
         SwitchV2: true
@@ -20,7 +20,7 @@ jest.mock('../modules/level.js', () => ({
     invalidateGroupConfig: jest.fn()
 }));
 
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
     trpgLevelSystem: {
         findOne: jest.fn(),
         updateOne: jest.fn()
@@ -67,8 +67,8 @@ jest.mock('../roll/z_Level_system.js', () => {
 process.env.mongoURL = 'test_mongo_url';
 
 // Import dependencies
-const schema = require('../modules/schema.js');
-    const _checkTools = require('../modules/check.js');
+const schema = require('../modules/db/schema.js');
+    const _checkTools = require('../modules/chat/check.js');
 
 // Import module
 const levelModule = require('../roll/z_Level_system.js');

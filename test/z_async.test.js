@@ -23,18 +23,18 @@ jest.mock('@vitalets/google-translate-api', () => ({
   translate: jest.fn()
 }));
 
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
   translateChannel: {
     find: jest.fn(),
     findOneAndUpdate: jest.fn()
   }
 }));
 
-jest.mock('../modules/veryImportantPerson', () => ({
+jest.mock('../modules/patreon/veryImportantPerson', () => ({
   viplevelCheckGroup: jest.fn()
 }));
 
-jest.mock('../modules/translate', () => ({
+jest.mock('../modules/misc/translate', () => ({
   translateSwitchOn: jest.fn(),
   translateSwitchOff: jest.fn()
 }));
@@ -48,7 +48,7 @@ const _chineseConv = require('chinese-conv');
 const duckImage = require('@zetetic/duckduckgo-images-api');
 const wiki = require('wikijs').default;
 const translate = require('@vitalets/google-translate-api').translate;
-const i18n = require('../modules/i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
 const asyncModule = require('../roll/z_async_test.js');
 const rollbase = require('../roll/rollbase.js');
 

@@ -22,7 +22,7 @@ describe("records security and connection safeguards", () => {
             find: jest.fn().mockResolvedValue([])
         };
 
-        jest.doMock("../modules/schema.js", () => ({
+        jest.doMock("../modules/db/schema.js", () => ({
             chatRoom: chatRoomMock,
             groupSetting: genericCollection,
             forwardedMessage: {
@@ -35,7 +35,7 @@ describe("records security and connection safeguards", () => {
             }
         }));
 
-        jest.doMock("../modules/db-connector.js", () => ({
+        jest.doMock("../modules/db/connector.js", () => ({
             mongoose: { connection: { readyState } },
             connect: jest.fn().mockResolvedValue(),
             checkHealth: jest.fn().mockReturnValue({ isConnected })
@@ -44,14 +44,14 @@ describe("records security and connection safeguards", () => {
 
     test("get returns empty array for unknown collection", async () => {
         setupMocks({ readyState: 1, isConnected: true });
-        const records = require("../modules/records.js");
+        const records = require("../modules/db/records.js");
         const result = await records.get("unknownCollection");
         expect(result).toEqual([]);
     });
 
     test("chatRoomPush rejects suspicious script payloads", async () => {
         setupMocks();
-        const records = require("../modules/records.js");
+        const records = require("../modules/db/records.js");
 
         await expect(records.chatRoomPush({
             name: "tester",

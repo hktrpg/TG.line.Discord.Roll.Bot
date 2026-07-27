@@ -3,18 +3,18 @@ const path = require('node:path');
 const fs = require('node:fs');
 const { SlashCommandBuilder } = require('discord.js');
 const axios = require('axios').default;
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 
 // Optional persistence via Mongo (gracefully degrade if unavailable)
 let db = {};
 try {
-    db = require('../modules/schema.js') || {};
+    db = require('../modules/db/schema.js') || {};
 } catch {
     db = {};
 }
 let VIP = {};
 try {
-    VIP = require('../modules/veryImportantPerson.js');
+    VIP = require('../modules/patreon/veryImportantPerson.js');
 } catch {
     VIP = {};
 }

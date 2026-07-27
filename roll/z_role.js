@@ -4,10 +4,10 @@ if (!process.env.mongoURL) {
 }
 const { SlashCommandBuilder } = require('discord.js');
 const emojiRegex = require('emoji-regex');
-const VIP = require('../modules/veryImportantPerson');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const VIP = require('../modules/patreon/veryImportantPerson');
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const FUNCTION_LIMIT = [3, 10, 50, 200, 200, 200, 200, 200];
-const schema = require('../modules/schema.js');
+const schema = require('../modules/db/schema.js');
 let regextemp = emojiRegex().toString();
 const regex = regextemp.replace(/^\//, '').replace(/\/g$/, '')
 //https://www.npmjs.com/package/emoji-regex

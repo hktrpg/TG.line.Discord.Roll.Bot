@@ -174,9 +174,24 @@ function loadAllOverlayResourceBundles() {
 }
 
 function createTranslator(locale) {
-    const fixedT = i18next.getFixedT(toI18nextLng(locale));
+    const lng = toI18nextLng(locale);
     const bothelp = getBothelpUrl(locale);
-    return (key, options = {}) => fixedT(key, { bothelp, ...options });
+    return (key, options = {}) => {
+        const text = i18next.getFixedT(lng)(key, { bothelp, ...options });
+        // Before i18next.init(), getFixedT returns undefined for every key.
+        // Never let that leak into replies as the literal string "undefined".
+        if (text === undefined || text === null) {
+            if (!initialized) {
+                return typeof key === 'string' ? key : '';
+            }
+            const fallback = i18next.getFixedT(toI18nextLng(DEFAULT_LOCALE))(key, { bothelp, ...options });
+            if (fallback !== undefined && fallback !== null) {
+                return fallback;
+            }
+            return typeof key === 'string' ? key : '';
+        }
+        return text;
+    };
 }
 
 function t(key, options = {}) {

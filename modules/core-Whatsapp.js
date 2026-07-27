@@ -33,7 +33,7 @@ const wwebjsAuthRoot = process.env.WWEBJS_AUTH_DATA_PATH
 const {
 	Client, LocalAuth, MessageMedia
 } = require('whatsapp-web.js');
-const isImageURL = require('image-url-validator').default;
+const isImageURL = require('../utils/is-image-url.js');
 const candle = require('../modules/candleDays.js');
 const agenda = require('../modules/schedule')
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
@@ -127,11 +127,10 @@ function killLingeringChromeForSession() {
 	if (process.platform !== 'linux') return;
 
 	const sessionDir = path.join(wwebjsAuthRoot, 'session');
-	const escapedSessionDir = sessionDir.replaceAll("'", `'\\''`);
-	const killBySessionCommand = `pkill -f '--user-data-dir=${escapedSessionDir}' || true`;
 
+	// Avoid shell interpolation: pass argv arrays to spawnSync.
 	try {
-		spawnSync('sh', ['-c', killBySessionCommand], { stdio: 'ignore' });
+		spawnSync('pkill', ['-f', `--user-data-dir=${sessionDir}`], { stdio: 'ignore' });
 	} catch (error) {
 		console.error('[WhatsApp] Failed to kill lingering chrome by session path:', error.message);
 	}
@@ -139,7 +138,7 @@ function killLingeringChromeForSession() {
 	// Fallback: kill common chromium processes in this container.
 	// This process only runs inside the bot container, so scope is acceptable.
 	try {
-		spawnSync('sh', ['-c', "pkill -f 'chromium|chrome_crashpad|google-chrome' || true"], { stdio: 'ignore' });
+		spawnSync('pkill', ['-f', 'chromium|chrome_crashpad|google-chrome'], { stdio: 'ignore' });
 	} catch (error) {
 		console.error('[WhatsApp] Failed to kill lingering chromium processes:', error.message);
 	}

@@ -1,0 +1,14 @@
+name: "HKTRPG CodeQL config"
+
+paths-ignore:
+  - 'views/**/*test*.html'
+  - 'views/hybrid-*.html'
+  - 'views/modern-test.html'
+  - 'views/test-optimization.html'
+  - 'views/cardtest-*.html'
+  - 'views/characterCard-test.html'
+  - 'views/autocomplete-test.html'
+  - 'coverage/**'
+  - 'temp/**'
+  - 'log/**'
+  - 'test/**'

@@ -181,6 +181,20 @@ function isRecoverableWhatsAppLocalAuthBusyFileError(reason) {
         errorMessage.includes('CrashpadMetrics-active.pma');
 }
 
+/**
+ * Application bugs (e.g. "x is not a function") should be logged, not take down the process.
+ * @param {unknown} reason
+ */
+function isNonFatalApplicationError(reason) {
+    if (!reason) return false;
+    const name = reason.name || (reason.constructor && reason.constructor.name) || '';
+    if (name === 'TypeError' || name === 'ReferenceError' || name === 'RangeError' || name === 'SyntaxError') {
+        return true;
+    }
+    const errorMessage = reason.message || String(reason);
+    return /is not a function|Cannot read propert|is not defined|Cannot set propert/i.test(errorMessage);
+}
+
 // Unified Error Handler
 const errorHandler = (error, context) => {
     logger.error(`Error in ${context}:`, {
@@ -524,7 +538,7 @@ async function init() {
             }
 
             // Check if it's a database-related error
-            if (reason.message && (
+            if (reason?.message && (
                 reason.message.includes('MongoDB') ||
                 reason.message.includes('bad auth') ||
                 reason.message.includes('Authentication failed') ||
@@ -538,8 +552,8 @@ async function init() {
             }
 
             // Check if it's an IPC error during shutdown (expected behavior)
-            const errorCode = reason.code || '';
-            const errorMessage = reason.message || String(reason);
+            const errorCode = reason?.code || '';
+            const errorMessage = reason?.message || String(reason);
             if (errorCode === 'EPIPE' || errorCode === 'ERR_IPC_CHANNEL_CLOSED' ||
                 errorCode === 'ERR_IPC_DISCONNECTED' || errorCode === 'ECONNRESET' ||
                 errorMessage.includes('EPIPE') || errorMessage.includes('Channel closed') ||
@@ -551,16 +565,16 @@ async function init() {
                 return;
             }
 
-            errorHandler(reason, 'Unhandled Promise Rejection');
-            // Only close the application for non-database and non-shutdown IPC errors
-            if (!reason.message || (!reason.message.includes('MongoDB') &&
-                !(errorCode === 'EPIPE' || errorCode === 'ERR_IPC_CHANNEL_CLOSED' ||
-                  errorCode === 'ERR_IPC_DISCONNECTED' || errorCode === 'ECONNRESET' ||
-                  errorMessage.includes('EPIPE') || errorMessage.includes('Channel closed') ||
-                  errorMessage.includes('IPC') || errorMessage.includes('disconnected') ||
-                  errorMessage.includes('Connection lost') || errorMessage.includes('socket hang up')))) {
-                gracefulShutdown(moduleManager);
+            // App bugs (e.g. TypeError: translate is not a function) — log only, keep serving
+            if (isNonFatalApplicationError(reason)) {
+                console.error('[System] Application error in unhandledRejection — logging only, will NOT shutdown');
+                errorHandler(reason, 'Unhandled Promise Rejection (non-fatal)');
+                return;
             }
+
+            errorHandler(reason, 'Unhandled Promise Rejection');
+            // Default: log and continue. A single rejected promise must not take down Discord/TG/Line bots.
+            console.error('[System] Unhandled rejection logged; process will continue (no shutdown)');
         });
 
         const endTime = process.hrtime(startTime);

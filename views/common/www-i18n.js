@@ -84,6 +84,36 @@ class WwwI18n {
         return text;
     }
 
+    /**
+     * Parse HTML, strip dangerous tags/attrs, then set as element children.
+     * @param {Element} el
+     * @param {string} html
+     */
+    setTrustedHtml(el, html) {
+        if (!el) return;
+        const doc = new DOMParser().parseFromString(String(html ?? ''), 'text/html');
+        const body = doc.body;
+        for (const bad of body.querySelectorAll('script,iframe,object,embed,link,style')) {
+            bad.remove();
+        }
+        for (const node of body.querySelectorAll('*')) {
+            const toRemove = [];
+            for (let i = 0; i < node.attributes.length; i++) {
+                const attr = node.attributes.item(i);
+                if (!attr) continue;
+                const name = attr.name.toLowerCase();
+                const value = (attr.value || '').trim().toLowerCase();
+                if (name.startsWith('on') || value.startsWith('javascript:')) {
+                    toRemove.push(attr.name);
+                }
+            }
+            for (const name of toRemove) {
+                node.removeAttribute(name);
+            }
+        }
+        el.replaceChildren(...[...body.childNodes].map((n) => document.importNode(n, true)));
+    }
+
     applyDomI18n(root) {
         if (!root) return;
         const t = (key, options) => this.t(key, options);
@@ -96,7 +126,7 @@ class WwwI18n {
         for (const el of root.querySelectorAll('[data-www-i18n-html]')) {
             const key = el.getAttribute('data-www-i18n-html');
             if (!key) continue;
-            el.innerHTML = t(key);
+            this.setTrustedHtml(el, t(key));
         }
         for (const el of root.querySelectorAll('[data-www-i18n-placeholder]')) {
             const key = el.getAttribute('data-www-i18n-placeholder');

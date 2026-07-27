@@ -619,7 +619,11 @@ class OpenAI {
         const { type } = this.retryManager.getErrorType(error);
 
         if (type === 'UNAUTHORIZED') {
-            console.error('Removing unauthorized API key:', this.apiKeys[this.currentApiKeyIndex]);
+            const removed = this.apiKeys[this.currentApiKeyIndex];
+            const keyHint = removed && removed.apiKey
+                ? `${String(removed.apiKey).slice(0, 4)}…`
+                : 'unknown';
+            console.error('Removing unauthorized API key at index', this.currentApiKeyIndex, 'hint:', keyHint);
             this.apiKeys.splice(this.currentApiKeyIndex, 1);
             if (this.currentApiKeyIndex >= this.apiKeys.length) {
                 this.currentApiKeyIndex = 0;

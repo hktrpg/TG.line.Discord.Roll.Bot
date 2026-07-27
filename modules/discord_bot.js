@@ -4,8 +4,8 @@ const fs = require('node:fs');
 
 const { ClusterClient, getInfo, AutoResharderClusterClient } = require('discord-hybrid-sharding');
 const Discord = require('discord.js');
-const isImageURL = require('image-url-validator').default;
 const WebSocket = require('ws');
+const isImageURL = require('../utils/is-image-url.js');
 
 const candle = require('../modules/candleDays.js');
 const records = require('../modules/records.js');

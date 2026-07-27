@@ -102,6 +102,10 @@ class RollContext {
 const parseInput = async (params) => {
 	const context = new RollContext(params);
 
+	// Always finish i18n load before translating — otherwise t() returns undefined
+	// and replies become the literal string "undefined" (e.g. COC `cc`).
+	await i18n.init();
+
 	if (!params.locale) {
 		const channelType = params.discordMessage?.channel?.type;
 		context.locale = await i18n.resolveLocale({
@@ -110,8 +114,9 @@ const parseInput = async (params) => {
 			channelType,
 			botname: context.botname
 		});
-		context.t = i18n.createTranslator(context.locale);
 	}
+	// Recreate translator after init (params.t may have been built too early).
+	context.t = i18n.createTranslator(context.locale);
 
 	let result = {
 		text: '',

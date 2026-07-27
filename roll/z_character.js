@@ -429,6 +429,7 @@ function handleRequestRollingChMode(doc) {
 }
 
 async function mainCharacter(doc, mainMsg, inputStr, translate) {
+    translate = typeof translate === 'function' ? translate : getT({});
     let tempMsg = await replacePlaceholders(mainMsg, inputStr, doc);
     mainMsg = tempMsg.split(/\s+/);
     mainMsg.shift();

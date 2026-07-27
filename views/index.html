@@ -4238,21 +4238,25 @@
                 const container = document.getElementById('quickInputButtons');
                 if (!container) return; // 如果元素不存在，直接返回
 
-                // 渲染固定選項
-                const fixedButtons = fixedCommands.map(cmd => `
-                    <button class="pad-button" onclick="quickInputPad.sendCommand('${cmd}')">
-                        ${cmd}
-                    </button>
-                `).join('');
+                container.replaceChildren();
 
-                // 渲染自訂指令
-                const customButtons = customCommands.map(cmd => `
-                    <button class="pad-button custom-command" onclick="quickInputPad.sendCommand('${cmd}')">
-                        ${cmd}
-                    </button>
-                `).join('');
+                const appendButton = (cmd, isCustom) => {
+                    const button = document.createElement('button');
+                    button.className = isCustom ? 'pad-button custom-command' : 'pad-button';
+                    button.textContent = cmd;
+                    button.dataset.cmd = cmd;
+                    button.addEventListener('click', () => {
+                        quickInputPad.sendCommand(button.dataset.cmd);
+                    });
+                    container.appendChild(button);
+                };
 
-                container.innerHTML = fixedButtons + customButtons;
+                for (const cmd of fixedCommands) {
+                    appendButton(cmd, false);
+                }
+                for (const cmd of customCommands) {
+                    appendButton(cmd, true);
+                }
             },
 
             sendCommand: (command) => {
@@ -4484,22 +4488,55 @@
                 // 保持順序：默認房 -> 個人小屋 -> 其他
                 const rooms = [CONFIG.DEFAULT_ROOM, CONFIG.PERSONAL_ROOM, ...Array.from(chatroomManager.rooms).filter(r => r !== CONFIG.DEFAULT_ROOM && r !== CONFIG.PERSONAL_ROOM).sort()];
 
-                container.innerHTML = rooms.map(room => `
-                    <div class="chatroom-item ${room === chatroomManager.currentRoom ? 'active' : ''}"
-                         onclick="chatroomManager.switchRoom('${room}')">
-                        <span class="iconify" data-icon="bi:chat-dots"></span>
-                        <span class="room-name">${roomDisplayName(room)}</span>
-                        ${room === CONFIG.PERSONAL_ROOM ? `
-                            <button class=\"delete-btn\" title=\"${rt('roll_clear_content_title') || '清空內容'}\" onclick=\"event.stopPropagation(); chatroomManager.confirmAndClearPersonalRoom()\">
-                                <span class="iconify" data-icon="bi:x"></span>
-                            </button>
-                        ` : (room !== CONFIG.DEFAULT_ROOM ? `
-                            <button class="delete-btn" onclick="event.stopPropagation(); chatroomManager.removeRoom('${room}')">
-                                <span class="iconify" data-icon="bi:x"></span>
-                            </button>
-                        ` : '')}
-                    </div>
-                `).join('');
+                container.replaceChildren();
+
+                for (const room of rooms) {
+                    const item = document.createElement('div');
+                    item.className = 'chatroom-item' + (room === chatroomManager.currentRoom ? ' active' : '');
+                    item.dataset.room = room;
+
+                    const icon = document.createElement('span');
+                    icon.className = 'iconify';
+                    icon.dataset.icon = 'bi:chat-dots';
+
+                    const name = document.createElement('span');
+                    name.className = 'room-name';
+                    name.textContent = roomDisplayName(room);
+
+                    item.append(icon, name);
+                    item.addEventListener('click', () => {
+                        chatroomManager.switchRoom(item.dataset.room);
+                    });
+
+                    if (room === CONFIG.PERSONAL_ROOM) {
+                        const btn = document.createElement('button');
+                        btn.className = 'delete-btn';
+                        btn.title = rt('roll_clear_content_title') || '清空內容';
+                        const btnIcon = document.createElement('span');
+                        btnIcon.className = 'iconify';
+                        btnIcon.dataset.icon = 'bi:x';
+                        btn.appendChild(btnIcon);
+                        btn.addEventListener('click', (event) => {
+                            event.stopPropagation();
+                            chatroomManager.confirmAndClearPersonalRoom();
+                        });
+                        item.appendChild(btn);
+                    } else if (room !== CONFIG.DEFAULT_ROOM) {
+                        const btn = document.createElement('button');
+                        btn.className = 'delete-btn';
+                        const btnIcon = document.createElement('span');
+                        btnIcon.className = 'iconify';
+                        btnIcon.dataset.icon = 'bi:x';
+                        btn.appendChild(btnIcon);
+                        btn.addEventListener('click', (event) => {
+                            event.stopPropagation();
+                            chatroomManager.removeRoom(item.dataset.room);
+                        });
+                        item.appendChild(btn);
+                    }
+
+                    container.appendChild(item);
+                }
             },
 
             confirmAndClearPersonalRoom: () => {

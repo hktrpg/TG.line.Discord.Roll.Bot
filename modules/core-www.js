@@ -46,6 +46,25 @@ function getSocketT(socket) {
     return i18n.createTranslator(socket?._hktrpgLocale || i18n.DEFAULT_LOCALE);
 }
 
+/**
+ * Wrap async socket handlers so rejections are logged instead of becoming
+ * process-level unhandledRejection (which used to shut down the whole bot).
+ * @param {string} eventName
+ * @param {(...args: unknown[]) => Promise<unknown>|unknown} handler
+ */
+function safeSocketHandler(eventName, handler) {
+    return async (...args) => {
+        try {
+            await handler(...args);
+        } catch (error) {
+            console.error(`[Web Server] socket '${eventName}' error:`, error?.message || error);
+            if (error?.stack) {
+                console.error(error.stack.split('\n').slice(0, 10).join('\n'));
+            }
+        }
+    };
+}
+
 function flattenI18nSection(section, prefix, output) {
     if (!section || typeof section !== 'object') {
         return;
@@ -167,6 +186,27 @@ const checkRateLimit = async (type, address) => {
     } catch {
         return true;
     }
+};
+
+/**
+ * Express middleware form recognized by CodeQL (rate-limiter-flexible + req.ip + next).
+ * @param {keyof typeof rateLimitConfig} type
+ * @param {{ json?: boolean }} [options]
+ */
+const rateLimitBy = (type, options = {}) => (req, res, next) => {
+    rateLimits[type].consume(req.ip)
+        .then(() => next())
+        .catch(() => {
+            if (res.headersSent) return;
+            if (options.json) {
+                const t = typeof getWwwT === 'function' ? getWwwT(req) : null;
+                res.status(429).json({
+                    error: t ? t('www.patreon.too_many_requests') : 'Too Many Requests'
+                });
+                return;
+            }
+            res.status(429).end();
+        });
 };
 
 // ============= SSL Configuration =============
@@ -302,8 +342,16 @@ www.use('/image', express.static(path.join(process.cwd(), 'views/image'), {
     maxAge: '7d'
 }));
 
-async function handleApiRequest(req, res) {
-    if (!APIswitch || await limitRaterApi(req.ip)) return;
+async function handleApiRequest(req, res, { skipIpLimit = false } = {}) {
+    if (!APIswitch) {
+        return;
+    }
+    if (!skipIpLimit && await limitRaterApi(req.ip)) {
+        if (!res.headersSent) {
+            res.status(429).end();
+        }
+        return;
+    }
 
     if (
         !req || !req.query || !req.query.msg
@@ -316,7 +364,16 @@ async function handleApiRequest(req, res) {
     let ip = req.headers['x-forwarded-for'] ||
         req.socket.remoteAddress ||
         null;
-    if (ip && await limitRaterApi(ip)) return;
+    // Prefer first hop when multiple proxies append to X-Forwarded-For
+    if (typeof ip === 'string' && ip.includes(',')) {
+        ip = ip.split(',')[0].trim();
+    }
+    if (ip && ip !== req.ip && await limitRaterApi(ip)) {
+        if (!res.headersSent) {
+            res.status(429).end();
+        }
+        return;
+    }
     let rplyVal = {};
     let trigger = '';
     let mainMsg = req.query.msg.match(MESSAGE_SPLITOR); // 定義輸入字串
@@ -410,17 +467,12 @@ www.get('/', async (req, res) => {
     // Default: original behavior (www.hktrpg.com, localhost, 127.0.0.1, others)
     res.sendFile(process.cwd() + '/views/index.html');
 });
-www.get('/api', async (req, res) => {
-    await handleApiRequest(req, res);
+www.get('/api', rateLimitBy('api'), async (req, res) => {
+    await handleApiRequest(req, res, { skipIpLimit: true });
 });
 
 // Local bot endpoint for personal room (no broadcasting/records)
-www.get('/api/local', async (req, res) => {
-    if (await checkRateLimit('api', req.ip)) {
-        res.status(429).end();
-        return;
-    }
-
+www.get('/api/local', rateLimitBy('api'), async (req, res) => {
     try {
         const q = (req && req.query && typeof req.query.msg === 'string') ? req.query.msg : '';
         if (!q) {
@@ -451,12 +503,7 @@ www.get('/api/local', async (req, res) => {
     }
 });
 
-www.get('/api/dice-commands', async (req, res) => {
-    if (await checkRateLimit('api', req.ip)) {
-        res.status(429).end();
-        return;
-    }
-
+www.get('/api/dice-commands', rateLimitBy('api'), async (req, res) => {
     await i18n.init();
     const locale = resolveWwwLocale(req);
     const t = i18n.createTranslator(locale);
@@ -1663,12 +1710,8 @@ www.get('/patreon', async (req, res) => {
     res.sendFile(path.join(process.cwd(), 'views', 'patreon.html'));
 });
 
-www.post('/api/patreon/validate', async (req, res) => {
+www.post('/api/patreon/validate', rateLimitBy('patreon', { json: true }), async (req, res) => {
     const t = getWwwT(req);
-    if (await checkRateLimit('patreon', req.ip)) {
-        res.status(429).json({ error: t('www.patreon.too_many_requests') });
-        return;
-    }
     try {
         const key = getPatreonKeyFromRequest(req);
         const member = await findPatreonMemberByKey(key);
@@ -1683,12 +1726,8 @@ www.post('/api/patreon/validate', async (req, res) => {
     }
 });
 
-www.get('/api/patreon/me', async (req, res) => {
+www.get('/api/patreon/me', rateLimitBy('patreon', { json: true }), async (req, res) => {
     const t = getWwwT(req);
-    if (await checkRateLimit('patreon', req.ip)) {
-        res.status(429).json({ error: t('www.patreon.too_many_requests') });
-        return;
-    }
     try {
         const key = getPatreonKeyFromRequest(req);
         const member = await findPatreonMemberByKey(key);
@@ -1703,13 +1742,9 @@ www.get('/api/patreon/me', async (req, res) => {
     }
 });
 
-www.put('/api/patreon/me/slots', async (req, res) => {
+www.put('/api/patreon/me/slots', rateLimitBy('patreon', { json: true }), async (req, res) => {
     const locale = resolveWwwLocale(req);
     const t = getWwwT(req);
-    if (await checkRateLimit('patreon', req.ip)) {
-        res.status(429).json({ error: t('www.patreon.too_many_requests') });
-        return;
-    }
     try {
         const key = getPatreonKeyFromRequest(req);
         const member = await findPatreonMemberByKey(key);
@@ -1757,12 +1792,8 @@ www.put('/api/patreon/me/slots', async (req, res) => {
     }
 });
 
-www.patch('/api/patreon/me/slot/:index', async (req, res) => {
+www.patch('/api/patreon/me/slot/:index', rateLimitBy('patreon', { json: true }), async (req, res) => {
     const t = getWwwT(req);
-    if (await checkRateLimit('patreon', req.ip)) {
-        res.status(429).json({ error: t('www.patreon.too_many_requests') });
-        return;
-    }
     try {
         const key = getPatreonKeyFromRequest(req);
         const member = await findPatreonMemberByKey(key);
@@ -1816,12 +1847,7 @@ www.patch('/api/patreon/me/slot/:index', async (req, res) => {
     }
 });
 
-www.get('/log/:id', async (req, res) => {
-    if (await checkRateLimit('api', req.ip)) {
-        res.status(429).end();
-        return;
-    }
-
+www.get('/log/:id', rateLimitBy('api'), async (req, res) => {
     if (req.originalUrl.endsWith('html')) {
         // Sanitize and validate the file path
         const logPath = path.resolve(exportBaseDir, req.params.id);
@@ -1894,10 +1920,15 @@ if (io) {
     });
 
     io.on('connection', async (socket) => {
+        try {
+            await i18n.init();
+        } catch (error) {
+            console.error('[Web Server] i18n init failed:', error.message);
+        }
         socket._hktrpgLocale = i18n.normalizeLocale(
             socket.handshake.query?.lang || socket.handshake.headers?.['accept-language']?.split(',')[0]
         );
-        socket.on('getListInfo', async message => {
+        socket.on('getListInfo', safeSocketHandler('getListInfo', async message => {
             const t = getSocketT(socket);
             // Use cardRead limit for list info (less restrictive)
             if (await limitRaterCardRead(socket.handshake.address)) return;
@@ -2003,9 +2034,9 @@ if (io) {
                 console.error('[Web Server] 🔒 getListInfo error:', error.message);
                 socket.emit('getListInfo', { temp: null, id: [] });
             }
-        })
+        }))
 
-        socket.on('getPublicListInfo', async () => {
+        socket.on('getPublicListInfo', safeSocketHandler('getPublicListInfo', async () => {
             // Public list info is read-only, use less restrictive limit
             if (await limitRaterCardRead(socket.handshake.address)) return;
             //回傳 message 給發送訊息的 Client
@@ -2021,13 +2052,13 @@ if (io) {
                 console.error('[Web Server] MongoDB error:', error.name, error.reason)
             }
 
-        })
+        }))
 
-        socket.on('publicRolling', async message => {
+        socket.on('publicRolling', safeSocketHandler('publicRolling', async message => {
             if (await limitRaterChatRoom(socket.handshake.address)) return;
             if (!message.item || !message.doc) return;
             let rplyVal = {}
-            let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`)
+            let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`, getSocketT(socket))
             if (result && result.characterReRoll) {
                 rplyVal = await exports.analytics.parseInput({
                     inputStr: result.characterReRollItem,
@@ -2042,12 +2073,12 @@ if (io) {
             if (rplyVal && rplyVal.text) {
                 socket.emit('publicRolling', result.characterReRollName + '：\n' + rplyVal.text)
             }
-        })
-        socket.on('rolling', async message => {
+        }))
+        socket.on('rolling', safeSocketHandler('rolling', async message => {
             if (await limitRaterChatRoom(socket.handshake.address)) return;
             if (!message.item || !message.doc) return;
             let rplyVal = {}
-            let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`)
+            let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`, getSocketT(socket))
             if (result && result.characterReRoll) {
                 rplyVal = await exports.analytics.parseInput({
                     inputStr: result.characterReRollItem,
@@ -2185,9 +2216,9 @@ if (io) {
                     }
                 }
             }
-        })
+        }))
 
-        socket.on('removeChannel', async message => {
+        socket.on('removeChannel', safeSocketHandler('removeChannel', async message => {
             const t = getSocketT(socket);
             if (await limitRaterCard(socket.handshake.address)) return;
             //回傳 message 給發送訊息的 Client
@@ -2242,9 +2273,9 @@ if (io) {
                 socket.emit('removeChannel', { success: false, message: t('www.socket.db_error_detail', { message: error.message }) });
             }
 
-        })
+        }))
 
-        socket.on('updateCard', async message => {
+        socket.on('updateCard', safeSocketHandler('updateCard', async message => {
             if (await limitRaterCard(socket.handshake.address)) return;
 
             try {
@@ -2317,7 +2348,7 @@ if (io) {
                 console.error('[Web Server] 🔒 updateCard error:', error.message);
                 socket.emit('updateCard', false);
             }
-        })
+        }))
 
 
 
@@ -2342,7 +2373,7 @@ if (io) {
             socket.emit("greet", onlineCount);
         });
 
-        socket.on("send", async (msg) => {
+        socket.on("send", safeSocketHandler('send', async (msg) => {
             if (await limitRaterChatRoom(socket.handshake.address)) return;
 
             // 🔒 使用安全的輸入驗證
@@ -2374,9 +2405,9 @@ if (io) {
             };
 
             records.chatRoomPush(payload);
-        });
+        }));
 
-        socket.on("newRoom", async (msg) => {
+        socket.on("newRoom", safeSocketHandler('newRoom', async (msg) => {
             if (await limitRaterChatRoom(socket.handshake.address)) return;
             // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
             // 因此我們直接 return ，終止函式執行。
@@ -2392,7 +2423,7 @@ if (io) {
                 }
             }, 150);
 
-        });
+        }));
 
         socket.on('disconnect', () => {
             // 有人離線了，扣人
@@ -2403,37 +2434,44 @@ if (io) {
 }
 
 records.on("new_message", async (message) => {
-    // 廣播訊息到聊天室
-    if (message.msg && /^HKTRPG/ig.test(message.name)) {
-        return;
-    }
+    try {
+        // 廣播訊息到聊天室
+        if (message.msg && /^HKTRPG/ig.test(message.name)) {
+            return;
+        }
 
-    io.emit(message.roomNumber, message);
-    let rplyVal = {}
-    let trigger = '';
-    let mainMsg = message.msg.match(MESSAGE_SPLITOR); // 定義輸入字串
-    if (mainMsg && mainMsg[0])
-        trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
+        io.emit(message.roomNumber, message);
+        let rplyVal = {}
+        let trigger = '';
+        let mainMsg = message.msg.match(MESSAGE_SPLITOR); // 定義輸入字串
+        if (mainMsg && mainMsg[0])
+            trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
-    // 訊息來到後, 會自動跳到analytics.js進行骰組分析
-    // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-    if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-        rplyVal = await exports.analytics.parseInput({
-            inputStr: mainMsg.join(' '),
-            botname: "WWW"
-        })
-
-    } else {
-        if (channelKeyword == '') {
+        // 訊息來到後, 會自動跳到analytics.js進行骰組分析
+        // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+        if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
             rplyVal = await exports.analytics.parseInput({
                 inputStr: mainMsg.join(' '),
                 botname: "WWW"
             })
+
+        } else {
+            if (channelKeyword == '') {
+                rplyVal = await exports.analytics.parseInput({
+                    inputStr: mainMsg.join(' '),
+                    botname: "WWW"
+                })
+            }
         }
-    }
-    if (rplyVal && rplyVal.text) {
-        rplyVal.text = '\n' + rplyVal.text
-        loadb(io, records, rplyVal, message);
+        if (rplyVal && rplyVal.text) {
+            rplyVal.text = '\n' + rplyVal.text
+            loadb(io, records, rplyVal, message);
+        }
+    } catch (error) {
+        console.error('[Web Server] new_message handler error:', error?.message || error);
+        if (error?.stack) {
+            console.error(error.stack.split('\n').slice(0, 10).join('\n'));
+        }
     }
 });
 

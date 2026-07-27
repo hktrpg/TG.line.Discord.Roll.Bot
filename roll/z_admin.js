@@ -1755,10 +1755,17 @@ function generatePatreonKey() {
     const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     const SEGMENT_LEN = 4;
     const SEGMENTS = 4;
+    const total = SEGMENT_LEN * SEGMENTS;
+    // Rejection sampling avoids modulo bias (256 is not divisible by 36).
+    const maxUnbiased = 256 - (256 % CHARS.length);
     let out = '';
-    const bytes = crypto.randomBytes(SEGMENT_LEN * SEGMENTS);
-    for (let i = 0; i < bytes.length; i++) {
-        out += CHARS[bytes[i] % CHARS.length];
+    while (out.length < total) {
+        const bytes = crypto.randomBytes(total - out.length);
+        for (const byte of bytes) {
+            if (byte >= maxUnbiased) continue;
+            out += CHARS[byte % CHARS.length];
+            if (out.length >= total) break;
+        }
     }
     const parts = [];
     for (let s = 0; s < SEGMENTS; s++) {

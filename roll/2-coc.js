@@ -383,23 +383,23 @@ const rollDiceCommand = async function ({
 			rply.quotes = true;
 			break;
 		}
-		case (trigger == 'cc' && mainMsg[1] !== null): {
+		case (trigger == 'cc' && mainMsg[1] != null && String(mainMsg[1]).trim() !== ''): {
 			rply.text = await coc7({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, userName: tgDisplayname || displaynameDiscord || displayname, translate });
 			break;
 		}
-		case (trigger == 'cc1' && mainMsg[1] !== null): {
+		case (trigger == 'cc1' && mainMsg[1] != null && String(mainMsg[1]).trim() !== ''): {
 			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 1, userName: tgDisplayname || displaynameDiscord || displayname, translate });
 			break;
 		}
-		case (trigger == 'cc2' && mainMsg[1] !== null): {
+		case (trigger == 'cc2' && mainMsg[1] != null && String(mainMsg[1]).trim() !== ''): {
 			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: 2, userName: tgDisplayname || displaynameDiscord || displayname, translate });
 			break;
 		}
-		case (trigger == 'ccn1' && mainMsg[1] !== null): {
+		case (trigger == 'ccn1' && mainMsg[1] != null && String(mainMsg[1]).trim() !== ''): {
 			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -1, userName: tgDisplayname || displaynameDiscord || displayname, translate });
 			break;
 		}
-		case (trigger == 'ccn2' && mainMsg[1] !== null): {
+		case (trigger == 'ccn2' && mainMsg[1] != null && String(mainMsg[1]).trim() !== ''): {
 			rply.text = await coc7bp({ chack: mainMsg[1], text: mainMsg[2], userid, groupid, channelid, bpdiceNum: -2, userName: tgDisplayname || displaynameDiscord || displayname, translate });
 			break;
 		}
@@ -1462,10 +1462,13 @@ async function coc7({ chack, text = "", userid, groupid, channelid, userName, tr
 	let result = '';
 	let temp = rollbase.Dice(100);
 	let skillPerStyle = "";
-	let check = chack.split(',');
-	let name = text.split(',');
-	let checkNum = !check.some(i => !Number.isInteger(Number(i)));
-	if (!checkNum) return;
+	const check = String(chack ?? '').split(',');
+	const name = String(text ?? '').split(',');
+	const checkNum = check.every(i => {
+		const trimmed = String(i).trim();
+		return trimmed !== '' && Number.isInteger(Number(trimmed));
+	});
+	if (!checkNum) return '';
 	if (check.length >= 2) result += t('coc.combined_check');
 	for (let index = 0; index < check.length; index++) {
 		switch (true) {
@@ -1508,7 +1511,7 @@ async function coc7({ chack, text = "", userid, groupid, channelid, userName, tr
 				break;
 		}
 
-		if (text[index]) result += t('coc.check_name_suffix', { name: name[index] || '' });
+		if (name[index]) result += t('coc.check_name_suffix', { name: name[index] || '' });
 		result += '\n\n'
 		if (userid && groupid && skillPerStyle !== "failure") {
 			await dpRecorder({ userID: userid, groupid, channelid, skillName: name[index], skillPer: check[index], skillPerStyle, skillResult: temp, userName });

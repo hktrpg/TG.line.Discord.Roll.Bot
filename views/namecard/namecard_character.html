@@ -8,12 +8,20 @@
     <title data-www-i18n="ncard_page_title">TRPG 角色卡</title>
     <script src="/common/www-i18n.js"></script>
     <meta name="description" data-www-i18n-content="ncard_meta_description" content="HKTRPG - TRPG 角色卡 - 透過網頁快速製作 TRPG 角色卡">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
+        integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4"
+        crossorigin="anonymous"></script>
     <!-- NEW: Include SortableJS library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"
+        integrity="sha384-eeLEhtwdMwD3X9y+8P3Cn7Idl/M+w8H4uZqkgD/2eJVkWIN1yKzEj6XegJ9dL3q0"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+        integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7"
+        crossorigin="anonymous">
     <!-- NEW: Include html2canvas library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+        integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H"
+        crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rampart+One&family=Noto+Sans+TC:wght@400&display=swap"
@@ -1208,7 +1216,7 @@
                         `<div draggable="true" class="draggable">
           <input type="text" class="attr-key" value="${escapeHtml(attr.key)}">
           : <input type="text" class="attr-value" value="${escapeHtml(attr.value)}">
-          <button onclick="removeAttr('${escapeHtml(attr.key)}')" class="btn-remove">${nc('btn_remove')}</button>
+          <button type="button" class="btn-remove" data-action="remove-attr" data-key="${escapeHtml(attr.key)}">${nc('btn_remove')}</button>
         </div>`
                     ).join('')}
       </div>
@@ -1242,7 +1250,7 @@
                         `<div draggable="true" class="draggable">
           <input type="text" class="dice-key" value="${escapeHtml(dice.key)}">
           : <input type="text" class="dice-value" value="${escapeHtml(dice.value)}">
-          <button onclick="removeDice('${escapeHtml(dice.key)}')" class="btn-remove">${nc('btn_remove')}</button>
+          <button type="button" class="btn-remove" data-action="remove-dice" data-key="${escapeHtml(dice.key)}">${nc('btn_remove')}</button>
         </div>`
                     ).join('')}
       </div>
@@ -1309,6 +1317,21 @@
             Sortable.create(document.getElementById('editDiceRollsList'), sortableOptions);
             Sortable.create(document.getElementById('editNotesItemsList'), sortableOptions);
             Sortable.create(document.getElementById('editPersonalityList'), sortableOptions);
+
+            const editContainer = document.querySelector('.container');
+            if (editContainer && !editContainer.dataset.removeKeyBound) {
+                editContainer.dataset.removeKeyBound = '1';
+                editContainer.addEventListener('click', (event) => {
+                    const btn = event.target.closest('[data-action="remove-attr"], [data-action="remove-dice"]');
+                    if (!btn || !editContainer.contains(btn)) return;
+                    const key = btn.getAttribute('data-key') || '';
+                    if (btn.dataset.action === 'remove-attr') {
+                        removeAttr(key);
+                    } else if (btn.dataset.action === 'remove-dice') {
+                        removeDice(key);
+                    }
+                });
+            }
 
             // Add drag-and-drop event listeners
             const uploadZone = document.getElementById('avatarUploadZone');
@@ -1609,10 +1632,10 @@
               <h3>${escapeHtml(character.personalityPreferencesTitle)}</h3>
               ${character.personalityPreferences.items.map(item => `
                   <div class="status-item">
-                      <i class="${item.icon} icon"></i>
+                      <i class="${sanitizeFaIcon(item.icon)} icon"></i>
                       <span>${escapeHtml(item.label)}</span>
                       <div class="progress-bar">
-                          <div class="progress" style="width: ${item.value}%"></div>
+                          <div class="progress" style="width: ${sanitizePercent(item.value)}%"></div>
                       </div>
                       <span>${escapeHtml(item.alternative)}</span>
                   </div>
@@ -1652,9 +1675,9 @@
             new Chart(ctx, {
                 type: 'radar',
                 data: {
-                    labels: character.skills.map(skill => skill.type),
+                    labels: character.skills.map(skill => String(skill.type ?? '')),
                     datasets: [{
-                        data: character.skills.map(skill => skill.value),
+                        data: character.skills.map(skill => sanitizePercent(skill.value)),
                         backgroundColor: 'rgba(255, 105, 180, 0.3)',
                         borderColor: 'rgba(255, 105, 180, 1)',
                         borderWidth: 2,
@@ -2105,6 +2128,18 @@
                 .replace(/'/g, "&#039;");
         }
 
+        function sanitizeFaIcon(icon) {
+            if (typeof icon !== 'string') return '';
+            const trimmed = icon.trim();
+            return /^(fa[srb]?\s+)?(fa-[\w-]+\s*)+$/.test(trimmed) ? trimmed : '';
+        }
+
+        function sanitizePercent(value) {
+            const n = Number(value);
+            if (!Number.isFinite(n)) return 0;
+            return Math.min(100, Math.max(0, Math.round(n)));
+        }
+
         // Custom notification function to replace alert
         function showNotification(message, type = 'info') {
             // Remove existing notifications
@@ -2375,7 +2410,7 @@
                         // Get avatar
                         const avatarUrl = parsedData.avatarUrl || avatarImageUrl;
                         if (avatarUrl && isValidUrl(avatarUrl)) {
-                            avatarHtml = `<img src="${escapeHtml(avatarUrl)}" alt="${nc('slot_avatar_alt')}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user\\'></i>'">`;
+                            avatarHtml = `<img src="${escapeHtml(avatarUrl)}" alt="${nc('slot_avatar_alt')}" onerror="this.remove()">`;
                         }
 
                         characterName = parsedData.characterName || '';

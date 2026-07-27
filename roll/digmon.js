@@ -2,7 +2,7 @@
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 const Fuse = require('fuse.js');
-const chineseConv = require('chinese-conv');
+const { sify: chineseSify } = require('chinese-conv');
 const i18n = require('../modules/i18n.js');
 const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 
@@ -440,7 +440,7 @@ class Digimon {
         let qSimplified = null;
         if (q.length === 1) {
             try {
-                qSimplified = chineseConv.sify(q);
+                qSimplified = chineseSify(q);
                 if (qSimplified === q) qSimplified = null;
             } catch {}
         }

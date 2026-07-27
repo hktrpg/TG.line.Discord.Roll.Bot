@@ -1,6 +1,6 @@
 "use strict";
 //heroku labs:enable runtime-dyno-metadata -a <app name>
-let chineseConv = require('chinese-conv'); //繁簡轉換
+const { tify: chineseTify } = require('chinese-conv'); //繁簡轉換
 const duckImage = require("@zetetic/duckduckgo-images-api")
 const wiki = require('wikijs').default;
 const googleTranslate = require('@vitalets/google-translate-api').translate;
@@ -68,7 +68,7 @@ const rollDiceCommand = async function ({
 				apiUrl: 'https://zh.wikipedia.org/w/api.php'
 			}).page(mainMsg[1].toLowerCase())
 				.then(async page => {
-					return chineseConv.tify(await page.summary())
+					return chineseTify(await page.summary())
 				})
 				.catch(error => {
 					if (error == 'Error: No article found')

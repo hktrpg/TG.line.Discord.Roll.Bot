@@ -16,6 +16,9 @@ const {
     RateLimiterMemory
 } = require('rate-limiter-flexible');
 
+const {
+    Server: SocketIoServer
+} = require('socket.io');
 const candle = require('../modules/candleDays.js');
 const cspConfig = require('../modules/config/csp.js');
 const mainCharacter = require('../roll/z_character').mainCharacter;
@@ -244,7 +247,19 @@ function createWebServer(options = {}, www) {
 const server = createWebServer(options, www);
 
 // 初始化 Socket.IO (只有在 server 存在時)
-const io = server ? require('socket.io')(server) : null;
+const io = server ? new SocketIoServer(server, {
+    cors: {
+        origin: [
+            'https://hktrpg.com',
+            'https://www.hktrpg.com',
+            'http://localhost:20721',
+            'http://127.0.0.1:20721',
+            /\.hktrpg\.com$/
+        ],
+        methods: ['GET', 'POST'],
+        credentials: true
+    }
+}) : null;
 
 // 加入線上人數計數
 let onlineCount = 0;

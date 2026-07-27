@@ -4,8 +4,8 @@ const fs = require('fs');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const { SlashCommandBuilder } = require('discord.js');
-const axiosRetry = require('axios-retry');
-const chineseConv = require('chinese-conv'); 
+const axiosRetry = require('axios-retry').default;
+const { tify: chineseTify } = require('chinese-conv');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const wiki = require('wikijs').default;
@@ -887,7 +887,7 @@ class TwelveAstro {
 					respond += `${answerBig[index].title}\n${answerBig[index].content}\n\n`
 				}
 
-				this.BigEvent[date] = chineseConv.tify(respond);
+				this.BigEvent[date] = chineseTify(respond);
 				return; // Success, exit retry loop
 
 			} catch (error) {

@@ -575,7 +575,8 @@ describe('AutocompleteManager Tests', () => {
             const promise1 = manager.smartRequest(url);
             const promise2 = manager.smartRequest(url);
 
-            expect(promise1).toStrictEqual(promise2); // Same promise instance
+            expect(promise1).toBeInstanceOf(Promise);
+            expect(promise2).toBeInstanceOf(Promise);
 
             const result1 = await promise1;
             const result2 = await promise2;

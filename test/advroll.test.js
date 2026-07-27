@@ -45,6 +45,27 @@ test('Test rollDiceCommand with .ca help', async () => {
     expect(result.quotes).toBe(true);
 });
 
+test('Test rollDiceCommand with .ca mathjs evaluate', async () => {
+    const result = await advroll.rollDiceCommand({
+        inputStr: '.ca 1+2*3',
+        mainMsg: ['.ca', '1+2*3'],
+        botname: 'test'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toContain('1+2*3');
+    expect(result.text).toContain('7');
+});
+
+test('Test rollDiceCommand with .ca unit conversion via mathjs', async () => {
+    const result = await advroll.rollDiceCommand({
+        inputStr: '.ca 1公尺 轉換 公分',
+        mainMsg: ['.ca', '1公尺', '轉換', '公分'],
+        botname: 'test'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toMatch(/100/);
+});
+
 test('Test rollDiceCommand with D66', async () => {
     const result = await advroll.rollDiceCommand({
         inputStr: 'D66 test',

@@ -10,6 +10,8 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+// Installed only for Pages CI (see .github/workflows/pages.yml), not a runtime dependency
+// eslint-disable-next-line n/no-extraneous-require
 const { marked } = require('marked');
 
 const repoRoot = path.join(__dirname, '..');
@@ -80,7 +82,7 @@ function loadHeaderHtml(pageTitle) {
 	// Locale switcher needs /api/www-i18n (not available on GitHub Pages)
 	header = header.replaceAll(/<li class="nav-item dropdown" id="www-locale-switcher">[\s\S]*?<\/li>/g, '');
 	if (pageTitle) {
-		header = header.replaceAll(/<span id="title"><\/span>/g, `<span id="title">${pageTitle}</span>`);
+		header = header.replaceAll('<span id="title"></span>', `<span id="title">${pageTitle}</span>`);
 	}
 	return header;
 }
@@ -97,7 +99,7 @@ function injectSiteHeader(fileName, pageTitle) {
 		console.warn(`${fileName} has no #header placeholder; skip inject`);
 		return;
 	}
-	html = html.replaceAll(/<div id="header"><\/div>/g, header);
+	html = html.replaceAll('<div id="header"></div>', header);
 	fs.writeFileSync(filePath, html, 'utf8');
 	console.log(`injected header into ${fileName}`);
 }

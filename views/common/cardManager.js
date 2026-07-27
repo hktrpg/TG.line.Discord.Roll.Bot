@@ -13,44 +13,49 @@ function buildCardDemoData(tr) {
         }
         return raw;
     };
-    const brawl = t('brawl', 'Brawl');
-    const luck = t('luck', 'Luck');
+    // .ch splits on whitespace — item names must be a single token
+    const tName = (key, fallback) => {
+        const value = t(key, fallback);
+        return /\s/.test(value) ? fallback : value;
+    };
+    const brawl = tName('brawl', 'Brawl');
+    const luck = tName('luck', 'Luck');
     return {
-        name: t('name', 'Demo'),
+        name: tName('name', 'DemoCharacter'),
         image: 'https://images2.imgbox.com/ea/b2/Bn8DmRTW_o.png',
         state: [
             { name: 'HP', itemA: '11', itemB: '11' },
             { name: 'MP', itemA: '16', itemB: '16' },
             { name: 'SAN', itemA: '80', itemB: '80' },
-            { name: t('build', 'BUILD'), itemA: '1', itemB: '' },
+            { name: tName('build', 'BUILD'), itemA: '1', itemB: '' },
             { name: 'DB', itemA: '+1d4', itemB: '' },
             { name: 'MOV', itemA: '8', itemB: '' },
-            { name: t('armor', 'Armor'), itemA: '0', itemB: '' },
-            { name: t('luck', 'Luck'), itemA: '60', itemB: '' },
+            { name: tName('armor', 'Armor'), itemA: '0', itemB: '' },
+            { name: luck, itemA: '60', itemB: '' },
             { name: brawl, itemA: '49', itemB: '' },
-            { name: t('occupation', 'Occupation'), itemA: t('occ_value', 'Insurance Investigator'), itemB: '' },
-            { name: t('trait', 'Trait'), itemA: t('trait_value', 'Outdoor enthusiast'), itemB: '' }
+            { name: tName('occupation', 'Occupation'), itemA: t('occ_value', 'Insurance Investigator'), itemB: '' },
+            { name: tName('trait', 'Trait'), itemA: t('trait_value', 'Outdoor enthusiast'), itemB: '' }
         ],
         roll: [
-            { name: t('roll_hp', 'HP roll'), itemA: '1d{HP}' },
+            { name: tName('roll_hp', 'HProll'), itemA: '1d{HP}' },
             { name: '1d100+HP', itemA: '1d100+{hp}' },
-            { name: t('roll_luck_check', 'Luck check'), itemA: `CC {${luck}}` },
+            { name: tName('roll_luck_check', 'LuckCheck'), itemA: `CC {${luck}}` },
             { name: brawl, itemA: 'CC 49' },
-            { name: t('roll_brawl_var', 'Brawl (variable)'), itemA: `CC {${brawl}}` },
-            { name: t('club_db', 'Club+db'), itemA: '1d6{db}' },
-            { name: t('psychology', 'Psychology'), itemA: '10' },
-            { name: t('credit', 'Credit Rating'), itemA: '0' },
-            { name: t('investigate', 'Spot Hidden'), itemA: '25' },
-            { name: t('magic', 'Magic'), itemA: '1' },
-            { name: t('knife', 'Knife'), itemA: '1d4+1{db}' }
+            { name: tName('roll_brawl_var', 'BrawlVar'), itemA: `CC {${brawl}}` },
+            { name: tName('club_db', 'Club+db'), itemA: '1d6{db}' },
+            { name: tName('psychology', 'Psychology'), itemA: '10' },
+            { name: tName('credit', 'CreditRating'), itemA: '0' },
+            { name: tName('investigate', 'SpotHidden'), itemA: '25' },
+            { name: tName('magic', 'Magic'), itemA: '1' },
+            { name: tName('knife', 'Knife'), itemA: '1d4+1{db}' }
         ],
         notes: [
-            { name: t('note_inv', 'Investigation notes'), itemA: t('note_inv_body', 'Sample note') },
-            { name: t('note_combat', 'Combat log'), itemA: t('note_combat_body', 'Combat log entry') }
+            { name: tName('note_inv', 'InvestigationNotes'), itemA: t('note_inv_body', 'Sample note') },
+            { name: tName('note_combat', 'CombatLog'), itemA: t('note_combat_body', 'Combat log entry') }
         ],
         characterDetails: [
-            { label: t('occupation', 'Occupation'), value: t('occ_value', 'Insurance Investigator') },
-            { label: t('trait', 'Trait'), value: t('trait_value', 'Outdoor enthusiast') }
+            { label: tName('occupation', 'Occupation'), value: t('occ_value', 'Insurance Investigator') },
+            { label: tName('trait', 'Trait'), value: t('trait_value', 'Outdoor enthusiast') }
         ]
     };
 }

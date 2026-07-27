@@ -10,8 +10,6 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-// Installed only for Pages CI (see .github/workflows/pages.yml), not a runtime dependency
-// eslint-disable-next-line n/no-extraneous-require
 const { marked } = require('marked');
 
 const repoRoot = path.join(__dirname, '..');

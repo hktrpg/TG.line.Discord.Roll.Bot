@@ -323,18 +323,25 @@ async function handleApiRequest(req, res) {
     if (mainMsg && mainMsg[0])
         trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
+    const locale = resolveWwwLocale(req);
+    const t = i18n.createTranslator(locale);
+
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
     if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
         rplyVal = await exports.analytics.parseInput({
             inputStr: mainMsg.join(' '),
-            botname: "Api"
+            botname: "Api",
+            locale,
+            t
         });
     } else {
         if (channelKeyword == '') {
             rplyVal = await exports.analytics.parseInput({
                 inputStr: mainMsg.join(' '),
-                botname: "Api"
+                botname: "Api",
+                locale,
+                t
             });
         }
     }
@@ -2365,12 +2372,18 @@ if (io) {
             // 🔒 修復：使用正確的欄位名 msg 和 roomNumber
             const { name, msg: text, roomNumber } = validation.data;
             const time = new Date(); // Use server's time for accuracy
+            // Prefer per-message page lang; fall back to socket handshake lang
+            const locale = i18n.normalizeLocale(
+                (typeof msg.lang === 'string' && msg.lang) || socket._hktrpgLocale
+            );
+            socket._hktrpgLocale = locale;
 
             const payload = {
                 name: name,
                 msg: '\n' + text, // keep leading newline as before
                 time: time,
-                roomNumber: roomNumber  // 🔒 修復：使用 roomNumber
+                roomNumber: roomNumber,  // 🔒 修復：使用 roomNumber
+                locale
             };
 
             records.chatRoomPush(payload);
@@ -2415,19 +2428,26 @@ records.on("new_message", async (message) => {
     if (mainMsg && mainMsg[0])
         trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
+    const locale = i18n.normalizeLocale(message.locale || i18n.DEFAULT_LOCALE);
+    const t = i18n.createTranslator(locale);
+
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
     if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
         rplyVal = await exports.analytics.parseInput({
             inputStr: mainMsg.join(' '),
-            botname: "WWW"
+            botname: "WWW",
+            locale,
+            t
         })
 
     } else {
         if (channelKeyword == '') {
             rplyVal = await exports.analytics.parseInput({
                 inputStr: mainMsg.join(' '),
-                botname: "WWW"
+                botname: "WWW",
+                locale,
+                t
             })
         }
     }

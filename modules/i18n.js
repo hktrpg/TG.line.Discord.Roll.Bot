@@ -227,6 +227,13 @@ function getCacheKey(scope, scopeId) {
     return `${scope}:${scopeId}`;
 }
 
+function getStoredCacheKey(scope, scopeId) {
+    return `stored:${scope}:${scopeId}`;
+}
+
+/** Sentinel in stored-locale cache: record exists vs missing (null). */
+const STORED_MISSING = '__missing__';
+
 function isDmChannel(channelType) {
     return channelType === 1 || channelType === 'DM';
 }
@@ -269,6 +276,44 @@ async function resolveLocale({
     }
 }
 
+/**
+ * Return explicitly stored locale, or null if never set.
+ * Used when a fallback (e.g. page UI language) should win over DEFAULT_LOCALE.
+ */
+async function findStoredLocale({ scope, scopeId }) {
+    await init();
+
+    if (!scopeId || !process.env.mongoURL) {
+        return null;
+    }
+
+    const cacheKey = getStoredCacheKey(scope, scopeId);
+    if (localeCache.has(cacheKey)) {
+        const cached = localeCache.get(cacheKey);
+        return cached === STORED_MISSING ? null : cached;
+    }
+
+    try {
+        const schema = require('./schema.js');
+        if (!schema.botLocale) {
+            localeCache.set(cacheKey, STORED_MISSING);
+            return null;
+        }
+
+        const record = await schema.botLocale.findOne({ scope, scopeId }).lean();
+        if (record?.locale) {
+            const locale = normalizeLocale(record.locale);
+            localeCache.set(cacheKey, locale);
+            return locale;
+        }
+        localeCache.set(cacheKey, STORED_MISSING);
+        return null;
+    } catch (error) {
+        console.error('[i18n] findStoredLocale error:', error.message);
+        return null;
+    }
+}
+
 async function setLocale({ scope, scopeId, locale }) {
     await init();
 
@@ -294,6 +339,7 @@ async function setLocale({ scope, scopeId, locale }) {
         );
 
         localeCache.del(getCacheKey(scope, scopeId));
+        localeCache.del(getStoredCacheKey(scope, scopeId));
         return { ok: true, locale: normalized };
     } catch (error) {
         console.error('[i18n] setLocale error:', error.message);
@@ -449,6 +495,7 @@ function enrichOptionLocalizations(commandName, option, optionsPath) {
 
 function clearLocaleCache(scope, scopeId) {
     localeCache.del(getCacheKey(scope, scopeId));
+    localeCache.del(getStoredCacheKey(scope, scopeId));
 }
 
 module.exports = {
@@ -467,6 +514,7 @@ module.exports = {
     t,
     init,
     resolveLocale,
+    findStoredLocale,
     setLocale,
     getLocaleRecord,
     buildDescriptionLocalizations,

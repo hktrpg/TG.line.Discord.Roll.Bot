@@ -157,7 +157,7 @@ class Logger {
     }
 }
 
-const { isNonFatalApplicationError } = require('./utils/non-fatal-error');
+const { isNonFatalApplicationError } = require('./utils/security');
 const logger = new Logger();
 
 function isRecoverableWhatsAppPuppeteerError(reason) {

@@ -248,6 +248,35 @@ describe('Security Utilities', () => {
     });
 
     // ============================================
+    // 測試：非致命應用錯誤 / process safety
+    // ============================================
+    describe('isNonFatalApplicationError', () => {
+        test('returns false for empty reasons', () => {
+            expect(security.isNonFatalApplicationError(null)).toBe(false);
+            expect(security.isNonFatalApplicationError()).toBe(false);
+        });
+
+        test('detects TypeError / ReferenceError / RangeError / SyntaxError by name', () => {
+            expect(security.isNonFatalApplicationError(new TypeError('x is not a function'))).toBe(true);
+            expect(security.isNonFatalApplicationError(new ReferenceError('x is not defined'))).toBe(true);
+            expect(security.isNonFatalApplicationError(new RangeError('out of range'))).toBe(true);
+            expect(security.isNonFatalApplicationError(new SyntaxError('bad'))).toBe(true);
+        });
+
+        test('detects common message patterns', () => {
+            expect(security.isNonFatalApplicationError({ message: 'translate is not a function' })).toBe(true);
+            expect(security.isNonFatalApplicationError({ message: "Cannot read properties of undefined (reading 'x')" })).toBe(true);
+            expect(security.isNonFatalApplicationError({ message: 'foo is not defined' })).toBe(true);
+            expect(security.isNonFatalApplicationError({ message: "Cannot set properties of null (setting 'y')" })).toBe(true);
+        });
+
+        test('returns false for unrelated errors', () => {
+            expect(security.isNonFatalApplicationError(new Error('MongoDB connection timed out'))).toBe(false);
+            expect(security.isNonFatalApplicationError({ message: 'EPIPE' })).toBe(false);
+        });
+    });
+
+    // ============================================
     // 測試：WWW socket / rate-limit helpers
     // ============================================
     describe('safeSocketHandler', () => {

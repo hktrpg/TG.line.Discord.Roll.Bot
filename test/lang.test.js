@@ -92,6 +92,70 @@ describe('lang module', () => {
         expect(r.text).not.toContain('set_success');
     });
 
+    test('denies language set in all WWW rooms', async () => {
+        const setSpy = jest.spyOn(i18n, 'setLocale');
+        for (const groupid of ['公共房間', 'my-table', undefined]) {
+            const r = await lang.rollDiceCommand({
+                mainMsg: ['.lang', 'en'],
+                botname: 'WWW',
+                groupid,
+                locale: 'zh-tw',
+                t: i18n.createTranslator('zh-tw')
+            });
+            expect(r.text).toMatch(/language menu|語言選單/);
+            expect(r.text).toContain('zh-tw');
+            expect(setSpy).not.toHaveBeenCalled();
+        }
+        setSpy.mockRestore();
+    });
+
+    test('denies language set in Local personal room', async () => {
+        const setSpy = jest.spyOn(i18n, 'setLocale');
+        const r = await lang.rollDiceCommand({
+            mainMsg: ['.lang', 'en'],
+            botname: 'Local',
+            locale: 'zh-tw',
+            t: i18n.createTranslator('zh-tw')
+        });
+        expect(r.text).toMatch(/language menu|語言選單/);
+        expect(setSpy).not.toHaveBeenCalled();
+        setSpy.mockRestore();
+    });
+
+    test('WWW bare .lang explains web menu behavior', async () => {
+        const r = await lang.rollDiceCommand({
+            mainMsg: ['.lang'],
+            botname: 'WWW',
+            locale: 'en',
+            t: i18n.createTranslator('en')
+        });
+        expect(r.text).toMatch(/language menu|語言選單/);
+        expect(r.text).toContain('en');
+        expect(r.text).not.toMatch(/Admin permission required/);
+    });
+
+    test('WWW .lang show explains web menu behavior', async () => {
+        const r = await lang.rollDiceCommand({
+            mainMsg: ['.lang', 'show'],
+            botname: 'WWW',
+            locale: 'zh-tw',
+            t: i18n.createTranslator('zh-tw')
+        });
+        expect(r.text).toMatch(/語言選單|language menu/);
+        expect(r.text).toContain('zh-tw');
+    });
+
+    test('still allows list in WWW rooms with web note', async () => {
+        const list = await lang.rollDiceCommand({
+            mainMsg: ['.lang', 'list'],
+            botname: 'WWW',
+            locale: 'zh-tw',
+            t: i18n.createTranslator('zh-tw')
+        });
+        expect(list.text).toContain('en');
+        expect(list.text).toMatch(/語言選單|language menu/);
+    });
+
     test('DM set without database reports no_database', async () => {
         delete process.env.mongoURL;
         const r = await lang.rollDiceCommand({

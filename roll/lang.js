@@ -4,6 +4,9 @@ const { SlashCommandBuilder } = require('discord.js');
 const i18n = require('../modules/i18n.js');
 const { resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
 
+/** Web platforms: reply language follows the page language menu only. */
+const WEB_BOTNAMES = new Set(['WWW', 'Local', 'Api']);
+
 const gameName = function (params = {}) {
     return resolveGameName(params, 'lang.game_name', '【語言 Language】');
 };
@@ -27,15 +30,59 @@ const initialize = function () {
     return {};
 };
 
+function isWebContext(params) {
+    return WEB_BOTNAMES.has(params.botname);
+}
+
 function isDmContext(params) {
     const channel = params.discordMessage?.channel;
     if (channel?.type === 1) {
         return true;
     }
+    // Web chat rooms omit groupid but are not DMs
+    if (isWebContext(params)) {
+        return false;
+    }
     return !params.groupid;
 }
 
+function buildWebLangReply(params) {
+    const t = params.t || i18n.createTranslator(params.locale || i18n.DEFAULT_LOCALE);
+    const locale = params.locale || i18n.DEFAULT_LOCALE;
+    const action = (params.mainMsg?.[1] || '').toLowerCase();
+
+    const rply = {
+        default: 'on',
+        type: 'text',
+        text: '',
+        quotes: true
+    };
+
+    if (action === 'list') {
+        rply.text = `${t('lang.list_header')}\n${i18n.formatLocaleList()}\n\n${t('lang.web_info', { locale })}`;
+        return rply;
+    }
+
+    // Bare .lang / help / show / set attempt → always explain web behavior
+    if (!action || action === 'help' || action === 'show') {
+        rply.text = t('lang.web_info', { locale });
+        return rply;
+    }
+
+    if (i18n.matchLocale(action)) {
+        rply.text = t('lang.set_denied_web', { locale });
+        return rply;
+    }
+
+    rply.text = `${t('lang.unsupported', { locales: i18n.formatLocaleList() })}\n\n${t('lang.web_info', { locale })}`;
+    return rply;
+}
+
 async function handleLangCommand(params) {
+    if (isWebContext(params)) {
+        return buildWebLangReply(params);
+    }
+
     const t = params.t || i18n.createTranslator(params.locale || i18n.DEFAULT_LOCALE);
     const locale = params.locale || i18n.DEFAULT_LOCALE;
     const mainMsg = params.mainMsg || [];
@@ -77,6 +124,10 @@ async function handleLangCommand(params) {
 
     const scope = isDm ? 'user' : 'group';
     const scopeId = isDm ? params.userid : params.groupid;
+    if (!scopeId) {
+        rply.text = t('lang.set_denied_web');
+        return rply;
+    }
     const result = await i18n.setLocale({ scope, scopeId, locale: targetLocale });
 
     if (!result.ok) {
@@ -97,6 +148,11 @@ async function handleLangCommand(params) {
 }
 
 const rollDiceCommand = async function (params) {
+    // Web: never fall through to Discord-oriented help without explaining
+    if (isWebContext(params)) {
+        return buildWebLangReply(params);
+    }
+
     switch (true) {
         case /^help$/i.test(params.mainMsg?.[1]) || !params.mainMsg?.[1]: {
             const rply = {

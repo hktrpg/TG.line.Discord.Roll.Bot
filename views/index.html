@@ -2488,6 +2488,14 @@
             }
         };
 
+        /** Page UI language (top-right menu) — also used for all web dice replies. */
+        function getPageLocale() {
+            if (typeof getWwwLocale === 'function') return getWwwLocale();
+            return window.wwwI18n?.locale
+                || window.HKTRPG_LOCALES?.defaultLocale
+                || 'zh-tw';
+        }
+
         // State Management
         const state = {
             currentRoom: CONFIG.DEFAULT_ROOM,
@@ -3110,7 +3118,8 @@
                         time: new Date(),
                         msg: validation.sanitized, // 使用已驗證的訊息
                         name: nameInput.value,
-                        roomNumber: chatroomManager.currentRoom // 使用當前房間
+                        roomNumber: chatroomManager.currentRoom, // 使用當前房間
+                        lang: getPageLocale()
                     };
 
                     // 個人小屋：本地處理，不送往伺服器
@@ -3124,7 +3133,7 @@
                         await uiManager.addMessageToBox(userMessage);
 
                         try {
-                            const res = await fetch(`/api/local?msg=${encodeURIComponent(plainMsg)}&lang=${encodeURIComponent(typeof getWwwLocale === 'function' ? getWwwLocale() : (window.wwwI18n?.locale || window.HKTRPG_LOCALES?.defaultLocale || 'zh-tw'))}`);
+                            const res = await fetch(`/api/local?msg=${encodeURIComponent(plainMsg)}&lang=${encodeURIComponent(getPageLocale())}`);
                             const data = await res.json();
                             const reply = (data && data.message) ? data.message.toString() : '';
                             if (reply) {

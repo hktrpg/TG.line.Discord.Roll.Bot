@@ -528,12 +528,13 @@ class Records extends EventEmitter {
             });
             await chatMessage.save();
             
-            // Emit with validated data
+            // Emit with validated data (locale is request-only, not persisted)
             this.emit("new_message", {
                 name: name,
                 msg: msg,
                 time: safeTime,
-                roomNumber: roomNumber
+                roomNumber: roomNumber,
+                locale: message.locale || undefined
             });
 
             // Clear cache for this room

@@ -1445,13 +1445,28 @@ function getTarotLabel(translate, index) {
 	return getFunnyIndexedText(translate, 'tarot_label', TarotList2, index);
 }
 
+// TarotList (image URLs) and TarotList2 / i18n labels use different card orders.
+// Look up image by canonical Chinese label so daily tarot text and image stay in sync.
+let tarotUrlByLabel = null;
+function getTarotUrlByLabel(canonicalLabel) {
+	if (!tarotUrlByLabel) {
+		tarotUrlByLabel = new Map();
+		for (const item of TarotList) {
+			const newlineIndex = item.indexOf('\n');
+			if (newlineIndex === -1) continue;
+			tarotUrlByLabel.set(item.slice(0, newlineIndex), item.slice(newlineIndex + 1));
+		}
+	}
+	return tarotUrlByLabel.get(canonicalLabel);
+}
+
 function getTarotCardLine(translate, index) {
 	const label = getTarotLabel(translate, index);
-	const raw = TarotList[index];
-	if (!raw || !raw.includes('\n')) {
+	const url = getTarotUrlByLabel(TarotList2[index]);
+	if (!url) {
 		return label;
 	}
-	return `${label}\n${raw.slice(raw.indexOf('\n') + 1)}`;
+	return `${label}\n${url}`;
 }
 
 function shuffleTarotIndices(length) {
@@ -1464,8 +1479,7 @@ function shuffleTarotIndices(length) {
 }
 
 function pickShuffledTarotCards(translate, count, withUrl = false) {
-	const length = withUrl ? TarotList.length : TarotList2.length;
-	const indices = shuffleTarotIndices(length);
+	const indices = shuffleTarotIndices(TarotList2.length);
 	return indices.slice(0, count).map((index) => (withUrl ? getTarotCardLine(translate, index) : getTarotLabel(translate, index)));
 }
 

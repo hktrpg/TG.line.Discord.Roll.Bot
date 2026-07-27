@@ -100,6 +100,46 @@ describe('Funny Module Tests', () => {
         expect(result.quotes).toBe(true);
     });
 
+    // Regression: TarotList (image URLs) and TarotList2/i18n labels used different card orders,
+    // so e.g. 寶劍八 text could show CUPS_QUEEN.jpg. Label and filename must stay aligned.
+    test('Daily tarot card label matches image filename', async () => {
+        const suitPrefix = [
+            ['寶劍', 'SWORDS'],
+            ['聖杯', 'CUPS'],
+            ['錢幣', 'PANTA'],
+            ['權杖', 'WANDS']
+        ];
+        const mismatches = [];
+
+        for (let i = 0; i < 120; i++) {
+            const result = await funny.rollDiceCommand({
+                inputStr: '每日塔羅',
+                mainMsg: ['每日塔羅'],
+                displayname: 'testUser'
+            });
+            const match = result.text.match(/\n([^\n]+)\n(https:\/\/\S+\/assets\/tarot\/(\S+))/);
+            if (!match) {
+                if (result.text.includes('空白')) continue;
+                mismatches.push(`missing image URL: ${result.text}`);
+                continue;
+            }
+            const [, label, , file] = match;
+            for (const [namePrefix, filePrefix] of suitPrefix) {
+                if (label.startsWith(namePrefix) && !file.startsWith(filePrefix)) {
+                    mismatches.push(`${label} -> ${file}`);
+                }
+            }
+            if (label.includes('－') && !file.includes('-Re')) {
+                mismatches.push(`reversed label without -Re: ${label} -> ${file}`);
+            }
+            if (label.includes('＋') && file.includes('-Re')) {
+                mismatches.push(`upright label with -Re: ${label} -> ${file}`);
+            }
+        }
+
+        expect(mismatches).toEqual([]);
+    });
+
     test('Test rollDiceCommand with 時間塔羅', async () => {
         const result = await funny.rollDiceCommand({
             inputStr: '時間塔羅',

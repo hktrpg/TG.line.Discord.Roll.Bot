@@ -230,3 +230,5 @@ module.exports = isImageURL;
 module.exports.default = isImageURL;
 module.exports.isSafeImageTarget = isSafeImageTarget;
 module.exports.isPrivateOrReservedIp = isPrivateOrReservedIp;
+module.exports.isClearlyUnsafeHostname = isClearlyUnsafeHostname;
+module.exports.resolvePublicFetchTarget = resolvePublicFetchTarget;

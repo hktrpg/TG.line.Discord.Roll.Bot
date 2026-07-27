@@ -117,6 +117,14 @@ describe('i18n module', () => {
             const t = i18n.createTranslator('en');
             expect(t('welcome.i18n_guide.0')).toBeDefined();
         });
+
+        test('never returns undefined or null for missing keys', () => {
+            const t = i18n.createTranslator('en');
+            const result = t('this.key.does.not.exist.anywhere.xyz');
+            expect(result).not.toBeUndefined();
+            expect(result).not.toBeNull();
+            expect(typeof result).toBe('string');
+        });
     });
 
     describe('enrichSlashCommandLocalizations', () => {

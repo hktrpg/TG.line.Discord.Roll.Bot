@@ -43,7 +43,7 @@ The `roll/` directory contains dice rolling functionality and TRPG game system i
 // Dependencies
 const math = require('mathjs');
 const { DiceRoll } = require('@dice-roller/rpg-dice-roller');
-const schema = require('../modules/schema.js');
+const schema = require('../modules/db/schema.js');
 
 // Constants
 const GAME_NAME = () => '【Game Name】';
@@ -130,13 +130,13 @@ async function rollDiceCommand(params) {
 
 ### Using Character Cards
 - Reference `z_character.js` for character card patterns
-- Use schema from `modules/schema.js`
+- Use schema from `modules/db/schema.js`
 - Support character card variables in dice rolls
 - Example: `.ch set HP:15/15` then use `{HP}` in rolls
 
 ### Character Card Patterns
 ```javascript
-const schema = require('../modules/schema.js');
+const schema = require('../modules/db/schema.js');
 
 // Get character card
 const character = await schema.characterCard.findOne({
@@ -154,14 +154,14 @@ if (character && character.state) {
 ## Database Integration
 
 ### Schema Usage
-- Use schemas from `modules/schema.js`
+- Use schemas from `modules/db/schema.js`
 - Don't create duplicate schemas
 - Use proper indexes
 - Handle database errors
 
 ### Common Patterns
 ```javascript
-const schema = require('../modules/schema.js');
+const schema = require('../modules/db/schema.js');
 
 // Find with groupid
 const data = await schema.modelName.findOne({ groupid });

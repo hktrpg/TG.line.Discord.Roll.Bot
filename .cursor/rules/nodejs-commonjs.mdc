@@ -90,7 +90,7 @@ async function loadData() {
 
 ## Class Definitions
 - Use classes for stateful operations
-- Follow existing class patterns (see `index.js`, `modules/records.js`)
+- Follow existing class patterns (see `index.js`, `modules/db/records.js`)
 - Include proper initialization and cleanup methods
 
 ```javascript
@@ -175,7 +175,7 @@ module.exports = {
 
 ### Database Query Pattern
 ```javascript
-const schema = require('../modules/schema.js');
+const schema = require('../modules/db/schema.js');
 
 async function getData(query) {
     try {

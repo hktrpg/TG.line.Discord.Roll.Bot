@@ -3,13 +3,13 @@ if (!process.env.mongoURL) {
     return;
 }
 const { SlashCommandBuilder } = require('discord.js');
-const checkMongodb = require('../modules/dbWatchdog.js');
+const checkMongodb = require('../modules/db/watchdog.js');
 const adminSecrets = parseAdminSecrets(process.env.ADMIN_SECRET);
 const isAdminUser = (userid) => Boolean(userid) && adminSecrets.includes(userid);
-const schema = require('../modules/schema.js');
-const checkTools = require('../modules/check.js');
-const VIP = require('../modules/veryImportantPerson');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const schema = require('../modules/db/schema.js');
+const checkTools = require('../modules/chat/check.js');
+const VIP = require('../modules/patreon/veryImportantPerson');
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const rollbase = require('./rollbase.js');
 exports.z_Level_system = require('./z_Level_system');
 const wheelAnimator = require('./wheel-animator.js');

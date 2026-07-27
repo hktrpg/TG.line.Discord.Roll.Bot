@@ -4,9 +4,9 @@ if (!process.env.PLURK_SWITCH) {
 }
 let plurkID = '';
 const { PlurkClient } = require('plurk2');
-const EXPUP = require('./level').EXPUP || function () {};
-const courtMessage = require('./logs').courtMessage || function () {};
-const i18n = require('./i18n.js');
+const EXPUP = require('./chat/level').EXPUP || function () {};
+const courtMessage = require('./chat/logs').courtMessage || function () {};
+const i18n = require('./i18n/i18n.js');
 const SIX_MINUTES = 360_000;
 const MESSAGE_SPLITOR = (/\S+/ig);
 const Plurk_Client = new PlurkClient(process.env.PLURK_APPKEY, process.env.PLURK_APPSECRET, process.env.PLURK_TOKENKEY, process.env.PLURK_TOKENSECRET);

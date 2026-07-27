@@ -2,7 +2,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs');
-const i18n = require('../modules/i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
 
 describe('i18n module', () => {
     beforeAll(async () => {

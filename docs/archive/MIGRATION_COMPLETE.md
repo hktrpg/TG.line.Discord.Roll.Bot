@@ -10,7 +10,7 @@
 
 ## 📋 已完成的修改
 
-### 1. ✅ `modules/records.js` - 核心模块
+### 1. ✅ `modules/db/records.js` - 核心模块
 
 **修改内容:**
 - 移除所有方法的 `callback` 参数
@@ -126,12 +126,12 @@ async updateRecord(databaseName, query, update, options = {}) {
 **示例修改:**
 ```javascript
 // 修改前
-jest.mock('../modules/records.js', () => ({
+jest.mock('../modules/db/records.js', () => ({
     get: jest.fn((type, callback) => callback([]))
 }));
 
 // 修改后
-jest.mock('../modules/records.js', () => ({
+jest.mock('../modules/db/records.js', () => ({
     get: jest.fn(() => Promise.resolve([]))
 }));
 ```
@@ -141,7 +141,7 @@ jest.mock('../modules/records.js', () => ({
 ## 📊 修改统计
 
 ### 文件修改数量
-- **核心模块**: 1 个文件 (`modules/records.js`)
+- **核心模块**: 1 个文件 (`modules/db/records.js`)
 - **功能模块**: 4 个文件
   - `roll/z_stop.js`
   - `roll/z_saveCommand.js`

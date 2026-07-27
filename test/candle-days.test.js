@@ -4,7 +4,7 @@
 const originalEnv = process.env;
 process.env = { ...originalEnv };
 
-const candleDays = require('../modules/candleDays.js');
+const candleDays = require('../modules/misc/candleDays.js');
 
 describe('CandleDays Module Tests', () => {
     beforeEach(() => {

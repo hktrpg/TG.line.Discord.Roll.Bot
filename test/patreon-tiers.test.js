@@ -1,6 +1,6 @@
 "use strict";
 
-const tiers = require("../modules/patreon-tiers.js");
+const tiers = require("../modules/patreon/patreon-tiers.js");
 
 describe("patreon-tiers", () => {
     test("getMaxSlotsForLevel falls back to level 0 for invalid values", () => {

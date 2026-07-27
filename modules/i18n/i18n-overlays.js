@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const OVERLAYS_DIR = path.join(__dirname, '..', 'lang', 'overlays');
+const OVERLAYS_DIR = path.join(__dirname, '..', '..', 'lang', 'overlays');
 
 /** Indexed funny keys stored in lang/overlays/{locale}/funny.*.json */
 const FUNNY_BULK_KEY_PATTERN = /^(joke|daily_answer|tarot_label|flag_script|duck_reply|fuckup_discuss|fuckup_former|fuckup_after|fuckup_quote)_\d+$/;

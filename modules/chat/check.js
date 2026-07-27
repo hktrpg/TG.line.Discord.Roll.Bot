@@ -1,6 +1,6 @@
 "use strict";
 
-const i18n = require('./i18n.js');
+const i18n = require('../i18n/i18n.js');
 
 const role = {
     ban: -1,

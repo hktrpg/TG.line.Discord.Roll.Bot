@@ -1,9 +1,9 @@
 // Mock dependencies
-jest.mock('../modules/veryImportantPerson', () => ({
+jest.mock('../modules/patreon/veryImportantPerson', () => ({
     viplevelCheckGroup: jest.fn(() => 1)
 }));
 
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
     roleReact: {
         find: jest.fn(),
         findOne: jest.fn(),
@@ -39,8 +39,8 @@ jest.mock('../roll/z_role.js', () => {
 });
 
 // Import dependencies
-const schema = require('../modules/schema.js');
-const VIP = require('../modules/veryImportantPerson');
+const schema = require('../modules/db/schema.js');
+const VIP = require('../modules/patreon/veryImportantPerson');
 
 // Import module
 const roleModule = require('../roll/z_role.js');

@@ -5,10 +5,10 @@ if (!process.env.mongoURL) {
 }
 
 const { SlashCommandBuilder } = require('discord.js');
-const checkTools = require('../modules/check.js');
-const records = require('../modules/records.js');
-const VIP = require('../modules/veryImportantPerson');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const checkTools = require('../modules/chat/check.js');
+const records = require('../modules/db/records.js');
+const VIP = require('../modules/patreon/veryImportantPerson');
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 
 let trpgCommandData = {};
 

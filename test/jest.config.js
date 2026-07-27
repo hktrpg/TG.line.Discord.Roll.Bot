@@ -41,12 +41,14 @@ module.exports = {
     // Transform patterns to ignore problematic modules
     transformIgnorePatterns: [
         'node_modules/(?!(@jest|mongodb-memory-server)/)',
-        '<rootDir>/modules/schema.js'
+        '<rootDir>/modules/db/schema.js'
     ],
 
     // Module name mapper for problematic modules
     moduleNameMapper: {
-        '^(\\./modules/schema\\.js)$': '<rootDir>/test/mocks/schema-mock.js'
+        '^(\\./modules/schema\\.js)$': '<rootDir>/test/mocks/schema-mock.js',
+        '^(\\./modules/db/schema\\.js)$': '<rootDir>/test/mocks/schema-mock.js',
+        '^(\\.\\./modules/db/schema\\.js)$': '<rootDir>/test/mocks/schema-mock.js'
     },
 
     // Custom test environment for MongoDB tests

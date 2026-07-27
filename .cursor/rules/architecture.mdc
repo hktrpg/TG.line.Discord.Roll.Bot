@@ -143,7 +143,7 @@ class GameEventEmitter extends EventEmitter {
 - CSS/styles
 - User interface
 
-### 5. Data Layer (`modules/schema.js`)
+### 5. Data Layer (`modules/db/schema.js`)
 - Database schemas
 - Data models
 - Validation rules
@@ -293,7 +293,7 @@ const mongoose = require('mongoose');
 const express = require('express');
 
 // 3. Local modules
-const schema = require('./schema.js');
+const schema = require('./db/schema.js');
 const utils = require('./utils.js');
 ```
 

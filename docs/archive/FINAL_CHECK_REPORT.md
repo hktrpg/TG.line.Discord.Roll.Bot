@@ -12,7 +12,7 @@
 
 ## ✅ 已修复的文件
 
-### 1. `modules/records.js` ✅
+### 1. `modules/db/records.js` ✅
 - ✅ 所有方法已移除回调参数
 - ✅ 所有方法返回 Promise
 - ✅ 错误处理使用 `throw error`
@@ -104,7 +104,7 @@
 ## ✅ 验证结果
 
 ### Linter 检查
-- ✅ `modules/records.js` - 无错误
+- ✅ `modules/db/records.js` - 无错误
 - ✅ `roll/z_stop.js` - 无错误
 - ✅ `roll/z_saveCommand.js` - 无错误
 - ✅ `roll/z_trpgDatabase.js` - 无错误

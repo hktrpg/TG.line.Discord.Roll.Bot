@@ -602,7 +602,7 @@ async function upgradePasswordIfLegacy(userName, password, currentHash) {
         const newHash = await hashPassword(password);
         
         // 更新數據庫
-        const schema = require('../modules/schema.js');
+        const schema = require('../modules/db/schema.js');
         const result = await schema.accountPW.findOneAndUpdate(
             { userName: userName },
             { 

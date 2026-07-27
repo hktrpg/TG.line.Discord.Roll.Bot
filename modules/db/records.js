@@ -11,7 +11,7 @@ const schema = require('./schema.js');
 // 🔒 Try to load security utilities
 let security;
 try {
-    security = require('../utils/security.js');
+    security = require('../../utils/security.js');
 } catch {
     console.warn('[Records] ⚠️ Security utilities not found, using basic validation');
 }
@@ -269,7 +269,7 @@ class Records extends EventEmitter {
     async get(target) {
         try {
             // Check database connection before attempting operation
-            const dbConnector = require('./db-connector.js');
+            const dbConnector = require('./connector.js');
             const mongoose = dbConnector.mongoose;
 
             // Check connection status more reliably using multiple sources (compatible with Mongoose 9)

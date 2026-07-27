@@ -13,7 +13,7 @@ describe("db-connector", () => {
         process.env = { ...originalEnv };
         delete process.env.mongoURL;
 
-        const connector = require("../modules/db-connector.js");
+        const connector = require("../modules/db/connector.js");
         expect(connector.checkHealth().isConnected).toBe(false);
         await expect(connector.connect()).rejects.toThrow("MongoDB URL is not configured");
     });
@@ -47,7 +47,7 @@ describe("db-connector", () => {
         }));
         jest.doMock("recachegoose", () => jest.fn());
 
-        const connector = require("../modules/db-connector.js");
+        const connector = require("../modules/db/connector.js");
 
         const ok = await connector.withTransaction(async () => "ok");
         expect(ok).toBe("ok");
@@ -80,7 +80,7 @@ describe("db-connector", () => {
         }));
         jest.doMock("recachegoose", () => jest.fn());
 
-        const connector = require("../modules/db-connector.js");
+        const connector = require("../modules/db/connector.js");
         connector.notifyShuttingDown();
         const restarted = await connector.restart();
         expect(restarted).toBe(false);

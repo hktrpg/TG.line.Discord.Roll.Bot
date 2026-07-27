@@ -2,7 +2,7 @@
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
 const Fuse = require('fuse.js')
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const gameName = function (params = {}) {
     return resolveGameName(params, 'pf2e.game_name', '【Pf2e】.pf2 ');
 }

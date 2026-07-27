@@ -1,6 +1,6 @@
 "use strict";
 
-const overlays = require('../modules/i18n-overlays.js');
+const overlays = require('../modules/i18n/i18n-overlays.js');
 
 describe('i18n-overlays helpers', () => {
     test('listOverlayFiles returns sorted json files for known locale', () => {

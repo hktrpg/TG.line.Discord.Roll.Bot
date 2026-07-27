@@ -1,11 +1,11 @@
 "use strict";
 const mathjs = require('mathjs');
 const { SlashCommandBuilder } = require('discord.js');
-const schema = require('../modules/schema.js');
-const checkTools = require('../modules/check.js');
-const checkMongodb = require('../modules/dbWatchdog.js');
-const { getT, resolveHelp, resolveGameName, isEnglish } = require('../modules/roll-i18n.js');
-const i18n = require('../modules/i18n.js');
+const schema = require('../modules/db/schema.js');
+const checkTools = require('../modules/chat/check.js');
+const checkMongodb = require('../modules/db/watchdog.js');
+const { getT, resolveHelp, resolveGameName, isEnglish } = require('../modules/i18n/roll-i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
 const rollbase = require('./rollbase.js');
 
 function wrapCocZhContent(text, params = {}) {

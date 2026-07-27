@@ -3,10 +3,10 @@ if (!process.env.mongoURL) return;
 const NodeCache = require('node-cache');
 const oneMinute = (process.env.DEBUG) ? 1 : 60_000;
 const THIRTY_MINUTES = (process.env.DEBUG) ? 1 : 60_000 * 30;
-const checkMongodb = require('./dbWatchdog.js');
-const i18n = require('./i18n.js');
-const schema = require('./schema.js');
-exports.rollbase = require('../roll/rollbase');
+const checkMongodb = require('../db/watchdog.js');
+const i18n = require('../i18n/i18n.js');
+const schema = require('../db/schema.js');
+exports.rollbase = require('../../roll/rollbase');
 
 const retry = { number: 0, times: 0 };
 let tempSwitchV2 = [{ groupid: '', SwitchV2: false }];

@@ -34,12 +34,12 @@ const {
 	Client, LocalAuth, MessageMedia
 } = require('whatsapp-web.js');
 const isImageURL = require('../utils/is-image-url.js');
-const candle = require('../modules/candleDays.js');
-const agenda = require('../modules/schedule')
+const candle = require('../modules/misc/candleDays.js');
+const agenda = require('../modules/runtime/schedule')
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const isHeroku = (process.env._ && process.env._.indexOf("heroku")) > 0 ? true : false;
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-// const schema = require('../modules/schema');
+// const schema = require('../modules/db/schema.js');
 // const opt = {
 // 	upsert: true,
 // 	runValidators: true
@@ -159,13 +159,13 @@ function resetSessionProfileDir() {
 	}
 }
 
-const newMessage = require('./message');
-const i18n = require('./i18n.js');
+const newMessage = require('./chat/message');
+const i18n = require('./i18n/i18n.js');
 
 exports.analytics = require('./analytics');
 
 let whatsappClient = null;
-const rollText = require('./getRoll').rollText;
+const rollText = require('./chat/getRoll').rollText;
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)$/i);
 const MESSAGE_SPLITOR = (/\S+/ig);
 

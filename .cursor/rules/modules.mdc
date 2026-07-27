@@ -21,20 +21,54 @@ The `modules/` directory contains core functionality, utilities, and platform in
 - `core-plurk.js` - Plurk integration
 
 ### Database & Data Management
-- `schema.js` - Mongoose schema definitions
-- `db-connector.js` - MongoDB connection management
-- `dbWatchdog.js` - Database health monitoring
-- `records.js` - Database operations (uses class pattern)
+- `db/schema.js` - Mongoose schema definitions
+- `db/records.js` - Database operations (uses class pattern)
+- `db/connector.js` - MongoDB connection management
+- `db/watchdog.js` - Database health monitoring
+- `db/protection-layer.js` - Degraded-mode DB protection
+- `db/pool.js` - Named concurrency pools
 
-### Utilities
+### Discord (non-core)
+- `discord/bot.js` - Discord worker / shard client (`core-Discord.js` stays at modules root)
+- `discord/deploy-commands.js` - Slash command deployment
+- `discord/handleMessage.js` - Reply reference helpers
+- `discord/multi-server.js` - Multi-server helpers
+- `config/discord_client.js` - Discord.js client options
+
+### Chat pipeline
+- `chat/check.js` - Permission checks
+- `chat/getRoll.js` - Inline `[[dice]]` text rolling
+- `chat/level.js` - Level/XP
+- `chat/logs.js` - Court / state logging
+- `chat/message.js` - First-time / message helpers
+
+### Runtime
+- `runtime/schedule.js` - Agenda job scheduling
+- `runtime/timer-manager.js` - Interval/timeout tracking
+- `runtime/health-monitor.js` - Health alerts
+- `runtime/cluster-protection.js` - Safe cluster broadcastEval
+
+### WWW helpers
+- `www/bus-shortcut.js` - iOS Shortcut binary plist helper
+
+### Misc
+- `misc/candleDays.js` - Seasonal candle messages
+- `misc/translate.js` - Disabled translate channel helper
+
+### i18n
+- `i18n/i18n.js` - Locale init / translators
+- `i18n/i18n-overlays.js` - Overlay bundle loader
+- `i18n/roll-i18n.js` - Roll-module i18n helpers
+
+### Patreon
+- `patreon/patreon-tiers.js` - Tier limits / labels
+- `patreon/patreon-sync.js` - VIP row sync helpers
+- `patreon/patreon-import.js` - CSV import
+- `patreon/veryImportantPerson.js` - VIP level checks
+
+### Root (intentionally flat)
 - `analytics.js` - Message processing and routing
-- `level.js` - Level/XP system
-- `logs.js` - Logging functionality
-- `message.js` - Message utilities
-- `translate.js` - Translation services
-- `schedule.js` - Job scheduling (Agenda)
-- `pool.js` - Connection pooling
-- `veryImportantPerson.js` - VIP management (uses class pattern)
+- `core-*.js` - Platform entrypoints
 
 ## Module Structure Pattern
 
@@ -48,8 +82,8 @@ if (!process.env.REQUIRED_ENV) {
 }
 
 // Dependencies
-const mongoose = require('./db-connector.js').mongoose;
-const schema = require('./schema.js');
+const mongoose = require('./db/connector.js').mongoose;
+const schema = require('./db/schema.js');
 
 // Class-based modules (preferred)
 class ModuleManager {
@@ -80,7 +114,7 @@ module.exports = ModuleManager;
 - Handle errors properly
 - Use transactions when needed
 
-### Connection Management (`db-connector.js`)
+### Connection Management (`db/connector.js`)
 - Use the exported `mongoose` instance
 - Don't create new connections
 - Handle connection errors gracefully
@@ -90,7 +124,8 @@ module.exports = ModuleManager;
 ### Discord (`core-Discord.js`)
 - Use Discord.js v14 patterns
 - Handle sharding/clustering properly
-- Use slash commands (see `ds-deploy-commands.js`)
+- Worker client lives in `discord/bot.js` (`core-Discord.js` stays at modules root)
+- Use slash commands (see `discord/deploy-commands.js`)
 - Follow existing event handling patterns
 
 ### Web Server (`core-www.js`)
@@ -172,8 +207,8 @@ module.exports = {
 
 ### VIP/Level Checking
 ```javascript
-const VIP = require('./veryImportantPerson');
-const level = require('./level');
+const VIP = require('./patreon/veryImportantPerson');
+const level = require('./chat/level');
 
 // Check VIP level
 const vipLevel = await VIP.viplevelCheckGroup(groupId);
@@ -184,7 +219,7 @@ const userLevel = await level.getUserLevel(userId, groupId);
 
 ### Database Query
 ```javascript
-const schema = require('./schema.js');
+const schema = require('./db/schema.js');
 
 // Find one
 const result = await schema.modelName.findOne({ groupid });

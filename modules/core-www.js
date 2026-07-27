@@ -19,15 +19,15 @@ const {
 const {
     Server: SocketIoServer
 } = require('socket.io');
-const candle = require('../modules/candleDays.js');
+const candle = require('../modules/misc/candleDays.js');
 const cspConfig = require('../modules/config/csp.js');
 const mainCharacter = require('../roll/z_character').mainCharacter;
 const security = require('../utils/security.js');
-const { buildBusEtaShortcut } = require('./bus-shortcut.js');
-const i18n = require('./i18n.js');
-const patreonTiers = require('./patreon-tiers.js');
-const patreonSync = require('./patreon-sync.js');
-const schema = require('./schema.js');
+const { buildBusEtaShortcut } = require('./www/bus-shortcut.js');
+const i18n = require('./i18n/i18n.js');
+const patreonTiers = require('./patreon/patreon-tiers.js');
+const patreonSync = require('./patreon/patreon-sync.js');
+const schema = require('./db/schema.js');
 const {
     safeSocketHandler,
     createRateLimitReject
@@ -214,7 +214,7 @@ process.on('uncaughtException', (warning) => {
     // const clock = setTimeout(createWebServer, 60000 * 5);
 });
 
-const records = require('./records.js');
+const records = require('./db/records.js');
 const port = process.env.WWWPORT || 20_721;
 const channelKeyword = '';
 exports.analytics = require('./analytics');

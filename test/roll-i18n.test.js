@@ -1,7 +1,7 @@
 "use strict";
 
-const i18n = require('../modules/i18n.js');
-const rollI18n = require('../modules/roll-i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
+const rollI18n = require('../modules/i18n/roll-i18n.js');
 
 describe('roll-i18n helpers', () => {
     beforeAll(async () => {

@@ -48,13 +48,13 @@ function getRollModule(moduleName) {
 	return exports[moduleInfo.name];
 }
 
-const schema = require('./schema.js');
-const i18n = require('./i18n.js');
+const schema = require('./db/schema.js');
+const i18n = require('./i18n/i18n.js');
 const debugMode = (process.env.DEBUG) ? true : false;
 const MESSAGE_SPLITOR = (/\S+/ig);
-const courtMessage = require('./logs').courtMessage || function () {};
-const getState = require('./logs').getState || function () {};
-const EXPUP = require('./level').EXPUP || function () {};
+const courtMessage = require('./chat/logs').courtMessage || function () {};
+const getState = require('./chat/logs').getState || function () {};
+const EXPUP = require('./chat/level').EXPUP || function () {};
 
 // 創建一個統一的上下文類來管理參數
 class RollContext {

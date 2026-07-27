@@ -5,10 +5,10 @@ if (!process.env.mongoURL) {
 let variables = {};
 const mathjs = require('mathjs');
 const { SlashCommandBuilder } = require('discord.js');
-const records = require('../modules/records.js'); // eslint-disable-line no-unused-vars
-const VIP = require('../modules/veryImportantPerson');
-const schema = require('../modules/schema.js');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const records = require('../modules/db/records.js'); // eslint-disable-line no-unused-vars
+const VIP = require('../modules/patreon/veryImportantPerson');
+const schema = require('../modules/db/schema.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const rollDice = require('./rollbase').rollDiceCommand;
 const rollDiceCoc = require('./2-coc').rollDiceCommand;
 const rollDiceAdv = require('./0-advroll').rollDiceCommand;

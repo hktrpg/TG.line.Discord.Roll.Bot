@@ -6,7 +6,7 @@ const EventEmitter = require('events');
 const mockConnectionEmitter = new EventEmitter();
 
 // Mock dependencies before requiring the module
-jest.mock('../modules/db-connector.js', () => ({
+jest.mock('../modules/db/connector.js', () => ({
     mongoose: {
         connection: {
             readyState: 1,
@@ -20,7 +20,7 @@ jest.mock('../modules/db-connector.js', () => ({
     connectionEmitter: mockConnectionEmitter
 }));
 
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
     testCollection: {
         find: jest.fn(),
         create: jest.fn(),
@@ -48,7 +48,7 @@ jest.mock('../modules/schema.js', () => ({
     }
 }));
 
-const dbProtectionLayer = require('../modules/db-protection-layer.js');
+const dbProtectionLayer = require('../modules/db/protection-layer.js');
 
 describe('DBProtectionLayer', () => {
     beforeEach(() => {
@@ -83,7 +83,7 @@ describe('DBProtectionLayer', () => {
 
         test('should enter degraded mode after consecutive failures', async () => {
             // Mock unhealthy database
-            const { mongoose } = require('../modules/db-connector.js');
+            const { mongoose } = require('../modules/db/connector.js');
             mongoose.connection.readyState = 0;
 
             const enterSpy = jest.spyOn(dbProtectionLayer, 'enterDegradedMode');
@@ -99,7 +99,7 @@ describe('DBProtectionLayer', () => {
 
     describe('checkDBHealth', () => {
         test('should return false for unhealthy connection', async () => {
-            const { mongoose } = require('../modules/db-connector.js');
+            const { mongoose } = require('../modules/db/connector.js');
             const originalState = mongoose.connection.readyState;
             mongoose.connection.readyState = 0;
 
@@ -132,7 +132,7 @@ describe('DBProtectionLayer', () => {
             const emitSpy = jest.spyOn(dbProtectionLayer, 'emit');
 
             // Mock DB to be healthy
-            const { mongoose } = require('../modules/db-connector.js');
+            const { mongoose } = require('../modules/db/connector.js');
             const originalReadyState = mongoose.connection.readyState;
             mongoose.connection.readyState = 1; // Connected
 
@@ -153,7 +153,7 @@ describe('DBProtectionLayer', () => {
                 dbProtectionLayer.isDegradedMode = false;
 
                 const mockResults = [{ id: 1 }];
-                const { testCollection } = require('../modules/schema.js');
+                const { testCollection } = require('../modules/db/schema.js');
                 testCollection.find.mockResolvedValue(mockResults);
 
                 const result = await dbProtectionLayer.safeFind('testCollection', { id: 1 });
@@ -171,7 +171,7 @@ describe('DBProtectionLayer', () => {
             });
 
             test('should fallback to memory when database operation fails', async () => {
-                const { testCollection } = require('../modules/schema.js');
+                const { testCollection } = require('../modules/db/schema.js');
                 testCollection.find.mockRejectedValue(new Error('DB Error'));
 
                 const result = await dbProtectionLayer.safeFind('testCollection', { id: 1 });
@@ -188,7 +188,7 @@ describe('DBProtectionLayer', () => {
 
                 const mockData = { id: 1, name: 'test' };
                 const mockResult = { ...mockData, _id: 'mockId' };
-                const { testCollection } = require('../modules/schema.js');
+                const { testCollection } = require('../modules/db/schema.js');
                 testCollection.create.mockResolvedValue(mockResult);
 
                 const result = await dbProtectionLayer.safeCreate('testCollection', mockData);
@@ -215,7 +215,7 @@ describe('DBProtectionLayer', () => {
                 const query = { id: 1 };
                 const update = { name: 'updated' };
                 const mockResult = { acknowledged: true, modifiedCount: 1 };
-                const { testCollection } = require('../modules/schema.js');
+                const { testCollection } = require('../modules/db/schema.js');
                 testCollection.findOneAndUpdate.mockResolvedValue(mockResult);
 
                 const result = await dbProtectionLayer.safeUpdate('testCollection', query, update);
@@ -329,7 +329,7 @@ describe('DBProtectionLayer', () => {
                 options: {}
             });
 
-            const { testCollection } = require('../modules/schema.js');
+            const { testCollection } = require('../modules/db/schema.js');
             testCollection.create.mockResolvedValue({ id: 1 });
             testCollection.findOneAndUpdate.mockResolvedValue({ acknowledged: true });
 

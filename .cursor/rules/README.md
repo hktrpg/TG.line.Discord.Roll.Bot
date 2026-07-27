@@ -67,7 +67,7 @@ This directory contains Cursor Project Rules for the HKTRPG bot development. The
 - **Key Topics**: Manager pattern, module pattern, avoid over-engineering, stability first
 
 ### 10. `database-security.mdc` - Database & Security Rules
-- **Type**: Apply to Specific Files (`modules/db-connector.js`, `modules/records.js`, `modules/schema.js`, `modules/config/**/*.js`, `utils/security.js`)
+- **Type**: Apply to Specific Files (`modules/db/connector.js`, `modules/db/records.js`, `modules/db/schema.js`, `modules/config/**/*.js`, `utils/security.js`)
 - **Scope**: Database operations, security, resource management
 - **Purpose**: Database best practices and security for low-resource production environment
 - **Key Topics**: Connection pooling, query optimization, input validation, memory management, CSP, rate limiting

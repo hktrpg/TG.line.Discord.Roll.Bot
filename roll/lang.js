@@ -1,8 +1,8 @@
 "use strict";
 
 const { SlashCommandBuilder } = require('discord.js');
-const i18n = require('../modules/i18n.js');
-const { resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
+const { resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 
 /** Web platforms: reply language follows the page language menu only. */
 const WEB_BOTNAMES = new Set(['WWW', 'Local', 'Api']);

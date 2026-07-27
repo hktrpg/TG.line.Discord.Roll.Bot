@@ -1,4 +1,4 @@
-const rollDice = require('./analytics').parseInput;
+const rollDice = require('../analytics').parseInput;
 
 // Function to roll text with embedded dice roll expressions
 async function rollText(text) {

@@ -1,14 +1,14 @@
 // Mock dependencies
-jest.mock('../modules/dbWatchdog.js', () => ({
+jest.mock('../modules/db/watchdog.js', () => ({
     isDbOnline: jest.fn(() => true)
 }));
 
-jest.mock('../modules/veryImportantPerson', () => ({
+jest.mock('../modules/patreon/veryImportantPerson', () => ({
     viplevelCheckGroup: jest.fn(() => 1),
     viplevelCheckUser: jest.fn(() => 1)
 }));
 
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
     randomAns: {
         findOne: jest.fn(),
         updateOne: jest.fn(),
@@ -33,7 +33,7 @@ jest.mock('../modules/schema.js', () => ({
     }
 }));
 
-jest.mock('../modules/check.js', () => ({
+jest.mock('../modules/chat/check.js', () => ({
     permissionErrMsg: jest.fn(() => null),
     flag: {
         ChkChannelManager: 1
@@ -74,9 +74,9 @@ jest.mock('../roll/z_random_ans.js', () => {
 process.env.mongoURL = 'test_mongo_url';
 
 // Import dependencies
-const _schema = require('../modules/schema.js');
-const _VIP = require('../modules/veryImportantPerson');
-const _checkTools = require('../modules/check.js');
+const _schema = require('../modules/db/schema.js');
+const _VIP = require('../modules/patreon/veryImportantPerson');
+const _checkTools = require('../modules/chat/check.js');
 const _rollbase = require('../roll/rollbase.js');
 
 // Import module

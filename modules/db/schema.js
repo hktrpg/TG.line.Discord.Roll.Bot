@@ -1,7 +1,7 @@
 "use strict";
 
 const models = {};
-const localeDefinitions = require('../lang/locales.json');
+const localeDefinitions = require('../../lang/locales.json');
 const DEFAULT_BOT_LOCALE = Object.keys(localeDefinitions).find((code) => localeDefinitions[code].default)
     || Object.keys(localeDefinitions)[0];
 
@@ -10,7 +10,7 @@ if (!DEFAULT_BOT_LOCALE) {
 }
 
 if (process.env.mongoURL) {
-    const mongoose = require('./db-connector.js').mongoose;
+    const mongoose = require('./connector.js').mongoose;
     const { Schema } = mongoose;
 
     // Chat related schemas

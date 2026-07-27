@@ -43,12 +43,12 @@ const DEBUG_LOG = process.env.DEBUG_LOG === 'true';
 /** Always log hybrid-sharding heartbeat-miss / respawn attempts unless set to false. This is for real problems and stays on by default. */
 const HEARTBEAT_MISSING_LOG = String(process.env.DISCORD_HEARTBEAT_MISSING_LOG ?? 'true').trim().toLowerCase() !== 'false';
 
-const agenda = require('../modules/schedule')?.agenda;
+const agenda = require('../modules/runtime/schedule')?.agenda;
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const childProcess = require('node:child_process');
 const { AsyncLocalStorage } = require('node:async_hooks');
 const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
-require("./ds-deploy-commands");
+require("./discord/deploy-commands");
 const clusterOptions = {
     token: channelSecret,
     shardsPerClusters: 5,
@@ -359,7 +359,7 @@ async function gracefulShutdown({ signal = 'unknown', source = 'unknown', detail
 // Configuration options (simplified as per attachment)
 
 
-const manager = new ClusterManager('./modules/discord_bot.js', clusterOptions);
+const manager = new ClusterManager('./modules/discord/bot.js', clusterOptions);
 if (DEBUG_LOG) {
     installChildKillTrace();
 }

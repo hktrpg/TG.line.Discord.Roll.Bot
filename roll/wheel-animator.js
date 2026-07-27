@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 const GifEncoder = require('gif-encoder');
-const { getPool } = require('../modules/pool');
+const { getPool } = require('../modules/db/pool');
 const imagePool = getPool('image');
 
 // Color palette for wheel segments

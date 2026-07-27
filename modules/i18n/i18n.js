@@ -4,7 +4,7 @@ const path = require('node:path');
 const NodeCache = require('node-cache');
 const i18next = require('i18next');
 const Backend = require('i18next-fs-backend');
-const LOCALE_DEFINITIONS = require('../lang/locales.json');
+const LOCALE_DEFINITIONS = require('../../lang/locales.json');
 const {
     listOverlayFiles,
     readOverlayFile,
@@ -29,7 +29,7 @@ const I18NEXT_TO_LOCALE = Object.fromEntries(
 );
 const I18NEXT_LNGS = SUPPORTED_LOCALES.map((code) => LOCALE_DEFINITIONS[code].i18next);
 
-const LANG_DIR = path.join(__dirname, '..', 'lang');
+const LANG_DIR = path.join(__dirname, '..', '..', 'lang');
 const CACHE_TTL_SECONDS = 300;
 const CACHE_MAX_KEYS = 100_000;
 
@@ -274,7 +274,7 @@ async function resolveLocale({
     }
 
     try {
-        const schema = require('./schema.js');
+        const schema = require('../db/schema.js');
         if (!schema.botLocale) {
             localeCache.set(cacheKey, DEFAULT_LOCALE);
             return DEFAULT_LOCALE;
@@ -309,7 +309,7 @@ async function findStoredLocale({ scope, scopeId }) {
     }
 
     try {
-        const schema = require('./schema.js');
+        const schema = require('../db/schema.js');
         if (!schema.botLocale) {
             localeCache.set(cacheKey, STORED_MISSING);
             return null;
@@ -342,7 +342,7 @@ async function setLocale({ scope, scopeId, locale }) {
     }
 
     try {
-        const schema = require('./schema.js');
+        const schema = require('../db/schema.js');
         if (!schema.botLocale) {
             return { ok: false, reason: 'no_database' };
         }
@@ -368,7 +368,7 @@ async function getLocaleRecord({ scope, scopeId }) {
     }
 
     try {
-        const schema = require('./schema.js');
+        const schema = require('../db/schema.js');
         if (!schema.botLocale) {
             return DEFAULT_LOCALE;
         }

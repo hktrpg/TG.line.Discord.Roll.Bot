@@ -1,12 +1,12 @@
 "use strict";
 
 // Mock dependencies that might cause issues during testing
-jest.mock('../modules/schema.js', () => ({}));
-jest.mock('../modules/check.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({}));
+jest.mock('../modules/chat/check.js', () => ({
     permissionErrMsg: jest.fn(() => null),
     flag: { ChkChannelAdmin: 'admin', ChkChannel: 'channel' }
 }));
-jest.mock('../modules/dbWatchdog.js', () => ({
+jest.mock('../modules/db/watchdog.js', () => ({
     isDbOnline: jest.fn(() => true)
 }));
 jest.mock('../roll/rollbase.js', () => ({

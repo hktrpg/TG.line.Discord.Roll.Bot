@@ -4,8 +4,8 @@ const os = require('os');
 const fs = require('fs').promises;
 const winston = require('winston');
 const { format } = winston;
+const timerManager = require('../runtime/timer-manager');
 const schema = require('./schema.js');
-const timerManager = require('./timer-manager');
 
 // Constant configuration
 const CONFIG = {
@@ -350,7 +350,7 @@ class DbWatchdog {
             return;
         }
 
-        const dbConnector = require('./db-connector.js');
+        const dbConnector = require('./connector.js');
         const mongoose = dbConnector.mongoose;
         const health = dbConnector.checkHealth();
 
@@ -466,7 +466,7 @@ class DbWatchdog {
     init() {
         // Listen to connection events from db-connector
         try {
-            const { connectionEmitter } = require('./db-connector.js');
+            const { connectionEmitter } = require('./connector.js');
             connectionEmitter.on('connected', (data) => {
                 this.connectionState.isConnected = data.isConnected;
                 this.connectionState.lastConnectionTime = data.lastConnectionTime;
@@ -642,7 +642,7 @@ class DbWatchdog {
 
         try {
             // Dynamically check mongoose status, avoid creating dependencies during module loading
-            const mongoose = require('./db-connector.js').mongoose;
+            const mongoose = require('./connector.js').mongoose;
             mongooseReadyState = mongoose?.connection?.readyState ?? 0;
             isActuallyConnected = mongooseReadyState === 1; // 1 = connected
 

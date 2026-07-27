@@ -2,10 +2,10 @@
 
 const coc = require('../roll/2-coc.js');
 const rollbase = require('../roll/rollbase.js');
-const i18n = require('../modules/i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
 
 // Mock dependencies to avoid issues with schema.js and other modules
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
     developmentConductor: {
         findOne: jest.fn().mockResolvedValue(null),
         findOneAndUpdate: jest.fn().mockResolvedValue({ switch: true })
@@ -18,7 +18,7 @@ jest.mock('../modules/schema.js', () => ({
     }
 }));
 
-jest.mock('../modules/check.js', () => ({
+jest.mock('../modules/chat/check.js', () => ({
     permissionErrMsg: jest.fn().mockReturnValue(null),
     flag: {
         ChkChannel: 1,
@@ -26,7 +26,7 @@ jest.mock('../modules/check.js', () => ({
     }
 }));
 
-jest.mock('../modules/dbWatchdog.js', () => ({
+jest.mock('../modules/db/watchdog.js', () => ({
     isDbOnline: jest.fn().mockReturnValue(true),
     dbErrOccurs: jest.fn()
 }));

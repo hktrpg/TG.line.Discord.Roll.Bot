@@ -1,27 +1,27 @@
 // Mock dependencies
-jest.mock('../modules/veryImportantPerson', () => ({
+jest.mock('../modules/patreon/veryImportantPerson', () => ({
     viplevelCheckUser: jest.fn(() => 1),
     viplevelCheckGroup: jest.fn(() => 1)
 }));
 
-jest.mock('../modules/dbWatchdog.js', () => ({
+jest.mock('../modules/db/watchdog.js', () => ({
     isDbOnline: jest.fn(() => true)
 }));
 
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
     agendaAtHKTRPG: {
         countDocuments: jest.fn()
     }
 }));
 
-jest.mock('../modules/check.js', () => ({
+jest.mock('../modules/chat/check.js', () => ({
     permissionErrMsg: jest.fn(() => null),
     flag: {
         ChkChannelManager: 1
     }
 }));
 
-jest.mock('../modules/schedule', () => ({
+jest.mock('../modules/runtime/schedule', () => ({
     agenda: {
         jobs: jest.fn(),
         create: jest.fn(() => ({
@@ -65,10 +65,10 @@ process.env.mongoURL = 'test_mongo_url';
 
 // Import dependencies
 const _moment = require('moment');
-const schema = require('../modules/schema.js');
-const VIP = require('../modules/veryImportantPerson');
-const _checkTools = require('../modules/check.js');
-const agenda = require('../modules/schedule');
+const schema = require('../modules/db/schema.js');
+const VIP = require('../modules/patreon/veryImportantPerson');
+const _checkTools = require('../modules/chat/check.js');
+const agenda = require('../modules/runtime/schedule');
 
 // Import module
 const scheduleModule = require('../roll/z_schedule.js');

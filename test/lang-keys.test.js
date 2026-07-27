@@ -2,7 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { loadLocaleBundle } = require('../modules/i18n-overlays.js');
+const { loadLocaleBundle } = require('../modules/i18n/i18n-overlays.js');
 
 const LOCALE_CODES = Object.keys(require('../lang/locales.json'));
 

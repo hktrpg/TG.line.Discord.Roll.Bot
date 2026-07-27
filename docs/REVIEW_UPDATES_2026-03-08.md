@@ -16,7 +16,7 @@
 
 ---
 
-## 2. modules/schema.js
+## 2. modules/db/schema.js
 
 | 項目 | 狀態 | 說明 |
 |------|------|------|

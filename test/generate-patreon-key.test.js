@@ -2,8 +2,8 @@
 
 const crypto = require('node:crypto');
 
-jest.mock('../modules/db-connector.js', () => ({}));
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/connector.js', () => ({}));
+jest.mock('../modules/db/schema.js', () => ({
     accountPW: {},
     allowRolling: {},
     veryImportantPerson: {},
@@ -12,15 +12,15 @@ jest.mock('../modules/schema.js', () => ({
     mongodbState: jest.fn(),
     mongodbStateCheck: jest.fn()
 }));
-jest.mock('../modules/check.js', () => ({
+jest.mock('../modules/chat/check.js', () => ({
     permissionErrMsg: jest.fn(),
     flag: { ChkChannel: 1, ChkChannelAdmin: 2 }
 }));
-jest.mock('../modules/ds-deploy-commands.js', () => ({
+jest.mock('../modules/discord/deploy-commands.js', () => ({
     registeredGlobalSlashCommands: jest.fn(),
     testRegisteredSlashCommands: jest.fn()
 }));
-jest.mock('../modules/schedule.js', () => ({
+jest.mock('../modules/runtime/schedule.js', () => ({
     agenda: null,
     JOB_NAME: 'dailyDiscordMaintenance',
     AGENDA_TIMEZONE: 'Asia/Hong_Kong',

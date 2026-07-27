@@ -1,6 +1,6 @@
 "use strict";
-const schema = require('./schema.js');
-// const checkMongodb = require('./dbWatchdog.js');
+const schema = require('../db/schema.js');
+// const checkMongodb = require('./db/watchdog.js');
 
 const DebugMode = Boolean(process.env.DEBUG);
 const CACHE_DURATION = 5 * 60 * 1000; // 5分鐘快取

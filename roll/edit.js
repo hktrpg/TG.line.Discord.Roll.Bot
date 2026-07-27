@@ -3,8 +3,8 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
 const { SlashCommandBuilder } = require('discord.js');
-const checkTools = require('../modules/check.js');
-const { resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const checkTools = require('../modules/chat/check.js');
+const { resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const variables = {};
 const gameName = function (params = {}) {
     return resolveGameName(params, 'edit.game_name', '【舊信息修改功能】Discord限定');

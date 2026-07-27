@@ -4,14 +4,14 @@ if (!process.env.TELEGRAM_CHANNEL_SECRET) {
 }
 const { Bot, GrammyError, HttpError } = require('grammy');
 const WebSocket = require('ws');
-const candle = require('../modules/candleDays.js');
-const agenda = require('../modules/schedule')
-const rollText = require('./getRoll').rollText;
+const candle = require('../modules/misc/candleDays.js');
+const agenda = require('../modules/runtime/schedule')
+const rollText = require('./chat/getRoll').rollText;
 exports.analytics = require('./analytics');
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const TGclient = new Bot(process.env.TELEGRAM_CHANNEL_SECRET);
-const newMessage = require('./message');
-const i18n = require('./i18n.js');
+const newMessage = require('./chat/message');
+const i18n = require('./i18n/i18n.js');
 const channelKeyword = process.env.TELEGRAM_CHANNEL_KEYWORD || '';
 const MESSAGE_SPLITOR = (/\S+/ig);
 
@@ -19,8 +19,8 @@ let robotName = ""
 
 
 let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const EXPUP = require('./level').EXPUP || function () { };
-const courtMessage = require('./logs').courtMessage || function () { };
+const EXPUP = require('./chat/level').EXPUP || function () { };
+const courtMessage = require('./chat/logs').courtMessage || function () { };
 
 TGclient.on('message:text', (ctx) => {
     if (ctx.from?.is_bot) return;

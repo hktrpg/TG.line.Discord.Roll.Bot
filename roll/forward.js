@@ -6,9 +6,9 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
-const records = require('../modules/records.js');
-const VIP = require('../modules/veryImportantPerson');
-const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const records = require('../modules/db/records.js');
+const VIP = require('../modules/patreon/veryImportantPerson');
+const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
 
 const gameName = function (params = {}) {

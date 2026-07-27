@@ -20,7 +20,7 @@ jest.mock('discord.js', () => ({
     })
 }));
 
-const i18n = require('../modules/i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
 const lang = require('../roll/lang.js');
 
 describe('lang module', () => {

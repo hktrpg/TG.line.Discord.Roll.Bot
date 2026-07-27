@@ -18,7 +18,7 @@ const lunisolar = require('lunisolar');
 const { fetalGod } = require('@lunisolar/plugin-fetalgod');
 const { takeSound } = require('@lunisolar/plugin-takesound');
 const { theGods } = require('@lunisolar/plugin-thegods');
-const { getT, resolveHelp, resolveGameName, isEnglish } = require('../modules/roll-i18n.js');
+const { getT, resolveHelp, resolveGameName, isEnglish } = require('../modules/i18n/roll-i18n.js');
 const rollbase = require('./rollbase.js');
 const wheelAnimator = require('./wheel-animator.js');
 lunisolar.extend(fetalGod);

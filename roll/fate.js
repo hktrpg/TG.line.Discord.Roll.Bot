@@ -1,7 +1,7 @@
 "use strict";
 const { SlashCommandBuilder } = require('discord.js');
 const mathjs = require('mathjs');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 let rollbase = require('./rollbase.js');
 let variables = {};
 const gameName = function (params = {}) {

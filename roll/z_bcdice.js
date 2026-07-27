@@ -7,9 +7,9 @@ const {
 } = require('bcdice');
 const variables = {};
 const { SlashCommandBuilder } = require('discord.js');
-const checkTools = require('../modules/check.js');
-const schema = require('../modules/schema.js');
-const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const checkTools = require('../modules/chat/check.js');
+const schema = require('../modules/db/schema.js');
+const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const gameName = function (params = {}) {
     return resolveGameName(params, 'bcdice.game_name', '【BcDice】.bc');
 }

@@ -34,8 +34,8 @@ describe('Records Module - Post-Startup Integration Test', () => {
         });
 
         // Import modules (they should be initialized by now)
-        records = require('../modules/records.js');
-        dbConnector = require('../modules/db-connector.js');
+        records = require('../modules/db/records.js');
+        dbConnector = require('../modules/db/connector.js');
 
         // Wait for database connection if needed (with timeout)
         if (dbConnector.waitForConnection) {

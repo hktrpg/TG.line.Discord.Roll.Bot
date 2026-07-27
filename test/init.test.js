@@ -5,7 +5,7 @@ jest.mock('mathjs', () => ({
     evaluate: jest.fn()
 }));
 
-jest.mock('../modules/schema.js', () => ({
+jest.mock('../modules/db/schema.js', () => ({
     init: {
         findOne: jest.fn(),
         updateOne: jest.fn(),
@@ -19,7 +19,7 @@ jest.mock('../roll/rollbase', () => ({
 
 // Import dependencies after mocking
 const math = require('mathjs');
-const schema = require('../modules/schema.js');
+const schema = require('../modules/db/schema.js');
 const rollbase = require('../roll/rollbase');
 
 // Create a mock init module for testing

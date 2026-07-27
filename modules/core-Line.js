@@ -7,28 +7,28 @@ const fs = require('fs');
 const https = require('https');
 const http = require('http');
 const line = require('@line/bot-sdk');
-const candle = require('../modules/candleDays.js');
+const candle = require('../modules/misc/candleDays.js');
 const mainLine = Boolean(process.env.DISCORD_CHANNEL_SECRET);
 const lineAgenda = Boolean(process.env.LINE_AGENDA)
 exports.analytics = require('./analytics');
-const EXPUP = require('./level').EXPUP || function () {};
+const EXPUP = require('./chat/level').EXPUP || function () {};
 
 const MESSAGE_SPLITOR = (/\S+/ig);
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
-const agenda = require('../modules/schedule');
-const rollText = require('./getRoll').rollText;
+const agenda = require('../modules/runtime/schedule');
+const rollText = require('./chat/getRoll').rollText;
 // create LINE SDK config from env variables
 const config = {
 	channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
 	channelSecret: process.env.LINE_CHANNEL_SECRET,
 };
 const TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
-const courtMessage = require('./logs').courtMessage || function () {};
+const courtMessage = require('./chat/logs').courtMessage || function () {};
 // create LINE SDK client (CommonJS format for v10.x)
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
 const client = new line.messagingApi.MessagingApiClient(config);
-const newMessage = require('./message');
-const i18n = require('./i18n.js');
+const newMessage = require('./chat/message');
+const i18n = require('./i18n/i18n.js');
 
 // Helper function to get user profile based on context
 async function getUserProfile(event, userid) {

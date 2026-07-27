@@ -3,7 +3,7 @@ if (!process.env.mongoURL) {
     return;
 }
 let save = {};
-const records = require('../modules/records.js');
+const records = require('../modules/db/records.js');
 
 // Initialize data asynchronously
 (async () => {
@@ -14,9 +14,9 @@ const records = require('../modules/records.js');
         save.save = [];
     }
 })();
-const checkTools = require('../modules/check.js');
-const VIP = require('../modules/veryImportantPerson');
-const { getT, resolveHelp, resolveGameName } = require('../modules/roll-i18n.js');
+const checkTools = require('../modules/chat/check.js');
+const VIP = require('../modules/patreon/veryImportantPerson');
+const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const FUNCTION_LIMIT = [30, 200, 200, 300, 300, 300, 300, 300];
 const gameName = function (params = {}) {
     return resolveGameName(params, 'stop.game_name', '【擲骰開關功能】 .bk (add del show)');

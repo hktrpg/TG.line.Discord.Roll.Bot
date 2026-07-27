@@ -19,7 +19,7 @@ let syncDiscordMaintenanceSchedule = async () => ({ cancelled: false, registered
 
 if (process.env.mongoURL) {
     const Agenda = require("agenda");
-    const dbConnector = require('./db-connector.js');
+    const dbConnector = require('../db/connector.js');
     const mongoose = dbConnector.mongoose;
 
     agenda = new Agenda({
@@ -47,7 +47,7 @@ if (process.env.mongoURL) {
      */
     getRespawnScheduleDoc = async function getRespawnScheduleDocImpl() {
         try {
-            const schema = require('./schema.js');
+            const schema = require('../db/schema.js');
             if (!schema.discordRespawnSchedule) return null;
             return await schema.discordRespawnSchedule.findOne({ key: SCHEDULE_DOC_KEY }).lean();
         } catch (error) {

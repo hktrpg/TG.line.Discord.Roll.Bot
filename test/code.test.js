@@ -1,7 +1,7 @@
 "use strict";
 
 const axios = require('axios');
-const i18n = require('../modules/i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
 const codeModule = require('../roll/code.js');
 
 // Mock axios to avoid real API calls

@@ -1,6 +1,6 @@
 "use strict";
 
-const i18n = require('../modules/i18n.js');
+const i18n = require('../modules/i18n/i18n.js');
 const advroll = require('../roll/0-advroll');
 
 beforeAll(async () => {

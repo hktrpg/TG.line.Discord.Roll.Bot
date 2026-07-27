@@ -200,7 +200,7 @@ Swap: 25G total, 8.6G used, 17G free
 | roll/z_myname.js | myName | { userID } | 使用者名稱數量 |
 | roll/z_role.js | roleReact, roleInvites | { groupid } | 群組角色數 |
 | roll/z-story-teller.js | storyRun, story | starterID/ownerID/story 等 | 故事與回合數 |
-| modules/records.js | 多處 | roomNumber, filter 等 | 聊天室／轉發訊息數 |
+| modules/db/records.js | 多處 | roomNumber, filter 等 | 聊天室／轉發訊息數 |
 
 以上皆為「有條件」的 count，需精確值或依條件篩選，**不適合**改為 estimatedDocumentCount；若日後出現慢查詢，應在對應欄位加 index。
 

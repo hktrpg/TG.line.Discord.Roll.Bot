@@ -162,7 +162,7 @@ async function loadingSlashCommands() {
             const commandFiles = fs.readdirSync('./roll/').filter(file => file.endsWith('.js'));
             for (const file of commandFiles) {
                 try {
-                    const command = require(`../roll/${file}`);
+                    const command = require(`../../roll/${file}`);
                     if (command?.discordCommand?.length > 0) {
                         pushArraySlashCommands(command.discordCommand);
                     }

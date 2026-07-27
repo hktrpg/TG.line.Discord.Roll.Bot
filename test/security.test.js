@@ -309,6 +309,19 @@ describe('Security Utilities', () => {
             expect(errorSpy).toHaveBeenCalled();
             errorSpy.mockRestore();
         });
+
+        test('logs non-Error rejects without a stack', async () => {
+            const handler = jest.fn().mockRejectedValue('string-fail');
+            const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+            const wrapped = security.safeSocketHandler('rolling', handler);
+            await expect(wrapped()).resolves.toBeUndefined();
+            expect(errorSpy).toHaveBeenCalledWith(
+                expect.stringContaining("socket 'rolling' error:"),
+                'string-fail'
+            );
+            expect(errorSpy).toHaveBeenCalledTimes(1);
+            errorSpy.mockRestore();
+        });
     });
 
     describe('createRateLimitReject', () => {

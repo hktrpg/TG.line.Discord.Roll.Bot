@@ -125,6 +125,15 @@ describe('i18n module', () => {
             expect(result).not.toBeNull();
             expect(typeof result).toBe('string');
         });
+
+        test('before init returns key string and empty for non-string keys', () => {
+            jest.isolateModules(() => {
+                const fresh = require('../modules/i18n/i18n.js');
+                const t = fresh.createTranslator('en');
+                expect(t('pre.init.key')).toBe('pre.init.key');
+                expect(t(42)).toBe('');
+            });
+        });
     });
 
     describe('enrichSlashCommandLocalizations', () => {

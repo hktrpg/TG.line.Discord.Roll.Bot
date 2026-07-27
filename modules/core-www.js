@@ -174,10 +174,17 @@ const rateLimitConfig = {
     patreon: { points: 30, duration: 60 }  // Stricter for key-based endpoints
 };
 
-const rateLimits = Object.entries(rateLimitConfig).reduce((acc, [key, config]) => {
-    acc[key] = new RateLimiterMemory(config);
-    return acc;
-}, {});
+// Named instances so CodeQL can track RateLimiterMemory.consume(req.ip)
+const apiRateLimiter = new RateLimiterMemory(rateLimitConfig.api);
+const patreonRateLimiter = new RateLimiterMemory(rateLimitConfig.patreon);
+const rateLimits = {
+    chatRoom: new RateLimiterMemory(rateLimitConfig.chatRoom),
+    card: new RateLimiterMemory(rateLimitConfig.card),
+    cardRead: new RateLimiterMemory(rateLimitConfig.cardRead),
+    api: apiRateLimiter,
+    busSpeak: new RateLimiterMemory(rateLimitConfig.busSpeak),
+    patreon: patreonRateLimiter
+};
 
 const checkRateLimit = async (type, address) => {
     try {
@@ -189,29 +196,40 @@ const checkRateLimit = async (type, address) => {
 };
 
 /**
- * Named Express rate-limit middlewares (CodeQL recognizes rate-limiter-flexible
- * `.consume(req.ip)` on a concrete RateLimiterMemory instance in the middleware body).
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @returns {Promise<boolean>} true if limited (response already sent)
  */
-function rateLimitApi(req, res, next) {
-    rateLimits.api.consume(req.ip)
-        .then(() => next())
-        .catch(() => {
-            if (!res.headersSent) {
-                res.status(429).end();
-            }
-        });
+async function rejectIfApiRateLimited(req, res) {
+    try {
+        await apiRateLimiter.consume(req.ip);
+        return false;
+    } catch {
+        if (!res.headersSent) {
+            res.status(429).end();
+        }
+        return true;
+    }
 }
 
-function rateLimitPatreon(req, res, next) {
-    rateLimits.patreon.consume(req.ip)
-        .then(() => next())
-        .catch(() => {
-            if (res.headersSent) return;
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @returns {Promise<boolean>} true if limited (response already sent)
+ */
+async function rejectIfPatreonRateLimited(req, res) {
+    try {
+        await patreonRateLimiter.consume(req.ip);
+        return false;
+    } catch {
+        if (!res.headersSent) {
             const t = typeof getWwwT === 'function' ? getWwwT(req) : null;
             res.status(429).json({
                 error: t ? t('www.patreon.too_many_requests') : 'Too Many Requests'
             });
-        });
+        }
+        return true;
+    }
 }
 
 // ============= SSL Configuration =============
@@ -479,12 +497,14 @@ www.get('/', async (req, res) => {
     // Default: original behavior (www.hktrpg.com, localhost, 127.0.0.1, others)
     res.sendFile(process.cwd() + '/views/index.html');
 });
-www.get('/api', rateLimitApi, async (req, res) => {
+www.get('/api', async (req, res) => {
+    if (await rejectIfApiRateLimited(req, res)) return;
     await handleApiRequest(req, res, { skipIpLimit: true });
 });
 
 // Local bot endpoint for personal room (no broadcasting/records)
-www.get('/api/local', rateLimitApi, async (req, res) => {
+www.get('/api/local', async (req, res) => {
+    if (await rejectIfApiRateLimited(req, res)) return;
     try {
         const q = (req && req.query && typeof req.query.msg === 'string') ? req.query.msg : '';
         if (!q) {
@@ -515,7 +535,8 @@ www.get('/api/local', rateLimitApi, async (req, res) => {
     }
 });
 
-www.get('/api/dice-commands', rateLimitApi, async (req, res) => {
+www.get('/api/dice-commands', async (req, res) => {
+    if (await rejectIfApiRateLimited(req, res)) return;
     await i18n.init();
     const locale = resolveWwwLocale(req);
     const t = i18n.createTranslator(locale);
@@ -1722,7 +1743,8 @@ www.get('/patreon', async (req, res) => {
     res.sendFile(path.join(process.cwd(), 'views', 'patreon.html'));
 });
 
-www.post('/api/patreon/validate', rateLimitPatreon, async (req, res) => {
+www.post('/api/patreon/validate', async (req, res) => {
+    if (await rejectIfPatreonRateLimited(req, res)) return;
     const t = getWwwT(req);
     try {
         const key = getPatreonKeyFromRequest(req);
@@ -1738,7 +1760,8 @@ www.post('/api/patreon/validate', rateLimitPatreon, async (req, res) => {
     }
 });
 
-www.get('/api/patreon/me', rateLimitPatreon, async (req, res) => {
+www.get('/api/patreon/me', async (req, res) => {
+    if (await rejectIfPatreonRateLimited(req, res)) return;
     const t = getWwwT(req);
     try {
         const key = getPatreonKeyFromRequest(req);
@@ -1754,7 +1777,8 @@ www.get('/api/patreon/me', rateLimitPatreon, async (req, res) => {
     }
 });
 
-www.put('/api/patreon/me/slots', rateLimitPatreon, async (req, res) => {
+www.put('/api/patreon/me/slots', async (req, res) => {
+    if (await rejectIfPatreonRateLimited(req, res)) return;
     const locale = resolveWwwLocale(req);
     const t = getWwwT(req);
     try {
@@ -1804,7 +1828,8 @@ www.put('/api/patreon/me/slots', rateLimitPatreon, async (req, res) => {
     }
 });
 
-www.patch('/api/patreon/me/slot/:index', rateLimitPatreon, async (req, res) => {
+www.patch('/api/patreon/me/slot/:index', async (req, res) => {
+    if (await rejectIfPatreonRateLimited(req, res)) return;
     const t = getWwwT(req);
     try {
         const key = getPatreonKeyFromRequest(req);
@@ -1859,7 +1884,8 @@ www.patch('/api/patreon/me/slot/:index', rateLimitPatreon, async (req, res) => {
     }
 });
 
-www.get('/log/:id', rateLimitApi, async (req, res) => {
+www.get('/log/:id', async (req, res) => {
+    if (await rejectIfApiRateLimited(req, res)) return;
     if (req.originalUrl.endsWith('html')) {
         // Sanitize and validate the file path
         const logPath = path.resolve(exportBaseDir, req.params.id);

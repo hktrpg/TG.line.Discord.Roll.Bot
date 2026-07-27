@@ -138,7 +138,18 @@ class WwwI18n {
         for (const el of root.querySelectorAll('[data-www-i18n-html]')) {
             const key = el.getAttribute('data-www-i18n-html');
             if (!key) continue;
-            this.setTrustedHtml(el, t(key));
+            // Only HTML-parse values from the i18n bundle — never echo DOM attributes
+            // (missing keys would otherwise flow attribute text into parseFromString).
+            const fullKey = key.includes('.') ? key : `www.views.${key}`;
+            const fromBundle = this.strings[fullKey]
+                ?? this.fallback[fullKey]
+                ?? this.strings[key]
+                ?? this.fallback[key];
+            if (fromBundle == null) {
+                el.textContent = '';
+                continue;
+            }
+            this.setTrustedHtml(el, fromBundle);
         }
         for (const el of root.querySelectorAll('[data-www-i18n-placeholder]')) {
             const key = el.getAttribute('data-www-i18n-placeholder');

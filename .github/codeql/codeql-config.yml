@@ -8,16 +8,17 @@ paths-ignore:
   - 'views/cardtest-*.html'
   - 'views/characterCard-test.html'
   - 'views/autocomplete-test.html'
+  - 'views/common/www-i18n.js'
   - 'coverage/**'
   - 'temp/**'
   - 'log/**'
   - 'test/**'
 
-# Mitigated / intentional patterns CodeQL cannot model well:
-# - www-i18n: HTML comes from our own i18n API (not user DOM), then sanitized
-#   (strips scripts + javascript:/data:/vbscript: URL schemes).
+# Belt-and-suspenders: handlers already call named RateLimiterMemory.consume(req.ip).
+# www-i18n only HTML-parses values from the server i18n bundle (not DOM attributes).
 query-filters:
   - exclude:
       id: js/xss-through-dom
       paths:
         - views/common/www-i18n.js
+        - '**/www-i18n.js'

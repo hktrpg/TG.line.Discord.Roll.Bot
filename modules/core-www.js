@@ -28,6 +28,10 @@ const i18n = require('./i18n.js');
 const patreonTiers = require('./patreon-tiers.js');
 const patreonSync = require('./patreon-sync.js');
 const schema = require('./schema.js');
+const {
+    safeSocketHandler,
+    createRateLimitReject
+} = security;
 
 const www = express();
 const isHttpUrl = (value) => /^https?:\/\//i.test(String(value || '').trim());
@@ -44,25 +48,6 @@ function getWwwT(req) {
 
 function getSocketT(socket) {
     return i18n.createTranslator(socket?._hktrpgLocale || i18n.DEFAULT_LOCALE);
-}
-
-/**
- * Wrap async socket handlers so rejections are logged instead of becoming
- * process-level unhandledRejection (which used to shut down the whole bot).
- * @param {string} eventName
- * @param {(...args: unknown[]) => Promise<unknown>|unknown} handler
- */
-function safeSocketHandler(eventName, handler) {
-    return async (...args) => {
-        try {
-            await handler(...args);
-        } catch (error) {
-            console.error(`[Web Server] socket '${eventName}' error:`, error?.message || error);
-            if (error?.stack) {
-                console.error(error.stack.split('\n').slice(0, 10).join('\n'));
-            }
-        }
-    };
 }
 
 function flattenI18nSection(section, prefix, output) {
@@ -195,42 +180,11 @@ const checkRateLimit = async (type, address) => {
     }
 };
 
-/**
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @returns {Promise<boolean>} true if limited (response already sent)
- */
-async function rejectIfApiRateLimited(req, res) {
-    try {
-        await apiRateLimiter.consume(req.ip);
-        return false;
-    } catch {
-        if (!res.headersSent) {
-            res.status(429).end();
-        }
-        return true;
-    }
-}
-
-/**
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @returns {Promise<boolean>} true if limited (response already sent)
- */
-async function rejectIfPatreonRateLimited(req, res) {
-    try {
-        await patreonRateLimiter.consume(req.ip);
-        return false;
-    } catch {
-        if (!res.headersSent) {
-            const t = typeof getWwwT === 'function' ? getWwwT(req) : null;
-            res.status(429).json({
-                error: t ? t('www.patreon.too_many_requests') : 'Too Many Requests'
-            });
-        }
-        return true;
-    }
-}
+const rejectIfApiRateLimited = createRateLimitReject(apiRateLimiter);
+const rejectIfPatreonRateLimited = createRateLimitReject(patreonRateLimiter, {
+    json: true,
+    getTranslator: (req) => (typeof getWwwT === 'function' ? getWwwT(req) : null)
+});
 
 // ============= SSL Configuration =============
 const initSSL = () => {

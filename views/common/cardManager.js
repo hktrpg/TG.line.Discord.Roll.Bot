@@ -1166,5 +1166,13 @@ class CardManager {
     }
 }
 
-// 創建全局實例
-window.cardManager = new CardManager();
+// Browser global; Node/Jest can require buildCardDemoData for unit tests.
+if (typeof window !== 'undefined') {
+    window.cardManager = new CardManager();
+}
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        buildCardDemoData,
+        CardManager
+    };
+}

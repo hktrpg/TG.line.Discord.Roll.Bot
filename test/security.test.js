@@ -246,4 +246,95 @@ describe('Security Utilities', () => {
             expect(result).toBe(true);
         });
     });
+
+    // ============================================
+    // 測試：WWW socket / rate-limit helpers
+    // ============================================
+    describe('safeSocketHandler', () => {
+        test('awaits the handler without throwing', async () => {
+            const handler = jest.fn().mockResolvedValue('ok');
+            const wrapped = security.safeSocketHandler('rolling', handler);
+            await expect(wrapped({ a: 1 }, 'b')).resolves.toBeUndefined();
+            expect(handler).toHaveBeenCalledWith({ a: 1 }, 'b');
+        });
+
+        test('logs and swallows handler rejections', async () => {
+            const err = new Error('boom');
+            err.stack = 'Error: boom\n    at test.js:1:1\n    at test.js:2:2';
+            const handler = jest.fn().mockRejectedValue(err);
+            const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+            const wrapped = security.safeSocketHandler('send', handler);
+            await expect(wrapped()).resolves.toBeUndefined();
+            expect(errorSpy).toHaveBeenCalled();
+            expect(errorSpy.mock.calls.some(call => String(call[0]).includes("socket 'send' error"))).toBe(true);
+            errorSpy.mockRestore();
+        });
+
+        test('supports sync handlers that throw', async () => {
+            const handler = jest.fn(() => {
+                throw new TypeError('translate is not a function');
+            });
+            const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+            const wrapped = security.safeSocketHandler('getListInfo', handler);
+            await expect(wrapped()).resolves.toBeUndefined();
+            expect(errorSpy).toHaveBeenCalled();
+            errorSpy.mockRestore();
+        });
+    });
+
+    describe('createRateLimitReject', () => {
+        function mockRes({ headersSent = false } = {}) {
+            return {
+                headersSent,
+                status: jest.fn().mockReturnThis(),
+                end: jest.fn(),
+                json: jest.fn()
+            };
+        }
+
+        test('returns false when consume succeeds', async () => {
+            const limiter = { consume: jest.fn().mockResolvedValue({}) };
+            const rejectIfLimited = security.createRateLimitReject(limiter);
+            const res = mockRes();
+            await expect(rejectIfLimited({ ip: '1.2.3.4' }, res)).resolves.toBe(false);
+            expect(limiter.consume).toHaveBeenCalledWith('1.2.3.4');
+            expect(res.status).not.toHaveBeenCalled();
+        });
+
+        test('sends 429 end for non-json limits', async () => {
+            const limiter = { consume: jest.fn().mockRejectedValue(new Error('limited')) };
+            const rejectIfLimited = security.createRateLimitReject(limiter);
+            const res = mockRes();
+            await expect(rejectIfLimited({ ip: '9.9.9.9' }, res)).resolves.toBe(true);
+            expect(res.status).toHaveBeenCalledWith(429);
+            expect(res.end).toHaveBeenCalled();
+        });
+
+        test('sends 429 json with translator when configured', async () => {
+            const limiter = { consume: jest.fn().mockRejectedValue(new Error('limited')) };
+            const getTranslator = jest.fn(() => (key) => `T:${key}`);
+            const rejectIfLimited = security.createRateLimitReject(limiter, { json: true, getTranslator });
+            const res = mockRes();
+            await expect(rejectIfLimited({ ip: '8.8.8.8' }, res)).resolves.toBe(true);
+            expect(getTranslator).toHaveBeenCalled();
+            expect(res.json).toHaveBeenCalledWith({ error: 'T:www.patreon.too_many_requests' });
+        });
+
+        test('uses fallback error text when translator is missing', async () => {
+            const limiter = { consume: jest.fn().mockRejectedValue(new Error('limited')) };
+            const rejectIfLimited = security.createRateLimitReject(limiter, { json: true, fallbackError: 'Slow down' });
+            const res = mockRes();
+            await expect(rejectIfLimited({ ip: '8.8.8.8' }, res)).resolves.toBe(true);
+            expect(res.json).toHaveBeenCalledWith({ error: 'Slow down' });
+        });
+
+        test('does not write response when headers already sent', async () => {
+            const limiter = { consume: jest.fn().mockRejectedValue(new Error('limited')) };
+            const rejectIfLimited = security.createRateLimitReject(limiter, { json: true });
+            const res = mockRes({ headersSent: true });
+            await expect(rejectIfLimited({ ip: '8.8.8.8' }, res)).resolves.toBe(true);
+            expect(res.status).not.toHaveBeenCalled();
+            expect(res.json).not.toHaveBeenCalled();
+        });
+    });
 });

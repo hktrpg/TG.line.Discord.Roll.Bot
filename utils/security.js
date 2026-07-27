@@ -815,6 +815,63 @@ function verifyHMAC(data, signature, key = null) {
 }
 
 // ============================================
+// WWW / Socket safety (used by core-www)
+// ============================================
+
+/**
+ * Wrap async socket handlers so rejections are logged instead of becoming
+ * process-level unhandledRejection.
+ * @param {string} eventName
+ * @param {(...args: unknown[]) => Promise<unknown>|unknown} handler
+ */
+function safeSocketHandler(eventName, handler) {
+    return async (...args) => {
+        try {
+            await handler(...args);
+        } catch (error) {
+            console.error(`[Web Server] socket '${eventName}' error:`, error?.message || error);
+            if (error?.stack) {
+                console.error(error.stack.split('\n').slice(0, 10).join('\n'));
+            }
+        }
+    };
+}
+
+/**
+ * Build an Express rate-limit guard using rate-limiter-flexible.
+ * @param {{ consume: (key: string) => Promise<unknown> }} limiter
+ * @param {{ json?: boolean, getTranslator?: Function, errorKey?: string, fallbackError?: string }} [options]
+ * @returns {(req: object, res: object) => Promise<boolean>} true if limited (response already sent)
+ */
+function createRateLimitReject(limiter, options = {}) {
+    const {
+        json = false,
+        getTranslator = null,
+        errorKey = 'www.patreon.too_many_requests',
+        fallbackError = 'Too Many Requests'
+    } = options;
+
+    return async function rejectIfRateLimited(req, res) {
+        try {
+            await limiter.consume(req.ip);
+            return false;
+        } catch {
+            if (!res.headersSent) {
+                if (json) {
+                    const t = typeof getTranslator === 'function' ? getTranslator(req) : null;
+                    res.status(429).json({
+                        error: t ? t(errorKey) : fallbackError
+                    });
+                } else {
+                    res.status(429).end();
+                }
+            }
+            return true;
+        }
+    };
+}
+
+// ============================================
 // 導出
 // ============================================
 
@@ -837,6 +894,10 @@ module.exports = {
     // Origin 驗證
     validateOrigin,
     socketOriginMiddleware,
+
+    // WWW / Socket safety
+    safeSocketHandler,
+    createRateLimitReject,
 
     // 日誌
     sanitizeLogData,

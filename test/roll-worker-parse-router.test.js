@@ -108,7 +108,44 @@ describe('roll-worker parse-router', () => {
 		expect(result.text).not.toContain('SYSTEM_BUSY');
 	});
 
-	it('returns i18n busy text for non-Discord when worker errors', async () => {
+	it('Phase 3q: Telegram falls back to local on worker error (no system_busy spam)', async () => {
+		client.isEnabled.mockReturnValue(true);
+		client.parse.mockRejectedValue(new Error('ECONNREFUSED'));
+		analytics.findRollModuleName.mockReturnValue('2-coc');
+
+		const result = await parseRouter.parseInput({
+			inputStr: 'cc 50',
+			botname: 'Telegram',
+			locale: 'zh-tw',
+		});
+
+		expect(analytics.parseInput).toHaveBeenCalled();
+		expect(result.text).toBe('local-ok');
+		expect(result.text).not.toContain('SYSTEM_BUSY');
+	});
+
+	it('Phase 3q: Line falls back to local on needsLocal (no system_busy)', async () => {
+		client.isEnabled.mockReturnValue(true);
+		client.parse.mockResolvedValue({
+			needsLocal: true,
+			moduleName: 'token',
+			LevelUp: '',
+			statue: '',
+		});
+		analytics.findRollModuleName.mockReturnValue('0-advroll');
+
+		const result = await parseRouter.parseInput({
+			inputStr: '1d3',
+			botname: 'Line',
+			locale: 'zh-tw',
+		});
+
+		expect(analytics.parseInput).toHaveBeenCalled();
+		expect(result.text).toBe('local-ok');
+		expect(result.text).not.toContain('SYSTEM_BUSY');
+	});
+
+	it('opt-out: allowLocalFallback false still returns system_busy', async () => {
 		client.isEnabled.mockReturnValue(true);
 		client.parse.mockRejectedValue(new Error('ECONNREFUSED'));
 
@@ -116,7 +153,7 @@ describe('roll-worker parse-router', () => {
 			inputStr: 'cc 50',
 			botname: 'Telegram',
 			locale: 'zh-tw',
-		});
+		}, { allowLocalFallback: false });
 
 		expect(result.text).toBe('SYSTEM_BUSY_I18N');
 		expect(analytics.parseInput).not.toHaveBeenCalled();

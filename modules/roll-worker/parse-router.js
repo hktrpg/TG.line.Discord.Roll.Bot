@@ -80,13 +80,12 @@ function stripWorkerProof(result) {
  * Route parseInput to Roll Worker or local analytics.
  * @param {object} params - same as analytics.parseInput
  * @param {object} [options]
- * @param {boolean} [options.allowLocalFallback=false] - Discord: fall back to local on worker error / needsLocal
+ * @param {boolean} [options.allowLocalFallback=true] - fall back to local on worker error / needsLocal
  * @param {boolean} [options.keepProof=false] - keep `_rollWorker` markers for tests / ops
  */
 async function parseInput(params = {}, options = {}) {
-	const allowLocalFallback = options.allowLocalFallback === true
-		|| params.botname === 'Discord'
-		|| params.botname === 'Schedule';
+	// Default: always fall back locally so Worker outages do not spam system_busy on TG/Line/etc.
+	const allowLocalFallback = options.allowLocalFallback !== false;
 	const keepProof = options.keepProof === true;
 
 	const mainMsg = typeof params.inputStr === 'string'

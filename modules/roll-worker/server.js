@@ -85,7 +85,13 @@ function createRollWorkerApp(options = {}) {
 
 			if (result?.needsLocal) {
 				stats.needsLocalCount += 1;
-				return res.status(503).json({ needsLocal: true, moduleName: result.moduleName || moduleName });
+				return res.status(503).json({
+					needsLocal: true,
+					moduleName: result.moduleName || moduleName,
+					// EXPUP may already have run on the worker before needsLocal.
+					LevelUp: result.LevelUp || '',
+					statue: result.statue || '',
+				});
 			}
 
 			stats.parseCount += 1;

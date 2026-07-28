@@ -67,7 +67,13 @@ async function parse(params) {
 	);
 
 	if (response.status === 503 && response.data?.needsLocal) {
-		return { needsLocal: true };
+		return {
+			needsLocal: true,
+			moduleName: response.data.moduleName || undefined,
+			// Preserve worker EXPUP side-effects for gateway merge / fallback.
+			LevelUp: response.data.LevelUp || '',
+			statue: response.data.statue || '',
+		};
 	}
 	if (response.status < 200 || response.status >= 300) {
 		const message = response.data?.error || `Roll worker HTTP ${response.status}`;

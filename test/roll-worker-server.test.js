@@ -85,7 +85,12 @@ describe('roll-worker HTTP server', () => {
 	it('POST /v1/parse returns needsLocal when analytics asks for it (nested)', async () => {
 		const analytics = require('../modules/analytics');
 		analytics.findRollModuleName.mockReturnValueOnce('z_admin');
-		analytics.parseInput.mockResolvedValueOnce({ needsLocal: true, moduleName: 'z_admin' });
+		analytics.parseInput.mockResolvedValueOnce({
+			needsLocal: true,
+			moduleName: 'z_admin',
+			LevelUp: 'LV UP!',
+			statue: '★',
+		});
 		const res = await httpJson(port, 'POST', '/v1/parse', {
 			inputStr: '.admin clusterhealth',
 			botname: 'Discord',
@@ -93,6 +98,9 @@ describe('roll-worker HTTP server', () => {
 		});
 		expect(res.status).toBe(503);
 		expect(res.body.needsLocal).toBe(true);
+		expect(res.body.LevelUp).toBe('LV UP!');
+		expect(res.body.statue).toBe('★');
+		expect(res.body.moduleName).toBe('z_admin');
 	});
 
 	it('POST /v1/parse allows Discord token module through to analytics (Phase 3)', async () => {

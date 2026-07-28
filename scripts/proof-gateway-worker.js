@@ -755,7 +755,50 @@ async function main() {
 			console.log('[proof] PASS needsLocal LevelUp contract (Phase 3o)');
 		}
 
-		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3o)');
+		// 30) Phase 3p: client.parse keeps LevelUp keys on real 503 needsLocal
+		{
+			pinGatewayWorkerUrl();
+			const result = await client.parse({
+				inputStr: '.token ProofHero',
+				botname: 'Discord',
+				userid: 'u-proof-3p',
+				groupid: 'g-proof-3p',
+				locale: 'zh-tw',
+			});
+			assert(result.needsLocal === true, 'token make needsLocal', result);
+			assert(Object.hasOwn(result, 'LevelUp'), 'needsLocal has LevelUp key', result);
+			assert(Object.hasOwn(result, 'statue'), 'needsLocal has statue key', result);
+			assert(typeof result.LevelUp === 'string', 'LevelUp is string', result);
+			console.log('[proof] PASS client preserves needsLocal LevelUp keys (Phase 3p)');
+		}
+
+		// 31) Phase 3q: Telegram local fallback when worker URL is dead (no system_busy)
+		{
+			const prevUrl = process.env.ROLL_WORKER_URL;
+			process.env.ROLL_WORKER_URL = 'http://127.0.0.1:1';
+			// Clear require cache so client re-reads URL.
+			const clientPath = require.resolve('../modules/roll-worker/client');
+			const routerPath = require.resolve('../modules/roll-worker/parse-router');
+			delete require.cache[clientPath];
+			delete require.cache[routerPath];
+			const parseRouterDead = require('../modules/roll-worker/parse-router');
+			const result = await parseRouterDead.parseInput({
+				inputStr: '1d3',
+				botname: 'Telegram',
+				locale: 'zh-tw',
+			}, { keepProof: true });
+			assert(result._rollWorker === false, 'dead worker Telegram falls local', result);
+			assert(String(result.text || '').length > 0, 'local dice text', result);
+			assert(!/忙碌|busy|SYSTEM_BUSY|system_busy/i.test(String(result.text || '')), 'no system_busy spam', result.text);
+			process.env.ROLL_WORKER_URL = prevUrl;
+			delete require.cache[clientPath];
+			delete require.cache[routerPath];
+			pinGatewayWorkerUrl();
+			require('../modules/roll-worker/client');
+			console.log('[proof] PASS Telegram dead-worker local fallback (Phase 3q)');
+		}
+
+		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3q)');
 		process.exitCode = 0;
 	} catch (error) {
 		console.error('[proof] ERROR', error.message || error);
